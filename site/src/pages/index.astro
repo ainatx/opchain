@@ -2,6 +2,7 @@
 import { REPO_SITE } from "../lib/repo";
 import Base from "../layouts/Base.astro";
 import Logo from "../components/Logo.astro";
+import VersionBadge from "../components/VersionBadge.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
 import Button from "../components/ui/Button.astro";
 import Icon from "../components/Icon.astro";
@@ -56,7 +57,7 @@ const softwareLd = {
 
     <div class="intro-hero">
       <Logo size={88} />
-      <h1 class="intro-mark">opchain</h1>
+      <h1 class="intro-mark">opchain <VersionBadge size="hero" /></h1>
     </div>
 
     <p class="intro-claim">skills that ship.</p>
@@ -246,6 +247,9 @@ const softwareLd = {
     line-height: 1;
     color: var(--text);
     margin: 0;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.45em;
   }
 
   .intro-claim {

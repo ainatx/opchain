@@ -1,5 +1,6 @@
 ---
 import Logo from "./Logo.astro";
+import VersionBadge from "./VersionBadge.astro";
 import ThemeToggle from "./ThemeToggle.astro";
 import SearchPalette from "./SearchPalette.astro";
 import Icon from "./Icon.astro";
@@ -86,6 +87,7 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     <a class="site-header-brand" href="/" aria-label="opchain home">
       <Logo size={28} />
       <span class="logo">opchain</span>
+      <VersionBadge size="xs" class="brand-badge" />
     </a>
 
     <nav class="nav" aria-label="Primary">
@@ -419,6 +421,8 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     margin-right: auto;
   }
   .site-header-brand:hover { color: var(--text); }
+  /* badge sits closer to the wordmark than the icon does */
+  .site-header-brand :global(.brand-badge) { margin-left: -0.15rem; }
   .logo {
     font-family: var(--font-display);
     font-weight: var(--wordmark-weight);
