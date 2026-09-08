@@ -3,9 +3,13 @@
 // architecture-diagram refactor. This is a DELIBERATELY SIMPLIFIED view:
 // it draws 23 of the catalog's 33 skills — the spine plus the branches
 // that carry the pipeline story — so "in sync with the live diagrams"
-// means the STORY is current, not that every skill appears. Last brought
-// current to v1.9 ("Assurance and governed delivery ops"); what is left
-// out on purpose is listed below.
+// means the STORY is current, not that every skill appears. Brought current
+// to v1.9 ("Assurance and governed delivery ops") plus the
+// PLANNED v2.0 learning row ("The self-improving pipeline"), which has NOT
+// shipped: there is no skills/oc-hindsight or skills/oc-evolve in the catalog,
+// which is still 33 skills at 1.9.0. Planned nodes are drawn dashed and are
+// deliberately NOT wrapped in a /skills/<id> link, because those pages do not
+// exist. What is left out on purpose is listed below.
 /**
  * Pipeline diagram — structured SVG of how the opchain skills chain,
  * from oc-reverse-spec through the post-deploy monitoring + migration loop.
@@ -30,6 +34,7 @@
  *     y=240        PR gate (v1.8) + the self-managed deploy peer (v1.7)
  *     y=325        deploy gate + build side chain
  *     y=400        assurance band (v1.9) — cross-cutting, not a phase
+ *     y=470        learning row (v2.0, PLANNED) — the self-improvement loop
  *
  * Left out on purpose, to keep this a story rather than a catalog:
  * oc-bug-check, oc-release-ops, oc-modularize-ops, oc-api-dev,
@@ -47,7 +52,9 @@ type Node = {
   kind:
     | "spine" | "plan" | "dash" | "advisory"
     | "gate" | "side" | "foundation"
-    | "assurance";
+    | "assurance" | "learning";
+  /** Planned, not shipped: drawn dashed and rendered without a /skills link. */
+  planned?: boolean;
 };
 
 const W = 64;
@@ -99,6 +106,21 @@ const nodes: Node[] = [
   { id: "oc-data-ops",           label: "oc-data-ops",           x: 353, y: 400, w: 84,  kind: "assurance" },
   { id: "oc-compliance-ops",     label: "oc-compliance-ops",     x: 503, y: 400, w: 120, kind: "assurance" },
   { id: "oc-security-hardening", label: "oc-security-hardening", x: 730, y: 400, w: 140, kind: "assurance" },
+
+  // Learning row (v2.0) — PLANNED, nothing here is in the catalog. The loop:
+  // wire 1.2 accumulates every run's eval scores, the Outcome Scorecard kit
+  // turns the accumulation into a decaying directive, oc-hindsight turns
+  // committed outcomes into promotable lessons, and oc-evolve turns recurring
+  // failures into adoptable rules. Only what a human promotes or adopts is
+  // re-injected. The row is chained internally and carries no cross-row edges
+  // on purpose: every routable path from the spine to y=470 would cross the
+  // y=325 or y=400 rows, and this file has no gutter routing. The attachments
+  // (emitters, oc-prompt-ops, oc-git-ops, oc-release-ops) are stated in <desc>
+  // and drawn in full on /architecture's learning rail.
+  { id: "wire-1-2",      label: "wire 1.2",      x: 60,  y: 470, w: 96,  kind: "learning", planned: true },
+  { id: "scorecard-kit", label: "scorecard kit", x: 216, y: 470, w: 112, kind: "learning", planned: true },
+  { id: "oc-hindsight",  label: "oc-hindsight",  x: 388, y: 470, w: 100, kind: "learning", planned: true },
+  { id: "oc-evolve",     label: "oc-evolve",     x: 548, y: 470, w: 88,  kind: "learning", planned: true },
 ];
 
 // Helper to find a node by id
@@ -174,6 +196,12 @@ const edges: Edge[] = [
   // is created: the catalog still advertises three audit gates.
   { from: "oc-compliance-ops",     to: "oc-deploy-ops", shape: "dotted", fromSide: "t", toSide: "b", curve: "elbow" },
   { from: "oc-security-hardening", to: "oc-deploy-ops", shape: "dotted", fromSide: "t", toSide: "b", curve: "elbow" },
+
+  // v2.0 learning row (PLANNED) — the accumulation chain, drawn straight so it
+  // cannot cross the rows above it.
+  { from: "wire-1-2",      to: "scorecard-kit", shape: "arrow", fromSide: "r", toSide: "l" },
+  { from: "scorecard-kit", to: "oc-hindsight",  shape: "arrow", fromSide: "r", toSide: "l" },
+  { from: "oc-hindsight",  to: "oc-evolve",     shape: "arrow", fromSide: "r", toSide: "l" },
 ];
 
 function edgePath(e: Edge): string {
@@ -221,7 +249,7 @@ const phaseLabels = [
 
 <figure class="pipeline" aria-label="opchain pipeline diagram">
   <svg
-    viewBox="0 0 980 465"
+    viewBox="0 0 980 545"
     xmlns="http://www.w3.org/2000/svg"
     class="pipeline-svg"
   >
@@ -251,7 +279,15 @@ const phaseLabels = [
       oc-security-auditor assesses and hands its findings to oc-compliance-ops
       and to oc-security-hardening, which executes the fixes. Those last two
       each add a conditional row to oc-deploy-ops' existing audit gate — no new
-      gate.
+      gate. The bottom row is the PLANNED v2.0 learning loop and has not
+      shipped: checkpoint wire 1.2 accumulates every run's eval scores into
+      .checkpoints/history, the Outcome Scorecard kit turns that accumulation
+      into a decaying directive, oc-hindsight harvests committed outcomes from
+      oc-app-architect, oc-code-auditor, oc-monitoring-ops and oc-bug-check into
+      promotable lessons, and oc-evolve turns recurring failures into rules
+      proven by oc-prompt-ops regressions and graduated upstream through
+      oc-git-ops and oc-release-ops. Both end at a human gate, which is not an
+      audit gate.
     </desc>
 
     <!-- Arrow + dot defs -->
@@ -271,6 +307,10 @@ const phaseLabels = [
       <text x={p.x} y={100} class="lane-label">{p.label}</text>
     ))}
 
+    <!-- Planned-row label. The phaseLabels row above is pinned to y=100; this
+         one belongs to the v2.0 row and says plainly that it has not shipped. -->
+    <text x={60} y={458} class="lane-label lane-label--planned">v2.0 · planned — not in the catalog</text>
+
     <!-- Edges drawn first so node boxes sit on top -->
     {edges.map((e) => (
       <path
@@ -282,8 +322,10 @@ const phaseLabels = [
     ))}
 
     <!-- Nodes -->
-    {nodes.map((node) => (
-      <a href={`/skills/${node.id}`} class="node-link">
+    {nodes.map((node) => {
+      // Planned nodes have no /skills/<id> page yet, so they render as a plain
+      // <g> rather than a link into a 404.
+      const box = (
         <g class:list={["node", `node-${node.kind}`]}>
           <rect
             x={node.x}
@@ -299,8 +341,11 @@ const phaseLabels = [
             text-anchor="middle"
           >{node.label}</text>
         </g>
-      </a>
-    ))}
+      );
+      return node.planned ? box : (
+        <a href={`/skills/${node.id}`} class="node-link">{box}</a>
+      );
+    })}
   </svg>
 
   <ul class="legend" aria-label="Legend">
@@ -308,6 +353,7 @@ const phaseLabels = [
     <li><span class="swatch swatch-plan"></span> invoked from oc-app-architect</li>
     <li><span class="swatch swatch-gate"></span> quality gate (PR + deploy)</li>
     <li><span class="swatch swatch-assurance"></span> assurance band (v1.9)</li>
+    <li><span class="swatch swatch-learning"></span> learning loop (v2.0 — planned, not shipped)</li>
     <li><span class="swatch swatch-side"></span> side chain</li>
     <li><span class="swatch swatch-foundation"></span> foundation (checkpoint + orchestrator)</li>
     <li><span class="swatch swatch-dotted"></span> advisory / dotted = non-blocking</li>
@@ -323,6 +369,9 @@ const phaseLabels = [
        copy. Light value is darkened to clear 3:1 non-text contrast on
        the white --card. */
     --assure: #fbbf24;
+    /* v2.0 learning accent — the same iris /architecture scopes to .arch-v2,
+       carried here because there is no global one. */
+    --learn: #a5b4fc;
     margin: 1.25rem 0 0;
     max-width: 100%;
     overflow-x: auto;
@@ -392,7 +441,14 @@ const phaseLabels = [
 
   .node-assurance rect  { stroke: var(--assure); fill: var(--card); }
   .node-assurance text  { fill: var(--text); font-weight: 600; }
-  :global([data-theme="light"]) .pipeline { --assure: #8a6508; }
+  :global([data-theme="light"]) .pipeline { --assure: #8a6508; --learn: #3730a3; }
+
+  /* v2.0 learning row — planned, so dashed. Iris accent, matching
+     /architecture's --learn; the light value is darkened to clear contrast
+     on the parchment card. */
+  .node-learning rect   { stroke: var(--learn); fill: var(--card); stroke-dasharray: 4 3; }
+  .node-learning text   { fill: var(--muted); }
+  .lane-label--planned  { fill: var(--learn); letter-spacing: 0.14em; }
   .node-foundation rect { stroke: var(--slag); fill: var(--ribbon); stroke-dasharray: 4 2; }
   .node-foundation text { fill: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; font-size: 9px; }
 
@@ -430,6 +486,7 @@ const phaseLabels = [
   .swatch-gate       { background: var(--card);    border: 1px solid var(--warning, var(--accent)); }
   .swatch-side       { background: var(--card);    border: 1px solid var(--border); }
   .swatch-assurance  { background: var(--card);    border: 1px solid var(--assure); }
+  .swatch-learning   { background: var(--card);    border: 1px dashed var(--learn); }
   .swatch-foundation { background: var(--ribbon);  border: 1px dashed var(--slag); }
   .swatch-dotted     {
     background: transparent;

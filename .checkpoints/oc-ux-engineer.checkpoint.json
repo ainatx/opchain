@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:42:00Z",
-  "updated_at": "2026-08-26T15:49:15.609Z",
+  "updated_at": "2026-09-08T03:30:24Z",
   "phase": "design-iteration",
-  "step": "v1.5-gtm-surfaces-shipped-and-live",
+  "step": "architecture-v2.0-learning-rail",
   "status": "complete",
-  "progress_summary": "v1.5.0 shipped + live (2026-06-22). The v1.5 GTM/site surfaces all landed and deployed: /ai-recipes (3 multi-skill walkthroughs), /for-agencies, /blog (content collection + index + post route + hand-rolled RSS + 2 launch posts), the footer newsletter panel (→ /api/notify, flag on), the /compare 'Build AI apps' row, /pipeline-builder 'AI app?' branch, and per-skill OG cards for the four AI-native skills (Sprints 4 + deferred tail, PRs #309/#316). Round 6 (the /changelog Option C v2 3-tab layout) also shipped, then was promoted in the v1.5 release cut (PR #311): v1.5 moved to 'Just Released', v1.4.3 demoted, 'Coming Next' → a v1.6 pointer; the e2e spec was updated for the shipped layout. HISTORY: Round 6 (PR open, deploy pending): reworked /changelog from the Option C v3 two-tab layout into Option C v2 — three full-width ARIA tabs (Just Released / Coming Next / Planned) with per-tab colour identity (accent / slate-info / a scoped violet token defined light+dark for AA). Coming Next now leads with just the v1.5 hero; v1.6 roadmap, the v1.7 distribution-theme vote (a live relative bar chart wired to real votes OPC-170/173/174), and an 8-item horizon backlog (OPC-18x) moved into the new Planned tab. Kept the real /api/votes wiring (batched GET + per-click POST + localStorage), the a11y tablist with hidden panels (NOT the preview's CSS slide), 46px vote targets (the preview's tiny backlog buttons would fail WCAG 2.5.8), and deep links (#v1-5 → Coming Next, #v1-6/#v1-7 → Planned, #v1-4 → /coverage). Tab bar deliberately non-sticky — the global Header already is. e2e spec rewritten for the 3-tab DOM; astro check 0 errors, astro build 35 pages, vitest 345/345. Also closed three v1.4.3 single-platform copy stragglers (skills/[id] quick hint + footer CTA, pipeline-builder generated snippet) to mention Codex / the hosted MCP endpoint. Five rounds of UI work merged. Round 1: 5 mobile-demo direction previews → Direction A picked → production MobileWorkbench. Round 2: mobile architecture diagram (vertical stack, no JS, dark default). Round 3: replaced page-summary + OnboardingTour with one-step WelcomePopup, full-bleed workbench, top-right feedback pill, skill detail TOC restyle. Round 4 (PR #213): navigation overhaul — homepage redesign (release double-pill, cinema banner with 12-dot rotator, 4-up resources strip with new Skills tile, phase grid removed), Header restructure into grouped Product/Pipeline/Resources dropdowns, install primary-CTA pill, right-cluster (search input + version chip + feedback text-label + theme), new global ⌘K SearchPalette component. Round 5 (PR #223): /changelog roadmap timeline (vertical Shipped → In progress → Planned → Backlog) backed by a build-time Linear pull (gen-roadmap.mjs filters issues by `roadmap-visible` label), per-item vote buttons (WCAG 2.5.8 compliant 52×48 click targets) with optimistic-update + localStorage mirror, and a Linear-connected feature-request form (title + category + optional email + description) that POSTs to /api/feedback with category to flip the worker into community-submission mode.",
+  "progress_summary": "Designed and shipped the v2.0 'learning rail' on /architecture, following docs/runbooks/architecture-diagram-cycle.md. Ground truth first: v2.0 is NOT in the repo — no skills/oc-hindsight, no skills/oc-evolve, no scripts/scorecard.mjs anywhere on origin/main or in any worktree; the catalog is 33 skills at 1.9.0 on checkpoint wire 1.1. Only the plan (docs/releases/2.0-plan.md) and the sprint plan exist. So the rail is drawn as a forward surface badged PLANNED, exactly as the sprint plan schedules it (F6, Sprint 5), and no count, eyebrow or footer moved — those flip at the cut with Header CURRENT_RELEASE. The rail draws the loop rather than a row of boxes: wire 1.2 -> Outcome Scorecard kit -> oc-hindsight -> oc-evolve, with the two star human gates sitting ON the re-inject bus that returns to the substrate. The kit is drawn without CP/ORC chips because it is a kit, not a skill; the star gates are labelled as human gates so the audit-gate count stays 3. Accent chosen by measurement: iris #a5b4fc, DeltaE 25.7 from its nearest neighbour, 8.93:1 on obsidian, light counterpart #3730a3 at 8.01:1 on the parchment card — non-warm, per the owner's no-gold/orange steer. Also fixed a pre-existing theme-token leak: rail anchor cards are <a>, so they inherited the site's theme-aware link colour into a dark-only diagram.",
   "progress_table": [
     {
       "id": "previews",
@@ -149,9 +149,9 @@
   },
   "blockers": [],
   "next_actions": [
-    "Site surface pass 2026-08-25 (docs/plans/2026-08-25-site-surface-pass.md): worst UX offenders are /dashboard's foreign token vocabulary (light theme ~unreadable), undefined --dim var in 5 files, three divergent danger reds, missing aria-live on 5 status regions, and focus-trap/dialog gaps in WelcomePopup + CaptureModal. Fix as the D5/D6 sweep.",
-    "No ux-engineer work pending — all v1.5 GTM/site surfaces shipped + live (/ai-recipes, /blog +RSS, /for-agencies, newsletter, /compare AI row, /pipeline-builder AI branch, per-skill OG cards) and the /changelog Option C v2 layout shipped + promoted in the v1.5 release cut.",
-    "Open polish backlog (non-blocking): wire the header version chip status-dot to live /api/health; add a /sitemap route (Resources dropdown omits it until it exists)."
+    "Open the PR for the learning rail; do not deploy — v2.0 has not shipped and the diagram claims nothing new about production.",
+    "At the v2.0 cut: flip the eyebrow/footer/mobile-eyebrow with Header CURRENT_RELEASE, swap PLANNED badges for NEW v2.0, move counts 33->35, tri-agent 9->11, commands 12->14, wire 1.1->1.2, and link the two anchor cards at /skills/oc-hindsight and /skills/oc-evolve once those pages exist.",
+    "Follow up separately on the 1024px header overflow (.right-cluster) — affects every page."
   ],
   "skill_state": {
     "directions_shipped_for_evaluation": [
@@ -218,6 +218,52 @@
           "PipelineDiagram (delete/park)"
         ]
       }
+    },
+    "architecture_v20": {
+      "runbook": "docs/runbooks/architecture-diagram-cycle.md",
+      "premise_correction": "v2.0 is planned, not in the repo — the rail says so on its face",
+      "accent": {
+        "token": "--learn",
+        "dark": "#a5b4fc",
+        "light": "#3730a3",
+        "min_deltaE": 25.7,
+        "contrast_obsidian": 8.93,
+        "contrast_parchment_light": 8.01
+      },
+      "surfaces_touched": [
+        "site/src/pages/architecture.astro",
+        "site/src/components/MobileArchitecture.astro",
+        "site/src/components/PipelineDiagram.astro",
+        "scripts/audit-diagram-geometry.mjs"
+      ],
+      "surfaces_deliberately_untouched": [
+        "eyebrow/footer/mobile-eyebrow (live-claim, bound to Header CURRENT_RELEASE)",
+        "install.astro + compare.astro counts",
+        "changelog.astro v1.9 record"
+      ],
+      "geometry_baseline": {
+        "was": 16,
+        "now": 17,
+        "delta": "asymmetric-row-margins on the new rail — it reuses the AI/BUILD 14/20 margin convention; enumerated in the auditor header"
+      },
+      "verification": {
+        "astro_check": "0 errors / 0 warnings",
+        "vitest": "43 files / 579 tests",
+        "playwright": "diagram-geometry + routes 33/33, Axe zero violations on /architecture",
+        "viewports": [
+          390,
+          767,
+          768,
+          1024,
+          1280,
+          1440
+        ],
+        "themes": "desktop dark-only holds; mobile re-themes",
+        "reduced_motion": "0 running animations",
+        "canvas": "ink present and survives resize at every desktop width"
+      },
+      "fixed_in_passing": "theme-token leak on .irail/.qrail/.arail/.lrail anchor cards (inherited var(--accent), which shifts #e05c18 -> #d95010 in light theme)",
+      "reported_not_fixed": "site header .right-cluster overflows the viewport at 1024px on every page (pristine main does it too) — a header bug, out of this runbook's surfaces"
     }
   }
 }
