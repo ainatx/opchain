@@ -186,11 +186,21 @@ function parseBlock(block) {
   return { rects, texts, lineEls, polylines, circles };
 }
 
+// The diagram's arrowhead palette. This table MODELS the marker <defs>; when the
+// diagram is recoloured, update it in the same commit or every marker check turns
+// into a false positive (a recolour to the 2.0 set produced 38 of them at once).
+// Values below are the 2.0 "Slate & Emerald" set — see
+// design-previews/color-2.0-tooling/tokens-2.0.css.
 const MARKER_COLOUR = {
-  'ah-success': '#0d9488', 'ah-success-sm': '#0d9488', 'ah-ember': '#e05c18', 'ah-ember-rev': '#e05c18',
-  'ah-ember-sm': '#e05c18', 'ah-ember-sm-rev': '#e05c18', 'ah-sand': '#c4b89e', 'ah-sand-rev': '#c4b89e',
-  'ah-error': '#ef4444', 'ah-docs': '#38bdf8', 'ah-docs-rev': '#38bdf8', 'cp-sync-end': '#e05c18',
-  'cp-sync-start': '#e05c18', 'orch-rt-end': '#e05c18',
+  'ah-success': '#02fdff', 'ah-success-sm': '#02fdff', 'ah-accent': '#2be179', 'ah-accent-rev': '#2be179',
+  'ah-accent-sm': '#2be179', 'ah-accent-sm-rev': '#2be179', 'ah-muted': '#a5bcd1', 'ah-muted-rev': '#a5bcd1',
+  'ah-error': '#d58f8f', 'ah-docs': '#86c1d9', 'ah-docs-rev': '#86c1d9', 'cp-sync-end': '#2be179',
+  'cp-sync-start': '#2be179', 'orch-rt-end': '#2be179',
+  'ah-sig': '#d79fe9', 'ah-sig-sm': '#d79fe9', 'ah-sig-sm-rev': '#d79fe9',
+  'ah-learn': '#8cb9fc', 'ah-v20-accent': '#2be179', 'ah-v20-muted': '#a5bcd1',
+  'ma-ah-accent': '#2be179', 'ma-ah-accent-rev': '#2be179', 'ma-ah-muted': '#a5bcd1',
+  'ma-ah-specialist': '#02fdff', 'ma-ah-rose': '#fb5998', 'ma-ah-violet': '#a384fe',
+  'ma-ah-sig': '#d79fe9', 'ma-ah-docs': '#86c1d9', 'ma-ah-learn': '#8cb9fc',
 };
 
 function analyze(block, file) {
