@@ -239,8 +239,8 @@ ${header("/architecture")}
   <div class="page-head"><span class="eyebrow">architecture</span><h1>opchain skills ecosystem</h1>
     <p class="lede">Checkpoint-driven pipeline of 35 skills across 6 phases — how skills chain through <code>.checkpoints/&lt;skill&gt;.checkpoint.json</code>, and, in 2.0, how what they learn flows back.</p></div>
   <div class="diagram-ph" role="img" aria-label="Architecture diagram placeholder">
-    <span class="diagram-ph-k">diagram · separate workstream</span>
-    <p>The redrawn 2.0 architecture diagram is being produced in another chat and merges here when complete. It will add the three learning layers beneath the existing six-phase spine.</p>
+    <span class="diagram-ph-k">diagram · landed in PR #487</span>
+    <p>The v2.0 learning rail shipped in PR #487 and is merged into this branch, drawn directly in the Slate &amp; Emerald palette. This mockup does not embed the SVG; the real page renders it here. Note the rail is badged <em>v2.0 · planned</em> until the release cut flips it.</p>
     <div class="diagram-ph-spine">${["rev-spec", "app-architect", "git-ops", "release-ops", "deploy-ops", "monitoring-ops"].map((s, i) => `<span class="sp-node">${i + 1} ${s}</span>`).join('<span class="sp-arrow">›</span>')}</div>
     <div class="diagram-ph-layers"><span>L1 wire 1.2 · history</span><span>L2 scorecard · hindsight store</span><span>L3 oc-hindsight · oc-evolve · ★</span></div>
   </div>

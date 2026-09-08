@@ -1,6 +1,6 @@
 # 2.0 recolour — migration surface
 
-Every colour literal in the site that bypasses the token layer (raw hex / rgb(a), a 1.x brand constant like `var(--ember)` or `var(--obsidian)`, or a stale `var(--x, #hex)` fallback), found by a first pass and then re-checked file-by-file by an adversarial verifier. Paths are relative to the worktree root; line numbers are against the current tree. 35 files were catalogued (34 carry at least one literal; `site/src/data/walkthroughs/runtime-pm-loop.ts` is clean). Total: **1,848 literals** — 356 tokenize, 14 light-precomputed, 22 generated-asset, 78 fixed, 1,378 diagram-deferred. Three-quarters of the surface (1,378) is the two architecture diagrams and is replaced wholesale by the architecture workstream; the recolour proper has to touch **392 literals in 30 files**. The single most important finding: the literals that would visibly keep the site orange after the swap are not scattered hex — they are 12 light-mode `var(--ember)` overrides (the "B-10" AA workarounds in `Button.astro`, `Header.astro` ×3, `ConsentBanner.astro`, `WelcomePopup.astro` ×2, `RoadmapForm.astro`, `index.astro` ×2, `DesktopWorkbench.astro`) plus 25 hard-coded obsidian labels on accent fills across 13 files. Both patterns collapse onto the 2.0 sheet's `--on-accent` token (light `--accent` #066a34 on `--on-accent` #ffffff is 6.73:1, so every B-10 override becomes a deletion, not a retint). The first pass invented names for that role four different ways (`--accent-fg`, `--accent-text`, `--accent-ink`, `--accent-contrast`); none exist. Use `--on-accent`.
+Every colour literal in the site that bypasses the token layer (raw hex / rgb(a), a 1.x brand constant like `var(--ember)` or `var(--obsidian)`, or a stale `var(--x, #hex)` fallback), found by a first pass and then re-checked file-by-file by an adversarial verifier. Paths are relative to the worktree root; line numbers are against the current tree. 35 files were catalogued (34 carry at least one literal; `site/src/data/walkthroughs/runtime-pm-loop.ts` is clean). Total: **1,848 literals** — 356 tokenize, 14 light-precomputed, 22 generated-asset, 78 fixed, 1,378 diagram-deferred. Three-quarters of the surface (1,378) is the two architecture diagrams. **Correction (2026-09-08, after PR #487 merged):** the architecture workstream *added* a v2.0 rail; it did not redraw the diagram, so those 1,378 old-palette literals are **not** replaced and must be migrated like everything else — see the addendum at the end. The recolour proper is therefore the full 1,848 minus the 78 fixed, not 392. The single most important finding: the literals that would visibly keep the site orange after the swap are not scattered hex — they are 12 light-mode `var(--ember)` overrides (the "B-10" AA workarounds in `Button.astro`, `Header.astro` ×3, `ConsentBanner.astro`, `WelcomePopup.astro` ×2, `RoadmapForm.astro`, `index.astro` ×2, `DesktopWorkbench.astro`) plus 25 hard-coded obsidian labels on accent fills across 13 files. Both patterns collapse onto the 2.0 sheet's `--on-accent` token (light `--accent` #066a34 on `--on-accent` #ffffff is 6.73:1, so every B-10 override becomes a deletion, not a retint). The first pass invented names for that role four different ways (`--accent-fg`, `--accent-text`, `--accent-ink`, `--accent-contrast`); none exist. Use `--on-accent`.
 
 ## By classification
 
@@ -494,7 +494,7 @@ Sorted by (tokenize + light-precomputed + generated-asset) descending — the fi
 5. **The code-panel four** (`CodeBlock.astro`, `install.astro`, `security.astro`, `pipeline-builder.astro`) after the decision in item 8 — one decision, sixteen lines.
 6. **`gen-og-images.mjs`** once the accent hex is final and the lockup pick is in, then regenerate all OG PNGs in one commit.
 7. **Long tail** (`status`, `compare`, `showcase`, `changelog`, `skills/index`, `skills/[id]`, `styleguide`, `PipelineDiagram`): mechanical; `skills/index.astro:389–395` needs the seven light pill hexes recomputed from the 2.0 light `--surface` and role tokens; `styleguide.astro` should render chips from `var(${c.token})` (line 129) so the swatch page can never drift again.
-8. **Wait for the architecture workstream:** `architecture.astro` (827 deferred + 176 tokenize) and `MobileArchitecture.astro` (551 deferred). The 176 tokenize rows in `architecture.astro` are the page chrome *around* the diagram (header, legend, cards, rails, pack-fabric band); they are real and migratable, but the whole page is being rebuilt, so do not spend effort on them unless the rebuild slips past the recolour ship date. Hand the workstream the four diagram-only roles (violet/magenta/pink/lime) and the `--card`-not-`--text` light-fill correction.
+8. **The architecture pages — no longer deferred.** PR #487 added the v2.0 learning rail (already in the 2.0 palette) but left the existing v1.x diagram untouched, so `architecture.astro` (827 diagram + 176 chrome) and `MobileArchitecture.astro` (551) are ordinary migration work: the Forge-archetype fills, glow filters and per-rail chrome must be retinted to the 2.0 sheet or the page ships half-Forge, half-Slate. Use the four diagram-only roles (violet/magenta/pink/lime) and the `--card`-not-`--text` light-fill correction noted in the tables. This is the largest single item in the plan; schedule it as its own PR.
 
 Genuinely ambiguous literals (name the decision, do not guess):
 
@@ -514,3 +514,36 @@ The verifier found gaps in **18 of 35 files** (verdict `gaps-found`): `architect
 6. **Regex blind spots.** The hex/rgba/brand-var scan does not see JS template interpolation, undefined `var()` references with no fallback, or JS-set inline styles unless they carry a literal fallback (dashboard's live fallbacks were caught only because the fallback hex was present). Grep separately for `var(--` names that are not defined anywhere.
 7. **Prose-adjacent inline styles filed with the diagram.** Seven inline `style` colours in the `.cards` prose section below the architecture diagram (`architecture.astro:1309–1370`) were marked diagram-deferred; anything outside the `<svg>`/canvas that lives in a diagram-heavy file needs a second look.
 8. **Inconsistent classification of the same pattern across files.** The `#993505` light eyebrow override is `light-precomputed` in `DesktopWorkbench`/`demo` but `tokenize` in `MobileWorkbench`/`WelcomePopup`; the action (delete the override) is the same, but the split is why the light-precomputed count reads 14 rather than 19.
+
+
+## Addendum — after PR #487 (2026-09-08)
+
+The tables above were measured on commit `93cadc7`, before the architecture
+workstream landed. PR #487 (`claude/architecture-diagram-v2-12d404`, merged
+into this branch as `0877228`) changes the picture in two ways:
+
+1. **It is purely additive.** Zero existing colour lines are removed or
+   retinted in `architecture.astro`, `MobileArchitecture.astro` or
+   `PipelineDiagram.astro`. The 1,378 literals classified `diagram-deferred`
+   above therefore stay on the page and are **real migration work**, not
+   someone else's. The "replaced wholesale" assumption in the intro and in
+   order-of-work item 8 was wrong and is corrected in place.
+2. **It adds ~200 literals that are already the 2.0 palette.** The rail is
+   drawn in set 34 by hex: every one of its 14 distinct palette values is
+   byte-for-byte a `tokens-2.0.css` token (`#8cb9fc` ×60 = `--secondary`,
+   `#a5bcd1` ×40 = `--muted`, `#12191f` ×27 = `--bg`, `#2be179` ×23 =
+   `--accent`, `#ebfe00` ×22 = `--tri-agent`, `#d4e2ef` ×11 = `--text`,
+   `#02fdff` ×6 = `--specialist`, `#a384fe` ×4 = `--orchestrator`, plus six
+   light-mode values). Once the sheet lands these are a mechanical
+   literal→`var()` swap with no visual change — a new class, call it
+   **already-2.0**, that the classifier above does not have. Five further
+   hexes in the PR are not palette values and need no action: `#efe6d4` (the
+   current light card, ×2), `#e05c18`/`#d95010` (a theme-leak pin the PR
+   fixes), `#1c1710` (the obsidian page ground), `#8a6508` (the v1.9 assure
+   rail's light value).
+
+Net effect on the numbers: tokenize rises from 356 to roughly **1,730**
+(356 + 1,378 formerly deferred − the handful of prose-adjacent rows already
+counted), plus ~200 already-2.0 swaps. The architecture pages become the
+largest single migration item and should be their own PR, after the shared
+chrome and before the OG regeneration.
