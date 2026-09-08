@@ -1287,12 +1287,10 @@ const plannedReleaseGroups = [
     /* Scoped violet identity for the Planned tab — the global theme has no
        --purple. Defined on .page so it cascades to the tab pill, plan-cards,
        and bars; overridden for the light theme below to stay AA. */
-    --cl-violet: #b29adf;
-    --cl-violet-dim: rgba(178, 154, 223, 0.14);
+    --cl-violet: var(--tertiary);
+    --cl-violet-dim: var(--tertiary-dim);
   }
   :global([data-theme="light"]) .page {
-    --cl-violet: #6d28d9;
-    --cl-violet-dim: rgba(109, 40, 217, 0.10);
   }
   .page-head { margin-bottom: 1.75rem; }
   .eyebrow {
@@ -1367,7 +1365,7 @@ const plannedReleaseGroups = [
     background: var(--accent-dim); border-color: var(--accent); color: var(--text);
   }
   .tab-btn--next[aria-selected="true"] .tab-count {
-    background: var(--info-dim); border-color: var(--info); color: var(--text);
+    background: var(--secondary-dim); border-color: var(--secondary); color: var(--text);
   }
   .tab-btn--planned[aria-selected="true"] .tab-count {
     background: var(--cl-violet-dim); border-color: var(--cl-violet); color: var(--text);
@@ -1381,7 +1379,7 @@ const plannedReleaseGroups = [
     border-radius: 1px;
     transition: left var(--dur-base) var(--ease-standard), width var(--dur-base) var(--ease-standard);
   }
-  .tab-indicator[data-active="1"] { background: var(--info); }
+  .tab-indicator[data-active="1"] { background: var(--secondary); }
   .tab-indicator[data-active="2"] { background: var(--cl-violet); }
 
   /* ── Panels ───────────────────────────────────────────── */
@@ -1443,7 +1441,7 @@ const plannedReleaseGroups = [
     color: var(--muted);
     background: var(--surface);
   }
-  .tag--info { color: var(--info); border-color: var(--info); background: var(--info-dim); }
+  .tag--info { color: var(--secondary); border-color: var(--secondary); background: var(--secondary-dim); }
 
   .compat-box {
     margin-top: 1rem;
@@ -1527,7 +1525,7 @@ const plannedReleaseGroups = [
     border-radius: var(--r-xs);
   }
   .ver-pill--past { color: var(--subtle); border: 0.5px solid var(--border); }
-  .ver-pill--next { color: var(--info); border: 0.5px solid var(--info); }
+  .ver-pill--next { color: var(--secondary); border: 0.5px solid var(--secondary); }
 
   /* ── Hero cards ───────────────────────────────────────── */
   .hero-card {
@@ -1542,11 +1540,11 @@ const plannedReleaseGroups = [
   .hero-card::before {
     content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
   }
-  .hero-card--next::before { background: linear-gradient(180deg, var(--info), color-mix(in srgb, var(--info) 35%, transparent)); }
+  .hero-card--next::before { background: linear-gradient(180deg, var(--secondary), color-mix(in srgb, var(--secondary) 35%, transparent)); }
   .hero-card--released::before { background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 35%, transparent)); }
-  .hero-card--next:hover { border-color: color-mix(in srgb, var(--info) 35%, var(--border)); }
+  .hero-card--next:hover { border-color: color-mix(in srgb, var(--secondary) 35%, var(--border)); }
   .hero-card--released:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
-  .hero-card--next.is-open { border-color: var(--info); }
+  .hero-card--next.is-open { border-color: var(--secondary); }
   .hero-card--released.is-open { border-color: var(--accent); }
 
   .hero-head {
@@ -1562,7 +1560,7 @@ const plannedReleaseGroups = [
     padding: 1.4rem 2.9rem 1.4rem 1.5rem;
   }
   .hero-chevron { position: absolute; top: 1.45rem; right: 1.3rem; }
-  .hero-card--next.is-open .hero-chevron { transform: rotate(90deg); background: var(--info-dim); border-color: var(--info); color: var(--info); }
+  .hero-card--next.is-open .hero-chevron { transform: rotate(90deg); background: var(--secondary-dim); border-color: var(--secondary); color: var(--secondary); }
   .hero-card--released.is-open .hero-chevron { transform: rotate(90deg); background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
   .hero-badge {
     display: inline-flex; align-items: center; gap: 0.35rem;
@@ -1576,8 +1574,8 @@ const plannedReleaseGroups = [
      tint, and dot carry the release identity. accent/info text on a faint
      *-dim tint fails Lighthouse color-contrast at 9.5px — same fix the active
      tab-count pill uses. */
-  .hero-card--next .hero-badge { color: var(--text); border: 0.5px solid var(--info); background: var(--info-dim); }
-  .hero-card--next .hero-badge::before { color: var(--info); }
+  .hero-card--next .hero-badge { color: var(--text); border: 0.5px solid var(--secondary); background: var(--secondary-dim); }
+  .hero-card--next .hero-badge::before { color: var(--secondary); }
   .hero-card--released .hero-badge { color: var(--text); border: 0.5px solid var(--accent); background: var(--accent-dim); }
   .hero-card--released .hero-badge::before { color: var(--accent); }
   .hero-ver { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--subtle); margin-bottom: 0.3rem; }
@@ -1603,8 +1601,8 @@ const plannedReleaseGroups = [
   }
   .tile-name { display: block; font-family: var(--font-mono); font-size: 11px; margin-bottom: 0.25rem; }
   .tile-desc { font-size: 12px; color: var(--muted); line-height: var(--lh-snug); margin: 0 !important; }
-  .hero-card--next .tile-name { color: var(--info); }
-  .hero-card--next .tile:hover { border-color: var(--info); }
+  .hero-card--next .tile-name { color: var(--secondary); }
+  .hero-card--next .tile:hover { border-color: var(--secondary); }
   .hero-card--released .tile-name { color: var(--accent); }
   .hero-card--released .tile:hover { border-color: var(--accent); }
 

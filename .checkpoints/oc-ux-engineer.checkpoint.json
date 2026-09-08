@@ -4,9 +4,9 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:42:00Z",
-  "updated_at": "2026-09-08T04:22:34.000Z",
+  "updated_at": "2026-09-08T04:25:26.000Z",
   "phase": "design-iteration",
-  "step": "v2.0-recolour-groups-4-5-code-panels-og",
+  "step": "v2.0-recolour-long-tail-done",
   "status": "in_progress",
   "progress_summary": "v2.0 COLOUR: DECIDED 2026-09-07 \u2014 set 11 Slate & Emerald wins the 34-candidate exploration, shipped as set 34 'Slate & Emerald \u00b7 2.0' = set 11 + the three post-round-2 refinements (info as a real fifth semantic; roles gamut-maxed; semantics muted to half chroma). Finalized token sheet at design-previews/color-2.0-tooling/tokens-2.0.css (drop-in candidate for site/src/styles/tokens.css, non-colour sections spliced verbatim) + TOKENS-2.0.md (decision record, rename map, every token with OKLCH + measured contrast, new tokens and what they replace, trade-offs). NO site code touched yet. A workflow is cataloguing the migration surface \u2014 a census found 1,225 hex + 507 rgba literals + 180 direct brand-constant uses bypassing the token layer (most in the architecture pages, which another chat is redrawing) \u2014 output: MIGRATION-SURFACE.md. Lockup preview for 'opchain 2.0' (3 options) at design-previews/lockup-2.0-options.html, awaiting owner pick. NEXT after the pick: <=5 '2.0 = self-improving pipeline' content blocks (concept on home, specifics deeper) and the functional prototype with ember-boxed highlights; architecture diagram merges from the other workstream. || ARCHITECTURE (PR #487, other chat): Designed and shipped the v2.0 'learning rail' on /architecture, following docs/runbooks/architecture-diagram-cycle.md. Ground truth first: v2.0 is NOT in the repo \u2014 no skills/oc-hindsight, no skills/oc-evolve, no scripts/scorecard.mjs anywhere on origin/main or in any worktree; the catalog is 33 skills at 1.9.0 on checkpoint wire 1.1. Only the plan (docs/releases/2.0-plan.md) and the sprint plan exist. So the rail is drawn as a forward surface badged PLANNED, exactly as the sprint plan schedules it (F6, Sprint 5), and no count, eyebrow or footer moved \u2014 those flip at the cut with Header CURRENT_RELEASE. The rail draws the loop rather than a row of boxes: wire 1.2 -> Outcome Scorecard kit -> oc-hindsight -> oc-evolve, with the two star human gates sitting ON the re-inject bus that returns to the substrate. The kit is drawn without CP/ORC chips because it is a kit, not a skill; the star gates are labelled as human gates so the audit-gate count stays 3. Colour: the rail renders in the finalized 2.0 'Slate & Emerald' token set (design-previews/color-2.0-tooling, set 34) while the rest of the page stays Forge, so the v2.0 surface previews the v2.0 palette. Chrome is that set's --seconda",
   "progress_table": [
@@ -202,8 +202,8 @@
     },
     {
       "id": "v20-recolour-g3",
-      "label": "Recolour groups 3-7: workbenches + demo, code panels (theme-following per decision), gen-og-images (URL text -> --subtle) + OG regen, long tail, architecture pages",
-      "status": "not_started"
+      "label": "Groups 3-7 complete; architecture pages remain (group 8)",
+      "status": "complete"
     },
     {
       "id": "v20-recolour-g3-done",
@@ -213,6 +213,11 @@
     {
       "id": "v20-recolour-g4-5",
       "label": "Recolour groups 4-5 done: code panels theme-following per owner decision (CodeBlock, install, security, pipeline-builder: obsidian/linen/slag -> --bg/--text/--border, lang label -> --subtle); security CTA + pipeline-builder buttons -> --accent/--on-accent; undefined --dim -> --subtle; amber in-progress fallback -> --warning; gen-og-images.mjs on 2.0 dark values with URL text lifted to --subtle per decision; 15 route + 26 blog OG cards regenerated. Gate 7/7",
+      "status": "complete"
+    },
+    {
+      "id": "v20-recolour-longtail",
+      "label": "Recolour long tail done: styleguide brand[] -> 2.0 constants rendered from var(token); status/compare/showcase fallbacks dropped (amber in-progress -> danger/warning); skills/[id] light code panel -> --bg/--border; changelog --cl-violet -> --tertiary and release-next --info -> --secondary; PipelineDiagram --slag -> --border; skills/index checkmark -> --on-accent and the 7 precomputed light pills -> --<role>-pill tokens. Zero old-palette residue outside architecture.astro/MobileArchitecture.astro. Gate 7/7",
       "status": "complete"
     }
   ],
