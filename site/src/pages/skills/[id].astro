@@ -1182,6 +1182,12 @@ const skillLd = {
   .prose :global(code[data-role="advisor"])      { --pill-color: var(--advisor); }
   .prose :global(code[data-role="orchestrator"]) { --pill-color: var(--orchestrator); }
   .prose :global(code[data-role="success"])      { --pill-color: var(--success); }
+  /* Light: the yellow role is the one hue whose ink has to go olive, so its
+     chip takes the neon as a solid fill instead of a 12% wash. */
+  :global([data-theme="light"]) .prose :global(code[data-role="tri-agent"]) {
+    background: var(--tri-agent-pill);
+    border-color: var(--tri-agent);
+  }
   /* Code blocks pick up theme-aware tokens so light mode gets a parchment
      surface with dark text instead of the brand obsidian + linen pair —
      punchlist 3.4. The dark default is unchanged. */

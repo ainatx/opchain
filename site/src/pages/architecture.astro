@@ -2349,6 +2349,7 @@ const packCounts = {
     --ember-line: var(--ember);
     --success-line: var(--success);
     --warning-line: var(--warning);
+    --warning-wash: var(--warning);
     --error-line: var(--error);
     --advisor-line: var(--advisor);
     --auditor-line: var(--auditor);
@@ -3319,8 +3320,8 @@ const packCounts = {
   .arch-v2 rect[fill="rgba(14,165,233,0.06)"] { fill: color-mix(in srgb, var(--advisor-line) 6%, transparent); }
   .arch-v2 text[fill="#00bdfd"] { fill: var(--advisor); }
   .arch-v2 rect[stroke="#ebfe00"] { stroke: var(--warning-line); }
-  .arch-v2 rect[fill="rgba(245,158,11,0.05)"] { fill: color-mix(in srgb, var(--warning-line) 5%, transparent); }
-  .arch-v2 rect[fill="rgba(235,254,0,.12)"] { fill: color-mix(in srgb, var(--warning-line) 12%, transparent); }
+  .arch-v2 rect[fill="rgba(245,158,11,0.05)"] { fill: color-mix(in srgb, var(--warning-wash) 5%, transparent); }
+  .arch-v2 rect[fill="rgba(235,254,0,.12)"] { fill: color-mix(in srgb, var(--warning-wash) 12%, transparent); }
   .arch-v2 text[fill="#a384fe"] { fill: var(--ai); }
   .arch-v2 rect[stroke="#d87fd1"] { stroke: var(--sig-line); }
   .arch-v2 rect[fill="rgba(216,127,209,0.06)"] { fill: color-mix(in srgb, var(--sig-line) 6%, transparent); }
@@ -3352,8 +3353,8 @@ const packCounts = {
   .arch-v2 circle[stroke="#fb5998"] { stroke: var(--auditor-line); }
   .arch-v2 circle[stroke="#00bdfd"] { stroke: var(--advisor-line); }
   .arch-v2 circle[stroke="#2be179"] { stroke: var(--ember-line); }
-  .arch-v2 rect[fill="rgba(235,254,0,.16)"] { fill: color-mix(in srgb, var(--warning-line) 16%, transparent); }
-  .arch-v2 rect[fill="rgba(245,158,11,0.06)"] { fill: color-mix(in srgb, var(--warning-line) 6%, transparent); }
+  .arch-v2 rect[fill="rgba(235,254,0,.16)"] { fill: color-mix(in srgb, var(--warning-wash) 16%, transparent); }
+  .arch-v2 rect[fill="rgba(245,158,11,0.06)"] { fill: color-mix(in srgb, var(--warning-wash) 6%, transparent); }
   .arch-v2 line[stroke="#d58f8f"] { stroke: var(--error-line); }
   .arch-v2 circle[stroke="#ebfe00"] { stroke: var(--warning-line); }
   .arch-v2 text[fill="#8cb9fc"] { fill: var(--learn); }
@@ -3363,7 +3364,7 @@ const packCounts = {
   .arch-v2 rect[stroke="#8cb9fc"] { stroke: var(--learn-line); }
   .arch-v2 rect[stroke="#a5bcd1"] { stroke: var(--sand); }
   .arch-v2 rect[fill="rgba(165,188,209,0.05)"] { fill: color-mix(in srgb, var(--sand) 5%, transparent); }
-  .arch-v2 rect[fill="rgba(235,254,0,0.06)"] { fill: color-mix(in srgb, var(--warning-line) 6%, transparent); }
+  .arch-v2 rect[fill="rgba(235,254,0,0.06)"] { fill: color-mix(in srgb, var(--warning-wash) 6%, transparent); }
   .arch-v2 circle[stroke="#8cb9fc"] { stroke: var(--learn-line); }
   .arch-v2 circle[stroke="#a384fe"] { stroke: var(--ai-line); }
   .arch-v2 circle[stroke="#a5bcd1"] { stroke: var(--sand); }
@@ -3470,7 +3471,9 @@ const packCounts = {
        Text keeps the calmer 4.5:1 rail colour above. */
     --ember-line: #029f50;  /* C0.162 · 3.01:1 */
     --success-line: #0c999a;  /* C0.104 · 3.03:1 */
-    --warning-line: #859006;  /* C0.140 · 3.05:1 */
+    --warning-line: #859006;
+    --warning-wash: #ebfe00;  /* the dark theme's neon: a wash sits behind text, so it
+                                 carries no contrast floor and needs no olive detour */  /* C0.140 · 3.05:1 */
     --error-line: #ff0c48;  /* C0.252 · 3.38:1 */
     --advisor-line: #0693c6;  /* C0.126 · 3.05:1 */
     --auditor-line: #ff0388;  /* C0.262 · 3.25:1 */

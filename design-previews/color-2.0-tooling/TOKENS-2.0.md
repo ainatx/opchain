@@ -271,3 +271,26 @@ audit-gate ×1.28, advisor ×1.26, accent ×1.25, tri-agent ×1.22, specialist
 ×1.22, learning rail ×1.14, AI ×1.12. The green and yellow-green rails gain
 least, which is a gamut fact rather than a choice: on white, a yellow-green
 clearing 3:1 has to be dark, and dark yellow-green has little chroma available.
+
+### The yellow rail in light — neon in the fill (owner, same day)
+
+"The main gold colour sucks — make it actual neon." Correct, and the cause is
+structural rather than a bad pick. Yellow is the one hue whose *ink* has no
+neon form on white: to clear 4.5:1 it has to drop to olive (`#666e05`), which is
+why the light tri-agent pill read as mustard while dark showed `#ebfe00`.
+
+So the neon moves out of the ink and into the surface, the same move the accent
+made:
+
+| Surface | Before | After |
+|---|---|---|
+| `--tri-agent-pill` (light) | `#eef5cf` pale tint under olive ink | **`#ebfe00`** — the dark theme's own neon, carrying the olive ink at 4.93:1 with a 5.53:1 border |
+| Skill-detail role chip (light) | 12% wash | the same neon fill |
+| `--warning-wash` (diagram, light) | mustard, mixed from the stroke colour | **`#ebfe00`** — a wash sits *behind* text, so it carries no contrast floor at all |
+
+`--tri-agent` (ink) and `--warning-line` (strokes, 3:1) are unchanged: text and
+hairlines still need their floors. Dark is untouched — `--warning-wash` aliases
+the rail there, and the 648-node parity probe stays clean.
+
+Semantic `--warning` is deliberately left muted: the half-chroma semantics were
+an explicit decision, and status should stay quieter than the taxonomy.

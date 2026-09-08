@@ -249,7 +249,10 @@
   --workflow:      #02661e;
   --workflow-pill: #daf8db;
   --tri-agent:     #666e05;
-  --tri-agent-pill: #eef5cf;
+  --tri-agent-pill: #ebfe00;  /* NEON, not a tint. Yellow is the one hue whose ink must go
+                                 olive to clear 4.5:1 on white, so the neon lives in the fill:
+                                 this IS the dark theme's #ebfe00, carrying the olive ink at
+                                 4.93:1 with a 5.53:1 border to delimit the shape. */
   --audit-gate:    #bb0963;
   --audit-gate-pill: #ffd4e0;
   --specialist:    #0b737f;
