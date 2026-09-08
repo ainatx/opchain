@@ -2344,6 +2344,19 @@ const packCounts = {
     --v20-muted:  #a5bcd1;   /* 2.0 --muted */
 
     font-family: 'JetBrains Mono', ui-monospace, monospace;
+    /* Stroke/glow variant of each rail. On dark it IS the rail; light gives it
+       its own value (see the light block below and scripts/arch-light-chroma.mjs). */
+    --ember-line: var(--ember);
+    --success-line: var(--success);
+    --warning-line: var(--warning);
+    --error-line: var(--error);
+    --advisor-line: var(--advisor);
+    --auditor-line: var(--auditor);
+    --ai-line: var(--ai);
+    --inst-line: var(--inst);
+    --sig-line: var(--sig);
+    --learn-line: var(--learn);
+    --tert-line: var(--tert);
     --shade:      #1c1710;   /* deep wash behind panels/tooltips; light overrides it */
     --arch-page: var(--obsidian);
     background: var(--arch-page);
@@ -3274,157 +3287,157 @@ const packCounts = {
   /* Attribute + inline-style remaps: CSS beats SVG presentation attributes, so
      the markup keeps its Forge hexes and resolves through the variables above.
      On dark every var equals the hex it replaces — pixel-identical. */
-  .arch-v2 feFlood[flood-color="#2be179"] { flood-color: var(--ember); }
-  .arch-v2 feFlood[flood-color="#ebfe00"] { flood-color: var(--warning); }
-  .arch-v2 feFlood[flood-color="#00bdfd"] { flood-color: var(--advisor); }
-  .arch-v2 feFlood[flood-color="#02fdff"] { flood-color: var(--success); }
-  .arch-v2 feFlood[flood-color="#fb5998"] { flood-color: var(--auditor); }
-  .arch-v2 feFlood[flood-color="#d87fd1"] { flood-color: var(--sig); }
-  .arch-v2 polygon[fill="#02fdff"] { fill: var(--success); }
-  .arch-v2 polygon[fill="#2be179"] { fill: var(--ember); }
-  .arch-v2 polygon[fill="#d87fd1"] { fill: var(--sig); }
+  .arch-v2 feFlood[flood-color="#2be179"] { flood-color: var(--ember-line); }
+  .arch-v2 feFlood[flood-color="#ebfe00"] { flood-color: var(--warning-line); }
+  .arch-v2 feFlood[flood-color="#00bdfd"] { flood-color: var(--advisor-line); }
+  .arch-v2 feFlood[flood-color="#02fdff"] { flood-color: var(--success-line); }
+  .arch-v2 feFlood[flood-color="#fb5998"] { flood-color: var(--auditor-line); }
+  .arch-v2 feFlood[flood-color="#d87fd1"] { flood-color: var(--sig-line); }
+  .arch-v2 polygon[fill="#02fdff"] { fill: var(--success-line); }
+  .arch-v2 polygon[fill="#2be179"] { fill: var(--ember-line); }
+  .arch-v2 polygon[fill="#d87fd1"] { fill: var(--sig-line); }
   .arch-v2 polygon[fill="#a5bcd1"] { fill: var(--sand); }
-  .arch-v2 polygon[fill="#d58f8f"] { fill: var(--error); }
-  .arch-v2 polygon[fill="#00bdfd"] { fill: var(--advisor); }
-  .arch-v2 polygon[fill="#8cb9fc"] { fill: var(--learn); }
-  .arch-v2 line[stroke="#2be179"] { stroke: var(--ember); }
-  .arch-v2 rect[fill="rgba(43,225,121,.20)"] { fill: color-mix(in srgb, var(--ember) 20%, transparent); }
-  .arch-v2 rect[stroke="#2be179"] { stroke: var(--ember); }
+  .arch-v2 polygon[fill="#d58f8f"] { fill: var(--error-line); }
+  .arch-v2 polygon[fill="#00bdfd"] { fill: var(--advisor-line); }
+  .arch-v2 polygon[fill="#8cb9fc"] { fill: var(--learn-line); }
+  .arch-v2 line[stroke="#2be179"] { stroke: var(--ember-line); }
+  .arch-v2 rect[fill="rgba(43,225,121,.20)"] { fill: color-mix(in srgb, var(--ember-line) 20%, transparent); }
+  .arch-v2 rect[stroke="#2be179"] { stroke: var(--ember-line); }
   .arch-v2 text[fill="#e7eef5"] { fill: var(--parchment); }
   .arch-v2 text[fill="#2be179"] { fill: var(--ember); }
-  .arch-v2 rect[fill="rgba(43,225,121,.10)"] { fill: color-mix(in srgb, var(--ember) 10%, transparent); }
+  .arch-v2 rect[fill="rgba(43,225,121,.10)"] { fill: color-mix(in srgb, var(--ember-line) 10%, transparent); }
   .arch-v2 rect[fill="#12191f"] { fill: var(--obsidian); }
-  .arch-v2 rect[stroke="rgba(43,225,121,0.6)"] { stroke: color-mix(in srgb, var(--ember) 60%, transparent); }
+  .arch-v2 rect[stroke="rgba(43,225,121,0.6)"] { stroke: color-mix(in srgb, var(--ember-line) 60%, transparent); }
   .arch-v2 text[fill="#ebfe00"] { fill: var(--warning); }
-  .arch-v2 rect[stroke="#02fdff"] { stroke: var(--success); }
-  .arch-v2 rect[fill="rgba(2,253,255,0.06)"] { fill: color-mix(in srgb, var(--success) 6%, transparent); }
+  .arch-v2 rect[stroke="#02fdff"] { stroke: var(--success-line); }
+  .arch-v2 rect[fill="rgba(2,253,255,0.06)"] { fill: color-mix(in srgb, var(--success-line) 6%, transparent); }
   .arch-v2 text[fill="#d4e2ef"] { fill: var(--linen); }
   .arch-v2 text[fill="#a5bcd1"] { fill: var(--sand); }
   .arch-v2 text[fill="#02fdff"] { fill: var(--success); }
-  .arch-v2 rect[fill="rgba(2,253,255,.18)"] { fill: color-mix(in srgb, var(--success) 18%, transparent); }
-  .arch-v2 rect[stroke="#00bdfd"] { stroke: var(--advisor); }
-  .arch-v2 rect[fill="rgba(14,165,233,0.06)"] { fill: color-mix(in srgb, var(--advisor) 6%, transparent); }
+  .arch-v2 rect[fill="rgba(2,253,255,.18)"] { fill: color-mix(in srgb, var(--success-line) 18%, transparent); }
+  .arch-v2 rect[stroke="#00bdfd"] { stroke: var(--advisor-line); }
+  .arch-v2 rect[fill="rgba(14,165,233,0.06)"] { fill: color-mix(in srgb, var(--advisor-line) 6%, transparent); }
   .arch-v2 text[fill="#00bdfd"] { fill: var(--advisor); }
-  .arch-v2 rect[stroke="#ebfe00"] { stroke: var(--warning); }
-  .arch-v2 rect[fill="rgba(245,158,11,0.05)"] { fill: color-mix(in srgb, var(--warning) 5%, transparent); }
-  .arch-v2 rect[fill="rgba(235,254,0,.12)"] { fill: color-mix(in srgb, var(--warning) 12%, transparent); }
+  .arch-v2 rect[stroke="#ebfe00"] { stroke: var(--warning-line); }
+  .arch-v2 rect[fill="rgba(245,158,11,0.05)"] { fill: color-mix(in srgb, var(--warning-line) 5%, transparent); }
+  .arch-v2 rect[fill="rgba(235,254,0,.12)"] { fill: color-mix(in srgb, var(--warning-line) 12%, transparent); }
   .arch-v2 text[fill="#a384fe"] { fill: var(--ai); }
-  .arch-v2 rect[stroke="#d87fd1"] { stroke: var(--sig); }
-  .arch-v2 rect[fill="rgba(216,127,209,0.06)"] { fill: color-mix(in srgb, var(--sig) 6%, transparent); }
+  .arch-v2 rect[stroke="#d87fd1"] { stroke: var(--sig-line); }
+  .arch-v2 rect[fill="rgba(216,127,209,0.06)"] { fill: color-mix(in srgb, var(--sig-line) 6%, transparent); }
   .arch-v2 text[fill="#d87fd1"] { fill: var(--sig); }
-  .arch-v2 rect[fill="rgba(216,127,209,.10)"] { fill: color-mix(in srgb, var(--sig) 10%, transparent); }
-  .arch-v2 rect[stroke="rgba(216,127,209,0.6)"] { stroke: color-mix(in srgb, var(--sig) 60%, transparent); }
-  .arch-v2 rect[fill="rgba(216,127,209,.16)"] { fill: color-mix(in srgb, var(--sig) 16%, transparent); }
+  .arch-v2 rect[fill="rgba(216,127,209,.10)"] { fill: color-mix(in srgb, var(--sig-line) 10%, transparent); }
+  .arch-v2 rect[stroke="rgba(216,127,209,0.6)"] { stroke: color-mix(in srgb, var(--sig-line) 60%, transparent); }
+  .arch-v2 rect[fill="rgba(216,127,209,.16)"] { fill: color-mix(in srgb, var(--sig-line) 16%, transparent); }
   .arch-v2 line[stroke="#a5bcd1"] { stroke: var(--sand); }
-  .arch-v2 rect[stroke="#a384fe"] { stroke: var(--ai); }
-  .arch-v2 rect[fill="rgba(163,132,254,0.06)"] { fill: color-mix(in srgb, var(--ai) 6%, transparent); }
-  .arch-v2 rect[fill="rgba(2,253,255,.12)"] { fill: color-mix(in srgb, var(--success) 12%, transparent); }
-  .arch-v2 line[stroke="#d87fd1"] { stroke: var(--sig); }
-  .arch-v2 rect[fill="rgba(216,127,209,0.05)"] { fill: color-mix(in srgb, var(--sig) 5%, transparent); }
-  .arch-v2 rect[fill="rgba(216,127,209,.12)"] { fill: color-mix(in srgb, var(--sig) 12%, transparent); }
-  .arch-v2 rect[fill="rgba(2,253,255,0.10)"] { fill: color-mix(in srgb, var(--success) 10%, transparent); }
-  .arch-v2 rect[fill="rgba(2,253,255,0.18)"] { fill: color-mix(in srgb, var(--success) 18%, transparent); }
-  .arch-v2 line[stroke="#02fdff"] { stroke: var(--success); }
-  .arch-v2 rect[fill="rgba(2,253,255,0.28)"] { fill: color-mix(in srgb, var(--success) 28%, transparent); }
-  .arch-v2 rect[fill="rgba(43,225,121,.08)"] { fill: color-mix(in srgb, var(--ember) 8%, transparent); }
-  .arch-v2 rect[stroke="#fb5998"] { stroke: var(--auditor); }
-  .arch-v2 rect[fill="rgba(251,89,152,0.06)"] { fill: color-mix(in srgb, var(--auditor) 6%, transparent); }
+  .arch-v2 rect[stroke="#a384fe"] { stroke: var(--ai-line); }
+  .arch-v2 rect[fill="rgba(163,132,254,0.06)"] { fill: color-mix(in srgb, var(--ai-line) 6%, transparent); }
+  .arch-v2 rect[fill="rgba(2,253,255,.12)"] { fill: color-mix(in srgb, var(--success-line) 12%, transparent); }
+  .arch-v2 line[stroke="#d87fd1"] { stroke: var(--sig-line); }
+  .arch-v2 rect[fill="rgba(216,127,209,0.05)"] { fill: color-mix(in srgb, var(--sig-line) 5%, transparent); }
+  .arch-v2 rect[fill="rgba(216,127,209,.12)"] { fill: color-mix(in srgb, var(--sig-line) 12%, transparent); }
+  .arch-v2 rect[fill="rgba(2,253,255,0.10)"] { fill: color-mix(in srgb, var(--success-line) 10%, transparent); }
+  .arch-v2 rect[fill="rgba(2,253,255,0.18)"] { fill: color-mix(in srgb, var(--success-line) 18%, transparent); }
+  .arch-v2 line[stroke="#02fdff"] { stroke: var(--success-line); }
+  .arch-v2 rect[fill="rgba(2,253,255,0.28)"] { fill: color-mix(in srgb, var(--success-line) 28%, transparent); }
+  .arch-v2 rect[fill="rgba(43,225,121,.08)"] { fill: color-mix(in srgb, var(--ember-line) 8%, transparent); }
+  .arch-v2 rect[stroke="#fb5998"] { stroke: var(--auditor-line); }
+  .arch-v2 rect[fill="rgba(251,89,152,0.06)"] { fill: color-mix(in srgb, var(--auditor-line) 6%, transparent); }
   .arch-v2 text[fill="#fb5998"] { fill: var(--auditor); }
-  .arch-v2 polyline[stroke="#d58f8f"] { stroke: var(--error); }
+  .arch-v2 polyline[stroke="#d58f8f"] { stroke: var(--error-line); }
   .arch-v2 text[fill="#d58f8f"] { fill: var(--error); }
-  .arch-v2 rect[fill="rgba(0,189,253,0.07)"] { fill: color-mix(in srgb, var(--advisor) 7%, transparent); }
-  .arch-v2 line[stroke="#00bdfd"] { stroke: var(--advisor); }
-  .arch-v2 line[stroke="#fb5998"] { stroke: var(--auditor); }
+  .arch-v2 rect[fill="rgba(0,189,253,0.07)"] { fill: color-mix(in srgb, var(--advisor-line) 7%, transparent); }
+  .arch-v2 line[stroke="#00bdfd"] { stroke: var(--advisor-line); }
+  .arch-v2 line[stroke="#fb5998"] { stroke: var(--auditor-line); }
   .arch-v2 circle[fill="#12191f"] { fill: var(--obsidian); }
-  .arch-v2 circle[stroke="#fb5998"] { stroke: var(--auditor); }
-  .arch-v2 circle[stroke="#00bdfd"] { stroke: var(--advisor); }
-  .arch-v2 circle[stroke="#2be179"] { stroke: var(--ember); }
-  .arch-v2 rect[fill="rgba(235,254,0,.16)"] { fill: color-mix(in srgb, var(--warning) 16%, transparent); }
-  .arch-v2 rect[fill="rgba(245,158,11,0.06)"] { fill: color-mix(in srgb, var(--warning) 6%, transparent); }
-  .arch-v2 line[stroke="#d58f8f"] { stroke: var(--error); }
-  .arch-v2 circle[stroke="#ebfe00"] { stroke: var(--warning); }
+  .arch-v2 circle[stroke="#fb5998"] { stroke: var(--auditor-line); }
+  .arch-v2 circle[stroke="#00bdfd"] { stroke: var(--advisor-line); }
+  .arch-v2 circle[stroke="#2be179"] { stroke: var(--ember-line); }
+  .arch-v2 rect[fill="rgba(235,254,0,.16)"] { fill: color-mix(in srgb, var(--warning-line) 16%, transparent); }
+  .arch-v2 rect[fill="rgba(245,158,11,0.06)"] { fill: color-mix(in srgb, var(--warning-line) 6%, transparent); }
+  .arch-v2 line[stroke="#d58f8f"] { stroke: var(--error-line); }
+  .arch-v2 circle[stroke="#ebfe00"] { stroke: var(--warning-line); }
   .arch-v2 text[fill="#8cb9fc"] { fill: var(--learn); }
-  .arch-v2 line[stroke="#8cb9fc"] { stroke: var(--learn); }
-  .arch-v2 rect[fill="rgba(43,225,121,0.06)"] { fill: color-mix(in srgb, var(--ember) 6%, transparent); }
-  .arch-v2 rect[fill="rgba(140,185,252,.16)"] { fill: color-mix(in srgb, var(--learn) 16%, transparent); }
-  .arch-v2 rect[stroke="#8cb9fc"] { stroke: var(--learn); }
+  .arch-v2 line[stroke="#8cb9fc"] { stroke: var(--learn-line); }
+  .arch-v2 rect[fill="rgba(43,225,121,0.06)"] { fill: color-mix(in srgb, var(--ember-line) 6%, transparent); }
+  .arch-v2 rect[fill="rgba(140,185,252,.16)"] { fill: color-mix(in srgb, var(--learn-line) 16%, transparent); }
+  .arch-v2 rect[stroke="#8cb9fc"] { stroke: var(--learn-line); }
   .arch-v2 rect[stroke="#a5bcd1"] { stroke: var(--sand); }
   .arch-v2 rect[fill="rgba(165,188,209,0.05)"] { fill: color-mix(in srgb, var(--sand) 5%, transparent); }
-  .arch-v2 rect[fill="rgba(235,254,0,0.06)"] { fill: color-mix(in srgb, var(--warning) 6%, transparent); }
-  .arch-v2 circle[stroke="#8cb9fc"] { stroke: var(--learn); }
-  .arch-v2 circle[stroke="#a384fe"] { stroke: var(--ai); }
+  .arch-v2 rect[fill="rgba(235,254,0,0.06)"] { fill: color-mix(in srgb, var(--warning-line) 6%, transparent); }
+  .arch-v2 circle[stroke="#8cb9fc"] { stroke: var(--learn-line); }
+  .arch-v2 circle[stroke="#a384fe"] { stroke: var(--ai-line); }
   .arch-v2 circle[stroke="#a5bcd1"] { stroke: var(--sand); }
-  .arch-v2 circle[stroke="#02fdff"] { stroke: var(--success); }
+  .arch-v2 circle[stroke="#02fdff"] { stroke: var(--success-line); }
   .arch-v2 [style*="background:rgba(2,253,255,0.04)"] { background: color-mix(in srgb, var(--success) 4%, transparent) !important; }
-  .arch-v2 [style*="border:0.5px solid rgba(2,253,255,0.2)"] { border-color: color-mix(in srgb, var(--success) 20%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(2,253,255,0.2)"] { border-color: color-mix(in srgb, var(--success-line) 20%, transparent) !important; }
   .arch-v2 [style*="background:rgba(2,253,255,0.1)"] { background: color-mix(in srgb, var(--success) 10%, transparent) !important; }
-  .arch-v2 [style*="border:0.5px solid rgba(2,253,255,0.4)"] { border-color: color-mix(in srgb, var(--success) 40%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(2,253,255,0.4)"] { border-color: color-mix(in srgb, var(--success-line) 40%, transparent) !important; }
   .arch-v2 [style*="color:#02fdff"] { color: var(--success) !important; }
   .arch-v2 [style*="background:rgba(2,253,255,0.06)"] { background: color-mix(in srgb, var(--success) 6%, transparent) !important; }
   .arch-v2 [style*="color:#ebfe00"] { color: var(--warning) !important; }
   .arch-v2 [style*="background:rgba(43,225,121,0.04)"] { background: color-mix(in srgb, var(--ember) 4%, transparent) !important; }
-  .arch-v2 [style*="border:0.5px solid rgba(43,225,121,0.2)"] { border-color: color-mix(in srgb, var(--ember) 20%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(43,225,121,0.2)"] { border-color: color-mix(in srgb, var(--ember-line) 20%, transparent) !important; }
   .arch-v2 [style*="background:rgba(245,158,11,0.1)"] { background: color-mix(in srgb, var(--warning) 10%, transparent) !important; }
-  .arch-v2 [style*="border:0.5px solid rgba(245,158,11,0.4)"] { border-color: color-mix(in srgb, var(--warning) 40%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(245,158,11,0.4)"] { border-color: color-mix(in srgb, var(--warning-line) 40%, transparent) !important; }
   .arch-v2 [style*="background:rgba(14,165,233,0.1)"] { background: color-mix(in srgb, var(--advisor) 10%, transparent) !important; }
-  .arch-v2 [style*="border:0.5px solid rgba(14,165,233,0.35)"] { border-color: color-mix(in srgb, var(--advisor) 35%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(14,165,233,0.35)"] { border-color: color-mix(in srgb, var(--advisor-line) 35%, transparent) !important; }
   .arch-v2 [style*="color:#00bdfd"] { color: var(--advisor) !important; }
-  .arch-v2 [style*="border:0.5px solid rgba(2,253,255,0.35)"] { border-color: color-mix(in srgb, var(--success) 35%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(2,253,255,0.35)"] { border-color: color-mix(in srgb, var(--success-line) 35%, transparent) !important; }
   .arch-v2 [style*="background:rgba(216,127,209,0.1)"] { background: color-mix(in srgb, var(--sig) 10%, transparent) !important; }
-  .arch-v2 [style*="border:0.5px solid rgba(216,127,209,0.45)"] { border-color: color-mix(in srgb, var(--sig) 45%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(216,127,209,0.45)"] { border-color: color-mix(in srgb, var(--sig-line) 45%, transparent) !important; }
   .arch-v2 [style*="color:#d87fd1"] { color: var(--sig) !important; }
   .arch-v2 [style*="background:rgba(245,158,11,0.06)"] { background: color-mix(in srgb, var(--warning) 6%, transparent) !important; }
-  .arch-v2 [style*="border:0.5px solid rgba(245,158,11,0.2)"] { border-color: color-mix(in srgb, var(--warning) 20%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(245,158,11,0.2)"] { border-color: color-mix(in srgb, var(--warning-line) 20%, transparent) !important; }
   .arch-v2 [style*="background:rgba(163,132,254,0.05)"] { background: color-mix(in srgb, var(--ai) 5%, transparent) !important; }
-  .arch-v2 [style*="border:0.5px solid rgba(163,132,254,0.25)"] { border-color: color-mix(in srgb, var(--ai) 25%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(163,132,254,0.25)"] { border-color: color-mix(in srgb, var(--ai-line) 25%, transparent) !important; }
   .arch-v2 [style*="background:rgba(163,132,254,0.1)"] { background: color-mix(in srgb, var(--ai) 10%, transparent) !important; }
-  .arch-v2 [style*="border:0.5px solid rgba(163,132,254,0.4)"] { border-color: color-mix(in srgb, var(--ai) 40%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(163,132,254,0.4)"] { border-color: color-mix(in srgb, var(--ai-line) 40%, transparent) !important; }
   .arch-v2 [style*="color:#a384fe"] { color: var(--ai) !important; }
   .arch-v2 [style*="background:rgba(163,132,254,0.06)"] { background: color-mix(in srgb, var(--ai) 6%, transparent) !important; }
   .arch-v2 [style*="background:rgba(245,158,11,0.04)"] { background: color-mix(in srgb, var(--warning) 4%, transparent) !important; }
   .arch-v2 [style*="background:rgba(43,225,121,0.06)"] { background: color-mix(in srgb, var(--ember) 6%, transparent) !important; }
   .arch-v2 [style*="color:#2be179"] { color: var(--ember) !important; }
   .arch-v2 [style*="background:rgba(251,89,152,0.06)"] { background: color-mix(in srgb, var(--auditor) 6%, transparent) !important; }
-  .arch-v2 [style*="border:0.5px solid rgba(251,89,152,0.2)"] { border-color: color-mix(in srgb, var(--auditor) 20%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(251,89,152,0.2)"] { border-color: color-mix(in srgb, var(--auditor-line) 20%, transparent) !important; }
   .arch-v2 [style*="color:#fb5998"] { color: var(--auditor) !important; }
   .arch-v2 [style*="background:rgba(251,89,152,0.1)"] { background: color-mix(in srgb, var(--auditor) 10%, transparent) !important; }
-  .arch-v2 [style*="border:0.5px solid rgba(251,89,152,0.4)"] { border-color: color-mix(in srgb, var(--auditor) 40%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(251,89,152,0.4)"] { border-color: color-mix(in srgb, var(--auditor-line) 40%, transparent) !important; }
   .arch-v2 [style*="background:rgba(43,225,121,0.1)"] { background: color-mix(in srgb, var(--ember) 10%, transparent) !important; }
-  .arch-v2 [style*="border:0.5px solid rgba(43,225,121,0.4)"] { border-color: color-mix(in srgb, var(--ember) 40%, transparent) !important; }
-  .arch-v2 [style*="border-color:#2be179"] { border-color: var(--ember) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(43,225,121,0.4)"] { border-color: color-mix(in srgb, var(--ember-line) 40%, transparent) !important; }
+  .arch-v2 [style*="border-color:#2be179"] { border-color: var(--ember-line) !important; }
   .arch-v2 [style*="border-color:#a5bcd1"] { border-color: var(--sand) !important; }
-  .arch-v2 [style*="border-color:#d58f8f"] { border-color: var(--error) !important; }
+  .arch-v2 [style*="border-color:#d58f8f"] { border-color: var(--error-line) !important; }
   .arch-v2 [style*="background:rgba(43,225,121,.10)"] { background: color-mix(in srgb, var(--ember) 10%, transparent) !important; }
-  .arch-v2 [style*="border:.5px solid rgba(43,225,121,.6)"] { border-color: color-mix(in srgb, var(--ember) 60%, transparent) !important; }
+  .arch-v2 [style*="border:.5px solid rgba(43,225,121,.6)"] { border-color: color-mix(in srgb, var(--ember-line) 60%, transparent) !important; }
   .arch-v2 [style*="background:rgba(245,158,11,.08)"] { background: color-mix(in srgb, var(--warning) 8%, transparent) !important; }
-  .arch-v2 [style*="border:1px solid #ebfe00"] { border-color: var(--warning) !important; }
+  .arch-v2 [style*="border:1px solid #ebfe00"] { border-color: var(--warning-line) !important; }
   .arch-v2 [style*="box-shadow:0 0 6px rgba(245,158,11,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--warning) 40%, transparent) !important; }
   .arch-v2 [style*="background:rgba(14,165,233,.08)"] { background: color-mix(in srgb, var(--advisor) 8%, transparent) !important; }
-  .arch-v2 [style*="border:1px solid #00bdfd"] { border-color: var(--advisor) !important; }
+  .arch-v2 [style*="border:1px solid #00bdfd"] { border-color: var(--advisor-line) !important; }
   .arch-v2 [style*="box-shadow:0 0 6px rgba(14,165,233,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--advisor) 40%, transparent) !important; }
   .arch-v2 [style*="background:rgba(2,253,255,.08)"] { background: color-mix(in srgb, var(--success) 8%, transparent) !important; }
-  .arch-v2 [style*="border:1px solid #02fdff"] { border-color: var(--success) !important; }
+  .arch-v2 [style*="border:1px solid #02fdff"] { border-color: var(--success-line) !important; }
   .arch-v2 [style*="box-shadow:0 0 6px rgba(2,253,255,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--success) 40%, transparent) !important; }
   .arch-v2 [style*="background:rgba(43,225,121,.08)"] { background: color-mix(in srgb, var(--ember) 8%, transparent) !important; }
-  .arch-v2 [style*="border:1px solid #2be179"] { border-color: var(--ember) !important; }
+  .arch-v2 [style*="border:1px solid #2be179"] { border-color: var(--ember-line) !important; }
   .arch-v2 [style*="box-shadow:0 0 6px rgba(43,225,121,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--ember) 40%, transparent) !important; }
   .arch-v2 [style*="background:rgba(251,89,152,.08)"] { background: color-mix(in srgb, var(--auditor) 8%, transparent) !important; }
-  .arch-v2 [style*="border:1px solid #fb5998"] { border-color: var(--auditor) !important; }
+  .arch-v2 [style*="border:1px solid #fb5998"] { border-color: var(--auditor-line) !important; }
   .arch-v2 [style*="box-shadow:0 0 6px rgba(251,89,152,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--auditor) 40%, transparent) !important; }
   .arch-v2 [style*="background:rgba(163,132,254,.08)"] { background: color-mix(in srgb, var(--ai) 8%, transparent) !important; }
-  .arch-v2 [style*="border:1px solid #a384fe"] { border-color: var(--ai) !important; }
+  .arch-v2 [style*="border:1px solid #a384fe"] { border-color: var(--ai-line) !important; }
   .arch-v2 [style*="box-shadow:0 0 6px rgba(163,132,254,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--ai) 40%, transparent) !important; }
   .arch-v2 [style*="background:rgba(26,190,165,.10)"] { background: color-mix(in srgb, var(--inst) 10%, transparent) !important; }
-  .arch-v2 [style*="border:1px solid #1abea5"] { border-color: var(--inst) !important; }
+  .arch-v2 [style*="border:1px solid #1abea5"] { border-color: var(--inst-line) !important; }
   .arch-v2 [style*="box-shadow:0 0 6px rgba(26,190,165,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--inst) 40%, transparent) !important; }
   .arch-v2 [style*="color:#1abea5"] { color: var(--inst) !important; }
   .arch-v2 [style*="background:rgba(216,127,209,.10)"] { background: color-mix(in srgb, var(--sig) 10%, transparent) !important; }
-  .arch-v2 [style*="border:1px solid #d87fd1"] { border-color: var(--sig) !important; }
+  .arch-v2 [style*="border:1px solid #d87fd1"] { border-color: var(--sig-line) !important; }
   .arch-v2 [style*="box-shadow:0 0 6px rgba(216,127,209,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--sig) 40%, transparent) !important; }
   .arch-v2 [style*="background:rgba(235,254,0,.10)"] { background: color-mix(in srgb, var(--warning) 10%, transparent) !important; }
   .arch-v2 [style*="box-shadow:0 0 6px rgba(235,254,0,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--warning) 40%, transparent) !important; }
   .arch-v2 [style*="background:rgba(140,185,252,.10)"] { background: color-mix(in srgb, var(--learn) 10%, transparent) !important; }
-  .arch-v2 [style*="border:1px dashed #8cb9fc"] { border-color: 1px dashed var(--learn) !important; }
+  .arch-v2 [style*="border:1px dashed #8cb9fc"] { border-color: 1px dashed var(--learn-line) !important; }
   .arch-v2 [style*="box-shadow:0 0 6px rgba(140,185,252,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--learn) 40%, transparent) !important; }
   .arch-v2 [style*="color:#8cb9fc"] { color: var(--learn) !important; }
 
@@ -3451,6 +3464,21 @@ const packCounts = {
     --sig: #cd63c6;
     --learn: #0265d9;
     --tert: #9f3ebb;
+/* ══ rail line variants (scripts/arch-light-chroma.mjs) ══ */
+    /* Strokes, arrowheads and glow: 3:1 graphics floor, chroma maximised — this
+       is what keeps the diagram reading as neon rather than as a print schematic.
+       Text keeps the calmer 4.5:1 rail colour above. */
+    --ember-line: #029f50;  /* C0.162 · 3.01:1 */
+    --success-line: #0c999a;  /* C0.104 · 3.03:1 */
+    --warning-line: #859006;  /* C0.140 · 3.05:1 */
+    --error-line: #ff0c48;  /* C0.252 · 3.38:1 */
+    --advisor-line: #0693c6;  /* C0.126 · 3.05:1 */
+    --auditor-line: #ff0388;  /* C0.262 · 3.25:1 */
+    --ai-line: #7d04ff;  /* C0.292 · 5.48:1 */
+    --inst-line: #069a85;  /* C0.112 · 3.06:1 */
+    --sig-line: #f302ec;  /* C0.306 · 3.03:1 */
+    --learn-line: #0077ff;  /* C0.221 · 3.59:1 */
+    --tert-line: #d203ff;  /* C0.308 · 3.52:1 */
     --shade: #ffffff;
     --arch-page: #e9f0f7;
     --docs:      var(--advisor);

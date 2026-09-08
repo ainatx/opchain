@@ -245,3 +245,29 @@ light half, regenerated through `light-candidates.mjs`:
 - **Twins separated:** light `--workflow` now sits a lightness step below `--accent` (6.2:1 floor, hue 146) instead of being byte-identical; light `--specialist` moves to hue 207 and the light semantics drop to C 0.06 so `--success`/`--specialist` and `--info`/`--advisor` no longer share L and C.
 - **Hairlines visible:** light `--border` lifted from L 0.855 to 0.82.
 - **Dashboard bars** (`bar-fill`, `spark-bar`) went back to `--accent`: a labelless shape needs 3:1 on its track, which `--accent-fill` cannot give on light.
+
+### Architecture diagram — light rails (same day)
+
+The diagram is the one surface where the light role tokens were the wrong
+translation. On dark each rail is a bright stroke on near-black; the site's
+light role tokens are chosen to be *text* on white, and at a 4.5:1 floor sRGB
+has almost no chroma left — re-deriving them at maximum chroma moved the
+ceiling by 1–2%, measured.
+
+Strokes are not text: WCAG asks 3:1 of a graphical object. So inside `.arch-v2`
+each rail is two variables, the same split the site uses for the accent:
+
+| | floor | used for |
+|---|---|---|
+| `--<rail>` | 4.5:1 on node body, page, surface, and its own 18% tint | SVG `<text>`, inline `color` |
+| `--<rail>-line` | 3:1 on the same grounds, chroma maximised | strokes, shape fills, arrowheads, `flood-color`, inline `border-color` |
+
+On dark `--<rail>-line` is `var(--<rail>)`, so dark is untouched — verified by
+probing all 648 colour-bearing diagram nodes against their original attribute
+hexes: zero mismatches. Derived by `scripts/arch-light-chroma.mjs`.
+
+Chroma gained on light, by rail: v1.7 Seams magenta ×1.70, v2.0 tertiary ×1.54,
+audit-gate ×1.28, advisor ×1.26, accent ×1.25, tri-agent ×1.22, specialist
+×1.22, learning rail ×1.14, AI ×1.12. The green and yellow-green rails gain
+least, which is a gamut fact rather than a choice: on white, a yellow-green
+clearing 3:1 has to be dark, and dark yellow-green has little chroma available.
