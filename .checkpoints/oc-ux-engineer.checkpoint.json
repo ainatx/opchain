@@ -6,9 +6,9 @@
   "created_at": "2026-05-01T16:42:00Z",
   "updated_at": "2026-09-08T03:50:37.000Z",
   "phase": "design-iteration",
-  "step": "v2.0-migration-surface-catalogued",
+  "step": "v2.0-colour-decided+architecture-rail-merged",
   "status": "in_progress",
-  "progress_summary": "v2.0 COLOUR: DECIDED 2026-09-07 \u2014 set 11 Slate & Emerald wins the 34-candidate exploration, shipped as set 34 'Slate & Emerald \u00b7 2.0' = set 11 + the three post-round-2 refinements (info as a real fifth semantic; roles gamut-maxed; semantics muted to half chroma). Finalized token sheet at design-previews/color-2.0-tooling/tokens-2.0.css (drop-in candidate for site/src/styles/tokens.css, non-colour sections spliced verbatim) + TOKENS-2.0.md (decision record, rename map, every token with OKLCH + measured contrast, new tokens and what they replace, trade-offs). NO site code touched yet. A workflow is cataloguing the migration surface \u2014 a census found 1,225 hex + 507 rgba literals + 180 direct brand-constant uses bypassing the token layer (most in the architecture pages, which another chat is redrawing) \u2014 output: MIGRATION-SURFACE.md. Lockup preview for 'opchain 2.0' (3 options) at design-previews/lockup-2.0-options.html, awaiting owner pick. NEXT after the pick: <=5 '2.0 = self-improving pipeline' content blocks (concept on home, specifics deeper) and the functional prototype with ember-boxed highlights; architecture diagram merges from the other workstream.",
+  "progress_summary": "v2.0 COLOUR: DECIDED 2026-09-07 \u2014 set 11 Slate & Emerald wins the 34-candidate exploration, shipped as set 34 'Slate & Emerald \u00b7 2.0' = set 11 + the three post-round-2 refinements (info as a real fifth semantic; roles gamut-maxed; semantics muted to half chroma). Finalized token sheet at design-previews/color-2.0-tooling/tokens-2.0.css (drop-in candidate for site/src/styles/tokens.css, non-colour sections spliced verbatim) + TOKENS-2.0.md (decision record, rename map, every token with OKLCH + measured contrast, new tokens and what they replace, trade-offs). NO site code touched yet. A workflow is cataloguing the migration surface \u2014 a census found 1,225 hex + 507 rgba literals + 180 direct brand-constant uses bypassing the token layer (most in the architecture pages, which another chat is redrawing) \u2014 output: MIGRATION-SURFACE.md. Lockup preview for 'opchain 2.0' (3 options) at design-previews/lockup-2.0-options.html, awaiting owner pick. NEXT after the pick: <=5 '2.0 = self-improving pipeline' content blocks (concept on home, specifics deeper) and the functional prototype with ember-boxed highlights; architecture diagram merges from the other workstream. || ARCHITECTURE (PR #487, other chat): Designed and shipped the v2.0 'learning rail' on /architecture, following docs/runbooks/architecture-diagram-cycle.md. Ground truth first: v2.0 is NOT in the repo \u2014 no skills/oc-hindsight, no skills/oc-evolve, no scripts/scorecard.mjs anywhere on origin/main or in any worktree; the catalog is 33 skills at 1.9.0 on checkpoint wire 1.1. Only the plan (docs/releases/2.0-plan.md) and the sprint plan exist. So the rail is drawn as a forward surface badged PLANNED, exactly as the sprint plan schedules it (F6, Sprint 5), and no count, eyebrow or footer moved \u2014 those flip at the cut with Header CURRENT_RELEASE. The rail draws the loop rather than a row of boxes: wire 1.2 -> Outcome Scorecard kit -> oc-hindsight -> oc-evolve, with the two star human gates sitting ON the re-inject bus that returns to the substrate. The kit is drawn without CP/ORC chips because it is a kit, not a skill; the star gates are labelled as human gates so the audit-gate count stays 3. Colour: the rail renders in the finalized 2.0 'Slate & Emerald' token set (design-previews/color-2.0-tooling, set 34) while the rest of the page stays Forge, so the v2.0 surface previews the v2.0 palette. Chrome is that set's --seconda",
   "progress_table": [
     {
       "id": "previews",
@@ -268,6 +268,134 @@
       "sheet": "design-previews/color-2.0-tooling/tokens-2.0.css",
       "doc": "design-previews/color-2.0-tooling/TOKENS-2.0.md"
     },
-    "lockup": "A \u2014 wordmark + 2.0 badge (decided 2026-09-07)"
+    "lockup": "A \u2014 wordmark + 2.0 badge (decided 2026-09-07)",
+    "directions_shipped_for_evaluation": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E"
+    ],
+    "winner": "A",
+    "tweak_rounds_complete": 5,
+    "components_owned": [
+      "MobileWorkbench.astro",
+      "MobileArchitecture.astro",
+      "WelcomePopup.astro",
+      "SearchPalette.astro",
+      "Header.astro (round 4 restructure)",
+      "pages/index.astro (round 4 redesign)",
+      "RoadmapTimeline.astro (round 5)",
+      "RoadmapForm.astro (round 5)",
+      "pages/changelog.astro (round 5 integration)"
+    ],
+    "round_4_pr": {
+      "number": 213,
+      "merge_sha": "314df02b",
+      "merge_method": "squash",
+      "title": "feat(site): redesigned homepage + grouped header + \u2318K palette",
+      "merged_at": "2026-05-12T06:12:00Z",
+      "ci_final": "build \u2705 \u00b7 e2e \u2705 \u00b7 worker \u2705 \u00b7 LHCI perf/a11y/best/seo 1.00 across all routes"
+    },
+    "round_5_pr": {
+      "number": 223,
+      "merge_sha": "8b8e778",
+      "merge_method": "squash",
+      "title": "feat(changelog): roadmap timeline + Linear-connected feature-request form",
+      "merged_at": "2026-05-12T13:09:00Z",
+      "ci_final": "build \u2705 \u00b7 e2e \u2705 \u00b7 worker \u2705 \u00b7 LHCI 1.00 a11y/best/seo on every route; perf 0.89\u20131.00; /changelog 0.97 perf with the new components",
+      "commits": [
+        "488cada (data)",
+        "2091b4a (worker)",
+        "e9a1dd9 (ui)"
+      ],
+      "ops_followup": "Linear: add `roadmap-visible` label to issues that should surface publicly; optionally add `community-submitted` label + set LINEAR_COMMUNITY_LABEL_ID in Worker env."
+    },
+    "depends_on": "checkpoint-protocol v1.0",
+    "surface_pass_2026_08_25": {
+      "doc": "docs/plans/2026-08-25-site-surface-pass.md",
+      "mode": "design-evaluator quick pass over 23 routes",
+      "cross_cutting": [
+        "D5 aria-live \u00d75",
+        "D6 token debt (--dim, #1c1710, dead fallbacks, dashboard vocabulary)"
+      ],
+      "verdicts": {
+        "overhaul": [
+          "/privacy"
+        ],
+        "change": [
+          "/security",
+          "/skills/[id]",
+          "/pipeline-builder",
+          "/.well-known/did.json",
+          "skills.ts+roles.ts",
+          "roadmap-static.ts (delete)",
+          "PipelineDiagram (delete/park)"
+        ]
+      }
+    },
+    "architecture_v20": {
+      "runbook": "docs/runbooks/architecture-diagram-cycle.md",
+      "premise_correction": "v2.0 is planned, not in the repo \u2014 the rail says so on its face",
+      "accent": {
+        "token": "--learn",
+        "dark": "#a5b4fc",
+        "light": "#3730a3",
+        "min_deltaE": 25.7,
+        "contrast_obsidian": 8.93,
+        "contrast_parchment_light": 8.01
+      },
+      "surfaces_touched": [
+        "site/src/pages/architecture.astro",
+        "site/src/components/MobileArchitecture.astro",
+        "site/src/components/PipelineDiagram.astro",
+        "scripts/audit-diagram-geometry.mjs"
+      ],
+      "surfaces_deliberately_untouched": [
+        "eyebrow/footer/mobile-eyebrow (live-claim, bound to Header CURRENT_RELEASE)",
+        "install.astro + compare.astro counts",
+        "changelog.astro v1.9 record"
+      ],
+      "geometry_baseline": {
+        "was": 16,
+        "now": 17,
+        "delta": "asymmetric-row-margins on the new rail \u2014 it reuses the AI/BUILD 14/20 margin convention; enumerated in the auditor header"
+      },
+      "verification": {
+        "astro_check": "0 errors / 0 warnings",
+        "vitest": "43 files / 579 tests",
+        "playwright": "diagram-geometry + routes 33/33, Axe zero violations on /architecture",
+        "viewports": [
+          390,
+          767,
+          768,
+          1024,
+          1280,
+          1440
+        ],
+        "themes": "desktop dark-only holds; mobile re-themes",
+        "reduced_motion": "0 running animations",
+        "canvas": "ink present and survives resize at every desktop width"
+      },
+      "fixed_in_passing": "theme-token leak on .irail/.qrail/.arail/.lrail anchor cards (inherited var(--accent), which shifts #e05c18 -> #d95010 in light theme)",
+      "reported_not_fixed": "site header .right-cluster overflows the viewport at 1024px on every page (pristine main does it too) \u2014 a header bug, out of this runbook's surfaces",
+      "palette": {
+        "set": "Slate & Emerald (set 34) \u2014 design-previews/color-2.0-tooling/tokens-2.0.css, finalized 2026-09-07, not yet applied to site/",
+        "scope": "the learning rail only; the rest of /architecture stays Forge (owner decision when asked)",
+        "chrome": "--secondary #8cb9fc dark / #295ca5 light \u2014 2.0's 'coming next' colour",
+        "roles_used": {
+          "--accent": "#2be179 (checkpoint substrate + CP/ORC)",
+          "--tri-agent": "#ebfe00",
+          "--specialist": "#02fdff",
+          "--orchestrator": "#a384fe",
+          "--muted": "#a5bcd1 (the kit, which is not a skill)",
+          "--text": "#d4e2ef",
+          "--bg": "#12191f"
+        },
+        "contrast": "every value \u22654.5:1 on both the 2.0 slate ground and this page's Forge obsidian, dark and light (mobile light values also \u22654.5:1 on the current #efe6d4 card)",
+        "note": "#12191f and #1c1710 are luminance-identical (1.00:1) and differ only in hue, so the dashed border and chrome \u2014 not the panel fill \u2014 separate the rail from the page",
+        "superseded": "iris #a5b4fc, the original accent picked by \u0394E search before the 2.0 set was adopted here"
+      }
+    }
   }
 }
