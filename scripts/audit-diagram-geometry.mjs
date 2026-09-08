@@ -31,8 +31,8 @@
  * one glyph, not eight), and vertical crowding is only reported when the
  * glyphs actually collide, not merely when baselines are close.
  *
- * KNOWN FALSE POSITIVES — as of v1.9 the clean baseline is TOTAL: 16, all of
- * them expected. Do not "fix" these; investigate anything ABOVE the baseline:
+ * KNOWN FALSE POSITIVES — the clean baseline is TOTAL: 17, all of them
+ * expected. Do not "fix" these; investigate anything ABOVE the baseline:
  *   - chip-straddle-inconsistent x4 + uneven-row-gaps/heights on the
  *     quality-gate rail: measured against the dashed PR-stop highlight band,
  *     which intentionally frames the pair and is 12 units larger than it.
@@ -44,6 +44,10 @@
  *     four panels stay top-aligned on the single y=39 connector line.
  *   - connector-fully-inside-panel x2: the release-ops mini-pipeline arrows and
  *     the mobile equivalent, which legitimately live inside their panel.
+ *   - asymmetric-row-margins on the v2.0 learning rail (14 vs 20): the rail
+ *     deliberately reuses the AI/BUILD row rhythm (x=14/206/388/580, gaps 22)
+ *     so the same +11 ORC-overhang reservation applies. Added with the rail;
+ *     took the baseline 16 -> 17.
  *
  * Full procedure: docs/runbooks/architecture-diagram-cycle.md
  */
