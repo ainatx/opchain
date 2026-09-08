@@ -186,11 +186,39 @@ function parseBlock(block) {
   return { rects, texts, lineEls, polylines, circles };
 }
 
+// The diagram's arrowhead palette. This table MODELS the marker <defs>, so a
+// recolour that does not update it turns every marker check into a false
+// positive — 38 of them, which took this file from its documented baseline of
+// 17 to 55. Derived mechanically from the <defs> in architecture.astro and
+// MobileArchitecture.astro rather than retyped, and it now covers the ah-sig,
+// ah-learn and ah-v20-* families the old table never modelled at all.
 const MARKER_COLOUR = {
-  'ah-success': '#0d9488', 'ah-success-sm': '#0d9488', 'ah-ember': '#e05c18', 'ah-ember-rev': '#e05c18',
-  'ah-ember-sm': '#e05c18', 'ah-ember-sm-rev': '#e05c18', 'ah-sand': '#c4b89e', 'ah-sand-rev': '#c4b89e',
-  'ah-error': '#ef4444', 'ah-docs': '#38bdf8', 'ah-docs-rev': '#38bdf8', 'cp-sync-end': '#e05c18',
-  'cp-sync-start': '#e05c18', 'orch-rt-end': '#e05c18',
+  'ah-docs': '#00bdfd',
+  'ah-ember': '#2be179',
+  'ah-ember-sm': '#2be179',
+  'ah-ember-sm-rev': '#2be179',
+  'ah-error': '#d58f8f',
+  'ah-learn': '#8cb9fc',
+  'ah-sand': '#a5bcd1',
+  'ah-sig': '#d87fd1',
+  'ah-sig-sm': '#d87fd1',
+  'ah-sig-sm-rev': '#d87fd1',
+  'ah-success': '#02fdff',
+  'ah-success-sm': '#02fdff',
+  'ah-v20-accent': '#2be179',
+  'ah-v20-muted': '#a5bcd1',
+  'cp-sync-end': '#2be179',
+  'cp-sync-start': '#2be179',
+  'ma-ah-docs': '#00bdfd',
+  'ma-ah-ember': '#2be179',
+  'ma-ah-ember-rev': '#2be179',
+  'ma-ah-learn': '#8cb9fc',
+  'ma-ah-mint': '#02fdff',
+  'ma-ah-rose': '#fb5998',
+  'ma-ah-sand': '#a5bcd1',
+  'ma-ah-sig': '#d87fd1',
+  'ma-ah-violet': '#a384fe',
+  'orch-rt-end': '#2be179',
 };
 
 function analyze(block, file) {
