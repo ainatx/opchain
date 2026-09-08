@@ -72,6 +72,12 @@ background, surface and card, with each role also checked against its own
 at the top of the page shows the live token values and measured ratios for
 whichever set is on screen.
 
+**`color-2.0-tooling/MIGRATION-SURFACE.md`** — every colour literal in the
+site that bypasses the token layer (1,848 in 35 files), classified and
+adversarially verified, with an order of work. Read it before scheduling the
+recolour: three-quarters is the architecture diagrams (other workstream); the
+recolour proper touches 392 literals in 30 files.
+
 Nothing here is wired to production: `site/src/styles/tokens.css` is
 untouched. Promoting a winner means porting that set's token block into
 it. The generator lives in `color-2.0-tooling/` — edit the `SETS` array

@@ -4,9 +4,9 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:42:00Z",
-  "updated_at": "2026-09-08T03:25:18.000Z",
+  "updated_at": "2026-09-08T03:50:37.000Z",
   "phase": "design-iteration",
-  "step": "v2.0-prototype-built",
+  "step": "v2.0-migration-surface-catalogued",
   "status": "in_progress",
   "progress_summary": "v2.0 COLOUR: DECIDED 2026-09-07 \u2014 set 11 Slate & Emerald wins the 34-candidate exploration, shipped as set 34 'Slate & Emerald \u00b7 2.0' = set 11 + the three post-round-2 refinements (info as a real fifth semantic; roles gamut-maxed; semantics muted to half chroma). Finalized token sheet at design-previews/color-2.0-tooling/tokens-2.0.css (drop-in candidate for site/src/styles/tokens.css, non-colour sections spliced verbatim) + TOKENS-2.0.md (decision record, rename map, every token with OKLCH + measured contrast, new tokens and what they replace, trade-offs). NO site code touched yet. A workflow is cataloguing the migration surface \u2014 a census found 1,225 hex + 507 rgba literals + 180 direct brand-constant uses bypassing the token layer (most in the architecture pages, which another chat is redrawing) \u2014 output: MIGRATION-SURFACE.md. Lockup preview for 'opchain 2.0' (3 options) at design-previews/lockup-2.0-options.html, awaiting owner pick. NEXT after the pick: <=5 '2.0 = self-improving pipeline' content blocks (concept on home, specifics deeper) and the functional prototype with ember-boxed highlights; architecture diagram merges from the other workstream.",
   "progress_table": [
@@ -167,8 +167,8 @@
     },
     {
       "id": "v20-colour-migration-surface",
-      "label": "Workflow cataloguing every colour literal that bypasses the token layer (census: 1,225 hex, 507 rgba, 180 brand-constant refs) -> MIGRATION-SURFACE.md",
-      "status": "in_progress"
+      "label": "MIGRATION-SURFACE.md: 1,848 colour literals in 35 files that bypass the token layer, catalogued by a 72-agent workflow with per-file adversarial verification (18 files had corrections; 2 literals genuinely missed). 356 tokenize / 14 light-precomputed / 22 generated-asset / 78 fixed / 1,378 diagram-deferred (architecture pages, other workstream). Key finding: 12 light-mode --ember overrides + 25 hardcoded obsidian labels all collapse onto --on-accent. Three named decisions left open: code-panel theming, OG URL text token, dashboard sonnet-tier colour",
+      "status": "complete"
     },
     {
       "id": "v20-lockup",
@@ -259,7 +259,7 @@
     "rounds_complete": 2,
     "wcag_failures": 0,
     "open_defect": "muted light-mode grounds (sets 14-19) read as plain white; light needs higher chroma than dark for equal tint",
-    "awaiting": "owner review of proto-2.0.html (5 content blocks) + MIGRATION-SURFACE.md from the workflow; architecture diagram merge from the other chat",
+    "awaiting": "owner review of proto-2.0.html content blocks; the three MIGRATION-SURFACE decisions; architecture diagram merge from the other chat",
     "decision": {
       "set": 34,
       "name": "Slate & Emerald \u00b7 2.0",
