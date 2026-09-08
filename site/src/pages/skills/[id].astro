@@ -9,6 +9,7 @@ import Icon from "../../components/Icon.astro";
 import CaptureModal from "../../components/CaptureModal.astro";
 import { getAllSkills, getSkill, getSkillRole, getSkillUpdatedAt, type Role } from "../../lib/skills";
 import { defaultFor } from "../../lib/flags/build-defaults";
+import { LOOP_2_0 } from "../../data/loop-2.0";
 import { isCapabilityEnabled, isCommandEnabled } from "../../lib/flags/build-defaults";
 import packsCatalog from "../../../../src/generated/packs-catalog.json";
 
@@ -26,6 +27,7 @@ if (!skill) {
 const { Content } = await render(skill);
 
 const phaseLabel = skill.data.phases.join(" + ");
+const loop = LOOP_2_0[skill.data.name];
 const description = `${skill.data.displayName} — ${skill.data.shortDesc}`;
 
 // Skill→role lookup shipped to the client as a small JSON island so a
@@ -218,6 +220,22 @@ const skillLd = {
         </div>
       </Card>
     </section>
+
+    <!-- 2.0 content block 3 — only for skills the 2.0 plan names -->
+    {loop && (
+      <section class="inloop" aria-labelledby="inloop-h">
+        <div class="inloop-head">
+          <span class="quick-head" id="inloop-h">In the 2.0 loop</span>
+          <span class="inloop-tag">v2.0 · next</span>
+        </div>
+        <div class="inloop-grid">
+          {loop.cells.map((c) => (
+            <div class="inloop-cell"><span class="inloop-k">{c.k}</span><p set:html={c.html} /></div>
+          ))}
+        </div>
+        <p class="inloop-note">{loop.note}</p>
+      </section>
+    )}
 
     <!-- ───────────── How you'll use it (human-facing) ───────────── -->
     <section id="usage" class="usage">
@@ -948,6 +966,22 @@ const skillLd = {
     gap: 0.3rem;
   }
   .related-link:hover { color: var(--accent); }
+
+
+  /* ── 2.0 block 3: in the 2.0 loop ── */
+  .inloop { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--r-lg); padding: 1rem 1.1rem; margin: 0 0 2rem; }
+  .inloop-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.7rem; }
+  .inloop-head .quick-head { margin: 0; }
+  .inloop-tag { font-family: var(--font-mono); font-size: 9.5px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--secondary); border: 0.5px solid var(--secondary); background: var(--secondary-dim); border-radius: var(--r-pill); padding: 1px 7px; }
+  .inloop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; }
+  .inloop-cell p { margin: 0.2rem 0 0; font-size: 12.5px; color: var(--muted); line-height: var(--lh-base); }
+  .inloop-cell strong { color: var(--text); font-weight: 600; }
+  .inloop-cell code { font-family: var(--font-mono); font-size: 0.9em; color: var(--text); }
+  .inloop-k { font-family: var(--font-mono); font-size: 9.5px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+  .inloop-note { margin: 0.8rem 0 0; font-size: 11.5px; color: var(--subtle); }
+  @media (max-width: 760px) {
+    .inloop-grid { grid-template-columns: 1fr; }
+  }
 
   .usage {
     margin-bottom: 2.5rem;

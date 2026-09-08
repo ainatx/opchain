@@ -1444,6 +1444,45 @@ const packCounts = {
             <div class="lrail-foot">↑ planned for v2.0 — nothing here has shipped · the catalog today is 33 skills at 1.9.0 on wire 1.1 · learned content is advisory data, never instructions, and never outranks a skill contract or repo policy</div>
           </div>
 
+          <!-- 2.0 content block 5 — Layer 3 legend for the learning rail above -->
+          <div class="legend legend--l3" role="group" aria-label="2.0 governed workflows (layer 3) legend">
+            <div class="legend-section-label">2.0 · governed workflows (layer 3) · planned</div>
+            <span class="legend-item" tabindex="0">
+              <div aria-hidden="true" class="l3-dot" style="background:var(--tri-agent)"></div>
+              <span>oc-hindsight</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title">oc-hindsight · governed memory</div>
+                Harvest committed outcomes → source-cited candidate lessons → isolated retrieval evaluation → <strong>★ human promotion</strong>. Only promoted lessons are retrievable, and only as advisory data.
+                <div class="legend-card-examples">harvest → lesson → retrieval eval → ★ promote</div>
+              </div>
+            </span>
+            <span class="legend-item" tabindex="0">
+              <div aria-hidden="true" class="l3-dot" style="background:var(--tri-agent)"></div>
+              <span>oc-evolve</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title">oc-evolve · governed behaviour change</div>
+                Reflect recurring failures (≥ 3) → one reviewable rule file → adversarial evaluation on held-out fixtures → <strong>★ human adoption</strong> → graduate upstream as a PR. A governor, not an audit gate.
+                <div class="legend-card-examples">reflect → rule → adversarial eval → ★ adopt → graduate</div>
+              </div>
+            </span>
+            <span class="legend-item" tabindex="0">
+              <div aria-hidden="true" class="l3-star">★</div>
+              <span>human gate</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title">Human gate</div>
+                Every activation of a layer-3 workflow ends here. Nothing self-applies: a lesson is inert until promoted, a rule is inert until adopted, and both expire.
+              </div>
+            </span>
+            <span class="legend-item" tabindex="0">
+              <div aria-hidden="true" class="l3-dot l3-dot--dashed"></div>
+              <span>advisory data</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title">Advisory data</div>
+                Promoted lessons and adopted rules flow to <strong>Generators only</strong> — never to an Evaluator, which always grades fresh from the frozen contract. Precedence: skill contract › repo policy › learned rule.
+              </div>
+            </span>
+          </div>
+
           <!-- Legend -->
           <div class="legend">
             <div class="legend-section-label">connections</div>
@@ -2863,6 +2902,11 @@ const packCounts = {
   .arch-v2 .cpd-json .k { color: var(--ember); }
   .arch-v2 .cpd-json .s { color: var(--success); }
 
+  /* ── 2.0 block 5: layer-3 legend ── */
+  .arch-v2 .legend--l3 { background: var(--surface); border: .5px solid var(--border); border-radius: 8px; padding: .8rem 1rem; margin-top: 1rem; }
+  .arch-v2 .l3-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+  .arch-v2 .l3-dot--dashed { border: 1.5px dashed var(--mist); }
+  .arch-v2 .l3-star { color: var(--accent); font-size: 13px; line-height: 1; }
   .arch-v2 .legend {
     display: flex; flex-wrap: wrap; gap: 10px 28px;
     padding: 18px 16px 10px; justify-content: center;

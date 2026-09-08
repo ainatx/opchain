@@ -124,6 +124,23 @@ const softwareLd = {
       </a>
     </section>
 
+    <!-- 2.0 content block 1 — concept only ("concept on home, specifics deeper").
+         Tense is release-neutral: reads correctly before and after the v2.0 cut. -->
+    <section class="unlock" aria-labelledby="unlock-h">
+      <Eyebrow>what 2.0 unlocks</Eyebrow>
+      <h2 class="unlock-h" id="unlock-h">In 2.0, the pipeline learns from its own runs.</h2>
+      <p class="unlock-sub">Every skill already leaves a checkpoint. In 2.0 those checkpoints become something the pipeline can look back at — and, with your say-so, act on.</p>
+      <div class="unlock-grid">
+        <div class="unlock-tile"><span class="unlock-n">01</span><h3>It remembers.</h3><p>Verdicts, findings and post-mortems are harvested into a repo-local, git-tracked memory. Committed outcomes, not chat history.</p></div>
+        <div class="unlock-tile"><span class="unlock-n">02</span><h3>It proposes.</h3><p>When the same lesson recurs three times, it becomes a candidate rule — tested in isolation against held-out fixtures before anyone sees it.</p></div>
+        <div class="unlock-tile unlock-tile--gate"><span class="unlock-n">★</span><h3>You decide.</h3><p>Nothing changes behaviour until a human promotes it. Learned content is advisory data, never an instruction — and everything expires.</p></div>
+      </div>
+      <div class="unlock-foot">
+        <Button variant="outline" size="sm" href="/changelog#v2-0">how the loop closes ›</Button>
+        <span class="unlock-note">Works with the skills you already have installed. Off by default; no content leaves your machine.</span>
+      </div>
+    </section>
+
     <!-- Cinema banner — rotates every 10 s through the scenario
          catalog. Sits beneath the stats strip. -->
     <section class="stage" data-cover aria-label="Featured scenario">
@@ -419,6 +436,31 @@ const softwareLd = {
   }
 
   /* ── Stat strip ── */
+
+  /* ── 2.0 block 1: what 2.0 unlocks ── */
+  .unlock {
+    width: 100%;
+    max-width: 960px;
+    margin: 2.2rem auto 0.4rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .unlock-h { font-size: var(--fs-2xl); font-weight: 600; margin: 0.5rem 0 0.4rem; color: var(--text); }
+  .unlock-sub { color: var(--muted); max-width: 58ch; margin: 0 auto 1.4rem; font-size: var(--fs-base); }
+  .unlock-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; text-align: left; width: 100%; }
+  .unlock-tile { background: var(--card); border: 0.5px solid var(--border); border-radius: var(--r-lg); padding: 1.1rem 1.2rem; display: flex; flex-direction: column; gap: 0.4rem; }
+  .unlock-tile--gate { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-dim), var(--glow-lg); }
+  .unlock-n { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.14em; color: var(--accent); }
+  .unlock-tile h3 { font-size: var(--fs-md); font-weight: 600; margin: 0; color: var(--text); }
+  .unlock-tile p { margin: 0; font-size: var(--fs-sm); color: var(--muted); line-height: var(--lh-snug); }
+  .unlock-foot { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
+  .unlock-note { font-size: 12px; color: var(--subtle); }
+  @media (max-width: 760px) {
+    .unlock-grid { grid-template-columns: 1fr; }
+  }
+
   .stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));

@@ -57,6 +57,9 @@ const codexMcpCmd = `# ~/.codex/config.toml
 [mcp_servers.opchain]
 url = "https://opchain.dev/mcp"`;
 
+const upgrade20Cmd = `/plugin update opchain
+/oc-migrate checkpoints 1.2
+/oc-hindsight init        # optional — enables the loop for this repo`;
 const pluginCmd = `/plugin marketplace add asfbay-bit/opchain-skills
 /plugin install opchain`;
 
@@ -255,6 +258,19 @@ codex`;
         preserved across the swap. The new skills pick up the existing
         checkpoints on their next invocation.
       </p>
+
+      <!-- 2.0 content block 4 — what the next major means for an existing install -->
+      <div class="upg">
+        <h3 class="upg-h">Already on 1.x? <span class="upg-tag">2.0 is the next major — here's what that means</span></h3>
+        <ul class="upg-list">
+          <li><strong>Nothing migrates destructively.</strong> Checkpoint files stamped 1.0, 1.1 or 1.2 all still validate. Two skills are added (33 → 35); every existing skill takes the lockstep bump to <code class="ic">2.0.0</code>.</li>
+          <li><strong>One read contract moves.</strong> <code class="ic">eval_scores[]</code> in a checkpoint becomes a bounded recent window; the full record lives in <code class="ic">.checkpoints/history/</code>. Anything that read the in-file array as the whole history — <code class="ic">oc-orchestrator</code>, <code class="ic">oc-cost-ops</code> — unions both. That is the breaking change.</li>
+          <li><strong>The stamp sweep is one command.</strong> <code class="ic">/oc-migrate checkpoints 1.2</code> rewrites <code class="ic">protocol_version</code> in place, same template as the 1.0 → 1.1 sweep.</li>
+          <li><strong>The loop is off until you turn it on.</strong> No scorecard kit, no Hindsight store, no rules directory → every 2.0 workflow is a silent no-op. Telemetry stays default-off and no content ever leaves the machine. Opt in per repo with <code class="ic">/oc-hindsight init</code>.</li>
+        </ul>
+        <pre class="codeblock" tabindex="0" role="region" aria-label="Upgrade to 2.0 commands"><code>{upgrade20Cmd}</code></pre>
+        <p class="upg-foot">Commands land with the v2.0 release; until then the update-check hook keeps you on the latest 1.x.</p>
+      </div>
 
       <h3><Icon name="terminal" /> Claude Code CLI</h3>
       <p>
@@ -643,6 +659,17 @@ git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-la
     gap: 0.45rem;
   }
   .steps strong { color: var(--text); }
+
+
+  /* ── 2.0 block 4: upgrading to 2.0 ── */
+  .upg { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--r-lg); padding: 1rem 1.2rem 1.1rem; margin: 0 0 1.4rem; }
+  .upg-h { font-size: var(--fs-md); font-weight: 600; margin: 0; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; color: var(--text); }
+  .upg-tag { font-family: var(--font-mono); font-size: 9.5px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--secondary); border: 0.5px solid var(--secondary); background: var(--secondary-dim); border-radius: var(--r-pill); padding: 1px 7px; }
+  .upg-list { margin: 0.5rem 0 0.9rem; padding-left: 1.1rem; color: var(--muted); font-size: 12.5px; line-height: var(--lh-base); }
+  .upg-list li { margin: 0.4rem 0; }
+  .upg-list strong { color: var(--text); font-weight: 600; }
+  .upg .codeblock { margin: 0; }
+  .upg-foot { margin: 0.6rem 0 0; font-size: 11.5px; color: var(--subtle); }
 
   .upgrade { margin-top: 0.5rem; margin-bottom: 2.5rem; }
   .upgrade h2 {

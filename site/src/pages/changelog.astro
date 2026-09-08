@@ -1011,6 +1011,16 @@ const plannedReleaseGroups = [
           <div class="card-body-inner hero-body-inner">
             <div class="tag-row"><span class="tag tag--info">committed</span><span class="tag">next release</span><span class="tag">33 → 35 skills</span><span class="tag">checkpoint wire 1.2</span></div>
             <p>v2.0 closes the loop: what the pipeline learns from its own runs becomes reviewable, promotable state — never a silent write-through.</p>
+            <!-- 2.0 content block 2 — the mechanics, three layers -->
+            <div class="loop">
+              <h3>How the loop closes — three layers</h3>
+              <ol class="loop-layers">
+                <li><span class="loop-k">Layer 1 · substrate</span><div class="loop-body"><strong>Checkpoint wire 1.2.</strong> <code>eval_scores[]</code> gains real append semantics and a durable spill to <code>.checkpoints/history/*.eval.ndjson</code> — the ecosystem's first git-tracked cross-run accumulator. <span class="tag tag--warn">breaking · read contract</span></div></li>
+                <li><span class="loop-k">Layer 2 · measurement + memory</span><div class="loop-body"><strong>Outcome Scorecard kit</strong> samples every discarded Evaluator verdict into a time series; a declining trend emits a decaying advisory. <strong>Hindsight store</strong> holds harvested lessons in <code>.opchain/hindsight/</code>.</div></li>
+                <li><span class="loop-k">Layer 3 · governed workflows</span><div class="loop-body"><strong>oc-hindsight</strong> harvests, generates source-grounded candidate lessons, evaluates provenance and retrieval in isolated context, then requires human promotion. <strong>oc-evolve</strong> reflects, proposes rules, adversarially evaluates them against held-out fixtures, then requires human adoption. <span class="tag tag--accent">★ human gate on every activation</span></div></li>
+              </ol>
+              <div class="loop-inv"><span class="loop-k">invariants</span> advisory data, never instructions · skill-contract › repo-policy › learned-rule · recurrence ≥ 3 · everything decays · telemetry default-off</div>
+            </div>
             <div class="planned-box">Committed after v1.9 — <a href="https://github.com/ainatx/opchain/blob/main/docs/releases/2.0-plan.md">read the full 2.0 plan of record</a>.</div>
           </div>
         </div>
@@ -1428,6 +1438,25 @@ const plannedReleaseGroups = [
   .card-body-inner ul { margin: 0.25rem 0 0.5rem 1.1rem; padding: 0; }
   .card-body-inner li { color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-snug); margin-bottom: 0.4rem; }
   .card-body-inner li strong { color: var(--text); }
+
+
+  /* ── 2.0 block 2: how the loop closes (inside the v2.0 card) ── */
+  .loop { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--r-sm); padding: 1rem 1.1rem; margin: 0 0 0.9rem; }
+  .loop h3 { margin: 0 0 0.7rem; font-size: var(--fs-md); font-weight: 600; color: var(--text); }
+  .loop-layers { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.55rem; }
+  .loop-layers li { display: grid; grid-template-columns: 150px 1fr; gap: 0.8rem; font-size: 12.5px; line-height: var(--lh-base); color: var(--muted); padding: 0.55rem 0; border-top: 0.5px solid var(--border); }
+  .loop-layers li:first-child { border-top: 0; padding-top: 0; }
+  .loop-body { display: block; }
+  .loop-body .tag { margin-left: 0.3rem; vertical-align: 1px; }
+  .loop-layers strong { color: var(--text); font-weight: 600; }
+  .loop-layers code { color: var(--text); background: var(--card); border: 0.5px solid var(--border); padding: 0 4px; border-radius: 3px; font-size: 0.9em; }
+  .loop-k { font-family: var(--font-mono); font-size: 9.5px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); padding-top: 3px; }
+  .loop-inv { margin-top: 0.8rem; padding-top: 0.7rem; border-top: 0.5px solid var(--border); font-family: var(--font-mono); font-size: 11px; color: var(--subtle); display: flex; gap: 0.8rem; align-items: baseline; flex-wrap: wrap; }
+  .tag--warn { color: var(--warning); border-color: var(--warning); background: var(--warning-dim); }
+  .tag--accent { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+  @media (max-width: 640px) {
+    .loop-layers li { grid-template-columns: 1fr; gap: 0.2rem; }
+  }
 
   .tag-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.85rem; }
   .tag {
