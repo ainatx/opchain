@@ -31,7 +31,7 @@ remainder is small enough to enumerate line by line, and most of it is deliberat
 | Colour literals under `site/src`, excluding `tokens.css` | **1,870** across 30 files |
 | …of those, in the two architecture-diagram files | **1,688 (90%)** |
 | …of those, everywhere else | **182** across 28 files |
-| Literals that **shadow** a current token value | **938** (881 diagram · 57 elsewhere) |
+| Literals that **shadow** a current token value | **938** (881 diagram · 57 elsewhere — but see §5a: only 22 of those 57 are real bypasses) |
 | References to renamed brand constants by name, in `site/src` | **190** (94 diagram · 96 elsewhere) |
 | Second, independent copy of the token layer | **1 file**, 214 lines, 50 hex literals |
 | Colour literals outside `site/src` that ship to users | **22** (`scripts/gen-og-images.mjs`) |
@@ -119,9 +119,35 @@ No `<meta name="theme-color">` exists, so there is nothing to update there.
 construction. That leaves **160 genuine colour decisions**, which fall into four
 groups.
 
-### 5a. Shadows that should become `var()` — 57
+### 5a. Shadows — 57 matched, but only 22 are real bypasses
 
-The silent-failure set. Examples, all verified at the stated line:
+**Correction (2026-09-08).** An earlier revision of this section said all 57
+shadows "should become `var()`". That was pattern-matching, not reading. Going
+through them one at a time:
+
+| | Count | What they actually are |
+|---|---|---|
+| **Genuine bypasses** | **22** | a literal where a token was meant |
+| Already `var(--token, #fallback)` | 23 | correct as written — the literal is a documented fallback, not a bypass |
+| Inside a comment | 12 | prose explaining a colour choice; nothing renders |
+
+`components/Logo.astro` is the clearest case: all seven of its "shadows" are
+`stroke="var(--logo-spine, #5a5040)"` — SVG needs a concrete fallback, and the
+2.0 sheet keeps those `--logo-*` indirections, so the fallbacks are dead paths
+by design. Converting them would have been churn at best.
+
+Of the 22 genuine ones, five more turned out not to be convertible either:
+`FeedbackWidget`, `Header` ×2 and `demo` ×2 matched `--shadow-sm/lg/xl`, but
+those tokens are whole box-shadow values (`0 16px 40px -8px rgba(…)`), not
+colours — the scanner matched the `rgba()` *inside* the token. Those are
+`::backdrop` scrims and bespoke shadows, correctly left as literals.
+
+**Resolved so far:** the ten `--on-accent` sites and the styleguide's eight
+derived swatches are fixed; `dashboard`'s two model-tier literals and
+`changelog`'s `--cl-violet` are deliberate and stay. See the commits on
+`refactor/color-token-bypasses`.
+
+The originally-listed sites, for reference:
 
 | File | Line | Literal | Shadows |
 |---|---|---|---|
@@ -201,9 +227,12 @@ Nothing here is a decision — this is the order the dependencies imply.
 
 1. **Land the diagram PRs independently** (#487, then #488). They are self-contained
    and remove 90% of the literal surface from the problem.
-2. **Convert the 57 shadows to `var()`** before swapping anything. This is mechanical,
-   individually verifiable, and reviewable in isolation — and it is the set that fails
-   silently, so doing it first turns the swap from risky into boring.
+2. ~~**Convert the 57 shadows to `var()`**~~ — **done, and smaller than billed.** Only
+   22 of the 57 were real bypasses (§5a); the rest were `var()` fallbacks or comments.
+   The ten `--on-accent` sites and the styleguide's derived swatches are fixed on
+   `refactor/color-token-bypasses`. That branch also repaired `/dashboard`, which had
+   been rendering from fallbacks for three tokens that are defined nowhere — its light
+   mode was shipping body text at 1.26:1.
 3. **Swap `tokens.css`**, keeping the alias block.
 4. **Sweep 5b** (the ~30 brand-adjacent one-offs) in the same sitting; these are the
    visible clashes.
@@ -228,3 +257,7 @@ none:
 - **Contrast after the swap.** This says what *would not move*; it says nothing about
   whether what does move still clears WCAG in every pairing. `audit.mjs` covers the
   token set in isolation, not these call sites.
+- **Whether a match is a real bypass.** The scanner finds literals; it cannot tell a
+  bypass from a `var()` fallback or a comment. §5a is what happened when the 57 were
+  read individually — 35 of them were fine. Treat every count here as a set to
+  inspect, not a worklist to execute.
