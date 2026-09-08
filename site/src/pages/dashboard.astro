@@ -166,7 +166,7 @@ const trendH = (v: number) =>
 
 <style>
   .page { max-width: 64rem; margin: 0 auto; padding: 2rem 1.25rem 5rem; }
-  .lede { font-size: 1.05rem; line-height: 1.6; color: var(--text-2, #cbd5e1); max-width: 48rem; }
+  .lede { font-size: 1.05rem; line-height: 1.6; color: var(--muted); max-width: 48rem; }
   .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
 
   .sample-banner {
@@ -178,21 +178,25 @@ const trendH = (v: number) =>
   .sample-banner code { font-size: 0.82em; }
 
   .totals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1.75rem 0 0; }
-  .t-head { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-3, #94a3b8); }
+  .t-head { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--subtle); }
   .t-val { font-size: 2rem; font-weight: 700; margin: 0.25rem 0; }
-  .t-sub { font-size: 0.82rem; color: var(--text-3, #94a3b8); }
+  .t-sub { font-size: 0.82rem; color: var(--subtle); }
 
   .block { margin-top: 2.5rem; }
   .block h2 { font-size: 1.25rem; margin: 0 0 0.9rem; }
-  .note { font-size: 0.82rem; color: var(--text-3, #94a3b8); margin-top: 0.6rem; }
+  .note { font-size: 0.82rem; color: var(--subtle); margin-top: 0.6rem; }
 
   .bars, .tiers { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
   .bar-row, .tier-row { display: grid; grid-template-columns: 9.5rem 1fr 4rem; align-items: center; gap: 0.6rem; }
   .tier-row { grid-template-columns: 5rem 1fr 3rem; }
-  .bar-label, .tier-label { font-size: 0.85rem; color: var(--text-2, #cbd5e1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .bar-track { height: 0.7rem; border-radius: 0.4rem; background: var(--surface-2, #1e293b); overflow: hidden; }
+  .bar-label, .tier-label { font-size: 0.85rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-track { height: 0.7rem; border-radius: 0.4rem; background: var(--surface); overflow: hidden; }
   .bar-fill { display: block; height: 100%; border-radius: 0.4rem; background: var(--accent, #14b8a6); }
-  .bar-num { font-size: 0.82rem; text-align: right; color: var(--text-2, #cbd5e1); }
+  .bar-num { font-size: 0.82rem; text-align: right; color: var(--muted); }
+  /* Model tiers are a categorical palette of their own — one hue per model,
+     chosen for mutual distinctness, not drawn from the brand. They are
+     deliberately NOT tokens: a palette change should not silently re-map which
+     colour means "opus". Left as literals on purpose. */
   .tier-haiku { background: #38bdf8; } .tier-sonnet { background: #14b8a6; }
   .tier-opus { background: #a78bfa; } .tier-fable { background: #f472b6; }
 
@@ -201,16 +205,16 @@ const trendH = (v: number) =>
   .spark { display: flex; align-items: flex-end; gap: 0.5rem; height: 8rem; padding-top: 0.5rem; }
   .spark-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; flex: 1; height: 100%; }
   .spark-bar { width: 100%; max-width: 2.2rem; background: var(--accent, #14b8a6); border-radius: 0.3rem 0.3rem 0 0; min-height: 4px; }
-  .spark-x { font-size: 0.68rem; color: var(--text-3, #94a3b8); margin-top: 0.35rem; }
+  .spark-x { font-size: 0.68rem; color: var(--subtle); margin-top: 0.35rem; }
 
   .replay-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
   .r-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
   .r-head h3 { font-size: 1rem; margin: 0; }
   .r-cost { color: var(--accent, #14b8a6); font-weight: 700; }
-  .r-path { font-size: 0.75rem; color: var(--text-3, #94a3b8); margin: 0.4rem 0 0.6rem; line-height: 1.4; }
-  .r-summary { font-size: 0.88rem; line-height: 1.5; color: var(--text-2, #cbd5e1); margin: 0; }
+  .r-path { font-size: 0.75rem; color: var(--subtle); margin: 0.4rem 0 0.6rem; line-height: 1.4; }
+  .r-summary { font-size: 0.88rem; line-height: 1.5; color: var(--muted); margin: 0; }
   .r-meta { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
-  .r-chip { font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 0.4rem; background: var(--surface-2, #1e293b); color: var(--text-2, #cbd5e1); }
+  .r-chip { font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 0.4rem; background: var(--surface); color: var(--muted); }
 
   @media (max-width: 720px) {
     .totals { grid-template-columns: 1fr; }
