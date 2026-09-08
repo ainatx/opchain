@@ -494,7 +494,7 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     align-items: center;
     justify-content: center;
   }
-  .nav-badge.new  { background: var(--accent); color: var(--on-accent); }
+  .nav-badge.new  { background: var(--accent-fill); color: var(--on-accent); }
   .nav-badge.tool {
     background: var(--specialist-pill);
     color: var(--specialist);
@@ -508,7 +508,7 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     padding: 0 0.95rem;
     height: 32px;
     align-self: center;
-    background: var(--accent);
+    background: var(--accent-fill);
     color: var(--on-accent);
     border: 0;
     border-radius: var(--r-pill);
@@ -522,7 +522,7 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     align-items: center;
     transition: background var(--dur-fast) var(--ease-standard);
   }
-  .nav-install:hover { background: var(--accent-hover); color: var(--on-accent); }
+  .nav-install:hover { background: var(--accent-fill-hover); color: var(--on-accent); }
   /* 2.0: --on-accent carries the label colour per theme; no light override needed. */
   .nav-install.is-active { box-shadow: 0 0 0 2px var(--accent-dim); }
 
@@ -596,7 +596,7 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     border-radius: var(--r-xs);
     line-height: 1;
   }
-  .pillet.new   { background: var(--accent); color: var(--on-accent); }
+  .pillet.new   { background: var(--accent-fill); color: var(--on-accent); }
   .pillet.tool  { background: var(--specialist-pill); color: var(--specialist); border: 0.5px solid var(--specialist); }
   .pillet.count { background: var(--accent-dim); color: var(--accent); border: 0.5px solid color-mix(in srgb, var(--accent) 40%, transparent); }
 
@@ -824,7 +824,7 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     margin: 0 0 0.5rem 0.5rem;
     padding: 0 0.95rem;
     height: 34px;
-    background: var(--accent);
+    background: var(--accent-fill);
     color: var(--on-accent);
     border-radius: var(--r-pill);
     font-family: var(--font-mono);

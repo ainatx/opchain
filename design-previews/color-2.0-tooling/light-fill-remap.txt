@@ -1,0 +1,13 @@
+40	span.v-badge.v-badge--xs
+40	span.pillet.new
+40	button.btn.btn-primary
+20	a.nav-install
+20	a.nav-drawer-primary
+20	button
+15	a.btn.btn-primary
+5	span.v-badge.v-badge--hero
+5	span.rb-tag
+5	span.tab-indicator
+5	button.submit-btn
+5	div.progress-rail-fill
+5	button.capture-submit

@@ -21,6 +21,16 @@ advanced to "2.0 shipped", and the five new content blocks outlined in ember
 a dashed placeholder where the separate diagram workstream lands. Built by
 `color-2.0-tooling/build-proto.mjs`; hand-rolled mockup, not the Astro site.
 
+**`light-2.0-candidates.html`** — the light-mode rework (2026-09-08; the owner
+called the first light half "really ugly"). Five candidates rendered onto the
+*real built pages* (home, changelog, skill, skills index) with a dark reference:
+three grounds × the brand-emerald fill, plus two moss-fill variants. Images in
+`light-2.0-candidates/`. **Decided: L3 "Lifted slate · brand fill"**, with a
+stronger accent glow on the hero and stage. Built by
+`color-2.0-tooling/render-light.mjs` from `light-candidates.mjs`; the derivation
+(two-token accent split, tinted role pills, contrast floors) is documented at the
+top of that file.
+
 **`lockup-2.0-options.html`** — three treatments for the 'opchain 2.0' branded
 mark (badge / one wordmark / icon carries the 2.0) on the decided tokens, at
 header, hero and footer scale in both modes. **Decided: A, wordmark + badge.**

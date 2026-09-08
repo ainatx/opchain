@@ -53,6 +53,8 @@
   --subtle:        #7d91a4;
   --accent:        #2be179;
   --accent-hover:  #13bd62;
+  --accent-fill:   var(--accent);  /* two-token split: on dark the fill IS the accent */
+  --accent-fill-hover: var(--accent-hover);
   --on-accent:     #12191f;  /* NEW — label colour on an accent fill; replaces hardcoded var(--obsidian) on primary buttons */
   --accent-dim:    rgba(43, 225, 121, 0.1);
   --accent-glow:   rgba(43, 225, 121, 0.22);  /* NEW — replaces --ember-glow in the stage + release bar */
@@ -204,85 +206,74 @@
   --focus-ring-inset: inset 0 0 0 2px var(--accent);
 }
 
-/* ─────────── LIGHT THEME (Paper) ─────────── */
+/* ─────────── LIGHT THEME (Lifted slate) ─────────── */
 [data-theme="light"] {
-  --bg:            #e7eef5;
-  --ribbon:        #d3dfea;
-  --ribbon-edge:   #acbdcc;
-  --surface:       #dfe9f1;
+  /* Light rework 2026-09-08 — candidate L3 "Lifted slate · brand fill":
+     lighter blue-grey page with real steps to a whiter surface and white
+     cards; the accent splits into --accent (text-safe) and --accent-fill
+     (brand emerald, fills only); six role hues on their own tints. Derived
+     by design-previews/color-2.0-tooling/light-candidates.mjs. */
+  --bg:            #e9f0f7;
+  --ribbon:        #dee8f0;
+  --ribbon-edge:   #bcc9d5;
+  --surface:       #f7fbfe;
   --card:          #ffffff;
-  --border:        #aab9c7;
-  --text:          #15181b;
-  --muted:         #444e57;
-  --subtle:        #55616b;
-  --accent:        #066a34;
-  --accent-hover:  #065027;
-  --on-accent:     #ffffff;  /* NEW — label colour on an accent fill; replaces hardcoded var(--obsidian) on primary buttons */
-  --accent-dim:    rgba(6, 106, 52, 0.12);
-  --accent-glow:   rgba(6, 106, 52, 0.16);  /* NEW — replaces --ember-glow in the stage + release bar */
-  --glow:          rgba(6, 106, 52, 0.1);
-
-  /* Release-state identities for /changelog — NEW. `next` was --info and
-     `planned` was a page-scoped --cl-violet; both become first-class. */
-  --secondary:     #295ca5;  /* released = accent · next = secondary */
-  --secondary-dim: rgba(41, 92, 165, 0.12);
-  --tertiary:      #7b428c;  /* planned */
-  --tertiary-dim:  rgba(123, 66, 140, 0.12);
-
-  /* Semantic state colours — muted to half chroma on purpose (2.0 decision):
-     status is background information; the skill roles below carry the colour. */
-  --danger:        #874949;
-  --danger-dim:    rgba(135, 73, 73, 0.12);
-  --success:       #166355;
-  --success-dim:   rgba(22, 99, 85, 0.12);
-  --info:          #246075;  /* NOW A REAL COLOUR — was an alias of the changelog next-colour */
-  --info-dim:      rgba(36, 96, 117, 0.12);
-  --warning:       #66571b;
-  --warning-dim:   rgba(102, 87, 27, 0.12);
-  --in-progress:   #79576d;
-  --in-progress-dim:rgba(121, 87, 109, 0.12);
-  --destructive:   #662427;
-  --destructive-dim:rgba(102, 36, 39, 0.12);
-
-  /* ── Skill role tokens — gamut-maxed (2.0 decision): the product's own
-     taxonomy is the loudest colour on the page. Each also gets its rendered
-     15%-over-surface pill background, so no page needs to precompute one. */
-  --workflow:      #016832;
-  --workflow-pill: #bed6d4;
-  --tri-agent:     #585f01;
-  --tri-agent-pill:#cbd4cd;
-  --audit-gate:    #a90e59;
-  --audit-gate-pill:#d7c8da;
-  --specialist:    #036465;
-  --specialist-pill:#bed5dc;
-  --advisor:       #016084;
-  --advisor-pill:  #bed4e1;
-  --orchestrator:  #7116e4;
-  --orchestrator-pill:#cfc9ef;
-
-  /* ── Categorical chart series — NEW (2.0 decision). Four hues in the gaps
-     between the role hues, so a series never reads as a role or as the
-     accent. Bar fills: 3:1 floor on card/surface. /dashboard model tiers. */
-  --chart-1:       #08707f;
-  --chart-1-dim:   rgba(8, 112, 127, 0.14);
-  --chart-2:       #305eb7;
-  --chart-2-dim:   rgba(48, 94, 183, 0.14);
-  --chart-3:       #903d8b;
-  --chart-3-dim:   rgba(144, 61, 139, 0.14);
-  --chart-4:       #097463;
-  --chart-4-dim:   rgba(9, 116, 99, 0.14);
-
-  /* Logo tokens */
+  --border:        #c5d1dc;
+  --text:          #092438;
+  --muted:         #5d6b77;
+  --subtle:        #5b6e80;
+  --accent:        #027c3e;  /* text-safe green: links, outlines, eyebrows, role text */
+  --accent-hover:  #0b6834;
+  --accent-fill:   #33d977;  /* the brand emerald, for FILLS only (buttons, badges, pills) with --on-accent labels */
+  --accent-fill-hover: #13bd62;  /* moss — same hover the dark theme uses */
+  --on-accent:     #12191f;
+  --accent-dim:    rgba(51, 217, 119, 0.18);
+  --accent-glow:   rgba(51, 217, 119, 0.42);  /* owner 2026-09-08: stronger on light for the hero release bar + stage */
+  --glow:          rgba(51, 217, 119, 0.28);  /* owner 2026-09-08: stronger on light */
+  --secondary:     #0067df;
+  --secondary-dim: rgba(0, 103, 223, 0.12);
+  --tertiary:      #a341be;
+  --tertiary-dim:  rgba(163, 65, 190, 0.12);
+  --danger:        #9a5a5a;
+  --danger-dim:    rgba(154, 90, 90, 0.12);
+  --success:       #217969;
+  --success-dim:   rgba(33, 121, 105, 0.12);
+  --info:          #26748f;
+  --info-dim:      rgba(38, 116, 143, 0.12);
+  --warning:       #7b6b2c;
+  --warning-dim:   rgba(123, 107, 44, 0.12);
+  --in-progress:   #915c80;
+  --in-progress-dim: rgba(145, 92, 128, 0.12);
+  --destructive:   #953c41;
+  --destructive-dim: rgba(149, 60, 65, 0.12);
+  --workflow:      #027c3e;
+  --workflow-pill: #d8fae0;
+  --tri-agent:     #69710c;
+  --tri-agent-pill: #eef5cf;
+  --audit-gate:    #c00765;
+  --audit-gate-pill: #ffd4e0;
+  --specialist:    #14797a;
+  --specialist-pill: #cafbfb;
+  --advisor:       #0b6e94;
+  --advisor-pill:  #c3eaff;
+  --orchestrator:  #7a2df0;
+  --orchestrator-pill: #e0daff;
+  --chart-1:       #109fb4;
+  --chart-1-dim:   rgba(16, 159, 180, 0.14);
+  --chart-2:       #528dff;
+  --chart-2-dim:   rgba(82, 141, 255, 0.14);
+  --chart-3:       #cd63c6;
+  --chart-3-dim:   rgba(205, 99, 198, 0.14);
+  --chart-4:       #12a28c;
+  --chart-4-dim:   rgba(18, 162, 140, 0.14);
   --logo-stroke:   var(--text);
   --logo-spine:    var(--subtle);
-  --logo-filled:   var(--accent);
+  --logo-filled:   var(--accent-fill);
   --logo-dot-dark: var(--bg);
-
-  /* Layered shadows — lighter on light grounds to avoid heavy "web 2.0" bevel. */
-  --shadow-sm:  0 1px 2px rgba(42, 22, 6, 0.08);
-  --shadow-md:  0 2px 6px -1px rgba(42, 22, 6, 0.12), 0 1px 2px rgba(42, 22, 6, 0.06);
-  --shadow-lg:  0 8px 24px -6px rgba(42, 22, 6, 0.14), 0 2px 4px rgba(42, 22, 6, 0.06);
-  --shadow-xl:  0 16px 40px -8px rgba(42, 22, 6, 0.18), 0 4px 8px rgba(42, 22, 6, 0.08);
+  --shadow-sm:     0 1px 2px rgba(18, 28, 40, 0.07);
+  --shadow-md:     0 2px 6px -1px rgba(18, 28, 40, 0.10), 0 1px 2px rgba(18, 28, 40, 0.05);
+  --shadow-lg:     0 8px 24px -6px rgba(18, 28, 40, 0.12), 0 2px 4px rgba(18, 28, 40, 0.05);
+  --shadow-xl:     0 16px 40px -8px rgba(18, 28, 40, 0.16), 0 4px 8px rgba(18, 28, 40, 0.06);
 }
 
 /* ── prefers-reduced-motion ── */

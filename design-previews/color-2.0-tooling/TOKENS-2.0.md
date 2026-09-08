@@ -202,3 +202,34 @@ node gen-tokens.mjs && node audit.mjs && node emit-sheet.mjs
 ```
 
 Edit set 34 in `gen-tokens.mjs`, never this file or `tokens-2.0.css` by hand.
+
+
+## Light rework — 2026-09-08
+
+The light half above was replaced after the owner reviewed it on the real pages
+("really ugly"): the blue-grey page, blue-grey surfaces and forest-green accent
+gave no separation and lost the emerald identity. Five candidates were rendered
+onto the built site (`../light-2.0-candidates.html`); **L3 "Lifted slate · brand
+fill"** won, with the accent glow pushed up on the hero release bar and stage.
+
+What changed in the light block (the dark block is untouched):
+
+| Token | Before | After | Why |
+|---|---|---|---|
+| `--bg` / `--surface` / `--card` | `#e7eef5` / `#dfe9f1` / `#fff` | `#e9f0f7` / `#f7fbfe` / `#fff` | real steps between page, raised surface and card |
+| `--accent` | `#066a34` | `#027c3e` | text-safe green (4.5:1 on all three grounds), a step livelier |
+| `--accent-fill` (new) | — | `#33d977` | **two-token split:** fills (buttons, badges, pills) keep the brand emerald with `--on-accent` `#12191f` labels; on dark it aliases `--accent` |
+| `--accent-fill-hover` (new) | — | `#13bd62` | the moss hover both themes share |
+| `--accent-glow` / `--glow` | 0.16 / 0.10 | 0.42 / 0.28 | owner tweak: stronger glow on light |
+| six roles | dark-green-ish outlines | own hue at 4.5:1 + own tint pill (`--<role>-pill`) | six clearly different chips |
+| semantics | — | re-derived at C 0.085, 4.5:1 | muted, as on dark |
+
+Trade-off, accepted: `--accent-fill` is 1.6:1 against white *as a shape*. Filled
+controls rely on their dark label for contrast, exactly as the dark theme's
+buttons do; anything that needs a contrasting edge (rules, tab indicators, dots,
+checkbox checks) stays on `--accent`. The migration rule for components:
+`background: var(--accent)` on a control that carries `--on-accent` text →
+`--accent-fill`; thin lines and dots stay `--accent`; `color-mix` tints stay
+`--accent`.
+
+Derivation and contrast report: `light-candidates.mjs` → `light-candidates.json`.

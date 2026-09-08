@@ -26,6 +26,7 @@
   --color-subtle:       var(--subtle);
   --color-accent:       var(--accent);
   --color-accent-hover: var(--accent-hover);
+  --color-accent-fill:  var(--accent-fill);
   --color-accent-dim:   var(--accent-dim);
   --color-danger:       var(--danger);
   --color-success:      var(--success);
@@ -116,7 +117,7 @@ a:hover { color: var(--accent-hover); }
   border-radius: var(--r-xs);
 }
 
-::selection { background: var(--accent); color: var(--on-accent); }
+::selection { background: var(--accent-fill); color: var(--on-accent); }
 
 /* Shiki dual-theme switch. Astro emits the light theme's color +
    background-color inline on each <pre>/<span> and exposes the dark
