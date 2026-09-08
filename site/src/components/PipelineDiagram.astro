@@ -362,13 +362,13 @@ const phaseLabels = [
 
 <style>
   .pipeline {
-    /* v1.9 assurance accent — the same gold /architecture uses, and
-       deliberately NOT this site's --warning (#84CC16, lime) nor the
-       #f59e0b archetype amber. /architecture scopes its own --assure to
-       .arch-v2 and there is no global one, so this component carries a
-       copy. Light value is darkened to clear 3:1 non-text contrast on
-       the white --card. */
-    --assure: #fbbf24;
+    /* v1.9 assurance accent — the same value /architecture's assurance rail
+       uses, carried here because /architecture scopes its own --assure to
+       .arch-v2 and there is no global one. Now the 2.0 "Slate & Emerald"
+       --warning, matching the recolour of both diagram files; it stays
+       deliberately distinct from the 2.0 --tri-agent (#ebfe00). Light value
+       is that set's own light --warning. */
+    --assure: #d4c488;
     /* v2.0 learning accent — the 2.0 "Slate & Emerald" --secondary, the same
        value /architecture's learning rail uses. Carried here because there is
        no global one yet (tokens-2.0.css is finalized but not applied to site/). */
@@ -442,7 +442,7 @@ const phaseLabels = [
 
   .node-assurance rect  { stroke: var(--assure); fill: var(--card); }
   .node-assurance text  { fill: var(--text); font-weight: 600; }
-  :global([data-theme="light"]) .pipeline { --assure: #8a6508; --learn: #295ca5; }
+  :global([data-theme="light"]) .pipeline { --assure: #66571b; --learn: #295ca5; }
 
   /* v2.0 learning row — planned, so dashed. Uses the 2.0 "Slate & Emerald"
      --secondary, matching /architecture's learning rail; the light value is
