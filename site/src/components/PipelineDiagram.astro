@@ -369,9 +369,10 @@ const phaseLabels = [
        copy. Light value is darkened to clear 3:1 non-text contrast on
        the white --card. */
     --assure: #fbbf24;
-    /* v2.0 learning accent — the same iris /architecture scopes to .arch-v2,
-       carried here because there is no global one. */
-    --learn: #a5b4fc;
+    /* v2.0 learning accent — the 2.0 "Slate & Emerald" --secondary, the same
+       value /architecture's learning rail uses. Carried here because there is
+       no global one yet (tokens-2.0.css is finalized but not applied to site/). */
+    --learn: #8cb9fc;
     margin: 1.25rem 0 0;
     max-width: 100%;
     overflow-x: auto;
@@ -441,11 +442,11 @@ const phaseLabels = [
 
   .node-assurance rect  { stroke: var(--assure); fill: var(--card); }
   .node-assurance text  { fill: var(--text); font-weight: 600; }
-  :global([data-theme="light"]) .pipeline { --assure: #8a6508; --learn: #3730a3; }
+  :global([data-theme="light"]) .pipeline { --assure: #8a6508; --learn: #295ca5; }
 
-  /* v2.0 learning row — planned, so dashed. Iris accent, matching
-     /architecture's --learn; the light value is darkened to clear contrast
-     on the parchment card. */
+  /* v2.0 learning row — planned, so dashed. Uses the 2.0 "Slate & Emerald"
+     --secondary, matching /architecture's learning rail; the light value is
+     that set's own light --secondary. */
   .node-learning rect   { stroke: var(--learn); fill: var(--card); stroke-dasharray: 4 3; }
   .node-learning text   { fill: var(--muted); }
   .lane-label--planned  { fill: var(--learn); letter-spacing: 0.14em; }

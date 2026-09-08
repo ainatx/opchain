@@ -113,8 +113,15 @@ const packCounts = {
         <polygon points="0 0, 8 3, 0 6" fill="#38bdf8"/>
       </marker>
       <marker id="ma-ah-learn" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-        <polygon points="0 0, 8 3, 0 6" fill="#a5b4fc"/>
+        <polygon points="0 0, 8 3, 0 6" fill="#8cb9fc"/>
       </marker>
+      <!-- v2.0 Slate & Emerald tri-agent glow, for the learning rail only. -->
+      <filter id="ma-glow-v20-tri" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="3" result="b"/>
+        <feFlood flood-color="#ebfe00" flood-opacity="0.45" result="c"/>
+        <feComposite in="c" in2="b" operator="in" result="s"/>
+        <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
     </defs>
   </svg>
 
@@ -747,53 +754,53 @@ const packCounts = {
         </summary>
         <div class="ma-band-svg-wrap">
           <svg viewBox="0 0 330 500" role="img" aria-label="Learning rail, planned for v2.0: checkpoint wire 1.2 accumulates every run's eval scores, the Outcome Scorecard kit turns them into a decaying directive, oc-hindsight turns committed outcomes into promotable lessons, and oc-evolve turns recurring failures into adoptable rules. The loop closes on the left: only what a human promoted or adopted is re-injected into the next run. None of it is in the catalog yet.">
-            <text x="54" y="22" fill="#a5b4fc" font-size="11" font-weight="700" letter-spacing="0.08em" font-family="JetBrains Mono,monospace">PLANNED FOR v2.0 · NOT SHIPPED</text>
+            <text x="54" y="22" fill="#8cb9fc" font-size="11" font-weight="700" letter-spacing="0.08em" font-family="JetBrains Mono,monospace">PLANNED FOR v2.0 · NOT SHIPPED</text>
 
             <!-- the loop, closed down the left gutter -->
-            <line x1="176" y1="458" x2="176" y2="472" stroke="#a5b4fc" stroke-width="2"/>
-            <line x1="176" y1="472" x2="26" y2="472" stroke="#a5b4fc" stroke-width="2"/>
-            <line x1="26" y1="472" x2="26" y2="40" stroke="#a5b4fc" stroke-width="2"/>
-            <line x1="26" y1="40" x2="176" y2="40" stroke="#a5b4fc" stroke-width="2"/>
-            <line x1="176" y1="40" x2="176" y2="52" stroke="#a5b4fc" stroke-width="2" marker-end="url(#ma-ah-learn)"/>
+            <line x1="176" y1="458" x2="176" y2="472" stroke="#8cb9fc" stroke-width="2"/>
+            <line x1="176" y1="472" x2="26" y2="472" stroke="#8cb9fc" stroke-width="2"/>
+            <line x1="26" y1="472" x2="26" y2="40" stroke="#8cb9fc" stroke-width="2"/>
+            <line x1="26" y1="40" x2="176" y2="40" stroke="#8cb9fc" stroke-width="2"/>
+            <line x1="176" y1="40" x2="176" y2="52" stroke="#8cb9fc" stroke-width="2" marker-end="url(#ma-ah-learn)"/>
 
             <!-- checkpoint wire 1.2 — substrate, owned by oc-checkpoint-protocol. Not a skill. -->
-            <rect x="52" y="52" width="248" height="82" rx="6" fill="#1c1710" stroke="#e05c18" stroke-width="1.8"/>
-            <rect x="52" y="52" width="248" height="82" rx="6" fill="rgba(224,92,24,.06)" stroke="#e05c18" stroke-width="1"/>
-            <text x="176" y="78" text-anchor="middle" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif">checkpoint wire 1.2</text>
-            <text x="176" y="96" text-anchor="middle" fill="#c4b89e" font-size="9" font-family="JetBrains Mono,monospace">substrate · eval_scores[] append semantics</text>
-            <text x="176" y="112" text-anchor="middle" fill="#c4b89e" font-size="9" font-family="JetBrains Mono,monospace">archive → .checkpoints/history/*.ndjson</text>
-            <text x="176" y="128" text-anchor="middle" fill="#e05c18" font-size="9" font-weight="600" font-family="JetBrains Mono,monospace">BREAKING · union-merge on merge</text>
-            <line x1="176" y1="134" x2="176" y2="148" stroke="#a5b4fc" stroke-width="2" marker-end="url(#ma-ah-learn)"/>
+            <rect x="52" y="52" width="248" height="82" rx="6" fill="#12191f" stroke="#2be179" stroke-width="1.8"/>
+            <rect x="52" y="52" width="248" height="82" rx="6" fill="rgba(43,225,121,.06)" stroke="#2be179" stroke-width="1"/>
+            <text x="176" y="78" text-anchor="middle" fill="#d4e2ef" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif">checkpoint wire 1.2</text>
+            <text x="176" y="96" text-anchor="middle" fill="#a5bcd1" font-size="9" font-family="JetBrains Mono,monospace">substrate · eval_scores[] append semantics</text>
+            <text x="176" y="112" text-anchor="middle" fill="#a5bcd1" font-size="9" font-family="JetBrains Mono,monospace">archive → .checkpoints/history/*.ndjson</text>
+            <text x="176" y="128" text-anchor="middle" fill="#2be179" font-size="9" font-weight="600" font-family="JetBrains Mono,monospace">BREAKING · union-merge on merge</text>
+            <line x1="176" y1="134" x2="176" y2="148" stroke="#8cb9fc" stroke-width="2" marker-end="url(#ma-ah-learn)"/>
 
             <!-- Outcome Scorecard kit — mechanical, NOT a skill: not counted, no checkpoint badge. -->
-            <rect x="52" y="148" width="248" height="82" rx="6" fill="#1c1710" stroke="#c4b89e" stroke-width="1.8"/>
-            <rect x="52" y="148" width="248" height="82" rx="6" fill="rgba(196,184,158,.05)" stroke="#c4b89e" stroke-width="1"/>
-            <text x="176" y="174" text-anchor="middle" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif">Outcome Scorecard kit</text>
-            <text x="176" y="192" text-anchor="middle" fill="#c4b89e" font-size="9" font-family="JetBrains Mono,monospace">not a skill — a repo-local kit + hooks</text>
-            <text x="176" y="208" text-anchor="middle" fill="#c4b89e" font-size="9" font-family="JetBrains Mono,monospace">trend → decaying directive at N ≥ 3</text>
-            <text x="176" y="224" text-anchor="middle" fill="#a5b4fc" font-size="9" font-family="JetBrains Mono,monospace">.checkpoints/scorecard.json</text>
-            <line x1="176" y1="230" x2="176" y2="244" stroke="#a5b4fc" stroke-width="2" marker-end="url(#ma-ah-learn)"/>
+            <rect x="52" y="148" width="248" height="82" rx="6" fill="#12191f" stroke="#a5bcd1" stroke-width="1.8"/>
+            <rect x="52" y="148" width="248" height="82" rx="6" fill="rgba(165,188,209,.05)" stroke="#a5bcd1" stroke-width="1"/>
+            <text x="176" y="174" text-anchor="middle" fill="#d4e2ef" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif">Outcome Scorecard kit</text>
+            <text x="176" y="192" text-anchor="middle" fill="#a5bcd1" font-size="9" font-family="JetBrains Mono,monospace">not a skill — a repo-local kit + hooks</text>
+            <text x="176" y="208" text-anchor="middle" fill="#a5bcd1" font-size="9" font-family="JetBrains Mono,monospace">trend → decaying directive at N ≥ 3</text>
+            <text x="176" y="224" text-anchor="middle" fill="#8cb9fc" font-size="9" font-family="JetBrains Mono,monospace">.checkpoints/scorecard.json</text>
+            <line x1="176" y1="230" x2="176" y2="244" stroke="#8cb9fc" stroke-width="2" marker-end="url(#ma-ah-learn)"/>
 
-            <!-- oc-hindsight — planned v2.0; tri-agent, keeps the mobile tri-agent gold inside an iris rail. -->
-            <rect x="52" y="244" width="248" height="100" rx="6" fill="#1c1710" stroke="#fbbf24" stroke-width="1.8" filter="url(#ma-glow-yellow)"/>
-            <rect x="52" y="244" width="248" height="100" rx="6" fill="rgba(251,191,36,.06)" stroke="#fbbf24" stroke-width="1"/>
-            <text x="176" y="270" text-anchor="middle" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif">oc-hindsight</text>
-            <text x="176" y="288" text-anchor="middle" fill="#c4b89e" font-size="9" font-family="JetBrains Mono,monospace">Tri-agent · governed operational memory</text>
-            <text x="176" y="304" text-anchor="middle" fill="#fbbf24" font-size="9" font-family="JetBrains Mono,monospace">Curator · Lesson Gen · Retrieval Eval</text>
-            <text x="176" y="320" text-anchor="middle" fill="#c4b89e" font-size="9" font-family="JetBrains Mono,monospace">/oc-hindsight · lessons.jsonl · top-k ≤ 3</text>
-            <text x="176" y="336" text-anchor="middle" fill="#a5b4fc" font-size="9" font-family="JetBrains Mono,monospace">★ human promote — TTY + signed commit</text>
-            <line x1="176" y1="344" x2="176" y2="358" stroke="#a5b4fc" stroke-width="2" marker-end="url(#ma-ah-learn)"/>
+            <!-- oc-hindsight — planned v2.0; tri-agent, in the 2.0 set's --tri-agent #ebfe00. -->
+            <rect x="52" y="244" width="248" height="100" rx="6" fill="#12191f" stroke="#ebfe00" stroke-width="1.8" filter="url(#ma-glow-v20-tri)"/>
+            <rect x="52" y="244" width="248" height="100" rx="6" fill="rgba(235,254,0,.06)" stroke="#ebfe00" stroke-width="1"/>
+            <text x="176" y="270" text-anchor="middle" fill="#d4e2ef" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif">oc-hindsight</text>
+            <text x="176" y="288" text-anchor="middle" fill="#a5bcd1" font-size="9" font-family="JetBrains Mono,monospace">Tri-agent · governed operational memory</text>
+            <text x="176" y="304" text-anchor="middle" fill="#ebfe00" font-size="9" font-family="JetBrains Mono,monospace">Curator · Lesson Gen · Retrieval Eval</text>
+            <text x="176" y="320" text-anchor="middle" fill="#a5bcd1" font-size="9" font-family="JetBrains Mono,monospace">/oc-hindsight · lessons.jsonl · top-k ≤ 3</text>
+            <text x="176" y="336" text-anchor="middle" fill="#8cb9fc" font-size="9" font-family="JetBrains Mono,monospace">★ human promote — TTY + signed commit</text>
+            <line x1="176" y1="344" x2="176" y2="358" stroke="#8cb9fc" stroke-width="2" marker-end="url(#ma-ah-learn)"/>
 
             <!-- oc-evolve — planned v2.0; tri-agent governor, never an audit gate. -->
-            <rect x="52" y="358" width="248" height="100" rx="6" fill="#1c1710" stroke="#fbbf24" stroke-width="1.8" filter="url(#ma-glow-yellow)"/>
-            <rect x="52" y="358" width="248" height="100" rx="6" fill="rgba(251,191,36,.06)" stroke="#fbbf24" stroke-width="1"/>
-            <text x="176" y="384" text-anchor="middle" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif">oc-evolve</text>
-            <text x="176" y="402" text-anchor="middle" fill="#c4b89e" font-size="9" font-family="JetBrains Mono,monospace">Tri-agent · governed behaviour change</text>
-            <text x="176" y="418" text-anchor="middle" fill="#fbbf24" font-size="9" font-family="JetBrains Mono,monospace">Reflector · Rule Gen · Adversarial Eval</text>
-            <text x="176" y="434" text-anchor="middle" fill="#c4b89e" font-size="9" font-family="JetBrains Mono,monospace">/oc-evolve · .opchain/rules/ · expires</text>
-            <text x="176" y="450" text-anchor="middle" fill="#a5b4fc" font-size="9" font-family="JetBrains Mono,monospace">★ human adopt — TTY + signed commit</text>
+            <rect x="52" y="358" width="248" height="100" rx="6" fill="#12191f" stroke="#ebfe00" stroke-width="1.8" filter="url(#ma-glow-v20-tri)"/>
+            <rect x="52" y="358" width="248" height="100" rx="6" fill="rgba(235,254,0,.06)" stroke="#ebfe00" stroke-width="1"/>
+            <text x="176" y="384" text-anchor="middle" fill="#d4e2ef" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif">oc-evolve</text>
+            <text x="176" y="402" text-anchor="middle" fill="#a5bcd1" font-size="9" font-family="JetBrains Mono,monospace">Tri-agent · governed behaviour change</text>
+            <text x="176" y="418" text-anchor="middle" fill="#ebfe00" font-size="9" font-family="JetBrains Mono,monospace">Reflector · Rule Gen · Adversarial Eval</text>
+            <text x="176" y="434" text-anchor="middle" fill="#a5bcd1" font-size="9" font-family="JetBrains Mono,monospace">/oc-evolve · .opchain/rules/ · expires</text>
+            <text x="176" y="450" text-anchor="middle" fill="#8cb9fc" font-size="9" font-family="JetBrains Mono,monospace">★ human adopt — TTY + signed commit</text>
 
-            <text x="176" y="488" text-anchor="middle" fill="#a5b4fc" font-size="9" font-family="JetBrains Mono,monospace">re-inject — only what a human promoted or adopted</text>
+            <text x="176" y="488" text-anchor="middle" fill="#8cb9fc" font-size="9" font-family="JetBrains Mono,monospace">re-inject — only what a human promoted or adopted</text>
           </svg>
         </div>
         <div class="ma-band-caption">
@@ -994,7 +1001,7 @@ const packCounts = {
             <div class="ma-li-swatch" style="background:color-mix(in srgb, var(--ma-learn) 14%, transparent);border:1.5px dashed var(--ma-learn)"></div>
             <div class="ma-li-name" style="color:var(--ma-learn)">v2.0 learning rail (planned)</div>
           </div>
-          <div class="ma-li-desc">Dashed iris chrome marks work that has not shipped — the catalog today is 33 skills at 1.9.0 on wire 1.1. v2.0 closes a loop: wire 1.2 accumulates eval scores, a kit turns them into a decaying directive, and two governed workflows turn outcomes into lessons and rules. The ★ gates are human gates, not audit gates.</div>
+          <div class="ma-li-desc">Dashed chrome in the 2.0 "Slate &amp; Emerald" palette marks work that has not shipped — the catalog today is 33 skills at 1.9.0 on wire 1.1. v2.0 closes a loop: wire 1.2 accumulates eval scores, a kit turns them into a decaying directive, and two governed workflows turn outcomes into lessons and rules. The ★ gates are human gates, not audit gates.</div>
           <div class="ma-li-eg">oc-hindsight · oc-evolve · Outcome Scorecard kit · wire 1.2</div>
         </div>
       </div>
@@ -1141,10 +1148,18 @@ const packCounts = {
        tri-agent panel, so the rail's SVG chrome rides the tri-agent rule and
        these two tokens must stay in lockstep if either is ever retuned. */
     --ma-assure:     #fbbf24;
-    /* v2.0 learning-rail accent (iris). Unlike --ma-assure this hex is NOT
-       shared with any archetype, so it gets its own attribute-remap rules at
-       the bottom of this file without hijacking existing panels. */
-    --ma-learn:      #a5b4fc;
+    /* v2.0 learning-rail palette — the 2.0 "Slate & Emerald" set (set 34 of
+       design-previews/color-2.0-tooling), used by the learning rail only so
+       the v2.0 surface previews the v2.0 colours. Unlike --ma-assure these
+       hexes are NOT shared with any Forge archetype, so they get their own
+       attribute-remap rules at the bottom of this file without hijacking
+       existing panels. */
+    --ma-learn:      #8cb9fc;   /* 2.0 --secondary  ("coming next") */
+    --ma-v20-bg:     #12191f;   /* 2.0 --bg     */
+    --ma-v20-text:   #d4e2ef;   /* 2.0 --text   */
+    --ma-v20-muted:  #a5bcd1;   /* 2.0 --muted  */
+    --ma-v20-accent: #2be179;   /* 2.0 --accent */
+    --ma-v20-tri:    #ebfe00;   /* 2.0 --tri-agent */
 
     background: var(--ma-bg-page);
     color: var(--ma-text-primary);
@@ -1188,7 +1203,15 @@ const packCounts = {
     --ma-sig:        #c026d3;
     --ma-docs:       #0369a1;
     --ma-assure:     #b45309;   /* v1.9 — kept equal to --ma-triagent, see dark block */
-    --ma-learn:      #3730a3;   /* v2.0 — 8.01:1 on the parchment card, and DeltaE 35 from --ma-ai */
+    /* v2.0 Slate & Emerald, light mode — verbatim from tokens-2.0.css. Each
+       clears 4.5:1 on this file's light card (#efe6d4) as well as on the 2.0
+       light ground it was audited against. */
+    --ma-learn:      #295ca5;   /* 2.0 --secondary  5.35:1 on #efe6d4 */
+    --ma-v20-bg:     #ffffff;   /* 2.0 --card       */
+    --ma-v20-text:   #15181b;   /* 2.0 --text      14.38:1 */
+    --ma-v20-muted:  #444e57;   /* 2.0 --muted      6.85:1 */
+    --ma-v20-accent: #066a34;   /* 2.0 --accent     5.43:1 */
+    --ma-v20-tri:    #585f01;   /* 2.0 --tri-agent  5.55:1 */
   }
 
   /* Hidden defs SVG — must be in DOM but invisible. */
@@ -1493,8 +1516,8 @@ const packCounts = {
   .ma-arail .ma-band-caption b { color: var(--ma-assure); }
 
   /* ── LEARNING RAIL (planned for v2.0) — the self-improvement loop.
-        Iris --ma-learn accent; identical chrome shape to .ma-arail, but
-        dashed, because this rail describes work that has not shipped. */
+        Chrome is the 2.0 set's --secondary; identical shape to .ma-arail,
+        but dashed, because this rail describes work that has not shipped. */
   .ma-band.ma-lrail {
     border-color: color-mix(in srgb, var(--ma-learn) 55%, transparent);
     border-style: dashed;
@@ -1873,12 +1896,22 @@ const packCounts = {
      so CSS chrome (var(--ma-assure)) and SVG chrome (#fbbf24 → --ma-triagent)
      stay pixel-identical. Retune one and you must retune the other. */
 
-  /* Learning rail (v2.0) — iris accent. Safe to remap by hex: #a5b4fc is used
-     by nothing else in this file, so unlike the v1.9 gold these rules cannot
-     hijack an existing panel. */
-  .mobile-architecture svg text[fill="#a5b4fc"]              { fill: var(--ma-learn); }
-  .mobile-architecture svg line[stroke="#a5b4fc"]            { stroke: var(--ma-learn); }
-  .mobile-architecture svg marker polygon[fill="#a5b4fc"]    { fill: var(--ma-learn); }
+  /* Learning rail (v2.0) — the 2.0 "Slate & Emerald" chrome. Safe to remap by
+     hex: #8cb9fc is used by nothing else in this file, so unlike the v1.9 gold
+     these rules cannot hijack an existing panel. */
+  .mobile-architecture svg text[fill="#8cb9fc"]              { fill: var(--ma-learn); }
+  .mobile-architecture svg line[stroke="#8cb9fc"]            { stroke: var(--ma-learn); }
+  .mobile-architecture svg marker polygon[fill="#8cb9fc"]    { fill: var(--ma-learn); }
+  /* The 2.0 palette the learning rail renders in. Each hex is unique to that
+     rail, so these rules cannot reach any Forge-coloured panel elsewhere. */
+  .mobile-architecture svg rect[fill="#12191f"]              { fill: var(--ma-v20-bg); }
+  .mobile-architecture svg text[fill="#d4e2ef"]              { fill: var(--ma-v20-text); }
+  .mobile-architecture svg text[fill="#a5bcd1"]              { fill: var(--ma-v20-muted); }
+  .mobile-architecture svg text[fill="#2be179"]              { fill: var(--ma-v20-accent); }
+  .mobile-architecture svg rect[stroke="#2be179"]            { stroke: var(--ma-v20-accent); }
+  .mobile-architecture svg text[fill="#ebfe00"]              { fill: var(--ma-v20-tri); }
+  .mobile-architecture svg rect[stroke="#ebfe00"]            { stroke: var(--ma-v20-tri); }
+  .mobile-architecture svg rect[stroke="#a5bcd1"]            { stroke: var(--ma-v20-muted); }
 
   /* Glow filters bake their colour into <defs> feFlood, so the attribute-remap
      above cannot reach them; on the light parchment ground they read as muddy
