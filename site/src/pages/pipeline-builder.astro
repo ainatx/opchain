@@ -301,7 +301,7 @@ import Icon from "../components/Icon.astro";
   }
   .progress li::before {
     content: attr(data-step) " · ";
-    color: var(--dim);
+    color: var(--subtle);
   }
   .progress li.active {
     color: var(--accent);
@@ -309,7 +309,7 @@ import Icon from "../components/Icon.astro";
     background: var(--accent-dim);
   }
   .progress li.done { color: var(--muted); border-color: var(--muted); }
-  .progress li.done::before { color: var(--success, #0D9488); }
+  .progress li.done::before { color: var(--success); }
 
   .wizard { display: block; }
   .step {
@@ -415,7 +415,7 @@ import Icon from "../components/Icon.astro";
   .back:hover { color: var(--text); border-color: var(--accent); }
   .next {
     background: var(--accent);
-    color: #1c1710;
+    color: var(--on-accent);
     border-color: var(--accent);
     font-weight: 600;
     margin-left: auto;
@@ -484,9 +484,9 @@ import Icon from "../components/Icon.astro";
     font-family: var(--font-mono);
     font-size: 12px;
     line-height: var(--lh-base);
-    background: var(--obsidian);
-    color: var(--linen);
-    border: 0.5px solid var(--slag);
+    background: var(--bg);
+    color: var(--text);
+    border: 0.5px solid var(--border);
     border-radius: var(--r-md);
     padding: 0.85rem 1.1rem;
     overflow-x: auto;
@@ -525,7 +525,7 @@ import Icon from "../components/Icon.astro";
   .download-btn {
     appearance: none;
     background: var(--accent);
-    color: #1c1710;
+    color: var(--on-accent);
     border: 0.5px solid var(--accent);
     font: inherit;
     font-family: var(--font-mono);
@@ -567,7 +567,7 @@ import Icon from "../components/Icon.astro";
   }
   .cta-primary {
     background: var(--accent);
-    color: #1c1710;
+    color: var(--on-accent);
     border-color: var(--accent);
     font-weight: 600;
   }
@@ -949,8 +949,8 @@ ${DEPLOY_NOTE[a.deploy]}
     downloadStatus.hidden = false;
     downloadStatus.textContent = msg;
     const color = kind === "ok"
-      ? "var(--success, #0D9488)"
-      : "var(--in-progress, #f59e0b)";
+      ? "var(--success)"
+      : "var(--warning)";
     downloadStatus.setAttribute("style", `color: ${color}`);
   }
 

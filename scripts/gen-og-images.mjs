@@ -108,23 +108,23 @@ function card({ headline, tagline }) {
   <defs>
     <!-- Ember glow — bottom-right -->
     <radialGradient id="gr" cx="95%" cy="85%" r="45%" gradientUnits="objectBoundingBox">
-      <stop offset="0%"   stop-color="#e05c18" stop-opacity="0.18"/>
-      <stop offset="100%" stop-color="#1c1710" stop-opacity="0"/>
+      <stop offset="0%"   stop-color="#2be179" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#12191f" stop-opacity="0"/>
     </radialGradient>
     <!-- Subtle top-left warmth -->
     <radialGradient id="gl" cx="0%" cy="0%" r="35%" gradientUnits="objectBoundingBox">
-      <stop offset="0%"   stop-color="#e05c18" stop-opacity="0.07"/>
-      <stop offset="100%" stop-color="#1c1710" stop-opacity="0"/>
+      <stop offset="0%"   stop-color="#2be179" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#12191f" stop-opacity="0"/>
     </radialGradient>
   </defs>
 
   <!-- Base -->
-  <rect width="1200" height="630" fill="#1c1710"/>
+  <rect width="1200" height="630" fill="#12191f"/>
   <rect width="1200" height="630" fill="url(#gr)"/>
   <rect width="1200" height="630" fill="url(#gl)"/>
 
   <!-- Left accent bar -->
-  <rect x="0" y="0" width="5" height="630" fill="#e05c18"/>
+  <rect x="0" y="0" width="5" height="630" fill="#2be179"/>
 
   <!-- Wordmark -->
   <text
@@ -132,7 +132,7 @@ function card({ headline, tagline }) {
     font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif"
     font-size="20"
     font-weight="bold"
-    fill="#e05c18"
+    fill="#2be179"
     letter-spacing="5"
   >OPCHAIN</text>
 
@@ -142,7 +142,7 @@ function card({ headline, tagline }) {
     font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif"
     font-size="${HEADLINE_SIZE}"
     font-weight="bold"
-    fill="#e8dfd0"
+    fill="#d4e2ef"
   >${headline}</text>
 
   <!-- Tagline -->
@@ -151,11 +151,11 @@ function card({ headline, tagline }) {
     font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif"
     font-size="26"
     font-weight="normal"
-    fill="#c4b89e"
+    fill="#a5bcd1"
   >${tagline}</text>
 
   <!-- Bottom accent line -->
-  <rect x="72" y="574" width="260" height="3" fill="#e05c18" opacity="0.7"/>
+  <rect x="72" y="574" width="260" height="3" fill="#2be179" opacity="0.7"/>
 
   <!-- URL -->
   <text
@@ -163,7 +163,7 @@ function card({ headline, tagline }) {
     font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif"
     font-size="18"
     font-weight="normal"
-    fill="#5a5040"
+    fill="#7d91a4"
     text-anchor="end"
   >opchain.dev</text>
 </svg>`;
@@ -242,30 +242,30 @@ function blogCard({ title, pillar }) {
   const titleSpans = lines
     .map(
       (ln, i) =>
-        `  <text x="72" y="${startY + i * lineHeight}" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif" font-size="${fontSize}" font-weight="bold" fill="#e8dfd0">${esc(ln)}</text>`,
+        `  <text x="72" y="${startY + i * lineHeight}" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif" font-size="${fontSize}" font-weight="bold" fill="#d4e2ef">${esc(ln)}</text>`,
     )
     .join("\n");
 
   return `<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <radialGradient id="gr" cx="95%" cy="85%" r="45%" gradientUnits="objectBoundingBox">
-      <stop offset="0%"   stop-color="#e05c18" stop-opacity="0.18"/>
-      <stop offset="100%" stop-color="#1c1710" stop-opacity="0"/>
+      <stop offset="0%"   stop-color="#2be179" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#12191f" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="gl" cx="0%" cy="0%" r="35%" gradientUnits="objectBoundingBox">
-      <stop offset="0%"   stop-color="#e05c18" stop-opacity="0.07"/>
-      <stop offset="100%" stop-color="#1c1710" stop-opacity="0"/>
+      <stop offset="0%"   stop-color="#2be179" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#12191f" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <rect width="1200" height="630" fill="#1c1710"/>
+  <rect width="1200" height="630" fill="#12191f"/>
   <rect width="1200" height="630" fill="url(#gr)"/>
   <rect width="1200" height="630" fill="url(#gl)"/>
-  <rect x="0" y="0" width="5" height="630" fill="#e05c18"/>
-  <text x="72" y="88" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="bold" fill="#e05c18" letter-spacing="5">OPCHAIN</text>
-  <text x="72" y="174" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif" font-size="22" font-weight="bold" fill="#c4742a" letter-spacing="3">${esc(eyebrow)}</text>
+  <rect x="0" y="0" width="5" height="630" fill="#2be179"/>
+  <text x="72" y="88" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="bold" fill="#2be179" letter-spacing="5">OPCHAIN</text>
+  <text x="72" y="174" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif" font-size="22" font-weight="bold" fill="#13bd62" letter-spacing="3">${esc(eyebrow)}</text>
 ${titleSpans}
-  <rect x="72" y="574" width="260" height="3" fill="#e05c18" opacity="0.7"/>
-  <text x="1128" y="594" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="normal" fill="#5a5040" text-anchor="end">opchain.dev/blog</text>
+  <rect x="72" y="574" width="260" height="3" fill="#2be179" opacity="0.7"/>
+  <text x="1128" y="594" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="normal" fill="#7d91a4" text-anchor="end">opchain.dev/blog</text>
 </svg>`;
 }
 
