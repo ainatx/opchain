@@ -306,7 +306,7 @@
     gap: 0.5rem;
     padding: 0.7rem 1.5rem;
     background: var(--accent);
-    color: var(--obsidian);
+    color: var(--on-accent);
     border: 0;
     border-radius: var(--r-sm);
     font-family: var(--font-mono);
@@ -320,7 +320,6 @@
       transform var(--dur-fast) var(--ease-standard),
       box-shadow var(--dur-fast) var(--ease-standard);
   }
-  :global([data-theme="light"]) .submit-btn { background: var(--ember); }
   .submit-btn:hover:not([disabled]) {
     background: var(--accent-hover);
     transform: translateY(-1px);
@@ -337,7 +336,7 @@
     font-size: var(--fs-sm);
   }
   .submit-success {
-    background: rgba(16, 185, 129, 0.08);
+    background: var(--success-dim);
     border-color: var(--success);
     color: var(--text);
   }
@@ -348,7 +347,7 @@
     font-size: 11px;
   }
   .submit-error {
-    background: rgba(216, 100, 100, 0.08);
+    background: var(--danger-dim);
     border-color: var(--danger);
     color: var(--text);
   }

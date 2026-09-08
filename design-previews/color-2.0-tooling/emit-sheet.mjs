@@ -127,6 +127,11 @@ const block = (m, dark) => [
   "     15%-over-surface pill background, so no page needs to precompute one. */",
   ...["workflow", "tri-agent", "audit-gate", "specialist", "advisor", "orchestrator"].flatMap((r) => [line(r, m[r]), line(`${r}-pill`, m[`${r}-pill`])]),
   "",
+  "  /* ── Categorical chart series — NEW (2.0 decision). Four hues in the gaps",
+  "     between the role hues, so a series never reads as a role or as the",
+  "     accent. Bar fills: 3:1 floor on card/surface. /dashboard model tiers. */",
+  ...[1, 2, 3, 4].flatMap((n) => [line(`chart-${n}`, m[`chart-${n}`]), line(`chart-${n}-dim`, m[`chart-${n}-dim`])]),
+  "",
   "  /* Logo tokens */",
   line("logo-stroke", "var(--text)"), line("logo-spine", "var(--subtle)"), line("logo-filled", "var(--accent)"), line("logo-dot-dark", "var(--bg)"),
 ].join("\n");
@@ -303,6 +308,24 @@ light-mode pill backgrounds.
 | Token | Dark | OKLCH | on card | pill | on pill | Light | OKLCH | on card | pill | on pill |
 |---|---|---|---|---|---|---|---|---|---|---|
 ${ROLES.map(rowRole).join("\n")}
+
+## Categorical chart series
+
+Decided 2026-09-08 for \`/dashboard\`, whose model-tier bars hardcode four Tailwind hexes
+(\`#38bdf8\` \`#14b8a6\` \`#a78bfa\` \`#f472b6\`) next to bars filled with the accent — the
+teal sonnet tier reads emerald-adjacent. Four hues placed in the gaps *between* the role
+hues so a series never reads as a role and never as the accent; every one is ≥ 25° from
+emerald. Floor is the 3:1 UI-component ratio on card and surface (they are fills, not
+text); each has a 14% \`-dim\` for tracks.
+
+| Token | Dark | OKLCH | on card | Light | OKLCH | on card |
+|---|---|---|---|---|---|---|
+${[1, 2, 3, 4].map((n) => `| \`--chart-${n}\` | \`${D["chart-" + n]}\` | ${ok(D["chart-" + n])} | ${r2(cr(D["chart-" + n], D.card))}:1 | \`${L["chart-" + n]}\` | ${ok(L["chart-" + n])} | ${r2(cr(L["chart-" + n], L.card))}:1 |`).join("\n")}
+
+Assignment on \`/dashboard\`: haiku → \`--chart-1\`, sonnet → \`--chart-2\`, opus →
+\`--chart-3\`, fable → \`--chart-4\`. The page's undefined \`--text-2\` / \`--text-3\` /
+\`--surface-2\` (rendering their fallbacks today) map to \`--muted\` / \`--subtle\` /
+\`--surface\`.
 
 ## Logo
 

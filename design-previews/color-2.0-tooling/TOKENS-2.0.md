@@ -137,6 +137,27 @@ light-mode pill backgrounds.
 | `--advisor` | `#00bdfd` | 0.75 0.153 232 | 7.71:1 | `#133848` | 5.75:1 | `#016084` | 0.46 0.095 233 | 6.98:1 | `#bed4e1` | 4.55:1 |
 | `--orchestrator` | `#a384fe` | 0.70 0.175 293 | 5.79:1 | `#2b2f48` | 4.55:1 | `#7116e4` | 0.49 0.263 293 | 7.15:1 | `#cfc9ef` | 4.51:1 |
 
+## Categorical chart series
+
+Decided 2026-09-08 for `/dashboard`, whose model-tier bars hardcode four Tailwind hexes
+(`#38bdf8` `#14b8a6` `#a78bfa` `#f472b6`) next to bars filled with the accent — the
+teal sonnet tier reads emerald-adjacent. Four hues placed in the gaps *between* the role
+hues so a series never reads as a role and never as the accent; every one is ≥ 25° from
+emerald. Floor is the 3:1 UI-component ratio on card and surface (they are fills, not
+text); each has a 14% `-dim` for tracks.
+
+| Token | Dark | OKLCH | on card | Light | OKLCH | on card |
+|---|---|---|---|---|---|---|
+| `--chart-1` | `#18b8d1` | 0.72 0.122 212 | 7.01:1 | `#08707f` | 0.50 0.085 211 | 5.78:1 |
+| `--chart-2` | `#72a3fd` | 0.72 0.142 262 | 6.66:1 | `#305eb7` | 0.50 0.150 262 | 6.16:1 |
+| `--chart-3` | `#d87fd1` | 0.72 0.151 330 | 6.26:1 | `#903d8b` | 0.50 0.149 330 | 6.51:1 |
+| `--chart-4` | `#1abea5` | 0.72 0.128 178 | 7.12:1 | `#097463` | 0.50 0.090 178 | 5.69:1 |
+
+Assignment on `/dashboard`: haiku → `--chart-1`, sonnet → `--chart-2`, opus →
+`--chart-3`, fable → `--chart-4`. The page's undefined `--text-2` / `--text-3` /
+`--surface-2` (rendering their fallbacks today) map to `--muted` / `--subtle` /
+`--surface`.
+
 ## Logo
 
 `--logo-stroke` → `--text`, `--logo-spine` → `--subtle`, `--logo-filled` → `--accent`,

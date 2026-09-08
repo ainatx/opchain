@@ -96,6 +96,18 @@
   --orchestrator:  #a384fe;
   --orchestrator-pill:#2b2f48;
 
+  /* ── Categorical chart series — NEW (2.0 decision). Four hues in the gaps
+     between the role hues, so a series never reads as a role or as the
+     accent. Bar fills: 3:1 floor on card/surface. /dashboard model tiers. */
+  --chart-1:       #18b8d1;
+  --chart-1-dim:   rgba(24, 184, 209, 0.14);
+  --chart-2:       #72a3fd;
+  --chart-2-dim:   rgba(114, 163, 253, 0.14);
+  --chart-3:       #d87fd1;
+  --chart-3-dim:   rgba(216, 127, 209, 0.14);
+  --chart-4:       #1abea5;
+  --chart-4-dim:   rgba(26, 190, 165, 0.14);
+
   /* Logo tokens */
   --logo-stroke:   var(--text);
   --logo-spine:    var(--subtle);
@@ -247,6 +259,18 @@
   --advisor-pill:  #bed4e1;
   --orchestrator:  #7116e4;
   --orchestrator-pill:#cfc9ef;
+
+  /* ── Categorical chart series — NEW (2.0 decision). Four hues in the gaps
+     between the role hues, so a series never reads as a role or as the
+     accent. Bar fills: 3:1 floor on card/surface. /dashboard model tiers. */
+  --chart-1:       #08707f;
+  --chart-1-dim:   rgba(8, 112, 127, 0.14);
+  --chart-2:       #305eb7;
+  --chart-2-dim:   rgba(48, 94, 183, 0.14);
+  --chart-3:       #903d8b;
+  --chart-3-dim:   rgba(144, 61, 139, 0.14);
+  --chart-4:       #097463;
+  --chart-4-dim:   rgba(9, 116, 99, 0.14);
 
   /* Logo tokens */
   --logo-stroke:   var(--text);

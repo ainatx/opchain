@@ -31,16 +31,12 @@
   --color-success:      var(--success);
   --color-info:         var(--info);
   --color-warning:      var(--warning);
+  --color-in-progress:  var(--in-progress);
+  --color-secondary:    var(--secondary);
+  --color-tertiary:     var(--tertiary);
+  --color-on-accent:    var(--on-accent);
 
   /* Brand constants */
-  --color-obsidian:  var(--obsidian);
-  --color-forge:     var(--forge);
-  --color-slag:      var(--slag);
-  --color-sand:      var(--sand);
-  --color-linen:     var(--linen);
-  --color-parchment: var(--parchment);
-  --color-ember:     var(--ember);
-  --color-char:      var(--char);
 
   /* Fonts */
   --font-display: var(--font-display);
@@ -120,7 +116,7 @@ a:hover { color: var(--accent-hover); }
   border-radius: var(--r-xs);
 }
 
-::selection { background: var(--accent); color: var(--obsidian); }
+::selection { background: var(--accent); color: var(--on-accent); }
 
 /* Shiki dual-theme switch. Astro emits the light theme's color +
    background-color inline on each <pre>/<span> and exposes the dark

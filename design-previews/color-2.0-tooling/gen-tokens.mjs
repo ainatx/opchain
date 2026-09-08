@@ -538,6 +538,11 @@ const SETS = [
     roleMaxChroma: true, roleTone: "max",
     semantic: { success: 178, danger: 20, warning: 95, info: 225, "in-progress": 340 },
     semanticMute: 0.5,
+    // Categorical chart series (owner decision 2026-09-08): four hues placed in
+    // the gaps BETWEEN the role hues, so a chart series never reads as a role
+    // and never as the emerald accent (all >= 25 deg from 152). Used by the
+    // /dashboard model-tier bars, which today hardcode four Tailwind hexes.
+    chart: { 1: 212, 2: 262, 3: 330, 4: 178 },
   },
 ];
 
@@ -752,6 +757,14 @@ function buildMode(set, mode) {
     t[`${role}-pill`] = mix(r.hex, t.surface, 0.15);
   }
 
+  // Categorical chart series — bar fills, so the floor is the 3:1 UI-component
+  // ratio against card, not the 4.5:1 text floor; a dim tint for tracks.
+  for (const [n, H] of Object.entries(set.chart || {})) {
+    const spec = dark ? { H, C: 0.15, L: 0.72 } : { H, C: 0.15, L: 0.50 };
+    t[`chart-${n}`] = ensure(spec, [t.card, t.surface], 3, dirT).hex;
+    t[`chart-${n}-dim`] = rgba(t[`chart-${n}`], 0.14);
+  }
+
   // Logo
   t["logo-stroke"] = t.text; t["logo-spine"] = t.subtle; t["logo-filled"] = t.accent; t["logo-dot-dark"] = t.bg;
   return t;
@@ -795,6 +808,7 @@ const TOKEN_ORDER = [
   "success", "success-dim", "danger", "danger-dim", "warning", "warning-dim", "in-progress", "in-progress-dim",
   "workflow", "tri-agent", "audit-gate", "specialist", "advisor", "orchestrator",
   "workflow-pill", "tri-agent-pill", "audit-gate-pill", "specialist-pill", "advisor-pill", "orchestrator-pill",
+  "chart-1", "chart-1-dim", "chart-2", "chart-2-dim", "chart-3", "chart-3-dim", "chart-4", "chart-4-dim",
   "logo-stroke", "logo-spine", "logo-filled", "logo-dot-dark",
 ];
 
@@ -807,7 +821,7 @@ for (const set of SETS) {
     entry.modes[mode] = t;
     entry.audit[mode] = audit(t, mode === "dark");
     css += `[data-set="${set.id}"][data-mode="${mode}"] {\n`;
-    for (const k of TOKEN_ORDER) css += `  --${k}: ${t[k]};\n`;
+    for (const k of TOKEN_ORDER) if (t[k] !== undefined) css += `  --${k}: ${t[k]};\n`;
     css += `}\n`;
   }
   out.sets.push(entry);
