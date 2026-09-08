@@ -60,15 +60,14 @@ const classes = ["btn", `btn-${variant}`, `btn-${size}`, className]
   .btn-md { font-size: 11px; padding: 0.55rem 1.1rem; }
   .btn-lg { font-size: 12px; padding: 0.7rem 1.4rem; }
 
-  .btn-primary { background: var(--accent); color: var(--obsidian); border: none; }
+  .btn-primary { background: var(--accent); color: var(--on-accent); border: none; }
   .btn-primary:hover:not([disabled]):not([aria-disabled="true"]) {
     background: var(--accent-hover);
-    color: var(--obsidian);
+    color: var(--on-accent);
   }
-  /* B-10: light --accent (#d95010, L=0.206) only gives 4.33:1 with --obsidian.
-     --ember (#e05c18, L=0.235) is the constant dark-mode value — gives 4.84:1 ✓.
-     :global() needed so [data-theme="light"] targets <html>, not the component root. */
-  :global([data-theme="light"]) .btn-primary { background: var(--ember); }
+  /* 2.0: the label on an accent fill is --on-accent, defined per theme in
+     tokens.css (light accent #066a34 on white = 6.73:1), so the old B-10
+     light-mode override that swapped the fill to --ember is gone. */
 
   .btn-outline {
     background: transparent;

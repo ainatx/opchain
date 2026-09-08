@@ -241,9 +241,9 @@ import securityTxt from "../../public/.well-known/security.txt?raw";
     font-family: var(--font-mono);
     font-size: 12px;
     line-height: var(--lh-base);
-    background: var(--obsidian);
-    color: var(--linen);
-    border: 0.5px solid var(--slag);
+    background: var(--bg);
+    color: var(--text);
+    border: 0.5px solid var(--border);
     border-radius: var(--r-md);
     padding: 0.85rem 1.1rem;
     overflow-x: auto;
@@ -294,9 +294,9 @@ import securityTxt from "../../public/.well-known/security.txt?raw";
   }
   .block .sec-cta-btn {
     display: inline-block;
-    background: var(--ember);
-    color: var(--obsidian);
-    border: 0.5px solid var(--ember);
+    background: var(--accent);
+    color: var(--on-accent);
+    border: 0.5px solid var(--accent);
     border-radius: var(--r-xs);
     font-family: var(--font-mono);
     font-size: var(--fs-sm);
@@ -306,7 +306,7 @@ import securityTxt from "../../public/.well-known/security.txt?raw";
   .block .sec-cta-btn:hover {
     background: var(--accent-hover);
     border-color: var(--accent-hover);
-    color: var(--parchment);
+    color: var(--on-accent);
   }
   .block .sec-cta-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .sec-cta-sub {

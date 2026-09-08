@@ -1,6 +1,7 @@
 ---
 import { REPO_SITE } from "../lib/repo";
 import { defaultFor } from "../lib/flags/build-defaults";
+import VersionBadge from "./VersionBadge.astro";
 
 const year = new Date().getFullYear();
 const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
@@ -11,7 +12,7 @@ const newsletterEnabled = defaultFor("site.ui.footer.newsletter") as boolean;
 <footer class="site-footer">
   <div class="site-footer-inner">
     <div class="col">
-      <div class="brand">opchain</div>
+      <div class="brand">opchain <VersionBadge size="xs" /></div>
       <p class="tagline">skills that ship.</p>
     </div>
     <div class="col">
@@ -172,6 +173,9 @@ const newsletterEnabled = defaultFor("site.ui.footer.newsletter") as boolean;
     font-size: 15px;
     letter-spacing: var(--wordmark-tracking);
     color: var(--text);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
   }
   .tagline {
     font-family: var(--font-mono);
@@ -244,7 +248,7 @@ const newsletterEnabled = defaultFor("site.ui.footer.newsletter") as boolean;
   }
   .nl-form button {
     background: var(--accent);
-    color: var(--accent-contrast, #0a0a0a);
+    color: var(--on-accent);
     border: none;
     border-radius: var(--radius-sm, 6px);
     padding: 0.55rem 1rem;
@@ -262,7 +266,7 @@ const newsletterEnabled = defaultFor("site.ui.footer.newsletter") as boolean;
     flex-basis: 100%;
   }
   .nl-status[data-kind="ok"] { color: var(--accent); }
-  .nl-status[data-kind="err"] { color: var(--danger, #e5484d); }
+  .nl-status[data-kind="err"] { color: var(--danger); }
   .nl-visually-hidden {
     position: absolute;
     width: 1px; height: 1px;

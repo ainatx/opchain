@@ -122,3 +122,8 @@ reports/token-usage/sessions.manifest
 reports/token-usage/prs.json
 # Intermediate per-message usage table; fact_token_usage.csv is the durable one.
 reports/token-usage/raw_usage.csv
+
+# design-previews colour tooling: generated intermediates
+design-previews/color-2.0-tooling/tokens.json
+design-previews/color-2.0-tooling/tokens.css
+design-previews/color-2.0-tooling/shots/

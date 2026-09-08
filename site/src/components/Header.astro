@@ -1,5 +1,6 @@
 ---
 import Logo from "./Logo.astro";
+import VersionBadge from "./VersionBadge.astro";
 import ThemeToggle from "./ThemeToggle.astro";
 import SearchPalette from "./SearchPalette.astro";
 import Icon from "./Icon.astro";
@@ -86,6 +87,7 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     <a class="site-header-brand" href="/" aria-label="opchain home">
       <Logo size={28} />
       <span class="logo">opchain</span>
+      <VersionBadge size="xs" class="brand-badge" />
     </a>
 
     <nav class="nav" aria-label="Primary">
@@ -419,6 +421,8 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     margin-right: auto;
   }
   .site-header-brand:hover { color: var(--text); }
+  /* badge sits closer to the wordmark than the icon does */
+  .site-header-brand :global(.brand-badge) { margin-left: -0.15rem; }
   .logo {
     font-family: var(--font-display);
     font-weight: var(--wordmark-weight);
@@ -490,9 +494,9 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     align-items: center;
     justify-content: center;
   }
-  .nav-badge.new  { background: var(--accent); color: var(--obsidian); }
+  .nav-badge.new  { background: var(--accent); color: var(--on-accent); }
   .nav-badge.tool {
-    background: rgba(20, 184, 166, 0.16);
+    background: var(--specialist-pill);
     color: var(--specialist);
     border: 0.5px solid var(--specialist);
     padding: 2px 4px;
@@ -505,7 +509,7 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     height: 32px;
     align-self: center;
     background: var(--accent);
-    color: var(--obsidian);
+    color: var(--on-accent);
     border: 0;
     border-radius: var(--r-pill);
     font-family: var(--font-mono);
@@ -518,10 +522,8 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     align-items: center;
     transition: background var(--dur-fast) var(--ease-standard);
   }
-  .nav-install:hover { background: var(--accent-hover); color: var(--obsidian); }
-  /* B-10 light-mode contrast: --accent on light bg only hits 4.46:1 on
-     --obsidian; use --ember (#e05c18) instead, like Button.astro does. */
-  :global([data-theme="light"]) .nav-install { background: var(--ember); }
+  .nav-install:hover { background: var(--accent-hover); color: var(--on-accent); }
+  /* 2.0: --on-accent carries the label colour per theme; no light override needed. */
   .nav-install.is-active { box-shadow: 0 0 0 2px var(--accent-dim); }
 
   /* ── Dropdown panels ───────────────────────────────────────── */
@@ -594,9 +596,9 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     border-radius: var(--r-xs);
     line-height: 1;
   }
-  .pillet.new   { background: var(--accent); color: var(--obsidian); }
-  .pillet.tool  { background: rgba(20,184,166,0.16); color: var(--specialist); border: 0.5px solid var(--specialist); }
-  .pillet.count { background: var(--accent-dim); color: var(--accent); border: 0.5px solid rgba(224,92,24,0.4); }
+  .pillet.new   { background: var(--accent); color: var(--on-accent); }
+  .pillet.tool  { background: var(--specialist-pill); color: var(--specialist); border: 0.5px solid var(--specialist); }
+  .pillet.count { background: var(--accent-dim); color: var(--accent); border: 0.5px solid color-mix(in srgb, var(--accent) 40%, transparent); }
 
   /* ── Right cluster (search → version chip → feedback → theme) ── */
   .right-cluster {
@@ -732,7 +734,7 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     border-color: var(--accent);
     background: var(--accent-dim);
   }
-  :global([data-theme="light"]) .util-feedback:hover { color: var(--ember); border-color: var(--ember); }
+  :global([data-theme="light"]) .util-feedback:hover { color: var(--accent); border-color: var(--accent); }
   .util-feedback:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
@@ -823,7 +825,7 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     padding: 0 0.95rem;
     height: 34px;
     background: var(--accent);
-    color: var(--obsidian);
+    color: var(--on-accent);
     border-radius: var(--r-pill);
     font-family: var(--font-mono);
     font-size: 11px;
@@ -832,7 +834,6 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     text-transform: uppercase;
     text-decoration: none;
   }
-  :global([data-theme="light"]) .nav-drawer-primary { background: var(--ember); }
   .nav-drawer-search {
     display: inline-flex;
     align-items: center;

@@ -389,7 +389,7 @@ const projects: Project[] = [
   .submit-btn {
     appearance: none;
     background: var(--accent);
-    color: #1c1710;
+    color: var(--on-accent);
     border: 0.5px solid var(--accent);
     font: inherit;
     font-family: var(--font-mono);
@@ -458,15 +458,15 @@ const projects: Project[] = [
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         statusMsg.textContent = body.error || `Couldn't save (HTTP ${res.status}). Try again later.`;
-        statusMsg.setAttribute("style", "color: var(--in-progress, #f59e0b)");
+        statusMsg.setAttribute("style", "color: var(--danger)");
         return;
       }
       statusMsg.textContent = "Got it — we'll be in touch to confirm the listing.";
-      statusMsg.setAttribute("style", "color: var(--success, #0D9488)");
+      statusMsg.setAttribute("style", "color: var(--success)");
       form.reset();
     } catch {
       statusMsg.textContent = "Network error — try again in a moment.";
-      statusMsg.setAttribute("style", "color: var(--in-progress, #f59e0b)");
+      statusMsg.setAttribute("style", "color: var(--danger)");
     } finally {
       submitBtn.disabled = false;
     }

@@ -1,0 +1,41 @@
+---
+/**
+ * The "2.0" pill that completes the branded lockup (option A: wordmark +
+ * badge). Sits after the wordmark in the header, the homepage hero and the
+ * footer. Accent fill with the theme's --on-accent label, so it clears AA in
+ * both modes without an override. Text comes from LOCKUP_GENERATION — see
+ * site/src/lib/lockup.ts for why that is not CURRENT_RELEASE.
+ *
+ * aria-hidden: the accessible name of the brand link stays "opchain home"; the
+ * generation is decorative for screen readers, the way a favicon is.
+ */
+import { LOCKUP_GENERATION } from "../lib/lockup";
+
+interface Props {
+  size?: "xs" | "sm" | "hero";
+  class?: string;
+}
+const { size = "sm", class: className = "" } = Astro.props;
+---
+
+<span class:list={["v-badge", `v-badge--${size}`, className]} aria-hidden="true">{LOCKUP_GENERATION}</span>
+
+<style>
+  .v-badge {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    line-height: 1.5;
+    background: var(--accent);
+    color: var(--on-accent);
+    border-radius: var(--r-pill);
+    /* nudge up so the pill's optical centre sits on the wordmark's x-height */
+    transform: translateY(-1px);
+    flex: none;
+  }
+  .v-badge--xs   { font-size: 9px;  padding: 1px 6px; }
+  .v-badge--sm   { font-size: 10px; padding: 2px 7px; }
+  .v-badge--hero { font-size: 15px; padding: 4px 12px; transform: translateY(-0.55em); }
+</style>

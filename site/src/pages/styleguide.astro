@@ -39,14 +39,14 @@ const palette = [
 ];
 
 const brand = [
-  { token: "--obsidian",  hex: "#1c1710" },
-  { token: "--forge",     hex: "#2a2218" },
-  { token: "--slag",      hex: "#5a5040" },
-  { token: "--sand",      hex: "#c4b89e" },
-  { token: "--linen",     hex: "#e8dfd0" },
-  { token: "--parchment", hex: "#f6f0e8" },
-  { token: "--ember",     hex: "#e05c18" },
-  { token: "--char",      hex: "#b84510" },
+  { token: "--slate",        hex: "#12191f" },
+  { token: "--slate-2",      hex: "#162028" },
+  { token: "--gunmetal",     hex: "#445461" },
+  { token: "--mist",         hex: "#a5bcd1" },
+  { token: "--frost",        hex: "#d4e2ef" },
+  { token: "--paper",        hex: "#e7eef5" },
+  { token: "--emerald",      hex: "#2be179" },
+  { token: "--moss",         hex: "#13bd62" },
 ];
 
 const typeScale = [
@@ -126,7 +126,7 @@ const icons = [
       <div class="swatch-grid">
         {brand.map((c) => (
           <div class="swatch">
-            <div class="chip" style={`background: ${c.hex};`}></div>
+            <div class="chip" style={`background: var(${c.token});`}></div>
             <div class="meta">
               <code>{c.token}</code>
               <span>{c.hex}</span>

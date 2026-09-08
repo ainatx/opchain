@@ -155,13 +155,12 @@
     /* Inline ember pair so the small mono-cap eyebrow clears AA-Normal
        (4.5:1) on the surface card in both themes — same values used by
        the previous static page-summary block. */
-    color: #f5894d;
+    color: var(--accent);
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     letter-spacing: var(--ls-widest);
     text-transform: uppercase;
   }
-  :global([data-theme="light"]) .welcome-eyebrow { color: #993505; }
   .welcome-close {
     appearance: none;
     background: transparent;
@@ -236,7 +235,7 @@
     font-size: var(--fs-sm);
     background: var(--accent);
     border: 0.5px solid var(--accent);
-    color: #1c1710;
+    color: var(--on-accent);
     font-weight: 600;
     padding: 0.45rem 1.1rem;
     border-radius: var(--r-xs);
@@ -244,12 +243,6 @@
     transition:
       background var(--dur-fast) var(--ease-standard),
       border-color var(--dur-fast) var(--ease-standard);
-  }
-  /* B-10: light --accent (#d95010) + --obsidian text = 4.34:1 ✗.
-     --ember (#e05c18) gives 4.83:1 ✓ — same fix used in the old tour. */
-  :global([data-theme="light"]) .welcome-btn {
-    background: var(--ember);
-    border-color: var(--ember);
   }
   .welcome-btn:hover { filter: brightness(1.05); }
   .welcome-btn:focus-visible {

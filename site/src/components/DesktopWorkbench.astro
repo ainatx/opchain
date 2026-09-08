@@ -560,15 +560,12 @@ const transcripts = walkthroughs.map((w) => ({
   }
   .tree-folder.is-open {
     background: var(--accent);
-    color: var(--obsidian);
+    color: var(--on-accent);
     font-weight: 500;
-  }
-  :global([data-theme="light"]) .tree-folder.is-open {
-    background: var(--ember);
   }
   .tree-folder.is-open .tree-arrow,
   .tree-folder.is-open .tree-num,
-  .tree-folder.is-open .tree-count { color: var(--obsidian); }
+  .tree-folder.is-open .tree-count { color: var(--on-accent); }
   .tree-folder:focus-visible {
     outline: none;
     box-shadow: var(--focus-ring-inset);
@@ -699,14 +696,13 @@ const transcripts = walkthroughs.map((w) => ({
     font-family: var(--font-mono);
   }
   .editor-prompt-eyebrow {
-    color: #f5894d;
+    color: var(--accent);
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     letter-spacing: var(--ls-widest);
     text-transform: uppercase;
     margin-bottom: 0.6rem;
   }
-  :global([data-theme="light"]) .editor-prompt-eyebrow { color: #993505; }
   .editor-prompt-h {
     font-size: var(--fs-lg);
     color: var(--text);
@@ -725,7 +721,7 @@ const transcripts = walkthroughs.map((w) => ({
   .scenario-pane[hidden] { display: none; }
   .scenario-head { margin-bottom: 1rem; }
   .scenario-num {
-    color: #f5894d;
+    color: var(--accent);
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     letter-spacing: var(--ls-widest);
@@ -733,7 +729,6 @@ const transcripts = walkthroughs.map((w) => ({
     margin-bottom: 0.4rem;
   }
   :global([data-theme="light"]) .scenario-num,
-  :global([data-theme="light"]) .col-head { color: #993505; }
   .scenario-title {
     font-family: var(--font-display);
     font-weight: 600;
@@ -765,7 +760,7 @@ const transcripts = walkthroughs.map((w) => ({
   }
   .scenario-col { min-width: 0; }
   .col-head {
-    color: #f5894d;
+    color: var(--accent);
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     letter-spacing: var(--ls-widest);
@@ -819,7 +814,7 @@ const transcripts = walkthroughs.map((w) => ({
   }
   .output-row:hover {
     border-color: var(--accent);
-    background: var(--ember-dim);
+    background: var(--accent-dim);
   }
   .output-row:focus-visible {
     outline: none;
@@ -883,7 +878,7 @@ const transcripts = walkthroughs.map((w) => ({
     gap: 0.45rem;
     transition: color 120ms, background 120ms, border-color 120ms;
   }
-  .play-btn:hover { background: var(--ember-dim); }
+  .play-btn:hover { background: var(--accent-dim); }
   .play-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
   .play-ico { font-size: 0.7em; }
 
@@ -1114,14 +1109,13 @@ const transcripts = walkthroughs.map((w) => ({
   }
   .inspector-pane[hidden] { display: none; }
   .ip-eyebrow {
-    color: #f5894d;
+    color: var(--accent);
     font-family: var(--font-mono);
     font-size: 10.5px;
     letter-spacing: var(--ls-widest);
     text-transform: uppercase;
     margin-bottom: 0.4rem;
   }
-  :global([data-theme="light"]) .ip-eyebrow { color: #993505; }
   .ip-title {
     color: var(--text);
     font-family: var(--font-display);
@@ -1145,7 +1139,7 @@ const transcripts = walkthroughs.map((w) => ({
   }
   .ip-section { margin-bottom: 0.9rem; }
   .ip-section-head {
-    color: #f5894d;
+    color: var(--accent);
     font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: var(--ls-widest);
@@ -1154,7 +1148,6 @@ const transcripts = walkthroughs.map((w) => ({
     padding-bottom: 0.25rem;
     border-bottom: 0.5px solid var(--border);
   }
-  :global([data-theme="light"]) .ip-section-head { color: #993505; }
   .ip-list { list-style: none; padding: 0; margin: 0; }
   .ip-list li {
     color: var(--muted);

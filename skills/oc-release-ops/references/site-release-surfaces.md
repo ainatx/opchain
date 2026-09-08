@@ -90,6 +90,7 @@ if a release re-enters the window, e.g. a date correction.)
 | F6 | Architecture diagrams (new skills + version annotations) | `site/src/components/MobileArchitecture.astro` + `site/src/pages/architecture.astro` | the `vN` band badges + "NEW vN" annotations, and the release's new skills drawn into the diagram. This is a procedure, not a find/replace — follow [`docs/runbooks/architecture-diagram-cycle.md`](../../../docs/runbooks/architecture-diagram-cycle.md), which covers placement (rail vs band), the house geometry conventions CI asserts, and the counts that must move with it. Note the diagrams also carry live-claim surfaces L8–L10. |
 | F7 | Per-skill OG cards | `site/src/layouts/Base.astro` (`ROUTE_OG_IMAGES`) + `scripts/gen-og.mjs` | add `/skills/<new-skill>` → `/og/skills-<new-skill>.png` for each new skill, and add the skill to the gen-og generation list so the PNG exists |
 | F8 | Skill library | `/skills` index + `/skills/[id]` | auto-discovered from `skills/*/SKILL.md` (no manual edit) — but confirm the new skills appear and any phase chips cover their `phases:` |
+| F9 | Lockup generation badge | `site/src/lib/lockup.ts` (`LOCKUP_GENERATION`) → `VersionBadge.astro` in Header, homepage hero, Footer | **Majors only.** The "2.0" pill next to the wordmark names the brand generation, not the release: it stays `"2.0"` through v2.1, v2.2 … and becomes `"3.0"` with the next major. Set it in the major's build PR; that PR must not deploy ahead of the cut. Point releases leave it alone. |
 
 ## Coupled tests (update in lockstep)
 
@@ -109,7 +110,7 @@ surface still references a superseded release once `CURRENT_RELEASE` has moved.
 
 ## Procedure (oc-release-ops drives this)
 
-1. **In the build PR:** update all **Forward** surfaces (F1–F8) + their coupled
+1. **In the build PR:** update all **Forward** surfaces (F1–F9) + their coupled
    tests. CI green.
 2. **At the deploy cut:** flip all **Live-claim** surfaces (L1–L7) + their
    coupled changelog tests, in the PR that is deployed immediately after merge.

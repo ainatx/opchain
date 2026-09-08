@@ -399,14 +399,13 @@ const transcripts = walkthroughs.map((w) => ({
   }
   .mw-empty[hidden] { display: none; }
   .mw-empty-eyebrow {
-    color: #f5894d;
+    color: var(--accent);
     font-family: var(--font-mono);
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: var(--ls-widest);
     margin-bottom: 8px;
   }
-  :global([data-theme="light"]) .mw-empty-eyebrow { color: #993505; }
   .mw-empty-h {
     font-family: var(--font-display);
     font-size: var(--fs-lg);
@@ -446,7 +445,7 @@ const transcripts = walkthroughs.map((w) => ({
     padding: 3px 7px;
     border-radius: var(--r-pill);
     border: 0.5px solid var(--border);
-    background: rgba(255, 255, 255, 0.02);
+    background: color-mix(in srgb, var(--text) 3%, transparent);
     color: var(--muted);
   }
   .mw-skill-pill--xs { font-size: 9px; padding: 2px 6px; }
@@ -489,7 +488,7 @@ const transcripts = walkthroughs.map((w) => ({
   .mw-scn-card:hover { border-color: var(--accent); }
   .mw-scn-card[aria-pressed="true"] {
     border-color: var(--accent);
-    background: var(--ember-dim);
+    background: var(--accent-dim);
     box-shadow: var(--glow-md);
   }
   .mw-scn-card:focus-visible {
@@ -497,14 +496,13 @@ const transcripts = walkthroughs.map((w) => ({
     box-shadow: var(--focus-ring);
   }
   .mw-scn-num {
-    color: #f5894d;
+    color: var(--accent);
     font-family: var(--font-mono);
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: var(--ls-widest);
     margin-bottom: 4px;
   }
-  :global([data-theme="light"]) .mw-scn-num { color: #993505; }
   .mw-scn-title {
     font-family: var(--font-display);
     font-size: var(--fs-md);
@@ -540,14 +538,13 @@ const transcripts = walkthroughs.map((w) => ({
     border-bottom: 0.5px solid var(--border);
   }
   .mw-stream-eyebrow {
-    color: #f5894d;
+    color: var(--accent);
     font-family: var(--font-mono);
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: var(--ls-widest);
     margin-bottom: 4px;
   }
-  :global([data-theme="light"]) .mw-stream-eyebrow { color: #993505; }
   .mw-stream-title {
     font-family: var(--font-display);
     font-weight: 600;
@@ -807,7 +804,7 @@ const transcripts = walkthroughs.map((w) => ({
   .mw-output-row:hover,
   .mw-output-row:focus-visible {
     border-color: var(--accent);
-    background: var(--ember-dim);
+    background: var(--accent-dim);
     outline: none;
   }
   .mw-output-row .output-ico   { color: var(--accent); flex: 0 0 auto; }
@@ -824,14 +821,13 @@ const transcripts = walkthroughs.map((w) => ({
     margin-bottom: 10px;
   }
   .mw-insp-eyebrow {
-    color: #f5894d;
+    color: var(--accent);
     font-family: var(--font-mono);
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: var(--ls-widest);
     margin-bottom: 6px;
   }
-  :global([data-theme="light"]) .mw-insp-eyebrow { color: #993505; }
   .mw-insp-title {
     font-family: var(--font-display);
     font-size: var(--fs-md);
