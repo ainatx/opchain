@@ -79,7 +79,7 @@
   --warning-dim:   rgba(212, 196, 136, 0.12);
   --in-progress:   #e4bdd6;
   --in-progress-dim:rgba(228, 189, 214, 0.12);
-  --destructive:   #783639;
+  --destructive:   #783639;  /* fill-only (1.9:1 on grounds): unconsumed today; pair with --text, never use as text */
   --destructive-dim:rgba(120, 54, 57, 0.12);
 
   /* ── Skill role tokens — gamut-maxed (2.0 decision): the product's own
@@ -208,7 +208,7 @@
 
 /* ─────────── LIGHT THEME (Lifted slate) ─────────── */
 [data-theme="light"] {
-  /* Light rework 2026-09-08 — candidate L3 "Lifted slate · brand fill":
+  /* Light rework 2026-09-08 (+ evaluator refinements) — candidate L3 "Lifted slate · brand fill":
      lighter blue-grey page with real steps to a whiter surface and white
      cards; the accent splits into --accent (text-safe) and --accent-fill
      (brand emerald, fills only); six role hues on their own tints. Derived
@@ -218,11 +218,11 @@
   --ribbon-edge:   #bcc9d5;
   --surface:       #f7fbfe;
   --card:          #ffffff;
-  --border:        #c5d1dc;
+  --border:        #b9c6d2;
   --text:          #092438;
   --muted:         #5d6b77;
-  --subtle:        #5b6e80;
-  --accent:        #027c3e;  /* text-safe green: links, outlines, eyebrows, role text */
+  --subtle:        #586c7d;
+  --accent:        #0d7a3e;  /* text-safe green: links, outlines, eyebrows, role text */
   --accent-hover:  #0b6834;
   --accent-fill:   #33d977;  /* the brand emerald, for FILLS only (buttons, badges, pills) with --on-accent labels */
   --accent-fill-hover: #13bd62;  /* moss — same hover the dark theme uses */
@@ -230,33 +230,33 @@
   --accent-dim:    rgba(51, 217, 119, 0.18);
   --accent-glow:   rgba(51, 217, 119, 0.42);  /* owner 2026-09-08: stronger on light for the hero release bar + stage */
   --glow:          rgba(51, 217, 119, 0.28);  /* owner 2026-09-08: stronger on light */
-  --secondary:     #0067df;
-  --secondary-dim: rgba(0, 103, 223, 0.12);
-  --tertiary:      #a341be;
-  --tertiary-dim:  rgba(163, 65, 190, 0.12);
-  --danger:        #9a5a5a;
-  --danger-dim:    rgba(154, 90, 90, 0.12);
-  --success:       #217969;
-  --success-dim:   rgba(33, 121, 105, 0.12);
-  --info:          #26748f;
-  --info-dim:      rgba(38, 116, 143, 0.12);
-  --warning:       #7b6b2c;
-  --warning-dim:   rgba(123, 107, 44, 0.12);
-  --in-progress:   #915c80;
-  --in-progress-dim: rgba(145, 92, 128, 0.12);
+  --secondary:     #0265d9;
+  --secondary-dim: rgba(2, 101, 217, 0.12);
+  --tertiary:      #9f3ebb;
+  --tertiary-dim:  rgba(159, 62, 187, 0.12);
+  --danger:        #8b5e5d;
+  --danger-dim:    rgba(139, 94, 93, 0.12);
+  --success:       #3e7367;
+  --success-dim:   rgba(62, 115, 103, 0.12);
+  --info:          #3a717c;
+  --info-dim:      rgba(58, 113, 124, 0.12);
+  --warning:       #746940;
+  --warning-dim:   rgba(116, 105, 64, 0.12);
+  --in-progress:   #845e77;
+  --in-progress-dim: rgba(132, 94, 119, 0.12);
   --destructive:   #953c41;
   --destructive-dim: rgba(149, 60, 65, 0.12);
-  --workflow:      #027c3e;
-  --workflow-pill: #d8fae0;
-  --tri-agent:     #69710c;
+  --workflow:      #02661e;
+  --workflow-pill: #daf8db;
+  --tri-agent:     #666e05;
   --tri-agent-pill: #eef5cf;
-  --audit-gate:    #c00765;
+  --audit-gate:    #bb0963;
   --audit-gate-pill: #ffd4e0;
-  --specialist:    #14797a;
-  --specialist-pill: #cafbfb;
-  --advisor:       #0b6e94;
+  --specialist:    #0b737f;
+  --specialist-pill: #c7f7fe;
+  --advisor:       #036b91;
   --advisor-pill:  #c3eaff;
-  --orchestrator:  #7a2df0;
+  --orchestrator:  #7828ec;
   --orchestrator-pill: #e0daff;
   --chart-1:       #109fb4;
   --chart-1-dim:   rgba(16, 159, 180, 0.14);

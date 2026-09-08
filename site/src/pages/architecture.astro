@@ -1892,7 +1892,7 @@ const packCounts = {
         const w = m.width + padX * 2;
         const h = 9 + padY * 2;
         const rx = 3;
-        ctx.fillStyle = '#12191f';
+        ctx.fillStyle = PILL_BG;
         ctx.globalAlpha = 0.96;
         if (ctx.roundRect) {
           ctx.beginPath(); ctx.roundRect(x - w/2, y - h/2, w, h, rx); ctx.fill();
@@ -1956,7 +1956,14 @@ const packCounts = {
 
       const safeXR = wr.width - 32;
 
-      const EMB = '#2be179', SAND = '#a5bcd1';
+      // Canvas cannot use CSS variables, so read them at draw time — this is
+      // what makes the cross-band lines and their label pills follow the theme.
+      const cssVar = (n, fallback) => {
+        const v = getComputedStyle(document.querySelector('.arch-v2')).getPropertyValue(n).trim();
+        return v || fallback;
+      };
+      const EMB = cssVar('--ember', '#2be179'), SAND = cssVar('--sand', '#a5bcd1');
+      const PILL_BG = cssVar('--shade', '#12191f');
 
       const mY_pb = arrowMidY('ba-1c');
       const mY_bs = arrowMidY('ba-2');
@@ -2193,6 +2200,10 @@ const packCounts = {
       if (rafId) cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => { rafId = 0; drawConnectionLines(); });
     });
+    /* The canvas bakes its colours in at draw time, so a theme flip has to
+       redraw it or the cross-band lines keep the previous theme's palette. */
+    new MutationObserver(() => requestAnimationFrame(() => drawConnectionLines()))
+      .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
     /* ══ Upgrade .bd-tag spans into anchors → /skills/<id>.
        The band-detail "skills:" chips list the skills involved in each
@@ -2296,7 +2307,7 @@ const packCounts = {
     /* Brand accent */
     --ember:      #2be179;
     --char:       #13bd62;
-    --ember-dim:  rgba(43,225,121,.10);
+    --ember-dim:  color-mix(in srgb, var(--ember) 10%, transparent);
 
     /* Semantic */
     --success:    #02fdff;
@@ -2308,13 +2319,13 @@ const packCounts = {
     --inst:       #1abea5;   /* v1.6 instrumentation accent (lime) */
     --sig:        #d87fd1;   /* v1.7 "Seams & Signals" accent (magenta) */
     --docs:       #00bdfd;   /* v1.8 docs/repo gate accent */
-    --docs-dim:   rgba(0,189,253,.08);
-    --docs-mid:   rgba(0,189,253,.16);
-    --inst-dim:   rgba(26,190,165,.08);
-    --inst-mid:   rgba(26,190,165,.16);
+    --docs-dim:   color-mix(in srgb, var(--advisor) 8%, transparent);
+    --docs-mid:   color-mix(in srgb, var(--advisor) 16%, transparent);
+    --inst-dim:   color-mix(in srgb, var(--inst) 8%, transparent);
+    --inst-mid:   color-mix(in srgb, var(--inst) 16%, transparent);
     --assure:     #ebfe00;   /* v1.9 assurance-rail accent (gold; NOT the #ebfe00 archetype amber) */
-    --assure-dim: rgba(235,254,0,.08);
-    --assure-mid: rgba(235,254,0,.16);
+    --assure-dim: color-mix(in srgb, var(--warning) 8%, transparent);
+    --assure-mid: color-mix(in srgb, var(--warning) 16%, transparent);
     /* v2.0 learning-rail chrome. The rail renders in the 2.0 "Slate & Emerald"
        token set (design-previews/color-2.0-tooling/tokens-2.0.css, set 34) while
        the rest of this page stays Forge — so the v2.0 surface previews the 2.0
@@ -2324,15 +2335,18 @@ const packCounts = {
        Panels inside the rail carry the 2.0 ROLE colours (--tri-agent #ebfe00,
        --specialist #02fdff, --orchestrator #a384fe) and the 2.0 --accent
        #2be179 for the checkpoint substrate. */
+    --tert:       #d79fe9;   /* 2.0 --tertiary (planned) */
     --learn:      #8cb9fc;
-    --learn-dim:  rgba(140,185,252,.10);
-    --learn-mid:  rgba(140,185,252,.18);
+    --learn-dim:  color-mix(in srgb, var(--learn) 10%, transparent);
+    --learn-mid:  color-mix(in srgb, var(--learn) 18%, transparent);
     --v20-bg:     #12191f;   /* 2.0 --bg    — the rail's own slate ground */
     --v20-text:   #d4e2ef;   /* 2.0 --text  — frost */
     --v20-muted:  #a5bcd1;   /* 2.0 --muted */
 
     font-family: 'JetBrains Mono', ui-monospace, monospace;
-    background: var(--obsidian);
+    --shade:      #1c1710;   /* deep wash behind panels/tooltips; light overrides it */
+    --arch-page: var(--obsidian);
+    background: var(--arch-page);
     color: var(--linen);
     padding: 2rem;
   }
@@ -2377,11 +2391,11 @@ const packCounts = {
   }
 
   .arch-v2 .bands-wrap {
-    border: 1px dashed rgba(43,225,121,.3);
+    border: 1px dashed color-mix(in srgb, var(--ember) 30%, transparent);
     border-radius: 6px;
     padding: .5rem .5rem 1rem 0; min-width: 795px;
     position: relative;
-    background: rgba(43,225,121,.015);
+    background: color-mix(in srgb, var(--ember) 2%, transparent);
   }
   .arch-v2 .cp-zone-label {
     position: absolute;
@@ -2393,7 +2407,7 @@ const packCounts = {
     font-size: .625rem; font-weight: 700; color: var(--ember);
     padding: .3em .5em; border-radius: 4px;
     background: var(--ember-dim);
-    border: .5px solid rgba(43,225,121,.5);
+    border: .5px solid color-mix(in srgb, var(--ember) 50%, transparent);
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     letter-spacing: .08em;
@@ -2418,15 +2432,15 @@ const packCounts = {
     display: flex; align-items: center; gap: 10px;
     padding: 8px 14px;
     border-radius: 5px;
-    background: rgba(43,225,121,.04);
-    border: .5px solid rgba(43,225,121,.5);
-    box-shadow: 0 0 14px rgba(43,225,121,.18);
+    background: color-mix(in srgb, var(--ember) 4%, transparent);
+    border: .5px solid color-mix(in srgb, var(--ember) 50%, transparent);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--ember) 18%, transparent);
   }
   .arch-v2 .foundation-pill .fp-tag {
     font-size: clamp(.503rem, .805cqi, .685rem); font-weight: 700; color: var(--ember);
     letter-spacing: .12em; text-transform: uppercase;
     padding: 2px 6px; border-radius: 3px;
-    background: var(--ember-dim); border: .5px solid rgba(43,225,121,.5);
+    background: var(--ember-dim); border: .5px solid color-mix(in srgb, var(--ember) 50%, transparent);
   }
   .arch-v2 .foundation-pill .fp-name {
     font-family: 'Outfit', system-ui, sans-serif;
@@ -2443,9 +2457,9 @@ const packCounts = {
   }
   .arch-v2 .foundation-pill-trigger:hover,
   .arch-v2 .foundation-pill-trigger:focus-visible {
-    background: rgba(43,225,121,.10);
-    border-color: rgba(43,225,121,.7);
-    box-shadow: 0 0 22px rgba(43,225,121,.32);
+    background: color-mix(in srgb, var(--ember) 10%, transparent);
+    border-color: color-mix(in srgb, var(--ember) 70%, transparent);
+    box-shadow: 0 0 22px color-mix(in srgb, var(--ember) 32%, transparent);
     outline: none;
   }
   .arch-v2 .foundation-pill-trigger:focus-visible {
@@ -2547,7 +2561,7 @@ const packCounts = {
   }
   .arch-v2 .bd-meta {
     flex-shrink: 0; width: fit-content; max-width: 40%; border-radius: 5px; padding: 8px 10px;
-    background: rgba(0,0,0,.18); border: .5px solid rgba(165,188,209,.12);
+    background: color-mix(in srgb, var(--shade) 18%, transparent); border: .5px solid color-mix(in srgb, var(--sand) 12%, transparent);
     display: flex; flex-direction: column; gap: 5px;
   }
   .arch-v2 .bd-meta-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -2569,7 +2583,7 @@ const packCounts = {
   .arch-v2 .bd-cp-badge {
     font-size: clamp(.578rem, .85cqi, .72rem);
     font-weight: 700; padding: 1px 4px; border-radius: 3px;
-    background: var(--ember-dim); border: .5px solid rgba(43,225,121,.5);
+    background: var(--ember-dim); border: .5px solid color-mix(in srgb, var(--ember) 50%, transparent);
   }
   .arch-v2 .bd-cross { display: flex; gap: 6px; flex-wrap: wrap; }
   .arch-v2 .bd-cross-tag {
@@ -2590,11 +2604,11 @@ const packCounts = {
   .arch-v2 #band-discover { margin-top: 24px; }
   .arch-v2 .pack-fabric-band {
     position: relative;
-    background: linear-gradient(180deg, rgba(43,225,121,.08) 0%, rgba(28,23,16,.4) 100%);
-    border: 1px solid rgba(43,225,121,.5);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--ember) 8%, transparent) 0%, color-mix(in srgb, var(--shade) 40%, transparent) 100%);
+    border: 1px solid color-mix(in srgb, var(--ember) 50%, transparent);
     border-radius: 6px;
     padding: 14px 16px;
-    box-shadow: 0 0 22px rgba(43,225,121,.08);
+    box-shadow: 0 0 22px color-mix(in srgb, var(--ember) 8%, transparent);
   }
   .arch-v2 .pack-fabric-band .pf-head {
     display: flex; gap: 14px; align-items: flex-start; justify-content: space-between;
@@ -2621,7 +2635,7 @@ const packCounts = {
   .arch-v2 .pack-fabric-band .pf-sub code {
     font-family: inherit;
     color: var(--linen);
-    background: rgba(165,188,209,.08);
+    background: color-mix(in srgb, var(--sand) 8%, transparent);
     padding: 0 4px; border-radius: 3px;
   }
   .arch-v2 .pack-fabric-band .pf-sub b { color: var(--linen); font-weight: 600; }
@@ -2629,8 +2643,8 @@ const packCounts = {
     flex-shrink: 0;
     display: inline-flex; align-items: center; gap: 8px;
     padding: 5px 10px 5px 12px; border-radius: 999px;
-    background: rgba(43,225,121,.18);
-    border: .5px solid rgba(43,225,121,.7);
+    background: color-mix(in srgb, var(--ember) 18%, transparent);
+    border: .5px solid color-mix(in srgb, var(--ember) 70%, transparent);
     color: var(--ember);
     font-family: 'JetBrains Mono', monospace;
     font-size: clamp(.58rem, .95cqi, .76rem);
@@ -2640,9 +2654,9 @@ const packCounts = {
   }
   .arch-v2 .pack-fabric-band .pf-badge:hover,
   .arch-v2 .pack-fabric-band .pf-badge:focus-visible {
-    background: rgba(43,225,121,.30);
-    border-color: rgba(43,225,121,.9);
-    box-shadow: 0 0 16px rgba(43,225,121,.35);
+    background: color-mix(in srgb, var(--ember) 30%, transparent);
+    border-color: color-mix(in srgb, var(--ember) 90%, transparent);
+    box-shadow: 0 0 16px color-mix(in srgb, var(--ember) 35%, transparent);
     outline: none;
   }
   .arch-v2 .pack-fabric-band .pf-badge:focus-visible {
@@ -2661,8 +2675,8 @@ const packCounts = {
     gap: 10px;
   }
   .arch-v2 .pack-fabric-band .pf-cell {
-    background: rgba(28,23,16,.55);
-    border: .5px solid rgba(165,188,209,.22);
+    background: color-mix(in srgb, var(--shade) 55%, transparent);
+    border: .5px solid color-mix(in srgb, var(--sand) 22%, transparent);
     border-radius: 5px;
     padding: 8px 10px;
   }
@@ -2687,32 +2701,32 @@ const packCounts = {
     font-family: 'JetBrains Mono', monospace;
     font-size: clamp(.5rem, .85cqi, .68rem);
     padding: 1.5px 5px; border-radius: 3px;
-    background: rgba(165,188,209,.08);
-    border: .5px solid rgba(165,188,209,.25);
+    background: color-mix(in srgb, var(--sand) 8%, transparent);
+    border: .5px solid color-mix(in srgb, var(--sand) 25%, transparent);
     color: var(--sand);
     white-space: nowrap;
   }
-  .arch-v2 .pack-fabric-band .pf-cell.pf-lang .pf-cell-count { color: #00bdfd; }
+  .arch-v2 .pack-fabric-band .pf-cell.pf-lang .pf-cell-count { color: var(--advisor); }
   .arch-v2 .pack-fabric-band .pf-cell.pf-lang .pf-chip {
-    background: rgba(14,165,233,.10); border-color: rgba(14,165,233,.35); color: #00bdfd;
+    background: color-mix(in srgb, var(--advisor) 10%, transparent); border-color: color-mix(in srgb, var(--advisor) 35%, transparent); color: var(--advisor);
   }
-  .arch-v2 .pack-fabric-band .pf-cell.pf-fw .pf-cell-count { color: #ebfe00; }
+  .arch-v2 .pack-fabric-band .pf-cell.pf-fw .pf-cell-count { color: var(--warning); }
   .arch-v2 .pack-fabric-band .pf-cell.pf-fw .pf-chip {
-    background: rgba(245,158,11,.10); border-color: rgba(245,158,11,.35); color: #ebfe00;
+    background: color-mix(in srgb, var(--warning) 10%, transparent); border-color: color-mix(in srgb, var(--warning) 35%, transparent); color: var(--warning);
   }
-  .arch-v2 .pack-fabric-band .pf-cell.pf-mob .pf-cell-count { color: #a384fe; }
+  .arch-v2 .pack-fabric-band .pf-cell.pf-mob .pf-cell-count { color: var(--ai); }
   .arch-v2 .pack-fabric-band .pf-cell.pf-mob .pf-chip {
-    background: rgba(163,132,254,.10); border-color: rgba(163,132,254,.35); color: #a384fe;
+    background: color-mix(in srgb, var(--ai) 10%, transparent); border-color: color-mix(in srgb, var(--ai) 35%, transparent); color: var(--ai);
   }
-  .arch-v2 .pack-fabric-band .pf-cell.pf-dep .pf-cell-count { color: #02fdff; }
+  .arch-v2 .pack-fabric-band .pf-cell.pf-dep .pf-cell-count { color: var(--success); }
   .arch-v2 .pack-fabric-band .pf-cell.pf-dep .pf-chip {
-    background: rgba(20,184,166,.10); border-color: rgba(20,184,166,.35); color: #02fdff;
+    background: color-mix(in srgb, var(--success) 10%, transparent); border-color: color-mix(in srgb, var(--success) 35%, transparent); color: var(--success);
   }
-  /* VECTOR-DB — v1.5 pack category. Pink (#d79fe9): distinct from the existing
-     four cell colours (mobile already owns violet #a384fe in this grid). */
-  .arch-v2 .pack-fabric-band .pf-cell.pf-vec .pf-cell-count { color: #d79fe9; }
+  /* VECTOR-DB — v1.5 pack category. Pink (var(--tert)): distinct from the existing
+     four cell colours (mobile already owns violet var(--ai) in this grid). */
+  .arch-v2 .pack-fabric-band .pf-cell.pf-vec .pf-cell-count { color: var(--tert); }
   .arch-v2 .pack-fabric-band .pf-cell.pf-vec .pf-chip {
-    background: rgba(236,72,153,.10); border-color: rgba(236,72,153,.35); color: #d79fe9;
+    background: color-mix(in srgb, var(--auditor) 10%, transparent); border-color: color-mix(in srgb, var(--auditor) 35%, transparent); color: var(--tert);
   }
   /* On narrower viewports, stack the cells: 3-up, then 2-up. Below 768px the mobile component takes over. */
   @media (max-width: 1100px) {
@@ -2745,7 +2759,7 @@ const packCounts = {
   .arch-v2 .bands-wrap.cp-mode .foundation,
   .arch-v2 .bands-wrap.orch-mode .foundation { opacity: 1; filter: none; }
   .arch-v2 .bands-wrap.cp-mode #cp-toggle,
-  .arch-v2 .bands-wrap.orch-mode #orch-toggle { border-color: rgba(43,225,121,.7); box-shadow: 0 0 22px rgba(43,225,121,.32); }
+  .arch-v2 .bands-wrap.orch-mode #orch-toggle { border-color: color-mix(in srgb, var(--ember) 70%, transparent); box-shadow: 0 0 22px color-mix(in srgb, var(--ember) 32%, transparent); }
   .arch-v2 .bands-wrap.cp-mode .cp-grid-section { opacity: 1; filter: none; }
   .arch-v2 .bands-wrap.orch-mode .lines-canvas { opacity: .04; transition: opacity 1.5s ease 0s; }
 
@@ -2856,9 +2870,9 @@ const packCounts = {
   .arch-v2 .bands-wrap.cp-mode .cp-anim-line-6 { animation: archV2CpLineIn 2.0s ease-out 5.5s forwards; }
 
   .arch-v2 .cp-grid-inner {
-    border: 1px dashed rgba(43,225,121,.25);
+    border: 1px dashed color-mix(in srgb, var(--ember) 25%, transparent);
     border-radius: 6px;
-    background: rgba(28,23,16,.85);
+    background: color-mix(in srgb, var(--shade) 85%, transparent);
     padding: 16px 24px 14px; margin: 4px 8px; position: relative;
   }
 
@@ -2869,9 +2883,9 @@ const packCounts = {
   }
   .arch-v2 .bands-wrap.cp-mode .cp-detail-expand { max-height: 420px; opacity: 1; visibility: visible; }
   .arch-v2 .cpd-inner {
-    border: .5px solid rgba(43,225,121,.3);
+    border: .5px solid color-mix(in srgb, var(--ember) 30%, transparent);
     border-radius: 8px;
-    background: rgba(28,23,16,.92);
+    background: color-mix(in srgb, var(--shade) 92%, transparent);
     padding: 14px 18px; margin: 18px 4px 4px;
   }
   .arch-v2 .cp-detail-expand .cpd-inner {
@@ -2892,11 +2906,11 @@ const packCounts = {
     font-size: clamp(.719rem, 1.15cqi, .978rem); color: var(--sand); line-height: 1.65;
     margin: 0 0 12px;
   }
-  .arch-v2 .cpd-intro code { font-size: clamp(.611rem, .978cqi, .831rem); color: var(--linen); background: var(--ember-dim); border: .5px solid rgba(43,225,121,.2); padding: 0 4px; border-radius: 3px; }
+  .arch-v2 .cpd-intro code { font-size: clamp(.611rem, .978cqi, .831rem); color: var(--linen); background: var(--ember-dim); border: .5px solid color-mix(in srgb, var(--ember) 20%, transparent); padding: 0 4px; border-radius: 3px; }
   .arch-v2 .cpd-inner .cpd-json { margin-top: 0; }
   .arch-v2 .cpd-json {
     font-size: clamp(.611rem, .978cqi, .831rem); color: var(--sand); background: var(--obsidian);
-    border: .5px solid rgba(43,225,121,.12); border-radius: 4px;
+    border: .5px solid color-mix(in srgb, var(--ember) 12%, transparent); border-radius: 4px;
     padding: 7px 9px; line-height: 1.6; margin-top: 5px;
   }
   .arch-v2 .cpd-json .k { color: var(--ember); }
@@ -2939,12 +2953,12 @@ const packCounts = {
   .arch-v2 .legend-item.dimmed { opacity: .07; }
   .arch-v2 .li-swatch { width: 22px; height: 12px; border-radius: 3px; }
   .arch-v2 .li-swatch-spine {
-    /* LHCI: #02fdff (teal-700) on the alpha-blended 18% mix bg gives
-       ~4.48:1 — fails AA Normal at .5rem. #02fdff is the calibrated
-       --specialist token (B-10: was #02fdff, 4.48△ → 6.74✓). */
-    background: rgba(20,184,166,.18);
-    border: .5px solid #02fdff;
-    color: #02fdff;
+    /* LHCI: var(--success) (teal-700) on the alpha-blended 18% mix bg gives
+       ~4.48:1 — fails AA Normal at .5rem. var(--success) is the calibrated
+       --specialist token (B-10: was var(--success), 4.48△ → 6.74✓). */
+    background: color-mix(in srgb, var(--success) 18%, transparent);
+    border: .5px solid var(--success);
+    color: var(--success);
     font-size: .5rem;
     font-weight: 700;
     font-family: 'JetBrains Mono', monospace;
@@ -2961,7 +2975,7 @@ const packCounts = {
     position: absolute; bottom: calc(100% + 8px); left: 50%;
     transform: translateX(-50%); width: 16.25rem;
     padding: 12px 14px; border-radius: 6px;
-    background: rgba(28,23,16,.96);
+    background: color-mix(in srgb, var(--shade) 96%, transparent);
     border: .5px solid var(--slag);
     box-shadow: 0 8px 32px rgba(0,0,0,.4);
     z-index: 10; pointer-events: none; opacity: 0; visibility: hidden;
@@ -2988,7 +3002,7 @@ const packCounts = {
   }
   .arch-v2 .card ul { list-style: none; color: var(--sand); font-size: .7rem; }
   .arch-v2 .card li { margin-bottom: .3rem; }
-  /* LHCI: --slag (#445461) fails AA Normal at .7rem on --bg. --subtle
+  /* LHCI: --slag (var(--slag)) fails AA Normal at .7rem on --bg. --subtle
      is the calibrated dimmed-text token (~5.59:1) and matches the
      other dimmed-text fixes on this page. */
   .arch-v2 .footer { text-align: center; margin-top: 1.25rem; color: var(--subtle); font-size: .7rem; }
@@ -3043,7 +3057,7 @@ const packCounts = {
   /* Rail anchor cards are <a>, so without this they inherit the site-wide
      link colour var(--accent) — a theme-aware token that has no business in
      this dark-only diagram (runbook §7, "theme-token leak"; measured shifting
-     #2be179 → #2be179 under [data-theme="light"] on the v1.6 and v1.8 rails in
+     var(--ember) → var(--ember) under [data-theme="light"] on the v1.6 and v1.8 rails in
      production). Every child span already pins its own colour, so this changes
      nothing visible; it stops the leak at the boundary. */
   .arch-v2 .irail-anchor,
@@ -3056,7 +3070,7 @@ const packCounts = {
   .arch-v2 .ia-badges { display: flex; gap: 5px; align-items: center; margin-top: 4px; }
   .arch-v2 .ia-cp {
     font-size: .5rem; font-weight: 700; color: var(--ember);
-    border: .5px solid rgba(43,225,121,.6); background: var(--obsidian);
+    border: .5px solid color-mix(in srgb, var(--ember) 60%, transparent); background: var(--obsidian);
     border-radius: 3px; padding: 1px 4px;
   }
   .arch-v2 .ia-new {
@@ -3069,12 +3083,12 @@ const packCounts = {
     display: grid;
     grid-template-columns: 150px 1fr 64px 200px;
     align-items: center; gap: 8px;
-    padding: 6px 8px; border-bottom: .5px solid rgba(165,188,209,.12);
+    padding: 6px 8px; border-bottom: .5px solid color-mix(in srgb, var(--sand) 12%, transparent);
     font-size: .66rem;
   }
   .arch-v2 .irow.irail-h {
     font-size: .5rem; letter-spacing: .1em; text-transform: uppercase;
-    color: var(--sand); font-weight: 600; border-bottom: 1px solid rgba(26,190,165,.3);
+    color: var(--sand); font-weight: 600; border-bottom: 1px solid color-mix(in srgb, var(--inst) 30%, transparent);
   }
   /* Active-phase highlight is an inset lime bar, NOT a background fill — a fill
      lightens the row and drops text contrast below WCAG AA mid-animation. */
@@ -3092,7 +3106,7 @@ const packCounts = {
   .arch-v2 .ir-sk { color: var(--linen); }
   .arch-v2 .ir-c, .arch-v2 .ir-u { display: flex; align-items: center; gap: 7px; }
   .arch-v2 .rm-cost { color: var(--inst); font-weight: 600; font-variant-numeric: tabular-nums; }
-  .arch-v2 .rm-bar { flex: 1; height: 6px; min-width: 70px; background: rgba(26,190,165,.12); border-radius: 4px; overflow: hidden; }
+  .arch-v2 .rm-bar { flex: 1; height: 6px; min-width: 70px; background: color-mix(in srgb, var(--inst) 12%, transparent); border-radius: 4px; overflow: hidden; }
   .arch-v2 .rm-bar > i { display: block; height: 100%; width: 100%; transform: scaleX(0); transform-origin: left; background: var(--inst); border-radius: 4px; transition: transform .12s linear; }
   .arch-v2 .rm-use { color: var(--sand); font-variant-numeric: tabular-nums; min-width: 26px; text-align: right; }
   .arch-v2 .irail-foot { font-size: .56rem; color: var(--inst); letter-spacing: .04em; margin-top: 8px; }
@@ -3139,7 +3153,7 @@ const packCounts = {
         Cross-cutting assurance + governed-delivery rail under the
         quality-gate rail. Gold --assure accent (the v1.9 analog of
         v1.8's sky --docs) — every other rail hue is taken. The gold is
-        #ebfe00, deliberately distinct from the #ebfe00 archetype amber:
+        var(--warning), deliberately distinct from the var(--warning) archetype amber:
         the rail accent is chrome only, and panels inside the SVG keep
         their own archetype colour, the way the qrail draws
         oc-code-auditor amber and oc-security-auditor rose inside a sky
@@ -3190,7 +3204,7 @@ const packCounts = {
         renders in the 2.0 "Slate & Emerald" token set
         (design-previews/color-2.0-tooling/tokens-2.0.css, set 34), so the
         v2.0 surface shows the v2.0 palette while the rest of the page stays
-        Forge. Chrome is that set's --secondary #8cb9fc — 2.0's "coming next"
+        Forge. Chrome is that set's --secondary var(--learn) — 2.0's "coming next"
         colour, which is what v2.0 is — at 8.83:1 on the slate ground and
         8.87:1 on this page's obsidian. The panels carry 2.0 role colours
         rather than Forge archetypes, because that set re-harmonizes the
@@ -3254,5 +3268,197 @@ const packCounts = {
   @media (max-width: 767px) {
     .arch-desktop { display: none; }
     .arch-mobile  { display: block; }
+  }
+
+/* ══ light treatment (scripts/arch-light-treatment.mjs) ══ */
+  /* Attribute + inline-style remaps: CSS beats SVG presentation attributes, so
+     the markup keeps its Forge hexes and resolves through the variables above.
+     On dark every var equals the hex it replaces — pixel-identical. */
+  .arch-v2 feFlood[flood-color="#2be179"] { flood-color: var(--ember); }
+  .arch-v2 feFlood[flood-color="#ebfe00"] { flood-color: var(--warning); }
+  .arch-v2 feFlood[flood-color="#00bdfd"] { flood-color: var(--advisor); }
+  .arch-v2 feFlood[flood-color="#02fdff"] { flood-color: var(--success); }
+  .arch-v2 feFlood[flood-color="#fb5998"] { flood-color: var(--auditor); }
+  .arch-v2 feFlood[flood-color="#d87fd1"] { flood-color: var(--sig); }
+  .arch-v2 polygon[fill="#02fdff"] { fill: var(--success); }
+  .arch-v2 polygon[fill="#2be179"] { fill: var(--ember); }
+  .arch-v2 polygon[fill="#d87fd1"] { fill: var(--sig); }
+  .arch-v2 polygon[fill="#a5bcd1"] { fill: var(--sand); }
+  .arch-v2 polygon[fill="#d58f8f"] { fill: var(--error); }
+  .arch-v2 polygon[fill="#00bdfd"] { fill: var(--advisor); }
+  .arch-v2 polygon[fill="#8cb9fc"] { fill: var(--learn); }
+  .arch-v2 line[stroke="#2be179"] { stroke: var(--ember); }
+  .arch-v2 rect[fill="rgba(43,225,121,.20)"] { fill: color-mix(in srgb, var(--ember) 20%, transparent); }
+  .arch-v2 rect[stroke="#2be179"] { stroke: var(--ember); }
+  .arch-v2 text[fill="#e7eef5"] { fill: var(--parchment); }
+  .arch-v2 text[fill="#2be179"] { fill: var(--ember); }
+  .arch-v2 rect[fill="rgba(43,225,121,.10)"] { fill: color-mix(in srgb, var(--ember) 10%, transparent); }
+  .arch-v2 rect[fill="#12191f"] { fill: var(--obsidian); }
+  .arch-v2 rect[stroke="rgba(43,225,121,0.6)"] { stroke: color-mix(in srgb, var(--ember) 60%, transparent); }
+  .arch-v2 text[fill="#ebfe00"] { fill: var(--warning); }
+  .arch-v2 rect[stroke="#02fdff"] { stroke: var(--success); }
+  .arch-v2 rect[fill="rgba(2,253,255,0.06)"] { fill: color-mix(in srgb, var(--success) 6%, transparent); }
+  .arch-v2 text[fill="#d4e2ef"] { fill: var(--linen); }
+  .arch-v2 text[fill="#a5bcd1"] { fill: var(--sand); }
+  .arch-v2 text[fill="#02fdff"] { fill: var(--success); }
+  .arch-v2 rect[fill="rgba(2,253,255,.18)"] { fill: color-mix(in srgb, var(--success) 18%, transparent); }
+  .arch-v2 rect[stroke="#00bdfd"] { stroke: var(--advisor); }
+  .arch-v2 rect[fill="rgba(14,165,233,0.06)"] { fill: color-mix(in srgb, var(--advisor) 6%, transparent); }
+  .arch-v2 text[fill="#00bdfd"] { fill: var(--advisor); }
+  .arch-v2 rect[stroke="#ebfe00"] { stroke: var(--warning); }
+  .arch-v2 rect[fill="rgba(245,158,11,0.05)"] { fill: color-mix(in srgb, var(--warning) 5%, transparent); }
+  .arch-v2 rect[fill="rgba(235,254,0,.12)"] { fill: color-mix(in srgb, var(--warning) 12%, transparent); }
+  .arch-v2 text[fill="#a384fe"] { fill: var(--ai); }
+  .arch-v2 rect[stroke="#d87fd1"] { stroke: var(--sig); }
+  .arch-v2 rect[fill="rgba(216,127,209,0.06)"] { fill: color-mix(in srgb, var(--sig) 6%, transparent); }
+  .arch-v2 text[fill="#d87fd1"] { fill: var(--sig); }
+  .arch-v2 rect[fill="rgba(216,127,209,.10)"] { fill: color-mix(in srgb, var(--sig) 10%, transparent); }
+  .arch-v2 rect[stroke="rgba(216,127,209,0.6)"] { stroke: color-mix(in srgb, var(--sig) 60%, transparent); }
+  .arch-v2 rect[fill="rgba(216,127,209,.16)"] { fill: color-mix(in srgb, var(--sig) 16%, transparent); }
+  .arch-v2 line[stroke="#a5bcd1"] { stroke: var(--sand); }
+  .arch-v2 rect[stroke="#a384fe"] { stroke: var(--ai); }
+  .arch-v2 rect[fill="rgba(163,132,254,0.06)"] { fill: color-mix(in srgb, var(--ai) 6%, transparent); }
+  .arch-v2 rect[fill="rgba(2,253,255,.12)"] { fill: color-mix(in srgb, var(--success) 12%, transparent); }
+  .arch-v2 line[stroke="#d87fd1"] { stroke: var(--sig); }
+  .arch-v2 rect[fill="rgba(216,127,209,0.05)"] { fill: color-mix(in srgb, var(--sig) 5%, transparent); }
+  .arch-v2 rect[fill="rgba(216,127,209,.12)"] { fill: color-mix(in srgb, var(--sig) 12%, transparent); }
+  .arch-v2 rect[fill="rgba(2,253,255,0.10)"] { fill: color-mix(in srgb, var(--success) 10%, transparent); }
+  .arch-v2 rect[fill="rgba(2,253,255,0.18)"] { fill: color-mix(in srgb, var(--success) 18%, transparent); }
+  .arch-v2 line[stroke="#02fdff"] { stroke: var(--success); }
+  .arch-v2 rect[fill="rgba(2,253,255,0.28)"] { fill: color-mix(in srgb, var(--success) 28%, transparent); }
+  .arch-v2 rect[fill="rgba(43,225,121,.08)"] { fill: color-mix(in srgb, var(--ember) 8%, transparent); }
+  .arch-v2 rect[stroke="#fb5998"] { stroke: var(--auditor); }
+  .arch-v2 rect[fill="rgba(251,89,152,0.06)"] { fill: color-mix(in srgb, var(--auditor) 6%, transparent); }
+  .arch-v2 text[fill="#fb5998"] { fill: var(--auditor); }
+  .arch-v2 polyline[stroke="#d58f8f"] { stroke: var(--error); }
+  .arch-v2 text[fill="#d58f8f"] { fill: var(--error); }
+  .arch-v2 rect[fill="rgba(0,189,253,0.07)"] { fill: color-mix(in srgb, var(--advisor) 7%, transparent); }
+  .arch-v2 line[stroke="#00bdfd"] { stroke: var(--advisor); }
+  .arch-v2 line[stroke="#fb5998"] { stroke: var(--auditor); }
+  .arch-v2 circle[fill="#12191f"] { fill: var(--obsidian); }
+  .arch-v2 circle[stroke="#fb5998"] { stroke: var(--auditor); }
+  .arch-v2 circle[stroke="#00bdfd"] { stroke: var(--advisor); }
+  .arch-v2 circle[stroke="#2be179"] { stroke: var(--ember); }
+  .arch-v2 rect[fill="rgba(235,254,0,.16)"] { fill: color-mix(in srgb, var(--warning) 16%, transparent); }
+  .arch-v2 rect[fill="rgba(245,158,11,0.06)"] { fill: color-mix(in srgb, var(--warning) 6%, transparent); }
+  .arch-v2 line[stroke="#d58f8f"] { stroke: var(--error); }
+  .arch-v2 circle[stroke="#ebfe00"] { stroke: var(--warning); }
+  .arch-v2 text[fill="#8cb9fc"] { fill: var(--learn); }
+  .arch-v2 line[stroke="#8cb9fc"] { stroke: var(--learn); }
+  .arch-v2 rect[fill="rgba(43,225,121,0.06)"] { fill: color-mix(in srgb, var(--ember) 6%, transparent); }
+  .arch-v2 rect[fill="rgba(140,185,252,.16)"] { fill: color-mix(in srgb, var(--learn) 16%, transparent); }
+  .arch-v2 rect[stroke="#8cb9fc"] { stroke: var(--learn); }
+  .arch-v2 rect[stroke="#a5bcd1"] { stroke: var(--sand); }
+  .arch-v2 rect[fill="rgba(165,188,209,0.05)"] { fill: color-mix(in srgb, var(--sand) 5%, transparent); }
+  .arch-v2 rect[fill="rgba(235,254,0,0.06)"] { fill: color-mix(in srgb, var(--warning) 6%, transparent); }
+  .arch-v2 circle[stroke="#8cb9fc"] { stroke: var(--learn); }
+  .arch-v2 circle[stroke="#a384fe"] { stroke: var(--ai); }
+  .arch-v2 circle[stroke="#a5bcd1"] { stroke: var(--sand); }
+  .arch-v2 circle[stroke="#02fdff"] { stroke: var(--success); }
+  .arch-v2 [style*="background:rgba(2,253,255,0.04)"] { background: color-mix(in srgb, var(--success) 4%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(2,253,255,0.2)"] { border-color: color-mix(in srgb, var(--success) 20%, transparent) !important; }
+  .arch-v2 [style*="background:rgba(2,253,255,0.1)"] { background: color-mix(in srgb, var(--success) 10%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(2,253,255,0.4)"] { border-color: color-mix(in srgb, var(--success) 40%, transparent) !important; }
+  .arch-v2 [style*="color:#02fdff"] { color: var(--success) !important; }
+  .arch-v2 [style*="background:rgba(2,253,255,0.06)"] { background: color-mix(in srgb, var(--success) 6%, transparent) !important; }
+  .arch-v2 [style*="color:#ebfe00"] { color: var(--warning) !important; }
+  .arch-v2 [style*="background:rgba(43,225,121,0.04)"] { background: color-mix(in srgb, var(--ember) 4%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(43,225,121,0.2)"] { border-color: color-mix(in srgb, var(--ember) 20%, transparent) !important; }
+  .arch-v2 [style*="background:rgba(245,158,11,0.1)"] { background: color-mix(in srgb, var(--warning) 10%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(245,158,11,0.4)"] { border-color: color-mix(in srgb, var(--warning) 40%, transparent) !important; }
+  .arch-v2 [style*="background:rgba(14,165,233,0.1)"] { background: color-mix(in srgb, var(--advisor) 10%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(14,165,233,0.35)"] { border-color: color-mix(in srgb, var(--advisor) 35%, transparent) !important; }
+  .arch-v2 [style*="color:#00bdfd"] { color: var(--advisor) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(2,253,255,0.35)"] { border-color: color-mix(in srgb, var(--success) 35%, transparent) !important; }
+  .arch-v2 [style*="background:rgba(216,127,209,0.1)"] { background: color-mix(in srgb, var(--sig) 10%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(216,127,209,0.45)"] { border-color: color-mix(in srgb, var(--sig) 45%, transparent) !important; }
+  .arch-v2 [style*="color:#d87fd1"] { color: var(--sig) !important; }
+  .arch-v2 [style*="background:rgba(245,158,11,0.06)"] { background: color-mix(in srgb, var(--warning) 6%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(245,158,11,0.2)"] { border-color: color-mix(in srgb, var(--warning) 20%, transparent) !important; }
+  .arch-v2 [style*="background:rgba(163,132,254,0.05)"] { background: color-mix(in srgb, var(--ai) 5%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(163,132,254,0.25)"] { border-color: color-mix(in srgb, var(--ai) 25%, transparent) !important; }
+  .arch-v2 [style*="background:rgba(163,132,254,0.1)"] { background: color-mix(in srgb, var(--ai) 10%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(163,132,254,0.4)"] { border-color: color-mix(in srgb, var(--ai) 40%, transparent) !important; }
+  .arch-v2 [style*="color:#a384fe"] { color: var(--ai) !important; }
+  .arch-v2 [style*="background:rgba(163,132,254,0.06)"] { background: color-mix(in srgb, var(--ai) 6%, transparent) !important; }
+  .arch-v2 [style*="background:rgba(245,158,11,0.04)"] { background: color-mix(in srgb, var(--warning) 4%, transparent) !important; }
+  .arch-v2 [style*="background:rgba(43,225,121,0.06)"] { background: color-mix(in srgb, var(--ember) 6%, transparent) !important; }
+  .arch-v2 [style*="color:#2be179"] { color: var(--ember) !important; }
+  .arch-v2 [style*="background:rgba(251,89,152,0.06)"] { background: color-mix(in srgb, var(--auditor) 6%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(251,89,152,0.2)"] { border-color: color-mix(in srgb, var(--auditor) 20%, transparent) !important; }
+  .arch-v2 [style*="color:#fb5998"] { color: var(--auditor) !important; }
+  .arch-v2 [style*="background:rgba(251,89,152,0.1)"] { background: color-mix(in srgb, var(--auditor) 10%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(251,89,152,0.4)"] { border-color: color-mix(in srgb, var(--auditor) 40%, transparent) !important; }
+  .arch-v2 [style*="background:rgba(43,225,121,0.1)"] { background: color-mix(in srgb, var(--ember) 10%, transparent) !important; }
+  .arch-v2 [style*="border:0.5px solid rgba(43,225,121,0.4)"] { border-color: color-mix(in srgb, var(--ember) 40%, transparent) !important; }
+  .arch-v2 [style*="border-color:#2be179"] { border-color: var(--ember) !important; }
+  .arch-v2 [style*="border-color:#a5bcd1"] { border-color: var(--sand) !important; }
+  .arch-v2 [style*="border-color:#d58f8f"] { border-color: var(--error) !important; }
+  .arch-v2 [style*="background:rgba(43,225,121,.10)"] { background: color-mix(in srgb, var(--ember) 10%, transparent) !important; }
+  .arch-v2 [style*="border:.5px solid rgba(43,225,121,.6)"] { border-color: color-mix(in srgb, var(--ember) 60%, transparent) !important; }
+  .arch-v2 [style*="background:rgba(245,158,11,.08)"] { background: color-mix(in srgb, var(--warning) 8%, transparent) !important; }
+  .arch-v2 [style*="border:1px solid #ebfe00"] { border-color: var(--warning) !important; }
+  .arch-v2 [style*="box-shadow:0 0 6px rgba(245,158,11,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--warning) 40%, transparent) !important; }
+  .arch-v2 [style*="background:rgba(14,165,233,.08)"] { background: color-mix(in srgb, var(--advisor) 8%, transparent) !important; }
+  .arch-v2 [style*="border:1px solid #00bdfd"] { border-color: var(--advisor) !important; }
+  .arch-v2 [style*="box-shadow:0 0 6px rgba(14,165,233,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--advisor) 40%, transparent) !important; }
+  .arch-v2 [style*="background:rgba(2,253,255,.08)"] { background: color-mix(in srgb, var(--success) 8%, transparent) !important; }
+  .arch-v2 [style*="border:1px solid #02fdff"] { border-color: var(--success) !important; }
+  .arch-v2 [style*="box-shadow:0 0 6px rgba(2,253,255,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--success) 40%, transparent) !important; }
+  .arch-v2 [style*="background:rgba(43,225,121,.08)"] { background: color-mix(in srgb, var(--ember) 8%, transparent) !important; }
+  .arch-v2 [style*="border:1px solid #2be179"] { border-color: var(--ember) !important; }
+  .arch-v2 [style*="box-shadow:0 0 6px rgba(43,225,121,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--ember) 40%, transparent) !important; }
+  .arch-v2 [style*="background:rgba(251,89,152,.08)"] { background: color-mix(in srgb, var(--auditor) 8%, transparent) !important; }
+  .arch-v2 [style*="border:1px solid #fb5998"] { border-color: var(--auditor) !important; }
+  .arch-v2 [style*="box-shadow:0 0 6px rgba(251,89,152,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--auditor) 40%, transparent) !important; }
+  .arch-v2 [style*="background:rgba(163,132,254,.08)"] { background: color-mix(in srgb, var(--ai) 8%, transparent) !important; }
+  .arch-v2 [style*="border:1px solid #a384fe"] { border-color: var(--ai) !important; }
+  .arch-v2 [style*="box-shadow:0 0 6px rgba(163,132,254,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--ai) 40%, transparent) !important; }
+  .arch-v2 [style*="background:rgba(26,190,165,.10)"] { background: color-mix(in srgb, var(--inst) 10%, transparent) !important; }
+  .arch-v2 [style*="border:1px solid #1abea5"] { border-color: var(--inst) !important; }
+  .arch-v2 [style*="box-shadow:0 0 6px rgba(26,190,165,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--inst) 40%, transparent) !important; }
+  .arch-v2 [style*="color:#1abea5"] { color: var(--inst) !important; }
+  .arch-v2 [style*="background:rgba(216,127,209,.10)"] { background: color-mix(in srgb, var(--sig) 10%, transparent) !important; }
+  .arch-v2 [style*="border:1px solid #d87fd1"] { border-color: var(--sig) !important; }
+  .arch-v2 [style*="box-shadow:0 0 6px rgba(216,127,209,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--sig) 40%, transparent) !important; }
+  .arch-v2 [style*="background:rgba(235,254,0,.10)"] { background: color-mix(in srgb, var(--warning) 10%, transparent) !important; }
+  .arch-v2 [style*="box-shadow:0 0 6px rgba(235,254,0,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--warning) 40%, transparent) !important; }
+  .arch-v2 [style*="background:rgba(140,185,252,.10)"] { background: color-mix(in srgb, var(--learn) 10%, transparent) !important; }
+  .arch-v2 [style*="border:1px dashed #8cb9fc"] { border-color: 1px dashed var(--learn) !important; }
+  .arch-v2 [style*="box-shadow:0 0 6px rgba(140,185,252,.4)"] { box-shadow: 0 0 6px color-mix(in srgb, var(--learn) 40%, transparent) !important; }
+  .arch-v2 [style*="color:#8cb9fc"] { color: var(--learn) !important; }
+
+  /* Light: the Forge variables re-pointed at the 2.0 light sheet (L3). Node
+     bodies become white cards on the page ground; every role/rail colour is
+     that role's light token, each ≥ 4.5:1 on white. */
+  [data-theme="light"] .arch-v2 {
+    --obsidian: #ffffff;
+    --forge: #f7fbfe;
+    --slag: #b9c6d2;
+    --sand: #5d6b77;
+    --linen: #092438;
+    --parchment: #092438;
+    --subtle: #586c7d;
+    --ember: #0d7a3e;
+    --char: #0b6834;
+    --success: #0b737f;
+    --warning: #666e05;
+    --error: #8b5e5d;
+    --advisor: #036b91;
+    --auditor: #bb0963;
+    --ai: #7828ec;
+    --inst: #12a28c;
+    --sig: #cd63c6;
+    --learn: #0265d9;
+    --tert: #9f3ebb;
+    --shade: #ffffff;
+    --arch-page: #e9f0f7;
+    --docs:      var(--advisor);
+    --assure:    var(--warning);
+    --v20-bg:    var(--forge);
+    --v20-text:  var(--linen);
+    --v20-muted: var(--sand);
+    --bg: var(--arch-page); --text: var(--linen);
+    background: var(--arch-page);
   }
 </style>

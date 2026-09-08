@@ -206,6 +206,8 @@ Edit set 34 in `gen-tokens.mjs`, never this file or `tokens-2.0.css` by hand.
 
 ## Light rework — 2026-09-08
 
+> **The light-mode values in every table above are superseded** by this section and by the live `[data-theme="light"]` block in `site/src/styles/tokens.css`. Dark values above are current.
+
 The light half above was replaced after the owner reviewed it on the real pages
 ("really ugly"): the blue-grey page, blue-grey surfaces and forest-green accent
 gave no separation and lost the emerald identity. Five candidates were rendered
@@ -233,3 +235,13 @@ checkbox checks) stays on `--accent`. The migration rule for components:
 `--accent`.
 
 Derivation and contrast report: `light-candidates.mjs` → `light-candidates.json`.
+
+### Evaluator refinements (same day)
+
+The isolated Design Evaluator pass (PASS-WITH-FIXES) drove four changes to the
+light half, regenerated through `light-candidates.mjs`:
+
+- **Floor raised to 4.7:1** on light for muted/subtle/accent/secondary/tertiary/roles/semantics — several pairs had landed at 4.50 exactly, no margin for anti-aliasing at 9–11px mono.
+- **Twins separated:** light `--workflow` now sits a lightness step below `--accent` (6.2:1 floor, hue 146) instead of being byte-identical; light `--specialist` moves to hue 207 and the light semantics drop to C 0.06 so `--success`/`--specialist` and `--info`/`--advisor` no longer share L and C.
+- **Hairlines visible:** light `--border` lifted from L 0.855 to 0.82.
+- **Dashboard bars** (`bar-fill`, `spark-bar`) went back to `--accent`: a labelless shape needs 3:1 on its track, which `--accent-fill` cannot give on light.

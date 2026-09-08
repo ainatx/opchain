@@ -139,8 +139,6 @@ const posthogClientEnabled = defaultFor("platform.observability.posthog-client")
     line-height: var(--lh-base);
   }
   .consent-text a { color: var(--accent); }
-  /* B-10: --accent link text on light --surface = 3.05:1 ✗. --accent-hover = 4.55:1 ✓. */
-  :global([data-theme="light"]) .consent-text a { color: var(--accent-hover); }
 
   .consent-actions {
     display: flex;
@@ -167,7 +165,6 @@ const posthogClientEnabled = defaultFor("platform.observability.posthog-client")
     border: none;
   }
   .btn-primary:hover { background: var(--accent-fill-hover); }
-  /* B-10: light --accent bg + --obsidian text = 4.33:1 ✗. --ember = 4.84:1 ✓. */
   .btn-ghost {
     background: transparent;
     color: var(--muted);

@@ -763,8 +763,6 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
     border-color: var(--accent);
     color: var(--accent);
   }
-  /* B-10 light-mode contrast — match what /skills uses for accent on surface */
-  :global([data-theme="light"]) .chip[data-selected="true"] { color: var(--accent-hover); }
   .chip[data-selected="true"] .chip-name::before { content: "✓ "; font-weight: 700; }
   .chip:disabled { opacity: 0.45; cursor: not-allowed; }
   .chip:disabled:hover { color: var(--muted); border-color: var(--border); }
@@ -870,7 +868,6 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
     height: 2px;
     background: var(--accent);
   }
-  :global([data-theme="light"]) .cmp thead th.me { color: var(--accent-hover); }
 
   /* Row-label column — sticky-left so it stays visible during
      horizontal scroll (most impactful on mobile/tablet). Opaque
@@ -907,7 +904,6 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
     left: 0;
     z-index: 1;
   }
-  :global([data-theme="light"]) .cmp tbody tr.group-head th { color: var(--accent-hover); }
   /* The first group-head row doesn't need a top border — the thead
      accent strip already terminates the header. */
   .cmp tbody tr.group-head:first-child th { border-top: 0; }
@@ -946,7 +942,6 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
     line-height: 1.35;
   }
   .cmp td.me .cell-v { color: var(--accent); font-weight: 600; }
-  :global([data-theme="light"]) .cmp td.me .cell-v { color: var(--accent-hover); }
 
   /* Winner dot — small ember circle beside the cell value of the
      platform that "wins" the row. Subtle glow ring so it reads as an
@@ -985,7 +980,6 @@ const initialSelection = [...FIXED_ORDER, ...DEFAULT_EXTRAS];
     background: color-mix(in srgb, var(--accent) 18%, transparent);
     color: var(--accent);
   }
-  :global([data-theme="light"]) .cmp td.me .winner-label { color: var(--accent-hover); }
 
   /* Row hover — outline the whole row with a thin ember frame so the
      reader can lock onto a feature and walk across columns. Skip

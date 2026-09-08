@@ -1171,48 +1171,48 @@ const packCounts = {
 
   /* Light theme overrides — use the site's [data-theme="light"] attribute. */
   :global([data-theme="light"]) .mobile-architecture {
-    --ma-bg-page:       #e7eef5;
-    --ma-bg-card:       #dfe9f1;
-    --ma-bg-svg-comp:   #dfe9f1;
+    /* 2.0 light sheet, candidate L3 "Lifted slate · brand fill" (2026-09-08) —
+       values verbatim from site/src/styles/tokens.css. */
+    --ma-bg-page:       #e9f0f7;
+    --ma-bg-card:       #f7fbfe;
+    --ma-bg-svg-comp:   #f7fbfe;
     --ma-bg-card-deep:  rgba(0,0,0,.04);
-    --ma-bg-cp-zone:    rgba(6,106,52,.04);
-    --ma-bg-cp-pill:    rgba(6,106,52,.08);
-    --ma-bg-code:       rgba(6,106,52,.10);
-    --ma-bg-json:       #dfe9f1;
+    --ma-bg-cp-zone:    rgba(2,124,62,.05);
+    --ma-bg-cp-pill:    rgba(2,124,62,.10);
+    --ma-bg-code:       rgba(2,124,62,.10);
+    --ma-bg-json:       #f7fbfe;
 
-    --ma-text-primary:   #15181b;
-    --ma-text-secondary: #444e57;
-    --ma-text-muted:     #55616b;
-    --ma-text-on-svg:    #15181b;
-    --ma-text-on-svg-2:  #444e57;
+    --ma-text-primary:   #092438;
+    --ma-text-secondary: #5d6b77;
+    --ma-text-muted:     #5b6e80;
+    --ma-text-on-svg:    #092438;
+    --ma-text-on-svg-2:  #5d6b77;
 
-    --ma-border-subtle:  #aab9c7;
-    --ma-border-divider: rgba(21,24,27,.10);
+    --ma-border-subtle:  #c5d1dc;
+    --ma-border-divider: rgba(9,36,56,.10);
 
-    --ma-ember:      #066a34;
-    --ma-char:       #065027;
-    --ma-ember-dim:  rgba(6,106,52,.12);
-    --ma-specialist: #036465;
-    --ma-advisor:    #016084;
-    --ma-triagent:   #585f01;
-    --ma-auditor:    #a90e59;
-    --ma-orch:       #066a34;
-    --ma-ai:         #7116e4;
-    --ma-vec:        #7b428c;
-    --ma-inst:       #097463;
-    --ma-sig:        #903d8b;
-    --ma-docs:       #016084;
-    --ma-assure:     #585f01;   /* v1.9 — kept equal to --ma-triagent, see dark block */
-    /* v2.0 Slate & Emerald, light mode — verbatim from tokens-2.0.css. Each
-       clears 4.5:1 on this file's light card (#dfe9f1) as well as on the 2.0
-       light ground it was audited against. */
-    --ma-learn:      #295ca5;   /* 2.0 --secondary  5.35:1 on #dfe9f1 */
-    --ma-v20-bg:     #ffffff;   /* 2.0 --card       */
-    --ma-v20-text:   #15181b;   /* 2.0 --text      14.38:1 */
-    --ma-v20-muted:  #444e57;   /* 2.0 --muted      6.85:1 */
-    --ma-v20-accent: #066a34;   /* 2.0 --accent     5.43:1 */
-    --ma-v20-tri:    #585f01;   /* 2.0 --tri-agent  5.55:1 */
+    --ma-ember:      #027c3e;
+    --ma-char:       #0b6834;
+    --ma-ember-dim:  rgba(2,124,62,.12);
+    --ma-specialist: #14797a;
+    --ma-advisor:    #0b6e94;
+    --ma-triagent:   #69710c;
+    --ma-auditor:    #c00765;
+    --ma-orch:       #027c3e;
+    --ma-ai:         #7a2df0;
+    --ma-vec:        #a341be;
+    --ma-inst:       #12a28c;
+    --ma-sig:        #cd63c6;
+    --ma-docs:       #0b6e94;
+    --ma-assure:     #69710c;   /* v1.9 — kept equal to --ma-triagent, see dark block */
+    --ma-learn:      #0067df;   /* 2.0 --secondary */
+    --ma-v20-bg:     #ffffff;        /* 2.0 --card      */
+    --ma-v20-text:   #092438;        /* 2.0 --text      */
+    --ma-v20-muted:  #5d6b77;       /* 2.0 --muted     */
+    --ma-v20-accent: #027c3e;              /* 2.0 --accent    */
+    --ma-v20-tri:    #69710c;   /* 2.0 --tri-agent */
   }
+
 
   /* Hidden defs SVG — must be in DOM but invisible. */
   .mobile-architecture .ma-defs {

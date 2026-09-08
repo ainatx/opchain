@@ -107,7 +107,7 @@ const GROUNDS = {
     label: "Lifted slate, separated steps",
     H: 245, bg: neutral(0.952, 0.012, 245), surface: neutral(0.985, 0.006, 245), card: "#ffffff",
     ribbon: neutral(0.925, 0.016, 245), ribbonEdge: neutral(0.83, 0.022, 245),
-    border: neutral(0.855, 0.020, 245), textH: 245, textC: 0.016,
+    border: neutral(0.820, 0.022, 245), textH: 245, textC: 0.016,  // evaluator: 0.855 was a 1.35:1 hairline
   },
 };
 
@@ -119,8 +119,15 @@ const ACCENT = {
   moss:  { label: "moss fill · white label",          fill: { L: 0.55, C: 0.16, H: 152 }, onFill: "#ffffff" },
 };
 
+// Light-only hue/lightness refinements after the evaluator pass (2026-09-08):
+// on white the muted teal semantics and the cyan/blue roles all land at the
+// same L/C and collapse into twins, and workflow at hue 152 became byte-equal
+// to the text-safe accent. Roles keep their dark hues; light gets its own step.
 const ROLES = { workflow: 152, "tri-agent": 115, "audit-gate": 0, specialist: 196, advisor: 232, orchestrator: 293 };
+const ROLES_LIGHT = { ...ROLES, workflow: 146, specialist: 207 };
 const SEMANTIC = { success: 178, danger: 20, warning: 95, info: 225, "in-progress": 340 };
+const SEMANTIC_LIGHT = { ...SEMANTIC, info: 212 };
+const FLOOR = 4.7; // light floor with anti-aliasing margin (evaluator: several pairs sat at 4.50 exactly)
 const CHART = { 1: 212, 2: 262, 3: 330, 4: 178 };
 
 function build(id, groundKey, accentKey, name) {
@@ -131,11 +138,11 @@ function build(id, groundKey, accentKey, name) {
 
   t.bg = g.bg; t.ribbon = g.ribbon; t["ribbon-edge"] = g.ribbonEdge; t.surface = g.surface; t.card = g.card; t.border = g.border;
   t.text = vivid(g.textH, grounds, 7, { Lmax: 0.30, Cmax: g.textC }); rep("text", t.text, 7);
-  t.muted = vivid(g.textH, grounds, 4.5, { Lmax: 0.52, Cmax: g.textC + 0.01 }); rep("muted", t.muted, 4.5);
-  t.subtle = vivid(g.textH, grounds, 4.5, { Lmax: 0.56, Cmax: g.textC + 0.02 }); rep("subtle", t.subtle, 4.5);
+  t.muted = vivid(g.textH, grounds, FLOOR, { Lmax: 0.52, Cmax: g.textC + 0.01 }); rep("muted", t.muted, FLOOR);
+  t.subtle = vivid(g.textH, grounds, FLOOR, { Lmax: 0.56, Cmax: g.textC + 0.02 }); rep("subtle", t.subtle, FLOOR);
 
   // accent — the two-token split
-  t.accent = vivid(152, grounds, 4.5, { Lmax: 0.62, Cmax: 0.22 }); rep("accent (text-safe)", t.accent, 4.5);
+  t.accent = vivid(152, grounds, FLOOR, { Lmax: 0.62, Cmax: 0.22 }); rep("accent (text-safe)", t.accent, FLOOR);
   t["accent-hover"] = vivid(152, grounds, 6, { Lmax: 0.55, Cmax: 0.22 });
   let fill = toHex(A.fill); if (!fill) { for (let C = A.fill.C; C > 0.05 && !fill; C -= 0.01) fill = toHex({ ...A.fill, C }); }
   t["accent-fill"] = fill; rep("accent-fill vs grounds (3:1 UI)", fill, 3);
@@ -145,18 +152,20 @@ function build(id, groundKey, accentKey, name) {
   t["accent-glow"] = rgba(t["accent-fill"], accentKey === "brand" ? 0.30 : 0.20);
   t.glow = rgba(t["accent-fill"], 0.18);
 
-  t.secondary = vivid(258, grounds, 4.5, { Lmax: 0.60, Cmax: 0.20 }); rep("secondary", t.secondary, 4.5); t["secondary-dim"] = rgba(t.secondary, 0.12);
-  t.tertiary = vivid(318, grounds, 4.5, { Lmax: 0.60, Cmax: 0.20 }); rep("tertiary", t.tertiary, 4.5); t["tertiary-dim"] = rgba(t.tertiary, 0.12);
+  t.secondary = vivid(258, grounds, FLOOR, { Lmax: 0.60, Cmax: 0.20 }); rep("secondary", t.secondary, FLOOR); t["secondary-dim"] = rgba(t.secondary, 0.12);
+  t.tertiary = vivid(318, grounds, FLOOR, { Lmax: 0.60, Cmax: 0.20 }); rep("tertiary", t.tertiary, FLOOR); t["tertiary-dim"] = rgba(t.tertiary, 0.12);
 
-  for (const [k, H] of Object.entries(SEMANTIC)) { t[k] = muted(H, grounds, 4.5, 0.085); rep(k, t[k], 4.5); t[`${k}-dim`] = rgba(t[k], 0.12); }
+  // semantics: muted (C 0.06) so they sit a clear chroma step below the vivid roles that share their hue family
+  for (const [k, H] of Object.entries(SEMANTIC_LIGHT)) { t[k] = muted(H, grounds, FLOOR, 0.06); rep(k, t[k], FLOOR); t[`${k}-dim`] = rgba(t[k], 0.12); }
   t.destructive = muted(20, grounds, 6, 0.12); t["destructive-dim"] = rgba(t.destructive, 0.12);
 
   // roles: vivid text hue + a tinted pill of the same hue; text must clear 4.5 on the pill too
-  for (const [k, H] of Object.entries(ROLES)) {
+  for (const [k, H] of Object.entries(ROLES_LIGHT)) {
     const pill = tint(H, g.card, 0.05);
     t[`${k}-pill`] = pill;
-    t[k] = vivid(H, [...grounds, pill], 4.5, { Lmax: 0.62, Cmax: 0.26 });
-    rep(`${k} (on grounds + own pill)`, t[k], 4.5, [...grounds, pill]);
+    // workflow sits one lightness step below the accent so the two never read as one colour
+    t[k] = vivid(H, [...grounds, pill], k === "workflow" ? 6.2 : FLOOR, { Lmax: 0.62, Cmax: 0.26 });
+    rep(`${k} (on grounds + own pill)`, t[k], FLOOR, [...grounds, pill]);
   }
   for (const [k, H] of Object.entries(CHART)) { t[`chart-${k}`] = vivid(H, [g.card, g.surface], 3, { Lmax: 0.66, Cmax: 0.18 }); t[`chart-${k}-dim`] = rgba(t[`chart-${k}`], 0.14); }
 

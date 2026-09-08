@@ -266,10 +266,10 @@ const phaseFilters = [
     color: var(--muted);
     cursor: pointer;
   }
-  /* Custom checkbox: page-background fill when unchecked, ember when
+  /* Custom checkbox: page-background fill when unchecked, accent when
      checked. Native accent-color only paints the checked state, so we
      redraw it. The unchecked colour uses --bg (themed) so light mode
-     gets the parchment fill instead of staying brand-obsidian. */
+     gets the light page fill instead of staying on the dark ground. */
   .tri-row input[type="checkbox"] {
     appearance: none;
     -webkit-appearance: none;
@@ -295,14 +295,16 @@ const phaseFilters = [
     background: var(--accent);
     border-color: var(--accent);
   }
-  /* Checkmark drawn with two borders, rotated. Stays obsidian for AA
-     contrast against the ember fill in both themes. */
+  /* Checkmark drawn with two borders, rotated. The box is filled with the
+     text-safe --accent (not --accent-fill: a 14px control needs its own 3:1
+     against the page), so the tick is drawn in --card, which clears 3:1 on
+     that fill in both themes. */
   .tri-row input[type="checkbox"]:checked::after {
     content: "";
     width: 7px;
     height: 3.5px;
-    border-left: 1.5px solid var(--on-accent);
-    border-bottom: 1.5px solid var(--on-accent);
+    border-left: 1.5px solid var(--card);
+    border-bottom: 1.5px solid var(--card);
     transform: rotate(-45deg) translate(0, -1px);
   }
 
