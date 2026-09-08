@@ -11,6 +11,11 @@ import { rehypeTaskListLabels } from "./src/lib/rehype-task-list-labels.mjs";
 // lets Cloudflare cache everything at the edge.
 export default defineConfig({
   site: "https://opchain.dev",
+  // Dev-server port. Astro does not read $PORT on its own, so honour it here:
+  // several git worktrees of this repo run `astro dev` side by side, and the
+  // preview harness assigns a free port via $PORT to avoid collisions.
+  // Build output is unaffected — `server` only applies to `astro dev`.
+  server: { port: Number(process.env.PORT) || 4321 },
   output: "static",
   trailingSlash: "never",
   integrations: [sitemap()],

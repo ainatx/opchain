@@ -29,7 +29,7 @@ const packCounts = {
 
 <Base
   title="Architecture · opchain"
-  description="Checkpoint-driven pipeline of 29 opchain skills across 6 phases — interactive diagram of how skills chain through .checkpoints/<skill>.checkpoint.json."
+  description="Checkpoint-driven pipeline of 33 opchain skills across 6 phases — interactive diagram of how skills chain through .checkpoints/<skill>.checkpoint.json."
   active="/architecture"
 >
   <!-- Mobile-only static architecture (≤767px). Hidden on desktop via the
@@ -40,12 +40,6 @@ const packCounts = {
     <!-- Shared SVG defs (filters + arrowhead markers) -->
     <svg class="arch-v2-defs" aria-hidden="true">
       <defs>
-        <filter id="glow-ember" x="-80%" y="-80%" width="260%" height="260%">
-          <feGaussianBlur stdDeviation="10" result="b"/>
-          <feFlood flood-color="#e05c18" flood-opacity="0.9" result="c"/>
-          <feComposite in="c" in2="b" operator="in" result="s"/>
-          <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
         <filter id="glow-orch" x="-40%" y="-40%" width="180%" height="180%">
           <feGaussianBlur stdDeviation="6" result="b"/>
           <feFlood flood-color="#e05c18" flood-opacity="0.4" result="c"/>
@@ -97,19 +91,22 @@ const packCounts = {
         <marker id="ah-ember" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
           <polygon points="0 0, 6 2, 0 4" fill="#e05c18"/>
         </marker>
-        <marker id="ah-ember-rev" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto-start-reverse">
-          <polygon points="0 0, 6 2, 0 4" fill="#e05c18"/>
-        </marker>
         <marker id="ah-ember-sm" markerWidth="4" markerHeight="4" refX="3.5" refY="2" orient="auto">
           <polygon points="0 0, 4 2, 0 4" fill="#e05c18"/>
         </marker>
         <marker id="ah-ember-sm-rev" markerWidth="4" markerHeight="4" refX="3.5" refY="2" orient="auto-start-reverse">
           <polygon points="0 0, 4 2, 0 4" fill="#e05c18"/>
         </marker>
-        <marker id="ah-sand" markerWidth="5" markerHeight="3.5" refX="4.5" refY="1.75" orient="auto">
-          <polygon points="0 0, 5 1.75, 0 3.5" fill="#c4b89e"/>
+        <marker id="ah-sig" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+          <polygon points="0 0, 6 2, 0 4" fill="#e879f9"/>
         </marker>
-        <marker id="ah-sand-rev" markerWidth="5" markerHeight="3.5" refX="4.5" refY="1.75" orient="auto-start-reverse">
+        <marker id="ah-sig-sm" markerWidth="4" markerHeight="4" refX="3.5" refY="2" orient="auto">
+          <polygon points="0 0, 4 2, 0 4" fill="#e879f9"/>
+        </marker>
+        <marker id="ah-sig-sm-rev" markerWidth="4" markerHeight="4" refX="3.5" refY="2" orient="auto-start-reverse">
+          <polygon points="0 0, 4 2, 0 4" fill="#e879f9"/>
+        </marker>
+        <marker id="ah-sand" markerWidth="5" markerHeight="3.5" refX="4.5" refY="1.75" orient="auto">
           <polygon points="0 0, 5 1.75, 0 3.5" fill="#c4b89e"/>
         </marker>
         <marker id="ah-error" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
@@ -118,17 +115,14 @@ const packCounts = {
         <marker id="ah-docs" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
           <polygon points="0 0, 7 2.5, 0 5" fill="#38bdf8"/>
         </marker>
-        <marker id="ah-docs-rev" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto-start-reverse">
-          <polygon points="0 0, 7 2.5, 0 5" fill="#38bdf8"/>
-        </marker>
       </defs>
     </svg>
 
     <div class="container">
       <div class="header">
-        <div class="header-eyebrow">SKILLS · ARCHITECTURE · v2 · RELEASE v1.8</div>
+        <div class="header-eyebrow">SKILLS · ARCHITECTURE · v2 · RELEASE v1.9</div>
         <h1>opchain skills ecosystem</h1>
-        <p class="subtitle">Checkpoint-driven pipeline · 33 skills · 6 phases · 9 tri-agent · 3 audit gates · spine ordinals · <span class="subtitle-packs">v1.5 pack fabric ({packCounts.total})</span> · <span class="subtitle-inst">v1.6 instrument rail</span> · <span style="color:var(--sig)">v1.7 Seams &amp; Signals</span> · <span style="color:var(--docs)">v1.8 quality-gate rail</span></p>
+        <p class="subtitle">Checkpoint-driven pipeline · 33 skills · 6 phases · 9 tri-agent · 3 audit gates · spine ordinals · <span class="subtitle-packs">v1.5 pack fabric ({packCounts.total})</span> · <span class="subtitle-inst">v1.6 instrument rail</span> · <span style="color:var(--sig)">v1.7 Seams &amp; Signals</span> · <span style="color:var(--docs)">v1.8 quality-gate rail</span> · <span style="color:var(--assure)">v1.9 assurance rail</span></p>
       </div>
 
       <div class="diagram-container">
@@ -136,7 +130,7 @@ const packCounts = {
           <canvas class="lines-canvas" id="lines-canvas"></canvas>
 
           <!-- ══ FOUNDATION HEADER STRIP (CP + oc-orchestrator) ══ -->
-          <div class="foundation" id="foundation" aria-label="Foundation layer: oc-checkpoint-protocol and oc-orchestrator">
+          <div class="foundation" id="foundation" role="group" aria-label="Foundation layer: oc-checkpoint-protocol and oc-orchestrator">
             <div class="foundation-pill foundation-pill-trigger"
                  id="cp-toggle"
                  role="button"
@@ -199,10 +193,10 @@ const packCounts = {
                 </defs>
 
                 <line class="cp-anim-line-1" x1="160" y1="100" x2="190" y2="50" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
-                <line class="cp-anim-line-2" x1="160" y1="100" x2="365" y2="50" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
-                <line class="cp-anim-line-3" x1="160" y1="100" x2="540" y2="50" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
-                <line class="cp-anim-line-4" x1="160" y1="100" x2="540" y2="150" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
-                <line class="cp-anim-line-5" x1="160" y1="100" x2="365" y2="150" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
+                <line class="cp-anim-line-2" x1="160" y1="100" x2="445" y2="80" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
+                <line class="cp-anim-line-3" x1="160" y1="100" x2="620" y2="80" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
+                <line class="cp-anim-line-4" x1="160" y1="100" x2="620" y2="120" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
+                <line class="cp-anim-line-5" x1="160" y1="100" x2="445" y2="120" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
                 <line class="cp-anim-line-6" x1="160" y1="100" x2="190" y2="150" stroke="#e05c18" stroke-width="1.1" stroke-dasharray="3,3" opacity="0" marker-start="url(#cp-sync-start)" marker-end="url(#cp-sync-end)"/>
 
                 <g class="cp-anim-orch">
@@ -260,7 +254,7 @@ const packCounts = {
           <!-- ── Orchestrator detail card with routing-decision animation ── -->
           <div class="orch-detail-expand" id="orch-detail-top">
             <div class="cpd-inner">
-              <p class="cpd-intro">The oc-orchestrator routes every skill invocation across projects. Tracks which checkpoint is current, enforces audit gates before deploys, and answers <code>/oc-ops</code> queries. Reads all 29 checkpoints; writes its own pipeline state.</p>
+              <p class="cpd-intro">The oc-orchestrator routes every skill invocation across projects. Tracks which checkpoint is current, enforces audit gates before deploys, and answers <code>/oc-ops</code> queries. Reads all 33 checkpoints; writes its own pipeline state.</p>
               <svg class="orch-route-svg" viewBox="0 0 720 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Orchestrator routing decision: oc-app-architect checkpoint update routed to oc-ux-engineer, oc-dash-forge, and oc-api-dev in parallel">
                 <defs>
                   <marker id="orch-rt-end" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
@@ -323,8 +317,6 @@ const packCounts = {
             </div>
           </div>
 
-          <div style="height: 24px;"></div>
-
           <!-- ══ BAND 1: DISCOVER ══ -->
           <div class="band" id="band-discover" data-phase="discover"
                tabindex="0">
@@ -345,7 +337,7 @@ const packCounts = {
                 <rect x="452" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
                 <rect x="452" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
                 <text x="463" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
-                <g class="spine-chip"><rect x="350" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="350" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="380" y="17" fill="#0D9488" font-size="8" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">1·↓2</text></g>
+                <g class="spine-chip"><rect x="350" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="350" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="380" y="17" fill="#14B8A6" font-size="8" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">1·↓2</text></g>
               </svg>
               <div class="band-detail">
                 <div class="bd-inner" style="background:rgba(13,148,136,0.04);border:0.5px solid rgba(13,148,136,0.2)">
@@ -403,10 +395,12 @@ const packCounts = {
                 <rect x="127" y="77" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
                 <text x="138" y="86.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
 
-                <rect x="240" y="22" width="280" height="122" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1.2" filter="url(#glow-yellow)" opacity="0.97"><title>oc-app-architect — tri-agent oc-orchestrator: Generator / Evaluator loop; idea → spec → design → build → launch. v1.5: /oc-discover routes AI apps to the AI phase.</title></rect>
+                <rect x="240" y="22" width="280" height="122" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1.2" filter="url(#glow-yellow)" opacity="0.97"><title>oc-app-architect — tri-agent orchestrator: Generator / Evaluator loop; idea → spec → design → build → launch. v1.5: /oc-discover routes AI apps to the AI phase.</title></rect>
                 <rect x="240" y="22" width="280" height="122" rx="5" fill="rgba(245,158,11,0.05)" stroke="#f59e0b" stroke-width="0.5"/>
                 <text x="380" y="44" fill="#e8dfd0" font-size="9" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-app-architect</text>
                 <text x="380" y="59" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · Orchestrator</text>
+                <g class="branch-tag"><rect x="258" y="51" width="56" height="11" rx="2" fill="rgba(251,191,36,.12)" stroke="#fbbf24" stroke-width="0.5"/><text x="286" y="59" fill="#fbbf24" font-size="6.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">→ oc-qa-ops</text></g>
+                <g class="branch-tag"><rect x="441" y="51" width="64" height="11" rx="2" fill="rgba(251,191,36,.12)" stroke="#fbbf24" stroke-width="0.5"/><text x="473" y="59" fill="#fbbf24" font-size="6.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">→ oc-data-ops</text></g>
                 <text x="380" y="74" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Generator / Evaluator · QA loop ≥ 7/10</text>
                 <text x="380" y="89" fill="#f59e0b" font-size="6.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-app · /oc-discover · /oc-spec</text>
                 <text x="380" y="104" fill="#f59e0b" font-size="6.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-design · /oc-build · /oc-launch</text>
@@ -418,19 +412,19 @@ const packCounts = {
                 <rect x="509" y="14" width="22" height="13" rx="3" fill="#1c1710"/>
                 <rect x="509" y="14" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
                 <text x="520" y="23.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
-                <g class="spine-chip"><rect x="350" y="14" width="60" height="14" rx="3" fill="#1c1710"/><rect x="350" y="14" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="380" y="24" fill="#0D9488" font-size="8" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑1·2·↓3</text></g>
+                <g class="spine-chip"><rect x="350" y="14" width="60" height="14" rx="3" fill="#1c1710"/><rect x="350" y="14" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="380" y="24" fill="#14B8A6" font-size="8" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑1·2·↓3</text></g>
 
-                <rect x="610" y="50" width="130" height="50" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1" filter="url(#glow-mint)" opacity="0.97"><title>oc-migration-ops — specialist; database/framework/platform migrations</title></rect>
-                <rect x="610" y="50" width="130" height="50" rx="5" fill="rgba(13,148,136,0.06)" stroke="#0D9488" stroke-width="0.5"/>
-                <text x="675" y="65" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-migration-ops</text>
-                <text x="675" y="76" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist</text>
-                <text x="675" y="90" fill="#0D9488" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-migrate · schema · platform</text>
-                <rect x="703" y="43" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="703" y="43" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
-                <text x="714" y="52.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                <rect x="729" y="43" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="729" y="43" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
-                <text x="740" y="52.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <rect x="610" y="40" width="130" height="50" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1" filter="url(#glow-mint)" opacity="0.97"><title>oc-migration-ops — specialist; database/framework/platform migrations</title></rect>
+                <rect x="610" y="40" width="130" height="50" rx="5" fill="rgba(13,148,136,0.06)" stroke="#0D9488" stroke-width="0.5"/>
+                <text x="675" y="55" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-migration-ops</text>
+                <text x="675" y="66" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist</text>
+                <text x="675" y="80" fill="#0D9488" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-migrate · schema · platform</text>
+                <rect x="703" y="33" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="703" y="33" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="714" y="42.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="729" y="33" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="729" y="33" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="740" y="42.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
 
                 <!-- oc-modularize-ops — NEW v1.7 (Seams chain). Owns the decision + golden-fixture oracle; delegates the bulk move + cutover to oc-migration-ops (Structural). -->
                 <rect x="610" y="104" width="130" height="44" rx="5" fill="#1c1710" stroke="#e879f9" stroke-width="1" filter="url(#glow-sig)" opacity="0.97"><title>oc-modularize-ops — NEW v1.7; decompose a live monolith with provable zero functionality/data loss using golden fixtures from real data. Owns the decision + equivalence oracle; hands the bulk code-move + cutover to oc-migration-ops Structural, and per-module deploy to oc-fleet-ops.</title></rect>
@@ -438,12 +432,12 @@ const packCounts = {
                 <text x="675" y="118" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-modularize-ops</text>
                 <text x="675" y="129" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · gated ops</text>
                 <text x="675" y="139" fill="#e879f9" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-modularize · → migration</text>
-                <rect x="665" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="665" y="97" width="22" height="13" rx="3" fill="rgba(232,121,249,.10)" stroke="rgba(232,121,249,0.6)" stroke-width="0.5" filter="url(#glow-sig)"/>
-                <text x="676" y="106.5" fill="#e879f9" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                <rect x="691" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="691" y="97" width="22" height="13" rx="3" fill="rgba(232,121,249,.10)" stroke="rgba(232,121,249,0.6)" stroke-width="0.5"/>
-                <text x="702" y="106.5" fill="#e879f9" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <rect x="703" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="703" y="97" width="22" height="13" rx="3" fill="rgba(232,121,249,.10)" stroke="rgba(232,121,249,0.6)" stroke-width="0.5" filter="url(#glow-sig)"/>
+                <text x="714" y="106.5" fill="#e879f9" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="729" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="729" y="97" width="22" height="13" rx="3" fill="rgba(232,121,249,.10)" stroke="rgba(232,121,249,0.6)" stroke-width="0.5"/>
+                <text x="740" y="106.5" fill="#e879f9" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
                 <rect x="610" y="97" width="50" height="11" rx="2" fill="#1c1710"/>
                 <rect x="610" y="97" width="50" height="11" rx="2" fill="rgba(232,121,249,.16)" stroke="#e879f9" stroke-width="0.6"/>
                 <text x="635" y="105" fill="#e879f9" font-size="5.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">NEW v1.7</text>
@@ -458,11 +452,11 @@ const packCounts = {
                 <text x="189" y="90" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">advisory</text>
                 <text x="189" y="114" fill="#e05c18" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.85">chains-to</text>
 
-                <line x1="520" y1="63" x2="610" y2="63" stroke="#e05c18" stroke-width="1.2" stroke-dasharray="5,3" opacity="0.78" marker-end="url(#ah-ember)"/>
-                <line x1="610" y1="87" x2="520" y2="87" stroke="#c4b89e" stroke-width="1.0" stroke-dasharray="5,3" opacity="0.55" marker-end="url(#ah-sand)"/>
+                <line x1="520" y1="53" x2="610" y2="53" stroke="#e05c18" stroke-width="1.2" stroke-dasharray="5,3" opacity="0.78" marker-end="url(#ah-ember)"/>
+                <line x1="610" y1="77" x2="520" y2="77" stroke="#c4b89e" stroke-width="1.0" stroke-dasharray="5,3" opacity="0.55" marker-end="url(#ah-sand)"/>
 
-                <text x="565" y="57" fill="#e05c18" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.85">chains-to</text>
-                <text x="565" y="81" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">advisory</text>
+                <text x="565" y="47" fill="#e05c18" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.85">chains-to</text>
+                <text x="565" y="71" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">advisory</text>
               </svg>
               <div class="band-detail">
                 <div class="bd-inner" style="background:rgba(224,92,24,0.04);border:0.5px solid rgba(224,92,24,0.2)">
@@ -492,7 +486,7 @@ const packCounts = {
             </div>
           </div>
 
-          <div class="band-arrow" id="ba-1" data-from="plan" data-to="build"
+          <div class="band-arrow" id="ba-1" data-from="plan" data-to="packs"
                ></div>
 
           <!-- ══ PACK FABRIC (cross-cutting, v1.5) ══
@@ -737,21 +731,21 @@ const packCounts = {
                 <rect x="729" y="15" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
                 <text x="740" y="24.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
 
-                <!-- oc-signal-forge — NEW v1.7 (Signals chain). Chains tod by oc-app-architect Phase 2 (08-analytics); feeds oc-dash-forge (render) + oc-monitoring-ops (freshness SLA). -->
-                <line x1="306" y1="112" x2="306" y2="99" stroke="#e879f9" stroke-width="1.3" stroke-dasharray="4,2" opacity="0.85" marker-end="url(#ah-ember)"/>
-                <rect x="206" y="112" width="200" height="80" rx="5" fill="#1c1710" stroke="#e879f9" stroke-width="1" filter="url(#glow-sig)" opacity="0.97"><title>oc-signal-forge — NEW v1.7; question → trustworthy metric. Designer/Builder/Evaluator loop builds the instrumentation + harvester + transform and adversarially proves the signal answers the question before wiring it. Chains tod by oc-app-architect (08-analytics.md); hands the validated signal to oc-dash-forge and a freshness SLA to oc-monitoring-ops.</title></rect>
+                <!-- oc-signal-forge — NEW v1.7 (Signals chain). Chained to by oc-app-architect Phase 2 (08-analytics); feeds oc-dash-forge (render) + oc-monitoring-ops (freshness SLA). -->
+                <line x1="306" y1="112" x2="306" y2="99" stroke="#e879f9" stroke-width="1.3" stroke-dasharray="4,2" opacity="0.85" marker-end="url(#ah-sig)"/>
+                <rect x="206" y="112" width="200" height="80" rx="5" fill="#1c1710" stroke="#e879f9" stroke-width="1" filter="url(#glow-sig)" opacity="0.97"><title>oc-signal-forge — NEW v1.7; question → trustworthy metric. Designer/Builder/Evaluator loop builds the instrumentation + harvester + transform and adversarially proves the signal answers the question before wiring it. Chained to by oc-app-architect (08-analytics.md); hands the validated signal to oc-dash-forge and a freshness SLA to oc-monitoring-ops.</title></rect>
                 <rect x="206" y="112" width="200" height="80" rx="5" fill="rgba(232,121,249,0.05)" stroke="#e879f9" stroke-width="0.5"/>
                 <text x="306" y="131" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-signal-forge</text>
                 <text x="306" y="144" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · Designer · Builder · Eval</text>
                 <text x="306" y="158" fill="#e879f9" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-signal · frame · verify · wire</text>
                 <text x="306" y="170" fill="#c4b89e" font-size="6.5" font-style="italic" font-family="JetBrains Mono,monospace" text-anchor="middle">prove it answers the question — then wire</text>
                 <g class="branch-tag"><rect x="226" y="178" width="160" height="11" rx="2" fill="rgba(232,121,249,.12)" stroke="#e879f9" stroke-width="0.5"/><text x="306" y="186" fill="#e879f9" font-size="6.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">→ oc-dash-forge · oc-monitoring-ops</text></g>
-                <rect x="359" y="105" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="359" y="105" width="22" height="13" rx="3" fill="rgba(232,121,249,.10)" stroke="rgba(232,121,249,0.6)" stroke-width="0.5" filter="url(#glow-sig)"/>
-                <text x="370" y="114.5" fill="#e879f9" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                <rect x="385" y="105" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="385" y="105" width="22" height="13" rx="3" fill="rgba(232,121,249,.10)" stroke="rgba(232,121,249,0.6)" stroke-width="0.5"/>
-                <text x="396" y="114.5" fill="#e879f9" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <rect x="369" y="105" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="369" y="105" width="22" height="13" rx="3" fill="rgba(232,121,249,.10)" stroke="rgba(232,121,249,0.6)" stroke-width="0.5" filter="url(#glow-sig)"/>
+                <text x="380" y="114.5" fill="#e879f9" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="395" y="105" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="395" y="105" width="22" height="13" rx="3" fill="rgba(232,121,249,.10)" stroke="rgba(232,121,249,0.6)" stroke-width="0.5"/>
+                <text x="406" y="114.5" fill="#e879f9" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
                 <rect x="206" y="105" width="50" height="11" rx="2" fill="#1c1710"/>
                 <rect x="206" y="105" width="50" height="11" rx="2" fill="rgba(232,121,249,.16)" stroke="#e879f9" stroke-width="0.6"/>
                 <text x="231" y="113" fill="#e879f9" font-size="5.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">NEW v1.7</text>
@@ -808,41 +802,47 @@ const packCounts = {
                 <rect x="149" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
                 <rect x="149" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
                 <text x="160" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
-                <g class="spine-chip"><rect x="60" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="60" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="90" y="17" fill="#0D9488" font-size="8" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑2·3·↓4</text></g>
+                <g class="spine-chip"><rect x="60" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="60" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="90" y="17" fill="#14B8A6" font-size="8" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑2·3·↓4</text></g>
 
-                <rect x="200" y="14" width="170" height="64" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1" filter="url(#glow-mint)" opacity="0.97"><title>oc-release-ops — specialist · workflow; plan/draft/bump/announce/ship a versioned release. Sits between oc-git-ops and oc-deploy-ops — activates at release boundaries only.</title></rect>
-                <rect x="200" y="14" width="170" height="64" rx="5" fill="rgba(13,148,136,0.10)" stroke="#0D9488" stroke-width="0.5"/>
-                <text x="285" y="28" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-release-ops</text>
-                <text x="285" y="36" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · Workflow · release-only</text>
-                <rect x="208" y="50" width="28" height="11" rx="2" fill="rgba(13,148,136,0.18)" stroke="#0D9488" stroke-width="0.6"/>
-                <text x="222" y="58" fill="#0D9488" font-size="5.5" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">plan</text>
-                <line x1="237" y1="55.5" x2="240" y2="55.5" stroke="#0D9488" stroke-width="0.7" marker-end="url(#ah-success-sm)"/>
-                <rect x="241" y="50" width="28" height="11" rx="2" fill="rgba(13,148,136,0.18)" stroke="#0D9488" stroke-width="0.6"/>
-                <text x="255" y="58" fill="#0D9488" font-size="5.5" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">draft</text>
-                <line x1="270" y1="55.5" x2="273" y2="55.5" stroke="#0D9488" stroke-width="0.7" marker-end="url(#ah-success-sm)"/>
-                <rect x="274" y="50" width="28" height="11" rx="2" fill="rgba(13,148,136,0.18)" stroke="#0D9488" stroke-width="0.6"/>
-                <text x="288" y="58" fill="#0D9488" font-size="5.5" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">bump</text>
-                <line x1="303" y1="55.5" x2="306" y2="55.5" stroke="#0D9488" stroke-width="0.7" marker-end="url(#ah-success-sm)"/>
-                <rect x="307" y="50" width="32" height="11" rx="2" fill="rgba(13,148,136,0.18)" stroke="#0D9488" stroke-width="0.6"/>
-                <text x="323" y="58" fill="#0D9488" font-size="5.5" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">announce</text>
-                <line x1="340" y1="55.5" x2="343" y2="55.5" stroke="#0D9488" stroke-width="0.7" marker-end="url(#ah-success-sm)"/>
-                <rect x="344" y="50" width="22" height="11" rx="2" fill="rgba(13,148,136,0.28)" stroke="#0D9488" stroke-width="0.7"/>
-                <text x="355" y="58" fill="#0D9488" font-size="5.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ship</text>
-                <text x="285" y="73" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-release · changelog · semver · post</text>
-                <g class="spine-chip"><rect x="255" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="255" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="285" y="17" fill="#0D9488" font-size="8" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑3·4·↓5</text></g>
+                <rect x="196" y="14" width="170" height="64" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1" filter="url(#glow-mint)" opacity="0.97"><title>oc-release-ops — specialist · workflow; plan/draft/bump/announce/ship a versioned release. Sits between oc-git-ops and oc-deploy-ops — activates at release boundaries only.</title></rect>
+                <rect x="196" y="14" width="170" height="64" rx="5" fill="rgba(13,148,136,0.10)" stroke="#0D9488" stroke-width="0.5"/>
+                <text x="281" y="28" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-release-ops</text>
+                <text x="281" y="36" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · Workflow · release-only</text>
+                <rect x="204" y="50" width="28" height="11" rx="2" fill="rgba(13,148,136,0.18)" stroke="#0D9488" stroke-width="0.6"/>
+                <text x="218" y="58" fill="#14B8A6" font-size="5.5" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">plan</text>
+                <line x1="233" y1="55.5" x2="236" y2="55.5" stroke="#0D9488" stroke-width="0.7" marker-end="url(#ah-success-sm)"/>
+                <rect x="237" y="50" width="28" height="11" rx="2" fill="rgba(13,148,136,0.18)" stroke="#0D9488" stroke-width="0.6"/>
+                <text x="251" y="58" fill="#14B8A6" font-size="5.5" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">draft</text>
+                <line x1="266" y1="55.5" x2="269" y2="55.5" stroke="#0D9488" stroke-width="0.7" marker-end="url(#ah-success-sm)"/>
+                <rect x="270" y="50" width="28" height="11" rx="2" fill="rgba(13,148,136,0.18)" stroke="#0D9488" stroke-width="0.6"/>
+                <text x="284" y="58" fill="#14B8A6" font-size="5.5" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">bump</text>
+                <line x1="299" y1="55.5" x2="302" y2="55.5" stroke="#0D9488" stroke-width="0.7" marker-end="url(#ah-success-sm)"/>
+                <rect x="303" y="50" width="32" height="11" rx="2" fill="rgba(13,148,136,0.18)" stroke="#0D9488" stroke-width="0.6"/>
+                <text x="319" y="58" fill="#14B8A6" font-size="5.5" font-weight="600" font-family="JetBrains Mono,monospace" text-anchor="middle">announce</text>
+                <line x1="336" y1="55.5" x2="339" y2="55.5" stroke="#0D9488" stroke-width="0.7" marker-end="url(#ah-success-sm)"/>
+                <rect x="340" y="50" width="22" height="11" rx="2" fill="rgba(13,148,136,0.28)" stroke="#0D9488" stroke-width="0.7"/>
+                <text x="351" y="58" fill="#14B8A6" font-size="5.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ship</text>
+                <text x="281" y="73" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-release · changelog · semver · post</text>
+                <g class="spine-chip"><rect x="251" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="251" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="281" y="17" fill="#14B8A6" font-size="8" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑3·4·↓5</text></g>
+                <rect x="329" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="329" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="340" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="355" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="355" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="366" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
 
-                <rect x="430" y="14" width="190" height="50" rx="5" fill="#1c1710" stroke="#e05c18" stroke-width="1" filter="url(#glow-orch)" opacity="0.97"><title>oc-deploy-ops — oc-orchestrator; staging, prod, rollback, audit gate enforcement</title></rect>
-                <rect x="430" y="14" width="190" height="50" rx="5" fill="rgba(224,92,24,.08)" stroke="#e05c18" stroke-width="0.5"/>
-                <text x="525" y="30" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-deploy-ops</text>
-                <text x="525" y="42" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Orchestrator · Workflow</text>
-                <text x="525" y="56" fill="#e05c18" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-deploy · gates → prod → rollback</text>
-                <rect x="583" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="583" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
-                <text x="594" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                <rect x="609" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="609" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
-                <text x="620" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
-                <g class="spine-chip"><rect x="495" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="495" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="525" y="17" fill="#0D9488" font-size="8" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑4·5·↓6</text></g>
+                <rect x="402" y="14" width="190" height="50" rx="5" fill="#1c1710" stroke="#e05c18" stroke-width="1" filter="url(#glow-orch)" opacity="0.97"><title>oc-deploy-ops — orchestrator; staging, prod, rollback, audit gate enforcement</title></rect>
+                <rect x="402" y="14" width="190" height="50" rx="5" fill="rgba(224,92,24,.08)" stroke="#e05c18" stroke-width="0.5"/>
+                <text x="497" y="30" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-deploy-ops</text>
+                <text x="497" y="42" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Orchestrator · Workflow</text>
+                <text x="497" y="56" fill="#e05c18" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-deploy · gates → prod → rollback</text>
+                <rect x="555" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="555" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="566" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="581" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="581" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="592" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <g class="spine-chip"><rect x="467" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="467" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="497" y="17" fill="#14B8A6" font-size="8" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑4·5·↓6</text></g>
 
                 <!-- oc-fleet-ops — NEW v1.7 (Seams chain). Peer of oc-deploy-ops (managed PaaS → deploy-ops; self-managed fleet → fleet-ops). Lands oc-modularize-ops' modules; → oc-monitoring-ops. -->
                 <rect x="628" y="14" width="112" height="50" rx="5" fill="#1c1710" stroke="#e879f9" stroke-width="1" filter="url(#glow-sig)" opacity="0.97"><title>oc-fleet-ops — NEW v1.7; provision + operate one-or-more containers across self-managed infra (k8s/Nomad/Compose/VMs), IaC with Terraform when it fits. Peer of oc-deploy-ops; lands the modules oc-modularize-ops carves out; hands fleet health to oc-monitoring-ops.</title></rect>
@@ -850,68 +850,70 @@ const packCounts = {
                 <text x="684" y="30" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-fleet-ops</text>
                 <text x="684" y="42" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · gated ops</text>
                 <text x="684" y="56" fill="#e879f9" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-fleet · ↔ deploy peer</text>
-                <rect x="683" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="683" y="7" width="22" height="13" rx="3" fill="rgba(232,121,249,.10)" stroke="rgba(232,121,249,0.6)" stroke-width="0.5" filter="url(#glow-sig)"/>
-                <text x="694" y="16.5" fill="#e879f9" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                <rect x="709" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="709" y="7" width="22" height="13" rx="3" fill="rgba(232,121,249,.10)" stroke="rgba(232,121,249,0.6)" stroke-width="0.5"/>
-                <text x="720" y="16.5" fill="#e879f9" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <rect x="703" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="703" y="7" width="22" height="13" rx="3" fill="rgba(232,121,249,.10)" stroke="rgba(232,121,249,0.6)" stroke-width="0.5" filter="url(#glow-sig)"/>
+                <text x="714" y="16.5" fill="#e879f9" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="729" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="729" y="7" width="22" height="13" rx="3" fill="rgba(232,121,249,.10)" stroke="rgba(232,121,249,0.6)" stroke-width="0.5"/>
+                <text x="740" y="16.5" fill="#e879f9" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
                 <rect x="628" y="7" width="50" height="11" rx="2" fill="#1c1710"/>
                 <rect x="628" y="7" width="50" height="11" rx="2" fill="rgba(232,121,249,.16)" stroke="#e879f9" stroke-width="0.6"/>
                 <text x="653" y="15" fill="#e879f9" font-size="5.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">NEW v1.7</text>
-                <line x1="620" y1="39" x2="628" y2="39" stroke="#e879f9" stroke-width="1.3" marker-start="url(#ah-ember-sm-rev)" marker-end="url(#ah-ember-sm)"/>
+                <line x1="592" y1="39" x2="628" y2="39" stroke="#e879f9" stroke-width="1.3" marker-start="url(#ah-sig-sm-rev)" marker-end="url(#ah-sig-sm)"/>
 
-                <line x1="160" y1="39" x2="200" y2="39" stroke="#0D9488" stroke-width="1.4" opacity="0.85" marker-end="url(#ah-success)"/>
-                <line x1="370" y1="39" x2="430" y2="39" stroke="#0D9488" stroke-width="1.4" opacity="0.85" marker-end="url(#ah-success)"/>
+                <line x1="160" y1="39" x2="196" y2="39" stroke="#0D9488" stroke-width="1.4" opacity="0.85" marker-end="url(#ah-success)"/>
+                <line x1="366" y1="39" x2="402" y2="39" stroke="#0D9488" stroke-width="1.4" opacity="0.85" marker-end="url(#ah-success)"/>
 
-                <rect x="50" y="104" width="140" height="72" rx="5" fill="#1c1710" stroke="#F43F5E" stroke-width="1" opacity="0.97"><title>oc-bug-check — audit gate; pre-commit type/lint/secret/vulnerability scan</title></rect>
-                <rect x="50" y="104" width="140" height="72" rx="5" fill="rgba(244,63,94,0.06)" stroke="#F43F5E" stroke-width="0.5"/>
-                <text x="120" y="120" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-bug-check</text>
-                <text x="120" y="132" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Audit gate · pre-commit</text>
-                <text x="120" y="146" fill="#F43F5E" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">type · lint · secrets · vuln</text>
-                <text x="120" y="158" fill="#F43F5E" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-bugcheck</text>
-                <rect x="153" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="153" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
-                <text x="164" y="106.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                <rect x="179" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="179" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
-                <text x="190" y="106.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <rect x="75" y="104" width="140" height="72" rx="5" fill="#1c1710" stroke="#F43F5E" stroke-width="1" opacity="0.97"><title>oc-bug-check — audit gate; pre-commit type/lint/secret/vulnerability scan</title></rect>
+                <rect x="75" y="104" width="140" height="72" rx="5" fill="rgba(244,63,94,0.06)" stroke="#F43F5E" stroke-width="0.5"/>
+                <text x="145" y="120" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-bug-check</text>
+                <text x="145" y="132" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Audit gate · pre-commit</text>
+                <text x="145" y="146" fill="#F43F5E" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">type · lint · secrets · vuln</text>
+                <text x="145" y="158" fill="#F43F5E" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-bugcheck</text>
+                <g class="branch-tag"><rect x="96" y="163" width="98" height="11" rx="2" fill="rgba(251,191,36,.12)" stroke="#fbbf24" stroke-width="0.5"/><text x="145" y="171" fill="#fbbf24" font-size="6.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">← oc-qa-ops · qa.yaml</text></g>
+                <rect x="178" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="178" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="189" y="106.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="204" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="204" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="215" y="106.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
 
-                <rect x="240" y="104" width="170" height="72" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1" opacity="0.97"><title>oc-code-auditor — tri-agent: Auditor / Fixer / Verifier; functions as audit gate (red dashed exits gate the production deploy)</title></rect>
-                <rect x="240" y="104" width="170" height="72" rx="5" fill="rgba(245,158,11,0.05)" stroke="#f59e0b" stroke-width="0.5"/>
-                <text x="325" y="120" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-code-auditor</text>
-                <text x="325" y="132" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · gates prod</text>
-                <text x="325" y="146" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Auditor · Fixer · Verifier</text>
-                <text x="325" y="158" fill="#f59e0b" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-audit · ≥7/10 · AI-safety</text>
-                <g class="branch-tag"><rect x="276" y="163" width="98" height="11" rx="2" fill="rgba(13,148,136,.12)" stroke="#0D9488" stroke-width="0.5"/><text x="325.0" y="171" fill="#0D9488" font-size="6.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">→ oc-security-auditor</text></g>
-                <rect x="373" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="373" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
-                <text x="384" y="106.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                <rect x="399" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="399" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
-                <text x="410" y="106.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <rect x="265" y="104" width="170" height="72" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1" opacity="0.97"><title>oc-code-auditor — tri-agent: Auditor / Fixer / Verifier; functions as audit gate (red dashed exits gate the production deploy)</title></rect>
+                <rect x="265" y="104" width="170" height="72" rx="5" fill="rgba(245,158,11,0.05)" stroke="#f59e0b" stroke-width="0.5"/>
+                <text x="350" y="120" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-code-auditor</text>
+                <text x="350" y="132" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · gates prod</text>
+                <text x="350" y="146" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Auditor · Fixer · Verifier</text>
+                <text x="350" y="158" fill="#f59e0b" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-audit · ≥7/10 · AI-safety</text>
+                <g class="branch-tag"><rect x="301" y="163" width="98" height="11" rx="2" fill="rgba(13,148,136,.12)" stroke="#0D9488" stroke-width="0.5"/><text x="350.0" y="171" fill="#0D9488" font-size="6.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">→ oc-security-auditor</text></g>
+                <rect x="398" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="398" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="409" y="106.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="424" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="424" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="435" y="106.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
 
-                <rect x="460" y="104" width="200" height="72" rx="5" fill="#1c1710" stroke="#F43F5E" stroke-width="1" opacity="0.97"><title>oc-security-auditor — audit gate; STRIDE threat model, OWASP Top 10, infra hardening</title></rect>
-                <rect x="460" y="104" width="200" height="72" rx="5" fill="rgba(244,63,94,0.06)" stroke="#F43F5E" stroke-width="0.5"/>
-                <text x="560" y="120" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-security-auditor</text>
-                <text x="560" y="132" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Audit gate · posture review</text>
-                <text x="560" y="146" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">STRIDE · OWASP · TLS · CSP</text>
-                <text x="560" y="158" fill="#F43F5E" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-security · /oc-threat-model</text>
-                <rect x="623" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="623" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
-                <text x="634" y="106.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                <rect x="649" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
-                <rect x="649" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
-                <text x="660" y="106.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <rect x="485" y="104" width="200" height="72" rx="5" fill="#1c1710" stroke="#F43F5E" stroke-width="1" opacity="0.97"><title>oc-security-auditor — audit gate; STRIDE threat model, OWASP Top 10, infra hardening</title></rect>
+                <rect x="485" y="104" width="200" height="72" rx="5" fill="rgba(244,63,94,0.06)" stroke="#F43F5E" stroke-width="0.5"/>
+                <text x="585" y="120" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-security-auditor</text>
+                <text x="585" y="132" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Audit gate · posture review</text>
+                <text x="585" y="146" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">STRIDE · OWASP · TLS · CSP</text>
+                <text x="585" y="158" fill="#F43F5E" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-security · /oc-threat-model</text>
+                <g class="branch-tag"><rect x="532" y="163" width="106" height="11" rx="2" fill="rgba(251,191,36,.12)" stroke="#fbbf24" stroke-width="0.5"/><text x="585" y="171" fill="#fbbf24" font-size="6.5" font-weight="500" font-family="JetBrains Mono,monospace" text-anchor="middle">→ oc-security-hardening</text></g>
+                <rect x="648" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="648" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="659" y="106.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="674" y="97" width="22" height="13" rx="3" fill="#1c1710"/>
+                <rect x="674" y="97" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
+                <text x="685" y="106.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
 
-                <polyline points="120,104 120,92 90,92 90,64" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5,3" opacity="0.7" marker-end="url(#ah-error)"/>
+                <polyline points="145,104 145,92 90,92 90,64" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5,3" opacity="0.7" marker-end="url(#ah-error)"/>
                 <text x="155" y="88" fill="#ef4444" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">pre-commit</text>
 
-                <polyline points="325,104 325,92 525,92 525,64" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5,3" opacity="0.7" marker-end="url(#ah-error)"/>
-                <text x="430" y="88" fill="#ef4444" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">audit gate</text>
+                <polyline points="350,104 350,92 497,92 497,64" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5,3" opacity="0.7" marker-end="url(#ah-error)"/>
+                <text x="424" y="88" fill="#ef4444" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">audit gate</text>
 
-                <polyline points="560,104 560,92 540,92 540,64" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5,3" opacity="0.7" marker-end="url(#ah-error)"/>
-                <text x="592" y="88" fill="#ef4444" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">posture gate</text>
+                <polyline points="585,104 585,92 512,92 512,64" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5,3" opacity="0.7" marker-end="url(#ah-error)"/>
+                <text x="617" y="88" fill="#ef4444" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.75">posture gate</text>
               </svg>
               <div class="band-detail">
                 <div class="bd-inner" style="background:rgba(224,92,24,0.04);border:0.5px solid rgba(224,92,24,0.2)">
@@ -968,7 +970,7 @@ const packCounts = {
                 <rect x="469" y="7" width="22" height="13" rx="3" fill="#1c1710"/>
                 <rect x="469" y="7" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/>
                 <text x="480" y="16.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
-                <g class="spine-chip"><rect x="350" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="350" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="380" y="17" fill="#0D9488" font-size="8" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑5·6</text></g>
+                <g class="spine-chip"><rect x="350" y="7" width="60" height="14" rx="3" fill="#1c1710"/><rect x="350" y="7" width="60" height="14" rx="3" fill="rgba(13,148,136,.18)" stroke="#0D9488" stroke-width="0.8" filter="url(#glow-mint)"/><text x="380" y="17" fill="#14B8A6" font-size="8" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">↑5·6</text></g>
               </svg>
               <div class="band-detail">
                 <div class="bd-inner" style="background:rgba(13,148,136,0.04);border:0.5px solid rgba(13,148,136,0.2)">
@@ -1000,7 +1002,7 @@ const packCounts = {
                sample run on load (inline script, single pass — perf-safe);
                reduced-motion shows final totals. Not on the spine; the
                numbers are a representative example, not live spend. -->
-          <div class="irail" aria-label="Instrumentation rail (v1.6): per-phase cost and usage anchored by oc-cost-ops and oc-telemetry-ops. Values shown are an illustrative sample run, not live spend.">
+          <div class="irail" role="group" aria-label="Instrumentation rail (v1.6): per-phase cost and usage anchored by oc-cost-ops and oc-telemetry-ops. Values shown are an illustrative sample run, not live spend.">
             <div class="irail-head">
               <span class="irail-eyebrow">v1.6 · cross-cutting · instrument rail</span>
               <span class="irail-title">Instrumentation — per-phase cost + opt-in usage telemetry</span>
@@ -1020,11 +1022,11 @@ const packCounts = {
               </a>
             </div>
             <div class="irail-grid" aria-hidden="true">
-              <div class="irow irail-h"><span class="ir-ph">phase</span><span class="ir-sk">spine skill</span><span class="ir-c">cost</span><span class="ir-u">usage (events)</span></div>
+              <div class="irow irail-h"><span class="ir-ph">phase</span><span class="ir-sk">skills</span><span class="ir-c">cost</span><span class="ir-u">usage (events)</span></div>
               <div class="irow" data-phase="discover"><span class="ir-ph"><i class="ir-ord">1</i>DISCOVER</span><span class="ir-sk">oc-reverse-spec</span><span class="ir-c"><span class="rm-cost">$0.00</span></span><span class="ir-u"><span class="rm-bar"><i></i></span><span class="rm-use">0</span></span></div>
               <div class="irow" data-phase="plan"><span class="ir-ph"><i class="ir-ord">2</i>PLAN</span><span class="ir-sk">oc-app-architect</span><span class="ir-c"><span class="rm-cost">$0.00</span></span><span class="ir-u"><span class="rm-bar"><i></i></span><span class="rm-use">0</span></span></div>
-              <div class="irow" data-phase="build"><span class="ir-ph"><i class="ir-ord">3</i>BUILD</span><span class="ir-sk">ux · api · integrations</span><span class="ir-c"><span class="rm-cost">$0.00</span></span><span class="ir-u"><span class="rm-bar"><i></i></span><span class="rm-use">0</span></span></div>
-              <div class="irow" data-phase="ship"><span class="ir-ph"><i class="ir-ord">4</i>SHIP</span><span class="ir-sk">git · audits · deploy</span><span class="ir-c"><span class="rm-cost">$0.00</span></span><span class="ir-u"><span class="rm-bar"><i></i></span><span class="rm-use">0</span></span></div>
+              <div class="irow" data-phase="build"><span class="ir-ph"><i class="ir-ord">4</i>BUILD</span><span class="ir-sk">ux · api · integrations</span><span class="ir-c"><span class="rm-cost">$0.00</span></span><span class="ir-u"><span class="rm-bar"><i></i></span><span class="rm-use">0</span></span></div>
+              <div class="irow" data-phase="ship"><span class="ir-ph"><i class="ir-ord">5</i>SHIP</span><span class="ir-sk">git · audits · deploy</span><span class="ir-c"><span class="rm-cost">$0.00</span></span><span class="ir-u"><span class="rm-bar"><i></i></span><span class="rm-use">0</span></span></div>
               <div class="irow" data-phase="monitor"><span class="ir-ph"><i class="ir-ord">6</i>MONITOR</span><span class="ir-sk">oc-monitoring-ops</span><span class="ir-c"><span class="rm-cost">$0.00</span></span><span class="ir-u"><span class="rm-bar"><i></i></span><span class="rm-use">0</span></span></div>
               <div class="irow irail-total"><span class="ir-ph">RUN TOTAL</span><span class="ir-sk">rolls up → /oc-ops budget</span><span class="ir-c"><span class="rm-cost" id="irail-total-cost">$0.00</span></span><span class="ir-u"><span class="rm-use" id="irail-total-use">0 events</span></span></div>
             </div>
@@ -1037,15 +1039,15 @@ const packCounts = {
                oc-git-ops chains to oc-docs-forge → oc-repo-ops before a
                PR opens. The commit + deploy gates are unchanged; they also
                appear as nodes in the Ship band. Not on the spine. -->
-          <div class="qrail" aria-label="Quality-gate rail (v1.8): one quality gate at every boundary. oc-bug-check at commit, the new oc-docs-forge and oc-repo-ops at the PR, oc-code-auditor and oc-security-auditor at deploy.">
+          <div class="qrail" role="group" aria-label="Quality-gate rail (v1.8): one quality gate at every boundary. oc-bug-check at commit, the new oc-docs-forge and oc-repo-ops at the PR, oc-code-auditor and oc-security-auditor at deploy.">
             <div class="qrail-head">
               <span class="qrail-eyebrow">v1.8 · cross-cutting · quality-gate rail</span>
-              <span class="qrail-title">Quality gates — one gate at every boundary: commit · PR · deploy</span>
+              <span class="qrail-title">Quality gates — a gate at every boundary: commit · PR · deploy</span>
             </div>
             <div class="qrail-svg-wrap">
               <svg viewBox="0 0 760 238" role="img" aria-label="Quality-gate rail timeline: oc-bug-check gates the commit, the new oc-docs-forge and oc-repo-ops gate the PR, oc-code-auditor and oc-security-auditor gate the deploy.">
                 <!-- PR-stop highlight (drawn behind the pair) -->
-                <rect x="258" y="42" width="244" height="88" rx="9" fill="var(--docs-dim)" stroke="#38bdf8" stroke-width="1" stroke-dasharray="6,4" opacity="0.9"/>
+                <rect x="258" y="42" width="244" height="86" rx="9" fill="var(--docs-dim)" stroke="#38bdf8" stroke-width="1" stroke-dasharray="6,4" opacity="0.9"/>
                 <text x="380" y="37" fill="#38bdf8" font-size="8" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle" letter-spacing="0.06em">PR RAIL · v1.8</text>
 
                 <!-- COMMIT: oc-bug-check -->
@@ -1057,10 +1059,10 @@ const packCounts = {
                 <text x="130" y="108" fill="#F43F5E" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-bugcheck</text>
 
                 <!-- PR: oc-docs-forge (NEW) -->
-                <rect x="270" y="46" width="104" height="78" rx="5" fill="#1c1710" stroke="#38bdf8" stroke-width="1" filter="url(#glow-docs)" opacity="0.97"><title>oc-docs-forge — NEW v1.8; generates the PR documentation packet (README · changelog · ADR · PR body). Chains tod by oc-git-ops before a PR opens, and by release flows.</title></rect>
+                <rect x="270" y="46" width="104" height="78" rx="5" fill="#1c1710" stroke="#38bdf8" stroke-width="1" filter="url(#glow-docs)" opacity="0.97"><title>oc-docs-forge — NEW v1.8; generates the PR documentation packet (README · changelog · ADR · PR body). Chained to by oc-git-ops before a PR opens, and by release flows.</title></rect>
                 <rect x="270" y="46" width="104" height="78" rx="5" fill="rgba(56,189,248,0.07)" stroke="#38bdf8" stroke-width="0.5"/>
-                <rect x="326" y="39" width="18" height="12" rx="3" fill="#1c1710"/><rect x="326" y="39" width="18" height="12" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="335" y="47.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                <rect x="346" y="39" width="22" height="12" rx="3" fill="#1c1710"/><rect x="346" y="39" width="22" height="12" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="357" y="47.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <rect x="320" y="39" width="22" height="13" rx="3" fill="#1c1710"/><rect x="320" y="39" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="331" y="48.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="346" y="39" width="22" height="13" rx="3" fill="#1c1710"/><rect x="346" y="39" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="357" y="48.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
                 <text x="322" y="67" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-docs-forge</text>
                 <text x="322" y="81" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Docs packet · pre-PR</text>
                 <text x="322" y="94" fill="#c4b89e" font-size="5.5" font-family="JetBrains Mono,monospace" text-anchor="middle">README · changelog · ADR</text>
@@ -1072,8 +1074,8 @@ const packCounts = {
                 <!-- PR: oc-repo-ops (NEW) -->
                 <rect x="386" y="46" width="104" height="78" rx="5" fill="#1c1710" stroke="#38bdf8" stroke-width="1" filter="url(#glow-docs)" opacity="0.97"><title>oc-repo-ops — NEW v1.8; repo-hygiene + PR-readiness gate. Runs after oc-docs-forge: generated-file &amp; catalog drift, .gitignore policy, orphaned files. Blocks the PR until the repo is clean.</title></rect>
                 <rect x="386" y="46" width="104" height="78" rx="5" fill="rgba(56,189,248,0.07)" stroke="#38bdf8" stroke-width="0.5"/>
-                <rect x="442" y="39" width="18" height="12" rx="3" fill="#1c1710"/><rect x="442" y="39" width="18" height="12" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="451" y="47.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
-                <rect x="462" y="39" width="22" height="12" rx="3" fill="#1c1710"/><rect x="462" y="39" width="22" height="12" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="473" y="47.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <rect x="436" y="39" width="22" height="13" rx="3" fill="#1c1710"/><rect x="436" y="39" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="447" y="48.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="462" y="39" width="22" height="13" rx="3" fill="#1c1710"/><rect x="462" y="39" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="473" y="48.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
                 <text x="438" y="67" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-repo-ops</text>
                 <text x="438" y="81" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">PR-readiness gate</text>
                 <text x="438" y="94" fill="#c4b89e" font-size="5.5" font-family="JetBrains Mono,monospace" text-anchor="middle">hygiene · drift · catalog</text>
@@ -1097,7 +1099,7 @@ const packCounts = {
 
                 <!-- drop lines to timeline -->
                 <line x1="130" y1="124" x2="130" y2="168" stroke="#F43F5E" stroke-width="1" opacity="0.55"/>
-                <line x1="380" y1="130" x2="380" y2="168" stroke="#38bdf8" stroke-width="1.3"/>
+                <line x1="380" y1="128" x2="380" y2="168" stroke="#38bdf8" stroke-width="1.3"/>
                 <line x1="620" y1="124" x2="620" y2="168" stroke="#e05c18" stroke-width="1" opacity="0.55"/>
 
                 <!-- boundary timeline -->
@@ -1113,7 +1115,7 @@ const packCounts = {
                 <text x="620" y="188" fill="#e05c18" font-size="8" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle" letter-spacing="0.08em">DEPLOY</text>
                 <text x="620" y="200" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.8">2 gates</text>
 
-                <text x="380" y="224" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.85">one quality gate at every boundary — nothing ships ungated</text>
+                <text x="380" y="224" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.85">a quality gate at every boundary — nothing ships ungated</text>
               </svg>
             </div>
             <div class="qrail-anchors">
@@ -1133,6 +1135,135 @@ const packCounts = {
             <div class="qrail-foot">↑ the PR boundary is new in v1.8 · oc-git-ops chains to oc-docs-forge → oc-repo-ops before a PR opens · commit + deploy gates unchanged</div>
           </div>
 
+          <!-- ══ ASSURANCE RAIL (cross-cutting, v1.9) ══
+               The four v1.9 skills. Like the v1.6 instrument rail and the
+               v1.8 quality-gate rail, they cut across phases instead of
+               occupying one: each declares a manifest under .opchain/ that
+               a gate or another skill reads. oc-compliance-ops and
+               oc-security-hardening add CONDITIONAL rows to oc-deploy-ops'
+               existing audit gate when their manifest is present — still
+               three gates, not five. Not on the spine. -->
+          <div class="arail" role="group" aria-label="Assurance rail (v1.9): four new cross-cutting skills, each declaring a manifest under .opchain/. oc-qa-ops designs the test pyramid that oc-bug-check runs at the commit gate, oc-data-ops designs data pipelines and verifies data contracts, oc-compliance-ops maintains the control register and evidence bundles, and oc-security-hardening executes hardening fixes and stands the per-deploy check of its own manifest.">
+            <div class="arail-head">
+              <span class="arail-eyebrow">v1.9 · cross-cutting · assurance rail</span>
+              <span class="arail-title">Assurance — four declared manifests: tests · data contracts · controls · hardening</span>
+            </div>
+            <div class="arail-svg-wrap">
+              <svg viewBox="0 0 760 240" role="img" aria-label="Assurance rail: four new v1.9 skills — oc-qa-ops, oc-data-ops, oc-compliance-ops and oc-security-hardening — drawn over the existing pipeline surfaces each one attaches to: oc-bug-check at the commit gate, oc-app-architect Phase 2 discovery, the oc-deploy-ops audit gate, and oc-security-auditor.">
+                <!-- oc-qa-ops — NEW v1.9. Standalone specialist (mint). Decides which tests exist; oc-bug-check executes them. -->
+                <rect x="30" y="36" width="160" height="78" rx="5" fill="#1c1710" stroke="#0D9488" stroke-width="1" filter="url(#glow-mint)" opacity="0.97"><title>oc-qa-ops — NEW v1.9; standalone specialist. Test-pyramid design: coverage strategy, contract-test matrix, load-test planning. Strategy, not execution — it writes .opchain/qa.yaml, which oc-bug-check's test check reads at the commit gate. Invoked by oc-app-architect Phase 2 to author 06-testing.md; oc-scale-ops executes its load plans.</title></rect>
+                <rect x="30" y="36" width="160" height="78" rx="5" fill="rgba(13,148,136,0.06)" stroke="#0D9488" stroke-width="0.5"/>
+                <rect x="153" y="29" width="22" height="13" rx="3" fill="#1c1710"/><rect x="153" y="29" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="164" y="38.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="179" y="29" width="22" height="13" rx="3" fill="#1c1710"/><rect x="179" y="29" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="190" y="38.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <rect x="30" y="29" width="50" height="11" rx="2" fill="#1c1710"/><rect x="30" y="29" width="50" height="11" rx="2" fill="rgba(251,191,36,.16)" stroke="#fbbf24" stroke-width="0.6"/><text x="55" y="37" fill="#fbbf24" font-size="5.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">NEW v1.9</text>
+                <text x="110" y="57" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-qa-ops</text>
+                <text x="110" y="71" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Specialist · test strategy</text>
+                <text x="110" y="84" fill="#c4b89e" font-size="5.5" font-family="JetBrains Mono,monospace" text-anchor="middle">pyramid · coverage · contracts</text>
+                <text x="110" y="98" fill="#0D9488" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-qa · decides, not executes</text>
+
+                <!-- oc-data-ops — NEW v1.9. The 9th tri-agent, so it keeps the tri-agent amber. -->
+                <rect x="210" y="36" width="160" height="78" rx="5" fill="#1c1710" stroke="#f59e0b" stroke-width="1" filter="url(#glow-yellow)" opacity="0.97"><title>oc-data-ops — NEW v1.9; the 9th tri-agent (Designer / Builder / Contract-Verifier). Data-pipeline design and build: ingestion, transformation layering, dbt, observable data contracts. Invoked by oc-app-architect Phase 2 when discovery surfaces a data-heavy backend; warehouse and queue choice comes from oc-stack-forge; oc-signal-forge chains estate-level pipelines here. Writes .opchain/data-contracts/*.yaml with freshness, volume and schema SLAs.</title></rect>
+                <rect x="210" y="36" width="160" height="78" rx="5" fill="rgba(245,158,11,0.06)" stroke="#f59e0b" stroke-width="0.5"/>
+                <rect x="333" y="29" width="22" height="13" rx="3" fill="#1c1710"/><rect x="333" y="29" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="344" y="38.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="359" y="29" width="22" height="13" rx="3" fill="#1c1710"/><rect x="359" y="29" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="370" y="38.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <rect x="210" y="29" width="50" height="11" rx="2" fill="#1c1710"/><rect x="210" y="29" width="50" height="11" rx="2" fill="rgba(251,191,36,.16)" stroke="#fbbf24" stroke-width="0.6"/><text x="235" y="37" fill="#fbbf24" font-size="5.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">NEW v1.9</text>
+                <text x="290" y="57" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-data-ops</text>
+                <text x="290" y="71" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Tri-agent · data pipelines</text>
+                <text x="290" y="84" fill="#c4b89e" font-size="5.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Designer·Builder·Contract-Verifier</text>
+                <text x="290" y="98" fill="#f59e0b" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-data-ops · 9th tri-agent</text>
+
+                <!-- oc-compliance-ops — NEW v1.9. Stands a conditional gate row, so it takes the audit-gate rose: a panel keeps its own archetype colour inside a rail. -->
+                <rect x="390" y="36" width="160" height="78" rx="5" fill="#1c1710" stroke="#F43F5E" stroke-width="1" filter="url(#glow-rose)" opacity="0.97"><title>oc-compliance-ops — NEW v1.9; standing control register plus audit-ready evidence bundles at deploy and release time (SOC 2, HIPAA, GDPR). Consumes oc-security-auditor's readiness gaps — the auditor is the point-in-time assessor, this is the standing register and evidence pipeline. Activated per project by .opchain/compliance.yaml and inert without it; adds a conditional evidence-gate row to oc-deploy-ops' audit gate. Readiness and evidence, not certification and not legal advice.</title></rect>
+                <rect x="390" y="36" width="160" height="78" rx="5" fill="rgba(244,63,94,0.06)" stroke="#F43F5E" stroke-width="0.5"/>
+                <rect x="513" y="29" width="22" height="13" rx="3" fill="#1c1710"/><rect x="513" y="29" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="524" y="38.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="539" y="29" width="22" height="13" rx="3" fill="#1c1710"/><rect x="539" y="29" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="550" y="38.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <rect x="390" y="29" width="50" height="11" rx="2" fill="#1c1710"/><rect x="390" y="29" width="50" height="11" rx="2" fill="rgba(251,191,36,.16)" stroke="#fbbf24" stroke-width="0.6"/><text x="415" y="37" fill="#fbbf24" font-size="5.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">NEW v1.9</text>
+                <text x="470" y="57" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-compliance-ops</text>
+                <text x="470" y="71" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Standing control register</text>
+                <text x="470" y="84" fill="#c4b89e" font-size="5.5" font-family="JetBrains Mono,monospace" text-anchor="middle">SOC 2 · HIPAA · GDPR evidence</text>
+                <text x="470" y="98" fill="#F43F5E" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-comply · evidence bundles</text>
+
+                <!-- oc-security-hardening — NEW v1.9. Execution half of the security pair; stands the per-deploy hardening gate → audit-gate rose. -->
+                <rect x="570" y="36" width="160" height="78" rx="5" fill="#1c1710" stroke="#F43F5E" stroke-width="1" filter="url(#glow-rose)" opacity="0.97"><title>oc-security-hardening — NEW v1.9; the execution half of the security pair. oc-security-auditor assesses via /oc-hardening; oc-security-hardening executes via /oc-harden. Maintains .opchain/hardening.yaml, the declared-controls manifest, and stands the per-deploy gate that verifies it, adding a manifest-verify row to oc-deploy-ops' audit gate when present. Not assessment, not code-bug fixing, not dependency vulnerability scanning.</title></rect>
+                <rect x="570" y="36" width="160" height="78" rx="5" fill="rgba(244,63,94,0.06)" stroke="#F43F5E" stroke-width="0.5"/>
+                <rect x="693" y="29" width="22" height="13" rx="3" fill="#1c1710"/><rect x="693" y="29" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="704" y="38.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
+                <rect x="719" y="29" width="22" height="13" rx="3" fill="#1c1710"/><rect x="719" y="29" width="22" height="13" rx="3" fill="rgba(224,92,24,.10)" stroke="rgba(224,92,24,0.6)" stroke-width="0.5"/><text x="730" y="38.5" fill="#e05c18" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">ORC</text>
+                <rect x="570" y="29" width="50" height="11" rx="2" fill="#1c1710"/><rect x="570" y="29" width="50" height="11" rx="2" fill="rgba(251,191,36,.16)" stroke="#fbbf24" stroke-width="0.6"/><text x="595" y="37" fill="#fbbf24" font-size="5.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">NEW v1.9</text>
+                <text x="650" y="57" fill="#e8dfd0" font-size="7.5" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">oc-security-hardening</text>
+                <text x="650" y="71" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">Remediation · deploy gate</text>
+                <text x="650" y="84" fill="#c4b89e" font-size="5.5" font-family="JetBrains Mono,monospace" text-anchor="middle">hardening.yaml · controls</text>
+                <text x="650" y="98" fill="#F43F5E" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">/oc-harden · executes fixes</text>
+
+                <!-- RELATIONSHIP SPINE ────────────────────────────────
+                     sand dashed = advisory · ember dashed = chains-to · red dashed = gate -->
+
+                <!-- oc-qa-ops decides → oc-bug-check executes (advisory: coverage miss WARNs unless coverage.enforce: fail) -->
+                <line x1="110" y1="114" x2="110" y2="165" stroke="#c4b89e" stroke-width="1.0" stroke-dasharray="5,3" opacity="0.6" marker-end="url(#ah-sand)"/>
+                <text x="116" y="140" fill="#c4b89e" font-size="5.5" font-family="JetBrains Mono,monospace" text-anchor="start" opacity="0.9">.opchain/qa.yaml · WARN by default</text>
+
+                <!-- oc-app-architect Phase 2 chains to oc-data-ops on a data-heavy backend -->
+                <line x1="290" y1="165" x2="290" y2="116" stroke="#e05c18" stroke-width="1.2" stroke-dasharray="5,3" opacity="0.78" marker-end="url(#ah-ember)"/>
+                <text x="296" y="140" fill="#e05c18" font-size="5.5" font-family="JetBrains Mono,monospace" text-anchor="start">Phase 2 · data-heavy backend</text>
+
+                <!-- oc-security-auditor assesses (/oc-hardening) → hands findings to oc-security-hardening (/oc-harden) -->
+                <line x1="690" y1="165" x2="690" y2="116" stroke="#e05c18" stroke-width="1.2" stroke-dasharray="5,3" opacity="0.78" marker-end="url(#ah-ember)"/>
+                <text x="684" y="140" fill="#e05c18" font-size="5.5" font-family="JetBrains Mono,monospace" text-anchor="end">findings</text>
+
+                <!-- both governance skills add CONDITIONAL rows to the existing oc-deploy-ops audit gate (the count stays at 3 audit gates) -->
+                <line x1="470" y1="114" x2="547.6" y2="164" stroke="#ef4444" stroke-width="1.1" stroke-dasharray="5,3" opacity="0.85" marker-end="url(#ah-error)"/>
+                <line x1="650" y1="114" x2="572.4" y2="164" stroke="#ef4444" stroke-width="1.1" stroke-dasharray="5,3" opacity="0.85" marker-end="url(#ah-error)"/>
+                <text x="560" y="134" fill="#ef4444" font-size="5.5" font-family="JetBrains Mono,monospace" text-anchor="middle">conditional rows</text>
+
+                <!-- the existing surfaces v1.9 attaches to (anchor rail, not a timeline — stops are not in pipeline order) -->
+                <line x1="30" y1="172" x2="730" y2="172" stroke="#c4b89e" stroke-width="1.2" opacity="0.45"/>
+
+                <circle cx="110" cy="172" r="4" fill="#1c1710" stroke="#F43F5E" stroke-width="1.4"/>
+                <circle cx="290" cy="172" r="4" fill="#1c1710" stroke="#f59e0b" stroke-width="1.4"/>
+                <circle cx="560" cy="172" r="5.5" fill="#1c1710" stroke="#e05c18" stroke-width="1.8"/>
+                <circle cx="690" cy="172" r="4" fill="#1c1710" stroke="#F43F5E" stroke-width="1.4"/>
+
+                <text x="110" y="190" fill="#F43F5E" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">oc-bug-check</text>
+                <text x="110" y="201" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.8">executes at commit</text>
+                <text x="290" y="190" fill="#f59e0b" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">oc-app-architect</text>
+                <text x="290" y="201" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.8">Phase 2 · discovery</text>
+                <text x="560" y="190" fill="#e05c18" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">oc-deploy-ops · audit gate</text>
+                <text x="560" y="201" fill="#fbbf24" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">+2 conditional rows · v1.9</text>
+                <text x="690" y="190" fill="#F43F5E" font-size="7.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">oc-security-auditor</text>
+                <text x="690" y="201" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.8">assesses · /oc-hardening</text>
+
+                <text x="380" y="220" fill="#c4b89e" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.85">spine stops are existing skills — v1.9 attaches to them, it does not replace them</text>
+                <text x="380" y="231" fill="#fbbf24" font-size="5.5" font-family="JetBrains Mono,monospace" text-anchor="middle">every attachment is opt-in · inert until its .opchain manifest exists</text>
+              </svg>
+            </div>
+            <div class="arail-anchors">
+              <a class="arail-anchor" href="/skills/oc-qa-ops" aria-label="View oc-qa-ops skill">
+                <span class="ia-name">oc-qa-ops</span>
+                <span class="ia-meta">Specialist · /oc-qa · plan + build</span>
+                <span class="ia-do">test pyramid · coverage budgets · contract matrix · load plans → .opchain/qa.yaml</span>
+                <span class="ia-badges"><span class="ia-cp">CP</span><span class="ia-cp">ORC</span><span class="ia-new">NEW v1.9</span></span>
+              </a>
+              <a class="arail-anchor" href="/skills/oc-data-ops" aria-label="View oc-data-ops skill">
+                <span class="ia-name">oc-data-ops</span>
+                <span class="ia-meta">Tri-agent · /oc-data-ops · Designer / Builder / Contract-Verifier</span>
+                <span class="ia-do">ingestion · transform layers · dbt · data contracts (freshness · volume · schema)</span>
+                <span class="ia-badges"><span class="ia-cp">CP</span><span class="ia-cp">ORC</span><span class="ia-new">NEW v1.9</span></span>
+              </a>
+              <a class="arail-anchor" href="/skills/oc-compliance-ops" aria-label="View oc-compliance-ops skill">
+                <span class="ia-name">oc-compliance-ops</span>
+                <span class="ia-meta">Standing operator · /oc-comply · inert without .opchain/compliance.yaml</span>
+                <span class="ia-do">control register · evidence bundles · policy scaffolds · readiness, not certification</span>
+                <span class="ia-badges"><span class="ia-cp">CP</span><span class="ia-cp">ORC</span><span class="ia-new">NEW v1.9</span></span>
+              </a>
+              <a class="arail-anchor" href="/skills/oc-security-hardening" aria-label="View oc-security-hardening skill">
+                <span class="ia-name">oc-security-hardening</span>
+                <span class="ia-meta">Remediation operator · /oc-harden · executes what oc-security-auditor assesses</span>
+                <span class="ia-do">headers · staged CSP · TLS/WAF/rate limits · .opchain/hardening.yaml + per-deploy verify</span>
+                <span class="ia-badges"><span class="ia-cp">CP</span><span class="ia-cp">ORC</span><span class="ia-new">NEW v1.9</span></span>
+              </a>
+            </div>
+            <div class="arail-foot">↑ all four are new in v1.9 · each declares a manifest under .opchain/ that a gate or another skill reads · oc-compliance-ops and oc-security-hardening add conditional rows to oc-deploy-ops' existing audit gate — still 3 gates</div>
+          </div>
+
           <!-- Legend -->
           <div class="legend">
             <div class="legend-section-label">connections</div>
@@ -1143,7 +1274,7 @@ const packCounts = {
               <span>spine ordinal</span>
               <div class="legend-card" role="tooltip">
                 <div class="legend-card-title">Spine Ordinal</div>
-                The 6 primary-spine skills wear numbered ember chips showing handoff position. Each chip carries <code>↑prev·↓next</code> indicators. Replaces the green handoff lines that previously connected them. Branch handoffs use inline mint <code>→ target</code> pills inside source rects.
+                The 6 primary-spine skills wear numbered mint chips showing handoff position. Each chip carries <code>↑prev·↓next</code> indicators. Replaces the cross-band handoff lines that previously connected them; the three in-band mint arrows in Ship remain. Branch handoffs use inline mint <code>→ target</code> pills inside source rects.
                 <div class="legend-card-examples">1 rev-spec → 2 app-arch → 3 oc-git-ops → 4 oc-release-ops → 5 oc-deploy-ops → 6 oc-monitoring-ops</div>
               </div>
             </span>
@@ -1193,8 +1324,8 @@ const packCounts = {
               <span>CP · checkpoint</span>
               <div class="legend-card" role="tooltip">
                 <div class="legend-card-title">Checkpoint Protocol</div>
-                Every skill writes JSON to <code>.checkpoints/</code> after each state change. Single source of truth — any skill can read any other's checkpoint to rebuild context after a reset. CP badge sits centered on the top edge of each skill, paired just to the left of ORC. Hover the CP zone toggle top-left of the diagram to see all 29 connected.
-                <div class="legend-card-examples">.checkpoints/oc-app-architect.json · phase · progress_table · blockers · next_actions</div>
+                Every skill writes JSON to <code>.checkpoints/</code> after each state change. Single source of truth — any skill can read any other's checkpoint to rebuild context after a reset. CP badge sits centered on the top edge of each skill, paired just to the left of ORC. Hover the oc-checkpoint-protocol pill top-left of the diagram to see 6 representative connections &mdash; the same topology extends to all 33 skills.
+                <div class="legend-card-examples">.checkpoints/oc-app-architect.checkpoint.json · phase · progress_table · blockers · next_actions</div>
               </div>
             </span>
             <span class="legend-item" tabindex="0"
@@ -1218,7 +1349,7 @@ const packCounts = {
               <div class="legend-card" role="tooltip">
                 <div class="legend-card-title" style="color:#f59e0b">Tri-agent</div>
                 Skills running an internal Planner / Generator / Evaluator loop. The Evaluator scores output (≥ 7/10 to advance); failure triggers Generator retry until threshold or max iterations.
-                <div class="legend-card-examples">oc-app-architect · oc-ux-engineer · oc-api-dev · oc-integrations-engineer · oc-code-auditor · oc-rag-forge · oc-agent-forge · oc-signal-forge</div>
+                <div class="legend-card-examples">oc-app-architect · oc-ux-engineer · oc-api-dev · oc-integrations-engineer · oc-code-auditor · oc-rag-forge · oc-agent-forge · oc-signal-forge · oc-data-ops</div>
               </div>
             </span>
             <span class="legend-item" tabindex="0"
@@ -1244,7 +1375,7 @@ const packCounts = {
             <span class="legend-item" tabindex="0"
                   >
               <div aria-hidden="true" class="li-swatch" style="background:rgba(224,92,24,.08);border:1px solid #e05c18;box-shadow:0 0 6px rgba(224,92,24,.4)"></div>
-              <span>workflow / oc-orchestrator</span>
+              <span>workflow / orchestrator</span>
               <div class="legend-card" role="tooltip">
                 <div class="legend-card-title" style="color:#e05c18">Workflow / Orchestrator</div>
                 Skills that drive structured, sequential pipelines. oc-app-architect orchestrates the build; oc-deploy-ops orchestrates the ship; oc-orchestrator routes across projects.
@@ -1291,6 +1422,16 @@ const packCounts = {
                 <div class="legend-card-examples">oc-signal-forge · oc-modularize-ops · oc-fleet-ops</div>
               </div>
             </span>
+            <span class="legend-item" tabindex="0"
+                  >
+              <div aria-hidden="true" class="li-swatch" style="background:rgba(251,191,36,.10);border:1px solid #fbbf24;box-shadow:0 0 6px rgba(251,191,36,.4)"></div>
+              <span>assurance rail · v1.9</span>
+              <div class="legend-card" role="tooltip">
+                <div class="legend-card-title" style="color:#fbbf24">Assurance rail (v1.9)</div>
+                The four v1.9 skills — cross-cutting, not a new phase. Each declares a manifest under <code>.opchain/</code> that a gate or another skill reads. <strong style="color:#fbbf24">oc-qa-ops</strong> decides which tests should exist and writes <code>.opchain/qa.yaml</code>; oc-bug-check still runs them at the commit gate. <strong style="color:#fbbf24">oc-data-ops</strong> — the ninth tri-agent (Designer / Builder / Contract-Verifier) — designs pipelines and guards <code>.opchain/data-contracts/*.yaml</code> with freshness · volume · schema SLAs. <strong style="color:#fbbf24">oc-compliance-ops</strong> keeps a standing control register and builds audit-ready evidence bundles — readiness and evidence, not certification and not legal advice — and stays inert until a project adds <code>.opchain/compliance.yaml</code>. The security pair splits assess from execute: oc-security-auditor assesses (<code>/oc-hardening</code>), <strong style="color:#fbbf24">oc-security-hardening</strong> executes (<code>/oc-harden</code>) and stands the per-deploy check of its own <code>.opchain/hardening.yaml</code>. Those last two add conditional rows to oc-deploy-ops' existing audit gate — still three gates.
+                <div class="legend-card-examples">oc-qa-ops · oc-data-ops · oc-compliance-ops · oc-security-hardening</div>
+              </div>
+            </span>
           </div>
         </div>
       </div>
@@ -1302,7 +1443,7 @@ const packCounts = {
             <h2>Spine Ordinals</h2>
           </div>
           <ul>
-            <li>· Ember chips on the 6 spine skills mark the handoff sequence</li>
+            <li>· Mint chips on the 6 spine skills mark the handoff sequence</li>
             <li>· <strong style="color:var(--success)">1</strong> oc-reverse-spec → <strong style="color:var(--success)">2</strong> oc-app-architect → <strong style="color:var(--success)">3</strong> oc-git-ops → <strong style="color:var(--success)">4</strong> oc-release-ops → <strong style="color:var(--success)">5</strong> oc-deploy-ops → <strong style="color:var(--success)">6</strong> oc-monitoring-ops</li>
             <li>· Each chip carries <code>↑prev·↓next</code> for direction</li>
             <li>· Branch handoffs as inline mint pills inside source rects:</li>
@@ -1319,11 +1460,13 @@ const packCounts = {
           <ul>
             <li>· oc-app-architect: Generator / Evaluator</li>
             <li>· oc-ux-engineer: Planner / Generator / Evaluator</li>
-            <li>· oc-api-dev: Planner / Generator / Evaluator</li>
+            <li>· oc-api-dev: Designer / Builder / Conformance</li>
             <li>· oc-integrations-engineer: Planner / Builder / Tester</li>
             <li>· oc-code-auditor: Auditor / Fixer / Verifier</li>
             <li>· <span style="color:#a78bfa">oc-rag-forge: Designer / Builder / Evaluator</span></li>
             <li>· <span style="color:#a78bfa">oc-agent-forge: Planner / Builder / Evaluator</span></li>
+            <li>· <span style="color:#e879f9">oc-signal-forge: Designer / Builder / Evaluator</span></li>
+            <li>· <span style="color:#fbbf24">oc-data-ops: Designer / Builder / Contract-Verifier</span></li>
           </ul>
         </div>
         <div class="card">
@@ -1358,7 +1501,7 @@ const packCounts = {
             <h2>Checkpoint Protocol</h2>
           </div>
           <ul>
-            <li>· JSON files at .checkpoints/&lt;skill&gt;.json</li>
+            <li>· JSON files at .checkpoints/&lt;skill&gt;.checkpoint.json</li>
             <li>· Keys: phase · progress_table · context_primer · blockers · next_actions</li>
             <li>· All 33 skills read all 33 checkpoints (no ACL)</li>
             <li>· Resume: own → upstream → novice mode</li>
@@ -1388,7 +1531,7 @@ const packCounts = {
 
   <script is:inline>
     /* ══ Architecture v2 — interactive diagram ══ */
-    const PHASES = ['discover','plan','ai','build','ship','monitor'];
+    const PHASES = ['discover','plan','ai','build','ship','monitor'], ALL_BANDS = ['discover','plan','packs','ai','build','ship','monitor'];
     const ARROWS = ['ba-0','ba-1','ba-1b','ba-1c','ba-2','ba-3'];
     let activePhase = null, leaveTimeout = null;
     let cpActive = false, cpLeaveTimeout = null;
@@ -1401,21 +1544,24 @@ const packCounts = {
       'oc-scale-ops':             { band: 'plan',     x: 20,  y: 14,  w: 118, h: 48,  vbW: 760, vbH: 150 },
       'oc-stack-forge':           { band: 'plan',     x: 20,  y: 84,  w: 118, h: 48,  vbW: 760, vbH: 150 },
       'oc-app-architect':         { band: 'plan',     x: 240, y: 22,  w: 280, h: 122, vbW: 760, vbH: 150 },
-      'oc-migration-ops':         { band: 'plan',     x: 610, y: 50,  w: 130, h: 50,  vbW: 760, vbH: 150 },
+      'oc-migration-ops':         { band: 'plan',     x: 610, y: 40,  w: 130, h: 50,  vbW: 760, vbH: 150 },
       'oc-claude-api':            { band: 'ai',       x: 14,  y: 22,  w: 170, h: 76,  vbW: 760, vbH: 120 },
       'oc-rag-forge':             { band: 'ai',       x: 206, y: 22,  w: 160, h: 76,  vbW: 760, vbH: 120 },
       'oc-agent-forge':           { band: 'ai',       x: 388, y: 22,  w: 170, h: 76,  vbW: 760, vbH: 120 },
       'oc-prompt-ops':            { band: 'ai',       x: 580, y: 22,  w: 160, h: 76,  vbW: 760, vbH: 120 },
-      'oc-ux-engineer':           { band: 'build',    x: 14,  y: 22,  w: 170, h: 76,  vbW: 760, vbH: 120 },
-      'oc-dash-forge':            { band: 'build',    x: 206, y: 22,  w: 160, h: 76,  vbW: 760, vbH: 120 },
-      'oc-api-dev':               { band: 'build',    x: 388, y: 22,  w: 170, h: 76,  vbW: 760, vbH: 120 },
-      'oc-integrations-engineer': { band: 'build',    x: 580, y: 22,  w: 160, h: 76,  vbW: 760, vbH: 120 },
-      'oc-bug-check':             { band: 'ship',     x: 50,  y: 104, w: 140, h: 72,  vbW: 760, vbH: 190 },
+      'oc-ux-engineer':           { band: 'build',    x: 14,  y: 22,  w: 170, h: 76,  vbW: 760, vbH: 205 },
+      'oc-dash-forge':            { band: 'build',    x: 206, y: 22,  w: 160, h: 76,  vbW: 760, vbH: 205 },
+      'oc-api-dev':               { band: 'build',    x: 388, y: 22,  w: 170, h: 76,  vbW: 760, vbH: 205 },
+      'oc-integrations-engineer': { band: 'build',    x: 580, y: 22,  w: 160, h: 76,  vbW: 760, vbH: 205 },
+      'oc-bug-check':             { band: 'ship',     x: 75,  y: 104, w: 140, h: 72,  vbW: 760, vbH: 190 },
       'oc-git-ops':               { band: 'ship',     x: 20,  y: 14,  w: 140, h: 50,  vbW: 760, vbH: 190 },
-      'oc-release-ops':           { band: 'ship',     x: 200, y: 14,  w: 170, h: 64,  vbW: 760, vbH: 190 },
-      'oc-code-auditor':          { band: 'ship',     x: 240, y: 104, w: 170, h: 72,  vbW: 760, vbH: 190 },
-      'oc-security-auditor':      { band: 'ship',     x: 460, y: 104, w: 200, h: 72,  vbW: 760, vbH: 190 },
-      'oc-deploy-ops':            { band: 'ship',     x: 430, y: 14,  w: 190, h: 50,  vbW: 760, vbH: 190 },
+      'oc-release-ops':           { band: 'ship',     x: 196, y: 14,  w: 170, h: 64,  vbW: 760, vbH: 190 },
+      'oc-code-auditor':          { band: 'ship',     x: 265, y: 104, w: 170, h: 72,  vbW: 760, vbH: 190 },
+      'oc-security-auditor':      { band: 'ship',     x: 485, y: 104, w: 200, h: 72,  vbW: 760, vbH: 190 },
+      'oc-deploy-ops':            { band: 'ship',     x: 402, y: 14,  w: 190, h: 50,  vbW: 760, vbH: 190 },
+      'oc-modularize-ops':        { band: 'plan',     x: 610, y: 104, w: 130, h: 44,  vbW: 760, vbH: 150 },
+      'oc-signal-forge':          { band: 'build',    x: 206, y: 112, w: 200, h: 80,  vbW: 760, vbH: 205 },
+      'oc-fleet-ops':             { band: 'ship',     x: 628, y: 14,  w: 112, h: 50,  vbW: 760, vbH: 190 },
       'oc-monitoring-ops':        { band: 'monitor',  x: 280, y: 14,  w: 200, h: 52,  vbW: 760, vbH: 80  }
     };
 
@@ -1424,6 +1570,7 @@ const packCounts = {
       const wrap = document.getElementById('bands-wrap');
       if (!canvas || !wrap) return;
       const wr = wrap.getBoundingClientRect();
+      if (!wr.width || !wr.height) return;
       const dpr = window.devicePixelRatio || 1;
       canvas.width = wr.width * dpr;
       canvas.height = wr.height * dpr;
@@ -1534,19 +1681,6 @@ const packCounts = {
         ctx.restore();
       }
 
-      function ortho(srcSkill, srcEdge, tgtSkill, tgtEdge, midY, color, width, dash, alpha, arrowSize) {
-        const s = pt(srcSkill, srcEdge);
-        const t = pt(tgtSkill, tgtEdge);
-        if (!s || !t) return null;
-        const points = [s];
-        if (Math.abs(s.x - t.x) >= 0.5) {
-          points.push({ x: s.x, y: midY });
-          points.push({ x: t.x, y: midY });
-        }
-        points.push(t);
-        drawPath(points, color, width, dash, alpha, true, arrowSize);
-        return { s, t, midY };
-      }
 
       function orthoSkip(srcSkill, srcEdge, tgtSkill, tgtEdge, midY1, midY2, safeX, color, width, dash, alpha, arrowSize) {
         const s = pt(srcSkill, srcEdge);
@@ -1579,37 +1713,22 @@ const packCounts = {
         return { s, targets: targets.map(o => o.p), midY, busL, busR };
       }
 
-      function busFanIn(srcSkills, tgtSkill, midY, color, width, dash, alpha, arrowSize) {
-        const sources = srcSkills.map(n => pt(n, 'bottom')).filter(Boolean);
-        const t = pt(tgtSkill, 'top');
-        if (!sources.length || !t) return null;
-        const xs = sources.map(p => p.x).concat([t.x]);
-        const busL = Math.min.apply(null, xs);
-        const busR = Math.max.apply(null, xs);
-        for (const s of sources) {
-          drawPath([s, { x: s.x, y: midY }], color, width, dash, alpha, false);
-        }
-        drawPath([{ x: busL, y: midY }, { x: busR, y: midY }], color, width, dash, alpha, false);
-        drawPath([{ x: t.x, y: midY }, t], color, width, dash, alpha, true, arrowSize);
-        return { sources, t, midY, busL, busR };
-      }
 
-      const W_PRIMARY = 1.8, W_SECONDARY = 1.2, W_ADVISORY = 1.0;
-      const O_PRIMARY = 0.95, O_SECONDARY = 0.78, O_ADVISORY = 0.55;
-      const A_PRIMARY = 7, A_SECONDARY = 5, A_ADVISORY = 4;
+      const W_SECONDARY = 1.2, W_ADVISORY = 1.0;
+      const O_SECONDARY = 0.78, O_ADVISORY = 0.55;
+      const A_SECONDARY = 5, A_ADVISORY = 4;
 
-      const LANE_HANDOFF = -10, LANE_AUTO = -3, LANE_ADVISORY = +4, LANE_GATE = +11;
+      const LANE_AUTO = -3, LANE_ADVISORY = +4;
 
-      const safeXL = 32, safeXR = wr.width - 32;
+      const safeXR = wr.width - 32;
 
-      const SUCC = '#0D9488', EMB = '#e05c18', SAND = '#c4b89e';
+      const EMB = '#e05c18', SAND = '#c4b89e';
 
-      const mY_dp = arrowMidY('ba-0');
       const mY_pb = arrowMidY('ba-1c');
       const mY_bs = arrowMidY('ba-2');
       const mY_sm = arrowMidY('ba-3');
 
-      if (mY_dp == null || mY_pb == null || mY_bs == null || mY_sm == null) return;
+      if (mY_pb == null || mY_bs == null || mY_sm == null) return;
 
       /* Plan → Build: app-arch BUS fan-out (chains-to) */
       const r2 = busFanOut('oc-app-architect',
@@ -1621,16 +1740,19 @@ const packCounts = {
       const _dpR  = pt('oc-deploy-ops', 'right');
       const _dpB  = pt('oc-deploy-ops', 'bottom');
       const _saT2 = pt('oc-security-auditor', 'top');
-      const safeX_sec = _dpR ? _dpR.x + 30 : (wr.width - 100);
+      const _flL = pt('oc-fleet-ops', 'left');
+      const safeX_sec = (_dpR && _flL) ? (_dpR.x + _flL.x) / 2 : (_dpR ? _dpR.x + 30 : (wr.width - 100));
       const midY2_sec = (_dpB && _saT2) ? (_dpB.y + _saT2.y) / 2 : (mY_bs + LANE_ADVISORY + 60);
       const r4 = orthoSkip('oc-api-dev', 'bottom', 'oc-security-auditor', 'top',
                            mY_bs + LANE_ADVISORY, midY2_sec, safeX_sec,
                            SAND, W_ADVISORY, true, O_ADVISORY, A_ADVISORY);
-      if (r4) labelPill('advisory', r4.safeX, (r4.midY1 + r4.midY2) / 2, SAND);
+      if (r4) labelPill('advisory', (r4.s.x + r4.safeX) / 2, r4.midY1, SAND);
 
       /* Build → Monitor long-jump: oc-api-dev → oc-monitoring-ops (advisory, right gutter) */
+      const _flR = pt('oc-fleet-ops', 'right');
+      const safeXR_ship = _flR ? _flR.x + 8 : safeXR;
       const r7 = orthoSkip('oc-api-dev', 'bottom', 'oc-monitoring-ops', 'top',
-                           mY_bs + LANE_ADVISORY, mY_sm + LANE_ADVISORY, safeXR,
+                           mY_bs + LANE_ADVISORY, mY_sm + LANE_ADVISORY, safeXR_ship,
                            SAND, W_ADVISORY, true, O_ADVISORY, A_ADVISORY);
       if (r7) labelPill('SLO + drift', r7.safeX, (r7.midY1 + r7.midY2) / 2, SAND);
     }
@@ -1640,7 +1762,7 @@ const packCounts = {
       if (cpActive || legendActive) return;
       if (activePhase === phase) return;
       activePhase = phase;
-      PHASES.forEach(p => {
+      ALL_BANDS.forEach(p => {
         const b = document.getElementById('band-' + p);
         if (!b) return;
         if (p === phase) { b.classList.add('active'); b.classList.remove('dimmed'); }
@@ -1653,7 +1775,7 @@ const packCounts = {
     function bandLeave() {
       leaveTimeout = setTimeout(() => {
         activePhase = null;
-        PHASES.forEach(p => { const b = document.getElementById('band-' + p); if (b) b.classList.remove('active', 'dimmed'); });
+        ALL_BANDS.forEach(p => { const b = document.getElementById('band-' + p); if (b) b.classList.remove('active', 'dimmed'); });
         ARROWS.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('dimmed'); });
         const lc = document.getElementById('lines-canvas'); if (lc) lc.classList.remove('dimmed');
         const fd = document.getElementById('foundation'); if (fd) fd.classList.remove('dimmed');
@@ -1673,7 +1795,7 @@ const packCounts = {
         clearTimeout(orchLeaveTimeout);
       }
       cpActive = true; activePhase = null;
-      PHASES.forEach(p => { const b = document.getElementById('band-' + p); if (b) b.classList.remove('active', 'dimmed'); });
+      ALL_BANDS.forEach(p => { const b = document.getElementById('band-' + p); if (b) b.classList.remove('active', 'dimmed'); });
       ARROWS.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('dimmed'); });
       document.getElementById('bands-wrap').classList.add('cp-mode');
       document.getElementById('cp-toggle').setAttribute('aria-expanded', 'true');
@@ -1683,7 +1805,7 @@ const packCounts = {
         cpActive = false;
         document.getElementById('bands-wrap').classList.remove('cp-mode');
         document.getElementById('cp-toggle').setAttribute('aria-expanded', 'false');
-        setTimeout(() => drawConnectionLines(), 550);
+        setTimeout(() => drawConnectionLines(), 650);
       }, 300);
     }
     function cpKeep() { clearTimeout(cpLeaveTimeout); }
@@ -1702,7 +1824,7 @@ const packCounts = {
         clearTimeout(cpLeaveTimeout);
       }
       orchActive = true; activePhase = null;
-      PHASES.forEach(p => { const b = document.getElementById('band-' + p); if (b) b.classList.remove('active', 'dimmed'); });
+      ALL_BANDS.forEach(p => { const b = document.getElementById('band-' + p); if (b) b.classList.remove('active', 'dimmed'); });
       ARROWS.forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('dimmed'); });
       document.getElementById('bands-wrap').classList.add('orch-mode');
       document.getElementById('orch-toggle').setAttribute('aria-expanded', 'true');
@@ -1712,7 +1834,7 @@ const packCounts = {
         orchActive = false;
         document.getElementById('bands-wrap').classList.remove('orch-mode');
         document.getElementById('orch-toggle').setAttribute('aria-expanded', 'false');
-        setTimeout(() => drawConnectionLines(), 550);
+        setTimeout(() => drawConnectionLines(), 650);
       }, 300);
     }
     function orchKeep() { clearTimeout(orchLeaveTimeout); }
@@ -1720,7 +1842,7 @@ const packCounts = {
 
     function legendEnter(el) {
       clearTimeout(legendLeaveTimeout);
-      if (cpActive) return;
+      if (cpActive || orchActive) return;
       legendActive = true;
       document.querySelectorAll('.arch-v2 .legend-item').forEach(li => {
         if (li === el) {
@@ -1787,8 +1909,8 @@ const packCounts = {
         const enter = () => bandEnter(phase);
         band.addEventListener('mouseenter', enter);
         band.addEventListener('mouseleave', bandLeave);
-        band.addEventListener('focus', enter);
-        band.addEventListener('blur', bandLeave);
+        band.addEventListener('focusin', enter);
+        band.addEventListener('focusout', bandLeave);
       });
       ARROWS.forEach((id) => {
         const a = document.getElementById(id);
@@ -1796,7 +1918,9 @@ const packCounts = {
         a.addEventListener('mouseenter', arrowEnter);
         a.addEventListener('mouseleave', arrowLeave);
       });
-      document.querySelectorAll('.arch-v2 .legend-item').forEach((li) => {
+      document.querySelectorAll('.arch-v2 .legend-item').forEach((li, i) => {
+        const card = li.querySelector('.legend-card');
+        if (card) { if (!card.id) card.id = 'legend-card-' + i; li.setAttribute('aria-describedby', card.id); }
         const enter = () => legendEnter(li);
         li.addEventListener('mouseenter', enter);
         li.addEventListener('mouseleave', legendLeave);
@@ -1829,7 +1953,12 @@ const packCounts = {
       drawConnectionLines();
     }
     window.addEventListener('load', () => drawConnectionLines());
-    window.addEventListener('resize', () => drawConnectionLines());
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => drawConnectionLines());
+    let rafId = 0;
+    window.addEventListener('resize', () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => { rafId = 0; drawConnectionLines(); });
+    });
 
     /* ══ Upgrade .bd-tag spans into anchors → /skills/<id>.
        The band-detail "skills:" chips list the skills involved in each
@@ -1839,7 +1968,7 @@ const packCounts = {
        page. `integrations-eng` is a display truncation of the real
        `oc-integrations-engineer` id; map it explicitly. */
     (() => {
-      const knownIds = new Set(Object.keys(SKILLS));
+      const knownIds = new Set([...Object.keys(SKILLS), 'oc-modularize-ops', 'oc-signal-forge', 'oc-fleet-ops']);
       const aliases = { 'integrations-eng': 'oc-integrations-engineer' };
       document.querySelectorAll('.bd-tag').forEach((el) => {
         const txt = (el.textContent || '').trim();
@@ -1910,7 +2039,7 @@ const packCounts = {
         c.u = Math.min(p.use, c.u + Math.max(1, p.use * 0.16));
         paint();
         if (c.c >= p.cost - 0.0005 && c.u >= p.use) { c.c = p.cost; c.u = p.use; c.s = 'done'; idx++; }
-        if (idx < PH.length) setTimeout(step, 80);
+        if (idx < PH.length) setTimeout(step, 80); else paint();
       }
       setTimeout(step, 500);
     })();
@@ -1928,7 +2057,7 @@ const packCounts = {
     --slag:       #5a5040;
     --sand:       #c4b89e;
     --linen:      #e8dfd0;
-    --parchment:  #f6f0e8;
+    --parchment:  #f6f0e8;  --bg: var(--obsidian);  --text: var(--linen);  --subtle: #9d8b78;
 
     /* Brand accent */
     --ember:      #e05c18;
@@ -1949,13 +2078,9 @@ const packCounts = {
     --docs-mid:   rgba(56,189,248,.16);
     --inst-dim:   rgba(163,230,53,.08);
     --inst-mid:   rgba(163,230,53,.16);
-
-    /* Spacing */
-    --s-1: .25rem; --s-2: .5rem; --s-3: .75rem;
-    --s-4: 1rem;   --s-5: 1.5rem; --s-6: 2rem;
-
-    /* Radius */
-    --r-sm: 3px; --r-md: 5px; --r-lg: 8px;
+    --assure:     #fbbf24;   /* v1.9 assurance-rail accent (gold; NOT the #f59e0b archetype amber) */
+    --assure-dim: rgba(251,191,36,.08);
+    --assure-mid: rgba(251,191,36,.16);
 
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     background: var(--obsidian);
@@ -1998,14 +2123,14 @@ const packCounts = {
     background: var(--forge);
     border-radius: 8px;
     border: .5px solid var(--slag);
-    padding: 20px;
+    padding: 20px; overflow-x: auto;
     position: relative;
   }
 
   .arch-v2 .bands-wrap {
     border: 1px dashed rgba(224,92,24,.3);
     border-radius: 6px;
-    padding: .5rem .5rem 1rem 0;
+    padding: .5rem .5rem 1rem 0; min-width: 795px;
     position: relative;
     background: rgba(224,92,24,.015);
   }
@@ -2082,7 +2207,7 @@ const packCounts = {
   .arch-v2 .band {
     display: flex; align-items: stretch;
     transition: opacity 1.5s ease, filter 1.5s ease;
-    position: relative;
+    position: relative; z-index: 1;
   }
   .arch-v2 .band.dimmed { opacity: .06; filter: grayscale(1) brightness(.3); }
   .arch-v2 .band-label {
@@ -2105,7 +2230,7 @@ const packCounts = {
     background: var(--bg);
     z-index: 1;
   }
-  .arch-v2 .band-label:focus-visible { outline: 1.5px solid var(--ember); outline-offset: 2px; border-radius: 2px; }
+  .arch-v2 .band:focus-visible { outline: 1.5px solid var(--ember); outline-offset: 2px; border-radius: 2px; }
   .arch-v2 .band-label-text {
     writing-mode: vertical-rl;
     text-orientation: mixed;
@@ -2122,8 +2247,6 @@ const packCounts = {
     letter-spacing: .15em; color: var(--text);
     transition: color .2s; white-space: nowrap;
   }
-  .arch-v2 .band.active .band-label-text,
-  .arch-v2 .band:hover .band-label-text { color: var(--text); }
   .arch-v2 .band-label-bar {
     position: absolute; left: 0; top: 6px; bottom: 6px;
     width: 2px; border-radius: 1px;
@@ -2147,7 +2270,7 @@ const packCounts = {
     padding: 0 12px;
   }
   .arch-v2 .band.active .band-detail {
-    max-height: 320px; opacity: 1; padding: 8px 12px 12px;
+    max-height: 480px; opacity: 1; padding: 8px 12px 12px;
   }
   .arch-v2 .bd-inner {
     border-radius: 6px; padding: 12px 16px;
@@ -2174,7 +2297,7 @@ const packCounts = {
     color: var(--sand); line-height: 1.65;
   }
   .arch-v2 .bd-meta {
-    flex-shrink: 0; width: fit-content; border-radius: 5px; padding: 8px 10px;
+    flex-shrink: 0; width: fit-content; max-width: 40%; border-radius: 5px; padding: 8px 10px;
     background: rgba(0,0,0,.18); border: .5px solid rgba(196,184,158,.12);
     display: flex; flex-direction: column; gap: 5px;
   }
@@ -2182,7 +2305,7 @@ const packCounts = {
   .arch-v2 .bd-meta-label {
     font-size: clamp(.529rem, .85cqi, .72rem);
     font-weight: 700; letter-spacing: .14em;
-    text-transform: uppercase; color: var(--slag); flex-shrink: 0; width: 60px;
+    text-transform: uppercase; color: var(--sand); flex-shrink: 0; width: 60px;
   }
   .arch-v2 .bd-tags { display: flex; gap: 4px; flex-wrap: wrap; }
   .arch-v2 .bd-tag {
@@ -2214,7 +2337,8 @@ const packCounts = {
 
   /* ══ Pack fabric — cross-cutting band between Plan and Build (v1.4) ══ */
   .arch-v2 .subtitle-packs { color: var(--ember); }
-  .arch-v2 .band.pack-fabric { margin: 4px 0; }
+  .arch-v2 .band.pack-fabric { margin: 0; }
+  .arch-v2 #band-discover { margin-top: 24px; }
   .arch-v2 .pack-fabric-band {
     position: relative;
     background: linear-gradient(180deg, rgba(224,92,24,.08) 0%, rgba(28,23,16,.4) 100%);
@@ -2341,24 +2465,25 @@ const packCounts = {
   .arch-v2 .pack-fabric-band .pf-cell.pf-vec .pf-chip {
     background: rgba(236,72,153,.10); border-color: rgba(236,72,153,.35); color: #EC4899;
   }
-  /* On narrower viewports, stack the cells: 3-up, then 2-up, then 1-up. */
+  /* On narrower viewports, stack the cells: 3-up, then 2-up. Below 768px the mobile component takes over. */
   @media (max-width: 1100px) {
     .arch-v2 .pack-fabric-band .pf-grid { grid-template-columns: repeat(3, 1fr); }
   }
   @media (max-width: 920px) {
     .arch-v2 .pack-fabric-band .pf-grid { grid-template-columns: repeat(2, 1fr); }
   }
-  @media (max-width: 600px) {
-    .arch-v2 .pack-fabric-band .pf-grid { grid-template-columns: 1fr; }
-  }
 
   .arch-v2 .lines-canvas {
     position: absolute; inset: 0;
-    pointer-events: none; z-index: 2;
-    transition: opacity .75s ease;
+    /* Behind the bands, not over them (spec 10b: long-haul connections render
+       BEHIND boxes). At z-index 2 the plan-to-build trunk painted across the
+       pack-fabric card. The card's background is translucent, so the line still
+       reads through it as passing underneath. Bands take z-index 1 below. */
+    pointer-events: none; z-index: 0;
+    transition: opacity .85s ease .65s;
   }
-  .arch-v2 .lines-canvas.dimmed { opacity: .04; }
-  .arch-v2 .bands-wrap.cp-mode .lines-canvas { opacity: .04; }
+  .arch-v2 .lines-canvas.dimmed { opacity: .04; transition: opacity 1.5s ease 0s; }
+  .arch-v2 .bands-wrap.cp-mode .lines-canvas { opacity: .04; transition: opacity 1.5s ease 0s; }
 
   .arch-v2 .bands-wrap.cp-mode .band,
   .arch-v2 .bands-wrap.orch-mode .band {
@@ -2370,12 +2495,14 @@ const packCounts = {
   .arch-v2 .bands-wrap.orch-mode .band-arrow { opacity: .03; transition: opacity 1.5s ease; }
   .arch-v2 .bands-wrap.cp-mode .foundation,
   .arch-v2 .bands-wrap.orch-mode .foundation { opacity: 1; filter: none; }
+  .arch-v2 .bands-wrap.cp-mode #cp-toggle,
+  .arch-v2 .bands-wrap.orch-mode #orch-toggle { border-color: rgba(224,92,24,.7); box-shadow: 0 0 22px rgba(224,92,24,.32); }
   .arch-v2 .bands-wrap.cp-mode .cp-grid-section { opacity: 1; filter: none; }
-  .arch-v2 .bands-wrap.orch-mode .lines-canvas { opacity: .04; }
+  .arch-v2 .bands-wrap.orch-mode .lines-canvas { opacity: .04; transition: opacity 1.5s ease 0s; }
 
   .arch-v2 .orch-detail-expand {
     max-height: 0; overflow: hidden; opacity: 0; visibility: hidden;
-    transition: max-height .6s cubic-bezier(.4,0,.2,1), opacity .4s ease .1s;
+    transition: max-height .6s cubic-bezier(.4,0,.2,1), opacity .4s ease .1s, visibility .6s;
     position: relative; z-index: 3;
   }
   .arch-v2 .bands-wrap.orch-mode .orch-detail-expand { max-height: 480px; opacity: 1; visibility: visible; }
@@ -2413,11 +2540,11 @@ const packCounts = {
   }
   @keyframes archV2RtOrchBase {
     0%, 38%, 64%, 100% { opacity: 1; }
-    44%, 58%           { opacity: 0; }
+    41%, 61%           { opacity: 0; }
   }
   @keyframes archV2RtDecision {
-    0%, 40%, 64%, 100% { opacity: 0; }
-    46%, 60%           { opacity: 1; }
+    0%, 41%, 61%, 100% { opacity: 0; }
+    44%, 58%           { opacity: 1; }
   }
   @keyframes archV2RtOrchCap {
     0%, 38%, 64%, 100% { opacity: 0; }
@@ -2438,7 +2565,7 @@ const packCounts = {
 
   .arch-v2 .cp-grid-section {
     max-height: 0; overflow: hidden; opacity: 0; visibility: hidden;
-    transition: max-height .6s cubic-bezier(.4,0,.2,1), opacity .5s ease .1s;
+    transition: max-height .6s cubic-bezier(.4,0,.2,1), opacity .5s ease .1s, visibility .6s;
     position: relative; z-index: 3;
   }
   .arch-v2 .bands-wrap.cp-mode .cp-grid-section { max-height: 320px; opacity: 1; visibility: visible; }
@@ -2485,37 +2612,13 @@ const packCounts = {
     background: rgba(28,23,16,.85);
     padding: 16px 24px 14px; margin: 4px 8px; position: relative;
   }
-  .arch-v2 .cp-grid-title {
-    font-size: .5625rem; font-weight: 700; color: var(--ember);
-    letter-spacing: .12em; text-transform: uppercase;
-    margin-bottom: 14px; text-align: center; opacity: .7;
-  }
-  .arch-v2 .cp-grid {
-    display: grid; grid-template-columns: repeat(8, 1fr);
-    gap: 10px 12px; position: relative; z-index: 2;
-  }
-  .arch-v2 .cp-grid-badge { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .arch-v2 .cp-grid-badge-icon {
-    width: 2em; height: 1.125em;
-    display: flex; align-items: center; justify-content: center;
-    border-radius: 4px;
-    background: var(--ember-dim);
-    border: .5px solid rgba(224,92,24,.6);
-    font-size: .5rem; font-weight: 700; color: var(--ember);
-    letter-spacing: .05em;
-  }
-  .arch-v2 .cp-grid-badge-name {
-    font-size: .46rem; color: var(--slag);
-    text-align: center; white-space: nowrap;
-  }
-  .arch-v2 .cp-grid-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
 
   .arch-v2 .cp-detail-expand {
     max-height: 0; overflow: hidden; opacity: 0; visibility: hidden;
-    transition: max-height .6s cubic-bezier(.4,0,.2,1), opacity .4s ease .1s;
+    transition: max-height .6s cubic-bezier(.4,0,.2,1), opacity .4s ease .1s, visibility .6s;
     position: relative; z-index: 3;
   }
-  .arch-v2 .bands-wrap.cp-mode .cp-detail-expand { max-height: 380px; opacity: 1; visibility: visible; }
+  .arch-v2 .bands-wrap.cp-mode .cp-detail-expand { max-height: 420px; opacity: 1; visibility: visible; }
   .arch-v2 .cpd-inner {
     border: .5px solid rgba(224,92,24,.3);
     border-radius: 8px;
@@ -2524,36 +2627,24 @@ const packCounts = {
   }
   .arch-v2 .cp-detail-expand .cpd-inner {
     display: grid;
-    grid-template-columns: 60% 40%;
+    grid-template-columns: 3fr 2fr;
     gap: 18px;
     align-items: start;
   }
   .arch-v2 .cp-detail-expand .cpd-inner .cpd-intro { margin: 0; }
   .arch-v2 .cp-detail-expand .cpd-inner .cpd-json { margin: 0; }
   .arch-v2 .cpd-inner::before {
-    content: ''; display: block;
+    content: ''; display: block; grid-column: 1 / -1;
     height: 1px; margin: -14px -18px 12px; border-radius: 8px 8px 0 0;
     background: linear-gradient(90deg, transparent, var(--ember) 30%, var(--ember) 70%, transparent);
     opacity: .35;
   }
-  .arch-v2 .cpd-badge { font-size: clamp(.503rem, .805cqi, .685rem); font-weight: 700; color: var(--ember); letter-spacing: .12em; margin-bottom: 3px; }
-  .arch-v2 .cpd-title {
-    font-family: 'Outfit', system-ui, sans-serif;
-    font-size: clamp(.935rem, 1.495cqi, 1.272rem); font-weight: 600; color: var(--ember); margin-bottom: 8px;
-  }
-  .arch-v2 .cpd-body { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 28px; }
   .arch-v2 .cpd-intro {
     font-size: clamp(.719rem, 1.15cqi, .978rem); color: var(--sand); line-height: 1.65;
     margin: 0 0 12px;
   }
   .arch-v2 .cpd-intro code { font-size: clamp(.611rem, .978cqi, .831rem); color: var(--linen); background: var(--ember-dim); border: .5px solid rgba(224,92,24,.2); padding: 0 4px; border-radius: 3px; }
   .arch-v2 .cpd-inner .cpd-json { margin-top: 0; }
-  .arch-v2 .cpd-st { font-size: clamp(.503rem, .805cqi, .685rem); font-weight: 700; color: var(--ember); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 3px; opacity: .8; }
-  .arch-v2 .cpd-section p { font-size: clamp(.719rem, 1.15cqi, .978rem); color: var(--sand); line-height: 1.6; margin: 0; }
-  .arch-v2 .cpd-section code { font-size: clamp(.611rem, .978cqi, .831rem); color: var(--linen); background: var(--ember-dim); border: .5px solid rgba(224,92,24,.2); padding: 0 4px; border-radius: 3px; }
-  .arch-v2 .cpd-flow { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
-  .arch-v2 .cpd-step { font-size: clamp(.503rem, .805cqi, .685rem); padding: 2px 6px; border-radius: 4px; background: rgba(224,92,24,.07); border: .5px solid rgba(224,92,24,.18); color: var(--linen); }
-  .arch-v2 .cpd-arrow { color: var(--ember); font-size: clamp(.719rem, 1.15cqi, .978rem); }
   .arch-v2 .cpd-json {
     font-size: clamp(.611rem, .978cqi, .831rem); color: var(--sand); background: var(--obsidian);
     border: .5px solid rgba(224,92,24,.12); border-radius: 4px;
@@ -2561,7 +2652,6 @@ const packCounts = {
   }
   .arch-v2 .cpd-json .k { color: var(--ember); }
   .arch-v2 .cpd-json .s { color: var(--success); }
-  .arch-v2 .cpd-json .c { color: var(--slag); font-style: italic; }
 
   .arch-v2 .legend {
     display: flex; flex-wrap: wrap; gap: 10px 28px;
@@ -2571,7 +2661,7 @@ const packCounts = {
   .arch-v2 .legend-section-label {
     width: 100%;
     text-align: center;
-    font-size: 8px;
+    font-size: .5rem;
     letter-spacing: .12em;
     /* LHCI: --slag fails AA Normal. --subtle is the calibrated
        dimmed-text token. Same fix as .band-label-text above. */
@@ -2584,7 +2674,7 @@ const packCounts = {
     height: .5px;
     background: var(--slag);
     opacity: .3;
-    margin: 6px 0 8px;
+    margin: 6px 0;
   }
   .arch-v2 .legend-item {
     display: flex; align-items: center; gap: 8px;
@@ -2621,12 +2711,12 @@ const packCounts = {
     border: .5px solid var(--slag);
     box-shadow: 0 8px 32px rgba(0,0,0,.4);
     z-index: 10; pointer-events: none; opacity: 0; visibility: hidden;
-    transition: opacity .3s ease;
+    transition: opacity .3s ease, visibility .3s;
     font-size: .625rem; color: var(--sand); line-height: 1.6;
   }
   .arch-v2 .legend-card.visible { opacity: 1; visibility: visible; }
   .arch-v2 .legend-card-title { font-family: 'Outfit', system-ui, sans-serif; font-size: .6875rem; font-weight: 600; margin-bottom: 4px; color: var(--linen); }
-  .arch-v2 .legend-card-examples { margin-top: 5px; font-size: .5rem; color: var(--slag); }
+  .arch-v2 .legend-card-examples { margin-top: 5px; font-size: .5rem; color: var(--sand); }
 
   .arch-v2 .cards {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -2649,19 +2739,17 @@ const packCounts = {
      other dimmed-text fixes on this page. */
   .arch-v2 .footer { text-align: center; margin-top: 1.25rem; color: var(--subtle); font-size: .7rem; }
 
-  @keyframes archV2SpinePulse {
-    0%, 100% { opacity: 0.85; }
-    50%      { opacity: 1; }
-  }
-  .arch-v2 .spine-chip { animation: archV2SpinePulse 3.5s ease-in-out infinite; transform-origin: center; }
-  .arch-v2 .branch-tag rect { transition: stroke-opacity 0.2s ease, fill-opacity 0.2s ease; }
+  .arch-v2 .spine-chip { transform-origin: center; }
 
   @media (prefers-reduced-motion: reduce) {
     .arch-v2 *,
     .arch-v2 *::before,
     .arch-v2 *::after {
       animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      animation-delay: 0s !important;
       transition-duration: 0.01ms !important;
+      transition-delay: 0s !important;
     }
   }
 
@@ -2674,7 +2762,7 @@ const packCounts = {
   .arch-v2 .subtitle-inst { color: var(--inst); }
 
   .arch-v2 .irail {
-    margin: 1.25rem .5rem 0 0;
+    margin: 1.25rem 0 0;
     border: 1px solid var(--inst);
     border-radius: 8px;
     background: var(--inst-dim);
@@ -2697,7 +2785,7 @@ const packCounts = {
     transition: background .15s ease;
   }
   .arch-v2 .irail-anchor:hover,
-  .arch-v2 .irail-anchor:focus-visible { background: var(--inst-mid); outline: none; }
+  .arch-v2 .irail-anchor:focus-visible { background: var(--inst-mid); outline: 1.5px solid var(--ember); outline-offset: 2px; }
   .arch-v2 .ia-name { font-family: 'Outfit', system-ui, sans-serif; font-size: .8rem; font-weight: 600; color: var(--linen); }
   .arch-v2 .ia-meta { font-size: .56rem; color: var(--sand); }
   .arch-v2 .ia-do   { font-size: .56rem; color: var(--inst); }
@@ -2751,13 +2839,13 @@ const packCounts = {
         --inst). The SVG is role="img" with a descriptive label; the two
         NEW skills also get keyboard-reachable anchor cards. Dark-only. */
   .arch-v2 .qrail {
-    margin: 1.25rem .5rem 0 0;
+    margin: 1.25rem 0 0;
     border: 1px solid var(--docs);
     border-radius: 8px;
     background: var(--docs-dim);
     padding: 14px 16px 12px;
   }
-  .arch-v2 .qrail-head { margin-bottom: 8px; }
+  .arch-v2 .qrail-head { margin-bottom: 12px; }
   .arch-v2 .qrail-eyebrow {
     display: block; font-size: .5625rem; font-weight: 700; color: var(--docs);
     letter-spacing: .14em; text-transform: uppercase; margin-bottom: 4px;
@@ -2768,7 +2856,7 @@ const packCounts = {
   }
   .arch-v2 .qrail-svg-wrap { margin: 6px 0 10px; }
   .arch-v2 .qrail-svg-wrap svg { width: 100%; display: block; }
-  .arch-v2 .qrail-anchors { display: flex; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .arch-v2 .qrail-anchors { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
   .arch-v2 .qrail-anchor {
     flex: 1 1 260px; display: flex; flex-direction: column; gap: 2px;
     border: 1px solid var(--docs); border-radius: 6px;
@@ -2776,12 +2864,61 @@ const packCounts = {
     transition: background .15s ease;
   }
   .arch-v2 .qrail-anchor:hover,
-  .arch-v2 .qrail-anchor:focus-visible { background: var(--docs-mid); outline: none; }
+  .arch-v2 .qrail-anchor:focus-visible { background: var(--docs-mid); outline: 1.5px solid var(--ember); outline-offset: 2px; }
   .arch-v2 .qrail-anchor .ia-do  { color: var(--docs); }
   .arch-v2 .qrail-anchor .ia-new {
     color: var(--docs); border-color: var(--docs); background: var(--docs-mid);
   }
   .arch-v2 .qrail-foot { font-size: .56rem; color: var(--docs); letter-spacing: .04em; margin-top: 8px; }
+
+  /* ── ASSURANCE RAIL (v1.9) ───────────────────────────────────────
+        Cross-cutting assurance + governed-delivery rail under the
+        quality-gate rail. Gold --assure accent (the v1.9 analog of
+        v1.8's sky --docs) — every other rail hue is taken. The gold is
+        #fbbf24, deliberately distinct from the #f59e0b archetype amber:
+        the rail accent is chrome only, and panels inside the SVG keep
+        their own archetype colour, the way the qrail draws
+        oc-code-auditor amber and oc-security-auditor rose inside a sky
+        rail. Shares the .ia-* card internals defined once in the v1.6
+        instrument-rail block. Dark-only, like the rest of .arch-v2. */
+  .arch-v2 .arail {
+    margin: 1.25rem 0 0;
+    border: 1px solid var(--assure);
+    border-radius: 8px;
+    background: var(--assure-dim);
+    padding: 14px 16px 12px;
+  }
+  .arch-v2 .arail-head { margin-bottom: 12px; }
+  .arch-v2 .arail-eyebrow {
+    display: block; font-size: .5625rem; font-weight: 700; color: var(--assure);
+    letter-spacing: .14em; text-transform: uppercase; margin-bottom: 4px;
+  }
+  .arch-v2 .arail-title {
+    font-family: 'Outfit', system-ui, sans-serif; font-size: .9rem;
+    font-weight: 600; color: var(--linen);
+  }
+  .arch-v2 .arail-svg-wrap { margin: 6px 0 10px; }
+  .arch-v2 .arail-svg-wrap svg { width: 100%; display: block; }
+  .arch-v2 .arail-anchors { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  /* Four anchor cards, where .irail/.qrail carry two. The inherited 260px basis
+     wraps to a ragged 3 + 1 around 1150px viewports and the lone card then
+     flex-grows to the full rail width. A 220px basis keeps all four on one row
+     down to ~1024px, and the half-width cap stops any lone wrapped card from
+     stretching into a banner. */
+  .arch-v2 .arail-anchor {
+    flex: 1 1 220px; max-width: calc(50% - 5px);
+    display: flex; flex-direction: column; gap: 2px;
+    border: 1px solid var(--assure); border-radius: 6px;
+    background: var(--obsidian); padding: 9px 11px; text-decoration: none;
+    transition: background .15s ease;
+  }
+  .arch-v2 .arail-anchor:hover,
+  .arch-v2 .arail-anchor:focus-visible { background: var(--assure-mid); outline: 1.5px solid var(--ember); outline-offset: 2px; }
+  .arch-v2 .arail-anchor .ia-do  { color: var(--assure); }
+  .arch-v2 .arail-anchor .ia-new {
+    color: var(--assure); border-color: var(--assure); background: var(--assure-mid);
+  }
+  .arch-v2 .arail-foot { font-size: .56rem; color: var(--assure); letter-spacing: .04em; margin-top: 8px; }
 
   /* ── Desktop / mobile architecture swap ──
         The desktop interactive diagram is dense and assumes ≥768px gutter

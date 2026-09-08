@@ -3,7 +3,7 @@
  * Mobile architecture diagram — static, self-contained, no JS.
  *
  * Companion to the desktop interactive diagram in /architecture. Renders
- * the same 6-phase / 29-skill pipeline at iPhone Pro width (390pt) as
+ * the same 6-phase / 33-skill pipeline at iPhone Pro width (390pt) as
  * collapsible <details>/<summary> bands. Inline SVGs for each phase, no
  * external resources, no animation.
  *
@@ -119,9 +119,9 @@ const packCounts = {
 
     <!-- Header -->
     <div class="ma-header">
-      <div class="ma-header-eyebrow">SKILLS · ARCHITECTURE · v2 · MOBILE · v1.8</div>
+      <div class="ma-header-eyebrow">SKILLS · ARCHITECTURE · v2 · MOBILE · v1.9</div>
       <h1>opchain skills ecosystem</h1>
-      <p class="ma-subtitle">Checkpoint-driven pipeline · 33 skills · 6 phases · 9 tri-agent · 3 audit gates · spine ordinals · v1.7 Seams &amp; Signals · v1.8 quality-gate rail · <span style="color:var(--ma-docs)">v1.9 assurance rail</span></p>
+      <p class="ma-subtitle">Checkpoint-driven pipeline · 33 skills · 6 phases · 9 tri-agent · 3 audit gates · spine ordinals · v1.7 Seams &amp; Signals · <span style="color:var(--ma-docs)">v1.8 quality-gate rail</span> · <span style="color:var(--ma-assure)">v1.9 assurance rail</span></p>
     </div>
 
     <!-- Diagram container -->
@@ -663,6 +663,72 @@ const packCounts = {
         </div>
       </details>
 
+      <!-- ASSURANCE RAIL (cross-cutting, v1.9) — the four new skills as one
+           rail rather than four more boxes in the already-dense phase bands.
+           Two clusters: plan+build strategy (oc-qa-ops, oc-data-ops) and the
+           two conditional rows that attach to oc-deploy-ops' existing audit
+           gate (oc-compliance-ops, oc-security-hardening). Still 3 gates.
+           Panels keep their own archetype colour; gold is rail chrome only. -->
+      <details class="ma-band ma-arail" open aria-label="Assurance rail (v1.9): oc-qa-ops and oc-data-ops join the plan and build phases; oc-compliance-ops and oc-security-hardening each attach one conditional row to oc-deploy-ops' existing audit gate.">
+        <summary class="ma-band-header ma-arail-header">
+          <span class="ma-band-num" aria-hidden="true">✦</span>
+          <span class="ma-band-title">Assurance rail</span>
+          <span class="ma-arail-badge"><span class="ma-arail-dot"></span>v1.9 · 4 new</span>
+        </summary>
+        <div class="ma-band-svg-wrap">
+          <svg viewBox="0 0 330 544" role="img" aria-label="Assurance rail: oc-qa-ops designs the test pyramid and oc-data-ops builds data pipelines during plan and build; oc-compliance-ops and oc-security-hardening each add one conditional row to the deploy audit gate.">
+            <!-- rail spine -->
+            <line x1="26" y1="46" x2="26" y2="516" stroke="#c4b89e" stroke-width="1.5" opacity="0.4"/>
+
+            <!-- CLUSTER 1: PLAN + BUILD -->
+            <line x1="26" y1="169" x2="42" y2="169" stroke="#fbbf24" stroke-width="1.4"/>
+            <circle cx="26" cy="169" r="6" fill="#1c1710" stroke="#fbbf24" stroke-width="2.2" filter="url(#ma-glow-yellow)"/>
+            <text x="54" y="60" fill="#fbbf24" font-size="11" font-weight="700" letter-spacing="0.08em" font-family="JetBrains Mono,monospace">PLAN + BUILD · 2 new · v1.9</text>
+            <rect x="42" y="66" width="268" height="206" rx="7" fill="rgba(251,191,36,.05)" stroke="#fbbf24" stroke-width="1.2" stroke-dasharray="5,4"/>
+            <!-- oc-qa-ops — standalone specialist (mint) -->
+            <rect x="52" y="76" width="248" height="92" rx="6" fill="#1c1710" stroke="#14b8a6" stroke-width="1.8" filter="url(#ma-glow-mint)"/>
+            <rect x="52" y="76" width="248" height="92" rx="6" fill="rgba(20,184,166,.06)" stroke="#14b8a6" stroke-width="1"/>
+            <text x="176" y="102" text-anchor="middle" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif">oc-qa-ops</text>
+            <text x="176" y="120" text-anchor="middle" fill="#c4b89e" font-size="9" font-family="JetBrains Mono,monospace">Specialist · test-pyramid strategy</text>
+            <text x="176" y="138" text-anchor="middle" fill="#14b8a6" font-size="9" font-family="JetBrains Mono,monospace">/oc-qa · coverage · contracts · loadplan</text>
+            <text x="176" y="156" text-anchor="middle" fill="#c4b89e" font-size="9" font-style="italic" font-family="JetBrains Mono,monospace">writes .opchain/qa.yaml → oc-bug-check</text>
+            <!-- oc-data-ops — 9th tri-agent (gold, mobile tri-agent colour) -->
+            <rect x="52" y="178" width="248" height="84" rx="6" fill="#1c1710" stroke="#fbbf24" stroke-width="1.8" filter="url(#ma-glow-yellow)"/>
+            <rect x="52" y="178" width="248" height="84" rx="6" fill="rgba(251,191,36,.06)" stroke="#fbbf24" stroke-width="1"/>
+            <text x="176" y="204" text-anchor="middle" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif">oc-data-ops</text>
+            <text x="176" y="222" text-anchor="middle" fill="#c4b89e" font-size="9" font-family="JetBrains Mono,monospace">Tri-agent #9 · pipeline design + build</text>
+            <text x="176" y="240" text-anchor="middle" fill="#fbbf24" font-size="9" font-family="JetBrains Mono,monospace">/oc-data-ops · contracts · build · verify</text>
+            <text x="176" y="256" text-anchor="middle" fill="#c4b89e" font-size="9" font-style="italic" font-family="JetBrains Mono,monospace">.opchain/data-contracts/*.yaml</text>
+
+            <!-- CLUSTER 2: DEPLOY GATE — conditional rows -->
+            <line x1="26" y1="407" x2="42" y2="407" stroke="#fbbf24" stroke-width="1.4"/>
+            <circle cx="26" cy="407" r="6" fill="#1c1710" stroke="#fbbf24" stroke-width="2.2" filter="url(#ma-glow-yellow)"/>
+            <text x="54" y="298" fill="#fbbf24" font-size="11" font-weight="700" letter-spacing="0.08em" font-family="JetBrains Mono,monospace">DEPLOY GATE · +2 rows · v1.9</text>
+            <rect x="42" y="304" width="268" height="206" rx="7" fill="rgba(251,191,36,.05)" stroke="#fbbf24" stroke-width="1.2" stroke-dasharray="5,4"/>
+            <!-- oc-compliance-ops — evidence gate (rose) -->
+            <rect x="52" y="314" width="248" height="92" rx="6" fill="#1c1710" stroke="#fb7185" stroke-width="1.8" filter="url(#ma-glow-rose)"/>
+            <rect x="52" y="314" width="248" height="92" rx="6" fill="rgba(251,113,133,.06)" stroke="#fb7185" stroke-width="1"/>
+            <text x="176" y="340" text-anchor="middle" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif">oc-compliance-ops</text>
+            <text x="176" y="358" text-anchor="middle" fill="#c4b89e" font-size="9" font-family="JetBrains Mono,monospace">Standing register · evidence bundles</text>
+            <text x="176" y="376" text-anchor="middle" fill="#fb7185" font-size="9" font-family="JetBrains Mono,monospace">/oc-comply · register · evidence · gaps</text>
+            <text x="176" y="394" text-anchor="middle" fill="#c4b89e" font-size="9" font-style="italic" font-family="JetBrains Mono,monospace">inert without .opchain/compliance.yaml</text>
+            <!-- oc-security-hardening — per-deploy hardening gate (rose) -->
+            <rect x="52" y="416" width="248" height="84" rx="6" fill="#1c1710" stroke="#fb7185" stroke-width="1.8" filter="url(#ma-glow-rose)"/>
+            <rect x="52" y="416" width="248" height="84" rx="6" fill="rgba(251,113,133,.06)" stroke="#fb7185" stroke-width="1"/>
+            <text x="176" y="442" text-anchor="middle" fill="#e8dfd0" font-size="15" font-weight="600" font-family="Outfit,system-ui,sans-serif">oc-security-hardening</text>
+            <text x="176" y="460" text-anchor="middle" fill="#c4b89e" font-size="9" font-family="JetBrains Mono,monospace">Remediation operator · per-deploy gate</text>
+            <text x="176" y="478" text-anchor="middle" fill="#fb7185" font-size="9" font-family="JetBrains Mono,monospace">/oc-harden · baseline · fix · csp</text>
+            <text x="176" y="494" text-anchor="middle" fill="#c4b89e" font-size="9" font-style="italic" font-family="JetBrains Mono,monospace">verifies .opchain/hardening.yaml</text>
+
+            <text x="176" y="530" text-anchor="middle" fill="#c4b89e" font-size="9" font-family="JetBrains Mono,monospace">both rows are conditional — still 3 audit gates</text>
+          </svg>
+        </div>
+        <div class="ma-band-caption">
+          <p>v1.9 lands four skills as one <b>cross-cutting rail</b> rather than four more boxes in the phase bands. <code>oc-qa-ops</code> decides which tests exist — split out of <code>oc-bug-check</code>, which still executes them at the commit gate — and writes <code>.opchain/qa.yaml</code>; a coverage-budget miss warns by default, and only <code>coverage.enforce: fail</code> makes it block. <code>oc-data-ops</code> is the 9th tri-agent (Designer / Builder / Contract-Verifier), invoked by <code>oc-app-architect</code> when discovery surfaces a data-heavy backend; the warehouse and queue choice still comes from <code>oc-stack-forge</code>. <code>oc-compliance-ops</code> keeps a standing control register and is inert until a project adds <code>.opchain/compliance.yaml</code>. <code>oc-security-hardening</code> is the execution half of a pair — <code>oc-security-auditor</code> assesses, this one executes. The last two each attach a <em>conditional row</em> to <code>oc-deploy-ops</code>' existing audit gate, so the ecosystem still has three gates, not five.</p>
+          <div class="ma-bc-cp"><span class="ma-bc-cp-badge">CP</span><span>all four write phase · qa.yaml · data-contracts/*.yaml · compliance.yaml · hardening.yaml</span></div>
+        </div>
+      </details>
+
       <!-- APPENDIX A: CHECKPOINT PROTOCOL SYNC -->
       <details class="ma-appendix" style="margin-top:22px">
         <summary>
@@ -790,7 +856,7 @@ const packCounts = {
             <div class="ma-li-name">CP · checkpoint indicator</div>
           </div>
           <div class="ma-li-desc">Solid ember dot in each skill's top-right corner indicates the skill writes a checkpoint. <strong>All 33 skills carry CP</strong> — desktop version shows full CP badge on each rect; mobile uses the dot for legibility.</div>
-          <div class="ma-li-eg"><code>.checkpoints/&lt;skill&gt;.json</code> · phase · progress · blockers · next_actions</div>
+          <div class="ma-li-eg"><code>.checkpoints/&lt;skill&gt;.checkpoint.json</code> · phase · progress · blockers · next_actions</div>
         </div>
         <div class="ma-legend-item">
           <div class="ma-legend-head">
@@ -808,7 +874,7 @@ const packCounts = {
             <div class="ma-li-name" style="color:var(--ma-triagent)">Tri-agent</div>
           </div>
           <div class="ma-li-desc">Skills running an internal Planner / Generator / Evaluator loop. The Evaluator scores output (≥ 7/10 to advance); failure triggers Generator retry until threshold or max iterations.</div>
-          <div class="ma-li-eg">oc-app-architect · oc-ux-engineer · oc-api-dev · oc-integrations-engineer · oc-code-auditor · oc-rag-forge · oc-agent-forge</div>
+          <div class="ma-li-eg">oc-app-architect · oc-ux-engineer · oc-api-dev · oc-integrations-engineer · oc-code-auditor · oc-rag-forge · oc-agent-forge · oc-signal-forge · <span style="color:var(--ma-assure)">oc-data-ops (v1.9)</span></div>
         </div>
         <div class="ma-legend-item">
           <div class="ma-legend-head">
@@ -824,7 +890,7 @@ const packCounts = {
             <div class="ma-li-name" style="color:var(--ma-specialist)">Standalone specialist</div>
           </div>
           <div class="ma-li-desc">Single-purpose skills that produce a concrete artifact and hand it off. No internal loop, no orchestration of others.</div>
-          <div class="ma-li-eg">oc-reverse-spec · oc-dash-forge · oc-git-ops · oc-release-ops · oc-migration-ops · oc-monitoring-ops · <span style="color:var(--ma-inst)">oc-cost-ops · oc-telemetry-ops (v1.6)</span></div>
+          <div class="ma-li-eg">oc-reverse-spec · oc-dash-forge · oc-git-ops · oc-release-ops · oc-migration-ops · oc-monitoring-ops · <span style="color:var(--ma-inst)">oc-cost-ops · oc-telemetry-ops (v1.6)</span> · <span style="color:var(--ma-assure)">oc-qa-ops (v1.9)</span></div>
         </div>
         <div class="ma-legend-item">
           <div class="ma-legend-head">
@@ -841,6 +907,14 @@ const packCounts = {
           </div>
           <div class="ma-li-desc">Quality enforcement skills that block pipeline progression until thresholds are met. Three in this ecosystem cover three layers: pre-commit, code-level (also tri-agent — see yellow stroke on oc-code-auditor), security posture.</div>
           <div class="ma-li-eg">oc-bug-check · oc-code-auditor · oc-security-auditor</div>
+        </div>
+        <div class="ma-legend-item">
+          <div class="ma-legend-head">
+            <div class="ma-li-swatch" style="background:color-mix(in srgb, var(--ma-assure) 14%, transparent);border:1.5px solid var(--ma-assure)"></div>
+            <div class="ma-li-name" style="color:var(--ma-assure)">v1.9 assurance rail</div>
+          </div>
+          <div class="ma-li-desc">Gold rail chrome marks the four skills added in v1.9. The accent is chrome only — every panel inside the rail keeps its own archetype colour (specialist mint · tri-agent gold · gate rose). Two clusters: plan/build strategy, and two conditional rows on the existing deploy gate.</div>
+          <div class="ma-li-eg">oc-qa-ops · oc-data-ops · oc-compliance-ops · oc-security-hardening</div>
         </div>
       </div>
     </details>
@@ -875,11 +949,13 @@ const packCounts = {
           <ul>
             <li>oc-app-architect: Generator / Evaluator</li>
             <li>oc-ux-engineer: Planner / Generator / Evaluator</li>
-            <li>oc-api-dev: Planner / Generator / Evaluator</li>
+            <li>oc-api-dev: Designer / Builder / Conformance</li>
             <li>oc-integrations-engineer: Planner / Builder / Tester</li>
             <li>oc-code-auditor: Auditor / Fixer / Verifier</li>
             <li>oc-rag-forge: Designer / Builder / Evaluator <span style="color:var(--ma-ai)">(v1.5)</span></li>
             <li>oc-agent-forge: Planner / Builder / Evaluator <span style="color:var(--ma-ai)">(v1.5)</span></li>
+            <li>oc-signal-forge: Designer / Builder / Evaluator <span style="color:var(--ma-sig)">(v1.7)</span></li>
+            <li>oc-data-ops: Designer / Builder / Contract-Verifier <span style="color:var(--ma-assure)">(v1.9)</span></li>
           </ul>
         </div>
         <div class="ma-card">
@@ -890,8 +966,9 @@ const packCounts = {
           <ul>
             <li>oc-bug-check — pre-commit type/lint/secret scan</li>
             <li>oc-code-auditor — code-level Auditor/Fixer/Verifier</li>
-            <li>oc-security-auditor — STRIDE / OWASP / infra hardening</li>
+            <li>oc-security-auditor — STRIDE / OWASP / posture assessment</li>
             <li>All three must pass before oc-deploy-ops ships</li>
+            <li><span style="color:var(--ma-assure)">v1.9</span> adds 2 <em>conditional</em> rows to the deploy gate — oc-compliance-ops evidence, oc-security-hardening manifest-verify. Still 3 gates.</li>
           </ul>
         </div>
         <div class="ma-card">
@@ -900,7 +977,7 @@ const packCounts = {
             <h3>Checkpoint Protocol</h3>
           </div>
           <ul>
-            <li>JSON files at <code>.checkpoints/&lt;skill&gt;.json</code></li>
+            <li>JSON files at <code>.checkpoints/&lt;skill&gt;.checkpoint.json</code></li>
             <li>Keys: phase · progress_table · context_primer · blockers · next_actions</li>
             <li>All 33 skills read all 33 checkpoints (no ACL)</li>
             <li>Resume order: own → upstream → novice mode</li>
@@ -923,7 +1000,7 @@ const packCounts = {
       </div>
     </details>
 
-    <div class="ma-footer">static · mobile · 390pt · no JS · no animations</div>
+    <div class="ma-footer">static · mobile · 390pt · no CSS motion · meter values are an illustrative sample</div>
 
   </div>
 </section>
@@ -972,6 +1049,13 @@ const packCounts = {
     --ma-inst:       #a3e635;   /* v1.6 instrumentation accent (lime) */
     --ma-sig:        #e879f9;   /* v1.7 "Seams & Signals" accent (magenta) */
     --ma-docs:       #38bdf8;   /* v1.8 docs/repo quality-gate accent (sky) */
+    /* v1.9 assurance-rail accent (gold). Deliberately the SAME value as
+       --ma-triagent: mobile SVGs already draw tri-agent panels #fbbf24, and
+       the attribute-remap block at the bottom of this file themes that hex to
+       --ma-triagent. A competing remap for #fbbf24 would hijack every existing
+       tri-agent panel, so the rail's SVG chrome rides the tri-agent rule and
+       these two tokens must stay in lockstep if either is ever retuned. */
+    --ma-assure:     #fbbf24;
 
     background: var(--ma-bg-page);
     color: var(--ma-text-primary);
@@ -1014,6 +1098,7 @@ const packCounts = {
     --ma-inst:       #65a30d;
     --ma-sig:        #c026d3;
     --ma-docs:       #0369a1;
+    --ma-assure:     #b45309;   /* v1.9 — kept equal to --ma-triagent, see dark block */
   }
 
   /* Hidden defs SVG — must be in DOM but invisible. */
@@ -1128,7 +1213,7 @@ const packCounts = {
     cursor: pointer;
     user-select: none;
     position: relative;
-    display: flex; align-items: center; gap: 10px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
     padding: 10px 40px 10px 12px;
     background: var(--ma-bg-card-deep);
     border-left: 4px solid var(--ma-phase-color, var(--ma-border-subtle));
@@ -1184,8 +1269,6 @@ const packCounts = {
   .mobile-architecture .ma-meter .mm-dot {
     width: 5px; height: 5px; border-radius: 50%; background: var(--ma-inst); flex: 0 0 auto;
   }
-  .mobile-architecture .ma-meter.streaming .mm-dot { animation: ma-mm-blink .7s steps(1) infinite; }
-  @keyframes ma-mm-blink { 50% { opacity: .25; } }
 
   .mobile-architecture .ma-instrail-total {
     display: flex; align-items: center; gap: 8px;
@@ -1196,9 +1279,6 @@ const packCounts = {
   .mobile-architecture .ma-instrail-total b { color: var(--ma-inst); font-variant-numeric: tabular-nums; margin-left: auto; }
   .mobile-architecture .ma-instrail-total span { color: var(--ma-text-secondary); }
 
-  @media (prefers-reduced-motion: reduce) {
-    .mobile-architecture .ma-meter.streaming .mm-dot { animation: none; }
-  }
 
   .ma-band-svg-wrap {
     padding: 14px 8px;
@@ -1293,6 +1373,34 @@ const packCounts = {
     box-shadow: 0 0 6px var(--ma-docs);
   }
   .ma-qrail .ma-band-caption b { color: var(--ma-docs); }
+
+  /* ── ASSURANCE RAIL (v1.9) — cross-cutting assurance + governed-delivery
+        rail. Gold --ma-assure accent; identical chrome shape to .ma-qrail. */
+  .ma-band.ma-arail {
+    border-color: color-mix(in srgb, var(--ma-assure) 55%, transparent);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--ma-assure) 10%, transparent) 0%, var(--ma-bg-card) 100%);
+  }
+  summary.ma-arail-header {
+    border-left-color: var(--ma-assure);
+    background: color-mix(in srgb, var(--ma-assure) 12%, transparent);
+  }
+  .ma-arail-header .ma-band-num { color: var(--ma-assure); font-size: 18px; line-height: 1; }
+  .ma-arail-badge {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 999px;
+    background: color-mix(in srgb, var(--ma-assure) 22%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ma-assure) 70%, transparent);
+    color: var(--ma-assure);
+    font-family: var(--font-mono, "JetBrains Mono"), monospace;
+    font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  }
+  .ma-arail-badge .ma-arail-dot {
+    width: 6px; height: 6px; border-radius: 999px;
+    background: var(--ma-assure);
+    box-shadow: 0 0 6px var(--ma-assure);
+  }
+  .ma-arail .ma-band-caption b { color: var(--ma-assure); }
 
   .ma-pack-fabric-body {
     padding: 12px 12px 14px;
@@ -1633,8 +1741,17 @@ const packCounts = {
   .mobile-architecture svg line[stroke="#e879f9"]            { stroke: var(--ma-sig); }
   .mobile-architecture svg marker polygon[fill="#e879f9"]    { fill: var(--ma-sig); }
   /* Quality-gate rail (v1.8) — docs/repo sky accent on lines + markers (M15). */
-  .mobile-architecture svg line[stroke="#38bdf8"]            { stroke: var(--ma-docs); }
-  .mobile-architecture svg marker polygon[fill="#38bdf8"]    { fill: var(--ma-docs); }
+  .mobile-architecture svg line[stroke="#38bdf8"]            { stroke: var(--ma-advisor); }
+  .mobile-architecture svg marker polygon[fill="#38bdf8"]    { fill: var(--ma-advisor); }
+  /* Assurance rail (v1.9) — NO new rule here, on purpose. The rail's gold
+     chrome is drawn #fbbf24 in the SVG, which the tri-agent rules above
+     already theme. A second rect[stroke="#fbbf24"] / text[fill="#fbbf24"]
+     rule would win on source order and silently re-point every existing
+     tri-agent panel (oc-app-architect, oc-ux-engineer, oc-api-dev,
+     oc-integrations-engineer, oc-code-auditor) at --ma-assure. Instead
+     --ma-assure is defined to the same value as --ma-triagent in both themes,
+     so CSS chrome (var(--ma-assure)) and SVG chrome (#fbbf24 → --ma-triagent)
+     stay pixel-identical. Retune one and you must retune the other. */
 
   /* Glow filters bake their colour into <defs> feFlood, so the attribute-remap
      above cannot reach them; on the light parchment ground they read as muddy

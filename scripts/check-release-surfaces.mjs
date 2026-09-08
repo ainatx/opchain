@@ -66,6 +66,24 @@ const PROBES = [
     file: "site/src/pages/styleguide.astro",
     re: /<Badge[^>]*>(v\d+\.\d+)\.\d+<\/Badge>/,
   },
+  // The architecture diagram states the live release in three places. All three
+  // were stale after v1.9 shipped (they still read v1.8) precisely because
+  // nothing probed them. Procedure: docs/runbooks/architecture-diagram-cycle.md
+  {
+    label: "architecture diagram eyebrow",
+    file: "site/src/pages/architecture.astro",
+    re: /SKILLS · ARCHITECTURE · v2 · RELEASE (v\d+\.\d+)/,
+  },
+  {
+    label: "architecture diagram footer",
+    file: "site/src/pages/architecture.astro",
+    re: /spine ordinals · (v\d+\.\d+) · checkpoint-driven/,
+  },
+  {
+    label: "mobile architecture eyebrow",
+    file: "site/src/components/MobileArchitecture.astro",
+    re: /SKILLS · ARCHITECTURE · v2 · MOBILE · (v\d+\.\d+)/,
+  },
 ];
 
 function probe({ label, file, re, join: j }) {
@@ -139,6 +157,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(0);
   }
   console.error(`✗ release-surface drift:\n  - ${errors.join("\n  - ")}`);
-  console.error("\nFix per skills/oc-release-ops/references/site-release-surfaces.md (live-claim surfaces L1–L7).");
+  console.error("\nFix per skills/oc-release-ops/references/site-release-surfaces.md (live-claim surfaces L1–L10).");
   process.exit(1);
 }
