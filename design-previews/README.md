@@ -78,8 +78,10 @@ adversarially verified, with an order of work. Read it before scheduling the
 recolour: three-quarters is the architecture diagrams (other workstream); the
 recolour proper touches 392 literals in 30 files.
 
-Nothing here is wired to production: `site/src/styles/tokens.css` is
-untouched. Promoting a winner means porting that set's token block into
-it. The generator lives in `color-2.0-tooling/` — edit the `SETS` array
+**Applied 2026-09-08:** `color-2.0-tooling/tokens-2.0.css` is now
+`site/src/styles/tokens.css`, and every page and component was migrated per
+`MIGRATION-SURFACE.md`'s order of work. The exploration, lockup and prototype
+files remain as the record of how the palette was chosen and what the 2.0
+content blocks should look like. The generator lives in `color-2.0-tooling/` — edit the `SETS` array
 there and re-run it rather than editing the generated HTML by hand; that
 folder's README has the three commands.

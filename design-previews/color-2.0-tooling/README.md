@@ -1,8 +1,10 @@
 # color-2.0-tooling
 
-Generator for `../color-2.0-explorations.html`. Kept in the repo so the
-exploration can be re-run or extended; not wired into any build, not
-imported by the site, and it touches nothing under `site/`.
+Generator for `../color-2.0-explorations.html` and the finalized 2.0 token
+sheet. Kept in the repo so the exploration can be re-run or extended; not wired
+into any build and not imported by the site. `tokens-2.0.css` was copied into
+`site/src/styles/tokens.css` on 2026-09-08 — regenerate here, then copy, if the
+set ever changes.
 
 ```bash
 # 1. derive every set's tokens in OKLCH, enforcing the WCAG floors
