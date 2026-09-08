@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:42:00Z",
-  "updated_at": "2026-08-26T15:49:15.609Z",
+  "updated_at": "2026-09-08T03:25:18.000Z",
   "phase": "design-iteration",
-  "step": "v1.5-gtm-surfaces-shipped-and-live",
-  "status": "complete",
-  "progress_summary": "v1.5.0 shipped + live (2026-06-22). The v1.5 GTM/site surfaces all landed and deployed: /ai-recipes (3 multi-skill walkthroughs), /for-agencies, /blog (content collection + index + post route + hand-rolled RSS + 2 launch posts), the footer newsletter panel (→ /api/notify, flag on), the /compare 'Build AI apps' row, /pipeline-builder 'AI app?' branch, and per-skill OG cards for the four AI-native skills (Sprints 4 + deferred tail, PRs #309/#316). Round 6 (the /changelog Option C v2 3-tab layout) also shipped, then was promoted in the v1.5 release cut (PR #311): v1.5 moved to 'Just Released', v1.4.3 demoted, 'Coming Next' → a v1.6 pointer; the e2e spec was updated for the shipped layout. HISTORY: Round 6 (PR open, deploy pending): reworked /changelog from the Option C v3 two-tab layout into Option C v2 — three full-width ARIA tabs (Just Released / Coming Next / Planned) with per-tab colour identity (accent / slate-info / a scoped violet token defined light+dark for AA). Coming Next now leads with just the v1.5 hero; v1.6 roadmap, the v1.7 distribution-theme vote (a live relative bar chart wired to real votes OPC-170/173/174), and an 8-item horizon backlog (OPC-18x) moved into the new Planned tab. Kept the real /api/votes wiring (batched GET + per-click POST + localStorage), the a11y tablist with hidden panels (NOT the preview's CSS slide), 46px vote targets (the preview's tiny backlog buttons would fail WCAG 2.5.8), and deep links (#v1-5 → Coming Next, #v1-6/#v1-7 → Planned, #v1-4 → /coverage). Tab bar deliberately non-sticky — the global Header already is. e2e spec rewritten for the 3-tab DOM; astro check 0 errors, astro build 35 pages, vitest 345/345. Also closed three v1.4.3 single-platform copy stragglers (skills/[id] quick hint + footer CTA, pipeline-builder generated snippet) to mention Codex / the hosted MCP endpoint. Five rounds of UI work merged. Round 1: 5 mobile-demo direction previews → Direction A picked → production MobileWorkbench. Round 2: mobile architecture diagram (vertical stack, no JS, dark default). Round 3: replaced page-summary + OnboardingTour with one-step WelcomePopup, full-bleed workbench, top-right feedback pill, skill detail TOC restyle. Round 4 (PR #213): navigation overhaul — homepage redesign (release double-pill, cinema banner with 12-dot rotator, 4-up resources strip with new Skills tile, phase grid removed), Header restructure into grouped Product/Pipeline/Resources dropdowns, install primary-CTA pill, right-cluster (search input + version chip + feedback text-label + theme), new global ⌘K SearchPalette component. Round 5 (PR #223): /changelog roadmap timeline (vertical Shipped → In progress → Planned → Backlog) backed by a build-time Linear pull (gen-roadmap.mjs filters issues by `roadmap-visible` label), per-item vote buttons (WCAG 2.5.8 compliant 52×48 click targets) with optimistic-update + localStorage mirror, and a Linear-connected feature-request form (title + category + optional email + description) that POSTs to /api/feedback with category to flip the worker into community-submission mode.",
+  "step": "v2.0-prototype-built",
+  "status": "in_progress",
+  "progress_summary": "v2.0 COLOUR: DECIDED 2026-09-07 \u2014 set 11 Slate & Emerald wins the 34-candidate exploration, shipped as set 34 'Slate & Emerald \u00b7 2.0' = set 11 + the three post-round-2 refinements (info as a real fifth semantic; roles gamut-maxed; semantics muted to half chroma). Finalized token sheet at design-previews/color-2.0-tooling/tokens-2.0.css (drop-in candidate for site/src/styles/tokens.css, non-colour sections spliced verbatim) + TOKENS-2.0.md (decision record, rename map, every token with OKLCH + measured contrast, new tokens and what they replace, trade-offs). NO site code touched yet. A workflow is cataloguing the migration surface \u2014 a census found 1,225 hex + 507 rgba literals + 180 direct brand-constant uses bypassing the token layer (most in the architecture pages, which another chat is redrawing) \u2014 output: MIGRATION-SURFACE.md. Lockup preview for 'opchain 2.0' (3 options) at design-previews/lockup-2.0-options.html, awaiting owner pick. NEXT after the pick: <=5 '2.0 = self-improving pipeline' content blocks (concept on home, specifics deeper) and the functional prototype with ember-boxed highlights; architecture diagram merges from the other workstream.",
   "progress_table": [
     {
       "id": "previews",
@@ -67,7 +67,7 @@
     },
     {
       "id": "nav-header",
-      "label": "Header dropdowns + right-cluster + ⌘K palette (PR #213, 25d96ba)",
+      "label": "Header dropdowns + right-cluster + \u2318K palette (PR #213, 25d96ba)",
       "status": "complete"
     },
     {
@@ -77,7 +77,7 @@
     },
     {
       "id": "roadmap-data",
-      "label": "Linear → roadmap.json build-time pull (PR #223, 488cada)",
+      "label": "Linear \u2192 roadmap.json build-time pull (PR #223, 488cada)",
       "status": "complete"
     },
     {
@@ -92,28 +92,123 @@
     },
     {
       "id": "changelog-c-v2",
-      "label": "Round 6: /changelog → Option C v2 3-tab (Just Released / Coming Next / Planned), v1.7 bar-chart vote + horizon backlog; copy stragglers scrubbed for Codex/MCP",
+      "label": "Round 6: /changelog \u2192 Option C v2 3-tab (Just Released / Coming Next / Planned), v1.7 bar-chart vote + horizon backlog; copy stragglers scrubbed for Codex/MCP",
       "status": "in_progress"
+    },
+    {
+      "id": "v20-colour-r1",
+      "label": "Round 1 \u2014 10 sets: 01 Vermilion (Ember continuity), 02 Signal, 03 Acid, 04 Fuchsia, 05 Ultraviolet on Obsidian; 06 Slate & Crimson, 07 Plum & Mint, 08 Chrome, 09 Deep Signal, 10 Seaglass on shifted grounds",
+      "status": "complete"
+    },
+    {
+      "id": "v20-colour-r2",
+      "label": "Round 2 \u2014 9 sets: 11/12/13 Slate & Emerald/Amethyst/Aquamarine reuse set 06's exact ground (pure accent comparison); 14/15/16 Muted Plum & Mint/Chartreuse/Cyan and 17/18/19 Muted Seaglass & Aqua/Magenta/Lime halve their parent's ground chroma",
+      "status": "complete"
+    },
+    {
+      "id": "v20-colour-lightfix",
+      "label": "FIXED: muted grounds collapsed light mode to white (sets 14-19 all rendered as the same white page). Light needs MORE chroma than dark for equal perceived tint; light grounds moved from OKLCH C 0.008 to 0.0117, dark untouched",
+      "status": "complete"
+    },
+    {
+      "id": "v20-colour-eval",
+      "label": "Evaluation written to color-2.0-tooling/EVALUATION.md. Isolated Design Evaluator was rate-limited twice and never reported, so this is a SELF-evaluation; mechanical sections are independent (audit.mjs), aesthetic scores still need a clean-context pass",
+      "status": "complete"
+    },
+    {
+      "id": "v20-colour-select",
+      "label": "Owner selected set 11 Slate & Emerald (2026-09-07); promotion to site/src/styles/tokens.css is a later, separate step",
+      "status": "complete"
+    },
+    {
+      "id": "v20-colour-audit",
+      "label": "Independent audit tool (color-2.0-tooling/audit.mjs): 2356 contrast checks 0 failures; hue-collision, state-legibility and dark/light drift checks the generator never ran",
+      "status": "complete"
+    },
+    {
+      "id": "v20-colour-huefix",
+      "label": "FIXED: changelog identity trio (accent/secondary/tertiary) shared exact hues with skill-role colours - 'coming next' and the advisor pill were 0 deg apart at dE 0.020. Added a hue-separation pass; collisions 193 -> 128. Residue is role-vs-semantic (audit-gate/danger, specialist/success) and left deliberately",
+      "status": "complete"
+    },
+    {
+      "id": "v20-colour-eval-isolated",
+      "label": "Re-run the isolated Design Evaluator once rate limits clear, to replace the self-evaluation in EVALUATION.md",
+      "status": "not_started"
+    },
+    {
+      "id": "v20-colour-r3",
+      "label": "Round 3 \u2014 6 sets (20-25) on the muted-seaglass ground. FIRST ATTEMPT REJECTED by the owner: it varied only semantics and reused the family's accents, leaving 20/21/22 pixel-identical in accent to 17/18/19. Measurement then showed hue novelty is EXHAUSTED (19 accents ring the wheel; 5 of 6 fresh hues land under dE 0.08 of a prior) and that blues/cyans physically cannot be more electric on a dark ground (sRGB holds no chroma at the lightness contrast demands). Rebuilt as six PAGE TREATMENTS instead: 20 Prism duotone (two brand colours), 21 Ink deep fills, 22 Halo outline+glow only, 23 Orchid chroma ceiling 0.264 vs prior max 0.230, 24 Invert accent-as-surface, 25 Bone achromatic brand",
+      "status": "complete"
+    },
+    {
+      "id": "v20-colour-solver",
+      "label": "FIXED: hue solver silently left roles where they collided when over-constrained (5 semantics + trio + 6 roles is near-unsolvable). Now two-tier with graceful degradation + a second pass. Round-3 sets are the cleanest of all 25: sets 20 and 23 have zero collisions vs 3-10 for rounds 1-2",
+      "status": "complete"
+    },
+    {
+      "id": "v20-colour-treatments",
+      "label": "Generator + mockup gained accent-2 (duotone), accent-fill/on-accent-fill (deep fills), and a `treatment` field driving per-set CSS so sets can differ by how the accent is USED, not only which hue it is",
+      "status": "complete"
+    },
+    {
+      "id": "v20-colour-r4",
+      "label": "Round 4 \u2014 8 sets (26-33 Amber Ember/Brass/Sulphur/Viridian/Cerulean/Cobalt/Iris/Carmine) on the least-explored hues, chosen by farthest-point selection over the 23 chromatic accents in use. CONFLICT FLAGGED: the largest void (90 deg) is orange/amber/yellow, the family ruled out in round 1; sampled 3x at even spacing rather than the 5x pure farthest-point wanted",
+      "status": "complete"
+    },
+    {
+      "id": "v20-colour-emphasis",
+      "label": "Owner asked to invert emphasis: skill roles gamut-maxed (mean chroma 0.175-0.216) and semantics muted to half (0.073), so the product taxonomy outshouts status. Generator gained roleMaxChroma/roleTone and semanticMute; each round-4 set got per-set semantic hues so muted status colours clear its accent",
+      "status": "complete"
+    },
+    {
+      "id": "v20-colour-decision",
+      "label": "DECIDED 2026-09-07: set 11 Slate & Emerald, carried forward as set 34 with post-round-2 refinements. Token sheet finalized (tokens-2.0.css + TOKENS-2.0.md); site/ untouched",
+      "status": "complete"
+    },
+    {
+      "id": "v20-colour-migration-surface",
+      "label": "Workflow cataloguing every colour literal that bypasses the token layer (census: 1,225 hex, 507 rgba, 180 brand-constant refs) -> MIGRATION-SURFACE.md",
+      "status": "in_progress"
+    },
+    {
+      "id": "v20-lockup",
+      "label": "'opchain 2.0' lockup decided: A \u2014 wordmark + emerald 2.0 badge (header, hero, footer). Preview: design-previews/lockup-2.0-options.html",
+      "status": "complete"
+    },
+    {
+      "id": "v20-content-blocks",
+      "label": "Prototype built: design-previews/proto-2.0.html \u2014 home/changelog/skill/install/architecture on set 34, lockup A, dark only, release surfaces advanced to 2.0 shipped. Five ember-outlined blocks: (1) home 'what 2.0 unlocks' concept strip, (2) changelog 'how the loop closes' three layers + invariants, (3) skill page 'in the 2.0 loop' reads/never-reads/emits, (4) install 'already on 1.x?' upgrade block + commands, (5) architecture layer-3 legend. Diagram area is a placeholder for the other chat",
+      "status": "complete"
+    },
+    {
+      "id": "v20-arch-diagram",
+      "label": "Architecture diagram redraw \u2014 owned by a separate chat; merges into this workstream when complete",
+      "status": "not_started"
+    },
+    {
+      "id": "v20-solver-orange-guard",
+      "label": "FIXED: hue solver rotated orchestrator into the orange band (H40) on the 2.0 set; roles not seeded in H35-100 are now refused there, and set 34's roles are hand-seeded into legal slots (min gap 36 deg, orchestrator back at violet)",
+      "status": "complete"
     }
   ],
   "context_primer": {
     "key_decisions": [
-      "Direction A (Bottom-Tab IDE) selected from 5 previews — preserves IDE metaphor, learnable, all info reachable.",
+      "Direction A (Bottom-Tab IDE) selected from 5 previews \u2014 preserves IDE metaphor, learnable, all info reachable.",
       "Mobile architecture diagram: static, no JS, dark default, vertical stack of <details> bands. Replaces interactive desktop diagram below 767px.",
       "WelcomePopup: one-step modal with DNS checkbox (localStorage `opchain-demo-welcome-seen`). Auto-opens on every page load unless DNS set. Skipped on mobile.",
       "Desktop full-bleed workbench: dropped page-summary card so the IDE owns the page (78vh height contract retained).",
-      "Feedback pill desktop: top-right (top:1rem right:1rem z-index:100). Mobile unchanged — Header.astro already houses the launcher there.",
+      "Feedback pill desktop: top-right (top:1rem right:1rem z-index:100). Mobile unchanged \u2014 Header.astro already houses the launcher there.",
       "Skill TOC default state uses var(--subtle) (~4.85:1 on obsidian, AA pass) so it blends into bg without failing contrast. Region hover brightens to var(--text); per-link hover overrides to var(--accent). Active-in-viewport entry stays ember.",
-      "Click-to-flash uses 320ms scale+nudge bump and 10s linear color fade ember→cream. prefers-reduced-motion disables both.",
-      "Round 4: page order on the redesigned homepage is `eyebrow → logo+wordmark → claim → tagline → body → release double-pill → stats → cinema banner → resources strip → intro-actions`. User chose this over a hero-replacement banner so the brand stays primary; release pill + banner pair as a 'what's happening right now' block.",
+      "Click-to-flash uses 320ms scale+nudge bump and 10s linear color fade ember\u2192cream. prefers-reduced-motion disables both.",
+      "Round 4: page order on the redesigned homepage is `eyebrow \u2192 logo+wordmark \u2192 claim \u2192 tagline \u2192 body \u2192 release double-pill \u2192 stats \u2192 cinema banner \u2192 resources strip \u2192 intro-actions`. User chose this over a hero-replacement banner so the brand stays primary; release pill + banner pair as a 'what's happening right now' block.",
       "Round 4: cinema banner shorter than the preview (240px min-height vs 540px) and dropped its embedded logo/wordmark since the hero stack handles brand above it.",
       "Round 4: release double-pill uses filled ember for v1.3 (current) and outlined slate (--info #94A3B8) for v1.4 (in progress). The filled/outlined split also gave us ~7:1 contrast on the v1.3 chip (was borderline as outlined-ember at 9.5px bold).",
-      "Round 4: search input in the header (Menu Alt 3) replaces the previous chat-bubble feedback button with a 'feedback' text label. The ⌘K palette was built from scratch (no existing palette in the codebase) — single mount in Header, server-renders 14 pages + every skill + 3 actions.",
-      "Round 4: WCAG 2.5.8 target-size on the 12-dot indicator solved with a pseudo-element pattern — buttons are 24×24 click targets; the visible 7/14px dot renders via ::before. No overlap. Gap reduced to 0 so adjacent click targets touch edge-to-edge.",
-      "Round 4: TypeScript closure-narrowing issue in SearchPalette.astro inline script — `const x = getElementById(...) as T | null; if (!x) ...` doesn't preserve the narrowed type across event-listener arrow callbacks under strict mode. Fixed by re-binding to typed consts (`const scrim: HTMLDivElement = scrimEl as HTMLDivElement`) after the guard.",
-      "Round 5: roadmap data layer is build-time-only. `scripts/gen-roadmap.mjs` pulls from Linear's GraphQL endpoint, buckets by issue state (`completed → shipped`, `started → in-progress`, `backlog + milestone → planned`, else `backlog`), and writes `site/src/data/roadmap.json` (gitignored). Graceful degrade: no LINEAR_API_KEY OR fetch error OR zero matches → writes an empty roadmap and exits 0 so Astro builds stay green on contributor machines.",
-      "Round 5: `roadmap-types.ts` loads via synchronous `fs.readFileSync` (not `await import('./roadmap.json')`). Reason: CI's site job runs `npm ci && astro check` WITHOUT running the root prebuild, so roadmap.json isn't on disk when TS resolves module paths. The fs read at SSG time returns an empty roadmap on missing-file so type-check passes either way. This bit me on commit 488cada — site/install/build job failed; commit 2091b4a fixed.",
-      "Round 5: vote dedup is per-IP per day, server-side, in the existing NOTIFY KV namespace (no new infra). Lock key `vote-lock:<id>:<YYYY-MM-DD>:<sha256(ip)[0:16]>` with 25h TTL. Counter `vote-count:<id>`. The vote button is 52×48px to clear WCAG 2.5.8 target-size without per-element pseudo-element gymnastics this time.",
+      "Round 4: search input in the header (Menu Alt 3) replaces the previous chat-bubble feedback button with a 'feedback' text label. The \u2318K palette was built from scratch (no existing palette in the codebase) \u2014 single mount in Header, server-renders 14 pages + every skill + 3 actions.",
+      "Round 4: WCAG 2.5.8 target-size on the 12-dot indicator solved with a pseudo-element pattern \u2014 buttons are 24\u00d724 click targets; the visible 7/14px dot renders via ::before. No overlap. Gap reduced to 0 so adjacent click targets touch edge-to-edge.",
+      "Round 4: TypeScript closure-narrowing issue in SearchPalette.astro inline script \u2014 `const x = getElementById(...) as T | null; if (!x) ...` doesn't preserve the narrowed type across event-listener arrow callbacks under strict mode. Fixed by re-binding to typed consts (`const scrim: HTMLDivElement = scrimEl as HTMLDivElement`) after the guard.",
+      "Round 5: roadmap data layer is build-time-only. `scripts/gen-roadmap.mjs` pulls from Linear's GraphQL endpoint, buckets by issue state (`completed \u2192 shipped`, `started \u2192 in-progress`, `backlog + milestone \u2192 planned`, else `backlog`), and writes `site/src/data/roadmap.json` (gitignored). Graceful degrade: no LINEAR_API_KEY OR fetch error OR zero matches \u2192 writes an empty roadmap and exits 0 so Astro builds stay green on contributor machines.",
+      "Round 5: `roadmap-types.ts` loads via synchronous `fs.readFileSync` (not `await import('./roadmap.json')`). Reason: CI's site job runs `npm ci && astro check` WITHOUT running the root prebuild, so roadmap.json isn't on disk when TS resolves module paths. The fs read at SSG time returns an empty roadmap on missing-file so type-check passes either way. This bit me on commit 488cada \u2014 site/install/build job failed; commit 2091b4a fixed.",
+      "Round 5: vote dedup is per-IP per day, server-side, in the existing NOTIFY KV namespace (no new infra). Lock key `vote-lock:<id>:<YYYY-MM-DD>:<sha256(ip)[0:16]>` with 25h TTL. Counter `vote-count:<id>`. The vote button is 52\u00d748px to clear WCAG 2.5.8 target-size without per-element pseudo-element gymnastics this time.",
       "Round 5: community submissions stay HIDDEN from the public roadmap until a team-member adds the `roadmap-visible` label during triage. The form applies only `community-submitted` (when `LINEAR_COMMUNITY_LABEL_ID` is set) and a `[community/feature]` title prefix. Spam-safe by default."
     ],
     "generated_files": [
@@ -121,17 +216,17 @@
       "site/src/components/MobileWorkbench.astro",
       "site/src/components/MobileArchitecture.astro",
       "site/src/components/WelcomePopup.astro",
-      "site/src/components/SearchPalette.astro (Round 4 — new)",
-      "previews/PROPOSAL.md (Round 4 — 41 P-NN nav proposals)",
-      "previews/preview.html (Round 4 — iteration sandbox; gitignored from build)",
-      "scripts/gen-roadmap.mjs (Round 5 — Linear build-time pull)",
-      "site/src/data/roadmap-types.ts (Round 5 — Roadmap types + fs loader)",
-      "site/src/components/RoadmapTimeline.astro (Round 5 — new)",
-      "site/src/components/RoadmapForm.astro (Round 5 — new)"
+      "site/src/components/SearchPalette.astro (Round 4 \u2014 new)",
+      "previews/PROPOSAL.md (Round 4 \u2014 41 P-NN nav proposals)",
+      "previews/preview.html (Round 4 \u2014 iteration sandbox; gitignored from build)",
+      "scripts/gen-roadmap.mjs (Round 5 \u2014 Linear build-time pull)",
+      "site/src/data/roadmap-types.ts (Round 5 \u2014 Roadmap types + fs loader)",
+      "site/src/components/RoadmapTimeline.astro (Round 5 \u2014 new)",
+      "site/src/components/RoadmapForm.astro (Round 5 \u2014 new)"
     ],
     "modified_files_round_4": [
       "site/src/pages/index.astro (homepage redesign)",
-      "site/src/components/Header.astro (group dropdowns + right-cluster + ⌘K mount)"
+      "site/src/components/Header.astro (group dropdowns + right-cluster + \u2318K mount)"
     ],
     "modified_files_round_5": [
       "site/src/pages/changelog.astro (roadmap timeline + form prepended)",
@@ -150,74 +245,29 @@
   "blockers": [],
   "next_actions": [
     "Site surface pass 2026-08-25 (docs/plans/2026-08-25-site-surface-pass.md): worst UX offenders are /dashboard's foreign token vocabulary (light theme ~unreadable), undefined --dim var in 5 files, three divergent danger reds, missing aria-live on 5 status regions, and focus-trap/dialog gaps in WelcomePopup + CaptureModal. Fix as the D5/D6 sweep.",
-    "No ux-engineer work pending — all v1.5 GTM/site surfaces shipped + live (/ai-recipes, /blog +RSS, /for-agencies, newsletter, /compare AI row, /pipeline-builder AI branch, per-skill OG cards) and the /changelog Option C v2 layout shipped + promoted in the v1.5 release cut.",
+    "No ux-engineer work pending \u2014 all v1.5 GTM/site surfaces shipped + live (/ai-recipes, /blog +RSS, /for-agencies, newsletter, /compare AI row, /pipeline-builder AI branch, per-skill OG cards) and the /changelog Option C v2 layout shipped + promoted in the v1.5 release cut.",
     "Open polish backlog (non-blocking): wire the header version chip status-dot to live /api/health; add a /sitemap route (Resources dropdown omits it until it exists)."
   ],
   "skill_state": {
-    "directions_shipped_for_evaluation": [
-      "A",
-      "B",
-      "C",
-      "D",
-      "E"
-    ],
-    "winner": "A",
-    "tweak_rounds_complete": 5,
-    "components_owned": [
-      "MobileWorkbench.astro",
-      "MobileArchitecture.astro",
-      "WelcomePopup.astro",
-      "SearchPalette.astro",
-      "Header.astro (round 4 restructure)",
-      "pages/index.astro (round 4 redesign)",
-      "RoadmapTimeline.astro (round 5)",
-      "RoadmapForm.astro (round 5)",
-      "pages/changelog.astro (round 5 integration)"
-    ],
-    "round_4_pr": {
-      "number": 213,
-      "merge_sha": "314df02b",
-      "merge_method": "squash",
-      "title": "feat(site): redesigned homepage + grouped header + ⌘K palette",
-      "merged_at": "2026-05-12T06:12:00Z",
-      "ci_final": "build ✅ · e2e ✅ · worker ✅ · LHCI perf/a11y/best/seo 1.00 across all routes"
+    "mode": "standalone",
+    "attached_to_app_architect": false,
+    "current_sprint": "v2.0-colour",
+    "total_sprints": null,
+    "artifact": "design-previews/color-2.0-explorations.html",
+    "generator": "scratchpad/gen-tokens.mjs (OKLCH + WCAG enforcement) -> tokens.json/tokens.css -> build-preview.mjs",
+    "sets_total": 19,
+    "rounds_complete": 2,
+    "wcag_failures": 0,
+    "open_defect": "muted light-mode grounds (sets 14-19) read as plain white; light needs higher chroma than dark for equal tint",
+    "awaiting": "owner review of proto-2.0.html (5 content blocks) + MIGRATION-SURFACE.md from the workflow; architecture diagram merge from the other chat",
+    "decision": {
+      "set": 34,
+      "name": "Slate & Emerald \u00b7 2.0",
+      "derived_from": 11,
+      "date": "2026-09-07",
+      "sheet": "design-previews/color-2.0-tooling/tokens-2.0.css",
+      "doc": "design-previews/color-2.0-tooling/TOKENS-2.0.md"
     },
-    "round_5_pr": {
-      "number": 223,
-      "merge_sha": "8b8e778",
-      "merge_method": "squash",
-      "title": "feat(changelog): roadmap timeline + Linear-connected feature-request form",
-      "merged_at": "2026-05-12T13:09:00Z",
-      "ci_final": "build ✅ · e2e ✅ · worker ✅ · LHCI 1.00 a11y/best/seo on every route; perf 0.89–1.00; /changelog 0.97 perf with the new components",
-      "commits": [
-        "488cada (data)",
-        "2091b4a (worker)",
-        "e9a1dd9 (ui)"
-      ],
-      "ops_followup": "Linear: add `roadmap-visible` label to issues that should surface publicly; optionally add `community-submitted` label + set LINEAR_COMMUNITY_LABEL_ID in Worker env."
-    },
-    "depends_on": "checkpoint-protocol v1.0",
-    "surface_pass_2026_08_25": {
-      "doc": "docs/plans/2026-08-25-site-surface-pass.md",
-      "mode": "design-evaluator quick pass over 23 routes",
-      "cross_cutting": [
-        "D5 aria-live ×5",
-        "D6 token debt (--dim, #1c1710, dead fallbacks, dashboard vocabulary)"
-      ],
-      "verdicts": {
-        "overhaul": [
-          "/privacy"
-        ],
-        "change": [
-          "/security",
-          "/skills/[id]",
-          "/pipeline-builder",
-          "/.well-known/did.json",
-          "skills.ts+roles.ts",
-          "roadmap-static.ts (delete)",
-          "PipelineDiagram (delete/park)"
-        ]
-      }
-    }
+    "lockup": "A \u2014 wordmark + 2.0 badge (decided 2026-09-07)"
   }
 }
