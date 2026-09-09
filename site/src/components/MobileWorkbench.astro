@@ -568,7 +568,7 @@ const transcripts = walkthroughs.map((w) => ({
     --mw-cc-dim:     #8a8a8a;
     --mw-cc-subtle:  #5a5a5a;
     --mw-cc-cyan:    #62afff;
-    --mw-cc-orange:  #d99155;
+    --mw-cc-accent:  var(--emerald);   /* brand accent inside the stream — follows the 2.0 palette */
     --mw-cc-border:  #2a2a2a;
 
     background: var(--mw-cc-bg);
@@ -627,7 +627,7 @@ const transcripts = walkthroughs.map((w) => ({
     color: var(--mw-cc-dim);
     font-size: 11px;
   }
-  .mw-claude-bullet { color: var(--mw-cc-orange); }
+  .mw-claude-bullet { color: var(--mw-cc-accent); }
   .mw-claude-name   { color: var(--mw-cc-fg); font-weight: 600; }
   .mw-claude-sep    { color: var(--mw-cc-subtle); }
   .mw-claude-skill {
@@ -706,7 +706,7 @@ const transcripts = walkthroughs.map((w) => ({
   }
   .mw-claude-body :global(th)   { background: rgba(255, 255, 255, 0.03); font-weight: 500; }
   .mw-claude-body :global(blockquote) {
-    border-left: 2px solid var(--mw-cc-orange);
+    border-left: 2px solid var(--mw-cc-accent);
     margin: 0 0 8px;
     padding: 0 0 0 10px;
     color: var(--mw-cc-dim);
@@ -746,11 +746,11 @@ const transcripts = walkthroughs.map((w) => ({
   }
   .mw-artifact-chip:hover,
   .mw-artifact-chip:focus-visible {
-    border-color: var(--mw-cc-orange);
-    background: rgba(217, 145, 85, 0.08);
+    border-color: var(--mw-cc-accent);
+    background: var(--emerald-dim);
     outline: none;
   }
-  .mw-artifact-chip .output-ico  { color: var(--mw-cc-orange); flex: 0 0 auto; }
+  .mw-artifact-chip .output-ico  { color: var(--mw-cc-accent); flex: 0 0 auto; }
   .mw-artifact-chip .output-label{ flex: 1; }
   .mw-artifact-chip .output-kind { color: var(--mw-cc-dim); flex: 0 0 auto; font-size: 10px; }
 

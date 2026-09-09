@@ -265,6 +265,30 @@
       "version": "1.9.0"
     },
     {
+      "id": "oc-evolve",
+      "name": "oc-evolve",
+      "displayName": "OC · Evolve",
+      "shortDesc": "Governed behavior change: cluster recurring failures into rules, prove them by regression, adopt by hand.",
+      "description": "Governed behavior-change workflow for the opchain pipeline. A Reflector/Planner sweeps repo-local outcome signals and freezes an improvement hypothesis plus eval contract; a Rule Generator drafts reviewable one-file-per-rule diffs; an isolated Adversarial Evaluator uses oc-prompt-ops to run held-out and full-suite regressions without seeing generator reasoning. Rules require human review and adoption, decay unless revalidated, and never outrank a skill contract or repo policy. Only adopted rules re-inject. Use for /oc-evolve, \"what keeps going wrong\", \"propose a rule\", \"adopt the lesson\", \"retro the pipeline\", \"graduate the rule upstream\", \"self-improvement loop\". NOT routing or what-next (oc-orchestrator), NOT the eval runner itself (oc-prompt-ops), NOT the lesson store (oc-hindsight).",
+      "phases": [
+        "foundation",
+        "ai-native"
+      ],
+      "triAgent": true,
+      "commands": [
+        "/oc-evolve",
+        "/oc-evolve reflect",
+        "/oc-evolve propose",
+        "/oc-evolve review",
+        "/oc-evolve adopt",
+        "/oc-evolve retire",
+        "/oc-evolve revalidate",
+        "/oc-evolve graduate",
+        "/oc-evolve status"
+      ],
+      "version": "1.9.0"
+    },
+    {
       "id": "oc-fleet-ops",
       "name": "oc-fleet-ops",
       "displayName": "OC · Fleet Ops",
@@ -304,6 +328,29 @@
         "/oc-push",
         "/oc-git-sync",
         "/oc-git-release"
+      ],
+      "version": "1.9.0"
+    },
+    {
+      "id": "oc-hindsight",
+      "name": "oc-hindsight",
+      "displayName": "OC · Hindsight",
+      "shortDesc": "Governed operational memory: harvest outcomes into source-grounded lessons, prove retrieval, promote by hand.",
+      "description": "Governed operational-memory workflow for opchain projects. A Planner/Curator selects committed outcome sources and freezes a retrieval-quality contract; a Lesson Generator drafts source-grounded candidate lessons; an isolated Retrieval Evaluator checks provenance, prompt-injection safety, duplication, recall@k and MRR without seeing generator reasoning. Candidates stay quarantined or staged until a human promotes them. Use for /oc-hindsight, \"remember this failure\", \"what did we learn\", \"find a similar incident\", \"review lessons\", \"evaluate retrieval\", \"project memory\". Hindsight owns lesson lifecycle and retrieval; it never promotes a lesson into a behavioral rule — that boundary belongs to oc-evolve. NOT generic RAG architecture (oc-rag-forge), NOT the prompt/rule regression engine (oc-prompt-ops), NOT skill-health trends (the Outcome Scorecard kit).",
+      "phases": [
+        "foundation",
+        "ai-native"
+      ],
+      "triAgent": true,
+      "commands": [
+        "/oc-hindsight",
+        "/oc-hindsight harvest",
+        "/oc-hindsight review",
+        "/oc-hindsight promote",
+        "/oc-hindsight query",
+        "/oc-hindsight eval",
+        "/oc-hindsight maintain",
+        "/oc-hindsight status"
       ],
       "version": "1.9.0"
     },

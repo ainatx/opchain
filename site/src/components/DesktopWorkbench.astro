@@ -920,7 +920,7 @@ const transcripts = walkthroughs.map((w) => ({
     --cc-dim:     #8a8a8a;
     --cc-subtle:  #5a5a5a;
     --cc-cyan:    #62afff;
-    --cc-orange:  #d99155;
+    --cc-accent:  var(--emerald);   /* brand accent inside the stream — follows the 2.0 palette */
     --cc-purple:  #b294ff;
     --cc-green:   #9ece6a;
     --cc-red:     #f7768e;
@@ -1000,7 +1000,7 @@ const transcripts = walkthroughs.map((w) => ({
     color: var(--cc-dim);
     font-size: 11.5px;
   }
-  .cc-bullet { color: var(--cc-orange); flex: 0 0 auto; }
+  .cc-bullet { color: var(--cc-accent); flex: 0 0 auto; }
   .cc-name   { color: var(--cc-fg); font-weight: 600; }
   .cc-sep    { color: var(--cc-subtle); }
 
@@ -1069,7 +1069,7 @@ const transcripts = walkthroughs.map((w) => ({
     font-weight: 500;
   }
   .cc-assistant-body :global(blockquote) {
-    border-left: 2px solid var(--cc-orange);
+    border-left: 2px solid var(--cc-accent);
     margin: 0 0 0.55rem;
     padding: 0.2rem 0 0.2rem 0.7rem;
     color: var(--cc-dim);
@@ -1094,10 +1094,10 @@ const transcripts = walkthroughs.map((w) => ({
     font-size: 12px;
   }
   .cc-artifact-chip:hover {
-    border-color: var(--cc-orange);
-    background: rgba(217, 145, 85, 0.08);
+    border-color: var(--cc-accent);
+    background: var(--emerald-dim);
   }
-  .cc-artifact-chip .output-ico   { color: var(--cc-orange); }
+  .cc-artifact-chip .output-ico   { color: var(--cc-accent); }
   .cc-artifact-chip .output-kind  { color: var(--cc-dim); }
 
   /* Inspector side-summary. */

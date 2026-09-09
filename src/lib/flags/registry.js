@@ -252,6 +252,10 @@ const DEFINITIONS = [
     "oc-data-ops",
     "oc-compliance-ops",
     "oc-security-hardening",
+    // v2.0 "The self-improving pipeline" — governed operational memory and
+    // governed behavior change. Both gate on a human; neither ships anything.
+    "oc-hindsight",
+    "oc-evolve",
   ]),
 
   // ── skills.capability ────────────────────────────────────────────────────
@@ -304,6 +308,8 @@ const DEFINITIONS = [
     // the parent verb. /oc-harden (execute) is deliberately distinct from the
     // existing /oc-hardening (oc-security-auditor: assess).
     "/oc-qa", "/oc-data-ops", "/oc-comply", "/oc-compliance", "/oc-harden",
+    // v2.0 "The self-improving pipeline" verbs. Subcommands inherit the parent.
+    "/oc-hindsight", "/oc-evolve",
   ]),
 
   // ── skills.coverage.<id>.enabled — one per oc-stack-forge pack ──────────────

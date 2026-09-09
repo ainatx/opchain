@@ -65,6 +65,11 @@ const EXPLICIT: Record<string, ArtifactKind> = {
   csp: "config",
   "ia.md": "design",
   "status.md": "report",
+  // An OpenAPI document is a contract, not a config file — it would otherwise
+  // be caught by the `.yaml` heuristic below.
+  "openapi.yaml": "spec",
+  // An intake register is an inventory of records, same family as a ledger.
+  "register.md": "data",
   "announcement.md": "report",
   "report.md": "report",
 };
@@ -74,14 +79,14 @@ const EXPLICIT: Record<string, ArtifactKind> = {
 const HEURISTICS: Array<[RegExp, ArtifactKind]> = [
   [/pull-request|(^|[.\/])pr\b|github\.pr|\bpr\.md/, "pull-request"],
   [/runbook|playbook/, "runbook"],
-  [/threat|audit|compliance|stig|\bato\b|eval|trace|hardening|posture/, "audit"],
-  [/changelog|announce|status|release/, "report"],
+  [/threat|audit|compliance|stig|\bato\b|eval|trace|hardening|posture|quarantine/, "audit"],
+  [/changelog|announce|status|release|readout|baseline|reflect/, "report"],
   [/\.ya?ml$|(^|[.\/])config|csp|\.toml$|\.ini$|render\./, "config"],
   [/\.diff$|\bdiff\b|code\.|\.patch$/, "code"],
   [/\.log$|ledger|\btree\b|\.csv$|\.jsonl?$|goldset/, "data"],
   [/\bia\b|wireframe|design|mock/, "design"],
   [
-    /spec|architecture|decision|contract|plan|sprint|handoff|rbac|auth|rollout|backlog|allowlist|rules|broker|matrix|overview|tech-stack|routing/,
+    /spec|architecture|decision|contract|plan|sprint|handoff|rbac|auth|rollout|backlog|allowlist|rule|broker|matrix|overview|tech-stack|routing|charter|framework|packet/,
     "spec",
   ],
 ];
