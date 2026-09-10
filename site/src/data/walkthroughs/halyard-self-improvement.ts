@@ -39,6 +39,8 @@ export const halyardSelfImprovement: Walkthrough = {
     "oc-evolve",
     "oc-hindsight",
     "oc-prompt-ops",
+    "oc-bug-check",
+    "oc-git-ops",
     "oc-checkpoint-protocol",
     "oc-orchestrator",
     "oc-release-ops",
@@ -558,13 +560,37 @@ Passing evaluation is necessary and never sufficient. The adopt call is yours.`,
     {
       type: "beat",
       label: "Adopt, and decline to graduate",
-      caption: "one rule, held at the lowest precedence",
-      skills: ["oc-evolve", "oc-release-ops", "oc-checkpoint-protocol"],
+      caption: "a rule is a commit like any other",
+      skills: ["oc-evolve", "oc-bug-check", "oc-git-ops", "oc-release-ops", "oc-checkpoint-protocol"],
       phase: "ship",
     },
     {
       type: "exchange", role: "user",
       content: `Adopt B. And can this go upstream into the skill itself — it seems like it'd help everyone.`,
+    },
+    {
+      type: "exchange", role: "claude",
+      skill: "oc-bug-check",
+      content:
+`Adopting writes \`.opchain/rules/R-0001-analysis-output-unit.md\` — a tracked file — so it goes through the commit gate like any other change. Worth saying explicitly, because "the pipeline changed its own behaviour" is the sentence that makes people nervous, and the answer is that it did so by opening a diff.
+
+\`\`\`
+oc-bug-check · pre-commit gate
+  typecheck ................ PASS
+  lint ..................... PASS
+  tests .................... PASS   612 passed
+  secret scan .............. PASS
+  build .................... PASS
+  dep vulnerabilities ...... PASS   0 high, 0 critical
+
+  rule-file lint ........... PASS   frontmatter valid, evidence
+                                    anchors resolve, precedence
+                                    is learned-rule
+\`\`\`
+
+The last check is specific to this file type: a rule whose \`evidence[]\` anchors no longer resolve is a rule citing sources that have moved, and it fails the gate rather than being adopted with a broken provenance chain.
+
+Committed on a branch, reviewed as a diff, merged. **There is no path by which a rule reaches \`adopted\` without a human reading the change** — the eval is evidence for that review, not a substitute for it.`,
     },
     {
       type: "exchange", role: "claude",

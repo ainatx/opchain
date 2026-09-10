@@ -70,6 +70,10 @@ const EXPLICIT: Record<string, ArtifactKind> = {
   "openapi.yaml": "spec",
   // An intake register is an inventory of records, same family as a ledger.
   "register.md": "data",
+  // A business case and a cost model support a decision; they are not reports
+  // of what happened, and "case" would otherwise fall through to "other".
+  "case.md": "spec",
+  "cost.md": "report",
   "announcement.md": "report",
   "report.md": "report",
 };

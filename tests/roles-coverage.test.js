@@ -59,6 +59,37 @@ describe("skill role coverage", () => {
 });
 
 /**
+ * oc-git-ops chains to oc-bug-check before every commit — see
+ * skills/orchestrator.md §3 ("/oc-git-commit or /oc-git-sync starts →
+ * oc-bug-check"). The repo enforces the same edge with a PreToolUse hook that
+ * refuses a commit until the gate records a PASS bound to the working tree.
+ *
+ * A scenario that shows oc-git-ops without oc-bug-check therefore depicts a
+ * pipeline that cannot run. Scenarios that never commit are exempt: a gate
+ * with nothing to check is padding, not proof.
+ */
+describe("pipeline invariants in walkthroughs", () => {
+  it("shows oc-bug-check wherever a scenario uses oc-git-ops", () => {
+    const violations = walkthroughs
+      .filter((w) => w.skills.includes("oc-git-ops") && !w.skills.includes("oc-bug-check"))
+      .map((w) => w.id);
+    expect(violations).toEqual([]);
+  });
+
+  it("shows oc-bug-check before oc-deploy-ops wherever both commit and deploy appear", () => {
+    const violations = walkthroughs
+      .filter(
+        (w) =>
+          w.skills.includes("oc-deploy-ops") &&
+          w.skills.includes("oc-git-ops") &&
+          !w.skills.includes("oc-bug-check")
+      )
+      .map((w) => w.id);
+    expect(violations).toEqual([]);
+  });
+});
+
+/**
  * Skills whose role genuinely IS "specialist". Listed explicitly so the
  * fallback can't masquerade as a real mapping — adding a skill here is a
  * deliberate act, forgetting one is a test failure.
