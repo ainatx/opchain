@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-09-11T06:08:23.610Z",
+  "updated_at": "2026-09-11T07:24:15.657Z",
   "phase": "pr-open",
-  "step": "pr-498-ci-failure-fixes",
+  "step": "pr-498-awaiting-review",
   "status": "in_progress",
-  "progress_summary": "2026-09-11 CI-failure analysis session. Branch claude/lhci-ci-failures-analysis-s525xz carries the fixes (LHCI preview with /api/health stub and Vite-equivalent gzip, error-level gates on all routes, palette-independent security CTA e2e test, --no-fetch for the release-tag gate's unit test, pre-commit mirror hook installed by npm prepare, js-yaml namespace imports, deploy-lag issue-on-mismatch plus deploy.mjs stale-baseline warning, checkpoint drift record, release-tag backfill runbook) as PR #498. Merged #495 and #493 by squash; the green Dependabot PRs go through the update-branch, checks, merge chain because main requires up-to-date branches. Closed superseded #468 and #470; asked Dependabot to rebase #471; #472 rebases after #498 lands. Commented the 12-file conflict list and the CTA finding on #490. Ref deletion is HTTP 403 from this session, so the 34 bot/checkpoint-stamp-* branches and the wip/ tag stay for the owner to delete.",
+  "progress_summary": "2026-09-11 CI-failure analysis session. PR #498 (branch claude/lhci-ci-failures-analysis-s525xz) carries the fixes: LHCI preview with the /api/health stub and Vite-equivalent gzip, error-level gates on all seven routes, palette-independent security CTA e2e test, --no-fetch for the release-tag gate's unit test, pre-commit mirror hook installed by npm prepare, js-yaml namespace imports, deploy-lag issue-on-mismatch plus deploy.mjs stale-baseline warning, checkpoint drift record, release-tag backfill runbook. The approved merge chain is complete: #495, #493, #497, #496, #473, #486, #485 squash-merged in order with all four required checks green on each (one sanctioned re-run on #473 for the check-release-tag fetch timeout). #468 and #470 closed as superseded. #471 (TypeScript 7) cannot install against @astrojs/check's peer range; the owner chose `@dependabot ignore this major version`. #472 waits for #498. #490 has its conflict list and the CTA finding as a comment. #498's branch now includes origin/main 38f2bd4. Ref deletion is HTTP 403 from this session, so the 34 bot/checkpoint-stamp-* branches and the wip/ tag stay for the owner to delete.",
   "progress_table": [
     {
       "id": "v1.9-release-pr",
@@ -162,19 +162,35 @@
   },
   "blockers": [],
   "next_actions": [
-    "Drive #498 to green and merge it (owner review); then comment @dependabot rebase on #472 so the js-yaml 5 bump gets a real CI result.",
-    "Finish the merge chain: #497, #496, #473, #486, #485 — update branch, wait for the four required checks, squash-merge, repeat (main requires up-to-date branches). #495 and #493 are merged.",
+    "Owner: review and merge #498 (squash). The branch already contains origin/main 38f2bd4, so the up-to-date rule is satisfied; CI reruns on the merge commit.",
+    "After #498 merges: comment `@dependabot rebase` on #472 (js-yaml 5.4.1) so its Worker job runs against the namespace imports; then merge it through the same update → checks → squash path.",
+    "Confirm Dependabot closed #471 after the ignore-major command and opens a TypeScript 6.0.3 PR on its next run (inside @astrojs/check's ^5 || ^6 peer range).",
     "Owner, from the laptop: delete the 34 bot/checkpoint-stamp-* branches and the wip/v1-8-docs-mesh-20260703 tag; this session's credentials get HTTP 403 on ref deletion. Command: for b in $(git ls-remote --heads origin 'refs/heads/bot/checkpoint-stamp-*' | awk '{print $2}' | sed 's|refs/heads/||'); do git push origin --delete \"$b\"; done; git push origin --delete wip/v1-8-docs-mesh-20260703",
     "Owner: triage the stale claude/, codex/, chore/, design/, docs/ branches listed in the session summary (older than 30 days, none merged into main)."
   ],
   "skill_state": {
-    "current_branch": "codex/v1.9-release-signoff (from origin/main c6d529631cfe49021efdcabcfcf02bc95a94700f; runtime release remains signed SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248)",
+    "current_branch": "claude/lhci-ci-failures-analysis-s525xz (PR #498; origin/main 38f2bd4 merged in on 2026-09-11; runtime release remains signed SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248)",
     "open_prs": [
       {
         "number": 498,
         "branch": "claude/lhci-ci-failures-analysis-s525xz",
         "title": "ci(gates): LHCI health stub, deploy-lag issue on mismatch, palette-free CTA test, js-yaml 5, mirror hook",
-        "opened_at": "2026-09-11T04:16:00Z"
+        "opened_at": "2026-09-11T04:16:00Z",
+        "state": "awaiting owner review; branch refreshed onto main 38f2bd4 on 2026-09-11 so the up-to-date rule is satisfied"
+      },
+      {
+        "number": 472,
+        "branch": "dependabot/npm_and_yarn/js-yaml-5.4.1",
+        "title": "deps: bump js-yaml from 4.3.1 to 5.4.1",
+        "opened_at": "2026-08-31T08:10:38Z",
+        "state": "Worker job red on js-yaml 5's dropped default export; #498 carries the namespace imports. Rebase after #498 merges."
+      },
+      {
+        "number": 490,
+        "branch": "v2.0 token sheet",
+        "title": "v2.0 branch",
+        "opened_at": "2026-09",
+        "state": "merge-conflicted with main in 12 files, six newest commits never ran CI; conflict list and the CTA finding commented 2026-09-11. Main-side fixes only, per owner."
       }
     ],
     "merged_prs": [
@@ -375,6 +391,62 @@
         "merged_at": "2026-05-31T02:46:00Z",
         "note": "Dependabot recreated to 4.95.0 (latest) after the original 4.90.0 PR's lockfile couldn't be rebased through #241 + #175 + #209. Recreate ran clean. Heads up: wrangler 4.89.0 changed local `wrangler dev` to TZ=UTC to match production — code that relied on host timezone during dev will see a behavior change.",
         "ci_final": "all green"
+      },
+      {
+        "number": 495,
+        "title": "docs(runbook): check for a parallel branch, not just a stale checkout",
+        "merge_method": "squash",
+        "merge_sha": "d2f5250",
+        "merged_at": "2026-09-11T04:16:24Z",
+        "ci_final": "all green"
+      },
+      {
+        "number": 493,
+        "title": "docs(release): plan v2.0 \"The self-improving pipeline\"",
+        "merge_method": "squash",
+        "merge_sha": "bf63d66",
+        "merged_at": "2026-09-11T06:05:28Z",
+        "ci_final": "all green"
+      },
+      {
+        "number": 497,
+        "title": "deps: bump sharp and wrangler",
+        "merge_method": "squash",
+        "merge_sha": "dfa6d34",
+        "merged_at": "2026-09-11T06:12:01Z",
+        "ci_final": "all green (after one branch update for behind-state)"
+      },
+      {
+        "number": 496,
+        "title": "deps: bump @vitest/mocker and vitest",
+        "merge_method": "squash",
+        "merge_sha": "567bbad",
+        "merged_at": "2026-09-11T06:19:57Z",
+        "ci_final": "all green (after @dependabot rebase: #497 changed the root lockfile)"
+      },
+      {
+        "number": 473,
+        "title": "deps: bump zod from 4.4.3 to 4.5.4 in the zod group across 1 directory",
+        "merge_method": "squash",
+        "merge_sha": "c208515",
+        "merged_at": "2026-09-11T07:08:30Z",
+        "ci_final": "all green after one sanctioned re-run: the Worker job first hit the check-release-tag.test.js 5 s timeout (git fetch inside the spawned gate; #498 adds --no-fetch), documented on the PR before the re-run"
+      },
+      {
+        "number": 486,
+        "title": "deps(site): bump the astro group across 1 directory with 4 updates",
+        "merge_method": "squash",
+        "merge_sha": "04cfda5",
+        "merged_at": "2026-09-11T07:14:22Z",
+        "ci_final": "all green (after one branch update for behind-state)"
+      },
+      {
+        "number": 485,
+        "title": "deps(site): bump isomorphic-dompurify from 3.23.0 to 4.1.0 in /site in the markdown group",
+        "merge_method": "squash",
+        "merge_sha": "38f2bd4",
+        "merged_at": "2026-09-11T07:21:36Z",
+        "ci_final": "all green (after one branch update for behind-state)"
       }
     ],
     "closed_unmerged_prs": [
@@ -388,18 +460,29 @@
         "title": "chore(generated): restore stale coverage-flags and api-dev-adapters baselines",
         "closed_at": "2026-05-31T02:33:00Z",
         "reason": "Obsolete — superseded by the v1.4 bulk pack PRs. main now carries 26 coverage-flags + 13 api-dev-adapters (vs. this PR's 5/5 from the pre-v1.4 era). Rebasing would produce a no-op or stale-downgrade diff."
+      },
+      {
+        "number": 468,
+        "title": "deps: bump wrangler from 4.126.0 to 4.129.0 in the worker-runtime group across 1 directory",
+        "closed_at": "2026-09-11T04:17:03Z",
+        "reason": "Superseded by #497 (sharp and wrangler), which carries the newer wrangler."
+      },
+      {
+        "number": 470,
+        "title": "deps: bump vitest from 4.1.10 to 5.0.0 in the worker-test group across 1 directory",
+        "closed_at": "2026-09-11T04:17:38Z",
+        "reason": "Superseded by #496 (@vitest/mocker and vitest)."
+      },
+      {
+        "number": 471,
+        "title": "deps(site): bump typescript from 5.9.3 to 7.0.2 in /site",
+        "closed_at": "pending Dependabot",
+        "reason": "Owner decision 2026-09-11: `@dependabot ignore this major version` posted at 07:21Z. First real CI run (head 90fcdfb, after a GitHub update-branch because Dependabot ignored the rebase comment) failed every job at `npm ci` in site/: @astrojs/check@0.9.10 declares peer typescript ^5.0.0 || ^6.0.0, so TS 7 cannot install. Dependabot is expected to propose 6.0.3 next."
       }
     ],
     "remote": "origin",
     "default_base": "main",
     "depends_on": "app-architect for build state; ux-engineer for design rationale; checkpoint-protocol v1.0",
-    "merged_prs+": {
-      "number": 493,
-      "title": "docs(release): plan v2.0 \"The self-improving pipeline\"",
-      "merge_method": "squash",
-      "merge_sha": "bf63d66fa2ce9ade2aa30daf6adc724d3a898006",
-      "merged_at": "2026-09-11T06:08:23Z"
-    },
     "oss_split": {
       "plan": "docs/plans/2026-08-22-oss-split-licensing-compliance.md",
       "recommended": "A — invert the mirror; opchain-skills = source of truth; site consumes tag-pinned submodule + skills symlink",
@@ -439,7 +522,6 @@
         "opened_at": "2026-08-24"
       }
     ],
-    "open_prs+": null,
     "prior_release_reconciliation": {
       "merged_prs": [
         461,
@@ -624,6 +706,20 @@
       "deletion": "blocked: HTTP 403 on ref deletion from this session; owner runs git push origin --delete",
       "wip_tag": "wip/v1-8-docs-mesh-20260703 -> e1d5cd3, same block",
       "stale_branches_reviewed": 25
+    },
+    "merge_chain_2026_09_11": {
+      "order": [
+        495,
+        493,
+        497,
+        496,
+        473,
+        486,
+        485
+      ],
+      "method": "update branch (or @dependabot rebase on lockfile conflict) → four required checks → squash merge; main requires up-to-date branches",
+      "completed_at": "2026-09-11T07:21:36Z",
+      "rerun_used": "#473 Worker job, once, after a standing-down comment"
     }
   }
 }
