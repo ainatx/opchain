@@ -37,6 +37,7 @@ import { checkReleaseTag, remediation } from "./check-release-tag.mjs";
 const __filename = fileURLToPath(import.meta.url);
 const REPO_ROOT  = path.resolve(path.dirname(__filename), "..");
 const DEV_VARS   = path.join(REPO_ROOT, ".dev.vars");
+const BASELINE   = path.join(REPO_ROOT, ".github/monitoring/release-baseline.json");
 
 const STAGING = process.argv.includes("--staging");
 const TARGET  = STAGING ? "staging" : "production";
@@ -300,12 +301,52 @@ async function verifyLiveVersion() {
       });
       const body = await response.json();
       if (response.ok && body?.version === expected) {
-        return { ok: true, detail: `live version ${body.version}` };
+        return { ok: true, detail: `live version ${body.version}`, version: body.version };
       }
     } catch {}
     if (attempt < 5) await new Promise((resolve) => setTimeout(resolve, 3_000));
   }
   return { ok: false, detail: `live /api/health did not converge to ${expected}` };
+}
+
+/**
+ * The scheduled Canary and Deploy lag monitors verify Cloudflare against
+ * .github/monitoring/release-baseline.json. A deploy that is not followed by a
+ * baseline refresh turns both monitors red on every scheduled run until someone
+ * notices: on 2026-09-05 production moved to 78567c2 while the baseline still
+ * said v1.9.0, and four scheduled runs failed before anyone looked. This does
+ * not refresh the baseline — that needs the post-deploy evidence the runbook
+ * asks for — it makes the obligation impossible to miss at the moment it
+ * starts. Prints, never fails: the deploy itself succeeded.
+ */
+function warnIfBaselineStale(liveVersion) {
+  let baseline;
+  try {
+    baseline = JSON.parse(fs.readFileSync(BASELINE, "utf8"));
+  } catch (err) {
+    console.warn(`[deploy:${TARGET}] ⚠ could not read ${path.relative(REPO_ROOT, BASELINE)}: ${err.message}`);
+    return;
+  }
+  const approved = baseline?.release?.sourceShortSha;
+  const tag = baseline?.release?.tag;
+  const recorded = baseline?.environments?.[TARGET];
+  if (approved && liveVersion && liveVersion.startsWith(approved)) {
+    console.log(`[deploy:${TARGET}] baseline ${tag} (${approved}) still describes what is live; no refresh needed`);
+    return;
+  }
+  const listArgs = STAGING ? "deployments list --env staging --json" : "deployments list --json";
+  console.warn(`
+[deploy:${TARGET}] ⚠ MONITORING BASELINE IS NOW STALE
+  live version:      ${liveVersion}
+  approved baseline: ${tag} (${approved}) — ${TARGET} deployment ${recorded?.deploymentId ?? "unrecorded"}
+  Canary and Deploy lag will fail on every scheduled run until the baseline is
+  refreshed. Follow docs/runbooks/cloudflare-challenge.md → "After an intentional
+  deployment", steps 4–6:
+    npx wrangler ${listArgs}                        # new deployment + version ids
+    node .github/scripts/cloudflare-monitor.mjs control-plane   # verify with credentials
+    node .github/scripts/cloudflare-monitor.mjs deploy-diff
+  then open the baseline PR. ${STAGING ? "A staging branch preview also invalidates the staging half of the baseline." : "Do not bless an unreviewed SHA by editing the baseline alone."}
+`);
 }
 
 assertDeployFromMain();
@@ -351,3 +392,4 @@ for (const [cmd, args, label] of [
 }
 
 console.log(`\n[deploy:${TARGET}] done.`);
+warnIfBaselineStale(versionCheck.version);

@@ -95,7 +95,11 @@ From the exact reviewed and approved runtime checkout:
 ## Interpreting failures
 
 - **Deployment/version/traffic mismatch:** stop and inspect Cloudflare history.
-  Do not silently bless an unknown version by editing the baseline.
+  Do not silently bless an unknown version by editing the baseline. Deploy lag
+  files or updates its tracking issue with the mismatch before failing the run
+  (until 2026-09-11 it died before the issue step, so a mismatch produced red
+  runs and nothing else), and `npm run deploy` ends every deploy whose SHA is
+  not the approved one with a stale-baseline warning pointing back here.
 - **Script fingerprint, handler, or binding mismatch:** treat the deployed
   artifact as unapproved even if its version id looks plausible.
 - **Domain/certificate mismatch:** inspect the custom-domain association; do not
