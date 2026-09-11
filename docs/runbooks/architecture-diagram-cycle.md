@@ -67,7 +67,36 @@ git fetch origin
 git log --oneline HEAD..origin/main | head        # are you stale? (this bit us)
 ls skills | grep -c '^oc-'                        # real skill count
 grep -h '^version:' skills/*/SKILL.md | sort -u    # lockstep catalog version
+
+# Is somebody already doing this? (this bit us harder)
+git for-each-ref --sort=-committerdate refs/remotes/origin \
+  --format='%(committerdate:short) %(refname:short)' | head -20
+for b in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin); do
+  n=$(git diff --name-only origin/main..."$b" -- site/src/pages/architecture.astro \
+        site/src/components/MobileArchitecture.astro \
+        site/src/components/PipelineDiagram.astro 2>/dev/null | wc -l)
+  [ "$n" -gt 0 ] && echo "  $b touches $n diagram file(s)"
+done
 ```
+
+**Check for a parallel branch, not just a stale checkout.** The staleness check
+above catches "main moved past me". It does not catch "somebody else is already
+redrawing this diagram on a branch", which is the more expensive failure: you
+find out after you have finished.
+
+It happened on the 2.0 pass. A colour workstream on
+`claude/opchain-2-0-colors-4ad0c6` had already recoloured both diagram files,
+written a 68KB file-by-file migration catalogue, and applied the 2.0 token sheet
+to `site/`. That worktree was inspected once at the start, when it held nothing
+but uncommitted tooling, and never again as it grew to 18 pushed commits. The
+duplicated work was a full 1,667-literal recolour and a second catalogue at the
+identical path, both discarded.
+
+Two habits close it: run the loop above **before** starting, and re-run it before
+opening the PR — a long pass gives a parallel branch time to appear. If one
+exists, settle which is the trunk before writing code, not after. The salvage is
+usually not "merge both": it is to find the handful of things your tools caught
+that theirs did not, and contribute only those.
 
 Then run the deterministic geometry auditor. **Do not eyeball coordinates** —
 there are hundreds, and model arithmetic over them is unreliable:
