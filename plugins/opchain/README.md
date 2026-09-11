@@ -65,7 +65,9 @@ unless oc-bug-check recorded a PASS *for the tree you are committing*.
   text re-scanned, but only the text that wrapper can run — quoted data elsewhere
   in the call stays data. The command is also read the way bash reads it: a
   `$(…)` or `` `…` `` inside double quotes or an unquoted here-document is a
-  command, `\git` and `"git"` are git, and a quoted `<<'EOF'` body is prose.
+  command, `\git` and `"git"` are git, and a comment, or a here-document body
+  that only a plain `cat` or `tee` reads, is prose — unless something in the
+  command could still run it.
 - **UNSUPPORTED ≠ PASS.** A gate that could not read your stack must not report
   green.
 
