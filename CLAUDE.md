@@ -149,6 +149,7 @@ npm run smoke:prod       # scripts/smoke.sh against opchain.dev
 npm run site:install     # one-time: cd site && npm install
 npm run site:dev         # astro dev on localhost:4321
 npm run site:build       # astro build → site/dist
+cd site && npm run test:e2e   # Playwright e2e against THIS worktree's build: port hashed from the worktree path (PW_PORT overrides), never reuses a running server
 
 # Checkpoints (session state docs at .checkpoints/<skill>.checkpoint.json) —
 npm run checkpoint:status    # print "where did I leave off?" markdown summary

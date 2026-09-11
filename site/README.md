@@ -16,9 +16,22 @@ npm run test:e2e # Playwright e2e (auto-builds with test PostHog key, then runs 
 
 ## E2E (Sprint 7a)
 
-The Playwright suite lives in `site/tests/e2e/` and runs against a real
-`astro preview` server on `127.0.0.1:4321`. The Worker is **not** booted —
-`/api/try/*` is mocked per-test via `page.route()`.
+The Playwright suite lives in `site/tests/e2e/` and runs against Astro's
+static preview server over `dist/`, booted in the foreground by
+`tests/e2e/preview-server.mjs` (Astro's programmatic `preview()`, not the
+`astro preview` CLI — under an AI coding agent the Astro 7 CLI forks a
+detached daemon and exits, which is how orphan previews get left behind).
+The Worker is **not** booted — `/api/*` is mocked per-test via
+`page.route()`.
+
+The port is derived from the worktree path (`20000`–`29999`), so several
+worktrees can run the suite side by side; `PW_PORT=<n>` overrides it and
+CI keeps `4321`. The harness never reuses a server it did not start: if
+something is already listening on the port, Playwright aborts with
+"`<url> is already used`" instead of silently testing another worktree's
+build. Find the process with `lsof -nP -iTCP:<port> -sTCP:LISTEN` and
+kill it (an orphaned `astro preview` daemon also answers to
+`npx astro preview stop` run from the `site/` that started it).
 
 First run on a clean clone:
 
