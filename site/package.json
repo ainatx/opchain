@@ -27,7 +27,7 @@
     "@astrojs/sitemap": "^3.7.4",
     "astro": "^7.3.1",
     "dompurify": "^3.4.14",
-    "isomorphic-dompurify": "^3.18.0",
+    "isomorphic-dompurify": "^4.1.0",
     "marked": "^18.0.5"
   },
   "devDependencies": {
