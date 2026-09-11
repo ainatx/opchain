@@ -12,7 +12,24 @@ checkpoint `protocol_version` is tracked separately (see
 
 ## [Unreleased]
 
-_Nothing yet._
+### Fixed
+
+- **Commit gate (plugin) — the tree hash is mandatory, and the documented schema
+  passes.** `hooks/pre-commit-gate.cjs` allowed a PASS with no `verified_tree` for
+  10 minutes, so a recent PASS also covered edits made after it. It now denies any
+  PASS without a tree hash, at any age; reads `skill_state.last_run.verdict` (the
+  shape oc-bug-check's SKILL.md documented, which the gate previously ignored); and
+  denies when recorded verdict fields disagree. **Stricter:** a checkpoint that
+  records a verdict but no `skill_state.verified_tree` is now denied where it used
+  to pass for 10 minutes — re-run `/oc-bugcheck` so the run records the tree.
+- **oc-bug-check** — the Checkpoint Schema documents `last_run_verdict` and
+  `verified_tree`, and a new Commit gate contract section gives the exact tree
+  recipe: `git add -A` into a throwaway index. The `/oc-bugcheck` command had said
+  bare `git write-tree`, which misses unstaged and untracked files and so never
+  matched a dirty tree. The hook suite now builds its accepted checkpoint from that
+  section, so the docs and the gate cannot drift apart silently again.
+- **oc-git-ops** — the Pre-Commit Gate note describes the tree-bound hook instead
+  of a freshness window.
 
 ## [1.9.0] — 2026-09-02 — "Assurance and governed delivery ops"
 

@@ -7,8 +7,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/pre-commit-bugcheck.sh",
-            "timeout": 5
+            "command": "node \"$CLAUDE_PROJECT_DIR/plugins/opchain/hooks/pre-commit-gate.cjs\"",
+            "timeout": 10
           }
         ]
       }

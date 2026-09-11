@@ -28,14 +28,25 @@
 //   GATE-05  A checkpoint with no `updated_at` skipped the freshness backstop,
 //            so the cheapest forgery was `{"last_run_verdict":"PASS"}` with no
 //            timestamp at all. Fixed by denying when the time is unknowable.
+//   GATE-06  A PASS with no `verified_tree` was still allowed for 10 minutes —
+//            the tree-less window of the repo-local ancestor, in which any
+//            fresh PASS cleared any commit whatever changed after the check.
+//            Meanwhile oc-bug-check's SKILL.md documented the verdict only at
+//            `skill_state.last_run.verdict`, with no tree, so a skill following
+//            its own docs was denied by the gate that ships — while the opchain
+//            repo itself kept running the ancestor, which accepted exactly that
+//            shape. Fixed: the tree is mandatory at every age, `last_run.verdict`
+//            is read, verdict fields that disagree deny, and the repo's own
+//            sessions run this file.
 //
 // The through-line: every one of these failed OPEN. A gate whose error path is
 // "allow" is a formality, not a gate. Hence rule 0.
 //
 // Rules:
 //   0. FAIL CLOSED. Any state we cannot evaluate is a deny, never an allow.
-//   1. NODE, NOT BASH+JQ. The repo-local ancestor soft-skips when `jq` is
-//      missing, so a fresh container silently has no gate. Node always exists.
+//   1. NODE, NOT BASH+JQ. The retired repo-local ancestor soft-skipped when
+//      `jq` was missing, so a fresh container silently had no gate. Node
+//      always exists.
 //   2. VERDICTS BOUND TO CONTENT. `write_checkpoint` is a public MCP tool and
 //      the agent authors the file, so a bare `verdict: PASS` is self-attestation.
 //      Binding it to a tree hash makes a stale or forged PASS NON-MATCHING.
@@ -53,8 +64,6 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { spawnSync } = require("child_process");
-
-const FRESH_MS = 10 * 60 * 1000;
 
 function allow() {
   process.exit(0);
@@ -121,8 +130,8 @@ const stripped = rawCommand
  * Does this command actually INVOKE `git commit`?
  *
  * Substring matching is wrong and harmful: it blocks `echo "git commit"`,
- * heredocs, and `grep -r 'git commit' docs/`. (The repo-local ancestor does
- * exactly that, and it blocked this file's own test runs twice.) False
+ * heredocs, and `grep -r 'git commit' docs/`. (The retired repo-local ancestor
+ * did exactly that, and it blocked this file's own test runs twice.) False
  * positives teach people to bypass, which costs the true positives too.
  *
  * So: `git` must be in command position — start of string, or after a shell
@@ -209,9 +218,23 @@ if (!cp || typeof cp !== "object" || Array.isArray(cp)) {
 }
 
 const st = (cp.skill_state && typeof cp.skill_state === "object" && cp.skill_state) || {};
-const verdict = String(st.last_run_verdict || st.verdict || "").toUpperCase();
 
-if (verdict === "UNSUPPORTED") {
+// The verdict is recorded in up to three places: `last_run_verdict` (the flat
+// field this gate reads first), `verdict`, and `last_run.verdict` (the detailed
+// record oc-bug-check's SKILL.md has always documented, and all the retired
+// repo-local gate read). Any of them counts, but every one present must agree —
+// a checkpoint saying PASS in one field and FAIL in another is not evidence of
+// a pass (RULE 0). Without this, a stale flat PASS could outvote a fresh FAIL.
+const lastRun = (st.last_run && typeof st.last_run === "object" && st.last_run) || {};
+const recorded = [
+  ...new Set(
+    [st.last_run_verdict, st.verdict, lastRun.verdict]
+      .filter((v) => v !== undefined && v !== null && v !== "")
+      .map((v) => String(v).toUpperCase()),
+  ),
+];
+
+if (recorded.includes("UNSUPPORTED")) {
   deny(
     "opchain: oc-bug-check returned UNSUPPORTED — it did not recognize this stack,\n" +
       "so types, lint, tests and build were never run. An absence of findings is not\n" +
@@ -219,13 +242,18 @@ if (verdict === "UNSUPPORTED") {
       "Adaptations) or bypass deliberately with `git commit --no-verify`.",
   );
 }
-if (verdict !== "PASS") {
-  deny(`opchain: last oc-bug-check verdict was ${verdict || "(none recorded)"}, not PASS.\n\n${INVOKE}`);
+if (recorded.length > 1) {
+  deny(
+    `opchain: the oc-bug-check checkpoint records conflicting verdicts (${recorded.join(", ")}),\n` +
+      "so it is not evidence of a PASS.\n\n" +
+      INVOKE,
+  );
+}
+if (recorded[0] !== "PASS") {
+  deny(`opchain: last oc-bug-check verdict was ${recorded[0] || "(none recorded)"}, not PASS.\n\n${INVOKE}`);
 }
 
-const verifiedTree = st.verified_tree || st.verified_for_tree || null;
-
-// ── freshness: an unknowable time is not freshness (GATE-05) ────────────────
+// ── an unknowable time is not evidence (GATE-05) ────────────────────────────
 const ts = Date.parse(cp.updated_at || "");
 if (Number.isNaN(ts)) {
   deny(
@@ -234,11 +262,17 @@ if (Number.isNaN(ts)) {
       INVOKE,
   );
 }
-if (!verifiedTree && Math.abs(Date.now() - ts) > FRESH_MS) {
-  const mins = Math.floor(Math.abs(Date.now() - ts) / 60000);
+
+// ── the tree is mandatory at every age (GATE-06) ────────────────────────────
+// Recency is not coverage: a PASS recorded one minute ago says nothing about a
+// file edited thirty seconds ago. Only the tree hash can say that.
+const verifiedTree = st.verified_tree || st.verified_for_tree || null;
+if (!verifiedTree) {
   deny(
-    `opchain: oc-bug-check passed ${mins}m ago and recorded no tree hash, so there is\n` +
-      "no way to tell whether it covered the code you are committing.\n\n" +
+    "opchain: oc-bug-check recorded a PASS but no `skill_state.verified_tree`, so there is\n" +
+      "no way to tell whether it covered the code you are committing — however recently\n" +
+      "it ran. The run must record the tree hash alongside the verdict\n" +
+      "(skills/oc-bug-check/SKILL.md § Commit gate contract).\n\n" +
       INVOKE,
   );
 }
@@ -285,29 +319,29 @@ function fullWorkingTree() {
   }
 }
 
-if (verifiedTree) {
-  const actual = fullWorkingTree();
+const actual = fullWorkingTree();
 
-  // RULE 0: if we cannot hash the state, we cannot claim it was verified.
-  if (!actual) {
-    deny(
-      "opchain: could not hash the working tree (unmerged index, index.lock held, or\n" +
-        "git unavailable), so the recorded PASS cannot be bound to this commit. Resolve\n" +
-        "the repo state and retry, or bypass with `git commit --no-verify`.",
-    );
-  }
+// RULE 0: if we cannot hash the state, we cannot claim it was verified.
+if (!actual) {
+  deny(
+    "opchain: could not hash the working tree (unmerged index, index.lock held, or\n" +
+      "git unavailable), so the recorded PASS cannot be bound to this commit. Resolve\n" +
+      "the repo state and retry, or bypass with `git commit --no-verify`.",
+  );
+}
 
-  if (verifiedTree !== actual) {
-    deny(
-      "opchain: the repo has changed since oc-bug-check passed, so the PASS does not\n" +
-        "cover what you are about to commit.\n\n" +
-        `    verified:      ${String(verifiedTree).slice(0, 12)}\n` +
-        `    working tree:  ${String(actual).slice(0, 12)}\n\n` +
-        "Some tracked or untracked file differs from the state that was checked. Re-run\n" +
-        "the gate so the verdict covers the current code:\n\n" +
-        INVOKE,
-    );
-  }
+if (verifiedTree !== actual) {
+  deny(
+    "opchain: the repo has changed since oc-bug-check passed, so the PASS does not\n" +
+      "cover what you are about to commit.\n\n" +
+      `    verified:      ${String(verifiedTree).slice(0, 12)}\n` +
+      `    working tree:  ${String(actual).slice(0, 12)}\n\n` +
+      "Some tracked or untracked file differs from the state that was checked. (If\n" +
+      "nothing changed, the tree was recorded wrongly — it must be the full working\n" +
+      "tree, not bare `git write-tree`; see oc-bug-check § Commit gate contract.)\n" +
+      "Re-run the gate so the verdict covers the current code:\n\n" +
+      INVOKE,
+  );
 }
 
 allow();
