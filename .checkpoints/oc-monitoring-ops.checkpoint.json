@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-20T03:50:45.264Z",
-  "updated_at": "2026-09-11T04:06:09.812Z",
+  "updated_at": "2026-09-11T14:05:18.640Z",
   "phase": "observe",
-  "step": "v1.9-baseline-stale-production-off-baseline-since-2026-09-05",
-  "status": "blocked",
-  "progress_summary": "Production is off the approved v1.9.0 baseline. opchain.dev/api/health serves 78567c2 (merge of PR #483, 2026-09-05 01:57Z) from Cloudflare deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72, while .github/monitoring/release-baseline.json still records 244bf13 at deployment 54ef8a21-0665-4a83-bc1a-5768c2bae0d5. Staging serves fbb24a8, a SHA on no origin branch (an off-main branch preview). Scheduled Canary runs 33970020249 (Sept 5) and 34359976498 (Sept 9) and Deploy lag runs 33971641171 and 34363685054 all failed with 'current deployment 8da6c19d… does not match baseline 54ef8a21…'. Deploy lag died before its issue step, so no tracking issue exists and 19 deploy-relevant main paths after 78567c2 are untracked. The owner confirmed on 2026-09-11 that the 78567c2 deploy was deliberate and is to be blessed. Deploy lag now files its issue on a mismatch and deploy.mjs warns when a deploy leaves the baseline stale.",
+  "step": "runtime-approval-baseline-pr-open",
+  "status": "in_progress",
+  "progress_summary": "2026-09-11: production runtime 78567c2 approved through the baseline's new `runtime` block (branch chore/approve-post-release-runtime; PR opened this session). release stays v1.9.0 (244bf13); production is recorded at deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72 / version b6268c62-48e8-4c30-a0c6-fea074ae260c (100%) / etag 236d0156… / health 78567c2. Local control-plane with credentials on the branch: production ✓ (matches v1.9.0 (244bf13) + approved runtime 78567c2); staging ✗ by design — staging serves the off-main demo-rebuild preview (213d401, deployment 6863e5bc…, deployed 2026-09-11T07:09Z) by owner decision and its v1.9.0 entry is deliberately unchanged, so the scheduled Canary (all environments) stays red on its staging half until staging is redeployed from main. deploy-diff after the runtime: 33 deploy-relevant / 24 explicitly non-deploying paths, so Deploy lag (production only) is expected green on the 2026-09-13 cycle and will file the tracking issue for the next release workstream (#498 made it file the issue before failing). Owner rejected rollback and a v1.9.1 patch release in favour of the explicit runtime approval.",
   "progress_table": [
     {
       "id": "live-runtime",
@@ -39,19 +39,18 @@
       "id": "monitor-guardrails",
       "label": "Deploy lag files its issue on control-plane mismatch; deploy.mjs warns on a stale baseline",
       "status": "in_progress"
-    }
-  ],
-  "blockers": [
+    },
     {
-      "id": "baseline-refresh-needs-laptop",
-      "description": "Refreshing release-baseline.json needs Cloudflare credentials and wrangler on the laptop: read the version id and script etag of production deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72, redeploy staging from 78567c2, verify with cloudflare-monitor.mjs control-plane + deploy-diff, open the baseline PR.",
-      "needs": "external_dep",
-      "blocking": "post-release-scheduled-evidence"
+      "id": "runtime-approval",
+      "label": "78567c2 approved as the post-release production runtime (baseline runtime block)",
+      "status": "in_progress"
     }
   ],
+  "blockers": [],
   "next_actions": [
-    "Laptop: refresh .github/monitoring/release-baseline.json to sourceSha 78567c2d70e6f00836000e4bd6bbad842ba04a42 / deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72 (version id + etag from wrangler), redeploy staging from the same SHA and record its ids, verify locally with credentials, open the baseline PR.",
-    "After merge: dispatch Canary and Deploy lag on main; the next scheduled cycle (every fourth day-of-month, 13:47Z / 14:17Z) must pass before continuous_monitoring_status returns to healthy.",
+    "Merge the runtime-approval baseline PR; then dispatch Canary (environment=production) and Deploy lag on main and record the run ids here.",
+    "When the demo-rebuild preview is no longer needed on staging: npm run deploy:staging from origin/main, record staging's deployment/version/etag in release-baseline.json, drop pointInTimeEvidence.note — only then does the scheduled all-environment Canary go green.",
+    "At the next release cut, remove the baseline `runtime` block when `release` re-binds to the new signed tag (runbook → Approved post-release runtime).",
     "Keep Cloudflare Free-plan Bot Fight Mode enabled; do not claim a WAF Skip exception, enable workers.dev, or upgrade the plan without new authority.",
     "Retain CLOUDFLARE_ACCOUNT_ID and rotate CLOUDFLARE_API_TOKEN to a dedicated least-privilege read credential during Phase C8."
   ],
@@ -111,12 +110,14 @@
       "expiry_30_day_gate": "pass"
     },
     "production_deployment": {
-      "deployment_id": "54ef8a21-0665-4a83-bc1a-5768c2bae0d5",
-      "version_id": "01bbe46b-3533-4faa-bc1a-d140cbcecbbe",
-      "script_etag": "3b626cc22d8f1fa8d444686f3f6f209296184cba7114d65373019058d61cb875",
-      "git_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
-      "health_version": "244bf13",
-      "traffic_percent": 100
+      "deployment_id": "8da6c19d-a89a-4214-8e58-4606c7ce2f72",
+      "version_id": "b6268c62-48e8-4c30-a0c6-fea074ae260c",
+      "script_etag": "236d015622faef5596b4dd309c0b0c8cb3e198baacdab4381fbf28f2b662fdfd",
+      "git_sha": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
+      "health_version": "78567c2",
+      "traffic_percent": 100,
+      "deployed_at": "2026-09-05T02:24:37Z",
+      "approval": "post-release runtime block in release-baseline.json (reviewed baseline PR, 2026-09-11)"
     },
     "staging_deployment": {
       "deployment_id": "791c1851-2b81-4408-b881-dac381fa6d07",
@@ -124,7 +125,8 @@
       "script_etag": "3b626cc22d8f1fa8d444686f3f6f209296184cba7114d65373019058d61cb875",
       "git_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
       "health_version": "244bf13",
-      "traffic_percent": 100
+      "traffic_percent": 100,
+      "live_note": "live since 2026-09-11T07:09Z: off-main demo-rebuild preview 213d401 at deployment 6863e5bc-d479-4381-930a-74bd99cb21e5 / version 715220bc-2c7b-4b2b-abec-9063676b30e3; the recorded v1.9.0 entry is intentionally unchanged (owner decision)"
     },
     "live_log_probe": {
       "at": "2026-09-02T20:21:00Z",
@@ -132,14 +134,20 @@
       "result": "no events observed in bounded local tail",
       "assurance": "Authenticated control-plane validation independently confirmed that observability and automatic invocation logs are enabled."
     },
-    "operational_status": "serving 78567c2 with 200 health; monitoring baseline stale, not a runtime incident",
-    "continuous_monitoring_status": "failing since 2026-09-05: production deployment 8da6c19d (78567c2) is not the approved 54ef8a21 (244bf13); staging fbb24a8 is an off-main preview",
+    "operational_status": "serving 78567c2 with 200 health; runtime approved, baseline refresh in review",
+    "continuous_monitoring_status": "baseline PR open 2026-09-11: production matches once merged; Canary's staging half stays red by design until staging is redeployed from main; Deploy lag expected green on the 2026-09-13 cycle",
     "baseline": {
       "pull_request": 478,
       "merge_sha": "c6d529631cfe49021efdcabcfcf02bc95a94700f",
       "merged_at": "2026-09-02T21:43:29Z",
       "tag": "v1.9.0",
-      "tag_object": "fd05dd2c5d696661cb2cc5cb9dd57d2470f69c32"
+      "tag_object": "fd05dd2c5d696661cb2cc5cb9dd57d2470f69c32",
+      "runtime": {
+        "sha": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
+        "short_sha": "78567c2",
+        "descends_from": "v1.9.0 (244bf13)",
+        "approved_via": "chore/approve-post-release-runtime baseline PR, 2026-09-11 (reviewed PR, not a signed tag)"
+      }
     },
     "scheduled_canary": {
       "default_branch_activation": "active",
@@ -193,8 +201,8 @@
         "approved_version": "244bf13"
       },
       "staging": {
-        "live_version": "fbb24a8",
-        "note": "not on any origin branch; off-main branch preview",
+        "live_version": "213d401",
+        "note": "off-main demo-rebuild preview (claude/demo-rebuild-2-0), redeployed 2026-09-11T07:09Z; intentional, left out of the baseline refresh",
         "approved_deployment_id": "791c1851-2b81-4408-b881-dac381fa6d07"
       },
       "failed_scheduled_runs": {
@@ -208,7 +216,8 @@
         ]
       },
       "deploy_relevant_main_paths_after_live": 19,
-      "owner_decision": "bless 78567c2 and re-baseline (2026-09-11)"
+      "owner_decision": "bless 78567c2 and re-baseline (2026-09-11)",
+      "resolution": "2026-09-11: 78567c2 approved as the post-release runtime (baseline runtime block); staging kept as intentional preview"
     }
   }
 }
