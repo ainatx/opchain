@@ -9,7 +9,7 @@ import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml"; // namespace import: js-yaml 5 dropped the default export, v4 keeps the named ones
 // The verb→flag drift gate lives in the site half (scripts/check-skill-flags.mjs
 // + the registry). This suite moves to the product repo at the split, where the
 // registry is absent — so the import degrades to a skip instead of an error.

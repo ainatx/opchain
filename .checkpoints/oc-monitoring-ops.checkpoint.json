@@ -4,22 +4,54 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-20T03:50:45.264Z",
-  "updated_at": "2026-09-02T21:49:57.000Z",
+  "updated_at": "2026-09-11T04:06:09.812Z",
   "phase": "observe",
-  "step": "v1.9-baseline-verified-scheduled-followup-pending",
-  "status": "in_progress",
-  "progress_summary": "The v1.9.0 runtime is operationally healthy at exact SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248. Monitoring baseline PR #478 is merged, and default-branch Canary run 33686712301 plus Deploy lag run 33686714194 authenticated to Cloudflare and passed against the exact active production and staging deployments. Deploy lag found zero deploy-relevant changes, ignored the one baseline-only change, and auto-closed stale issue #475. Continuous monitoring remains conservatively in progress until the first successful v1.9 event=schedule cycle on September 5; workflow_dispatch evidence proves the baseline now, not the scheduler cycle. Bot Fight Mode remains enabled and public machine traffic may still be challenged.",
+  "step": "v1.9-baseline-stale-production-off-baseline-since-2026-09-05",
+  "status": "blocked",
+  "progress_summary": "Production is off the approved v1.9.0 baseline. opchain.dev/api/health serves 78567c2 (merge of PR #483, 2026-09-05 01:57Z) from Cloudflare deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72, while .github/monitoring/release-baseline.json still records 244bf13 at deployment 54ef8a21-0665-4a83-bc1a-5768c2bae0d5. Staging serves fbb24a8, a SHA on no origin branch (an off-main branch preview). Scheduled Canary runs 33970020249 (Sept 5) and 34359976498 (Sept 9) and Deploy lag runs 33971641171 and 34363685054 all failed with 'current deployment 8da6c19d… does not match baseline 54ef8a21…'. Deploy lag died before its issue step, so no tracking issue exists and 19 deploy-relevant main paths after 78567c2 are untracked. The owner confirmed on 2026-09-11 that the 78567c2 deploy was deliberate and is to be blessed. Deploy lag now files its issue on a mismatch and deploy.mjs warns when a deploy leaves the baseline stale.",
   "progress_table": [
-    { "id": "live-runtime", "label": "Exact-SHA production and staging health verification", "status": "complete" },
-    { "id": "baseline-refresh", "label": "v1.9 approved Cloudflare release baseline merged", "status": "complete" },
-    { "id": "manual-canary", "label": "Authenticated default-branch Canary validation", "status": "complete" },
-    { "id": "manual-deploy-lag", "label": "Deploy-relevant diff and incident reconciliation", "status": "complete" },
-    { "id": "post-release-scheduled-evidence", "label": "First successful v1.9 scheduled Canary and Deploy lag cycle", "status": "in_progress" }
+    {
+      "id": "live-runtime",
+      "label": "Exact-SHA production and staging health verification",
+      "status": "complete"
+    },
+    {
+      "id": "baseline-refresh",
+      "label": "v1.9 approved Cloudflare release baseline merged",
+      "status": "complete"
+    },
+    {
+      "id": "manual-canary",
+      "label": "Authenticated default-branch Canary validation",
+      "status": "complete"
+    },
+    {
+      "id": "manual-deploy-lag",
+      "label": "Deploy-relevant diff and incident reconciliation",
+      "status": "complete"
+    },
+    {
+      "id": "post-release-scheduled-evidence",
+      "label": "First successful scheduled Canary and Deploy lag cycle against the current production deployment",
+      "status": "blocked"
+    },
+    {
+      "id": "monitor-guardrails",
+      "label": "Deploy lag files its issue on control-plane mismatch; deploy.mjs warns on a stale baseline",
+      "status": "in_progress"
+    }
   ],
-  "blockers": [],
+  "blockers": [
+    {
+      "id": "baseline-refresh-needs-laptop",
+      "description": "Refreshing release-baseline.json needs Cloudflare credentials and wrangler on the laptop: read the version id and script etag of production deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72, redeploy staging from 78567c2, verify with cloudflare-monitor.mjs control-plane + deploy-diff, open the baseline PR.",
+      "needs": "external_dep",
+      "blocking": "post-release-scheduled-evidence"
+    }
+  ],
   "next_actions": [
-    "Observe the September 5 13:47 UTC Canary and 14:17 UTC Deploy lag schedule runs on main.",
-    "If both event=schedule runs pass against v1.9.0, set continuous_monitoring_status to healthy and close this checkpoint.",
+    "Laptop: refresh .github/monitoring/release-baseline.json to sourceSha 78567c2d70e6f00836000e4bd6bbad842ba04a42 / deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72 (version id + etag from wrangler), redeploy staging from the same SHA and record its ids, verify locally with credentials, open the baseline PR.",
+    "After merge: dispatch Canary and Deploy lag on main; the next scheduled cycle (every fourth day-of-month, 13:47Z / 14:17Z) must pass before continuous_monitoring_status returns to healthy.",
     "Keep Cloudflare Free-plan Bot Fight Mode enabled; do not claim a WAF Skip exception, enable workers.dev, or upgrade the plan without new authority.",
     "Retain CLOUDFLARE_ACCOUNT_ID and rotate CLOUDFLARE_API_TOKEN to a dedicated least-privilege read credential during Phase C8."
   ],
@@ -100,8 +132,8 @@
       "result": "no events observed in bounded local tail",
       "assurance": "Authenticated control-plane validation independently confirmed that observability and automatic invocation logs are enabled."
     },
-    "operational_status": "healthy",
-    "continuous_monitoring_status": "v1.9-baseline-verified; first scheduled cycle pending",
+    "operational_status": "serving 78567c2 with 200 health; monitoring baseline stale, not a runtime incident",
+    "continuous_monitoring_status": "failing since 2026-09-05: production deployment 8da6c19d (78567c2) is not the approved 54ef8a21 (244bf13); staging fbb24a8 is an off-main preview",
     "baseline": {
       "pull_request": 478,
       "merge_sha": "c6d529631cfe49021efdcabcfcf02bc95a94700f",
@@ -116,7 +148,9 @@
       "latest_v1_9_validation_event": "workflow_dispatch",
       "latest_v1_9_validation_conclusion": "success",
       "latest_successful_scheduled_run_id": 33494989108,
-      "next_scheduled_at": "2026-09-05T13:47:00Z"
+      "next_scheduled_at": "2026-09-05T13:47:00Z",
+      "latest_scheduled_run_id": 34359976498,
+      "latest_scheduled_conclusion": "failure"
     },
     "deploy_lag_monitor": {
       "latest_v1_9_validation_run_id": 33686714194,
@@ -129,7 +163,9 @@
       "reconciled_issue": 475,
       "issue_closed_at": "2026-09-02T21:44:00Z",
       "successful_scheduled_v1_9_run": null,
-      "next_scheduled_at": "2026-09-05T14:17:00Z"
+      "next_scheduled_at": "2026-09-05T14:17:00Z",
+      "latest_scheduled_run_id": 34363685054,
+      "latest_scheduled_conclusion": "failure"
     },
     "assurance_limits": [
       "No WAF exception exists; Free-plan Bot Fight Mode remains enabled.",
@@ -146,6 +182,33 @@
     "phase_c": {
       "monitor_credentials": "retain CLOUDFLARE_ACCOUNT_ID and rotate CLOUDFLARE_API_TOKEN to least privilege during C8",
       "mirror_token": "separate credential; retire only after C7 is fully green"
+    },
+    "observed_drift": {
+      "detected_at": "2026-09-11T03:45:00Z",
+      "production": {
+        "live_version": "78567c2",
+        "live_sha": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
+        "deployment_id": "8da6c19d-a89a-4214-8e58-4606c7ce2f72",
+        "approved_deployment_id": "54ef8a21-0665-4a83-bc1a-5768c2bae0d5",
+        "approved_version": "244bf13"
+      },
+      "staging": {
+        "live_version": "fbb24a8",
+        "note": "not on any origin branch; off-main branch preview",
+        "approved_deployment_id": "791c1851-2b81-4408-b881-dac381fa6d07"
+      },
+      "failed_scheduled_runs": {
+        "canary": [
+          33970020249,
+          34359976498
+        ],
+        "deploy_lag": [
+          33971641171,
+          34363685054
+        ]
+      },
+      "deploy_relevant_main_paths_after_live": 19,
+      "owner_decision": "bless 78567c2 and re-baseline (2026-09-11)"
     }
   }
 }
