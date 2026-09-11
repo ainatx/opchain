@@ -34,6 +34,12 @@
   --accent:      #e05c18;
   --accent-hover:#b84510;
   --accent-dim:  rgba(224, 92, 24, 0.10);
+  /* Label colour ON a filled --accent surface. Call sites used to hardcode
+     #1c1710 (or var(--obsidian)), which silently assumes the accent is always
+     light-on-dark — an assumption that breaks the moment the accent changes.
+     Today this resolves to the same value those call sites used, so nothing
+     moves; it exists so that a palette change can move it in one place. */
+  --on-accent:   var(--obsidian);
   --glow:        rgba(224, 92, 24, 0.14);
 
   /* Semantic state colours */
@@ -170,6 +176,7 @@
   --accent:      #d95010;
   --accent-hover:#ab3e08;
   --accent-dim:  rgba(217, 80, 16, 0.12);
+  --on-accent:   var(--obsidian);   /* see the dark block */
   --glow:        rgba(217, 80, 16, 0.10);
 
   --danger:      #b33a3a;

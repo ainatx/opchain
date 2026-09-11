@@ -490,6 +490,41 @@ description: >
   "ship v1.3", "tag the release", "draft the changelog", "what's in this
   release", "version bump".
 
+# oc-claude-api
+description: >
+  Build, debug, and optimize Claude API / Anthropic SDK apps. Apps built with
+  this skill include prompt caching by default. Also migrates existing Claude
+  API code between model versions (4.6 → 4.7, retired-model replacements). Use
+  for /oc-claude-api, "Anthropic SDK", "prompt caching", "cache hit rate",
+  "tool use", "model migration", "extended thinking", "batch API", "files API",
+  "memory", "citations".
+
+# oc-rag-forge
+description: >
+  Retrieval-augmented generation harness with a Designer/Builder/Evaluator
+  loop. Owns vector DB selection (pgvector, Turbopuffer, Pinecone, Supabase
+  Vectors), embedding-model choice, chunking strategy, hybrid search, and
+  retrieval evaluation. Use for /oc-rag, "RAG", "vector database", "embeddings",
+  "chunking", "semantic search", "hybrid search", "retrieval eval", "reranking",
+  "knowledge base".
+
+# oc-agent-forge
+description: >
+  Claude Agent SDK build harness with a Planner/Builder/Evaluator loop. Owns
+  subagent topology, tool-budget design, harness loop shapes, and agent
+  evaluation. Use for /oc-agent, "Claude Agent SDK", "build an agent",
+  "subagent", "tool budget", "agent loop", "harness", "multi-agent",
+  "agent eval", "orchestrator-worker". Model routing comes from oc-claude-api;
+  agent-forge owns topology + harness shape.
+
+# oc-prompt-ops
+description: >
+  Prompt operations harness — treat prompts as versioned, diffable,
+  source-controlled code. Owns prompt versioning, eval datasets, regression
+  detection, and drift tracking. Use for /oc-prompt, "prompt versioning",
+  "eval dataset", "prompt regression", "prompt drift", "golden set",
+  "prompt diff", "LLM eval", "regression suite".
+
 # oc-cost-ops
 description: >
   Cost operations harness — attribute LLM spend to the skill phase that incurred
@@ -507,6 +542,45 @@ description: >
   Use for /oc-telemetry, "usage metering", "telemetry", "opt-in analytics",
   "which skills do people use", "usage stats", "dashboard data". Trigger
   liberally on usage/telemetry work.
+
+# oc-signal-forge
+description: >
+  Analytics & signals backend harness with a Designer/Builder/Evaluator loop. Derives
+  new metrics from the question they answer, builds the instrumentation + harvester +
+  transform, and adversarially verifies the signal is correct AND answers the question
+  before wiring it to a consumer. Use for /oc-signal, "new metric", "instrument this",
+  "analytics backend", "data harvesting", "is this metric right", "wire up a signal",
+  "derive a KPI". Hands rendered output to oc-dash-forge. NOT pipeline telemetry
+  (oc-telemetry-ops), NOT dashboards (oc-dash-forge), NOT prod uptime (oc-monitoring-ops),
+  NOT estate-level data pipelines — ingestion/dbt/warehouse layering is oc-data-ops;
+  when a metric needs a pipeline that doesn't exist, chain to /oc-data-ops design
+  and build the signal on the contracted mart.
+
+# oc-modularize-ops
+description: >
+  Monolith decomposition operator. Decides whether modularization is even the right call
+  (and is willing to say no), captures golden fixtures from REAL data for every boundary
+  as an equivalence oracle, plans the seams + data ownership, and proves zero
+  functionality/data loss by replaying the fixtures. Supports parallel-copy and
+  strangler-fig strategies. Hands the bulk code-move + live cutover to oc-migration-ops
+  (Structural type) and per-module deployment to oc-fleet-ops. Use for /oc-modularize,
+  "break up the monolith", "extract a service from a live system", "split this codebase
+  safely", "golden fixtures", "no functionality loss". For a behaviour-git-diffable
+  repo/package reorg, use oc-migration-ops Structural instead. Trigger when decomposing a
+  LIVE monolith carrying real traffic.
+
+# oc-fleet-ops
+description: >
+  Multi-container / orchestration deployment operator for self-managed infrastructure.
+  Declares topology (containers/services × target environment), provisions infra with the
+  right IaC tool (Terraform/OpenTofu when it fits, else Ansible/cloud-init/k8s-manifests/
+  Helm/Nomad/Compose), rolls the fleet with a rollout strategy, verifies fleet-wide health,
+  and operates day-2 (scale/drain/replace/rollback). Specifically lands the modules
+  oc-modularize-ops carves out of a monolith. Use for /oc-fleet, "deploy multiple
+  containers", "kubernetes", "terraform", "orchestrate containers", "on-prem deployment",
+  "deploy to VMs", "self-managed infra", "container fleet". Complements oc-deploy-ops
+  (single-app managed PaaS): managed app → deploy-ops; multi-container/self-managed/IaC →
+  fleet-ops. Trigger on multi-container / IaC / self-managed deployment.
 
 # oc-qa-ops
 description: >

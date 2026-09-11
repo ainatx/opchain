@@ -120,7 +120,7 @@ a:hover { color: var(--accent-hover); }
   border-radius: var(--r-xs);
 }
 
-::selection { background: var(--accent); color: var(--obsidian); }
+::selection { background: var(--accent); color: var(--on-accent); }
 
 /* Shiki dual-theme switch. Astro emits the light theme's color +
    background-color inline on each <pre>/<span> and exposes the dark

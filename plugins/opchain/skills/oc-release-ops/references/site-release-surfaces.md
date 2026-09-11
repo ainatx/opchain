@@ -42,6 +42,15 @@ live-claim flips until deploy.
 | L5 | Changelog — tab counts | `site/src/pages/changelog.astro` | `Just Released <span class="tab-count">K shipped</span>` (K++) |
 | L6 | Roadmap timeline — shipped flip | `site/src/data/roadmap-static.ts` | the now-live release leaves `in-progress` (shipped releases live in the changelog release-history, not the forward timeline — per the file's own header) |
 | L7 | styleguide Badge example | `site/src/pages/styleguide.astro` | `<Badge>vN.N.N</Badge>` (cosmetic component demo) |
+| L8 | Architecture diagram — eyebrow | `site/src/pages/architecture.astro` | `SKILLS · ARCHITECTURE · v2 · RELEASE vN` |
+| L9 | Architecture diagram — footer | `site/src/pages/architecture.astro` | `… spine ordinals · vN · checkpoint-driven` |
+| L10 | Mobile architecture — eyebrow | `site/src/components/MobileArchitecture.astro` | `SKILLS · ARCHITECTURE · v2 · MOBILE · vN` |
+
+> **Why L8–L10 are here.** The diagrams were listed only as a *forward* surface
+> (F6, the version annotations), so the half of them that makes a **live claim**
+> had no owner. All three still said `v1.8` after v1.9 shipped, and
+> `check-release-surfaces.mjs` reported all-clear because it wasn't probing
+> them. They are now probed; see *The straggler check* below.
 
 ### The 21-day active window (L4 detail)
 
@@ -78,7 +87,7 @@ if a release re-enters the window, e.g. a date correction.)
 | F3 | Changelog — Coming Next tab count | `site/src/pages/changelog.astro` | `Coming Next <span class="tab-count">vN</span>` |
 | F4 | Changelog — Planned tab | `site/src/pages/changelog.astro` | shift the planned cards forward (`#vN+1`/`#vN+2`/…); keep ≥6 votable `[data-vote-target]` items |
 | F5 | Roadmap timeline — buckets | `site/src/data/roadmap-static.ts` | building release → `in-progress`; next themes → `planned`; refresh `generated_at`, blurbs, `OPC-` vote ids |
-| F6 | Architecture diagrams (version annotations) | `site/src/components/MobileArchitecture.astro` + the desktop `architecture` page | the `vN` band badges + "NEW vN" phase/pack annotations; add the release's new skills/phase where the diagram narrates the pipeline |
+| F6 | Architecture diagrams (new skills + version annotations) | `site/src/components/MobileArchitecture.astro` + `site/src/pages/architecture.astro` | the `vN` band badges + "NEW vN" annotations, and the release's new skills drawn into the diagram. This is a procedure, not a find/replace — follow [`docs/runbooks/architecture-diagram-cycle.md`](../../../docs/runbooks/architecture-diagram-cycle.md), which covers placement (rail vs band), the house geometry conventions CI asserts, and the counts that must move with it. Note the diagrams also carry live-claim surfaces L8–L10. |
 | F7 | Per-skill OG cards | `site/src/layouts/Base.astro` (`ROUTE_OG_IMAGES`) + `scripts/gen-og.mjs` | add `/skills/<new-skill>` → `/og/skills-<new-skill>.png` for each new skill, and add the skill to the gen-og generation list so the PNG exists |
 | F8 | Skill library | `/skills` index + `/skills/[id]` | auto-discovered from `skills/*/SKILL.md` (no manual edit) — but confirm the new skills appear and any phase chips cover their `phases:` |
 
