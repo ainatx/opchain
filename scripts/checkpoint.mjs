@@ -667,18 +667,20 @@ function driftTokens(all) {
   return toks;
 }
 
-/** Return the approved site release SHA when this checkout carries the site's
- * monitoring baseline. The product repo intentionally does not: checkpoint
- * remains product-owned after the split, while live deployment monitoring
- * stays with opchain.dev. A missing baseline therefore means "not applicable",
- * not drift. Malformed baselines still fail loudly for site checkouts. */
+/** Return the approved site runtime SHA when this checkout carries the site's
+ * monitoring baseline: the signed release, or the reviewed post-release
+ * `runtime` block when one is recorded (that is what /api/health reports).
+ * The product repo intentionally has no baseline: checkpoint remains
+ * product-owned after the split, while live deployment monitoring stays with
+ * opchain.dev. A missing baseline therefore means "not applicable", not drift.
+ * Malformed baselines still fail loudly for site checkouts. */
 function readApprovedReleaseBaseline(root = ROOT) {
   const baselinePath = join(root, ".github", "monitoring", "release-baseline.json");
   if (!existsSync(baselinePath)) return null;
   const baseline = JSON.parse(readFileSync(baselinePath, "utf8"));
-  const expected = baseline?.release?.sourceShortSha;
+  const expected = baseline?.runtime?.shortSha ?? baseline?.release?.sourceShortSha;
   if (!/^[0-9a-f]{7,12}$/.test(expected || "")) {
-    throw new Error("approved release baseline has no valid sourceShortSha");
+    throw new Error("approved release baseline has no valid runtime.shortSha or release.sourceShortSha");
   }
   return expected;
 }

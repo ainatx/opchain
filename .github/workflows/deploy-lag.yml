@@ -84,6 +84,7 @@ jobs:
           IGNORED_COUNT: ${{ steps.diff.outputs.ignored_count }}
           BASELINE_SHA: ${{ steps.diff.outputs.baseline_sha }}
           BASELINE_TAG: ${{ steps.diff.outputs.baseline_tag }}
+          RUNTIME_SHA: ${{ steps.diff.outputs.runtime_sha }}
           DEPLOY_DIFF_FILE: ${{ runner.temp }}/deploy-relevant.txt
           ISSUE_TITLE: "Deploy lag: deploy-relevant changes after approved release"
           LEGACY_ISSUE_TITLE: "Deploy lag: production is behind main"
@@ -103,17 +104,24 @@ jobs:
           head="$(git rev-parse origin/main)"
 
           # The baseline file is the fallback when the diff step died before
-          # exporting its outputs; the issue must still name the release.
+          # exporting its outputs; the issue must still name the release. When a
+          # post-release runtime is approved, BASELINE_SHA is that runtime (the
+          # commit main is diffed against) and the label says so.
           if [ -z "${BASELINE_TAG}" ] || [ -z "${BASELINE_SHA}" ]; then
             BASELINE_TAG="$(node -p 'require("./.github/monitoring/release-baseline.json").release.tag')"
-            BASELINE_SHA="$(node -p 'require("./.github/monitoring/release-baseline.json").release.sourceSha')"
+            BASELINE_SHA="$(node -p 'const b = require("./.github/monitoring/release-baseline.json"); (b.runtime && b.runtime.sha) || b.release.sourceSha')"
+            RUNTIME_SHA="$(node -p 'const b = require("./.github/monitoring/release-baseline.json"); (b.runtime && b.runtime.sha) || ""')"
+          fi
+          LABEL="${BASELINE_TAG}"
+          if [ -n "${RUNTIME_SHA}" ]; then
+            LABEL="${BASELINE_TAG} + approved runtime ${RUNTIME_SHA:0:7}"
           fi
 
           if [ "$CONTROL_OUTCOME" = "success" ] && [ "$DIFF_OUTCOME" = "success" ] && [ "$HAS_CHANGES" != "true" ]; then
-            echo "ok: Cloudflare matches ${BASELINE_TAG}; ${IGNORED_COUNT} changed path(s) are explicitly non-deploying"
+            echo "ok: Cloudflare matches ${LABEL}; ${IGNORED_COUNT} changed path(s) are explicitly non-deploying"
             for issue in "$existing" "$legacy"; do
               if [ -n "$issue" ]; then
-                gh issue close "$issue" --comment "Resolved — Cloudflare matches approved baseline \`${BASELINE_TAG}\` (\`${BASELINE_SHA}\`), and changes through \`${head}\` are explicitly non-deploying. Closed automatically by the release-baseline deploy-lag monitor."
+                gh issue close "$issue" --comment "Resolved — Cloudflare matches approved baseline \`${LABEL}\` (\`${BASELINE_SHA}\`), and changes through \`${head}\` are explicitly non-deploying. Closed automatically by the release-baseline deploy-lag monitor."
               fi
             done
             exit 0
@@ -122,7 +130,7 @@ jobs:
           {
             if [ "$CONTROL_OUTCOME" != "success" ]; then
               printf '## Production does not match the approved baseline\n\n'
-              printf 'The Cloudflare control-plane check against `%s` (`%s`) failed:\n\n' "$BASELINE_TAG" "$BASELINE_SHA"
+              printf 'The Cloudflare control-plane check against `%s` (`%s`) failed:\n\n' "$LABEL" "$BASELINE_SHA"
               printf '```\n'
               { grep -E '::error::' "$CONTROL_LOG" | sed 's/^::error:://'; } || cat "$CONTROL_LOG"
               printf '```\n\n'
@@ -130,7 +138,7 @@ jobs:
               printf 'Follow `docs/runbooks/cloudflare-challenge.md` → *After an intentional deployment* (record the new deployment/version ids, verify locally, open the baseline PR), '
               printf 'or roll production back to the approved deployment. Do not silently bless an unknown version by editing the baseline.\n\n'
             else
-              printf 'Cloudflare still matches the approved release baseline `%s` (`%s`).\n\n' "$BASELINE_TAG" "$BASELINE_SHA"
+              printf 'Cloudflare still matches the approved release baseline `%s` (`%s`).\n\n' "$LABEL" "$BASELINE_SHA"
             fi
 
             if [ "$DIFF_OUTCOME" != "success" ]; then
@@ -139,7 +147,7 @@ jobs:
               printf '```\n\n'
             elif [ "$HAS_CHANGES" = "true" ]; then
               commits="$(git rev-list --count "${BASELINE_SHA}..origin/main")"
-              printf 'Main is `%s`, with **%s deploy-relevant path(s)** across %s commit(s) after that baseline.\n\n' "$head" "$CHANGED_COUNT" "$commits"
+              printf 'Main is `%s`, with **%s deploy-relevant path(s)** across %s commit(s) after that baseline (`%s`).\n\n' "$head" "$CHANGED_COUNT" "$commits" "$LABEL"
               printf '### Deploy-relevant paths\n\n'
               sed 's/^/- `/' "$DEPLOY_DIFF_FILE" | sed 's/$/`/'
               printf '\n### Required action\n\n'
@@ -156,7 +164,7 @@ jobs:
           fi
           if [ -n "$existing" ]; then
             gh issue edit "$existing" --body-file "$RUNNER_TEMP/deploy-lag-body.md"
-            gh issue comment "$existing" --body "Still pending: baseline=\`${BASELINE_TAG}\`, main=\`${head}\`, control-plane=${CONTROL_OUTCOME}, deploy-relevant paths=${CHANGED_COUNT:-unknown}."
+            gh issue comment "$existing" --body "Still pending: baseline=\`${LABEL}\`, main=\`${head}\`, control-plane=${CONTROL_OUTCOME}, deploy-relevant paths=${CHANGED_COUNT:-unknown}."
           else
             gh issue create --title "$ISSUE_TITLE" --body-file "$RUNNER_TEMP/deploy-lag-body.md"
           fi

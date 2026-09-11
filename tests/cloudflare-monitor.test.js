@@ -1,8 +1,10 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import {
+  approvedRuntime,
   checkEnvironment,
   classifyDeployRelevantPaths,
+  collectDeployDiff,
   validateBaseline,
 } from "../.github/scripts/cloudflare-monitor.mjs";
 
@@ -108,6 +110,32 @@ describe("release baseline", () => {
     const candidate = structuredClone(baseline);
     candidate.environments.production.bindings = [];
     expect(() => validateBaseline(candidate)).toThrow(/ASSETS/);
+  });
+
+  it("accepts a reviewed post-release runtime and resolves it as the approved commit", () => {
+    const candidate = structuredClone(baseline);
+    candidate.runtime = { sha: "d".repeat(40), shortSha: "ddddddd", approval: "PR #483 hotfix, approved by baseline PR" };
+    expect(validateBaseline(candidate)).toMatchObject({ runtime: { shortSha: "ddddddd" } });
+    expect(approvedRuntime(candidate)).toEqual({
+      sha: "d".repeat(40),
+      shortSha: "ddddddd",
+      label: "v1.8.3 (bbbbbbb) + approved runtime ddddddd",
+    });
+    expect(approvedRuntime(baseline)).toEqual({ sha: "b".repeat(40), shortSha: "bbbbbbb", label: "v1.8.3 (bbbbbbb)" });
+  });
+
+  it("refuses a runtime block that is unapproved, malformed, or just the release again", () => {
+    const unapproved = structuredClone(baseline);
+    unapproved.runtime = { sha: "d".repeat(40), shortSha: "ddddddd", approval: " " };
+    expect(() => validateBaseline(unapproved)).toThrow(/runtime.approval/);
+
+    const mismatched = structuredClone(baseline);
+    mismatched.runtime = { sha: "d".repeat(40), shortSha: "eeeeeee", approval: "PR" };
+    expect(() => validateBaseline(mismatched)).toThrow(/prefix runtime.sha/);
+
+    const restated = structuredClone(baseline);
+    restated.runtime = { sha: "b".repeat(40), shortSha: "bbbbbbb", approval: "PR" };
+    expect(() => validateBaseline(restated)).toThrow(/restates the release SHA/);
   });
 });
 
@@ -284,6 +312,67 @@ describe("deploy-relevant diff", () => {
   });
 });
 
+describe("deploy-diff base commit", () => {
+  const RELEASE = "b".repeat(40);
+  const RUNTIME = "d".repeat(40);
+
+  // A fake `git` runner: `ancestors` lists the "<ancestor>..<descendant>" pairs
+  // that hold; every other merge-base query fails like git's exit 1 does.
+  function fakeGit({ ancestors, diff = "src/index.js\ndocs/x.md" }) {
+    const ranges = [];
+    const run = vi.fn((args) => {
+      const [command] = args;
+      if (command === "cat-file" && args[1] === "-e") return "";
+      if (command === "cat-file" && args[1] === "-t") return "tag";
+      if (command === "rev-parse" && args[1] === "refs/tags/v1.8.3") return "a".repeat(40);
+      if (command === "rev-parse" && args[1] === "v1.8.3^{commit}") return RELEASE;
+      if (command === "rev-parse" && args[1] === "--verify") return "origin/main";
+      if (command === "merge-base") {
+        if (ancestors.includes(`${args[2]}..${args[3]}`)) return "";
+        throw new Error(`git ${args.join(" ")} failed`);
+      }
+      if (command === "diff") {
+        ranges.push(args[2]);
+        return diff;
+      }
+      throw new Error(`unexpected git ${args.join(" ")}`);
+    });
+    return { run, ranges };
+  }
+
+  it("diffs main against the signed release when no runtime is recorded", () => {
+    const { run, ranges } = fakeGit({ ancestors: [`${RELEASE}..origin/main`] });
+    const result = collectDeployDiff(baseline, { run });
+    expect(ranges).toEqual([`${RELEASE}..origin/main`]);
+    expect(result).toMatchObject({ baseSha: RELEASE, deployRelevant: ["src/index.js"], nonDeploy: ["docs/x.md"] });
+  });
+
+  it("diffs main against an approved runtime once it proves release → runtime → main", () => {
+    const candidate = structuredClone(baseline);
+    candidate.runtime = { sha: RUNTIME, shortSha: "ddddddd", approval: "PR #483" };
+    const { run, ranges } = fakeGit({
+      ancestors: [`${RELEASE}..origin/main`, `${RELEASE}..${RUNTIME}`, `${RUNTIME}..origin/main`],
+    });
+    const result = collectDeployDiff(candidate, { run });
+    expect(ranges).toEqual([`${RUNTIME}..origin/main`]);
+    expect(result).toMatchObject({ baseSha: RUNTIME, baseShortSha: "ddddddd" });
+  });
+
+  it("refuses a runtime that does not descend from the signed release", () => {
+    const candidate = structuredClone(baseline);
+    candidate.runtime = { sha: RUNTIME, shortSha: "ddddddd", approval: "PR #483" };
+    const { run } = fakeGit({ ancestors: [`${RELEASE}..origin/main`, `${RUNTIME}..origin/main`] });
+    expect(() => collectDeployDiff(candidate, { run })).toThrow(/does not descend from v1.8.3/);
+  });
+
+  it("refuses a runtime that is not on origin/main (a branch preview is never approved)", () => {
+    const candidate = structuredClone(baseline);
+    candidate.runtime = { sha: RUNTIME, shortSha: "ddddddd", approval: "PR #483" };
+    const { run } = fakeGit({ ancestors: [`${RELEASE}..origin/main`, `${RELEASE}..${RUNTIME}`] });
+    expect(() => collectDeployDiff(candidate, { run })).toThrow(/is not on origin\/main/);
+  });
+});
+
 describe("workflow safety", () => {
   const canary = readFileSync(new URL("../.github/workflows/canary.yml", import.meta.url), "utf8");
   const lag = readFileSync(new URL("../.github/workflows/deploy-lag.yml", import.meta.url), "utf8");
@@ -319,5 +408,11 @@ describe("workflow safety", () => {
     expect(lag).toContain("DIFF_OUTCOME: ${{ steps.diff.outcome }}");
     expect(lag).toContain("Production does not match the approved baseline");
     expect(lag).toContain("if: steps.control.outcome != 'success' || steps.diff.outcome != 'success'");
+  });
+
+  it("names the approved runtime, not just the tag, in the deploy-lag issue", () => {
+    expect(lag).toContain("RUNTIME_SHA: ${{ steps.diff.outputs.runtime_sha }}");
+    expect(lag).toContain("(b.runtime && b.runtime.sha) || b.release.sourceSha");
+    expect(lag).toContain('LABEL="${BASELINE_TAG} + approved runtime ${RUNTIME_SHA:0:7}"');
   });
 });

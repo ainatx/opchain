@@ -7,15 +7,20 @@
     "sourceSha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
     "sourceShortSha": "244bf13"
   },
+  "runtime": {
+    "sha": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
+    "shortSha": "78567c2",
+    "approval": "Post-release hotfix from main: PR #483 (fix(architecture): audit sweep + draw the v1.9 assurance rail) was deployed to production on 2026-09-05T02:24Z without a new tag. Approved as the production runtime by the reviewed baseline change that added this block (git log -- .github/monitoring/release-baseline.json); the next release cut removes it when release re-binds to the new signed tag."
+  },
   "environments": {
     "production": {
       "worker": "opchain-dev",
       "hostname": "opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "54ef8a21-0665-4a83-bc1a-5768c2bae0d5",
-      "versionId": "01bbe46b-3533-4faa-bc1a-d140cbcecbbe",
+      "deploymentId": "8da6c19d-a89a-4214-8e58-4606c7ce2f72",
+      "versionId": "b6268c62-48e8-4c30-a0c6-fea074ae260c",
       "trafficPercentage": 100,
-      "scriptEtag": "3b626cc22d8f1fa8d444686f3f6f209296184cba7114d65373019058d61cb875",
+      "scriptEtag": "236d015622faef5596b4dd309c0b0c8cb3e198baacdab4381fbf28f2b662fdfd",
       "handlers": ["fetch"],
       "bindings": ["ASSETS"],
       "observabilityEnabled": true
@@ -68,7 +73,8 @@
     ]
   },
   "pointInTimeEvidence": {
-    "healthVersion": "244bf13",
-    "continuousCustomDomainProbe": false
+    "healthVersion": "78567c2",
+    "continuousCustomDomainProbe": false,
+    "note": "staging intentionally serves an off-main branch preview (claude/demo-rebuild-2-0 @ 213d401, deployed 2026-09-11T07:09Z). Its recorded v1.9.0 entry above is deliberately unchanged, so the canary's staging half stays red until staging is redeployed from main and this entry is refreshed."
   }
 }

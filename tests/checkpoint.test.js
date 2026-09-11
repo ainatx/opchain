@@ -29,6 +29,12 @@ describe("approved release baseline seam", () => {
         JSON.stringify({ release: { sourceShortSha: "395fc31" } }),
       );
       expect(readApprovedReleaseBaseline(root)).toBe("395fc31");
+      // A reviewed post-release hotfix is what /api/health actually reports.
+      writeFileSync(
+        join(dir, "release-baseline.json"),
+        JSON.stringify({ release: { sourceShortSha: "395fc31" }, runtime: { shortSha: "78567c2" } }),
+      );
+      expect(readApprovedReleaseBaseline(root)).toBe("78567c2");
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
