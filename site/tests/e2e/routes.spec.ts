@@ -1,6 +1,73 @@
 import { writeFileSync } from "node:fs";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
+
+// ── colour helpers for the /security CTA test ──────────────────────────────
+// Parse a computed CSS colour (Chromium serialises sRGB as `rgb()`/`rgba()`;
+// color-mix() results can come back as `color(srgb …)`). Returns sRGB in
+// 0..1 plus alpha, or null for anything else.
+function parseCssColor(value: string): [number, number, number, number] | null {
+  const alphaOf = (raw: string | undefined) =>
+    raw === undefined ? 1 : raw.endsWith("%") ? parseFloat(raw) / 100 : parseFloat(raw);
+  const legacy = value.match(
+    /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)(?:\s*[,/]\s*([\d.]+%?))?\s*\)$/,
+  );
+  if (legacy) {
+    return [Number(legacy[1]) / 255, Number(legacy[2]) / 255, Number(legacy[3]) / 255, alphaOf(legacy[4])];
+  }
+  const modern = value.match(
+    /^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+%?))?\s*\)$/,
+  );
+  if (modern) {
+    return [Number(modern[1]), Number(modern[2]), Number(modern[3]), alphaOf(modern[4])];
+  }
+  return null;
+}
+
+function relativeLuminance([r, g, b]: number[]): number {
+  const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+
+/** WCAG 2.x contrast ratio between two computed colours; 0 if unparseable. */
+function contrastRatio(a: string, b: string): number {
+  const pa = parseCssColor(a);
+  const pb = parseCssColor(b);
+  if (!pa || !pb) return 0;
+  const la = relativeLuminance(pa);
+  const lb = relativeLuminance(pb);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+
+interface Paint {
+  color: string;
+  background: string;
+  ratio: number;
+  opaque: boolean;
+}
+
+async function paint(el: Locator): Promise<Paint> {
+  const { color, background } = await el.evaluate((node) => {
+    const cs = getComputedStyle(node);
+    return { color: cs.color, background: cs.backgroundColor };
+  });
+  const fg = parseCssColor(color);
+  const bg = parseCssColor(background);
+  return {
+    color,
+    background,
+    ratio: contrastRatio(color, background),
+    opaque: fg !== null && bg !== null && fg[3] === 1 && bg[3] === 1,
+  };
+}
+
+async function expectNoContrastViolations(page: Page, selector: string) {
+  const { violations } = await new AxeBuilder({ page })
+    .include(selector)
+    .withRules(["color-contrast"])
+    .analyze();
+  expect(violations).toEqual([]);
+}
 
 /**
  * Smoke: every top-level route renders.
@@ -127,37 +194,42 @@ test.describe("routes render", () => {
   }
 
   test("/security private-advisory CTA keeps legible text", async ({ page }) => {
+    // Guards the #465 regression: the CTA's text vanished against its fill in
+    // one theme. The invariant is the *relationship* between text and fill
+    // (opaque, ≥ 4.5:1, Axe-clean, and hover visibly restyles the button),
+    // not the palette. An earlier version pinned Forge rgb() literals, which
+    // the v2.0 Slate & Emerald token sheet broke on PR #490 without any
+    // legibility regression. Palette changes must not touch this test.
     await page.goto("/security", { waitUntil: "domcontentloaded" });
+    const selector = ".sec-cta-btn";
     const cta = page.getByRole("link", {
       name: "Open a private security advisory on GitHub",
     });
 
     await expect(cta).toBeVisible();
-    for (const [theme, hoverBackground] of [
-      ["dark", "rgb(184, 69, 16)"],
-      ["light", "rgb(171, 62, 8)"],
-    ] as const) {
+    for (const theme of ["dark", "light"] as const) {
       await page.evaluate((value) => {
         document.documentElement.setAttribute("data-theme", value);
       }, theme);
       await page.mouse.move(0, 0);
 
-      await expect(cta).toHaveCSS("color", "rgb(28, 23, 16)");
-      await expect(cta).toHaveCSS("background-color", "rgb(224, 92, 24)");
-      const { violations } = await new AxeBuilder({ page })
-        .include(".sec-cta-btn")
-        .withRules(["color-contrast"])
-        .analyze();
-      expect(violations).toEqual([]);
+      const rest = await paint(cta);
+      expect(rest.opaque, `${theme}: rest paint must be opaque (${rest.color} on ${rest.background})`).toBe(true);
+      expect(
+        rest.ratio,
+        `${theme}: rest text ${rest.color} on ${rest.background} is ${rest.ratio.toFixed(2)}:1`,
+      ).toBeGreaterThanOrEqual(4.5);
+      await expectNoContrastViolations(page, selector);
 
       await cta.hover();
-      await expect(cta).toHaveCSS("color", "rgb(246, 240, 232)");
-      await expect(cta).toHaveCSS("background-color", hoverBackground);
-      const hoverAudit = await new AxeBuilder({ page })
-        .include(".sec-cta-btn")
-        .withRules(["color-contrast"])
-        .analyze();
-      expect(hoverAudit.violations).toEqual([]);
+      const hover = await paint(cta);
+      expect(hover.opaque, `${theme}: hover paint must be opaque (${hover.color} on ${hover.background})`).toBe(true);
+      expect(
+        hover.ratio,
+        `${theme}: hover text ${hover.color} on ${hover.background} is ${hover.ratio.toFixed(2)}:1`,
+      ).toBeGreaterThanOrEqual(4.5);
+      expect(hover.background, `${theme}: hover must restyle the fill`).not.toBe(rest.background);
+      await expectNoContrastViolations(page, selector);
     }
   });
 
