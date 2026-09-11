@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-09-11T07:35:00.809Z",
-  "phase": "pr-open",
-  "step": "pr-498-awaiting-review",
-  "status": "in_progress",
-  "progress_summary": "2026-09-11 CI-failure analysis session. PR #498 carries the fixes: LHCI preview with the /api/health stub and Vite-equivalent gzip, error-level gates on all seven routes, palette-independent security CTA e2e test, --no-fetch for the release-tag gate's unit test, pre-commit mirror hook installed by npm prepare, js-yaml namespace imports, deploy-lag issue-on-mismatch plus deploy.mjs stale-baseline warning, checkpoint drift record, release-tag backfill runbook. The approved merge chain is complete: #495, #493, #497, #496, #473, #486, #485 squash-merged in order with all four required checks green on each (one sanctioned re-run on #473 for the check-release-tag fetch timeout). #468 and #470 closed as superseded. #471 (TypeScript 7) cannot install against @astrojs/check's peer range; on the owner's decision it is closed and dependabot.yml ignores typescript 7.x for /site. #472 waits for #498. #490 has its conflict list and the CTA finding as a comment. #498's branch now includes origin/main 38f2bd4. Ref deletion is HTTP 403 here; the 34 bot/checkpoint-stamp-* branches and the wip/ tag stay for the owner.",
+  "updated_at": "2026-09-11T08:24:42.076Z",
+  "phase": "pr-merged",
+  "step": "chain-closed-2026-09-11",
+  "status": "complete",
+  "progress_summary": "2026-09-11 CI-failure analysis session, closed out. PR #498 merged as ffad47c: LHCI preview with the /api/health stub and Vite-equivalent gzip, error-level gates on all seven routes, palette-independent security CTA e2e test, --no-fetch for the release-tag gate's unit test, pre-commit mirror hook, js-yaml namespace imports, deploy-lag issue-on-mismatch plus deploy.mjs stale-baseline warning, dependabot.yml ignore for typescript 7.x in /site, checkpoint drift record, release-tag backfill runbook. Dependabot chain merged in order (#495, #493, #497, #496, #473, #486, #485) and #472 (js-yaml 5.4.1) merged as bc13620 once main carried the imports. #468 and #470 closed as superseded; #471 closed by hand (TS 7 cannot install against @astrojs/check's peer range). #490 keeps its conflict list and CTA finding as a comment. Ref deletion is HTTP 403 here; the 34 bot/checkpoint-stamp-* branches and the wip/ tag stay for the owner.",
   "progress_table": [
     {
       "id": "v1.9-release-pr",
@@ -162,29 +162,14 @@
   },
   "blockers": [],
   "next_actions": [
-    "Owner: review and merge #498 (squash). The branch already contains origin/main 38f2bd4, so the up-to-date rule is satisfied; CI reruns on the merge commit.",
-    "After #498 merges: bring #472 (js-yaml 5.4.1) up to date with GitHub update-branch (comment commands are not processed on this pre-transfer PR) so its Worker job runs against the namespace imports; then wait for the four required checks and squash-merge.",
-    "#471 is closed by hand and .github/dependabot.yml ignores typescript 7.x for /site (in #498). Expect Dependabot to propose typescript 6.0.3 on its next Monday run; it is inside @astrojs/check's ^5 || ^6 peer range. Lift the ignore once @astrojs/check accepts 7.x.",
     "Owner, from the laptop: delete the 34 bot/checkpoint-stamp-* branches and the wip/v1-8-docs-mesh-20260703 tag; this session's credentials get HTTP 403 on ref deletion. Command: for b in $(git ls-remote --heads origin 'refs/heads/bot/checkpoint-stamp-*' | awk '{print $2}' | sed 's|refs/heads/||'); do git push origin --delete \"$b\"; done; git push origin --delete wip/v1-8-docs-mesh-20260703",
-    "Owner: triage the stale claude/, codex/, chore/, design/, docs/ branches listed in the session summary (older than 30 days, none merged into main)."
+    "Owner: triage the stale claude/, codex/, chore/, design/, docs/ branches listed in the session summary (older than 30 days, none merged into main).",
+    "Expect Dependabot to propose typescript 6.0.3 for /site on its next Monday run (inside @astrojs/check's ^5 || ^6 peer range); lift the 7.x ignore in .github/dependabot.yml once @astrojs/check accepts 7.x.",
+    "#490 (v2.0 branch): merge origin/main into it to restore CI; the CTA test fix and the mirror hook are on main now. Main-side fixes only, per owner."
   ],
   "skill_state": {
-    "current_branch": "claude/lhci-ci-failures-analysis-s525xz (PR #498; origin/main 38f2bd4 merged in on 2026-09-11; runtime release remains signed SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248)",
+    "current_branch": "claude/lhci-ci-failures-analysis-s525xz (restarted from origin/main after #498 merged; runtime release remains signed SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248)",
     "open_prs": [
-      {
-        "number": 498,
-        "branch": "claude/lhci-ci-failures-analysis-s525xz",
-        "title": "ci(gates): LHCI health stub, deploy-lag issue on mismatch, palette-free CTA test, js-yaml 5, mirror hook",
-        "opened_at": "2026-09-11T04:16:00Z",
-        "state": "awaiting owner review; branch refreshed onto main 38f2bd4 on 2026-09-11 so the up-to-date rule is satisfied"
-      },
-      {
-        "number": 472,
-        "branch": "dependabot/npm_and_yarn/js-yaml-5.4.1",
-        "title": "deps: bump js-yaml from 4.3.1 to 5.4.1",
-        "opened_at": "2026-08-31T08:10:38Z",
-        "state": "Worker job red on js-yaml 5's dropped default export; #498 carries the namespace imports. Rebase after #498 merges."
-      },
       {
         "number": 490,
         "branch": "v2.0 token sheet",
@@ -447,6 +432,22 @@
         "merge_sha": "38f2bd4",
         "merged_at": "2026-09-11T07:21:36Z",
         "ci_final": "all green (after one branch update for behind-state)"
+      },
+      {
+        "number": 498,
+        "title": "ci(gates): LHCI health stub, deploy-lag issue on mismatch, palette-free CTA test, js-yaml 5, mirror hook",
+        "merge_method": "squash",
+        "merge_sha": "ffad47c",
+        "merged_at": "2026-09-11T08:18:22Z",
+        "ci_final": "all green on 1c46428: Worker, Site, Playwright, LHCI (Best Practices 1.00 on all seven routes, /demo Performance 0.97), Dependabot config check. Owner merged on request."
+      },
+      {
+        "number": 472,
+        "title": "deps: bump js-yaml from 4.3.1 to 5.4.1",
+        "merge_method": "squash",
+        "merge_sha": "bc13620",
+        "merged_at": "2026-09-11T08:24:00Z",
+        "ci_final": "all green on 0f2db48 after GitHub update-branch onto ffad47c; the Worker job passed once main carried the js-yaml namespace imports from #498"
       }
     ],
     "closed_unmerged_prs": [
@@ -719,7 +720,11 @@
       ],
       "method": "update branch (or @dependabot rebase on lockfile conflict) → four required checks → squash merge; main requires up-to-date branches",
       "completed_at": "2026-09-11T07:21:36Z",
-      "rerun_used": "#473 Worker job, once, after a standing-down comment"
+      "rerun_used": "#473 Worker job, once, after a standing-down comment",
+      "follow_ups": {
+        "472": "bc13620",
+        "498": "ffad47c"
+      }
     },
     "dependabot_note": "Comment commands (`@dependabot rebase`, `@dependabot ignore ...`) are not processed on the Dependabot PRs opened on 2026-08-31 during the repository transfer (#471, and by extension #472); Dependabot's scheduled runs still manage them (auto-rebase on conflict works). Use GitHub update-branch for those PRs, as with #473."
   }
