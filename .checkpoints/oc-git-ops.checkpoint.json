@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-09-02T21:49:57.000Z",
-  "phase": "closeout",
-  "step": "v1.9-release-delivery-complete",
-  "status": "complete",
-  "progress_summary": "The v1.9 release Git workflow is complete. Release PR #477 merged with all required checks as exact runtime SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248; signed tag v1.9.0 resolves to that SHA and Registry publication passed. Monitoring baseline PR #478 merged as non-deploying commit c6d529631cfe49021efdcabcfcf02bc95a94700f after CI, Playwright, and Lighthouse passed. Authenticated main-branch Canary and Deploy lag dispatches then passed and closed stale issue #475. The release runtime remains the signed tag SHA; later .github and checkpoint-only commits are explicitly non-deploying.",
+  "updated_at": "2026-09-11T06:08:23.610Z",
+  "phase": "pr-open",
+  "step": "pr-498-ci-failure-fixes",
+  "status": "in_progress",
+  "progress_summary": "2026-09-11 CI-failure analysis session. Branch claude/lhci-ci-failures-analysis-s525xz carries the fixes (LHCI preview with /api/health stub and Vite-equivalent gzip, error-level gates on all routes, palette-independent security CTA e2e test, --no-fetch for the release-tag gate's unit test, pre-commit mirror hook installed by npm prepare, js-yaml namespace imports, deploy-lag issue-on-mismatch plus deploy.mjs stale-baseline warning, checkpoint drift record, release-tag backfill runbook) as PR #498. Merged #495 and #493 by squash; the green Dependabot PRs go through the update-branch, checks, merge chain because main requires up-to-date branches. Closed superseded #468 and #470; asked Dependabot to rebase #471; #472 rebases after #498 lands. Commented the 12-file conflict list and the CTA finding on #490. Ref deletion is HTTP 403 from this session, so the 34 bot/checkpoint-stamp-* branches and the wip/ tag stay for the owner to delete.",
   "progress_table": [
     {
       "id": "v1.9-release-pr",
@@ -161,10 +161,22 @@
     ]
   },
   "blockers": [],
-  "next_actions": [],
+  "next_actions": [
+    "Drive #498 to green and merge it (owner review); then comment @dependabot rebase on #472 so the js-yaml 5 bump gets a real CI result.",
+    "Finish the merge chain: #497, #496, #473, #486, #485 — update branch, wait for the four required checks, squash-merge, repeat (main requires up-to-date branches). #495 and #493 are merged.",
+    "Owner, from the laptop: delete the 34 bot/checkpoint-stamp-* branches and the wip/v1-8-docs-mesh-20260703 tag; this session's credentials get HTTP 403 on ref deletion. Command: for b in $(git ls-remote --heads origin 'refs/heads/bot/checkpoint-stamp-*' | awk '{print $2}' | sed 's|refs/heads/||'); do git push origin --delete \"$b\"; done; git push origin --delete wip/v1-8-docs-mesh-20260703",
+    "Owner: triage the stale claude/, codex/, chore/, design/, docs/ branches listed in the session summary (older than 30 days, none merged into main)."
+  ],
   "skill_state": {
     "current_branch": "codex/v1.9-release-signoff (from origin/main c6d529631cfe49021efdcabcfcf02bc95a94700f; runtime release remains signed SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248)",
-    "open_prs": [],
+    "open_prs": [
+      {
+        "number": 498,
+        "branch": "claude/lhci-ci-failures-analysis-s525xz",
+        "title": "ci(gates): LHCI health stub, deploy-lag issue on mismatch, palette-free CTA test, js-yaml 5, mirror hook",
+        "opened_at": "2026-09-11T04:16:00Z"
+      }
+    ],
     "merged_prs": [
       {
         "number": 140,
@@ -382,11 +394,11 @@
     "default_base": "main",
     "depends_on": "app-architect for build state; ux-engineer for design rationale; checkpoint-protocol v1.0",
     "merged_prs+": {
-      "number": 452,
-      "title": "docs(runbooks): OSS-split execution handoff (rev 3, adversarially verified)",
-      "merge_method": "rebase-admin",
-      "merge_sha": "a2ca230",
-      "merged_at": "2026-08-27T19:53:30Z"
+      "number": 493,
+      "title": "docs(release): plan v2.0 \"The self-improving pipeline\"",
+      "merge_method": "squash",
+      "merge_sha": "bf63d66fa2ce9ade2aa30daf6adc724d3a898006",
+      "merged_at": "2026-09-11T06:08:23Z"
     },
     "oss_split": {
       "plan": "docs/plans/2026-08-22-oss-split-licensing-compliance.md",
@@ -395,7 +407,10 @@
       "leak_scanner": "gitleaks 8.30.1 installed; no rewritten-history scan run",
       "manifest": "split/product-paths.txt prepared for human review",
       "pm_fixture": ".opchain/pm.yaml scrubbed of maintainer UUIDs and ADEV release-plan data",
-      "stale_drafts_closed": [385, 363],
+      "stale_drafts_closed": [
+        385,
+        363
+      ],
       "product_commits": "~76–82 of 543",
       "tags_carried": [
         "v1.8.0",
@@ -426,7 +441,13 @@
     ],
     "open_prs+": null,
     "prior_release_reconciliation": {
-      "merged_prs": [461, 462, 463, 465, 466],
+      "merged_prs": [
+        461,
+        462,
+        463,
+        465,
+        466
+      ],
       "release_sha": "395fc314c836d5d9d8a76b64d85b8380ece3a68b",
       "staging_review_version_id": "a8d3d1de-885e-466c-b762-ee2e946c8261",
       "current_staging_version_id": "c52b3bd6-4eee-4e50-a8c3-e21569b998d6",
@@ -596,6 +617,13 @@
       "assurance": "The schedule is active; oc-monitoring-ops keeps continuous status pending until both September 5 event=schedule runs pass."
     },
     "last_pr_number": 478,
-    "last_pr_url": "https://github.com/a-atx/opchain/pull/478"
+    "last_pr_url": "https://github.com/a-atx/opchain/pull/478",
+    "branch_hygiene": {
+      "at": "2026-09-11T06:08:23Z",
+      "bot_checkpoint_stamp_branches": 34,
+      "deletion": "blocked: HTTP 403 on ref deletion from this session; owner runs git push origin --delete",
+      "wip_tag": "wip/v1-8-docs-mesh-20260703 -> e1d5cd3, same block",
+      "stale_branches_reviewed": 25
+    }
   }
 }
