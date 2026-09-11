@@ -35,8 +35,12 @@
 // so it is blind to a patch release. The catalog version is full semver.
 //
 // Run:   node scripts/check-release-tag.mjs
-//        node scripts/check-release-tag.mjs --local   # signed pre-push gate
-//        node scripts/check-release-tag.mjs --json    # machine-readable gate result
+//        node scripts/check-release-tag.mjs --local     # signed pre-push gate
+//        node scripts/check-release-tag.mjs --json      # machine-readable gate result
+//        node scripts/check-release-tag.mjs --no-fetch  # skip `git fetch origin --tags`
+//                                                       # (unit tests, offline diagnosis;
+//                                                       # never the deploy gate — a stale
+//                                                       # tag list would fail an honest deploy)
 // Exit:  0 when the release tag and seal are valid, 1 when any release-ledger
 //        or signature invariant is unprovable.
 
@@ -476,7 +480,10 @@ export function remediation({ version, tag, reason, countDrift }) {
 // CLI
 if (import.meta.url === `file://${process.argv[1]}`) {
   const localOnly = process.argv.includes("--local");
-  const result = checkReleaseTag({ verifyRemote: !localOnly });
+  const result = checkReleaseTag({
+    verifyRemote: !localOnly,
+    fetch: !process.argv.includes("--no-fetch"),
+  });
   if (process.argv.includes("--json")) {
     console.log(JSON.stringify(result));
     process.exit(result.ok ? 0 : 1);
