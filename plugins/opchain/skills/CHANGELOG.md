@@ -22,6 +22,18 @@ checkpoint `protocol_version` is tracked separately (see
   denies when recorded verdict fields disagree. **Stricter:** a checkpoint that
   records a verdict but no `skill_state.verified_tree` is now denied where it used
   to pass for 10 minutes — re-run `/oc-bugcheck` so the run records the tree.
+- **Commit gate (plugin) — a wrapper's re-scan covers only what it runs.** Once a
+  wrapper (`sh -c`, `bash -c`, `eval`, `… | sh`) appeared anywhere in a command,
+  the gate re-scanned the *whole* command for `git commit`, so quoted data — a JSON
+  dry-run payload piped into the gate — plus an unrelated `sh -c` on the next line
+  was denied as a commit. The re-scan now covers the wrapper's own command, plus
+  anything piped into it or fed to it by a here-doc. **Stricter:** wrappers are
+  found in the same command position as `git`, so `FOO=1 bash -c '…'`,
+  `/bin/sh -c '…'`, `nice sh -c '…'` and `then sh -c '…'`, which each committed
+  past the gate, now deny. The prefix grammar no longer backtracks
+  exponentially (26 × `time` outran the hook's 10s timeout), and quote spans
+  follow bash's rules: `\'` inside single quotes is not an escape, so
+  `echo 'a\' ; git commit …` no longer hides a commit.
 - **oc-bug-check** — the Checkpoint Schema documents `last_run_verdict` and
   `verified_tree`, and a new Commit gate contract section gives the exact tree
   recipe: `git add -A` into a throwaway index. The `/oc-bugcheck` command had said
