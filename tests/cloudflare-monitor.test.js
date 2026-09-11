@@ -304,4 +304,20 @@ describe("workflow safety", () => {
     expect(lag).toContain("if: github.ref != 'refs/heads/main'");
     expect(lag).not.toContain("ref: main");
   });
+
+  it("files the deploy-lag issue even when the control-plane check fails, then still fails the run", () => {
+    // 2026-09-05 → 09-09: production had moved off the baseline and the run
+    // died at the control-plane step, before the issue step. Four red runs,
+    // no issue. Both verification steps must continue on error, the
+    // reconciliation must see their outcomes, and a final step must fail the
+    // job so the run stays red.
+    const control = lag.split("- name: Verify production control-plane baseline")[1].split("- name:")[0];
+    const diff = lag.split("- name: Classify changes after the approved release")[1].split("- name:")[0];
+    expect(control).toContain("continue-on-error: true");
+    expect(diff).toContain("continue-on-error: true");
+    expect(lag).toContain("CONTROL_OUTCOME: ${{ steps.control.outcome }}");
+    expect(lag).toContain("DIFF_OUTCOME: ${{ steps.diff.outcome }}");
+    expect(lag).toContain("Production does not match the approved baseline");
+    expect(lag).toContain("if: steps.control.outcome != 'success' || steps.diff.outcome != 'success'");
+  });
 });

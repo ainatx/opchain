@@ -5,6 +5,13 @@ name: Deploy lag
 # deployment gap. A change outside the explicit non-deploying path set is.
 # Cloudflare state is authenticated through the control plane, so Bot Fight
 # Mode remains enabled and no GitHub curl request hits the custom domain.
+#
+# Both verification steps continue on error so the reconciliation step always
+# runs. From 2026-09-05 to 2026-09-09 production had moved off the approved
+# baseline and this workflow died at the control-plane step — before the step
+# that owns the tracking issue — so four scheduled runs went red with no issue
+# and no owner. The job still fails whenever a verification step fails; it now
+# files the issue first.
 
 on:
   schedule:
@@ -31,32 +38,47 @@ jobs:
           fetch-depth: 0
 
       - name: Verify production control-plane baseline
+        id: control
+        continue-on-error: true
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: node .github/scripts/cloudflare-monitor.mjs control-plane --environment production
+        run: |
+          set -o pipefail
+          node .github/scripts/cloudflare-monitor.mjs control-plane --environment production 2>&1 \
+            | tee "$RUNNER_TEMP/control-plane.log"
 
       - name: Classify changes after the approved release
         id: diff
+        continue-on-error: true
         env:
           DEPLOY_DIFF_FILE: ${{ runner.temp }}/deploy-relevant.txt
-        run: node .github/scripts/cloudflare-monitor.mjs deploy-diff --output "$DEPLOY_DIFF_FILE"
+        run: |
+          set -o pipefail
+          node .github/scripts/cloudflare-monitor.mjs deploy-diff --output "$DEPLOY_DIFF_FILE" 2>&1 \
+            | tee "$RUNNER_TEMP/deploy-diff.log"
 
       - name: Report branch validation without mutating issues
         if: github.ref != 'refs/heads/main'
         env:
+          CONTROL_OUTCOME: ${{ steps.control.outcome }}
+          DIFF_OUTCOME: ${{ steps.diff.outcome }}
           HAS_CHANGES: ${{ steps.diff.outputs.has_changes }}
           CHANGED_COUNT: ${{ steps.diff.outputs.changed_count }}
           IGNORED_COUNT: ${{ steps.diff.outputs.ignored_count }}
           BASELINE_TAG: ${{ steps.diff.outputs.baseline_tag }}
         run: |
-          echo "redesign-validated-pending-merge: ${BASELINE_TAG}; deploy-relevant=${CHANGED_COUNT}; explicitly-non-deploying=${IGNORED_COUNT}; has-changes=${HAS_CHANGES}"
+          echo "redesign-validated-pending-merge: ${BASELINE_TAG}; control-plane=${CONTROL_OUTCOME}; deploy-diff=${DIFF_OUTCOME}; deploy-relevant=${CHANGED_COUNT}; explicitly-non-deploying=${IGNORED_COUNT}; has-changes=${HAS_CHANGES}"
           echo "Branch dispatch is validation-only. Scheduled/default-branch monitoring remains unchanged until merge." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Reconcile deploy-lag issue on main
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
+          CONTROL_OUTCOME: ${{ steps.control.outcome }}
+          DIFF_OUTCOME: ${{ steps.diff.outcome }}
+          CONTROL_LOG: ${{ runner.temp }}/control-plane.log
+          DIFF_LOG: ${{ runner.temp }}/deploy-diff.log
           HAS_CHANGES: ${{ steps.diff.outputs.has_changes }}
           CHANGED_COUNT: ${{ steps.diff.outputs.changed_count }}
           IGNORED_COUNT: ${{ steps.diff.outputs.ignored_count }}
@@ -80,7 +102,14 @@ jobs:
           legacy="$(find_issue "$LEGACY_ISSUE_TITLE")"
           head="$(git rev-parse origin/main)"
 
-          if [ "$HAS_CHANGES" != "true" ]; then
+          # The baseline file is the fallback when the diff step died before
+          # exporting its outputs; the issue must still name the release.
+          if [ -z "${BASELINE_TAG}" ] || [ -z "${BASELINE_SHA}" ]; then
+            BASELINE_TAG="$(node -p 'require("./.github/monitoring/release-baseline.json").release.tag')"
+            BASELINE_SHA="$(node -p 'require("./.github/monitoring/release-baseline.json").release.sourceSha')"
+          fi
+
+          if [ "$CONTROL_OUTCOME" = "success" ] && [ "$DIFF_OUTCOME" = "success" ] && [ "$HAS_CHANGES" != "true" ]; then
             echo "ok: Cloudflare matches ${BASELINE_TAG}; ${IGNORED_COUNT} changed path(s) are explicitly non-deploying"
             for issue in "$existing" "$legacy"; do
               if [ -n "$issue" ]; then
@@ -90,14 +119,35 @@ jobs:
             exit 0
           fi
 
-          commits="$(git rev-list --count "${BASELINE_SHA}..origin/main")"
           {
-            printf 'Cloudflare still matches the approved release baseline `%s` (`%s`).\n' "$BASELINE_TAG" "$BASELINE_SHA"
-            printf 'Main is `%s`, with **%s deploy-relevant path(s)** across %s commit(s) after that baseline.\n\n' "$head" "$CHANGED_COUNT" "$commits"
-            printf '### Deploy-relevant paths\n\n'
-            sed 's/^/- `/' "$DEPLOY_DIFF_FILE" | sed 's/$/`/'
-            printf '\n### Required action\n\n'
-            printf 'Open a release/deploy workstream, review these changes, approve an exact runtime SHA, validate staging, and deploy that exact SHA. Refresh `.github/monitoring/release-baseline.json` only after the deployment and smoke evidence are complete.\n\n'
+            if [ "$CONTROL_OUTCOME" != "success" ]; then
+              printf '## Production does not match the approved baseline\n\n'
+              printf 'The Cloudflare control-plane check against `%s` (`%s`) failed:\n\n' "$BASELINE_TAG" "$BASELINE_SHA"
+              printf '```\n'
+              { grep -E '::error::' "$CONTROL_LOG" | sed 's/^::error:://'; } || cat "$CONTROL_LOG"
+              printf '```\n\n'
+              printf 'Either a deploy happened that was never recorded, or the baseline was never refreshed after a recorded one. '
+              printf 'Follow `docs/runbooks/cloudflare-challenge.md` → *After an intentional deployment* (record the new deployment/version ids, verify locally, open the baseline PR), '
+              printf 'or roll production back to the approved deployment. Do not silently bless an unknown version by editing the baseline.\n\n'
+            else
+              printf 'Cloudflare still matches the approved release baseline `%s` (`%s`).\n\n' "$BASELINE_TAG" "$BASELINE_SHA"
+            fi
+
+            if [ "$DIFF_OUTCOME" != "success" ]; then
+              printf '## Deploy-relevance classification failed\n\n```\n'
+              cat "$DIFF_LOG"
+              printf '```\n\n'
+            elif [ "$HAS_CHANGES" = "true" ]; then
+              commits="$(git rev-list --count "${BASELINE_SHA}..origin/main")"
+              printf 'Main is `%s`, with **%s deploy-relevant path(s)** across %s commit(s) after that baseline.\n\n' "$head" "$CHANGED_COUNT" "$commits"
+              printf '### Deploy-relevant paths\n\n'
+              sed 's/^/- `/' "$DEPLOY_DIFF_FILE" | sed 's/$/`/'
+              printf '\n### Required action\n\n'
+              printf 'Open a release/deploy workstream, review these changes, approve an exact runtime SHA, validate staging, and deploy that exact SHA. Refresh `.github/monitoring/release-baseline.json` only after the deployment and smoke evidence are complete.\n\n'
+            else
+              printf 'No deploy-relevant paths on main after the baseline (%s explicitly non-deploying).\n\n' "${IGNORED_COUNT:-0}"
+            fi
+
             printf '> This monitor intentionally does not require production to equal every main commit. Docs, checkpoints, workflows, tests, and other explicit non-deploying paths may advance without creating false lag.\n'
           } > "$RUNNER_TEMP/deploy-lag-body.md"
 
@@ -106,7 +156,13 @@ jobs:
           fi
           if [ -n "$existing" ]; then
             gh issue edit "$existing" --body-file "$RUNNER_TEMP/deploy-lag-body.md"
-            gh issue comment "$existing" --body "Still pending: baseline=\`${BASELINE_TAG}\`, main=\`${head}\`, deploy-relevant paths=${CHANGED_COUNT}."
+            gh issue comment "$existing" --body "Still pending: baseline=\`${BASELINE_TAG}\`, main=\`${head}\`, control-plane=${CONTROL_OUTCOME}, deploy-relevant paths=${CHANGED_COUNT:-unknown}."
           else
             gh issue create --title "$ISSUE_TITLE" --body-file "$RUNNER_TEMP/deploy-lag-body.md"
           fi
+
+      - name: Fail the run when a verification step failed
+        if: steps.control.outcome != 'success' || steps.diff.outcome != 'success'
+        run: |
+          echo "::error::deploy lag: control-plane=${{ steps.control.outcome }}, deploy-diff=${{ steps.diff.outcome }} — see the tracking issue on main, or the logs above on a branch dispatch"
+          exit 1
