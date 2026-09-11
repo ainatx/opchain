@@ -54,7 +54,7 @@ introduced by the migration to Astro and the addition of analytics.
 | M1 | KV production namespace bound in `wrangler dev` | **Closed** | `preview_id` now set in `wrangler.jsonc` for both prod and staging |
 | M2 | Catalog drift across `skills.js` / `opchain-try.js` / `tryit.js` | **Closed** | `scripts/gen-skills-catalog.mjs` generates `public/skills.js` + `src/generated/skill-prompts.js` from `skills/<id>/SKILL.md` + `TRYIT.md` |
 | M3 | `architecture.html` and `install.html` are stubs | **Closed** | Replaced by Astro pages `site/src/pages/architecture.astro`, `install.astro` (now real content) |
-| M6 | Lead data has no TTL | **Closed** | `LEAD_TTL_DAYS` env var (default 365); `tests/lead-ttl.test.js` covers it |
+| M6 | Lead data has no TTL | **Closed (implementation refreshed 2026-09-02)** | Fixed 365-day `expirationTtl`; `tests/notify.test.js` covers it |
 | M7 | Linear team/project IDs hardcoded | **Closed** | `LINEAR_TEAM_ID`, `LINEAR_PROJECT_ID` env overrides per `CLAUDE.md` |
 | M8 | Anthropic model hardcoded | **Closed** | `ANTHROPIC_MODEL` env override per `CLAUDE.md` |
 | L1 | No `.env.example` | **Closed** | `.env.example` exists at repo root |

@@ -85,7 +85,7 @@ jobs:
           git config user.name "opchain-mirror-bot"
           git config user.email "mirror-bot@opchain.dev"
           git add -A
-          git commit -q -m "Mirror from asfbay-bit/opchain@${SOURCE_SHA:0:7}"
+          git commit -q -m "Mirror from ainatx/opchain@${SOURCE_SHA:0:7}"
           git remote add origin "https://x-access-token:${MIRROR_TOKEN}@github.com/asfbay-bit/opchain-skills.git"
           git push --force origin main
           echo "mirror push complete"

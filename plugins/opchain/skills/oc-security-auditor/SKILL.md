@@ -1,7 +1,7 @@
 ---
 name: oc-security-auditor
 displayName: OC · Security Auditor
-version: 1.8.3
+version: 1.9.0
 license: Apache-2.0
 shortDesc: Threat modeling, OWASP hardening, attack-surface review. v1.2 files CRITICAL findings as PM incident tickets.
 phases: [build]
@@ -24,10 +24,12 @@ description: >
   hardened?" ALWAYS trigger on /oc-security, /oc-secaudit, /oc-sec, /oc-threat-model, /oc-owasp,
   /oc-hardening, /oc-attack-surface, /oc-posture. Also trigger on: "threat model this app",
   "is this secure enough", "OWASP compliance", "security review", "attack surface",
-  "harden this", "what are the security risks", "SOC2 readiness", "pen test prep",
-  "how would someone attack this", "security architecture review", "CSP policy",
-  "TLS config", "WAF rules". Trigger when user asks about security at an architecture,
-  infrastructure, or compliance level — not just code bugs.
+  "is it hardened", "what are the security risks", "SOC2 readiness", "pen test prep",
+  "security architecture review", "audit the CSP policy", "review WAF rules",
+  "check TLS config". Trigger on architecture-, infrastructure-, or
+  compliance-level security questions — not just code bugs. Assessment only:
+  oc-security-hardening (/oc-harden) executes the fixes; oc-compliance-ops
+  keeps the register.
 ---
 
 # Security Auditor
@@ -468,6 +470,15 @@ for format.
 | oc-code-auditor | Threat model → guide where to focus code sweeps |
 | oc-app-architect | Security requirements → inform spec updates |
 | oc-scale-ops | DoS findings → capacity planning input |
+| oc-security-hardening | Findings + tier → remediation queue and baseline depth (v1.9) |
+| oc-compliance-ops | `/oc-security readiness` gaps seed the standing control register (v1.9) |
+
+**Remediation handoff (v1.9):** when an assessment produces actionable
+findings, chain to oc-security-hardening — `/oc-harden fix` per finding, or
+`/oc-harden baseline` for a fresh project — then re-assess the touched pillar
+(`/oc-security posture`) and run `/oc-security compare` to confirm the score
+moved (compare diffs snapshots; it never re-assesses on its own). This skill
+assesses; it does not apply fixes.
 
 ---
 

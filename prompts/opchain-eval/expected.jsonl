@@ -13,3 +13,16 @@
 {"id": "route-013", "expect": {"mode": "contains", "all": ["oc-scale-ops", "/oc-scale"]}}
 {"id": "route-014", "expect": {"mode": "contains", "all": ["oc-integrations-engineer", "/oc-integrate"]}}
 {"id": "route-015", "expect": {"mode": "contains", "all": ["oc-bug-check", "/oc-bugcheck"]}}
+{"id": "route-016", "expect": {"mode": "contains", "all": ["oc-qa-ops", "/oc-qa"]}}
+{"id": "route-017", "expect": {"mode": "contains", "all": ["oc-data-ops", "/oc-data-ops"]}}
+{"id": "route-018", "expect": {"mode": "contains", "all": ["oc-compliance-ops", "/oc-comply"]}}
+{"id": "route-019", "expect": {"mode": "llm_judge", "all": ["oc-security-hardening", "/oc-harden"], "criteria": "The answer routes to oc-security-hardening and its /oc-harden verb as the skill that EXECUTES the change. An answer that routes to oc-security-auditor or /oc-hardening (assessment) fails, even if it mentions the hardening skill in passing."}}
+{"id": "route-020", "expect": {"mode": "llm_judge", "all": ["oc-security-hardening", "/oc-harden"], "criteria": "The answer routes \"harden this before we ship\" to oc-security-hardening (/oc-harden baseline or /oc-harden). Routing to oc-security-auditor or /oc-hardening (assessment) fails, even if the answer explains the verb pair."}}
+{"id": "route-021", "expect": {"mode": "contains", "all": ["oc-security-auditor", "/oc-security"]}}
+{"id": "route-022", "expect": {"mode": "contains", "all": ["oc-compliance-ops", "/oc-comply"]}}
+{"id": "route-023", "expect": {"mode": "contains", "all": ["oc-security-auditor", "/oc-security"]}}
+{"id": "route-024", "expect": {"mode": "contains", "all": ["oc-api-dev", "/oc-api"]}}
+{"id": "route-025", "expect": {"mode": "contains", "all": ["oc-data-ops", "/oc-data-ops"]}}
+{"id": "route-026", "expect": {"mode": "contains", "all": ["oc-data-ops", "/oc-data-ops"]}}
+{"id": "route-027", "expect": {"mode": "contains", "all": ["oc-scale-ops", "/oc-scale"]}}
+{"id": "route-028", "expect": {"mode": "contains", "all": ["oc-qa-ops", "/oc-qa"]}}

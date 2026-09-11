@@ -1,7 +1,7 @@
 ---
 name: oc-integrations-engineer
 displayName: OC · Integrations Engineer
-version: 1.8.3
+version: 1.9.0
 license: Apache-2.0
 shortDesc: Third-party APIs, OAuth, webhooks. v1.2 adds PM-tool MCP integration patterns (Linear / Jira / GitHub Issues).
 phases: [build]
@@ -15,6 +15,8 @@ description: >
   "connect to Salesforce", "webhook", "OAuth", "API integration", "connect to Slack",
   or any external service connection. For designing or building your *own* first-party
   API (OpenAPI/GraphQL authoring, versioning, SDK generation), use oc-api-dev instead.
+  When the destination is the data warehouse, this skill builds the connector; the
+  warehouse-bound pipeline + data contract side is oc-data-ops.
 ---
 
 # Integrations Engineer

@@ -3,6 +3,10 @@
 Marketing site + skill showcase for opchain — a set of interconnected Claude Code skills 
 that form a software development pipeline (concept → spec → design → build → deploy).
 
+**Repository identities:** the canonical source repository is `ainatx/opchain`.
+The public product mirror and MCP Registry identity remain
+`asfbay-bit/opchain-skills` and `io.github.asfbay-bit/opchain-skills`.
+
 ## Deployment
 
 Deploys are **manual**, run from a developer laptop with `wrangler login` already done. There is no automatic CI/CD path — `deploy.yml` and `promote.yml` were removed because the GitHub Actions Cloudflare token couldn't reliably manage routes/DNS in the `opchain.dev` zone, which left the bindings in a broken state. Deploying as a logged-in human in `wrangler` uses your full account session and avoids that whole class of token-scope issue.
@@ -11,9 +15,9 @@ Deploys are **manual**, run from a developer laptop with `wrangler login` alread
 - **Staging Worker:** `opchain-staging`, served at `staging.opchain.dev`. See `wrangler.jsonc env.staging`.
 - **Both** use `custom_domain: true` — Cloudflare manages DNS automatically on `wrangler deploy`. Do not pre-create CNAMEs manually (Cloudflare refuses to take over externally-managed records: `error 100117`).
 - **Version stamp:** `build.mjs` injects `__OPCHAIN_VERSION__` via esbuild `define`, sourced from `OPCHAIN_VERSION` env var or `git rev-parse --short HEAD`. Surfaced in `GET /api/health` (`version` JSON field + `X-Opchain-Version` response header on that route).
-- **Staging must come from `main`.** `npm run deploy:staging` should always run with `main` checked out and `git pull`'d, so `staging.opchain.dev` is a faithful preview of what production is about to become. Deploying staging from a feature branch leaves it on a SHA that isn't reachable from `main` and silently breaks the "I just looked at staging, it's safe to ship" gate. (The 2026-05-13 deploy gap was compounded by exactly this — staging was on `7303ab6`, a branch SHA not on main, while prod was 6 days stale.) Since v1.8.2 this is enforced by `scripts/deploy.mjs`, which refuses a staging deploy when HEAD isn't reachable from `origin/main`; the loud escape hatch is `OPCHAIN_ALLOW_OFF_MAIN_STAGING=1`.
-- **Releases must be tagged before they ship.** `npm run deploy` (production only) refuses when the lockstep catalog version in `skills/*/SKILL.md` has moved somewhere no git tag follows. This closes the release→git-ops edge: `oc-release-ops` always *said* it handed the tag to `oc-git-ops`, but oc-git-ops had no tag verb until v1.8.3, and a 2026-08-26 audit found 13 shipped releases against 3 tags — v1.0–v1.7 all shipped untagged, so `publish-mcp-registry.yml` (which fires on `v*` tags) never republished for any of them. Run `/oc-git-release <semver>` after the release PR merges, or `git tag -a v<semver> && git push origin v<semver>` by hand. The check is `npm run check-release-tag`; `/oc-release verify` calls the same script. Staging is exempt (you review before you tag). Loud escape hatch: `OPCHAIN_ALLOW_UNTAGGED_RELEASE=1`. A daily `release-ledger.yml` backstop tracks any shipped release still missing a tag. Full rationale: `docs/plans/2026-08-26-git-ops-per-release.md`.
-- **Monitoring + deploy-lag guardrail:** GitHub-hosted `/api/health` probes are selectively challenged by Free-plan Bot Fight Mode, which cannot be bypassed with a WAF Skip rule. `.github/workflows/canary.yml` therefore verifies the approved production/staging deployments, versions, 100% traffic, script fingerprints/bindings, domains, and observability through Cloudflare's authenticated control plane. `.github/workflows/deploy-lag.yml` runs daily against `.github/monitoring/release-baseline.json` and opens one issue only when paths after the approved runtime SHA are deploy-relevant; docs/checkpoint/workflow-only descendants do not create false lag. A green run does not prove public `/api/health` or `/mcp` reachability. See `docs/runbooks/cloudflare-challenge.md` for the assurance boundary and baseline-refresh procedure.
+- **Deploys use the exact fetched `origin/main`.** `npm run deploy:staging` and `npm run deploy` must run from the current reviewed main commit. This keeps staging a faithful production preview and prevents unmerged production bytes. The staging-only branch-preview escape hatch is `OPCHAIN_ALLOW_OFF_MAIN_STAGING=1`; production has no branch bypass.
+- **Releases must be tagged before they ship.** `npm run deploy` (production only) refuses when the lockstep catalog version in `skills/*/SKILL.md` has moved somewhere no git tag follows. This closes the release→git-ops edge: `oc-release-ops` always *said* it handed the tag to `oc-git-ops`, but oc-git-ops had no tag verb until v1.8.3, and a 2026-08-26 audit found 13 shipped releases against 3 tags — v1.0–v1.7 all shipped untagged, so `publish-mcp-registry.yml` (which fires on `v*` tags) never republished for any of them. Run `/oc-git-release <semver>` after the release PR merges, or `git tag -s v<semver> -m "release: v<semver>" && git push origin v<semver>` by hand (the check requires a *signed* tag — `-a` alone is refused as `invalid-tag-signature`). The check is `npm run check-release-tag`; `/oc-release verify` calls the same script. Staging is exempt (you review before you tag). Loud escape hatch: `OPCHAIN_ALLOW_UNTAGGED_RELEASE=1`. A weekly `release-ledger.yml` backstop tracks any shipped release still missing a tag. Full rationale: `docs/plans/2026-08-26-git-ops-per-release.md`.
+- **Monitoring + deploy-lag guardrail:** GitHub-hosted `/api/health` probes are selectively challenged by Free-plan Bot Fight Mode, which cannot be bypassed with a WAF Skip rule. `.github/workflows/canary.yml` therefore verifies the approved production/staging deployments, versions, 100% traffic, script fingerprints/bindings, domains, and observability through Cloudflare's authenticated control plane. Canary and `.github/workflows/deploy-lag.yml` run on every fourth day-of-month; Deploy lag compares against `.github/monitoring/release-baseline.json` and opens one issue only when paths after the approved runtime SHA are deploy-relevant. Docs/checkpoint/workflow-only descendants do not create false lag. A green run does not prove public `/api/health` or `/mcp` reachability. See `docs/runbooks/cloudflare-challenge.md` for the assurance boundary and baseline-refresh procedure.
 
 ### Deploy flow
 
@@ -43,7 +47,7 @@ feature branch ─► PR ─► CI green (tests only) ─► merge to main
 
 ### CI
 
-`.github/workflows/ci.yml` runs on every PR and push to main: Vitest, `astro check`, site build, Playwright e2e. CI does not deploy anything — it only verifies the build is green before you decide to ship.
+`.github/workflows/ci.yml` runs on every PR: Vitest, `astro check`, site build, Playwright e2e. The protected `main` branch receives only PR-gated changes that passed those checks, so CI does not repeat them after merge. CI does not deploy anything — it only verifies the build is green before you decide to ship.
 
 `.github/workflows/lighthouse.yml` runs Lighthouse/Axe budgets on PR builds (not against deployed environments).
 
@@ -112,10 +116,10 @@ opchain/
 ├── mirror/                 # Source for the public skills mirror — see "Public skill
 │   │                       # mirror" below.
 ├── .checkpoints/           # Session-state checkpoints — see "Session resume" below.
-├── .github/workflows/      # 7 workflows, no deploy workflows (manual): ci.yml, lighthouse.yml,
-│   │                       # canary.yml (10-min prod+staging Cloudflare control-plane baseline check),
-│   │                       # lighthouse-prod.yml (daily LHCI vs the live site), deploy-lag.yml,
-│   │                       # mirror-public.yml, publish-mcp-registry.yml
+├── .github/workflows/      # 8 workflows, no deploy workflows (manual): ci.yml, lighthouse.yml,
+│   │                       # canary.yml (prod+staging control-plane check every fourth day),
+│   │                       # lighthouse-prod.yml (weekly LHCI vs the live site), deploy-lag.yml,
+│   │                       # release-ledger.yml, mirror-public.yml, publish-mcp-registry.yml
 ├── wrangler.jsonc           # Worker config (prod + env.staging)
 ├── build.mjs               # esbuild: src/index.js → dist/index.js, injects __OPCHAIN_VERSION__
 ├── vitest.config.js        # test runner config (defines __OPCHAIN_VERSION__ = "test")
@@ -296,7 +300,7 @@ Skill source (`skills/`) is mirrored to a public GitHub repo at `asfbay-bit/opch
 
 - **Workflow:** `.github/workflows/mirror-public.yml`. Triggers on every push to `main` that touches `skills/`, `mirror/`, `plugins/`, `.claude-plugin/`, `LICENSE`, or the workflow itself. Manual `workflow_dispatch` is also supported.
 - **What gets mirrored:** `skills/` + `LICENSE` + `plugins/` (with `cp -RL`, so the `plugins/opchain/skills` symlink becomes a real directory in the snapshot) + `.claude-plugin/` + `mirror/README.md` → `README.md` + `mirror/CONTRIBUTING.md` → `CONTRIBUTING.md` + `mirror/SECURITY.md` → `SECURITY.md` + `mirror/.github/ISSUE_TEMPLATE/` → `.github/ISSUE_TEMPLATE/`. Nothing else — no site source, no `.checkpoints/`, no scripts, no internal docs. The plugin + marketplace files are what make `/plugin marketplace add asfbay-bit/opchain-skills` → `/plugin install opchain` work; without them the public repo is skills-only.
-- **Mode:** force-push snapshot. The public repo's history is reset on every sync to a single commit (`Mirror from asfbay-bit/opchain@<sha>`). External PRs against the public repo can't merge directly; maintainers cherry-pick them here, and they propagate back on the next sync. Documented in `mirror/CONTRIBUTING.md`.
+- **Mode:** force-push snapshot. The public repo's history is reset on every sync to a single commit (`Mirror from ainatx/opchain@<sha>`). External PRs against the public repo can't merge directly; maintainers cherry-pick them here, and they propagate back on the next sync. Documented in `mirror/CONTRIBUTING.md`.
 - **Required secret:** `MIRROR_TOKEN` — a fine-grained GitHub PAT with `contents:write` on `asfbay-bit/opchain-skills`. Set via repo Settings → Secrets and variables → Actions. The workflow fails loud if it's missing.
 - **Editing the public face:** all public-facing copy (README, contributing guide, issue forms) lives under `mirror/` so it's easy to find. The `LICENSE` at repo root is shared between private and public.
 

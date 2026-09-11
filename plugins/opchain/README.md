@@ -27,7 +27,7 @@ This plugin ships the mechanism instead of describing it.
 
 | | skills zip | this plugin |
 |---|---|---|
-| 29 skills | ✅ | ✅ |
+| 33 skills | ✅ | ✅ |
 | Commit gate that actually blocks | ❌ | ✅ |
 | Pipeline state injected at session start | ❌ | ✅ |
 | "What to run next" after a skill finishes | ❌ | ✅ |

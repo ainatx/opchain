@@ -6,21 +6,15 @@
  * Nothing loads until a decision is made (banner visible), so declining
  * the banner means no PostHog SDK, no cookies, no network calls.
  *
- * PostHog client key is exposed via `import.meta.env.PUBLIC_POSTHOG_KEY`
- * — if unset, the banner still renders (for consent hygiene) but accept
- * becomes a no-op. That matches how `.env.example` documents the var:
- * local dev and CI don't need it.
- *
- * The default host fallback points at the production managed reverse
- * proxy (`t.opchain.dev`). Staging deploys override it via
- * `PUBLIC_POSTHOG_HOST=https://t.staging.opchain.dev` baked into
- * `npm run deploy:staging`. Routing PostHog traffic through our own
- * domain dodges most ad blockers without changing what's collected.
+ * Both the public PostHog key and host must be supplied at build time. If
+ * either is unset, the banner still renders for consent hygiene but accept
+ * becomes a no-op. Official deployments provide their managed proxy host;
+ * self-hosters therefore never route traffic through opchain by default.
  */
 import { defaultFor } from "../lib/flags/build-defaults";
 
 const publicKey = import.meta.env.PUBLIC_POSTHOG_KEY || "";
-const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST || "https://t.opchain.dev";
+const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST || "";
 // Build-time gate. The client-side `flags/client.ts` layer overrides this
 // post-consent if PostHog flips the flag at runtime.
 const posthogClientEnabled = defaultFor("platform.observability.posthog-client") as boolean;
@@ -51,7 +45,7 @@ const posthogClientEnabled = defaultFor("platform.observability.posthog-client")
 
     function loadPosthog() {
       if (!posthogClientEnabled) return;
-      if (!publicKey) return;
+      if (!publicKey || !posthogHost) return;
       if (window.posthog) return;
       // Minimal inlined bootstrap — mirrors the official snippet. Once loaded,
       // posthog-js handles session IDs + auto-captures pageviews.

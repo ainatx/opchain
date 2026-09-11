@@ -1,8 +1,8 @@
-Contact: https://github.com/asfbay-bit/opchain/security/advisories/new
+Contact: https://github.com/ainatx/opchain/security/advisories/new
 Contact: mailto:security@opchain.dev
 Expires: 2027-08-26T00:00:00.000Z
 Preferred-Languages: en
 Canonical: https://opchain.dev/.well-known/security.txt
 Policy: https://opchain.dev/security
-Acknowledgments: https://github.com/asfbay-bit/opchain/security/advisories
+Acknowledgments: https://github.com/ainatx/opchain/security/advisories
 Acknowledgments: https://github.com/asfbay-bit/opchain-skills/security/advisories

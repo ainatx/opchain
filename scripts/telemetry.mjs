@@ -182,7 +182,10 @@ function cmdStatus() {
   const cp = readCheckpoint();
   const enabled = isEnabled(cp);
   const th = cp?.telemetry_handle;
-  console.log(`telemetry: ${enabled ? "ENABLED ✅" : "OFF ⬜"}`);
+  const notRecording = enabled && !existsSync(SINK);
+  console.log(
+    `telemetry: ${enabled ? (notRecording ? "ENABLED — NOT RECORDING ⚠" : "ENABLED ✅") : "OFF ⬜"}`,
+  );
   if (th && typeof th === "object") {
     console.log(`  handle: ${th.id ?? "(none)"}`);
     console.log(`  since:  ${th.since ?? "(n/a)"}`);
@@ -193,6 +196,16 @@ function cmdStatus() {
     const { n } = db.prepare("SELECT COUNT(*) AS n FROM runs").get();
     db.close();
     console.log(`  rows:   ${n} metered run${n === 1 ? "" : "s"}`);
+  }
+  // Liveness guard (v1.9): enabled-with-no-store must never read as healthy —
+  // that exact state sat undetected for 24 days in 2026-06/07.
+  if (enabled && !existsSync(SINK)) {
+    console.error(
+      "  ⚠ LIVENESS FAIL: enabled=true but the store does not exist on this machine — " +
+        "nothing is being recorded. Run a metered skill to create it, or " +
+        "`npm run telemetry -- disable` if this clone should not meter.",
+    );
+    return 1;
   }
   return 0;
 }

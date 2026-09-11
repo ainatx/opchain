@@ -1,16 +1,57 @@
 import { describe, expect, it } from "vitest";
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import worker from "../src/index.js";
 
 function makeKv() {
   const store = new Map();
+  const puts = [];
+  const gets = [];
   return {
     store,
-    async get(key) { return store.get(key) ?? null; },
-    async put(key, value) { store.set(key, value); },
+    puts,
+    gets,
+    async get(key) { gets.push(key); return store.get(key) ?? null; },
+    async put(key, value, options) { puts.push({ key, value, options }); store.set(key, value); },
   };
+}
+
+function makeRateLimiter(limit = 30) {
+  const counts = new Map();
+  return {
+    counts,
+    async limit({ key }) {
+      const next = (counts.get(key) || 0) + 1;
+      counts.set(key, next);
+      return { success: next <= limit };
+    },
+  };
+}
+
+function parseJsonc(path) {
+  const source = readFileSync(path, "utf8");
+  let json = "";
+  let inString = false;
+  let escaped = false;
+  for (let i = 0; i < source.length; i += 1) {
+    const char = source[i];
+    if (inString) {
+      json += char;
+      if (escaped) escaped = false;
+      else if (char === "\\") escaped = true;
+      else if (char === '"') inString = false;
+    } else if (char === '"') {
+      inString = true;
+      json += char;
+    } else if (char === "/" && source[i + 1] === "/") {
+      while (i < source.length && source[i] !== "\n") i += 1;
+      json += "\n";
+    } else {
+      json += char;
+    }
+  }
+  return JSON.parse(json);
 }
 
 // ASSETS stub: serves a fake SKILL.md for /docs/<id>/SKILL.md, 404s otherwise.
@@ -26,6 +67,8 @@ function envWith(overrides = {}) {
       },
     },
     NOTIFY: makeKv(),
+    MCP_WRITE_RATE_LIMITER: makeRateLimiter(),
+    MCP_SESSION_SIGNING_KEY: "test-only-session-signing-key-32-bytes-minimum",
     ...overrides,
   };
 }
@@ -43,8 +86,26 @@ function post(body, env = envWith()) {
 }
 
 const rpc = (method, params, id = 1) => ({ jsonrpc: "2.0", id, method, params });
+const SESSION_A = "2dbf0d8e-c62a-43f8-8a50-7a456445c50c";
+const SESSION_B = "a3e80944-351e-41d8-bbac-d784082c1263";
+
+async function createSession(env) {
+  const res = await post(rpc("tools/call", { name: "create_checkpoint_session", arguments: {} }), env);
+  expect(res.status).toBe(200);
+  const body = await res.json();
+  return JSON.parse(body.result.content[0].text).sessionId;
+}
 
 describe("POST /mcp", () => {
+  it("pins distinct production and staging edge mutation budgets", () => {
+    const config = parseJsonc(join(dirname(fileURLToPath(import.meta.url)), "..", "wrangler.jsonc"));
+    const prod = config.ratelimits.find((binding) => binding.name === "MCP_WRITE_RATE_LIMITER");
+    const staging = config.env.staging.ratelimits.find((binding) => binding.name === "MCP_WRITE_RATE_LIMITER");
+    expect(prod).toEqual({ namespace_id: "19001", name: "MCP_WRITE_RATE_LIMITER", simple: { limit: 30, period: 60 } });
+    expect(staging).toEqual({ namespace_id: "19002", name: "MCP_WRITE_RATE_LIMITER", simple: { limit: 30, period: 60 } });
+    expect(staging.namespace_id).not.toBe(prod.namespace_id);
+  });
+
   it("initialize identifies the server as opchain", async () => {
     const res = await post(rpc("initialize", { protocolVersion: "2025-06-18" }));
     expect(res.status).toBe(200);
@@ -83,18 +144,188 @@ describe("POST /mcp", () => {
 
   it("checkpoints persist in KV across calls", async () => {
     const env = envWith();
+    const sessionId = await createSession(env);
     await post(rpc("tools/call", {
       name: "write_checkpoint",
-      arguments: { skill: "oc-app-architect", sessionId: "s1", checkpoint: { phase: "spec" } },
+      arguments: { skill: "oc-app-architect", sessionId, checkpoint: { phase: "spec" } },
     }), env);
     const res = await post(rpc("tools/call", {
       name: "read_checkpoint",
-      arguments: { skill: "oc-app-architect", sessionId: "s1" },
+      arguments: { skill: "oc-app-architect", sessionId },
     }), env);
     const body = await res.json();
     expect(JSON.parse(body.result.content[0].text).checkpoint).toEqual({ phase: "spec" });
     // Stored under a namespaced key so it can't collide with lead/vote keys.
-    expect([...env.NOTIFY.store.keys()][0]).toBe("mcp-checkpoint:s1:oc-app-architect");
+    expect([...env.NOTIFY.store.keys()].find((key) => key.startsWith("mcp-checkpoint:")))
+      .toBe(`mcp-checkpoint:${sessionId}:oc-app-architect`);
+    const checkpointPut = env.NOTIFY.puts.find((entry) => entry.key.startsWith("mcp-checkpoint:"));
+    expect(checkpointPut.options).toEqual({ expirationTtl: 30 * 24 * 60 * 60 });
+  });
+
+  it("keeps checkpoint sessions isolated", async () => {
+    const env = envWith();
+    const sessionA = await createSession(env);
+    const sessionB = await createSession(env);
+    await post(rpc("tools/call", {
+      name: "write_checkpoint",
+      arguments: { skill: "oc-app-architect", sessionId: sessionA, checkpoint: { secret: "a" } },
+    }), env);
+    const res = await post(rpc("tools/call", {
+      name: "read_checkpoint",
+      arguments: { skill: "oc-app-architect", sessionId: sessionB },
+    }), env);
+    const body = await res.json();
+    expect(JSON.parse(body.result.content[0].text).checkpoint).toBeNull();
+  });
+
+  it("rejects syntactically valid sessions that were never issued by the server", async () => {
+    const env = envWith();
+    const res = await post(rpc("tools/call", {
+      name: "read_checkpoint",
+      arguments: { skill: "oc-app-architect", sessionId: SESSION_A },
+    }), env);
+    const body = await res.json();
+    expect(body.result.isError).toBe(true);
+    expect(body.result.content[0].text).toContain("create_checkpoint_session");
+  });
+
+  it("rejects non-canonical or wrong-key signatures", async () => {
+    const issuer = envWith();
+    const issued = await createSession(issuer);
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    const finalIndex = alphabet.indexOf(issued.at(-1));
+    expect(finalIndex % 4).toBe(0);
+    const alias = `${issued.slice(0, -1)}${alphabet[finalIndex + 1]}`;
+
+    for (const [env, sessionId] of [
+      [issuer, alias],
+      [envWith({ MCP_SESSION_SIGNING_KEY: "different-test-session-key-at-least-32-bytes" }), issued],
+    ]) {
+      const res = await post(rpc("tools/call", {
+        name: "read_checkpoint",
+        arguments: { skill: "oc-app-architect", sessionId },
+      }), env);
+      const body = await res.json();
+      expect(body.result.isError).toBe(true);
+      expect(body.result.content[0].text).toContain("create_checkpoint_session");
+    }
+  });
+
+  it("fails session issuance closed when the signing secret is unavailable", async () => {
+    const env = envWith({ MCP_SESSION_SIGNING_KEY: undefined });
+    const res = await post(rpc("tools/call", {
+      name: "create_checkpoint_session",
+      arguments: {},
+    }), env);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32603);
+    expect(body.error.message).toContain("signing key");
+    expect(env.NOTIFY.puts).toHaveLength(0);
+  });
+
+  it("rejects oversized request bodies before JSON-RPC dispatch", async () => {
+    const res = await worker.fetch(
+      new Request("https://opchain.dev/mcp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payload: "x".repeat(257 * 1024) }),
+      }),
+      envWith(),
+      { waitUntil() {} },
+    );
+    expect(res.status).toBe(413);
+    expect((await res.json()).error.message).toContain("too large");
+  });
+
+  it("rate-limits checkpoint writes per IP without throttling read-only calls", async () => {
+    const env = envWith();
+    // Mint each token through an equivalent server environment so each write
+    // targets a distinct KV key. Workers KV independently limits a single key
+    // to one write/second; this test isolates the edge/IP budget contract.
+    const sessionIds = [];
+    for (let i = 0; i < 31; i++) sessionIds.push(await createSession(envWith()));
+    for (let i = 0; i < 30; i++) {
+      const res = await worker.fetch(
+        new Request("https://opchain.dev/mcp", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "CF-Connecting-IP": "203.0.113.10",
+          },
+          body: JSON.stringify(rpc("tools/call", {
+            name: "write_checkpoint",
+            arguments: { skill: "oc-app-architect", sessionId: sessionIds[i], checkpoint: { i } },
+          }, i)),
+        }),
+        env,
+        { waitUntil() {} },
+      );
+      expect(res.status).toBe(200);
+    }
+
+    const limited = await worker.fetch(
+      new Request("https://opchain.dev/mcp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "CF-Connecting-IP": "203.0.113.10" },
+        body: JSON.stringify(rpc("tools/call", {
+          name: "write_checkpoint",
+          arguments: { skill: "oc-app-architect", sessionId: sessionIds[30], checkpoint: { i: 31 } },
+        })),
+      }),
+      env,
+      { waitUntil() {} },
+    );
+    expect(limited.status).toBe(429);
+    expect(limited.headers.get("Retry-After")).toBe("60");
+
+    const readOnly = await post(rpc("tools/call", { name: "list_skills" }), env);
+    expect(readOnly.status).toBe(200);
+  });
+
+  it("counts every checkpoint mutation in a JSON-RPC batch toward the limit", async () => {
+    const env = envWith();
+    const batch = Array.from({ length: 25 }, (_, i) => rpc("tools/call", {
+      name: "create_checkpoint_session",
+      arguments: {},
+    }, i));
+    expect((await post(batch, env)).status).toBe(200);
+
+    const tooMany = Array.from({ length: 6 }, (_, i) => rpc("tools/call", {
+      name: "create_checkpoint_session",
+      arguments: {},
+    }, i + 25));
+    const limited = await post(tooMany, env);
+    expect(limited.status).toBe(429);
+  });
+
+  it("fails checkpoint writes closed when the edge limiter is unavailable", async () => {
+    const env = envWith({ MCP_WRITE_RATE_LIMITER: undefined });
+    const unavailable = await post(rpc("tools/call", {
+      name: "write_checkpoint",
+      arguments: { skill: "oc-app-architect", sessionId: SESSION_A, checkpoint: { phase: "spec" } },
+    }), env);
+    expect(unavailable.status).toBe(503);
+    expect((await unavailable.json()).error.message).toContain("protection unavailable");
+
+    const readOnly = await post(rpc("tools/call", { name: "list_skills" }), env);
+    expect(readOnly.status).toBe(200);
+  });
+
+  it("rejects an untrusted Origin before parsing, KV, or rate limiting", async () => {
+    const env = envWith();
+    const res = await worker.fetch(
+      new Request("https://opchain.dev/mcp", {
+        method: "POST",
+        headers: { "Content-Type": "text/plain", Origin: "https://evil.example.com" },
+        body: JSON.stringify(rpc("tools/call", { name: "create_checkpoint_session", arguments: {} })),
+      }),
+      env,
+      { waitUntil() {} },
+    );
+    expect(res.status).toBe(403);
+    expect(env.NOTIFY.gets).toHaveLength(0);
+    expect(env.NOTIFY.puts).toHaveLength(0);
+    expect(env.MCP_WRITE_RATE_LIMITER.counts.size).toBe(0);
   });
 
   it("a notification (no id) gets 202 with no body", async () => {

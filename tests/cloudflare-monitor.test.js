@@ -288,6 +288,11 @@ describe("workflow safety", () => {
   const canary = readFileSync(new URL("../.github/workflows/canary.yml", import.meta.url), "utf8");
   const lag = readFileSync(new URL("../.github/workflows/deploy-lag.yml", import.meta.url), "utf8");
 
+  it("runs both monitors once on every fourth day-of-month at offset times", () => {
+    expect(canary).toContain('cron: "47 13 */4 * *"');
+    expect(lag).toContain('cron: "17 14 */4 * *"');
+  });
+
   it("does not send curl or wget traffic to either public hostname", () => {
     for (const workflow of [canary, lag]) {
       expect(workflow).not.toMatch(/(?:curl|wget).*https?:\/\/(?:staging\.)?opchain\.dev/i);

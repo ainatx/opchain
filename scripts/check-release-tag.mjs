@@ -36,6 +36,7 @@
 //
 // Run:   node scripts/check-release-tag.mjs
 //        node scripts/check-release-tag.mjs --local   # signed pre-push gate
+//        node scripts/check-release-tag.mjs --json    # machine-readable gate result
 // Exit:  0 when the release tag and seal are valid, 1 when any release-ledger
 //        or signature invariant is unprovable.
 
@@ -99,7 +100,7 @@ function sha256(text) {
  * whichever way you look at it, so we surface it rather than picking a winner.
  */
 export function readCatalogVersion(skillsDir) {
-  if (!existsSync(skillsDir)) return { version: null, disagreement: null, count: 0 };
+  if (!existsSync(skillsDir)) return { version: null, disagreement: null, count: 0, ids: [] };
 
   const seen = new Map(); // version -> [skill ids]
   let count = 0;
@@ -126,15 +127,16 @@ export function readCatalogVersion(skillsDir) {
     seen.get(v).push(entry.name);
   }
 
-  if (seen.size === 0) return { version: null, disagreement: null, count };
+  const allIds = [...seen.values()].flat().sort();
+  if (seen.size === 0) return { version: null, disagreement: null, count, ids: allIds };
   if (seen.size > 1) {
     const detail = [...seen.entries()]
       .sort((a, b) => b[1].length - a[1].length)
       .map(([v, ids]) => `${v} (${ids.length}: ${ids.slice(0, 3).join(", ")}${ids.length > 3 ? "…" : ""})`)
       .join(" vs ");
-    return { version: null, disagreement: detail, count };
+    return { version: null, disagreement: detail, count, ids: allIds };
   }
-  return { version: [...seen.keys()][0], disagreement: null, count };
+  return { version: [...seen.keys()][0], disagreement: null, count, ids: allIds };
 }
 
 /**
@@ -151,7 +153,7 @@ export function checkReleaseTag({
   fetch = true,
   verifyRemote = true,
 } = {}) {
-  const { version, disagreement, count } = readCatalogVersion(skillsDir);
+  const { version, disagreement, count, ids } = readCatalogVersion(skillsDir);
 
   if (disagreement) {
     return {
@@ -329,7 +331,7 @@ export function checkReleaseTag({
   // unlock production. Compare every tagged skill version with the current
   // lockstep catalog, including the skill count so a partial tree cannot pass.
   const taggedVersionsText = git(
-    ["grep", "-h", "-E", "^version:[[:space:]]*[^[:space:]]+", tag, "--", "skills/*/SKILL.md"],
+    ["grep", "-E", "^version:[[:space:]]*[^[:space:]]+", tag, "--", "skills/*/SKILL.md"],
     cwd,
   );
   if (taggedVersionsText === null) {
@@ -342,21 +344,45 @@ export function checkReleaseTag({
     };
   }
 
-  const taggedVersions = taggedVersionsText
-    .split("\n")
-    .map((line) => line.match(/^version:\s*(\S+)\s*$/)?.[1])
-    .filter(Boolean);
+  // Path-ful grep output (`<tag>:skills/<id>/SKILL.md:version: X`) so the
+  // comparison is by skill IDENTITY, not just count — a same-count swap or
+  // rename after the tag must not pass as the sealed catalog.
+  const taggedSkills = new Map();
+  for (const line of taggedVersionsText.split("\n")) {
+    const m = line.match(/skills\/([^/]+)\/SKILL\.md:version:\s*(\S+)\s*$/);
+    if (m) taggedSkills.set(m[1], m[2]);
+  }
+  const taggedVersions = [...taggedSkills.values()];
   const mismatchedVersions = [...new Set(taggedVersions.filter((tagged) => tagged !== version))];
-  if (taggedVersions.length !== count || mismatchedVersions.length > 0) {
-    const detail = mismatchedVersions.length > 0
-      ? `found ${mismatchedVersions.join(", ")} instead of ${version}`
-      : `found ${taggedVersions.length} tagged skills but ${count} in the current catalog`;
+  const addedIds = ids.filter((id) => !taggedSkills.has(id));
+  const removedIds = [...taggedSkills.keys()].filter((id) => !ids.includes(id)).sort();
+  if (addedIds.length > 0 || removedIds.length > 0 || mismatchedVersions.length > 0) {
+    // Identity drift with agreeing versions is the deploy-freeze window: skills
+    // were added, removed, or swapped after the tag, at the same lockstep
+    // version. The tag is fine — the working tree is a NEW release still
+    // wearing the old number.
+    const countDrift = mismatchedVersions.length === 0;
+    const driftBits = [
+      addedIds.length ? `added since the tag: ${addedIds.join(", ")}` : null,
+      removedIds.length ? `removed since the tag: ${removedIds.join(", ")}` : null,
+    ].filter(Boolean);
+    const detail = countDrift
+      ? driftBits.join("; ")
+      : `found ${mismatchedVersions.join(", ")} instead of ${version}`;
+    const errors = [`${tag} does not contain the complete ${version} catalog (${detail}).`];
+    if (countDrift) {
+      errors.push(
+        `The skill set changed after ${tag} was cut without a version bump — ` +
+          `this tree is the NEXT release still wearing the ${version} number.`,
+      );
+    }
     return {
       ok: false,
       version,
       tag,
       reason: "tag-version-mismatch",
-      errors: [`${tag} does not contain the complete ${version} catalog (${detail}).`],
+      countDrift,
+      errors,
     };
   }
 
@@ -419,9 +445,20 @@ export function checkReleaseTag({
 }
 
 /** The remediation text is shared by the CLI and deploy.mjs so they cannot drift. */
-export function remediation({ version, tag, reason }) {
+export function remediation({ version, tag, reason, countDrift }) {
   if (reason === "unpushed-tag") {
     return `Push it:\n    git push origin ${tag}\n`;
+  }
+  if (reason === "tag-version-mismatch" && countDrift) {
+    return (
+      `${tag} is immutable — do NOT re-tag it around the changed skills.\n` +
+      `Cut the next release instead:\n` +
+      `    /oc-release bump <next-semver>       # skills/*/SKILL.md + release-seal.json, atomically\n` +
+      `    (merge the bump to main, then)\n` +
+      `    /oc-git-release <next-semver>\n\n` +
+      `Until then production is intentionally frozen; staging stays open:\n` +
+      `    npm run deploy:staging\n`
+    );
   }
   if (reason === "missing-tag") {
     return (
@@ -440,6 +477,10 @@ export function remediation({ version, tag, reason }) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const localOnly = process.argv.includes("--local");
   const result = checkReleaseTag({ verifyRemote: !localOnly });
+  if (process.argv.includes("--json")) {
+    console.log(JSON.stringify(result));
+    process.exit(result.ok ? 0 : 1);
+  }
   console.log("RELEASE TAG CHECK");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log(`  catalog version:  ${result.version ?? "(unreadable)"}`);

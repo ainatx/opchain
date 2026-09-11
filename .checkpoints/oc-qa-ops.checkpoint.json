@@ -1,0 +1,41 @@
+{
+  "protocol_version": "1.1",
+  "skill": "oc-qa-ops",
+  "project": "opchain.dev",
+  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "created_at": "2026-09-02T19:13:19.000Z",
+  "updated_at": "2026-09-02T21:49:57.000Z",
+  "phase": "verify",
+  "step": "v1.9-live-acceptance-complete",
+  "status": "complete",
+  "progress_summary": "The shipped v1.9 release satisfies the repository QA strategy in .opchain/qa.yaml. The clean pre-merge ledger passed all 11 mapped workflow gates with no warning or skip: 43 Vitest files and 579 tests, Worker build, Astro check/build, Playwright e2e, and Lighthouse budgets. Staging and production live acceptance then passed at exact runtime SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248, including MCP session security, limits, Origin policy, cross-environment isolation, health, content, and the 7/7 production post-deploy sequence.",
+  "progress_table": [
+    { "id": "unit", "label": "Unit and integration tests", "status": "complete" },
+    { "id": "contracts", "label": "MCP, retention, release, and hardening contracts", "status": "complete" },
+    { "id": "build", "label": "Worker and Astro builds", "status": "complete" },
+    { "id": "e2e", "label": "Playwright end-to-end suite", "status": "complete" },
+    { "id": "performance", "label": "Lighthouse budgets", "status": "complete" }
+  ],
+  "context_primer": {
+    "key_decisions": [
+      "Coverage enforcement remains governed by .opchain/qa.yaml; this release does not silently strengthen optional budgets.",
+      "A transient build failure does not become a pass by dismissal: isolated and complete clean reruns were both required and passed.",
+      "Live HTTP controls remain post-deploy acceptance checks and are not misrepresented as pre-deploy proof."
+    ],
+    "generated_files": [".opchain/qa.yaml"]
+  },
+  "blockers": [],
+  "next_actions": [],
+  "skill_state": {
+    "strategy": ".opchain/qa.yaml",
+    "verdict": "PASS",
+    "test_files": 43,
+    "tests_passed": 579,
+    "pre_merge_steps": 11,
+    "warnings": 0,
+    "failures": 0,
+    "live_acceptance_pending_release_ops": false,
+    "live_acceptance": "PASS",
+    "verified_runtime_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248"
+  }
+}

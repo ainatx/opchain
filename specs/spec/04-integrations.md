@@ -50,7 +50,9 @@ The Astro site loads the PostHog browser SDK only after the user
 accepts the consent banner. Build-time env: `PUBLIC_POSTHOG_KEY`,
 `PUBLIC_POSTHOG_HOST`. If `PUBLIC_POSTHOG_KEY` is empty (e.g. LHCI
 build, where third-party network noise would drag scores), the consent
-banner still renders but the accept button is a no-op.
+banner still renders but the accept button is a no-op. Standard
+`*.i.posthog.com` hosts are CSP-allowed; custom proxy origins also require
+matching `script-src` and `connect-src` entries in `src/lib/http.js`.
 
 Source: `site/src/components/ConsentBanner.astro`,
 `site/src/lib/analytics.ts`.

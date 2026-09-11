@@ -1,11 +1,13 @@
 # Publish the opchain MCP server to the official MCP Registry
 # (registry.modelcontextprotocol.io) so registries/agents can discover it.
 #
-# Auth is GitHub OIDC — no secrets. The `id-token: write` permission lets the
-# job mint a short-lived OIDC token; the registry authorizes the
-# `io.github.asfbay-bit/*` namespace because this workflow runs in a repo owned
-# by `asfbay-bit` (the `repository_owner` OIDC claim). That's why server.json's
-# `name` is `io.github.asfbay-bit/opchain-skills`.
+# The stable Registry identity remains `io.github.asfbay-bit/opchain-skills`.
+# This source repo transferred to `a-atx` before v1.9, so its GitHub OIDC
+# `repository_owner` claim can no longer authorize that established namespace.
+# The workflow therefore exchanges the existing fine-grained MIRROR_TOKEN,
+# owned by `asfbay-bit` and scoped to the public product mirror, for the
+# short-lived Registry token. Do not replace this with OIDC unless publishing
+# moves into an `asfbay-bit`-owned repository.
 #
 # The hosted server itself (https://opchain.dev/mcp) is deployed separately via
 # `npm run deploy`; this only (re)publishes the registry *listing* that points
@@ -21,10 +23,14 @@ on:
         description: "Version to publish (semver, no leading v). Defaults to the file's version."
         required: false
         type: string
+      validate_only:
+        description: "Validate and authenticate without publishing (safe ownership preflight)."
+        required: true
+        default: true
+        type: boolean
 
 permissions:
   contents: read
-  id-token: write # required for GitHub OIDC — the only auth this needs
 
 jobs:
   publish:
@@ -41,10 +47,10 @@ jobs:
       - name: Install mcp-publisher (pinned + checksum-verified)
         run: |
           set -euo pipefail
-          # Pinned, not releases/latest: this job holds an OIDC token
-          # (id-token: write) that authorizes registry publishes for the
-          # io.github.asfbay-bit namespace — an upstream release compromise
-          # must not be able to run arbitrary code here. Runner is
+          # Pinned, not releases/latest: this job handles a token
+          # that authorizes Registry publishes for the io.github.asfbay-bit
+          # namespace — an upstream release compromise must not be able to run
+          # arbitrary code here. Runner is
           # ubuntu-latest, so the asset is always linux_amd64. To bump:
           # update MCP_PUBLISHER_VERSION and the sha256 from that release's
           # registry_<ver>_checksums.txt.
@@ -69,6 +75,16 @@ jobs:
             jq --arg v "$ver" '.version = $v' server.json > "$tmp" && mv "$tmp" server.json
           fi
           echo "Publishing version $(jq -r .version server.json) of $(jq -r .name server.json)"
+
+      - name: Assert the stable registry identity
+        run: |
+          set -euo pipefail
+          name="$(jq -r .name server.json)"
+          expected="io.github.asfbay-bit/opchain-skills"
+          if [ "$name" != "$expected" ]; then
+            echo "::error::server name $name would fork the immutable Registry identity $expected"
+            exit 1
+          fi
 
       # ── monotonicity guard ────────────────────────────────────────────────
       # The registry keeps ONE pointer per server, last write wins. This job
@@ -113,14 +129,22 @@ jobs:
           echo "stays on $newest rather than walking backwards."
           echo "SKIP_PUBLISH=1" >> "$GITHUB_ENV"
 
-      - name: Authenticate (GitHub OIDC)
-        if: env.SKIP_PUBLISH != '1'
-        run: ./mcp-publisher login github-oidc
-
       - name: Validate
         if: env.SKIP_PUBLISH != '1'
-        run: ./mcp-publisher publish --dry-run
+        run: ./mcp-publisher validate
+
+      - name: Authenticate as registry namespace owner
+        if: env.SKIP_PUBLISH != '1'
+        env:
+          MCP_GITHUB_TOKEN: ${{ secrets.MIRROR_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "$MCP_GITHUB_TOKEN" ]; then
+            echo "::error::MIRROR_TOKEN is required to preserve the io.github.asfbay-bit Registry identity"
+            exit 1
+          fi
+          ./mcp-publisher login github
 
       - name: Publish
-        if: env.SKIP_PUBLISH != '1'
+        if: env.SKIP_PUBLISH != '1' && (github.event_name != 'workflow_dispatch' || inputs.validate_only != true)
         run: ./mcp-publisher publish

@@ -21,7 +21,7 @@ import { bindLogger, newRequestId, EVENTS } from "./lib/request-id.js";
 import { evalFlag, evalFlags } from "./lib/flags/eval.js";
 import { ensureOcId } from "./lib/flags/identity.js";
 import { FLAG_NAMES, FLAGS, PUBLIC_FLAG_NAMES } from "./lib/flags/registry.js";
-import { createMcpServer } from "./lib/mcp/server.js";
+import { createMcpServer, MAX_CHECKPOINT_BYTES } from "./lib/mcp/server.js";
 import mcpCatalog from "./generated/mcp-catalog.json" with { type: "json" };
 import {
   DISCOVERY_PATHS,
@@ -31,6 +31,7 @@ import {
   buildSkillsJson,
 } from "./lib/discovery.js";
 import {
+  ALLOWED_ORIGINS,
   corsHeaders,
   applyBaselineHeaders,
   generateNonce,
@@ -367,10 +368,11 @@ const ROADMAP_REQUEST_RATELIMIT_TTL_S = 60 * 60; // 1h
 async function handleRoadmapRequest(request, env, ctx, log, origin, requestId, { type, title, description, category }) {
   const ip = request.headers.get("CF-Connecting-IP") || "0.0.0.0";
   if (env.NOTIFY) {
-    const rlKey = `ratelimit:roadmap-request:${ip}`;
+    const ipHash = await ipHashHex(ip);
+    const rlKey = `ratelimit:roadmap-request:${ipHash}`;
     const current = Number(await env.NOTIFY.get(rlKey)) || 0;
     if (current >= ROADMAP_REQUEST_RATELIMIT_MAX) {
-      log.event(EVENTS.RATE_LIMIT_HIT, { ip, source: "roadmap-request" });
+      log.event(EVENTS.RATE_LIMIT_HIT, { ip_hash: ipHash, source: "roadmap-request" });
       return new Response(
         JSON.stringify({ error: "Too many requests, slow down.", code: "rate_limited" }),
         { status: 429, headers: corsHeaders(origin, requestId) },
@@ -454,6 +456,7 @@ async function handleRoadmapRequest(request, env, ctx, log, origin, requestId, {
 
 const NOTIFY_RATELIMIT_MAX = 3;
 const NOTIFY_RATELIMIT_TTL_S = 60;
+const LEAD_TTL_SECONDS = 365 * 24 * 60 * 60;
 
 async function handleNotify(request, env, ctx, origin, requestId) {
   const log = bindLogger({ requestId, route: "/api/notify" });
@@ -472,10 +475,11 @@ async function handleNotify(request, env, ctx, origin, requestId) {
   // Rate-limit per IP. KV is best-effort — if NOTIFY isn't bound we
   // skip the limit and let the submission through.
   if (env.NOTIFY) {
-    const rlKey = `ratelimit:notify:${ip}`;
+    const ipHash = await ipHashHex(ip);
+    const rlKey = `ratelimit:notify:${ipHash}`;
     const current = Number(await env.NOTIFY.get(rlKey)) || 0;
     if (current >= NOTIFY_RATELIMIT_MAX) {
-      log.event(EVENTS.NOTIFY_RATELIMITED, { ip });
+      log.event(EVENTS.NOTIFY_RATELIMITED, { ip_hash: ipHash });
       return new Response(
         JSON.stringify({ error: "Too many submissions, slow down.", code: "rate_limited" }),
         { status: 429, headers: corsHeaders(origin, requestId) },
@@ -493,14 +497,14 @@ async function handleNotify(request, env, ctx, origin, requestId) {
     teamSize: teamSize ?? null,
     building: building ?? null,
     source,
-    ip,
-    userAgent: request.headers.get("User-Agent") || null,
     submittedAt: new Date().toISOString(),
     requestId,
   };
 
   if (env.NOTIFY) {
-    await env.NOTIFY.put(`lead:${emailHash}`, JSON.stringify(record));
+    await env.NOTIFY.put(`lead:${emailHash}`, JSON.stringify(record), {
+      expirationTtl: LEAD_TTL_SECONDS,
+    });
     log.event(EVENTS.NOTIFY_CAPTURED, { source, hasRole: !!role, hasTeamSize: !!teamSize, hasBuilding: !!building });
   } else {
     log.event(EVENTS.NOTIFY_NO_KV, { source });
@@ -600,19 +604,140 @@ const RENAMED_SKILL_IDS = new Set([
 // transport-agnostic core is src/lib/mcp/server.js (also wrapped over stdio by
 // mcp/local-server.mjs). Gated by the site.ops.api-mcp.kill switch in route().
 
+const MCP_CHECKPOINT_TTL_SECONDS = 30 * 24 * 60 * 60;
+const MCP_REQUEST_MAX_BYTES = 256 * 1024;
+const MCP_BATCH_MAX = 25;
+
 function mcpCheckpointStore(env) {
   if (!env.NOTIFY) return null;
   const key = (skill, session) => `mcp-checkpoint:${session}:${skill}`;
+
+  async function signingKey() {
+    const secret = env.MCP_SESSION_SIGNING_KEY;
+    if (typeof secret !== "string" || new TextEncoder().encode(secret).byteLength < 32) {
+      throw new Error("MCP session signing key is not configured");
+    }
+    return crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign", "verify"],
+    );
+  }
+
+  function base64Url(bytes) {
+    let binary = "";
+    for (const byte of new Uint8Array(bytes)) binary += String.fromCharCode(byte);
+    return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+
+  function decodeBase64Url(value) {
+    const padded = value.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - value.length % 4) % 4);
+    const binary = atob(padded);
+    return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  }
+
   return {
+    async createSession() {
+      const id = crypto.randomUUID();
+      const signature = await crypto.subtle.sign(
+        "HMAC",
+        await signingKey(),
+        new TextEncoder().encode(id),
+      );
+      return `${id}.${base64Url(signature)}`;
+    },
+    async hasSession(session) {
+      const separator = session.lastIndexOf(".");
+      if (separator <= 0) return false;
+      const id = session.slice(0, separator);
+      const signature = session.slice(separator + 1);
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) return false;
+      if (!/^[A-Za-z0-9_-]{43}$/.test(signature)) return false;
+      try {
+        const signatureBytes = decodeBase64Url(signature);
+        if (base64Url(signatureBytes) !== signature) return false;
+        return await crypto.subtle.verify(
+          "HMAC",
+          await signingKey(),
+          signatureBytes,
+          new TextEncoder().encode(id),
+        );
+      } catch {
+        return false;
+      }
+    },
     async read(skill, session) {
       const raw = await env.NOTIFY.get(key(skill, session));
       if (!raw) return null;
       try { return JSON.parse(raw); } catch { return null; }
     },
     async write(skill, session, data) {
-      await env.NOTIFY.put(key(skill, session), JSON.stringify(data));
+      const serialized = JSON.stringify(data);
+      if (new TextEncoder().encode(serialized).byteLength > MAX_CHECKPOINT_BYTES) {
+        throw new Error(`checkpoint exceeds the ${MAX_CHECKPOINT_BYTES}-byte storage limit.`);
+      }
+      await env.NOTIFY.put(key(skill, session), serialized, {
+        expirationTtl: MCP_CHECKPOINT_TTL_SECONDS,
+      });
     },
   };
+}
+
+async function readMcpBody(request) {
+  const declared = Number(request.headers.get("Content-Length"));
+  if (Number.isFinite(declared) && declared > MCP_REQUEST_MAX_BYTES) return { tooLarge: true };
+  if (!request.body) return { text: "" };
+
+  const reader = request.body.getReader();
+  const chunks = [];
+  let bytes = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    bytes += value.byteLength;
+    if (bytes > MCP_REQUEST_MAX_BYTES) {
+      await reader.cancel();
+      return { tooLarge: true };
+    }
+    chunks.push(value);
+  }
+  const joined = new Uint8Array(bytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    joined.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return { text: new TextDecoder().decode(joined) };
+}
+
+function checkpointMutationCount(body) {
+  const messages = Array.isArray(body) ? body : [body];
+  return messages.filter(
+    (message) => message?.method === "tools/call" &&
+      ["create_checkpoint_session", "write_checkpoint"].includes(message?.params?.name),
+  ).length;
+}
+
+async function consumeMcpWriteBudget(request, env, writeCount) {
+  if (writeCount === 0) return { ok: true };
+  if (!env.MCP_WRITE_RATE_LIMITER?.limit) return { ok: false, unavailable: true };
+  const ipHash = await ipHashHex(request.headers.get("CF-Connecting-IP") || "0.0.0.0");
+  try {
+    // The Cloudflare binding is the enforcement mechanism. Consume one token
+    // per mutation (rather than per HTTP batch), sequentially, so a 25-message
+    // batch cannot collapse to one rate-limit event.
+    for (let i = 0; i < writeCount; i += 1) {
+      const result = await env.MCP_WRITE_RATE_LIMITER.limit({ key: ipHash });
+      if (!result?.success) return { ok: false, unavailable: false };
+    }
+    return { ok: true };
+  } catch {
+    // Writes fail closed when the binding is absent or unhealthy. Read-only
+    // MCP discovery and checkpoint reads remain available.
+    return { ok: false, unavailable: true };
+  }
 }
 
 async function handleMcp(request, env, ctx, origin, requestId) {
@@ -629,11 +754,51 @@ async function handleMcp(request, env, ctx, origin, requestId) {
 
   let body;
   try {
-    body = await request.json();
+    const raw = await readMcpBody(request);
+    if (raw.tooLarge) {
+      return new Response(
+        JSON.stringify({ jsonrpc: "2.0", id: null, error: { code: -32600, message: "Request body too large" } }),
+        { status: 413, headers },
+      );
+    }
+    body = JSON.parse(raw.text);
   } catch {
     return new Response(
       JSON.stringify({ jsonrpc: "2.0", id: null, error: { code: -32700, message: "Parse error" } }),
       { status: 400, headers },
+    );
+  }
+
+  if (Array.isArray(body) && body.length === 0) {
+    return new Response(
+      JSON.stringify({ jsonrpc: "2.0", id: null, error: { code: -32600, message: "Invalid Request" } }),
+      { status: 400, headers },
+    );
+  }
+  if (Array.isArray(body) && body.length > MCP_BATCH_MAX) {
+    return new Response(
+      JSON.stringify({ jsonrpc: "2.0", id: null, error: { code: -32600, message: `Batch exceeds ${MCP_BATCH_MAX} messages` } }),
+      { status: 400, headers },
+    );
+  }
+
+  const writeCount = checkpointMutationCount(body);
+  const writeBudget = await consumeMcpWriteBudget(request, env, writeCount);
+  if (!writeBudget.ok) {
+    const unavailable = writeBudget.unavailable;
+    return new Response(
+      JSON.stringify({
+        jsonrpc: "2.0",
+        id: null,
+        error: {
+          code: -32000,
+          message: unavailable ? "Checkpoint write protection unavailable" : "Checkpoint write rate limit exceeded",
+        },
+      }),
+      {
+        status: unavailable ? 503 : 429,
+        headers: { ...headers, ...(unavailable ? {} : { "Retry-After": "60" }) },
+      },
     );
   }
 
@@ -654,13 +819,13 @@ async function handleMcp(request, env, ctx, origin, requestId) {
 
   // Single message or JSON-RPC batch. Notifications (no id) get a 202 with no body.
   if (Array.isArray(body)) {
-    if (body.length === 0) {
-      return new Response(
-        JSON.stringify({ jsonrpc: "2.0", id: null, error: { code: -32600, message: "Invalid Request" } }),
-        { status: 400, headers },
-      );
+    // Preserve request order so mutations and subsequent reads of an already
+    // issued session are deterministic. JSON-RPC permits any response order.
+    const responses = [];
+    for (const message of body) {
+      const response = await server.handle(message);
+      if (response !== null) responses.push(response);
     }
-    const responses = (await Promise.all(body.map((m) => server.handle(m)))).filter((r) => r !== null);
     if (responses.length === 0) return new Response(null, { status: 202, headers });
     return new Response(JSON.stringify(responses), { status: 200, headers });
   }
@@ -685,6 +850,16 @@ function discoveryHeaders(contentType) {
 // ── Main Router ─────────────────────────────────────────────────────────────
 
 async function route(request, env, ctx, url, origin, requestId) {
+    // MCP Streamable HTTP requires validation of every present Origin to
+    // prevent DNS-rebinding/cross-site attacks. Native clients that omit
+    // Origin remain supported. Reject before parsing, KV, or rate limiting.
+    if (url.pathname === "/mcp" && origin && !ALLOWED_ORIGINS.includes(origin)) {
+      return new Response(
+        JSON.stringify({ jsonrpc: "2.0", id: null, error: { code: -32600, message: "Origin not allowed" } }),
+        { status: 403, headers: corsHeaders(origin, requestId) },
+      );
+    }
+
     if (request.method === "OPTIONS" && (url.pathname.startsWith("/api/") || url.pathname === "/mcp")) {
       return new Response(null, { status: 204, headers: corsHeaders(origin, requestId) });
     }

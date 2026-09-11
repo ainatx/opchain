@@ -1,17 +1,17 @@
 # Default: everything routes to the maintainer.
 # A second maintainer/reviewer is an open item (docs/plans/2026-08-22-oss-split-licensing-compliance.md §7)
 # — add them to the product paths below when they exist.
-*                   @asfbay-bit
+*                   @ainatx @asfbay-bit
 
 # Product (skills, plugin, MCP) — the contributor-facing surface.
-/skills/            @asfbay-bit
-/plugins/           @asfbay-bit
-/mcp/               @asfbay-bit
-/.claude-plugin/    @asfbay-bit
-/server.json        @asfbay-bit
+/skills/            @ainatx @asfbay-bit
+/plugins/           @ainatx @asfbay-bit
+/mcp/               @ainatx @asfbay-bit
+/.claude-plugin/    @ainatx @asfbay-bit
+/server.json        @ainatx @asfbay-bit
 
 # Site + Worker + deploy path.
-/site/              @asfbay-bit
-/src/               @asfbay-bit
-/scripts/           @asfbay-bit
-/.github/           @asfbay-bit
+/site/              @ainatx @asfbay-bit
+/src/               @ainatx @asfbay-bit
+/scripts/           @ainatx @asfbay-bit
+/.github/           @ainatx @asfbay-bit

@@ -7,14 +7,14 @@ import { expect, test } from "@playwright/test";
  * /changelog uses the Option C v2 layout: three full-width ARIA tabs —
  * "Just Released" (release history, newest first), "Coming Next" (the next
  * slot, v1.9 assurance and governed delivery — direction set), and "Planned"
- * (committed v2.0 plus votable v2.1 / v2.2 / v2.3 cards). The newest release (v1.8, shipped
- * Jul 10 2026) is the open hero in Just Released, with v1.7 / v1.6 collapsed
+ * (votable v2.1 / v2.2 / v2.3 cards). The newest release (v1.9, shipped
+ * Sep 2026) is the open hero in Just Released, with v1.8 / v1.7 / v1.6 collapsed
  * heroes below it; each card is a button[aria-expanded] disclosure.
- * Deep links: #v1-8/#v1-7/#v1-6/#v1-5 → Just Released; #v1-9 → Coming Next;
- * #v2-0/#v2-1/#v2-2/#v2-3 → Planned; #v1-4 still carries the /coverage link.
+ * Deep links: #v1-9/#v1-8/#v1-7/#v1-6 → Just Released; #v2-0 → Coming Next;
+ * #v2-1/#v2-2/#v2-3 → Planned; #v1-4 still carries the /coverage link.
  *
  * Two specs:
- *   1. /changelog — three tabs; v1.8 is the open hero in Just Released;
+ *   1. /changelog — three tabs; v1.9 is the open hero in Just Released;
  *      the v1.4 card still deep-links to /coverage; Coming Next leads with
  *      the selected v1.9 assurance direction; Planned commits v2.0 and
  *      establishes voting across v2.1-v2.3 (7 votable items).
@@ -44,7 +44,7 @@ const ALL_PICKABLE = [
 ];
 
 test.describe("/changelog", () => {
-  test("three tabs; Just Released is active with the v1.8 hero open", async ({ page }) => {
+  test("three tabs; Just Released is active with the v1.9 hero open", async ({ page }) => {
     await page.goto("/changelog");
 
     // Three ARIA tabs; Just Released is selected by default and its panel is
@@ -55,17 +55,17 @@ test.describe("/changelog", () => {
     await expect(page.locator("#panel-coming")).toBeHidden();
     await expect(page.locator("#panel-planned")).toBeHidden();
 
-    // The newest release (v1.8) is the accent hero, open on load, tagged
+    // The newest release (v1.9) is the accent hero, open on load, tagged
     // with its version + a non-empty compatibility note (changelog-recipe rule).
-    const hero = page.locator("#v1-8.hero-card--released");
+    const hero = page.locator("#v1-9.hero-card--released");
     await expect(hero).toBeVisible();
-    await expect(hero.locator(".hero-ver")).toContainText("v1.8.0");
+    await expect(hero.locator(".hero-ver")).toContainText("v1.9.0");
     await expect(hero.locator(".hero-head")).toHaveAttribute("aria-expanded", "true");
     await expect(hero.locator(".compat-box")).toBeVisible();
     await expect(hero.locator(".compat-box")).not.toBeEmpty();
 
-    // v1.7 remains in the panel as a collapsed previous-release hero.
-    const prev = page.locator("#v1-7.hero-card--released");
+    // v1.8 remains in the panel as a collapsed previous-release hero.
+    const prev = page.locator("#v1-8.hero-card--released");
     await expect(prev).toBeVisible();
     await expect(prev.locator(".hero-head")).toHaveAttribute("aria-expanded", "false");
 
@@ -85,36 +85,33 @@ test.describe("/changelog", () => {
       .toBeVisible();
   });
 
-  test("Coming Next leads with the selected v1.9 assurance direction", async ({ page }) => {
+  test("Coming Next leads with the committed v2.0 self-improving pipeline", async ({ page }) => {
     await page.goto("/changelog");
     await page.locator("#tab-coming").click();
 
     await expect(page.locator("#panel-coming")).toBeVisible();
-    // v1.8 shipped; Coming Next owns the selected v1.9 direction (hero card),
-    // open by default, with the four committed delivery tracks.
-    await expect(page.locator("#v1-9.hero-card--next .hero-title")).toHaveText(
-      /assurance and governed delivery ops/i,
+    // v1.9 shipped; Coming Next owns the committed v2.0 release (hero card),
+    // open by default and not votable.
+    await expect(page.locator("#v2-0.hero-card--next .hero-title")).toHaveText(
+      /self-improving pipeline/i,
     );
-    await expect(page.locator("#v1-9 .hero-ver")).toContainText("v1.9");
-    await expect(page.locator("#v1-9 [data-disclosure-toggle]")).toHaveAttribute(
+    await expect(page.locator("#v2-0 .hero-ver")).toContainText("v2.0");
+    await expect(page.locator("#v2-0 [data-disclosure-toggle]")).toHaveAttribute(
       "aria-expanded",
       "true",
     );
-    for (const title of ["oc-qa-ops", "oc-data-ops", "oc-compliance-ops", "oc-security-hardening"]) {
-      await expect(page.locator("#v1-9 .horizon-title", { hasText: title })).toBeVisible();
-    }
-    await expect(page.locator("#v1-9 [data-vote-target]")).toHaveCount(0);
-    // v1.8 lives in Just Released now, not here.
-    await expect(page.locator("#panel-coming #v1-8")).toHaveCount(0);
+    await expect(page.locator("#v2-0 [data-vote-target]")).toHaveCount(0);
+    // v1.9 lives in Just Released now, not here.
+    await expect(page.locator("#panel-coming #v1-9")).toHaveCount(0);
   });
 
-  test("Planned commits v2.0 and establishes voting for v2.1-v2.3", async ({ page }) => {
+  test("Planned establishes voting for v2.1-v2.3", async ({ page }) => {
     await page.goto("/changelog");
     await page.locator("#tab-planned").click();
 
     await expect(page.locator("#panel-planned")).toBeVisible();
-    await expect(page.locator("#v2-0 .pc-title")).toHaveText(/self-improving pipeline/i);
-    await expect(page.locator('#v2-0 a[href*="docs/releases/2.0-plan.md"]')).toHaveCount(1);
+    // v2.0 moved to Coming Next at the v1.9 cut; Planned is the votable set.
+    await expect(page.locator("#panel-planned #v2-0")).toHaveCount(0);
     await expect(page.locator("#v2-1 .pc-title")).toHaveText(/distribution and installation/i);
     await expect(page.locator("#v2-2 .pc-title")).toHaveText(/agency and multi-project/i);
     await expect(page.locator("#v2-3 .pc-title")).toHaveText(/discovery and pipeline depth/i);
@@ -122,8 +119,9 @@ test.describe("/changelog", () => {
     await expect(page.locator("#panel-planned #v1-8")).toHaveCount(0);
     await expect(page.locator("#panel-planned #v1-9")).toHaveCount(0);
 
-    // v2.0 is committed; all seven candidates in v2.1-v2.3 remain votable
-    // under their existing GitHub issue numbers, preserving vote history.
+    // v2.0 is committed (Coming Next, not votable); the seven candidates in
+    // v2.1-v2.3 remain votable under their existing GitHub issue numbers,
+    // preserving vote history.
     await expect(page.locator("#v2-0 [data-vote-target]")).toHaveCount(0);
     const votingGroups = [
       ["v2-1", ["1", "4", "5"]],
@@ -166,19 +164,19 @@ test.describe("/changelog", () => {
     ).toHaveAttribute("aria-expanded", "true");
   });
 
-  test("deep-link #v1-9 opens the Coming Next tab and the v1.9 card", async ({ page }) => {
+  test("deep-link #v1-9 opens the Just Released tab and the v1.9 card", async ({ page }) => {
     await page.goto("/changelog#v1-9");
-    await expect(page.locator("#tab-coming")).toHaveAttribute("aria-selected", "true");
-    await expect(page.locator("#panel-coming")).toBeVisible();
+    await expect(page.locator("#tab-released")).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#panel-released")).toBeVisible();
     await expect(
       page.locator("#v1-9 [data-disclosure-toggle]"),
     ).toHaveAttribute("aria-expanded", "true");
   });
 
-  test("deep-link #v2-0 opens the Planned tab and the v2.0 group", async ({ page }) => {
+  test("deep-link #v2-0 opens the Coming Next tab and the v2.0 hero", async ({ page }) => {
     await page.goto("/changelog#v2-0");
-    await expect(page.locator("#tab-planned")).toHaveAttribute("aria-selected", "true");
-    await expect(page.locator("#panel-planned")).toBeVisible();
+    await expect(page.locator("#tab-coming")).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#panel-coming")).toBeVisible();
     await expect(
       page.locator("#v2-0 [data-disclosure-toggle]"),
     ).toHaveAttribute("aria-expanded", "true");

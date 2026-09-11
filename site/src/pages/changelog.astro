@@ -83,49 +83,12 @@ const v18Skills = [
   },
 ];
 
-// v1.9 "Assurance and governed delivery ops" — the selected direction.
-// Scope comes from `roadmap:planned` GitHub issues milestoned "v1.9". It is
-// displayed without vote controls because the release direction is settled.
-const v19Items = itemsForMilestone(roadmap, "planned", "v1.9").map((item) => ({
-  id: item.id,
-  title: item.title,
-  blurb: item.blurb,
-}));
-
 // v2.0 is committed. v2.1-v2.3 are the voting horizon: their issue-level vote
 // controls preserve the existing vote ids while making the sequence explicit.
+// v2.0 is NOT listed here: at the v1.9 cut it moved to the Coming Next panel as
+// the committed next release (hero #v2-0). Keeping a Planned card for it too
+// would duplicate that DOM id.
 const plannedReleaseGroups = [
-  {
-    version: "v2.0",
-    id: "v2-0",
-    title: "The self-improving pipeline",
-    timing: "committed after v1.9",
-    summary:
-      "Two governed multi-agent workflows turn measured outcomes into operational memory and proven behavior changes—without making generated suggestions hidden authority.",
-    votable: false,
-    highlights: [
-      {
-        name: "oc-hindsight · /oc-hindsight",
-        blurb:
-          "Planner/Curator → Lesson Generator → isolated Retrieval Evaluator → human promotion. Builds source-grounded, safe, testable operational memory.",
-      },
-      {
-        name: "oc-evolve · /oc-evolve",
-        blurb:
-          "Reflector/Planner → Rule Generator → isolated Adversarial Evaluator → human adoption. Changes behavior only after held-out and full-suite proof.",
-      },
-      {
-        name: "wire 1.2 + Outcome Scorecard",
-        blurb:
-          "Append-safe evaluation history and deterministic trend signals provide the substrate. The scorecard remains infrastructure, not a third skill.",
-      },
-    ],
-    items: itemsForMilestone(roadmap, "planned", "v2.0").map((item) => ({
-      id: item.id,
-      title: item.title,
-      blurb: item.blurb,
-    })),
-  },
   {
     version: "v2.1",
     id: "v2-1",
@@ -134,7 +97,6 @@ const plannedReleaseGroups = [
     summary:
       "Make opchain easier to discover and install in the places people already work: the public catalog, Claude.ai, and editors.",
     votable: true,
-    highlights: [],
     items: itemsForMilestone(roadmap, "planned", "v2.1").map((item) => ({
       id: item.id,
       title: item.title,
@@ -149,7 +111,6 @@ const plannedReleaseGroups = [
     summary:
       "Give studios and larger programs first-class coordination across clients, repositories, checkpoints, releases, and handoffs.",
     votable: true,
-    highlights: [],
     items: itemsForMilestone(roadmap, "planned", "v2.2").map((item) => ({
       id: item.id,
       title: item.title,
@@ -164,7 +125,6 @@ const plannedReleaseGroups = [
     summary:
       "Strengthen the pipeline before implementation with sharper problem discovery, opportunity framing, and evaluator evidence.",
     votable: true,
-    highlights: [],
     items: itemsForMilestone(roadmap, "planned", "v2.3").map((item) => ({
       id: item.id,
       title: item.title,
@@ -201,7 +161,7 @@ const plannedReleaseGroups = [
           aria-selected="true"
           tabindex="0"
         >
-          Just Released <span class="tab-count">17 shipped</span>
+          Just Released <span class="tab-count">18 shipped</span>
         </button>
         <button
           class="tab-btn tab-btn--next"
@@ -211,7 +171,7 @@ const plannedReleaseGroups = [
           aria-selected="false"
           tabindex="-1"
         >
-          Coming Next <span class="tab-count">v1.9</span>
+          Coming Next <span class="tab-count">v2.0</span>
         </button>
         <button
           class="tab-btn tab-btn--planned"
@@ -221,7 +181,7 @@ const plannedReleaseGroups = [
           aria-selected="false"
           tabindex="-1"
         >
-          Planned <span class="tab-count">v2.0 → v2.3</span>
+          Planned <span class="tab-count">v2.1 → v2.3</span>
         </button>
       </div>
       <span class="tab-indicator" data-tab-indicator aria-hidden="true"></span>
@@ -240,17 +200,74 @@ const plannedReleaseGroups = [
         <span class="panel-sub">Latest release is open; patches and earlier releases expand in place.</span>
       </div>
 
-      <!-- v1.8 — latest shipped release; "Documentation & repo hygiene". Deep-linkable from #v1-8. -->
-      <article class="hero-card hero-card--released is-open" id="v1-8" data-card>
+      <!-- v1.9 — latest shipped release; "Assurance and governed delivery ops". Deep-linkable from #v1-9. -->
+      <article class="hero-card hero-card--released is-open" id="v1-9" data-card>
         <button
           class="hero-head"
           type="button"
           aria-expanded="true"
-          aria-controls="v1-8-body"
+          aria-controls="v1-9-body"
           data-disclosure-toggle
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">latest release</span>
+          <span class="hero-ver">v1.9.0 · shipped Sep 02, 2026</span>
+          <span class="hero-title">Assurance and governed delivery ops</span>
+          <span class="hero-desc">
+            Delivery evidence you can review and enforce. v1.9 adds four skills
+            that decide which tests should exist, build data pipelines with
+            observable contracts, keep a standing compliance register with
+            audit-ready evidence, and execute security fixes behind a per-deploy
+            gate — each activated by a file in the repo, inert without it.
+          </span>
+        </button>
+        <div class="card-body" id="v1-9-body" data-disclosure-body>
+          <div class="card-body-inner hero-body-inner">
+            <div class="tag-row"><span class="tag tag--accent">shipped</span><span class="tag">29 → 33 skills</span><span class="tag">4 new skills</span><span class="tag">additive</span></div>
+            <h3>What&rsquo;s new</h3>
+            <div class="tile-grid">
+              <div class="tile">
+                <span class="tile-name">oc-qa-ops</span>
+                <span class="tile-desc">Test-pyramid design: coverage budgets, contract-test matrix, load-test planning. The strategy layer split out of oc-bug-check, which now reads its budgets at the commit gate.</span>
+              </div>
+              <div class="tile">
+                <span class="tile-name">oc-data-ops</span>
+                <span class="tile-desc">Ingestion patterns, staging → intermediate → marts layering, dbt, and data contracts replayed by an isolated Contract-Verifier — schema, freshness, volume, invariants.</span>
+              </div>
+              <div class="tile">
+                <span class="tile-name">oc-compliance-ops</span>
+                <span class="tile-desc">A standing control register plus audit-ready evidence bundles generated at deploy and release time. Evidence, not certification.</span>
+              </div>
+              <div class="tile">
+                <span class="tile-name">oc-security-hardening</span>
+                <span class="tile-desc">The execution half of the security pair: turns auditor findings into merged fixes, records every control in a manifest, and stands the per-deploy gate that replays it.</span>
+              </div>
+            </div>
+            <div class="compat-box">
+              <strong>Skill and on-disk checkpoint compatibility:</strong>
+              back-compatible with v1.8.3. All 33 skills lockstep-bump to
+              <code>1.9.0</code>; no checkpoint-file migration or commands are
+              removed. All MCP checkpoint callers must first use
+              <code>create_checkpoint_session</code>; invented tokens and the
+              former shared <code>default</code> session are rejected. The 16
+              pre-v1.9 hosted checkpoint records are deleted during rollout;
+              local on-disk checkpoints are unaffected.
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v1.8 — latest shipped release; "Documentation & repo hygiene". Deep-linkable from #v1-8. -->
+      <article class="hero-card hero-card--released" id="v1-8" data-card>
+        <button
+          class="hero-head"
+          type="button"
+          aria-expanded="false"
+          aria-controls="v1-8-body"
+          data-disclosure-toggle
+        >
+          <span class="hero-chevron" aria-hidden="true">▶</span>
+          <span class="hero-badge">previous release</span>
           <span class="hero-ver">v1.8.0 → v1.8.3 · Jul 10 – Aug 27, 2026</span>
           <span class="hero-title">Documentation &amp; repo hygiene</span>
           <span class="hero-desc">
@@ -261,7 +278,7 @@ const plannedReleaseGroups = [
             into the pipeline so it actually runs.
           </span>
         </button>
-        <div class="card-body" id="v1-8-body" data-disclosure-body>
+        <div class="card-body" id="v1-8-body" data-disclosure-body inert>
           <div class="card-body-inner hero-body-inner">
             <div class="tag-row"><span class="tag tag--info">shipped</span><span class="tag">Jul 10, 2026</span><span class="tag">27 → 29 skills</span></div>
             <p>
@@ -747,28 +764,20 @@ const plannedReleaseGroups = [
       </article>
 
       <!-- v1.4.3 — previous release; kept active within the 21-day window (shipped Jun 12) -->
-      <article class="hero-card hero-card--released" id="v1-4-3" data-card>
-        <button
-          class="hero-head"
-          type="button"
-          aria-expanded="false"
-          aria-controls="v1-4-3-body"
-          data-disclosure-toggle
-        >
-          <span class="hero-chevron" aria-hidden="true">▶</span>
-          <span class="hero-badge">previous release</span>
-          <span class="hero-ver">v1.4.3 · shipped Jun 12, 2026</span>
-          <span class="hero-title">opchain runs on Codex</span>
-          <span class="hero-desc">
-            opchain now speaks the Model Context Protocol, so Codex — and any
-            MCP-aware agent (Claude Desktop, Cursor, Windsurf) — gets the same
-            concept-to-ship pipeline Claude Code auto-discovers: the skill
-            catalog, intent routing, the shared orchestrator protocol, and
-            cross-session checkpoints.
+
+      <div class="divider"><span class="divider-line"></span><span class="divider-label">earlier releases</span><span class="divider-line"></span></div>
+
+      <!-- v1.4.3 — aged out of the five-hero window at the v1.9 cut -->
+      <article class="rel-card" id="v1-4-3" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-4-3-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.4.3</span><span class="rc-title">opchain runs on Codex</span><span class="rc-date">Jun 12, 2026</span></span>
+            <span class="rc-summary">opchain speaks the Model Context Protocol, so Codex — and any MCP-aware agent — gets the same concept-to-ship pipeline Claude Code auto-discovers.</span>
           </span>
         </button>
         <div class="card-body" id="v1-4-3-body" data-disclosure-body inert>
-          <div class="card-body-inner hero-body-inner">
+          <div class="card-body-inner">
             <h3>What's new</h3>
             <div class="tile-grid">
               <div class="tile">
@@ -828,8 +837,6 @@ const plannedReleaseGroups = [
           </div>
         </div>
       </article>
-
-      <div class="divider"><span class="divider-line"></span><span class="divider-label">earlier releases</span><span class="divider-line"></span></div>
 
       <!-- v1.4.2 — past; demoted from hero to rel-card -->
       <article class="rel-card" id="v1-4-2" data-card>
@@ -975,45 +982,36 @@ const plannedReleaseGroups = [
     >
       <div class="panel-head">
         <h2>What's coming</h2>
-        <span class="panel-sub">v1.9 is next. The direction is set: assurance and governed delivery ops.</span>
+        <span class="panel-sub">v2.0 is next — the self-improving pipeline, committed after v1.9.</span>
       </div>
 
       <!-- v1.9 — Assurance and governed delivery ops; selected direction.
            Deep-linkable from #v1-9. -->
-      <article class="hero-card hero-card--next is-open" id="v1-9" data-card>
+      <!-- v2.0 — the committed next release; "The self-improving pipeline". Deep-linkable from #v2-0. -->
+      <article class="hero-card hero-card--next is-open" id="v2-0" data-card>
         <button
           class="hero-head"
           type="button"
           aria-expanded="true"
-          aria-controls="v1-9-body"
+          aria-controls="v2-0-body"
           data-disclosure-toggle
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
-          <span class="hero-badge">direction set</span>
-          <span class="hero-ver">v1.9.0 · next · scope selected</span>
-          <span class="hero-title">Assurance and governed delivery ops</span>
+          <span class="hero-badge">committed</span>
+          <span class="hero-ver">v2.0.0 · next · committed</span>
+          <span class="hero-title">The self-improving pipeline</span>
           <span class="hero-desc">
-            Turn the pipeline's quality, test, data, compliance, and security
-            evidence into governed delivery that larger teams can trust. The
-            release direction is selected; the work below defines its scope.
+            Two governed workflow skills — oc-hindsight (operational memory) and
+            oc-evolve (behaviour change) — over a three-layer learning
+            architecture. Every activation ends at a human gate; learned content
+            is advisory data, never instructions.
           </span>
         </button>
-        <div class="card-body" id="v1-9-body" data-disclosure-body>
+        <div class="card-body" id="v2-0-body" data-disclosure-body>
           <div class="card-body-inner hero-body-inner">
-            <div class="tag-row"><span class="tag tag--info">direction set</span><span class="tag">next release</span><span class="tag">{v19Items.length} delivery tracks</span><span class="tag">29 → 33 skills</span></div>
-            <p>v1.9 makes delivery evidence reviewable and enforceable across the pipeline.</p>
-            <h3>Selected scope</h3>
-            <ul class="horizon-list">
-              {v19Items.map((item) => (
-                <li class="horizon-item">
-                  <div class="horizon-meta">
-                    <span class="horizon-title">{item.title}</span>
-                    <p class="horizon-blurb">{item.blurb}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <div class="planned-box">Direction selected — implementation scope will be refined through the v1.9 release plan.</div>
+            <div class="tag-row"><span class="tag tag--info">committed</span><span class="tag">next release</span><span class="tag">33 → 35 skills</span><span class="tag">checkpoint wire 1.2</span></div>
+            <p>v2.0 closes the loop: what the pipeline learns from its own runs becomes reviewable, promotable state — never a silent write-through.</p>
+            <div class="planned-box">Committed after v1.9 — <a href="https://github.com/ainatx/opchain/blob/main/docs/releases/2.0-plan.md">read the full 2.0 plan of record</a>.</div>
           </div>
         </div>
       </article>
@@ -1030,7 +1028,7 @@ const plannedReleaseGroups = [
     >
       <div class="panel-head">
         <h2>What's planned</h2>
-        <span class="panel-sub">v2.0 is the committed major after v1.9. Vote within v2.1-v2.3 to shape what follows.</span>
+        <span class="panel-sub">v2.0 is in build. Vote within v2.1-v2.3 to shape what follows.</span>
       </div>
 
       {plannedReleaseGroups.map((group) => (
@@ -1044,21 +1042,8 @@ const plannedReleaseGroups = [
           </button>
           <div class="card-body" id={`${group.id}-body`} data-disclosure-body inert>
             <div class="card-body-inner">
-            <div class="tag-row"><span class="tag tag--info">planned</span><span class="tag">{group.items.length} {group.items.length === 1 ? "item" : "items"}</span>{group.version === "v2.0" && <span class="tag">33 → 35 skills</span>}</div>
+            <div class="tag-row"><span class="tag tag--info">planned</span><span class="tag">{group.items.length} {group.items.length === 1 ? "item" : "items"}</span></div>
               <p>{group.summary}</p>
-              {group.highlights.length > 0 && (
-                <>
-                  <h3>Planned architecture</h3>
-                  <div class="tile-grid">
-                    {group.highlights.map((highlight) => (
-                      <div class="tile">
-                        <span class="tile-name">{highlight.name}</span>
-                        <p class="tile-desc">{highlight.blurb}</p>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
               <ul class="horizon-list">
                 {group.items.map((h) => (
                   <li class="horizon-item">
@@ -1085,7 +1070,7 @@ const plannedReleaseGroups = [
                 {group.votable ? (
                   "Voting is open — use each item to signal priority within this release."
                 ) : (
-                  <>Committed after v1.9 — <a href="https://github.com/asfbay-bit/opchain/blob/main/docs/releases/2.0-plan.md">read the full 2.0 plan of record</a>.</>
+                  <>Committed after v1.9 — <a href="https://github.com/ainatx/opchain/blob/main/docs/releases/2.0-plan.md">read the full 2.0 plan of record</a>.</>
                 )}
               </div>
             </div>

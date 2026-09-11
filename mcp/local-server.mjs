@@ -21,6 +21,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { createInterface } from "node:readline";
 import { buildCatalog } from "../scripts/gen-mcp-catalog.mjs";
 import { createMcpServer } from "../src/lib/mcp/server.js";
@@ -38,6 +39,7 @@ function serverVersion() {
 }
 
 const checkpoints = new Map();
+const checkpointSessions = new Set();
 const server = createMcpServer({
   catalog: buildCatalog(SKILLS_DIR),
   serverVersion: serverVersion(),
@@ -46,6 +48,12 @@ const server = createMcpServer({
     return existsSync(p) ? readFileSync(p, "utf8") : null;
   },
   checkpoints: {
+    async createSession() {
+      const session = randomUUID();
+      checkpointSessions.add(session);
+      return session;
+    },
+    async hasSession(session) { return checkpointSessions.has(session); },
     async read(skill, session) { return checkpoints.get(`${session}:${skill}`) ?? null; },
     async write(skill, session, data) { checkpoints.set(`${session}:${skill}`, data); },
   },

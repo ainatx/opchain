@@ -1,9 +1,9 @@
 name: CI
 
+# PR-only: main requires these same checks before merge, so a push trigger would
+# only repeat the checks after merge.
 on:
   pull_request:
-  push:
-    branches: [main]
 
 permissions:
   contents: read

@@ -4,128 +4,131 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-08-27T23:49:17.485Z",
-  "updated_at": "2026-08-29T22:39:06.000Z",
+  "updated_at": "2026-09-02T21:49:57.000Z",
   "phase": "production",
-  "step": "phase-a-production-verified",
+  "step": "v1.9-production-verified",
   "status": "complete",
-  "progress_summary": "Phase A production shipped successfully at exact runtime SHA 395fc314c836d5d9d8a76b64d85b8380ece3a68b. Cloudflare deployment 7abc8570-6fcb-4942-b44e-8ef822f84b05 serves version 780e85e2-7022-44fa-82f3-e5eaeb2b82a1 at 100% traffic; the current staging deployment 8d709a57-181b-4ed7-90cc-ddf773ca14f4 serves version c52b3bd6-4eee-4e50-a8c3-e21569b998d6. Production smoke, content, TLS, and version-filtered live-log verification passed; rollback was not used. Branch workflow runs 33278930280 and 33278931387 validate the authenticated Cloudflare monitoring redesign, including zero deploy-relevant drift across the intentional docs/checkpoint-only gap. Default-branch scheduled activation remains pending the closeout PR merge; no redeploy is required and no SHA other than 395fc314c836d5d9d8a76b64d85b8380ece3a68b is authorized.",
+  "progress_summary": "v1.9.0 production shipped at exact signed runtime SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248. Cloudflare deployment 54ef8a21-0665-4a83-bc1a-5768c2bae0d5 serves version 01bbe46b-3533-4faa-bc1a-d140cbcecbbe at 100% traffic; staging deployment 791c1851-2b81-4408-b881-dac381fa6d07 serves version d07bb08a-9662-4e77-a2a1-673fc0c7a8a5. Hardening replay, smoke, live MCP acceptance, visual review, and all 7 post-deploy gates passed. Staging's first attempt safely auto-rolled back on a bounded health-convergence miss and the retry passed; production did not roll back. Monitoring baseline PR #478 and its authenticated default-branch validation runs are green.",
   "blockers": [],
   "next_actions": [
-    "Do not redeploy the docs/checkpoint-only origin/main descendant; retain production at exact approved SHA 395fc314c836d5d9d8a76b64d85b8380ece3a68b.",
-    "After the closeout PR is human-merged, require successful default-branch scheduled Canary and Deploy lag runs before calling continuous monitoring healthy.",
-    "Retain rollback version 8c8cc6ad-9c8d-4c4c-9ff1-3220589638e8 until the release is considered stable."
+    "Retain production predecessor version c55ae124-ff35-4924-80af-00e92bd8879c until v1.9 is considered stable.",
+    "Let oc-monitoring-ops observe the first scheduled v1.9 Canary and Deploy lag cycle on September 5."
   ],
   "skill_state": {
     "current_env": "production",
-    "staging_version": "395fc31",
-    "prod_version": "395fc31",
-    "production_sha": "395fc314c836d5d9d8a76b64d85b8380ece3a68b",
-    "target_version": "395fc314c836d5d9d8a76b64d85b8380ece3a68b",
-    "cloudflare_version_id": "780e85e2-7022-44fa-82f3-e5eaeb2b82a1",
-    "cloudflare_deployment_id": "7abc8570-6fcb-4942-b44e-8ef822f84b05",
-    "staging_cloudflare_version_id": "c52b3bd6-4eee-4e50-a8c3-e21569b998d6",
-    "staging_cloudflare_deployment_id": "8d709a57-181b-4ed7-90cc-ddf773ca14f4",
+    "staging_version": "244bf13",
+    "prod_version": "244bf13",
+    "production_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
+    "target_version": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
+    "cloudflare_version_id": "01bbe46b-3533-4faa-bc1a-d140cbcecbbe",
+    "cloudflare_deployment_id": "54ef8a21-0665-4a83-bc1a-5768c2bae0d5",
+    "staging_cloudflare_version_id": "d07bb08a-9662-4e77-a2a1-673fc0c7a8a5",
+    "staging_cloudflare_deployment_id": "791c1851-2b81-4408-b881-dac381fa6d07",
     "staging_url": "https://staging.opchain.dev",
     "production_url": "https://opchain.dev",
     "branch_preview": false,
-    "last_deploy": "2026-08-29T14:47:30.285424Z",
-    "source_pr": 465,
+    "last_deploy": "2026-09-02T20:11:25.746861Z",
+    "source_pr": 477,
     "audit_gate": {
       "critical": 0,
-      "high": 1,
-      "medium": 0,
-      "scope": "exact merged SHA 395fc314c836d5d9d8a76b64d85b8380ece3a68b post-merge code and security audits",
-      "result": "warn-explicitly-accepted-production-shipped",
-      "remediated_on_branch": [
-        "historical tag executes historical publisher workflow",
-        "release tag was not bound to its catalog or matching remote tag object and commit",
-        "security private-advisory CTA contrast in dark/light rest and hover states (PR #465)"
-      ],
-      "deferred": [
-        "unauthenticated MCP checkpoint read/write with predictable default session and no TTL/size/rate limits"
-      ],
-      "confirmation": {
-        "high_accepted": true,
-        "scope": "staging-and-production",
-        "staging_eyeball_approved": true,
-        "staging_eyeball_approved_at": "2026-08-29T03:23:40.000Z",
-        "signed_tag_authorized": true,
-        "signed_tag_verified": true,
-        "production_high_accepted": true,
-        "production_high_accepted_at": "2026-08-29T14:33:52.000Z",
-        "production_authorized": true,
-        "production_authorized_at": "2026-08-29T14:44:56.000Z",
-        "production_authorized_sha": "395fc314c836d5d9d8a76b64d85b8380ece3a68b"
-      }
+      "high": 0,
+      "scope": "exact merged and tagged v1.9 SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
+      "result": "PASS",
+      "independent_review": "SHIP",
+      "hardening_manifest": "PASS — 45 MCP tests and 6 retention tests"
     },
     "staging_smoke_results": {
-      "health": "pass — 200 application/json with ok:true and version 395fc31",
-      "home": "pass — 200 text/html",
-      "zip": "pass — /opchain-skills.zip reachable",
-      "license": "pass — /LICENSE serves Apache-2.0 text",
-      "redirect": "pass — legacy skill URL redirects to /skills/oc-code-auditor",
-      "headers": "pass — required homepage security headers present",
-      "content": "pass — all eight Phase A pages returned 200; security.txt is GitHub-first with Expires; skills.json reports Apache-2.0, catalog 1.8.3, and 29 skills; changelog has 7 unique vote targets and 12 roadmap items",
-      "visual": "pass — Safari Computer Control verified the /security private-advisory link in dark and light themes, the populated /changelog roadmap voting panel and expanded Apache-2.0 card, /showcase sample-labeled $7.41 copy, and the footer Apache-2.0 link; deployed CTA computed styles also passed rest/hover assertions"
+      "health": "PASS — HTTP 200 with ok:true and exact version 244bf13",
+      "content": "PASS — v1.9 changelog, 33-skill catalog, four new skill pages, and release assets",
+      "hardening": "PASS — live hardening replay",
+      "mcp": "PASS — initialize, issued-token write/read, forged-token rejection, request and batch limits, Origin policy",
+      "session_isolation": "PASS — production and staging tokens reject cross-environment replay",
+      "visual": "PASS — changelog and skills surfaces reviewed with no browser console errors"
     },
     "production_smoke_results": {
-      "health": "pass — repeated uncached probes returned 200 application/json with ok:true and exact short version 395fc31",
-      "content": "pass — Phase A surfaces, skills.json, security.txt, release artifacts, and roadmap content matched the approved release",
-      "tls": "pass — certificate exceeded the 30-day expiry gate",
-      "logs": "pass — version-filtered live Worker tail observed three outcome:ok events, zero exceptions, and zero error logs",
-      "monitoring": "branch redesign passed; default-branch scheduled activation remains pending merge"
+      "health": "PASS — five uncached HTTP 200 samples with exact version 244bf13",
+      "content": "PASS — v1.9 release surfaces and 33-skill catalog",
+      "hardening": "PASS — live hardening replay",
+      "mcp": "PASS — signed-session and abuse-control acceptance suite",
+      "tls": "PASS — certificate valid through 2026-11-18T23:02:36Z",
+      "post_deploy": "PASS — 7/7 canary, deploy-lag, smoke, release-ledger, registry, mirror, and Lighthouse gates"
     },
     "release_gate": {
-      "signed_tag": "pass",
-      "remote_tag_match": "pass",
-      "tag_object_sha": "5ba19cedb72a994dd32d4c4f53e5a962bd68b283",
-      "peeled_commit": "395fc314c836d5d9d8a76b64d85b8380ece3a68b",
-      "publisher_workflow_run_id": 33234878843,
-      "publisher_workflow_conclusion": "failure",
-      "registry_publication": "pass — active/latest/exact",
-      "registry_published_at": "2026-08-29T04:53:31.36821Z",
-      "disposition": "accepted-one-time-outcome-exception",
-      "exception_pr": 466,
-      "exception_merge_sha": "5baa289ceeac5813f0a4392d6f63ed89cafa705f"
+      "signed_tag": "PASS",
+      "remote_tag_match": "PASS",
+      "tag_object_sha": "fd05dd2c5d696661cb2cc5cb9dd57d2470f69c32",
+      "peeled_commit": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
+      "publisher_preflight_run_id": 33673476599,
+      "publisher_workflow_run_id": 33677209947,
+      "publisher_workflow_conclusion": "success",
+      "registry_publication": "PASS — v1.9.0 active, latest, and exact",
+      "registry_published_at": "2026-09-02T20:05:41.073493Z",
+      "disposition": "approved-and-verified"
     },
     "production_preflight": {
-      "current_version": "57ef163",
-      "roadmap_token_production": "present",
-      "roadmap_token_staging": "present — name verified; value not recorded",
-      "vote_migration": "skip recorded — applicable OPC-170/173/174 keys absent; unrelated historical keys left untouched",
-      "roadmap_regeneration_required": false,
-      "roadmap_regeneration": "pass — 12 items and fail-closed validation immediately before deployment",
-      "production_high_accepted": true,
-      "production_high_accepted_at": "2026-08-29T14:33:52.000Z",
-      "production_authorized": true,
-      "production_authorized_at": "2026-08-29T14:44:56.000Z",
-      "production_authorized_sha": "395fc314c836d5d9d8a76b64d85b8380ece3a68b"
+      "origin_main_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
+      "tag_peeled_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
+      "clean_tree": true,
+      "roadmap_regeneration": "PASS — 12 items; shipped 4; planned 8",
+      "distinct_session_signing_secrets": true,
+      "signed_tag_verified": true,
+      "production_authorized": true
+    },
+    "staging_deploy": {
+      "git_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
+      "health_version": "244bf13",
+      "deployment_id": "791c1851-2b81-4408-b881-dac381fa6d07",
+      "version_id": "d07bb08a-9662-4e77-a2a1-673fc0c7a8a5",
+      "traffic_percent": 100,
+      "deployed_at": "2026-09-02T20:09:04.601494Z",
+      "first_attempt": {
+        "deployment_id": "a64faa27-aa18-4271-9c88-add31178f399",
+        "version_id": "5210c7f2-59cf-40a5-bef5-f78a8108c70c",
+        "result": "bounded health-convergence miss"
+      },
+      "automatic_rollback": {
+        "deployment_id": "166808ce-df53-4f92-88b8-a255235b9c0f",
+        "restored_version_id": "8e0a117c-99f4-4ccd-a044-4bfaf8b28ba4",
+        "result": "PASS"
+      },
+      "retry_result": "PASS"
     },
     "production_deploy": {
-      "git_sha": "395fc314c836d5d9d8a76b64d85b8380ece3a68b",
-      "health_version": "395fc31",
-      "deployment_id": "7abc8570-6fcb-4942-b44e-8ef822f84b05",
-      "version_id": "780e85e2-7022-44fa-82f3-e5eaeb2b82a1",
+      "git_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
+      "health_version": "244bf13",
+      "deployment_id": "54ef8a21-0665-4a83-bc1a-5768c2bae0d5",
+      "version_id": "01bbe46b-3533-4faa-bc1a-d140cbcecbbe",
+      "script_etag": "3b626cc22d8f1fa8d444686f3f6f209296184cba7114d65373019058d61cb875",
       "traffic_percent": 100,
-      "deployed_at": "2026-08-29T14:47:30.285424Z",
-      "verified_at": "2026-08-29T14:56:44.000Z",
+      "deployed_at": "2026-09-02T20:11:25.746861Z",
+      "verified_at": "2026-09-02T21:43:57.4205588Z",
       "rollback_used": false
     },
+    "retention_closeout": {
+      "sealed_legacy_count": 16,
+      "sealed_inventory_digest": "0d4d150e0c09b65b27c2fc6e5d011f3664587efcecbf4d785f353a06b39e4e21",
+      "deleted": 16,
+      "production_checkpoint_records_remaining": 0,
+      "staging_checkpoint_records_remaining": 0,
+      "unrelated_production_records_preserved": 4
+    },
     "monitoring_closeout": {
-      "status": "redesign-validated-pending-merge",
-      "canary_run_id": 33278930280,
-      "deploy_lag_run_id": 33278931387,
+      "status": "v1.9 baseline verified; scheduled follow-up delegated to oc-monitoring-ops",
+      "baseline_pr": 478,
+      "baseline_merge_sha": "c6d529631cfe49021efdcabcfcf02bc95a94700f",
+      "canary_run_id": 33686712301,
+      "canary_conclusion": "success",
+      "deploy_lag_run_id": 33686714194,
+      "deploy_lag_conclusion": "success",
       "deploy_relevant_changes": 0,
-      "explicitly_non_deploying_changes": 6,
-      "default_branch_scheduled_activation": "pending closeout PR merge"
+      "explicitly_non_deploying_changes": 1,
+      "reconciled_issue": 475
     },
     "rollback_available": true,
     "rollback_target": {
-      "health_version": "57ef163",
-      "git_sha": "57ef163202c1f7f0360c55fe08ff089e6380d182",
-      "deployment_id": "53e03e7b-59fa-4963-9582-f6553284bb0c",
-      "cloudflare_version_id": "8c8cc6ad-9c8d-4c4c-9ff1-3220589638e8",
-      "reason": "Retained last known-good production target; rollback was not used."
+      "deployment_id": "bf2ee2b8-8d1e-4155-89cb-fcd91b45ff00",
+      "cloudflare_version_id": "c55ae124-ff35-4924-80af-00e92bd8879c",
+      "reason": "Captured active production predecessor; retained because production rollback was not needed."
     }
   }
 }

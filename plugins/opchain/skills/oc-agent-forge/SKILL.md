@@ -1,7 +1,7 @@
 ---
 name: oc-agent-forge
 displayName: OC · Agent Forge
-version: 1.8.3
+version: 1.9.0
 license: Apache-2.0
 shortDesc: Scaffold Claude Agent SDK apps — subagent topology, tool budgets, harness loops, agent eval. Tri-agent.
 phases: [build, ai-native]

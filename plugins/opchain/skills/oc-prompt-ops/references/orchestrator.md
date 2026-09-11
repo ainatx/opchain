@@ -97,6 +97,14 @@ quality gates (run before deploy):
   oc-code-auditor ──► finds code-level issues
   oc-security-auditor ──► threat model, hardening, attack surface
 
+assurance & governed delivery (v1.9):
+  oc-qa-ops ──► test-pyramid strategy → .opchain/qa.yaml (oc-bug-check reads budgets when present)
+  oc-security-hardening ──► executes auditor findings → .opchain/hardening.yaml
+                            (deploy audit gains a manifest-verify row when it exists)
+  oc-compliance-ops ──► control register + evidence bundle at deploy
+                        (activated by .opchain/compliance.yaml; inert without it)
+  (oc-data-ops is the fourth v1.9 skill — it lives under cross-cutting below)
+
 post-deploy:
   oc-monitoring-ops ──► uptime, errors, alerts, incidents
 
@@ -111,6 +119,8 @@ cross-cutting:
   oc-migration-ops ──► runs when a live system's engine changes (DB / framework / platform)
   oc-scale-ops ──► runs when scaling questions arise
   oc-dash-forge ──► invoked by oc-ux-engineer (or oc-app-architect) for dashboards + dense data UIs
+  oc-data-ops ──► runs when discovery surfaces a data-heavy backend (ingestion,
+                  transformation layers, dbt, observable data contracts)
 
 instrumentation (v1.6 "the instrumented pipeline"):
   oc-cost-ops ──► attributes LLM spend per phase, budget gates, model-tier routing
@@ -127,18 +137,22 @@ instrumentation (v1.6 "the instrumented pipeline"):
 | **oc-ux-engineer** | oc-app-architect (design baseline) | oc-dash-forge (on data-heavy screens), otherwise returns control |
 | **oc-dash-forge** | oc-ux-engineer (tokens + design spec), oc-app-architect (design phase, dashboard surface) | — (returns control to caller with design spec + prototype) |
 | **oc-code-auditor** | oc-reverse-spec, oc-app-architect | oc-security-auditor (posture review above code-level findings), oc-deploy-ops (pre-deploy gate) |
-| **oc-security-auditor** | oc-code-auditor (findings), oc-reverse-spec, oc-app-architect, oc-deploy-ops | oc-deploy-ops (posture check before prod gate) |
+| **oc-security-auditor** | oc-code-auditor (findings), oc-reverse-spec, oc-app-architect, oc-deploy-ops | oc-security-hardening (remediation handoff — `/oc-harden fix` per finding; `/oc-security compare` closes the loop), oc-deploy-ops (posture check before prod gate) |
 | **oc-integrations-engineer** | oc-app-architect (integration spec) | oc-code-auditor (verify integration) |
-| **oc-api-dev** | oc-app-architect (`02-architecture.md`, `03-data-model.md`), oc-stack-forge (typed pipeline), oc-reverse-spec (existing-endpoint inventory) | oc-code-auditor (audits scaffolded handlers), oc-security-auditor (CORS/rate-limit posture), oc-monitoring-ops (SLO + drift manifest), oc-deploy-ops (drift gate) |
+| **oc-api-dev** | oc-app-architect (`02-architecture.md`, `03-data-model.md`), oc-stack-forge (typed pipeline), oc-reverse-spec (existing-endpoint inventory), oc-qa-ops (contract-test rows for the conformance suite) | oc-code-auditor (audits scaffolded handlers), oc-security-auditor (CORS/rate-limit posture), oc-monitoring-ops (SLO + drift manifest), oc-deploy-ops (drift gate) |
 | **oc-migration-ops** | oc-app-architect (spec), oc-reverse-spec (current state) | oc-deploy-ops (cutover), oc-monitoring-ops (verify post-migration) |
 | **oc-git-ops** | oc-app-architect (sprint context), oc-bug-check (gate result), oc-docs-forge (PR docs packet), oc-repo-ops (PR readiness verdict) | oc-bug-check (pre-commit gate, chain), oc-docs-forge → oc-repo-ops (pre-PR gate, chain), oc-deploy-ops (post-push) |
-| **oc-bug-check** | oc-git-ops (gate trigger) | oc-git-ops (returns pass / fail / bypass; failure blocks the commit) |
-| **oc-docs-forge** | oc-git-ops (PR trigger: branch, commit log, PR draft, linked ticket), oc-app-architect (feature scope), oc-reverse-spec (existing docs), oc-api-dev (API doc drift), oc-release-ops (release surfaces), oc-code-auditor / oc-bug-check (quality notes for PR docs) | oc-repo-ops (hands docs packet to the readiness gate), oc-git-ops (returns PR body fragment + optional marker comment) |
+| **oc-bug-check** | oc-git-ops (gate trigger), oc-qa-ops (`.opchain/qa.yaml` coverage budgets, when present) | oc-git-ops (returns pass / fail / bypass; failure blocks the commit) |
+| **oc-docs-forge** | oc-git-ops (PR trigger: branch, commit log, PR draft, linked ticket), oc-app-architect (feature scope), oc-reverse-spec (existing docs), oc-api-dev (API doc drift), oc-release-ops (release surfaces), oc-code-auditor / oc-bug-check (quality notes for PR docs), oc-compliance-ops (policy docs riding the PR packet) | oc-repo-ops (hands docs packet to the readiness gate), oc-git-ops (returns PR body fragment + optional marker comment) |
 | **oc-repo-ops** | oc-docs-forge (docs packet), oc-git-ops (branch, base, PR draft), oc-bug-check (gate verdict), oc-release-ops (release PR surfaces), oc-checkpoint-protocol (tracking policy) | oc-docs-forge (on missing/stale docs packet), oc-bug-check (on missing/stale code gate), oc-git-ops (PASS → PR can open; FAIL blocks PR creation) |
-| **oc-deploy-ops** | oc-code-auditor (audit grade), oc-security-auditor (posture), oc-git-ops (branch status) | oc-monitoring-ops (post-ship observability) |
-| **oc-monitoring-ops** | oc-deploy-ops (what shipped) | — (incident loops back to oc-app-architect / oc-code-auditor as needed) |
+| **oc-deploy-ops** | oc-code-auditor (audit grade), oc-security-auditor (posture), oc-git-ops (branch status), oc-security-hardening (manifest verify, when `.opchain/hardening.yaml` exists), oc-compliance-ops (evidence bundle, when `.opchain/compliance.yaml` exists) | oc-monitoring-ops (post-ship observability) |
+| **oc-monitoring-ops** | oc-deploy-ops (what shipped), oc-data-ops (monitor inventory from `observe`), oc-security-hardening (detection controls handed off) | — (incident loops back to oc-app-architect / oc-code-auditor as needed) |
 | **oc-release-ops** | every skill's `*.checkpoint.json` (what shipped per skill since last release), oc-app-architect (sprint outputs feed changelog draft), oc-git-ops (merged-PR list), oc-deploy-ops (last-shipped commit SHA) | oc-git-ops (release PR / tag), oc-deploy-ops (staging then prod ship) |
-| **oc-scale-ops** | oc-stack-forge (platform limits) | — (advisory, no chain) |
+| **oc-scale-ops** | oc-stack-forge (platform limits), oc-qa-ops (load plan → execution) | — (advisory, no chain) |
+| **oc-qa-ops** | oc-app-architect (spec + punch list, Phase 6 contracts), oc-api-dev (API surface), oc-data-ops (data contracts), oc-bug-check (gate behavior + suite runtime), oc-scale-ops (platform limits shaping load scenarios) | oc-scale-ops (load-plan execution), oc-api-dev (contract-test rows), oc-bug-check (budgets consumed at the gate) |
+| **oc-data-ops** | oc-app-architect (data-heavy discovery), oc-stack-forge (warehouse/queue choice), oc-signal-forge (metrics needing pipelines), oc-reverse-spec (existing pipeline inventory) | oc-monitoring-ops (monitor inventory from `observe`), oc-dash-forge (contracted marts), oc-migration-ops (live schema evolution) |
+| **oc-compliance-ops** | oc-security-auditor (readiness gaps seed the register), oc-security-hardening (remediation status), oc-deploy-ops (deploy SHA for evidence), oc-data-ops (retention/contract evidence), oc-monitoring-ops (audit-log artifacts) | oc-security-hardening (technical gaps → execution), oc-deploy-ops (evidence gate row), oc-release-ops (compliance delta), oc-docs-forge (policy docs in PR packet) |
+| **oc-security-hardening** | oc-security-auditor (findings + tier), oc-code-auditor (infra-adjacent findings), oc-compliance-ops (chained control gaps), oc-stack-forge (platform idiom for config-as-code), oc-deploy-ops (gate chokepoint) | oc-deploy-ops (manifest gate row), oc-security-auditor (`/oc-security compare` after remediation), oc-monitoring-ops (detection controls handed off) |
 | **oc-cost-ops** | oc-claude-api (price table), oc-prompt-ops (eval token counts), any skill (phase token counts) | oc-prompt-ops (cost-regression gate), oc-telemetry-ops (attributed cost to aggregate), oc-orchestrator (budget into `/oc-ops next`) |
 | **oc-telemetry-ops** | oc-cost-ops (per-run cost), any skill (skill/phase usage) | the site `/dashboard` (anonymized aggregate), oc-orchestrator (most-used-skill signal) |
 | **oc-reverse-spec** | — (entry point for existing code) | oc-app-architect (handoff specs) |
@@ -191,6 +205,12 @@ RIGHT (active invocation):
 | Release boundary reached (user says "cut a release", "ship v1.3", "bump versions") | any skill | oc-release-ops | Invoke oc-release-ops `/oc-release plan` to propose the next semver and theme, then walk through `draft → bump → announce → ship` |
 | `/oc-release ship` advances to PR | oc-release-ops | oc-docs-forge → oc-git-ops | Invoke oc-docs-forge `/oc-docs pr` for the release docs packet, then oc-git-ops `/oc-git-sync v<semver>` with the bump commit (the pre-PR gate runs as usual); oc-release-ops resumes after merge |
 | `/oc-release ship` advances to deploy | oc-release-ops | oc-deploy-ops | Invoke oc-deploy-ops `/oc-deploy staging` then `/oc-deploy` on user confirmation; oc-release-ops closes the release ticket on prod ship |
+| Phase 2 reaches `06-testing.md` | oc-app-architect | oc-qa-ops | Invoke `/oc-qa pyramid`; its output IS 06-testing.md (a step you run, not an automatic trigger) |
+| Data-heavy backend surfaced in discovery | oc-app-architect (Phase 2) | oc-data-ops | After oc-stack-forge, invoke `/oc-data-ops design` — the data branch, parallel to the AI-app branch |
+| Metric needs a pipeline that doesn't exist | oc-signal-forge | oc-data-ops | Invoke `/oc-data-ops design`; the signal rides a contracted mart instead of a raw source |
+| Security findings ready for remediation | oc-security-auditor | oc-security-hardening | Invoke `/oc-harden fix` per finding (or `/oc-harden baseline`); close the loop with `/oc-security compare` |
+| `.opchain/hardening.yaml` exists at deploy | oc-deploy-ops | oc-security-hardening | Audit-gate row: replay the manifest (`/oc-harden verify`) at the deploying SHA |
+| `.opchain/compliance.yaml` exists at deploy | oc-deploy-ops | oc-compliance-ops | Audit-gate row: `/oc-comply evidence` writes the bundle for the deploying SHA |
 
 ### How to Invoke Another Skill
 
@@ -267,6 +287,10 @@ right skill and phase based on the request.
 | "Commit my changes" / "Push to git" | oc-git-ops | /oc-git-sync |
 | "Can this handle more users?" | oc-scale-ops | /oc-scale audit |
 | "Cut a release" / "Ship v1.3" / "Bump versions" / "Draft the changelog" / "Tag the release" | oc-release-ops | /oc-release plan |
+| "Test strategy" / "Test pyramid" / "Coverage budget" / "Contract testing" / "Plan a load test" | oc-qa-ops | /oc-qa pyramid |
+| "Data pipeline" / "dbt" / "Data contract" / "Ingestion" / "Warehouse schema drift" / "Stale data" (API contract drift → oc-api-dev) | oc-data-ops | /oc-data-ops design |
+| "SOC 2 evidence" / "Compliance checklist" / "Audit-ready" / "What would an auditor ask for" | oc-compliance-ops | /oc-comply scope |
+| "Harden this" / "Fix the security findings" / "Roll out CSP" / "Rate limit this endpoint" | oc-security-hardening | /oc-harden baseline |
 | "Continue where we left off" | [check all checkpoints] | [resume most recent] |
 
 ---
@@ -374,7 +398,9 @@ description: >
   compliance mapping, runtime/infra hardening (CSP, TLS, DNS, WAF), and attack-surface
   mapping. Runs ABOVE oc-code-auditor. Use for /oc-security, /oc-secaudit, /oc-threat-model, /oc-owasp,
   /oc-hardening, /oc-attack-surface, "is this secure enough", "SOC2 readiness", "pen test prep",
-  "security architecture review".
+  "security architecture review". Assessment only — executing fixes is
+  oc-security-hardening (/oc-harden); the standing compliance register is
+  oc-compliance-ops.
 
 # oc-ux-engineer
 description: >
@@ -405,7 +431,8 @@ description: >
   generation for the API your own clients consume. Use for /oc-api, /oc-api design,
   /oc-api spec, /oc-api scaffold, /oc-api version, /oc-api lint, /oc-api sdk, "design our API",
   "OpenAPI", "GraphQL schema", "versioning strategy", "deprecate endpoint",
-  "generate SDK", "schema drift". For consuming someone else's API (Stripe, Slack,
+  "generate SDK", "API schema drift" (spec↔code; warehouse/data schema drift is
+  oc-data-ops). For consuming someone else's API (Stripe, Slack,
   OAuth) use oc-integrations-engineer instead.
 
 # oc-migration-ops
@@ -463,6 +490,41 @@ description: >
   "ship v1.3", "tag the release", "draft the changelog", "what's in this
   release", "version bump".
 
+# oc-claude-api
+description: >
+  Build, debug, and optimize Claude API / Anthropic SDK apps. Apps built with
+  this skill include prompt caching by default. Also migrates existing Claude
+  API code between model versions (4.6 → 4.7, retired-model replacements). Use
+  for /oc-claude-api, "Anthropic SDK", "prompt caching", "cache hit rate",
+  "tool use", "model migration", "extended thinking", "batch API", "files API",
+  "memory", "citations".
+
+# oc-rag-forge
+description: >
+  Retrieval-augmented generation harness with a Designer/Builder/Evaluator
+  loop. Owns vector DB selection (pgvector, Turbopuffer, Pinecone, Supabase
+  Vectors), embedding-model choice, chunking strategy, hybrid search, and
+  retrieval evaluation. Use for /oc-rag, "RAG", "vector database", "embeddings",
+  "chunking", "semantic search", "hybrid search", "retrieval eval", "reranking",
+  "knowledge base".
+
+# oc-agent-forge
+description: >
+  Claude Agent SDK build harness with a Planner/Builder/Evaluator loop. Owns
+  subagent topology, tool-budget design, harness loop shapes, and agent
+  evaluation. Use for /oc-agent, "Claude Agent SDK", "build an agent",
+  "subagent", "tool budget", "agent loop", "harness", "multi-agent",
+  "agent eval", "orchestrator-worker". Model routing comes from oc-claude-api;
+  agent-forge owns topology + harness shape.
+
+# oc-prompt-ops
+description: >
+  Prompt operations harness — treat prompts as versioned, diffable,
+  source-controlled code. Owns prompt versioning, eval datasets, regression
+  detection, and drift tracking. Use for /oc-prompt, "prompt versioning",
+  "eval dataset", "prompt regression", "prompt drift", "golden set",
+  "prompt diff", "LLM eval", "regression suite".
+
 # oc-cost-ops
 description: >
   Cost operations harness — attribute LLM spend to the skill phase that incurred
@@ -480,6 +542,111 @@ description: >
   Use for /oc-telemetry, "usage metering", "telemetry", "opt-in analytics",
   "which skills do people use", "usage stats", "dashboard data". Trigger
   liberally on usage/telemetry work.
+
+# oc-signal-forge
+description: >
+  Analytics & signals backend harness with a Designer/Builder/Evaluator loop. Derives
+  new metrics from the question they answer, builds the instrumentation + harvester +
+  transform, and adversarially verifies the signal is correct AND answers the question
+  before wiring it to a consumer. Use for /oc-signal, "new metric", "instrument this",
+  "analytics backend", "data harvesting", "is this metric right", "wire up a signal",
+  "derive a KPI". Hands rendered output to oc-dash-forge. NOT pipeline telemetry
+  (oc-telemetry-ops), NOT dashboards (oc-dash-forge), NOT prod uptime (oc-monitoring-ops),
+  NOT estate-level data pipelines — ingestion/dbt/warehouse layering is oc-data-ops;
+  when a metric needs a pipeline that doesn't exist, chain to /oc-data-ops design
+  and build the signal on the contracted mart.
+
+# oc-modularize-ops
+description: >
+  Monolith decomposition operator. Decides whether modularization is even the right call
+  (and is willing to say no), captures golden fixtures from REAL data for every boundary
+  as an equivalence oracle, plans the seams + data ownership, and proves zero
+  functionality/data loss by replaying the fixtures. Supports parallel-copy and
+  strangler-fig strategies. Hands the bulk code-move + live cutover to oc-migration-ops
+  (Structural type) and per-module deployment to oc-fleet-ops. Use for /oc-modularize,
+  "break up the monolith", "extract a service from a live system", "split this codebase
+  safely", "golden fixtures", "no functionality loss". For a behaviour-git-diffable
+  repo/package reorg, use oc-migration-ops Structural instead. Trigger when decomposing a
+  LIVE monolith carrying real traffic.
+
+# oc-fleet-ops
+description: >
+  Multi-container / orchestration deployment operator for self-managed infrastructure.
+  Declares topology (containers/services × target environment), provisions infra with the
+  right IaC tool (Terraform/OpenTofu when it fits, else Ansible/cloud-init/k8s-manifests/
+  Helm/Nomad/Compose), rolls the fleet with a rollout strategy, verifies fleet-wide health,
+  and operates day-2 (scale/drain/replace/rollback). Specifically lands the modules
+  oc-modularize-ops carves out of a monolith. Use for /oc-fleet, "deploy multiple
+  containers", "kubernetes", "terraform", "orchestrate containers", "on-prem deployment",
+  "deploy to VMs", "self-managed infra", "container fleet". Complements oc-deploy-ops
+  (single-app managed PaaS): managed app → deploy-ops; multi-container/self-managed/IaC →
+  fleet-ops. Trigger on multi-container / IaC / self-managed deployment.
+
+# oc-qa-ops
+description: >
+  Test-strategy designer: owns the test pyramid, coverage budgets, contract-test
+  matrix, and load-test planning — the strategy layer split out of oc-bug-check.
+  oc-bug-check runs the tests in under two minutes at the commit gate; oc-qa-ops
+  decides which tests should exist and where. Writes `.opchain/qa.yaml`, which
+  oc-bug-check's test check reads when present. Use for /oc-qa, /oc-qa pyramid,
+  /oc-qa coverage, /oc-qa contracts, /oc-qa loadplan, /oc-qa audit, "test
+  strategy", "test pyramid", "coverage budget", "what should we test", "contract
+  testing", "plan a load test", "too many e2e tests", "our tests are slow",
+  "test debt", "flaky tests", "unit vs integration". Invoked by oc-app-architect
+  Phase 2 to author 06-testing.md. NOT test execution (oc-bug-check), NOT
+  load-test execution or perf budgets (oc-scale-ops), NOT first-party API
+  conformance authoring (oc-api-dev), NOT writing the tests themselves (the
+  build loop's Generator, or /oc-audit test-bootstrap for untested codebases).
+
+# oc-data-ops
+description: >
+  Data-pipeline harness with a Designer/Builder/Contract-Verifier loop. Owns the
+  data estate: ingestion patterns (batch, stream, CDC), transformation layering
+  (staging → intermediate → marts), dbt project design, and observable data
+  contracts with freshness/volume/schema SLAs. Use for /oc-data-ops, "data
+  pipeline", "ingestion", "ELT", "dbt", "data warehouse modeling", "data
+  contract", "warehouse schema drift", "stale data", "data quality checks",
+  "volume anomaly", "sync SaaS data into the warehouse", "medallion
+  architecture", "backfill strategy". Invoked by oc-app-architect Phase 2 when
+  discovery surfaces a data-heavy backend. Warehouse/queue choice comes from
+  oc-stack-forge. NOT single-metric analytics (oc-signal-forge), NOT dashboards
+  (oc-dash-forge), NOT live-pipeline engine swaps (oc-migration-ops), NOT API
+  contract / schema-to-code drift (oc-api-dev), NOT the SaaS connector
+  mechanics (OAuth/webhooks — oc-integrations-engineer builds the connector;
+  this skill owns the pipeline + contract it feeds).
+
+# oc-compliance-ops
+description: >
+  Standing compliance operator: maps SOC 2 / HIPAA / GDPR controls to concrete
+  repo and infra artifacts in a maintained control register, generates
+  audit-ready evidence bundles at deploy and release time, and scaffolds the
+  policy docs auditors ask for. Use for /oc-comply, /oc-compliance, "make us
+  SOC 2 compliant", "get compliant", "SOC 2 evidence", "compliance checklist",
+  "audit-ready", "control mapping", "GDPR", "HIPAA", "BAA", "data retention
+  policy", "access review", "what would an auditor ask for", "compliance delta
+  since last release". Consumes oc-security-auditor's readiness gaps (the
+  point-in-time assessor); this skill is the standing register and evidence
+  pipeline. Activated by `.opchain/compliance.yaml` (adds oc-deploy-ops'
+  evidence gate row); absent profile, inert. Readiness and evidence, not
+  certification and not legal advice. Technical control execution belongs to
+  oc-security-hardening.
+
+# oc-security-hardening
+description: >
+  Security remediation and enforcement operator — the execution half of the
+  security pair. oc-security-auditor assesses (/oc-hardening audits the posture);
+  oc-security-hardening executes (/oc-harden writes the fixes): security
+  headers, staged CSP rollout, TLS/WAF/rate-limit config as code, secrets
+  hygiene, dependency-pinning policy. Maintains `.opchain/hardening.yaml` — the
+  declared-controls manifest — and stands the per-deploy gate that verifies it,
+  the "before every deploy" step auditor findings never had. Use for
+  /oc-harden, /oc-harden baseline, /oc-harden fix, /oc-harden csp, /oc-harden
+  gate, "harden this", "fix the security findings", "the pen test found",
+  "add security headers", "roll out CSP", "rate limit this endpoint", "rotate
+  secrets", "block deploys on security regressions", "security baseline". NOT
+  assessment (oc-security-auditor), NOT code-bug fixing (oc-code-auditor's
+  Fixer), NOT dependency vuln scanning (oc-bug-check — this skill owns pinning
+  policy, not the scan).
 ```
 
 ---
@@ -492,12 +659,19 @@ Every skill should know these facts:
   `oc-orchestrator` (multi-project registry + router via `/oc-ops`).
 - **Tri-agent skills:** oc-app-architect (Generator/Evaluator), oc-ux-engineer (Design
   Planner/Generator/Evaluator), oc-code-auditor (Auditor/Fixer/Verifier),
-  oc-integrations-engineer (Planner/Builder/Tester), oc-api-dev (Designer/Builder/Conformance).
+  oc-integrations-engineer (Planner/Builder/Tester), oc-api-dev (Designer/Builder/Conformance),
+  oc-agent-forge (Planner/Builder/Evaluator), oc-rag-forge (Designer/Builder/Evaluator),
+  oc-signal-forge (Designer/Builder/Evaluator), oc-data-ops (Designer/Builder/Contract-Verifier).
 - **Declared chains (each requires an explicit invocation):** oc-stack-forge during oc-app-architect Phase 2; oc-ux-engineer during
   oc-app-architect UI sprints; oc-dash-forge from oc-ux-engineer or oc-app-architect on data-heavy
   screens; oc-bug-check from oc-git-ops before every `/oc-git-commit` and `/oc-git-sync`;
   oc-docs-forge from oc-git-ops before PR creation (and from release flows before release
-  PRs); oc-repo-ops from oc-git-ops before every PR, after oc-docs-forge.
+  PRs); oc-repo-ops from oc-git-ops before every PR, after oc-docs-forge; (v1.9)
+  oc-qa-ops from oc-app-architect Phase 2 at `06-testing.md`; oc-data-ops from
+  oc-app-architect Phase 2 on data-heavy discovery and from oc-signal-forge when a
+  metric needs a pipeline; oc-security-hardening from oc-security-auditor after an
+  assessment; the two conditional manifest gates (oc-security-hardening,
+  oc-compliance-ops) from oc-deploy-ops when their `.opchain/*.yaml` files exist.
 - **Pipeline flow:** oc-reverse-spec → oc-app-architect → oc-git-ops → oc-deploy-ops → oc-monitoring-ops.
 - **Release boundary:** oc-release-ops sits between oc-git-ops and oc-deploy-ops; runs only on
   versioned-release events (`/oc-release plan` / `draft` / `bump` / `announce` / `ship`),
@@ -510,6 +684,15 @@ Every skill should know these facts:
   closed, blocks the PR).
 - **Quality gates (pre-deploy):** oc-code-auditor → oc-security-auditor (runs above oc-code-auditor
   for threat model / hardening).
+- **Assurance & governed delivery (v1.9):** oc-qa-ops (test-pyramid strategy →
+  `.opchain/qa.yaml`, read by oc-bug-check's test check when present),
+  oc-security-hardening (executes auditor findings; `.opchain/hardening.yaml`
+  adds a manifest-verify row to the deploy audit gate), oc-compliance-ops
+  (control register + per-deploy evidence bundle; activated by
+  `.opchain/compliance.yaml`, inert without it), oc-data-ops (data estate:
+  ingestion, transformation layers, dbt, observable data contracts). The
+  security pair verb split: /oc-hardening assesses (oc-security-auditor),
+  /oc-harden executes (oc-security-hardening).
 - **Cross-cutting skills:** oc-api-dev (first-party APIs — OpenAPI/GraphQL, versioning,
   SDKs), oc-integrations-engineer (external APIs), oc-migration-ops (live system changes —
   DB, framework, platform), oc-scale-ops (advisory), oc-dash-forge (dense data UIs).
@@ -519,7 +702,8 @@ Every skill should know these facts:
   wire-1.1 checkpoint fields `cost` / `eval_scores` / `telemetry_handle`. v1.6
   took the catalog to 24 skills; v1.7 "Seams & Signals" adds oc-signal-forge /
   oc-modularize-ops / oc-fleet-ops → 27; v1.8 "the quality-gate rail" adds
-  oc-docs-forge / oc-repo-ops → 29.
+  oc-docs-forge / oc-repo-ops → 29; v1.9 "Assurance and governed delivery ops"
+  adds oc-qa-ops / oc-data-ops / oc-compliance-ops / oc-security-hardening → 33.
 - **Checkpoint protocol:** every skill writes to `.checkpoints/[skill].checkpoint.json`.
 - **Tri-dev is retired.** Its build harness lives inside oc-app-architect Phase 6.
   If a user asks for tri-dev, route to oc-app-architect /oc-build.

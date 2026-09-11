@@ -79,7 +79,7 @@ import securityTxt from "../../public/.well-known/security.txt?raw";
               <ul>
                 <li><code>opchain.dev</code> and <code>staging.opchain.dev</code> (Cloudflare Worker + Astro site)</li>
                 <li>The opchain skill catalog under <code>skills/</code> in the GitHub repo</li>
-                <li>The <code>/api/health</code>, <code>/api/feedback</code>, <code>/api/notify</code>, <code>/api/flags/public</code> endpoints</li>
+                <li>The <code>/mcp</code>, <code>/api/health</code>, <code>/api/feedback</code>, <code>/api/notify</code>, <code>/api/votes</code>, and <code>/api/flags/public</code> endpoints</li>
                 <li>Build / supply-chain integrity of <code>opchain-skills.zip</code></li>
               </ul>
             </div>
@@ -158,11 +158,11 @@ import securityTxt from "../../public/.well-known/security.txt?raw";
           </div>
           <div class="kv">
             <div class="key">Auth surface</div>
-            <div class="val">No user accounts. The site has zero auth surface to attack</div>
+            <div class="val">No user accounts. Hosted MCP checkpoints use private signed server-issued tokens and strict Origin validation rather than account authentication</div>
           </div>
           <div class="kv">
             <div class="key">Data collected</div>
-            <div class="val">Optional analytics via PostHog (consent-gated) and optional email capture via <code>/api/notify</code>. See <a href="/privacy">privacy</a></div>
+            <div class="val">Optional browser analytics, limited server-side operational events, email capture, roadmap votes, and 30-day hosted MCP checkpoints. See <a href="/privacy">privacy</a></div>
           </div>
           <div class="kv">
             <div class="key">Skill supply chain</div>
@@ -170,7 +170,7 @@ import securityTxt from "../../public/.well-known/security.txt?raw";
           </div>
           <div class="kv">
             <div class="key">Infra</div>
-            <div class="val">Cloudflare Workers · static assets via ASSETS binding · KV for lead capture · no databases, no servers</div>
+            <div class="val">Cloudflare Workers · static assets via ASSETS binding · KV for lead capture, abuse controls, roadmap votes, and hosted MCP checkpoints · no user database or origin servers</div>
           </div>
         </div>
       </Card>

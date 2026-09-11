@@ -4,15 +4,40 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-08-29T22:58:59.000Z",
+  "updated_at": "2026-09-02T21:49:57.000Z",
   "phase": "closeout",
-  "step": "draft-pr-open",
-  "status": "in_progress",
-  "progress_summary": "v1.8.3 production and git truth are reconciled through exact runtime SHA 395fc314c836d5d9d8a76b64d85b8380ece3a68b and docs-only main descendant 5baa289ceeac5813f0a4392d6f63ed89cafa705f. Commit 9df7e0351ac8fc2676c6c6c8e9bf859a8340e484 implements the option-3 monitoring redesign; branch Canary run 33278930280 and Deploy lag run 33278931387 passed. Commit cf62a8dc32a5185aad4f3afeb1462cc83d47d760 records the checkpoint/runbook and reversible Phase C C0/C1 preparation packet after Docs Forge, Repo Ops, and Bug Check passed. Draft PR #467 is open and unmerged; CI run 33279611204 and Lighthouse run 33279611215 passed at that PR head. Continuous monitoring remains redesign-validated-pending-merge until a human merge and successful default-branch scheduled evidence. No extraction, flip, merge, tag movement, or new runtime deployment has occurred.",
+  "step": "v1.9-release-delivery-complete",
+  "status": "complete",
+  "progress_summary": "The v1.9 release Git workflow is complete. Release PR #477 merged with all required checks as exact runtime SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248; signed tag v1.9.0 resolves to that SHA and Registry publication passed. Monitoring baseline PR #478 merged as non-deploying commit c6d529631cfe49021efdcabcfcf02bc95a94700f after CI, Playwright, and Lighthouse passed. Authenticated main-branch Canary and Deploy lag dispatches then passed and closed stale issue #475. The release runtime remains the signed tag SHA; later .github and checkpoint-only commits are explicitly non-deploying.",
   "progress_table": [
     {
-      "id": "v1.8.3-release-reconciliation",
-      "label": "Release reconciliation PR chain through #465",
+      "id": "v1.9-release-pr",
+      "label": "Release PR #477 merged with required checks",
+      "status": "complete"
+    },
+    {
+      "id": "v1.9-signed-tag",
+      "label": "Signed annotated v1.9.0 tag pushed and verified",
+      "status": "complete"
+    },
+    {
+      "id": "v1.9-registry",
+      "label": "MCP Registry publication active and latest",
+      "status": "complete"
+    },
+    {
+      "id": "v1.9-production",
+      "label": "Exact signed SHA deployed and verified in staging and production",
+      "status": "complete"
+    },
+    {
+      "id": "v1.9-monitoring-baseline",
+      "label": "Monitoring baseline PR #478 merged and manually validated",
+      "status": "complete"
+    },
+    {
+      "id": "v1.9-closeout",
+      "label": "Retention purge, roadmap closure, and release sign-off",
       "status": "complete"
     },
     {
@@ -113,43 +138,33 @@
   ],
   "context_primer": {
     "key_decisions": [
-      "Manual deploys per CLAUDE.md — git-ops only handles branch/commit/push/PR; deploy-ops owns wrangler.",
-      "Rebased #183 onto a moved main (one checkpoint conflict, took --theirs to keep this branch's gate state).",
-      "After rebase, main turned out to have 5 pre-existing CI failures that were silently broken on main itself. Per user direction, fixed all 5 in #183 rather than open a separate hotfix PR — scope creep was the cheaper path to merge.",
-      "Test loosening on changelog-and-scenarios.spec.ts: the original toHaveCount(1) over-specified a contract the changelog page never actually held; switched to .first() + toBeVisible() and split test fixtures (v13_LINKED for changelog assertion, ALL_PICKABLE for /demo picker coverage).",
-      "Pixel 5 demo-mobile scenario count needed two bumps in this session: 6→9 (v1.2 carry-over, originally on PR #184) then 9→12 (v1.3 additions, on the rebased #183). Both surfaced only on CI; can't run Playwright locally (no chromium browsers in this env).",
-      "Used --force-with-lease once after the rebase. No --force, --amend, or --no-verify.",
-      "The v2.0 plan/site revision is one logical change on codex/v2-workflow-skills; production deployment is out of scope until a post-staging approval."
+      "Canonical repository is ainatx/opchain; immutable repository ID 1208651570 and main/tag history survived the ownership transfer.",
+      "The signed v1.9.0 tag and deployed runtime remain pinned to 244bf13 even though non-deploying baseline and checkpoint commits advance main.",
+      "PR #478 records the exact deployed Cloudflare baseline; its .github-only change is explicitly non-deploying.",
+      "Authenticated workflow_dispatch runs validate the v1.9 baseline immediately, while oc-monitoring-ops separately tracks the first event=schedule cycle.",
+      "Release commits and the v1.9 tag were GPG-signed with fingerprint 66ED0CF12E9C51822AA1629BB4A90085A810B266."
     ],
     "generated_files": [
-      "Branch ref claude/add-upgrade-instructions-yvBC8 — squash-merged & deletable",
-      "Branch ref claude/fix-demo-mobile-scenario-count — closed branch (PR #184), deletable"
+      ".github/workflows/canary.yml",
+      ".github/workflows/deploy-lag.yml",
+      ".github/workflows/release-ledger.yml",
+      "CLAUDE.md",
+      "docs/governance/RELEASING.md",
+      "tests/cloudflare-monitor.test.js",
+      ".checkpoints/oc-docs-forge.checkpoint.json",
+      ".checkpoints/oc-repo-ops.checkpoint.json",
+      ".checkpoints/oc-git-ops.checkpoint.json"
     ],
     "user_preferences": [
-      "Wants draft PRs by default per session-level GitHub policy (PR #183 was opened ready-for-review per harness instructions for this session).",
-      "Merges directly with single `merge` command after CI is mostly green; LHCI failures are treated as informational by default."
+      "Complete the v1.9 production push and release sign-off autonomously.",
+      "Require CI, Playwright, and Lighthouse to pass before release and baseline merges."
     ]
   },
   "blockers": [],
-  "next_actions": [
-    "HUMAN reviews draft PR #467 and the C1 product manifest; do not merge the PR in this task.",
-    "After a human merge, capture successful default-branch scheduled Canary and Deploy lag evidence before calling continuous monitoring healthy.",
-    "Do not begin C2 before the C1 path freeze, and do not perform C5 unless Aidan says exactly 'flip now'."
-  ],
+  "next_actions": [],
   "skill_state": {
-    "current_branch": "codex/v1.8.3-phase-a-closeout (from origin/main 5baa289ceeac5813f0a4392d6f63ed89cafa705f; runtime release remains 395fc314c836d5d9d8a76b64d85b8380ece3a68b)",
-    "open_prs": [
-      {
-        "number": 232,
-        "title": "feat(compare): switch to Option C — groups + zebra + winner dots + mobile sticky labels",
-        "branch": "aidan/compare-option-c",
-        "head_sha": "(updated 2026-05-31 via update_pull_request_branch)",
-        "status": "HELD for user review — branch up-to-date with main, CI green, awaiting user signoff",
-        "scope": "site/src/pages/compare.astro (one file, +358/-239)",
-        "ci_final": "Worker ✅ · Site build ✅ · Playwright e2e ✅ · LHCI 1.00 across the board",
-        "review_comments": 3
-      }
-    ],
+    "current_branch": "codex/v1.9-release-signoff (from origin/main c6d529631cfe49021efdcabcfcf02bc95a94700f; runtime release remains signed SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248)",
+    "open_prs": [],
     "merged_prs": [
       {
         "number": 140,
@@ -410,7 +425,7 @@
       }
     ],
     "open_prs+": null,
-    "release_reconciliation": {
+    "prior_release_reconciliation": {
       "merged_prs": [461, 462, 463, 465, 466],
       "release_sha": "395fc314c836d5d9d8a76b64d85b8380ece3a68b",
       "staging_review_version_id": "a8d3d1de-885e-466c-b762-ee2e946c8261",
@@ -455,10 +470,17 @@
         "rollback_used": false
       },
       "continuous_monitoring": {
-        "status": "redesign-validated-pending-merge",
+        "status": "redesign-activated-scheduled-evidence-pending",
         "canary_run_id": 33278930280,
         "deploy_lag_run_id": 33278931387,
-        "default_branch_scheduled_activation": "pending closeout PR merge"
+        "default_branch_main_sha": "bf896c2b4c306f2a27001be09b82189a49fe9d6e",
+        "manual_diagnostic_run_id": 33459557207,
+        "manual_diagnostic_conclusion": "success; workflow_dispatch only, not closure evidence",
+        "latest_scheduled_canary_run_id": 33455303999,
+        "latest_scheduled_canary_conclusion": "failure; pre-transfer billing lock",
+        "latest_scheduled_deploy_lag_run_id": 33433307630,
+        "latest_scheduled_deploy_lag_conclusion": "failure; pre-transfer billing lock",
+        "default_branch_scheduled_activation": "PR #467 merged; successful post-transfer event=schedule evidence pending scheduler refresh"
       },
       "phase_c": {
         "authorized": true,
@@ -467,35 +489,113 @@
         "hard_stop": "No extraction or flip; C5 requires Aidan to say exactly 'flip now'."
       }
     },
+    "release_reconciliation": {
+      "release_pr": {
+        "number": 477,
+        "url": "https://github.com/a-atx/opchain/pull/477",
+        "head_sha": "d1cba9972bbc856fddff9e81f17281efe1f998f1",
+        "merge_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
+        "merged_at": "2026-09-02T19:27:32Z",
+        "ci_run_id": 33672836001,
+        "lighthouse_run_id": 33672836044,
+        "checks": "PASS"
+      },
+      "tag": {
+        "name": "v1.9.0",
+        "object_sha": "fd05dd2c5d696661cb2cc5cb9dd57d2470f69c32",
+        "peeled_commit": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
+        "signing_fingerprint": "66ED0CF12E9C51822AA1629BB4A90085A810B266",
+        "local_gate": "PASS",
+        "remote_gate": "PASS"
+      },
+      "registry": {
+        "preflight_run_id": 33673476599,
+        "tag_run_id": 33677209947,
+        "tag_run_conclusion": "success",
+        "version": "1.9.0",
+        "status": "active",
+        "is_latest": true,
+        "metadata_matches_server_json": true,
+        "published_at": "2026-09-02T20:05:41.073493Z"
+      },
+      "staging_deployment": {
+        "deployment_id": "791c1851-2b81-4408-b881-dac381fa6d07",
+        "version_id": "d07bb08a-9662-4e77-a2a1-673fc0c7a8a5",
+        "health_version": "244bf13",
+        "traffic_percent": 100
+      },
+      "production_deployment": {
+        "deployment_id": "54ef8a21-0665-4a83-bc1a-5768c2bae0d5",
+        "version_id": "01bbe46b-3533-4faa-bc1a-d140cbcecbbe",
+        "health_version": "244bf13",
+        "traffic_percent": 100,
+        "rollback_used": false
+      },
+      "retention": {
+        "sealed_legacy_count": 16,
+        "deleted": 16,
+        "checkpoint_records_remaining": 0,
+        "unrelated_records_preserved": 4
+      },
+      "monitoring_baseline": {
+        "pull_request": 478,
+        "url": "https://github.com/a-atx/opchain/pull/478",
+        "head_sha": "0a5ed13ee56994da8066dfc769c8aa9603cc2956",
+        "merge_sha": "c6d529631cfe49021efdcabcfcf02bc95a94700f",
+        "merged_at": "2026-09-02T21:43:29Z",
+        "ci_run_id": 33678937890,
+        "lighthouse_run_id": 33678937853,
+        "main_push_ci_run_id": 33686690691,
+        "main_push_lighthouse_run_id": 33686690787,
+        "canary_run_id": 33686712301,
+        "deploy_lag_run_id": 33686714194,
+        "deploy_relevant_paths": 0,
+        "incident_475": "closed"
+      },
+      "status": "complete"
+    },
     "closure_packet": {
-      "status": "draft-pr-open",
+      "status": "complete",
       "docs_forge": "PASS",
       "repo_ops": "PASS",
-      "bug_check": "PASS with warnings",
-      "tests": "38 files, 506 tests passed",
-      "build": "PASS",
-      "astro_check": "0 errors, 49 hints",
-      "root_audit": "0 vulnerabilities",
-      "site_audit": "0 critical; 7 high, 1 moderate, 2 low pre-existing advisories",
-      "secret_scan": "PASS — gitleaks staged scan",
-      "pr_mode": "draft; do not merge"
+      "bug_check": "PASS — complete v1.9 pre-merge ledger",
+      "tests": "43 files, 579 tests passed",
+      "checkpoint_validate": "PASS — 17 checkpoints valid",
+      "build": "PASS — Worker, site, Playwright, and Lighthouse",
+      "secret_scan": "PASS — targeted gitleaks diff scan",
+      "pr_mode": "release and baseline PRs merged"
     },
     "closeout_pr": {
-      "number": 467,
-      "url": "https://github.com/asfbay-bit/opchain/pull/467",
-      "title": "fix(monitoring): close v1.8.3 release evidence gap",
-      "state": "OPEN",
-      "draft": true,
+      "number": 478,
+      "url": "https://github.com/a-atx/opchain/pull/478",
+      "title": "chore(monitoring): approve v1.9 release baseline",
+      "state": "MERGED",
+      "draft": false,
       "base": "main",
-      "head": "codex/v1.8.3-phase-a-closeout",
-      "opened_head_sha": "cf62a8dc32a5185aad4f3afeb1462cc83d47d760",
-      "ci_run_id": 33279611204,
+      "head": "codex/v1.9-monitoring-baseline",
+      "opened_head_sha": "0a5ed13ee56994da8066dfc769c8aa9603cc2956",
+      "ci_run_id": 33678937890,
       "ci_conclusion": "success",
-      "lighthouse_run_id": 33279611215,
+      "lighthouse_run_id": 33678937853,
       "lighthouse_conclusion": "success",
-      "merged": false
+      "merged": true,
+      "merged_at": "2026-09-02T21:43:29Z",
+      "merge_sha": "c6d529631cfe49021efdcabcfcf02bc95a94700f"
     },
-    "last_pr_number": 467,
-    "last_pr_url": "https://github.com/asfbay-bit/opchain/pull/467"
+    "scheduler_actor_refresh": {
+      "branch": "codex/v1.8.3-scheduler-actor-refresh",
+      "base": "main",
+      "base_sha": "bf896c2b4c306f2a27001be09b82189a49fe9d6e",
+      "pull_request": 474,
+      "merge_sha": "f014746292f8e77646effeaba21992b57c6c2bf9",
+      "canary_cron": "47 13 */4 * *",
+      "deploy_lag_cron": "17 14 */4 * *",
+      "cadence": "calendar days 1, 5, 9, 13, 17, 21, 25, and 29",
+      "status": "merged-and-active",
+      "next_v1_9_cycle": "2026-09-05",
+      "assurance": "The schedule is active; oc-monitoring-ops keeps continuous status pending until both September 5 event=schedule runs pass."
+    },
+    "last_pr_number": 478,
+    "last_pr_url": "https://github.com/a-atx/opchain/pull/478"
   }
 }

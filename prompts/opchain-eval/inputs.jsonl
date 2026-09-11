@@ -13,3 +13,16 @@
 {"id": "route-013", "input": "can this API handle 10x the traffic?"}
 {"id": "route-014", "input": "connect our app to the Stripe API"}
 {"id": "route-015", "input": "run a quick check before I commit"}
+{"id": "route-016", "input": "design our test pyramid and set coverage budgets"}
+{"id": "route-017", "input": "set up a dbt project with staging and marts layers over our warehouse"}
+{"id": "route-018", "input": "generate the audit evidence bundle for this release"}
+{"id": "route-019", "input": "add security headers and roll out a CSP on the app"}
+{"id": "route-020", "input": "harden this before we ship"}
+{"id": "route-021", "input": "audit our security posture — is the infra actually hardened?"}
+{"id": "route-022", "input": "make us SOC 2 compliant"}
+{"id": "route-023", "input": "run a SOC 2 readiness assessment ahead of pen test prep"}
+{"id": "route-024", "input": "our OpenAPI spec has drifted from the handler code — fix the schema drift"}
+{"id": "route-025", "input": "the warehouse events table schema drifted and the downstream marts are stale"}
+{"id": "route-026", "input": "sync SaaS data into the warehouse"}
+{"id": "route-027", "input": "load test the checkout API before the launch spike"}
+{"id": "route-028", "input": "plan which load tests we need and what SLOs they should verify"}

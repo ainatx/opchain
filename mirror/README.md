@@ -76,14 +76,29 @@ curl -sS https://opchain.dev/api/health | jq .version
 | `oc-dash-forge` | Dashboards and dense-data UIs (spec + React prototype) |
 | `oc-integrations-engineer` | Third-party API integrations (Slack, Stripe, OAuth) |
 | `oc-api-dev` | First-party API design (OpenAPI, GraphQL, SDKs) |
+| `oc-claude-api` | Claude API apps: model routing, prompt caching, tool use |
+| `oc-rag-forge` | RAG systems: vector DBs, embeddings, chunking, retrieval eval |
+| `oc-agent-forge` | Claude Agent SDK apps: topology, tool budgets, harness loops |
+| `oc-prompt-ops` | Prompts as code: versioning, eval datasets, regression detection |
+| `oc-qa-ops` | Test-pyramid design: coverage budgets, contract-test matrix, load plans |
+| `oc-data-ops` | Data pipelines: ingestion, dbt layering, observable data contracts |
+| `oc-signal-forge` | Question → trustworthy metric: instrument, harvest, verify, wire |
 | `oc-code-auditor` | Auditor → Fixer → Verifier; 5-layer pre-deploy sweep |
 | `oc-security-auditor` | Threat modeling, OWASP hardening, attack-surface review |
+| `oc-security-hardening` | Executes the fixes + per-deploy hardening gate (`/oc-harden`) |
+| `oc-compliance-ops` | Control register + audit-ready evidence bundles at deploy time |
 | `oc-bug-check` | Pre-commit QA gate: types, lint, tests, anti-patterns, secrets |
+| `oc-docs-forge` | PR documentation packets, README/changelog/ADR upkeep |
+| `oc-repo-ops` | Repo hygiene + PR readiness gate: catalogs, generated files |
 | `oc-git-ops` | Branches, commits, PRs, sync |
 | `oc-deploy-ops` | Audit gate → staging → production with rollback |
+| `oc-fleet-ops` | Self-managed fleets: IaC, multi-container rollouts, day-2 ops |
+| `oc-modularize-ops` | Live-monolith decomposition with golden-fixture proof |
 | `oc-monitoring-ops` | Post-deploy observability — uptime, errors, alerts |
 | `oc-scale-ops` | Load tests, perf budgets, caching, capacity planning |
 | `oc-migration-ops` | DB / framework / auth / platform migrations |
+| `oc-cost-ops` | LLM cost attribution, budget gates, model-tier routing |
+| `oc-telemetry-ops` | Opt-in local usage metering, anonymized dashboard aggregates |
 | `oc-reverse-spec` | Reverse-engineer existing code into spec docs |
 | `oc-release-ops` | Version bumps, changelogs, release announcements |
 | `oc-orchestrator` | Cross-skill status and routing (`/oc-ops`) |

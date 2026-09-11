@@ -7,10 +7,12 @@ function req(url, init) {
 
 function makeKv() {
   const store = new Map();
+  const puts = [];
   return {
     store,
+    puts,
     async get(key) { return store.get(key) ?? null; },
-    async put(key, value, _opts) { store.set(key, value); },
+    async put(key, value, options) { puts.push({ key, value, options }); store.set(key, value); },
   };
 }
 
@@ -78,6 +80,10 @@ describe("POST /api/notify", () => {
     expect(persisted.teamSize).toBe("2-5");
     expect(persisted.building).toBe("internal tool");
     expect(persisted.source).toBe("skill-download");
+    expect(persisted).not.toHaveProperty("ip");
+    expect(persisted).not.toHaveProperty("userAgent");
+    const leadPut = kv.puts.find((entry) => entry.key.startsWith("lead:"));
+    expect(leadPut.options).toEqual({ expirationTtl: 365 * 24 * 60 * 60 });
   });
 
   it("accepts the submission and 200s when NOTIFY KV isn't bound", async () => {

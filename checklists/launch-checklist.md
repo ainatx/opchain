@@ -22,13 +22,17 @@ with a one-line reason so the next operator knows it was considered.
 
 ### Secrets & env
 
-- [ ] `DEPLOY_API_TOKEN` set in Cloudflare (prod + staging)
+- [ ] Wrangler is authenticated for the intended Cloudflare account
 - [ ] `LINEAR_API_KEY` set
-- [ ] `ANTHROPIC_API_KEY` set
+- [ ] `MCP_SESSION_SIGNING_KEY` is an independent random secret of at least
+      32 bytes in both production and staging; the two values are different,
+      and rotation impact has been reviewed
 - [ ] `POSTHOG_PROJECT_API_KEY` + `POSTHOG_HOST` set (or explicitly unset — analytics will no-op)
 - [ ] `PUBLIC_CF_BEACON_TOKEN` set (cookieless pageview beacon)
-- [ ] `PUBLIC_POSTHOG_KEY` + `PUBLIC_POSTHOG_HOST` set (consent-gated client SDK)
-- [ ] `LEAD_TTL_DAYS` unset or equal to 365 (privacy retention window)
+- [ ] For official deploys, `OPCHAIN_OFFICIAL_ANALYTICS=1`; otherwise both
+      `PUBLIC_POSTHOG_KEY` + `PUBLIC_POSTHOG_HOST` are set together or unset
+- [ ] `/api/notify` regression verifies the fixed 365-day lead TTL; any legacy
+      `lead:` records have been backfilled or removed before sign-off
 
 ### Observability
 
@@ -50,20 +54,23 @@ with a one-line reason so the next operator knows it was considered.
 - [ ] Declining consent blocks PostHog SDK load (verify no `window.posthog` global)
 - [ ] Accepting consent loads PostHog (verify a pageview in the dashboard)
 - [ ] Security headers (`Content-Security-Policy`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security`, `X-Content-Type-Options`) present on `/` and `/api/health`
-- [ ] CSP `connect-src` list reviewed — no third-party beyond Anthropic, PostHog, Cloudflare
+- [ ] CSP `connect-src` list reviewed — no third-party beyond PostHog and Cloudflare
+- [ ] Hosted MCP creates a signed session, round-trips a checkpoint, rejects an
+      invented token, and rejects an untrusted `Origin` before storage
 
 ## Deploy
 
-- [ ] `npm run deploy:staging` → `scripts/smoke.sh` against staging green
-- [ ] Staging URL manually smoke-tested by a human (home → skills → tryit email → install copy)
-- [ ] `npm run deploy` (production) — deploy action green
-- [ ] `scripts/smoke.sh` against production green
-- [ ] `wrangler deployments list` — deployment id recorded here: `__________`
+- [ ] `OPCHAIN_OFFICIAL_ANALYTICS=1 npm run deploy:staging` → embedded SHA,
+      hardening, and smoke verification green (or automatic rollback confirmed)
+- [ ] Staging URL manually smoke-tested (home → skills → demo → install copy)
+- [ ] `OPCHAIN_OFFICIAL_ANALYTICS=1 npm run deploy` — embedded SHA, hardening,
+      and smoke verification green (or automatic rollback confirmed)
+- [ ] `wrangler deployments list` — active 100%-traffic version ID recorded here: `__________`
 
 ## Post-launch watch (first 60 minutes)
 
 - [ ] Zero 5xx in `wrangler tail`
-- [ ] PostHog funnel shows at least one session progressing past `demo_email_submitted`
+- [ ] PostHog shows the expected consented pageview or operational smoke event
 - [ ] Feedback widget smoke — submit a real `[test]` feedback, confirm Linear issue created, delete after
 - [ ] No Lighthouse regression vs. previous deploy (manual check on `/`, `/skills`)
 
@@ -76,7 +83,7 @@ with a one-line reason so the next operator knows it was considered.
 ## Rollback protocol (if anything above fails)
 
 1. `npx wrangler deployments list`
-2. `npx wrangler rollback <last-good-deployment-id>`
+2. `npx wrangler rollback <last-good-version-id>`
 3. Cloudflare serves previous worker within ~30 s
 4. File a `/feedback type=bug` with the failure signal so it lands in Linear
 5. Post-mortem: note what the checklist missed and add the item before next deploy
@@ -86,6 +93,6 @@ with a one-line reason so the next operator knows it was considered.
 ## How to use this file
 
 - Copy it per-deploy: `cp checklists/launch-checklist.md checklists/launches/<YYYY-MM-DD>-<release>.md`
-- Fill in checkboxes and deployment id inline
+- Fill in checkboxes and the active version ID inline
 - Commit the filled copy on the same PR that cut the release (or in a follow-up)
 - Archives form a running log of "what was verified when"

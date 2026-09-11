@@ -52,7 +52,7 @@ const newsletterEnabled = defaultFor("site.ui.footer.newsletter") as boolean;
     <div class="site-footer-newsletter">
       <div class="nl-copy">
         <div class="nl-head">Ship-notes, occasionally.</div>
-        <p class="nl-sub">Release notes and the odd engineering write-up. No spam, unsubscribe anytime.</p>
+        <p class="nl-sub">Release notes and the odd engineering write-up. No spam; email privacy@opchain.dev to unsubscribe or delete your record.</p>
       </div>
       <form id="opchain-newsletter" class="nl-form" novalidate>
         <label class="nl-visually-hidden" for="opchain-newsletter-email">Email address</label>
@@ -91,6 +91,7 @@ const newsletterEnabled = defaultFor("site.ui.footer.newsletter") as boolean;
           localStorage.removeItem(k);
         }
       }
+      document.cookie = "oc_id=; Max-Age=0; Path=/; SameSite=Lax; Secure";
     } catch { /* ignore */ }
     location.reload();
   });

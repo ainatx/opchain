@@ -66,6 +66,24 @@ const PROBES = [
     file: "site/src/pages/styleguide.astro",
     re: /<Badge[^>]*>(v\d+\.\d+)\.\d+<\/Badge>/,
   },
+  // The architecture diagram states the live release in three places. All three
+  // were stale after v1.9 shipped (they still read v1.8) precisely because
+  // nothing probed them. Procedure: docs/runbooks/architecture-diagram-cycle.md
+  {
+    label: "architecture diagram eyebrow",
+    file: "site/src/pages/architecture.astro",
+    re: /SKILLS · ARCHITECTURE · v2 · RELEASE (v\d+\.\d+)/,
+  },
+  {
+    label: "architecture diagram footer",
+    file: "site/src/pages/architecture.astro",
+    re: /spine ordinals · (v\d+\.\d+) · checkpoint-driven/,
+  },
+  {
+    label: "mobile architecture eyebrow",
+    file: "site/src/components/MobileArchitecture.astro",
+    re: /SKILLS · ARCHITECTURE · v2 · MOBILE · (v\d+\.\d+)/,
+  },
 ];
 
 function probe({ label, file, re, join: j }) {
@@ -96,6 +114,32 @@ export function checkReleaseSurfaces() {
       errors.push(`${r.label} (${r.file}): says ${r.value}, expected ${expected}`);
     }
   }
+  // R3a (v1.9): consistency is not truth — all eight surfaces can agree on a
+  // release the product never recorded (v1.8.2 shipped with the changelog
+  // stopped at 1.8.1). Bind the site's claim to skills/CHANGELOG.md's newest
+  // release heading, so the site cannot announce what the catalog has not
+  // logged.
+  if (expected) {
+    try {
+      const changelog = readFileSync(join(ROOT, "skills", "CHANGELOG.md"), "utf8");
+      const heading = changelog.match(/^## \[(\d+\.\d+)\.\d+\]/m);
+      if (!heading) {
+        errors.push("skills/CHANGELOG.md: no released `## [x.y.z]` heading found");
+      } else {
+        const logged = `v${heading[1]}`;
+        results.push({ label: "skills/CHANGELOG.md newest release", file: "skills/CHANGELOG.md", value: logged });
+        if (logged !== expected) {
+          errors.push(
+            `skills/CHANGELOG.md (newest entry ${logged}) does not match the site's claimed ${expected} — ` +
+              "the site must not announce a release the catalog has not recorded",
+          );
+        }
+      }
+    } catch (e) {
+      errors.push(`skills/CHANGELOG.md: unreadable (${e.message})`);
+    }
+  }
+
   return { ok: errors.length === 0, expected, results, errors };
 }
 
@@ -113,6 +157,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(0);
   }
   console.error(`✗ release-surface drift:\n  - ${errors.join("\n  - ")}`);
-  console.error("\nFix per skills/oc-release-ops/references/site-release-surfaces.md (live-claim surfaces L1–L7).");
+  console.error("\nFix per skills/oc-release-ops/references/site-release-surfaces.md (live-claim surfaces L1–L10).");
   process.exit(1);
 }

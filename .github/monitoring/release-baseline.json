@@ -2,20 +2,20 @@
   "schemaVersion": 1,
   "status": "approved-release-baseline",
   "release": {
-    "tag": "v1.8.3",
-    "tagObject": "5ba19cedb72a994dd32d4c4f53e5a962bd68b283",
-    "sourceSha": "395fc314c836d5d9d8a76b64d85b8380ece3a68b",
-    "sourceShortSha": "395fc31"
+    "tag": "v1.9.0",
+    "tagObject": "fd05dd2c5d696661cb2cc5cb9dd57d2470f69c32",
+    "sourceSha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
+    "sourceShortSha": "244bf13"
   },
   "environments": {
     "production": {
       "worker": "opchain-dev",
       "hostname": "opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "7abc8570-6fcb-4942-b44e-8ef822f84b05",
-      "versionId": "780e85e2-7022-44fa-82f3-e5eaeb2b82a1",
+      "deploymentId": "54ef8a21-0665-4a83-bc1a-5768c2bae0d5",
+      "versionId": "01bbe46b-3533-4faa-bc1a-d140cbcecbbe",
       "trafficPercentage": 100,
-      "scriptEtag": "2f5fd4b60c834bc8440ae78fbaee0afdd8f85d7f3bd99f916832155690b52393",
+      "scriptEtag": "3b626cc22d8f1fa8d444686f3f6f209296184cba7114d65373019058d61cb875",
       "handlers": ["fetch"],
       "bindings": ["ASSETS"],
       "observabilityEnabled": true
@@ -24,10 +24,10 @@
       "worker": "opchain-staging",
       "hostname": "staging.opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "8d709a57-181b-4ed7-90cc-ddf773ca14f4",
-      "versionId": "c52b3bd6-4eee-4e50-a8c3-e21569b998d6",
+      "deploymentId": "791c1851-2b81-4408-b881-dac381fa6d07",
+      "versionId": "d07bb08a-9662-4e77-a2a1-673fc0c7a8a5",
       "trafficPercentage": 100,
-      "scriptEtag": "2f5fd4b60c834bc8440ae78fbaee0afdd8f85d7f3bd99f916832155690b52393",
+      "scriptEtag": "3b626cc22d8f1fa8d444686f3f6f209296184cba7114d65373019058d61cb875",
       "handlers": ["fetch"],
       "bindings": ["ASSETS"],
       "observabilityEnabled": true
@@ -68,7 +68,7 @@
     ]
   },
   "pointInTimeEvidence": {
-    "healthVersion": "395fc31",
+    "healthVersion": "244bf13",
     "continuousCustomDomainProbe": false
   }
 }

@@ -156,7 +156,7 @@ production deploy hitting `https://opchain.dev/`, `/skills`,
 
 - **Trigger.** The original assumed a CI deploy workflow we could
   hook off of, but deploys went manual after PR #58. Replaced with a
-  daily cron (`17 7 * * *` UTC) plus `workflow_dispatch` for ad-hoc
+  weekly Monday cron (`17 7 * * 1` UTC) plus `workflow_dispatch` for ad-hoc
   runs after a release.
 - **Routes.** `/in-action` was merged into `/demo` in PR #71. Live
   surface is `/`, `/skills`, `/demo`.

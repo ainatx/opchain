@@ -78,8 +78,8 @@ export function generateNonce() {
 export function buildCspHtml(nonce) {
   return (
     "default-src 'self'; " +
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://*.i.posthog.com https://static.cloudflareinsights.com; ` +
-    "connect-src 'self' https://*.i.posthog.com https://cloudflareinsights.com; " +
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://*.i.posthog.com https://t.opchain.dev https://t.staging.opchain.dev https://static.cloudflareinsights.com; ` +
+    "connect-src 'self' https://*.i.posthog.com https://t.opchain.dev https://t.staging.opchain.dev https://cloudflareinsights.com; " +
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "img-src 'self' data:; " +
     "font-src 'self' https://fonts.gstatic.com; " +

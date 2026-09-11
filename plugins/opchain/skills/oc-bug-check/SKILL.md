@@ -1,7 +1,7 @@
 ---
 name: oc-bug-check
 displayName: OC · Bug Check
-version: 1.8.3
+version: 1.9.0
 license: Apache-2.0
 shortDesc: Pre-commit QA gate — fast checks on every commit. v1.2 attaches the failure report to the linked PM ticket on block.
 phases: [build]
@@ -170,6 +170,18 @@ npx vitest run --reporter=verbose 2>&1
 
 **Why no tests is a warning, not a pass:** Zero tests means zero regression protection.
 The warning nudges toward coverage without blocking early-stage commits.
+
+**QA-manifest awareness (v1.9, additive):** when `.opchain/qa.yaml` exists
+(written by oc-qa-ops), and the runner emits coverage, compare it against the
+manifest's `coverage.global` budget and report a miss as **WARN** — never FAIL,
+and never a change to the PASS/FAIL semantics above — **unless** the manifest
+sets `coverage.enforce: fail`, in which case a global-budget miss is FAIL (a
+human wrote that line; the opt-in is theirs, and the normal bypass protocol
+applies). An unparseable manifest, or a version this check doesn't recognize,
+is treated exactly as absent plus a single WARN line ("qa.yaml unreadable —
+budgets not applied; run /oc-qa status") — never FAIL on a parse problem. No
+manifest → this check behaves exactly as before v1.9. Suggest `/oc-qa coverage`
+when the budget is missed repeatedly.
 
 ### Check 4: Anti-Pattern Scan
 

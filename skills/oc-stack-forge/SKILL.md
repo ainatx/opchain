@@ -1,7 +1,7 @@
 ---
 name: oc-stack-forge
 displayName: OC · Stack Forge
-version: 1.8.3
+version: 1.9.0
 license: Apache-2.0
 shortDesc: Stack decisions, Cloudflare patterns, typed pipeline. v1.2 records the chosen stack on the linked PM ticket as an ADR.
 phases: [plan, build]
@@ -142,6 +142,25 @@ Start here because it constrains everything downstream.
 - Production app, complex queries, RLS → **Postgres** (Supabase or Neon for free tier)
 - Need flexible schema, document storage → **Mongo** (but usually Postgres JSONB is enough)
 - Caching layer needed → add **Redis/Upstash** alongside primary DB
+
+### Question 3b: Data platform (v1.9 — only when the app has a data-heavy backend)
+
+Asked only when discovery surfaced a data-heavy backend (warehouse, event
+streams, dbt, reporting) — the question oc-data-ops needs answered before its
+Designer can run. The app database above is not the analytical store.
+
+| Factor | DuckDB / D1 | ClickHouse | BigQuery | Snowflake |
+|---|---|---|---|---|
+| Scale | Solo / small analytics | High-volume events | Serverless, bursty | Enterprise, governed |
+| Cost (entry) | Free | Free (self-host) / Cloud tier | Pay-per-query, free tier | Credits, no free tier |
+| Best for | Embedded analytics, one-box | Realtime event analytics | GCP-adjacent, ad hoc | Cross-cloud, heavy governance |
+
+Also decide the **queue/stream** (only if streaming ingestion is in play:
+Cloudflare Queues, SQS, Kafka/Redpanda) and the **transform tool** (dbt by
+default when a warehouse exists). Record all of it in the checkpoint as
+`skill_state.decisions.warehouse` / `decisions.queue` /
+`decisions.transform_tool` — oc-data-ops reads exactly those keys and never
+re-decides.
 
 ### Question 4: Auth
 

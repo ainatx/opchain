@@ -14,7 +14,9 @@ name: Canary
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    # Run on every fourth day-of-month, away from the top-of-hour scheduler
+    # load and before the deploy-lag check on the same monitoring day.
+    - cron: "47 13 */4 * *"
   workflow_dispatch:
     inputs:
       environment:

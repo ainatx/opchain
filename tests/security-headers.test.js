@@ -30,6 +30,8 @@ describe("security headers — HTML responses", () => {
     expect(csp).toMatch(/default-src 'self'/);
     expect(csp).toMatch(/frame-ancestors 'none'/);
     expect(csp).toMatch(/connect-src [^;]*https:\/\/\*\.i\.posthog\.com/);
+    expect(csp).toMatch(/connect-src [^;]*https:\/\/t\.opchain\.dev/);
+    expect(csp).toMatch(/connect-src [^;]*https:\/\/t\.staging\.opchain\.dev/);
     // The Worker proxies Anthropic — the browser never connects to it.
     expect(csp).not.toMatch(/api\.anthropic\.com/);
     // Cloudflare Web Analytics beacon script + reporting endpoint.

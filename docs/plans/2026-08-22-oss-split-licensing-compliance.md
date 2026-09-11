@@ -2,6 +2,12 @@
 
 _Decision plan, 2026-08-22. Produced by `/oc-app-architect` (boundary + options), `/oc-code-auditor` (exposure + readiness audit) and `/oc-git-ops` (split topology + runbook), as a 7-lens multi-agent sweep with an adversarial verifier per lens and a completeness critic. Every file:line below was reproduced by a verifier that did not write the finding. Full verified findings: [docs/audits/2026-08-22-oss-readiness-audit.md](../audits/2026-08-22-oss-readiness-audit.md). Analysed at `c440c7b` (main)._
 
+_Ownership addendum, 2026-09-02: the canonical source monorepo is now
+`ainatx/opchain` (immutable repository ID `1208651570`). The public product
+mirror and MCP Registry identity remain `asfbay-bit/opchain-skills` and
+`io.github.asfbay-bit/opchain-skills`; D2 below is preserved as the historical
+2026-08-24 decision._
+
 **The three questions, answered in one paragraph each:**
 
 1. **Separate repo for contributors.** Invert the mirror: make `asfbay-bit/opchain-skills` (which already exists, is already the advertised install slug, and has 0 forks/PRs/issues) the *source of truth* for the product — `skills/`, `plugins/`, `.claude-plugin/`, `mcp/`, the MCP server module, the product validators/tests and the checkpoint CLI — extracted with `git filter-repo` so history is kept, then have the site repo consume it as a tag-pinned git submodule behind a top-level `skills` symlink (zero script edits). Retire the force-push mirror. Do the hygiene that every OSPO scanner checks *inside the monorepo first*, because it carries into the new repo via the history rewrite. ~1 week elapsed; ~2–3 h for the extraction itself. Don't do the "third repo + renames" variant: it rewrites 22 hard-coded slugs and the MCP-registry namespace for no functional gain.
@@ -88,7 +94,7 @@ The three lenses produced three slightly different lists; this is the reconciled
 Nothing below has been executed. `git-filter-repo` and `gitleaks` are **not installed** locally (`brew install git-filter-repo gitleaks` → 2.47.0 / 8.30.1). The product paths touch ~76–82 of 543 commits, 2 merges; tags `v1.8.1`/`v1.8.2` survive a path filter on their own merits, `v1.8.0` (`dbf818f`) survives only because `server.json` is in the path list — keep it there.
 
 1. **Freeze** edits under `skills/ plugins/ .claude-plugin/ mcp/ server.json src/lib/mcp` for the window (extraction → consume-PR merge). Optionally close draft PRs #385/#363 (neither touches product paths).
-2. **Fresh clone** (filter-repo refuses non-fresh clones): `git clone --no-local --single-branch --branch main https://github.com/asfbay-bit/opchain.git product && cd product && git rev-parse --short HEAD` → record `EXTRACT_SHA`. The `wip/v1-8-docs-mesh-20260703` tag is unreachable from main and won't come along — leave it on origin.
+2. **Fresh clone** (filter-repo refuses non-fresh clones): `git clone --no-local --single-branch --branch main https://github.com/ainatx/opchain.git product && cd product && git rev-parse --short HEAD` → record `EXTRACT_SHA`. The `wip/v1-8-docs-mesh-20260703` tag is unreachable from main and won't come along — leave it on origin.
 3. **Optional `--mailmap`** to fold `asfbay-bit <admin@opchain.dev>` and the Apple private-relay address into one identity.
 4. **Filter:** `git filter-repo --paths-from-file ../split/product-paths.txt --path-rename mirror/README.md:README.md --path-rename mirror/CONTRIBUTING.md:CONTRIBUTING.md --path-rename mirror/.github/:.github/ [--mailmap .mailmap]`. Decide explicitly whether to also run `--replace-text` to remove the `aidops`/`Aidan`/`PenThreshold` strings from *history* (S3 only scrubs the tip). Recommended: **don't** — it's already public in the monorepo, and blame continuity on 60 skill commits is worth more than a cosmetic rewrite. This is the one free moment to do it, so record the choice.
 5. **Verify:** `git log --oneline | wc -l` (≈76–82); `git log --merges --oneline | wc -l` (2); `git tag -l` (v1.8.0–v1.8.2); `git ls-files -s | awk '$1=="120000"'` → only `plugins/opchain/skills`; `readlink plugins/opchain/skills && ls plugins/opchain/skills | head` (resolves); `git log --follow --oneline -- skills/oc-app-architect/SKILL.md | tail -1` (reaches the 2026-04-14 upload via the `9a5c02d` rename); `gitleaks git -v .` → no leaks.

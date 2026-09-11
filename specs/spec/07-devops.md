@@ -12,9 +12,9 @@ so Cloudflare manages DNS automatically on `wrangler deploy`:
 
 | Env | Worker name | URL | KV namespace id |
 |---|---|---|---|
-| Production | `opchain-dev` | `opchain.dev` | `7574667e560c4727bae2da069c9d6f52` |
-| Staging | `opchain-staging` | `staging.opchain.dev` | `6156bc3d5a5c4bd780f3d2667950e703` |
-| Preview (local `wrangler dev`) | n/a | `localhost:8787` | `93c4a01577774dd2864581ba6444df8c` |
+| Production | `opchain-dev` | `opchain.dev` | `6a7121cf34354a9991727187311b6264` |
+| Staging | `opchain-staging` | `staging.opchain.dev` | `a76010c99fc346f4b3fe0e532ff4398f` |
+| Preview (local `wrangler dev`) | n/a | `localhost:8787` | `2b5cb8f0733e4cb88a89b0dc8b1dd3d7` |
 
 Source: `wrangler.jsonc` L24, L40–L57.
 
@@ -28,7 +28,7 @@ feature branch ─► PR ─► CI green (tests only) ─► merge to main
                                                        │
                                                        ▼
                                        (you, on your laptop)
-                                       npm run deploy:staging
+                         OPCHAIN_OFFICIAL_ANALYTICS=1 npm run deploy:staging
                                                        │
                                                        ▼
                                             staging.opchain.dev
@@ -36,7 +36,7 @@ feature branch ─► PR ─► CI green (tests only) ─► merge to main
                                        (you, in a browser, eyeball it)
                                                        │
                                                        ▼
-                                            npm run deploy
+                              OPCHAIN_OFFICIAL_ANALYTICS=1 npm run deploy
                                                        │
                                                        ▼
                                                 opchain.dev
@@ -50,14 +50,11 @@ token-scope problem.
 
 ### Build pipeline
 
-`npm run prebuild` (chained into `dev`, `deploy`, `deploy:staging`):
-
-| Step | Command | Output |
-|---|---|---|
-| 1 | `npm run gen-catalog` | `public/skills.js` + `src/generated/skill-prompts.js` |
-| 2 | `npm run sync-docs` | `public/docs/<skill>/SKILL.md` |
-| 3 | `npm run make-zip` | `public/opchain-skills.zip` |
-| 4 | `npm run build-site` | `site/dist/` → copied into `public/` |
+`npm run prebuild` (chained into `dev`, `deploy`, `deploy:staging`) regenerates
+stack packs, adapters, flags, site and MCP catalogs; validates references and
+PM config; verifies source/plugin bundles; syncs public docs; builds licensed
+ZIP artifacts and OG images; and builds the Astro site. `package.json` is the
+ordered source of truth.
 
 Then `node build.mjs` bundles `src/index.js` → `dist/index.js` (esbuild, ESM,
 workerd target). `build.mjs` injects `__OPCHAIN_VERSION__` via esbuild's
@@ -88,7 +85,7 @@ top.
   `PUBLIC_POSTHOG_KEY` + `PUBLIC_POSTHOG_HOST`, gated by the consent banner
   (`site/src/components/ConsentBanner.astro`).
 - **Request IDs** — `src/lib/request-id.js` mints a per-request id propagated
-  to upstream calls (Linear, Anthropic) and into log lines.
+  to upstream calls and into log lines.
 - No external alerting (no Sentry, no Datadog, no PagerDuty). No uptime
   checks configured in-repo.
 
@@ -98,12 +95,21 @@ Documented in `.env.example` and `CLAUDE.md`:
 
 - `LINEAR_API_KEY` — Linear GraphQL API key (feedback endpoint)
 - `LINEAR_TEAM_ID`, `LINEAR_PROJECT_ID` — optional Linear overrides
-- `ANTHROPIC_API_KEY` — Claude API key for Try It
-- `ANTHROPIC_MODEL` — optional, defaults to `claude-haiku-4-5-20251001`
-- `DEPLOY_API_TOKEN` — HMAC signing secret. **Required.** Unset → 503.
+- `ROADMAP_GITHUB_TOKEN` — optional issue-write token for community roadmap intake
+- `MCP_SESSION_SIGNING_KEY` — independent ≥32-byte HMAC secret required for
+  hosted MCP checkpoint-session issuance; rotation invalidates prior tokens
 - `POSTHOG_PROJECT_API_KEY`, `POSTHOG_HOST` — server analytics
 - `PUBLIC_POSTHOG_KEY`, `PUBLIC_POSTHOG_HOST` — client analytics
-- `LEAD_TTL_DAYS` — KV TTL on Try-It leads (default 365)
+
+Both public PostHog values are required to enable browser analytics. Official
+deployments opt into the managed defaults with `OPCHAIN_OFFICIAL_ANALYTICS=1`;
+self-hosted builds have no opchain host fallback. Standard `*.i.posthog.com`
+hosts are CSP-allowed; custom proxy origins must also be added to `script-src`
+and `connect-src` in `src/lib/http.js`.
+
+Lead retention is not secret-configurable: `src/index.js` applies a fixed
+365-day TTL to `/api/notify` records so deployment configuration cannot silently
+extend the published privacy window.
 
 Stored in `.dev.vars` locally; in the Cloudflare Workers dashboard or via
 `wrangler secret put` for staging + production.
@@ -117,7 +123,8 @@ Stored in `.dev.vars` locally; in the Cloudflare Workers dashboard or via
 
 ### CI/CD
 
-`.github/workflows/ci.yml` runs on every PR and push to `main`:
+`.github/workflows/ci.yml` runs on every PR. The protected `main` branch does
+not repeat the same checks after merge:
 
 1. `actions/checkout@v6`, `actions/setup-node@v6`
 2. `npm ci`
@@ -133,22 +140,25 @@ CI does **not** deploy. Deploy is manual, see above.
 
 ### Rollback
 
-Per `CLAUDE.md`:
+The deploy wrapper records the currently active version before activation. If
+the new deployment fails live-SHA convergence, the hardening replay, or the
+smoke suite, it automatically invokes Wrangler rollback and exits nonzero.
+For a later incident, use:
 
 ```bash
-npx wrangler deployments list      # find last good deployment id
-npx wrangler rollback <id>         # reverts the Worker (~30s propagation)
+npx wrangler deployments list      # find the last good 100%-traffic version_id
+npx wrangler rollback <version-id> # reverts the Worker (~30s propagation)
 ```
 
-No automated rollback trigger; this is a human-in-the-loop step.
+The automatic path covers immediate verification only; later incidents remain
+human-triggered.
 
 ### Cost
 
 - Workers Free tier covers 100k requests/day. Site + skills downloads sit well
   under that.
-- Anthropic Haiku 4.5 token cost dominates Try-It usage.
-- KV reads/writes per Try-It exchange are bounded by the 5-exchange / per-email
-  rate limit + IP rate limit.
+- Hosted checkpoints consume KV and edge Rate Limiting operations; the
+  per-location mutation budget and per-key write cadence bound abuse.
 - No line-item cost modeling in the repo.
 
 ### Confidence
@@ -159,15 +169,14 @@ No automated rollback trigger; this is a human-in-the-loop step.
 | Manual deploy, no CI deploy | HIGH — CLAUDE.md is explicit |
 | `__OPCHAIN_VERSION__` is the deployment identity | HIGH — `build.mjs` + `health.test.js` |
 | LHCI runs on PRs only | HIGH — `lighthouse.yml` |
-| Rollback is a documented manual step | HIGH — CLAUDE.md |
+| Immediate verification failures auto-rollback; later incidents are manual | HIGH — `scripts/deploy.mjs` + CLAUDE.md |
 
 ## Gaps & Recommendations
 
 | Finding | Severity | Fix |
 |---|---|---|
-| **No automated post-deploy smoke** | MED | Add a small wrapper around `npm run deploy:staging` that calls `/api/health` and asserts the version SHA before returning success. Same for prod. |
 | **No nightly LHCI / synthetic monitoring** | MED | Cron a daily LHCI run against staging + prod, alert on regression. Or add an external uptime check (Better Stack, UptimeRobot). |
-| **No structured incident runbook** | MED | The rollback steps live in CLAUDE.md but there's no runbook for "Linear API down", "Anthropic 5xx burst", "rate-limit accidentally tripped legitimate user". Recommend a `runbooks/` directory. |
+| **No structured third-party incident runbook** | MED | Add explicit response paths for Linear/GitHub outages and false-positive rate limiting. |
 | **No dependency-update review cadence beyond Dependabot PRs** | LOW | Dependabot is already opening PRs (PRs #95–98 visible at time of writing). Add a weekly merge ritual or auto-merge for green minor bumps. |
 | **`wrangler.jsonc $schema` uses local `node_modules` path** | LOW | Replace with the public schema URL so the file is meaningful when viewed outside the repo. |
 | **No deployment audit log** | LOW | `wrangler deployments list` works but isn't archived. A simple shell script that appends each deploy's SHA + timestamp to `roadmap/deploy-log.md` would create the audit trail. |

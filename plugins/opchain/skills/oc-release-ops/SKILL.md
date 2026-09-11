@@ -1,7 +1,7 @@
 ---
 name: oc-release-ops
 displayName: OC · Release Ops
-version: 1.8.3
+version: 1.9.0
 license: Apache-2.0
 shortDesc: Plan, draft, bump, announce, ship a release. Closes the loop from sprints to /changelog to oc-git-ops to oc-deploy-ops.
 phases: [build]
@@ -291,7 +291,8 @@ End-of-pipeline handoff.
 
 ### `/oc-release verify` (the gate)
 
-Runs in order; aborts on the first failure:
+Runs in order; aborts on the first failure (rows marked warn-class report and
+continue):
 
 | Check | Implementation |
 |---|---|
@@ -306,6 +307,7 @@ Runs in order; aborts on the first failure:
 | Release is tagged and pushed | `node scripts/check-release-tag.mjs` — the same check `npm run deploy` runs, so the gate you run and the gate that blocks you cannot disagree |
 | All skill versions match the release version | parse every SKILL.md frontmatter |
 | Styleguide badge matches | parse `site/src/pages/styleguide.astro` |
+| Compliance delta bundle exists (conditional, v1.9) | only when `.opchain/compliance.yaml` exists: oc-compliance-ops `/oc-comply evidence` ran for this release with the delta section; absent profile, row skipped. **Warn-class:** a missing delta bundle is reported in the verify output and the chain continues — matching the deploy gate's presence-checked row (compliance is reported, never enforced) |
 
 ---
 

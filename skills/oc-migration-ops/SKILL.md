@@ -1,7 +1,7 @@
 ---
 name: oc-migration-ops
 displayName: OC · Migration Ops
-version: 1.8.3
+version: 1.9.0
 license: Apache-2.0
 shortDesc: Change the engine mid-flight — DB, framework, auth, platform. v1.2 mirrors the plan as parent + step children.
 phases: [plan, build]
@@ -116,7 +116,7 @@ which reference playbook to load and which verification strategy to use.
 
 | Type | Examples | Risk | Key Concern |
 |---|---|---|---|
-| **Database** | D1 → Postgres, schema overhaul, ORM swap | HIGH | Data integrity, zero data loss |
+| **Database** | D1 → Postgres, schema overhaul, ORM swap, warehouse engine moves (BigQuery → Snowflake), dbt-model/schema overhauls | HIGH | Data integrity, zero data loss |
 | **Framework** | Hono v3→v4, React 18→19, Next.js pages→app router | MEDIUM | Breaking API changes, dependency conflicts |
 | **Auth** | Passkeys → Supabase Auth, Auth0 → Clerk, session → JWT | HIGH | Auth gap = security gap, user lockout |
 | **Platform** | Workers → Vercel, Supabase → raw Postgres, Heroku → Fly.io | HIGH | DNS cutover, cold start behavior, binding changes |
@@ -129,6 +129,7 @@ which reference playbook to load and which verification strategy to use.
 When the user describes a migration without explicitly classifying it, infer the type:
 
 - "Move from D1 to Postgres" → Database
+- "Migrate the warehouse" / "BigQuery to Snowflake" → Database
 - "Upgrade Hono to v4" → Framework
 - "Switch auth to Supabase" → Auth
 - "Move off Cloudflare to Vercel" → Platform
@@ -567,6 +568,7 @@ affected.
 | Code changes from migration steps | Suggest oc-git-ops `/oc-git-sync` |
 | Cutover deployment needed | Invoke oc-deploy-ops `/oc-deploy staging` then `/oc-deploy prod` |
 | Platform or database migration complete | Invoke oc-monitoring-ops `/oc-monitor setup` to update health checks and alert targets |
+| Warehouse or pipeline schema migration complete | Invoke oc-data-ops `/oc-data-ops verify` — the contracts + `.verified/` baselines are the equivalence oracle (v1.9) |
 
 ---
 
@@ -669,6 +671,7 @@ Type-specific fields by migration type:
 | oc-code-auditor | Pre-existing findings — don't introduce new issues |
 | oc-scale-ops | Performance baselines — detect regression after migration |
 | oc-deploy-ops | Deployment config — environments, URLs, health checks |
+| oc-data-ops | Data contracts + `.verified/` baselines are the target-state spec for warehouse/pipeline migrations; dialect-pinned `invariants[].check` SQL must be rewritten before cutover (v1.9) |
 
 | Read by | Why |
 |---|---|

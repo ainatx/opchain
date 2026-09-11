@@ -9,8 +9,8 @@ import { expect, test } from "@playwright/test";
  * `window.posthog` global appearing — the inline bootstrap replaces the
  * stub with the real SDK).
  *
- * The build for e2e bakes `PUBLIC_POSTHOG_KEY=phc_test_e2e` via `pretest:e2e`
- * in site/package.json so the loader path is exercised in CI.
+ * The build for e2e bakes both `PUBLIC_POSTHOG_KEY=phc_test_e2e` and a local
+ * `PUBLIC_POSTHOG_HOST` via `pretest:e2e` so the loader path is exercised in CI.
  *
  * All tests that need a clean slate use `gotoFresh` so the banner appears.
  */
@@ -55,7 +55,7 @@ test.describe("consent banner", () => {
     const posthogType = await page.evaluate(() => typeof (window as any).posthog);
     test.skip(
       posthogType === "undefined",
-      "PUBLIC_POSTHOG_KEY not baked into the build — accept loader is a no-op",
+      "PUBLIC_POSTHOG_KEY/HOST not baked into the build — accept loader is a no-op",
     );
     expect(posthogType).toBe("object");
   });

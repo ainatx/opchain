@@ -1,6 +1,6 @@
 name: Deploy lag
 
-# Daily check against the approved release baseline, not raw main equality.
+# Every-fourth-day check against the approved release baseline, not raw main equality.
 # A docs/checkpoint/workflow-only descendant of the deployed release is not a
 # deployment gap. A change outside the explicit non-deploying path set is.
 # Cloudflare state is authenticated through the control plane, so Bot Fight
@@ -8,7 +8,8 @@ name: Deploy lag
 
 on:
   schedule:
-    - cron: "3 14 * * *"
+    # Run on every fourth day-of-month and stay clear of top-of-hour load.
+    - cron: "17 14 */4 * *"
   workflow_dispatch:
 
 permissions:

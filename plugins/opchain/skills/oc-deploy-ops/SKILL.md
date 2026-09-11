@@ -1,7 +1,7 @@
 ---
 name: oc-deploy-ops
 displayName: OC · Deploy Ops
-version: 1.8.3
+version: 1.9.0
 license: Apache-2.0
 shortDesc: Audit gate → staging → production → monitor. v1.2 creates deploy tickets and updates linked PM tickets per env.
 phases: [build]
@@ -167,7 +167,9 @@ Create or update `.oc-deploy-ops.json`:
 Before any deploy, run **two** audits in order: oc-code-auditor (code-level
 findings) then oc-security-auditor (architecture / hardening / threat
 model). Both must pass for `/oc-deploy staging` and `/oc-deploy prod` to
-proceed.
+proceed. Two **conditional rows** (v1.9) join the gate when their manifests
+exist in the repo — see steps 3 and 4; absent manifests, the gate is exactly
+the two-audit gate above.
 
 ### 1. oc-code-auditor — code-level gate
 
@@ -193,6 +195,34 @@ node scripts/checkpoint.mjs status oc-security-auditor
 #   Skill(skill="oc-security-auditor", args="/oc-security pre-deploy")
 ```
 
+### 3. oc-security-hardening — manifest gate (conditional, v1.9)
+
+Only when `.opchain/hardening.yaml` exists. Replay the manifest — `config`/
+`test` controls verify at the deploying SHA; `http` controls verify the
+*currently live* environment (pre-deploy they check the last deployment, so
+they re-run post-staging against the staging URL — see the hardening
+manifest's timing-soundness note):
+
+```bash
+ls .opchain/hardening.yaml 2>/dev/null && \
+  echo "manifest present — Skill(skill=\"oc-security-hardening\", args=\"/oc-harden verify\")"
+# Any FAIL-class control → treat as a CRITICAL finding (block).
+# Unparseable manifest / missing verify method → also FAIL (schema error, never a skip).
+# `manual` controls → loud-skip, listed in the gate output with their age.
+```
+
+### 4. oc-compliance-ops — evidence gate (conditional, v1.9)
+
+Only when `.opchain/compliance.yaml` exists. The gate condition is that an
+**honest evidence bundle exists for the deploying SHA** — not that the
+register is gap-free (compliance state is reported, never enforced here):
+
+```bash
+ls .opchain/compliance.yaml 2>/dev/null && \
+  echo "profile present — Skill(skill=\"oc-compliance-ops\", args=\"/oc-comply evidence\")"
+# Missing/stale bundle for this SHA → ⚠️ Warn, generate before prod.
+```
+
 ### Gate Rules
 
 | Audit Result | Deploy Decision |
@@ -202,6 +232,9 @@ node scripts/checkpoint.mjs status oc-security-auditor
 | HIGH findings (≤ 3 total) | ⚠️ Warn — proceed with user confirmation |
 | HIGH findings (> 3 total) | 🚫 Block — too many unresolved issues |
 | No audit run | ⚠️ Warn — suggest running both audits first |
+| Hardening manifest present, any control FAILs verify | 🚫 Block — a regressed control is a CRITICAL |
+| Hardening manifest present, `manual` controls only | ⚠️ Loud-skip — list them + last-check age |
+| Compliance profile present, no evidence bundle at this SHA | ⚠️ Warn — run `/oc-comply evidence` before prod |
 
 When blocked, show the specific findings and fix commands. When warned, list
 the findings and ask for explicit confirmation before proceeding.

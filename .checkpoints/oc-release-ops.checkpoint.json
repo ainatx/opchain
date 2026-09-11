@@ -3,183 +3,160 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-08-29T22:58:59.000Z",
+  "updated_at": "2026-09-02T21:49:57.000Z",
   "skill": "oc-release-ops",
-  "phase": "closeout",
-  "step": "redesign-validated-pending-merge",
-  "status": "in_progress",
-  "progress_summary": "v1.8.3, Open seams, closed ledger, is shipped at exact runtime SHA 395fc314c836d5d9d8a76b64d85b8380ece3a68b. Production deployment 7abc8570-6fcb-4942-b44e-8ef822f84b05 serves version 780e85e2-7022-44fa-82f3-e5eaeb2b82a1 at 100% traffic; staging deployment 8d709a57-181b-4ed7-90cc-ddf773ca14f4 serves version c52b3bd6-4eee-4e50-a8c3-e21569b998d6. Branch runs 33278930280 (Canary) and 33278931387 (Deploy lag) validate the option-3 authenticated Cloudflare control-plane redesign at branch SHA 9df7e0351ac8fc2676c6c6c8e9bf859a8340e484. Draft closeout PR #467 is open and unmerged; CI run 33279611204 and Lighthouse run 33279611215 passed at its opening head. Continuous monitoring is not yet healthy because scheduled default-branch workflows remain old until this PR is human-merged and successful scheduled evidence exists. Phase C is authorized only through reversible C0/C1 preparation here; C1 human manifest review/freeze remains pending and C5 still requires the exact separate HUMAN 'flip now' gate.",
+  "phase": "shipped",
+  "step": "v1.9-release-signed-off",
+  "status": "complete",
+  "progress_summary": "v1.9.0, Assurance and governed delivery ops, is signed off and live. Release PR #477 merged at exact SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248; signed annotated tag v1.9.0 is verified locally and by GitHub; Registry run 33677209947 published the active/latest exact manifest. Staging and production serve health version 244bf13 at 100% traffic after hardening, smoke, MCP acceptance, visual, and 7/7 post-deploy gates. The sealed 16-record legacy checkpoint set was deleted without touching unrelated KV data, milestone #1 is closed, and monitoring baseline PR #478 plus authenticated Canary and Deploy lag dispatches are green. The next scheduled monitoring cycle remains tracked by oc-monitoring-ops and does not block the shipped release.",
   "progress_table": [
-    { "id": "phase-a-production", "label": "Exact-SHA v1.8.3 production ship", "status": "complete" },
-    { "id": "monitoring-redesign", "label": "Option-3 branch validation", "status": "complete" },
-    { "id": "checkpoint-closeout", "label": "Checkpoint and runbook reconciliation", "status": "complete" },
-    { "id": "phase-c-c0-c1", "label": "Reversible C0/C1 preparation", "status": "complete" },
-    { "id": "closeout-pr", "label": "Draft closeout PR opened", "status": "complete" },
-    { "id": "default-branch-monitoring", "label": "Post-merge scheduled monitoring activation", "status": "not_started" }
+    { "id": "scope", "label": "v1.9 scope and compatibility", "status": "complete" },
+    { "id": "assurance", "label": "QA, compliance, and hardening gates", "status": "complete" },
+    { "id": "pre-merge", "label": "Complete local pre-merge workflow ledger", "status": "complete" },
+    { "id": "release-pr", "label": "Release PR merged to main", "status": "complete" },
+    { "id": "signed-tag", "label": "Signed immutable v1.9.0 tag", "status": "complete" },
+    { "id": "registry", "label": "MCP Registry v1.9.0 active and latest", "status": "complete" },
+    { "id": "staging", "label": "Exact-main staging deploy and live review", "status": "complete" },
+    { "id": "production", "label": "Exact-tag production deploy and verification", "status": "complete" },
+    { "id": "closeout", "label": "Retention purge, roadmap, monitoring baseline, and release sign-off", "status": "complete" }
   ],
   "context_primer": {
     "key_decisions": [
-      "Never tag 438ab5f: it has the claimed catalog version but predates the hardened publisher workflow and release seal.",
-      "A copied or stale seal fails because the workflow and server.json hashes are recomputed at the verified commit.",
-      "Later content-only descendants may ship when their sealed generation is an ancestor, but an unreachable, differently signed, or differently peeled remote tag fails closed.",
-      "The signed tag remains a human gate after the same-SHA staging review; production and the Phase C flip remain separately gated.",
-      "For v1.8.3, mcp-publisher v1.8.1 treated publish --dry-run as a real publish; the authoritative registry outcome succeeded, but the second publish made the workflow red. The one-time evidence-bound exception was explicitly accepted and documented in PR #466.",
-      "Cloudflare Free-plan Bot Fight Mode stays enabled; it cannot be narrowly bypassed with a WAF Skip rule. The redesigned workflows use authenticated control-plane evidence and do not claim that public custom-domain machine traffic, including /mcp, is challenge-free.",
-      "Phase C C0/C1 preparation is authorized. Extraction, the product-repo force-push, mirror disablement, tag pushes, the consume merge, and any new runtime deploy remain outside this closeout and behind their documented gates."
+      "The stable registry identity remains io.github.asfbay-bit/opchain-skills after the source repository transfer to a-atx/opchain.",
+      "The publisher authenticates with the existing scoped MIRROR_TOKEN because GitHub OIDC cannot claim the legacy asfbay-bit registry namespace from the new repository owner.",
+      "A validate-only publisher dispatch on exact main must prove validation and authentication before the immutable tag is created.",
+      "Hosted checkpoint sessions are server-issued UUID plus canonical HMAC tokens; production and staging use distinct secrets, and rotation invalidates existing tokens.",
+      "The 16 legacy production checkpoint records were incompatible with signed sessions and were irreversibly deleted only after the hardened production runtime was verified.",
+      "Every deploy must use the exact fetched origin/main commit. Production has no branch escape hatch.",
+      "Production post-activation verification failure automatically rolls back to the captured prior 100%-traffic version ID.",
+      "Compliance is readiness and evidence only; no compliance framework is activated because .opchain/compliance.yaml is absent."
     ],
     "generated_files": [
-      "release-seal.json"
+      ".opchain/qa.yaml",
+      ".opchain/hardening.yaml",
+      "release-seal.json",
+      "releases/v1.9.0/announcement-internal.md"
+    ],
+    "user_preferences": [
+      "Complete the production push and v1.9 release sign-off autonomously."
     ]
   },
   "blockers": [],
-  "next_actions": [
-    "HUMAN reviews draft PR #467; do not merge it in this task, and keep monitoring status redesign-validated-pending-merge.",
-    "After a human merges the closeout PR, require successful default-branch scheduled Canary and Deploy lag evidence before calling continuous monitoring healthy.",
-    "Obtain HUMAN review of split/product-paths.txt and a path freeze before any Phase C extraction; C5 still requires Aidan to say exactly 'flip now'.",
-    "Before the next post-cut-over release tag push, replace publish --dry-run with the supported validation path and record that repaired workflow hash in the next version's new release seal."
+  "next_actions": [],
+  "pm_refs": [
+    { "provider": "github", "id": "8", "role": "source" },
+    { "provider": "github", "id": "9", "role": "source" },
+    { "provider": "github", "id": "10", "role": "source" },
+    { "provider": "github", "id": "11", "role": "source" }
   ],
-  "pm_refs": [],
   "skill_state": {
     "current_release": {
-      "semver": "1.8.3",
-      "theme": "Open seams, closed ledger",
-      "phase": "production-shipped-closeout-pending-merge",
-      "release_ticket_id": null,
-      "started_at": "2026-07-24T00:00:00Z",
-      "shipped_at": "2026-08-29T14:47:30.285424Z"
+      "semver": "1.9.0",
+      "theme": "Assurance and governed delivery ops",
+      "phase": "shipped",
+      "started_at": "2026-08-28T00:00:00Z",
+      "shipped_at": "2026-09-02T20:11:25.746861Z"
     },
-    "history": [
-      {
-        "semver": "1.8.3",
-        "theme": "Open seams, closed ledger",
-        "shipped_at": "2026-08-29"
-      },
-      {
-        "semver": "1.8.1",
-        "theme": "Checkpoint truth without the CLI",
-        "shipped_at": "2026-07-12"
-      },
-      {
-        "semver": "1.8.0",
-        "theme": "The quality-gate rail",
-        "shipped_at": "2026-07-04"
-      },
-      {
-        "semver": "1.7.0",
-        "theme": "Seams & Signals",
-        "shipped_at": "2026-07-01"
-      },
-      {
-        "semver": "1.6.0",
-        "theme": "Cost & telemetry",
-        "shipped_at": "2026-06-25"
-      }
-    ],
+    "prior_release": {
+      "semver": "1.8.3",
+      "tag": "v1.8.3",
+      "source_sha": "395fc314c836d5d9d8a76b64d85b8380ece3a68b",
+      "shipped_at": "2026-08-29"
+    },
+    "catalog": { "version": "1.9.0", "skills": 33, "previous_skills": 29 },
+    "pre_merge": {
+      "verdict": "PASS",
+      "workflow_steps": 11,
+      "warnings": 0,
+      "skipped": 0,
+      "failed": 0,
+      "unit_tests": "43 files; 579 tests passed",
+      "independent_review": "SHIP"
+    },
     "release_seal": {
       "schema_version": 1,
-      "catalog_version": "1.8.3",
+      "catalog_version": "1.9.0",
       "generation": 1,
-      "verified_for_sha": "395fc314c836d5d9d8a76b64d85b8380ece3a68b"
+      "verified_for_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248"
+    },
+    "release_pr": {
+      "number": 477,
+      "url": "https://github.com/a-atx/opchain/pull/477",
+      "merge_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
+      "merged_at": "2026-09-02T19:27:32Z",
+      "required_checks": "PASS"
     },
     "tag": {
-      "name": "v1.8.3",
+      "name": "v1.9.0",
       "local": true,
       "origin": true,
       "required_type": "annotated-and-signed",
-      "object_sha": "5ba19cedb72a994dd32d4c4f53e5a962bd68b283",
-      "peeled_commit": "395fc314c836d5d9d8a76b64d85b8380ece3a68b",
-      "signature": "valid",
-      "signer": "Aidan Elsesser <admin@opchain.dev>",
-      "signing_fingerprint": "0B62AC18DBF70E5D0A16572613F2AB1A91C4CDBD",
-      "local_gate": "pass",
-      "remote_gate": "pass"
-    },
-    "staging": {
-      "url": "https://staging.opchain.dev",
-      "git_sha": "395fc314c836d5d9d8a76b64d85b8380ece3a68b",
-      "cloudflare_version_id": "c52b3bd6-4eee-4e50-a8c3-e21569b998d6",
-      "cloudflare_deployment_id": "8d709a57-181b-4ed7-90cc-ddf773ca14f4",
-      "automated_review": "pass",
-      "computer_control_review": "pass — Safari",
-      "high_acceptance_scope": "staging-only",
-      "human_approved": true,
-      "human_approved_at": "2026-08-29T03:23:40.000Z",
-      "production_authorized": true
-    },
-    "production_gate": {
-      "deferred_high_accepted": true,
-      "deferred_high_accepted_at": "2026-08-29T14:33:52.000Z",
-      "ship_approved": true,
-      "ship_approved_at": "2026-08-29T14:44:56.000Z",
-      "ship_approved_sha": "395fc314c836d5d9d8a76b64d85b8380ece3a68b"
-    },
-    "production": {
-      "url": "https://opchain.dev",
-      "git_sha": "395fc314c836d5d9d8a76b64d85b8380ece3a68b",
-      "health_version": "395fc31",
-      "cloudflare_deployment_id": "7abc8570-6fcb-4942-b44e-8ef822f84b05",
-      "cloudflare_version_id": "780e85e2-7022-44fa-82f3-e5eaeb2b82a1",
-      "traffic_percent": 100,
-      "roadmap_regeneration": "pass — 12 items and fail-closed validation immediately before deployment",
-      "rollback_used": false,
-      "deployed_at": "2026-08-29T14:47:30.285424Z",
-      "verified_at": "2026-08-29T14:56:44.000Z"
-    },
-    "monitoring_closeout": {
-      "status": "redesign-validated-pending-merge",
-      "closeout_pr": 467,
-      "closeout_pr_url": "https://github.com/asfbay-bit/opchain/pull/467",
-      "branch_head_sha": "9df7e0351ac8fc2676c6c6c8e9bf859a8340e484",
-      "canary_run_id": 33278930280,
-      "canary_run_url": "https://github.com/asfbay-bit/opchain/actions/runs/33278930280",
-      "deploy_lag_run_id": 33278931387,
-      "deploy_lag_run_url": "https://github.com/asfbay-bit/opchain/actions/runs/33278931387",
-      "deploy_relevant_changes": 0,
-      "explicitly_non_deploying_changes": 6,
-      "default_branch_scheduled_activation": "pending closeout PR merge",
-      "assurance_limit": "Authenticated Cloudflare control-plane evidence does not prove that public custom-domain machine traffic, including /mcp, will avoid Bot Fight Mode challenges."
-    },
-    "phase_c": {
-      "authorized": true,
-      "scope": "reversible C0/C1 preparation only",
-      "status": "c0-complete-c1-manifest-prepared-human-review-pending",
-      "tools": "git-filter-repo 2.47.0 and gitleaks 8.30.1 installed",
-      "stale_drafts_closed": [385, 363],
-      "manifest": "split/product-paths.txt",
-      "pm_fixture_scrubbed": true,
-      "history_replacement": "no --replace-text; forward-only tip scrub preserves blame continuity",
-      "hard_stop": "No extraction or repository flip. C5 requires Aidan to say exactly 'flip now'."
+      "tag_object": "fd05dd2c5d696661cb2cc5cb9dd57d2470f69c32",
+      "peeled_commit": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
+      "signing_fingerprint": "66ED0CF12E9C51822AA1629BB4A90085A810B266",
+      "local_verification": "PASS",
+      "github_verification": "verified"
     },
     "publisher": {
-      "workflow_run_id": 33234878843,
-      "workflow_run_url": "https://github.com/asfbay-bit/opchain/actions/runs/33234878843",
-      "workflow_head_sha": "395fc314c836d5d9d8a76b64d85b8380ece3a68b",
-      "workflow_conclusion": "failure",
-      "validate_step": "success — published v1.8.3",
-      "publish_step": "failure — 400 duplicate version",
-      "registry_version_url": "https://registry.modelcontextprotocol.io/v0.1/servers/io.github.asfbay-bit%2Fopchain-skills/versions/1.8.3",
-      "registry_outcome": "published",
-      "registry_status": "active",
-      "registry_is_latest": true,
-      "registry_published_at": "2026-08-29T04:53:31.36821Z",
-      "registry_metadata_matches_server_json": true,
-      "disposition": "accepted-one-time-outcome-exception",
-      "exception_pr": 466,
-      "exception_pr_url": "https://github.com/asfbay-bit/opchain/pull/466",
-      "exception_merge_sha": "5baa289ceeac5813f0a4392d6f63ed89cafa705f",
-      "exception_accepted_by": "Aidan Elsesser",
-      "exception_accepted_at": "2026-08-29T12:05:05.000Z"
+      "preflight": "PASS",
+      "preflight_run_id": 33673476599,
+      "preflight_url": "https://github.com/a-atx/opchain/actions/runs/33673476599",
+      "tag_run": "PASS",
+      "tag_run_id": 33677209947,
+      "tag_run_url": "https://github.com/a-atx/opchain/actions/runs/33677209947",
+      "registry_status": "active-and-latest-exact",
+      "published_at": "2026-09-02T20:05:41.073493Z",
+      "server_name": "io.github.asfbay-bit/opchain-skills"
     },
-    "pm_deferred_actions": [
-      {
-        "skill": "oc-release-ops",
-        "action": "create_issue",
-        "retriable": true,
-        "marker": "<!-- opchain:oc-release-ops:release-ticket:v1.8.0 -->",
-        "title": "Release v1.8.0 — Documentation & repo hygiene",
-        "reason": "Linear MCP unauthenticated in the shipping session",
-        "recorded_at": "2026-07-10T17:52:21Z"
-      }
-    ]
+    "staging": {
+      "status": "verified",
+      "url": "https://staging.opchain.dev",
+      "deployment_id": "791c1851-2b81-4408-b881-dac381fa6d07",
+      "version_id": "d07bb08a-9662-4e77-a2a1-673fc0c7a8a5",
+      "health_version": "244bf13",
+      "traffic_percent": 100,
+      "hardening_replay": "PASS",
+      "mcp_acceptance": "PASS",
+      "visual_review": "PASS"
+    },
+    "production": {
+      "status": "verified",
+      "url": "https://opchain.dev",
+      "deployment_id": "54ef8a21-0665-4a83-bc1a-5768c2bae0d5",
+      "version_id": "01bbe46b-3533-4faa-bc1a-d140cbcecbbe",
+      "health_version": "244bf13",
+      "traffic_percent": 100,
+      "hardening_replay": "PASS",
+      "mcp_acceptance": "PASS",
+      "post_deploy_ledger": "7/7 PASS",
+      "rollback_used": false
+    },
+    "retention": {
+      "legacy_checkpoint_count": 16,
+      "inventory_digest": "0d4d150e0c09b65b27c2fc6e5d011f3664587efcecbf4d785f353a06b39e4e21",
+      "purge_status": "complete",
+      "deleted_legacy_records": 16,
+      "production_checkpoint_records_remaining": 0,
+      "staging_checkpoint_records_remaining": 0,
+      "unrelated_production_records_preserved": 4
+    },
+    "roadmap": {
+      "repository": "asfbay-bit/opchain-skills",
+      "milestone_number": 1,
+      "milestone_status": "closed",
+      "closed_at": "2026-09-02T20:06:33Z",
+      "shipped_open_issues": [8, 9, 10, 11],
+      "label": "roadmap:shipped"
+    },
+    "monitoring": {
+      "baseline_pr": 478,
+      "baseline_merge_sha": "c6d529631cfe49021efdcabcfcf02bc95a94700f",
+      "canary_run_id": 33686712301,
+      "canary_conclusion": "success",
+      "deploy_lag_run_id": 33686714194,
+      "deploy_lag_conclusion": "success",
+      "deploy_relevant_paths": 0,
+      "continuous_status": "v1.9 baseline verified; first scheduled cycle tracked separately"
+    }
   }
 }

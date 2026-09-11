@@ -246,6 +246,12 @@ const DEFINITIONS = [
     "oc-signal-forge",
     "oc-modularize-ops",
     "oc-fleet-ops",
+    // v1.9 "Assurance and governed delivery ops" — test strategy, data
+    // pipelines, standing compliance, and security-remediation execution.
+    "oc-qa-ops",
+    "oc-data-ops",
+    "oc-compliance-ops",
+    "oc-security-hardening",
   ]),
 
   // ── skills.capability ────────────────────────────────────────────────────
@@ -294,6 +300,10 @@ const DEFINITIONS = [
     // tag" to oc-git-ops, which had no tag verb to catch it — ten releases shipped
     // untagged as a result. See docs/plans/2026-08-26-git-ops-per-release.md.
     "/oc-git-release",
+    // v1.9 "Assurance and governed delivery ops" verbs. Subcommands inherit
+    // the parent verb. /oc-harden (execute) is deliberately distinct from the
+    // existing /oc-hardening (oc-security-auditor: assess).
+    "/oc-qa", "/oc-data-ops", "/oc-comply", "/oc-compliance", "/oc-harden",
   ]),
 
   // ── skills.coverage.<id>.enabled — one per oc-stack-forge pack ──────────────

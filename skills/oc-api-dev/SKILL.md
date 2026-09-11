@@ -1,7 +1,7 @@
 ---
 name: oc-api-dev
 displayName: OC · API Developer
-version: 1.8.3
+version: 1.9.0
 license: Apache-2.0
 shortDesc: First-party API design, OpenAPI, versioning, SDKs. v1.2 files breaking-change + deprecation tickets; drift on PR.
 phases: [plan, build]
@@ -25,7 +25,8 @@ description: >
   generation for the API your own clients consume. Use for /oc-api, /oc-api design,
   /oc-api spec, /oc-api scaffold, /oc-api version, /oc-api lint, /oc-api sdk, "design our API",
   "OpenAPI", "GraphQL schema", "versioning strategy", "deprecate endpoint",
-  "generate SDK", "schema drift". For consuming someone else's API (Stripe, Slack,
+  "generate SDK", "API schema drift" (spec↔code; warehouse/data schema drift is
+  oc-data-ops). For consuming someone else's API (Stripe, Slack,
   OAuth) use oc-integrations-engineer instead.
 ---
 
@@ -538,6 +539,7 @@ deploy. See `oc-deploy-ops/SKILL.md § Pack-aware dispatch`.)
 | oc-stack-forge | Chosen framework + typed-pipeline tooling |
 | oc-reverse-spec | Existing-endpoint inventory when retrofitting |
 | oc-integrations-engineer | `04-integrations.md` carve-outs (inbound webhook receivers stay there) |
+| oc-qa-ops | Contract-matrix rows with `owner: oc-api-dev` → operations the conformance suite must cover (v1.9) |
 
 | Read by | Why |
 |---|---|

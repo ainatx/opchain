@@ -10,26 +10,12 @@ build pipeline, and a deployment-time smoke check.
 
 ### Worker unit / integration suite (Vitest)
 
-Lives in `tests/` at the repo root. 16 test files at last count:
-
-| Test file | Surface | Notes |
-|---|---|---|
-| `analytics.test.js` | `src/lib/analytics.js` | PostHog event capture, env-gating |
-| `catalog-generator.test.js` | `scripts/gen-skills-catalog.mjs` | Frontmatter parsing, generated output shape |
-| `catalog.test.js` | `public/skills.js` | Generated catalog round-trip |
-| `crypto.test.js` | HMAC sign / verify | Tamper-rejection cases |
-| `csp-nonce.test.js` | CSP nonce wiring | Nonce uniqueness + injection points |
-| `email.test.js` | `isValidEmail` | Positive + negative cases |
-| `feedback.test.js` | `handleFeedback` | 400/503/500 branches with fetch mocks |
-| `health.test.js` | `GET /api/health` | Returns `version` + `X-Opchain-Version` header |
-| `kv.test.js` | `src/lib/kv.js` | Rate-limit + lead-tracking helpers |
-| `lead-ttl.test.js` | KV TTL on lead records | `LEAD_TTL_DAYS` env contract |
-| `lhci-comment.test.js` | `scripts/lhci-summary.mjs` | LHCI PR-comment formatter |
-| `logs.test.js` | Structured log emission | Field shape, redaction |
-| `redirects.test.js` | 301 redirects in `src/index.js` | Old `/opchain/*` paths from aidops era |
-| `security-headers.test.js` | `applySecurityHeaders` | CSP + HSTS + nosniff |
-| `smoke-script.test.js` | `scripts/smoke-deploy.*` | Post-deploy smoke runner |
-| `validation.test.js` | `src/lib/schemas.js` | Zod schemas for feedback + try endpoints |
+Lives in `tests/` at the repo root: 43 Vitest modules as of v1.9. The suite
+covers Worker routes and headers, hosted/local MCP behavior, release and
+hardening gates, catalog generation, skill routing, checkpoint validation,
+telemetry liveness, data retention, license artifacts, flags, roadmap
+generation, monitoring, and site-search helpers. `.opchain/qa.yaml` is the
+current test-pyramid and contract-matrix source of truth.
 
 Run with `npm test` → `vitest run`. `pretest` invokes `gen-catalog` so the
 generated `src/generated/skill-prompts.js` exists before tests load.
@@ -45,9 +31,10 @@ the site — type errors in any page block CI.
 
 ### Site E2E (Playwright)
 
-Lives in `site/tests/e2e/`. Configured via `site/playwright.config.ts`. Specs
-include `routes.spec.ts` (cross-route smoke) and `tryit.spec.ts` (Try-It demo
-happy path). Runs against the built static site in CI.
+Lives in `site/tests/e2e/`. Configured via `site/playwright.config.ts`. Ten
+specs cover cross-route accessibility, consent, changelog/scenarios, skill
+filtering, responsive demo workbench/search/modals, blog layout, and diagram
+geometry. They run against the built static site in CI.
 
 ### Lighthouse + Axe budgets (LHCI)
 
@@ -76,7 +63,8 @@ curl -I https://opchain.dev/opchain-skills.zip
 
 ### CI workflow
 
-`.github/workflows/ci.yml` runs on every PR and push to `main`:
+`.github/workflows/ci.yml` runs on every PR. The protected `main` branch does
+not repeat the same checks after merge:
 
 1. `npm ci`
 2. `npm run gen-catalog` (via `pretest`)
@@ -91,7 +79,7 @@ Deploy is **not** part of CI (see `07-devops.md` for the manual deploy story).
 
 | Claim | Confidence |
 |---|---|
-| 16 Vitest files cover Worker + helpers + scripts | HIGH — direct count |
+| 43 Vitest modules cover Worker + helpers + scripts | HIGH — direct count at v1.9 |
 | Playwright e2e exists and runs in CI | HIGH — `site/playwright.config.ts` + `ci.yml` |
 | LHCI runs on PRs only | HIGH — `lighthouse.yml` triggers on `pull_request` |
 | `npm test` is gated in CI | HIGH — `ci.yml` step |
@@ -111,10 +99,8 @@ The major test gap (no tests at all) is closed. Remaining gaps are quality-of-te
 3. **No LHCI on production.** Per CLAUDE.md, LHCI is PR-only. A nightly LHCI
    against `staging.opchain.dev` and `opchain.dev` would catch regressions
    introduced by manual deploys that skipped a PR.
-4. **Skill prompt drift untested.** Generated `src/generated/skill-prompts.js` is
-   verified at generation time (`catalog-generator.test.js`), but no test
-   verifies the *output* of a Try-It chat against a fixture for any skill. A
-   single recorded-prompt golden test per skill would catch silent regressions
-   in the generator template.
+4. **Skill execution quality remains eval-driven.** Routing goldsets exercise
+   intent selection, while downstream output quality still depends on each
+   skill's own evaluator and fixtures rather than a hosted chat transcript.
 5. **No load test.** No `tests/load/` or k6/artillery config. Defer to scale-ops
    advisory until traffic warrants it.

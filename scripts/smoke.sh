@@ -24,6 +24,11 @@ err()  { echo "::error::$*"; fail=1; }
 # checks don't pay the full 15s-per-failed-check cost.
 SMOKE_RETRIES="${SMOKE_RETRIES:-5}"
 SMOKE_RETRY_SLEEP="${SMOKE_RETRY_SLEEP:-3}"
+SMOKE_CONNECT_TIMEOUT="${SMOKE_CONNECT_TIMEOUT:-5}"
+SMOKE_MAX_TIME="${SMOKE_MAX_TIME:-15}"
+curl_bounded() {
+  command curl --connect-timeout "$SMOKE_CONNECT_TIMEOUT" --max-time "$SMOKE_MAX_TIME" "$@"
+}
 with_retry() {
   local i
   for (( i=1; i<=SMOKE_RETRIES; i++ )); do
@@ -41,18 +46,18 @@ check_health() {
   # at the origin, but a zone-level cache rule can still serve a pre-deploy
   # HIT, which would smoke-test the OLD deploy and pass vacuously.
   bust="nocache=$$-$(date +%s)"
-  body="$(curl -fsS "${URL}/api/health?${bust}-body")" || return 1
+  body="$(curl_bounded -fsS "${URL}/api/health?${bust}-body")" || return 1
   echo "$body" | grep -q '"ok":true' || return 1
   # A past failure mode was the Worker returning 200 with a non-JSON body
   # (e.g. Cloudflare intercepting with an error page). Assert content-type
   # directly so the symptom is caught here, not in a downstream consumer.
-  hdrs="$(curl -fsS -D - -o /dev/null "${URL}/api/health?${bust}-hdrs")" || return 1
+  hdrs="$(curl_bounded -fsS -D - -o /dev/null "${URL}/api/health?${bust}-hdrs")" || return 1
   echo "$hdrs" | grep -qi '^content-type: *application/json'
 }
 
 check_homepage() {
   local hdrs status ct
-  hdrs="$(curl -sS -D - -o /dev/null -w 'HTTP %{http_code}\n' "${URL}/" 2>/dev/null)" || return 1
+  hdrs="$(curl_bounded -sS -D - -o /dev/null -w 'HTTP %{http_code}\n' "${URL}/" 2>/dev/null)" || return 1
   status="$(echo "$hdrs" | awk '/^HTTP /{print $2}' | tail -1)"
   [ "$status" = "200" ] || return 1
   # Guard against the "blank page, browser downloads a file" class of bug:
@@ -72,7 +77,7 @@ check_homepage() {
 
 check_zip() {
   local status
-  status="$(curl -sS -o /dev/null -w '%{http_code}' -I "${URL}/opchain-skills.zip" 2>/dev/null || echo 000)"
+  status="$(curl_bounded -sS -o /dev/null -w '%{http_code}' -I "${URL}/opchain-skills.zip" 2>/dev/null || echo 000)"
   # Worker may serve 200 or a 3xx chain; accept anything < 400.
   [ "$status" -lt 400 ] 2>/dev/null
 }
@@ -85,9 +90,9 @@ check_license() {
   # can't make this pass vacuously (the 2026-07-10 failure mode).
   local bust body hdrs
   bust="nocache=$$-$(date +%s)"
-  body="$(curl -fsS "${URL}/LICENSE?${bust}-body" 2>/dev/null)" || return 1
+  body="$(curl_bounded -fsS "${URL}/LICENSE?${bust}-body" 2>/dev/null)" || return 1
   echo "$body" | grep -q 'Apache License' || return 1
-  hdrs="$(curl -fsS -D - -o /dev/null "${URL}/LICENSE?${bust}-hdrs" 2>/dev/null)" || return 1
+  hdrs="$(curl_bounded -fsS -D - -o /dev/null "${URL}/LICENSE?${bust}-hdrs" 2>/dev/null)" || return 1
   echo "$hdrs" | grep -qi '^content-type: *text/plain'
 }
 
@@ -95,7 +100,7 @@ check_skill_redirect() {
   # Skills gained an `oc-` prefix; an old /skills/<id> URL must 301 to the
   # prefixed path so inbound + bookmarked links survive the rename.
   local loc
-  loc="$(curl -sS -o /dev/null -w '%{redirect_url}' "${URL}/skills/code-auditor" 2>/dev/null || echo "")"
+  loc="$(curl_bounded -sS -o /dev/null -w '%{redirect_url}' "${URL}/skills/code-auditor" 2>/dev/null || echo "")"
   case "$loc" in
     *"/skills/oc-code-auditor"*) return 0 ;;
     *)
@@ -107,7 +112,7 @@ check_skill_redirect() {
 
 check_security_headers() {
   local hdrs
-  hdrs="$(curl -fsS -D - -o /dev/null "${URL}/")"
+  hdrs="$(curl_bounded -fsS -D - -o /dev/null "${URL}/")"
   echo "$hdrs" | grep -qi '^x-content-type-options: nosniff'          || return 1
   echo "$hdrs" | grep -qi '^strict-transport-security: max-age='      || return 1
   echo "$hdrs" | grep -qi '^x-frame-options: deny'                    || return 1

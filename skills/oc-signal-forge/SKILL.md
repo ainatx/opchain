@@ -1,7 +1,7 @@
 ---
 name: oc-signal-forge
 displayName: OC · Signal Forge
-version: 1.8.3
+version: 1.9.0
 license: Apache-2.0
 shortDesc: "Question → trustworthy metric: instrument, harvest, prove it answers the question, then wire it. Backend only."
 phases: [build]
@@ -24,7 +24,10 @@ description: >
   before wiring it to a consumer. Use for /oc-signal, "new metric", "instrument this",
   "analytics backend", "data harvesting", "is this metric right", "wire up a signal",
   "derive a KPI". Hands rendered output to oc-dash-forge. NOT pipeline telemetry
-  (oc-telemetry-ops), NOT dashboards (oc-dash-forge), NOT prod uptime (oc-monitoring-ops).
+  (oc-telemetry-ops), NOT dashboards (oc-dash-forge), NOT prod uptime (oc-monitoring-ops),
+  NOT estate-level data pipelines — ingestion/dbt/warehouse layering is oc-data-ops;
+  when a metric needs a pipeline that doesn't exist, chain to /oc-data-ops design
+  and build the signal on the contracted mart.
 governance:
   breaking_change_policy: skills/CHANGELOG.md
   last_reviewed: 2026-06-26
@@ -169,6 +172,12 @@ handles any ingestion shape. `/oc-signal harvest` selects and justifies the arch
 | Endpoint / webhook pull | data lives in a 3rd-party API | pull Stripe / CRM, or receive a webhook |
 | Log / trace scrape | you can't change the source | parse structured logs |
 
+**Estate seam (v1.9):** if the source needs estate-level ingestion — a new
+warehouse dataset, a stream with more than one consumer, or dbt layering —
+chain to `/oc-data-ops design` and point the harvester at the contracted mart.
+The five archetypes remain signal-forge's own when the signal is the ONLY
+consumer of the raw source.
+
 The harvester is a **choice, not a default** — pick to fit the source, and record the
 choice in `skill_state.signals[].harvester_type`. Beyond the harvester, the Builder
 produces:
@@ -243,6 +252,7 @@ of analytics trust.
 | **Alerting on signal staleness in prod** | `oc-monitoring-ops` — it has a first-class *Data-freshness* SLI + the v1.6 eval-drift template. signal-forge **defines** `freshness_sla`; monitoring-ops **enforces** it. |
 | LLM spend attribution specifically | `oc-cost-ops` |
 | Where the warehouse / store lives | `oc-stack-forge` (signal-forge consumes the decision) |
+| Estate-level ingestion / dbt / warehouse layering | `oc-data-ops` — single-consumer harvesters stay here; a second consumer or a layered dataset crosses the seam. A signal on a contracted mart inherits the mart's freshness monitor: its `freshness_sla` must be ≥ the contract's `max_staleness`, and only the contract monitor goes to monitoring-ops for that dataset (one staleness alarm per dataset). |
 
 The cleanest way to keep the seam: Signal Forge produces a *trustworthy number with a
 stable read contract*. The moment that number is being **drawn** (dash-forge),

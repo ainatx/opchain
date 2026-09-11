@@ -5,7 +5,7 @@ opchain has two halves with different owners of risk:
 | Surface | What it is | Where to report |
 |---|---|---|
 | **Skills, plugin, MCP servers** (`skills/`, `plugins/`, `mcp/`, the hosted `POST /mcp`) | Code and content that runs on *your* machine or that agents call | [Private vulnerability report on asfbay-bit/opchain-skills](https://github.com/asfbay-bit/opchain-skills/security/advisories/new) |
-| **opchain.dev site + Worker** (`site/`, `src/`, the `/api/*` routes) | The hosted service | [Private vulnerability report on asfbay-bit/opchain](https://github.com/asfbay-bit/opchain/security/advisories/new) |
+| **opchain.dev site + Worker** (`site/`, `src/`, the `/api/*` routes) | The hosted service | [Private vulnerability report on ainatx/opchain](https://github.com/ainatx/opchain/security/advisories/new) |
 
 Not sure which? Either channel works — we'll route it. You can also email **security@opchain.dev**.
 

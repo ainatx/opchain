@@ -1,6 +1,6 @@
 name: Lighthouse — production
 
-# Notification-only LHCI run against the live site. Triggered on a daily cron
+# Notification-only LHCI run against the live site. Triggered on a weekly cron
 # and on demand via workflow_dispatch. Does not block any deploy — by the time
 # this runs, opchain.dev is already serving the build under test, so a regression
 # here is a signal to investigate, not an emergency CI failure. Surfaces scores
@@ -10,9 +10,9 @@ name: Lighthouse — production
 
 on:
   schedule:
-    # 07:17 UTC daily — off-peak for our user base. Odd minute to avoid the
-    # GitHub-Actions queue spike at :00.
-    - cron: "17 7 * * *"
+    # Mondays at 07:17 UTC — off-peak for our user base. Odd minute to avoid
+    # the GitHub Actions queue spike at :00.
+    - cron: "17 7 * * 1"
   workflow_dispatch:
 
 permissions:

@@ -28,7 +28,9 @@ url = "https://opchain.dev/mcp"
 ```
 
 Streamable HTTP, JSON-RPC over a single `POST`. Skill bodies stream from the
-site's published docs; checkpoints persist server-side, scoped per `sessionId`.
+site's published docs; checkpoints persist server-side for 30 days, scoped by
+a private `sessionId` returned by `create_checkpoint_session`. Checkpoints are
+limited to 64 KiB; do not store secrets or regulated data in them.
 
 ### 2. Local (offline / air-gapped) — stdio
 
@@ -52,6 +54,7 @@ args = ["/abs/path/to/opchain/mcp/local-server.mjs"]
 | `route` | Map an `/oc-*` command or a plain request to the skill + entry phase. |
 | `get_skill` | The full `SKILL.md` for one skill — load it, then follow it. |
 | `get_orchestrator` | The shared welcome / pipeline-map / chaining protocol. Read once per session. |
+| `create_checkpoint_session` | Mint the private server-issued token that scopes checkpoint state. |
 | `read_checkpoint` / `write_checkpoint` | Resume and persist progress across sessions. |
 
 **Prompts** — one per `/oc-*` command (`/oc-discover`, `/oc-audit`, `/oc-release`,
@@ -66,7 +69,9 @@ that prefer reading resources over calling tools.
 1. Call `get_orchestrator` once to learn the pipeline and chaining rules.
 2. Call `route("build me an app")` (or `list_skills`) to pick a skill.
 3. Call `get_skill("oc-app-architect")` and follow the instructions.
-4. `write_checkpoint` / `read_checkpoint` to carry state across sessions.
+4. Call `create_checkpoint_session` once and retain its private `sessionId`,
+   then pass it to `write_checkpoint` / `read_checkpoint` to carry state
+   across sessions. Never invent, log, or share the token.
 
 ## Notes
 
@@ -75,5 +80,7 @@ that prefer reading resources over calling tools.
   Claude Code skills ship from. One catalog, every transport.
 - The hosted endpoint is gated by the `site.ops.api-mcp.kill` flag for incident
   pauses; a paused server answers `503`.
+- HTTP requests with an `Origin` header are accepted only from opchain's
+  explicit allowlist; native MCP clients may omit `Origin`.
 
 [mcp]: https://modelcontextprotocol.io

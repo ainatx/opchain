@@ -9,8 +9,8 @@ import { defineConfig, devices } from "@playwright/test";
  * that boots `wrangler dev`.
  *
  * Scope: static pages + client-side islands (filter, consent banner,
- * copy-to-clipboard). Consent tests rely on `PUBLIC_POSTHOG_KEY` being
- * set at BUILD time (Astro bakes `import.meta.env` into the bundle) so
+ * copy-to-clipboard). Consent tests rely on `PUBLIC_POSTHOG_KEY` and
+ * `PUBLIC_POSTHOG_HOST` being set at BUILD time so
  * the banner's accept path can fire the PostHog bootstrap. The CI
  * pipeline sets that env before running `astro build`; for local runs
  * `npm run test:e2e` inherits whatever is in your shell (unset →

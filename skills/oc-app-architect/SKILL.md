@@ -1,7 +1,7 @@
 ---
 name: oc-app-architect
 displayName: OC · App Architect
-version: 1.8.3
+version: 1.9.0
 license: Apache-2.0
 shortDesc: Idea → spec → design → build → launch in one skill. v1.2 reads PM tickets and writes sprints back via PM-MCP.
 phases: [plan, build]
@@ -221,6 +221,23 @@ Rules:
 4. Not an AI app? Skip this branch entirely — no AI skill is invoked and the
    spec set is unchanged.
 
+### Data-Heavy Branch (chains to oc-data-ops, v1.9)
+
+If discovery surfaced a **data-heavy backend** — the product ingests,
+transforms, or serves datasets beyond its own operational tables (analytics
+warehouse, event streams, third-party data feeds, "we need dbt", reporting
+marts) — chain to **oc-data-ops** after the stack decision, same pattern as
+the AI-app branch:
+
+1. Run it **after** oc-stack-forge (warehouse/queue choice is a stack-forge
+   input oc-data-ops consumes, never re-decides).
+2. Execute `/oc-data-ops design` with the discovery context; its layer map +
+   data contracts fold into `02-architecture.md` (data model section) and the
+   contract rows feed oc-qa-ops' matrix in `06-testing.md`.
+3. Detect it from discovery signals: "pipeline", "warehouse", "dbt", "ETL/ELT",
+   "events", "reporting", "data feed", "sync data from X". An app whose only
+   data is its own CRUD tables does not take this branch.
+
 ### Spec Documents
 
 Generate each as a separate markdown file:
@@ -233,7 +250,7 @@ Generate each as a separate markdown file:
 | 03-security-auth.md | Auth (from oc-stack-forge), authorization, OWASP | spec-template |
 | 04-integrations.md | Third-party services, webhooks, retry logic | spec-template |
 | 05-monetization.md | Pricing, payments (if applicable) | spec-template |
-| 06-testing.md | Test strategy for chosen stack | oc-stack-forge patterns |
+| 06-testing.md | Test strategy for chosen stack | **oc-qa-ops** (`/oc-qa pyramid` output IS this doc; budgets land in `.opchain/qa.yaml`) |
 | 07-devops.md | Deploy pattern for chosen platform | oc-stack-forge patterns |
 | 08-analytics.md | Tracking, metrics (if warranted) | — |
 | 09-cost-estimate.md | Infra costs from oc-stack-forge projection | oc-stack-forge |
@@ -446,7 +463,10 @@ it reads the contract and the code fresh, not the generator's exploration.
 **Automated checks:**
 - Run full test suite → report pass/fail/skip
 - Test failures → Functionality auto-capped at 5/10
-- Check coverage if tooling exists
+- Check coverage if tooling exists. When `.opchain/qa.yaml` exists (written by
+  oc-qa-ops), grade new-code coverage against its `coverage.new_code` budget
+  instead of an invented threshold; the <50%-contracted-tests penalty still
+  applies independently (v1.9)
 - Start dev server, hit endpoints
 - Build errors, lint issues, type errors
 - Read oc-code-auditor checkpoint for pre-existing issues

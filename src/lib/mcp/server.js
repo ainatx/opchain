@@ -8,7 +8,7 @@
 // What it exposes (so Codex / any MCP client gets the full opchain pipeline the
 // way Claude Code's native skill auto-discovery does):
 //   • tools     — list_skills, route, get_skill, get_orchestrator,
-//                 read_checkpoint, write_checkpoint
+//                 create_checkpoint_session, read_checkpoint, write_checkpoint
 //   • prompts   — one per /oc-* command, so the slash-command UX survives on
 //                 clients that surface MCP prompts as slash commands
 //   • resources — opchain://orchestrator + opchain://skill/<id>
@@ -20,6 +20,7 @@ import { route } from "./routing.js";
 
 const JSONRPC = "2.0";
 const PROTOCOL_VERSION = "2025-06-18";
+export const MAX_CHECKPOINT_BYTES = 64 * 1024;
 
 // JSON-RPC 2.0 error codes.
 export const ERR = {
@@ -30,7 +31,8 @@ export const ERR = {
   INTERNAL: -32603,
 };
 
-const SESSION_RE = /^[A-Za-z0-9_.-]{1,128}$/;
+const SESSION_TOKEN_RE = /^[A-Za-z0-9_.-]{43,128}$/;
+const SESSION_UUID_V4_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function ok(id, result) {
   return { jsonrpc: JSONRPC, id, result };
@@ -66,7 +68,7 @@ function promptCatalog(catalog) {
  * @param {object} opts
  * @param {{skills: Array, orchestrator: string}} opts.catalog
  * @param {(id: string) => Promise<string|null>} [opts.loadBody] - returns a skill's SKILL.md
- * @param {{ read(skill,session): Promise<any>, write(skill,session,data): Promise<void> }} [opts.checkpoints]
+ * @param {{ createSession(): Promise<string>, hasSession(session): Promise<boolean>, read(skill,session): Promise<any>, write(skill,session,data): Promise<void> }} [opts.checkpoints]
  * @param {string} [opts.serverVersion]
  */
 export function createMcpServer({ catalog, loadBody, checkpoints, serverVersion = "dev" } = {}) {
@@ -117,16 +119,22 @@ export function createMcpServer({ catalog, loadBody, checkpoints, serverVersion 
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
     },
     {
+      name: "create_checkpoint_session",
+      description:
+        "Create a private server-issued session for checkpoint storage. Retain the returned sessionId and use it with read_checkpoint/write_checkpoint; never invent or share one.",
+      inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    },
+    {
       name: "read_checkpoint",
       description:
-        "Read a skill's saved session checkpoint (where you left off). sessionId scopes state to one project/conversation.",
+        "Read a skill's saved session checkpoint (where you left off). sessionId must be a private token returned by create_checkpoint_session.",
       inputSchema: {
         type: "object",
         properties: {
           skill: { type: "string" },
-          sessionId: { type: "string", description: "Stable id for the project/conversation. Defaults to 'default'." },
+          sessionId: { type: "string", minLength: 36, maxLength: 128, description: "Private token returned by create_checkpoint_session." },
         },
-        required: ["skill"],
+        required: ["skill", "sessionId"],
         additionalProperties: false,
       },
     },
@@ -138,10 +146,10 @@ export function createMcpServer({ catalog, loadBody, checkpoints, serverVersion 
         type: "object",
         properties: {
           skill: { type: "string" },
-          sessionId: { type: "string", description: "Stable id for the project/conversation. Defaults to 'default'." },
+          sessionId: { type: "string", minLength: 36, maxLength: 128, description: "Private token returned by create_checkpoint_session." },
           checkpoint: { type: "object", description: "The checkpoint JSON to store (skill_state, next_actions, etc.)." },
         },
-        required: ["skill", "checkpoint"],
+        required: ["skill", "sessionId", "checkpoint"],
         additionalProperties: false,
       },
     },
@@ -206,11 +214,32 @@ export function createMcpServer({ catalog, loadBody, checkpoints, serverVersion 
       case "get_orchestrator":
         return textResult(catalog.orchestrator || "(orchestrator protocol unavailable)");
 
+      case "create_checkpoint_session": {
+        if (!checkpoints || typeof checkpoints.createSession !== "function") {
+          return textResult("Checkpoint session issuance is not configured on this transport.", true);
+        }
+        const sessionId = sanitizeSession(await checkpoints.createSession());
+        if (!sessionId) throw new Error("Checkpoint provider returned an invalid session token");
+        return jsonText({ sessionId });
+      }
+
       case "read_checkpoint": {
         if (!checkpoints) return textResult("Checkpoint storage is not configured on this transport.", true);
         const skill = String(a.skill ?? "");
-        if (!skill) return textResult("read_checkpoint requires `skill`.", true);
+        if (!skillIds.has(skill)) return textResult(`Unknown skill '${skill}'. Call list_skills to see valid ids.`, true);
         const session = sanitizeSession(a.sessionId);
+        if (!session) {
+          return textResult(
+            "read_checkpoint requires the private `sessionId` returned by create_checkpoint_session.",
+            true,
+          );
+        }
+        if (typeof checkpoints.hasSession !== "function" || !(await checkpoints.hasSession(session))) {
+          return textResult(
+            "Unknown checkpoint session. Call create_checkpoint_session and retain its private sessionId.",
+            true,
+          );
+        }
         const data = await checkpoints.read(skill, session);
         return jsonText({ skill, sessionId: session, checkpoint: data ?? null });
       }
@@ -218,11 +247,28 @@ export function createMcpServer({ catalog, loadBody, checkpoints, serverVersion 
       case "write_checkpoint": {
         if (!checkpoints) return textResult("Checkpoint storage is not configured on this transport.", true);
         const skill = String(a.skill ?? "");
-        if (!skill) return textResult("write_checkpoint requires `skill`.", true);
-        if (!a.checkpoint || typeof a.checkpoint !== "object") {
+        if (!skillIds.has(skill)) return textResult(`Unknown skill '${skill}'. Call list_skills to see valid ids.`, true);
+        if (!a.checkpoint || typeof a.checkpoint !== "object" || Array.isArray(a.checkpoint)) {
           return textResult("write_checkpoint requires a `checkpoint` object.", true);
         }
         const session = sanitizeSession(a.sessionId);
+        if (!session) {
+          return textResult(
+            "write_checkpoint requires the private `sessionId` returned by create_checkpoint_session.",
+            true,
+          );
+        }
+        if (typeof checkpoints.hasSession !== "function" || !(await checkpoints.hasSession(session))) {
+          return textResult(
+            "Unknown checkpoint session. Call create_checkpoint_session and retain its private sessionId.",
+            true,
+          );
+        }
+        const serialized = JSON.stringify(a.checkpoint);
+        const checkpointBytes = new TextEncoder().encode(serialized).byteLength;
+        if (checkpointBytes > MAX_CHECKPOINT_BYTES) {
+          return textResult(`checkpoint exceeds the ${MAX_CHECKPOINT_BYTES}-byte storage limit.`, true);
+        }
         await checkpoints.write(skill, session, a.checkpoint);
         return jsonText({ ok: true, skill, sessionId: session });
       }
@@ -240,7 +286,7 @@ export function createMcpServer({ catalog, loadBody, checkpoints, serverVersion 
       `You are operating the opchain pipeline over MCP. To handle ${entry.command}:\n` +
       `1. If you haven't yet this session, call the get_orchestrator tool and follow its welcome + chaining rules.\n` +
       `2. Call get_skill with id "${entry.skill}" and follow its SKILL.md for the ${entry.command} flow.\n` +
-      `3. Use read_checkpoint/write_checkpoint("${entry.skill}") to resume and persist progress.${extra}`;
+      `3. If you do not already retain a private checkpoint sessionId, call create_checkpoint_session once. Use its returned sessionId with read_checkpoint/write_checkpoint("${entry.skill}") to resume and persist progress; never invent or share it.${extra}`;
     return {
       description: `Run the opchain ${entry.command} flow (${entry.skill}).`,
       messages: [{ role: "user", content: { type: "text", text } }],
@@ -260,7 +306,7 @@ export function createMcpServer({ catalog, loadBody, checkpoints, serverVersion 
             "On any /oc-* command, or any request to build, spec, design, audit, deploy, or ship " +
             "software, FIRST call route (or get_skill) to pick the skill, read get_orchestrator once " +
             "per session, then load the skill's SKILL.md with get_skill and follow it verbatim. " +
-            "Use read_checkpoint/write_checkpoint to resume and persist progress across sessions. " +
+            "If you do not already retain a private checkpoint sessionId, call create_checkpoint_session once, then use its returned token with read_checkpoint/write_checkpoint to resume and persist progress across sessions. Never invent or share it. " +
             "Note: /oc-* commands are also exposed as MCP prompts for clients that support them; " +
             "clients that don't (e.g. Codex) should drive everything through these tools.",
         });
@@ -344,6 +390,10 @@ export function createMcpServer({ catalog, loadBody, checkpoints, serverVersion 
 }
 
 function sanitizeSession(value) {
-  const s = String(value ?? "default");
-  return SESSION_RE.test(s) ? s : "default";
+  if (typeof value !== "string") return null;
+  const s = value.trim();
+  if (!SESSION_UUID_V4_RE.test(s) && !SESSION_TOKEN_RE.test(s)) return null;
+  // Syntax is only a first pass. read/write also require the server-side
+  // provider to confirm this token was issued by create_checkpoint_session.
+  return s;
 }

@@ -4,7 +4,7 @@ This repository holds the opchain skills, the Claude Code plugin (including its 
 
 **Report a vulnerability:** use [GitHub private vulnerability reporting on this repo](https://github.com/asfbay-bit/opchain-skills/security/advisories/new), or email **security@opchain.dev**.
 
-For issues in the opchain.dev website or its hosted APIs, report on [asfbay-bit/opchain](https://github.com/asfbay-bit/opchain/security/advisories/new) instead — but either channel works; we'll route it.
+For issues in the opchain.dev website or its hosted APIs, report on [ainatx/opchain](https://github.com/ainatx/opchain/security/advisories/new) instead — but either channel works; we'll route it.
 
 ## Supported versions
 

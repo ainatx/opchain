@@ -7,14 +7,14 @@
   },
   "metadata": {
     "description": "opchain — a software development pipeline as Claude Code skills, with the gates that enforce it.",
-    "version": "1.8.3"
+    "version": "1.9.0"
   },
   "plugins": [
     {
       "name": "opchain",
       "source": "./plugins/opchain",
-      "description": "29 interconnected skills (concept → spec → design → build → ship) plus working enforcement: a commit gate that blocks unverified commits, pipeline state at session start, and a pointer to the next skill when one finishes. The skills-only zip ships none of that.",
-      "version": "1.8.3",
+      "description": "33 interconnected skills (concept → spec → design → build → ship) plus working enforcement: a commit gate that blocks unverified commits, pipeline state at session start, and a pointer to the next skill when one finishes. The skills-only zip ships none of that.",
+      "version": "1.9.0",
       "category": "workflow",
       "keywords": [
         "pipeline",

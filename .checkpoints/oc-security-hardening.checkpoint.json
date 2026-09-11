@@ -1,0 +1,53 @@
+{
+  "protocol_version": "1.1",
+  "skill": "oc-security-hardening",
+  "project": "opchain.dev",
+  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "created_at": "2026-09-02T19:13:19.000Z",
+  "updated_at": "2026-09-02T21:49:57.000Z",
+  "phase": "verify",
+  "step": "v1.9-live-replay-pass",
+  "status": "complete",
+  "progress_summary": "The v1.9 hardening manifest passed pre-deploy and live replay in both staging and production at exact runtime SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248. Forty-five MCP tests, six retention tests, limiter configuration, distinct signing-key wiring, Origin controls, request-size and batch limits, forged-token rejection, and signed-session checkpoint roundtrips are green. The staging rail also demonstrated its automatic rollback on a bounded convergence miss before the successful retry. Production activation and verification passed without rollback.",
+  "progress_table": [
+    { "id": "manifest", "label": "Hardening manifest and runner", "status": "complete" },
+    { "id": "mcp", "label": "Hosted MCP abuse and session controls", "status": "complete" },
+    { "id": "retention", "label": "Lead and checkpoint retention controls", "status": "complete" },
+    { "id": "deploy-rail", "label": "Exact-main deploy and automatic rollback rail", "status": "complete" },
+    { "id": "staging-live", "label": "Staging live hardening replay", "status": "complete" },
+    { "id": "production-live", "label": "Production live hardening replay", "status": "complete" }
+  ],
+  "context_primer": {
+    "key_decisions": [
+      "HTTP checks validate their schema pre-deploy, skip loudly because no new runtime is live yet, then block after activation.",
+      "Hosted session tokens are canonical UUIDv4 plus HMAC-SHA256 and use distinct production and staging signing secrets.",
+      "Checkpoint mutations fail closed when the Cloudflare edge limiter is absent or unhealthy.",
+      "The release intentionally does not change the 2026-03-01 Workers compatibility date immediately before production."
+    ],
+    "generated_files": [".opchain/hardening.yaml", "scripts/check-hardening.mjs"]
+  },
+  "blockers": [],
+  "next_actions": [],
+  "skill_state": {
+    "manifest": ".opchain/hardening.yaml",
+    "pre_deploy_verdict": "PASS",
+    "independent_review": "SHIP",
+    "controls": 2,
+    "failed": 0,
+    "live_skipped": 0,
+    "staging_live": {
+      "status": "PASS",
+      "url": "https://staging.opchain.dev",
+      "health_version": "244bf13",
+      "version_id": "d07bb08a-9662-4e77-a2a1-673fc0c7a8a5"
+    },
+    "production_live": {
+      "status": "PASS",
+      "url": "https://opchain.dev",
+      "health_version": "244bf13",
+      "version_id": "01bbe46b-3533-4faa-bc1a-d140cbcecbbe"
+    },
+    "session_isolation": "PASS — distinct staging and production tokens reject cross-environment replay",
+    "production_rollback_used": false
+  }
+}

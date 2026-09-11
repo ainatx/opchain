@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin.json",
   "name": "opchain",
-  "version": "1.8.3",
+  "version": "1.9.0",
   "description": "The opchain skill pipeline (concept → spec → design → build → ship) plus the gates that actually enforce it. Unlike the skills-only zip, this ships working hooks: a commit gate bound to the code being committed, pipeline state at session start, and a pointer to the next skill when one finishes.",
   "author": {
     "name": "opchain",

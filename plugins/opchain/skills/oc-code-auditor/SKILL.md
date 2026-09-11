@@ -1,7 +1,7 @@
 ---
 name: oc-code-auditor
 displayName: OC · Code Auditor
-version: 1.8.3
+version: 1.9.0
 license: Apache-2.0
 shortDesc: Auditor → Fixer → Verifier quality loop. v1.2 posts findings to the linked PM ticket; HIGH+ filed as sub-tickets.
 phases: [build]
@@ -379,6 +379,9 @@ a bootstrapping operation.
 Process:
 1. Scan for existing test infra. If none: set up Vitest (TS) or pytest (Python).
 2. Identify highest-value targets: auth, API endpoints, validation, core logic.
+   If `.opchain/qa.yaml` exists (oc-qa-ops), take targets and levels from its
+   pyramid and honor `coverage.overrides` exemptions instead of inventing
+   priorities (v1.9).
 3. Generate test files: 1 happy-path + 1 error-path per function/endpoint.
 4. Run generated tests to verify they pass.
 5. Report: X files, Y assertions, Z% of public API covered.
@@ -455,6 +458,8 @@ reads a downward trend as a "schedule the next audit" signal.
 | oc-docs-forge | Quality notes / audit findings → PR testing & audit documentation |
 | oc-app-architect | Findings → pre-seed Phase 6 evaluator |
 | oc-ux-engineer | Component health → UX audit context |
+| oc-security-hardening | Findings whose fix is a declarative, verifiable control (header, limit, policy) — mark them `route: oc-security-hardening` in the findings report so `/oc-harden fix` executes them and records the manifest entry; the Fixer keeps application-logic fixes (v1.9) |
+| oc-qa-ops | Findings + test-bootstrap output feed `/oc-qa audit`'s gap analysis (v1.9) |
 
 ---
 

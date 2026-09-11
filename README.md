@@ -48,7 +48,7 @@ without manual handoffs.
 
 ## skill library
 
-29 skills across 6 phases. Canonical list lives in
+33 skills across 6 phases. Canonical list lives in
 [`skills/README.md`](./skills/README.md) — this table mirrors it.
 
 ### foundation

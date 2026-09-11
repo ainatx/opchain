@@ -18,6 +18,10 @@
     "gen-catalog": "node scripts/gen-skills-catalog.mjs",
     "lint-internal-refs": "node scripts/lint-internal-refs.mjs",
     "check-skill-flags": "OPCHAIN_STRICT_REGISTRY=1 node scripts/check-skill-flags.mjs",
+    "release-sequence": "node scripts/release-sequence.mjs",
+    "hardening:verify": "node scripts/check-hardening.mjs --pre-deploy",
+    "test:mcp-hardening": "vitest run tests/mcp-server.test.js tests/mcp-route.test.js",
+    "test:data-retention": "vitest run tests/notify.test.js",
     "check-release-tag": "node scripts/check-release-tag.mjs",
     "gen-mcp-catalog": "node scripts/gen-mcp-catalog.mjs",
     "gen-flags": "node scripts/gen-flags.mjs",
@@ -51,10 +55,10 @@
   "devDependencies": {
     "esbuild": "^0.28.2",
     "js-yaml": "^4.3.1",
-    "vitest": "^4.1.10",
-    "wrangler": "^4.103.0"
+    "vitest": "^4.1.11",
+    "wrangler": "^4.131.0"
   },
   "dependencies": {
-    "zod": "^4.4.3"
+    "zod": "^4.5.4"
   }
 }

@@ -1,7 +1,7 @@
 ---
 name: oc-prompt-ops
 displayName: OC · Prompt Ops
-version: 1.8.3
+version: 1.9.0
 license: Apache-2.0
 shortDesc: Prompt-as-code — versioning, eval datasets, regression and drift detection for LLM prompts.
 phases: [build, ai-native]

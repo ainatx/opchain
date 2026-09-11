@@ -1,6 +1,6 @@
 name: Release ledger
 
-# Daily check: does every shipped release on /changelog have a git tag?
+# Weekly check: does every shipped release on /changelog have a git tag?
 #
 # The 2026-08-26 audit found thirteen shipped releases and three tags — v1.0
 # through v1.7 all shipped untagged. Nothing noticed for four months, because
@@ -26,8 +26,8 @@ name: Release ledger
 
 on:
   schedule:
-    # 20 minutes after the deploy-lag run, same reasoning on the off-hour.
-    - cron: "23 14 * * *"
+    # Mondays at 14:23 UTC. The odd minute avoids top-of-hour scheduler load.
+    - cron: "23 14 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -132,7 +132,7 @@ jobs:
             printf 'guard and publisher pin. Push the backfill, verify no publisher run started,\n'
             printf 're-enable the workflow, then manually dispatch the hardened default-branch\n'
             printf 'workflow for the newest release.\n\n'
-            printf '_Auto-opened by `.github/workflows/release-ledger.yml`. New releases are already blocked from shipping untagged by `scripts/check-release-tag.mjs` on the deploy path; this issue tracks the historical backlog. Close it once backfilled — the next daily run reopens it if drift returns._\n'
+            printf '_Auto-opened by `.github/workflows/release-ledger.yml`. New releases are already blocked from shipping untagged by `scripts/check-release-tag.mjs` on the deploy path; this issue tracks the historical backlog. Close it once backfilled — the next scheduled run reopens it if drift returns._\n'
           } > body.md
 
           if [ -n "${existing}" ] && [ "${existing}" != "null" ]; then

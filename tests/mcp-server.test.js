@@ -43,14 +43,25 @@ const catalog = {
 };
 
 const bodies = { "oc-app-architect": "# oc-app-architect\nfull instructions here" };
+const SESSION_A = "2dbf0d8e-c62a-43f8-8a50-7a456445c50c";
 
 function makeServer() {
   const store = new Map();
+  const sessions = new Set();
+  const issued = [SESSION_A, "a3e80944-351e-41d8-bbac-d784082c1263"];
   return createMcpServer({
     catalog,
     serverVersion: "test-1.6",
     loadBody: async (id) => bodies[id] ?? null,
     checkpoints: {
+      async createSession() {
+        const session = issued.shift() || "6c9ea91a-27f9-4c0e-8303-02e6a944fdad";
+        sessions.add(session);
+        return session;
+      },
+      async hasSession(session) {
+        return sessions.has(session);
+      },
       async read(skill, session) {
         return store.get(`${session}:${skill}`) ?? null;
       },
@@ -66,6 +77,11 @@ const rpc = (method, params, id = 1) => ({ jsonrpc: "2.0", id, method, params })
 async function callTool(server, name, args) {
   const res = await server.handle(rpc("tools/call", { name, arguments: args }));
   return res.result;
+}
+
+async function issueSession(server) {
+  const result = await callTool(server, "create_checkpoint_session", {});
+  return JSON.parse(result.content[0].text).sessionId;
 }
 
 describe("MCP server — lifecycle", () => {
@@ -104,12 +120,12 @@ describe("MCP server — lifecycle", () => {
 });
 
 describe("MCP server — tools", () => {
-  it("tools/list exposes the six opchain tools", async () => {
+  it("tools/list exposes the seven opchain tools", async () => {
     const server = makeServer();
     const res = await server.handle(rpc("tools/list"));
     const names = res.result.tools.map((t) => t.name).sort();
     expect(names).toEqual(
-      ["get_orchestrator", "get_skill", "list_skills", "read_checkpoint", "route", "write_checkpoint"],
+      ["create_checkpoint_session", "get_orchestrator", "get_skill", "list_skills", "read_checkpoint", "route", "write_checkpoint"],
     );
     for (const t of res.result.tools) expect(t.inputSchema.type).toBe("object");
   });
@@ -164,21 +180,60 @@ describe("MCP server — tools", () => {
 
   it("checkpoint round-trips through the store", async () => {
     const server = makeServer();
+    const sessionId = await issueSession(server);
+    expect(sessionId).toBe(SESSION_A);
     const writeRes = await callTool(server, "write_checkpoint", {
       skill: "oc-app-architect",
-      sessionId: "proj-x",
+      sessionId,
       checkpoint: { phase: "build", step: "sprint-2" },
     });
     expect(JSON.parse(writeRes.content[0].text).ok).toBe(true);
 
-    const readRes = await callTool(server, "read_checkpoint", { skill: "oc-app-architect", sessionId: "proj-x" });
+    const readRes = await callTool(server, "read_checkpoint", { skill: "oc-app-architect", sessionId });
     expect(JSON.parse(readRes.content[0].text).checkpoint).toEqual({ phase: "build", step: "sprint-2" });
   });
 
   it("read_checkpoint for an unwritten skill returns null", async () => {
     const server = makeServer();
-    const res = await callTool(server, "read_checkpoint", { skill: "oc-git-ops" });
+    const sessionId = await issueSession(server);
+    const res = await callTool(server, "read_checkpoint", { skill: "oc-git-ops", sessionId });
     expect(JSON.parse(res.content[0].text).checkpoint).toBeNull();
+  });
+
+  it("rejects missing, malformed, or unissued checkpoint sessions instead of sharing a default", async () => {
+    const server = makeServer();
+    for (const sessionId of [undefined, "default", "a".repeat(32), SESSION_A]) {
+      const result = await callTool(server, "write_checkpoint", {
+        skill: "oc-app-architect",
+        sessionId,
+        checkpoint: { phase: "spec" },
+      });
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain("sessionId");
+    }
+  });
+
+  it("rejects unknown checkpoint skill ids", async () => {
+    const server = makeServer();
+    const result = await callTool(server, "write_checkpoint", {
+      skill: "../../lead",
+      sessionId: SESSION_A,
+      checkpoint: { phase: "spec" },
+    });
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain("Unknown skill");
+  });
+
+  it("rejects checkpoints larger than 64 KiB", async () => {
+    const server = makeServer();
+    const sessionId = await issueSession(server);
+    const result = await callTool(server, "write_checkpoint", {
+      skill: "oc-app-architect",
+      sessionId,
+      checkpoint: { payload: "x".repeat(70 * 1024) },
+    });
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain("65536-byte");
   });
 
   it("unknown tool → -32602", async () => {

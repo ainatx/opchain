@@ -245,7 +245,8 @@ CLAUDE: 19 | USER: 2 (test the feedback widget, review new error copy, verify Po
 ### Deliverables
 
 - `applySecurityHeaders` extended: CSP with `default-src 'self'; script-src 'self' https://*.i.posthog.com; connect-src 'self' https://api.anthropic.com https://*.i.posthog.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:` (or nonce-based for scripts), Referrer-Policy `strict-origin-when-cross-origin`, X-Frame-Options `DENY`, Permissions-Policy sensible defaults.
-- Lead KV entries TTL of 365 days (configurable via `LEAD_TTL_DAYS` env).
+- Lead KV entries receive a fixed 365-day TTL; operators cannot silently extend
+  the published privacy window through an environment override.
 - Structured JSON log lines for: feedback submitted, chat started, chat completed, rate-limit hit, upstream failure. One-line schema documented.
 - Light e2e smoke test that runs post-deploy against staging, hitting `/api/health` + `/` + `/opchain-skills.zip` + sending a fake feedback (test mode flag).
 - Dependabot / Renovate config file for weekly `esbuild`, `wrangler`, `astro`, `tailwindcss` bumps.

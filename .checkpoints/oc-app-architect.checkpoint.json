@@ -4,41 +4,71 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-08-28T00:24:27.027Z",
-  "phase": "build",
-  "step": "git-ops-per-release-built",
+  "updated_at": "2026-09-08T22:02:27.000Z",
+  "phase": "sprint-plan",
+  "step": "v2.0-sprint-plan-approved-blocked-on-oss-split",
   "status": "in_progress",
-  "progress_summary": "The v2.0 plan and /changelog now specify oc-hindsight and oc-evolve as governed multi-agent workflows; draft PR #454 is open and awaiting CI/review.",
+  "progress_summary": "v2.0 'The self-improving pipeline' sprint plan drafted, critiqued, and APPROVED at the sprint-plan gate 2026-09-08. Six sprints (wire 1.2 substrate, scorecard kit + prompt-eval runner, oc-hindsight, oc-evolve, graduation/gates/dogfood, cut), the spec's 12 open questions decided, eight decisions D-A..D-H. A seven-lens critique (94 raw findings, 69 merged) caught five release-breaking issues, all folded in. Four gate decisions: full scope ~48.5h; the OSS split goes FIRST so 2.0 is the first product-repo release (D-H); consumer installs narrow the plugin commit-gate predicate rather than warn (D-B); plan lands on main by PR. NOW BLOCKED on OSS split Phase C2-C7, a separate runbook with its own human gates - no 2.0 sprint may merge under C1's path freeze. Plan: docs/plans/2026-09-03-v2.0-self-improving-release-plan.md.",
   "progress_table": [
     {
-      "id": "discovery",
-      "label": "Repository/worktree discovery — recover 2.0 design and inventory roadmap candidates",
+      "id": "v20-spec",
+      "label": "v2.0 spec of record (docs/releases/2.0-plan.md, recovered 2026-08-27)",
       "status": "complete"
     },
     {
-      "id": "spec",
-      "label": "Sequence v1.9 → v2.0 → votable v2.1-v2.3 with vote-id preservation",
+      "id": "v20-reverify",
+      "label": "Re-verify the 16-surface matrix against post-v1.9 SKILL.mds",
       "status": "complete"
     },
     {
-      "id": "build",
-      "label": "GitHub milestones/issues, changelog UI, recovered 2.0 plan, docs and tests",
+      "id": "v20-sprint-plan",
+      "label": "v2.0 sprint plan + decisions + cut checklist",
       "status": "complete"
     },
     {
-      "id": "eval",
-      "label": "Evaluator — full tests, Astro checks/build, live-data assertions and staging review",
+      "id": "v20-crr",
+      "label": "Seven-lens critique applied (94 raw -> 69 merged)",
       "status": "complete"
     },
     {
-      "id": "pr",
-      "label": "Focused PR, CI green, merge",
+      "id": "v20-sprint-plan-gate",
+      "label": "* Sprint plan approval (approved 2026-09-08, 4 decisions)",
       "status": "complete"
     },
     {
-      "id": "launch",
-      "label": "Refresh staging; production only after fresh explicit approval",
-      "status": "in_progress"
+      "id": "v20-sprint-0",
+      "label": "Sprint 0: preconditions + branch setup",
+      "status": "not_started"
+    },
+    {
+      "id": "v20-sprint-1",
+      "label": "Sprint 1: wire 1.2 substrate",
+      "status": "not_started"
+    },
+    {
+      "id": "v20-sprint-2",
+      "label": "Sprint 2: Outcome Scorecard kit",
+      "status": "not_started"
+    },
+    {
+      "id": "v20-sprint-3",
+      "label": "Sprint 3: oc-hindsight + emitter contracts",
+      "status": "not_started"
+    },
+    {
+      "id": "v20-sprint-4",
+      "label": "Sprint 4: oc-evolve + prompt-eval runner",
+      "status": "not_started"
+    },
+    {
+      "id": "v20-sprint-5",
+      "label": "Sprint 5: graduation, gates, docs, dogfood",
+      "status": "not_started"
+    },
+    {
+      "id": "v20-sprint-6",
+      "label": "Sprint 6: release cut - product half, tag v2.0.0, site half, deploy",
+      "status": "not_started"
     }
   ],
   "context_primer": {
@@ -75,11 +105,20 @@
       "Blog: wants creative + funny + technologically exact; honesty-first house voice extends to jokes."
     ]
   },
-  "blockers": [],
+  "blockers": [
+    {
+      "id": "oss-split-phase-c",
+      "description": "OSS split Phase C2-C7 must complete before any v2.0 sprint merges (decision D-H). C1's path freeze covers skills/, plugins/, .claude-plugin/ and ~25 scripts; C5 needs an explicit 'flip now' from Aidan and a one-shot git filter-repo run. Runbook: docs/runbooks/oss-split-execution-handoff.md",
+      "needs": "user_decision",
+      "blocking": "v20-sprint-0"
+    }
+  ],
   "next_actions": [
-    "Review and merge PR #454 after CI passes.",
-    "After merge, deploy and smoke-test staging before any production approval.",
-    "v1.8.3 release-ledger work is in PRs #458 (product) and #459 (site); see docs/plans/2026-08-26-git-ops-per-release.md."
+    "BLOCKED: run OSS split Phase C2-C7 per docs/runbooks/oss-split-execution-handoff.md. C5 needs an explicit 'flip now'. 2.0's calendar starts the day C7 goes green (decision D-H); its effort is not in the 48.5h estimate.",
+    "At C1, no longer needed: the new engines (scorecard/hindsight/evolve/prompt-eval/merge-hindsight, plugins/opchain/kits/) are authored in the product repo post-flip, so they need no split-manifest entry. checkpoint.mjs and merge-checkpoint.mjs stay dual-homed.",
+    "After C7: Sprint 0 (branches in their post-flip homes), then Sprint 1 wire 1.2 substrate.",
+    "Before Sprint 6: re-derive Appendix B against the real Phase D checklist - the product repo's package.json, CI job ids, its RELEASING.md copy, check-version-lockstep.mjs and the submodule-pin form of check-release-tag.mjs do not exist yet.",
+    "Sprint 5 carries the R3a fix, now harder post-flip: it must read the pinned submodule's skills/CHANGELOG.md, which is also handoff item R3c. Build them together."
   ],
   "skill_state": {
     "feature": {
@@ -217,6 +256,165 @@
         "Vote-history migration for production KV's old OPC-170-style keys (not carried over automatically to numeric issue-number keys)",
         "Whether to also drop Linear internally, or keep this scoped to the public roadmap surface only"
       ]
+    },
+    "v19_release": {
+      "theme": "Assurance and governed delivery ops",
+      "plan": "docs/plans/2026-08-28-v1.9-assurance-release-plan.md",
+      "branch": "claude/1-9-release-sprint-plan-a29a1d",
+      "new_skills": [
+        "oc-qa-ops",
+        "oc-data-ops",
+        "oc-compliance-ops",
+        "oc-security-hardening"
+      ],
+      "catalog": "29->33; new skills enter at 1.8.3, atomic bump to 1.9.0 at cut",
+      "boundary_decisions": {
+        "oc-security-hardening": "execution/enforcement half of the security pair; /oc-harden vs auditor's /oc-hardening; issue #11 body needs re-scope edit at cut",
+        "oc-compliance-ops": "standing register + evidence bundles; consumes auditor readiness gaps; inert without .opchain/compliance.yaml",
+        "oc-qa-ops": "strategy split out of oc-bug-check; loadtest execution stays oc-scale-ops",
+        "oc-data-ops": "estate-level pipelines; tri-agent (9th); signal-forge stays metric-level"
+      },
+      "mechanical_edges": [
+        ".opchain/qa.yaml -> oc-bug-check WARN",
+        ".opchain/hardening.yaml -> deploy-ops gate row",
+        ".opchain/compliance.yaml -> deploy-ops evidence row",
+        "plugin next-suggestion map + 4 command files (8->12)"
+      ],
+      "roadmap_label_trap": "keep #8-11 roadmap:planned during build (Coming Next renders planned-labeled issues); flip straight to shipped at cut",
+      "crr": {
+        "round1": {
+          "findings": 27,
+          "status": "applied",
+          "lens": "contract/format"
+        },
+        "round2": {
+          "findings": 34,
+          "status": "applied",
+          "lens": "boundaries/invocation red-team",
+          "blocking_fixed": [
+            "app-architect Evaluator now reads .opchain/qa.yaml budgets",
+            "http verify timing soundness: config/test at SHA, http post-staging"
+          ]
+        },
+        "round3": {
+          "findings": 27,
+          "status": "applied",
+          "lens": "polish + completeness",
+          "blocking_fixed": [
+            "data-contract example YAML flow-mapping comma bug (decimal(12,2) quoted)"
+          ]
+        }
+      },
+      "neighbor_edits": [
+        "oc-app-architect",
+        "oc-bug-check",
+        "oc-scale-ops",
+        "oc-api-dev",
+        "oc-code-auditor",
+        "oc-security-auditor",
+        "oc-deploy-ops",
+        "oc-monitoring-ops",
+        "oc-dash-forge",
+        "oc-signal-forge",
+        "oc-migration-ops",
+        "oc-stack-forge",
+        "oc-integrations-engineer",
+        "oc-release-ops"
+      ],
+      "risk_rounds": {
+        "round4": {
+          "proposals_applied": 16,
+          "lens": "mitigation design per risk area"
+        },
+        "round5": {
+          "findings_applied": 13,
+          "lens": "adversarial verification + residual sweep",
+          "notable": [
+            "same-count skill-swap hole in countDrift guard closed (identity comparison)",
+            "RELEASING.md L6 skills-page callout was missing from the cut checklist",
+            "tag must be cut from origin/main checkout (unreachable-tag trap)"
+          ]
+        }
+      }
+    },
+    "v20_release": {
+      "theme": "The self-improving pipeline",
+      "spec": "docs/releases/2.0-plan.md",
+      "plan": "docs/plans/2026-09-03-v2.0-self-improving-release-plan.md",
+      "planning_branch": "claude/oc-app-2-0-planning-26b69d",
+      "planned_at": "2026-09-03T15:31:51.000Z",
+      "ground_truth": {
+        "last_tag": "v1.9.0@244bf13 (2026-09-02)",
+        "prod_health": "244bf13",
+        "skills_json": "1.9.0 / 33",
+        "main": "563034c (5 non-deploying commits past tag; #482 backfilled orchestrator.md s7 to 32/33)",
+        "governance": "dormant, single maintainer",
+        "oss_split": "Phase C at C1; C2 not started",
+        "design_worktree_57efac": "no draft code, only the plan doc"
+      },
+      "catalog": "33->35; tri-agent 9->11; plugin commands 12->14; wire 1.1->1.2 (BREAKING read/merge contract)",
+      "new_skills": [
+        "oc-hindsight",
+        "oc-evolve"
+      ],
+      "sprints": [
+        "0 preconditions",
+        "1 wire 1.2 substrate",
+        "2 scorecard kit",
+        "3 oc-hindsight + emitters",
+        "4 oc-evolve + prompt-eval runner",
+        "5 graduation/gates/docs/dogfood",
+        "6 cut"
+      ],
+      "effort": "CLAUDE ~48.5h / USER ~5.75h (re-baselined from 34.5h)",
+      "open_questions_decided": {
+        "Q1": "fixtures ship; hindsight tryable, evolve not",
+        "Q2": "keep names",
+        "Q3": "3 isolated contexts, filesystem handoff, CI pin",
+        "Q4": "individual promote + reviewed --batch",
+        "Q5": "[foundation, ai-native]",
+        "Q6": "graceful degradation on 1.1",
+        "Q7": "single-repo",
+        "Q8": "hindsight.mjs/evolve.mjs/scorecard.mjs own validation; repo-ops calls",
+        "Q9": ">=5 cases + 1 held-out + zero per-case regressions + eval_delta>=0",
+        "Q10": "env/manifest kill switches + capability flags for hosted surfaces",
+        "Q11": "one cycle per skill per repo; --abandon",
+        "Q12": "scorecard.json tracked derived"
+      },
+      "new_decisions": {
+        "D-A": "accept-but-don't-stamp until the cut",
+        "D-B": "kits ship in plugins/opchain/kits/ + init verbs; the commit-gate predicate is narrowed so init cannot silently arm a fail-closed gate (OPCHAIN_GATE=0 does NOT disable it - the predicate tests === '1' as an enabler only)",
+        "D-C": "repo-local Stop harvest; plugin UserPromptSubmit retrieve + session-state block",
+        "D-D": "docs/audits/ default for durable audit reports",
+        "D-E": "two branches: v2-0-substrate (code, per-sprint merges) + v2-0-skills (all skills/ content, merged once at the cut)",
+        "D-F": "v2.1 scope decided at cut time, never 'committed'",
+        "D-G": "scripts/prompt-eval.mjs must exist before adopt can gate (no runner exists today)",
+        "D-H": "OSS split first; 2.0 ships from asfbay-bit/opchain-skills as the first product-repo release; Sprint 0 gains Phase C2-C7 as a hard precondition; the mirror trap dissolves and is replaced by the submodule pin"
+      },
+      "reverification": "14 drift flags folded in (plan section 4.4); key: orchestrator routing table lacks v1.9 rows, monitoring-ops has no Lessons Learned block, prompt-ops/git-ops document no flags, semver item 1 keys on rename/removal, no eval runner script",
+      "gate": "approved 2026-09-08",
+      "critiqued_at": "2026-09-04T23:19:22.000Z",
+      "crr": {
+        "lenses": 7,
+        "raw_findings": 94,
+        "merged": 69,
+        "duplicates_folded": 25,
+        "verification": "refuter panel cut short by a session limit; adjudicated by hand, 14 load-bearing claims re-checked against source, none failed",
+        "top_fixes": [
+          "R3a equality check in check-release-surfaces.mjs turns main red on the product-half merge and blocks the tag -> Sprint 5 makes it directional",
+          "D-G prove gate was vacuous: a recorded answer fixture cannot change when a rule is adopted, so eval_delta was always 0 -> CI use split from adopt-time use",
+          "plugins/ and .claude-plugin/ are mirrored, so plugin work cannot ride the substrate branch -> moved to the skills branch",
+          "the human promote/adopt gate was a self-attested token -> TTY confirmation + signed commit with an Approved-by: trailer",
+          "Sprint 4/5 DoDs were unreachable (Q9 needs >=5 goldset cases, no skill has them) -> Sprint 4 ships a 6-case oc-app-architect fixture"
+        ]
+      },
+      "artifact": "https://claude.ai/code/artifact/ec2dcb75-370d-4ebd-aba4-dfe744519a88",
+      "gate_decisions": {
+        "scope": "full, ~48.5h CLAUDE / 5.75h USER",
+        "oss_split": "HOLD 2.0 for the flip - split goes first, 2.0 is the first product-repo release (Phase D). Recorded as D-H.",
+        "kit_install": "narrow the plugin commit-gate opt-in predicate so a repo whose only .opchain/ content is self-improvement state is not gated; gate-relevant manifests (qa/hardening/compliance/pm/data-contracts) still gate as today. Recorded as D-B.",
+        "plan_doc": "commit + PR to main"
+      }
     }
   }
 }

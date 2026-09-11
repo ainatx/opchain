@@ -1,7 +1,7 @@
 ---
 name: oc-scale-ops
 displayName: OC · Scale Ops
-version: 1.8.3
+version: 1.9.0
 license: Apache-2.0
 shortDesc: Load, caching, capacity planning. v1.2 posts load-test reports to the PM ticket; HIGH risks as sub-tickets.
 phases: [plan]
@@ -174,6 +174,13 @@ After setting budgets, integrate into the pipeline:
 ---
 
 ## Load Testing (`/oc-scale loadtest`)
+
+**Check for a plan first (v1.9):** if `.opchain/qa.yaml` carries a `load_plan`,
+execute *those* scenarios against *those* SLOs on the plan's declared `target`
+environment — the plan is the contract, this command is the execution. (The
+oc-qa-ops checkpoint's `load_plan.exists` only signals that a plan is in the
+manifest — read the manifest for scenarios.) No plan → proceed ad hoc as below,
+and suggest `/oc-qa loadplan` so the next run has one.
 
 ### Using oha (Rust-based HTTP load tester)
 
@@ -420,6 +427,7 @@ When moving from [current tier] to [next tier]:
 | oc-code-auditor | Performance findings → pre-identified bottlenecks |
 | oc-deploy-ops | Current deployment config → infrastructure baseline |
 | oc-integrations-engineer | API rate limits → external constraints |
+| oc-qa-ops | `load_plan` in `.opchain/qa.yaml` → scenarios + SLOs to execute (v1.9) |
 
 | Read by | Why |
 |---|---|

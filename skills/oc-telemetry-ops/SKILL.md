@@ -1,7 +1,7 @@
 ---
 name: oc-telemetry-ops
 displayName: OC · Telemetry Ops
-version: 1.8.3
+version: 1.9.0
 license: Apache-2.0
 shortDesc: Opt-in, local-first usage metering to .checkpoints/usage.sqlite; anonymized aggregates power the public /dashboard.
 phases: [build]
@@ -67,7 +67,9 @@ TELEMETRY OPS COMMANDS
   CONSENT (default: OFF)
   /oc-telemetry enable     Opt in — create the local store, set telemetry_handle.enabled
   /oc-telemetry disable    Opt out — stop metering (store kept locally, your call to delete)
-  /oc-telemetry status     Show consent state, store location, row count
+  /oc-telemetry status     Show consent state, store location, row count;
+                           exits non-zero when enabled with no store
+                           (enabled-with-no-store never reads healthy)
 
   METERING & EXPORT
   /oc-telemetry aggregate  Roll the local store up into an anonymized summary

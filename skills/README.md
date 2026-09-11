@@ -20,7 +20,7 @@ context across sessions.
 ```
 
 Adds a commit gate that blocks unverified commits, pipeline state at session
-start, a pointer to the next skill when one finishes, and eight registered
+start, a pointer to the next skill when one finishes, and twelve registered
 slash commands.
 
 **Zip (skills only)** — where a plugin install isn't an option:
@@ -66,6 +66,8 @@ Full walkthrough (including a local stdio server): https://opchain.dev/install
 | oc-integrations-engineer  | plan+build  | API integration harness (third-party APIs you consume) |
 | oc-api-dev                | plan+build  | First-party API design + build harness (OpenAPI, versioning, SDKs) |
 | oc-migration-ops          | plan+build  | `/oc-migrate` — DB / framework / auth / platform migrations |
+| oc-qa-ops                 | plan+build  | Test-pyramid design: coverage strategy, contract-test matrix, load-test planning |
+| oc-data-ops               | plan+build  | Data pipelines: ingestion, transformation layers, dbt, observable data contracts |
 | oc-agent-forge            | build+ai-native | Claude Agent SDK apps: topology, tool budgets, harness loops, agent eval |
 | oc-claude-api             | build+ai-native | Claude API apps: model routing, prompt caching, tool use, migration playbooks |
 | oc-prompt-ops             | build+ai-native | Prompt-as-code: versioning, eval datasets, regression and drift detection |
@@ -78,6 +80,8 @@ Full walkthrough (including a local stdio server): https://opchain.dev/install
 | oc-code-auditor           | build       | Auditor → Fixer → Verifier |
 | oc-bug-check              | build       | Pre-commit QA gate: type, lint, tests, secrets, build, deps, anti-patterns |
 | oc-security-auditor       | build       | Threat modeling, OWASP hardening, attack-surface review |
+| oc-security-hardening     | build       | Remediation operator: execute hardening fixes, per-deploy hardening gate |
+| oc-compliance-ops         | plan+build  | Standing control register + audit-ready evidence bundles at deploy time |
 | oc-git-ops                | build       | Git workflow |
 | oc-release-ops            | build       | Release cadence: plan, draft, bump, announce, ship |
 | oc-deploy-ops             | build       | Deployment pipeline |

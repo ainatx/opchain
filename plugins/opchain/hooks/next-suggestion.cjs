@@ -228,7 +228,7 @@ if (/^\s*(no|none)\b.{0,40}\b(work|action|task)s?\b.{0,30}\b(pending|remain|left
 }
 
 // ── resolve to something the user can TYPE ──────────────────────────────────
-// The 8 commands the plugin actually registers. A suggestion naming one of
+// The 12 commands the plugin actually registers. A suggestion naming one of
 // these is directly typeable; anything else degrades to a quoted skill name,
 // which still works because the evidence is about NAMING, not slash syntax.
 const COMMANDS = {
@@ -240,6 +240,11 @@ const COMMANDS = {
   "oc-orchestrator": "/oc-ops",
   "oc-release-ops": "/oc-release",
   "oc-repo-ops": "/oc-repo",
+  // v1.9 "Assurance and governed delivery ops"
+  "oc-qa-ops": "/oc-qa",
+  "oc-data-ops": "/oc-data-ops",
+  "oc-compliance-ops": "/oc-comply",
+  "oc-security-hardening": "/oc-harden",
 };
 const KNOWN = new Set([...Object.keys(COMMANDS), ...cps.map((d) => d.skill)]);
 

@@ -65,7 +65,7 @@ function fakeGit({
   remoteTags = null,
   isRepo = true,
   reachable = true,
-  taggedVersions = ["1.8.2"],
+  taggedSkills = { "oc-git-ops": "1.8.2" }, // id → version at the tag; null = unreadable
   localCommit = "b".repeat(40),
   localObject = "a".repeat(40),
   remoteCommit = localCommit,
@@ -98,9 +98,13 @@ function fakeGit({
       if (spec.endsWith("server.json")) return atHead ? headServer : tagServer;
       return null;
     }
-    if (cmd === "grep") return taggedVersions === null
-      ? null
-      : taggedVersions.map((version) => `version: ${version}`).join("\n");
+    if (cmd === "grep") {
+      if (taggedSkills === null) return null;
+      const tagRef = args[3] ?? "vTAG";
+      return Object.entries(taggedSkills)
+        .map(([id, version]) => `${tagRef}:skills/${id}/SKILL.md:version: ${version}`)
+        .join("\n");
+    }
     if (cmd === "ls-remote") {
       if (remoteTags === null) return null; // network down — unknowable, not empty
       const refArg = args.find((arg) => arg.startsWith("refs/tags/") && !arg.endsWith("^{}"));
@@ -174,7 +178,7 @@ describe("checkReleaseTag", () => {
       git: fakeGit({
         tags: ["v1.8.3"],
         remoteTags: ["v1.8.3"],
-        taggedVersions: ["1.8.3"],
+        taggedSkills: { "oc-git-ops": "1.8.3" },
         headSeal: releaseSeal("1.8.3"),
         tagSeal: null,
       }),
@@ -189,7 +193,7 @@ describe("checkReleaseTag", () => {
       git: fakeGit({
         tags: ["v1.8.3"],
         remoteTags: ["v1.8.3"],
-        taggedVersions: ["1.8.3"],
+        taggedSkills: { "oc-git-ops": "1.8.3" },
         headSeal: seal,
         tagSeal: seal,
         tagWorkflow: UNSAFE_PUBLISHER_WORKFLOW,
@@ -205,7 +209,7 @@ describe("checkReleaseTag", () => {
       git: fakeGit({
         tags: ["v1.8.3"],
         remoteTags: ["v1.8.3"],
-        taggedVersions: ["1.8.3"],
+        taggedSkills: { "oc-git-ops": "1.8.3" },
         headSeal: seal,
         tagSeal: seal,
         tagServer: WRONG_SERVER_JSON,
@@ -220,7 +224,7 @@ describe("checkReleaseTag", () => {
       git: fakeGit({
         tags: ["v1.8.3"],
         remoteTags: ["v1.8.3"],
-        taggedVersions: ["1.8.3"],
+        taggedSkills: { "oc-git-ops": "1.8.3" },
         headSeal: seal,
         tagSeal: seal,
       }),
@@ -233,7 +237,7 @@ describe("checkReleaseTag", () => {
       git: fakeGit({
         tags: ["v1.8.3"],
         remoteTags: ["v1.8.3"],
-        taggedVersions: ["1.8.3"],
+        taggedSkills: { "oc-git-ops": "1.8.3" },
         headSeal: releaseSeal("1.8.2"),
       }),
     });
@@ -280,7 +284,7 @@ describe("checkReleaseTag", () => {
       git: fakeGit({
         tags: ["v1.8.3"],
         remoteTags: ["v1.8.3"],
-        taggedVersions: ["1.8.3"],
+        taggedSkills: { "oc-git-ops": "1.8.3" },
         headSeal: releaseSeal("1.8.3", 2),
         tagSeal: releaseSeal("1.8.3", 1),
       }),
@@ -294,13 +298,14 @@ describe("checkReleaseTag", () => {
       git: fakeGit({
         tags: ["v1.8.3"],
         remoteTags: ["v1.8.3"],
-        taggedVersions: ["1.8.2"],
+        taggedSkills: { "oc-git-ops": "1.8.2" },
         headSeal: releaseSeal("1.8.3"),
         tagSeal: releaseSeal("1.8.3"),
       }),
     });
     expect(r.ok).toBe(false);
     expect(r.reason).toBe("tag-version-mismatch");
+    expect(r.countDrift).toBe(false); // versions disagree — a misplaced tag, not the freeze window
   });
 
   it("REFUSES a tag that is not an ancestor of HEAD", () => {
@@ -327,13 +332,35 @@ describe("checkReleaseTag", () => {
       git: fakeGit({
         tags: ["v1.8.3"],
         remoteTags: ["v1.8.3"],
-        taggedVersions: ["1.8.3"],
+        taggedSkills: { a: "1.8.3" },
         headSeal: releaseSeal("1.8.3"),
         tagSeal: releaseSeal("1.8.3"),
       }),
     });
     expect(r.ok).toBe(false);
     expect(r.reason).toBe("tag-version-mismatch");
+    expect(r.countDrift).toBe(true); // the deploy-freeze window: same version, new skills
+    expect(r.errors.join(" ")).toContain("NEXT release");
+  });
+
+  it("REFUSES a same-count skill swap at the same version (identity, not count)", () => {
+    // Remove one skill, add another, lockstep version unchanged: the count and
+    // every version string agree with the tag, but the catalog is not the one
+    // the tag sealed. The guard must compare identity.
+    const r = withTree({ a: "1.8.3", c: "1.8.3" }, {
+      git: fakeGit({
+        tags: ["v1.8.3"],
+        remoteTags: ["v1.8.3"],
+        taggedSkills: { a: "1.8.3", b: "1.8.3" },
+        headSeal: releaseSeal("1.8.3"),
+        tagSeal: releaseSeal("1.8.3"),
+      }),
+    });
+    expect(r.ok).toBe(false);
+    expect(r.reason).toBe("tag-version-mismatch");
+    expect(r.countDrift).toBe(true);
+    expect(r.errors.join(" ")).toContain("added since the tag: c");
+    expect(r.errors.join(" ")).toContain("removed since the tag: b");
   });
 
   it("REFUSES a tag that exists locally but was never pushed", () => {
@@ -410,6 +437,24 @@ describe("checkReleaseTag", () => {
 });
 
 describe("release seal integration", () => {
+  it("emits a machine-readable reason for release-sequence consumers", () => {
+    const result = spawnSync(process.execPath, ["scripts/check-release-tag.mjs", "--local", "--json"], {
+      cwd: REPO_ROOT,
+      encoding: "utf8",
+    });
+    const parsed = JSON.parse(result.stdout);
+    expect(parsed).toMatchObject({ ok: expect.any(Boolean), reason: expect.any(String) });
+    expect(result.status).toBe(parsed.ok ? 0 : 1);
+  });
+
+  it("has the pre-tag release sequence consume the JSON reason unconditionally", () => {
+    const source = readFileSync(join(REPO_ROOT, "scripts/release-sequence.mjs"), "utf8");
+    expect(source).toContain('sh("node scripts/check-release-tag.mjs --json")');
+    expect(source).toContain('result.reason === "missing-tag"');
+    expect(source).toContain("result.version !== requestedVersion");
+    expect(source).not.toContain('process.argv.includes("--json") ? " --json"');
+  });
+
   it("keeps the repository seal aligned with the real catalog and publisher workflow", () => {
     const seal = JSON.parse(readFileSync(join(REPO_ROOT, "release-seal.json"), "utf8"));
     const catalog = readCatalogVersion(join(REPO_ROOT, "skills"));
@@ -418,6 +463,17 @@ describe("release seal integration", () => {
     expect(seal).toMatchObject({ schemaVersion: 1, catalogVersion: catalog.version, generation: 1 });
     expect(seal.publisherWorkflowSha256).toBe(sha256(workflow));
     expect(seal.serverJsonSha256).toBe(sha256(serverJson));
+  });
+
+  it("validates without publishing and preserves the established registry identity", () => {
+    const workflow = readFileSync(join(REPO_ROOT, ".github/workflows/publish-mcp-registry.yml"), "utf8");
+    const server = JSON.parse(readFileSync(join(REPO_ROOT, "server.json"), "utf8"));
+    expect(workflow).toContain("run: ./mcp-publisher validate");
+    expect(workflow).not.toContain("mcp-publisher publish --dry-run");
+    expect(workflow).not.toContain("id-token: write");
+    expect(workflow).toContain("MCP_GITHUB_TOKEN: ${{ secrets.MIRROR_TOKEN }}");
+    expect(workflow).toContain("validate_only:");
+    expect(server.name).toBe("io.github.asfbay-bit/opchain-skills");
   });
 
   it("rejects a real pre-seal tag and accepts the sealed baseline under a content descendant", () => {
@@ -472,13 +528,29 @@ describe("release seal integration", () => {
     } finally {
       rmSync(repo, { recursive: true, force: true });
     }
-  });
+  }, 15_000);
 });
 
 describe("remediation", () => {
   it("tells you to push a tag you already made", () => {
     expect(remediation({ version: "1.8.3", tag: "v1.8.3", reason: "unpushed-tag" }))
       .toContain("git push origin v1.8.3");
+  });
+
+  it("routes the deploy-freeze window to a bump, not a re-tag", () => {
+    const text = remediation({
+      version: "1.8.3", tag: "v1.8.3", reason: "tag-version-mismatch", countDrift: true,
+    });
+    expect(text).toContain("do NOT re-tag");
+    expect(text).toContain("/oc-release bump");
+    expect(text).toContain("/oc-git-release");
+    expect(text).toContain("deploy:staging");
+  });
+
+  it("stays silent for a mixed-version tag tree (misplaced tag, no scripted fix)", () => {
+    expect(remediation({
+      version: "1.8.3", tag: "v1.8.3", reason: "tag-version-mismatch", countDrift: false,
+    })).toBe("");
   });
 
   it("names /oc-git-release for a tag that does not exist yet", () => {

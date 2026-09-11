@@ -1,4 +1,5 @@
 ---
+import tokensCss from "../styles/tokens.css?raw";
 import Base from "../layouts/Base.astro";
 import Button from "../components/ui/Button.astro";
 import Pill from "../components/ui/Pill.astro";
@@ -38,16 +39,27 @@ const palette = [
   { token: "--warning",      role: "caution" },
 ];
 
-const brand = [
-  { token: "--obsidian",  hex: "#1c1710" },
-  { token: "--forge",     hex: "#2a2218" },
-  { token: "--slag",      hex: "#5a5040" },
-  { token: "--sand",      hex: "#c4b89e" },
-  { token: "--linen",     hex: "#e8dfd0" },
-  { token: "--parchment", hex: "#f6f0e8" },
-  { token: "--ember",     hex: "#e05c18" },
-  { token: "--char",      hex: "#b84510" },
+/* The brand swatches are DERIVED from tokens.css at build time, not typed out.
+   They used to be a hand-maintained [token, hex] list rendered with the hex as
+   both the chip colour and its label — so the one page whose job is documenting
+   the palette was the page that would keep documenting the OLD palette after a
+   token swap, and say so in writing. Reading the values from the source of
+   truth makes that failure impossible. See
+   design-previews/color-2.0-tooling/MIGRATION-SURFACE.md.
+
+   Read via Vite's `?raw` rather than node:fs — `import.meta.url` in an Astro
+   page resolves to the BUNDLED chunk at build time, not this source file, so
+   a relative fs read fails the production build (it did). */
+const BRAND_TOKENS = [
+  "--obsidian", "--forge", "--slag", "--sand",
+  "--linen", "--parchment", "--ember", "--char",
 ];
+const brand = BRAND_TOKENS.map((token) => {
+  // Brand constants are declared once, in the :root block, and never themed.
+  const m = tokensCss.match(new RegExp(`\\${token}\\s*:\\s*([^;]+);`));
+  if (!m) throw new Error(`styleguide: ${token} is not defined in tokens.css`);
+  return { token, hex: m[1].trim() };
+});
 
 const typeScale = [
   { token: "--fs-hero", label: "Hero (clamp)" },
@@ -126,7 +138,7 @@ const icons = [
       <div class="swatch-grid">
         {brand.map((c) => (
           <div class="swatch">
-            <div class="chip" style={`background: ${c.hex};`}></div>
+            <div class="chip" style={`background: var(${c.token});`}></div>
             <div class="meta">
               <code>{c.token}</code>
               <span>{c.hex}</span>
@@ -295,7 +307,7 @@ const icons = [
       <div class="sg-row">
         <Badge variant="accent">Plan</Badge>
         <Badge variant="accent">Tri-agent</Badge>
-        <Badge variant="neutral">v1.8.3</Badge>
+        <Badge variant="neutral">v1.9.0</Badge>
         <Badge variant="success">passing</Badge>
         <Badge variant="danger">failing</Badge>
         <Badge variant="info">info</Badge>

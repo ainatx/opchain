@@ -48,7 +48,7 @@ def pr_label(key):
         return key
     title = p["title"][:52]
     state = p["state"].lower()
-    return f"[{key}](https://github.com/asfbay-bit/opchain/pull/{num}) {title} _{state}_"
+    return f"[{key}](https://github.com/ainatx/opchain/pull/{num}) {title} _{state}_"
 
 
 fresh = [r for r in rows if r["pricing_version"] == meta["pricing"]["version"]]

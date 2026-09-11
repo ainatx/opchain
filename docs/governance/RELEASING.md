@@ -3,7 +3,7 @@
 > **Status: reviewed draft, staged in the monorepo.** At the repo split
 > (handoff Phase C4) this file becomes the root `RELEASING.md` of
 > `asfbay-bit/opchain-skills`, adapted for the two-repo layout. Until then it is
-> the canonical release process for `asfbay-bit/opchain`, where both halves of a
+> the canonical release process for `ainatx/opchain`, where both halves of a
 > release live. Decision record: [docs/plans/2026-08-27-release-surface-governance.md](../plans/2026-08-27-release-surface-governance.md).
 > Decision-making rules (who decides what ships): [GOVERNANCE.md](GOVERNANCE.md).
 >
@@ -248,7 +248,7 @@ complete contribution. You do **not** update site surfaces, version stamps, or
 manifests — those move in lockstep at cut time, and a site that still shows
 the previous version after your merge is *expected and owned*, not a bug to
 PR against. (Post-split: skill PRs go to `asfbay-bit/opchain-skills`; the site
-lives in `asfbay-bit/opchain` and is maintainer territory.)
+lives in `ainatx/opchain` and is maintainer territory.)
 
 **Maintainers / release agents:** you own §3–§6 end to end. The release-cut
 PRs are the only PRs that touch live-claim surfaces, and the audit prompt run
@@ -263,7 +263,7 @@ is part of the PR, not an afterthought.
 | `site/tests/e2e/changelog-and-scenarios.spec.ts` | CI (Playwright) | Which hero is open, Coming Next lead, deep-link targets |
 | `npm run gen-catalog` | Every build | SKILL.md frontmatter validity, dir/name match, flag registry drift |
 | `npm run checkpoint:validate` | CI | Checkpoint schema honesty |
-| Deploy-lag canary + ancestry refusal in `scripts/deploy.mjs` | Daily / at deploy | Prod behind main; staging cut from a non-main SHA |
+| Deploy-lag canary + ancestry refusal in `scripts/deploy.mjs` | Every fourth day-of-month / at deploy | Prod behind main; staging cut from a non-main SHA |
 | *Planned:* changelog cross-check (decision doc R3a) | CI | Header claiming a release `skills/CHANGELOG.md` doesn't have |
 | *Planned:* derived counts module + pinned test (R3b) | CI | The §3d count strings, retired as hand strings |
 | *Planned:* submodule pin ↔ tag check (R3c, post-split) | CI | Site claiming a release the pinned product tree isn't on |

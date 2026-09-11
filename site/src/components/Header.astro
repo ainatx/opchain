@@ -13,8 +13,8 @@ interface Props {
 const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
 const dashboardEnabled = defaultFor("site.feature.dashboard") as boolean;
 const { active = "/" } = Astro.props;
-const CURRENT_RELEASE = "v1.8";
-const CURRENT_RELEASE_HREF = "/changelog#v1-8";
+const CURRENT_RELEASE = "v1.9";
+const CURRENT_RELEASE_HREF = "/changelog#v1-9";
 
 interface DropdownItem {
   href: string;
@@ -490,7 +490,7 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     align-items: center;
     justify-content: center;
   }
-  .nav-badge.new  { background: var(--accent); color: var(--obsidian); }
+  .nav-badge.new  { background: var(--accent); color: var(--on-accent); }
   .nav-badge.tool {
     background: rgba(20, 184, 166, 0.16);
     color: var(--specialist);
@@ -518,7 +518,7 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     align-items: center;
     transition: background var(--dur-fast) var(--ease-standard);
   }
-  .nav-install:hover { background: var(--accent-hover); color: var(--obsidian); }
+  .nav-install:hover { background: var(--accent-hover); color: var(--on-accent); }
   /* B-10 light-mode contrast: --accent on light bg only hits 4.46:1 on
      --obsidian; use --ember (#e05c18) instead, like Button.astro does. */
   :global([data-theme="light"]) .nav-install { background: var(--ember); }
@@ -594,7 +594,7 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     border-radius: var(--r-xs);
     line-height: 1;
   }
-  .pillet.new   { background: var(--accent); color: var(--obsidian); }
+  .pillet.new   { background: var(--accent); color: var(--on-accent); }
   .pillet.tool  { background: rgba(20,184,166,0.16); color: var(--specialist); border: 0.5px solid var(--specialist); }
   .pillet.count { background: var(--accent-dim); color: var(--accent); border: 0.5px solid rgba(224,92,24,0.4); }
 
