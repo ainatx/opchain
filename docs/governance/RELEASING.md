@@ -176,8 +176,12 @@ release is the **deploy**, not the merge. The order is fixed:
    `.github/monitoring/release-baseline.json` with the observed production and
    staging deployment/version ids, 100% traffic, and script fingerprints; run
    the control-plane and deploy-diff checks locally; and merge that reviewed
-   baseline update. Do not manually close a deploy-lag issue before those gates
-   pass — the default-branch workflow reconciles it from the approved baseline.
+   baseline update. A hotfix deployed from `main` between releases is recorded
+   the same way, as the baseline's `runtime` block (runbook → *Approved
+   post-release runtime*); the release cut drops that block when `release`
+   re-binds to the new tag. Do not manually close a deploy-lag issue before
+   those gates pass — the default-branch workflow reconciles it from the
+   approved baseline.
    See [the Cloudflare challenge runbook](../runbooks/cloudflare-challenge.md)
    for the control-plane assurance limit.
 5. **If the release is abandoned mid-review:** close the site-half PR

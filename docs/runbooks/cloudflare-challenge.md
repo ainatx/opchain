@@ -65,6 +65,29 @@ changes after it are classified using the baseline's explicit
 deploy-relevance rules. A docs/checkpoint/workflow-only main descendant is not
 a deployment gap.
 
+### Approved post-release runtime
+
+Between releases, production sometimes needs a reviewed hotfix from `main`
+without a new signed tag (2026-09-05: `78567c2`, PR #483, deployed while the
+baseline still said v1.9.0). The schema cannot express that as `release` —
+deploy lag proves the signed tag peels to `release.sourceSha` — so the baseline
+records it as an explicit `runtime` block next to `release`:
+
+- `release` stays bound to the signed tag it always was;
+- `runtime.sha` / `runtime.shortSha` name the exact `main` commit the recorded
+  environments were built from;
+- `runtime.approval` names the reviewed approval (which PR shipped the hotfix,
+  and that the baseline PR adding the block is the approval of record).
+
+Deploy lag proves the runtime descends from the release SHA and is an ancestor
+of `origin/main`, then classifies changes after the *runtime*, not the release,
+and names both in its tracking issue. `npm run deploy` and
+`checkpoint doctor --online` compare live versions against the runtime too.
+Recording a runtime is still an approval: it needs the same staging review,
+local smoke evidence, and reviewed baseline PR as a release does, and a branch
+preview never qualifies. The next release cut removes the block when `release`
+re-binds to the new tag.
+
 The monitor token should be a dedicated least-privilege credential capable of
 reading Workers scripts/deployments, versions/settings, and custom domains.
 Never print it or copy its value into a checkpoint, runbook, issue, or log.
@@ -79,7 +102,9 @@ From the exact reviewed and approved runtime checkout:
    checks;
 4. record the new production/staging deployment ids, version ids, script
    fingerprints, and 100% traffic state in
-   `.github/monitoring/release-baseline.json`;
+   `.github/monitoring/release-baseline.json` — if the deployed SHA is not the
+   tagged release, add or update the `runtime` block (see *Approved
+   post-release runtime*) rather than editing `release`;
 5. verify the baseline script locally with credentials in the environment:
 
    ```bash
@@ -110,7 +135,8 @@ From the exact reviewed and approved runtime checkout:
   token. Do not mislabel it as application deployment drift.
 - **Deploy-relevant source changes after the baseline:** open a new
   release/deploy workstream and approve a new exact runtime SHA. Do not deploy
-  an arbitrary current `main` tip.
+  an arbitrary current `main` tip. A hotfix that must ship before the next
+  release is recorded as the baseline's `runtime` block by a reviewed PR.
 
 ## Assurance boundary
 
