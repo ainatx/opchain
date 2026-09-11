@@ -164,9 +164,11 @@ function run(command, cwd, toolName = "Bash") {
   const env = { ...process.env };
   delete env.OPCHAIN_GATE;
   delete env.OPCHAIN_BYPASS;
-  const r = spawnSync("node", [GATE], { input: payload, encoding: "utf8", env });
+  // An overrun is a CRASH, not a verdict: the harness kills a hook that exceeds
+  // its timeout, and a killed hook writes no deny (GATE-07).
+  const r = spawnSync("node", [GATE], { input: payload, encoding: "utf8", env, timeout: 5000 });
   if (r.status !== 0 || r.error) {
-    return { verdict: "CRASHED", detail: (r.stderr || "").split("\n")[0].slice(0, 80) };
+    return { verdict: "CRASHED", detail: (r.error ? String(r.error.code) : r.stderr || "").split("\n")[0].slice(0, 80) };
   }
   const out = (r.stdout || "").trim();
   if (!out) return { verdict: "ALLOW", detail: "" };
@@ -221,6 +223,9 @@ const bareWriteTree = mkRepo({ // the old slash-command instruction: index tree,
 });
 const documented = mkRepo({ documented: true, wip: true });
 const documentedDrift = mkRepo({ documented: true, wip: true, dirty: true });
+
+// GATE-07 — a hook payload whose command is a commit, carried as data by a dry run
+const dryRunPayload = JSON.stringify({ tool_name: "Bash", tool_input: { command: `${GC} -F msg.txt` }, cwd: "/x" });
 
 const cases = [
   // matcher precision — false positives train people to bypass
@@ -286,6 +291,37 @@ const cases = [
   ["time git commit", `time ${GC} -m x`, failed, "DENY"],
   ["chained after &&", `git add -A && ${GC} -m x`, failed, "DENY"],
   ["env-var prefix", `GIT_AUTHOR_NAME=x ${GC} -m y`, failed, "DENY"],
+
+  // GATE-07 — the wrapper re-scan covers only what the wrapper can execute. The
+  // first case is the Bash call denied on 2026-09-11: a dry run piping a JSON
+  // payload into this gate, then an unrelated `sh -c` on the next line.
+  ["JSON dry run + unrelated sh -c", `printf '%s' '${dryRunPayload}' | node plugins/opchain/hooks/pre-commit-gate.cjs\nsh -c "$RECIPE" | tail -1`, failed, "ALLOW"],
+  ["quoted phrase ; sh -c", `echo '${GC}' ; sh -c 'ls'`, failed, "ALLOW"],
+  ["env | grep phrase", `env | grep '${GC}'`, failed, "ALLOW"],
+  ["sh -c piped out to grep phrase", `sh -c 'ls' | grep '${GC}'`, failed, "ALLOW"],
+  ["bash -c wrapper", `bash -c "${GC} -am x"`, failed, "DENY"],
+  ["eval wrapper", `eval "${GC} -m x"`, failed, "DENY"],
+  ["sh -c, then a bare commit", `sh -c 'echo hi'; ${GC} -m x`, failed, "DENY"],
+  ["separator inside -c string", `bash -c "cd /tmp && ${GC} -m x"`, failed, "DENY"],
+  ["wrapper on a later line", `ls\nbash -c '${GC} -m x'`, failed, "DENY"],
+  ["redirect before eval arg", `eval &>/dev/null "${GC} -m x"`, failed, "DENY"],
+  ["; inside $(…) given to eval", `eval $(printf x; echo ${GC} -m y)`, failed, "DENY"],
+  // stdin carries commands: the scope widens to what feeds the wrapper
+  ["piped into sh", `echo '${GC} -m x' | sh`, failed, "DENY"],
+  ["subshell piped into sh", `(echo '${GC} -m x') | sh`, failed, "DENY"],
+  ["here-doc into bash", `bash <<'EOF'\n"git" commit -m x\nEOF`, failed, "DENY"],
+  // the wrapper anchor was looser than git's — each of these ran a commit
+  ["env-prefixed bash -c", `GIT_AUTHOR_NAME=x bash -c '${GC} -m y'`, failed, "DENY"],
+  ["absolute-path sh -c", `/bin/sh -c '${GC} -m x'`, failed, "DENY"],
+  ["nice sh -c", `nice sh -c '${GC} -m x'`, failed, "DENY"],
+  ["then sh -c", `if true; then sh -c '${GC} -m x'; fi`, failed, "DENY"],
+  // prefix backtracking: 26 words outran the 10s hook timeout before the fix
+  ["40 prefix words, no commit", `${"time ".repeat(40)}ls ; sh -c 'ls'`, failed, "ALLOW"],
+  ["40 prefix words, then commit", `${"time ".repeat(40)}${GC} -m x`, failed, "DENY"],
+  // quote spans follow bash: nothing escapes inside '…', and `\\` inside "…" is one char
+  ["\\' does not escape in '…'", `echo 'a\\' ; ${GC} -m x ; echo ''`, failed, "DENY"],
+  ["\\\\ before closing \"", `echo "a\\\\" ; ${GC} -m x ; echo ""`, failed, "DENY"],
+  ["dq JSON dry run ; sh -c", `printf "%s" "{\\"command\\":\\"${GC} -m x\\"}" | node gate.cjs ; sh -c 'ls'`, failed, "ALLOW"],
 ];
 
 let failedCount = 0;
