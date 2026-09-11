@@ -53,6 +53,13 @@ updates:
           - "marked"
           - "dompurify"
           - "isomorphic-dompurify"
+    ignore:
+      # TypeScript 7 cannot install in site/: @astrojs/check@0.9.10 declares
+      # peer typescript "^5.0.0 || ^6.0.0", so every job died at `npm ci`
+      # (PR #471, 2026-09-11). Lift this once @astrojs/check accepts 7.x;
+      # 6.x stays eligible.
+      - dependency-name: "typescript"
+        versions: ["7.x"]
     commit-message:
       prefix: "deps(site)"
     labels:

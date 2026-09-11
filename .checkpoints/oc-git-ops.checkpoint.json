@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-09-11T07:24:15.657Z",
+  "updated_at": "2026-09-11T07:35:00.809Z",
   "phase": "pr-open",
   "step": "pr-498-awaiting-review",
   "status": "in_progress",
-  "progress_summary": "2026-09-11 CI-failure analysis session. PR #498 (branch claude/lhci-ci-failures-analysis-s525xz) carries the fixes: LHCI preview with the /api/health stub and Vite-equivalent gzip, error-level gates on all seven routes, palette-independent security CTA e2e test, --no-fetch for the release-tag gate's unit test, pre-commit mirror hook installed by npm prepare, js-yaml namespace imports, deploy-lag issue-on-mismatch plus deploy.mjs stale-baseline warning, checkpoint drift record, release-tag backfill runbook. The approved merge chain is complete: #495, #493, #497, #496, #473, #486, #485 squash-merged in order with all four required checks green on each (one sanctioned re-run on #473 for the check-release-tag fetch timeout). #468 and #470 closed as superseded. #471 (TypeScript 7) cannot install against @astrojs/check's peer range; the owner chose `@dependabot ignore this major version`. #472 waits for #498. #490 has its conflict list and the CTA finding as a comment. #498's branch now includes origin/main 38f2bd4. Ref deletion is HTTP 403 from this session, so the 34 bot/checkpoint-stamp-* branches and the wip/ tag stay for the owner to delete.",
+  "progress_summary": "2026-09-11 CI-failure analysis session. PR #498 carries the fixes: LHCI preview with the /api/health stub and Vite-equivalent gzip, error-level gates on all seven routes, palette-independent security CTA e2e test, --no-fetch for the release-tag gate's unit test, pre-commit mirror hook installed by npm prepare, js-yaml namespace imports, deploy-lag issue-on-mismatch plus deploy.mjs stale-baseline warning, checkpoint drift record, release-tag backfill runbook. The approved merge chain is complete: #495, #493, #497, #496, #473, #486, #485 squash-merged in order with all four required checks green on each (one sanctioned re-run on #473 for the check-release-tag fetch timeout). #468 and #470 closed as superseded. #471 (TypeScript 7) cannot install against @astrojs/check's peer range; on the owner's decision it is closed and dependabot.yml ignores typescript 7.x for /site. #472 waits for #498. #490 has its conflict list and the CTA finding as a comment. #498's branch now includes origin/main 38f2bd4. Ref deletion is HTTP 403 here; the 34 bot/checkpoint-stamp-* branches and the wip/ tag stay for the owner.",
   "progress_table": [
     {
       "id": "v1.9-release-pr",
@@ -163,8 +163,8 @@
   "blockers": [],
   "next_actions": [
     "Owner: review and merge #498 (squash). The branch already contains origin/main 38f2bd4, so the up-to-date rule is satisfied; CI reruns on the merge commit.",
-    "After #498 merges: comment `@dependabot rebase` on #472 (js-yaml 5.4.1) so its Worker job runs against the namespace imports; then merge it through the same update → checks → squash path.",
-    "Confirm Dependabot closed #471 after the ignore-major command and opens a TypeScript 6.0.3 PR on its next run (inside @astrojs/check's ^5 || ^6 peer range).",
+    "After #498 merges: bring #472 (js-yaml 5.4.1) up to date with GitHub update-branch (comment commands are not processed on this pre-transfer PR) so its Worker job runs against the namespace imports; then wait for the four required checks and squash-merge.",
+    "#471 is closed by hand and .github/dependabot.yml ignores typescript 7.x for /site (in #498). Expect Dependabot to propose typescript 6.0.3 on its next Monday run; it is inside @astrojs/check's ^5 || ^6 peer range. Lift the ignore once @astrojs/check accepts 7.x.",
     "Owner, from the laptop: delete the 34 bot/checkpoint-stamp-* branches and the wip/v1-8-docs-mesh-20260703 tag; this session's credentials get HTTP 403 on ref deletion. Command: for b in $(git ls-remote --heads origin 'refs/heads/bot/checkpoint-stamp-*' | awk '{print $2}' | sed 's|refs/heads/||'); do git push origin --delete \"$b\"; done; git push origin --delete wip/v1-8-docs-mesh-20260703",
     "Owner: triage the stale claude/, codex/, chore/, design/, docs/ branches listed in the session summary (older than 30 days, none merged into main)."
   ],
@@ -476,8 +476,8 @@
       {
         "number": 471,
         "title": "deps(site): bump typescript from 5.9.3 to 7.0.2 in /site",
-        "closed_at": "pending Dependabot",
-        "reason": "Owner decision 2026-09-11: `@dependabot ignore this major version` posted at 07:21Z. First real CI run (head 90fcdfb, after a GitHub update-branch because Dependabot ignored the rebase comment) failed every job at `npm ci` in site/: @astrojs/check@0.9.10 declares peer typescript ^5.0.0 || ^6.0.0, so TS 7 cannot install. Dependabot is expected to propose 6.0.3 next."
+        "closed_at": "2026-09-11T07:33:11Z",
+        "reason": "Owner decision 2026-09-11: ignore the TypeScript 7 line. First real CI run (head 90fcdfb, after a GitHub update-branch because Dependabot ignored the rebase comment) failed every job at `npm ci` in site/: @astrojs/check@0.9.10 declares peer typescript ^5.0.0 || ^6.0.0, so TS 7 cannot install. Dependabot did not process `@dependabot ignore this major version` either (comment commands are not handled on the pre-transfer Dependabot PRs; the same command works on #496), so the ignore went into .github/dependabot.yml (typescript 7.x for /site, via PR #498) and the PR was closed by hand. 6.x stays eligible; Dependabot can propose 6.0.3."
       }
     ],
     "remote": "origin",
@@ -720,6 +720,7 @@
       "method": "update branch (or @dependabot rebase on lockfile conflict) → four required checks → squash merge; main requires up-to-date branches",
       "completed_at": "2026-09-11T07:21:36Z",
       "rerun_used": "#473 Worker job, once, after a standing-down comment"
-    }
+    },
+    "dependabot_note": "Comment commands (`@dependabot rebase`, `@dependabot ignore ...`) are not processed on the Dependabot PRs opened on 2026-08-31 during the repository transfer (#471, and by extension #472); Dependabot's scheduled runs still manage them (auto-rebase on conflict works). Use GitHub update-branch for those PRs, as with #473."
   }
 }
