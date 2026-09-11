@@ -366,6 +366,29 @@ const cases = [
   ["find -exec grep phrase", `find . -name '*.md' -exec grep -l '${GC}' {} +`, failed, "ALLOW"],
   ["$((1<<2)) arithmetic", `echo "$((1<<2))"; git log -1 --format="%s $(date)"`, failed, "ALLOW"],
   ["genuine --no-verify, $(…) msg", `${GC} --no-verify -m "$(cat msg.txt)"`, failed, "ALLOW"],
+
+  // GATE-09 — what the shell reading knows masks what the span reading lexes.
+  // Each ALLOW below was denied on 2026-09-11; each is data.
+  ["then in a comment", `ls # then ${GC} later`, failed, "ALLOW"],
+  ["$( in <<\"EOF\" prose", `cat > notes.md <<"EOF"\nuse $(${GC} -m x) in prose\nEOF`, failed, "ALLOW"],
+  ["\" in \"$(cat <<'EOF')\" prose", `printf '%s' "$(cat <<'EOF'\n- Don't forget: "$(${GC})" too\nEOF\n)"`, failed, "ALLOW"],
+  ["sh -c, then a comment", `sh -c 'ls' # ${GC} later`, failed, "ALLOW"],
+  ["tee here-doc to a file", `tee notes.md <<'EOF' >/dev/null\n${GC} -m x\nEOF`, failed, "ALLOW"],
+  ["genuine --no-verify + comment", `${GC} --no-verify -m x # reviewed`, failed, "ALLOW"],
+  // A killed hook writes no deny: a masked body must not be a whitespace run the
+  // strict matcher rescans from every newline (masked with spaces, this took 14s).
+  ["300KB data here-doc", `cat > notes.md <<'EOF'\n${"prose that won't run\n".repeat(15000)}EOF`, failed, "ALLOW"],
+  // …and what could still run stays visible
+  ["--no-verify only in a comment", `${GC} -m x # --no-verify`, failed, "DENY"],
+  ["comment holding ;", `ls # ; ${GC} -m x`, failed, "DENY"],
+  ["${x:-a #b} is no comment", `echo \${x:-a #b}; ${GC} -m x`, failed, "DENY"],
+  ["dash <<'EOF', no wrapper name", `dash <<'EOF'\n${GC} -m x\nEOF`, failed, "DENY"],
+  ["cat here-doc | dash", `cat <<'EOF' | dash\n${GC} -m x\nEOF`, failed, "DENY"],
+  ["{ cat here-doc; } | dash", `{ cat <<'EOF'\n${GC} -m x\nEOF\n} | dash`, failed, "DENY"],
+  ["cat > x.sh here-doc; sh x.sh", `cat > x.sh <<'EOF'\n${GC} -m x\nEOF\nsh x.sh`, failed, "DENY"],
+  ["cat here-doc > >(dash)", `cat <<'EOF' > >(dash)\n${GC} -m x\nEOF`, failed, "DENY"],
+  ["dash <(cat here-doc)", `dash <(cat <<'EOF'\n${GC} -m x\nEOF\n)`, failed, "DENY"],
+  ["unquoted cat body runs $(…)", `cat > notes.md <<EOF\n$(${GC} -m x)\nEOF`, failed, "DENY"],
 ];
 
 let failedCount = 0;
