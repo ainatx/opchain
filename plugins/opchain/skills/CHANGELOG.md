@@ -50,6 +50,17 @@ checkpoint `protocol_version` is tracked separately (see
   quotes; and a command inside `"$(…)"` is judged like the same command outside
   it, so a dry run that pipes a payload naming `git commit` into `sh -c "…"` is
   denied there too.
+- **Commit gate (plugin) — `exec`, `caffeinate`, `builtin` and `script` are
+  transparent prefixes too.** `exec git commit` replaces the shell with git and
+  committed past the gate; `exec` was simply missing from the prefix chain that
+  already covered `nice`, `time` and `sudo`. So did `caffeinate git commit`,
+  `builtin exec git commit`, `builtin eval 'git commit …'`, `exec sh -c '…'` and
+  `script -q /dev/null git commit` (its log-file argument is a value token before
+  git). Each was verified to create a real commit under a pty. **Stricter:** these
+  forms now deny; `caffeinate git status`, `script … git log`, `exec ls` and
+  quoted phrases like `echo "exec git commit"` stay allowed. `doas`, `chronic`,
+  `unbuffer`, `watch` and `parallel` were probed too but were absent on the test
+  box, so none could be confirmed to commit and none was added.
 - **oc-bug-check** — the Checkpoint Schema documents `last_run_verdict` and
   `verified_tree`, and a new Commit gate contract section gives the exact tree
   recipe: `git add -A` into a throwaway index. The `/oc-bugcheck` command had said
