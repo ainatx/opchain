@@ -4,31 +4,33 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-08-27T23:49:17.485Z",
-  "updated_at": "2026-09-02T21:49:57.000Z",
+  "updated_at": "2026-09-11T04:05:36.049Z",
   "phase": "production",
-  "step": "v1.9-production-verified",
-  "status": "complete",
-  "progress_summary": "v1.9.0 production shipped at exact signed runtime SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248. Cloudflare deployment 54ef8a21-0665-4a83-bc1a-5768c2bae0d5 serves version 01bbe46b-3533-4faa-bc1a-d140cbcecbbe at 100% traffic; staging deployment 791c1851-2b81-4408-b881-dac381fa6d07 serves version d07bb08a-9662-4e77-a2a1-673fc0c7a8a5. Hardening replay, smoke, live MCP acceptance, visual review, and all 7 post-deploy gates passed. Staging's first attempt safely auto-rolled back on a bounded health-convergence miss and the retry passed; production did not roll back. Monitoring baseline PR #478 and its authenticated default-branch validation runs are green.",
+  "step": "v1.9-baseline-superseded-by-2026-09-05-production-deploy",
+  "status": "in_progress",
+  "progress_summary": "Production no longer serves the approved v1.9.0 baseline. opchain.dev/api/health reports 78567c2 (merge of PR #483, 2026-09-05 01:57Z) from Cloudflare deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72; the approved record is 244bf13 at deployment 54ef8a21-0665-4a83-bc1a-5768c2bae0d5. The deploy happened between 01:57Z and the 13:49Z scheduled Canary on Sept 5 and was not followed by a baseline refresh or a checkpoint update. Staging serves fbb24a8, a SHA on no origin branch, so it is an off-main branch preview. The owner confirmed on 2026-09-11 that the 78567c2 deploy was deliberate and is to be blessed. deploy.mjs now ends every deploy with a stale-baseline warning so this cannot go unnoticed again.",
   "blockers": [],
   "next_actions": [
-    "Retain production predecessor version c55ae124-ff35-4924-80af-00e92bd8879c until v1.9 is considered stable.",
-    "Let oc-monitoring-ops observe the first scheduled v1.9 Canary and Deploy lag cycle on September 5."
+    "Laptop: npx wrangler deployments list --json and versions view for deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72 (version id + script etag), then record them in .github/monitoring/release-baseline.json with sourceSha 78567c2d70e6f00836000e4bd6bbad842ba04a42.",
+    "Laptop: npm run deploy:staging from main@78567c2 so staging stops serving the off-main preview fbb24a8, then record the staging ids in the same baseline update.",
+    "Laptop: node .github/scripts/cloudflare-monitor.mjs control-plane && deploy-diff with credentials, open the baseline PR, dispatch Canary and Deploy lag after merge.",
+    "Retain production predecessor version c55ae124-ff35-4924-80af-00e92bd8879c until the re-baselined state is verified."
   ],
   "skill_state": {
     "current_env": "production",
-    "staging_version": "244bf13",
-    "prod_version": "244bf13",
-    "production_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
-    "target_version": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
-    "cloudflare_version_id": "01bbe46b-3533-4faa-bc1a-d140cbcecbbe",
-    "cloudflare_deployment_id": "54ef8a21-0665-4a83-bc1a-5768c2bae0d5",
+    "staging_version": "fbb24a8",
+    "prod_version": "78567c2",
+    "production_sha": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
+    "target_version": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
+    "cloudflare_version_id": "unknown until wrangler deployments list runs on the laptop",
+    "cloudflare_deployment_id": "8da6c19d-a89a-4214-8e58-4606c7ce2f72",
     "staging_cloudflare_version_id": "d07bb08a-9662-4e77-a2a1-673fc0c7a8a5",
     "staging_cloudflare_deployment_id": "791c1851-2b81-4408-b881-dac381fa6d07",
     "staging_url": "https://staging.opchain.dev",
     "production_url": "https://opchain.dev",
-    "branch_preview": false,
+    "branch_preview": true,
     "last_deploy": "2026-09-02T20:11:25.746861Z",
-    "source_pr": 477,
+    "source_pr": 483,
     "audit_gate": {
       "critical": 0,
       "high": 0,
@@ -129,6 +131,49 @@
       "deployment_id": "bf2ee2b8-8d1e-4155-89cb-fcd91b45ff00",
       "cloudflare_version_id": "c55ae124-ff35-4924-80af-00e92bd8879c",
       "reason": "Captured active production predecessor; retained because production rollback was not needed."
+    },
+    "unrecorded_deploy": {
+      "detected_at": "2026-09-11T03:45:00Z",
+      "live_version": "78567c2",
+      "live_sha": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
+      "deployment_id": "8da6c19d-a89a-4214-8e58-4606c7ce2f72",
+      "window": "2026-09-05T01:57:35Z to 2026-09-05T13:49:39Z",
+      "approved_baseline": {
+        "tag": "v1.9.0",
+        "sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
+        "deployment_id": "54ef8a21-0665-4a83-bc1a-5768c2bae0d5"
+      },
+      "staging_live_version": "fbb24a8",
+      "staging_note": "not on any origin branch; OPCHAIN_ALLOW_OFF_MAIN_STAGING preview of the 2.0 colour work",
+      "owner_decision": "bless and re-baseline (2026-09-11)",
+      "failed_monitor_runs": [
+        33970020249,
+        33971641171,
+        34359976498,
+        34363685054
+      ]
     }
-  }
+  },
+  "progress_table": [
+    {
+      "id": "v1-9-production",
+      "label": "v1.9.0 production shipped and verified at 244bf13",
+      "status": "complete"
+    },
+    {
+      "id": "unrecorded-deploy",
+      "label": "2026-09-05 production deploy of 78567c2 identified and blessed by the owner",
+      "status": "complete"
+    },
+    {
+      "id": "baseline-refresh",
+      "label": "release-baseline.json refreshed to deployment 8da6c19d (laptop, needs credentials)",
+      "status": "blocked"
+    },
+    {
+      "id": "staging-realign",
+      "label": "staging redeployed from 78567c2 instead of the off-main preview fbb24a8",
+      "status": "blocked"
+    }
+  ]
 }

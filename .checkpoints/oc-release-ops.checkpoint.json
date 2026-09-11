@@ -3,22 +3,58 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-02T21:49:57.000Z",
+  "updated_at": "2026-09-11T04:05:36.112Z",
   "skill": "oc-release-ops",
   "phase": "shipped",
   "step": "v1.9-release-signed-off",
   "status": "complete",
   "progress_summary": "v1.9.0, Assurance and governed delivery ops, is signed off and live. Release PR #477 merged at exact SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248; signed annotated tag v1.9.0 is verified locally and by GitHub; Registry run 33677209947 published the active/latest exact manifest. Staging and production serve health version 244bf13 at 100% traffic after hardening, smoke, MCP acceptance, visual, and 7/7 post-deploy gates. The sealed 16-record legacy checkpoint set was deleted without touching unrelated KV data, milestone #1 is closed, and monitoring baseline PR #478 plus authenticated Canary and Deploy lag dispatches are green. The next scheduled monitoring cycle remains tracked by oc-monitoring-ops and does not block the shipped release.",
   "progress_table": [
-    { "id": "scope", "label": "v1.9 scope and compatibility", "status": "complete" },
-    { "id": "assurance", "label": "QA, compliance, and hardening gates", "status": "complete" },
-    { "id": "pre-merge", "label": "Complete local pre-merge workflow ledger", "status": "complete" },
-    { "id": "release-pr", "label": "Release PR merged to main", "status": "complete" },
-    { "id": "signed-tag", "label": "Signed immutable v1.9.0 tag", "status": "complete" },
-    { "id": "registry", "label": "MCP Registry v1.9.0 active and latest", "status": "complete" },
-    { "id": "staging", "label": "Exact-main staging deploy and live review", "status": "complete" },
-    { "id": "production", "label": "Exact-tag production deploy and verification", "status": "complete" },
-    { "id": "closeout", "label": "Retention purge, roadmap, monitoring baseline, and release sign-off", "status": "complete" }
+    {
+      "id": "scope",
+      "label": "v1.9 scope and compatibility",
+      "status": "complete"
+    },
+    {
+      "id": "assurance",
+      "label": "QA, compliance, and hardening gates",
+      "status": "complete"
+    },
+    {
+      "id": "pre-merge",
+      "label": "Complete local pre-merge workflow ledger",
+      "status": "complete"
+    },
+    {
+      "id": "release-pr",
+      "label": "Release PR merged to main",
+      "status": "complete"
+    },
+    {
+      "id": "signed-tag",
+      "label": "Signed immutable v1.9.0 tag",
+      "status": "complete"
+    },
+    {
+      "id": "registry",
+      "label": "MCP Registry v1.9.0 active and latest",
+      "status": "complete"
+    },
+    {
+      "id": "staging",
+      "label": "Exact-main staging deploy and live review",
+      "status": "complete"
+    },
+    {
+      "id": "production",
+      "label": "Exact-tag production deploy and verification",
+      "status": "complete"
+    },
+    {
+      "id": "closeout",
+      "label": "Retention purge, roadmap, monitoring baseline, and release sign-off",
+      "status": "complete"
+    }
   ],
   "context_primer": {
     "key_decisions": [
@@ -42,12 +78,32 @@
     ]
   },
   "blockers": [],
-  "next_actions": [],
+  "next_actions": [
+    "Laptop: bless the 2026-09-05 production deploy of 78567c2 by refreshing .github/monitoring/release-baseline.json (deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72), redeploying staging from the same SHA, verifying with cloudflare-monitor.mjs, and opening the baseline PR.",
+    "Decide the historical tag backfill: docs/runbooks/release-tag-backfill.md carries signed-tag commands for the 10 untagged releases behind issue #464.",
+    "v2.0 build PR #490 is merge-conflicted with main in 12 files and its six newest commits have never run CI; the branch owner merges main before the cut."
+  ],
   "pm_refs": [
-    { "provider": "github", "id": "8", "role": "source" },
-    { "provider": "github", "id": "9", "role": "source" },
-    { "provider": "github", "id": "10", "role": "source" },
-    { "provider": "github", "id": "11", "role": "source" }
+    {
+      "provider": "github",
+      "id": "8",
+      "role": "source"
+    },
+    {
+      "provider": "github",
+      "id": "9",
+      "role": "source"
+    },
+    {
+      "provider": "github",
+      "id": "10",
+      "role": "source"
+    },
+    {
+      "provider": "github",
+      "id": "11",
+      "role": "source"
+    }
   ],
   "skill_state": {
     "current_release": {
@@ -63,7 +119,11 @@
       "source_sha": "395fc314c836d5d9d8a76b64d85b8380ece3a68b",
       "shipped_at": "2026-08-29"
     },
-    "catalog": { "version": "1.9.0", "skills": 33, "previous_skills": 29 },
+    "catalog": {
+      "version": "1.9.0",
+      "skills": 33,
+      "previous_skills": 29
+    },
     "pre_merge": {
       "verdict": "PASS",
       "workflow_steps": 11,
@@ -145,7 +205,12 @@
       "milestone_number": 1,
       "milestone_status": "closed",
       "closed_at": "2026-09-02T20:06:33Z",
-      "shipped_open_issues": [8, 9, 10, 11],
+      "shipped_open_issues": [
+        8,
+        9,
+        10,
+        11
+      ],
       "label": "roadmap:shipped"
     },
     "monitoring": {
@@ -156,7 +221,15 @@
       "deploy_lag_run_id": 33686714194,
       "deploy_lag_conclusion": "success",
       "deploy_relevant_paths": 0,
-      "continuous_status": "v1.9 baseline verified; first scheduled cycle tracked separately"
+      "continuous_status": "stale since 2026-09-05: production moved to 78567c2 without a baseline refresh; re-baseline pending on the laptop"
+    },
+    "post_release_drift": {
+      "detected_at": "2026-09-11T03:45:00Z",
+      "production_live": "78567c2",
+      "approved_baseline": "244bf13 (v1.9.0)",
+      "catalog_version_unchanged": "1.9.0 — a content deploy, no release tag needed",
+      "monitoring": "Canary + Deploy lag scheduled runs failed 2026-09-05 and 2026-09-09; tracked by oc-monitoring-ops",
+      "ledger": "issue #464 open: 10 of 15 shipped releases untagged; backfill runbook drafted"
     }
   }
 }
