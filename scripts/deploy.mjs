@@ -327,8 +327,12 @@ function warnIfBaselineStale(liveVersion) {
     console.warn(`[deploy:${TARGET}] ⚠ could not read ${path.relative(REPO_ROOT, BASELINE)}: ${err.message}`);
     return;
   }
-  const approved = baseline?.release?.sourceShortSha;
-  const tag = baseline?.release?.tag;
+  // The approved runtime is the tagged release unless a reviewed post-release
+  // hotfix is recorded as `runtime` (docs/runbooks/cloudflare-challenge.md).
+  const approved = baseline?.runtime?.shortSha ?? baseline?.release?.sourceShortSha;
+  const tag = baseline?.runtime?.shortSha
+    ? `${baseline?.release?.tag} + approved runtime`
+    : baseline?.release?.tag;
   const recorded = baseline?.environments?.[TARGET];
   if (approved && liveVersion && liveVersion.startsWith(approved)) {
     console.log(`[deploy:${TARGET}] baseline ${tag} (${approved}) still describes what is live; no refresh needed`);
