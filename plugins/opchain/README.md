@@ -61,8 +61,11 @@ unless oc-bug-check recorded a PASS *for the tree you are committing*.
 - **Command-position matching.** `echo "git commit"` and `grep -rn 'git commit'`
   are not commits. The ancestor matched them by substring; false positives train
   people to bypass, which costs you the true positives too. A wrapper
-  (`sh -c '…'`, `eval "…"`, `… | sh`) has its nested text re-scanned, but only
-  the text that wrapper can run — quoted data elsewhere in the call stays data.
+  (`sh -c '…'`, `eval "…"`, `… | sh`, `find -exec sh -c '…'`) has its nested
+  text re-scanned, but only the text that wrapper can run — quoted data elsewhere
+  in the call stays data. The command is also read the way bash reads it: a
+  `$(…)` or `` `…` `` inside double quotes or an unquoted here-document is a
+  command, `\git` and `"git"` are git, and a quoted `<<'EOF'` body is prose.
 - **UNSUPPORTED ≠ PASS.** A gate that could not read your stack must not report
   green.
 

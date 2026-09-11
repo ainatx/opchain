@@ -51,6 +51,16 @@
 //            closed. Fixed: the re-scan covers only what the wrapper can run, a
 //            wrapper is found in the same command position as `git`, the prefix
 //            grammar parses one way, and quote spans follow bash's rules.
+//   GATE-08  Quoted text was data to every matcher, but bash reads inside it.
+//            `echo "$(git commit -m x)"` committed: a substitution runs inside
+//            double quotes. So did `` echo `git commit -m x` `` (a backtick was
+//            no command position), `\git commit` and `"git" commit` (bash
+//            removes quotes before it looks a command up), `\sh -c '…'`, and
+//            `find . -exec sh -c '…' \;` (a command in argument position). A
+//            here-document body or a comment quotes nothing, so the apostrophe
+//            in `don't` there opened a span that hid the commit after it. Fixed:
+//            the command is read a second time the way bash reads it, and a
+//            commit found by either reading is a commit.
 //
 // The through-line: every one of these failed OPEN. A gate whose error path is
 // "allow" is a formality, not a gate. Hence rule 0.
@@ -149,12 +159,13 @@ const stripped = joined.replace(SPAN, (m) => (m[0] === "\\" ? m : ""));
  * did exactly that, and it blocked this file's own test runs twice.) False
  * positives teach people to bypass, which costs the true positives too.
  *
- * So: `git` must be in command position — start of string, or after a shell
- * separator or group opener — and `commit` must be its subcommand. Global
+ * So: `git` must be in command position — start of string, after a shell
+ * separator or group opener, or after `find`'s `-exec`, which runs the words
+ * that follow it (GATE-08) — and `commit` must be its subcommand. Global
  * options taking a SEPARATE value token (`-C <dir>`, `-c <k=v>`) are consumed
  * explicitly; v1 missed those (GATE-04).
  */
-const CMD_POS = String.raw`(?:^|[;&|\n(){]|&&|\|\||\bdo\b|\bthen\b|\belse\b)`;
+const CMD_POS = String.raw`(?:^|[;&|\n(){]|&&|\|\||\bdo\b|\bthen\b|\belse\b|\s-(?:exec|execdir|ok|okdir)\s)`;
 const ENVPFX = String.raw`(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*`;
 // Prefix commands that exec git transparently — `nice git`, `stdbuf -oL git`,
 // `time git`, `flock /l git`, `xargs git`. Allow a chain of them, each with its
@@ -189,8 +200,10 @@ const unquoted = joined.replace(/['"]/g, " ");
 // Inside a wrapper's argument the nested command follows `-c` and whitespace,
 // not a shell separator, so the strict command-position anchor cannot match.
 // Having already established this IS a wrapper invocation, accept `git … commit`
-// at any whitespace boundary within it.
-const GIT_COMMIT_LOOSE = new RegExp(String.raw`(?:^|\s)${ENVPFX}${PREFIX}${GIT}\s+${GITOPT}commit(?![-\w])`);
+// at any whitespace boundary within it — or after a separator, `(` or backtick,
+// since `sh -c 'true;git commit'` and `sh -c 'echo $(git commit)'` put nothing
+// between them and git (GATE-08).
+const GIT_COMMIT_LOOSE = new RegExp(String.raw`(?:^|[\s;&|(){}\x60])${ENVPFX}${PREFIX}${GIT}\s+${GITOPT}commit(?![-\w])`);
 
 /**
  * The simple commands of `masked`, as [start, end, piped]. Split at unquoted
@@ -252,7 +265,332 @@ function wrapperRunsCommit() {
   return false;
 }
 
-if (!(GIT_COMMIT.test(stripped) || wrapperRunsCommit())) {
+// ── the shell reading (GATE-08) ─────────────────────────────────────────────
+// Everything above reads a quoted span as data and never looks inside it again.
+// Bash does. `$(…)` and `` `…` `` run wherever they appear outside single
+// quotes: inside double quotes, and in an unquoted here-document body. Bash
+// removes quote marks and escapes before it looks a command up, so `\git`,
+// `"git"` and `g\it` all run git. And a here-document body or a comment quotes
+// nothing, so an apostrophe there must not open a span.
+//
+// So the command is read a second time, the way bash reads it: one pass that
+// labels every character and lifts out each command substitution as a command
+// of its own, checked by the same matchers. A commit found by either reading is
+// a commit. The span reading stays: it shows a top-level here-document body to
+// the strict matcher, the only cover for a stdin consumer no wrapper list names
+// (`dash <<EOF`, `ssh host bash <<EOF`) — and beside it, this reading can add a
+// denial but never remove one.
+const SYN = 0; // shell syntax: unquoted, unescaped
+const LIT = 1; // literal text: quoted or escaped
+const QUO = 2; // what quote removal deletes: quote marks, escaping backslashes
+
+/**
+ * Read `src` as bash would, returning its top command. A command is
+ * { src, kinds, start, end, skip, subs }: `kinds` labels each character; `skip`
+ * maps where a substitution (read as `_`) or a here-document body (read as
+ * nothing) starts to [end, reading]; `subs` holds every command bash runs on
+ * this one's behalf — substitutions in its text, in its double quotes, and in
+ * its unquoted here-document bodies.
+ *
+ * An unterminated quote or substitution runs to the end: bash runs nothing past
+ * it. A `<<` with no delimiter line is not a here-document — `((x<<=1))` is
+ * arithmetic — so what follows it stays visible. Delimiter lines are looked up
+ * in an index, not scanned for per `<<`, so no input shape outruns the hook's
+ * timeout (a killed hook writes no deny).
+ */
+function readShell(src) {
+  const n = src.length;
+  const kinds = new Uint8Array(n); // SYN until labelled
+  let lim = n; // narrowed while an unquoted here-document body is read
+  let lines = null;
+
+  const command = (start) => ({ src, kinds, start, end: n, skip: new Map(), subs: [] });
+
+  function top(cmd, i, nested) {
+    let depth = 0;
+    let pending = [];
+    while (i < lim) {
+      const c = src[i];
+      const d = i + 1 < lim ? src[i + 1] : "";
+      if (c === "\\" && d) {
+        kinds[i] = QUO;
+        kinds[i + 1] = d === "\n" ? QUO : LIT;
+        i += 2;
+      } else if (c === "'") i = single(i);
+      else if (c === "$" && d === "'") i = ansi(i);
+      else if (c === '"') i = double(cmd, i);
+      else if (c === "`") i = backtick(cmd, i, false);
+      else if ((c === "$" || c === "<" || c === ">") && d === "(") i = paren(cmd, i);
+      else if (c === "#" && (i === cmd.start || /[\s;&|()]/.test(src[i - 1]))) {
+        // A comment stays visible to the matchers, as it always was; it just quotes nothing.
+        const eol = src.indexOf("\n", i);
+        i = eol < 0 || eol >= lim ? lim : eol;
+      } else if (c === "<" && d === "<" && src[i + 2] === "<") i += 3; // a here-string
+      else if (c === "<" && d === "<") {
+        const h = delimiter(i + 2);
+        if (h) pending.push(h);
+        i += 2;
+      } else if (c === "\n" && pending.length) {
+        i++;
+        for (const h of pending) i = heredoc(cmd, i, h);
+        pending = [];
+      } else if (c === ")" && nested && depth === 0) return i;
+      else {
+        if (c === "(") depth++;
+        else if (c === ")" && depth > 0) depth--;
+        i++;
+      }
+    }
+    return lim;
+  }
+
+  // '…' — nothing escapes inside.
+  function single(i) {
+    let close = src.indexOf("'", i + 1);
+    if (close < 0 || close >= lim) close = lim;
+    kinds[i] = QUO;
+    kinds.fill(LIT, i + 1, close);
+    if (close === lim) return lim;
+    kinds[close] = QUO;
+    return close + 1;
+  }
+
+  // $'…' — backslash escapes, \' included.
+  function ansi(i) {
+    kinds[i] = kinds[i + 1] = QUO;
+    let j = i + 2;
+    for (; j < lim && src[j] !== "'"; j++) {
+      kinds[j] = LIT;
+      if (src[j] === "\\" && j + 1 < lim) kinds[++j] = LIT;
+    }
+    if (j < lim) kinds[j++] = QUO;
+    return j;
+  }
+
+  // "…" — `\` escapes only $ ` " \ and newline; $(…), `…` and ${…} still expand.
+  function double(cmd, i) {
+    kinds[i] = QUO;
+    for (let j = i + 1; j < lim; ) {
+      const c = src[j];
+      const d = j + 1 < lim ? src[j + 1] : "";
+      if (c === '"') {
+        kinds[j] = QUO;
+        return j + 1;
+      }
+      if (c === "\\" && d && '$`"\\\n'.includes(d)) {
+        kinds[j] = QUO;
+        kinds[j + 1] = d === "\n" ? QUO : LIT;
+        j += 2;
+      } else if (c === "$" && d === "(") j = paren(cmd, j);
+      else if (c === "`") j = backtick(cmd, j, true);
+      else if (c === "$" && d === "{") j = brace(cmd, j);
+      else kinds[j++] = LIT;
+    }
+    return lim;
+  }
+
+  // ${…} inside double quotes: a " opens a nested string rather than closing the
+  // outer one, and $(…) and `…` still expand.
+  function brace(cmd, i) {
+    kinds[i] = kinds[i + 1] = LIT;
+    for (let j = i + 2; j < lim; ) {
+      const c = src[j];
+      const d = j + 1 < lim ? src[j + 1] : "";
+      if (c === "}") {
+        kinds[j] = LIT;
+        return j + 1;
+      }
+      if (c === "\\" && d) {
+        kinds[j] = kinds[j + 1] = LIT;
+        j += 2;
+      } else if (c === '"') j = double(cmd, j);
+      else if (c === "$" && d === "(") j = paren(cmd, j);
+      else if (c === "`") j = backtick(cmd, j, true);
+      else if (c === "$" && d === "{") j = brace(cmd, j);
+      else kinds[j++] = LIT;
+    }
+    return lim;
+  }
+
+  // $(…), <(…), >(…) — a command of its own, up to its unmatched ).
+  function paren(cmd, i) {
+    const sub = command(i + 2);
+    sub.end = top(sub, i + 2, true);
+    const to = Math.min(sub.end + 1, lim);
+    cmd.skip.set(i, [to, "_"]);
+    cmd.subs.push(sub);
+    return to;
+  }
+
+  // `…` — unescape \` \$ \\ (and \" inside double quotes), then read the body as
+  // a command of its own.
+  function backtick(cmd, i, inDouble) {
+    const escapes = inDouble ? '`$\\"' : "`$\\";
+    let body = "";
+    let j = i + 1;
+    for (; j < lim && src[j] !== "`"; j++) {
+      if (src[j] === "\\" && j + 1 < lim && escapes.includes(src[j + 1])) j++;
+      body += src[j];
+    }
+    const to = Math.min(j + 1, lim);
+    cmd.skip.set(i, [to, "_"]);
+    cmd.subs.push(readShell(body));
+    return to;
+  }
+
+  // The delimiter after << or <<-: its word with quotes removed, and whether any
+  // part of it was quoted.
+  function delimiter(j) {
+    const tabs = src[j] === "-";
+    if (tabs) j++;
+    while (src[j] === " " || src[j] === "\t") j++;
+    let word = "";
+    let quoted = false;
+    while (j < lim && !/[\s;&|()<>]/.test(src[j])) {
+      const c = src[j];
+      if (c === "'" || c === '"') {
+        const close = src.indexOf(c, j + 1);
+        if (close < 0 || close >= lim) return null;
+        word += src.slice(j + 1, close);
+        quoted = true;
+        j = close + 1;
+      } else if (c === "\\") {
+        word += src[j + 1] || "";
+        quoted = true;
+        j += 2;
+      } else {
+        word += c;
+        j++;
+      }
+    }
+    return word || quoted ? { word, quoted, tabs } : null;
+  }
+
+  // A here-document body runs from `i` through the first later line that is
+  // exactly its delimiter (leading tabs stripped, for <<-). Quoted, it is data.
+  // Unquoted, its $(…) and `…` run.
+  function heredoc(cmd, i, h) {
+    if (!lines) {
+      lines = new Map(); // line text → starts; "\n" + text for the tab-stripped form
+      for (let at = 0; at < n; ) {
+        let eol = src.indexOf("\n", at);
+        if (eol < 0) eol = n;
+        const line = src.slice(at, eol);
+        for (const key of [line, "\n" + line.replace(/^\t+/, "")]) {
+          if (!lines.has(key)) lines.set(key, []);
+          lines.get(key).push(at);
+        }
+        at = eol + 1;
+      }
+    }
+    const starts = lines.get(h.tabs ? "\n" + h.word : h.word) || [];
+    let lo = 0;
+    for (let hi = starts.length; lo < hi; ) {
+      const mid = (lo + hi) >> 1;
+      if (starts[mid] < i) lo = mid + 1;
+      else hi = mid;
+    }
+    const at = starts[lo];
+    if (at === undefined || at >= lim) return i; // no delimiter line: not a here-document
+    if (!h.quoted) {
+      const outer = lim;
+      lim = at;
+      expand(cmd, i);
+      lim = outer;
+    }
+    const eol = src.indexOf("\n", at);
+    const end = eol < 0 || eol >= lim ? lim : eol + 1;
+    cmd.skip.set(i, [end, ""]); // after expand(), whose substitutions it covers
+    return end;
+  }
+
+  // An unquoted here-document body: quote marks are literal characters, but
+  // `\` escapes and substitutions work.
+  function expand(cmd, i) {
+    while (i < lim) {
+      const c = src[i];
+      if (c === "\\") i += 2;
+      else if (c === "$" && src[i + 1] === "(") i = paren(cmd, i);
+      else if (c === "`") i = backtick(cmd, i, false);
+      else i++;
+    }
+  }
+
+  const root = command(0);
+  top(root, 0, false);
+  return root;
+}
+
+/**
+ * One command's views in the shell reading:
+ *   words    — what the matchers read. Quote marks and escapes are gone and
+ *              quoted text joins its word, so `"git" commit` reads `git commit`;
+ *              a quoted character that would be syntax reads `_`, so
+ *              `echo "a; git commit"` stays one word. A substitution reads `_`;
+ *              a here-document body reads as nothing.
+ *   stripped — for the bypass flag: every quoted or escaped character reads `_`.
+ *   masked   — position-aligned with the command's text, syntax only.
+ *   at       — a masked offset → its offset in `words`.
+ */
+function shellViews(cmd) {
+  const { src, kinds, start, end, skip } = cmd;
+  let words = "";
+  let stripped = "";
+  let masked = "";
+  const at = new Int32Array(end - start + 1);
+  for (let i = start; i < end; ) {
+    at[i - start] = words.length;
+    const s = skip.get(i);
+    if (s) {
+      const to = Math.min(s[0], end);
+      words += s[1];
+      stripped += s[1];
+      masked += " ".repeat(to - i);
+      i = to;
+      continue;
+    }
+    const c = src[i];
+    if (kinds[i] === SYN) {
+      words += c;
+      stripped += c;
+      masked += c;
+    } else {
+      if (kinds[i] === LIT) {
+        words += /[\s;&|()<>{}`$'"\\=#]/.test(c) ? "_" : c;
+        stripped += "_";
+      }
+      masked += " ";
+    }
+    i++;
+  }
+  at[end - start] = words.length;
+  return { words, stripped, masked, at };
+}
+
+/**
+ * The shell reading's verdict: the strict matcher over `words`; the wrapper
+ * re-scan, with wrappers found in `words` (`\sh`, `"sh"`) and each wrapper's
+ * scope read with its quote marks and backslashes both blanked (`sh -c '\git
+ * commit'`) and deleted (`sh -c 'g"i"t commit'`); then every substitution.
+ */
+function shellRunsCommit(cmd) {
+  const v = shellViews(cmd);
+  if (GIT_COMMIT.test(v.words)) return true;
+  for (const [start, end, piped] of simpleCommands(v.masked)) {
+    if (!WRAPPER.test(v.words.slice(v.at[start], v.at[end]))) continue;
+    const from = piped ? 0 : start;
+    // A here-document upstream of a pipe feeds this wrapper too.
+    const to = v.masked.slice(from, end).includes("<<") ? v.masked.length : end;
+    const scope = cmd.src.slice(cmd.start + from, cmd.start + to);
+    if (GIT_COMMIT_LOOSE.test(scope.replace(/['"\\]/g, " "))) return true;
+    if (GIT_COMMIT_LOOSE.test(scope.replace(/['"\\]/g, ""))) return true;
+  }
+  return cmd.subs.some(shellRunsCommit);
+}
+
+const shell = readShell(rawCommand);
+
+if (!(GIT_COMMIT.test(stripped) || wrapperRunsCommit() || shellRunsCommit(shell))) {
   allow();
 }
 
@@ -270,9 +608,12 @@ if (
   allow();
 }
 
-// Explicit, logged bypass — matched on `stripped`, in argument position, so a
-// commit message mentioning the flag cannot trigger it (GATE-01b).
-if (/(?:^|\s)(?:--no-verify|OPCHAIN_BYPASS=1)(?:\s|$)/.test(stripped)) {
+// Explicit, logged bypass — in argument position, and outside quotes in BOTH
+// readings, so neither a commit message (GATE-01b) nor a span one reading closed
+// in the wrong place (GATE-08: `don't` in here-document prose, then
+// `-m ' --no-verify '`) can trigger it.
+const BYPASS = /(?:^|\s)(?:--no-verify|OPCHAIN_BYPASS=1)(?:\s|$)/;
+if (BYPASS.test(stripped) && BYPASS.test(shellViews(shell).stripped)) {
   process.stderr.write("[opchain] ⚠ commit gate bypassed explicitly (--no-verify / OPCHAIN_BYPASS=1)\n");
   allow();
 }
