@@ -61,6 +61,18 @@
 //            in `don't` there opened a span that hid the commit after it. Fixed:
 //            the command is read a second time the way bash reads it, and a
 //            commit found by either reading is a commit.
+//   GATE-09  `exec git commit` committed past the gate. `exec` replaces the
+//            shell with the command after it, transparently, exactly like
+//            `nice` — but it was absent from the prefix chain, so `git` was
+//            never read in command position. The same held for `caffeinate git
+//            commit`, `builtin exec git commit`, `builtin eval '…'`, and
+//            `script -q /dev/null git commit` (whose log-file argument is a
+//            value token before git). Each was verified to create a real commit
+//            under a pty, and `bash -n` accepts all of them. `doas`, `chronic`,
+//            `unbuffer`, `watch` and `parallel` were probed alongside them but
+//            were absent on the box, so none could be confirmed to commit; they
+//            are left out until a probe can actually run them. Fixed: `exec`,
+//            `builtin`, `caffeinate` and `script` join the prefix chain.
 //
 // The through-line: every one of these failed OPEN. A gate whose error path is
 // "allow" is a formality, not a gate. Hence rule 0.
@@ -167,13 +179,18 @@ const stripped = joined.replace(SPAN, (m) => (m[0] === "\\" ? m : ""));
  */
 const CMD_POS = String.raw`(?:^|[;&|\n(){]|&&|\|\||\bdo\b|\bthen\b|\belse\b|\s-(?:exec|execdir|ok|okdir)\s)`;
 const ENVPFX = String.raw`(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*`;
-// Prefix commands that exec git transparently — `nice git`, `stdbuf -oL git`,
-// `time git`, `flock /l git`, `xargs git`. Allow a chain of them, each with its
-// own flags/values, between command position and git (GATE-04 r2). A value may
-// not itself be a prefix name: if it could, `time time … ls` parses 2^n ways,
-// and 26 of them outran the hook's 10s timeout — a killed hook writes no deny
-// (GATE-07). No match is lost: such a token still parses as the next prefix.
-const PREFIXES = "nice|stdbuf|time|setsid|flock|ionice|timeout|env|command|sudo|nohup|xargs";
+// Prefix commands that exec the command after them transparently — `nice git`,
+// `stdbuf -oL git`, `time git`, `flock /l git`, `xargs git`, and (GATE-09)
+// `exec git`, `caffeinate git`, `builtin exec git`, `script -q /dev/null git`
+// (the log-file is a value token, not a flag). Allow a chain of them, each with
+// its own flags/values, between command position and git (GATE-04 r2). A value
+// may not itself be a prefix name: if it could, `time time … ls` parses 2^n
+// ways, and 26 of them outran the hook's 10s timeout — a killed hook writes no
+// deny (GATE-07). Adding names only shrinks that ambiguity (more tokens are
+// forbidden as values), never grows it. No match is lost: such a token still
+// parses as the next prefix.
+const PREFIXES =
+  "nice|stdbuf|time|setsid|flock|ionice|timeout|env|command|sudo|nohup|xargs|exec|builtin|caffeinate|script";
 const PREFIX = String.raw`(?:(?:${PREFIXES})(?:\s+-\S+|\s+(?!(?:${PREFIXES})\s)[^\s-]\S*)*\s+)*`;
 // `git`, or an absolute/relative path to it (`/usr/bin/git`) — GATE-04 r2.
 const GIT = String.raw`(?:[^\s;&|()]*/)?git`;

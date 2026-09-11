@@ -366,6 +366,34 @@ const cases = [
   ["find -exec grep phrase", `find . -name '*.md' -exec grep -l '${GC}' {} +`, failed, "ALLOW"],
   ["$((1<<2)) arithmetic", `echo "$((1<<2))"; git log -1 --format="%s $(date)"`, failed, "ALLOW"],
   ["genuine --no-verify, $(…) msg", `${GC} --no-verify -m "$(cat msg.txt)"`, failed, "ALLOW"],
+
+  // GATE-09 — exec-style prefixes that run the command after them. Each DENY was
+  // verified to create a real commit under a pty on 2026-09-11 (and `bash -n`
+  // accepts it); each ALLOWed past the gate before `exec`, `builtin`,
+  // `caffeinate` and `script` joined the prefix chain. `doas`, `chronic`,
+  // `unbuffer`, `watch` and `parallel` were probed too but were absent on the
+  // box, so none could be confirmed to commit and none was added.
+  ["exec git commit", `exec ${GC} -m x`, failed, "DENY"],
+  ["exec -a name git commit", `exec -a nm ${GC} -m x`, failed, "DENY"],
+  ["exec sh -c wrapper", `exec sh -c '${GC} -m x'`, failed, "DENY"],
+  ["caffeinate git commit", `caffeinate ${GC} -m x`, failed, "DENY"],
+  ["caffeinate -i git commit", `caffeinate -i ${GC} -am x`, failed, "DENY"],
+  ["builtin exec git commit", `builtin exec ${GC} -m x`, failed, "DENY"],
+  ["builtin eval wrapper", `builtin eval '${GC} -m x'`, failed, "DENY"],
+  ["script -q /dev/null git commit", `script -q /dev/null ${GC} -m x`, failed, "DENY"],
+  ["exec chained after &&", `git add -A && exec ${GC} -m x`, failed, "DENY"],
+  ["$(exec git commit) in dq", `echo "$(exec ${GC} -m x)"`, failed, "DENY"],
+  // …and the new prefixes leave data and non-commit subcommands alone
+  ["exec a non-git command", `exec ls -la`, failed, "ALLOW"],
+  ["caffeinate git status", `caffeinate git status`, failed, "ALLOW"],
+  ["script recording, no command", `script session.log`, failed, "ALLOW"],
+  ["script … git log (not commit)", `script -q /dev/null git log -1`, failed, "ALLOW"],
+  ["builtin cd, no commit", `builtin cd /tmp`, failed, "ALLOW"],
+  ["echo mentions exec commit", `echo "exec ${GC}"`, failed, "ALLOW"],
+  ["grep for caffeinate phrase", `grep -rn 'caffeinate ${GC}' docs/`, failed, "ALLOW"],
+  // the enlarged alternation must still parse linearly (GATE-07)
+  ["40 caffeinate words, no commit", `${"caffeinate ".repeat(40)}ls ; sh -c 'ls'`, failed, "ALLOW"],
+  ["40 caffeinate words, then commit", `${"caffeinate ".repeat(40)}${GC} -m x`, failed, "DENY"],
 ];
 
 let failedCount = 0;
