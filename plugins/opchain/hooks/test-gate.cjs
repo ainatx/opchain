@@ -322,6 +322,50 @@ const cases = [
   ["\\' does not escape in '…'", `echo 'a\\' ; ${GC} -m x ; echo ''`, failed, "DENY"],
   ["\\\\ before closing \"", `echo "a\\\\" ; ${GC} -m x ; echo ""`, failed, "DENY"],
   ["dq JSON dry run ; sh -c", `printf "%s" "{\\"command\\":\\"${GC} -m x\\"}" | node gate.cjs ; sh -c 'ls'`, failed, "ALLOW"],
+
+  // GATE-08 — bash reads inside quotes, so the gate must. Every DENY below ran a
+  // real commit past the gate on 2026-09-11, and `bash -n` accepts each one.
+  // A substitution runs inside double quotes and unquoted here-documents.
+  ["$(…) inside double quotes", `echo "$(${GC} -m x)"`, failed, "DENY"],
+  ["backtick substitution", "echo `" + GC + " -m x`", failed, "DENY"],
+  ["backtick inside double quotes", 'echo "`' + GC + ' -m x`"', failed, "DENY"],
+  ["$(…) holding its own quotes", `echo "$(echo ")" ; ${GC} -m x ; echo "(")"`, failed, "DENY"],
+  ["${x:-$(…)} in double quotes", `echo "\${x:-$(${GC} -m x)}"`, failed, "DENY"],
+  ["$(…) in unquoted here-doc", `cat <<EOF\n"$(${GC} -m x)"\nEOF`, failed, "DENY"],
+  ["backtick in unquoted here-doc", "cat <<EOF\n`" + GC + " -m x`\nEOF", failed, "DENY"],
+  ["here-doc | sh inside \"$(…)\"", `echo "$(cat <<EOF | sh\n${GC} -m x\nEOF\n)"`, failed, "DENY"],
+  // quote removal happens before the command is looked up
+  ["\\git", `\\${GC} -m x`, failed, "DENY"],
+  ["\"git\"", `"git" commit -m x`, failed, "DENY"],
+  ["g\\it", `g\\it commit -m x`, failed, "DENY"],
+  ["git \"commit\"", `git "commit" -m x`, failed, "DENY"],
+  ["gi\\<newline>t", `gi\\\nt commit -m x`, failed, "DENY"],
+  ["\\sh -c", `\\sh -c '${GC} -m x'`, failed, "DENY"],
+  ["\"sh\" -c", `"sh" -c '${GC} -m x'`, failed, "DENY"],
+  // a command in argument position
+  ["find -exec sh -c", `find . -exec sh -c '${GC} -m x' \\;`, failed, "DENY"],
+  ["find -exec git", `find . -exec ${GC} -m x \\;`, failed, "DENY"],
+  // inside a wrapper's string, nothing need separate git from what precedes it
+  ["sh -c 'true;git …'", `sh -c 'true;${GC} -m x'`, failed, "DENY"],
+  ["sh -c '$(git …)'", `sh -c 'echo $(${GC} -m x)'`, failed, "DENY"],
+  ["sh -c '\\git …'", `sh -c '\\${GC} -m x'`, failed, "DENY"],
+  // text that quotes nothing must not open a span
+  ["apostrophe in <<'EOF' prose", `cat <<'EOF'\ndon't\nEOF\n${GC} -m x\necho "'"`, failed, "DENY"],
+  ["apostrophe in a comment", `# don't\n${GC} -m x\necho "'"`, failed, "DENY"],
+  // the shape of a real release commit the span reading let through
+  ["comment apostrophe, then commit", `# verdict for the repo's own hook\nFULL=$(node -e 'x')\n${GC} -q -m "$(cat <<'EOF'\nrelease: "quoted" title\nEOF\n)"`, failed, "DENY"],
+  ["$'…' escapes its quote", `echo $'a\\'' ; ${GC} -m x ; echo ''`, failed, "DENY"],
+  ["((x<<=1)) is no here-doc", `echo "$( ((x<<=1))\n${GC} -m x )"`, failed, "DENY"],
+  ["mis-closed span shows no flag", `cat <<'EOF'\ndon't\nEOF\n${GC} -m ' --no-verify '`, failed, "DENY"],
+  // …and data stays data
+  ["<<'EOF' prose with backticks", "cat > notes.md <<'EOF'\nRun `" + GC + " -m x` after the gate passes\nEOF", failed, "ALLOW"],
+  ["PR body via \"$(cat <<'EOF')\"", "gh pr create --body \"$(cat <<'EOF'\n- `" + GC + "` now denies; don't `sh -c '" + GC + "'`\n- $(" + GC + " -m x) in prose\nEOF\n)\"", failed, "ALLOW"],
+  ["single-quoted $(…) and backtick", "echo '$(" + GC + ")' '`" + GC + "`'", failed, "ALLOW"],
+  ["escaped \\$( and \\` in dq", `echo "\\$(${GC}) \\\`${GC}\\\`"`, failed, "ALLOW"],
+  ["\"git\" as an argument", `printf '%s\\n' "git" commit`, failed, "ALLOW"],
+  ["find -exec grep phrase", `find . -name '*.md' -exec grep -l '${GC}' {} +`, failed, "ALLOW"],
+  ["$((1<<2)) arithmetic", `echo "$((1<<2))"; git log -1 --format="%s $(date)"`, failed, "ALLOW"],
+  ["genuine --no-verify, $(…) msg", `${GC} --no-verify -m "$(cat msg.txt)"`, failed, "ALLOW"],
 ];
 
 let failedCount = 0;
