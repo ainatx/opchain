@@ -19,7 +19,10 @@
  * Route resolution mirrors the Astro build (`output: "static"`,
  * `trailingSlash: "never"`, directory format): `/skills` serves
  * `dist/skills/index.html` without a redirect, `/` serves `dist/index.html`,
- * and an unknown path serves `dist/404.html` with a 404 status.
+ * and an unknown path serves `dist/404.html` with a 404 status. Text responses
+ * above 1 KiB are gzipped when the client accepts it, exactly as Vite's
+ * preview does, so Lighthouse's transfer-size-based throttling sees the same
+ * bytes it always did.
  *
  * Usage (from site/, matching lighthouserc.cjs):
  *   node ../scripts/lhci-preview.mjs --dir dist --host 127.0.0.1 --port 4321
@@ -28,6 +31,15 @@
 import { createServer } from "node:http";
 import { createReadStream, statSync } from "node:fs";
 import { extname, join, normalize, resolve, sep } from "node:path";
+import { createGzip } from "node:zlib";
+
+// Lighthouse's simulated throttling prices a page by transfer size, and the
+// Vite preview server behind `astro preview` gzips text responses above 1 KiB.
+// Serving the same files uncompressed made /demo (a 1.4 MB HTML document,
+// 330 KB gzipped) score 0.83 for Performance on PR #498 against 0.97 under the
+// old preview. Same threshold, same encoding, so the calibration carries over.
+const COMPRESSIBLE = /^(?:text\/|application\/(?:json|javascript|xml|manifest\+json)|image\/svg\+xml)/;
+const COMPRESS_MIN_BYTES = 1024;
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -110,15 +122,24 @@ function send(res, status, headers, body, headOnly) {
   res.end(body);
 }
 
-function stream(res, status, file, headOnly) {
+export function wantsGzip(acceptEncoding) {
+  return /(?:^|,)\s*gzip\s*(?:;|,|$)/i.test(acceptEncoding || "");
+}
+
+function stream(req, res, status, file, headOnly) {
   const type = MIME[extname(file.path).toLowerCase()] || "application/octet-stream";
-  res.writeHead(status, {
-    "content-type": type,
-    "content-length": file.size,
-    "cache-control": "no-cache",
-  });
+  const gzip =
+    COMPRESSIBLE.test(type) &&
+    file.size >= COMPRESS_MIN_BYTES &&
+    wantsGzip(req.headers["accept-encoding"]);
+  const headers = { "content-type": type, "cache-control": "no-cache", vary: "accept-encoding" };
+  if (gzip) headers["content-encoding"] = "gzip";
+  else headers["content-length"] = file.size;
+  res.writeHead(status, headers);
   if (headOnly) return res.end();
-  createReadStream(file.path).pipe(res);
+  const body = createReadStream(file.path);
+  if (gzip) body.pipe(createGzip()).pipe(res);
+  else body.pipe(res);
 }
 
 export function createPreviewServer({ root, routes = ROUTES }) {
@@ -137,10 +158,10 @@ export function createPreviewServer({ root, routes = ROUTES }) {
     }
 
     const file = resolveStatic(absoluteRoot, pathname);
-    if (file) return stream(res, 200, file, headOnly);
+    if (file) return stream(req, res, 200, file, headOnly);
 
     const notFound = resolveStatic(absoluteRoot, "/404.html");
-    if (notFound) return stream(res, 404, notFound, headOnly);
+    if (notFound) return stream(req, res, 404, notFound, headOnly);
     return send(res, 404, { "content-type": "text/plain; charset=utf-8" }, "not found", headOnly);
   });
 }

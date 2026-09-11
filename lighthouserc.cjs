@@ -17,7 +17,10 @@
 // failed the weight-1 `errors-in-console` audit. The gate is 0.95, so the whole
 // site sat one deduction from a red required check. scripts/lhci-preview.mjs
 // serves the same static build plus that one route; every other /api/* path
-// still 404s so an unstubbed fetch shows up here as the error it would be.
+// still 404s so an unstubbed fetch shows up here as the error it would be. It
+// gzips text above 1 KiB the way Vite's preview does: Lighthouse's simulated
+// throttling prices transfer size, and an uncompressed /demo (1.4 MB of HTML)
+// scored 0.83 on the first run of PR #498 against 0.97 compressed.
 //
 // Every route is now `error`-level. /architecture, /skills/oc-app-architect,
 // /skills/oc-release-ops and /changelog had sat at `warn` "awaiting
