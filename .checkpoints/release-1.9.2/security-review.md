@@ -71,3 +71,7 @@ On reassessment, this is not a HIGH vulnerability under the accepted operating m
 This was a source review against `origin/main`, not a penetration test or full OWASP/infrastructure assessment. It did not inspect live Cloudflare settings, hosted KV authorization internals, secret-store policy, or deployed HTTP/TLS/DNS behavior. GitHub ruleset facts were supplied by the release operator rather than independently queried in this review. The worktree contained a large accepted uncommitted change (more than 250 changed paths); review depth was intentionally concentrated on the trust boundaries above. Passing tests establish implemented behavior within the reviewed local environment.
 
 The `pre-deploy-security-posture-v1` verdict is **PASS**: no open HIGH or CRITICAL finding remains within this bounded scope. SA-192-02 is fixed and verified in the release candidate. SA-192-01 is a documented, non-blocking trust limitation after explicit reassessment against the accepted protected-repository model.
+
+## CI-only follow-up
+
+The coordinator reviewed adding the existing documentation sync to pretest and passing the existing job token only to the roadmap generator's GitHub read step. No new secret, permission scope, endpoint, runtime authorization, or bypass was added. The real-data browser assertions remain enforced.

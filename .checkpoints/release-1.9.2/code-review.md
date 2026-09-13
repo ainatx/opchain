@@ -60,3 +60,9 @@ node scripts/lib/release-evidence.mjs --print-candidate --json
 ```
 
 Do not bind the handoff to the current baseline `HEAD` or to the supplied staged-tree hash; the evidence consumer requires the final commit projection identity.
+
+## CI integration follow-up
+
+The first remote run independently passed all eight candidate checks, then exposed a standalone test setup defect: hosted-reference tests expected generated public/docs assets. Added the existing sync-docs command to npm pretest. The focused standalone command now passes all 3 hosted-reference tests without a prior build.
+
+The browser job separately exhausted GitHub's anonymous shared-IP API quota while loading the real roadmap. The existing generator now receives the job-scoped GitHub token in that step. Existing voting assertions remain unchanged and fail if real data does not load. This changes CI input configuration, not runtime authorization or production code. The final candidate and required remote jobs must pass again.

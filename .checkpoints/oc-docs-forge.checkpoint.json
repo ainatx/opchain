@@ -3,7 +3,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-13T23:52:21.128Z",
+  "updated_at": "2026-09-13T23:57:39.913Z",
   "skill": "oc-docs-forge",
   "phase": "verify",
   "status": "complete",
@@ -50,7 +50,7 @@
     },
     "verified_for_candidate": {
       "kind": "git_tree_projection",
-      "id": "sha256:73903f8b6856443db0fef272db44c21d4bb0f604b9f6bf7b0219ba0cec1c20d5"
+      "id": "sha256:c5e6f5f3bff9c9c88522cbb3af1d78f4175ce32edd2891a2db0a9e67abe963b6"
     }
   },
   "next_actions": [],
@@ -74,13 +74,33 @@
         "verdict": "PASS",
         "evidence_directory": ".checkpoints/release-1.9.2"
       }
+    },
+    {
+      "id": "oc-docs-forge-192-c5e6f5f3bff9",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-13T23:57:39.846738Z",
+      "verified_at": "2026-09-13T23:57:39.846738Z",
+      "producer": {
+        "skill": "oc-docs-forge",
+        "run_id": "release-192-final-review"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c5e6f5f3bff9c9c88522cbb3af1d78f4175ce32edd2891a2db0a9e67abe963b6"
+      },
+      "payload": {
+        "policy": "pr-docs-v1",
+        "verdict": "PASS",
+        "evidence_directory": ".checkpoints/release-1.9.2"
+      }
     }
   ],
-  "verified_at": "2026-09-13T23:52:21.043995Z",
+  "verified_at": "2026-09-13T23:57:39.846738Z",
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:73903f8b6856443db0fef272db44c21d4bb0f604b9f6bf7b0219ba0cec1c20d5"
+    "id": "sha256:c5e6f5f3bff9c9c88522cbb3af1d78f4175ce32edd2891a2db0a9e67abe963b6"
   },
   "blockers": [],
-  "record_updated_at": "2026-09-13T23:52:21.128Z"
+  "record_updated_at": "2026-09-13T23:57:39.913Z"
 }

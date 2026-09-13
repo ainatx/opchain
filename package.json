@@ -38,7 +38,7 @@
     "sync-plugin-skills:check": "node scripts/sync-plugin-skills.mjs --check",
     "build-site": "bash scripts/build-site.sh",
     "prebuild": "npm run gen-stack-packs && npm run gen-api-dev-adapters && npm run gen-packs-catalog && npm run gen-flags && npm run gen-catalog && npm run lint-internal-refs && npm run check-skill-flags && npm run check-skill-contracts && npm run gen-mcp-catalog && npm run validate-pm-mcp && npm run sync-bundles:check && npm run sync-plugin-skills:check && npm run sync-docs && npm run make-zip && npm run gen-og && npm run build-site",
-    "pretest": "npm run gen-stack-packs && npm run gen-api-dev-adapters && npm run gen-packs-catalog && npm run gen-flags && npm run gen-catalog && npm run lint-internal-refs && npm run check-skill-flags && npm run check-skill-contracts && npm run gen-mcp-catalog && npm run validate-pm-mcp && npm run sync-bundles:check && npm run sync-plugin-skills:check",
+    "pretest": "npm run gen-stack-packs && npm run gen-api-dev-adapters && npm run gen-packs-catalog && npm run gen-flags && npm run gen-catalog && npm run lint-internal-refs && npm run check-skill-flags && npm run check-skill-contracts && npm run gen-mcp-catalog && npm run validate-pm-mcp && npm run sync-bundles:check && npm run sync-plugin-skills:check && npm run sync-docs",
     "test": "vitest run",
     "test:watch": "vitest",
     "site:install": "cd site && npm install",
