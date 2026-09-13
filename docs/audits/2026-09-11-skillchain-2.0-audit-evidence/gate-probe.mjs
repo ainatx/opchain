@@ -42,11 +42,16 @@ function ask(command) {
   try { return 'DENY: ' + JSON.parse(out).hookSpecificOutput.permissionDecisionReason.split('\n')[0]; } catch { return 'DENY'; }
 }
 
+// The tree a run records, per oc-bug-check § Commit gate contract. Since v1.9.1
+// (GATE-11) the recipe leaves the bug-check checkpoint itself out of the hash;
+// with the pre-fix gate that exclusion changes nothing, since the gate still
+// counted the file and denied regardless.
 function currentTree() {
   const idx = join(tmpdir(), 'probe-index-' + process.pid);
   try { rmSync(idx); } catch {}
   const env = { ...process.env, GIT_INDEX_FILE: idx };
   execFileSync('git', ['add', '-A', '--', '.'], { cwd: dir, env });
+  execFileSync('git', ['rm', '--cached', '-f', '-q', '--ignore-unmatch', '--', '.checkpoints/oc-bug-check.checkpoint.json'], { cwd: dir, env });
   return execFileSync('git', ['write-tree'], { cwd: dir, env, encoding: 'utf8' }).trim();
 }
 

@@ -72,7 +72,8 @@ BUG CHECK — FAIL ❌
 
   Commit blocked. Fix 6 issues before committing.
   Run /oc-bugcheck fix for auto-fixable items (lint, formatting).
-  Run /oc-bugcheck bypass to override (logged).
+  To commit anyway: /oc-bugcheck bypass records it, then commit with
+  OPCHAIN_BYPASS=1 — the record alone does not clear the gate.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 

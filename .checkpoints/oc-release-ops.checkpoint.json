@@ -3,10 +3,10 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-13T04:00:22.588Z",
+  "updated_at": "2026-09-13T04:51:16.606Z",
   "skill": "oc-release-ops",
   "phase": "plan-approved",
-  "step": "v1.9.1-plan-approved-sprint-0",
+  "step": "v1.9.1-sprint-1-in-review",
   "status": "in_progress",
   "progress_summary": "v1.9.0 remains shipped and live. A v1.9.1 patch release is proposed to ship the fixes from the 2026-09-11 skill-chain audit (484 upheld findings, 11 CRITICAL). Plan: docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md. Proposed semver v1.9.1 by decision-tree rule 10 under a patch-scope rule (fixes and doc corrections only; additive work moves to v2.0); the close call is rule 5, since sixteen documented subcommands become indexed in frontmatter, which would make it v1.10.0 on a strict reading. Proposed theme 'The chain holds'. Release surfaces for a patch: P1-P7 product half, then L4 (open hero range + v1-9-1 rel-card), L5 recount and L7 styleguide badge in the site half; L1-L3, L6, L8-L10 and forward surfaces do not move. The v2.0 recolour (PR 490) and demo rebuild (PR 515) are parked as drafts until after this release.",
   "progress_table": [
@@ -79,10 +79,9 @@
   },
   "blockers": [],
   "next_actions": [
-    "Sprint 0: owner reviews and merges PR 516 (audit + evidence + plan).",
-    "Sprint 0: owner redeploys staging from a clean origin/main checkout, then refreshes the staging entry in .github/monitoring/release-baseline.json (D5).",
-    "Sprint 0: owner merges gate PRs 499 -> 504 -> 505 -> 507 in order (D7). All four were green on 2026-09-13; 499 is behind main and needs its branch updated first, and each stacked PR re-runs CI after its base merges.",
-    "Sprint 1 (commit gate) starts once the gate stack is on main."
+    "Sprint 1: review and merge the PR that closes GATE-11 (tracked .checkpoints no longer deadlocks the tree binding), puts the bug-check gate before commits in /oc-git-sync, and corrects the bypass wording.",
+    "Owner: refresh the staging entry in .github/monitoring/release-baseline.json so the scheduled canary's staging half goes green.",
+    "Sprint 2 (checkpoint tooling) starts after Sprint 1 merges; the two-week safety valve counts from that merge."
   ],
   "pm_refs": [
     {
@@ -110,7 +109,7 @@
     "current_release": {
       "semver": "1.9.1",
       "theme": "The chain holds",
-      "phase": "plan-approved",
+      "phase": "sprint-1",
       "plan": "docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md",
       "source": "docs/audits/2026-09-11-skillchain-2.0-audit.md",
       "started_at": "2026-09-12",
@@ -161,7 +160,40 @@
         "D7": "merge gate PR stack 499-504-505-507 first",
         "decided_at": "2026-09-12"
       },
-      "plan_pr": "516"
+      "plan_pr": "516",
+      "merged": [
+        {
+          "pr": 516,
+          "sha": "30ccb26",
+          "what": "audit, evidence and v1.9.1 plan"
+        },
+        {
+          "pr": 499,
+          "sha": "347012a",
+          "what": "run the shipped commit gate in this repo; tree mandatory"
+        },
+        {
+          "pr": 504,
+          "sha": "41d2ac3",
+          "what": "wrapper re-scan scoped"
+        },
+        {
+          "pr": 505,
+          "sha": "b8b5b6b",
+          "what": "read commands the way bash does (GATE-08)"
+        },
+        {
+          "pr": 507,
+          "sha": "c323463",
+          "what": "comments and here-doc prose stay data (GATE-09)"
+        },
+        {
+          "pr": 506,
+          "sha": "0362248",
+          "what": "exec/builtin/caffeinate/script prefixes (GATE-10), rebuilt on main"
+        }
+      ],
+      "staging": "main (owner redeployed 2026-09-13; staging baseline entry still describes the old demo preview)"
     },
     "prior_release": {
       "semver": "1.8.3",

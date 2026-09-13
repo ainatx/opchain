@@ -45,8 +45,9 @@ function sh(args, cwd, env) {
 
 /**
  * The full working-tree state, hashed the way the gate does (v3): `git add -A`
- * into a scratch copy of the index. Deliberately independent of SKILL.md — the
- * "SKILL.md" fixtures use the documented recipe instead.
+ * into a scratch copy of the index, minus the bug-check checkpoint (GATE-11).
+ * Deliberately independent of SKILL.md — the "SKILL.md" fixtures use the
+ * documented recipe instead.
  */
 function fullTree(dir) {
   const idx = path.join(os.tmpdir(), `oc-fx-${process.pid}-${Math.random().toString(36).slice(2)}`);
@@ -55,6 +56,7 @@ function fullTree(dir) {
     const realIdx = path.join(dir, ".git", "index");
     if (fs.existsSync(realIdx)) fs.copyFileSync(realIdx, idx);
     sh(["add", "-A", "--", "."], dir, scEnv);
+    sh(["rm", "--cached", "-f", "-q", "--ignore-unmatch", "--", ".checkpoints/oc-bug-check.checkpoint.json"], dir, scEnv);
     return sh(["write-tree"], dir, scEnv).stdout.trim();
   } finally {
     fs.rmSync(idx, { force: true });
@@ -109,6 +111,12 @@ function documentedCheckpoint(dir) {
  *   opts.raw        — write this exact string as the checkpoint body
  *   opts.dirty      — AFTER the run: modify a TRACKED file without staging
  *   opts.untracked  — AFTER the run: add a new untracked file
+ *   opts.track      — track .checkpoints/ instead of ignoring it, as
+ *                     oc-checkpoint-protocol recommends (GATE-11): "dir" leaves
+ *                     it untracked-but-visible; "file" also commits an earlier
+ *                     bug-check checkpoint, so the run rewrites a tracked file
+ *   opts.stage      — AFTER the checkpoint write: `git add -A` into the real index
+ *   opts.otherCheckpoint — AFTER the run: write another skill's tracked checkpoint
  */
 function mkRepo(opts = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "oc-gate-"));
@@ -117,7 +125,14 @@ function mkRepo(opts = {}) {
   sh(["config", "user.email", "t@t"], dir);
   sh(["config", "user.name", "t"], dir);
   fs.writeFileSync(path.join(dir, "app.js"), "reviewed();\n");
-  fs.writeFileSync(path.join(dir, ".gitignore"), ".checkpoints/\n");
+  fs.writeFileSync(path.join(dir, ".gitignore"), opts.track ? "node_modules/\n" : ".checkpoints/\n");
+  if (opts.track === "file") {
+    fs.mkdirSync(path.join(dir, ".checkpoints"), { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, ".checkpoints", "oc-bug-check.checkpoint.json"),
+      JSON.stringify({ updated_at: "2026-01-01T00:00:00Z", skill_state: { last_run_verdict: "FAIL" } }),
+    );
+  }
   sh(["add", "-A"], dir);
   sh(["-c", "core.hooksPath=/dev/null", "commit", "-qm", "init"], dir);
 
@@ -150,9 +165,15 @@ function mkRepo(opts = {}) {
     fs.writeFileSync(cpFile, JSON.stringify(cp, null, 2));
   }
 
+  // Staging after the run: the gate must NOT count this (GATE-11 for the checkpoint).
+  if (opts.stage) sh(["add", "-A"], dir);
+
   // Post-checkpoint mutations: the gate must notice these.
   if (opts.dirty) fs.appendFileSync(path.join(dir, "app.js"), "eval(process.env.PAYLOAD);\n");
   if (opts.untracked) fs.writeFileSync(path.join(dir, "evil.js"), "exfiltrate();\n");
+  if (opts.otherCheckpoint) {
+    fs.writeFileSync(path.join(dir, ".checkpoints", "oc-release-ops.checkpoint.json"), '{"step":"after the run"}\n');
+  }
   return dir;
 }
 
@@ -224,6 +245,14 @@ const bareWriteTree = mkRepo({ // the old slash-command instruction: index tree,
 const documented = mkRepo({ documented: true, wip: true });
 const documentedDrift = mkRepo({ documented: true, wip: true, dirty: true });
 
+// GATE-11 — a repo that tracks .checkpoints/, as oc-checkpoint-protocol recommends
+const trackedNew = mkRepo({ track: "dir", verdict: "PASS", bindTree: true });
+const trackedRewrite = mkRepo({ track: "file", verdict: "PASS", bindTree: true });
+const trackedStaged = mkRepo({ track: "file", verdict: "PASS", bindTree: true, stage: true });
+const trackedDocumented = mkRepo({ track: "file", documented: true, wip: true });
+const trackedDirty = mkRepo({ track: "dir", verdict: "PASS", bindTree: true, dirty: true });
+const trackedOtherCp = mkRepo({ track: "dir", verdict: "PASS", bindTree: true, otherCheckpoint: true });
+
 // GATE-07 — a hook payload whose command is a commit, carried as data by a dry run
 const dryRunPayload = JSON.stringify({ tool_name: "Bash", tool_input: { command: `${GC} -F msg.txt` }, cwd: "/x" });
 
@@ -258,6 +287,17 @@ const cases = [
   ["bare write-tree over WIP", `${GC} -am x`, bareWriteTree, "DENY"],
   ["SKILL.md schema + recipe", `${GC} -am x`, documented, "ALLOW"],
   ["SKILL.md schema, then edited", `${GC} -am x`, documentedDrift, "DENY"],
+
+  // GATE-11 — tracking .checkpoints/ must not deadlock the tree binding. Each
+  // ALLOW here was a permanent DENY before: the run hashed the tree, then wrote
+  // the checkpoint carrying that hash, and the write moved the tree.
+  ["tracked .checkpoints/, new PASS", `${GC} -m x`, trackedNew, "ALLOW"],
+  ["tracked checkpoint rewritten", `${GC} -am x`, trackedRewrite, "ALLOW"],
+  ["tracked checkpoint, staged", `git add -A && ${GC} -m x`, trackedStaged, "ALLOW"],
+  ["SKILL.md recipe, tracked cp", `${GC} -am x`, trackedDocumented, "ALLOW"],
+  // …and that one file is the only exemption
+  ["tracked, code edited after", `${GC} -am x`, trackedDirty, "DENY"],
+  ["tracked, other cp edited after", `${GC} -am x`, trackedOtherCp, "DENY"],
 
   // GATE-01 — the staging bypasses. THESE ARE THE REGRESSION TESTS.
   // v3 binds to the FULL working state, so any change after the verify denies —

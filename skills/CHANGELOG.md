@@ -76,6 +76,18 @@ checkpoint `protocol_version` is tracked separately (see
   quoted phrases like `echo "exec git commit"` stay allowed. `doas`, `chronic`,
   `unbuffer`, `watch` and `parallel` were probed too but were absent on the test
   box, so none could be confirmed to commit and none was added.
+- **Commit gate (plugin) — tracking `.checkpoints/` no longer deadlocks the tree
+  binding.** oc-git-ops and oc-checkpoint-protocol both tell you to track
+  `.checkpoints/`, but a run must hash the tree before writing the checkpoint that
+  carries the hash, and that write then moved the tree. In any repo that followed
+  the docs, every honest PASS was denied as "the repo has changed", and re-running
+  the gate moved the tree again. The opchain repo never saw it because it gitignores
+  that one file, and so did the hook's fixtures. The gate and the documented tree
+  recipe now both drop `.checkpoints/oc-bug-check.checkpoint.json` from the hash, so
+  writing, rewriting or staging it no longer invalidates the PASS. Every other file,
+  other skills' checkpoints included, still does. Record the tree with the updated
+  recipe in oc-bug-check § Commit gate contract; a tree recorded with the old recipe
+  in a repo that ignores the file is unchanged.
 - **oc-bug-check** — the Checkpoint Schema documents `last_run_verdict` and
   `verified_tree`, and a new Commit gate contract section gives the exact tree
   recipe: `git add -A` into a throwaway index. The `/oc-bugcheck` command had said
@@ -84,6 +96,13 @@ checkpoint `protocol_version` is tracked separately (see
   section, so the docs and the gate cannot drift apart silently again.
 - **oc-git-ops** — the Pre-Commit Gate note describes the tree-bound hook instead
   of a freshness window.
+- **oc-git-ops** — `/oc-git-sync` runs the bug-check gate before it structures
+  commits. It listed the commits at step 5 and the gate at step 6, an order the
+  commit-gate hook refuses, since no PASS exists yet when the first commit runs.
+- **oc-git-ops, oc-bug-check** — the FAIL guidance no longer presents
+  `/oc-bugcheck bypass` as the override. It records the bypass; the commit still
+  needs `OPCHAIN_BYPASS=1` or `--no-verify` to clear the hook. Corrected in the
+  Pre-Commit Gate table and in the FAIL report template.
 
 ## [1.9.0] — 2026-09-02 — "Assurance and governed delivery ops"
 

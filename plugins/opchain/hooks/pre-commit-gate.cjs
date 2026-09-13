@@ -84,6 +84,19 @@
 //            were absent on the box, so none could be confirmed to commit; they
 //            are left out until a probe can actually run them. Fixed: `exec`,
 //            `builtin`, `caffeinate` and `script` join the prefix chain.
+//   GATE-11  The tree binding could never match in a repo that tracks
+//            `.checkpoints/`, which oc-git-ops and oc-checkpoint-protocol both
+//            tell users to do. The run must hash the tree BEFORE writing the
+//            checkpoint that carries the hash, and writing that checkpoint then
+//            changed the tree — so every honest PASS was denied, and the deny
+//            said to re-run the gate, which moved the tree again. The opchain
+//            repo never saw it: it gitignores this one file, and so did every
+//            fixture. Fixed: the gate and the documented recipe both drop
+//            `.checkpoints/oc-bug-check.checkpoint.json` from the scratch index
+//            before hashing. It is the evidence, not the code under test, so
+//            whether it is untracked, tracked, rewritten or staged no longer
+//            moves the tree. Every other file, other checkpoints included, still
+//            does.
 //
 // The through-line: every one of these failed OPEN. A gate whose error path is
 // "allow" is a formality, not a gate. Hence rule 0.
@@ -910,7 +923,15 @@ if (!verifiedTree) {
  * what was verified. That is the honest meaning of "bug-check passed on this
  * code" — and oc-bug-check records `verified_tree` the same way (`git add -A`),
  * so a plain `/oc-bugcheck` run followed by an immediate commit still passes.
+ *
+ * One path is left out: the bug-check checkpoint itself (GATE-11). The run hashes
+ * the tree and then writes it into that file, so counting the file would make
+ * every PASS describe a tree that stopped existing the moment it was recorded —
+ * in any repo that tracks `.checkpoints/`. `rm --cached` in the scratch index
+ * drops it whether it is untracked, tracked, modified or already staged.
  */
+const CHECKPOINT_REL = ".checkpoints/oc-bug-check.checkpoint.json";
+
 function fullWorkingTree() {
   const scratch = path.join(os.tmpdir(), `opchain-idx-${process.pid}-${Date.now()}`);
   try {
@@ -920,6 +941,9 @@ function fullWorkingTree() {
     const env = { GIT_INDEX_FILE: scratch }; // isolates all writes from the real index
     if (!fs.existsSync(scratch) && git(["read-tree", "HEAD"], repoRoot, env) === null) return null;
     if (git(["add", "-A", "--", "."], repoRoot, env) === null) return null;
+    // `-f`: the scratch entry always matches the file `add -A` just read, but an
+    // up-to-date refusal here would be a spurious deny, not a safer one.
+    if (git(["rm", "--cached", "-f", "-q", "--ignore-unmatch", "--", CHECKPOINT_REL], repoRoot, env) === null) return null;
     return git(["write-tree"], repoRoot, env);
   } finally {
     try {
