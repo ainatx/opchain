@@ -179,6 +179,17 @@ checkpoint `protocol_version` is tracked separately (see
   slower than 60 seconds still allows. Nine gate behaviours with no test gained cases
   (array or invalid checkpoint, `.opchain/` enrolment, `OPCHAIN_GATE=1`,
   `OPCHAIN_BYPASS=1`, the `verdict` and `verified_for_tree` aliases, `xargs`, `sudo`).
+- **AI-native and instrumentation skills say what they do (Sprint 5c).**
+  oc-agent-forge, oc-rag-forge, oc-prompt-ops and oc-cost-ops no longer claim
+  oc-deploy-ops gates production on their suites; `/oc-prompt regress` and
+  `/oc-cost gate` are agent-driven PR-time checks, not required CI jobs, and the
+  nonexistent `npm run oc-prompt` recipe is gone. Siblings read model routing from
+  oc-claude-api's `context_primer.key_decisions` and `11-ai-architecture.md` (not
+  its private state or an unproduced `05-llm-design.md`). The `cost` block lives in
+  the oc-cost-ops checkpoint, with `cost_per_eval` documented in oc-prompt-ops'
+  baseline. oc-telemetry-ops documents the four verbs `scripts/telemetry.mjs` has;
+  oc-signal-forge's Evaluator loop is capped at three rounds like its siblings.
+  44 findings fixed, 6 already fixed, 2 deferred to the release tooling.
 - **Build & integrate skills say what they do (Sprint 5b).** oc-modularize-ops,
   oc-migration-ops and oc-fleet-ops share one named artifact,
   `modularization/module-map.json`, with its shape written on every side; migration

@@ -18,11 +18,12 @@ description: >
   Telemetry operations harness — opt-in, local-first usage metering that records
   which skills and phases actually run, to a local .checkpoints/usage.sqlite
   store, then produces anonymized aggregates for the public /dashboard. Use for
-  /oc-telemetry, "usage metering", "telemetry", "opt-in analytics", "which skills
-  do people use", "usage stats", "dashboard data", "anonymized usage". Default
-  stance is OFF — nothing is recorded until you explicitly enable it, and no
-  prompt content or PII ever leaves the machine. Pairs with oc-cost-ops (cost per
-  run) for the cost-per-feature dashboard stats.
+  /oc-telemetry, "usage metering", "opchain usage telemetry", "opt-in analytics",
+  "which skills do people use", "usage stats", "dashboard data", "anonymized
+  usage". Default stance is OFF — nothing is recorded until you explicitly enable
+  it, and no prompt content or PII ever leaves the machine. Pairs with oc-cost-ops
+  (cost per run) for the cost-per-feature dashboard stats. NOT application or
+  production observability (oc-monitoring-ops).
 governance:
   breaking_change_policy: skills/CHANGELOG.md
   last_reviewed: 2026-06-25
@@ -71,7 +72,7 @@ TELEMETRY OPS COMMANDS
                            exits non-zero when enabled with no store
                            (enabled-with-no-store never reads healthy)
 
-  METERING & EXPORT
+  METERING & EXPORT (agent-run; not in the CLI)
   /oc-telemetry aggregate  Roll the local store up into an anonymized summary
   /oc-telemetry export     Emit the publishable aggregate (no PII) for /dashboard
 
@@ -102,6 +103,13 @@ every skill run ╌╌(YOU must call)╌► .checkpoints/usage.sqlite   (LOCAL, 
 The local store is the source; the published artifact is a small aggregate with
 no identifiers. `oc-cost-ops` supplies the per-run cost so the dashboard can show
 average cost-per-shipped-feature.
+
+**What is mechanical today.** `scripts/telemetry.mjs` (opchain repo, `npm run
+telemetry -- <cmd>`) implements `enable`, `disable`, `status` and `record` only.
+No skill, hook or plugin command calls `record` for you — the session must, with
+the flags in `references/local-metering.md` § Write path. `aggregate` and `export`
+have no CLI subcommand: the session runs the `references/aggregation.md` queries
+against the store (applying the k = 5 fold) and writes the JSON object itself.
 
 ---
 
@@ -193,7 +201,7 @@ what is specific to oc-telemetry-ops.
 |---|---|
 | Opted in / out | `telemetry_handle.enabled` + `since` |
 | Store created | `telemetry_handle.id` + `sink` |
-| Aggregate produced | rollup summary path in `skill_state` |
+| Aggregate produced | rollup summary path in `skill_state` (`telemetry.mjs` writes none today) |
 
 ### Cross-Skill Reads
 
@@ -204,8 +212,7 @@ what is specific to oc-telemetry-ops.
 
 | Read by | Why |
 |---|---|
-| the site `/dashboard` | The anonymized aggregate export |
-| oc-orchestrator | "Most-used skill" signal for recommendations |
+| the site `/dashboard` | The anonymized aggregate export — intended reader; the page still imports static sample data and has no loader for an export yet |
 
 ---
 

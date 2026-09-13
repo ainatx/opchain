@@ -1,14 +1,15 @@
 # Budget Gates & Cost-Regression
 
-Two gates Cost Ops runs in CI, both alongside (not replacing) the existing
-quality gates. A change that holds quality but blows the budget or triples spend
-is a regression — these gates name it.
+Two gates Cost Ops runs on a PR (agent-driven, see below), both alongside (not
+replacing) the existing quality gates. A change that holds quality but blows the
+budget or triples spend is a regression — these gates name it.
 
 ## Gate 1: Budget ceiling
 
-A per-phase or per-suite budget recorded in the checkpoint's `cost.budget_usd`.
-The validator **warns** when `total_usd > budget_usd` (overspend is a signal, not
-a corrupt file); the **gate decision** (warn vs. block) is Cost Ops policy:
+A per-phase or per-suite budget recorded in `cost.budget_usd` of the oc-cost-ops
+checkpoint. The validator **warns** when `budget_usd > 0` and `total_usd >
+budget_usd` (overspend is a signal, not a corrupt file; a `0` budget never trips
+it); the **gate decision** (warn vs. block) is Cost Ops policy:
 
 | Mode | Behavior when `total_usd > budget_usd` |
 |---|---|
@@ -59,22 +60,26 @@ Two blocking conditions (both, like the score gate's aggregate + per-case):
 - **Ceiling:** `cost_per_eval > budget_per_eval` → FAIL.
 - **Regression:** `cost_per_eval` rises more than `regression_pct` above the
   frozen baseline → FAIL, even if still under the ceiling (a 3× rise that's still
-  cheap today won't be at scale).
+  cheap today won't be at scale). The frozen baseline is the `cost_per_eval`
+  recorded next to the frozen scores in the prompt's `eval/baseline.json`
+  (oc-prompt-ops's baseline file). No baseline file, or no `cost_per_eval` in it →
+  only the ceiling check runs.
 
-## Running the gate in CI
+## Running the gate on a PR
 
-`/oc-cost gate` produces a CI-friendly verdict (exit non-zero on FAIL in strict
-mode). Wire it next to `/oc-prompt regress` on every PR that touches `prompts/`
-or that a build sprint attributed cost to:
-
-```
-- run: npm run oc-prompt -- regress   # quality
-- run: npm run oc-cost -- gate        # cost  (this skill)
-```
+`/oc-cost gate` and `/oc-prompt regress` are **agent-driven verbs**: no
+`npm run oc-cost` / `npm run oc-prompt` runner script ships with either skill, so
+there is no CI step that runs them. Run both in the session for every PR that
+touches `prompts/` or that a build sprint attributed cost to, and record the
+verdict in the checkpoint (`skill_state.last_gate`) and the PR body. The only
+mechanical CI check that exists is the checkpoint validator
+(`npm run checkpoint:validate`, opchain repo), which surfaces an overspent
+`cost.budget_usd` as a **warning**, never a failure.
 
 On a deliberate, accepted cost increase (a MAJOR change that needs the spend),
-re-freeze the cost baseline with `/oc-cost budget --rebaseline`, recording the
-new number in the prompt's CHANGELOG — same discipline as a score re-baseline.
+re-freeze the cost baseline with `/oc-cost budget --rebaseline` — it rewrites
+`cost_per_eval` in `eval/baseline.json` — and record the new number in the
+prompt's CHANGELOG, same discipline as a score re-baseline.
 
 ## Why both gates, not one
 
