@@ -41,8 +41,8 @@ governance:
 Tri-agent retrieval harness: the **Designer** picks the retrieval architecture
 (vector DB, embedding model, chunking strategy, search mode) → the **Builder**
 materialises the ingestion + retrieval pipeline and indexes a corpus → the
-**Evaluator** scores retrieval quality against a labelled set with isolated
-context and gates the system on recall/MRR/nDCG/faithfulness thresholds.
+**Evaluator** scores retrieval quality against a labelled set, grading from the labels
+alone, and gates the system on recall/MRR/nDCG/faithfulness thresholds.
 
 RAG is not "embed some docs and hope." Every default — chunk size, `k`, the
 embedding model, whether you rerank — moves a measurable metric, and the only
@@ -127,7 +127,7 @@ CORPUS + RETRIEVAL INTENT
 1. **Self-graded retrieval is fiction.** Whoever builds the pipeline picks the
    chunk size, the `k`, the embedding model — and then eyeballs three queries
    that happen to work. The Evaluator runs a *labelled* set (query → known-relevant
-   docs) with isolated context and reports recall@k, MRR, and nDCG. "It looks
+   docs), grading from the labels alone, and reports recall@k, MRR, and nDCG. "It looks
    like it's finding the right stuff" is not a measurement.
 
 2. **The generation hides retrieval failure.** A strong model (Claude) will
@@ -318,8 +318,9 @@ prefix content — coordinate chunk ordering with prompt-caching boundaries.
 
 ### Step 3: Evaluator
 
-The Evaluator runs with **isolated context** — it sees the goldset and the live
-retrieval function, not the Builder's tuning rationale.
+The Evaluator runs in the same session as the Builder, so its separation is a
+discipline, not a mechanism: grade from the goldset and the live retrieval function
+alone — set aside the Builder's tuning rationale.
 
 **Evaluator Persona.** A retrieval QA engineer who trusts numbers over demos. Key
 behaviors:

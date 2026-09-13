@@ -495,13 +495,14 @@ what is specific to oc-security-auditor.
 | oc-code-auditor | Grade + counts in `progress_summary` (trend score in `eval_scores`); individual findings from its report or PM sub-tickets → cross-reference, don't duplicate |
 | oc-deploy-ops | Deployment config, environment variables, platform settings |
 | oc-stack-forge | Platform capabilities and limitations |
+| oc-rag-forge | Tenant-isolation filter contract (and PII in embeddings) → posture input for retrieval apps |
 
 | Read by | Why |
 |---|---|
 | oc-deploy-ops | Assessment on record + counts → deployment gate; no assessment on record blocks `/oc-deploy staging\|prod` unless waived |
-| oc-code-auditor | Threat model → guide where to focus code sweeps |
 | oc-app-architect | Security requirements → inform spec updates |
 | oc-scale-ops | DoS findings → capacity planning input |
+| oc-monitoring-ops | Detection/response requirements from the runtime-hardening sweep → what to monitor and alert on |
 | oc-security-hardening | Tier (`context_primer.key_decisions`) → baseline depth; findings from the posture report or the PM tickets below → remediation queue (v1.9) |
 | oc-compliance-ops | `/oc-security readiness` gaps seed the standing control register (v1.9) |
 
@@ -548,10 +549,9 @@ CRITICAL findings get the `incident` issue-type from
   `compliance:<framework-if-relevant>`.
 - `parent`: the source PR ticket if invoked from one; otherwise
   unparented.
-- `assignee`: unassigned, unless the project's `.opchain/pm.yaml`
-  defines a security owner (`remediation_owners.security` is not part
-  of the canonical pm.yaml schema; use it only when the project added
-  one).
+- `assignee`: unassigned, unless `remediation_owners.security` is set in
+  `.opchain/pm.yaml` (an optional key — see oc-integrations-engineer's
+  pm.yaml example).
 - `body`: full finding + threat-model reference + suggested
   remediation + compliance-impact statement.
 

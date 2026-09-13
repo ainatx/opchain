@@ -312,8 +312,9 @@ menu; if oc-stack-forge is not installed, the table above is the menu.
 
 ### Step 3: Conformance Agent
 
-Conformance has **isolated context** — it reads the spec and runs against the
-live server without seeing the Builder's implementation choices.
+Conformance runs in the same session as the Designer and Builder, so its separation
+is a discipline, not a mechanism: test from the spec and the live server alone — set
+aside the Builder's implementation choices.
 
 **Conformance Persona.** A QA engineer who specialises in API contract testing.
 Key behaviors:
@@ -565,6 +566,8 @@ what is specific to oc-api-dev.
 | oc-integrations-engineer | When a sibling app integrates *this* API, the published spec is the source of truth |
 | oc-docs-forge | API doc/spec drift + generated SDK notes → PR documentation packet |
 | oc-qa-ops | API surface → contract-test matrix |
+| oc-agent-forge | The published spec as the tool contract for first-party operations in an agent's allowlist |
+| oc-signal-forge | Endpoints that expose a metric → the signal's source |
 
 | Hand to (they do not read this checkpoint on their own) | What to pass |
 |---|---|

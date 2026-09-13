@@ -462,8 +462,9 @@ The Generator implements the sprint against the contract:
 
 ### Step 3: Evaluator QA
 
-The Evaluator grades the sprint against four criteria with **isolated context** —
-it reads the contract and the code fresh, not the generator's exploration.
+The Evaluator grades the sprint against four criteria. It runs in the same session as
+the Generator, so its separation is a discipline, not a mechanism: re-read the contract
+and the code, and grade from those alone — not the generator's exploration.
 
 | Criterion | Weight | Measures |
 |---|---|---|
@@ -685,6 +686,20 @@ Every row is a step you run (orchestrator.md §3) — none of these fire on thei
 | **oc-api-dev** | Phase 2 spec `02-architecture.md` (API Design + Data Model sections) triggers oc-api-dev to elaborate the first-party API contract (OpenAPI/GraphQL, versioning, SDK). |
 | **oc-scale-ops** | Phase 2 spec `10-cost-estimate.md` uses oc-scale-ops projections. |
 | **oc-reverse-spec** | For existing projects: oc-reverse-spec produces the spec docs, then oc-app-architect picks up at Phase 4 (sprint plan) or Phase 6 (build). |
+
+These skills also read this skill's spec files or checkpoint (protocol-public fields,
+never `skill_state`), whether or not this skill invokes them:
+
+| Read by | Why |
+|---|---|
+| oc-git-ops | Roadmap tasks, sprint contract, eval scores → branch naming, commit scoping, PR description |
+| oc-bug-check | Sprint contract → which files are in scope for this commit |
+| oc-docs-forge | Feature scope, sprint contracts → PR documentation packet |
+| oc-release-ops | Sprint outputs → changelog draft |
+| oc-migration-ops | Spec files (data model, API design, auth) → migration target |
+| oc-modularize-ops | Spec + data model → module seams |
+| oc-fleet-ops | `07-devops.md` → deploy pattern intent |
+| oc-signal-forge | `08-analytics.md` → the analytics plan it executes (run by hand; nothing here invokes it) |
 
 ---
 

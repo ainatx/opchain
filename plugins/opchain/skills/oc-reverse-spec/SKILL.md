@@ -127,6 +127,26 @@ Reverse-spec is a **read-only analyzer** — it never modifies source code; it w
 documents that describe what exists, flags what's missing, and makes the project ready
 for the build pipeline to take over.
 
+### Read by
+
+Siblings read the generated files (paths in `context_primer.generated_files`) and the
+protocol-public checkpoint fields — never `skill_state`. This skill reads no other
+skill's checkpoint; it is the entry point for existing code.
+
+| Read by | Why |
+|---|---|
+| oc-app-architect | Spec docs copied to `spec/` at hand-off → `/oc-roadmap` baseline (the one active chain, below) |
+| oc-stack-forge | `01-tech-stack.md` + `stack-forge-audit.md` → existing-stack gap analysis baseline |
+| oc-code-auditor | Stack, architecture, file inventory → skip re-scanning |
+| oc-security-auditor | `02-architecture.md` / `03-security-auth.md` → architecture, component inventory, data flows |
+| oc-api-dev | `02-architecture.md` API inventory → existing endpoints when retrofitting |
+| oc-integrations-engineer | `04-integrations.md` → existing integrations inventory pre-fill |
+| oc-data-ops | Architecture + data model → existing pipeline inventory in brownfield repos |
+| oc-migration-ops | Architecture, schema, stack → current-state documentation |
+| oc-modularize-ops | Architecture + inventory → current module map |
+| oc-ux-engineer | `design/design-system.md` + `component-inventory.md` → existing design baseline |
+| oc-docs-forge | Existing docs and architecture facts → PR documentation packet |
+
 ---
 
 ## Phase 0: Scope & Orientation

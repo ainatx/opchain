@@ -444,10 +444,14 @@ what is specific to oc-scale-ops.
 | oc-deploy-ops | Current deployment config → infrastructure baseline |
 | oc-integrations-engineer | API rate limits → external constraints |
 | oc-qa-ops | `load_plan` in `.opchain/qa.yaml` → scenarios + SLOs to execute (v1.9) |
+| oc-security-auditor | DoS findings → capacity planning input |
+| oc-agent-forge / oc-rag-forge | Per-task token + tool budget, or index + batch sizes → inputs when sizing an AI workload (handed over, not read automatically) |
 
 | Read by | Why |
 |---|---|
-| oc-app-architect | Cost projections → `09-cost-estimate.md` |
+| oc-app-architect | Cost projections → `10-cost-estimate.md` |
+| oc-monitoring-ops | Performance budgets → SLO / alert thresholds |
+| oc-migration-ops | Performance baselines → detect regression after a migration |
 | oc-qa-ops | Platform limits shaping load scenarios |
 | oc-modularize-ops | Which areas need independent scaling (a split driver) |
 | oc-fleet-ops | Capacity plan → replica / node targets it applies |
@@ -492,9 +496,9 @@ For every Top-5 bottleneck in a layer scored D or F on the readiness scale:
 - `issue_type`: `bug` if it's a current pain; `chore` if it's a
   scaling-prep concern.
 - labels: `scaling`, `grade:<D|F>` (the bottleneck's layer score), `area:<component>`.
-- assignee: from `.opchain/pm.yaml` `remediation_owners.infra` or
-  `.backend` based on finding type, when the project defines that
-  optional map; otherwise leave the ticket unassigned.
+- assignee: `remediation_owners.infra` or `.backend` based on finding
+  type, when `remediation_owners` is set in `.opchain/pm.yaml`; otherwise
+  leave the ticket unassigned.
 
 ### Capacity-planning artifacts
 

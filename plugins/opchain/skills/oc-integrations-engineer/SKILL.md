@@ -275,8 +275,9 @@ async function withRetry<T>(
 
 ### Step 3: Tester Agent
 
-The Tester has **isolated context** — it reads the integration spec and the contract,
-then tests the built integration without seeing the Builder's implementation decisions.
+The Tester runs in the same session as the Planner and Builder, so its separation is a
+discipline, not a mechanism: re-read the integration spec and the contract, then test
+the built integration from those alone — set aside the Builder's implementation decisions.
 
 **Tester Persona:**
 
@@ -688,6 +689,7 @@ what is specific to oc-integrations-engineer.
 | oc-reverse-spec | Existing integrations → inventory pre-fill |
 | oc-stack-forge | Platform choice → where secrets live, which runtime the client targets |
 | oc-deploy-ops | Environment config → where secrets stored |
+| oc-api-dev | A sibling app's published first-party spec, when this app integrates that API as a consumer |
 
 | Read by | Why |
 |---|---|

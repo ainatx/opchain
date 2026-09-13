@@ -518,8 +518,12 @@ Checkpoint location: `{project-dir}/.checkpoints/oc-stack-forge.checkpoint.json`
 | oc-api-dev | Chosen framework + typed-pipeline tooling |
 | oc-rag-forge | Chosen `kind: vector-db` pack (stated in the Stack Recommendation and `context_primer.key_decisions`; there is no dedicated pack-id checkpoint key) |
 | oc-security-hardening | Platform idiom for expressing controls as code |
-| oc-integrations-engineer | Auth pattern → compatible implementation |
+| oc-integrations-engineer | Platform choice + auth pattern → where secrets live, which runtime the client targets, a compatible auth implementation |
 | oc-migration-ops | Target stack validation for a platform move (invokes this skill) |
+| oc-security-auditor | Platform capabilities and limitations → posture baseline |
+| oc-claude-api | The overall stack the Claude request layer sits inside |
+| oc-signal-forge | Store / warehouse / time-series choice |
+| oc-fleet-ops | Target infra / platform decision |
 
 ---
 

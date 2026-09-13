@@ -10,10 +10,11 @@
  * History: this wrapper used to also assert LINEAR_API_KEY and set
  * OPCHAIN_REQUIRE_LINEAR=1, because `/changelog` was driven by a build-time
  * Linear pull (scripts/gen-roadmap.mjs) and a missing/unreachable key would
- * silently ship an empty roadmap. The roadmap is now hand-maintained in
- * site/src/data/roadmap-static.ts, so the Linear pull is no longer on the
- * deploy path and Linear being down can't break a deploy. That gate was
- * removed (2026-06-19); see CLAUDE.md → Deploy flow.
+ * silently ship an empty roadmap. The roadmap now comes from GitHub Issues
+ * (scripts/gen-roadmap.mjs → site/src/data/roadmap.json, an anonymous read
+ * run by hand, not by this wrapper), so Linear is no longer on the deploy
+ * path and Linear being down can't break a deploy. That gate was removed
+ * (2026-06-19); see CLAUDE.md → Deploy flow.
  *
  * This wrapper:
  *   1. Loads `.dev.vars` into process.env.

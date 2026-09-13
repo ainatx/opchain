@@ -67,8 +67,9 @@ invariants:                  # executed as queries by the Verifier
 
 ## Verifier semantics (`/oc-data-ops verify`)
 
-For each contract, in isolated context (contracts + built pipeline + data;
-never the Builder's reasoning):
+For each contract, grading only from the contracts, the built pipeline and the data
+(never the Builder's reasoning — the roles share one session, so this is a
+discipline, not a mechanism):
 
 Use a read-only warehouse identity, an explicitly selected database/schema, a
 statement timeout, and a result-row cap. Display the compiled query and target
@@ -86,8 +87,8 @@ those protections returns BLOCKED rather than running the check.
 **Evolution baseline:** on each PASS the Verifier writes the observed schema to
 `.opchain/data-contracts/.verified/<layer.dataset>.json`; the evolution check
 diffs against that snapshot. First run: no snapshot → record it and PASS.
-Snapshots are committed alongside the contracts so a fresh Verifier in an
-isolated context always has its baseline.
+Snapshots are committed alongside the contracts so a Verifier in a later session
+always has its baseline.
 
 Two further verdicts: **BLOCKED** — a data-dependent check (freshness, volume,
 invariants) with no reachable warehouse; never a PASS. **PASS (fixtures)** — a

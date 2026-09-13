@@ -551,6 +551,9 @@ linking) also goes in `progress_summary` or top-level `pm_refs`.
 | oc-compliance-ops | Evidence bundle for the deploying SHA → conditional gate row (step 4) |
 | oc-app-architect | Phase 6 sprint pass → deploy confidence |
 | oc-git-ops | Branch merged → ready to deploy |
+| oc-bug-check | Last gate status → the `Bug-check:` line on the deploy ticket (not a gate row) |
+| oc-stack-forge | Platform Matrix + `packs/<id>/pack.yml` → which deploy recipe applies (files, not a checkpoint) |
+| oc-agent-forge / oc-rag-forge / oc-prompt-ops | Frozen harness config + fixtures, retrieval config + goldset, or prompt version → the artifact being shipped (hand-off only; no gate row) |
 
 | Read by | Why |
 |---|---|
@@ -559,6 +562,11 @@ linking) also goes in `progress_summary` or top-level `pm_refs`.
 | oc-git-ops | Deploy status → PR deployment notes |
 | oc-compliance-ops | Deploy SHA the evidence bundle is keyed to |
 | oc-security-hardening | The deploy gate that replays its manifest |
+| oc-security-auditor | Deployment config, environment variables, platform settings → posture inputs |
+| oc-scale-ops | Current deployment config → infrastructure baseline |
+| oc-migration-ops | Deployment config (environments, URLs, health checks) → cutover planning |
+| oc-integrations-engineer | Environment config → where secrets are stored |
+| oc-bug-check | Environment config → which build command its build check runs |
 
 ### Triggered By
 

@@ -675,17 +675,19 @@ and this recipe and asserts the gate accepts it — change the three together.
 
 | Reads from | Why |
 |---|---|
-| oc-code-auditor | Known findings → don't re-report what oc-code-auditor already flagged |
+| oc-code-auditor | Grade + counts (`progress_summary`) → context for what an audit already flagged; per-finding detail lives in the audit report, not the checkpoint |
 | oc-app-architect | Sprint contract → know which files are in-scope for this commit |
 | oc-deploy-ops | Environment config → which build command to use |
+| oc-qa-ops | `.opchain/qa.yaml` `coverage.global` budget (when present) → the test check's coverage comparison |
 
 | Read by | Why |
 |---|---|
 | oc-git-ops | Gate verdict (`skill_state.last_run_verdict` + `verified_tree`, per the Commit gate contract) → commit or block |
 | oc-repo-ops | `status` + `updated_at` staleness → PR readiness gate (a missing/stale code gate blocks the PR) |
 | oc-docs-forge | `progress_summary` quality notes → PR testing/audit documentation |
-| oc-code-auditor | `eval_scores` pass rate → skip basic checks in deep audit |
-| oc-deploy-ops | `status` + `progress_summary` → deploy confidence |
+| oc-deploy-ops | Last gate status (`status` + `progress_summary`) → the `Bug-check:` line on the deploy ticket |
+| oc-qa-ops | Current gate behavior + suite runtime → pyramid and budget design |
+| oc-cost-ops | Which phase a gate run belongs to, for cost attribution |
 | oc-orchestrator | `eval_scores` trend + `progress_summary` carried debt → project health |
 
 The Commit gate contract fields are the one place other readers (the commit-gate

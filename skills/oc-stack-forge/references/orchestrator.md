@@ -134,7 +134,7 @@ instrumentation (v1.6 "the instrumented pipeline"):
 |---|---|---|
 | **oc-orchestrator** | every skill (read-only, cross-project) | — (dispatches to any skill by intent) |
 | **oc-checkpoint-protocol** | — (the schema itself; bundled into every skill as `references/checkpoint-protocol.md`) | — (not invoked directly) |
-| **oc-app-architect** | oc-reverse-spec | oc-git-ops (after build), oc-deploy-ops (at launch), oc-migration-ops (when existing systems need engine changes) |
+| **oc-app-architect** | oc-reverse-spec | oc-git-ops (after build), oc-deploy-ops (at launch) |
 | **oc-stack-forge** | oc-app-architect (discovery context) | — (returns control to oc-app-architect); its decisions are read by, among others, oc-app-architect, oc-api-dev, oc-data-ops, oc-scale-ops, oc-security-hardening, oc-rag-forge, oc-signal-forge and oc-fleet-ops |
 | **oc-ux-engineer** | oc-app-architect (design baseline) | oc-dash-forge (on data-heavy screens), otherwise returns control |
 | **oc-dash-forge** | oc-ux-engineer (tokens + design spec), oc-app-architect (design phase, dashboard surface), oc-data-ops (contracted marts), oc-signal-forge (validated signal), oc-monitoring-ops (ops context, archetype pre-selected) | — (returns control to caller with design spec + prototype) |
@@ -142,9 +142,9 @@ instrumentation (v1.6 "the instrumented pipeline"):
 | **oc-security-auditor** | oc-code-auditor (findings), oc-reverse-spec, oc-app-architect, oc-deploy-ops | oc-security-hardening (remediation handoff — `/oc-harden fix` per finding; `/oc-security compare` closes the loop), oc-deploy-ops (posture check before prod gate) |
 | **oc-integrations-engineer** | oc-app-architect (integration spec) | oc-code-auditor (verify integration) |
 | **oc-api-dev** | oc-app-architect (`02-architecture.md` API Design + Data Model sections), oc-stack-forge (typed pipeline), oc-reverse-spec (existing-endpoint inventory), oc-qa-ops (contract-test rows for the conformance suite) | oc-code-auditor (audits scaffolded handlers), oc-security-auditor (CORS/rate-limit posture), oc-monitoring-ops (SLO targets from the spec), oc-deploy-ops (hand-off; `/oc-api drift` is a recommended check, not a deploy gate) |
-| **oc-migration-ops** | oc-app-architect (spec), oc-reverse-spec (current state), oc-modularize-ops (`modularization/module-map.json`), oc-data-ops (live schema evolution) | oc-deploy-ops (cutover), oc-monitoring-ops (verify post-migration) |
+| **oc-migration-ops** | oc-app-architect (spec), oc-reverse-spec (current state), oc-modularize-ops (`modularization/module-map.json`), oc-data-ops (live schema evolution) | oc-deploy-ops (cutover), oc-monitoring-ops (verify post-migration), oc-app-architect (spec updates after an engine change) |
 | **oc-git-ops** | oc-app-architect (sprint context), oc-bug-check (gate result), oc-docs-forge (PR docs packet), oc-repo-ops (PR readiness verdict) | oc-bug-check (pre-commit gate, chain), oc-docs-forge → oc-repo-ops (pre-PR gate, chain), oc-deploy-ops (post-push) |
-| **oc-bug-check** | oc-git-ops (gate trigger), oc-qa-ops (`.opchain/qa.yaml` coverage budgets, when present) | oc-git-ops (returns PASS / FAIL / UNSUPPORTED — a bypass is a logged event; FAIL or UNSUPPORTED blocks the commit) |
+| **oc-bug-check** | oc-qa-ops (`.opchain/qa.yaml` coverage budgets, when present), oc-code-auditor, oc-app-architect, oc-deploy-ops | — (invoked by oc-git-ops as the commit gate, or by oc-repo-ops on a stale verdict; returns PASS / FAIL / UNSUPPORTED to the caller — a bypass is a logged event; FAIL or UNSUPPORTED blocks the commit) |
 | **oc-docs-forge** | oc-git-ops (PR trigger: branch, commit log, PR draft, linked ticket), oc-app-architect (feature scope), oc-reverse-spec (existing docs), oc-api-dev (API doc drift), oc-release-ops (release surfaces), oc-code-auditor / oc-bug-check (quality notes for PR docs), oc-compliance-ops (policy docs riding the PR packet) | oc-repo-ops (hands docs packet to the readiness gate), oc-git-ops (returns PR body fragment + optional marker comment) |
 | **oc-repo-ops** | oc-docs-forge (docs packet), oc-git-ops (branch, base, PR draft), oc-bug-check (gate verdict), oc-release-ops (release PR surfaces), oc-checkpoint-protocol (tracking policy) | oc-docs-forge (on missing/stale docs packet), oc-bug-check (on missing/stale code gate), oc-git-ops (PASS → PR can open; FAIL blocks PR creation) |
 | **oc-deploy-ops** | oc-code-auditor (audit grade), oc-security-auditor (posture), oc-git-ops (branch status), oc-security-hardening (manifest verify, when `.opchain/hardening.yaml` exists), oc-compliance-ops (evidence bundle, when `.opchain/compliance.yaml` exists) | oc-monitoring-ops (post-ship observability) |
@@ -574,7 +574,8 @@ description: >
   "set up monitoring", "error tracking", "uptime check", "alerting", "incident
   response", "observability", "what's happening in prod", "set up Sentry", "logging
   strategy", "on-call", "runbook", "SLO", "SLI", "is prod healthy", "why is it
-  slow", "error rate", "status page".
+  slow", "error rate", "status page". NOT opchain skill-usage metering
+  (oc-telemetry-ops).
 
 # oc-orchestrator
 description: >

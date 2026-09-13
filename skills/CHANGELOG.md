@@ -232,6 +232,15 @@ checkpoint `protocol_version` is tracked separately (see
   readiness check and records UNSUPPORTED. orchestrator.md carries a routing row
   for every skill, the "release PR merged → `/oc-git-release`" handoff, and the map
   rows the other sweeps made stale. 67 findings fixed, 20 already fixed.
+- **Every cross-skill edge is documented on both sides (Sprint 5 exit).** The
+  reciprocity pass the 2026-09-11 audit never completed found 66 edges one skill
+  documented and the other did not; 62 now carry the reverse row (oc-reverse-spec
+  and oc-app-architect gain Read-by tables) and 4 false claims are gone, including
+  the orchestrator map's app-architect → migration-ops edge, which runs the other
+  way. Tri-agent skills describe the Verifier/Evaluator's separation as a
+  same-session discipline, not a separate agent; `remediation_owners` is described
+  as the optional `.opchain/pm.yaml` key it is; oc-monitoring-ops' description
+  carves out oc-telemetry-ops.
 - **orchestrator.md §7 backfill and the F6 release-surface procedure.** Two post-1.9.0
   changes to shipped text (#482, #484) that this section never recorded.
 - **Every skill points at its bundled checkpoint protocol.** 29 Checkpoint sections

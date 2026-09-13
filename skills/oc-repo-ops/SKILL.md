@@ -196,3 +196,9 @@ Location: `{project-dir}/.checkpoints/oc-repo-ops.checkpoint.json`
 | oc-docs-forge | Missing or stale documentation packet |
 | oc-bug-check | Code gate has not run or is stale |
 | oc-git-ops | Gate passed; PR can be opened |
+
+| Read by | Why |
+|---|---|
+| oc-git-ops | Readiness verdict + blocking findings → open or block the PR |
+| oc-docs-forge | Last readiness findings that need a docs fix |
+| oc-cost-ops | Per-PR readiness-verify runs to attribute cost to |
