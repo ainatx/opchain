@@ -58,12 +58,12 @@ Full walkthrough (including a local stdio server): https://opchain.dev/install
 | oc-docs-forge             | plan+build  | Documentation generator for every PR: PR body/comments, README/catalog docs, product docs, changelog, ADR upkeep |
 | oc-repo-ops               | build       | Repository hygiene and PR readiness gate: docs packet, generated files, catalog parity, cleanup |
 | oc-reverse-spec           | plan        | Code → spec docs |
-| oc-stack-forge            | plan        | Universal stack advisor |
-| oc-ux-engineer            | plan+build  | Tri-design harness |
+| oc-stack-forge            | plan+build  | Universal stack advisor |
+| oc-ux-engineer            | plan        | Tri-design harness |
 | oc-dash-forge             | plan        | Dashboards + dense data UI (spec + React prototype) |
 | oc-scale-ops              | plan        | Scaling readiness |
 | oc-app-architect          | plan+build  | Unified planning + build harness |
-| oc-integrations-engineer  | plan+build  | API integration harness (third-party APIs you consume) |
+| oc-integrations-engineer  | build       | API integration harness (third-party APIs you consume) |
 | oc-api-dev                | plan+build  | First-party API design + build harness (OpenAPI, versioning, SDKs) |
 | oc-migration-ops          | plan+build  | `/oc-migrate` — DB / framework / auth / platform migrations |
 | oc-qa-ops                 | plan+build  | Test-pyramid design: coverage strategy, contract-test matrix, load-test planning |
