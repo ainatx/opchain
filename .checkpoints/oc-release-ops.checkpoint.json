@@ -3,7 +3,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-13T23:09:34.859Z",
+  "updated_at": "2026-09-13T23:44:44.759Z",
   "skill": "oc-release-ops",
   "phase": "plan-approved",
   "step": "v1.9.1-shipped-baseline-pr-open",
@@ -81,7 +81,6 @@
   "blockers": [],
   "next_actions": [
     "Merge the release-baseline refresh PR once the canary dispatch on its branch is green, then confirm the next scheduled Canary and Deploy lag runs pass on main.",
-    "Re-run the opchain routing eval (/oc-prompt eval, route-004).",
     "Then mark v1.9.1 complete and re-verify the v2.0 plan against the reworked skills before unparking #490 and #515."
   ],
   "pm_refs": [
@@ -352,6 +351,22 @@
           "at": "2026-09-13T23:05:38Z"
         },
         "verified": "/api/health f5e4b2a on both hosts; /skills.json catalogVersion 1.9.1 (33 skills); hardening replay 2/2 and smoke:prod passed"
+      },
+      "routing_eval": {
+        "run_at": "2026-09-13",
+        "method": "agent-driven: isolated router (context = frontmatter descriptions + orchestrator §4 only, no access to expected), contains graded by script, collision cases by an isolated llm_judge",
+        "run1": {
+          "pass": "39/40",
+          "failed": [
+            "route-005"
+          ],
+          "cause": "oc-git-ops copy advertised /oc-pr for create-a-PR; commit + PR is /oc-git-sync"
+        },
+        "run2": {
+          "pass": "40/40",
+          "after": "oc-git-ops description and §4 row clarified"
+        },
+        "route_004": "pass both runs"
       }
     },
     "prior_release": {
