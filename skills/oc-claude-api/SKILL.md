@@ -297,6 +297,10 @@ request layer this skill defines.
 
 ## Checkpoint Integration
 
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-claude-api.
+
 ### Checkpoint Location
 `{project-dir}/.checkpoints/oc-claude-api.checkpoint.json`
 

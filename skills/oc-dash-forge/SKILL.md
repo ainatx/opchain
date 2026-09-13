@@ -19,6 +19,8 @@ commands:
   - /oc-df-full
   - /oc-df-audit
   - /oc-df-variants
+  - /oc-df-status
+  - /oc-df-resume
 description: >
   Specialized dashboard and dense-information UI designer. Produces design specs AND
   working React prototypes with mock data for three archetypes: executive (KPI-driven,
@@ -27,7 +29,7 @@ description: >
   Also trigger on: "design a dashboard", "dashboard mockup", "BI design", "data
   visualization design", "KPI dashboard", "analytics UI", "monitoring dashboard",
   "dense information display", "what should the dashboard look like", "design a report
-  view". Invoked by /oc-ux-engineer when the UI is data-heavy and by /oc-app-architect
+  view". Invoked by oc-ux-engineer when the UI is data-heavy and by oc-app-architect
   when the design phase encounters a dashboard surface.
 ---
 
@@ -101,7 +103,7 @@ Use when the user already has a frontend team and only needs the design, or when
 
 ## Parent Skill Integration (Checkpoints)
 
-oc-dash-forge can run standalone OR be invoked by `/oc-ux-engineer` or `/oc-app-architect` mid-flow. In both cases:
+oc-dash-forge can run standalone OR be invoked by oc-ux-engineer (`/oc-uxe dash`) or oc-app-architect (`/oc-design`) mid-flow. In both cases:
 
 ### Checkpoint coordination
 
@@ -197,8 +199,8 @@ Before asking anything, **check for upstream context:**
    authoritative inventory of what data exists; prefer them over
    `data-architect-handoff.md` when both are present.
 2. Is there a `data-architect-handoff.md` in the project dir? Read it — schema, analytics top 10, platform are all relevant.
-3. Was this called from `/oc-ux-engineer`? Read its design spec / tokens for consistency.
-4. Was this called from `/oc-app-architect`? Read the spec + style book.
+3. Was this called from oc-ux-engineer? Read its design spec / tokens for consistency.
+4. Was this called from oc-app-architect? Read the spec + style book.
 5. Is there a checkpoint from a prior run?
 
 Skim what exists. Only ask what you don't already know.
@@ -372,7 +374,7 @@ Single artifact for oc-app-architect Phase 6 to build against:
 └── integration-notes.md    ← how to wire to real data source
 ```
 
-**Tell user:** "Hand this to `/oc-app-architect` Phase 6 for build (which decomposes sprints internally)."
+**Tell user:** "Hand this to oc-app-architect Phase 6 (`/oc-build`) for build (which decomposes sprints internally)."
 
 ---
 
@@ -416,6 +418,10 @@ Every phase output follows:
 
 ## Checkpoint Protocol
 
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-dash-forge.
+
 **Location:** `{project-dir}/.checkpoints/oc-dash-forge.checkpoint.json`
 Default if unset: `/home/claude/dash-forge-session/`
 
@@ -423,6 +429,10 @@ Default if unset: `/home/claude/dash-forge-session/`
 
 Write on: phase end, mid-phase intake, user pause, before destructive ops.
 Read on: first action each session, before any phase command, on `/oc-df-status` or `/oc-df-resume`.
+
+**`/oc-df-status`** prints the progress table below and the next phase, from the checkpoint
+alone; with no checkpoint it says so and suggests `/oc-df-intake`. **`/oc-df-resume`**
+loads the checkpoint and continues at the first phase not marked complete.
 
 ### Progress table
 

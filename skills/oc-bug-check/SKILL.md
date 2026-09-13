@@ -19,7 +19,7 @@ description: >
   Pre-commit QA gate that runs on every commit. Fast, opinionated checks: type
   safety, lint, tests, anti-pattern scan, secret detection, build verification,
   and dependency vulnerability scan. Blocks commits on failures, warns on cautions,
-  passes silently on clean code. Invoked by oc-git-ops before every /oc-git-commit
+  passes silently on clean code. Invoked by oc-git-ops before every /oc-commit
   and /oc-git-sync. Use for /oc-bugcheck, "check this before I commit", "run the checks",
   "is this safe to commit", "pre-commit", "quick audit", "lint and test", "any bugs
   in this?", "sanity check".
@@ -65,12 +65,16 @@ BUG CHECK COMMANDS
   /oc-bugcheck bypass       Skip gate this once (logs the bypass in checkpoint)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Runs automatically before /oc-git-commit and /oc-git-sync.
+  Runs automatically before /oc-commit and /oc-git-sync.
 ```
 
 ---
 
 ## Session Persistence (Checkpoint Protocol)
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-bug-check.
 
 Checkpoint: `{project-dir}/.checkpoints/oc-bug-check.checkpoint.json`
 
@@ -106,7 +110,7 @@ oc-app-architect /oc-build ──► BUG-CHECK (gate) ──► oc-git-ops /oc-c
                     silently   show what broke
 ```
 
-**Auto-invocation:** oc-git-ops calls oc-bug-check before every `/oc-git-commit` and `/oc-git-sync`.
+**Auto-invocation:** oc-git-ops calls oc-bug-check before every `/oc-commit` and `/oc-git-sync`.
 If oc-bug-check fails, the commit is blocked with a clear failure report. The user can
 override with `/oc-bugcheck bypass` (logged, not silent).
 
@@ -496,7 +500,7 @@ git diff --name-only --diff-filter=ACMR HEAD | grep -E "$SRC"
 
 ### Auto-Invocation
 
-When oc-git-ops receives `/oc-git-commit` or `/oc-git-sync`:
+When oc-git-ops receives `/oc-commit` or `/oc-git-sync`:
 
 1. Check for `.bugcheck.json` at project root (or use defaults)
 2. Run `/oc-bugcheck run`

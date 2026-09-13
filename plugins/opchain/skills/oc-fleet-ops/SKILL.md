@@ -324,6 +324,10 @@ retry/backoff, idempotency markers, `pm_deferred_actions[]`) to
 
 ## Checkpoint
 
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-fleet-ops.
+
 ### Location
 `{project-dir}/.checkpoints/oc-fleet-ops.checkpoint.json`
 

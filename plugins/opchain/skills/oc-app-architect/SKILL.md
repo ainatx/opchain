@@ -16,6 +16,8 @@ commands:
   - /oc-scaffold
   - /oc-build
   - /oc-launch
+  - /oc-export-spec
+  - /oc-punch-list
 description: >
   Unified app development: idea → spec → design → build with Generator/Evaluator
   QA loop → launch. Use for /oc-app, /oc-discover, /oc-spec, /oc-design, /oc-build, /oc-launch,

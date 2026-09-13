@@ -10,6 +10,15 @@ tryable: true
 commands:
   - /oc-scale
   - /oc-scale audit
+  - /oc-scale budget
+  - /oc-scale loadtest
+  - /oc-scale bottleneck
+  - /oc-scale benchmark
+  - /oc-scale cache
+  - /oc-scale queries
+  - /oc-scale cdn
+  - /oc-scale plan
+  - /oc-scale cost
 description: >
   Scaling readiness: load test, perf budgets, caching, capacity planning. Use for
   /oc-scale, "load test", "can this handle more users", "performance", "caching strategy",
@@ -404,6 +413,10 @@ When moving from [current tier] to [next tier]:
 ---
 
 ## Checkpoint Integration
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-scale-ops.
 
 ### Checkpoint Location
 `{project-dir}/.checkpoints/oc-scale-ops.checkpoint.json`

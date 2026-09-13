@@ -14,6 +14,9 @@ commands:
   - /oc-release bump
   - /oc-release announce
   - /oc-release ship
+  - /oc-release verify
+  - /oc-release status
+  - /oc-release rollback
 description: >
   Release-cadence operator. Plan, draft, bump, announce, and ship versioned
   releases of opchain (or any opchain-managed project). Reads sprint
@@ -284,7 +287,7 @@ End-of-pipeline handoff.
 4. Hand off to `oc-deploy-ops`:
    - Invoke oc-deploy-ops.
    - Run `/oc-deploy staging` first; user eyeballs.
-   - Run `/oc-deploy` (prod) on user confirmation.
+   - Run `/oc-deploy prod` on user confirmation.
 5. Update homepage pill + close release ticket via PM-MCP per protocol §3
    marker `<!-- opchain:oc-release-ops:release-shipped:v<semver> -->`.
 6. Write checkpoint: phase `shipped`, status `complete`.
@@ -313,7 +316,7 @@ continue):
 
 ## Phase 6: `/oc-release rollback`
 
-If the release was bumped but **not yet shipped** (`/oc-deploy` not yet run):
+If the release was bumped but **not yet shipped** (`/oc-deploy prod` not yet run):
 
 1. `git revert` the bump commit.
 2. Restore the previous `/changelog` section ordering.
@@ -321,7 +324,7 @@ If the release was bumped but **not yet shipped** (`/oc-deploy` not yet run):
 4. Write checkpoint: phase `rolled-back`.
 
 If the release **has shipped**, do NOT use `/oc-release rollback` — invoke
-`oc-deploy-ops /oc-rollback` to revert the worker, then file a fresh release with
+`oc-deploy-ops /oc-deploy rollback` to revert the worker, then file a fresh release with
 an incremented patch version that documents the rollback. oc-release-ops never
 overwrites a shipped release in-place.
 
@@ -350,6 +353,10 @@ SKILL.md files, not a single `package.json`.
 ---
 
 ## Checkpoint Integration
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-release-ops.
 
 ### Checkpoint Location
 `{project-dir}/.checkpoints/oc-release-ops.checkpoint.json`
@@ -476,7 +483,7 @@ the PM write fails; flush is reconciliation only.
    between them are held by machinery, not by this sentence. `/oc-release verify`
    and `npm run deploy` both call `scripts/check-release-tag.mjs`; a release that
    skips the oc-git-ops tag cannot reach production.
-7. **Reversibility until prod.** Every step before `/oc-deploy` is reversible.
+7. **Reversibility until prod.** Every step before `/oc-deploy prod` is reversible.
    After prod, fix forward with a new release.
 8. **Dogfood the cadence.** opchain itself uses oc-release-ops for its own
    releases — the v1.3 release shipped via `/oc-release ship v1.3.0`.

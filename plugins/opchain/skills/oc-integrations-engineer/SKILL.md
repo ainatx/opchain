@@ -10,6 +10,15 @@ tryable: true
 commands:
   - /oc-integrate
   - /oc-integrate plan
+  - /oc-integrate secrets
+  - /oc-integrate build
+  - /oc-integrate test
+  - /oc-integrate connect
+  - /oc-integrate webhook
+  - /oc-integrate oauth
+  - /oc-integrate health
+  - /oc-integrate retry
+  - /oc-integrate list
 description: >
   Third-party API integrations with Planner/Builder/Tester loop. Use for /oc-integrate,
   "connect to Salesforce", "webhook", "OAuth", "API integration", "connect to Slack",
@@ -619,6 +628,10 @@ skill respects rejections).
 ---
 
 ## Checkpoint Integration
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-integrations-engineer.
 
 ### Checkpoint Location
 `{project-dir}/.checkpoints/oc-integrations-engineer.checkpoint.json`

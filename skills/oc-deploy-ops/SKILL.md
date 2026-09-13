@@ -11,6 +11,13 @@ commands:
   - /oc-deploy
   - /oc-deploy staging
   - /oc-deploy audit
+  - /oc-deploy init
+  - /oc-deploy prod
+  - /oc-deploy rollback
+  - /oc-deploy env
+  - /oc-deploy status
+  - /oc-deploy smoke
+  - /oc-deploy health
 description: >
   Deployment pipeline: audit gate → staging → production → monitoring. Use for
   /oc-deploy, "deploy this", "ship it", "push to production", "staging", "rollback",
@@ -159,6 +166,23 @@ Create or update `.oc-deploy-ops.json`:
 5. **Generate .oc-deploy-ops.json** — ask user to confirm/adjust
 6. **Verify deploy works** — dry-run `wrangler deploy --dry-run`
 7. **Set up smoke test URLs** — derive from wrangler.toml routes
+
+### Environment Variables and Secrets (/oc-deploy env)
+
+Inventory what each environment needs before anything ships to it. The commands
+below are Wrangler's; on Render, Fly or Heroku use the platform's equivalent.
+
+1. **Declared** — read the env-var template (`.env.example` or equivalent) and the
+   platform config (`vars` per environment in wrangler config).
+2. **Present** — list what each environment actually has (`wrangler secret list`,
+   `wrangler secret list --env staging`). Report names only, never values.
+3. **Diff** — flag a variable the code reads but an environment lacks, and a secret
+   an environment holds that nothing reads.
+4. **Set** — on request, set a missing secret with `wrangler secret put <NAME>`
+   (add `--env staging` for staging); the user types the value, never the agent.
+
+Rotation policy belongs to oc-security-hardening, which hands the actual rotation
+here when the platform's secret store is the tool.
 
 ---
 
@@ -372,8 +396,11 @@ verify post-deploy observability (uptime checks, error tracking,
 SLO/SLI alarms). Deploy-ops ships it; oc-monitoring-ops watches it.
 
 ```
-Skill(skill="oc-monitoring-ops", args="/oc-monitor verify")
+Skill(skill="oc-monitoring-ops", args="/oc-monitor health")
 ```
+
+When the project has no oc-monitoring-ops checkpoint yet, run `/oc-monitor setup`
+instead: there is nothing to verify until observability exists.
 
 oc-monitoring-ops reads this skill's checkpoint to learn what shipped
 (version, commit SHA, prod URL) and confirms:
@@ -458,6 +485,10 @@ notify "✅ *acme-app* deployed to production — $(git rev-parse --short HEAD)"
 
 ## Checkpoint Integration
 
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-deploy-ops.
+
 ### Checkpoint Location
 `{project-dir}/.checkpoints/oc-deploy-ops.checkpoint.json`
 
@@ -498,7 +529,7 @@ notify "✅ *acme-app* deployed to production — $(git rev-parse --short HEAD)"
 
 Deploy-ops can be invoked directly, but also gets suggested by other skills:
 - **oc-git-ops**: After `/oc-git-sync` completes, oc-git-ops suggests `/oc-deploy staging`
-- **oc-app-architect**: After final Phase 6 sprint passes, oc-app-architect suggests `/oc-audit pre-deploy` → `/oc-deploy`
+- **oc-app-architect**: After final Phase 6 sprint passes, oc-app-architect suggests `/oc-audit pre-deploy` → `/oc-deploy staging`
 - **oc-app-architect**: Phase 7 (Launch) suggests the deploy pipeline
 
 When triggered by another skill's suggestion, read that skill's checkpoint for context

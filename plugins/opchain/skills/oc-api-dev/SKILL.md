@@ -18,6 +18,9 @@ commands:
   - /oc-api deprecate
   - /oc-api sdk
   - /oc-api docs
+  - /oc-api build
+  - /oc-api list
+  - /oc-api drift
 description: >
   First-party API design and build harness with Designer/Builder/Conformance loop.
   Owns OpenAPI/GraphQL authoring, schema↔code parity, versioning + sunset strategy,
@@ -493,6 +496,10 @@ deploy. See `oc-deploy-ops/SKILL.md § Pack-aware dispatch`.)
 ---
 
 ## Checkpoint Integration
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-api-dev.
 
 ### Checkpoint Location
 `{project-dir}/.checkpoints/oc-api-dev.checkpoint.json`
