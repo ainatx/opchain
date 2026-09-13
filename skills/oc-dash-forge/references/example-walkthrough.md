@@ -4,7 +4,7 @@ A complete run of oc-dash-forge on a realistic scenario. Use this as the north s
 
 **Scenario:** Alex wants a real-time monitoring dashboard for the Meridian IT training compliance platform — the ops team needs to see at a glance whether training is landing, which integrations are healthy, and what's backing up.
 
-This run was invoked by `/oc-app-architect` during its Phase 3b wireframe review, which detected the dashboard surface and routed to `/oc-data-forge`.
+This run was invoked by oc-app-architect (`/oc-design`) during its Phase 3b wireframe review, which detected the dashboard surface and routed to `/oc-data-forge`.
 
 ---
 
@@ -262,7 +262,7 @@ This prototype uses mock data in `mock-data.ts`. To wire to real data:
 
 ### Return to oc-app-architect
 
-> `/oc-app-architect` → add "Meridian Ops Dashboard" to Phase 3d punch list with source=oc-dash-forge
+> oc-app-architect → add "Meridian Ops Dashboard" to Phase 3d punch list with source=oc-dash-forge
 > Build sprint estimate: S (4–6 hours, mostly wiring)
 ```
 

@@ -94,7 +94,7 @@ when nothing 400s — the eval catches regressions the checklist can't.
 
 ## Step 5 — Open the PR
 
-Route the diff through `oc-git-ops` (`/oc-git-pr`). The PR body lists: source →
+Route the diff through `oc-git-ops` (`/oc-pr`). The PR body lists: source →
 target model, files touched (with bucket from Step 1), the `[BLOCKS]` items
 applied, and the eval result.
 

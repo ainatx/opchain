@@ -188,6 +188,10 @@ nobody is keeping.
 
 ## Checkpoint Integration
 
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-data-ops.
+
 Location: `{project-dir}/.checkpoints/oc-data-ops.checkpoint.json`
 
 Loop position lives in `skill_state.loop` (not `progress_table`).

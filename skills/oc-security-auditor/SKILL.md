@@ -16,6 +16,21 @@ commands:
   - /oc-hardening
   - /oc-attack-surface
   - /oc-posture
+  - /oc-security posture
+  - /oc-security readiness
+  - /oc-security compare
+  - /oc-security threat-model
+  - /oc-security attack-surface
+  - /oc-security adversaries
+  - /oc-security data-flow
+  - /oc-security owasp
+  - /oc-security report
+  - /oc-security headers
+  - /oc-security tls
+  - /oc-security dns
+  - /oc-security cloudflare
+  - /oc-security infra
+  - /oc-security prioritize
 description: >
   Practice-level security posture assessment: threat modeling (STRIDE), OWASP Top 10
   compliance mapping, runtime/infra hardening (CSP, TLS, DNS, WAF, Cloudflare config),
@@ -417,6 +432,10 @@ for format.
 ---
 
 ## Checkpoint Integration
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-security-auditor.
 
 ### Location
 `{project-dir}/.checkpoints/oc-security-auditor.checkpoint.json`

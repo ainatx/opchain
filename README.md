@@ -78,6 +78,9 @@ without manual handoffs.
 | `oc-api-dev` | First-party API design + build harness (OpenAPI, versioning, SDKs) |
 | `oc-migration-ops` | `/oc-migrate` — DB / framework / auth / platform migrations |
 | `oc-modularize-ops` | Live-monolith decomposition with golden-fixture equivalence proof |
+| `oc-qa-ops` | Test-pyramid design: coverage strategy, contract-test matrix, load-test planning |
+| `oc-data-ops` | Data pipelines: ingestion, transformation layers, dbt, observable data contracts |
+| `oc-compliance-ops` | Standing control register + audit-ready evidence bundles at deploy time |
 
 ### build + ai-native
 
@@ -95,6 +98,7 @@ without manual handoffs.
 | `oc-code-auditor` | Auditor → Fixer → Verifier. 5-layer sweep, pre-deploy gate |
 | `oc-bug-check` | Pre-commit QA gate: type, lint, tests, secrets, build, deps, anti-patterns |
 | `oc-security-auditor` | Threat modeling, OWASP hardening, attack-surface review |
+| `oc-security-hardening` | Remediation operator: execute hardening fixes, per-deploy hardening gate |
 | `oc-repo-ops` | Repository hygiene and PR readiness gate |
 | `oc-cost-ops` | LLM cost attribution, budget gates, model-tier routing recommendations |
 | `oc-telemetry-ops` | Opt-in local usage metering and anonymized aggregate dashboard feed |

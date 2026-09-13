@@ -574,6 +574,10 @@ affected.
 
 ## Session Persistence (Checkpoint Protocol)
 
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-migration-ops.
+
 Checkpoint: `{project-dir}/.checkpoints/oc-migration-ops.checkpoint.json`
 
 ### Resume on Start

@@ -11,6 +11,11 @@ commands:
   - /oc-prompt
   - /oc-prompt eval
   - /oc-prompt diff
+  - /oc-prompt goldset
+  - /oc-prompt judge
+  - /oc-prompt regress
+  - /oc-prompt baseline
+  - /oc-prompt drift
 description: >
   Prompt operations harness — treat prompts as versioned, diffable,
   source-controlled code. Owns prompt versioning, eval datasets, regression
@@ -387,6 +392,10 @@ deploy, and cost it.
 ---
 
 ## Checkpoint Integration
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-prompt-ops.
 
 ### Checkpoint Location
 `{project-dir}/.checkpoints/oc-prompt-ops.checkpoint.json`

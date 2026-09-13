@@ -10,10 +10,23 @@ tryable: true
 commands:
   - /oc-audit
   - /oc-audit full
+  - /oc-audit security
+  - /oc-audit perf
+  - /oc-audit ux
+  - /oc-audit pre-deploy
+  - /oc-audit quality
+  - /oc-audit file
+  - /oc-audit diff
+  - /oc-audit fix-all
+  - /oc-audit fix
+  - /oc-audit verify
+  - /oc-audit test-bootstrap
+  - /oc-audit report
 description: >
   Code quality auditor with Auditor/Fixer/Verifier loop. Use for /oc-audit, "audit this",
-  "find bugs", "security audit", "code review", "pre-deploy check", "what's wrong with
-  this code", or any code quality question.
+  "find bugs", "code review", "pre-deploy check", "what's wrong with this code", or any
+  code-level quality question. For fast pre-commit checks, escalate to oc-bug-check. For
+  architecture- or infra-level security, escalate to oc-security-auditor.
 ---
 
 # Code Auditor
@@ -413,6 +426,10 @@ Auditor/Fixer/Verifier loop, or the CRITICAL/HIGH deploy-block logic.
 reads a downward trend as a "schedule the next audit" signal.
 
 ## Checkpoint Integration
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-code-auditor.
 
 ### Checkpoint Location
 `{project-dir}/.checkpoints/oc-code-auditor.checkpoint.json`

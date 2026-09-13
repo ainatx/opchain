@@ -228,6 +228,10 @@ for known control classes present in code but absent from the manifest, and
 
 ## Checkpoint Integration
 
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-security-hardening.
+
 Location: `{project-dir}/.checkpoints/oc-security-hardening.checkpoint.json`
 
 ```json

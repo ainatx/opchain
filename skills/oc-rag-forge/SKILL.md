@@ -11,6 +11,14 @@ commands:
   - /oc-rag
   - /oc-rag eval
   - /oc-rag bench
+  - /oc-rag design
+  - /oc-rag build
+  - /oc-rag chunk
+  - /oc-rag embed
+  - /oc-rag hybrid
+  - /oc-rag goldset
+  - /oc-rag regress
+  - /oc-rag inspect
 description: >
   Retrieval-augmented generation harness with a Designer/Builder/Evaluator
   loop. Owns vector DB selection (pgvector, Turbopuffer, Pinecone, Supabase
@@ -434,6 +442,10 @@ Sibling skills provision, generate, deploy, and monitor around it.
 ---
 
 ## Checkpoint Integration
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-rag-forge.
 
 ### Checkpoint Location
 `{project-dir}/.checkpoints/oc-rag-forge.checkpoint.json`

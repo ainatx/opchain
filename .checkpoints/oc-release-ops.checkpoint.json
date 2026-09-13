@@ -3,10 +3,10 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-13T05:23:20.855Z",
+  "updated_at": "2026-09-13T05:56:47.723Z",
   "skill": "oc-release-ops",
   "phase": "plan-approved",
-  "step": "v1.9.1-sprint-3-in-review",
+  "step": "v1.9.1-sprint-4-in-review",
   "status": "in_progress",
   "progress_summary": "v1.9.0 remains shipped and live. A v1.9.1 patch release is proposed to ship the fixes from the 2026-09-11 skill-chain audit (484 upheld findings, 11 CRITICAL). Plan: docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md. Proposed semver v1.9.1 by decision-tree rule 10 under a patch-scope rule (fixes and doc corrections only; additive work moves to v2.0); the close call is rule 5, since sixteen documented subcommands become indexed in frontmatter, which would make it v1.10.0 on a strict reading. Proposed theme 'The chain holds'. Release surfaces for a patch: P1-P7 product half, then L4 (open hero range + v1-9-1 rel-card), L5 recount and L7 styleguide badge in the site half; L1-L3, L6, L8-L10 and forward surfaces do not move. The v2.0 recolour (PR 490) and demo rebuild (PR 515) are parked as drafts until after this release.",
   "progress_table": [
@@ -80,9 +80,10 @@
   },
   "blockers": [],
   "next_actions": [
-    "Sprint 3: land the live-state PR once the isolated evaluator passes and CI is green.",
+    "Sprint 4: land the cross-skill contracts PR once CI is green.",
     "Owner: refresh the staging entry in .github/monitoring/release-baseline.json so the scheduled canary's staging half goes green.",
-    "Sprint 4 (cross-cutting contracts) next: declare the 16 subcommands in frontmatter, repoint /oc-rollback and /oc-git-commit, fix the orchestrator map and regenerate section 7, point each skill at its bundled protocol, add the four v1.9 README rows, add CI checks for verbs and section 7."
+    "Sprint 5 (per-skill sweeps 5a-5d through the audit appendix, then the reciprocity re-run) next; include the five phantom deploy-gate claims and behaviour text for menu-only verbs.",
+    "Before the v1.9.1 tag: re-run the opchain routing eval, route-004 in particular."
   ],
   "pm_refs": [
     {
@@ -114,7 +115,7 @@
     "current_release": {
       "semver": "1.9.1",
       "theme": "The chain holds",
-      "phase": "sprint-3",
+      "phase": "sprint-4",
       "plan": "docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md",
       "source": "docs/audits/2026-09-11-skillchain-2.0-audit.md",
       "started_at": "2026-09-12",
@@ -206,6 +207,11 @@
           "pr": 519,
           "sha": "5bbff3f",
           "what": "checkpoint tooling tells the truth (Sprint 2)"
+        },
+        {
+          "pr": 520,
+          "sha": "02913e7",
+          "what": "live checkpoints reconciled, doctor blocks on errors (Sprint 3)"
         }
       ],
       "staging": "main (owner redeployed 2026-09-13; staging baseline entry still describes the old demo preview)",
@@ -235,6 +241,11 @@
       "sprint_3": {
         "scope": "live checkpoint state reconciled against git, GitHub and both environments; oc-orchestrator, oc-stack-forge, oc-cost-ops archived to .checkpoints/history/; CI doctor step blocks on errors",
         "decision": "doctor blocks on errors only, not warnings: warnings depend on the calendar, the machine and git history and would redden unrelated PRs. Count taken to zero instead."
+      },
+      "sprint_4": {
+        "scope": "every cited /oc-* verb declared by its owner (15 handoff subcommands + every menu verb, 94 new declarations, 6 new root-verb flags); /oc-rollback and /oc-git-commit repointed; orchestrator map rows for all 33 skills, §3 rows for the v1.5/v1.7 skills, §7 generated from frontmatter; checkpoint-protocol pointer in 29 skills; root README v1.9 rows; scripts/check-skill-contracts.mjs in pretest/prebuild",
+        "scope_decision": "Declaring verbs the skills already documented in their menus is a catalog-accuracy fix, not new capability, so it stays in the patch; no command gains behaviour except four that gained behaviour text.",
+        "open_risk": "oc-code-auditor's description dropped \"security audit\" (collided with oc-security-auditor); routing eval case route-004 is not run in CI and should be re-run before the tag."
       }
     },
     "prior_release": {

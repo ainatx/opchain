@@ -139,6 +139,7 @@ npm run deploy:staging   # wrangler deploy --env staging (staging.opchain.dev)
 npm test                 # vitest unit + integration-ish suite
 npm run test:hooks       # plugin hook suites (commit gate + next-suggestion), plain node
 npm run gen-catalog      # validates skills/<id>/SKILL.md frontmatter at build time
+npm run check-skill-contracts # every cited /oc-* verb is declared; orchestrator.md §7 matches frontmatter
 npm run check-release-tag # is the lockstep catalog version actually tagged in git?
 npm run sync-docs        # skills/ → public/docs/ (runs in prebuild)
 npm run make-zip         # skills/ → public/opchain-skills.zip (runs in prebuild)

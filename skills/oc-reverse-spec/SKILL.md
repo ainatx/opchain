@@ -14,6 +14,9 @@ commands:
   - /oc-rev-design
   - /oc-rev-stack
   - /oc-rev-sprint
+  - /oc-rev-status
+  - /oc-rev-diff
+  - /oc-rev-spec
 description: >
   Reverse-engineer existing code into spec docs. Use for /oc-rev-spec, /oc-reverse-spec,
   "document this codebase", "generate specs from code", "backfill specs", or when
@@ -52,6 +55,7 @@ REVERSE SPEC COMMANDS
   MODES
   /oc-rev-scan       Quick scan — inventory what exists, recommend spec priority
   /oc-rev-full       Full spec generation — produce all oc-app-architect spec docs
+  /oc-rev-spec       Alias of /oc-rev-full (accepts --pm-mirror)
   /oc-rev-design     Design system extraction — colors, typography, components
   /oc-rev-stack      Stack-forge gap analysis — typed pipeline audit
   /oc-rev-sprint     Tri-dev onramp — generate spec.md + sprint-plan.md for a feature
@@ -92,6 +96,9 @@ specified feature.
 
 **`/oc-rev-status`**: Reads checkpoint (JSON, or legacy markdown). If no checkpoint exists,
 says so and suggests `/oc-rev-scan` to start.
+
+**`/oc-rev-spec`**: The same run as `/oc-rev-full`, under the name the skill description
+advertises. Takes the `--pm-mirror` flag described under PM-Tool MCP Integration.
 
 **`/oc-rev-diff`**: Re-reads the codebase and compares against previously generated specs. Flags
 drift (code changed since specs were generated). Requires prior spec generation.
@@ -518,7 +525,7 @@ Top 3 Gaps:
 Next Steps:
   1. Review generated specs for accuracy (especially MEDIUM/LOW items)
   2. Run /oc-rev-stack for detailed typed pipeline audit
-  3. Use /oc-app-architect /oc-roadmap to plan next features against these specs
+  3. Use oc-app-architect /oc-roadmap to plan next features against these specs
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 

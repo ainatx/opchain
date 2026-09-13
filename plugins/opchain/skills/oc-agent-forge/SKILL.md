@@ -11,6 +11,13 @@ commands:
   - /oc-agent
   - /oc-agent eval
   - /oc-agent loop
+  - /oc-agent plan
+  - /oc-agent build
+  - /oc-agent topology
+  - /oc-agent tools
+  - /oc-agent fixtures
+  - /oc-agent trace
+  - /oc-agent regress
 description: >
   Claude Agent SDK build harness with a Planner/Builder/Evaluator loop. Owns
   subagent topology, tool-budget design, harness loop shapes, and agent
@@ -465,6 +472,10 @@ deploy, and monitor around it.
 ---
 
 ## Checkpoint Integration
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-agent-forge.
 
 ### Checkpoint Location
 `{project-dir}/.checkpoints/oc-agent-forge.checkpoint.json`

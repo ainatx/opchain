@@ -14,6 +14,9 @@ commands:
   - /oc-push
   - /oc-git-sync
   - /oc-git-release
+  - /oc-git-init
+  - /oc-git-status
+  - /oc-git-convention
 description: >
   Git workflow: branch, commit, PR, sync, release tag. Chains to (when you invoke it):
   oc-bug-check before every commit and the oc-docs-forge → oc-repo-ops pre-PR gate before
@@ -30,9 +33,9 @@ Move code from Claude's workspace to a git repository with proper branch managem
 commit structure, and PR descriptions. This is the bridge between "Claude built it"
 and "it's in version control."
 
-## /oc-git-ops — Command Reference
+## /oc-git — Command Reference
 
-When the user types `/oc-git-ops`, display this menu:
+When the user types `/oc-git`, display this menu:
 
 ```
 GIT OPS COMMANDS
@@ -41,9 +44,9 @@ GIT OPS COMMANDS
   WORKFLOW
   /oc-git-init         Clone repo + set up workspace for a project
   /git-branch       Create a feature branch from convention
-  /oc-git-commit       Stage + commit with structured message
-  /oc-git-pr           Generate PR description from commits/checkpoint
-  /git-push         Push branch to remote
+  /oc-commit           Stage + commit with structured message
+  /oc-pr               Generate PR description from commits/checkpoint
+  /oc-push             Push branch to remote
   /oc-git-sync         Full workflow: branch → commit → push → PR
   /oc-git-release      Tag a merged release + push the tag (closes the ledger)
 
@@ -54,7 +57,7 @@ GIT OPS COMMANDS
   /checkpoint       Show checkpoint status
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Type any command to begin. /oc-git-ops to see this again.
+  Type any command to begin. /oc-git to see this again.
 ```
 
 ---
@@ -168,7 +171,7 @@ EOF
 
 ---
 
-## Commit Structure (/oc-git-commit)
+## Commit Structure (/oc-commit)
 
 ### Conventional Commits
 
@@ -253,7 +256,7 @@ Then read `.checkpoints/oc-bug-check.checkpoint.json` for the verdict.
 
 ---
 
-## PR Description (/oc-git-pr)
+## PR Description (/oc-pr)
 
 ### Auto-Generated from Context
 
@@ -472,6 +475,10 @@ project-specific, oc-git-ops defaults are generic.
 ---
 
 ## Checkpoint Integration
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-git-ops.
 
 ### Checkpoint Location
 `{project-dir}/.checkpoints/oc-git-ops.checkpoint.json`

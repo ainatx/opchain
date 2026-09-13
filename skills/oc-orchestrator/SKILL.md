@@ -19,6 +19,9 @@ commands:
   - /oc-ops pipeline
   - /oc-ops blockers
   - /oc-ops recent
+  - /oc-ops unregister
+  - /oc-ops health
+  - /oc-ops skills
 description: >
   Pipeline coordinator for the opchain dev ecosystem. Multi-project registry, cross-skill
   status, smart routing, and "what should I do next?" recommendations. Use for /oc-ops,
@@ -915,7 +918,7 @@ oc-orchestrator:
 3. Recommends the next action, citing the specific skill and
    command. Examples:
    - "Last touched by `oc-git-ops` 2 days ago — PR is in review.
-     Run `/oc-git-sync --refresh` to update."
+     Run `/oc-git-sync` to refresh it."
    - "Last touched by `oc-app-architect` Phase 4. Next: `/oc-build`."
 
 ### `/oc-ops next` (existing verb, v1.2-enhanced)

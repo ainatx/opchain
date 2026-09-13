@@ -11,6 +11,7 @@ commands:
   - /oc-stack
   - /oc-stack-decide
   - /oc-feature
+  - /oc-stack-compare
 description: >
   Stack advisor for any platform: Cloudflare, Vercel, AWS, Supabase, Rails, Django.
   Use for /oc-stack, /oc-stack-decide, /oc-feature, "what stack", "tech stack", "what should I
@@ -45,14 +46,14 @@ APP-ARCHITECT (planning)                TRI-DEV (building)
 
 **App-architect auto-invokes oc-stack-forge** — when Phase 2 starts, oc-stack-forge's decision
 tree runs automatically to generate `01-tech-stack.md` and `02-architecture.md`. The user
-doesn't need to call `/oc-stack-forge` separately. Stack-forge reads the discovery interview
+doesn't need to call `/oc-stack` separately. Stack-forge reads the discovery interview
 results and recommends the best stack for the project's requirements.
 
 **App-architect Phase 6 uses oc-stack-forge** for stack-ordered sprint decomposition regardless of stack choice.
 
 ---
 
-## /oc-stack-forge — Command Reference
+## /oc-stack — Command Reference
 
 ```
 STACK FORGE COMMANDS
@@ -435,8 +436,8 @@ When called, oc-stack-forge:
 4. Writes its own checkpoint and returns control to oc-app-architect, which then writes `01-tech-stack.md` and `02-architecture.md`.
 5. User reviews stack at oc-app-architect's Spec Approval Gate.
 
-**The user does not call `/oc-stack-forge` separately for new projects** — oc-app-architect
-chains to it via the active-invocation pattern. `/oc-stack-forge` is only invoked standalone for:
+**The user does not call `/oc-stack` separately for new projects** — oc-app-architect
+chains to it via the active-invocation pattern. `/oc-stack` is only invoked standalone for:
 - Quick stack questions outside a project context
 - Feature decomposition (`/oc-feature`) for existing projects
 - Gap analysis on existing codebases (with oc-reverse-spec)
@@ -444,6 +445,10 @@ chains to it via the active-invocation pattern. `/oc-stack-forge` is only invoke
 ---
 
 ## Session Persistence (Checkpoint Protocol)
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-stack-forge.
 
 Checkpoint location: `{project-dir}/.checkpoints/oc-stack-forge.checkpoint.json`
 

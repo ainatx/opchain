@@ -135,6 +135,32 @@ checkpoint `protocol_version` is tracked separately (see
   if it covered the deploying SHA's runtime code, blocks when no security assessment
   is on record unless a waiver is recorded, and hands off to `/oc-security posture`
   instead of an undeclared verb.
+- **Every handoff names a verb its target declares, and every menu verb is
+  declared.** Fifteen handoffs named subcommands the target documented but did not
+  declare in `commands:` (`/oc-audit pre-deploy`, `/oc-security posture`,
+  `/oc-deploy prod`, `/oc-release verify`, `/oc-scale loadtest`, …); the sixteenth,
+  `/oc-security pre-deploy`, was repointed earlier in this release. Frontmatter now
+  declares every verb in each skill's own command menu, 94 new verbs in all, including
+  `/oc-deploy rollback`, `/oc-deploy env`, `/oc-audit fix-all` and the
+  `/oc-rev-spec`, `/oc-df-status` and `/oc-git-status` family. Each was already
+  documented in its skill's command menu; `/oc-deploy env`, `/oc-df-status`,
+  `/oc-df-resume` and `/oc-rev-spec` also gain behaviour text. `/oc-rollback` and `/oc-git-commit`, which no skill declared, now read
+  `/oc-deploy rollback` and `/oc-commit`; oc-deploy-ops hands off to
+  `/oc-monitor health` instead of an undefined `/oc-monitor verify`. oc-git-ops,
+  oc-stack-forge and oc-ux-engineer title their menus with their declared `/oc-git`,
+  `/oc-stack` and `/oc-uxe`. The production deploy verb is `/oc-deploy prod`
+  everywhere; bare `/oc-deploy` is the menu.
+- **orchestrator.md — the map covers the catalog.** Upstream/Downstream rows for
+  oc-checkpoint-protocol, oc-claude-api, oc-agent-forge, oc-rag-forge, oc-prompt-ops,
+  oc-signal-forge, oc-modularize-ops and oc-fleet-ops; Handoff Points rows for the
+  AI-app branch, the model-migration eval, validated signals and the
+  modularize → migration → fleet chain. §7 is generated from frontmatter: 11 of 32
+  blocks had drifted. `npm run check-skill-contracts` (in `pretest` and `prebuild`)
+  fails when a cited verb is undeclared or §7 drifts. oc-code-auditor's description takes §7's routing wording
+  back ("escalate to oc-bug-check / oc-security-auditor") and drops "security
+  audit", which collided with oc-security-auditor.
+- **Every skill points at its bundled checkpoint protocol.** 29 Checkpoint sections
+  never named `references/checkpoint-protocol.md`; they do now.
 
 ## [1.9.0] — 2026-09-02 — "Assurance and governed delivery ops"
 

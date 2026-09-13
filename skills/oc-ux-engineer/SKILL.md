@@ -18,6 +18,8 @@ commands:
   - /oc-uxe dash
   - /oc-uxe attach
   - /oc-uxe detach
+  - /oc-uxe status
+  - /oc-uxe export
 description: >
   UI/UX design harness with Design Planner/Generator/Evaluator loop. Use for /oc-uxe,
   "review the UX", "design iteration", "component library", "accessibility audit",
@@ -40,7 +42,7 @@ Works in two modes:
 - **oc-app-architect plugin**: Adds a Design Evaluator alongside the Code Evaluator
   during UI-heavy oc-app-architect Phase 6 build sprints
 
-## /oc-ux-engineer — Command Reference
+## /oc-uxe — Command Reference
 
 ```
 UX ENGINEER COMMANDS
@@ -606,6 +608,10 @@ project-dir/
 ---
 
 ## Checkpoint Integration
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-ux-engineer.
 
 ### Checkpoint Location
 `{project-dir}/.checkpoints/oc-ux-engineer.checkpoint.json`

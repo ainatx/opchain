@@ -241,6 +241,10 @@ contract* below):
 
 ## Session Persistence (Checkpoint Protocol)
 
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-modularize-ops.
+
 This skill mirrors `oc-migration-ops`'s persistence discipline, because **a half-extracted
 monolith sitting behind a façade is exactly the orphan risk** the checkpoint protocol exists
 to guard against. Leaving a session with one module half-carved-out and no record of it is
