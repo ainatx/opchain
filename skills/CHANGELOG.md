@@ -179,6 +179,16 @@ checkpoint `protocol_version` is tracked separately (see
   slower than 60 seconds still allows. Nine gate behaviours with no test gained cases
   (array or invalid checkpoint, `.opchain/` enrolment, `OPCHAIN_GATE=1`,
   `OPCHAIN_BYPASS=1`, the `verdict` and `verified_for_tree` aliases, `xargs`, `sudo`).
+- **Plan & design skills say what they do (Sprint 5a).** oc-app-architect runs the
+  Design Evaluator itself on UI sprints (`/oc-uxe attach`) instead of waiting for an
+  "auto-attach" nothing performed, and ITERATE/FAIL map the same way on both sides.
+  oc-reverse-spec and oc-dash-forge write inside the project instead of claude.ai
+  sandbox paths; reverse-spec hands off by copying its specs to `spec/` (asking before
+  overwriting) and running `/oc-roadmap`. Spec numbering agrees everywhere (09
+  documentation plan, 10 cost estimate, 11 AI architecture). oc-dash-forge's
+  checkpoint follows the protocol and names its real upstream skills; oc-stack-forge
+  no longer claims app-architect uses its build ordering. oc-ux-engineer's phases are
+  `[plan, build]`, matching its build loop. 70 findings fixed, 7 already fixed.
 - **Gate and assurance skills say what they do (Sprint 5d-1).** oc-bug-check's
   private-key grep actually matches PEM and PGP headers (it was BRE and never
   did); its verdicts are PASS, FAIL or UNSUPPORTED as the commit gate reads them,

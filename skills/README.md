@@ -59,7 +59,7 @@ Full walkthrough (including a local stdio server): https://opchain.dev/install
 | oc-repo-ops               | build       | Repository hygiene and PR readiness gate: docs packet, generated files, catalog parity, cleanup |
 | oc-reverse-spec           | plan        | Code → spec docs |
 | oc-stack-forge            | plan+build  | Universal stack advisor |
-| oc-ux-engineer            | plan        | Tri-design harness |
+| oc-ux-engineer            | plan+build  | Tri-design harness |
 | oc-dash-forge             | plan        | Dashboards + dense data UI (spec + React prototype) |
 | oc-scale-ops              | plan        | Scaling readiness |
 | oc-app-architect          | plan+build  | Unified planning + build harness |

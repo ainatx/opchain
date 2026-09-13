@@ -102,6 +102,8 @@ oc-bug-check, at its test-suite check, when `.opchain/qa.yaml` exists:
   treated exactly as absent plus one WARN line ("qa.yaml unreadable — budgets
   not applied; run /oc-qa status"). Never FAIL, never block, on a manifest
   parse problem.
+- A valid manifest with no `coverage:` block applies no coverage budget and
+  emits nothing about coverage (the suite still runs as before).
 
 This keeps the edge additive: no manifest, no change; manifest present,
 strategy becomes visible at the gate without redefining it.

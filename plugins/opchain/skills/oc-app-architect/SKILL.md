@@ -3,7 +3,7 @@ name: oc-app-architect
 displayName: OC · App Architect
 version: 1.9.0
 license: Apache-2.0
-shortDesc: Idea → spec → design → build → launch in one skill. v1.2 reads PM tickets and writes sprints back via PM-MCP.
+shortDesc: Idea → spec → design → build → launch in one skill. Reads PM tickets and writes sprints back via PM-MCP.
 phases: [plan, build]
 triAgent: true
 tryable: true
@@ -20,7 +20,8 @@ commands:
   - /oc-punch-list
 description: >
   Unified app development: idea → spec → design → build with Generator/Evaluator
-  QA loop → launch. Use for /oc-app, /oc-discover, /oc-spec, /oc-design, /oc-build, /oc-launch,
+  QA loop → launch. Use for /oc-app, /oc-discover, /oc-spec, /oc-design, /oc-roadmap,
+  /oc-scaffold, /oc-build, /oc-launch,
   "build me an app", "I have an app idea", or any software project. Chains to (when you invoke it): oc-stack-forge and oc-ux-engineer.
 ---
 
@@ -50,15 +51,12 @@ APP ARCHITECT COMMANDS
   BUILD PHASES
   /oc-scaffold       Generate runnable project structure (Phase 5)
   /oc-build          Start or resume Generator → Evaluator sprint loop (Phase 6)
-  /eval           Run Evaluator on current sprint (ad-hoc QA)
   /oc-launch         Launch checklist + deploy handoff (Phase 7)
 
   UTILITIES
-  /status         Current phase, gates passed, sprint scores, next action
-  /approve        Approve current gate and advance
+  /oc-app            Show this menu
   /oc-export-spec    Generate master spec document (.docx)
   /oc-punch-list     View or edit the screen & component punch list
-  /contract       View or edit current sprint contract
 
   SESSION
   /checkpoint     Show checkpoint status
@@ -67,6 +65,10 @@ APP ARCHITECT COMMANDS
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+
+The rest are plain requests, not slash commands: "run the Evaluator on this sprint"
+(ad-hoc QA), "approve" at a gate, and "show the sprint contract"
+(`sprints/sprint-N/contract.md`).
 
 ---
 
@@ -172,7 +174,9 @@ real-time/data-heavy requirements.
 **Business Context:** Personal/internal/commercial, monetization, success metrics.
 
 Summarize back to user in 3-5 sentences. Confirm before proceeding.
-Write checkpoint: phase "discovery".
+Write checkpoint: phase "discovery", with the confirmed summary (requirements, users,
+constraints, budget, team experience) in `context_primer.key_decisions` — that is where
+oc-stack-forge reads the discovery context in Phase 2.
 
 ---
 
@@ -205,8 +209,8 @@ actually needs:
 |---|---|---|
 | Any direct Claude/LLM API usage, model choice, caching, tool use | **oc-claude-api** | model-routing + prompt-caching defaults + tool-use contract → folds into `02-architecture.md` and a new `11-ai-architecture.md` |
 | "search our docs", "knowledge base", "RAG", "cite sources" | **oc-rag-forge** | vector-DB choice (via oc-stack-forge `kind: vector-db` packs), embedding model, chunking, retrieval-eval plan |
-| "agent", "multi-step", "tools", "autonomous", "does work for me" | **oc-agent-forge** | agent topology, tool budgets, harness loop shape (lands Sprint 3) |
-| "prompts as a product", "eval set", "regression", "prompt versioning" | **oc-prompt-ops** | eval-dataset + drift-detection plan (lands Sprint 3) |
+| "agent", "multi-step", "tools", "autonomous", "does work for me" | **oc-agent-forge** | agent topology, tool budgets, harness loop shape |
+| "prompts as a product", "eval set", "regression", "prompt versioning" | **oc-prompt-ops** | eval-dataset + drift-detection plan |
 
 Rules:
 
@@ -255,8 +259,13 @@ Generate each as a separate markdown file:
 | 06-testing.md | Test strategy for chosen stack | **oc-qa-ops** (`/oc-qa pyramid` output IS this doc; budgets land in `.opchain/qa.yaml`) |
 | 07-devops.md | Deploy pattern for chosen platform | oc-stack-forge patterns |
 | 08-analytics.md | Tracking, metrics (if warranted) | — |
-| 09-cost-estimate.md | Infra costs from oc-stack-forge projection | oc-stack-forge |
-| 10-documentation-plan.md | Docs plan (if warranted) | — |
+| 09-documentation-plan.md | Docs plan (if warranted) | spec-template |
+| 10-cost-estimate.md | Infra costs from oc-stack-forge projection | oc-stack-forge |
+| 11-ai-architecture.md | AI apps only — see the AI-App Branch above | oc-claude-api and the AI skills it routes to |
+
+Source "spec-template" and "architecture-patterns.md" mean: read
+`references/spec-template.md` (section headings per doc) and
+`references/architecture-patterns.md` before writing that doc.
 
 ### ★ Spec Approval Gate
 
@@ -290,11 +299,11 @@ navigation paths.
 - Empty / loading / error / success states (all four)
 - Responsive behavior at 375 / 768 / 1280px (or declare "desktop only" with reason)
 
-**Data-heavy surfaces chain to oc-dash-forge.** When a screen is data-heavy (≥3 charts/tables, real-time updates, BI/monitoring/analyst archetype, or downstream of a data-architect handoff), invoke oc-dash-forge per orchestrator.md §3:
+**Data-heavy surfaces chain to oc-dash-forge.** When a screen is data-heavy (≥3 charts/tables, real-time updates, BI/monitoring/analyst archetype, or rendering oc-data-ops' contracted marts), invoke oc-dash-forge per orchestrator.md §3:
 
 1. Read `oc-dash-forge/SKILL.md` for the canonical archetype scoping table.
 2. Execute `/oc-data-forge` with the design tokens + spec context.
-3. Mark the screen `source: oc-dash-forge` and skip inline wireframes — oc-dash-forge's handoff bundle plugs into the Phase 3e punch list directly.
+3. Mark the screen `source: oc-dash-forge` and skip inline wireframes — oc-dash-forge's handoff bundle plugs into the Phase 3d punch list directly.
 
 Non-data-heavy screens get wireframes generated inline using the Phase 3a token system.
 
@@ -329,8 +338,10 @@ Write checkpoint: phase "punch-list-approved".
 
 ## Phase 4: Sprint Plan (`/oc-roadmap`)
 
-Convert the punch list and spec into an ordered sprint plan. Each sprint is a coherent,
-demoable chunk of work. One sprint plan, one format — used directly by Phase 6 build loop.
+Convert the punch list and spec into an ordered sprint plan, saved to
+`sprints/sprint-plan.md`. Each sprint is a coherent, demoable chunk of work. One sprint
+plan, one format — used directly by Phase 6 build loop. For effort estimates and
+dependency ordering, `references/phase-planning.md` has the methodology.
 
 ### Sprint Structure
 
@@ -381,9 +392,10 @@ migrations, test infrastructure, CI/CD config, .gitignore, README with setup ins
 
 > **Do NOT add `.checkpoints/` to `.gitignore`.** The checkpoint directory is tracked
 > in git on purpose — that's what lets session state survive across machines and
-> clones (see `references/checkpoint-protocol.md` → *Directory Convention*). The only
-> checkpoint artifact that IS gitignored is `.checkpoints/usage.sqlite` (oc-telemetry-ops'
-> local metering DB); the `*.checkpoint.json` files must be committed.
+> clones (see `references/checkpoint-protocol.md` → *Directory Convention*). Ignore only
+> `.checkpoints/usage.sqlite*` (oc-telemetry-ops' local metering DB) and
+> `.checkpoints/oc-bug-check.checkpoint.json` (oc-bug-check runs fresh on every commit);
+> commit every other `*.checkpoint.json`.
 
 Scaffold must be immediately runnable after USER setup tasks (create DB, fill .env, etc).
 
@@ -403,7 +415,7 @@ Generator → Evaluator loop.
 | max_iterations | 3 |
 | pass_threshold | All criteria ≥ 6/10 |
 | eval_mode | auto+manual |
-| ux_evaluator | auto-attach on UI sprints |
+| ux_evaluator | on UI sprints — invoke it in Step 3 (not automatic) |
 
 ### Step 1: Sprint Contract Negotiation
 
@@ -479,10 +491,13 @@ it reads the contract and the code fresh, not the generator's exploration.
 - Look for stubs, TODOs, half-implementations
 - Assess visual quality
 
-**UX Evaluator** (auto-attaches on UI sprints):
-If the sprint contract mentions UI/component/screen/page, the UX Engineer's Design
-Evaluator also runs. Grades visual hierarchy, state completeness, consistency, and
-accessibility. Sprint must pass BOTH evaluators.
+**UX Evaluator** (a step you run on UI sprints — nothing attaches it for you):
+If the sprint contract mentions UI/component/screen/page, invoke oc-ux-engineer's Design
+Evaluator per orchestrator.md §3: read `oc-ux-engineer/SKILL.md`, check
+`.checkpoints/oc-ux-engineer.checkpoint.json`, execute `/oc-uxe attach`, and put its
+Design Scores in this round's report. It grades visual hierarchy, state completeness,
+consistency, and accessibility. Sprint must pass BOTH evaluators; oc-ux-engineer's
+standalone ITERATE verdict counts as FAIL here.
 
 **Evaluation report** saved to `sprints/sprint-N/eval-round-M.md`:
 
@@ -494,7 +509,7 @@ accessibility. Sprint must pass BOTH evaluators.
 - Feature Completeness: [X]/10 — [justification]
 - Code Quality: [X]/10 — [justification]
 - Visual/UX Quality: [X]/10 — [justification]
-- **Code Score: [X]/10**
+- **Code Score: [X]/10** (weighted, informational — the gate is every criterion ≥ 6)
 
 ### Design Scores (if UI sprint)
 - Visual Hierarchy: [X]/10
@@ -531,7 +546,12 @@ accessibility. Sprint must pass BOTH evaluators.
 - **FAIL + iterations remaining**: Feed eval report to Generator, fix, re-evaluate.
 - **FAIL + max iterations**: Escalate to user with all eval reports.
 
-After each outcome: update checkpoint, suggest oc-git-ops commit if appropriate.
+After each outcome: update checkpoint, suggest oc-git-ops commit if appropriate. Record
+the round with its per-criterion scores, not just the aggregate, so a later session can
+tell whether the ≥ 6 gate was met: append to `eval_scores[]` an entry with
+`rubric: "oc-app-architect"`, `score` (the weighted Code Score), `max: 10`, `dimensions`
+(`functionality`, `completeness`, `quality`, `ux`), and `ref` pointing at the eval report
+(see `references/checkpoint-protocol.md` → *Wire 1.1 extensions*).
 
 ### Scoring Calibration
 
@@ -555,11 +575,14 @@ suggesting it:
 
 1. **oc-code-auditor** — read `oc-code-auditor/SKILL.md`, execute `/oc-audit pre-deploy`. Block on CRITICAL/HIGH findings.
 2. **oc-security-auditor** — read `oc-security-auditor/SKILL.md`, execute `/oc-security posture`. Block on CRITICAL findings.
-3. **oc-git-ops** — read `oc-git-ops/SKILL.md`, execute `/oc-git-sync`. (oc-git-ops auto-invokes oc-bug-check before commit, then the oc-docs-forge → oc-repo-ops pre-PR gate before opening the PR.)
+3. **oc-git-ops** — read `oc-git-ops/SKILL.md`, execute `/oc-git-sync`. (oc-git-ops' own steps run oc-bug-check before commit, then the oc-docs-forge → oc-repo-ops pre-PR gate before opening the PR.)
 4. **oc-deploy-ops** — read `oc-deploy-ops/SKILL.md`, execute `/oc-deploy staging`. After staging smoke-tests pass and user confirms, execute `/oc-deploy prod`.
 5. **oc-monitoring-ops** — read `oc-monitoring-ops/SKILL.md`, execute `/oc-monitor` to wire post-deploy observability.
 
 ### Launch Checklist
+
+Write this list to `checklists/launch-checklist.md` and tick it off there.
+
 - [ ] DNS configured
 - [ ] SSL/HTTPS working
 - [ ] Error monitoring live
@@ -581,9 +604,10 @@ Write checkpoint: status "complete".
 
 ---
 
-## /status
+## Status Display
 
-Read checkpoint. Display compact status:
+Shown on resume (Session Persistence → Resume on Start) and whenever the user asks
+"where are we?". Read checkpoint. Display compact status:
 
 ```
 APP ARCHITECT — [project name]
@@ -615,12 +639,13 @@ project-dir/
 ├── .checkpoints/
 │   └── oc-app-architect.checkpoint.json
 ├── spec/
-│   ├── 00-project-overview.md ... 10-documentation-plan.md
+│   ├── 00-project-overview.md ... 10-cost-estimate.md
+│   └── 11-ai-architecture.md          (AI apps only)
 ├── design/
 │   ├── style-book.html
 │   ├── wireframes.html
 │   ├── punch-list.md
-│   └── component-registry.json
+│   └── component-registry.json        (written by oc-ux-engineer, when invoked)
 ├── sprints/
 │   ├── sprint-plan.md
 │   ├── sprint-1/
@@ -631,24 +656,34 @@ project-dir/
 ├── checklists/
 │   └── launch-checklist.md
 ├── src/ ...
-├── master-spec.docx
-└── GOVERNANCE.md
+└── master-spec.docx                   (/oc-export-spec)
 ```
 
 ---
 
 ## Cross-Skill Integration
 
+Every row is a step you run (orchestrator.md §3) — none of these fire on their own.
+
 | Skill | How it connects |
 |---|---|
-| **oc-stack-forge** | Auto-invoked during Phase 2. Produces stack recommendation that informs all specs. |
-| **oc-ux-engineer** | Design Evaluator auto-attaches during UI sprints in Phase 6. Also usable standalone for design iteration. |
-| **oc-code-auditor** | Evaluator reads oc-code-auditor checkpoint for pre-existing issues. Phase 7 suggests `/oc-audit pre-deploy`. |
-| **oc-git-ops** | Suggested after each sprint passes. Phase 7 suggests `/oc-git-sync`, which auto-invokes oc-bug-check at commit and the oc-docs-forge → oc-repo-ops pre-PR gate on every PR. |
+| **oc-stack-forge** | Invoked in Phase 2 (`/oc-stack-decide`). Produces stack recommendation that informs all specs. |
+| **oc-claude-api** | Phase 2 AI-App Branch, invoked first when an AI skill applies (`/oc-claude-api`); feeds `11-ai-architecture.md`. |
+| **oc-rag-forge** | Phase 2 AI-App Branch, knowledge-base apps (`/oc-rag`). |
+| **oc-agent-forge** | Phase 2 AI-App Branch, agent apps (`/oc-agent`). |
+| **oc-prompt-ops** | Phase 2 AI-App Branch, prompt/eval products (`/oc-prompt goldset`). |
+| **oc-data-ops** | Phase 2 Data-Heavy Branch (`/oc-data-ops design`); folds into `02-architecture.md`. |
+| **oc-qa-ops** | Phase 2 `06-testing.md` is `/oc-qa pyramid` output; Phase 6 Evaluator reads `.opchain/qa.yaml` budgets. |
+| **oc-dash-forge** | Phase 3b data-heavy screens (`/oc-data-forge`); its handoff bundle feeds the 3d punch list. |
+| **oc-ux-engineer** | Design Evaluator invoked on UI sprints in Phase 6 (`/oc-uxe attach`). Also usable standalone for design iteration. |
+| **oc-code-auditor** | Evaluator reads oc-code-auditor checkpoint for pre-existing issues. Phase 7 runs `/oc-audit pre-deploy`. |
+| **oc-security-auditor** | Phase 7 runs `/oc-security posture`. |
+| **oc-git-ops** | Suggested after each sprint passes. Phase 7 runs `/oc-git-sync`, whose own steps run oc-bug-check at commit and the oc-docs-forge → oc-repo-ops pre-PR gate on every PR. |
 | **oc-deploy-ops** | Phase 7 hands off to deploy pipeline. |
+| **oc-monitoring-ops** | Phase 7 runs `/oc-monitor` for post-deploy observability. |
 | **oc-integrations-engineer** | Phase 2 spec `04-integrations.md` can trigger integration planning (third-party APIs we *consume*). |
-| **oc-api-dev** | Phase 2 spec `02-architecture.md` "API Design" + `03-architecture.md` data model trigger oc-api-dev to elaborate the first-party API contract (OpenAPI/GraphQL, versioning, SDK). |
-| **oc-scale-ops** | Phase 2 spec `09-cost-estimate.md` uses oc-scale-ops projections. |
+| **oc-api-dev** | Phase 2 spec `02-architecture.md` (API Design + Data Model sections) triggers oc-api-dev to elaborate the first-party API contract (OpenAPI/GraphQL, versioning, SDK). |
+| **oc-scale-ops** | Phase 2 spec `10-cost-estimate.md` uses oc-scale-ops projections. |
 | **oc-reverse-spec** | For existing projects: oc-reverse-spec produces the spec docs, then oc-app-architect picks up at Phase 4 (sprint plan) or Phase 6 (build). |
 
 ---
@@ -664,6 +699,8 @@ project-dir/
 ```
 /oc-roadmap → /oc-scaffold → /oc-build → /oc-launch
 ```
+`/oc-roadmap` reads the spec docs from `{project-dir}/spec/` (oc-reverse-spec's handoff
+puts them there and lists them in its `context_primer.generated_files`).
 
 ### Quick feature (existing project)
 ```
@@ -680,7 +717,7 @@ project-dir/
 
 ---
 
-## PM-Tool MCP Integration (v1.3+)
+## PM-Tool MCP Integration
 
 This skill consumes the patterns defined in `oc-integrations-engineer` and the
 runtime contract in
@@ -708,7 +745,9 @@ If the user's prompt includes a recognised ticket id (or
    normal Discovery questions, but pre-fill answers where the ticket
    is explicit, and lead with "the ticket says X — is that still
    correct?" rather than re-asking from scratch.
-4. Cite the ticket id in `00-project-overview.md` under "Source ticket".
+4. Cite the ticket id in `00-project-overview.md` under "Source ticket", and append it
+   to the checkpoint's top-level `pm_refs[]` (`role: "source"`) — that is where sibling
+   skills (oc-git-ops, oc-code-auditor) look for it.
 
 If the ticket has child tickets (Linear sub-issues, Jira sub-tasks,
 GitHub linked issues), fetch them too — they often define the
@@ -740,7 +779,8 @@ When the sprint plan is approved, for each sprint:
 3. Otherwise call the registry-resolved `add_comment` tool (Linear:
    `mcp__claude_ai_Linear__save_comment`; GitHub:
    `mcp__mcp-server-github__add_issue_comment`).
-4. If `pm.yaml` has `create_child_tickets: true` and the provider
+4. If `pm.yaml` has `create_child_tickets: true` (an optional key only this skill
+   reads — it is not in the canonical pm.yaml schema; absent means false) and the provider
    supports children, create a child ticket per sprint via the
    `create_issue` tool (Linear: `save_issue` with no `id`; GitHub:
    `issue_write` action=create), parent-linked to the source. The
@@ -750,7 +790,8 @@ When the sprint plan is approved, for each sprint:
    description-text query for the marker.
 5. Record the comment id (and child ticket ids, if any) in
    `oc-app-architect.checkpoint.json` `skill_state.pm.sprint_comments[]`
-   for traceability.
+   for traceability; append each child ticket to top-level `pm_refs[]`
+   (`role: "child"`) so siblings can find it.
 6. On retry-budget exhaustion, defer per protocol §4 with marker
    preserved so a later `/oc-roadmap --retry-pm` flush is idempotent.
 
@@ -779,8 +820,8 @@ to the user.
 
 ### Failure modes
 
-- No ticket reference in user prompt → skill operates as v1.1 (no PM
-  context). Never invents a ticket.
+- No ticket reference in user prompt → skill runs without PM context (no
+  PM reads or writes). Never invents a ticket.
 - MCP call fails (transient) → defer per protocol §4 with
   `retriable: true`; user can `/oc-roadmap --retry-pm` later. Phase
   output is unchanged.
@@ -799,7 +840,7 @@ to the user.
 4. **Design before code.** Catch UX problems in HTML prototypes, not React refactors.
 5. **Tests during the build.** The Generator writes tests alongside code, not after.
 6. **Skeptical evaluation.** The Evaluator's job is to find problems. 5/10 is fine.
-7. **Stack decisions are automatic.** Stack-forge runs inside Phase 2, not as a separate step.
+7. **Stack decisions happen inside Phase 2.** Invoking oc-stack-forge is a Phase 2 step, not a separate project.
 8. **Checkpoint at every event.** Session state survives across conversations.
 9. **Hand off, don't dead-end.** Every phase suggests the next pipeline step.
 10. **Name assumptions.** Hidden assumptions become hidden bugs.

@@ -3,8 +3,8 @@ name: oc-ux-engineer
 displayName: OC · UX Engineer
 version: 1.9.0
 license: Apache-2.0
-shortDesc: Design Planner → Generator → Evaluator. v1.2 posts eval scores to the PM ticket; a11y as sub-tickets.
-phases: [plan]
+shortDesc: Design Planner → Generator → Evaluator. Posts eval scores to the PM ticket; a11y as sub-tickets.
+phases: [plan, build]
 triAgent: true
 tryable: true
 commands:
@@ -23,7 +23,8 @@ commands:
 description: >
   UI/UX design harness with Design Planner/Generator/Evaluator loop. Use for /oc-uxe,
   "review the UX", "design iteration", "component library", "accessibility audit",
-  "is the UI consistent", or any design quality question.
+  "is the UI consistent", or any design quality question. Routes data-heavy screens
+  (dashboards, BI, analytics) to oc-dash-forge via /oc-uxe dash.
 ---
 
 # UX Engineer
@@ -139,7 +140,7 @@ During `/oc-uxe plan` or when evaluating a brief, oc-ux-engineer should recogniz
 
 - Brief mentions "dashboard", "analytics", "BI", "KPI", "monitoring", "report view"
 - ≥3 charts or ≥5 KPIs on the same screen
-- Upstream context includes a `data-architect-handoff.md`
+- Upstream context includes oc-data-ops mart contracts (`.opchain/data-contracts/*.yaml`)
 - Screen's primary job is "show data" rather than "enable action"
 
 When detected, offer:
@@ -310,7 +311,8 @@ Key Generator behaviors:
 
 The Design Evaluator grades with **isolated context** — it reads the design spec
 and the contract fresh, then evaluates the artifact without seeing the generator's
-exploration or decision process.
+exploration or decision process. For the Accessibility criterion, work through
+`references/ux-audit-checklist.md` (the same checklist oc-code-auditor's `/oc-audit ux` uses).
 
 **Design Evaluator Criteria:**
 
@@ -370,6 +372,9 @@ Key behaviors:
 ### Verdict: PASS / ITERATE
 [If ITERATE: specific, actionable feedback for the generator]
 ```
+
+ITERATE is this loop's name for a failed round. In attach mode (below) and in
+oc-app-architect's report the same outcome is written FAIL.
 
 ### Step 4: Iterate or Advance
 
@@ -539,19 +544,22 @@ Compares approved design against built code.
 
 ---
 
-## Tri-Dev Plugin Mode (`/oc-uxe attach`)
+## App-Architect Plugin Mode (`/oc-uxe attach`)
 
-Adds Design Evaluator alongside Code Evaluator during UI sprints.
+Adds Design Evaluator alongside Code Evaluator during UI sprints. Nothing attaches it
+automatically: oc-app-architect's Phase 6 Step 3 runs `/oc-uxe attach` on UI sprints, or the
+user does.
 
 ### How It Works
 
 1. `/oc-uxe attach` during an oc-app-architect Phase 6 build session
 2. Read oc-app-architect checkpoint for current sprint
 3. For each sprint with UI work:
-   - Code Evaluator runs (functionality, completeness, code quality)
+   - Code Evaluator runs (functionality, completeness, code quality, visual/UX quality)
    - Design Evaluator runs (hierarchy, states, consistency, a11y)
    - **Sprint passes only if BOTH pass**
-4. Design findings appended to sprint eval report
+4. Design findings appended to oc-app-architect's sprint eval report
+   (`sprints/sprint-N/eval-round-M.md`)
 
 ### Combined Report
 
@@ -562,6 +570,7 @@ Adds Design Evaluator alongside Code Evaluator during UI sprints.
 - Functionality: [X]/10
 - Feature Completeness: [X]/10
 - Code Quality: [X]/10
+- Visual/UX Quality: [X]/10
 - **Code Score: [X]/10**
 
 ### Design Scores
@@ -572,15 +581,16 @@ Adds Design Evaluator alongside Code Evaluator during UI sprints.
 - **Design Score: [X]/10**
 
 ### Combined Verdict: PASS / FAIL
-[Both must pass]
+[Both must pass; a Design Evaluator ITERATE counts as FAIL. Pass threshold for each
+evaluator: every criterion ≥ 6/10.]
 ```
 
 ### Sprint Detection
 
-Auto-detect from contract keywords:
+Decide from contract keywords whether the sprint needs the Design Evaluator:
 - UI/component/screen/page/layout/style → attach Design Evaluator
 - Pure backend (API, migration, auth logic) → skip
-- Override: `/oc-uxe attach --force` or `/oc-uxe detach`
+- Override: `/oc-uxe attach` on a sprint the keywords missed, or `/oc-uxe detach`
 
 ---
 
@@ -655,23 +665,26 @@ what is specific to oc-ux-engineer.
 |---|---|
 | oc-app-architect | Style book, wireframes, punch list → baseline; Phase 6 sprint contracts → plugin mode context |
 | oc-reverse-spec | Extracted design system → existing project baseline |
-| oc-code-auditor | `/oc-audit ux` findings → avoid duplicating work |
-| frontend-design | Aesthetic direction → Generator reference |
+| oc-code-auditor | `/oc-audit ux` findings (component health) → avoid duplicating work |
+| oc-dash-forge | `dash-forge-handoff/tokens.ts` → keep the living component library consistent |
 
 | Read by | Why |
 |---|---|
 | oc-app-architect | Design scores → Phase 6 combined sprint verdict |
-| oc-code-auditor | Component health → UX audit context |
-| oc-deploy-ops | Fidelity score → deploy confidence |
+| oc-dash-forge | Design spec + tokens → constraints for dashboard tokens |
 
 ---
 
-## PM-Tool MCP Integration (v1.2+)
+## PM-Tool MCP Integration
 
 UI sprints have an extra grader (the Design Evaluator) that
-produces scores design teams care about. v1.2 makes those scores
-visible in the PM tool. See `oc-integrations-engineer` for the
-canonical PM-MCP patterns.
+produces scores design teams care about. This section makes those
+scores visible in the PM tool. Every write follows
+`oc-integrations-engineer` and its runtime contract,
+`oc-integrations-engineer/references/pm-mcp-protocol.md` (tool names,
+retries, idempotency markers, `pm_deferred_actions[]`); record every
+ticket this skill files or comments on in the checkpoint's top-level
+`pm_refs[]`.
 
 ### Design-eval summary on the linked ticket
 
@@ -679,7 +692,7 @@ After every Design Evaluator round on a UI sprint, post a
 structured comment:
 
 ```
-Design eval — round {M}: {PASS / FAIL}
+Design eval — round {M}: {PASS / ITERATE (standalone) or FAIL (attached)}
   Visual hierarchy:    {X}/10
   State completeness:  {X}/10  (loading / empty / error / disabled — {N} of 4)
   Consistency:         {X}/10
@@ -687,21 +700,24 @@ Design eval — round {M}: {PASS / FAIL}
 Top three findings:
   1. {component} — {one-line finding}
   ...
-Full report: sprints/sprint-{N}/design-eval-round-{M}.md
+Full report: design/sprints/sprint-{N}/eval-round-{M}.md
+  (attached mode: oc-app-architect's sprints/sprint-{N}/eval-round-{M}.md)
 ```
 
 ### Accessibility findings as sub-tickets
 
 Accessibility violations have higher escalation than other design
 findings — they're not subjective preferences and they have legal /
-compliance implications. v1.2 files axe-core CRITICAL or SERIOUS
+compliance implications. The skill files axe-core CRITICAL or SERIOUS
 violations as sub-tickets parent-linked to the source PR ticket:
 
 - `issue_type`: `bug`.
 - `priority`: highest tier for CRITICAL, high for SERIOUS.
 - `labels`: `a11y`, `severity:<critical|serious>`,
   `wcag:<criterion>`.
-- `assignee`: from `.opchain/pm.yaml` `remediation_owners.frontend`.
+- `assignee`: `.opchain/pm.yaml` `remediation_owners.frontend` if that
+  optional key is set (it is not in the canonical pm.yaml schema);
+  otherwise unassigned.
 - `body`: violation + offending selector + WCAG criterion +
   suggested fix from axe-core.
 
@@ -709,7 +725,7 @@ Lower-severity violations stay in the eval report only.
 
 ### Design-system drift comments
 
-If `/oc-uxe consistency` finds drift (a new component using off-token
+If `/oc-uxe components audit` finds drift (a new component using off-token
 colors or off-scale spacing), comment on the linked ticket:
 
 ```
@@ -735,7 +751,9 @@ prototype comment to the same ticket. The thread reads end-to-end.
 - No linked ticket → eval report saved only; no PM write.
 - axe-core integration absent → a11y scores still reported, but
   no a11y sub-tickets filed (we don't fabricate violations).
-- MCP unavailable → log intent to checkpoint.
+- MCP unavailable → append the intended write to the checkpoint's
+  `pm_deferred_actions[]` (marker preserved, `retriable` per
+  pm-mcp-protocol.md §4).
 
 ---
 
