@@ -92,7 +92,8 @@ the shell. **Fix:** drop `shell: true` and pass an args array.
 ### AI-TOOL-004 — Unbounded tool loop
 `while (true)` / `while True:` around tool calls with no call ceiling — runaway
 cost and infinite agent loops. **Fix:** enforce a per-run call budget and a
-max-iterations guard (see oc-agent-forge `references/tool-budgets.md`).
+max-iterations guard (see `../../oc-agent-forge/references/tool-budgets.md` when
+oc-agent-forge is installed alongside; if it is not, skip the pointer).
 
 ### AI-TOOL-005 — Destructive interpolation
 Destructive operations (`rm -rf`, `DROP TABLE`, `DELETE FROM`, `TRUNCATE`) built

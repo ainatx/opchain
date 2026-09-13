@@ -93,7 +93,7 @@ CODEBASE
      ▼ (fixes)
 ┌──────────┐
 │ VERIFIER │  Confirms each fix addresses the finding
-│          │  Cannot see Fixer's reasoning — only the diff and original finding
+│          │  Grades from the diff and original finding only, not the Fixer's rationale
 │          │  Output: verified/rejected per fix
 └──────────┘
 ```
@@ -229,7 +229,7 @@ After individual sweeps:
 ### [F-001] [Short title]
 
 **Severity:** CRITICAL | HIGH | MEDIUM | LOW
-**Category:** security | performance | quality | config | ux
+**Category:** security | performance | quality | config | ux | ai-safety
 **Location:** `src/api/auth.ts:42-58`
 **Fix effort:** S (< 30 min) | M (30 min - 2 hr) | L (2+ hr)
 
@@ -245,7 +245,7 @@ After individual sweeps:
 ```markdown
 # Code Audit Report — [project]
 
-**Scope:** [full | security | perf | quality | ux | pre-deploy]
+**Scope:** [full (incl. 1f if LLM) | security | perf | quality | ux | pre-deploy]
 **Findings:** [count by severity]
 **Overall health:** [A-F with justification]
 
@@ -315,8 +315,10 @@ Run the full loop on all findings:
 
 ## Phase 3: Verifier Agent
 
-The Verifier confirms that fixes actually address findings. It has **isolated context**:
-it reads the original finding and the diff, but NOT the Fixer's reasoning or exploration.
+The Verifier confirms that fixes actually address findings. All three roles run in the
+same session, so its separation is a discipline, not a mechanism: grade from the
+original finding and the diff alone — skip the fix document's `### Rationale` block and
+do not re-read the Fixer's exploration notes.
 
 ### Verifier Persona
 
@@ -372,7 +374,7 @@ If a fix is REJECTED or PARTIAL:
 
 | Mode | Sweeps | Tri-Agent | Best for |
 |---|---|---|---|
-| `/oc-audit full` | All 5 | Auditor only | First audit, periodic health check |
+| `/oc-audit full` | All 6 (1f only when an LLM is in the loop) | Auditor only | First audit, periodic health check |
 | `/oc-audit security` | 1a + auth cross-cut | Auditor only | Pre-deploy, after auth changes |
 | `/oc-audit perf` | 1b | Auditor only | Performance investigation |
 | `/oc-audit quality` | 1c | Auditor only | Tech debt assessment |
@@ -440,10 +442,15 @@ what is specific to oc-code-auditor.
 |---|---|
 | Audit started | Scope, mode, file count |
 | Each category sweep complete | Findings from that category |
-| Full report generated | Finding count by severity, grade |
+| Full report generated | Finding count by severity, grade — grade + counts restated in `progress_summary` (e.g. "Grade C+; 1 CRITICAL, 4 HIGH open"); trend score in `eval_scores`. Those are the fields sibling skills read |
 | Fix applied | Finding ID, diff summary, files changed |
 | Fix verified/rejected | Verification verdict per finding |
 | Fix-all complete | Summary: fixed, verified, rejected counts |
+
+**Never close over open findings.** Do not set `status: complete` while any CRITICAL or
+HIGH finding is unresolved: set `skill_state.loop_state` to `open` and put the next fix
+in `next_actions[0]`. `loop_state` is `open`, `closed` (every CRITICAL/HIGH verified), or
+`abandoned` (the user stopped the loop; say so in `progress_summary`).
 
 ### skill_state
 
@@ -456,7 +463,8 @@ what is specific to oc-code-auditor.
   "fixes_applied": 5,
   "fixes_verified": 4,
   "fixes_rejected": 1,
-  "current_finding": "F-006"
+  "current_finding": "F-006",
+  "loop_state": "open"
 }
 ```
 
@@ -470,10 +478,10 @@ what is specific to oc-code-auditor.
 
 | Read by | Why |
 |---|---|
-| oc-deploy-ops | Finding count, grade → deploy gate |
-| oc-git-ops | Report path → include in PR |
+| oc-deploy-ops | Grade + counts in `progress_summary` (trend score in `eval_scores`) → deploy gate |
+| oc-git-ops | Grade + counts (`progress_summary`) → include in PR |
 | oc-docs-forge | Quality notes / audit findings → PR testing & audit documentation |
-| oc-app-architect | Findings → pre-seed Phase 6 evaluator |
+| oc-app-architect | Grade + counts (`progress_summary`); individual findings come from the audit report, which is conversation output with no committed path → pre-seed Phase 6 evaluator |
 | oc-ux-engineer | Component health → UX audit context |
 | oc-security-hardening | Findings whose fix is a declarative, verifiable control (header, limit, policy) — mark them `route: oc-security-hardening` in the findings report so `/oc-harden fix` executes them and records the manifest entry; the Fixer keeps application-logic fixes (v1.9) |
 | oc-qa-ops | Findings + test-bootstrap output feed `/oc-qa audit`'s gap analysis (v1.9) |
@@ -502,12 +510,13 @@ Top three (by severity × exploitability):
   1. {file:line} — {one-line title}
   2. {file:line} — {one-line title}
   3. {file:line} — {one-line title}
-Full report: .checkpoints/oc-code-auditor.checkpoint.json
+Counts + grade: .checkpoints/oc-code-auditor.checkpoint.json
 ```
 
-The comment is intentionally compact — full findings live in the
-checkpoint. The summary is what subscribers + reviewers see in
-their notification stream.
+The comment is intentionally compact — the checkpoint carries counts and
+the grade, not individual findings; the full findings are the audit report
+itself and the HIGH+ sub-tickets below. The summary is what subscribers +
+reviewers see in their notification stream.
 
 ### HIGH+ findings as sub-tickets
 
@@ -521,8 +530,12 @@ to the PR ticket:
 - `title`: `{file}: {one-line finding}`.
 - `body`: file + line + reproduction + suggested fix from the
   finding record.
-- `assignee`: from `.opchain/pm.yaml` `remediation_owners` map by
-  area; unassigned if no rule matches.
+- `assignee`: unassigned, unless the project's `.opchain/pm.yaml`
+  defines an owner map by area (`remediation_owners` is not part of the
+  canonical pm.yaml schema; use it only when the project added one).
+- Append each sub-ticket to the checkpoint's top-level `pm_refs`
+  (`role: child`, `created_by_skill: oc-code-auditor`) in the same write,
+  per the bundled checkpoint protocol's `pm_refs` section.
 
 MEDIUM and LOW findings stay in the audit report only. We don't
 spam the tracker for everything; the principle is that the PM tool
@@ -540,8 +553,9 @@ than creating a duplicate.
 ### Failure modes
 
 - No linked ticket → audit report still produced; no PM write.
-- MCP unavailable → log intended writes to checkpoint as deferred
-  PM actions.
+- MCP unavailable → log intended writes to the checkpoint's top-level
+  `pm_deferred_actions[]`, per
+  `oc-integrations-engineer/references/pm-mcp-protocol.md` §4.
 - Sub-ticket creation rate-limited → batch CRITICAL into one ticket
   per file rather than per-finding when more than 5 findings hit
   the same file.
