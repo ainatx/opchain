@@ -179,6 +179,16 @@ checkpoint `protocol_version` is tracked separately (see
   slower than 60 seconds still allows. Nine gate behaviours with no test gained cases
   (array or invalid checkpoint, `.opchain/` enrolment, `OPCHAIN_GATE=1`,
   `OPCHAIN_BYPASS=1`, the `verdict` and `verified_for_tree` aliases, `xargs`, `sudo`).
+- **Gate and assurance skills say what they do (Sprint 5d-1).** oc-bug-check's
+  private-key grep actually matches PEM and PGP headers (it was BRE and never
+  did); its verdicts are PASS, FAIL or UNSUPPORTED as the commit gate reads them,
+  and a bypass is `OPCHAIN_BYPASS=1` or `--no-verify`, never the record alone.
+  oc-orchestrator's ranking matches `checkpoint.mjs next`, its CLI steps apply only
+  where the CLI exists, and its memory/session-file and per-app filename text is
+  gone. Cross-skill reads in oc-code-auditor, oc-security-auditor,
+  oc-security-hardening and oc-compliance-ops use fields their owners publish;
+  oc-compliance-ops says no capture allowlist exists rather than implying one.
+  60 findings fixed, 15 already fixed.
 - **orchestrator.md §7 backfill and the F6 release-surface procedure.** Two post-1.9.0
   changes to shipped text (#482, #484) that this section never recorded.
 - **Every skill points at its bundled checkpoint protocol.** 29 Checkpoint sections
