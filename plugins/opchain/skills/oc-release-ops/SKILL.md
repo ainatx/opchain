@@ -178,12 +178,12 @@ on the page.
 
 The draft goes into `site/src/pages/changelog.astro` as the release's
 `<article class="hero-card hero-card--next" id="vN-N">` card in the Coming Next
-tab (forward surface F2). In the release PR (before the tag) it becomes the open
-`hero-card hero-card--released is-open` card with
-`<span class="hero-ver">vN.N.N · shipped <Mon DD, YYYY></span>`, and the heroes
+tab (forward surface F2). For a minor release, the release PR (before the tag)
+turns it into the open `hero-card hero-card--released is-open` card with
+`<span class="hero-ver">vN.N.0 · shipped <Mon DD, YYYY></span>`, and the heroes
 age per the five-hero rule (live-claim surface L4). A patch release does not get
-its own hero: it extends the open hero's version/date range and adds a compact
-`<article class="rel-card">`.
+its own hero: after the tag, its site PR extends the open hero's version/date
+range and adds a compact `<article class="rel-card">`.
 
 ### Validation
 
@@ -211,17 +211,21 @@ Atomic version bump across the catalog.
   untagged reviewed baseline. Refresh `publisherWorkflowSha256` from the exact
   `.github/workflows/publish-mcp-registry.yml` blob that the tag will execute,
   and `serverJsonSha256` from the exact MCP registry payload it will publish.
-- `site/src/pages/styleguide.astro` badge (e.g. `v1.8.3` → `v1.9.0`).
 - `server.json`, `.claude-plugin/marketplace.json` and
   `plugins/opchain/.claude-plugin/plugin.json` `version` fields.
-- The release-coupled site surfaces: every row in
-  `references/version-locations.md`, and the forward / live-claim split in
-  `references/site-release-surfaces.md` (the homepage release bar, stat chip,
-  header chip, changelog cards and architecture labels). Live-claim surfaces flip
-  in the release PR, before the tag, because that PR is tagged and deployed
-  straight after merge; v1.9.0 did this in #476, then #477. `check-release-surfaces.mjs`
-  fails while the site labels disagree with `skills/CHANGELOG.md`, so a flip
-  held back until after the tag would block the release's own gate.
+- The release-coupled site surfaces in `references/version-locations.md` and
+  `references/site-release-surfaces.md`, on a schedule set by the release type.
+  `check-release-surfaces.mjs` (CI) requires the site's live-claim line to match
+  the newest `skills/CHANGELOG.md` heading at major.minor level:
+  - **Minor:** the bump PR also flips every probed live-claim surface (header
+    chip, release bar, stat chip, open hero + aging, Skill Library callout,
+    styleguide badge, architecture labels) and recounts the tab, before the tag.
+    A PR that adds the heading without them fails CI. v1.9.0 did this: #476,
+    then the tag on #477.
+  - **Patch:** the bump is a product-only PR (the major.minor line does not
+    change). After the tag, a site PR carries the patch-only surfaces: the open
+    hero's range + a patch `rel-card`, the tab recount, and the styleguide
+    badge's full patch version.
 
 ### Atomicity
 
@@ -283,9 +287,9 @@ End-of-pipeline handoff.
 
 ### Sequence
 
-1. Confirm the release PR flips the live-claim site surfaces
-   (`references/site-release-surfaces.md` L1–L11) alongside the bump, then run
-   `/oc-release verify` — the pre-tag rows of the gate. Hard-blocks on any
+1. For a minor release, confirm the release PR flips the live-claim site surfaces
+   (`references/site-release-surfaces.md`, Minor column, L1–L10) alongside the
+   bump; a patch's release PR is product-only. Then run `/oc-release verify` — the pre-tag rows of the gate. Hard-blocks on any
    failure. (The tag row cannot pass yet: the tag is created in step 3.)
 2. Invoke `oc-docs-forge` for the release docs packet:
    - Run `/oc-docs pr` so the release PR carries its `## Documentation` section,
@@ -309,7 +313,10 @@ End-of-pipeline handoff.
      skipping this step blocks the deploy rather than silently shipping.
    - Then run the post-tag row of the gate: `node scripts/check-release-tag.mjs`
      must exit 0.
-4. Hand off to `oc-deploy-ops`:
+   - **Patch only:** open and merge the site PR (Patch column of
+     `references/site-release-surfaces.md`: L4 range + `rel-card`, L5 recount, L7
+     full version) through the same pre-PR gate, before deploying.
+4. Hand off to `oc-deploy-ops` — always after the tag:
    - Invoke oc-deploy-ops.
    - Run `/oc-deploy staging` first; user eyeballs.
    - Run `/oc-deploy prod` on user confirmation.
@@ -457,11 +464,13 @@ announce paths in `context_primer.generated_files`; ship results in `release_pr`
 | `oc-git-ops.checkpoint.json` | Merged-PR list feeds "What's new" bullets |
 | `oc-docs-forge.checkpoint.json` | Release-PR docs packet verified before ship |
 | `oc-deploy-ops.checkpoint.json` | Last-shipped commit SHA |
+| `oc-compliance-ops.checkpoint.json` | Compliance delta bundle for the verify gate's conditional row |
 
 | Read by | Why |
 |---|---|
 | `oc-docs-forge` | Release notes, changelog, and version surfaces feed the release docs packet |
 | `oc-repo-ops` | Release PR surfaces and changelog expectations feed the readiness gate |
+
 The release tag is enforced by `scripts/check-release-tag.mjs`, which
 `npm run deploy` imports; oc-deploy-ops does not read this checkpoint for it.
 

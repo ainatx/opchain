@@ -88,6 +88,17 @@ it live after deploy.
 | L5 | Changelog — "Just Released" tab count | `site/src/pages/changelog.astro` — `tab-count` | ✅ recount | ✅ recount |
 | L6 | Skill Library callout tag + href | `site/src/pages/skills/index.astro` | — | ✅ |
 | L7 | Styleguide version badge | `site/src/pages/styleguide.astro` — `<Badge>vN.N.N</Badge>` | ✅ (full patch version) | ✅ |
+| L8 | Architecture diagram eyebrow | `site/src/pages/architecture.astro` — `RELEASE vN.N` | — | ✅ |
+| L9 | Architecture diagram footer | `site/src/pages/architecture.astro` — `· vN.N · checkpoint-driven` | — | ✅ |
+| L10 | Mobile architecture eyebrow | `site/src/components/MobileArchitecture.astro` — `MOBILE · vN.N` | — | ✅ |
+
+**What CI checks (L1–L3, L4's open-hero `id`, L6, L7, L8–L10):**
+`scripts/check-release-surfaces.mjs` (run by `tests/release-surfaces.test.js`)
+requires every probed surface to name the same **major.minor** line as the
+newest `## [x.y.z]` heading in `skills/CHANGELOG.md`. It reads the open hero's
+`id`, not its `hero-ver` text, and the styleguide badge only to major.minor. A
+minor release therefore cannot add its CHANGELOG heading without flipping those
+surfaces in the same PR (§5).
 
 **The tab-count rule (L5):** the count equals the number of release cards
 actually rendered in the Just Released panel (heroes + rel-cards). Never
@@ -140,9 +151,6 @@ The `/changelog` Just Released panel is the release history. The rules:
    `rel-card` below the divider (swap `hero-card hero-card--released` →
    `rel-card`, the `hero-head` block → `rc-row`, `card-body-inner
    hero-body-inner` → `card-body-inner`).
-   *(This five-hero rule supersedes the 21-day window in
-   `skills/oc-release-ops/references/site-release-surfaces.md`; reconcile that
-   reference at its next scheduled rework.)*
 4. **Topical `rel-card`s** (e.g. the Apache-2.0 relicense card) may sit above
    the divider next to the release they shipped with; they count toward L5.
 5. **Hero bodies describe what actually shipped.** When Coming Next (F2)
@@ -156,17 +164,31 @@ release is the **deploy**, not the merge. The order is fixed:
 
 1. **Decide scope** per [GOVERNANCE.md](GOVERNANCE.md) (creator vote + weighted
    community vote). Record the outcome in the roadmap issue.
-2. **Product half:** one PR — P1–P6 bumped together, changelog entry written.
-   CI green (including lockstep + catalog validation), review per CODEOWNERS,
-   squash-merge with `Signed-off-by` preserved. Create the signed tag (P7), run
+2. **Release PR(s) — the shape depends on the release type**, because CI binds
+   the site's live-claim line to the newest `skills/CHANGELOG.md` heading at
+   major.minor level (§3b):
+   - **Minor (vN.N.0):** one release PR carries P1–P6 and the changelog entry
+     **together with** every live-claim surface the check probes — L1–L3, L4
+     (open-hero promotion + aging), L6, L7 and L8–L10 — plus the L5 recount,
+     forward surfaces and counts sweep. A product-only PR that adds the new
+     heading fails CI. Run the §6 audit prompt on it; merge only when the tag
+     and deploy follow in the same sitting. v1.9.0 did this: #476, then the tag
+     on #477.
+   - **Patch (vN.N.x):** the major.minor line does not change, so the split
+     holds. **Product PR** — P1–P6 bumped together, changelog entry written.
+     **Site PR** — after the tag exists: the patch-only surfaces (L4 range
+     extension + patch `rel-card`, L5 recount, L7 full patch version). Run the
+     §6 audit prompt on the site PR; merge it only when the deploy follows in
+     the same sitting.
+
+   Either way: CI green (including lockstep + catalog validation), review per
+   CODEOWNERS, squash-merge with `Signed-off-by` preserved.
+3. **Tag (P7):** on the merged release commit (minor) or product commit
+   (patch), create the signed tag, run
    `node scripts/check-release-tag.mjs --local`, and only then push it. Re-run
    without `--local` to prove origin holds the same signed tag object.
-3. **Site half:** one PR — the applicable L-surfaces, forward surfaces, counts
-   sweep, changelog entry/aging. **This PR must not claim vN before the vN tag
-   exists** (step 2 first, always). Run the §6 audit prompt on it. Merge only
-   when the deploy follows in the same sitting.
-4. **Deploy:** from the exact reviewed release checkout (normally pulled
-   `origin/main`) —
+4. **Deploy — always after the tag:** from the exact reviewed release checkout
+   (normally pulled `origin/main`; for a patch, after the site PR merges) —
    `npm run gen-roadmap && npm run deploy:staging` → automated smoke
    (`npm run smoke:staging`) → **human eyeballs staging at the exact SHA that
    will ship** → `npm run gen-roadmap && npm run deploy` →
@@ -184,8 +206,9 @@ release is the **deploy**, not the merge. The order is fixed:
    approved baseline.
    See [the Cloudflare challenge runbook](../runbooks/cloudflare-challenge.md)
    for the control-plane assurance limit.
-5. **If the release is abandoned mid-review:** close the site-half PR
-   unmerged. Because of the ordering, there is nothing live to roll back.
+5. **If the release is abandoned mid-review:** close the unmerged release PR
+   (minor) or site PR (patch). Because the tag and deploy come after the merge,
+   there is nothing live to roll back.
 
 ## 6. The mandatory surface audit
 

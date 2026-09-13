@@ -17,7 +17,7 @@ in `site/src/pages/changelog.astro`: `hero-card--next` while it is being built
 release, and a collapsed `hero-card--released` after that until it ages out to a
 compact `<article class="rel-card">` (the five-hero window in
 `site-release-surfaces.md` L4). Patches get a `rel-card` of their own and extend
-the open hero's version/date range. Inside a hero, in order:
+the open hero's version/date range, in the site PR that follows the patch tag. Inside a hero, in order:
 
 1. `<button class="hero-head">` — `hero-badge` ("latest release" / "previous
    release"), `hero-ver` (`vN.N.N · shipped <Mon DD, YYYY>`), `hero-title`, and
@@ -143,7 +143,7 @@ step list, "Deprecations"), but the existing structure covers v1.x cleanly.
 </article>
 ```
 
-In the release PR, before the tag, the card becomes `hero-card hero-card--released is-open`,
+For a minor release, the release PR (before the tag) turns the card into `hero-card hero-card--released is-open`,
 its badge "latest release" and its `hero-ver` `vN.N.0 · shipped <Mon DD, YYYY>`.
 Copy badge text from the live cards rather than from this skeleton if the two
 differ.

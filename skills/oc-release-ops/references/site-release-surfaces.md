@@ -10,7 +10,7 @@
 > locations — `skills/*/SKILL.md` frontmatter + the lockstep bump). This file
 > covers the **site** surfaces.
 
-## The build-PR vs deploy-moment split (read first)
+## When each surface moves (read first)
 
 opchain's hardest rule: **the site must not claim shipped what isn't live in
 prod.** So release-coupled surfaces fall into two groups:
@@ -18,38 +18,47 @@ prod.** So release-coupled surfaces fall into two groups:
 - **Forward surfaces** — "what's coming / being built." Safe to update in the
   build PR, because they describe the in-flight release, not a live claim.
 - **Live-claim surfaces** — "what's currently shipped/live." These assert prod
-  state. Flip them in the release PR that is tagged and deployed straight after
-  merge, exactly as the v1.5 cut did in PR #311. Flipping them in an earlier PR
-  that sits on `main` undeployed makes the site lie until the deploy lands and
-  creates a deploy-relevant difference from the approved release baseline
+  state, so they land only in a PR that is merged when the tag and deploy follow
+  in the same sitting. A flip sitting on `main` undeployed makes the site lie
+  and creates a deploy-relevant difference from the approved release baseline
   checked by `.github/workflows/deploy-lag.yml`.
 
-When `oc-release-ops` runs the cut: update forward surfaces in the build PR,
-then flip live-claim surfaces in the **release PR, before the tag** — the PR that
-is merged, tagged with `/oc-git-release` and deployed straight away (the #311
-pattern; v1.9.0 did it in #476, then #477). They cannot wait until after the
-tag: `scripts/check-release-surfaces.mjs` runs in the pre-tag gate and fails
-while the site labels disagree with the newest `skills/CHANGELOG.md` entry. If
-merge and deploy are decoupled, hold the whole release PR (bump + flips) until
-you are ready to tag and deploy.
+CI adds a constraint: `scripts/check-release-surfaces.mjs` (run by
+`tests/release-surfaces.test.js`) requires every probed live-claim surface to
+name the same **major.minor** line as the newest `## [x.y.z]` heading in
+`skills/CHANGELOG.md`. It reads the open hero's `id` and the styleguide badge only
+to major.minor. This is the same rule as opchain's RELEASING.md governance doc, §5:
+
+- **Minor release (vN.N.0):** one release PR carries the version bump and the new
+  CHANGELOG heading **together with** every probed live-claim surface (L1–L3, the
+  L4 open-hero promotion + aging, L6, L7, L8–L10), plus the L5 recount. A PR that
+  adds the heading without the flips fails CI. Merge → `/oc-git-release` tag →
+  deploy. v1.9.0 did this: #476, then the tag on #477.
+- **Patch release (vN.N.x):** the major.minor line does not change, so the split
+  holds: a **product PR** (version bump + CHANGELOG entry) → tag → a **site PR**
+  with the patch-only surfaces (L4 range extension + patch `rel-card`, L5
+  recount, L7 full patch version) → deploy.
+- **Either way, the deploy follows the tag.** Roadmap data (F5) is regenerated
+  at deploy time, not edited in a PR.
 
 ---
 
-## Live-claim surfaces (flip IN THE RELEASE PR, before the tag)
+## Live-claim surfaces
 
-| # | Surface | File | What changes each release |
-|---|---|---|---|
-| L1 | Header version chip | `site/src/components/Header.astro` | `CURRENT_RELEASE = "vN.N"` + `CURRENT_RELEASE_HREF = "/changelog#vN-N"` (hyphenated anchor) |
-| L2 | Homepage release bar (shipped) | `site/src/pages/index.astro` | `<span class="rb-tag">vN · shipped</span>` + its description line |
-| L3 | Homepage stat chip | `site/src/pages/index.astro` | `<span class="stat-num">vN</span>` (the "latest release" stat) |
-| L4 | Changelog — Just Released hero | `site/src/pages/changelog.astro` | promote the newly-live release to the open `hero-card--released is-open` (`#vN-N`, `hero-ver "vN.N.0 · shipped <Mon DD, YYYY>"`); keep **five heroes total** — the open hero plus the four most recent previous minor releases as collapsed `hero-card--released` heroes above the *earlier releases* divider — and demote the oldest past that window to a compact `rel-card`. A patch extends the open hero's range and adds its own `rel-card`; it never creates a hero. See *The five-hero window* below. |
-| L5 | Changelog — tab counts | `site/src/pages/changelog.astro` | `Just Released <span class="tab-count">K shipped</span>` (K++) |
-| L6 | Roadmap data — shipped flip | GitHub issues on `asfbay-bit/opchain-skills` → `npm run gen-roadmap` → `site/src/data/roadmap.json` | move the now-live release's issues from `roadmap:in-progress` to `roadmap:shipped` and close its milestone; then run `npm run gen-roadmap` **immediately before the deploy** (the JSON is gitignored; a build without it ships the empty-roadmap fallback) |
-| L7 | styleguide Badge example | `site/src/pages/styleguide.astro` | `<Badge>vN.N.N</Badge>` (cosmetic component demo) |
-| L8 | Architecture diagram — eyebrow | `site/src/pages/architecture.astro` | `SKILLS · ARCHITECTURE · v2 · RELEASE vN` |
-| L9 | Architecture diagram — footer | `site/src/pages/architecture.astro` | `… spine ordinals · vN · checkpoint-driven` |
-| L10 | Mobile architecture — eyebrow | `site/src/components/MobileArchitecture.astro` | `SKILLS · ARCHITECTURE · v2 · MOBILE · vN` |
-| L11 | Skill Library release callout | `site/src/pages/skills/index.astro` | `<span class="release-callout-tag">vN.N · SHIPPED</span>` + `<a class="release-callout" href="/changelog#vN-N">` |
+Ids match opchain's RELEASING.md §3b.
+
+| # | Surface | File | Minor | Patch |
+|---|---|---|---|---|
+| L1 | Header version chip | `site/src/components/Header.astro` | `CURRENT_RELEASE = "vN.N"` + `CURRENT_RELEASE_HREF = "/changelog#vN-N"` (hyphenated anchor) | — |
+| L2 | Homepage release bar (shipped) | `site/src/pages/index.astro` | `<span class="rb-tag">vN.N · shipped</span>` + its description line | — |
+| L3 | Homepage stat chip | `site/src/pages/index.astro` | `<span class="stat-num">vN.N</span>` (the "latest release" stat) | — |
+| L4 | Changelog — Just Released hero | `site/src/pages/changelog.astro` | promote the new release to the open `hero-card--released is-open` (`id="vN-N"`, `hero-ver "vN.N.0 · shipped <Mon DD, YYYY>"`); keep **five heroes total** and demote the oldest past that window to a compact `rel-card`. See *The five-hero window* below. | extend the open hero's version + date range and add a patch `rel-card` (`#vN-N-N`); a patch never creates a hero |
+| L5 | Changelog — Just Released tab count | `site/src/pages/changelog.astro` | `<span class="tab-count">K shipped</span>` — recount the rendered cards | recount |
+| L6 | Skill Library release callout | `site/src/pages/skills/index.astro` | `<span class="release-callout-tag">vN.N · SHIPPED</span>` + `<a class="release-callout" href="/changelog#vN-N">` | — |
+| L7 | styleguide Badge example | `site/src/pages/styleguide.astro` | `<Badge>vN.N.0</Badge>` | full patch version `<Badge>vN.N.x</Badge>` |
+| L8 | Architecture diagram — eyebrow | `site/src/pages/architecture.astro` | `SKILLS · ARCHITECTURE · v2 · RELEASE vN.N` | — |
+| L9 | Architecture diagram — footer | `site/src/pages/architecture.astro` | `… spine ordinals · vN.N · checkpoint-driven` | — |
+| L10 | Mobile architecture — eyebrow | `site/src/components/MobileArchitecture.astro` | `SKILLS · ARCHITECTURE · v2 · MOBILE · vN.N` | — |
 
 > **Why L8–L10 are here.** The diagrams were listed only as a *forward* surface
 > (F6, the version annotations), so the half of them that makes a **live claim**
@@ -119,12 +128,18 @@ surface still references a superseded release once `CURRENT_RELEASE` has moved.
 
 1. **In the build PR:** update all **Forward** surfaces (F1–F8) + their coupled
    tests. CI green.
-2. **In the release PR, before the tag:** flip all **Live-claim** surfaces
-   (L1–L11) + their coupled changelog tests, alongside the version bump. Run
-   `node scripts/check-release-surfaces.mjs` before merging.
-3. After merge: `/oc-git-release <semver>` (signed tag), then
-   `npm run gen-roadmap && npm run deploy:staging` → eyeball the rolled-forward
-   surfaces on `staging.opchain.dev` → `npm run deploy`.
+2. **Minor release — in the release PR, before the tag:** flip the Minor column
+   (L1–L10) + their coupled changelog tests, alongside the version bump and the new
+   `skills/CHANGELOG.md` heading. Run `node scripts/check-release-surfaces.mjs`
+   before merging. After merge: `/oc-git-release <semver>` (signed tag).
+   **Patch release:** merge the product PR (version bump + CHANGELOG entry), run
+   `/oc-git-release <semver>`, then open the site PR with the Patch column (L4
+   range + `rel-card`, L5 recount, L7 full version).
+3. **Deploy, after the tag:** move the shipped release's roadmap issues from
+   `roadmap:in-progress` to `roadmap:shipped` and close its milestone, then
+   `npm run gen-roadmap && npm run deploy:staging` (the JSON is gitignored; a
+   build without it ships the empty-roadmap fallback) → eyeball the rolled-forward
+   surfaces on `staging.opchain.dev` → `npm run gen-roadmap && npm run deploy`.
 4. Run the straggler check. After smoke evidence passes, refresh
    `.github/monitoring/release-baseline.json` with the exact Cloudflare
    deployment/version ids, traffic, and script fingerprint; run the

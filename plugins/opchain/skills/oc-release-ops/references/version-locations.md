@@ -6,10 +6,15 @@ new place that displays a version string, add it here AND to the probes in
 The skill-catalog half is checked by `scripts/check-release-tag.mjs`, which
 reports a split catalog as `catalog-split`.
 
-Companion to `site-release-surfaces.md`, which splits the site surfaces into
-forward surfaces (update in the build PR) and live-claim surfaces (flip in the
-release PR, before the tag). Use that file for *when* each site surface moves; this file lists
-*what* carries the version.
+Companion to `site-release-surfaces.md`, which says *when* each site surface
+moves: forward surfaces in the build PR; live-claim surfaces in the release PR
+before the tag for a minor release, or in a site PR after the tag for a patch
+(only the patch-only rows). This file lists *what* carries the version.
+
+`check-release-surfaces.mjs` compares **major.minor only** (`v1.9`), across the
+probed site surfaces and the newest `## [x.y.z]` heading in `skills/CHANGELOG.md`.
+A full-semver mismatch it cannot see (e.g. a styleguide badge left at `v1.9.0`
+after a patch) is caught only by review.
 
 ---
 
@@ -26,11 +31,11 @@ changelog card id (`v1-9`).
 | `server.json` | MCP Registry listing version | `"version": "<release>"` | `check-release-tag.mjs` (seal digest) |
 | `.claude-plugin/marketplace.json` | Marketplace + plugin entry versions | `"version": "<release>"` | review |
 | `plugins/opchain/.claude-plugin/plugin.json` | Plugin version | `"version": "<release>"` | review |
-| `site/src/components/Header.astro` | Menu-bar release chip | `CURRENT_RELEASE = "<minor>"`, `CURRENT_RELEASE_HREF = "/changelog#<anchor>"` | `check-release-surfaces.mjs`, `tests/site-release-chip.test.js` |
+| `site/src/components/Header.astro` | Menu-bar release chip | `CURRENT_RELEASE = "<minor>"`, `CURRENT_RELEASE_HREF = "/changelog#<anchor>"` | `check-release-surfaces.mjs` (major.minor), `tests/site-release-chip.test.js` |
 | `site/src/pages/index.astro` | Homepage release bar (shipped label) + "latest release" stat chip | `<span class="rb-tag"><minor> · shipped</span>`, `<span class="stat-num"><minor></span>` | `check-release-surfaces.mjs` |
-| `site/src/pages/changelog.astro` | Just Released open hero | `<article class="hero-card hero-card--released is-open" id="<anchor>">` with `<span class="hero-ver"><release> · shipped <Mon DD, YYYY></span>` | `check-release-surfaces.mjs` |
+| `site/src/pages/changelog.astro` | Just Released open hero | `<article class="hero-card hero-card--released is-open" id="<anchor>">` with `<span class="hero-ver"><release> · shipped <Mon DD, YYYY></span>` | `check-release-surfaces.mjs` (the hero `id`, major.minor; `hero-ver` is review only) |
 | `site/src/pages/skills/index.astro` | Skill Library release callout + its href | `<span class="release-callout-tag"><minor> · SHIPPED</span>`, `<a class="release-callout" href="/changelog#<anchor>"` | `check-release-surfaces.mjs` |
-| `site/src/pages/styleguide.astro` | Badge example | `<Badge>v<release></Badge>` | `check-release-surfaces.mjs` |
+| `site/src/pages/styleguide.astro` | Badge example | `<Badge>v<release></Badge>` | `check-release-surfaces.mjs` (major.minor only; the patch digit is review only) |
 | `site/src/pages/architecture.astro` | Diagram eyebrow + footer | `SKILLS · ARCHITECTURE · v2 · RELEASE <minor>`, `spine ordinals · <minor> · checkpoint-driven` | `check-release-surfaces.mjs` |
 | `site/src/components/MobileArchitecture.astro` | Mobile diagram eyebrow | `SKILLS · ARCHITECTURE · v2 · MOBILE · <minor>` | `check-release-surfaces.mjs` |
 

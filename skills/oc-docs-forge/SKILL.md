@@ -159,7 +159,9 @@ Pass only when:
 
 On failure, set `skill_state.verified_for_sha` to `null` (an earlier `/oc-docs pr`
 may already have stamped HEAD), set the checkpoint `status` to `blocked`, and list
-the failed criteria in `blockers`. That is how a failure reaches the gate:
+the failed criteria in `blockers`. A later successful `/oc-docs pr` or
+`/oc-docs verify` clears that: it restamps `verified_for_sha` to HEAD, resets
+`status` from `blocked`, and empties the resolved `blockers`. That is how a failure reaches the gate:
 `oc-repo-ops verify` fails closed on a docs-forge checkpoint whose
 `verified_for_sha` is not HEAD or whose `status` is `blocked`, and a failed repo-ops
 verdict stops `oc-git-ops` from opening the PR. `oc-release-ops verify` also runs

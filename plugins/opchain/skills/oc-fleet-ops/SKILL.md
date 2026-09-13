@@ -57,8 +57,9 @@ so it is gated behind a mandatory dry-run/plan that **never auto-applies**.
 > Mnemonic: **deploy-ops pushes one app to a platform; fleet-ops stands up and runs a
 > fleet on infra you own.** deploy-ops ↔ fleet-ops are **peers**, not a chain — route by
 > "managed app vs self-managed fleet" (see Boundaries). When a project carries both
-> checkpoints, that's the disambiguator. The rule lives in this skill's description; the
-> orchestrator's routing table has no fleet row of its own.
+> checkpoints, that's the disambiguator. The rule lives in this skill's description and
+> in the orchestrator's routing table ("Kubernetes" / "Terraform" / "Deploy multiple
+> containers" → `/oc-fleet topology`).
 
 ---
 
@@ -278,15 +279,11 @@ scope for deploy-ops. Route by "managed app vs self-managed fleet" — see the n
 | `oc-monitoring-ops` | post-deploy observability across the fleet |
 | `oc-git-ops` | commit the IaC |
 
-> **Open seam:** deploy-ops's Platform Matrix still routes bare-metal to
-> *oc-migration-ops* (verbatim: *"bare-metal needs oc-migration-ops, not oc-deploy-ops"*).
-> The planned re-point of that row to `oc-fleet-ops` has not landed. Until it does, treat
-> self-managed / multi-node / IaC deploys as fleet-ops territory anyway: migration-ops is a
-> *transformation engine* (engine swaps, cutovers) with **no provision / topology /
-> fleet-health surface** — it was only ever the bare-metal pointer by default. The
-> orchestrator records fleet-ops in its upstream/downstream map and handoff table
-> (modularize → fleet → monitoring); the peer rule with deploy-ops is carried by this
-> skill's description.
+> **Seam with deploy-ops:** deploy-ops's Platform Matrix routes bare-metal, VPS,
+> multi-container and IaC deploys here (moving a live system onto one is oc-migration-ops).
+> The orchestrator records fleet-ops in its upstream/downstream map, handoff table
+> (modularize → fleet → monitoring) and routing table; the peer rule with deploy-ops is
+> carried by this skill's description.
 
 ---
 

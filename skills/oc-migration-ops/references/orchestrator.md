@@ -74,11 +74,12 @@ oc-reverse-spec ──► oc-app-architect ──► oc-git-ops ──► oc-dep
                       │                └── chains to oc-docs-forge ──► oc-repo-ops before every PR
                       ├── Phase 2: chains to oc-stack-forge
                       ├── Phase 3: design pipeline
-                      │     ├── the design phase invokes oc-ux-engineer on UI sprints (when routed through it)
-                      │     └── oc-ux-engineer ──► oc-dash-forge on data-heavy screens
+                      │     └── chains to oc-dash-forge on data-heavy screens
                       ├── Phase 6: build loop (Generator → Evaluator)
-                      │     └── the build loop invokes oc-ux-engineer on UI sprints (when routed through it)
+                      │     └── the build loop invokes oc-ux-engineer on UI sprints (`/oc-uxe attach`)
                       └── Phase 7: launch handoff
+
+oc-ux-engineer ──► oc-dash-forge on data-heavy screens
 
 foundation:
   oc-checkpoint-protocol ──► schema bundled in every skill
@@ -134,7 +135,7 @@ instrumentation (v1.6 "the instrumented pipeline"):
 | **oc-orchestrator** | every skill (read-only, cross-project) | — (dispatches to any skill by intent) |
 | **oc-checkpoint-protocol** | — (the schema itself; bundled into every skill as `references/checkpoint-protocol.md`) | — (not invoked directly) |
 | **oc-app-architect** | oc-reverse-spec | oc-git-ops (after build), oc-deploy-ops (at launch), oc-migration-ops (when existing systems need engine changes) |
-| **oc-stack-forge** | oc-app-architect (discovery context) | — (returns control to oc-app-architect); its decisions are read by oc-app-architect, oc-api-dev, oc-data-ops, oc-scale-ops, oc-security-hardening, oc-rag-forge, oc-signal-forge and oc-fleet-ops |
+| **oc-stack-forge** | oc-app-architect (discovery context) | — (returns control to oc-app-architect); its decisions are read by, among others, oc-app-architect, oc-api-dev, oc-data-ops, oc-scale-ops, oc-security-hardening, oc-rag-forge, oc-signal-forge and oc-fleet-ops |
 | **oc-ux-engineer** | oc-app-architect (design baseline) | oc-dash-forge (on data-heavy screens), otherwise returns control |
 | **oc-dash-forge** | oc-ux-engineer (tokens + design spec), oc-app-architect (design phase, dashboard surface), oc-data-ops (contracted marts), oc-signal-forge (validated signal), oc-monitoring-ops (ops context, archetype pre-selected) | — (returns control to caller with design spec + prototype) |
 | **oc-code-auditor** | oc-reverse-spec, oc-app-architect | oc-security-auditor (posture review above code-level findings), oc-deploy-ops (pre-deploy gate) |
@@ -158,8 +159,8 @@ instrumentation (v1.6 "the instrumented pipeline"):
 | **oc-agent-forge** | oc-app-architect (`02-architecture.md` agent requirement), oc-claude-api (model routing), oc-rag-forge (retrieval config, wired as a tool), oc-integrations-engineer and oc-api-dev (tool contracts) | oc-deploy-ops (frozen harness config + fixture suite, hand-off — no gate), oc-monitoring-ops (live task-success and tool-error drift), oc-scale-ops (fleet sizing) |
 | **oc-rag-forge** | oc-app-architect (knowledge-base requirement), oc-stack-forge (`kind: vector-db` pack), oc-claude-api (generation model, context budget) | oc-prompt-ops (generation-prompt goldset), oc-agent-forge (frozen retrieval function wired as a tool), oc-deploy-ops (frozen retrieval config + ingestion pipeline, hand-off — no gate), oc-monitoring-ops (recall drift), oc-security-auditor (tenant isolation, PII in embeddings), oc-scale-ops (index and batch sizing) |
 | **oc-prompt-ops** | oc-claude-api (pinned model), oc-app-architect (LLM features registered under `prompts/`), oc-cost-ops (`cost_per_eval`) | oc-claude-api (eval result on a model migration), oc-git-ops (prompt diff PR + scorecard), oc-deploy-ops (frozen prompt version; no deploy gate) |
-| **oc-cost-ops** | oc-claude-api (price table), oc-prompt-ops (eval token counts), any skill (phase token counts) | runs `/oc-cost gate` beside oc-prompt-ops's `/oc-prompt regress`, oc-telemetry-ops (attributed cost to aggregate), oc-orchestrator (budget into `/oc-ops next`) |
-| **oc-telemetry-ops** | oc-cost-ops (per-run cost), any skill (skill/phase usage) | the site `/dashboard` (anonymized aggregate) |
+| **oc-cost-ops** | oc-claude-api (price table), oc-prompt-ops (eval token counts), any skill (phase token counts) | oc-prompt-ops (`/oc-cost gate` beside `/oc-prompt regress`), oc-telemetry-ops (attributed cost to aggregate), oc-orchestrator (budget into `/oc-ops next`) |
+| **oc-telemetry-ops** | oc-cost-ops (per-run cost), any skill (skill/phase usage) | the site `/dashboard` (anonymized aggregate, once an export loader exists) |
 | **oc-signal-forge** | oc-app-architect's `08-analytics.md` (read when invoked manually; app-architect does not chain here), oc-stack-forge (store / warehouse choice), oc-api-dev (metrics exposed by an endpoint) | oc-dash-forge (renders the validated signal), oc-monitoring-ops (each signal's `freshness_sla`, via `/oc-monitor alerts`), oc-api-dev (metric endpoint), oc-data-ops (when the metric needs a pipeline) |
 | **oc-modularize-ops** | oc-reverse-spec (module map), oc-app-architect (spec, data model), oc-code-auditor (coupling hotspots), oc-scale-ops (independent-scaling drivers) | oc-migration-ops (structural migration plan via `modularization/module-map.json`), oc-fleet-ops (deploys the extracted modules), oc-code-auditor (audits each module), oc-security-auditor (vets fixture capture, `/oc-security data-flow`), oc-git-ops (a commit per extraction) |
 | **oc-fleet-ops** | oc-modularize-ops (`modularization/module-map.json`), oc-stack-forge (target platform), oc-scale-ops (replica and capacity targets), oc-app-architect (`07-devops.md`) | oc-monitoring-ops (fleet-wide observability, `/oc-monitor`), oc-git-ops (commits the IaC) |
