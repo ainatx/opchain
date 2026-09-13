@@ -4,18 +4,27 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-08-22T08:18:58.198Z",
+  "updated_at": "2026-09-12T03:54:00.288Z",
   "phase": "audit",
-  "step": "oss-readiness-audit-2026-08-22",
-  "status": "in_progress",
-  "progress_summary": "2026-08-22 OSS-readiness audit at c440c7b (7 lenses, adversarially verified): 142 findings (24 HIGH), grade D+ for contributor-repo readiness. Product tree secret-free and all-permissive; gaps are packaging (no LICENSE in artifacts), metadata (no SPDX/license fields), governance (no SECURITY.md/CoC/CODEOWNERS/DCO; PVR + Dependabot alerts disabled), and hosted-service data handling (POST /mcp checkpoints without TTL/auth/rate-limit; stale privacy page). Report: docs/audits/2026-08-22-oss-readiness-audit.md; plan: docs/plans/2026-08-22-oss-split-licensing-compliance.md.",
-  "blockers": [],
+  "step": "skillchain-2.0-audit-verified-2026-09-11-awaiting-fix-approval",
+  "status": "blocked",
+  "progress_summary": "2026-09-11 skill-chain audit of the 2.0 chain at v1.9.0 (tree 4d39b93), now fully verified. 33 per-skill contract extractions plus 10 cross-cutting lenses produced 552 raw findings, deduped to 427; the four lenses cut off by session limits were re-run and added 100 more. All 527 were adversarially verified by independent refuters (three lenses for CRITICAL/HIGH, two for MEDIUM/LOW, defaulting to refutation when uncertain): 484 upheld, 43 refuted. Grade C. Upheld: 11 CRITICAL, 82 HIGH, 248 MEDIUM, 143 LOW. The CRITICAL tier was additionally confirmed by execution oracle against the shipped hook. Three clusters: the commit gate cannot read the checkpoint its own skill documents and deadlocks whenever .checkpoints is tracked (which the shipped docs instruct), while six shell prefix and quoting forms walk straight through it; the deploy and pre-PR gates read state that is stale, contradictory or absent (oc-security-auditor has never written a checkpoint, and the status subcommand silently ignores its skill argument); and the chain asserts sixteen handoff verbs the targets do not declare plus five phantom deploy gates. Two record corrections: the v2.0 'nothing built yet' claim is false, and the branch staging serves (claude/demo-rebuild-2-0) carries 35 skills stamped 1.9.0, so merging it trips check-release-tag countDrift and freezes production deploys. Report: docs/audits/2026-09-11-skillchain-2.0-audit.md.",
+  "blockers": [
+    {
+      "id": "fix-approval",
+      "description": "427 findings identified (6 CRITICAL verified by execution oracle). The tiered fix plan in docs/audits/2026-09-11-skillchain-2.0-audit.md section 6 needs owner approval before any edit is applied.",
+      "blocking": "all remediation",
+      "needs": "user_decision",
+      "proposed_resolution": "Approve Tier 0 at minimum; it is the only mechanical enforcement opchain ships and it currently denies every doc-conformant PASS while allowing six bypass forms."
+    }
+  ],
   "next_actions": [
-    "OSS-readiness audit 2026-08-22 (grade D+): triage the 24 HIGH findings in docs/audits/2026-08-22-oss-readiness-audit.md — the must-fix set is in docs/plans/2026-08-22-oss-split-licensing-compliance.md §4.1 (SECURITY.md + PVR, LICENSE in every artifact, SHA-pin Actions, Dependabot alerts, releases+attestations) and §4.3 (POST /mcp checkpoint TTL/size/rate-limit/session isolation; stale privacy page; leads stored forever).",
-    "Fix PX-01/PX-02 in src/index.js + site/src/pages/privacy.astro before pointing any enterprise at opchain.dev/mcp (see docs/plans/2026-08-22-oss-split-licensing-compliance.md §4.3).",
-    "Triage the ~20 remaining MEDIUM/LOW findings from this audit (none block; see workflow journal).",
-    "Pre-existing and NOT from this changeset: 14 critical / 41 high from the 2026-07-04 portability audit are still open — that loop predates this work and remains open.",
-    "Wire `test:gate` into package.json + CI so the gate suite runs on every PR."
+    "APPROVAL GATE: review docs/audits/2026-09-11-skillchain-2.0-audit.md section 6 and approve the fix tiers. Nothing is applied yet.",
+    "Tier 0 (CRITICAL, gate reality): unify the bug-check gate schema, break the verified_tree deadlock for tracked .checkpoints, close the exec/builtin/quote bypass family, correct the two bypass claims. Coordinate with open PRs #499/#505/#507 which already touch these files.",
+    "Tier 1 (HIGH): 16 undeclared handoff verbs, 5 phantom deploy gates, the modularize->migration handoff, the oc-git-ops merged_prs+ command, 8 missing orchestrator map rows + 11 drifted section 7 blocks, root README missing the 4 v1.9 skills.",
+    "Tier 2 (checkpoint spine, recommended before v2.0 Sprint 1): resolve the skill_state privacy contradiction, point 30 skills at their bundled protocol, fix session-state.cjs [object Object], tighten the validator, reconcile 7 drifted live checkpoints.",
+    "Re-run the 4 lenses that never ran (live-checkpoints, executability, routing, release-plan) plus the adversarial verify stage before treating the MEDIUM/LOW appendix as fact.",
+    "STILL OPEN from the 2026-08-22 OSS-readiness audit (grade D+): the 24 HIGH findings in docs/audits/2026-08-22-oss-readiness-audit.md, including PX-01/PX-02 in src/index.js + site/src/pages/privacy.astro before pointing any enterprise at opchain.dev/mcp."
   ],
   "eval_scores": [
     {
@@ -44,25 +53,38 @@
       },
       "ref": "docs/audits/2026-08-22-oss-readiness-audit.md",
       "note": "contributor-repo readiness; product tree secret-free + all-permissive, everything else is packaging/metadata/governance"
+    },
+    {
+      "rubric": "oc-code-auditor",
+      "score": 6.5,
+      "max": 10,
+      "at": "2026-09-11T22:50:00Z",
+      "dimensions": {
+        "security": 7,
+        "performance": 8,
+        "quality": 6,
+        "ux": 7
+      },
+      "ref": "docs/audits/2026-09-11-skillchain-2.0-audit.md"
     }
   ],
   "skill_state": {
-    "mode": "fix-all",
+    "mode": "auditor-sweep",
     "scope": "coordination-gaps overhaul changeset",
     "loop_state": "open",
-    "findings_total": 41,
+    "findings_total": 484,
     "findings_confirmed": 31,
     "findings_refuted": 10,
     "findings_by_severity": {
-      "critical": 3,
-      "high": 12,
-      "medium": 16,
-      "low": 10
+      "critical": 11,
+      "high": 82,
+      "medium": 248,
+      "low": 143
     },
     "fixes_applied": 9,
     "fixes_verified": 9,
     "fixes_rejected": 0,
-    "grade": "B (changeset); repo-wide grade F from the 2026-07-04 portability audit is UNCHANGED and still open",
+    "grade": "C",
     "verified_tree": "7c59d269ca269bc10035b0bbd706697df230b920",
     "note": "loop_state stays 'open': this round fixed the changeset's own defects, but the pre-existing 157-finding portability audit (14 critical / 41 high, 2 fixed) has never been closed. Marking this checkpoint 'complete' would repeat exactly the defect the overhaul's P3 exists to prevent.",
     "last_audit": {
@@ -81,6 +103,20 @@
       "verified": "7 lenses × adversarial verifier; 0 refuted",
       "report": "docs/audits/2026-08-22-oss-readiness-audit.md",
       "plan": "docs/plans/2026-08-22-oss-split-licensing-compliance.md"
-    }
+    },
+    "report_path": "docs/audits/2026-09-11-skillchain-2.0-audit.md",
+    "verified_by_oracle": [
+      "gate schema schism",
+      "tree-binding deadlock",
+      "exec/quote gate bypass",
+      "modularize->migration handoff",
+      "merged_prs+ operator order"
+    ],
+    "refuted": [
+      "checkpoint.mjs ISO regex rejects +00:00 offsets - both forms validate"
+    ],
+    "coverage_limits": "4 of 10 lenses (live-checkpoints, executability, routing, release-plan) and the adversarial verify stage did not run - session limits. MEDIUM/LOW findings are unverified leads.",
+    "verification": "complete: 527 judged, 484 upheld, 43 refuted",
+    "scope_kind": "skill-docs-and-plugin (NOT runtime Worker code - this audit must not be read as a deploy gate for the deployable app)"
   }
 }

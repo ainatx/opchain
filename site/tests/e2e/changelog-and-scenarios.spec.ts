@@ -17,7 +17,9 @@ import { expect, test } from "@playwright/test";
  *   1. /changelog — three tabs; v1.9 is the open hero in Just Released;
  *      the v1.4 card still deep-links to /coverage; Coming Next leads with
  *      the selected v1.9 assurance direction; Planned commits v2.0 and
- *      establishes voting across v2.1-v2.3 (7 votable items).
+ *      establishes voting across v2.1-v2.3 (every rendered planned item is
+ *      votable — the items themselves come from live GitHub Issues at build
+ *      time, so the spec asserts structure, never a specific issue set).
  *
  *   2. /demo — every curated scenario remains pickable on /demo. v1.5
  *      ("Build the AI app") added the four AI-native scenarios (RAG, agent,
@@ -105,7 +107,7 @@ test.describe("/changelog", () => {
     await expect(page.locator("#panel-coming #v1-9")).toHaveCount(0);
   });
 
-  test("Planned establishes voting for v2.1-v2.3", async ({ page }) => {
+  test("Planned establishes voting across v2.1-v2.3", async ({ page }) => {
     await page.goto("/changelog");
     await page.locator("#tab-planned").click();
 
@@ -119,22 +121,35 @@ test.describe("/changelog", () => {
     await expect(page.locator("#panel-planned #v1-8")).toHaveCount(0);
     await expect(page.locator("#panel-planned #v1-9")).toHaveCount(0);
 
-    // v2.0 is committed (Coming Next, not votable); the seven candidates in
-    // v2.1-v2.3 remain votable under their existing GitHub issue numbers,
-    // preserving vote history.
+    // v2.0 is committed (Coming Next, not votable). The planned items are
+    // pulled from GitHub Issues when CI builds the site (scripts/gen-roadmap.mjs
+    // → roadmap.json, gitignored), so which issues exist — and how many — is
+    // live data, not something this spec can pin: the 2026-08-27 and
+    // 2026-09-07 runs failed on unrelated PRs after issue edits on the public
+    // repo. What the page owns is the structure: every rendered planned item
+    // carries a vote control keyed by its issue number, every vote control
+    // lives inside a planned group, and there is at least one. An empty
+    // roadmap (GitHub unreachable at build) still fails here, loudly, which
+    // ci.yml documents as the intended outcome.
     await expect(page.locator("#v2-0 [data-vote-target]")).toHaveCount(0);
-    const votingGroups = [
-      ["v2-1", ["1", "4", "5"]],
-      ["v2-2", ["2", "7"]],
-      ["v2-3", ["3", "6"]],
-    ] as const;
-    for (const [group, ids] of votingGroups) {
+    let votable = 0;
+    for (const group of ["v2-1", "v2-2", "v2-3"]) {
       await page.locator(`#${group} [data-disclosure-toggle]`).click();
-      for (const id of ids) {
-        await expect(page.locator(`#${group} [data-vote-target="${id}"]`)).toBeVisible();
+      const items = page.locator(`#${group} .horizon-item`);
+      const votes = page.locator(`#${group} [data-vote-target]`);
+      const count = await items.count();
+      await expect(votes).toHaveCount(count);
+      for (let i = 0; i < count; i += 1) {
+        await expect(votes.nth(i)).toBeVisible();
+        await expect(votes.nth(i)).toHaveAttribute("data-vote-target", /^\d+$/);
       }
+      votable += count;
     }
-    await expect(page.locator("[data-vote-target]")).toHaveCount(7);
+    expect(
+      votable,
+      "no votable planned items rendered — was roadmap.json empty at build time?",
+    ).toBeGreaterThan(0);
+    await expect(page.locator("[data-vote-target]")).toHaveCount(votable);
   });
 
   test("deep-link #v1-6 opens the Just Released tab and the v1.6 card", async ({ page }) => {

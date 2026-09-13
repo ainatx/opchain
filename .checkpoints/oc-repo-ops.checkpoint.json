@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-03T04:25:48.282Z",
+  "updated_at": "2026-09-11T04:15:19.039Z",
   "skill": "oc-repo-ops",
   "phase": "pr-verify",
   "status": "complete",
-  "step": "codex/reduce-actions-churn",
-  "progress_summary": "Pre-PR readiness PASS for the Actions-churn reduction. The Docs Forge packet contains the mandatory Documentation section and matches the current workflow behavior. YAML parsing, exact required-check names, pull-request triggers, Monday schedules, manual-dispatch fallbacks, checkpoint schema, whitespace, 579 tests, Astro checks, Worker/site builds, catalogs, bundled references, plugin copies, internal references, staged secret scanning, and production dependency audits pass. No related untracked file or generated drift is pending.",
+  "step": "claude/lhci-ci-failures-analysis-s525xz",
+  "progress_summary": "Pre-PR readiness PASS for the CI-failure analysis branch at 3a662ab30fa9ad1ea1c150ac533efda19909ce56. The Docs Forge packet carries the Documentation section. npm run build ran the full prebuild chain (gen-catalog 33 skills, check-skill-flags, sync-bundles:check, sync-plugin-skills:check, lint-internal-refs) clean; vitest 45 files / 598 tests; astro check 0 errors; deploy-lag.yml parses and its safety pins hold; the OG images the sandbox build regenerated were restored, not committed; no related untracked file left behind.",
   "context_primer": {
     "key_decisions": [
       "Repo Ops evaluated the four workflow changes, four current documentation surfaces, and the Docs Forge packet.",
@@ -26,18 +26,18 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "The site development audit reports seven high-severity findings in the existing LHCI toolchain; root and site production dependency audits have zero vulnerabilities and no critical finding exists."
+      "commits are authored by the session identity Claude <noreply@anthropic.com>; the human DCO sign-off lands with the squash-merge"
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "77c3aae934ee9267e3410cd290d33ea96977d024",
+    "verified_for_sha": "3a662ab30fa9ad1ea1c150ac533efda19909ce56",
     "last_verify": {
-      "at": "2026-09-03T04:25:38.000Z",
-      "branch": "codex/reduce-actions-churn",
-      "base": "origin/main@61a916946173efbb2864b895d5cb413a1d8d0eed",
+      "at": "2026-09-11T04:15:18Z",
+      "branch": "claude/lhci-ci-failures-analysis-s525xz",
+      "base": "origin/main@02776fecf380fdb83389a480d2c5b3d65fee60e4",
       "verdict": "PASS",
       "blocking_findings": []
     }

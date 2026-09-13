@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-09-08T22:02:27.000Z",
+  "updated_at": "2026-09-13T03:57:14.777Z",
   "phase": "sprint-plan",
   "step": "v2.0-sprint-plan-approved-blocked-on-oss-split",
   "status": "in_progress",
@@ -114,11 +114,10 @@
     }
   ],
   "next_actions": [
-    "BLOCKED: run OSS split Phase C2-C7 per docs/runbooks/oss-split-execution-handoff.md. C5 needs an explicit 'flip now'. 2.0's calendar starts the day C7 goes green (decision D-H); its effort is not in the 48.5h estimate.",
-    "At C1, no longer needed: the new engines (scorecard/hindsight/evolve/prompt-eval/merge-hindsight, plugins/opchain/kits/) are authored in the product repo post-flip, so they need no split-manifest entry. checkpoint.mjs and merge-checkpoint.mjs stay dual-homed.",
-    "After C7: Sprint 0 (branches in their post-flip homes), then Sprint 1 wire 1.2 substrate.",
-    "Before Sprint 6: re-derive Appendix B against the real Phase D checklist - the product repo's package.json, CI job ids, its RELEASING.md copy, check-version-lockstep.mjs and the submodule-pin form of check-release-tag.mjs do not exist yet.",
-    "Sprint 5 carries the R3a fix, now harder post-flip: it must read the pinned submodule's skills/CHANGELOG.md, which is also handoff item R3c. Build them together."
+    "v1.9.1 Sprint 0: plan + audit report PR, owner staging redeploy, owner merges gate PR stack 499-507.",
+    "v1.9.1 Sprints 1-8 per docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md.",
+    "After v1.9.1 ships: re-verify the v2.0 plan against the reworked skills, then unpark PRs 490 and 515 at the cut.",
+    "v2.0 remains blocked on OSS split Phase C2-C7 (decision D-H); announce the C1 path freeze only after the rework lands."
   ],
   "skill_state": {
     "feature": {
@@ -414,6 +413,53 @@
         "oss_split": "HOLD 2.0 for the flip - split goes first, 2.0 is the first product-repo release (Phase D). Recorded as D-H.",
         "kit_install": "narrow the plugin commit-gate opt-in predicate so a repo whose only .opchain/ content is self-improvement state is not gated; gate-relevant manifests (qa/hardening/compliance/pm/data-contracts) still gate as today. Recorded as D-B.",
         "plan_doc": "commit + PR to main"
+      },
+      "parked": {
+        "at": "2026-09-12",
+        "reason": "v1.9.x patch release shipping the 2026-09-11 skill-chain audit fixes lands on main first; 2.0 waits until the rework is done",
+        "prs": [
+          {
+            "pr": 490,
+            "branch": "claude/opchain-2-0-colors-4ad0c6",
+            "what": "Slate & Emerald recolour + 2.0 lockup badge (F9)",
+            "state": "draft, 21 ahead / 18 behind main, conflicting, deliberately not refreshed until the cut"
+          },
+          {
+            "pr": 515,
+            "branch": "claude/demo-rebuild-2-0",
+            "base": "claude/opchain-2-0-colors-4ad0c6",
+            "what": "mandate-driven demo rebuild, 11 scenarios, 35/35 skills, includes demo-grade drafts of skills/oc-hindsight and skills/oc-evolve stamped 1.9.0",
+            "state": "draft, stacked on 490, never merge alone: added skill ids at an agreeing version trip check-release-tag countDrift and refuse production deploys"
+          }
+        ],
+        "record_correction": "The plan's 'nothing built yet' is false: demo-grade drafts of both v2.0 skills exist on claude/demo-rebuild-2-0 (a0be132, 213d401). They are not the sprint implementations.",
+        "open_hazards": [
+          "staging serves 213d401 from the parked demo branch, which shows the 2.0 recolour ahead of the cut contrary to PR 490's own deploy rule; clearing it needs an owner staging deploy from main plus a baseline refresh",
+          "worktree opchain-2-0-colors-4ad0c6 holds uncommitted edits (20 files, branch claude/demo-scenario-realism-99b27d, based on main) to the eleven walkthroughs the parked demo rebuild retires"
+        ]
+      }
+    },
+    "v191_release": {
+      "plan": "docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md",
+      "gate": "sprint-plan approved 2026-09-12 (D1-D7 on proposed options)",
+      "sprints": [
+        "0 runway",
+        "1 commit gate (7 CRITICAL)",
+        "2 checkpoint tooling (3 CRITICAL)",
+        "3 live state (1 CRITICAL)",
+        "4 cross-cutting contracts",
+        "5 per-skill sweeps x4 PRs",
+        "6 reach",
+        "7 cut product half + tag",
+        "8 cut site half + deploy"
+      ],
+      "effort": "~47h CLAUDE / ~8.5h USER (rough)",
+      "in_scope_findings": 427,
+      "deferred_to_v20": {
+        "skill_state_privacy": 42,
+        "v20_plan_doc_corrections": 15,
+        "plugin_command_registration": "additive",
+        "references_over_hosted_transports": "additive"
       }
     }
   }
