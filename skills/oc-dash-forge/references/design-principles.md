@@ -135,7 +135,7 @@ One type ramp, 4 levels max:
 1. **KPI number** — 32–48px (exec) / 20–24px (ops) / 18–22px (analyst)
 2. **Headline** — 18–24px
 3. **Body / label** — 12–14px (varies by archetype)
-4. **Caption / metadata** — 11–12px
+4. **Caption / metadata** — 12px
 
 Every extra size is a tax on scanning.
 

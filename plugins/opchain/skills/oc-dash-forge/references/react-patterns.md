@@ -8,18 +8,18 @@ Stack-specific boilerplate and mock-data patterns for the Phase 3 prototype buil
 
 ## TypeScript Types — Derive from Schema
 
-All `DashboardData`, `OpsData`, `AnalystData` types in the examples below are **derived from the upstream schema** (data-architect handoff, or if standalone, inferred from the data source).
+All `DashboardData`, `OpsData`, `AnalystData` types in the examples below are **derived from the upstream schema** (oc-data-ops mart contracts in `.opchain/data-contracts/`, or if standalone, inferred from the data source).
 
 Before writing the prototype:
 
-1. Read the schema (from data-architect handoff or intake)
+1. Read the schema (from oc-data-ops contracts or intake)
 2. Define types in `types.ts` that mirror the tables and computed metrics
 3. Mock data conforms to those types
 
 Example:
 
 ```ts
-// types.ts — derived from data-architect-handoff.md
+// types.ts — derived from .opchain/data-contracts/*.yaml
 export type ComplianceKPI = {
   id: string;
   label: string;
@@ -143,12 +143,12 @@ export default function OpsDashboard({ data }: { data: OpsData }) {
       <div className="grid grid-cols-8 gap-2 mb-3">
         {data.kpis.map((kpi) => (
           <div key={kpi.id} className="bg-neutral-900 border border-neutral-800 rounded p-2">
-            <div className="text-[10px] text-neutral-500 uppercase tracking-wide">{kpi.label}</div>
+            <div className="text-xs text-neutral-500 uppercase tracking-wide">{kpi.label}</div>
             <div className="flex items-baseline justify-between mt-0.5">
               <span className="text-xl font-mono tabular-nums">{kpi.value}</span>
               <StatusDot status={kpi.status} />
             </div>
-            <div className="text-[10px] text-neutral-500 mt-0.5">{kpi.sub}</div>
+            <div className="text-xs text-neutral-500 mt-0.5">{kpi.sub}</div>
           </div>
         ))}
       </div>
@@ -159,11 +159,11 @@ export default function OpsDashboard({ data }: { data: OpsData }) {
           <div className="text-xs text-neutral-400 mb-2">Throughput (last 60 min)</div>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={data.throughput}>
-              <XAxis dataKey="t" tick={{ fill: "#737373", fontSize: 10 }} />
-              <YAxis tick={{ fill: "#737373", fontSize: 10 }} />
+              <XAxis dataKey="t" tick={{ fill: "#737373", fontSize: 12 }} />
+              <YAxis tick={{ fill: "#737373", fontSize: 12 }} />
               <ReferenceLine y={data.threshold} stroke="#dc2626" strokeDasharray="3 3" />
               <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={1.5} dot={false} />
-              <Tooltip contentStyle={{ background: "#171717", border: "1px solid #404040", fontSize: 11 }} />
+              <Tooltip contentStyle={{ background: "#171717", border: "1px solid #404040", fontSize: 12 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>

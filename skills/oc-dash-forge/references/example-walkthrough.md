@@ -12,7 +12,7 @@ This run was invoked by oc-app-architect (`/oc-design`) during its Phase 3b wire
 
 ### Upstream context found
 
-- `data-architect-handoff.md` exists (Meridian schema: users, courses, completions, requirements, tickets)
+- oc-data-ops mart contracts exist at `.opchain/data-contracts/meridian.yaml` (Meridian schema: users, courses, completions, requirements, tickets)
 - oc-app-architect style book exists (Meridian blue + neutral warm grays, Inter font, 8px spacing scale)
 - No prior oc-dash-forge checkpoint
 
@@ -148,12 +148,12 @@ export const dashboardTokens = {
     display: { size: 22, weight: 600 },
     headline: { size: 14, weight: 500 },
     body: { size: 12, weight: 400 },
-    caption: { size: 10, weight: 400 },
+    caption: { size: 12, weight: 400 },
   },
   chart: {
     gridlineColor: "#262626",
     axisLabelColor: "#737373",
-    tooltipStyle: { background: "#171717", border: "1px solid #404040", fontSize: 11 },
+    tooltipStyle: { background: "#171717", border: "1px solid #404040", fontSize: 12 },
   },
 };
 ```
@@ -168,7 +168,7 @@ User confirmed. Proceed to prototype.
 
 ## Phase 3: React Prototype
 
-Building `prototype.tsx` with Recharts + Tailwind. Mock data uses realistic entity names (real IT service names from Meridian integration list in the upstream data-architect handoff).
+Building `prototype.tsx` with Recharts + Tailwind. Mock data uses realistic entity names (real IT service names from Meridian integration list in the upstream oc-data-ops contracts).
 
 ### Key prototype decisions
 
@@ -223,7 +223,7 @@ All 13 checks passed:
 - ✅ ≤7 series per chart (throughput has 2, queue has 4)
 - ✅ Drill paths declared per tile
 - ✅ Mock data: named entities, plausible ranges, non-uniform distribution, 288 data points per series
-- ✅ Type ramp: 4 sizes (22/14/12/10)
+- ✅ Type ramp: 3 sizes (22/14/12), none below 12px
 - ✅ Spacing: all 8/16/24 from the scale
 - ✅ Contrast spot-checked on 5 tiles, all ≥7:1
 - ✅ Charts have titles and accompanying data tables in alt view
@@ -235,7 +235,7 @@ All 13 checks passed:
 ### Bundle created
 
 ```
-/home/claude/meridian/dash-forge-handoff/
+{project-dir}/dash-forge-handoff/
 ├── spec.md                 (design spec + rationale)
 ├── tokens.ts               (design tokens)
 ├── types.ts                (TypeScript types)
@@ -254,8 +254,8 @@ All 13 checks passed:
 This prototype uses mock data in `mock-data.ts`. To wire to real data:
 
 1. Replace `mockKpis`, `throughputSeries`, `incidents`, `events` imports with live data hooks
-2. All types in `types.ts` match the data-architect handoff schema — no transformation needed
-3. KPI values come from aggregations over the compliance schema (see data-architect-handoff.md §5 Top 10)
+2. All types in `types.ts` match the oc-data-ops mart contracts — no transformation needed
+3. KPI values come from aggregations over the compliance schema (see `.opchain/data-contracts/meridian.yaml`)
 4. Throughput series: SELECT completions grouped by 5-minute windows over last 24h
 5. Incidents: the incidents table is the existing ServiceNow integration — wire via /incidents API, poll every 2 min
 6. Recent events: EventHub stream, last 50 events
@@ -266,19 +266,21 @@ This prototype uses mock data in `mock-data.ts`. To wire to real data:
 > Build sprint estimate: S (4–6 hours, mostly wiring)
 ```
 
-### Parent checkpoint updated
+### Checkpoint updated
 
-oc-app-architect's checkpoint now has:
+oc-dash-forge lists the bundle in its own `.checkpoints/oc-dash-forge.checkpoint.json`;
+oc-app-architect reads it from there when it adds the dashboard to the punch list:
 
 ```jsonc
-"sub_skill_invocations": [
-  {
-    "skill": "oc-dash-forge",
-    "checkpoint_path": "/home/claude/meridian/.checkpoints/oc-dash-forge.checkpoint.json",
-    "status": "complete",
-    "handoff_path": "/home/claude/meridian/dash-forge-handoff/"
-  }
-]
+"context_primer": {
+  "generated_files": [
+    "dash-forge-handoff/spec.md",
+    "dash-forge-handoff/tokens.ts",
+    "dash-forge-handoff/prototype.tsx",
+    "dash-forge-handoff/integration-notes.md"
+    // ...
+  ]
+}
 ```
 
 ---

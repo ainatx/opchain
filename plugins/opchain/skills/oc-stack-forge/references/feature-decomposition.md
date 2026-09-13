@@ -1,8 +1,10 @@
-# Feature Decomposition for Cloudflare Stack
+# Feature Decomposition (Hono/D1 + FastAPI worked examples)
 
-How to break a feature request into stack-ordered sprints for the tri-dev build loop.
-This reference is for the **Planner agent** — read it when decomposing features that
-target a Cloudflare-native stack (Workers, D1, KV, Pages).
+How to break a feature request into stack-ordered sprints that the user can bring into a
+sprint plan (such as oc-app-architect's). This reference is for the **Planner agent**. Its
+worked examples target a Cloudflare-native stack (Workers, D1, KV, Pages), with FastAPI
+substitutions below; for other stacks keep the same layer order and swap in that stack's
+equivalents (e.g. Django migrations/DRF, Rails migrations/controllers, sqlc/chi for Go).
 
 ---
 

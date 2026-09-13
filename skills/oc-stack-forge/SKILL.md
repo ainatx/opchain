@@ -23,8 +23,8 @@ description: >
 **On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
 
 Opinionated stack advisor that helps you pick the right tools and enforces type safety
-across whatever stack you choose. Auto-invoked by oc-app-architect during Phase 2 — you
-don't call it separately for new projects.
+across whatever stack you choose. Invoked as an explicit Phase 2 step by oc-app-architect
+— you don't call it separately for new projects.
 
 Works with any stack: Cloudflare Workers, Vercel/Next.js, AWS Lambda, Supabase, Rails,
 Django, Go, Rust — the decision framework is universal. The implementation patterns are
@@ -33,23 +33,25 @@ stack-specific, loaded from reference docs at runtime.
 ## How This Skill Fits the Build Pipeline
 
 ```
-APP-ARCHITECT (planning)                TRI-DEV (building)
-  Phase 2: Spec ──auto-calls──▶ oc-stack-forge decision tree
-  Phase 5: Scaffold ──auto-calls──▶ oc-stack-forge project structure
+APP-ARCHITECT (planning)
+  Phase 2: Spec ──invokes──▶ oc-stack-forge decision tree
+
+USER (any time)
+  Feature request ──────────▶ /oc-feature → stack-ordered decomposition
                                          │
-  Feature request ───────────────────────▶ /oc-feature → sprint decomposition
-                                         │
-                                   Planner reads feature-decomposition
-                                   Generator reads stack-specific patterns
-                                   Evaluator reads per-layer criteria
+                                         ▼
+                              the user brings it into a sprint plan
 ```
 
-**App-architect auto-invokes oc-stack-forge** — when Phase 2 starts, oc-stack-forge's decision
-tree runs automatically to generate `01-tech-stack.md` and `02-architecture.md`. The user
-doesn't need to call `/oc-stack` separately. Stack-forge reads the discovery interview
-results and recommends the best stack for the project's requirements.
+**App-architect invokes oc-stack-forge as a Phase 2 step** (orchestrator.md §3 — a step it
+runs, not an automatic trigger). Its recommendation feeds `01-tech-stack.md` and
+`02-architecture.md`, so the user doesn't need to call `/oc-stack` separately for a new
+project. Stack-forge reads the discovery interview results and recommends the best stack
+for the project's requirements.
 
-**App-architect Phase 6 uses oc-stack-forge** for stack-ordered sprint decomposition regardless of stack choice.
+**`/oc-feature` gives a stack-ordered decomposition** of a feature, regardless of stack
+choice, that the user can bring into a sprint plan (for example oc-app-architect's
+`/oc-roadmap`). oc-app-architect does not call it on its own.
 
 ---
 
@@ -58,24 +60,25 @@ results and recommends the best stack for the project's requirements.
 ```
 STACK FORGE COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  /oc-stack            Show this menu
+
   STACK SELECTION
   /oc-stack-decide     Run the full stack decision tree
   /oc-stack-compare    Compare 2-3 specific stack options side by side
 
-  PATTERNS
-  /typed-pipeline   Set up type chain for the selected stack
-  /testing          Configure testing pyramid for the stack
-  /oc-deploy           Deployment patterns for the selected platform
-  /errors           Error handling + logging patterns
-  /ci               CI pipeline for the stack
-
-  TRI-DEV INTEGRATION
+  FEATURE DECOMPOSITION
   /oc-feature          Decompose a feature into stack-ordered sprints
 
   SESSION
-  /checkpoint       Show checkpoint status
+  /checkpoint          Show checkpoint status
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+
+Pattern topics are plain requests, not slash commands — ask for them by name; each maps
+to a reference doc (see Reference Docs): "set up the typed pipeline", "testing pyramid
+for this stack", "deploy patterns", "error handling", and "CI pipeline"
+(`references/cf-deployment.md` § CI/CD Pipeline). Deploying itself is oc-deploy-ops'
+`/oc-deploy`.
 
 ---
 
@@ -160,8 +163,10 @@ Also decide the **queue/stream** (only if streaming ingestion is in play:
 Cloudflare Queues, SQS, Kafka/Redpanda) and the **transform tool** (dbt by
 default when a warehouse exists). Record all of it in the checkpoint as
 `skill_state.decisions.warehouse` / `decisions.queue` /
-`decisions.transform_tool` — oc-data-ops reads exactly those keys and never
-re-decides.
+`decisions.transform_tool`. These three keys are documented for siblings
+(see Cross-Skill Reads → Read by): they are a stable contract oc-data-ops
+reads, so it never re-decides. Also state the choice as a "Data platform"
+row in the Stack Recommendation.
 
 ### Question 4: Auth
 
@@ -251,7 +256,7 @@ Read `references/typed-pipeline.md` for detailed implementation per stack.
 oc-stack-forge *recommends* the typed pipeline. The `oc-api-dev` skill *materialises*
 it: authoring the OpenAPI / GraphQL contract, scaffolding typed handlers, and
 generating the SDK. When oc-app-architect Phase 2 detects a first-party API
-surface, it auto-invokes oc-api-dev with the stack chosen here.
+surface, it invokes oc-api-dev (`/oc-api design`) as a step, with the stack chosen here.
 
 ---
 
@@ -291,8 +296,10 @@ for detailed Cloudflare (Workers / D1 / KV) patterns.
 
 opchain v1.3 expands the platform menu beyond the JS / Cloudflare bias of v1.0–v1.2.
 Four full-stack patterns are first-class targets: oc-stack-forge recommends them,
-oc-app-architect's `../oc-app-architect/references/scaffold-guide.md` knows how to
-scaffold them, and oc-deploy-ops knows how to ship them.
+oc-app-architect's `oc-app-architect/references/scaffold-guide.md` knows how to
+scaffold them, and oc-deploy-ops knows how to ship them. (Links below are relative to this
+repo's `skills/` tree; in an install, the same files sit under the installed skills
+directory, e.g. `~/.claude/skills/oc-app-architect/references/scaffold-guide.md`.)
 
 | Stack | DB | Deploy target | When to pick it |
 |---|---|---|---|
@@ -335,28 +342,31 @@ Costs are 2026-Q2 estimates from public pricing; check the platform docs at deci
 The matrix is intentionally short. New stacks earn a row only when:
 
 1. There's a documented `scaffold-guide.md` recipe AND a `oc-deploy-ops` provider section.
-2. At least one in-action `/demo` scenario exercises the stack end-to-end.
-3. The pairing (language + framework + DB + deploy) is opinionated — opchain
+2. The pairing (language + framework + DB + deploy) is opinionated — opchain
    recommends ONE deploy target per stack rather than listing every option.
 
-Adding a stack without all three is a oc-stack-forge bug; the matrix becomes noise instead of guidance.
+Adding a stack without both is a oc-stack-forge bug; the matrix becomes noise instead of
+guidance. An in-action `/demo` scenario that exercises the stack end-to-end is the goal
+for every row (Django and Rails have one today; Go and Rust do not yet).
 
 ---
 
 ## `kind: mobile` dispatch (v1.4+)
 
-Mobile packs (iOS / Android / Flutter / React Native — landing in PRs 6 + 6.5
-of the v1.4 sequence) do not have a "deploy command" the way web packs do.
+Mobile packs (`ios-swiftui`, `kotlin-android`, `flutter`, `react-native-expo`)
+do not have a "deploy command" the way web packs do.
 App Store / Play Store reviews are the gate; TestFlight / Internal-testing
 tracks gate beta cohorts. oc-stack-forge's dispatcher recognises `kind: mobile`
 and routes through a **release-checklist** envelope instead of trying to
 execute commands.
 
-The runtime entry point is `dispatchMobile(packId)` in
-`src/lib/pack-dispatch.js`:
+Inside the opchain repo, the runtime entry point is `dispatchMobile(packId)` in
+`src/lib/pack-dispatch.js` (it does not ship with the installed skill; elsewhere, apply the
+resolution rules below by reading the pack's `pack.yml` `kind:` yourself):
 
 ```js
-import { dispatchMobile } from "../../src/lib/pack-dispatch.js";
+// from the opchain repo root
+import { dispatchMobile } from "./src/lib/pack-dispatch.js";
 
 const out = dispatchMobile("ios-swiftui");
 // → {
@@ -383,7 +393,7 @@ accidentally interpret it as a deploy command.
 ### What goes in the release checklist
 
 The actual checklist content lives in each mobile pack's `mobileRef` doc (e.g.
-`skills/oc-stack-forge/packs/ios-swiftui/mobile.md`, landing in PR 6). The
+`packs/ios-swiftui/mobile.md`). The
 template the agent renders has a fixed prelude:
 
 ```
@@ -393,23 +403,19 @@ executing commands. App Store / Play Store review windows are the gate.
 ```
 
 …followed by the body of `mobileRef`. Mobile dispatch deliberately does NOT
-invoke `oc-deploy-ops`; oc-release-ops handles the App-Store / Play-Store /
-TestFlight / Internal-Testing workflow.
+invoke `oc-deploy-ops`, and no opchain skill automates store submission: the
+rendered `mobileRef` checklist (with the `app-store` / `play-store` deploy-target
+packs) is the release path, worked by the user.
 
-### Why this lands in PR 3, ahead of the first real mobile pack
-
-PR 6 (ADEV-336) ships the first mobile pack (iOS + SwiftUI). Pre-loading the
-dispatch logic + tests in PR 3 keeps PR 6's diff focused on the pack content
-itself rather than the dispatcher plumbing. The `tests/pack-dispatch.test.js`
-suite exercises `dispatchMobile` against synthetic ios/android/flutter/
-react-native fixtures so the dispatcher is locked in before any real mobile
-pack lands.
+In the opchain repo, `tests/pack-dispatch.test.js` locks the dispatcher against
+synthetic ios/android/flutter/react-native fixtures.
 
 ---
 
 ## Feature Decomposition (`/oc-feature`)
 
-Decomposes a feature into stack-ordered sprints for oc-app-architect Phase 6 regardless of platform:
+Decomposes a feature into stack-ordered sprints, regardless of platform. The user can bring
+the result into a sprint plan (such as oc-app-architect's `/oc-roadmap`):
 
 ```
 1. DB layer (schema, migrations)
@@ -421,7 +427,9 @@ Decomposes a feature into stack-ordered sprints for oc-app-architect Phase 6 reg
 ```
 
 The sprint order follows the type pipeline — bottom-up, each layer built on
-verified ground truth. This ordering is universal across stacks.
+verified ground truth. This ordering is universal across stacks; the worked examples in
+`references/feature-decomposition.md` are Hono/D1 (with FastAPI substitutions), so map
+the same six layers onto other stacks' equivalents.
 
 ---
 
@@ -430,7 +438,7 @@ verified ground truth. This ordering is universal across stacks.
 **Stack-forge is actively invoked by oc-app-architect during Phase 2** per orchestrator.md §3.
 When called, oc-stack-forge:
 
-1. Reads the discovery context from `.checkpoints/oc-app-architect.checkpoint.json` (requirements, users, constraints, budget, team experience).
+1. Reads the discovery context from `.checkpoints/oc-app-architect.checkpoint.json` → `context_primer.key_decisions` (requirements, users, constraints, budget, team experience — written at the end of oc-app-architect Phase 1).
 2. Runs the decision tree (platform → backend → database → auth → frontend), web-searching for current framework status.
 3. Produces the stack recommendation.
 4. Writes its own checkpoint and returns control to oc-app-architect, which then writes `01-tech-stack.md` and `02-architecture.md`.
@@ -440,7 +448,17 @@ When called, oc-stack-forge:
 chains to it via the active-invocation pattern. `/oc-stack` is only invoked standalone for:
 - Quick stack questions outside a project context
 - Feature decomposition (`/oc-feature`) for existing projects
-- Gap analysis on existing codebases (with oc-reverse-spec)
+- Gap analysis on existing codebases (with oc-reverse-spec) — below
+
+oc-migration-ops also invokes it to validate the target stack of a platform move.
+
+### Gap analysis on an existing codebase
+
+Input: oc-reverse-spec's `stack-forge-audit.md` (from `/oc-rev-stack`) and its
+`spec/01-tech-stack.md`. Compare each typed-pipeline link and each decision-tree layer
+against what this skill would recommend today, and report the gaps worth closing, ranked
+by impact. Record the findings summary in the checkpoint and set
+`skill_state.gap_analysis_done: true`.
 
 ---
 
@@ -463,7 +481,7 @@ Checkpoint location: `{project-dir}/.checkpoints/oc-stack-forge.checkpoint.json`
 
 ### skill_state
 
-```json
+```jsonc
 {
   "stack_path": "nextjs-supabase",
   "decisions": {
@@ -471,7 +489,11 @@ Checkpoint location: `{project-dir}/.checkpoints/oc-stack-forge.checkpoint.json`
     "backend": { "choice": "Next.js API Routes", "rationale": "Full-stack TS" },
     "database": { "choice": "Supabase Postgres", "rationale": "Auth included, free tier" },
     "auth": { "choice": "Supabase Auth", "rationale": "Built-in" },
-    "frontend": { "choice": "Next.js + React", "rationale": "SSR, app router" }
+    "frontend": { "choice": "Next.js + React", "rationale": "SSR, app router" },
+    // data-heavy backends only (Question 3b):
+    "warehouse": { "choice": "BigQuery", "rationale": "GCP-adjacent, pay-per-query" },
+    "queue": { "choice": "none", "rationale": "batch ingestion only" },
+    "transform_tool": { "choice": "dbt", "rationale": "warehouse present" }
   },
   "features_planned": [],
   "gap_analysis_done": false
@@ -487,24 +509,29 @@ Checkpoint location: `{project-dir}/.checkpoints/oc-stack-forge.checkpoint.json`
 
 | Read by | Why |
 |---|---|
-| oc-app-architect | Stack recommendation → Phase 2 spec (automatic); Phase 6 uses sprint decomposition patterns |
+| oc-app-architect | Stack recommendation → Phase 2 spec (when it invokes this skill) |
 | oc-code-auditor | Type pipeline standard → compliance check |
 | oc-scale-ops | Platform limits → scaling constraints |
 | oc-deploy-ops | Platform → deployment patterns |
 | oc-docs-forge | Chosen stack + decision rationale → PR documentation packet, README/product-doc updates |
+| oc-data-ops | `skill_state.decisions.warehouse` / `.queue` / `.transform_tool` (Question 3b) — documented sibling keys |
+| oc-api-dev | Chosen framework + typed-pipeline tooling |
+| oc-rag-forge | Chosen `kind: vector-db` pack (stated in the Stack Recommendation and `context_primer.key_decisions`; there is no dedicated pack-id checkpoint key) |
+| oc-security-hardening | Platform idiom for expressing controls as code |
+| oc-integrations-engineer | Auth pattern → compatible implementation |
+| oc-migration-ops | Target stack validation for a platform move (invokes this skill) |
 
 ---
 
 ## Reference Docs
 
-| Command | Reference | Contents |
+| Topic | Reference | Contents |
 |---|---|---|
-| /typed-pipeline | `references/typed-pipeline.md` | Type chains per stack |
-| /testing | `references/testing-patterns.md` | Testing pyramid per framework |
-| /oc-deploy | `references/cf-deployment.md` | Deploy patterns (Cloudflare; other platforms in the matrix above) |
-| /errors | `references/error-handling.md` | Structured errors, logging |
-| /oc-feature | `references/feature-decomposition.md` | Sprint templates for oc-app-architect Phase 6 |
-| — | `references/cf-deployment.md` | CF-specific patterns (Workers, D1, KV) |
+| Typed pipeline | `references/typed-pipeline.md` | Type chains per stack |
+| Testing | `references/testing-patterns.md` | Testing pyramid per framework |
+| Deploy patterns | `references/cf-deployment.md` | Deploy patterns (Cloudflare Workers, D1, KV; other platforms in the matrix above) |
+| Errors | `references/error-handling.md` | Structured errors, logging |
+| `/oc-feature` | `references/feature-decomposition.md` | Stack-ordered sprint templates to bring into a sprint plan |
 
 **When a reference doc doesn't cover the selected stack**, web search for current
 best practices and generate the pattern inline. The reference docs are a starting
@@ -512,12 +539,12 @@ point, not a ceiling.
 
 ---
 
-## PM-Tool MCP Integration (v1.2+)
+## PM-Tool MCP Integration
 
 oc-stack-forge produces architectural decisions. Those decisions
 deserve a permanent home in the PM tool — the next engineer
 investigating "why are we on this stack?" should not have to dig
-through chat logs. v1.2 makes oc-stack-forge an Architectural
+through chat logs. oc-stack-forge acts as an Architectural
 Decision Record (ADR) author. See `oc-integrations-engineer` for
 the canonical PM-MCP patterns.
 
@@ -564,7 +591,8 @@ prior stack-decision comment in PM:
 
 - No ticket context → no PM write; ADR lives in
   `docs/adr/{N}-stack-decision.md` only.
-- MCP unavailable → log intent to checkpoint as deferred.
+- MCP unavailable → append to the checkpoint's `pm_deferred_actions[]` per
+  `oc-integrations-engineer/references/pm-mcp-protocol.md` §4.
 - ADR counter conflict → fall back to ISO timestamp suffix
   rather than block.
 
@@ -580,5 +608,5 @@ prior stack-decision comment in PM:
 4. **CI is the enforcer.** If it's not in CI, it's a suggestion, not a rule.
 5. **The team's stack wins.** Unless there's a compelling technical reason, match what
    the team already knows. Migration cost > marginal framework benefit.
-6. **Automatic, not optional.** Stack decisions happen inside oc-app-architect Phase 2,
-   not as a separate step the user might forget.
+6. **Part of Phase 2, not optional.** oc-app-architect invokes stack decisions as a
+   Phase 2 step, not as a separate project the user might forget.
