@@ -161,7 +161,7 @@ const plannedReleaseGroups = [
           aria-selected="true"
           tabindex="0"
         >
-          Just Released <span class="tab-count">18 shipped</span>
+          Just Released <span class="tab-count">19 shipped</span>
         </button>
         <button
           class="tab-btn tab-btn--next"
@@ -200,7 +200,7 @@ const plannedReleaseGroups = [
         <span class="panel-sub">Latest release is open; patches and earlier releases expand in place.</span>
       </div>
 
-      <!-- v1.9 — latest shipped release; "Assurance and governed delivery ops". Deep-linkable from #v1-9. -->
+      <!-- v1.9 — latest shipped release line (v1.9.0 → v1.9.1); "Assurance and governed delivery ops". Deep-linkable from #v1-9. -->
       <article class="hero-card hero-card--released is-open" id="v1-9" data-card>
         <button
           class="hero-head"
@@ -211,7 +211,7 @@ const plannedReleaseGroups = [
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">latest release</span>
-          <span class="hero-ver">v1.9.0 · shipped Sep 02, 2026</span>
+          <span class="hero-ver">v1.9.0 → v1.9.1 · Sep 02 – Sep 13, 2026</span>
           <span class="hero-title">Assurance and governed delivery ops</span>
           <span class="hero-desc">
             Delivery evidence you can review and enforce. v1.9 adds four skills
@@ -252,6 +252,45 @@ const plannedReleaseGroups = [
               former shared <code>default</code> session are rejected. The 16
               pre-v1.9 hosted checkpoint records are deleted during rollout;
               local on-disk checkpoints are unaffected.
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v1.9.1 — the skill-chain integrity patch under the v1.9 line. Deep-linkable from #v1-9-1. -->
+      <article class="rel-card" id="v1-9-1" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-9-1-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">&#9654;</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.9.1 patch</span><span class="rc-title">The chain holds</span><span class="rc-date">Sep 13, 2026</span></span>
+            <span class="rc-summary">An audit of the whole skill chain upheld 484 findings. This patch makes the chain do what its documentation says &mdash; starting with the one gate that actually runs.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-9-1-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">484 findings</span><span class="tag">commit gate</span><span class="tag">every skill routable</span><span class="tag">33 skills</span></div>
+            <p>
+              The skills described handoffs, gates and checkpoint reads that their
+              siblings did not back. The commit gate &mdash; the one piece of
+              machinery opchain ships &mdash; could be walked past with an
+              <code>exec</code> prefix, and deadlocked in any repo that tracks
+              <code>.checkpoints/</code>, which the docs recommend. No new skills and
+              no new commands: every change here makes something already documented
+              true.
+            </p>
+            <ul>
+              <li><strong>The commit gate holds.</strong> A pass is bound to the exact tree being committed, at any age. Wrapper, prefix, quoting and here-document forms that slipped through now deny, and tracked checkpoints no longer deadlock it.</li>
+              <li><strong>Checkpoints tell the truth.</strong> <code>status &lt;skill&gt;</code> reads its argument, the validator accepts real ISO-8601 offsets, and <code>doctor</code> catches a pass left behind by a squash merge.</li>
+              <li><strong>Every handoff lands.</strong> Every command one skill hands to another is declared by the skill that owns it, the orchestrator map covers all 33 skills, and CI now fails when either drifts.</li>
+              <li><strong>Every edge is two-sided.</strong> 66 relationships that only one skill documented now appear on both sides &mdash; or are gone, where the claim was wrong.</li>
+              <li><strong>The catalog is reachable.</strong> The MCP <code>route</code> tool reaches every skill (17 before), and <a href="/pipeline-builder">the pipeline builder</a> recommends from the live catalog instead of a v1.5 table.</li>
+            </ul>
+            <div class="compat-box">
+              <strong>Back-compatible with v1.9.0.</strong> All 33 skills lockstep-bump
+              to <code>1.9.1</code>. No checkpoint migration; no commands, routes or flags
+              removed. The commit gate is deliberately stricter: a pass without a tree
+              hash is denied, and the bypass forms above now deny. &ldquo;Tag the
+              release&rdquo; routes to Git Ops, which owns the tag.
             </div>
           </div>
         </div>
