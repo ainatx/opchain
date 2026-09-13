@@ -168,7 +168,7 @@ chat history.
 │  ┌─────────────────────────────────────────────────┐  │
 │  │              Priority Engine                    │  │
 │  │  Blockers > Failed > In-progress > Not-started  │  │
-│  │  Pipeline order breaks ties                     │  │
+│  │  Over-budget, then recency, breaks ties         │  │
 │  └─────────────────────────────────────────────────┘  │
 │                          │                            │
 │                          ▼                            │
@@ -185,8 +185,8 @@ chat history.
 ### Design Constraints
 
 1. **Read-only coordinator.** Orchestrator reads other skills' checkpoints but NEVER
-   writes to them. It persists its own state via memory (registry) and session files
-   (routing history, scan cache).
+   writes to them. It persists its own state (registry, active project, routing
+   history) in `skill_state` of `.checkpoints/oc-orchestrator.checkpoint.json`.
 2. **Additive, not gating.** Skills work without the oc-orchestrator installed. The
    oc-orchestrator makes the ecosystem smarter, not dependent.
 3. **No build artifacts.** Orchestrator produces status reports and routing decisions,
@@ -221,8 +221,9 @@ file doesn't survive the clone). If you see references to them elsewhere, they'r
 stale; the tracked checkpoint is the single source of truth.
 
 On session start the oc-orchestrator reads its own checkpoint for the registry, then
-runs `node scripts/checkpoint.mjs status` to scan every other skill's checkpoint in
-the active project for live state. (Re-scanning is cheap — there's no separate cache
+scans every other skill's checkpoint in the active project for live state — `node
+scripts/checkpoint.mjs status` where the project has the CLI, otherwise a direct read of
+`.checkpoints/*.checkpoint.json`. (Re-scanning is cheap — there's no separate cache
 layer to keep warm or invalidate.)
 
 ### Registry Schema (stored in `skill_state.registry` of the tracked checkpoint)
@@ -233,7 +234,7 @@ layer to keep warm or invalidate.)
     {
       "id": "acme-core",
       "name": "acme-core",
-      "path": "/home/claude/acme-core",
+      "path": "/Users/you/repos/acme-core",   // a real runtime path — see /oc-ops scan roots
       "type": "monorepo",
       "priority": "primary",
       "apps": ["storefront", "fieldkit", "atlas-crm", "acme-app", "billing"],
@@ -242,7 +243,7 @@ layer to keep warm or invalidate.)
     {
       "id": "meridian",
       "name": "Meridian",
-      "path": "/home/claude/meridian",
+      "path": "/Users/you/repos/meridian",
       "type": "app",
       "priority": "secondary",
       "apps": null,
@@ -260,8 +261,8 @@ Schema design rationale:
   `archived`. Primary projects surface first in `/oc-ops next` cross-project recommendations.
 - **`apps` array** — for monorepos, lists sub-applications. Single-app projects
   set this to `null`. Enables per-app checkpoint scanning and status grouping.
-- **`active_project` is session state, not registry** — it starts as `default_project`
-  each session and can be switched with `/oc-ops switch`. Only `default_project` persists.
+- **`active_project` is not registry** — it lives in `skill_state.active_project`,
+  starts as `default_project` each session, and is switched with `/oc-ops switch`.
 
 ### Monorepo Sub-Project Handling
 
@@ -291,13 +292,14 @@ grouping. Skills writing app-specific checkpoints set `project_dir` to
 
 **Tooling-support note (important):** the canonical CLI (`scripts/checkpoint.mjs`)
 scans only the **top level** of `.checkpoints/` — it does not recurse into app
-subdirectories, and `checkpoint:validate` won't see subdir files either. So the
-subdirectory layout above is **not** the supported default today. Until recursion
-lands in the CLI, use the **flat** layout and group by the `project` field inside
-each checkpoint: write app-specific checkpoints as
-`.checkpoints/<app>-<skill>.checkpoint.json` (e.g. `storefront-app-architect.checkpoint.json`)
-with `project: "storefront"`, and let the oc-orchestrator group by that field. This keeps
-every checkpoint visible to `status`/`validate`/`doctor` with no tooling change.
+subdirectories, and `checkpoint:validate` won't see subdir files either. A flat
+`<app>-<skill>.checkpoint.json` name does not work either: the validator requires
+every filename to equal `<skill>.checkpoint.json` (e.g. `oc-app-architect.checkpoint.json`).
+Per-app checkpoints are therefore not supported by the CLI today. The only
+validator-clean option is one checkpoint directory per app, pointed at explicitly:
+`OPCHAIN_CHECKPOINTS_DIR=apps/storefront/.checkpoints node scripts/checkpoint.mjs status`
+(and `validate`/`doctor` the same way). Without the CLI, read and write those files
+directly.
 
 Status output groups by app within a monorepo:
 
@@ -324,7 +326,7 @@ Status output groups by app within a monorepo:
 4. Detect monorepo structure (workspace config, `apps/` directory)
 5. If monorepo: inventory sub-applications, confirm app list with user
 6. Determine priority (`primary` if first project, `secondary` otherwise)
-7. Write to `memory_user_edits`
+7. Write `skill_state.registry` in `.checkpoints/oc-orchestrator.checkpoint.json`
 8. Display initial status scan
 
 ### Auto-Discovery
@@ -335,8 +337,8 @@ checkpoint files exist at a path not in the registry → suggest registration.
 
 ### Cold Start (First-Ever Invocation)
 
-When the oc-orchestrator is invoked with no memory edit and no checkpoint files found
-anywhere:
+When the oc-orchestrator is invoked with no `skill_state.registry` in its checkpoint and
+no checkpoint files found anywhere:
 
 ```
 No projects registered yet. Let's set up your workspace.
@@ -364,8 +366,10 @@ a unified status view.
 ### Scan Process
 
 ```bash
-# Preferred: let the canonical CLI read + summarize the active project.
-( cd {project.path} && node scripts/checkpoint.mjs status )
+# Preferred where the project has the CLI (the opchain repo, or a project that
+# adopted it): let it read + summarize the active project.
+test -f {project.path}/scripts/checkpoint.mjs && \
+  ( cd {project.path} && node scripts/checkpoint.mjs status )
 
 # Raw fallback (flat layout — the supported default):
 ls {project.path}/.checkpoints/*.checkpoint.json 2>/dev/null
@@ -380,17 +384,11 @@ For each checkpoint found:
 2. Read progress_table: phase completion
 3. Read blockers: any unresolved?
 4. Read next_actions: what's queued?
-5. Do NOT read skill_state (private to owning skill)
+5. Do NOT interpret skill_state (private to owning skill). The shared CLI's
+   drift check scans it for merged/shipped tokens only; this skill does not read it.
 
-### Scan Caching
-
-Scanning all checkpoints on every command is cheap for 2-3 projects (<50ms) but
-could slow down with many projects or slow filesystems. Strategy:
-
-- On first `/oc-ops` invocation per session: full scan, write to session cache
-- On subsequent invocations: read from session cache unless >5 minutes stale
-- `/oc-ops status --fresh` forces a re-scan
-- Any routing dispatch invalidates the cache (the dispatched skill may write a checkpoint)
+Every `/oc-ops` command re-scans; there is no scan cache to reuse or invalidate
+(see Persistence Model).
 
 ### Unified Status Output (`/oc-ops status`)
 
@@ -444,32 +442,33 @@ project). Priority rules, in order:
 6. NOT_STARTED skills in pipeline order    (start the next logical skill)
 ```
 
-> **One implementation.** This exact hierarchy is encoded in
-> `scripts/checkpoint.mjs` (`rankCheckpoint` / the `next` command). For a single
-> project, `node scripts/checkpoint.mjs next` *is* `/oc-ops next` minus the
-> cross-project layer — so the two never diverge. The oc-orchestrator adds the
-> cross-project weighting (below) on top of the same ranking. Before recommending,
-> run `node scripts/checkpoint.mjs doctor` so you don't surface a `next_action`
-> that's already been shipped (the stale-action failure mode).
+> **Where the CLI matches, and where it doesn't.** Ranks 1–5 are encoded in
+> `scripts/checkpoint.mjs` (`rankCheckpoint` / the `next` command), with one
+> addition: a checkpoint whose `status` is `blocked` (without a `user_decision`
+> blocker) ranks with FAILED at 2. The CLI's rank 6 is the catch-all for any
+> other checkpoint that exists; a skill with no checkpoint is never ranked, so
+> "start the next logical skill" is this skill's reasoning, not the CLI's. Within a
+> rank the CLI breaks ties over-budget first, then most recent `updated_at`; it has
+> no pipeline-order concept. For a single project, follow
+> `node scripts/checkpoint.mjs next` where the project has the CLI. The
+> oc-orchestrator adds the cross-project weighting (below) on top. Before
+> recommending, run `node scripts/checkpoint.mjs doctor` where the project has the
+> CLI (otherwise compare `next_actions` against recent git history yourself) so you
+> don't surface a `next_action` that's already been shipped (the stale-action
+> failure mode).
 
-### Pipeline Order (tie-breaker)
+### Ties and pipeline order
 
-When two actions have the same priority level, the one earlier in the canonical
-pipeline wins:
-
-```
-oc-reverse-spec → oc-app-architect → oc-git-ops → oc-deploy-ops
-                    ↕
-          oc-code-auditor (required before deploy)
-          oc-bug-check (pre-commit gate, auto-invoked by oc-git-ops)
-          oc-docs-forge → oc-repo-ops (pre-PR gate, auto-invoked by oc-git-ops)
-          oc-integrations-engineer (when needed)
-          oc-scale-ops (advisory)
-```
+Same-rank ties break the way the CLI breaks them: over-budget first, then the most
+recently updated checkpoint (user momentum). Pipeline order decides only *which skill
+to suggest* at ranks 5–6 (the next skill after a completed one, or the first
+not-started one), following the canonical map in `references/orchestrator.md`
+§ 2 Pipeline Map rather than a copy kept here.
 
 ### Cost / Budget Awareness (v1.6 — the instrumented pipeline)
 
-When `oc-cost-ops` has written a `cost` block to a checkpoint, `/oc-ops next`
+When `oc-cost-ops` has written its `cost` block (it lives only in the oc-cost-ops
+checkpoint, so that is the one checkpoint this can flag), `/oc-ops next`
 factors budget into the ranking as a **tiebreaker within a priority level** (it
 does not override the hierarchy above — a decision blocker still wins). Among
 same-rank items, a checkpoint whose attributed spend has passed its ceiling
@@ -496,8 +495,8 @@ of the action-level hierarchy:
    favor project X for `/oc-ops next` unless another project has a strictly higher-priority
    action.
 
-The user can override priority class with `/oc-ops register` or by editing the memory
-edit directly.
+The user can override priority class with `/oc-ops register` or by editing
+`skill_state.registry` in the tracked checkpoint directly.
 
 ### Output Format
 
@@ -520,27 +519,12 @@ On (Y): oc-orchestrator actively invokes the recommended skill with the right co
 
 ## Router Engine (`/oc-ops route`)
 
-Smart dispatch for vague or multi-skill requests. This operationalizes the routing
-table currently in orchestrator.md.
-
-### Routing Table
-
-| Intent Signal | Route to | Phase |
-|---|---|---|
-| "build me an app", "I have an idea" | oc-app-architect | /oc-discover |
-| "document this codebase", "backfill specs" | oc-reverse-spec | /oc-rev-full |
-| "what stack should I use" | oc-stack-forge | /oc-stack-decide |
-| "review this code", "find bugs", "audit" | oc-code-auditor | /oc-audit full |
-| "fix the UX", "design is inconsistent" | oc-ux-engineer | /oc-uxe eval |
-| "connect to [service]", "webhook", "OAuth" | oc-integrations-engineer | /oc-integrate plan |
-| "deploy this", "ship it" | oc-deploy-ops | /oc-deploy staging |
-| "commit", "push to git", "create a PR" | oc-git-ops | /oc-git-sync |
-| "generate the PR docs", "update README", "docs drift" | oc-docs-forge | /oc-docs pr |
-| "is this PR ready", "repo hygiene", "catalog drift" | oc-repo-ops | /oc-repo audit |
-| "can this handle more users", "performance" | oc-scale-ops | /oc-scale audit |
-| "dashboard", "analytics UI", "BI design" | oc-dash-forge | /oc-data-forge |
-| "continue where I left off" | [scan checkpoints] | [resume most recent] |
-| "what should I work on" | oc-orchestrator | /oc-ops next |
+Smart dispatch for vague or multi-skill requests. This operationalizes the Smart
+Routing Table in `references/orchestrator.md` § 4 — that table is the one copy, with a
+row for every skill; route from it. This skill adds no rows of its own. The one
+difference in use: when the user asks "what should I work on", answer with
+`/oc-ops next` (the single highest-priority action) after the `/oc-ops status` view
+§ 4 names.
 
 ### Routing Process
 
@@ -556,8 +540,9 @@ table currently in orchestrator.md.
 If the intent doesn't match any routing table entry:
 
 1. Check if it's a general question (not a pipeline action) → answer directly, no routing
-2. If it seems like a pipeline action but is ambiguous → ask ONE clarifying question
-   using `ask_user_input` with 2-3 options mapped to the most likely skills
+2. If it seems like a pipeline action but is ambiguous → ask ONE clarifying question in
+   chat (AskUserQuestion when available) with 2-3 options mapped to the most likely
+   skills
 3. Never guess — a wrong route wastes more time than a clarifying question
 
 ### Ambiguity Handling
@@ -569,7 +554,7 @@ options with one-line explanations:
 That could go a few directions:
 
 1. oc-code-auditor /oc-audit security — if you want to find vulnerabilities
-2. oc-security-auditor /scan — if you want a full security posture review (coming soon)
+2. oc-security-auditor /oc-security posture — if you want a full security posture review
 3. oc-code-auditor /oc-audit fix-all — if you already know the issues and want fixes
 
 Which one?
@@ -599,7 +584,7 @@ PIPELINE — acme-core (storefront)
   Quality plugins:
     ✅ oc-code-auditor     Grade B+ (2 HIGH open)
     ⏳ oc-scale-ops        Not run
-    ⏳ integrations     Not needed (no external APIs)
+    ⏳ oc-integrations-engineer  Not needed (no external APIs)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
@@ -645,7 +630,9 @@ than none):
 # 1. SKILL.md exists and its YAML frontmatter parses.
 # 2. version comes from that frontmatter (NOT a hardcoded table).
 # 3. references/orchestrator.md + references/checkpoint-protocol.md are present
-#    and in sync:  node scripts/sync-bundles:check
+#    and in sync:  npm run sync-bundles:check
+#    (node scripts/sync-skill-bundles.mjs --check — opchain repo only, like the
+#    checkpoint CLI below)
 # 4. The shared checkpoint writer exists ONCE at the repo root:
 #    test -f scripts/checkpoint.mjs   (there is NO per-skill checkpoint.sh)
 # 5. Checkpoints validate:  npm run checkpoint:validate
@@ -684,8 +671,8 @@ LAST KNOWN STATE — Per Skill
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-This is a "last seen" view, not a timeline. If you need a true activity log, the
-routing_history in the session cache tracks dispatches within the current conversation.
+This is a "last seen" view, not a timeline. For dispatch history, read
+`skill_state.routing_history` in this skill's tracked checkpoint.
 
 ---
 
@@ -725,16 +712,21 @@ file.
 ```
 
 `scan_summary` is a convenience snapshot from the last scan — it's re-derived by
-re-running `node scripts/checkpoint.mjs status`, never trusted as a cache.
+re-scanning (`node scripts/checkpoint.mjs status` where the project has the CLI),
+never trusted as a cache.
 
 ### Session Start Sequence
 
 1. Read `.checkpoints/oc-orchestrator.checkpoint.json` → `skill_state.registry`.
-2. If the registry has projects: scan each path (`node scripts/checkpoint.mjs status`),
-   refresh `scan_summary`, and write the checkpoint.
-3. If the registry is empty: cold start flow (see Project Registry § Cold Start).
-   On a project with no `.checkpoints/` at all, run `node scripts/checkpoint.mjs init`
-   first.
+   If the file or the key is absent (a checkpoint holding only session logs has none),
+   treat it as a cold start, not as corruption.
+2. If the registry has projects: scan each path (`node scripts/checkpoint.mjs status`
+   where that project has the CLI; otherwise read its `.checkpoints/*.checkpoint.json`
+   directly), refresh `scan_summary`, and write the checkpoint.
+3. If the registry is empty or absent: cold start flow (see Project Registry § Cold
+   Start). On a project with no `.checkpoints/` at all, run
+   `node scripts/checkpoint.mjs init` where the CLI exists; otherwise create
+   `.checkpoints/` with the file tools.
 
 ### Error Handling
 
@@ -757,7 +749,10 @@ re-running `node scripts/checkpoint.mjs status`, never trusted as a cache.
 
 ### When to Write
 
-All writes go to the one tracked checkpoint (`update oc-orchestrator --skill_state…`):
+All writes go to the one tracked checkpoint. With the CLI, object values need the
+`:json` suffix and appends a trailing `+`, e.g.
+`node scripts/checkpoint.mjs update oc-orchestrator --skill_state.active_project=acme-core --skill_state.routing_history:json+='{"at":"2026-04-21T15:30:00Z","intent":"audit the code","routed_to":"oc-code-auditor","project":"acme-core"}'`;
+without it, edit the file directly:
 
 | Event | What changes in `skill_state` |
 |---|---|
@@ -850,8 +845,9 @@ monorepo, the oc-orchestrator should:
 >   `references/`, read on first invocation. Defines the welcome protocol, pipeline
 >   map, chaining, and novice mode. No commands; it's a spec every skill follows.
 >
-> (The filename is kept as-is deliberately: ~18 skills are instructed to "read
-> `references/orchestrator.md`" on startup, so renaming it is a high-blast-radius
+> (The filename is kept as-is deliberately: every skill except oc-checkpoint-protocol
+> is instructed to "read `references/orchestrator.md`" on startup (build-enforced by
+> `scripts/gen-skills-catalog.mjs`), so renaming it is a high-blast-radius
 > change for low value. The disambiguation header at the top of that file makes the
 > distinction clear in place.)
 
@@ -984,15 +980,16 @@ confuses `PLAT-1` from project A with `PLAT-1` from project B
 
 1. **Read everything, write only your own state.** The oc-orchestrator's power
    comes from its cross-skill read access. It never modifies another skill's
-   checkpoints. Its own state lives in memory (registry) and session files (cache).
+   checkpoints. Its own state lives in `skill_state` of its tracked checkpoint.
 2. **Recommend, don't block.** `/oc-ops next` is a recommendation, not a gate. The user
    can always invoke any skill directly.
 3. **One answer per question.** `/oc-ops next` returns ONE action, not a list. The user
    can ask again for the next item in the queue.
 4. **Project context is first-class.** Every command accepts an optional project
-   argument. If omitted, use active_project (session state) or default_project (memory).
-5. **Pipeline order is the tie-breaker.** When priority is equal, earlier pipeline
-   position wins. Unblock downstream skills first.
+   argument. If omitted, use `skill_state.active_project` or
+   `skill_state.registry.default_project`.
+5. **Pipeline order picks the next skill.** Same-rank ties break over-budget, then
+   most recent; pipeline order chooses which skill to start or chain to next.
 6. **Dispatch, don't duplicate.** When routing, read the target skill's SKILL.md and
    invoke its command. Don't re-implement skill logic inside the oc-orchestrator.
 7. **Stale data is worse than no data.** Flag old checkpoints. Don't present week-old

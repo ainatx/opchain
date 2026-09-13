@@ -68,11 +68,21 @@ skill run (telemetry enabled?) ──yes──► INSERT INTO runs(...)   [local
                                 └──no──► no-op (zero writes)
 ```
 
-- The owning skill (or oc-cost-ops, which already has the token counts) inserts a
-  `runs` row at the end of a metered run.
-- `cost_usd` is filled from oc-cost-ops's attribution when available; null otherwise.
-- Disabled telemetry takes the no-op branch — **verified by the "opt-out → zero
-  writes" test**: with `enabled: false`, a run produces no INSERT.
+- Nothing inserts rows automatically: no skill, hook or plugin command calls the
+  writer. A session that wants a run metered calls, at the end of the run:
+
+  ```sh
+  npm run telemetry -- record --skill=<id> [--phase=<p>] [--command=<verb>] \
+    [--tier=haiku|sonnet|opus|fable] [--cost=<usd>] [--in=<tokens>] [--out=<tokens>] \
+    [--outcome=pass|fail|complete] [--at=<ISO-8601>] [--duration=<ms>]
+  ```
+
+  When telemetry is enabled, `--skill` is required (exit 1); with telemetry off,
+  `record` exits 0 without checking flags. Flags use the `--name=value` form.
+- `--cost` is filled from oc-cost-ops's attribution when available; null otherwise.
+- Disabled telemetry takes the no-op branch: `record` checks
+  `telemetry_handle.enabled` first and, unless it is `true`, exits 0 without an
+  INSERT (enforced in `scripts/telemetry.mjs` `cmdRecord`; no dedicated test).
 
 ## Lifecycle
 

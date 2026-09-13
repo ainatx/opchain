@@ -47,12 +47,12 @@ grep -rn "\bdebugger\b" --include="*.ts" --include="*.tsx" --include="*.js" \
 ### Pattern: .only in Tests
 
 ```bash
-grep -rn "\.\(only\|skip\)\b" --include="*.test.*" --include="*.spec.*" \
+grep -rn "\.only\b" --include="*.test.*" --include="*.spec.*" \
   --exclude-dir=node_modules .
 ```
 
-`.only` always FAIL (silently skips other tests). `.skip` gets WARN (intentional
-test suppression should be temporary).
+`.only` always FAIL (silently skips other tests). `.skip` is not a gate pattern — the
+SKILL.md anti-pattern table and `.bugcheck.json` have no row for it.
 
 ### Pattern: Explicit any
 
@@ -107,11 +107,12 @@ about to commit suggest incomplete work.
 ### Primary Patterns
 
 ```bash
-# Generic secret patterns (API keys, tokens, passwords)
-grep -rn --include="*.ts" --include="*.tsx" --include="*.js" --include="*.json" \
-  --include="*.yaml" --include="*.yml" --include="*.toml" \
-  -E "(api[_-]?key|secret|password|token|credential|auth).*['\"][A-Za-z0-9+/=_-]{16,}['\"]" \
-  --exclude-dir=node_modules --exclude=".env*" --exclude="*.example" .
+# Generic secret patterns (API keys, tokens, passwords). NOT --include-scoped — same
+# command as SKILL.md Check 5: an extension allowlist made the scan blind to every
+# non-JS language.
+grep -rn -E "(api[_-]?key|secret|password|token|credential|auth).*['\"][A-Za-z0-9+/=_-]{16,}['\"]" \
+  --exclude-dir=node_modules --exclude-dir=.build --exclude-dir=vendor \
+  --exclude-dir=Pods --exclude-dir=.git --exclude=".env*" --exclude="*.example" .
 ```
 
 ### Service-Specific Patterns
@@ -122,10 +123,12 @@ grep -rn --include="*.ts" --include="*.tsx" --include="*.js" --include="*.json" 
 | GitHub PAT | `ghp_[A-Za-z0-9]{36}` | `ghp_xxxxxxxxxxxx` |
 | GitHub OAuth | `gho_[A-Za-z0-9]{36}` | `gho_xxxxxxxxxxxx` |
 | Stripe (live) | `sk_live_[A-Za-z0-9]{24,}` | `sk_live_xxx` |
+| Stripe (test) | `sk_test_[A-Za-z0-9]{24,}` | `sk_test_xxx` |
 | Stripe (publishable) | `pk_live_[A-Za-z0-9]{24,}` | `pk_live_xxx` |
 | Sentry DSN | `https://[a-f0-9]+@[^/]+/[0-9]+` | `https://abc@sentry.io/123` |
 | Telegram bot | `[0-9]+:AA[A-Za-z0-9_-]{33}` | `123456:AAxxxx` |
-| Private keys | `BEGIN (RSA\|EC\|DSA )?PRIVATE KEY` | PEM blocks |
+| Private keys | `BEGIN (RSA \|EC \|DSA \|OPENSSH \|ENCRYPTED \|PGP )?PRIVATE KEY` (with `grep -E`) | PEM blocks |
+| JWT | `eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}` | Supabase / Auth0 / Firebase keys |
 | OpenAI | `sk-[A-Za-z0-9]{20,}` | `sk-xxx` |
 
 ### False Positive Handling
@@ -240,8 +243,9 @@ git diff --name-only --diff-filter=ACMR 2>/dev/null
 # 3. Since last commit (if no staged/unstaged)
 git diff HEAD~1 --name-only --diff-filter=ACMR 2>/dev/null
 
-# 4. Fallback: all files (new repo, no commits)
-find src/ -name "*.ts" -o -name "*.tsx" 2>/dev/null
+# 4. Fallback: all source files (new repo, no commits) — same extension list as $SRC
+git ls-files --cached --others --exclude-standard 2>/dev/null \
+  | grep -E '\.(ts|tsx|js|jsx|mjs|cjs|py|go|rs|swift|kt|rb|java|php)$'
 ```
 
 ### File Type Filtering
@@ -249,8 +253,9 @@ find src/ -name "*.ts" -o -name "*.tsx" 2>/dev/null
 Only check relevant files — don't lint images or scan fonts for secrets:
 
 ```bash
-# Source files (for lint, types, anti-patterns)
-grep -E '\.(ts|tsx|js|jsx|py|go|rs)$'
+# Source files (for lint, types, anti-patterns) — keep in sync with SKILL.md's $SRC;
+# a filter that drops your language silently empties the whole gate
+grep -E '\.(ts|tsx|js|jsx|mjs|cjs|py|go|rs|swift|kt|rb|java|php)$'
 
 # Config files (for secrets only)
 grep -E '\.(json|yaml|yml|toml|env)$'
