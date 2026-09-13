@@ -19,7 +19,8 @@ description: >
   oc-bug-check before every commit and the oc-docs-forge → oc-repo-ops pre-PR gate before
   every PR. Owns the release tag that oc-release-ops hands off. Use for /oc-git, /oc-commit,
   /oc-pr, /oc-push, /oc-git-sync, /oc-git-release, "commit this", "push to git", "create a PR",
-  "tag the release", "sync to repo", or any git operation.
+  "tag the release", "sync to repo", or any git operation. "Commit and open a PR" is
+  /oc-git-sync (branch → commit → push → PR); /oc-pr only drafts the PR description.
 ---
 
 # Git Ops
