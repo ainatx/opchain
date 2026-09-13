@@ -77,4 +77,4 @@ points of recall for 4–32× storage savings — re-validate on the goldset).
 - Putting a 600 GB vector set on the app's primary Postgres and starving OLTP RAM.
 - Choosing dense-only because the DB doesn't do hybrid well — that's a reason to
   pick a different DB, not to ship worse retrieval (see `chunking-strategies.md`
-  and the hybrid section of `SKILL.md`).
+  and the "Default to hybrid" Designer bullet in `SKILL.md` Phase 1).

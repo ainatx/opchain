@@ -10,13 +10,14 @@ aggregate-only on export, and content-free at the schema level.
 | State | Behavior |
 |---|---|
 | **Default (never enabled)** | No store, no writes, nothing recorded. The `telemetry_handle` field is absent. |
-| **Enabled** (`/oc-telemetry enable`) | `telemetry_handle.enabled = true`; runs are metered locally. |
+| **Enabled** (`/oc-telemetry enable`) | `telemetry_handle.enabled = true`; runs recorded with `record` are metered locally. |
 | **Disabled** (`/oc-telemetry disable`) | `enabled = false`; metering stops immediately; the local store is kept (deletion is the user's call). |
 
 **Presence is not consent.** A `telemetry_handle` object with `enabled: false` — or
 no field at all — means *off*. Only `enabled: true` authorizes a write. The
 checkpoint validator enforces that `enabled` is a boolean; the metering write path
-checks it on every run (see the "opt-out → zero writes" test in `local-metering.md`).
+checks it on every run — the "opt-out → zero writes" check lives in
+`scripts/telemetry.mjs` `cmdRecord` and has no dedicated test.
 
 ## What is recorded vs. never recorded
 
