@@ -13,6 +13,20 @@ checkpoint `protocol_version` is tracked separately (see
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [1.9.1] — 2026-09-13 — "The chain holds"
+
+A patch release: no new skills, commands or checkpoint fields. The 2026-09-11
+skill-chain audit (`docs/audits/2026-09-11-skillchain-2.0-audit.md`) upheld 484
+findings against the 2.0 chain at v1.9.0: the one mechanical gate opchain ships
+could be walked past or deadlocked, the checkpoint tooling misreported state, and
+the skills described handoffs, gates and reads their siblings did not back. This
+release makes the documented chain true. Every change passed one test — does it make
+documented behaviour true, or correct a document to match real behaviour? — and
+anything that failed it is deferred to v2.0 (internal plan:
+`docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md`).
+
 ### Fixed
 
 - **Commit gate (plugin) — the tree hash is mandatory, and the documented schema
@@ -260,6 +274,33 @@ checkpoint `protocol_version` is tracked separately (see
   changes to shipped text (#482, #484) that this section never recorded.
 - **Every skill points at its bundled checkpoint protocol.** 29 Checkpoint sections
   never named `references/checkpoint-protocol.md`; they do now.
+
+### Compatibility
+
+**Skill and on-disk checkpoint compatibility:** back-compatible with v1.9.0. All 33
+skills lockstep-bump to `1.9.1`; no checkpoint field, command, route or flag that
+1.9.0 shipped is removed, and no checkpoint file needs migration. What behaves
+differently:
+
+- **The commit gate is stricter.** A PASS must carry `skill_state.verified_tree` for
+  the tree being committed, at any age — a PASS without it was allowed for 10 minutes
+  and is now denied (re-run `/oc-bugcheck`). The wrapper, prefix, quoting, comment
+  and here-document forms listed under *Fixed* that used to commit past the gate now
+  deny, and `--no-verify` or `OPCHAIN_BYPASS=1` inside a comment is no longer read as
+  a bypass. The hook's timeout rises from 10 to 60 seconds.
+- **Routing.** "Tag the release" routes to oc-git-ops (`/oc-git-release`), which owns
+  the tag; oc-code-auditor's description no longer claims "security audit", which
+  routes to oc-security-auditor. The MCP `route` tool now reaches every skill.
+- **Verbs.** 83 subcommands that skills already documented are now declared in
+  frontmatter, inheriting their parent verb's flag, and `/oc-rev-spec`, already
+  advertised, is declared as a root verb (222 → 306 entries). Menu entries that were never commands
+  (`/oc-git-status`, `/oc-export-spec` and similar) are documented as plain requests.
+- **Checkpoint CLI.** `status <skill>` shows one skill and exits 1 when it has no
+  checkpoint; the validator accepts ISO-8601 offsets and warns (never errors) on
+  contradictory lifecycle states.
+- **Release order** (repo governance, not a skill contract): a minor release flips the
+  site's live-claim surfaces in the release PR with the CHANGELOG heading, before the
+  tag; a patch keeps product PR → tag → site PR.
 
 ## [1.9.0] — 2026-09-02 — "Assurance and governed delivery ops"
 
