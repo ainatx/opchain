@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:42:00Z",
-  "updated_at": "2026-09-08T03:43:00Z",
+  "updated_at": "2026-09-13T05:22:30.740Z",
   "phase": "design-iteration",
   "step": "architecture-v2.0-learning-rail-slate-emerald",
   "status": "complete",
@@ -114,7 +114,8 @@
       "Round 5: roadmap data layer is build-time-only. `scripts/gen-roadmap.mjs` pulls from Linear's GraphQL endpoint, buckets by issue state (`completed → shipped`, `started → in-progress`, `backlog + milestone → planned`, else `backlog`), and writes `site/src/data/roadmap.json` (gitignored). Graceful degrade: no LINEAR_API_KEY OR fetch error OR zero matches → writes an empty roadmap and exits 0 so Astro builds stay green on contributor machines.",
       "Round 5: `roadmap-types.ts` loads via synchronous `fs.readFileSync` (not `await import('./roadmap.json')`). Reason: CI's site job runs `npm ci && astro check` WITHOUT running the root prebuild, so roadmap.json isn't on disk when TS resolves module paths. The fs read at SSG time returns an empty roadmap on missing-file so type-check passes either way. This bit me on commit 488cada — site/install/build job failed; commit 2091b4a fixed.",
       "Round 5: vote dedup is per-IP per day, server-side, in the existing NOTIFY KV namespace (no new infra). Lock key `vote-lock:<id>:<YYYY-MM-DD>:<sha256(ip)[0:16]>` with 25h TTL. Counter `vote-count:<id>`. The vote button is 52×48px to clear WCAG 2.5.8 target-size without per-element pseudo-element gymnastics this time.",
-      "Round 5: community submissions stay HIDDEN from the public roadmap until a team-member adds the `roadmap-visible` label during triage. The form applies only `community-submitted` (when `LINEAR_COMMUNITY_LABEL_ID` is set) and a `[community/feature]` title prefix. Spam-safe by default."
+      "Round 5: community submissions stay HIDDEN from the public roadmap until a team-member adds the `roadmap-visible` label during triage. The form applies only `community-submitted` (when `LINEAR_COMMUNITY_LABEL_ID` is set) and a `[community/feature]` title prefix. Spam-safe by default.",
+      "2026-09-13 (v1.9.1 Sprint 3 reconciliation): the learning-rail PR merged as #487 (next action removed); RoadmapTimeline.astro was deleted by #265 (ad64240) and is no longer listed."
     ],
     "generated_files": [
       "site/public/previews/mobile-demo/{index,a,b,c,d,e}.html",
@@ -126,7 +127,6 @@
       "previews/preview.html (Round 4 — iteration sandbox; gitignored from build)",
       "scripts/gen-roadmap.mjs (Round 5 — Linear build-time pull)",
       "site/src/data/roadmap-types.ts (Round 5 — Roadmap types + fs loader)",
-      "site/src/components/RoadmapTimeline.astro (Round 5 — new)",
       "site/src/components/RoadmapForm.astro (Round 5 — new)"
     ],
     "modified_files_round_4": [
@@ -149,7 +149,6 @@
   },
   "blockers": [],
   "next_actions": [
-    "Open the PR for the learning rail; do not deploy — v2.0 has not shipped and the diagram claims nothing new about production.",
     "At the v2.0 cut: flip the eyebrow/footer/mobile-eyebrow with Header CURRENT_RELEASE, swap PLANNED badges for NEW v2.0, move counts 33->35, tri-agent 9->11, commands 12->14, wire 1.1->1.2, link the anchor cards at /skills/oc-hindsight and /skills/oc-evolve once those pages exist, and — if tokens.css has swapped by then — drop the rail's local --v20-* tokens in favour of the global ones.",
     "Follow up separately on the 1024px header overflow (.right-cluster) — affects every page."
   ],
@@ -170,7 +169,6 @@
       "SearchPalette.astro",
       "Header.astro (round 4 restructure)",
       "pages/index.astro (round 4 redesign)",
-      "RoadmapTimeline.astro (round 5)",
       "RoadmapForm.astro (round 5)",
       "pages/changelog.astro (round 5 integration)"
     ],

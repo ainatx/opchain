@@ -4,27 +4,16 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-09-12T03:54:00.288Z",
+  "updated_at": "2026-09-13T05:30:55.224Z",
   "phase": "audit",
-  "step": "skillchain-2.0-audit-verified-2026-09-11-awaiting-fix-approval",
-  "status": "blocked",
+  "step": "skillchain-2.0-audit-remediation-in-progress",
+  "status": "in_progress",
   "progress_summary": "2026-09-11 skill-chain audit of the 2.0 chain at v1.9.0 (tree 4d39b93), now fully verified. 33 per-skill contract extractions plus 10 cross-cutting lenses produced 552 raw findings, deduped to 427; the four lenses cut off by session limits were re-run and added 100 more. All 527 were adversarially verified by independent refuters (three lenses for CRITICAL/HIGH, two for MEDIUM/LOW, defaulting to refutation when uncertain): 484 upheld, 43 refuted. Grade C. Upheld: 11 CRITICAL, 82 HIGH, 248 MEDIUM, 143 LOW. The CRITICAL tier was additionally confirmed by execution oracle against the shipped hook. Three clusters: the commit gate cannot read the checkpoint its own skill documents and deadlocks whenever .checkpoints is tracked (which the shipped docs instruct), while six shell prefix and quoting forms walk straight through it; the deploy and pre-PR gates read state that is stale, contradictory or absent (oc-security-auditor has never written a checkpoint, and the status subcommand silently ignores its skill argument); and the chain asserts sixteen handoff verbs the targets do not declare plus five phantom deploy gates. Two record corrections: the v2.0 'nothing built yet' claim is false, and the branch staging serves (claude/demo-rebuild-2-0) carries 35 skills stamped 1.9.0, so merging it trips check-release-tag countDrift and freezes production deploys. Report: docs/audits/2026-09-11-skillchain-2.0-audit.md.",
-  "blockers": [
-    {
-      "id": "fix-approval",
-      "description": "427 findings identified (6 CRITICAL verified by execution oracle). The tiered fix plan in docs/audits/2026-09-11-skillchain-2.0-audit.md section 6 needs owner approval before any edit is applied.",
-      "blocking": "all remediation",
-      "needs": "user_decision",
-      "proposed_resolution": "Approve Tier 0 at minimum; it is the only mechanical enforcement opchain ships and it currently denies every doc-conformant PASS while allowing six bypass forms."
-    }
-  ],
+  "blockers": [],
   "next_actions": [
-    "APPROVAL GATE: review docs/audits/2026-09-11-skillchain-2.0-audit.md section 6 and approve the fix tiers. Nothing is applied yet.",
-    "Tier 0 (CRITICAL, gate reality): unify the bug-check gate schema, break the verified_tree deadlock for tracked .checkpoints, close the exec/builtin/quote bypass family, correct the two bypass claims. Coordinate with open PRs #499/#505/#507 which already touch these files.",
-    "Tier 1 (HIGH): 16 undeclared handoff verbs, 5 phantom deploy gates, the modularize->migration handoff, the oc-git-ops merged_prs+ command, 8 missing orchestrator map rows + 11 drifted section 7 blocks, root README missing the 4 v1.9 skills.",
-    "Tier 2 (checkpoint spine, recommended before v2.0 Sprint 1): resolve the skill_state privacy contradiction, point 30 skills at their bundled protocol, fix session-state.cjs [object Object], tighten the validator, reconcile 7 drifted live checkpoints.",
-    "Re-run the 4 lenses that never ran (live-checkpoints, executability, routing, release-plan) plus the adversarial verify stage before treating the MEDIUM/LOW appendix as fact.",
-    "STILL OPEN from the 2026-08-22 OSS-readiness audit (grade D+): the 24 HIGH findings in docs/audits/2026-08-22-oss-readiness-audit.md, including PX-01/PX-02 in src/index.js + site/src/pages/privacy.astro before pointing any enterprise at opchain.dev/mcp."
+    "v1.9.1 Sprint 3: reconcile live checkpoints (this PR), then Sprint 4 cross-skill contracts, Sprint 5 per-skill sweeps, Sprint 6 reach — per docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md.",
+    "Sprint 5 exit: re-run the reciprocity pass over the post-sweep tree, which the 2026-09-11 audit never completed.",
+    "Still open from the 2026-08-22 OSS-readiness audit (grade D+): the 24 HIGH findings in docs/audits/2026-08-22-oss-readiness-audit.md, including PX-01/PX-02 in src/index.js and site/src/pages/privacy.astro before pointing any enterprise at opchain.dev/mcp."
   ],
   "eval_scores": [
     {
@@ -70,10 +59,10 @@
   ],
   "skill_state": {
     "mode": "auditor-sweep",
-    "scope": "coordination-gaps overhaul changeset",
+    "scope": "opchain skill chain at 4d39b93: 33 skills, orchestrator.md, checkpoint protocol + CLI, plugin hooks, generated catalogs, live checkpoints",
     "loop_state": "open",
     "findings_total": 484,
-    "findings_confirmed": 31,
+    "findings_confirmed": 11,
     "findings_refuted": 10,
     "findings_by_severity": {
       "critical": 11,
@@ -81,12 +70,7 @@
       "medium": 248,
       "low": 143
     },
-    "fixes_applied": 9,
-    "fixes_verified": 9,
-    "fixes_rejected": 0,
     "grade": "C",
-    "verified_tree": "7c59d269ca269bc10035b0bbd706697df230b920",
-    "note": "loop_state stays 'open': this round fixed the changeset's own defects, but the pre-existing 157-finding portability audit (14 critical / 41 high, 2 fixed) has never been closed. Marking this checkpoint 'complete' would repeat exactly the defect the overhaul's P3 exists to prevent.",
     "last_audit": {
       "date": "2026-08-22",
       "mode": "oss-readiness (security 1a + config 1d + license/compliance/provenance)",
@@ -115,8 +99,65 @@
     "refuted": [
       "checkpoint.mjs ISO regex rejects +00:00 offsets - both forms validate"
     ],
-    "coverage_limits": "4 of 10 lenses (live-checkpoints, executability, routing, release-plan) and the adversarial verify stage did not run - session limits. MEDIUM/LOW findings are unverified leads.",
+    "coverage_limits": "All 10 lenses ran and every finding was adversarially verified (the four lenses first cut off by session limits were re-run). Not covered: runtime Worker code (see scope_kind), and live execution beyond the CRITICAL tier's execution oracle. findings_confirmed counts the 11 CRITICAL findings confirmed by execution oracle, not the 484 upheld (the previous 31 was carried over from the v1.8.2 audit).",
     "verification": "complete: 527 judged, 484 upheld, 43 refuted",
-    "scope_kind": "skill-docs-and-plugin (NOT runtime Worker code - this audit must not be read as a deploy gate for the deployable app)"
-  }
+    "scope_kind": "skill-docs-and-plugin (NOT runtime Worker code - this audit must not be read as a deploy gate for the deployable app)",
+    "prior_changeset": {
+      "fixes_applied": 9,
+      "fixes_verified": 9,
+      "fixes_rejected": 0,
+      "verified_tree": "7c59d269ca269bc10035b0bbd706697df230b920",
+      "note": "loop_state stays 'open': this round fixed the changeset's own defects, but the pre-existing 157-finding portability audit (14 critical / 41 high, 2 fixed) has never been closed. Marking this checkpoint 'complete' would repeat exactly the defect the overhaul's P3 exists to prevent."
+    },
+    "remediation": {
+      "release": "v1.9.1",
+      "plan": "docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md",
+      "merged": [
+        499,
+        504,
+        505,
+        506,
+        507,
+        518,
+        519
+      ]
+    }
+  },
+  "context_primer": {
+    "key_decisions": [
+      "2026-09-13 (v1.9.1 Sprint 3 reconciliation): the owner approved the fix plan on 2026-09-12 (blocker removed); the 2026-09-11 audit covers skill text, so the prior changeset's fix counters and 2026-07-19 tree moved to skill_state.prior_changeset instead of reading as this audit's."
+    ]
+  },
+  "progress_table": [
+    {
+      "id": "audit",
+      "label": "2026-09-11 skill-chain audit: 527 judged, 484 upheld",
+      "status": "complete"
+    },
+    {
+      "id": "plan",
+      "label": "v1.9.1 remediation plan approved (D1-D7)",
+      "status": "complete"
+    },
+    {
+      "id": "s1",
+      "label": "Sprints 0-2: commit gate and checkpoint tooling (#499-#507, #518, #519)",
+      "status": "complete"
+    },
+    {
+      "id": "s3",
+      "label": "Sprint 3: live checkpoint state",
+      "status": "in_progress"
+    },
+    {
+      "id": "s4-6",
+      "label": "Sprints 4-6: contracts, per-skill sweeps, reach",
+      "status": "not_started"
+    },
+    {
+      "id": "reciprocity",
+      "label": "Re-run the reciprocity pass over the post-sweep tree",
+      "status": "not_started"
+    }
+  ]
 }
