@@ -3,8 +3,8 @@
 Step-by-step migration of existing Claude API code across model versions, plus
 retired-model replacement. The deliverable is a **diff PR**, eval-gated before
 merge — never a silent in-place rewrite. Breaking-change facts here are sourced
-from the bundled `claude-api` skill's `shared/model-migration.md`; verify against
-it for the authoritative, always-current list.
+from the Claude Code built-in `claude-api` skill (not bundled with opchain); when
+it is present, verify against it for the authoritative, always-current list.
 
 ## Step 0 — Confirm scope before any edit
 
@@ -19,6 +19,8 @@ On large repos, size the scope first:
 
 ```sh
 rg -l "<old-model-id>" --type-not md | cut -d/ -f1 | sort | uniq -c | sort -rn
+# without ripgrep:
+grep -rl --exclude='*.md' --exclude-dir=.git "<old-model-id>" . | cut -d/ -f2 | sort | uniq -c | sort -rn
 ```
 
 Confirm `git status` is clean before surveying.
@@ -88,13 +90,17 @@ present an optional prompt change as mandatory.
 
 ## Step 4 — Eval-gate the rollout
 
-Hand the diff to `oc-prompt-ops` for a regression run against the golden set
-before merge. A model bump can shift output shape, length, and tool-use rate even
-when nothing 400s — the eval catches regressions the checklist can't.
+Hand the diff to `oc-prompt-ops` for `/oc-prompt drift`: it re-runs the frozen
+goldset against the new pinned model before merge. Without oc-prompt-ops, run the
+project's own tests plus a hand-picked golden sample and record the result — a
+weaker gate than `/oc-prompt drift` (no frozen baseline, no per-case delta). A
+model bump can shift output shape, length, and tool-use rate even when nothing
+400s — the eval catches regressions the checklist can't.
 
 ## Step 5 — Open the PR
 
-Route the diff through `oc-git-ops` (`/oc-pr`). The PR body lists: source →
+Route the diff through `oc-git-ops` (`/oc-pr`), or `gh pr create` when
+oc-git-ops is not installed. The PR body lists: source →
 target model, files touched (with bucket from Step 1), the `[BLOCKS]` items
 applied, and the eval result.
 

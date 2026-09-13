@@ -37,9 +37,11 @@ never a raw run, never an identifier.
 }
 ```
 
-`/dashboard` reads exactly this shape. If no live aggregate is published yet, the
-page ships clearly-labeled **sample** data (Sprint 5) and swaps to the real export
-when one exists — the page never presents seed numbers as real.
+`/dashboard` is built to this shape, but the swap is **not wired yet**: the page
+imports clearly-labeled **sample** data (`site/src/data/dashboard-static.ts`,
+`sample: true`) and has no loader or file path for a live export. Until one
+exists, an export is a file the user publishes by hand — the page never presents
+seed numbers as real.
 
 ## How it's computed (counts/sums only)
 
@@ -59,7 +61,9 @@ SELECT strftime('%Y-W%W', at) week, AVG(score) avg
 ```
 
 No query selects a raw `runs` row for export. The export is the *result set of
-aggregates*, never the underlying table.
+aggregates*, never the underlying table. These queries are run by the session
+(`node:sqlite` or the `sqlite3` CLI): `scripts/telemetry.mjs` has no `aggregate`
+or `export` subcommand.
 
 ## Privacy guarantees on the aggregate
 

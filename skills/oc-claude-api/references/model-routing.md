@@ -1,9 +1,11 @@
 # Model Routing
 
 Which Claude model to use, by task and build phase. Model IDs and prices are
-sourced from the bundled `claude-api` skill — verify against it rather than
-memory when in doubt. **Use the exact ID strings below; never append a date
-suffix** (`claude-sonnet-4-6`, not `claude-sonnet-4-6-20251114`).
+sourced from the Claude Code built-in `claude-api` skill (not bundled with
+opchain) — verify against it, or the Models API (§ Live capability lookup) when
+it is absent, rather than memory when in doubt. **Use the exact ID strings
+below; never append a date suffix** (`claude-sonnet-4-6`, not
+`claude-sonnet-4-6-20251114`).
 
 ## Current models
 
@@ -46,7 +48,7 @@ need to pin a prior generation; default new work to 4.8.
   4.7/4.8) plus adaptive thinking (`thinking: {type: "adaptive"}`).
   `budget_tokens` is removed (400) on Fable 5 / Opus 4.8 / 4.7 and deprecated on
   Opus 4.6 / Sonnet 4.6.
-- **`max` is Opus-tier only.** `output_config.effort: "max"` works on Fable 5,
+- **`max` is not universal.** `output_config.effort: "max"` works on Fable 5,
   Opus 4.6+, and Sonnet 4.6 — it errors on Haiku 4.5 and Sonnet 4.5.
 - **Fable 5 has different behavior.** Thinking is always on (omit the `thinking`
   param; an explicit `{type: "disabled"}` is a 400), the raw chain of thought is

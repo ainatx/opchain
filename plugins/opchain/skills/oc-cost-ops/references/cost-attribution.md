@@ -64,16 +64,20 @@ A small build sprint:
 
 ## Writing the `cost` field
 
-`/oc-cost attribute` does a **read → merge → write** on the owning skill's
-checkpoint (never blind-overwrite — another skill may share the project):
+`/oc-cost attribute` does a **read → merge → write** on `oc-cost-ops.checkpoint.json`
+— never on another skill's checkpoint (the protocol forbids that), and never a
+blind overwrite (earlier attributions must survive):
 
-1. Read the current checkpoint.
+1. Read the current oc-cost-ops checkpoint. When the run belongs to another
+   skill, key its phases `<skill>/<phase>`.
 2. Compute `by_phase` / `by_model` / `total_usd` from the run's token counts.
 3. Merge into `cost` (sum into existing phase/model buckets across a multi-run
    session; don't clobber prior attributions).
 4. Restamp `cost.updated_at` + the checkpoint `updated_at`.
-5. Validate (`npm run checkpoint:validate`) — the validator enforces non-negative
-   numbers and warns if `total_usd > budget_usd`.
+5. Validate: if the checkpoint CLI is available (opchain repo), run
+   `npm run checkpoint:validate` — it enforces non-negative numbers and warns if
+   `budget_usd > 0` and `total_usd > budget_usd`. Otherwise check those rules by
+   hand against `references/checkpoint-protocol.md` § `cost`.
 
 ## Cost per shipped feature (the /showcase + /dashboard number)
 
@@ -84,8 +88,9 @@ cost_per_feature = total_usd attributed to the feature's sprints
 cost_per_pr      = total_usd / merged PR count in the range
 ```
 
-This is the honest number the v1.5 blog post ("What it cost to ship v1.5")
-promised and could not yet produce. `oc-telemetry-ops` aggregates it across runs
+opchain published its own number in the 2026-06-27 blog post "What building
+opchain with opchain cost", corrected the next day in "Our cost report was wrong
+by 13×". `oc-telemetry-ops` aggregates it across runs
 for the public `/dashboard`; `oc-cost-ops` produces it per project.
 
 ## Honesty rules
