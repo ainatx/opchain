@@ -241,6 +241,17 @@ checkpoint `protocol_version` is tracked separately (see
   same-session discipline, not a separate agent; `remediation_owners` is described
   as the optional `.opchain/pm.yaml` key it is; oc-monitoring-ops' description
   carves out oc-telemetry-ops.
+- **The catalog is reachable (Sprint 6).** The MCP `route` tool resolves a natural
+  request to every one of the 32 invocable skills (17 before), mirroring
+  orchestrator.md §4, with collisions resolved deliberately ("tag the release" →
+  oc-git-ops `/oc-git-release`, "build an agent" → oc-agent-forge, "kubernetes" →
+  oc-fleet-ops) and pinned in tests. `/pipeline-builder` builds from the live
+  catalog instead of a v1.5 table: it always includes the commit and pre-PR gates,
+  and its generated CLAUDE.md describes them as they run. The plugin README lists the
+  twelve registered slash commands and why only those ship. **Plugin
+  `next-suggestion`**: a handoff to a skill with no plugin command is suggested by
+  name instead of re-targeting the skill that just finished. The routing eval covers
+  every skill, grades all collision cases with `llm_judge`, and fails on any miss.
 - **orchestrator.md §7 backfill and the F6 release-surface procedure.** Two post-1.9.0
   changes to shipped text (#482, #484) that this section never recorded.
 - **Every skill points at its bundled checkpoint protocol.** 29 Checkpoint sections

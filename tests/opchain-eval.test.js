@@ -50,9 +50,44 @@ const skillDirs = new Set(
 
 const VALID_MODES = new Set(["exact", "contains", "llm_judge"]);
 
-// The routing answer is graded `contains: all: [<skill>, <command>]`. Pull the
-// skill token (a real skills/<id>) and the command token (a "/verb") out of the
-// `all` array so we can assert both point at something real.
+// Collision cases: requests two skills' trigger copy both claim. `contains`
+// cannot grade these (a wrong route that names the right skill in passing still
+// contains both tokens), so each must be `llm_judge` with criteria that name
+// the wrong-side skill. Add an id here when you add a collision case.
+const COLLISION_CASES = [
+  "route-004", // code-auditor vs security-auditor
+  "route-008", // claude-api vs migration-ops
+  "route-009", // agent-forge vs app-architect
+  "route-011", // dash-forge vs ux-engineer / signal-forge
+  "route-015", // bug-check vs git-ops
+  "route-018", // compliance-ops vs code-auditor
+  "route-019", "route-020", // security-hardening vs security-auditor
+  "route-021", "route-022", "route-023", // security-auditor vs compliance-ops
+  "route-024", "route-025", // api-dev vs data-ops (schema drift)
+  "route-026", // data-ops vs integrations-engineer
+  "route-027", "route-028", // scale-ops vs qa-ops (load test)
+  "route-029", "route-030", // git-ops vs release-ops ("tag the release")
+  "route-031", // fleet-ops vs deploy-ops
+  "route-032", "route-033", // telemetry-ops vs monitoring-ops
+  "route-034", // cost-ops vs scale-ops / claude-api
+  "route-035", // signal-forge vs dash-forge / data-ops
+  "route-036", // modularize-ops vs migration-ops
+  "route-037", // migration-ops vs integrations-engineer
+  "route-039", // repo-ops vs docs-forge (PR ready vs PR docs)
+  "route-040", // ux-engineer vs app-architect
+];
+const NOT_INVOCABLE = new Set(["oc-checkpoint-protocol"]);
+
+function frontmatterCommands(id) {
+  const raw = readFileSync(join(SKILLS_DIR, id, "SKILL.md"), "utf8");
+  const m = raw.match(/^---\n([\s\S]*?)\n---/);
+  const fm = m ? yaml.load(m[1]) : {};
+  return Array.isArray(fm?.commands) ? fm.commands.map(String) : [];
+}
+
+// Every case names its route as `all: [<skill>, <command>]`, whatever the mode.
+// Pull the skill token (a real skills/<id>) and the command token (a "/verb")
+// out of the `all` array so we can assert both point at something real.
 function routeTargets(expectObj) {
   const all = expectObj?.all ?? [];
   return {
@@ -64,6 +99,12 @@ function routeTargets(expectObj) {
 describe("prompts/opchain-eval — dataset integrity", () => {
   it("has at least 10 cases (a meaningful regression set)", () => {
     expect(inputs.length).toBeGreaterThanOrEqual(10);
+  });
+
+  it("covers every invocable skill in at least one case", () => {
+    const covered = new Set(expected.map((r) => routeTargets(r.expect).skill));
+    const missing = [...skillDirs].filter((id) => !NOT_INVOCABLE.has(id) && !covered.has(id));
+    expect(missing, `skills with no eval case: ${missing.join(", ")}`).toEqual([]);
   });
 
   it("every input has a unique id and a non-empty input string", () => {
@@ -100,8 +141,43 @@ describe("prompts/opchain-eval — expected routes point at real skills + comman
           `command /${verb} has no registry flag`,
         ).toBe(true);
       }
+      expect(
+        frontmatterCommands(skill),
+        `${row.id}: ${skill} does not declare ${command}`,
+      ).toContain(command);
     });
   }
+});
+
+describe("prompts/opchain-eval — collision cases are graded strictly", () => {
+  const byId = new Map(expected.map((r) => [r.id, r]));
+
+  it("pins \"tag the release\" to oc-git-ops /oc-git-release", () => {
+    const row = inputs.find((r) => /\btag the release\b/i.test(r.input));
+    expect(row, "no eval case for \"tag the release\"").toBeDefined();
+    expect(byId.get(row.id).expect.all).toEqual(["oc-git-ops", "/oc-git-release"]);
+    expect(COLLISION_CASES).toContain(row.id);
+  });
+
+  for (const id of COLLISION_CASES) {
+    it(`${id} is llm_judge with criteria naming the wrong-side skill`, () => {
+      const row = byId.get(id);
+      expect(row, `${id} is listed as a collision case but has no expected row`).toBeDefined();
+      expect(row.expect.mode).toBe("llm_judge");
+      expect(typeof row.expect.criteria).toBe("string");
+      const { skill } = routeTargets(row.expect);
+      const named = [...row.expect.criteria.matchAll(/\boc-[a-z]+(?:-[a-z]+)*\b/g)].map((m) => m[0]);
+      const wrongSide = named.filter((id2) => id2 !== skill && skillDirs.has(id2));
+      expect(wrongSide.length, `${id} criteria names no competing skill`).toBeGreaterThan(0);
+    });
+  }
+
+  it("every llm_judge case carries criteria", () => {
+    for (const row of expected.filter((r) => r.expect.mode === "llm_judge")) {
+      expect(typeof row.expect.criteria, `${row.id} has no criteria`).toBe("string");
+      expect(row.expect.criteria.length).toBeGreaterThan(0);
+    }
+  });
 });
 
 describe("prompts/opchain-eval — eval.yaml", () => {
@@ -114,5 +190,12 @@ describe("prompts/opchain-eval — eval.yaml", () => {
     expect(config.thresholds.pass_rate).toBeGreaterThan(0);
     expect(config.thresholds.pass_rate).toBeLessThanOrEqual(1);
     expect(config.thresholds.regression_epsilon).toBeGreaterThan(0);
+  });
+
+  it("pass_rate tolerates zero failures, so no collision case is expendable", () => {
+    const n = expected.length;
+    // The gate passes when passes / n >= pass_rate. With one case failing the
+    // rate is (n - 1) / n; that must fall below the threshold.
+    expect((n - 1) / n).toBeLessThan(config.thresholds.pass_rate);
   });
 });
