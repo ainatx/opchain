@@ -24,6 +24,7 @@ const ROLE_BY_NAME: Record<string, Role> = {
   "oc-checkpoint-protocol": "success",
   "oc-claude-api": "specialist",
   "oc-code-auditor": "audit-gate",
+  "oc-compliance-ops": "specialist",
   "oc-dash-forge": "specialist",
   "oc-deploy-ops": "orchestrator",
   "oc-git-ops": "specialist",
@@ -37,6 +38,7 @@ const ROLE_BY_NAME: Record<string, Role> = {
   "oc-reverse-spec": "specialist",
   "oc-scale-ops": "advisor",
   "oc-security-auditor": "audit-gate",
+  "oc-security-hardening": "specialist",
   "oc-stack-forge": "advisor",
   "oc-ux-engineer": "tri-agent",
 };

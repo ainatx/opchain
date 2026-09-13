@@ -58,7 +58,7 @@ export function buildSnippet(display: string, query: string): string {
 function scoreStep(scenario: IndexScenario, step: IndexStep, ql: string, titleLower: string): number {
   let s = 0;
   if (step.skill && step.skill.toLowerCase().includes(ql)) s += 3;
-  const occ = countOccurrences(step.text, ql);
+  const occ = countOccurrences(step.display.toLowerCase(), ql);
   if (occ > 0) s += occ * (step.kind === "beat" ? 2 : 1.5);
   if (titleLower.includes(ql)) s += 1;
   return s;

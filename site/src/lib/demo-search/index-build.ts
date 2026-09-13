@@ -19,17 +19,16 @@ const ROLE_ORDER: Role[] = [
   "success",
 ];
 
-function stepText(step: Step): { match: string; display: string } {
+// Was `{ match, display }` — `match` was always `display.toLowerCase()`,
+// which meant every step's full text shipped twice in the inlined index.
+// engine.ts now lowercases `display` itself at match time; see model.ts.
+function stepText(step: Step): string {
   if (step.type === "beat") {
     const parts = [step.label, step.caption ?? "", ...(step.skills ?? [])];
-    const display = parts.filter(Boolean).join(" — ");
-    return { match: display.toLowerCase(), display };
+    return parts.filter(Boolean).join(" — ");
   }
-  if (step.role === "user") {
-    return { match: step.content.toLowerCase(), display: step.content };
-  }
-  const display = stripMarkdown(step.content);
-  return { match: display.toLowerCase(), display };
+  if (step.role === "user") return step.content;
+  return stripMarkdown(step.content);
 }
 
 export function buildSearchIndex(walkthroughs: Walkthrough[]): SearchIndex {
@@ -63,14 +62,14 @@ export function buildSearchIndex(walkthroughs: Walkthrough[]): SearchIndex {
       scenarioPhases.add(phase);
       phaseCount.set(phase, (phaseCount.get(phase) ?? 0) + 1);
 
-      const { match, display } = stepText(step);
+      const display = stepText(step);
       const id = `s${si}`;
 
       if (step.type === "beat") {
-        return { id, kind: "beat", phase, text: match, display, artifactKinds: [] };
+        return { id, kind: "beat", phase, display, artifactKinds: [] };
       }
       if (step.role === "user") {
-        return { id, kind: "user", phase, text: match, display, artifactKinds: [] };
+        return { id, kind: "user", phase, display, artifactKinds: [] };
       }
       // claude exchange
       const skill = step.skill || undefined;
@@ -83,7 +82,7 @@ export function buildSearchIndex(walkthroughs: Walkthrough[]): SearchIndex {
       );
       for (const k of kinds) kindCount.set(k, (kindCount.get(k) ?? 0) + 1);
 
-      return { id, kind: "claude", phase, skill, role, text: match, display, artifactKinds: kinds };
+      return { id, kind: "claude", phase, skill, role, display, artifactKinds: kinds };
     });
 
     const roles = Array.from(new Set(w.skills.map(getSkillRole)));

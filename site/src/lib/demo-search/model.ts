@@ -26,9 +26,15 @@ export interface IndexStep {
   /** claude steps only. */
   skill?: string;
   role?: Role;
-  /** Lowercased, markdown-stripped text used for matching. */
-  text: string;
-  /** Original-case text used to build result snippets. */
+  /**
+   * Markdown-stripped display text — both the snippet source AND the match
+   * source (matching lowercases this at query time, in engine.ts). A parallel
+   * lowercased `text` field used to live here too; it was always exactly
+   * `display.toLowerCase()`, so on a corpus this size it was pure duplicate
+   * bytes in the inlined-index payload (see the ≤120KB budget test in
+   * demo-search-index.test.js) for a lowercase() call cheap enough to do at
+   * search time instead.
+   */
   display: string;
   /** Canonical kinds of any artifacts referenced at this step. */
   artifactKinds: ArtifactKind[];

@@ -67,6 +67,16 @@ const EXPLICIT: Record<string, ArtifactKind> = {
   "status.md": "report",
   "announcement.md": "report",
   "report.md": "report",
+  // v2.0 realism pass — new corpus kinds without an obvious heuristic bucket.
+  "test-round.md": "test",
+  "postmortem.md": "report",
+  "soak-log.md": "data",
+  "compare.md": "report",
+  console: "data",
+  prototype: "design",
+  bench: "audit",
+  inspect: "data",
+  "verify.md": "audit",
 };
 
 // Keyword heuristics, checked in order. First hit wins. Keeps the normalizer

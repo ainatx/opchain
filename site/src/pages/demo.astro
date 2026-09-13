@@ -4,7 +4,6 @@ import DesktopWorkbench from "../components/DesktopWorkbench.astro";
 import MobileWorkbench from "../components/MobileWorkbench.astro";
 import WelcomePopup from "../components/WelcomePopup.astro";
 import { walkthroughs } from "../data/walkthroughs";
-import { renderSafeMarkdown } from "../lib/markdown";
 import { buildSearchIndex } from "../lib/demo-search/index-build";
 import { defaultFor } from "../lib/flags/build-defaults";
 
@@ -31,22 +30,19 @@ const searchIndexJson = searchIndex ? JSON.stringify(searchIndex).replace(/</g, 
  * "Don't show again" (localStorage). Replaces the previous static
  * page-summary card and multi-step OnboardingTour.
  *
- * Pre-rendered artifact bodies live in `.artifact-store` (this file) and
- * are read by the shared <dialog> lightbox. Both workbenches expose
- * `.output-row[data-output-scenario][data-output-id]` buttons; the
+ * Artifact bodies are NOT inlined into this page — the corpus grew past the
+ * point where shipping every scenario's full output set on every page load
+ * was worth it (it was ~480KB of the page's ~1MB, all for content most
+ * visitors never open). Instead each scenario's artifacts are pre-rendered
+ * at build time into their own static JSON file
+ * (`/demo-artifacts/<scenario-id>.json`, see
+ * `src/pages/demo-artifacts/[scenario].json.ts`) and fetched lazily, once,
+ * the first time a viewer opens any output row for that scenario — see the
+ * `loadScenario()` cache in the lightbox script below. Both workbenches
+ * expose `.output-row[data-output-scenario][data-output-id]` buttons; the
  * delegated click handler below catches every one of them and opens the
  * modal — workbench-agnostic.
  */
-
-const artifacts = walkthroughs.flatMap((w) =>
-  w.outputs.map((o) => ({
-    scenarioId: w.id,
-    artifactId: o.id,
-    label: o.label,
-    kind: o.kind ?? "",
-    html: renderSafeMarkdown(o.body),
-  }))
-);
 ---
 
 <Base
@@ -70,16 +66,6 @@ const artifacts = walkthroughs.flatMap((w) =>
       {searchIndex && (
         <script type="application/json" id="demo-search-index" is:inline set:html={searchIndexJson} />
       )}
-
-      <div class="artifact-store" aria-hidden="true" hidden>
-        {artifacts.map((a) => (
-          <div
-            data-artifact-scenario={a.scenarioId}
-            data-artifact-id={a.artifactId}
-            set:html={a.html}
-          />
-        ))}
-      </div>
 
       <dialog
         class="output-modal"
@@ -289,6 +275,11 @@ const artifacts = walkthroughs.flatMap((w) =>
   @media (prefers-reduced-motion: reduce) {
     .modal-body { scroll-behavior: auto; }
   }
+  /* Momentary state while an artifact's scenario bundle is being fetched
+     (see loadScenario() below) — a plain text node, no spinner, styled with
+     the same neutral token every other placeholder string on this page
+     uses. */
+  .modal-body.is-loading { color: var(--subtle); }
   /* ── TOC-click heading flash.
         Adds an ember halo to a heading when the user clicks its TOC
         link. Bright-then-fade over 4s using existing token colors so it
@@ -565,10 +556,9 @@ const artifacts = walkthroughs.flatMap((w) =>
     const kindEl   = modal && modal.querySelector('.modal-kind');
     const bodyEl   = modal && modal.querySelector('.modal-body');
     const closeBtn = modal && modal.querySelector('.modal-close');
-    const store    = document.querySelector('.artifact-store');
     const tocEl    = modal && modal.querySelector('.modal-toc');
     const tocNav   = modal && modal.querySelector('.modal-toc-nav');
-    if (!modal || !titleEl || !kindEl || !bodyEl || !store) return;
+    if (!modal || !titleEl || !kindEl || !bodyEl) return;
 
     /* Threshold below which the TOC just adds noise — short artifacts
        stay tight, long ones get the sidebar. */
@@ -576,6 +566,25 @@ const artifacts = walkthroughs.flatMap((w) =>
 
     /** @type {IntersectionObserver|null} */
     let scrollSpy = null;
+
+    /* Per-scenario artifact bundles, fetched once and cached for the life
+       of the page. Keyed by scenario id; value is a Promise resolving to
+       {[artifactId]: {label, kind, html}} (or null on a fetch failure so a
+       later click on the same scenario retries instead of hanging on a
+       rejected cache entry forever). */
+    const scenarioCache = new Map();
+    function loadScenario(scenarioId) {
+      if (scenarioCache.has(scenarioId)) return scenarioCache.get(scenarioId);
+      const p = fetch(`/demo-artifacts/${encodeURIComponent(scenarioId)}.json`)
+        .then((res) => (res.ok ? res.json() : null))
+        .catch(() => null);
+      scenarioCache.set(scenarioId, p);
+      return p;
+    }
+    /* Bumped on every click; a fetch that resolves after a newer click has
+       already opened a different artifact is discarded rather than
+       clobbering what's on screen. */
+    let loadToken = 0;
 
     function slugify(str) {
       return String(str || '')
@@ -722,10 +731,6 @@ const artifacts = walkthroughs.flatMap((w) =>
       const scenarioId = btn.dataset.outputScenario;
       const artifactId = btn.dataset.outputId;
       if (!scenarioId || !artifactId) return;
-      const src = store.querySelector(
-        `[data-artifact-scenario="${CSS.escape(scenarioId)}"][data-artifact-id="${CSS.escape(artifactId)}"]`
-      );
-      if (!src) return;
 
       const label = btn.querySelector('.output-label')
         ? btn.querySelector('.output-label').textContent.trim()
@@ -737,11 +742,24 @@ const artifacts = walkthroughs.flatMap((w) =>
       titleEl.textContent = label;
       kindEl.textContent  = kind;
       teardownToc();
-      bodyEl.innerHTML    = src.innerHTML;
+      bodyEl.classList.add('is-loading');
+      bodyEl.textContent  = 'Loading…';
       bodyEl.scrollTop    = 0;
       modal.showModal();
-      /* Defer TOC build until after the dialog is visible so layout is settled. */
-      requestAnimationFrame(buildToc);
+
+      const myToken = ++loadToken;
+      loadScenario(scenarioId).then((entries) => {
+        if (myToken !== loadToken) return; // superseded by a later click
+        const entry = entries && entries[artifactId];
+        bodyEl.classList.remove('is-loading');
+        if (!entry) {
+          bodyEl.textContent = 'This output could not be loaded.';
+          return;
+        }
+        bodyEl.innerHTML = entry.html;
+        /* Defer TOC build until after the dialog is visible so layout is settled. */
+        requestAnimationFrame(buildToc);
+      });
     }
 
     document.addEventListener('click', (e) => {

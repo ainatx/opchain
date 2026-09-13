@@ -81,7 +81,8 @@ describe("buildSearchIndex", () => {
       .flatMap((s) => s.steps)
       .find((st) => st.kind === "claude" && st.display.length > 0);
     expect(withCode).toBeTruthy();
-    // no fence/asterisk noise left in the searchable text
-    expect(withCode.text).not.toMatch(/```/);
+    // no fence/asterisk noise left in the searchable text (matching now
+    // lowercases `display` itself at query time — see engine.ts)
+    expect(withCode.display).not.toMatch(/```/);
   });
 });
