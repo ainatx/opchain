@@ -1,7 +1,7 @@
 ---
 name: oc-orchestrator
 displayName: OC · Orchestrator
-version: 1.9.1
+version: 1.9.2
 license: Apache-2.0
 shortDesc: Pipeline coordinator — registry, status, routing. v1.2 reads `pm_refs` across skills; routes by ticket id.
 phases: [foundation]
@@ -876,6 +876,10 @@ The oc-orchestrator already reads every skill's checkpoint to answer
 "where did I leave off?". v1.2 makes it PM-aware by reading the
 `pm_refs` field added in oc-checkpoint-protocol v1.2 — the oc-orchestrator
 becomes a router by ticket id, not just by project / phase.
+
+See [pm-mcp-protocol.md](../oc-integrations-engineer/references/pm-mcp-protocol.md)
+in `oc-integrations-engineer/references` for the shared PM-MCP contract,
+including advisory failure handling and checkpoint reconciliation rules.
 
 ### Cross-skill PM thread aggregation
 

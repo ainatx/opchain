@@ -3,7 +3,7 @@
 The metering store is a single local SQLite file, `.checkpoints/usage.sqlite`,
 **gitignored** (unlike the tracked checkpoint JSONs — see `.gitignore`). It records
 *that* a skill/phase ran and what it cost — never *what* was in the prompt. Writes
-happen only when telemetry is enabled (`telemetry_handle.enabled === true`).
+happen only when the store's machine-local `telemetry_meta.consent_enabled` is true.
 
 ## Why SQLite, not JSON
 
@@ -47,6 +47,9 @@ CREATE TABLE IF NOT EXISTS events (
 
 CREATE INDEX IF NOT EXISTS idx_runs_skill   ON runs(skill);
 CREATE INDEX IF NOT EXISTS idx_runs_started ON runs(started_at);
+
+-- Machine-local opt-in state; this table is in the gitignored SQLite file.
+CREATE TABLE IF NOT EXISTS telemetry_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 ```
 
 ### What is deliberately NOT a column
@@ -77,19 +80,24 @@ skill run (telemetry enabled?) ──yes──► INSERT INTO runs(...)   [local
     [--outcome=pass|fail|complete] [--at=<ISO-8601>] [--duration=<ms>]
   ```
 
+  `npm run telemetry -- event --run=<local-run-id> --kind=eval|gate|sprint`
+  records only bounded event categories. An optional label is an outcome category
+  or `sprint-N`; eval score is normalized to 0..1. It cannot accept prompt text,
+  identifiers, or arbitrary labels.
+
   When telemetry is enabled, `--skill` is required (exit 1); with telemetry off,
   `record` exits 0 without checking flags. Flags use the `--name=value` form.
 - `--cost` is filled from oc-cost-ops's attribution when available; null otherwise.
-- Disabled telemetry takes the no-op branch: `record` checks
-  `telemetry_handle.enabled` first and, unless it is `true`, exits 0 without an
-  INSERT (enforced in `scripts/telemetry.mjs` `cmdRecord`; no dedicated test).
+- Disabled telemetry takes the no-op branch: `record` checks the local SQLite
+  consent row first and, unless it is `true`, exits 0 without an INSERT. A tracked
+  checkpoint, including a cloned legacy `enabled: true` field, cannot authorize it.
 
 ## Lifecycle
 
 | Command | Effect |
 |---|---|
-| `/oc-telemetry enable` | create the file + schema if absent; set `telemetry_handle.enabled = true`, mint a random `handle` |
-| `/oc-telemetry disable` | set `enabled = false`; **stop writing** (the file is kept — deleting it is the user's call) |
+| `/oc-telemetry enable` | create the file + schema if absent; set local consent true and mint a random local handle |
+| `/oc-telemetry disable` | set local consent false; **stop writing** (the file is kept — deleting it is the user's call) |
 | `/oc-telemetry status` | report enabled state, store path, `SELECT COUNT(*) FROM runs` |
 
 The store is purely local. It is never uploaded; only the derived aggregate

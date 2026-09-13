@@ -1,7 +1,7 @@
 ---
 name: oc-app-architect
 displayName: OC · App Architect
-version: 1.9.1
+version: 1.9.2
 license: Apache-2.0
 shortDesc: Idea → spec → design → build → launch in one skill. Reads PM tickets and writes sprints back via PM-MCP.
 phases: [plan, build]
@@ -740,6 +740,11 @@ formats, and the `pm_deferred_actions[]` schema come from that doc — this
 section says only how the contract applies to the three PM-aware phases of
 this skill.**
 
+In the repository implementation, compose and pre-write-check comments through
+`scripts/lib/pm-mcp-checks.mjs` `reconcilePmComment()` using the protocol's full
+marker input. It makes retry replay, uncertain-delivery reconciliation, changed
+outcomes, and revised contracts executable rather than literal templates.
+
 ### Phase 1 — `/oc-discover` reads ticket context
 
 If the user's prompt includes a recognised ticket id (or
@@ -774,7 +779,7 @@ When the sprint plan is approved, for each sprint:
    marker per protocol §3:
 
    ```
-   <!-- opchain:oc-app-architect:sprint-contract:sprint-N -->
+   <!-- opchain:oc-app-architect:sprint-contract:sprint-N:r1:<payload-hash> -->
 
    Sprint N: [Name]
    Deliverables: ...
@@ -786,7 +791,7 @@ When the sprint plan is approved, for each sprint:
 
 2. Pre-write check: call the registry-resolved `list_comments` (Linear)
    or `issue_read` (GitHub, returns comments inline). If a comment with
-   the same `<!-- opchain:oc-app-architect:sprint-contract:sprint-N -->`
+   the same full marker (including revision and payload hash)
    marker exists, **skip the write** and record to
    `pm_idempotent_skips[]`.
 3. Otherwise call the registry-resolved `add_comment` tool (Linear:
@@ -815,13 +820,15 @@ On each sprint pass / fail:
 - **Pass** → resolve the `done` state string from `pm.yaml.states`
   (do not hard-code), call the `transition` tool on the
   corresponding child ticket, then `add_comment` with marker
-  `<!-- opchain:oc-app-architect:sprint-result:sprint-N -->` carrying
-  the evaluator score.
+  `<!-- opchain:oc-app-architect:sprint-result-pass:sprint-N:rN:<payload-hash> -->`
+  carrying the evaluator score.
 - **Fail (max iterations)** → resolve `blocked` from
   `pm.yaml.states.extended` (fallback: leave state unchanged and
   comment only); `add_comment` with marker
-  `<!-- opchain:oc-app-architect:sprint-result:sprint-N -->` carrying
-  the failure summary. Surface the user-facing escalation as usual.
+  `<!-- opchain:oc-app-architect:sprint-result-fail:sprint-N:rN:<payload-hash> -->`
+  carrying the failure summary. A later pass has a distinct event marker and is
+  therefore not suppressed; a retry of either unchanged delivery keeps its exact
+  marker. Surface the user-facing escalation as usual.
 
 ### `--retry-pm` flush
 

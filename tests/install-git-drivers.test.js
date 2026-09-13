@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync }
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { HOOK_MARKER, PRE_COMMIT_HOOK } from "../scripts/install-git-drivers.mjs";
+import { HOOK_MARKER, PRE_COMMIT_HOOK, VERIFICATION_MARKER } from "../scripts/install-git-drivers.mjs";
 
 const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), "..", "scripts", "install-git-drivers.mjs");
 
@@ -42,10 +42,15 @@ afterEach(() => {
 });
 
 describe("install-git-drivers: per-clone bootstrap", () => {
-  it("registers the checkpoint merge driver and the mirror pre-commit hook", () => {
+  it("installs the verifier hook without registering an unavailable merge driver", () => {
     const r = install(repo);
     expect(r.status, r.stderr).toBe(0);
-    expect(git(repo, "config", "merge.opchain-checkpoint.driver")).toContain("scripts/merge-checkpoint.mjs");
+    const mergeDriver = spawnSync("git", ["config", "--get", "merge.opchain-checkpoint.driver"], {
+      cwd: repo,
+      encoding: "utf8",
+      env: GIT_ENV,
+    });
+    expect(mergeDriver.status).toBe(1);
 
     const hook = join(repo, ".git", "hooks", "pre-commit");
     expect(readFileSync(hook, "utf8")).toBe(PRE_COMMIT_HOOK);
@@ -67,8 +72,8 @@ describe("install-git-drivers: per-clone bootstrap", () => {
     const r = install(repo);
     expect(r.status).toBe(0);
     expect(readFileSync(hook, "utf8")).toBe("#!/bin/sh\necho someone-elses-hook\n");
-    expect(r.stderr).toContain("not ours");
-    expect(r.stderr).toContain(HOOK_MARKER);
+    expect(r.stderr).toContain("not managed by opchain");
+    expect(r.stderr).toContain(VERIFICATION_MARKER);
   });
 
   it("honours core.hooksPath", () => {
@@ -89,6 +94,8 @@ describe("install-git-drivers: per-clone bootstrap", () => {
   });
 });
 
+// Each integration fixture initializes and commits a repository through real
+// hooks and multiple Node generators; allow slow CI without relaxing assertions.
 describe("the pre-commit hook", () => {
   // Stand-in sync scripts: each writes a marker into the mirror it owns, the
   // way the real generators rewrite plugins/opchain/skills and
@@ -108,15 +115,18 @@ writeFileSync("skills/oc-demo/references/orchestrator.md", "regenerated bundle\\
 mkdirSync("plugins/opchain/skills/oc-demo", { recursive: true });
 writeFileSync("plugins/opchain/skills/oc-demo/SKILL.md", "regenerated mirror\\n");`,
     );
+    writeFileSync(join(repo, "scripts", "merge-checkpoint.mjs"), "process.exit(0);\n");
+    writeFileSync(join(repo, "package.json"), '{"name":"opchain-dev"}\n');
     writeFileSync(join(repo, "skills", "oc-demo", "SKILL.md"), "version: 1\n");
     writeFileSync(join(repo, "skills", "oc-demo", "references", "orchestrator.md"), "stale bundle\n");
     writeFileSync(join(repo, "plugins", "opchain", "skills", ".keep"), "");
     git(repo, "add", "-A");
     git(repo, "-c", "commit.gpgsign=false", "commit", "-q", "-m", "seed");
     expect(install(repo).status).toBe(0);
+    expect(git(repo, "config", "merge.opchain-checkpoint.driver")).toContain("scripts/merge-checkpoint.mjs");
   }
 
-  it("regenerates and stages both mirrors when skills/ is staged", () => {
+  it("regenerates and stages both mirrors when skills/ is staged", { timeout: 20_000 }, () => {
     scaffold();
     writeFileSync(join(repo, "skills", "oc-demo", "SKILL.md"), "version: 2\n");
     git(repo, "add", "skills/oc-demo/SKILL.md");
@@ -132,7 +142,7 @@ writeFileSync("plugins/opchain/skills/oc-demo/SKILL.md", "regenerated mirror\\n"
     expect(git(repo, "status", "--porcelain")).toBe("");
   });
 
-  it("does nothing when skills/ is not part of the commit", () => {
+  it("does nothing when skills/ is not part of the commit", { timeout: 20_000 }, () => {
     scaffold();
     writeFileSync(join(repo, "README.md"), "hello\n");
     git(repo, "add", "README.md");
@@ -140,7 +150,7 @@ writeFileSync("plugins/opchain/skills/oc-demo/SKILL.md", "regenerated mirror\\n"
     expect(git(repo, "show", "--name-only", "--format=", "HEAD")).toBe("README.md");
   });
 
-  it("can be skipped once with OPCHAIN_SKIP_MIRROR_SYNC=1, leaving the drift for CI", () => {
+  it("can be skipped once with OPCHAIN_SKIP_MIRROR_SYNC=1, leaving the drift for CI", { timeout: 20_000 }, () => {
     scaffold();
     writeFileSync(join(repo, "skills", "oc-demo", "SKILL.md"), "version: 3\n");
     git(repo, "add", "skills/oc-demo/SKILL.md");

@@ -281,7 +281,7 @@ const DEFINITIONS = [
   // register a flag here; gen-skills-catalog.mjs enforces that on build.
   ...skillCommandFlags([
     "/oc-api", "/oc-app", "/oc-attack-surface", "/oc-audit", "/oc-build", "/oc-bugcheck",
-    "/oc-commit", "/oc-dash-forge", "/oc-data-forge", "/oc-deploy", "/oc-design", "/oc-docs",
+    "/oc-commit", "/oc-enroll", "/oc-dash-forge", "/oc-data-forge", "/oc-deploy", "/oc-design", "/oc-docs",
     "/oc-df-archetype", "/oc-df-audit", "/oc-df-full", "/oc-df-intake", "/oc-df-layout",
     "/oc-df-prototype", "/oc-df-spec-only", "/oc-df-tokens", "/oc-df-variants", "/oc-discover",
     "/oc-feature", "/oc-git", "/oc-git-sync", "/oc-hardening", "/oc-integrate", "/oc-launch", "/oc-migrate", "/oc-monitor", "/oc-ops", "/oc-owasp",

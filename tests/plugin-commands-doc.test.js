@@ -2,7 +2,7 @@
 // registers. The 2026-09-11 audit found the set was listed nowhere, so users
 // typed declared-but-unregistered verbs expecting them to exist. This pins the
 // README table to the real commands/ directory, and pins the next-suggestion
-// hook's command map to the same set, so neither can drift from what ships.
+// hook's command map to workflow commands; explicit enrollment is setup.
 import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -41,10 +41,11 @@ describe("plugin slash commands are documented as shipped", () => {
     expect(section).toContain(`registers ${words[shipped.length] ?? shipped.length} slash commands`);
   });
 
-  it("next-suggestion.cjs maps a skill to every shipped command and nothing else", () => {
+  it("next-suggestion.cjs maps every workflow command; enrollment stays a setup action", () => {
     const hook = readFileSync(join(PLUGIN, "hooks", "next-suggestion.cjs"), "utf8");
     const map = hook.split("const COMMANDS = {")[1]?.split("};")[0] ?? "";
     const targets = [...map.matchAll(/"(oc-[a-z0-9-]+)":\s*"(\/oc-[a-z0-9-]+)"/g)].map((m) => m[2]).sort();
-    expect(targets).toEqual(shipped);
+    expect(targets).toEqual(shipped.filter((command) => command !== "/oc-enroll"));
+    expect(readFileSync(join(PLUGIN, "commands", "oc-enroll.md"), "utf8")).toContain("not a next-skill handoff");
   });
 });

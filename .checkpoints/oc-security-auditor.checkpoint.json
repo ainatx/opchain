@@ -1,0 +1,48 @@
+{
+  "protocol_version": "1.1",
+  "skill": "oc-security-auditor",
+  "project": "opchain.dev",
+  "project_dir": "/Users/aidanelsesser/repos/worktrees/opchain-release-1.9.2",
+  "created_at": "2026-09-13T23:52:21.354Z",
+  "updated_at": "2026-09-13T23:52:21.356Z",
+  "phase": "verify",
+  "step": "v1.9.2-product-reviewed",
+  "status": "complete",
+  "progress_summary": "1.9.2 final review PASS for pre-deploy-security-posture-v1. Source identity is bound by the typed handoff. Fresh executable verification and required remote CI remain separate gates.",
+  "next_actions": [],
+  "handoffs": [
+    {
+      "id": "oc-security-auditor-192-73903f8b6856",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-13T23:52:21.043995Z",
+      "verified_at": "2026-09-13T23:52:21.043995Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "release-192-final-review"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:73903f8b6856443db0fef272db44c21d4bb0f604b9f6bf7b0219ba0cec1c20d5"
+      },
+      "payload": {
+        "policy": "pre-deploy-security-posture-v1",
+        "verdict": "PASS",
+        "evidence_directory": ".checkpoints/release-1.9.2"
+      }
+    }
+  ],
+  "verified_at": "2026-09-13T23:52:21.043995Z",
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:73903f8b6856443db0fef272db44c21d4bb0f604b9f6bf7b0219ba0cec1c20d5"
+  },
+  "skill_state": {
+    "verified_for_candidate": {
+      "kind": "git_tree_projection",
+      "id": "sha256:73903f8b6856443db0fef272db44c21d4bb0f604b9f6bf7b0219ba0cec1c20d5"
+    }
+  },
+  "blockers": [],
+  "record_updated_at": "2026-09-13T23:52:21.356Z"
+}

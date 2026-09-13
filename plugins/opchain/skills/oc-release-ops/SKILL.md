@@ -1,7 +1,7 @@
 ---
 name: oc-release-ops
 displayName: OC · Release Ops
-version: 1.9.1
+version: 1.9.2
 license: Apache-2.0
 shortDesc: Plan, draft, bump, announce, ship a release. Closes the loop from sprints to /changelog to oc-git-ops to oc-deploy-ops.
 phases: [build]
@@ -166,7 +166,7 @@ on the page.
   "Security posture") for stylistic consistency.
 - Each "What's new" bullet leads with **the user-visible change**, not the
   implementation detail. "oc-git-ops now reads ticket state via real MCP tool
-  names" beats "Replaced placeholder mcp.<provider>.<verb> patterns."
+  names" beats "Replaced placeholder provider/tool patterns."
 - Every scenario shipped in the release gets a one-paragraph callout under
   "Scenarios" with a deep link to `/demo#<id>`.
 - "Configuration" describes any new `.opchain/*.yaml` keys or env vars.
@@ -314,8 +314,8 @@ End-of-pipeline handoff.
      because this handoff named no verb and oc-git-ops had none to name.
      `npm run deploy` now refuses a release whose catalog version has no tag, so
      skipping this step blocks the deploy rather than silently shipping.
-   - Then run the post-tag row of the gate: `node scripts/check-release-tag.mjs`
-     must exit 0.
+   - Then run the post-tag phase: `npm run release-sequence -- --stage post-tag`.
+     It runs `node scripts/check-release-tag.mjs`; it must exit 0.
    - **Patch only:** open and merge the site PR (Patch column of
      `references/site-release-surfaces.md`: L4 range + `rel-card`, L5 recount, L7
      full version) through the same pre-PR gate, before deploying.
@@ -333,8 +333,8 @@ End-of-pipeline handoff.
 
 **Agent-executed.** No script runs this whole table for you. The mechanical
 subset in the opchain.dev repo is `npm run release-sequence -- --stage pre-merge`,
-then (from `origin/main`, before signing) `--stage pre-tag --version <semver>`;
-run those first, then the checkpoint rows below. Rows run in order; the gate
+then (from `origin/main`, before signing) `--stage pre-tag --version <semver>`,
+then `--stage post-tag` after `/oc-git-release`; run those in order, then the checkpoint rows below. Rows run in order; the gate
 aborts on the first failure (rows marked warn-class report and continue).
 
 | Check | Stage | Implementation |

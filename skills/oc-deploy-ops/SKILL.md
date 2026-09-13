@@ -1,7 +1,7 @@
 ---
 name: oc-deploy-ops
 displayName: OC · Deploy Ops
-version: 1.9.1
+version: 1.9.2
 license: Apache-2.0
 shortDesc: Audit gate → staging → production → monitor. Creates deploy tickets and updates linked PM tickets per env.
 phases: [build]
@@ -197,11 +197,15 @@ proceed. Two **conditional rows** (v1.9) join the gate when their manifests
 exist in the repo — see steps 3 and 4; absent manifests, the gate is exactly
 the two-audit gate above.
 
-**This gate is agent-executed.** oc-deploy-ops applies these rules while it runs;
-`npm run deploy` and similar deploy scripts do not read auditor checkpoints. An
-audit on record counts only if it covered **this repo's runtime code at the SHA
-being deployed**. An audit of another commit, or of docs or skill text, is treated
-as no audit run.
+For opchain.dev, `scripts/lib/release-evidence.mjs --stage deploy` mechanically
+requires A's canonical PASS receipt for the exact candidate tree and C-contract
+PASS handoffs bound to the deploying HEAD tree projection excluding checkpoints:
+oc-code-auditor policy
+`pre-deploy-code-audit-v1` and oc-security-auditor policy
+`pre-deploy-security-posture-v1`. Missing, stale, ambiguous, FAIL, or INCOMPLETE
+required evidence blocks before build or platform mutation. Other projects must
+install an equivalent chokepoint; remote/client checkpoint PASS is not an
+executable-verification receipt.
 
 The commands below use opchain's checkpoint CLI, where `status <skill>` prints that
 one checkpoint and exits 1 when it does not exist. On a project without the CLI,
@@ -267,8 +271,8 @@ ls .opchain/compliance.yaml 2>/dev/null && \
 | CRITICAL findings exist (either audit) | 🚫 Block — must fix before deploy |
 | HIGH findings (≤ 3 total) | ⚠️ Warn — proceed with user confirmation |
 | HIGH findings (> 3 total) | 🚫 Block — too many unresolved issues |
-| No code audit on record, or it does not cover the deploying runtime code | ⚠️ Warn — run `/oc-audit pre-deploy` first |
-| No security assessment on record | 🚫 Block — run `/oc-security posture`, or record an explicit waiver (who, why, until when) in the oc-deploy-ops checkpoint before proceeding |
+| No code audit on record, or it does not cover the deploying commit | 🚫 Block — run `/oc-audit pre-deploy` first |
+| No security assessment on record, or it does not cover the deploying commit | 🚫 Block — run `/oc-security posture` first |
 | Hardening manifest present, any control FAILs verify | 🚫 Block — a regressed control is a CRITICAL |
 | Hardening manifest present, `manual` controls only | ⚠️ Loud-skip — list them + last-check age |
 | Compliance profile present, no evidence bundle at this SHA | ⚠️ Warn — run `/oc-comply evidence` before prod |

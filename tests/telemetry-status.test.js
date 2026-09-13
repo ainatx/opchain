@@ -1,7 +1,5 @@
-// Liveness guard for `npm run telemetry -- status` (v1.9): enabled=true with
-// no store on disk is the "enabled-but-silent" failure the monitoring-ops
-// assessment documented (24 days undetected in 2026-06/07) — status must exit
-// non-zero and say so, never print ENABLED ✅ over an absent sink.
+// Consent is machine-local: a tracked checkpoint copied from another machine
+// cannot make status claim that this machine has enabled recording.
 import { describe, it, expect } from "vitest";
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
@@ -33,16 +31,18 @@ function runStatus(handle) {
   });
 }
 
-describe("telemetry status liveness guard", () => {
-  it("exits 1 and warns when enabled=true with no store", () => {
+describe("telemetry status local-consent boundary", () => {
+  it("reports OFF when a legacy checkpoint says enabled but no local store exists", () => {
     const r = runStatus({
       enabled: true,
       id: "anon-test",
       sink: ".checkpoints/usage.sqlite",
       since: "2026-08-28T00:00:00Z",
     });
-    expect(r.status).toBe(1);
-    expect(r.stderr).toMatch(/LIVENESS FAIL/);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("OFF");
+    expect(r.stdout).not.toContain("ENABLED");
+    expect(r.stderr).not.toMatch(/LIVENESS FAIL/);
   });
 
   it("exits 0 when disabled, store absent", () => {

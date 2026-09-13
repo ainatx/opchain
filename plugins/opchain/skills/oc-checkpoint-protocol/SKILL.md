@@ -1,7 +1,7 @@
 ---
 name: oc-checkpoint-protocol
 displayName: OC · Checkpoint Protocol
-version: 1.9.1
+version: 1.9.2
 license: Apache-2.0
 shortDesc: Session persistence across skills — JSON checkpoint contract + status/next/doctor/validate tooling, catches drift.
 phases: [foundation]
@@ -403,7 +403,9 @@ validate the result. `scripts/checkpoint.mjs` is zero-deps pure Node.
 
 Two companion guides ship in this skill's own directory (they are not bundled into the
 other skills): `references/INTEGRATION.md`, the per-skill integration guide, and
-`references/WALKTHROUGH.md`, an end-to-end resume walkthrough.
+`references/WALKTHROUGH.md`, an end-to-end resume walkthrough. The executable
+wire-1.1 lifecycle, typed-handoff, and atomic-store interfaces are specified in
+`references/state-contract-v1.md`; existing 1.0/1.1 checkpoints remain valid.
 
 **Read / resume:**
 
@@ -464,6 +466,22 @@ written as a literal key.
 
 The validator runs after every `update`/`done` so you can't silently corrupt a file.
 Timestamps accept `Z` or a numeric offset (`+00:00`); the CLI writes `Z`.
+
+Mutating CLI commands (`update`, `done`, and `reset`) serialize per skill with
+the same process-owned advisory-lock policy as local MCP, and checkpoint writes
+use same-directory temporary files plus atomic rename. Concurrent append updates
+therefore merge against the latest accepted record instead of overwriting one
+another; a killed writer leaves the prior accepted JSON intact. This remains a
+single-file, zero-package-dependency CLI when copied elsewhere. Atomic mutation
+supports macOS with `/usr/bin/lockf` and Linux with `flock` on `PATH`; unsupported
+hosts fail explicitly rather than falling back to unsafe stale-lock recovery.
+
+The opchain repository's Claude Code Stop hook additionally derives its enforced
+skill inventory from `skills/`, normalizes namespaced Skill-tool invocation IDs,
+and requires the checkpoint's `record_updated_at ?? updated_at` to be at or after
+the transcript invocation event. Its `stop_hook_active` guard prevents a block
+loop. This current-run enforcement belongs to that repo-local hook; raw skill
+installs, MCP clients, and the distributed plugin do not gain it implicitly.
 
 > **Merge-driver caveat (read this).** `.gitattributes` registers a custom merge
 > driver (`scripts/merge-checkpoint.mjs`) that auto-resolves telemetry-only
@@ -559,6 +577,10 @@ The `.checkpoints/` directory is:
   and tooling)
 - Surfaced via `npm run checkpoint:status` — the canonical "where did I
   leave off?" command for new sessions
+
+Local MCP also maintains `.checkpoints/.gitignore` entries for its private
+runtime artifacts: `.mcp-sessions.json`, `*.lock`, `.*.tmp`, and the reserved
+`.local/` subtree. Skill `*.checkpoint.json` files remain trackable.
 
 ---
 

@@ -28,11 +28,17 @@ jobs:
       - name: Install (site) — needed because `npm run build` now runs astro build
         working-directory: site
         run: npm ci
+      - name: Verify the received candidate in CI
+        env:
+          OPCHAIN_VERSION: ${{ github.sha }}
+        run: node scripts/verify-candidate.mjs run --repo . --json
+      - name: Require source-bound Docs and Repo evidence
+        run: npm run evidence:pr
       - name: Validate checkpoints (.checkpoints/<skill>.checkpoint.json)
         run: npm run checkpoint:validate
       - name: Plugin hook suites (commit gate + next-suggestion)
-        # These are the only executable enforcement opchain ships. An untested
-        # gate is the thing this whole plugin exists to stop shipping.
+        # Compatibility fixtures for the plugin scripts; actual commit-boundary
+        # and candidate verification tests also run in the unit suite.
         run: npm run test:hooks
       - name: Checkpoint drift report (errors block)
         # Errors fail the build: doctor's errors are schema failures checked

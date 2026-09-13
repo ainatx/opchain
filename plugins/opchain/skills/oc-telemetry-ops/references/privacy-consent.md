@@ -10,14 +10,14 @@ aggregate-only on export, and content-free at the schema level.
 | State | Behavior |
 |---|---|
 | **Default (never enabled)** | No store, no writes, nothing recorded. The `telemetry_handle` field is absent. |
-| **Enabled** (`/oc-telemetry enable`) | `telemetry_handle.enabled = true`; runs recorded with `record` are metered locally. |
-| **Disabled** (`/oc-telemetry disable`) | `enabled = false`; metering stops immediately; the local store is kept (deletion is the user's call). |
+| **Enabled** (`/oc-telemetry enable`) | A `telemetry_meta.consent_enabled=true` value in the gitignored local SQLite store authorizes metering. |
+| **Disabled** (`/oc-telemetry disable`) | The same local value is `false`; metering stops immediately and the local store is kept (deletion is the user's call). |
 
-**Presence is not consent.** A `telemetry_handle` object with `enabled: false` — or
-no field at all — means *off*. Only `enabled: true` authorizes a write. The
-checkpoint validator enforces that `enabled` is a boolean; the metering write path
-checks it on every run — the "opt-out → zero writes" check lives in
-`scripts/telemetry.mjs` `cmdRecord` and has no dedicated test.
+**Tracked state is not consent.** A cloned checkpoint can contain legacy
+`telemetry_handle` data, but it never authorizes a write. Only the local
+`usage.sqlite` metadata row authorizes a write; a missing store is off. Existing
+checkpoint fields are retained as historical/informational data and are not
+migrated or deleted by the CLI. The write path checks local consent on every run.
 
 ## What is recorded vs. never recorded
 

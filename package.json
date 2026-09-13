@@ -51,7 +51,15 @@
     "checkpoint:doctor": "node scripts/checkpoint.mjs doctor",
     "checkpoint:validate": "node scripts/checkpoint.mjs validate",
     "prepare": "node scripts/install-git-drivers.mjs",
-    "test:hooks": "node plugins/opchain/hooks/test-gate.cjs && node plugins/opchain/hooks/test-suggestion.cjs"
+    "test:hooks": "node plugins/opchain/hooks/test-gate.cjs && node plugins/opchain/hooks/test-suggestion.cjs",
+    "capabilities": "node scripts/capabilities.mjs",
+    "capabilities:generate": "node scripts/capabilities.mjs --generate",
+    "verify:candidate": "node scripts/verify-candidate.mjs run",
+    "oc-prompt": "node scripts/prompt-eval.mjs",
+    "oc-cost": "node scripts/cost.mjs",
+    "runtime:package": "node scripts/package-runtime.mjs",
+    "evidence:pr": "node scripts/lib/release-evidence.mjs --stage pr",
+    "evidence:deploy": "node scripts/lib/release-evidence.mjs --stage deploy"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

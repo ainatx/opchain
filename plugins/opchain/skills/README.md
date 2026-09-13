@@ -12,16 +12,19 @@ context across sessions.
 
 ## Installation (Claude Code)
 
-**Plugin (recommended)** — ships the skills *and* the hooks that enforce them:
+**Plugin (recommended)** — ships skills, session hooks, and explicit Git verification enrollment:
 
 ```
 /plugin marketplace add asfbay-bit/opchain-skills
 /plugin install opchain
+/oc-enroll
 ```
 
-Adds a commit gate that blocks unverified commits, pipeline state at session
-start, a pointer to the next skill when one finishes, and twelve registered
-slash commands.
+Adds pipeline state at session start, next-skill suggestions, and thirteen
+registered slash commands. Run `/oc-enroll` successfully in each repository to
+activate Git commit verification. Foreign hooks block enrollment until deliberately
+composed; `git commit --no-verify` bypasses local hooks. Protected CI must verify
+received commits independently.
 
 **Zip (skills only)** — where a plugin install isn't an option:
 

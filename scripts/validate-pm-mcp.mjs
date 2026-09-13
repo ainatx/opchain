@@ -10,10 +10,10 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  PM_AWARE_SKILLS,
   checkPmYaml,
   checkSkillFile,
   checkToolNames,
+  findPmAwareSkills,
 } from "./lib/pm-mcp-checks.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -33,8 +33,10 @@ if (!existsSync(PM_YAML)) {
   if (parsed?.provider) provider = parsed.provider;
 }
 
-// ── Each PM-aware SKILL.md ────────────────────────────────────────────────
-for (const id of PM_AWARE_SKILLS) {
+// ── Each discovered PM-aware SKILL.md ─────────────────────────────────────
+const pmAwareSkills = findPmAwareSkills(SKILLS_DIR);
+if (pmAwareSkills.length === 0) errors.push("no PM-aware skills discovered");
+for (const id of pmAwareSkills) {
   const path = join(SKILLS_DIR, id, "SKILL.md");
   if (!existsSync(path)) {
     errors.push(`${id}: SKILL.md not found at ${path}`);
@@ -59,6 +61,6 @@ if (errors.length) {
 }
 
 console.log(
-  `validate-pm-mcp: OK — ${PM_AWARE_SKILLS.length} skills validated, ` +
+  `validate-pm-mcp: OK — ${pmAwareSkills.length} skills validated, ` +
   `provider=${provider}, ${warnings.length} warning(s)`,
 );

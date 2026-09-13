@@ -1,7 +1,7 @@
 ---
 name: oc-prompt-ops
 displayName: OC · Prompt Ops
-version: 1.9.1
+version: 1.9.2
 license: Apache-2.0
 shortDesc: Prompt-as-code — versioning, eval datasets, regression and drift detection for LLM prompts.
 phases: [build, ai-native]
@@ -95,6 +95,28 @@ PROMPT OPS COMMANDS
 ```
 
 ---
+
+## Executable evaluation commands
+
+Run these commands from the opchain source checkout with dependencies installed,
+or from the unpacked local runtime artifact. A skills-only ZIP or the Claude
+plugin does not include these npm commands. Keep the runtime in its own directory;
+pass dataset and output paths for the target project explicitly.
+
+The runner-backed forms are intentionally narrow. With the coordinator-provided
+`oc-prompt` alias, use these exact forms:
+
+```sh
+npm run oc-prompt -- run <dataset-dir> --adapter http-json --endpoint <url> --api-key-env <ENV_NAME> --out <result.json>
+npm run oc-prompt -- baseline <dataset-dir> --result <result.json> --out <baseline.json>
+npm run oc-prompt -- regress <dataset-dir> --result <result.json> --baseline <baseline.json>
+```
+
+They implement `/oc-prompt eval`, `/oc-prompt baseline`, and `/oc-prompt
+regress` respectively. Missing adapter configuration, credentials, a judge
+verdict, or an interrupted call writes a `BLOCKED` result; no provider is chosen
+implicitly. `/oc-prompt`, `diff`, `goldset`, `judge`, and `drift` remain
+assistant-driven modes in this release.
 
 ## How This Skill Fits the Build Pipeline
 
@@ -248,10 +270,10 @@ Once a prompt has a goldset and a passing score, **freeze that score as a
 baseline** and gate every future prompt change on not regressing below it.
 
 ```
-/oc-prompt baseline model-routing      # freeze current scores → eval/baseline.json
+npm run oc-prompt -- baseline prompts/model-routing/eval --result result.json --out baseline.json
 ... edit prompts/model-routing/v1.2.0/prompt.md ...
-/oc-prompt eval model-routing@v1.2.0   # score the new version
-/oc-prompt regress model-routing       # compare vs baseline, gate
+npm run oc-prompt -- run prompts/model-routing/eval --adapter http-json --endpoint <url> --api-key-env PROVIDER_KEY --out result.json
+npm run oc-prompt -- regress prompts/model-routing/eval --result result.json --baseline baseline.json
 ```
 
 The regress gate (run on every PR that touches `prompts/`; `/oc-prompt regress`

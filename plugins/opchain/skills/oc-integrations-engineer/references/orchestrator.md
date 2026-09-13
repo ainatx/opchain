@@ -710,7 +710,7 @@ description: >
 description: >
   Telemetry operations harness — opt-in, local-first usage metering that records
   which skills and phases actually run, to a local .checkpoints/usage.sqlite
-  store, then produces anonymized aggregates for the public /dashboard. Use for
+  store, then produces anonymized local aggregate exports. Use for
   /oc-telemetry, "usage metering", "opchain usage telemetry", "opt-in analytics",
   "which skills do people use", "usage stats", "dashboard data", "anonymized
   usage". Default stance is OFF — nothing is recorded until you explicitly enable

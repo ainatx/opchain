@@ -1,13 +1,14 @@
 ---
 name: oc-cost-ops
 displayName: OC · Cost Ops
-version: 1.9.1
+version: 1.9.2
 license: Apache-2.0
 shortDesc: LLM cost attribution per skill phase, budget gates in checkpoints, and model-tier routing recommendations.
 phases: [build]
 triAgent: false
 tryable: true
 commands:
+  - /oc-cost baseline
   - /oc-cost
   - /oc-cost attribute
   - /oc-cost budget
@@ -71,6 +72,7 @@ COST OPS COMMANDS
   ATTRIBUTION
   /oc-cost              Summarize spend for the current project (by phase + model)
   /oc-cost attribute    Attribute a run's token counts → dollars, write checkpoint.cost
+  /oc-cost baseline     Freeze measured eval cost for a regression comparison
   /oc-cost report       Cost-per-shipped-feature report (feeds /showcase + /dashboard)
 
   BUDGETS & GATES
@@ -86,6 +88,29 @@ COST OPS COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Type any command to begin. /oc-cost to see this again.
 ```
+
+---
+
+## Executable eval-cost commands
+
+Run these commands from the opchain source checkout with dependencies installed,
+or from the unpacked local runtime artifact. A skills-only ZIP or the Claude
+plugin does not include these npm commands. Keep the runtime in its own directory;
+pass dataset and output paths for the target project explicitly.
+
+With the coordinator-provided `oc-cost` alias, the runner-backed forms are:
+
+```sh
+npm run oc-cost -- attribute <dataset-dir> --result <result.json> --rates <rates.json> --measurement-id <id> --out <cost.json>
+npm run oc-cost -- baseline <dataset-dir> --measured <cost.json> --out <cost-baseline.json>
+npm run oc-cost -- gate <dataset-dir> --measured <cost.json> --baseline <cost-baseline.json>
+```
+
+`rates.json` supplies explicit `input_per_million` and `output_per_million`
+values; the command derives cost from the result's preserved adapter usage. No
+model price is assumed. Missing usage or pricing writes an unavailable-cost
+artifact, and a missing cost baseline returns `BLOCKED`. `/oc-cost`, `budget`,
+`route`, and `report` remain assistant-driven modes in this release.
 
 ---
 
@@ -167,8 +192,9 @@ may recommend "keep the tier, fix caching" instead.
 
 ## Principle 3: Cost is a regression dimension
 
-Two gates run beside the quality gates on a PR (`references/budget-gates.md`) —
-agent-driven verbs, not shipped CI scripts:
+Two gates run beside the quality gates on a PR (`references/budget-gates.md`).
+The eval-cost `gate` form above is executable; the checkpoint-oriented modes
+remain assistant-driven:
 
 - **Budget ceiling** — `cost.budget_usd` per phase / per suite. Validator warns on
   overspend; `/oc-cost gate` in strict mode reports FAIL. Raising a budget is a

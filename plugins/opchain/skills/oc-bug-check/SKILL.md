@@ -1,13 +1,14 @@
 ---
 name: oc-bug-check
 displayName: OC · Bug Check
-version: 1.9.1
+version: 1.9.2
 license: Apache-2.0
 shortDesc: Pre-commit QA gate — fast checks on every commit. v1.2 attaches the failure report to the linked PM ticket on block.
 phases: [build]
 triAgent: false
 tryable: true
 commands:
+  - /oc-enroll
   - /oc-bugcheck
   - /oc-bugcheck run
   - /oc-bugcheck fix
@@ -29,14 +30,14 @@ description: >
 
 **On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
 
-Fast pre-commit QA gate. Runs in under 2 minutes. Catches the bugs, type errors,
+Pre-commit QA gate. Runtime depends on the configured checks and project size. Catches the bugs, type errors,
 test failures, and anti-patterns that shouldn't make it into a commit — before they
 cost real debugging time downstream.
 
 This is NOT oc-code-auditor. Code-auditor runs a deep tri-agent sweep (Auditor → Fixer →
 Verifier) that takes 30+ minutes and produces a graded report. Bug-check is the metal
 detector at the door — fast and blunt: the gate verdict is **PASS**, **FAIL**, or
-**UNSUPPORTED** (no recognized stack — never a pass). Individual checks may emit
+**UNSUPPORTED** (a required check cannot run — never a pass). Individual checks may emit
 advisory **WARN** notes (e.g. "no test suite detected") that ride on a PASS as a
 count; in strict mode they become FAIL. Only PASS clears the commit.
 
@@ -95,12 +96,12 @@ not resumable state.
 
 ### Write on Finish
 
-Every run ends with one checkpoint write carrying `last_run`, `last_run_verdict`, and
-`verified_tree` from that run — see Checkpoint Schema → Commit gate contract. The commit
-gate denies a verdict that has no tree hash, however recent the run. The same write
+Every run ends with one informational checkpoint write carrying `last_run`,
+`last_run_verdict`, and any legacy `verified_tree` summary from that run. The same write
 restates the verdict, warning count, and carried debt in the protocol-public
-`progress_summary` (and appends `eval_scores`), which is what sibling skills other than
-the commit gate read.
+`progress_summary` (and appends `eval_scores`). Checkpoints are workflow history; they
+do not authorize a commit. The Git commit boundary runs the candidate verifier and
+writes its separate immutable receipt after all staging mutations.
 
 ---
 
@@ -261,9 +262,9 @@ grep -rn -E "(api[_-]?key|secret|password|token|credential).*['\"][A-Za-z0-9+/=]
 # AWS-style keys
 grep -rn -E "AKIA[0-9A-Z]{16}" --exclude-dir=node_modules .
 
-# Private keys (-E, or the parens and ? are literal and no PEM header matches)
-grep -rn -E "BEGIN (RSA |EC |DSA |OPENSSH |ENCRYPTED |PGP )?PRIVATE KEY" \
-  --exclude-dir=node_modules .
+# Private-key headers. `--` keeps the leading hyphens out of option parsing.
+grep -rn -E --exclude-dir=node_modules -- \
+  "-----BEGIN ((RSA|EC|DSA|OPENSSH|ENCRYPTED) )?PRIVATE KEY-----|-----BEGIN PGP PRIVATE KEY BLOCK-----" .
 
 # Common service prefixes (sk_test_ included — a test key is still a leaked credential)
 grep -rn -E "(sk-|sk_live_|sk_test_|pk_live_|ghp_|gho_|github_pat_)" \
@@ -576,8 +577,8 @@ Extends the session persistence section above with full schema details.
 
 | Field | Purpose |
 |---|---|
-| `last_run_verdict` | The last run's verdict, flat — the field the commit gate reads first. Always equal to `last_run.verdict` |
-| `verified_tree` | Hash of the full working tree the last run checked — binds the verdict to that code (see Commit gate contract) |
+| `last_run_verdict` | Compatibility summary of the last run. Always equal to `last_run.verdict`; not commit authorization |
+| `verified_tree` | Optional legacy working-tree summary; not an immutable candidate receipt and not commit authorization |
 | `last_run` | Timestamp + verdict + duration + per-check results |
 | `run_history` | Last 10 runs with verdicts (trend tracking) |
 | `bypasses` | Every bypass with failed checks and reason |
@@ -619,57 +620,59 @@ Extends the session persistence section above with full schema details.
 
 ### Commit gate contract
 
-The opchain plugin's commit gate (`hooks/pre-commit-gate.cjs`, a `PreToolUse`
-hook — the opchain repo's own sessions run the same file) turns this checkpoint
-into a hard block on `git commit`. Every run — PASS, FAIL, or UNSUPPORTED —
-writes all of these in the same checkpoint write:
+The sole authoritative local boundary is the Git `pre-commit` hook installed by
+`scripts/install-git-drivers.mjs`. Claude `PreToolUse` hooks do not authorize or
+deny commits. This avoids trying to predict shell timing, substitutions, `git -C`,
+or explicit Git environments before the commit operation actually starts.
 
-| Field | Value | Gate |
-|---|---|---|
-| `updated_at` | ISO time of the write (protocol envelope) | Missing or unparseable → deny |
-| `skill_state.last_run_verdict` | `PASS` / `FAIL` / `UNSUPPORTED`, identical to `last_run.verdict` | Anything but PASS → deny. Verdict fields that disagree → deny |
-| `skill_state.verified_tree` | What the recipe below prints, run after the checks finish | Missing → deny, however recent the run. Differs from the current working tree → deny |
+Enrollment is explicit and actionable:
 
-A checkpoint carrying only `last_run.verdict` (the shape before `last_run_verdict`
-was documented) is still read, but it gets no exemption from the tree.
+- From a repository checkout, run
+  `node scripts/install-git-drivers.mjs --enroll --repo "$(git rev-parse --show-toplevel)"`.
+- From the packaged plugin, run `/oc-enroll`; its wrapper invokes the bundled
+  installer, verifier, and receipt library.
 
-Record the tree with this, from anywhere in the repo:
+The installer copies the verifier and receipt library beneath the Git common
+directory, then installs the Git hook and creates `.opchain/`. Later commits use
+that installed runtime rather than repository working files or the plugin cache.
+An existing foreign `pre-commit` hook is never overwritten: required enrollment
+exits nonzero with `BLOCKED` and prints the exact final-decision snippet for manual
+hook-manager integration.
 
-```bash
-cd "$(git rev-parse --show-toplevel)"
-idx="$(mktemp)"
-cp "$(git rev-parse --git-path index)" "$idx" 2>/dev/null || rm -f "$idx"
-GIT_INDEX_FILE="$idx" git add -A -- .
-GIT_INDEX_FILE="$idx" git rm --cached -f -q --ignore-unmatch -- .checkpoints/oc-bug-check.checkpoint.json
-GIT_INDEX_FILE="$idx" git write-tree
-rm -f "$idx"
-```
+For an explicitly enrolled repository (`.opchain/`, `.checkpoints/`, or
+`OPCHAIN_GATE=1`), the Git hook:
 
-That is `git add -A` into a throwaway copy of the index — every tracked change and
-every untracked, non-ignored file, with the real index untouched — minus this
-checkpoint file, which is exactly how the gate hashes the tree it compares against.
-Bare `git write-tree` is **not** equivalent: it hashes only what is staged, so any
-unstaged edit or new file leaves the PASS non-matching.
+1. in an opchain authoring checkout, finishes and stages its generated mirror updates;
+2. snapshots the effective Git index with `git write-tree`;
+3. materializes that immutable candidate in an isolated directory;
+4. executes every required policy check there; and
+5. writes and revalidates a create-once receipt beneath the Git common directory.
 
-The checkpoint is left out because it is the evidence, not the code under test. The
-run hashes the tree and then writes that hash into this file, so counting the file
-would make the recorded tree stale the moment it was written — in every repo that
-tracks `.checkpoints/`, as oc-checkpoint-protocol recommends.
+Automatic defaults discover npm scripts and bounded built-in scanners. Declare
+`verification.required_checks` and argv-based `verification.commands` in
+`.bugcheck.json` for the project's required coverage, including other languages,
+nested packages, and coverage budgets. PASS means the declared policy passed;
+it does not certify checks that were never configured.
 
-What follows from binding to the whole working tree:
+The receipt binds repository identity, candidate tree, policy/config, toolchain,
+verifier, individual results, exit statuses, and timestamps. Missing tools,
+non-PASS checks, a changed index, or a mismatched receipt block the commit. The
+checkpoint above remains useful history but is never accepted as this receipt.
 
-- **Any edit after the run invalidates the PASS** — including writing a *tracked*
-  checkpoint for another skill. Write those first, then run the gate, then commit.
-- **Writing this checkpoint does not.** The recipe and the gate both leave it out of
-  the hash, whether your repo tracks it, ignores it, or has it staged.
-- **Staging does not.** `git add` between the run and the commit changes nothing the
-  tree already counted.
-- **The hook's bypass is explicit and logged:** `OPCHAIN_BYPASS=1 git commit …` or
-  `git commit --no-verify`. A `bypasses[]` entry is the accountability record; on its
-  own it does not clear the gate.
+The materialized candidate has an isolated single-commit Git repository whose
+`HEAD^{tree}` equals the tested tree. Inherited Git directory, worktree, index,
+object, and namespace pointers are stripped before declared checks execute, so a
+check can use `git ls-files` or revision lookup without writing live refs or the
+live index. Installed dependency directories are mounted only at `node_modules`
+paths adjacent to candidate `package.json` files (including nested packages such
+as `site/`); those mounts are excluded from the isolated Git view and never replace
+tracked candidate source. Live history, refs, remotes, and arbitrary host paths are
+not supplied to checks through inherited Git pointers. Checks still run as the local
+user and can access host files; the temporary checkout is not a security sandbox.
 
-The plugin's `hooks/test-gate.cjs` builds a checkpoint from the JSON example above
-and this recipe and asserts the gate accepts it — change the three together.
+`git commit --no-verify` remains Git's explicit local bypass. Local hooks cannot
+defend against an actor who deliberately disables them, so protected CI must verify
+the received candidate independently.
 
 ### Cross-Skill Reads
 
@@ -682,7 +685,7 @@ and this recipe and asserts the gate accepts it — change the three together.
 
 | Read by | Why |
 |---|---|
-| oc-git-ops | Gate verdict (`skill_state.last_run_verdict` + `verified_tree`, per the Commit gate contract) → commit or block |
+| oc-git-ops | Informational last-run verdict; commit authorization comes from the candidate receipt at the Git boundary |
 | oc-repo-ops | `status` + `updated_at` staleness → PR readiness gate (a missing/stale code gate blocks the PR) |
 | oc-docs-forge | `progress_summary` quality notes → PR testing/audit documentation |
 | oc-deploy-ops | Last gate status (`status` + `progress_summary`) → the `Bug-check:` line on the deploy ticket |
@@ -690,9 +693,8 @@ and this recipe and asserts the gate accepts it — change the three together.
 | oc-cost-ops | Which phase a gate run belongs to, for cost attribution |
 | oc-orchestrator | `eval_scores` trend + `progress_summary` carried debt → project health |
 
-The Commit gate contract fields are the one place other readers (the commit-gate
-hook and oc-git-ops) look inside this skill's `skill_state`; every other reader uses
-the protocol-public fields named above.
+These compatibility fields may still be read by workflow skills, but the Git commit
+boundary does not trust `skill_state`; it trusts only a matching candidate receipt.
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: oc-compliance-ops
 displayName: OC · Compliance Ops
-version: 1.9.1
+version: 1.9.2
 license: Apache-2.0
 shortDesc: "Standing control register + audit-ready evidence bundles at deploy/release time. SOC 2 / HIPAA / GDPR."
 phases: [plan, build]
@@ -292,3 +292,11 @@ Location: `{project-dir}/.checkpoints/oc-compliance-ops.checkpoint.json`
    people rather than code.
 6. **An honest bundle lists its gaps.** Auditors trust inventories that
    include the bad news.
+
+### Candidate-bound deployment handoff
+
+After completing the existing verification criteria, obtain the source identity with `node scripts/lib/release-evidence.mjs --print-candidate --json`. Publish a versioned `verification.verdict` entry in this skill's checkpoint `handoffs`, using that exact `candidate_identity` object. This identity excludes checkpoint evidence from the source projection; it does not attest built bytes or ignored environment configuration. Do not manufacture PASS from a prior summary. Missing criteria produce FAIL or INCOMPLETE.
+
+Required fields: a unique handoff `id`, `contract_version: "1.0"`, `type: "verification.verdict"`, ISO `created_at` and actual `verified_at`, `producer: { "skill": "oc-compliance-ops", "run_id": "<actual-run-id>" }`, the printed `candidate_identity` as `candidate`, and `payload: { "verdict": "PASS|FAIL|INCOMPLETE", "policy": "deploy-compliance-evidence-v1" }`. Replace the verdict placeholder with the actual result. Preserve prior run history and write through the checkpoint protocol. If source content changes before evidence is committed, recompute the identity and re-run affected verification before producing a new handoff.
+
+Compliance remains warn-only: missing, invalid, stale, FAIL, or INCOMPLETE compliance evidence cannot independently block deployment.

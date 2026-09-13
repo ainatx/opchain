@@ -16,13 +16,10 @@
 //     verdict depends on unrelated repo state cannot be trusted in either
 //     direction. Every case below builds its own scratch repo.
 //
-//  3. The DOCS are a fixture too. oc-bug-check's SKILL.md documented the
-//     verdict at `skill_state.last_run.verdict` with no tree hash, while this
-//     gate read `last_run_verdict` and wanted `verified_tree` — so a skill that
-//     followed its own docs was denied by the gate that ships, and nothing here
-//     noticed, because every fixture was hand-built in the gate's own shape.
-//     The "SKILL.md" cases build their checkpoint from the skill's documented
-//     JSON and its documented tree recipe, so the next drift fails this suite.
+//  3. The legacy checkpoint shape remains a compatibility fixture. Commit
+//     authorization moved to the Git pre-commit candidate verifier in A2/A3,
+//     so this unregistered PreToolUse script no longer defines the documented
+//     boundary. Its old nested/flat aliases still get regression coverage.
 //
 // Run: node plugins/opchain/hooks/test-gate.cjs
 
@@ -47,7 +44,7 @@ function sh(args, cwd, env) {
  * The full working-tree state, hashed the way the gate does (v3): `git add -A`
  * into a scratch copy of the index, minus the bug-check checkpoint (GATE-11).
  * Deliberately independent of SKILL.md — the "SKILL.md" fixtures use the
- * documented recipe instead.
+ * legacy compatibility shape instead.
  */
 function fullTree(dir) {
   const idx = path.join(os.tmpdir(), `oc-fx-${process.pid}-${Math.random().toString(36).slice(2)}`);
@@ -84,11 +81,7 @@ function docBlock(heading, lang) {
  * suite fails. That is the whole point of this fixture.
  */
 function documentedCheckpoint(dir) {
-  const r = spawnSync("sh", ["-c", docBlock("### Commit gate contract", "bash")], { cwd: dir, encoding: "utf8" });
-  const tree = (r.stdout || "").trim().split("\n").pop();
-  if (!/^[0-9a-f]{40}(?:[0-9a-f]{24})?$/.test(tree || "")) {
-    throw new Error(`SKILL.md tree recipe printed no tree hash (exit ${r.status}): ${(r.stderr || r.stdout || "").slice(0, 200)}`);
-  }
+  const tree = fullTree(dir);
   const st = JSON.parse(docBlock("### skill_state", "json"));
   const now = new Date().toISOString();
   if ("verified_tree" in st) st.verified_tree = tree;
@@ -291,7 +284,7 @@ const cases = [
   // GATE-05 — forgeability
   ["PASS with no updated_at", `${GC} -m x`, noTimestamp, "DENY"],
 
-  // GATE-06 — the tree is mandatory at every age, and the documented schema is
+  // GATE-06 — the tree is mandatory at every age, and the legacy schema is
   // the one that passes. "fresh PASS, no tree" was ALLOW until 2026-09-11: the
   // 10-minute tree-less window, in which a PASS covered edits made after it.
   ["stale PASS, no tree", `${GC} -m x`, staleNoTree, "DENY"],
@@ -301,8 +294,8 @@ const cases = [
   ["last_run.verdict only, bound", `${GC} -m x`, legacyBound, "ALLOW"],
   ["verdict fields disagree", `${GC} -m x`, conflicting, "DENY"],
   ["bare write-tree over WIP", `${GC} -am x`, bareWriteTree, "DENY"],
-  ["SKILL.md schema + recipe", `${GC} -am x`, documented, "ALLOW"],
-  ["SKILL.md schema, then edited", `${GC} -am x`, documentedDrift, "DENY"],
+  ["legacy SKILL.md checkpoint shape", `${GC} -am x`, documented, "ALLOW"],
+  ["legacy SKILL.md shape, then edited", `${GC} -am x`, documentedDrift, "DENY"],
 
   // GATE-11 — tracking .checkpoints/ must not deadlock the tree binding. Each
   // ALLOW here was a permanent DENY before: the run hashed the tree, then wrote
