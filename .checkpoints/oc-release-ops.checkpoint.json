@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-11T04:05:36.112Z",
+  "updated_at": "2026-09-13T03:57:14.732Z",
   "skill": "oc-release-ops",
-  "phase": "shipped",
-  "step": "v1.9-release-signed-off",
-  "status": "complete",
-  "progress_summary": "v1.9.0, Assurance and governed delivery ops, is signed off and live. Release PR #477 merged at exact SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248; signed annotated tag v1.9.0 is verified locally and by GitHub; Registry run 33677209947 published the active/latest exact manifest. Staging and production serve health version 244bf13 at 100% traffic after hardening, smoke, MCP acceptance, visual, and 7/7 post-deploy gates. The sealed 16-record legacy checkpoint set was deleted without touching unrelated KV data, milestone #1 is closed, and monitoring baseline PR #478 plus authenticated Canary and Deploy lag dispatches are green. The next scheduled monitoring cycle remains tracked by oc-monitoring-ops and does not block the shipped release.",
+  "phase": "plan-approved",
+  "step": "v1.9.1-plan-approved-sprint-0",
+  "status": "in_progress",
+  "progress_summary": "v1.9.0 remains shipped and live. A v1.9.1 patch release is proposed to ship the fixes from the 2026-09-11 skill-chain audit (484 upheld findings, 11 CRITICAL). Plan: docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md. Proposed semver v1.9.1 by decision-tree rule 10 under a patch-scope rule (fixes and doc corrections only; additive work moves to v2.0); the close call is rule 5, since sixteen documented subcommands become indexed in frontmatter, which would make it v1.10.0 on a strict reading. Proposed theme 'The chain holds'. Release surfaces for a patch: P1-P7 product half, then L4 (open hero range + v1-9-1 rel-card), L5 recount and L7 styleguide badge in the site half; L1-L3, L6, L8-L10 and forward surfaces do not move. The v2.0 recolour (PR 490) and demo rebuild (PR 515) are parked as drafts until after this release.",
   "progress_table": [
     {
       "id": "scope",
@@ -79,9 +79,9 @@
   },
   "blockers": [],
   "next_actions": [
-    "Laptop: bless the 2026-09-05 production deploy of 78567c2 by refreshing .github/monitoring/release-baseline.json (deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72), redeploying staging from the same SHA, verifying with cloudflare-monitor.mjs, and opening the baseline PR.",
-    "Decide the historical tag backfill: docs/runbooks/release-tag-backfill.md carries signed-tag commands for the 10 untagged releases behind issue #464.",
-    "v2.0 build PR #490 is merge-conflicted with main in 12 files and its six newest commits have never run CI; the branch owner merges main before the cut."
+    "Sprint 0: land the plan + audit report PR; owner redeploys staging from origin/main and refreshes the staging baseline entry; owner reviews and merges gate PRs 499, 504, 505, 507 in order.",
+    "Sprint 1 (commit gate) starts once the gate stack is merged.",
+    "Sprint 7: /oc-release draft + bump for 1.9.1 once Sprints 1-6 have merged."
   ],
   "pm_refs": [
     {
@@ -107,11 +107,59 @@
   ],
   "skill_state": {
     "current_release": {
-      "semver": "1.9.0",
-      "theme": "Assurance and governed delivery ops",
-      "phase": "shipped",
-      "started_at": "2026-08-28T00:00:00Z",
-      "shipped_at": "2026-09-02T20:11:25.746861Z"
+      "semver": "1.9.1",
+      "theme": "The chain holds",
+      "phase": "plan-approved",
+      "plan": "docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md",
+      "source": "docs/audits/2026-09-11-skillchain-2.0-audit.md",
+      "started_at": "2026-09-12",
+      "decision_points": [
+        "D1 semver v1.9.1 vs v1.10.0 (rule 5 reading)",
+        "D2 theme name",
+        "D3 headline ranking",
+        "D4 continuous merge to main vs release/v1.9.1 integration branch",
+        "D5 owner redeploys staging from origin/main now",
+        "D6 fate of the demo-scenario-realism worktree",
+        "D7 merge gate PR stack 499-504-505-507 first vs fold into Sprint 1"
+      ],
+      "surfaces": {
+        "product_half": [
+          "P1 33x SKILL.md version",
+          "P2 skills/CHANGELOG.md [1.9.1]",
+          "P3 plugin.json",
+          "P4 marketplace.json metadata.version + plugins[0].version",
+          "P5 server.json",
+          "P6 release-seal.json",
+          "P7 signed tag (HUMAN)"
+        ],
+        "site_half": [
+          "L4 changelog open hero range + rel-card v1-9-1",
+          "L5 Just Released tab recount (currently 18)",
+          "L7 styleguide Badge v1.9.1",
+          "e2e changelog-and-scenarios re-pin",
+          "RELEASING.md section 6 audit in PR body"
+        ],
+        "unchanged": [
+          "L1",
+          "L2",
+          "L3",
+          "L6",
+          "L8-L10",
+          "F1-F6",
+          "count strings (catalog stays 33)"
+        ]
+      },
+      "deploy_notes": "runtime-scope /oc-audit pre-deploy + security posture or waiver before deploy; baseline refresh re-binds release to v1.9.1 and removes the 78567c2 runtime block",
+      "decisions": {
+        "D1": "v1.9.1 patch",
+        "D2": "The chain holds",
+        "D3": "commit gate first",
+        "D4": "continuous to main, two-week safety valve",
+        "D5": "owner redeploys staging from origin/main now",
+        "D6": "demo-scenario-realism worktree left to its session",
+        "D7": "merge gate PR stack 499-504-505-507 first",
+        "decided_at": "2026-09-12"
+      }
     },
     "prior_release": {
       "semver": "1.8.3",
