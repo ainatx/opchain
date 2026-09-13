@@ -269,7 +269,7 @@ Location: `{project-dir}/.checkpoints/oc-compliance-ops.checkpoint.json`
 | oc-security-hardening | Status of chained technical-control remediations |
 | oc-deploy-ops | Deploy SHA + environment for evidence stamping |
 | oc-monitoring-ops | Audit-log + incident-runbook artifacts referenced as evidence |
-| oc-data-ops | Data contracts + retention behavior as evidence for data controls |
+| oc-data-ops | Data contracts as evidence for data controls |
 
 | Read by / chains to | Why |
 |---|---|

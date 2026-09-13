@@ -219,6 +219,19 @@ checkpoint `protocol_version` is tracked separately (see
   duties oc-monitoring-ops never took on are gone. Sandbox paths, undefined keys and
   a false "fixtures are gitignored" claim are corrected; abandon archives to
   `.checkpoints/history/`. 55 findings fixed, 8 already fixed, 7 won't-fix.
+- **Ship-side skills and the orchestrator map say what they do (Sprint 5d-2).**
+  oc-release-ops describes the real release order: a minor release flips the probed
+  site surfaces in the release PR with the CHANGELOG heading, before the tag (CI's
+  surface check requires it); a patch keeps product PR → tag → site PR; deploy always
+  follows the tag. Its verify gate splits pre-tag from post-tag checks, its drafts
+  match the hero-card changelog and five-hero rule, and `version-locations.md` is
+  rebuilt from the surface checker. oc-deploy-ops runs the project's deploy script
+  when there is one, detects `wrangler.jsonc`, and hands post-deploy checks to
+  `/oc-monitor health`. A failed `/oc-docs verify` now clears `verified_for_sha`
+  and blocks the PR at oc-repo-ops. oc-git-ops commits the docs edits before the
+  readiness check and records UNSUPPORTED. orchestrator.md carries a routing row
+  for every skill, the "release PR merged → `/oc-git-release`" handoff, and the map
+  rows the other sweeps made stale. 67 findings fixed, 20 already fixed.
 - **orchestrator.md §7 backfill and the F6 release-surface procedure.** Two post-1.9.0
   changes to shipped text (#482, #484) that this section never recorded.
 - **Every skill points at its bundled checkpoint protocol.** 29 Checkpoint sections

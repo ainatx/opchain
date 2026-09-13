@@ -3,7 +3,7 @@ name: oc-deploy-ops
 displayName: OC · Deploy Ops
 version: 1.9.0
 license: Apache-2.0
-shortDesc: Audit gate → staging → production → monitor. v1.2 creates deploy tickets and updates linked PM tickets per env.
+shortDesc: Audit gate → staging → production → monitor. Creates deploy tickets and updates linked PM tickets per env.
 phases: [build]
 triAgent: false
 tryable: true
@@ -21,7 +21,8 @@ commands:
 description: >
   Deployment pipeline: audit gate → staging → production → monitoring. Use for
   /oc-deploy, "deploy this", "ship it", "push to production", "staging", "rollback",
-  "health check", or any deployment task.
+  "health check", or any deployment task. Single-app managed deploys only:
+  multi-container, self-managed or IaC deploys are oc-fleet-ops.
 ---
 
 # Deploy Ops
@@ -101,11 +102,12 @@ CODE (committed)
 Read the project's config to determine the deployment target:
 
 ```bash
-# Check for wrangler.toml (Cloudflare Workers)
-[[ -f wrangler.toml ]] && echo "Cloudflare Workers project detected"
+# Check for a wrangler config (Cloudflare Workers): wrangler.toml, .jsonc or .json
+WRANGLER_CFG=$(ls wrangler.toml wrangler.jsonc wrangler.json 2>/dev/null | head -1)
+[[ -n "$WRANGLER_CFG" ]] && echo "Cloudflare Workers project detected ($WRANGLER_CFG)"
 
 # Check for Pages config
-grep -q "pages" wrangler.toml 2>/dev/null && echo "Pages deployment detected"
+grep -q "pages" "$WRANGLER_CFG" 2>/dev/null && echo "Pages deployment detected"
 
 # Check for existing deploy scripts
 grep -q '"deploy"' package.json 2>/dev/null && echo "Deploy script found in package.json"
@@ -161,11 +163,11 @@ Create or update `.oc-deploy-ops.json`:
 
 1. **Detect platform** from config files
 2. **Check auth** — `wrangler whoami` or CF API token in env
-3. **Check environments** — staging/prod wrangler.toml configured?
+3. **Check environments** — staging/prod environments configured in the wrangler config?
 4. **Check D1 databases** — staging and prod DBs exist?
 5. **Generate .oc-deploy-ops.json** — ask user to confirm/adjust
 6. **Verify deploy works** — dry-run `wrangler deploy --dry-run`
-7. **Set up smoke test URLs** — derive from wrangler.toml routes
+7. **Set up smoke test URLs** — derive from the wrangler config's routes
 
 ### Environment Variables and Secrets (/oc-deploy env)
 
@@ -278,6 +280,15 @@ the findings and ask for explicit confirmation before proceeding.
 
 ## Staging Deploy (/oc-deploy staging)
 
+**Use the project's deploy wrapper when it has one.** If `package.json` defines a
+`deploy:staging` / `deploy` script, run it instead of calling the platform CLI
+directly: the wrapper is where the project keeps its own checks. In the opchain.dev
+repo, `npm run deploy:staging` and `npm run deploy` run `scripts/deploy.mjs`, which
+refuses an off-main or dirty checkout, refuses an untagged release (production),
+runs `npm run hardening:verify`, then replays the hardening manifest and the smoke
+suite against the live target and rolls back on a miss. A bare `wrangler deploy`
+skips all of that. The raw sequences below are for projects without a wrapper.
+
 ### Deploy Sequence (Cloudflare Workers + D1)
 
 ```bash
@@ -361,6 +372,9 @@ Always ask before production deploy — never auto-promote.
 
 ### Deploy Sequence
 
+Same rule as staging: a project deploy script (`npm run deploy` in opchain.dev)
+wins over the raw commands below.
+
 ```bash
 cd <project-dir>
 git checkout main && git pull origin main
@@ -392,8 +406,7 @@ echo "Production: $STATUS (${LATENCY}s)"
 ### Hand off to oc-monitoring-ops
 
 After a successful production promotion, **invoke oc-monitoring-ops** to
-verify post-deploy observability (uptime checks, error tracking,
-SLO/SLI alarms). Deploy-ops ships it; oc-monitoring-ops watches it.
+check the new deployment. Deploy-ops ships it; oc-monitoring-ops watches it.
 
 ```
 Skill(skill="oc-monitoring-ops", args="/oc-monitor health")
@@ -402,16 +415,18 @@ Skill(skill="oc-monitoring-ops", args="/oc-monitor health")
 When the project has no oc-monitoring-ops checkpoint yet, run `/oc-monitor setup`
 instead: there is nothing to verify until observability exists.
 
-oc-monitoring-ops reads this skill's checkpoint to learn what shipped
-(version, commit SHA, prod URL) and confirms:
+Before handing off, record what shipped (version, commit SHA, prod URL) in this
+skill's checkpoint `progress_summary`, a part of a checkpoint a sibling may read
+(`skill_state` is private). They are there for the session to compare against:
+`/oc-monitor health` itself reads no sibling checkpoint. It checks the live
+deployment (per-dependency status, latency, TLS expiry) and compares the deployed
+version to its own last-known-good.
 
-- Uptime monitor is configured and pinging the new deployment.
-- Error tracking sees fresh events from the new version.
-- Any new alerts/SLOs needed for surfaces introduced in this release.
-
-If oc-monitoring-ops reports gaps (no uptime monitor, no error tracking,
-new endpoints without SLOs), surface them and let the user decide
-whether to address now or schedule for a follow-up.
+Uptime monitoring, error tracking and SLO coverage for new surfaces are separate
+oc-monitoring-ops verbs (`/oc-monitor uptime`, `/oc-monitor errors`,
+`/oc-monitor slo`). If health or the monitoring checkpoint shows gaps (no uptime
+monitor, no error tracking, new endpoints without SLOs), surface them and let the
+user decide whether to address now or schedule for a follow-up.
 
 ---
 
@@ -455,7 +470,7 @@ If production health check fails after deploy:
 
 ```bash
 # Requires CF_API_TOKEN and CF_ACCOUNT_ID
-curl -s "https://oc-api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/analytics/stored" \
+curl -s "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/analytics/stored" \
   -H "Authorization: Bearer $CF_API_TOKEN" | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
@@ -474,7 +489,7 @@ For projects with Telegram integration:
 notify() {
   local msg="$1"
   [[ -n "$TELEGRAM_BOT_TOKEN" && -n "$TELEGRAM_CHAT_ID" ]] && \
-    curl -s -X POST "https://oc-api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+    curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
       -d "chat_id=$TELEGRAM_CHAT_ID" -d "text=$msg" -d "parse_mode=Markdown"
 }
 
@@ -507,30 +522,52 @@ what is specific to oc-deploy-ops.
 
 ```json
 {
+  "platform": "cloudflare-workers",
   "current_env": "staging",
+  "staging_url": "https://acme-app-staging.example.workers.dev",
+  "production_url": "https://acme-app.example.workers.dev",
   "staging_version": "abc123",
   "prod_version": "def456",
+  "production_sha": "def456",
   "prev_prod_version": "ghi789",
   "last_deploy": "2026-04-01T10:00:00Z",
-  "smoke_results": { "health": "pass", "auth": "pass", "frontend": "pass" },
+  "staging_smoke_results": { "health": "pass", "auth": "pass", "frontend": "pass" },
+  "production_smoke_results": { "health": "pass" },
   "rollback_available": true
 }
 ```
+
+`skill_state` is private to this skill. Anything a sibling needs (the shipped
+version, SHA and prod URL for oc-monitoring-ops; the deploy ticket for incident
+linking) also goes in `progress_summary` or top-level `pm_refs`.
 
 ### Cross-Skill Reads
 
 | Reads from | Why |
 |---|---|
-| oc-code-auditor | Audit grade → deploy gate |
+| oc-code-auditor | Audit grade → deploy gate (step 1) |
+| oc-security-auditor | Posture assessment → deploy gate (step 2) |
+| oc-security-hardening | `.opchain/hardening.yaml` manifest verify → conditional gate row (step 3) |
+| oc-compliance-ops | Evidence bundle for the deploying SHA → conditional gate row (step 4) |
 | oc-app-architect | Phase 6 sprint pass → deploy confidence |
 | oc-git-ops | Branch merged → ready to deploy |
 
+| Read by | Why |
+|---|---|
+| oc-monitoring-ops | What shipped (version, SHA, prod URL) and the deploy ticket in `pm_refs` |
+| oc-release-ops | Last-shipped commit SHA for the release record |
+| oc-git-ops | Deploy status → PR deployment notes |
+| oc-compliance-ops | Deploy SHA the evidence bundle is keyed to |
+| oc-security-hardening | The deploy gate that replays its manifest |
+
 ### Triggered By
 
-Deploy-ops can be invoked directly, but also gets suggested by other skills:
-- **oc-git-ops**: After `/oc-git-sync` completes, oc-git-ops suggests `/oc-deploy staging`
-- **oc-app-architect**: After final Phase 6 sprint passes, oc-app-architect suggests `/oc-audit pre-deploy` → `/oc-deploy staging`
-- **oc-app-architect**: Phase 7 (Launch) suggests the deploy pipeline
+Deploy-ops can be invoked directly, and other skills hand off to it:
+- **oc-git-ops**: after `/oc-git-sync` completes, offers `/oc-deploy audit` then `/oc-deploy staging` and runs them on user confirmation
+- **oc-app-architect**: after the final Phase 6 sprint passes, `/oc-audit pre-deploy` → `/oc-deploy staging`
+- **oc-app-architect**: Phase 7 (Launch) runs the deploy pipeline
+- **oc-release-ops**: `/oc-release ship` runs `/oc-deploy staging`, then `/oc-deploy prod` on user confirmation
+- **oc-migration-ops**: a cutover hands its deploy step here
 
 When triggered by another skill's suggestion, read that skill's checkpoint for context
 (e.g., what was just pushed, what audit results exist) to skip redundant steps.
@@ -590,9 +627,11 @@ deployed commit SHA; oc-deploy-ops compares to local HEAD. Latency check uses
 --deploy=<id>`. Render keeps the prior image hot for ~30s after a swap so
 rollback is fast.
 
-**Audit gate:** `npm run validate-pm-mcp` + `npm run gen-catalog` run via the
-build-time pipeline; for Django projects, replace with
-`pytest && python manage.py check --deploy`.
+**Audit gate:** the project's own lint / type-check / test scripts plus
+`npm audit` for Node services; for Django projects,
+`pytest && python manage.py check --deploy`. (opchain's own build runs
+`npm run validate-pm-mcp` + `npm run gen-catalog`; those scripts exist only in
+the opchain repo.)
 
 ### Heroku (Rails primary, Django alt)
 
@@ -687,65 +726,60 @@ not first-class in v1.3:
 | AWS Lambda | Same | Steep operational ramp; oc-deploy-ops would need dramatically different audit/rollback shape. |
 | Railway | Same | Render covers the same niche; redundant. |
 | Cloud Run | Same | Fly.io covers the same niche with a simpler dev loop. |
-| Bare-metal / VPS | Out of scope | oc-deploy-ops is opinionated about managed deploys; bare-metal needs oc-migration-ops, not oc-deploy-ops. |
+| Bare-metal / VPS / multi-container / IaC | Out of scope | oc-deploy-ops is opinionated about single-app managed deploys; self-managed, multi-node and IaC deploys are oc-fleet-ops (moving a live system onto one is oc-migration-ops). |
 
 A future minor release can promote any of these by adding a scaffold recipe
-in `oc-app-architect/references/scaffold-guide.md` AND a provider section here
+to `oc-app-architect/references/scaffold-guide.md` (in that skill) AND a provider section here
 AND at least one in-action `/demo` scenario.
 
 ---
 
 ## Pack-aware dispatch (v1.4+)
 
-v1.4 introduces the oc-stack-forge pack registry (`skills/oc-stack-forge/packs/<id>/pack.yml`).
-oc-deploy-ops consumes it at **runtime** via `src/lib/pack-dispatch.js` to pick
-the right provider section above without re-implementing the matrix.
+The oc-stack-forge pack registry (`skills/oc-stack-forge/packs/<id>/pack.yml`)
+tells oc-deploy-ops *which* provider section above applies; the Platform Matrix
+stays the source of truth for *how* to deploy. In the opchain repo the lookup is
+`getDispatchTarget(packId)` in `src/lib/pack-dispatch.js`. That module is repo
+source and does not ship with the skill; elsewhere, read the pack files directly.
 
-The contract is intentionally minimal — pack lookups are cheap and the
-Platform Matrix above is the source of truth for *how* to deploy. The pack
-metadata answers *which* matrix row applies.
+### What the registry holds today
 
-### Entry point: `getDispatchTarget(packId)`
+- **Mobile packs** (`ios-swiftui`, `flutter`, `kotlin-android`,
+  `react-native-expo`) declare a platform: `getDispatchTarget` returns e.g.
+  `{ defaultPlatform: "app-store", supportedPlatforms: ["app-store"] }`.
+- **Language packs** (python, ruby, go, rust, typescript, …) declare no platform
+  graph: `getDispatchTarget(<language>)` returns
+  `{ defaultPlatform: null, supportedPlatforms: [] }` for every one of them.
+- **Deploy-target packs** exist for `heroku`, `railway`, `netlify`,
+  `aws-amplify`, `app-store` and `play-store`. There are no `render`, `fly-io`
+  or `shuttle` packs; those platforms are covered only by the provider sections
+  above.
+- `getDispatchTarget` returns `null` when the pack does not exist.
 
-```js
-import { getDispatchTarget } from "../../src/lib/pack-dispatch.js";
+### Resolution order
 
-const target = getDispatchTarget("python");
-// → { defaultPlatform: "render", supportedPlatforms: ["render", "fly-io"] }
-//   (once PR 7 lands the deploy-target packs)
-// → { defaultPlatform: null,    supportedPlatforms: [] }
-//   while deploy-target packs are still pending (v1.4 PR 3 → PR 7 window)
-// → null when the pack does not exist
-```
-
-Resolution order:
-
-1. **Pack hit + populated platforms** — dispatch to the `defaultPlatform`'s
-   provider section. The user can override with `/oc-deploy ... --platform <id>`
-   as long as the override is in `supportedPlatforms`.
-2. **Pack hit + empty platforms** — fall back to the Platform Matrix above
-   keyed by language (Python → Render, Ruby → Heroku, Go → Fly.io, Rust →
-   Shuttle, TypeScript → Cloudflare Workers). This is the v1.4 PR 3-through-6
-   state for the 5 backfilled language packs.
-3. **Pack miss** — caller error. oc-deploy-ops surfaces `unknown pack: <id>`
-   and exits. No fuzzy matching.
+1. **Pack returns a `defaultPlatform`** — use it (the mobile packs today). App
+   Store / Play Store releases are checklist-driven: oc-stack-forge renders the
+   release checklist rather than oc-deploy-ops running commands.
+2. **Pack returns no platform** — fall back to the Platform Matrix keyed by
+   language (the path every language pack takes today). Detect the language from
+   the project root (`pyproject.toml` / `requirements.txt` → Python, `Gemfile` →
+   Ruby, `go.mod` → Go, `Cargo.toml` → Rust, `package.json` + a wrangler config →
+   TypeScript on Workers), then: Python → Render, Ruby → Heroku, Go → Fly.io,
+   Rust → Shuttle, TypeScript → Cloudflare Workers.
+3. **Pack miss** (`null`) — caller error. Surface `unknown pack: <id>` and stop.
+   No fuzzy matching.
 
 ### Worked example — `/oc-deploy staging` on a Python project
 
 ```
 1. /oc-deploy staging
-2. Read pack hint from project's oc-stack-forge.checkpoint.json:
-     activePack: "python"
+2. Detect the language from the project root: pyproject.toml → python
 3. getDispatchTarget("python") → { defaultPlatform: null, supportedPlatforms: [] }
-4. Fall back to language → Platform Matrix:
-     python → Render
+4. Language → Platform Matrix: python → Render
 5. Read the "Render (Django, Node static, Rails alt)" section above.
 6. Run `git push render main`, then `curl /health`, then update PM tickets.
 ```
-
-After PR 7 lands `render`, `fly-io`, `heroku`, `shuttle` as deploy-target
-packs with bidirectional graph entries, step 4 above gets short-circuited:
-the pack's `defaultPlatform` is the answer, no fallback needed.
 
 ### Why runtime read (and not codegen)?
 
@@ -766,7 +800,8 @@ The runtime contract — concrete tool names, retry policy, idempotency
 markers, the `pm_deferred_actions[]` schema, and the extended state
 vocabulary (`staging-verified` / `shipped` / `rolled-back` / `blocked`)
 — lives in
-[`oc-integrations-engineer/references/pm-mcp-protocol.md`](../oc-integrations-engineer/references/pm-mcp-protocol.md).
+`oc-integrations-engineer/references/pm-mcp-protocol.md`, in that skill. It is not bundled
+with this skill: install the full catalog (or oc-integrations-engineer alongside it) to read it.
 **All MCP calls below honour that contract; this section says only how
 oc-deploy-ops shapes the deploy ticket and per-event updates.**
 
@@ -807,7 +842,11 @@ passes:
    - parent / blocked-by relations to each linked ticket, if the
      PM tool supports them.
 6. Record the deploy-ticket id in `oc-deploy-ops.checkpoint.json`
-   `skill_state.pm.deploy_tickets[]`.
+   `skill_state.pm.deploy_tickets[]` (private bookkeeping), and append
+   `{ provider, id, url, role: "deploy", created_by_skill: "oc-deploy-ops" }`
+   to the checkpoint's top-level `pm_refs[]` per the checkpoint protocol's
+   write pattern. `pm_refs` is what sibling skills (oc-monitoring-ops
+   linking an incident to the latest deploy) read.
 
 ### Per-event updates
 

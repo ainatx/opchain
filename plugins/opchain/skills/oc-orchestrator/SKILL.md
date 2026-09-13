@@ -467,7 +467,8 @@ not-started one), following the canonical map in `references/orchestrator.md`
 
 ### Cost / Budget Awareness (v1.6 — the instrumented pipeline)
 
-When `oc-cost-ops` has written a `cost` block to a checkpoint, `/oc-ops next`
+When `oc-cost-ops` has written its `cost` block (it lives only in the oc-cost-ops
+checkpoint, so that is the one checkpoint this can flag), `/oc-ops next`
 factors budget into the ranking as a **tiebreaker within a priority level** (it
 does not override the hierarchy above — a decision blocker still wins). Among
 same-rank items, a checkpoint whose attributed spend has passed its ceiling
@@ -519,18 +520,11 @@ On (Y): oc-orchestrator actively invokes the recommended skill with the right co
 ## Router Engine (`/oc-ops route`)
 
 Smart dispatch for vague or multi-skill requests. This operationalizes the Smart
-Routing Table in `references/orchestrator.md` § 4 — that table is the one copy; route
-from it. This skill adds only the rows it does not carry:
-
-### Routing Table (additions to § 4)
-
-| Intent Signal | Route to | Phase |
-|---|---|---|
-| "threat model this", "security posture review", "is it hardened" | oc-security-auditor | /oc-security posture |
-| "dashboard", "analytics UI", "BI design" | oc-dash-forge | /oc-data-forge |
-| "set up monitoring", "error tracking", "is prod healthy" | oc-monitoring-ops | /oc-monitor setup |
-| "migrate from X to Y", "upgrade to" | oc-migration-ops | /oc-migrate assess |
-| "what should I work on" | oc-orchestrator | /oc-ops next |
+Routing Table in `references/orchestrator.md` § 4 — that table is the one copy, with a
+row for every skill; route from it. This skill adds no rows of its own. The one
+difference in use: when the user asks "what should I work on", answer with
+`/oc-ops next` (the single highest-priority action) after the `/oc-ops status` view
+§ 4 names.
 
 ### Routing Process
 
