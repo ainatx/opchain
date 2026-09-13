@@ -457,6 +457,7 @@ what is specific to oc-prompt-ops.
 |---|---|
 | oc-claude-api | The pinned model ID each prompt/eval runs against |
 | oc-app-architect | `11-ai-architecture.md` — which prompts an app ships, to register goldsets |
+| oc-cost-ops | `cost_per_eval` in `eval.yaml` (measured by `/oc-cost attribute`) → reported beside the score gate |
 
 | Read by | What (from `eval_scores`, `context_primer` and the files — never `skill_state`) |
 |---|---|

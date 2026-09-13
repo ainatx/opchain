@@ -516,7 +516,10 @@ what is specific to oc-git-ops.
 ### Post-Merge Update
 
 Restamp `merged_prs` at sensible inflection points — after a review wave, when a
-release ships, or when a session ends — not once per merge. The single update is:
+release ships, or when a session ends — not once per merge. Where the project has the
+checkpoint CLI, the single update is below; otherwise edit
+`.checkpoints/oc-git-ops.checkpoint.json` directly (append to `skill_state.merged_prs`,
+set `step` and `status`, restamp `updated_at`):
 
 ```bash
 node scripts/checkpoint.mjs update oc-git-ops \
@@ -578,6 +581,17 @@ carries an operator.) Without the CLI, edit `skill_state.merged_prs` directly.
 |---|---|
 | oc-release-ops | `/oc-release ship`: `/oc-git-sync v<semver>` for the release PR, then `/oc-git-release <semver>` after merge |
 | oc-app-architect | All build sprints pass → `/oc-git-sync` |
+| oc-claude-api / oc-prompt-ops | A model-migration or prompt diff with no score regression → `/oc-pr` (the pre-PR gate runs as usual) |
+| oc-modularize-ops | A commit per module extraction → `/oc-commit` |
+| oc-fleet-ops | The IaC for a fleet deploy → `/oc-commit` |
+| oc-migration-ops | Code changes from migration steps → `/oc-git-sync` (suggested) |
+
+| Read by | Why |
+|---|---|
+| oc-release-ops | `skill_state.merged_prs` → "What's new" bullets (a documented sibling key) |
+| oc-deploy-ops | Branch merged → ready to deploy |
+| oc-docs-forge | Branch, commit log, PR draft, linked ticket (passed at the pre-PR handoff) |
+| oc-repo-ops | Branch, base, commit log, PR draft → readiness gate |
 
 ---
 
@@ -592,13 +606,14 @@ node_modules/
 dist/
 build/
 .wrangler/
-*.checkpoint.json.bak  # Archived checkpoints
 .git-ops-config.json   # Local oc-git-ops config
 ```
 
 Do **not** gitignore `.checkpoints/` by default — the checkpoint protocol tracks it
 in git unless the project's protocol says otherwise, and oc-repo-ops enforces that
 policy at the pre-PR gate. Only ignore it when the project has explicitly opted out.
+That includes archived checkpoints: they rotate into the tracked
+`.checkpoints/history/` directory, so there is no `.bak` pattern to ignore.
 
 If `.gitignore` is missing entries, add them in a separate `chore: update .gitignore`
 commit before the feature commits.

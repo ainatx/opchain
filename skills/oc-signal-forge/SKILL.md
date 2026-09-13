@@ -274,12 +274,14 @@ stable read contract*. The moment that number is being **drawn** (dash-forge),
 | `oc-app-architect` (`08-analytics.md`) | the analytics *plan*; signal-forge *executes* it |
 | `oc-stack-forge` | store / warehouse / time-series choice |
 | `oc-api-dev` | if the metric is exposed via a first-party endpoint |
+| `oc-data-ops` | the contracted mart a harvester points at, once one exists (the signal inherits its freshness monitor) |
 
 | Chains to | Why |
 |---|---|
 | `oc-dash-forge` | render the validated signal |
 | `oc-monitoring-ops` | hand off each signal's `freshness_sla` (from `signals/catalog.md`) via `/oc-monitor alerts` so staleness gets a prod alert (signal-forge owns the *contract*, monitoring-ops owns the *alert*) |
 | `oc-api-dev` | publish the metric as an endpoint |
+| `oc-data-ops` | the metric needs an estate-level pipeline that doesn't exist → `/oc-data-ops design` |
 
 > **Open seam:** `oc-app-architect`'s Phase-2 spec set contains `08-analytics.md`, but
 > app-architect does not chain to `oc-signal-forge` — nothing invokes this skill

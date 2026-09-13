@@ -95,7 +95,7 @@ DESIGN BRIEF (from user, oc-app-architect, or prompt)
 │  │  GENERATOR │             │  EVALUATOR  │  │
 │  │            │──artifact──►│             │  │
 │  │  Builds    │             │  Grades     │  │
-│  │  design    │◄──feedback──│  (isolated) │  │
+│  │  design    │◄──feedback──│  (fresh eye)│  │
 │  └────────────┘             └─────────────┘  │
 │       │                           │          │
 │       │    PASS threshold?        │          │
@@ -119,8 +119,8 @@ The same failure modes that plague code generation hit design even harder:
 
 2. **Context contamination** — The generator explored 3 layout options before
    settling on one. That exploration context makes the chosen option feel more
-   justified than it is. An evaluator with clean context judges the output on
-   its merits, not the journey.
+   justified than it is. An evaluator that grades only from the spec and the
+   artifact judges the output on its merits, not the journey.
 
 3. **Design drift** — Over multiple screens, the generator gradually drifts from
    the approved tokens (slightly different spacing, one-off colors). The evaluator
@@ -309,9 +309,10 @@ Key Generator behaviors:
 
 ### Step 3: Design Evaluator QA
 
-The Design Evaluator grades with **isolated context** — it reads the design spec
-and the contract fresh, then evaluates the artifact without seeing the generator's
-exploration or decision process. For the Accessibility criterion, work through
+The Design Evaluator runs in the same session as the Generator, so its separation is
+a discipline, not a mechanism: re-read the design spec and the contract, then grade
+the artifact from those alone — set aside the generator's exploration and decision
+process. For the Accessibility criterion, work through
 `references/ux-audit-checklist.md` (the same checklist oc-code-auditor's `/oc-audit ux` uses).
 
 **Design Evaluator Criteria:**
@@ -715,9 +716,9 @@ violations as sub-tickets parent-linked to the source PR ticket:
 - `priority`: highest tier for CRITICAL, high for SERIOUS.
 - `labels`: `a11y`, `severity:<critical|serious>`,
   `wcag:<criterion>`.
-- `assignee`: `.opchain/pm.yaml` `remediation_owners.frontend` if that
-  optional key is set (it is not in the canonical pm.yaml schema);
-  otherwise unassigned.
+- `assignee`: `remediation_owners.frontend` when `remediation_owners` is
+  set in `.opchain/pm.yaml` (an optional key — see oc-integrations-engineer's
+  pm.yaml example); otherwise unassigned.
 - `body`: violation + offending selector + WCAG criterion +
   suggested fix from axe-core.
 

@@ -214,6 +214,7 @@ Location: `{project-dir}/.checkpoints/oc-qa-ops.checkpoint.json`
 | oc-scale-ops | Receives the load plan for execution |
 | oc-api-dev | Receives contract-test rows for its conformance suite |
 | oc-integrations-engineer | Builds the contract-matrix rows with `owner: oc-integrations-engineer` (consumed third-party boundaries) |
+| oc-code-auditor | Reads the `.opchain/qa.yaml` pyramid + `coverage.overrides` when `/oc-audit test-bootstrap` generates a starter suite |
 
 ## Principles
 

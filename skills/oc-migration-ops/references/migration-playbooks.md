@@ -647,7 +647,9 @@ Add `protocol_version` check to checkpoint reads:
 
 ## Step 3: Update checkpoint.mjs
 
-The shared CLI handles read/write. Update `scripts/checkpoint.mjs` to:
+Where the project has the shared CLI (the opchain repo does), it handles read/write —
+update `scripts/checkpoint.mjs` to the list below. Otherwise the skills edit the JSON
+directly, so fold these rules into Step 4's per-skill writes instead:
   - Write v[N+1] format on new writes
   - Read both v[N] and v[N+1] formats
   - `status` command shows protocol version
@@ -781,7 +783,7 @@ installed copy.
 |---|---|---|
 | All SKILL.md files parse | Extract YAML frontmatter from each | No parse errors |
 | All descriptions present | Grep for `description:` in frontmatter | N/N skills have descriptions |
-| Shared checkpoint CLI valid | `node scripts/checkpoint.mjs validate` | All checkpoints pass schema validation |
+| Shared checkpoint CLI valid | `node scripts/checkpoint.mjs validate` where the project has the CLI; otherwise check each JSON against `references/checkpoint-protocol.md` by hand | All checkpoints pass schema validation |
 | All orchestrator.md identical | `md5sum */references/orchestrator.md` | All checksums match (or document intentional diffs) |
 | Trigger coverage | List all commands across all skills | No collisions, no gaps |
 

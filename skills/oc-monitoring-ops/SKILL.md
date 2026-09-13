@@ -34,7 +34,8 @@ description: >
   "set up monitoring", "error tracking", "uptime check", "alerting", "incident
   response", "observability", "what's happening in prod", "set up Sentry", "logging
   strategy", "on-call", "runbook", "SLO", "SLI", "is prod healthy", "why is it
-  slow", "error rate", "status page".
+  slow", "error rate", "status page". NOT opchain skill-usage metering
+  (oc-telemetry-ops).
 ---
 
 # Monitoring Ops
@@ -720,8 +721,9 @@ ticket. Each remediation sub-ticket carries marker
 in its description and is created via the `create_issue` tool with
 the pre-create check pattern above. Each remediation sub-ticket is
 assigned to the incident ticket's assignee (who reassigns it to the
-owning team), with a target close date. `pm.yaml` defines no per-team
-owner map.
+owning team), with a target close date. This skill does not consult
+`remediation_owners` even when it is set in `.opchain/pm.yaml`; the incident
+assignee routes each item.
 
 ### Alert hygiene
 

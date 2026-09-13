@@ -41,8 +41,8 @@ Tri-agent build harness for Claude Agent SDK apps: the **Planner** decides the
 agent topology (single-agent vs orchestrator-worker vs pipeline vs hierarchical),
 the tool budget, and the harness loop shape → the **Builder** materialises the
 harness, tool allowlist, and termination logic against the Claude Agent SDK → the
-**Evaluator** runs the agent against a task fixture suite with isolated context and
-gates it on task-success / trajectory / tool-efficiency thresholds.
+**Evaluator** runs the agent against a task fixture suite, grading from the fixtures
+and the live run alone, and gates it on task-success / trajectory / tool-efficiency thresholds.
 
 An agent is not "give the model some tools and a while-loop." Every default — how
 many subagents, which tools are in the allowlist, when the loop stops, how much
@@ -129,7 +129,7 @@ AGENT INTENT
 1. **Self-graded agents always pass.** Whoever builds the harness picks the
    topology, the tool list, and the stop condition — then watches it complete one
    happy-path task and calls it done. The Evaluator runs a *fixture suite* (input →
-   known-correct outcome) with isolated context and reports task-success rate,
+   known-correct outcome), grading from the fixtures alone, and reports task-success rate,
    trajectory validity, and tool-efficiency. "It worked when I tried it" is not a
    measurement. See `references/agent-eval.md`.
 
@@ -346,8 +346,9 @@ Implementation discipline:
 
 ### Step 3: Agent Evaluator
 
-The Evaluator runs with **isolated context** — it sees the fixture suite and the
-live agent, not the Builder's harness rationale.
+The Evaluator runs in the same session as the Planner and Builder, so its separation
+is a discipline, not a mechanism: grade from the fixture suite and the live agent
+alone — set aside the Builder's harness rationale.
 
 **Evaluator Persona.** An agent QA engineer who trusts the fixture suite over a
 demo. Key behaviors:
@@ -534,6 +535,7 @@ what is specific to oc-agent-forge.
 | oc-claude-api | Model routing from `context_primer.key_decisions` / `11-ai-architecture.md` (the input) |
 | oc-rag-forge | Retrieval config to wire as a tool (when the agent searches a corpus) |
 | oc-integrations-engineer | Third-party tools (MCP/OAuth) for the allowlist |
+| oc-api-dev | The first-party API spec (`api/openapi.yaml`) as the contract for the agent's own-API tools |
 
 | Read by | Why (siblings read these files and `context_primer`, never `skill_state`) |
 |---|---|

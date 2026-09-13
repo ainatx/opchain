@@ -475,6 +475,7 @@ in `next_actions[0]`. `loop_state` is `open`, `closed` (every CRITICAL/HIGH veri
 | oc-reverse-spec | Stack, architecture, file inventory → skip re-scanning |
 | oc-app-architect | Sprint scores, known issues → don't re-report |
 | oc-stack-forge | Typed pipeline standard → grade against |
+| oc-qa-ops | `.opchain/qa.yaml` pyramid targets (when present) → test-bootstrap levels |
 
 | Read by | Why |
 |---|---|
@@ -485,6 +486,13 @@ in `next_actions[0]`. `loop_state` is `open`, `closed` (every CRITICAL/HIGH veri
 | oc-ux-engineer | Component health → UX audit context |
 | oc-security-hardening | Findings whose fix is a declarative, verifiable control (header, limit, policy) — mark them `route: oc-security-hardening` in the findings report so `/oc-harden fix` executes them and records the manifest entry; the Fixer keeps application-logic fixes (v1.9) |
 | oc-qa-ops | Findings + test-bootstrap output feed `/oc-qa audit`'s gap analysis (v1.9) |
+| oc-security-auditor | Grade + counts → cross-reference, don't duplicate; individual findings from the report or PM sub-tickets |
+| oc-bug-check | Grade + counts → context for what an audit already flagged (per-finding detail is not in the checkpoint) |
+| oc-scale-ops | Performance findings → pre-identified bottlenecks |
+| oc-monitoring-ops | Error-handling gaps → logging instrumentation needs |
+| oc-migration-ops | Pre-existing findings → don't introduce new issues during a migration |
+| oc-modularize-ops | Coupling hotspots → natural seams |
+| oc-cost-ops | Which phase an audit run belongs to, for cost attribution |
 
 ---
 
@@ -530,9 +538,9 @@ to the PR ticket:
 - `title`: `{file}: {one-line finding}`.
 - `body`: file + line + reproduction + suggested fix from the
   finding record.
-- `assignee`: unassigned, unless the project's `.opchain/pm.yaml`
-  defines an owner map by area (`remediation_owners` is not part of the
-  canonical pm.yaml schema; use it only when the project added one).
+- `assignee`: unassigned, unless `remediation_owners` is set in
+  `.opchain/pm.yaml` (an optional owner map by area — see oc-integrations-engineer's
+  pm.yaml example); then use the matching area's owner.
 - Append each sub-ticket to the checkpoint's top-level `pm_refs`
   (`role: child`, `created_by_skill: oc-code-auditor`) in the same write,
   per the bundled checkpoint protocol's `pm_refs` section.
