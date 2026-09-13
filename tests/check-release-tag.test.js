@@ -438,13 +438,31 @@ describe("checkReleaseTag", () => {
 
 describe("release seal integration", () => {
   it("emits a machine-readable reason for release-sequence consumers", () => {
-    const result = spawnSync(process.execPath, ["scripts/check-release-tag.mjs", "--local", "--json"], {
-      cwd: REPO_ROOT,
-      encoding: "utf8",
-    });
+    // --no-fetch: this spawns the real gate as a unit test. `--local` skips the
+    // remote tag lookup but not `git fetch origin --tags`, so without it this
+    // test made a network call inside vitest's default 5 s budget and timed out
+    // once in CI (PR #489, 2026-09-08). The JSON contract under test does not
+    // depend on the fetch; the deploy gate keeps it.
+    const result = spawnSync(
+      process.execPath,
+      ["scripts/check-release-tag.mjs", "--local", "--no-fetch", "--json"],
+      { cwd: REPO_ROOT, encoding: "utf8", timeout: 20_000 },
+    );
+    expect(result.error, "gate script did not finish").toBeUndefined();
     const parsed = JSON.parse(result.stdout);
     expect(parsed).toMatchObject({ ok: expect.any(Boolean), reason: expect.any(String) });
     expect(result.status).toBe(parsed.ok ? 0 : 1);
+  }, 30_000);
+
+  it("keeps --no-fetch out of the deploy path", () => {
+    // The flag exists for tests and offline diagnosis. scripts/deploy.mjs and
+    // scripts/release-sequence.mjs call the gate without it, so a stale local
+    // tag list still cannot bless a deploy.
+    const gate = readFileSync(join(REPO_ROOT, "scripts/check-release-tag.mjs"), "utf8");
+    expect(gate).toContain('fetch: !process.argv.includes("--no-fetch")');
+    for (const consumer of ["scripts/deploy.mjs", "scripts/release-sequence.mjs"]) {
+      expect(readFileSync(join(REPO_ROOT, consumer), "utf8")).not.toContain("--no-fetch");
+    }
   });
 
   it("has the pre-tag release sequence consume the JSON reason unconditionally", () => {
