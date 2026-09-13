@@ -100,6 +100,13 @@ newest `## [x.y.z]` heading in `skills/CHANGELOG.md`. It reads the open hero's
 minor release therefore cannot add its CHANGELOG heading without flipping those
 surfaces in the same PR (§5).
 
+**Unprobed catalog-version prose (patch and minor):** `/architecture` and its mobile
+component also state the full catalog version in running text ("the catalog today is
+33 skills at x.y.z") in `site/src/pages/architecture.astro`,
+`site/src/components/MobileArchitecture.astro` and a `PipelineDiagram.astro` comment.
+No check reads them; grep for the previous version at every cut. (The v1.9.1 surface
+audit caught these still claiming 1.9.0.)
+
 **The tab-count rule (L5):** the count equals the number of release cards
 actually rendered in the Just Released panel (heroes + rel-cards). Never
 increment arithmetically — **recount the rendered cards** at every cut. The
