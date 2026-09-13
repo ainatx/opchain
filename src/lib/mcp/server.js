@@ -141,7 +141,7 @@ export function createMcpServer({ catalog, loadBody, checkpoints, serverVersion 
     {
       name: "write_checkpoint",
       description:
-        "Persist a skill's session checkpoint so progress survives across sessions, per the opchain checkpoint protocol.",
+        "Persist a skill's session checkpoint so progress survives across sessions. Stores the object as given (any JSON object up to 64 KiB); it does not validate it against the opchain checkpoint protocol, so write the shape the protocol documents.",
       inputSchema: {
         type: "object",
         properties: {

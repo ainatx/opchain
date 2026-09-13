@@ -7,7 +7,7 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-commit-gate.cjs",
-            "timeout": 10
+            "timeout": 60
           }
         ]
       }

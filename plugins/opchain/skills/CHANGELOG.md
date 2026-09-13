@@ -1,7 +1,8 @@
 # opchain skills — CHANGELOG
 
-The breaking-change + release log for the opchain skill set. Every skill's
-`governance.breaking_change_policy` points here. Skills are versioned in
+The breaking-change + release log for the opchain skill set. Skills that carry a
+`governance:` frontmatter block (15 of 33; the block is optional) point
+`governance.breaking_change_policy` here. Skills are versioned in
 **lockstep** — one minor bump moves the whole catalog — so entries are per
 release, not per skill.
 
@@ -159,6 +160,27 @@ checkpoint `protocol_version` is tracked separately (see
   fails when a cited verb is undeclared or §7 drifts. oc-code-auditor's description takes §7's routing wording
   back ("escalate to oc-bug-check / oc-security-auditor") and drops "security
   audit", which collided with oc-security-auditor.
+- **oc-checkpoint-protocol matches the tooling.** Staleness is per status (7 days
+  `in_progress`, 14 `complete`, 3 `blocked`), not 7 days regardless; restart archives to
+  `.checkpoints/history/`, as `checkpoint reset` does, instead of a `.bak` file; `status`
+  is documented as not rendering `pm_refs`, which it never did; `doctor --online`
+  compares against the approved release baseline, not local HEAD; `/checkpoint` is
+  described as the prose convention it is; the undefined `resumed_from` field, the
+  nonexistent enterprise scenarios and the pre-1.0 "Today" section are gone; and the
+  Cross-Skill Reads table matches the orchestrator map. The "never read `skill_state`"
+  rule now matches the chain as built: a key its owner documents for siblings (the
+  commit gate's oc-bug-check fields, for one) is a published contract; the rest stays
+  private. The PM-MCP deferred-write fields are listed as optional. `references/INTEGRATION.md`
+  falls back to editing the JSON when the CLI is absent and mirrors oc-app-architect's
+  real gates and progress table.
+- **Commit gate (plugin) — 60-second timeout.** The gate hashes the full working tree on
+  every commit, and a hook killed at the old 10-second limit writes no deny, so a slow
+  repository could commit unchecked. The longer limit narrows that window; a gate run
+  slower than 60 seconds still allows. Nine gate behaviours with no test gained cases
+  (array or invalid checkpoint, `.opchain/` enrolment, `OPCHAIN_GATE=1`,
+  `OPCHAIN_BYPASS=1`, the `verdict` and `verified_for_tree` aliases, `xargs`, `sudo`).
+- **orchestrator.md §7 backfill and the F6 release-surface procedure.** Two post-1.9.0
+  changes to shipped text (#482, #484) that this section never recorded.
 - **Every skill points at its bundled checkpoint protocol.** 29 Checkpoint sections
   never named `references/checkpoint-protocol.md`; they do now.
 
