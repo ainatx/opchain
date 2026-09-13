@@ -31,7 +31,7 @@ This plugin ships the mechanism instead of describing it.
 | Commit gate that actually blocks | ❌ | ✅ |
 | Pipeline state injected at session start | ❌ | ✅ |
 | "What to run next" after a skill finishes | ❌ | ✅ |
-| Real slash commands | ❌ (192 declared, 0 registered) | ✅ |
+| Real slash commands | ❌ (declared in SKILL.md, none registered) | ✅ twelve (below) |
 
 ## Install
 
@@ -39,6 +39,46 @@ This plugin ships the mechanism instead of describing it.
 /plugin marketplace add asfbay-bit/opchain-skills
 /plugin install opchain
 ```
+
+## Registered slash commands
+
+The plugin registers twelve slash commands, one file each in `commands/`:
+
+| Command | Invokes | Runs |
+|---|---|---|
+| `/oc-bugcheck` | oc-bug-check | `/oc-bugcheck run`, then records the tree-bound verdict the commit gate reads |
+| `/oc-commit` | oc-git-ops | the commit, through the gate (run `/oc-bugcheck` first) |
+| `/oc-docs` | oc-docs-forge | `/oc-docs pr`, the PR documentation packet |
+| `/oc-repo` | oc-repo-ops | `/oc-repo audit`, repo hygiene and PR readiness |
+| `/oc-audit` | oc-code-auditor | `/oc-audit`, the Auditor/Fixer/Verifier loop |
+| `/oc-deploy` | oc-deploy-ops | audit gate, then staging, then production |
+| `/oc-release` | oc-release-ops | plan, draft, bump and ship a versioned release |
+| `/oc-ops` | oc-orchestrator | pipeline state reconciled against git, and what to do next |
+| `/oc-qa` | oc-qa-ops | `/oc-qa pyramid` |
+| `/oc-data-ops` | oc-data-ops | `/oc-data-ops design` |
+| `/oc-comply` | oc-compliance-ops | `/oc-comply scope` |
+| `/oc-harden` | oc-security-hardening | `/oc-harden baseline` |
+
+**Why these twelve.** The first eight shipped in v1.8.2 and cover the edges the
+plugin enforces or reports on: the commit gate (`/oc-bugcheck`, `/oc-commit`), the
+pre-PR gate (`/oc-docs`, `/oc-repo`), review and shipping (`/oc-audit`, `/oc-deploy`,
+`/oc-release`), and pipeline state (`/oc-ops`). The Stop hook names these when a
+handoff lands on one of them, so the suggestion is something you can type. v1.9
+added one each for its four new assurance and governed-delivery skills (`/oc-qa`,
+`/oc-data-ops`, `/oc-comply`, `/oc-harden`).
+
+**Every other `/oc-*` verb is not a registered command.** Each skill's `SKILL.md`
+declares its verbs in frontmatter `commands:` (for example `/oc-app`,
+`/oc-discover`, `/oc-git-release`, `/oc-security`, `/oc-monitor`, `/oc-migrate`).
+Those verbs are trigger phrases in the skill's description, not files in
+`commands/`: they do not appear in the slash-command menu. Put the verb or a
+plain-language description of the work in a normal message ("run /oc-git-release
+1.9.1", "tag the release") and the skill whose description matches picks it up.
+When a handoff targets one of those skills, the Stop hook names the skill instead
+of a command (`"run oc-security-auditor"`).
+
+Registering further commands adds capability, so it is out of scope for a patch
+release; it is planned for v2.0.
 
 ## The gates
 
@@ -95,6 +135,12 @@ finishes, names the next one — as something you can type:
 opchain · next → /oc-deploy   (oc-code-auditor just wrote a checkpoint: hand off to oc-deploy-ops for staging)
 ```
 
+The target is the first opchain skill the action names, other than the one that
+just finished. If that skill has one of the twelve commands, the notice shows the
+command; otherwise it names the skill (`"run oc-security-auditor"`). Before v1.9.1
+a handoff to a skill with no command and no checkpoint yet fell back to the skill
+that had just finished.
+
 This is the one mechanism that works *with* the measured evidence instead of
 against it. Skills fire **66%** of the time when a human names them and **5.4%**
 when nobody does; 0 of 54 invocations were autonomous. So this doesn't try to
@@ -144,8 +190,8 @@ misfire — that asymmetry is why it was chosen over `decision: "block"`.
 ## Testing
 
 ```
-node hooks/test-gate.cjs        # 35 cases — commit gate
-node hooks/test-suggestion.cjs  # 13 cases — next-skill suggestion
+node hooks/test-gate.cjs        # 149 cases — commit gate
+node hooks/test-suggestion.cjs  # 19 cases — next-skill suggestion
 ```
 
 The harness distinguishes ALLOW from CRASHED — a hook that throws writes nothing
