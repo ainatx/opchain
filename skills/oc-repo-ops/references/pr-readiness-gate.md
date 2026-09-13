@@ -13,7 +13,8 @@ Repo Ops owns the repository-level gate before Git Ops opens a PR.
 
 Block PR creation when any of these are true:
 
-- `.checkpoints/oc-docs-forge.checkpoint.json` is missing or stale.
+- `.checkpoints/oc-docs-forge.checkpoint.json` is missing or stale — stale meaning
+  its `skill_state.verified_for_sha` is not the HEAD of the branch being verified.
 - The PR draft lacks a `## Documentation` section.
 - README/product docs should change but do not, and no explicit follow-up exists.
 - Generated files are stale or missing relative to source.

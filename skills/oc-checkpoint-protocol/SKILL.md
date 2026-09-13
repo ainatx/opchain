@@ -397,6 +397,7 @@ validate the result. `scripts/checkpoint.mjs` is zero-deps pure Node.
 
 ```bash
 node scripts/checkpoint.mjs status            # "where did I leave off?" — full summary
+node scripts/checkpoint.mjs status <skill>    # one checkpoint; exits 1 when that skill has none
 node scripts/checkpoint.mjs status --brief    # just the top skill + its next action + blockers
 node scripts/checkpoint.mjs status --since=2026-06-01T00:00:00Z   # momentum digest
 node scripts/checkpoint.mjs next              # the SINGLE highest-priority non-stale action
@@ -444,7 +445,13 @@ node scripts/checkpoint.mjs init              # scaffold .checkpoints/ on a fres
 - `--key+=value`    — append to an array (creates if missing)
 - `--key:json=...`  — parse the value as JSON for objects/arrays/numbers
 
+`+` and `:json` combine in either order (`--key:json+=` or `--key+:json=`). An
+append adds its value as **one** element, so pass an object to add one entry. A
+key that still carries an operator after those are read is refused, rather than
+written as a literal key.
+
 The validator runs after every `update`/`done` so you can't silently corrupt a file.
+Timestamps accept `Z` or a numeric offset (`+00:00`); the CLI writes `Z`.
 
 > **Merge-driver caveat (read this).** `.gitattributes` registers a custom merge
 > driver (`scripts/merge-checkpoint.mjs`) that auto-resolves telemetry-only

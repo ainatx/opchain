@@ -87,7 +87,9 @@ Checks:
 
 PR readiness gate. Fail closed on:
 
-- Missing or stale `.checkpoints/oc-docs-forge.checkpoint.json`.
+- Missing or stale `.checkpoints/oc-docs-forge.checkpoint.json`. Stale means its
+  `skill_state.verified_for_sha` is not the HEAD of the branch being verified —
+  the same binding oc-release-ops' verify gate uses for the docs row.
 - Missing `## Documentation` PR body fragment.
 - Required docs update absent from the diff and no explicit follow-up.
 - Catalog/source drift for surfaces affected by the PR.

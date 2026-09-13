@@ -103,15 +103,18 @@ function isTelemetryPath(path) {
 function mergeNode(baseV, oursV, theirsV, path) {
   if (deepEqual(oursV, theirsV)) return oursV;
 
-  // Telemetry — take the newer side wholesale, even if both diverged
-  // from base. Two pre-commit runs racing on `last_run` is not a
-  // semantic conflict.
+  // One side unchanged → the other side's edit wins. This must run BEFORE the
+  // telemetry rule: newer-wins applied first discarded a one-sided telemetry
+  // update whenever the side that made it had the older top-level `updated_at`.
+  if (deepEqual(baseV, oursV)) return theirsV;
+  if (deepEqual(baseV, theirsV)) return oursV;
+
+  // Telemetry — both sides diverged from base, so take the newer side
+  // wholesale. Two pre-commit runs racing on `last_run` is not a semantic
+  // conflict.
   if (isTelemetryPath(path)) {
     return newerSide === "ours" ? oursV : theirsV;
   }
-
-  if (deepEqual(baseV, oursV)) return theirsV;
-  if (deepEqual(baseV, theirsV)) return oursV;
 
   if (isObject(oursV) && isObject(theirsV)) {
     const baseObj = isObject(baseV) ? baseV : {};

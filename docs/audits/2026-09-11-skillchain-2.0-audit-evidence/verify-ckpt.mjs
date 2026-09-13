@@ -42,11 +42,16 @@ const mk = (extra) => JSON.stringify({
   created_at: '2026-09-01T00:00:00Z', updated_at: '2026-09-01T00:00:00Z',
   phase: 'p', step: 's', status: 'complete', progress_summary: 'x', ...extra,
 });
+// The CLI reads OPCHAIN_CHECKPOINTS_DIR, not its cwd. The first version of this
+// probe set only cwd, so it validated the repo's own checkpoints instead of the
+// fixture and wrongly reported offsets as accepted (corrected 2026-09-13).
 const run = (json, label) => {
   writeFileSync(join(dir, '.checkpoints', 'oc-scale-ops.checkpoint.json'), json);
+  const env = { ...process.env, OPCHAIN_ROOT: dir, OPCHAIN_CHECKPOINTS_DIR: join(dir, '.checkpoints') };
   try {
-    const r = execFileSync('node', [join(ROOT, 'scripts/checkpoint.mjs'), 'validate'], { cwd: dir, encoding: 'utf8' });
-    console.log(`  ${label}: ACCEPTED  ${/⚠/.test(r) ? '(with warnings)' : ''}`);
+    const r = execFileSync('node', [join(ROOT, 'scripts/checkpoint.mjs'), 'validate'], { cwd: dir, env, encoding: 'utf8' });
+    const lifecycle = r.split('\n').find((l) => /"blocked" but no blockers|"complete" but blockers/.test(l));
+    console.log(`  ${label}: ACCEPTED  ${lifecycle ? `— warns: ${lifecycle.trim().slice(2, 90)}` : '(no lifecycle warning)'}`);
   } catch (e) {
     const t = ((e.stdout || '') + (e.stderr || '')).split('\n').filter((l) => /✗|error|must|invalid/i.test(l))[0] || 'rejected';
     console.log(`  ${label}: REJECTED  ${t.trim().slice(0, 110)}`);
