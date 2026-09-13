@@ -38,6 +38,19 @@
 //            shape. Fixed: the tree is mandatory at every age, `last_run.verdict`
 //            is read, verdict fields that disagree deny, and the repo's own
 //            sessions run this file.
+//   GATE-07  The wrapper re-scan for `sh -c '…'` failed both ways. It covered
+//            the WHOLE command once a wrapper appeared anywhere, so a quoted
+//            JSON dry-run payload mentioning `git commit`, piped into this
+//            gate, plus an unrelated `sh -c` on the next line was denied as a
+//            commit. And its anchor was looser than the one for `git`, so
+//            `FOO=1 bash -c`, `/bin/sh -c`, `nice sh -c` and `then sh -c` each
+//            ran a commit past the gate. Its prefix grammar also backtracked
+//            exponentially: 26 × `time` outran the hook's 10s timeout, and a
+//            killed hook writes no deny. And `\'` inside single quotes was read
+//            as an escape, hiding `echo 'a\' ; git commit …` in a span bash had
+//            closed. Fixed: the re-scan covers only what the wrapper can run, a
+//            wrapper is found in the same command position as `git`, the prefix
+//            grammar parses one way, and quote spans follow bash's rules.
 //
 // The through-line: every one of these failed OPEN. A gate whose error path is
 // "allow" is a formality, not a gate. Hence rule 0.
@@ -116,15 +129,17 @@ const rawCommand = String((input.tool_input && input.tool_input.command) || "");
 // every structural decision — v1 stripped for the commit match but not for the
 // bypass match, so a commit message could turn the gate off (GATE-01b).
 //
-// Neutralise backslash-escaped quotes FIRST. `-m "he said \" --no-verify \""` is
-// one bash argument, but a naive `"[^"]*"` span ends at the inner escaped quote
-// and leaves `--no-verify` exposed in `stripped` (GATE-01b, round 2). Replacing
-// `\"` and `\'` with a placeholder before the quote pass keeps escaped quotes
-// as message content, not span boundaries.
-const stripped = rawCommand
-  .replace(/\\\n/g, " ")
-  .replace(/\\["']/g, "\x00")
-  .replace(/'[^']*'|"[^"]*"/g, "");
+// Spans follow bash's quoting rules, in one left-to-right pass: outside quotes
+// `\x` is an escaped character; `'…'` has no escapes and ends at the next `'`;
+// `"…"` honours `\`. `-m "he said \" --no-verify \""` is one argument, so a
+// `"[^"]*"` span ending at the escaped quote left `--no-verify` exposed
+// (GATE-01b, round 2). That round's fix — neutralising every `\"` and `\'`
+// before finding spans — was wrong inside single quotes, where bash has no
+// escapes: `echo 'a\' ; git commit -m x ; echo ''` hid a real commit inside a
+// span bash had already closed (GATE-07).
+const SPAN = /\\[\s\S]|'[^']*'|"(?:[^"\\]|\\[\s\S])*"/g;
+const joined = rawCommand.replace(/\\\n/g, " ");
+const stripped = joined.replace(SPAN, (m) => (m[0] === "\\" ? m : ""));
 
 /**
  * Does this command actually INVOKE `git commit`?
@@ -142,21 +157,34 @@ const stripped = rawCommand
 const CMD_POS = String.raw`(?:^|[;&|\n(){]|&&|\|\||\bdo\b|\bthen\b|\belse\b)`;
 const ENVPFX = String.raw`(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*`;
 // Prefix commands that exec git transparently — `nice git`, `stdbuf -oL git`,
-// `time git`, `flock /l git`, `xargs git`. Allow a bounded chain of them, each
-// with its own flags/one value, between command position and git (GATE-04 r2).
-const PREFIX = String.raw`(?:(?:nice|stdbuf|time|setsid|flock|ionice|timeout|env|command|sudo|nohup|xargs)(?:\s+-\S+|\s+[^\s-]\S*)*\s+)*`;
+// `time git`, `flock /l git`, `xargs git`. Allow a chain of them, each with its
+// own flags/values, between command position and git (GATE-04 r2). A value may
+// not itself be a prefix name: if it could, `time time … ls` parses 2^n ways,
+// and 26 of them outran the hook's 10s timeout — a killed hook writes no deny
+// (GATE-07). No match is lost: such a token still parses as the next prefix.
+const PREFIXES = "nice|stdbuf|time|setsid|flock|ionice|timeout|env|command|sudo|nohup|xargs";
+const PREFIX = String.raw`(?:(?:${PREFIXES})(?:\s+-\S+|\s+(?!(?:${PREFIXES})\s)[^\s-]\S*)*\s+)*`;
 // `git`, or an absolute/relative path to it (`/usr/bin/git`) — GATE-04 r2.
 const GIT = String.raw`(?:[^\s;&|()]*/)?git`;
 const GITOPT = String.raw`(?:(?:-[cC]|--git-dir|--work-tree|--namespace|--exec-path)\s+\S+\s+|-[^\s]+\s+|--\S+\s+)*`;
 const GIT_COMMIT = new RegExp(`${CMD_POS}\\s*${ENVPFX}${PREFIX}${GIT}\\s+${GITOPT}commit(?![-\\w])`);
 
-// Wrappers that execute a nested command string (`sh -c '…'`, `eval "…"`).
+// Wrappers that execute nested command text (`sh -c '…'`, `eval "…"`, `… | sh`).
 // That text lives INSIDE quotes, so `stripped` deleted it. For these, re-scan a
 // variant where the quote characters become whitespace — keeping the nested
-// command as syntax rather than discarding it as data. Scoped to wrapper
-// commands only, so an ordinary `-m "…"` message is still treated as data.
-const WRAPPER = /(?:^|[;&|\n(){]|&&|\|\|)\s*(?:sh|bash|zsh|env|eval|xargs|command|sudo|timeout|nohup)\b/;
-const unquoted = rawCommand.replace(/\\\n/g, " ").replace(/['"]/g, " ");
+// command as syntax rather than discarding it as data. A wrapper is found in the
+// same command position as `git` itself (env prefix, `nice`-style prefix, path);
+// a looser anchor let `FOO=1 bash -c`, `/bin/sh -c` and `then sh -c` through.
+const WRAPPER = new RegExp(
+  `${CMD_POS}\\s*${ENVPFX}${PREFIX}(?:[^\\s;&|()]*/)?(?:sh|bash|zsh|env|eval|xargs|command|sudo|timeout|nohup)(?![-\\w])`,
+);
+
+// Position-aligned views of `joined`, built from the SAME spans as `stripped`:
+// `masked` blanks each quoted span (structure only), `unquoted` blanks just the
+// quote characters (nested commands survive as syntax). Because the spans are
+// shared, text outside a span is always visible to the strict matcher.
+const masked = joined.replace(SPAN, (m) => (m[0] === "\\" ? m : " ".repeat(m.length)));
+const unquoted = joined.replace(/['"]/g, " ");
 
 // Inside a wrapper's argument the nested command follows `-c` and whitespace,
 // not a shell separator, so the strict command-position anchor cannot match.
@@ -164,12 +192,67 @@ const unquoted = rawCommand.replace(/\\\n/g, " ").replace(/['"]/g, " ");
 // at any whitespace boundary within it.
 const GIT_COMMIT_LOOSE = new RegExp(String.raw`(?:^|\s)${ENVPFX}${PREFIX}${GIT}\s+${GITOPT}commit(?![-\w])`);
 
-if (
-  !(
-    GIT_COMMIT.test(stripped) ||
-    (WRAPPER.test(stripped) && GIT_COMMIT_LOOSE.test(unquoted))
-  )
-) {
+/**
+ * The simple commands of `masked`, as [start, end, piped]. Split at unquoted
+ * `;` `&` `&&` `|` `||` newline and subshell parens — not at redirections
+ * (`2>&1`, `&>`, `>|`), nor inside `$(…)` `<(…)` `>(…)` or backticks, which
+ * belong to the word they appear in. `piped`: stdin is the previous stage.
+ */
+function simpleCommands(s) {
+  const out = [];
+  let start = 0;
+  let piped = false;
+  let depth = 0;
+  let tick = false;
+  const cut = (i, width, nextPiped) => {
+    out.push([start, i, piped]);
+    start = i + width;
+    piped = nextPiped;
+    return width - 1;
+  };
+  for (let i = 0; i < s.length; i++) {
+    const p = s[i - 1];
+    const c = s[i];
+    const n = s[i + 1];
+    if (c === "`") tick = !tick;
+    if (tick || c === "`") continue;
+    if (c === "(" && (depth > 0 || p === "$" || p === "<" || p === ">")) depth++;
+    else if (c === ")" && depth > 0) depth--;
+    else if (depth > 0) continue;
+    else if (c === "(" || c === ")" || c === ";" || c === "\n") i += cut(i, 1, false);
+    else if (c === "&" && n === "&") i += cut(i, 2, false);
+    else if (c === "&" && p !== ">" && p !== "<" && n !== ">") i += cut(i, 1, false);
+    else if (c === "|" && n === "|") i += cut(i, 2, false);
+    else if (c === "|" && p !== ">") i += cut(i, n === "&" ? 2 : 1, true);
+  }
+  out.push([start, s.length, piped]);
+  return out;
+}
+
+/**
+ * Does a wrapper run `git commit`? The loose re-scan covers only text that
+ * wrapper can execute. It once covered the whole command whenever a wrapper
+ * appeared anywhere, so a quoted JSON dry-run payload mentioning `git commit`
+ * on one line plus an unrelated `sh -c` on the next was denied (GATE-07).
+ *
+ * The scope is the wrapper's own simple command, not just its `-c` argument:
+ * finding that argument means parsing each shell's flags (`-lc`, `-o pipefail
+ * -c`) with a regex — the unwinnable game v3 walked away from. It widens, and
+ * never narrows, where stdin can carry commands in: piped into (`… | sh`) it
+ * covers everything before, since a group, subshell or loop upstream can feed
+ * it; with a here-doc (`sh <<EOF`) it covers everything after, where the body is.
+ */
+function wrapperRunsCommit() {
+  for (const [start, end, piped] of simpleCommands(masked)) {
+    const own = masked.slice(start, end);
+    if (!WRAPPER.test(own)) continue;
+    const scope = unquoted.slice(piped ? 0 : start, own.includes("<<") ? masked.length : end);
+    if (GIT_COMMIT_LOOSE.test(scope)) return true;
+  }
+  return false;
+}
+
+if (!(GIT_COMMIT.test(stripped) || wrapperRunsCommit())) {
   allow();
 }
 

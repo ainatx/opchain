@@ -60,7 +60,9 @@ unless oc-bug-check recorded a PASS *for the tree you are committing*.
   repos with `.checkpoints/` or `.opchain/` are gated (override: `OPCHAIN_GATE=1`).
 - **Command-position matching.** `echo "git commit"` and `grep -rn 'git commit'`
   are not commits. The ancestor matched them by substring; false positives train
-  people to bypass, which costs you the true positives too.
+  people to bypass, which costs you the true positives too. A wrapper
+  (`sh -c '…'`, `eval "…"`, `… | sh`) has its nested text re-scanned, but only
+  the text that wrapper can run — quoted data elsewhere in the call stays data.
 - **UNSUPPORTED ≠ PASS.** A gate that could not read your stack must not report
   green.
 
