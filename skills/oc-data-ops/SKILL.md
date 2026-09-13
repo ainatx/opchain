@@ -170,16 +170,23 @@ appear in the command or evidence.
 Verdict per contract: PASS / PASS (fixtures) / BLOCKED / VIOLATION (with the
 failing check and evidence). Any VIOLATION fails the loop iteration; the
 Builder fixes and re-verifies. BLOCKED does not pass the loop either — an
-unverifiable estate is not a verified one. The Verifier never patches the
-pipeline itself.
+unverifiable estate is not a verified one — but the Builder cannot fix an
+unreachable warehouse, so BLOCKED does not re-enter the loop: record it in
+`blockers[]` (`needs: external_dep`), set `status: blocked`, and hand it to the
+user. Cap VIOLATION rounds at 3, as oc-api-dev and oc-integrations-engineer do,
+then escalate to the user. The Verifier never patches the pipeline itself.
 
 ## Phase 4: Observe (`/oc-data-ops observe`)
 
-Turn the contracts into standing monitors — freshness, volume, and schema-drift
-checks scheduled in whatever the platform provides (dbt source freshness +
-tests on a schedule, warehouse-native checks, or a cron job). Alert routing and
-incident runbooks are **oc-monitoring-ops** territory: hand it the monitor
-inventory via checkpoint and chain to `/oc-monitor` to wire alerting. One
+Turn the contracts into standing monitors — freshness, volume, and
+schema-drift checks scheduled in whatever the platform provides (dbt source
+freshness + tests on a schedule, warehouse-native checks, or a cron job).
+Alert routing and incident runbooks are **oc-monitoring-ops** territory: hand
+it the monitor inventory and chain to `/oc-monitor` to wire alerting. The
+inventory is the set of monitor definitions this phase writes (dbt freshness
+config, scheduled check files) — list their paths in the checkpoint's
+`context_primer.generated_files` and summarise what runs, where, and how often
+in `progress_summary`, the parts of a checkpoint another skill may read. One
 staleness alarm per dataset: a signal built on a contracted mart inherits the
 mart's freshness monitor (oc-signal-forge's `freshness_sla` must be ≥ the
 contract's `max_staleness`); only the contract monitor is handed to
@@ -203,8 +210,8 @@ Loop position lives in `skill_state.loop` (not `progress_table`).
 | Design complete | Sources, layer map, consumer map |
 | Contracts authored | Contract file list, per-dataset scope decisions |
 | Build complete | Datasets built per layer, dbt project location |
-| Verify verdict recorded | Per-contract verdict (PASS / PASS (fixtures) / BLOCKED / VIOLATION) + evidence pointers |
-| Monitors handed off | Monitor inventory + oc-monitoring-ops handoff state |
+| Verify verdict recorded | Verdict counts in `skill_state.contracts`; each VIOLATION / BLOCKED contract named with its failing check in `next_actions` / `blockers[]` |
+| Monitors handed off | Monitor file paths in `context_primer.generated_files` + `handoffs.oc-monitoring-ops` |
 
 ```json
 {
@@ -254,7 +261,7 @@ Loop position lives in `skill_state.loop` (not `progress_table`).
 |---|---|
 | oc-signal-forge | Builds metrics on contracted marts once one exists (single-consumer harvesters stay signal-forge's) |
 | oc-qa-ops | Data-contract rows in the repo's contract-test matrix |
-| oc-compliance-ops | Data contracts + retention behavior cited as register evidence |
+| oc-compliance-ops | Data contracts (schema, freshness, volume, owner) cited as register evidence — the contract format does not model retention, so retention evidence comes from elsewhere |
 
 ## Principles
 
