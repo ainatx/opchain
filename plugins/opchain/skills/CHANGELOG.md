@@ -190,6 +190,15 @@ checkpoint `protocol_version` is tracked separately (see
   baseline. oc-telemetry-ops documents the four verbs `scripts/telemetry.mjs` has;
   oc-signal-forge's Evaluator loop is capped at three rounds like its siblings.
   44 findings fixed, 6 already fixed, 2 deferred to the release tooling.
+- **Build & integrate skills say what they do (Sprint 5b).** oc-modularize-ops,
+  oc-migration-ops and oc-fleet-ops share one named artifact,
+  `modularization/module-map.json`, with its shape written on every side; migration
+  plans the code move for every module and holds only live cutover (and fleet only
+  deploy) until `equivalence_verified`. oc-api-dev's drift check and oc-scale-ops'
+  budgets are described as recommendations oc-deploy-ops does not enforce, and
+  duties oc-monitoring-ops never took on are gone. Sandbox paths, undefined keys and
+  a false "fixtures are gitignored" claim are corrected; abandon archives to
+  `.checkpoints/history/`. 55 findings fixed, 8 already fixed, 7 won't-fix.
 - **orchestrator.md §7 backfill and the F6 release-surface procedure.** Two post-1.9.0
   changes to shipped text (#482, #484) that this section never recorded.
 - **Every skill points at its bundled checkpoint protocol.** 29 Checkpoint sections
