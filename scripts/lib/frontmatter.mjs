@@ -9,7 +9,7 @@
 // full gray-matter API surface isn't needed; this covers exactly what
 // scripts/gen-skills-catalog.mjs and scripts/gen-mcp-catalog.mjs call.
 
-import yaml from "js-yaml";
+import * as yaml from "js-yaml"; // namespace import: js-yaml 5 dropped the default export, v4 keeps the named ones
 
 const DELIM = /^---\r?\n/;
 const CLOSING_DELIM = /\r?\n---\r?\n?/;

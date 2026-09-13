@@ -33,6 +33,19 @@ export function validateBaseline(value) {
   invariant(SHORT_SHA.test(release.sourceShortSha), "release.sourceShortSha must be a short SHA");
   invariant(release.sourceSha.startsWith(release.sourceShortSha), "release short SHA must prefix sourceSha");
 
+  // A reviewed post-release hotfix deployed from main. Optional; when present
+  // the environments were built from this SHA, not the tagged release, and
+  // collectDeployDiff proves it descends from the release and sits on main.
+  const runtime = value.runtime;
+  if (runtime !== undefined) {
+    invariant(runtime && typeof runtime === "object" && !Array.isArray(runtime), "baseline.runtime must be an object when present");
+    invariant(FULL_SHA.test(runtime.sha), "runtime.sha must be a full SHA");
+    invariant(SHORT_SHA.test(runtime.shortSha), "runtime.shortSha must be a short SHA");
+    invariant(runtime.sha.startsWith(runtime.shortSha), "runtime short SHA must prefix runtime.sha");
+    invariant(runtime.sha !== release.sourceSha, "runtime.sha restates the release SHA; drop the runtime block instead");
+    invariant(isNonEmptyString(runtime.approval), "runtime.approval must name the reviewed approval for this post-release runtime");
+  }
+
   const environments = value.environments;
   invariant(environments && typeof environments === "object", "baseline.environments is required");
   for (const name of ["production", "staging"]) {
@@ -72,6 +85,28 @@ export function validateBaseline(value) {
 
 export function readBaseline(path = DEFAULT_BASELINE) {
   return validateBaseline(JSON.parse(readFileSync(path, "utf8")));
+}
+
+/**
+ * The exact commit the recorded environments were built from: the signed
+ * release, or — after a reviewed post-release hotfix — the `runtime` block.
+ * Every consumer that compares "what is live" against "what was approved"
+ * (deploy-diff, deploy.mjs, checkpoint doctor) must use this, not `release`.
+ */
+export function approvedRuntime(baseline) {
+  const { release, runtime } = baseline;
+  if (!runtime) {
+    return {
+      sha: release.sourceSha,
+      shortSha: release.sourceShortSha,
+      label: `${release.tag} (${release.sourceShortSha})`,
+    };
+  }
+  return {
+    sha: runtime.sha,
+    shortSha: runtime.shortSha,
+    label: `${release.tag} (${release.sourceShortSha}) + approved runtime ${runtime.shortSha}`,
+  };
 }
 
 function formatApiErrors(payload) {
@@ -222,21 +257,45 @@ function git(args) {
   return (result.stdout || "").trim();
 }
 
-export function collectDeployDiff(baseline) {
+function isAncestor(run, ancestor, descendant) {
+  try {
+    run(["merge-base", "--is-ancestor", ancestor, descendant]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function collectDeployDiff(baseline, { run = git } = {}) {
+  const { tag } = baseline.release;
   const sourceSha = baseline.release.sourceSha;
-  git(["cat-file", "-e", `${sourceSha}^{commit}`]);
-  const tagRef = `refs/tags/${baseline.release.tag}`;
-  const tagObject = git(["rev-parse", tagRef]);
-  invariant(tagObject === baseline.release.tagObject, `${baseline.release.tag} tag object differs from the approved baseline`);
-  invariant(git(["cat-file", "-t", tagObject]) === "tag", `${baseline.release.tag} is not an annotated tag object`);
-  const taggedSha = git(["rev-parse", `${baseline.release.tag}^{commit}`]);
-  invariant(taggedSha === sourceSha, `${baseline.release.tag} does not peel to the approved runtime SHA`);
-  git(["rev-parse", "--verify", "origin/main"]);
-  git(["merge-base", "--is-ancestor", sourceSha, "origin/main"]);
+  run(["cat-file", "-e", `${sourceSha}^{commit}`]);
+  const tagRef = `refs/tags/${tag}`;
+  const tagObject = run(["rev-parse", tagRef]);
+  invariant(tagObject === baseline.release.tagObject, `${tag} tag object differs from the approved baseline`);
+  invariant(run(["cat-file", "-t", tagObject]) === "tag", `${tag} is not an annotated tag object`);
+  const taggedSha = run(["rev-parse", `${tag}^{commit}`]);
+  invariant(taggedSha === sourceSha, `${tag} does not peel to the approved release SHA`);
+  run(["rev-parse", "--verify", "origin/main"]);
+  invariant(isAncestor(run, sourceSha, "origin/main"), `${tag} (${baseline.release.sourceShortSha}) is not an ancestor of origin/main`);
+
+  // A post-release runtime is only approved as a descendant of the signed
+  // release that is itself on the default branch: never a branch preview,
+  // never a rewrite of what was tagged.
+  const runtime = approvedRuntime(baseline);
+  if (baseline.runtime) {
+    run(["cat-file", "-e", `${runtime.sha}^{commit}`]);
+    invariant(
+      isAncestor(run, sourceSha, runtime.sha),
+      `approved runtime ${runtime.shortSha} does not descend from ${tag} (${baseline.release.sourceShortSha})`,
+    );
+    invariant(isAncestor(run, runtime.sha, "origin/main"), `approved runtime ${runtime.shortSha} is not on origin/main`);
+  }
+
   // Do not filter statuses: deleting a runtime/build input is deploy-relevant too.
-  const output = git(["diff", "--name-only", `${sourceSha}..origin/main`]);
+  const output = run(["diff", "--name-only", `${runtime.sha}..origin/main`]);
   const paths = output ? output.split("\n") : [];
-  return classifyDeployRelevantPaths(paths, baseline.deployLag);
+  return { ...classifyDeployRelevantPaths(paths, baseline.deployLag), baseSha: runtime.sha, baseShortSha: runtime.shortSha };
 }
 
 function option(name) {
@@ -263,9 +322,7 @@ async function runControlPlane() {
       + `version ${result.versionId} at ${result.trafficPercentage}%`,
     );
   }
-  console.log(
-    `\u2713 control-plane baseline matches ${baseline.release.tag} (${baseline.release.sourceShortSha})`,
-  );
+  console.log(`\u2713 control-plane baseline matches ${approvedRuntime(baseline).label}`);
   console.log(
     "Assurance limit: this does not probe custom-domain HTTP responses, latency, assets, dependencies, or /mcp reachability.",
   );
@@ -281,11 +338,18 @@ function runDeployDiff() {
     appendFileSync(process.env.GITHUB_OUTPUT, `has_changes=${result.deployRelevant.length > 0}\n`);
     appendFileSync(process.env.GITHUB_OUTPUT, `changed_count=${result.deployRelevant.length}\n`);
     appendFileSync(process.env.GITHUB_OUTPUT, `ignored_count=${result.nonDeploy.length}\n`);
-    appendFileSync(process.env.GITHUB_OUTPUT, `baseline_sha=${baseline.release.sourceSha}\n`);
+    // baseline_sha is the commit main was diffed against: the runtime when one
+    // is approved, otherwise the release. release_sha/runtime_sha split them.
+    appendFileSync(process.env.GITHUB_OUTPUT, `baseline_sha=${result.baseSha}\n`);
     appendFileSync(process.env.GITHUB_OUTPUT, `baseline_tag=${baseline.release.tag}\n`);
+    appendFileSync(process.env.GITHUB_OUTPUT, `release_sha=${baseline.release.sourceSha}\n`);
+    appendFileSync(process.env.GITHUB_OUTPUT, `runtime_sha=${baseline.runtime ? baseline.runtime.sha : ""}\n`);
   }
   console.log(`approved release baseline: ${baseline.release.tag} (${baseline.release.sourceSha})`);
-  console.log(`deploy-relevant paths on origin/main since baseline: ${result.deployRelevant.length}`);
+  if (baseline.runtime) {
+    console.log(`approved post-release runtime: ${baseline.runtime.sha} — ${baseline.runtime.approval}`);
+  }
+  console.log(`deploy-relevant paths on origin/main since ${baseline.runtime ? "the approved runtime" : "the release"}: ${result.deployRelevant.length}`);
   for (const path of result.deployRelevant) console.log(`  deploy: ${path}`);
   console.log(`explicitly non-deploying paths on origin/main since baseline: ${result.nonDeploy.length}`);
   for (const path of result.nonDeploy) console.log(`  ignore: ${path}`);
