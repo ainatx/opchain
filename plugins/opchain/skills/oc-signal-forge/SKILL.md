@@ -1,7 +1,7 @@
 ---
 name: oc-signal-forge
 displayName: OC · Signal Forge
-version: 1.9.0
+version: 1.9.1
 license: Apache-2.0
 shortDesc: "Question → trustworthy metric: instrument, harvest, prove it answers the question, then wire it. Backend only."
 phases: [build]

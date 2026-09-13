@@ -1,7 +1,7 @@
 ---
 name: oc-git-ops
 displayName: OC · Git Ops
-version: 1.9.0
+version: 1.9.1
 license: Apache-2.0
 shortDesc: Branch, commit, PR, sync, and release-tag workflows. `/oc-git-release` closes the release ledger; PM-aware (v1.3+).
 phases: [build]

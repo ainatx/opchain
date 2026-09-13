@@ -1,7 +1,7 @@
 ---
 name: oc-qa-ops
 displayName: OC · QA Ops
-version: 1.9.0
+version: 1.9.1
 license: Apache-2.0
 shortDesc: "Test-pyramid design: coverage strategy, contract-test planning, load-test planning. Strategy, not execution."
 phases: [plan, build]
