@@ -62,8 +62,8 @@ without manual handoffs.
 
 | skill | role |
 |---|---|
+| `oc-ux-engineer` | Tri-design harness |
 | `oc-reverse-spec` | Code → spec docs |
-| `oc-stack-forge` | Universal stack advisor |
 | `oc-dash-forge` | Dashboards + dense data UI (spec + React prototype) |
 | `oc-scale-ops` | Scaling readiness |
 
@@ -71,10 +71,9 @@ without manual handoffs.
 
 | skill | role |
 |---|---|
+| `oc-stack-forge` | Universal stack advisor |
 | `oc-app-architect` | Unified planning + build harness |
-| `oc-ux-engineer` | Tri-design harness |
 | `oc-docs-forge` | Documentation generator for every PR: PR body/comments, README/catalog docs, changelog, ADR upkeep |
-| `oc-integrations-engineer` | API integration harness (third-party APIs you consume) |
 | `oc-api-dev` | First-party API design + build harness (OpenAPI, versioning, SDKs) |
 | `oc-migration-ops` | `/oc-migrate` — DB / framework / auth / platform migrations |
 | `oc-modularize-ops` | Live-monolith decomposition with golden-fixture equivalence proof |
@@ -95,6 +94,7 @@ without manual handoffs.
 
 | skill | role |
 |---|---|
+| `oc-integrations-engineer` | API integration harness (third-party APIs you consume) |
 | `oc-code-auditor` | Auditor → Fixer → Verifier. 5-layer sweep, pre-deploy gate |
 | `oc-bug-check` | Pre-commit QA gate: type, lint, tests, secrets, build, deps, anti-patterns |
 | `oc-security-auditor` | Threat modeling, OWASP hardening, attack-surface review |
