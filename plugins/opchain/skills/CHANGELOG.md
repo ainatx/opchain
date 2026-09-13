@@ -179,6 +179,16 @@ checkpoint `protocol_version` is tracked separately (see
   slower than 60 seconds still allows. Nine gate behaviours with no test gained cases
   (array or invalid checkpoint, `.opchain/` enrolment, `OPCHAIN_GATE=1`,
   `OPCHAIN_BYPASS=1`, the `verdict` and `verified_for_tree` aliases, `xargs`, `sudo`).
+- **Plan & design skills say what they do (Sprint 5a).** oc-app-architect runs the
+  Design Evaluator itself on UI sprints (`/oc-uxe attach`) instead of waiting for an
+  "auto-attach" nothing performed, and ITERATE/FAIL map the same way on both sides.
+  oc-reverse-spec and oc-dash-forge write inside the project instead of claude.ai
+  sandbox paths; reverse-spec hands off by copying its specs to `spec/` (asking before
+  overwriting) and running `/oc-roadmap`. Spec numbering agrees everywhere (09
+  documentation plan, 10 cost estimate, 11 AI architecture). oc-dash-forge's
+  checkpoint follows the protocol and names its real upstream skills; oc-stack-forge
+  no longer claims app-architect uses its build ordering. oc-ux-engineer's phases are
+  `[plan, build]`, matching its build loop. 70 findings fixed, 7 already fixed.
 - **Gate and assurance skills say what they do (Sprint 5d-1).** oc-bug-check's
   private-key grep actually matches PEM and PGP headers (it was BRE and never
   did); its verdicts are PASS, FAIL or UNSUPPORTED as the commit gate reads them,
@@ -209,6 +219,19 @@ checkpoint `protocol_version` is tracked separately (see
   duties oc-monitoring-ops never took on are gone. Sandbox paths, undefined keys and
   a false "fixtures are gitignored" claim are corrected; abandon archives to
   `.checkpoints/history/`. 55 findings fixed, 8 already fixed, 7 won't-fix.
+- **Ship-side skills and the orchestrator map say what they do (Sprint 5d-2).**
+  oc-release-ops describes the real release order: a minor release flips the probed
+  site surfaces in the release PR with the CHANGELOG heading, before the tag (CI's
+  surface check requires it); a patch keeps product PR → tag → site PR; deploy always
+  follows the tag. Its verify gate splits pre-tag from post-tag checks, its drafts
+  match the hero-card changelog and five-hero rule, and `version-locations.md` is
+  rebuilt from the surface checker. oc-deploy-ops runs the project's deploy script
+  when there is one, detects `wrangler.jsonc`, and hands post-deploy checks to
+  `/oc-monitor health`. A failed `/oc-docs verify` now clears `verified_for_sha`
+  and blocks the PR at oc-repo-ops. oc-git-ops commits the docs edits before the
+  readiness check and records UNSUPPORTED. orchestrator.md carries a routing row
+  for every skill, the "release PR merged → `/oc-git-release`" handoff, and the map
+  rows the other sweeps made stale. 67 findings fixed, 20 already fixed.
 - **orchestrator.md §7 backfill and the F6 release-surface procedure.** Two post-1.9.0
   changes to shipped text (#482, #484) that this section never recorded.
 - **Every skill points at its bundled checkpoint protocol.** 29 Checkpoint sections

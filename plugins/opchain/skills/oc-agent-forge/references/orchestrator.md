@@ -404,7 +404,8 @@ description: >
 # oc-app-architect
 description: >
   Unified app development: idea → spec → design → build with Generator/Evaluator
-  QA loop → launch. Use for /oc-app, /oc-discover, /oc-spec, /oc-design, /oc-build, /oc-launch,
+  QA loop → launch. Use for /oc-app, /oc-discover, /oc-spec, /oc-design, /oc-roadmap,
+  /oc-scaffold, /oc-build, /oc-launch,
   "build me an app", "I have an app idea", or any software project. Chains to (when you invoke it): oc-stack-forge and oc-ux-engineer.
 
 # oc-bug-check
@@ -640,6 +641,7 @@ description: >
 # oc-reverse-spec
 description: >
   Reverse-engineer existing code into spec docs. Use for /oc-rev-spec, /oc-reverse-spec,
+  /oc-rev-full, /oc-rev-scan, /oc-rev-design, /oc-rev-stack, /oc-rev-sprint,
   "document this codebase", "generate specs from code", "backfill specs", or when
   pointing at existing code that needs documentation.
 
@@ -718,7 +720,8 @@ description: >
 description: >
   UI/UX design harness with Design Planner/Generator/Evaluator loop. Use for /oc-uxe,
   "review the UX", "design iteration", "component library", "accessibility audit",
-  "is the UI consistent", or any design quality question.
+  "is the UI consistent", or any design quality question. Routes data-heavy screens
+  (dashboards, BI, analytics) to oc-dash-forge via /oc-uxe dash.
 ```
 
 ---

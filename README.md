@@ -62,7 +62,6 @@ without manual handoffs.
 
 | skill | role |
 |---|---|
-| `oc-ux-engineer` | Tri-design harness |
 | `oc-reverse-spec` | Code → spec docs |
 | `oc-dash-forge` | Dashboards + dense data UI (spec + React prototype) |
 | `oc-scale-ops` | Scaling readiness |
@@ -71,6 +70,7 @@ without manual handoffs.
 
 | skill | role |
 |---|---|
+| `oc-ux-engineer` | Tri-design harness |
 | `oc-stack-forge` | Universal stack advisor |
 | `oc-app-architect` | Unified planning + build harness |
 | `oc-docs-forge` | Documentation generator for every PR: PR body/comments, README/catalog docs, changelog, ADR upkeep |

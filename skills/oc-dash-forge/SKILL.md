@@ -37,7 +37,7 @@ description: >
 
 **On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
 
-Dashboard and dense-information UI designer. Takes data (from data-architect handoff, upstream spec, or direct input) and produces:
+Dashboard and dense-information UI designer. Takes data (from oc-data-ops mart contracts, an oc-signal-forge signal, an upstream spec, or direct input) and produces:
 
 1. **Design spec** — layout, density, component choices, interaction model, design tokens
 2. **Working React prototype** — renderable artifact with mock data, archetype-appropriate viz stack
@@ -49,7 +49,7 @@ Dashboard and dense-information UI designer. Takes data (from data-architect han
 
 ## /oc-data-forge — Command Reference
 
-Entry command: `/oc-data-forge` (or aliases `/oc-dash-forge`, `/dashforge`). Sub-commands use `/df-*` prefix.
+Entry command: `/oc-data-forge` (or alias `/oc-dash-forge`). Sub-commands (the oc-df- family below) are reached from this menu.
 
 ```
 DASH FORGE COMMANDS
@@ -69,11 +69,13 @@ DASH FORGE COMMANDS
   /oc-df-audit       Quality checks (density, legibility, chart fit, a11y)
   /oc-df-status      Checkpoint progress
   /oc-df-resume      Resume from last checkpoint
-  /df-reset       Archive and restart
   /oc-df-variants    Generate 2-3 layout variants for user to choose
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+
+To restart from scratch, archive `.checkpoints/oc-dash-forge.checkpoint.json` (rename it)
+and run `/oc-df-intake`; there is no reset command.
 
 ### `/oc-df-full` behavior
 
@@ -103,13 +105,15 @@ Use when the user already has a frontend team and only needs the design, or when
 
 ## Parent Skill Integration (Checkpoints)
 
-oc-dash-forge can run standalone OR be invoked by oc-ux-engineer (`/oc-uxe dash`) or oc-app-architect (`/oc-design`) mid-flow. In both cases:
+oc-dash-forge can run standalone OR be invoked mid-flow by oc-ux-engineer (`/oc-uxe dash`), oc-app-architect (`/oc-design`), oc-monitoring-ops (`/oc-monitor dashboard`), or oc-signal-forge (`/oc-signal wire`). In every case:
 
 ### Checkpoint coordination
 
 - oc-dash-forge writes its own `oc-dash-forge.checkpoint.json` to `{project-dir}/.checkpoints/`
-- Parent skill's checkpoint adds a `sub_skill_invocations` entry pointing at the oc-dash-forge checkpoint
-- `/status` in either skill reads both and surfaces combined progress
+- oc-dash-forge lists the handoff bundle (`dash-forge-handoff/` files) in its own
+  `context_primer.generated_files`; a parent that needs the bundle reads it there. There
+  is no combined status view — `/oc-df-status` reports this skill's progress, and the
+  parent's own status reports the parent's
 
 ### Context inheritance
 
@@ -117,7 +121,9 @@ On invocation, oc-dash-forge inherits:
 
 | From | Read | Use in |
 |---|---|---|
-| `data-architect-handoff.md` | Schema, top-10 analytics, platform | Phase 0 intake (what data exists) |
+| oc-data-ops `.opchain/data-contracts/*.yaml` | Mart schema, grain, freshness SLA | Phase 0 intake (what data exists) |
+| oc-signal-forge `signals/catalog.md` + consumer stub | Validated metric definition + read contract | Phase 0 intake (what the tile shows) |
+| oc-monitoring-ops ops context packet | Archetype `ops` (pre-selected), data sources, KPIs, refresh cadence | Phase 0 intake + Phase 1 (skip archetype interview) |
 | oc-ux-engineer tokens file | Color/type/spacing tokens | Phase 2 (as constraints, specialize inside) |
 | oc-app-architect style book | Brand palette, component patterns | Phase 2 (align tokens with app) |
 | parent spec.md | User persona, decision context | Phase 0 intake (shortcut) |
@@ -168,13 +174,13 @@ oc-ux-engineer reads this to update its living component library.
 | ≥3 charts or ≥5 KPIs on the same view | General app UI |
 | User mentions "dashboard", "BI", "analytics", "report" | User mentions "app", "page", "component library" |
 | Dense info needs scannability design | Design system / token work |
-| Upstream is data-architect or a data source | Upstream is discovery / spec |
+| Upstream is oc-data-ops, oc-signal-forge, or a data source | Upstream is discovery / spec |
 
 **If both apply** (e.g., a data-heavy feature in a larger app), oc-dash-forge handles the dashboard surface and hands component tokens back to oc-ux-engineer for app-wide consistency.
 
 ---
 
-## The 4-Phase Pipeline
+## The 5-Phase Pipeline (0–4)
 
 ```
 Phase 0: Intake                (adaptive — skim upstream, ask gaps)
@@ -194,14 +200,17 @@ Phase 4: Handoff               (spec + prototype + integration notes)
 
 Before asking anything, **check for upstream context:**
 
-1. Is there an oc-data-ops checkpoint or `.opchain/data-contracts/*.yaml`
-   (v1.9)? Read the mart contracts — schema, grain, freshness SLA — as the
-   authoritative inventory of what data exists; prefer them over
-   `data-architect-handoff.md` when both are present.
-2. Is there a `data-architect-handoff.md` in the project dir? Read it — schema, analytics top 10, platform are all relevant.
-3. Was this called from oc-ux-engineer? Read its design spec / tokens for consistency.
-4. Was this called from oc-app-architect? Read the spec + style book.
-5. Is there a checkpoint from a prior run?
+1. Is there an oc-data-ops checkpoint or `.opchain/data-contracts/*.yaml`?
+   Read the mart contracts — schema, grain, freshness SLA — as the
+   authoritative inventory of what data exists.
+2. Was this called from oc-signal-forge (`/oc-signal wire`)? Read the signal's entry in
+   `signals/catalog.md` and its consumer stub — that is the metric the dashboard renders.
+3. Was this called from oc-monitoring-ops (`/oc-monitor dashboard`)? Its context packet
+   pre-selects the `ops` archetype and lists data sources, KPIs and refresh cadence —
+   honour the pre-selection (skip the archetype interview) and ask only what's missing.
+4. Was this called from oc-ux-engineer? Read its design spec / tokens for consistency.
+5. Was this called from oc-app-architect? Read the spec + style book.
+6. Is there a checkpoint from a prior run?
 
 Skim what exists. Only ask what you don't already know.
 
@@ -216,7 +225,7 @@ Skim what exists. Only ask what you don't already know.
 
 | Context | Questions |
 |---|---|
-| Upstream rich (data-architect + oc-ux-engineer context) | 2–4 |
+| Upstream rich (data contracts or ops packet + oc-ux-engineer context) | 2–4 |
 | Some upstream (one handoff doc or spec) | 4–7 |
 | Standalone, data source known | 7–10 |
 | Standalone, data unclear | 10–15, iterate |
@@ -348,9 +357,11 @@ INTERACTION MODEL
 
 ### Prototype deliverables
 
-1. **Single React artifact** — renderable via `create_file` to `/mnt/user-data/outputs/` with `.tsx` extension
-2. **Mock data file** — separate `mock-data.ts` or inline constant
-3. **README** — brief: what's shown, what's interactive, what's mocked
+1. **Single React artifact** — write `{project-dir}/dash-forge-handoff/prototype.tsx` with
+   your Write tool; record the path in the checkpoint (`skill_state.prototype.artifact_file`)
+2. **Mock data file** — `dash-forge-handoff/mock-data.ts` (plus `types.ts` for its shapes)
+3. **README** — `dash-forge-handoff/README.md`: what's shown, what's interactive, what's mocked
+4. **Audit report** — `dash-forge-handoff/audit-report.md` from the `/oc-df-audit` run
 
 ### Prototype scope
 
@@ -369,10 +380,18 @@ Single artifact for oc-app-architect Phase 6 to build against:
 ```
 {project-dir}/dash-forge-handoff/
 ├── spec.md                 ← design spec + tokens + component inventory
+├── tokens.ts               ← Phase 2 tokens (oc-ux-engineer reads this)
 ├── prototype.tsx           ← React prototype
 ├── mock-data.ts            ← mock data
-└── integration-notes.md    ← how to wire to real data source
+├── types.ts                ← data shapes for mock + real data
+├── README.md               ← what's shown / interactive / mocked
+├── audit-report.md         ← /oc-df-audit result
+├── integration-notes.md    ← how to wire to real data source
+└── components/             ← optional, when the prototype is split (react-patterns.md)
 ```
+
+This is the canonical bundle; `references/checkpoint-schema.md` and
+`references/react-patterns.md` describe the same tree.
 
 **Tell user:** "Hand this to oc-app-architect Phase 6 (`/oc-build`) for build (which decomposes sprints internally)."
 
@@ -393,7 +412,7 @@ Runs on demand and automatically before `/oc-df-prototype` completion.
 | ≤7 series per chart | Or explicit binning note with "+N others" tail |
 | Drill paths declared | Every interactive tile has a declared drill behavior (none/modal/page) |
 | Mock data realism | Passes all four: (1) named entities not "A/B/C", (2) plausible value ranges for the domain, (3) non-uniform distribution with outliers/gaps, (4) row count matches chart type minimums in react-patterns.md |
-| Type ramp | ≤5 sizes across the whole dashboard |
+| Type ramp | ≤4 sizes across the whole dashboard, none below 12px (design-principles.md) |
 | Spacing on scale | All padding/gutter values from 4/8/12/16/24/32/48/64 |
 | Contrast | Body text ≥4.5:1, large text ≥3:1 (spot-check 3 tiles minimum) |
 | Screen reader | Charts have `<title>`/`<desc>` or accompanying data table |
@@ -422,10 +441,12 @@ The shared checkpoint schema, write rules and resume protocol live in
 `references/checkpoint-protocol.md`, bundled with this skill. This section adds only
 what is specific to oc-dash-forge.
 
-**Location:** `{project-dir}/.checkpoints/oc-dash-forge.checkpoint.json`
-Default if unset: `/home/claude/dash-forge-session/`
+**Location:** `{project-dir}/.checkpoints/oc-dash-forge.checkpoint.json`, where
+`{project-dir}` is the root of the project you are designing for (see
+`references/checkpoint-protocol.md`).
 
-**Read `references/checkpoint-schema.md`** for schema.
+**Read `references/checkpoint-schema.md`** for this skill's `skill_state` layout and a
+full example; the envelope (required fields, `next_actions`, `blockers`) is the protocol's.
 
 Write on: phase end, mid-phase intake, user pause, before destructive ops.
 Read on: first action each session, before any phase command, on `/oc-df-status` or `/oc-df-resume`.
@@ -465,9 +486,10 @@ Large artifacts (prototype file, full spec) stored as file pointers, not inline 
 ## Integration
 
 ```
-                           ┌──────────────┐
-data-architect ──handoff──►│  oc-dash-forge  │──handoff──► oc-app-architect (Phase 6 build)
-                           └──────────────┘
+oc-data-ops (contracts) ───┐
+oc-signal-forge (wire) ────┤ ┌──────────────┐
+                           ├►│ oc-dash-forge│──handoff──► oc-app-architect (Phase 6 build)
+oc-monitoring-ops (ops) ───┘ └──────────────┘
                                   ▲
                                   │ routes when UI is data-heavy
                            ┌──────┴───────┐
@@ -480,21 +502,24 @@ data-architect ──handoff──►│  oc-dash-forge  │──handoff──�
                            └──────────────┘
 ```
 
-- **Upstream (common):** data-architect handoff, oc-ux-engineer design referral, oc-app-architect design phase
+- **Upstream (common):** oc-ux-engineer design referral (`/oc-uxe dash`), oc-app-architect design phase (`/oc-design`)
+- **Upstream (data):** oc-data-ops mart contracts; oc-signal-forge validated signal + consumer stub (`/oc-signal wire`); oc-monitoring-ops ops context with archetype pre-selected (`/oc-monitor dashboard`)
 - **Upstream (rare):** direct invocation with just "design me a dashboard"
 - **Downstream:** oc-app-architect Phase 6 build (handles sprint decomposition internally)
 - **Peer:** oc-ux-engineer handles non-data UI; consistent token handoff both ways
 
 ---
 
-## PM-Tool MCP Integration (v1.2+)
+## PM-Tool MCP Integration
 
 Dashboard work is bursty: a single oc-dash-forge run produces a
 substantial handoff bundle (design spec + prototype + component
-inventory + integration notes). v1.2 makes that bundle linkable
+inventory + integration notes). This section makes that bundle linkable
 from the PM tool so oc-app-architect's build phase + reviewers can
-find it without grepping the repo. See `oc-integrations-engineer`
-for the canonical PM-MCP patterns.
+find it without grepping the repo. Every write follows
+`oc-integrations-engineer` and its runtime contract,
+`oc-integrations-engineer/references/pm-mcp-protocol.md`; record each
+ticket this skill comments on in the checkpoint's top-level `pm_refs[]`.
 
 ### Handoff comment on the linked ticket
 
@@ -518,7 +543,7 @@ The thread reads end-to-end.
 ### Archetype-decision record
 
 The archetype pick (Exec vs Ops vs Analyst) is an architectural
-decision. v1.2 records it as a structured comment alongside the
+decision. It is recorded as a structured comment alongside the
 handoff so the next reviewer can see *why* the dashboard looks
 the way it does:
 
@@ -539,7 +564,9 @@ current state. The handoff comment posts only after audit passes.
 - No linked ticket → handoff bundle written to filesystem only.
 - oc-ux-engineer originating ticket missing → post the handoff
   unparented; the user can link it manually if needed.
-- MCP unavailable → log intent to checkpoint as deferred.
+- MCP unavailable → append the intended comment to the checkpoint's
+  `pm_deferred_actions[]` (marker preserved, `retriable` per
+  pm-mcp-protocol.md §4).
 
 ---
 
