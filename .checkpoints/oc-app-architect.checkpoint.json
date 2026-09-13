@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-09-13T03:57:14.777Z",
+  "updated_at": "2026-09-13T05:29:27.733Z",
   "phase": "sprint-plan",
   "step": "v2.0-sprint-plan-approved-blocked-on-oss-split",
   "status": "in_progress",
@@ -80,7 +80,8 @@
       "Series ledger: 'Dogfooding opchain' grew to 5 parts (cost pair joined); July opens 'Seams & Signals in practice' (4 parts: modularize playbook, golden-fixture anatomy, fleet playbook, signal playbook).",
       "Hero rotation relies on newest-featured-wins in blog/index.astro — old featured flags don't need retiring.",
       "Voice: house style per §3 (confident, technical, slightly irreverent, shows the seams) with humor dialed up on user request; every post keeps descriptions 120–160 chars and ≥2 internal links.",
-      "v1.9 adds four skills first (29→33); v2.0 then adds two workflow skills (33→35): oc-hindsight governs operational memory and oc-evolve governs behavior change; both isolate Planner/Generator/Evaluator contexts and end activation at a human gate."
+      "v1.9 adds four skills first (29→33); v2.0 then adds two workflow skills (33→35): oc-hindsight governs operational memory and oc-evolve governs behavior change; both isolate Planner/Generator/Evaluator contexts and end activation at a human gate.",
+      "2026-09-13 (v1.9.1 Sprint 3 reconciliation): Sprint 0-2 done (plan #516, gate stack, #518, #519); prior_release moved from 1.7.0 to the shipped 1.9.0; the unpublished blog post lives in site/drafts/."
     ],
     "generated_files": [
       "site/src/blog/2026-06-25-v1-6-the-instrumented-pipeline.md",
@@ -91,7 +92,7 @@
       "site/src/blog/2026-06-30-how-to-grow-a-protocol-without-breaking-anyone.md",
       "site/src/blog/2026-07-01-27-skills-is-not-too-many.md",
       "site/src/blog/2026-07-02-seo-for-robots-that-arent-googlebot.md",
-      "site/src/blog/2026-07-03-we-deleted-our-deploy-pipeline-on-purpose.md",
+      "site/drafts/2026-07-03-we-deleted-our-deploy-pipeline-on-purpose.md",
       "docs/blog-content-calendar.md",
       "docs/blog-overhaul-plan.md (status header + Wave 3 table updated)",
       "docs/releases/2.0-plan.md",
@@ -114,8 +115,8 @@
     }
   ],
   "next_actions": [
-    "v1.9.1 Sprint 0: plan + audit report PR, owner staging redeploy, owner merges gate PR stack 499-507.",
-    "v1.9.1 Sprints 1-8 per docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md.",
+    "v1.9.1 Sprints 3-6 (live state, cross-skill contracts, per-skill sweeps, reach), each merged to main when CI is green, per docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md.",
+    "v1.9.1 Sprint 7: bump P1-P6 to 1.9.1 and cut the changelog; stop for the owner's signed tag. Sprint 8: site half; stop for the owner's deploy and staging baseline refresh.",
     "After v1.9.1 ships: re-verify the v2.0 plan against the reworked skills, then unpark PRs 490 and 515 at the cut.",
     "v2.0 remains blocked on OSS split Phase C2-C7 (decision D-H); announce the C1 path freeze only after the rework lands."
   ],
@@ -140,11 +141,13 @@
       "demo-search": "branch claude/relaxed-cannon-ut762y (unchanged, still parked)"
     },
     "prior_release": {
-      "version": "1.7.0",
-      "theme": "Seams & Signals",
-      "shipped_at": "2026-06-26",
+      "version": "1.9.0",
+      "theme": "Assurance and governed delivery ops",
+      "tag": "v1.9.0",
+      "sha": "244bf13",
+      "shipped_at": "2026-09-02",
       "status": "live",
-      "next_theme": "v1.8 TBD via /oc-release plan (calendar slot 2026-07-29)"
+      "next": "v1.9.1 'The chain holds' (patch, in progress), then v2.0"
     },
     "oss_split": {
       "plan": "docs/plans/2026-08-22-oss-split-licensing-compliance.md",
@@ -199,7 +202,7 @@
       "vote_policy": "v1.9 and v2.0 are selected/committed and render without vote controls; v2.1-v2.3 render 7 vote controls using preserved GitHub issue ids",
       "superseded": "v1.10 and v1.11 milestones closed after all issues were reassigned",
       "evaluation": "npm test 461/461; Astro check 0 errors/0 warnings; Astro builds 76 pages; Playwright changelog/demo 22/22; checkpoint validation green; full repository build green",
-      "pr": "https://github.com/asfbay-bit/opchain/pull/451 merged as 4b1f7201c5aa76ba92d4888545df77bcb61f5e96 with Worker, site, Playwright, and Lighthouse CI green",
+      "pr": "https://github.com/ainatx/opchain/pull/451 merged as 4b1f7201c5aa76ba92d4888545df77bcb61f5e96 with Worker, site, Playwright, and Lighthouse CI green",
       "staging": "4b1f720 deployed; smoke and health green; deployed HTML verified exact 4/1/3/2/2 grouping and vote ids 1,4,5,2,7,3,6; staging vote #1 incremented; feature request returned STAGING-DRY-RUN",
       "staging_browser_note": "Safari loaded the cache-busted staging URL but its accessibility tree remained trapped in the Resources menu; no browser substitution was used because Safari was an explicit user constraint",
       "production_gate": "awaiting a fresh explicit yes after the refreshed staging evidence; production has not been deployed",
@@ -215,7 +218,7 @@
         "scorecard": "mechanical substrate, not a skill",
         "roadmap_issue": "https://github.com/asfbay-bit/opchain-skills/issues/12 updated",
         "site": "/changelog#v2-0 updated and visually verified",
-        "pr": "https://github.com/asfbay-bit/opchain/pull/454"
+        "pr": "https://github.com/ainatx/opchain/pull/454"
       }
     },
     "roadmap_github_issues": {
@@ -434,7 +437,7 @@
         ],
         "record_correction": "The plan's 'nothing built yet' is false: demo-grade drafts of both v2.0 skills exist on claude/demo-rebuild-2-0 (a0be132, 213d401). They are not the sprint implementations.",
         "open_hazards": [
-          "staging serves 213d401 from the parked demo branch, which shows the 2.0 recolour ahead of the cut contrary to PR 490's own deploy rule; clearing it needs an owner staging deploy from main plus a baseline refresh",
+          "RESOLVED 2026-09-13: staging served 213d401 from the parked demo branch (the 2.0 recolour ahead of the cut); the owner redeployed staging from main (37e2b4b). Remaining: the staging baseline entry refresh.",
           "worktree opchain-2-0-colors-4ad0c6 holds uncommitted edits (20 files, branch claude/demo-scenario-realism-99b27d, based on main) to the eleven walkthroughs the parked demo rebuild retires"
         ]
       }

@@ -4,32 +4,29 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-08-27T23:49:17.485Z",
-  "updated_at": "2026-09-11T04:05:36.049Z",
+  "updated_at": "2026-09-13T05:29:27.733Z",
   "phase": "production",
-  "step": "v1.9-baseline-superseded-by-2026-09-05-production-deploy",
+  "step": "runtime-78567c2-approved-staging-on-main",
   "status": "in_progress",
-  "progress_summary": "Production no longer serves the approved v1.9.0 baseline. opchain.dev/api/health reports 78567c2 (merge of PR #483, 2026-09-05 01:57Z) from Cloudflare deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72; the approved record is 244bf13 at deployment 54ef8a21-0665-4a83-bc1a-5768c2bae0d5. The deploy happened between 01:57Z and the 13:49Z scheduled Canary on Sept 5 and was not followed by a baseline refresh or a checkpoint update. Staging serves fbb24a8, a SHA on no origin branch, so it is an off-main branch preview. The owner confirmed on 2026-09-11 that the 78567c2 deploy was deliberate and is to be blessed. deploy.mjs now ends every deploy with a stale-baseline warning so this cannot go unnoticed again.",
+  "progress_summary": "Production serves 78567c2, approved as the post-release runtime by merged PR #510 (deployment 8da6c19d, version b6268c62), on top of release v1.9.0 (244bf13). Staging was redeployed from main (37e2b4b) on 2026-09-13, so it no longer previews the parked v2.0 demo branch. The staging entry in .github/monitoring/release-baseline.json still records the v1.9.0 staging deployment and the preview note, so the scheduled canary's staging half stays red until it is refreshed.",
   "blockers": [],
   "next_actions": [
-    "Laptop: npx wrangler deployments list --json and versions view for deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72 (version id + script etag), then record them in .github/monitoring/release-baseline.json with sourceSha 78567c2d70e6f00836000e4bd6bbad842ba04a42.",
-    "Laptop: npm run deploy:staging from main@78567c2 so staging stops serving the off-main preview fbb24a8, then record the staging ids in the same baseline update.",
-    "Laptop: node .github/scripts/cloudflare-monitor.mjs control-plane && deploy-diff with credentials, open the baseline PR, dispatch Canary and Deploy lag after merge.",
-    "Retain production predecessor version c55ae124-ff35-4924-80af-00e92bd8879c until the re-baselined state is verified."
+    "Owner, laptop: capture staging's new deployment and version ids (npx wrangler deployments list --env staging --json), record them in .github/monitoring/release-baseline.json, drop pointInTimeEvidence.note, verify with the control-plane monitor, and merge that baseline PR.",
+    "v1.9.1 Sprint 8: deploy the release from main per RELEASING.md §5, after a runtime-scope /oc-audit pre-deploy and an oc-security-auditor posture run or recorded waiver."
   ],
   "skill_state": {
     "current_env": "production",
-    "staging_version": "fbb24a8",
+    "staging_version": "37e2b4b",
     "prod_version": "78567c2",
     "production_sha": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
     "target_version": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
-    "cloudflare_version_id": "unknown until wrangler deployments list runs on the laptop",
+    "cloudflare_version_id": "b6268c62-48e8-4c30-a0c6-fea074ae260c",
     "cloudflare_deployment_id": "8da6c19d-a89a-4214-8e58-4606c7ce2f72",
-    "staging_cloudflare_version_id": "d07bb08a-9662-4e77-a2a1-673fc0c7a8a5",
-    "staging_cloudflare_deployment_id": "791c1851-2b81-4408-b881-dac381fa6d07",
+    "staging_cloudflare_version_id": null,
+    "staging_cloudflare_deployment_id": null,
     "staging_url": "https://staging.opchain.dev",
     "production_url": "https://opchain.dev",
-    "branch_preview": true,
-    "last_deploy": "2026-09-02T20:11:25.746861Z",
+    "branch_preview": false,
     "source_pr": 483,
     "audit_gate": {
       "critical": 0,
@@ -37,7 +34,8 @@
       "scope": "exact merged and tagged v1.9 SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
       "result": "PASS",
       "independent_review": "SHIP",
-      "hardening_manifest": "PASS — 45 MCP tests and 6 retention tests"
+      "hardening_manifest": "PASS — 45 MCP tests and 6 retention tests",
+      "historical": "Applies only to the v1.9.0 release SHA 244bf13. It is not evidence for any later deploy."
     },
     "staging_smoke_results": {
       "health": "PASS — HTTP 200 with ok:true and exact version 244bf13",
@@ -152,7 +150,10 @@
         34359976498,
         34363685054
       ]
-    }
+    },
+    "last_release_deploy": "2026-09-02T20:11:25.746861Z",
+    "last_runtime_deploy": "2026-09-05T02:24:00Z",
+    "staging_note": "Owner redeployed staging from main (37e2b4b) on 2026-09-13, retiring the claude/demo-rebuild-2-0 preview. The new deployment and version ids were not captured in this session; the v1.9.0 ids 791c1851/d07bb08a no longer describe staging."
   },
   "progress_table": [
     {
@@ -167,13 +168,23 @@
     },
     {
       "id": "baseline-refresh",
-      "label": "release-baseline.json refreshed to deployment 8da6c19d (laptop, needs credentials)",
-      "status": "blocked"
+      "label": "release-baseline.json runtime block records deployment 8da6c19d (PR #510)",
+      "status": "complete"
     },
     {
       "id": "staging-realign",
-      "label": "staging redeployed from 78567c2 instead of the off-main preview fbb24a8",
-      "status": "blocked"
+      "label": "staging redeployed from main (37e2b4b) instead of the off-main preview",
+      "status": "complete"
+    },
+    {
+      "id": "staging-baseline",
+      "label": "staging deployment/version ids recorded in release-baseline.json (owner, laptop)",
+      "status": "not_started"
     }
-  ]
+  ],
+  "context_primer": {
+    "key_decisions": [
+      "2026-09-13 (v1.9.1 Sprint 3 reconciliation): the three laptop re-baseline actions were completed by merged PR #510 and removed; version id placeholder replaced; staging facts updated after the owner's redeploy."
+    ]
+  }
 }

@@ -3,11 +3,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-11T04:15:19.039Z",
+  "updated_at": "2026-09-13T05:22:30.740Z",
   "skill": "oc-repo-ops",
   "phase": "pr-verify",
   "status": "complete",
-  "step": "claude/lhci-ci-failures-analysis-s525xz",
+  "step": "pr-498-merged-packet-retired",
   "progress_summary": "Pre-PR readiness PASS for the CI-failure analysis branch at 3a662ab30fa9ad1ea1c150ac533efda19909ce56. The Docs Forge packet carries the Documentation section. npm run build ran the full prebuild chain (gen-catalog 33 skills, check-skill-flags, sync-bundles:check, sync-plugin-skills:check, lint-internal-refs) clean; vitest 45 files / 598 tests; astro check 0 errors; deploy-lag.yml parses and its safety pins hold; the OG images the sandbox build regenerated were restored, not committed; no related untracked file left behind.",
   "context_primer": {
     "key_decisions": [
@@ -16,7 +16,8 @@
       "Production Lighthouse and the release ledger retain manual dispatch and move to weekly Monday schedules.",
       "Historical plans and changelogs remain point-in-time records; current operator docs and specs were updated.",
       "No catalog, skill bundle, plugin payload, release seal, deployment, or runtime code changes are in scope.",
-      "The implementation commit and DCO signoff are attributed to ainatx so scheduled workflow ownership can follow the new repository owner."
+      "The implementation commit and DCO signoff are attributed to ainatx so scheduled workflow ownership can follow the new repository owner.",
+      "2026-09-13 (v1.9.1 Sprint 3 reconciliation): the PR #498 packet verified a pre-squash branch tip that never reached main; the PASS is kept as history in skill_state.last_verified_pr and no longer offered as a current verified_for_sha."
     ],
     "generated_files": [
       ".checkpoints/oc-repo-ops.checkpoint.json"
@@ -33,13 +34,19 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "3a662ab30fa9ad1ea1c150ac533efda19909ce56",
     "last_verify": {
       "at": "2026-09-11T04:15:18Z",
       "branch": "claude/lhci-ci-failures-analysis-s525xz",
       "base": "origin/main@02776fecf380fdb83389a480d2c5b3d65fee60e4",
       "verdict": "PASS",
       "blocking_findings": []
+    },
+    "last_verified_pr": {
+      "pr": 498,
+      "branch": "claude/lhci-ci-failures-analysis-s525xz",
+      "branch_tip_sha": "3a662ab30fa9ad1ea1c150ac533efda19909ce56",
+      "merged_as": "ffad47c",
+      "merged_at": "2026-09-11T08:18:21Z"
     }
   },
   "next_actions": []

@@ -3,10 +3,10 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-13T05:12:21.117Z",
+  "updated_at": "2026-09-13T05:23:20.855Z",
   "skill": "oc-release-ops",
   "phase": "plan-approved",
-  "step": "v1.9.1-sprint-2-in-review",
+  "step": "v1.9.1-sprint-3-in-review",
   "status": "in_progress",
   "progress_summary": "v1.9.0 remains shipped and live. A v1.9.1 patch release is proposed to ship the fixes from the 2026-09-11 skill-chain audit (484 upheld findings, 11 CRITICAL). Plan: docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md. Proposed semver v1.9.1 by decision-tree rule 10 under a patch-scope rule (fixes and doc corrections only; additive work moves to v2.0); the close call is rule 5, since sixteen documented subcommands become indexed in frontmatter, which would make it v1.10.0 on a strict reading. Proposed theme 'The chain holds'. Release surfaces for a patch: P1-P7 product half, then L4 (open hero range + v1-9-1 rel-card), L5 recount and L7 styleguide badge in the site half; L1-L3, L6, L8-L10 and forward surfaces do not move. The v2.0 recolour (PR 490) and demo rebuild (PR 515) are parked as drafts until after this release.",
   "progress_table": [
@@ -65,7 +65,8 @@
       "The 16 legacy production checkpoint records were incompatible with signed sessions and were irreversibly deleted only after the hardened production runtime was verified.",
       "Every deploy must use the exact fetched origin/main commit. Production has no branch escape hatch.",
       "Production post-activation verification failure automatically rolls back to the captured prior 100%-traffic version ID.",
-      "Compliance is readiness and evidence only; no compliance framework is activated because .opchain/compliance.yaml is absent."
+      "Compliance is readiness and evidence only; no compliance framework is activated because .opchain/compliance.yaml is absent.",
+      "2026-09-13 (v1.9.1 Sprint 3 reconciliation): pm_refs provider normalised to the documented github-issues with URLs; monitoring status no longer claims a re-baseline is pending."
     ],
     "generated_files": [
       ".opchain/qa.yaml",
@@ -79,37 +80,41 @@
   },
   "blockers": [],
   "next_actions": [
-    "Sprint 2: land the checkpoint-tooling PR once the isolated evaluator passes and CI is green.",
+    "Sprint 3: land the live-state PR once the isolated evaluator passes and CI is green.",
     "Owner: refresh the staging entry in .github/monitoring/release-baseline.json so the scheduled canary's staging half goes green.",
-    "Sprint 3 (live state) next: reconcile the drifted checkpoints until doctor reports zero warnings, then make its CI step fail on warnings."
+    "Sprint 4 (cross-cutting contracts) next: declare the 16 subcommands in frontmatter, repoint /oc-rollback and /oc-git-commit, fix the orchestrator map and regenerate section 7, point each skill at its bundled protocol, add the four v1.9 README rows, add CI checks for verbs and section 7."
   ],
   "pm_refs": [
     {
-      "provider": "github",
+      "provider": "github-issues",
       "id": "8",
-      "role": "source"
+      "role": "source",
+      "url": "https://github.com/asfbay-bit/opchain-skills/issues/8"
     },
     {
-      "provider": "github",
+      "provider": "github-issues",
       "id": "9",
-      "role": "source"
+      "role": "source",
+      "url": "https://github.com/asfbay-bit/opchain-skills/issues/9"
     },
     {
-      "provider": "github",
+      "provider": "github-issues",
       "id": "10",
-      "role": "source"
+      "role": "source",
+      "url": "https://github.com/asfbay-bit/opchain-skills/issues/10"
     },
     {
-      "provider": "github",
+      "provider": "github-issues",
       "id": "11",
-      "role": "source"
+      "role": "source",
+      "url": "https://github.com/asfbay-bit/opchain-skills/issues/11"
     }
   ],
   "skill_state": {
     "current_release": {
       "semver": "1.9.1",
       "theme": "The chain holds",
-      "phase": "sprint-2",
+      "phase": "sprint-3",
       "plan": "docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md",
       "source": "docs/audits/2026-09-11-skillchain-2.0-audit.md",
       "started_at": "2026-09-12",
@@ -196,6 +201,11 @@
           "pr": 518,
           "sha": "b9b48a4",
           "what": "GATE-11 tracked checkpoints, git-sync gate order, bypass wording — Sprint 1 complete"
+        },
+        {
+          "pr": 519,
+          "sha": "5bbff3f",
+          "what": "checkpoint tooling tells the truth (Sprint 2)"
         }
       ],
       "staging": "main (owner redeployed 2026-09-13; staging baseline entry still describes the old demo preview)",
@@ -221,6 +231,10 @@
         "not_taken": [
           "N-1-34 SHA-in-history stale-action detector: would flag legitimate actions naming merged-but-undeployed commits and block the doctor ratchet"
         ]
+      },
+      "sprint_3": {
+        "scope": "live checkpoint state reconciled against git, GitHub and both environments; oc-orchestrator, oc-stack-forge, oc-cost-ops archived to .checkpoints/history/; CI doctor step blocks on errors",
+        "decision": "doctor blocks on errors only, not warnings: warnings depend on the calendar, the machine and git history and would redden unrelated PRs. Count taken to zero instead."
       }
     },
     "prior_release": {
@@ -251,7 +265,7 @@
     },
     "release_pr": {
       "number": 477,
-      "url": "https://github.com/a-atx/opchain/pull/477",
+      "url": "https://github.com/ainatx/opchain/pull/477",
       "merge_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
       "merged_at": "2026-09-02T19:27:32Z",
       "required_checks": "PASS"
@@ -270,10 +284,10 @@
     "publisher": {
       "preflight": "PASS",
       "preflight_run_id": 33673476599,
-      "preflight_url": "https://github.com/a-atx/opchain/actions/runs/33673476599",
+      "preflight_url": "https://github.com/ainatx/opchain/actions/runs/33673476599",
       "tag_run": "PASS",
       "tag_run_id": 33677209947,
-      "tag_run_url": "https://github.com/a-atx/opchain/actions/runs/33677209947",
+      "tag_run_url": "https://github.com/ainatx/opchain/actions/runs/33677209947",
       "registry_status": "active-and-latest-exact",
       "published_at": "2026-09-02T20:05:41.073493Z",
       "server_name": "io.github.asfbay-bit/opchain-skills"
@@ -331,7 +345,8 @@
       "deploy_lag_run_id": 33686714194,
       "deploy_lag_conclusion": "success",
       "deploy_relevant_paths": 0,
-      "continuous_status": "stale since 2026-09-05: production moved to 78567c2 without a baseline refresh; re-baseline pending on the laptop"
+      "continuous_status": "production re-baselined by PR #510 (runtime 78567c2 on release v1.9.0); staging redeployed from main 2026-09-13, staging baseline entry not yet refreshed",
+      "runtime_pull_request": 510
     },
     "post_release_drift": {
       "detected_at": "2026-09-11T03:45:00Z",
