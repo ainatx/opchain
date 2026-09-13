@@ -97,7 +97,8 @@ RELEASE TRIGGER
         ▼
 ┌───────────────┐  rewrites every skills/<id>/SKILL.md `version:` field +
 │   /oc-release    │  the release-coupled site surfaces (release bar, header
-│   bump        │  chip, badges); commits as one atomic change.
+│   bump        │  chip, badges) — one atomic change for a minor; a
+│               │  patch's site rows follow the tag in a site PR.
 └───────┬───────┘
         │
         ▼
@@ -220,8 +221,8 @@ Atomic version bump across the catalog.
   - **Minor:** the bump PR also flips every probed live-claim surface (header
     chip, release bar, stat chip, open hero + aging, Skill Library callout,
     styleguide badge, architecture labels) and recounts the tab, before the tag.
-    A PR that adds the heading without them fails CI. v1.9.0 did this: #476,
-    then the tag on #477.
+    A PR that adds the heading without them fails CI. Tag and deploy in the same
+    sitting; v1.9.0's #476 sat a day before the tag landed on #477.
   - **Patch:** the bump is a product-only PR (the major.minor line does not
     change). After the tag, a site PR carries the patch-only surfaces: the open
     hero's range + a patch `rel-card`, the tab recount, and the styleguide
@@ -229,10 +230,12 @@ Atomic version bump across the catalog.
 
 ### Atomicity
 
-The bump is one git commit (or a single file write batch in a Claude Code
-session). Partial bumps leave the catalog in a state where
+For a minor release the bump is one git commit (or a single file write batch in
+a Claude Code session). Partial bumps leave the catalog in a state where
 `scripts/gen-skills-catalog.mjs` may still validate but the homepage and
-styleguide disagree on version — confusing to readers. Always run
+styleguide disagree on version — confusing to readers. For a patch, the styleguide
+and changelog range lagging the catalog between the tag and the site PR is
+intended, not a partial bump. Always run
 `/oc-release bump` end-to-end; if it fails midway, revert and retry.
 
 ### What is NOT bumped

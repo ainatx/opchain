@@ -1,6 +1,7 @@
 # Version locations in the opchain repo
 
-`/oc-release bump` rewrites every location below in lockstep. If you add a
+`/oc-release bump` rewrites every location below in lockstep for a minor release;
+for a patch, the site rows move in the site PR after the tag. If you add a
 new place that displays a version string, add it here AND to the probes in
 `scripts/check-release-surfaces.mjs` (pinned by `tests/release-surfaces.test.js`).
 The skill-catalog half is checked by `scripts/check-release-tag.mjs`, which

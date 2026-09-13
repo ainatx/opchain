@@ -33,7 +33,8 @@ to major.minor. This is the same rule as opchain's RELEASING.md governance doc, 
   CHANGELOG heading **together with** every probed live-claim surface (L1–L3, the
   L4 open-hero promotion + aging, L6, L7, L8–L10), plus the L5 recount. A PR that
   adds the heading without the flips fails CI. Merge → `/oc-git-release` tag →
-  deploy. v1.9.0 did this: #476, then the tag on #477.
+  deploy, in one sitting. v1.9.0 shows why: #476 carried the bump and flips together,
+  but the tag and deploy landed a day later on #477.
 - **Patch release (vN.N.x):** the major.minor line does not change, so the split
   holds: a **product PR** (version bump + CHANGELOG entry) → tag → a **site PR**
   with the patch-only surfaces (L4 range extension + patch `rel-card`, L5
