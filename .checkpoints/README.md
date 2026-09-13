@@ -101,7 +101,7 @@ One vocabulary, used by `checkpoint` output and the oc-orchestrator alike:
 | ⏳ | not_started |
 | 🚫 | blocked (has an open blocker) |
 | ⛔ | a decision is waiting on **you** (`blockers[].needs: user_decision`) |
-| ⚠ | stale / drift (e.g. in_progress and untouched >7 days) |
+| ⚠ | stale / drift (untouched >7 days while in_progress, >14 while complete, >3 while blocked) |
 
 ## Merge driver
 
