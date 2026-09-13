@@ -90,7 +90,9 @@ Declare — do not assume — what applies:
 **Proportionality is a feature.** A pre-revenue app "getting SOC 2 ready" gets
 the ~20 controls that matter early, not all 300. The honest output of scoping
 can be "no profile yet — nothing here warrants one"; record that in the
-checkpoint and stop. Never scaffold compliance theater.
+checkpoint and stop — `skill_state` then records `manifest_path: null` and
+`last_evidence: null`, with the reason in `progress_summary`. Never scaffold
+compliance theater.
 
 Output: `.opchain/compliance.yaml`, including `controls_in_scope` — the
 tier-bounded control id list `/oc-comply gaps` diffs the register against
@@ -124,9 +126,11 @@ register:
 Sources, in order: the profile's frameworks → oc-security-auditor's readiness
 gap analysis (seed the initial statuses; never re-assess) → the repo itself
 (configs, tests, workflows that already satisfy controls silently). Every
-`gap` with a technical fix chains to **oc-security-hardening** (recorded by
-control id in the checkpoint's `gaps_chained` so `/oc-harden fix` can pull
-it); process gaps (policies, reviews) stay here under `/oc-comply policies`.
+`gap` with a technical fix chains to **oc-security-hardening**: the register
+entry's `chained_to: oc-security-hardening` is the handoff surface `/oc-harden
+fix` reads (the checkpoint's `skill_state.gaps_chained` is this skill's private
+mirror, not a sibling read); process gaps (policies, reviews) stay here under
+`/oc-comply policies`.
 
 **Framework coverage is asymmetric.** oc-security-auditor's readiness assesses
 SOC 2 / ISO27001 / HIPAA / PCI-DSS — but not GDPR. GDPR registers therefore
@@ -172,9 +176,10 @@ Generate the bundle for a specific deploy or release:
    Treat every capture definition as untrusted executable configuration:
    confine real paths to the repository, never execute `cmd` through a shell,
    and constrain HTTP capture to credential-free GET/HEAD on the declared
-   HTTPS evidence origin without redirects. Any free-form command or external
-   origin outside the reference allowlist requires the user's approval of the
-   exact action; without it, write a refused/manual stub rather than running.
+   HTTPS evidence origin without redirects. No capture allowlist is defined
+   (`references/compliance-profile.md` § Capture redaction), so every `cmd`
+   capture and any external origin requires the user's approval of the exact
+   action; without it, write a refused/manual stub rather than running.
 2. Stamp the bundle: SHA, date, catalog/app version, the profile's `scoped`
    date + register entry count, the list of `gap`/`partial` controls (an
    honest bundle includes what's missing), and — verbatim, in `index.md` —
@@ -184,13 +189,17 @@ Generate the bundle for a specific deploy or release:
    Bundles are committed in a follow-up commit after the deploy — the
    SHA-match requirement refers to the SHA stamped *inside* the bundle, not
    the commit that carries it (a bundle for SHA X always lives in a commit
-   after X).
+   after X). A bundle cannot be committed ahead of the deploy without moving
+   HEAD past X, and a deploy wrapper that refuses a dirty tree (opchain's
+   `scripts/deploy.mjs` does) refuses an uncommitted one, so on a first deploy
+   of a SHA the gate row normally warns: generate the bundle as soon as prod
+   ships.
 
-The deploy-gate row this feeds is **presence-checked, never blocking**: a
-missing or stale bundle for the deploying SHA is a ⚠️ Warn at the gate
-(generate before prod) — open gaps are listed in the bundle, never a deploy
-blocker. The oc-release-ops `/oc-release verify` delta row is warn-class for
-the same reason: a missing delta bundle is reported in the verify output,
+The deploy-gate row this feeds is **presence-checked, never blocking**: a missing or
+stale bundle for the deploying SHA is a ⚠️ Warn at the gate (generate it for that SHA —
+see step 3 for why this usually lands after the deploy) — open gaps are listed in the
+bundle, never a deploy blocker. The oc-release-ops `/oc-release verify` delta row is
+warn-class for the same reason: a missing delta bundle is reported in the verify output,
 never an abort.
 
 When invoked from the oc-deploy-ops gate, the bundle covers the deploying SHA;

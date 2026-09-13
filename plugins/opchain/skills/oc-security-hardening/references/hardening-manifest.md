@@ -66,7 +66,7 @@ controls:
 | `http` | Fetch `url` (relative to the deploy target), optionally with `request_method: POST` + a literal `json` mapping; assert `header`/`expect`, `status`, `body_contains`, and/or a runner-supported `response_shape` | FAIL — blocks |
 | `test` | Run `cmd`; exit 0 = pass | FAIL — blocks |
 | `config` | Assert a file contains/matches (`path`, `contains` or `pattern`) | FAIL — blocks |
-| `manual` | Cannot be machine-verified; carries `instructions` + `last_manual_check` | **Loud skip** — printed with age of last check; blocks only if `max_age_days` set and exceeded |
+| `manual` | Cannot be machine-verified; carries `instructions` + `last_manual_check` | **Loud skip** — printed with its `instructions`; blocks only if `max_age_days` set and exceeded (the failure then states the age) |
 
 **`http` timing soundness:** an `http` check verifies a *currently live*
 target, never the deploying SHA. All HTTP checks are therefore loud skips in
@@ -110,8 +110,9 @@ Rules:
   checkable) or genuinely `manual` (allowed, but permanently visible as the
   weak spot it is).
 - `id` is dot-namespaced; established families: `headers.*`, `csp.*`, `api.*`,
-  `platform.*`, `secrets.*`, `deps.*`, and `detect.*` (detection-class
-  controls, consumed by oc-monitoring-ops for alert/runbook mapping).
+  `platform.*`, `secrets.*`, `deps.*`, `data.*` (retention / data-handling
+  controls), and `detect.*` (detection-class controls, consumed by
+  oc-monitoring-ops for alert/runbook mapping).
 - A manifest that exists but cannot be parsed, or contains a control with a
   missing/unknown `verify` method, is a **FAIL-class gate result** (fail
   closed) — the gate reports the schema error, never skips it. A `csp.stage`
