@@ -3,7 +3,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-13T03:57:14.732Z",
+  "updated_at": "2026-09-13T04:00:22.588Z",
   "skill": "oc-release-ops",
   "phase": "plan-approved",
   "step": "v1.9.1-plan-approved-sprint-0",
@@ -79,9 +79,10 @@
   },
   "blockers": [],
   "next_actions": [
-    "Sprint 0: land the plan + audit report PR; owner redeploys staging from origin/main and refreshes the staging baseline entry; owner reviews and merges gate PRs 499, 504, 505, 507 in order.",
-    "Sprint 1 (commit gate) starts once the gate stack is merged.",
-    "Sprint 7: /oc-release draft + bump for 1.9.1 once Sprints 1-6 have merged."
+    "Sprint 0: owner reviews and merges PR 516 (audit + evidence + plan).",
+    "Sprint 0: owner redeploys staging from a clean origin/main checkout, then refreshes the staging entry in .github/monitoring/release-baseline.json (D5).",
+    "Sprint 0: owner merges gate PRs 499 -> 504 -> 505 -> 507 in order (D7). All four were green on 2026-09-13; 499 is behind main and needs its branch updated first, and each stacked PR re-runs CI after its base merges.",
+    "Sprint 1 (commit gate) starts once the gate stack is on main."
   ],
   "pm_refs": [
     {
@@ -159,7 +160,8 @@
         "D6": "demo-scenario-realism worktree left to its session",
         "D7": "merge gate PR stack 499-504-505-507 first",
         "decided_at": "2026-09-12"
-      }
+      },
+      "plan_pr": "516"
     },
     "prior_release": {
       "semver": "1.8.3",
