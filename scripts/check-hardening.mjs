@@ -10,7 +10,7 @@ import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml"; // namespace import: js-yaml 5 dropped the default export, v4 keeps the named ones
 
 const SCRIPT_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const ROOT = resolve(process.env.OPCHAIN_HARDENING_ROOT || SCRIPT_ROOT);
