@@ -51,8 +51,8 @@ test.describe("demo search & filter", () => {
     await chip.click();
     await expect(chip).toHaveAttribute("aria-pressed", "true");
 
-    // scenario count reflects a narrowed set (≤ 12)
-    await expect(page.locator(".dw-desktop [data-ocs-scn-count]")).toContainText("/ 12");
+    // scenario count reflects a narrowed set (≤ 11)
+    await expect(page.locator(".dw-desktop [data-ocs-scn-count]")).toContainText("/ 11");
 
     // the active filter surfaces as a removable pill — in the SEARCH panel,
     // which the rail swaps in (pills don't live on the Facets panel).
@@ -91,8 +91,8 @@ test.describe("demo search & filter", () => {
   });
 
   test("cold deep-link lands in transcript mode on the target step", async ({ page }) => {
-    await page.goto("/demo?skill=oc-deploy-ops#concept-to-shipped:s0");
-    const pane = page.locator('.dw-desktop [data-scenario-pane="concept-to-shipped"]');
+    await page.goto("/demo?skill=oc-deploy-ops#halyard-intake-governance:s0");
+    const pane = page.locator('.dw-desktop [data-scenario-pane="halyard-intake-governance"]');
     await expect(pane.locator('[data-view="transcript"]')).toBeVisible();
     await expect(pane.locator('[data-step-id="s0"]')).toBeVisible();
     // filter state from the query string is applied (a pill is shown)
@@ -102,10 +102,10 @@ test.describe("demo search & filter", () => {
   test("invalid deep-link target degrades gracefully", async ({ page }) => {
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
-    await page.goto("/demo#concept-to-shipped:s9999");
+    await page.goto("/demo#halyard-intake-governance:s9999");
     // scenario still opens; no exception thrown
     await expect(
-      page.locator('.dw-desktop [data-scenario-pane="concept-to-shipped"] [data-view="transcript"]')
+      page.locator('.dw-desktop [data-scenario-pane="halyard-intake-governance"] [data-view="transcript"]')
     ).toBeVisible();
     expect(errors).toEqual([]);
   });

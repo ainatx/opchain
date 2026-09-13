@@ -12,20 +12,20 @@ import { expect, test } from "@playwright/test";
  *      target heading; the class is removed at the 4s mark.
  *
  * The TOC sidebar only renders for artifacts with ≥ 6 headings
- * (TOC_MIN_HEADINGS in demo.astro). The scenario-1 "master-spec"
- * artifact is the canonical multi-heading target — 22 numbered sections
+ * (TOC_MIN_HEADINGS in demo.astro). The scenario-1 "prpacket"
+ * artifact (PR docs packet) is the canonical multi-heading target — 11 sections
  * means the TOC is always visible.
  */
 
-const FIRST_FOLDER = '.tree-folder[data-scenario="concept-to-shipped"]';
-const FIRST_PANE   = '[data-scenario-pane="concept-to-shipped"]';
+const FIRST_FOLDER = '.tree-folder[data-scenario="halyard-intake-governance"]';
+const FIRST_PANE   = '[data-scenario-pane="halyard-intake-governance"]';
 
-/** Open /demo, open the first scenario, click the master-spec output. */
+/** Open /demo, open the first scenario, click the prpacket output. */
 async function openMasterSpecModal(page: import("@playwright/test").Page) {
   await page.goto("/demo");
   await page.locator(FIRST_FOLDER).click();
   await page
-    .locator(`${FIRST_PANE} .output-row[data-output-id="master-spec"]`)
+    .locator(`${FIRST_PANE} .output-row[data-output-id="prpacket"]`)
     .first()
     .click();
 

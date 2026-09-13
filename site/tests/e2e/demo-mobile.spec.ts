@@ -42,34 +42,34 @@ test.describe("mobile workbench (Pixel 5)", () => {
     await expect(page.locator(".dw-desktop .ide")).toBeHidden();
   });
 
-  test("scenarios tab is active by default and lists all 12 scenarios", async ({ page }) => {
+  test("scenarios tab is active by default and lists all 11 scenarios", async ({ page }) => {
     await page.goto("/demo");
     const root = page.locator("[data-mobile-workbench]");
     await expect(root.locator('[data-mw-tab="scenarios"]')).toHaveAttribute("aria-selected", "true");
-    await expect(root.locator("[data-mw-scenario]")).toHaveCount(12);
+    await expect(root.locator("[data-mw-scenario]")).toHaveCount(11);
   });
 
   test("tapping a scenario card auto-switches to Stream and renders the transcript", async ({ page }) => {
     await page.goto("/demo");
     const root = page.locator("[data-mobile-workbench]");
 
-    await root.locator('[data-mw-scenario="concept-to-shipped"]').click();
+    await root.locator('[data-mw-scenario="halyard-intake-governance"]').click();
 
     await expect(root.locator('[data-mw-tab="stream"]')).toHaveAttribute("aria-selected", "true");
-    await expect(root.locator('[data-mw-stream="concept-to-shipped"]')).toBeVisible();
-    await expect(root.locator(".mw-stream-title").first()).toContainText("Concept");
+    await expect(root.locator('[data-mw-stream="halyard-intake-governance"]')).toBeVisible();
+    await expect(root.locator(".mw-stream-title").first()).toContainText("Forty requests");
     // First beat exists.
-    await expect(root.locator('[data-mw-stream="concept-to-shipped"] .mw-beat').first()).toBeVisible();
+    await expect(root.locator('[data-mw-stream="halyard-intake-governance"] .mw-beat').first()).toBeVisible();
   });
 
   test("I/O tab shows inputs and outputs for the picked scenario", async ({ page }) => {
     await page.goto("/demo");
     const root = page.locator("[data-mobile-workbench]");
 
-    await root.locator('[data-mw-scenario="concept-to-shipped"]').click();
+    await root.locator('[data-mw-scenario="halyard-intake-governance"]').click();
     await root.locator('[data-mw-tab="io"]').click();
 
-    const io = root.locator('[data-mw-io="concept-to-shipped"]');
+    const io = root.locator('[data-mw-io="halyard-intake-governance"]');
     await expect(io).toBeVisible();
     await expect(io.locator(".mw-input-list li")).not.toHaveCount(0);
     await expect(io.locator(".mw-output-list li")).not.toHaveCount(0);
@@ -79,12 +79,12 @@ test.describe("mobile workbench (Pixel 5)", () => {
     await page.goto("/demo");
     const root = page.locator("[data-mobile-workbench]");
 
-    await root.locator('[data-mw-scenario="concept-to-shipped"]').click();
+    await root.locator('[data-mw-scenario="halyard-intake-governance"]').click();
     await root.locator('[data-mw-tab="inspector"]').click();
 
-    const insp = root.locator('[data-mw-insp="concept-to-shipped"]');
+    const insp = root.locator('[data-mw-insp="halyard-intake-governance"]');
     await expect(insp).toBeVisible();
-    await expect(insp.locator(".mw-insp-title")).toContainText("Concept");
+    await expect(insp.locator(".mw-insp-title")).toContainText("Forty requests");
     await expect(insp.locator(".mw-insp-skills .mw-skill-pill").first()).toBeVisible();
     await expect(insp.locator(".mw-insp-beats li").first()).toBeVisible();
   });
@@ -94,11 +94,11 @@ test.describe("mobile workbench (Pixel 5)", () => {
     const root = page.locator("[data-mobile-workbench]");
     const modal = page.locator("dialog#output-modal");
 
-    await root.locator('[data-mw-scenario="concept-to-shipped"]').click();
+    await root.locator('[data-mw-scenario="halyard-intake-governance"]').click();
     await root.locator('[data-mw-tab="io"]').click();
     await expect(modal).toBeHidden();
 
-    await root.locator('[data-mw-io="concept-to-shipped"] .output-row[data-output-id="master-spec"]').click();
+    await root.locator('[data-mw-io="halyard-intake-governance"] .output-row[data-output-id="prpacket"]').click();
     await expect(modal).toBeVisible();
     await expect(modal.locator(".modal-body")).not.toBeEmpty();
 
@@ -111,9 +111,9 @@ test.describe("mobile workbench (Pixel 5)", () => {
     const root = page.locator("[data-mobile-workbench]");
     const modal = page.locator("dialog#output-modal");
 
-    await root.locator('[data-mw-scenario="concept-to-shipped"]').click();
+    await root.locator('[data-mw-scenario="halyard-intake-governance"]').click();
     // The Stream tab is auto-active. Find any artifact chip and click it.
-    const chip = root.locator('[data-mw-stream="concept-to-shipped"] .mw-artifact-chip').first();
+    const chip = root.locator('[data-mw-stream="halyard-intake-governance"] .mw-artifact-chip').first();
     await chip.scrollIntoViewIfNeeded();
     await chip.click();
 

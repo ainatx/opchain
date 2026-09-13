@@ -12,9 +12,9 @@ import { expect, test } from "@playwright/test";
  *   - Fullscreen toggle promotes the workbench to the viewport
  */
 
-const FIRST_FOLDER = '.tree-folder[data-scenario="concept-to-shipped"]';
-const FIRST_PANE   = '[data-scenario-pane="concept-to-shipped"]';
-const FIRST_INSP   = '[data-inspector-pane="concept-to-shipped"]';
+const FIRST_FOLDER = '.tree-folder[data-scenario="halyard-intake-governance"]';
+const FIRST_PANE   = '[data-scenario-pane="halyard-intake-governance"]';
+const FIRST_INSP   = '[data-inspector-pane="halyard-intake-governance"]';
 
 test.describe("demo workbench", () => {
   // Pre-set the WelcomePopup "already-seen" flag so its scrim doesn't
@@ -48,7 +48,7 @@ test.describe("demo workbench", () => {
     await expect(page.locator("[data-inspector-placeholder]")).toBeVisible();
     await expect(page.locator(FIRST_INSP)).toBeHidden();
 
-    await page.locator('[data-play-transcript="concept-to-shipped"]').click();
+    await page.locator('[data-play-transcript="halyard-intake-governance"]').click();
 
     // Editor flips to transcript; inspector flips to side-summary.
     await expect(page.locator(`${FIRST_PANE} [data-view="transcript"]`)).toBeVisible();
@@ -68,7 +68,7 @@ test.describe("demo workbench", () => {
     await expect(page.locator(`${FIRST_PANE} .cc-assistant`).first()).toBeVisible();
 
     // Back button reverts.
-    await page.locator('[data-back-to-summary="concept-to-shipped"]').click();
+    await page.locator('[data-back-to-summary="halyard-intake-governance"]').click();
     await expect(page.locator(`${FIRST_PANE} [data-view="summary"]`)).toBeVisible();
     await expect(page.locator(FIRST_INSP)).toBeHidden();
     await expect(page.locator("[data-inspector-placeholder]")).toBeVisible();
@@ -82,7 +82,7 @@ test.describe("demo workbench", () => {
     await expect(modal).toBeHidden();
 
     await page
-      .locator(`${FIRST_PANE} .output-row[data-output-id="master-spec"]`)
+      .locator(`${FIRST_PANE} .output-row[data-output-id="prpacket"]`)
       .first()
       .click();
 

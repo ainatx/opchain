@@ -22,25 +22,25 @@ import { expect, test } from "@playwright/test";
  *   2. /demo — every curated scenario remains pickable on /demo. v1.5
  *      ("Build the AI app") added the four AI-native scenarios (RAG, agent,
  *      model migration, AI-safety gate) and retired the two enterprise-MCP
- *      scenarios + the superseded v1.2 PM scenario + the release dogfood;
- *      the set holds at twelve.
+ *      scenarios + the superseded v1.2 PM scenario + the release dogfood.
+ *      The v2.0 demo rebuild replaced that set with eleven mandate-driven
+ *      scenarios.
  */
 
 // Every scenario folder that must remain pickable on /demo — the full set of
-// twelve, kept in lockstep with site/src/data/walkthroughs/index.ts.
+// eleven, kept in lockstep with site/src/data/walkthroughs/index.ts.
 const ALL_PICKABLE = [
-  "concept-to-shipped",
-  "rag-answer-bot",
-  "agent-triage",
-  "model-migration",
-  "ai-safety-gate",
-  "dashboard-rescue",
-  "legacy-revive",
-  "stripe-ship",
-  "postgres-migration",
-  "security-hardening",
+  "halyard-intake-governance",
+  "vantor-opportunity-to-order",
+  "northgate-consolidation",
+  "warden-inherited-estate",
+  "arcwell-forecast-integrity",
+  "bloomwire-routing-agent",
+  "harvestline-ai-coe",
+  "cascadia-ai-evaluation",
+  "ledgerpoint-automation-fleet",
   "runtime-pm-loop",
-  "django-render-shipped",
+  "halyard-self-improvement",
 ];
 
 test.describe("/changelog", () => {
