@@ -345,7 +345,11 @@ curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" \
 
 ### Step 4: Iterate or Advance
 
-- **PASS**: Integration is production-ready. Add to health monitoring.
+- **PASS**: Integration is production-ready. Record it under `skill_state.integrations`
+  (that list is what `/oc-integrate health` checks), then chain to oc-code-auditor
+  (`/oc-audit full`) to verify the new client + webhook handler, per the orchestrator's
+  map. For uptime and alerting on the integration, hand its health endpoint to
+  oc-monitoring-ops when you run it.
 - **FAIL + rounds remaining**: Feed test report to Builder, fix, re-test.
 - **FAIL + max rounds**: Escalate to user.
 
@@ -440,7 +444,8 @@ INTEGRATION HEALTH — [project]
 ### Secret Audit (`/oc-integrate secrets`)
 
 Check every integration's secrets:
-- Stored in wrangler secrets or KV (not .env or code)?
+- Stored in the platform's secret store (wrangler secrets / KV on Workers; the host's
+  secrets manager or env-injected secrets elsewhere) — not committed `.env` or code?
 - Rotation schedule defined?
 - Any secrets in git history?
 
@@ -488,9 +493,9 @@ the patterns; downstream skills cite this section AND the protocol doc.
   PRs, deploy windows, incidents — all live there as records. Writing
   back closes the loop. (`oc-app-architect /oc-roadmap`, `oc-git-ops` on PR open
   + merge, `oc-deploy-ops` per environment, `oc-monitoring-ops` per alert.)
-- The org's audit posture requires it. Enterprises (see scenarios 7-8)
-  treat the PM tool as the system-of-record for engineering work; an
-  agent flow that doesn't update the ticket is invisible to compliance.
+- The org's audit posture requires it. Enterprises treat the PM tool
+  as the system-of-record for engineering work; an agent flow that
+  doesn't update the ticket is invisible to compliance.
 
 ### MCP-server selection
 
@@ -501,9 +506,10 @@ the patterns; downstream skills cite this section AND the protocol doc.
 | **GitHub Issues** | yes (cloud) | yes (GitHub Enterprise via custom MCP) | Convenient when the repo + tracker live together |
 
 In regulated environments (HIPAA / FedRAMP / CMMC), only the on-prem
-variants are permissible. See scenarios `mcp-enterprise-f500` and
-`mcp-enterprise-defense` for the security posture and the broker /
-redactor / audit pipeline that must precede deployment.
+variants are permissible, behind a broker / redactor / audit pipeline
+that must be in place before deployment. This skill does not ship a
+reference design for that pipeline; see *Audit-pipeline expectation*
+below for the part the skill itself owns.
 
 ### Detecting "this work has a PM ticket"
 
@@ -525,9 +531,8 @@ When detected, the skill calls the registry-resolved `get_issue` tool
 `mcp__mcp-server-github__issue_read`; Jira: `mcp__atlassian__jira_get_issue`)
 to fetch: title, description, status, assignee, priority, labels, parent /
 project, recent comments. Apply retry / backoff per
-[`pm-mcp-protocol.md` §2](references/pm-mcp-protocol.md). The fetch is logged
-to the audit pipeline (see scenarios for required schema in regulated
-environments).
+[`pm-mcp-protocol.md` §2](references/pm-mcp-protocol.md). In regulated
+environments the broker logs the fetch to its audit pipeline.
 
 ### Patterns by phase (quick reference; canonical text in each skill)
 
@@ -587,6 +592,9 @@ states:
   done: "Done"
 labels_default: [opchain, agent-driven]
 mcp_server: linear   # which configured MCP server to use
+# Optional keys other skills read when present:
+# remediation_owners: { infra: "@team-infra", backend: "@team-api", security: "@team-sec", frontend: "@team-web" }  # sub-ticket assignees
+# deprecation_lead_time: 90d                                           # oc-api-dev consumer deadlines
 ```
 
 Skills read `.opchain/pm.yaml` to know which fields / state
@@ -617,7 +625,7 @@ clears non-retriable entries — live in
 ### Audit-pipeline expectation (regulated)
 
 In CMMC / HIPAA / FedRAMP environments, every PM-MCP tool call
-emits an audit record per the broker design (see scenarios 7-8).
+emits an audit record per the broker design.
 The skill itself does not handle audit emission; that is a
 broker-side concern. The skill's only obligation is to use
 named, narrow tool surfaces and to never embed the **content**
@@ -678,15 +686,21 @@ what is specific to oc-integrations-engineer.
 |---|---|
 | oc-app-architect | 04-integrations.md → discovery baseline |
 | oc-reverse-spec | Existing integrations → inventory pre-fill |
-| oc-stack-forge | Auth pattern → compatible implementation |
+| oc-stack-forge | Platform choice → where secrets live, which runtime the client targets |
 | oc-deploy-ops | Environment config → where secrets stored |
 
 | Read by | Why |
 |---|---|
-| oc-code-auditor | Integration health → security context |
-| oc-deploy-ops | Integration status → deploy confidence |
 | oc-scale-ops | API rate limits → scaling constraints |
 | oc-api-dev | When this app's first-party API needs to call out to a third-party that oc-integrations-engineer wired up |
+| oc-agent-forge | Third-party tools (MCP servers, OAuth'd APIs) for the agent's tool allowlist |
+
+| Chains to | Why |
+|---|---|
+| oc-code-auditor | `/oc-audit full` on a PASSed integration (Step 4) |
+
+oc-qa-ops (recorded fixtures for consumed APIs) and oc-data-ops (the connector behind a
+warehouse-bound pipeline) hand connector builds to this skill.
 
 ---
 
@@ -694,7 +708,8 @@ what is specific to oc-integrations-engineer.
 
 1. **Three agents, real APIs.** The Builder codes, the Tester hits the real sandbox.
    Mocks pass when production would fail.
-2. **Never store secrets in code.** Wrangler secrets or KV. Period.
+2. **Never store secrets in code.** The platform's secret store — wrangler secrets or KV
+   on Workers, the host's secrets manager elsewhere. Period.
 3. **Always verify webhooks.** Signature verification is not optional.
 4. **Retry with backoff.** Exponential + jitter. Never brute force.
 5. **Idempotency on both sides.** Safe to receive twice, safe to send twice.

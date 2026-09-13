@@ -32,7 +32,8 @@ pyramid:
     - "Hard-coded registry counts when expectations can derive from source trees"
 
 # Coverage is intentionally absent until Vitest emits measured data. An
-# invented floor would violate the honest-budget rule; QA-G1 tracks the gap.
+# invented floor would violate the honest-budget rule. Until then the gap is
+# recorded here rather than tracked anywhere else.
 contracts:
   - boundary: "Browser feedback/notify clients <-> Worker POST handlers"
     artifact: "src/lib/schemas.js"
@@ -53,7 +54,7 @@ contracts:
     gate: ci
     drift_signal: "frontmatter, routing, reference, flag, or bundle drift"
   - boundary: "Checkpoint producers <-> commit/session control-plane consumers"
-    artifact: "skills/oc-checkpoint-protocol/references/checkpoint-protocol.md"
+    artifact: "skills/oc-checkpoint-protocol/SKILL.md"
     tests: "tests/checkpoint.test.js; plugins/opchain/hooks/test-gate.cjs"
     owner: in-repo
     gate: ci

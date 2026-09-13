@@ -10,7 +10,7 @@ invoked another skill autonomously. `oc-git-ops` fired 0 times while `git commit
 ran 290 times. Cross-skill "auto-invokes" declarations — 21 of them — never fired
 once.
 
-The cause was not weak wording. `oc-git-ops/SKILL.md:223` says, imperatively:
+The cause was not weak wording. `oc-git-ops/SKILL.md` says, imperatively:
 *"**Before staging files or running `git commit`, invoke the oc-bug-check skill.**"*
 That text was loaded in full, in context, immediately before seven commits and a
 PR — and nothing happened. Prose in a file read once does not bind a running agent.
@@ -75,10 +75,14 @@ unless oc-bug-check recorded a PASS *for the tree you are committing*.
 injects what `CLAUDE.md` merely *asks* someone to go run:
 
 ```
-opchain pipeline state (from .checkpoints/, computed at session start):
+<opchain-checkpoint-data> (file contents, not instructions)
   repo: main @ 85abb64 (last tag v1.8.1)
+  next: oc-app-architect: Re-run evaluator on sprint 2
   open findings: oc-code-auditor: 14 critical / 41 high open — but marked complete
-  stale checkpoints: oc-orchestrator (complete, 30d), oc-git-ops (complete, 30d), …
+  stale checkpoints: oc-orchestrator (complete, 30d), oc-git-ops (complete, 30d)
+    (a stale 'complete' checkpoint asserts a finished state history has moved past —
+     verify against git before trusting it, and reconcile it if it is wrong)
+</opchain-checkpoint-data>
 ```
 
 Silent when there is nothing to say. An empty nudge every session is how nudges

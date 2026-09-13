@@ -103,6 +103,8 @@ sample rows). Violations fail the loop iteration; the Builder fixes.
 
 Each contract compiles to standing checks in the platform's idiom — dbt source
 `freshness:` + generated tests where dbt is in play, otherwise scheduled
-queries. The monitor inventory (what runs, where, how often) is written to the
-checkpoint and handed to **oc-monitoring-ops** for alert routing; this skill
+queries. The monitor inventory (what runs, where, how often) is recorded in the
+checkpoint's public surface — monitor file paths in
+`context_primer.generated_files`, the summary in `progress_summary` — and handed
+to **oc-monitoring-ops** for alert routing; this skill
 creates the checks, monitoring-ops decides who is woken up.

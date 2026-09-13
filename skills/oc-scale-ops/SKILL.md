@@ -176,9 +176,13 @@ npx bundlesize --config bundlesize.config.json
 ### Budget Monitoring
 
 After setting budgets, integrate into the pipeline:
-- **In CI**: Lighthouse CI and bundle size checks block PRs that exceed budgets
-- **In oc-deploy-ops**: Performance budgets are part of the smoke test suite
-- **In oc-code-auditor**: `/oc-audit perf` checks budget compliance
+- **In CI**: Lighthouse CI and bundle size checks block PRs that exceed budgets — this is
+  the enforcement point
+- **oc-deploy-ops** does not check budgets: its smoke suite checks status codes only, and
+  its post-deploy health check has a single >2.0s latency warning. Add the budget
+  thresholds to the project's own smoke script if a deploy should fail on them
+- **oc-code-auditor** `/oc-audit perf` investigates performance (N+1, bundle, caching,
+  queries) but does not read these budgets — pass the thresholds in when you invoke it
 
 ---
 
@@ -186,9 +190,8 @@ After setting budgets, integrate into the pipeline:
 
 **Check for a plan first (v1.9):** if `.opchain/qa.yaml` carries a `load_plan`,
 execute *those* scenarios against *those* SLOs on the plan's declared `target`
-environment — the plan is the contract, this command is the execution. (The
-oc-qa-ops checkpoint's `load_plan.exists` only signals that a plan is in the
-manifest — read the manifest for scenarios.) No plan → proceed ad hoc as below,
+environment — the plan is the contract, this command is the execution. No plan →
+proceed ad hoc as below,
 and suggest `/oc-qa loadplan` so the next run has one.
 
 ### Using oha (Rust-based HTTP load tester)
@@ -444,9 +447,14 @@ what is specific to oc-scale-ops.
 
 | Read by | Why |
 |---|---|
-| oc-deploy-ops | Readiness score → deploy confidence at scale |
-| oc-code-auditor | Performance budgets → `/oc-audit perf` thresholds |
-| oc-app-architect | Cost projections → spec cost estimates |
+| oc-app-architect | Cost projections → `09-cost-estimate.md` |
+| oc-qa-ops | Platform limits shaping load scenarios |
+| oc-modularize-ops | Which areas need independent scaling (a split driver) |
+| oc-fleet-ops | Capacity plan → replica / node targets it applies |
+| oc-orchestrator | Readiness grade → pipeline status |
+
+This skill is advisory and chains to nothing. oc-deploy-ops and oc-code-auditor do not
+read this checkpoint; hand them the budgets explicitly (see *Budget Monitoring*).
 
 ---
 
@@ -455,7 +463,10 @@ what is specific to oc-scale-ops.
 Scaling work is advisory — recommendations the engineering team
 will act on over weeks. v1.2 makes those recommendations
 discoverable + ownable in the PM tool. See `oc-integrations-engineer`
-for the canonical PM-MCP patterns.
+for the canonical PM-MCP patterns. Every write below follows
+`oc-integrations-engineer/references/pm-mcp-protocol.md`: an
+`<!-- opchain:oc-scale-ops:<event>:<correlation-id> -->` marker, the
+pre-write comment check, and the deferred-action queue.
 
 ### Load-test summary on the linked ticket
 
@@ -463,31 +474,32 @@ After every `/oc-scale audit` or `/oc-scale loadtest`, post a structured
 summary on the linked PM ticket:
 
 ```
-Scale audit: Readiness {READY / WATCH / RED}.
+Scale audit: Readiness grade {A-F}.
 Load profile: {N concurrent users / {req/sec} sustained}
 SLO compliance: p95 {Xms / target Yms} · p99 {Xms / target Yms} · err {X% / target Y%}
 Top three bottlenecks (by headroom × business-impact):
   1. {component} — {one-line finding}
   ...
 Cost projection: ~${USD/month} at {target-scale}
-Full report: .checkpoints/oc-scale-ops.checkpoint.json
+Checkpoint (layer scores + bottleneck list): .checkpoints/oc-scale-ops.checkpoint.json
 ```
 
 ### HIGH-risk findings as scaling sub-tickets
 
-For every finding tagged HIGH or CRITICAL on the readiness scale:
+For every Top-5 bottleneck in a layer scored D or F on the readiness scale:
 
 - Sub-ticket parent-linked to the source PR ticket.
 - `issue_type`: `bug` if it's a current pain; `chore` if it's a
   scaling-prep concern.
-- labels: `scaling`, `severity:<level>`, `area:<component>`.
+- labels: `scaling`, `grade:<D|F>` (the bottleneck's layer score), `area:<component>`.
 - assignee: from `.opchain/pm.yaml` `remediation_owners.infra` or
-  `.backend` based on finding type.
+  `.backend` based on finding type, when the project defines that
+  optional map; otherwise leave the ticket unassigned.
 
 ### Capacity-planning artifacts
 
-`/oc-scale capacity` produces a 12-month capacity projection. The
-output is uploaded as a comment with the projection table + a
+`/oc-scale plan` produces the capacity plan (growth tiers). The
+output is uploaded as a comment with the tier table + a
 calendar-keyed reminder ticket scheduled for the next review
 window (default 90 days).
 
@@ -501,8 +513,10 @@ worth the PM noise.
 ### Failure modes
 
 - No linked ticket → report still produced; no PM write.
-- MCP unavailable → log intended writes to checkpoint; user can
-  `/oc-scale sync-pm` later.
+- MCP unavailable → record intended writes in the checkpoint's
+  `pm_deferred_actions[]` (pm-mcp-protocol.md §4); the user flushes
+  them later with `--retry-pm` on the same verb (e.g.
+  `/oc-scale audit --retry-pm`).
 - Load test still running when invoked → defer the PM comment until
   the run completes; never post partial results.
 
