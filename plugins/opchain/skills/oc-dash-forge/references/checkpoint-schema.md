@@ -211,7 +211,7 @@ On user revision requests (e.g., "change the archetype"), revert the target phas
 
 - First action of every session
 - Before any oc-df- phase command
-- On `/oc-df-status` or `/oc-df-resume`
+- When the user asks for status or to resume
 
 ## Resume Prompt
 

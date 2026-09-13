@@ -3,7 +3,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-13T08:03:08.868Z",
+  "updated_at": "2026-09-13T13:02:06.055Z",
   "skill": "oc-release-ops",
   "phase": "plan-approved",
   "step": "v1.9.1-sprint-6-in-review",
@@ -81,7 +81,6 @@
   "blockers": [],
   "next_actions": [
     "Sprint 6: land the reach PR once CI is green.",
-    "Owner decision: keep or drop the six root verbs Sprint 4 added with new flags (patch-scope rule).",
     "Owner: refresh the staging entry in .github/monitoring/release-baseline.json so the scheduled canary's staging half goes green.",
     "Sprint 7 (cut, product half): bump P1-P6 to 1.9.1, write skills/CHANGELOG.md [1.9.1] from [Unreleased], re-run the routing eval; then STOP for the owner's signed tag."
   ],
@@ -294,13 +293,14 @@
           "Documented skill_state keys are a published contract (protocol wording); promoting them to public fields stays v2.0 wire 1.2.",
           "\"Tag the release\" routes to oc-git-ops in orchestrator.md §4; src/lib/mcp/routing.js still routes it to oc-release-ops (Sprint 6)."
         ],
-        "open_question_for_owner": "Sprint 4 added six root verbs with new flags (/oc-export-spec, /oc-punch-list, /oc-git-init, /oc-git-status, /oc-git-convention, /oc-stack-compare). The patch-scope rule treats a new flag as minor: drop them or accept and call the release a minor."
+        "open_question_for_owner": "RESOLVED 2026-09-13: owner chose v1.9.1; ten menu-only root verbs dropped (there were eleven new root flags, not six); /oc-rev-spec kept."
       },
       "sprint_6": {
         "scope": "MCP routing for all 32 invocable skills; /pipeline-builder from the live catalog; plugin README twelve commands; next-suggestion names downstream skills without commands; routing eval all-skill coverage, collision cases llm_judge, pass_rate 1.0",
         "decisions": [
           "Routing eval pass_rate 1.0 so a collision miss fails the gate; a single noisy judge verdict also fails it (eval is not run in CI).",
-          "oc-telemetry-ops is not recommended by /pipeline-builder (opt-in usage metering is not driven by any wizard answer); recorded in NOT_RECOMMENDED, still installed with the catalog."
+          "oc-telemetry-ops is not recommended by /pipeline-builder (opt-in usage metering is not driven by any wizard answer); recorded in NOT_RECOMMENDED, still installed with the catalog.",
+          "Owner decision 2026-09-13: ship v1.9.1; drop the ten menu-only root verbs Sprint 4 declared with new flags (documented as plain requests); keep /oc-rev-spec, already advertised at v1.9.0."
         ]
       }
     },

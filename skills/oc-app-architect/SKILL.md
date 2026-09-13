@@ -16,8 +16,6 @@ commands:
   - /oc-scaffold
   - /oc-build
   - /oc-launch
-  - /oc-export-spec
-  - /oc-punch-list
 description: >
   Unified app development: idea → spec → design → build with Generator/Evaluator
   QA loop → launch. Use for /oc-app, /oc-discover, /oc-spec, /oc-design, /oc-roadmap,
@@ -55,8 +53,6 @@ APP ARCHITECT COMMANDS
 
   UTILITIES
   /oc-app            Show this menu
-  /oc-export-spec    Generate master spec document (.docx)
-  /oc-punch-list     View or edit the screen & component punch list
 
   SESSION
   /checkpoint     Show checkpoint status
@@ -66,7 +62,9 @@ APP ARCHITECT COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-The rest are plain requests, not slash commands: "run the Evaluator on this sprint"
+The rest are plain requests, not slash commands: "export the master spec" (a .docx of
+the spec set), "show the punch list" (view or edit screens and components), "run the
+Evaluator on this sprint"
 (ad-hoc QA), "approve" at a gate, and "show the sprint contract"
 (`sprints/sprint-N/contract.md`).
 
@@ -657,7 +655,7 @@ project-dir/
 ├── checklists/
 │   └── launch-checklist.md
 ├── src/ ...
-└── master-spec.docx                   (/oc-export-spec)
+└── master-spec.docx                   ("export the master spec")
 ```
 
 ---
@@ -726,7 +724,7 @@ puts them there and lists them in its `context_primer.generated_files`).
 
 ### Spec-only (no build)
 ```
-/oc-discover → /oc-spec → /oc-design → /oc-export-spec
+/oc-discover → /oc-spec → /oc-design → "export the master spec"
 → Produces master-spec.docx without building
 ```
 

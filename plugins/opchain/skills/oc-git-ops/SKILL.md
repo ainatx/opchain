@@ -14,9 +14,6 @@ commands:
   - /oc-push
   - /oc-git-sync
   - /oc-git-release
-  - /oc-git-init
-  - /oc-git-status
-  - /oc-git-convention
 description: >
   Git workflow: branch, commit, PR, sync, release tag. Chains to (when you invoke it):
   oc-bug-check before every commit and the oc-docs-forge → oc-repo-ops pre-PR gate before
@@ -42,7 +39,6 @@ GIT OPS COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   WORKFLOW
-  /oc-git-init         Clone repo + set up workspace for a project
   /oc-commit           Stage + commit with structured message
   /oc-pr               Generate PR description from commits/checkpoint
   /oc-push             Push branch to remote
@@ -50,13 +46,15 @@ GIT OPS COMMANDS
   /oc-git-release      Tag a merged release + push the tag (closes the ledger)
 
   UTILITIES
-  /oc-git-status       Show current branch, staged changes, remote state, diff since last commit
-  /oc-git-convention   Show/set naming conventions for this project
   /checkpoint          Show checkpoint status
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Type any command to begin. /oc-git to see this again.
 ```
+
+Plain requests, not slash commands: "set up the repo" (clone and prepare the workspace,
+Phase 0), "git status" (branch, staged changes, remote state and diff since the last
+commit), and "show / set the git conventions" (branch and commit naming).
 
 ---
 
@@ -85,7 +83,7 @@ The typical flow:
 
 ---
 
-## Phase 0: Repository Setup (/oc-git-init)
+## Phase 0: Repository Setup ("set up the repo")
 
 ### First Time
 
@@ -153,7 +151,7 @@ If an oc-app-architect checkpoint exists, derive the branch name from it:
 - Code audit fix → `fix/audit-f001-rate-limiting`
 - Deploy setup → `deploy/ci-cd-pipeline`
 
-### /oc-git-convention
+### Naming conventions ("show / set the git conventions")
 
 Set or view the project's naming conventions:
 

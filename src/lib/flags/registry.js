@@ -283,12 +283,11 @@ const DEFINITIONS = [
     "/oc-api", "/oc-app", "/oc-attack-surface", "/oc-audit", "/oc-build", "/oc-bugcheck",
     "/oc-commit", "/oc-dash-forge", "/oc-data-forge", "/oc-deploy", "/oc-design", "/oc-docs",
     "/oc-df-archetype", "/oc-df-audit", "/oc-df-full", "/oc-df-intake", "/oc-df-layout",
-    "/oc-df-prototype", "/oc-df-resume", "/oc-df-spec-only", "/oc-df-status", "/oc-df-tokens",
-    "/oc-df-variants", "/oc-discover", "/oc-feature", "/oc-git", "/oc-git-sync", "/oc-hardening",
-    "/oc-integrate", "/oc-launch", "/oc-migrate", "/oc-monitor", "/oc-ops", "/oc-owasp",
+    "/oc-df-prototype", "/oc-df-spec-only", "/oc-df-tokens", "/oc-df-variants", "/oc-discover",
+    "/oc-feature", "/oc-git", "/oc-git-sync", "/oc-hardening", "/oc-integrate", "/oc-launch", "/oc-migrate", "/oc-monitor", "/oc-ops", "/oc-owasp",
     "/oc-posture", "/oc-pr", "/oc-push", "/oc-release", "/oc-repo", "/oc-rev-design",
-    "/oc-rev-diff", "/oc-rev-full", "/oc-rev-scan", "/oc-rev-spec", "/oc-rev-sprint",
-    "/oc-rev-stack", "/oc-rev-status", "/oc-reverse-spec", "/oc-roadmap", "/oc-scaffold", "/oc-scale", "/oc-sec",
+    "/oc-rev-full", "/oc-rev-scan", "/oc-rev-spec", "/oc-rev-sprint", "/oc-rev-stack",
+    "/oc-reverse-spec", "/oc-roadmap", "/oc-scaffold", "/oc-scale", "/oc-sec",
     "/oc-secaudit", "/oc-security", "/oc-spec", "/oc-stack", "/oc-stack-decide",
     "/oc-threat-model", "/oc-uxe",
     // v1.5 AI-native verbs (ADEV-344). Subcommands inherit the parent verb.
@@ -305,10 +304,6 @@ const DEFINITIONS = [
     // the parent verb. /oc-harden (execute) is deliberately distinct from the
     // existing /oc-hardening (oc-security-auditor: assess).
     "/oc-qa", "/oc-data-ops", "/oc-comply", "/oc-compliance", "/oc-harden",
-    // v1.9.1: menu verbs the skills documented but never declared (2026-09-11
-    // skill-chain audit). Subcommands inherit the parent verb.
-    "/oc-export-spec", "/oc-punch-list", "/oc-git-init", "/oc-git-status",
-    "/oc-git-convention", "/oc-stack-compare",
   ]),
 
   // ── skills.coverage.<id>.enabled — one per oc-stack-forge pack ──────────────

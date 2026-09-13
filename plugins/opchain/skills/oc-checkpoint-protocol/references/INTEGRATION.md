@@ -206,7 +206,7 @@ oc-app-architect's own *Session Persistence* section is canonical; this is an ab
    - "Key Findings So Far" → `context_primer.key_decisions`
    - "Blockers & Open Questions" → `blockers`
    - "Next Session Should" → `next_actions`
-3. `/oc-rev-status` reads from new location
+3. Its status request reads from the new location
 4. Keep backward compat: if `.checkpoints/` doesn't exist but `checkpoint.md` does,
    read the markdown version and offer to migrate
 
