@@ -239,7 +239,7 @@ Then read `.checkpoints/oc-bug-check.checkpoint.json` for the verdict.
 | Verdict | Action |
 |---|---|
 | PASS | Proceed to `git add` + `git commit`, editing nothing in between. The PASS is bound to `skill_state.verified_tree`, so any change after the run invalidates it (oc-bug-check § Commit gate contract). |
-| FAIL | **ABORT.** Surface the failing checks and offer the user `/oc-bugcheck fix` (auto-fix lint/format) or `/oc-bugcheck bypass` (logged override). Do NOT call `git commit` until verdict flips to PASS or the user explicitly bypasses. |
+| FAIL | **ABORT.** Surface the failing checks and offer the user `/oc-bugcheck fix` (auto-fix lint/format). If they choose to commit anyway, that is an explicit bypass: record it with `/oc-bugcheck bypass`, then commit with `OPCHAIN_BYPASS=1 git commit …` or `git commit --no-verify`. The record is the accountability trail; on its own it does not clear the commit-gate hook. Do NOT call `git commit` until the verdict flips to PASS or the user explicitly bypasses. |
 | (no checkpoint) | Bug-check hasn't run — invoke it first. |
 
 > **This gate is advisory unless the commit-gate hook is installed.** The opchain
@@ -370,8 +370,8 @@ One command that runs the entire flow:
 2. **Determine branch name** — from checkpoint or description
 3. **Create branch** — `git checkout -b <branch>`
 4. **Stage changes** — intelligently stage (skip build artifacts, node_modules)
-5. **Structure commits** — group by logical unit
-6. **Run oc-bug-check gate** — invoke `Skill(skill="oc-bug-check", args="/oc-bugcheck run")`. **FAIL aborts the sync** — surface the failing checks and stop. The user can `/oc-bugcheck fix`, `/oc-bugcheck bypass`, or address the failures and re-run `/oc-git-sync`.
+5. **Run oc-bug-check gate** — invoke `Skill(skill="oc-bug-check", args="/oc-bugcheck run")` after the last edit and before any commit. **FAIL aborts the sync** — surface the failing checks and stop. The user can `/oc-bugcheck fix`, address the failures and re-run `/oc-git-sync`, or bypass explicitly as described in the Pre-Commit Gate table.
+6. **Structure commits** — group by logical unit, editing nothing after step 5. The PASS covers the whole working tree, so it holds for every commit in the group; if the commit-gate hook reports that the repo changed, re-run step 5.
 7. **Push** — `git push -u origin <branch>`
 8. **Generate PR docs packet** — invoke `Skill(skill="oc-docs-forge", args="/oc-docs pr")` to produce the `## Documentation` body fragment (and any README/product-doc edits that must travel with the change)
 9. **Run oc-repo-ops gate** — invoke `Skill(skill="oc-repo-ops", args="/oc-repo verify")`. **FAIL aborts the sync before the PR is created** — surface the blocking findings; the user can `/oc-repo clean` or fix and re-run.

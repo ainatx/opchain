@@ -613,21 +613,28 @@ cd "$(git rev-parse --show-toplevel)"
 idx="$(mktemp)"
 cp "$(git rev-parse --git-path index)" "$idx" 2>/dev/null || rm -f "$idx"
 GIT_INDEX_FILE="$idx" git add -A -- .
+GIT_INDEX_FILE="$idx" git rm --cached -f -q --ignore-unmatch -- .checkpoints/oc-bug-check.checkpoint.json
 GIT_INDEX_FILE="$idx" git write-tree
 rm -f "$idx"
 ```
 
 That is `git add -A` into a throwaway copy of the index — every tracked change and
-every untracked, non-ignored file, with the real index untouched — which is exactly
-how the gate hashes the tree it compares against. Bare `git write-tree` is **not**
-equivalent: it hashes only what is staged, so any unstaged edit or new file leaves
-the PASS non-matching.
+every untracked, non-ignored file, with the real index untouched — minus this
+checkpoint file, which is exactly how the gate hashes the tree it compares against.
+Bare `git write-tree` is **not** equivalent: it hashes only what is staged, so any
+unstaged edit or new file leaves the PASS non-matching.
+
+The checkpoint is left out because it is the evidence, not the code under test. The
+run hashes the tree and then writes that hash into this file, so counting the file
+would make the recorded tree stale the moment it was written — in every repo that
+tracks `.checkpoints/`, as oc-checkpoint-protocol recommends.
 
 What follows from binding to the whole working tree:
 
 - **Any edit after the run invalidates the PASS** — including writing a *tracked*
   checkpoint for another skill. Write those first, then run the gate, then commit.
-  This checkpoint is gitignored, so writing it does not move the tree.
+- **Writing this checkpoint does not.** The recipe and the gate both leave it out of
+  the hash, whether your repo tracks it, ignores it, or has it staged.
 - **Staging does not.** `git add` between the run and the commit changes nothing the
   tree already counted.
 - **The hook's bypass is explicit and logged:** `OPCHAIN_BYPASS=1 git commit …` or
