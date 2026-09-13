@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Test harness for the opchain PreToolUse commit gate.
 //
-// Two properties this harness MUST have, both learned the hard way:
+// Three properties this harness MUST have, all learned the hard way:
 //
 //  1. ALLOW vs CRASHED must be distinguishable. A hook that throws writes
 //     nothing to stdout, and "nothing on stdout" is how a hook says *allow*.
@@ -16,6 +16,14 @@
 //     verdict depends on unrelated repo state cannot be trusted in either
 //     direction. Every case below builds its own scratch repo.
 //
+//  3. The DOCS are a fixture too. oc-bug-check's SKILL.md documented the
+//     verdict at `skill_state.last_run.verdict` with no tree hash, while this
+//     gate read `last_run_verdict` and wanted `verified_tree` — so a skill that
+//     followed its own docs was denied by the gate that ships, and nothing here
+//     noticed, because every fixture was hand-built in the gate's own shape.
+//     The "SKILL.md" cases build their checkpoint from the skill's documented
+//     JSON and its documented tree recipe, so the next drift fails this suite.
+//
 // Run: node plugins/opchain/hooks/test-gate.cjs
 
 "use strict";
@@ -25,6 +33,9 @@ const fs = require("fs");
 const os = require("os");
 
 const GATE = path.join(__dirname, "pre-commit-gate.cjs");
+// The plugin's own materialised copy of the skill (drift-checked against skills/
+// in pretest), so this read stays inside the plugin and works in the mirror.
+const SKILL_MD = path.join(__dirname, "..", "skills", "oc-bug-check", "SKILL.md");
 const GC = "git " + "commit"; // split so this file's text can't trip a live gate
 const scratches = [];
 
@@ -33,14 +44,71 @@ function sh(args, cwd, env) {
 }
 
 /**
+ * The full working-tree state, hashed the way the gate does (v3): `git add -A`
+ * into a scratch copy of the index. Deliberately independent of SKILL.md — the
+ * "SKILL.md" fixtures use the documented recipe instead.
+ */
+function fullTree(dir) {
+  const idx = path.join(os.tmpdir(), `oc-fx-${process.pid}-${Math.random().toString(36).slice(2)}`);
+  const scEnv = { GIT_INDEX_FILE: idx };
+  try {
+    const realIdx = path.join(dir, ".git", "index");
+    if (fs.existsSync(realIdx)) fs.copyFileSync(realIdx, idx);
+    sh(["add", "-A", "--", "."], dir, scEnv);
+    return sh(["write-tree"], dir, scEnv).stdout.trim();
+  } finally {
+    fs.rmSync(idx, { force: true });
+  }
+}
+
+/** First ```lang block inside SKILL.md's `heading` section (up to the next ##/### heading). */
+function docBlock(heading, lang) {
+  const md = fs.readFileSync(SKILL_MD, "utf8");
+  const at = md.indexOf(`\n${heading}\n`);
+  if (at < 0) throw new Error(`oc-bug-check SKILL.md has no "${heading}" section`);
+  const body = md.slice(at + heading.length + 2);
+  const next = body.search(/^#{2,3} /m);
+  const section = next < 0 ? body : body.slice(0, next);
+  const m = section.match(new RegExp("^```" + lang + "\\n([\\s\\S]*?)^```", "m"));
+  if (!m) throw new Error(`oc-bug-check SKILL.md "${heading}" has no \`\`\`${lang} block`);
+  return m[1];
+}
+
+/**
+ * A checkpoint written by following SKILL.md literally: its skill_state example
+ * with only the run-specific VALUES substituted — the tree printed by its own
+ * recipe, and the current time. Nothing the docs omit is added here, so if
+ * SKILL.md drops or renames a field the gate needs, the gate denies and the
+ * suite fails. That is the whole point of this fixture.
+ */
+function documentedCheckpoint(dir) {
+  const r = spawnSync("sh", ["-c", docBlock("### Commit gate contract", "bash")], { cwd: dir, encoding: "utf8" });
+  const tree = (r.stdout || "").trim().split("\n").pop();
+  if (!/^[0-9a-f]{40}(?:[0-9a-f]{24})?$/.test(tree || "")) {
+    throw new Error(`SKILL.md tree recipe printed no tree hash (exit ${r.status}): ${(r.stderr || r.stdout || "").slice(0, 200)}`);
+  }
+  const st = JSON.parse(docBlock("### skill_state", "json"));
+  const now = new Date().toISOString();
+  if ("verified_tree" in st) st.verified_tree = tree;
+  if (st.last_run && typeof st.last_run === "object") st.last_run.at = now;
+  return { skill: "oc-bug-check", updated_at: now, status: "complete", skill_state: st };
+}
+
+/**
  * Build an isolated repo.
- *   opts.enrolled  — create .checkpoints/ (opt-in marker)
- *   opts.verdict   — last_run_verdict to record (null = no checkpoint file)
- *   opts.bindTree  — true: bind to the real index tree; "wrong": a bogus hash
- *   opts.ageMin    — how long ago the run was, in minutes
- *   opts.dirty     — modify a TRACKED file without staging
- *   opts.untracked — add a new untracked file
- *   opts.raw       — write this exact string as the checkpoint body
+ *   opts.enrolled   — create .checkpoints/ (opt-in marker)
+ *   opts.wip        — uncommitted work present WHEN THE GATE RAN (an unstaged
+ *                     edit + a new file) — the normal case, since you check
+ *                     before you commit. Bare `git write-tree` misses all of it.
+ *   opts.verdict    — last_run_verdict to record (null = no checkpoint file)
+ *   opts.bindTree   — true: bind to the full working tree; "wrong": a bogus hash
+ *   opts.ageMin     — how long ago the run was, in minutes
+ *   opts.checkpoint — (tree, at, dir) => whole checkpoint, for shapes the
+ *                     verdict/bindTree options can't express
+ *   opts.documented — write the checkpoint SKILL.md describes (see above)
+ *   opts.raw        — write this exact string as the checkpoint body
+ *   opts.dirty      — AFTER the run: modify a TRACKED file without staging
+ *   opts.untracked  — AFTER the run: add a new untracked file
  */
 function mkRepo(opts = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "oc-gate-"));
@@ -55,30 +123,31 @@ function mkRepo(opts = {}) {
 
   if (opts.enrolled !== false) fs.mkdirSync(path.join(dir, ".checkpoints"), { recursive: true });
 
-  if (opts.verdict || opts.raw) {
-    const cpFile = path.join(dir, ".checkpoints", "oc-bug-check.checkpoint.json");
-    if (opts.raw !== undefined) {
-      fs.writeFileSync(cpFile, opts.raw);
+  if (opts.wip) {
+    fs.appendFileSync(path.join(dir, "app.js"), "alsoReviewed();\n");
+    fs.writeFileSync(path.join(dir, "new.js"), "reviewedToo();\n");
+  }
+
+  const cpFile = path.join(dir, ".checkpoints", "oc-bug-check.checkpoint.json");
+  if (opts.raw !== undefined) {
+    fs.writeFileSync(cpFile, opts.raw);
+  } else if (opts.documented) {
+    fs.writeFileSync(cpFile, JSON.stringify(documentedCheckpoint(dir), null, 2));
+  } else if (opts.verdict || opts.checkpoint) {
+    // In a fully-committed fixture the full working tree equals the index tree;
+    // for dirty/untracked fixtures it differs, which is exactly what should DENY.
+    const tree = fullTree(dir);
+    const at = new Date(Date.now() - (opts.ageMin || 0) * 60000).toISOString();
+    let cp;
+    if (opts.checkpoint) {
+      cp = opts.checkpoint(tree, at, dir);
     } else {
-      // Bind to the FULL working-tree state, the same way the gate computes it
-      // (v3). In a fully-committed fixture this equals the index tree; for
-      // dirty/untracked fixtures it differs, which is exactly what should DENY.
-      const idx = path.join(os.tmpdir(), `oc-fx-${process.pid}-${Math.random().toString(36).slice(2)}`);
-      const scEnv = { GIT_INDEX_FILE: idx };
-      try {
-        const realIdx = path.join(dir, ".git", "index");
-        if (fs.existsSync(realIdx)) fs.copyFileSync(realIdx, idx);
-        sh(["add", "-A", "--", "."], dir, scEnv);
-        var tree = sh(["write-tree"], dir, scEnv).stdout.trim();
-      } finally {
-        fs.rmSync(idx, { force: true });
-      }
-      const at = new Date(Date.now() - (opts.ageMin || 0) * 60000).toISOString();
       const st = { last_run_verdict: opts.verdict };
       if (opts.bindTree === true) st.verified_tree = tree;
       if (opts.bindTree === "wrong") st.verified_tree = "0".repeat(40);
-      fs.writeFileSync(cpFile, JSON.stringify({ updated_at: at, skill_state: st }, null, 2));
+      cp = { updated_at: at, skill_state: st };
     }
+    fs.writeFileSync(cpFile, JSON.stringify(cp, null, 2));
   }
 
   // Post-checkpoint mutations: the gate must notice these.
@@ -126,6 +195,33 @@ const freshNoTree = mkRepo({ verdict: "PASS", ageMin: 1 });
 const nullCp = mkRepo({ raw: "null" });
 const noTimestamp = mkRepo({ raw: JSON.stringify({ skill_state: { last_run_verdict: "PASS" } }) });
 
+// GATE-06 — the shapes that actually occur in the wild
+const legacyNoTree = mkRepo({ // what the retired repo-local gate accepted
+  ageMin: 1,
+  checkpoint: (_tree, at) => ({ updated_at: at, skill_state: { last_run: { at, verdict: "PASS" } } }),
+});
+const legacyTopTree = mkRepo({ // tree recorded, but not where the gate reads it
+  checkpoint: (tree, at) => ({ updated_at: at, verified_tree: tree, skill_state: { last_run: { at, verdict: "PASS" } } }),
+});
+const legacyBound = mkRepo({
+  checkpoint: (tree, at) => ({ updated_at: at, skill_state: { last_run: { at, verdict: "PASS" }, verified_tree: tree } }),
+});
+const conflicting = mkRepo({ // a stale flat PASS must not outvote the run that just failed
+  checkpoint: (tree, at) => ({
+    updated_at: at,
+    skill_state: { last_run_verdict: "PASS", last_run: { at, verdict: "FAIL" }, verified_tree: tree },
+  }),
+});
+const bareWriteTree = mkRepo({ // the old slash-command instruction: index tree, not working tree
+  wip: true,
+  checkpoint: (_tree, at, dir) => ({
+    updated_at: at,
+    skill_state: { last_run_verdict: "PASS", verified_tree: sh(["write-tree"], dir).stdout.trim() },
+  }),
+});
+const documented = mkRepo({ documented: true, wip: true });
+const documentedDrift = mkRepo({ documented: true, wip: true, dirty: true });
+
 const cases = [
   // matcher precision — false positives train people to bypass
   ["non-git command", "ls -la", clean, "ALLOW"],
@@ -142,13 +238,21 @@ const cases = [
   ["clean PASS, bound", `${GC} -m x`, clean, "ALLOW"],
   ["PASS bound to wrong tree", `${GC} -m x`, wrongTree, "DENY"],
 
-  // GATE-05 — freshness / forgeability
-  ["stale PASS, no tree", `${GC} -m x`, staleNoTree, "DENY"],
-  ["fresh PASS, no tree", `${GC} -m x`, freshNoTree, "ALLOW"],
+  // GATE-05 — forgeability
   ["PASS with no updated_at", `${GC} -m x`, noTimestamp, "DENY"],
 
-  // GATE-03 — malformed input must not fail open
-  ["checkpoint is literal null", `${GC} -m x`, nullCp, "DENY"],
+  // GATE-06 — the tree is mandatory at every age, and the documented schema is
+  // the one that passes. "fresh PASS, no tree" was ALLOW until 2026-09-11: the
+  // 10-minute tree-less window, in which a PASS covered edits made after it.
+  ["stale PASS, no tree", `${GC} -m x`, staleNoTree, "DENY"],
+  ["fresh PASS, no tree", `${GC} -m x`, freshNoTree, "DENY"],
+  ["last_run.verdict only, no tree", `${GC} -m x`, legacyNoTree, "DENY"],
+  ["tree at checkpoint top level", `${GC} -m x`, legacyTopTree, "DENY"],
+  ["last_run.verdict only, bound", `${GC} -m x`, legacyBound, "ALLOW"],
+  ["verdict fields disagree", `${GC} -m x`, conflicting, "DENY"],
+  ["bare write-tree over WIP", `${GC} -am x`, bareWriteTree, "DENY"],
+  ["SKILL.md schema + recipe", `${GC} -am x`, documented, "ALLOW"],
+  ["SKILL.md schema, then edited", `${GC} -am x`, documentedDrift, "DENY"],
 
   // GATE-01 — the staging bypasses. THESE ARE THE REGRESSION TESTS.
   // v3 binds to the FULL working state, so any change after the verify denies —
@@ -186,14 +290,14 @@ const cases = [
 
 let failedCount = 0;
 console.log("opchain commit-gate — hermetic fixtures\n");
-console.log("  CASE                             EXPECT  GOT       NOTE");
+console.log("  CASE                              EXPECT  GOT       NOTE");
 console.log("  " + "─".repeat(100));
 for (const [name, cmd, cwd, expect, tool] of cases) {
   const { verdict, detail } = run(cmd, cwd, tool);
   const ok = verdict === expect;
   if (!ok) failedCount++;
   console.log(
-    `  ${ok ? "✓" : "✗"} ${name.padEnd(31)}${expect.padEnd(8)}${verdict.padEnd(10)}${detail}`,
+    `  ${ok ? "✓" : "✗"} ${name.padEnd(32)}${expect.padEnd(8)}${verdict.padEnd(10)}${detail}`,
   );
 }
 

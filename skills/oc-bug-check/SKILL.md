@@ -86,6 +86,12 @@ Bug-check differs from other opchain skills: there's no "resume" decision. The g
 always runs the full check suite. The checkpoint provides context (streak, debt, history),
 not resumable state.
 
+### Write on Finish
+
+Every run ends with one checkpoint write carrying `last_run`, `last_run_verdict`, and
+`verified_tree` from that run — see Checkpoint Schema → Commit gate contract. The commit
+gate denies a verdict that has no tree hash, however recent the run.
+
 ---
 
 ## How This Skill Fits the Pipeline
@@ -380,7 +386,9 @@ but with accountability:
 
 1. User confirms they want to bypass
 2. Bug-check logs the bypass in the checkpoint: which checks failed, when, who bypassed
-3. The commit message gets a `[BYPASS]` prefix: `[BYPASS] feat(auth): WIP session handling`
+3. The commit message gets a `[BYPASS]` prefix: `[BYPASS] feat(auth): WIP session handling`.
+   Where the commit-gate hook is installed, the commit also carries its explicit bypass
+   (`OPCHAIN_BYPASS=1 git commit …`) — the logged entry alone does not clear the hook
 4. Next `/oc-bugcheck run` shows: "Last commit bypassed gate — N issues carried forward"
 
 **Bypass is NOT silent.** It creates visible debt that surfaces on every subsequent run
@@ -541,6 +549,8 @@ Extends the session persistence section above with full schema details.
 
 | Field | Purpose |
 |---|---|
+| `last_run_verdict` | The last run's verdict, flat — the field the commit gate reads first. Always equal to `last_run.verdict` |
+| `verified_tree` | Hash of the full working tree the last run checked — binds the verdict to that code (see Commit gate contract) |
 | `last_run` | Timestamp + verdict + duration + per-check results |
 | `run_history` | Last 10 runs with verdicts (trend tracking) |
 | `bypasses` | Every bypass with failed checks and reason |
@@ -551,6 +561,8 @@ Extends the session persistence section above with full schema details.
 
 ```json
 {
+  "last_run_verdict": "PASS",
+  "verified_tree": "9d5b4d3c1f0e8a7b6c5d4e3f2a1b0c9d8e7f6a5b",
   "last_run": {
     "at": "2026-04-23T15:30:00Z",
     "verdict": "PASS",
@@ -577,6 +589,53 @@ Extends the session persistence section above with full schema details.
   "streak": { "passes": 5, "since": "2026-04-20T10:00:00Z" }
 }
 ```
+
+### Commit gate contract
+
+The opchain plugin's commit gate (`hooks/pre-commit-gate.cjs`, a `PreToolUse`
+hook — the opchain repo's own sessions run the same file) turns this checkpoint
+into a hard block on `git commit`. Every run — PASS, FAIL, or UNSUPPORTED —
+writes all of these in the same checkpoint write:
+
+| Field | Value | Gate |
+|---|---|---|
+| `updated_at` | ISO time of the write (protocol envelope) | Missing or unparseable → deny |
+| `skill_state.last_run_verdict` | `PASS` / `FAIL` / `UNSUPPORTED`, identical to `last_run.verdict` | Anything but PASS → deny. Verdict fields that disagree → deny |
+| `skill_state.verified_tree` | What the recipe below prints, run after the checks finish | Missing → deny, however recent the run. Differs from the current working tree → deny |
+
+A checkpoint carrying only `last_run.verdict` (the shape before `last_run_verdict`
+was documented) is still read, but it gets no exemption from the tree.
+
+Record the tree with this, from anywhere in the repo:
+
+```bash
+cd "$(git rev-parse --show-toplevel)"
+idx="$(mktemp)"
+cp "$(git rev-parse --git-path index)" "$idx" 2>/dev/null || rm -f "$idx"
+GIT_INDEX_FILE="$idx" git add -A -- .
+GIT_INDEX_FILE="$idx" git write-tree
+rm -f "$idx"
+```
+
+That is `git add -A` into a throwaway copy of the index — every tracked change and
+every untracked, non-ignored file, with the real index untouched — which is exactly
+how the gate hashes the tree it compares against. Bare `git write-tree` is **not**
+equivalent: it hashes only what is staged, so any unstaged edit or new file leaves
+the PASS non-matching.
+
+What follows from binding to the whole working tree:
+
+- **Any edit after the run invalidates the PASS** — including writing a *tracked*
+  checkpoint for another skill. Write those first, then run the gate, then commit.
+  This checkpoint is gitignored, so writing it does not move the tree.
+- **Staging does not.** `git add` between the run and the commit changes nothing the
+  tree already counted.
+- **The hook's bypass is explicit and logged:** `OPCHAIN_BYPASS=1 git commit …` or
+  `git commit --no-verify`. A `bypasses[]` entry is the accountability record; on its
+  own it does not clear the gate.
+
+The plugin's `hooks/test-gate.cjs` builds a checkpoint from the JSON example above
+and this recipe and asserts the gate accepts it — change the three together.
 
 ### Cross-Skill Reads
 

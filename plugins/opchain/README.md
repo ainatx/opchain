@@ -49,9 +49,12 @@ unless oc-bug-check recorded a PASS *for the tree you are committing*.
   missing, so a fresh container silently had no gate. Claude Code runs on Node.
 - **Tree-bound verdicts.** A checkpoint is written by the agent, and
   `write_checkpoint` is a public MCP tool — a bare `verdict: PASS` is
-  self-attestation, not evidence. The verdict is bound to `git write-tree` output,
-  so re-staging different code invalidates it automatically. A forged or stale
-  PASS is *non-matching*, not merely old.
+  self-attestation, not evidence. The verdict is bound to a hash of the full
+  working tree (every tracked change and untracked file, hashed as `git add -A`
+  into a throwaway index), so any edit after the check invalidates it, and a PASS
+  with no tree hash is denied however recent. A forged or stale PASS is
+  *non-matching*, not merely old. Field names and the recipe: oc-bug-check
+  § Commit gate contract. The opchain repo's own sessions run this same hook.
 - **Opt-in per repo.** Plugins install globally. A gate that denies commits in
   every repo gets uninstalled within a day, taking the protection with it. Only
   repos with `.checkpoints/` or `.opchain/` are gated (override: `OPCHAIN_GATE=1`).

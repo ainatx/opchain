@@ -238,17 +238,18 @@ Then read `.checkpoints/oc-bug-check.checkpoint.json` for the verdict.
 
 | Verdict | Action |
 |---|---|
-| PASS | Proceed to `git add` + `git commit` |
+| PASS | Proceed to `git add` + `git commit`, editing nothing in between. The PASS is bound to `skill_state.verified_tree`, so any change after the run invalidates it (oc-bug-check § Commit gate contract). |
 | FAIL | **ABORT.** Surface the failing checks and offer the user `/oc-bugcheck fix` (auto-fix lint/format) or `/oc-bugcheck bypass` (logged override). Do NOT call `git commit` until verdict flips to PASS or the user explicitly bypasses. |
 | (no checkpoint) | Bug-check hasn't run — invoke it first. |
 
-> **This gate is advisory unless your repo installs the hook.** The opchain.dev
-> repo registers a `PreToolUse(Bash)` hook that blocks `git commit` on a missing,
-> stale, or non-PASS bug-check checkpoint — but that hook lives in *that repo's*
-> `.claude/settings.json` and is **not shipped by the skills bundle**. In your
-> project, nothing mechanically enforces the table above; treat it as a contract
-> you are choosing to honour. To get real enforcement, install the opchain plugin
-> (which ships the hook) rather than the skills zip.
+> **This gate is advisory unless the commit-gate hook is installed.** The opchain
+> plugin ships a `PreToolUse(Bash)` hook (`hooks/pre-commit-gate.cjs`) that blocks
+> `git commit` unless the bug-check checkpoint records a PASS bound to the current
+> working tree; the opchain.dev repo registers that same file in its
+> `.claude/settings.json`. The **skills bundle does not ship it** — with the zip
+> alone, nothing mechanically enforces the table above; treat it as a contract you
+> are choosing to honour. To get real enforcement, install the opchain plugin
+> rather than the skills zip.
 
 ---
 
