@@ -177,7 +177,7 @@ function mkRepo(opts = {}) {
   return dir;
 }
 
-function run(command, cwd, toolName = "Bash") {
+function run(command, cwd, toolName = "Bash", extraEnv = {}) {
   const payload = JSON.stringify({ tool_name: toolName, tool_input: { command }, cwd });
   // Scrub gate-relevant ambient vars (OC-04 r2): OPCHAIN_GATE=1 exported in a
   // dev/CI shell would flip the "unenrolled repo" case to DENY and falsely red
@@ -185,6 +185,7 @@ function run(command, cwd, toolName = "Bash") {
   const env = { ...process.env };
   delete env.OPCHAIN_GATE;
   delete env.OPCHAIN_BYPASS;
+  Object.assign(env, extraEnv);
   // An overrun is a CRASH, not a verdict: the harness kills a hook that exceeds
   // its timeout, and a killed hook writes no deny (GATE-07).
   const r = spawnSync("node", [GATE], { input: payload, encoding: "utf8", env, timeout: 5000 });
@@ -216,6 +217,21 @@ const wrongTree = mkRepo({ verdict: "PASS", bindTree: "wrong" });
 const staleNoTree = mkRepo({ verdict: "PASS", ageMin: 45 });
 const freshNoTree = mkRepo({ verdict: "PASS", ageMin: 1 });
 const nullCp = mkRepo({ raw: "null" });
+const arrayCp = mkRepo({ raw: JSON.stringify([{ skill_state: { last_run_verdict: "PASS" } }]) });
+const invalidCp = mkRepo({ raw: "{ not json" });
+
+// Enrolment: a repo is gated when it has .checkpoints/ or .opchain/, or OPCHAIN_GATE=1
+const optedByOpchain = (() => {
+  const dir = mkRepo({ enrolled: false });
+  fs.mkdirSync(path.join(dir, ".opchain"));
+  return dir;
+})();
+const flatVerdict = mkRepo({ // skill_state.verdict is read as an alias of last_run_verdict
+  checkpoint: (tree, at) => ({ updated_at: at, skill_state: { verdict: "PASS", verified_tree: tree } }),
+});
+const aliasBound = mkRepo({ // verified_for_tree is read as an alias of verified_tree
+  checkpoint: (tree, at) => ({ updated_at: at, skill_state: { last_run_verdict: "PASS", verified_for_tree: tree } }),
+});
 const noTimestamp = mkRepo({ raw: JSON.stringify({ skill_state: { last_run_verdict: "PASS" } }) });
 
 // GATE-06 — the shapes that actually occur in the wild
@@ -456,15 +472,27 @@ const cases = [
   // the enlarged alternation must still parse linearly (GATE-07)
   ["40 caffeinate words, no commit", `${"caffeinate ".repeat(40)}ls ; sh -c 'ls'`, failed, "ALLOW"],
   ["40 caffeinate words, then commit", `${"caffeinate ".repeat(40)}${GC} -m x`, failed, "DENY"],
+
+  // Documented behaviours that had no case (2026-09-11 skill-chain audit)
+  ["checkpoint is a JSON array", `${GC} -m x`, arrayCp, "DENY", "Bash", {}, /checkpoint\.json is not/],
+  ["checkpoint is not JSON", `${GC} -m x`, invalidCp, "DENY"],
+  ["enrolled by .opchain/ only", `${GC} -m x`, optedByOpchain, "DENY"],
+  ["OPCHAIN_GATE=1 on unenrolled", `${GC} -m x`, notEnrolled, "DENY", "Bash", { OPCHAIN_GATE: "1" }],
+  ["OPCHAIN_BYPASS=1 token", `OPCHAIN_BYPASS=1 ${GC} -m x`, failed, "ALLOW"],
+  ["verified_for_tree alias, bound", `${GC} -m x`, aliasBound, "ALLOW"],
+  ["flat verdict field, bound", `${GC} -m x`, flatVerdict, "ALLOW"],
+  ["xargs wrapper", `echo x | xargs ${GC} -m`, failed, "DENY"],
+  ["sudo prefix", `sudo ${GC} -m x`, failed, "DENY"],
 ];
 
 let failedCount = 0;
 console.log("opchain commit-gate — hermetic fixtures\n");
 console.log("  CASE                              EXPECT  GOT       NOTE");
 console.log("  " + "─".repeat(100));
-for (const [name, cmd, cwd, expect, tool] of cases) {
-  const { verdict, detail } = run(cmd, cwd, tool);
-  const ok = verdict === expect;
+for (const [name, cmd, cwd, expect, tool, extraEnv, reason] of cases) {
+  const { verdict, detail } = run(cmd, cwd, tool, extraEnv);
+  // A reason pins WHY it denied, for cases where a different check would deny too.
+  const ok = verdict === expect && (!reason || reason.test(detail));
   if (!ok) failedCount++;
   console.log(
     `  ${ok ? "✓" : "✗"} ${name.padEnd(32)}${expect.padEnd(8)}${verdict.padEnd(10)}${detail}`,
