@@ -3,7 +3,7 @@ name: oc-deploy-ops
 displayName: OC · Deploy Ops
 version: 1.9.0
 license: Apache-2.0
-shortDesc: Audit gate → staging → production → monitor. PM-aware (v1.3+) — creates deploy tickets and updates linked PM tickets per env.
+shortDesc: Audit gate → staging → production → monitor. Creates deploy tickets and updates linked PM tickets per env.
 phases: [build]
 triAgent: false
 tryable: true

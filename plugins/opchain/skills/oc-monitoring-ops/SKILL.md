@@ -3,7 +3,7 @@ name: oc-monitoring-ops
 displayName: OC · Monitoring Ops
 version: 1.9.0
 license: Apache-2.0
-shortDesc: Post-deploy observability — uptime, errors, alerts, incidents. PM-aware (v1.3+) — opens PM incident tickets when alerts fire.
+shortDesc: Post-deploy observability — uptime, errors, alerts, incidents. Opens PM incident tickets when alerts fire.
 phases: [build]
 triAgent: false
 tryable: true

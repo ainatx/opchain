@@ -256,7 +256,7 @@
       "id": "oc-deploy-ops",
       "name": "oc-deploy-ops",
       "displayName": "OC · Deploy Ops",
-      "shortDesc": "Audit gate → staging → production → monitor. PM-aware (v1.3+) — creates deploy tickets and updates linked PM tickets per env.",
+      "shortDesc": "Audit gate → staging → production → monitor. Creates deploy tickets and updates linked PM tickets per env.",
       "description": "Deployment pipeline: audit gate → staging → production → monitoring. Use for /oc-deploy, \"deploy this\", \"ship it\", \"push to production\", \"staging\", \"rollback\", \"health check\", or any deployment task. Single-app managed deploys only: multi-container, self-managed or IaC deploys are oc-fleet-ops.",
       "phases": [
         "build"
@@ -425,7 +425,7 @@
       "id": "oc-monitoring-ops",
       "name": "oc-monitoring-ops",
       "displayName": "OC · Monitoring Ops",
-      "shortDesc": "Post-deploy observability — uptime, errors, alerts, incidents. PM-aware (v1.3+) — opens PM incident tickets when alerts fire.",
+      "shortDesc": "Post-deploy observability — uptime, errors, alerts, incidents. Opens PM incident tickets when alerts fire.",
       "description": "Post-deployment observability: uptime monitoring, error tracking, structured logging, alerting pipelines, and incident response runbooks. Sits after oc-deploy-ops in the pipeline — oc-deploy-ops ships it, oc-monitoring-ops watches it. Use for /oc-monitor, \"set up monitoring\", \"error tracking\", \"uptime check\", \"alerting\", \"incident response\", \"observability\", \"what's happening in prod\", \"set up Sentry\", \"logging strategy\", \"on-call\", \"runbook\", \"SLO\", \"SLI\", \"is prod healthy\", \"why is it slow\", \"error rate\", \"status page\".",
       "phases": [
         "build"
