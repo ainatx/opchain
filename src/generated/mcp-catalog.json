@@ -72,9 +72,7 @@
         "/oc-roadmap",
         "/oc-scaffold",
         "/oc-build",
-        "/oc-launch",
-        "/oc-export-spec",
-        "/oc-punch-list"
+        "/oc-launch"
       ],
       "version": "1.9.0"
     },
@@ -224,9 +222,7 @@
         "/oc-df-spec-only",
         "/oc-df-full",
         "/oc-df-audit",
-        "/oc-df-variants",
-        "/oc-df-status",
-        "/oc-df-resume"
+        "/oc-df-variants"
       ],
       "version": "1.9.0"
     },
@@ -336,10 +332,7 @@
         "/oc-pr",
         "/oc-push",
         "/oc-git-sync",
-        "/oc-git-release",
-        "/oc-git-init",
-        "/oc-git-status",
-        "/oc-git-convention"
+        "/oc-git-release"
       ],
       "version": "1.9.0"
     },
@@ -613,8 +606,6 @@
         "/oc-rev-design",
         "/oc-rev-stack",
         "/oc-rev-sprint",
-        "/oc-rev-status",
-        "/oc-rev-diff",
         "/oc-rev-spec"
       ],
       "version": "1.9.0"
@@ -739,8 +730,7 @@
       "commands": [
         "/oc-stack",
         "/oc-stack-decide",
-        "/oc-feature",
-        "/oc-stack-compare"
+        "/oc-feature"
       ],
       "version": "1.9.0"
     },

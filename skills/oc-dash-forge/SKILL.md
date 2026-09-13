@@ -19,8 +19,6 @@ commands:
   - /oc-df-full
   - /oc-df-audit
   - /oc-df-variants
-  - /oc-df-status
-  - /oc-df-resume
 description: >
   Specialized dashboard and dense-information UI designer. Produces design specs AND
   working React prototypes with mock data for three archetypes: executive (KPI-driven,
@@ -67,8 +65,6 @@ DASH FORGE COMMANDS
 
   UTILITIES
   /oc-df-audit       Quality checks (density, legibility, chart fit, a11y)
-  /oc-df-status      Checkpoint progress
-  /oc-df-resume      Resume from last checkpoint
   /oc-df-variants    Generate 2-3 layout variants for user to choose
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -112,7 +108,7 @@ oc-dash-forge can run standalone OR be invoked mid-flow by oc-ux-engineer (`/oc-
 - oc-dash-forge writes its own `oc-dash-forge.checkpoint.json` to `{project-dir}/.checkpoints/`
 - oc-dash-forge lists the handoff bundle (`dash-forge-handoff/` files) in its own
   `context_primer.generated_files`; a parent that needs the bundle reads it there. There
-  is no combined status view — `/oc-df-status` reports this skill's progress, and the
+  is no combined status view — "dash-forge status" reports this skill's progress, and the
   parent's own status reports the parent's
 
 ### Context inheritance
@@ -449,11 +445,13 @@ what is specific to oc-dash-forge.
 full example; the envelope (required fields, `next_actions`, `blockers`) is the protocol's.
 
 Write on: phase end, mid-phase intake, user pause, before destructive ops.
-Read on: first action each session, before any phase command, on `/oc-df-status` or `/oc-df-resume`.
+Read on: first action each session, before any phase command, and when the user asks for
+status or to resume.
 
-**`/oc-df-status`** prints the progress table below and the next phase, from the checkpoint
-alone; with no checkpoint it says so and suggests `/oc-df-intake`. **`/oc-df-resume`**
-loads the checkpoint and continues at the first phase not marked complete.
+Asked for status (a plain request, not a slash command), print the progress table below
+and the next phase from the checkpoint alone; with no checkpoint, say so and suggest
+`/oc-df-intake`. Asked to resume, load the checkpoint and continue at the first phase not
+marked complete.
 
 ### Progress table
 

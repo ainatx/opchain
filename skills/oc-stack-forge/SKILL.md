@@ -11,7 +11,6 @@ commands:
   - /oc-stack
   - /oc-stack-decide
   - /oc-feature
-  - /oc-stack-compare
 description: >
   Stack advisor for any platform: Cloudflare, Vercel, AWS, Supabase, Rails, Django.
   Use for /oc-stack, /oc-stack-decide, /oc-feature, "what stack", "tech stack", "what should I
@@ -64,7 +63,6 @@ STACK FORGE COMMANDS
 
   STACK SELECTION
   /oc-stack-decide     Run the full stack decision tree
-  /oc-stack-compare    Compare 2-3 specific stack options side by side
 
   FEATURE DECOMPOSITION
   /oc-feature          Decompose a feature into stack-ordered sprints
@@ -73,6 +71,9 @@ STACK FORGE COMMANDS
   /checkpoint          Show checkpoint status
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+
+Comparing two or three specific stack options side by side is a plain request too
+("compare Rails and Django for this").
 
 Pattern topics are plain requests, not slash commands — ask for them by name; each maps
 to a reference doc (see Reference Docs): "set up the typed pipeline", "testing pyramid

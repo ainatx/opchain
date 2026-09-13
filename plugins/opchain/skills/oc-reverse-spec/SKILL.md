@@ -14,8 +14,6 @@ commands:
   - /oc-rev-design
   - /oc-rev-stack
   - /oc-rev-sprint
-  - /oc-rev-status
-  - /oc-rev-diff
   - /oc-rev-spec
 description: >
   Reverse-engineer existing code into spec docs. Use for /oc-rev-spec, /oc-reverse-spec,
@@ -61,10 +59,6 @@ REVERSE SPEC COMMANDS
   /oc-rev-stack      Stack-forge gap analysis — typed pipeline audit
   /oc-rev-sprint     Build onramp — generate spec.md + sprint-plan.md for a feature
 
-  UTILITIES
-  /oc-rev-status     Show progress from checkpoint — what's done, what's next
-  /oc-rev-diff       Compare generated specs against actual code (drift check)
-
   SESSION
   /checkpoint         Show checkpoint status
   /checkpoint show    Display full checkpoint JSON
@@ -95,13 +89,14 @@ targeted scan of just the typed pipeline layers.
 to understand the project. Generates `app-architect-ready/spec.md` and optionally `sprint-plan.md` for a
 specified feature.
 
-**`/oc-rev-status`**: Reads checkpoint (JSON, or legacy markdown). If no checkpoint exists,
-says so and suggests `/oc-rev-scan` to start.
+**"reverse-spec status"** (a plain request): read the checkpoint (JSON, or legacy markdown).
+If no checkpoint exists, say so and suggest `/oc-rev-scan` to start.
 
 **`/oc-rev-spec`**: The same run as `/oc-rev-full`, under the name the skill description
 advertises. Takes the `--pm-mirror` flag described under PM-Tool MCP Integration.
 
-**`/oc-rev-diff`**: Re-reads the codebase and compares against previously generated specs. Flags
+**"check the specs for drift"** (a plain request): re-read the codebase and compare against
+previously generated specs. Flags
 drift (code changed since specs were generated). Requires prior spec generation.
 
 ---

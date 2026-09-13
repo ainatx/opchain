@@ -136,21 +136,25 @@ checkpoint `protocol_version` is tracked separately (see
   if it covered the deploying SHA's runtime code, blocks when no security assessment
   is on record unless a waiver is recorded, and hands off to `/oc-security posture`
   instead of an undeclared verb.
-- **Every handoff names a verb its target declares, and every menu verb is
-  declared.** Fifteen handoffs named subcommands the target documented but did not
-  declare in `commands:` (`/oc-audit pre-deploy`, `/oc-security posture`,
-  `/oc-deploy prod`, `/oc-release verify`, `/oc-scale loadtest`, …); the sixteenth,
-  `/oc-security pre-deploy`, was repointed earlier in this release. Frontmatter now
-  declares every verb in each skill's own command menu, 94 new verbs in all, including
-  `/oc-deploy rollback`, `/oc-deploy env`, `/oc-audit fix-all` and the
-  `/oc-rev-spec`, `/oc-df-status` and `/oc-git-status` family. Each was already
-  documented in its skill's command menu; `/oc-deploy env`, `/oc-df-status`,
-  `/oc-df-resume` and `/oc-rev-spec` also gain behaviour text. `/oc-rollback` and `/oc-git-commit`, which no skill declared, now read
-  `/oc-deploy rollback` and `/oc-commit`; oc-deploy-ops hands off to
-  `/oc-monitor health` instead of an undefined `/oc-monitor verify`. oc-git-ops,
-  oc-stack-forge and oc-ux-engineer title their menus with their declared `/oc-git`,
-  `/oc-stack` and `/oc-uxe`. The production deploy verb is `/oc-deploy prod`
-  everywhere; bare `/oc-deploy` is the menu.
+- **Every handoff names a verb its target declares, and every menu verb is declared.**
+  Fifteen handoffs named subcommands the target documented but did not declare in
+  `commands:` (`/oc-audit pre-deploy`, `/oc-security posture`, `/oc-deploy prod`,
+  `/oc-release verify`, `/oc-scale loadtest`, …); the sixteenth, `/oc-security
+  pre-deploy`, was repointed earlier in this release. Frontmatter now declares every
+  verb in each skill's own command menu, 84 new declarations in all (222 → 306),
+  including `/oc-deploy rollback`, `/oc-deploy env` and `/oc-audit fix-all`, each
+  already documented in its skill's command menu; `/oc-deploy env` and `/oc-rev-spec`
+  also gain behaviour text. `/oc-rev-spec`, which the skill's description and the site
+  already advertised, is declared as a root verb. Menu-only root verbs are not
+  declared, since a new root verb is a minor-release change: `/oc-export-spec`,
+  `/oc-punch-list`, `/oc-git-init`, `/oc-git-status`, `/oc-git-convention`,
+  `/oc-stack-compare`, `/oc-rev-status`, `/oc-rev-diff`, `/oc-df-status` and
+  `/oc-df-resume` are now documented as plain requests. `/oc-rollback` and
+  `/oc-git-commit`, which no skill declared, now read `/oc-deploy rollback` and
+  `/oc-commit`; oc-deploy-ops hands off to `/oc-monitor health` instead of an
+  undefined `/oc-monitor verify`. oc-git-ops, oc-stack-forge and oc-ux-engineer title
+  their menus with their declared `/oc-git`, `/oc-stack` and `/oc-uxe`. The production
+  deploy verb is `/oc-deploy prod` everywhere; bare `/oc-deploy` is the menu.
 - **orchestrator.md — the map covers the catalog.** Upstream/Downstream rows for
   oc-checkpoint-protocol, oc-claude-api, oc-agent-forge, oc-rag-forge, oc-prompt-ops,
   oc-signal-forge, oc-modularize-ops and oc-fleet-ops; Handoff Points rows for the
