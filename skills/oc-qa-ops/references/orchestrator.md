@@ -401,10 +401,10 @@ description: >
 description: >
   Build, debug, and optimize Claude API / Anthropic SDK apps. Apps built with
   this skill include prompt caching by default. Also migrates existing Claude
-  API code between model versions (4.6 → 4.7, retired-model replacements). Use
-  for /oc-claude-api, "Anthropic SDK", "prompt caching", "cache hit rate",
-  "tool use", "model migration", "extended thinking", "batch API", "files API",
-  "memory", "citations".
+  API code between model versions (4.6 → 4.7 → 4.8, Mythos Preview → Fable 5,
+  retired-model replacements). Use for /oc-claude-api, "Anthropic SDK", "prompt
+  caching", "cache hit rate", "tool use", "model migration", "extended thinking",
+  "batch API", "files API", "memory", "citations".
 
 # oc-code-auditor
 description: >
@@ -668,7 +668,8 @@ description: >
   transform, and adversarially verifies the signal is correct AND answers the question
   before wiring it to a consumer. Use for /oc-signal, "new metric", "instrument this",
   "analytics backend", "data harvesting", "is this metric right", "wire up a signal",
-  "derive a KPI". Hands rendered output to oc-dash-forge. NOT pipeline telemetry
+  "derive a KPI". Hands the validated signal (stable read contract) to oc-dash-forge
+  for rendering. NOT pipeline telemetry
   (oc-telemetry-ops), NOT dashboards (oc-dash-forge), NOT prod uptime (oc-monitoring-ops),
   NOT estate-level data pipelines — ingestion/dbt/warehouse layering is oc-data-ops;
   when a metric needs a pipeline that doesn't exist, chain to /oc-data-ops design
@@ -685,11 +686,12 @@ description: >
   Telemetry operations harness — opt-in, local-first usage metering that records
   which skills and phases actually run, to a local .checkpoints/usage.sqlite
   store, then produces anonymized aggregates for the public /dashboard. Use for
-  /oc-telemetry, "usage metering", "telemetry", "opt-in analytics", "which skills
-  do people use", "usage stats", "dashboard data", "anonymized usage". Default
-  stance is OFF — nothing is recorded until you explicitly enable it, and no
-  prompt content or PII ever leaves the machine. Pairs with oc-cost-ops (cost per
-  run) for the cost-per-feature dashboard stats.
+  /oc-telemetry, "usage metering", "opchain usage telemetry", "opt-in analytics",
+  "which skills do people use", "usage stats", "dashboard data", "anonymized
+  usage". Default stance is OFF — nothing is recorded until you explicitly enable
+  it, and no prompt content or PII ever leaves the machine. Pairs with oc-cost-ops
+  (cost per run) for the cost-per-feature dashboard stats. NOT application or
+  production observability (oc-monitoring-ops).
 
 # oc-ux-engineer
 description: >

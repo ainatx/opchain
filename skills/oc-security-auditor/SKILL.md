@@ -75,7 +75,7 @@ SECURITY AUDITOR COMMANDS
   COMPLIANCE
   /oc-security owasp              OWASP Top 10 compliance checklist (current year)
   /oc-security posture            Full posture assessment (all three pillars)
-  /oc-security readiness [framework]  SOC2 / ISO27001 / HIPAA readiness gap analysis
+  /oc-security readiness [framework]  SOC2 / ISO27001 / HIPAA / PCI-DSS readiness gaps
   /oc-security report             Regenerate posture report from last checkpoint
 
   RUNTIME HARDENING
@@ -214,7 +214,8 @@ surface mapping and STRIDE — shows exactly *where* sensitive data is vulnerabl
    - Does the third party's privacy/security posture match the data classification?
    
    This is not full vendor management — it's a lightweight exposure check that feeds
-   into STRIDE (Spoofing, Information Disclosure) and OWASP A06/A08.
+   into STRIDE (Spoofing, Information Disclosure) and the OWASP supply-chain and
+   integrity categories (A06/A08 in the 2021 numbering below).
 
 ---
 
@@ -222,9 +223,10 @@ surface mapping and STRIDE — shows exactly *where* sensitive data is vulnerabl
 
 ### OWASP Top 10 Checklist (`/oc-security owasp`)
 
-For each OWASP category, assess the application's posture. Use web search to confirm
-the current list (it updates every few years). Fallback if search is unavailable — the
-2021 edition (current as of 2025):
+For each OWASP category, assess the application's posture. Use web search to confirm the
+current list (it updates every few years; a 2025 edition has superseded 2021). Fallback
+if search is unavailable — the 2021 edition, labelled as such in the report so nobody
+mistakes it for the current list:
 
 A01: Broken Access Control · A02: Cryptographic Failures · A03: Injection ·
 A04: Insecure Design · A05: Security Misconfiguration · A06: Vulnerable/Outdated
@@ -255,8 +257,8 @@ redirects to `/oc-security posture`.
 
 ### HTTP Security Headers (`/oc-security headers`)
 
-Check the deployed application's response headers. If a URL is available, use web_fetch.
-Otherwise, check the code for header-setting logic.
+Check the deployed application's response headers. If a URL is available, fetch it
+(WebFetch, or `curl -sI <url>`). Otherwise, check the code for header-setting logic.
 
 | Header | Secure Value | Why |
 |---|---|---|
@@ -355,7 +357,8 @@ The full-stack assessment. Runs all three pillars and produces an executive repo
 
 ### Step 0: Scope & Classify
 
-Before running checks, determine assessment depth. Use `ask_user_input`:
+Before running checks, determine assessment depth. Ask the user (AskUserQuestion when
+available, otherwise in chat):
 
 | Factor | Options |
 |---|---|
@@ -381,11 +384,16 @@ user explicitly asks, deliver.
 **Monorepo scoping:** For multi-app repos (like acme-core), assess per-app — each app
 has its own data sensitivity, attack surface, and tier. Shared infrastructure (single
 Cloudflare account, shared D1 instance, common auth) gets assessed once and cross-referenced
-by each app's report. Write one checkpoint per app, not one per repo.
+by each app's report. Write one checkpoint per app, not one per repo: treat each app
+directory as the project-dir, so each lands at
+`<app-dir>/.checkpoints/oc-security-auditor.checkpoint.json`.
 
 ### Process
 
-1. **Gather context.** Read checkpoints: oc-reverse-spec, oc-app-architect, oc-code-auditor, oc-deploy-ops.
+1. **Gather context.** Read checkpoints: oc-reverse-spec, oc-app-architect,
+   oc-code-auditor, oc-deploy-ops — the protocol-public fields only (header, progress,
+   `progress_summary`, `context_primer`, `blockers`, `eval_scores`), never their
+   `skill_state`.
 
 2. **Ensure code-level coverage.** If no oc-code-auditor checkpoint exists, invoke
    `/oc-audit security` first. Architecture-level assessment without code-level findings
@@ -398,6 +406,8 @@ by each app's report. Write one checkpoint per app, not one per repo.
 5. **Run Pillar 3:** Runtime hardening sweep including detection/response.
 
 6. **Synthesize.** Cross-reference: do oc-code-auditor findings map to STRIDE categories?
+   (Its checkpoint carries only grade and counts; individual findings come from its audit
+   report in this session or its HIGH+ PM sub-tickets.)
    Do hardening gaps align with attack surface exposure? Flag anything in threat model
    not covered by code or infra controls.
 
@@ -424,10 +434,13 @@ Output: Findings sorted into buckets with specific next actions.
 
 ## Posture Comparison (`/oc-security compare`)
 
-Compares two posture snapshots to track improvement. Input: two dates or checkpoint paths.
-If one argument, compares against current checkpoint. Diffs finding counts, OWASP score,
-header score. Highlights regressions prominently. See `references/output-templates.md`
-for format.
+Compares two posture snapshots to track improvement. The checkpoint is a single file
+that each assessment overwrites, so a "before" snapshot is that tracked file at an
+earlier revision (`git show <rev>:.checkpoints/oc-security-auditor.checkpoint.json`) or
+a copy archived under `.checkpoints/history/`. Input: two revisions, dates, or
+checkpoint paths. If one argument, compares it against the current checkpoint. Diffs
+finding counts, OWASP score, header score. Highlights regressions prominently. See
+`references/output-templates.md` for format.
 
 ---
 
@@ -445,17 +458,17 @@ what is specific to oc-security-auditor.
 | Event | What to Save |
 |---|---|
 | Assessment started | Scope, tier (Lite/Standard/Comprehensive), project |
-| Threat model complete | STRIDE findings, attack surface map, adversary profiles |
+| Threat model complete | STRIDE finding counts (the attack surface map and adversary profiles live in the report, not the checkpoint) |
 | OWASP check complete | Per-category status, overall score |
 | Hardening sweep complete | Header scores, TLS/DNS status, platform config, detection/response |
-| Posture report generated | Risk heatmap, finding count by risk, remediation plan |
+| Posture report generated | Finding count by risk + remediation-plan flag in `skill_state`; restate tier and counts in `progress_summary` and the tier as a `context_primer.key_decisions` entry ("Tier: standard") — the fields sibling skills read |
 | Finding addressed | Finding ID, verification status |
 
 ### skill_state
 
-```json
+```jsonc
 {
-  "scope": "posture",
+  "scope": "posture",                 // posture | threat-model | compliance | hardening
   "tier": "standard",
   "pillar_status": {
     "threat_model": "complete",
@@ -479,17 +492,17 @@ what is specific to oc-security-auditor.
 |---|---|
 | oc-reverse-spec | Architecture, component inventory, data flows |
 | oc-app-architect | Spec, auth design, data model |
-| oc-code-auditor | Code-level security findings → cross-reference, don't duplicate |
+| oc-code-auditor | Grade + counts in `progress_summary` (trend score in `eval_scores`); individual findings from its report or PM sub-tickets → cross-reference, don't duplicate |
 | oc-deploy-ops | Deployment config, environment variables, platform settings |
 | oc-stack-forge | Platform capabilities and limitations |
 
 | Read by | Why |
 |---|---|
-| oc-deploy-ops | Posture grade → deployment gate (optional) |
+| oc-deploy-ops | Assessment on record + counts → deployment gate; no assessment on record blocks `/oc-deploy staging\|prod` unless waived |
 | oc-code-auditor | Threat model → guide where to focus code sweeps |
 | oc-app-architect | Security requirements → inform spec updates |
 | oc-scale-ops | DoS findings → capacity planning input |
-| oc-security-hardening | Findings + tier → remediation queue and baseline depth (v1.9) |
+| oc-security-hardening | Tier (`context_primer.key_decisions`) → baseline depth; findings from the posture report or the PM tickets below → remediation queue (v1.9) |
 | oc-compliance-ops | `/oc-security readiness` gaps seed the standing control register (v1.9) |
 
 **Remediation handoff (v1.9):** when an assessment produces actionable
@@ -521,8 +534,8 @@ OWASP Top 10: {N FAIL, N PARTIAL, N PASS}
 Top three (by exploitability × impact):
   1. {component} — {one-line finding}
   ...
-Compliance lens: {SOC2 / HIPAA / CMMC / ISO mapping summary}
-Full report: .checkpoints/oc-security-auditor.checkpoint.json
+Compliance lens: {SOC2 / ISO27001 / HIPAA / PCI-DSS mapping summary}
+Counts + tier: .checkpoints/oc-security-auditor.checkpoint.json
 ```
 
 ### CRITICAL findings as incident tickets
@@ -535,8 +548,10 @@ CRITICAL findings get the `incident` issue-type from
   `compliance:<framework-if-relevant>`.
 - `parent`: the source PR ticket if invoked from one; otherwise
   unparented.
-- `assignee`: Security Lead from `.opchain/pm.yaml`
-  `remediation_owners.security`.
+- `assignee`: unassigned, unless the project's `.opchain/pm.yaml`
+  defines a security owner (`remediation_owners.security` is not part
+  of the canonical pm.yaml schema; use it only when the project added
+  one).
 - `body`: full finding + threat-model reference + suggested
   remediation + compliance-impact statement.
 
@@ -553,7 +568,8 @@ category.
 
 ### Compliance crosswalk artifacts
 
-In regulated runs (SOC2, HIPAA, CMMC, FedRAMP) the crosswalk
+In regulated runs (the readiness frameworks above; CMMC or FedRAMP
+only when the user supplies that control catalogue) the crosswalk
 artifact (mapping findings → compliance controls) is also attached
 to the ticket as a comment + uploaded as a file attachment if the PM
 tool supports it. The crosswalk is the auditor-facing artefact; the
@@ -569,8 +585,8 @@ rather than create duplicates.
 ### Cross-domain + regulated environments
 
 In environments with the broker / redactor / cross-domain rules
-described in scenarios `mcp-enterprise-f500` and
-`mcp-enterprise-defense`, the oc-security-auditor's PM-MCP writes pass
+described in `oc-integrations-engineer/references/pm-mcp-protocol.md`
+§ Compliance posture, the oc-security-auditor's PM-MCP writes pass
 through the same broker as every other tool call — same audit log,
 same scope rules. The Security Lead role typically holds elevated
 PM-MCP scope by design.
@@ -583,7 +599,9 @@ PM-MCP scope by design.
 - MCP unavailable → log to checkpoint as deferred; never block the
   audit on PM availability.
 - BAA / DPA missing on the configured PM provider → refuse to write
-  the body of compliance findings; only post the grade + count.
+  the body of compliance findings; only post the grade + count. No
+  config records BAA/DPA status, so ask the user once and record the
+  answer in `skill_state`.
 
 ---
 

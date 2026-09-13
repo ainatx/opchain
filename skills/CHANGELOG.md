@@ -189,6 +189,36 @@ checkpoint `protocol_version` is tracked separately (see
   checkpoint follows the protocol and names its real upstream skills; oc-stack-forge
   no longer claims app-architect uses its build ordering. oc-ux-engineer's phases are
   `[plan, build]`, matching its build loop. 70 findings fixed, 7 already fixed.
+- **Gate and assurance skills say what they do (Sprint 5d-1).** oc-bug-check's
+  private-key grep actually matches PEM and PGP headers (it was BRE and never
+  did); its verdicts are PASS, FAIL or UNSUPPORTED as the commit gate reads them,
+  and a bypass is `OPCHAIN_BYPASS=1` or `--no-verify`, never the record alone.
+  oc-orchestrator's ranking matches `checkpoint.mjs next`, its CLI steps apply only
+  where the CLI exists, and its memory/session-file and per-app filename text is
+  gone. Cross-skill reads in oc-code-auditor, oc-security-auditor,
+  oc-security-hardening and oc-compliance-ops use fields their owners publish;
+  oc-compliance-ops says no capture allowlist exists rather than implying one.
+  60 findings fixed, 15 already fixed.
+- **AI-native and instrumentation skills say what they do (Sprint 5c).**
+  oc-agent-forge, oc-rag-forge, oc-prompt-ops and oc-cost-ops no longer claim
+  oc-deploy-ops gates production on their suites; `/oc-prompt regress` and
+  `/oc-cost gate` are agent-driven PR-time checks, not required CI jobs, and the
+  nonexistent `npm run oc-prompt` recipe is gone. Siblings read model routing from
+  oc-claude-api's `context_primer.key_decisions` and `11-ai-architecture.md` (not
+  its private state or an unproduced `05-llm-design.md`). The `cost` block lives in
+  the oc-cost-ops checkpoint, with `cost_per_eval` documented in oc-prompt-ops'
+  baseline. oc-telemetry-ops documents the four verbs `scripts/telemetry.mjs` has;
+  oc-signal-forge's Evaluator loop is capped at three rounds like its siblings.
+  44 findings fixed, 6 already fixed, 2 deferred to the release tooling.
+- **Build & integrate skills say what they do (Sprint 5b).** oc-modularize-ops,
+  oc-migration-ops and oc-fleet-ops share one named artifact,
+  `modularization/module-map.json`, with its shape written on every side; migration
+  plans the code move for every module and holds only live cutover (and fleet only
+  deploy) until `equivalence_verified`. oc-api-dev's drift check and oc-scale-ops'
+  budgets are described as recommendations oc-deploy-ops does not enforce, and
+  duties oc-monitoring-ops never took on are gone. Sandbox paths, undefined keys and
+  a false "fixtures are gitignored" claim are corrected; abandon archives to
+  `.checkpoints/history/`. 55 findings fixed, 8 already fixed, 7 won't-fix.
 - **orchestrator.md §7 backfill and the F6 release-surface procedure.** Two post-1.9.0
   changes to shipped text (#482, #484) that this section never recorded.
 - **Every skill points at its bundled checkpoint protocol.** 29 Checkpoint sections

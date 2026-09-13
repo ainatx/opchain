@@ -35,10 +35,10 @@ cost real debugging time downstream.
 
 This is NOT oc-code-auditor. Code-auditor runs a deep tri-agent sweep (Auditor → Fixer →
 Verifier) that takes 30+ minutes and produces a graded report. Bug-check is the metal
-detector at the door — fast, blunt, binary: every check resolves to **PASS** or **FAIL**.
-Individual checks may emit advisory **WARN** notes (e.g. "no test suite detected")
-that are surfaced in the report but do not affect the gate verdict — only FAIL blocks
-the commit.
+detector at the door — fast and blunt: the gate verdict is **PASS**, **FAIL**, or
+**UNSUPPORTED** (no recognized stack — never a pass). Individual checks may emit
+advisory **WARN** notes (e.g. "no test suite detected") that ride on a PASS as a
+count; in strict mode they become FAIL. Only PASS clears the commit.
 
 ## /oc-bugcheck — Command Reference
 
@@ -68,6 +68,9 @@ BUG CHECK COMMANDS
   Runs automatically before /oc-commit and /oc-git-sync.
 ```
 
+`--all`, `strict`, and `lenient` are arguments to the declared `run` and `config` verbs,
+not separate commands.
+
 ---
 
 ## Session Persistence (Checkpoint Protocol)
@@ -94,7 +97,10 @@ not resumable state.
 
 Every run ends with one checkpoint write carrying `last_run`, `last_run_verdict`, and
 `verified_tree` from that run — see Checkpoint Schema → Commit gate contract. The commit
-gate denies a verdict that has no tree hash, however recent the run.
+gate denies a verdict that has no tree hash, however recent the run. The same write
+restates the verdict, warning count, and carried debt in the protocol-public
+`progress_summary` (and appends `eval_scores`), which is what sibling skills other than
+the commit gate read.
 
 ---
 
@@ -112,7 +118,9 @@ oc-app-architect /oc-build ──► BUG-CHECK (gate) ──► oc-git-ops /oc-c
 
 **Auto-invocation:** oc-git-ops calls oc-bug-check before every `/oc-commit` and `/oc-git-sync`.
 If oc-bug-check fails, the commit is blocked with a clear failure report. The user can
-override with `/oc-bugcheck bypass` (logged, not silent).
+override explicitly: `/oc-bugcheck bypass` records it (logged, not silent), and the
+commit itself carries `OPCHAIN_BYPASS=1` or `--no-verify` where the commit-gate hook is
+installed — the record alone does not clear the hook.
 
 **Position in the every-PR gate (v1.8):** bug-check is step 3 of the required
 order oc-repo-ops enforces — oc-docs-forge (docs packet) → oc-repo-ops (repo
@@ -195,6 +203,9 @@ when the budget is missed repeatedly.
 
 ### Check 4: Anti-Pattern Scan
 
+Implementation detail for Checks 4–7 (false-positive handling, per-language scanners):
+`references/check-patterns.md`.
+
 Fast grep-based checks for patterns that indicate bugs, not style preferences:
 
 ```bash
@@ -250,8 +261,9 @@ grep -rn -E "(api[_-]?key|secret|password|token|credential).*['\"][A-Za-z0-9+/=]
 # AWS-style keys
 grep -rn -E "AKIA[0-9A-Z]{16}" --exclude-dir=node_modules .
 
-# Private keys
-grep -rn "BEGIN (RSA |EC |DSA )?PRIVATE KEY" --exclude-dir=node_modules .
+# Private keys (-E, or the parens and ? are literal and no PEM header matches)
+grep -rn -E "BEGIN (RSA |EC |DSA |OPENSSH |ENCRYPTED |PGP )?PRIVATE KEY" \
+  --exclude-dir=node_modules .
 
 # Common service prefixes (sk_test_ included — a test key is still a leaked credential)
 grep -rn -E "(sk-|sk_live_|sk_test_|pk_live_|ghp_|gho_|github_pat_)" \
@@ -266,7 +278,7 @@ grep -rn -E "eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}" \
 | Result | Verdict |
 |---|---|
 | No matches | PASS |
-| Any match | FAIL — **always blocks**, no override without `/oc-bugcheck bypass` |
+| Any match | FAIL — **always blocks**; the only override is an explicit bypass (see Bypass Protocol) |
 
 **Why secrets are always FAIL:** A committed secret is a security incident. There's
 no "warning" threshold for leaked credentials.
@@ -300,7 +312,10 @@ npm audit --audit-level=critical 2>&1
 
 ## Verdicts
 
-The gate produces one of three verdicts:
+The gate produces one of three verdicts: **PASS**, **FAIL**, or **UNSUPPORTED** (no
+recognized stack — see Stack-Specific Adaptations). Warnings are not a fourth verdict:
+they ride on PASS as a count, and strict mode turns them into FAIL. A bypass is a
+logged event, not a verdict. Report shapes: `references/output-templates.md`.
 
 ### PASS
 
@@ -313,9 +328,10 @@ BUG CHECK — PASS ✅
   Proceeding to commit.
 ```
 
-### WARN
+### PASS with warnings
 
-No blocking issues, but warnings exist. Show them briefly, proceed to commit.
+Verdict PASS; no blocking issues, but warnings exist. Show them briefly, proceed to
+commit.
 
 ```
 BUG CHECK — PASS with warnings ⚠️
@@ -504,13 +520,17 @@ When oc-git-ops receives `/oc-commit` or `/oc-git-sync`:
 
 1. Check for `.bugcheck.json` at project root (or use defaults)
 2. Run `/oc-bugcheck run`
-3. If PASS or WARN (lenient mode): proceed to commit
+3. If PASS (warnings, in lenient mode, ride on PASS as a count): proceed to commit
 4. If FAIL: block commit, show failure report, suggest `/oc-bugcheck fix`
-5. User can `/oc-bugcheck bypass` to force, or fix and re-run
+5. If UNSUPPORTED: block like FAIL — the gate did not read the code (see
+   Stack-Specific Adaptations)
+6. User can fix and re-run, or bypass explicitly: `/oc-bugcheck bypass` records it and
+   the commit carries `OPCHAIN_BYPASS=1` / `--no-verify` (see Commit gate contract)
 
 ### Commit Message Annotation
 
-If oc-bug-check ran and passed, oc-git-ops appends to the commit footer:
+Convention: if oc-bug-check ran and passed, the committing session may append to the
+commit footer:
 
 ```
 bugcheck: pass (7/7, 0 warnings, 1.2s)
@@ -522,16 +542,19 @@ If bypassed:
 bugcheck: bypassed (type_safety FAIL, tests FAIL)
 ```
 
-This creates an audit trail in git history.
+This is an agent-executed naming convention, not a mechanism: oc-git-ops's commit
+template does not add it, and no hook, script, or workflow reads the footer or the
+`[BYPASS]` prefix today. The accountability records that are read are the checkpoint's
+`bypasses[]` and the commit-gate hook's bypass warning.
 
 ---
 
 ## Eval Score Emission (v1.6 — the instrumented pipeline)
 
-Bug-check's gate verdict stays **binary** (PASS/FAIL — that's the contract). But
-v1.6 also asks every quality skill to emit a *score* against a stable rubric so
-the pipeline can read trend, not just the latest pass/fail. On each run, bug-check
-appends an entry to the wire-1.1 `eval_scores` checkpoint field:
+Bug-check's gate verdict stays **categorical** (PASS/FAIL/UNSUPPORTED — that's the
+contract). But v1.6 also asks every quality skill to emit a *score* against a stable
+rubric so the pipeline can read trend, not just the latest pass/fail. On each run,
+bug-check appends an entry to the wire-1.1 `eval_scores` checkpoint field:
 
 ```jsonc
 "eval_scores": [
@@ -658,12 +681,16 @@ and this recipe and asserts the gate accepts it — change the three together.
 
 | Read by | Why |
 |---|---|
-| oc-git-ops | Gate verdict → commit or block |
-| oc-repo-ops | Gate verdict + staleness → PR readiness gate (a missing/stale code gate blocks the PR) |
-| oc-docs-forge | Quality notes → PR testing/audit documentation |
-| oc-code-auditor | Bug-check pass rate → skip basic checks in deep audit |
-| oc-deploy-ops | Last oc-bug-check status → deploy confidence |
-| oc-orchestrator | Pass/fail trend, carried debt → project health |
+| oc-git-ops | Gate verdict (`skill_state.last_run_verdict` + `verified_tree`, per the Commit gate contract) → commit or block |
+| oc-repo-ops | `status` + `updated_at` staleness → PR readiness gate (a missing/stale code gate blocks the PR) |
+| oc-docs-forge | `progress_summary` quality notes → PR testing/audit documentation |
+| oc-code-auditor | `eval_scores` pass rate → skip basic checks in deep audit |
+| oc-deploy-ops | `status` + `progress_summary` → deploy confidence |
+| oc-orchestrator | `eval_scores` trend + `progress_summary` carried debt → project health |
+
+The Commit gate contract fields are the one place other readers (the commit-gate
+hook and oc-git-ops) look inside this skill's `skill_state`; every other reader uses
+the protocol-public fields named above.
 
 ---
 
@@ -721,14 +748,17 @@ read the pack rather than hardcoding, so the two never drift.
 ### No recognized stack → UNSUPPORTED, not PASS
 
 If no stack is detected, oc-bug-check runs only the universal checks (anti-patterns,
-secrets, dependency scan) and returns **UNSUPPORTED** — a distinct terminal verdict.
+secrets) — the dependency scan runs only when a lockfile its scanners understand is
+present, and is reported as skipped otherwise — and returns **UNSUPPORTED**, a distinct
+terminal verdict.
 
 **UNSUPPORTED is not PASS.** It means *this gate did not read your code.* Report it as:
 
 ```
 ⚠ UNSUPPORTED — no recognized stack (looked for: package.json, pyproject.toml,
-  go.mod, Package.swift, *.xcodeproj). Ran 3 of 7 checks; types, lint, tests and
-  build were NOT run. This is not a passing grade — it is an absence of evidence.
+  go.mod, Package.swift, *.xcodeproj). Ran 2 of 7 checks (3 if a lockfile was
+  scanned); types, lint, tests and build were NOT run. This is not a passing
+  grade — it is an absence of evidence.
 ```
 
 Callers must treat UNSUPPORTED as blocking-with-override, never as a green light.
@@ -761,7 +791,8 @@ grep -rn "print(" --include="*.py" --exclude-dir=venv --exclude-dir=test .
 oc-bug-check is the cheapest skill to run; its job is to be silent on
 clean code and loud on bad. v1.2 makes the loud case visible in the
 PM tool when a linked ticket is in play. See `oc-integrations-engineer`
-for the canonical PM-MCP patterns.
+for the canonical PM-MCP patterns; the comment write and its update-in-place
+idempotency follow `oc-integrations-engineer/references/pm-mcp-protocol.md`.
 
 ### On PASS (clean)
 
@@ -800,8 +831,9 @@ Reviewer: please confirm this is acceptable.
 ```
 
 Bypass is an audit event in regulated environments. The comment is
-the trail. (Brokered audit log carries the canonical record; the
-PM comment is the human-readable reflection.)
+the trail. (In brokered, regulated deployments the broker's audit log
+carries the canonical record; the PM comment is the human-readable
+reflection.)
 
 ### Failure modes
 
@@ -818,8 +850,8 @@ PM comment is the human-readable reflection.)
 
 1. **Fast or useless.** If oc-bug-check takes >2 minutes, developers will bypass it
    every time. Speed is the feature.
-2. **Binary verdict.** Pass or fail. No grades, no nuance, no "mostly good." That's
-   oc-code-auditor's job.
+2. **Categorical verdict.** PASS, FAIL, or UNSUPPORTED. No grades, no nuance, no
+   "mostly good." That's oc-code-auditor's job.
 3. **Changed files by default.** Checking the whole codebase on every commit is slow
    and noisy. Check what changed. Run `--all` periodically.
 4. **Secrets always block.** There is no "warning" for leaked credentials. This is

@@ -24,9 +24,14 @@ and the pinned model — all four matter, because a drift run compares against t
   "frozen_at_version": "1.1.0",
   "pinned_model": "claude-opus-4-7",
   "pass_rate": 0.93,
-  "cases": { "route-001": 1, "route-002": 1, "route-014": 1, "...": "..." }
+  "cases": { "route-001": 1, "route-002": 1, "route-014": 1, "...": "..." },
+  "cost_per_eval": 0.011
 }
 ```
+
+`cost_per_eval` is optional and written by `oc-cost-ops` (`/oc-cost budget
+--rebaseline`); it is the frozen cost baseline its cost-regression gate compares
+against.
 
 ## The two drift sources
 
@@ -71,10 +76,10 @@ route-009     1.0        0.0    -1.00   ✗  REGRESSED on new model
 route-021     1.0        0.0    -1.00   ✗  REGRESSED on new model
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 VERDICT: DRIFT — model bump regressed 2 cases. Block the re-pin; hand
-route-009/route-021 to oc-claude-api for prompt re-tuning on claude-opus-4-8.
+route-009/route-021 to /oc-claude-api migrate ([TUNE] items) on claude-opus-4-8.
 ```
 
-## CI gating
+## When drift runs (PR-time and scheduled, agent-driven)
 
 Drift runs in two places:
 
@@ -82,8 +87,9 @@ Drift runs in two places:
   dependency drift before a user does. A clean run is recorded as a no-op; a
   drift signal opens a fix-the-prompt task with the failing cases attached.
 - **On a model-version bump**: triggered by `oc-claude-api migrate`, gating the
-  migration diff. The drift run is a required check — the migration doesn't merge
-  if scores regress on the new model.
+  migration diff. The drift run is agent-driven, not a CI check that ships with
+  this skill — the migration flow doesn't open the PR if scores regress on the new
+  model.
 
 This is distinct from `/oc-prompt regress`, which runs on every PR that edits
 `prompts/`. Regress gates *intentional* prompt edits against the baseline; drift
@@ -95,7 +101,7 @@ re-checks an *unchanged* prompt against a moving environment.
 |---|---|
 | Scores hold within `regression_epsilon` | No-op. Record the run; nothing to do. |
 | Model bump, scores hold | Safe to re-pin the prompt to the new model. Re-freeze the baseline under the new model + bump the prompt version (MINOR). |
-| Model bump, scores regress | **Block the re-pin.** Hand the per-case deltas to `oc-claude-api` for prompt re-tuning on the new model; re-run drift until clean, then re-baseline. |
+| Model bump, scores regress | **Block the re-pin.** Hand the per-case deltas back to `/oc-claude-api migrate` for its `[TUNE]` prompt re-tuning items on the new model; re-run drift until clean, then re-baseline. |
 | Dependency drift (text unchanged, cases fail) | Open a fix-the-prompt task with the failing cases. The fix is a normal gated `/oc-prompt` diff once the dependency is understood. |
 | Drift you decide is the *new correct behavior* | Treat as a MAJOR prompt bump: rewrite `expected.jsonl`, re-freeze the baseline, record it in the CHANGELOG. You advance the gate, you don't bypass it. |
 
