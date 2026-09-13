@@ -171,12 +171,22 @@ proceed. Two **conditional rows** (v1.9) join the gate when their manifests
 exist in the repo — see steps 3 and 4; absent manifests, the gate is exactly
 the two-audit gate above.
 
+**This gate is agent-executed.** oc-deploy-ops applies these rules while it runs;
+`npm run deploy` and similar deploy scripts do not read auditor checkpoints. An
+audit on record counts only if it covered **this repo's runtime code at the SHA
+being deployed**. An audit of another commit, or of docs or skill text, is treated
+as no audit run.
+
+The commands below use opchain's checkpoint CLI, where `status <skill>` prints that
+one checkpoint and exits 1 when it does not exist. On a project without the CLI,
+read `.checkpoints/<skill>.checkpoint.json` directly.
+
 ### 1. oc-code-auditor — code-level gate
 
 ```bash
-# Reuse the existing checkpoint if it's recent
-node scripts/checkpoint.mjs status oc-code-auditor
-# If updated_at < 1h old, reuse. Otherwise:
+node scripts/checkpoint.mjs status oc-code-auditor   # exit 1 = no audit on record
+# Reuse only if updated_at < 1h old AND it audited the deploying SHA's runtime code.
+# Otherwise:
 #   Skill(skill="oc-code-auditor", args="/oc-audit pre-deploy")
 ```
 
@@ -189,10 +199,10 @@ changes (new auth flow, new public endpoint, new third-party
 integration).
 
 ```bash
-node scripts/checkpoint.mjs status oc-security-auditor
-# Reuse if updated_at < 24h old AND no high-impact changes since.
-# Otherwise:
-#   Skill(skill="oc-security-auditor", args="/oc-security pre-deploy")
+node scripts/checkpoint.mjs status oc-security-auditor   # exit 1 = no assessment on record
+# Reuse only if updated_at < 24h old, it assessed this deployment's surface, and
+# nothing high-impact changed since. Otherwise:
+#   Skill(skill="oc-security-auditor", args="/oc-security posture")
 ```
 
 ### 3. oc-security-hardening — manifest gate (conditional, v1.9)
@@ -231,7 +241,8 @@ ls .opchain/compliance.yaml 2>/dev/null && \
 | CRITICAL findings exist (either audit) | 🚫 Block — must fix before deploy |
 | HIGH findings (≤ 3 total) | ⚠️ Warn — proceed with user confirmation |
 | HIGH findings (> 3 total) | 🚫 Block — too many unresolved issues |
-| No audit run | ⚠️ Warn — suggest running both audits first |
+| No code audit on record, or it does not cover the deploying runtime code | ⚠️ Warn — run `/oc-audit pre-deploy` first |
+| No security assessment on record | 🚫 Block — run `/oc-security posture`, or record an explicit waiver (who, why, until when) in the oc-deploy-ops checkpoint before proceeding |
 | Hardening manifest present, any control FAILs verify | 🚫 Block — a regressed control is a CRITICAL |
 | Hardening manifest present, `manual` controls only | ⚠️ Loud-skip — list them + last-check age |
 | Compliance profile present, no evidence bundle at this SHA | ⚠️ Warn — run `/oc-comply evidence` before prod |

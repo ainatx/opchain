@@ -51,7 +51,15 @@ const now = Date.now();
 const stale = [];
 const blocked = [];
 const openLoops = [];
-let next = null;
+const nextCandidates = []; // { t, text } — most recently touched in_progress work wins
+
+/** A next_action is a string or { text, done_when } (both validate). */
+function actionText(a) {
+  if (a == null) return "";
+  if (typeof a === "string") return a;
+  if (typeof a === "object" && typeof a.text === "string") return a.text;
+  return "";
+}
 
 for (const f of files) {
   let d;
@@ -84,10 +92,18 @@ for (const f of files) {
     );
   }
 
-  if (!next && d.status === "in_progress" && Array.isArray(d.next_actions) && d.next_actions[0]) {
-    next = `${d.skill}: ${String(d.next_actions[0]).slice(0, 140)}`;
+  // Work already on the AWAITING YOU line is not repeated as "next"; among the
+  // rest, the most recently touched in_progress checkpoint leads — not whichever
+  // file sorts first alphabetically.
+  const awaiting = Array.isArray(d.blockers) && d.blockers.some((b) => b && b.needs === "user_decision");
+  const first = Array.isArray(d.next_actions) ? actionText(d.next_actions[0]) : "";
+  if (d.status === "in_progress" && !awaiting && first) {
+    nextCandidates.push({ t: Number.isNaN(ts) ? 0 : ts, text: `${d.skill}: ${first.slice(0, 140)}` });
   }
 }
+
+nextCandidates.sort((a, b) => b.t - a.t);
+const next = nextCandidates.length ? nextCandidates[0].text : null;
 
 if (!stale.length && !blocked.length && !openLoops.length && !next) process.exit(0);
 

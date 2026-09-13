@@ -320,10 +320,16 @@ which means merging it pins every production deploy until that cut.
   against constructed repositories rather than reasoned about. Scripts are preserved at
   [`docs/audits/2026-09-11-skillchain-2.0-audit-evidence/`](2026-09-11-skillchain-2.0-audit-evidence/)
   (`gate-probe.mjs`, `verify-clusters.mjs`, `verify-ckpt.mjs`).
-- Verification corrected the record in both directions. It refuted the claim that the
-  validator rejects `+00:00` ISO offsets (both forms validate), and it refuted a finding
-  about a malformed `eval_scores+` key that was true when written and fixed during the
-  session. Refuted findings are listed at the end of Appendix A.
+- Verification corrected the record. It refuted a finding about a malformed
+  `eval_scores+` key that was true when written and fixed during the session. Refuted
+  findings are listed at the end of Appendix A.
+- **Correction, 2026-09-13.** An earlier version of this report said the author's own
+  check had refuted the finding that the validator rejects `+00:00` ISO offsets. That
+  check was broken: it ran the CLI from a scratch directory, but the CLI reads the
+  repo's own `.checkpoints/` unless `OPCHAIN_CHECKPOINTS_DIR` is set, so it never read
+  the fixture. The finding was right, and the adversarial pass upheld it (Appendix A,
+  LOW). The same flaw affected the lifecycle-state probe in `verify-ckpt.mjs`; both are
+  fixed, and v1.9.1 Sprint 2 accepts offsets and warns on those states.
 - Residual risk: the reciprocity-gap and completeness-critic stages never completed, so
   "which skill fails to mention which" is covered by the per-skill extractions rather than
   a dedicated pass. A rerun would likely surface more MEDIUM-tier contract gaps.

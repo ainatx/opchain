@@ -103,6 +103,38 @@ checkpoint `protocol_version` is tracked separately (see
   `/oc-bugcheck bypass` as the override. It records the bypass; the commit still
   needs `OPCHAIN_BYPASS=1` or `--no-verify` to clear the hook. Corrected in the
   Pre-Commit Gate table and in the FAIL report template.
+- **Checkpoint CLI — `status <skill>` reads its argument.** It printed the whole
+  table and exited 0 whatever skill was named, so oc-deploy-ops' audit gate, which
+  runs `status oc-security-auditor`, could not tell that no security assessment
+  existed. It now prints that one checkpoint and exits 1 when there is none.
+- **Checkpoint CLI — `update` operators combine in either order.** oc-git-ops'
+  documented restamp, `--skill_state.merged_prs+:json={…}`, wrote a literal key
+  named `merged_prs+` instead of appending. `+:json` and `:json+` now both append,
+  a key still carrying an operator is refused, and oc-git-ops' recipe uses
+  `:json+=`. An append adds one element, as documented.
+- **Checkpoint CLI — the validator accepts ISO-8601 offsets** (`+00:00`) as well as
+  `Z`, and **warns** when status and blockers disagree: `blocked` with no blockers,
+  or `complete` with an open user decision.
+- **Checkpoint CLI — `doctor` catches more drift.** It validates each file against
+  its real path, so a filename that does not match its skill is now reported; it
+  flags a `verified_for_sha` that is not in HEAD's history, the stale PASS a squash
+  merge leaves behind; and it reports every missing `generated_files` path, not just
+  the first three under ten fixed prefixes. `status --brief` skips actions whose PR
+  already merged, as `next` does. A scaffolded checkpoint takes its project name
+  from `package.json` instead of always writing `opchain.dev`.
+- **Checkpoint merge driver** — a one-sided telemetry update (`last_run`,
+  `run_history`, …) is no longer discarded when the other side has the newer
+  `updated_at`. Newer-wins now applies only when both sides changed that field.
+- **Session-state hook (plugin)** — a `{ text, done_when }` next action renders as
+  its text instead of `[object Object]`, and "next" is the most recently touched
+  in-progress work rather than the first file alphabetically, skipping work already
+  awaiting your decision.
+- **oc-git-ops, oc-repo-ops** — a pre-PR PASS counts only when `verified_for_sha`
+  equals the branch HEAD; oc-repo-ops defines "stale" the same way.
+- **oc-deploy-ops** — the audit gate is labelled agent-executed, reuses an audit only
+  if it covered the deploying SHA's runtime code, blocks when no security assessment
+  is on record unless a waiver is recorded, and hands off to `/oc-security posture`
+  instead of an undeclared verb.
 
 ## [1.9.0] — 2026-09-02 — "Assurance and governed delivery ops"
 

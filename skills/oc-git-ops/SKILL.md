@@ -334,11 +334,17 @@ If `pr_comment_marker` is set, post the docs comment after the PR opens.
 Skill(skill="oc-repo-ops", args="/oc-repo verify")
 ```
 
-Then read `.checkpoints/oc-repo-ops.checkpoint.json` for the verdict:
+Then read `.checkpoints/oc-repo-ops.checkpoint.json` for the verdict. A verdict
+is only evidence about the code it checked: both checkpoints record
+`skill_state.verified_for_sha`, and each must equal `git rev-parse HEAD` on the
+branch you are about to open. A squash merge leaves a PASS bound to a branch tip
+that never reaches `main`, so a later session can find a PASS for code that no
+longer exists.
 
 | Verdict | Action |
 |---|---|
-| PASS | Proceed to `gh pr create` |
+| PASS, `verified_for_sha` equals the branch HEAD | Proceed to `gh pr create` |
+| PASS, but `verified_for_sha` is missing or differs from the branch HEAD | **Stale.** Re-run `/oc-docs pr`, then `/oc-repo verify`, before `gh pr create`. |
 | FAIL | **ABORT.** Surface `skill_state.blocking_findings` and offer the user `/oc-repo clean` (safe fixes) or `/oc-docs pr` (regenerate a stale packet). Do NOT open the PR until the verdict flips to PASS. |
 | (no checkpoint) | The gate hasn't run — invoke oc-docs-forge, then oc-repo-ops, first. |
 
@@ -479,7 +485,7 @@ project-specific, oc-git-ops defaults are generic.
 | Commits made | Commit SHAs, messages, file counts |
 | Push completed | Remote URL, branch pushed, timestamp |
 | PR created | PR URL, PR number |
-| **PR merged** | Append `{ number, title, merge_method, merge_sha, merged_at }` to `skill_state.merged_prs`. Re-stamp `updated_at`. |
+| **PR merged** | Note `{ number, title, merge_method, merge_sha, merged_at }`, and append it to `skill_state.merged_prs` at the next inflection-point restamp below, not once per merge. |
 | **Release tagged** | Append `{ semver, tag, tag_sha, pr, tagged_at }` to `skill_state.releases`. |
 
 ### Post-Merge Update
@@ -489,10 +495,15 @@ release ships, or when a session ends — not once per merge. The single update 
 
 ```bash
 node scripts/checkpoint.mjs update oc-git-ops \
-  "--skill_state.merged_prs+:json={...}" \
+  "--skill_state.merged_prs:json+={...}" \
   "--step=last-merge-#${PR_NUM}" \
   "--status=complete"
 ```
+
+Each `:json+=` flag appends one object; repeat the flag to record several PRs. (Up
+to v1.9.0 this recipe was written `+:json=`, which the CLI parsed as a literal key
+named `merged_prs+`; the CLI now accepts either order and refuses a key that still
+carries an operator.) Without the CLI, edit `skill_state.merged_prs` directly.
 
 > **Do not automate this per-merge.** opchain.dev once ran a
 > `.github/workflows/checkpoint-after-merge.yml` that opened a

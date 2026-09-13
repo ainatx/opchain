@@ -7,7 +7,9 @@
  * .checkpoints/README.md for the schema.
  *
  * Subcommands:
- *   status [--brief] [--since=ISO]    Print a markdown session-resume summary.
+ *   status [skill] [--brief] [--since=ISO]
+ *                                     Print a markdown session-resume summary; with
+ *                                     a skill, just that checkpoint (exit 1 if absent).
  *   next                              Print the single highest-priority NON-STALE
  *                                     next action (skips actions whose PR/ticket
  *                                     already shows merged — same drift evidence
@@ -89,7 +91,13 @@ const STATUS_ENUM = ["in_progress", "blocked", "complete", "failed"];
 const ROW_STATUS = ["complete", "in_progress", "not_started", "blocked", "failed"];
 const NEEDS_ENUM = ["user_decision", "code_fix", "external_dep"];
 const PM_ROLE_ENUM = ["source", "child", "deploy", "incident", "linked"];
-const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
+// ISO-8601 date-time with a zone: `Z` (what the CLI and Date#toISOString write) or
+// a numeric offset. A hand-written `+00:00` is valid ISO-8601 and a first-class
+// checkpoint per the protocol; rejecting it failed CI on files every reader parses.
+const ISO_SHAPE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/;
+/** Shape AND a real instant: `+99:99` or month 13 match a loose shape but parse to
+ *  NaN, which silently disabled every age check downstream. */
+const ISO = { test: (v) => typeof v === "string" && ISO_SHAPE.test(v) && !Number.isNaN(Date.parse(v)) };
 
 /** Soft size guidance. The resumable core should stay small; runaway growth in
  *  skill_state (append-only telemetry) is the usual culprit and the thing that
@@ -119,8 +127,37 @@ function staleThresholdFor(status) {
   return null; // "failed" is a terminal record; age is not drift.
 }
 
-// Repo-relative prefixes that look like real generated artifacts worth existence-checking.
-const ARTIFACT_PREFIXES = ["src/", "scripts/", "skills/", "site/", "spec/", "design/", "sprints/", ".checkpoints/", ".github/", ".opchain/"];
+/**
+ * A generated_files entry reduced to a repo-relative path worth existence-checking,
+ * or null. Entries are free text ("spec.md", "src/a.ts (this file, updated)",
+ * "packs/x.yml updated with frameworks: [...]"), so take the first token and keep
+ * it only if it reads like a path: no scheme, not absolute, no glob or brace
+ * shorthand, and either a directory separator or a file extension. This replaced
+ * a ten-prefix allowlist that skipped docs/, tests/, specs/, plugins/ and root files.
+ */
+function repoPathCandidate(entry) {
+  const p = String(entry).trim().split(/\s+/)[0].replace(/^[`'"]+|[`'",;]+$/g, "").replace(/:\d+(?::\d+)?$/, "").replace(/:+$/, "");
+  if (!p || /:\/\//.test(p) || /^[/~]/.test(p) || /(^|\/)\.\.(\/|$)/.test(p) || /[{}*[\]]/.test(p)) return null;
+  if (/^v?\d+(?:\.\d+)+$/.test(p)) return null;          // a version, not a file
+  if (!p.includes("/")) {
+    if (!/\.(?:md|mdx|json|jsonc|js|mjs|cjs|ts|tsx|astro|ya?ml|toml|html|css|sh|py|txt|docx|png|svg|lock)$/i.test(p)) return null;
+    if (/^[A-Z][a-z]+\.js$/.test(p)) return null;           // Node.js, Vue.js — a product name
+  }
+  return p;
+}
+
+/** "ancestor" | "not-ancestor" | "missing" | "unknown" (no git). */
+function commitInHistory(sha) {
+  const opts = { cwd: ROOT, stdio: ["ignore", "ignore", "ignore"] };
+  try { execSync("git rev-parse --git-dir", opts); } catch { return "unknown"; }
+  // A shallow clone (CI's default checkout) lacks history, so every recorded SHA
+  // would read as missing. Say nothing rather than warn on every file.
+  try {
+    if (execSync("git rev-parse --is-shallow-repository", { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim() === "true") return "unknown";
+  } catch { /* old git: assume a full clone */ }
+  try { execSync(`git cat-file -e ${sha}^{commit}`, opts); } catch { return "missing"; }
+  try { execSync(`git merge-base --is-ancestor ${sha} HEAD`, opts); return "ancestor"; } catch { return "not-ancestor"; }
+}
 
 function listCheckpoints() {
   if (!existsSync(DIR)) return [];
@@ -208,8 +245,8 @@ function validate(path, data, bytes = 0) {
   if (data.status && !STATUS_ENUM.includes(data.status)) {
     errors.push(`status must be one of ${STATUS_ENUM.join("|")} (got "${data.status}")`);
   }
-  if (data.created_at && !ISO.test(data.created_at)) errors.push(`created_at must be ISO-8601 UTC`);
-  if (data.updated_at && !ISO.test(data.updated_at)) errors.push(`updated_at must be ISO-8601 UTC`);
+  if (data.created_at && !ISO.test(data.created_at)) errors.push(`created_at must be ISO-8601 (Z or ±hh:mm)`);
+  if (data.updated_at && !ISO.test(data.updated_at)) errors.push(`updated_at must be ISO-8601 (Z or ±hh:mm)`);
 
   // K2: timestamp sanity.
   const c = data.created_at && ISO.test(data.created_at) ? Date.parse(data.created_at) : null;
@@ -288,6 +325,20 @@ function validate(path, data, bytes = 0) {
     });
   }
 
+  // Status and blockers must tell the same story. Warnings, not errors: CI runs
+  // validate non-strict, and a hand-written checkpoint in this shape still resumes.
+  const blockerList = Array.isArray(data.blockers) ? data.blockers : [];
+  if (data.status === "blocked" && blockerList.length === 0) {
+    warnings.push(`status is "blocked" but no blockers are recorded — say what it is waiting on, or set the real status`);
+  }
+  if (data.status === "complete") {
+    blockerList.forEach((b, i) => {
+      if (b && b.needs === "user_decision") {
+        warnings.push(`status is "complete" but blockers[${i}] still needs a user decision — remove the blocker once resolved, or reopen`);
+      }
+    });
+  }
+
   // A4: pm_refs is an optional schema extension. Validate its shape when present.
   if (data.pm_refs !== undefined) {
     if (!Array.isArray(data.pm_refs)) {
@@ -353,7 +404,7 @@ function validate(path, data, bytes = 0) {
         if (typeof s.score !== "number" || !Number.isFinite(s.score)) errors.push(`eval_scores[${i}].score must be a number`);
         if (s.max !== undefined && (typeof s.max !== "number" || !Number.isFinite(s.max) || s.max <= 0)) errors.push(`eval_scores[${i}].max must be a positive number`);
         if (typeof s.score === "number" && typeof s.max === "number" && s.max > 0 && s.score > s.max) errors.push(`eval_scores[${i}].score (${s.score}) exceeds max (${s.max})`);
-        if (s.at !== undefined && !ISO.test(s.at)) errors.push(`eval_scores[${i}].at must be ISO-8601 UTC`);
+        if (s.at !== undefined && !ISO.test(s.at)) errors.push(`eval_scores[${i}].at must be ISO-8601 (Z or ±hh:mm)`);
         if (s.dimensions !== undefined) {
           if (typeof s.dimensions !== "object" || s.dimensions === null || Array.isArray(s.dimensions)) {
             errors.push(`eval_scores[${i}].dimensions must be an object mapping name → number`);
@@ -378,7 +429,7 @@ function validate(path, data, bytes = 0) {
       if (th.enabled !== undefined && typeof th.enabled !== "boolean") errors.push(`telemetry_handle.enabled must be a boolean (opt-in state)`);
       if (th.id !== undefined && typeof th.id !== "string") errors.push(`telemetry_handle.id must be a string (anonymous handle)`);
       if (th.sink !== undefined && typeof th.sink !== "string") errors.push(`telemetry_handle.sink must be a string (local sink path)`);
-      if (th.since !== undefined && !ISO.test(th.since)) errors.push(`telemetry_handle.since must be ISO-8601 UTC`);
+      if (th.since !== undefined && !ISO.test(th.since)) errors.push(`telemetry_handle.since must be ISO-8601 (Z or ±hh:mm)`);
     } else {
       errors.push(`telemetry_handle must be a string handle or an object { enabled, id?, sink?, since? }`);
     }
@@ -421,7 +472,7 @@ function looksLikeGate(data) {
 }
 
 function rankCheckpoint(data) {
-  const blockers = Array.isArray(data.blockers) ? data.blockers : [];
+  const blockers = (Array.isArray(data.blockers) ? data.blockers : []).filter(Boolean);
   if (blockers.some((b) => b.needs === "user_decision")) return 1;
   if (data.status === "failed") return 2;
   if (data.status === "blocked") return 2; // broken/stuck — surface alongside failed
@@ -455,7 +506,7 @@ function pickNext(checkpoints) {
 }
 
 function recommendedAction(data, staleTokens) {
-  const blockers = Array.isArray(data.blockers) ? data.blockers : [];
+  const blockers = (Array.isArray(data.blockers) ? data.blockers : []).filter(Boolean);
   const decision = blockers.find((b) => b.needs === "user_decision");
   if (decision) {
     // The drift filter applies here too. These are ranks 1-2 — the ones pickNext
@@ -552,6 +603,36 @@ function readAll() {
 }
 
 function cmdStatus(opts = {}) {
+  // `status <skill>`: one checkpoint's row and detail. A skill with no file is a
+  // non-zero exit, so a gate that asks "is there a recent audit?" gets a signal
+  // instead of the whole table (the argument used to be silently ignored).
+  if (opts.skill) {
+    const path = join(DIR, `${opts.skill}.checkpoint.json`);
+    if (!existsSync(path)) {
+      console.error(`no checkpoint for "${opts.skill}" at ${path}`);
+      return 1;
+    }
+    let d;
+    try { d = readCheckpoint(path).data; }
+    catch (e) { console.error(e.message); return 1; }
+    const age = d.updated_at ? daysSince(d.updated_at) : null;
+    const staleAfter = staleThresholdFor(d.status);
+    const ageText = age == null ? "unknown age" : `${age < 1 ? "<1" : Math.floor(age)}d old`;
+    const staleText = age != null && staleAfter != null && age > staleAfter ? " — ⚠ stale" : "";
+    console.log(`${d.skill || opts.skill}: ${d.status || "?"}  ${d.phase || "?"}/${d.step || "?"}`);
+    console.log(`updated_at: ${d.updated_at || "—"}  (${ageText}${staleText})`);
+    console.log(d.progress_summary || "_no summary_");
+    if (Array.isArray(d.next_actions) && d.next_actions.length > 0) {
+      console.log("\nNext actions:");
+      d.next_actions.forEach((a, i) => console.log(`${i + 1}. ${actionText(a)}`));
+    }
+    if (Array.isArray(d.blockers) && d.blockers.length > 0) {
+      console.log("\nBlockers:");
+      d.blockers.filter(Boolean).forEach((b) => console.log(`- ${b.id}: ${b.description}${b.needs ? ` (needs: ${b.needs})` : ""}`));
+    }
+    return 0;
+  }
+
   const paths = listCheckpoints();
   if (paths.length === 0) {
     console.log("(no checkpoints found in .checkpoints/)");
@@ -563,7 +644,7 @@ function cmdStatus(opts = {}) {
   // H5: lead with the bottleneck banner — decisions waiting on the user.
   const decisions = [];
   for (const { data } of all) {
-    for (const b of (Array.isArray(data.blockers) ? data.blockers : [])) {
+    for (const b of (Array.isArray(data.blockers) ? data.blockers : []).filter(Boolean)) {
       if (b.needs === "user_decision") decisions.push({ skill: data.skill, b });
     }
   }
@@ -577,12 +658,14 @@ function cmdStatus(opts = {}) {
   if (opts.brief) {
     const top = pickNext(all);
     if (top) {
-      const rec = recommendedAction(top.data);
+      // Same drift evidence `next` uses, so the brief view cannot recommend an
+      // action whose PR already merged.
+      const rec = recommendedAction(top.data, driftTokens(all));
       console.log(`▶ ${top.data.skill}  (${top.data.status}, ${top.data.phase}/${top.data.step})`);
       console.log(`  Next: ${rec.action}`);
     }
     const blockers = all.flatMap(({ data }) =>
-      (Array.isArray(data.blockers) ? data.blockers : []).map((b) => `  🚫 [${data.skill}] ${b.id}: ${b.description}`)
+      (Array.isArray(data.blockers) ? data.blockers : []).filter(Boolean).map((b) => `  🚫 [${data.skill}] ${b.id}: ${b.description}`)
     );
     if (blockers.length) { console.log("\nOpen blockers:"); blockers.forEach((b) => console.log(b)); }
     return 0;
@@ -614,7 +697,7 @@ function cmdStatus(opts = {}) {
     }
     if (Array.isArray(d.blockers) && d.blockers.length > 0) {
       console.log("\n**Blockers:**");
-      d.blockers.forEach((b) => console.log(`- ${b.id}: ${b.description}${b.needs ? ` _(needs: ${b.needs})_` : ""}`));
+      d.blockers.filter(Boolean).forEach((b) => console.log(`- ${b.id}: ${b.description}${b.needs ? ` _(needs: ${b.needs})_` : ""}`));
     }
     console.log();
   }
@@ -695,11 +778,13 @@ async function cmdDoctor(opts = {}) {
   // merged in git history. `next` consults the very same set.
   const stale = driftTokens(all);
 
-  for (const { data, bytes } of all) {
+  for (const { path, data, bytes } of all) {
     const skill = data.skill || "?";
 
-    // Hard schema errors are doctor errors too.
-    const { errors } = validate(join(DIR, `${skill}.checkpoint.json`), data, bytes);
+    // Hard schema errors are doctor errors too. Validate against the file's REAL
+    // path: rebuilding it from data.skill compared the name with itself, so the
+    // filename↔skill check could never fire under doctor.
+    const { errors } = validate(path, data, bytes);
     errors.forEach((e) => add("error", skill, e));
 
     // Drift 1: project_dir points somewhere that isn't this checkout.
@@ -722,15 +807,23 @@ async function cmdDoctor(opts = {}) {
     }
 
     // Drift 3: referenced generated_files that look like repo paths but are missing.
+    // Every missing path is reported: capping at three hid the rest.
     const files = data.context_primer?.generated_files || [];
-    let missing = 0;
     for (const entry of files) {
-      const p = String(entry).split(" (")[0].trim(); // strip "(this file, updated)" notes
-      if (/[{}*]/.test(p)) continue; // skip brace/glob shorthand — not a literal path
-      if (!ARTIFACT_PREFIXES.some((pre) => p.startsWith(pre))) continue;
-      if (!existsSync(join(ROOT, p))) { missing++; if (missing <= 3) add("warn", skill, `generated_files references missing path: ${p}`); }
+      const p = repoPathCandidate(entry);
+      if (p && !existsSync(join(ROOT, p))) add("warn", skill, `generated_files references missing path: ${p}`);
     }
-    if (missing > 3) add("warn", skill, `…and ${missing - 3} more missing generated_files paths`);
+
+    // Drift 4b: a docs/readiness PASS bound to a commit that is not in HEAD's history.
+    // After a squash merge the branch tip it verified never reaches main, so the
+    // PASS describes code main never had — and a pre-PR gate that trusts it inserts
+    // a stale docs packet.
+    const vsha = data.skill_state?.verified_for_sha;
+    if (typeof vsha === "string" && /^[0-9a-f]{7,40}$/.test(vsha)) {
+      const verdict = commitInHistory(vsha);
+      if (verdict === "missing") add("warn", skill, `skill_state.verified_for_sha ${vsha.slice(0, 12)} is not a commit in this clone — the PASS it records cannot be checked`);
+      if (verdict === "not-ancestor") add("warn", skill, `skill_state.verified_for_sha ${vsha.slice(0, 12)} is not in HEAD's history (a pre-squash branch tip?) — its PASS does not describe this code`);
+    }
 
     // Drift 4 (F2): a next_action telling future-self to do work that's already
     // landed (its PR/ticket token shows complete elsewhere or in git history).
@@ -793,9 +886,14 @@ async function cmdDoctor(opts = {}) {
 
 /**
  * Apply --key=value updates. Supports dotted paths and three operators:
- *   --key=value     replace scalar
- *   --key+=value    append to array
- *   --key:json=...  parse value as JSON
+ *   --key=value       replace scalar
+ *   --key+=value      append to array
+ *   --key:json=...    parse value as JSON
+ * The suffixes combine in either order: `--key:json+=…` and `--key+:json=…` both
+ * parse JSON and append. An append pushes its value as ONE element, so pass an
+ * object to add one entry; an array value is added as a single nested array.
+ * A key that still carries `+` or `:json` after the suffixes are read is refused
+ * rather than written as a literal key (`merged_prs+` was, silently).
  */
 function applyUpdates(obj, args) {
   for (const arg of args) {
@@ -807,8 +905,14 @@ function applyUpdates(obj, args) {
     let isAppend = false;
     let isJson = false;
     let lhs = lhsRaw;
-    if (lhs.endsWith("+")) { isAppend = true; lhs = lhs.slice(0, -1); }
-    if (lhs.endsWith(":json")) { isJson = true; lhs = lhs.slice(0, -5); }
+    for (let changed = true; changed; ) {
+      changed = false;
+      if (lhs.endsWith("+")) { isAppend = true; lhs = lhs.slice(0, -1); changed = true; }
+      if (lhs.endsWith(":json")) { isJson = true; lhs = lhs.slice(0, -5); changed = true; }
+    }
+    if (lhs === "" || lhs.includes("+") || lhs.includes(":json")) {
+      throw new Error(`--${lhsRaw}=... is not a valid field path (operators are a trailing \`+\` and/or \`:json\`)`);
+    }
     if (isJson) {
       try { value = JSON.parse(value); }
       catch (err) { throw new Error(`failed to parse --${lhsRaw}=... as JSON: ${err.message}`); }
@@ -830,12 +934,24 @@ function applyUpdates(obj, args) {
   }
 }
 
+/** The project name for a scaffolded checkpoint: package.json's name, or the
+ *  directory name. The protocol invites copying this CLI into other repos, where
+ *  a hard-coded "opchain.dev" wrote the wrong project into every new file. */
+function projectName(root = ROOT) {
+  try {
+    const name = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).name;
+    if (name === "opchain-dev") return "opchain.dev";
+    if (typeof name === "string" && name) return name;
+  } catch { /* no package.json — fall through */ }
+  return basename(root);
+}
+
 function scaffoldCheckpoint(skill) {
   const now = new Date().toISOString();
   return {
     protocol_version: SCHEMA_VERSION,
     skill,
-    project: "opchain.dev",
+    project: projectName(),
     project_dir: ROOT,
     created_at: now,
     updated_at: now,
@@ -867,7 +983,8 @@ function cmdUpdate(skill, rest) {
   if (!existsSync(DIR)) mkdirSync(DIR, { recursive: true });
   const path = join(DIR, `${skill}.checkpoint.json`);
   const data = existsSync(path) ? readCheckpoint(path).data : scaffoldCheckpoint(skill);
-  applyUpdates(data, rest);
+  try { applyUpdates(data, rest); }
+  catch (e) { console.error(`✗ ${e.message}`); return 1; }
   if (!writeValidated(path, data)) return 1;
   console.log(`✓ wrote ${basename(path)}`);
   return 0;
@@ -961,7 +1078,7 @@ function cmdReset(skill) {
 
 // Exported for tests. The CLI dispatch below only runs when invoked directly,
 // so importing this module (e.g. from vitest) is side-effect-free.
-export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, harvestTokens, actionIsStale, firstFreshAction, budgetExceeded, readApprovedReleaseBaseline, SCHEMA_VERSION, ACCEPTED_SCHEMA_VERSIONS };
+export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, harvestTokens, actionIsStale, firstFreshAction, budgetExceeded, readApprovedReleaseBaseline, applyUpdates, repoPathCandidate, projectName, SCHEMA_VERSION, ACCEPTED_SCHEMA_VERSIONS };
 
 // ───────────────────────────── arg parsing ──────────────────────────────────
 
@@ -969,23 +1086,32 @@ const [, , cmd, ...rest] = process.argv;
 const flags = new Set(rest.filter((a) => a.startsWith("--") && !a.includes("=")));
 const sinceArg = rest.find((a) => a.startsWith("--since="));
 
+/** A checkpoint file name stem: lower-case id, digits and hyphens — never a path. */
+const SKILL_NAME = /^[a-z][a-z0-9-]*$/;
+function badSkill(name) {
+  console.error(`"${name}" is not a skill name (a lower-case letter, then letters, digits and hyphens)`);
+  return 1;
+}
+
 function run() {
   // First non-flag positional (skill name for show/reset/update/done).
   const arg0 = rest.find((a) => !a.startsWith("--"));
+  const statusSkill = arg0 && SKILL_NAME.test(arg0) ? arg0 : undefined;
+  const named = (name, fn) => (name === undefined || SKILL_NAME.test(name) ? fn(name) : badSkill(name));
   switch (cmd) {
     case "validate": return cmdValidate(flags.has("--strict"));
-    case "status":   return cmdStatus({ brief: flags.has("--brief"), since: sinceArg ? sinceArg.split("=")[1] : null });
+    case "status":   return cmdStatus({ skill: statusSkill, brief: flags.has("--brief"), since: sinceArg ? sinceArg.split("=")[1] : null });
     case "next":     return cmdNext();
     case "doctor":   return cmdDoctor({ online: flags.has("--online"), failOnWarnings: flags.has("--fail-on-warnings") });
     case "list":     return cmdList();
-    case "show":     return cmdShow(arg0);
-    case "reset":    return cmdReset(arg0);
-    case "update":   return cmdUpdate(rest[0], rest.slice(1));
-    case "done":     return cmdDone(rest[0]);
+    case "show":     return named(arg0, cmdShow);
+    case "reset":    return named(arg0, cmdReset);
+    case "update":   return named(rest[0], (s) => cmdUpdate(s, rest.slice(1)));
+    case "done":     return named(rest[0], cmdDone);
     case "init":     return cmdInit();
     default:
       console.error("usage: checkpoint <status|next|doctor|list|show|reset|validate|update|done|init>");
-      console.error("  status [--brief] [--since=ISO]      — session-resume summary");
+      console.error("  status [skill] [--brief] [--since=ISO] — session-resume summary; one skill exits 1 if absent");
       console.error("  next                                — the single highest-priority non-stale action");
       console.error("  doctor [--online] [--fail-on-warnings] — flag checkpoints that drifted from reality");
       console.error("  list                                — list every checkpoint file with a one-line status");
