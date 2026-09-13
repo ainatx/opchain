@@ -50,6 +50,21 @@ checkpoint `protocol_version` is tracked separately (see
   quotes; and a command inside `"$(…)"` is judged like the same command outside
   it, so a dry run that pipes a payload naming `git commit` into `sh -c "…"` is
   denied there too.
+- **Commit gate (plugin) — comments and here-document prose stay data.** Three
+  data commands were denied as commits: `ls # then git commit later` (both
+  readings read comments), `cat > notes.md <<"EOF"` prose mentioning
+  `$(git commit …)` (the first reading lexed the body as shell), and a `"` in
+  `"$(cat <<'EOF' … EOF)"` prose, which mis-paired every quote after it. What the
+  bash-style reading knows now masks what the first reading lexes: a comment that
+  could start no command is hidden from both, and a here-document body read only
+  by a plain `cat` or `tee` — not piped, not grouped, and written to no file the
+  command names again — is hidden from the first reading. Any other reader still
+  has its body read as commands (`dash <<EOF`, `ssh host <<'EOF'`,
+  `cat <<'EOF' | dash`, `cat > x.sh <<'EOF' … sh x.sh`), and a comment holding
+  `;`, `&`, `|`, a group or a substitution is still read, because a shell can
+  read `#` as a word. **Stricter:** `--no-verify` or `OPCHAIN_BYPASS=1` inside a
+  comment (`git commit -m x # --no-verify`) was taken as an explicit bypass; it
+  now denies.
 - **oc-bug-check** — the Checkpoint Schema documents `last_run_verdict` and
   `verified_tree`, and a new Commit gate contract section gives the exact tree
   recipe: `git add -A` into a throwaway index. The `/oc-bugcheck` command had said
