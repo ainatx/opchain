@@ -58,10 +58,16 @@ REPO OPS COMMANDS
 
 `oc-git-ops` must invoke Repo Ops before creating every PR. The required order is:
 
+0. Precondition: Bug Check has already passed before every commit on the branch
+   (oc-git-ops runs it before each commit, including a docs-packet commit). If it
+   has not run, or its verdict is stale, chain back to oc-bug-check.
 1. Docs Forge generates or verifies the PR documentation packet.
 2. Repo Ops verifies repository cleanliness and docs packet presence.
-3. Bug Check runs the fast code gate before commit.
-4. Git Ops opens the PR only after Repo Ops and Bug Check pass.
+3. Git Ops opens the PR only after Repo Ops passes.
+
+**Agent-executed, unenforced.** Nothing mechanical runs this gate: the opchain
+plugin's hook matches `git commit`, not `gh pr create`, and no CI check reads the
+PR body. The gate holds while the running session honours it.
 
 Read `references/pr-readiness-gate.md` before `/oc-repo verify`.
 
@@ -89,7 +95,8 @@ PR readiness gate. Fail closed on:
 
 - Missing or stale `.checkpoints/oc-docs-forge.checkpoint.json`. Stale means its
   `skill_state.verified_for_sha` is not the HEAD of the branch being verified —
-  the same binding oc-release-ops' verify gate uses for the docs row.
+  the same binding oc-release-ops' verify gate uses for the docs row — or its
+  checkpoint `status` is `blocked` (a failed `/oc-docs verify`).
 - Missing `## Documentation` PR body fragment.
 - Required docs update absent from the diff and no explicit follow-up.
 - Catalog/source drift for surfaces affected by the PR.
@@ -100,8 +107,7 @@ PR readiness gate. Fail closed on:
 - Broken internal links in docs touched by the PR.
 - Checkpoint pointers to files that no longer exist.
 
-Warnings do not block unless strict mode is enabled, but they must appear in the
-PR body or Repo Ops checkpoint.
+Warnings never block, but they must appear in the PR body or Repo Ops checkpoint.
 
 ## `/oc-repo clean`
 
@@ -125,8 +131,8 @@ For Opchain itself, verify:
 - Generated catalogs are current after `npm run gen-catalog` and
   `npm run gen-mcp-catalog`.
 - Skill bundle sync does not drift (`npm run sync-bundles:check`).
-- Packaged plugin/cache parity is checked when the personal plugin path is in
-  scope for the task.
+- Plugin skill copy does not drift (`npm run sync-plugin-skills:check`, which
+  compares `plugins/opchain/skills` with `skills/`).
 
 For other repos, infer equivalent catalog surfaces from package scripts,
 content collections, generated files, and docs.
@@ -142,7 +148,7 @@ Location: `{project-dir}/.checkpoints/oc-repo-ops.checkpoint.json`
 ```json
 {
   "skill": "oc-repo-ops",
-  "phase": "pr-readiness",
+  "phase": "pr-verify",
   "status": "complete",
   "progress_summary": "Repo readiness gate passed for PR creation.",
   "context_primer": {
@@ -161,7 +167,16 @@ Location: `{project-dir}/.checkpoints/oc-repo-ops.checkpoint.json`
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
-    "verified_for_sha": "abc123"
+    "internal_links_verified": true,
+    "related_untracked_files_staged": true,
+    "verified_for_sha": "abc123",
+    "last_verify": {
+      "at": "2026-09-11T04:15:18Z",
+      "branch": "feat/example",
+      "base": "origin/main@abc123",
+      "verdict": "PASS",
+      "blocking_findings": []
+    }
   }
 }
 ```

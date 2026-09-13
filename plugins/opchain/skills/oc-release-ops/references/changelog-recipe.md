@@ -11,22 +11,33 @@ this file when the layout evolves; the next release auto-conforms.
 
 ## Section structure
 
-Each release entry is one `<section class="release">` (or
-`release--current` for the most recent). Inside, in order:
+Each minor release is one `<article class="hero-card …" id="vN-N" data-card>`
+in `site/src/pages/changelog.astro`: `hero-card--next` while it is being built
+(Coming Next tab), `hero-card--released is-open` once it is the newest shipped
+release, and a collapsed `hero-card--released` after that until it ages out to a
+compact `<article class="rel-card">` (the five-hero window in
+`site-release-surfaces.md` L4). Patches get a `rel-card` of their own and extend
+the open hero's version/date range. Inside a hero, in order:
 
-1. `<header class="rel-head">` — tag + title + date.
-2. `<p class="rel-summary">` — the lede. One paragraph, ≤ 4 sentences.
-   Answers: "what is this release ABOUT?"
-3. `<h3>What's new</h3>` + `<ul>` — bulleted feature list. Each bullet
-   starts with the user-visible change in **bold**, then the explanation.
-4. `<h3>{New scenarios | New skill | New platform}</h3>` — release-specific
-   sections. Use the heading that fits; multiple are fine.
-5. `<h3>Configuration</h3>` — required when any new `.opchain/*.yaml` keys
-   or env vars or flags ship. Skip if the release adds no config surface.
-6. `<h3>Compatibility</h3>` — **always present**. Either "back-compatible
-   with vX.Y; no migration required" or a numbered migration list.
-7. `<h3>Security posture</h3>` — present when the release touches auth /
-   regulated flows / external surfaces. Optional otherwise.
+1. `<button class="hero-head">` — `hero-badge` ("latest release" / "previous
+   release"), `hero-ver` (`vN.N.N · shipped <Mon DD, YYYY>`), `hero-title`, and
+   `hero-desc` — the lede. One paragraph, ≤ 4 sentences. Answers: "what is this
+   release ABOUT?"
+2. `<div class="card-body">` → `<div class="card-body-inner hero-body-inner">`,
+   opening with a `tag-row` of `tag` chips (shipped, skill-count delta, …).
+3. `<h3>What's new</h3>` + a `tile-grid` of `tile`s (`tile-name` + `tile-desc`)
+   — one per headline change, leading with the user-visible change.
+4. `<h3>{New scenarios | New skills | New platform}</h3>` or a `callout` —
+   release-specific sections. Use the heading that fits; multiple are fine.
+5. Configuration — required when any new `.opchain/*.yaml` keys or env vars or
+   flags ship. Skip if the release adds no config surface.
+6. `<div class="compat-box">` — compatibility, **always present**. Either
+   "back-compatible with vX.Y; no migration required" or the migration steps.
+7. Security posture — present when the release touches auth / regulated flows /
+   external surfaces. Optional otherwise.
+
+A `rel-card` is the compact form: a `rc-row` button (`ver-pill`, `rc-title`,
+`rc-date`, `rc-summary`) over a `card-body-inner`.
 
 ---
 
@@ -85,65 +96,57 @@ Each release entry is one `<section class="release">` (or
 
 ---
 
-## Example: v1.2 entry as a template
+## The previous release as the template
 
-The v1.2 entry in `site/src/pages/changelog.astro` is the canonical template.
-When `/oc-release draft` runs, it reads the previous-release entry and mirrors:
+The most recent shipped hero in `site/src/pages/changelog.astro` (at v1.9, the
+`#v1-9` card) is the canonical template. When `/oc-release draft` runs, it reads
+that entry and mirrors:
 
-- The DOM structure (sections, headers, classes).
+- The DOM structure (hero card, tag row, tiles, compat box, classes).
 - The voice (declarative, present tense, second person where natural).
-- The length (5-8 "What's new" bullets, 2-3 scenarios, ≤ 5-paragraph total).
+- The length (4-8 "What's new" tiles, 2-3 scenarios, ≤ 5-paragraph total).
 
-Bigger releases (e.g. a hypothetical v2.0) may need additional sections
-("Migration" with a step list, "Deprecations"), but the existing structure
-covers v1.x cleanly.
+Bigger releases (e.g. v2.0) may need additional sections ("Migration" with a
+step list, "Deprecations"), but the existing structure covers v1.x cleanly.
 
 ---
 
-## v1.3 entry skeleton
+## Entry skeleton
 
-For the v1.3 release `/oc-release draft` produces:
+`/oc-release draft` produces a card of this shape (placeholders in `<…>`):
 
 ```html
-<section class="release release--current">
-  <header class="rel-head">
-    <span class="rel-tag">v1.3</span>
-    <h2>Runtime PM, real platforms, automated releases</h2>
-    <span class="rel-date">2026-05-11</span>
-  </header>
-
-  <p class="rel-summary">
-    opchain v1.3 makes the v1.2 PM-MCP prose executable end-to-end,
-    expands the platform menu beyond JS / Cloudflare, and ships
-    <code>oc-release-ops</code> — the 18th skill — to automate the
-    "scope → /changelog → bump → ship" cadence opchain uses for itself.
-  </p>
-
-  <h3>What's new</h3>
-  <ul>
-    <li><strong>The PM-MCP loop is real.</strong> ...</li>
-    <li><strong>Platform menu grew.</strong> ...</li>
-    <li><strong><code>oc-release-ops</code> is the 18th skill.</strong> ...</li>
-    ...
-  </ul>
-
-  <h3>Three new scenarios</h3>
-  <ul>
-    <li>...runtime-pm-loop...</li>
-    <li>...release-ops-dogfood...</li>
-    <li>...django-render-shipped...</li>
-  </ul>
-
-  <h3>Configuration</h3>
-  <p>v1.3 adds <code>tool_overrides</code> to <code>.opchain/pm.yaml</code>...</p>
-
-  <h3>Compatibility</h3>
-  <p>v1.3 is back-compatible with v1.2. ...</p>
-
-  <h3>Security posture</h3>
-  <p>...</p>
-</section>
+<article class="hero-card hero-card--next is-open" id="<vN-N>" data-card>
+  <button class="hero-head" type="button" aria-expanded="true"
+          aria-controls="<vN-N>-body" data-disclosure-toggle>
+    <span class="hero-chevron" aria-hidden="true">▶</span>
+    <span class="hero-badge"><committed | in progress></span>
+    <span class="hero-ver"><vN.N.0> · next · <status></span>
+    <span class="hero-title"><theme></span>
+    <span class="hero-desc"><lede: what this release is about, ≤ 4 sentences></span>
+  </button>
+  <div class="card-body" id="<vN-N>-body" data-disclosure-body>
+    <div class="card-body-inner hero-body-inner">
+      <div class="tag-row"><span class="tag"><skill-count delta></span></div>
+      <h3>What&rsquo;s new</h3>
+      <div class="tile-grid">
+        <div class="tile">
+          <span class="tile-name"><user-visible change></span>
+          <span class="tile-desc"><one-sentence explanation></span>
+        </div>
+      </div>
+      <div class="compat-box">
+        <strong>Back-compatible with <vN.N-1>.</strong> <migration notes, or none>
+      </div>
+    </div>
+  </div>
+</article>
 ```
+
+In the release PR, before the tag, the card becomes `hero-card hero-card--released is-open`,
+its badge "latest release" and its `hero-ver` `vN.N.0 · shipped <Mon DD, YYYY>`.
+Copy badge text from the live cards rather than from this skeleton if the two
+differ.
 
 The exact prose is generated from the sprint checkpoints + merged PR
 titles + the release plan headline ranking from `/oc-release plan`.
