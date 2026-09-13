@@ -3,10 +3,10 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-13T13:24:07.243Z",
+  "updated_at": "2026-09-13T23:09:34.859Z",
   "skill": "oc-release-ops",
   "phase": "plan-approved",
-  "step": "v1.9.1-sprint-8-site-pr-in-review",
+  "step": "v1.9.1-shipped-baseline-pr-open",
   "status": "in_progress",
   "progress_summary": "v1.9.0 remains shipped and live. A v1.9.1 patch release is proposed to ship the fixes from the 2026-09-11 skill-chain audit (484 upheld findings, 11 CRITICAL). Plan: docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md. Proposed semver v1.9.1 by decision-tree rule 10 under a patch-scope rule (fixes and doc corrections only; additive work moves to v2.0); the close call is rule 5, since sixteen documented subcommands become indexed in frontmatter, which would make it v1.10.0 on a strict reading. Proposed theme 'The chain holds'. Release surfaces for a patch: P1-P7 product half, then L4 (open hero range + v1-9-1 rel-card), L5 recount and L7 styleguide badge in the site half; L1-L3, L6, L8-L10 and forward surfaces do not move. The v2.0 recolour (PR 490) and demo rebuild (PR 515) are parked as drafts until after this release.",
   "progress_table": [
@@ -80,10 +80,9 @@
   },
   "blockers": [],
   "next_actions": [
-    "Sprint 8: land the site-half PR once CI is green.",
-    "OWNER (laptop): deploy from the merged main — npm run gen-roadmap && npm run deploy:staging → npm run smoke:staging → eyeball staging at the exact SHA → npm run gen-roadmap && npm run deploy → npm run smoke:prod → verify /api/health version and /skills.json catalogVersion 1.9.1.",
-    "OWNER: refresh .github/monitoring/release-baseline.json — release re-binds to v1.9.1 (drop the 78567c2 runtime block) and record the new staging and production deployment/version ids; verify with the control-plane monitor; merge the baseline PR.",
-    "After deploy: close the v1.9.1 release in this checkpoint (phase shipped, status complete) and re-run the routing eval (route-004)."
+    "Merge the release-baseline refresh PR once the canary dispatch on its branch is green, then confirm the next scheduled Canary and Deploy lag runs pass on main.",
+    "Re-run the opchain routing eval (/oc-prompt eval, route-004).",
+    "Then mark v1.9.1 complete and re-verify the v2.0 plan against the reworked skills before unparking #490 and #515."
   ],
   "pm_refs": [
     {
@@ -115,7 +114,7 @@
     "current_release": {
       "semver": "1.9.1",
       "theme": "The chain holds",
-      "phase": "site-half-in-review",
+      "phase": "shipped",
       "plan": "docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md",
       "source": "docs/audits/2026-09-11-skillchain-2.0-audit.md",
       "started_at": "2026-09-12",
@@ -267,6 +266,11 @@
           "pr": 531,
           "sha": "aef4080",
           "what": "v1.9.1 product half (P1-P6)"
+        },
+        {
+          "pr": 532,
+          "sha": "f5e4b2a",
+          "what": "v1.9.1 site half"
         }
       ],
       "staging": "main (owner redeployed 2026-09-13; staging baseline entry still describes the old demo preview)",
@@ -333,6 +337,21 @@
       "sprint_8": {
         "scope": "L4 hero range v1.9.0 -> v1.9.1 + #v1-9-1 rel-card, L5 19 shipped, L7 styleguide Badge v1.9.1, e2e re-pin, /architecture catalog-version prose 1.9.0 -> 1.9.1, RELEASING.md §3b note for that unprobed prose",
         "audit": "RELEASING.md §6 surface audit: DO-NOT-SHIP (architecture prose) then SHIP after fix"
+      },
+      "shipped": {
+        "staging": {
+          "sha": "f5e4b2a",
+          "deployment": "52c452c5-5d9e-4148-b3eb-30b7155d4888",
+          "version": "28a5c29d-0c18-4653-8214-e31af0a3872a",
+          "at": "2026-09-13T13:35:42Z"
+        },
+        "production": {
+          "sha": "f5e4b2a",
+          "deployment": "3b7989ff-2f65-4dc6-a629-6f16ba4fd677",
+          "version": "01db3b36-a90c-4f73-98f7-fd00505582c4",
+          "at": "2026-09-13T23:05:38Z"
+        },
+        "verified": "/api/health f5e4b2a on both hosts; /skills.json catalogVersion 1.9.1 (33 skills); hardening replay 2/2 and smoke:prod passed"
       }
     },
     "prior_release": {

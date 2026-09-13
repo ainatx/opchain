@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-20T03:50:45.264Z",
-  "updated_at": "2026-09-13T05:30:55.224Z",
+  "updated_at": "2026-09-13T23:09:34.859Z",
   "phase": "observe",
   "step": "runtime-approval-merged-awaiting-scheduled-cycle",
   "status": "in_progress",
@@ -48,11 +48,7 @@
   ],
   "blockers": [],
   "next_actions": [
-    "Confirm the 2026-09-13 scheduled cycle (Canary 13:47Z, Deploy lag 14:17Z): Deploy lag green with issue #513 refreshed; Canary red only on staging.",
-    "Staging was redeployed from main (37e2b4b) on 2026-09-13. Record staging's new deployment/version/etag in release-baseline.json and drop pointInTimeEvidence.note — only then does the scheduled all-environment Canary go green.",
-    "Next release workstream: review the deploy-relevant paths in issue #513, approve an exact runtime SHA, deploy it, and remove the baseline `runtime` block when `release` re-binds to the new signed tag (runbook → Approved post-release runtime).",
-    "Keep Cloudflare Free-plan Bot Fight Mode enabled; do not claim a WAF Skip exception, enable workers.dev, or upgrade the plan without new authority.",
-    "Retain CLOUDFLARE_ACCOUNT_ID and rotate CLOUDFLARE_API_TOKEN to a dedicated least-privilege read credential during Phase C8."
+    "Merge the v1.9.1 release-baseline refresh PR (release v1.9.1 @ aef4080, runtime f5e4b2a, new production + staging ids), then confirm the next scheduled Canary and Deploy lag runs are green on main."
   ],
   "context_primer": {
     "key_decisions": [

@@ -4,26 +4,26 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-08-27T23:49:17.485Z",
-  "updated_at": "2026-09-13T05:29:27.733Z",
+  "updated_at": "2026-09-13T23:09:34.859Z",
   "phase": "production",
-  "step": "runtime-78567c2-approved-staging-on-main",
+  "step": "v1.9.1-production-deployed",
   "status": "in_progress",
-  "progress_summary": "Production serves 78567c2, approved as the post-release runtime by merged PR #510 (deployment 8da6c19d, version b6268c62), on top of release v1.9.0 (244bf13). Staging was redeployed from main (37e2b4b) on 2026-09-13, so it no longer previews the parked v2.0 demo branch. The staging entry in .github/monitoring/release-baseline.json still records the v1.9.0 staging deployment and the preview note, so the scheduled canary's staging half stays red until it is refreshed.",
+  "progress_summary": "v1.9.1 is live. Production and staging both serve f5e4b2a (the v1.9.1 site half on the signed v1.9.1 tag at aef4080): production deployment 3b7989ff / version 01db3b36 at 2026-09-13T23:05Z, staging deployment 52c452c5 / version 28a5c29d. The deploy script passed its origin/main, clean-tree, release-tag, hardening-replay and smoke gates. The monitoring baseline refresh is in review; until it merges, the scheduled Canary and Deploy lag runs compare against the old v1.9.0 + 78567c2 baseline and will fail.",
   "blockers": [],
   "next_actions": [
-    "Owner, laptop: capture staging's new deployment and version ids (npx wrangler deployments list --env staging --json), record them in .github/monitoring/release-baseline.json, drop pointInTimeEvidence.note, verify with the control-plane monitor, and merge that baseline PR.",
-    "v1.9.1 Sprint 8: deploy the release from main per RELEASING.md §5, after a runtime-scope /oc-audit pre-deploy and an oc-security-auditor posture run or recorded waiver."
+    "Merge the release-baseline refresh PR once its canary dispatch is green.",
+    "Rollback target if needed: production deployment 8da6c19d (version b6268c62, 78567c2) via npx wrangler rollback."
   ],
   "skill_state": {
     "current_env": "production",
-    "staging_version": "37e2b4b",
-    "prod_version": "78567c2",
-    "production_sha": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
+    "staging_version": "f5e4b2a",
+    "prod_version": "f5e4b2a",
+    "production_sha": "f5e4b2a",
     "target_version": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
-    "cloudflare_version_id": "b6268c62-48e8-4c30-a0c6-fea074ae260c",
-    "cloudflare_deployment_id": "8da6c19d-a89a-4214-8e58-4606c7ce2f72",
-    "staging_cloudflare_version_id": null,
-    "staging_cloudflare_deployment_id": null,
+    "cloudflare_version_id": "01db3b36-a90c-4f73-98f7-fd00505582c4",
+    "cloudflare_deployment_id": "3b7989ff-2f65-4dc6-a629-6f16ba4fd677",
+    "staging_cloudflare_version_id": "28a5c29d-0c18-4653-8214-e31af0a3872a",
+    "staging_cloudflare_deployment_id": "52c452c5-5d9e-4148-b3eb-30b7155d4888",
     "staging_url": "https://staging.opchain.dev",
     "production_url": "https://opchain.dev",
     "branch_preview": false,
@@ -151,9 +151,8 @@
         34363685054
       ]
     },
-    "last_release_deploy": "2026-09-02T20:11:25.746861Z",
-    "last_runtime_deploy": "2026-09-05T02:24:00Z",
-    "staging_note": "Owner redeployed staging from main (37e2b4b) on 2026-09-13, retiring the claude/demo-rebuild-2-0 preview. The new deployment and version ids were not captured in this session; the v1.9.0 ids 791c1851/d07bb08a no longer describe staging."
+    "last_release_deploy": "2026-09-13T23:05:38Z",
+    "last_runtime_deploy": "2026-09-05T02:24:00Z"
   },
   "progress_table": [
     {
