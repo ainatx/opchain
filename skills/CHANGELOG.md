@@ -34,6 +34,22 @@ checkpoint `protocol_version` is tracked separately (see
   exponentially (26 × `time` outran the hook's 10s timeout), and quote spans
   follow bash's rules: `\'` inside single quotes is not an escape, so
   `echo 'a\' ; git commit …` no longer hides a commit.
+- **Commit gate (plugin) — commands are also read the way bash reads them.**
+  Quoted text was data to every matcher, but bash reads inside it, so each of
+  these committed past the gate: `echo "$(git commit -m x)"` and
+  `` echo `git commit -m x` `` (substitutions run inside double quotes and
+  unquoted here-documents); `\git commit`, `"git" commit` and `\sh -c '…'`
+  (quotes are removed before the command is looked up);
+  `find . -exec sh -c '…' \;`; `sh -c 'true;git commit …'`; and a commit after
+  an apostrophe in a comment or in `<<'EOF'` prose, where `don't` opened a quote
+  bash never saw. The gate now reads each command a second time with bash's
+  quoting rules and treats a commit found by either reading as a commit, so no
+  command it denied before is allowed now. Quoted here-document prose,
+  `echo "use git commit"` and `grep 'git commit'` stay data. **Stricter:** these
+  forms deny; `--no-verify` counts only where both readings see it outside
+  quotes; and a command inside `"$(…)"` is judged like the same command outside
+  it, so a dry run that pipes a payload naming `git commit` into `sh -c "…"` is
+  denied there too.
 - **oc-bug-check** — the Checkpoint Schema documents `last_run_verdict` and
   `verified_tree`, and a new Commit gate contract section gives the exact tree
   recipe: `git add -A` into a throwaway index. The `/oc-bugcheck` command had said
