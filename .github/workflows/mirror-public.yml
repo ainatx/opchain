@@ -35,7 +35,8 @@ jobs:
           missing=()
           for f in skills LICENSE NOTICE mirror/README.md mirror/CONTRIBUTING.md mirror/SECURITY.md mirror/.github/ISSUE_TEMPLATE \
                    plugins/opchain/.claude-plugin/plugin.json plugins/opchain/hooks/hooks.json \
-                   plugins/opchain/hooks/pre-commit-gate.cjs .claude-plugin/marketplace.json; do
+                   plugins/opchain/hooks/pre-commit-gate.cjs plugins/opchain/hooks/session-state.cjs \
+                   plugins/opchain/hooks/next-suggestion.cjs plugins/opchain/commands .claude-plugin/marketplace.json; do
             if [[ ! -e "$f" ]]; then
               missing+=("$f")
             fi

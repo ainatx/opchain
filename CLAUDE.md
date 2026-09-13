@@ -76,7 +76,7 @@ opchain/
 │   ├── (astro dist copied in)
 │   ├── opchain-skills.zip  # Generated from skills/ by scripts/make-skills-zip.sh
 │   └── docs/               # Synced from skills/ by scripts/sync-docs.sh
-├── skills/                 # Skill source definitions (the product) — 29 skills,
+├── skills/                 # Skill source definitions (the product) — 33 skills,
 │   │                       # one subdir per id (each with SKILL.md). Full list +
 │   │                       # phases: skills/README.md. A few examples:
 │   ├── oc-app-architect/

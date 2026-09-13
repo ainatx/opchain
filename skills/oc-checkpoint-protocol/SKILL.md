@@ -52,16 +52,14 @@ here: it only ever adds optional fields, never removes or repurposes one.
 ## Problem Statement
 
 Claude's context resets between conversations. Multi-step skills (oc-app-architect,
-tri-dev, oc-reverse-spec, oc-stack-forge, oc-code-auditor, oc-deploy-ops, oc-git-ops) lose all
-progress when a session ends. Today:
+oc-reverse-spec, oc-stack-forge, oc-code-auditor, oc-deploy-ops, oc-git-ops) lose all
+progress when a session ends unless they write it down. Before this protocol (v1.0),
+oc-reverse-spec kept a bespoke `checkpoint.md`, oc-app-architect had gates but no
+session persistence, and most skills had no continuity at all.
 
-- **oc-reverse-spec** has a bespoke `checkpoint.md` — the most mature implementation
-- **tri-dev** has file-based state (contracts, eval reports) but no formal resume
-- **oc-app-architect** has gates but zero session persistence
-- **oc-stack-forge**, **life-architect**, and others have no continuity at all
-
-Each skill reinvents (or doesn't) its own persistence. The user pays the cost:
-re-explaining context, re-reading files, and hoping Claude picks up where it left off.
+Each skill reinvented (or didn't) its own persistence, and the user paid the cost:
+re-explaining context, re-reading files, and hoping Claude picked up where it left off.
+This protocol gives every skill one shared format instead.
 
 ---
 
@@ -159,7 +157,7 @@ Multiple skills can checkpoint the same project simultaneously without collision
 
   // === SKILL-SPECIFIC STATE (optional) ===
   // Freeform object for skill-internal state that doesn't fit the schema above.
-  // Other skills should NOT read this section — it's private to the owning skill.
+  // Private to the owning skill: siblings read only keys its owner documents for them.
   "skill_state": {
     "current_sprint": 2,
     "iteration": 1,
@@ -219,14 +217,18 @@ Resuming your own work shouldn't cost a question every time. Default behavior:
 
 - **`status: in_progress` and not stale** → **continue automatically.** Just say
   "Resuming from `next_actions[0]`: …" and proceed. The user can always redirect.
-- **`status: blocked` or `failed`, or the checkpoint is stale (>7d)** → stop and
+- **`status: blocked` or `failed`, or the checkpoint is stale** (untouched for more
+  than 7 days while `in_progress`, 14 days while `complete`, or 3 days while
+  `blocked`) → stop and
   ask: *"Continue from here, restart, or show the full checkpoint?"* These are the
   cases where silently continuing is wrong.
 
 - **Continue** → Read `context_primer` and `next_actions`, load referenced
   `generated_files`, proceed.
-- **Restart** → Archive current checkpoint (rename to `.checkpoint.json.bak`),
-  start fresh.
+- **Restart** → Archive the current checkpoint to
+  `.checkpoints/history/<skill>.<timestamp>.checkpoint.json` (what
+  `checkpoint.mjs reset <skill>` does; tracked in git like the checkpoint itself),
+  then start fresh.
 - **Show full** → Display the complete checkpoint for review, then ask continue/restart.
 
 ### Step 4: Prime Context
@@ -258,7 +260,7 @@ the checkpoint after:
 
 | Event | Action |
 |---|---|
-| Session resume | Restamp `updated_at`, record `resumed_from` when known, and revalidate or replace `next_actions[0]` before continuing. |
+| Session resume | Restamp `updated_at` and revalidate or replace `next_actions[0]` before continuing. |
 | Session pause / user says stop / context is getting long | Write a compact `progress_summary`, current `step`, blockers, and the exact next action to run first. |
 | Phase or gate completion | Update `progress_table`, `phase`, `step`, summary, and next action before moving on. |
 | Key decision / user decision made | Append to `context_primer.key_decisions`, clear any matching blocker, and restamp. |
@@ -337,7 +339,7 @@ append-only telemetry from growing without bound:
   a summary paragraph and keep only the recent items individually.
 - Per-session telemetry in `skill_state` (merged-PR lists, reconciliation logs) is
   the usual source of bloat *and* of merge conflicts. Rotate closed sessions into
-  `.checkpoints/history/<skill>.<date>.json` instead of letting `skill_state` grow.
+  `.checkpoints/history/<skill>.<timestamp>.json` instead of letting `skill_state` grow.
   The validator **warns** once a file passes ~32KB.
 
 > **Anti-pattern (worked example): don't auto-stamp `merged_prs` per merge.**
@@ -358,22 +360,28 @@ append-only telemetry from growing without bound:
 ## Cross-Skill Reads
 
 Skills can read each other's checkpoints (read-only) for coordination. The table
-below is illustrative — the **complete, maintained** upstream/downstream map lives
-in `orchestrator.md` § "Upstream/Downstream Map" (it covers every skill including
-oc-security-auditor, oc-api-dev, oc-monitoring-ops, oc-release-ops, and oc-migration-ops). Treat
-that as the single source of truth; this table is just the common cases.
+below is illustrative — the maintained upstream/downstream map lives in
+`orchestrator.md` § "Upstream/Downstream Map", which has a row for every skill in the
+catalog. Treat that as the single source of truth; this table is just the common cases.
 
 | Reader | Reads | Why |
 |---|---|---|
 | oc-app-architect | oc-reverse-spec checkpoint | Know what analysis exists for the codebase |
-| oc-deploy-ops | oc-app-architect checkpoint | Know which sprints have passed QA |
-| oc-git-ops | any skill checkpoint | Know what files to commit |
+| oc-deploy-ops | oc-code-auditor + oc-security-auditor checkpoints | Audit grade and posture before the deploy gate |
+| oc-git-ops | oc-app-architect + oc-bug-check checkpoints | Sprint context for the commit, and the gate verdict |
 | oc-git-ops | oc-docs-forge + oc-repo-ops checkpoints | Pre-PR gate: docs packet + readiness verdict before opening a PR |
 | oc-code-auditor | oc-reverse-spec checkpoint | Know what analysis has been done |
 
 **Rules:**
 - Read the `header`, `progress`, `progress_table`, `context_primer`, and `blockers`
-- Never read `skill_state` — it's private to the owning skill
+- Don't read another skill's `skill_state` unless its owner documents that key for
+  siblings (in the owner's Cross-Skill Reads / "Read by" table or its schema section).
+  A documented key is a published contract its owner keeps stable; everything else is
+  private. The commit gate is one such reader: it reads oc-bug-check's
+  `skill_state.last_run_verdict` (or `last_run.verdict`) and `skill_state.verified_tree`
+  per oc-bug-check's § Commit gate contract. (The opchain repo's `checkpoint doctor`
+  also scans every `skill_state` for merged/shipped tokens when flagging stale next
+  actions; it relies on no shape.)
 - Never write to another skill's checkpoint
 - If you need to coordinate, write to your own checkpoint and reference the other:
   `"depends_on": "oc-app-architect checkpoint shows spec approved at 2026-03-31T12:00:00Z"`
@@ -393,6 +401,10 @@ that as the single source of truth; this table is just the common cases.
 When they are available, these commands automate the read → merge → write and
 validate the result. `scripts/checkpoint.mjs` is zero-deps pure Node.
 
+Two companion guides ship in this skill's own directory (they are not bundled into the
+other skills): `references/INTEGRATION.md`, the per-skill integration guide, and
+`references/WALKTHROUGH.md`, an end-to-end resume walkthrough.
+
 **Read / resume:**
 
 ```bash
@@ -404,8 +416,8 @@ node scripts/checkpoint.mjs next              # the SINGLE highest-priority non-
 ```
 
 `status` leads with a `⛔ N decisions waiting on you` banner when any blocker
-`needs: user_decision`, and flags `⚠ stale (Nd)` on in_progress checkpoints older
-than 7 days. `next` encodes the priority hierarchy (blocked-on-decision > failed >
+`needs: user_decision`, and flags `⚠ stale (Nd)` on checkpoints untouched for more
+than 7 days (`in_progress`), 14 days (`complete`) or 3 days (`blocked`). `next` encodes the priority hierarchy (blocked-on-decision > failed >
 in_progress-at-gate > in_progress > complete-with-queued-work > not-started) so you
 don't need the oc-orchestrator's registry to answer "what now?".
 
@@ -413,7 +425,7 @@ don't need the oc-orchestrator's registry to answer "what now?".
 
 ```bash
 node scripts/checkpoint.mjs doctor            # cross-check vs git history + filesystem
-node scripts/checkpoint.mjs doctor --online   # also compare deployed /api/health vs local HEAD
+node scripts/checkpoint.mjs doctor --online   # also compare deployed /api/health vs the approved release baseline
 node scripts/checkpoint.mjs doctor --fail-on-warnings
 ```
 
@@ -502,7 +514,10 @@ runners like Claude Code on the web.
 
 ## /checkpoint Command
 
-Any skill that adopts this protocol should recognize `/checkpoint` as a utility command:
+Any skill that adopts this protocol should recognize `/checkpoint` as a utility
+command. It is a prose convention, not a registered verb: no skill declares it in
+frontmatter and the plugin ships no command file for it, so a skill handles it when the
+user types it.
 
 ```
 /checkpoint         Show current checkpoint status for active project
@@ -600,19 +615,18 @@ Every skill that touches a PM ticket appends to its own
 is append-only within a session; entries are not deduplicated
 across sessions (the audit trail is per-session).
 
+### Deferred PM writes
+
+Skills that follow oc-integrations-engineer's PM-MCP protocol (references/pm-mcp-protocol.md
+in that skill) may also
+write `pm_deferred_actions`, `pm_flush_log` and `pm_idempotent_skips` beside `pm_refs`.
+They are optional, shaped by that protocol, and the validator does not check them.
+
 ### Status surface
 
-`npm run checkpoint:status` includes a one-line PM summary per
-skill in v1.2:
-
-```
-oc-app-architect    spec-approved    PM: PLAT-4471 (source) + 3 children
-oc-git-ops          PR-merged        PM: PLAT-4471 (linked)
-oc-deploy-ops       shipped          PM: PLAT-4485 (deploy) → PLAT-4471
-oc-monitoring-ops   resolved         PM: PLAT-4503 (incident) → PLAT-4485
-```
-
-This makes the cross-skill PM thread legible at session resume.
+`npm run checkpoint:status` does not render `pm_refs`. To follow a ticket across
+skills at resume, read each checkpoint's `pm_refs` directly (`node
+scripts/checkpoint.mjs show <skill>`, or open the JSON).
 
 ### Validation
 
@@ -627,8 +641,7 @@ next write.
 The `pm_refs` array stores ticket ids + URLs. **It does not
 store ticket bodies.** Tickets in regulated environments may
 contain CUI / PHI; the body retrieval path runs through the
-broker + redactor on each access (see `mcp-enterprise-f500` and
-`mcp-enterprise-defense` scenarios). The checkpoint is therefore
+broker + redactor on each access. The checkpoint is therefore
 safe to commit + share within the project.
 
 ---
@@ -729,7 +742,7 @@ frontmatter rolled out in v1.4.
 4. **JSON for machines, summaries for humans.** The checkpoint is JSON so skills can
    parse it. The `progress_summary` and `next_actions` are human-readable so the user
    can understand what's happening.
-5. **Private state stays private.** `skill_state` is an opaque bag — other skills
-   don't read it, and the protocol doesn't define its contents.
+5. **Private state stays private.** `skill_state` is an opaque bag the protocol doesn't
+   define; other skills read only the keys its owner documents for them.
 6. **Never block on a missing checkpoint.** If the checkpoint is corrupt, missing, or
    from an incompatible version, the skill starts fresh and tells the user why.
