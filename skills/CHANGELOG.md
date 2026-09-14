@@ -11,13 +11,29 @@ contract another skill depends on → called out as **BREAKING**. The on-disk
 checkpoint `protocol_version` is tracked separately (see
 `oc-checkpoint-protocol/SKILL.md`).
 
-## 2.0 staging preview (unreleased)
-
-No release date is set. The preview includes the shared runtime, safe checkpoint saves, local tracking permission, explicit commit verification, complete runtime packages, recorded task evidence for Evolve, updated skill guides, and the Slate and Emerald site design. It contains 36 skills and 16 plugin commands, including explicit enrollment. Real provider and independent reviewer acceptance remain release requirements.
-
 ## [Unreleased]
 
 _Nothing yet._
+
+## [2.0.0] — 2026-09-14 — "The shared runtime"
+
+Adds oc-update, oc-hindsight and oc-evolve, bringing the catalog to 36 skills
+and 16 plugin commands. The shared runtime includes atomic checkpoint saves,
+machine-local tracking consent, explicit Git enrollment and candidate receipts,
+complete runtime packages and recorded task evidence for reviewed learning.
+The release includes the verified 1.9.2 repairs and four simulation findings,
+Slate and Emerald site design, the comparison refresh and 15 demo scenarios.
+
+The updater installs complete skill folders, backs up replaced files and keeps
+saved progress, local consent and unrelated skills. Users on 1.9 or earlier can
+bootstrap the updater with the copyable prompt on the install page.
+
+Learning starts off. Provider access, separate evaluator sessions and an external
+reviewer must be configured by the team. Context delivery is explicit. Demo
+scores are scripted examples; they are not real provider improvement evidence.
+Checkpoint wire remains 1.1. Wire 1.2 migration and the repository split are not
+part of this release. Broader provider and native-host acceptance remains tracked
+in the release record; this release does not claim that those checks passed.
 
 ## [1.9.2] — 2026-09-13 — "Verified handoffs"
 

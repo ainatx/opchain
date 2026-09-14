@@ -1,3 +1,9 @@
+# Release update
+
+The maintainer requested production and a release tag on September 14, 2026.
+The [production release record](../releases/2.0-production-release.md) supersedes
+the staging-only status below. Earlier validation limits remain recorded.
+
 # 2.0 runtime alignment and staging
 
 Approved scope: implement all six findings from the runtime review, update the

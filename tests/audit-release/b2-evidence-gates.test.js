@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, mkdirSync, copyFileSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -131,13 +131,23 @@ describe("B2 candidate-bound evidence evaluator", () => {
   });
 });
 
-// Preview identity must block production before credentials, build or deployment.
+// Exercise the guard in an isolated marked fixture, including after release.
 it("refuses production for a marked preview even with release bypass flags", () => {
-  const result = spawnSync(process.execPath, ["scripts/deploy.mjs"], {
-    cwd: process.cwd(), encoding: "utf8",
-    env: { ...process.env, OPCHAIN_ALLOW_UNTAGGED_RELEASE: "1", OPCHAIN_ALLOW_OFF_MAIN_STAGING: "1" },
-  });
-  expect(result.status).not.toBe(0);
-  expect(result.stderr).toContain("This tree is a staging preview");
-  expect(result.stdout).not.toContain("preflight ok");
+  const root = mkdtempSync(join(tmpdir(), "opchain-preview-guard-"));
+  try {
+    mkdirSync(join(root, "scripts"));
+    for (const name of ["deploy.mjs", "check-release-tag.mjs"]) {
+      copyFileSync(new URL(`../../scripts/${name}`, import.meta.url), join(root, "scripts", name));
+    }
+    writeFileSync(join(root, "release-preview.json"), JSON.stringify({ status: "staging-preview" }));
+    const result = spawnSync(process.execPath, [join(root, "scripts/deploy.mjs")], {
+      cwd: root, encoding: "utf8",
+      env: { ...process.env, OPCHAIN_ALLOW_UNTAGGED_RELEASE: "1", OPCHAIN_ALLOW_OFF_MAIN_STAGING: "1" },
+    });
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain("This tree is a staging preview");
+    expect(result.stdout).not.toContain("preflight ok");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });

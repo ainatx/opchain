@@ -1,6 +1,6 @@
 # opchain
 
-> **2.0 staging preview.** Includes the 1.9.2 runtime repairs and the shared runtime. No release date is set. See the [runtime alignment plan](docs/plans/2026-09-13-v2-runtime-alignment.md).
+> **Opchain 2.0.0.** Released September 14, 2026. Includes the verified 1.9.2 repairs, shared runtime, updater, Hindsight and Evolve. See the [release record](docs/releases/2.0-production-release.md).
 
 > skills that ship.
 
