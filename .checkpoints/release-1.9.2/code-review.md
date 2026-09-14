@@ -72,3 +72,7 @@ The second remote run passed the Worker gate. Its authenticated roadmap request 
 ## Post-tag site review
 
 The coordinator reviewed the six-file site patch after v1.9.2 was signed and pushed. Changes are release copy, counts and the matching browser expectation; product runtime code is unchanged from tag 7ccdacf04c9ac59f62309c371de357acd9b81839. Mechanical release-surface checks and all 22 focused changelog/scenario browser tests pass with actual roadmap data. No new executable content, external dependency or permission is introduced. The PASS verdict extends to this source change, with fresh full candidate/CI verification required before staging.
+
+## Staging baseline review
+
+The coordinator reviewed the staging-only monitoring metadata and explanatory runbook update after the successful deployment. Live Cloudflare control-plane checks pass for both environments; production deployment/version fields and release/runtime SHA bindings are unchanged. No application runtime, permission, gate or dependency changed. The new provenance fields document the staging preview; existing canary checks still bind its actual deployment and configuration, while deploy-diff retains the production baseline.

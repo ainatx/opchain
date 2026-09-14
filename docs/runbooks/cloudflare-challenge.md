@@ -117,6 +117,19 @@ From the exact reviewed and approved runtime checkout:
    is active only after the change is on the default branch and a scheduled run
    succeeds.
 
+### Staging-only release review
+
+When the maintainer authorizes staging without production promotion, refresh only
+the staging environment's deployment/version/fingerprint after its live checks
+pass. Keep `release`, the production `runtime.sha`, and the production environment
+record at the approved production release. Record the preview's `releaseTag`,
+`sourceSha`, `catalogVersion`, and approval in `environments.staging`, with separate
+point-in-time evidence. These preview fields document provenance; the existing
+canary verifies its deployment/version/traffic and configuration independently.
+`deploy-diff` still compares main with the approved production runtime, so pending
+1.9.2 production changes are expected until promotion. A green canary does not
+mean staging and production run the same version.
+
 ## Interpreting failures
 
 - **Deployment/version/traffic mismatch:** stop and inspect Cloudflare history.

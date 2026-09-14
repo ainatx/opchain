@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-14T00:10:24.828Z",
+  "updated_at": "2026-09-14T00:20:50.683Z",
   "skill": "oc-release-ops",
-  "phase": "staging",
-  "step": "v1.9.2-tagged-site-review",
-  "status": "in_progress",
-  "progress_summary": "1.9.2 product PR #536 merged, signed tag verified on origin, registry publication and public mirror succeeded. Post-tag site patch passes release-surface checks and 22 browser checks; final site PR gates precede staging.",
+  "phase": "staging-verified",
+  "step": "v1.9.2-staging-complete",
+  "status": "complete",
+  "progress_summary": "1.9.2 product and site PRs merged; signed tag and registry publication verified. Staging passed live checks and the complete release package passed extracted-consumer checks. Production promotion awaits a separate maintainer decision.",
   "progress_table": [
     {
       "id": "scope",
@@ -80,9 +80,7 @@
   },
   "blockers": [],
   "next_actions": [
-    "Complete final review and release PR gates",
-    "Merge product PR and create/verify signed v1.9.2 tag",
-    "Merge the prepared site update, deploy staging and verify live behavior"
+    "Review staging and decide separately whether to promote 1.9.2 to production."
   ],
   "pm_refs": [
     {
@@ -512,7 +510,33 @@
       "tagObject": "078e554a693b04b9655430c3e6b568761b6bcf4d",
       "publisherRun": 34791781955,
       "productionPromoted": false
+    },
+    "staging_1_9_2": {
+      "ok": true,
+      "verifiedAt": "2026-09-14T00:18:30.803291+00:00",
+      "url": "https://staging.opchain.dev",
+      "sourceSha": "93dc8545929288ca2169e88ca0fd0fc90587c717",
+      "sourceTree": "9f28305915428bc9ea54572718847ccd62e17621",
+      "healthVersion": "93dc854",
+      "catalogVersion": "1.9.2",
+      "skillCount": 33,
+      "releaseCards": 20,
+      "voteTargets": 7,
+      "releaseCardPresent": true,
+      "hostedReferenceManifestAndCanonicalLegacyReads": "PASS",
+      "deployWrapperHardeningAndSmoke": "PASS",
+      "productPr": 536,
+      "sitePr": 537,
+      "tag": "v1.9.2",
+      "tagObject": "078e554a693b04b9655430c3e6b568761b6bcf4d",
+      "productCommit": "7ccdacf04c9ac59f62309c371de357acd9b81839",
+      "registryPublicationRun": 34791781955,
+      "productCiRun": 34791420579,
+      "productLighthouseRun": 34791420546,
+      "productionPromoted": false,
+      "siteCiRun": 34791901798,
+      "siteLighthouseRun": 34791901886
     }
   },
-  "record_updated_at": "2026-09-14T00:10:24.828Z"
+  "record_updated_at": "2026-09-14T00:20:50.683Z"
 }
