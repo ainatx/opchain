@@ -1,5 +1,4 @@
 ---
-import ReleasePreview from "../components/ReleasePreview.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import FeedbackWidget from "../components/FeedbackWidget.astro";
@@ -208,7 +207,6 @@ const jsonLdString = JSON.stringify({
   </head>
   <body>
     {!bare && <Header active={active} />}
-    {!bare && <ReleasePreview />}
     <slot />
     {!bare && <Footer />}
     {!bare && showFeedbackWidget && <FeedbackWidget />}

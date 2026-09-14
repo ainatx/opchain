@@ -161,7 +161,7 @@ const plannedReleaseGroups = [
           aria-selected="true"
           tabindex="0"
         >
-          Just Released <span class="tab-count">20 shipped</span>
+          Just Released <span class="tab-count">21 shipped</span>
         </button>
         <button
           class="tab-btn tab-btn--next"
@@ -171,7 +171,7 @@ const plannedReleaseGroups = [
           aria-selected="false"
           tabindex="-1"
         >
-          Coming Next <span class="tab-count">v2.0</span>
+          Coming Next <span class="tab-count">v2.1</span>
         </button>
         <button
           class="tab-btn tab-btn--planned"
@@ -200,17 +200,49 @@ const plannedReleaseGroups = [
         <span class="panel-sub">Latest release is open; patches and earlier releases expand in place.</span>
       </div>
 
-      <!-- v1.9 — latest shipped release line (v1.9.0 → v1.9.2); "Assurance and governed delivery ops". Deep-linkable from #v1-9. -->
-      <article class="hero-card hero-card--released is-open" id="v1-9" data-card>
+      <article class="hero-card hero-card--released is-open" id="v2-0" data-card>
         <button
           class="hero-head"
           type="button"
           aria-expanded="true"
-          aria-controls="v1-9-body"
+          aria-controls="v2-0-body"
           data-disclosure-toggle
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">latest release</span>
+          <span class="hero-ver">v2.0.0</span>
+          <span class="hero-title">The self-improving pipeline</span>
+          <span class="hero-desc">A shared runtime for updates, saved progress, local tracking and reviewed learning.</span>
+        </button>
+        <div class="card-body" id="v2-0-body" data-disclosure-body>
+          <div class="card-body-inner hero-body-inner">
+            <div class="tag-row"><span class="tag tag--info">released</span><span class="tag">36 skills</span><span class="tag">16 plugin commands</span><span class="tag">shared runtime</span></div>
+            <p>2.0 adds an updater, Hindsight and Evolve to the current skills. The release combines the recent reliability fixes with the Slate and Emerald design.</p>
+            <div class="loop">
+              <h3>What changed</h3>
+              <ol class="loop-layers">
+                <li><span class="loop-k">Reliable foundations</span><div class="loop-body"><strong>Progress and permission.</strong> Concurrent saves keep each update. Tracking requires permission on the local machine. Each installed skill carries the files its commands need.</div></li>
+                <li><span class="loop-k">Useful evidence</span><div class="loop-body"><strong>History and task results.</strong> Import scored outcomes, review recurring weak results, and run the existing grader with recorded instructions, outputs and case results.</div></li>
+                <li><span class="loop-k">Reviewed changes</span><div class="loop-body"><strong>Separate checks for separate decisions.</strong> Commits use explicit Git verification. Releases need a fresh audit. Learned rules need better task results and an externally trusted reviewer signature.</div></li>
+              </ol>
+              <div class="loop-inv"><span class="loop-k">You stay in control</span> Learning starts off. You choose the provider and reviewer. Lessons and rules need approval before they can be returned as context.</div>
+            </div>
+            <div class="compat-box"><strong>Upgrading from 1.9:</strong> refresh the full skill folders, including references and runtime files. Existing checkpoints and local telemetry consent are preserved. Use the bootstrap installer if <code>/oc-update</code> is not installed. <a href="/skills/oc-update">Updater</a> · <a href="/skills/oc-hindsight">Hindsight</a> · <a href="/skills/oc-evolve">Evolve</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v1.9 — latest shipped release line (v1.9.0 → v1.9.2); "Assurance and governed delivery ops". Deep-linkable from #v1-9. -->
+      <article class="hero-card hero-card--released" id="v1-9" data-card>
+        <button
+          class="hero-head"
+          type="button"
+          aria-expanded="false"
+          aria-controls="v1-9-body"
+          data-disclosure-toggle
+        >
+          <span class="hero-chevron" aria-hidden="true">▶</span>
+          <span class="hero-badge">previous release</span>
           <span class="hero-ver">v1.9.0 → v1.9.2 · Sep 02 – Sep 13, 2026</span>
           <span class="hero-title">Assurance and governed delivery ops</span>
           <span class="hero-desc">
@@ -221,7 +253,7 @@ const plannedReleaseGroups = [
             gate — each activated by a file in the repo, inert without it.
           </span>
         </button>
-        <div class="card-body" id="v1-9-body" data-disclosure-body>
+        <div class="card-body" id="v1-9-body" data-disclosure-body inert>
           <div class="card-body-inner hero-body-inner">
             <div class="tag-row"><span class="tag tag--accent">shipped</span><span class="tag">29 → 33 skills</span><span class="tag">4 new skills</span><span class="tag">additive</span></div>
             <h3>What&rsquo;s new</h3>
@@ -1043,43 +1075,13 @@ const plannedReleaseGroups = [
     >
       <div class="panel-head">
         <h2>What's coming</h2>
-        <span class="panel-sub">v2.0 is in staging preview. No release date is set.</span>
+        <span class="panel-sub">Help shape the next release.</span>
       </div>
 
       <!-- v1.9 — Assurance and governed delivery ops; selected direction.
            Deep-linkable from #v1-9. -->
       <!-- v2.0 — the committed next release; "The self-improving pipeline". Deep-linkable from #v2-0. -->
-      <article class="hero-card hero-card--next is-open" id="v2-0" data-card>
-        <button
-          class="hero-head"
-          type="button"
-          aria-expanded="true"
-          aria-controls="v2-0-body"
-          data-disclosure-toggle
-        >
-          <span class="hero-chevron" aria-hidden="true">▶</span>
-          <span class="hero-badge">committed</span>
-          <span class="hero-ver">v2.0.0 · staging preview · no release date</span>
-          <span class="hero-title">The self-improving pipeline</span>
-          <span class="hero-desc">A shared runtime for updates, saved progress, local tracking and reviewed learning. This is a preview, with release acceptance still to complete.</span>
-        </button>
-        <div class="card-body" id="v2-0-body" data-disclosure-body>
-          <div class="card-body-inner hero-body-inner">
-            <div class="tag-row"><span class="tag tag--info">staging preview</span><span class="tag">36 skills</span><span class="tag">16 plugin commands</span><span class="tag">shared runtime</span></div>
-            <p>2.0 adds an updater, Hindsight and Evolve to the current skills. This preview combines the recent reliability fixes with the Slate and Emerald design.</p>
-            <div class="loop">
-              <h3>What changed</h3>
-              <ol class="loop-layers">
-                <li><span class="loop-k">Reliable foundations</span><div class="loop-body"><strong>Progress and permission.</strong> Concurrent saves keep each update. Tracking requires permission on the local machine. Each installed skill carries the files its commands need.</div></li>
-                <li><span class="loop-k">Useful evidence</span><div class="loop-body"><strong>History and task results.</strong> Import scored outcomes, review recurring weak results, and run the existing grader with recorded instructions, outputs and case results.</div></li>
-                <li><span class="loop-k">Reviewed changes</span><div class="loop-body"><strong>Separate checks for separate decisions.</strong> Commits use explicit Git verification. Releases need a fresh audit. Learned rules need better task results and an externally trusted reviewer signature.</div></li>
-              </ol>
-              <div class="loop-inv"><span class="loop-k">Still required before release</span> Real provider acceptance, independent reviewer setup, host checks and the signed release rehearsal. Checkpoint wire 1.2 migration remains separate work.</div>
-            </div>
-            <div class="planned-box">No release date is set. Preview status does not mean a real learning cycle has passed. <a href="/skills/oc-update">Updater</a> · <a href="/skills/oc-hindsight">Hindsight</a> · <a href="/skills/oc-evolve">Evolve</a></div>
-          </div>
-        </div>
-      </article>
+      <div class="planned-box"><strong>Next: distribution and installation.</strong> Explore the proposed v2.1 work and vote for what would help your team. <a href="/changelog#v2-1">View the v2.1 plan</a>.</div>
     </section>
 
     <!-- ══ PANEL 2 — PLANNED ═════════════════════════════════ -->
@@ -1093,7 +1095,7 @@ const plannedReleaseGroups = [
     >
       <div class="panel-head">
         <h2>What's planned</h2>
-        <span class="panel-sub">v2.0 is in build. Vote within v2.1-v2.3 to shape what follows.</span>
+        <span class="panel-sub">Vote within v2.1-v2.3 to shape what follows 2.0.</span>
       </div>
 
       {plannedReleaseGroups.map((group) => (

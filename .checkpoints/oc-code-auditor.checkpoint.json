@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/worktrees/opchain-oc-update-v2",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-09-14T00:43:53.256Z",
+  "updated_at": "2026-09-14T04:11:37.565Z",
   "phase": "audit",
   "step": "oss-readiness-audit-2026-08-22",
   "status": "in_progress",
@@ -187,7 +187,30 @@
           "docs/releases/2.0-staging-preview.md"
         ]
       }
+    },
+    {
+      "id": "oc-code-auditor-launch-fa8fa91f2843",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T04:11:37.486Z",
+      "verified_at": "2026-09-14T04:11:37.486Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "v2-launch-presentation"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:fa8fa91f2843a3446c659aa0f250109953d090af7c2420b76a001b09c515f250"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "2.0 launch presentation, installation instructions, skill introduction copy and release presentation gate. No provider or lifecycle implementation change.",
+        "evidence": [
+          "docs/audits/2026-09-13-v2-launch-presentation.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-14T00:43:53.256Z"
+  "record_updated_at": "2026-09-14T04:11:37.565Z"
 }

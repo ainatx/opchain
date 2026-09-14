@@ -53,3 +53,12 @@ The default branch monitoring baseline still needs its separate reviewed update;
 allow 10 to 20 minutes plus review time. Full release acceptance has no date.
 
 Review evidence: [staging review](../audits/2026-09-13-v2-runtime-staging-review.md).
+
+## Launch presentation clarification
+
+The user requested that staging show the finished public 2.0 experience. The
+site therefore presents 2.0 as released, with no invented release date, while
+release-preview.json remains an internal deployment block for production. This
+presentation change does not complete any outstanding release acceptance item.
+See ../audits/2026-09-13-v2-launch-presentation.md. Three additional demo exchanges
+are drafted outside the site and await user review before integration.

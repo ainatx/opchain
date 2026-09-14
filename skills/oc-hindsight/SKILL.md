@@ -19,7 +19,7 @@ description: >
 
 **On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
 
-Curate source-grounded lessons from failures and outcomes; retrieve only current, approved lessons. This unpublished 2.0 integration candidate uses the shared runtime.
+Curate source-grounded lessons from failures and outcomes; retrieve only current, approved lessons. Uses the Opchain 2.0 shared runtime.
 Resolve `scripts/opchain.mjs` relative to this loaded skill and run it from the
 consuming repository. It needs Node.js 22.13+. No authoring-repo scripts or
 plugin-only kit is required. Read `references/runtime-contract.md` for artifact

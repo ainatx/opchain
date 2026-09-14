@@ -11,8 +11,8 @@ const installZipEnabled = defaultFor("site.feature.install-zip-download") as boo
 const codexInstallEnabled = defaultFor("site.feature.codex-install") as boolean;
 
 const installDesc = codexInstallEnabled
-  ? "Install opchain in Claude Code, Claude.ai, Claude Desktop, or Codex / any MCP agent — drop-in SKILL.md files or a hosted MCP endpoint. No API keys required."
-  : "Install opchain in Claude Code, Claude.ai, or Claude Desktop. Three flows, one directory of SKILL.md files. No API keys required.";
+  ? "Install opchain in Claude Code, Claude.ai, Claude Desktop, or Codex / any MCP agent — complete skill folders or a hosted MCP endpoint. No API keys required."
+  : "Install opchain in Claude Code, Claude.ai, or Claude Desktop. Three flows, complete skill folders. No API keys required.";
 
 const cliCmd = `curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
 unzip opchain-skills.zip -d .claude/skills/
@@ -23,13 +23,12 @@ const teamCmd = `git add .claude/skills/
 git commit -m "chore: add opchain skills"
 git push`;
 
-const upgradeCmd = `# .checkpoints/ is a sibling of .claude/ — never touched by this swap
-rm -rf .claude/skills/
-curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
-unzip opchain-skills.zip -d .claude/skills/
-rm opchain-skills.zip`;
+const upgradeCmd = `installer=$(mktemp -t opchain-update)
+curl --fail --location https://opchain.dev/update.mjs -o "$installer" &&
+node "$installer" --target=claude
+rm -f "$installer"`;
 
-const versionCmd = `curl -sS https://opchain.dev/api/health | jq .version`;
+const versionCmd = `/oc-update check`;
 
 // SessionStart update check: compares the installed SKILL.md frontmatter
 // version (project install first, then global) against the lockstep
@@ -57,14 +56,13 @@ const codexMcpCmd = `# ~/.codex/config.toml
 [mcp_servers.opchain]
 url = "https://opchain.dev/mcp"`;
 
-const upgrade20Cmd = `/plugin update opchain
-/oc-migrate checkpoints 1.2
-/oc-hindsight init        # optional — enables the loop for this repo`;
+const upgrade20Cmd = `/oc-update check
+/oc-update`;
 const pluginCmd = `/plugin marketplace add asfbay-bit/opchain-skills
 /plugin install opchain`;
 
 const codexSkillsCmd = `curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
-unzip opchain-skills.zip -d .codex/skills/
+unzip opchain-skills.zip -d .agents/skills/
 codex`;
 ---
 
@@ -92,9 +90,9 @@ codex`;
     </div>
 
     <p class="lede">
-      Every skill is a single <code class="ic">SKILL.md</code> file. Install
-      the full set or just the ones you want. No API keys, no package
-      manager, no build step.
+      Each skill includes a <code class="ic">SKILL.md</code> file and its supporting files.
+      Install complete folders so references and runtime commands work.
+      The local runtime needs Node.js 22.13 or newer.
     </p>
 
     <!-- ───────────── Flow 1 — Claude Code ───────────── -->
@@ -113,7 +111,7 @@ codex`;
 
         <h3 class="flow-sub">Plugin <span class="flow-tag">recommended</span></h3>
         <p>
-          Two commands. Adds the 33 skills, twelve registered slash commands,
+          Two commands. Adds the 36 skills, sixteen registered slash commands,
           and three hooks: a commit gate that refuses <code class="ic">git
           commit</code> unless the code being committed passed bug-check,
           pipeline state at session start, and a pointer to the next skill
@@ -160,13 +158,13 @@ codex`;
         <ol class="steps">
           <li>
             {installZipEnabled ? (
-              <>Download the full <a href="/opchain-skills.zip">bundle ZIP</a> or individual <code class="ic">SKILL.md</code> files from the <a href="/skills">Skill Library</a>.</>
+              <>Download the full <a href="/opchain-skills.zip">bundle ZIP</a> with complete skill folders from the <a href="/skills">Skill Library</a>.</>
             ) : (
-              <>Download individual <code class="ic">SKILL.md</code> files from the <a href="/skills">Skill Library</a>.</>
+              <>Read the skill instructions from the <a href="/skills">Skill Library</a>.</>
             )}
           </li>
-          <li>Open Claude → <strong>Settings → Customize → Skills</strong>.</li>
-          <li>Click <strong>Upload skill</strong> and pick the <code class="ic">.md</code> file.</li>
+          <li>Use your host’s supported skill import flow.</li>
+          <li>Keep each skill’s supporting files with it. Local runtime commands need filesystem access and Node.js 22.13 or newer; loading instructions alone does not run those commands.</li>
           <li>
             Start a new conversation and name the skill
             (<em>"use oc-app-architect — I have an app idea"</em>) or use its
@@ -261,21 +259,21 @@ codex`;
 
       <!-- 2.0 content block 4 — what the next major means for an existing install -->
       <div class="upg">
-        <h3 class="upg-h">Already on 1.x? <span class="upg-tag">2.0 is the next major — here's what that means</span></h3>
+        <h3 class="upg-h">Already on 1.x? <span class="upg-tag">Upgrade to 2.0</span></h3>
         <ul class="upg-list">
-          <li><strong>Nothing migrates destructively.</strong> Checkpoint files stamped 1.0, 1.1 or 1.2 all still validate. Two skills are added (33 → 35); every existing skill takes the lockstep bump to <code class="ic">2.0.0</code>.</li>
-          <li><strong>One read contract moves.</strong> <code class="ic">eval_scores[]</code> in a checkpoint becomes a bounded recent window; the full record lives in <code class="ic">.checkpoints/history/</code>. Anything that read the in-file array as the whole history — <code class="ic">oc-orchestrator</code>, <code class="ic">oc-cost-ops</code> — unions both. That is the breaking change.</li>
-          <li><strong>The stamp sweep is one command.</strong> <code class="ic">/oc-migrate checkpoints 1.2</code> rewrites <code class="ic">protocol_version</code> in place, same template as the 1.0 → 1.1 sweep.</li>
-          <li><strong>The loop is off until you turn it on.</strong> No scorecard kit, no Hindsight store, no rules directory → every 2.0 workflow is a silent no-op. Telemetry stays default-off and no content ever leaves the machine. Opt in per repo with <code class="ic">/oc-hindsight init</code>.</li>
+          <li><strong>Three new skills.</strong> The full set now includes 36 skills: oc-update, Hindsight and Evolve join the existing 33.</li>
+          <li><strong>Complete files, one update.</strong> The updater replaces Opchain skill folders and their runtime files, backs up replaced files, and preserves checkpoints, telemetry consent and unrelated skills.</li>
+          <li><strong>Learning starts off.</strong> Enable it separately for this project. Lessons and rules need review before use. Live evaluations send the selected tasks to your configured provider.</li>
+          <li><strong>Plugin installations use the plugin manager.</strong> The repo updater does not change a global plugin installation or install hooks.</li>
         </ul>
         <pre class="codeblock" tabindex="0" role="region" aria-label="Upgrade to 2.0 commands"><code>{upgrade20Cmd}</code></pre>
-        <p class="upg-foot">Commands land with the v2.0 release; until then the update-check hook keeps you on the latest 1.x.</p>
+        <p class="upg-foot">If 1.x does not recognize <code class="ic">/oc-update</code>, use the bootstrap installer below once. Run it from your project root with Node.js 22.13 or newer. For Codex, use <code class="ic">--target=codex</code>.</p>
       </div>
 
       <h3><Icon name="terminal" /> Claude Code CLI</h3>
       <p>
-        Run from your project root. This wipes the old skills directory
-        and replaces it with the latest bundle.
+        Run from your project root. The installer checks the bundle, backs up replaced
+        Opchain files and installs the current release.
       </p>
       <div class="code-row">
         <pre class="codeblock" tabindex="0" role="region" aria-label="Upgrade command"><code>{upgradeCmd}</code></pre>
@@ -285,26 +283,22 @@ codex`;
         </button>
       </div>
       <p class="verify">
-        <strong>Verify the new version is live.</strong> Check what the
-        site is currently shipping with
-        <code class="ic">curl https://opchain.dev/api/health</code> (the
-        <code class="ic">version</code> field is the build SHA), then
-        start a new Claude Code session and run
-        <code class="ic">/oc-ops</code> — the orchestrator should report your
-        existing checkpoints exactly where you left them.
+        <strong>Verify the installation.</strong> Start a new agent session and run
+        <code class="ic">/oc-update check</code>. It should report the installed
+        release as current. Your saved checkpoints remain available.
       </p>
 
       <h3><Icon name="layers" /> Claude.ai / Claude Desktop</h3>
       <ol class="steps">
         <li>
           {installZipEnabled ? (
-            <>Download the latest <a href="/opchain-skills.zip">bundle ZIP</a> or the individual <code class="ic">SKILL.md</code> files you use from the <a href="/skills">Skill Library</a>.</>
+            <>Download the latest <a href="/opchain-skills.zip">bundle ZIP</a> with complete skill folders from the <a href="/skills">Skill Library</a>.</>
           ) : (
-            <>Download the latest <code class="ic">SKILL.md</code> files from the <a href="/skills">Skill Library</a>.</>
+            <>Read the latest skill instructions from the <a href="/skills">Skill Library</a>.</>
           )}
         </li>
-        <li>Open Claude → <strong>Settings → Customize → Skills</strong>.</li>
-        <li>For each skill you've installed, click the existing entry and choose <strong>Replace</strong> (or delete and re-upload). Skills are matched by name, so the new file overrides the old one.</li>
+        <li>Use your host’s supported skill import flow.</li>
+        <li>Replace each complete Opchain skill folder using your host’s supported import flow. Keep its references and runtime files together.</li>
         <li>Checkpoints in Claude.ai live in the project, not the skill, so they survive the upload.</li>
       </ol>
 
@@ -315,29 +309,11 @@ codex`;
         review:
       </p>
       <div class="code-row">
-        <pre class="codeblock" tabindex="0" role="region" aria-label="Team upgrade commands"><code>{`git checkout -b chore/upgrade-opchain
-rm -rf .claude/skills/
-curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
-unzip opchain-skills.zip -d .claude/skills/
-rm opchain-skills.zip
-git add .claude/skills/
-git commit -m "chore: upgrade opchain skills"`}</code></pre>
-        <button class="copy" type="button" data-copy={`git checkout -b chore/upgrade-opchain
-rm -rf .claude/skills/
-curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
-unzip opchain-skills.zip -d .claude/skills/
-rm opchain-skills.zip
-git add .claude/skills/
-git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-label="Copy team upgrade command">
-          <Icon name="copy" size={12} />
-          <span class="copy-label">copy</span>
-        </button>
+        <pre class="codeblock" tabindex="0" role="region" aria-label="Team upgrade commands"><code>{`git switch -c chore/upgrade-opchain
+${upgradeCmd}
+git diff --stat`}</code></pre>
       </div>
-      <p>
-        Reviewers see exactly which skills changed, and
-        <code class="ic">.checkpoints/</code> is untouched because it's a
-        separate top-level directory.
-      </p>
+      <p>Review the changed Opchain files and install receipt before committing the update.</p>
 
       <h3><Icon name="target" /> Check which version you're on</h3>
       <div class="code-row">
@@ -348,10 +324,7 @@ git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-la
         </button>
       </div>
       <p>
-        Returns the build SHA currently published at
-        <code class="ic">opchain.dev</code>. Re-run after upgrading and
-        confirm a fresh Claude session sees the new skills under
-        <code class="ic">.claude/skills/&lt;name&gt;/SKILL.md</code>.
+        Checks the installed skills against the current release without changing files.
       </p>
 
       <h3><Icon name="zap" /> Get notified automatically</h3>
@@ -409,7 +382,7 @@ git commit -m "chore: upgrade opchain skills"`} data-flow="upgrade-team" aria-la
         {codexInstallEnabled && (
           <>
             <div class="kv">
-              <div class="key"><code class="ic">.codex/skills/</code></div>
+              <div class="key"><code class="ic">.agents/skills/</code></div>
               <div class="val">Where Codex looks for drop-in skills — same SKILL.md format as Claude Code.</div>
             </div>
             <div class="kv">

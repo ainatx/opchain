@@ -279,11 +279,11 @@ const phaseLabels = [
       oc-security-auditor assesses and hands its findings to oc-compliance-ops
       and to oc-security-hardening, which executes the fixes. Those last two
       each add a conditional row to oc-deploy-ops' existing audit gate — no new
-      gate. The bottom row previews the 2.0 shared runtime. Explicit commands record
+      gate. The bottom row shows the 2.0 shared runtime. Explicit commands record
       scored outcomes, report recurring failures and return approved lessons.
       Evolve tests proposed rules against a frozen baseline and rejects new
       failed cases. External reviewer signatures are required for promotion and
-      adoption. Automatic host learning hooks remain release work.
+      adoption. Host automation requires separate setup.
     </desc>
 
     <!-- Arrow + dot defs -->
@@ -305,7 +305,7 @@ const phaseLabels = [
 
     <!-- Planned-row label. The phaseLabels row above is pinned to y=100; this
          one belongs to the v2.0 row and says plainly that it has not shipped. -->
-    <text x={60} y={458} class="lane-label lane-label--planned">v2.0 · staging preview</text>
+    <text x={60} y={458} class="lane-label lane-label--planned">v2.0 · shared runtime</text>
 
     <!-- Edges drawn first so node boxes sit on top -->
     {edges.map((e) => (
@@ -349,7 +349,7 @@ const phaseLabels = [
     <li><span class="swatch swatch-plan"></span> invoked from oc-app-architect</li>
     <li><span class="swatch swatch-gate"></span> quality gate (PR + deploy)</li>
     <li><span class="swatch swatch-assurance"></span> assurance band (v1.9)</li>
-    <li><span class="swatch swatch-learning"></span> learning loop (v2.0 preview)</li>
+    <li><span class="swatch swatch-learning"></span> learning loop (v2.0)</li>
     <li><span class="swatch swatch-side"></span> side chain</li>
     <li><span class="swatch swatch-foundation"></span> foundation (checkpoint + orchestrator)</li>
     <li><span class="swatch swatch-dotted"></span> advisory / dotted = non-blocking</li>

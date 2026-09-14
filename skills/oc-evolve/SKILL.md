@@ -19,7 +19,7 @@ description: >
 
 **On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
 
-Propose improvements to workflow behavior and require task-level evaluation plus externally reviewed approval before adoption. This unpublished 2.0 integration candidate uses the shared runtime.
+Propose improvements to workflow behavior and require task-level evaluation plus externally reviewed approval before adoption. Uses the Opchain 2.0 shared runtime.
 Resolve `scripts/opchain.mjs` relative to this loaded skill and run it from the
 consuming repository. It needs Node.js 22.13+. No authoring-repo scripts or
 plugin-only kit is required. Read `references/runtime-contract.md` for artifact

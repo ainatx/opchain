@@ -129,9 +129,9 @@ const packCounts = {
 
     <!-- Header -->
     <div class="ma-header">
-      <div class="ma-header-eyebrow">SKILLS · ARCHITECTURE · v2 · MOBILE · v1.9</div>
+      <div class="ma-header-eyebrow">SKILLS · ARCHITECTURE · v2 · MOBILE · v2.0</div>
       <h1>opchain skills ecosystem</h1>
-      <p class="ma-subtitle">Checkpoint-driven pipeline · 36 skills in preview · 6 phases · 11 tri-agent · 3 audit gates · spine ordinals · v1.7 Seams &amp; Signals · <span style="color:var(--ma-docs)">v1.8 quality-gate rail</span> · <span style="color:var(--ma-assure)">v1.9 assurance rail</span> · <span style="color:var(--ma-learn)">v2.0 learning rail (preview)</span></p>
+      <p class="ma-subtitle">Checkpoint-driven pipeline · 36 skills · 6 phases · 11 tri-agent · 3 audit gates · spine ordinals · v1.7 Seams &amp; Signals · <span style="color:var(--ma-docs)">v1.8 quality-gate rail</span> · <span style="color:var(--ma-assure)">v1.9 assurance rail</span> · <span style="color:var(--ma-learn)">v2.0 learning rail</span></p>
     </div>
 
     <!-- Diagram container -->
@@ -743,18 +743,18 @@ const packCounts = {
       <!-- LEARNING RAIL (cross-cutting, planned for v2.0) — the desktop
            rail's mobile parity. Same four nodes in one column, with the
            loop closed down the left gutter so "it comes back" survives the
-           narrow layout. Nothing here has shipped: the catalog is 36 skills in preview
+           narrow layout. Nothing here has shipped: the catalog is 36 skills
            at 1.9.2 on wire 1.1, so the badge reads PLANNED, no count moves,
            and the eyebrow stays v1.9 until the release cut. -->
-      <details class="ma-band ma-lrail" open aria-label="2.0 preview learning rail: scored history, reviewable lessons and task-tested rules. External approval is required. Host automation and wire migration remain release work.">
+      <details class="ma-band ma-lrail" open aria-label="2.0 learning rail: scored history, reviewable lessons and task-tested rules. External approval is required. Context is delivered through explicit commands.">
         <summary class="ma-band-header ma-lrail-header">
           <span class="ma-band-num" aria-hidden="true">↻</span>
           <span class="ma-band-title">Learning rail</span>
-          <span class="ma-lrail-badge"><span class="ma-lrail-dot"></span>v2.0 · preview</span>
+          <span class="ma-lrail-badge"><span class="ma-lrail-dot"></span>v2.0</span>
         </summary>
         <div class="ma-band-svg-wrap">
-          <svg viewBox="0 0 330 500" role="img" aria-label="2.0 preview learning rail: scored history, reviewable lessons and task-tested rules. External approval is required. Host automation and wire migration remain release work.">
-            <text x="54" y="22" fill="#8cb9fc" font-size="11" font-weight="700" letter-spacing="0.08em" font-family="JetBrains Mono,monospace">v2.0 PREVIEW · NO RELEASE DATE</text>
+          <svg viewBox="0 0 330 500" role="img" aria-label="2.0 learning rail: scored history, reviewable lessons and task-tested rules. External approval is required. Context is delivered through explicit commands.">
+            <text x="54" y="22" fill="#8cb9fc" font-size="11" font-weight="700" letter-spacing="0.08em" font-family="JetBrains Mono,monospace">v2.0 · SHARED LEARNING RUNTIME</text>
 
             <!-- the loop, closed down the left gutter -->
             <line x1="176" y1="458" x2="176" y2="472" stroke="#8cb9fc" stroke-width="2"/>
@@ -804,7 +804,7 @@ const packCounts = {
           </svg>
         </div>
         <div class="ma-band-caption">
-          <p><b>2.0 staging preview. No release date is set.</b> The preview contains 36 skills, including <a href="/skills/oc-update">oc-update</a>, Hindsight and Evolve. The shared runtime stores scored outcomes in <code>.opchain/learning/</code>, checks recurring weak results and returns approved lessons as advisory context. Evolve uses recorded task runs and an externally trusted reviewer signature. Automatic host hooks, shared runtime migration and real provider acceptance remain separate release work.</p>
+          <p><b>Learn from completed work.</b> Opchain 2.0 contains 36 skills, including <a href="/skills/oc-update">oc-update</a>, Hindsight and Evolve. The shared runtime stores scored outcomes in <code>.opchain/learning/</code>, checks recurring weak results and returns approved lessons as advisory context. Evolve uses recorded task runs and an externally trusted reviewer signature. Your team configures provider access, reviewer keys and separate evaluator sessions. Context is delivered through explicit commands.</p>
           <div class="ma-bc-cp"><span class="ma-bc-cp-badge">CP</span><span>shared runtime · scored history · task evidence · external review</span></div>
         </div>
       </details>
@@ -815,7 +815,7 @@ const packCounts = {
           <div class="ma-appendix-eyebrow">Appendix A · Cross-cutting</div>
           <h2 class="ma-appendix-title">Checkpoint Protocol — sync topology</h2>
         </summary>
-        <p class="ma-appendix-desc">All 36 preview skills writes a JSON checkpoint after each state change. The oc-orchestrator both reads from and writes to each — bidirectional sync. Diagram below shows 6 representative connections; the same topology extends to all 36 skills in preview.</p>
+        <p class="ma-appendix-desc">Skills use a shared checkpoint protocol to save progress. The updater preserves existing checkpoints. The oc-orchestrator both reads from and writes to each — bidirectional sync. Diagram below shows 6 representative connections; the same topology extends to all 36 skills.</p>
         <svg viewBox="0 0 330 360" role="img" aria-label="Orchestrator bidirectionally syncs checkpoints with all skills (6 shown)">
           <rect x="20" y="14" width="92" height="50" rx="6" fill="rgba(43,225,121,.10)" stroke="#2be179" stroke-width="1.8"/>
           <text x="66" y="32" fill="#2be179" font-size="11" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">CP</text>
@@ -935,7 +935,7 @@ const packCounts = {
             <div class="ma-li-swatch" style="background:var(--ma-ember);border-radius:50%;width:14px;height:14px"></div>
             <div class="ma-li-name">CP · checkpoint indicator</div>
           </div>
-          <div class="ma-li-desc">Solid ember dot in each skill's top-right corner indicates the skill writes a checkpoint. <strong>All 36 skills in preview carry CP</strong> — desktop version shows full CP badge on each rect; mobile uses the dot for legibility.</div>
+          <div class="ma-li-desc">Solid ember dot in each skill's top-right corner indicates the skill writes a checkpoint. <strong>The CP badge marks checkpoint participation</strong> — desktop version shows full CP badge on each rect; mobile uses the dot for legibility.</div>
           <div class="ma-li-eg"><code>.checkpoints/&lt;skill&gt;.checkpoint.json</code> · phase · progress · blockers · next_actions</div>
         </div>
         <div class="ma-legend-item">
@@ -943,7 +943,7 @@ const packCounts = {
             <div class="ma-li-swatch" style="background:var(--ma-ember);border-radius:50%;width:14px;height:14px;opacity:0.55"></div>
             <div class="ma-li-name">ORC · oc-orchestrator indicator</div>
           </div>
-          <div class="ma-li-desc">Faded ember dot adjacent to the CP dot indicates the skill participates in <code>/oc-ops</code> routing. <strong>All 36 skills in preview carry ORC</strong> — every skill is route-addressable by the oc-orchestrator.</div>
+          <div class="ma-li-desc">Faded ember dot adjacent to the CP dot indicates the skill participates in <code>/oc-ops</code> routing. <strong>All 36 skills carry ORC</strong> — every skill is route-addressable by the oc-orchestrator.</div>
           <div class="ma-li-eg"><code>/oc-ops</code> · cross-project routing · gate enforcement · "what should I do next"</div>
         </div>
         <div class="ma-legend-divider"></div>
@@ -999,9 +999,9 @@ const packCounts = {
         <div class="ma-legend-item">
           <div class="ma-legend-head">
             <div class="ma-li-swatch" style="background:color-mix(in srgb, var(--ma-learn) 14%, transparent);border:1.5px dashed var(--ma-learn)"></div>
-            <div class="ma-li-name" style="color:var(--ma-learn)">v2.0 learning rail (preview)</div>
+            <div class="ma-li-name" style="color:var(--ma-learn)">v2.0 learning rail</div>
           </div>
-          <div class="ma-li-desc">The 2.0 preview has 36 skills. Its shared runtime records scores, returns approved lessons and tests proposed rules. The star marks an external review requirement. No release date is set.</div>
+          <div class="ma-li-desc">Opchain 2.0 has 36 skills. Its shared runtime records scores, returns approved lessons and tests proposed rules. The star marks an external review requirement.</div>
           <div class="ma-li-eg">oc-hindsight · oc-evolve · Outcome Scorecard · shared runtime</div>
         </div>
       </div>
@@ -1044,8 +1044,8 @@ const packCounts = {
             <li>oc-agent-forge: Planner / Builder / Evaluator <span style="color:var(--ma-ai)">(v1.5)</span></li>
             <li>oc-signal-forge: Designer / Builder / Evaluator <span style="color:var(--ma-sig)">(v1.7)</span></li>
             <li>oc-data-ops: Designer / Builder / Contract-Verifier <span style="color:var(--ma-assure)">(v1.9)</span></li>
-            <li>oc-hindsight: Curator / Lesson Gen / Retrieval Eval <span style="color:var(--ma-learn)">(v2.0 preview)</span></li>
-            <li>oc-evolve: Reflector / Rule Gen / Adversarial Eval <span style="color:var(--ma-learn)">(v2.0 preview)</span></li>
+            <li>oc-hindsight: Curator / Lesson Gen / Retrieval Eval <span style="color:var(--ma-learn)">(v2.0)</span></li>
+            <li>oc-evolve: Reflector / Rule Gen / Adversarial Eval <span style="color:var(--ma-learn)">(v2.0)</span></li>
           </ul>
         </div>
         <div class="ma-card">
@@ -1059,7 +1059,7 @@ const packCounts = {
             <li>oc-security-auditor — STRIDE / OWASP / posture assessment</li>
             <li>All three must pass before oc-deploy-ops ships</li>
             <li><span style="color:var(--ma-assure)">v1.9</span> adds 2 <em>conditional</em> rows to the deploy gate — oc-compliance-ops evidence, oc-security-hardening manifest-verify. Still 3 gates.</li>
-            <li><span style="color:var(--ma-learn)">v2.0 preview</span> adds ★ <em>human</em> gates on promote and adopt — not audit gates. Still 3.</li>
+            <li><span style="color:var(--ma-learn)">v2.0</span> adds ★ <em>human</em> gates on promote and adopt — not audit gates. Still 3.</li>
           </ul>
         </div>
         <div class="ma-card">
@@ -1070,8 +1070,8 @@ const packCounts = {
           <ul>
             <li>JSON files at <code>.checkpoints/&lt;skill&gt;.checkpoint.json</code></li>
             <li>Keys: phase · progress_table · context_primer · blockers · next_actions</li>
-            <li>All 36 skills in preview read all 33 checkpoints (no ACL)</li>
-            <li><span style="color:var(--ma-learn)">2.0 preview · shared history and task evidence · wire migration remains separate</span></li>
+            <li>All 36 skills share checkpoint access (no ACL)</li>
+            <li><span style="color:var(--ma-learn)">2.0 · shared history and task evidence · checkpoint wire 1.1</span></li>
             <li>Resume order: own → upstream → novice mode</li>
             <li>Framework-agnostic — no platform lock-in</li>
           </ul>

@@ -18,7 +18,7 @@ export const LOOP_2_0: Record<string, LoopEntry> = {
         "html": "Import scored outcomes with stable run IDs and references to the evaluation report."
       }
     ],
-    "note": "2.0 staging preview. Real provider acceptance, independent reviewer setup and host checks remain release work."
+    "note": "Provider access, separate evaluator sessions and an external reviewer are configured by your team. Learning is off until you enable it."
   },
   "oc-code-auditor": {
     "cells": [
@@ -35,7 +35,7 @@ export const LOOP_2_0: Record<string, LoopEntry> = {
         "html": "Scored audit outcomes can be imported into shared history for review."
       }
     ],
-    "note": "2.0 staging preview. Real provider acceptance, independent reviewer setup and host checks remain release work."
+    "note": "Provider access, separate evaluator sessions and an external reviewer are configured by your team. Learning is off until you enable it."
   },
   "oc-bug-check": {
     "cells": [
@@ -52,7 +52,7 @@ export const LOOP_2_0: Record<string, LoopEntry> = {
         "html": "The verification receipt identifies the code, policy and checks that ran."
       }
     ],
-    "note": "2.0 staging preview. Real provider acceptance, independent reviewer setup and host checks remain release work."
+    "note": "Provider access, separate evaluator sessions and an external reviewer are configured by your team. Learning is off until you enable it."
   },
   "oc-orchestrator": {
     "cells": [
@@ -69,7 +69,7 @@ export const LOOP_2_0: Record<string, LoopEntry> = {
         "html": "Learning, tracking and commit enrollment each require their own setup."
       }
     ],
-    "note": "2.0 staging preview. Real provider acceptance, independent reviewer setup and host checks remain release work."
+    "note": "Provider access, separate evaluator sessions and an external reviewer are configured by your team. Learning is off until you enable it."
   },
   "oc-telemetry-ops": {
     "cells": [
@@ -86,7 +86,7 @@ export const LOOP_2_0: Record<string, LoopEntry> = {
         "html": "The tracking command includes its aggregation helper and durable checkpoint store."
       }
     ],
-    "note": "2.0 staging preview. Real provider acceptance, independent reviewer setup and host checks remain release work."
+    "note": "Provider access, separate evaluator sessions and an external reviewer are configured by your team. Learning is off until you enable it."
   },
   "oc-prompt-ops": {
     "cells": [
@@ -103,7 +103,7 @@ export const LOOP_2_0: Record<string, LoopEntry> = {
         "html": "Evolve compares the target, heldout and full results. Previously passing cases must keep passing."
       }
     ],
-    "note": "2.0 staging preview. Real provider acceptance, independent reviewer setup and host checks remain release work."
+    "note": "Provider access, separate evaluator sessions and an external reviewer are configured by your team. Learning is off until you enable it."
   },
   "oc-cost-ops": {
     "cells": [
@@ -120,7 +120,7 @@ export const LOOP_2_0: Record<string, LoopEntry> = {
         "html": "Cost checks remain in the existing cost runtime; learning does not invent a second calculator."
       }
     ],
-    "note": "2.0 staging preview. Real provider acceptance, independent reviewer setup and host checks remain release work."
+    "note": "Provider access, separate evaluator sessions and an external reviewer are configured by your team. Learning is off until you enable it."
   },
   "oc-update": {
     "cells": [
@@ -137,7 +137,7 @@ export const LOOP_2_0: Record<string, LoopEntry> = {
         "html": "Validate file digests and required runtime files before installation."
       }
     ],
-    "note": "2.0 staging preview. Real provider acceptance, independent reviewer setup and host checks remain release work."
+    "note": "Provider access, separate evaluator sessions and an external reviewer are configured by your team. Learning is off until you enable it."
   },
   "oc-hindsight": {
     "cells": [
@@ -154,7 +154,7 @@ export const LOOP_2_0: Record<string, LoopEntry> = {
         "html": "Only return active, unexpired lessons with a valid externally trusted signature."
       }
     ],
-    "note": "2.0 staging preview. Real provider acceptance, independent reviewer setup and host checks remain release work."
+    "note": "Provider access, separate evaluator sessions and an external reviewer are configured by your team. Learning is off until you enable it."
   },
   "oc-evolve": {
     "cells": [
@@ -171,6 +171,6 @@ export const LOOP_2_0: Record<string, LoopEntry> = {
         "html": "Better target results, no regressions and an externally trusted reviewer signature are required for adoption."
       }
     ],
-    "note": "2.0 staging preview. Real provider acceptance, independent reviewer setup and host checks remain release work."
+    "note": "Provider access, separate evaluator sessions and an external reviewer are configured by your team. Learning is off until you enable it."
   }
 };
