@@ -171,8 +171,8 @@ const trendH = (v: number) =>
 
   .sample-banner {
     margin: 1.25rem 0 0; padding: 0.75rem 1rem; border-radius: 0.6rem;
-    border: 1px solid var(--border, #334155);
-    background: color-mix(in oklab, var(--accent, #14b8a6) 8%, transparent);
+    border: 1px solid var(--border);
+    background: var(--accent-dim);
     font-size: 0.9rem; line-height: 1.5;
   }
   .sample-banner code { font-size: 0.82em; }
@@ -191,26 +191,22 @@ const trendH = (v: number) =>
   .tier-row { grid-template-columns: 5rem 1fr 3rem; }
   .bar-label, .tier-label { font-size: 0.85rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .bar-track { height: 0.7rem; border-radius: 0.4rem; background: var(--surface); overflow: hidden; }
-  .bar-fill { display: block; height: 100%; border-radius: 0.4rem; background: var(--accent, #14b8a6); }
+  .bar-fill { display: block; height: 100%; border-radius: 0.4rem; background: var(--accent); } /* text-safe accent: a labelless bar needs 3:1 on its track in light */
   .bar-num { font-size: 0.82rem; text-align: right; color: var(--muted); }
-  /* Model tiers are a categorical palette of their own — one hue per model,
-     chosen for mutual distinctness, not drawn from the brand. They are
-     deliberately NOT tokens: a palette change should not silently re-map which
-     colour means "opus". Left as literals on purpose. */
-  .tier-haiku { background: #38bdf8; } .tier-sonnet { background: #14b8a6; }
-  .tier-opus { background: #a78bfa; } .tier-fable { background: #f472b6; }
+  .tier-haiku { background: var(--chart-1); } .tier-sonnet { background: var(--chart-2); }
+  .tier-opus { background: var(--chart-3); } .tier-fable { background: var(--chart-4); }
 
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
 
   .spark { display: flex; align-items: flex-end; gap: 0.5rem; height: 8rem; padding-top: 0.5rem; }
   .spark-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; flex: 1; height: 100%; }
-  .spark-bar { width: 100%; max-width: 2.2rem; background: var(--accent, #14b8a6); border-radius: 0.3rem 0.3rem 0 0; min-height: 4px; }
+  .spark-bar { width: 100%; max-width: 2.2rem; background: var(--accent); border-radius: 0.3rem 0.3rem 0 0; min-height: 4px; }
   .spark-x { font-size: 0.68rem; color: var(--subtle); margin-top: 0.35rem; }
 
   .replay-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
   .r-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
   .r-head h3 { font-size: 1rem; margin: 0; }
-  .r-cost { color: var(--accent, #14b8a6); font-weight: 700; }
+  .r-cost { color: var(--accent); font-weight: 700; }
   .r-path { font-size: 0.75rem; color: var(--subtle); margin: 0.4rem 0 0.6rem; line-height: 1.4; }
   .r-summary { font-size: 0.88rem; line-height: 1.5; color: var(--muted); margin: 0; }
   .r-meta { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }

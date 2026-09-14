@@ -268,11 +268,11 @@ const artifacts = walkthroughs.flatMap((w) =>
   }
   .modal-toc-nav a[data-toc-level="2"] { padding-left: 1.1rem; font-size: 0.86em; }
   .modal-toc-nav a[data-toc-level="3"] { padding-left: 1.7rem; font-size: 0.82em; color: var(--subtle); }
-  .modal-toc-nav a:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+  .modal-toc-nav a:hover { color: var(--text); background: color-mix(in srgb, var(--text) 4%, transparent); }
   .modal-toc-nav a.is-active {
     color: var(--accent);
     border-left-color: var(--accent);
-    background: rgba(0, 0, 0, 0.18);
+    background: var(--accent-dim);
   }
   .modal-toc-nav a:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: 4px; }
 
@@ -297,7 +297,7 @@ const artifacts = walkthroughs.flatMap((w) =>
         falls back to a static tint that clears at the same 4s mark
         (see flashHeading() below). ── */
   @keyframes oc-heading-ember-flash {
-    0%   { background-color: var(--ember-glow); box-shadow: 0 0 0 6px var(--ember-dim); }
+    0%   { background-color: var(--accent-glow); box-shadow: 0 0 0 6px var(--accent-dim); }
     100% { background-color: transparent;        box-shadow: 0 0 0 6px transparent; }
   }
   .modal-body :global(.is-flash-heading) {
@@ -311,7 +311,7 @@ const artifacts = walkthroughs.flatMap((w) =>
   @media (prefers-reduced-motion: reduce) {
     .modal-body :global(.is-flash-heading) {
       animation: none;
-      background-color: var(--ember-dim);
+      background-color: var(--accent-dim);
       border-radius: 4px;
       padding-inline: 6px;
       margin-inline: -6px;
@@ -462,7 +462,7 @@ const artifacts = walkthroughs.flatMap((w) =>
   .ocs-pill {
     appearance: none; display: inline-flex; align-items: center; gap: 5px;
     font-family: var(--font-mono); font-size: 10px;
-    background: var(--ember-dim); border: 0.5px solid var(--accent); color: var(--accent);
+    background: var(--accent-dim); border: 0.5px solid var(--accent); color: var(--accent);
     border-radius: var(--r-pill); padding: 2px 8px; cursor: pointer;
   }
   .ocs-pill:focus-visible { outline: none; box-shadow: var(--focus-ring); }
@@ -470,10 +470,9 @@ const artifacts = walkthroughs.flatMap((w) =>
   /* results */
   .ide-sidebar .ocs-results { padding: 4px 0 12px; }
   .ocs-res-group {
-    padding: 8px 12px 3px; color: #f5894d; font-family: var(--font-mono);
+    padding: 8px 12px 3px; color: var(--accent); font-family: var(--font-mono);
     font-size: 10px; text-transform: uppercase; letter-spacing: var(--ls-wide);
   }
-  [data-theme="light"] .ocs-res-group { color: #993505; }
   .ocs-res {
     appearance: none; display: block; width: 100%; text-align: left;
     background: transparent; border: 0; border-left: 2px solid transparent;
@@ -484,7 +483,7 @@ const artifacts = walkthroughs.flatMap((w) =>
     background: var(--card); border-left-color: var(--accent); color: var(--text); outline: none;
   }
   .ocs-snip { display: block; font-size: 11.5px; line-height: 1.45; color: inherit; }
-  .ocs-snip mark { background: var(--ember-dim); color: var(--text); border-radius: 2px; padding: 0 1px; }
+  .ocs-snip mark { background: var(--accent-dim); color: var(--text); border-radius: 2px; padding: 0 1px; }
   .ocs-res-meta { display: flex; align-items: center; gap: 6px; margin-top: 3px; font-size: 10px; color: var(--subtle); }
   .ocs-chip-mini { font-family: var(--font-mono); font-size: 9.5px; border: 0.5px solid var(--border); border-radius: 3px; padding: 0 5px; }
   .ocs-chip-mini.role-workflow     { color: var(--workflow); }
@@ -508,19 +507,18 @@ const artifacts = walkthroughs.flatMap((w) =>
   /* facets */
   .ocs-facet-group { padding: 8px 12px 4px; }
   .ocs-facet-group h4 {
-    margin: 0 0 6px; color: #f5894d; font-family: var(--font-mono);
+    margin: 0 0 6px; color: var(--accent); font-family: var(--font-mono);
     font-size: 10px; text-transform: uppercase; letter-spacing: var(--ls-wide); font-weight: 600;
   }
-  [data-theme="light"] .ocs-facet-group h4 { color: #993505; }
   .ocs-chips { display: flex; flex-wrap: wrap; gap: 5px; }
   .ocs-chip {
     appearance: none; font-family: var(--font-mono); font-size: 10px;
-    background: rgba(255, 255, 255, 0.02); border: 0.5px solid var(--border);
+    background: color-mix(in srgb, var(--text) 3%, transparent); border: 0.5px solid var(--border);
     color: var(--muted); border-radius: var(--r-pill); padding: 3px 8px; cursor: pointer;
     transition: color 120ms, border-color 120ms, background 120ms;
   }
   .ocs-chip .ocs-ct { color: var(--subtle); margin-left: 4px; }
-  .ocs-chip[aria-pressed="true"] { background: var(--ember-dim); border-color: var(--accent); color: var(--accent); }
+  .ocs-chip[aria-pressed="true"] { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
   .ocs-chip[aria-pressed="true"].role-workflow     { border-color: var(--workflow);     color: var(--workflow); }
   .ocs-chip[aria-pressed="true"].role-tri-agent    { border-color: var(--tri-agent);    color: var(--tri-agent); }
   .ocs-chip[aria-pressed="true"].role-audit-gate   { border-color: var(--rose, var(--audit-gate)); color: var(--rose, var(--audit-gate)); }
@@ -546,12 +544,12 @@ const artifacts = walkthroughs.flatMap((w) =>
 
   /* deep-link landing flash on the target exchange (desktop + mobile) */
   @keyframes ocs-flash {
-    0%   { background-color: var(--ember-glow); box-shadow: 0 0 0 6px var(--ember-dim); }
+    0%   { background-color: var(--accent-glow); box-shadow: 0 0 0 6px var(--accent-dim); }
     100% { background-color: transparent;       box-shadow: 0 0 0 6px transparent; }
   }
   .ocs-flash { animation: ocs-flash 3.4s ease-out forwards; border-radius: 4px; }
   @media (prefers-reduced-motion: reduce) {
-    .ocs-flash { animation: none; background-color: var(--ember-dim); border-radius: 4px; }
+    .ocs-flash { animation: none; background-color: var(--accent-dim); border-radius: 4px; }
   }
 </style>
 

@@ -1,7 +1,7 @@
 ---
 name: oc-code-auditor
 displayName: OC · Code Auditor
-version: 1.9.0
+version: 2.0.0
 license: Apache-2.0
 shortDesc: Auditor → Fixer → Verifier quality loop. v1.2 posts findings to the linked PM ticket; HIGH+ filed as sub-tickets.
 phases: [build]
@@ -10,10 +10,23 @@ tryable: true
 commands:
   - /oc-audit
   - /oc-audit full
+  - /oc-audit security
+  - /oc-audit perf
+  - /oc-audit ux
+  - /oc-audit pre-deploy
+  - /oc-audit quality
+  - /oc-audit file
+  - /oc-audit diff
+  - /oc-audit fix-all
+  - /oc-audit fix
+  - /oc-audit verify
+  - /oc-audit test-bootstrap
+  - /oc-audit report
 description: >
   Code quality auditor with Auditor/Fixer/Verifier loop. Use for /oc-audit, "audit this",
-  "find bugs", "security audit", "code review", "pre-deploy check", "what's wrong with
-  this code", or any code quality question.
+  "find bugs", "code review", "pre-deploy check", "what's wrong with this code", or any
+  code-level quality question. For fast pre-commit checks, escalate to oc-bug-check. For
+  architecture- or infra-level security, escalate to oc-security-auditor.
 ---
 
 # Code Auditor
@@ -80,7 +93,7 @@ CODEBASE
      ▼ (fixes)
 ┌──────────┐
 │ VERIFIER │  Confirms each fix addresses the finding
-│          │  Cannot see Fixer's reasoning — only the diff and original finding
+│          │  Grades from the diff and original finding only, not the Fixer's rationale
 │          │  Output: verified/rejected per fix
 └──────────┘
 ```
@@ -216,7 +229,7 @@ After individual sweeps:
 ### [F-001] [Short title]
 
 **Severity:** CRITICAL | HIGH | MEDIUM | LOW
-**Category:** security | performance | quality | config | ux
+**Category:** security | performance | quality | config | ux | ai-safety
 **Location:** `src/api/auth.ts:42-58`
 **Fix effort:** S (< 30 min) | M (30 min - 2 hr) | L (2+ hr)
 
@@ -232,7 +245,7 @@ After individual sweeps:
 ```markdown
 # Code Audit Report — [project]
 
-**Scope:** [full | security | perf | quality | ux | pre-deploy]
+**Scope:** [full (incl. 1f if LLM) | security | perf | quality | ux | pre-deploy]
 **Findings:** [count by severity]
 **Overall health:** [A-F with justification]
 
@@ -302,8 +315,10 @@ Run the full loop on all findings:
 
 ## Phase 3: Verifier Agent
 
-The Verifier confirms that fixes actually address findings. It has **isolated context**:
-it reads the original finding and the diff, but NOT the Fixer's reasoning or exploration.
+The Verifier confirms that fixes actually address findings. All three roles run in the
+same session, so its separation is a discipline, not a mechanism: grade from the
+original finding and the diff alone — skip the fix document's `### Rationale` block and
+do not re-read the Fixer's exploration notes.
 
 ### Verifier Persona
 
@@ -359,7 +374,7 @@ If a fix is REJECTED or PARTIAL:
 
 | Mode | Sweeps | Tri-Agent | Best for |
 |---|---|---|---|
-| `/oc-audit full` | All 5 | Auditor only | First audit, periodic health check |
+| `/oc-audit full` | All 6 (1f only when an LLM is in the loop) | Auditor only | First audit, periodic health check |
 | `/oc-audit security` | 1a + auth cross-cut | Auditor only | Pre-deploy, after auth changes |
 | `/oc-audit perf` | 1b | Auditor only | Performance investigation |
 | `/oc-audit quality` | 1c | Auditor only | Tech debt assessment |
@@ -414,6 +429,10 @@ reads a downward trend as a "schedule the next audit" signal.
 
 ## Checkpoint Integration
 
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-code-auditor.
+
 ### Checkpoint Location
 `{project-dir}/.checkpoints/oc-code-auditor.checkpoint.json`
 
@@ -423,10 +442,15 @@ reads a downward trend as a "schedule the next audit" signal.
 |---|---|
 | Audit started | Scope, mode, file count |
 | Each category sweep complete | Findings from that category |
-| Full report generated | Finding count by severity, grade |
+| Full report generated | Finding count by severity, grade — grade + counts restated in `progress_summary` (e.g. "Grade C+; 1 CRITICAL, 4 HIGH open"); trend score in `eval_scores`. Those are the fields sibling skills read |
 | Fix applied | Finding ID, diff summary, files changed |
 | Fix verified/rejected | Verification verdict per finding |
 | Fix-all complete | Summary: fixed, verified, rejected counts |
+
+**Never close over open findings.** Do not set `status: complete` while any CRITICAL or
+HIGH finding is unresolved: set `skill_state.loop_state` to `open` and put the next fix
+in `next_actions[0]`. `loop_state` is `open`, `closed` (every CRITICAL/HIGH verified), or
+`abandoned` (the user stopped the loop; say so in `progress_summary`).
 
 ### skill_state
 
@@ -439,7 +463,8 @@ reads a downward trend as a "schedule the next audit" signal.
   "fixes_applied": 5,
   "fixes_verified": 4,
   "fixes_rejected": 1,
-  "current_finding": "F-006"
+  "current_finding": "F-006",
+  "loop_state": "open"
 }
 ```
 
@@ -450,16 +475,24 @@ reads a downward trend as a "schedule the next audit" signal.
 | oc-reverse-spec | Stack, architecture, file inventory → skip re-scanning |
 | oc-app-architect | Sprint scores, known issues → don't re-report |
 | oc-stack-forge | Typed pipeline standard → grade against |
+| oc-qa-ops | `.opchain/qa.yaml` pyramid targets (when present) → test-bootstrap levels |
 
 | Read by | Why |
 |---|---|
-| oc-deploy-ops | Finding count, grade → deploy gate |
-| oc-git-ops | Report path → include in PR |
+| oc-deploy-ops | Grade + counts in `progress_summary` (trend score in `eval_scores`) → deploy gate |
+| oc-git-ops | Grade + counts (`progress_summary`) → include in PR |
 | oc-docs-forge | Quality notes / audit findings → PR testing & audit documentation |
-| oc-app-architect | Findings → pre-seed Phase 6 evaluator |
+| oc-app-architect | Grade + counts (`progress_summary`); individual findings come from the audit report, which is conversation output with no committed path → pre-seed Phase 6 evaluator |
 | oc-ux-engineer | Component health → UX audit context |
 | oc-security-hardening | Findings whose fix is a declarative, verifiable control (header, limit, policy) — mark them `route: oc-security-hardening` in the findings report so `/oc-harden fix` executes them and records the manifest entry; the Fixer keeps application-logic fixes (v1.9) |
 | oc-qa-ops | Findings + test-bootstrap output feed `/oc-qa audit`'s gap analysis (v1.9) |
+| oc-security-auditor | Grade + counts → cross-reference, don't duplicate; individual findings from the report or PM sub-tickets |
+| oc-bug-check | Grade + counts → context for what an audit already flagged (per-finding detail is not in the checkpoint) |
+| oc-scale-ops | Performance findings → pre-identified bottlenecks |
+| oc-monitoring-ops | Error-handling gaps → logging instrumentation needs |
+| oc-migration-ops | Pre-existing findings → don't introduce new issues during a migration |
+| oc-modularize-ops | Coupling hotspots → natural seams |
+| oc-cost-ops | Which phase an audit run belongs to, for cost attribution |
 
 ---
 
@@ -485,12 +518,13 @@ Top three (by severity × exploitability):
   1. {file:line} — {one-line title}
   2. {file:line} — {one-line title}
   3. {file:line} — {one-line title}
-Full report: .checkpoints/oc-code-auditor.checkpoint.json
+Counts + grade: .checkpoints/oc-code-auditor.checkpoint.json
 ```
 
-The comment is intentionally compact — full findings live in the
-checkpoint. The summary is what subscribers + reviewers see in
-their notification stream.
+The comment is intentionally compact — the checkpoint carries counts and
+the grade, not individual findings; the full findings are the audit report
+itself and the HIGH+ sub-tickets below. The summary is what subscribers +
+reviewers see in their notification stream.
 
 ### HIGH+ findings as sub-tickets
 
@@ -504,8 +538,12 @@ to the PR ticket:
 - `title`: `{file}: {one-line finding}`.
 - `body`: file + line + reproduction + suggested fix from the
   finding record.
-- `assignee`: from `.opchain/pm.yaml` `remediation_owners` map by
-  area; unassigned if no rule matches.
+- `assignee`: unassigned, unless `remediation_owners` is set in
+  `.opchain/pm.yaml` (an optional owner map by area — see oc-integrations-engineer's
+  pm.yaml example); then use the matching area's owner.
+- Append each sub-ticket to the checkpoint's top-level `pm_refs`
+  (`role: child`, `created_by_skill: oc-code-auditor`) in the same write,
+  per the bundled checkpoint protocol's `pm_refs` section.
 
 MEDIUM and LOW findings stay in the audit report only. We don't
 spam the tracker for everything; the principle is that the PM tool
@@ -523,8 +561,9 @@ than creating a duplicate.
 ### Failure modes
 
 - No linked ticket → audit report still produced; no PM write.
-- MCP unavailable → log intended writes to checkpoint as deferred
-  PM actions.
+- MCP unavailable → log intended writes to the checkpoint's top-level
+  `pm_deferred_actions[]`, per
+  `oc-integrations-engineer/references/pm-mcp-protocol.md` §4.
 - Sub-ticket creation rate-limited → batch CRITICAL into one ticket
   per file rather than per-finding when more than 5 findings hit
   the same file.
@@ -542,3 +581,11 @@ than creating a duplicate.
 6. **Grade honestly.** A C is a C. Don't inflate.
 7. **Skepticism is the Verifier's job.** The Fixer assumes their fix works. The
    Verifier assumes it doesn't. This tension produces real quality.
+
+### Candidate-bound deployment handoff
+
+After completing the existing verification criteria, obtain the source identity with `node scripts/lib/release-evidence.mjs --print-candidate --json`. Publish a versioned `verification.verdict` entry in this skill's checkpoint `handoffs`, using that exact `candidate_identity` object. This identity excludes checkpoint evidence from the source projection; it does not attest built bytes or ignored environment configuration. Do not manufacture PASS from a prior summary. Missing criteria produce FAIL or INCOMPLETE.
+
+Required fields: a unique handoff `id`, `contract_version: "1.0"`, `type: "verification.verdict"`, ISO `created_at` and actual `verified_at`, `producer: { "skill": "oc-code-auditor", "run_id": "<actual-run-id>" }`, the printed `candidate_identity` as `candidate`, and `payload: { "verdict": "PASS|FAIL|INCOMPLETE", "policy": "pre-deploy-code-audit-v1" }`. Replace the verdict placeholder with the actual result. Preserve prior run history and write through the checkpoint protocol. If source content changes before evidence is committed, recompute the identity and re-run affected verification before producing a new handoff.
+
+The deployment wrapper consumes this required handoff before building or deploying and blocks if it is missing, invalid, stale, or non-PASS. Executable verification is a separate A receipt, produced in the current checkout; this checkpoint is not a substitute.

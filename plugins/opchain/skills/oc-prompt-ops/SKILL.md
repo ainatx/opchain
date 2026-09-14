@@ -1,7 +1,7 @@
 ---
 name: oc-prompt-ops
 displayName: OC · Prompt Ops
-version: 1.9.0
+version: 2.0.0
 license: Apache-2.0
 shortDesc: Prompt-as-code — versioning, eval datasets, regression and drift detection for LLM prompts.
 phases: [build, ai-native]
@@ -11,6 +11,11 @@ commands:
   - /oc-prompt
   - /oc-prompt eval
   - /oc-prompt diff
+  - /oc-prompt goldset
+  - /oc-prompt judge
+  - /oc-prompt regress
+  - /oc-prompt baseline
+  - /oc-prompt drift
 description: >
   Prompt operations harness — treat prompts as versioned, diffable,
   source-controlled code. Owns prompt versioning, eval datasets, regression
@@ -47,7 +52,11 @@ opchain dogfoods this skill on itself. The worked example referenced throughout
 is **`prompts/opchain-eval/`** — opchain's own eval set (`inputs.jsonl`,
 `expected.jsonl`, `eval.yaml`), published in Sprint 3 as the canonical
 `/oc-prompt eval` artifact. Wherever this doc says "the eval set", that directory
-is the live instance.
+is the live instance. It is **flat and holds only eval files (plus a README)** at
+the top level (no `eval/` subdir, no `vX.Y.Z/prompt.md`, no `CHANGELOG.md`, no
+`baseline.json` yet), because the "prompt" under test is opchain's routing
+surfaces (skill `description:` frontmatter + the orchestrator routing table), not
+a `prompt.md`.
 
 > **Model facts come from `oc-claude-api` / the `claude-api` skill, not memory.**
 > Judge-model choice, model IDs, and Batch-API economics in this skill are sourced
@@ -87,6 +96,28 @@ PROMPT OPS COMMANDS
 
 ---
 
+## Executable evaluation commands
+
+Run these commands from the opchain source checkout with dependencies installed,
+or from the unpacked local runtime artifact. A skills-only ZIP or the Claude
+plugin does not include these npm commands. Keep the runtime in its own directory;
+pass dataset and output paths for the target project explicitly.
+
+The runner-backed forms are intentionally narrow. With the coordinator-provided
+`oc-prompt` alias, use these exact forms:
+
+```sh
+npm run oc-prompt -- run <dataset-dir> --adapter http-json --endpoint <url> --api-key-env <ENV_NAME> --out <result.json>
+npm run oc-prompt -- baseline <dataset-dir> --result <result.json> --out <baseline.json>
+npm run oc-prompt -- regress <dataset-dir> --result <result.json> --baseline <baseline.json>
+```
+
+They implement `/oc-prompt eval`, `/oc-prompt baseline`, and `/oc-prompt
+regress` respectively. Missing adapter configuration, credentials, a judge
+verdict, or an interrupted call writes a `BLOCKED` result; no provider is chosen
+implicitly. `/oc-prompt`, `diff`, `goldset`, `judge`, and `drift` remain
+assistant-driven modes in this release.
+
 ## How This Skill Fits the Build Pipeline
 
 ```
@@ -101,20 +132,21 @@ oc-prompt-ops owns:                                                  ▼
                                                            │ score delta
                                        ┌───────────────────┴────────────────┐
                                        ▼                                     ▼
-                          /oc-prompt regress (CI gate)         /oc-prompt drift (scheduled)
+                          /oc-prompt regress (PR gate)         /oc-prompt drift (scheduled)
                           block merge on score drop            flag model/prompt drift
                                        │
               ┌────────────────────────┼────────────────────────┐
               ▼                        ▼                         ▼
         oc-agent-forge          oc-rag-forge             oc-claude-api migrate
-        (agent eval harness)    (gen-prompt eval)        (eval-gate the diff PR)
+        (prompts it ships)      (gen-prompt eval)        (eval-gate the diff PR)
 ```
 
 The skill's output is an **evaluated, versioned prompt** plus a regression
-suite. Sibling skills consume that harness: `oc-agent-forge` and `oc-rag-forge`
-run their own goldsets *through* this skill's eval runner rather than
-reinventing one, and `oc-claude-api migrate` gates its model-migration diff on
-the prompt's eval scores not regressing on the new model.
+suite. `oc-agent-forge` (trajectory fixtures) and `oc-rag-forge` (retrieval
+goldset) run their own suites side by side with this one; what they bring here is
+any single prompt they ship (an agent's system prompt, RAG's generation prompt),
+registered and scored like any other. `oc-claude-api migrate` gates its
+model-migration diff on `/oc-prompt drift` showing no regression on the new model.
 
 ---
 
@@ -238,13 +270,14 @@ Once a prompt has a goldset and a passing score, **freeze that score as a
 baseline** and gate every future prompt change on not regressing below it.
 
 ```
-/oc-prompt baseline model-routing      # freeze current scores → eval/baseline.json
+npm run oc-prompt -- baseline prompts/model-routing/eval --result result.json --out baseline.json
 ... edit prompts/model-routing/v1.2.0/prompt.md ...
-/oc-prompt eval model-routing@v1.2.0   # score the new version
-/oc-prompt regress model-routing       # compare vs baseline, gate
+npm run oc-prompt -- run prompts/model-routing/eval --adapter http-json --endpoint <url> --api-key-env PROVIDER_KEY --out result.json
+npm run oc-prompt -- regress prompts/model-routing/eval --result result.json --baseline baseline.json
 ```
 
-The regress gate (run in CI on every PR that touches `prompts/`):
+The regress gate (run on every PR that touches `prompts/`; `/oc-prompt regress`
+is agent-driven — no CI runner script ships with this skill):
 
 ```
 PROMPT REGRESSION — model-routing  v1.1.0 → v1.2.0
@@ -298,7 +331,7 @@ live score to the frozen baseline, and:
 |---|---|
 | Scores hold within `regression_epsilon` | No-op; record the run |
 | Model bump, scores hold | Safe to re-pin the prompt to the new model; re-baseline |
-| Model bump, scores regress | Block the re-pin; hand the per-case deltas to `oc-claude-api` for prompt re-tuning on the new model |
+| Model bump, scores regress | Block the re-pin; hand the per-case deltas back to `/oc-claude-api migrate` for its `[TUNE]` prompt re-tuning items on the new model |
 | Dependency drift (text unchanged, cases fail) | Open a fix-the-prompt task with the failing cases attached |
 
 The principle: a score change is never silent. Either you changed the prompt (a
@@ -343,14 +376,16 @@ batch is the right default.
 `eval.yaml` carries `cost_per_eval` / `budget_per_eval` / `regression_pct`, owned
 by **`oc-cost-ops`** (shipped v1.6). `cost_per_eval` is *measured* from real token
 counts by `/oc-cost attribute` — it stays `null` until the first costed run (Cost
-Ops attributes, it does not estimate). `oc-cost-ops` runs a **cost-regression gate
-beside this skill's score gate**: a prompt change that holds quality but triples
-token cost is also a regression and blocks the merge. The two gates run together
-so a prompt/model change is judged on both quality and cost. See
-`oc-cost-ops/references/budget-gates.md`.
+Ops attributes, it does not estimate). `oc-cost-ops` runs its **cost-regression
+gate**, `/oc-cost gate`, beside this skill's score gate, `/oc-prompt regress`; this
+skill does not invoke it. Both are agent-driven PR-time checks, so a prompt change
+that holds quality but triples token cost gets a FAIL verdict on the PR alongside
+the score (see `oc-cost-ops/references/budget-gates.md`).
 
-```json
-"cost": { "cost_per_eval": null, "_note": "measured by oc-cost-ops /oc-cost attribute (null until first costed run)" }
+```yaml
+# eval.yaml — not the checkpoint's top-level `cost` block (that one is oc-cost-ops's)
+cost:
+  cost_per_eval: null    # measured by oc-cost-ops /oc-cost attribute (null until first costed run)
 ```
 
 ---
@@ -360,11 +395,11 @@ so a prompt/model change is judged on both quality and cost. See
 | Concern | Owner | Why |
 |---|---|---|
 | Model routing, prompt caching, tool wiring, the request layer | `oc-claude-api` | Prompt Ops versions + evals the prompt text; oc-claude-api runs it |
-| Agent topology, subagent budgets, harness loop shape | `oc-agent-forge` | Agent-forge designs the loop; it *uses* this skill's eval harness to score it |
+| Agent topology, subagent budgets, harness loop shape | `oc-agent-forge` | Agent-forge designs the loop and scores the trajectory with its own fixture suite |
 | Retrieval quality (recall@k, MRR, faithfulness) | `oc-rag-forge` | RAG owns *retrieval* evals; Prompt Ops owns *generation-prompt* evals |
 | Live eval-spend tracking, cost-regression gate | `oc-cost-ops` | Prompt Ops emits token counts; oc-cost-ops owns the budget + cost-regression gate |
 | Running the model-migration diff itself | `oc-claude-api migrate` | Prompt Ops supplies the drift signal that gates the migration |
-| Deploying the evaluated prompt | `oc-deploy-ops` | Receives a frozen, score-gated prompt version |
+| Deploying the evaluated prompt | `oc-deploy-ops` | Deploys the app carrying the frozen prompt version (no prompt-score gate there) |
 
 Prompt Ops owns the **prompt artifact and its evidence** — the versioned text,
 the goldset, the baseline, the regression and drift gates. Siblings route, run,
@@ -377,16 +412,20 @@ deploy, and cost it.
 | Skill | How it connects |
 |---|---|
 | **oc-claude-api** | Owns model routing; Prompt Ops pins each prompt/eval to the chosen model ID. On a model migration, `oc-claude-api migrate` gates its diff on `/oc-prompt drift` showing no score regression on the new model. |
-| **oc-agent-forge** | Consumes this skill's eval harness to score agent behavior — its agent goldset runs through `/oc-prompt eval` rather than a bespoke runner. |
-| **oc-rag-forge** | Consumes the same eval harness for its *generation* prompt (the answer-synthesis step). RAG owns the *retrieval* goldset; Prompt Ops owns the generation-prompt goldset; the two regression suites run side by side. |
-| **oc-cost-ops** | Owns live eval-spend tracking and the `cost_per_eval` field + cost-regression gate that runs alongside the score gate (shipped v1.6). |
-| **oc-deploy-ops** | Receives a frozen, score-gated prompt version; gates prod on the regression suite passing. |
-| **oc-git-ops** | Opens the PR carrying the prompt diff + scorecard (surfaced in the PR's oc-docs-forge documentation packet); CI runs `/oc-prompt regress` as a required check. |
+| **oc-agent-forge** | Scores the agent *trajectory* with its own fixture suite (`/oc-agent eval`); the two regression suites run side by side. A single prompt the agent ships can be registered here like any other. |
+| **oc-rag-forge** | Owns the *retrieval* goldset (`/oc-rag eval`); Prompt Ops owns the generation-prompt goldset when that prompt is registered here; the two regression suites run side by side. |
+| **oc-cost-ops** | Owns live eval-spend tracking and the `cost_per_eval` field + cost-regression gate (`/oc-cost gate`) that runs alongside the score gate (shipped v1.6). |
+| **oc-deploy-ops** | Hand-off only: deploys the app carrying the frozen prompt version. oc-deploy-ops runs no prompt-score gate; `/oc-prompt regress` is the PR-time gate. |
+| **oc-git-ops** | Opens the PR carrying the prompt diff + scorecard (surfaced in the PR's oc-docs-forge documentation packet). `/oc-prompt regress` is run for that PR by the session; no CI check ships with this skill. |
 | **oc-app-architect** | When an app has an LLM feature, its prompt is registered under `prompts/` with a goldset from day one rather than backfilled later. |
 
 ---
 
 ## Checkpoint Integration
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-prompt-ops.
 
 ### Checkpoint Location
 `{project-dir}/.checkpoints/oc-prompt-ops.checkpoint.json`
@@ -397,10 +436,10 @@ deploy, and cost it.
 |---|---|
 | Prompt versioned | Prompt name, new version, semver bump kind, pinned model |
 | Goldset built / extended | Case count, grading modes used, judge model |
-| Eval runs | Per-mode pass rate, regressions, scorecard path |
-| Baseline frozen | Baseline scores + the version they were frozen at |
+| Eval runs | Per-mode pass rate, regressions, scorecard path; append `{ "rubric": "oc-prompt-ops", "score": <pass_rate>, "max": 1, "ref": <scorecard> }` to top-level `eval_scores` |
+| Baseline frozen | Baseline scores + the version they were frozen at (`eval/baseline.json`); note the frozen version in `context_primer.key_decisions` |
 | Regression gate | Pass/fail + per-case deltas vs baseline |
-| Drift run | Model/dependency drift signal + deltas vs frozen baseline |
+| Drift run | Model/dependency drift signal + deltas vs frozen baseline; append the verdict to `context_primer.key_decisions` |
 
 ### skill_state
 
@@ -430,8 +469,7 @@ deploy, and cost it.
     "from_model": "claude-opus-4-7",
     "delta": 0.01,
     "verdict": "PASS"
-  },
-  "cost": { "cost_per_eval": null, "_note": "measured by oc-cost-ops /oc-cost attribute (null until first costed run)" }
+  }
 }
 ```
 
@@ -440,15 +478,14 @@ deploy, and cost it.
 | Reads from | Why |
 |---|---|
 | oc-claude-api | The pinned model ID each prompt/eval runs against |
-| oc-app-architect | `05-llm-design.md` — which prompts an app ships, to register goldsets |
+| oc-app-architect | `11-ai-architecture.md` — which prompts an app ships, to register goldsets |
+| oc-cost-ops | `cost_per_eval` in `eval.yaml` (measured by `/oc-cost attribute`) → reported beside the score gate |
 
-| Read by | Why |
+| Read by | What (from `eval_scores`, `context_primer` and the files — never `skill_state`) |
 |---|---|
-| oc-claude-api | Drift signal gates the model-migration diff before merge |
-| oc-agent-forge | Eval harness contract for scoring agent behavior |
-| oc-rag-forge | Eval harness contract for scoring the generation prompt |
-| oc-deploy-ops | Frozen, score-gated prompt version as a deploy gate |
-| oc-cost-ops | Token counts per eval run as the cost-tracking input |
+| oc-claude-api | Drift verdict (`context_primer.key_decisions` + the drift report) gates the model-migration diff before merge |
+| oc-deploy-ops | The frozen prompt version it deploys (advisory; no deploy gate) |
+| oc-cost-ops | Token counts per eval run (from the eval run's usage) as the cost-tracking input |
 
 ---
 

@@ -51,8 +51,8 @@ const palette = [
    page resolves to the BUNDLED chunk at build time, not this source file, so
    a relative fs read fails the production build (it did). */
 const BRAND_TOKENS = [
-  "--obsidian", "--forge", "--slag", "--sand",
-  "--linen", "--parchment", "--ember", "--char",
+  "--slate", "--slate-2", "--gunmetal", "--mist",
+  "--frost", "--paper", "--emerald", "--moss",
 ];
 const brand = BRAND_TOKENS.map((token) => {
   // Brand constants are declared once, in the :root block, and never themed.
@@ -307,7 +307,7 @@ const icons = [
       <div class="sg-row">
         <Badge variant="accent">Plan</Badge>
         <Badge variant="accent">Tri-agent</Badge>
-        <Badge variant="neutral">v1.9.0</Badge>
+        <Badge variant="neutral">v1.9.2</Badge>
         <Badge variant="success">passing</Badge>
         <Badge variant="danger">failing</Badge>
         <Badge variant="info">info</Badge>
@@ -545,7 +545,7 @@ export const MAX_EXCHANGES = 5;`}</CodeBlock>
   }
   .space-bar {
     height: 12px;
-    background: var(--accent);
+    background: var(--accent-fill);
     border-radius: var(--r-xs);
   }
 
@@ -564,7 +564,7 @@ export const MAX_EXCHANGES = 5;`}</CodeBlock>
   }
   .radii-demo {
     width: 52px; height: 52px;
-    background: var(--accent);
+    background: var(--accent-fill);
   }
 
   /* Shadows */
@@ -636,7 +636,7 @@ export const MAX_EXCHANGES = 5;`}</CodeBlock>
   }
   .motion-bar {
     height: 10px;
-    background: var(--accent);
+    background: var(--accent-fill);
     border-radius: var(--r-xs);
     margin: 0.5rem 0 0.35rem;
     transform: translateX(0);

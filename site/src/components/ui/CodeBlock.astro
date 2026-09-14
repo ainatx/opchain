@@ -13,9 +13,9 @@ const { lang = "", class: className = "" } = Astro.props;
     font-family: var(--font-mono);
     font-size: 12px;
     line-height: var(--lh-base);
-    background: var(--obsidian);
-    color: var(--linen);
-    border: 0.5px solid var(--slag);
+    background: var(--bg);
+    color: var(--text);
+    border: 0.5px solid var(--border);
     border-radius: var(--r-md);
     padding: 0.85rem 1.1rem;
     overflow-x: auto;
@@ -31,7 +31,7 @@ const { lang = "", class: className = "" } = Astro.props;
     font-size: 9px;
     letter-spacing: var(--ls-wider);
     text-transform: uppercase;
-    color: var(--slag);
+    color: var(--subtle);
   }
   .codeblock code {
     background: transparent;

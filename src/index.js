@@ -805,6 +805,11 @@ async function handleMcp(request, env, ctx, origin, requestId) {
   const reqOrigin = new URL(request.url).origin;
   const server = createMcpServer({
     catalog: mcpCatalog,
+    listReferences: async (id) => mcpCatalog.skills.find((skill) => skill.id === id)?.references ?? [],
+    loadReference: async (id, path) => {
+      const response = await env.ASSETS.fetch(new Request(new URL(`/docs/${id}/${path}`, reqOrigin)));
+      return response.ok ? response.text() : null;
+    },
     serverVersion: VERSION,
     checkpoints: mcpCheckpointStore(env),
     // The server validates `id` against the catalog before calling this, so the
@@ -1053,6 +1058,22 @@ async function route(request, env, ctx, url, origin, requestId) {
         } catch { /* analytics never breaks a download */ }
       }
       return applySecurityHeaders(dlRes, { env, ctx });
+    }
+
+    // Update assets are ordinary first-party downloads, without telemetry.
+    // Revalidate the moving descriptor/bootstrap; content-addressed payloads
+    // are immutable. Never serve an HTML fallback as executable source.
+    if (["GET", "HEAD"].includes(request.method) &&
+        (url.pathname === "/update" || url.pathname === "/update.mjs" ||
+         /^\/opchain-update\/(latest|[a-f0-9]{64})\.json$/.test(url.pathname))) {
+      const res = await fetchAsset(env, request, url.origin);
+      if (!res.ok || (res.headers.get("Content-Type") || "").includes("text/html")) {
+        return new Response("Update asset unavailable", { status: 404 });
+      }
+      const out = new Response(res.body, res);
+      out.headers.set("Content-Type", url.pathname.endsWith(".json") ? "application/json" : "text/plain; charset=utf-8");
+      out.headers.set("Cache-Control", /\/[a-f0-9]{64}\.json$/.test(url.pathname) ? "public, max-age=31536000, immutable" : "no-cache");
+      return applySecurityHeaders(out, { env, ctx });
     }
 
     // /LICENSE and /NOTICE are extensionless assets: wrangler uploads them

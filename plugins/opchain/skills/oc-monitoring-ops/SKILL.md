@@ -1,9 +1,9 @@
 ---
 name: oc-monitoring-ops
 displayName: OC · Monitoring Ops
-version: 1.9.0
+version: 2.0.0
 license: Apache-2.0
-shortDesc: Post-deploy observability — uptime, errors, alerts, incidents. v1.2 opens PM incident tickets when alerts fire.
+shortDesc: Post-deploy observability — uptime, errors, alerts, incidents. Opens PM incident tickets when alerts fire.
 phases: [build]
 triAgent: false
 tryable: true
@@ -34,7 +34,8 @@ description: >
   "set up monitoring", "error tracking", "uptime check", "alerting", "incident
   response", "observability", "what's happening in prod", "set up Sentry", "logging
   strategy", "on-call", "runbook", "SLO", "SLI", "is prod healthy", "why is it
-  slow", "error rate", "status page".
+  slow", "error rate", "status page". NOT opchain skill-usage metering
+  (oc-telemetry-ops).
 ---
 
 # Monitoring Ops
@@ -128,9 +129,14 @@ oc-reverse-spec → oc-app-architect → oc-git-ops → oc-deploy-ops → MONITO
 **oc-deploy-ops ships it, oc-monitoring-ops watches it.** The handoff:
 
 1. oc-deploy-ops completes production promotion
-2. oc-deploy-ops runs health check (basic HTTP 200 verification)
-3. If oc-monitoring-ops checkpoint exists: oc-monitoring-ops takes over ongoing observation
-4. If not: oc-deploy-ops suggests `/oc-monitor setup` for the project
+2. oc-deploy-ops runs its health check (basic HTTP 200 verification) and records
+   what shipped (version, commit SHA, prod URL) in its checkpoint
+   `progress_summary`, for the session to compare against
+3. If an oc-monitoring-ops checkpoint exists: oc-deploy-ops invokes
+   `/oc-monitor health` here (dependency status, latency, TLS, and the deployed
+   version against last-known-good; it reads no sibling checkpoint); gaps route
+   to `/oc-monitor uptime`, `/oc-monitor errors` or `/oc-monitor slo`
+4. If not: oc-deploy-ops invokes `/oc-monitor setup` for the project instead
 
 oc-deploy-ops's health check is a one-shot verification. oc-monitoring-ops provides
 continuous observation, error aggregation, alerting, and incident coordination.
@@ -173,7 +179,7 @@ with known answers.
 
 ### Setup Wizard
 
-Use `ask_user_input` for remaining unknowns:
+Ask the user (with AskUserQuestion when the harness has it) for remaining unknowns:
 
 1. **What tier?** (auto-detect from oc-scale-ops/oc-deploy-ops context, confirm)
 2. **Error tracking provider?** (Sentry, LogRocket, Highlight, BetterStack, or console-only)
@@ -382,14 +388,14 @@ adds four AI-specific signals on top of the usual ones:
 |---|---|---|
 | **Token rate** | a runaway loop or prompt bloat burning spend | tokens/min from the request layer; alert on a step-change |
 | **Cost rate** | spend outrunning budget in production | `oc-cost-ops` attribution per request → $/hour; alert past a ceiling |
-| **Eval drift** | model/prompt quality silently regressing in prod | scheduled `oc-prompt-ops` drift run on the live prompt; alert when score drops past `regression_epsilon` |
+| **Eval drift** | model/prompt quality silently regressing in prod | scheduled oc-prompt-ops `/oc-prompt drift` run on the live prompt; alert when score drops past `regression_epsilon` |
 | **Hallucination / refusal flags** | answers ungrounded or the model over-refusing | sampled output checks (RAG faithfulness, refusal-rate, schema-valid tool calls); alert on rate spikes |
 
 Wiring notes:
 - **Cost rate** reuses `oc-cost-ops` — monitoring watches the *production* spend
   rate; cost-ops owns the attribution + the budget gate. A sustained breach pages
   on-call the same as an error-rate breach.
-- **Eval drift** reuses `oc-prompt-ops drift` — monitoring schedules it against the
+- **Eval drift** reuses oc-prompt-ops `/oc-prompt drift` — monitoring schedules it against the
   live model and treats a score regression as an incident trigger, closing the
   loop the v1.6 theme is about: quality and cost are monitored, not just uptime.
 - **Token/hallucination** signals are sampled (not every request) to keep the
@@ -514,6 +520,10 @@ project-dir/
 
 ## Checkpoint Integration
 
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-monitoring-ops.
+
 ### Location
 `{project-dir}/.checkpoints/oc-monitoring-ops.checkpoint.json`
 
@@ -576,20 +586,29 @@ project-dir/
 
 | Reads from | Why |
 |---|---|
-| oc-deploy-ops | Health check URLs, environment config, deploy history |
+| oc-deploy-ops | What shipped (version, SHA, prod URL in `progress_summary`), deploy tickets in `pm_refs` (role `deploy`), environment config |
 | oc-security-auditor | Detection/response requirements → what to monitor for |
 | oc-scale-ops | Performance budgets → SLO/alert thresholds |
 | oc-app-architect | Spec, error handling strategy → instrumentation targets |
 | oc-code-auditor | Error handling gaps → logging instrumentation needs |
 | oc-data-ops | Monitor inventory from `/oc-data-ops observe` (freshness/volume/schema checks) → alert routing + runbooks (v1.9) |
 | oc-security-hardening | Detection-class controls (`detect.*` ids) in `.opchain/hardening.yaml` → map each to an alert + runbook during `/oc-monitor audit` and `/oc-monitor alerts` (v1.9) |
+| oc-signal-forge | Each wired signal's `freshness_sla`, handed over via `/oc-monitor alerts` (a hand-off, no automatic intake; signal-forge owns the contract, this skill owns the alert) |
+| oc-api-dev | Per-endpoint SLO targets declared in the API spec → alert wiring |
+| oc-agent-forge / oc-rag-forge | Live task-success, tool-error and recall-drift metrics → AI-App Monitoring Template |
 
 | Read by | Why |
 |---|---|
-| oc-deploy-ops | Health status → deploy confidence, post-deploy verification |
-| oc-security-auditor | Detection/response maturity → Pillar 3 input |
-| oc-scale-ops | Latency/error metrics → capacity planning data |
 | oc-orchestrator | Active incidents, maturity grade → project health |
+| oc-compliance-ops | Audit-log and incident-runbook artifacts referenced as evidence |
+
+| Invoked by | Verb |
+|---|---|
+| oc-deploy-ops | `/oc-monitor health` after production promotion (`/oc-monitor setup` when no checkpoint exists) |
+| oc-migration-ops | `/oc-monitor setup` after a platform or database cutover |
+| oc-fleet-ops | chains to oc-monitoring-ops after a fleet deploy: `/oc-monitor` |
+| oc-app-architect | `/oc-monitor` at Phase 7 launch |
+| oc-data-ops | `/oc-monitor alerts` — routes the monitor inventory `/oc-data-ops observe` hands over |
 
 ---
 
@@ -634,7 +653,8 @@ alerts fire, and back-references them through resolution.
 The runtime contract — concrete tool names, retry policy, idempotency
 markers, the `pm_deferred_actions[]` schema, and the extended state
 vocabulary (`resolved-pending-postmortem`) — lives in
-[`oc-integrations-engineer/references/pm-mcp-protocol.md`](../oc-integrations-engineer/references/pm-mcp-protocol.md).
+`oc-integrations-engineer/references/pm-mcp-protocol.md`, in that skill (not bundled
+with this skill; install the full catalog, or oc-integrations-engineer alongside it).
 **All MCP calls below honour that contract; this section says only how
 oc-monitoring-ops shapes incidents and per-event updates.**
 
@@ -654,7 +674,7 @@ oc-monitoring-ops shapes incidents and per-event updates.**
    Symptoms: {first-three-symptoms-from-alert-payload}
    Runbook: {runbook-url}
    On-call: {on-call-engineer-from-pagerduty}
-   Recent deploys: {list-of-deploys-in-last-2h-from-deploy-ops-checkpoint}
+   Recent deploys: {deploy-tickets-from-oc-deploy-ops-pm_refs-and-its-progress_table}
    ```
 
 3. Pre-create check: call the registry-resolved `list_issues` tool
@@ -672,7 +692,8 @@ oc-monitoring-ops shapes incidents and per-event updates.**
      `severity:<level>`), merged with `pm.yaml.labels_default`.
    - parent / blocked-by relation to the most recent deploy ticket
      if one is open (likely culprit) — read from
-     `oc-deploy-ops.checkpoint.json` `skill_state.pm.deploy_tickets[]`.
+     `oc-deploy-ops.checkpoint.json` top-level `pm_refs[]` (entries with
+     `role: "deploy"`); another skill's `skill_state` is private.
 5. Record incident id in `oc-monitoring-ops.checkpoint.json`
    `skill_state.pm.incidents[]` with the correlating Sentry /
    PagerDuty event id.
@@ -699,8 +720,10 @@ ticket. Each remediation sub-ticket carries marker
 `<!-- opchain:oc-monitoring-ops:remediation:<incident-id>:<item-n> -->`
 in its description and is created via the `create_issue` tool with
 the pre-create check pattern above. Each remediation sub-ticket is
-assigned to the owning team's default assignee (from
-`pm.yaml.remediation_owners` map), with a target close date.
+assigned to the incident ticket's assignee (who reassigns it to the
+owning team), with a target close date. This skill does not consult
+`remediation_owners` even when it is set in `.opchain/pm.yaml`; the incident
+assignee routes each item.
 
 ### Alert hygiene
 

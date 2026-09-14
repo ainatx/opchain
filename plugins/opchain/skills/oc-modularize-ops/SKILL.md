@@ -1,7 +1,7 @@
 ---
 name: oc-modularize-ops
 displayName: OC · Modularize Ops
-version: 1.9.0
+version: 2.0.0
 license: Apache-2.0
 shortDesc: "Decompose a monolith with provably zero loss — golden fixtures from real data as the oracle. Willing to say don't."
 phases: [plan, build]
@@ -57,7 +57,7 @@ This is **not** a code-mover. modularize-ops is the **decomposition brain plus t
 equivalence oracle**: it decides *whether* and *how* to split, captures the golden fixtures
 that define correctness, plans the seams and data ownership, and proves equivalence by
 replaying those fixtures. The bulk code-move and the live cutover are **delegated to
-`oc-migration-ops`'s Structural type** (`/oc-migrate execute`), and deployment of the
+`oc-migration-ops`'s Structural type** (`/oc-migrate plan` → `/oc-migrate execute`), and deployment of the
 resulting modules is **delegated to `oc-fleet-ops`**. modularize-ops owns the decision and
 the proof, not a second implementation of `git mv`.
 
@@ -88,7 +88,7 @@ MODULARIZE OPS COMMANDS
 
   UTILITIES
   /oc-modularize status       Checkpoint status (recommendation, strategy, modules)
-  /oc-modularize abandon      Archive checkpoint (.bak) + warn about mid-extraction façades
+  /oc-modularize abandon      Archive checkpoint to history/ + warn about mid-extraction façades
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Type any command to begin. /oc-modularize to see this again.
@@ -108,11 +108,12 @@ already owns `files_moved` / `imports_updated` state. It is fully wired. The two
 | Repo/package reorg where imports move and behaviour is git-diffable (no live-traffic equivalence risk) | **oc-migration-ops** Structural |
 
 **Deconfliction note.** When a request matches both, modularize-ops runs **first** (assess →
-characterize → plan → verify), then **emits a Structural migration plan** that
-`oc-migration-ops /oc-migrate execute` runs for the actual code-move and cutover.
-modularize-ops never silently competes with the Structural auto-detect. It owns the
-**decision + the oracle**; migration-ops owns the **move**. If you find yourself moving
-files in this skill, you are in the wrong skill.
+characterize → plan → verify), then writes `modularization/module-map.json`. oc-migration-ops
+builds the Structural plan for the actual code-move and cutover from that file
+(`/oc-migrate plan`), then runs it (`/oc-migrate execute`). oc-migration-ops's Structural
+type carries the matching note, so modularize-ops never silently competes with its
+auto-detect. It owns the **decision + the oracle**; migration-ops owns the **move**. If you
+find yourself moving files in this skill, you are in the wrong skill.
 
 ---
 
@@ -169,9 +170,11 @@ patterns, cross-module calls, cron jobs — capture **golden fixtures from real 
   assumptions, which is exactly the thing a split puts at risk.
 - **PII handling.** Redact or synthesize-preserving-shape where the payload carries
   sensitive data, but keep the **behavioral signal** intact (a redacted field still
-  exercises the same code path). This phase **loops `oc-security-auditor`** to vet the
-  capture before any fixtures are written to disk — see *Risks (R1)*. `modularization/fixtures/`
-  is gitignored by default with explicit opt-in.
+  exercises the same code path). This phase **loops `oc-security-auditor`**
+  (`/oc-security data-flow`) to vet the capture before any fixtures are written to disk.
+  **Before writing the first fixture, make sure `.gitignore` lists `modularization/fixtures/`**
+  — append the line if it is missing. Nothing else ignores that directory for you;
+  committing real-traffic fixtures is an explicit opt-in (remove the line on purpose).
 - **Coverage gate.** Every crossed boundary needs fixtures, **including error paths and edge
   cases** — the 404, the malformed message, the empty result set, the timeout. A split that
   preserves the happy path but silently changes a 500 into a 200 has lost functionality.
@@ -201,11 +204,11 @@ the checkpoint here.
 
 Produce, **one module at a time**: the module's **seam contract** and a **façade/adapter**
 that keeps the monolith working while the module is carved out. The **bulk code-move itself
-is delegated** — modularize-ops emits a **Structural migration plan** and hands it to
-`oc-migration-ops /oc-migrate execute`, the real ecosystem mechanism for moving code with
-verification gates.
+is delegated** — modularize-ops records the module in `modularization/module-map.json` and
+hands it to `oc-migration-ops`: `/oc-migrate plan` turns the file into a Structural
+migration plan, and `/oc-migrate execute` runs it with verification gates.
 
-This is the deliberate division of labor (see *Risks (R3)*): modularize-ops is the
+This is the deliberate division of labor: modularize-ops is the
 **decomposition brain + equivalence oracle**, *not* a second code-mover. That is why this
 skill's `build`-phase output is **seam contracts + façades + fixtures + the verifier**, and
 never "moved modules" in its own checkpoint. Extract one module, verify it, then extract the
@@ -234,12 +237,17 @@ Hand the verified module set off — as a **named artifact, not conversation** (
 contract* below):
 
 - **`oc-migration-ops` (Structural type)** — the bulk code-move + the **live cutover**
-  mechanics (dual-write, traffic shift, decommission) via `/oc-migrate execute`.
+  mechanics (dual-write, traffic shift, decommission): `/oc-migrate plan` from the module
+  map, then `/oc-migrate execute`.
 - **`oc-fleet-ops`** — **deploy** the resulting containers across the target environment.
 
 ---
 
 ## Session Persistence (Checkpoint Protocol)
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-modularize-ops.
 
 This skill mirrors `oc-migration-ops`'s persistence discipline, because **a half-extracted
 monolith sitting behind a façade is exactly the orphan risk** the checkpoint protocol exists
@@ -253,7 +261,7 @@ how a split silently rots.
   `status: in_progress`, **block** a new `/oc-modularize assess` or `/oc-modularize plan`
   until the current one is completed, verified, or explicitly abandoned. Two concurrent
   decompositions on one codebase is a guaranteed seam collision.
-- **`/oc-modularize abandon`.** Archive the checkpoint (`.bak`) and **warn**: *"the monolith
+- **`/oc-modularize abandon`.** Archive the checkpoint to `.checkpoints/history/` and **warn**: *"the monolith
   may be mid-extraction behind a façade; run `/oc-modularize verify` to check current health
   before starting over."* Abandoning is allowed — abandoning silently is not.
 
@@ -263,7 +271,7 @@ how a split silently rots.
 
 | Concern | Owner |
 |---|---|
-| Bulk code-move + live cutover (dual-write, traffic shift) | `oc-migration-ops` (Structural `/oc-migrate execute`) |
+| Bulk code-move + live cutover (dual-write, traffic shift) | `oc-migration-ops` (Structural `/oc-migrate plan` → `/oc-migrate execute`) |
 | Deploying the resulting modules | `oc-fleet-ops` |
 | Documenting the existing monolith | `oc-reverse-spec` |
 | Greenfield architecture | `oc-app-architect` |
@@ -286,12 +294,13 @@ delegated to a skill built for that act.
 
 | Chains to | Why |
 |---|---|
-| `oc-migration-ops` | emit a Structural migration plan for the move + live cutover |
+| `oc-security-auditor` | vet the fixture capture / PII redaction (`/oc-security data-flow`) before Phase 1 writes fixtures |
+| `oc-migration-ops` | Structural plan for the move + live cutover, built from `modularization/module-map.json` |
 | `oc-fleet-ops` | deploy the carved-out modules |
 | `oc-code-auditor` | audit each extracted module |
 | `oc-git-ops` | commit per extraction |
 
-> **Resolves an existing seam.** 1.7 adds a note to `oc-migration-ops`'s **Structural** type
+> **Resolves an existing seam.** `oc-migration-ops`'s **Structural** type carries a note
 > pointing live, real-traffic decompositions at `oc-modularize-ops` and stating the
 > deconfliction trigger above. The Structural type stays the home for git-diffable reorgs;
 > this skill takes the live-equivalence-risk cases.
@@ -301,17 +310,30 @@ delegated to a skill built for that act.
 ## Handoff contract — the modularize → migration → fleet chain
 
 The orchestrator passes context through **checkpoints, not conversation** (orchestrator.md
-§3, *Context Passing*). So this chain needs a **named payload**, not "ingest it directly":
+§3, *Context Passing*), and another skill's `skill_state` is private. So this chain's payload
+is a **named file**: `modularization/module-map.json`. It is the only thing the downstream
+skills read — never this skill's checkpoint.
 
-- **oc-modularize-ops writes** `skill_state.modules[]`, with per module:
-  `{ id, seam_contract, owns_data[], image_hint, equivalence_verified }`.
-- **oc-migration-ops reads** that set to build the Structural cutover plan — which module
-  moves, what data it owns, where the dual-write boundaries sit.
-- **oc-fleet-ops `topology` reads** the same `modules[]` to seed containers
-  (`module.id → container`, `module.image_hint → image`).
+- **oc-modularize-ops writes** the file on `/oc-modularize plan` and updates it as modules
+  are extracted and verified. It holds a `modules` array, one object per module:
 
-The shared, named artifact is `modularization/module-map.json`, referenced by both
-downstream skills. The handoff is that file, not a sentence in chat.
+  ```json
+  { "modules": [
+    { "id": "billing", "seam_contract": "modularization/seams/billing.md",
+      "owns_data": ["invoices", "charges"], "image_hint": "billing",
+      "equivalence_verified": true }
+  ] }
+  ```
+
+- **oc-migration-ops reads** it in `/oc-migrate assess` / `plan` to build the Structural
+  cutover plan — which module moves, what data it owns, where the dual-write boundaries sit.
+- **oc-fleet-ops `topology` reads** it to seed containers (`module.id → container`,
+  `module.image_hint → image`).
+
+oc-migration-ops plans the code-move for every module in the file — that move happens in
+Phase 3, before Phase 4 sets `equivalence_verified`. Only the steps that need the proof wait
+for `equivalence_verified: true`: oc-migration-ops' live cutover for that module and
+oc-fleet-ops' deploy of it. The handoff is that file, not a sentence in chat.
 
 ---
 
@@ -322,11 +344,14 @@ retry/backoff, idempotency markers, `pm_deferred_actions[]`) is deferred to
 `oc-integrations-engineer/references/pm-mcp-protocol.md`; this skill only shapes the writes:
 
 - **Parent ticket** on `/oc-modularize plan`: title *"Modularize: {monolith} → N modules"*,
-  type `epic` / `chore` from `pm.yaml`, body = strategy + abort criteria + fixture coverage.
+  type = the `epic` (or `chore`) mapping in `pm.yaml` `issue_types` when the project defines
+  one, else `issue_types.feature`; body = strategy + abort criteria + fixture coverage.
 - **Child per module** with the state machine
   `plan-pending → in_progress → equivalence-verified → done` (and `blocked` on a failed
   replay), marker `<!-- opchain:oc-modularize-ops:module:<module-id> -->`.
-- Records parent + child ids in `skill_state.pm.{parent_ticket, module_tickets[]}`.
+- Records the ids in `pm_refs` (parent `role: source`, each module ticket `role: child`,
+  `created_by_skill: oc-modularize-ops`); the module ↔ ticket map stays in
+  `skill_state.pm.{parent_ticket, module_tickets[]}`.
 - No ticket / no PM-MCP in context → no PM write; the modularization proceeds and updates are
   deferred (`pm_deferred_actions[]`).
 
@@ -358,8 +383,8 @@ Location: `{project-dir}/.checkpoints/oc-modularize-ops.checkpoint.json`
   "fixture_coverage": { "boundaries_total": 18, "boundaries_with_fixtures": 18 },
   "modules": [
     { "id": "billing", "seam_contract": "modularization/seams/billing.md",
-      "owns_data": ["invoices","charges"], "fixtures_captured": true,
-      "extracted": true, "equivalence_verified": true }
+      "owns_data": ["invoices","charges"], "image_hint": "billing",
+      "fixtures_captured": true, "extracted": true, "equivalence_verified": true }
   ]
 }
 ```
@@ -368,10 +393,10 @@ Location: `{project-dir}/.checkpoints/oc-modularize-ops.checkpoint.json`
 |---|---|
 | Fitness assessed | `recommendation` + the why |
 | Fixtures captured | `golden_fixtures_path`, `fixture_coverage` |
-| Strategy chosen | `strategy`, per-module `seam_contract` + `owns_data` |
+| Strategy chosen | `strategy`, per-module `seam_contract` + `owns_data` + `image_hint`; write `modularization/module-map.json` |
 | Module extracted | `modules[].extracted` |
 | Equivalence proven | `modules[].equivalence_verified` |
-| Handoff emitted | `modularization/module-map.json` written for migration-ops + fleet-ops |
+| Handoff emitted | `modularization/module-map.json` brought up to date (same `modules[]` shape) for migration-ops + fleet-ops |
 
 ---
 

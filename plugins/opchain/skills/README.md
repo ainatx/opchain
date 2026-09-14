@@ -12,16 +12,19 @@ context across sessions.
 
 ## Installation (Claude Code)
 
-**Plugin (recommended)** — ships the skills *and* the hooks that enforce them:
+**Plugin (recommended)** — ships skills, session hooks, and explicit Git verification enrollment:
 
 ```
 /plugin marketplace add asfbay-bit/opchain-skills
 /plugin install opchain
+/oc-enroll
 ```
 
-Adds a commit gate that blocks unverified commits, pipeline state at session
-start, a pointer to the next skill when one finishes, and twelve registered
-slash commands.
+Adds pipeline state at session start, next-skill suggestions, and thirteen
+registered slash commands. Run `/oc-enroll` successfully in each repository to
+activate Git commit verification. Foreign hooks block enrollment until deliberately
+composed; `git commit --no-verify` bypasses local hooks. Protected CI must verify
+received commits independently.
 
 **Zip (skills only)** — where a plugin install isn't an option:
 
@@ -58,12 +61,12 @@ Full walkthrough (including a local stdio server): https://opchain.dev/install
 | oc-docs-forge             | plan+build  | Documentation generator for every PR: PR body/comments, README/catalog docs, product docs, changelog, ADR upkeep |
 | oc-repo-ops               | build       | Repository hygiene and PR readiness gate: docs packet, generated files, catalog parity, cleanup |
 | oc-reverse-spec           | plan        | Code → spec docs |
-| oc-stack-forge            | plan        | Universal stack advisor |
+| oc-stack-forge            | plan+build  | Universal stack advisor |
 | oc-ux-engineer            | plan+build  | Tri-design harness |
 | oc-dash-forge             | plan        | Dashboards + dense data UI (spec + React prototype) |
 | oc-scale-ops              | plan        | Scaling readiness |
 | oc-app-architect          | plan+build  | Unified planning + build harness |
-| oc-integrations-engineer  | plan+build  | API integration harness (third-party APIs you consume) |
+| oc-integrations-engineer  | build       | API integration harness (third-party APIs you consume) |
 | oc-api-dev                | plan+build  | First-party API design + build harness (OpenAPI, versioning, SDKs) |
 | oc-migration-ops          | plan+build  | `/oc-migrate` — DB / framework / auth / platform migrations |
 | oc-qa-ops                 | plan+build  | Test-pyramid design: coverage strategy, contract-test matrix, load-test planning |
@@ -74,6 +77,7 @@ Full walkthrough (including a local stdio server): https://opchain.dev/install
 | oc-rag-forge              | build+ai-native | RAG systems: vector DB choice, embeddings, chunking, hybrid search, retrieval eval |
 | oc-cost-ops               | build       | LLM cost attribution, budget gates, and model-tier routing recommendations |
 | oc-telemetry-ops          | build       | Opt-in local usage metering and anonymized aggregate dashboard feed |
+| oc-update                | foundation  | One-command repo skill updates; preserves telemetry, checkpoints, and unrelated skills (2.0 candidate) |
 | oc-signal-forge           | build       | Product-analytics signal builder: question to trustworthy metric |
 | oc-modularize-ops         | plan+build  | Live-monolith decomposition with golden-fixture equivalence proof |
 | oc-fleet-ops              | build       | Self-managed fleet deployment and multi-container operations |
@@ -96,3 +100,12 @@ https://opchain.dev
 Apache-2.0 — see the `LICENSE` and `NOTICE` files at the repository root.
 Copyright 2026 Aidan Elsesser and the opchain contributors. Catalog releases
 up to and including 1.8.2 were published under MIT.
+
+## Unpublished 2.0 shared runtime candidates
+
+| Skill | Phase | Purpose |
+|---|---|---|
+| oc-hindsight | foundation, ai-native | Source-grounded operational memory with external reviewer approval |
+| oc-evolve | foundation, ai-native | Task-evaluated workflow improvements with external reviewer approval |
+
+The 2.0 staging preview contains 36 skills and 16 registered plugin commands. It has no release date and cannot be deployed to production while the preview marker is present.

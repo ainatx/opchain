@@ -2,9 +2,9 @@
   "protocol_version": "1.1",
   "skill": "oc-code-auditor",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "project_dir": "/Users/aidanelsesser/repos/worktrees/opchain-oc-update-v2",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-08-22T08:18:58.198Z",
+  "updated_at": "2026-09-14T00:38:43.724Z",
   "phase": "audit",
   "step": "oss-readiness-audit-2026-08-22",
   "status": "in_progress",
@@ -44,6 +44,18 @@
       },
       "ref": "docs/audits/2026-08-22-oss-readiness-audit.md",
       "note": "contributor-repo readiness; product tree secret-free + all-permissive, everything else is packaging/metadata/governance"
+    },
+    {
+      "rubric": "oc-code-auditor",
+      "score": 8.5,
+      "max": 10,
+      "at": "2026-09-13T04:21:43Z",
+      "ref": "docs/audits/2026-09-12-oc-update.md",
+      "dimensions": {
+        "quality": 8,
+        "config": 9
+      },
+      "note": "Targeted updater candidate only; older repository-wide findings remain open."
     }
   ],
   "skill_state": {
@@ -81,6 +93,77 @@
       "verified": "7 lenses × adversarial verifier; 0 refuted",
       "report": "docs/audits/2026-08-22-oss-readiness-audit.md",
       "plan": "docs/plans/2026-08-22-oss-split-licensing-compliance.md"
+    },
+    "oc_update_v2": {
+      "status": "implemented-and-tested-in-isolation",
+      "branch": "codex/oc-update-v2",
+      "baseline": "4d39b93",
+      "target_release": "2.0.0",
+      "plan": "docs/plans/2026-09-12-oc-update-v2-addendum.md",
+      "evaluation": "sprints/repo-updater/eval.md",
+      "tests": {
+        "repository": 666,
+        "targeted_node_24": 59,
+        "targeted_node_22_13": 59,
+        "hooks": 48
+      },
+      "release_totals": {
+        "skills": 36,
+        "plugin_commands": 15,
+        "tri_agent_skills": 11
+      },
+      "pending": [
+        "Port after OSS split and integrate the 2.0 runtime dependency closure",
+        "Rehearse combined 36-skill release through supported hosts",
+        "Publish assets and replace website update instructions at the release cut"
+      ],
+      "at": "2026-09-13T04:21:43Z"
+    },
+    "shared_runtime_option_c": {
+      "status": "verified",
+      "architecture": "Option C (includes Option B)",
+      "approved_at": "2026-09-13",
+      "runtime_contract": "2.0-preview.1",
+      "catalog_skills": 36,
+      "plugin_commands": 15,
+      "repository_tests": 721,
+      "hook_tests": 74,
+      "independent_verdict": "PASS within external-trust/supplied-evidence boundary",
+      "report": "sprints/shared-runtime/evaluation.md",
+      "remaining_release_work": [
+        "wire 1.2 migration and release stamp",
+        "OSS split integration",
+        "independent reviewer environment setup",
+        "live host/model evaluation",
+        "exact 2.0 release rehearsal"
+      ]
     }
-  }
+  },
+  "handoffs": [
+    {
+      "id": "oc-code-auditor-v2-preview-4d9c0e57f709",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T00:38:43.649Z",
+      "verified_at": "2026-09-14T00:38:43.649Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "v2-runtime-staging-review"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:4d9c0e57f7092c19459547da4c78f086347d81f10b9a3db92b9cbf1a124c00a0"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "2.0 shared runtime alignment and staging preview; historical unrelated audits remain separate",
+        "evidence": [
+          "docs/audits/2026-09-13-v2-runtime-staging-review.md",
+          "docs/plans/2026-09-13-v2-runtime-alignment.md"
+        ]
+      }
+    }
+  ],
+  "record_updated_at": "2026-09-14T00:38:43.724Z"
 }

@@ -16,14 +16,30 @@ prompt: opchain-routing
 model: claude-opus-4-8           # the model the routing prompt runs on (from oc-claude-api)
 
 grading:
+  # Two graders are in use. `contains` (the default) is enough when only one
+  # skill plausibly owns the request. It is NOT enough for a collision case (two
+  # skills' trigger copy both claim the request): an answer that routes to the
+  # wrong skill but names the right one in passing still contains both tokens.
+  # Every collision case therefore overrides mode to `llm_judge` with a
+  # `criteria` string that names the wrong-side skill and fails it.
   default_mode: contains         # the routing answer must contain the expected skill + command
   judge:
-    model: claude-opus-4-8       # only used if a case overrides mode to llm_judge
+    model: claude-opus-4-8       # scores the llm_judge (collision) cases against their criteria
     output_format: json_schema   # force a {score, reason} verdict
 
 thresholds:
-  pass_rate: 0.90                # >= 90% of cases must pass
-  regression_epsilon: 0.05       # a pass_rate drop > this vs the last green baseline fails the gate
+  # Must-pass: every case, collision cases included. Any pass_rate below 1.0
+  # tolerates floor((1 - pass_rate) * N) failures, and nothing stops those from
+  # being exactly the collision cases this set exists to defend (0.90 over the
+  # original 28 cases tolerated both /oc-harden cases failing at once). A routing
+  # answer is right or wrong, so one mis-route fails the gate.
+  # tests/opchain-eval.test.js asserts the threshold tolerates zero failures.
+  # Cost of must-pass: one noisy llm_judge verdict fails the gate. Re-run before
+  # calling a lone judge failure a regression.
+  pass_rate: 1.0
+  # Kept for the schema, but inert at pass_rate 1.0: any drop from a green
+  # baseline already fails the absolute threshold first.
+  regression_epsilon: 0.05
 
 cost:
   # Owned by oc-cost-ops (v1.6). cost_per_eval is MEASURED from real token counts

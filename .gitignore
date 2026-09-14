@@ -122,3 +122,11 @@ reports/token-usage/sessions.manifest
 reports/token-usage/prs.json
 # Intermediate per-message usage table; fact_token_usage.csv is the durable one.
 reports/token-usage/raw_usage.csv
+
+# Opchain source-update recovery
+/.opchain-backups/
+/.opchain-update.lock/
+# Local MCP transport capabilities and transient atomic-write files.
+.checkpoints/.mcp-sessions.json
+.checkpoints/*.lock
+.checkpoints/.*.tmp

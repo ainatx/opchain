@@ -34,14 +34,23 @@ limited to 64 KiB; do not store secrets or regulated data in them.
 
 ### 2. Local (offline / air-gapped) — stdio
 
-Reads the skill tree from disk; no network. Checkpoints are in memory for the
-life of the process.
+Reads the skill tree from disk; no network. Checkpoints persist as validated
+wire-1.0/1.1 JSON under `<project>/.checkpoints/`, survive server restarts, and
+are shared by issued local sessions for that project. Session registry, lock,
+temporary, and `.local/` runtime artifacts are excluded by the consumer
+project's `.checkpoints/.gitignore`; skill checkpoint JSON remains trackable.
+
+The durable local provider supports macOS with executable `/usr/bin/lockf` and
+Linux with executable `flock` on `PATH`. Other platforms fail explicitly before
+session creation or writes. Local session IDs prevent accidental fabricated-ID
+access, but are not a security boundary against another process running as the
+same OS user. Hosted sessions retain their separate isolation model.
 
 ```toml
 [mcp_servers.opchain]
 command = "node"
 args = ["/abs/path/to/opchain/mcp/local-server.mjs"]
-# env = { OPCHAIN_SKILLS_DIR = "/abs/path/to/skills" }   # optional
+# env = { OPCHAIN_SKILLS_DIR = "/abs/path/to/skills", OPCHAIN_PROJECT_DIR = "/abs/path/to/project" }   # optional
 ```
 
 ## What it exposes
@@ -61,8 +70,9 @@ args = ["/abs/path/to/opchain/mcp/local-server.mjs"]
 …). Clients that surface MCP prompts as slash commands get the `/oc-*` experience
 back; selecting one loads the owning skill and runs its flow.
 
-**Resources** — `opchain://orchestrator` and `opchain://skill/<id>` for clients
-that prefer reading resources over calling tools.
+**Resources** — `opchain://orchestrator`, `opchain://skill/<id>`, and each
+skill's advertised versioned reference manifest/files for clients that prefer
+reading resources over calling tools.
 
 ## How an agent uses it
 
@@ -84,3 +94,5 @@ that prefer reading resources over calling tools.
   explicit allowlist; native MCP clients may omit `Origin`.
 
 [mcp]: https://modelcontextprotocol.io
+
+Retain the opaque revision returned by a local read and supply it as `expectedRevision` on update to detect concurrent changes; `null` requests create-only. Omitted revisions retain atomic legacy replacement and do not prevent lost updates. Checkpoints carry workflow state and never authorize a commit as verification receipts.

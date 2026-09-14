@@ -64,7 +64,7 @@ function run(dir, sessionId, env = {}) {
   try {
     const j = JSON.parse(out);
     if (j.decision) return { verdict: "BLOCKED", msg: "emitted a decision field — must never happen" };
-    return { verdict: "SPOKE", msg: (j.systemMessage || "").slice(0, 74) };
+    return { verdict: "SPOKE", msg: (j.systemMessage || "").slice(0, 74), full: j.systemMessage || "" };
   } catch {
     return { verdict: "MALFORMED", msg: out.slice(0, 70) };
   }
@@ -78,8 +78,10 @@ function prime(dir) {
 }
 
 const cases = [];
-function t(name, expect, fn) {
-  cases.push({ name, expect, fn });
+// `match` (optional) is checked against the full systemMessage of a SPOKE
+// verdict: "it spoke" is not enough when the case is about WHAT it names.
+function t(name, expect, fn, match) {
+  cases.push({ name, expect, fn, match });
 }
 
 t("not an opchain repo", "SILENT", () => {
@@ -173,7 +175,52 @@ t("names the downstream skill's command", "SPOKE", () => {
   const sid = prime(d);
   writeCp(d, "oc-code-auditor", { status: "complete", next_actions: ["Hand off to oc-deploy-ops for staging"] });
   return run(d, sid);
-});
+}, /next → \/oc-deploy\s/);
+
+t("handoff: no command, no checkpoint", "SPOKE", () => {
+  // oc-security-auditor has no plugin command and, before it first runs, no
+  // checkpoint. The notice must name it, not re-target oc-code-auditor.
+  const d = mkRepo();
+  writeCp(d, "oc-code-auditor", { status: "in_progress", next_actions: ["x"] });
+  const sid = prime(d);
+  writeCp(d, "oc-code-auditor", {
+    status: "complete",
+    next_actions: ["Hand off to oc-security-auditor for the threat model"],
+  });
+  return run(d, sid);
+}, /next → "run oc-security-auditor"/);
+
+t("earliest-named handoff wins", "SPOKE", () => {
+  const d = mkRepo();
+  writeCp(d, "oc-app-architect", { status: "in_progress", next_actions: ["x"] });
+  const sid = prime(d);
+  writeCp(d, "oc-app-architect", {
+    status: "complete",
+    next_actions: ["Hand off to oc-integrations-engineer, then oc-deploy-ops at launch"],
+  });
+  return run(d, sid);
+}, /next → "run oc-integrations-engineer"/);
+
+t("'run <skill>' non-command target", "SPOKE", () => {
+  // The action names no other skill, so the finishing skill is the target; it
+  // has no registered command, so the notice degrades to a quoted skill name.
+  const d = mkRepo();
+  writeCp(d, "oc-stack-forge", { status: "in_progress", next_actions: ["x"] });
+  const sid = prime(d);
+  writeCp(d, "oc-stack-forge", { status: "complete", next_actions: ["Re-run the pack comparison with the Postgres option"] });
+  return run(d, sid);
+}, /next → "run oc-stack-forge"\s/);
+
+t("object-form next_actions", "SPOKE", () => {
+  const d = mkRepo();
+  writeCp(d, "oc-code-auditor", { status: "in_progress", next_actions: [{ text: "x", done_when: "y" }] });
+  const sid = prime(d);
+  writeCp(d, "oc-code-auditor", {
+    status: "complete",
+    next_actions: [{ text: "Hand off to oc-deploy-ops for staging", done_when: "staging is green" }],
+  });
+  return run(d, sid);
+}, /next → \/oc-deploy\s.*Hand off to oc-deploy-ops for staging/);
 
 t("user_decision blocker is surfaced", "SPOKE", () => {
   const d = mkRepo();
@@ -184,7 +231,33 @@ t("user_decision blocker is surfaced", "SPOKE", () => {
     blockers: [{ needs: "user_decision", description: "patch or minor?", proposed_resolution: "Confirm the semver" }],
   });
   return run(d, sid);
-});
+}, /waiting on your decision: Confirm the semver/);
+
+t("blocker w/o proposed_resolution", "SPOKE", () => {
+  // No proposed_resolution: the blocker's description is the action shown.
+  const d = mkRepo();
+  writeCp(d, "oc-release-ops", { status: "in_progress", next_actions: ["x"] });
+  const sid = prime(d);
+  writeCp(d, "oc-release-ops", {
+    status: "blocked",
+    blockers: [{ needs: "user_decision", description: "Decide patch or minor for the next cut" }],
+  });
+  return run(d, sid);
+}, /next → \/oc-release\s.*waiting on your decision: Decide patch or minor/);
+
+t("dedup resets on a new HEAD", "SPOKE", () => {
+  // Same suggestion as the previous Stop, but a commit landed in between: the
+  // dedup key is per-commit, so it speaks again.
+  const d = mkRepo();
+  writeCp(d, "oc-bug-check", { status: "complete", next_actions: ["Triage the audit findings"] });
+  const sid = prime(d);
+  writeCp(d, "oc-bug-check", { status: "complete", next_actions: ["Triage the audit findings"], phase: "a" });
+  const first = run(d, sid);
+  if (first.verdict !== "SPOKE") return { verdict: `FIRST_${first.verdict}`, msg: first.msg };
+  sh(["-c", "core.hooksPath=/dev/null", "commit", "-qm", "next", "--allow-empty"], d);
+  writeCp(d, "oc-bug-check", { status: "complete", next_actions: ["Triage the audit findings"], phase: "b" });
+  return run(d, sid);
+}, /next → \/oc-bugcheck\s/);
 
 // ── run ─────────────────────────────────────────────────────────────────────
 let failed = 0;
@@ -192,10 +265,12 @@ console.log("opchain next-suggestion hook\n");
 console.log("  CASE                                EXPECT   GOT      NOTE");
 console.log("  " + "─".repeat(104));
 for (const c of cases) {
-  const { verdict, msg } = c.fn();
-  const ok = verdict === c.expect;
+  const { verdict, msg, full } = c.fn();
+  const matched = !c.match || (verdict === "SPOKE" && c.match.test(full || ""));
+  const ok = verdict === c.expect && matched;
   if (!ok) failed++;
-  console.log(`  ${ok ? "✓" : "✗"} ${c.name.padEnd(34)}${c.expect.padEnd(9)}${verdict.padEnd(9)}${msg}`);
+  const note = verdict === c.expect && !matched ? `wrong text: ${String(full).slice(0, 80)}` : msg;
+  console.log(`  ${ok ? "✓" : "✗"} ${c.name.padEnd(34)}${c.expect.padEnd(9)}${verdict.padEnd(9)}${note}`);
 }
 for (const d of scratches) fs.rmSync(d, { recursive: true, force: true });
 // Clear this run's session state files so repeat runs are hermetic.

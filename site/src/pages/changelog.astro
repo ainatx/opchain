@@ -161,7 +161,7 @@ const plannedReleaseGroups = [
           aria-selected="true"
           tabindex="0"
         >
-          Just Released <span class="tab-count">18 shipped</span>
+          Just Released <span class="tab-count">20 shipped</span>
         </button>
         <button
           class="tab-btn tab-btn--next"
@@ -200,7 +200,7 @@ const plannedReleaseGroups = [
         <span class="panel-sub">Latest release is open; patches and earlier releases expand in place.</span>
       </div>
 
-      <!-- v1.9 — latest shipped release; "Assurance and governed delivery ops". Deep-linkable from #v1-9. -->
+      <!-- v1.9 — latest shipped release line (v1.9.0 → v1.9.2); "Assurance and governed delivery ops". Deep-linkable from #v1-9. -->
       <article class="hero-card hero-card--released is-open" id="v1-9" data-card>
         <button
           class="hero-head"
@@ -211,7 +211,7 @@ const plannedReleaseGroups = [
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">latest release</span>
-          <span class="hero-ver">v1.9.0 · shipped Sep 02, 2026</span>
+          <span class="hero-ver">v1.9.0 → v1.9.2 · Sep 02 – Sep 13, 2026</span>
           <span class="hero-title">Assurance and governed delivery ops</span>
           <span class="hero-desc">
             Delivery evidence you can review and enforce. v1.9 adds four skills
@@ -252,6 +252,67 @@ const plannedReleaseGroups = [
               former shared <code>default</code> session are rejected. The 16
               pre-v1.9 hosted checkpoint records are deleted during rollout;
               local on-disk checkpoints are unaffected.
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v1.9.2 — verified handoffs; apply only in the post-tag site release. -->
+      <article class="rel-card" id="v1-9-2" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-9-2-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">&#9654;</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.9.2 patch</span><span class="rc-title">Verified handoffs</span><span class="rc-date">Sep 13, 2026</span></span>
+            <span class="rc-summary">Commit checks follow the staged candidate; local state survives restarts; skills exchange validated evidence.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-9-2-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <p>The audit follow-through adds executable verification and reusable local tools across the existing 33 skills.</p>
+            <ul>
+              <li>Explicit repository enrollment verifies staged commits and blocks failed required checks.</li>
+              <li>Durable local MCP state, bundled references and typed handoffs connect the skill family.</li>
+              <li>Prompt/cost checks, private telemetry commands and optional execution kits have runnable local paths.</li>
+            </ul>
+            <div class="compat-box"><strong>Setup and migration required.</strong> Run <code>/oc-enroll</code> per repository, refresh local sessions and producer evidence, and opt in to telemetry locally. Local hooks are bypassable; hosted state is advisory. Kits are not sandboxes. Provider access and target-repository CI require separate verification.</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v1.9.1 — the skill-chain integrity patch under the v1.9 line. Deep-linkable from #v1-9-1. -->
+      <article class="rel-card" id="v1-9-1" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-9-1-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">&#9654;</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.9.1 patch</span><span class="rc-title">The chain holds</span><span class="rc-date">Sep 13, 2026</span></span>
+            <span class="rc-summary">An audit of the whole skill chain upheld 484 findings. This patch makes the chain do what its documentation says &mdash; starting with the one gate that actually runs.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-9-1-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">484 findings</span><span class="tag">commit gate</span><span class="tag">every skill routable</span><span class="tag">33 skills</span></div>
+            <p>
+              The skills described handoffs, gates and checkpoint reads that their
+              siblings did not back. The commit gate &mdash; the one piece of
+              machinery opchain ships &mdash; could be walked past with an
+              <code>exec</code> prefix, and deadlocked in any repo that tracks
+              <code>.checkpoints/</code>, which the docs recommend. No new skills and
+              no new commands: every change here makes something already documented
+              true.
+            </p>
+            <ul>
+              <li><strong>The commit gate holds.</strong> A pass is bound to the exact tree being committed, at any age. Wrapper, prefix, quoting and here-document forms that slipped through now deny, and tracked checkpoints no longer deadlock it.</li>
+              <li><strong>Checkpoints tell the truth.</strong> <code>status &lt;skill&gt;</code> reads its argument, the validator accepts real ISO-8601 offsets, and <code>doctor</code> catches a pass left behind by a squash merge.</li>
+              <li><strong>Every handoff lands.</strong> Every command one skill hands to another is declared by the skill that owns it, the orchestrator map covers all 33 skills, and CI now fails when either drifts.</li>
+              <li><strong>Every edge is two-sided.</strong> 66 relationships that only one skill documented now appear on both sides &mdash; or are gone, where the claim was wrong.</li>
+              <li><strong>The catalog is reachable.</strong> The MCP <code>route</code> tool reaches every skill (17 before), and <a href="/pipeline-builder">the pipeline builder</a> recommends from the live catalog instead of a v1.5 table.</li>
+            </ul>
+            <div class="compat-box">
+              <strong>Back-compatible with v1.9.0.</strong> All 33 skills lockstep-bump
+              to <code>1.9.1</code>. No checkpoint migration; no commands, routes or flags
+              removed. The commit gate is deliberately stricter: a pass without a tree
+              hash is denied, and the bypass forms above now deny. &ldquo;Tag the
+              release&rdquo; routes to Git Ops, which owns the tag.
             </div>
           </div>
         </div>
@@ -982,7 +1043,7 @@ const plannedReleaseGroups = [
     >
       <div class="panel-head">
         <h2>What's coming</h2>
-        <span class="panel-sub">v2.0 is next — the self-improving pipeline, committed after v1.9.</span>
+        <span class="panel-sub">v2.0 is in staging preview. No release date is set.</span>
       </div>
 
       <!-- v1.9 — Assurance and governed delivery ops; selected direction.
@@ -998,20 +1059,24 @@ const plannedReleaseGroups = [
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">committed</span>
-          <span class="hero-ver">v2.0.0 · next · committed</span>
+          <span class="hero-ver">v2.0.0 · staging preview · no release date</span>
           <span class="hero-title">The self-improving pipeline</span>
-          <span class="hero-desc">
-            Two governed workflow skills — oc-hindsight (operational memory) and
-            oc-evolve (behaviour change) — over a three-layer learning
-            architecture. Every activation ends at a human gate; learned content
-            is advisory data, never instructions.
-          </span>
+          <span class="hero-desc">A shared runtime for updates, saved progress, local tracking and reviewed learning. This is a preview, with release acceptance still to complete.</span>
         </button>
         <div class="card-body" id="v2-0-body" data-disclosure-body>
           <div class="card-body-inner hero-body-inner">
-            <div class="tag-row"><span class="tag tag--info">committed</span><span class="tag">next release</span><span class="tag">33 → 35 skills</span><span class="tag">checkpoint wire 1.2</span></div>
-            <p>v2.0 closes the loop: what the pipeline learns from its own runs becomes reviewable, promotable state — never a silent write-through.</p>
-            <div class="planned-box">Committed after v1.9 — <a href="https://github.com/ainatx/opchain/blob/main/docs/releases/2.0-plan.md">read the full 2.0 plan of record</a>.</div>
+            <div class="tag-row"><span class="tag tag--info">staging preview</span><span class="tag">36 skills</span><span class="tag">16 plugin commands</span><span class="tag">shared runtime</span></div>
+            <p>2.0 adds an updater, Hindsight and Evolve to the current skills. This preview combines the recent reliability fixes with the Slate and Emerald design.</p>
+            <div class="loop">
+              <h3>What changed</h3>
+              <ol class="loop-layers">
+                <li><span class="loop-k">Reliable foundations</span><div class="loop-body"><strong>Progress and permission.</strong> Concurrent saves keep each update. Tracking requires permission on the local machine. Each installed skill carries the files its commands need.</div></li>
+                <li><span class="loop-k">Useful evidence</span><div class="loop-body"><strong>History and task results.</strong> Import scored outcomes, review recurring weak results, and run the existing grader with recorded instructions, outputs and case results.</div></li>
+                <li><span class="loop-k">Reviewed changes</span><div class="loop-body"><strong>Separate checks for separate decisions.</strong> Commits use explicit Git verification. Releases need a fresh audit. Learned rules need better task results and an externally trusted reviewer signature.</div></li>
+              </ol>
+              <div class="loop-inv"><span class="loop-k">Still required before release</span> Real provider acceptance, independent reviewer setup, host checks and the signed release rehearsal. Checkpoint wire 1.2 migration remains separate work.</div>
+            </div>
+            <div class="planned-box">No release date is set. Preview status does not mean a real learning cycle has passed. <a href="/skills/oc-update">Updater</a> · <a href="/skills/oc-hindsight">Hindsight</a> · <a href="/skills/oc-evolve">Evolve</a></div>
           </div>
         </div>
       </article>
@@ -1287,12 +1352,10 @@ const plannedReleaseGroups = [
     /* Scoped violet identity for the Planned tab — the global theme has no
        --purple. Defined on .page so it cascades to the tab pill, plan-cards,
        and bars; overridden for the light theme below to stay AA. */
-    --cl-violet: #b29adf;
-    --cl-violet-dim: rgba(178, 154, 223, 0.14);
+    --cl-violet: var(--tertiary);
+    --cl-violet-dim: var(--tertiary-dim);
   }
   :global([data-theme="light"]) .page {
-    --cl-violet: #6d28d9;
-    --cl-violet-dim: rgba(109, 40, 217, 0.10);
   }
   .page-head { margin-bottom: 1.75rem; }
   .eyebrow {
@@ -1367,7 +1430,7 @@ const plannedReleaseGroups = [
     background: var(--accent-dim); border-color: var(--accent); color: var(--text);
   }
   .tab-btn--next[aria-selected="true"] .tab-count {
-    background: var(--info-dim); border-color: var(--info); color: var(--text);
+    background: var(--secondary-dim); border-color: var(--secondary); color: var(--text);
   }
   .tab-btn--planned[aria-selected="true"] .tab-count {
     background: var(--cl-violet-dim); border-color: var(--cl-violet); color: var(--text);
@@ -1381,7 +1444,7 @@ const plannedReleaseGroups = [
     border-radius: 1px;
     transition: left var(--dur-base) var(--ease-standard), width var(--dur-base) var(--ease-standard);
   }
-  .tab-indicator[data-active="1"] { background: var(--info); }
+  .tab-indicator[data-active="1"] { background: var(--secondary); }
   .tab-indicator[data-active="2"] { background: var(--cl-violet); }
 
   /* ── Panels ───────────────────────────────────────────── */
@@ -1431,6 +1494,25 @@ const plannedReleaseGroups = [
   .card-body-inner li { color: var(--muted); font-size: var(--fs-sm); line-height: var(--lh-snug); margin-bottom: 0.4rem; }
   .card-body-inner li strong { color: var(--text); }
 
+
+  /* ── 2.0 block 2: how the loop closes (inside the v2.0 card) ── */
+  .loop { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--r-sm); padding: 1rem 1.1rem; margin: 0 0 0.9rem; }
+  .loop h3 { margin: 0 0 0.7rem; font-size: var(--fs-md); font-weight: 600; color: var(--text); }
+  .loop-layers { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.55rem; }
+  .loop-layers li { display: grid; grid-template-columns: 150px 1fr; gap: 0.8rem; font-size: 12.5px; line-height: var(--lh-base); color: var(--muted); padding: 0.55rem 0; border-top: 0.5px solid var(--border); }
+  .loop-layers li:first-child { border-top: 0; padding-top: 0; }
+  .loop-body { display: block; }
+  .loop-body .tag { margin-left: 0.3rem; vertical-align: 1px; }
+  .loop-layers strong { color: var(--text); font-weight: 600; }
+  .loop-layers code { color: var(--text); background: var(--card); border: 0.5px solid var(--border); padding: 0 4px; border-radius: 3px; font-size: 0.9em; }
+  .loop-k { font-family: var(--font-mono); font-size: 9.5px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); padding-top: 3px; }
+  .loop-inv { margin-top: 0.8rem; padding-top: 0.7rem; border-top: 0.5px solid var(--border); font-family: var(--font-mono); font-size: 11px; color: var(--subtle); display: flex; gap: 0.8rem; align-items: baseline; flex-wrap: wrap; }
+  .tag--warn { color: var(--warning); border-color: var(--warning); background: var(--warning-dim); }
+  .tag--accent { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+  @media (max-width: 640px) {
+    .loop-layers li { grid-template-columns: 1fr; gap: 0.2rem; }
+  }
+
   .tag-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.85rem; }
   .tag {
     font-family: var(--font-mono);
@@ -1443,7 +1525,7 @@ const plannedReleaseGroups = [
     color: var(--muted);
     background: var(--surface);
   }
-  .tag--info { color: var(--info); border-color: var(--info); background: var(--info-dim); }
+  .tag--info { color: var(--secondary); border-color: var(--secondary); background: var(--secondary-dim); }
 
   .compat-box {
     margin-top: 1rem;
@@ -1527,7 +1609,7 @@ const plannedReleaseGroups = [
     border-radius: var(--r-xs);
   }
   .ver-pill--past { color: var(--subtle); border: 0.5px solid var(--border); }
-  .ver-pill--next { color: var(--info); border: 0.5px solid var(--info); }
+  .ver-pill--next { color: var(--secondary); border: 0.5px solid var(--secondary); }
 
   /* ── Hero cards ───────────────────────────────────────── */
   .hero-card {
@@ -1542,11 +1624,11 @@ const plannedReleaseGroups = [
   .hero-card::before {
     content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
   }
-  .hero-card--next::before { background: linear-gradient(180deg, var(--info), color-mix(in srgb, var(--info) 35%, transparent)); }
+  .hero-card--next::before { background: linear-gradient(180deg, var(--secondary), color-mix(in srgb, var(--secondary) 35%, transparent)); }
   .hero-card--released::before { background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 35%, transparent)); }
-  .hero-card--next:hover { border-color: color-mix(in srgb, var(--info) 35%, var(--border)); }
+  .hero-card--next:hover { border-color: color-mix(in srgb, var(--secondary) 35%, var(--border)); }
   .hero-card--released:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
-  .hero-card--next.is-open { border-color: var(--info); }
+  .hero-card--next.is-open { border-color: var(--secondary); }
   .hero-card--released.is-open { border-color: var(--accent); }
 
   .hero-head {
@@ -1562,7 +1644,7 @@ const plannedReleaseGroups = [
     padding: 1.4rem 2.9rem 1.4rem 1.5rem;
   }
   .hero-chevron { position: absolute; top: 1.45rem; right: 1.3rem; }
-  .hero-card--next.is-open .hero-chevron { transform: rotate(90deg); background: var(--info-dim); border-color: var(--info); color: var(--info); }
+  .hero-card--next.is-open .hero-chevron { transform: rotate(90deg); background: var(--secondary-dim); border-color: var(--secondary); color: var(--secondary); }
   .hero-card--released.is-open .hero-chevron { transform: rotate(90deg); background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
   .hero-badge {
     display: inline-flex; align-items: center; gap: 0.35rem;
@@ -1576,8 +1658,8 @@ const plannedReleaseGroups = [
      tint, and dot carry the release identity. accent/info text on a faint
      *-dim tint fails Lighthouse color-contrast at 9.5px — same fix the active
      tab-count pill uses. */
-  .hero-card--next .hero-badge { color: var(--text); border: 0.5px solid var(--info); background: var(--info-dim); }
-  .hero-card--next .hero-badge::before { color: var(--info); }
+  .hero-card--next .hero-badge { color: var(--text); border: 0.5px solid var(--secondary); background: var(--secondary-dim); }
+  .hero-card--next .hero-badge::before { color: var(--secondary); }
   .hero-card--released .hero-badge { color: var(--text); border: 0.5px solid var(--accent); background: var(--accent-dim); }
   .hero-card--released .hero-badge::before { color: var(--accent); }
   .hero-ver { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--subtle); margin-bottom: 0.3rem; }
@@ -1603,8 +1685,8 @@ const plannedReleaseGroups = [
   }
   .tile-name { display: block; font-family: var(--font-mono); font-size: 11px; margin-bottom: 0.25rem; }
   .tile-desc { font-size: 12px; color: var(--muted); line-height: var(--lh-snug); margin: 0 !important; }
-  .hero-card--next .tile-name { color: var(--info); }
-  .hero-card--next .tile:hover { border-color: var(--info); }
+  .hero-card--next .tile-name { color: var(--secondary); }
+  .hero-card--next .tile:hover { border-color: var(--secondary); }
   .hero-card--released .tile-name { color: var(--accent); }
   .hero-card--released .tile:hover { border-color: var(--accent); }
 

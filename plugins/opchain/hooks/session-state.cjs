@@ -16,6 +16,7 @@
 "use strict";
 
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 const { spawnSync } = require("child_process");
 
@@ -37,7 +38,47 @@ const cwd = input.cwd || process.cwd();
 const root = git(["rev-parse", "--show-toplevel"], cwd) || cwd;
 const dir = path.join(root, ".checkpoints");
 
-if (!fs.existsSync(dir)) process.exit(0); // not an opchain project
+function recordUpdatedAt(d) {
+  return d.record_updated_at || d.updated_at || "";
+}
+
+function freshnessTimestamp(d) {
+  return d.verified_at || recordUpdatedAt(d);
+}
+
+// Stop-hook suggestions are transition-triggered. Seed its per-session
+// baseline at SessionStart so a first write in this session is observable.
+function seedSuggestionBaseline() {
+  const stateFile = path.join(
+    os.tmpdir(),
+    `opchain-suggest-${String(input.session_id || "nosession").replace(/[^\w.-]/g, "")}.json`,
+  );
+  let entries = [];
+  try {
+    entries = fs.readdirSync(dir)
+      .filter((f) => f.endsWith(".checkpoint.json"))
+      .flatMap((f) => {
+        try {
+          const d = JSON.parse(fs.readFileSync(path.join(dir, f), "utf8"));
+          return d && d.skill ? [`${d.skill}@${recordUpdatedAt(d) || "?"}`] : [];
+        } catch {
+          return [];
+        }
+      });
+  } catch {
+    // No checkpoint directory is the valid empty baseline.
+  }
+  try {
+    fs.writeFileSync(stateFile, JSON.stringify({ fingerprint: entries.sort().join("|") }));
+  } catch {
+    // Best effort: this hook must remain read-only with respect to project data.
+  }
+}
+
+if (!fs.existsSync(dir)) {
+  seedSuggestionBaseline();
+  process.exit(0);
+}
 
 let files;
 try {
@@ -45,13 +86,26 @@ try {
 } catch {
   process.exit(0);
 }
-if (!files.length) process.exit(0);
+if (!files.length) {
+  seedSuggestionBaseline();
+  process.exit(0);
+}
+
+seedSuggestionBaseline();
 
 const now = Date.now();
 const stale = [];
 const blocked = [];
 const openLoops = [];
-let next = null;
+const nextCandidates = []; // { t, text } — most recently touched in_progress work wins
+
+/** A next_action is a string or { text, done_when } (both validate). */
+function actionText(a) {
+  if (a == null) return "";
+  if (typeof a === "string") return a;
+  if (typeof a === "object" && typeof a.text === "string") return a.text;
+  return "";
+}
 
 for (const f of files) {
   let d;
@@ -61,7 +115,7 @@ for (const f of files) {
     continue;
   }
 
-  const ts = Date.parse(d.updated_at || "");
+  const ts = Date.parse(freshnessTimestamp(d));
   const days = Number.isNaN(ts) ? null : (now - ts) / 86400000;
   const limit = STALE[d.status];
 
@@ -76,7 +130,16 @@ for (const f of files) {
   }
 
   // An audit that is "complete" while carrying open criticals is an unclosed loop.
-  const sev = (d.skill_state && d.skill_state.findings_by_severity) || null;
+  const findings = Array.isArray(d.findings) ? d.findings : null;
+  const open = findings
+    ? findings.filter((finding) => finding && finding.status === "open")
+    : null;
+  const sev = findings
+    ? {
+      critical: open.filter((finding) => finding.severity === "critical").length,
+      high: open.filter((finding) => finding.severity === "high").length,
+    }
+    : (d.skill_state && d.skill_state.findings_by_severity) || null;
   if (sev && (sev.critical > 0 || sev.high > 0)) {
     openLoops.push(
       `${d.skill}: ${sev.critical || 0} critical / ${sev.high || 0} high open` +
@@ -84,10 +147,18 @@ for (const f of files) {
     );
   }
 
-  if (!next && d.status === "in_progress" && Array.isArray(d.next_actions) && d.next_actions[0]) {
-    next = `${d.skill}: ${String(d.next_actions[0]).slice(0, 140)}`;
+  // Work already on the AWAITING YOU line is not repeated as "next"; among the
+  // rest, the most recently touched in_progress checkpoint leads — not whichever
+  // file sorts first alphabetically.
+  const awaiting = Array.isArray(d.blockers) && d.blockers.some((b) => b && b.needs === "user_decision");
+  const first = Array.isArray(d.next_actions) ? actionText(d.next_actions[0]) : "";
+  if (d.status === "in_progress" && !awaiting && first) {
+    nextCandidates.push({ t: Number.isNaN(ts) ? 0 : ts, text: `${d.skill}: ${first.slice(0, 140)}` });
   }
 }
+
+nextCandidates.sort((a, b) => b.t - a.t);
+const next = nextCandidates.length ? nextCandidates[0].text : null;
 
 if (!stale.length && !blocked.length && !openLoops.length && !next) process.exit(0);
 

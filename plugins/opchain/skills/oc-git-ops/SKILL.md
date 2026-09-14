@@ -1,9 +1,9 @@
 ---
 name: oc-git-ops
 displayName: OC · Git Ops
-version: 1.9.0
+version: 2.0.0
 license: Apache-2.0
-shortDesc: Branch, commit, PR, sync, and release-tag workflows. `/oc-git-release` closes the release ledger; v1.2 is PM-aware.
+shortDesc: Branch, commit, PR, sync, and release-tag workflows. `/oc-git-release` closes the release ledger; PM-aware (v1.3+).
 phases: [build]
 triAgent: false
 tryable: true
@@ -18,8 +18,9 @@ description: >
   Git workflow: branch, commit, PR, sync, release tag. Chains to (when you invoke it):
   oc-bug-check before every commit and the oc-docs-forge → oc-repo-ops pre-PR gate before
   every PR. Owns the release tag that oc-release-ops hands off. Use for /oc-git, /oc-commit,
-  /oc-pr, /oc-push, /oc-git-release, "commit this", "push to git", "create a PR",
-  "tag the release", "sync to repo", or any git operation.
+  /oc-pr, /oc-push, /oc-git-sync, /oc-git-release, "commit this", "push to git", "create a PR",
+  "tag the release", "sync to repo", or any git operation. "Commit and open a PR" is
+  /oc-git-sync (branch → commit → push → PR); /oc-pr only drafts the PR description.
 ---
 
 # Git Ops
@@ -30,32 +31,31 @@ Move code from Claude's workspace to a git repository with proper branch managem
 commit structure, and PR descriptions. This is the bridge between "Claude built it"
 and "it's in version control."
 
-## /oc-git-ops — Command Reference
+## /oc-git — Command Reference
 
-When the user types `/oc-git-ops`, display this menu:
+When the user types `/oc-git`, display this menu:
 
 ```
 GIT OPS COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   WORKFLOW
-  /oc-git-init         Clone repo + set up workspace for a project
-  /git-branch       Create a feature branch from convention
-  /oc-git-commit       Stage + commit with structured message
-  /oc-git-pr           Generate PR description from commits/checkpoint
-  /git-push         Push branch to remote
-  /oc-git-sync         Full workflow: branch → commit → push → PR
+  /oc-commit           Stage + commit with structured message
+  /oc-pr               Generate PR description from commits/checkpoint
+  /oc-push             Push branch to remote
+  /oc-git-sync         Full workflow: branch (from convention) → commit → push → PR
   /oc-git-release      Tag a merged release + push the tag (closes the ledger)
 
   UTILITIES
-  /oc-git-status       Show current branch, staged changes, remote state
-  /git-diff         Show what's changed since last commit
-  /oc-git-convention   Show/set naming conventions for this project
-  /checkpoint       Show checkpoint status
+  /checkpoint          Show checkpoint status
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Type any command to begin. /oc-git-ops to see this again.
+  Type any command to begin. /oc-git to see this again.
 ```
+
+Plain requests, not slash commands: "set up the repo" (clone and prepare the workspace,
+Phase 0), "git status" (branch, staged changes, remote state and diff since the last
+commit), and "show / set the git conventions" (branch and commit naming).
 
 ---
 
@@ -63,7 +63,7 @@ GIT OPS COMMANDS
 
 ```
 CLAUDE WORKSPACE                    GIT REPO
-/home/claude/project/               github.com/user/project
+<workspace>/project/                github.com/user/project
                                     
   Built files          ──────►      Feature branch
   + checkpoint data    ──────►      Structured commits
@@ -74,21 +74,24 @@ The typical flow:
 1. Clone the user's repo (or confirm it's already cloned)
 2. Create a feature branch following project conventions
 3. Copy/move built files into the repo working tree
-4. Make structured commits (one per logical unit)
-5. Push the branch
-6. Run the pre-PR gate: oc-docs-forge (PR docs packet) → oc-repo-ops (readiness check)
-7. Generate a PR description from the checkpoint + commit log + docs packet
+4. Run the pre-commit gate: oc-bug-check must PASS before any commit
+5. Make structured commits (one per logical unit)
+6. Push the branch
+7. Run the pre-PR gate: oc-docs-forge (PR docs packet) → oc-repo-ops (readiness
+   check); docs edits the packet makes are committed (through the bug-check gate)
+   and pushed before the readiness check
+8. Generate a PR description from the checkpoint + commit log + docs packet
 
 ---
 
-## Phase 0: Repository Setup (/oc-git-init)
+## Phase 0: Repository Setup ("set up the repo")
 
 ### First Time
 
 ```bash
 # Clone the repo
-git clone <repo-url> /home/claude/<project-name>
-cd /home/claude/<project-name>
+git clone <repo-url> <workspace>/<project-name>
+cd <workspace>/<project-name>
 
 # Verify remote
 git remote -v
@@ -100,7 +103,7 @@ git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'
 ### Returning (repo already cloned)
 
 ```bash
-cd /home/claude/<project-name>
+cd <workspace>/<project-name>
 git fetch origin
 git checkout main && git pull origin main
 ```
@@ -149,7 +152,7 @@ If an oc-app-architect checkpoint exists, derive the branch name from it:
 - Code audit fix → `fix/audit-f001-rate-limiting`
 - Deploy setup → `deploy/ci-cd-pipeline`
 
-### /oc-git-convention
+### Naming conventions ("show / set the git conventions")
 
 Set or view the project's naming conventions:
 
@@ -168,7 +171,7 @@ EOF
 
 ---
 
-## Commit Structure (/oc-git-commit)
+## Commit Structure (/oc-commit)
 
 ### Conventional Commits
 
@@ -238,31 +241,35 @@ Then read `.checkpoints/oc-bug-check.checkpoint.json` for the verdict.
 
 | Verdict | Action |
 |---|---|
-| PASS | Proceed to `git add` + `git commit` |
-| FAIL | **ABORT.** Surface the failing checks and offer the user `/oc-bugcheck fix` (auto-fix lint/format) or `/oc-bugcheck bypass` (logged override). Do NOT call `git commit` until verdict flips to PASS or the user explicitly bypasses. |
+| PASS | Proceed to `git add` + `git commit`, editing nothing in between. The PASS is bound to `skill_state.verified_tree`, so any change after the run invalidates it (oc-bug-check § Commit gate contract). |
+| FAIL | **ABORT.** Surface the failing checks and offer the user `/oc-bugcheck fix` (auto-fix lint/format). If they choose to commit anyway, that is an explicit bypass: record it with `/oc-bugcheck bypass`, then commit with `OPCHAIN_BYPASS=1 git commit …` or `git commit --no-verify`. The record is the accountability trail; on its own it does not clear the commit-gate hook. Do NOT call `git commit` until the verdict flips to PASS or the user explicitly bypasses. |
+| UNSUPPORTED | **Not a pass.** Bug-check did not recognize the stack and skipped types, lint, tests and build. Surface that; commit only if the user explicitly bypasses, as for FAIL. |
 | (no checkpoint) | Bug-check hasn't run — invoke it first. |
 
-> **This gate is advisory unless your repo installs the hook.** The opchain.dev
-> repo registers a `PreToolUse(Bash)` hook that blocks `git commit` on a missing,
-> stale, or non-PASS bug-check checkpoint — but that hook lives in *that repo's*
-> `.claude/settings.json` and is **not shipped by the skills bundle**. In your
-> project, nothing mechanically enforces the table above; treat it as a contract
-> you are choosing to honour. To get real enforcement, install the opchain plugin
-> (which ships the hook) rather than the skills zip.
+> **This gate is advisory unless the commit-gate hook is installed.** The opchain
+> plugin ships a `PreToolUse(Bash)` hook (`hooks/pre-commit-gate.cjs`) that blocks
+> `git commit` unless the bug-check checkpoint records a PASS bound to the current
+> working tree; the opchain.dev repo registers that same file in its
+> `.claude/settings.json`. The hook arms only in a repo that already has a
+> `.checkpoints/` or `.opchain/` directory (or when `OPCHAIN_GATE=1` is set);
+> elsewhere it allows every commit. `OPCHAIN_BYPASS=1` or `--no-verify` clears it.
+> The **skills bundle does not ship it** — with the zip alone, nothing mechanically
+> enforces the table above; treat it as a contract you are choosing to honour. To
+> get real enforcement, install the opchain plugin rather than the skills zip.
 
 ---
 
-## PR Description (/oc-git-pr)
+## PR Description (/oc-pr)
 
 ### Auto-Generated from Context
 
 Pull from all available sources to build a comprehensive PR description:
 
 1. **Commit log** — `git log main..HEAD --oneline`
-2. **Tri-dev checkpoint** — sprint contract, evaluator scores
+2. **App-architect checkpoint** — which roadmap tasks this covers, the Phase 6
+   sprint contract and evaluator scores
 3. **Code-auditor checkpoint** — findings addressed, remaining issues
-4. **App-architect checkpoint** — which roadmap tasks this covers
-5. **Docs-forge checkpoint** — `skill_state.pr_body_fragment` (the `## Documentation`
+4. **Docs-forge checkpoint** — `skill_state.pr_body_fragment` (the `## Documentation`
    section) and `pr_comment_marker` for the optional docs comment
 
 ### PR Template
@@ -333,16 +340,22 @@ If `pr_comment_marker` is set, post the docs comment after the PR opens.
 Skill(skill="oc-repo-ops", args="/oc-repo verify")
 ```
 
-Then read `.checkpoints/oc-repo-ops.checkpoint.json` for the verdict:
+Then run `node scripts/lib/release-evidence.mjs --stage pr`. It requires A's
+canonical PASS receipt for the exact candidate tree plus C-contract Docs Forge
+(`pr-docs-v1`) and Repo Ops (`pr-readiness-v1`) PASS handoffs bound to the HEAD
+tree projection excluding `.checkpoints/`. A squash merge whose source content
+changes produces a different projection and cannot reuse the prior evidence.
 
 | Verdict | Action |
 |---|---|
-| PASS | Proceed to `gh pr create` |
+| Evaluator PASS | Proceed to `gh pr create` |
+| Missing/stale/invalid receipt or typed handoff | **ABORT.** Re-run candidate verification, `/oc-docs pr`, then `/oc-repo verify`. |
 | FAIL | **ABORT.** Surface `skill_state.blocking_findings` and offer the user `/oc-repo clean` (safe fixes) or `/oc-docs pr` (regenerate a stale packet). Do NOT open the PR until the verdict flips to PASS. |
 | (no checkpoint) | The gate hasn't run — invoke oc-docs-forge, then oc-repo-ops, first. |
 
-Required order (from the oc-repo-ops Every-PR Gate): docs-forge → repo-ops →
-bug-check (already run at commit time) → PR.
+Required order (from the oc-repo-ops Every-PR Gate): bug-check (already run
+before every commit, including any docs-packet commit) → docs-forge → repo-ops →
+PR.
 
 ### Creating the PR
 
@@ -351,7 +364,7 @@ bug-check (already run at commit time) → PR.
 gh pr create --title "[type]: [description]" --body-file /tmp/pr-description.md
 
 # If not, output the description for the user to paste
-echo "PR description saved to: /mnt/user-data/outputs/pr-description.md"
+echo "PR description saved to: /tmp/pr-description.md"
 echo "Create the PR manually and paste this description."
 ```
 
@@ -369,23 +382,27 @@ One command that runs the entire flow:
 2. **Determine branch name** — from checkpoint or description
 3. **Create branch** — `git checkout -b <branch>`
 4. **Stage changes** — intelligently stage (skip build artifacts, node_modules)
-5. **Structure commits** — group by logical unit
-6. **Run oc-bug-check gate** — invoke `Skill(skill="oc-bug-check", args="/oc-bugcheck run")`. **FAIL aborts the sync** — surface the failing checks and stop. The user can `/oc-bugcheck fix`, `/oc-bugcheck bypass`, or address the failures and re-run `/oc-git-sync`.
+5. **Run oc-bug-check gate** — invoke `Skill(skill="oc-bug-check", args="/oc-bugcheck run")` after the last edit and before any commit. **FAIL aborts the sync** — surface the failing checks and stop. The user can `/oc-bugcheck fix`, address the failures and re-run `/oc-git-sync`, or bypass explicitly as described in the Pre-Commit Gate table.
+6. **Structure commits** — group by logical unit, editing nothing after step 5. The PASS covers the whole working tree, so it holds for every commit in the group; if the commit-gate hook reports that the repo changed, re-run step 5.
 7. **Push** — `git push -u origin <branch>`
 8. **Generate PR docs packet** — invoke `Skill(skill="oc-docs-forge", args="/oc-docs pr")` to produce the `## Documentation` body fragment (and any README/product-doc edits that must travel with the change)
-9. **Run oc-repo-ops gate** — invoke `Skill(skill="oc-repo-ops", args="/oc-repo verify")`. **FAIL aborts the sync before the PR is created** — surface the blocking findings; the user can `/oc-repo clean` or fix and re-run.
-10. **Generate PR description** — from all available context, inserting the docs packet's `## Documentation` fragment
-11. **Create PR** — via gh CLI or output for manual creation
+9. **Commit the docs edits** — if step 8 changed files, stage them, re-run the oc-bug-check gate (step 5), commit (`docs: …`), push, and re-run `/oc-docs pr` at most once more so the packet's `verified_for_sha` is the new HEAD (if that run edits files again, stop and surface it rather than looping). Skip when step 8 changed no files.
+10. **Run oc-repo-ops gate** — invoke `Skill(skill="oc-repo-ops", args="/oc-repo verify")`, then `node scripts/lib/release-evidence.mjs --stage pr`. **FAIL aborts the sync before the PR is created** — surface the blocking findings; the user can `/oc-repo clean` or fix and re-run.
+11. **Generate PR description** — from all available context, inserting the docs packet's `## Documentation` fragment
+12. **Create PR** — via gh CLI or output for manual creation
 
 At each step, show progress. If any step needs user input, ask once and continue.
 
 ### Post-Sync Handoff
 
-After `/oc-git-sync` completes successfully:
-- If a oc-deploy-ops config exists for this project, suggest:
-  "Changes pushed. Run `/oc-deploy staging` to deploy to staging?"
-- If no oc-deploy-ops config exists, suggest:
-  "Changes pushed. Run `/oc-deploy init` to set up deployment, or `/oc-audit pre-deploy` for a quality check."
+After `/oc-git-sync` completes successfully, hand off per orchestrator §3
+("git-sync completes"). Deploying is a user decision, so confirm first:
+- If an oc-deploy-ops config exists for this project, ask: "Changes pushed. Run
+  the deploy audit and deploy to staging?" On yes, invoke
+  `Skill(skill="oc-deploy-ops", args="/oc-deploy audit")`, then
+  `Skill(skill="oc-deploy-ops", args="/oc-deploy staging")`.
+- If no oc-deploy-ops config exists, offer `/oc-deploy init` to set up
+  deployment, or `/oc-audit pre-deploy` for a quality check.
 
 ---
 
@@ -408,12 +425,16 @@ Refuse and explain, rather than tagging anyway, if:
 
 - HEAD is not reachable from `origin/main` (a release tag on an unmerged branch
   is worse than no tag — it points at code nobody else has).
-- The lockstep catalog version in `skills/*/SKILL.md` does not equal `<semver>`.
-  A tag that disagrees with the catalog is a second lie, not a fix.
-- `release-seal.json` is missing or names another catalog version. The seal is
-  the reviewed baseline an eventual tag must inherit.
+- The project's release version does not equal `<semver>`. In the opchain.dev
+  repo that is the lockstep catalog version in `skills/*/SKILL.md`; in another
+  project it is every version location listed in `.opchain/release.yaml`
+  (oc-release-ops multi-project mode). A tag that disagrees with the version is
+  a second lie, not a fix.
+- *(opchain.dev repo only)* `release-seal.json` is missing or names another
+  catalog version. The seal is the reviewed baseline an eventual tag must inherit.
 - A tag `v<semver>` already exists. Never move a published tag; cut the next
-  patch instead. `publish-mcp-registry.yml` has already fired for the old one.
+  patch instead. In opchain.dev, `publish-mcp-registry.yml` has already fired for
+  the old one.
 
 ### Steps
 
@@ -422,23 +443,28 @@ Refuse and explain, rather than tagging anyway, if:
 3. `git tag -s v<semver> -m "release: v<semver> — <theme>"` on the reviewed
    merge commit. This is a human gate: if the signing key is unavailable, stop
    rather than substituting an unsigned or agent-authored tag.
-4. `node scripts/check-release-tag.mjs --local` — verify the seal, exact tagged
-   publisher-workflow and `server.json` payload digests, catalog, ancestry, and
-   tag signature **before** a push can trigger the OIDC publisher.
-5. `git push origin v<semver>` — this is what triggers
+4. *(opchain.dev repo only)* `node scripts/check-release-tag.mjs --local` —
+   verify the seal, exact tagged publisher-workflow and `server.json` payload
+   digests, catalog, ancestry, and tag signature **before** a push can trigger
+   the OIDC publisher. Elsewhere, `git tag -v v<semver>` checks the signature.
+5. `git push origin v<semver>` — in opchain.dev this is what triggers
    `.github/workflows/publish-mcp-registry.yml`. An unpushed tag republishes
    nothing.
-6. Append to `oc-git-ops.checkpoint.json`:
+6. Record the tag in `oc-git-ops.checkpoint.json` under
+   `skill_state.release_reconciliation`, the shape the v1.9.0 cut wrote:
 
 ```json
-{ "skill_state": { "releases": [
-  { "semver": "1.8.3", "tag": "v1.8.3", "tag_sha": "…", "pr": 456, "tagged_at": "…" }
-] } }
+{ "skill_state": { "release_reconciliation": {
+  "release_pr": { "number": 477, "merge_sha": "…", "merged_at": "…" },
+  "tag": { "name": "v1.9.0", "object_sha": "…", "peeled_commit": "…",
+           "signing_fingerprint": "…", "local_gate": "PASS", "remote_gate": "PASS" }
+} } }
 ```
 
-7. Verify with `node scripts/check-release-tag.mjs` (exit 0). This remote gate
-   proves origin contains the same signed tag object, not merely a different tag
-   that peels to the same commit.
+7. *(opchain.dev repo only)* Verify with `node scripts/check-release-tag.mjs`
+   (exit 0). This remote gate proves origin contains the same signed tag object,
+   not merely a different tag that peels to the same commit. Elsewhere,
+   `git ls-remote --tags origin v<semver>` confirms the push.
 
 ### This verb is not the enforcement
 
@@ -466,6 +492,10 @@ project-specific, oc-git-ops defaults are generic.
 
 ## Checkpoint Integration
 
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-git-ops.
+
 ### Checkpoint Location
 `{project-dir}/.checkpoints/oc-git-ops.checkpoint.json`
 
@@ -478,20 +508,28 @@ project-specific, oc-git-ops defaults are generic.
 | Commits made | Commit SHAs, messages, file counts |
 | Push completed | Remote URL, branch pushed, timestamp |
 | PR created | PR URL, PR number |
-| **PR merged** | Append `{ number, title, merge_method, merge_sha, merged_at }` to `skill_state.merged_prs`. Re-stamp `updated_at`. |
-| **Release tagged** | Append `{ semver, tag, tag_sha, pr, tagged_at }` to `skill_state.releases`. |
+| **PR merged** | Note `{ number, title, merge_method, merge_sha, merged_at }`, and append it to `skill_state.merged_prs` at the next inflection-point restamp below, not once per merge. |
+| **Release tagged** | Write `skill_state.release_reconciliation.tag` `{ name, object_sha, peeled_commit, signing_fingerprint, local_gate, remote_gate }` and its `release_pr` (see /oc-git-release step 6). |
 
 ### Post-Merge Update
 
 Restamp `merged_prs` at sensible inflection points — after a review wave, when a
-release ships, or when a session ends — not once per merge. The single update is:
+release ships, or when a session ends — not once per merge. Where the project has the
+checkpoint CLI, the single update is below; otherwise edit
+`.checkpoints/oc-git-ops.checkpoint.json` directly (append to `skill_state.merged_prs`,
+set `step` and `status`, restamp `updated_at`):
 
 ```bash
 node scripts/checkpoint.mjs update oc-git-ops \
-  "--skill_state.merged_prs+:json={...}" \
+  "--skill_state.merged_prs:json+={...}" \
   "--step=last-merge-#${PR_NUM}" \
   "--status=complete"
 ```
+
+Each `:json+=` flag appends one object; repeat the flag to record several PRs. (Up
+to v1.9.0 this recipe was written `+:json=`, which the CLI parsed as a literal key
+named `merged_prs+`; the CLI now accepts either order and refuses a key that still
+carries an operator.) Without the CLI, edit `skill_state.merged_prs` directly.
 
 > **Do not automate this per-merge.** opchain.dev once ran a
 > `.github/workflows/checkpoint-after-merge.yml` that opened a
@@ -525,10 +563,33 @@ node scripts/checkpoint.mjs update oc-git-ops \
 | Reads from | Why |
 |---|---|
 | oc-app-architect | Roadmap tasks → PR description, phase → branch naming; Phase 6 sprint contract → commit scoping, eval scores → PR description |
+| oc-bug-check | Pre-commit gate verdict (PASS / FAIL / UNSUPPORTED) → allow or block the commit |
 | oc-code-auditor | Audit grade → PR description, findings → commit grouping |
 | oc-docs-forge | PR docs packet (`pr_body_fragment`, `pr_comment_marker`) → PR body + docs comment |
 | oc-repo-ops | PR readiness verdict + blocking findings → gate PR creation |
 | oc-deploy-ops | Deploy status → PR deployment notes |
+
+| Chains to | When |
+|---|---|
+| oc-bug-check | Before every commit (`/oc-commit`, `/oc-git-sync` step 5) |
+| oc-docs-forge → oc-repo-ops | Before every PR (the pre-PR gate) |
+| oc-deploy-ops | After `/oc-git-sync`, on user confirmation: `/oc-deploy audit` then `/oc-deploy staging` |
+
+| Invoked by | When |
+|---|---|
+| oc-release-ops | `/oc-release ship`: `/oc-git-sync v<semver>` for the release PR, then `/oc-git-release <semver>` after merge |
+| oc-app-architect | All build sprints pass → `/oc-git-sync` |
+| oc-claude-api / oc-prompt-ops | A model-migration or prompt diff with no score regression → `/oc-pr` (the pre-PR gate runs as usual) |
+| oc-modularize-ops | A commit per module extraction → `/oc-commit` |
+| oc-fleet-ops | The IaC for a fleet deploy → `/oc-commit` |
+| oc-migration-ops | Code changes from migration steps → `/oc-git-sync` (suggested) |
+
+| Read by | Why |
+|---|---|
+| oc-release-ops | `skill_state.merged_prs` → "What's new" bullets (a documented sibling key) |
+| oc-deploy-ops | Branch merged → ready to deploy |
+| oc-docs-forge | Branch, commit log, PR draft, linked ticket (passed at the pre-PR handoff) |
+| oc-repo-ops | Branch, base, commit log, PR draft → readiness gate |
 
 ---
 
@@ -543,13 +604,14 @@ node_modules/
 dist/
 build/
 .wrangler/
-*.checkpoint.json.bak  # Archived checkpoints
 .git-ops-config.json   # Local oc-git-ops config
 ```
 
 Do **not** gitignore `.checkpoints/` by default — the checkpoint protocol tracks it
 in git unless the project's protocol says otherwise, and oc-repo-ops enforces that
 policy at the pre-PR gate. Only ignore it when the project has explicitly opted out.
+That includes archived checkpoints: they rotate into the tracked
+`.checkpoints/history/` directory, so there is no `.bak` pattern to ignore.
 
 If `.gitignore` is missing entries, add them in a separate `chore: update .gitignore`
 commit before the feature commits.
@@ -565,7 +627,8 @@ the configured PM-MCP and uses it for branch, commit, and PR shape.
 
 The runtime contract — concrete tool names, retry policy, idempotency
 markers, and the `pm_deferred_actions[]` schema — lives in
-[`oc-integrations-engineer/references/pm-mcp-protocol.md`](../oc-integrations-engineer/references/pm-mcp-protocol.md).
+`oc-integrations-engineer/references/pm-mcp-protocol.md`, in that skill (not bundled
+with this skill; install the full catalog, or oc-integrations-engineer alongside it).
 **All MCP calls below honour that contract; this section says only how
 oc-git-ops shapes branch / commit / PR / state from the ticket.**
 

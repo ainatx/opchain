@@ -1,7 +1,7 @@
 ---
 name: oc-migration-ops
 displayName: OC · Migration Ops
-version: 1.9.0
+version: 2.0.0
 license: Apache-2.0
 shortDesc: Change the engine mid-flight — DB, framework, auth, platform. v1.2 mirrors the plan as parent + step children.
 phases: [plan, build]
@@ -139,7 +139,15 @@ When the user describes a migration without explicitly classifying it, infer the
 - "Upgrade checkpoint protocol to v2" → Ecosystem
 - "Add a new field to every SKILL.md" → Ecosystem
 
-If ambiguous, ask ONE clarifying question using `ask_user_input`.
+If ambiguous, ask ONE clarifying question.
+
+**Structural vs oc-modularize-ops.** Structural stays the home for repo/package
+reorgs whose behaviour is git-diffable. A decomposition of a *live* monolith
+carrying real traffic, where no functionality or data loss has to be proven
+against real input/output, goes to `oc-modularize-ops` first. It decides whether
+to split, captures golden fixtures, and plans the seams, then hands the move back
+here as `modularization/module-map.json` (see *Cross-Skill Reads*). The two
+skills never both plan the same split: if that file exists, plan from it.
 
 ---
 
@@ -153,15 +161,19 @@ the most important phase — a bad assessment produces a bad plan.
 Check for existing documentation in this order:
 
 1. **CLAUDE.md / project config** — if a CLAUDE.md exists in the project root, read it
-   first. For Cloudflare Workers apps, also read `wrangler.toml` for bindings (D1, KV, secrets),
-   routes, and compatibility dates.
+   first. For Cloudflare Workers apps, also read `wrangler.jsonc` (or `wrangler.toml`) for
+   bindings (D1, KV, secrets), routes, and compatibility dates.
 2. **Reverse-spec checkpoint** — if it exists, the current state is already documented.
    Read `context_primer.key_decisions` and `generated_files` for architecture, schema,
    and stack info. Skip redundant scanning.
 3. **App-architect checkpoint** — read spec files (01-tech-stack.md, 02-architecture.md)
    for the documented architecture.
 4. **Stack-forge checkpoint** — read stack decisions for current platform/framework choices.
-5. **Code scan** — if no upstream checkpoints exist, run a targeted scan of the specific
+5. **Module map** — if `modularization/module-map.json` exists, oc-modularize-ops has
+   already decided the split and planned the seams. Classify as Structural, take the
+   module list, seams, and data ownership from the file (format under *Cross-Skill
+   Reads*), and do not re-derive them.
+6. **Code scan** — if no upstream checkpoints exist, run a targeted scan of the specific
    layer being migrated (not a full oc-reverse-spec).
 
 ### Step 2: Define Target State
@@ -556,12 +568,15 @@ affected.
 | **oc-scale-ops** | Peer. Platform moves may change scaling characteristics. Reads oc-scale-ops for performance baselines. |
 | **oc-git-ops** | Downstream. After migration steps that produce code changes, suggests oc-git-ops commit. |
 | **oc-monitoring-ops** | Downstream. Platform moves and database migrations change health check URLs, connection targets, and alert thresholds. Invoke `/oc-monitor setup` to update monitoring config after cutover. |
+| **oc-modularize-ops** | Upstream. For a live-monolith decomposition it hands over `modularization/module-map.json`; `/oc-migrate plan` builds the Structural plan (code-move + live cutover) from that file. |
+| **oc-data-ops** | Upstream and downstream. It chains here for live-pipeline schema evolution beyond additive changes; warehouse/pipeline migrations chain back to `/oc-data-ops verify`. |
 
 ### Active Chaining
 
 | Trigger | Action |
 |---|---|
 | Assessment needs current state docs | Check oc-reverse-spec checkpoint → if missing, run targeted scan |
+| `modularization/module-map.json` present | Plan the Structural code-move from it for every module in the map; hold each module's live-cutover steps until its `equivalence_verified` is `true` |
 | Platform move planned | Invoke oc-stack-forge to validate target stack |
 | Migration complete | Invoke oc-code-auditor `/oc-audit full` |
 | Auth migration complete | Invoke oc-security-auditor `/oc-security posture` |
@@ -573,6 +588,10 @@ affected.
 ---
 
 ## Session Persistence (Checkpoint Protocol)
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-migration-ops.
 
 Checkpoint: `{project-dir}/.checkpoints/oc-migration-ops.checkpoint.json`
 
@@ -590,7 +609,7 @@ block any new `/oc-migrate assess` or `/oc-migrate plan` until the current migra
 completed, rolled back, or explicitly abandoned via `/oc-migrate abandon`. This prevents
 half-finished migrations from being orphaned by a new one starting on top.
 
-`/oc-migrate abandon` archives the checkpoint (`.bak`) and warns: "Abandoning mid-migration
+`/oc-migrate abandon` archives the checkpoint to `.checkpoints/history/` and warns: "Abandoning mid-migration
 may leave the system in a partial state. Run `/oc-migrate verify` to check current health."
 
 ### progress_table
@@ -672,13 +691,32 @@ Type-specific fields by migration type:
 | oc-scale-ops | Performance baselines — detect regression after migration |
 | oc-deploy-ops | Deployment config — environments, URLs, health checks |
 | oc-data-ops | Data contracts + `.verified/` baselines are the target-state spec for warehouse/pipeline migrations; dialect-pinned `invariants[].check` SQL must be rewritten before cutover (v1.9) |
+| oc-modularize-ops | `modularization/module-map.json` — the Structural plan input for a live-monolith split (below) |
+
+**`modularization/module-map.json`** is a file, not a checkpoint read (another
+skill's `skill_state` stays private). oc-modularize-ops writes it; this skill and
+oc-fleet-ops read it. It holds a `modules` array, one object per module:
+
+```json
+{ "modules": [
+  { "id": "billing", "seam_contract": "modularization/seams/billing.md",
+    "owns_data": ["invoices", "charges"], "image_hint": "billing",
+    "equivalence_verified": true }
+] }
+```
+
+The code-move plan covers every module in the map — oc-modularize-ops hands a module
+over for the move before its equivalence proof runs. The **live cutover** (traffic shift,
+decommission) for a module waits until oc-modularize-ops sets its `equivalence_verified`
+to `true`. `owns_data` marks where the dual-write boundaries sit.
 
 | Read by | Why |
 |---|---|
-| oc-deploy-ops | Migration status → deploy confidence, cutover readiness |
-| oc-code-auditor | Post-migration findings → quality gate |
-| oc-app-architect | Spec updates needed → architecture doc refresh |
 | oc-orchestrator | Migration progress → pipeline status, blockers |
+
+No other skill reads this checkpoint. When handing cutover to oc-deploy-ops, state the
+cutover readiness (steps verified, point of no return reached or not) in the handoff
+itself — oc-deploy-ops does not gate on migration state.
 
 ---
 
@@ -689,10 +727,9 @@ Type-specific fields by migration type:
 and the next step.
 
 `/oc-migrate history` reads `steps_verified` and `step_failures` from the checkpoint and lists each
-completed step with outcome (✅/❌→✅ retry/❌ failed), duration, and session number. Both
-views are read-only summaries — execution happens via `/oc-migrate execute`.
-
-For the full output formats and example renders, see `references/migration-playbooks.md`.
+completed step with outcome (✅/❌→✅ retry/❌ failed), plus the duration recorded in that step's
+`migrations/steps/step-NN-report.md`. Both views are read-only summaries — execution happens
+via `/oc-migrate execute`.
 
 ---
 
@@ -724,7 +761,9 @@ Migrations are multi-week, multi-step, multi-engineer. They are
 also genuinely scary — the kind of work where everyone in the org
 wants to know the current state. v1.2 makes that state legible
 in the PM tool the team already lives in. See
-`oc-integrations-engineer` for the canonical PM-MCP patterns.
+`oc-integrations-engineer` for the canonical PM-MCP patterns and
+`oc-integrations-engineer/references/pm-mcp-protocol.md` for the runtime
+contract (tool names, markers, retry, deferred-action queue).
 
 ### Parent + step-child mirror
 
@@ -732,9 +771,11 @@ When `/oc-migrate plan` produces the migration plan:
 
 1. Create a **parent ticket**:
    - title: `Migration: {from-engine} → {to-engine}`
-   - type: `chore` or `epic` from `.opchain/pm.yaml` (use `epic`
-     mapping if available — migrations are exactly the kind of
-     work epics exist for).
+   - type: the `epic` (or `chore`) mapping from `.opchain/pm.yaml`
+     `issue_types` when the project defines one — migrations are
+     exactly the kind of work epics exist for. The canonical
+     pm.yaml defines only feature/bug/deploy/incident, so with
+     neither key present use `issue_types.feature`.
    - body: full migration spec summary + estimated calendar
      duration + abort criteria + the rollback strategy.
    - labels: `migration`, `area:<from-engine>`, `area:<to-engine>`,
@@ -743,9 +784,11 @@ When `/oc-migrate plan` produces the migration plan:
    - title: `Step {NN}: {step-name}`
    - body: step procedure + rollback + verification criteria.
    - state: `Todo` initially.
-3. Record parent + child ids in the
-   `oc-migration-ops.checkpoint.json` so the executor knows which
-   ticket to update at each step.
+3. Record the ids in `oc-migration-ops.checkpoint.json` `pm_refs`:
+   the parent as `role: source`, each step ticket as `role: child`,
+   `created_by_skill: oc-migration-ops`. Keep the step ↔ ticket map
+   in `skill_state` so the executor knows which ticket to update at
+   each step.
 
 ### Per-step state machine
 
@@ -790,17 +833,18 @@ Aborts are big enough that they get their own visibility:
 
 ### Communication discipline
 
-For long-running migrations (multi-week), oc-monitoring-ops and
-oc-deploy-ops will write into the same parent ticket via their own
-PM-MCP integrations — deploy tickets parent-link to the migration
-parent, incident tickets back-reference if any incident is traced
-to a migration step. The parent ticket becomes the project
-homepage.
+For long-running migrations (multi-week), the parent ticket becomes
+the project homepage. oc-deploy-ops and oc-monitoring-ops do not
+look the migration parent up on their own: when a cutover deploy
+or an incident is traced to a migration step, link it to the
+parent yourself (the parent id is in this checkpoint's `pm_refs`).
 
 ### Failure modes
 
-- PM provider down at a step transition → checkpoint records the
-  intended transition; user can `/oc-migrate sync-pm` to flush.
+- PM provider down at a step transition → the intended write goes
+  to the checkpoint's `pm_deferred_actions[]` (pm-mcp-protocol.md
+  §4); the migration proceeds, and the user flushes the queue with
+  `--retry-pm` on the next `/oc-migrate execute`, `step` or `verify`.
 - Migration spans 50+ steps → use a phase-grouping pattern:
   parent → phase tickets (≤6) → step tickets per phase. Avoids a
   flat list of 50 children that nobody can navigate.

@@ -1,7 +1,7 @@
 ---
 name: oc-fleet-ops
 displayName: OC · Fleet Ops
-version: 1.9.0
+version: 2.0.0
 license: Apache-2.0
 shortDesc: "Provision and operate containers across self-managed infra — k8s/Nomad/Compose/VMs. Terraform when it fits, not always."
 phases: [build]
@@ -55,9 +55,11 @@ The IaC apply step is the highest-blast-radius operation in the entire opchain c
 so it is gated behind a mandatory dry-run/plan that **never auto-applies**.
 
 > Mnemonic: **deploy-ops pushes one app to a platform; fleet-ops stands up and runs a
-> fleet on infra you own.** deploy-ops ↔ fleet-ops are **peers**, not a chain — the
-> orchestrator routes by "managed app vs self-managed fleet" (see Boundaries). When a
-> project carries both checkpoints, that's the disambiguator.
+> fleet on infra you own.** deploy-ops ↔ fleet-ops are **peers**, not a chain — route by
+> "managed app vs self-managed fleet" (see Boundaries). When a project carries both
+> checkpoints, that's the disambiguator. The rule lives in this skill's description and
+> in the orchestrator's routing table ("Kubernetes" / "Terraform" / "Deploy multiple
+> containers" → `/oc-fleet topology`).
 
 ---
 
@@ -134,11 +136,11 @@ Declare **what runs where**: the set of containers/services, replica counts, the
 environment(s), networking, secrets, and state/volumes. This is the anchor every later
 phase grades against.
 
-When the input is a module map from `oc-modularize-ops`, ingest it via the named
-*Handoff contract* (below) — each module becomes one (or more) container(s)
-(`module.id → container`, `module.image_hint → image`). The module map
-(`modularization/module-map.json`) is the shared, named artifact; topology never
-re-derives the seams, it reads them.
+When the input is a module map from `oc-modularize-ops`, read
+`modularization/module-map.json` (format in the *Handoff contract* below) — each module
+becomes one (or more) container(s) (`module.id → container`, `module.image_hint → image`;
+when a module carries no `image_hint`, use its `id` as the image name). Topology never
+re-derives the seams, it reads them from that file.
 
 Topology output is recorded in `skill_state` (`containers[]`, `nodes[]`, `environment`)
 so `provision` and `deploy` operate against a declared, diffable target — not a verbal
@@ -202,7 +204,9 @@ flat pass/fail and must not be collapsed to `ok`.
 Day-2, the part deploy-ops doesn't have:
 
 - **`/oc-fleet scale`** — apply replica/node counts to a target. Fleet-ops **actuates**;
-  `oc-scale-ops` is the skill that **decides** the target (advisory). Fleet-ops never
+  `oc-scale-ops` is the skill that **decides** the target (advisory). Its capacity plan
+  (`/oc-scale plan`) gives tiers and the changes each needs, not per-service replica
+  counts — when the numbers are not in that plan, ask the user for them. Fleet-ops never
   invents capacity numbers.
 - **`/oc-fleet drain`** — cordon + drain a node for maintenance, or replace a failed
   container, rescheduling its workloads first.
@@ -226,11 +230,11 @@ these are first-class, mirroring `oc-deploy-ops` / `oc-monitoring-ops`:
 
 ## Scope discipline — first-class environments (like deploy-ops's Platform Matrix)
 
-fleet-ops is broad; it ships 1.7 with a **first-class shortlist** rather than claiming
+fleet-ops is broad; it focuses on a **first-class shortlist** rather than claiming
 universal coverage (mirrors `oc-deploy-ops`'s intentionally-short Platform Matrix — better
 to be excellent at three environments than mediocre at ten):
 
-| Environment | 1.7 status |
+| Environment | Status |
 |---|---|
 | docker-compose (single host) | **first-class** |
 | Kubernetes (manifests / Helm) | **first-class** |
@@ -238,9 +242,10 @@ to be excellent at three environments than mediocre at ten):
 | Nomad | reachable, not first-class |
 | Terraform multi-cloud (large) | reachable, not first-class |
 
-"Reachable, not first-class" means the skill will help but doesn't carry a vetted IaC
-recipe + `/demo` scenario for it yet. A later minor release promotes any of these by adding
-that recipe and scenario.
+"First-class" means the phases above are written with that environment's tooling in mind
+(Compose, `kubectl`/Helm, Ansible/cloud-init). "Reachable, not first-class" means the skill
+will help, with less environment-specific guidance. No environment ships a vetted IaC
+recipe or a `/demo` scenario yet — the reference docs below are unwritten.
 
 ---
 
@@ -256,8 +261,7 @@ that recipe and scenario.
 
 The peer relationship with `oc-deploy-ops` is the load-bearing boundary: a managed app on
 a PaaS is **not** in scope here, and a self-managed multi-container fleet is **not** in
-scope for deploy-ops. Route by "managed app vs self-managed fleet" — see the orchestrator
-note below.
+scope for deploy-ops. Route by "managed app vs self-managed fleet" — see the note below.
 
 ---
 
@@ -265,9 +269,9 @@ note below.
 
 | Reads from | Why |
 |---|---|
-| `oc-modularize-ops` | the module set to deploy (via the Handoff contract / `modularization/module-map.json`) |
+| `oc-modularize-ops` | the module set to deploy (`modularization/module-map.json`, per the Handoff contract) |
 | `oc-stack-forge` | target infra / platform decision |
-| `oc-scale-ops` | replica / capacity **targets** (fleet-ops applies; scale-ops decides) |
+| `oc-scale-ops` | capacity plan (`/oc-scale plan`) → replica / node **targets** (fleet-ops applies; scale-ops decides) |
 | `oc-app-architect` (`07-devops.md`) | deploy pattern intent |
 
 | Chains to | Why |
@@ -275,30 +279,32 @@ note below.
 | `oc-monitoring-ops` | post-deploy observability across the fleet |
 | `oc-git-ops` | commit the IaC |
 
-> **Resolves an existing seam:** deploy-ops's Platform Matrix currently routes bare-metal
-> to *oc-migration-ops* (verbatim: *"bare-metal needs oc-migration-ops, not
-> oc-deploy-ops"*). 1.7 **edits that row** to re-point self-managed/multi-node/IaC deploys
-> at `oc-fleet-ops` — a behavioural change. It also registers `deploy-ops ↔ fleet-ops` as
-> **peers** in the orchestrator so routing is unambiguous when a project has both
-> checkpoints (managed app → deploy-ops; self-managed fleet → fleet-ops). The justification
-> for the re-point: migration-ops is a *transformation engine* (engine swaps, cutovers)
-> with **no provision / topology / fleet-health surface** — it was only ever the bare-metal
-> pointer by default. fleet-ops gives that territory a real home.
+> **Seam with deploy-ops:** deploy-ops's Platform Matrix routes bare-metal, VPS,
+> multi-container and IaC deploys here (moving a live system onto one is oc-migration-ops).
+> The orchestrator records fleet-ops in its upstream/downstream map, handoff table
+> (modularize → fleet → monitoring) and routing table; the peer rule with deploy-ops is
+> carried by this skill's description.
 
 ---
 
 ## Handoff contract — the modularize → migration → fleet chain
 
 The orchestrator passes context through **checkpoints, not conversation** (orchestrator.md
-§3, *Context Passing*). So the chain needs a named payload, not "ingest it directly":
+§3, *Context Passing*), and oc-modularize-ops's `skill_state` is private to it. So the chain's
+payload is a named file, `modularization/module-map.json`, which oc-modularize-ops writes:
 
-- **oc-modularize-ops writes** `skill_state.modules[]` with, per module:
-  `{ id, seam_contract, owns_data[], image_hint, equivalence_verified }`.
-- **oc-migration-ops reads** that set to build the Structural cutover plan (which module
-  moves, what data it owns, dual-write boundaries).
-- **oc-fleet-ops `topology` reads** the same `modules[]` to seed containers
-  (`module.id → container`, `module.image_hint → image`). The module map is the shared,
-  named artifact (`modularization/module-map.json`), referenced by both downstream skills.
+```json
+{ "modules": [
+  { "id": "billing", "seam_contract": "modularization/seams/billing.md",
+    "owns_data": ["invoices", "charges"], "image_hint": "billing",
+    "equivalence_verified": true }
+] }
+```
+
+- **oc-migration-ops reads** it (`/oc-migrate plan`) to build the Structural cutover plan
+  (which module moves, what data it owns, dual-write boundaries).
+- **oc-fleet-ops `topology` reads** it to seed containers
+  (`module.id → container`, `module.image_hint → image`, falling back to `module.id`).
 
 Fleet-ops only deploys modules whose `equivalence_verified` is `true` — an unverified
 module is not a deployable container.
@@ -316,13 +322,19 @@ retry/backoff, idempotency markers, `pm_deferred_actions[]`) to
   `<!-- opchain:oc-fleet-ops:fleet-deploy:<env>:<sha> -->`, body = topology summary +
   rollout strategy + IaC tool.
 - **Per-event updates:** `rolled` / `partial-halt` / `rolled-back` transitions, each with
-  its own marker; records `skill_state.pm.deploy_tickets[]`.
+  its own marker; records the ticket ids in `pm_refs` (`role: deploy`,
+  `created_by_skill: oc-fleet-ops`) and the per-environment map in
+  `skill_state.pm.deploy_tickets[]`.
 - No PM-MCP availability → **deploy proceeds**; updates are deferred
   (`pm_deferred_actions[]`). PM writes never block a deploy.
 
 ---
 
 ## Checkpoint
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-fleet-ops.
 
 ### Location
 `{project-dir}/.checkpoints/oc-fleet-ops.checkpoint.json`
@@ -373,7 +385,7 @@ retry/backoff, idempotency markers, `pm_deferred_actions[]`) to
 
 ## references/
 
-> Planned companion docs for the S4 build (not yet written).
+> Planned companion docs (not yet written).
 
 - `topology-design.md` — containers × environment, networking, secrets, state.
 - `iac-selection.md` — Terraform-vs-alternatives decision matrix.

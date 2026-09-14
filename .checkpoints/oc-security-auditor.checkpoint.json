@@ -1,0 +1,42 @@
+{
+  "protocol_version": "1.1",
+  "skill": "oc-security-auditor",
+  "project": "opchain.dev",
+  "project_dir": "/Users/aidanelsesser/repos/worktrees/opchain-oc-update-v2",
+  "created_at": "2026-09-14T00:38:43.799Z",
+  "updated_at": "2026-09-14T00:38:43.800Z",
+  "phase": "verify",
+  "step": "v2-staging-review",
+  "status": "complete",
+  "progress_summary": "Scoped 2.0 runtime and staging boundary review passed. Real provider and native host acceptance remain release work.",
+  "next_actions": [
+    "Define the first real next action for this skill."
+  ],
+  "handoffs": [
+    {
+      "id": "oc-security-auditor-v2-preview-4d9c0e57f709",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T00:38:43.649Z",
+      "verified_at": "2026-09-14T00:38:43.649Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "v2-runtime-staging-review"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:4d9c0e57f7092c19459547da4c78f086347d81f10b9a3db92b9cbf1a124c00a0"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "2.0 shared runtime alignment and staging preview; historical unrelated audits remain separate",
+        "evidence": [
+          "docs/audits/2026-09-13-v2-runtime-staging-review.md",
+          "docs/plans/2026-09-13-v2-runtime-alignment.md"
+        ]
+      }
+    }
+  ],
+  "record_updated_at": "2026-09-14T00:38:43.800Z"
+}

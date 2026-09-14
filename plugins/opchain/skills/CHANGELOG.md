@@ -1,7 +1,8 @@
 # opchain skills — CHANGELOG
 
-The breaking-change + release log for the opchain skill set. Every skill's
-`governance.breaking_change_policy` points here. Skills are versioned in
+The breaking-change + release log for the opchain skill set. Skills that carry a
+`governance:` frontmatter block (15 of 33; the block is optional) point
+`governance.breaking_change_policy` here. Skills are versioned in
 **lockstep** — one minor bump moves the whole catalog — so entries are per
 release, not per skill.
 
@@ -10,9 +11,347 @@ contract another skill depends on → called out as **BREAKING**. The on-disk
 checkpoint `protocol_version` is tracked separately (see
 `oc-checkpoint-protocol/SKILL.md`).
 
+## 2.0 staging preview (unreleased)
+
+No release date is set. The preview includes the shared runtime, safe checkpoint saves, local tracking permission, explicit commit verification, complete runtime packages, recorded task evidence for Evolve, updated skill guides, and the Slate and Emerald site design. It contains 36 skills and 16 plugin commands, including explicit enrollment. Real provider and independent reviewer acceptance remain release requirements.
+
 ## [Unreleased]
 
 _Nothing yet._
+
+## [1.9.2] — 2026-09-13 — "Verified handoffs"
+
+Continues the 1.9.1 audit repairs with executable verification and shared state.
+The maintainer selected 1.9.2 for the complete approved remediation scope,
+including the additive local tools listed below. Release artifacts and staging verification are recorded separately from production deployment.
+
+### Fixed
+
+- Local MCP rejects symlinked skill entry points and reference paths outside the
+  skill tree; reference reads must match the startup manifest and content digest.
+
+- Commit verification checks the actual staged candidate at the Git commit
+  boundary, including partial staging, compound commands, alternate repositories
+  and linked worktrees. Receipts bind the candidate, repository and declared policy.
+- Required PR/deploy evidence and release checks reject missing or invalid results;
+  compliance remains warn-only. Release phases and monitoring-baseline policy agree.
+- Local MCP retrieves bundled references and persists provider-issued sessions and
+  typed checkpoints. Atomic writes and revision checks protect concurrent updates;
+  lifecycle hooks distinguish fresh verification from old records.
+- Telemetry consent stays local rather than following a cloned checkpoint. Field
+  validation, aggregate/export privacy rules and PM retry/revision identities are explicit.
+
+### Added
+
+- Explicit `/oc-enroll` setup plus packaged verification runtime, with path-safe
+  installation and a refusal to overwrite foreign hooks.
+- Runnable prompt evaluation and cost checks with versioned baselines, failure
+  artifacts and a bounded HTTP adapter; live-provider certification is separate.
+- Local telemetry event/aggregate/export commands, delivery-capability diagnostics,
+  a dependency-included local runtime and optional bounded execution kits.
+
+### Compatibility and security posture
+
+**Migration/setup required before relying on the new behavior.** All 33 skill
+versions move together; no skills are added. The wire protocol remains 1.1, with
+an additional typed state contract for consumers that require validated evidence.
+Re-enroll each target Git repository. Old handwritten checkpoint PASS values do
+not replace executable receipts; configure required checks in `.bugcheck.json`.
+Obtain a fresh local MCP session when migrating from the process-local provider,
+and explicitly enable telemetry locally. Legacy records may need fresh producer
+runs to satisfy typed consumers. Local durability requires macOS lockf or Linux
+flock; native Windows support is absent. Local hooks are bypassable, hosted state
+is advisory, and execution kits declare `isolation:none`. Remote protected CI,
+live PM/provider delivery and deployment remain separate release gates.
+
+Hindsight/Evolve and the repository split remain outside this release's scope.
+
+## [1.9.1] — 2026-09-13 — "The chain holds"
+
+A patch release: no new skills, commands or checkpoint fields. The 2026-09-11
+skill-chain audit (`docs/audits/2026-09-11-skillchain-2.0-audit.md`) upheld 484
+findings against the 2.0 chain at v1.9.0: the one mechanical gate opchain ships
+could be walked past or deadlocked, the checkpoint tooling misreported state, and
+the skills described handoffs, gates and reads their siblings did not back. This
+release makes the documented chain true. Every change passed one test — does it make
+documented behaviour true, or correct a document to match real behaviour? — and
+anything that failed it is deferred to v2.0 (internal plan:
+`docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md`).
+
+### Fixed
+
+- **Commit gate (plugin) — the tree hash is mandatory, and the documented schema
+  passes.** `hooks/pre-commit-gate.cjs` allowed a PASS with no `verified_tree` for
+  10 minutes, so a recent PASS also covered edits made after it. It now denies any
+  PASS without a tree hash, at any age; reads `skill_state.last_run.verdict` (the
+  shape oc-bug-check's SKILL.md documented, which the gate previously ignored); and
+  denies when recorded verdict fields disagree. **Stricter:** a checkpoint that
+  records a verdict but no `skill_state.verified_tree` is now denied where it used
+  to pass for 10 minutes — re-run `/oc-bugcheck` so the run records the tree.
+- **Commit gate (plugin) — a wrapper's re-scan covers only what it runs.** Once a
+  wrapper (`sh -c`, `bash -c`, `eval`, `… | sh`) appeared anywhere in a command,
+  the gate re-scanned the *whole* command for `git commit`, so quoted data — a JSON
+  dry-run payload piped into the gate — plus an unrelated `sh -c` on the next line
+  was denied as a commit. The re-scan now covers the wrapper's own command, plus
+  anything piped into it or fed to it by a here-doc. **Stricter:** wrappers are
+  found in the same command position as `git`, so `FOO=1 bash -c '…'`,
+  `/bin/sh -c '…'`, `nice sh -c '…'` and `then sh -c '…'`, which each committed
+  past the gate, now deny. The prefix grammar no longer backtracks
+  exponentially (26 × `time` outran the hook's 10s timeout), and quote spans
+  follow bash's rules: `\'` inside single quotes is not an escape, so
+  `echo 'a\' ; git commit …` no longer hides a commit.
+- **Commit gate (plugin) — commands are also read the way bash reads them.**
+  Quoted text was data to every matcher, but bash reads inside it, so each of
+  these committed past the gate: `echo "$(git commit -m x)"` and
+  `` echo `git commit -m x` `` (substitutions run inside double quotes and
+  unquoted here-documents); `\git commit`, `"git" commit` and `\sh -c '…'`
+  (quotes are removed before the command is looked up);
+  `find . -exec sh -c '…' \;`; `sh -c 'true;git commit …'`; and a commit after
+  an apostrophe in a comment or in `<<'EOF'` prose, where `don't` opened a quote
+  bash never saw. The gate now reads each command a second time with bash's
+  quoting rules and treats a commit found by either reading as a commit, so no
+  command it denied before is allowed now. Quoted here-document prose,
+  `echo "use git commit"` and `grep 'git commit'` stay data. **Stricter:** these
+  forms deny; `--no-verify` counts only where both readings see it outside
+  quotes; and a command inside `"$(…)"` is judged like the same command outside
+  it, so a dry run that pipes a payload naming `git commit` into `sh -c "…"` is
+  denied there too.
+- **Commit gate (plugin) — comments and here-document prose stay data.** Three
+  data commands were denied as commits: `ls # then git commit later` (both
+  readings read comments), `cat > notes.md <<"EOF"` prose mentioning
+  `$(git commit …)` (the first reading lexed the body as shell), and a `"` in
+  `"$(cat <<'EOF' … EOF)"` prose, which mis-paired every quote after it. What the
+  bash-style reading knows now masks what the first reading lexes: a comment that
+  could start no command is hidden from both, and a here-document body read only
+  by a plain `cat` or `tee` — not piped, not grouped, and written to no file the
+  command names again — is hidden from the first reading. Any other reader still
+  has its body read as commands (`dash <<EOF`, `ssh host <<'EOF'`,
+  `cat <<'EOF' | dash`, `cat > x.sh <<'EOF' … sh x.sh`), and a comment holding
+  `;`, `&`, `|`, a group or a substitution is still read, because a shell can
+  read `#` as a word. **Stricter:** `--no-verify` or `OPCHAIN_BYPASS=1` inside a
+  comment (`git commit -m x # --no-verify`) was taken as an explicit bypass; it
+  now denies.
+- **Commit gate (plugin) — `exec`, `caffeinate`, `builtin` and `script` are
+  transparent prefixes too.** `exec git commit` replaces the shell with git and
+  committed past the gate; `exec` was simply missing from the prefix chain that
+  already covered `nice`, `time` and `sudo`. So did `caffeinate git commit`,
+  `builtin exec git commit`, `builtin eval 'git commit …'`, `exec sh -c '…'` and
+  `script -q /dev/null git commit` (its log-file argument is a value token before
+  git). Each was verified to create a real commit under a pty. **Stricter:** these
+  forms now deny; `caffeinate git status`, `script … git log`, `exec ls` and
+  quoted phrases like `echo "exec git commit"` stay allowed. `doas`, `chronic`,
+  `unbuffer`, `watch` and `parallel` were probed too but were absent on the test
+  box, so none could be confirmed to commit and none was added.
+- **Commit gate (plugin) — tracking `.checkpoints/` no longer deadlocks the tree
+  binding.** oc-git-ops and oc-checkpoint-protocol both tell you to track
+  `.checkpoints/`, but a run must hash the tree before writing the checkpoint that
+  carries the hash, and that write then moved the tree. In any repo that followed
+  the docs, every honest PASS was denied as "the repo has changed", and re-running
+  the gate moved the tree again. The opchain repo never saw it because it gitignores
+  that one file, and so did the hook's fixtures. The gate and the documented tree
+  recipe now both drop `.checkpoints/oc-bug-check.checkpoint.json` from the hash, so
+  writing, rewriting or staging it no longer invalidates the PASS. Every other file,
+  other skills' checkpoints included, still does. Record the tree with the updated
+  recipe in oc-bug-check § Commit gate contract; a tree recorded with the old recipe
+  in a repo that ignores the file is unchanged.
+- **oc-bug-check** — the Checkpoint Schema documents `last_run_verdict` and
+  `verified_tree`, and a new Commit gate contract section gives the exact tree
+  recipe: `git add -A` into a throwaway index. The `/oc-bugcheck` command had said
+  bare `git write-tree`, which misses unstaged and untracked files and so never
+  matched a dirty tree. The hook suite now builds its accepted checkpoint from that
+  section, so the docs and the gate cannot drift apart silently again.
+- **oc-git-ops** — the Pre-Commit Gate note describes the tree-bound hook instead
+  of a freshness window.
+- **oc-git-ops** — `/oc-git-sync` runs the bug-check gate before it structures
+  commits. It listed the commits at step 5 and the gate at step 6, an order the
+  commit-gate hook refuses, since no PASS exists yet when the first commit runs.
+- **oc-git-ops, oc-bug-check** — the FAIL guidance no longer presents
+  `/oc-bugcheck bypass` as the override. It records the bypass; the commit still
+  needs `OPCHAIN_BYPASS=1` or `--no-verify` to clear the hook. Corrected in the
+  Pre-Commit Gate table and in the FAIL report template.
+- **Checkpoint CLI — `status <skill>` reads its argument.** It printed the whole
+  table and exited 0 whatever skill was named, so oc-deploy-ops' audit gate, which
+  runs `status oc-security-auditor`, could not tell that no security assessment
+  existed. It now prints that one checkpoint and exits 1 when there is none.
+- **Checkpoint CLI — `update` operators combine in either order.** oc-git-ops'
+  documented restamp, `--skill_state.merged_prs+:json={…}`, wrote a literal key
+  named `merged_prs+` instead of appending. `+:json` and `:json+` now both append,
+  a key still carrying an operator is refused, and oc-git-ops' recipe uses
+  `:json+=`. An append adds one element, as documented.
+- **Checkpoint CLI — the validator accepts ISO-8601 offsets** (`+00:00`) as well as
+  `Z`, and **warns** when status and blockers disagree: `blocked` with no blockers,
+  or `complete` with an open user decision.
+- **Checkpoint CLI — `doctor` catches more drift.** It validates each file against
+  its real path, so a filename that does not match its skill is now reported; it
+  flags a `verified_for_sha` that is not in HEAD's history, the stale PASS a squash
+  merge leaves behind; and it reports every missing `generated_files` path, not just
+  the first three under ten fixed prefixes. `status --brief` skips actions whose PR
+  already merged, as `next` does. A scaffolded checkpoint takes its project name
+  from `package.json` instead of always writing `opchain.dev`.
+- **Checkpoint merge driver** — a one-sided telemetry update (`last_run`,
+  `run_history`, …) is no longer discarded when the other side has the newer
+  `updated_at`. Newer-wins now applies only when both sides changed that field.
+- **Session-state hook (plugin)** — a `{ text, done_when }` next action renders as
+  its text instead of `[object Object]`, and "next" is the most recently touched
+  in-progress work rather than the first file alphabetically, skipping work already
+  awaiting your decision.
+- **oc-git-ops, oc-repo-ops** — a pre-PR PASS counts only when `verified_for_sha`
+  equals the branch HEAD; oc-repo-ops defines "stale" the same way.
+- **oc-deploy-ops** — the audit gate is labelled agent-executed, reuses an audit only
+  if it covered the deploying SHA's runtime code, blocks when no security assessment
+  is on record unless a waiver is recorded, and hands off to `/oc-security posture`
+  instead of an undeclared verb.
+- **Every handoff names a verb its target declares, and every menu verb is declared.**
+  Fifteen handoffs named subcommands the target documented but did not declare in
+  `commands:` (`/oc-audit pre-deploy`, `/oc-security posture`, `/oc-deploy prod`,
+  `/oc-release verify`, `/oc-scale loadtest`, …); the sixteenth, `/oc-security
+  pre-deploy`, was repointed earlier in this release. Frontmatter now declares every
+  verb in each skill's own command menu, 84 new declarations in all (222 → 306),
+  including `/oc-deploy rollback`, `/oc-deploy env` and `/oc-audit fix-all`, each
+  already documented in its skill's command menu; `/oc-deploy env` and `/oc-rev-spec`
+  also gain behaviour text. `/oc-rev-spec`, which the skill's description and the site
+  already advertised, is declared as a root verb. Menu-only root verbs are not
+  declared, since a new root verb is a minor-release change: `/oc-export-spec`,
+  `/oc-punch-list`, `/oc-git-init`, `/oc-git-status`, `/oc-git-convention`,
+  `/oc-stack-compare`, `/oc-rev-status`, `/oc-rev-diff`, `/oc-df-status` and
+  `/oc-df-resume` are now documented as plain requests. `/oc-rollback` and
+  `/oc-git-commit`, which no skill declared, now read `/oc-deploy rollback` and
+  `/oc-commit`; oc-deploy-ops hands off to `/oc-monitor health` instead of an
+  undefined `/oc-monitor verify`. oc-git-ops, oc-stack-forge and oc-ux-engineer title
+  their menus with their declared `/oc-git`, `/oc-stack` and `/oc-uxe`. The production
+  deploy verb is `/oc-deploy prod` everywhere; bare `/oc-deploy` is the menu.
+- **orchestrator.md — the map covers the catalog.** Upstream/Downstream rows for
+  oc-checkpoint-protocol, oc-claude-api, oc-agent-forge, oc-rag-forge, oc-prompt-ops,
+  oc-signal-forge, oc-modularize-ops and oc-fleet-ops; Handoff Points rows for the
+  AI-app branch, the model-migration eval, validated signals and the
+  modularize → migration → fleet chain. §7 is generated from frontmatter: 11 of 32
+  blocks had drifted. `npm run check-skill-contracts` (in `pretest` and `prebuild`)
+  fails when a cited verb is undeclared or §7 drifts. oc-code-auditor's description takes §7's routing wording
+  back ("escalate to oc-bug-check / oc-security-auditor") and drops "security
+  audit", which collided with oc-security-auditor.
+- **oc-checkpoint-protocol matches the tooling.** Staleness is per status (7 days
+  `in_progress`, 14 `complete`, 3 `blocked`), not 7 days regardless; restart archives to
+  `.checkpoints/history/`, as `checkpoint reset` does, instead of a `.bak` file; `status`
+  is documented as not rendering `pm_refs`, which it never did; `doctor --online`
+  compares against the approved release baseline, not local HEAD; `/checkpoint` is
+  described as the prose convention it is; the undefined `resumed_from` field, the
+  nonexistent enterprise scenarios and the pre-1.0 "Today" section are gone; and the
+  Cross-Skill Reads table matches the orchestrator map. The "never read `skill_state`"
+  rule now matches the chain as built: a key its owner documents for siblings (the
+  commit gate's oc-bug-check fields, for one) is a published contract; the rest stays
+  private. The PM-MCP deferred-write fields are listed as optional. `references/INTEGRATION.md`
+  falls back to editing the JSON when the CLI is absent and mirrors oc-app-architect's
+  real gates and progress table.
+- **Commit gate (plugin) — 60-second timeout.** The gate hashes the full working tree on
+  every commit, and a hook killed at the old 10-second limit writes no deny, so a slow
+  repository could commit unchecked. The longer limit narrows that window; a gate run
+  slower than 60 seconds still allows. Nine gate behaviours with no test gained cases
+  (array or invalid checkpoint, `.opchain/` enrolment, `OPCHAIN_GATE=1`,
+  `OPCHAIN_BYPASS=1`, the `verdict` and `verified_for_tree` aliases, `xargs`, `sudo`).
+- **Plan & design skills say what they do (Sprint 5a).** oc-app-architect runs the
+  Design Evaluator itself on UI sprints (`/oc-uxe attach`) instead of waiting for an
+  "auto-attach" nothing performed, and ITERATE/FAIL map the same way on both sides.
+  oc-reverse-spec and oc-dash-forge write inside the project instead of claude.ai
+  sandbox paths; reverse-spec hands off by copying its specs to `spec/` (asking before
+  overwriting) and running `/oc-roadmap`. Spec numbering agrees everywhere (09
+  documentation plan, 10 cost estimate, 11 AI architecture). oc-dash-forge's
+  checkpoint follows the protocol and names its real upstream skills; oc-stack-forge
+  no longer claims app-architect uses its build ordering. oc-ux-engineer's phases are
+  `[plan, build]`, matching its build loop. 70 findings fixed, 7 already fixed.
+- **Gate and assurance skills say what they do (Sprint 5d-1).** oc-bug-check's
+  private-key grep actually matches PEM and PGP headers (it was BRE and never
+  did); its verdicts are PASS, FAIL or UNSUPPORTED as the commit gate reads them,
+  and a bypass is `OPCHAIN_BYPASS=1` or `--no-verify`, never the record alone.
+  oc-orchestrator's ranking matches `checkpoint.mjs next`, its CLI steps apply only
+  where the CLI exists, and its memory/session-file and per-app filename text is
+  gone. Cross-skill reads in oc-code-auditor, oc-security-auditor,
+  oc-security-hardening and oc-compliance-ops use fields their owners publish;
+  oc-compliance-ops says no capture allowlist exists rather than implying one.
+  60 findings fixed, 15 already fixed.
+- **AI-native and instrumentation skills say what they do (Sprint 5c).**
+  oc-agent-forge, oc-rag-forge, oc-prompt-ops and oc-cost-ops no longer claim
+  oc-deploy-ops gates production on their suites; `/oc-prompt regress` and
+  `/oc-cost gate` are agent-driven PR-time checks, not required CI jobs, and the
+  nonexistent `npm run oc-prompt` recipe is gone. Siblings read model routing from
+  oc-claude-api's `context_primer.key_decisions` and `11-ai-architecture.md` (not
+  its private state or an unproduced `05-llm-design.md`). The `cost` block lives in
+  the oc-cost-ops checkpoint, with `cost_per_eval` documented in oc-prompt-ops'
+  baseline. oc-telemetry-ops documents the four verbs `scripts/telemetry.mjs` has;
+  oc-signal-forge's Evaluator loop is capped at three rounds like its siblings.
+  44 findings fixed, 6 already fixed, 2 deferred to the release tooling.
+- **Build & integrate skills say what they do (Sprint 5b).** oc-modularize-ops,
+  oc-migration-ops and oc-fleet-ops share one named artifact,
+  `modularization/module-map.json`, with its shape written on every side; migration
+  plans the code move for every module and holds only live cutover (and fleet only
+  deploy) until `equivalence_verified`. oc-api-dev's drift check and oc-scale-ops'
+  budgets are described as recommendations oc-deploy-ops does not enforce, and
+  duties oc-monitoring-ops never took on are gone. Sandbox paths, undefined keys and
+  a false "fixtures are gitignored" claim are corrected; abandon archives to
+  `.checkpoints/history/`. 55 findings fixed, 8 already fixed, 7 won't-fix.
+- **Ship-side skills and the orchestrator map say what they do (Sprint 5d-2).**
+  oc-release-ops describes the real release order: a minor release flips the probed
+  site surfaces in the release PR with the CHANGELOG heading, before the tag (CI's
+  surface check requires it); a patch keeps product PR → tag → site PR; deploy always
+  follows the tag. Its verify gate splits pre-tag from post-tag checks, its drafts
+  match the hero-card changelog and five-hero rule, and `version-locations.md` is
+  rebuilt from the surface checker. oc-deploy-ops runs the project's deploy script
+  when there is one, detects `wrangler.jsonc`, and hands post-deploy checks to
+  `/oc-monitor health`. A failed `/oc-docs verify` now clears `verified_for_sha`
+  and blocks the PR at oc-repo-ops. oc-git-ops commits the docs edits before the
+  readiness check and records UNSUPPORTED. orchestrator.md carries a routing row
+  for every skill, the "release PR merged → `/oc-git-release`" handoff, and the map
+  rows the other sweeps made stale. 67 findings fixed, 20 already fixed.
+- **Every cross-skill edge is documented on both sides (Sprint 5 exit).** The
+  reciprocity pass the 2026-09-11 audit never completed found 66 edges one skill
+  documented and the other did not; 62 now carry the reverse row (oc-reverse-spec
+  and oc-app-architect gain Read-by tables) and 4 false claims are gone, including
+  the orchestrator map's app-architect → migration-ops edge, which runs the other
+  way. Tri-agent skills describe the Verifier/Evaluator's separation as a
+  same-session discipline, not a separate agent; `remediation_owners` is described
+  as the optional `.opchain/pm.yaml` key it is; oc-monitoring-ops' description
+  carves out oc-telemetry-ops.
+- **The catalog is reachable (Sprint 6).** The MCP `route` tool resolves a natural
+  request to every one of the 32 invocable skills (17 before), mirroring
+  orchestrator.md §4, with collisions resolved deliberately ("tag the release" →
+  oc-git-ops `/oc-git-release`, "build an agent" → oc-agent-forge, "kubernetes" →
+  oc-fleet-ops) and pinned in tests. `/pipeline-builder` builds from the live
+  catalog instead of a v1.5 table: it always includes the commit and pre-PR gates,
+  and its generated CLAUDE.md describes them as they run. The plugin README lists the
+  twelve registered slash commands and why only those ship. **Plugin
+  `next-suggestion`**: a handoff to a skill with no plugin command is suggested by
+  name instead of re-targeting the skill that just finished. The routing eval covers
+  every skill, grades all collision cases with `llm_judge`, and fails on any miss.
+- **orchestrator.md §7 backfill and the F6 release-surface procedure.** Two post-1.9.0
+  changes to shipped text (#482, #484) that this section never recorded.
+- **Every skill points at its bundled checkpoint protocol.** 29 Checkpoint sections
+  never named `references/checkpoint-protocol.md`; they do now.
+
+### Compatibility
+
+**Skill and on-disk checkpoint compatibility:** back-compatible with v1.9.0. All 33
+skills lockstep-bump to `1.9.1`; no checkpoint field, command, route or flag that
+1.9.0 shipped is removed, and no checkpoint file needs migration. What behaves
+differently:
+
+- **The commit gate is stricter.** A PASS must carry `skill_state.verified_tree` for
+  the tree being committed, at any age — a PASS without it was allowed for 10 minutes
+  and is now denied (re-run `/oc-bugcheck`). The wrapper, prefix, quoting, comment
+  and here-document forms listed under *Fixed* that used to commit past the gate now
+  deny, and `--no-verify` or `OPCHAIN_BYPASS=1` inside a comment is no longer read as
+  a bypass. The hook's timeout rises from 10 to 60 seconds.
+- **Routing.** "Tag the release" routes to oc-git-ops (`/oc-git-release`), which owns
+  the tag; oc-code-auditor's description no longer claims "security audit", which
+  routes to oc-security-auditor. The MCP `route` tool now reaches every skill.
+- **Verbs.** 83 subcommands that skills already documented are now declared in
+  frontmatter, inheriting their parent verb's flag, and `/oc-rev-spec`, already
+  advertised, is declared as a root verb (222 → 306 entries). Menu entries that were never commands
+  (`/oc-git-status`, `/oc-export-spec` and similar) are documented as plain requests.
+- **Checkpoint CLI.** `status <skill>` shows one skill and exits 1 when it has no
+  checkpoint; the validator accepts ISO-8601 offsets and warns (never errors) on
+  contradictory lifecycle states.
+- **Release order** (repo governance, not a skill contract): a minor release flips the
+  site's live-claim surfaces in the release PR with the CHANGELOG heading, before the
+  tag; a patch keeps product PR → tag → site PR.
 
 ## [1.9.0] — 2026-09-02 — "Assurance and governed delivery ops"
 

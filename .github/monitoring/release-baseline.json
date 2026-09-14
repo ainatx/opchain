@@ -2,25 +2,25 @@
   "schemaVersion": 1,
   "status": "approved-release-baseline",
   "release": {
-    "tag": "v1.9.0",
-    "tagObject": "fd05dd2c5d696661cb2cc5cb9dd57d2470f69c32",
-    "sourceSha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
-    "sourceShortSha": "244bf13"
+    "tag": "v1.9.1",
+    "tagObject": "98b8ebcd9dc88550c3dff146c36f10d6ec0135cc",
+    "sourceSha": "aef40809fef4bbded9a47c936c7c544631397fb6",
+    "sourceShortSha": "aef4080"
   },
   "runtime": {
-    "sha": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
-    "shortSha": "78567c2",
-    "approval": "Post-release hotfix from main: PR #483 (fix(architecture): audit sweep + draw the v1.9 assurance rail) was deployed to production on 2026-09-05T02:24Z without a new tag. Approved as the production runtime by the reviewed baseline change that added this block (git log -- .github/monitoring/release-baseline.json); the next release cut removes it when release re-binds to the new signed tag."
+    "sha": "f5e4b2a5de954329c33983d7a9738b7b4a47d4db",
+    "shortSha": "f5e4b2a",
+    "approval": "The v1.9.1 site half: PR #532 (release(v1.9.1): the chain holds — site half) merged to main after the signed v1.9.1 tag on aef4080, per RELEASING.md §5 for a patch release (product PR → tag → site PR → deploy). Staging deployed from main at f5e4b2a on 2026-09-13T13:35Z and production at f5e4b2a on 2026-09-13T23:05Z, both with the deploy script's clean-tree, origin/main, release-tag, hardening-replay and smoke gates passing. Approved as the production runtime by the reviewed baseline change that added this block; the next release cut removes it when release re-binds to the new signed tag."
   },
   "environments": {
     "production": {
       "worker": "opchain-dev",
       "hostname": "opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "8da6c19d-a89a-4214-8e58-4606c7ce2f72",
-      "versionId": "b6268c62-48e8-4c30-a0c6-fea074ae260c",
+      "deploymentId": "3b7989ff-2f65-4dc6-a629-6f16ba4fd677",
+      "versionId": "01db3b36-a90c-4f73-98f7-fd00505582c4",
       "trafficPercentage": 100,
-      "scriptEtag": "236d015622faef5596b4dd309c0b0c8cb3e198baacdab4381fbf28f2b662fdfd",
+      "scriptEtag": "5c2a162a66a83824221d9ca6600de30814ac99807b571e840087f0cbb2b15fc9",
       "handlers": ["fetch"],
       "bindings": ["ASSETS"],
       "observabilityEnabled": true
@@ -29,10 +29,10 @@
       "worker": "opchain-staging",
       "hostname": "staging.opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "791c1851-2b81-4408-b881-dac381fa6d07",
-      "versionId": "d07bb08a-9662-4e77-a2a1-673fc0c7a8a5",
+      "deploymentId": "52c452c5-5d9e-4148-b3eb-30b7155d4888",
+      "versionId": "28a5c29d-0c18-4653-8214-e31af0a3872a",
       "trafficPercentage": 100,
-      "scriptEtag": "3b626cc22d8f1fa8d444686f3f6f209296184cba7114d65373019058d61cb875",
+      "scriptEtag": "5c2a162a66a83824221d9ca6600de30814ac99807b571e840087f0cbb2b15fc9",
       "handlers": ["fetch"],
       "bindings": ["ASSETS"],
       "observabilityEnabled": true
@@ -73,8 +73,8 @@
     ]
   },
   "pointInTimeEvidence": {
-    "healthVersion": "78567c2",
+    "healthVersion": "f5e4b2a",
     "continuousCustomDomainProbe": false,
-    "note": "staging intentionally serves an off-main branch preview (claude/demo-rebuild-2-0 @ 213d401, deployed 2026-09-11T07:09Z). Its recorded v1.9.0 entry above is deliberately unchanged, so the canary's staging half stays red until staging is redeployed from main and this entry is refreshed."
+    "note": "Production and staging both serve f5e4b2a (v1.9.1 site half on the signed v1.9.1 release). Point-in-time /api/health on 2026-09-13T23:06Z returned version f5e4b2a on both hosts and /skills.json catalogVersion 1.9.1. Staging is back on main, so the staging half of the canary is expected green once this baseline is on the default branch."
   }
 }

@@ -122,7 +122,7 @@ to close *before* engaging auditors.
 ```markdown
 # Security Posture Report — [project]
 **Date:** [date]
-**Scope:** [full | threat-model | compliance | hardening]
+**Scope:** [posture | threat-model | compliance | hardening]
 **Tier:** [Lite | Standard | Comprehensive]
 **Assessor:** oc-security-auditor skill
 

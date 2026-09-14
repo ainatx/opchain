@@ -3,7 +3,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-11T04:05:36.112Z",
+  "updated_at": "2026-09-13T13:16:10Z",
   "skill": "oc-release-ops",
   "phase": "shipped",
   "step": "v1.9-release-signed-off",
@@ -227,9 +227,53 @@
       "detected_at": "2026-09-11T03:45:00Z",
       "production_live": "78567c2",
       "approved_baseline": "244bf13 (v1.9.0)",
-      "catalog_version_unchanged": "1.9.0 — a content deploy, no release tag needed",
+      "catalog_version_unchanged": "1.9.0 \u2014 a content deploy, no release tag needed",
       "monitoring": "Canary + Deploy lag scheduled runs failed 2026-09-05 and 2026-09-09; tracked by oc-monitoring-ops",
       "ledger": "issue #464 open: 10 of 15 shipped releases untagged; backfill runbook drafted"
+    },
+    "oc_update_v2": {
+      "status": "implemented-and-tested-in-isolation",
+      "branch": "codex/oc-update-v2",
+      "baseline": "4d39b93",
+      "target_release": "2.0.0",
+      "plan": "docs/plans/2026-09-12-oc-update-v2-addendum.md",
+      "evaluation": "sprints/repo-updater/eval.md",
+      "tests": {
+        "repository": 666,
+        "targeted_node_24": 59,
+        "targeted_node_22_13": 59,
+        "hooks": 48
+      },
+      "release_totals": {
+        "skills": 36,
+        "plugin_commands": 15,
+        "tri_agent_skills": 11
+      },
+      "pending": [
+        "Port after OSS split and integrate the 2.0 runtime dependency closure",
+        "Rehearse combined 36-skill release through supported hosts",
+        "Publish assets and replace website update instructions at the release cut"
+      ],
+      "at": "2026-09-13T04:21:43Z"
+    },
+    "shared_runtime_option_c": {
+      "status": "verified",
+      "architecture": "Option C (includes Option B)",
+      "approved_at": "2026-09-13",
+      "runtime_contract": "2.0-preview.1",
+      "catalog_skills": 36,
+      "plugin_commands": 15,
+      "repository_tests": 721,
+      "hook_tests": 74,
+      "independent_verdict": "PASS within external-trust/supplied-evidence boundary",
+      "report": "sprints/shared-runtime/evaluation.md",
+      "remaining_release_work": [
+        "wire 1.2 migration and release stamp",
+        "OSS split integration",
+        "independent reviewer environment setup",
+        "live host/model evaluation",
+        "exact 2.0 release rehearsal"
+      ]
     }
   }
 }

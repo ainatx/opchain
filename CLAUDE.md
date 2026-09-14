@@ -76,7 +76,7 @@ opchain/
 │   ├── (astro dist copied in)
 │   ├── opchain-skills.zip  # Generated from skills/ by scripts/make-skills-zip.sh
 │   └── docs/               # Synced from skills/ by scripts/sync-docs.sh
-├── skills/                 # Skill source definitions (the product) — 29 skills,
+├── skills/                 # Skill source definitions (the product) — 33 skills,
 │   │                       # one subdir per id (each with SKILL.md). Full list +
 │   │                       # phases: skills/README.md. A few examples:
 │   ├── oc-app-architect/
@@ -139,6 +139,7 @@ npm run deploy:staging   # wrangler deploy --env staging (staging.opchain.dev)
 npm test                 # vitest unit + integration-ish suite
 npm run test:hooks       # plugin hook suites (commit gate + next-suggestion), plain node
 npm run gen-catalog      # validates skills/<id>/SKILL.md frontmatter at build time
+npm run check-skill-contracts # every cited /oc-* verb is declared; orchestrator.md §7 matches frontmatter
 npm run check-release-tag # is the lockstep catalog version actually tagged in git?
 npm run sync-docs        # skills/ → public/docs/ (runs in prebuild)
 npm run make-zip         # skills/ → public/opchain-skills.zip (runs in prebuild)
@@ -149,6 +150,7 @@ npm run smoke:prod       # scripts/smoke.sh against opchain.dev
 npm run site:install     # one-time: cd site && npm install
 npm run site:dev         # astro dev on localhost:4321
 npm run site:build       # astro build → site/dist
+cd site && npm run test:e2e   # Playwright e2e against THIS worktree's build: port hashed from the worktree path (PW_PORT overrides), never reuses a running server
 
 # Checkpoints (session state docs at .checkpoints/<skill>.checkpoint.json) —
 npm run checkpoint:status    # print "where did I leave off?" markdown summary

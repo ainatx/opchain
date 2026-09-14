@@ -67,8 +67,9 @@ invariants:                  # executed as queries by the Verifier
 
 ## Verifier semantics (`/oc-data-ops verify`)
 
-For each contract, in isolated context (contracts + built pipeline + data;
-never the Builder's reasoning):
+For each contract, grading only from the contracts, the built pipeline and the data
+(never the Builder's reasoning — the roles share one session, so this is a
+discipline, not a mechanism):
 
 Use a read-only warehouse identity, an explicitly selected database/schema, a
 statement timeout, and a result-row cap. Display the compiled query and target
@@ -86,8 +87,8 @@ those protections returns BLOCKED rather than running the check.
 **Evolution baseline:** on each PASS the Verifier writes the observed schema to
 `.opchain/data-contracts/.verified/<layer.dataset>.json`; the evolution check
 diffs against that snapshot. First run: no snapshot → record it and PASS.
-Snapshots are committed alongside the contracts so a fresh Verifier in an
-isolated context always has its baseline.
+Snapshots are committed alongside the contracts so a Verifier in a later session
+always has its baseline.
 
 Two further verdicts: **BLOCKED** — a data-dependent check (freshness, volume,
 invariants) with no reachable warehouse; never a PASS. **PASS (fixtures)** — a
@@ -103,6 +104,8 @@ sample rows). Violations fail the loop iteration; the Builder fixes.
 
 Each contract compiles to standing checks in the platform's idiom — dbt source
 `freshness:` + generated tests where dbt is in play, otherwise scheduled
-queries. The monitor inventory (what runs, where, how often) is written to the
-checkpoint and handed to **oc-monitoring-ops** for alert routing; this skill
+queries. The monitor inventory (what runs, where, how often) is recorded in the
+checkpoint's public surface — monitor file paths in
+`context_primer.generated_files`, the summary in `progress_summary` — and handed
+to **oc-monitoring-ops** for alert routing; this skill
 creates the checks, monitoring-ops decides who is woken up.

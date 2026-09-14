@@ -22,6 +22,15 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC = process.env.OPCHAIN_SKILLS_DIR ?? join(ROOT, "skills");
 const DEST = join(ROOT, "plugins", "opchain", "skills");
 const CHECK = process.argv.includes("--check");
+// Enrollment must remain usable from a plugin-only artifact.
+const RUNTIME = ["scripts/install-git-drivers.mjs", "scripts/verify-candidate.mjs", "scripts/lib/verification-receipt.cjs"];
+function runtimeDrift() {
+  return RUNTIME.flatMap(file => {
+    const target = join(ROOT, "plugins", "opchain", file);
+    return !existsSync(target) || !readFileSync(join(ROOT, file)).equals(readFileSync(target))
+      ? [`runtime content drift: ${file}`] : [];
+  });
+}
 
 function listFiles(dir, base = dir) {
   const out = [];
@@ -54,7 +63,7 @@ function drift() {
 }
 
 if (CHECK) {
-  const problems = drift();
+  const problems = [...drift(), ...runtimeDrift()];
   if (problems.length > 0) {
     console.error(`✗ plugins/opchain/skills drifted from skills/ (${problems.length}):`);
     for (const p of problems.slice(0, 20)) console.error(`  ${p}`);
@@ -67,5 +76,10 @@ if (CHECK) {
   if (existsSync(DEST)) rmSync(DEST, { recursive: true, force: true });
   mkdirSync(dirname(DEST), { recursive: true });
   cpSync(SRC, DEST, { recursive: true });
+  for (const file of RUNTIME) {
+    const target = join(ROOT, "plugins", "opchain", file);
+    mkdirSync(dirname(target), { recursive: true });
+    cpSync(join(ROOT, file), target);
+  }
   console.log(`Synced skills/ -> plugins/opchain/skills (${listFiles(DEST).length} files)`);
 }

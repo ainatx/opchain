@@ -10,19 +10,21 @@
  * History: this wrapper used to also assert LINEAR_API_KEY and set
  * OPCHAIN_REQUIRE_LINEAR=1, because `/changelog` was driven by a build-time
  * Linear pull (scripts/gen-roadmap.mjs) and a missing/unreachable key would
- * silently ship an empty roadmap. The roadmap is now hand-maintained in
- * site/src/data/roadmap-static.ts, so the Linear pull is no longer on the
- * deploy path and Linear being down can't break a deploy. That gate was
- * removed (2026-06-19); see CLAUDE.md → Deploy flow.
+ * silently ship an empty roadmap. The roadmap now comes from GitHub Issues
+ * (scripts/gen-roadmap.mjs → site/src/data/roadmap.json, an anonymous read
+ * run by hand, not by this wrapper), so Linear is no longer on the deploy
+ * path and Linear being down can't break a deploy. That gate was removed
+ * (2026-06-19); see CLAUDE.md → Deploy flow.
  *
  * This wrapper:
  *   1. Loads `.dev.vars` into process.env.
  *   2. Plumbs the inlined PUBLIC_POSTHOG_* build-time envs (formerly
  *      baked into the npm script).
  *   3. Requires a clean checkout before and after generation.
- *   4. Runs the hardening gate, captures the active rollback version, and
+ *   4. Requires candidate-bound executable and audit evidence.
+ *   5. Runs the hardening gate, captures the active rollback version, and
  *      deploys through Wrangler.
- *   5. Verifies the live SHA, hardening manifest, and smoke suite; any miss
+ *   6. Verifies the live SHA, hardening manifest, and smoke suite; any miss
  *      automatically rolls traffic back to the captured version.
  *
  * Local dev (`npm run dev`) is unaffected — wrangler reads .dev.vars
@@ -353,9 +355,13 @@ function warnIfBaselineStale(liveVersion) {
 `);
 }
 
+if (!STAGING && fs.existsSync(path.join(REPO_ROOT, "release-preview.json"))) {
+  throw new Error("This tree is a staging preview. Complete the release review and remove release-preview.json before production.");
+}
 assertDeployFromMain();
 assertCleanCheckout("preflight");
 assertReleaseTagged();
+run("node", ["scripts/lib/release-evidence.mjs", "--stage", "deploy"]);
 
 const { loaded, source } = loadDevVars();
 if (source) {

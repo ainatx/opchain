@@ -1,0 +1,12 @@
+---
+import preview from '../../../release-preview.json';
+---
+<aside class="release-preview" aria-label="Release preview">
+  <strong>Opchain {preview.version} preview</strong>
+  <span>For staging review. No release date is set.</span>
+  <a href="/changelog#v2-0">See what changed</a>
+</aside>
+<style>
+  .release-preview { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 0.5rem 1rem; padding: 0.75rem 1rem; background: var(--secondary-dim); color: var(--text); border-bottom: 1px solid var(--border); font-size: 0.875rem; }
+  .release-preview a { color: var(--accent); text-decoration: underline; }
+</style>

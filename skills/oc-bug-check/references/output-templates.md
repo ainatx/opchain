@@ -25,7 +25,7 @@ BUG CHECK — PASS ✅  (streak: 12 🔥)
 
 ---
 
-## Gate Verdict: WARN
+## Gate Verdict: PASS with warnings
 
 ```
 BUG CHECK — PASS with warnings ⚠️
@@ -72,13 +72,14 @@ BUG CHECK — FAIL ❌
 
   Commit blocked. Fix 6 issues before committing.
   Run /oc-bugcheck fix for auto-fixable items (lint, formatting).
-  Run /oc-bugcheck bypass to override (logged).
+  To commit anyway: /oc-bugcheck bypass records it, then commit with
+  OPCHAIN_BYPASS=1 — the record alone does not clear the gate.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 ---
 
-## Gate Verdict: BYPASS
+## Bypass event (logged, not a verdict)
 
 ```
 BUG CHECK — BYPASSED ⏩
@@ -86,7 +87,8 @@ BUG CHECK — BYPASSED ⏩
   Bypassed checks: type_safety (3 errors), tests (2 failing)
   Reason: WIP — types incomplete, will fix in next commit
 
-  Commit proceeding with [BYPASS] prefix.
+  Commit proceeding with OPCHAIN_BYPASS=1 (the record alone does not clear
+  the commit-gate hook); [BYPASS] message prefix by convention.
   These issues are now carried debt — they'll surface on every
   subsequent /oc-bugcheck until resolved.
 

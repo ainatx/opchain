@@ -5,11 +5,12 @@
 // before when Actions provably weren't firing (2026-08 precedent: admin-merge
 // with local verification substituting). This script makes that substitution
 // principled instead of ad hoc: every workflow in .github/workflows/ maps to a
-// named step here, grouped into the three moments of a release cut —
+// named step here, grouped into the four moments of a release cut —
 //
 //   pre-merge     run on the release branch before it merges      (ci.yml, lighthouse.yml)
 //   pre-tag       run from an origin/main checkout before signing (release-ledger.yml's gate,
 //                                                                  check-release-surfaces)
+//   post-tag      prove the signed tag is usable before deployment (check-release-tag)
 //   post-deploy   run against staging/prod after a deploy         (canary.yml, deploy-lag.yml,
 //                                                                  mirror-public.yml,
 //                                                                  publish-mcp-registry.yml,
@@ -109,13 +110,13 @@ const LEDGER = [
     id: "site-e2e", workflow: "ci.yml (site-e2e job)", stage: "pre-merge", cls: "fail",
     run: () => playwrightBrowsersPresent()
       ? sh("npm run test:e2e", { cwd: join(ROOT, "site") })
-      : { ok: false, skip: true, out: "Playwright browsers not installed — `cd site && npm run test:e2e:install`, then re-run" },
+      : { ok: false, incomplete: true, out: "Playwright browsers not installed — `cd site && npm run test:e2e:install`, then re-run" },
   },
   {
-    id: "lighthouse-budgets", workflow: "lighthouse.yml", stage: "pre-merge", cls: "warn",
+    id: "lighthouse-budgets", workflow: "lighthouse.yml", stage: "pre-merge", cls: "fail",
     run: () => existsSync(join(ROOT, "site/node_modules/.bin/lhci"))
       ? sh("npx --no -- lhci autorun --config=../lighthouserc.cjs", { cwd: join(ROOT, "site") })
-      : { ok: false, skip: true, out: "lhci not installed in site/ — `cd site && npm install`, then re-run" },
+      : { ok: false, incomplete: true, out: "lhci not installed in site/ — `cd site && npm install`, then re-run" },
   },
 
   // pre-tag — from an origin/main checkout, before signing (Appendix B B2)
@@ -145,21 +146,27 @@ const LEDGER = [
     },
   },
 
+  // post-tag — run immediately after /oc-git-release, before deployment.
+  // Missing-tag is expected only in pre-tag; here it is a hard stop.
+  { id: "release-tag", workflow: "release-ledger.yml", stage: "post-tag", cls: "fail", run: () => sh("node scripts/check-release-tag.mjs") },
+
   // post-deploy — against the environment just shipped
   {
     id: "canary-health", workflow: "canary.yml", stage: "post-deploy", cls: "fail",
     run: async (ctx) => probeHealth(ctx.baseUrl),
   },
   {
-    id: "deploy-lag", workflow: "deploy-lag.yml", stage: "post-deploy", cls: "fail",
-    run: async (ctx) => {
-      git("fetch origin");
-      const head = git("rev-parse --short origin/main");
-      const probe = await probeHealth(ctx.baseUrl);
-      if (!probe.ok) return probe;
-      const ok = head && (probe.version.startsWith(head) || head.startsWith(probe.version));
-      return { ok, out: `live=${probe.version} origin/main=${head}${ok ? "" : " — DRIFT"}` };
-    },
+    id: "approved-baseline", workflow: "canary.yml / deploy-lag.yml", stage: "post-deploy", cls: "fail",
+    // CI compares Cloudflare's authenticated control plane to a reviewed
+    // baseline. Do the same locally; public reachability stays a separate row.
+    run: (ctx) => sh(`node .github/scripts/cloudflare-monitor.mjs control-plane --environment ${ctx.envName === "prod" ? "production" : "staging"}`),
+  },
+  {
+    id: "deploy-relevance", workflow: "deploy-lag.yml", stage: "post-deploy", cls: "fail",
+    // The second half of CI's policy: documentation/checkpoint-only descendants
+    // are allowed, but a deploy-relevant change remains incomplete until the
+    // reviewed baseline is refreshed after the post-deploy evidence is captured.
+    run: () => sh("node .github/scripts/cloudflare-monitor.mjs deploy-diff"),
   },
   { id: "smoke", workflow: "canary.yml (deep probe)", stage: "post-deploy", cls: "fail", run: (ctx) => sh(ctx.envName === "prod" ? "npm run smoke:prod" : "npm run smoke:staging") },
   {
@@ -171,7 +178,7 @@ const LEDGER = [
       const head = git("rev-parse HEAD");
       const main = git("rev-parse origin/main");
       if (head !== main)
-        return { ok: false, skip: true, out: `HEAD (${head?.slice(0, 7)}) != origin/main (${main?.slice(0, 7)}) — run from an origin/main checkout for the full ledger check (the deploy's own gate enforced it at ship time)` };
+        return { ok: false, incomplete: true, out: `HEAD (${head?.slice(0, 7)}) != origin/main (${main?.slice(0, 7)}) — run from an origin/main checkout for the full ledger check (the deploy's own gate enforced it at ship time)` };
       return sh("node scripts/check-release-tag.mjs");
     },
   },
@@ -230,7 +237,7 @@ const LEDGER = [
     id: "mirror-sync", workflow: "mirror-public.yml", stage: "post-deploy", cls: "warn", prodOnly: true,
     run: () => {
       const r = sh("gh api repos/asfbay-bit/opchain-skills/commits/HEAD --jq .commit.message");
-      if (!r.ok) return { ok: false, skip: true, out: "gh unavailable — check asfbay-bit/opchain-skills' latest mirror commit by hand" };
+      if (!r.ok) return { ok: false, incomplete: true, out: "gh unavailable — check asfbay-bit/opchain-skills' latest mirror commit by hand" };
       const head = git("rev-parse origin/main") ?? "";
       const ok = r.out.includes(head.slice(0, 7));
       return { ok, out: `${r.out}${ok ? "" : ` — mirror behind origin/main ${head.slice(0, 7)} (skills-touching pushes only; may be expected)`}` };
@@ -240,7 +247,7 @@ const LEDGER = [
     id: "lighthouse-prod", workflow: "lighthouse-prod.yml", stage: "post-deploy", cls: "warn", prodOnly: true,
     run: () => existsSync(join(ROOT, "site/node_modules/.bin/lhci"))
       ? sh("npx --no -- lhci autorun --config=../lighthouserc.prod.cjs", { cwd: join(ROOT, "site") })
-      : { ok: false, skip: true, out: "lhci not installed in site/ — `cd site && npm install`, then re-run" },
+      : { ok: false, incomplete: true, out: "lhci not installed in site/ — `cd site && npm install`, then re-run" },
   },
 ];
 
@@ -253,7 +260,7 @@ const flag = (name) => {
 
 if (args.includes("--list")) {
   console.log("workflow → local step (class) by stage\n");
-  for (const stage of ["pre-merge", "pre-tag", "post-deploy"]) {
+  for (const stage of ["pre-merge", "pre-tag", "post-tag", "post-deploy"]) {
     console.log(`${stage}:`);
     for (const s of LEDGER.filter((s) => s.stage === stage))
       console.log(`  ${s.id.padEnd(26)} ${s.cls.padEnd(5)} ← ${s.workflow}${s.prodOnly ? "  [prod only]" : ""}`);
@@ -263,8 +270,8 @@ if (args.includes("--list")) {
 
 const stage = flag("--stage");
 const requestedVersion = flag("--version");
-if (!["pre-merge", "pre-tag", "post-deploy"].includes(stage ?? "")) {
-  console.error("usage: release-sequence.mjs --stage pre-merge|pre-tag|post-deploy [--env staging|prod] [--version N.N.N] | --list");
+if (!["pre-merge", "pre-tag", "post-tag", "post-deploy"].includes(stage ?? "")) {
+  console.error("usage: release-sequence.mjs --stage pre-merge|pre-tag|post-tag|post-deploy [--env staging|prod] [--version N.N.N] | --list");
   process.exit(1);
 }
 if (requestedVersion && !/^\d+\.\d+\.\d+$/.test(requestedVersion)) {
@@ -290,16 +297,16 @@ for (const step of LEDGER.filter((s) => s.stage === stage)) {
     r = { ok: false, out: String(err) };
   }
   const secs = ((Date.now() - t0) / 1000).toFixed(1);
-  const verdict = r.ok ? "✓" : r.skip ? "⤳ skipped" : step.cls === "warn" ? "⚠" : "✗";
+  const verdict = r.ok ? "✓" : r.incomplete ? "! INCOMPLETE" : step.cls === "warn" ? "⚠" : "✗";
   console.log(`${verdict} (${secs}s)`);
   if (!r.ok && r.out) console.log(r.out.split("\n").slice(-12).map((l) => `    ${l}`).join("\n"));
   results.push({ ...step, ...r });
 }
 
-const failed = results.filter((r) => !r.ok && !r.skip && r.cls === "fail");
+const failed = results.filter((r) => !r.ok && r.cls === "fail");
 const warned = results.filter((r) => !r.ok && r.cls === "warn");
-const skipped = results.filter((r) => r.skip);
-console.log(`\n${stage}: ${results.length - failed.length - warned.length - skipped.length} ok, ${warned.length} warn, ${skipped.length} skipped, ${failed.length} FAILED`);
+const incomplete = results.filter((r) => r.incomplete);
+console.log(`\n${stage}: ${results.length - failed.length - warned.length} ok, ${warned.length} warn, ${incomplete.length} incomplete, ${failed.length} FAILED`);
 if (failed.length) {
   console.error(`FAILED: ${failed.map((f) => f.id).join(", ")}`);
   process.exit(1);

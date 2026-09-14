@@ -2,6 +2,24 @@
 import Base from "../layouts/Base.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
 import Icon from "../components/Icon.astro";
+import { getCollection } from "astro:content";
+import { getAllSkills, type SkillEntry } from "../lib/skills";
+import { referencedSkillIds, type CatalogSkill } from "../lib/pipeline-builder";
+
+// The skill table comes from the live catalog (skills/<id>/SKILL.md via the
+// content collection), not a hand-kept copy. Fail the build if a rule in
+// lib/pipeline-builder.ts names a skill with no skills/<id>/SKILL.md. That
+// check uses the unfiltered collection; a skill that exists but is hidden by
+// its build-time flag is not an error — it is simply absent from `catalog`
+// below (getAllSkills applies the flag gates), so the page never recommends it.
+const allIds = new Set((await getCollection("skills")).map((e: SkillEntry) => e.data.name));
+const unknown = referencedSkillIds().filter((id) => !allIds.has(id));
+if (unknown.length) {
+  throw new Error(`pipeline-builder: decision table names skills missing from skills/: ${unknown.join(", ")}`);
+}
+const catalog: CatalogSkill[] = (await getAllSkills()).map((e) => ({ id: e.data.name, shortDesc: e.data.shortDesc }));
+// `<` is escaped so the JSON can't break out of the <script> element.
+const catalogJson = JSON.stringify(catalog).replace(/</g, "\\u003c");
 ---
 
 <Base
@@ -253,8 +271,10 @@ import Icon from "../components/Icon.astro";
     <p class="footnote">
       Wired together by hand — no LLM round-trip. Recommendations come
       from a static decision table you can audit in
-      <code>site/src/pages/pipeline-builder.astro</code>.
+      <code>site/src/lib/pipeline-builder.ts</code>; skill descriptions
+      come from the live catalog.
     </p>
+    <script type="application/json" id="pipeline-catalog" is:inline set:html={catalogJson} />
   </main>
 </Base>
 
@@ -301,7 +321,7 @@ import Icon from "../components/Icon.astro";
   }
   .progress li::before {
     content: attr(data-step) " · ";
-    color: var(--dim);
+    color: var(--subtle);
   }
   .progress li.active {
     color: var(--accent);
@@ -309,7 +329,7 @@ import Icon from "../components/Icon.astro";
     background: var(--accent-dim);
   }
   .progress li.done { color: var(--muted); border-color: var(--muted); }
-  .progress li.done::before { color: var(--success, #0D9488); }
+  .progress li.done::before { color: var(--success); }
 
   .wizard { display: block; }
   .step {
@@ -414,9 +434,9 @@ import Icon from "../components/Icon.astro";
   }
   .back:hover { color: var(--text); border-color: var(--accent); }
   .next {
-    background: var(--accent);
+    background: var(--accent-fill);
     color: var(--on-accent);
-    border-color: var(--accent);
+    border-color: var(--accent-fill);
     font-weight: 600;
     margin-left: auto;
   }
@@ -484,9 +504,9 @@ import Icon from "../components/Icon.astro";
     font-family: var(--font-mono);
     font-size: 12px;
     line-height: var(--lh-base);
-    background: var(--obsidian);
-    color: var(--linen);
-    border: 0.5px solid var(--slag);
+    background: var(--bg);
+    color: var(--text);
+    border: 0.5px solid var(--border);
     border-radius: var(--r-md);
     padding: 0.85rem 1.1rem;
     overflow-x: auto;
@@ -524,9 +544,9 @@ import Icon from "../components/Icon.astro";
   }
   .download-btn {
     appearance: none;
-    background: var(--accent);
+    background: var(--accent-fill);
     color: var(--on-accent);
-    border: 0.5px solid var(--accent);
+    border: 0.5px solid var(--accent-fill);
     font: inherit;
     font-family: var(--font-mono);
     font-size: var(--fs-sm);
@@ -566,9 +586,9 @@ import Icon from "../components/Icon.astro";
     border: 0.5px solid var(--border);
   }
   .cta-primary {
-    background: var(--accent);
+    background: var(--accent-fill);
     color: var(--on-accent);
-    border-color: var(--accent);
+    border-color: var(--accent-fill);
     font-weight: 600;
   }
   .cta-primary:hover { filter: brightness(1.05); }
@@ -597,97 +617,34 @@ import Icon from "../components/Icon.astro";
 </style>
 
 <script>
+  import {
+    blurbs,
+    claudeMdStarter as buildClaudeMd,
+    recommend as recommendFrom,
+    type AiApp,
+    type Answers,
+    type CatalogSkill,
+    type Deploy,
+    type Kind,
+    type Surface,
+    type Team,
+  } from "../lib/pipeline-builder";
+
   type Step = 1 | 2 | 3 | 4 | 5;
-  type Kind = "web-app" | "api" | "marketing-site" | "data" | "cli" | "legacy";
-  type Team = "solo" | "small" | "medium" | "large";
-  type Deploy = "cloudflare" | "vercel" | "aws" | "fly" | "render" | "self-hosted";
-  type Surface = "claude-code" | "claude-ai" | "both";
-  type AiApp = "none" | "feature" | "rag" | "agent";
 
-  interface Answers {
-    kind: Kind;
-    team: Team;
-    deploy: Deploy;
-    surface: Surface;
-    aiApp: AiApp;
-  }
-
-  // ── Skill recommendation table ────────────────────────────────
-  // The Foundation set is always recommended. Everything else is
-  // additive based on answers.
-  const FOUNDATION = ["oc-app-architect", "oc-orchestrator", "oc-checkpoint-protocol", "oc-code-auditor", "oc-git-ops"];
-
-  const KIND_SKILLS: Record<Kind, string[]> = {
-    "web-app":        ["oc-stack-forge", "oc-ux-engineer", "oc-api-dev", "oc-deploy-ops", "oc-monitoring-ops"],
-    "api":            ["oc-stack-forge", "oc-api-dev", "oc-integrations-engineer", "oc-deploy-ops", "oc-monitoring-ops", "oc-scale-ops"],
-    "marketing-site": ["oc-ux-engineer", "oc-deploy-ops"],
-    "data":           ["oc-dash-forge", "oc-api-dev", "oc-deploy-ops", "oc-monitoring-ops"],
-    "cli":            ["oc-stack-forge", "oc-bug-check"],
-    "legacy":         ["oc-reverse-spec", "oc-migration-ops", "oc-code-auditor", "oc-security-auditor", "oc-deploy-ops"],
-  };
-
-  const DEPLOY_NOTE: Record<Deploy, string> = {
-    "cloudflare":  "Cloudflare Workers — oc-deploy-ops has a dedicated section for wrangler",
-    "vercel":      "Vercel — oc-deploy-ops knows the `vercel deploy --prod` flow",
-    "aws":         "AWS — oc-deploy-ops + oc-scale-ops cover ECS / Lambda / RDS",
-    "fly":         "Fly.io — long-running containers, oc-deploy-ops handles flyctl",
-    "render":      "Render / Railway — Blueprint-based provisioning via oc-deploy-ops",
-    "self-hosted": "Self-hosted — oc-deploy-ops + oc-security-auditor for hardening, oc-monitoring-ops for SLOs",
-  };
-
-  const SKILL_BLURB: Record<string, string> = {
-    "oc-app-architect":        "Plans, builds, and evaluates with a Generator/Evaluator loop",
-    "oc-orchestrator":         "Routes between skills; answers /oc-ops queries",
-    "oc-checkpoint-protocol":  "Survives across sessions — every skill reads / writes its checkpoint",
-    "oc-code-auditor":         "Auditor / Fixer / Verifier — gates production",
-    "oc-git-ops":              "Branches, commits, PRs — shapes them from the checkpoint",
-    "oc-stack-forge":          "Picks the platform / framework / database for you",
-    "oc-ux-engineer":          "Design system + screens + working prototype",
-    "oc-api-dev":              "OpenAPI / GraphQL contract with parity to the implementation",
-    "oc-integrations-engineer":"OAuth, webhooks, third-party API integrations",
-    "oc-deploy-ops":           "Staging → prod → rollback with audit-gate enforcement",
-    "oc-monitoring-ops":       "Uptime, errors, alerts, on-call, postmortems",
-    "oc-scale-ops":            "Load testing, perf budgets, caching, capacity planning",
-    "oc-reverse-spec":         "Reverse-engineers a spec from existing code",
-    "oc-migration-ops":        "Live migrations with rollback at every step",
-    "oc-security-auditor":     "Threat model, OWASP, runtime / infra hardening",
-    "oc-dash-forge":           "Dense-info dashboards (Tufte density)",
-    "oc-bug-check":            "Pre-commit type / lint / secrets / vulnerability scan",
-    "oc-claude-api":           "Model routing, prompt caching, tool use, migration playbooks",
-    "oc-rag-forge":            "Vector DB / embeddings / chunking / retrieval eval (tri-agent)",
-    "oc-agent-forge":          "Agent SDK topology, tool budgets, harness loops, agent eval",
-    "oc-prompt-ops":           "Prompts as code — versioned, eval-gated, drift-detected",
-  };
+  // ── Skill table: the live catalog ─────────────────────────────
+  // Serialised at build time from the skills content collection; the answer
+  // → skill rules live in lib/pipeline-builder.ts.
+  const CATALOG: CatalogSkill[] = JSON.parse(
+    document.getElementById("pipeline-catalog")?.textContent || "[]",
+  );
+  const SKILL_BLURB: Record<string, string> = blurbs(CATALOG);
+  // Catalog text is rendered into innerHTML below; escape it like any content.
+  const escapeHtml = (t: string) =>
+    t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
   function recommend(a: Answers): string[] {
-    const set = new Set<string>(FOUNDATION);
-    KIND_SKILLS[a.kind].forEach((s) => set.add(s));
-
-    // Team-size deltas: larger teams benefit from oc-security-auditor and
-    // oc-scale-ops on the default path.
-    if (a.team === "medium" || a.team === "large") {
-      set.add("oc-security-auditor");
-      set.add("oc-scale-ops");
-    }
-
-    // Self-hosted always wants oc-security-auditor and oc-monitoring-ops.
-    if (a.deploy === "self-hosted") {
-      set.add("oc-security-auditor");
-      set.add("oc-monitoring-ops");
-    }
-
-    // AI-app branch (v1.5): an LLM in the product pulls in the AI-native
-    // skills. claude-api + prompt-ops for any AI app; rag-forge / agent-forge
-    // by sub-type. code-auditor (already in Foundation) runs its AI-safety
-    // sweep on these.
-    if (a.aiApp !== "none") {
-      set.add("oc-claude-api");
-      set.add("oc-prompt-ops");
-      if (a.aiApp === "rag") set.add("oc-rag-forge");
-      if (a.aiApp === "agent") set.add("oc-agent-forge");
-    }
-
-    return Array.from(set);
+    return recommendFrom(a, CATALOG);
   }
 
   function installSnippet(a: Answers, _skills: string[]): string {
@@ -721,48 +678,7 @@ import Icon from "../components/Icon.astro";
   }
 
   function claudeMdStarter(a: Answers, skills: string[]): string {
-    const kindTitle = {
-      "web-app":        "web app",
-      "api":            "API / backend service",
-      "marketing-site": "marketing site",
-      "data":           "data product / dashboard",
-      "cli":            "CLI / library",
-      "legacy":         "legacy migration",
-    }[a.kind];
-
-    const teamLabel = {
-      "solo": "solo founder", "small": "team of 2–5", "medium": "team of 6–20", "large": "org of 21+",
-    }[a.team];
-
-    return `# ${kindTitle} — opchain pipeline
-
-## Context
-
-A ${kindTitle} maintained by a ${teamLabel}. Deploys to ${a.deploy}.
-Built with Claude via ${a.surface === "both" ? "Claude Code + Claude.ai" : a.surface}.
-
-## opchain skills installed
-
-${skills.map((s) => `- ${s} — ${SKILL_BLURB[s] || ""}`).join("\n")}
-
-## How to work in this repo
-
-- Start every session with \`/oc-ops\` to read open checkpoints
-- For new work, trigger \`oc-app-architect\` with "I have an app idea" or \`/oc-discover\`
-- Code changes go through \`oc-code-auditor\` before merge${a.team === "medium" || a.team === "large" || a.deploy === "self-hosted" ? " plus \`oc-security-auditor\` on security-sensitive paths" : ""}
-- Ship via \`oc-deploy-ops\` — staging first, then production
-- The orchestrator routes between skills; you don't need to name the next one
-
-## Deploy target
-
-${DEPLOY_NOTE[a.deploy]}
-
-## Conventions
-
-- Branch per feature; PRs reviewed by \`oc-code-auditor\` before merge
-- Checkpoints in \`.checkpoints/\` survive across sessions
-- Feature flags live in \`src/lib/flags/registry.ts\` (or your equivalent)
-`;
+    return buildClaudeMd(a, skills, SKILL_BLURB);
   }
 
   // ── State + DOM ───────────────────────────────────────────────
@@ -812,7 +728,7 @@ ${DEPLOY_NOTE[a.deploy]}
       a.href = `/skills/${s}`;
       a.innerHTML = `
         <span class="name">${s}</span>
-        <span class="why">${SKILL_BLURB[s] || ""}</span>
+        <span class="why">${escapeHtml(SKILL_BLURB[s] || "")}</span>
         <span class="arrow">→</span>
       `;
       list.appendChild(a);
@@ -949,8 +865,8 @@ ${DEPLOY_NOTE[a.deploy]}
     downloadStatus.hidden = false;
     downloadStatus.textContent = msg;
     const color = kind === "ok"
-      ? "var(--success, #0D9488)"
-      : "var(--in-progress, #f59e0b)";
+      ? "var(--success)"
+      : "var(--warning)";
     downloadStatus.setAttribute("style", `color: ${color}`);
   }
 

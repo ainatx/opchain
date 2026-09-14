@@ -26,3 +26,18 @@
 {"id": "route-026", "input": "sync SaaS data into the warehouse"}
 {"id": "route-027", "input": "load test the checkout API before the launch spike"}
 {"id": "route-028", "input": "plan which load tests we need and what SLOs they should verify"}
+{"id": "route-029", "input": "tag the release for v1.9.1"}
+{"id": "route-030", "input": "cut the v1.9.1 release and draft the changelog"}
+{"id": "route-031", "input": "run our services as multiple containers on Kubernetes, provisioned with Terraform"}
+{"id": "route-032", "input": "turn on opt-in usage metering so we can see which skills we actually run"}
+{"id": "route-033", "input": "set up error tracking and alerting for production"}
+{"id": "route-034", "input": "what did this feature cost in LLM tokens, and should it run on a cheaper model?"}
+{"id": "route-035", "input": "is this metric right? define the activation signal before anyone builds a dashboard"}
+{"id": "route-036", "input": "break up the monolith and extract the billing service"}
+{"id": "route-037", "input": "swap our auth provider from Auth0 to Clerk"}
+{"id": "route-038", "input": "generate the PR docs for this branch"}
+{"id": "route-039", "input": "is this PR ready to open? check the repo hygiene"}
+{"id": "route-040", "input": "the design is inconsistent across our settings screens — fix the UX"}
+{"id": "route-041", "input": "update opchain"}
+{"id": "route-042", "input": "review local learning history"}
+{"id": "route-043", "input": "evaluate a learning rule"}

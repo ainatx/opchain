@@ -1,7 +1,7 @@
 ---
 name: oc-docs-forge
 displayName: OC · Docs Forge
-version: 1.9.0
+version: 2.0.0
 license: Apache-2.0
 shortDesc: "Documentation generator for every PR: PR body, PR comments, README/catalog docs, product docs, changelog and ADR upkeep."
 phases: [plan, build]
@@ -19,8 +19,9 @@ description: >
   by oc-git-ops before PR creation and by release flows before release PRs. Use
   for /oc-docs, /oc-docs pr, "generate the PR docs", "update README", "standardize
   docs", "refresh product documentation", "write PR body docs", "post a PR docs
-  comment", "docs upkeep", changelog/ADR/readme/catalog drift, or any request
-  where implementation changes need reader-facing documentation.
+  comment", "docs upkeep", changelog/ADR/readme drift, or any request where
+  implementation changes need reader-facing documentation. Catalog drift
+  (generated catalogs out of sync with source) is oc-repo-ops.
 governance:
   breaking_change_policy: skills/CHANGELOG.md
   last_reviewed: 2026-07-01
@@ -80,8 +81,9 @@ Inputs:
 
 - `git diff --stat` and changed file list.
 - Commit log against the base branch, when available.
-- Relevant checkpoints from oc-app-architect, oc-reverse-spec, oc-code-auditor,
-  oc-bug-check, oc-release-ops, oc-api-dev, oc-stack-forge, and oc-repo-ops.
+- Relevant checkpoints from the skills in *Cross-Skill Reads* below: oc-git-ops,
+  oc-app-architect, oc-reverse-spec, oc-api-dev, oc-stack-forge, oc-release-ops,
+  oc-code-auditor, oc-bug-check, oc-compliance-ops, and oc-repo-ops.
 - Existing README, docs, ADRs, changelog, API docs, product docs, and catalog
   pages touched by the change.
 - Linked ticket or PR draft context, when oc-git-ops provides it.
@@ -155,10 +157,30 @@ Pass only when:
 - The packet reflects the current diff, not an older commit.
 - Links and referenced files exist.
 
-Failure blocks `oc-repo-ops verify`, which blocks `oc-git-ops` from opening the
-PR.
+On failure, set `skill_state.verified_for_sha` to `null` (an earlier `/oc-docs pr`
+may already have stamped HEAD), set the checkpoint `status` to `blocked`, and list
+the failed criteria in `blockers`. A later successful `/oc-docs pr` or
+`/oc-docs verify` clears that: it restamps `verified_for_sha` to HEAD, resets
+`status` from `blocked`, and empties the resolved `blockers`. That is how a failure reaches the gate:
+`oc-repo-ops verify` fails closed on a docs-forge checkpoint whose
+`verified_for_sha` is not HEAD or whose `status` is `blocked`, and a failed repo-ops
+verdict stops `oc-git-ops` from opening the PR. `oc-release-ops verify` also runs
+this verb directly for release PRs. The everyday pre-PR gate in oc-git-ops runs
+`/oc-docs pr`, not `/oc-docs verify`.
+
+On success, also publish one C-contract `verification.verdict` handoff under
+policy `pr-docs-v1`, bound to the evaluator's `git_tree_projection` identity
+(the HEAD tree excluding `.checkpoints/`). This projection lets the tracked
+checkpoint carry its own evidence without a self-referential commit hash.
+Read it with `node scripts/lib/release-evidence.mjs --print-candidate --json`.
+FAIL/INCOMPLETE runs publish the corresponding verdict. Consumers use this
+typed handoff; `skill_state.verified_for_sha` remains display/compatibility data.
 
 ## Checkpoint Integration
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-docs-forge.
 
 Location: `{project-dir}/.checkpoints/oc-docs-forge.checkpoint.json`
 
@@ -188,7 +210,17 @@ Write on every `/oc-docs pr`, `/oc-docs readme`, `/oc-docs standardize`,
     "docs_not_changed_reason": null,
     "follow_up_docs": [],
     "verified_for_sha": "abc123"
-  }
+  },
+  "handoffs": [{
+    "id": "pr-docs-<candidate-id>",
+    "contract_version": "1.0",
+    "type": "verification.verdict",
+    "created_at": "2026-09-13T20:00:00Z",
+    "verified_at": "2026-09-13T20:00:00Z",
+    "producer": { "skill": "oc-docs-forge", "run_id": "<run-id>" },
+    "candidate": { "kind": "git_tree_projection", "id": "sha256:<digest>" },
+    "payload": { "verdict": "PASS", "policy": "pr-docs-v1" }
+  }]
 }
 ```
 
@@ -200,11 +232,15 @@ Write on every `/oc-docs pr`, `/oc-docs readme`, `/oc-docs standardize`,
 | oc-app-architect | Feature scope, sprint contracts, reader impact |
 | oc-reverse-spec | Existing docs and architecture facts |
 | oc-api-dev | API docs/spec drift and generated SDK notes |
+| oc-stack-forge | Chosen stack + decision rationale → README/product-doc updates |
 | oc-release-ops | Release notes, changelog, version surfaces |
 | oc-code-auditor / oc-bug-check | Quality notes that belong in PR testing/audit docs |
+| oc-compliance-ops | Policy docs that ride the PR documentation packet |
+| oc-repo-ops | Last readiness findings that need a docs fix |
 
 | Read by | Why |
 |---|---|
 | oc-repo-ops | Blocks PR when docs packet is missing or stale |
 | oc-git-ops | Inserts PR body/comment content before PR creation |
 | oc-release-ops | Ensures release PRs include changelog and product docs |
+| oc-cost-ops | Per-PR gate runs to attribute cost to |

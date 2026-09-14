@@ -1,7 +1,7 @@
 ---
 name: oc-qa-ops
 displayName: OC · QA Ops
-version: 1.9.0
+version: 2.0.0
 license: Apache-2.0
 shortDesc: "Test-pyramid design: coverage strategy, contract-test planning, load-test planning. Strategy, not execution."
 phases: [plan, build]
@@ -138,8 +138,9 @@ Plan — not run — load tests: which scenarios (steady-state, spike, soak),
 against which endpoints and target environment, at what RPS/latency SLOs,
 gated where. **Execution and perf budgets belong to oc-scale-ops**
 (`/oc-scale loadtest`, `/oc-scale budget`): the plan lands in
-`.opchain/qa.yaml`'s `load_plan:` block — oc-scale-ops executes from there;
-note the handoff in the checkpoint. A load plan without an SLO, a duration,
+`.opchain/qa.yaml`'s `load_plan:` block — oc-scale-ops executes from there
+(the manifest is the handoff contract; `skill_state` is private to this skill).
+Note the handoff in the checkpoint's `context_primer.key_decisions`. A load plan without an SLO, a duration,
 and a `target` environment is not a plan; refuse to emit one.
 
 ## `/oc-qa audit`
@@ -164,6 +165,10 @@ just an opinion.
 
 ## Checkpoint Integration
 
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-qa-ops.
+
 Location: `{project-dir}/.checkpoints/oc-qa-ops.checkpoint.json`
 
 ```json
@@ -175,7 +180,8 @@ Location: `{project-dir}/.checkpoints/oc-qa-ops.checkpoint.json`
   "context_primer": {
     "key_decisions": [
       "Four levels: unit / integration / contract / e2e; e2e capped at smoke flows.",
-      "Coverage floor 70% lines global, 90% src/lib; new-code expectation 80%."
+      "Coverage floor 70% lines global, 90% src/lib; new-code expectation 80%.",
+      "Load plan in .opchain/qa.yaml load_plan, handed to oc-scale-ops for execution."
     ],
     "generated_files": [".opchain/qa.yaml"]
   },
@@ -207,6 +213,8 @@ Location: `{project-dir}/.checkpoints/oc-qa-ops.checkpoint.json`
 | oc-app-architect | Phase 2 invokes `/oc-qa pyramid` for 06-testing.md; Phase 6 Evaluator holds sprints to the new-code budget |
 | oc-scale-ops | Receives the load plan for execution |
 | oc-api-dev | Receives contract-test rows for its conformance suite |
+| oc-integrations-engineer | Builds the contract-matrix rows with `owner: oc-integrations-engineer` (consumed third-party boundaries) |
+| oc-code-auditor | Reads the `.opchain/qa.yaml` pyramid + `coverage.overrides` when `/oc-audit test-bootstrap` generates a starter suite |
 
 ## Principles
 

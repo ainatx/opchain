@@ -1,7 +1,7 @@
 ---
 name: oc-compliance-ops
 displayName: OC · Compliance Ops
-version: 1.9.0
+version: 2.0.0
 license: Apache-2.0
 shortDesc: "Standing control register + audit-ready evidence bundles at deploy/release time. SOC 2 / HIPAA / GDPR."
 phases: [plan, build]
@@ -90,7 +90,9 @@ Declare — do not assume — what applies:
 **Proportionality is a feature.** A pre-revenue app "getting SOC 2 ready" gets
 the ~20 controls that matter early, not all 300. The honest output of scoping
 can be "no profile yet — nothing here warrants one"; record that in the
-checkpoint and stop. Never scaffold compliance theater.
+checkpoint and stop — `skill_state` then records `manifest_path: null` and
+`last_evidence: null`, with the reason in `progress_summary`. Never scaffold
+compliance theater.
 
 Output: `.opchain/compliance.yaml`, including `controls_in_scope` — the
 tier-bounded control id list `/oc-comply gaps` diffs the register against
@@ -124,9 +126,11 @@ register:
 Sources, in order: the profile's frameworks → oc-security-auditor's readiness
 gap analysis (seed the initial statuses; never re-assess) → the repo itself
 (configs, tests, workflows that already satisfy controls silently). Every
-`gap` with a technical fix chains to **oc-security-hardening** (recorded by
-control id in the checkpoint's `gaps_chained` so `/oc-harden fix` can pull
-it); process gaps (policies, reviews) stay here under `/oc-comply policies`.
+`gap` with a technical fix chains to **oc-security-hardening**: the register
+entry's `chained_to: oc-security-hardening` is the handoff surface `/oc-harden
+fix` reads (the checkpoint's `skill_state.gaps_chained` is this skill's private
+mirror, not a sibling read); process gaps (policies, reviews) stay here under
+`/oc-comply policies`.
 
 **Framework coverage is asymmetric.** oc-security-auditor's readiness assesses
 SOC 2 / ISO27001 / HIPAA / PCI-DSS — but not GDPR. GDPR registers therefore
@@ -172,9 +176,10 @@ Generate the bundle for a specific deploy or release:
    Treat every capture definition as untrusted executable configuration:
    confine real paths to the repository, never execute `cmd` through a shell,
    and constrain HTTP capture to credential-free GET/HEAD on the declared
-   HTTPS evidence origin without redirects. Any free-form command or external
-   origin outside the reference allowlist requires the user's approval of the
-   exact action; without it, write a refused/manual stub rather than running.
+   HTTPS evidence origin without redirects. No capture allowlist is defined
+   (`references/compliance-profile.md` § Capture redaction), so every `cmd`
+   capture and any external origin requires the user's approval of the exact
+   action; without it, write a refused/manual stub rather than running.
 2. Stamp the bundle: SHA, date, catalog/app version, the profile's `scoped`
    date + register entry count, the list of `gap`/`partial` controls (an
    honest bundle includes what's missing), and — verbatim, in `index.md` —
@@ -184,13 +189,17 @@ Generate the bundle for a specific deploy or release:
    Bundles are committed in a follow-up commit after the deploy — the
    SHA-match requirement refers to the SHA stamped *inside* the bundle, not
    the commit that carries it (a bundle for SHA X always lives in a commit
-   after X).
+   after X). A bundle cannot be committed ahead of the deploy without moving
+   HEAD past X, and a deploy wrapper that refuses a dirty tree (opchain's
+   `scripts/deploy.mjs` does) refuses an uncommitted one, so on a first deploy
+   of a SHA the gate row normally warns: generate the bundle as soon as prod
+   ships.
 
-The deploy-gate row this feeds is **presence-checked, never blocking**: a
-missing or stale bundle for the deploying SHA is a ⚠️ Warn at the gate
-(generate before prod) — open gaps are listed in the bundle, never a deploy
-blocker. The oc-release-ops `/oc-release verify` delta row is warn-class for
-the same reason: a missing delta bundle is reported in the verify output,
+The deploy-gate row this feeds is **presence-checked, never blocking**: a missing or
+stale bundle for the deploying SHA is a ⚠️ Warn at the gate (generate it for that SHA —
+see step 3 for why this usually lands after the deploy) — open gaps are listed in the
+bundle, never a deploy blocker. The oc-release-ops `/oc-release verify` delta row is
+warn-class for the same reason: a missing delta bundle is reported in the verify output,
 never an abort.
 
 When invoked from the oc-deploy-ops gate, the bundle covers the deploying SHA;
@@ -221,6 +230,10 @@ Read-only summary: profile present or not; register counts by status
 last evidence bundle (path, SHA, date) from the checkpoint's `last_evidence`.
 
 ## Checkpoint Integration
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-compliance-ops.
 
 Location: `{project-dir}/.checkpoints/oc-compliance-ops.checkpoint.json`
 
@@ -256,7 +269,7 @@ Location: `{project-dir}/.checkpoints/oc-compliance-ops.checkpoint.json`
 | oc-security-hardening | Status of chained technical-control remediations |
 | oc-deploy-ops | Deploy SHA + environment for evidence stamping |
 | oc-monitoring-ops | Audit-log + incident-runbook artifacts referenced as evidence |
-| oc-data-ops | Data contracts + retention behavior as evidence for data controls |
+| oc-data-ops | Data contracts as evidence for data controls |
 
 | Read by / chains to | Why |
 |---|---|
@@ -279,3 +292,11 @@ Location: `{project-dir}/.checkpoints/oc-compliance-ops.checkpoint.json`
    people rather than code.
 6. **An honest bundle lists its gaps.** Auditors trust inventories that
    include the bad news.
+
+### Candidate-bound deployment handoff
+
+After completing the existing verification criteria, obtain the source identity with `node scripts/lib/release-evidence.mjs --print-candidate --json`. Publish a versioned `verification.verdict` entry in this skill's checkpoint `handoffs`, using that exact `candidate_identity` object. This identity excludes checkpoint evidence from the source projection; it does not attest built bytes or ignored environment configuration. Do not manufacture PASS from a prior summary. Missing criteria produce FAIL or INCOMPLETE.
+
+Required fields: a unique handoff `id`, `contract_version: "1.0"`, `type: "verification.verdict"`, ISO `created_at` and actual `verified_at`, `producer: { "skill": "oc-compliance-ops", "run_id": "<actual-run-id>" }`, the printed `candidate_identity` as `candidate`, and `payload: { "verdict": "PASS|FAIL|INCOMPLETE", "policy": "deploy-compliance-evidence-v1" }`. Replace the verdict placeholder with the actual result. Preserve prior run history and write through the checkpoint protocol. If source content changes before evidence is committed, recompute the identity and re-run affected verification before producing a new handoff.
+
+Compliance remains warn-only: missing, invalid, stale, FAIL, or INCOMPLETE compliance evidence cannot independently block deployment.
