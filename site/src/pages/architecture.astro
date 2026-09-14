@@ -140,6 +140,31 @@ const packCounts = {
         <marker id="ah-v20-muted" markerWidth="5" markerHeight="3.5" refX="4.5" refY="1.75" orient="auto">
           <polygon points="0 0, 5 1.75, 0 3.5" fill="#a5bcd1"/>
         </marker>
+        <marker id="ah-learn" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+          <polygon points="0 0, 6 2, 0 4" fill="#8cb9fc"/>
+        </marker>
+        <!-- v2.0 Slate & Emerald preview set — used only by the learning rail, which
+             renders in the 2.0 palette while the rest of this page stays Forge.
+             Values are verbatim from design-previews/color-2.0-tooling/tokens-2.0.css
+             (set 34, dark mode): --accent #2be179, --tri-agent #ebfe00, --muted #a5bcd1. -->
+        <filter id="glow-v20-accent" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="6" result="b"/>
+          <feFlood flood-color="#2be179" flood-opacity="0.4" result="c"/>
+          <feComposite in="c" in2="b" operator="in" result="s"/>
+          <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glow-v20-tri" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="7" result="b"/>
+          <feFlood flood-color="#ebfe00" flood-opacity="0.5" result="c"/>
+          <feComposite in="c" in2="b" operator="in" result="s"/>
+          <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <marker id="ah-v20-accent" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+          <polygon points="0 0, 6 2, 0 4" fill="#2be179"/>
+        </marker>
+        <marker id="ah-v20-muted" markerWidth="5" markerHeight="3.5" refX="4.5" refY="1.75" orient="auto">
+          <polygon points="0 0, 5 1.75, 0 3.5" fill="#a5bcd1"/>
+        </marker>
       </defs>
     </svg>
 
@@ -1299,7 +1324,7 @@ const packCounts = {
                human promoted or adopted rides the re-inject bus back into the
                next run.
 
-               NONE OF IT IS IN THE CATALOG YET. Today: 33 skills at 1.9.0 on
+               NONE OF IT IS IN THE CATALOG YET. Today: 33 skills at 1.9.2 on
                checkpoint wire 1.1. So every panel is badged PLANNED, the two
                skills link to /changelog#v2-0 rather than /skills/<id> (those
                pages do not exist), the Outcome Scorecard kit is drawn without
@@ -1322,7 +1347,7 @@ const packCounts = {
                grounds are luminance-identical (#12191f vs #12191f = 1.00:1) and
                differ only in hue, so the dashed border and the chrome — not the
                panel fill — are what separate the rail. Not on the spine. -->
-          <div class="lrail" role="group" aria-label="Learning rail (planned for v2.0): the self-improvement loop. Checkpoint wire 1.2 accumulates every run's eval scores, the Outcome Scorecard kit turns them into a decaying directive, oc-hindsight turns committed outcomes into promotable lessons, and oc-evolve turns recurring failures into adoptable rules. Each governed workflow ends at a human gate, and only what a human promoted or adopted is re-injected into the next run. None of it has shipped: the catalog today is 33 skills at 1.9.0.">
+          <div class="lrail" role="group" aria-label="Learning rail (planned for v2.0): the self-improvement loop. Checkpoint wire 1.2 accumulates every run's eval scores, the Outcome Scorecard kit turns them into a decaying directive, oc-hindsight turns committed outcomes into promotable lessons, and oc-evolve turns recurring failures into adoptable rules. Each governed workflow ends at a human gate, and only what a human promoted or adopted is re-injected into the next run. None of it has shipped: the catalog today is 33 skills at 1.9.2.">
             <div class="lrail-head">
               <span class="lrail-eyebrow">v2.0 · cross-cutting · learning rail · planned, not shipped</span>
               <span class="lrail-title">Self-improvement — measure the runs, remember the outcomes, change the behaviour; each step ends at a human</span>
@@ -1418,7 +1443,7 @@ const packCounts = {
 
                 <text x="380" y="214" fill="#a5bcd1" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.85">emitters harvested: oc-app-architect eval reports · oc-code-auditor audits · oc-monitoring-ops postmortems · oc-bug-check verdicts</text>
                 <text x="380" y="225" fill="#8cb9fc" font-size="6.5" font-family="JetBrains Mono,monospace" text-anchor="middle">★ = a human gate — interactive confirm plus a signed Approved-by: commit · not an audit gate, the count stays 3</text>
-                <text x="380" y="236" fill="#a5bcd1" font-size="5.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.85">planned for v2.0 — none of this is in the catalog yet; today it is 33 skills at 1.9.0 and checkpoint wire 1.1</text>
+                <text x="380" y="236" fill="#a5bcd1" font-size="5.5" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.85">planned for v2.0 — none of this is in the catalog yet; today it is 33 skills at 1.9.2 and checkpoint wire 1.1</text>
               </svg>
             </div>
             <div class="lrail-anchors">
@@ -1441,7 +1466,7 @@ const packCounts = {
                 <span class="ia-badges"><span class="ia-new">v2.0 · KIT, NOT A SKILL</span></span>
               </div>
             </div>
-            <div class="lrail-foot">↑ planned for v2.0 — nothing here has shipped · the catalog today is 33 skills at 1.9.0 on wire 1.1 · learned content is advisory data, never instructions, and never outranks a skill contract or repo policy</div>
+            <div class="lrail-foot">↑ planned for v2.0 — nothing here has shipped · the catalog today is 33 skills at 1.9.2 on wire 1.1 · learned content is advisory data, never instructions, and never outranks a skill contract or repo policy</div>
           </div>
 
           <!-- 2.0 content block 5 — Layer 3 legend for the learning rail above -->
@@ -1657,7 +1682,7 @@ const packCounts = {
               <span>learning rail · v2.0 <span style="color:var(--learn)">planned</span></span>
               <div class="legend-card" role="tooltip">
                 <div class="legend-card-title" style="color:#8cb9fc">Learning rail (planned for v2.0)</div>
-                The only dashed rail on this page, because none of it has shipped — the catalog today is 33 skills at 1.9.0 on checkpoint wire 1.1. v2.0 closes a loop instead of adding two more boxes. <strong style="color:#8cb9fc">Wire 1.2</strong> is the release's one BREAKING change: <code>eval_scores[]</code> gains real append semantics, the in-file array becomes a bounded recent window, and the archive of record moves to <code>.checkpoints/history/&lt;skill&gt;.eval.ndjson</code>, so a reader wanting full history must union both. The <strong style="color:#8cb9fc">Outcome Scorecard kit</strong> is a kit, not a skill — it carries no CP/ORC badge and is not counted. <strong style="color:#8cb9fc">oc-hindsight</strong> harvests committed outcomes into source-cited lessons; <strong style="color:#8cb9fc">oc-evolve</strong> turns recurring failures into rules proven by oc-prompt-ops regressions. Both end at a ★ <em>human</em> gate — an interactive confirm plus a signed <code>Approved-by:</code> commit — which is not an audit gate, so the count stays three.
+                The only dashed rail on this page, because none of it has shipped — the catalog today is 33 skills at 1.9.2 on checkpoint wire 1.1. v2.0 closes a loop instead of adding two more boxes. <strong style="color:#8cb9fc">Wire 1.2</strong> is the release's one BREAKING change: <code>eval_scores[]</code> gains real append semantics, the in-file array becomes a bounded recent window, and the archive of record moves to <code>.checkpoints/history/&lt;skill&gt;.eval.ndjson</code>, so a reader wanting full history must union both. The <strong style="color:#8cb9fc">Outcome Scorecard kit</strong> is a kit, not a skill — it carries no CP/ORC badge and is not counted. <strong style="color:#8cb9fc">oc-hindsight</strong> harvests committed outcomes into source-cited lessons; <strong style="color:#8cb9fc">oc-evolve</strong> turns recurring failures into rules proven by oc-prompt-ops regressions. Both end at a ★ <em>human</em> gate — an interactive confirm plus a signed <code>Approved-by:</code> commit — which is not an audit gate, so the count stays three.
                 <div class="legend-card-examples">oc-hindsight · oc-evolve · the Outcome Scorecard kit · checkpoint wire 1.2</div>
               </div>
             </span>
@@ -2358,7 +2383,7 @@ const packCounts = {
     --sig-line: var(--sig);
     --learn-line: var(--learn);
     --tert-line: var(--tert);
-    --shade:      #1c1710;   /* deep wash behind panels/tooltips; light overrides it */
+    --shade:      var(--slate);   /* deep wash behind panels/tooltips; light overrides it */
     --arch-page: var(--obsidian);
     background: var(--arch-page);
     color: var(--linen);
@@ -3071,7 +3096,7 @@ const packCounts = {
   /* Rail anchor cards are <a>, so without this they inherit the site-wide
      link colour var(--accent) — a theme-aware token that has no business in
      this dark-only diagram (runbook §7, "theme-token leak"; measured shifting
-     var(--ember) → var(--ember) under [data-theme="light"] on the v1.6 and v1.8 rails in
+     #e05c18 → #d95010 under [data-theme="light"] on the v1.6 and v1.8 rails in
      production). Every child span already pins its own colour, so this changes
      nothing visible; it stops the leak at the boundary. */
   .arch-v2 .irail-anchor,

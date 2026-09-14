@@ -1,30 +1,50 @@
 # Version locations in the opchain repo
 
-`/oc-release bump` rewrites every location below in lockstep. If you add a
-new place that displays a version string, add it here AND to
-`scripts/check-version-lockstep.mjs` (when that script exists; for v1.3
-the check lives in this skill's `/oc-release verify` step).
+`/oc-release bump` rewrites every location below in lockstep for a minor release;
+for a patch, the site rows move in the site PR after the tag. If you add a
+new place that displays a version string, add it here AND to the probes in
+`scripts/check-release-surfaces.mjs` (pinned by `tests/release-surfaces.test.js`).
+The skill-catalog half is checked by `scripts/check-release-tag.mjs`, which
+reports a split catalog as `catalog-split`.
+
+Companion to `site-release-surfaces.md`, which says *when* each site surface
+moves: forward surfaces in the build PR; live-claim surfaces in the release PR
+before the tag for a minor release, or in a site PR after the tag for a patch
+(only the patch-only rows). This file lists *what* carries the version.
+
+`check-release-surfaces.mjs` compares **major.minor only** (`v1.9`) for the
+live-claim site labels, and uses the newest `## [x.y.z]` heading in
+`skills/CHANGELOG.md` as the full-semver source for the catalog, seal, server,
+marketplace, and plugin manifest. A full-semver site badge remains a review item
+because it is intentionally patch-only for patch releases.
 
 ---
 
 ## Required locations
 
-These must all match the release version. `/oc-release verify` fails if any
-diverge.
+These must all match the release. `<release>` below is the full semver
+(`1.9.0`); `<minor>` is the `vN.N` label (`v1.9`); `<anchor>` is the hyphenated
+changelog card id (`v1-9`).
 
-| Path | What | Pattern |
-|---|---|---|
-| `skills/<id>/SKILL.md` (every directory) | Frontmatter `version:` field | `version: 1.3.0` |
-| `release-seal.json` | Reviewed baseline + publisher/payload digests | `"catalogVersion": "1.3.0"`, `"publisherWorkflowSha256": "…"`, `"serverJsonSha256": "…"` |
-| `site/src/pages/styleguide.astro` | Top-of-page badge | `v1.3.0` |
-| `site/src/pages/index.astro` | Homepage release-pill href + label | `href="/changelog#v1.3"` `<span>v1.3</span>` |
-| `site/src/components/Header.astro` | Menu-bar release chip href + label | `CURRENT_RELEASE = "v1.3"` `CURRENT_RELEASE_HREF = "/changelog#v1-3"` |
-| `site/src/pages/changelog.astro` | Most recent `<section class="release release--current">` | `<span class="rel-tag">v1.3</span>` |
+| Path | What | Pattern | Checked by |
+|---|---|---|---|
+| `skills/<id>/SKILL.md` (every directory) | Frontmatter `version:` field | `version: <release>` | `check-release-tag.mjs`, `check-release-surfaces.mjs` |
+| `release-seal.json` | Reviewed baseline + publisher/payload digests | `"catalogVersion": "<release>"`, `"publisherWorkflowSha256": "…"`, `"serverJsonSha256": "…"` | `check-release-tag.mjs`, `check-release-surfaces.mjs` |
+| `server.json` | MCP Registry listing version | `"version": "<release>"` | `check-release-tag.mjs` (seal digest), `check-release-surfaces.mjs` |
+| `.claude-plugin/marketplace.json` | Marketplace + plugin entry versions | `"version": "<release>"` | `check-release-surfaces.mjs` |
+| `plugins/opchain/.claude-plugin/plugin.json` | Plugin version | `"version": "<release>"` | `check-release-surfaces.mjs` |
+| `site/src/components/Header.astro` | Menu-bar release chip | `CURRENT_RELEASE = "<minor>"`, `CURRENT_RELEASE_HREF = "/changelog#<anchor>"` | `check-release-surfaces.mjs` (major.minor), `tests/site-release-chip.test.js` |
+| `site/src/pages/index.astro` | Homepage release bar (shipped label) + "latest release" stat chip | `<span class="rb-tag"><minor> · shipped</span>`, `<span class="stat-num"><minor></span>` | `check-release-surfaces.mjs` |
+| `site/src/pages/changelog.astro` | Just Released open hero | `<article class="hero-card hero-card--released is-open" id="<anchor>">` with `<span class="hero-ver"><release> · shipped <Mon DD, YYYY></span>` | `check-release-surfaces.mjs` (the hero `id`, major.minor; `hero-ver` is review only) |
+| `site/src/pages/skills/index.astro` | Skill Library release callout + its href | `<span class="release-callout-tag"><minor> · SHIPPED</span>`, `<a class="release-callout" href="/changelog#<anchor>"` | `check-release-surfaces.mjs` |
+| `site/src/pages/styleguide.astro` | Badge example | `<Badge>v<release></Badge>` | `check-release-surfaces.mjs` (major.minor only; the patch digit is review only) |
+| `site/src/pages/architecture.astro` | Diagram eyebrow + footer | `SKILLS · ARCHITECTURE · v2 · RELEASE <minor>`, `spine ordinals · <minor> · checkpoint-driven` | `check-release-surfaces.mjs` |
+| `site/src/components/MobileArchitecture.astro` | Mobile diagram eyebrow | `SKILLS · ARCHITECTURE · v2 · MOBILE · <minor>` | `check-release-surfaces.mjs` |
 
-The pill/chip labels use the **major.minor** form (`v1.3`, not `v1.3.0`)
-because the changelog page anchors are major.minor; patches roll into the same
-anchor. The homepage uses `/changelog#v1.3`; the Astro changelog card IDs use
-hyphenated anchors like `/changelog#v1-3`.
+The homepage release bar's `href` is **not** a shipped-version location: it
+points at the *next* release's card (`/changelog#vN-N` for the release being
+built; forward surface F1 in `site-release-surfaces.md`). Every changelog anchor
+is hyphenated (`#v1-9`); there is no dotted `#v1.9` form.
 
 ---
 
@@ -50,7 +70,7 @@ Not bumped automatically, but `/oc-release plan` lists these for the user to
 spot-check:
 
 - `README.md` — the install snippet should reference `main` or a stable tag,
-  not a stale version number. As of v1.3 there are no version pins here.
+  not a stale version number.
 - `skills/README.md` — same.
 - Any blog / external pages — out of scope for oc-release-ops; the user owns
   those surfaces.
@@ -62,10 +82,20 @@ spot-check:
 When adding a new place that surfaces the release version:
 
 1. Add a row to the "Required locations" table above.
-2. Update `scripts/validate-pm-mcp.mjs` family of validators (or add
-   `scripts/check-version-lockstep.mjs`) to assert lockstep.
+2. Add a probe to `scripts/check-release-surfaces.mjs` (site surfaces) so the
+   verify gate and CI catch a stale value.
 3. Make sure `/oc-release bump` writes it.
-4. Add a regression test under `tests/oc-release-ops-*.test.js`.
+4. Extend `tests/release-surfaces.test.js` (or `tests/site-release-chip.test.js`
+   for the header chip) to pin it.
 
-Adding a version surface without updating this file is a oc-release-ops bug;
+Adding a version surface without updating this file is an oc-release-ops bug;
 `/oc-release verify` should catch the divergence on the next release.
+
+## Derived release-version surfaces
+
+These committed files carry the release version but are generated or mirrored;
+they are not edited manually during a bump. The source skill frontmatter feeds
+`src/generated/mcp-catalog.json`, which is regenerated by `pretest`/`prebuild`.
+The packaged copies under `plugins/opchain/skills/**/SKILL.md` mirror `skills/`
+and are checked by `npm run sync-plugin-skills:check`. A release is incomplete
+if either parity control fails, even when the source version rows above agree.

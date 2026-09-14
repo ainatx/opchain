@@ -1,13 +1,14 @@
 ---
 name: oc-cost-ops
 displayName: OC · Cost Ops
-version: 1.9.0
+version: 1.9.2
 license: Apache-2.0
 shortDesc: LLM cost attribution per skill phase, budget gates in checkpoints, and model-tier routing recommendations.
 phases: [build]
 triAgent: false
 tryable: true
 commands:
+  - /oc-cost baseline
   - /oc-cost
   - /oc-cost attribute
   - /oc-cost budget
@@ -40,12 +41,12 @@ governance:
 **On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
 
 Make LLM spend a **first-class, attributable number** in the pipeline. v1.5 added
-four AI-native skills; the predictable next question is *"what did that cost
-me?"* — and today the honest answer across opchain is "we don't precisely know."
-Cost Ops closes that loop: every skill phase that calls a model can attribute its
-spend, every checkpoint can carry a budget that **gates** when tripped, and every
-model choice can be checked against a tier-routing recommendation (don't run
-Opus on a phase Haiku handles).
+four AI-native skills; the predictable next question was *"what did that cost
+me?"* — and before v1.6 the honest answer across opchain was "we don't precisely
+know." Cost Ops closes that loop: every skill phase that calls a model can
+attribute its spend, the oc-cost-ops checkpoint carries a budget that **gates**
+when tripped, and every model choice can be checked against a tier-routing
+recommendation (don't run Opus on a phase Haiku handles).
 
 This is **not** a tri-agent harness and not a billing system. It's the
 instrumentation layer that sits underneath the model-facing skills — `oc-claude-api`
@@ -71,11 +72,12 @@ COST OPS COMMANDS
   ATTRIBUTION
   /oc-cost              Summarize spend for the current project (by phase + model)
   /oc-cost attribute    Attribute a run's token counts → dollars, write checkpoint.cost
+  /oc-cost baseline     Freeze measured eval cost for a regression comparison
   /oc-cost report       Cost-per-shipped-feature report (feeds /showcase + /dashboard)
 
   BUDGETS & GATES
   /oc-cost budget       Set a per-phase / per-suite budget ceiling in the checkpoint
-  /oc-cost gate         Run the budget + cost-regression gate (CI-friendly verdict)
+  /oc-cost gate         Run the budget + cost-regression gate (PR-time verdict)
 
   ROUTING
   /oc-cost route        Recommend a model tier per phase (Haiku/Sonnet/Opus/Fable)
@@ -86,6 +88,29 @@ COST OPS COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Type any command to begin. /oc-cost to see this again.
 ```
+
+---
+
+## Executable eval-cost commands
+
+Run these commands from the opchain source checkout with dependencies installed,
+or from the unpacked local runtime artifact. A skills-only ZIP or the Claude
+plugin does not include these npm commands. Keep the runtime in its own directory;
+pass dataset and output paths for the target project explicitly.
+
+With the coordinator-provided `oc-cost` alias, the runner-backed forms are:
+
+```sh
+npm run oc-cost -- attribute <dataset-dir> --result <result.json> --rates <rates.json> --measurement-id <id> --out <cost.json>
+npm run oc-cost -- baseline <dataset-dir> --measured <cost.json> --out <cost-baseline.json>
+npm run oc-cost -- gate <dataset-dir> --measured <cost.json> --baseline <cost-baseline.json>
+```
+
+`rates.json` supplies explicit `input_per_million` and `output_per_million`
+values; the command derives cost from the result's preserved adapter usage. No
+model price is assumed. Missing usage or pricing writes an unavailable-cost
+artifact, and a missing cost baseline returns `BLOCKED`. `/oc-cost`, `budget`,
+`route`, and `report` remain assistant-driven modes in this release.
 
 ---
 
@@ -100,15 +125,16 @@ oc-bug-check / oc-code-auditor (phase) ──┘        │            { total_u
                           ▼                       ▼                        ▼
                    /oc-cost gate            /oc-cost route          oc-telemetry-ops
                    budget + cost-           tier recommendation     aggregate → /dashboard
-                   regression (CI)          per phase               cost-per-feature stats
+                   regression (PR-time)     per phase               cost-per-feature stats
 ```
 
 Cost Ops reads token counts the model-facing skills already emit, multiplies by
 the `oc-claude-api` pricing, and writes the attributed result into the wire-1.1
-`cost` checkpoint field. Downstream: `oc-prompt-ops` runs the **cost-regression
-gate** beside its score gate (a prompt change that holds quality but triples cost
-is a regression), and `oc-telemetry-ops` aggregates cost across runs for the
-public `/dashboard`.
+`cost` field of **its own** checkpoint. Downstream: Cost Ops runs the
+**cost-regression gate** (`/oc-cost gate`) beside `oc-prompt-ops`'s score gate
+(`/oc-prompt regress`) — a prompt change that holds quality but triples cost is a
+regression — and `oc-telemetry-ops` aggregates cost across runs for the public
+`/dashboard`.
 
 ---
 
@@ -129,9 +155,11 @@ v1.6 (see `oc-checkpoint-protocol` § "Wire 1.1 extensions"):
 }
 ```
 
-The validator warns (does not error) when `total_usd > budget_usd` — overspend is
-a signal. The *gate decision* (block the merge / deploy vs. warn) is policy Cost
-Ops applies in `/oc-cost gate`, documented in `references/budget-gates.md`.
+The validator warns (does not error) when `budget_usd > 0` and `total_usd >
+budget_usd` — overspend is a signal. A `budget_usd` of `0` never trips the
+validator (it reads as "no ceiling set"). The *gate decision* (block the merge /
+deploy vs. warn) is policy Cost Ops applies in `/oc-cost gate`, documented in
+`references/budget-gates.md`.
 
 ---
 
@@ -164,10 +192,13 @@ may recommend "keep the tier, fix caching" instead.
 
 ## Principle 3: Cost is a regression dimension
 
-Two gates run in CI beside the quality gates (`references/budget-gates.md`):
+Two gates run beside the quality gates on a PR (`references/budget-gates.md`).
+The eval-cost `gate` form above is executable; the checkpoint-oriented modes
+remain assistant-driven:
 
 - **Budget ceiling** — `cost.budget_usd` per phase / per suite. Validator warns on
-  overspend; strict mode blocks. Raising a budget is a logged decision.
+  overspend; `/oc-cost gate` in strict mode reports FAIL. Raising a budget is a
+  logged decision.
 - **Cost regression** — the gate `oc-prompt-ops` advertises: freeze a cost
   baseline, fail a PR when `cost_per_eval` spikes past `regression_pct`, *even if
   quality held*. It runs next to `oc-prompt-ops`'s score gate so a prompt/model
@@ -190,14 +221,25 @@ price.
 | Per-token prices, Batch economics, cache multipliers | `oc-claude-api` | Cost Ops consumes the price table; oc-claude-api is its source of truth |
 | The eval suite + score-regression gate | `oc-prompt-ops` | Cost Ops adds the *cost*-regression gate beside it |
 | Local usage metering + the `/dashboard` data | `oc-telemetry-ops` | Cost Ops attributes spend; telemetry stores + aggregates it |
-| Deploying anything | `oc-deploy-ops` | Cost Ops is advisory + a gate, never a deployer |
+| Deploying anything | `oc-deploy-ops` | Cost Ops is advisory + a PR-time gate, never a deployer; oc-deploy-ops runs no cost gate |
 
 ---
 
 ## Checkpoint Integration
 
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-cost-ops.
+
 ### Location
 `{project-dir}/.checkpoints/oc-cost-ops.checkpoint.json`
+
+The `cost` block lives **only in this file**. The protocol forbids writing another
+skill's checkpoint, so attribution for a run owned by another skill is merged here,
+with `by_phase` keys labelled `<skill>/<phase>` (e.g. `oc-app-architect/spec`) when
+more than one skill's spend is tracked. The protocol's single `budget_usd` covers
+the whole file, so the `total_usd` / `budget_usd` comparison always happens within
+this one file.
 
 ### When to Write
 
@@ -205,8 +247,8 @@ price.
 |---|---|
 | Spend attributed | `cost.total_usd`, `cost.by_phase`, `cost.by_model` |
 | Budget set | `cost.budget_usd` |
-| Gate run | gate verdict + the cost delta vs baseline |
-| Routing recommended | per-phase tier recommendation in `skill_state` |
+| Gate run | `skill_state.last_gate`: `{ verdict, mode, cost_per_eval, baseline_per_eval, delta_pct, at }` |
+| Routing recommended | `skill_state.route_recommendation`: `[{ phase, current, recommend, est_delta_usd }]` |
 
 ### Cross-Skill Reads
 
@@ -219,7 +261,7 @@ price.
 
 | Read by | Why |
 |---|---|
-| oc-prompt-ops | Cost number for the cost-regression gate |
+| oc-prompt-ops | `cost_per_eval` in `eval.yaml`, reported beside its score gate |
 | oc-telemetry-ops | Attributed cost to aggregate for /dashboard |
 | oc-orchestrator | Budget/cost to factor into `/oc-ops next` prioritization |
 

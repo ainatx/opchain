@@ -1,7 +1,7 @@
 ---
 name: oc-evolve
 displayName: OC · Evolve
-version: 1.9.0
+version: 1.9.2
 license: Apache-2.0
 shortDesc: "Governed behavior change: cluster recurring failures into rules, prove them by regression, adopt by hand."
 phases: [foundation, ai-native]

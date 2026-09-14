@@ -18,8 +18,14 @@ Add this to every skill's command reference section:
   /checkpoint list    List all skill checkpoints in project
 ```
 
-**Implementation:** When any of these commands are received, run the canonical CLI
-(pure Node, zero deps) against the current project's `.checkpoints/` directory:
+`/checkpoint` is a prose convention, not a registered verb (see the protocol's
+*/checkpoint Command* section).
+
+**Implementation:** When any of these commands are received, read and write the
+checkpoint JSON directly with your file tools, per the protocol's *How to Write*. That
+works on every project. Inside the opchain.dev repo only, the optional CLI (pure Node,
+zero deps) does the same against `.checkpoints/`; on a user's project it is absent,
+and a missing script is never a reason to skip the command:
 
 ```bash
 node scripts/checkpoint.mjs <command>     # status | next | doctor | list | show | reset | validate | update | done | init
@@ -45,12 +51,14 @@ RESUME CHECK
 3. If it exists:
    a. Read it (or run: node scripts/checkpoint.mjs status --brief)
    b. Display brief status (skill, phase, step, summary, last updated)
-   c. If status is in_progress and NOT stale (<7d): continue automatically —
-      "Resuming from next_actions[0]: …". Don't ask.
-   d. If status is blocked/failed OR the checkpoint is stale (>7d): ask
+   c. If status is in_progress and NOT stale (touched in the last 7 days):
+      continue automatically — "Resuming from next_actions[0]: …". Don't ask.
+   d. If status is blocked/failed OR the checkpoint is stale (in_progress >7d,
+      complete >14d, blocked >3d): ask
       "Continue from here, restart, or show full checkpoint?"
    e. On continue: load context_primer, start from next_actions[0]
-   f. On restart: archive the file (mv to .bak) and proceed fresh
+   f. On restart: move the file to
+      .checkpoints/history/<skill>.<timestamp>.checkpoint.json and proceed fresh
 4. If it does not exist: proceed with normal skill flow (or `init` to scaffold).
 ```
 
@@ -69,30 +77,31 @@ RESUME CHECK
 | **Design Direction Gate** | `phase: "design-approved"` |
 | Punch list generated | Append punch list path |
 | **Punch List Gate** | `phase: "punch-list-approved"` |
-| Roadmap generated | `phase: "roadmap"` |
-| **Roadmap Gate** | `phase: "roadmap-approved"` |
+| Sprint plan generated | `phase: "sprint-plan"` |
+| **Sprint Plan Gate** | `phase: "sprint-plan-approved"` |
 | Scaffold generated | `phase: "scaffold"` |
-| Build progress (per screen/component) | Update `step` with current build item |
-| **UAT Gate** | `phase: "uat-approved"` |
+| Each sprint contract, evaluation round and sprint completion | Update `step` and the sprint's `progress_table` row |
 | Launch complete | `status: "complete"` |
 
 ### progress_table Template
 
+oc-app-architect's own *Session Persistence* section is canonical; this is an abridged copy
+(one sprint row shown where it lists three).
+
 ```json
 [
-  { "id": "discovery",       "label": "Discovery interview",    "status": "not_started" },
-  { "id": "spec",            "label": "Spec generation",        "status": "not_started" },
-  { "id": "spec-gate",       "label": "★ Spec approval",        "status": "not_started" },
-  { "id": "design",          "label": "Design pipeline",        "status": "not_started" },
-  { "id": "design-gate",     "label": "★ Design approval",      "status": "not_started" },
-  { "id": "punch-list",      "label": "Punch list",             "status": "not_started" },
-  { "id": "punch-gate",      "label": "★ Punch list approval",  "status": "not_started" },
-  { "id": "roadmap",         "label": "Implementation roadmap",  "status": "not_started" },
-  { "id": "roadmap-gate",    "label": "★ Roadmap approval",     "status": "not_started" },
-  { "id": "scaffold",        "label": "Scaffold generation",    "status": "not_started" },
-  { "id": "build",           "label": "Frontend + backend",     "status": "not_started" },
-  { "id": "uat-gate",        "label": "★ UAT approval",         "status": "not_started" },
-  { "id": "launch",          "label": "Launch & post-launch",   "status": "not_started" }
+  { "id": "discovery",   "label": "Discovery interview",   "status": "not_started" },
+  { "id": "spec",        "label": "Spec + oc-stack-forge", "status": "not_started" },
+  { "id": "spec-gate",   "label": "★ Spec approval",        "status": "not_started" },
+  { "id": "design",      "label": "Design pipeline",       "status": "not_started" },
+  { "id": "design-gate", "label": "★ Design approval",      "status": "not_started" },
+  { "id": "punch-list",  "label": "Punch list",            "status": "not_started" },
+  { "id": "punch-gate",  "label": "★ Punch list approval",  "status": "not_started" },
+  { "id": "sprint-plan", "label": "Sprint plan",           "status": "not_started" },
+  { "id": "sprint-gate", "label": "★ Sprint plan approval", "status": "not_started" },
+  { "id": "scaffold",    "label": "Scaffold generation",   "status": "not_started" },
+  { "id": "sprint-1",    "label": "Sprint 1: [name]",      "status": "not_started" },
+  { "id": "launch",      "label": "Launch & deploy",       "status": "not_started" }
 ]
 ```
 
@@ -114,7 +123,7 @@ RESUME CHECK
     "design/style-book.html",
     "design/wireframes.html",
     "design/punch-list.md",
-    "spec/11-implementation-roadmap.md"
+    "sprints/sprint-1/contract.md"
   ]
 }
 ```
@@ -124,7 +133,7 @@ RESUME CHECK
 1. Add `/checkpoint` to the command reference under UTILITIES
 2. Add resume check to the top of "How This Skill Works" section
 3. After each `★ GATE` section, add: "After gate approval, write checkpoint."
-4. Add to `/status` command: "Reads checkpoint first, then summarizes."
+4. The `/status` utility in its `/oc-app` menu reads the checkpoint first, then summarizes.
 
 ---
 
@@ -179,7 +188,7 @@ RESUME CHECK
 ### SKILL.md Changes Required
 
 1. Add `/checkpoint` to the command reference under CONTROLS
-2. `/status` reads checkpoint first (instead of just scanning files)
+2. The `/status` utility in the `/oc-app` menu reads the checkpoint first (instead of just scanning files)
 3. `/oc-build` checks for checkpoint on entry — if mid-sprint, resume from last eval
 4. After each evaluator round, write checkpoint with scores
 5. After spec approval gate, write checkpoint
@@ -197,7 +206,7 @@ RESUME CHECK
    - "Key Findings So Far" → `context_primer.key_decisions`
    - "Blockers & Open Questions" → `blockers`
    - "Next Session Should" → `next_actions`
-3. `/oc-rev-status` reads from new location
+3. Its status request reads from the new location
 4. Keep backward compat: if `.checkpoints/` doesn't exist but `checkpoint.md` does,
    read the markdown version and offer to migrate
 

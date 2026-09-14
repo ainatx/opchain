@@ -3,22 +3,58 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-02T21:49:57.000Z",
+  "updated_at": "2026-09-14T00:20:50.683Z",
   "skill": "oc-release-ops",
-  "phase": "shipped",
-  "step": "v1.9-release-signed-off",
+  "phase": "staging-verified",
+  "step": "v1.9.2-staging-complete",
   "status": "complete",
-  "progress_summary": "v1.9.0, Assurance and governed delivery ops, is signed off and live. Release PR #477 merged at exact SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248; signed annotated tag v1.9.0 is verified locally and by GitHub; Registry run 33677209947 published the active/latest exact manifest. Staging and production serve health version 244bf13 at 100% traffic after hardening, smoke, MCP acceptance, visual, and 7/7 post-deploy gates. The sealed 16-record legacy checkpoint set was deleted without touching unrelated KV data, milestone #1 is closed, and monitoring baseline PR #478 plus authenticated Canary and Deploy lag dispatches are green. The next scheduled monitoring cycle remains tracked by oc-monitoring-ops and does not block the shipped release.",
+  "progress_summary": "1.9.2 product and site PRs merged; signed tag and registry publication verified. Staging passed live checks and the complete release package passed extracted-consumer checks. Production promotion awaits a separate maintainer decision.",
   "progress_table": [
-    { "id": "scope", "label": "v1.9 scope and compatibility", "status": "complete" },
-    { "id": "assurance", "label": "QA, compliance, and hardening gates", "status": "complete" },
-    { "id": "pre-merge", "label": "Complete local pre-merge workflow ledger", "status": "complete" },
-    { "id": "release-pr", "label": "Release PR merged to main", "status": "complete" },
-    { "id": "signed-tag", "label": "Signed immutable v1.9.0 tag", "status": "complete" },
-    { "id": "registry", "label": "MCP Registry v1.9.0 active and latest", "status": "complete" },
-    { "id": "staging", "label": "Exact-main staging deploy and live review", "status": "complete" },
-    { "id": "production", "label": "Exact-tag production deploy and verification", "status": "complete" },
-    { "id": "closeout", "label": "Retention purge, roadmap, monitoring baseline, and release sign-off", "status": "complete" }
+    {
+      "id": "scope",
+      "label": "v1.9 scope and compatibility",
+      "status": "complete"
+    },
+    {
+      "id": "assurance",
+      "label": "QA, compliance, and hardening gates",
+      "status": "complete"
+    },
+    {
+      "id": "pre-merge",
+      "label": "Complete local pre-merge workflow ledger",
+      "status": "complete"
+    },
+    {
+      "id": "release-pr",
+      "label": "Release PR merged to main",
+      "status": "complete"
+    },
+    {
+      "id": "signed-tag",
+      "label": "Signed immutable v1.9.0 tag",
+      "status": "complete"
+    },
+    {
+      "id": "registry",
+      "label": "MCP Registry v1.9.0 active and latest",
+      "status": "complete"
+    },
+    {
+      "id": "staging",
+      "label": "Exact-main staging deploy and live review",
+      "status": "complete"
+    },
+    {
+      "id": "production",
+      "label": "Exact-tag production deploy and verification",
+      "status": "complete"
+    },
+    {
+      "id": "closeout",
+      "label": "Retention purge, roadmap, monitoring baseline, and release sign-off",
+      "status": "complete"
+    }
   ],
   "context_primer": {
     "key_decisions": [
@@ -29,7 +65,8 @@
       "The 16 legacy production checkpoint records were incompatible with signed sessions and were irreversibly deleted only after the hardened production runtime was verified.",
       "Every deploy must use the exact fetched origin/main commit. Production has no branch escape hatch.",
       "Production post-activation verification failure automatically rolls back to the captured prior 100%-traffic version ID.",
-      "Compliance is readiness and evidence only; no compliance framework is activated because .opchain/compliance.yaml is absent."
+      "Compliance is readiness and evidence only; no compliance framework is activated because .opchain/compliance.yaml is absent.",
+      "2026-09-13 (v1.9.1 Sprint 3 reconciliation): pm_refs provider normalised to the documented github-issues with URLs; monitoring status no longer claims a re-baseline is pending."
     ],
     "generated_files": [
       ".opchain/qa.yaml",
@@ -42,20 +79,294 @@
     ]
   },
   "blockers": [],
-  "next_actions": [],
+  "next_actions": [
+    "Review staging and decide separately whether to promote 1.9.2 to production."
+  ],
   "pm_refs": [
-    { "provider": "github", "id": "8", "role": "source" },
-    { "provider": "github", "id": "9", "role": "source" },
-    { "provider": "github", "id": "10", "role": "source" },
-    { "provider": "github", "id": "11", "role": "source" }
+    {
+      "provider": "github-issues",
+      "id": "8",
+      "role": "source",
+      "url": "https://github.com/asfbay-bit/opchain-skills/issues/8"
+    },
+    {
+      "provider": "github-issues",
+      "id": "9",
+      "role": "source",
+      "url": "https://github.com/asfbay-bit/opchain-skills/issues/9"
+    },
+    {
+      "provider": "github-issues",
+      "id": "10",
+      "role": "source",
+      "url": "https://github.com/asfbay-bit/opchain-skills/issues/10"
+    },
+    {
+      "provider": "github-issues",
+      "id": "11",
+      "role": "source",
+      "url": "https://github.com/asfbay-bit/opchain-skills/issues/11"
+    }
   ],
   "skill_state": {
     "current_release": {
-      "semver": "1.9.0",
-      "theme": "Assurance and governed delivery ops",
+      "semver": "1.9.1",
+      "theme": "The chain holds",
       "phase": "shipped",
-      "started_at": "2026-08-28T00:00:00Z",
-      "shipped_at": "2026-09-02T20:11:25.746861Z"
+      "plan": "docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md",
+      "source": "docs/audits/2026-09-11-skillchain-2.0-audit.md",
+      "started_at": "2026-09-12",
+      "decision_points": [
+        "D1 semver v1.9.1 vs v1.10.0 (rule 5 reading)",
+        "D2 theme name",
+        "D3 headline ranking",
+        "D4 continuous merge to main vs release/v1.9.1 integration branch",
+        "D5 owner redeploys staging from origin/main now",
+        "D6 fate of the demo-scenario-realism worktree",
+        "D7 merge gate PR stack 499-504-505-507 first vs fold into Sprint 1"
+      ],
+      "surfaces": {
+        "product_half": [
+          "P1 33x SKILL.md version",
+          "P2 skills/CHANGELOG.md [1.9.1]",
+          "P3 plugin.json",
+          "P4 marketplace.json metadata.version + plugins[0].version",
+          "P5 server.json",
+          "P6 release-seal.json",
+          "P7 signed tag (HUMAN)"
+        ],
+        "site_half": [
+          "L4 changelog open hero range + rel-card v1-9-1",
+          "L5 Just Released tab recount (currently 18)",
+          "L7 styleguide Badge v1.9.1",
+          "e2e changelog-and-scenarios re-pin",
+          "RELEASING.md section 6 audit in PR body"
+        ],
+        "unchanged": [
+          "L1",
+          "L2",
+          "L3",
+          "L6",
+          "L8-L10",
+          "F1-F6",
+          "count strings (catalog stays 33)"
+        ]
+      },
+      "deploy_notes": "runtime-scope /oc-audit pre-deploy + security posture or waiver before deploy; baseline refresh re-binds release to v1.9.1 and removes the 78567c2 runtime block",
+      "decisions": {
+        "D1": "v1.9.1 patch",
+        "D2": "The chain holds",
+        "D3": "commit gate first",
+        "D4": "continuous to main, two-week safety valve",
+        "D5": "owner redeploys staging from origin/main now",
+        "D6": "demo-scenario-realism worktree left to its session",
+        "D7": "merge gate PR stack 499-504-505-507 first",
+        "decided_at": "2026-09-12"
+      },
+      "plan_pr": "516",
+      "merged": [
+        {
+          "pr": 516,
+          "sha": "30ccb26",
+          "what": "audit, evidence and v1.9.1 plan"
+        },
+        {
+          "pr": 499,
+          "sha": "347012a",
+          "what": "run the shipped commit gate in this repo; tree mandatory"
+        },
+        {
+          "pr": 504,
+          "sha": "41d2ac3",
+          "what": "wrapper re-scan scoped"
+        },
+        {
+          "pr": 505,
+          "sha": "b8b5b6b",
+          "what": "read commands the way bash does (GATE-08)"
+        },
+        {
+          "pr": 507,
+          "sha": "c323463",
+          "what": "comments and here-doc prose stay data (GATE-09)"
+        },
+        {
+          "pr": 506,
+          "sha": "0362248",
+          "what": "exec/builtin/caffeinate/script prefixes (GATE-10), rebuilt on main"
+        },
+        {
+          "pr": 518,
+          "sha": "b9b48a4",
+          "what": "GATE-11 tracked checkpoints, git-sync gate order, bypass wording — Sprint 1 complete"
+        },
+        {
+          "pr": 519,
+          "sha": "5bbff3f",
+          "what": "checkpoint tooling tells the truth (Sprint 2)"
+        },
+        {
+          "pr": 520,
+          "sha": "02913e7",
+          "what": "live checkpoints reconciled, doctor blocks on errors (Sprint 3)"
+        },
+        {
+          "pr": 521,
+          "sha": "36a27d1",
+          "what": "cross-skill contracts, verb gate (Sprint 4)"
+        },
+        {
+          "pr": 522,
+          "sha": "c11695d",
+          "what": "checkpoint protocol matches its tooling (Sprint 5e)"
+        },
+        {
+          "pr": 523,
+          "sha": "0231ae2",
+          "what": "build & integrate sweep (5b)"
+        },
+        {
+          "pr": 524,
+          "sha": "dacf484",
+          "what": "AI-native & instrumentation sweep (5c)"
+        },
+        {
+          "pr": 525,
+          "sha": "fd77223",
+          "what": "gate & assurance sweep (5d-1)"
+        },
+        {
+          "pr": 526,
+          "sha": "b2e6fe3",
+          "what": "plan & design sweep (5a)"
+        },
+        {
+          "pr": 527,
+          "sha": "24d36a1",
+          "what": "ship-side sweep + orchestrator map + RELEASING.md order (5d-2)"
+        },
+        {
+          "pr": 528,
+          "sha": "e89cf19",
+          "what": "reciprocity pass, 66 one-sided edges closed (Sprint 5 exit)"
+        },
+        {
+          "pr": 529,
+          "sha": "fde2feb",
+          "what": "reach: routing, pipeline-builder, next-suggestion, eval (Sprint 6)"
+        },
+        {
+          "pr": 530,
+          "sha": "89c7d4e",
+          "what": "ten menu-only root verbs dropped; v1.9.1 stays a patch"
+        },
+        {
+          "pr": 531,
+          "sha": "aef4080",
+          "what": "v1.9.1 product half (P1-P6)"
+        },
+        {
+          "pr": 532,
+          "sha": "f5e4b2a",
+          "what": "v1.9.1 site half"
+        }
+      ],
+      "staging": "main (owner redeployed 2026-09-13; staging baseline entry still describes the old demo preview)",
+      "sprint_2_deferred": {
+        "to_sprint_4": [
+          "F-087 deploy-ops frontmatter commands",
+          "F-010 /oc-monitor verify handoff verb"
+        ],
+        "to_sprint_5d": [
+          "F-062 corrupted api hosts",
+          "F-088 deploy-ops cross-skill reads",
+          "F-193 deploy ticket pm_refs",
+          "F-194 pack dispatch text",
+          "F-195 wrangler.jsonc detection",
+          "F-348 Render gate scripts",
+          "F-350 checkpoint pointer",
+          "N-2-12 sibling reference paths"
+        ],
+        "to_v2_0": [
+          "F-197 docs-forge handoff out of skill_state",
+          "F-198 docs verify verdict field (additive)"
+        ],
+        "not_taken": [
+          "N-1-34 SHA-in-history stale-action detector: would flag legitimate actions naming merged-but-undeployed commits and block the doctor ratchet"
+        ]
+      },
+      "sprint_3": {
+        "scope": "live checkpoint state reconciled against git, GitHub and both environments; oc-orchestrator, oc-stack-forge, oc-cost-ops archived to .checkpoints/history/; CI doctor step blocks on errors",
+        "decision": "doctor blocks on errors only, not warnings: warnings depend on the calendar, the machine and git history and would redden unrelated PRs. Count taken to zero instead."
+      },
+      "sprint_4": {
+        "scope": "every cited /oc-* verb declared by its owner (15 handoff subcommands + every menu verb, 94 new declarations, 6 new root-verb flags); /oc-rollback and /oc-git-commit repointed; orchestrator map rows for all 33 skills, §3 rows for the v1.5/v1.7 skills, §7 generated from frontmatter; checkpoint-protocol pointer in 29 skills; root README v1.9 rows; scripts/check-skill-contracts.mjs in pretest/prebuild",
+        "scope_decision": "Declaring verbs the skills already documented in their menus is a catalog-accuracy fix, not new capability, so it stays in the patch; no command gains behaviour except four that gained behaviour text.",
+        "open_risk": "oc-code-auditor's description dropped \"security audit\" (collided with oc-security-auditor); routing eval case route-004 is not run in CI and should be re-run before the tag."
+      },
+      "sprint_5": {
+        "scope": "all upheld per-skill findings worked in five slices (5a-5d-2) plus 5e (protocol/outside findings); every PR carries a per-finding ledger; reciprocity pass closed 66 one-sided edges",
+        "decisions": [
+          "RELEASING.md §5 corrected to what CI enforces: a minor release flips the probed site surfaces in the release PR with the CHANGELOG heading, before the tag; a patch keeps product PR -> tag -> site PR. v1.9.1 (patch) is unaffected.",
+          "Documented skill_state keys are a published contract (protocol wording); promoting them to public fields stays v2.0 wire 1.2.",
+          "\"Tag the release\" routes to oc-git-ops in orchestrator.md §4; src/lib/mcp/routing.js still routes it to oc-release-ops (Sprint 6)."
+        ],
+        "open_question_for_owner": "RESOLVED 2026-09-13: owner chose v1.9.1; ten menu-only root verbs dropped (there were eleven new root flags, not six); /oc-rev-spec kept."
+      },
+      "sprint_6": {
+        "scope": "MCP routing for all 32 invocable skills; /pipeline-builder from the live catalog; plugin README twelve commands; next-suggestion names downstream skills without commands; routing eval all-skill coverage, collision cases llm_judge, pass_rate 1.0",
+        "decisions": [
+          "Routing eval pass_rate 1.0 so a collision miss fails the gate; a single noisy judge verdict also fails it (eval is not run in CI).",
+          "oc-telemetry-ops is not recommended by /pipeline-builder (opt-in usage metering is not driven by any wizard answer); recorded in NOT_RECOMMENDED, still installed with the catalog.",
+          "Owner decision 2026-09-13: ship v1.9.1; drop the ten menu-only root verbs Sprint 4 declared with new flags (documented as plain requests); keep /oc-rev-spec, already advertised at v1.9.0."
+        ]
+      },
+      "sprint_7": {
+        "scope": "P1 33 SKILL.md 1.9.0 -> 1.9.1, P2 skills/CHANGELOG.md [1.9.1] with Compatibility, P3 plugin.json, P4 marketplace.json (both version fields), P5 server.json, P6 release-seal.json (catalogVersion 1.9.1, generation 1, workflow + server.json sha256 refreshed)",
+        "verify": "gen-catalog, validate-pm-mcp, gen-flags, npm test 917, hooks 149+19, contracts, release surfaces v1.9, checkpoint validate green; check-release-tag reports missing-tag until the owner tags"
+      },
+      "tag": {
+        "tag": "v1.9.1",
+        "object": "98b8ebc",
+        "commit": "aef4080",
+        "signed": true,
+        "note": "first push landed on 89c7d4e (pre-bump); owner deleted and re-signed on aef4080 2026-09-13. MCP Registry published 1.9.1 from the first push (identical server content); the re-push publish failed as a duplicate, harmless."
+      },
+      "sprint_8": {
+        "scope": "L4 hero range v1.9.0 -> v1.9.1 + #v1-9-1 rel-card, L5 19 shipped, L7 styleguide Badge v1.9.1, e2e re-pin, /architecture catalog-version prose 1.9.0 -> 1.9.1, RELEASING.md §3b note for that unprobed prose",
+        "audit": "RELEASING.md §6 surface audit: DO-NOT-SHIP (architecture prose) then SHIP after fix"
+      },
+      "shipped": {
+        "staging": {
+          "sha": "f5e4b2a",
+          "deployment": "52c452c5-5d9e-4148-b3eb-30b7155d4888",
+          "version": "28a5c29d-0c18-4653-8214-e31af0a3872a",
+          "at": "2026-09-13T13:35:42Z"
+        },
+        "production": {
+          "sha": "f5e4b2a",
+          "deployment": "3b7989ff-2f65-4dc6-a629-6f16ba4fd677",
+          "version": "01db3b36-a90c-4f73-98f7-fd00505582c4",
+          "at": "2026-09-13T23:05:38Z"
+        },
+        "verified": "/api/health f5e4b2a on both hosts; /skills.json catalogVersion 1.9.1 (33 skills); hardening replay 2/2 and smoke:prod passed"
+      },
+      "routing_eval": {
+        "run_at": "2026-09-13",
+        "method": "agent-driven: isolated router (context = frontmatter descriptions + orchestrator §4 only, no access to expected), contains graded by script, collision cases by an isolated llm_judge",
+        "run1": {
+          "pass": "39/40",
+          "failed": [
+            "route-005"
+          ],
+          "cause": "oc-git-ops copy advertised /oc-pr for create-a-PR; commit + PR is /oc-git-sync"
+        },
+        "run2": {
+          "pass": "40/40",
+          "after": "oc-git-ops description and §4 row clarified"
+        },
+        "route_004": "pass both runs"
+      }
     },
     "prior_release": {
       "semver": "1.8.3",
@@ -63,7 +374,11 @@
       "source_sha": "395fc314c836d5d9d8a76b64d85b8380ece3a68b",
       "shipped_at": "2026-08-29"
     },
-    "catalog": { "version": "1.9.0", "skills": 33, "previous_skills": 29 },
+    "catalog": {
+      "version": "1.9.0",
+      "skills": 33,
+      "previous_skills": 29
+    },
     "pre_merge": {
       "verdict": "PASS",
       "workflow_steps": 11,
@@ -81,7 +396,7 @@
     },
     "release_pr": {
       "number": 477,
-      "url": "https://github.com/a-atx/opchain/pull/477",
+      "url": "https://github.com/ainatx/opchain/pull/477",
       "merge_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
       "merged_at": "2026-09-02T19:27:32Z",
       "required_checks": "PASS"
@@ -100,10 +415,10 @@
     "publisher": {
       "preflight": "PASS",
       "preflight_run_id": 33673476599,
-      "preflight_url": "https://github.com/a-atx/opchain/actions/runs/33673476599",
+      "preflight_url": "https://github.com/ainatx/opchain/actions/runs/33673476599",
       "tag_run": "PASS",
       "tag_run_id": 33677209947,
-      "tag_run_url": "https://github.com/a-atx/opchain/actions/runs/33677209947",
+      "tag_run_url": "https://github.com/ainatx/opchain/actions/runs/33677209947",
       "registry_status": "active-and-latest-exact",
       "published_at": "2026-09-02T20:05:41.073493Z",
       "server_name": "io.github.asfbay-bit/opchain-skills"
@@ -145,7 +460,12 @@
       "milestone_number": 1,
       "milestone_status": "closed",
       "closed_at": "2026-09-02T20:06:33Z",
-      "shipped_open_issues": [8, 9, 10, 11],
+      "shipped_open_issues": [
+        8,
+        9,
+        10,
+        11
+      ],
       "label": "roadmap:shipped"
     },
     "monitoring": {
@@ -156,7 +476,67 @@
       "deploy_lag_run_id": 33686714194,
       "deploy_lag_conclusion": "success",
       "deploy_relevant_paths": 0,
-      "continuous_status": "v1.9 baseline verified; first scheduled cycle tracked separately"
+      "continuous_status": "production re-baselined by PR #510 (runtime 78567c2 on release v1.9.0); staging redeployed from main 2026-09-13, staging baseline entry not yet refreshed",
+      "runtime_pull_request": 510
+    },
+    "post_release_drift": {
+      "detected_at": "2026-09-11T03:45:00Z",
+      "production_live": "78567c2",
+      "approved_baseline": "244bf13 (v1.9.0)",
+      "catalog_version_unchanged": "1.9.0 — a content deploy, no release tag needed",
+      "monitoring": "Canary + Deploy lag scheduled runs failed 2026-09-05 and 2026-09-09; tracked by oc-monitoring-ops",
+      "ledger": "issue #464 open: 10 of 15 shipped releases untagged; backfill runbook drafted"
+    },
+    "routing_eval_pr535": {
+      "run_at": "2026-09-13",
+      "method": "agent-driven: isolated router (context = frontmatter descriptions + orchestrator §4 only, no access to expected), contains graded by script, collision cases by an isolated llm_judge",
+      "run1": {
+        "pass": "39/40",
+        "failed": [
+          "route-005"
+        ],
+        "cause": "oc-git-ops copy advertised /oc-pr for create-a-PR; commit + PR is /oc-git-sync"
+      },
+      "run2": {
+        "pass": "40/40",
+        "after": "oc-git-ops description and §4 row clarified"
+      },
+      "route_004": "pass both runs"
+    },
+    "release_1_9_2": {
+      "productPr": 536,
+      "productCommit": "7ccdacf04c9ac59f62309c371de357acd9b81839",
+      "tag": "v1.9.2",
+      "tagObject": "078e554a693b04b9655430c3e6b568761b6bcf4d",
+      "publisherRun": 34791781955,
+      "productionPromoted": false
+    },
+    "staging_1_9_2": {
+      "ok": true,
+      "verifiedAt": "2026-09-14T00:18:30.803291+00:00",
+      "url": "https://staging.opchain.dev",
+      "sourceSha": "93dc8545929288ca2169e88ca0fd0fc90587c717",
+      "sourceTree": "9f28305915428bc9ea54572718847ccd62e17621",
+      "healthVersion": "93dc854",
+      "catalogVersion": "1.9.2",
+      "skillCount": 33,
+      "releaseCards": 20,
+      "voteTargets": 7,
+      "releaseCardPresent": true,
+      "hostedReferenceManifestAndCanonicalLegacyReads": "PASS",
+      "deployWrapperHardeningAndSmoke": "PASS",
+      "productPr": 536,
+      "sitePr": 537,
+      "tag": "v1.9.2",
+      "tagObject": "078e554a693b04b9655430c3e6b568761b6bcf4d",
+      "productCommit": "7ccdacf04c9ac59f62309c371de357acd9b81839",
+      "registryPublicationRun": 34791781955,
+      "productCiRun": 34791420579,
+      "productLighthouseRun": 34791420546,
+      "productionPromoted": false,
+      "siteCiRun": 34791901798,
+      "siteLighthouseRun": 34791901886
     }
-  }
+  },
+  "record_updated_at": "2026-09-14T00:20:50.683Z"
 }

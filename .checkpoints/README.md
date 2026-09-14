@@ -46,8 +46,8 @@ first commit on a fresh clone.
 | `skill` | ✓ | string | Must match the filename: `<skill>.checkpoint.json`. |
 | `project` | ✓ | string | Human-readable project name. |
 | `project_dir` | ✓ | string | Absolute path to the project. |
-| `created_at` | ✓ | ISO-8601 UTC | Don't change once set. |
-| `updated_at` | ✓ | ISO-8601 UTC | `Date.toISOString()` on every write. |
+| `created_at` | ✓ | ISO-8601 (`Z` or `±hh:mm`) | Don't change once set. |
+| `updated_at` | ✓ | ISO-8601 (`Z` or `±hh:mm`) | `Date.toISOString()` on every write. |
 | `phase` | ✓ | string | Skill-defined. |
 | `step` | ✓ | string | Skill-defined. |
 | `status` | ✓ | enum | `in_progress \| blocked \| complete \| failed` |
@@ -71,6 +71,7 @@ fields + the `status` enum + filename-skill consistency.
 ```bash
 # Where did I leave off? (full summary; --brief = just the top action + blockers)
 npm run checkpoint:status
+node scripts/checkpoint.mjs status <skill>   # one checkpoint; exits 1 when it does not exist
 node scripts/checkpoint.mjs status --brief
 
 # What should I do RIGHT NOW? (priority engine — no oc-orchestrator registry needed)
@@ -84,6 +85,8 @@ npm run checkpoint:validate                 # --strict also fails on warnings
 
 # Update a field (creates the file if missing); done = complete the top next action.
 node scripts/checkpoint.mjs update <skill> --status=in_progress --step=...
+#   --key=value replaces · --key+=value appends · --key:json=… parses JSON.
+#   + and :json combine in either order (--key:json+=…); an append adds ONE element.
 node scripts/checkpoint.mjs done <skill>
 ```
 
@@ -98,7 +101,7 @@ One vocabulary, used by `checkpoint` output and the oc-orchestrator alike:
 | ⏳ | not_started |
 | 🚫 | blocked (has an open blocker) |
 | ⛔ | a decision is waiting on **you** (`blockers[].needs: user_decision`) |
-| ⚠ | stale / drift (e.g. in_progress and untouched >7 days) |
+| ⚠ | stale / drift (untouched >7 days while in_progress, >14 while complete, >3 while blocked) |
 
 ## Merge driver
 

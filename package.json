@@ -18,6 +18,7 @@
     "gen-catalog": "node scripts/gen-skills-catalog.mjs",
     "lint-internal-refs": "node scripts/lint-internal-refs.mjs",
     "check-skill-flags": "OPCHAIN_STRICT_REGISTRY=1 node scripts/check-skill-flags.mjs",
+    "check-skill-contracts": "node scripts/check-skill-contracts.mjs",
     "release-sequence": "node scripts/release-sequence.mjs",
     "hardening:verify": "node scripts/check-hardening.mjs --pre-deploy",
     "test:mcp-hardening": "vitest run tests/mcp-server.test.js tests/mcp-route.test.js",
@@ -36,8 +37,8 @@
     "sync-plugin-skills": "node scripts/sync-plugin-skills.mjs",
     "sync-plugin-skills:check": "node scripts/sync-plugin-skills.mjs --check",
     "build-site": "bash scripts/build-site.sh",
-    "prebuild": "npm run gen-stack-packs && npm run gen-api-dev-adapters && npm run gen-packs-catalog && npm run gen-flags && npm run gen-catalog && npm run lint-internal-refs && npm run check-skill-flags && npm run gen-mcp-catalog && npm run validate-pm-mcp && npm run sync-bundles:check && npm run sync-plugin-skills:check && npm run sync-docs && npm run make-zip && npm run gen-og && npm run build-site",
-    "pretest": "npm run gen-stack-packs && npm run gen-api-dev-adapters && npm run gen-packs-catalog && npm run gen-flags && npm run gen-catalog && npm run lint-internal-refs && npm run check-skill-flags && npm run gen-mcp-catalog && npm run validate-pm-mcp && npm run sync-bundles:check && npm run sync-plugin-skills:check",
+    "prebuild": "npm run gen-stack-packs && npm run gen-api-dev-adapters && npm run gen-packs-catalog && npm run gen-flags && npm run gen-catalog && npm run lint-internal-refs && npm run check-skill-flags && npm run check-skill-contracts && npm run gen-mcp-catalog && npm run validate-pm-mcp && npm run sync-bundles:check && npm run sync-plugin-skills:check && npm run sync-docs && npm run make-zip && npm run gen-og && npm run build-site",
+    "pretest": "npm run gen-stack-packs && npm run gen-api-dev-adapters && npm run gen-packs-catalog && npm run gen-flags && npm run gen-catalog && npm run lint-internal-refs && npm run check-skill-flags && npm run check-skill-contracts && npm run gen-mcp-catalog && npm run validate-pm-mcp && npm run sync-bundles:check && npm run sync-plugin-skills:check && npm run sync-docs",
     "test": "vitest run",
     "test:watch": "vitest",
     "site:install": "cd site && npm install",
@@ -50,15 +51,23 @@
     "checkpoint:doctor": "node scripts/checkpoint.mjs doctor",
     "checkpoint:validate": "node scripts/checkpoint.mjs validate",
     "prepare": "node scripts/install-git-drivers.mjs",
-    "test:hooks": "node plugins/opchain/hooks/test-gate.cjs && node plugins/opchain/hooks/test-suggestion.cjs"
+    "test:hooks": "node plugins/opchain/hooks/test-gate.cjs && node plugins/opchain/hooks/test-suggestion.cjs",
+    "capabilities": "node scripts/capabilities.mjs",
+    "capabilities:generate": "node scripts/capabilities.mjs --generate",
+    "verify:candidate": "node scripts/verify-candidate.mjs run",
+    "oc-prompt": "node scripts/prompt-eval.mjs",
+    "oc-cost": "node scripts/cost.mjs",
+    "runtime:package": "node scripts/package-runtime.mjs",
+    "evidence:pr": "node scripts/lib/release-evidence.mjs --stage pr",
+    "evidence:deploy": "node scripts/lib/release-evidence.mjs --stage deploy"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",
-    "js-yaml": "^4.3.1",
-    "vitest": "^4.1.10",
-    "wrangler": "^4.103.0"
+    "js-yaml": "^5.4.1",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.131.0"
   },
   "dependencies": {
-    "zod": "^4.4.3"
+    "zod": "^4.5.4"
   }
 }

@@ -1,7 +1,7 @@
 ---
 name: oc-claude-api
 displayName: OC · Claude API
-version: 1.9.0
+version: 1.9.2
 license: Apache-2.0
 shortDesc: Build, debug, and migrate Claude API apps — model routing, prompt caching, tool use, version-migration playbooks.
 phases: [build, ai-native]
@@ -16,13 +16,13 @@ commands:
 description: >
   Build, debug, and optimize Claude API / Anthropic SDK apps. Apps built with
   this skill include prompt caching by default. Also migrates existing Claude
-  API code between model versions (4.6 → 4.7, retired-model replacements). Use
-  for /oc-claude-api, "Anthropic SDK", "prompt caching", "cache hit rate",
-  "tool use", "model migration", "extended thinking", "batch API", "files API",
-  "memory", "citations".
+  API code between model versions (4.6 → 4.7 → 4.8, Mythos Preview → Fable 5,
+  retired-model replacements). Use for /oc-claude-api, "Anthropic SDK", "prompt
+  caching", "cache hit rate", "tool use", "model migration", "extended thinking",
+  "batch API", "files API", "memory", "citations".
 governance:
   breaking_change_policy: skills/CHANGELOG.md
-  last_reviewed: 2026-06-21
+  last_reviewed: 2026-09-13
   owner: opchain
   docs:
     - { path: SKILL.md, kind: contract, lifecycle: stable }
@@ -47,10 +47,13 @@ own agent topology or harness loops (that's `oc-agent-forge`), retrieval
 the Claude API surface those skills build on.
 
 > **Accuracy contract.** Model IDs, prices, parameters, and breaking changes in
-> this skill and its reference docs are sourced from the bundled `claude-api`
-> skill, not from memory. When in doubt about a model ID, a price, a beta header,
-> or a deprecated parameter, invoke `claude-api` (or read its `shared/` files)
-> rather than inventing one. The most recent models are **Fable 5**
+> this skill and its reference docs are sourced from the Claude Code built-in
+> `claude-api` skill (when present), not from memory. It is not bundled with
+> opchain. When in doubt about a model ID, a price, a beta header, or a deprecated
+> parameter, invoke `claude-api` rather than inventing one; if it is not
+> installed, query the Models API (`client.models.list()` /
+> `client.models.retrieve(id)`, see `references/model-routing.md` § Live
+> capability lookup). The most recent models are **Fable 5**
 > (`claude-fable-5`), **Opus 4.8** (`claude-opus-4-8`), **Sonnet 4.6**
 > (`claude-sonnet-4-6`), and **Haiku 4.5** (`claude-haiku-4-5`).
 
@@ -59,9 +62,9 @@ the Claude API surface those skills build on.
 ```
 APP-ARCHITECT (planning)                 TRI-DEV (building)
   Phase 2: Spec ──"AI app?"──▶ oc-claude-api model-routing decision tree
-                                         │  writes 05-llm-design.md
-  Phase 5: Scaffold ──auto-calls──▶ oc-claude-api request-layer scaffold
-                                         │  (caching + token ceilings baked in)
+                                         │  routing → checkpoint key_decisions;
+                                         │  app-architect folds it into
+                                         │  11-ai-architecture.md
                                          ▼
                           oc-agent-forge (topology/loop) ──reads model routing──┐
                           oc-rag-forge   (retrieval)      ──reads model routing──┤
@@ -71,15 +74,20 @@ APP-ARCHITECT (planning)                 TRI-DEV (building)
 **App-architect auto-invokes oc-claude-api in Phase 2** when the discovery
 interview flags an AI app — triggers are "AI app", "agent", "chatbot", "LLM in
 the loop", "summarize/extract/classify with a model", "Claude", "Anthropic". The
-decision tree runs, picks the per-phase model, and records the request-layer plan
-in `05-llm-design.md`. The user doesn't call `/oc-claude-api` separately for new
+decision tree runs, picks the per-phase model, and records the routing in this
+skill's checkpoint; app-architect reads it back into `02-architecture.md` and
+`11-ai-architecture.md`. The user doesn't call `/oc-claude-api` separately for new
 projects — but they can invoke it directly to migrate, audit caching, design
 tools, or set cost guardrails on existing code.
 
 Model routing is **owned here and read by siblings.** `oc-agent-forge` decides
 subagent topology and tool budgets but reads this skill's per-task model choice;
 `oc-rag-forge` reads it for the answer-synthesis model; `oc-prompt-ops` reads it
-to pin the model its eval datasets run against.
+to pin the model its eval datasets run against. Siblings read it where the
+checkpoint protocol lets them: the routing decision appended to this skill's
+`context_primer.key_decisions` (per-phase model + effort), and
+`11-ai-architecture.md` once app-architect has assembled it. `skill_state` below
+is private working state, not the shared surface.
 
 ---
 
@@ -244,8 +252,12 @@ The flow is fixed:
    re-tuning) are recommendations.
 4. **Explain every edit**, especially system-prompt changes, tied to the specific
    API or behavioral shift that motivates it.
-5. **Eval-gate the rollout.** Hand the diff to `oc-prompt-ops` for a regression run
-   against the golden set before merge, then open the PR via `oc-git-ops`.
+5. **Eval-gate the rollout.** Hand the diff to `oc-prompt-ops`: `/oc-prompt drift`
+   re-runs the frozen goldset against the new pinned model before merge, then open
+   the PR via `oc-git-ops`. If oc-prompt-ops is not installed, run the project's own
+   test suite plus a hand-picked golden sample (a weaker gate than `/oc-prompt
+   drift`: no frozen baseline, no per-case delta) and put the result in the PR body;
+   if oc-git-ops is not installed, open the PR with `gh pr create` and the same body.
 6. **Verify.** One test request, assert `response.model.startswith(target)`.
 
 ---
@@ -267,10 +279,11 @@ spend. Levers, cheapest-first:
   an enforced ceiling the model doesn't see.
 - **Batch API** for non-latency-sensitive jobs — 50% of standard price.
 
-> **Deeper cost ops land in v1.6.** Cross-project spend dashboards, per-route cost
-> budgets, and live cost-regression alerts route through `oc-cost-ops` once it
-> ships. Until then, this command sets static per-phase ceilings and surfaces them
-> in the checkpoint; it does not yet track live spend.
+> **Live cost ops are `oc-cost-ops`.** `/oc-claude-api cost` sets static per-phase
+> ceilings and records them in this checkpoint; it does not track live spend.
+> Attributed spend, budgets and the cost-regression gate are
+> `/oc-cost attribute`, `/oc-cost budget` and `/oc-cost gate` (oc-cost-ops reads
+> this skill's price table + model IDs).
 
 ---
 
@@ -278,14 +291,14 @@ spend. Levers, cheapest-first:
 
 | Skill | Relationship |
 |---|---|
-| `oc-app-architect` | Auto-invokes this skill in Phase 2 on AI apps; reads `05-llm-design.md` |
+| `oc-app-architect` | Auto-invokes this skill in Phase 2 on AI apps; reads the routing back into `11-ai-architecture.md` |
 | `oc-agent-forge` | Owns agent topology + harness loops; **reads** this skill's model routing |
 | `oc-rag-forge` | Owns retrieval; reads model routing for the answer-synthesis call |
-| `oc-prompt-ops` | Owns prompt versioning + eval datasets; eval-gates `migrate` diffs before merge |
+| `oc-prompt-ops` | Owns prompt versioning + eval datasets; `/oc-prompt drift` eval-gates `migrate` diffs before merge |
 | `oc-stack-forge` | Recommends the overall stack; this skill owns the Claude request layer within it |
-| `oc-integrations-engineer` | Owns third-party API auth (incl. provider clients on Bedrock/Vertex/Foundry) |
+| `oc-integrations-engineer` | Owns third-party API auth |
 | `oc-code-auditor` | Audits the request layer for unparsed tool inputs, missing refusal handling, leaked keys |
-| `oc-cost-ops` (v1.6) | Will own live spend tracking + cost-regression alerts; this skill sets static ceilings today |
+| `oc-cost-ops` | Owns attributed spend, budgets and the cost-regression gate; **reads** this skill's price table + model IDs. This skill sets static ceilings only |
 | `oc-git-ops` | Opens the migration diff PR (via its pre-PR gate: oc-docs-forge docs packet → oc-repo-ops readiness) |
 
 Boundary: this skill owns **the Claude API request surface** — model choice,
@@ -297,6 +310,10 @@ request layer this skill defines.
 
 ## Checkpoint Integration
 
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-claude-api.
+
 ### Checkpoint Location
 `{project-dir}/.checkpoints/oc-claude-api.checkpoint.json`
 
@@ -304,7 +321,7 @@ request layer this skill defines.
 
 | Event | What to Save |
 |---|---|
-| Model routing decided | Per-phase model map, effort levels |
+| Model routing decided | Per-phase model map + effort levels, appended to `context_primer.key_decisions` (the sibling-readable copy) |
 | Caching wired | Breakpoint placement, measured hit rate |
 | Cache audit run | Hit rate, invalidators found, verdict |
 | Tools designed | Tool count, strict/defer-load/parallel flags |
@@ -349,7 +366,8 @@ request layer this skill defines.
    the model *when* to call, not just what the tool does. Parse tool inputs as JSON,
    never raw-string-match.
 5. **Model IDs and prices come from `claude-api`, never memory.** Stale priors are
-   the most common bug — verify against the bundled skill.
+   the most common bug — verify against the built-in `claude-api` skill, or the
+   Models API when it is absent.
 6. **Migrations are diffs, not rewrites.** Confirm scope, classify each file, apply
    the breaking-change checklist, eval-gate, explain every edit, then open a PR.
 7. **Right-size `max_tokens`.** Lowballing truncates and forces retries; the cheap

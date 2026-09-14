@@ -4,9 +4,10 @@ Canonical runtime contract for opchain skills that read and write project-manage
 tickets through MCP servers. v1.2 introduced the prose; v1.3 makes it executable.
 
 This document is referenced by `oc-integrations-engineer` (canonical owner) and by every
-downstream PM-aware skill: `oc-app-architect`, `oc-git-ops`, `oc-deploy-ops`, `oc-monitoring-ops`,
-and `oc-release-ops`. **All concrete MCP tool invocations made by those skills must
-follow this contract.**
+downstream PM-aware skill — any skill with a `## PM-Tool MCP Integration` section, e.g.
+`oc-app-architect`, `oc-git-ops`, `oc-deploy-ops`, `oc-monitoring-ops`, `oc-release-ops`,
+`oc-migration-ops`, `oc-modularize-ops`, `oc-fleet-ops`, `oc-api-dev`, `oc-scale-ops`.
+**All concrete MCP tool invocations made by those skills must follow this contract.**
 
 ---
 
@@ -15,8 +16,11 @@ follow this contract.**
 Skills must call MCP tools by their **actual concrete name** as exposed to Claude
 Code, not by placeholder identifiers like `mcp.<provider>.get_issue`.
 
-The registry below is the source of truth. When a session detects a new tool name
-(MCP server upgrades), update this table and re-run `npm run validate-pm-mcp`.
+The registry below lists the default names as exposed by the Anthropic-shipped
+connectors. Tool names depend on how each MCP server is named in the session, so check
+the session's tool list: when the names differ, set `tool_overrides` (below) — that is the
+common case, not only the regulated one. When a connector itself renames a tool, update
+this table and re-run `npm run validate-pm-mcp` (opchain repo).
 
 | Operation | Linear | GitHub Issues | Jira (Atlassian MCP) |
 |---|---|---|---|
@@ -46,9 +50,9 @@ tool_overrides:
   # any operation may be overridden; unspecified ops fall through to the registry
 ```
 
-Regulated environments (HIPAA / FedRAMP / CMMC) almost always need this — the
-broker / redactor sits in front of the upstream MCP server. See the
-`mcp-enterprise-f500` and `mcp-enterprise-defense` scenarios.
+Any session whose MCP servers are named differently needs this. Regulated environments
+(HIPAA / FedRAMP / CMMC) always do — the broker / redactor sits in front of the upstream
+MCP server.
 
 ---
 
@@ -103,18 +107,37 @@ Every comment body composed by an opchain skill **must** include an HTML-comment
 marker of the form:
 
 ```html
-<!-- opchain:<skill>:<event>:<correlation-id> -->
+<!-- opchain:<skill>:<event>:<correlation-id>:<revision>:<payload-hash> -->
 ```
 
 Where:
-- `<skill>` = the producing skill (`oc-app-architect`, `oc-git-ops`, `oc-deploy-ops`,
-  `oc-monitoring-ops`, `oc-release-ops`).
+- `<skill>` = the producing skill's id (any PM-aware skill listed at the top, e.g.
+  `oc-deploy-ops`, `oc-fleet-ops`, `oc-migration-ops`).
 - `<event>` = the named event the comment represents (`sprint-contract`,
   `pr-opened`, `pr-merged`, `staging-verified`, `prod-shipped`, `incident-fired`,
   `release-announced`, ...).
-- `<correlation-id>` = a stable id that uniquely identifies the event for that
-  ticket. For sprint comments: `sprint-N`. For PR events: the PR number.
+- `<correlation-id>` = a stable id that identifies the subject for that ticket.
+  For sprint comments: `sprint-N`. For PR events: the PR number.
   For deploy events: the deploy-ticket id. For incidents: the alert-event id.
+- `<revision>` = a monotonic revision for the same logical subject, such as
+  `r1`; changing a contract or outcome uses a new revision.
+- `<payload-hash>` = a short stable hash of the rendered semantic payload. A
+  retry preserves every marker component exactly; a changed payload gets a new
+  hash (and, when it changes the logical result, a new revision).
+
+This separates **retry identity** (the full marker, reused only for replay of the
+same delivery) from **event identity** (subject, outcome/event and revision). A
+failed sprint result must not suppress its later passing result, and a revised
+contract must not be mistaken for a duplicate.
+
+### Executable composition boundary
+
+Repository consumers compose and reconcile comments through
+`scripts/lib/pm-mcp-checks.mjs` `reconcilePmComment()`. It calls a provider's
+`listComments(ticket)` before `addComment({ ticket, body, marker })`, so a retry
+after an uncertain delivery reuses the computed full marker and reconciles when
+the first write became visible. The provider shape is intentionally mockable;
+this helper performs no network call itself.
 
 ### Pre-write check
 
@@ -122,8 +145,8 @@ Before calling `add_comment`, the skill **must**:
 
 1. Fetch existing comments via `list_comments` (or `get_issue` with comments
    inline for GitHub).
-2. Search the comment bodies for the exact marker.
-3. If a marker match exists, **skip the write**. Log the skip to the checkpoint
+2. Search the comment bodies for the exact full marker.
+3. If an exact marker match exists, **skip the write**. Log the skip to the checkpoint
    under `pm_idempotent_skips[]` with `{ticket, marker, observed_at}`.
 
 The pre-write check is a single MCP read; it adds latency but prevents
@@ -152,7 +175,10 @@ calling skill's checkpoint and surfaced for later flushing.
 ### Checkpoint schema
 
 Every skill that performs PM writes adds a top-level `pm_deferred_actions`
-array to its checkpoint (alongside the existing `skill_state`):
+array to its checkpoint (alongside the existing `skill_state`). The same goes for
+`pm_flush_log[]` and `pm_idempotent_skips[]` below. None of the three is part of
+the checkpoint protocol's schema yet (only `pm_refs` is): `checkpoint:validate`
+does not check their shape, and a diverged copy is a merge conflict, not a union.
 
 ```json
 {
@@ -233,7 +259,9 @@ If `--retry-pm` is invoked with no queued actions, the skill prints
 
 ## 5. Cross-skill consistency rules
 
-These rules apply to every PM-aware skill. The validator (Section 6) enforces them.
+These rules apply to every PM-aware skill. The validator (Section 6) mechanically
+checks rules 1 and 7 for every discovered PM-aware skill; rules 2–6 are reviewed
+by hand.
 
 1. **No placeholder names.** A skill must not write `mcp.<provider>.<verb>` in
    prose; either use the registry name or cite this protocol doc by reference.
@@ -256,18 +284,23 @@ These rules apply to every PM-aware skill. The validator (Section 6) enforces th
 
 ## 6. Validator (`npm run validate-pm-mcp`)
 
-The validator (`scripts/validate-pm-mcp.mjs`) gates the build. It checks:
+The validator (`scripts/validate-pm-mcp.mjs`, opchain repo only) gates the build. It
+discovers every `skills/*/SKILL.md` that declares a `## PM-Tool MCP Integration`
+section, including release and audit skills, then checks each discovered contract.
+It uses the repository's full YAML parser for `.opchain/pm.yaml`. It checks:
 
 | Check | Failure mode | Severity |
 |---|---|---|
-| Each of the 5 PM-aware SKILL.md files contains the section anchor `## PM-Tool MCP Integration`. | Missing anchor | **error** |
+| Each of the 5 listed SKILL.md files contains the section anchor `## PM-Tool MCP Integration`. | Missing anchor | **error** |
 | None of those 5 SKILL.md files contain the placeholder `mcp.<provider>.` pattern. | Drift back to v1.2 prose | **error** |
-| Each PM-aware SKILL.md references this protocol doc. | Missing citation | **error** |
+| Each of those 5 SKILL.md files references this protocol doc. | Missing citation | **error** |
 | `.opchain/pm.yaml` parses as valid YAML with required keys (`provider`, `team_or_project`, `issue_types`, `states`). | Config malformed | **error** |
 | `states` keys include at minimum `in_progress`, `in_review`, `done`. | Missing core states | **error** |
-| State names referenced in SKILL.md prose (`in_review`, `done`, `blocked`, `staging-verified`, `shipped`, `rolled-back`) appear in `pm.yaml` `states` or are documented in this protocol's "extended state vocabulary" appendix. | State drift | **warn** |
 | Provider in `pm.yaml` is one of `linear` / `jira` / `github-issues`. | Unknown provider | **error** |
-| All concrete tool names referenced in SKILL.md files exist in the registry table for the configured provider. | Tool name typo | **error** |
+| Concrete tool names referenced in those 5 SKILL.md files exist in some provider's registry (Jira names warn instead). | Tool name typo | **error** |
+
+State names are not checked: nothing compares SKILL.md state names against `pm.yaml`
+or Appendix A.
 
 The validator runs in `npm run prebuild` (alongside `gen-catalog` and
 `sync-docs`) and in CI. Failure blocks the build; warnings are surfaced but do
@@ -287,6 +320,11 @@ introduce additional states beyond the universal set:
 | `rolled-back` | oc-deploy-ops | Deploy reverted; do not re-attempt without root-cause. |
 | `blocked` | oc-deploy-ops, oc-app-architect | Build / deploy gate failed; needs human input. |
 | `resolved-pending-postmortem` | oc-monitoring-ops | Alert auto-cleared; postmortem owed. |
+| `rolled` | oc-fleet-ops | Fleet rollout completed across every node. |
+| `partial-halt` | oc-fleet-ops | Rollout halted at the failure threshold; rolled subset being reverted. |
+| `plan-pending` | oc-migration-ops, oc-modularize-ops | Step / module is in the plan, not started. |
+| `verified` | oc-migration-ops | `/oc-migrate verify` passed for the step. |
+| `equivalence-verified` | oc-modularize-ops | Fixture replay proved the module equivalent. |
 | `noisy-alert` (label, not state) | oc-monitoring-ops | Tagged on the incident ticket when threshold exceeded. |
 
 Each project's `pm.yaml` should define how to map these to its actual workflow
@@ -305,9 +343,9 @@ states:
     resolved-pending-postmortem: "Pending Postmortem"
 ```
 
-The validator is permissive about extended states: a skill may reference an
-extended state name without a `pm.yaml` entry; the worst-case fallback is that
-the skill leaves the state unchanged and posts a comment instead.
+A skill may reference an extended state name without a `pm.yaml` entry; the
+worst-case fallback is that the skill leaves the state unchanged and posts a
+comment instead.
 
 ---
 
@@ -355,5 +393,5 @@ In regulated environments (HIPAA / FedRAMP / CMMC):
   audit-relevant: the broker rejected a scope-violating write, and the agent
   honoured it. The audit pipeline preserves both the attempt and the rejection.
 
-See scenarios `mcp-enterprise-f500` and `mcp-enterprise-defense` for the full
-broker / redactor / audit-pipeline reference architecture.
+opchain does not ship a reference architecture for the broker / redactor / audit
+pipeline; it is the deploying organisation's to design.

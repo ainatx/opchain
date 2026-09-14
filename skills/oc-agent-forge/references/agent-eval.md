@@ -1,7 +1,7 @@
 # Agent Eval
 
 An agent harness is only shippable once it's evaluated. The Evaluator runs the agent
-against a **task fixture suite** with isolated context and reports three things:
+against a **task fixture suite**, grading from the fixtures alone, and reports three things:
 did it succeed, was the trajectory clean, and was it efficient. "It worked when I
 tried it" is not a measurement — one happy-path demo tells you nothing about the
 other 23 tasks.
@@ -60,8 +60,9 @@ path.
 
 ## The Evaluator's scoring rubric
 
-The Evaluator runs with **isolated context** — it sees the fixtures and the live
-agent, not the Builder's harness rationale. For each fixture:
+The Evaluator runs in the same session as the Builder, so its separation is a
+discipline, not a mechanism: grade from the fixtures and the live agent alone — set
+aside the Builder's harness rationale. For each fixture:
 
 | Dimension | What it measures | How it's scored |
 |---|---|---|

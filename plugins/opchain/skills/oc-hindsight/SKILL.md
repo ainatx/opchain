@@ -1,7 +1,7 @@
 ---
 name: oc-hindsight
 displayName: OC · Hindsight
-version: 1.9.0
+version: 1.9.2
 license: Apache-2.0
 shortDesc: "Governed operational memory: harvest outcomes into source-grounded lessons, prove retrieval, promote by hand."
 phases: [foundation, ai-native]
