@@ -40,3 +40,11 @@ pass across route rendering, the existing accessibility checks, diagram geometry
 changelog navigation and the unchanged 12 scenario picker entries. The release
 surface suite passes all three tests, including its new boundary case.
 Final commit verification runs the repository's required candidate checks.
+
+## Changelog layout follow up
+
+The user requested the same structure as previous releases: a What's new section
+with the three new skills, followed by What's changed. The 2.0 entry now uses the
+existing skill tile layout for oc-update, oc-hindsight and oc-evolve. The runtime
+change descriptions and compatibility guidance remain below the new skills.
+This is static page content only; it changes no runtime or security boundary.
