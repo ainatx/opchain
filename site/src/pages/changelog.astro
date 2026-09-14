@@ -161,7 +161,7 @@ const plannedReleaseGroups = [
           aria-selected="true"
           tabindex="0"
         >
-          Just Released <span class="tab-count">19 shipped</span>
+          Just Released <span class="tab-count">20 shipped</span>
         </button>
         <button
           class="tab-btn tab-btn--next"
@@ -200,7 +200,7 @@ const plannedReleaseGroups = [
         <span class="panel-sub">Latest release is open; patches and earlier releases expand in place.</span>
       </div>
 
-      <!-- v1.9 — latest shipped release line (v1.9.0 → v1.9.1); "Assurance and governed delivery ops". Deep-linkable from #v1-9. -->
+      <!-- v1.9 — latest shipped release line (v1.9.0 → v1.9.2); "Assurance and governed delivery ops". Deep-linkable from #v1-9. -->
       <article class="hero-card hero-card--released is-open" id="v1-9" data-card>
         <button
           class="hero-head"
@@ -211,7 +211,7 @@ const plannedReleaseGroups = [
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">latest release</span>
-          <span class="hero-ver">v1.9.0 → v1.9.1 · Sep 02 – Sep 13, 2026</span>
+          <span class="hero-ver">v1.9.0 → v1.9.2 · Sep 02 – Sep 13, 2026</span>
           <span class="hero-title">Assurance and governed delivery ops</span>
           <span class="hero-desc">
             Delivery evidence you can review and enforce. v1.9 adds four skills
@@ -253,6 +253,28 @@ const plannedReleaseGroups = [
               pre-v1.9 hosted checkpoint records are deleted during rollout;
               local on-disk checkpoints are unaffected.
             </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v1.9.2 — verified handoffs; apply only in the post-tag site release. -->
+      <article class="rel-card" id="v1-9-2" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v1-9-2-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">&#9654;</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v1.9.2 patch</span><span class="rc-title">Verified handoffs</span><span class="rc-date">Sep 13, 2026</span></span>
+            <span class="rc-summary">Commit checks follow the staged candidate; local state survives restarts; skills exchange validated evidence.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v1-9-2-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <p>The audit follow-through adds executable verification and reusable local tools across the existing 33 skills.</p>
+            <ul>
+              <li>Explicit repository enrollment verifies staged commits and blocks failed required checks.</li>
+              <li>Durable local MCP state, bundled references and typed handoffs connect the skill family.</li>
+              <li>Prompt/cost checks, private telemetry commands and optional execution kits have runnable local paths.</li>
+            </ul>
+            <div class="compat-box"><strong>Setup and migration required.</strong> Run <code>/oc-enroll</code> per repository, refresh local sessions and producer evidence, and opt in to telemetry locally. Local hooks are bypassable; hosted state is advisory. Kits are not sandboxes. Provider access and target-repository CI require separate verification.</div>
           </div>
         </div>
       </article>
