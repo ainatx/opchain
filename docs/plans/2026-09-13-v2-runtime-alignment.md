@@ -45,9 +45,11 @@ Fixtures prove implementation behavior, not an observed improvement by a model.
 - [x] Import the approved color design and update forward site surfaces.
 - [x] Pass complete tests, package checks, site checks and builds.
 - [x] Review the exact candidate and record deployment evidence.
-- [ ] Deploy staging, verify its version and smoke tests, and record rollback details.
+- [x] Deploy staging, verify its version and smoke tests, and record rollback details.
 
-Estimated remaining work at plan update: 30 to 60 minutes for checks and review,
-then 10 to 20 minutes for staging verification, provided no new failures arise.
+Staging implementation and verification are complete.
+Deployment details: [2.0 staging preview](../releases/2.0-staging-preview.md).
+The default branch monitoring baseline still needs its separate reviewed update;
+allow 10 to 20 minutes plus review time. Full release acceptance has no date.
 
 Review evidence: [staging review](../audits/2026-09-13-v2-runtime-staging-review.md).

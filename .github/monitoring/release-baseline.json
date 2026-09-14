@@ -21,21 +21,34 @@
       "versionId": "01db3b36-a90c-4f73-98f7-fd00505582c4",
       "trafficPercentage": 100,
       "scriptEtag": "5c2a162a66a83824221d9ca6600de30814ac99807b571e840087f0cbb2b15fc9",
-      "handlers": ["fetch"],
-      "bindings": ["ASSETS"],
+      "handlers": [
+        "fetch"
+      ],
+      "bindings": [
+        "ASSETS"
+      ],
       "observabilityEnabled": true
     },
     "staging": {
       "worker": "opchain-staging",
       "hostname": "staging.opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "52c452c5-5d9e-4148-b3eb-30b7155d4888",
-      "versionId": "28a5c29d-0c18-4653-8214-e31af0a3872a",
+      "deploymentId": "dc18ff55-a797-40b4-a4cb-f4bf1eae12a3",
+      "versionId": "befa8713-c096-4bf4-a933-9e4010b2730c",
       "trafficPercentage": 100,
-      "scriptEtag": "5c2a162a66a83824221d9ca6600de30814ac99807b571e840087f0cbb2b15fc9",
-      "handlers": ["fetch"],
-      "bindings": ["ASSETS"],
-      "observabilityEnabled": true
+      "scriptEtag": "70063d8f269130cff8dce4c4fa6b7756fdbb0f232abe2b9cf7716676262a6c04",
+      "handlers": [
+        "fetch"
+      ],
+      "bindings": [
+        "ASSETS"
+      ],
+      "observabilityEnabled": true,
+      "sourceSha": "3bc8cf380ae3b57033099f7b47de1771fba05e77",
+      "catalogVersion": "2.0.0",
+      "status": "staging-preview",
+      "releaseDate": null,
+      "approval": "User requested all recommended 2.0 runtime changes, the approved color design and staging. Branch preview at 3bc8cf3 passed candidate verification, typed code and security review, live hardening and smoke tests. Production is unchanged; this is not a 2.0 release approval."
     }
   },
   "deployLag": {
@@ -75,6 +88,6 @@
   "pointInTimeEvidence": {
     "healthVersion": "f5e4b2a",
     "continuousCustomDomainProbe": false,
-    "note": "Production and staging both serve f5e4b2a (v1.9.1 site half on the signed v1.9.1 release). Point-in-time /api/health on 2026-09-13T23:06Z returned version f5e4b2a on both hosts and /skills.json catalogVersion 1.9.1. Staging is back on main, so the staging half of the canary is expected green once this baseline is on the default branch."
+    "note": "Production remains f5e4b2a. Staging serves the 2.0.0 preview at 3bc8cf3. This branch records the staging baseline for review; scheduled monitors adopt it only after a baseline update reaches the default branch."
   }
 }

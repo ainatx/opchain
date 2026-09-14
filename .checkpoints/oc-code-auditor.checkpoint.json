@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/worktrees/opchain-oc-update-v2",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-09-14T00:38:43.724Z",
+  "updated_at": "2026-09-14T00:43:53.256Z",
   "phase": "audit",
   "step": "oss-readiness-audit-2026-08-22",
   "status": "in_progress",
@@ -163,7 +163,31 @@
           "docs/plans/2026-09-13-v2-runtime-alignment.md"
         ]
       }
+    },
+    {
+      "id": "oc-code-auditor-v2-record-e4a5c08f3c41",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T00:43:53.176Z",
+      "verified_at": "2026-09-14T00:43:53.176Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "v2-staging-record-review"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:e4a5c08f3c41eb64b63a412fbc764db7ee08a0430e2a3ae481a482cd9b358f12"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Same reviewed runtime as deployed 3bc8cf3, plus verified staging record and monitoring metadata. No executable source changed.",
+        "evidence": [
+          "docs/audits/2026-09-13-v2-runtime-staging-review.md",
+          "docs/releases/2.0-staging-preview.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-14T00:38:43.724Z"
+  "record_updated_at": "2026-09-14T00:43:53.256Z"
 }
