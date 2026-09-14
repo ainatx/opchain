@@ -61,10 +61,10 @@ test.describe("/changelog", () => {
     // with its version + a non-empty compatibility note (changelog-recipe rule).
     const hero = page.locator("#v1-9.hero-card--released");
     await expect(hero).toBeVisible();
-    await expect(hero.locator(".hero-ver")).toContainText("v1.9.0 → v1.9.1");
+    await expect(hero.locator(".hero-ver")).toContainText("v1.9.0 → v1.9.2");
 
     // A patch never creates a new hero: v1.9.1 is a compact rel-card beside it.
-    await expect(page.locator("#v1-9-1.rel-card")).toBeVisible();
+    await expect(page.locator("#v1-9-2.rel-card")).toBeVisible();
     await expect(hero.locator(".hero-head")).toHaveAttribute("aria-expanded", "true");
     await expect(hero.locator(".compat-box")).toBeVisible();
     await expect(hero.locator(".compat-box")).not.toBeEmpty();
