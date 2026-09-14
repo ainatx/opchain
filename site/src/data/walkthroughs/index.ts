@@ -1,3 +1,6 @@
+import { updateOpchain } from "./update-opchain";
+import { bootstrapOpchain } from "./bootstrap-opchain";
+import { hindsightAndEvolve } from "./hindsight-and-evolve";
 import { agentTriage } from "./agent-triage";
 import { aiSafetyGate } from "./ai-safety-gate";
 import { conceptToShipped } from "./concept-to-shipped";
@@ -15,6 +18,10 @@ import type { Walkthrough } from "./types";
 /** Stable display order — left-to-right on the scenario picker. */
 export const walkthroughs: Walkthrough[] = [
   conceptToShipped,
+  // 2.0: update, bootstrap and reviewed learning.
+  updateOpchain,
+  bootstrapOpchain,
+  hindsightAndEvolve,
   // v1.5 AI-native cluster — front-loaded to showcase the "build the AI app" release.
   ragAnswerBot,
   agentTriage,

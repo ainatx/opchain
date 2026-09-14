@@ -116,7 +116,7 @@ declare global {
     const active = isActiveFilter(state);
     const hits = active ? filterAndRank(index, state) : [];
     const resHtml = active ? resultsHtml() : promptHtml();
-    const countText = active ? `results · ${hits.length}` : `${totalSteps} steps · 12 scenarios`;
+    const countText = active ? `results · ${hits.length}` : `${totalSteps} steps · ${index.scenarios.length} scenarios`;
 
     $$("[data-ocs-results]").forEach((el) => (el.innerHTML = resHtml));
     $$("[data-ocs-count]").forEach((el) => (el.textContent = countText));

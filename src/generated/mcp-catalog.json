@@ -426,8 +426,8 @@
       "references": [
         {
           "path": "references/budget-gates.md",
-          "bytes": 4524,
-          "sha256": "2d83cd250e195f748658e3fb1ce6c132227ba71d51b5dda66c1badf95134ed31"
+          "bytes": 6061,
+          "sha256": "5368b9b5dcf6433f5208883592cbea1f0a1d0ed2c6457554f9e5e17710ae2169"
         },
         {
           "path": "references/checkpoint-protocol.md",

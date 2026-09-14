@@ -51,8 +51,8 @@ test.describe("demo search & filter", () => {
     await chip.click();
     await expect(chip).toHaveAttribute("aria-pressed", "true");
 
-    // scenario count reflects a narrowed set (≤ 12)
-    await expect(page.locator(".dw-desktop [data-ocs-scn-count]")).toContainText("/ 12");
+    // scenario count reflects a narrowed set (≤ 15)
+    await expect(page.locator(".dw-desktop [data-ocs-scn-count]")).toContainText("/ 15");
 
     // the active filter surfaces as a removable pill — in the SEARCH panel,
     // which the rail swaps in (pills don't live on the Facets panel).

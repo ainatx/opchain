@@ -1,5 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
+import { UPGRADE_PROMPT } from "../data/upgrade-prompt";
 import Eyebrow from "../components/ui/Eyebrow.astro";
 import Button from "../components/ui/Button.astro";
 import Card from "../components/ui/Card.astro";
@@ -88,6 +89,20 @@ codex`;
         </Button>
       )}
     </div>
+
+    <section class="upgrade-prompt" aria-labelledby="upgrade-prompt-title">
+      <h2 id="upgrade-prompt-title">Using Opchain 1.9 or earlier?</h2>
+      <p>Paste this into your coding agent with your project open. It checks your installation and installs the updater for you.</p>
+      <button class="copy upgrade-prompt-copy" type="button" data-copy={UPGRADE_PROMPT} data-flow="upgrade-prompt" data-copy-status="upgrade-copy-status" aria-label="Copy upgrade prompt">
+        <Icon name="copy" size={16} />
+        <span class="copy-label">Copy upgrade prompt</span>
+      </button>
+      <p id="upgrade-copy-status" class="upgrade-copy-status" role="status" aria-live="polite"></p>
+      <details id="upgrade-prompt-details">
+        <summary>Read the upgrade prompt</summary>
+        <pre class="codeblock upgrade-prompt-text" tabindex="0" role="region" aria-label="Upgrade prompt text">{UPGRADE_PROMPT}</pre>
+      </details>
+    </section>
 
     <p class="lede">
       Each skill includes a <code class="ic">SKILL.md</code> file and its supporting files.
@@ -405,7 +420,7 @@ git diff --stat`}</code></pre>
       </ul>
       <p style="margin-top: 1.5rem;">
         Want a preview first? The <a href="/demo">demo</a> walks you
-        through twelve end-to-end opchain sessions.
+        through fifteen end-to-end opchain examples.
       </p>
     </section>
 
@@ -486,16 +501,22 @@ git diff --stat`}</code></pre>
       const original = btn.querySelector(".copy-label")?.textContent ?? "copy";
       btn.addEventListener("click", async () => {
         const text = btn.dataset.copy ?? "";
+        const status = btn.dataset.copyStatus ? document.getElementById(btn.dataset.copyStatus) : null;
         track("install_copy_clicked", { flow: btn.dataset.flow ?? "unknown" });
         try {
           await navigator.clipboard.writeText(text);
+          if (status) status.textContent = "Copied. Paste it into your coding agent.";
           const lbl = btn.querySelector(".copy-label");
           if (lbl) {
             lbl.textContent = "copied ✓";
             setTimeout(() => (lbl.textContent = original), 1500);
           }
         } catch {
-          /* clipboard blocked — leave the label alone */
+          if (status) {
+            status.textContent = "Copy was blocked. Select and copy the prompt below.";
+            const details = document.querySelector<HTMLDetailsElement>("#upgrade-prompt-details");
+            if (details) details.open = true;
+          }
         }
       });
     });
@@ -525,6 +546,15 @@ git diff --stat`}</code></pre>
     margin: 0.5rem 0 0;
   }
   .lede { color: var(--muted); margin: 0 0 2.5rem; max-width: 42rem; }
+
+  .upgrade-prompt { margin-bottom: 2.5rem; padding: 1.25rem; border: 1px solid var(--accent); border-radius: var(--r-lg); background: var(--surface); }
+  .upgrade-prompt h2 { margin: 0 0 .65rem; color: var(--text); font-size: var(--fs-xl); }
+  .upgrade-prompt p { color: var(--text); line-height: 1.6; }
+  .upgrade-prompt .upgrade-prompt-copy { font-size: .875rem; position: static; min-height: 44px; padding: .7rem 1rem; margin-top: .75rem; color: var(--text); border-color: var(--accent); }
+  .upgrade-copy-status { min-height: 1.5em; margin: .5rem 0; font-size: .875rem; }
+  .upgrade-prompt summary { cursor: pointer; color: var(--text); padding: .5rem 0; }
+  .upgrade-prompt-text { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; line-height: 1.7; margin-top: .75rem; }
+  .upgrade-prompt-copy:focus-visible, .upgrade-prompt summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
   .ic {
     font-family: var(--font-mono);
@@ -832,6 +862,7 @@ git diff --stat`}</code></pre>
   @media (max-width: 540px) {
     .flow { grid-template-columns: 1fr; }
     .flow-num { padding-top: 0; }
+    .kv { grid-template-columns: 1fr; }
     .code-row { grid-template-columns: 1fr; }
   }
 </style>

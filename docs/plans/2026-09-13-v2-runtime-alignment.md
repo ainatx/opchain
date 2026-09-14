@@ -60,8 +60,7 @@ The user requested that staging show the finished public 2.0 experience. The
 site therefore presents 2.0 as released, with no invented release date, while
 release-preview.json remains an internal deployment block for production. This
 presentation change does not complete any outstanding release acceptance item.
-See ../audits/2026-09-13-v2-launch-presentation.md. Three additional demo exchanges
-are drafted outside the site and await user review before integration.
+See ../audits/2026-09-13-v2-launch-presentation.md. The three additional demo exchanges were approved and are now integrated in the site.
 
 
 ## Approved comparison refresh
@@ -73,4 +72,27 @@ The approved comparison page is now integrated in the 2.0 worktree with Slate an
 - [x] Recheck external prices/links and verify citations, interaction and both release themes.
 - [x] Attach integrated test and visual evidence to the site release handoff.
 
-The comparison integration is complete locally. It has not been deployed; prior staging verification covers the earlier site. The remaining overall release acceptance above is unchanged. The three demo drafts still await separate review.
+The comparison integration was deployed to staging at `63bb189`. The remaining overall release acceptance above is unchanged.
+
+
+## Approved demo and install additions
+
+The user lifted the staging hold on September 14. The candidate includes the
+verified simulation repair commit `9176f021832ff7d1dd66039f77b8fa1f03e44a09`.
+It repairs escaped-path release gates, machine-local consent inspection and the
+Git Ops and Cost Ops instructions, including their packaged copies.
+
+- [x] Integrate the four verified simulation fixes.
+- [x] Add the approved updater, older-install bootstrap and Hindsight/Evolve exchanges.
+- [x] Identify the new conversations and results as scripted examples.
+- [x] Add a copyable upgrade prompt above the install flows, with manual copy fallback.
+- [x] Verify all 15 scenarios, search, mobile layout and both themes.
+- [ ] Commit with fresh candidate evidence, deploy staging and verify the live pages.
+
+The upgrade prompt checks for a published 2.0 release before proceeding, preserves
+local settings and directs global plugins through their host's update flow.
+The learning demo illustrates external review and a rejected regression; its
+scores are not evidence from an actual provider run. Production release
+acceptance and the null release date remain unchanged.
+
+Review: [demo and install staging review](../audits/2026-09-14-demos-install-staging-review.md).
