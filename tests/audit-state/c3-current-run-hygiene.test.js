@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -110,6 +110,74 @@ describe("C3 current-run checkpoint hygiene", () => {
       expect(mixed.stdout).toContain('"decision": "block"');
       expect(mixed.stdout).toContain("oc-code-auditor");
       expect(mixed.stdout).not.toContain("oc-update");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it.each([null, "2026-09-14T10:00:00Z", "2026-09-14T10:02:00Z"])(
+    "exempts telemetry with private checkpoint timestamp %s without weakening other skills",
+    (privateTimestamp) => {
+      const root = fixture();
+      try {
+        const privatePath = join(root, ".checkpoints/.local/telemetry/.checkpoints/oc-telemetry-ops.checkpoint.json");
+        const privateContent = JSON.stringify({ record_updated_at: privateTimestamp });
+        if (privateTimestamp) {
+          mkdirSync(join(root, ".checkpoints/.local/telemetry/.checkpoints"), { recursive: true });
+          writeFileSync(privatePath, privateContent);
+        }
+        // Use the real inventory so an absent fixture skill cannot fake an exemption.
+        const env = { ...process.env, OPCHAIN_SKILLS_DIR: join(ROOT, "skills") };
+        for (const skill of ["oc-telemetry-ops", "opchain:oc-telemetry-ops"]) {
+          const result = spawnSync("bash", [HOOK], {
+            env,
+            input: JSON.stringify({ cwd: root, transcript_path: transcript(root, "2026-09-14T10:01:00Z", skill) }),
+            encoding: "utf8",
+          });
+          expect(result.status, result.stderr).toBe(0);
+          expect(result.stdout).toBe("");
+        }
+        // A stale tracked receipt for a different skill must still block.
+        checkpoint(root, "2026-09-14T10:00:00Z");
+        const mixed = spawnSync("bash", [HOOK], {
+          env,
+          input: JSON.stringify({ cwd: root, transcript_path: transcript(root, "2026-09-14T10:01:00Z",
+            "opchain:oc-update", "opchain:oc-telemetry-ops", "opchain:oc-code-auditor") }),
+          encoding: "utf8",
+        });
+        expect(mixed.status, mixed.stderr).toBe(0);
+        const block = JSON.parse(mixed.stdout);
+        expect(block.decision).toBe("block");
+        expect(block.reason).toContain("oc-code-auditor");
+        expect(block.reason).not.toMatch(/oc-update|oc-telemetry-ops/);
+        expect(existsSync(join(root, ".checkpoints/oc-telemetry-ops.checkpoint.json"))).toBe(false);
+        if (privateTimestamp) expect(readFileSync(privatePath, "utf8")).toBe(privateContent);
+        else expect(existsSync(privatePath)).toBe(false);
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it("allows real telemetry status and opted-out recording without creating a checkpoint", () => {
+    const root = fixture();
+    try {
+      mkdirSync(join(root, "skills", "oc-telemetry-ops"));
+      writeFileSync(join(root, "skills", "oc-telemetry-ops", "SKILL.md"), "---\nname: oc-telemetry-ops\n---\n");
+      const transcriptPath = transcript(root, new Date().toISOString(), "opchain:oc-telemetry-ops");
+      for (const command of ["status", "disable", "record"]) {
+        const result = spawnSync(process.execPath, [join(ROOT, "scripts/telemetry.mjs"), command], {
+          env: { ...process.env, OPCHAIN_ROOT: root, OPCHAIN_CHECKPOINTS_DIR: join(root, ".checkpoints") },
+          encoding: "utf8",
+        });
+        expect(result.status, `${result.stdout}${result.stderr}`).toBe(0);
+      }
+      const stop = run(root, transcriptPath);
+      expect(stop.status, stop.stderr).toBe(0);
+      expect(stop.stdout).toBe("");
+      expect(existsSync(join(root, ".checkpoints/usage.sqlite"))).toBe(false);
+      expect(existsSync(join(root, ".checkpoints/.local"))).toBe(false);
+      expect(existsSync(join(root, ".checkpoints/oc-telemetry-ops.checkpoint.json"))).toBe(false);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
