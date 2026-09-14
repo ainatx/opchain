@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-09-13T13:16:10Z",
+  "updated_at": "2026-09-14T04:29:23.516704+00:00",
   "phase": "sprint-plan",
   "step": "v2.0-sprint-plan-approved-blocked-on-oss-split",
   "status": "in_progress",
@@ -95,7 +95,10 @@
       "docs/blog-content-calendar.md",
       "docs/blog-overhaul-plan.md (status header + Wave 3 table updated)",
       "docs/releases/2.0-plan.md",
-      "site/src/pages/changelog.astro"
+      "site/src/pages/changelog.astro",
+      "sprints/compare-refresh/eval-2.0.md",
+      "sprints/compare-refresh/research-2.0.md",
+      "docs/releases/2.0-comparison-handoff.md"
     ],
     "user_preferences": [
       "Picks options when given clear choices; comfortable with 'go with defaults'.",
@@ -459,6 +462,28 @@
         "live host/model evaluation",
         "exact 2.0 release rehearsal"
       ]
+    },
+    "compare_refresh_2_0": {
+      "status": "complete",
+      "phase": "verified",
+      "report": "sprints/compare-refresh/eval-2.0.md",
+      "research": "sprints/compare-refresh/research-2.0.md",
+      "palette": "Slate and Emerald",
+      "deployment": "not requested"
     }
-  }
+  },
+  "eval_scores": [
+    {
+      "rubric": "oc-app-architect",
+      "score": 8,
+      "max": 10,
+      "dimensions": {
+        "functionality": 8,
+        "completeness": 8,
+        "quality": 8,
+        "ux": 8
+      },
+      "ref": "sprints/compare-refresh/eval-2.0.md"
+    }
+  ]
 }

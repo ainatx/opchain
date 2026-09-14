@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:42:00Z",
-  "updated_at": "2026-09-08T03:43:00Z",
+  "updated_at": "2026-09-14T04:29:23.517646+00:00",
   "phase": "design-iteration",
   "step": "architecture-v2.0-learning-rail-slate-emerald",
   "status": "complete",
@@ -127,7 +127,10 @@
       "scripts/gen-roadmap.mjs (Round 5 — Linear build-time pull)",
       "site/src/data/roadmap-types.ts (Round 5 — Roadmap types + fs loader)",
       "site/src/components/RoadmapTimeline.astro (Round 5 — new)",
-      "site/src/components/RoadmapForm.astro (Round 5 — new)"
+      "site/src/components/RoadmapForm.astro (Round 5 — new)",
+      "sprints/compare-refresh/eval-2.0.md",
+      "sprints/compare-refresh/research-2.0.md",
+      "docs/releases/2.0-comparison-handoff.md"
     ],
     "modified_files_round_4": [
       "site/src/pages/index.astro (homepage redesign)",
@@ -281,6 +284,28 @@
         "note": "#12191f and #1c1710 are luminance-identical (1.00:1) and differ only in hue, so the dashed border and chrome — not the panel fill — separate the rail from the page",
         "superseded": "iris #a5b4fc, the original accent picked by ΔE search before the 2.0 set was adopted here"
       }
+    },
+    "compare_refresh_2_0": {
+      "status": "complete",
+      "phase": "verified",
+      "report": "sprints/compare-refresh/eval-2.0.md",
+      "research": "sprints/compare-refresh/research-2.0.md",
+      "palette": "Slate and Emerald",
+      "deployment": "not requested"
     }
-  }
+  },
+  "eval_scores": [
+    {
+      "rubric": "oc-ux-engineer",
+      "score": 8,
+      "max": 10,
+      "dimensions": {
+        "hierarchy": 8,
+        "states": 8,
+        "consistency": 8,
+        "accessibility": 8
+      },
+      "ref": "sprints/compare-refresh/eval-2.0.md"
+    }
+  ]
 }

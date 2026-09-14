@@ -26,9 +26,9 @@ command introduced by the newer commit verifier.
 ## Preview identity
 
 Artifacts use version 2.0.0. `release-preview.json` records staging-only status,
-the 1.9.2 repair baseline and a null release date. The site's released history
-continues to describe 1.9.2; a banner labels the new catalog as a preview. The
-production deploy command refuses a tree containing that preview marker.
+the 1.9.2 repair baseline and a null release date. At the user's request, the
+site now presents the finished 2.0 launch experience without a preview banner.
+The production deploy command still refuses a tree containing that marker.
 
 ## Remaining release acceptance
 
@@ -62,3 +62,15 @@ release-preview.json remains an internal deployment block for production. This
 presentation change does not complete any outstanding release acceptance item.
 See ../audits/2026-09-13-v2-launch-presentation.md. Three additional demo exchanges
 are drafted outside the site and await user review before integration.
+
+
+## Approved comparison refresh
+
+The approved comparison page is now integrated in the 2.0 worktree with Slate and Emerald, updated Opchain claims, 169 cited cells and 42 sources. The [comparison release handoff](../releases/2.0-comparison-handoff.md) records evidence and release boundaries.
+
+- [x] Record the approved comparison scope and verify the source inventory.
+- [x] Port implementation/tests/research and review all Opchain claims against the 2.0 package.
+- [x] Recheck external prices/links and verify citations, interaction and both release themes.
+- [x] Attach integrated test and visual evidence to the site release handoff.
+
+The comparison integration is complete locally. It has not been deployed; prior staging verification covers the earlier site. The remaining overall release acceptance above is unchanged. The three demo drafts still await separate review.

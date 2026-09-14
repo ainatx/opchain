@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/worktrees/opchain-oc-update-v2",
   "created_at": "2026-09-14T00:38:43.799Z",
-  "updated_at": "2026-09-14T04:19:50.223Z",
+  "updated_at": "2026-09-14T05:38:00.029Z",
   "phase": "verify",
   "step": "v2-staging-review",
   "status": "complete",
@@ -106,7 +106,31 @@
           "docs/audits/2026-09-13-v2-launch-presentation.md"
         ]
       }
+    },
+    {
+      "id": "oc-security-auditor-comparison-1fe9954e2ddb",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T05:37:59.960Z",
+      "verified_at": "2026-09-14T05:37:59.960Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "v2-comparison-staging"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:1fe9954e2ddb8ab1fc39682571b3a74a67afc421fff8799e9232ccb99c7aa31f"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Integrated comparison page, typed catalog, tests, release plans and evidence. Implementation matches reviewed b64e85d candidate; static site rendering and selection logic reviewed for code and security.",
+        "evidence": [
+          "docs/audits/2026-09-14-comparison-staging-review.md",
+          "sprints/compare-refresh/eval-2.0.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-14T04:19:50.223Z"
+  "record_updated_at": "2026-09-14T05:38:00.029Z"
 }

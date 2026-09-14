@@ -1,0 +1,228 @@
+[
+  {
+    "id": "oc-library",
+    "url": "/skills",
+    "status": "internal route (build/Worker)"
+  },
+  {
+    "id": "oc-build",
+    "url": "/skills/oc-app-architect",
+    "status": "internal route (build/Worker)"
+  },
+  {
+    "id": "oc-state",
+    "url": "/skills/oc-checkpoint-protocol",
+    "status": "internal route (build/Worker)"
+  },
+  {
+    "id": "oc-ops",
+    "url": "/skills/oc-orchestrator",
+    "status": "internal route (build/Worker)"
+  },
+  {
+    "id": "oc-deploy",
+    "url": "/skills/oc-deploy-ops",
+    "status": "internal route (build/Worker)"
+  },
+  {
+    "id": "oc-install",
+    "url": "/install",
+    "status": "internal route (build/Worker)"
+  },
+  {
+    "id": "oc-license",
+    "url": "/LICENSE",
+    "status": "internal route (build/Worker)"
+  },
+  {
+    "id": "superpowers",
+    "url": "https://github.com/obra/superpowers#the-basic-workflow",
+    "status": 200,
+    "final_url": "https://github.com/obra/superpowers#the-basic-workflow"
+  },
+  {
+    "id": "compound",
+    "url": "https://github.com/EveryInc/compound-engineering-plugin#the-loop",
+    "status": 200,
+    "final_url": "https://github.com/EveryInc/compound-engineering-plugin#the-loop"
+  },
+  {
+    "id": "bmad",
+    "url": "https://github.com/bmad-code-org/BMAD-METHOD#why-bmad",
+    "status": 200,
+    "final_url": "https://github.com/bmad-code-org/BMAD-METHOD#why-bmad"
+  },
+  {
+    "id": "gsd",
+    "url": "https://github.com/open-gsd/gsd-core#how-it-works",
+    "status": 200,
+    "final_url": "https://github.com/open-gsd/gsd-core#how-it-works"
+  },
+  {
+    "id": "gsd-context",
+    "url": "https://github.com/open-gsd/gsd-core/blob/main/docs/explanation/context-engineering.md",
+    "status": 200,
+    "final_url": "https://github.com/open-gsd/gsd-core/blob/main/docs/explanation/context-engineering.md"
+  },
+  {
+    "id": "speckit",
+    "url": "https://github.com/github/spec-kit#-what-is-spec-driven-development",
+    "status": 200,
+    "final_url": "https://github.com/github/spec-kit#-what-is-spec-driven-development"
+  },
+  {
+    "id": "openspec",
+    "url": "https://github.com/Fission-AI/OpenSpec#why-teams-adopt-openspec",
+    "status": 200,
+    "final_url": "https://github.com/Fission-AI/OpenSpec#why-teams-adopt-openspec"
+  },
+  {
+    "id": "claude",
+    "url": "https://code.claude.com/docs/en/overview",
+    "status": 200,
+    "final_url": "https://code.claude.com/docs/en/overview"
+  },
+  {
+    "id": "claude-memory",
+    "url": "https://code.claude.com/docs/en/memory",
+    "status": 200,
+    "final_url": "https://code.claude.com/docs/en/memory"
+  },
+  {
+    "id": "claude-hooks",
+    "url": "https://code.claude.com/docs/en/hooks",
+    "status": 200,
+    "final_url": "https://code.claude.com/docs/en/hooks"
+  },
+  {
+    "id": "claude-price",
+    "url": "https://claude.com/pricing",
+    "status": 200,
+    "final_url": "https://claude.com/pricing"
+  },
+  {
+    "id": "codex-pricing",
+    "url": "https://learn.chatgpt.com/docs/pricing",
+    "status": 200,
+    "final_url": "https://learn.chatgpt.com/docs/pricing"
+  },
+  {
+    "id": "codex-agents",
+    "url": "https://learn.chatgpt.com/docs/agent-configuration/subagents",
+    "status": 200,
+    "final_url": "https://learn.chatgpt.com/docs/agent-configuration/subagents"
+  },
+  {
+    "id": "codex-cli",
+    "url": "https://learn.chatgpt.com/docs/codex/cli",
+    "status": 200,
+    "final_url": "https://learn.chatgpt.com/docs/codex/cli"
+  },
+  {
+    "id": "cursor",
+    "url": "https://cursor.com/docs/agent/overview",
+    "status": 200,
+    "final_url": "https://cursor.com/docs/agent/overview"
+  },
+  {
+    "id": "cursor-rules",
+    "url": "https://cursor.com/docs/rules",
+    "status": 200,
+    "final_url": "https://cursor.com/docs/rules"
+  },
+  {
+    "id": "cursor-agents",
+    "url": "https://cursor.com/docs/subagents",
+    "status": 200,
+    "final_url": "https://cursor.com/docs/subagents"
+  },
+  {
+    "id": "cursor-window",
+    "url": "https://cursor.com/docs/agent/agents-window",
+    "status": 200,
+    "final_url": "https://cursor.com/docs/agent/agents-window"
+  },
+  {
+    "id": "cursor-price",
+    "url": "https://cursor.com/pricing",
+    "status": 200,
+    "final_url": "https://cursor.com/pricing"
+  },
+  {
+    "id": "copilot",
+    "url": "https://docs.github.com/en/copilot/concepts/agents/cloud-agent/about-cloud-agent",
+    "status": 200,
+    "final_url": "https://docs.github.com/en/copilot/concepts/agents/cloud-agent/about-cloud-agent"
+  },
+  {
+    "id": "copilot-custom",
+    "url": "https://docs.github.com/en/copilot/concepts/prompting/response-customization",
+    "status": 200,
+    "final_url": "https://docs.github.com/en/copilot/concepts/prompting/response-customization"
+  },
+  {
+    "id": "copilot-memory",
+    "url": "https://docs.github.com/en/copilot/concepts/agents/copilot-memory",
+    "status": 200,
+    "final_url": "https://docs.github.com/en/copilot/concepts/agents/copilot-memory"
+  },
+  {
+    "id": "copilot-price",
+    "url": "https://docs.github.com/en/copilot/get-started/plans",
+    "status": 200,
+    "final_url": "https://docs.github.com/en/copilot/get-started/plans"
+  },
+  {
+    "id": "devin",
+    "url": "https://docs.devin.ai/get-started/devin-intro",
+    "status": 200,
+    "final_url": "https://docs.devin.ai/get-started/devin-intro"
+  },
+  {
+    "id": "devin-knowledge",
+    "url": "https://docs.devin.ai/product-guides/knowledge",
+    "status": 200,
+    "final_url": "https://docs.devin.ai/product-guides/knowledge"
+  },
+  {
+    "id": "devin-skills",
+    "url": "https://docs.devin.ai/product-guides/skills",
+    "status": 200,
+    "final_url": "https://docs.devin.ai/product-guides/skills"
+  },
+  {
+    "id": "devin-playbooks",
+    "url": "https://docs.devin.ai/product-guides/using-playbooks",
+    "status": 200,
+    "final_url": "https://docs.devin.ai/product-guides/using-playbooks"
+  },
+  {
+    "id": "devin-price",
+    "url": "https://devin.ai/pricing",
+    "status": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "id": "antigravity",
+    "url": "https://antigravity.google/docs/home",
+    "status": 200,
+    "final_url": "https://antigravity.google/docs/home"
+  },
+  {
+    "id": "antigravity-rules",
+    "url": "https://antigravity.google/docs/ide/rules/",
+    "status": 200,
+    "final_url": "https://antigravity.google/docs/ide/rules/"
+  },
+  {
+    "id": "antigravity-skills",
+    "url": "https://antigravity.google/docs/ide/skills/",
+    "status": 200,
+    "final_url": "https://antigravity.google/docs/ide/skills/"
+  },
+  {
+    "id": "antigravity-price",
+    "url": "https://antigravity.google/pricing",
+    "status": 200,
+    "final_url": "https://antigravity.google/pricing"
+  }
+]

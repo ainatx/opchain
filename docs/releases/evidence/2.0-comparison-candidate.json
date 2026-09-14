@@ -1,0 +1,194 @@
+{
+  "scope": "Immutable temporary-index snapshot of the comparison integration; no real index mutation, commit, deployment or final-release authorization. Subsequent changes only normalize checkpoint JSON or record completion evidence. Implementation/test/theme bytes still match this tree.",
+  "result": {
+    "ok": true,
+    "action": "run",
+    "candidate_tree": "b64e85d6606abb587aa1d6fc1af5aaa35a2eba03",
+    "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/b64e85d6606abb587aa1d6fc1af5aaa35a2eba03/b94dd0dfc26a7f0bd0a89815a2c2af56bc9373ed6dc58efe942e5b4bafe7d358/23c7271f-070e-4cf3-b1f3-67c82340868d.json",
+    "verdict": "PASS",
+    "checks": [
+      {
+        "id": "anti_patterns",
+        "status": "PASS",
+        "exit_code": 0,
+        "duration_ms": 8188,
+        "output_digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "id": "build",
+        "status": "PASS",
+        "exit_code": 0,
+        "duration_ms": 9140,
+        "output_digest": "sha256:0d271d40f11b8702c166e35921de4db7b377d7a9d9dd10fdcb140a107797d2d0"
+      },
+      {
+        "id": "dependencies",
+        "status": "PASS",
+        "exit_code": 0,
+        "duration_ms": 520,
+        "output_digest": "sha256:dc1a4bd9a3ce8b642ccf8bc1045f62643fb99dd06069afda88dde2ba906724fb"
+      },
+      {
+        "id": "dependencies_site",
+        "status": "PASS",
+        "exit_code": 0,
+        "duration_ms": 1348,
+        "output_digest": "sha256:a0d2ad72c972fabf449782bc099d5e59b706046aabfe618bf88204288ae58d64"
+      },
+      {
+        "id": "lint",
+        "status": "PASS",
+        "exit_code": 0,
+        "duration_ms": 268,
+        "output_digest": "sha256:e48b71a69b31e1e4e4cfede7ee93ac14343d32662afa8e0747d570b6334bddc8"
+      },
+      {
+        "id": "secrets",
+        "status": "PASS",
+        "exit_code": 0,
+        "duration_ms": 8225,
+        "output_digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "id": "tests",
+        "status": "PASS",
+        "exit_code": 0,
+        "duration_ms": 31915,
+        "output_digest": "sha256:a6c11395c996b46132d981f8ec9f73015fdfb298e7f9e69e6bfd0be29d618b2f"
+      },
+      {
+        "id": "type_safety",
+        "status": "PASS",
+        "exit_code": 0,
+        "duration_ms": 8165,
+        "output_digest": "sha256:870498a1768e94e25cda230eb2a277d15ad1796b81aa0a11b0a6c5cb1a7d0759"
+      }
+    ]
+  },
+  "receipt": {
+    "candidate": {
+      "commit": null,
+      "tree": "b64e85d6606abb587aa1d6fc1af5aaa35a2eba03"
+    },
+    "checks": [
+      {
+        "duration_ms": 8188,
+        "exit_code": 0,
+        "id": "anti_patterns",
+        "output_digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "status": "PASS"
+      },
+      {
+        "duration_ms": 9140,
+        "exit_code": 0,
+        "id": "build",
+        "output_digest": "sha256:0d271d40f11b8702c166e35921de4db7b377d7a9d9dd10fdcb140a107797d2d0",
+        "status": "PASS"
+      },
+      {
+        "duration_ms": 520,
+        "exit_code": 0,
+        "id": "dependencies",
+        "output_digest": "sha256:dc1a4bd9a3ce8b642ccf8bc1045f62643fb99dd06069afda88dde2ba906724fb",
+        "status": "PASS"
+      },
+      {
+        "duration_ms": 1348,
+        "exit_code": 0,
+        "id": "dependencies_site",
+        "output_digest": "sha256:a0d2ad72c972fabf449782bc099d5e59b706046aabfe618bf88204288ae58d64",
+        "status": "PASS"
+      },
+      {
+        "duration_ms": 268,
+        "exit_code": 0,
+        "id": "lint",
+        "output_digest": "sha256:e48b71a69b31e1e4e4cfede7ee93ac14343d32662afa8e0747d570b6334bddc8",
+        "status": "PASS"
+      },
+      {
+        "duration_ms": 8225,
+        "exit_code": 0,
+        "id": "secrets",
+        "output_digest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "status": "PASS"
+      },
+      {
+        "duration_ms": 31915,
+        "exit_code": 0,
+        "id": "tests",
+        "output_digest": "sha256:a6c11395c996b46132d981f8ec9f73015fdfb298e7f9e69e6bfd0be29d618b2f",
+        "status": "PASS"
+      },
+      {
+        "duration_ms": 8165,
+        "exit_code": 0,
+        "id": "type_safety",
+        "output_digest": "sha256:870498a1768e94e25cda230eb2a277d15ad1796b81aa0a11b0a6c5cb1a7d0759",
+        "status": "PASS"
+      }
+    ],
+    "policy": {
+      "config": {
+        "digest": "sha256:da5100f86f9fc8baef6619fc999ba914500ce88fdee056554c9b6fff252525f5",
+        "path": ".bugcheck.json",
+        "present": true
+      },
+      "fingerprint": "sha256:b94dd0dfc26a7f0bd0a89815a2c2af56bc9373ed6dc58efe942e5b4bafe7d358",
+      "id": "oc-bug-check",
+      "required_checks": [
+        "anti_patterns",
+        "build",
+        "dependencies",
+        "dependencies_site",
+        "lint",
+        "secrets",
+        "tests",
+        "type_safety"
+      ],
+      "revision": 1,
+      "schema": "opchain.verification-policy",
+      "version": 1,
+      "warning_behavior": "fail"
+    },
+    "receipt_digest": "sha256:9efa5e8b0a4a34d5d4d1b1e9ec616c793c4284e04b74659713538cfad0c71639",
+    "repository": {
+      "git_common_dir": "/Users/aidanelsesser/repos/opchain/.git",
+      "id": "sha256:5fdcee61adcf2059ef7ae8668e80e414546f461546dd1aef432fb9ed94e372fc",
+      "object_format": "sha1"
+    },
+    "run_id": "23c7271f-070e-4cf3-b1f3-67c82340868d",
+    "schema": "opchain.verification-receipt",
+    "started_at": "2026-09-14T04:29:40.340Z",
+    "toolchain": {
+      "components": [
+        {
+          "digest": "sha256:5f0351f649aa1321345229d5256fc8043517778b134a3b4571ecdc3818f124b2",
+          "name": "git",
+          "version": "git version 2.55.0"
+        },
+        {
+          "digest": "sha256:c8eedc7651a438fb7d2ceb36fd70032676c855586a36c950ba5a662f0b7853bd",
+          "name": "node",
+          "version": "v24.19.0"
+        },
+        {
+          "digest": "sha256:8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+          "name": "npm",
+          "version": "11.17.0"
+        }
+      ],
+      "fingerprint": "sha256:3f885f0c572f1e2e270eaebd4b9050dfbece9f1599a15a481a1846ccb570818d",
+      "schema": "opchain.verification-toolchain",
+      "version": 1
+    },
+    "verdict": "PASS",
+    "verified_at": "2026-09-14T04:30:48.118Z",
+    "verifier": {
+      "digest": "sha256:2903e7d93c7b62f59aec63bb3124647a1cea443636f8abf591bdd14836beb97b",
+      "name": "opchain-candidate-verifier",
+      "version": "1"
+    },
+    "version": 1
+  }
+}

@@ -1,0 +1,332 @@
+{
+  "checkedAt": "2026-09-14T04:26:51.074299+00:00",
+  "scope": "URL retrieval; source interpretation is recorded separately in integration research.",
+  "results": [
+    {
+      "id": "oc-library",
+      "title": "opchain \u00b7 skill library",
+      "url": "/skills",
+      "status": "internal-built",
+      "path": "public/skills/index.html"
+    },
+    {
+      "id": "oc-build",
+      "title": "opchain \u00b7 App Architect protocol",
+      "url": "/skills/oc-app-architect",
+      "status": "internal-built",
+      "path": "public/skills/oc-app-architect/index.html"
+    },
+    {
+      "id": "oc-state",
+      "title": "opchain \u00b7 checkpoint protocol",
+      "url": "/skills/oc-checkpoint-protocol",
+      "status": "internal-built",
+      "path": "public/skills/oc-checkpoint-protocol/index.html"
+    },
+    {
+      "id": "oc-ops",
+      "title": "opchain \u00b7 project registry and routing",
+      "url": "/skills/oc-orchestrator",
+      "status": "internal-built",
+      "path": "public/skills/oc-orchestrator/index.html"
+    },
+    {
+      "id": "oc-deploy",
+      "title": "opchain \u00b7 deployment protocol",
+      "url": "/skills/oc-deploy-ops",
+      "status": "internal-built",
+      "path": "public/skills/oc-deploy-ops/index.html"
+    },
+    {
+      "id": "oc-install",
+      "title": "opchain \u00b7 installation and host capabilities",
+      "url": "/install",
+      "status": "internal-built",
+      "path": "public/install/index.html"
+    },
+    {
+      "id": "oc-license",
+      "title": "opchain \u00b7 Apache-2.0 license",
+      "url": "/LICENSE",
+      "status": "internal-built",
+      "path": "public/LICENSE"
+    },
+    {
+      "id": "oc-hindsight",
+      "title": "opchain \u00b7 Hindsight lessons and reviewed activation",
+      "url": "/skills/oc-hindsight",
+      "status": "internal-built",
+      "path": "public/skills/oc-hindsight/index.html"
+    },
+    {
+      "id": "oc-evolve",
+      "title": "opchain \u00b7 Evolve task evaluation and reviewed adoption",
+      "url": "/skills/oc-evolve",
+      "status": "internal-built",
+      "path": "public/skills/oc-evolve/index.html"
+    },
+    {
+      "id": "oc-git",
+      "title": "opchain \u00b7 Git enrollment and commit verification",
+      "url": "/skills/oc-bug-check",
+      "status": "internal-built",
+      "path": "public/skills/oc-bug-check/index.html"
+    },
+    {
+      "id": "superpowers",
+      "title": "Superpowers \u00b7 workflow, skills and license",
+      "url": "https://github.com/obra/superpowers#the-basic-workflow",
+      "status": 200,
+      "finalUrl": "https://github.com/obra/superpowers#the-basic-workflow",
+      "bodySha256": "b08b714fe7b410c027dbdcd021b62b2ad2747aee8552df0347dde0e89e9f0a54"
+    },
+    {
+      "id": "compound",
+      "title": "Compound Engineering \u00b7 workflow and retained learning",
+      "url": "https://github.com/EveryInc/compound-engineering-plugin#the-loop",
+      "status": 200,
+      "finalUrl": "https://github.com/EveryInc/compound-engineering-plugin#the-loop",
+      "bodySha256": "e057a7929f9f0812caf43a4e7cfeebd5daba22e94baf2cc7b74752fa13c282c8"
+    },
+    {
+      "id": "bmad",
+      "title": "BMAD Method \u00b7 delivery loop, modules and license",
+      "url": "https://github.com/bmad-code-org/BMAD-METHOD#why-bmad",
+      "status": 200,
+      "finalUrl": "https://github.com/bmad-code-org/BMAD-METHOD#why-bmad",
+      "bodySha256": "d34ea79986a5a8edaadb5b0712d3b0876c5c69f81bbe701b7cb21bc0e9f8ed51"
+    },
+    {
+      "id": "gsd",
+      "title": "GSD Core \u00b7 phase loop, context and supported agents",
+      "url": "https://github.com/open-gsd/gsd-core#how-it-works",
+      "status": 200,
+      "finalUrl": "https://github.com/open-gsd/gsd-core#how-it-works",
+      "bodySha256": "ad6ebc4967d9eabd48b15eacba29602d1a71de3a1d622f31eb95eb68c468e7cb"
+    },
+    {
+      "id": "gsd-context",
+      "title": "GSD Core \u00b7 context engineering",
+      "url": "https://github.com/open-gsd/gsd-core/blob/main/docs/explanation/context-engineering.md",
+      "status": 200,
+      "finalUrl": "https://github.com/open-gsd/gsd-core/blob/main/docs/explanation/context-engineering.md",
+      "bodySha256": "dfd132569d94de74c026b5da88d021e6fcdfad7fe179337cb9306363f7371504"
+    },
+    {
+      "id": "speckit",
+      "title": "GitHub Spec Kit \u00b7 workflow, extensions and presets",
+      "url": "https://github.com/github/spec-kit#-what-is-spec-driven-development",
+      "status": 200,
+      "finalUrl": "https://github.com/github/spec-kit#-what-is-spec-driven-development",
+      "bodySha256": "5d64b9391db57028f0bc38dd65c9575f206783460ba331253fe0547d610573d9"
+    },
+    {
+      "id": "openspec",
+      "title": "OpenSpec \u00b7 artifacts, changes and shared stores",
+      "url": "https://github.com/Fission-AI/OpenSpec#why-teams-adopt-openspec",
+      "status": 200,
+      "finalUrl": "https://github.com/Fission-AI/OpenSpec#why-teams-adopt-openspec",
+      "bodySha256": "d3877393b3818ca761f6bfc6959c5b69ace4ede00c9257d63a0173397b99c884"
+    },
+    {
+      "id": "claude",
+      "title": "Claude Code \u00b7 capabilities and execution surfaces",
+      "url": "https://code.claude.com/docs/en/overview",
+      "status": 200,
+      "finalUrl": "https://code.claude.com/docs/en/overview",
+      "bodySha256": "77342837771e9754af9c00668ef4cf45ebe8918594053821147c361b31dd60cf"
+    },
+    {
+      "id": "claude-memory",
+      "title": "Claude Code \u00b7 instructions and auto memory",
+      "url": "https://code.claude.com/docs/en/memory",
+      "status": 200,
+      "finalUrl": "https://code.claude.com/docs/en/memory",
+      "bodySha256": "bb52d064f1a71bd91dd34309cd29e350c2efb8fc261f901a4c60f9059f8b3db3"
+    },
+    {
+      "id": "claude-hooks",
+      "title": "Claude Code \u00b7 hook enforcement",
+      "url": "https://code.claude.com/docs/en/hooks",
+      "status": 200,
+      "finalUrl": "https://code.claude.com/docs/en/hooks",
+      "bodySha256": "71736db29212842c11b601034c221183113e930b9b85ddd0704aa8fdf4cac311"
+    },
+    {
+      "id": "claude-price",
+      "title": "Claude \u00b7 plans and Claude Code access",
+      "url": "https://claude.com/pricing",
+      "status": 200,
+      "finalUrl": "https://claude.com/pricing",
+      "bodySha256": "8bdc23d81c9b453033c92003faf66db2ee35d6b78c1415bf06e18ca35cb3078c"
+    },
+    {
+      "id": "codex-pricing",
+      "title": "Codex \u00b7 pricing and feature availability",
+      "url": "https://learn.chatgpt.com/docs/pricing",
+      "status": 200,
+      "finalUrl": "https://learn.chatgpt.com/docs/pricing",
+      "bodySha256": "818e28ee6d15396a83e303309411ab08b44413df38a72305694318e672d2657f"
+    },
+    {
+      "id": "codex-agents",
+      "title": "Codex \u00b7 subagents and custom agents",
+      "url": "https://learn.chatgpt.com/docs/agent-configuration/subagents",
+      "status": 200,
+      "finalUrl": "https://learn.chatgpt.com/docs/agent-configuration/subagents",
+      "bodySha256": "2a2f07dfcc7f6ec3354b684c3ee762aecd772c3ebb2695f818db8005899c25fe"
+    },
+    {
+      "id": "codex-cli",
+      "title": "Codex \u00b7 local CLI",
+      "url": "https://learn.chatgpt.com/docs/codex/cli",
+      "status": 200,
+      "finalUrl": "https://learn.chatgpt.com/docs/codex/cli",
+      "bodySha256": "d68e7cbda664b624a8008cb749271c7213317e89120a8ba451952f320fb0b46e"
+    },
+    {
+      "id": "cursor",
+      "title": "Cursor \u00b7 agent capabilities and checkpoints",
+      "url": "https://cursor.com/docs/agent/overview",
+      "status": 200,
+      "finalUrl": "https://cursor.com/docs/agent/overview",
+      "bodySha256": "b0c991f01b5a67d51346d347daed3f515d2eca093e8d94994c7076b619157790"
+    },
+    {
+      "id": "cursor-rules",
+      "title": "Cursor \u00b7 project rules",
+      "url": "https://cursor.com/docs/rules",
+      "status": 200,
+      "finalUrl": "https://cursor.com/docs/rules",
+      "bodySha256": "bba27068db7b993966610e4901b230bccacc5528c37b6ca87073acd7b927c5d8"
+    },
+    {
+      "id": "cursor-agents",
+      "title": "Cursor \u00b7 subagents",
+      "url": "https://cursor.com/docs/subagents",
+      "status": 200,
+      "finalUrl": "https://cursor.com/docs/subagents",
+      "bodySha256": "dcda73fd3bfeb587bd6ce0c3c15802bafd3fc59e1da6b718ab8752a14fb671e2"
+    },
+    {
+      "id": "cursor-window",
+      "title": "Cursor \u00b7 agents across repos and environments",
+      "url": "https://cursor.com/docs/agent/agents-window",
+      "status": 200,
+      "finalUrl": "https://cursor.com/docs/agent/agents-window",
+      "bodySha256": "f3cce5ad8482a89669c7839debb98a18aea526a1dbf5397956c08038b22ea9b7"
+    },
+    {
+      "id": "cursor-price",
+      "title": "Cursor \u00b7 plans and usage billing",
+      "url": "https://cursor.com/pricing",
+      "status": 200,
+      "finalUrl": "https://cursor.com/pricing",
+      "bodySha256": "726552ab08a48cd20fb92975e02d5800aff918edcabe68eee40a2fa7d4631aad"
+    },
+    {
+      "id": "copilot",
+      "title": "GitHub Copilot \u00b7 cloud agent and review controls",
+      "url": "https://docs.github.com/en/copilot/concepts/agents/cloud-agent/about-cloud-agent",
+      "status": 200,
+      "finalUrl": "https://docs.github.com/en/copilot/concepts/agents/cloud-agent/about-cloud-agent",
+      "bodySha256": "ddb82e9cfd98b6116e75816401cc5f17e15805453e59d155871754f54cf629c3"
+    },
+    {
+      "id": "copilot-custom",
+      "title": "GitHub Copilot \u00b7 instructions, skills and custom agents",
+      "url": "https://docs.github.com/en/copilot/concepts/prompting/response-customization",
+      "status": 200,
+      "finalUrl": "https://docs.github.com/en/copilot/concepts/prompting/response-customization",
+      "bodySha256": "f260a11ac6aebcfa8e3b096c9a0954ad9c0a1fee6e4c23077c568963fa792692"
+    },
+    {
+      "id": "copilot-memory",
+      "title": "GitHub Copilot \u00b7 repository memory",
+      "url": "https://docs.github.com/en/copilot/concepts/agents/copilot-memory",
+      "status": 200,
+      "finalUrl": "https://docs.github.com/en/copilot/concepts/agents/copilot-memory",
+      "bodySha256": "7ea501f2a9e0942f15f098870d53f77436e49576685cc9d174395b90bcc26f50"
+    },
+    {
+      "id": "copilot-price",
+      "title": "GitHub Copilot \u00b7 plans and AI credits",
+      "url": "https://docs.github.com/en/copilot/get-started/plans",
+      "status": 200,
+      "finalUrl": "https://docs.github.com/en/copilot/get-started/plans",
+      "bodySha256": "7096b326566e1e94abfab29c6ec0a72655979ca117ea488d7a2d32c4d9b9f9b3"
+    },
+    {
+      "id": "devin",
+      "title": "Devin \u00b7 task execution and local/cloud handoff",
+      "url": "https://docs.devin.ai/get-started/devin-intro",
+      "status": 200,
+      "finalUrl": "https://docs.devin.ai/get-started/devin-intro",
+      "bodySha256": "5c07296d14eec94e3053a72136591b3410e8338f6f14a0350828ea176496fb3a"
+    },
+    {
+      "id": "devin-knowledge",
+      "title": "Devin \u00b7 shared Knowledge and suggestions",
+      "url": "https://docs.devin.ai/product-guides/knowledge",
+      "status": 200,
+      "finalUrl": "https://docs.devin.ai/product-guides/knowledge",
+      "bodySha256": "968911ea0f03ce5556c529bc4d04e74abba6ed8e03129deef702565f7c7c0938"
+    },
+    {
+      "id": "devin-skills",
+      "title": "Devin \u00b7 reusable skills",
+      "url": "https://docs.devin.ai/product-guides/skills",
+      "status": 200,
+      "finalUrl": "https://docs.devin.ai/product-guides/skills",
+      "bodySha256": "fb4e33e4dd073851bf380c272508c7d1d6c46e71eb25232836321ab4aefbf799"
+    },
+    {
+      "id": "devin-playbooks",
+      "title": "Devin \u00b7 using Playbooks",
+      "url": "https://docs.devin.ai/product-guides/using-playbooks",
+      "status": 200,
+      "finalUrl": "https://docs.devin.ai/product-guides/using-playbooks",
+      "bodySha256": "7f01914c552db5596a842965e4c10960e088008382c54a6e6724fac93343802b"
+    },
+    {
+      "id": "devin-price",
+      "title": "Devin \u00b7 plans, seats and usage",
+      "url": "https://devin.ai/pricing",
+      "status": 429,
+      "error": "HTTP Error 429: Too Many Requests"
+    },
+    {
+      "id": "antigravity",
+      "title": "Google Antigravity \u00b7 products and agent capabilities",
+      "url": "https://antigravity.google/docs/home",
+      "status": 200,
+      "finalUrl": "https://antigravity.google/docs/home",
+      "bodySha256": "e3d4d35fb25e800192cfc363084745ed9c71730eb0a402e4e7a2831f66bcd3c0"
+    },
+    {
+      "id": "antigravity-rules",
+      "title": "Google Antigravity \u00b7 rules",
+      "url": "https://antigravity.google/docs/ide/rules/",
+      "status": 200,
+      "finalUrl": "https://antigravity.google/docs/ide/rules/",
+      "bodySha256": "8dfaf7745afd53172eede04f7b8dd1f67de23fdecf77d4da47d07e5d2f30257a"
+    },
+    {
+      "id": "antigravity-skills",
+      "title": "Google Antigravity \u00b7 skills",
+      "url": "https://antigravity.google/docs/ide/skills/",
+      "status": 200,
+      "finalUrl": "https://antigravity.google/docs/ide/skills/",
+      "bodySha256": "0bf539d09f53a835fd8ad1990b78491add3a843a9a7571b4375e0f82ce438ce1"
+    },
+    {
+      "id": "antigravity-price",
+      "title": "Google Antigravity \u00b7 plans and quotas",
+      "url": "https://antigravity.google/pricing",
+      "status": 200,
+      "finalUrl": "https://antigravity.google/pricing",
+      "bodySha256": "fdb0c53a5f7866d8d2836266de8822589c0d4c228b8f21d5d48ee1db78d59091"
+    }
+  ],
+  "note": "32 official external URLs checked: 31 HTTP 200; Devin pricing returned 429 but was re-read successfully through web retrieval. Ten internal citations exist in the production build."
+}
