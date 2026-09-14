@@ -114,4 +114,33 @@ describe("C3 current-run checkpoint hygiene", () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
+
+  it("does not demand a tracked checkpoint from oc-telemetry-ops, which keeps its metadata private", () => {
+    const contract = readFileSync(join(ROOT, "skills", "oc-telemetry-ops", "SKILL.md"), "utf8").replace(/\s+/g, " ");
+    expect(contract).toContain("the tracked `{project-dir}/.checkpoints/oc-telemetry-ops.checkpoint.json` is not updated");
+    const cli = readFileSync(join(ROOT, "scripts", "telemetry.mjs"), "utf8");
+    expect(cli).toContain('const PRIVATE_METADATA_REL = ".checkpoints/.local/telemetry";');
+    const root = fixture();
+    try {
+      mkdirSync(join(root, "skills", "oc-telemetry-ops"));
+      writeFileSync(join(root, "skills", "oc-telemetry-ops", "SKILL.md"), "---\nname: oc-telemetry-ops\n---\n");
+      for (const skill of ["oc-telemetry-ops", "opchain:oc-telemetry-ops"]) {
+        const result = run(root, transcript(root, "2026-09-14T10:01:00Z", skill));
+        expect(result.status).toBe(0);
+        expect(result.stdout).toBe("");
+      }
+      // A stale tracked checkpoint (the state every clone of this repo carries) must not revive the demand.
+      writeFileSync(join(root, ".checkpoints", "oc-telemetry-ops.checkpoint.json"), JSON.stringify({
+        skill: "oc-telemetry-ops",
+        updated_at: "2026-06-26T01:52:35.464Z",
+      }));
+      expect(run(root, transcript(root, "2026-09-14T10:01:00Z", "oc-telemetry-ops")).stdout).toBe("");
+      const mixed = run(root, transcript(root, "2026-09-14T10:01:00Z", "opchain:oc-telemetry-ops", "opchain:oc-code-auditor"));
+      expect(mixed.stdout).toContain('"decision": "block"');
+      expect(mixed.stdout).toContain("oc-code-auditor");
+      expect(mixed.stdout).not.toContain("oc-telemetry-ops");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
 });

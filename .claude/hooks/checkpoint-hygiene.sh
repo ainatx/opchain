@@ -6,7 +6,7 @@
 # (no opchain skill activity) pass silently. Built-in / non-opchain skills
 # (e.g. update-config) are not enforced, and neither are the oc-* skills that
 # owe no current-run checkpoint (oc-orchestrator, oc-checkpoint-protocol,
-# oc-update; see the exemption list below for why).
+# oc-update, oc-telemetry-ops; see the exemption list below for why).
 #
 # Reads stdin JSON: { session_id, transcript_path, cwd, ... }
 # Outputs JSON on block: { "decision": "block", "reason": "..." }
@@ -47,13 +47,21 @@ CHECKPOINT_DIR="$PROJECT_DIR/.checkpoints"
 #   - oc-update must not write or reconcile any .checkpoints/ file, its own
 #     included (skills/oc-update/SKILL.md). Its install state is the root
 #     .opchain-install.json receipt, and source mode never writes checkpoints.
+#   - oc-telemetry-ops does not update its tracked checkpoint
+#     (skills/oc-telemetry-ops/SKILL.md). Consent and runs live in the
+#     gitignored .checkpoints/usage.sqlite. Only aggregate and export write
+#     metadata, and only to the gitignored .checkpoints/.local/telemetry/
+#     store; enable, disable, status, event and record write no checkpoint.
+#     Telemetry is off by default, so most invocations have nothing to show.
 SKILLS_DIR="${OPCHAIN_SKILLS_DIR:-$PROJECT_DIR/skills}"
 ENFORCED_SKILLS=()
 if [[ -d "$SKILLS_DIR" ]]; then
   for skill_dir in "$SKILLS_DIR"/oc-*; do
     [[ -f "$skill_dir/SKILL.md" ]] || continue
     skill="$(basename "$skill_dir")"
-    [[ "$skill" == "oc-orchestrator" || "$skill" == "oc-checkpoint-protocol" || "$skill" == "oc-update" ]] && continue
+    case "$skill" in
+      oc-orchestrator|oc-checkpoint-protocol|oc-update|oc-telemetry-ops) continue ;;
+    esac
     ENFORCED_SKILLS+=("$skill")
   done
 fi
