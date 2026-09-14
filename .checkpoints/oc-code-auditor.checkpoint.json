@@ -4,9 +4,9 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-09-14T00:10:25.108Z",
+  "updated_at": "2026-09-14T00:20:51.056Z",
   "phase": "verify",
-  "step": "v1.9.2-site-reviewed",
+  "step": "v1.9.2-staging-baseline-reviewed",
   "status": "complete",
   "progress_summary": "1.9.2 final review PASS for pre-deploy-code-audit-v1. Source identity is bound by the typed handoff. Fresh executable verification and required remote CI remain separate gates.",
   "blockers": [],
@@ -128,7 +128,7 @@
     },
     "verified_for_candidate": {
       "kind": "git_tree_projection",
-      "id": "sha256:1b18416f52be7b482e55fce9b51e140b1793039b4ed305d0a465c362b9b69d5b"
+      "id": "sha256:21d9e302956417d0f325e814841c51ebd86a890a4b2a24e570de4eab762e8bff"
     }
   },
   "context_primer": {
@@ -253,12 +253,32 @@
         "verdict": "PASS",
         "evidence_directory": ".checkpoints/release-1.9.2"
       }
+    },
+    {
+      "id": "oc-code-auditor-192-21d9e3029564",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T00:20:50.843829Z",
+      "verified_at": "2026-09-14T00:20:50.843829Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "release-192-staging-baseline-review"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:21d9e302956417d0f325e814841c51ebd86a890a4b2a24e570de4eab762e8bff"
+      },
+      "payload": {
+        "policy": "pre-deploy-code-audit-v1",
+        "verdict": "PASS",
+        "evidence_directory": ".checkpoints/release-1.9.2"
+      }
     }
   ],
-  "verified_at": "2026-09-14T00:10:24.910500Z",
+  "verified_at": "2026-09-14T00:20:50.843829Z",
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:1b18416f52be7b482e55fce9b51e140b1793039b4ed305d0a465c362b9b69d5b"
+    "id": "sha256:21d9e302956417d0f325e814841c51ebd86a890a4b2a24e570de4eab762e8bff"
   },
-  "record_updated_at": "2026-09-14T00:10:25.108Z"
+  "record_updated_at": "2026-09-14T00:20:51.056Z"
 }

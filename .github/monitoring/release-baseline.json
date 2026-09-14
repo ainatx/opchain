@@ -10,7 +10,7 @@
   "runtime": {
     "sha": "f5e4b2a5de954329c33983d7a9738b7b4a47d4db",
     "shortSha": "f5e4b2a",
-    "approval": "The v1.9.1 site half: PR #532 (release(v1.9.1): the chain holds — site half) merged to main after the signed v1.9.1 tag on aef4080, per RELEASING.md §5 for a patch release (product PR → tag → site PR → deploy). Staging deployed from main at f5e4b2a on 2026-09-13T13:35Z and production at f5e4b2a on 2026-09-13T23:05Z, both with the deploy script's clean-tree, origin/main, release-tag, hardening-replay and smoke gates passing. Approved as the production runtime by the reviewed baseline change that added this block; the next release cut removes it when release re-binds to the new signed tag."
+    "approval": "The v1.9.1 site half: PR #532 (release(v1.9.1): the chain holds \u2014 site half) merged to main after the signed v1.9.1 tag on aef4080, per RELEASING.md \u00a75 for a patch release (product PR \u2192 tag \u2192 site PR \u2192 deploy). Staging deployed from main at f5e4b2a on 2026-09-13T13:35Z and production at f5e4b2a on 2026-09-13T23:05Z, both with the deploy script's clean-tree, origin/main, release-tag, hardening-replay and smoke gates passing. Approved as the production runtime by the reviewed baseline change that added this block; the next release cut removes it when release re-binds to the new signed tag. The staging environment is now the separately verified 1.9.2 preview recorded in environments.staging; this runtime remains the approved production baseline until promotion."
   },
   "environments": {
     "production": {
@@ -21,21 +21,33 @@
       "versionId": "01db3b36-a90c-4f73-98f7-fd00505582c4",
       "trafficPercentage": 100,
       "scriptEtag": "5c2a162a66a83824221d9ca6600de30814ac99807b571e840087f0cbb2b15fc9",
-      "handlers": ["fetch"],
-      "bindings": ["ASSETS"],
+      "handlers": [
+        "fetch"
+      ],
+      "bindings": [
+        "ASSETS"
+      ],
       "observabilityEnabled": true
     },
     "staging": {
       "worker": "opchain-staging",
       "hostname": "staging.opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "52c452c5-5d9e-4148-b3eb-30b7155d4888",
-      "versionId": "28a5c29d-0c18-4653-8214-e31af0a3872a",
+      "deploymentId": "80f1aae5-0b10-49aa-9711-f082b8f94f1d",
+      "versionId": "a9cc0fdd-4c9d-4064-be4c-86ddfc88300c",
       "trafficPercentage": 100,
-      "scriptEtag": "5c2a162a66a83824221d9ca6600de30814ac99807b571e840087f0cbb2b15fc9",
-      "handlers": ["fetch"],
-      "bindings": ["ASSETS"],
-      "observabilityEnabled": true
+      "scriptEtag": "67acb5685928a1054784c7a12da7944fd5155788657564e984767f2fbf7ced23",
+      "handlers": [
+        "fetch"
+      ],
+      "bindings": [
+        "ASSETS"
+      ],
+      "observabilityEnabled": true,
+      "releaseTag": "v1.9.2",
+      "sourceSha": "93dc8545929288ca2169e88ca0fd0fc90587c717",
+      "catalogVersion": "1.9.2",
+      "approval": "Maintainer requested staging and the signed 1.9.2 tag. Product PR #536 and site PR #537 passed required CI; exact main at 93dc854 deployed with hardening, smoke and release-specific live verification passing. Production promotion is separate."
     }
   },
   "deployLag": {
@@ -75,6 +87,12 @@
   "pointInTimeEvidence": {
     "healthVersion": "f5e4b2a",
     "continuousCustomDomainProbe": false,
-    "note": "Production and staging both serve f5e4b2a (v1.9.1 site half on the signed v1.9.1 release). Point-in-time /api/health on 2026-09-13T23:06Z returned version f5e4b2a on both hosts and /skills.json catalogVersion 1.9.1. Staging is back on main, so the staging half of the canary is expected green once this baseline is on the default branch."
+    "note": "Production remains on f5e4b2a / catalog 1.9.1. Staging now serves 93dc854 / catalog 1.9.2 after PR #537, following the signed v1.9.2 product tag. Staging hardening, smoke, 33-skill catalog, 20 release cards, 7 voting options and canonical/legacy hosted references passed. No production promotion was performed.",
+    "staging": {
+      "verifiedAt": "2026-09-14T00:18:30.803291+00:00",
+      "healthVersion": "93dc854",
+      "catalogVersion": "1.9.2",
+      "sourceSha": "93dc8545929288ca2169e88ca0fd0fc90587c717"
+    }
   }
 }
