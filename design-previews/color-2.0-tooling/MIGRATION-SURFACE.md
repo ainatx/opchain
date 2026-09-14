@@ -547,3 +547,20 @@ Net effect on the numbers: tokenize rises from 356 to roughly **1,730**
 counted), plus ~200 already-2.0 swaps. The architecture pages become the
 largest single migration item and should be their own PR, after the shared
 chrome and before the OG regeneration.
+
+## Addendum — surfaces the census missed (2026-09-14)
+
+The census scanned text literals under `site/src` and `scripts/gen-og-images.mjs`,
+so three Ember surfaces never became rows and shipped in v2.0.0 (`5f06afd`):
+
+- **`site/public/favicon.svg`**: a static SVG under `site/public`, outside the
+  scan. Recoloured 1:1 (`#1c1710`→`#12191f`, `#e05c18`→`#2be179`,
+  `#e8dfd0`→`#d4e2ef`, `#5a5040`→`#445461`). It is also the JSON-LD `logo`.
+- **`site/public/og-image.png`**: the fallback share card for every route with no
+  card of its own. A hand-exported raster, so no literal existed to find.
+  `gen-og-images.mjs` now renders it from `favicon.svg`, so it follows the mark.
+- **`site/src/pages/architecture.astro` `--shade`**: the dark panel and tooltip
+  wash, still `#1c1710`. Now `var(--slate)`.
+
+For the next palette change, also scan `site/public/**/*.svg` and pixel-scan
+`site/public/**/*.png` for the old accent hue. A token swap reaches neither.
