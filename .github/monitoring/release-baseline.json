@@ -10,7 +10,7 @@
   "runtime": {
     "sha": "f5e4b2a5de954329c33983d7a9738b7b4a47d4db",
     "shortSha": "f5e4b2a",
-    "approval": "The v1.9.1 site half: PR #532 (release(v1.9.1): the chain holds \u2014 site half) merged to main after the signed v1.9.1 tag on aef4080, per RELEASING.md \u00a75 for a patch release (product PR \u2192 tag \u2192 site PR \u2192 deploy). Staging deployed from main at f5e4b2a on 2026-09-13T13:35Z and production at f5e4b2a on 2026-09-13T23:05Z, both with the deploy script's clean-tree, origin/main, release-tag, hardening-replay and smoke gates passing. Approved as the production runtime by the reviewed baseline change that added this block; the next release cut removes it when release re-binds to the new signed tag. The staging environment is now the separately verified 1.9.2 preview recorded in environments.staging; this runtime remains the approved production baseline until promotion."
+    "approval": "The v1.9.1 site half: PR #532 (release(v1.9.1): the chain holds — site half) merged to main after the signed v1.9.1 tag on aef4080, per RELEASING.md §5 for a patch release (product PR → tag → site PR → deploy). Staging deployed from main at f5e4b2a on 2026-09-13T13:35Z and production at f5e4b2a on 2026-09-13T23:05Z, both with the deploy script's clean-tree, origin/main, release-tag, hardening-replay and smoke gates passing. Approved as the production runtime by the reviewed baseline change that added this block; the next release cut removes it when release re-binds to the new signed tag."
   },
   "environments": {
     "production": {
@@ -33,10 +33,10 @@
       "worker": "opchain-staging",
       "hostname": "staging.opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "80f1aae5-0b10-49aa-9711-f082b8f94f1d",
-      "versionId": "a9cc0fdd-4c9d-4064-be4c-86ddfc88300c",
+      "deploymentId": "dc18ff55-a797-40b4-a4cb-f4bf1eae12a3",
+      "versionId": "befa8713-c096-4bf4-a933-9e4010b2730c",
       "trafficPercentage": 100,
-      "scriptEtag": "67acb5685928a1054784c7a12da7944fd5155788657564e984767f2fbf7ced23",
+      "scriptEtag": "70063d8f269130cff8dce4c4fa6b7756fdbb0f232abe2b9cf7716676262a6c04",
       "handlers": [
         "fetch"
       ],
@@ -44,10 +44,11 @@
         "ASSETS"
       ],
       "observabilityEnabled": true,
-      "releaseTag": "v1.9.2",
-      "sourceSha": "93dc8545929288ca2169e88ca0fd0fc90587c717",
-      "catalogVersion": "1.9.2",
-      "approval": "Maintainer requested staging and the signed 1.9.2 tag. Product PR #536 and site PR #537 passed required CI; exact main at 93dc854 deployed with hardening, smoke and release-specific live verification passing. Production promotion is separate."
+      "sourceSha": "3bc8cf380ae3b57033099f7b47de1771fba05e77",
+      "catalogVersion": "2.0.0",
+      "status": "staging-preview",
+      "releaseDate": null,
+      "approval": "User requested all recommended 2.0 runtime changes, the approved color design and staging. Branch preview at 3bc8cf3 passed candidate verification, typed code and security review, live hardening and smoke tests. Production is unchanged; this is not a 2.0 release approval."
     }
   },
   "deployLag": {
@@ -87,12 +88,6 @@
   "pointInTimeEvidence": {
     "healthVersion": "f5e4b2a",
     "continuousCustomDomainProbe": false,
-    "note": "Production remains on f5e4b2a / catalog 1.9.1. Staging now serves 93dc854 / catalog 1.9.2 after PR #537, following the signed v1.9.2 product tag. Staging hardening, smoke, 33-skill catalog, 20 release cards, 7 voting options and canonical/legacy hosted references passed. No production promotion was performed.",
-    "staging": {
-      "verifiedAt": "2026-09-14T00:18:30.803291+00:00",
-      "healthVersion": "93dc854",
-      "catalogVersion": "1.9.2",
-      "sourceSha": "93dc8545929288ca2169e88ca0fd0fc90587c717"
-    }
+    "note": "Production remains f5e4b2a. Staging serves the 2.0.0 preview at 3bc8cf3. This branch records the staging baseline for review; scheduled monitors adopt it only after a baseline update reaches the default branch."
   }
 }

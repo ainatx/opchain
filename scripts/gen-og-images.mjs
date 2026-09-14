@@ -32,13 +32,13 @@ function brand(token, expected) {
   }
   return value;
 }
-const GROUND   = brand("--obsidian",  "#1c1710");
-const ACCENT   = brand("--ember",     "#e05c18");
-const HEADLINE = brand("--linen",     "#e8dfd0");
-const BODY     = brand("--sand",      "#c4b89e");
-const FOOTNOTE = brand("--slag",      "#5a5040");
+const GROUND   = brand("--slate",  "#12191f");
+const ACCENT   = brand("--emerald",     "#2be179");
+const HEADLINE = brand("--frost",     "#d4e2ef");
+const BODY     = brand("--mist",      "#a5bcd1");
+const FOOTNOTE = brand("--gunmetal",      "#445461");
 /* The blog eyebrow has no token of its own — a muted accent used only here. */
-const EYEBROW  = "#c4742a";
+const EYEBROW  = "#13bd62";
 const OUT = join(ROOT, "site", "public", "og");
 const BLOG_SRC = join(ROOT, "site", "src", "blog");
 const BLOG_OUT = join(OUT, "blog");

@@ -38,3 +38,6 @@
 {"id": "route-038", "input": "generate the PR docs for this branch"}
 {"id": "route-039", "input": "is this PR ready to open? check the repo hygiene"}
 {"id": "route-040", "input": "the design is inconsistent across our settings screens — fix the UX"}
+{"id": "route-041", "input": "update opchain"}
+{"id": "route-042", "input": "review local learning history"}
+{"id": "route-043", "input": "evaluate a learning rule"}

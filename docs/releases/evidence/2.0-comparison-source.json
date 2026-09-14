@@ -1,0 +1,49 @@
+{
+  "status": "approved-for-2.0-integration; implementation-not-yet-ported",
+  "sourceRoot": "/Users/aidanelsesser/repos/opchain",
+  "sourceBaseCommit": "f5e4b2a5de954329c33983d7a9738b7b4a47d4db",
+  "sourceState": "uncommitted approved comparison feature",
+  "researchReviewDate": "2026-09-13",
+  "files": [
+    {
+      "path": "site/src/pages/compare.astro",
+      "sha256": "65588e0741d412f0fa05de8bc8fdab0323bb3b1a73d4f8ae7684d47020af48a8"
+    },
+    {
+      "path": "site/src/data/comparison.ts",
+      "sha256": "f1c81aca1274d1725cc06078e2754a6114cc848701d686cdc67db44cacfe510a"
+    },
+    {
+      "path": "tests/comparison.test.js",
+      "sha256": "2ef6767e136b51d3334ca54105de93cd0aca5c7eb2f14d31efa2f24b30dde929"
+    },
+    {
+      "path": "site/tests/e2e/compare.spec.ts",
+      "sha256": "1af0b8b44578045d00a592654fddfe4b883b77a7f3bfca18944d889447cd2164"
+    },
+    {
+      "path": "sprints/compare-refresh/contract.md",
+      "sha256": "b4a360da6ba4bf5e008fbaa053e482f0185eb950e96a1f97925b12e586df91d2"
+    },
+    {
+      "path": "sprints/compare-refresh/eval-round-1.md",
+      "sha256": "dbcf1c2227da50c4e58ed4a2eea67984a087427eeb55c6fa4fad1cb31c0003b1"
+    },
+    {
+      "path": "sprints/compare-refresh/eval-round-2.md",
+      "sha256": "35a817c3a2e6343255e7f5c542edd9f3f8da659afd4daca0c651da0d9811d5ad"
+    },
+    {
+      "path": "sprints/compare-refresh/link-check.json",
+      "sha256": "c15de674295b2bb9f7e60a68cf561b2811b4be8d8bb6c14fd01b4a01ab0ebe66"
+    },
+    {
+      "path": "sprints/compare-refresh/research.md",
+      "sha256": "ca1d218e0cad76928a263cee70f6d008daed65e77077a92851513c80a6131b5c"
+    },
+    {
+      "path": "sprints/compare-refresh/sprint-plan.md",
+      "sha256": "baa41f4fececf49529530cdb94949b6e0915cb360f4e4ad1448f5ff18f444bbb"
+    }
+  ]
+}

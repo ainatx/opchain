@@ -125,7 +125,7 @@ Scope cut list (in order of what gets cut first):
 3. Dark mode (cosmetic, zero functional impact)
 ```
 
-Cut from the bottom of the list up. The top items are the last to go.
+Cut from the top of the list down. Item 1 is deferred first; the bottom items are the last to go.
 
 ### Rollback Plans
 Each phase documents how to recover if it breaks the previous phase:

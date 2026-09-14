@@ -1,0 +1,45 @@
+{
+  "status": "implemented and browser-verified in 2.0 worktree",
+  "baseCommit": "e20acc847d1d03ef2ed7435ec2a2c7da64270dd6",
+  "recordedAt": "2026-09-14T04:30:15.821846+00:00",
+  "files": [
+    {
+      "path": "site/src/pages/compare.astro",
+      "sha256": "4891cdebfba3c5c0e7e4ca8ea0b64b78def38ab917e43f15da47eae651a26d93"
+    },
+    {
+      "path": "site/src/data/comparison.ts",
+      "sha256": "0ce008a74bacd4ff6572f4f94aa3b4d7c0ff2f7f92df121928cec416fad64dd5"
+    },
+    {
+      "path": "site/tests/e2e/compare.spec.ts",
+      "sha256": "8d14aa8368535769124d364a3436c080d96ecb8a8323f5c00330795bdab8da04"
+    },
+    {
+      "path": "tests/comparison.test.js",
+      "sha256": "2ef6767e136b51d3334ca54105de93cd0aca5c7eb2f14d31efa2f24b30dde929"
+    },
+    {
+      "path": "site/src/styles/tokens.css",
+      "sha256": "5d21ba03c9cdaaa68560709661ceaeb15ed04e2247c15a207b0ce6bb6d73f16f"
+    }
+  ],
+  "catalog": {
+    "products": 13,
+    "dimensions": 13,
+    "citedCells": 169,
+    "sources": 42
+  },
+  "verification": {
+    "unitTests": 1215,
+    "testFiles": 89,
+    "typeErrors": 0,
+    "typeWarnings": 0,
+    "existingTypeHints": 39,
+    "builtPages": 83,
+    "combinedBrowserChecks": 39,
+    "comparisonChecksWithPaletteAssertions": 11
+  },
+  "preview": "http://127.0.0.1:4338/compare",
+  "deployment": "not performed"
+}

@@ -2,127 +2,261 @@
   "protocol_version": "1.1",
   "skill": "oc-security-auditor",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/worktrees/opchain-release-1.9.2",
-  "created_at": "2026-09-13T23:52:21.354Z",
-  "updated_at": "2026-09-14T00:20:51.130Z",
+  "project_dir": "/Users/aidanelsesser/repos/worktrees/opchain-oc-update-v2",
+  "created_at": "2026-09-14T00:38:43.799Z",
+  "updated_at": "2026-09-14T06:50:40.033Z",
   "phase": "verify",
-  "step": "v1.9.2-staging-baseline-reviewed",
+  "step": "v2-staging-review",
   "status": "complete",
-  "progress_summary": "1.9.2 final review PASS for pre-deploy-security-posture-v1. Source identity is bound by the typed handoff. Fresh executable verification and required remote CI remain separate gates.",
-  "next_actions": [],
+  "progress_summary": "Scoped 2.0 runtime and staging boundary review passed. Real provider and native host acceptance remain release work.",
+  "next_actions": [
+    "Define the first real next action for this skill."
+  ],
   "handoffs": [
     {
-      "id": "oc-security-auditor-192-73903f8b6856",
+      "id": "oc-security-auditor-v2-preview-4d9c0e57f709",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-09-13T23:52:21.043995Z",
-      "verified_at": "2026-09-13T23:52:21.043995Z",
+      "created_at": "2026-09-14T00:38:43.649Z",
+      "verified_at": "2026-09-14T00:38:43.649Z",
       "producer": {
         "skill": "oc-security-auditor",
-        "run_id": "release-192-final-review"
+        "run_id": "v2-runtime-staging-review"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:73903f8b6856443db0fef272db44c21d4bb0f604b9f6bf7b0219ba0cec1c20d5"
+        "id": "sha256:4d9c0e57f7092c19459547da4c78f086347d81f10b9a3db92b9cbf1a124c00a0"
       },
       "payload": {
-        "policy": "pre-deploy-security-posture-v1",
         "verdict": "PASS",
-        "evidence_directory": ".checkpoints/release-1.9.2"
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "2.0 shared runtime alignment and staging preview; historical unrelated audits remain separate",
+        "evidence": [
+          "docs/audits/2026-09-13-v2-runtime-staging-review.md",
+          "docs/plans/2026-09-13-v2-runtime-alignment.md"
+        ]
       }
     },
     {
-      "id": "oc-security-auditor-192-c5e6f5f3bff9",
+      "id": "oc-security-auditor-v2-record-e4a5c08f3c41",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-09-13T23:57:39.846738Z",
-      "verified_at": "2026-09-13T23:57:39.846738Z",
+      "created_at": "2026-09-14T00:43:53.176Z",
+      "verified_at": "2026-09-14T00:43:53.176Z",
       "producer": {
         "skill": "oc-security-auditor",
-        "run_id": "release-192-final-review"
+        "run_id": "v2-staging-record-review"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:c5e6f5f3bff9c9c88522cbb3af1d78f4175ce32edd2891a2db0a9e67abe963b6"
+        "id": "sha256:e4a5c08f3c41eb64b63a412fbc764db7ee08a0430e2a3ae481a482cd9b358f12"
       },
       "payload": {
-        "policy": "pre-deploy-security-posture-v1",
         "verdict": "PASS",
-        "evidence_directory": ".checkpoints/release-1.9.2"
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Same reviewed runtime as deployed 3bc8cf3, plus verified staging record and monitoring metadata. No executable source changed.",
+        "evidence": [
+          "docs/audits/2026-09-13-v2-runtime-staging-review.md",
+          "docs/releases/2.0-staging-preview.md"
+        ]
       }
     },
     {
-      "id": "oc-security-auditor-192-c1c990cb676d",
+      "id": "oc-security-auditor-launch-fa8fa91f2843",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-09-14T00:01:49.353887Z",
-      "verified_at": "2026-09-14T00:01:49.353887Z",
+      "created_at": "2026-09-14T04:11:37.572Z",
+      "verified_at": "2026-09-14T04:11:37.572Z",
       "producer": {
         "skill": "oc-security-auditor",
-        "run_id": "release-192-final-review"
+        "run_id": "v2-launch-presentation"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:c1c990cb676da7620aa606e7a4eeca0a2c0fed02b8cef82073ea2eb98bcf5696"
+        "id": "sha256:fa8fa91f2843a3446c659aa0f250109953d090af7c2420b76a001b09c515f250"
       },
       "payload": {
-        "policy": "pre-deploy-security-posture-v1",
         "verdict": "PASS",
-        "evidence_directory": ".checkpoints/release-1.9.2"
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "2.0 launch presentation, installation instructions, skill introduction copy and release presentation gate. No provider or lifecycle implementation change.",
+        "evidence": [
+          "docs/audits/2026-09-13-v2-launch-presentation.md"
+        ]
       }
     },
     {
-      "id": "oc-security-auditor-192-1b18416f52be",
+      "id": "oc-security-auditor-changelog-10a61e8d3cf1",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-09-14T00:10:24.910500Z",
-      "verified_at": "2026-09-14T00:10:24.910500Z",
+      "created_at": "2026-09-14T04:19:50.153Z",
+      "verified_at": "2026-09-14T04:19:50.153Z",
       "producer": {
         "skill": "oc-security-auditor",
-        "run_id": "release-192-site-review"
+        "run_id": "v2-changelog-new-skills"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:1b18416f52be7b482e55fce9b51e140b1793039b4ed305d0a465c362b9b69d5b"
+        "id": "sha256:10a61e8d3cf1f9dcbbdc8545c976088c179a16090c619fbdfa7b0913ea531ffd"
       },
       "payload": {
-        "policy": "pre-deploy-security-posture-v1",
         "verdict": "PASS",
-        "evidence_directory": ".checkpoints/release-1.9.2"
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Static 2.0 changelog entry: existing tile layout for three skills, followed by existing runtime change content. No runtime or security boundary changed.",
+        "evidence": [
+          "docs/audits/2026-09-13-v2-launch-presentation.md"
+        ]
       }
     },
     {
-      "id": "oc-security-auditor-192-21d9e3029564",
+      "id": "oc-security-auditor-comparison-1fe9954e2ddb",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-09-14T00:20:50.843829Z",
-      "verified_at": "2026-09-14T00:20:50.843829Z",
+      "created_at": "2026-09-14T05:37:59.960Z",
+      "verified_at": "2026-09-14T05:37:59.960Z",
       "producer": {
         "skill": "oc-security-auditor",
-        "run_id": "release-192-staging-baseline-review"
+        "run_id": "v2-comparison-staging"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:21d9e302956417d0f325e814841c51ebd86a890a4b2a24e570de4eab762e8bff"
+        "id": "sha256:1fe9954e2ddb8ab1fc39682571b3a74a67afc421fff8799e9232ccb99c7aa31f"
       },
       "payload": {
-        "policy": "pre-deploy-security-posture-v1",
         "verdict": "PASS",
-        "evidence_directory": ".checkpoints/release-1.9.2"
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Integrated comparison page, typed catalog, tests, release plans and evidence. Implementation matches reviewed b64e85d candidate; static site rendering and selection logic reviewed for code and security.",
+        "evidence": [
+          "docs/audits/2026-09-14-comparison-staging-review.md",
+          "sprints/compare-refresh/eval-2.0.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-security-auditor-demos-75bff91a9d18",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T06:22:11.291Z",
+      "verified_at": "2026-09-14T06:22:11.291Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "v2-demos-install-staging"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:75bff91a9d1804ee80f7d95178056a64465bc923b5b244cd5dd765279e8f4970"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Reviewed 9176f02 simulation repairs plus approved scripted demos, install prompt, clipboard fallback, mobile layout and generated catalog. Scope and validation recorded in review.",
+        "evidence": [
+          "docs/audits/2026-09-14-demos-install-staging-review.md",
+          "docs/audits/2026-09-14-comparison-staging-review.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-security-auditor-pr490-3e44fb19d6c9",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T06:34:58.262Z",
+      "verified_at": "2026-09-14T06:34:58.262Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "pr490-staging-merge"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:3e44fb19d6c9bf4c01da0b976f2ac570ef95d3fbb460aef7081040fbb230020b"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Merge PR 490 into existing 2.0 staging. Site source and OG assets unchanged from verified 627f386; design records, optional tools and release reference guidance added. Reviewed conflict decisions and tool boundaries.",
+        "evidence": [
+          "docs/audits/2026-09-14-pr490-staging-merge.md",
+          "docs/audits/2026-09-14-demos-install-staging-review.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-security-auditor-release-f6b167fcbd3a",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T06:46:14.896Z",
+      "verified_at": "2026-09-14T06:46:14.896Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "v2-production-cut"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:f6b167fcbd3a58a16e1c3dede716c34797f4ad2000957da90a1833b4e0db03eb"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Reviewed production cut from 1cf060a: main history reconciliation, release date/docs, staging marker removal and isolated preview guard regression. No runtime implementation or publisher changes.",
+        "evidence": [
+          "docs/audits/2026-09-14-v2-production-cut.md",
+          "docs/releases/2.0-production-release.md",
+          "docs/audits/2026-09-14-pr490-staging-merge.md",
+          "docs/audits/2026-09-14-demos-install-staging-review.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-security-auditor-release-8b747a6789d8",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T06:48:10.205Z",
+      "verified_at": "2026-09-14T06:48:10.205Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "v2-production-cut"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:8b747a6789d8b545978d960e7a9b26a4662a62c479d54878182b5aba98711c7c"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Reviewed production cut from 1cf060a: main history reconciliation, release docs and packaged changelog, staging marker and unused banner removal, isolated preview guard regression. No runtime or publisher changes.",
+        "evidence": [
+          "docs/audits/2026-09-14-v2-production-cut.md",
+          "docs/releases/2.0-production-release.md",
+          "docs/audits/2026-09-14-pr490-staging-merge.md",
+          "docs/audits/2026-09-14-demos-install-staging-review.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-security-auditor-release-afeea4aa1686",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T06:50:39.958Z",
+      "verified_at": "2026-09-14T06:50:39.958Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "v2-production-cut"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:afeea4aa16867470142de3102e652dc5ac3b4e3a105fa08f21706af3ddceee35"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Reviewed production cut and public installation documentation, including complete packages, safe updater and explicit enrollment. Main history reconciled; preview marker and unused banner removed; guard preserved. No runtime or publisher changes.",
+        "evidence": [
+          "docs/audits/2026-09-14-v2-production-cut.md",
+          "docs/releases/2.0-production-release.md",
+          "docs/audits/2026-09-14-pr490-staging-merge.md",
+          "docs/audits/2026-09-14-demos-install-staging-review.md"
+        ]
       }
     }
   ],
-  "verified_at": "2026-09-14T00:20:50.843829Z",
-  "candidate": {
-    "kind": "git_tree_projection",
-    "id": "sha256:21d9e302956417d0f325e814841c51ebd86a890a4b2a24e570de4eab762e8bff"
-  },
-  "skill_state": {
-    "verified_for_candidate": {
-      "kind": "git_tree_projection",
-      "id": "sha256:21d9e302956417d0f325e814841c51ebd86a890a4b2a24e570de4eab762e8bff"
-    }
-  },
-  "blockers": [],
-  "record_updated_at": "2026-09-14T00:20:51.130Z"
+  "record_updated_at": "2026-09-14T06:50:40.033Z"
 }

@@ -1,5 +1,7 @@
 # opchain (Claude Code plugin)
 
+> **Opchain 2.0.0.** Released September 14, 2026. Includes the verified 1.9.2 repairs, shared runtime, updater, Hindsight and Evolve. See the [release record](../../docs/releases/2.0-production-release.md).
+
 The opchain skill pipeline **plus the gates that enforce it**.
 
 ## Why this exists
@@ -27,11 +29,11 @@ This plugin ships the mechanism instead of describing it.
 
 | | skills zip | this plugin |
 |---|---|---|
-| 33 skills | ✅ | ✅ |
+| 36 skills | ✅ | ✅ |
 | Git commit verification | ❌ | ✅ after successful `/oc-enroll` |
 | Pipeline state injected at session start | ❌ | ✅ |
 | "What to run next" after a skill finishes | ❌ | ✅ |
-| Real slash commands | ❌ (declared in SKILL.md, none registered) | ✅ thirteen (below) |
+| Real slash commands | ❌ (declared in SKILL.md, none registered) | ✅ 16 (below) |
 
 ## Install
 
@@ -46,10 +48,13 @@ not activate commit verification.
 
 ## Registered slash commands
 
-The plugin registers thirteen slash commands, one file each in `commands/`:
+The plugin registers 16 slash commands, one file each in `commands/`:
 
 | Command | Skill owner | Runs |
 |---|---|---|
+| `/oc-update` | oc-update | update the installed skills and shared runtime |
+| `/oc-hindsight` | oc-hindsight | review local learning history |
+| `/oc-evolve` | oc-evolve | test a proposed learning rule |
 | `/oc-enroll` | oc-bug-check | installs and activates per-repository Git verification |
 | `/oc-bugcheck` | oc-bug-check | `/oc-bugcheck run`, then records the tree-bound verdict the commit gate reads |
 | `/oc-commit` | oc-git-ops | the commit, through the gate (run `/oc-bugcheck` first) |
@@ -84,8 +89,8 @@ plain-language description of the work in a normal message ("run /oc-git-release
 When a handoff targets one of those skills, the Stop hook names the skill instead
 of a command (`"run oc-security-auditor"`).
 
-Registering further commands adds capability, so it is out of scope for a patch
-release; it is planned for v2.0.
+Version 2.0 registers `/oc-update`, `/oc-hindsight` and `/oc-evolve` as shown
+above. `/oc-enroll` separately sets up commit verification for each repository.
 
 ## The gates
 

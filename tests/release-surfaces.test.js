@@ -29,3 +29,38 @@ describe("release surfaces are consistent", () => {
     expect(report.ok).toBe(true);
   });
 });
+
+// A launch rehearsal may lead the public ledger only under explicit metadata.
+// The same tree without that marker must fail rather than silently pass.
+describe("launch presentation boundary", () => {
+  it("requires the launch marker and rejects a mismatched release", async () => {
+    const { mkdtempSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, rmSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join, dirname } = await import("node:path");
+    const root = mkdtempSync(join(tmpdir(), "opchain-release-surfaces-"));
+    try {
+      const files = new Set(checkReleaseSurfaces().results.map((r) => r.file));
+      files.delete("skills/*/SKILL.md");
+      files.add("skills/oc-update/SKILL.md");
+      for (const file of files) {
+        mkdirSync(dirname(join(root, file)), { recursive: true });
+        copyFileSync(file, join(root, file));
+      }
+      const ledger = join(root, "skills/CHANGELOG.md");
+      writeFileSync(ledger, readFileSync(ledger, "utf8").replace(/^## \[(\d+\.\d+\.\d+)\]/m, "## [0.0.0]"));
+      const marker = join(root, "release-preview.json");
+      const preview = { schemaVersion: 1, status: "staging-preview", releaseDate: null,
+        presentation: "release", baseline: "0.0.0", version: checkReleaseSurfaces().releaseVersion };
+      writeFileSync(marker, JSON.stringify(preview));
+      expect(checkReleaseSurfaces({ root }).ok).toBe(true);
+      writeFileSync(marker, JSON.stringify({ ...preview, version: "3.0.0" }));
+      expect(checkReleaseSurfaces({ root }).ok).toBe(false);
+      writeFileSync(marker, JSON.stringify({ ...preview, status: "released" }));
+      expect(checkReleaseSurfaces({ root }).ok).toBe(false);
+      rmSync(marker);
+      expect(checkReleaseSurfaces({ root }).ok).toBe(false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+});

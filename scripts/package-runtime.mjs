@@ -6,7 +6,8 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const entries = [
+const runtimeManifest = JSON.parse(fs.readFileSync(path.join(sourceRoot, 'scripts/runtime-manifest.json'), 'utf8'));
+const declaredEntries = [
   'LICENSE', 'NOTICE', 'skills', 'mcp/local-server.mjs',
   'scripts/checkpoint.mjs', 'scripts/verify-candidate.mjs', 'scripts/install-git-drivers.mjs',
   'scripts/lib/verification-receipt.cjs', 'scripts/gen-mcp-catalog.mjs',
@@ -16,6 +17,7 @@ const entries = [
   'scripts/lib/release-evidence.mjs', 'scripts/lib/execution-kits',
   'scripts/telemetry.mjs', 'scripts/lib/telemetry-aggregate.mjs', 'scripts/lib/pm-mcp-checks.mjs',
 ];
+const entries = [...new Set([...declaredEntries, ...runtimeManifest.files.filter(file => file !== 'package.json')])].filter((file, _, all) => !all.some(parent => parent !== file && file.startsWith(parent + '/')));
 
 function copyTree(source, target) {
   const stat = fs.lstatSync(source);

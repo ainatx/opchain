@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-09-13T05:29:27.733Z",
+  "updated_at": "2026-09-14T04:29:23.516704+00:00",
   "phase": "sprint-plan",
   "step": "v2.0-sprint-plan-approved-blocked-on-oss-split",
   "status": "in_progress",
@@ -73,15 +73,14 @@
   ],
   "context_primer": {
     "key_decisions": [
-      "Backdated posts are grounded in real repo events only (git log + skills/CHANGELOG.md + PR numbers) — no invented history. The 13x cost-report correction (#361→#364, $937.41 → $71.73) is told as a two-post arc: original annotated with a correction banner (house precedent: annotate, never rewrite), follow-up postmortem is the new featured hero.",
-      "Future-dated posts use draft:true as the only embargo — the site is static with no date filtering, so a future-dated published post would render immediately on deploy. Documented in the calendar runbook.",
+      "Backdated posts are grounded in real repo events only (git log + skills/CHANGELOG.md + PR numbers) \u2014 no invented history. The 13x cost-report correction (#361\u2192#364, $937.41 \u2192 $71.73) is told as a two-post arc: original annotated with a correction banner (house precedent: annotate, never rewrite), follow-up postmortem is the new featured hero.",
+      "Future-dated posts use draft:true as the only embargo \u2014 the site is static with no date filtering, so a future-dated published post would render immediately on deploy. Documented in the calendar runbook.",
       "Calendar lives at docs/blog-content-calendar.md, NOT under site/src/blog/ (the content-collection glob would ingest it and fail the zod schema).",
-      "Calendar extends blog-overhaul-plan.md instead of rivaling it: §8 QA checklist retained as the per-post gate, S6 '~2/mo, no quota' principle preserved via an explicit slip-don't-fill rule; July runs M/W/F deliberately (launch-window backlog).",
+      "Calendar extends blog-overhaul-plan.md instead of rivaling it: \u00a78 QA checklist retained as the per-post gate, S6 '~2/mo, no quota' principle preserved via an explicit slip-don't-fill rule; July runs M/W/F deliberately (launch-window backlog).",
       "Series ledger: 'Dogfooding opchain' grew to 5 parts (cost pair joined); July opens 'Seams & Signals in practice' (4 parts: modularize playbook, golden-fixture anatomy, fleet playbook, signal playbook).",
-      "Hero rotation relies on newest-featured-wins in blog/index.astro — old featured flags don't need retiring.",
-      "Voice: house style per §3 (confident, technical, slightly irreverent, shows the seams) with humor dialed up on user request; every post keeps descriptions 120–160 chars and ≥2 internal links.",
-      "v1.9 adds four skills first (29→33); v2.0 then adds two workflow skills (33→35): oc-hindsight governs operational memory and oc-evolve governs behavior change; both isolate Planner/Generator/Evaluator contexts and end activation at a human gate.",
-      "2026-09-13 (v1.9.1 Sprint 3 reconciliation): Sprint 0-2 done (plan #516, gate stack, #518, #519); prior_release moved from 1.7.0 to the shipped 1.9.0; the unpublished blog post lives in site/drafts/."
+      "Hero rotation relies on newest-featured-wins in blog/index.astro \u2014 old featured flags don't need retiring.",
+      "Voice: house style per \u00a73 (confident, technical, slightly irreverent, shows the seams) with humor dialed up on user request; every post keeps descriptions 120\u2013160 chars and \u22652 internal links.",
+      "v1.9 adds four skills first (29\u219233); v2.0 then adds two workflow skills (33\u219235): oc-hindsight governs operational memory and oc-evolve governs behavior change; both isolate Planner/Generator/Evaluator contexts and end activation at a human gate."
     ],
     "generated_files": [
       "site/src/blog/2026-06-25-v1-6-the-instrumented-pipeline.md",
@@ -92,11 +91,14 @@
       "site/src/blog/2026-06-30-how-to-grow-a-protocol-without-breaking-anyone.md",
       "site/src/blog/2026-07-01-27-skills-is-not-too-many.md",
       "site/src/blog/2026-07-02-seo-for-robots-that-arent-googlebot.md",
-      "site/drafts/2026-07-03-we-deleted-our-deploy-pipeline-on-purpose.md",
+      "site/src/blog/2026-07-03-we-deleted-our-deploy-pipeline-on-purpose.md",
       "docs/blog-content-calendar.md",
       "docs/blog-overhaul-plan.md (status header + Wave 3 table updated)",
       "docs/releases/2.0-plan.md",
-      "site/src/pages/changelog.astro"
+      "site/src/pages/changelog.astro",
+      "sprints/compare-refresh/eval-2.0.md",
+      "sprints/compare-refresh/research-2.0.md",
+      "docs/releases/2.0-comparison-handoff.md"
     ],
     "user_preferences": [
       "Picks options when given clear choices; comfortable with 'go with defaults'.",
@@ -115,10 +117,11 @@
     }
   ],
   "next_actions": [
-    "v1.9.1 Sprints 3-6 (live state, cross-skill contracts, per-skill sweeps, reach), each merged to main when CI is green, per docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md.",
-    "v1.9.1 Sprint 7: bump P1-P6 to 1.9.1 and cut the changelog; stop for the owner's signed tag. Sprint 8: site half; stop for the owner's deploy and staging baseline refresh.",
-    "After v1.9.1 ships: re-verify the v2.0 plan against the reworked skills, then unpark PRs 490 and 515 at the cut.",
-    "v2.0 remains blocked on OSS split Phase C2-C7 (decision D-H); announce the C1 path freeze only after the rework lands."
+    "BLOCKED: run OSS split Phase C2-C7 per docs/runbooks/oss-split-execution-handoff.md. C5 needs an explicit 'flip now'. 2.0's calendar starts the day C7 goes green (decision D-H); its effort is not in the 48.5h estimate.",
+    "At C1, no longer needed: the new engines (scorecard/hindsight/evolve/prompt-eval/merge-hindsight, plugins/opchain/kits/) are authored in the product repo post-flip, so they need no split-manifest entry. checkpoint.mjs and merge-checkpoint.mjs stay dual-homed.",
+    "After C7: Sprint 0 (branches in their post-flip homes), then Sprint 1 wire 1.2 substrate.",
+    "Before Sprint 6: re-derive Appendix B against the real Phase D checklist - the product repo's package.json, CI job ids, its RELEASING.md copy, check-version-lockstep.mjs and the submodule-pin form of check-release-tag.mjs do not exist yet.",
+    "Sprint 5 carries the R3a fix, now harder post-flip: it must read the pinned submodule's skills/CHANGELOG.md, which is also handoff item R3c. Build them together."
   ],
   "skill_state": {
     "feature": {
@@ -133,37 +136,35 @@
         "Dogfooding opchain (5 parts)",
         "Seams & Signals in practice (planned, 4 parts)"
       ],
-      "prehistory_wave": "5 posts 2026-05-12→06-19 (v1.3, deploy-gap postmortem, oc- rename, MCP v1.4.3, Linear decoupling), each anchored to a real commit; v1.3 post carries an era-names editor's note (pre-rename command forms + updated: field)",
-      "crr_pass": "3-round CRR on all 14 session posts: fixed 6/26 tense anachronism (referenced 6/30 sync in past tense), 5/12 era-name anachronism, de-duped the 'house rules' tic (5→2), repaired the two-hard-problems joke, added cross-links (7/02→6/13, 7/03→5/15), trimmed 5 descriptions into 120-160",
-      "eval_gates": "astro build 72 pages · astro check 0 errors · vitest 448/448 · OG 24 cards · draft excluded · 0 dead links · chronology check clean for session posts"
+      "prehistory_wave": "5 posts 2026-05-12\u219206-19 (v1.3, deploy-gap postmortem, oc- rename, MCP v1.4.3, Linear decoupling), each anchored to a real commit; v1.3 post carries an era-names editor's note (pre-rename command forms + updated: field)",
+      "crr_pass": "3-round CRR on all 14 session posts: fixed 6/26 tense anachronism (referenced 6/30 sync in past tense), 5/12 era-name anachronism, de-duped the 'house rules' tic (5\u21922), repaired the two-hard-problems joke, added cross-links (7/02\u21926/13, 7/03\u21925/15), trimmed 5 descriptions into 120-160",
+      "eval_gates": "astro build 72 pages \u00b7 astro check 0 errors \u00b7 vitest 448/448 \u00b7 OG 24 cards \u00b7 draft excluded \u00b7 0 dead links \u00b7 chronology check clean for session posts"
     },
     "parked": {
       "demo-search": "branch claude/relaxed-cannon-ut762y (unchanged, still parked)"
     },
     "prior_release": {
-      "version": "1.9.0",
-      "theme": "Assurance and governed delivery ops",
-      "tag": "v1.9.0",
-      "sha": "244bf13",
-      "shipped_at": "2026-09-02",
+      "version": "1.7.0",
+      "theme": "Seams & Signals",
+      "shipped_at": "2026-06-26",
       "status": "live",
-      "next": "v1.9.1 'The chain holds' (patch, in progress), then v2.0"
+      "next_theme": "v1.8 TBD via /oc-release plan (calendar slot 2026-07-29)"
     },
     "oss_split": {
       "plan": "docs/plans/2026-08-22-oss-split-licensing-compliance.md",
       "audit": "docs/audits/2026-08-22-oss-readiness-audit.md",
       "options": "A invert mirror (recommended) / B monorepo hygiene only / C full two-repo split",
       "seams": [
-        "gen-skills-catalog↔flags registry",
+        "gen-skills-catalog\u2194flags registry",
         "build-time catalog/docs/zips",
-        "mcp/local-server↔src/lib/mcp",
+        "mcp/local-server\u2194src/lib/mcp",
         "skills reference monorepo-only CLI",
         "stack-forge packs feed site"
       ],
       "baseline": "3 validators + 10 suites / 188 tests green at c440c7b",
       "decisions": {
         "D1": "Apache-2.0 (2026-08-22)",
-        "D2": "'Aidan Elsesser and the opchain contributors' · asfbay-bit (2026-08-24)",
+        "D2": "'Aidan Elsesser and the opchain contributors' \u00b7 asfbay-bit (2026-08-24)",
         "D3": "public + forward scrub (2026-08-24)",
         "D4": "DCO (2026-08-24)"
       }
@@ -202,34 +203,34 @@
       "vote_policy": "v1.9 and v2.0 are selected/committed and render without vote controls; v2.1-v2.3 render 7 vote controls using preserved GitHub issue ids",
       "superseded": "v1.10 and v1.11 milestones closed after all issues were reassigned",
       "evaluation": "npm test 461/461; Astro check 0 errors/0 warnings; Astro builds 76 pages; Playwright changelog/demo 22/22; checkpoint validation green; full repository build green",
-      "pr": "https://github.com/ainatx/opchain/pull/451 merged as 4b1f7201c5aa76ba92d4888545df77bcb61f5e96 with Worker, site, Playwright, and Lighthouse CI green",
+      "pr": "https://github.com/asfbay-bit/opchain/pull/451 merged as 4b1f7201c5aa76ba92d4888545df77bcb61f5e96 with Worker, site, Playwright, and Lighthouse CI green",
       "staging": "4b1f720 deployed; smoke and health green; deployed HTML verified exact 4/1/3/2/2 grouping and vote ids 1,4,5,2,7,3,6; staging vote #1 incremented; feature request returned STAGING-DRY-RUN",
       "staging_browser_note": "Safari loaded the cache-busted staging URL but its accessibility tree remained trapped in the Resources menu; no browser substitution was used because Safari was an explicit user constraint",
       "production_gate": "awaiting a fresh explicit yes after the refreshed staging evidence; production has not been deployed",
       "v2_workflow_revision": {
         "at": "2026-08-27",
-        "catalog": "33→35",
+        "catalog": "33\u219235",
         "skills": [
           "oc-hindsight",
           "oc-evolve"
         ],
-        "hindsight_topology": "Planner/Curator → Lesson Generator → isolated Retrieval Evaluator → human promotion",
-        "evolve_topology": "Reflector/Planner → Rule Generator → isolated Adversarial Evaluator → human adoption",
+        "hindsight_topology": "Planner/Curator \u2192 Lesson Generator \u2192 isolated Retrieval Evaluator \u2192 human promotion",
+        "evolve_topology": "Reflector/Planner \u2192 Rule Generator \u2192 isolated Adversarial Evaluator \u2192 human adoption",
         "scorecard": "mechanical substrate, not a skill",
         "roadmap_issue": "https://github.com/asfbay-bit/opchain-skills/issues/12 updated",
         "site": "/changelog#v2-0 updated and visually verified",
-        "pr": "https://github.com/ainatx/opchain/pull/454"
+        "pr": "https://github.com/asfbay-bit/opchain/pull/454"
       }
     },
     "roadmap_github_issues": {
       "doc": "docs/plans/2026-08-26-roadmap-github-issues.md",
       "status": "sprint-1-done-locally",
       "decisions": {
-        "repo": "asfbay-bit/opchain-skills (public mirror) — confirmed via gh api: 0 issues, only default labels, asfbay-bit has repo-write auth locally",
-        "scope": "phased full swap — Sprint 1 read path done; Sprint 2 write path + content migration gated on explicit go-ahead (live public repo + new secret)",
-        "voting": "REVISED from reactions back to keeping /api/votes — reactions require leaving the site + GitHub login to vote, too much conversion friction for a marketing page. VOTE_ID_RE now /^\\d{1,6}$/ (GitHub issue numbers) instead of Linear team-prefix ids.",
-        "bucketing": "roadmap:shipped/in-progress/planned/backlog labels — collapses Linear's two-concept (roadmap-visible gate + state bucket) into one",
-        "unification": "discovered site/src/data/roadmap-static.ts + roadmap-types.ts were orphaned dead code — nothing imported them. Real data lived as two hardcoded arrays inline in changelog.astro. Revived roadmap-types.ts as the real contract (chose 'unify' over 'minimal change' as the reconciliation approach); deleted roadmap-static.ts."
+        "repo": "asfbay-bit/opchain-skills (public mirror) \u2014 confirmed via gh api: 0 issues, only default labels, asfbay-bit has repo-write auth locally",
+        "scope": "phased full swap \u2014 Sprint 1 read path done; Sprint 2 write path + content migration gated on explicit go-ahead (live public repo + new secret)",
+        "voting": "REVISED from reactions back to keeping /api/votes \u2014 reactions require leaving the site + GitHub login to vote, too much conversion friction for a marketing page. VOTE_ID_RE now /^\\d{1,6}$/ (GitHub issue numbers) instead of Linear team-prefix ids.",
+        "bucketing": "roadmap:shipped/in-progress/planned/backlog labels \u2014 collapses Linear's two-concept (roadmap-visible gate + state bucket) into one",
+        "unification": "discovered site/src/data/roadmap-static.ts + roadmap-types.ts were orphaned dead code \u2014 nothing imported them. Real data lived as two hardcoded arrays inline in changelog.astro. Revived roadmap-types.ts as the real contract (chose 'unify' over 'minimal change' as the reconciliation approach); deleted roadmap-static.ts."
       },
       "sprint_1_files": [
         "site/src/data/roadmap-types.ts (revived contract + itemsForMilestone helper)",
@@ -237,12 +238,12 @@
         "scripts/gen-roadmap.mjs (rewritten for GitHub REST, anonymous public read)",
         "tests/gen-roadmap.test.js (rewritten)",
         "site/src/pages/changelog.astro (v19Options/futureReleaseGroups items now derived via loadRoadmap())",
-        "src/index.js (VOTE_ID_RE → digits-only)",
+        "src/index.js (VOTE_ID_RE \u2192 digits-only)",
         "tests/votes.test.js (rewritten for numeric ids)",
         "CLAUDE.md, .env.example (updated)"
       ],
-      "sprint_1_verified": "npm test 456/456 · astro check 0 errors · astro build 76 pages incl /changelog (renders empty-but-intact, as expected with 0 real issues) · gen-roadmap.mjs run for real against the live public repo (read-only, confirmed 0 items)",
-      "not_deployed_because": "opchain-skills has 0 real roadmap:* issues — deploying now would blank the live roadmap. Also: production KV has vote-count:OPC-170-style keys that won't carry over to the new numeric-id format without a manual wrangler kv copy at deploy time.",
+      "sprint_1_verified": "npm test 456/456 \u00b7 astro check 0 errors \u00b7 astro build 76 pages incl /changelog (renders empty-but-intact, as expected with 0 real issues) \u00b7 gen-roadmap.mjs run for real against the live public repo (read-only, confirmed 0 items)",
+      "not_deployed_because": "opchain-skills has 0 real roadmap:* issues \u2014 deploying now would blank the live roadmap. Also: production KV has vote-count:OPC-170-style keys that won't carry over to the new numeric-id format without a manual wrangler kv copy at deploy time.",
       "sprint_2_done": {
         "live_repo_setup": "5 labels (roadmap:shipped/in-progress/planned/backlog, community-submitted) + 3 milestones (v1.9=#1, v1.10=#2, v1.11=#3) + 11 issues created on asfbay-bit/opchain-skills, preserving exact copy from the old hardcoded arrays. Issue numbers 1-11 map to OPC-170/173/174 (v1.9) and OPC-186/185/180/182 (v1.10), OPC-181/183/184/187 (v1.11) in creation order.",
         "write_path": "src/lib/roadmap-config.js (new, shared by gen-roadmap.mjs + index.js). handleFeedback branches isCommunity before the Linear code, calls new handleRoadmapRequest() -> creates GitHub issue with community-submitted label (not roadmap:*, stays off public roadmap until triage promotion). Dead Linear isCommunity branches + LINEAR_COMMUNITY_LABEL_ID removed. Added 5/hr per-IP rate limit (reuses NOTIFY KV) as a mitigation for spam being instantly public.",
@@ -250,7 +251,7 @@
         "tests": "462/462 passing incl. new tests/feedback.test.js roadmap-community-request suite (503/201/502/500/429/dry-run)",
         "verified_e2e": "gh api created the real labels/milestones/issues -> node scripts/gen-roadmap.mjs pulled them for real (11 items, correct buckets/milestones) -> astro build confirmed 3 theme-options + 8 horizon-items + vote targets 1-11 in the rendered HTML"
       },
-      "bug_found_and_fixed": "loadRoadmap()'s original fs.readFileSync(__dirname + roadmap.json) pattern silently returned an empty roadmap under real astro build (Vite bundles the module into dist/.prerender/chunks/, so import.meta.url-relative path math resolves to the wrong location) — worked fine under plain node/Vitest, which is why it was never caught before nothing had ever actually exercised loadRoadmap() through a real Astro build. Fixed with import.meta.glob('./roadmap.json', { eager: true }), which resolves against the source module graph at compile time. Confirmed fixed via a real astro build after the fix.",
+      "bug_found_and_fixed": "loadRoadmap()'s original fs.readFileSync(__dirname + roadmap.json) pattern silently returned an empty roadmap under real astro build (Vite bundles the module into dist/.prerender/chunks/, so import.meta.url-relative path math resolves to the wrong location) \u2014 worked fine under plain node/Vitest, which is why it was never caught before nothing had ever actually exercised loadRoadmap() through a real Astro build. Fixed with import.meta.glob('./roadmap.json', { eager: true }), which resolves against the source module graph at compile time. Confirmed fixed via a real astro build after the fix.",
       "blocked_on_user": "ROADMAP_GITHUB_TOKEN (fine-grained PAT, issues:write on opchain-skills) must be provisioned by the user via wrangler secret put -- cannot be done by the assistant. Until set, the write path 503s not_configured (fails closed).",
       "not_deployed": "everything built/tested locally only; docs/plans/2026-08-26-roadmap-github-issues.md 'Suggested next step' has the exact deploy sequence (gen-roadmap refresh -> secret provisioning -> staging -> prod)",
       "open_questions": [
@@ -416,54 +417,73 @@
         "oss_split": "HOLD 2.0 for the flip - split goes first, 2.0 is the first product-repo release (Phase D). Recorded as D-H.",
         "kit_install": "narrow the plugin commit-gate opt-in predicate so a repo whose only .opchain/ content is self-improvement state is not gated; gate-relevant manifests (qa/hardening/compliance/pm/data-contracts) still gate as today. Recorded as D-B.",
         "plan_doc": "commit + PR to main"
-      },
-      "parked": {
-        "at": "2026-09-12",
-        "reason": "v1.9.x patch release shipping the 2026-09-11 skill-chain audit fixes lands on main first; 2.0 waits until the rework is done",
-        "prs": [
-          {
-            "pr": 490,
-            "branch": "claude/opchain-2-0-colors-4ad0c6",
-            "what": "Slate & Emerald recolour + 2.0 lockup badge (F9)",
-            "state": "draft, 21 ahead / 18 behind main, conflicting, deliberately not refreshed until the cut"
-          },
-          {
-            "pr": 515,
-            "branch": "claude/demo-rebuild-2-0",
-            "base": "claude/opchain-2-0-colors-4ad0c6",
-            "what": "mandate-driven demo rebuild, 11 scenarios, 35/35 skills, includes demo-grade drafts of skills/oc-hindsight and skills/oc-evolve stamped 1.9.0",
-            "state": "draft, stacked on 490, never merge alone: added skill ids at an agreeing version trip check-release-tag countDrift and refuse production deploys"
-          }
-        ],
-        "record_correction": "The plan's 'nothing built yet' is false: demo-grade drafts of both v2.0 skills exist on claude/demo-rebuild-2-0 (a0be132, 213d401). They are not the sprint implementations.",
-        "open_hazards": [
-          "RESOLVED 2026-09-13: staging served 213d401 from the parked demo branch (the 2.0 recolour ahead of the cut); the owner redeployed staging from main (37e2b4b). Remaining: the staging baseline entry refresh.",
-          "worktree opchain-2-0-colors-4ad0c6 holds uncommitted edits (20 files, branch claude/demo-scenario-realism-99b27d, based on main) to the eleven walkthroughs the parked demo rebuild retires"
-        ]
       }
     },
-    "v191_release": {
-      "plan": "docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md",
-      "gate": "sprint-plan approved 2026-09-12 (D1-D7 on proposed options)",
-      "sprints": [
-        "0 runway",
-        "1 commit gate (7 CRITICAL)",
-        "2 checkpoint tooling (3 CRITICAL)",
-        "3 live state (1 CRITICAL)",
-        "4 cross-cutting contracts",
-        "5 per-skill sweeps x4 PRs",
-        "6 reach",
-        "7 cut product half + tag",
-        "8 cut site half + deploy"
+    "oc_update_v2": {
+      "status": "implemented-and-tested-in-isolation",
+      "branch": "codex/oc-update-v2",
+      "baseline": "4d39b93",
+      "target_release": "2.0.0",
+      "plan": "docs/plans/2026-09-12-oc-update-v2-addendum.md",
+      "evaluation": "sprints/repo-updater/eval.md",
+      "tests": {
+        "repository": 666,
+        "targeted_node_24": 59,
+        "targeted_node_22_13": 59,
+        "hooks": 48
+      },
+      "release_totals": {
+        "skills": 36,
+        "plugin_commands": 15,
+        "tri_agent_skills": 11
+      },
+      "pending": [
+        "Port after OSS split and integrate the 2.0 runtime dependency closure",
+        "Rehearse combined 36-skill release through supported hosts",
+        "Publish assets and replace website update instructions at the release cut"
       ],
-      "effort": "~47h CLAUDE / ~8.5h USER (rough)",
-      "in_scope_findings": 427,
-      "deferred_to_v20": {
-        "skill_state_privacy": 42,
-        "v20_plan_doc_corrections": 15,
-        "plugin_command_registration": "additive",
-        "references_over_hosted_transports": "additive"
-      }
+      "at": "2026-09-13T04:21:43Z"
+    },
+    "shared_runtime_option_c": {
+      "status": "verified",
+      "architecture": "Option C (includes Option B)",
+      "approved_at": "2026-09-13",
+      "runtime_contract": "2.0-preview.1",
+      "catalog_skills": 36,
+      "plugin_commands": 15,
+      "repository_tests": 721,
+      "hook_tests": 74,
+      "independent_verdict": "PASS within external-trust/supplied-evidence boundary",
+      "report": "sprints/shared-runtime/evaluation.md",
+      "remaining_release_work": [
+        "wire 1.2 migration and release stamp",
+        "OSS split integration",
+        "independent reviewer environment setup",
+        "live host/model evaluation",
+        "exact 2.0 release rehearsal"
+      ]
+    },
+    "compare_refresh_2_0": {
+      "status": "complete",
+      "phase": "verified",
+      "report": "sprints/compare-refresh/eval-2.0.md",
+      "research": "sprints/compare-refresh/research-2.0.md",
+      "palette": "Slate and Emerald",
+      "deployment": "not requested"
     }
-  }
+  },
+  "eval_scores": [
+    {
+      "rubric": "oc-app-architect",
+      "score": 8,
+      "max": 10,
+      "dimensions": {
+        "functionality": 8,
+        "completeness": 8,
+        "quality": 8,
+        "ux": 8
+      },
+      "ref": "sprints/compare-refresh/eval-2.0.md"
+    }
+  ]
 }

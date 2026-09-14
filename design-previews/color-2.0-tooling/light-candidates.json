@@ -1,0 +1,1022 @@
+[
+  {
+    "id": "L1",
+    "name": "Cool white · brand fill",
+    "ground": "Near-white, barely cool",
+    "accent": "brand-emerald fill · slate label",
+    "tokens": {
+      "bg": "#f5f8fa",
+      "ribbon": "#ecf1f5",
+      "ribbon-edge": "#cad2da",
+      "surface": "#ffffff",
+      "card": "#ffffff",
+      "border": "#d3dae1",
+      "text": "#092438",
+      "muted": "#5f6b75",
+      "subtle": "#607180",
+      "accent": "#0a7f41",
+      "accent-hover": "#0a6d37",
+      "accent-fill": "#33d977",
+      "accent-fill-hover": "#33d977",
+      "on-accent": "#12191f",
+      "accent-dim": "rgba(51, 217, 119, 0.16)",
+      "accent-glow": "rgba(51, 217, 119, 0.3)",
+      "glow": "rgba(51, 217, 119, 0.18)",
+      "secondary": "#0369e1",
+      "secondary-dim": "rgba(3, 105, 225, 0.12)",
+      "tertiary": "#a443c0",
+      "tertiary-dim": "rgba(164, 67, 192, 0.12)",
+      "success": "#43776c",
+      "success-dim": "rgba(67, 119, 108, 0.12)",
+      "danger": "#906262",
+      "danger-dim": "rgba(144, 98, 98, 0.12)",
+      "warning": "#796f45",
+      "warning-dim": "rgba(121, 111, 69, 0.12)",
+      "info": "#407782",
+      "info-dim": "rgba(64, 119, 130, 0.12)",
+      "in-progress": "#88637b",
+      "in-progress-dim": "rgba(136, 99, 123, 0.12)",
+      "destructive": "#9c4246",
+      "destructive-dim": "rgba(156, 66, 70, 0.12)",
+      "workflow-pill": "#daf8db",
+      "workflow": "#02661e",
+      "tri-agent-pill": "#eef5cf",
+      "tri-agent": "#677008",
+      "audit-gate-pill": "#ffd4e0",
+      "audit-gate": "#bb0963",
+      "specialist-pill": "#c7f7fe",
+      "specialist": "#0b737f",
+      "advisor-pill": "#c3eaff",
+      "advisor": "#036b91",
+      "orchestrator-pill": "#e0daff",
+      "orchestrator": "#7828ec",
+      "chart-1": "#18a2b8",
+      "chart-1-dim": "rgba(24, 162, 184, 0.14)",
+      "chart-2": "#528dff",
+      "chart-2-dim": "rgba(82, 141, 255, 0.14)",
+      "chart-3": "#cd63c6",
+      "chart-3-dim": "rgba(205, 99, 198, 0.14)",
+      "chart-4": "#1aa68f",
+      "chart-4-dim": "rgba(26, 166, 143, 0.14)",
+      "logo-stroke": "var(--text)",
+      "logo-spine": "var(--subtle)",
+      "logo-filled": "var(--accent-fill)",
+      "logo-dot-dark": "var(--bg)",
+      "shadow-sm": "0 1px 2px rgba(18, 28, 40, 0.07)",
+      "shadow-md": "0 2px 6px -1px rgba(18, 28, 40, 0.10), 0 1px 2px rgba(18, 28, 40, 0.05)",
+      "shadow-lg": "0 8px 24px -6px rgba(18, 28, 40, 0.12), 0 2px 4px rgba(18, 28, 40, 0.05)",
+      "shadow-xl": "0 16px 40px -8px rgba(18, 28, 40, 0.16), 0 4px 8px rgba(18, 28, 40, 0.06)"
+    },
+    "report": [
+      {
+        "token": "text",
+        "hex": "#092438",
+        "floor": 7,
+        "worst": 14.9,
+        "ok": true
+      },
+      {
+        "token": "muted",
+        "hex": "#5f6b75",
+        "floor": 4.7,
+        "worst": 5.12,
+        "ok": true
+      },
+      {
+        "token": "subtle",
+        "hex": "#607180",
+        "floor": 4.7,
+        "worst": 4.72,
+        "ok": true
+      },
+      {
+        "token": "accent (text-safe)",
+        "hex": "#0a7f41",
+        "floor": 4.7,
+        "worst": 4.77,
+        "ok": true
+      },
+      {
+        "token": "accent-fill vs grounds (3:1 UI)",
+        "hex": "#33d977",
+        "floor": 3,
+        "worst": 1.74,
+        "ok": false
+      },
+      {
+        "token": "on-accent on accent-fill",
+        "hex": "#12191f",
+        "floor": 4.5,
+        "worst": 9.57,
+        "ok": true
+      },
+      {
+        "token": "secondary",
+        "hex": "#0369e1",
+        "floor": 4.7,
+        "worst": 4.79,
+        "ok": true
+      },
+      {
+        "token": "tertiary",
+        "hex": "#a443c0",
+        "floor": 4.7,
+        "worst": 4.75,
+        "ok": true
+      },
+      {
+        "token": "success",
+        "hex": "#43776c",
+        "floor": 4.7,
+        "worst": 4.81,
+        "ok": true
+      },
+      {
+        "token": "danger",
+        "hex": "#906262",
+        "floor": 4.7,
+        "worst": 4.79,
+        "ok": true
+      },
+      {
+        "token": "warning",
+        "hex": "#796f45",
+        "floor": 4.7,
+        "worst": 4.72,
+        "ok": true
+      },
+      {
+        "token": "info",
+        "hex": "#407782",
+        "floor": 4.7,
+        "worst": 4.71,
+        "ok": true
+      },
+      {
+        "token": "in-progress",
+        "hex": "#88637b",
+        "floor": 4.7,
+        "worst": 4.78,
+        "ok": true
+      },
+      {
+        "token": "workflow (on grounds + own pill)",
+        "hex": "#02661e",
+        "floor": 4.7,
+        "worst": 6.31,
+        "ok": true
+      },
+      {
+        "token": "tri-agent (on grounds + own pill)",
+        "hex": "#677008",
+        "floor": 4.7,
+        "worst": 4.77,
+        "ok": true
+      },
+      {
+        "token": "audit-gate (on grounds + own pill)",
+        "hex": "#bb0963",
+        "floor": 4.7,
+        "worst": 4.73,
+        "ok": true
+      },
+      {
+        "token": "specialist (on grounds + own pill)",
+        "hex": "#0b737f",
+        "floor": 4.7,
+        "worst": 4.81,
+        "ok": true
+      },
+      {
+        "token": "advisor (on grounds + own pill)",
+        "hex": "#036b91",
+        "floor": 4.7,
+        "worst": 4.7,
+        "ok": true
+      },
+      {
+        "token": "orchestrator (on grounds + own pill)",
+        "hex": "#7828ec",
+        "floor": 4.7,
+        "worst": 4.72,
+        "ok": true
+      }
+    ]
+  },
+  {
+    "id": "L2",
+    "name": "Warm paper · brand fill",
+    "ground": "Warm paper",
+    "accent": "brand-emerald fill · slate label",
+    "tokens": {
+      "bg": "#faf7f3",
+      "ribbon": "#f4f0e9",
+      "ribbon-edge": "#d6d0c7",
+      "surface": "#fffefc",
+      "card": "#ffffff",
+      "border": "#ddd8d0",
+      "text": "#331b06",
+      "muted": "#72665e",
+      "subtle": "#7c6b5d",
+      "accent": "#0a7f41",
+      "accent-hover": "#0a6d37",
+      "accent-fill": "#33d977",
+      "accent-fill-hover": "#33d977",
+      "on-accent": "#12191f",
+      "accent-dim": "rgba(51, 217, 119, 0.16)",
+      "accent-glow": "rgba(51, 217, 119, 0.3)",
+      "glow": "rgba(51, 217, 119, 0.18)",
+      "secondary": "#0369e1",
+      "secondary-dim": "rgba(3, 105, 225, 0.12)",
+      "tertiary": "#a443c0",
+      "tertiary-dim": "rgba(164, 67, 192, 0.12)",
+      "success": "#43776c",
+      "success-dim": "rgba(67, 119, 108, 0.12)",
+      "danger": "#906262",
+      "danger-dim": "rgba(144, 98, 98, 0.12)",
+      "warning": "#796f45",
+      "warning-dim": "rgba(121, 111, 69, 0.12)",
+      "info": "#407782",
+      "info-dim": "rgba(64, 119, 130, 0.12)",
+      "in-progress": "#88637b",
+      "in-progress-dim": "rgba(136, 99, 123, 0.12)",
+      "destructive": "#9a4145",
+      "destructive-dim": "rgba(154, 65, 69, 0.12)",
+      "workflow-pill": "#daf8db",
+      "workflow": "#02661e",
+      "tri-agent-pill": "#eef5cf",
+      "tri-agent": "#677008",
+      "audit-gate-pill": "#ffd4e0",
+      "audit-gate": "#bb0963",
+      "specialist-pill": "#c7f7fe",
+      "specialist": "#0b737f",
+      "advisor-pill": "#c3eaff",
+      "advisor": "#036b91",
+      "orchestrator-pill": "#e0daff",
+      "orchestrator": "#7828ec",
+      "chart-1": "#18a2b8",
+      "chart-1-dim": "rgba(24, 162, 184, 0.14)",
+      "chart-2": "#528dff",
+      "chart-2-dim": "rgba(82, 141, 255, 0.14)",
+      "chart-3": "#cd63c6",
+      "chart-3-dim": "rgba(205, 99, 198, 0.14)",
+      "chart-4": "#1aa68f",
+      "chart-4-dim": "rgba(26, 166, 143, 0.14)",
+      "logo-stroke": "var(--text)",
+      "logo-spine": "var(--subtle)",
+      "logo-filled": "var(--accent-fill)",
+      "logo-dot-dark": "var(--bg)",
+      "shadow-sm": "0 1px 2px rgba(42, 32, 18, 0.07)",
+      "shadow-md": "0 2px 6px -1px rgba(42, 32, 18, 0.10), 0 1px 2px rgba(42, 32, 18, 0.05)",
+      "shadow-lg": "0 8px 24px -6px rgba(42, 32, 18, 0.12), 0 2px 4px rgba(42, 32, 18, 0.05)",
+      "shadow-xl": "0 16px 40px -8px rgba(42, 32, 18, 0.16), 0 4px 8px rgba(42, 32, 18, 0.06)"
+    },
+    "report": [
+      {
+        "token": "text",
+        "hex": "#331b06",
+        "floor": 7,
+        "worst": 15.12,
+        "ok": true
+      },
+      {
+        "token": "muted",
+        "hex": "#72665e",
+        "floor": 4.7,
+        "worst": 5.21,
+        "ok": true
+      },
+      {
+        "token": "subtle",
+        "hex": "#7c6b5d",
+        "floor": 4.7,
+        "worst": 4.77,
+        "ok": true
+      },
+      {
+        "token": "accent (text-safe)",
+        "hex": "#0a7f41",
+        "floor": 4.7,
+        "worst": 4.77,
+        "ok": true
+      },
+      {
+        "token": "accent-fill vs grounds (3:1 UI)",
+        "hex": "#33d977",
+        "floor": 3,
+        "worst": 1.74,
+        "ok": false
+      },
+      {
+        "token": "on-accent on accent-fill",
+        "hex": "#12191f",
+        "floor": 4.5,
+        "worst": 9.57,
+        "ok": true
+      },
+      {
+        "token": "secondary",
+        "hex": "#0369e1",
+        "floor": 4.7,
+        "worst": 4.78,
+        "ok": true
+      },
+      {
+        "token": "tertiary",
+        "hex": "#a443c0",
+        "floor": 4.7,
+        "worst": 4.75,
+        "ok": true
+      },
+      {
+        "token": "success",
+        "hex": "#43776c",
+        "floor": 4.7,
+        "worst": 4.8,
+        "ok": true
+      },
+      {
+        "token": "danger",
+        "hex": "#906262",
+        "floor": 4.7,
+        "worst": 4.79,
+        "ok": true
+      },
+      {
+        "token": "warning",
+        "hex": "#796f45",
+        "floor": 4.7,
+        "worst": 4.71,
+        "ok": true
+      },
+      {
+        "token": "info",
+        "hex": "#407782",
+        "floor": 4.7,
+        "worst": 4.71,
+        "ok": true
+      },
+      {
+        "token": "in-progress",
+        "hex": "#88637b",
+        "floor": 4.7,
+        "worst": 4.78,
+        "ok": true
+      },
+      {
+        "token": "workflow (on grounds + own pill)",
+        "hex": "#02661e",
+        "floor": 4.7,
+        "worst": 6.31,
+        "ok": true
+      },
+      {
+        "token": "tri-agent (on grounds + own pill)",
+        "hex": "#677008",
+        "floor": 4.7,
+        "worst": 4.77,
+        "ok": true
+      },
+      {
+        "token": "audit-gate (on grounds + own pill)",
+        "hex": "#bb0963",
+        "floor": 4.7,
+        "worst": 4.73,
+        "ok": true
+      },
+      {
+        "token": "specialist (on grounds + own pill)",
+        "hex": "#0b737f",
+        "floor": 4.7,
+        "worst": 4.81,
+        "ok": true
+      },
+      {
+        "token": "advisor (on grounds + own pill)",
+        "hex": "#036b91",
+        "floor": 4.7,
+        "worst": 4.7,
+        "ok": true
+      },
+      {
+        "token": "orchestrator (on grounds + own pill)",
+        "hex": "#7828ec",
+        "floor": 4.7,
+        "worst": 4.72,
+        "ok": true
+      }
+    ]
+  },
+  {
+    "id": "L3",
+    "name": "Lifted slate · brand fill",
+    "ground": "Lifted slate, separated steps",
+    "accent": "brand-emerald fill · slate label",
+    "tokens": {
+      "bg": "#e9f0f7",
+      "ribbon": "#dee8f0",
+      "ribbon-edge": "#bcc9d5",
+      "surface": "#f7fbfe",
+      "card": "#ffffff",
+      "border": "#b9c6d2",
+      "text": "#092438",
+      "muted": "#5d6b77",
+      "subtle": "#586c7d",
+      "accent": "#0d7a3e",
+      "accent-hover": "#0b6834",
+      "accent-fill": "#33d977",
+      "accent-fill-hover": "#33d977",
+      "on-accent": "#12191f",
+      "accent-dim": "rgba(51, 217, 119, 0.16)",
+      "accent-glow": "rgba(51, 217, 119, 0.3)",
+      "glow": "rgba(51, 217, 119, 0.18)",
+      "secondary": "#0265d9",
+      "secondary-dim": "rgba(2, 101, 217, 0.12)",
+      "tertiary": "#9f3ebb",
+      "tertiary-dim": "rgba(159, 62, 187, 0.12)",
+      "success": "#3e7367",
+      "success-dim": "rgba(62, 115, 103, 0.12)",
+      "danger": "#8b5e5d",
+      "danger-dim": "rgba(139, 94, 93, 0.12)",
+      "warning": "#746940",
+      "warning-dim": "rgba(116, 105, 64, 0.12)",
+      "info": "#3a717c",
+      "info-dim": "rgba(58, 113, 124, 0.12)",
+      "in-progress": "#845e77",
+      "in-progress-dim": "rgba(132, 94, 119, 0.12)",
+      "destructive": "#953c41",
+      "destructive-dim": "rgba(149, 60, 65, 0.12)",
+      "workflow-pill": "#daf8db",
+      "workflow": "#02661e",
+      "tri-agent-pill": "#eef5cf",
+      "tri-agent": "#666e05",
+      "audit-gate-pill": "#ffd4e0",
+      "audit-gate": "#bb0963",
+      "specialist-pill": "#c7f7fe",
+      "specialist": "#0b737f",
+      "advisor-pill": "#c3eaff",
+      "advisor": "#036b91",
+      "orchestrator-pill": "#e0daff",
+      "orchestrator": "#7828ec",
+      "chart-1": "#109fb4",
+      "chart-1-dim": "rgba(16, 159, 180, 0.14)",
+      "chart-2": "#528dff",
+      "chart-2-dim": "rgba(82, 141, 255, 0.14)",
+      "chart-3": "#cd63c6",
+      "chart-3-dim": "rgba(205, 99, 198, 0.14)",
+      "chart-4": "#12a28c",
+      "chart-4-dim": "rgba(18, 162, 140, 0.14)",
+      "logo-stroke": "var(--text)",
+      "logo-spine": "var(--subtle)",
+      "logo-filled": "var(--accent-fill)",
+      "logo-dot-dark": "var(--bg)",
+      "shadow-sm": "0 1px 2px rgba(18, 28, 40, 0.07)",
+      "shadow-md": "0 2px 6px -1px rgba(18, 28, 40, 0.10), 0 1px 2px rgba(18, 28, 40, 0.05)",
+      "shadow-lg": "0 8px 24px -6px rgba(18, 28, 40, 0.12), 0 2px 4px rgba(18, 28, 40, 0.05)",
+      "shadow-xl": "0 16px 40px -8px rgba(18, 28, 40, 0.16), 0 4px 8px rgba(18, 28, 40, 0.06)"
+    },
+    "report": [
+      {
+        "token": "text",
+        "hex": "#092438",
+        "floor": 7,
+        "worst": 13.83,
+        "ok": true
+      },
+      {
+        "token": "muted",
+        "hex": "#5d6b77",
+        "floor": 4.7,
+        "worst": 4.76,
+        "ok": true
+      },
+      {
+        "token": "subtle",
+        "hex": "#586c7d",
+        "floor": 4.7,
+        "worst": 4.74,
+        "ok": true
+      },
+      {
+        "token": "accent (text-safe)",
+        "hex": "#0d7a3e",
+        "floor": 4.7,
+        "worst": 4.72,
+        "ok": true
+      },
+      {
+        "token": "accent-fill vs grounds (3:1 UI)",
+        "hex": "#33d977",
+        "floor": 3,
+        "worst": 1.61,
+        "ok": false
+      },
+      {
+        "token": "on-accent on accent-fill",
+        "hex": "#12191f",
+        "floor": 4.5,
+        "worst": 9.57,
+        "ok": true
+      },
+      {
+        "token": "secondary",
+        "hex": "#0265d9",
+        "floor": 4.7,
+        "worst": 4.73,
+        "ok": true
+      },
+      {
+        "token": "tertiary",
+        "hex": "#9f3ebb",
+        "floor": 4.7,
+        "worst": 4.71,
+        "ok": true
+      },
+      {
+        "token": "success",
+        "hex": "#3e7367",
+        "floor": 4.7,
+        "worst": 4.74,
+        "ok": true
+      },
+      {
+        "token": "danger",
+        "hex": "#8b5e5d",
+        "floor": 4.7,
+        "worst": 4.74,
+        "ok": true
+      },
+      {
+        "token": "warning",
+        "hex": "#746940",
+        "floor": 4.7,
+        "worst": 4.76,
+        "ok": true
+      },
+      {
+        "token": "info",
+        "hex": "#3a717c",
+        "floor": 4.7,
+        "worst": 4.77,
+        "ok": true
+      },
+      {
+        "token": "in-progress",
+        "hex": "#845e77",
+        "floor": 4.7,
+        "worst": 4.75,
+        "ok": true
+      },
+      {
+        "token": "workflow (on grounds + own pill)",
+        "hex": "#02661e",
+        "floor": 4.7,
+        "worst": 6.25,
+        "ok": true
+      },
+      {
+        "token": "tri-agent (on grounds + own pill)",
+        "hex": "#666e05",
+        "floor": 4.7,
+        "worst": 4.81,
+        "ok": true
+      },
+      {
+        "token": "audit-gate (on grounds + own pill)",
+        "hex": "#bb0963",
+        "floor": 4.7,
+        "worst": 4.73,
+        "ok": true
+      },
+      {
+        "token": "specialist (on grounds + own pill)",
+        "hex": "#0b737f",
+        "floor": 4.7,
+        "worst": 4.81,
+        "ok": true
+      },
+      {
+        "token": "advisor (on grounds + own pill)",
+        "hex": "#036b91",
+        "floor": 4.7,
+        "worst": 4.7,
+        "ok": true
+      },
+      {
+        "token": "orchestrator (on grounds + own pill)",
+        "hex": "#7828ec",
+        "floor": 4.7,
+        "worst": 4.72,
+        "ok": true
+      }
+    ]
+  },
+  {
+    "id": "L4",
+    "name": "Cool white · moss fill",
+    "ground": "Near-white, barely cool",
+    "accent": "moss fill · white label",
+    "tokens": {
+      "bg": "#f5f8fa",
+      "ribbon": "#ecf1f5",
+      "ribbon-edge": "#cad2da",
+      "surface": "#ffffff",
+      "card": "#ffffff",
+      "border": "#d3dae1",
+      "text": "#092438",
+      "muted": "#5f6b75",
+      "subtle": "#607180",
+      "accent": "#0a7f41",
+      "accent-hover": "#0a6d37",
+      "accent-fill": "#108846",
+      "accent-fill-hover": "#108846",
+      "on-accent": "#ffffff",
+      "accent-dim": "rgba(16, 136, 70, 0.12)",
+      "accent-glow": "rgba(16, 136, 70, 0.2)",
+      "glow": "rgba(16, 136, 70, 0.18)",
+      "secondary": "#0369e1",
+      "secondary-dim": "rgba(3, 105, 225, 0.12)",
+      "tertiary": "#a443c0",
+      "tertiary-dim": "rgba(164, 67, 192, 0.12)",
+      "success": "#43776c",
+      "success-dim": "rgba(67, 119, 108, 0.12)",
+      "danger": "#906262",
+      "danger-dim": "rgba(144, 98, 98, 0.12)",
+      "warning": "#796f45",
+      "warning-dim": "rgba(121, 111, 69, 0.12)",
+      "info": "#407782",
+      "info-dim": "rgba(64, 119, 130, 0.12)",
+      "in-progress": "#88637b",
+      "in-progress-dim": "rgba(136, 99, 123, 0.12)",
+      "destructive": "#9c4246",
+      "destructive-dim": "rgba(156, 66, 70, 0.12)",
+      "workflow-pill": "#daf8db",
+      "workflow": "#02661e",
+      "tri-agent-pill": "#eef5cf",
+      "tri-agent": "#677008",
+      "audit-gate-pill": "#ffd4e0",
+      "audit-gate": "#bb0963",
+      "specialist-pill": "#c7f7fe",
+      "specialist": "#0b737f",
+      "advisor-pill": "#c3eaff",
+      "advisor": "#036b91",
+      "orchestrator-pill": "#e0daff",
+      "orchestrator": "#7828ec",
+      "chart-1": "#18a2b8",
+      "chart-1-dim": "rgba(24, 162, 184, 0.14)",
+      "chart-2": "#528dff",
+      "chart-2-dim": "rgba(82, 141, 255, 0.14)",
+      "chart-3": "#cd63c6",
+      "chart-3-dim": "rgba(205, 99, 198, 0.14)",
+      "chart-4": "#1aa68f",
+      "chart-4-dim": "rgba(26, 166, 143, 0.14)",
+      "logo-stroke": "var(--text)",
+      "logo-spine": "var(--subtle)",
+      "logo-filled": "var(--accent-fill)",
+      "logo-dot-dark": "var(--bg)",
+      "shadow-sm": "0 1px 2px rgba(18, 28, 40, 0.07)",
+      "shadow-md": "0 2px 6px -1px rgba(18, 28, 40, 0.10), 0 1px 2px rgba(18, 28, 40, 0.05)",
+      "shadow-lg": "0 8px 24px -6px rgba(18, 28, 40, 0.12), 0 2px 4px rgba(18, 28, 40, 0.05)",
+      "shadow-xl": "0 16px 40px -8px rgba(18, 28, 40, 0.16), 0 4px 8px rgba(18, 28, 40, 0.06)"
+    },
+    "report": [
+      {
+        "token": "text",
+        "hex": "#092438",
+        "floor": 7,
+        "worst": 14.9,
+        "ok": true
+      },
+      {
+        "token": "muted",
+        "hex": "#5f6b75",
+        "floor": 4.7,
+        "worst": 5.12,
+        "ok": true
+      },
+      {
+        "token": "subtle",
+        "hex": "#607180",
+        "floor": 4.7,
+        "worst": 4.72,
+        "ok": true
+      },
+      {
+        "token": "accent (text-safe)",
+        "hex": "#0a7f41",
+        "floor": 4.7,
+        "worst": 4.77,
+        "ok": true
+      },
+      {
+        "token": "accent-fill vs grounds (3:1 UI)",
+        "hex": "#108846",
+        "floor": 3,
+        "worst": 4.25,
+        "ok": true
+      },
+      {
+        "token": "on-accent on accent-fill",
+        "hex": "#ffffff",
+        "floor": 4.5,
+        "worst": 4.53,
+        "ok": true
+      },
+      {
+        "token": "secondary",
+        "hex": "#0369e1",
+        "floor": 4.7,
+        "worst": 4.79,
+        "ok": true
+      },
+      {
+        "token": "tertiary",
+        "hex": "#a443c0",
+        "floor": 4.7,
+        "worst": 4.75,
+        "ok": true
+      },
+      {
+        "token": "success",
+        "hex": "#43776c",
+        "floor": 4.7,
+        "worst": 4.81,
+        "ok": true
+      },
+      {
+        "token": "danger",
+        "hex": "#906262",
+        "floor": 4.7,
+        "worst": 4.79,
+        "ok": true
+      },
+      {
+        "token": "warning",
+        "hex": "#796f45",
+        "floor": 4.7,
+        "worst": 4.72,
+        "ok": true
+      },
+      {
+        "token": "info",
+        "hex": "#407782",
+        "floor": 4.7,
+        "worst": 4.71,
+        "ok": true
+      },
+      {
+        "token": "in-progress",
+        "hex": "#88637b",
+        "floor": 4.7,
+        "worst": 4.78,
+        "ok": true
+      },
+      {
+        "token": "workflow (on grounds + own pill)",
+        "hex": "#02661e",
+        "floor": 4.7,
+        "worst": 6.31,
+        "ok": true
+      },
+      {
+        "token": "tri-agent (on grounds + own pill)",
+        "hex": "#677008",
+        "floor": 4.7,
+        "worst": 4.77,
+        "ok": true
+      },
+      {
+        "token": "audit-gate (on grounds + own pill)",
+        "hex": "#bb0963",
+        "floor": 4.7,
+        "worst": 4.73,
+        "ok": true
+      },
+      {
+        "token": "specialist (on grounds + own pill)",
+        "hex": "#0b737f",
+        "floor": 4.7,
+        "worst": 4.81,
+        "ok": true
+      },
+      {
+        "token": "advisor (on grounds + own pill)",
+        "hex": "#036b91",
+        "floor": 4.7,
+        "worst": 4.7,
+        "ok": true
+      },
+      {
+        "token": "orchestrator (on grounds + own pill)",
+        "hex": "#7828ec",
+        "floor": 4.7,
+        "worst": 4.72,
+        "ok": true
+      }
+    ]
+  },
+  {
+    "id": "L5",
+    "name": "Warm paper · moss fill",
+    "ground": "Warm paper",
+    "accent": "moss fill · white label",
+    "tokens": {
+      "bg": "#faf7f3",
+      "ribbon": "#f4f0e9",
+      "ribbon-edge": "#d6d0c7",
+      "surface": "#fffefc",
+      "card": "#ffffff",
+      "border": "#ddd8d0",
+      "text": "#331b06",
+      "muted": "#72665e",
+      "subtle": "#7c6b5d",
+      "accent": "#0a7f41",
+      "accent-hover": "#0a6d37",
+      "accent-fill": "#108846",
+      "accent-fill-hover": "#108846",
+      "on-accent": "#ffffff",
+      "accent-dim": "rgba(16, 136, 70, 0.12)",
+      "accent-glow": "rgba(16, 136, 70, 0.2)",
+      "glow": "rgba(16, 136, 70, 0.18)",
+      "secondary": "#0369e1",
+      "secondary-dim": "rgba(3, 105, 225, 0.12)",
+      "tertiary": "#a443c0",
+      "tertiary-dim": "rgba(164, 67, 192, 0.12)",
+      "success": "#43776c",
+      "success-dim": "rgba(67, 119, 108, 0.12)",
+      "danger": "#906262",
+      "danger-dim": "rgba(144, 98, 98, 0.12)",
+      "warning": "#796f45",
+      "warning-dim": "rgba(121, 111, 69, 0.12)",
+      "info": "#407782",
+      "info-dim": "rgba(64, 119, 130, 0.12)",
+      "in-progress": "#88637b",
+      "in-progress-dim": "rgba(136, 99, 123, 0.12)",
+      "destructive": "#9a4145",
+      "destructive-dim": "rgba(154, 65, 69, 0.12)",
+      "workflow-pill": "#daf8db",
+      "workflow": "#02661e",
+      "tri-agent-pill": "#eef5cf",
+      "tri-agent": "#677008",
+      "audit-gate-pill": "#ffd4e0",
+      "audit-gate": "#bb0963",
+      "specialist-pill": "#c7f7fe",
+      "specialist": "#0b737f",
+      "advisor-pill": "#c3eaff",
+      "advisor": "#036b91",
+      "orchestrator-pill": "#e0daff",
+      "orchestrator": "#7828ec",
+      "chart-1": "#18a2b8",
+      "chart-1-dim": "rgba(24, 162, 184, 0.14)",
+      "chart-2": "#528dff",
+      "chart-2-dim": "rgba(82, 141, 255, 0.14)",
+      "chart-3": "#cd63c6",
+      "chart-3-dim": "rgba(205, 99, 198, 0.14)",
+      "chart-4": "#1aa68f",
+      "chart-4-dim": "rgba(26, 166, 143, 0.14)",
+      "logo-stroke": "var(--text)",
+      "logo-spine": "var(--subtle)",
+      "logo-filled": "var(--accent-fill)",
+      "logo-dot-dark": "var(--bg)",
+      "shadow-sm": "0 1px 2px rgba(42, 32, 18, 0.07)",
+      "shadow-md": "0 2px 6px -1px rgba(42, 32, 18, 0.10), 0 1px 2px rgba(42, 32, 18, 0.05)",
+      "shadow-lg": "0 8px 24px -6px rgba(42, 32, 18, 0.12), 0 2px 4px rgba(42, 32, 18, 0.05)",
+      "shadow-xl": "0 16px 40px -8px rgba(42, 32, 18, 0.16), 0 4px 8px rgba(42, 32, 18, 0.06)"
+    },
+    "report": [
+      {
+        "token": "text",
+        "hex": "#331b06",
+        "floor": 7,
+        "worst": 15.12,
+        "ok": true
+      },
+      {
+        "token": "muted",
+        "hex": "#72665e",
+        "floor": 4.7,
+        "worst": 5.21,
+        "ok": true
+      },
+      {
+        "token": "subtle",
+        "hex": "#7c6b5d",
+        "floor": 4.7,
+        "worst": 4.77,
+        "ok": true
+      },
+      {
+        "token": "accent (text-safe)",
+        "hex": "#0a7f41",
+        "floor": 4.7,
+        "worst": 4.77,
+        "ok": true
+      },
+      {
+        "token": "accent-fill vs grounds (3:1 UI)",
+        "hex": "#108846",
+        "floor": 3,
+        "worst": 4.24,
+        "ok": true
+      },
+      {
+        "token": "on-accent on accent-fill",
+        "hex": "#ffffff",
+        "floor": 4.5,
+        "worst": 4.53,
+        "ok": true
+      },
+      {
+        "token": "secondary",
+        "hex": "#0369e1",
+        "floor": 4.7,
+        "worst": 4.78,
+        "ok": true
+      },
+      {
+        "token": "tertiary",
+        "hex": "#a443c0",
+        "floor": 4.7,
+        "worst": 4.75,
+        "ok": true
+      },
+      {
+        "token": "success",
+        "hex": "#43776c",
+        "floor": 4.7,
+        "worst": 4.8,
+        "ok": true
+      },
+      {
+        "token": "danger",
+        "hex": "#906262",
+        "floor": 4.7,
+        "worst": 4.79,
+        "ok": true
+      },
+      {
+        "token": "warning",
+        "hex": "#796f45",
+        "floor": 4.7,
+        "worst": 4.71,
+        "ok": true
+      },
+      {
+        "token": "info",
+        "hex": "#407782",
+        "floor": 4.7,
+        "worst": 4.71,
+        "ok": true
+      },
+      {
+        "token": "in-progress",
+        "hex": "#88637b",
+        "floor": 4.7,
+        "worst": 4.78,
+        "ok": true
+      },
+      {
+        "token": "workflow (on grounds + own pill)",
+        "hex": "#02661e",
+        "floor": 4.7,
+        "worst": 6.31,
+        "ok": true
+      },
+      {
+        "token": "tri-agent (on grounds + own pill)",
+        "hex": "#677008",
+        "floor": 4.7,
+        "worst": 4.77,
+        "ok": true
+      },
+      {
+        "token": "audit-gate (on grounds + own pill)",
+        "hex": "#bb0963",
+        "floor": 4.7,
+        "worst": 4.73,
+        "ok": true
+      },
+      {
+        "token": "specialist (on grounds + own pill)",
+        "hex": "#0b737f",
+        "floor": 4.7,
+        "worst": 4.81,
+        "ok": true
+      },
+      {
+        "token": "advisor (on grounds + own pill)",
+        "hex": "#036b91",
+        "floor": 4.7,
+        "worst": 4.7,
+        "ok": true
+      },
+      {
+        "token": "orchestrator (on grounds + own pill)",
+        "hex": "#7828ec",
+        "floor": 4.7,
+        "worst": 4.72,
+        "ok": true
+      }
+    ]
+  }
+]

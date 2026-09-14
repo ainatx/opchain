@@ -1,0 +1,30 @@
+{
+  "protocol_version": "1.1",
+  "skill": "oc-cost-ops",
+  "project": "opchain.dev",
+  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "created_at": "2026-07-10T00:00:00Z",
+  "updated_at": "2026-07-19T14:09:49Z",
+  "phase": "analysis",
+  "step": "retro-attribution",
+  "status": "complete",
+  "progress_summary": "Retrospective token+cost audit of all Claude Code work on opchain (2026-07-19 run, second fire of the day). Scanned 1,752 transcripts, matched 541 by in-file cwd (48 top-level + 493 nested subagent runs); the head -1 filter trap reproduced exactly (493 vs 541). Deduped 11,210 assistant lines to 4,719 unique message.ids (2.38x streaming inflation avoided, per-field max), excluded 143 zero-token synthetic rows. Merged append-safe on entry_id against the earlier 2026-07-19 ledger (4,750 rows / $1,074.87): 4,536 overlap re-priced, 214 preserved historical rows back to 2026-05-26, 40 new. 651.5M tokens for $1,078.74 across 49 sessions. Fable 5 58.7% / Opus 4.8 40.1%; sonnet-4-6 and opus-4-7 are preserved-history only (opus-4-7 still unpriced live, carried at its original epoch). Cache reads are 92.7% of tokens but a small slice of cost. PR #376 remains the single biggest driver at 24.6%; unattributed 17.3%. 16 PRs diverge >20% between the two attribution modes.",
+  "cost": {
+    "currency": "USD",
+    "total_usd": 1078.74,
+    "by_phase": {
+      "interactive": 1078.74
+    },
+    "by_model": {
+      "claude-fable-5": 633.29,
+      "claude-opus-4-8": 432.47,
+      "claude-sonnet-4-6": 7.44,
+      "claude-opus-4-7": 5.54
+    },
+    "tokens": {
+      "input": 7330293,
+      "output": 6035292
+    },
+    "updated_at": "2026-07-19T14:09:49Z"
+  }
+}

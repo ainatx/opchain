@@ -38,3 +38,6 @@
 {"id": "route-038", "expect": {"mode": "contains", "all": ["oc-docs-forge", "/oc-docs"]}}
 {"id": "route-039", "expect": {"mode": "llm_judge", "all": ["oc-repo-ops", "/oc-repo"], "criteria": "The answer routes a PR-readiness and repo-hygiene check to oc-repo-ops (/oc-repo audit, /oc-repo verify or /oc-repo). Routing to oc-docs-forge (/oc-docs pr, the PR docs packet) or oc-git-ops (/oc-pr) as the entry point fails, even if the answer mentions oc-repo-ops in passing."}}
 {"id": "route-040", "expect": {"mode": "llm_judge", "all": ["oc-ux-engineer", "/oc-uxe"], "criteria": "The answer routes fixing an inconsistent UI design to oc-ux-engineer (/oc-uxe eval or /oc-uxe). Routing to oc-app-architect (/oc-design or /oc-discover, new-app design) fails, even if the answer mentions oc-ux-engineer in passing."}}
+{"id": "route-041", "expect": {"mode": "contains", "all": ["oc-update", "/oc-update"]}}
+{"id": "route-042", "expect": {"mode": "contains", "all": ["oc-hindsight", "/oc-hindsight"]}}
+{"id": "route-043", "expect": {"mode": "contains", "all": ["oc-evolve", "/oc-evolve"]}}

@@ -1,7 +1,7 @@
 ---
 name: oc-data-ops
 displayName: OC · Data Ops
-version: 1.9.2
+version: 2.0.0
 license: Apache-2.0
 shortDesc: "Data-pipeline design + build: ingestion patterns, transformation layers, dbt, observable data contracts."
 phases: [plan, build]

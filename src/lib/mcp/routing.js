@@ -60,6 +60,9 @@
 //   "deploy to VMs"                     → oc-fleet-ops, above deploy-ops' "deploy"
 //   "data visualization design"         → oc-dash-forge, above app-architect's "design"
 export const INTENT_HINTS = [
+  { re: /\b(update opchain|refresh opchain skills)\b/, skill: "oc-update", phase: "/oc-update" },
+  { re: /\b(review local learning history|review past agent mistakes)\b/, skill: "oc-hindsight", phase: "/oc-hindsight" },
+  { re: /\b(evaluate a learning rule|test a proposed learning rule)\b/, skill: "oc-evolve", phase: "/oc-evolve" },
   // ── Resume: above every domain row ───────────────────────────────────────
   { re: /\b(where did i leave off|(continue|pick up) where (we|i) left off|what should i work on)\b/, skill: "oc-orchestrator", phase: "/oc-ops status" },
 

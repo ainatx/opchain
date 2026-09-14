@@ -2,15 +2,21 @@
   "protocol_version": "1.1",
   "skill": "oc-code-auditor",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "project_dir": "/Users/aidanelsesser/repos/worktrees/opchain-oc-update-v2",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-09-14T00:20:51.056Z",
-  "phase": "verify",
-  "step": "v1.9.2-staging-baseline-reviewed",
-  "status": "complete",
-  "progress_summary": "1.9.2 final review PASS for pre-deploy-code-audit-v1. Source identity is bound by the typed handoff. Fresh executable verification and required remote CI remain separate gates.",
+  "updated_at": "2026-09-14T06:50:39.951Z",
+  "phase": "audit",
+  "step": "oss-readiness-audit-2026-08-22",
+  "status": "in_progress",
+  "progress_summary": "2026-08-22 OSS-readiness audit at c440c7b (7 lenses, adversarially verified): 142 findings (24 HIGH), grade D+ for contributor-repo readiness. Product tree secret-free and all-permissive; gaps are packaging (no LICENSE in artifacts), metadata (no SPDX/license fields), governance (no SECURITY.md/CoC/CODEOWNERS/DCO; PVR + Dependabot alerts disabled), and hosted-service data handling (POST /mcp checkpoints without TTL/auth/rate-limit; stale privacy page). Report: docs/audits/2026-08-22-oss-readiness-audit.md; plan: docs/plans/2026-08-22-oss-split-licensing-compliance.md.",
   "blockers": [],
-  "next_actions": [],
+  "next_actions": [
+    "OSS-readiness audit 2026-08-22 (grade D+): triage the 24 HIGH findings in docs/audits/2026-08-22-oss-readiness-audit.md — the must-fix set is in docs/plans/2026-08-22-oss-split-licensing-compliance.md §4.1 (SECURITY.md + PVR, LICENSE in every artifact, SHA-pin Actions, Dependabot alerts, releases+attestations) and §4.3 (POST /mcp checkpoint TTL/size/rate-limit/session isolation; stale privacy page; leads stored forever).",
+    "Fix PX-01/PX-02 in src/index.js + site/src/pages/privacy.astro before pointing any enterprise at opchain.dev/mcp (see docs/plans/2026-08-22-oss-split-licensing-compliance.md §4.3).",
+    "Triage the ~20 remaining MEDIUM/LOW findings from this audit (none block; see workflow journal).",
+    "Pre-existing and NOT from this changeset: 14 critical / 41 high from the 2026-07-04 portability audit are still open — that loop predates this work and remains open.",
+    "Wire `test:gate` into package.json + CI so the gate suite runs on every PR."
+  ],
   "eval_scores": [
     {
       "rubric": "oc-code-auditor",
@@ -41,32 +47,36 @@
     },
     {
       "rubric": "oc-code-auditor",
-      "score": 6.5,
+      "score": 8.5,
       "max": 10,
-      "at": "2026-09-11T22:50:00Z",
+      "at": "2026-09-13T04:21:43Z",
+      "ref": "docs/audits/2026-09-12-oc-update.md",
       "dimensions": {
-        "security": 7,
-        "performance": 8,
-        "quality": 6,
-        "ux": 7
+        "quality": 8,
+        "config": 9
       },
-      "ref": "docs/audits/2026-09-11-skillchain-2.0-audit.md"
+      "note": "Targeted updater candidate only; older repository-wide findings remain open."
     }
   ],
   "skill_state": {
-    "mode": "auditor-sweep",
-    "scope": "opchain skill chain at 4d39b93: 33 skills, orchestrator.md, checkpoint protocol + CLI, plugin hooks, generated catalogs, live checkpoints",
+    "mode": "fix-all",
+    "scope": "coordination-gaps overhaul changeset",
     "loop_state": "open",
-    "findings_total": 484,
-    "findings_confirmed": 11,
+    "findings_total": 41,
+    "findings_confirmed": 31,
     "findings_refuted": 10,
     "findings_by_severity": {
-      "critical": 11,
-      "high": 82,
-      "medium": 248,
-      "low": 143
+      "critical": 3,
+      "high": 12,
+      "medium": 16,
+      "low": 10
     },
-    "grade": "C",
+    "fixes_applied": 9,
+    "fixes_verified": 9,
+    "fixes_rejected": 0,
+    "grade": "B (changeset); repo-wide grade F from the 2026-07-04 portability audit is UNCHANGED and still open",
+    "verified_tree": "7c59d269ca269bc10035b0bbd706697df230b920",
+    "note": "loop_state stays 'open': this round fixed the changeset's own defects, but the pre-existing 157-finding portability audit (14 critical / 41 high, 2 fixed) has never been closed. Marking this checkpoint 'complete' would repeat exactly the defect the overhaul's P3 exists to prevent.",
     "last_audit": {
       "date": "2026-08-22",
       "mode": "oss-readiness (security 1a + config 1d + license/compliance/provenance)",
@@ -84,201 +94,296 @@
       "report": "docs/audits/2026-08-22-oss-readiness-audit.md",
       "plan": "docs/plans/2026-08-22-oss-split-licensing-compliance.md"
     },
-    "report_path": "docs/audits/2026-09-11-skillchain-2.0-audit.md",
-    "verified_by_oracle": [
-      "gate schema schism",
-      "tree-binding deadlock",
-      "exec/quote gate bypass",
-      "modularize->migration handoff",
-      "merged_prs+ operator order"
-    ],
-    "refuted": [
-      "checkpoint.mjs ISO regex rejects +00:00 offsets - both forms validate"
-    ],
-    "coverage_limits": "All 10 lenses ran and every finding was adversarially verified (the four lenses first cut off by session limits were re-run). Not covered: runtime Worker code (see scope_kind), and live execution beyond the CRITICAL tier's execution oracle. findings_confirmed counts the 11 CRITICAL findings confirmed by execution oracle, not the 484 upheld (the previous 31 was carried over from the v1.8.2 audit).",
-    "verification": "complete: 527 judged, 484 upheld, 43 refuted",
-    "scope_kind": "skill-docs-and-plugin (NOT runtime Worker code - this audit must not be read as a deploy gate for the deployable app)",
-    "prior_changeset": {
-      "fixes_applied": 9,
-      "fixes_verified": 9,
-      "fixes_rejected": 0,
-      "verified_tree": "7c59d269ca269bc10035b0bbd706697df230b920",
-      "note": "loop_state stays 'open': this round fixed the changeset's own defects, but the pre-existing 157-finding portability audit (14 critical / 41 high, 2 fixed) has never been closed. Marking this checkpoint 'complete' would repeat exactly the defect the overhaul's P3 exists to prevent."
+    "oc_update_v2": {
+      "status": "implemented-and-tested-in-isolation",
+      "branch": "codex/oc-update-v2",
+      "baseline": "4d39b93",
+      "target_release": "2.0.0",
+      "plan": "docs/plans/2026-09-12-oc-update-v2-addendum.md",
+      "evaluation": "sprints/repo-updater/eval.md",
+      "tests": {
+        "repository": 666,
+        "targeted_node_24": 59,
+        "targeted_node_22_13": 59,
+        "hooks": 48
+      },
+      "release_totals": {
+        "skills": 36,
+        "plugin_commands": 15,
+        "tri_agent_skills": 11
+      },
+      "pending": [
+        "Port after OSS split and integrate the 2.0 runtime dependency closure",
+        "Rehearse combined 36-skill release through supported hosts",
+        "Publish assets and replace website update instructions at the release cut"
+      ],
+      "at": "2026-09-13T04:21:43Z"
     },
-    "remediation": {
-      "release": "v1.9.1",
-      "plan": "docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md",
-      "merged": [
-        499,
-        504,
-        505,
-        506,
-        507,
-        518,
-        519,
-        520,
-        521,
-        522,
-        523,
-        524,
-        525,
-        526,
-        527
+    "shared_runtime_option_c": {
+      "status": "verified",
+      "architecture": "Option C (includes Option B)",
+      "approved_at": "2026-09-13",
+      "runtime_contract": "2.0-preview.1",
+      "catalog_skills": 36,
+      "plugin_commands": 15,
+      "repository_tests": 721,
+      "hook_tests": 74,
+      "independent_verdict": "PASS within external-trust/supplied-evidence boundary",
+      "report": "sprints/shared-runtime/evaluation.md",
+      "remaining_release_work": [
+        "wire 1.2 migration and release stamp",
+        "OSS split integration",
+        "independent reviewer environment setup",
+        "live host/model evaluation",
+        "exact 2.0 release rehearsal"
       ]
-    },
-    "verified_for_candidate": {
-      "kind": "git_tree_projection",
-      "id": "sha256:21d9e302956417d0f325e814841c51ebd86a890a4b2a24e570de4eab762e8bff"
     }
   },
-  "context_primer": {
-    "key_decisions": [
-      "2026-09-13 (v1.9.1 Sprint 3 reconciliation): the owner approved the fix plan on 2026-09-12 (blocker removed); the 2026-09-11 audit covers skill text, so the prior changeset's fix counters and 2026-07-19 tree moved to skill_state.prior_changeset instead of reading as this audit's."
-    ]
-  },
-  "progress_table": [
-    {
-      "id": "audit",
-      "label": "2026-09-11 skill-chain audit: 527 judged, 484 upheld",
-      "status": "complete"
-    },
-    {
-      "id": "plan",
-      "label": "v1.9.1 remediation plan approved (D1-D7)",
-      "status": "complete"
-    },
-    {
-      "id": "s1",
-      "label": "Sprints 0-2: commit gate and checkpoint tooling (#499-#507, #518, #519)",
-      "status": "complete"
-    },
-    {
-      "id": "s3",
-      "label": "Sprint 3: live checkpoint state",
-      "status": "complete"
-    },
-    {
-      "id": "s4",
-      "label": "Sprint 4: cross-skill contracts",
-      "status": "complete"
-    },
-    {
-      "id": "s5-6",
-      "label": "Sprint 5 sweeps (merged #522-#527) and Sprint 6 reach",
-      "status": "not_started"
-    },
-    {
-      "id": "reciprocity",
-      "label": "Re-run the reciprocity pass over the post-sweep tree",
-      "status": "in_progress"
-    }
-  ],
   "handoffs": [
     {
-      "id": "oc-code-auditor-192-73903f8b6856",
+      "id": "oc-code-auditor-v2-preview-4d9c0e57f709",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-09-13T23:52:21.043995Z",
-      "verified_at": "2026-09-13T23:52:21.043995Z",
+      "created_at": "2026-09-14T00:38:43.649Z",
+      "verified_at": "2026-09-14T00:38:43.649Z",
       "producer": {
         "skill": "oc-code-auditor",
-        "run_id": "release-192-final-review"
+        "run_id": "v2-runtime-staging-review"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:73903f8b6856443db0fef272db44c21d4bb0f604b9f6bf7b0219ba0cec1c20d5"
+        "id": "sha256:4d9c0e57f7092c19459547da4c78f086347d81f10b9a3db92b9cbf1a124c00a0"
       },
       "payload": {
-        "policy": "pre-deploy-code-audit-v1",
         "verdict": "PASS",
-        "evidence_directory": ".checkpoints/release-1.9.2"
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "2.0 shared runtime alignment and staging preview; historical unrelated audits remain separate",
+        "evidence": [
+          "docs/audits/2026-09-13-v2-runtime-staging-review.md",
+          "docs/plans/2026-09-13-v2-runtime-alignment.md"
+        ]
       }
     },
     {
-      "id": "oc-code-auditor-192-c5e6f5f3bff9",
+      "id": "oc-code-auditor-v2-record-e4a5c08f3c41",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-09-13T23:57:39.846738Z",
-      "verified_at": "2026-09-13T23:57:39.846738Z",
+      "created_at": "2026-09-14T00:43:53.176Z",
+      "verified_at": "2026-09-14T00:43:53.176Z",
       "producer": {
         "skill": "oc-code-auditor",
-        "run_id": "release-192-final-review"
+        "run_id": "v2-staging-record-review"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:c5e6f5f3bff9c9c88522cbb3af1d78f4175ce32edd2891a2db0a9e67abe963b6"
+        "id": "sha256:e4a5c08f3c41eb64b63a412fbc764db7ee08a0430e2a3ae481a482cd9b358f12"
       },
       "payload": {
-        "policy": "pre-deploy-code-audit-v1",
         "verdict": "PASS",
-        "evidence_directory": ".checkpoints/release-1.9.2"
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Same reviewed runtime as deployed 3bc8cf3, plus verified staging record and monitoring metadata. No executable source changed.",
+        "evidence": [
+          "docs/audits/2026-09-13-v2-runtime-staging-review.md",
+          "docs/releases/2.0-staging-preview.md"
+        ]
       }
     },
     {
-      "id": "oc-code-auditor-192-c1c990cb676d",
+      "id": "oc-code-auditor-launch-fa8fa91f2843",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-09-14T00:01:49.353887Z",
-      "verified_at": "2026-09-14T00:01:49.353887Z",
+      "created_at": "2026-09-14T04:11:37.486Z",
+      "verified_at": "2026-09-14T04:11:37.486Z",
       "producer": {
         "skill": "oc-code-auditor",
-        "run_id": "release-192-final-review"
+        "run_id": "v2-launch-presentation"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:c1c990cb676da7620aa606e7a4eeca0a2c0fed02b8cef82073ea2eb98bcf5696"
+        "id": "sha256:fa8fa91f2843a3446c659aa0f250109953d090af7c2420b76a001b09c515f250"
       },
       "payload": {
-        "policy": "pre-deploy-code-audit-v1",
         "verdict": "PASS",
-        "evidence_directory": ".checkpoints/release-1.9.2"
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "2.0 launch presentation, installation instructions, skill introduction copy and release presentation gate. No provider or lifecycle implementation change.",
+        "evidence": [
+          "docs/audits/2026-09-13-v2-launch-presentation.md"
+        ]
       }
     },
     {
-      "id": "oc-code-auditor-192-1b18416f52be",
+      "id": "oc-code-auditor-changelog-10a61e8d3cf1",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-09-14T00:10:24.910500Z",
-      "verified_at": "2026-09-14T00:10:24.910500Z",
+      "created_at": "2026-09-14T04:19:50.073Z",
+      "verified_at": "2026-09-14T04:19:50.073Z",
       "producer": {
         "skill": "oc-code-auditor",
-        "run_id": "release-192-site-review"
+        "run_id": "v2-changelog-new-skills"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:1b18416f52be7b482e55fce9b51e140b1793039b4ed305d0a465c362b9b69d5b"
+        "id": "sha256:10a61e8d3cf1f9dcbbdc8545c976088c179a16090c619fbdfa7b0913ea531ffd"
       },
       "payload": {
-        "policy": "pre-deploy-code-audit-v1",
         "verdict": "PASS",
-        "evidence_directory": ".checkpoints/release-1.9.2"
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Static 2.0 changelog entry: existing tile layout for three skills, followed by existing runtime change content. No runtime or security boundary changed.",
+        "evidence": [
+          "docs/audits/2026-09-13-v2-launch-presentation.md"
+        ]
       }
     },
     {
-      "id": "oc-code-auditor-192-21d9e3029564",
+      "id": "oc-code-auditor-comparison-1fe9954e2ddb",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-09-14T00:20:50.843829Z",
-      "verified_at": "2026-09-14T00:20:50.843829Z",
+      "created_at": "2026-09-14T05:37:59.882Z",
+      "verified_at": "2026-09-14T05:37:59.882Z",
       "producer": {
         "skill": "oc-code-auditor",
-        "run_id": "release-192-staging-baseline-review"
+        "run_id": "v2-comparison-staging"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:21d9e302956417d0f325e814841c51ebd86a890a4b2a24e570de4eab762e8bff"
+        "id": "sha256:1fe9954e2ddb8ab1fc39682571b3a74a67afc421fff8799e9232ccb99c7aa31f"
       },
       "payload": {
-        "policy": "pre-deploy-code-audit-v1",
         "verdict": "PASS",
-        "evidence_directory": ".checkpoints/release-1.9.2"
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Integrated comparison page, typed catalog, tests, release plans and evidence. Implementation matches reviewed b64e85d candidate; static site rendering and selection logic reviewed for code and security.",
+        "evidence": [
+          "docs/audits/2026-09-14-comparison-staging-review.md",
+          "sprints/compare-refresh/eval-2.0.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-code-auditor-demos-75bff91a9d18",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T06:22:11.207Z",
+      "verified_at": "2026-09-14T06:22:11.207Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "v2-demos-install-staging"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:75bff91a9d1804ee80f7d95178056a64465bc923b5b244cd5dd765279e8f4970"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Reviewed 9176f02 simulation repairs plus approved scripted demos, install prompt, clipboard fallback, mobile layout and generated catalog. Scope and validation recorded in review.",
+        "evidence": [
+          "docs/audits/2026-09-14-demos-install-staging-review.md",
+          "docs/audits/2026-09-14-comparison-staging-review.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-code-auditor-pr490-3e44fb19d6c9",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T06:34:58.179Z",
+      "verified_at": "2026-09-14T06:34:58.179Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pr490-staging-merge"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:3e44fb19d6c9bf4c01da0b976f2ac570ef95d3fbb460aef7081040fbb230020b"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Merge PR 490 into existing 2.0 staging. Site source and OG assets unchanged from verified 627f386; design records, optional tools and release reference guidance added. Reviewed conflict decisions and tool boundaries.",
+        "evidence": [
+          "docs/audits/2026-09-14-pr490-staging-merge.md",
+          "docs/audits/2026-09-14-demos-install-staging-review.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-code-auditor-release-f6b167fcbd3a",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T06:46:14.813Z",
+      "verified_at": "2026-09-14T06:46:14.813Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "v2-production-cut"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:f6b167fcbd3a58a16e1c3dede716c34797f4ad2000957da90a1833b4e0db03eb"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Reviewed production cut from 1cf060a: main history reconciliation, release date/docs, staging marker removal and isolated preview guard regression. No runtime implementation or publisher changes.",
+        "evidence": [
+          "docs/audits/2026-09-14-v2-production-cut.md",
+          "docs/releases/2.0-production-release.md",
+          "docs/audits/2026-09-14-pr490-staging-merge.md",
+          "docs/audits/2026-09-14-demos-install-staging-review.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-code-auditor-release-8b747a6789d8",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T06:48:10.118Z",
+      "verified_at": "2026-09-14T06:48:10.118Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "v2-production-cut"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:8b747a6789d8b545978d960e7a9b26a4662a62c479d54878182b5aba98711c7c"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Reviewed production cut from 1cf060a: main history reconciliation, release docs and packaged changelog, staging marker and unused banner removal, isolated preview guard regression. No runtime or publisher changes.",
+        "evidence": [
+          "docs/audits/2026-09-14-v2-production-cut.md",
+          "docs/releases/2.0-production-release.md",
+          "docs/audits/2026-09-14-pr490-staging-merge.md",
+          "docs/audits/2026-09-14-demos-install-staging-review.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-code-auditor-release-afeea4aa1686",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T06:50:39.872Z",
+      "verified_at": "2026-09-14T06:50:39.872Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "v2-production-cut"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:afeea4aa16867470142de3102e652dc5ac3b4e3a105fa08f21706af3ddceee35"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Reviewed production cut and public installation documentation, including complete packages, safe updater and explicit enrollment. Main history reconciled; preview marker and unused banner removed; guard preserved. No runtime or publisher changes.",
+        "evidence": [
+          "docs/audits/2026-09-14-v2-production-cut.md",
+          "docs/releases/2.0-production-release.md",
+          "docs/audits/2026-09-14-pr490-staging-merge.md",
+          "docs/audits/2026-09-14-demos-install-staging-review.md"
+        ]
       }
     }
   ],
-  "verified_at": "2026-09-14T00:20:50.843829Z",
-  "candidate": {
-    "kind": "git_tree_projection",
-    "id": "sha256:21d9e302956417d0f325e814841c51ebd86a890a4b2a24e570de4eab762e8bff"
-  },
-  "record_updated_at": "2026-09-14T00:20:51.056Z"
+  "record_updated_at": "2026-09-14T06:50:39.951Z"
 }

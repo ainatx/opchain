@@ -4,28 +4,32 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-08-27T23:49:17.485Z",
-  "updated_at": "2026-09-14T00:20:50.602Z",
-  "phase": "staging-verified",
-  "step": "v1.9.2-staging-complete",
-  "status": "complete",
-  "progress_summary": "Staging 1.9.2 at 93dc854 passed exact-main, candidate evidence, hardening and smoke gates, plus live catalog/changelog/hosted-reference verification. Production remains 1.9.1 at f5e4b2a.",
+  "updated_at": "2026-09-11T04:05:36.049Z",
+  "phase": "production",
+  "step": "v1.9-baseline-superseded-by-2026-09-05-production-deploy",
+  "status": "in_progress",
+  "progress_summary": "Production no longer serves the approved v1.9.0 baseline. opchain.dev/api/health reports 78567c2 (merge of PR #483, 2026-09-05 01:57Z) from Cloudflare deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72; the approved record is 244bf13 at deployment 54ef8a21-0665-4a83-bc1a-5768c2bae0d5. The deploy happened between 01:57Z and the 13:49Z scheduled Canary on Sept 5 and was not followed by a baseline refresh or a checkpoint update. Staging serves fbb24a8, a SHA on no origin branch, so it is an off-main branch preview. The owner confirmed on 2026-09-11 that the 78567c2 deploy was deliberate and is to be blessed. deploy.mjs now ends every deploy with a stale-baseline warning so this cannot go unnoticed again.",
   "blockers": [],
   "next_actions": [
-    "Review staging and decide separately whether to promote 1.9.2 to production."
+    "Laptop: npx wrangler deployments list --json and versions view for deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72 (version id + script etag), then record them in .github/monitoring/release-baseline.json with sourceSha 78567c2d70e6f00836000e4bd6bbad842ba04a42.",
+    "Laptop: npm run deploy:staging from main@78567c2 so staging stops serving the off-main preview fbb24a8, then record the staging ids in the same baseline update.",
+    "Laptop: node .github/scripts/cloudflare-monitor.mjs control-plane && deploy-diff with credentials, open the baseline PR, dispatch Canary and Deploy lag after merge.",
+    "Retain production predecessor version c55ae124-ff35-4924-80af-00e92bd8879c until the re-baselined state is verified."
   ],
   "skill_state": {
     "current_env": "production",
-    "staging_version": "f5e4b2a",
-    "prod_version": "f5e4b2a",
-    "production_sha": "f5e4b2a",
+    "staging_version": "fbb24a8",
+    "prod_version": "78567c2",
+    "production_sha": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
     "target_version": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
-    "cloudflare_version_id": "01db3b36-a90c-4f73-98f7-fd00505582c4",
-    "cloudflare_deployment_id": "3b7989ff-2f65-4dc6-a629-6f16ba4fd677",
-    "staging_cloudflare_version_id": "28a5c29d-0c18-4653-8214-e31af0a3872a",
-    "staging_cloudflare_deployment_id": "52c452c5-5d9e-4148-b3eb-30b7155d4888",
+    "cloudflare_version_id": "unknown until wrangler deployments list runs on the laptop",
+    "cloudflare_deployment_id": "8da6c19d-a89a-4214-8e58-4606c7ce2f72",
+    "staging_cloudflare_version_id": "d07bb08a-9662-4e77-a2a1-673fc0c7a8a5",
+    "staging_cloudflare_deployment_id": "791c1851-2b81-4408-b881-dac381fa6d07",
     "staging_url": "https://staging.opchain.dev",
     "production_url": "https://opchain.dev",
-    "branch_preview": false,
+    "branch_preview": true,
+    "last_deploy": "2026-09-02T20:11:25.746861Z",
     "source_pr": 483,
     "audit_gate": {
       "critical": 0,
@@ -33,8 +37,7 @@
       "scope": "exact merged and tagged v1.9 SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
       "result": "PASS",
       "independent_review": "SHIP",
-      "hardening_manifest": "PASS — 45 MCP tests and 6 retention tests",
-      "historical": "Applies only to the v1.9.0 release SHA 244bf13. It is not evidence for any later deploy."
+      "hardening_manifest": "PASS — 45 MCP tests and 6 retention tests"
     },
     "staging_smoke_results": {
       "health": "PASS — HTTP 200 with ok:true and exact version 244bf13",
@@ -149,34 +152,6 @@
         34359976498,
         34363685054
       ]
-    },
-    "last_release_deploy": "2026-09-13T23:05:38Z",
-    "last_runtime_deploy": "2026-09-05T02:24:00Z",
-    "staging_1_9_2": {
-      "ok": true,
-      "verifiedAt": "2026-09-14T00:18:30.803291+00:00",
-      "url": "https://staging.opchain.dev",
-      "sourceSha": "93dc8545929288ca2169e88ca0fd0fc90587c717",
-      "sourceTree": "9f28305915428bc9ea54572718847ccd62e17621",
-      "healthVersion": "93dc854",
-      "catalogVersion": "1.9.2",
-      "skillCount": 33,
-      "releaseCards": 20,
-      "voteTargets": 7,
-      "releaseCardPresent": true,
-      "hostedReferenceManifestAndCanonicalLegacyReads": "PASS",
-      "deployWrapperHardeningAndSmoke": "PASS",
-      "productPr": 536,
-      "sitePr": 537,
-      "tag": "v1.9.2",
-      "tagObject": "078e554a693b04b9655430c3e6b568761b6bcf4d",
-      "productCommit": "7ccdacf04c9ac59f62309c371de357acd9b81839",
-      "registryPublicationRun": 34791781955,
-      "productCiRun": 34791420579,
-      "productLighthouseRun": 34791420546,
-      "productionPromoted": false,
-      "siteCiRun": 34791901798,
-      "siteLighthouseRun": 34791901886
     }
   },
   "progress_table": [
@@ -192,24 +167,13 @@
     },
     {
       "id": "baseline-refresh",
-      "label": "release-baseline.json runtime block records deployment 8da6c19d (PR #510)",
-      "status": "complete"
+      "label": "release-baseline.json refreshed to deployment 8da6c19d (laptop, needs credentials)",
+      "status": "blocked"
     },
     {
       "id": "staging-realign",
-      "label": "staging redeployed from main (37e2b4b) instead of the off-main preview",
-      "status": "complete"
-    },
-    {
-      "id": "staging-baseline",
-      "label": "staging deployment/version ids recorded in release-baseline.json (owner, laptop)",
-      "status": "not_started"
+      "label": "staging redeployed from 78567c2 instead of the off-main preview fbb24a8",
+      "status": "blocked"
     }
-  ],
-  "context_primer": {
-    "key_decisions": [
-      "2026-09-13 (v1.9.1 Sprint 3 reconciliation): the three laptop re-baseline actions were completed by merged PR #510 and removed; version id placeholder replaced; staging facts updated after the owner's redeploy."
-    ]
-  },
-  "record_updated_at": "2026-09-14T00:20:50.602Z"
+  ]
 }

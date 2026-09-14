@@ -243,6 +243,9 @@ const COMMANDS = {
   "oc-docs-forge": "/oc-docs",
   "oc-orchestrator": "/oc-ops",
   "oc-release-ops": "/oc-release",
+  "oc-update": "/oc-update",
+  "oc-hindsight": "/oc-hindsight",
+  "oc-evolve": "/oc-evolve",
   "oc-repo-ops": "/oc-repo",
   // v1.9 "Assurance and governed delivery ops"
   "oc-qa-ops": "/oc-qa",

@@ -2,6 +2,7 @@
 import { REPO_SITE } from "../lib/repo";
 import Base from "../layouts/Base.astro";
 import Logo from "../components/Logo.astro";
+import VersionBadge from "../components/VersionBadge.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
 import Button from "../components/ui/Button.astro";
 import Icon from "../components/Icon.astro";
@@ -56,7 +57,7 @@ const softwareLd = {
 
     <div class="intro-hero">
       <Logo size={88} />
-      <h1 class="intro-mark">opchain</h1>
+      <h1 class="intro-mark">opchain <VersionBadge size="hero" /></h1>
     </div>
 
     <p class="intro-claim">skills that ship.</p>
@@ -77,14 +78,13 @@ const softwareLd = {
         Code, and now in Codex or any MCP agent via a hosted endpoint.
         Each skill specializes in one piece of the puzzle (discovery,
         spec, design, build, audit, ship, monitor, migrate, scale). At
-        the beginning of the next session, Claude reads them back to
-        pick up right where you left off. Ask the orchestrator at any
+        resume time, the saved checkpoint helps you pick up where you left off. Ask the orchestrator at any
         point and it reads that state back to you and names the skill to
         run next.
       </p>
       <p>
-        Install them, trigger by name, keep going. No API keys. No SaaS.
-        No vendor lock-in — every skill is a single Markdown file.
+        Install the skills and call them by name. Each starts with a readable Markdown file.
+        Shared commands include their runtime files. Optional task tests use your chosen provider and credentials.
       </p>
     </div>
 
@@ -93,13 +93,13 @@ const softwareLd = {
          ember box-shadow. Links to the v1.9 roadmap slot. -->
     <a class="release-bar-glow" href="/changelog#v2-0" aria-label="opchain release roadmap">
       <span class="rb-half rb-current">
-        <span class="rb-tag">v1.9 · shipped</span>
-        <span class="rb-text">Assurance &amp; governed delivery · qa · data · compliance · hardening</span>
+        <span class="rb-tag">v2.0 · shipped</span>
+        <span class="rb-text">Update once · remember lessons · test better ways to work</span>
       </span>
       <span class="rb-divider" aria-hidden="true"></span>
       <span class="rb-half rb-next">
-        <span class="rb-tag rb-tag-next">v2.0 · next</span>
-        <span class="rb-text rb-text-next">the self-improving pipeline · committed</span>
+        <span class="rb-tag rb-tag-next">v2.1 · next</span>
+        <span class="rb-text rb-text-next">distribution and installation</span>
       </span>
       <span class="rb-arrow" aria-hidden="true">›</span>
     </a>
@@ -107,10 +107,10 @@ const softwareLd = {
     <section class="stats" aria-label="opchain at a glance">
       <a class="stat" href="/skills">
         <span class="stat-num">{skillCount}</span>
-        <span class="stat-label">skills shipped</span>
+        <span class="stat-label">skills in the ecosystem</span>
       </a>
       <a class="stat" href="/changelog">
-        <span class="stat-num">v1.9</span>
+        <span class="stat-num">v2.0</span>
         <span class="stat-label">latest release</span>
       </a>
       <a class="stat" href="/status">
@@ -121,6 +121,23 @@ const softwareLd = {
         <span class="stat-num">Apache-2.0</span>
         <span class="stat-label">open source</span>
       </a>
+    </section>
+
+    <!-- 2.0 content block 1 — concept only ("concept on home, specifics deeper").
+         Tense is release-neutral: reads correctly before and after the v2.0 cut. -->
+    <section class="unlock" aria-labelledby="unlock-h">
+      <Eyebrow>what 2.0 unlocks</Eyebrow>
+      <h2 class="unlock-h" id="unlock-h">Keep what worked. Test what should change.</h2>
+      <p class="unlock-sub">Opchain 2.0 brings progress, lessons and proposed rules together. You can review the evidence before changing how a skill works.</p>
+      <div class="unlock-grid">
+        <div class="unlock-tile"><span class="unlock-n">01</span><h3>It remembers.</h3><p>Import scored outcomes into local history. Duplicate records count once, and source references stay attached.</p></div>
+        <div class="unlock-tile"><span class="unlock-n">02</span><h3>It proposes.</h3><p>Three weak results can flag a pattern. A proposed rule must improve the target task without breaking other cases.</p></div>
+        <div class="unlock-tile unlock-tile--gate"><span class="unlock-n">★</span><h3>You decide.</h3><p>Activation requires a signature from an externally trusted reviewer. Lessons and rules expire and remain advisory.</p></div>
+      </div>
+      <div class="unlock-foot">
+        <Button variant="outline" size="sm" href="/changelog#v2-0">how the loop closes ›</Button>
+        <span class="unlock-note">Learning and tracking start off. Provider evaluation sends only the task inputs you choose to the endpoint you select.</span>
+      </div>
     </section>
 
     <!-- Cinema banner — rotates every 10 s through the scenario
@@ -172,7 +189,7 @@ const softwareLd = {
         <a class="res-card" href="/skills">
           <span class="res-icon" aria-hidden="true"><Icon name="puzzle" size={18} /></span>
           <h3>Skills</h3>
-          <p>Read the source. Every skill is a single Markdown file you can audit, fork, and rewire.</p>
+          <p>Read the skill files, references and runtime code. You can inspect, fork and change them.</p>
           <span class="read">read the files ›</span>
         </a>
         <a class="res-card" href="/glossary">
@@ -246,6 +263,9 @@ const softwareLd = {
     line-height: 1;
     color: var(--text);
     margin: 0;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.45em;
   }
 
   .intro-claim {
@@ -254,7 +274,7 @@ const softwareLd = {
     font-size: 20px;
     line-height: 1.3;
     letter-spacing: 0.2px;
-    color: var(--ember);
+    color: var(--accent);
     margin: 0 0 0.7rem;
   }
 
@@ -309,8 +329,8 @@ const softwareLd = {
     font-size: 12px;
     text-decoration: none;
     box-shadow:
-      0 0 0 1px rgba(224, 92, 24, 0.18),
-      0 0 24px -8px rgba(224, 92, 24, 0.4);
+      0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent),
+      0 0 24px -8px color-mix(in srgb, var(--accent) 40%, transparent);
     animation: release-bar-pulse 3.4s ease-in-out infinite;
     transition:
       transform var(--dur-fast) var(--ease-standard),
@@ -319,13 +339,13 @@ const softwareLd = {
   @keyframes release-bar-pulse {
     0%, 100% {
       box-shadow:
-        0 0 0 1px rgba(224, 92, 24, 0.18),
-        0 0 18px -8px rgba(224, 92, 24, 0.35);
+        0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent),
+        0 0 18px -8px color-mix(in srgb, var(--accent) 35%, transparent);
     }
     50% {
       box-shadow:
-        0 0 0 1px rgba(224, 92, 24, 0.32),
-        0 0 30px -6px rgba(224, 92, 24, 0.55);
+        0 0 0 1px color-mix(in srgb, var(--accent) 32%, transparent),
+        0 0 30px -6px color-mix(in srgb, var(--accent) 55%, transparent);
     }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -357,19 +377,14 @@ const softwareLd = {
        the preview was borderline. Filled-ember-on-obsidian = ~7:1.
        Visually this also makes "current" feel more present than the
        outlined "next" chip. */
-    color: var(--obsidian);
-    background: var(--accent);
+    color: var(--on-accent);
+    background: var(--accent-fill);
     border: 0;
   }
-  :global([data-theme="light"]) .rb-tag {
-    /* In light mode --accent dips below AA-Normal on --obsidian. Match
-       Button.astro's primary variant and use --ember. */
-    background: var(--ember);
-  }
   .rb-tag-next {
-    color: var(--info);
-    border: 0.5px solid var(--info);
-    background: var(--info-dim);
+    color: var(--secondary);
+    border: 0.5px solid var(--secondary);
+    background: var(--secondary-dim);
   }
   .rb-text {
     font-family: var(--font-display);
@@ -394,7 +409,6 @@ const softwareLd = {
   }
   /* Light-mode contrast bump on the rb-text so the body text reads
      against the surface. */
-  :global([data-theme="light"]) .release-bar-glow .rb-text { color: var(--obsidian); }
 
   @media (max-width: 760px) {
     .release-bar-glow {
@@ -421,6 +435,31 @@ const softwareLd = {
   }
 
   /* ── Stat strip ── */
+
+  /* ── 2.0 block 1: what 2.0 unlocks ── */
+  .unlock {
+    width: 100%;
+    max-width: 960px;
+    margin: 2.2rem auto 0.4rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .unlock-h { font-size: var(--fs-2xl); font-weight: 600; margin: 0.5rem 0 0.4rem; color: var(--text); }
+  .unlock-sub { color: var(--muted); max-width: 58ch; margin: 0 auto 1.4rem; font-size: var(--fs-base); }
+  .unlock-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; text-align: left; width: 100%; }
+  .unlock-tile { background: var(--card); border: 0.5px solid var(--border); border-radius: var(--r-lg); padding: 1.1rem 1.2rem; display: flex; flex-direction: column; gap: 0.4rem; }
+  .unlock-tile--gate { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-dim), var(--glow-lg); }
+  .unlock-n { font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.14em; color: var(--accent); }
+  .unlock-tile h3 { font-size: var(--fs-md); font-weight: 600; margin: 0; color: var(--text); }
+  .unlock-tile p { margin: 0; font-size: var(--fs-sm); color: var(--muted); line-height: var(--lh-snug); }
+  .unlock-foot { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
+  .unlock-note { font-size: 12px; color: var(--subtle); }
+  @media (max-width: 760px) {
+    .unlock-grid { grid-template-columns: 1fr; }
+  }
+
   .stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -480,9 +519,9 @@ const softwareLd = {
     flex-direction: column;
     justify-content: center;
     background:
-      radial-gradient(720px 320px at 75% 35%, var(--ember-glow), transparent 70%),
-      radial-gradient(540px 260px at 12% 80%, var(--ember-dim), transparent 70%),
-      linear-gradient(180deg, #14100a 0%, var(--bg) 100%);
+      radial-gradient(720px 320px at 75% 35%, var(--accent-glow), transparent 70%),
+      radial-gradient(540px 260px at 12% 80%, var(--accent-dim), transparent 70%),
+      linear-gradient(180deg, color-mix(in srgb, var(--bg) 90%, black) 0%, var(--bg) 100%);
     border-top: 0.5px solid var(--border);
     border-bottom: 0.5px solid var(--border);
   }
@@ -543,16 +582,13 @@ const softwareLd = {
       box-shadow var(--dur-base) var(--ease-standard);
   }
   .stage .btn-primary {
-    background: var(--accent);
-    color: var(--obsidian);
+    background: var(--accent-fill);
+    color: var(--on-accent);
     border: 0;
     font-weight: 600;
   }
-  :global([data-theme="light"]) .stage .btn-primary {
-    background: var(--ember);
-  }
   .stage .btn-primary:hover {
-    background: var(--accent-hover);
+    background: var(--accent-fill-hover);
     transform: translateY(-1px);
     box-shadow: var(--glow-md);
   }
@@ -597,7 +633,7 @@ const softwareLd = {
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: rgba(232, 223, 208, 0.22);
+    background: color-mix(in srgb, var(--text) 22%, transparent);
     transition:
       width var(--dur-base) var(--ease-standard),
       height var(--dur-base) var(--ease-standard),
@@ -612,8 +648,8 @@ const softwareLd = {
     height: 14px;
     background: transparent;
     box-shadow:
-      inset 0 0 0 1.5px var(--ember-dim),
-      0 0 14px -3px var(--ember);
+      inset 0 0 0 1.5px var(--accent-dim),
+      0 0 14px -3px var(--accent);
   }
   .dot-row .dot.active::after {
     content: "";
@@ -621,7 +657,7 @@ const softwareLd = {
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: conic-gradient(from 0deg, var(--ember) var(--p, 0deg), transparent var(--p, 0deg));
+    background: conic-gradient(from 0deg, var(--accent) var(--p, 0deg), transparent var(--p, 0deg));
     pointer-events: none;
     animation: dot-fill 10s linear infinite;
     animation-delay: calc(var(--fill-progress, 0) * -1ms);
@@ -637,10 +673,10 @@ const softwareLd = {
   }
   @media (prefers-reduced-motion: reduce) {
     .dot-row .dot.active::before {
-      background: var(--ember);
+      background: var(--accent);
       box-shadow:
-        0 0 0 3px var(--ember-dim),
-        0 0 14px -3px var(--ember);
+        0 0 0 3px var(--accent-dim),
+        0 0 14px -3px var(--accent);
     }
     .dot-row .dot.active::after { display: none; }
   }

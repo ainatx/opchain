@@ -1,5 +1,7 @@
 # opchain
 
+> **Opchain 2.0.0.** Released September 14, 2026. Includes the verified 1.9.2 repairs, shared runtime, updater, Hindsight and Evolve. See the [release record](docs/releases/2.0-production-release.md).
+
 > skills that ship.
 
 opchain is an open-source Claude skill ecosystem for developers —
@@ -48,7 +50,7 @@ without manual handoffs.
 
 ## skill library
 
-33 skills across 6 phases. Canonical list lives in
+36 skills across 6 phases. Canonical list lives in
 [`skills/README.md`](./skills/README.md) — this table mirrors it.
 
 ### foundation
@@ -105,6 +107,16 @@ without manual handoffs.
 | `oc-signal-forge` | Product-analytics signal builder: question to trustworthy metric |
 | `oc-fleet-ops` | Self-managed fleet deployment and multi-container operations |
 
+### update and learn
+
+| skill | role |
+|---|---|
+| `oc-update` | Install complete runtime packages while preserving local state |
+| `oc-hindsight` | Prepare source-backed lessons for external review and retrieval |
+| `oc-evolve` | Test proposed rules against recorded tasks before external approval |
+
+Learning starts off. Provider access and an external reviewer require team setup.
+
 ### ship
 
 | skill | role |
@@ -117,6 +129,12 @@ without manual handoffs.
 ---
 
 ## install
+
+Use **`/oc-update`** to update existing repo-local skills and
+**`/oc-update check`** for a read-only check. The updater preserves saved progress,
+local tracking consent and unrelated skills, and backs up replaced Opchain files.
+Users on 1.9 or earlier can use the [copyable upgrade prompt](https://opchain.dev/install/)
+to bootstrap the updater. Global plugin installations use the host's plugin manager.
 
 ### Claude.ai / Cowork
 

@@ -1,7 +1,7 @@
 ---
 name: oc-docs-forge
 displayName: OC · Docs Forge
-version: 1.9.2
+version: 2.0.0
 license: Apache-2.0
 shortDesc: "Documentation generator for every PR: PR body, PR comments, README/catalog docs, product docs, changelog and ADR upkeep."
 phases: [plan, build]

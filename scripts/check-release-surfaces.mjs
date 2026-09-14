@@ -14,13 +14,12 @@
 // Run:        node scripts/check-release-surfaces.mjs
 // Exit:       0 if consistent, 1 on any mismatch.
 
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync, realpathSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { readCatalogVersion } from "./check-release-tag.mjs";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
-const p = (rel) => join(ROOT, rel);
 
 // Each probe pulls the major release line ("v1.6") from one live-claim surface.
 const PROBES = [
@@ -87,7 +86,7 @@ const PROBES = [
   },
 ];
 
-function probe({ label, file, re, join: j }) {
+function probe({ label, file, re, join: j }, p) {
   let text;
   try {
     text = readFileSync(p(file), "utf8");
@@ -99,8 +98,13 @@ function probe({ label, file, re, join: j }) {
   return { label, file, value: j ? j(m) : m[1] };
 }
 
-export function checkReleaseSurfaces() {
-  const results = PROBES.map(probe);
+export function checkReleaseSurfaces({ root = ROOT } = {}) {
+  const p = (rel) => join(root, rel);
+  const results = PROBES.map((entry) => probe(entry, p));
+  const preview = existsSync(p("release-preview.json")) ? JSON.parse(readFileSync(p("release-preview.json"), "utf8")) : null;
+  // Rehearse launch copy without manufacturing an entry in the real release ledger.
+  // The deploy wrapper still refuses production while this marker exists.
+  const launchPresentation = preview?.presentation === "release";
   const header = results.find((r) => r.label === "Header CURRENT_RELEASE");
   const expected = header?.value ?? null;
   const errors = [];
@@ -123,15 +127,15 @@ export function checkReleaseSurfaces() {
   let releaseVersion = null;
   if (expected) {
     try {
-      const changelog = readFileSync(join(ROOT, "skills", "CHANGELOG.md"), "utf8");
+      const changelog = readFileSync(p("skills/CHANGELOG.md"), "utf8");
       const heading = changelog.match(/^## \[(\d+\.\d+\.\d+)\]/m);
       if (!heading) {
         errors.push("skills/CHANGELOG.md: no released `## [x.y.z]` heading found");
       } else {
         releaseVersion = heading[1];
         const logged = `v${releaseVersion.split(".").slice(0, 2).join(".")}`;
-        results.push({ label: "skills/CHANGELOG.md newest release", file: "skills/CHANGELOG.md", value: logged });
-        if (logged !== expected) {
+        results.push({ label: "skills/CHANGELOG.md newest release", file: "skills/CHANGELOG.md", value: logged, ...(launchPresentation ? { expected: logged } : {}) });
+        if (launchPresentation ? expected !== `v${preview.version.split(".").slice(0, 2).join(".")}` : logged !== expected) {
           errors.push(
             `skills/CHANGELOG.md (newest entry ${logged}) does not match the site's claimed ${expected} — ` +
               "the site must not announce a release the catalog has not recorded",
@@ -147,8 +151,12 @@ export function checkReleaseSurfaces() {
   // full semver. Keep their inventory executable so a lockstep bump cannot
   // leave the marketplace, plugin, catalog, server, or release seal behind.
   if (releaseVersion) {
+    if (existsSync(p("release-preview.json"))) {
+      if (preview.schemaVersion !== 1 || preview.status !== "staging-preview" || preview.releaseDate !== null || preview.baseline !== releaseVersion || (preview.presentation !== undefined && preview.presentation !== "release")) errors.push("Invalid staging preview release metadata");
+      releaseVersion = preview.version;
+    }
     const versioned = [
-      ["skill catalog frontmatter", "skills/*/SKILL.md", () => readCatalogVersion(join(ROOT, "skills")).version],
+      ["skill catalog frontmatter", "skills/*/SKILL.md", () => readCatalogVersion(join(root, "skills")).version],
       ["release seal catalogVersion", "release-seal.json", () => JSON.parse(readFileSync(p("release-seal.json"), "utf8")).catalogVersion],
       ["MCP server version", "server.json", () => JSON.parse(readFileSync(p("server.json"), "utf8")).version],
       ["marketplace metadata version", ".claude-plugin/marketplace.json", () => JSON.parse(readFileSync(p(".claude-plugin/marketplace.json"), "utf8")).metadata?.version],
@@ -171,7 +179,7 @@ export function checkReleaseSurfaces() {
 }
 
 // CLI
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   const { ok, expected, results, errors } = checkReleaseSurfaces();
   console.log("RELEASE SURFACE CHECK");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");

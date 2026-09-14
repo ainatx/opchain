@@ -8,6 +8,8 @@ export function createHttpJsonAdapter({ endpoint, apiKey, fetchFn = fetch }) {
   async function request(body) {
     const response = await fetchFn(endpoint, {
       method: "POST",
+      redirect: "error",
+      signal: AbortSignal.timeout(30_000),
       headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
       body: JSON.stringify(body),
     });

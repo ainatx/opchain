@@ -77,6 +77,7 @@ Full walkthrough (including a local stdio server): https://opchain.dev/install
 | oc-rag-forge              | build+ai-native | RAG systems: vector DB choice, embeddings, chunking, hybrid search, retrieval eval |
 | oc-cost-ops               | build       | LLM cost attribution, budget gates, and model-tier routing recommendations |
 | oc-telemetry-ops          | build       | Opt-in local usage metering and anonymized aggregate dashboard feed |
+| oc-update                | foundation  | One-command repo skill updates; preserves telemetry, checkpoints, and unrelated skills (2.0 candidate) |
 | oc-signal-forge           | build       | Product-analytics signal builder: question to trustworthy metric |
 | oc-modularize-ops         | plan+build  | Live-monolith decomposition with golden-fixture equivalence proof |
 | oc-fleet-ops              | build       | Self-managed fleet deployment and multi-container operations |
@@ -99,3 +100,12 @@ https://opchain.dev
 Apache-2.0 — see the `LICENSE` and `NOTICE` files at the repository root.
 Copyright 2026 Aidan Elsesser and the opchain contributors. Catalog releases
 up to and including 1.8.2 were published under MIT.
+
+## Unpublished 2.0 shared runtime candidates
+
+| Skill | Phase | Purpose |
+|---|---|---|
+| oc-hindsight | foundation, ai-native | Source-grounded operational memory with external reviewer approval |
+| oc-evolve | foundation, ai-native | Task-evaluated workflow improvements with external reviewer approval |
+
+The 2.0 staging preview contains 36 skills and 16 registered plugin commands. It has no release date and cannot be deployed to production while the preview marker is present.

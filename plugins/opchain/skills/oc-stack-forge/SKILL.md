@@ -1,7 +1,7 @@
 ---
 name: oc-stack-forge
 displayName: OC · Stack Forge
-version: 1.9.2
+version: 2.0.0
 license: Apache-2.0
 shortDesc: Stack decisions, Cloudflare patterns, typed pipeline. v1.2 records the chosen stack on the linked PM ticket as an ADR.
 phases: [plan, build]
@@ -361,9 +361,16 @@ tracks gate beta cohorts. oc-stack-forge's dispatcher recognises `kind: mobile`
 and routes through a **release-checklist** envelope instead of trying to
 execute commands.
 
-Inside the opchain repo, the runtime entry point is `dispatchMobile(packId)` in
-`src/lib/pack-dispatch.js` (it does not ship with the installed skill; elsewhere, apply the
-resolution rules below by reading the pack's `pack.yml` `kind:` yourself):
+In an installed project, read `packs/<packId>/pack.yml` relative to this skill's
+installed directory. Do not import files from the opchain website's source tree.
+Read its `kind`, `platform`, `displayName`, and `mobileRef` fields directly. For a
+mobile pack, render the release-checklist envelope below and read `mobileRef`
+relative to that pack's directory; do not treat it as a shell command. A missing
+pack is an explicit unknown-pack error, and a non-mobile pack follows the normal
+dispatcher. Only follow metadata paths that stay within the installed pack.
+
+Inside the opchain source repository, the equivalent runtime entry point is
+`dispatchMobile(packId)` in `src/lib/pack-dispatch.js`:
 
 ```js
 // from the opchain repo root

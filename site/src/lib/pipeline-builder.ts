@@ -79,6 +79,9 @@ const TEAM_SKILLS: Record<Team, string[]> = {
  * not something these four questions can call for.
  */
 export const NOT_RECOMMENDED: Record<string, string> = {
+  "oc-update": "Use when updating Opchain itself; it is not an application build step.",
+  "oc-hindsight": "Optional review of local learning history, chosen after real work exists.",
+  "oc-evolve": "Optional rule experiments requiring frozen evidence and an external reviewer.",
   "oc-telemetry-ops":
     "opt-in metering of opchain's own skill usage; not driven by what you are building or team size",
 };

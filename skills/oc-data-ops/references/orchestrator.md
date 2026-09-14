@@ -177,8 +177,9 @@ instrumentation (v1.6 "the instrumented pipeline"):
 > prose produced *zero* autonomous invocations, even when the calling SKILL.md
 > was fully in context with an imperative instruction. Where an edge must hold
 > (a commit gate, a pre-PR gate, a deploy gate), it has to be enforced by
-> something outside the catalog: a `PreToolUse` hook from the opchain plugin, a
-> CI check, or a script at the chokepoint. Treat the table below as the contract
+> something outside the catalog: an explicitly installed Git `pre-commit` verifier, a
+> CI check, or a script at the chokepoint. The plugin registers only session and
+> stop hooks; its legacy `PreToolUse` parser is not an enforcement boundary. Treat the table below as the contract
 > you follow when you *are* running, not as a mechanism that runs for you.
 
 When a skill reaches a handoff point, follow this exact pattern:
@@ -292,6 +293,11 @@ right skill and phase based on the request.
 
 ### Smart Routing Table
 
+For repo-local Opchain updates, use **oc-update** (`/oc-update`; read-only
+`/oc-update check`). It preserves checkpoints and telemetry consent; its install
+receipt replaces normal checkpoint writes for this maintenance operation.
+Global/plugin updates remain with the host's plugin manager.
+
 | User says (examples) | Route to | Phase |
 |---|---|---|
 | "Build me an app" / "I have an idea for..." | oc-app-architect | /oc-discover |
@@ -307,6 +313,9 @@ right skill and phase based on the request.
 | "Deploy this" / "Ship it" | oc-deploy-ops | /oc-deploy staging |
 | "Commit my changes" / "Commit and open a PR" / "Push to git" | oc-git-ops | /oc-git-sync |
 | "Can this handle more users?" | oc-scale-ops | /oc-scale audit |
+| "Update opchain" / "Refresh opchain skills" | oc-update | /oc-update |
+| "Review local learning history" / "Review past agent mistakes" | oc-hindsight | /oc-hindsight |
+| "Evaluate a learning rule" / "Test a proposed learning rule" | oc-evolve | /oc-evolve |
 | "Cut a release" / "Ship v1.3" / "Bump versions" / "Draft the changelog" | oc-release-ops | /oc-release plan |
 | "Tag the release" | oc-git-ops | /oc-git-release |
 | "Threat model this app" / "Is this secure enough" / "Security review" | oc-security-auditor | /oc-security posture |
@@ -507,6 +516,10 @@ description: >
   implementation changes need reader-facing documentation. Catalog drift
   (generated catalogs out of sync with source) is oc-repo-ops.
 
+# oc-evolve
+description: >
+  Governed behavior improvement: reflect on recurring failures, propose rules, evaluate task outcomes and review adoption. Use for /oc-evolve, what keeps going wrong, propose a workflow improvement, or evaluate a learned rule.
+
 # oc-fleet-ops
 description: >
   Multi-container / orchestration deployment operator for self-managed infrastructure.
@@ -528,6 +541,10 @@ description: >
   /oc-pr, /oc-push, /oc-git-sync, /oc-git-release, "commit this", "push to git", "create a PR",
   "tag the release", "sync to repo", or any git operation. "Commit and open a PR" is
   /oc-git-sync (branch → commit → push → PR); /oc-pr only drafts the PR description.
+
+# oc-hindsight
+description: >
+  Governed operational memory: harvest outcomes, curate lessons, review provenance, and retrieve approved lessons. Use for /oc-hindsight, remember this failure, find a similar incident, or what did we learn.
 
 # oc-integrations-engineer
 description: >
@@ -717,6 +734,13 @@ description: >
   it, and no prompt content or PII ever leaves the machine. Pairs with oc-cost-ops
   (cost per run) for the cost-per-feature dashboard stats. NOT application or
   production observability (oc-monitoring-ops).
+
+# oc-update
+description: >
+  Check and update Opchain skills installed in the current repository. Use for
+  /oc-update, "update Opchain", "refresh my Opchain skills", or "check for Opchain
+  updates". Preserves telemetry consent, usage history, checkpoints, and unrelated
+  skills. Does not upgrade application dependencies or globally installed plugins.
 
 # oc-ux-engineer
 description: >

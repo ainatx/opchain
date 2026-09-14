@@ -25,11 +25,11 @@ import { expect, test } from "@playwright/test";
  *      ("Build the AI app") added the four AI-native scenarios (RAG, agent,
  *      model migration, AI-safety gate) and retired the two enterprise-MCP
  *      scenarios + the superseded v1.2 PM scenario + the release dogfood;
- *      the set holds at twelve.
+ *      the set now includes fifteen.
  */
 
 // Every scenario folder that must remain pickable on /demo — the full set of
-// twelve, kept in lockstep with site/src/data/walkthroughs/index.ts.
+// fifteen, kept in lockstep with site/src/data/walkthroughs/index.ts.
 const ALL_PICKABLE = [
   "concept-to-shipped",
   "rag-answer-bot",
@@ -43,10 +43,13 @@ const ALL_PICKABLE = [
   "security-hardening",
   "runtime-pm-loop",
   "django-render-shipped",
+  "update-opchain",
+  "bootstrap-opchain",
+  "hindsight-and-evolve",
 ];
 
 test.describe("/changelog", () => {
-  test("three tabs; Just Released is active with the v1.9 hero open", async ({ page }) => {
+  test("three tabs; Just Released is active with the v2.0 hero open", async ({ page }) => {
     await page.goto("/changelog");
 
     // Three ARIA tabs; Just Released is selected by default and its panel is
@@ -59,9 +62,9 @@ test.describe("/changelog", () => {
 
     // The newest release (v1.9) is the accent hero, open on load, tagged
     // with its version + a non-empty compatibility note (changelog-recipe rule).
-    const hero = page.locator("#v1-9.hero-card--released");
+    const hero = page.locator("#v2-0.hero-card--released");
     await expect(hero).toBeVisible();
-    await expect(hero.locator(".hero-ver")).toContainText("v1.9.0 → v1.9.2");
+    await expect(hero.locator(".hero-ver")).toContainText("v2.0.0");
 
     // A patch never creates a new hero: v1.9.1 is a compact rel-card beside it.
     await expect(page.locator("#v1-9-2.rel-card")).toBeVisible();
@@ -90,24 +93,13 @@ test.describe("/changelog", () => {
       .toBeVisible();
   });
 
-  test("Coming Next leads with the committed v2.0 self-improving pipeline", async ({ page }) => {
-    await page.goto("/changelog");
+  test("Coming Next points to v2.1 and the 2.0 deep link opens its release", async ({ page }) => {
+    await page.goto("/changelog#v2-0");
+    await expect(page.locator("#panel-released #v2-0")).toBeVisible();
     await page.locator("#tab-coming").click();
-
     await expect(page.locator("#panel-coming")).toBeVisible();
-    // v1.9 shipped; Coming Next owns the committed v2.0 release (hero card),
-    // open by default and not votable.
-    await expect(page.locator("#v2-0.hero-card--next .hero-title")).toHaveText(
-      /self-improving pipeline/i,
-    );
-    await expect(page.locator("#v2-0 .hero-ver")).toContainText("v2.0");
-    await expect(page.locator("#v2-0 [data-disclosure-toggle]")).toHaveAttribute(
-      "aria-expanded",
-      "true",
-    );
-    await expect(page.locator("#v2-0 [data-vote-target]")).toHaveCount(0);
-    // v1.9 lives in Just Released now, not here.
-    await expect(page.locator("#panel-coming #v1-9")).toHaveCount(0);
+    await expect(page.locator('#panel-coming a[href="/changelog#v2-1"]')).toBeVisible();
+    await expect(page.locator("#panel-coming #v2-0")).toHaveCount(0);
   });
 
   test("Planned establishes voting across v2.1-v2.3", async ({ page }) => {
@@ -191,10 +183,10 @@ test.describe("/changelog", () => {
     ).toHaveAttribute("aria-expanded", "true");
   });
 
-  test("deep-link #v2-0 opens the Coming Next tab and the v2.0 hero", async ({ page }) => {
+  test("deep-link #v2-0 opens the Just Released tab and the v2.0 hero", async ({ page }) => {
     await page.goto("/changelog#v2-0");
-    await expect(page.locator("#tab-coming")).toHaveAttribute("aria-selected", "true");
-    await expect(page.locator("#panel-coming")).toBeVisible();
+    await expect(page.locator("#tab-released")).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#panel-released")).toBeVisible();
     await expect(
       page.locator("#v2-0 [data-disclosure-toggle]"),
     ).toHaveAttribute("aria-expanded", "true");

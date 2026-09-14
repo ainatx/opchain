@@ -1,7 +1,7 @@
 ---
 name: oc-telemetry-ops
 displayName: OC · Telemetry Ops
-version: 1.9.2
+version: 2.0.0
 license: Apache-2.0
 shortDesc: Opt-in, local-first usage metering to .checkpoints/usage.sqlite; anonymized local aggregate export.
 phases: [build]
@@ -90,9 +90,35 @@ TELEMETRY OPS COMMANDS
 
 ## How This Skill Fits the Build Pipeline
 
+### Installed runtime
+
+Run the bundled helper with Node.js 22.13 or newer. Resolve `scripts/telemetry.mjs`
+relative to this installed skill's `SKILL.md`, then invoke its absolute path from
+the project you are working on:
+
+```sh
+node /absolute/path/to/oc-telemetry-ops/scripts/telemetry.mjs status
+node /absolute/path/to/oc-telemetry-ops/scripts/telemetry.mjs record --skill=oc-app-architect --phase=build
+```
+
+The helper finds the consuming Git repository root, including when invoked from
+a subdirectory; outside Git it uses the current directory. `OPCHAIN_ROOT` can
+explicitly select another project. It does not write state into the installed
+skill or plugin cache. No project package.json or npm script is required.
+The opchain source repository also offers `npm run telemetry -- <command>` as
+a convenience; use the bundled helper in other projects.
+
+An installation or update is not telemetry consent. Preserve the existing
+checkpoint, `telemetry_handle.enabled`, anonymous ID, timestamps, and SQLite
+store. Never run `enable` or `disable` as part of updating skills. Missing consent
+stays off. After an update, use `status` to verify the existing setting; an enabled
+checkpoint without a usable store must be reported as unhealthy. Before opting
+in, ensure `.checkpoints/usage.sqlite` and its SQLite journal/WAL/SHM sidecars are
+gitignored, while checkpoint JSON remains tracked.
+
 ```
 every skill run ╌╌(YOU must call)╌► .checkpoints/usage.sqlite   (LOCAL, gitignored)
-   `npm run telemetry -- record`       │  skill, phase, model-tier, cost (from
+   bundled `telemetry.mjs record`      │  skill, phase, model-tier, cost (from
    nothing records automatically       │  oc-cost-ops), timestamp — NO content
                                        ▼
                               /oc-telemetry aggregate

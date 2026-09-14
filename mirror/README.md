@@ -1,6 +1,6 @@
 # opchain
 
-> skills that ship.
+> Opchain 2.0.0 · 36 skills · released September 14, 2026.
 
 A coordinated set of Claude skills covering the full software development
 pipeline — discover, spec, design, build, audit, ship, scale. One skill
@@ -15,9 +15,9 @@ sessions and skills, so work resumes where you left off.
 
 ### Claude Code — plugin (recommended)
 
-Ships the skills *plus* the hooks that enforce them: a commit gate bound to the
-code being committed, pipeline state at session start, and a pointer to the next
-skill when one finishes.
+Ships complete skills and plugin hooks for session context and suggestions.
+Run `/oc-enroll` in each repository to enable the Git commit gate. Installing the
+plugin alone does not enroll repositories or enable learning.
 
 ```
 /plugin marketplace add asfbay-bit/opchain-skills
@@ -35,10 +35,10 @@ claude
 
 ### Claude.ai / Claude Desktop
 
-1. Download any `SKILL.md` from [`skills/`](./skills)
-2. Open Claude → Settings → Customize → Skills
-3. Upload the file
-4. Start a new conversation and trigger it by name
+Download complete skill ZIPs from [Install](https://opchain.dev/install/), then use
+your host's supported skill upload flow. Keep references and runtime files with
+each skill. Local runtime commands require Node.js 22.13 or newer and a host that
+can execute them; a hosted chat without local tools cannot run those commands.
 
 ### Team (check into git)
 
@@ -50,19 +50,22 @@ git push
 
 ### Upgrade
 
-```bash
-# .checkpoints/ is a sibling of .claude/ — never touched by this swap
-rm -rf .claude/skills/
-curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
-unzip opchain-skills.zip -d .claude/skills/
-rm opchain-skills.zip
+For an existing repo installation, ask your coding agent to run:
+
+```text
+/oc-update check
+/oc-update
 ```
 
-Verify the installed version against the published one:
+If you use 1.9 or earlier and the updater is missing, copy the upgrade prompt at
+the top of [Install](https://opchain.dev/install/). It checks the host and published
+release, then installs the complete package. The updater preserves checkpoints,
+local tracking consent, usage history and unrelated skills, and backs up replaced
+Opchain files. Global plugin installations use the host's supported plugin update.
 
-```bash
-curl -sS https://opchain.dev/api/health | jq .version
-```
+Open a new agent session afterward and run `/oc-update check` to verify the
+installed package. Learning remains off until explicitly enabled; provider access
+and an external reviewer must be configured separately.
 
 ---
 
@@ -103,6 +106,9 @@ curl -sS https://opchain.dev/api/health | jq .version
 | `oc-release-ops` | Version bumps, changelogs, release announcements |
 | `oc-orchestrator` | Cross-skill status and routing (`/oc-ops`) |
 | `oc-checkpoint-protocol` | Shared session-persistence schema (bundled in every skill) |
+| `oc-update` | Updates complete skill and runtime files while preserving local state |
+| `oc-hindsight` | Source-backed lessons, retrieval evaluation and external review |
+| `oc-evolve` | Task-tested rule proposals with regression checks and external approval |
 
 Full descriptions, triggers, and examples: https://opchain.dev/skills
 

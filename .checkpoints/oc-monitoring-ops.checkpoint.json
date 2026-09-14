@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-20T03:50:45.264Z",
-  "updated_at": "2026-09-14T00:20:50.764Z",
-  "phase": "staging-baseline",
-  "step": "v1.9.2-staging-complete",
-  "status": "complete",
-  "progress_summary": "Staging monitoring now records deployment 80f1aae5-0b10-49aa-9711-f082b8f94f1d at source 93dc854. Both control-plane environments verified locally; production baseline remains unchanged. Scheduled-monitor success is a later independent observation.",
+  "updated_at": "2026-09-11T14:25:26.803Z",
+  "phase": "observe",
+  "step": "runtime-approval-merged-awaiting-scheduled-cycle",
+  "status": "in_progress",
+  "progress_summary": "2026-09-11: PR #510 merged (534152d) — 78567c2 approved as the post-release production runtime via the baseline's new `runtime` block; release stays v1.9.0 (244bf13). Post-merge default-branch validation dispatched at 14:24Z: Canary (environment=production) run 34609906583 success — control-plane baseline matches v1.9.0 (244bf13) + approved runtime 78567c2; Deploy lag run 34609909497 success — production control-plane ✓, deploy-diff after the runtime found deploy-relevant paths on main and filed tracking issue #513 ('Deploy lag: deploy-relevant changes after approved release') for the next release workstream. Also merged this session: #508 (site Cloudflare adapter chain; clears Dependabot sharp alert #73) and #509 (structural /changelog e2e). Staging still serves the off-main demo-rebuild preview (213d401) by owner decision, so the scheduled all-environment Canary stays red on its staging half until staging is redeployed from main. continuous_monitoring_status returns to healthy for production once the 2026-09-13 scheduled cycle passes.",
   "progress_table": [
     {
       "id": "live-runtime",
@@ -48,15 +48,18 @@
   ],
   "blockers": [],
   "next_actions": [
-    "Review staging and decide separately whether to promote 1.9.2 to production."
+    "Confirm the 2026-09-13 scheduled cycle (Canary 13:47Z, Deploy lag 14:17Z): Deploy lag green with issue #513 refreshed; Canary red only on staging.",
+    "When the demo-rebuild preview is no longer needed on staging: npm run deploy:staging from origin/main, record staging's deployment/version/etag in release-baseline.json, drop pointInTimeEvidence.note — only then does the scheduled all-environment Canary go green.",
+    "Next release workstream: review the deploy-relevant paths in issue #513, approve an exact runtime SHA, deploy it, and remove the baseline `runtime` block when `release` re-binds to the new signed tag (runbook → Approved post-release runtime).",
+    "Keep Cloudflare Free-plan Bot Fight Mode enabled; do not claim a WAF Skip exception, enable workers.dev, or upgrade the plan without new authority.",
+    "Retain CLOUDFLARE_ACCOUNT_ID and rotate CLOUDFLARE_API_TOKEN to a dedicated least-privilege read credential during Phase C8."
   ],
   "context_primer": {
     "key_decisions": [
       "The monitoring design uses authenticated Cloudflare control-plane APIs rather than public GitHub-hosted curl traffic challenged by Bot Fight Mode.",
       "The approved baseline is the signed v1.9.0 tag, not the later non-deploying monitoring or checkpoint commits.",
       "A successful workflow_dispatch validates the new baseline immediately; only a successful event=schedule cycle closes the explicit continuous-monitoring evidence requirement.",
-      "Deploy lag compares origin/main to the immutable release baseline using deploy-relevant paths, so monitoring/checkpoint-only descendants do not trigger false drift incidents.",
-      "2026-09-13 (v1.9.1 Sprint 3 reconciliation): staging is on main again; the remaining step is the staging baseline entry."
+      "Deploy lag compares origin/main to the immutable release baseline using deploy-relevant paths, so monitoring/checkpoint-only descendants do not trigger false drift incidents."
     ],
     "generated_files": [
       ".github/monitoring/release-baseline.json",
@@ -123,8 +126,7 @@
       "git_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
       "health_version": "244bf13",
       "traffic_percent": 100,
-      "live_note": "live since 2026-09-13: redeployed from main at 37e2b4b by the owner; deployment and version ids not yet recorded, so the recorded v1.9.0 entry no longer describes staging",
-      "history_note": "2026-09-11T07:09Z to 2026-09-13: served the off-main demo-rebuild preview 213d401 at deployment 6863e5bc-d479-4381-930a-74bd99cb21e5 / version 715220bc-2c7b-4b2b-abec-9063676b30e3; the recorded v1.9.0 entry is intentionally unchanged (owner decision)"
+      "live_note": "live since 2026-09-11T07:09Z: off-main demo-rebuild preview 213d401 at deployment 6863e5bc-d479-4381-930a-74bd99cb21e5 / version 715220bc-2c7b-4b2b-abec-9063676b30e3; the recorded v1.9.0 entry is intentionally unchanged (owner decision)"
     },
     "live_log_probe": {
       "at": "2026-09-02T20:21:00Z",
@@ -152,7 +154,7 @@
     "scheduled_canary": {
       "default_branch_activation": "active",
       "latest_v1_9_validation_run_id": 33686712301,
-      "latest_v1_9_validation_url": "https://github.com/ainatx/opchain/actions/runs/33686712301",
+      "latest_v1_9_validation_url": "https://github.com/a-atx/opchain/actions/runs/33686712301",
       "latest_v1_9_validation_event": "workflow_dispatch",
       "latest_v1_9_validation_conclusion": "success",
       "latest_successful_scheduled_run_id": 33494989108,
@@ -167,7 +169,7 @@
     },
     "deploy_lag_monitor": {
       "latest_v1_9_validation_run_id": 33686714194,
-      "latest_v1_9_validation_url": "https://github.com/ainatx/opchain/actions/runs/33686714194",
+      "latest_v1_9_validation_url": "https://github.com/a-atx/opchain/actions/runs/33686714194",
       "latest_v1_9_validation_event": "workflow_dispatch",
       "latest_v1_9_validation_conclusion": "success",
       "deploy_relevant_changes": 0,
@@ -229,33 +231,6 @@
       "deploy_relevant_main_paths_after_live": 19,
       "owner_decision": "bless 78567c2 and re-baseline (2026-09-11)",
       "resolution": "2026-09-11: 78567c2 approved as the post-release runtime (PR #510 merged 534152d); validated by dispatch runs 34609906583 (Canary, production) and 34609909497 (Deploy lag → issue #513); staging kept as intentional preview"
-    },
-    "staging_1_9_2": {
-      "ok": true,
-      "verifiedAt": "2026-09-14T00:18:30.803291+00:00",
-      "url": "https://staging.opchain.dev",
-      "sourceSha": "93dc8545929288ca2169e88ca0fd0fc90587c717",
-      "sourceTree": "9f28305915428bc9ea54572718847ccd62e17621",
-      "healthVersion": "93dc854",
-      "catalogVersion": "1.9.2",
-      "skillCount": 33,
-      "releaseCards": 20,
-      "voteTargets": 7,
-      "releaseCardPresent": true,
-      "hostedReferenceManifestAndCanonicalLegacyReads": "PASS",
-      "deployWrapperHardeningAndSmoke": "PASS",
-      "productPr": 536,
-      "sitePr": 537,
-      "tag": "v1.9.2",
-      "tagObject": "078e554a693b04b9655430c3e6b568761b6bcf4d",
-      "productCommit": "7ccdacf04c9ac59f62309c371de357acd9b81839",
-      "registryPublicationRun": 34791781955,
-      "productCiRun": 34791420579,
-      "productLighthouseRun": 34791420546,
-      "productionPromoted": false,
-      "siteCiRun": 34791901798,
-      "siteLighthouseRun": 34791901886
     }
-  },
-  "record_updated_at": "2026-09-14T00:20:50.764Z"
+  }
 }

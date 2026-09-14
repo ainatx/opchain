@@ -1,7 +1,7 @@
 ---
 name: oc-checkpoint-protocol
 displayName: OC · Checkpoint Protocol
-version: 1.9.2
+version: 2.0.0
 license: Apache-2.0
 shortDesc: Session persistence across skills — JSON checkpoint contract + status/next/doctor/validate tooling, catches drift.
 phases: [foundation]
@@ -388,12 +388,28 @@ catalog. Treat that as the single source of truth; this table is just the common
 
 ---
 
-## Tooling (optional — opchain.dev repo only)
+## Tooling (optional — bundled project helper)
+
+The `oc-checkpoint-protocol` skill includes `scripts/checkpoint.mjs`. Resolve
+that path relative to this skill's installed `SKILL.md` and run its absolute
+path from the consuming project:
+
+```sh
+node /absolute/path/to/oc-checkpoint-protocol/scripts/checkpoint.mjs status
+node /absolute/path/to/oc-checkpoint-protocol/scripts/checkpoint.mjs validate
+```
+
+The launcher finds the consuming Git repository root, even from a subdirectory;
+outside Git it uses the current directory. An explicit `OPCHAIN_ROOT` overrides
+discovery. State stays in the consuming project's `.checkpoints/`, never in the
+skill installation or plugin cache. The same commands below work with this
+bundled path substituted for `scripts/checkpoint.mjs`; no npm setup is needed.
+Installing or updating the helper must not initialize or overwrite checkpoints.
 
 > **This entire section is an optional fast-path, not a requirement.** The commands
-> below exist only inside the opchain.dev repo, where `scripts/checkpoint.mjs` and the
-> `checkpoint:*` `package.json` scripts are present. **On a user's own project none of
-> this exists — and that is expected.** You still create, read, and update checkpoints
+> below use the opchain.dev source repo's `scripts/checkpoint.mjs` and
+> `checkpoint:*` npm aliases. In installed projects, use the bundled helper above.
+> If that helper is unavailable, you still create, read, and update checkpoints
 > directly with your file tools (see *How to Write* above). If any command in this
 > section is not found, skip it and write the file yourself; a missing
 > `scripts/checkpoint.mjs` is never a reason not to checkpoint.
@@ -735,9 +751,11 @@ reason about quality trend, not just pass/fail.
 
 Links a checkpoint to its rows in the local `usage.sqlite` metering store
 *without storing any PII or content*. **Default stance is OFF** — the field's
-mere presence is not consent; `enabled: true` is. A string value is just an
-anonymous handle; the object form additionally carries the opt-in flag, sink
-path, and start time. The validator accepts a non-empty string or an object
+presence never grants consent, including a copied `enabled: true` value. Only
+local SQLite metadata written by an explicit telemetry enable operation grants
+permission on this machine. A string is an anonymous handle; the legacy object
+may carry historical status, sink path and start time. Neither form enables
+tracking in a clone. The validator accepts a non-empty string or an object
 whose `enabled` (when present) is boolean, `id`/`sink` are strings, and `since`
 is ISO-8601. `oc-telemetry-ops` owns the metering store and the consent gate;
 the checkpoint only carries the link.

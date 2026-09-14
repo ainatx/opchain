@@ -241,6 +241,10 @@ const DEFINITIONS = [
     // v1.6 "The instrumented pipeline" — cost + telemetry instrumentation.
     "oc-cost-ops",
     "oc-telemetry-ops",
+    // v2.0 candidate; isolated until the product release cut.
+    "oc-update",
+    "oc-hindsight",
+    "oc-evolve",
     // v1.7 "Seams & Signals" — analytics-signals backend, monolith
     // decomposition, and self-managed fleet deployment.
     "oc-signal-forge",
@@ -294,6 +298,9 @@ const DEFINITIONS = [
     "/oc-claude-api", "/oc-rag", "/oc-agent", "/oc-prompt",
     // v1.6 instrumentation verbs. Subcommands inherit the parent verb.
     "/oc-cost", "/oc-telemetry",
+    "/oc-update",
+    "/oc-hindsight",
+    "/oc-evolve",
     // v1.7 "Seams & Signals" verbs. Subcommands inherit the parent verb.
     "/oc-signal", "/oc-modularize", "/oc-fleet",
     // v1.8.3: the release-tag verb. oc-release-ops always handed off "the merge /

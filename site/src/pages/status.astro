@@ -139,16 +139,16 @@ import Card from "../components/ui/Card.astro";
     transition: background var(--dur-base) var(--ease-standard), box-shadow var(--dur-base) var(--ease-standard);
   }
   .overall[data-state="ok"] .dot {
-    background: var(--success, #0D9488);
-    box-shadow: 0 0 12px color-mix(in srgb, var(--success, #0D9488) 60%, transparent);
+    background: var(--success);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--success) 60%, transparent);
   }
   .overall[data-state="degraded"] .dot {
-    background: var(--warning, #f59e0b);
-    box-shadow: 0 0 12px color-mix(in srgb, var(--warning, #f59e0b) 60%, transparent);
+    background: var(--warning);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--warning) 60%, transparent);
   }
   .overall[data-state="down"] .dot {
-    background: var(--danger, #F43F5E);
-    box-shadow: 0 0 12px color-mix(in srgb, var(--danger, #F43F5E) 60%, transparent);
+    background: var(--danger);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--danger) 60%, transparent);
   }
   .overall[data-state="loading"] .dot {
     background: var(--accent);

@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-14T00:20:50.982Z",
+  "updated_at": "2026-09-14T06:50:40.186Z",
   "skill": "oc-repo-ops",
-  "phase": "verify",
+  "phase": "pr-verify",
   "status": "complete",
-  "step": "v1.9.2-staging-baseline-reviewed",
-  "progress_summary": "1.9.2 final review PASS for pr-readiness-v1. Source identity is bound by the typed handoff. Fresh executable verification and required remote CI remain separate gates.",
+  "step": "claude/lhci-ci-failures-analysis-s525xz",
+  "progress_summary": "Pre-PR readiness PASS for the CI-failure analysis branch at 3a662ab30fa9ad1ea1c150ac533efda19909ce56. The Docs Forge packet carries the Documentation section. npm run build ran the full prebuild chain (gen-catalog 33 skills, check-skill-flags, sync-bundles:check, sync-plugin-skills:check, lint-internal-refs) clean; vitest 45 files / 598 tests; astro check 0 errors; deploy-lag.yml parses and its safety pins hold; the OG images the sandbox build regenerated were restored, not committed; no related untracked file left behind.",
   "context_primer": {
     "key_decisions": [
       "Repo Ops evaluated the four workflow changes, four current documentation surfaces, and the Docs Forge packet.",
@@ -16,8 +16,7 @@
       "Production Lighthouse and the release ledger retain manual dispatch and move to weekly Monday schedules.",
       "Historical plans and changelogs remain point-in-time records; current operator docs and specs were updated.",
       "No catalog, skill bundle, plugin payload, release seal, deployment, or runtime code changes are in scope.",
-      "The implementation commit and DCO signoff are attributed to ainatx so scheduled workflow ownership can follow the new repository owner.",
-      "2026-09-13 (v1.9.1 Sprint 3 reconciliation): the PR #498 packet verified a pre-squash branch tip that never reached main; the PASS is kept as history in skill_state.last_verified_pr and no longer offered as a current verified_for_sha."
+      "The implementation commit and DCO signoff are attributed to ainatx so scheduled workflow ownership can follow the new repository owner."
     ],
     "generated_files": [
       ".checkpoints/oc-repo-ops.checkpoint.json"
@@ -26,139 +25,103 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [],
+    "warnings": [
+      "commits are authored by the session identity Claude <noreply@anthropic.com>; the human DCO sign-off lands with the squash-merge"
+    ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
+    "verified_for_sha": "3a662ab30fa9ad1ea1c150ac533efda19909ce56",
     "last_verify": {
       "at": "2026-09-11T04:15:18Z",
       "branch": "claude/lhci-ci-failures-analysis-s525xz",
       "base": "origin/main@02776fecf380fdb83389a480d2c5b3d65fee60e4",
       "verdict": "PASS",
       "blocking_findings": []
-    },
-    "last_verified_pr": {
-      "pr": 498,
-      "branch": "claude/lhci-ci-failures-analysis-s525xz",
-      "branch_tip_sha": "3a662ab30fa9ad1ea1c150ac533efda19909ce56",
-      "merged_as": "ffad47c",
-      "merged_at": "2026-09-11T08:18:21Z"
-    },
-    "verified_for_candidate": {
-      "kind": "git_tree_projection",
-      "id": "sha256:21d9e302956417d0f325e814841c51ebd86a890a4b2a24e570de4eab762e8bff"
     }
   },
   "next_actions": [],
   "handoffs": [
     {
-      "id": "oc-repo-ops-192-73903f8b6856",
+      "id": "oc-repo-ops-release-f6b167fcbd3a",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-09-13T23:52:21.043995Z",
-      "verified_at": "2026-09-13T23:52:21.043995Z",
+      "created_at": "2026-09-14T06:46:15.049Z",
+      "verified_at": "2026-09-14T06:46:15.049Z",
       "producer": {
         "skill": "oc-repo-ops",
-        "run_id": "release-192-final-review"
+        "run_id": "v2-production-cut"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:73903f8b6856443db0fef272db44c21d4bb0f604b9f6bf7b0219ba0cec1c20d5"
+        "id": "sha256:f6b167fcbd3a58a16e1c3dede716c34797f4ad2000957da90a1833b4e0db03eb"
       },
       "payload": {
-        "policy": "pr-readiness-v1",
         "verdict": "PASS",
-        "evidence_directory": ".checkpoints/release-1.9.2"
+        "policy": "pr-readiness-v1",
+        "scope": "Reviewed production cut from 1cf060a: main history reconciliation, release date/docs, staging marker removal and isolated preview guard regression. No runtime implementation or publisher changes.",
+        "evidence": [
+          "docs/audits/2026-09-14-v2-production-cut.md",
+          "docs/releases/2.0-production-release.md",
+          "docs/audits/2026-09-14-pr490-staging-merge.md",
+          "docs/audits/2026-09-14-demos-install-staging-review.md"
+        ]
       }
     },
     {
-      "id": "oc-repo-ops-192-c5e6f5f3bff9",
+      "id": "oc-repo-ops-release-8b747a6789d8",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-09-13T23:57:39.846738Z",
-      "verified_at": "2026-09-13T23:57:39.846738Z",
+      "created_at": "2026-09-14T06:48:10.360Z",
+      "verified_at": "2026-09-14T06:48:10.360Z",
       "producer": {
         "skill": "oc-repo-ops",
-        "run_id": "release-192-final-review"
+        "run_id": "v2-production-cut"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:c5e6f5f3bff9c9c88522cbb3af1d78f4175ce32edd2891a2db0a9e67abe963b6"
+        "id": "sha256:8b747a6789d8b545978d960e7a9b26a4662a62c479d54878182b5aba98711c7c"
       },
       "payload": {
-        "policy": "pr-readiness-v1",
         "verdict": "PASS",
-        "evidence_directory": ".checkpoints/release-1.9.2"
+        "policy": "pr-readiness-v1",
+        "scope": "Reviewed production cut from 1cf060a: main history reconciliation, release docs and packaged changelog, staging marker and unused banner removal, isolated preview guard regression. No runtime or publisher changes.",
+        "evidence": [
+          "docs/audits/2026-09-14-v2-production-cut.md",
+          "docs/releases/2.0-production-release.md",
+          "docs/audits/2026-09-14-pr490-staging-merge.md",
+          "docs/audits/2026-09-14-demos-install-staging-review.md"
+        ]
       }
     },
     {
-      "id": "oc-repo-ops-192-c1c990cb676d",
+      "id": "oc-repo-ops-release-afeea4aa1686",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-09-14T00:01:49.353887Z",
-      "verified_at": "2026-09-14T00:01:49.353887Z",
+      "created_at": "2026-09-14T06:50:40.115Z",
+      "verified_at": "2026-09-14T06:50:40.115Z",
       "producer": {
         "skill": "oc-repo-ops",
-        "run_id": "release-192-final-review"
+        "run_id": "v2-production-cut"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:c1c990cb676da7620aa606e7a4eeca0a2c0fed02b8cef82073ea2eb98bcf5696"
+        "id": "sha256:afeea4aa16867470142de3102e652dc5ac3b4e3a105fa08f21706af3ddceee35"
       },
       "payload": {
-        "policy": "pr-readiness-v1",
         "verdict": "PASS",
-        "evidence_directory": ".checkpoints/release-1.9.2"
-      }
-    },
-    {
-      "id": "oc-repo-ops-192-1b18416f52be",
-      "contract_version": "1.0",
-      "type": "verification.verdict",
-      "created_at": "2026-09-14T00:10:24.910500Z",
-      "verified_at": "2026-09-14T00:10:24.910500Z",
-      "producer": {
-        "skill": "oc-repo-ops",
-        "run_id": "release-192-site-review"
-      },
-      "candidate": {
-        "kind": "git_tree_projection",
-        "id": "sha256:1b18416f52be7b482e55fce9b51e140b1793039b4ed305d0a465c362b9b69d5b"
-      },
-      "payload": {
         "policy": "pr-readiness-v1",
-        "verdict": "PASS",
-        "evidence_directory": ".checkpoints/release-1.9.2"
-      }
-    },
-    {
-      "id": "oc-repo-ops-192-21d9e3029564",
-      "contract_version": "1.0",
-      "type": "verification.verdict",
-      "created_at": "2026-09-14T00:20:50.843829Z",
-      "verified_at": "2026-09-14T00:20:50.843829Z",
-      "producer": {
-        "skill": "oc-repo-ops",
-        "run_id": "release-192-staging-baseline-review"
-      },
-      "candidate": {
-        "kind": "git_tree_projection",
-        "id": "sha256:21d9e302956417d0f325e814841c51ebd86a890a4b2a24e570de4eab762e8bff"
-      },
-      "payload": {
-        "policy": "pr-readiness-v1",
-        "verdict": "PASS",
-        "evidence_directory": ".checkpoints/release-1.9.2"
+        "scope": "Reviewed production cut and public installation documentation, including complete packages, safe updater and explicit enrollment. Main history reconciled; preview marker and unused banner removed; guard preserved. No runtime or publisher changes.",
+        "evidence": [
+          "docs/audits/2026-09-14-v2-production-cut.md",
+          "docs/releases/2.0-production-release.md",
+          "docs/audits/2026-09-14-pr490-staging-merge.md",
+          "docs/audits/2026-09-14-demos-install-staging-review.md"
+        ]
       }
     }
   ],
-  "verified_at": "2026-09-14T00:20:50.843829Z",
-  "candidate": {
-    "kind": "git_tree_projection",
-    "id": "sha256:21d9e302956417d0f325e814841c51ebd86a890a4b2a24e570de4eab762e8bff"
-  },
-  "blockers": [],
-  "record_updated_at": "2026-09-14T00:20:50.982Z"
+  "record_updated_at": "2026-09-14T06:50:40.186Z"
 }

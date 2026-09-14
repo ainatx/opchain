@@ -355,6 +355,9 @@ function warnIfBaselineStale(liveVersion) {
 `);
 }
 
+if (!STAGING && fs.existsSync(path.join(REPO_ROOT, "release-preview.json"))) {
+  throw new Error("This tree is a staging preview. Complete the release review and remove release-preview.json before production.");
+}
 assertDeployFromMain();
 assertCleanCheckout("preflight");
 assertReleaseTagged();

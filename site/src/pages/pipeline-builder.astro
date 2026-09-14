@@ -321,7 +321,7 @@ const catalogJson = JSON.stringify(catalog).replace(/</g, "\\u003c");
   }
   .progress li::before {
     content: attr(data-step) " · ";
-    color: var(--dim);
+    color: var(--subtle);
   }
   .progress li.active {
     color: var(--accent);
@@ -329,7 +329,7 @@ const catalogJson = JSON.stringify(catalog).replace(/</g, "\\u003c");
     background: var(--accent-dim);
   }
   .progress li.done { color: var(--muted); border-color: var(--muted); }
-  .progress li.done::before { color: var(--success, #0D9488); }
+  .progress li.done::before { color: var(--success); }
 
   .wizard { display: block; }
   .step {
@@ -434,9 +434,9 @@ const catalogJson = JSON.stringify(catalog).replace(/</g, "\\u003c");
   }
   .back:hover { color: var(--text); border-color: var(--accent); }
   .next {
-    background: var(--accent);
+    background: var(--accent-fill);
     color: var(--on-accent);
-    border-color: var(--accent);
+    border-color: var(--accent-fill);
     font-weight: 600;
     margin-left: auto;
   }
@@ -504,9 +504,9 @@ const catalogJson = JSON.stringify(catalog).replace(/</g, "\\u003c");
     font-family: var(--font-mono);
     font-size: 12px;
     line-height: var(--lh-base);
-    background: var(--obsidian);
-    color: var(--linen);
-    border: 0.5px solid var(--slag);
+    background: var(--bg);
+    color: var(--text);
+    border: 0.5px solid var(--border);
     border-radius: var(--r-md);
     padding: 0.85rem 1.1rem;
     overflow-x: auto;
@@ -544,9 +544,9 @@ const catalogJson = JSON.stringify(catalog).replace(/</g, "\\u003c");
   }
   .download-btn {
     appearance: none;
-    background: var(--accent);
+    background: var(--accent-fill);
     color: var(--on-accent);
-    border: 0.5px solid var(--accent);
+    border: 0.5px solid var(--accent-fill);
     font: inherit;
     font-family: var(--font-mono);
     font-size: var(--fs-sm);
@@ -586,9 +586,9 @@ const catalogJson = JSON.stringify(catalog).replace(/</g, "\\u003c");
     border: 0.5px solid var(--border);
   }
   .cta-primary {
-    background: var(--accent);
+    background: var(--accent-fill);
     color: var(--on-accent);
-    border-color: var(--accent);
+    border-color: var(--accent-fill);
     font-weight: 600;
   }
   .cta-primary:hover { filter: brightness(1.05); }
@@ -865,8 +865,8 @@ const catalogJson = JSON.stringify(catalog).replace(/</g, "\\u003c");
     downloadStatus.hidden = false;
     downloadStatus.textContent = msg;
     const color = kind === "ok"
-      ? "var(--success, #0D9488)"
-      : "var(--in-progress, #f59e0b)";
+      ? "var(--success)"
+      : "var(--warning)";
     downloadStatus.setAttribute("style", `color: ${color}`);
   }
 

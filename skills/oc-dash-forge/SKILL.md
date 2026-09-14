@@ -1,7 +1,7 @@
 ---
 name: oc-dash-forge
 displayName: OC · Dash Forge
-version: 1.9.2
+version: 2.0.0
 license: Apache-2.0
 shortDesc: Dashboards, BI, dense data — design spec + React prototype. v1.2 attaches the handoff bundle to the linked PM ticket.
 phases: [plan]
