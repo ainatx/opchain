@@ -52,8 +52,12 @@
     "scan_exceptions": {
       "anti_patterns": [
         {
+          "path": "docs/audits/2026-09-11-skillchain-2.0-audit.md",
+          "digest": "sha256:af52d0f3bcb333a45e761990620516e7121f4f82d795ba7848d78039bb98e2e3"
+        },
+        {
           "path": "plugins/opchain/skills/oc-bug-check/SKILL.md",
-          "digest": "sha256:fcbe516b19af1802a132e13edef21c2d81f4823f977768b9a4db29aad6d54031"
+          "digest": "sha256:5c8a2869c454dde41808ef16cb11a119d1fa2970b807d2f324e079869a012358"
         },
         {
           "path": "plugins/opchain/skills/oc-bug-check/TRYIT.md",
@@ -61,15 +65,15 @@
         },
         {
           "path": "plugins/opchain/skills/oc-bug-check/references/check-patterns.md",
-          "digest": "sha256:4f6235785eeafdf161c68c493d3ba065323f9bcbba54abc6eb54721573111510"
+          "digest": "sha256:1244fafbac665626b1f662010b9f4d126a9c83753c14175dc26ccacddcdac4ea"
         },
         {
           "path": "plugins/opchain/skills/oc-bug-check/references/output-templates.md",
-          "digest": "sha256:0a1f8e6763b5dca8c436e629128920e45c44c1ff5b36d668412e9417fba69549"
+          "digest": "sha256:b0b10a6f45e5ac1652ff966d246fe9fe067bc3111fe8e12370328714b5fa4bc3"
         },
         {
           "path": "skills/oc-bug-check/SKILL.md",
-          "digest": "sha256:fcbe516b19af1802a132e13edef21c2d81f4823f977768b9a4db29aad6d54031"
+          "digest": "sha256:5c8a2869c454dde41808ef16cb11a119d1fa2970b807d2f324e079869a012358"
         },
         {
           "path": "skills/oc-bug-check/TRYIT.md",
@@ -77,11 +81,11 @@
         },
         {
           "path": "skills/oc-bug-check/references/check-patterns.md",
-          "digest": "sha256:4f6235785eeafdf161c68c493d3ba065323f9bcbba54abc6eb54721573111510"
+          "digest": "sha256:1244fafbac665626b1f662010b9f4d126a9c83753c14175dc26ccacddcdac4ea"
         },
         {
           "path": "skills/oc-bug-check/references/output-templates.md",
-          "digest": "sha256:0a1f8e6763b5dca8c436e629128920e45c44c1ff5b36d668412e9417fba69549"
+          "digest": "sha256:b0b10a6f45e5ac1652ff966d246fe9fe067bc3111fe8e12370328714b5fa4bc3"
         }
       ],
       "secrets": [
@@ -90,20 +94,28 @@
           "digest": "sha256:2dfad47ab8ffba2428b141bd02bbfb1c8227454edf30c51d6da1c92082a6196c"
         },
         {
+          "path": "docs/audits/2026-09-11-skillchain-2.0-audit.md",
+          "digest": "sha256:af52d0f3bcb333a45e761990620516e7121f4f82d795ba7848d78039bb98e2e3"
+        },
+        {
           "path": "plugins/opchain/skills/oc-bug-check/SKILL.md",
-          "digest": "sha256:fcbe516b19af1802a132e13edef21c2d81f4823f977768b9a4db29aad6d54031"
+          "digest": "sha256:5c8a2869c454dde41808ef16cb11a119d1fa2970b807d2f324e079869a012358"
         },
         {
           "path": "plugins/opchain/skills/oc-bug-check/references/check-patterns.md",
-          "digest": "sha256:4f6235785eeafdf161c68c493d3ba065323f9bcbba54abc6eb54721573111510"
+          "digest": "sha256:1244fafbac665626b1f662010b9f4d126a9c83753c14175dc26ccacddcdac4ea"
         },
         {
           "path": "skills/oc-bug-check/SKILL.md",
-          "digest": "sha256:fcbe516b19af1802a132e13edef21c2d81f4823f977768b9a4db29aad6d54031"
+          "digest": "sha256:5c8a2869c454dde41808ef16cb11a119d1fa2970b807d2f324e079869a012358"
         },
         {
           "path": "skills/oc-bug-check/references/check-patterns.md",
-          "digest": "sha256:4f6235785eeafdf161c68c493d3ba065323f9bcbba54abc6eb54721573111510"
+          "digest": "sha256:1244fafbac665626b1f662010b9f4d126a9c83753c14175dc26ccacddcdac4ea"
+        },
+        {
+          "path": "tests/audit-commit/compatibility.test.js",
+          "digest": "sha256:2c6617d063c8358791c4586500400c00100ddb7faaf0932b90ed763c1a5d71b3"
         }
       ]
     }

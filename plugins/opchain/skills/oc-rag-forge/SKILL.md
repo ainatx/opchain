@@ -1,7 +1,7 @@
 ---
 name: oc-rag-forge
 displayName: OC · RAG Forge
-version: 1.9.0
+version: 1.9.2
 license: Apache-2.0
 shortDesc: Design and build RAG systems — vector DB choice, embeddings, chunking, hybrid search, retrieval eval. Tri-agent.
 phases: [build, ai-native]
@@ -11,6 +11,14 @@ commands:
   - /oc-rag
   - /oc-rag eval
   - /oc-rag bench
+  - /oc-rag design
+  - /oc-rag build
+  - /oc-rag chunk
+  - /oc-rag embed
+  - /oc-rag hybrid
+  - /oc-rag goldset
+  - /oc-rag regress
+  - /oc-rag inspect
 description: >
   Retrieval-augmented generation harness with a Designer/Builder/Evaluator
   loop. Owns vector DB selection (pgvector, Turbopuffer, Pinecone, Supabase
@@ -33,8 +41,8 @@ governance:
 Tri-agent retrieval harness: the **Designer** picks the retrieval architecture
 (vector DB, embedding model, chunking strategy, search mode) → the **Builder**
 materialises the ingestion + retrieval pipeline and indexes a corpus → the
-**Evaluator** scores retrieval quality against a labelled set with isolated
-context and gates the system on recall/MRR/nDCG/faithfulness thresholds.
+**Evaluator** scores retrieval quality against a labelled set, grading from the labels
+alone, and gates the system on recall/MRR/nDCG/faithfulness thresholds.
 
 RAG is not "embed some docs and hope." Every default — chunk size, `k`, the
 embedding model, whether you rerank — moves a measurable metric, and the only
@@ -119,7 +127,7 @@ CORPUS + RETRIEVAL INTENT
 1. **Self-graded retrieval is fiction.** Whoever builds the pipeline picks the
    chunk size, the `k`, the embedding model — and then eyeballs three queries
    that happen to work. The Evaluator runs a *labelled* set (query → known-relevant
-   docs) with isolated context and reports recall@k, MRR, and nDCG. "It looks
+   docs), grading from the labels alone, and reports recall@k, MRR, and nDCG. "It looks
    like it's finding the right stuff" is not a measurement.
 
 2. **The generation hides retrieval failure.** A strong model (Claude) will
@@ -161,15 +169,17 @@ scars to prove that defaults matter. Key behaviors:
   ranking. The Designer commits to a *candidate set* (e.g. `text-embedding-3-large`,
   Cohere `embed-v4`, Voyage `voyage-3`, open `bge-large`) for the Builder to bench.
 - **Declare the metric targets up front.** "recall@10 ≥ 0.90, MRR ≥ 0.75,
-  faithfulness ≥ 0.95" before building. Targets the Designer can't justify from the
-  product's tolerance for a missed answer aren't real targets.
+  faithfulness ≥ 0.95, answer relevance ≥ 0.85" before building. Targets the
+  Designer can't justify from the product's tolerance for a missed answer aren't
+  real targets.
 
 ### Designer Workflow
 
 1. Read upstream context: corpus description, `oc-app-architect` `02-architecture.md`
    (is this a knowledge base? semantic search? agentic retrieval?), the chosen
-   generation model from `oc-claude-api` (it bounds the context budget you can
-   spend on retrieved chunks).
+   generation model from `oc-claude-api` — its routing decision in
+   `context_primer.key_decisions` or `11-ai-architecture.md`, never its private
+   `skill_state` (it bounds the context budget you can spend on retrieved chunks).
 2. Walk the **vector-DB decision tree** → `references/vector-db-decision.md`.
 3. Walk the **embedding-model decision tree** → `references/embedding-models.md`.
 4. Pick a **chunking strategy** → `references/chunking-strategies.md`.
@@ -179,8 +189,9 @@ scars to prove that defaults matter. Key behaviors:
 
 ### Vector-DB Decision Tree
 
-These map 1:1 to `oc-stack-forge` packs with `kind: vector-db`. The Designer
-recommends; `oc-stack-forge` provisions.
+These map 1:1 to `oc-stack-forge` packs with `kind: vector-db`
+(`skills/oc-stack-forge/packs/<id>/pack.yml` + `vector.md`). The Designer
+recommends; provisioning follows that pack's `vector.md`.
 
 ```
 Already on Postgres + < ~1M chunks + ops-simplicity wins?
@@ -276,6 +287,7 @@ Confirm with the user. Write checkpoint: phase `designed`.
 - MRR ≥ 0.75
 - nDCG@10 ≥ 0.80
 - faithfulness ≥ 0.95 (end-to-end, on the generation)
+- answer relevance ≥ 0.85 (end-to-end, on the generation)
 ```
 
 **Evaluator reviews** and pushes back if:
@@ -286,8 +298,11 @@ Confirm with the user. Write checkpoint: phase `designed`.
 
 ### Step 2: Builder Implements
 
-Builder reads the chosen vector-DB pack from the `oc-stack-forge` checkpoint and
-uses that pack's client + index config rather than reinventing it:
+Builder reads oc-stack-forge's `packs/<id>/vector.md` for the chosen pack (the id
+recorded in `skill_state.stack_forge_pack` at design approval) and uses
+that pack's setup + query config rather than reinventing it. oc-stack-forge's
+checkpoint carries no vector-DB field; if the pack files are not installed, gather
+the platform + client details from the user and proceed standalone:
 
 | Vector DB (stack-forge pack) | Index | Hybrid support | Client pattern |
 |---|---|---|---|
@@ -303,8 +318,9 @@ prefix content — coordinate chunk ordering with prompt-caching boundaries.
 
 ### Step 3: Evaluator
 
-The Evaluator runs with **isolated context** — it sees the goldset and the live
-retrieval function, not the Builder's tuning rationale.
+The Evaluator runs in the same session as the Builder, so its separation is a
+discipline, not a mechanism: grade from the goldset and the live retrieval function
+alone — set aside the Builder's tuning rationale.
 
 **Evaluator Persona.** A retrieval QA engineer who trusts numbers over demos. Key
 behaviors:
@@ -406,7 +422,7 @@ blows the latency budget is not the answer.
 | Concern | Owner | Why |
 |---|---|---|
 | The generation model, prompt caching of retrieved context, citations | `oc-claude-api` | RAG Forge surfaces chunks; oc-claude-api turns them into answers |
-| Provisioning the vector DB (Postgres, Turbopuffer, Pinecone, Supabase) | `oc-stack-forge` | Owns the `kind: vector-db` packs; RAG Forge selects, stack-forge provisions |
+| Provisioning the vector DB (Postgres, Turbopuffer, Pinecone, Supabase) | `oc-stack-forge` packs | Owns the `kind: vector-db` pack docs; RAG Forge selects a pack and follows its `vector.md` |
 | The app/data model the corpus lives in | `oc-app-architect` | RAG Forge is invoked *by* it for the retrieval surface |
 | Prompt versioning / eval datasets for the *generation* prompt | `oc-prompt-ops` | Prompt-side evals; RAG Forge owns *retrieval* evals |
 | Embedding *batch jobs* at scale, capacity math | `oc-scale-ops` | RAG Forge declares throughput needs; scale-ops sizes |
@@ -423,10 +439,11 @@ Sibling skills provision, generate, deploy, and monitor around it.
 | Skill | How it connects |
 |---|---|
 | **oc-app-architect** | Auto-invokes RAG Forge when `02-architecture.md` calls for a knowledge base, semantic search, or agentic retrieval. RAG Forge returns the retrieval design into the architecture spec. |
-| **oc-stack-forge** | Vector-DB choice maps to a `kind: vector-db` pack (`pgvector`, `turbopuffer`, `pinecone`, `supabase-vectors`). RAG Forge selects; stack-forge provisions + emits the client config. |
+| **oc-stack-forge** | Vector-DB choice maps to a `kind: vector-db` pack (`pgvector`, `turbopuffer`, `pinecone`, `supabase-vectors`). The packs are leaf docs selected by RAG Forge; RAG Forge reads the pack's `vector.md` directly (oc-stack-forge has no vector-DB verb or checkpoint field). |
 | **oc-claude-api** | Owns the generation model. RAG Forge pulls the model's context budget (how many chunks fit) and coordinates chunk ordering with prompt-caching boundaries. Citations/grounding live there. |
 | **oc-prompt-ops** | Owns generation-prompt versioning + evals. RAG Forge's goldset is the *retrieval* analogue; the two regression suites run side by side. |
-| **oc-deploy-ops** | Receives the frozen retrieval config + ingestion pipeline; gates prod on the regression goldset passing. |
+| **oc-deploy-ops** | Hand-off only: receives the frozen retrieval config + ingestion pipeline. oc-deploy-ops runs no goldset gate; the regression run is the CI job registered at PASS (Step 4). |
+| **oc-agent-forge** | When an agent searches a corpus, agent-forge wires the frozen retrieval function as a tool in its allowlist. |
 | **oc-monitoring-ops** | Watches live retrieval: recall drift as the corpus grows, embedding-model deprecations, p95 latency. |
 | **oc-security-auditor** | Reviews multi-tenant metadata-filter isolation and PII-in-embeddings exposure. |
 | **oc-scale-ops** | Sizes the embedding batch jobs and the index at projected corpus volume. |
@@ -434,6 +451,10 @@ Sibling skills provision, generate, deploy, and monitor around it.
 ---
 
 ## Checkpoint Integration
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-rag-forge.
 
 ### Checkpoint Location
 `{project-dir}/.checkpoints/oc-rag-forge.checkpoint.json`
@@ -447,6 +468,7 @@ Sibling skills provision, generate, deploy, and monitor around it.
 | Builder completes | Corpus size, chunk count, index name, ingest pipeline path |
 | Evaluator runs | Per-metric values vs targets, failure analysis, round number |
 | Bench runs | Full config matrix, recommended config |
+| Config frozen (PASS) | Append the frozen config + verdict to `context_primer.key_decisions` (the sibling-readable copy) |
 | Regression gate | Pass/fail + delta vs last frozen config |
 
 ### skill_state
@@ -460,7 +482,7 @@ Sibling skills provision, generate, deploy, and monitor around it.
   "search": { "mode": "hybrid", "reranker": "cohere-rerank-v3.5", "retrieve_k": 40, "final_k": 10 },
   "corpus": { "docs": 4200, "chunks": 12400 },
   "goldset": { "path": "rag/goldset.jsonl", "queries": 80 },
-  "targets": { "recall_at_10": 0.90, "mrr": 0.75, "ndcg_at_10": 0.80, "faithfulness": 0.95 },
+  "targets": { "recall_at_10": 0.90, "mrr": 0.75, "ndcg_at_10": 0.80, "faithfulness": 0.95, "answer_relevance": 0.85 },
   "last_eval": {
     "round": 3,
     "verdict": "PASS",
@@ -474,13 +496,14 @@ Sibling skills provision, generate, deploy, and monitor around it.
 | Reads from | Why |
 |---|---|
 | oc-app-architect | `02-architecture.md` retrieval intent + corpus description |
-| oc-stack-forge | Chosen vector-DB pack + provisioned index config |
-| oc-claude-api | Generation model + context budget for retrieved chunks |
+| oc-stack-forge packs | `packs/<id>/vector.md` setup + query config (files, not a checkpoint) |
+| oc-claude-api | Generation model + context budget, from `context_primer.key_decisions` / `11-ai-architecture.md` |
 
-| Read by | Why |
+| Read by | Why (siblings read `context_primer` and the files, never `skill_state`) |
 |---|---|
 | oc-claude-api | Retrieved chunks feed the generation prompt (+ caching boundaries) |
-| oc-deploy-ops | Frozen config + regression goldset as a deploy gate |
+| oc-agent-forge | Frozen retrieval function to wire as an agent tool |
+| oc-deploy-ops | Frozen config + `rag/goldset.jsonl` (advisory; no deploy gate) |
 | oc-monitoring-ops | Retrieval metrics + corpus-growth drift to watch |
 | oc-security-auditor | Tenant-isolation filter contract as a posture input |
 

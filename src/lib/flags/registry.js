@@ -281,13 +281,13 @@ const DEFINITIONS = [
   // register a flag here; gen-skills-catalog.mjs enforces that on build.
   ...skillCommandFlags([
     "/oc-api", "/oc-app", "/oc-attack-surface", "/oc-audit", "/oc-build", "/oc-bugcheck",
-    "/oc-commit", "/oc-dash-forge", "/oc-data-forge", "/oc-deploy", "/oc-design", "/oc-docs",
+    "/oc-commit", "/oc-enroll", "/oc-dash-forge", "/oc-data-forge", "/oc-deploy", "/oc-design", "/oc-docs",
     "/oc-df-archetype", "/oc-df-audit", "/oc-df-full", "/oc-df-intake", "/oc-df-layout",
-    "/oc-df-prototype", "/oc-df-spec-only", "/oc-df-tokens", "/oc-df-variants",
-    "/oc-discover", "/oc-feature", "/oc-git", "/oc-git-sync", "/oc-hardening", "/oc-integrate",
-    "/oc-launch", "/oc-migrate", "/oc-monitor", "/oc-ops", "/oc-owasp", "/oc-posture", "/oc-pr",
-    "/oc-push", "/oc-release", "/oc-repo", "/oc-rev-design", "/oc-rev-full", "/oc-rev-scan", "/oc-rev-sprint",
-    "/oc-rev-stack", "/oc-reverse-spec", "/oc-roadmap", "/oc-scaffold", "/oc-scale", "/oc-sec",
+    "/oc-df-prototype", "/oc-df-spec-only", "/oc-df-tokens", "/oc-df-variants", "/oc-discover",
+    "/oc-feature", "/oc-git", "/oc-git-sync", "/oc-hardening", "/oc-integrate", "/oc-launch", "/oc-migrate", "/oc-monitor", "/oc-ops", "/oc-owasp",
+    "/oc-posture", "/oc-pr", "/oc-push", "/oc-release", "/oc-repo", "/oc-rev-design",
+    "/oc-rev-full", "/oc-rev-scan", "/oc-rev-spec", "/oc-rev-sprint", "/oc-rev-stack",
+    "/oc-reverse-spec", "/oc-roadmap", "/oc-scaffold", "/oc-scale", "/oc-sec",
     "/oc-secaudit", "/oc-security", "/oc-spec", "/oc-stack", "/oc-stack-decide",
     "/oc-threat-model", "/oc-uxe",
     // v1.5 AI-native verbs (ADEV-344). Subcommands inherit the parent verb.

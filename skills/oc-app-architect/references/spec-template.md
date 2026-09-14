@@ -505,7 +505,7 @@ Example: "Product: DAU, retention, feature adoption (team); Marketing: traffic s
 
 ---
 
-## 10 — Cost Model (detailed version)
+## 10 — Cost Estimate (detailed version)
 
 See Tech Stack section for quick cost estimate. Generate a dedicated cost file only if:
 - Pricing model is complex (usage-based tiers, overages, discounts)
@@ -514,9 +514,11 @@ See Tech Stack section for quick cost estimate. Generate a dedicated cost file o
 
 ---
 
-## 11 — Implementation Roadmap
+## Implementation Roadmap (optional long-range view — not a numbered spec doc)
 
-See `phase-planning.md` for full methodology. Use this structure:
+`11-` is taken by `11-ai-architecture.md` on AI apps; the sprint plan itself is Phase 4's
+`sprints/sprint-plan.md`. Use this only when a multi-phase roadmap is wanted above the
+sprint plan. See `phase-planning.md` for full methodology. Use this structure:
 
 ```markdown
 # Implementation Roadmap

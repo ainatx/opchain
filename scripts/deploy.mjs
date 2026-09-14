@@ -10,19 +10,21 @@
  * History: this wrapper used to also assert LINEAR_API_KEY and set
  * OPCHAIN_REQUIRE_LINEAR=1, because `/changelog` was driven by a build-time
  * Linear pull (scripts/gen-roadmap.mjs) and a missing/unreachable key would
- * silently ship an empty roadmap. The roadmap is now hand-maintained in
- * site/src/data/roadmap-static.ts, so the Linear pull is no longer on the
- * deploy path and Linear being down can't break a deploy. That gate was
- * removed (2026-06-19); see CLAUDE.md → Deploy flow.
+ * silently ship an empty roadmap. The roadmap now comes from GitHub Issues
+ * (scripts/gen-roadmap.mjs → site/src/data/roadmap.json, an anonymous read
+ * run by hand, not by this wrapper), so Linear is no longer on the deploy
+ * path and Linear being down can't break a deploy. That gate was removed
+ * (2026-06-19); see CLAUDE.md → Deploy flow.
  *
  * This wrapper:
  *   1. Loads `.dev.vars` into process.env.
  *   2. Plumbs the inlined PUBLIC_POSTHOG_* build-time envs (formerly
  *      baked into the npm script).
  *   3. Requires a clean checkout before and after generation.
- *   4. Runs the hardening gate, captures the active rollback version, and
+ *   4. Requires candidate-bound executable and audit evidence.
+ *   5. Runs the hardening gate, captures the active rollback version, and
  *      deploys through Wrangler.
- *   5. Verifies the live SHA, hardening manifest, and smoke suite; any miss
+ *   6. Verifies the live SHA, hardening manifest, and smoke suite; any miss
  *      automatically rolls traffic back to the captured version.
  *
  * Local dev (`npm run dev`) is unaffected — wrangler reads .dev.vars
@@ -37,6 +39,7 @@ import { checkReleaseTag, remediation } from "./check-release-tag.mjs";
 const __filename = fileURLToPath(import.meta.url);
 const REPO_ROOT  = path.resolve(path.dirname(__filename), "..");
 const DEV_VARS   = path.join(REPO_ROOT, ".dev.vars");
+const BASELINE   = path.join(REPO_ROOT, ".github/monitoring/release-baseline.json");
 
 const STAGING = process.argv.includes("--staging");
 const TARGET  = STAGING ? "staging" : "production";
@@ -300,7 +303,7 @@ async function verifyLiveVersion() {
       });
       const body = await response.json();
       if (response.ok && body?.version === expected) {
-        return { ok: true, detail: `live version ${body.version}` };
+        return { ok: true, detail: `live version ${body.version}`, version: body.version };
       }
     } catch {}
     if (attempt < 5) await new Promise((resolve) => setTimeout(resolve, 3_000));
@@ -308,9 +311,54 @@ async function verifyLiveVersion() {
   return { ok: false, detail: `live /api/health did not converge to ${expected}` };
 }
 
+/**
+ * The scheduled Canary and Deploy lag monitors verify Cloudflare against
+ * .github/monitoring/release-baseline.json. A deploy that is not followed by a
+ * baseline refresh turns both monitors red on every scheduled run until someone
+ * notices: on 2026-09-05 production moved to 78567c2 while the baseline still
+ * said v1.9.0, and four scheduled runs failed before anyone looked. This does
+ * not refresh the baseline — that needs the post-deploy evidence the runbook
+ * asks for — it makes the obligation impossible to miss at the moment it
+ * starts. Prints, never fails: the deploy itself succeeded.
+ */
+function warnIfBaselineStale(liveVersion) {
+  let baseline;
+  try {
+    baseline = JSON.parse(fs.readFileSync(BASELINE, "utf8"));
+  } catch (err) {
+    console.warn(`[deploy:${TARGET}] ⚠ could not read ${path.relative(REPO_ROOT, BASELINE)}: ${err.message}`);
+    return;
+  }
+  // The approved runtime is the tagged release unless a reviewed post-release
+  // hotfix is recorded as `runtime` (docs/runbooks/cloudflare-challenge.md).
+  const approved = baseline?.runtime?.shortSha ?? baseline?.release?.sourceShortSha;
+  const tag = baseline?.runtime?.shortSha
+    ? `${baseline?.release?.tag} + approved runtime`
+    : baseline?.release?.tag;
+  const recorded = baseline?.environments?.[TARGET];
+  if (approved && liveVersion && liveVersion.startsWith(approved)) {
+    console.log(`[deploy:${TARGET}] baseline ${tag} (${approved}) still describes what is live; no refresh needed`);
+    return;
+  }
+  const listArgs = STAGING ? "deployments list --env staging --json" : "deployments list --json";
+  console.warn(`
+[deploy:${TARGET}] ⚠ MONITORING BASELINE IS NOW STALE
+  live version:      ${liveVersion}
+  approved baseline: ${tag} (${approved}) — ${TARGET} deployment ${recorded?.deploymentId ?? "unrecorded"}
+  Canary and Deploy lag will fail on every scheduled run until the baseline is
+  refreshed. Follow docs/runbooks/cloudflare-challenge.md → "After an intentional
+  deployment", steps 4–6:
+    npx wrangler ${listArgs}                        # new deployment + version ids
+    node .github/scripts/cloudflare-monitor.mjs control-plane   # verify with credentials
+    node .github/scripts/cloudflare-monitor.mjs deploy-diff
+  then open the baseline PR. ${STAGING ? "A staging branch preview also invalidates the staging half of the baseline." : "Do not bless an unreviewed SHA by editing the baseline alone."}
+`);
+}
+
 assertDeployFromMain();
 assertCleanCheckout("preflight");
 assertReleaseTagged();
+run("node", ["scripts/lib/release-evidence.mjs", "--stage", "deploy"]);
 
 const { loaded, source } = loadDevVars();
 if (source) {
@@ -351,3 +399,4 @@ for (const [cmd, args, label] of [
 }
 
 console.log(`\n[deploy:${TARGET}] done.`);
+warnIfBaselineStale(versionCheck.version);

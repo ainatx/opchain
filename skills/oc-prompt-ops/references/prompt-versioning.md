@@ -22,11 +22,17 @@ prompts/
         ├── inputs.jsonl          # eval cases
         ├── expected.jsonl        # grading targets
         ├── eval.yaml             # rubric + thresholds + pinned model + judge
-        └── baseline.json         # frozen scores (the regression baseline)
+        └── baseline.json         # frozen scores (the regression baseline); optional
+                                  # cost_per_eval written by oc-cost-ops
 ```
 
-The live opchain instance of this layout is `prompts/opchain-eval/` (the eval
-files; the prompt under test is opchain's own model-routing prompt).
+The live opchain instance, `prompts/opchain-eval/`, is a partial, flat instance:
+only eval files (`inputs.jsonl`, `expected.jsonl`, `eval.yaml`, plus a README) at
+the top level — no
+`eval/` subdir, version dirs, `CHANGELOG.md` or `baseline.json`. The "prompt"
+under test is opchain's routing surfaces (skill `description:` frontmatter + the
+orchestrator routing table), which are versioned with the catalog, not as a
+`prompt.md`.
 
 ### Why a directory per version, not git history alone
 

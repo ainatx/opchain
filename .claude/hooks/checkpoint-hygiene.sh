@@ -24,6 +24,11 @@ TRANSCRIPT_PATH="$(jq -r '.transcript_path // empty' <<<"$INPUT")"
 PROJECT_DIR="$(jq -r '.cwd // empty' <<<"$INPUT")"
 PROJECT_DIR="${PROJECT_DIR:-$(pwd)}"
 
+# A blocked Stop hook is invoked again with this guard. Do not create a loop.
+if [[ "$(jq -r '.stop_hook_active // false' <<<"$INPUT")" == "true" ]]; then
+  exit 0
+fi
+
 # Bail silently if no transcript (ephemeral / SDK / CI). Without a transcript
 # we can't tell which skills were invoked, so enforcement would be a guess.
 if [[ -z "$TRANSCRIPT_PATH" || ! -f "$TRANSCRIPT_PATH" ]]; then
@@ -32,45 +37,53 @@ fi
 
 CHECKPOINT_DIR="$PROJECT_DIR/.checkpoints"
 
-# Skills expected to write checkpoints. oc-orchestrator is excluded — its own
-# SKILL.md says it's read-only. oc-checkpoint-protocol is excluded — it's the
-# meta-protocol with no own state.
-ENFORCED_SKILLS=(
-  oc-api-dev
-  oc-app-architect
-  oc-bug-check
-  oc-code-auditor
-  oc-dash-forge
-  oc-deploy-ops
-  oc-git-ops
-  oc-integrations-engineer
-  oc-migration-ops
-  oc-monitoring-ops
-  oc-reverse-spec
-  oc-scale-ops
-  oc-security-auditor
-  oc-stack-forge
-  oc-ux-engineer
-)
+# Derive the enforced inventory from the shipped skill tree. The two foundation
+# protocols are intentionally excluded: oc-orchestrator is read-only and
+# oc-checkpoint-protocol owns no project state.
+SKILLS_DIR="${OPCHAIN_SKILLS_DIR:-$PROJECT_DIR/skills}"
+ENFORCED_SKILLS=()
+if [[ -d "$SKILLS_DIR" ]]; then
+  for skill_dir in "$SKILLS_DIR"/oc-*; do
+    [[ -f "$skill_dir/SKILL.md" ]] || continue
+    skill="$(basename "$skill_dir")"
+    [[ "$skill" == "oc-orchestrator" || "$skill" == "oc-checkpoint-protocol" ]] && continue
+    ENFORCED_SKILLS+=("$skill")
+  done
+fi
+if [[ ${#ENFORCED_SKILLS[@]} -eq 0 ]]; then
+  exit 0
+fi
 
 # Find skills invoked in this session's transcript. Use jq to parse each
-# JSONL line as a structured object — match only entries where
-# .message.content[*].type == "tool_use" AND .name == "Skill" AND
-# .input.skill == <skill>. Substring matching on raw lines was brittle:
+# JSONL line as a structured object. Host/plugin namespaces such as
+# `opchain:oc-code-auditor` normalize to their trailing catalog id.
+# Substring matching on raw lines was brittle:
 # any prose containing both '"name":"Skill"' and '"skill":"<name>"' would
 # false-positive.
 #
 # Empty/unparseable lines are tolerated via `?` in the path expressions.
-INVOKED_RAW=$(jq -r '
-  .message.content[]?
-  | select(.type == "tool_use" and .name == "Skill")
-  | .input.skill // empty
-' "$TRANSCRIPT_PATH" 2>/dev/null | sort -u || true)
+INVOKED_RAW=$(jq -rs '
+  [ .[] as $event
+    | $event.message.content[]?
+    | select(.type == "tool_use")
+    | select((.name // "") | test("(^|[:/.])skill$"; "i"))
+    | (.input.skill // "") as $raw
+    | ($raw | try capture("(?<skill>oc-[a-z0-9-]+)$").skill catch empty) as $skill
+    | { skill: $skill, at: ($event.timestamp // $event.message.timestamp // "") }
+  ]
+  | sort_by(.skill, .at)
+  | group_by(.skill)
+  | map(last)
+  | .[]
+  | [.skill, .at]
+  | @tsv
+' "$TRANSCRIPT_PATH" 2>/dev/null || true)
 
-INVOKED=()
+INVOKED=() # entries are "skill<TAB>invoked_at"
 for skill in "${ENFORCED_SKILLS[@]}"; do
-  if grep -Fxq -- "$skill" <<<"$INVOKED_RAW"; then
-    INVOKED+=("$skill")
+  event="$(awk -F $'\t' -v wanted="$skill" '$1 == wanted { print; exit }' <<<"$INVOKED_RAW")"
+  if [[ -n "$event" ]]; then
+    INVOKED+=("$event")
   fi
 done
 
@@ -78,13 +91,25 @@ if [[ ${#INVOKED[@]} -eq 0 ]]; then
   exit 0  # Read-only / conversational session.
 fi
 
-# Each invoked skill must have a checkpoint file at the expected path.
-# Existence is the floor — freshness/staleness checks are deliberately
-# skipped to avoid false positives. The dogfooding goal is "you wrote at
-# least one checkpoint", not "you wrote one in the last N minutes".
+# Each invoked skill must have a checkpoint whose protocol timestamp is at or
+# after that invocation event. This is current-run evidence; a stale file from
+# an older session cannot satisfy it. This is an accidental-error control, not
+# a security boundary against an actor that can edit both files.
 MISSING=()
-for skill in "${INVOKED[@]}"; do
-  if [[ ! -f "$CHECKPOINT_DIR/${skill}.checkpoint.json" ]]; then
+for event in "${INVOKED[@]}"; do
+  skill="${event%%$'\t'*}"
+  invoked_at="${event#*$'\t'}"
+  checkpoint="$CHECKPOINT_DIR/${skill}.checkpoint.json"
+  if [[ ! -f "$checkpoint" ]]; then
+    MISSING+=("$skill")
+    continue
+  fi
+  checkpoint_at="$(jq -r '.record_updated_at // .updated_at // empty' "$checkpoint" 2>/dev/null || true)"
+  if [[ -z "$invoked_at" || -z "$checkpoint_at" ]] || ! node -e '
+    const invoked = Date.parse(process.argv[1]);
+    const checkpoint = Date.parse(process.argv[2]);
+    process.exit(Number.isFinite(invoked) && Number.isFinite(checkpoint) && checkpoint >= invoked ? 0 : 1);
+  ' "$invoked_at" "$checkpoint_at"; then
     MISSING+=("$skill")
   fi
 done
@@ -108,7 +133,7 @@ LIST=$(printf -- "  - %s\n" "${MISSING[@]}")
 # (e.g. `--progress_summary='<one paragraph>'` would break parsing even
 # though the quotes are balanced in the literal body).
 REASON=$(cat <<EOF
-Checkpoint hygiene: the following opchain skills were invoked this session but have no checkpoint at .checkpoints/<skill>.checkpoint.json:
+Checkpoint hygiene: the following opchain skills were invoked this session but did not write a current-run checkpoint at .checkpoints/<skill>.checkpoint.json:
 
 ${LIST}
 Write each checkpoint with the canonical CLI before ending the session:

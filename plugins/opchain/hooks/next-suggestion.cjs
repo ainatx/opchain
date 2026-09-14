@@ -109,12 +109,16 @@ for (const f of files) {
 }
 if (!cps.length) silent();
 
+function recordUpdatedAt(d) {
+  return d.record_updated_at || d.updated_at || "";
+}
+
 // ── the transition gate ─────────────────────────────────────────────────────
 // Fingerprint = which checkpoints exist and when each was last written. If that
 // is unchanged since the previous Stop in this session, no skill finished and
 // there is nothing new to say.
 const fingerprint = cps
-  .map((d) => `${d.skill}@${d.updated_at || "?"}`)
+  .map((d) => `${d.skill}@${recordUpdatedAt(d) || "?"}`)
   .sort()
   .join("|");
 
@@ -157,14 +161,14 @@ const priorMap = new Map(
       return [s.slice(0, i), s.slice(i + 1)];
     }),
 );
-const changed = cps.filter((d) => priorMap.get(d.skill) !== (d.updated_at || "?"));
+const changed = cps.filter((d) => priorMap.get(d.skill) !== (recordUpdatedAt(d) || "?"));
 if (!changed.length) {
   remember({});
   silent();
 }
 
 // Most recently written wins — that's the skill that just finished.
-changed.sort((a, b) => Date.parse(b.updated_at || 0) - Date.parse(a.updated_at || 0));
+changed.sort((a, b) => Date.parse(recordUpdatedAt(b) || 0) - Date.parse(recordUpdatedAt(a) || 0));
 const source = changed[0];
 
 // ── staleness: never suggest work git says already landed ───────────────────
@@ -246,18 +250,42 @@ const COMMANDS = {
   "oc-compliance-ops": "/oc-comply",
   "oc-security-hardening": "/oc-harden",
 };
-const KNOWN = new Set([...Object.keys(COMMANDS), ...cps.map((d) => d.skill)]);
+// Every skill the plugin ships, read from its bundled skills/ directory. Most
+// handoff targets have no command above and no checkpoint yet (a skill writes
+// its first checkpoint when it first runs), so matching only COMMANDS keys and
+// existing checkpoints re-targeted those handoffs back at the skill that just
+// finished. oc-checkpoint-protocol is a protocol, not something to run.
+function catalogIds() {
+  try {
+    const dir = path.join(__dirname, "..", "skills");
+    return fs
+      .readdirSync(dir, { withFileTypes: true })
+      .filter((e) => e.isDirectory() && /^oc-[a-z0-9-]+$/.test(e.name) && fs.existsSync(path.join(dir, e.name, "SKILL.md")))
+      .map((e) => e.name)
+      .filter((id) => id !== "oc-checkpoint-protocol");
+  } catch {
+    return [];
+  }
+}
+const KNOWN = new Set([...Object.keys(COMMANDS), ...cps.map((d) => d.skill), ...catalogIds()]);
 
 // If the action text names a downstream skill, that's the handoff target —
 // this is how "hand off to oc-deploy-ops" reaches deploy-ops rather than
-// re-suggesting the skill that just finished.
+// re-suggesting the skill that just finished. The earliest-named skill wins.
+// The lookarounds keep an id from matching inside a longer one.
 let target = source.skill;
+let at = Infinity;
 for (const id of KNOWN) {
-  if (id !== source.skill && new RegExp(`\\b${id}\\b`).test(actionStr)) {
+  if (id === source.skill) continue;
+  const m = new RegExp(`(?<![\\w-])${id}(?![\\w-])`).exec(actionStr);
+  if (m && m.index < at) {
     target = id;
-    break;
+    at = m.index;
   }
 }
+// A target with a registered command is typeable; any other skill is named,
+// so "Hand off to oc-security-auditor" suggests "run oc-security-auditor"
+// rather than the skill that just finished.
 const typeable = COMMANDS[target] || `"run ${target}"`;
 
 // Don't repeat the same suggestion for the same commit.

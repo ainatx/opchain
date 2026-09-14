@@ -1,7 +1,7 @@
 ---
 name: oc-agent-forge
 displayName: OC · Agent Forge
-version: 1.9.0
+version: 1.9.2
 license: Apache-2.0
 shortDesc: Scaffold Claude Agent SDK apps — subagent topology, tool budgets, harness loops, agent eval. Tri-agent.
 phases: [build, ai-native]
@@ -11,6 +11,13 @@ commands:
   - /oc-agent
   - /oc-agent eval
   - /oc-agent loop
+  - /oc-agent plan
+  - /oc-agent build
+  - /oc-agent topology
+  - /oc-agent tools
+  - /oc-agent fixtures
+  - /oc-agent trace
+  - /oc-agent regress
 description: >
   Claude Agent SDK build harness with a Planner/Builder/Evaluator loop. Owns
   subagent topology, tool-budget design, harness loop shapes, and agent
@@ -34,8 +41,8 @@ Tri-agent build harness for Claude Agent SDK apps: the **Planner** decides the
 agent topology (single-agent vs orchestrator-worker vs pipeline vs hierarchical),
 the tool budget, and the harness loop shape → the **Builder** materialises the
 harness, tool allowlist, and termination logic against the Claude Agent SDK → the
-**Evaluator** runs the agent against a task fixture suite with isolated context and
-gates it on task-success / trajectory / tool-efficiency thresholds.
+**Evaluator** runs the agent against a task fixture suite, grading from the fixtures
+and the live run alone, and gates it on task-success / trajectory / tool-efficiency thresholds.
 
 An agent is not "give the model some tools and a while-loop." Every default — how
 many subagents, which tools are in the allowlist, when the loop stops, how much
@@ -122,7 +129,7 @@ AGENT INTENT
 1. **Self-graded agents always pass.** Whoever builds the harness picks the
    topology, the tool list, and the stop condition — then watches it complete one
    happy-path task and calls it done. The Evaluator runs a *fixture suite* (input →
-   known-correct outcome) with isolated context and reports task-success rate,
+   known-correct outcome), grading from the fixtures alone, and reports task-success rate,
    trajectory validity, and tool-efficiency. "It worked when I tried it" is not a
    measurement. See `references/agent-eval.md`.
 
@@ -175,18 +182,22 @@ behaviors:
 - **Pull model routing from oc-claude-api — do not re-decide it.** Which model runs
   the orchestrator, which runs each worker, the effort level, thinking mode, and
   prompt-caching strategy are oc-claude-api's call. The Planner consumes that
-  routing and designs the topology and loop on top of it.
+  routing and designs the topology and loop on top of it. If there is no
+  oc-claude-api routing yet, or it does not say which tier the orchestrator and
+  workers run on, invoke `/oc-claude-api` first — do not pick models here.
 - **Declare the metric targets up front.** "task-success ≥ 0.90 on the fixture
-  suite, ≤ 25 tool calls per task at p95, ≤ $0.40 per task" before building. A
-  target the Planner can't justify from the product's tolerance for a wrong or
-  expensive answer isn't a real target.
+  suite, trajectory-valid ≥ 0.85, ≤ 25 tool calls per task at p95, ≤ $0.40 per
+  task" before building. A target the Planner can't justify from the product's
+  tolerance for a wrong or expensive answer isn't a real target.
 
 ### Planner Workflow
 
 1. Read upstream context: the agent intent from `oc-app-architect`
    `02-architecture.md` / `11-ai-architecture.md`, and the **model routing** from
-   the `oc-claude-api` checkpoint (orchestrator model, worker model, effort,
-   thinking, caching).
+   oc-claude-api: the routing decision in its checkpoint's
+   `context_primer.key_decisions` (per-phase model + effort) or the routing
+   section of `11-ai-architecture.md`. Its `skill_state` is private — don't read
+   it. No routing there → invoke `/oc-claude-api` before planning.
 2. Confirm this needs an agent (vs a single call / workflow). If not, hand back.
 3. Walk the **topology decision tree** → `references/agent-topology.md`.
 4. Design the **tool budget** (allowlist, call ceilings, deferred-load) →
@@ -290,6 +301,7 @@ checkpoint: phase `planned`.
 
 ### Metric Targets (from Planner)
 - task-success ≥ 0.90 on the fixture suite
+- trajectory-valid (no redundant work) ≥ 0.85
 - tool-calls per task ≤ 25 at p95
 - cost per task ≤ $0.40
 - p95 wall-clock ≤ [budget]
@@ -304,8 +316,9 @@ checkpoint: phase `planned`.
 
 ### Step 2: Builder Implements
 
-Builder reads the **model routing from the `oc-claude-api` checkpoint** and wires
-the harness on top of it rather than choosing models itself:
+Builder reads the **model routing the Planner inherited from `oc-claude-api`**
+(recorded in the approved Agent Design) and wires the harness on top of it rather
+than choosing models itself:
 
 | Topology | Loop driver | Model routing (from oc-claude-api) | Agent SDK surface |
 |---|---|---|---|
@@ -333,8 +346,9 @@ Implementation discipline:
 
 ### Step 3: Agent Evaluator
 
-The Evaluator runs with **isolated context** — it sees the fixture suite and the
-live agent, not the Builder's harness rationale.
+The Evaluator runs in the same session as the Planner and Builder, so its separation
+is a discipline, not a mechanism: grade from the fixture suite and the live agent
+alone — set aside the Builder's harness rationale.
 
 **Evaluator Persona.** An agent QA engineer who trusts the fixture suite over a
 demo. Key behaviors:
@@ -421,7 +435,8 @@ neither re-decides the other's layer.**
 | Fallbacks, refusal handling, batch/streaming choices | The fixture suite + task-success / trajectory / efficiency eval |
 
 Order of operations: `oc-claude-api` runs first when an AI app is detected (it's the
-hub). Agent Forge reads the routing decision from its checkpoint and builds the
+hub). Agent Forge reads the routing decision from its checkpoint's
+`context_primer.key_decisions` (or `11-ai-architecture.md`) and builds the
 topology and loop on top. If the eval reveals the agent is too slow or too
 expensive, the fix might be a *harness* change (fewer subagents, tighter ceiling) or
 a *model* change (cheaper worker, lower effort) — Agent Forge owns the first,
@@ -458,13 +473,17 @@ deploy, and monitor around it.
 | **oc-integrations-engineer** | Supplies third-party tools (MCP servers, OAuth'd APIs) that land in the agent's tool allowlist. |
 | **oc-api-dev** | Supplies first-party API operations the agent's tools call; the spec is the tool contract. |
 | **oc-prompt-ops** | Owns single-prompt versioning + evals. Agent Forge's fixture suite is the *trajectory* analogue; the two regression suites run side by side. |
-| **oc-deploy-ops** | Receives the frozen harness config + fixture suite; gates prod on the regression suite passing. |
+| **oc-deploy-ops** | Hand-off only: receives the frozen harness config + fixture suite for the runtime. oc-deploy-ops runs no agent-regression gate; the regression run is the CI job registered at PASS (Step 4). |
 | **oc-monitoring-ops** | Watches the live agent: task-success drift, tool-error rate, cost/latency per task, loop-ceiling hits. |
 | **oc-scale-ops** | Sizes the agent fleet at projected task volume against the per-task token + tool budget. |
 
 ---
 
 ## Checkpoint Integration
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-agent-forge.
 
 ### Checkpoint Location
 `{project-dir}/.checkpoints/oc-agent-forge.checkpoint.json`
@@ -473,11 +492,11 @@ deploy, and monitor around it.
 
 | Event | What to Save |
 |---|---|
-| Plan approved | Topology, tool budget, loop shape, inherited model routing, targets |
+| Plan approved | Topology, tool budget, loop shape, inherited model routing, targets; append a one-line summary (topology, loop, targets) to `context_primer.key_decisions` |
 | Build contract negotiated | Deliverables, criteria, fixture-suite size |
 | Builder completes | Harness path, allowlist, deferred tools, subagent cap, ceiling |
 | Evaluator runs | Per-metric values vs targets, failure analysis, round number |
-| Regress runs | Pass/fail + delta vs last frozen config |
+| Regress runs | Pass/fail + delta vs last frozen config; append the verdict to `context_primer.key_decisions` |
 
 ### skill_state
 
@@ -499,7 +518,7 @@ deploy, and monitor around it.
   },
   "context_mgmt": { "strategy": "compaction", "trigger_tokens": 150000 },
   "fixtures": { "path": "agent/fixtures.jsonl", "tasks": 24 },
-  "targets": { "task_success": 0.90, "tool_calls_p95": 25, "cost_per_task_usd": 0.40 },
+  "targets": { "task_success": 0.90, "trajectory_valid": 0.85, "tool_calls_p95": 25, "cost_per_task_usd": 0.40 },
   "last_eval": {
     "round": 3,
     "verdict": "PASS",
@@ -513,16 +532,17 @@ deploy, and monitor around it.
 | Reads from | Why |
 |---|---|
 | oc-app-architect | `02-architecture.md` / `11-ai-architecture.md` agent intent + task description |
-| oc-claude-api | Model routing — orchestrator/worker models, effort, thinking, caching (the input) |
+| oc-claude-api | Model routing from `context_primer.key_decisions` / `11-ai-architecture.md` (the input) |
 | oc-rag-forge | Retrieval config to wire as a tool (when the agent searches a corpus) |
 | oc-integrations-engineer | Third-party tools (MCP/OAuth) for the allowlist |
+| oc-api-dev | The first-party API spec (`api/openapi.yaml`) as the contract for the agent's own-API tools |
 
-| Read by | Why |
+| Read by | Why (siblings read these files and `context_primer`, never `skill_state`) |
 |---|---|
-| oc-claude-api | Harness shape informs final model/caching tuning (e.g. worker model, effort) |
-| oc-deploy-ops | Frozen harness config + regression fixture suite as a deploy gate |
-| oc-monitoring-ops | Task-success / cost / tool-error metrics to watch in prod |
-| oc-scale-ops | Per-task token + tool budget to size the fleet |
+| oc-claude-api | Model-layer changes the eval surfaced (cheaper worker, lower effort), as a request to re-route |
+| oc-deploy-ops | Frozen harness config + `agent/fixtures.jsonl` for the runtime (advisory; no deploy gate) |
+| oc-monitoring-ops | Task-success / cost / tool-error targets from `agent/eval-round-M.md` to watch in prod |
+| oc-scale-ops | Per-task token + tool budget from the approved Agent Design to size the fleet |
 
 ---
 

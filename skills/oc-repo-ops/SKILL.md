@@ -1,7 +1,7 @@
 ---
 name: oc-repo-ops
 displayName: OC · Repo Ops
-version: 1.9.0
+version: 1.9.2
 license: Apache-2.0
 shortDesc: "Repository hygiene and PR readiness gate. Ensures docs, generated files, git state, catalogs, and cleanup are PR-ready."
 phases: [build]
@@ -58,10 +58,20 @@ REPO OPS COMMANDS
 
 `oc-git-ops` must invoke Repo Ops before creating every PR. The required order is:
 
+0. Precondition: Bug Check has already passed before every commit on the branch
+   (oc-git-ops runs it before each commit, including a docs-packet commit). If it
+   has not run, or its verdict is stale, chain back to oc-bug-check.
 1. Docs Forge generates or verifies the PR documentation packet.
 2. Repo Ops verifies repository cleanliness and docs packet presence.
-3. Bug Check runs the fast code gate before commit.
-4. Git Ops opens the PR only after Repo Ops and Bug Check pass.
+3. Git Ops opens the PR only after Repo Ops passes.
+
+Repo Ops publishes a C-contract `verification.verdict` handoff for the evaluator's
+HEAD `git_tree_projection` (excluding `.checkpoints/`) under policy
+`pr-readiness-v1`. Opchain's Git Ops flow and requested CI
+wiring consume it through `scripts/lib/release-evidence.mjs`; missing, stale,
+ambiguous, FAIL, or INCOMPLETE evidence blocks. CI separately reruns A's
+candidate verifier on the received commit, so a copied local receipt is not
+independent verification.
 
 Read `references/pr-readiness-gate.md` before `/oc-repo verify`.
 
@@ -87,7 +97,10 @@ Checks:
 
 PR readiness gate. Fail closed on:
 
-- Missing or stale `.checkpoints/oc-docs-forge.checkpoint.json`.
+- Missing or stale `.checkpoints/oc-docs-forge.checkpoint.json`. Stale means its
+  `skill_state.verified_for_sha` is not the HEAD of the branch being verified —
+  the same binding oc-release-ops' verify gate uses for the docs row — or its
+  checkpoint `status` is `blocked` (a failed `/oc-docs verify`).
 - Missing `## Documentation` PR body fragment.
 - Required docs update absent from the diff and no explicit follow-up.
 - Catalog/source drift for surfaces affected by the PR.
@@ -98,8 +111,13 @@ PR readiness gate. Fail closed on:
 - Broken internal links in docs touched by the PR.
 - Checkpoint pointers to files that no longer exist.
 
-Warnings do not block unless strict mode is enabled, but they must appear in the
-PR body or Repo Ops checkpoint.
+Warnings never block, but they must appear in the PR body or Repo Ops checkpoint.
+Every run publishes a `verification.verdict` handoff with candidate kind
+`git_tree_projection`, the evaluator-produced SHA-256 identity, policy
+`pr-readiness-v1`, and PASS, FAIL, or INCOMPLETE. Excluding `.checkpoints/`
+avoids self-reference. Read the identity with
+`node scripts/lib/release-evidence.mjs --print-candidate --json`;
+`skill_state.verified_for_sha` remains compatibility output.
 
 ## `/oc-repo clean`
 
@@ -123,20 +141,24 @@ For Opchain itself, verify:
 - Generated catalogs are current after `npm run gen-catalog` and
   `npm run gen-mcp-catalog`.
 - Skill bundle sync does not drift (`npm run sync-bundles:check`).
-- Packaged plugin/cache parity is checked when the personal plugin path is in
-  scope for the task.
+- Plugin skill copy does not drift (`npm run sync-plugin-skills:check`, which
+  compares `plugins/opchain/skills` with `skills/`).
 
 For other repos, infer equivalent catalog surfaces from package scripts,
 content collections, generated files, and docs.
 
 ## Checkpoint Integration
 
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-repo-ops.
+
 Location: `{project-dir}/.checkpoints/oc-repo-ops.checkpoint.json`
 
 ```json
 {
   "skill": "oc-repo-ops",
-  "phase": "pr-readiness",
+  "phase": "pr-verify",
   "status": "complete",
   "progress_summary": "Repo readiness gate passed for PR creation.",
   "context_primer": {
@@ -155,8 +177,27 @@ Location: `{project-dir}/.checkpoints/oc-repo-ops.checkpoint.json`
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
-    "verified_for_sha": "abc123"
-  }
+    "internal_links_verified": true,
+    "related_untracked_files_staged": true,
+    "verified_for_sha": "abc123",
+    "last_verify": {
+      "at": "2026-09-11T04:15:18Z",
+      "branch": "feat/example",
+      "base": "origin/main@abc123",
+      "verdict": "PASS",
+      "blocking_findings": []
+    }
+  },
+  "handoffs": [{
+    "id": "pr-readiness-<candidate-id>",
+    "contract_version": "1.0",
+    "type": "verification.verdict",
+    "created_at": "2026-09-13T20:00:00Z",
+    "verified_at": "2026-09-13T20:00:00Z",
+    "producer": { "skill": "oc-repo-ops", "run_id": "<run-id>" },
+    "candidate": { "kind": "git_tree_projection", "id": "sha256:<digest>" },
+    "payload": { "verdict": "PASS", "policy": "pr-readiness-v1" }
+  }]
 }
 ```
 
@@ -175,3 +216,9 @@ Location: `{project-dir}/.checkpoints/oc-repo-ops.checkpoint.json`
 | oc-docs-forge | Missing or stale documentation packet |
 | oc-bug-check | Code gate has not run or is stale |
 | oc-git-ops | Gate passed; PR can be opened |
+
+| Read by | Why |
+|---|---|
+| oc-git-ops | Readiness verdict + blocking findings → open or block the PR |
+| oc-docs-forge | Last readiness findings that need a docs fix |
+| oc-cost-ops | Per-PR readiness-verify runs to attribute cost to |

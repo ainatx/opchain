@@ -2,35 +2,52 @@
   "schemaVersion": 1,
   "status": "approved-release-baseline",
   "release": {
-    "tag": "v1.9.0",
-    "tagObject": "fd05dd2c5d696661cb2cc5cb9dd57d2470f69c32",
-    "sourceSha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
-    "sourceShortSha": "244bf13"
+    "tag": "v1.9.1",
+    "tagObject": "98b8ebcd9dc88550c3dff146c36f10d6ec0135cc",
+    "sourceSha": "aef40809fef4bbded9a47c936c7c544631397fb6",
+    "sourceShortSha": "aef4080"
+  },
+  "runtime": {
+    "sha": "f5e4b2a5de954329c33983d7a9738b7b4a47d4db",
+    "shortSha": "f5e4b2a",
+    "approval": "The v1.9.1 site half: PR #532 (release(v1.9.1): the chain holds \u2014 site half) merged to main after the signed v1.9.1 tag on aef4080, per RELEASING.md \u00a75 for a patch release (product PR \u2192 tag \u2192 site PR \u2192 deploy). Staging deployed from main at f5e4b2a on 2026-09-13T13:35Z and production at f5e4b2a on 2026-09-13T23:05Z, both with the deploy script's clean-tree, origin/main, release-tag, hardening-replay and smoke gates passing. Approved as the production runtime by the reviewed baseline change that added this block; the next release cut removes it when release re-binds to the new signed tag. The staging environment is now the separately verified 1.9.2 preview recorded in environments.staging; this runtime remains the approved production baseline until promotion."
   },
   "environments": {
     "production": {
       "worker": "opchain-dev",
       "hostname": "opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "54ef8a21-0665-4a83-bc1a-5768c2bae0d5",
-      "versionId": "01bbe46b-3533-4faa-bc1a-d140cbcecbbe",
+      "deploymentId": "3b7989ff-2f65-4dc6-a629-6f16ba4fd677",
+      "versionId": "01db3b36-a90c-4f73-98f7-fd00505582c4",
       "trafficPercentage": 100,
-      "scriptEtag": "3b626cc22d8f1fa8d444686f3f6f209296184cba7114d65373019058d61cb875",
-      "handlers": ["fetch"],
-      "bindings": ["ASSETS"],
+      "scriptEtag": "5c2a162a66a83824221d9ca6600de30814ac99807b571e840087f0cbb2b15fc9",
+      "handlers": [
+        "fetch"
+      ],
+      "bindings": [
+        "ASSETS"
+      ],
       "observabilityEnabled": true
     },
     "staging": {
       "worker": "opchain-staging",
       "hostname": "staging.opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "791c1851-2b81-4408-b881-dac381fa6d07",
-      "versionId": "d07bb08a-9662-4e77-a2a1-673fc0c7a8a5",
+      "deploymentId": "80f1aae5-0b10-49aa-9711-f082b8f94f1d",
+      "versionId": "a9cc0fdd-4c9d-4064-be4c-86ddfc88300c",
       "trafficPercentage": 100,
-      "scriptEtag": "3b626cc22d8f1fa8d444686f3f6f209296184cba7114d65373019058d61cb875",
-      "handlers": ["fetch"],
-      "bindings": ["ASSETS"],
-      "observabilityEnabled": true
+      "scriptEtag": "67acb5685928a1054784c7a12da7944fd5155788657564e984767f2fbf7ced23",
+      "handlers": [
+        "fetch"
+      ],
+      "bindings": [
+        "ASSETS"
+      ],
+      "observabilityEnabled": true,
+      "releaseTag": "v1.9.2",
+      "sourceSha": "93dc8545929288ca2169e88ca0fd0fc90587c717",
+      "catalogVersion": "1.9.2",
+      "approval": "Maintainer requested staging and the signed 1.9.2 tag. Product PR #536 and site PR #537 passed required CI; exact main at 93dc854 deployed with hardening, smoke and release-specific live verification passing. Production promotion is separate."
     }
   },
   "deployLag": {
@@ -68,7 +85,14 @@
     ]
   },
   "pointInTimeEvidence": {
-    "healthVersion": "244bf13",
-    "continuousCustomDomainProbe": false
+    "healthVersion": "f5e4b2a",
+    "continuousCustomDomainProbe": false,
+    "note": "Production remains on f5e4b2a / catalog 1.9.1. Staging now serves 93dc854 / catalog 1.9.2 after PR #537, following the signed v1.9.2 product tag. Staging hardening, smoke, 33-skill catalog, 20 release cards, 7 voting options and canonical/legacy hosted references passed. No production promotion was performed.",
+    "staging": {
+      "verifiedAt": "2026-09-14T00:18:30.803291+00:00",
+      "healthVersion": "93dc854",
+      "catalogVersion": "1.9.2",
+      "sourceSha": "93dc8545929288ca2169e88ca0fd0fc90587c717"
+    }
   }
 }

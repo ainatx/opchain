@@ -12,16 +12,19 @@ context across sessions.
 
 ## Installation (Claude Code)
 
-**Plugin (recommended)** — ships the skills *and* the hooks that enforce them:
+**Plugin (recommended)** — ships skills, session hooks, and explicit Git verification enrollment:
 
 ```
 /plugin marketplace add asfbay-bit/opchain-skills
 /plugin install opchain
+/oc-enroll
 ```
 
-Adds a commit gate that blocks unverified commits, pipeline state at session
-start, a pointer to the next skill when one finishes, and twelve registered
-slash commands.
+Adds pipeline state at session start, next-skill suggestions, and thirteen
+registered slash commands. Run `/oc-enroll` successfully in each repository to
+activate Git commit verification. Foreign hooks block enrollment until deliberately
+composed; `git commit --no-verify` bypasses local hooks. Protected CI must verify
+received commits independently.
 
 **Zip (skills only)** — where a plugin install isn't an option:
 
@@ -58,12 +61,12 @@ Full walkthrough (including a local stdio server): https://opchain.dev/install
 | oc-docs-forge             | plan+build  | Documentation generator for every PR: PR body/comments, README/catalog docs, product docs, changelog, ADR upkeep |
 | oc-repo-ops               | build       | Repository hygiene and PR readiness gate: docs packet, generated files, catalog parity, cleanup |
 | oc-reverse-spec           | plan        | Code → spec docs |
-| oc-stack-forge            | plan        | Universal stack advisor |
+| oc-stack-forge            | plan+build  | Universal stack advisor |
 | oc-ux-engineer            | plan+build  | Tri-design harness |
 | oc-dash-forge             | plan        | Dashboards + dense data UI (spec + React prototype) |
 | oc-scale-ops              | plan        | Scaling readiness |
 | oc-app-architect          | plan+build  | Unified planning + build harness |
-| oc-integrations-engineer  | plan+build  | API integration harness (third-party APIs you consume) |
+| oc-integrations-engineer  | build       | API integration harness (third-party APIs you consume) |
 | oc-api-dev                | plan+build  | First-party API design + build harness (OpenAPI, versioning, SDKs) |
 | oc-migration-ops          | plan+build  | `/oc-migrate` — DB / framework / auth / platform migrations |
 | oc-qa-ops                 | plan+build  | Test-pyramid design: coverage strategy, contract-test matrix, load-test planning |

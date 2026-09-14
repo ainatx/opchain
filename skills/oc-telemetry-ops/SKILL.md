@@ -1,9 +1,9 @@
 ---
 name: oc-telemetry-ops
 displayName: OC · Telemetry Ops
-version: 1.9.0
+version: 1.9.2
 license: Apache-2.0
-shortDesc: Opt-in, local-first usage metering to .checkpoints/usage.sqlite; anonymized aggregates power the public /dashboard.
+shortDesc: Opt-in, local-first usage metering to .checkpoints/usage.sqlite; anonymized local aggregate export.
 phases: [build]
 triAgent: false
 tryable: true
@@ -12,17 +12,19 @@ commands:
   - /oc-telemetry enable
   - /oc-telemetry disable
   - /oc-telemetry status
+  - /oc-telemetry event
   - /oc-telemetry aggregate
   - /oc-telemetry export
 description: >
   Telemetry operations harness — opt-in, local-first usage metering that records
   which skills and phases actually run, to a local .checkpoints/usage.sqlite
-  store, then produces anonymized aggregates for the public /dashboard. Use for
-  /oc-telemetry, "usage metering", "telemetry", "opt-in analytics", "which skills
-  do people use", "usage stats", "dashboard data", "anonymized usage". Default
-  stance is OFF — nothing is recorded until you explicitly enable it, and no
-  prompt content or PII ever leaves the machine. Pairs with oc-cost-ops (cost per
-  run) for the cost-per-feature dashboard stats.
+  store, then produces anonymized local aggregate exports. Use for
+  /oc-telemetry, "usage metering", "opchain usage telemetry", "opt-in analytics",
+  "which skills do people use", "usage stats", "dashboard data", "anonymized
+  usage". Default stance is OFF — nothing is recorded until you explicitly enable
+  it, and no prompt content or PII ever leaves the machine. Pairs with oc-cost-ops
+  (cost per run) for the cost-per-feature dashboard stats. NOT application or
+  production observability (oc-monitoring-ops).
 governance:
   breaking_change_policy: skills/CHANGELOG.md
   last_reviewed: 2026-06-25
@@ -41,10 +43,10 @@ governance:
 Answer *"is anyone actually using this, and which parts?"* — **without betraying
 opchain's local-first, no-backend stance.** Telemetry Ops meters skill/phase
 usage into a **local** SQLite store (`.checkpoints/usage.sqlite`), strictly
-opt-in, and produces an anonymized aggregate that the public `/dashboard` renders
-as a credibility surface (pipelines run, most-used skill, model-tier mix,
-cost-per-shipped-feature). The raw store never leaves the machine; only the
-small, aggregated, identity-free rollup is ever published.
+opt-in, and produces an anonymized local aggregate export (pipelines run,
+most-used skill, model-tier mix, cost-per-shipped-feature). The public
+`/dashboard` currently uses sample data; export ingestion is not implemented.
+The CLI does not publish the raw store or the aggregate.
 
 This is **not** a hosted analytics product and not PostHog (that's the *site's*
 consent-gated client analytics). Telemetry Ops is about the **skills pipeline's
@@ -52,9 +54,10 @@ own** usage, recorded where the work happens — locally, in git-adjacent state 
 so the numbers are real (they come from actual runs) and private (they stay put
 unless you export an aggregate).
 
-> **Default OFF. Presence is not consent.** Metering does nothing until
-> `/oc-telemetry enable` flips it on. The `telemetry_handle` checkpoint field
-> existing is *not* consent; `enabled: true` is. See `references/privacy-consent.md`.
+> **Default OFF. Tracked state is not consent.** Metering does nothing until
+> `/oc-telemetry enable` records opt-in in the gitignored local SQLite store. A
+> `telemetry_handle` checkpoint field, including a cloned legacy `enabled: true`,
+> is never consent. See `references/privacy-consent.md`.
 
 ---
 
@@ -65,15 +68,16 @@ TELEMETRY OPS COMMANDS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   CONSENT (default: OFF)
-  /oc-telemetry enable     Opt in — create the local store, set telemetry_handle.enabled
+  /oc-telemetry enable     Opt in — create the local store and record local consent
   /oc-telemetry disable    Opt out — stop metering (store kept locally, your call to delete)
   /oc-telemetry status     Show consent state, store location, row count;
                            exits non-zero when enabled with no store
                            (enabled-with-no-store never reads healthy)
 
-  METERING & EXPORT
+  METERING, EVENTS & EXPORT (local CLI)
   /oc-telemetry aggregate  Roll the local store up into an anonymized summary
   /oc-telemetry export     Emit the publishable aggregate (no PII) for /dashboard
+  /oc-telemetry event      Attach a bounded eval, gate, or sprint event to a local run
 
   UTILITIES
   /checkpoint              Show checkpoint status
@@ -103,20 +107,32 @@ The local store is the source; the published artifact is a small aggregate with
 no identifiers. `oc-cost-ops` supplies the per-run cost so the dashboard can show
 average cost-per-shipped-feature.
 
+Aggregate/export initialization uses the local checkpoint provider to establish
+the ignored `.checkpoints/.local/` metadata convention in a Git worktree. A
+non-Git project may record locally but aggregate/export fails closed rather than
+writing telemetry metadata to an unverified path.
+
+**What is mechanical today.** `scripts/telemetry.mjs` (opchain repo, `npm run
+telemetry -- <cmd>`) implements `enable`, `disable`, `status`, `record`, `event`,
+`aggregate`, and `export`. `record` remains session-invoked; no skill, hook or
+plugin command calls it automatically. `aggregate` prints a local anonymized
+preview; `export --out=<new-file>` writes a new local artifact only when consent
+is enabled and the C-backed private path is verified as ignored in a Git
+worktree. Neither command publishes or contacts a service.
+
 ---
 
 ## The `telemetry_handle` checkpoint field (wire 1.1)
 
-Telemetry Ops owns the `telemetry_handle` field added in v1.6 (see
-`oc-checkpoint-protocol` § "Wire 1.1 extensions"). It links a checkpoint to its
-rows in the local store **without storing any PII or content**:
+Telemetry Ops previously used the `telemetry_handle` field added in v1.6 (see
+`oc-checkpoint-protocol` § "Wire 1.1 extensions"). Existing fields remain
+historical links only; local consent and the anonymous handle now live solely in
+the gitignored SQLite store, so a copied checkpoint cannot opt in a new machine.
 
 ```jsonc
 "telemetry_handle": {
-  "enabled": true,                       // opt-in flag — the actual consent signal
-  "id": "anon-7f3a91c0",                 // random, machine-local, non-reversible
-  "sink": ".checkpoints/usage.sqlite",   // local store path
-  "since": "2026-06-25T12:00:00Z"
+  "sink": ".checkpoints/usage.sqlite",   // informational local-store path
+  "local_consent": true                   // informational; never authorizes writes
 }
 ```
 
@@ -139,16 +155,15 @@ SQLite (not a JSON array) because usage is append-heavy and queried by aggregate
 — and because a growing JSON array in `.checkpoints/` would be a merge-conflict
 magnet, the exact failure the checkpoint protocol warns against.
 
-## Principle 2: Opt-in — presence is not consent
+## Principle 2: Opt-in — tracked state is not consent
 
-Default is **OFF**: no store, no writes, no `telemetry_handle`. `/oc-telemetry
-enable` flips `telemetry_handle.enabled = true` and mints a random, machine-local
-`handle` (never derived from any identity). A `telemetry_handle` whose `enabled`
-is `false` — or absent — means off; only `enabled: true` authorizes a write, and
-the write path checks it on every run. `/oc-telemetry disable` stops metering
-immediately (the local file is kept; deleting it is the user's call). Full consent
-model, the recorded-vs-never-recorded table, and the relationship to the site's
-separate PostHog consent: `references/privacy-consent.md`.
+Default is **OFF**: no store, no writes. `/oc-telemetry enable` creates the local
+store, records consent there, and mints a random machine-local handle (never
+derived from any identity). A copied checkpoint cannot authorize a write. The
+write path checks the local row on every run. `/oc-telemetry disable` stops
+metering immediately (the local file is kept; deleting it is the user's call).
+Full consent model and the relationship to the site's separate PostHog consent:
+`references/privacy-consent.md`.
 
 ## Principle 3: Aggregate-only export
 
@@ -180,16 +195,23 @@ content-free by construction.
 
 ## Checkpoint Integration
 
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-telemetry-ops.
+
 ### Location
-`{project-dir}/.checkpoints/oc-telemetry-ops.checkpoint.json`
+Consent and raw runs stay in `{project-dir}/.checkpoints/usage.sqlite`. Aggregate
+metadata is written through C's local store under
+`{project-dir}/.checkpoints/.local/telemetry/.checkpoints/`; the tracked
+`{project-dir}/.checkpoints/oc-telemetry-ops.checkpoint.json` is not updated.
 
 ### When to Write
 
 | Event | What to Save |
 |---|---|
-| Opted in / out | `telemetry_handle.enabled` + `since` |
-| Store created | `telemetry_handle.id` + `sink` |
-| Aggregate produced | rollup summary path in `skill_state` |
+| Opted in / out | local SQLite `telemetry_meta` consent value |
+| Store created | local SQLite random handle + sink |
+| Aggregate produced | compact rollup summary in the private telemetry checkpoint `skill_state` |
 
 ### Cross-Skill Reads
 
@@ -200,8 +222,7 @@ content-free by construction.
 
 | Read by | Why |
 |---|---|
-| the site `/dashboard` | The anonymized aggregate export |
-| oc-orchestrator | "Most-used skill" signal for recommendations |
+| the site `/dashboard` | The anonymized aggregate export — intended reader; the page still imports static sample data and has no loader for an export yet |
 
 ---
 

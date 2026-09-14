@@ -342,9 +342,9 @@ async function bridgeSession(oldSession: WebAuthnSession): Promise<SupabaseSessi
 | Runtime | V8 isolates | Node.js (or Edge) | Check for Workers-specific APIs (`waitUntil`, `ctx`) |
 | Database | D1 (binding) | External (connection string) | Remove D1 bindings, add connection pooling |
 | KV | KV namespace (binding) | External (Upstash, Vercel KV) | Swap KV client |
-| Config | `wrangler.toml` | `vercel.json` + env vars | Rewrite config |
+| Config | `wrangler.jsonc` / `wrangler.toml` | `vercel.json` + env vars | Rewrite config |
 | Env vars | `wrangler secret` | Vercel dashboard | Transfer secrets |
-| Routing | `wrangler.toml` routes | File-based or `vercel.json` | Restructure routes |
+| Routing | `wrangler.jsonc` / `wrangler.toml` routes | File-based or `vercel.json` | Restructure routes |
 | Deploy | `wrangler deploy` | `git push` (auto) | Set up Vercel project |
 | Static | Pages | Vercel static | Move to `public/` |
 
@@ -355,34 +355,6 @@ Similar pattern but target is a container:
 - Replace bindings with environment-variable-based connections
 - Add connection pooling (Workers doesn't need it, containers do)
 - Health check endpoint must respond within container startup time
-
----
-
-## Structural Refactor Playbook
-
-### Monorepo Restructure
-
-When reorganizing the directory structure of a monorepo:
-
-1. **Map current structure** → document every import path
-2. **Design target structure** → map every file's new location
-3. **Generate move script** → `git mv` commands for every file
-4. **Update imports** → find-and-replace all import paths
-5. **Update configs** → tsconfig paths, package.json workspaces, CI paths
-6. **Run build** → compiler catches missed imports
-7. **Run tests** → verify nothing broke
-
-### Module Extraction
-
-When pulling a module out of a monolith into its own package:
-
-1. **Identify the boundary** → which files belong to the module, which are shared
-2. **Catalog external imports** → what does the module depend on from the parent?
-3. **Create the package** → `packages/[module]/package.json`, `tsconfig.json`
-4. **Move files** → `git mv` to preserve history
-5. **Create the interface** → export only what consumers need
-6. **Update consumers** → import from package instead of relative path
-7. **Add to workspace** → update root `package.json` workspaces
 
 ---
 
@@ -462,7 +434,7 @@ When moving files, extracting packages, or reorganizing directory structure.
 3. **Execute moves.** Run the move script.
 4. **Update imports.** Automated find-and-replace on all import paths. Use `tsc --noEmit`
    as the verification — the compiler catches every missed import.
-5. **Update configs.** tsconfig `paths`, package.json `workspaces`, wrangler.toml route
+5. **Update configs.** tsconfig `paths`, package.json `workspaces`, wrangler.jsonc/.toml route
    paths, CI workflow `paths:` filters, Dockerfile `COPY` commands.
 6. **Run full build.** `npm run build` or equivalent — catches config misses.
 7. **Run full test suite.** Confirms no behavioral change.
@@ -600,9 +572,13 @@ a migration — the same expand-migrate-contract discipline applies.
 ```markdown
 ## Step 1: Inventory
 
-Scan all skill directories:
-  /mnt/skills/user/*/SKILL.md
-  /mnt/skills/examples/*/SKILL.md
+Scan all skill directories — the source tree in the opchain repo, or the installed
+copies when you are not in that repo:
+  skills/*/SKILL.md              (opchain repo source of truth)
+  ~/.claude/skills/*/SKILL.md    (installed from the opchain-skills zip)
+Generated copies (skills/*/references/orchestrator.md,
+skills/*/references/checkpoint-protocol.md, plugins/opchain/skills/) are never
+edited by hand — they are regenerated in Step 5.
 
 Count: [N] SKILL.md files to update
 Affected: [list which ones need the change vs. which are already compliant]
@@ -623,8 +599,9 @@ Transformation rule:
 For each affected SKILL.md:
   1. Read current content
   2. Apply transformation
-  3. Write to a staging location (/home/claude/skill-migration-staging/)
-  4. Diff against original
+  3. Apply the edit on a branch (in the opchain repo) or to a scratch copy of
+     the installed skill directory
+  4. Diff against original (`git diff`, or `diff -ru` for a scratch copy)
 
 ## Step 4: Review Diffs
 
@@ -633,8 +610,10 @@ User approves the transformation pattern.
 
 ## Step 5: Apply
 
-Copy updated files to output directory for user to install.
-(Skills are read-only in /mnt/skills — user installs via Settings.)
+In the opchain repo: commit on the branch, then regenerate the derived copies —
+`npm run sync-bundles` and `npm run sync-plugin-skills` — and run
+`npm run gen-catalog`. Outside the repo: copy the approved files over the
+installed skill directories under `~/.claude/skills/`.
 
 ## Step 6: Verify
 
@@ -668,7 +647,9 @@ Add `protocol_version` check to checkpoint reads:
 
 ## Step 3: Update checkpoint.mjs
 
-The shared CLI handles read/write. Update `scripts/checkpoint.mjs` to:
+Where the project has the shared CLI (the opchain repo does), it handles read/write —
+update `scripts/checkpoint.mjs` to the list below. Otherwise the skills edit the JSON
+directly, so fold these rules into Step 4's per-skill writes instead:
   - Write v[N+1] format on new writes
   - Read both v[N] and v[N+1] formats
   - `status` command shows protocol version
@@ -760,8 +741,8 @@ In orchestrator.md (and the oc-orchestrator skill):
 ## Step 4: Update Cross-Skill References
 
 Search all SKILL.md files for references to the old skill name:
-  grep -rn "[old-skill]" /mnt/skills/user/*/SKILL.md
-  grep -rn "[old-skill]" /mnt/skills/user/*/references/*.md
+  grep -rn "[old-skill]" skills/*/SKILL.md skills/orchestrator.md
+  grep -rn "[old-skill]" skills/*/references/*.md
 
 Update each reference to point to the new skill.
 
@@ -771,20 +752,20 @@ If projects have checkpoints from the old skill:
   .checkpoints/[old-skill].checkpoint.json
 The new skill should detect and read these on resume, offering to migrate.
 
-## Step 6: Update Memory Edits
+## Step 6: Update Memory and Project Instructions
 
-Use memory_user_edits to update any routing instructions or skill references
-stored in Claude's memory:
-  1. memory_user_edits command="view" — check for references to old skill name
-  2. memory_user_edits command="replace" — update to new skill name
+Search the places Claude Code loads standing instructions from — the project's
+CLAUDE.md, `~/.claude/CLAUDE.md`, and any auto-memory files — for the old skill
+name, and edit each reference to the new one.
 
 This is critical — if memory says "use tri-dev for builds" but tri-dev is
 merged into oc-app-architect, Claude will try to invoke a skill that no longer exists.
 
 ## Step 7: Remove Old Skill
 
-Delete the old skill directory from the skill installation.
-User action: Settings → Customize → Skills → delete old skill.
+Delete the old skill directory: `skills/[old-skill]/` in the opchain repo (then
+re-run the Step 5 sync commands), or `~/.claude/skills/[old-skill]/` for an
+installed copy.
 
 ## Step 8: Verify
 
@@ -792,7 +773,7 @@ User action: Settings → Customize → Skills → delete old skill.
   - [ ] Old skill's commands work via new skill (or redirect message shown)
   - [ ] Orchestrator routing table updated
   - [ ] No remaining references to old skill name in any SKILL.md
-  - [ ] Memory edits updated
+  - [ ] CLAUDE.md / memory references updated
   - [ ] Existing checkpoints readable by new skill
 ```
 
@@ -802,14 +783,14 @@ User action: Settings → Customize → Skills → delete old skill.
 |---|---|---|
 | All SKILL.md files parse | Extract YAML frontmatter from each | No parse errors |
 | All descriptions present | Grep for `description:` in frontmatter | N/N skills have descriptions |
-| Shared checkpoint CLI valid | `node scripts/checkpoint.mjs validate` | All checkpoints pass schema validation |
+| Shared checkpoint CLI valid | `node scripts/checkpoint.mjs validate` where the project has the CLI; otherwise check each JSON against `references/checkpoint-protocol.md` by hand | All checkpoints pass schema validation |
 | All orchestrator.md identical | `md5sum */references/orchestrator.md` | All checksums match (or document intentional diffs) |
 | Trigger coverage | List all commands across all skills | No collisions, no gaps |
 
 ### Output: Ecosystem Migration Package
 
-Ecosystem migrations produce a zip of updated skill files for the user to install,
-plus a changelog:
+Ecosystem migrations produce a PR against the opchain repo (the published
+opchain-skills zip and the plugin are rebuilt from it), plus a changelog:
 
 ```markdown
 ## Ecosystem Migration: [description]
@@ -825,14 +806,12 @@ plus a changelog:
 [List skills not affected by this migration]
 
 ### Installation
-1. Download the attached .skill.zip files
-2. Go to Settings → Customize → Skills
-3. Delete the old version of each changed skill
-4. Upload the new version
+Merge the PR. Installed copies pick the change up from the next opchain-skills
+zip (unzip over `~/.claude/skills/`) or plugin update.
 
 ### Rollback
-Keep the old .skill.zip files. To revert, delete the new versions and
-re-upload the old ones.
+Revert the PR. For an installed copy, restore the previous zip's skill
+directories over `~/.claude/skills/`.
 ```
 
 ---

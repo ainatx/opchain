@@ -1,7 +1,7 @@
 ---
 name: oc-security-hardening
 displayName: OC · Security Hardening
-version: 1.9.0
+version: 1.9.2
 license: Apache-2.0
 shortDesc: "Remediation operator: execute hardening fixes and stand the per-deploy hardening gate. Auditor finds; this fixes."
 phases: [build]
@@ -122,8 +122,12 @@ a reviewable diff + a manifest entry:
   allows; dashboard-only settings get a manifest entry with
   `verify: {method: http|manual}` so drift is at least detectable.
 - **Secrets hygiene** — no plaintext secrets: the *scan* stays oc-bug-check
-  Check 5 (record the control as `verify: {method: test}` invoking the Check 5
-  command set); this skill owns the env-var inventory, the rotation note per
+  Check 5. Its bare `grep` commands fail the `test` allowlist, so record the
+  control as `verify: {method: test}` only when the project wraps them in a
+  repository script the runner accepts (`npm run check:secrets` or
+  `node scripts/check-secrets.mjs`);
+  otherwise record it as `manual` with the Check 5 command set in
+  `instructions`. This skill owns the env-var inventory, the rotation note per
   secret, and — when the user asks to rotate — executing rotation via the
   platform's secret store (`wrangler secret put` and kin), or explicitly
   handing to `/oc-deploy env` and saying so.
@@ -131,21 +135,27 @@ a reviewable diff + a manifest entry:
   update cadence. The *scan* stays oc-bug-check Check 7; this is the policy it
   scans against.
 
-Baseline respects the auditor's proportionality tiers: read the
-oc-security-auditor checkpoint for tier (Lite/Standard/Comprehensive) and apply
-that depth. No auditor checkpoint → apply Lite and recommend `/oc-security
-posture` for anything more.
+Baseline respects the auditor's proportionality tiers: read the tier
+(Lite/Standard/Comprehensive) from the oc-security-auditor checkpoint's
+`context_primer.key_decisions` or `progress_summary` — never its private
+`skill_state` — and apply that depth. Tier not recorded there → ask the user;
+no auditor checkpoint → apply Lite and recommend `/oc-security posture` for
+anything more.
 
 ## `/oc-harden fix`
 
 Remediate one finding end-to-end:
 
-1. Pull the finding: the oc-security-auditor checkpoint; oc-code-auditor
-   findings whose fix is control-class per the tie-breaker below (code-auditor
-   marks these `route: oc-security-hardening` in its findings report); an
-   oc-compliance-ops register `gap` chained here (by control id in its
-   `gaps_chained`); or an external report the user supplies (pen test, bug
-   bounty, platform audit) — record it verbatim in `source_finding`.
+1. Pull the finding: the oc-security-auditor posture report or its PM
+   tickets (its checkpoint carries counts and tier, not findings);
+   oc-code-auditor findings whose fix is control-class per the tie-breaker
+   below (code-auditor marks these `route: oc-security-hardening` in its
+   findings report, which is conversation output with no committed path — ask
+   for it if it is not in this session); an oc-compliance-ops register control
+   in `.opchain/compliance.yaml` with `status: gap` and
+   `chained_to: oc-security-hardening`; or an external report the user
+   supplies (pen test, bug bounty, platform audit) — record it verbatim in
+   `source_finding`.
 2. Implement the fix as a normal change — smallest reviewable diff, tests
    where testable.
 3. Append the manifest entry with `source_finding` traceability.
@@ -198,8 +208,10 @@ on:
   - **Fail closed:** on any regressed control, and on an unparseable manifest
     or missing/unknown `verify` method (a schema error is a FAIL, never a
     skip).
-  - **Manual:** loud-skip, printed with the age of `last_manual_check`,
-    blocking only when `max_age_days` is set and exceeded.
+  - **Manual:** loud-skip, printed with its `instructions`, blocking only
+    when `max_age_days` is set and exceeded (only then does opchain's runner,
+    `scripts/check-hardening.mjs`, print the age). Show `last_manual_check`
+    yourself when reporting the gate.
 - **In the oc-deploy-ops chain:** when `.opchain/hardening.yaml` exists,
   oc-deploy-ops' pre-deploy audit gate includes the row "hardening manifest
   verifies at this SHA" alongside the two auditor rows. Absent manifest →
@@ -223,10 +235,15 @@ Manifest health (control counts by verify outcome), the remediation queue, and
 `last_verify`. Also report the gate tier: machine-enforced (deploy script /
 CI) or agent-run (deploy-ops row). Also the **unmanaged-control scan**: controls applied outside
 `/oc-harden` (oc-code-auditor's Fixer, a human PR) are detected by scanning
-for known control classes present in code but absent from the manifest, and
-`/oc-harden fix --import` backfills the entry.
+for known control classes present in code but absent from the manifest; run
+`/oc-harden fix` with the existing control as the external finding (record its
+origin in `source_finding`) to backfill the entry.
 
 ## Checkpoint Integration
+
+The shared checkpoint schema, write rules and resume protocol live in
+`references/checkpoint-protocol.md`, bundled with this skill. This section adds only
+what is specific to oc-security-hardening.
 
 Location: `{project-dir}/.checkpoints/oc-security-hardening.checkpoint.json`
 
@@ -260,10 +277,10 @@ Location: `{project-dir}/.checkpoints/oc-security-hardening.checkpoint.json`
 
 | Reads from | Why |
 |---|---|
-| oc-security-auditor | Findings + tier → remediation queue and baseline depth |
+| oc-security-auditor | Tier (`context_primer`) → baseline depth; findings from its posture report / PM tickets → remediation queue |
 | oc-code-auditor | Infra-adjacent findings agreed to belong here |
-| oc-compliance-ops | Technical `gap` controls chained in for execution |
-| oc-stack-forge | Platform idiom for expressing controls as code |
+| oc-compliance-ops | Technical `gap` controls chained in for execution (`.opchain/compliance.yaml` register, `chained_to: oc-security-hardening`) |
+| oc-stack-forge | Platform idiom for expressing controls as code (its `context_primer` stack decision and `packs/<stack>/pack.yml`) |
 | oc-deploy-ops | Deploy chokepoint the gate hooks into |
 
 | Read by / chains to | Why |

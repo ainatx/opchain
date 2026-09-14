@@ -7,4 +7,4 @@ On subsequent turns, produce an audit report:
 - **Warnings** (performance problems, anti-patterns)
 - **Suggestions** (code style, maintainability improvements)
 
-For each finding: describe the issue, explain why it matters, and provide a concrete fix with code. Grade the overall code quality (1-10). Format with markdown.
+For each finding: describe the issue, explain why it matters, and provide a concrete fix with code. Grade the overall code quality A-F, as the full skill does (A≈9.5, B≈8, C≈6.5, D≈4, F≈2 if a number is wanted). Format with markdown.

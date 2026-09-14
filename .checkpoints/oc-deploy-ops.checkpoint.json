@@ -4,38 +4,37 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-08-27T23:49:17.485Z",
-  "updated_at": "2026-09-02T21:49:57.000Z",
-  "phase": "production",
-  "step": "v1.9-production-verified",
+  "updated_at": "2026-09-14T00:20:50.602Z",
+  "phase": "staging-verified",
+  "step": "v1.9.2-staging-complete",
   "status": "complete",
-  "progress_summary": "v1.9.0 production shipped at exact signed runtime SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248. Cloudflare deployment 54ef8a21-0665-4a83-bc1a-5768c2bae0d5 serves version 01bbe46b-3533-4faa-bc1a-d140cbcecbbe at 100% traffic; staging deployment 791c1851-2b81-4408-b881-dac381fa6d07 serves version d07bb08a-9662-4e77-a2a1-673fc0c7a8a5. Hardening replay, smoke, live MCP acceptance, visual review, and all 7 post-deploy gates passed. Staging's first attempt safely auto-rolled back on a bounded health-convergence miss and the retry passed; production did not roll back. Monitoring baseline PR #478 and its authenticated default-branch validation runs are green.",
+  "progress_summary": "Staging 1.9.2 at 93dc854 passed exact-main, candidate evidence, hardening and smoke gates, plus live catalog/changelog/hosted-reference verification. Production remains 1.9.1 at f5e4b2a.",
   "blockers": [],
   "next_actions": [
-    "Retain production predecessor version c55ae124-ff35-4924-80af-00e92bd8879c until v1.9 is considered stable.",
-    "Let oc-monitoring-ops observe the first scheduled v1.9 Canary and Deploy lag cycle on September 5."
+    "Review staging and decide separately whether to promote 1.9.2 to production."
   ],
   "skill_state": {
     "current_env": "production",
-    "staging_version": "244bf13",
-    "prod_version": "244bf13",
-    "production_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
-    "target_version": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
-    "cloudflare_version_id": "01bbe46b-3533-4faa-bc1a-d140cbcecbbe",
-    "cloudflare_deployment_id": "54ef8a21-0665-4a83-bc1a-5768c2bae0d5",
-    "staging_cloudflare_version_id": "d07bb08a-9662-4e77-a2a1-673fc0c7a8a5",
-    "staging_cloudflare_deployment_id": "791c1851-2b81-4408-b881-dac381fa6d07",
+    "staging_version": "f5e4b2a",
+    "prod_version": "f5e4b2a",
+    "production_sha": "f5e4b2a",
+    "target_version": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
+    "cloudflare_version_id": "01db3b36-a90c-4f73-98f7-fd00505582c4",
+    "cloudflare_deployment_id": "3b7989ff-2f65-4dc6-a629-6f16ba4fd677",
+    "staging_cloudflare_version_id": "28a5c29d-0c18-4653-8214-e31af0a3872a",
+    "staging_cloudflare_deployment_id": "52c452c5-5d9e-4148-b3eb-30b7155d4888",
     "staging_url": "https://staging.opchain.dev",
     "production_url": "https://opchain.dev",
     "branch_preview": false,
-    "last_deploy": "2026-09-02T20:11:25.746861Z",
-    "source_pr": 477,
+    "source_pr": 483,
     "audit_gate": {
       "critical": 0,
       "high": 0,
       "scope": "exact merged and tagged v1.9 SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
       "result": "PASS",
       "independent_review": "SHIP",
-      "hardening_manifest": "PASS — 45 MCP tests and 6 retention tests"
+      "hardening_manifest": "PASS — 45 MCP tests and 6 retention tests",
+      "historical": "Applies only to the v1.9.0 release SHA 244bf13. It is not evidence for any later deploy."
     },
     "staging_smoke_results": {
       "health": "PASS — HTTP 200 with ok:true and exact version 244bf13",
@@ -129,6 +128,88 @@
       "deployment_id": "bf2ee2b8-8d1e-4155-89cb-fcd91b45ff00",
       "cloudflare_version_id": "c55ae124-ff35-4924-80af-00e92bd8879c",
       "reason": "Captured active production predecessor; retained because production rollback was not needed."
+    },
+    "unrecorded_deploy": {
+      "detected_at": "2026-09-11T03:45:00Z",
+      "live_version": "78567c2",
+      "live_sha": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
+      "deployment_id": "8da6c19d-a89a-4214-8e58-4606c7ce2f72",
+      "window": "2026-09-05T01:57:35Z to 2026-09-05T13:49:39Z",
+      "approved_baseline": {
+        "tag": "v1.9.0",
+        "sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
+        "deployment_id": "54ef8a21-0665-4a83-bc1a-5768c2bae0d5"
+      },
+      "staging_live_version": "fbb24a8",
+      "staging_note": "not on any origin branch; OPCHAIN_ALLOW_OFF_MAIN_STAGING preview of the 2.0 colour work",
+      "owner_decision": "bless and re-baseline (2026-09-11)",
+      "failed_monitor_runs": [
+        33970020249,
+        33971641171,
+        34359976498,
+        34363685054
+      ]
+    },
+    "last_release_deploy": "2026-09-13T23:05:38Z",
+    "last_runtime_deploy": "2026-09-05T02:24:00Z",
+    "staging_1_9_2": {
+      "ok": true,
+      "verifiedAt": "2026-09-14T00:18:30.803291+00:00",
+      "url": "https://staging.opchain.dev",
+      "sourceSha": "93dc8545929288ca2169e88ca0fd0fc90587c717",
+      "sourceTree": "9f28305915428bc9ea54572718847ccd62e17621",
+      "healthVersion": "93dc854",
+      "catalogVersion": "1.9.2",
+      "skillCount": 33,
+      "releaseCards": 20,
+      "voteTargets": 7,
+      "releaseCardPresent": true,
+      "hostedReferenceManifestAndCanonicalLegacyReads": "PASS",
+      "deployWrapperHardeningAndSmoke": "PASS",
+      "productPr": 536,
+      "sitePr": 537,
+      "tag": "v1.9.2",
+      "tagObject": "078e554a693b04b9655430c3e6b568761b6bcf4d",
+      "productCommit": "7ccdacf04c9ac59f62309c371de357acd9b81839",
+      "registryPublicationRun": 34791781955,
+      "productCiRun": 34791420579,
+      "productLighthouseRun": 34791420546,
+      "productionPromoted": false,
+      "siteCiRun": 34791901798,
+      "siteLighthouseRun": 34791901886
     }
-  }
+  },
+  "progress_table": [
+    {
+      "id": "v1-9-production",
+      "label": "v1.9.0 production shipped and verified at 244bf13",
+      "status": "complete"
+    },
+    {
+      "id": "unrecorded-deploy",
+      "label": "2026-09-05 production deploy of 78567c2 identified and blessed by the owner",
+      "status": "complete"
+    },
+    {
+      "id": "baseline-refresh",
+      "label": "release-baseline.json runtime block records deployment 8da6c19d (PR #510)",
+      "status": "complete"
+    },
+    {
+      "id": "staging-realign",
+      "label": "staging redeployed from main (37e2b4b) instead of the off-main preview",
+      "status": "complete"
+    },
+    {
+      "id": "staging-baseline",
+      "label": "staging deployment/version ids recorded in release-baseline.json (owner, laptop)",
+      "status": "not_started"
+    }
+  ],
+  "context_primer": {
+    "key_decisions": [
+      "2026-09-13 (v1.9.1 Sprint 3 reconciliation): the three laptop re-baseline actions were completed by merged PR #510 and removed; version id placeholder replaced; staging facts updated after the owner's redeploy."
+    ]
+  },
+  "record_updated_at": "2026-09-14T00:20:50.602Z"
 }

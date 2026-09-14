@@ -13,6 +13,34 @@ import { dirname, join } from "node:path";
 import sharp from "sharp";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+/* Brand colours come from the token layer, not from literals typed in here.
+   These cards are the only brand surface a token swap cannot reach on its own —
+   nothing imports this script, so a palette change would leave every unfurled
+   link showing the old brand until somebody remembered this file. Reading
+   site/src/styles/tokens.css means "somebody remembered" is not required.
+   Catalogued in design-previews/color-2.0-tooling/MIGRATION-SURFACE.md. */
+const TOKENS_CSS = readFileSync(join(ROOT, "site", "src", "styles", "tokens.css"), "utf8");
+function brand(token, expected) {
+  const m = TOKENS_CSS.match(new RegExp(`\\${token}\\s*:\\s*([^;]+);`));
+  if (!m) throw new Error(`gen-og-images: ${token} is not defined in tokens.css`);
+  const value = m[1].trim();
+  if (expected && value !== expected) {
+    // Not a failure — a signal. The cards were designed against ${expected};
+    // if the token has moved, the layout and contrast want a fresh look.
+    console.warn(`  ! ${token} is now ${value} (cards were designed against ${expected})`);
+  }
+  return value;
+}
+const GROUND   = brand("--slate",   "#12191f");
+const ACCENT   = brand("--emerald", "#2be179");
+const HEADLINE = brand("--frost",   "#d4e2ef");
+const BODY     = brand("--mist",    "#a5bcd1");
+/* 2.0: the URL footnote moved off the border colour onto --subtle (the first
+   --subtle declaration is the dark :root one, which is the card's ground). */
+const FOOTNOTE = brand("--subtle",  "#7d91a4");
+/* The blog eyebrow is the muted accent — --moss in 2.0. */
+const EYEBROW  = brand("--moss",    "#13bd62");
 const OUT = join(ROOT, "site", "public", "og");
 const BLOG_SRC = join(ROOT, "site", "src", "blog");
 const BLOG_OUT = join(OUT, "blog");
@@ -108,23 +136,23 @@ function card({ headline, tagline }) {
   <defs>
     <!-- Ember glow — bottom-right -->
     <radialGradient id="gr" cx="95%" cy="85%" r="45%" gradientUnits="objectBoundingBox">
-      <stop offset="0%"   stop-color="#2be179" stop-opacity="0.18"/>
-      <stop offset="100%" stop-color="#12191f" stop-opacity="0"/>
+      <stop offset="0%"   stop-color="${ACCENT}" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="${GROUND}" stop-opacity="0"/>
     </radialGradient>
     <!-- Subtle top-left warmth -->
     <radialGradient id="gl" cx="0%" cy="0%" r="35%" gradientUnits="objectBoundingBox">
-      <stop offset="0%"   stop-color="#2be179" stop-opacity="0.07"/>
-      <stop offset="100%" stop-color="#12191f" stop-opacity="0"/>
+      <stop offset="0%"   stop-color="${ACCENT}" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="${GROUND}" stop-opacity="0"/>
     </radialGradient>
   </defs>
 
   <!-- Base -->
-  <rect width="1200" height="630" fill="#12191f"/>
+  <rect width="1200" height="630" fill="${GROUND}"/>
   <rect width="1200" height="630" fill="url(#gr)"/>
   <rect width="1200" height="630" fill="url(#gl)"/>
 
   <!-- Left accent bar -->
-  <rect x="0" y="0" width="5" height="630" fill="#2be179"/>
+  <rect x="0" y="0" width="5" height="630" fill="${ACCENT}"/>
 
   <!-- Wordmark -->
   <text
@@ -132,7 +160,7 @@ function card({ headline, tagline }) {
     font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif"
     font-size="20"
     font-weight="bold"
-    fill="#2be179"
+    fill="${ACCENT}"
     letter-spacing="5"
   >OPCHAIN</text>
 
@@ -142,7 +170,7 @@ function card({ headline, tagline }) {
     font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif"
     font-size="${HEADLINE_SIZE}"
     font-weight="bold"
-    fill="#d4e2ef"
+    fill="${HEADLINE}"
   >${headline}</text>
 
   <!-- Tagline -->
@@ -151,11 +179,11 @@ function card({ headline, tagline }) {
     font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif"
     font-size="26"
     font-weight="normal"
-    fill="#a5bcd1"
+    fill="${BODY}"
   >${tagline}</text>
 
   <!-- Bottom accent line -->
-  <rect x="72" y="574" width="260" height="3" fill="#2be179" opacity="0.7"/>
+  <rect x="72" y="574" width="260" height="3" fill="${ACCENT}" opacity="0.7"/>
 
   <!-- URL -->
   <text
@@ -163,7 +191,7 @@ function card({ headline, tagline }) {
     font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif"
     font-size="18"
     font-weight="normal"
-    fill="#7d91a4"
+    fill="${FOOTNOTE}"
     text-anchor="end"
   >opchain.dev</text>
 </svg>`;
@@ -242,30 +270,30 @@ function blogCard({ title, pillar }) {
   const titleSpans = lines
     .map(
       (ln, i) =>
-        `  <text x="72" y="${startY + i * lineHeight}" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif" font-size="${fontSize}" font-weight="bold" fill="#d4e2ef">${esc(ln)}</text>`,
+        `  <text x="72" y="${startY + i * lineHeight}" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif" font-size="${fontSize}" font-weight="bold" fill="${HEADLINE}">${esc(ln)}</text>`,
     )
     .join("\n");
 
   return `<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <radialGradient id="gr" cx="95%" cy="85%" r="45%" gradientUnits="objectBoundingBox">
-      <stop offset="0%"   stop-color="#2be179" stop-opacity="0.18"/>
-      <stop offset="100%" stop-color="#12191f" stop-opacity="0"/>
+      <stop offset="0%"   stop-color="${ACCENT}" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="${GROUND}" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="gl" cx="0%" cy="0%" r="35%" gradientUnits="objectBoundingBox">
-      <stop offset="0%"   stop-color="#2be179" stop-opacity="0.07"/>
-      <stop offset="100%" stop-color="#12191f" stop-opacity="0"/>
+      <stop offset="0%"   stop-color="${ACCENT}" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="${GROUND}" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <rect width="1200" height="630" fill="#12191f"/>
+  <rect width="1200" height="630" fill="${GROUND}"/>
   <rect width="1200" height="630" fill="url(#gr)"/>
   <rect width="1200" height="630" fill="url(#gl)"/>
-  <rect x="0" y="0" width="5" height="630" fill="#2be179"/>
-  <text x="72" y="88" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="bold" fill="#2be179" letter-spacing="5">OPCHAIN</text>
-  <text x="72" y="174" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif" font-size="22" font-weight="bold" fill="#13bd62" letter-spacing="3">${esc(eyebrow)}</text>
+  <rect x="0" y="0" width="5" height="630" fill="${ACCENT}"/>
+  <text x="72" y="88" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="bold" fill="${ACCENT}" letter-spacing="5">OPCHAIN</text>
+  <text x="72" y="174" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif" font-size="22" font-weight="bold" fill="${EYEBROW}" letter-spacing="3">${esc(eyebrow)}</text>
 ${titleSpans}
-  <rect x="72" y="574" width="260" height="3" fill="#2be179" opacity="0.7"/>
-  <text x="1128" y="594" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="normal" fill="#7d91a4" text-anchor="end">opchain.dev/blog</text>
+  <rect x="72" y="574" width="260" height="3" fill="${ACCENT}" opacity="0.7"/>
+  <text x="1128" y="594" font-family="Liberation Sans, DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="normal" fill="${FOOTNOTE}" text-anchor="end">opchain.dev/blog</text>
 </svg>`;
 }
 
@@ -299,15 +327,15 @@ const markInner = FAVICON.replace(/^[\s\S]*?<svg[^>]*>/, "")
 const fallbackSvg = `<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <radialGradient id="gr" cx="95%" cy="85%" r="45%" gradientUnits="objectBoundingBox">
-      <stop offset="0%"   stop-color="#2be179" stop-opacity="0.18"/>
-      <stop offset="100%" stop-color="#12191f" stop-opacity="0"/>
+      <stop offset="0%"   stop-color="${ACCENT}" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="${GROUND}" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="gl" cx="0%" cy="0%" r="35%" gradientUnits="objectBoundingBox">
-      <stop offset="0%"   stop-color="#2be179" stop-opacity="0.07"/>
-      <stop offset="100%" stop-color="#12191f" stop-opacity="0"/>
+      <stop offset="0%"   stop-color="${ACCENT}" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="${GROUND}" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <rect width="1200" height="630" fill="#12191f"/>
+  <rect width="1200" height="630" fill="${GROUND}"/>
   <rect width="1200" height="630" fill="url(#gr)"/>
   <rect width="1200" height="630" fill="url(#gl)"/>
   <svg x="375" y="90" width="450" height="450" viewBox="0 0 32 32">${markInner}</svg>

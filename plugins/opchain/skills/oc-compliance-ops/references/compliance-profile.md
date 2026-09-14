@@ -34,8 +34,9 @@ register:
     status: satisfied         # satisfied | partial | gap | n/a
     verified: 2026-08-28
     capture:                  # how /oc-comply evidence collects the fact —
-      method: file            #   file | cmd | http | manual (mirrors the
-      path: wrangler.jsonc    #   hardening manifest's verify methods)
+      method: file            #   file | cmd | http | manual (corresponds to the
+      path: wrangler.jsonc    #   hardening manifest's verify methods:
+                              #   file≈config, cmd≈test, http, manual)
       # cmd → records command + output; manual → instructions +
       # last_manual_check, listed in the bundle's honesty section as
       # unverifiable-by-machine. No capture block → bundle stub marked
@@ -54,9 +55,9 @@ register:
     kind: config
     status: gap
     chained_to: oc-security-hardening    # technical gap → execution handoff;
-                                         #   the checkpoint's gaps_chained
-                                         #   carries the id so /oc-harden fix
-                                         #   can pull it
+                                         #   /oc-harden fix reads this field;
+                                         #   the checkpoint's gaps_chained is
+                                         #   a private mirror
     # manifest_id: headers.hsts-preload  # set once remediated — the closing
                                          #   link back to the hardening
                                          #   manifest control
@@ -87,12 +88,13 @@ is written to a bundle:
   from a reviewed checkout. Resolve `file` paths inside the real project root
   after symlinks and cap captured bytes. Run `cmd` as an explicit argv vector,
   never through a shell; reject metacharacters/substitutions/redirections and
-  remote package downloads. Automatic commands must match a documented
-  read-only allowlist; otherwise show the exact argv and require user approval,
-  or emit a refused/manual stub. `http` is credential-free GET/HEAD only,
-  relative to the explicitly declared HTTPS evidence origin, with redirects
-  disabled; absolute, cross-origin, private/link-local, or metadata targets
-  require explicit approval and remain manual by default.
+  remote package downloads. No capture allowlist is defined today (and no runner
+  executes `cmd` captures), so no command runs automatically: show the exact
+  argv and require user approval, or emit a refused/manual stub. `http` is
+  credential-free GET/HEAD only, relative to the explicitly declared HTTPS
+  evidence origin, with redirects disabled; absolute, cross-origin,
+  private/link-local, or metadata targets require explicit approval and remain
+  manual by default.
 - **Redact secret-class values.** Apply the same secret shapes oc-bug-check
   Check 5 scans for (API keys, tokens, passwords, credentials, high-entropy
   literals) *plus* unquoted `KEY=value` env-file lines, which Check 5's
@@ -136,6 +138,7 @@ The contract is presence-based and additive:
 - Present → the gate gains one row: *"evidence bundle generated for the
   deploying SHA"* (i.e. `/oc-comply evidence` ran and wrote a bundle whose
   `shortsha` matches). The row is **presence-checked, never blocking**: a
-  missing or stale bundle is a ⚠️ Warn at the gate (generate before prod),
+  missing or stale bundle is a ⚠️ Warn at the gate (generate it for that SHA;
+  it is committed after the deploy, so a first deploy of a SHA normally warns),
   and a `gap`-heavy register does **not** block a deploy — compliance state
   is reported, not enforced.

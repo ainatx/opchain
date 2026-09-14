@@ -63,7 +63,6 @@ without manual handoffs.
 | skill | role |
 |---|---|
 | `oc-reverse-spec` | Code → spec docs |
-| `oc-stack-forge` | Universal stack advisor |
 | `oc-dash-forge` | Dashboards + dense data UI (spec + React prototype) |
 | `oc-scale-ops` | Scaling readiness |
 
@@ -71,13 +70,16 @@ without manual handoffs.
 
 | skill | role |
 |---|---|
-| `oc-app-architect` | Unified planning + build harness |
 | `oc-ux-engineer` | Tri-design harness |
+| `oc-stack-forge` | Universal stack advisor |
+| `oc-app-architect` | Unified planning + build harness |
 | `oc-docs-forge` | Documentation generator for every PR: PR body/comments, README/catalog docs, changelog, ADR upkeep |
-| `oc-integrations-engineer` | API integration harness (third-party APIs you consume) |
 | `oc-api-dev` | First-party API design + build harness (OpenAPI, versioning, SDKs) |
 | `oc-migration-ops` | `/oc-migrate` — DB / framework / auth / platform migrations |
 | `oc-modularize-ops` | Live-monolith decomposition with golden-fixture equivalence proof |
+| `oc-qa-ops` | Test-pyramid design: coverage strategy, contract-test matrix, load-test planning |
+| `oc-data-ops` | Data pipelines: ingestion, transformation layers, dbt, observable data contracts |
+| `oc-compliance-ops` | Standing control register + audit-ready evidence bundles at deploy time |
 
 ### build + ai-native
 
@@ -92,9 +94,11 @@ without manual handoffs.
 
 | skill | role |
 |---|---|
+| `oc-integrations-engineer` | API integration harness (third-party APIs you consume) |
 | `oc-code-auditor` | Auditor → Fixer → Verifier. 5-layer sweep, pre-deploy gate |
 | `oc-bug-check` | Pre-commit QA gate: type, lint, tests, secrets, build, deps, anti-patterns |
 | `oc-security-auditor` | Threat modeling, OWASP hardening, attack-surface review |
+| `oc-security-hardening` | Remediation operator: execute hardening fixes, per-deploy hardening gate |
 | `oc-repo-ops` | Repository hygiene and PR readiness gate |
 | `oc-cost-ops` | LLM cost attribution, budget gates, model-tier routing recommendations |
 | `oc-telemetry-ops` | Opt-in local usage metering and anonymized aggregate dashboard feed |
@@ -169,3 +173,11 @@ decisions:
 Apache-2.0 — see [LICENSE](./LICENSE) and [NOTICE](./NOTICE). Copyright 2026
 Aidan Elsesser and the opchain contributors. Releases up to and including
 v1.8.2 were published under MIT; later releases are Apache-2.0.
+
+## Package capabilities
+
+See the generated [delivery-mode matrix](docs/capabilities.md) for skills, hooks, runtimes, and assurance limits. Run `npm run capabilities -- --mode source` for a read-only package diagnostic, or select `claude-plugin`, `skills`, `local-mcp`, or `hosted-mcp` with `--root PATH` for another artifact. File presence does not certify native-host execution or repository enrollment.
+
+For local runtime acceptance, `npm run runtime:package -- --out /absolute/new-directory` creates a private artifact containing the checkpoint, candidate-verification, prompt/cost, and local MCP runtimes, skill resources, pinned installed runtime dependencies, licenses, and a SHA-256 file inventory. The target must not exist. No package installation, release, or network call is performed. Inspect it with `node scripts/capabilities.mjs --mode runtime --root /absolute/new-directory`. This artifact does not install host hooks or certify native-host behavior.
+
+The verifier, check policy and CI workflows are reviewed repository configuration. CI re-executes checks instead of trusting a copied local receipt; it does not protect against malicious changes approved into that configuration. Tracked audit handoffs record assessor conclusions and source identity, not cryptographic proof of the assessor’s identity.

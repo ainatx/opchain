@@ -1,7 +1,8 @@
 # UX Audit Checklist
 
-Detailed checks for the `/oc-audit ux` mode. The SKILL.md gives the overview and
-automated check commands; this document provides the full manual review protocol.
+Detailed checks for oc-code-auditor's `/oc-audit ux` mode, also used by oc-ux-engineer's
+Design Evaluator. oc-code-auditor's SKILL.md gives the overview and automated check
+commands; this document provides the full manual review protocol.
 
 ---
 

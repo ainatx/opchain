@@ -4,31 +4,59 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-20T03:50:45.264Z",
-  "updated_at": "2026-09-02T21:49:57.000Z",
-  "phase": "observe",
-  "step": "v1.9-baseline-verified-scheduled-followup-pending",
-  "status": "in_progress",
-  "progress_summary": "The v1.9.0 runtime is operationally healthy at exact SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248. Monitoring baseline PR #478 is merged, and default-branch Canary run 33686712301 plus Deploy lag run 33686714194 authenticated to Cloudflare and passed against the exact active production and staging deployments. Deploy lag found zero deploy-relevant changes, ignored the one baseline-only change, and auto-closed stale issue #475. Continuous monitoring remains conservatively in progress until the first successful v1.9 event=schedule cycle on September 5; workflow_dispatch evidence proves the baseline now, not the scheduler cycle. Bot Fight Mode remains enabled and public machine traffic may still be challenged.",
+  "updated_at": "2026-09-14T00:20:50.764Z",
+  "phase": "staging-baseline",
+  "step": "v1.9.2-staging-complete",
+  "status": "complete",
+  "progress_summary": "Staging monitoring now records deployment 80f1aae5-0b10-49aa-9711-f082b8f94f1d at source 93dc854. Both control-plane environments verified locally; production baseline remains unchanged. Scheduled-monitor success is a later independent observation.",
   "progress_table": [
-    { "id": "live-runtime", "label": "Exact-SHA production and staging health verification", "status": "complete" },
-    { "id": "baseline-refresh", "label": "v1.9 approved Cloudflare release baseline merged", "status": "complete" },
-    { "id": "manual-canary", "label": "Authenticated default-branch Canary validation", "status": "complete" },
-    { "id": "manual-deploy-lag", "label": "Deploy-relevant diff and incident reconciliation", "status": "complete" },
-    { "id": "post-release-scheduled-evidence", "label": "First successful v1.9 scheduled Canary and Deploy lag cycle", "status": "in_progress" }
+    {
+      "id": "live-runtime",
+      "label": "Exact-SHA production and staging health verification",
+      "status": "complete"
+    },
+    {
+      "id": "baseline-refresh",
+      "label": "v1.9 approved Cloudflare release baseline merged",
+      "status": "complete"
+    },
+    {
+      "id": "manual-canary",
+      "label": "Authenticated default-branch Canary validation",
+      "status": "complete"
+    },
+    {
+      "id": "manual-deploy-lag",
+      "label": "Deploy-relevant diff and incident reconciliation",
+      "status": "complete"
+    },
+    {
+      "id": "post-release-scheduled-evidence",
+      "label": "First successful scheduled Canary and Deploy lag cycle against the current production deployment",
+      "status": "blocked"
+    },
+    {
+      "id": "monitor-guardrails",
+      "label": "Deploy lag files its issue on control-plane mismatch; deploy.mjs warns on a stale baseline",
+      "status": "in_progress"
+    },
+    {
+      "id": "runtime-approval",
+      "label": "78567c2 approved as the post-release production runtime (PR #510, baseline runtime block)",
+      "status": "complete"
+    }
   ],
   "blockers": [],
   "next_actions": [
-    "Observe the September 5 13:47 UTC Canary and 14:17 UTC Deploy lag schedule runs on main.",
-    "If both event=schedule runs pass against v1.9.0, set continuous_monitoring_status to healthy and close this checkpoint.",
-    "Keep Cloudflare Free-plan Bot Fight Mode enabled; do not claim a WAF Skip exception, enable workers.dev, or upgrade the plan without new authority.",
-    "Retain CLOUDFLARE_ACCOUNT_ID and rotate CLOUDFLARE_API_TOKEN to a dedicated least-privilege read credential during Phase C8."
+    "Review staging and decide separately whether to promote 1.9.2 to production."
   ],
   "context_primer": {
     "key_decisions": [
       "The monitoring design uses authenticated Cloudflare control-plane APIs rather than public GitHub-hosted curl traffic challenged by Bot Fight Mode.",
       "The approved baseline is the signed v1.9.0 tag, not the later non-deploying monitoring or checkpoint commits.",
       "A successful workflow_dispatch validates the new baseline immediately; only a successful event=schedule cycle closes the explicit continuous-monitoring evidence requirement.",
-      "Deploy lag compares origin/main to the immutable release baseline using deploy-relevant paths, so monitoring/checkpoint-only descendants do not trigger false drift incidents."
+      "Deploy lag compares origin/main to the immutable release baseline using deploy-relevant paths, so monitoring/checkpoint-only descendants do not trigger false drift incidents.",
+      "2026-09-13 (v1.9.1 Sprint 3 reconciliation): staging is on main again; the remaining step is the staging baseline entry."
     ],
     "generated_files": [
       ".github/monitoring/release-baseline.json",
@@ -79,12 +107,14 @@
       "expiry_30_day_gate": "pass"
     },
     "production_deployment": {
-      "deployment_id": "54ef8a21-0665-4a83-bc1a-5768c2bae0d5",
-      "version_id": "01bbe46b-3533-4faa-bc1a-d140cbcecbbe",
-      "script_etag": "3b626cc22d8f1fa8d444686f3f6f209296184cba7114d65373019058d61cb875",
-      "git_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
-      "health_version": "244bf13",
-      "traffic_percent": 100
+      "deployment_id": "8da6c19d-a89a-4214-8e58-4606c7ce2f72",
+      "version_id": "b6268c62-48e8-4c30-a0c6-fea074ae260c",
+      "script_etag": "236d015622faef5596b4dd309c0b0c8cb3e198baacdab4381fbf28f2b662fdfd",
+      "git_sha": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
+      "health_version": "78567c2",
+      "traffic_percent": 100,
+      "deployed_at": "2026-09-05T02:24:37Z",
+      "approval": "post-release runtime block in release-baseline.json (PR #510, merged 2026-09-11)"
     },
     "staging_deployment": {
       "deployment_id": "791c1851-2b81-4408-b881-dac381fa6d07",
@@ -92,7 +122,9 @@
       "script_etag": "3b626cc22d8f1fa8d444686f3f6f209296184cba7114d65373019058d61cb875",
       "git_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
       "health_version": "244bf13",
-      "traffic_percent": 100
+      "traffic_percent": 100,
+      "live_note": "live since 2026-09-13: redeployed from main at 37e2b4b by the owner; deployment and version ids not yet recorded, so the recorded v1.9.0 entry no longer describes staging",
+      "history_note": "2026-09-11T07:09Z to 2026-09-13: served the off-main demo-rebuild preview 213d401 at deployment 6863e5bc-d479-4381-930a-74bd99cb21e5 / version 715220bc-2c7b-4b2b-abec-9063676b30e3; the recorded v1.9.0 entry is intentionally unchanged (owner decision)"
     },
     "live_log_probe": {
       "at": "2026-09-02T20:21:00Z",
@@ -100,36 +132,59 @@
       "result": "no events observed in bounded local tail",
       "assurance": "Authenticated control-plane validation independently confirmed that observability and automatic invocation logs are enabled."
     },
-    "operational_status": "healthy",
-    "continuous_monitoring_status": "v1.9-baseline-verified; first scheduled cycle pending",
+    "operational_status": "serving 78567c2 with 200 health; runtime approved and baseline merged",
+    "continuous_monitoring_status": "production baseline matches since PR #510 (validated by dispatch runs 34609906583 / 34609909497 on 2026-09-11); awaiting the 2026-09-13 scheduled cycle; Canary's staging half red by design until staging is redeployed from main",
     "baseline": {
       "pull_request": 478,
       "merge_sha": "c6d529631cfe49021efdcabcfcf02bc95a94700f",
       "merged_at": "2026-09-02T21:43:29Z",
       "tag": "v1.9.0",
-      "tag_object": "fd05dd2c5d696661cb2cc5cb9dd57d2470f69c32"
+      "tag_object": "fd05dd2c5d696661cb2cc5cb9dd57d2470f69c32",
+      "runtime": {
+        "sha": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
+        "short_sha": "78567c2",
+        "descends_from": "v1.9.0 (244bf13)",
+        "approved_via": "PR #510 (merged 2026-09-11T14:23:51Z, 534152d) — reviewed baseline PR, not a signed tag"
+      },
+      "runtime_pull_request": 510,
+      "runtime_merge_sha": "534152d"
     },
     "scheduled_canary": {
       "default_branch_activation": "active",
       "latest_v1_9_validation_run_id": 33686712301,
-      "latest_v1_9_validation_url": "https://github.com/a-atx/opchain/actions/runs/33686712301",
+      "latest_v1_9_validation_url": "https://github.com/ainatx/opchain/actions/runs/33686712301",
       "latest_v1_9_validation_event": "workflow_dispatch",
       "latest_v1_9_validation_conclusion": "success",
       "latest_successful_scheduled_run_id": 33494989108,
-      "next_scheduled_at": "2026-09-05T13:47:00Z"
+      "next_scheduled_at": "2026-09-13T13:47:00Z",
+      "latest_scheduled_run_id": 34359976498,
+      "latest_scheduled_conclusion": "failure",
+      "latest_runtime_validation_run_id": 34609906583,
+      "latest_runtime_validation_url": "https://github.com/ainatx/opchain/actions/runs/34609906583",
+      "latest_runtime_validation_event": "workflow_dispatch",
+      "latest_runtime_validation_environment": "production",
+      "latest_runtime_validation_conclusion": "success"
     },
     "deploy_lag_monitor": {
       "latest_v1_9_validation_run_id": 33686714194,
-      "latest_v1_9_validation_url": "https://github.com/a-atx/opchain/actions/runs/33686714194",
+      "latest_v1_9_validation_url": "https://github.com/ainatx/opchain/actions/runs/33686714194",
       "latest_v1_9_validation_event": "workflow_dispatch",
       "latest_v1_9_validation_conclusion": "success",
       "deploy_relevant_changes": 0,
       "explicitly_non_deploying_changes": 1,
-      "has_changes": false,
+      "has_changes": true,
       "reconciled_issue": 475,
       "issue_closed_at": "2026-09-02T21:44:00Z",
       "successful_scheduled_v1_9_run": null,
-      "next_scheduled_at": "2026-09-05T14:17:00Z"
+      "next_scheduled_at": "2026-09-13T14:17:00Z",
+      "latest_scheduled_run_id": 34363685054,
+      "latest_scheduled_conclusion": "failure",
+      "latest_runtime_validation_run_id": 34609909497,
+      "latest_runtime_validation_url": "https://github.com/ainatx/opchain/actions/runs/34609909497",
+      "latest_runtime_validation_event": "workflow_dispatch",
+      "latest_runtime_validation_conclusion": "success",
+      "tracking_issue": 513,
+      "tracking_issue_opened_at": "2026-09-11T14:24Z"
     },
     "assurance_limits": [
       "No WAF exception exists; Free-plan Bot Fight Mode remains enabled.",
@@ -146,6 +201,61 @@
     "phase_c": {
       "monitor_credentials": "retain CLOUDFLARE_ACCOUNT_ID and rotate CLOUDFLARE_API_TOKEN to least privilege during C8",
       "mirror_token": "separate credential; retire only after C7 is fully green"
+    },
+    "observed_drift": {
+      "detected_at": "2026-09-11T03:45:00Z",
+      "production": {
+        "live_version": "78567c2",
+        "live_sha": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
+        "deployment_id": "8da6c19d-a89a-4214-8e58-4606c7ce2f72",
+        "approved_deployment_id": "54ef8a21-0665-4a83-bc1a-5768c2bae0d5",
+        "approved_version": "244bf13"
+      },
+      "staging": {
+        "live_version": "213d401",
+        "note": "off-main demo-rebuild preview (claude/demo-rebuild-2-0), redeployed 2026-09-11T07:09Z; intentional, left out of the baseline refresh",
+        "approved_deployment_id": "791c1851-2b81-4408-b881-dac381fa6d07"
+      },
+      "failed_scheduled_runs": {
+        "canary": [
+          33970020249,
+          34359976498
+        ],
+        "deploy_lag": [
+          33971641171,
+          34363685054
+        ]
+      },
+      "deploy_relevant_main_paths_after_live": 19,
+      "owner_decision": "bless 78567c2 and re-baseline (2026-09-11)",
+      "resolution": "2026-09-11: 78567c2 approved as the post-release runtime (PR #510 merged 534152d); validated by dispatch runs 34609906583 (Canary, production) and 34609909497 (Deploy lag → issue #513); staging kept as intentional preview"
+    },
+    "staging_1_9_2": {
+      "ok": true,
+      "verifiedAt": "2026-09-14T00:18:30.803291+00:00",
+      "url": "https://staging.opchain.dev",
+      "sourceSha": "93dc8545929288ca2169e88ca0fd0fc90587c717",
+      "sourceTree": "9f28305915428bc9ea54572718847ccd62e17621",
+      "healthVersion": "93dc854",
+      "catalogVersion": "1.9.2",
+      "skillCount": 33,
+      "releaseCards": 20,
+      "voteTargets": 7,
+      "releaseCardPresent": true,
+      "hostedReferenceManifestAndCanonicalLegacyReads": "PASS",
+      "deployWrapperHardeningAndSmoke": "PASS",
+      "productPr": 536,
+      "sitePr": 537,
+      "tag": "v1.9.2",
+      "tagObject": "078e554a693b04b9655430c3e6b568761b6bcf4d",
+      "productCommit": "7ccdacf04c9ac59f62309c371de357acd9b81839",
+      "registryPublicationRun": 34791781955,
+      "productCiRun": 34791420579,
+      "productLighthouseRun": 34791420546,
+      "productionPromoted": false,
+      "siteCiRun": 34791901798,
+      "siteLighthouseRun": 34791901886
     }
-  }
+  },
+  "record_updated_at": "2026-09-14T00:20:50.764Z"
 }

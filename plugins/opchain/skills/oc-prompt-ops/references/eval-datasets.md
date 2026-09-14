@@ -21,8 +21,11 @@ reused) and the `input` the prompt runs on.
 ### `expected.jsonl` — the grading targets
 
 One object per `id`. `mode` selects the grader; the rest of the object is that
-grader's config. The opchain-eval set uses `contains` with an `all` array — the
-routing answer must name the right skill **and** its command.
+grader's config. The opchain-eval set grades unambiguous cases with `contains` and an
+`all` array — the routing answer must name the right skill **and** its command — and
+grades every collision case (two skills plausibly own the request) with `llm_judge`,
+whose criteria name the wrong-side skill, because naming the right skill in passing is
+not a pass.
 
 ```jsonl
 {"id": "route-001", "expect": {"mode": "contains", "all": ["oc-app-architect", "/oc-discover"]}}

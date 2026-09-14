@@ -2,7 +2,8 @@
 
 A concrete walkthrough of the thing the protocol exists for: a brand-new session,
 zero chat history, picking up exactly where the last one left off. Nothing here is
-hypothetical — every command is real (`scripts/checkpoint.mjs`).
+hypothetical — every command is real (`scripts/checkpoint.mjs`, where the project has
+the CLI; otherwise read and edit the checkpoint JSON directly).
 
 ## 1. New session boots — "where did I leave off?"
 

@@ -165,14 +165,14 @@ pip-audit --format=json 2>/dev/null || echo "pip-audit not available"
 
 If the project runs on Cloudflare Workers:
 
-- [ ] Secrets are in wrangler.toml `[vars]` or Workers secrets (not hardcoded)
+- [ ] Secrets are Workers secrets (`wrangler secret put`), not hardcoded; `[vars]` holds non-secret config only
 - [ ] D1 queries use parameterized statements (`.bind()`)
 - [ ] KV keys don't contain user secrets
 - [ ] R2 buckets have appropriate access controls
 - [ ] Service bindings use least-privilege
-- [ ] `wrangler.toml` doesn't contain production secrets
+- [ ] The wrangler config (`wrangler.toml` / `wrangler.jsonc` / `wrangler.json`) doesn't contain production secrets
 
 ```bash
-# Check wrangler.toml for secrets
-grep -n "password\|secret\|token\|key" wrangler.toml 2>/dev/null | grep -vi "binding\|name\|account_id\|compatibility"
+# Check the wrangler config for secrets (whichever format the project uses)
+grep -n "password\|secret\|token\|key" wrangler.toml wrangler.jsonc wrangler.json 2>/dev/null | grep -vi "binding\|name\|account_id\|compatibility"
 ```

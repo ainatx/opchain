@@ -805,6 +805,11 @@ async function handleMcp(request, env, ctx, origin, requestId) {
   const reqOrigin = new URL(request.url).origin;
   const server = createMcpServer({
     catalog: mcpCatalog,
+    listReferences: async (id) => mcpCatalog.skills.find((skill) => skill.id === id)?.references ?? [],
+    loadReference: async (id, path) => {
+      const response = await env.ASSETS.fetch(new Request(new URL(`/docs/${id}/${path}`, reqOrigin)));
+      return response.ok ? response.text() : null;
+    },
     serverVersion: VERSION,
     checkpoints: mcpCheckpointStore(env),
     // The server validates `id` against the catalog before calling this, so the

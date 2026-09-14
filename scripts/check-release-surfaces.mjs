@@ -17,6 +17,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readCatalogVersion } from "./check-release-tag.mjs";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const p = (rel) => join(ROOT, rel);
@@ -119,14 +120,16 @@ export function checkReleaseSurfaces() {
   // stopped at 1.8.1). Bind the site's claim to skills/CHANGELOG.md's newest
   // release heading, so the site cannot announce what the catalog has not
   // logged.
+  let releaseVersion = null;
   if (expected) {
     try {
       const changelog = readFileSync(join(ROOT, "skills", "CHANGELOG.md"), "utf8");
-      const heading = changelog.match(/^## \[(\d+\.\d+)\.\d+\]/m);
+      const heading = changelog.match(/^## \[(\d+\.\d+\.\d+)\]/m);
       if (!heading) {
         errors.push("skills/CHANGELOG.md: no released `## [x.y.z]` heading found");
       } else {
-        const logged = `v${heading[1]}`;
+        releaseVersion = heading[1];
+        const logged = `v${releaseVersion.split(".").slice(0, 2).join(".")}`;
         results.push({ label: "skills/CHANGELOG.md newest release", file: "skills/CHANGELOG.md", value: logged });
         if (logged !== expected) {
           errors.push(
@@ -140,7 +143,31 @@ export function checkReleaseSurfaces() {
     }
   }
 
-  return { ok: errors.length === 0, expected, results, errors };
+  // The site uses a minor display label, but install/update surfaces carry a
+  // full semver. Keep their inventory executable so a lockstep bump cannot
+  // leave the marketplace, plugin, catalog, server, or release seal behind.
+  if (releaseVersion) {
+    const versioned = [
+      ["skill catalog frontmatter", "skills/*/SKILL.md", () => readCatalogVersion(join(ROOT, "skills")).version],
+      ["release seal catalogVersion", "release-seal.json", () => JSON.parse(readFileSync(p("release-seal.json"), "utf8")).catalogVersion],
+      ["MCP server version", "server.json", () => JSON.parse(readFileSync(p("server.json"), "utf8")).version],
+      ["marketplace metadata version", ".claude-plugin/marketplace.json", () => JSON.parse(readFileSync(p(".claude-plugin/marketplace.json"), "utf8")).metadata?.version],
+      ["marketplace plugin version", ".claude-plugin/marketplace.json", () => JSON.parse(readFileSync(p(".claude-plugin/marketplace.json"), "utf8")).plugins?.find((plugin) => plugin.name === "opchain")?.version],
+      ["plugin manifest version", "plugins/opchain/.claude-plugin/plugin.json", () => JSON.parse(readFileSync(p("plugins/opchain/.claude-plugin/plugin.json"), "utf8")).version],
+    ];
+    for (const [label, file, read] of versioned) {
+      try {
+        const value = read();
+        results.push({ label, file, value, expected: releaseVersion });
+        if (value !== releaseVersion) errors.push(`${label} (${file}): says ${value ?? "(missing)"}, expected ${releaseVersion}`);
+      } catch (error) {
+        results.push({ label, file, value: null, error: "unreadable" });
+        errors.push(`${label} (${file}): unreadable (${error.message})`);
+      }
+    }
+  }
+
+  return { ok: errors.length === 0, expected, releaseVersion, results, errors };
 }
 
 // CLI
@@ -149,7 +176,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   console.log("RELEASE SURFACE CHECK");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   for (const r of results) {
-    console.log(`  ${r.error ? "✗" : r.value === expected ? "✓" : "✗"} ${r.label}: ${r.value ?? `(${r.error})`}`);
+    console.log(`  ${r.error ? "✗" : r.value === (r.expected ?? expected) ? "✓" : "✗"} ${r.label}: ${r.value ?? `(${r.error})`}`);
   }
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   if (ok) {
