@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-09-11T07:35:00.809Z",
+  "updated_at": "2026-09-14T07:02:27.431Z",
   "phase": "pr-open",
   "step": "pr-498-awaiting-review",
   "status": "in_progress",
@@ -594,68 +594,68 @@
     },
     "release_reconciliation": {
       "release_pr": {
-        "number": 477,
-        "url": "https://github.com/a-atx/opchain/pull/477",
-        "head_sha": "d1cba9972bbc856fddff9e81f17281efe1f998f1",
-        "merge_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
-        "merged_at": "2026-09-02T19:27:32Z",
-        "ci_run_id": 33672836001,
-        "lighthouse_run_id": 33672836044,
-        "checks": "PASS"
+        "number": 540,
+        "merge_sha": "5f06afdafb6c89a2c03e38813cb7f26d16ff5a89",
+        "merged_at": "2026-09-14T06:58:50Z"
       },
       "tag": {
-        "name": "v1.9.0",
-        "object_sha": "fd05dd2c5d696661cb2cc5cb9dd57d2470f69c32",
-        "peeled_commit": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
+        "name": "v2.0.0",
+        "object_sha": "9b8bb5cb84460a359d3abd37147110fc4cff5f4b",
+        "peeled_commit": "5f06afdafb6c89a2c03e38813cb7f26d16ff5a89",
         "signing_fingerprint": "66ED0CF12E9C51822AA1629BB4A90085A810B266",
         "local_gate": "PASS",
         "remote_gate": "PASS"
       },
-      "registry": {
-        "preflight_run_id": 33673476599,
-        "tag_run_id": 33677209947,
-        "tag_run_conclusion": "success",
-        "version": "1.9.0",
-        "status": "active",
-        "is_latest": true,
-        "metadata_matches_server_json": true,
-        "published_at": "2026-09-02T20:05:41.073493Z"
+      "environments": {
+        "staging": {
+          "worker": "opchain-staging",
+          "hostname": "staging.opchain.dev",
+          "domainEnvironment": "production",
+          "deploymentId": "1b4eedbf-78fa-4b8d-bf16-e80f15bc5907",
+          "versionId": "343bb086-dfc5-4ac6-a749-bd7b8d0d5e4e",
+          "trafficPercentage": 100,
+          "scriptEtag": "0fea1a09042cbab7532a18d7b16933cbf48468054ce6910313cd3aee9cf18d5f",
+          "handlers": [
+            "fetch"
+          ],
+          "bindings": [
+            "ASSETS",
+            "FEEDBACK_DRY_RUN",
+            "LINEAR_API_KEY",
+            "MCP_SESSION_SIGNING_KEY",
+            "MCP_WRITE_RATE_LIMITER",
+            "NOTIFY",
+            "RESEND_API_KEY",
+            "ROADMAP_GITHUB_TOKEN"
+          ],
+          "observabilityEnabled": true
+        },
+        "production": {
+          "worker": "opchain-dev",
+          "hostname": "opchain.dev",
+          "domainEnvironment": "production",
+          "deploymentId": "de97c0e5-9e61-4dd4-8116-9319e75e42a9",
+          "versionId": "90fdcf57-3e71-43c6-903c-8742f2a68ff3",
+          "trafficPercentage": 100,
+          "scriptEtag": "0fea1a09042cbab7532a18d7b16933cbf48468054ce6910313cd3aee9cf18d5f",
+          "handlers": [
+            "fetch"
+          ],
+          "bindings": [
+            "ASSETS",
+            "LINEAR_API_KEY",
+            "MCP_SESSION_SIGNING_KEY",
+            "MCP_WRITE_RATE_LIMITER",
+            "NOTIFY",
+            "RESEND_API_KEY",
+            "ROADMAP_GITHUB_TOKEN"
+          ],
+          "observabilityEnabled": true
+        }
       },
-      "staging_deployment": {
-        "deployment_id": "791c1851-2b81-4408-b881-dac381fa6d07",
-        "version_id": "d07bb08a-9662-4e77-a2a1-673fc0c7a8a5",
-        "health_version": "244bf13",
-        "traffic_percent": 100
-      },
-      "production_deployment": {
-        "deployment_id": "54ef8a21-0665-4a83-bc1a-5768c2bae0d5",
-        "version_id": "01bbe46b-3533-4faa-bc1a-d140cbcecbbe",
-        "health_version": "244bf13",
-        "traffic_percent": 100,
-        "rollback_used": false
-      },
-      "retention": {
-        "sealed_legacy_count": 16,
-        "deleted": 16,
-        "checkpoint_records_remaining": 0,
-        "unrelated_records_preserved": 4
-      },
-      "monitoring_baseline": {
-        "pull_request": 478,
-        "url": "https://github.com/a-atx/opchain/pull/478",
-        "head_sha": "0a5ed13ee56994da8066dfc769c8aa9603cc2956",
-        "merge_sha": "c6d529631cfe49021efdcabcfcf02bc95a94700f",
-        "merged_at": "2026-09-02T21:43:29Z",
-        "ci_run_id": 33678937890,
-        "lighthouse_run_id": 33678937853,
-        "main_push_ci_run_id": 33686690691,
-        "main_push_lighthouse_run_id": 33686690787,
-        "canary_run_id": 33686712301,
-        "deploy_lag_run_id": 33686714194,
-        "deploy_relevant_paths": 0,
-        "incident_475": "closed"
-      },
-      "status": "complete"
+      "registry_run": 34815776885,
+      "mirror_run": 34815740973,
+      "report": "docs/releases/2.0-production-release.md"
     },
     "closure_packet": {
       "status": "complete",
@@ -722,5 +722,6 @@
       "rerun_used": "#473 Worker job, once, after a standing-down comment"
     },
     "dependabot_note": "Comment commands (`@dependabot rebase`, `@dependabot ignore ...`) are not processed on the Dependabot PRs opened on 2026-08-31 during the repository transfer (#471, and by extension #472); Dependabot's scheduled runs still manage them (auto-rebase on conflict works). Use GitHub update-branch for those PRs, as with #473."
-  }
+  },
+  "record_updated_at": "2026-09-14T07:02:27.431Z"
 }

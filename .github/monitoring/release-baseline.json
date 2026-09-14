@@ -2,53 +2,56 @@
   "schemaVersion": 1,
   "status": "approved-release-baseline",
   "release": {
-    "tag": "v1.9.1",
-    "tagObject": "98b8ebcd9dc88550c3dff146c36f10d6ec0135cc",
-    "sourceSha": "aef40809fef4bbded9a47c936c7c544631397fb6",
-    "sourceShortSha": "aef4080"
-  },
-  "runtime": {
-    "sha": "f5e4b2a5de954329c33983d7a9738b7b4a47d4db",
-    "shortSha": "f5e4b2a",
-    "approval": "The v1.9.1 site half: PR #532 (release(v1.9.1): the chain holds — site half) merged to main after the signed v1.9.1 tag on aef4080, per RELEASING.md §5 for a patch release (product PR → tag → site PR → deploy). Staging deployed from main at f5e4b2a on 2026-09-13T13:35Z and production at f5e4b2a on 2026-09-13T23:05Z, both with the deploy script's clean-tree, origin/main, release-tag, hardening-replay and smoke gates passing. Approved as the production runtime by the reviewed baseline change that added this block; the next release cut removes it when release re-binds to the new signed tag."
+    "tag": "v2.0.0",
+    "tagObject": "9b8bb5cb84460a359d3abd37147110fc4cff5f4b",
+    "sourceSha": "5f06afdafb6c89a2c03e38813cb7f26d16ff5a89",
+    "sourceShortSha": "5f06afd"
   },
   "environments": {
-    "production": {
-      "worker": "opchain-dev",
-      "hostname": "opchain.dev",
-      "domainEnvironment": "production",
-      "deploymentId": "3b7989ff-2f65-4dc6-a629-6f16ba4fd677",
-      "versionId": "01db3b36-a90c-4f73-98f7-fd00505582c4",
-      "trafficPercentage": 100,
-      "scriptEtag": "5c2a162a66a83824221d9ca6600de30814ac99807b571e840087f0cbb2b15fc9",
-      "handlers": [
-        "fetch"
-      ],
-      "bindings": [
-        "ASSETS"
-      ],
-      "observabilityEnabled": true
-    },
     "staging": {
       "worker": "opchain-staging",
       "hostname": "staging.opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "dc18ff55-a797-40b4-a4cb-f4bf1eae12a3",
-      "versionId": "befa8713-c096-4bf4-a933-9e4010b2730c",
+      "deploymentId": "1b4eedbf-78fa-4b8d-bf16-e80f15bc5907",
+      "versionId": "343bb086-dfc5-4ac6-a749-bd7b8d0d5e4e",
       "trafficPercentage": 100,
-      "scriptEtag": "70063d8f269130cff8dce4c4fa6b7756fdbb0f232abe2b9cf7716676262a6c04",
+      "scriptEtag": "0fea1a09042cbab7532a18d7b16933cbf48468054ce6910313cd3aee9cf18d5f",
       "handlers": [
         "fetch"
       ],
       "bindings": [
-        "ASSETS"
+        "ASSETS",
+        "FEEDBACK_DRY_RUN",
+        "LINEAR_API_KEY",
+        "MCP_SESSION_SIGNING_KEY",
+        "MCP_WRITE_RATE_LIMITER",
+        "NOTIFY",
+        "RESEND_API_KEY",
+        "ROADMAP_GITHUB_TOKEN"
       ],
-      "observabilityEnabled": true,
-      "sourceSha": "3bc8cf380ae3b57033099f7b47de1771fba05e77",
-      "catalogVersion": "2.0.0",
-      "status": "staging-preview",
-      "releaseDate": null,
-      "approval": "User requested all recommended 2.0 runtime changes, the approved color design and staging. Branch preview at 3bc8cf3 passed candidate verification, typed code and security review, live hardening and smoke tests. Production is unchanged; this is not a 2.0 release approval."
+      "observabilityEnabled": true
+    },
+    "production": {
+      "worker": "opchain-dev",
+      "hostname": "opchain.dev",
+      "domainEnvironment": "production",
+      "deploymentId": "de97c0e5-9e61-4dd4-8116-9319e75e42a9",
+      "versionId": "90fdcf57-3e71-43c6-903c-8742f2a68ff3",
+      "trafficPercentage": 100,
+      "scriptEtag": "0fea1a09042cbab7532a18d7b16933cbf48468054ce6910313cd3aee9cf18d5f",
+      "handlers": [
+        "fetch"
+      ],
+      "bindings": [
+        "ASSETS",
+        "LINEAR_API_KEY",
+        "MCP_SESSION_SIGNING_KEY",
+        "MCP_WRITE_RATE_LIMITER",
+        "NOTIFY",
+        "RESEND_API_KEY",
+        "ROADMAP_GITHUB_TOKEN"
+      ],
+      "observabilityEnabled": true
     }
   },
   "deployLag": {

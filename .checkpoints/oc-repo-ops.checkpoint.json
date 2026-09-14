@@ -3,7 +3,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-14T06:50:40.186Z",
+  "updated_at": "2026-09-14T07:02:28.046Z",
   "skill": "oc-repo-ops",
   "phase": "pr-verify",
   "status": "complete",
@@ -121,7 +121,34 @@
           "docs/audits/2026-09-14-demos-install-staging-review.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-release-aeea9ebff09d",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T07:02:27.936Z",
+      "verified_at": "2026-09-14T07:02:27.936Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "v2-monitoring-baseline"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:aeea9ebff09da48029081177e63e10f5419da3a61aa9b25492d048b7db188911"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Authenticated deployment baseline, signed-tag and release evidence for shipped 2.0.0. Control-plane and deploy-diff pass. Documentation and checkpoint record actual results. No runtime or publisher change.",
+        "evidence": [
+          "docs/audits/2026-09-14-v2-monitoring-review.md",
+          "docs/audits/2026-09-14-v2-production-cut.md",
+          "docs/releases/2.0-production-release.md",
+          "docs/audits/2026-09-14-pr490-staging-merge.md",
+          "docs/audits/2026-09-14-demos-install-staging-review.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-14T06:50:40.186Z"
+  "record_updated_at": "2026-09-14T07:02:28.046Z"
 }
