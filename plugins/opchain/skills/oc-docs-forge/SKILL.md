@@ -1,7 +1,7 @@
 ---
 name: oc-docs-forge
 displayName: OC · Docs Forge
-version: 1.9.1
+version: 1.9.2
 license: Apache-2.0
 shortDesc: "Documentation generator for every PR: PR body, PR comments, README/catalog docs, product docs, changelog and ADR upkeep."
 phases: [plan, build]
@@ -168,6 +168,14 @@ verdict stops `oc-git-ops` from opening the PR. `oc-release-ops verify` also run
 this verb directly for release PRs. The everyday pre-PR gate in oc-git-ops runs
 `/oc-docs pr`, not `/oc-docs verify`.
 
+On success, also publish one C-contract `verification.verdict` handoff under
+policy `pr-docs-v1`, bound to the evaluator's `git_tree_projection` identity
+(the HEAD tree excluding `.checkpoints/`). This projection lets the tracked
+checkpoint carry its own evidence without a self-referential commit hash.
+Read it with `node scripts/lib/release-evidence.mjs --print-candidate --json`.
+FAIL/INCOMPLETE runs publish the corresponding verdict. Consumers use this
+typed handoff; `skill_state.verified_for_sha` remains display/compatibility data.
+
 ## Checkpoint Integration
 
 The shared checkpoint schema, write rules and resume protocol live in
@@ -202,7 +210,17 @@ Write on every `/oc-docs pr`, `/oc-docs readme`, `/oc-docs standardize`,
     "docs_not_changed_reason": null,
     "follow_up_docs": [],
     "verified_for_sha": "abc123"
-  }
+  },
+  "handoffs": [{
+    "id": "pr-docs-<candidate-id>",
+    "contract_version": "1.0",
+    "type": "verification.verdict",
+    "created_at": "2026-09-13T20:00:00Z",
+    "verified_at": "2026-09-13T20:00:00Z",
+    "producer": { "skill": "oc-docs-forge", "run_id": "<run-id>" },
+    "candidate": { "kind": "git_tree_projection", "id": "sha256:<digest>" },
+    "payload": { "verdict": "PASS", "policy": "pr-docs-v1" }
+  }]
 }
 ```
 

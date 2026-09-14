@@ -173,3 +173,11 @@ decisions:
 Apache-2.0 — see [LICENSE](./LICENSE) and [NOTICE](./NOTICE). Copyright 2026
 Aidan Elsesser and the opchain contributors. Releases up to and including
 v1.8.2 were published under MIT; later releases are Apache-2.0.
+
+## Package capabilities
+
+See the generated [delivery-mode matrix](docs/capabilities.md) for skills, hooks, runtimes, and assurance limits. Run `npm run capabilities -- --mode source` for a read-only package diagnostic, or select `claude-plugin`, `skills`, `local-mcp`, or `hosted-mcp` with `--root PATH` for another artifact. File presence does not certify native-host execution or repository enrollment.
+
+For local runtime acceptance, `npm run runtime:package -- --out /absolute/new-directory` creates a private artifact containing the checkpoint, candidate-verification, prompt/cost, and local MCP runtimes, skill resources, pinned installed runtime dependencies, licenses, and a SHA-256 file inventory. The target must not exist. No package installation, release, or network call is performed. Inspect it with `node scripts/capabilities.mjs --mode runtime --root /absolute/new-directory`. This artifact does not install host hooks or certify native-host behavior.
+
+The verifier, check policy and CI workflows are reviewed repository configuration. CI re-executes checks instead of trusting a copied local receipt; it does not protect against malicious changes approved into that configuration. Tracked audit handoffs record assessor conclusions and source identity, not cryptographic proof of the assessor’s identity.

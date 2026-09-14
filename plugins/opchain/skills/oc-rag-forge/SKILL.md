@@ -1,7 +1,7 @@
 ---
 name: oc-rag-forge
 displayName: OC · RAG Forge
-version: 1.9.1
+version: 1.9.2
 license: Apache-2.0
 shortDesc: Design and build RAG systems — vector DB choice, embeddings, chunking, hybrid search, retrieval eval. Tri-agent.
 phases: [build, ai-native]

@@ -107,7 +107,7 @@ Every comment body composed by an opchain skill **must** include an HTML-comment
 marker of the form:
 
 ```html
-<!-- opchain:<skill>:<event>:<correlation-id> -->
+<!-- opchain:<skill>:<event>:<correlation-id>:<revision>:<payload-hash> -->
 ```
 
 Where:
@@ -116,9 +116,28 @@ Where:
 - `<event>` = the named event the comment represents (`sprint-contract`,
   `pr-opened`, `pr-merged`, `staging-verified`, `prod-shipped`, `incident-fired`,
   `release-announced`, ...).
-- `<correlation-id>` = a stable id that uniquely identifies the event for that
-  ticket. For sprint comments: `sprint-N`. For PR events: the PR number.
+- `<correlation-id>` = a stable id that identifies the subject for that ticket.
+  For sprint comments: `sprint-N`. For PR events: the PR number.
   For deploy events: the deploy-ticket id. For incidents: the alert-event id.
+- `<revision>` = a monotonic revision for the same logical subject, such as
+  `r1`; changing a contract or outcome uses a new revision.
+- `<payload-hash>` = a short stable hash of the rendered semantic payload. A
+  retry preserves every marker component exactly; a changed payload gets a new
+  hash (and, when it changes the logical result, a new revision).
+
+This separates **retry identity** (the full marker, reused only for replay of the
+same delivery) from **event identity** (subject, outcome/event and revision). A
+failed sprint result must not suppress its later passing result, and a revised
+contract must not be mistaken for a duplicate.
+
+### Executable composition boundary
+
+Repository consumers compose and reconcile comments through
+`scripts/lib/pm-mcp-checks.mjs` `reconcilePmComment()`. It calls a provider's
+`listComments(ticket)` before `addComment({ ticket, body, marker })`, so a retry
+after an uncertain delivery reuses the computed full marker and reconciles when
+the first write became visible. The provider shape is intentionally mockable;
+this helper performs no network call itself.
 
 ### Pre-write check
 
@@ -126,8 +145,8 @@ Before calling `add_comment`, the skill **must**:
 
 1. Fetch existing comments via `list_comments` (or `get_issue` with comments
    inline for GitHub).
-2. Search the comment bodies for the exact marker.
-3. If a marker match exists, **skip the write**. Log the skip to the checkpoint
+2. Search the comment bodies for the exact full marker.
+3. If an exact marker match exists, **skip the write**. Log the skip to the checkpoint
    under `pm_idempotent_skips[]` with `{ticket, marker, observed_at}`.
 
 The pre-write check is a single MCP read; it adds latency but prevents
@@ -241,8 +260,8 @@ If `--retry-pm` is invoked with no queued actions, the skill prints
 ## 5. Cross-skill consistency rules
 
 These rules apply to every PM-aware skill. The validator (Section 6) mechanically
-checks only rules 1 and 7, and only for the skills it lists; rules 2–6 are
-reviewed by hand.
+checks rules 1 and 7 for every discovered PM-aware skill; rules 2–6 are reviewed
+by hand.
 
 1. **No placeholder names.** A skill must not write `mcp.<provider>.<verb>` in
    prose; either use the registry name or cite this protocol doc by reference.
@@ -266,10 +285,9 @@ reviewed by hand.
 ## 6. Validator (`npm run validate-pm-mcp`)
 
 The validator (`scripts/validate-pm-mcp.mjs`, opchain repo only) gates the build. It
-validates five SKILL.md files — the `PM_AWARE_SKILLS` list in
-`scripts/lib/pm-mcp-checks.mjs`: `oc-integrations-engineer`, `oc-app-architect`,
-`oc-git-ops`, `oc-deploy-ops`, `oc-monitoring-ops`. Every other skill's PM-Tool MCP
-section, `oc-release-ops` included, is not validated. It checks:
+discovers every `skills/*/SKILL.md` that declares a `## PM-Tool MCP Integration`
+section, including release and audit skills, then checks each discovered contract.
+It uses the repository's full YAML parser for `.opchain/pm.yaml`. It checks:
 
 | Check | Failure mode | Severity |
 |---|---|---|

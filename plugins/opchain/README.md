@@ -28,24 +28,29 @@ This plugin ships the mechanism instead of describing it.
 | | skills zip | this plugin |
 |---|---|---|
 | 33 skills | ✅ | ✅ |
-| Commit gate that actually blocks | ❌ | ✅ |
+| Git commit verification | ❌ | ✅ after successful `/oc-enroll` |
 | Pipeline state injected at session start | ❌ | ✅ |
 | "What to run next" after a skill finishes | ❌ | ✅ |
-| Real slash commands | ❌ (declared in SKILL.md, none registered) | ✅ twelve (below) |
+| Real slash commands | ❌ (declared in SKILL.md, none registered) | ✅ thirteen (below) |
 
 ## Install
 
 ```
 /plugin marketplace add asfbay-bit/opchain-skills
 /plugin install opchain
+/oc-enroll
 ```
+
+Run `/oc-enroll` successfully in each repository. Plugin installation alone does
+not activate commit verification.
 
 ## Registered slash commands
 
-The plugin registers twelve slash commands, one file each in `commands/`:
+The plugin registers thirteen slash commands, one file each in `commands/`:
 
-| Command | Invokes | Runs |
+| Command | Skill owner | Runs |
 |---|---|---|
+| `/oc-enroll` | oc-bug-check | installs and activates per-repository Git verification |
 | `/oc-bugcheck` | oc-bug-check | `/oc-bugcheck run`, then records the tree-bound verdict the commit gate reads |
 | `/oc-commit` | oc-git-ops | the commit, through the gate (run `/oc-bugcheck` first) |
 | `/oc-docs` | oc-docs-forge | `/oc-docs pr`, the PR documentation packet |
@@ -59,7 +64,9 @@ The plugin registers twelve slash commands, one file each in `commands/`:
 | `/oc-comply` | oc-compliance-ops | `/oc-comply scope` |
 | `/oc-harden` | oc-security-hardening | `/oc-harden baseline` |
 
-**Why these twelve.** The first eight shipped in v1.8.2 and cover the edges the
+`/oc-enroll` is a repository setup command, not a next-skill handoff target.
+
+**Command coverage.** The first eight shipped in v1.8.2 and cover the edges the
 plugin enforces or reports on: the commit gate (`/oc-bugcheck`, `/oc-commit`), the
 pre-PR gate (`/oc-docs`, `/oc-repo`), review and shipping (`/oc-audit`, `/oc-deploy`,
 `/oc-release`), and pipeline state (`/oc-ops`). The Stop hook names these when a
@@ -82,34 +89,22 @@ release; it is planned for v2.0.
 
 ## The gates
 
-**`PreToolUse` → commit gate** (`hooks/pre-commit-gate.cjs`). Blocks `git commit`
-unless oc-bug-check recorded a PASS *for the tree you are committing*.
+**Git `pre-commit` → candidate verification.** Run `/oc-enroll` in each repository.
+The packaged installer copies the verifier into the Git common directory, installs
+its final commit decision, and activates `.opchain/` only after successful setup.
+The runtime remains available if the plugin artifact is later removed.
 
-- **Node, not bash+jq.** The repo-local ancestor soft-skipped when `jq` was
-  missing, so a fresh container silently had no gate. Claude Code runs on Node.
-- **Tree-bound verdicts.** A checkpoint is written by the agent, and
-  `write_checkpoint` is a public MCP tool — a bare `verdict: PASS` is
-  self-attestation, not evidence. The verdict is bound to a hash of the full
-  working tree (every tracked change and untracked file, hashed as `git add -A`
-  into a throwaway index), so any edit after the check invalidates it, and a PASS
-  with no tree hash is denied however recent. A forged or stale PASS is
-  *non-matching*, not merely old. Field names and the recipe: oc-bug-check
-  § Commit gate contract. The opchain repo's own sessions run this same hook.
-- **Opt-in per repo.** Plugins install globally. A gate that denies commits in
-  every repo gets uninstalled within a day, taking the protection with it. Only
-  repos with `.checkpoints/` or `.opchain/` are gated (override: `OPCHAIN_GATE=1`).
-- **Command-position matching.** `echo "git commit"` and `grep -rn 'git commit'`
-  are not commits. The ancestor matched them by substring; false positives train
-  people to bypass, which costs you the true positives too. A wrapper
-  (`sh -c '…'`, `eval "…"`, `… | sh`, `find -exec sh -c '…'`) has its nested
-  text re-scanned, but only the text that wrapper can run — quoted data elsewhere
-  in the call stays data. The command is also read the way bash reads it: a
-  `$(…)` or `` `…` `` inside double quotes or an unquoted here-document is a
-  command, `\git` and `"git"` are git, and a comment, or a here-document body
-  that only a plain `cat` or `tee` reads, is prose — unless something in the
-  command could still run it.
-- **UNSUPPORTED ≠ PASS.** A gate that could not read your stack must not report
-  green.
+The verifier checks the actual staged candidate, including partial staging, in an
+isolated checkout. Its receipt binds the candidate tree, policy, check results,
+and toolchain. Missing checks and unsupported results block the commit. Checks
+receive isolated Git metadata and dependencies beside candidate package files.
+
+An existing foreign hook makes enrollment **BLOCKED**, with a nonzero exit and
+an explicit integration snippet. It is preserved for deliberate composition;
+enrollment must not claim success until the final verifier decision is installed.
+The registered plugin hooks are **SessionStart and Stop only**. The old
+`PreToolUse` parser remains a compatibility test fixture, not an authorization
+boundary. Git hooks cover ordinary commits from any agent or terminal.
 
 **`SessionStart` → pipeline state** (`hooks/session-state.cjs`). Computes and
 injects what `CLAUDE.md` merely *asks* someone to go run:
@@ -136,7 +131,7 @@ opchain · next → /oc-deploy   (oc-code-auditor just wrote a checkpoint: hand 
 ```
 
 The target is the first opchain skill the action names, other than the one that
-just finished. If that skill has one of the twelve commands, the notice shows the
+just finished. If that skill has a registered command, the notice shows the
 command; otherwise it names the skill (`"run oc-security-auditor"`). Before v1.9.1
 a handoff to a skill with no command and no checkpoint yet fell back to the skill
 that had just finished.
@@ -171,10 +166,10 @@ misfire — that asymmetry is why it was chosen over `decision: "block"`.
 
 ## Honest limits
 
-- **Claude Code only.** A second agent (Codex authored 78 of 101 commits in one
-  audited repo) never sees a `PreToolUse` hook. CI is the only cross-agent
-  enforcer, and it is post-hoc: the unverified commit gets written, it just cannot
-  merge.
+- **Native session hooks require Claude Code.** Git commit verification works
+  for ordinary commits through the enrolled repository regardless of agent.
+  Protected CI must independently verify the received commit; local receipts are
+  not a remote trust boundary.
 - **Enforcement is gate edges only.** A hook can intercept `git commit`. Nothing
   intercepts "you are about to design a screen, consult ux-engineer" — there is
   no tool call to hang it on. Composition skills stay user-invoked. The Stop hook
@@ -184,13 +179,13 @@ misfire — that asymmetry is why it was chosen over `decision: "block"`.
 - **The suggestion needs a checkpoint to fire.** It keys off checkpoint writes,
   so a skill that finishes without writing one is invisible to it. That is the
   same coverage gap the checkpoint protocol has always had, not a new one.
-- **`--no-verify` still works,** deliberately. A gate with no escape hatch gets
-  uninstalled. It logs to stderr.
+- **`git commit --no-verify` bypasses local Git hooks.** It cannot produce a
+  trusted CI result. A user with repository access can also remove local hooks.
 
 ## Testing
 
 ```
-node hooks/test-gate.cjs        # 149 cases — commit gate
+node hooks/test-gate.cjs        # compatibility parser cases (not registered enforcement)
 node hooks/test-suggestion.cjs  # 19 cases — next-skill suggestion
 ```
 

@@ -55,13 +55,49 @@
  *   frontmatter and moves independently as the docs/tooling evolve).
  */
 
-import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, statSync } from "node:fs";
-import { dirname, join, basename } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { execSync } from "node:child_process";
+import { accessSync, constants, readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, statSync, realpathSync, unlinkSync } from "node:fs";
+import { dirname, join, basename, resolve, delimiter } from "node:path";
+import { fileURLToPath } from "node:url";
+import { randomUUID } from "node:crypto";
+import { execSync, spawnSync } from "node:child_process";
 
 const ROOT = process.env.OPCHAIN_ROOT ?? dirname(dirname(fileURLToPath(import.meta.url)));
 const DIR  = process.env.OPCHAIN_CHECKPOINTS_DIR ?? join(ROOT, ".checkpoints");
+const LOCK_HELD_ENV = "OPCHAIN_CHECKPOINT_LOCK_HELD";
+
+function executable(path) {
+  try {
+    accessSync(path, constants.X_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Same supported-host contract as the local MCP filesystem provider. */
+function resolveCheckpointLock({ platform = process.platform, pathEnv = process.env.PATH || "" } = {}) {
+  if (platform === "darwin") {
+    if (!executable("/usr/bin/lockf")) throw new Error("atomic checkpoint writes on macOS require executable /usr/bin/lockf");
+    return { platform, command: "/usr/bin/lockf" };
+  }
+  if (platform === "linux") {
+    const command = pathEnv.split(delimiter).filter(Boolean).map((dir) => resolve(dir, "flock")).find(executable);
+    if (!command) throw new Error("atomic checkpoint writes on Linux require the `flock` executable on PATH");
+    return { platform, command };
+  }
+  throw new Error(`atomic checkpoint writes support macOS (with /usr/bin/lockf) and Linux (with flock); ${platform} is unsupported`);
+}
+
+function atomicWriteFile(path, contents, { onTempReady } = {}) {
+  const temp = join(dirname(path), `.${basename(path)}.${process.pid}.${randomUUID()}.tmp`);
+  try {
+    writeFileSync(temp, contents, { encoding: "utf8", mode: 0o600, flag: "wx" });
+    if (typeof onTempReady === "function") onTempReady(temp);
+    renameSync(temp, path);
+  } finally {
+    if (existsSync(temp)) unlinkSync(temp);
+  }
+}
 
 /** On-disk schema version stamped on new writes. See header note: distinct from
  *  the skill release version. v1.1 (v1.6 release) added the additive optional
@@ -964,14 +1000,16 @@ function scaffoldCheckpoint(skill) {
 }
 
 function writeValidated(path, data) {
-  data.updated_at = new Date().toISOString();
+  const now = new Date().toISOString();
+  data.updated_at = now;
+  data.record_updated_at = now;
   const { errors } = validate(path, data, Buffer.byteLength(JSON.stringify(data)));
   if (errors.length > 0) {
     console.error(`✗ ${basename(path)} — would fail validation:`);
     errors.forEach((e) => console.error(`    ${e}`));
     return false;
   }
-  writeFileSync(path, JSON.stringify(data, null, 2) + "\n");
+  atomicWriteFile(path, JSON.stringify(data, null, 2) + "\n");
   return true;
 }
 
@@ -1078,7 +1116,7 @@ function cmdReset(skill) {
 
 // Exported for tests. The CLI dispatch below only runs when invoked directly,
 // so importing this module (e.g. from vitest) is side-effect-free.
-export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, harvestTokens, actionIsStale, firstFreshAction, budgetExceeded, readApprovedReleaseBaseline, applyUpdates, repoPathCandidate, projectName, SCHEMA_VERSION, ACCEPTED_SCHEMA_VERSIONS };
+export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, harvestTokens, actionIsStale, firstFreshAction, budgetExceeded, readApprovedReleaseBaseline, applyUpdates, repoPathCandidate, projectName, resolveCheckpointLock, atomicWriteFile, SCHEMA_VERSION, ACCEPTED_SCHEMA_VERSIONS };
 
 // ───────────────────────────── arg parsing ──────────────────────────────────
 
@@ -1125,7 +1163,46 @@ function run() {
   }
 }
 
-const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+function mutationSkill() {
+  if (!["update", "done", "reset"].includes(cmd)) return null;
+  return rest[0] && SKILL_NAME.test(rest[0]) ? rest[0] : null;
+}
+
+function runWithMutationLock() {
+  const skill = mutationSkill();
+  if (!skill) return run();
+  const lockPath = join(DIR, `${skill}.checkpoint.json.lock`);
+  if (process.env[LOCK_HELD_ENV] === lockPath) return run();
+
+  let runtime;
+  try {
+    runtime = resolveCheckpointLock();
+  } catch (error) {
+    console.error(`✗ ${error.message}`);
+    return 1;
+  }
+  if (!existsSync(DIR)) mkdirSync(DIR, { recursive: true });
+  const lockArgs = runtime.platform === "linux"
+    ? ["-x", "-w", "10", lockPath]
+    : ["-k", "-t", "10", lockPath];
+  const child = spawnSync(runtime.command, [
+    ...lockArgs,
+    process.execPath,
+    fileURLToPath(import.meta.url),
+    cmd,
+    ...rest,
+  ], {
+    stdio: "inherit",
+    env: { ...process.env, [LOCK_HELD_ENV]: lockPath },
+  });
+  if (child.error) {
+    console.error(`✗ checkpoint lock failed: ${child.error.message}`);
+    return 1;
+  }
+  return child.status ?? 1;
+}
+
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === realpathSync(resolve(process.argv[1]));
 if (isMain) {
-  Promise.resolve(run()).then((code) => process.exit(code));
+  Promise.resolve(runWithMutationLock()).then((code) => process.exit(code));
 }

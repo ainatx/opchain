@@ -21,9 +21,10 @@
  *   2. Plumbs the inlined PUBLIC_POSTHOG_* build-time envs (formerly
  *      baked into the npm script).
  *   3. Requires a clean checkout before and after generation.
- *   4. Runs the hardening gate, captures the active rollback version, and
+ *   4. Requires candidate-bound executable and audit evidence.
+ *   5. Runs the hardening gate, captures the active rollback version, and
  *      deploys through Wrangler.
- *   5. Verifies the live SHA, hardening manifest, and smoke suite; any miss
+ *   6. Verifies the live SHA, hardening manifest, and smoke suite; any miss
  *      automatically rolls traffic back to the captured version.
  *
  * Local dev (`npm run dev`) is unaffected — wrangler reads .dev.vars
@@ -357,6 +358,7 @@ function warnIfBaselineStale(liveVersion) {
 assertDeployFromMain();
 assertCleanCheckout("preflight");
 assertReleaseTagged();
+run("node", ["scripts/lib/release-evidence.mjs", "--stage", "deploy"]);
 
 const { loaded, source } = loadDevVars();
 if (source) {

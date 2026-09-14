@@ -1,7 +1,7 @@
 ---
 name: oc-repo-ops
 displayName: OC · Repo Ops
-version: 1.9.1
+version: 1.9.2
 license: Apache-2.0
 shortDesc: "Repository hygiene and PR readiness gate. Ensures docs, generated files, git state, catalogs, and cleanup are PR-ready."
 phases: [build]
@@ -65,9 +65,13 @@ REPO OPS COMMANDS
 2. Repo Ops verifies repository cleanliness and docs packet presence.
 3. Git Ops opens the PR only after Repo Ops passes.
 
-**Agent-executed, unenforced.** Nothing mechanical runs this gate: the opchain
-plugin's hook matches `git commit`, not `gh pr create`, and no CI check reads the
-PR body. The gate holds while the running session honours it.
+Repo Ops publishes a C-contract `verification.verdict` handoff for the evaluator's
+HEAD `git_tree_projection` (excluding `.checkpoints/`) under policy
+`pr-readiness-v1`. Opchain's Git Ops flow and requested CI
+wiring consume it through `scripts/lib/release-evidence.mjs`; missing, stale,
+ambiguous, FAIL, or INCOMPLETE evidence blocks. CI separately reruns A's
+candidate verifier on the received commit, so a copied local receipt is not
+independent verification.
 
 Read `references/pr-readiness-gate.md` before `/oc-repo verify`.
 
@@ -108,6 +112,12 @@ PR readiness gate. Fail closed on:
 - Checkpoint pointers to files that no longer exist.
 
 Warnings never block, but they must appear in the PR body or Repo Ops checkpoint.
+Every run publishes a `verification.verdict` handoff with candidate kind
+`git_tree_projection`, the evaluator-produced SHA-256 identity, policy
+`pr-readiness-v1`, and PASS, FAIL, or INCOMPLETE. Excluding `.checkpoints/`
+avoids self-reference. Read the identity with
+`node scripts/lib/release-evidence.mjs --print-candidate --json`;
+`skill_state.verified_for_sha` remains compatibility output.
 
 ## `/oc-repo clean`
 
@@ -177,7 +187,17 @@ Location: `{project-dir}/.checkpoints/oc-repo-ops.checkpoint.json`
       "verdict": "PASS",
       "blocking_findings": []
     }
-  }
+  },
+  "handoffs": [{
+    "id": "pr-readiness-<candidate-id>",
+    "contract_version": "1.0",
+    "type": "verification.verdict",
+    "created_at": "2026-09-13T20:00:00Z",
+    "verified_at": "2026-09-13T20:00:00Z",
+    "producer": { "skill": "oc-repo-ops", "run_id": "<run-id>" },
+    "candidate": { "kind": "git_tree_projection", "id": "sha256:<digest>" },
+    "payload": { "verdict": "PASS", "policy": "pr-readiness-v1" }
+  }]
 }
 ```
 

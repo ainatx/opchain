@@ -109,12 +109,16 @@ for (const f of files) {
 }
 if (!cps.length) silent();
 
+function recordUpdatedAt(d) {
+  return d.record_updated_at || d.updated_at || "";
+}
+
 // ── the transition gate ─────────────────────────────────────────────────────
 // Fingerprint = which checkpoints exist and when each was last written. If that
 // is unchanged since the previous Stop in this session, no skill finished and
 // there is nothing new to say.
 const fingerprint = cps
-  .map((d) => `${d.skill}@${d.updated_at || "?"}`)
+  .map((d) => `${d.skill}@${recordUpdatedAt(d) || "?"}`)
   .sort()
   .join("|");
 
@@ -157,14 +161,14 @@ const priorMap = new Map(
       return [s.slice(0, i), s.slice(i + 1)];
     }),
 );
-const changed = cps.filter((d) => priorMap.get(d.skill) !== (d.updated_at || "?"));
+const changed = cps.filter((d) => priorMap.get(d.skill) !== (recordUpdatedAt(d) || "?"));
 if (!changed.length) {
   remember({});
   silent();
 }
 
 // Most recently written wins — that's the skill that just finished.
-changed.sort((a, b) => Date.parse(b.updated_at || 0) - Date.parse(a.updated_at || 0));
+changed.sort((a, b) => Date.parse(recordUpdatedAt(b) || 0) - Date.parse(recordUpdatedAt(a) || 0));
 const source = changed[0];
 
 // ── staleness: never suggest work git says already landed ───────────────────

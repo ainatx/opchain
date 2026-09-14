@@ -12,6 +12,10 @@ for d in "$SRC"/*/; do
   name="$(basename "$d")"
   mkdir -p "$DEST/$name"
   cp "${d}SKILL.md" "$DEST/$name/SKILL.md"
+  if [[ -d "${d}references" ]]; then
+    rm -rf -- "$DEST/$name/references"
+    cp -R "${d}references" "$DEST/$name/references"
+  fi
 done
 cp "$ROOT/LICENSE" "$ROOT/NOTICE" "$DEST/"
 echo "Synced skill docs to $DEST"

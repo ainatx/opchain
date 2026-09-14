@@ -1,7 +1,7 @@
 ---
 name: oc-code-auditor
 displayName: OC · Code Auditor
-version: 1.9.1
+version: 1.9.2
 license: Apache-2.0
 shortDesc: Auditor → Fixer → Verifier quality loop. v1.2 posts findings to the linked PM ticket; HIGH+ filed as sub-tickets.
 phases: [build]
@@ -581,3 +581,11 @@ than creating a duplicate.
 6. **Grade honestly.** A C is a C. Don't inflate.
 7. **Skepticism is the Verifier's job.** The Fixer assumes their fix works. The
    Verifier assumes it doesn't. This tension produces real quality.
+
+### Candidate-bound deployment handoff
+
+After completing the existing verification criteria, obtain the source identity with `node scripts/lib/release-evidence.mjs --print-candidate --json`. Publish a versioned `verification.verdict` entry in this skill's checkpoint `handoffs`, using that exact `candidate_identity` object. This identity excludes checkpoint evidence from the source projection; it does not attest built bytes or ignored environment configuration. Do not manufacture PASS from a prior summary. Missing criteria produce FAIL or INCOMPLETE.
+
+Required fields: a unique handoff `id`, `contract_version: "1.0"`, `type: "verification.verdict"`, ISO `created_at` and actual `verified_at`, `producer: { "skill": "oc-code-auditor", "run_id": "<actual-run-id>" }`, the printed `candidate_identity` as `candidate`, and `payload: { "verdict": "PASS|FAIL|INCOMPLETE", "policy": "pre-deploy-code-audit-v1" }`. Replace the verdict placeholder with the actual result. Preserve prior run history and write through the checkpoint protocol. If source content changes before evidence is committed, recompute the identity and re-run affected verification before producing a new handoff.
+
+The deployment wrapper consumes this required handoff before building or deploying and blocks if it is missing, invalid, stale, or non-PASS. Executable verification is a separate A receipt, produced in the current checkout; this checkpoint is not a substitute.

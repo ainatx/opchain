@@ -17,6 +17,14 @@
 // checkpoints) so it is trivially unit-testable with fixtures.
 
 import { route } from "./routing.js";
+import {
+  buildReferenceManifest,
+  parseReferenceUri,
+  referenceManifestUri,
+  REFERENCE_RESOURCE_VERSION,
+} from "./references.js";
+import { validateCheckpointEnvelope } from "./checkpoint-contract.js";
+import { CheckpointConflictError, readCheckpointRecord, writeCheckpointRecord } from "./checkpoint-store.js";
 
 const JSONRPC = "2.0";
 const PROTOCOL_VERSION = "2025-06-18";
@@ -68,10 +76,13 @@ function promptCatalog(catalog) {
  * @param {object} opts
  * @param {{skills: Array, orchestrator: string}} opts.catalog
  * @param {(id: string) => Promise<string|null>} [opts.loadBody] - returns a skill's SKILL.md
+ * @param {(id: string) => Promise<Array<string|object>>} [opts.listReferences]
+ * @param {(id: string, path: string) => Promise<string|null>} [opts.loadReference]
  * @param {{ createSession(): Promise<string>, hasSession(session): Promise<boolean>, read(skill,session): Promise<any>, write(skill,session,data): Promise<void> }} [opts.checkpoints]
+ * @param {"legacy"|"strict"} [opts.checkpointValidation] - strict validates the durable local checkpoint envelope
  * @param {string} [opts.serverVersion]
  */
-export function createMcpServer({ catalog, loadBody, checkpoints, serverVersion = "dev" } = {}) {
+export function createMcpServer({ catalog, loadBody, listReferences, loadReference, checkpoints, checkpointValidation = "legacy", serverVersion = "dev" } = {}) {
   if (!catalog || !Array.isArray(catalog.skills)) {
     throw new Error("createMcpServer: catalog.skills is required");
   }
@@ -148,6 +159,10 @@ export function createMcpServer({ catalog, loadBody, checkpoints, serverVersion 
           skill: { type: "string" },
           sessionId: { type: "string", minLength: 36, maxLength: 128, description: "Private token returned by create_checkpoint_session." },
           checkpoint: { type: "object", description: "The checkpoint JSON to store (skill_state, next_actions, etc.)." },
+          expectedRevision: {
+            oneOf: [{ type: "string", minLength: 1 }, { type: "null" }],
+            description: "Local durable transport only: null creates only if absent; a revision updates only that revision. Omit for atomic unguarded replacement.",
+          },
         },
         required: ["skill", "sessionId", "checkpoint"],
         additionalProperties: false,
@@ -171,6 +186,14 @@ export function createMcpServer({ catalog, loadBody, checkpoints, serverVersion 
         mimeType: "text/markdown",
         description: s.shortDesc || s.description?.slice(0, 140) || s.id,
       });
+      if (typeof listReferences === "function") {
+        out.push({
+          uri: referenceManifestUri(s.id),
+          name: `${s.displayName || s.id} reference manifest`,
+          mimeType: "application/json",
+          description: `Versioned manifest of reference files required by ${s.id}.`,
+        });
+      }
     }
     return out;
   }
@@ -240,6 +263,14 @@ export function createMcpServer({ catalog, loadBody, checkpoints, serverVersion 
             true,
           );
         }
+        if (checkpointValidation === "strict") {
+          const record = await readCheckpointRecord(checkpoints, skill, session);
+          if (record.checkpoint !== null) {
+            const validation = validateCheckpointEnvelope(record.checkpoint, { expectedSkill: skill });
+            if (!validation.ok) return textResult(`Stored checkpoint failed the local checkpoint contract: ${validation.errors.join("; ")}`, true);
+          }
+          return jsonText({ skill, sessionId: session, checkpoint: record.checkpoint, revision: record.revision });
+        }
         const data = await checkpoints.read(skill, session);
         return jsonText({ skill, sessionId: session, checkpoint: data ?? null });
       }
@@ -268,6 +299,18 @@ export function createMcpServer({ catalog, loadBody, checkpoints, serverVersion 
         const checkpointBytes = new TextEncoder().encode(serialized).byteLength;
         if (checkpointBytes > MAX_CHECKPOINT_BYTES) {
           return textResult(`checkpoint exceeds the ${MAX_CHECKPOINT_BYTES}-byte storage limit.`, true);
+        }
+        if (checkpointValidation === "strict") {
+          const validation = validateCheckpointEnvelope(a.checkpoint, { expectedSkill: skill });
+          if (!validation.ok) return textResult(`Checkpoint failed the local checkpoint contract: ${validation.errors.join("; ")}`, true);
+          const options = Object.hasOwn(a, "expectedRevision") ? { expectedRevision: a.expectedRevision } : {};
+          try {
+            const record = await writeCheckpointRecord(checkpoints, skill, session, a.checkpoint, options);
+            return jsonText({ ok: true, skill, sessionId: session, revision: record.revision });
+          } catch (error) {
+            if (error instanceof CheckpointConflictError) return textResult(`Checkpoint conflict: ${error.message}`, true);
+            throw error;
+          }
         }
         await checkpoints.write(skill, session, a.checkpoint);
         return jsonText({ ok: true, skill, sessionId: session });
@@ -347,11 +390,43 @@ export function createMcpServer({ catalog, loadBody, checkpoints, serverVersion 
       case "resources/list":
         return ok(id, { resources: listResources() });
 
+      case "resources/templates/list":
+        return ok(id, {
+          resourceTemplates: [{
+            uriTemplate: `opchain://skill/{id}/references/v${REFERENCE_RESOURCE_VERSION}/{path}`,
+            name: "opchain skill reference",
+            mimeType: "text/markdown",
+            description: "A path-safe reference file advertised by the skill's versioned reference manifest.",
+          }],
+        });
+
       case "resources/read": {
         const uri = params?.uri;
         if (typeof uri !== "string") return err(id, ERR.INVALID_PARAMS, "resources/read requires a uri");
         if (uri === "opchain://orchestrator") {
           return ok(id, { contents: [{ uri, mimeType: "text/markdown", text: catalog.orchestrator || "" }] });
+        }
+        const reference = parseReferenceUri(uri);
+        if (reference && skillIds.has(reference.skill)) {
+          if (reference.manifest && typeof listReferences === "function") {
+            const skill = catalog.skills.find((entry) => entry.id === reference.skill);
+            const manifest = buildReferenceManifest(reference.skill, await listReferences(reference.skill), {
+              skillVersion: skill?.version,
+            });
+            return ok(id, { contents: [{ uri, mimeType: "application/json", text: JSON.stringify(manifest, null, 2) }] });
+          }
+          if (!reference.manifest && typeof loadReference === "function") {
+            const body = await loadReference(reference.skill, reference.path);
+            if (body) {
+              return ok(id, {
+                contents: [{
+                  uri,
+                  mimeType: reference.path.endsWith(".json") ? "application/json" : "text/markdown",
+                  text: body,
+                }],
+              });
+            }
+          }
         }
         const m = uri.match(/^opchain:\/\/skill\/([a-z0-9-]+)$/);
         if (m && skillIds.has(m[1]) && typeof loadBody === "function") {

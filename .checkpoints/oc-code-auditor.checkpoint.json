@@ -4,17 +4,13 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-09-13T07:28:58.118Z",
-  "phase": "audit",
-  "step": "skillchain-2.0-audit-remediation-in-progress",
-  "status": "in_progress",
-  "progress_summary": "2026-09-11 skill-chain audit of the 2.0 chain at v1.9.0 (tree 4d39b93), now fully verified. 33 per-skill contract extractions plus 10 cross-cutting lenses produced 552 raw findings, deduped to 427; the four lenses cut off by session limits were re-run and added 100 more. All 527 were adversarially verified by independent refuters (three lenses for CRITICAL/HIGH, two for MEDIUM/LOW, defaulting to refutation when uncertain): 484 upheld, 43 refuted. Grade C. Upheld: 11 CRITICAL, 82 HIGH, 248 MEDIUM, 143 LOW. The CRITICAL tier was additionally confirmed by execution oracle against the shipped hook. Three clusters: the commit gate cannot read the checkpoint its own skill documents and deadlocks whenever .checkpoints is tracked (which the shipped docs instruct), while six shell prefix and quoting forms walk straight through it; the deploy and pre-PR gates read state that is stale, contradictory or absent (oc-security-auditor has never written a checkpoint, and the status subcommand silently ignores its skill argument); and the chain asserts sixteen handoff verbs the targets do not declare plus five phantom deploy gates. Two record corrections: the v2.0 'nothing built yet' claim is false, and the branch staging serves (claude/demo-rebuild-2-0) carries 35 skills stamped 1.9.0, so merging it trips check-release-tag countDrift and freezes production deploys. Report: docs/audits/2026-09-11-skillchain-2.0-audit.md.",
+  "updated_at": "2026-09-14T00:01:49.635Z",
+  "phase": "verify",
+  "step": "v1.9.2-product-reviewed",
+  "status": "complete",
+  "progress_summary": "1.9.2 final review PASS for pre-deploy-code-audit-v1. Source identity is bound by the typed handoff. Fresh executable verification and required remote CI remain separate gates.",
   "blockers": [],
-  "next_actions": [
-    "v1.9.1 Sprint 3: reconcile live checkpoints (this PR), then Sprint 4 cross-skill contracts, Sprint 5 per-skill sweeps, Sprint 6 reach — per docs/plans/2026-09-12-v1.9.1-skillchain-integrity-release-plan.md.",
-    "Sprint 5 exit: re-run the reciprocity pass over the post-sweep tree, which the 2026-09-11 audit never completed.",
-    "Still open from the 2026-08-22 OSS-readiness audit (grade D+): the 24 HIGH findings in docs/audits/2026-08-22-oss-readiness-audit.md, including PX-01/PX-02 in src/index.js and site/src/pages/privacy.astro before pointing any enterprise at opchain.dev/mcp."
-  ],
+  "next_actions": [],
   "eval_scores": [
     {
       "rubric": "oc-code-auditor",
@@ -129,6 +125,10 @@
         526,
         527
       ]
+    },
+    "verified_for_candidate": {
+      "kind": "git_tree_projection",
+      "id": "sha256:c1c990cb676da7620aa606e7a4eeca0a2c0fed02b8cef82073ea2eb98bcf5696"
     }
   },
   "context_primer": {
@@ -172,5 +172,73 @@
       "label": "Re-run the reciprocity pass over the post-sweep tree",
       "status": "in_progress"
     }
-  ]
+  ],
+  "handoffs": [
+    {
+      "id": "oc-code-auditor-192-73903f8b6856",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-13T23:52:21.043995Z",
+      "verified_at": "2026-09-13T23:52:21.043995Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "release-192-final-review"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:73903f8b6856443db0fef272db44c21d4bb0f604b9f6bf7b0219ba0cec1c20d5"
+      },
+      "payload": {
+        "policy": "pre-deploy-code-audit-v1",
+        "verdict": "PASS",
+        "evidence_directory": ".checkpoints/release-1.9.2"
+      }
+    },
+    {
+      "id": "oc-code-auditor-192-c5e6f5f3bff9",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-13T23:57:39.846738Z",
+      "verified_at": "2026-09-13T23:57:39.846738Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "release-192-final-review"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c5e6f5f3bff9c9c88522cbb3af1d78f4175ce32edd2891a2db0a9e67abe963b6"
+      },
+      "payload": {
+        "policy": "pre-deploy-code-audit-v1",
+        "verdict": "PASS",
+        "evidence_directory": ".checkpoints/release-1.9.2"
+      }
+    },
+    {
+      "id": "oc-code-auditor-192-c1c990cb676d",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T00:01:49.353887Z",
+      "verified_at": "2026-09-14T00:01:49.353887Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "release-192-final-review"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c1c990cb676da7620aa606e7a4eeca0a2c0fed02b8cef82073ea2eb98bcf5696"
+      },
+      "payload": {
+        "policy": "pre-deploy-code-audit-v1",
+        "verdict": "PASS",
+        "evidence_directory": ".checkpoints/release-1.9.2"
+      }
+    }
+  ],
+  "verified_at": "2026-09-14T00:01:49.353887Z",
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:c1c990cb676da7620aa606e7a4eeca0a2c0fed02b8cef82073ea2eb98bcf5696"
+  },
+  "record_updated_at": "2026-09-14T00:01:49.635Z"
 }

@@ -28,11 +28,17 @@ jobs:
       - name: Install (site) — needed because `npm run build` now runs astro build
         working-directory: site
         run: npm ci
+      - name: Verify the received candidate in CI
+        env:
+          OPCHAIN_VERSION: ${{ github.sha }}
+        run: node scripts/verify-candidate.mjs run --repo . --json
+      - name: Require source-bound Docs and Repo evidence
+        run: npm run evidence:pr
       - name: Validate checkpoints (.checkpoints/<skill>.checkpoint.json)
         run: npm run checkpoint:validate
       - name: Plugin hook suites (commit gate + next-suggestion)
-        # These are the only executable enforcement opchain ships. An untested
-        # gate is the thing this whole plugin exists to stop shipping.
+        # Compatibility fixtures for the plugin scripts; actual commit-boundary
+        # and candidate verification tests also run in the unit suite.
         run: npm run test:hooks
       - name: Checkpoint drift report (errors block)
         # Errors fail the build: doctor's errors are schema failures checked
@@ -117,6 +123,10 @@ jobs:
   site-e2e:
     name: Site — Playwright e2e
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
     needs: site
     timeout-minutes: 15
     steps:
@@ -144,14 +154,11 @@ jobs:
         working-directory: site
         run: npx playwright install-deps chromium
       - name: Generate roadmap data (GitHub Issues on asfbay-bit/opchain-skills)
-        # Anonymous public read, no token/npm-install needed (gen-roadmap.mjs
-        # only imports node:fs/path/url + a dependency-free sibling module).
-        # Without this, site/src/data/roadmap.json doesn't exist and
-        # loadRoadmap() falls back to an empty roadmap — the /changelog e2e
-        # assertions below need the real items. Graceful-degrades to an empty
-        # roadmap (not a build failure) if GitHub is unreachable/rate-limited;
-        # the e2e assertions would then fail loudly, which is the honest
-        # outcome rather than a silently green suite testing nothing.
+        # Authenticate the public read with the job token to avoid the shared
+        # runner IP's anonymous quota. The generator already supports this;
+        # the browser assertions still fail if no real roadmap items load.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/gen-roadmap.mjs
       - name: Build (static)
         working-directory: site

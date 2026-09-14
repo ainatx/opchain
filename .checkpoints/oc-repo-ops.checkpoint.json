@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-13T05:22:30.740Z",
+  "updated_at": "2026-09-14T00:01:49.566Z",
   "skill": "oc-repo-ops",
-  "phase": "pr-verify",
+  "phase": "verify",
   "status": "complete",
-  "step": "pr-498-merged-packet-retired",
-  "progress_summary": "Pre-PR readiness PASS for the CI-failure analysis branch at 3a662ab30fa9ad1ea1c150ac533efda19909ce56. The Docs Forge packet carries the Documentation section. npm run build ran the full prebuild chain (gen-catalog 33 skills, check-skill-flags, sync-bundles:check, sync-plugin-skills:check, lint-internal-refs) clean; vitest 45 files / 598 tests; astro check 0 errors; deploy-lag.yml parses and its safety pins hold; the OG images the sandbox build regenerated were restored, not committed; no related untracked file left behind.",
+  "step": "v1.9.2-product-reviewed",
+  "progress_summary": "1.9.2 final review PASS for pr-readiness-v1. Source identity is bound by the typed handoff. Fresh executable verification and required remote CI remain separate gates.",
   "context_primer": {
     "key_decisions": [
       "Repo Ops evaluated the four workflow changes, four current documentation surfaces, and the Docs Forge packet.",
@@ -26,9 +26,7 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [
-      "commits are authored by the session identity Claude <noreply@anthropic.com>; the human DCO sign-off lands with the squash-merge"
-    ],
+    "warnings": [],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
@@ -47,7 +45,80 @@
       "branch_tip_sha": "3a662ab30fa9ad1ea1c150ac533efda19909ce56",
       "merged_as": "ffad47c",
       "merged_at": "2026-09-11T08:18:21Z"
+    },
+    "verified_for_candidate": {
+      "kind": "git_tree_projection",
+      "id": "sha256:c1c990cb676da7620aa606e7a4eeca0a2c0fed02b8cef82073ea2eb98bcf5696"
     }
   },
-  "next_actions": []
+  "next_actions": [],
+  "handoffs": [
+    {
+      "id": "oc-repo-ops-192-73903f8b6856",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-13T23:52:21.043995Z",
+      "verified_at": "2026-09-13T23:52:21.043995Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "release-192-final-review"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:73903f8b6856443db0fef272db44c21d4bb0f604b9f6bf7b0219ba0cec1c20d5"
+      },
+      "payload": {
+        "policy": "pr-readiness-v1",
+        "verdict": "PASS",
+        "evidence_directory": ".checkpoints/release-1.9.2"
+      }
+    },
+    {
+      "id": "oc-repo-ops-192-c5e6f5f3bff9",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-13T23:57:39.846738Z",
+      "verified_at": "2026-09-13T23:57:39.846738Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "release-192-final-review"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c5e6f5f3bff9c9c88522cbb3af1d78f4175ce32edd2891a2db0a9e67abe963b6"
+      },
+      "payload": {
+        "policy": "pr-readiness-v1",
+        "verdict": "PASS",
+        "evidence_directory": ".checkpoints/release-1.9.2"
+      }
+    },
+    {
+      "id": "oc-repo-ops-192-c1c990cb676d",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T00:01:49.353887Z",
+      "verified_at": "2026-09-14T00:01:49.353887Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "release-192-final-review"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c1c990cb676da7620aa606e7a4eeca0a2c0fed02b8cef82073ea2eb98bcf5696"
+      },
+      "payload": {
+        "policy": "pr-readiness-v1",
+        "verdict": "PASS",
+        "evidence_directory": ".checkpoints/release-1.9.2"
+      }
+    }
+  ],
+  "verified_at": "2026-09-14T00:01:49.353887Z",
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:c1c990cb676da7620aa606e7a4eeca0a2c0fed02b8cef82073ea2eb98bcf5696"
+  },
+  "blockers": [],
+  "record_updated_at": "2026-09-14T00:01:49.566Z"
 }

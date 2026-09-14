@@ -2,14 +2,13 @@
 description: Run the pre-commit quality gate (types, lint, tests, secrets, build, deps)
 ---
 
-Invoke the `oc-bug-check` skill and run `/oc-bugcheck run` on the staged changes.
+If this repository is not explicitly enrolled, run `/oc-enroll` first. A successful
+enrollment installs the packaged verifier at the Git commit boundary; a `BLOCKED`
+foreign-hook result must stop the workflow.
 
-When it finishes, write `.checkpoints/oc-bug-check.checkpoint.json` with
-`skill_state.last_run_verdict` set to PASS, FAIL, or UNSUPPORTED (the same value
-as `skill_state.last_run.verdict`), and `skill_state.verified_tree` set to the
-hash of the full working tree, computed with the recipe in the skill's
-§ Commit gate contract. Bare `git write-tree` is not that hash: it covers only
-what is staged. The commit gate reads both fields: a verdict without a matching
-tree hash is not evidence that this code was checked, however recently it ran.
+Then invoke the `oc-bug-check` skill and run `/oc-bugcheck run`. Its checkpoint is
+workflow history, not commit authorization. At `git commit`, the installed Git hook
+reruns the declared checks on the immutable effective staged candidate and writes
+the external receipt that makes the final decision.
 
 UNSUPPORTED is not a pass. If the stack was not recognized, say so plainly.

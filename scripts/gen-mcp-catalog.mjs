@@ -17,6 +17,7 @@
 import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
 import { matter } from "./lib/frontmatter.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -28,6 +29,20 @@ function listSkillDirs(skillsDir) {
     .map((d) => d.name)
     .filter((name) => existsSync(join(skillsDir, name, "SKILL.md")))
     .sort();
+}
+
+function referenceFiles(skillDir, relative = "references") {
+  const directory = join(skillDir, relative);
+  if (!existsSync(directory)) return [];
+  return readdirSync(directory, { withFileTypes: true })
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .flatMap((entry) => {
+      const path = `${relative}/${entry.name}`;
+      if (entry.isDirectory()) return referenceFiles(skillDir, path);
+      if (!entry.isFile()) return [];
+      const content = readFileSync(join(skillDir, path));
+      return [{ path, bytes: content.length, sha256: createHash("sha256").update(content).digest("hex") }];
+    });
 }
 
 /**
@@ -49,6 +64,7 @@ export function buildCatalog(skillsDir = SKILLS_DIR) {
       triAgent: data.triAgent === true,
       commands: Array.isArray(data.commands) ? data.commands.filter((c) => typeof c === "string") : [],
       version: data.version != null ? String(data.version) : "",
+      references: referenceFiles(join(skillsDir, id)),
     };
   });
 

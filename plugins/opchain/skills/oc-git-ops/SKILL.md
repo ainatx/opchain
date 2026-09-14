@@ -1,7 +1,7 @@
 ---
 name: oc-git-ops
 displayName: OC · Git Ops
-version: 1.9.1
+version: 1.9.2
 license: Apache-2.0
 shortDesc: Branch, commit, PR, sync, and release-tag workflows. `/oc-git-release` closes the release ledger; PM-aware (v1.3+).
 phases: [build]
@@ -340,17 +340,16 @@ If `pr_comment_marker` is set, post the docs comment after the PR opens.
 Skill(skill="oc-repo-ops", args="/oc-repo verify")
 ```
 
-Then read `.checkpoints/oc-repo-ops.checkpoint.json` for the verdict. A verdict
-is only evidence about the code it checked: both checkpoints record
-`skill_state.verified_for_sha`, and each must equal `git rev-parse HEAD` on the
-branch you are about to open. A squash merge leaves a PASS bound to a branch tip
-that never reaches `main`, so a later session can find a PASS for code that no
-longer exists.
+Then run `node scripts/lib/release-evidence.mjs --stage pr`. It requires A's
+canonical PASS receipt for the exact candidate tree plus C-contract Docs Forge
+(`pr-docs-v1`) and Repo Ops (`pr-readiness-v1`) PASS handoffs bound to the HEAD
+tree projection excluding `.checkpoints/`. A squash merge whose source content
+changes produces a different projection and cannot reuse the prior evidence.
 
 | Verdict | Action |
 |---|---|
-| PASS, `verified_for_sha` equals the branch HEAD | Proceed to `gh pr create` |
-| PASS, but `verified_for_sha` is missing or differs from the branch HEAD | **Stale.** Re-run `/oc-docs pr`, then `/oc-repo verify`, before `gh pr create`. |
+| Evaluator PASS | Proceed to `gh pr create` |
+| Missing/stale/invalid receipt or typed handoff | **ABORT.** Re-run candidate verification, `/oc-docs pr`, then `/oc-repo verify`. |
 | FAIL | **ABORT.** Surface `skill_state.blocking_findings` and offer the user `/oc-repo clean` (safe fixes) or `/oc-docs pr` (regenerate a stale packet). Do NOT open the PR until the verdict flips to PASS. |
 | (no checkpoint) | The gate hasn't run — invoke oc-docs-forge, then oc-repo-ops, first. |
 
@@ -388,7 +387,7 @@ One command that runs the entire flow:
 7. **Push** — `git push -u origin <branch>`
 8. **Generate PR docs packet** — invoke `Skill(skill="oc-docs-forge", args="/oc-docs pr")` to produce the `## Documentation` body fragment (and any README/product-doc edits that must travel with the change)
 9. **Commit the docs edits** — if step 8 changed files, stage them, re-run the oc-bug-check gate (step 5), commit (`docs: …`), push, and re-run `/oc-docs pr` at most once more so the packet's `verified_for_sha` is the new HEAD (if that run edits files again, stop and surface it rather than looping). Skip when step 8 changed no files.
-10. **Run oc-repo-ops gate** — invoke `Skill(skill="oc-repo-ops", args="/oc-repo verify")`. **FAIL aborts the sync before the PR is created** — surface the blocking findings; the user can `/oc-repo clean` or fix and re-run.
+10. **Run oc-repo-ops gate** — invoke `Skill(skill="oc-repo-ops", args="/oc-repo verify")`, then `node scripts/lib/release-evidence.mjs --stage pr`. **FAIL aborts the sync before the PR is created** — surface the blocking findings; the user can `/oc-repo clean` or fix and re-run.
 11. **Generate PR description** — from all available context, inserting the docs packet's `## Documentation` fragment
 12. **Create PR** — via gh CLI or output for manual creation
 
