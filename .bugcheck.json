@@ -1,0 +1,111 @@
+{
+  "mode": "strict",
+  "verification": {
+    "required_checks": [
+      "type_safety",
+      "lint",
+      "tests",
+      "anti_patterns",
+      "secrets",
+      "build",
+      "dependencies",
+      "dependencies_site"
+    ],
+    "commands": {
+      "type_safety": [
+        "npm",
+        "--prefix",
+        "site",
+        "run",
+        "check"
+      ],
+      "lint": [
+        "npm",
+        "run",
+        "lint-internal-refs"
+      ],
+      "tests": [
+        "npm",
+        "test"
+      ],
+      "build": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "dependencies": [
+        "npm",
+        "audit",
+        "--audit-level=critical",
+        "--ignore-scripts"
+      ],
+      "dependencies_site": [
+        "npm",
+        "--prefix",
+        "site",
+        "audit",
+        "--audit-level=critical",
+        "--ignore-scripts"
+      ]
+    },
+    "timeout_ms": 300000,
+    "scan_exceptions": {
+      "anti_patterns": [
+        {
+          "path": "plugins/opchain/skills/oc-bug-check/SKILL.md",
+          "digest": "sha256:fcbe516b19af1802a132e13edef21c2d81f4823f977768b9a4db29aad6d54031"
+        },
+        {
+          "path": "plugins/opchain/skills/oc-bug-check/TRYIT.md",
+          "digest": "sha256:5b6cf8a21d9e62c9c3284243600f60137deb517963815eebee7a51cc9adccc08"
+        },
+        {
+          "path": "plugins/opchain/skills/oc-bug-check/references/check-patterns.md",
+          "digest": "sha256:4f6235785eeafdf161c68c493d3ba065323f9bcbba54abc6eb54721573111510"
+        },
+        {
+          "path": "plugins/opchain/skills/oc-bug-check/references/output-templates.md",
+          "digest": "sha256:0a1f8e6763b5dca8c436e629128920e45c44c1ff5b36d668412e9417fba69549"
+        },
+        {
+          "path": "skills/oc-bug-check/SKILL.md",
+          "digest": "sha256:fcbe516b19af1802a132e13edef21c2d81f4823f977768b9a4db29aad6d54031"
+        },
+        {
+          "path": "skills/oc-bug-check/TRYIT.md",
+          "digest": "sha256:5b6cf8a21d9e62c9c3284243600f60137deb517963815eebee7a51cc9adccc08"
+        },
+        {
+          "path": "skills/oc-bug-check/references/check-patterns.md",
+          "digest": "sha256:4f6235785eeafdf161c68c493d3ba065323f9bcbba54abc6eb54721573111510"
+        },
+        {
+          "path": "skills/oc-bug-check/references/output-templates.md",
+          "digest": "sha256:0a1f8e6763b5dca8c436e629128920e45c44c1ff5b36d668412e9417fba69549"
+        }
+      ],
+      "secrets": [
+        {
+          "path": "docs/audits/2026-08-22-oss-readiness-audit.md",
+          "digest": "sha256:2dfad47ab8ffba2428b141bd02bbfb1c8227454edf30c51d6da1c92082a6196c"
+        },
+        {
+          "path": "plugins/opchain/skills/oc-bug-check/SKILL.md",
+          "digest": "sha256:fcbe516b19af1802a132e13edef21c2d81f4823f977768b9a4db29aad6d54031"
+        },
+        {
+          "path": "plugins/opchain/skills/oc-bug-check/references/check-patterns.md",
+          "digest": "sha256:4f6235785eeafdf161c68c493d3ba065323f9bcbba54abc6eb54721573111510"
+        },
+        {
+          "path": "skills/oc-bug-check/SKILL.md",
+          "digest": "sha256:fcbe516b19af1802a132e13edef21c2d81f4823f977768b9a4db29aad6d54031"
+        },
+        {
+          "path": "skills/oc-bug-check/references/check-patterns.md",
+          "digest": "sha256:4f6235785eeafdf161c68c493d3ba065323f9bcbba54abc6eb54721573111510"
+        }
+      ]
+    }
+  }
+}
