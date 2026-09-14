@@ -75,3 +75,5 @@ The `pre-deploy-security-posture-v1` verdict is **PASS**: no open HIGH or CRITIC
 ## CI-only follow-up
 
 The coordinator reviewed adding the existing documentation sync to pretest and passing the existing job token only to the roadmap generator's GitHub read step. No new secret, permission scope, endpoint, runtime authorization, or bypass was added. The real-data browser assertions remain enforced.
+
+The second remote run passed the Worker gate. Its authenticated roadmap request returned no issues because the browser job lacked the endpoint's Issues read permission. The browser job now explicitly requests issues:read while preserving its existing contents:read and pull-requests:write permissions. This is a read-only scope addition limited to that job; no stored credential or write permission is added. The generator and real-data assertions remain unchanged. Reference: https://docs.github.com/en/rest/issues/issues#list-repository-issues.

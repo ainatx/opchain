@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/worktrees/opchain-release-1.9.2",
   "created_at": "2026-09-13T23:52:21.354Z",
-  "updated_at": "2026-09-13T23:57:40.113Z",
+  "updated_at": "2026-09-14T00:01:49.700Z",
   "phase": "verify",
   "step": "v1.9.2-product-reviewed",
   "status": "complete",
@@ -50,19 +50,39 @@
         "verdict": "PASS",
         "evidence_directory": ".checkpoints/release-1.9.2"
       }
+    },
+    {
+      "id": "oc-security-auditor-192-c1c990cb676d",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T00:01:49.353887Z",
+      "verified_at": "2026-09-14T00:01:49.353887Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "release-192-final-review"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c1c990cb676da7620aa606e7a4eeca0a2c0fed02b8cef82073ea2eb98bcf5696"
+      },
+      "payload": {
+        "policy": "pre-deploy-security-posture-v1",
+        "verdict": "PASS",
+        "evidence_directory": ".checkpoints/release-1.9.2"
+      }
     }
   ],
-  "verified_at": "2026-09-13T23:57:39.846738Z",
+  "verified_at": "2026-09-14T00:01:49.353887Z",
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:c5e6f5f3bff9c9c88522cbb3af1d78f4175ce32edd2891a2db0a9e67abe963b6"
+    "id": "sha256:c1c990cb676da7620aa606e7a4eeca0a2c0fed02b8cef82073ea2eb98bcf5696"
   },
   "skill_state": {
     "verified_for_candidate": {
       "kind": "git_tree_projection",
-      "id": "sha256:c5e6f5f3bff9c9c88522cbb3af1d78f4175ce32edd2891a2db0a9e67abe963b6"
+      "id": "sha256:c1c990cb676da7620aa606e7a4eeca0a2c0fed02b8cef82073ea2eb98bcf5696"
     }
   },
   "blockers": [],
-  "record_updated_at": "2026-09-13T23:57:40.113Z"
+  "record_updated_at": "2026-09-14T00:01:49.700Z"
 }

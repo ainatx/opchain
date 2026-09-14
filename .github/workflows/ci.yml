@@ -123,6 +123,10 @@ jobs:
   site-e2e:
     name: Site — Playwright e2e
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
     needs: site
     timeout-minutes: 15
     steps:
