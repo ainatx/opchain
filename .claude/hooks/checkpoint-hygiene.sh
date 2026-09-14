@@ -4,7 +4,9 @@
 # Stop hook: enforces that any opchain skill invoked this session has a
 # matching .checkpoints/<skill>.checkpoint.json file. Read-only sessions
 # (no opchain skill activity) pass silently. Built-in / non-opchain skills
-# (e.g. update-config, oc-orchestrator, oc-checkpoint-protocol) are not enforced.
+# (e.g. update-config) are not enforced, and neither are the oc-* skills that
+# owe no current-run checkpoint (oc-orchestrator, oc-checkpoint-protocol,
+# oc-update; see the exemption list below for why).
 #
 # Reads stdin JSON: { session_id, transcript_path, cwd, ... }
 # Outputs JSON on block: { "decision": "block", "reason": "..." }
@@ -37,16 +39,21 @@ fi
 
 CHECKPOINT_DIR="$PROJECT_DIR/.checkpoints"
 
-# Derive the enforced inventory from the shipped skill tree. The two foundation
-# protocols are intentionally excluded: oc-orchestrator is read-only and
-# oc-checkpoint-protocol owns no project state.
+# Derive the enforced inventory from the shipped skill tree. Skills that owe no
+# current-run checkpoint are excluded, because demanding one would contradict
+# their contract:
+#   - oc-orchestrator is read-only.
+#   - oc-checkpoint-protocol owns no project state.
+#   - oc-update must not write or reconcile any .checkpoints/ file, its own
+#     included (skills/oc-update/SKILL.md). Its install state is the root
+#     .opchain-install.json receipt, and source mode never writes checkpoints.
 SKILLS_DIR="${OPCHAIN_SKILLS_DIR:-$PROJECT_DIR/skills}"
 ENFORCED_SKILLS=()
 if [[ -d "$SKILLS_DIR" ]]; then
   for skill_dir in "$SKILLS_DIR"/oc-*; do
     [[ -f "$skill_dir/SKILL.md" ]] || continue
     skill="$(basename "$skill_dir")"
-    [[ "$skill" == "oc-orchestrator" || "$skill" == "oc-checkpoint-protocol" ]] && continue
+    [[ "$skill" == "oc-orchestrator" || "$skill" == "oc-checkpoint-protocol" || "$skill" == "oc-update" ]] && continue
     ENFORCED_SKILLS+=("$skill")
   done
 fi
