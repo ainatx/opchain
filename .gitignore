@@ -130,3 +130,8 @@ reports/token-usage/raw_usage.csv
 .checkpoints/.mcp-sessions.json
 .checkpoints/*.lock
 .checkpoints/.*.tmp
+
+# design-previews colour tooling: generated intermediates
+design-previews/color-2.0-tooling/tokens.json
+design-previews/color-2.0-tooling/tokens.css
+design-previews/color-2.0-tooling/shots/

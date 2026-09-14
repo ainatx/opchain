@@ -1204,8 +1204,8 @@
         },
         {
           "path": "references/site-release-surfaces.md",
-          "bytes": 11184,
-          "sha256": "293b56a3d16ecd6a7c6d7825315b6930d9d320b794c5b213b1afc676cd405822"
+          "bytes": 11610,
+          "sha256": "e0f4479066fa0975db24c5f119e7ae41327ce09e3214952c68a8849c0b388f42"
         },
         {
           "path": "references/version-locations.md",

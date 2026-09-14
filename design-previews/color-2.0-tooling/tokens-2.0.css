@@ -1,0 +1,306 @@
+/* ─────────────────────────────────────────────────────────────
+   opchain — design tokens · 2.0 · Slate & Emerald
+   Canonical source of truth. Shared with public/styles.css.
+   Consumed by the Astro site via global.css @theme block
+   (exposes tokens as Tailwind 4 utilities) and directly in
+   component <style> scopes.
+
+   Theme switching: [data-theme="light"] on <html>.
+
+   Generated 2026-09-07 by design-previews/color-2.0-tooling/emit-sheet.mjs
+   from set 34 of the colour exploration. Every colour value below was
+   derived in OKLCH and verified against WCAG AA (see TOKENS-2.0.md);
+   every non-colour section is copied verbatim from the shipped file.
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Brand constants (never themed) ── */
+  --slate:         #12191f;  /* was --obsidian */
+  --slate-2:       #162028;  /* was --forge */
+  --gunmetal:      #445461;  /* was --slag */
+  --mist:          #a5bcd1;  /* was --sand */
+  --frost:         #d4e2ef;  /* was --linen */
+  --paper:         #e7eef5;  /* was --parchment */
+  --emerald:       #2be179;  /* was --ember */
+  --moss:          #13bd62;  /* was --char */
+  --emerald-dim:   rgba(43, 225, 121, 0.1);  /* was --ember-dim */
+  --emerald-glow:  rgba(43, 225, 121, 0.22);  /* was --ember-glow */
+
+  /* ── Legacy names — kept as aliases so global.css's @theme block and the
+     components that still reference the old constants keep resolving after
+     the swap. Migrate call sites to the new names (MIGRATION-SURFACE.md lists
+     every one), then delete this block. ── */
+  --obsidian:      var(--slate);
+  --forge:         var(--slate-2);
+  --slag:          var(--gunmetal);
+  --sand:          var(--mist);
+  --linen:         var(--frost);
+  --parchment:     var(--paper);
+  --ember:         var(--emerald);
+  --char:          var(--moss);
+  --ember-dim:     var(--emerald-dim);
+  --ember-glow:    var(--emerald-glow);
+
+  /* ── Dark theme (default — Slate) ── */
+  --bg:            var(--slate);
+  --ribbon:        #151e26;
+  --ribbon-edge:   #28333d;
+  --surface:       #162028;
+  --card:          #161f26;
+  --border:        var(--gunmetal);
+  --text:          var(--frost);
+  --muted:         var(--mist);
+  --subtle:        #7d91a4;
+  --accent:        #2be179;
+  --accent-hover:  #13bd62;
+  --accent-fill:   var(--accent);  /* two-token split: on dark the fill IS the accent */
+  --accent-fill-hover: var(--accent-hover);
+  --on-accent:     #12191f;  /* NEW — label colour on an accent fill; replaces hardcoded var(--obsidian) on primary buttons */
+  --accent-dim:    rgba(43, 225, 121, 0.1);
+  --accent-glow:   rgba(43, 225, 121, 0.22);  /* NEW — replaces --ember-glow in the stage + release bar */
+  --glow:          rgba(43, 225, 121, 0.14);
+
+  /* Release-state identities for /changelog — NEW. `next` was --info and
+     `planned` was a page-scoped --cl-violet; both become first-class. */
+  --secondary:     #8cb9fc;  /* released = accent · next = secondary */
+  --secondary-dim: rgba(140, 185, 252, 0.12);
+  --tertiary:      #d79fe9;  /* planned */
+  --tertiary-dim:  rgba(215, 159, 233, 0.12);
+
+  /* Semantic state colours — muted to half chroma on purpose (2.0 decision):
+     status is background information; the skill roles below carry the colour. */
+  --danger:        #d58f8f;
+  --danger-dim:    rgba(213, 143, 143, 0.12);
+  --success:       #81c8b7;
+  --success-dim:   rgba(129, 200, 183, 0.12);
+  --info:          #86c1d9;  /* NOW A REAL COLOUR — was an alias of the changelog next-colour */
+  --info-dim:      rgba(134, 193, 217, 0.12);
+  --warning:       #d4c488;
+  --warning-dim:   rgba(212, 196, 136, 0.12);
+  --in-progress:   #e4bdd6;
+  --in-progress-dim:rgba(228, 189, 214, 0.12);
+  --destructive:   #783639;  /* fill-only (1.9:1 on grounds): unconsumed today; pair with --text, never use as text */
+  --destructive-dim:rgba(120, 54, 57, 0.12);
+
+  /* ── Skill role tokens — gamut-maxed (2.0 decision): the product's own
+     taxonomy is the loudest colour on the page. Each also gets its rendered
+     15%-over-surface pill background, so no page needs to precompute one. */
+  --workflow:      #00fd84;
+  --workflow-pill: #134136;
+  --tri-agent:     #ebfe00;
+  --tri-agent-pill:#364122;
+  --audit-gate:    #fb5998;
+  --audit-gate-pill:#382939;
+  --specialist:    #02fdff;
+  --specialist-pill:#134148;
+  --advisor:       #00bdfd;
+  --advisor-pill:  #133848;
+  --orchestrator:  #a384fe;
+  --orchestrator-pill:#2b2f48;
+
+  /* ── Categorical chart series — NEW (2.0 decision). Four hues in the gaps
+     between the role hues, so a series never reads as a role or as the
+     accent. Bar fills: 3:1 floor on card/surface. /dashboard model tiers. */
+  --chart-1:       #18b8d1;
+  --chart-1-dim:   rgba(24, 184, 209, 0.14);
+  --chart-2:       #72a3fd;
+  --chart-2-dim:   rgba(114, 163, 253, 0.14);
+  --chart-3:       #d87fd1;
+  --chart-3-dim:   rgba(216, 127, 209, 0.14);
+  --chart-4:       #1abea5;
+  --chart-4-dim:   rgba(26, 190, 165, 0.14);
+
+  /* Logo tokens */
+  --logo-stroke:   var(--text);
+  --logo-spine:    var(--subtle);
+  --logo-filled:   var(--accent);
+  --logo-dot-dark: var(--bg);
+
+  /* ── Typography ── */
+  --font-display: "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body:    "Outfit", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Type scale (modular, Outfit-tuned) */
+  --fs-xs:    10px;
+  --fs-sm:    12px;
+  --fs-base:  14px;
+  --fs-md:    16px;
+  --fs-lg:    20px;
+  --fs-xl:    28px;
+  --fs-2xl:   36px;
+  --fs-3xl:   48px;
+  --fs-hero:  clamp(2.25rem, 7vw, 3.75rem);
+
+  /* Line-heights */
+  --lh-tight:   1.1;
+  --lh-snug:    1.35;
+  --lh-base:    1.55;
+  --lh-loose:   1.75;
+
+  /* Letter-spacing */
+  --ls-tight:   -0.015em;
+  --ls-base:    0;
+  --ls-wide:    0.05em;
+  --ls-wider:   0.1em;
+  --ls-widest:  0.15em;
+  --ls-display: 0.22em;   /* wordmark */
+
+  /* Wordmark convenience */
+  --wordmark-weight:   600;
+  --wordmark-tracking: var(--ls-display);
+
+  /* ── Space scale (4px base) ── */
+  --space-0:    0;
+  --space-px:   1px;
+  --space-1:    4px;
+  --space-2:    8px;
+  --space-3:    12px;
+  --space-4:    16px;
+  --space-5:    20px;
+  --space-6:    24px;
+  --space-8:    32px;
+  --space-10:   40px;
+  --space-12:   48px;
+  --space-16:   64px;
+  --space-20:   80px;
+  --space-24:   96px;
+
+  /* Logo spacing */
+  --logo-clear-space: 16px;
+  --logo-min-width:   80px;
+  --icon-min-size:    16px;
+
+  /* ── Radii ── */
+  --r-xs:   3px;
+  --r-sm:   4px;
+  --r-md:   6px;
+  --r-lg:   8px;
+  --r-xl:   12px;
+  --r-pill: 999px;
+
+  /* ── Shadows (layered elevation) ── */
+  --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.18);
+  --shadow-md:  0 2px 6px -1px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.12);
+  --shadow-lg:  0 8px 24px -6px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.12);
+  --shadow-xl:  0 16px 40px -8px rgba(0, 0, 0, 0.45), 0 4px 8px rgba(0, 0, 0, 0.18);
+
+  /* Accent glow — the themed halo under cards + ribbon */
+  --glow-sm:    0 0 16px -4px var(--glow, transparent);
+  --glow-md:    0 0 24px -6px var(--glow, transparent);
+  --glow-lg:    0 0 32px -6px var(--glow, transparent);
+  --glow-ribbon:0 8px 24px -8px var(--glow, transparent);
+
+  /* ── Motion ── */
+  --ease-standard:  cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in:        cubic-bezier(0.4, 0, 1, 1);
+  --ease-out:       cubic-bezier(0, 0, 0.2, 1);
+  --dur-fast:       120ms;
+  --dur-base:       200ms;
+  --dur-slow:       320ms;
+  --dur-slower:     480ms;
+
+  /* ── Focus ring ── */
+  --focus-ring:       0 0 0 2px var(--accent);
+  --focus-ring-inset: inset 0 0 0 2px var(--accent);
+}
+
+/* ─────────── LIGHT THEME (Lifted slate) ─────────── */
+[data-theme="light"] {
+  /* Light rework 2026-09-08 (+ evaluator refinements) — candidate L3 "Lifted slate · brand fill":
+     lighter blue-grey page with real steps to a whiter surface and white
+     cards; the accent splits into --accent (text-safe) and --accent-fill
+     (brand emerald, fills only); six role hues on their own tints. Derived
+     by design-previews/color-2.0-tooling/light-candidates.mjs. */
+  --bg:            #e9f0f7;
+  --ribbon:        #dee8f0;
+  --ribbon-edge:   #bcc9d5;
+  --surface:       #f7fbfe;
+  --card:          #ffffff;
+  --border:        #b9c6d2;
+  --text:          #092438;
+  --muted:         #5d6b77;
+  --subtle:        #586c7d;
+  --accent:        #0d7a3e;  /* text-safe green: links, outlines, eyebrows, role text */
+  --accent-hover:  #0b6834;
+  --accent-fill:   #33d977;  /* the brand emerald, for FILLS only (buttons, badges, pills) with --on-accent labels */
+  --accent-fill-hover: #13bd62;  /* moss — same hover the dark theme uses */
+  --on-accent:     #12191f;
+  --accent-dim:    rgba(51, 217, 119, 0.18);
+  --accent-glow:   rgba(51, 217, 119, 0.42);  /* owner 2026-09-08: stronger on light for the hero release bar + stage */
+  --glow:          rgba(51, 217, 119, 0.28);  /* owner 2026-09-08: stronger on light */
+  --secondary:     #0265d9;
+  --secondary-dim: rgba(2, 101, 217, 0.12);
+  --tertiary:      #9f3ebb;
+  --tertiary-dim:  rgba(159, 62, 187, 0.12);
+  --danger:        #8b5e5d;
+  --danger-dim:    rgba(139, 94, 93, 0.12);
+  --success:       #3e7367;
+  --success-dim:   rgba(62, 115, 103, 0.12);
+  --info:          #3a717c;
+  --info-dim:      rgba(58, 113, 124, 0.12);
+  --warning:       #746940;
+  --warning-dim:   rgba(116, 105, 64, 0.12);
+  --in-progress:   #845e77;
+  --in-progress-dim: rgba(132, 94, 119, 0.12);
+  --destructive:   #953c41;
+  --destructive-dim: rgba(149, 60, 65, 0.12);
+  --workflow:      #02661e;
+  --workflow-pill: #daf8db;
+  --tri-agent:     #666e05;
+  --tri-agent-pill: #ebfe00;  /* NEON, not a tint. Yellow is the one hue whose ink must go
+                                 olive to clear 4.5:1 on white, so the neon lives in the fill:
+                                 this IS the dark theme's #ebfe00, carrying the olive ink at
+                                 4.93:1 with a 5.53:1 border to delimit the shape. */
+  --audit-gate:    #bb0963;
+  --audit-gate-pill: #ffd4e0;
+  --specialist:    #0b737f;
+  --specialist-pill: #c7f7fe;
+  --advisor:       #036b91;
+  --advisor-pill:  #c3eaff;
+  --orchestrator:  #7828ec;
+  --orchestrator-pill: #e0daff;
+  --chart-1:       #109fb4;
+  --chart-1-dim:   rgba(16, 159, 180, 0.14);
+  --chart-2:       #528dff;
+  --chart-2-dim:   rgba(82, 141, 255, 0.14);
+  --chart-3:       #cd63c6;
+  --chart-3-dim:   rgba(205, 99, 198, 0.14);
+  --chart-4:       #12a28c;
+  --chart-4-dim:   rgba(18, 162, 140, 0.14);
+  --logo-stroke:   var(--text);
+  --logo-spine:    var(--subtle);
+  --logo-filled:   var(--accent-fill);
+  --logo-dot-dark: var(--bg);
+  --shadow-sm:     0 1px 2px rgba(18, 28, 40, 0.07);
+  --shadow-md:     0 2px 6px -1px rgba(18, 28, 40, 0.10), 0 1px 2px rgba(18, 28, 40, 0.05);
+  --shadow-lg:     0 8px 24px -6px rgba(18, 28, 40, 0.12), 0 2px 4px rgba(18, 28, 40, 0.05);
+  --shadow-xl:     0 16px 40px -8px rgba(18, 28, 40, 0.16), 0 4px 8px rgba(18, 28, 40, 0.06);
+}
+
+/* ── prefers-reduced-motion ── */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast:   0ms;
+    --dur-base:   0ms;
+    --dur-slow:   0ms;
+    --dur-slower: 0ms;
+  }
+}
+
+/* ── Desktop type bump (+1px across the scale) ──
+   Mobile/tablet keep the tighter scale; from 1024px up everything in
+   the --fs-* ladder steps up by one point. Hero clamp stays untouched. */
+@media (min-width: 1024px) {
+  :root {
+    --fs-xs:   11px;
+    --fs-sm:   13px;
+    --fs-base: 15px;
+    --fs-md:   17px;
+    --fs-lg:   21px;
+    --fs-xl:   29px;
+    --fs-2xl:  37px;
+    --fs-3xl:  49px;
+  }
+}

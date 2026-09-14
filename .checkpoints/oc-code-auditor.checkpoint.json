@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/worktrees/opchain-oc-update-v2",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-09-14T06:22:11.283Z",
+  "updated_at": "2026-09-14T06:34:58.255Z",
   "phase": "audit",
   "step": "oss-readiness-audit-2026-08-22",
   "status": "in_progress",
@@ -281,7 +281,31 @@
           "docs/audits/2026-09-14-comparison-staging-review.md"
         ]
       }
+    },
+    {
+      "id": "oc-code-auditor-pr490-3e44fb19d6c9",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T06:34:58.179Z",
+      "verified_at": "2026-09-14T06:34:58.179Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pr490-staging-merge"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:3e44fb19d6c9bf4c01da0b976f2ac570ef95d3fbb460aef7081040fbb230020b"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Merge PR 490 into existing 2.0 staging. Site source and OG assets unchanged from verified 627f386; design records, optional tools and release reference guidance added. Reviewed conflict decisions and tool boundaries.",
+        "evidence": [
+          "docs/audits/2026-09-14-pr490-staging-merge.md",
+          "docs/audits/2026-09-14-demos-install-staging-review.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-14T06:22:11.283Z"
+  "record_updated_at": "2026-09-14T06:34:58.255Z"
 }
