@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/worktrees/opchain-oc-update-v2",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-09-14T06:48:10.198Z",
+  "updated_at": "2026-09-14T06:50:39.951Z",
   "phase": "audit",
   "step": "oss-readiness-audit-2026-08-22",
   "status": "in_progress",
@@ -357,7 +357,33 @@
           "docs/audits/2026-09-14-demos-install-staging-review.md"
         ]
       }
+    },
+    {
+      "id": "oc-code-auditor-release-afeea4aa1686",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T06:50:39.872Z",
+      "verified_at": "2026-09-14T06:50:39.872Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "v2-production-cut"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:afeea4aa16867470142de3102e652dc5ac3b4e3a105fa08f21706af3ddceee35"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Reviewed production cut and public installation documentation, including complete packages, safe updater and explicit enrollment. Main history reconciled; preview marker and unused banner removed; guard preserved. No runtime or publisher changes.",
+        "evidence": [
+          "docs/audits/2026-09-14-v2-production-cut.md",
+          "docs/releases/2.0-production-release.md",
+          "docs/audits/2026-09-14-pr490-staging-merge.md",
+          "docs/audits/2026-09-14-demos-install-staging-review.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-14T06:48:10.198Z"
+  "record_updated_at": "2026-09-14T06:50:39.951Z"
 }

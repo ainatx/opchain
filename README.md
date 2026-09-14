@@ -107,6 +107,16 @@ without manual handoffs.
 | `oc-signal-forge` | Product-analytics signal builder: question to trustworthy metric |
 | `oc-fleet-ops` | Self-managed fleet deployment and multi-container operations |
 
+### update and learn
+
+| skill | role |
+|---|---|
+| `oc-update` | Install complete runtime packages while preserving local state |
+| `oc-hindsight` | Prepare source-backed lessons for external review and retrieval |
+| `oc-evolve` | Test proposed rules against recorded tasks before external approval |
+
+Learning starts off. Provider access and an external reviewer require team setup.
+
 ### ship
 
 | skill | role |
@@ -120,11 +130,11 @@ without manual handoffs.
 
 ## install
 
-The isolated 2.0 candidate adds **`/oc-update`** for updating existing repo-local
-skills and **`/oc-update check`** for read-only checks. It preserves telemetry
-settings and history, backs up changed files, and includes local helpers.
-See the [2.0 updater plan](docs/plans/2026-09-12-oc-update-v2-addendum.md) for the
-bootstrap and release integration checklist. The candidate is not published yet.
+Use **`/oc-update`** to update existing repo-local skills and
+**`/oc-update check`** for a read-only check. The updater preserves saved progress,
+local tracking consent and unrelated skills, and backs up replaced Opchain files.
+Users on 1.9 or earlier can use the [copyable upgrade prompt](https://opchain.dev/install/)
+to bootstrap the updater. Global plugin installations use the host's plugin manager.
 
 ### Claude.ai / Cowork
 

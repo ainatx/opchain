@@ -89,8 +89,8 @@ plain-language description of the work in a normal message ("run /oc-git-release
 When a handoff targets one of those skills, the Stop hook names the skill instead
 of a command (`"run oc-security-auditor"`).
 
-Registering further commands adds capability, so it is out of scope for a patch
-release; it is planned for v2.0.
+Version 2.0 registers `/oc-update`, `/oc-hindsight` and `/oc-evolve` as shown
+above. `/oc-enroll` separately sets up commit verification for each repository.
 
 ## The gates
 

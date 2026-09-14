@@ -3,7 +3,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-14T06:48:10.354Z",
+  "updated_at": "2026-09-14T06:50:40.109Z",
   "skill": "oc-docs-forge",
   "phase": "pr-docs",
   "status": "complete",
@@ -90,7 +90,33 @@
           "docs/audits/2026-09-14-demos-install-staging-review.md"
         ]
       }
+    },
+    {
+      "id": "oc-docs-forge-release-afeea4aa1686",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T06:50:40.040Z",
+      "verified_at": "2026-09-14T06:50:40.040Z",
+      "producer": {
+        "skill": "oc-docs-forge",
+        "run_id": "v2-production-cut"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:afeea4aa16867470142de3102e652dc5ac3b4e3a105fa08f21706af3ddceee35"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-docs-v1",
+        "scope": "Reviewed production cut and public installation documentation, including complete packages, safe updater and explicit enrollment. Main history reconciled; preview marker and unused banner removed; guard preserved. No runtime or publisher changes.",
+        "evidence": [
+          "docs/audits/2026-09-14-v2-production-cut.md",
+          "docs/releases/2.0-production-release.md",
+          "docs/audits/2026-09-14-pr490-staging-merge.md",
+          "docs/audits/2026-09-14-demos-install-staging-review.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-14T06:48:10.354Z"
+  "record_updated_at": "2026-09-14T06:50:40.109Z"
 }

@@ -25,11 +25,13 @@ No blocking code or security finding was identified for these release-cut change
 
 ## Documentation and repository readiness
 
-The catalog changelog, site changelog, root and plugin READMEs, release plan and
+The catalog changelog, site changelog, root, public mirror and plugin READMEs, release plan and
 production record agree on version/date and list the actual package. The record
 preserves incomplete provider/native-host validation and excludes wire 1.2 and
 the repository split from the shipped scope. It does not turn scripted results
-into authentic provider evidence. Bundled implementations are unchanged.
+into authentic provider evidence. The mirror now documents complete skill packages, explicit commit enrollment
+and the non-destructive updater instead of deleting the skills folder. Bundled
+implementations are unchanged.
 
 Before merging, the candidate must pass the enrolled commit checks and typed
 PR/deploy evidence. After merging, verify and sign the exact reviewed main commit,
