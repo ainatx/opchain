@@ -65,6 +65,8 @@ function store(root, enabled) {
   put(root, CONSENT, JSON.stringify({ telemetry_handle: { enabled, id: 'anon-existing', since: '2026-01-01T00:00:00Z', sink: STORE }, custom: 'keep exact checkpoint formatting' }, null, 4) + '\n');
   const db = new DatabaseSync(join(root, STORE));
   db.exec('CREATE TABLE runs (id INTEGER); INSERT INTO runs VALUES (1); CREATE TABLE events (id INTEGER);');
+  db.exec('CREATE TABLE telemetry_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);');
+  db.prepare('INSERT INTO telemetry_meta VALUES (?, ?)').run('consent_enabled', String(enabled));
   db.close();
 }
 

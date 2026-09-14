@@ -44,11 +44,11 @@
 // Exit:  0 when the release tag and seal are valid, 1 when any release-ledger
 //        or signature invariant is unprovable.
 
-import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync, realpathSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const RELEASE_SEAL_PATH = "release-seal.json";
@@ -478,7 +478,7 @@ export function remediation({ version, tag, reason, countDrift }) {
 }
 
 // CLI
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   const localOnly = process.argv.includes("--local");
   const result = checkReleaseTag({
     verifyRemote: !localOnly,

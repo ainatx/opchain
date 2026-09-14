@@ -74,7 +74,8 @@ The typical flow:
 1. Clone the user's repo (or confirm it's already cloned)
 2. Create a feature branch following project conventions
 3. Copy/move built files into the repo working tree
-4. Run the pre-commit gate: oc-bug-check must PASS before any commit
+4. Stage each intended commit and run oc-bug-check; an enrolled Git hook verifies
+   the exact staged candidate and its immutable PASS receipt at each commit
 5. Make structured commits (one per logical unit)
 6. Push the branch
 7. Run the pre-PR gate: oc-docs-forge (PR docs packet) → oc-repo-ops (readiness
@@ -213,6 +214,8 @@ When oc-app-architect completes a Phase 6 sprint, oc-git-ops can auto-structure 
 ```bash
 # Read the sprint contract for commit scoping
 # Each contract deliverable becomes one commit
+# Invoke /oc-bugcheck run for each staged group before committing;
+# the enrolled Git hook verifies each exact candidate at the commit boundary.
 
 # Example for Sprint 1: Auth
 git add src/db/migrations/ src/db/schema.ts
@@ -227,8 +230,8 @@ git commit -m "test(auth): add unit + integration tests for passkey auth"
 
 ### Pre-Commit Gate (auto-invokes oc-bug-check)
 
-**Before staging files or running `git commit`, invoke the oc-bug-check skill.**
-This is the canonical pre-commit gate — oc-git-ops does NOT run its own
+**Stage the intended commit, then invoke oc-bug-check before `git commit`.**
+This is the canonical pre-commit workflow — oc-git-ops does NOT run its own
 ad-hoc lint/type/test checks. Bug-check owns the seven-check suite
 (types, lint, tests, anti-patterns, secrets, build, deps) and decides
 PASS or FAIL.
@@ -237,25 +240,42 @@ PASS or FAIL.
 Skill(skill="oc-bug-check", args="/oc-bugcheck run")
 ```
 
-Then read `.checkpoints/oc-bug-check.checkpoint.json` for the verdict.
+Read the bug-check result and `.checkpoints/oc-bug-check.checkpoint.json` for
+diagnostics and last-run history. The checkpoint does not authorize a commit.
+At the Git boundary, the enrolled hook verifies the immutable staged candidate
+and revalidates a matching PASS receipt beneath the Git common directory
+(oc-bug-check § Commit gate contract).
 
 | Verdict | Action |
 |---|---|
-| PASS | Proceed to `git add` + `git commit`, editing nothing in between. The PASS is bound to `skill_state.verified_tree`, so any change after the run invalidates it (oc-bug-check § Commit gate contract). |
-| FAIL | **ABORT.** Surface the failing checks and offer the user `/oc-bugcheck fix` (auto-fix lint/format). If they choose to commit anyway, that is an explicit bypass: record it with `/oc-bugcheck bypass`, then commit with `OPCHAIN_BYPASS=1 git commit …` or `git commit --no-verify`. The record is the accountability trail; on its own it does not clear the commit-gate hook. Do NOT call `git commit` until the verdict flips to PASS or the user explicitly bypasses. |
+| PASS | Proceed to `git commit` for the staged candidate. The enrolled hook verifies that exact index tree; a changed candidate, policy, toolchain or verifier needs matching evidence. A checkpoint PASS is never a substitute for the receipt. |
+| FAIL | **ABORT.** Surface the failing checks and offer the user `/oc-bugcheck fix` (auto-fix lint/format), then stage the fixes and rerun. If the user explicitly chooses to bypass, record `/oc-bugcheck bypass` and use Git's `git commit --no-verify`. The record alone does not clear the Git hook. Do NOT commit until verification passes or the user explicitly bypasses. |
 | UNSUPPORTED | **Not a pass.** Bug-check did not recognize the stack and skipped types, lint, tests and build. Surface that; commit only if the user explicitly bypasses, as for FAIL. |
-| (no checkpoint) | Bug-check hasn't run — invoke it first. |
+| ERROR or missing/mismatched receipt | **ABORT.** Surface the verification failure and rerun after correcting its cause; an informational checkpoint cannot clear it. |
+| (no run result) | Invoke bug-check first; do not infer a successful run from old checkpoint state. |
 
-> **This gate is advisory unless the commit-gate hook is installed.** The opchain
-> plugin ships a `PreToolUse(Bash)` hook (`hooks/pre-commit-gate.cjs`) that blocks
-> `git commit` unless the bug-check checkpoint records a PASS bound to the current
-> working tree; the opchain.dev repo registers that same file in its
-> `.claude/settings.json`. The hook arms only in a repo that already has a
-> `.checkpoints/` or `.opchain/` directory (or when `OPCHAIN_GATE=1` is set);
-> elsewhere it allows every commit. `OPCHAIN_BYPASS=1` or `--no-verify` clears it.
-> The **skills bundle does not ship it** — with the zip alone, nothing mechanically
-> enforces the table above; treat it as a contract you are choosing to honour. To
-> get real enforcement, install the opchain plugin rather than the skills zip.
+**Mechanical commit enforcement requires Git enrollment.** From a repository
+checkout, run
+`node scripts/install-git-drivers.mjs --enroll --repo "$(git rev-parse --show-toplevel)"`;
+packaged plugin users run `/oc-enroll`. Plugin installation alone does not enroll
+a repository: its SessionStart/Stop hooks provide state and suggestions, and
+Claude `PreToolUse` hooks do not authorize or deny commits.
+
+Enrollment installs the Git `pre-commit` hook and copies the verifier and receipt
+library beneath the Git common directory. Later commits use that installed
+runtime. A foreign hook is preserved; required enrollment returns `BLOCKED` with
+the exact final-decision snippet for manual hook-manager integration. Validate
+the composed hook before claiming enforcement. Repository marker directories
+alone do not install the hook.
+
+The hook finishes any authoring-repository mirror updates, snapshots the effective
+index with `git write-tree`, runs the declared policy checks on that immutable
+candidate, and writes and revalidates a create-once receipt. The receipt binds
+repository, candidate tree, policy/config, toolchain, verifier and check results.
+Missing tools, non-PASS checks, index changes or mismatched evidence block the
+commit. Each distinct staged group requires its own matching receipt. Local
+hooks can be deliberately disabled; protected CI must independently verify the
+received candidate.
 
 ---
 
@@ -383,7 +403,7 @@ One command that runs the entire flow:
 3. **Create branch** — `git checkout -b <branch>`
 4. **Stage changes** — intelligently stage (skip build artifacts, node_modules)
 5. **Run oc-bug-check gate** — invoke `Skill(skill="oc-bug-check", args="/oc-bugcheck run")` after the last edit and before any commit. **FAIL aborts the sync** — surface the failing checks and stop. The user can `/oc-bugcheck fix`, address the failures and re-run `/oc-git-sync`, or bypass explicitly as described in the Pre-Commit Gate table.
-6. **Structure commits** — group by logical unit, editing nothing after step 5. The PASS covers the whole working tree, so it holds for every commit in the group; if the commit-gate hook reports that the repo changed, re-run step 5.
+6. **Structure commits** — group by logical unit. For each distinct staged group, rerun step 5 before committing; the enrolled Git hook verifies that group's exact candidate and matching receipt. A PASS for one index tree does not cover other groups or later edits.
 7. **Push** — `git push -u origin <branch>`
 8. **Generate PR docs packet** — invoke `Skill(skill="oc-docs-forge", args="/oc-docs pr")` to produce the `## Documentation` body fragment (and any README/product-doc edits that must travel with the change)
 9. **Commit the docs edits** — if step 8 changed files, stage them, re-run the oc-bug-check gate (step 5), commit (`docs: …`), push, and re-run `/oc-docs pr` at most once more so the packet's `verified_for_sha` is the new HEAD (if that run edits files again, stop and surface it rather than looping). Skip when step 8 changed no files.
@@ -563,7 +583,7 @@ carries an operator.) Without the CLI, edit `skill_state.merged_prs` directly.
 | Reads from | Why |
 |---|---|
 | oc-app-architect | Roadmap tasks → PR description, phase → branch naming; Phase 6 sprint contract → commit scoping, eval scores → PR description |
-| oc-bug-check | Pre-commit gate verdict (PASS / FAIL / UNSUPPORTED) → allow or block the commit |
+| oc-bug-check | Informational run verdict and diagnostics; commit authorization comes from the matching candidate receipt at the enrolled Git boundary |
 | oc-code-auditor | Audit grade → PR description, findings → commit grouping |
 | oc-docs-forge | PR docs packet (`pr_body_fragment`, `pr_comment_marker`) → PR body + docs comment |
 | oc-repo-ops | PR readiness verdict + blocking findings → gate PR creation |

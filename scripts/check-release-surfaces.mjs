@@ -14,9 +14,9 @@
 // Run:        node scripts/check-release-surfaces.mjs
 // Exit:       0 if consistent, 1 on any mismatch.
 
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, realpathSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { readCatalogVersion } from "./check-release-tag.mjs";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -179,7 +179,7 @@ export function checkReleaseSurfaces({ root = ROOT } = {}) {
 }
 
 // CLI
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   const { ok, expected, results, errors } = checkReleaseSurfaces();
   console.log("RELEASE SURFACE CHECK");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");

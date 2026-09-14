@@ -3,6 +3,7 @@ import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, wr
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { DatabaseSync } from 'node:sqlite';
 import { buildUpdateBundle } from '../scripts/build-update-bundle.mjs';
 import { digest, downloadRelease, installBundle } from '../scripts/update-opchain.mjs';
 import worker from '../src/index.js';
@@ -76,6 +77,15 @@ describe('complete release artifact', () => {
     expect(run([]).stdout).toContain('already current');
     mkdirSync(join(consumer, '.checkpoints'));
     writeFileSync(join(consumer, '.checkpoints/oc-telemetry-ops.checkpoint.json'), '{"telemetry_handle":{"enabled":true}}');
+    // A copied historical opt-in is not local consent and must not fail health.
+    const copied = run(['--check']);
+    expect(copied.status, copied.stderr).toBe(0);
+    expect(copied.stdout).toContain('Telemetry: OFF');
+    // Explicit local consent with missing usage tables is genuinely unhealthy.
+    const db = new DatabaseSync(join(consumer, '.checkpoints/usage.sqlite'));
+    db.exec("CREATE TABLE telemetry_meta (key TEXT PRIMARY KEY, value TEXT); INSERT INTO telemetry_meta VALUES ('consent_enabled', 'true');");
+    db.close();
+    const originalStore = readFileSync(join(consumer, '.checkpoints/usage.sqlite'));
     const unhealthy = run([]);
     expect(unhealthy.status).toBe(2);
     expect(unhealthy.stderr).toContain('telemetry needs attention');
@@ -83,6 +93,7 @@ describe('complete release artifact', () => {
     expect(unhealthyCheck.status).toBe(2);
     expect(unhealthyCheck.stderr).toContain('without installing');
     expect(unhealthyCheck.stderr).not.toContain('Skills are ready');
+    expect(readFileSync(join(consumer, '.checkpoints/usage.sqlite'))).toEqual(originalStore);
     const alias = join(temp, 'public-alias');
     symlinkSync(pub, alias, 'dir');
     const aliased = spawnSync(process.execPath, [join(alias, 'update.mjs'), '--help'], { cwd: consumer, encoding: 'utf8' });

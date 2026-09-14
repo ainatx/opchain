@@ -158,14 +158,15 @@ function targetsFor(root, target) {
 }
 
 export async function telemetryHealth(root) {
-  const cp = read(root, '.checkpoints/oc-telemetry-ops.checkpoint.json');
-  const handle = cp ? JSON.parse(cp.bytes).telemetry_handle : null;
-  if (handle?.enabled !== true) return { enabled: false, healthy: true, message: 'OFF (unchanged)' };
+  // Match telemetry.mjs: only machine-local SQLite consent is authoritative.
+  // Tracked checkpoint handles are historical and cannot opt this machine in.
+  const off = { enabled: false, healthy: true, message: 'OFF (unchanged)' };
   const sink = '.checkpoints/usage.sqlite';
-  if (!inspect(root, sink)?.isFile()) return { enabled: true, healthy: false, message: 'ON (unchanged), but the local database is missing' };
+  if (!inspect(root, sink)?.isFile()) return off;
   for (const suffix of ['-wal', '-shm', '-journal']) inspect(root, sink + suffix);
   let db;
   let scratch;
+  let enabled = null;
   try {
     const { DatabaseSync } = await import('node:sqlite');
     // Even a read-only SQLite connection can create WAL/SHM sidecars. Inspect
@@ -177,11 +178,18 @@ export async function telemetryHealth(root) {
       if (inspect(root, sink + suffix)?.isFile()) copyFileSync(join(root, sink + suffix), snapshot + suffix);
     }
     db = new DatabaseSync(snapshot, { readOnly: true });
+    // Legacy stores without local metadata remain off, exactly as telemetry's
+    // readLocalConsent does. Unreadable stores are unknown, never a healthy OFF.
+    if (!db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='telemetry_meta'").get()) return off;
+    enabled = db.prepare('SELECT value FROM telemetry_meta WHERE key = ?').get('consent_enabled')?.value === 'true';
+    if (!enabled) return off;
     const rows = db.prepare('SELECT COUNT(*) AS n FROM runs').get().n;
     db.prepare('SELECT COUNT(*) AS n FROM events').get();
     return { enabled: true, healthy: true, message: `ON (unchanged), ${rows} recorded runs retained` };
   } catch {
-    return { enabled: true, healthy: false, message: 'ON (unchanged), but the local database could not be read' };
+    return { enabled, healthy: false, message: enabled === true
+      ? 'ON (unchanged), but the local database could not be read'
+      : 'UNKNOWN (unchanged), the local consent database could not be read' };
   } finally {
     db?.close();
     if (scratch) rmSync(scratch, { recursive: true, force: true });
@@ -210,7 +218,7 @@ export async function installBundle(bundle, { root = projectRoot(), target, chec
   if (inspect(root, LOCK)) throw new Error(`Another or interrupted update owns ${LOCK}. Inspect its recovery.txt before proceeding.`);
   const files = validateBundle(bundle);
   const targets = targetsFor(root, target);
-  const telemetry = await telemetryHealth(root); // Parse consent before any mutation; never rewrite it.
+  const telemetry = await telemetryHealth(root); // Inspect local consent before any mutation; never rewrite it.
   const previous = read(root, RECEIPT);
   const receipt = previous ? JSON.parse(previous.bytes) : { schema: 1, files: {} };
   if (receipt.schema !== 1 || !receipt.files || typeof receipt.files !== 'object' || Array.isArray(receipt.files) ||

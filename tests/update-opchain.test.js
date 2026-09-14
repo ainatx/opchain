@@ -61,10 +61,15 @@ function consent(root, enabled) {
     enabled, id: 'anon-preserve', since: '2026-01-01T00:00:00Z', sink: STORE,
   } }, null, 2) + '\n');
 }
-function database(root) {
+function localConsent(db, enabled) {
+  db.exec('CREATE TABLE telemetry_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);');
+  db.prepare('INSERT INTO telemetry_meta VALUES (?, ?)').run('consent_enabled', String(enabled));
+}
+function database(root, enabled) {
   mkdirSync(join(root, '.checkpoints'), { recursive: true });
   const db = new DatabaseSync(join(root, STORE));
   db.exec('CREATE TABLE runs (id INTEGER); INSERT INTO runs VALUES (1); CREATE TABLE events (id INTEGER);');
+  if (enabled !== undefined) localConsent(db, enabled);
   db.close();
 }
 function seed(root, target, release = bundle()) {
@@ -189,7 +194,7 @@ describe('telemetry preservation', () => {
   it.each([true, false])('retains consent=%s, identity, timestamps, and database bytes across upgrades', async enabled => {
     const root = temporary();
     consent(root, enabled);
-    database(root);
+    database(root, enabled);
     const cp = readFileSync(join(root, CONSENT));
     const db = readFileSync(join(root, STORE));
     await installBundle(bundle('1.9.0'), { root });
@@ -216,6 +221,7 @@ describe('telemetry preservation', () => {
     const db = new DatabaseSync(join(root, STORE));
     try {
       db.exec('PRAGMA journal_mode=WAL; CREATE TABLE runs (id INTEGER); INSERT INTO runs VALUES (1); CREATE TABLE events (id INTEGER);');
+      localConsent(db, true);
       const main = readFileSync(join(root, STORE));
       const wal = readFileSync(join(root, STORE + '-wal'));
       const result = await installBundle(bundle(), { root });
@@ -230,6 +236,7 @@ describe('telemetry preservation', () => {
     consent(root, true);
     const db = new DatabaseSync(join(root, STORE));
     db.exec('PRAGMA journal_mode=WAL; CREATE TABLE runs (id INTEGER); INSERT INTO runs VALUES (1); CREATE TABLE events (id INTEGER);');
+    localConsent(db, true);
     db.close();
     expect(existsSync(join(root, STORE + '-wal'))).toBe(false);
     const before = snapshot(root);
@@ -239,24 +246,26 @@ describe('telemetry preservation', () => {
     expect(snapshot(root)).toEqual(before);
   });
 
-  it.each(['missing', 'corrupt'])('reports enabled telemetry with %s database unhealthy without repairing state', async state => {
+  it.each(['missing', 'corrupt'])('preserves a %s database without trusting copied tracked consent', async state => {
     const root = temporary();
     consent(root, true);
     if (state === 'corrupt') put(root, STORE, 'this is not SQLite');
     const cp = readFileSync(join(root, CONSENT));
     const result = await installBundle(bundle(), { root });
-    expect(result.telemetry).toMatchObject({ enabled: true, healthy: false });
+    expect(result.telemetry).toMatchObject(state === 'missing'
+      ? { enabled: false, healthy: true } : { enabled: null, healthy: false });
     expect(readFileSync(join(root, CONSENT))).toEqual(cp);
     if (state === 'missing') expect(existsSync(join(root, STORE))).toBe(false);
     else expect(readFileSync(join(root, STORE), 'utf8')).toBe('this is not SQLite');
     expect(existsSync(join(root, CLAUDE, SKILL))).toBe(true);
   });
 
-  it('rejects unreadable consent JSON before any mutation', async () => {
+  it('preserves unreadable historical checkpoint JSON without treating it as consent', async () => {
     const root = temporary();
     put(root, CONSENT, '{broken');
     const before = snapshot(root);
-    await expect(installBundle(bundle(), { root })).rejects.toThrow();
+    const result = await installBundle(bundle(), { root, check: true });
+    expect(result.telemetry).toMatchObject({ enabled: false, healthy: true });
     expect(snapshot(root)).toEqual(before);
     expect(existsSync(join(root, '.opchain-backups'))).toBe(false);
   });
