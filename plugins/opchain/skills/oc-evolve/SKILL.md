@@ -1,7 +1,7 @@
 ---
 name: oc-evolve
 displayName: OC · Evolve
-version: 2.0.0
+version: 2.0.1
 license: Apache-2.0
 shortDesc: Task-evaluated behavior changes with externally reviewed adoption.
 phases: [foundation, ai-native]

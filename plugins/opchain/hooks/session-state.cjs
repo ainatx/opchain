@@ -38,6 +38,17 @@ const cwd = input.cwd || process.cwd();
 const root = git(["rev-parse", "--show-toplevel"], cwd) || cwd;
 const dir = path.join(root, ".checkpoints");
 
+// SessionStart is the first executable opchain entry point. Keep this stamp
+// first in stdout so every task begins with a local date, time, and IANA zone.
+const startedAt = new Date();
+const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+const localStamp = new Intl.DateTimeFormat("en-US", {
+  year: "numeric", month: "2-digit", day: "2-digit",
+  hour: "2-digit", minute: "2-digit", second: "2-digit",
+  hour12: false, timeZone, timeZoneName: "short",
+}).format(startedAt);
+process.stdout.write(`Task started: ${localStamp} (${timeZone})\n`);
+
 function recordUpdatedAt(d) {
   return d.record_updated_at || d.updated_at || "";
 }

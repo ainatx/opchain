@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "catalogVersion": "2.0.0",
+  "catalogVersion": "2.0.1",
   "generation": 1,
   "publisherWorkflowSha256": "8bc8136d5f1560663f684fb292f343e91dfcbdcbb84dc0de3b348f5ba45f10ff",
-  "serverJsonSha256": "b9ea6bcd8afb621b038d5def6cb0a4985d7cc26c6eb0fdabf8f17668ca16a584"
+  "serverJsonSha256": "6a94dff93c63f2f020303863e77f445a554d9dea972a4464d59a85cdd3c0fdbd"
 }

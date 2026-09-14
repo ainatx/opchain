@@ -1,7 +1,7 @@
 ---
 name: oc-deploy-ops
 displayName: OC · Deploy Ops
-version: 2.0.0
+version: 2.0.1
 license: Apache-2.0
 shortDesc: Audit gate → staging → production → monitor. Creates deploy tickets and updates linked PM tickets per env.
 phases: [build]
