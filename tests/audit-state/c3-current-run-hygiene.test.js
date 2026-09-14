@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -34,12 +34,12 @@ function checkpoint(root, updatedAt) {
   }));
 }
 
-function transcript(root, invokedAt, skill = "opchain:oc-code-auditor") {
+function transcript(root, invokedAt, ...skills) {
   const path = join(root, "transcript.jsonl");
-  writeFileSync(path, `${JSON.stringify({
+  writeFileSync(path, (skills.length ? skills : ["opchain:oc-code-auditor"]).map((skill) => `${JSON.stringify({
     timestamp: invokedAt,
     message: { content: [{ type: "tool_use", name: "plugin/Skill", input: { skill } }] },
-  })}\n`);
+  })}\n`).join(""));
   return path;
 }
 
@@ -89,6 +89,27 @@ describe("C3 current-run checkpoint hygiene", () => {
       writeFileSync(join(root, "skills", "oc-new-skill", "SKILL.md"), "---\nname: oc-new-skill\n---\n");
       const result = run(root, transcript(root, "2026-09-13T10:01:00Z", "vendor:oc-new-skill"));
       expect(result.stdout).toContain("oc-new-skill");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("does not demand a checkpoint from oc-update, whose contract forbids writing one", () => {
+    const contract = readFileSync(join(ROOT, "skills", "oc-update", "SKILL.md"), "utf8").replace(/\s+/g, " ");
+    expect(contract).toContain("do not write or reconcile any `.checkpoints/` files as a side effect of updating, including this skill's own checkpoint");
+    const root = fixture();
+    try {
+      mkdirSync(join(root, "skills", "oc-update"));
+      writeFileSync(join(root, "skills", "oc-update", "SKILL.md"), "---\nname: oc-update\n---\n");
+      for (const skill of ["oc-update", "opchain:oc-update"]) {
+        const result = run(root, transcript(root, "2026-09-14T10:01:00Z", skill));
+        expect(result.status).toBe(0);
+        expect(result.stdout).toBe("");
+      }
+      const mixed = run(root, transcript(root, "2026-09-14T10:01:00Z", "opchain:oc-update", "opchain:oc-code-auditor"));
+      expect(mixed.stdout).toContain('"decision": "block"');
+      expect(mixed.stdout).toContain("oc-code-auditor");
+      expect(mixed.stdout).not.toContain("oc-update");
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

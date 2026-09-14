@@ -3,20 +3,16 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-14T07:02:28.046Z",
+  "updated_at": "2026-09-14T18:35:26.126Z",
   "skill": "oc-repo-ops",
-  "phase": "pr-verify",
+  "phase": "pr-readiness",
   "status": "complete",
-  "step": "claude/lhci-ci-failures-analysis-s525xz",
-  "progress_summary": "Pre-PR readiness PASS for the CI-failure analysis branch at 3a662ab30fa9ad1ea1c150ac533efda19909ce56. The Docs Forge packet carries the Documentation section. npm run build ran the full prebuild chain (gen-catalog 33 skills, check-skill-flags, sync-bundles:check, sync-plugin-skills:check, lint-internal-refs) clean; vitest 45 files / 598 tests; astro check 0 errors; deploy-lag.yml parses and its safety pins hold; the OG images the sandbox build regenerated were restored, not committed; no related untracked file left behind.",
+  "step": "claude/checkpoint-hygiene-exempt-oc-update",
+  "progress_summary": "PR readiness gate PASS for PR #545 (exempt oc-update from checkpoint hygiene). Diff vs origin/main is two files: .claude/hooks/checkpoint-hygiene.sh and tests/audit-state/c3-current-run-hygiene.test.js. The oc-docs-forge packet is complete, bound to da585b3 and inline in the PR body. gen-catalog, gen-mcp-catalog, sync-bundles:check, sync-plugin-skills:check, check-skill-contracts and lint-internal-refs all pass with no generated drift. checkpoint:validate passes with only pre-existing warnings. There are no untracked files and .gitignore is untouched.",
   "context_primer": {
     "key_decisions": [
-      "Repo Ops evaluated the four workflow changes, four current documentation surfaces, and the Docs Forge packet.",
-      "All four ruleset-required check names remain unchanged and unfiltered on pull_request.",
-      "Production Lighthouse and the release ledger retain manual dispatch and move to weekly Monday schedules.",
-      "Historical plans and changelogs remain point-in-time records; current operator docs and specs were updated.",
-      "No catalog, skill bundle, plugin payload, release seal, deployment, or runtime code changes are in scope.",
-      "The implementation commit and DCO signoff are attributed to ainatx so scheduled workflow ownership can follow the new repository owner."
+      "Docs Forge packet required before every PR; PR #545 carries it inline.",
+      ".checkpoints/ is tracked; the gate evidence commit touches only .checkpoints/, so the git_tree_projection identity is unchanged."
     ],
     "generated_files": [
       ".checkpoints/oc-repo-ops.checkpoint.json"
@@ -26,18 +22,20 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "commits are authored by the session identity Claude <noreply@anthropic.com>; the human DCO sign-off lands with the squash-merge"
+      "branch commit carries only the Claude Co-Authored-By trailer; the human DCO sign-off lands with the squash-merge (same as #535)",
+      "first local pre-commit verification recorded tests: FAIL with no diagnostic; two reruns on the identical tree 02ba53e4 passed, and CI's verifier passed",
+      "8 pre-existing checkpoint validator warnings in other skills' checkpoints (none in oc-docs-forge or oc-repo-ops)"
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "3a662ab30fa9ad1ea1c150ac533efda19909ce56",
+    "verified_for_sha": "da585b36bc408e2fb52674869ee8a343510dafab",
     "last_verify": {
-      "at": "2026-09-11T04:15:18Z",
-      "branch": "claude/lhci-ci-failures-analysis-s525xz",
-      "base": "origin/main@02776fecf380fdb83389a480d2c5b3d65fee60e4",
+      "at": "2026-09-14T18:35:25.955Z",
+      "branch": "claude/checkpoint-hygiene-exempt-oc-update",
+      "base": "origin/main@235127def483160b9fd236194e5ad1fe412aed3a",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -148,7 +146,33 @@
           "docs/audits/2026-09-14-demos-install-staging-review.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr545-31a1b271cf1a",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-14T18:35:25.955Z",
+      "verified_at": "2026-09-14T18:35:25.955Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr545-checkpoint-hygiene-oc-update"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:31a1b271cf1a2de14f8c9e7556d358f93ca6d9ad160c6f53b24c09e0fc128133"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "PR #545: repo-local checkpoint-hygiene hook exempts oc-update; C3 hygiene test extended. Docs packet present and current; catalogs, bundles, plugin copy and internal refs in sync; no untracked or ignore-policy changes.",
+        "evidence": [
+          ".checkpoints/oc-docs-forge.checkpoint.json",
+          ".claude/hooks/checkpoint-hygiene.sh",
+          "tests/audit-state/c3-current-run-hygiene.test.js",
+          "https://github.com/ainatx/opchain/pull/545"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-14T07:02:28.046Z"
+  "record_updated_at": "2026-09-14T18:35:26.126Z"
 }
