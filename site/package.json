@@ -23,9 +23,9 @@
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.3.0",
-    "@astrojs/markdown-remark": "^7.3.0",
+    "@astrojs/markdown-remark": "^7.3.1",
     "@astrojs/sitemap": "^3.7.4",
-    "astro": "^7.3.1",
+    "astro": "^7.3.2",
     "dompurify": "^3.4.14",
     "isomorphic-dompurify": "^4.1.0",
     "marked": "^18.0.5"
