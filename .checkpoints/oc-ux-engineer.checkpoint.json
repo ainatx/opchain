@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:42:00Z",
-  "updated_at": "2026-09-14T04:29:23.517646+00:00",
+  "updated_at": "2026-09-14T07:07:58.025Z",
   "phase": "design-iteration",
   "step": "architecture-v2.0-learning-rail-slate-emerald",
   "status": "complete",
@@ -307,5 +307,12 @@
       },
       "ref": "sprints/compare-refresh/eval-2.0.md"
     }
-  ]
+  ],
+  "recently_done": [
+    {
+      "at": "2026-09-14T07:07:57Z",
+      "action": "v2.0 asset audit: v2.0.0 (5f06afd) shipped Ember favicon.svg, og-image.png and architecture --shade; hotfix branch claude/v2-asset-hotfix recolours all three (og-image now generated from favicon.svg). Pixel scan 0% warm across site/public PNGs."
+    }
+  ],
+  "record_updated_at": "2026-09-14T07:07:58.025Z"
 }

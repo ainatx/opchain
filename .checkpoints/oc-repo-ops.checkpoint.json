@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-release-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-15T02:00:44Z",
+  "updated_at": "2026-09-15T02:28:35.853Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-verify-2.0.1-2026-09-15",
-  "progress_summary": "PR readiness gate PASS for the current v2.0.1 release branch tip b54d4a6dcdd9510868cde690c6fed94be4f674a. The fresh oc-docs-forge packet is current and bound to HEAD. Catalog, flag, bundle, plugin, contract, internal-reference, PM-MCP and checkpoint validations pass; there are no untracked files or diff-check errors. Eight pre-existing checkpoint warnings remain non-blocking.",
+  "step": "claude/v2-asset-hotfix",
+  "progress_summary": "PR readiness gate PASS for PR #542 (v2.0 favicon, fallback share card, architecture shade) after rebase onto main f92179b. Docs packet present; generated OG assets reproduce byte-identical; candidate verification passed; working tree clean.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet is current, contains ## Documentation, and is bound to b54d4a6dcdd9510868cde690c6fed94be4f674a.",
@@ -22,19 +22,18 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "8 pre-existing checkpoint validator warnings in other skills' checkpoints; none block this gate",
-      "Live deployment/runtime checks remain outside this PR-readiness scope."
+      "Deploy is manual and not part of this PR; if it ships ahead of v2.0.1 the release baseline needs a runtime block."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "b54d4a6dcdd9510868cde690c6fed94be4f674a",
+    "verified_for_sha": "f241c77ae44cdf7c054969175f35c2e702d51ad2",
     "last_verify": {
-      "at": "2026-09-15T02:00:44Z",
-      "branch": "codex/release-2.0.1",
-      "base": "origin/main@e560c18",
+      "at": "2026-09-15T02:28:35.853Z",
+      "branch": "claude/v2-asset-hotfix",
+      "base": "origin/main@f92179b1c4584698b009847563480fef53f0bfeb",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -202,7 +201,35 @@
           "Eight pre-existing checkpoint validator warnings remain outside oc-docs-forge and oc-repo-ops."
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr542-4a7497fdacdd",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-15T02:28:35.853Z",
+      "verified_at": "2026-09-15T02:28:35.853Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr542-v2-asset-hotfix"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:4a7497fdacddb2c67175388aaa99e546e14825f4cfe7def2c327e2457172e614"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "PR #542 rebuilt on main f92179b: content commit f00adc4 cherry-picked cleanly; oc-app-architect and oc-ux-engineer checkpoint notes and pr-packet.md carried from e7120e6 (both checkpoints unchanged on main since 5f06afd); stale docs/repo handoffs replaced. node scripts/gen-og-images.mjs reproduces site/public byte-identical; favicon.svg is the slate/emerald mark; pre-commit candidate verification passed; working tree clean.",
+        "evidence": [
+          ".checkpoints/oc-docs-forge.checkpoint.json",
+          "scripts/gen-og-images.mjs",
+          "site/public/favicon.svg",
+          "site/public/og-image.png",
+          "site/src/pages/architecture.astro",
+          "https://github.com/ainatx/opchain/pull/542"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-15T02:00:44Z"
+  "record_updated_at": "2026-09-15T02:28:35.853Z"
 }
