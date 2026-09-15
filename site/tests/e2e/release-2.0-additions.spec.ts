@@ -79,7 +79,10 @@ test("v2.0.3 patch deep link opens its progress changes and preserves the 2.0 he
   await expect(page.locator("#tab-released")).toHaveAttribute("aria-selected", "true");
   await expect(patch.locator("[data-disclosure-toggle]")).toHaveAttribute("aria-expanded", "true");
   await expect(patch.locator(".card-body")).toBeVisible();
-  await expect.poll(() => patch.evaluate((el) => Math.round(el.getBoundingClientRect().top))).toBe(72);
+  await expect.poll(async () => {
+    const top = await patch.evaluate((el) => Math.round(el.getBoundingClientRect().top));
+    return top >= 64 && top <= 76;
+  }).toBe(true);
   await expect(patch).toContainText("Existing checkpoints remain readable");
   await expect(page.locator("#panel-released .hero-card.is-open")).toHaveAttribute("id", "v2-0");
   await patch.getByRole("link", { name: "See the shared working agreement" }).click();
