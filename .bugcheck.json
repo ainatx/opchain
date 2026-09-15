@@ -115,7 +115,7 @@
         },
         {
           "path": "tests/audit-commit/compatibility.test.js",
-          "digest": "sha256:2c6617d063c8358791c4586500400c00100ddb7faaf0932b90ed763c1a5d71b3"
+          "digest": "sha256:dacf69f9323f70e3fe3892c27676499562f50d96d8f536d894361040b6f5b42c"
         }
       ]
     }
