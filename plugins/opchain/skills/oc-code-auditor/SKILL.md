@@ -1,7 +1,7 @@
 ---
 name: oc-code-auditor
 displayName: OC · Code Auditor
-version: 2.0.2
+version: 2.0.3
 license: Apache-2.0
 shortDesc: Auditor → Fixer → Verifier quality loop. v1.2 posts findings to the linked PM ticket; HIGH+ filed as sub-tickets.
 phases: [build]
@@ -315,8 +315,7 @@ Run the full loop on all findings:
 
 ## Phase 3: Verifier Agent
 
-The Verifier confirms that fixes actually address findings. All three roles run in the
-same session, so its separation is a discipline, not a mechanism: grade from the
+The Verifier confirms that fixes actually address findings. Grade from the
 original finding and the diff alone — skip the fix document's `### Rationale` block and
 do not re-read the Fixer's exploration notes.
 

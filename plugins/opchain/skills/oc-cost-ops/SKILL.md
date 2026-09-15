@@ -1,7 +1,7 @@
 ---
 name: oc-cost-ops
 displayName: OC · Cost Ops
-version: 2.0.2
+version: 2.0.3
 license: Apache-2.0
 shortDesc: LLM cost attribution per skill phase, budget gates in checkpoints, and model-tier routing recommendations.
 phases: [build]
@@ -165,8 +165,8 @@ deploy vs. warn) is policy Cost Ops applies in `/oc-cost gate`, documented in
 
 ## Principle 1: Attribute, don't estimate
 
-Cost Ops never calls a model itself. It reads the token counts the model-facing
-skills already emit (`oc-claude-api` usage, `oc-prompt-ops` per-eval counts) and
+Cost Ops does not make application model calls. It reads the token counts the
+model-facing skills already emit (`oc-claude-api` usage, `oc-prompt-ops` per-eval counts) and
 multiplies by the `oc-claude-api` price table. The result is **attributed**
 spend, broken down by phase and by model, written into the `cost` checkpoint
 field. Full method, the per-call → per-phase math, the worked example, and the
@@ -178,12 +178,17 @@ missing, it's reported `unknown`, never guessed.
 
 ## Principle 2: Route to the cheapest tier that holds quality
 
-The cheapest model that holds quality on a phase is the right model for it —
-recommended, never silently applied (a quiet Opus→Haiku demotion is a quality
-regression dressed as a cost win). `/oc-cost route` emits a per-phase
-recommendation with the projected delta; the user applies it and the next
-`eval_scores` run confirms quality held. Decision tree + the opchain phase→tier
-table: `references/model-tier-routing.md`. Routing facts come from `oc-claude-api`.
+Choose the lowest expected cost of successful completion, including retries,
+while preserving quality. `/oc-cost route` emits a per-phase application routing
+recommendation with the projected delta. Apply application model changes when
+authorized, then use the next `eval_scores` run to confirm quality held. Decision
+tree and phase guidance: `references/model-tier-routing.md`. Application routing
+facts come from `oc-claude-api`.
+
+Agents executing skills follow the shared Execution Discipline for supported,
+authorized model and reasoning-effort selection. This runtime choice is separate
+from changing the application's configured models; advisory application routing
+does not prevent appropriate delegation or runtime selection.
 
 Three levers, in order of usual impact: **fix caching** (often larger than a tier
 gap; caches are model-scoped), **cap output** (output is 5× input price at every
@@ -275,7 +280,7 @@ this one file.
    spend survives across sessions and is auditable in the PR diff.
 3. **Cost is a regression dimension.** A change that holds quality but triples
    spend is a regression; the cost gate runs beside the score gate.
-4. **Route to the cheapest tier that holds quality.** Haiku for cheap repetitive
-   phases, Opus for spec/audit/migration — recommended, never silently downgraded.
+4. **Route for successful completion.** Include retries and verification in the
+   cost decision; application routing changes need authorization and eval evidence.
 5. **Pricing facts come from oc-claude-api.** Never hard-code prices from memory;
    the snapshot is dated and defers to the source.

@@ -16,37 +16,86 @@ before executing any skill-specific logic.
 
 ---
 
+## 0. Execution Discipline
+
+Apply this to every skill, including builds, audits, and releases. Reuse the current
+plan and checkpoint context across skill handoffs.
+
+1. **Define the outcome.** State one concrete goal and observable acceptance
+   criteria. Keep work tied to them; revise them when the user changes direction
+   or new evidence requires it.
+2. **Deliver the smallest complete solution.** Minimize changes, exploration,
+   tool calls, and output while completing the required implementation,
+   validation, and delivery steps. Stop optional expansion once the goal is met.
+3. **Save a proportional plan.** Before meaningful work, create or refresh the
+   owning checkpoint for any task that changes files, runs validation, delegates,
+   hands off work, or spans more than one response. It is the saved plan: record
+   the goal, a short progress checklist, the next action, and acceptance evidence
+   in row notes; add an estimate or `unknown` when work is not immediate. Small
+   tasks may use this minimal checkpoint instead of a sprint document. For larger
+   work, give each sprint a bounded workstream with a goal, owner, dependencies,
+   and completion criteria. An answer-only interaction may remain ephemeral.
+4. **Delegate deliberately.** Run independent work concurrently when the benefit
+   justifies coordination cost. Keep dependent work ordered, give each delegated
+   scope clear ownership, and retain an owner for integration and final verification.
+   A sprint can stay in the current session. Builder/evaluator role names allow
+   either execution style; evaluators grade the agreed artifacts and evidence,
+   independently of the builder's rationale.
+5. **Match resources to difficulty.** Where supported and authorized, choose a
+   task-appropriate model and reasoning effort with the lowest expected cost of
+   successful completion, including retries and integration. Escalate when
+   uncertainty or failed validation warrants it. Respect user choices and runtime
+   limits; when routing controls are unavailable, retain the current settings.
+   This governs agents executing skills; application model changes still follow
+   the application's routing and evaluation workflow.
+6. **Show verified progress.** Keep a compact checklist of completed, current,
+   and upcoming tasks. Mark each task complete only after its acceptance checks
+   pass, update the saved checkpoint at that point, and include evidence or a
+   reference in the row's notes. Do not finish a qualifying task without this
+   final checkpoint update.
+7. **Estimate honestly.** Give time ranges with assumptions and dependencies,
+   separating agent work from user or external wait time when useful. Revise
+   estimates as evidence changes; label unknowns. Estimates are forecasts, not
+   measured runtime or token usage. Do not weaken acceptance criteria to meet a
+   time or cost estimate.
+8. **Persist to completion.** Continue authorized work until the acceptance
+   criteria are met. Record genuine blockers and the next concrete action; keep
+   independent work moving when possible. Report completion and remaining
+   limitations without inventing follow-on scope.
+
+Use `skill_state.goal` and `progress_table` for the minimal saved plan; the
+checkpoint protocol documents the compatible field conventions. Store acceptance
+criteria, ownership, dependencies, and evidence in existing plans or row notes; no
+parallel tracker is required.
+
+---
+
 ## 1. Welcome Protocol
 
-When ANY skill in the ecosystem activates (user triggers it by keyword, command, or
-task description), follow this sequence:
+When a skill activates, orient briefly and continue the user's task. Apply the same
+approach at a skill handoff.
 
 ### Step 1: Announce the skill
 
-```
-I'm using the [skill-name] skill. Here's what I can help with:
-
-[2-sentence description of what this skill does]
-
-Available commands:
-  [list key commands — max 6, most important first]
-
-Type any command to begin, or just describe what you need.
-```
+For an active task, use one sentence: "I'm using [skill-name] to [next concrete
+outcome]." Show a help menu or walkthrough only when the user requests help or
+commands, or when unclear intent makes that orientation useful. Keep a requested
+menu to the six most relevant commands.
 
 ### Step 2: Check for context
 
-Before doing any work, check these in order:
-
-1. **Checkpoint exists?** → Read it, offer to resume
-2. **Upstream checkpoint exists?** → Read it for context (see Pipeline Map below)
-3. **User seems new?** → Offer the guided walkthrough (see Novice Mode below)
-4. **None of the above** → Proceed with the user's request
+Read the relevant existing checkpoint and supplied handoff context before starting
+fresh. Use upstream checkpoints when they inform the next step (see Pipeline Map
+below). Reuse the current plan and continue authorized work directly, reconciling
+saved state with the user's latest request. A skill activation or handoff does not
+require a new resume or permission question. Ask only when a missing decision or
+authorization is needed for the next action; continue independent work meanwhile.
 
 ### Step 3: Identify the user's intent
 
-If the user's request is vague ("build me an app", "help with my project"), ask ONE
-clarifying question to determine which phase they're in:
+Use the request and available context to choose the phase. If intent remains
+unclear, ask one focused clarifying question; help or the guided walkthrough can
+orient the user when useful:
 
 - Have an idea but no specs? → Start with `/oc-discover`
 - Have specs but no code? → Start with `/oc-build`
@@ -255,8 +304,9 @@ When chaining, pass context through checkpoints — don't rely on conversation h
 
 ## 4. Novice Mode
 
-If the user seems unfamiliar with the ecosystem (no checkpoints exist, vague request,
-no command used), activate novice mode:
+Use the guided walkthrough when the user requests orientation or their intent
+remains unclear and it would help. A new project or a request without commands
+can proceed directly through the appropriate skill.
 
 ### Guided Walkthrough
 

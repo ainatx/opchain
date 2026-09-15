@@ -77,8 +77,7 @@ territory, not retrieval.
 For each round the Evaluator:
 
 1. Runs every goldset query through the live retrieval function (grading from the
-   results alone; the Builder's tuning rationale is set aside — same session, so a
-   discipline, not a mechanism).
+   results alone; the Builder's tuning rationale is set aside).
 2. Computes recall@k, MRR, nDCG@k aggregate + per-query.
 3. Runs the end-to-end pipeline on a sample to score faithfulness + answer relevance.
 4. Buckets the failures by query type (exact-term / paraphrase / multi-hop /

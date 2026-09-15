@@ -1,7 +1,7 @@
 ---
 name: oc-checkpoint-protocol
 displayName: OC · Checkpoint Protocol
-version: 2.0.2
+version: 2.0.3
 license: Apache-2.0
 shortDesc: Session persistence across skills — JSON checkpoint contract + status/next/doctor/validate tooling, catches drift.
 phases: [foundation]
@@ -104,7 +104,7 @@ Multiple skills can checkpoint the same project simultaneously without collision
   "progress_table": [
     { "id": "planning",       "label": "Planner",          "status": "complete" },
     { "id": "sprint-1",       "label": "Sprint 1: Auth",   "status": "complete" },
-    { "id": "sprint-2",       "label": "Sprint 2: CRUD",   "status": "in_progress" },
+    { "id": "sprint-2",       "label": "Sprint 2: CRUD",   "status": "in_progress", "estimate": "30–60 min, assuming the local database is available" },
     { "id": "sprint-3",       "label": "Sprint 3: UI",     "status": "not_started" }
   ],
 
@@ -159,6 +159,7 @@ Multiple skills can checkpoint the same project simultaneously without collision
   // Freeform object for skill-internal state that doesn't fit the schema above.
   // Private to the owning skill: siblings read only keys its owner documents for them.
   "skill_state": {
+    "goal": "Deliver the storefront flows defined in sprint-plan.md and pass their acceptance checks",
     "current_sprint": 2,
     "iteration": 1,
     "max_iterations": 3,
@@ -169,6 +170,19 @@ Multiple skills can checkpoint the same project simultaneously without collision
   }
 }
 ```
+
+**Goal and progress conventions.** When the shared execution discipline requires a
+saved plan, create or refresh the owning checkpoint before meaningful work. Put the
+concrete goal in `skill_state.goal`, use `progress_table` for the compact checklist,
+and retain a next action while work is in progress. Put acceptance criteria,
+ownership, dependencies, and verification evidence in existing plan files or row
+`notes`; include an honest `estimate` string for non-immediate work, or `unknown`
+when it cannot be estimated. Update rows after verified task completion and make a
+final checkpoint update before reporting completion. Estimates are planning text,
+not measured runtime or token usage. Existing checkpoints remain valid without
+these fields and retain protocol version `1.1` (or `1.0`). For cross-skill handoffs,
+include the relevant goal and acceptance context in `context_primer`; `skill_state`
+remains private to its owner.
 
 ### 3. Status Values
 

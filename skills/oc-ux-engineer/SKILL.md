@@ -1,7 +1,7 @@
 ---
 name: oc-ux-engineer
 displayName: OC · UX Engineer
-version: 2.0.2
+version: 2.0.3
 license: Apache-2.0
 shortDesc: Design Planner → Generator → Evaluator. Posts eval scores to the PM ticket; a11y as sub-tickets.
 phases: [plan, build]
@@ -309,8 +309,7 @@ Key Generator behaviors:
 
 ### Step 3: Design Evaluator QA
 
-The Design Evaluator runs in the same session as the Generator, so its separation is
-a discipline, not a mechanism: re-read the design spec and the contract, then grade
+Re-read the design spec and the contract, then grade
 the artifact from those alone — set aside the generator's exploration and decision
 process. For the Accessibility criterion, work through
 `references/ux-audit-checklist.md` (the same checklist oc-code-auditor's `/oc-audit ux` uses).

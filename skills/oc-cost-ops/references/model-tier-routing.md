@@ -1,10 +1,16 @@
 # Model-Tier Routing
 
-The cheapest model that holds quality on a phase is the right model for that
-phase. Cost Ops recommends a tier per skill phase; it never silently downgrades
-(an Opus phase quietly demoted to Haiku is a quality regression masquerading as a
-cost win). The routing decisions here are **sourced from `oc-claude-api`** — Cost
-Ops adds the cost lens, oc-claude-api owns the routing call.
+Choose the lowest expected cost of successful completion for each phase, including
+retries and verification, while preserving quality. The application routing
+recommendations here are **sourced from `oc-claude-api`** — Cost Ops adds the cost
+lens, oc-claude-api owns application routing. Apply changes within the user's
+authorized scope and confirm quality through evaluation.
+
+These application recommendations do not set the model running a skill. For agents
+executing skills, follow the shared Execution Discipline: use available, authorized
+model and reasoning-effort controls for the task, and escalate when uncertainty or
+failed validation warrants it. The phase examples below are advisory starting
+points for application pipelines, not mandatory runtime settings.
 
 ## The decision: match tier to the phase's failure cost
 
@@ -40,9 +46,9 @@ Is the phase intelligence-sensitive — does a wrong answer cost a lot to undo?
 
 ## Rules (from oc-claude-api, applied with the cost lens)
 
-1. **Don't downgrade silently for cost.** Default the intelligence-sensitive
-   phases to `claude-opus-4-8`. A tier downgrade is a recommendation the user
-   accepts, attached to an expected quality check (re-run the phase's
+1. **Validate application routing changes.** Treat the phase table as a starting
+   point. Apply a tier change only when authorized and attach an expected quality
+   check (re-run the phase's
    `eval_scores` after the change — if they hold, the downgrade is real savings;
    if they drop, it was a false economy).
 2. **Fix caching before downgrading.** A low cache-hit rate often costs more than
@@ -72,4 +78,6 @@ eval-grading     opus-4-8       opus-4-8 (B)   -$0.18       batch the suite, kee
 Apply build+summarize downgrades, then re-run eval_scores to confirm quality holds.
 ```
 
-The recommendation is advisory. The user applies it; the next eval confirms it.
+The recommendation is advisory until an application change is authorized. After
+applying it, the next eval confirms quality and the measured cost comparison
+includes retries.

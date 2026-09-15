@@ -64,6 +64,19 @@ const phaseFilters = [
       </span>
     </a>
 
+    <details class="shared-execution" id="shared-execution">
+      <summary>One working agreement across every skill <span>goal · plan · verified progress</span></summary>
+      <div class="shared-execution-body">
+        <p>Builders, auditors and release skills share instructions to state the goal and acceptance criteria, then do the smallest amount of work that delivers a complete, verified result.</p>
+        <ul>
+          <li><strong>A plan sized to the task.</strong> Keep small changes simple. Split larger work into sprints and workstreams with clear dependencies.</li>
+          <li><strong>Progress you can follow.</strong> Check off verified tasks, show current and upcoming work, and revise time ranges as uncertainty clears.</li>
+          <li><strong>Model choices that fit the work.</strong> Use task-appropriate models and reasoning effort where the host supports them. Preserve the checks needed to finish correctly.</li>
+        </ul>
+        <p class="shared-execution-foot">Qualifying work saves a compact plan; <a href="/skills/oc-checkpoint-protocol">checkpoint status</a> displays its goal, tasks and estimates. <a href="/changelog#v2-0-3">Read the v2.0.3 changes →</a></p>
+      </div>
+    </details>
+
     <section class="filter-panel" aria-labelledby="lib-heading">
       <h2 id="lib-heading" class="visually-hidden">Filters</h2>
       <Input
@@ -238,6 +251,46 @@ const phaseFilters = [
     padding: 1px 5px;
     border-radius: var(--r-xs);
     color: var(--text);
+  }
+
+  .shared-execution {
+    margin-bottom: 1.5rem;
+    scroll-margin-top: 4.5rem;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-lg);
+  }
+  .shared-execution summary {
+    padding: 1rem 1.25rem;
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: inherit;
+  }
+  .shared-execution summary::marker { color: var(--accent); }
+  .shared-execution summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .shared-execution summary span {
+    display: block;
+    margin-top: 0.35rem;
+    font: 400 var(--fs-xs) var(--font-mono);
+    color: var(--muted);
+  }
+  .shared-execution-body {
+    padding: 0 1.25rem 1.25rem;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-base);
+  }
+  .shared-execution-body p { margin: 0; }
+  .shared-execution-body ul { margin: 1rem 0; padding-left: 1.2rem; }
+  .shared-execution-body li + li { margin-top: 0.65rem; }
+  .shared-execution-body strong { color: var(--text); }
+  .shared-execution-foot {
+    padding-top: 1rem;
+    border-top: 0.5px solid var(--border);
   }
 
   .filter-panel {

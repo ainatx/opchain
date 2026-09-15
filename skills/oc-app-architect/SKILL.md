@@ -1,7 +1,7 @@
 ---
 name: oc-app-architect
 displayName: OC · App Architect
-version: 2.0.2
+version: 2.0.3
 license: Apache-2.0
 shortDesc: Idea → spec → design → build → launch in one skill. Reads PM tickets and writes sprints back via PM-MCP.
 phases: [plan, build]
@@ -362,8 +362,11 @@ dependency ordering, `references/phase-planning.md` has the methodology.
 ### Dependencies
 [What must exist before this sprint starts]
 
+### Owner
+[Who implements the workstream and who integrates and verifies its result]
+
 ### Estimated Effort
-CLAUDE: [hours] | USER: [hours]
+AGENT: [time range + assumptions] | USER / EXTERNAL WAIT: [range or unknown]
 ```
 
 ### Build Order
@@ -460,9 +463,8 @@ The Generator implements the sprint against the contract:
 
 ### Step 3: Evaluator QA
 
-The Evaluator grades the sprint against four criteria. It runs in the same session as
-the Generator, so its separation is a discipline, not a mechanism: re-read the contract
-and the code, and grade from those alone — not the generator's exploration.
+The Evaluator grades the sprint against four criteria. Re-read the contract and
+the code, and grade from those alone, independently of the Generator's exploration.
 
 | Criterion | Weight | Measures |
 |---|---|---|
