@@ -1,7 +1,7 @@
 ---
 name: oc-telemetry-ops
 displayName: OC · Telemetry Ops
-version: 2.0.0
+version: 2.0.1
 license: Apache-2.0
 shortDesc: Opt-in, local-first usage metering to .checkpoints/usage.sqlite; anonymized local aggregate export.
 phases: [build]

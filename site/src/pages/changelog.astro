@@ -161,7 +161,7 @@ const plannedReleaseGroups = [
           aria-selected="true"
           tabindex="0"
         >
-          Just Released <span class="tab-count">21 shipped</span>
+          Just Released <span class="tab-count">22 shipped</span>
         </button>
         <button
           class="tab-btn tab-btn--next"
@@ -243,6 +243,24 @@ const plannedReleaseGroups = [
               <div class="loop-inv"><span class="loop-k">You stay in control</span> Learning starts off. You choose the provider and reviewer. Lessons and rules need approval before they can be returned as context.</div>
             </div>
             <div class="compat-box"><strong>Upgrading from 1.9:</strong> refresh the full skill folders, including references and runtime files. Existing checkpoints and local telemetry consent are preserved. Use the bootstrap installer if <code>/oc-update</code> is not installed. <a href="/skills/oc-update">Updater</a> · <a href="/skills/oc-hindsight">Hindsight</a> · <a href="/skills/oc-evolve">Evolve</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v2.0.1 — task lifecycle timestamps. Deep-linkable from #v2-0-1. -->
+      <article class="rel-card" id="v2-0-1" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v2-0-1-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v2.0.1 patch</span><span class="rc-title">Every task has a beginning and an end</span><span class="rc-date">Sep 14, 2026</span></span>
+            <span class="rc-summary">Every opchain task now starts and ends with a local date, time, and IANA timezone stamp.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v2-0-1-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">task lifecycle</span><span class="tag">hooks</span><span class="tag">back-compatible</span></div>
+            <p>The plugin&rsquo;s first SessionStart hook now emits <code>Task started:</code> before checkpoint context. A dedicated Stop hook emits <code>Task ended:</code> independently of next-skill suggestions, using the host&rsquo;s local timezone and IANA identifier.</p>
+            <div class="compat-box"><strong>Back-compatible with v2.0.</strong> No migration required.</div>
           </div>
         </div>
       </article>

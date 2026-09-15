@@ -1,7 +1,7 @@
 ---
 name: oc-update
 displayName: OC · Update
-version: 2.0.0
+version: 2.0.1
 license: Apache-2.0
 shortDesc: Update repo-local Opchain skills and helpers in one command, preserving telemetry and checkpoints.
 phases: [foundation]

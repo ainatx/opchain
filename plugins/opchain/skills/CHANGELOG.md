@@ -15,6 +15,21 @@ checkpoint `protocol_version` is tracked separately (see
 
 _Nothing yet._
 
+## [2.0.1] — 2026-09-14 — "Every task has a beginning and an end"
+
+A patch release adding task lifecycle stamps to the opchain plugin. Every task
+now begins and ends with the local date, time, and IANA time zone.
+
+### Fixed
+
+- **Task lifecycle context.** The first `SessionStart` hook emits `Task started:`
+  before checkpoint context, and a dedicated `Stop` hook emits `Task ended:`
+  independently of next-skill suggestions.
+
+### Compatibility
+
+Back-compatible with v2.0; no migration required.
+
 ## [2.0.0] — 2026-09-14 — "The shared runtime"
 
 Adds oc-update, oc-hindsight and oc-evolve, bringing the catalog to 36 skills

@@ -2,13 +2,13 @@
   "protocol_version": "1.1",
   "skill": "oc-code-auditor",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/worktrees/opchain-oc-update-v2",
+  "project_dir": "/private/tmp/opchain-release-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-09-14T07:02:27.691Z",
+  "updated_at": "2026-09-15T00:45:31.300Z",
   "phase": "audit",
-  "step": "oss-readiness-audit-2026-08-22",
+  "step": "pre-deploy-2.0.1-staging-2026-09-15",
   "status": "in_progress",
-  "progress_summary": "2026-08-22 OSS-readiness audit at c440c7b (7 lenses, adversarially verified): 142 findings (24 HIGH), grade D+ for contributor-repo readiness. Product tree secret-free and all-permissive; gaps are packaging (no LICENSE in artifacts), metadata (no SPDX/license fields), governance (no SECURITY.md/CoC/CODEOWNERS/DCO; PVR + Dependabot alerts disabled), and hosted-service data handling (POST /mcp checkpoints without TTL/auth/rate-limit; stale privacy page). Report: docs/audits/2026-08-22-oss-readiness-audit.md; plan: docs/plans/2026-08-22-oss-split-licensing-compliance.md.",
+  "progress_summary": "Pre-deploy code audit PASS for the exact 2.0.1 staging candidate at e83fc6b3a350df96ba9954970168407301e86d24 (tree projection sha256:24aff1433c53ffa2cd0228f70865bfc5aa044bd3360f8ab05eaef0e9107610ad). All eight immutable candidate checks, 1,236 repository tests, site check/build, hooks, hardening and parity checks passed. Historical OSS/portability findings remain separately open and are not silently closed by this bounded release audit.",
   "blockers": [],
   "next_actions": [
     "OSS-readiness audit 2026-08-22 (grade D+): triage the 24 HIGH findings in docs/audits/2026-08-22-oss-readiness-audit.md — the must-fix set is in docs/plans/2026-08-22-oss-split-licensing-compliance.md §4.1 (SECURITY.md + PVR, LICENSE in every artifact, SHA-pin Actions, Dependabot alerts, releases+attestations) and §4.3 (POST /mcp checkpoint TTL/size/rate-limit/session isolation; stale privacy page; leads stored forever).",
@@ -410,7 +410,47 @@
           "docs/audits/2026-09-14-demos-install-staging-review.md"
         ]
       }
+    },
+    {
+      "id": "oc-code-auditor-predeploy-201-24aff1433c",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-15T00:45:31.300Z",
+      "verified_at": "2026-09-15T00:45:31.300Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-2.0.1-staging"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:24aff1433c53ffa2cd0228f70865bfc5aa044bd3360f8ab05eaef0e9107610ad"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Current branch tip e83fc6b3a350df96ba9954970168407301e86d24; release delta from v2.0.1 plus candidate-wide pre-deploy checks. No release-blocking CRITICAL or HIGH code finding. Historical OSS/portability findings remain out of this bounded release scope.",
+        "evidence": [
+          "node scripts/verify-candidate.mjs run --repo . --json: PASS; tree ef6f2611d7196e682be8a83c4019fc897df36967",
+          "npx vitest run: 92 files, 1,236 tests passed",
+          "npm run test:hooks; npm run hardening:verify; npm run sync-bundles:check; npm run sync-plugin-skills:check; npm run check-skill-contracts; npm run lint-internal-refs: PASS"
+        ],
+        "accepted_residuals": [
+          "Site dev/e2e dependency audit reports 7 HIGH advisories; npm audit --omit=dev is 0 HIGH/CRITICAL and the affected packages are not production Worker dependencies.",
+          "Site Astro check reports 0 errors and 39 advisory hints for deprecated z imports."
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-14T07:02:27.691Z"
+  "latest_pre_deploy": {
+    "candidate": "e83fc6b3a350df96ba9954970168407301e86d24",
+    "candidate_identity": "sha256:24aff1433c53ffa2cd0228f70865bfc5aa044bd3360f8ab05eaef0e9107610ad",
+    "verdict": "PASS",
+    "blocking_findings": 0,
+    "accepted_residuals": [
+      "Historical OSS/portability audit findings remain open outside this staging release delta.",
+      "Site dev/e2e dependencies retain 7 HIGH advisories; production dependency audit is clean.",
+      "Site Astro check has 39 non-blocking deprecation hints."
+    ]
+  },
+  "record_updated_at": "2026-09-15T00:45:31.300Z"
 }
