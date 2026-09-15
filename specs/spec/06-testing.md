@@ -36,6 +36,15 @@ specs cover cross-route accessibility, consent, changelog/scenarios, skill
 filtering, responsive demo workbench/search/modals, blog layout, and diagram
 geometry. They run against the built static site in CI.
 
+On pull requests, the e2e job keeps one PR comment, found by a hidden
+`<!-- opchain:axe-comment -->` marker and edited in place. The job's
+"Run Playwright tests" step result decides what happens to it. A failed run
+creates or refreshes the comment with axe violations per route, or with
+error-context samples when the failure is outside axe. A passing run posts
+nothing and only edits an earlier comment to say the latest run passed.
+`scripts/axe-comment.cjs` builds the comment; `tests/axe-comment.test.js`
+covers it.
+
 ### Lighthouse + Axe budgets (LHCI)
 
 `lighthouserc.cjs` defines per-route Lighthouse + axe-core thresholds.
