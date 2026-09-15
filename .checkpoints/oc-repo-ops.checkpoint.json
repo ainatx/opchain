@@ -3,16 +3,16 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-15T05:16:14.310Z",
+  "updated_at": "2026-09-15T05:28:46.835Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "chore/deps-2026-09-14",
-  "progress_summary": "PR readiness gate PASS for the consolidated deps PR (supersedes #543, #544, #511, #502). Docs packet present. Bundles, plugin copy and catalogs in sync; unit suite, astro check and site build pass; working tree clean.",
+  "step": "claude/confident-bhaskara-0df88d",
+  "progress_summary": "PR readiness gate PASS for the axe PR-comment fix. Diff vs origin/main is four files: .github/workflows/ci.yml, scripts/axe-comment.cjs, tests/axe-comment.test.js (new) and specs/spec/06-testing.md. The oc-docs-forge packet is current for the rebased content commit (on #407) and inline in the PR body. gen-catalog, gen-mcp-catalog, sync-bundles:check, sync-plugin-skills:check, check-skill-contracts, lint-internal-refs and checkpoint:validate pass with no generated drift; vitest 93 files / 1252 tests pass. No untracked files; .gitignore untouched.",
   "context_primer": {
     "key_decisions": [
-      "Docs Forge packet is current, contains ## Documentation, and is bound to f590ad3de24d3fccd71d159084e8201632d50c3a.",
-      ".checkpoints/ is tracked; checkpoint evidence changes do not alter the candidate git_tree_projection identity."
+      "Docs Forge packet required before every PR; this PR carries it inline.",
+      ".checkpoints/ is tracked; the evidence commit touches only .checkpoints/, so the git_tree_projection identity is unchanged."
     ],
     "generated_files": [
       ".checkpoints/oc-repo-ops.checkpoint.json"
@@ -22,22 +22,22 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "npm resolved zod 4.6.5 and marked 18.0.13, one patch newer than Dependabot's #543/#511 targets.",
-      "Playwright e2e with @playwright/test 1.63.0 not run locally; CI's Site — Playwright e2e job is the check.",
-      "vitest 5.0.0 (#500) deliberately excluded."
+      "branch commit carries only the Claude Co-Authored-By trailer; the human DCO sign-off lands with the squash-merge",
+      "workflow expression and inline github-script were checked by YAML parse plus a mocked-API run of the step body; actionlint is not installed locally, so first real validation is this PR run",
+      "older drift in specs/spec/06-testing.md (Ten specs; lhci-summary.mjs) recorded as Docs Forge follow-up, not fixed here"
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "ccd55deab4497eebaadb1e294c868d7b0a770d29",
+    "verified_for_sha": "1a00cb4b193d447b449a333052cabc548ebdf96d",
     "last_verify": {
-      "at": "2026-09-15T05:16:14.310Z",
-      "branch": "chore/deps-2026-09-14",
+      "branch": "claude/confident-bhaskara-0df88d",
       "base": "origin/main@4e7deec83a1302a5e1dabb1c304f80202df08bf7",
       "verdict": "PASS",
-      "blocking_findings": []
+      "blocking_findings": [],
+      "at": "2026-09-15T05:28:46.835Z"
     }
   },
   "next_actions": [],
@@ -289,32 +289,32 @@
       }
     },
     {
-      "id": "oc-repo-ops-pr549-d697f44f2661",
+      "id": "oc-repo-ops-axe-comment-green-runs-ea8e024d68c3",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-09-15T05:16:14.310Z",
-      "verified_at": "2026-09-15T05:16:14.310Z",
+      "created_at": "2026-09-15T05:28:46.835Z",
+      "verified_at": "2026-09-15T05:28:46.835Z",
       "producer": {
         "skill": "oc-repo-ops",
-        "run_id": "pr549-deps-2026-09-14"
+        "run_id": "axe-comment-green-runs"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:d697f44f2661f7e2b21be8945ca1a8cdafdef8a721c6b6a8be0c02db2e90c85f"
+        "id": "sha256:ea8e024d68c356b13a1be26dd7ca4e7f877b91074b3f4aedeafbff2404c78ae4"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "Consolidated deps branch on main 4e7deec: root zod bump, site astro/markdown/playwright bumps, sync-bundles + sync-plugin-skills regenerated. sync-bundles:check, sync-plugin-skills:check pass via pretest; npm test 91 files / 1235 tests pass; astro check and site build (83 pages) pass; pre-commit candidate verification passed; working tree clean.",
+        "scope": "Axe PR-comment fix: ci.yml step gated on the Playwright step outcome with a single marked comment; script, new unit test and testing spec only. Docs packet present and current; catalogs, bundles, plugin copy and internal refs in sync; no untracked or ignore-policy changes.",
         "evidence": [
           ".checkpoints/oc-docs-forge.checkpoint.json",
-          "package-lock.json",
-          "site/package-lock.json",
-          "scripts/runtime/prompt-engine.mjs",
-          "https://github.com/ainatx/opchain/pull/549"
+          ".github/workflows/ci.yml",
+          "scripts/axe-comment.cjs",
+          "tests/axe-comment.test.js",
+          "specs/spec/06-testing.md"
         ]
       }
     }
   ],
-  "record_updated_at": "2026-09-15T05:16:14.310Z"
+  "record_updated_at": "2026-09-15T05:28:46.835Z"
 }
