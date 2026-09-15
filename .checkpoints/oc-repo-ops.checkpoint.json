@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-15T05:28:46.835Z",
+  "updated_at": "2026-09-15T05:57:11.879Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "claude/confident-bhaskara-0df88d",
-  "progress_summary": "PR readiness gate PASS for the axe PR-comment fix. Diff vs origin/main is four files: .github/workflows/ci.yml, scripts/axe-comment.cjs, tests/axe-comment.test.js (new) and specs/spec/06-testing.md. The oc-docs-forge packet is current for the rebased content commit (on #407) and inline in the PR body. gen-catalog, gen-mcp-catalog, sync-bundles:check, sync-plugin-skills:check, check-skill-contracts, lint-internal-refs and checkpoint:validate pass with no generated drift; vitest 93 files / 1252 tests pass. No untracked files; .gitignore untouched.",
+  "step": "chore/deps-2026-09-14",
+  "progress_summary": "PR readiness gate PASS for the consolidated deps PR (supersedes #543, #544, #511, #502). Docs packet present. Bundles, plugin copy and catalogs in sync; unit suite, astro check and site build pass; working tree clean.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -22,22 +22,22 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "branch commit carries only the Claude Co-Authored-By trailer; the human DCO sign-off lands with the squash-merge",
-      "workflow expression and inline github-script were checked by YAML parse plus a mocked-API run of the step body; actionlint is not installed locally, so first real validation is this PR run",
-      "older drift in specs/spec/06-testing.md (Ten specs; lhci-summary.mjs) recorded as Docs Forge follow-up, not fixed here"
+      "npm resolved zod 4.6.5 and marked 18.0.13, one patch newer than Dependabot's #543/#511 targets.",
+      "Playwright e2e with @playwright/test 1.63.0 not run locally; CI's Site — Playwright e2e job is the check.",
+      "vitest 5.0.0 (#500) deliberately excluded."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "1a00cb4b193d447b449a333052cabc548ebdf96d",
+    "verified_for_sha": "b5a188b0de812adb5e71cf3f549b55a6c2c45d18",
     "last_verify": {
-      "branch": "claude/confident-bhaskara-0df88d",
-      "base": "origin/main@4e7deec83a1302a5e1dabb1c304f80202df08bf7",
+      "at": "2026-09-15T05:57:11.879Z",
+      "branch": "chore/deps-2026-09-14",
+      "base": "origin/main@e7a758476b4877434bd1d7f1877a0d1466fa83db",
       "verdict": "PASS",
-      "blocking_findings": [],
-      "at": "2026-09-15T05:28:46.835Z"
+      "blocking_findings": []
     }
   },
   "next_actions": [],
@@ -314,7 +314,34 @@
           "specs/spec/06-testing.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr549-2f48212b4be5",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-15T05:57:11.879Z",
+      "verified_at": "2026-09-15T05:57:11.879Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr549-deps-2026-09-14"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:2f48212b4be5e7bf700a7144ecd4dc5f850fd339152f4bd8aef2435799bbdbff"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Consolidated deps branch on main e7a7584: root zod bump, site astro/markdown/playwright bumps, sync-bundles + sync-plugin-skills regenerated. sync-bundles:check, sync-plugin-skills:check pass via pretest; npm test 91 files / 1235 tests pass; astro check and site build (83 pages) pass; pre-commit candidate verification passed; working tree clean.",
+        "evidence": [
+          ".checkpoints/oc-docs-forge.checkpoint.json",
+          "package-lock.json",
+          "site/package-lock.json",
+          "scripts/runtime/prompt-engine.mjs",
+          "https://github.com/ainatx/opchain/pull/549"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-15T05:28:46.835Z"
+  "record_updated_at": "2026-09-15T05:57:11.879Z"
 }
