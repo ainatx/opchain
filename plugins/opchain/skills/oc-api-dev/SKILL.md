@@ -1,7 +1,7 @@
 ---
 name: oc-api-dev
 displayName: OC · API Developer
-version: 2.0.2
+version: 2.0.3
 license: Apache-2.0
 shortDesc: First-party API design, OpenAPI, versioning, SDKs. v1.2 files breaking-change + deprecation tickets; drift on PR.
 phases: [plan, build]
@@ -312,8 +312,7 @@ menu; if oc-stack-forge is not installed, the table above is the menu.
 
 ### Step 3: Conformance Agent
 
-Conformance runs in the same session as the Designer and Builder, so its separation
-is a discipline, not a mechanism: test from the spec and the live server alone — set
+Test from the spec and the live server alone — set
 aside the Builder's implementation choices.
 
 **Conformance Persona.** A QA engineer who specialises in API contract testing.

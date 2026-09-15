@@ -501,7 +501,7 @@ function looksLikeGate(data) {
   if (/\bgate\b|approval|approve|sign-?off|awaiting/.test(hay)) return true;
   if (Array.isArray(data.progress_table)) {
     return data.progress_table.some(
-      (r) => r.status === "in_progress" && /gate|approval|approve/i.test(r.id + " " + r.label)
+      (r) => r?.status === "in_progress" && /gate|approval|approve/i.test(r.id + " " + r.label)
     );
   }
   return false;
@@ -638,6 +638,48 @@ function readAll() {
   return out;
 }
 
+/** Optional planning data stays advisory: legacy checkpoints need no new fields.
+ * Bound each status separately so a long completed list cannot hide current work.
+ * Skipped/deferred rows from external writers remain visibly distinct from done;
+ * accepting them for display does not change the checkpoint validator's enum. */
+function formatProgress(data, { rowsPerStatus = 3 } = {}) {
+  const text = (value, limit) => {
+    if (typeof value !== "string") return "";
+    const clean = value.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
+    return clean.length > limit ? `${clean.slice(0, limit)}… (${clean.length - limit} chars omitted)` : clean;
+  };
+  const lines = [];
+  const goal = text(data.skill_state?.goal, 400);
+  if (goal) lines.push(`**Goal:** ${goal}`);
+  if (!Array.isArray(data.progress_table) || data.progress_table.length === 0) return lines.join("\n");
+  const groups = [
+    ["complete", "Completed"], ["in_progress", "Current"], ["not_started", "Upcoming"],
+    ["blocked", "Blocked"], ["failed", "Failed"], ["skipped", "Skipped"], ["deferred", "Deferred"],
+  ].map(([status, title]) => ({ status, title, rows: [] }));
+  let invalid = 0;
+  for (const row of data.progress_table) {
+    const group = groups.find(({ status }) => status === row?.status);
+    const id = text(row?.id, 64);
+    const label = text(row?.label, 160);
+    if (!group || !id || !label || Array.isArray(row)) { invalid++; continue; }
+    const estimate = text(row.estimate, 160);
+    const notes = text(row.notes, 160);
+    group.rows.push(`- [${row.status === "complete" ? "x" : " "}] ${id}: ${label}${estimate ? ` (estimate: ${estimate})` : ""}${notes ? ` — ${notes}` : ""}`);
+  }
+  const count = data.progress_table.length - invalid;
+  if (count) {
+    if (lines.length) lines.push("");
+    lines.push(`**Progress:** ${groups[0].rows.length}/${count} tasks complete`);
+    for (const { title, rows } of groups) {
+      if (!rows.length) continue;
+      lines.push("", `**${title} (${rows.length}):**`, "", ...rows.slice(0, rowsPerStatus));
+      if (rows.length > rowsPerStatus) lines.push(`- … ${rows.length - rowsPerStatus} more ${title.toLowerCase()} task(s) omitted.`);
+    }
+  }
+  if (invalid) lines.push("", `_(${invalid} malformed progress row(s) omitted.)_`);
+  return lines.join("\n");
+}
+
 function cmdStatus(opts = {}) {
   // `status <skill>`: one checkpoint's row and detail. A skill with no file is a
   // non-zero exit, so a gate that asks "is there a recent audit?" gets a signal
@@ -651,6 +693,17 @@ function cmdStatus(opts = {}) {
     let d;
     try { d = readCheckpoint(path).data; }
     catch (e) { console.error(e.message); return 1; }
+    if (opts.brief) {
+      const rec = recommendedAction(d, driftTokens(readAll()));
+      console.log(`▶ ${d.skill || opts.skill}  (${d.status}, ${d.phase}/${d.step})`);
+      console.log(`  Next: ${rec.action}`);
+      const blockers = (Array.isArray(d.blockers) ? d.blockers : []).filter(Boolean);
+      if (blockers.length) {
+        console.log("\nOpen blockers:");
+        blockers.forEach((b) => console.log(`  🚫 [${d.skill || opts.skill}] ${b.id}: ${b.description}`));
+      }
+      return 0;
+    }
     const age = d.updated_at ? daysSince(d.updated_at) : null;
     const staleAfter = staleThresholdFor(d.status);
     const ageText = age == null ? "unknown age" : `${age < 1 ? "<1" : Math.floor(age)}d old`;
@@ -658,6 +711,8 @@ function cmdStatus(opts = {}) {
     console.log(`${d.skill || opts.skill}: ${d.status || "?"}  ${d.phase || "?"}/${d.step || "?"}`);
     console.log(`updated_at: ${d.updated_at || "—"}  (${ageText}${staleText})`);
     console.log(d.progress_summary || "_no summary_");
+    const progress = formatProgress(d);
+    if (progress) console.log(`\n${progress}`);
     if (Array.isArray(d.next_actions) && d.next_actions.length > 0) {
       console.log("\nNext actions:");
       d.next_actions.forEach((a, i) => console.log(`${i + 1}. ${actionText(a)}`));
@@ -727,6 +782,8 @@ function cmdStatus(opts = {}) {
     }
     console.log(`## ${d.skill || "?"}`);
     console.log(d.progress_summary || "_no summary_");
+    const progress = formatProgress(d, { rowsPerStatus: 1 });
+    if (progress) console.log(`\n${progress}`);
     if (Array.isArray(d.next_actions) && d.next_actions.length > 0) {
       console.log("\n**Next actions:**");
       d.next_actions.forEach((a, i) => console.log(`${i + 1}. ${actionText(a)}`));
@@ -774,8 +831,11 @@ function gitMergedTokens() {
 function driftTokens(all) {
   const toks = new Set();
   for (const { data } of all) {
+    // A named status can read evidence from unrelated, malformed checkpoints.
+    // Leave their schema errors to validate; they cannot establish completed work.
+    if (!data || typeof data !== "object" || Array.isArray(data)) continue;
     for (const row of (Array.isArray(data.progress_table) ? data.progress_table : [])) {
-      if (row.status === "complete") harvestTokens(`${row.id} ${row.label}`, toks);
+      if (row?.status === "complete") harvestTokens(`${row.id} ${row.label}`, toks);
     }
     const st = data.skill_state || {};
     for (const key of Object.keys(st)) {
@@ -1116,7 +1176,7 @@ function cmdReset(skill) {
 
 // Exported for tests. The CLI dispatch below only runs when invoked directly,
 // so importing this module (e.g. from vitest) is side-effect-free.
-export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, harvestTokens, actionIsStale, firstFreshAction, budgetExceeded, readApprovedReleaseBaseline, applyUpdates, repoPathCandidate, projectName, resolveCheckpointLock, atomicWriteFile, SCHEMA_VERSION, ACCEPTED_SCHEMA_VERSIONS };
+export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, harvestTokens, actionIsStale, firstFreshAction, budgetExceeded, readApprovedReleaseBaseline, applyUpdates, repoPathCandidate, projectName, resolveCheckpointLock, atomicWriteFile, formatProgress, SCHEMA_VERSION, ACCEPTED_SCHEMA_VERSIONS };
 
 // ───────────────────────────── arg parsing ──────────────────────────────────
 

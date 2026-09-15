@@ -71,3 +71,42 @@ test("blocked clipboard opens a selectable prompt and announces the fallback", a
   await expect(page.getByRole("region", { name: "Upgrade prompt text" })).toBeVisible();
   await expect(page.getByRole("region", { name: "Upgrade prompt text" })).toHaveText(UPGRADE_PROMPT);
 });
+
+test("v2.0.3 patch deep link opens its progress changes and preserves the 2.0 hero", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 900 });
+  await page.goto("/changelog#v2-0-3");
+  const patch = page.locator("#v2-0-3");
+  await expect(page.locator("#tab-released")).toHaveAttribute("aria-selected", "true");
+  await expect(patch.locator("[data-disclosure-toggle]")).toHaveAttribute("aria-expanded", "true");
+  await expect(patch.locator(".card-body")).toBeVisible();
+  await expect.poll(() => patch.evaluate((el) => Math.round(el.getBoundingClientRect().top))).toBe(72);
+  await expect(patch).toContainText("Existing checkpoints remain readable");
+  await expect(page.locator("#panel-released .hero-card.is-open")).toHaveAttribute("id", "v2-0");
+  await patch.getByRole("link", { name: "See the shared working agreement" }).click();
+  await expect(page).toHaveURL(/\/skills#shared-execution$/);
+});
+
+for (const width of [375, 1280]) {
+  for (const theme of ["dark", "light"]) {
+    test(`shared execution instructions expand accessibly at ${width}px in ${theme}`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/skills#shared-execution");
+      await page.evaluate((value) => document.documentElement.dataset.theme = value, theme);
+      await page.addStyleTag({ content: "*, *::before, *::after { transition: none !important; animation: none !important; }" });
+      const agreement = page.locator("#shared-execution");
+      const summary = agreement.locator("summary");
+      await expect(agreement.locator(".shared-execution-body")).toBeHidden();
+      await summary.focus();
+      await page.keyboard.press("Enter");
+      await expect(agreement.locator(".shared-execution-body")).toBeVisible();
+      await expect(agreement).toContainText("where the host supports them");
+      await expect(agreement.getByRole("link", { name: "Checkpoint status" })).toHaveAttribute("href", "/skills/oc-checkpoint-protocol");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+      const audit = await new AxeBuilder({ page }).include("#shared-execution").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+      expect(audit.violations.map((v) => v.id)).toEqual([]);
+      await summary.focus();
+      await page.keyboard.press("Enter");
+      await expect(agreement.locator(".shared-execution-body")).toBeHidden();
+    });
+  }
+}

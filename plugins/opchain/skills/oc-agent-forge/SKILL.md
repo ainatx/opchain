@@ -1,7 +1,7 @@
 ---
 name: oc-agent-forge
 displayName: OC · Agent Forge
-version: 2.0.2
+version: 2.0.3
 license: Apache-2.0
 shortDesc: Scaffold Claude Agent SDK apps — subagent topology, tool budgets, harness loops, agent eval. Tri-agent.
 phases: [build, ai-native]
@@ -51,7 +51,7 @@ cost, tool-call count, or wall-clock latency. The only honest way to set those
 defaults is to run the agent against fixtures and score the trajectory. This skill
 exists to make the agent harness an *evaluated* artifact, not a vibe.
 
-This is the agent-harness counterpart to `oc-claude-api`. **Model routing — which
+This is the agent-harness counterpart to `oc-claude-api`. **Application model routing — which
 model runs the orchestrator, which runs a worker, effort levels, prompt caching,
 thinking mode — comes FROM `oc-claude-api`.** Agent Forge owns the layer above the
 model: topology, tool budget, loop shape, and the eval. The two skills compose;
@@ -346,8 +346,7 @@ Implementation discipline:
 
 ### Step 3: Agent Evaluator
 
-The Evaluator runs in the same session as the Planner and Builder, so its separation
-is a discipline, not a mechanism: grade from the fixture suite and the live agent
+Grade from the fixture suite and the live agent
 alone — set aside the Builder's harness rationale.
 
 **Evaluator Persona.** An agent QA engineer who trusts the fixture suite over a

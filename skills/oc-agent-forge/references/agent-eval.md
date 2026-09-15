@@ -60,8 +60,7 @@ path.
 
 ## The Evaluator's scoring rubric
 
-The Evaluator runs in the same session as the Builder, so its separation is a
-discipline, not a mechanism: grade from the fixtures and the live agent alone — set
+Grade from the fixtures and the live agent alone — set
 aside the Builder's harness rationale. For each fixture:
 
 | Dimension | What it measures | How it's scored |

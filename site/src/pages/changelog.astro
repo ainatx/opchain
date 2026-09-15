@@ -161,7 +161,7 @@ const plannedReleaseGroups = [
           aria-selected="true"
           tabindex="0"
         >
-          Just Released <span class="tab-count">22 shipped</span>
+          Just Released <span class="tab-count">23 shipped</span>
         </button>
         <button
           class="tab-btn tab-btn--next"
@@ -210,7 +210,7 @@ const plannedReleaseGroups = [
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">latest release</span>
-          <span class="hero-ver">v2.0.0 · Sep 14, 2026</span>
+          <span class="hero-ver">v2.0.0 → v2.0.3 · Sep 14–15, 2026</span>
           <span class="hero-title">The self-improving pipeline</span>
           <span class="hero-desc">A shared runtime for updates, saved progress, local tracking and reviewed learning.</span>
         </button>
@@ -243,6 +243,26 @@ const plannedReleaseGroups = [
               <div class="loop-inv"><span class="loop-k">You stay in control</span> Learning starts off. You choose the provider and reviewer. Lessons and rules need approval before they can be returned as context.</div>
             </div>
             <div class="compat-box"><strong>Upgrading from 1.9:</strong> refresh the full skill folders, including references and runtime files. Existing checkpoints and local telemetry consent are preserved. Use the bootstrap installer if <code>/oc-update</code> is not installed. <a href="/skills/oc-update">Updater</a> · <a href="/skills/oc-hindsight">Hindsight</a> · <a href="/skills/oc-evolve">Evolve</a></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v2.0.3 — focused execution and visible progress across all skills. -->
+      <article class="rel-card" id="v2-0-3" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v2-0-3-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v2.0.3 patch</span><span class="rc-title">A clear goal. Visible progress.</span><span class="rc-date">Sep 15, 2026</span></span>
+            <span class="rc-summary">Shared execution instructions keep every skill focused on a complete, verified result. Qualifying work saves a compact goal and progress plan that checkpoint status can resume.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v2-0-3-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">all skills</span><span class="tag">focused execution</span><span class="tag">visible progress</span><span class="tag">back-compatible</span></div>
+            <p>Every skill shares a working agreement: state the goal and acceptance criteria, choose the smallest complete solution, and verify it. Small tasks keep a short plan; larger tasks use sprints and workstreams with clear dependencies.</p>
+            <p>Work that changes files, validates, delegates, hands off, or spans responses saves a compact goal, checklist, next action and evidence before it starts. Progress updates check off verified tasks and show what is current and upcoming. Time estimates use ranges and change as the work becomes clearer.</p>
+            <p>Checkpoint status renders the saved plan, including its progress table, goal and task estimates. Existing checkpoints remain readable without retroactive planning data.</p>
+            <div class="compat-box"><strong>Back-compatible with v2.0.2.</strong> No checkpoint migration required. <a href="/skills#shared-execution">See the shared working agreement →</a></div>
           </div>
         </div>
       </article>
@@ -1587,6 +1607,7 @@ const plannedReleaseGroups = [
   .alt-note { font-size: var(--fs-sm); color: var(--muted); }
 
   /* ── Compact cards (rel-card / plan-card) ─────────────── */
+  [data-card] { scroll-margin-top: 4.5rem; }
   .rel-card, .plan-card {
     border: 0.5px solid var(--border);
     border-radius: var(--r-md);

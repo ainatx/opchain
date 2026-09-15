@@ -1,7 +1,7 @@
 ---
 name: oc-integrations-engineer
 displayName: OC · Integrations Engineer
-version: 2.0.2
+version: 2.0.3
 license: Apache-2.0
 shortDesc: Third-party APIs, OAuth, webhooks. v1.2 adds PM-tool MCP integration patterns (Linear / Jira / GitHub Issues).
 phases: [build]
@@ -275,8 +275,7 @@ async function withRetry<T>(
 
 ### Step 3: Tester Agent
 
-The Tester runs in the same session as the Planner and Builder, so its separation is a
-discipline, not a mechanism: re-read the integration spec and the contract, then test
+Re-read the integration spec and the contract, then test
 the built integration from those alone — set aside the Builder's implementation decisions.
 
 **Tester Persona:**

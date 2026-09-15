@@ -1,7 +1,7 @@
 ---
 name: oc-rag-forge
 displayName: OC · RAG Forge
-version: 2.0.2
+version: 2.0.3
 license: Apache-2.0
 shortDesc: Design and build RAG systems — vector DB choice, embeddings, chunking, hybrid search, retrieval eval. Tri-agent.
 phases: [build, ai-native]
@@ -318,8 +318,7 @@ prefix content — coordinate chunk ordering with prompt-caching boundaries.
 
 ### Step 3: Evaluator
 
-The Evaluator runs in the same session as the Builder, so its separation is a
-discipline, not a mechanism: grade from the goldset and the live retrieval function
+Grade from the goldset and the live retrieval function
 alone — set aside the Builder's tuning rationale.
 
 **Evaluator Persona.** A retrieval QA engineer who trusts numbers over demos. Key

@@ -1,7 +1,7 @@
 ---
 name: oc-data-ops
 displayName: OC · Data Ops
-version: 2.0.2
+version: 2.0.3
 license: Apache-2.0
 shortDesc: "Data-pipeline design + build: ingestion patterns, transformation layers, dbt, observable data contracts."
 phases: [plan, build]
@@ -49,9 +49,8 @@ is layered and transformed, and — the part most pipeline work skips — the
 and enforceable. Where oc-signal-forge proves one metric answers one question,
 Data Ops builds and guards the pipelines whole families of metrics ride on.
 
-Tri-agent loop: **Designer → Builder → Contract-Verifier**. All three roles run in
-the same session, so the Verifier's separation is a discipline, not a mechanism: it
-grades from the contracts and the built pipeline alone — never the Builder's reasoning.
+Tri-agent loop: **Designer → Builder → Contract-Verifier**. The Verifier grades
+from the contracts and the built pipeline alone, independently of the Builder's reasoning.
 
 ## Command Reference
 
@@ -133,7 +132,7 @@ Implement against the Designer's layer map:
 
 ## Phase 3: Contract-Verifier (`/oc-data-ops verify`)
 
-Verification in the same session, judged from the artifacts alone. The Verifier reads: the contracts, the built
+Verification is judged from the artifacts alone. The Verifier reads: the contracts, the built
 pipeline, and (where available) real or fixture data. It replays every
 contract:
 

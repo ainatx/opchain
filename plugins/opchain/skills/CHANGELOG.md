@@ -15,6 +15,35 @@ checkpoint `protocol_version` is tracked separately (see
 
 _Nothing yet._
 
+## [2.0.3] — 2026-09-15 — "Focused execution, visible progress"
+
+Repairs execution guidance shared by every skill and makes saved task progress
+visible in the existing checkpoint status command.
+
+### Fixed
+
+- **One outcome, proportionate work.** Skills state the goal and completion
+  criteria, reuse a compact plan, and carry the smallest complete solution through
+  its required checks. Larger efforts use bounded workstreams with clear ownership
+  and dependencies; small tasks do not need sprint scaffolding.
+- **Task-appropriate resources.** Delegation and model effort follow task difficulty,
+  available host controls, and existing user authorization. Required validation
+  remains part of completion, and application model changes retain their evaluation
+  and approval requirements. No fast-mode setting is imposed.
+- **Visible saved progress.** Checkpoint status shows recorded goals and task
+  checklists, distinguishes completed work from skipped or blocked work, and shows
+  supplied estimate ranges without inventing timings. Brief status stays compact.
+- **Matching site guidance.** The homepage, skill library, and patch release notes
+  explain the execution policy and its limits using the existing site design.
+
+### Compatibility
+
+Back-compatible with v2.0; no migration required. All 36 skills move together to
+2.0.3. Checkpoint wire remains 1.1. Existing checkpoints work unchanged; a
+`skill_state.goal` string and `progress_table[].estimate` strings are optional
+presentation metadata. No new skill, slash command, provider setting, or automatic
+model switch is introduced.
+
 ## [2.0.2] — 2026-09-15 — "Every task has a beginning and an end — release ledger correction"
 
 Patch release for the task lifecycle timestamps shipped in 2.0.1. This release

@@ -1,7 +1,7 @@
 ---
 name: oc-bug-check
 displayName: OC · Bug Check
-version: 2.0.2
+version: 2.0.3
 license: Apache-2.0
 shortDesc: Pre-commit QA gate — fast checks on every commit. v1.2 attaches the failure report to the linked PM ticket on block.
 phases: [build]
