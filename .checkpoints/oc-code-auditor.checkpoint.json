@@ -2,13 +2,13 @@
   "protocol_version": "1.1",
   "skill": "oc-code-auditor",
   "project": "opchain.dev",
-  "project_dir": "/private/tmp/opchain-release-2.0.1",
+  "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-09-15T00:45:31.300Z",
+  "updated_at": "2026-09-15T02:59:28Z",
   "phase": "audit",
-  "step": "pre-deploy-2.0.1-staging-2026-09-15",
+  "step": "pre-deploy-2.0.2-2026-09-15",
   "status": "in_progress",
-  "progress_summary": "Pre-deploy code audit PASS for the exact 2.0.1 staging candidate at e83fc6b3a350df96ba9954970168407301e86d24 (tree projection sha256:24aff1433c53ffa2cd0228f70865bfc5aa044bd3360f8ab05eaef0e9107610ad). All eight immutable candidate checks, 1,236 repository tests, site check/build, hooks, hardening and parity checks passed. Historical OSS/portability findings remain separately open and are not silently closed by this bounded release audit.",
+  "progress_summary": "Pre-deploy code audit PASS for the exact v2.0.2 candidate at f590ad3de24d3fccd71d159084e8201632d50c3a (tree fd0e7eb06ee81e1bb9062093b1779556609ba0c3; projection identity sha256:53307aa08606a92343ebdf5b03d269230f1ca524224d8d4256adfb47ae67481d). The immutable verifier passed all eight configured checks, including tests, build, type safety, dependency and secret checks; release-seal consistency is fixed. Historical OSS/portability findings remain separately open.",
   "blockers": [],
   "next_actions": [
     "OSS-readiness audit 2026-08-22 (grade D+): triage the 24 HIGH findings in docs/audits/2026-08-22-oss-readiness-audit.md — the must-fix set is in docs/plans/2026-08-22-oss-split-licensing-compliance.md §4.1 (SECURITY.md + PVR, LICENSE in every artifact, SHA-pin Actions, Dependabot alerts, releases+attestations) and §4.3 (POST /mcp checkpoint TTL/size/rate-limit/session isolation; stale privacy page; leads stored forever).",
@@ -439,18 +439,50 @@
           "Site Astro check reports 0 errors and 39 advisory hints for deprecated z imports."
         ]
       }
+    },
+    {
+      "id": "oc-code-auditor-predeploy-202-53307aa086",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-15T02:59:28Z",
+      "verified_at": "2026-09-15T02:59:28Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-2.0.2"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:53307aa08606a92343ebdf5b03d269230f1ca524224d8d4256adfb47ae67481d"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Current v2.0.2 branch tip f590ad3de24d3fccd71d159084e8201632d50c3a; release delta from origin/main includes the catalog/version bump, synchronized bundles, changelog surfaces, verification policy refresh and release-seal digest correction. No release-blocking CRITICAL or HIGH code finding.",
+        "evidence": [
+          "node scripts/verify-candidate.mjs run --repo . --json: PASS; tree fd0e7eb06ee81e1bb9062093b1779556609ba0c3",
+          "Immutable verifier checks: anti_patterns, build, dependencies, dependencies_site, lint, secrets, tests and type_safety all PASS",
+          "npm run check-release-tag.mjs --local: catalog/version and release seal are consistent; missing v2.0.2 tag is an intentional pre-tag state",
+          "npm run test:hooks; npm run sync-bundles:check; npm run sync-plugin-skills:check; npm run check-skill-contracts; npm run lint-internal-refs: PASS"
+        ],
+        "accepted_residuals": [
+          "Site dev/e2e dependency audit reports 7 HIGH advisories; production dependency audit is clean.",
+          "Historical OSS/portability findings remain open outside this bounded v2.0.2 release audit.",
+          "The v2.0.2 tag and live staging verification are intentionally deferred."
+        ]
+      }
     }
   ],
   "latest_pre_deploy": {
-    "candidate": "e83fc6b3a350df96ba9954970168407301e86d24",
-    "candidate_identity": "sha256:24aff1433c53ffa2cd0228f70865bfc5aa044bd3360f8ab05eaef0e9107610ad",
+    "candidate": "f590ad3de24d3fccd71d159084e8201632d50c3a",
+    "candidate_identity": "sha256:53307aa08606a92343ebdf5b03d269230f1ca524224d8d4256adfb47ae67481d",
     "verdict": "PASS",
     "blocking_findings": 0,
     "accepted_residuals": [
       "Historical OSS/portability audit findings remain open outside this staging release delta.",
       "Site dev/e2e dependencies retain 7 HIGH advisories; production dependency audit is clean.",
-      "Site Astro check has 39 non-blocking deprecation hints."
+      "Site Astro check has 39 non-blocking deprecation hints.",
+      "The v2.0.2 tag is intentionally absent; tag creation is outside this task."
     ]
   },
-  "record_updated_at": "2026-09-15T00:45:31.300Z"
+  "record_updated_at": "2026-09-15T02:59:28Z"
 }

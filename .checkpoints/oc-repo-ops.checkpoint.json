@@ -1,17 +1,17 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/private/tmp/opchain-release-2.0.1",
+  "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-15T02:28:35.853Z",
+  "updated_at": "2026-09-15T03:01:06Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "claude/v2-asset-hotfix",
-  "progress_summary": "PR readiness gate PASS for PR #542 (v2.0 favicon, fallback share card, architecture shade) after rebase onto main f92179b. Docs packet present; generated OG assets reproduce byte-identical; candidate verification passed; working tree clean.",
+  "step": "pr-verify-2.0.2-2026-09-15",
+  "progress_summary": "PR readiness gate PASS for the current v2.0.2 release branch tip f590ad3de24d3fccd71d159084e8201632d50c3a. The fresh oc-docs-forge packet is current and bound to HEAD. Catalog, flag, bundle, plugin, contract, internal-reference, PM-MCP and checkpoint validations pass; there are no untracked files or diff-check errors. Eight pre-existing checkpoint warnings remain non-blocking.",
   "context_primer": {
     "key_decisions": [
-      "Docs Forge packet is current, contains ## Documentation, and is bound to b54d4a6dcdd9510868cde690c6fed94be4f674a.",
+      "Docs Forge packet is current, contains ## Documentation, and is bound to f590ad3de24d3fccd71d159084e8201632d50c3a.",
       ".checkpoints/ is tracked; checkpoint evidence changes do not alter the candidate git_tree_projection identity."
     ],
     "generated_files": [
@@ -22,18 +22,19 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Deploy is manual and not part of this PR; if it ships ahead of v2.0.1 the release baseline needs a runtime block."
+      "Eight pre-existing checkpoint validator warnings remain non-blocking.",
+      "Deployment and v2.0.2 tag creation are outside this PR-readiness task."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "f241c77ae44cdf7c054969175f35c2e702d51ad2",
+    "verified_for_sha": "f590ad3de24d3fccd71d159084e8201632d50c3a",
     "last_verify": {
-      "at": "2026-09-15T02:28:35.853Z",
-      "branch": "claude/v2-asset-hotfix",
-      "base": "origin/main@f92179b1c4584698b009847563480fef53f0bfeb",
+      "at": "2026-09-15T03:01:06Z",
+      "branch": "codex/release-2.0.2",
+      "base": "origin/main@e769450",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -229,7 +230,37 @@
           "https://github.com/ainatx/opchain/pull/542"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-202-53307aa086",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-15T03:01:06Z",
+      "verified_at": "2026-09-15T03:01:06Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-verify-2.0.2"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:53307aa08606a92343ebdf5b03d269230f1ca524224d8d4256adfb47ae67481d"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Current v2.0.2 release branch tip f590ad3de24d3fccd71d159084e8201632d50c3a; docs packet is current and repository readiness checks pass with only eight pre-existing checkpoint warnings.",
+        "evidence": [
+          "oc-docs-forge checkpoint: current packet, required ## Documentation section, verified_for_sha f590ad3de24d3fccd71d159084e8201632d50c3a",
+          "npm run sync-bundles:check; npm run sync-plugin-skills:check; npm run check-skill-flags; npm run check-skill-contracts; npm run lint-internal-refs; npm run validate-pm-mcp: PASS",
+          "npm run checkpoint:validate: all 18 checkpoints valid; 8 non-blocking pre-existing warnings",
+          "git diff --check: PASS; git ls-files --others --exclude-standard: no untracked files"
+        ],
+        "warnings": [
+          "Eight pre-existing checkpoint validator warnings remain outside oc-docs-forge and oc-repo-ops.",
+          "The v2.0.2 tag is intentionally absent because tag creation is outside this task."
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-15T02:28:35.853Z"
+  "record_updated_at": "2026-09-15T03:01:06Z"
 }
