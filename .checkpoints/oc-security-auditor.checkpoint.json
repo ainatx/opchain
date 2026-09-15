@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-09-14T00:38:43.799Z",
-  "updated_at": "2026-09-15T02:59:28Z",
+  "updated_at": "2026-09-15T08:30:00Z",
   "phase": "verify",
-  "step": "posture-2.0.2-2026-09-15",
+  "step": "posture-2.0.3-2026-09-15",
   "status": "complete",
-  "progress_summary": "Security posture PASS for the exact v2.0.2 candidate at f590ad3de24d3fccd71d159084e8201632d50c3a (tree fd0e7eb06ee81e1bb9062093b1779556609ba0c3; projection identity sha256:53307aa08606a92343ebdf5b03d269230f1ca524224d8d4256adfb47ae67481d). MCP boundary, headers, checkpoint isolation, hooks, dependency posture, hardening controls and OWASP Top 10:2025 mapping were reviewed. No new release-blocking HIGH or CRITICAL finding; live staging checks remain out of scope.",
+  "progress_summary": "Security posture PASS for the exact v2.0.3 candidate at 558a2b98661d4d2a84627497912d769a6574fd08. The release delta changes checkpoint presentation, bundled instructions and static site copy; it does not add a network boundary, credential flow, executable deployment configuration or runtime dependency. No new release-blocking HIGH or CRITICAL finding.",
   "next_actions": [
     "Define the first real next action for this skill."
   ],
@@ -374,11 +374,41 @@
           "A10_exception_handling": "PASS for reviewed fail-closed error paths"
         }
       }
+    },
+    {
+      "id": "oc-security-auditor-posture-203-c5863125f6",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-15T08:30:00Z",
+      "verified_at": "2026-09-15T08:30:00Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "oc-security-posture-2.0.3"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c5863125f6ac62e6e751b3e6910dd22de9a7d1dee244f1f85fdde73ec1670408"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "v2.0.3 release delta: checkpoint rendering with malformed-input guards, shared skill instructions, bundled artifacts and static changelog/skill-library surfaces. Existing MCP, header, credential and Cloudflare configuration boundaries are unchanged.",
+        "evidence": [
+          "node scripts/verify-candidate.mjs run: PASS; tree 7d496cfb803eab5980f99005ebdd6c905809d7c7",
+          "npm audit --omit=dev --audit-level=high: 0 vulnerabilities",
+          "npm run hardening:verify: 2 controls passed; live HTTP replay deferred to staging",
+          "npm run build-site: 83 pages built"
+        ],
+        "accepted_residuals": [
+          "Live staging headers, TLS/DNS and Cloudflare control-plane settings await the post-deploy checks.",
+          "Pre-existing site dev/e2e dependency advisories and defense-in-depth header gaps remain outside this release delta."
+        ]
+      }
     }
   ],
   "latest_pre_deploy": {
-    "candidate": "f590ad3de24d3fccd71d159084e8201632d50c3a",
-    "candidate_identity": "sha256:53307aa08606a92343ebdf5b03d269230f1ca524224d8d4256adfb47ae67481d",
+    "candidate": "558a2b98661d4d2a84627497912d769a6574fd08",
+    "candidate_identity": "sha256:c5863125f6ac62e6e751b3e6910dd22de9a7d1dee244f1f85fdde73ec1670408",
     "verdict": "PASS",
     "blocking_findings": 0,
     "accepted_residuals": [
@@ -387,5 +417,5 @@
       "The v2.0.2 tag is intentionally absent; live staging/runtime controls were not reassessed."
     ]
   },
-  "record_updated_at": "2026-09-15T02:59:28Z"
+  "record_updated_at": "2026-09-15T08:30:00Z"
 }
