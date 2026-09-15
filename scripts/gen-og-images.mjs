@@ -310,4 +310,37 @@ for (const file of postFiles) {
 }
 
 console.log(`Generated ${blogCount} blog post OG cards → site/public/og/blog/`);
-console.log(`\nDone: ${ROUTES.length} route + ${blogCount} blog cards.`);
+
+// ── Fallback card (/og-image.png) ────────────────────────────────────────────
+// Base.astro serves this for every route without its own card (/changelog,
+// /dashboard, /404, …). It used to be a hand-exported upscale of the favicon,
+// which is how it stayed Ember through the 2.0 recolour. It now renders the
+// favicon SVG itself, so recolouring the mark recolours the fallback too.
+const FAVICON = readFileSync(join(ROOT, "site", "public", "favicon.svg"), "utf8");
+// Drop the favicon's own full-bleed tile so the mark sits on the card's glow
+// instead of punching a flat square through it.
+const markInner = FAVICON.replace(/^[\s\S]*?<svg[^>]*>/, "")
+  .replace(/<\/svg>\s*$/, "")
+  .replace(/<rect width="32" height="32"[^>]*\/>/, "");
+const fallbackSvg = `<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="gr" cx="95%" cy="85%" r="45%" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="${ACCENT}" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="${GROUND}" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="gl" cx="0%" cy="0%" r="35%" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="${ACCENT}" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="${GROUND}" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="${GROUND}"/>
+  <rect width="1200" height="630" fill="url(#gr)"/>
+  <rect width="1200" height="630" fill="url(#gl)"/>
+  <svg x="375" y="90" width="450" height="450" viewBox="0 0 32 32">${markInner}</svg>
+</svg>`;
+await sharp(Buffer.from(fallbackSvg))
+  .png({ compressionLevel: 9 })
+  .toFile(join(ROOT, "site", "public", "og-image.png"));
+console.log("Generated fallback OG card → site/public/og-image.png");
+
+console.log(`\nDone: ${ROUTES.length} route + ${blogCount} blog cards + fallback.`);
