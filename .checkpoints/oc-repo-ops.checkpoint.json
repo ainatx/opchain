@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-15T03:01:06Z",
+  "updated_at": "2026-09-15T04:55:35.512Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-verify-2.0.2-2026-09-15",
-  "progress_summary": "PR readiness gate PASS for the current v2.0.2 release branch tip f590ad3de24d3fccd71d159084e8201632d50c3a. The fresh oc-docs-forge packet is current and bound to HEAD. Catalog, flag, bundle, plugin, contract, internal-reference, PM-MCP and checkpoint validations pass; there are no untracked files or diff-check errors. Eight pre-existing checkpoint warnings remain non-blocking.",
+  "step": "claude/ecstatic-gauss-dm702e",
+  "progress_summary": "PR readiness gate PASS for PR #407 (skills.coverage flag description drift) after rebase onto main d4f926b. Diff is .claude/commands/flag.md and src/lib/flags/registry.js. Docs packet present. Catalog, flag, bundle and plugin sync checks pass; full unit suite passes; working tree clean.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet is current, contains ## Documentation, and is bound to f590ad3de24d3fccd71d159084e8201632d50c3a.",
@@ -22,19 +22,18 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Eight pre-existing checkpoint validator warnings remain non-blocking.",
-      "Deployment and v2.0.2 tag creation are outside this PR-readiness task."
+      "Rebased from 112 commits behind; original CI run predates v1.9.2's evidence:pr gate."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "f590ad3de24d3fccd71d159084e8201632d50c3a",
+    "verified_for_sha": "5b0aeab3e40ccf4184c5b1d93410ce27d6f81204",
     "last_verify": {
-      "at": "2026-09-15T03:01:06Z",
-      "branch": "codex/release-2.0.2",
-      "base": "origin/main@e769450",
+      "at": "2026-09-15T04:55:35.512Z",
+      "branch": "claude/ecstatic-gauss-dm702e",
+      "base": "origin/main@d4f926b7d994155a64f9d3ef78f0007a8b0d2b94",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -260,7 +259,33 @@
           "The v2.0.2 tag is intentionally absent because tag creation is outside this task."
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr407-4872c8082977",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-15T04:55:35.512Z",
+      "verified_at": "2026-09-15T04:55:35.512Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr407-coverage-flag-description"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:4872c808297796cc1eb71434e91ab7dba8b2cf1ac2992327c5d29cff1e778bd9"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "PR #407 rebased onto main d4f926b: two-line registry description + one flag.md table row. gen-flags, gen-catalog, check-skill-flags, check-skill-contracts, gen-mcp-catalog, sync-bundles:check, sync-plugin-skills:check, lint-internal-refs pass; npm test 91 files / 1235 tests pass; no generated drift or untracked files.",
+        "evidence": [
+          ".checkpoints/oc-docs-forge.checkpoint.json",
+          ".claude/commands/flag.md",
+          "src/lib/flags/registry.js",
+          "https://github.com/ainatx/opchain/pull/407"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-15T03:01:06Z"
+  "record_updated_at": "2026-09-15T04:55:35.512Z"
 }
