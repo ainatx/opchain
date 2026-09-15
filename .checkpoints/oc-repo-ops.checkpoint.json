@@ -1,18 +1,18 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "project_dir": "/private/tmp/opchain-release-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-14T18:35:26.126Z",
+  "updated_at": "2026-09-15T02:00:44Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "claude/checkpoint-hygiene-exempt-oc-update",
-  "progress_summary": "PR readiness gate PASS for PR #545 (exempt oc-update from checkpoint hygiene). Diff vs origin/main is two files: .claude/hooks/checkpoint-hygiene.sh and tests/audit-state/c3-current-run-hygiene.test.js. The oc-docs-forge packet is complete, bound to da585b3 and inline in the PR body. gen-catalog, gen-mcp-catalog, sync-bundles:check, sync-plugin-skills:check, check-skill-contracts and lint-internal-refs all pass with no generated drift. checkpoint:validate passes with only pre-existing warnings. There are no untracked files and .gitignore is untouched.",
+  "step": "pr-verify-2.0.1-2026-09-15",
+  "progress_summary": "PR readiness gate PASS for the current v2.0.1 release branch tip b54d4a6dcdd9510868cde690c6fed94be4f674a. The fresh oc-docs-forge packet is current and bound to HEAD. Catalog, flag, bundle, plugin, contract, internal-reference, PM-MCP and checkpoint validations pass; there are no untracked files or diff-check errors. Eight pre-existing checkpoint warnings remain non-blocking.",
   "context_primer": {
     "key_decisions": [
-      "Docs Forge packet required before every PR; PR #545 carries it inline.",
-      ".checkpoints/ is tracked; the gate evidence commit touches only .checkpoints/, so the git_tree_projection identity is unchanged."
+      "Docs Forge packet is current, contains ## Documentation, and is bound to b54d4a6dcdd9510868cde690c6fed94be4f674a.",
+      ".checkpoints/ is tracked; checkpoint evidence changes do not alter the candidate git_tree_projection identity."
     ],
     "generated_files": [
       ".checkpoints/oc-repo-ops.checkpoint.json"
@@ -22,20 +22,19 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "branch commit carries only the Claude Co-Authored-By trailer; the human DCO sign-off lands with the squash-merge (same as #535)",
-      "first local pre-commit verification recorded tests: FAIL with no diagnostic; two reruns on the identical tree 02ba53e4 passed, and CI's verifier passed",
-      "8 pre-existing checkpoint validator warnings in other skills' checkpoints (none in oc-docs-forge or oc-repo-ops)"
+      "8 pre-existing checkpoint validator warnings in other skills' checkpoints; none block this gate",
+      "Live deployment/runtime checks remain outside this PR-readiness scope."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "da585b36bc408e2fb52674869ee8a343510dafab",
+    "verified_for_sha": "b54d4a6dcdd9510868cde690c6fed94be4f674a",
     "last_verify": {
-      "at": "2026-09-14T18:35:25.955Z",
-      "branch": "claude/checkpoint-hygiene-exempt-oc-update",
-      "base": "origin/main@235127def483160b9fd236194e5ad1fe412aed3a",
+      "at": "2026-09-15T02:00:44Z",
+      "branch": "codex/release-2.0.1",
+      "base": "origin/main@e560c18",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -172,7 +171,38 @@
           "https://github.com/ainatx/opchain/pull/545"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-201-b54d4a6dcdd",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-15T02:00:44Z",
+      "verified_at": "2026-09-15T02:00:44Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-verify-2.0.1-staging"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:24aff1433c53ffa2cd0228f70865bfc5aa044bd3360f8ab05eaef0e9107610ad"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Current v2.0.1 release branch tip b54d4a6dcdd9510868cde690c6fed94be4f674a; docs packet is current and the repository readiness checks pass with only eight pre-existing checkpoint warnings.",
+        "evidence": [
+          "oc-docs-forge checkpoint: current packet, required ## Documentation section, verified_for_sha b54d4a6dcdd9510868cde690c6fed94be4f674a",
+          "npm run sync-bundles:check: PASS",
+          "npm run sync-plugin-skills:check: PASS",
+          "npm run check-skill-flags; npm run check-skill-contracts; npm run lint-internal-refs; npm run validate-pm-mcp: PASS",
+          "npm run checkpoint:validate: all 17 checkpoints valid; 8 non-blocking pre-existing warnings",
+          "git diff --check: PASS; git ls-files --others --exclude-standard: no untracked files"
+        ],
+        "warnings": [
+          "Eight pre-existing checkpoint validator warnings remain outside oc-docs-forge and oc-repo-ops."
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-14T18:35:26.126Z"
+  "record_updated_at": "2026-09-15T02:00:44Z"
 }
