@@ -2,13 +2,13 @@
   "protocol_version": "1.1",
   "skill": "oc-security-auditor",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/worktrees/opchain-oc-update-v2",
+  "project_dir": "/private/tmp/opchain-release-2.0.1",
   "created_at": "2026-09-14T00:38:43.799Z",
-  "updated_at": "2026-09-14T07:02:27.809Z",
+  "updated_at": "2026-09-15T00:45:31.300Z",
   "phase": "verify",
-  "step": "v2-staging-review",
+  "step": "posture-2.0.1-staging-2026-09-15",
   "status": "complete",
-  "progress_summary": "Scoped 2.0 runtime and staging boundary review passed. Real provider and native host acceptance remain release work.",
+  "progress_summary": "Security posture PASS for the exact 2.0.1 staging candidate at e83fc6b3a350df96ba9954970168407301e86d24 (tree projection sha256:24aff1433c53ffa2cd0228f70865bfc5aa044bd3360f8ab05eaef0e9107610ad). The release delta adds no new HIGH or CRITICAL security exposure; MCP boundary, headers, checkpoint isolation, hooks, dependency posture and hardening checks were reviewed. Live staging headers/TLS/DNS were not rechecked because this task does not deploy.",
   "next_actions": [
     "Define the first real next action for this skill."
   ],
@@ -283,7 +283,62 @@
           "docs/audits/2026-09-14-demos-install-staging-review.md"
         ]
       }
+    },
+    {
+      "id": "oc-security-auditor-posture-201-24aff1433c",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-15T00:45:31.300Z",
+      "verified_at": "2026-09-15T00:45:31.300Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "oc-security-posture-2.0.1-staging"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:24aff1433c53ffa2cd0228f70865bfc5aa044bd3360f8ab05eaef0e9107610ad"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Full posture review of current branch tip and its release delta from v2.0.1: STRIDE/MCP trust boundaries, OWASP Top 10:2025 mapping, source-level runtime hardening, hooks, checkpoint isolation and dependency exposure. No new release-blocking HIGH or CRITICAL finding; accepted residuals are explicit.",
+        "evidence": [
+          "Official OWASP Top 10:2025 list reviewed",
+          "npm run test:mcp-hardening: 2 files, 45 tests passed",
+          "npm run test:data-retention: 1 file, 6 tests passed",
+          "npm audit --omit=dev and npm audit --prefix site --omit=dev: 0 HIGH/CRITICAL",
+          "npm run hardening:verify: 2 controls passed, 1 live replay skipped because no deployment was performed"
+        ],
+        "accepted_residuals": [
+          "Live headers/TLS/DNS and Cloudflare control-plane settings were not reassessed against this un-deployed candidate.",
+          "Site dev/e2e dependency tree has 7 HIGH advisories; production dependencies are clean.",
+          "CI action references are tag-pinned rather than immutable SHA-pinned, a pre-existing supply-chain hardening gap outside this release delta.",
+          "COOP/CORP are not emitted by the baseline header set; this is a defense-in-depth gap, not a newly introduced exposure."
+        ],
+        "owasp_2025": {
+          "A01_access_control": "PASS within public/advisory MCP session model",
+          "A02_security_misconfiguration": "PARTIAL; live runtime not rechecked",
+          "A03_supply_chain": "PARTIAL; dev-only advisories and mutable CI action refs accepted",
+          "A04_cryptographic_failures": "PASS for reviewed HMAC/session and HTTPS configuration",
+          "A05_injection": "PASS for reviewed bounded parsers and schemas",
+          "A06_insecure_design": "PASS within documented advisory-checkpoint threat model",
+          "A07_authentication_failures": "PASS for signed session tokens; hosted MCP is intentionally bearer-session based",
+          "A08_integrity_failures": "PASS for candidate-bound release evidence and manifest checks",
+          "A09_logging_alerting_failures": "PARTIAL; observability exists, full live incident-response proof not run",
+          "A10_exception_handling": "PASS for reviewed fail-closed error paths"
+        }
+      }
     }
   ],
-  "record_updated_at": "2026-09-14T07:02:27.809Z"
+  "latest_pre_deploy": {
+    "candidate": "e83fc6b3a350df96ba9954970168407301e86d24",
+    "candidate_identity": "sha256:24aff1433c53ffa2cd0228f70865bfc5aa044bd3360f8ab05eaef0e9107610ad",
+    "verdict": "PASS",
+    "blocking_findings": 0,
+    "accepted_residuals": [
+      "No live staging/runtime reassessment because deployment was explicitly out of scope.",
+      "Dev-only site dependency advisories, mutable CI action refs, and defense-in-depth header gaps remain tracked residuals."
+    ]
+  },
+  "record_updated_at": "2026-09-15T00:45:31.300Z"
 }
