@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-15T05:28:46.835Z",
+  "updated_at": "2026-09-15T05:53:20.188Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "claude/confident-bhaskara-0df88d",
-  "progress_summary": "PR readiness gate PASS for the axe PR-comment fix. Diff vs origin/main is four files: .github/workflows/ci.yml, scripts/axe-comment.cjs, tests/axe-comment.test.js (new) and specs/spec/06-testing.md. The oc-docs-forge packet is current for the rebased content commit (on #407) and inline in the PR body. gen-catalog, gen-mcp-catalog, sync-bundles:check, sync-plugin-skills:check, check-skill-contracts, lint-internal-refs and checkpoint:validate pass with no generated drift; vitest 93 files / 1252 tests pass. No untracked files; .gitignore untouched.",
+  "step": "fix/2-0-colors-auditor-and-pipeline",
+  "progress_summary": "PR readiness gate PASS for PR #494 (geometry auditor marker table + PipelineDiagram --assure) after retargeting to main e7a7584. Docs packet present; auditor back to baseline 17; candidate verification passed; working tree clean.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -22,22 +22,21 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "branch commit carries only the Claude Co-Authored-By trailer; the human DCO sign-off lands with the squash-merge",
-      "workflow expression and inline github-script were checked by YAML parse plus a mocked-API run of the step body; actionlint is not installed locally, so first real validation is this PR run",
-      "older drift in specs/spec/06-testing.md (Ten specs; lhci-summary.mjs) recorded as Docs Forge follow-up, not fixed here"
+      "Original branch's last CI run had Site — Playwright e2e FAILURE against the colour branch; rerun on main is the check.",
+      "PipelineDiagram header comment still says v2.0 learning skills have not shipped; pre-existing on main and out of this PR's scope."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "1a00cb4b193d447b449a333052cabc548ebdf96d",
+    "verified_for_sha": "f1d4d236a7388402306f8234026b22f745b8aebb",
     "last_verify": {
-      "branch": "claude/confident-bhaskara-0df88d",
-      "base": "origin/main@4e7deec83a1302a5e1dabb1c304f80202df08bf7",
+      "at": "2026-09-15T05:53:20.188Z",
+      "branch": "fix/2-0-colors-auditor-and-pipeline",
+      "base": "origin/main@e7a758476b4877434bd1d7f1877a0d1466fa83db",
       "verdict": "PASS",
-      "blocking_findings": [],
-      "at": "2026-09-15T05:28:46.835Z"
+      "blocking_findings": []
     }
   },
   "next_actions": [],
@@ -314,7 +313,33 @@
           "specs/spec/06-testing.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr494-ff476c5bc517",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-15T05:53:20.188Z",
+      "verified_at": "2026-09-15T05:53:20.188Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr494-diagram-marker-table"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:ff476c5bc51768fbee771c5d1f8ffa30743c0fb36585bc24ef17db9ab02eeba5"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "PR #494 rebuilt on main e7a7584: fix commit 9380648 cherry-picked (colour-branch plugin resync 1e734f4 not carried; main's plugin copy is already in sync), plus 6a95168 aligning the light --assure to main's light --warning #746940. Auditor on architecture.astro + MobileArchitecture.astro returns TOTAL 17 (baseline). Both content commits passed pre-commit candidate verification (build + tests); working tree clean.",
+        "evidence": [
+          ".checkpoints/oc-docs-forge.checkpoint.json",
+          "scripts/audit-diagram-geometry.mjs",
+          "site/src/components/PipelineDiagram.astro",
+          "https://github.com/ainatx/opchain/pull/494"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-15T05:28:46.835Z"
+  "record_updated_at": "2026-09-15T05:53:20.188Z"
 }
