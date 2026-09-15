@@ -3,7 +3,7 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-15T05:28:46.835Z",
+  "updated_at": "2026-09-15T16:06:17Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
@@ -31,7 +31,7 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "1a00cb4b193d447b449a333052cabc548ebdf96d",
+    "verified_for_sha": "4801105555c06850f3bd9ad59aca216dcffa7068",
     "last_verify": {
       "branch": "claude/confident-bhaskara-0df88d",
       "base": "origin/main@4e7deec83a1302a5e1dabb1c304f80202df08bf7",
@@ -314,7 +314,22 @@
           "specs/spec/06-testing.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-2.0.3-c5863125f6ac",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-15T16:06:17Z",
+      "verified_at": "2026-09-15T16:06:17Z",
+      "producer": { "skill": "oc-repo-ops", "run_id": "pr-verify-2.0.3" },
+      "candidate": { "kind": "git_tree_projection", "id": "sha256:c5863125f6ac62e6e751b3e6910dd22de9a7d1dee244f1f85fdde73ec1670408" },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "v2.0.3 release candidate has a current Docs Forge packet; synchronized source, runtime, plugin, and site surfaces pass their checks; no related untracked files or generated drift remain.",
+        "evidence": ["npm run sync-bundles:check", "npm run sync-plugin-skills:check", "npm run check-skill-contracts", "npm run lint-internal-refs", "npm run checkpoint:validate", "git diff --check origin/main...HEAD"]
+      }
     }
   ],
-  "record_updated_at": "2026-09-15T05:28:46.835Z"
+  "record_updated_at": "2026-09-15T16:06:17Z"
 }
