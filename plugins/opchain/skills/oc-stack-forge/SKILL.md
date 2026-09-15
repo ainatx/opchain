@@ -1,7 +1,7 @@
 ---
 name: oc-stack-forge
 displayName: OC · Stack Forge
-version: 2.0.1
+version: 2.0.2
 license: Apache-2.0
 shortDesc: Stack decisions, Cloudflare patterns, typed pipeline. v1.2 records the chosen stack on the linked PM ticket as an ADR.
 phases: [plan, build]

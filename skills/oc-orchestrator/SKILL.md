@@ -1,7 +1,7 @@
 ---
 name: oc-orchestrator
 displayName: OC · Orchestrator
-version: 2.0.1
+version: 2.0.2
 license: Apache-2.0
 shortDesc: Pipeline coordinator — registry, status, routing. v1.2 reads `pm_refs` across skills; routes by ticket id.
 phases: [foundation]

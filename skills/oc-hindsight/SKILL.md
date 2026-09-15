@@ -1,7 +1,7 @@
 ---
 name: oc-hindsight
 displayName: OC · Hindsight
-version: 2.0.1
+version: 2.0.2
 license: Apache-2.0
 shortDesc: Source-grounded operational memory with signed promotion and read-time validation.
 phases: [foundation, ai-native]

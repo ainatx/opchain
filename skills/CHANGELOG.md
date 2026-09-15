@@ -15,6 +15,12 @@ checkpoint `protocol_version` is tracked separately (see
 
 _Nothing yet._
 
+## [2.0.2] — 2026-09-15 — "Every task has a beginning and an end — release ledger correction"
+
+Patch release for the task lifecycle timestamps shipped in 2.0.1. This release
+anchors the merged production history with an immutable tag after the 2.0.1
+branch was squash-merged.
+
 ## [2.0.1] — 2026-09-14 — "Every task has a beginning and an end"
 
 A patch release adding task lifecycle stamps to the opchain plugin. Every task
