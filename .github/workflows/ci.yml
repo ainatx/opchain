@@ -167,6 +167,7 @@ jobs:
           PUBLIC_POSTHOG_HOST: http://127.0.0.1:9999
         run: npm run build
       - name: Run Playwright tests
+        id: e2e
         working-directory: site
         run: npm run test:e2e
       - name: Upload Playwright report on failure
@@ -178,23 +179,45 @@ jobs:
           retention-days: 7
 
       - name: Post axe violation summary as PR comment
-        if: always() && github.event_name == 'pull_request'
+        # One marked comment per PR, edited in place. A failed Playwright step
+        # creates or refreshes it; a passing step only edits an existing one to
+        # say the latest run passed, so a green PR never gains a comment.
+        # Skipped when Playwright never ran or the run was cancelled. The step
+        # outcome, not the contents of site/test-results, decides: green runs
+        # leave compare.spec.ts screenshots there too.
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && (steps.e2e.outcome == 'failure' || steps.e2e.outcome == 'success') }}
         uses: actions/github-script@v9
         env:
           AXE_RESULTS_DIR: site/test-results
+          E2E_OUTCOME: ${{ steps.e2e.outcome }}
         with:
           script: |
             const path = require('path');
-            const { buildComment } = require(
+            const { planComment } = require(
               path.resolve(process.env.GITHUB_WORKSPACE, 'scripts/axe-comment.cjs')
             );
-            const body = buildComment(process.env.AXE_RESULTS_DIR);
-            if (body == null) {
-              console.log('axe: nothing to report (suite green or no attachments) — skipping comment');
-              return;
+            const issue_number = context.payload.pull_request.number;
+            try {
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                ...context.repo,
+                issue_number,
+                per_page: 100,
+              });
+              const plan = planComment({
+                dir: process.env.AXE_RESULTS_DIR,
+                outcome: process.env.E2E_OUTCOME,
+                comments,
+                sha: context.payload.pull_request.head.sha,
+                runUrl: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              });
+              core.info(`axe comment: ${plan.action} (${plan.reason})`);
+              if (plan.action === 'create') {
+                await github.rest.issues.createComment({ ...context.repo, issue_number, body: plan.body });
+              } else if (plan.action === 'update') {
+                await github.rest.issues.updateComment({ ...context.repo, comment_id: plan.commentId, body: plan.body });
+              }
+            } catch (error) {
+              // Read-only tokens (fork and Dependabot PRs) cannot comment. The
+              // comment is diagnostic, so it must not turn a green job red.
+              core.warning(`axe comment skipped: ${error.status ? `${error.status} ` : ''}${error.message}`);
             }
-            await github.rest.issues.createComment({
-              ...context.repo,
-              issue_number: context.payload.pull_request.number,
-              body,
-            });

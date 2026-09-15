@@ -1,16 +1,27 @@
-// Builds a markdown body listing axe violations found across the
-// Playwright e2e run. Mirrors scripts/lhci-comment.cjs in shape so the
-// surface area for PR comments stays uniform.
+// Builds the single, edited-in-place PR comment for the Playwright e2e job.
+// Mirrors scripts/lhci-comment.cjs in shape so the surface area for PR
+// comments stays uniform.
 //
 // Reads attachments written by routes.spec.ts via testInfo.attach():
 //   site/test-results/<test-id>/axe-violations-<slug>.json
 // Each file is the raw `violations` array from @axe-core/playwright.
+//
+// The Playwright step's outcome decides whether there is anything to say.
+// Directory contents cannot: a green run still leaves files under
+// test-results/ (compare.spec.ts writes its screenshots there, and a retried
+// attempt keeps its trace), which is how passing PRs used to collect
+// "the e2e job failed" comments on every push.
 
 const fs = require("node:fs");
 const path = require("node:path");
 
 const VIOLATION_FILENAME = /^axe-violations-(.+)\.json$/;
 const NODE_LIMIT = 5;
+const ERROR_CONTEXT_LIMIT = 3;
+
+// Hidden marker that identifies this job's comment so later runs edit it
+// instead of posting another one.
+const MARKER = "<!-- opchain:axe-comment -->";
 
 function findViolationFiles(dir) {
   if (!fs.existsSync(dir)) return [];
@@ -54,63 +65,76 @@ function listTopLevel(dir, depth = 2) {
   return out;
 }
 
-function buildComment(dir) {
-  const files = findViolationFiles(dir);
-  if (files.length === 0) {
-    if (!fs.existsSync(dir)) {
-      return `## Axe violations — directory missing\n\nExpected attachments under \`${dir}\`, not found.`;
-    }
-    // Tests passed cleanly — Playwright leaves only .last-run.json behind
-    // for green runs. Stay silent so the PR comment stream stays focused
-    // on actionable signals.
-    const entries = fs.readdirSync(dir);
-    if (entries.length === 0 || (entries.length === 1 && entries[0] === ".last-run.json")) {
-      return null;
-    }
-    // Otherwise the suite errored in some way other than the axe
-    // assertion — surface error-context.md content so the failure mode
-    // is visible without downloading the artifact zip.
-    const errorContexts = [];
-    function walk(d, depth = 0) {
-      if (depth > 3 || errorContexts.length >= 3) return;
-      let entries;
-      try { entries = fs.readdirSync(d, { withFileTypes: true }); }
-      catch { return; }
-      for (const ent of entries) {
-        const p = path.join(d, ent.name);
-        if (ent.isDirectory()) walk(p, depth + 1);
-        else if (ent.name === "error-context.md") {
-          try {
-            const txt = fs.readFileSync(p, "utf8");
-            const route = path.basename(path.dirname(p));
-            errorContexts.push({ route, txt: txt.slice(0, 1500) });
-          } catch { /* skip */ }
-        }
-        if (errorContexts.length >= 3) return;
+function findErrorContexts(dir) {
+  const out = [];
+  function walk(d, depth = 0) {
+    if (depth > 3 || out.length >= ERROR_CONTEXT_LIMIT) return;
+    let entries;
+    try { entries = fs.readdirSync(d, { withFileTypes: true }); }
+    catch { return; }
+    for (const ent of entries) {
+      const p = path.join(d, ent.name);
+      if (ent.isDirectory()) walk(p, depth + 1);
+      else if (ent.name === "error-context.md") {
+        try {
+          const txt = fs.readFileSync(p, "utf8");
+          out.push({ test: path.basename(path.dirname(p)), txt: txt.slice(0, 1500) });
+        } catch { /* skip */ }
       }
+      if (out.length >= ERROR_CONTEXT_LIMIT) return;
     }
-    walk(dir);
-
-    let body = `## Axe violations — no attachments found\n\n`;
-    body +=
-      `Searched \`${dir}\` for \`axe-violations-*.json\`; the e2e job ` +
-      `failed but the axe \`testInfo.attach\` branch never ran (the test ` +
-      `errored before reaching it).\n`;
-    if (errorContexts.length > 0) {
-      body += `\nFirst ${errorContexts.length} error-context.md sample(s):\n`;
-      for (const ec of errorContexts) {
-        body += `\n<details><summary><code>${ec.route}</code></summary>\n\n`;
-        body += "```\n" + ec.txt + "\n```\n</details>\n";
-      }
-    } else {
-      const listing = listTopLevel(dir).slice(0, 30);
-      body +=
-        `\nNo error-context.md found either. First entries under that path:\n\n` +
-        "```\n" + (listing.join("\n") || "(empty)") + "\n```";
-    }
-    return body;
   }
+  walk(dir);
+  return out;
+}
 
+// Playwright's error-context.md embeds its own ```yaml page snapshot, so a
+// plain triple-backtick fence would close early. Use one backtick more than
+// the longest run in the text.
+function fenced(text) {
+  const longest = Math.max(0, ...(text.match(/`+/g) ?? []).map((run) => run.length));
+  const fence = "`".repeat(Math.max(3, longest + 1));
+  return `${fence}\n${text}\n${fence}\n`;
+}
+
+function footer({ sha, runUrl } = {}) {
+  const parts = [];
+  if (sha) parts.push(`\`${sha.slice(0, 7)}\``);
+  if (runUrl) parts.push(`[run](${runUrl})`);
+  const where = parts.length ? ` for ${parts.join(" · ")}` : "";
+  return `\n---\n_Latest Playwright e2e result${where}. This comment is edited in place on every run._\n`;
+}
+
+function failureWithoutViolations(dir) {
+  if (!fs.existsSync(dir)) {
+    return (
+      `## Playwright e2e failed — no test results\n\n` +
+      `\`${dir}\` does not exist, so Playwright stopped before any test wrote ` +
+      `output (for example, the preview server did not start). See the job log.\n`
+    );
+  }
+  let body = `## Playwright e2e failed — no axe violations recorded\n\n`;
+  body +=
+    `No \`axe-violations-*.json\` under \`${dir}\`, so the failure is not an ` +
+    `axe assertion: another spec failed, or an axe test errored before it ` +
+    `could attach its results.\n`;
+  const errorContexts = findErrorContexts(dir);
+  if (errorContexts.length > 0) {
+    body += `\nFirst ${errorContexts.length} error-context.md sample(s):\n`;
+    for (const ec of errorContexts) {
+      body += `\n<details><summary><code>${ec.test}</code></summary>\n\n`;
+      body += fenced(ec.txt) + "</details>\n";
+    }
+  } else {
+    const listing = listTopLevel(dir).slice(0, 30);
+    body +=
+      `\nNo error-context.md found either. First entries under that path:\n\n` +
+      fenced(listing.join("\n") || "(empty)");
+  }
+  return body;
+}
+
+function violationsBody(files) {
   // Each test's attachment is a snapshot of that single test run. If the same
   // route's axe test ran more than once (retries, sharding) we'd see duplicates;
   // dedupe by route.
@@ -151,4 +175,57 @@ function buildComment(dir) {
   return body;
 }
 
-module.exports = { buildComment, findViolationFiles, slugToRoute };
+// Returns the comment body for a failed Playwright step, or null when there
+// is nothing to report. `outcome` is the step outcome (`steps.<id>.outcome`):
+// anything other than "failure" — success, cancelled, skipped, unknown —
+// reports nothing, even if files are lying around under `dir`.
+function buildComment(dir, { outcome, sha, runUrl } = {}) {
+  if (outcome !== "failure") return null;
+  const files = findViolationFiles(dir);
+  const body = files.length > 0 ? violationsBody(files) : failureWithoutViolations(dir);
+  return `${MARKER}\n${body}${footer({ sha, runUrl })}`;
+}
+
+function resolvedComment({ sha, runUrl } = {}) {
+  return (
+    `${MARKER}\n## Playwright e2e passing\n\n` +
+    `An earlier run on this PR failed and reported here; the latest run passed.\n` +
+    footer({ sha, runUrl })
+  );
+}
+
+// The oldest bot comment carrying the marker. Human comments that quote the
+// marker are ignored.
+function findExistingComment(comments = []) {
+  return comments.find((c) => c?.user?.type === "Bot" && c.body?.includes(MARKER)) ?? null;
+}
+
+// Decides what the workflow does with the PR's comment thread:
+//   failure            → create the marked comment, or edit the existing one
+//   success + existing → edit it to say the latest run passed
+//   anything else      → leave the thread alone
+function planComment({ dir, outcome, comments, sha, runUrl } = {}) {
+  const existing = findExistingComment(comments);
+  const body = buildComment(dir, { outcome, sha, runUrl });
+  if (body != null) {
+    if (!existing) return { action: "create", body, reason: "e2e failed" };
+    if (existing.body === body) return { action: "none", reason: "existing comment is already current" };
+    return { action: "update", commentId: existing.id, body, reason: "e2e failed; refreshing existing comment" };
+  }
+  if (outcome === "success" && existing) {
+    const resolved = resolvedComment({ sha, runUrl });
+    if (existing.body === resolved) return { action: "none", reason: "existing comment already says passing" };
+    return { action: "update", commentId: existing.id, body: resolved, reason: "e2e passed; marking earlier failure resolved" };
+  }
+  return { action: "none", reason: `e2e outcome ${outcome || "unknown"}; nothing to report` };
+}
+
+module.exports = {
+  MARKER,
+  buildComment,
+  findExistingComment,
+  findViolationFiles,
+  planComment,
+  resolvedComment,
+  slugToRoute,
+};
