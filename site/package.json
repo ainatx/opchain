@@ -26,9 +26,9 @@
     "@astrojs/markdown-remark": "^7.3.0",
     "@astrojs/sitemap": "^3.7.4",
     "astro": "^7.3.1",
-    "dompurify": "^3.4.14",
-    "isomorphic-dompurify": "^4.1.0",
-    "marked": "^18.0.5"
+    "dompurify": "^3.4.15",
+    "isomorphic-dompurify": "^4.2.0",
+    "marked": "^18.0.12"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
