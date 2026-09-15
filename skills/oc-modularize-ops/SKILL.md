@@ -1,7 +1,7 @@
 ---
 name: oc-modularize-ops
 displayName: OC · Modularize Ops
-version: 2.0.1
+version: 2.0.2
 license: Apache-2.0
 shortDesc: "Decompose a monolith with provably zero loss — golden fixtures from real data as the oracle. Willing to say don't."
 phases: [plan, build]

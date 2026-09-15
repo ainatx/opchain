@@ -1,7 +1,7 @@
 ---
 name: oc-integrations-engineer
 displayName: OC · Integrations Engineer
-version: 2.0.1
+version: 2.0.2
 license: Apache-2.0
 shortDesc: Third-party APIs, OAuth, webhooks. v1.2 adds PM-tool MCP integration patterns (Linear / Jira / GitHub Issues).
 phases: [build]
