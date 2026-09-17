@@ -4,15 +4,15 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-09-17T07:25:18.239Z",
+  "updated_at": "2026-09-17T07:48:20.584Z",
   "phase": "audit",
   "step": "release-surface-rca-2026-09-17",
   "status": "in_progress",
   "progress_summary": "Focused quality/config audit of the 2.0.0 vs 2.0.2 release-surface split. Mechanical catalog/tag/seal/plugin lockstep is clean at 2.0.2. Five HIGH/MEDIUM honesty findings remain: L4 hero still pinned to v2.0.0, README/mirror/walkthroughs still advertise 2.0.0, architecture leftover planned/1.9.2 copy, skill pages still say v2.0 \\u00b7 next, oc-release-ops checkpoint still claimed v1.9.0. Historical OSS/portability findings remain separately open. Grade for this sweep: C+ (gates green, user-visible copy disagrees).",
   "blockers": [],
   "next_actions": [
-    "Release-surface honesty PR: extend changelog L4 hero to v2.0.0 → v2.0.2, rewrite README/mirror/skills README/walkthroughs off 2.0.0, architecture leftover planned/1.9.2 copy, skills/[id].astro v2.0 · next → shipped, and probe .hero-ver in check-release-surfaces.mjs.",
-    "OSS-readiness audit 2026-08-22 (grade D+): triage the 24 HIGH findings in docs/audits/2026-08-22-oss-readiness-audit.md — the must-fix set is in docs/plans/2026-08-22-oss-split-licensing-compliance.md §4.1 and §4.3.",
+    "Release-surface honesty PR: extend changelog L4 hero to v2.0.0 \u2192 v2.0.2, rewrite README/mirror/skills README/walkthroughs off 2.0.0, architecture leftover planned/1.9.2 copy, skills/[id].astro v2.0 \u00b7 next \u2192 shipped, and probe .hero-ver in check-release-surfaces.mjs.",
+    "OSS-readiness audit 2026-08-22 (grade D+): triage the 24 HIGH findings in docs/audits/2026-08-22-oss-readiness-audit.md \u2014 the must-fix set is in docs/plans/2026-08-22-oss-split-licensing-compliance.md \u00a74.1 and \u00a74.3.",
     "Fix PX-01/PX-02 in src/index.js + site/src/pages/privacy.astro before pointing any enterprise at opchain.dev/mcp.",
     "Triage remaining MEDIUM/LOW findings from prior audits (none block this RCA).",
     "Pre-existing: 14 critical / 41 high from the 2026-07-04 portability audit remain open."
@@ -102,7 +102,7 @@
         "low": 43,
         "info": 20
       },
-      "verified": "7 lenses × adversarial verifier; 0 refuted",
+      "verified": "7 lenses \u00d7 adversarial verifier; 0 refuted",
       "report": "docs/audits/2026-08-22-oss-readiness-audit.md",
       "plan": "docs/plans/2026-08-22-oss-split-licensing-compliance.md"
     },
@@ -480,6 +480,31 @@
           "Site dev/e2e dependency audit reports 7 HIGH advisories; production dependency audit is clean.",
           "Historical OSS/portability findings remain open outside this bounded v2.0.2 release audit.",
           "The v2.0.2 tag and live staging verification are intentionally deferred."
+        ]
+      }
+    },
+    {
+      "id": "oc-code-auditor-2.0.2-surfaces-c1213300029a",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-17T07:48:20.584Z",
+      "verified_at": "2026-09-17T07:48:20.584Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pr-553-2.0.2-site-surfaces"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c1213300029af8fe5cc9b1afaf3981b7ffc5178efe189e7f81fd862498161b96"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "PR #553 copy/gate only: changelog L4 range, README/walkthrough/architecture honesty, hero-ver CI probe. No runtime, auth, or Worker handler change. Candidate verifier PASS on tree a4c6f98.",
+        "evidence": [
+          "scripts/check-release-surfaces.mjs",
+          "tests/release-surfaces.test.js",
+          "site/src/pages/changelog.astro"
         ]
       }
     }
