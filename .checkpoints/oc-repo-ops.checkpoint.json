@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-15T05:28:46.835Z",
+  "updated_at": "2026-09-17T15:07:12.708Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "claude/confident-bhaskara-0df88d",
-  "progress_summary": "PR readiness gate PASS for the axe PR-comment fix. Diff vs origin/main is four files: .github/workflows/ci.yml, scripts/axe-comment.cjs, tests/axe-comment.test.js (new) and specs/spec/06-testing.md. The oc-docs-forge packet is current for the rebased content commit (on #407) and inline in the PR body. gen-catalog, gen-mcp-catalog, sync-bundles:check, sync-plugin-skills:check, check-skill-contracts, lint-internal-refs and checkpoint:validate pass with no generated drift; vitest 93 files / 1252 tests pass. No untracked files; .gitignore untouched.",
+  "step": "pr-553-2.0.2-site-surfaces",
+  "progress_summary": "PR #553 readiness PASS: docs packet current, catalogs/sync/contracts/internal-refs clean, no generated drift, working tree clean.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -21,23 +21,19 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [
-      "branch commit carries only the Claude Co-Authored-By trailer; the human DCO sign-off lands with the squash-merge",
-      "workflow expression and inline github-script were checked by YAML parse plus a mocked-API run of the step body; actionlint is not installed locally, so first real validation is this PR run",
-      "older drift in specs/spec/06-testing.md (Ten specs; lhci-summary.mjs) recorded as Docs Forge follow-up, not fixed here"
-    ],
+    "warnings": [],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "1a00cb4b193d447b449a333052cabc548ebdf96d",
+    "verified_for_sha": "bebe57aa194b94e162743b785e8b6ba30f9cb908",
     "last_verify": {
-      "branch": "claude/confident-bhaskara-0df88d",
-      "base": "origin/main@4e7deec83a1302a5e1dabb1c304f80202df08bf7",
+      "branch": "fix/site-2.0.2-release-surfaces",
+      "base": "origin/main@e7a758476b4877434bd1d7f1877a0d1466fa83db",
       "verdict": "PASS",
       "blocking_findings": [],
-      "at": "2026-09-15T05:28:46.835Z"
+      "at": "2026-09-17T15:07:12.516Z"
     }
   },
   "next_actions": [],
@@ -314,7 +310,35 @@
           "specs/spec/06-testing.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr553-990b07923a41",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-17T15:07:12.516Z",
+      "verified_at": "2026-09-17T15:07:12.516Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-553-2.0.2-site-surfaces"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:990b07923a4171b747a584f026bf677bb383d432f1e222c5a0f606c956640d96"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "PR #553 readiness: docs packet current, catalogs/sync/contracts/internal-refs clean, working tree clean, no generated drift after gen-catalog/gen-mcp-catalog.",
+        "evidence": [
+          "node scripts/check-release-surfaces.mjs",
+          "npm run sync-plugin-skills:check",
+          "npm run sync-bundles:check",
+          "npm run check-skill-contracts",
+          "npm run lint-internal-refs",
+          "node scripts/checkpoint.mjs validate"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-15T05:28:46.835Z"
+  "record_updated_at": "2026-09-17T15:07:12.708Z"
 }

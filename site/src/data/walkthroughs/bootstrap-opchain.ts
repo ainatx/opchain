@@ -20,7 +20,7 @@ export const bootstrapOpchain: Walkthrough = {
       "id": "bootstrap-result",
       "label": "Bootstrap and verification report",
       "kind": "report.md",
-      "body": "Scripted example. These results illustrate the workflow.\n\n| Check | Example result |\n|---|---|\n| Installer | Downloaded completely from https://opchain.dev/update.mjs |\n| Host | Codex, .agents/skills/ |\n| Installed release | 2.0.0, 36 complete skill folders |\n| Receipt | .opchain-install.json |\n| Saved work and unrelated skills | Preserved |\n| Tracking choice | Unchanged |\n| Fresh session | /oc-update check reports current |\n\nThe exact backup location is supplied by the updater. Repo installation does not install plugin hooks."
+      "body": "Scripted example. These results illustrate the workflow.\n\n| Check | Example result |\n|---|---|\n| Installer | Downloaded completely from https://opchain.dev/update.mjs |\n| Host | Codex, .agents/skills/ |\n| Installed release | 2.0.2, 36 complete skill folders |\n| Receipt | .opchain-install.json |\n| Saved work and unrelated skills | Preserved |\n| Tracking choice | Unchanged |\n| Fresh session | /oc-update check reports current |\n\nThe exact backup location is supplied by the updater. Repo installation does not install plugin hooks."
     }
   ],
   "runtime": "12 steps",
@@ -59,7 +59,7 @@ export const bootstrapOpchain: Walkthrough = {
     {
       "type": "exchange",
       "role": "claude",
-      "content": "Node.js is ready. The public release metadata reports 2.0.0.\n\nThe check found your existing Opchain files. The destination is `.agents/skills/`, where Codex discovers repo skills. If an older installation uses `.codex/skills/`, the updater also makes it available in the current location.\n\nYour unrelated skills, saved checkpoints, tracking consent and usage history are preserved. Changes you made inside Opchain's own skill files will be backed up before replacement.\n\n**Behind the exchange**\n\nThe agent downloads `https://opchain.dev/update.mjs` to a temporary file, then runs it from the project root:\n\n```sh\nnode \"$installer\" --target=codex --check\nnode \"$installer\" --target=codex\n```\n\n`$installer` is the local temporary file downloaded by the agent. The check completes before installation begins. There is no need to copy individual `SKILL.md` files or run a migration command."
+      "content": "Node.js is ready. The public release metadata reports 2.0.2.\n\nThe check found your existing Opchain files. The destination is `.agents/skills/`, where Codex discovers repo skills. If an older installation uses `.codex/skills/`, the updater also makes it available in the current location.\n\nYour unrelated skills, saved checkpoints, tracking consent and usage history are preserved. Changes you made inside Opchain's own skill files will be backed up before replacement.\n\n**Behind the exchange**\n\nThe agent downloads `https://opchain.dev/update.mjs` to a temporary file, then runs it from the project root:\n\n```sh\nnode \"$installer\" --target=codex --check\nnode \"$installer\" --target=codex\n```\n\n`$installer` is the local temporary file downloaded by the agent. The check completes before installation begins. There is no need to copy individual `SKILL.md` files or run a migration command."
     },
     {
       "type": "beat",
@@ -83,7 +83,7 @@ export const bootstrapOpchain: Walkthrough = {
       "type": "exchange",
       "role": "claude",
       "skill": "oc-update",
-      "content": "Opchain 2.0.0 is installed and current. The installed file check found no pending updates.\n\nThe runtime commands are available from the installed skills, and your saved checkpoint list is still present. Future repo updates can use `/oc-update` directly."
+      "content": "Opchain 2.0.2 is installed and current. The installed file check found no pending updates.\n\nThe runtime commands are available from the installed skills, and your saved checkpoint list is still present. Future repo updates can use `/oc-update` directly."
     },
     {
       "type": "exchange",

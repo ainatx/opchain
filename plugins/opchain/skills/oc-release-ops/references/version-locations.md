@@ -15,8 +15,9 @@ before the tag for a minor release, or in a site PR after the tag for a patch
 `check-release-surfaces.mjs` compares **major.minor only** (`v1.9`) for the
 live-claim site labels, and uses the newest `## [x.y.z]` heading in
 `skills/CHANGELOG.md` as the full-semver source for the catalog, seal, server,
-marketplace, and plugin manifest. A full-semver site badge remains a review item
-because it is intentionally patch-only for patch releases.
+marketplace, and plugin manifest. Open-hero `.hero-ver` (right-hand range side,
+or the single version) and the README leading `Opchain x.y.z` are also
+full-semver and must equal that newest CHANGELOG heading.
 
 ---
 
@@ -35,7 +36,8 @@ changelog card id (`v1-9`).
 | `plugins/opchain/.claude-plugin/plugin.json` | Plugin version | `"version": "<release>"` | `check-release-surfaces.mjs` |
 | `site/src/components/Header.astro` | Menu-bar release chip | `CURRENT_RELEASE = "<minor>"`, `CURRENT_RELEASE_HREF = "/changelog#<anchor>"` | `check-release-surfaces.mjs` (major.minor), `tests/site-release-chip.test.js` |
 | `site/src/pages/index.astro` | Homepage release bar (shipped label) + "latest release" stat chip | `<span class="rb-tag"><minor> · shipped</span>`, `<span class="stat-num"><minor></span>` | `check-release-surfaces.mjs` |
-| `site/src/pages/changelog.astro` | Just Released open hero | `<article class="hero-card hero-card--released is-open" id="<anchor>">` with `<span class="hero-ver"><release> · shipped <Mon DD, YYYY></span>` | `check-release-surfaces.mjs` (the hero `id`, major.minor; `hero-ver` is review only) |
+| `site/src/pages/changelog.astro` | Just Released open hero | `<article class="hero-card hero-card--released is-open" id="<anchor>">` with `<span class="hero-ver"><release> · shipped <Mon DD, YYYY></span>` (or a `vN.N.0 → vN.N.x` range) | `check-release-surfaces.mjs` (hero `id`, major.minor; `.hero-ver` full semver / range RHS) |
+| `README.md` | Leading release line | `> **Opchain <release>.**` | `check-release-surfaces.mjs` |
 | `site/src/pages/skills/index.astro` | Skill Library release callout + its href | `<span class="release-callout-tag"><minor> · SHIPPED</span>`, `<a class="release-callout" href="/changelog#<anchor>"` | `check-release-surfaces.mjs` |
 | `site/src/pages/styleguide.astro` | Badge example | `<Badge>v<release></Badge>` | `check-release-surfaces.mjs` (major.minor only; the patch digit is review only) |
 | `site/src/pages/architecture.astro` | Diagram eyebrow + footer | `SKILLS · ARCHITECTURE · v2 · RELEASE <minor>`, `spine ordinals · <minor> · checkpoint-driven` | `check-release-surfaces.mjs` |
@@ -69,9 +71,8 @@ version. Do **not** rewrite them in `/oc-release bump`.
 Not bumped automatically, but `/oc-release plan` lists these for the user to
 spot-check:
 
-- `README.md` — the install snippet should reference `main` or a stable tag,
-  not a stale version number.
-- `skills/README.md` — same.
+- `skills/README.md` — the install snippet should reference `main` or a stable
+  tag, not a stale version number.
 - Any blog / external pages — out of scope for oc-release-ops; the user owns
   those surfaces.
 

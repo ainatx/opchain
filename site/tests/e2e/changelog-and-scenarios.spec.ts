@@ -60,13 +60,14 @@ test.describe("/changelog", () => {
     await expect(page.locator("#panel-coming")).toBeHidden();
     await expect(page.locator("#panel-planned")).toBeHidden();
 
-    // The newest release (v1.9) is the accent hero, open on load, tagged
-    // with its version + a non-empty compatibility note (changelog-recipe rule).
+    // The newest release (v2.0) is the accent hero, open on load, tagged
+    // with its version range + a non-empty compatibility note (changelog-recipe rule).
     const hero = page.locator("#v2-0.hero-card--released");
     await expect(hero).toBeVisible();
-    await expect(hero.locator(".hero-ver")).toContainText("v2.0.0");
+    await expect(hero.locator(".hero-ver")).toContainText("v2.0.0 → v2.0.2");
 
-    // A patch never creates a new hero: v1.9.1 is a compact rel-card beside it.
+    // A patch never creates a new hero: v2.0.1/v2.0.2 share a compact rel-card.
+    await expect(page.locator("#v2-0-1.rel-card")).toBeVisible();
     await expect(page.locator("#v1-9-2.rel-card")).toBeVisible();
     await expect(hero.locator(".hero-head")).toHaveAttribute("aria-expanded", "true");
     await expect(hero.locator(".compat-box")).toBeVisible();

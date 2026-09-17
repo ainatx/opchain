@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-09-14T00:38:43.799Z",
-  "updated_at": "2026-09-15T02:59:28Z",
+  "updated_at": "2026-09-17T07:58:37.174Z",
   "phase": "verify",
   "step": "posture-2.0.2-2026-09-15",
   "status": "complete",
@@ -374,6 +374,31 @@
           "A10_exception_handling": "PASS for reviewed fail-closed error paths"
         }
       }
+    },
+    {
+      "id": "oc-security-auditor-2.0.2-surfaces-06c956640d96",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-17T07:58:37.174Z",
+      "verified_at": "2026-09-17T07:58:37.174Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "pr-553-2.0.2-site-surfaces"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:990b07923a4171b747a584f026bf677bb383d432f1e222c5a0f606c956640d96"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "PR #553: no new routes, headers, secrets, or MCP surface. Copy and a release-surface regex. Attack surface unchanged from v2.0.2 tag plus two later main commits.",
+        "evidence": [
+          "scripts/check-release-surfaces.mjs",
+          "tests/release-surfaces.test.js",
+          "site/src/pages/changelog.astro"
+        ]
+      }
     }
   ],
   "latest_pre_deploy": {
@@ -387,5 +412,5 @@
       "The v2.0.2 tag is intentionally absent; live staging/runtime controls were not reassessed."
     ]
   },
-  "record_updated_at": "2026-09-15T02:59:28Z"
+  "record_updated_at": "2026-09-17T07:58:37.174Z"
 }
