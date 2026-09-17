@@ -2,20 +2,20 @@
   "schemaVersion": 1,
   "status": "approved-release-baseline",
   "release": {
-    "tag": "v2.0.0",
-    "tagObject": "9b8bb5cb84460a359d3abd37147110fc4cff5f4b",
-    "sourceSha": "5f06afdafb6c89a2c03e38813cb7f26d16ff5a89",
-    "sourceShortSha": "5f06afd"
+    "tag": "v2.0.2",
+    "tagObject": "dbc5951ba24e637b25fdfb109daac94d97a7856a",
+    "sourceSha": "d4f926b7d994155a64f9d3ef78f0007a8b0d2b94",
+    "sourceShortSha": "d4f926b"
   },
   "environments": {
     "staging": {
       "worker": "opchain-staging",
       "hostname": "staging.opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "1b4eedbf-78fa-4b8d-bf16-e80f15bc5907",
-      "versionId": "343bb086-dfc5-4ac6-a749-bd7b8d0d5e4e",
+      "deploymentId": "4fc39cd1-42d2-4459-a8e8-0993b26dfc23",
+      "versionId": "c55fb3cd-8a4b-46ae-a2f7-ae0ddcbc951d",
       "trafficPercentage": 100,
-      "scriptEtag": "0fea1a09042cbab7532a18d7b16933cbf48468054ce6910313cd3aee9cf18d5f",
+      "scriptEtag": "785d78e39ed8b8491eaf06d8459119a7c3a51d9a3803600d6b3de11c7246dcfc",
       "handlers": [
         "fetch"
       ],
@@ -35,10 +35,10 @@
       "worker": "opchain-dev",
       "hostname": "opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "de97c0e5-9e61-4dd4-8116-9319e75e42a9",
-      "versionId": "90fdcf57-3e71-43c6-903c-8742f2a68ff3",
+      "deploymentId": "7318ab1f-54c5-443b-a413-fae00e59cd46",
+      "versionId": "a8502c62-e39e-4a89-a449-83b36745da84",
       "trafficPercentage": 100,
-      "scriptEtag": "0fea1a09042cbab7532a18d7b16933cbf48468054ce6910313cd3aee9cf18d5f",
+      "scriptEtag": "785d78e39ed8b8491eaf06d8459119a7c3a51d9a3803600d6b3de11c7246dcfc",
       "handlers": [
         "fetch"
       ],
@@ -89,8 +89,13 @@
     ]
   },
   "pointInTimeEvidence": {
-    "healthVersion": "f5e4b2a",
+    "healthVersion": "f196207",
     "continuousCustomDomainProbe": false,
-    "note": "Production remains f5e4b2a. Staging serves the 2.0.0 preview at 3bc8cf3. This branch records the staging baseline for review; scheduled monitors adopt it only after a baseline update reaches the default branch."
+    "note": "Production and staging both serve origin/main f196207 after PR #553. Custom-domain HTTP is not the continuous probe; control-plane plus local smoke are the evidence."
+  },
+  "runtime": {
+    "sha": "f1962076e39bff939407b7a9731fb1f7bae05043",
+    "shortSha": "f196207",
+    "approval": "Post-release hotfix from main: PR #553 (fix(site): align 2.0.2 live-claim copy and gate L4 hero-ver), which also includes #551, was deployed to staging then production on 2026-09-17 without a new tag. Approved as the production runtime by the reviewed baseline change that added this block (git log -- .github/monitoring/release-baseline.json); the next release cut removes it when release re-binds to the new signed tag."
   }
 }
