@@ -3,12 +3,10 @@
  * /changelog — Option C v2 layout: three full-width ARIA tabs, each with its
  * own colour identity, every section led by a rich card expanded on load.
  *
- *   Just Released → v1.8 open hero (accent) + v1.7 / v1.6 / v1.5 / v1.4.3
- *                   collapsed heroes (the "active" window) + compact release
- *                   cards (v1.4.2 ↓, older).
- *   Coming Next   → v1.9 assurance and governed delivery — direction set.
- *   Planned       → committed v2.0 self-improvement plan, then votable
- *                   v2.1/v2.2/v2.3 roadmap groups and the request form.
+ *   Just Released → v2.0 open hero + v1.9 / v1.8 / v1.7 / v1.6 collapsed
+ *                   heroes + compact release cards (patches and older).
+ *   Coming Next   → v2.1 distribution and installation.
+ *   Planned       → votable v2.1/v2.2/v2.3 roadmap groups and the request form.
  *
  * Voting is real: vote buttons carry data-vote-target=<id> and the client
  * script batches GET /api/votes then POSTs /api/votes/<id> per click (the
@@ -20,8 +18,8 @@
  * roadmap items are `roadmap:planned` issues, distinguished by milestone.
  * v1.8 shipped 2026-07-10, so it has no vote buttons.
  *
- * Deep links (#v1-8/#v1-7/#v1-6/#v1-5 → Just Released; #v1-9 → Coming Next;
- * #v2-0/#v2-1/#v2-2/#v2-3 → Planned; #v1-4 → /coverage) are handled client-side:
+ * Deep links (#v2-0/#v1-9/#v1-8/… → Just Released; #v2-1/#v2-2/#v2-3 → Planned;
+ * #v1-4 → /coverage) are handled client-side:
  * the matching tab is activated, the target card expanded, and scrolled into
  * view.
  *
@@ -210,7 +208,7 @@ const plannedReleaseGroups = [
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">latest release</span>
-          <span class="hero-ver">v2.0.0 · Sep 14, 2026</span>
+          <span class="hero-ver">v2.0.0 → v2.0.2 · Sep 14 – Sep 15, 2026</span>
           <span class="hero-title">The self-improving pipeline</span>
           <span class="hero-desc">A shared runtime for updates, saved progress, local tracking and reviewed learning.</span>
         </button>
@@ -1111,9 +1109,7 @@ const plannedReleaseGroups = [
         <span class="panel-sub">Help shape the next release.</span>
       </div>
 
-      <!-- v1.9 — Assurance and governed delivery ops; selected direction.
-           Deep-linkable from #v1-9. -->
-      <!-- v2.0 — the committed next release; "The self-improving pipeline". Deep-linkable from #v2-0. -->
+      <!-- v2.1 is the next committed theme. v2.0 shipped; deep-link #v2-0. -->
       <div class="planned-box"><strong>Next: distribution and installation.</strong> Explore the proposed v2.1 work and vote for what would help your team. <a href="/changelog#v2-1">View the v2.1 plan</a>.</div>
     </section>
 

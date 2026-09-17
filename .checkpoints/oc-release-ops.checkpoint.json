@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-13T13:16:10Z",
+  "updated_at": "2026-09-17T07:25:05.628Z",
   "skill": "oc-release-ops",
-  "phase": "shipped",
-  "step": "v1.9-release-signed-off",
-  "status": "complete",
-  "progress_summary": "v1.9.0, Assurance and governed delivery ops, is signed off and live. Release PR #477 merged at exact SHA 244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248; signed annotated tag v1.9.0 is verified locally and by GitHub; Registry run 33677209947 published the active/latest exact manifest. Staging and production serve health version 244bf13 at 100% traffic after hardening, smoke, MCP acceptance, visual, and 7/7 post-deploy gates. The sealed 16-record legacy checkpoint set was deleted without touching unrelated KV data, milestone #1 is closed, and monitoring baseline PR #478 plus authenticated Canary and Deploy lag dispatches are green. The next scheduled monitoring cycle remains tracked by oc-monitoring-ops and does not block the shipped release.",
+  "phase": "verify",
+  "step": "v2.0.2-surface-rca",
+  "status": "in_progress",
+  "progress_summary": "v2.0.2 is the live catalog and production Worker (tag v2.0.2 peel d4f926b; /api/health d4f926b; /skills.json catalogVersion 2.0.2; /opchain-update/latest.json 2.0.2). Mechanical gates pass: check-release-surfaces agrees on major.minor v2.0, check-release-tag is tagged. The 2.0.0 vs 2.0.2 split is a patch-surface miss plus unprobed copy: L4 open-hero still says v2.0.0 · Sep 14 (v1.9 pattern is v1.9.0 → v1.9.2), README/mirror/walkthroughs still claim 2.0.0, architecture leftover copy still says planned v2.0 / 36 skills at 1.9.2, skill pages still say v2.0 · next, and this checkpoint still described shipped v1.9.0. v2.0.1's annotated tag peels to 8706eab, which is not an ancestor of main (squash #548 → f92179b); v2.0.2 exists to re-anchor that history.",
   "progress_table": [
     {
       "id": "scope",
@@ -79,9 +79,10 @@
   },
   "blockers": [],
   "next_actions": [
-    "Laptop: bless the 2026-09-05 production deploy of 78567c2 by refreshing .github/monitoring/release-baseline.json (deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72), redeploying staging from the same SHA, verifying with cloudflare-monitor.mjs, and opening the baseline PR.",
-    "Decide the historical tag backfill: docs/runbooks/release-tag-backfill.md carries signed-tag commands for the 10 untagged releases behind issue #464.",
-    "v2.0 build PR #490 is merge-conflicted with main in 12 files and its six newest commits have never run CI; the branch owner merges main before the cut."
+    "Site closeout PR: extend changelog open-hero L4 to v2.0.0 → v2.0.2 · Sep 14 – Sep 15 (match v1.9.0 → v1.9.2) and retarget site/tests/e2e/changelog-and-scenarios.spec.ts from toContainText(\"v2.0.0\") to the range.",
+    "Honesty copy PR: README.md, mirror/README.md, skills/README.md (drop Unpublished 2.0 candidates), walkthroughs update-opchain.ts + bootstrap-opchain.ts, architecture.astro leftover planned/1.9.2 copy, skills/[id].astro v2.0 · next → shipped.",
+    "Gate the miss: probe changelog .hero-ver full-semver/range in check-release-surfaces.mjs (review-only today) so a patch cannot leave L4 at vN.N.0 while catalog is vN.N.x.",
+    "Do not re-tag v2.0.1; it peels to a commit that is not on main. Keep v2.0.2 as the production-line tag."
   ],
   "pm_refs": [
     {
@@ -107,22 +108,22 @@
   ],
   "skill_state": {
     "current_release": {
-      "semver": "1.9.0",
-      "theme": "Assurance and governed delivery ops",
-      "phase": "shipped",
-      "started_at": "2026-08-28T00:00:00Z",
-      "shipped_at": "2026-09-02T20:11:25.746861Z"
+      "semver": "2.0.2",
+      "theme": "Every task has a beginning and an end — release ledger correction",
+      "phase": "shipped-pending-surface-closeout",
+      "started_at": "2026-09-14T00:00:00Z",
+      "shipped_at": "2026-09-14T22:12:39-05:00"
     },
     "prior_release": {
-      "semver": "1.8.3",
-      "tag": "v1.8.3",
-      "source_sha": "395fc314c836d5d9d8a76b64d85b8380ece3a68b",
-      "shipped_at": "2026-08-29"
+      "semver": "2.0.0",
+      "tag": "v2.0.0",
+      "source_sha": "5f06afdafb6c89a2c03e38813cb7f26d16ff5a89",
+      "shipped_at": "2026-09-14"
     },
     "catalog": {
-      "version": "1.9.0",
-      "skills": 33,
-      "previous_skills": 29
+      "version": "2.0.2",
+      "skills": 36,
+      "previous_skills": 33
     },
     "pre_merge": {
       "verdict": "PASS",
@@ -147,15 +148,11 @@
       "required_checks": "PASS"
     },
     "tag": {
-      "name": "v1.9.0",
+      "name": "v2.0.2",
       "local": true,
       "origin": true,
-      "required_type": "annotated-and-signed",
-      "tag_object": "fd05dd2c5d696661cb2cc5cb9dd57d2470f69c32",
-      "peeled_commit": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248",
-      "signing_fingerprint": "66ED0CF12E9C51822AA1629BB4A90085A810B266",
-      "local_verification": "PASS",
-      "github_verification": "verified"
+      "tag_object": "dbc5951ba24e637b25fdfb109daac94d97a7856a",
+      "peeled_commit": "d4f926b7d994155a64f9d3ef78f0007a8b0d2b94"
     },
     "publisher": {
       "preflight": "PASS",
@@ -227,7 +224,7 @@
       "detected_at": "2026-09-11T03:45:00Z",
       "production_live": "78567c2",
       "approved_baseline": "244bf13 (v1.9.0)",
-      "catalog_version_unchanged": "1.9.0 \u2014 a content deploy, no release tag needed",
+      "catalog_version_unchanged": "1.9.0 — a content deploy, no release tag needed",
       "monitoring": "Canary + Deploy lag scheduled runs failed 2026-09-05 and 2026-09-09; tracked by oc-monitoring-ops",
       "ledger": "issue #464 open: 10 of 15 shipped releases untagged; backfill runbook drafted"
     },
@@ -274,6 +271,17 @@
         "live host/model evaluation",
         "exact 2.0 release rehearsal"
       ]
+    },
+    "rca": {
+      "at": "2026-09-17",
+      "question": "why 2.0.0 vs 2.0.2 on the site",
+      "verdict": "by-design major.minor live-claims plus incomplete patch L4 range and unprobed 2.0.0 copy",
+      "gates": {
+        "check-release-surfaces": "PASS v2.0",
+        "check-release-tag": "PASS 2.0.2 tagged"
+      },
+      "prod_health": "d4f926b"
     }
-  }
+  },
+  "record_updated_at": "2026-09-17T07:25:05.628Z"
 }
