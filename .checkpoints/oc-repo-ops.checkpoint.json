@@ -3,16 +3,16 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-17T15:07:12.708Z",
+  "updated_at": "2026-09-17T17:02:38.434Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-553-2.0.2-site-surfaces",
-  "progress_summary": "PR #553 readiness PASS: docs packet current, catalogs/sync/contracts/internal-refs clean, no generated drift, working tree clean.",
+  "step": "baseline-f196207",
+  "progress_summary": "PR readiness PASS for the f196207 monitoring baseline. Catalogs/sync clean; docs packet current.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
-      ".checkpoints/ is tracked; the evidence commit touches only .checkpoints/, so the git_tree_projection identity is unchanged."
+      ".checkpoints/ is tracked; the evidence commit touches only checkpoints."
     ],
     "generated_files": [
       ".checkpoints/oc-repo-ops.checkpoint.json"
@@ -27,13 +27,13 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "bebe57aa194b94e162743b785e8b6ba30f9cb908",
+    "verified_for_sha": "d60cc042aca5d0abdab0de5a4378f1da203f2ecb",
     "last_verify": {
-      "branch": "fix/site-2.0.2-release-surfaces",
-      "base": "origin/main@e7a758476b4877434bd1d7f1877a0d1466fa83db",
+      "branch": "chore/monitoring-f196207-runtime-baseline",
+      "base": "origin/main@f1962076e39bff939407b7a9731fb1f7bae05043",
       "verdict": "PASS",
       "blocking_findings": [],
-      "at": "2026-09-17T15:07:12.516Z"
+      "at": "2026-09-17T17:02:38.187Z"
     }
   },
   "next_actions": [],
@@ -338,7 +338,33 @@
           "node scripts/checkpoint.mjs validate"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-baseline-bd64e69fc8b6",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-17T17:02:38.187Z",
+      "verified_at": "2026-09-17T17:02:38.187Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "baseline-f196207"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:bd64e69fc8b6928680979d7e1139c7176151849074a40e234d4b1b570c253083"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Monitoring baseline PR readiness: catalogs/sync clean, docs packet current, working tree clean besides this evidence commit.",
+        "evidence": [
+          "npm run sync-plugin-skills:check",
+          "npm run sync-bundles:check",
+          "node .github/scripts/cloudflare-monitor.mjs deploy-diff",
+          "node scripts/checkpoint.mjs validate"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-17T15:07:12.708Z"
+  "record_updated_at": "2026-09-17T17:02:38.434Z"
 }
