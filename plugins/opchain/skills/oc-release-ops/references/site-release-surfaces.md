@@ -27,7 +27,9 @@ CI adds a constraint: `scripts/check-release-surfaces.mjs` (run by
 `tests/release-surfaces.test.js`) requires every probed live-claim surface to
 name the same **major.minor** line as the newest `## [x.y.z]` heading in
 `skills/CHANGELOG.md`. It reads the open hero's `id` and the styleguide badge only
-to major.minor. This is the same rule as opchain's RELEASING.md governance doc, §5:
+to major.minor, and also probes the open hero's `.hero-ver` full semver (range
+RHS, else the single version) against that CHANGELOG heading. This is the same
+rule as opchain's RELEASING.md governance doc, §5:
 
 - **Minor release (vN.N.0):** one release PR carries the version bump and the new
   CHANGELOG heading **together with** every probed live-claim surface (L1–L3, the

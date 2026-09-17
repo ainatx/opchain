@@ -92,11 +92,12 @@ it live after deploy.
 | L9 | Architecture diagram footer | `site/src/pages/architecture.astro` — `· vN.N · checkpoint-driven` | — | ✅ |
 | L10 | Mobile architecture eyebrow | `site/src/components/MobileArchitecture.astro` — `MOBILE · vN.N` | — | ✅ |
 
-**What CI checks (L1–L3, L4's open-hero `id`, L6, L7, L8–L10):**
+**What CI checks (L1–L3, L4's open-hero `id` and `.hero-ver`, L6, L7, L8–L10):**
 `scripts/check-release-surfaces.mjs` (run by `tests/release-surfaces.test.js`)
 requires every probed surface to name the same **major.minor** line as the
 newest `## [x.y.z]` heading in `skills/CHANGELOG.md`. It reads the open hero's
-`id`, not its `hero-ver` text, and the styleguide badge only to major.minor. A
+`id` and the styleguide badge only to major.minor, and probes `.hero-ver` full
+semver (range RHS, else the single version) against that CHANGELOG heading. A
 minor release therefore cannot add its CHANGELOG heading without flipping those
 surfaces in the same PR (§5).
 

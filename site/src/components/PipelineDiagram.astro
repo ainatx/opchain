@@ -1,15 +1,11 @@
 ---
 // NOTE: not imported by any page as of v1.9. Kept for a planned
 // architecture-diagram refactor. This is a DELIBERATELY SIMPLIFIED view:
-// it draws 23 of the catalog's 33 skills — the spine plus the branches
+// it draws 23 of the catalog's 36 skills — the spine plus the branches
 // that carry the pipeline story — so "in sync with the live diagrams"
 // means the STORY is current, not that every skill appears. Brought current
-// to v1.9 ("Assurance and governed delivery ops") plus the
-// PLANNED v2.0 learning row ("The self-improving pipeline"), which has NOT
-// shipped: there is no skills/oc-hindsight or skills/oc-evolve in the catalog,
-// which is still 33 skills at 1.9.2. Planned nodes are drawn dashed and are
-// deliberately NOT wrapped in a /skills/<id> link, because those pages do not
-// exist. What is left out on purpose is listed below.
+// to v2.0 ("The shared runtime"): oc-hindsight and oc-evolve shipped.
+// What is left out on purpose is listed below.
 /**
  * Pipeline diagram — structured SVG of how the opchain skills chain,
  * from oc-reverse-spec through the post-deploy monitoring + migration loop.
@@ -34,7 +30,7 @@
  *     y=240        PR gate (v1.8) + the self-managed deploy peer (v1.7)
  *     y=325        deploy gate + build side chain
  *     y=400        assurance band (v1.9) — cross-cutting, not a phase
- *     y=470        learning row (v2.0, PLANNED) — the self-improvement loop
+ *     y=470        learning row (v2.0) — the self-improvement loop
  *
  * Left out on purpose, to keep this a story rather than a catalog:
  * oc-bug-check, oc-release-ops, oc-modularize-ops, oc-api-dev,
@@ -117,10 +113,10 @@ const nodes: Node[] = [
   // y=325 or y=400 rows, and this file has no gutter routing. The attachments
   // (emitters, oc-prompt-ops, oc-git-ops, oc-release-ops) are stated in <desc>
   // and drawn in full on /architecture's learning rail.
-  { id: "wire-1-2",      label: "shared runtime",      x: 60,  y: 470, w: 96,  kind: "learning", planned: true },
-  { id: "scorecard-kit", label: "scorecard", x: 216, y: 470, w: 112, kind: "learning", planned: true },
-  { id: "oc-hindsight",  label: "oc-hindsight",  x: 388, y: 470, w: 100, kind: "learning", planned: true },
-  { id: "oc-evolve",     label: "oc-evolve",     x: 548, y: 470, w: 88,  kind: "learning", planned: true },
+  { id: "wire-1-2",      label: "shared runtime",      x: 60,  y: 470, w: 96,  kind: "learning" },
+  { id: "scorecard-kit", label: "scorecard", x: 216, y: 470, w: 112, kind: "learning" },
+  { id: "oc-hindsight",  label: "oc-hindsight",  x: 388, y: 470, w: 100, kind: "learning" },
+  { id: "oc-evolve",     label: "oc-evolve",     x: 548, y: 470, w: 88,  kind: "learning" },
 ];
 
 // Helper to find a node by id
@@ -440,10 +436,10 @@ const phaseLabels = [
   .node-assurance text  { fill: var(--text); font-weight: 600; }
   :global([data-theme="light"]) .pipeline { --assure: #8a6508; --learn: #295ca5; }
 
-  /* v2.0 learning row — planned, so dashed. Uses the 2.0 "Slate & Emerald"
+  /* v2.0 learning row — shipped, so solid. Uses the 2.0 "Slate & Emerald"
      --secondary, matching /architecture's learning rail; the light value is
      that set's own light --secondary. */
-  .node-learning rect   { stroke: var(--learn); fill: var(--card); stroke-dasharray: 4 3; }
+  .node-learning rect   { stroke: var(--learn); fill: var(--card); }
   .node-learning text   { fill: var(--muted); }
   .lane-label--planned  { fill: var(--learn); letter-spacing: 0.14em; }
   .node-foundation rect { stroke: var(--border); fill: var(--ribbon); stroke-dasharray: 4 2; }

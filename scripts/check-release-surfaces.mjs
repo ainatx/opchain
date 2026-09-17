@@ -173,6 +173,38 @@ export function checkReleaseSurfaces({ root = ROOT } = {}) {
         errors.push(`${label} (${file}): unreadable (${error.message})`);
       }
     }
+    // Full-semver live claims that must track the catalog patch, not just
+    // Header's major.minor line. A lagging open-hero range or README
+    // "Opchain x.y.z" is the same class of lie as a stale catalogVersion.
+    for (const [label, file, read] of [
+      [
+        "changelog Just-Released hero-ver",
+        "site/src/pages/changelog.astro",
+        (text) => {
+          const m = text.match(/hero-card--released is-open"[\s\S]*?<span class="hero-ver">(v\d+\.\d+\.\d+)(?:\s*→\s*(v\d+\.\d+\.\d+))?/);
+          if (!m) throw new Error("pattern not found");
+          return (m[2] || m[1]).replace(/^v/, "");
+        },
+      ],
+      [
+        "README leading version",
+        "README.md",
+        (text) => {
+          const m = text.match(/^\> \*\*Opchain (\d+\.\d+\.\d+)\.\*\*/m);
+          if (!m) throw new Error("pattern not found");
+          return m[1];
+        },
+      ],
+    ]) {
+      try {
+        const value = read(readFileSync(p(file), "utf8"));
+        results.push({ label, file, value, expected: releaseVersion });
+        if (value !== releaseVersion) errors.push(`${label} (${file}): says ${value ?? "(missing)"}, expected ${releaseVersion}`);
+      } catch (error) {
+        results.push({ label, file, value: null, error: "unreadable" });
+        errors.push(`${label} (${file}): unreadable (${error.message})`);
+      }
+    }
   }
 
   return { ok: errors.length === 0, expected, releaseVersion, results, errors };
