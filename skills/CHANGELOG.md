@@ -15,6 +15,32 @@ checkpoint `protocol_version` is tracked separately (see
 
 _Nothing yet._
 
+## [2.0.3] — 2026-09-18 — "Release-surface honesty and CI signal cleanup"
+
+A patch release closing out the 2026-09-11 CI-failure root-cause work and the
+2.0.2 release-surface audit. No skill behavior changes; the fixes are in the
+flag registry, CI noise, changelog/README copy, and the production monitoring
+baseline.
+
+### Fixed
+
+- **Flag registry drift.** `skills.coverage`'s description no longer disagrees
+  with its documented namespace; the namespace is now spelled out in
+  `/flag`'s reference copy.
+- **CI signal quality.** Playwright e2e no longer posts a PR comment on a green
+  run — only failures get a comment, cutting notification noise on healthy PRs.
+- **Release-surface honesty.** The changelog hero, README, mirror README,
+  plugin README, skill-library callout, and skill-page version chip all agree
+  on v2.0.2 at minor level again; `check-release-surfaces.mjs` now gates this
+  in CI instead of relying on manual review.
+- **Monitoring baseline.** Production's approved runtime record now reflects
+  commit `f196207`, the reviewed post-2.0.2 hotfix line; Canary and Deploy lag
+  stop flagging a stale baseline.
+
+### Compatibility
+
+Back-compatible with v2.0; no migration required.
+
 ## [2.0.2] — 2026-09-15 — "Every task has a beginning and an end — release ledger correction"
 
 Patch release for the task lifecycle timestamps shipped in 2.0.1. This release

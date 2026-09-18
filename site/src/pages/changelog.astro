@@ -159,7 +159,7 @@ const plannedReleaseGroups = [
           aria-selected="true"
           tabindex="0"
         >
-          Just Released <span class="tab-count">22 shipped</span>
+          Just Released <span class="tab-count">23 shipped</span>
         </button>
         <button
           class="tab-btn tab-btn--next"
@@ -208,7 +208,7 @@ const plannedReleaseGroups = [
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">latest release</span>
-          <span class="hero-ver">v2.0.0 → v2.0.2 · Sep 14 – Sep 15, 2026</span>
+          <span class="hero-ver">v2.0.0 → v2.0.3 · Sep 14 – Sep 18, 2026</span>
           <span class="hero-title">The self-improving pipeline</span>
           <span class="hero-desc">A shared runtime for updates, saved progress, local tracking and reviewed learning.</span>
         </button>
@@ -258,6 +258,24 @@ const plannedReleaseGroups = [
           <div class="card-body-inner">
             <div class="tag-row"><span class="tag">task lifecycle</span><span class="tag">hooks</span><span class="tag">back-compatible</span></div>
             <p>The plugin&rsquo;s first SessionStart hook now emits <code>Task started:</code> before checkpoint context. A dedicated Stop hook emits <code>Task ended:</code> independently of next-skill suggestions, using the host&rsquo;s local timezone and IANA identifier. v2.0.2 carries the same behavior on the squash-merged production line.</p>
+            <div class="compat-box"><strong>Back-compatible with v2.0.</strong> No migration required.</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v2.0.3 — release-surface honesty + CI signal cleanup. Deep-linkable from #v2-0-3. -->
+      <article class="rel-card" id="v2-0-3" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v2-0-3-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v2.0.3 patch</span><span class="rc-title">Release-surface honesty and CI signal cleanup</span><span class="rc-date">Sep 18, 2026</span></span>
+            <span class="rc-summary">Flag registry drift, noisy e2e comments, mismatched release copy, and a stale monitoring baseline — all closed out from the 2026-09-11 CI root-cause review.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v2-0-3-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">flags</span><span class="tag">CI</span><span class="tag">monitoring</span><span class="tag">back-compatible</span></div>
+            <p><code>skills.coverage</code>&rsquo;s flag description no longer disagrees with its namespace, Playwright e2e only comments on failing runs, the changelog/README/skill-page copy agrees on v2.0.2 at minor level (now gated by <code>check-release-surfaces.mjs</code> in CI), and the production monitoring baseline reflects the reviewed <code>f196207</code> runtime so Canary and Deploy lag stop flagging drift.</p>
             <div class="compat-box"><strong>Back-compatible with v2.0.</strong> No migration required.</div>
           </div>
         </div>
