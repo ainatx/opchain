@@ -4,15 +4,14 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-09-18T01:05:10.000Z",
+  "updated_at": "2026-09-18T14:20:00.000Z",
   "phase": "verify",
-  "step": "diff-2.0.3-working-tree",
+  "step": "pre-deploy-2.0.3-ce3ff1c",
   "status": "complete",
-  "progress_summary": "Grade B+ for the 2.0.3 working-tree diff. 0 CRITICAL, 0 HIGH remaining in this changeset. README/architecture live-claim lies were fixed. Repo-wide OSS/portability findings remain open and are not from this patch.",
+  "progress_summary": "Pre-deploy code audit PASS for ce3ff1c (2.0.3 session clock + live claims). 0 CRITICAL, 0 HIGH in the release delta. Unique files: checkpoint presentation, orchestrator \u00a70, release-surface live-claim probes, changelog/skills copy, MCP tool descriptions. No new network boundary or credential flow.",
   "blockers": [],
   "next_actions": [
-    "Do not treat this as a deploy handoff. No staging.",
-    "Pre-existing OSS-readiness HIGH findings remain in docs/audits/2026-08-22-oss-readiness-audit.md."
+    "Deploy staging with OPCHAIN_ALLOW_OFF_MAIN_STAGING=1"
   ],
   "eval_scores": [
     {
@@ -496,6 +495,31 @@
         "accepted_residuals": [
           "Historical OSS/portability findings remain outside this release delta.",
           "Site dev/e2e dependency advisories remain pre-existing; production dependency audit is clean."
+        ]
+      }
+    },
+    {
+      "id": "oc-code-auditor-predeploy-203-7ad050bfad65",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-18T14:20:00.000Z",
+      "verified_at": "2026-09-18T14:20:00.000Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-2.0.3-ce3ff1c"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:7ad050bfad65ec5a67b1620b823ba830310ae9dc3144e572dd300626377aa6f9"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "v2.0.3 session-clock and live-claim delta on ce3ff1c. Checkpoint presentation, shared execution, changelog/skills surfaces, release-surface probes. No new release-blocking CRITICAL or HIGH.",
+        "evidence": [
+          "git show ce3ff1c --stat",
+          "reviewed unique files: scripts/checkpoint.mjs, scripts/check-release-surfaces.mjs, src/lib/mcp/server.js, site changelog/index/skills, tests/checkpoint-progress.test.js",
+          "enrolled pre-commit verify-candidate PASS; tree 1e1c6611ae6c"
         ]
       }
     }

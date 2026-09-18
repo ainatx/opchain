@@ -4,13 +4,13 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-09-14T00:38:43.799Z",
-  "updated_at": "2026-09-15T08:30:00Z",
+  "updated_at": "2026-09-18T14:20:00.000Z",
   "phase": "verify",
-  "step": "posture-2.0.3-2026-09-15",
+  "step": "posture-2.0.3-ce3ff1c",
   "status": "complete",
-  "progress_summary": "Security posture PASS for the exact v2.0.3 candidate at 558a2b98661d4d2a84627497912d769a6574fd08. The release delta changes checkpoint presentation, bundled instructions and static site copy; it does not add a network boundary, credential flow, executable deployment configuration or runtime dependency. No new release-blocking HIGH or CRITICAL finding.",
+  "progress_summary": "Security posture PASS for ce3ff1c. The 2.0.3 delta changes checkpoint presentation, bundled instructions, MCP tool copy and static site claims. It does not add a network boundary, credential flow, executable deployment configuration or runtime dependency. No new HIGH or CRITICAL.",
   "next_actions": [
-    "Define the first real next action for this skill."
+    "Deploy staging with OPCHAIN_ALLOW_OFF_MAIN_STAGING=1"
   ],
   "handoffs": [
     {
@@ -402,6 +402,31 @@
         "accepted_residuals": [
           "Live staging headers, TLS/DNS and Cloudflare control-plane settings await the post-deploy checks.",
           "Pre-existing site dev/e2e dependency advisories and defense-in-depth header gaps remain outside this release delta."
+        ]
+      }
+    },
+    {
+      "id": "oc-security-auditor-predeploy-203-7ad050bfad65",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-18T14:20:00.000Z",
+      "verified_at": "2026-09-18T14:20:00.000Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "pre-deploy-2.0.3-ce3ff1c"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:7ad050bfad65ec5a67b1620b823ba830310ae9dc3144e572dd300626377aa6f9"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "2.0.3 session-clock and live-claim delta; no new attack surface vs the reviewed 2.0.3 candidate.",
+        "evidence": [
+          "diff unique files contain no new routes, secrets, wrangler bindings, or auth flows",
+          "hardening.yaml unchanged",
+          "src/lib/mcp/server.js changes are tool description strings only"
         ]
       }
     }
