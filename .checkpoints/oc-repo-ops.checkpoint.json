@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-18T20:54:02.466Z",
+  "updated_at": "2026-09-18T21:00:19.127Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-556-v2.0.3",
-  "progress_summary": "PR #556 (v2.0.3) readiness gate PASS: catalog/bundle/plugin-skills sync clean, release surfaces agree at v2.0, docs packet present and current, working tree clean.",
+  "step": "pr-556-v2.0.3-e2e-fix",
+  "progress_summary": "PR #556 (v2.0.3) readiness gate PASS after fixing the changelog e2e hero-ver assertion; catalog/bundle/plugin-skills sync clean, release surfaces agree at v2.0, docs packet current, working tree clean.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -27,9 +27,9 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "7898886a527868d82754a9acfcea1476d75f2f5d",
+    "verified_for_sha": "a22cecb8d684ca4668be9adbf2b0703b43d8c4e5",
     "last_verify": {
-      "at": "2026-09-18T20:54:02.466Z",
+      "at": "2026-09-18T21:00:19.127Z",
       "branch": "claude/release-2-0-3-production-a10510",
       "base": "origin/main@1dc86ad4d0affa58c276a3f8b7eb980e74c27a8c",
       "verdict": "PASS",
@@ -391,7 +391,35 @@
           "https://github.com/ainatx/opchain/pull/556"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr556-4fe2f11c0b1d",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-18T21:00:19.127Z",
+      "verified_at": "2026-09-18T21:00:19.127Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-556-2.0.3-e2e-fix"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:4fe2f11c0b1da05378a5c1db7429aa357c2bde7bbe551bbc8d752dc1320256c4"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "PR #556 (v2.0.3), extended: e2e assertion fix reviewed, candidate verifier PASS, catalog/bundle/plugin-skills sync clean, release surfaces agree, docs packet current.",
+        "evidence": [
+          "npm run gen-catalog",
+          "npm run sync-bundles:check",
+          "npm run sync-plugin-skills:check",
+          "node scripts/check-release-surfaces.mjs",
+          "npx playwright test tests/e2e/changelog-and-scenarios.spec.ts -g \"three tabs\"",
+          "https://github.com/ainatx/opchain/pull/556"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-18T20:54:02.466Z"
+  "record_updated_at": "2026-09-18T21:00:19.127Z"
 }
