@@ -4,9 +4,9 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-09-14T00:38:43.799Z",
-  "updated_at": "2026-09-18T14:20:00.000Z",
+  "updated_at": "2026-09-18T14:25:00.000Z",
   "phase": "verify",
-  "step": "posture-2.0.3-ce3ff1c",
+  "step": "pre-deploy-2.0.3-58c6661",
   "status": "complete",
   "progress_summary": "Security posture PASS for ce3ff1c. The 2.0.3 delta changes checkpoint presentation, bundled instructions, MCP tool copy and static site claims. It does not add a network boundary, credential flow, executable deployment configuration or runtime dependency. No new HIGH or CRITICAL.",
   "next_actions": [
@@ -429,6 +429,30 @@
           "src/lib/mcp/server.js changes are tool description strings only"
         ]
       }
+    },
+    {
+      "id": "oc-security-auditor-predeploy-203-4631e4ca908f",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-18T14:25:00.000Z",
+      "verified_at": "2026-09-18T14:25:00.000Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "pre-deploy-2.0.3-58c6661"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:4631e4ca908f854e730a2a5b19b42921ddd97439ce04d21fed67ec5c5330243f"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Catalog hash refresh only after 2.0.3 protocol copy. No new attack surface.",
+        "evidence": [
+          "58c6661 is mcp-catalog.json hash refresh only",
+          "prior PASS on projection 7ad050bfad65 for the same runtime delta"
+        ]
+      }
     }
   ],
   "latest_pre_deploy": {
@@ -442,5 +466,5 @@
       "The v2.0.2 tag is intentionally absent; live staging/runtime controls were not reassessed."
     ]
   },
-  "record_updated_at": "2026-09-18T14:20:00.000Z"
+  "record_updated_at": "2026-09-18T14:25:00.000Z"
 }
