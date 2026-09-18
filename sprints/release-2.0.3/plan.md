@@ -3,18 +3,25 @@
 ## Goal
 
 Make every opchain skill pursue a concrete outcome with proportionate work,
-and make saved task progress visible when a session resumes. Prepare a tested
-2.0.3 release candidate with matching product and site surfaces.
+show a live plan while it runs, and revise remaining time estimates from
+recorded wall-clock. Prepare a tested 2.0.3 release candidate with matching
+product and site surfaces.
 
 ## Completion criteria
 
 - All 36 skills receive the same concise execution policy through their shared
   orchestrator reference. Conflicting evaluator and model-selection instructions
   agree with it.
-- Checkpoint status shows saved goals, task states, and supplied estimate ranges;
+- Checkpoint status shows saved goals, task states, supplied estimate ranges,
+  and recorded `started_at` / `completed_at` / `actual` values when present;
   old checkpoints remain readable and brief output stays compact.
-- Site copy explains the behavior accurately. The patch card, release range,
-  card count, and full patch badge agree with the 2.0.3 catalog and manifests.
+- Skills show the current local date and time at start and on later turns, then
+  use elapsed wall-clock to stamp actuals and revise remaining estimates.
+  Missing times are omitted, never invented.
+- Site copy explains the behavior accurately, including that recorded times are
+  planning evidence rather than SLAs or speed benchmarks. The patch card,
+  release range, card count, and full patch badge agree with the 2.0.3 catalog
+  and manifests.
 - Skill bundles, installed runtime, unit/CLI tests, type checks, builds, and
   relevant browser checks pass. Review and release evidence records actual results.
 
@@ -25,26 +32,32 @@ and make saved task progress visible when a session resumes. Prepare a tested
 | Establish clean baseline | Integrator | Complete | 3–5 min | Branch from current origin/main; preserve existing checkout edits |
 | Shared execution policy | Policy agent | Complete | 8–12 min | One shared policy; qualifying work saves a minimal checkpoint plan; required checks retained |
 | Runtime progress display | Runtime agent | Complete | 10–15 min | Existing status command renders recorded progress without writes or invented estimates |
+| Session clock and estimate revision | Policy + runtime | Complete | 25–40 min | Orchestrator and protocol require a session clock; status renders actuals beside estimates; remaining estimates are revised from wall-clock; no invented timings |
 | Site surfaces | Site agent | Complete | 8–12 min | Existing page design, accurate copy, patch history and anchors retained |
 | Release integration | Integrator | Complete | 5–8 min | Lockstep versions, refreshed seal, regenerated bundles and release notes |
 | Verification and review | Integrator + reviewer | Complete | 12–20 min | Required local checks and independent review, with failures resolved |
 | Candidate staging | Integrator | Complete | <1 min | All 2.0.3 source, test, site and release-plan changes staged together after the final build |
 
 Workstreams run concurrently where file ownership permits. Integration depends
-on the first three implementation workstreams. Initial wall-clock estimate:
-35–55 minutes, assuming no substantial validation failure. These are planning
-ranges, not measured token budgets or delivery promises.
+on the first three implementation workstreams plus the session-clock addendum.
+Initial wall-clock estimate: 60–95 minutes, assuming no substantial validation
+failure. These are planning ranges, not measured token budgets or delivery
+promises.
 
 ## Scope and compatibility
 
 This patch repairs inconsistent execution guidance and the existing checkpoint
-status display. It adds no skills, commands, provider configuration, or required
-checkpoint schema fields. Qualifying work must save goal and progress data in the
-existing extensible wire 1.1 format; `skill_state.goal` and
-`progress_table[].estimate` remain wire-compatible metadata.
+status display, then adds a session clock that records wall-clock actuals and
+revises remaining estimates. It adds no skills, commands, provider
+configuration, or required checkpoint schema fields. Qualifying work must save
+goal and progress data in the existing extensible wire 1.1 format;
+`skill_state.goal` and `progress_table[].estimate`, `started_at`,
+`completed_at`, and `actual` remain optional wire-compatible metadata.
 
 The policy preserves user-selected models and permissions. It guides model and
 effort selection only where the host supports it. Fast mode is excluded.
+Recorded times include idle and tool waits; they are not model runtime, token
+usage, SLAs, or speed benchmarks.
 
 ## Release boundary
 
@@ -71,9 +84,10 @@ Final validation:
 - Lighthouse: all configured budgets passed on 7 routes across 21 runs. Minimum observed scores: performance 98, accessibility 97, best practices 96, SEO 100.
 - Follow-up scenario finding resolved: qualifying small tasks now create and finish a minimal saved checkpoint plan. Focused checkpoint/runtime suite passed (13 tests).
 
-No benchmark of model cost or speed is claimed. Source changes are prepared in
-`codex/release-2.0.3` at this worktree and remain uncommitted. Nothing was tagged,
-pushed, published, or deployed.
+No benchmark of model cost or speed is claimed; wall-clock actuals are planning
+evidence only. Source changes are prepared in `codex/release-2.0.3` at this
+worktree and remain uncommitted. Nothing was tagged, pushed, published, or
+deployed.
 
 ## Artifacts and review
 

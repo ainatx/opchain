@@ -115,7 +115,7 @@ export function createMcpServer({ catalog, loadBody, listReferences, loadReferen
     {
       name: "get_skill",
       description:
-        "Return the full SKILL.md (the instructions) for one skill id. Load it, then follow it. Read get_orchestrator once before your first get_skill in a session.",
+        "Return the full SKILL.md (the instructions) for one skill id. Load it, then follow it. Read get_orchestrator once before your first get_skill in a session and apply §0 Execution Discipline before skill-specific work.",
       inputSchema: {
         type: "object",
         properties: { id: { type: "string", description: "Skill id, e.g. oc-app-architect." } },
@@ -126,7 +126,7 @@ export function createMcpServer({ catalog, loadBody, listReferences, loadReferen
     {
       name: "get_orchestrator",
       description:
-        "Return the shared orchestrator protocol (welcome flow, pipeline map, active-chaining rules). Read once at the start of a session.",
+        "Return the shared orchestrator protocol (execution discipline, welcome flow, pipeline map, active-chaining rules). Read once at the start of a session and apply §0 before any skill-specific work.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
     },
     {
@@ -327,7 +327,7 @@ export function createMcpServer({ catalog, loadBody, listReferences, loadReferen
     const extra = args && typeof args.args === "string" && args.args.trim() ? `\n\nUser context: ${args.args.trim()}` : "";
     const text =
       `You are operating the opchain pipeline over MCP. To handle ${entry.command}:\n` +
-      `1. If you haven't yet this session, call the get_orchestrator tool and follow its welcome + chaining rules.\n` +
+      `1. If you haven't yet this session, call the get_orchestrator tool, apply §0 Execution Discipline, then follow its welcome + chaining rules.\n` +
       `2. Call get_skill with id "${entry.skill}" and follow its SKILL.md for the ${entry.command} flow.\n` +
       `3. If you do not already retain a private checkpoint sessionId, call create_checkpoint_session once. Use its returned sessionId with read_checkpoint/write_checkpoint("${entry.skill}") to resume and persist progress; never invent or share it.${extra}`;
     return {
@@ -348,7 +348,7 @@ export function createMcpServer({ catalog, loadBody, listReferences, loadReferen
             "opchain is a concept→spec→design→build→ship pipeline of skills. " +
             "On any /oc-* command, or any request to build, spec, design, audit, deploy, or ship " +
             "software, FIRST call route (or get_skill) to pick the skill, read get_orchestrator once " +
-            "per session, then load the skill's SKILL.md with get_skill and follow it verbatim. " +
+            "per session and apply §0 Execution Discipline, then load the skill's SKILL.md with get_skill and follow it verbatim. " +
             "If you do not already retain a private checkpoint sessionId, call create_checkpoint_session once, then use its returned token with read_checkpoint/write_checkpoint to resume and persist progress across sessions. Never invent or share it. " +
             "Note: /oc-* commands are also exposed as MCP prompts for clients that support them; " +
             "clients that don't (e.g. Codex) should drive everything through these tools.",

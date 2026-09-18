@@ -16,6 +16,12 @@ description: >
 
 # Checkpoint Protocol
 
+**On first invocation, read `references/orchestrator.md` and apply §0 Execution Discipline, then follow its welcome protocol. Do not start skill-specific work until that section is in context.**
+
+**Every turn:** start the reply with the current local date, time, and IANA timezone. Do not omit this on later turns.
+
+**Then set the goal.** State one concrete outcome and observable acceptance criteria before other work. Revise it if the user changed direction. Keep the rest of the turn tied to it.
+
 A cross-skill convention for session persistence. Any skill that runs multi-step
 workflows across conversations adopts this protocol to save, resume, and recover
 state without the user re-explaining context.
@@ -103,9 +109,9 @@ Multiple skills can checkpoint the same project simultaneously without collision
   // Ordered list of all phases/steps with completion status
   "progress_table": [
     { "id": "planning",       "label": "Planner",          "status": "complete" },
-    { "id": "sprint-1",       "label": "Sprint 1: Auth",   "status": "complete" },
-    { "id": "sprint-2",       "label": "Sprint 2: CRUD",   "status": "in_progress", "estimate": "30–60 min, assuming the local database is available" },
-    { "id": "sprint-3",       "label": "Sprint 3: UI",     "status": "not_started" }
+    { "id": "sprint-1",       "label": "Sprint 1: Auth",   "status": "complete", "estimate": "45–90 min", "started_at": "2026-03-31T14:05:00Z", "completed_at": "2026-03-31T15:12:00Z", "actual": "67 min wall-clock" },
+    { "id": "sprint-2",       "label": "Sprint 2: CRUD",   "status": "in_progress", "estimate": "40–70 min, revised after sprint 1 ran long", "started_at": "2026-03-31T15:12:00Z" },
+    { "id": "sprint-3",       "label": "Sprint 3: UI",     "status": "not_started", "estimate": "unknown" }
   ],
 
   // === CONTEXT PRIMER (recommended — this is what lets resume skip a full re-read) ===
@@ -176,13 +182,16 @@ saved plan, create or refresh the owning checkpoint before meaningful work. Put 
 concrete goal in `skill_state.goal`, use `progress_table` for the compact checklist,
 and retain a next action while work is in progress. Put acceptance criteria,
 ownership, dependencies, and verification evidence in existing plan files or row
-`notes`; include an honest `estimate` string for non-immediate work, or `unknown`
-when it cannot be estimated. Update rows after verified task completion and make a
-final checkpoint update before reporting completion. Estimates are planning text,
-not measured runtime or token usage. Existing checkpoints remain valid without
-these fields and retain protocol version `1.1` (or `1.0`). For cross-skill handoffs,
-include the relevant goal and acceptance context in `context_primer`; `skill_state`
-remains private to its owner.
+`notes`. For non-immediate work, include an honest `estimate` string, or `unknown`
+when it cannot be estimated. When a row starts, set `started_at` (ISO-8601). When
+it completes, set `completed_at` and `actual` from elapsed wall-clock, then revise
+remaining `estimate` strings from those actuals. Do not invent `actual` values.
+Wall-clock includes idle and tool waits; it is not model runtime, token usage, an
+SLA, or a speed benchmark. Update rows after verified task completion and make a
+final checkpoint update before reporting completion. Existing checkpoints remain
+valid without these fields and retain protocol version `1.1` (or `1.0`). For
+cross-skill handoffs, include the relevant goal and acceptance context in
+`context_primer`; `skill_state` remains private to its owner.
 
 ### 3. Status Values
 

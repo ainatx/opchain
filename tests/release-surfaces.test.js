@@ -64,3 +64,34 @@ describe("launch presentation boundary", () => {
     }
   });
 });
+
+describe("open-hero hero-ver tracks the catalog patch", () => {
+  it("fails when the open hero-ver lags the catalog", async () => {
+    const { mkdtempSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, rmSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join, dirname } = await import("node:path");
+    const root = mkdtempSync(join(tmpdir(), "opchain-release-surfaces-"));
+    try {
+      const files = new Set(checkReleaseSurfaces().results.map((r) => r.file));
+      files.delete("skills/*/SKILL.md");
+      files.add("skills/oc-update/SKILL.md");
+      for (const file of files) {
+        mkdirSync(dirname(join(root, file)), { recursive: true });
+        copyFileSync(file, join(root, file));
+      }
+      const changelog = join(root, "site/src/pages/changelog.astro");
+      writeFileSync(
+        changelog,
+        readFileSync(changelog, "utf8").replace(
+          /(<article class="hero-card hero-card--released is-open"[\s\S]*?<span class="hero-ver">)[^<]+/,
+          "$1v2.0.0 · Sep 14, 2026",
+        ),
+      );
+      const report = checkReleaseSurfaces({ root });
+      expect(report.ok).toBe(false);
+      expect(report.errors.some((error) => error.includes("hero-ver"))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+});

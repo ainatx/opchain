@@ -11,8 +11,9 @@ Shared reference for all opchain dev skills. Read this on first invocation of an
 in the ecosystem. It defines how skills discover each other, hand off, welcome
 novice users, and coordinate through checkpoints.
 
-Every skill in the ecosystem bundles this file. When a skill activates, read this FIRST,
-before executing any skill-specific logic.
+Every skill in the ecosystem bundles this file. Each skill's SKILL.md requires
+reading this file and applying §0 Execution Discipline before skill-specific work.
+The welcome protocol is §1; it does not replace §0.
 
 ---
 
@@ -31,10 +32,11 @@ plan and checkpoint context across skill handoffs.
    owning checkpoint for any task that changes files, runs validation, delegates,
    hands off work, or spans more than one response. It is the saved plan: record
    the goal, a short progress checklist, the next action, and acceptance evidence
-   in row notes; add an estimate or `unknown` when work is not immediate. Small
-   tasks may use this minimal checkpoint instead of a sprint document. For larger
-   work, give each sprint a bounded workstream with a goal, owner, dependencies,
-   and completion criteria. An answer-only interaction may remain ephemeral.
+   in row notes; add an estimate or `unknown` when work is not immediate. Stamp
+   `started_at` when a row begins. Small tasks may use this minimal checkpoint
+   instead of a sprint document. For larger work, give each sprint a bounded
+   workstream with a goal, owner, dependencies, and completion criteria. An
+   answer-only interaction may remain ephemeral.
 4. **Delegate deliberately.** Run independent work concurrently when the benefit
    justifies coordination cost. Keep dependent work ordered, give each delegated
    scope clear ownership, and retain an owner for integration and final verification.
@@ -49,15 +51,19 @@ plan and checkpoint context across skill handoffs.
    This governs agents executing skills; application model changes still follow
    the application's routing and evaluation workflow.
 6. **Show verified progress.** Keep a compact checklist of completed, current,
-   and upcoming tasks. Mark each task complete only after its acceptance checks
-   pass, update the saved checkpoint at that point, and include evidence or a
-   reference in the row's notes. Do not finish a qualifying task without this
+   and upcoming tasks. At skill start and on every subsequent turn, show the
+   current local date and time. Mark each task complete only after its acceptance
+   checks pass, update the saved checkpoint at that point, and include evidence or
+   a reference in the row's notes. Do not finish a qualifying task without this
    final checkpoint update.
-7. **Estimate honestly.** Give time ranges with assumptions and dependencies,
-   separating agent work from user or external wait time when useful. Revise
-   estimates as evidence changes; label unknowns. Estimates are forecasts, not
-   measured runtime or token usage. Do not weaken acceptance criteria to meet a
-   time or cost estimate.
+7. **Estimate from evidence.** Give time ranges with assumptions and dependencies,
+   separating agent work from user or external wait time when useful. Label
+   unknowns. After a task starts, record `started_at`. After it completes, record
+   `completed_at` and `actual` from elapsed wall-clock — including idle and tool
+   waits, not model runtime or token usage. Use those actuals to revise remaining
+   estimates. Do not invent timings, and do not weaken acceptance criteria to meet
+   an estimate. Recorded times are planning evidence, not SLAs or speed
+   benchmarks.
 8. **Persist to completion.** Continue authorized work until the acceptance
    criteria are met. Record genuine blockers and the next concrete action; keep
    independent work moving when possible. Report completion and remaining
@@ -66,7 +72,8 @@ plan and checkpoint context across skill handoffs.
 Use `skill_state.goal` and `progress_table` for the minimal saved plan; the
 checkpoint protocol documents the compatible field conventions. Store acceptance
 criteria, ownership, dependencies, and evidence in existing plans or row notes; no
-parallel tracker is required.
+parallel tracker is required. Optional row fields `estimate`, `started_at`,
+`completed_at`, and `actual` stay wire-compatible metadata.
 
 ---
 
@@ -77,10 +84,11 @@ approach at a skill handoff.
 
 ### Step 1: Announce the skill
 
-For an active task, use one sentence: "I'm using [skill-name] to [next concrete
-outcome]." Show a help menu or walkthrough only when the user requests help or
-commands, or when unclear intent makes that orientation useful. Keep a requested
-menu to the six most relevant commands.
+For an active task, lead with the current local date and time, then one sentence:
+"I'm using [skill-name] to [next concrete outcome]." Show a help menu or
+walkthrough only when the user requests help or commands, or when unclear intent
+makes that orientation useful. Keep a requested menu to the six most relevant
+commands.
 
 ### Step 2: Check for context
 

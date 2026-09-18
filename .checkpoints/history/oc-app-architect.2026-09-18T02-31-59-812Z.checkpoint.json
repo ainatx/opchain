@@ -4,19 +4,21 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/IdeaProjects/opchain",
   "created_at": "2026-09-17T20:38:04.000Z",
-  "updated_at": "2026-09-18T14:10:00.000Z",
+  "updated_at": "2026-09-18T01:05:10.000Z",
   "phase": "build",
   "step": "v2.0.3-local-verified",
   "status": "complete",
-  "progress_summary": "2.0.3 Option C plus live-claim versioning is being committed and deployed to staging. 2.1 plan files are parked outside this commit.",
+  "progress_summary": "2.0.3 Option C plus live-claim versioning is locally verified. README/plugin/mirror say 2.0.3. Changelog hero range is v2.0.0 \u2192 v2.0.3. Architecture names 36 skills at 2.0.3. Unit suite 1263/1263. Astro check 0 errors. Site build 83 pages. Local server at http://localhost:4321/. No commit. No staging.",
   "skill_state": {
     "goal": "Finish a locally verified 2.0.3 candidate: session clock, changelog surfaces, and current 2.0.x live claims at 2.0.3. Do not commit. Do not deploy.",
     "workstream": "v2.0.3-session-clock",
     "plan": "sprints/release-2.0.3/plan.md",
     "prior_checkpoint": ".checkpoints/history/oc-app-architect.2026-09-17T22-20-00-000Z.checkpoint.json",
     "constraints": [
-      "Do not include 2.1 plan/checkpoint files in this 2.0.3 commit",
-      "Staging-only off-main bypass is allowed; production is not"
+      "Do not commit",
+      "Do not deploy staging or production",
+      "Do not mix 2.1 plan files into 2.0.3",
+      "Keep historical 2.0.0 / 2.0.1 / 2.0.2 changelog cards and the 2.0.0 production release record"
     ]
   },
   "progress_table": [
@@ -114,8 +116,7 @@
   },
   "blockers": [],
   "next_actions": [
-    "Commit 2.0.3 working tree without 2.1 plan files.",
-    "Deploy staging with OPCHAIN_ALLOW_OFF_MAIN_STAGING=1.",
-    "Restore parked 2.1 plan after deploy."
+    "Leave 2.0.3 uncommitted. Do not deploy staging.",
+    "When committing later, exclude docs/plans/2026-09-17-v2.1-2.3-work-os.md and the archived 2.1 flavors checkpoint."
   ]
 }

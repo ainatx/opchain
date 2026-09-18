@@ -33,8 +33,30 @@
 import Base from "../layouts/Base.astro";
 import RoadmapForm from "../components/RoadmapForm.astro";
 import { loadRoadmap, itemsForMilestone } from "../data/roadmap-types";
+import { getAllSkills } from "../lib/skills";
 
 const roadmap = loadRoadmap();
+const catalogSkills = (await getAllSkills())
+  .map((s) => s.data.name)
+  .sort((a, b) => a.localeCompare(b));
+
+const v20Skills = [
+  {
+    name: "oc-update",
+    blurb:
+      "Updates the complete Opchain skill folders and runtime files in your project. Backs up replaced files and preserves checkpoints, tracking consent and unrelated skills.",
+  },
+  {
+    name: "oc-hindsight",
+    blurb:
+      "Turns recorded outcomes into lessons you can review. Keeps the source evidence attached and returns approved lessons when you ask for context.",
+  },
+  {
+    name: "oc-evolve",
+    blurb:
+      "Tests proposed working rules against a fixed baseline. Requires better task results, no regressions and external reviewer approval before adoption.",
+  },
+];
 
 // v1.7 "Seams & Signals" — shipped release. Three new skills take the catalog
 // 24 → 27, lockstep-bumped to 1.7.0. Per the plan of record, oc-signal-forge
@@ -220,18 +242,12 @@ const plannedReleaseGroups = [
             <p>2.0 adds an updater, Hindsight and Evolve to the current skills. The release combines the recent reliability fixes with the Slate and Emerald design.</p>
             <h3>What&rsquo;s new</h3>
             <div class="tile-grid">
-              <div class="tile">
-                <span class="tile-name">oc-update</span>
-                <span class="tile-desc">Updates the complete Opchain skill folders and runtime files in your project. Backs up replaced files and preserves checkpoints, tracking consent and unrelated skills.</span>
-              </div>
-              <div class="tile">
-                <span class="tile-name">oc-hindsight</span>
-                <span class="tile-desc">Turns recorded outcomes into lessons you can review. Keeps the source evidence attached and returns approved lessons when you ask for context.</span>
-              </div>
-              <div class="tile">
-                <span class="tile-name">oc-evolve</span>
-                <span class="tile-desc">Tests proposed working rules against a fixed baseline. Requires better task results, no regressions and external reviewer approval before adoption.</span>
-              </div>
+              {v20Skills.map((skill) => (
+                <a class="tile" href={`/skills/${skill.name}`} aria-label={`Open ${skill.name} skill page`}>
+                  <span class="tile-name">{skill.name}</span>
+                  <span class="tile-desc">{skill.blurb}</span>
+                </a>
+              ))}
             </div>
             <div class="loop">
               <h3>What&rsquo;s changed</h3>
@@ -253,15 +269,22 @@ const plannedReleaseGroups = [
           <span class="rc-toggle" aria-hidden="true">▶</span>
           <span class="rc-meta">
             <span class="rc-head"><span class="ver-pill ver-pill--past">v2.0.3 patch</span><span class="rc-title">A clear goal. Visible progress.</span><span class="rc-date">Sep 15, 2026</span></span>
-            <span class="rc-summary">Shared execution instructions keep every skill focused on a complete, verified result. Qualifying work saves a compact goal and progress plan that checkpoint status can resume.</span>
+            <span class="rc-summary">Shared execution instructions keep every skill focused on a complete, verified result. Qualifying work saves a compact plan, stamps wall-clock actuals, and revises remaining estimates from what actually took.</span>
           </span>
         </button>
         <div class="card-body" id="v2-0-3-body" data-disclosure-body inert>
           <div class="card-body-inner">
             <div class="tag-row"><span class="tag">all skills</span><span class="tag">focused execution</span><span class="tag">visible progress</span><span class="tag">back-compatible</span></div>
             <p>Every skill shares a working agreement: state the goal and acceptance criteria, choose the smallest complete solution, and verify it. Small tasks keep a short plan; larger tasks use sprints and workstreams with clear dependencies.</p>
-            <p>Work that changes files, validates, delegates, hands off, or spans responses saves a compact goal, checklist, next action and evidence before it starts. Progress updates check off verified tasks and show what is current and upcoming. Time estimates use ranges and change as the work becomes clearer.</p>
-            <p>Checkpoint status renders the saved plan, including its progress table, goal and task estimates. Existing checkpoints remain readable without retroactive planning data.</p>
+            <p>Work that changes files, validates, delegates, hands off, or spans responses saves a compact goal, checklist, next action and evidence before it starts. Progress updates check off verified tasks and show what is current and upcoming. Each skill turn shows the current local date and time. Completed tasks record elapsed wall-clock; remaining time ranges are revised from those actuals. Missing times are omitted, never invented.</p>
+            <p>Checkpoint status renders the saved plan, including its progress table, goal, estimates and recorded actuals. Recorded times are planning evidence, not SLAs or speed benchmarks. Existing checkpoints remain readable without retroactive planning data.</p>
+            <h3>Skills in this release</h3>
+            <p>v2.0.3 applies the shared working agreement to every skill. Open a skill page for the full instructions.</p>
+            <div class="release-skill-links">
+              {catalogSkills.map((name) => (
+                <a href={`/skills/${name}`} class="release-skill-link">{name}</a>
+              ))}
+            </div>
             <div class="compat-box"><strong>Back-compatible with v2.0.2.</strong> No checkpoint migration required. <a href="/skills#shared-execution">See the shared working agreement →</a></div>
           </div>
         </div>
@@ -1290,7 +1313,7 @@ const plannedReleaseGroups = [
       if (!panel) return null;
       return tabs.find((t) => t.getAttribute("aria-controls") === panel.id) ?? null;
     }
-    function revealHash(hash: string) {
+    function revealHash(hash: string, instant = false) {
       if (!hash || hash.length < 2) return;
       let card: HTMLElement | null = null;
       try {
@@ -1302,9 +1325,18 @@ const plannedReleaseGroups = [
       const tab = tabForCard(card);
       if (tab) activateTab(tab);
       setOpen(card, true);
-      requestAnimationFrame(() =>
-        card?.scrollIntoView({ behavior: "smooth", block: "start" }),
-      );
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const go = () =>
+        card?.scrollIntoView({
+          // "auto" follows html { scroll-behavior: smooth } and fights the native hash scroll.
+          behavior: instant || reduce ? "instant" : "smooth",
+          block: "start",
+        });
+      // Open body first; one frame later the open height and scroll-margin are real.
+      requestAnimationFrame(() => {
+        card?.getBoundingClientRect();
+        go();
+      });
     }
     document.addEventListener("click", (e) => {
       const a = (e.target as HTMLElement).closest<HTMLAnchorElement>("a");
@@ -1326,7 +1358,12 @@ const plannedReleaseGroups = [
       revealHash(sel);
     });
     window.addEventListener("hashchange", () => revealHash(location.hash));
-    if (location.hash) revealHash(location.hash);
+    if (location.hash) {
+      document.documentElement.style.scrollBehavior = "auto";
+      window.scrollTo(0, 0);
+      revealHash(location.hash, true);
+      requestAnimationFrame(() => document.documentElement.style.removeProperty("scroll-behavior"));
+    }
 
     // ===== Votes (batched GET + per-click POST; localStorage mirror) ===
     const voteButtons = Array.from(
@@ -1606,8 +1643,9 @@ const plannedReleaseGroups = [
   }
   .alt-note { font-size: var(--fs-sm); color: var(--muted); }
 
-  /* ── Compact cards (rel-card / plan-card) ─────────────── */
-  [data-card] { scroll-margin-top: 4.5rem; }
+  /* Sticky header is 56px. Pad the document scrollport so hash targets clear it.
+     overflow:hidden on the cards makes per-card scroll-margin a no-op. */
+  :global(html) { scroll-padding-top: 4.5rem; }
   .rel-card, .plan-card {
     border: 0.5px solid var(--border);
     border-radius: var(--r-md);
@@ -1739,12 +1777,43 @@ const plannedReleaseGroups = [
     padding: 0.75rem 0.9rem;
     transition: border-color var(--dur-fast) var(--ease-standard);
   }
+  a.tile {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+  }
+  a.tile:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
   .tile-name { display: block; font-family: var(--font-mono); font-size: 11px; margin-bottom: 0.25rem; }
   .tile-desc { font-size: 12px; color: var(--muted); line-height: var(--lh-snug); margin: 0 !important; }
   .hero-card--next .tile-name { color: var(--secondary); }
   .hero-card--next .tile:hover { border-color: var(--secondary); }
   .hero-card--released .tile-name { color: var(--accent); }
   .hero-card--released .tile:hover { border-color: var(--accent); }
+  .release-skill-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0 0 1.1rem;
+  }
+  .release-skill-link {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    text-decoration: none;
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-pill);
+    padding: 0.28rem 0.55rem;
+    background: var(--surface);
+  }
+  .release-skill-link:hover { border-color: var(--accent); text-decoration: underline; }
+  .release-skill-link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
 
   /* ── Callout box (ripples / CLI) ──────────────────────── */
   .callout {

@@ -75,6 +75,9 @@ test.describe("/changelog", () => {
     await expect(hero.locator(".hero-head")).toHaveAttribute("aria-expanded", "true");
     await expect(hero.locator(".compat-box")).toBeVisible();
     await expect(hero.locator(".compat-box")).not.toBeEmpty();
+    await expect(hero.locator('a.tile[href="/skills/oc-update"]')).toBeVisible();
+    await expect(hero.locator('a.tile[href="/skills/oc-hindsight"]')).toBeVisible();
+    await expect(hero.locator('a.tile[href="/skills/oc-evolve"]')).toBeVisible();
 
     // v1.8 remains in the panel as a collapsed previous-release hero.
     const prev = page.locator("#v1-8.hero-card--released");

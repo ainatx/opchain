@@ -64,6 +64,27 @@ describe("checkpoint progress presentation", () => {
     expect(output).toContain("npm test passed");
   });
 
+  it("renders recorded actuals beside estimates and omits missing times", () => {
+    const data = checkpoint({
+      skill_state: { goal: "Ship the patch after required checks pass." },
+      progress_table: [
+        {
+          id: "implementation", label: "Implement the policy", status: "complete",
+          estimate: "8–12 min", started_at: "2026-09-17T19:00:00Z",
+          completed_at: "2026-09-17T19:18:00Z", actual: "18 min wall-clock",
+        },
+        { id: "checks", label: "Required checks", status: "in_progress", estimate: "12–20 min, revised after implementation ran long", started_at: "2026-09-17T19:18:00Z" },
+        { id: "publish", label: "Publish patch", status: "not_started", estimate: "unknown" },
+      ],
+    });
+    expect(validate("oc-test.checkpoint.json", data).errors).toEqual([]);
+    const output = formatProgress(data);
+    expect(output).toContain("estimate: 8–12 min; actual: 18 min wall-clock; started: 2026-09-17T19:00:00Z; completed: 2026-09-17T19:18:00Z");
+    expect(output).toContain("estimate: 12–20 min, revised after implementation ran long; started: 2026-09-17T19:18:00Z");
+    expect(output).toContain("estimate: unknown");
+    expect(output).not.toMatch(/publish:.*actual:/);
+  });
+
   it("checks only completed tasks and names every other state separately", () => {
     const statuses = ["complete", "in_progress", "not_started", "blocked", "failed", "skipped", "deferred"];
     const data = checkpoint({ progress_table: statuses.map(status => ({ id: status, label: `${status} task`, status })) });
@@ -84,10 +105,12 @@ describe("checkpoint progress presentation", () => {
     for (const goal of [undefined, null, 4, {}, [], "  "]) {
       const output = formatProgress(checkpoint({
         skill_state: { goal }, progress_table: [null, {}, [], "bad", { id: "unknown", label: "Unknown", status: "unknown" },
-          { id: "check", label: "Verify patch", status: "in_progress", estimate: { minutes: 5 }, notes: ["wrong shape"] }],
+          { id: "check", label: "Verify patch", status: "in_progress", estimate: { minutes: 5 }, actual: { minutes: 8 }, started_at: 12, completed_at: [], notes: ["wrong shape"] }],
       }));
       expect(output).not.toContain("**Goal:");
       expect(output).not.toContain("estimate:");
+      expect(output).not.toContain("actual:");
+      expect(output).not.toContain("started:");
       expect(output).not.toContain("[object Object]");
       expect(output).toContain("- [ ] check: Verify patch");
       expect(output).toContain("5 malformed progress row(s) omitted");

@@ -36,7 +36,11 @@ governance:
 
 # RAG Forge
 
-**On first invocation, read `references/orchestrator.md` and follow its welcome protocol** (if present; otherwise fall back to the shared `skills/orchestrator.md`).
+**On first invocation, read `references/orchestrator.md` (if present; otherwise the shared `skills/orchestrator.md`) and apply §0 Execution Discipline, then follow its welcome protocol. Do not start skill-specific work until that section is in context.**
+
+**Every turn:** start the reply with the current local date, time, and IANA timezone. Do not omit this on later turns.
+
+**Then set the goal.** State one concrete outcome and observable acceptance criteria before other work. Revise it if the user changed direction. Keep the rest of the turn tied to it.
 
 Tri-agent retrieval harness: the **Designer** picks the retrieval architecture
 (vector DB, embedding model, chunking strategy, search mode) → the **Builder**

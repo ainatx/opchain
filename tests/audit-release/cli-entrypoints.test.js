@@ -10,6 +10,11 @@ const ENTRYPOINTS = [
   "scripts/check-release-surfaces.mjs",
   "scripts/lib/release-evidence.mjs",
 ];
+const SURFACE_FIXTURES = [
+  "README.md",
+  "plugins/opchain/README.md",
+  "mirror/README.md",
+];
 const ENV = {
   ...process.env,
   GIT_CONFIG_GLOBAL: "/dev/null",
@@ -46,9 +51,9 @@ describe.each(["checkout", "release candidate #1%"])("release CLI in %s", (name)
     const target = join(scratch, name);
     git("clone", "--quiet", "--no-local", "--no-tags", ROOT, target);
     repo = target;
-    for (const file of ENTRYPOINTS) copyFileSync(join(ROOT, file), join(repo, file));
-    // Include the current uncommitted fix without carrying unrelated edits.
-    git("add", ...ENTRYPOINTS);
+    for (const file of [...ENTRYPOINTS, ...SURFACE_FIXTURES]) copyFileSync(join(ROOT, file), join(repo, file));
+    // Include the current uncommitted gate and the live-claim files it reads.
+    git("add", ...ENTRYPOINTS, ...SURFACE_FIXTURES);
     git("commit", "--allow-empty", "-qm", "fixture: current release CLI gates");
     git("remote", "set-url", "origin", join(scratch, "absent-local-remote"));
     version = JSON.parse(readFileSync(join(repo, "release-seal.json"), "utf8")).catalogVersion;

@@ -4,18 +4,15 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-09-15T08:30:00Z",
+  "updated_at": "2026-09-18T01:05:10.000Z",
   "phase": "verify",
-  "step": "pre-deploy-2.0.3-2026-09-15",
+  "step": "diff-2.0.3-working-tree",
   "status": "complete",
-  "progress_summary": "Pre-deploy code audit PASS for the exact v2.0.3 candidate at 558a2b98661d4d2a84627497912d769a6574fd08. The checkpoint formatter, synchronized skill bundles and static release surfaces were reviewed; the immutable verifier and hardening checks passed. No new release-blocking CRITICAL or HIGH code finding.",
+  "progress_summary": "Grade B+ for the 2.0.3 working-tree diff. 0 CRITICAL, 0 HIGH remaining in this changeset. README/architecture live-claim lies were fixed. Repo-wide OSS/portability findings remain open and are not from this patch.",
   "blockers": [],
   "next_actions": [
-    "OSS-readiness audit 2026-08-22 (grade D+): triage the 24 HIGH findings in docs/audits/2026-08-22-oss-readiness-audit.md — the must-fix set is in docs/plans/2026-08-22-oss-split-licensing-compliance.md §4.1 (SECURITY.md + PVR, LICENSE in every artifact, SHA-pin Actions, Dependabot alerts, releases+attestations) and §4.3 (POST /mcp checkpoint TTL/size/rate-limit/session isolation; stale privacy page; leads stored forever).",
-    "Fix PX-01/PX-02 in src/index.js + site/src/pages/privacy.astro before pointing any enterprise at opchain.dev/mcp (see docs/plans/2026-08-22-oss-split-licensing-compliance.md §4.3).",
-    "Triage the ~20 remaining MEDIUM/LOW findings from this audit (none block; see workflow journal).",
-    "Pre-existing and NOT from this changeset: 14 critical / 41 high from the 2026-07-04 portability audit are still open — that loop predates this work and remains open.",
-    "Wire `test:gate` into package.json + CI so the gate suite runs on every PR."
+    "Do not treat this as a deploy handoff. No staging.",
+    "Pre-existing OSS-readiness HIGH findings remain in docs/audits/2026-08-22-oss-readiness-audit.md."
   ],
   "eval_scores": [
     {
@@ -56,43 +53,44 @@
         "config": 9
       },
       "note": "Targeted updater candidate only; older repository-wide findings remain open."
+    },
+    {
+      "rubric": "oc-code-auditor",
+      "score": 8.5,
+      "max": 10,
+      "at": "2026-09-18T01:05:10.000Z",
+      "dimensions": {
+        "security": 9,
+        "quality": 8,
+        "config": 9,
+        "ux": 8
+      },
+      "note": "Targeted 2.0.3 working-tree diff only; repo-wide findings remain open."
     }
   ],
   "skill_state": {
-    "mode": "fix-all",
-    "scope": "coordination-gaps overhaul changeset",
+    "mode": "diff",
+    "scope": "2.0.3 Option C + live-claim versioning working tree",
     "loop_state": "open",
     "findings_total": 41,
     "findings_confirmed": 31,
     "findings_refuted": 10,
     "findings_by_severity": {
-      "critical": 3,
-      "high": 12,
-      "medium": 16,
-      "low": 10
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 2
     },
     "fixes_applied": 9,
     "fixes_verified": 9,
     "fixes_rejected": 0,
-    "grade": "B (changeset); repo-wide grade F from the 2026-07-04 portability audit is UNCHANGED and still open",
+    "grade": "B+ (changeset); repo-wide grade unchanged",
     "verified_tree": "7c59d269ca269bc10035b0bbd706697df230b920",
     "note": "loop_state stays 'open': this round fixed the changeset's own defects, but the pre-existing 157-finding portability audit (14 critical / 41 high, 2 fixed) has never been closed. Marking this checkpoint 'complete' would repeat exactly the defect the overhaul's P3 exists to prevent.",
     "last_audit": {
-      "date": "2026-08-22",
-      "mode": "oss-readiness (security 1a + config 1d + license/compliance/provenance)",
-      "at_sha": "c440c7b",
-      "grade": "D+",
-      "findings_total": 142,
-      "findings_by_severity": {
-        "critical": 0,
-        "high": 24,
-        "medium": 55,
-        "low": 43,
-        "info": 20
-      },
-      "verified": "7 lenses × adversarial verifier; 0 refuted",
-      "report": "docs/audits/2026-08-22-oss-readiness-audit.md",
-      "plan": "docs/plans/2026-08-22-oss-split-licensing-compliance.md"
+      "at": "2026-09-18T01:05:10.000Z",
+      "scope": "git diff vs HEAD on fix/2.0.3-session-clock plus restored honesty surfaces",
+      "result": "PASS for this changeset"
     },
     "oc_update_v2": {
       "status": "implemented-and-tested-in-isolation",

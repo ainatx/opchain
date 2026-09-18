@@ -80,13 +80,31 @@ test("v2.0.3 patch deep link opens its progress changes and preserves the 2.0 he
   await expect(patch.locator("[data-disclosure-toggle]")).toHaveAttribute("aria-expanded", "true");
   await expect(patch.locator(".card-body")).toBeVisible();
   await expect.poll(async () => {
-    const top = await patch.evaluate((el) => Math.round(el.getBoundingClientRect().top));
-    return top >= 64 && top <= 76;
+    const info = await patch.evaluate((el) => {
+      const header = document.querySelector(".site-header");
+      const top = Math.round(el.getBoundingClientRect().top);
+      const headerBottom = header ? Math.round(header.getBoundingClientRect().bottom) : 0;
+      const pad = Math.round(parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop));
+      return { top, headerBottom, pad };
+    });
+    return info.top >= info.headerBottom - 2 && info.top <= info.headerBottom + info.pad + 8 ? true : info;
   }).toBe(true);
   await expect(patch).toContainText("Existing checkpoints remain readable");
+  await expect(patch).toContainText("planning evidence");
   await expect(page.locator("#panel-released .hero-card.is-open")).toHaveAttribute("id", "v2-0");
-  await patch.getByRole("link", { name: "See the shared working agreement" }).click();
-  await expect(page).toHaveURL(/\/skills#shared-execution$/);
+  await expect(patch.getByRole("link", { name: "See the shared working agreement" })).toHaveAttribute(
+    "href",
+    "/skills#shared-execution",
+  );
+  await expect(page.locator('#v2-0 a.tile[href="/skills/oc-update"]')).toBeVisible();
+  await expect(page.locator('#v2-0 a.tile[href="/skills/oc-hindsight"]')).toBeVisible();
+  await expect(page.locator('#v2-0 a.tile[href="/skills/oc-evolve"]')).toBeVisible();
+  const skillLinks = patch.locator(".release-skill-link");
+  await expect(skillLinks).toHaveCount(36);
+  await expect(patch.locator('a.release-skill-link[href="/skills/oc-checkpoint-protocol"]')).toBeVisible();
+  await patch.locator('a.release-skill-link[href="/skills/oc-app-architect"]').click();
+  await expect(page).toHaveURL(/\/skills\/oc-app-architect\/?$/);
+  await expect(page.getByRole("heading", { name: "OC · App Architect", exact: true })).toBeVisible();
 });
 
 for (const width of [375, 1280]) {
@@ -103,6 +121,7 @@ for (const width of [375, 1280]) {
       await page.keyboard.press("Enter");
       await expect(agreement.locator(".shared-execution-body")).toBeVisible();
       await expect(agreement).toContainText("where the host supports them");
+      await expect(agreement).toContainText("Estimates that learn");
       await expect(agreement.getByRole("link", { name: "Checkpoint status" })).toHaveAttribute("href", "/skills/oc-checkpoint-protocol");
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       const audit = await new AxeBuilder({ page }).include("#shared-execution").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();

@@ -639,6 +639,7 @@ function readAll() {
 }
 
 /** Optional planning data stays advisory: legacy checkpoints need no new fields.
+ * Estimate/actual/started_at/completed_at render only when they are strings.
  * Bound each status separately so a long completed list cannot hide current work.
  * Skipped/deferred rows from external writers remain visibly distinct from done;
  * accepting them for display does not change the checkpoint validator's enum. */
@@ -663,8 +664,17 @@ function formatProgress(data, { rowsPerStatus = 3 } = {}) {
     const label = text(row?.label, 160);
     if (!group || !id || !label || Array.isArray(row)) { invalid++; continue; }
     const estimate = text(row.estimate, 160);
+    const actual = text(row.actual, 80);
+    const started = text(row.started_at, 40);
+    const completed = text(row.completed_at, 40);
     const notes = text(row.notes, 160);
-    group.rows.push(`- [${row.status === "complete" ? "x" : " "}] ${id}: ${label}${estimate ? ` (estimate: ${estimate})` : ""}${notes ? ` — ${notes}` : ""}`);
+    const timing = [
+      estimate && `estimate: ${estimate}`,
+      actual && `actual: ${actual}`,
+      started && `started: ${started}`,
+      completed && `completed: ${completed}`,
+    ].filter(Boolean).join("; ");
+    group.rows.push(`- [${row.status === "complete" ? "x" : " "}] ${id}: ${label}${timing ? ` (${timing})` : ""}${notes ? ` — ${notes}` : ""}`);
   }
   const count = data.progress_table.length - invalid;
   if (count) {

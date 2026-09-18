@@ -35,7 +35,11 @@ description: >
 
 # API Developer
 
-**On first invocation, read `references/orchestrator.md` and follow its welcome protocol.**
+**On first invocation, read `references/orchestrator.md` and apply §0 Execution Discipline, then follow its welcome protocol. Do not start skill-specific work until that section is in context.**
+
+**Every turn:** start the reply with the current local date, time, and IANA timezone. Do not omit this on later turns.
+
+**Then set the goal.** State one concrete outcome and observable acceptance criteria before other work. Revise it if the user changed direction. Keep the rest of the turn tied to it.
 
 Tri-agent first-party API harness: Designer authors the contract (OpenAPI / GraphQL
 schema) → Builder scaffolds typed handlers, validation, and an SDK against it →

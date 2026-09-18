@@ -23,14 +23,21 @@ function disposableUntaggedClone() {
   // B1 is deliberately still uncommitted in this audit worktree. Carry only
   // its owned release scripts into the disposable clone; no source checkout or
   // release ref is changed by the rehearsal.
-  for (const file of ["scripts/release-sequence.mjs", "scripts/check-release-surfaces.mjs"]) {
+  const fixtureFiles = [
+    "scripts/release-sequence.mjs",
+    "scripts/check-release-surfaces.mjs",
+    "README.md",
+    "plugins/opchain/README.md",
+    "mirror/README.md",
+  ];
+  for (const file of fixtureFiles) {
     copyFileSync(join(ROOT, file), join(repo, file));
   }
   writeFileSync(join(repo, ".b3-fixture"), "disposable release rehearsal only\n");
   for (const args of [
     ["config", "user.email", "b3-fixture@example.invalid"],
     ["config", "user.name", "B3 fixture"],
-    ["add", "scripts/release-sequence.mjs", "scripts/check-release-surfaces.mjs", ".b3-fixture"],
+    ["add", ...fixtureFiles, ".b3-fixture"],
     ["commit", "-m", "fixture: release rehearsal"],
   ]) {
     const result = command("git", args, repo);

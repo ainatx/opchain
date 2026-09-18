@@ -14,6 +14,7 @@ site/.astro/
 site/playwright-report/
 site/test-results/
 site/blob-report/
+/test-results/
 
 # Sprint 6 — /public/ is now a build artifact (Astro output + sync'd docs + zip).
 # `scripts/build-site.sh` rebuilds it on every prebuild. Nothing in /public/ is

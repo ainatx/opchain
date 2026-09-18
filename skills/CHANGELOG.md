@@ -18,7 +18,8 @@ _Nothing yet._
 ## [2.0.3] — 2026-09-15 — "Focused execution, visible progress"
 
 Repairs execution guidance shared by every skill and makes saved task progress
-visible in the existing checkpoint status command.
+visible in the existing checkpoint status command. Qualifying work records a
+session clock and revises remaining estimates from elapsed wall-clock.
 
 ### Fixed
 
@@ -32,17 +33,35 @@ visible in the existing checkpoint status command.
   and approval requirements. No fast-mode setting is imposed.
 - **Visible saved progress.** Checkpoint status shows recorded goals and task
   checklists, distinguishes completed work from skipped or blocked work, and shows
-  supplied estimate ranges without inventing timings. Brief status stays compact.
+  supplied estimate ranges beside recorded actuals when present. Brief status stays
+  compact.
+- **Session clock and estimate revision.** At skill start and on later turns, the
+  current local date and time is shown. In-progress rows stamp `started_at`;
+  completed rows stamp `completed_at` and `actual` from elapsed wall-clock
+  (idle and tool waits included). Remaining estimates are revised from those
+  actuals. Missing times are omitted, never invented. Recorded times are planning
+  evidence, not SLAs, model runtime, or speed benchmarks.
 - **Matching site guidance.** The homepage, skill library, and patch release notes
   explain the execution policy and its limits using the existing site design.
+- **Every skill requires the shared agreement.** Each `SKILL.md` (all 36, including
+  oc-checkpoint-protocol) requires reading bundled `references/orchestrator.md` and
+  applying §0 Execution Discipline before skill-specific work. The welcome protocol
+  is §1 and is not a substitute. MCP `get_orchestrator` / `get_skill` repeat the same
+  gate.
+- **Every skill file stamps the clock.** Each `SKILL.md` itself requires starting
+  every turn with the current local date, time, and IANA timezone. That instruction
+  is not deferred to a reference file.
+- **Every skill file sets the goal next.** Immediately after the clock line, each
+  `SKILL.md` requires stating one concrete outcome and observable acceptance
+  criteria before other work.
 
 ### Compatibility
 
 Back-compatible with v2.0; no migration required. All 36 skills move together to
-2.0.3. Checkpoint wire remains 1.1. Existing checkpoints work unchanged; a
-`skill_state.goal` string and `progress_table[].estimate` strings are optional
-presentation metadata. No new skill, slash command, provider setting, or automatic
-model switch is introduced.
+2.0.3. Checkpoint wire remains 1.1. Existing checkpoints work unchanged;
+`skill_state.goal` and `progress_table[].estimate`, `started_at`, `completed_at`,
+and `actual` strings are optional presentation metadata. No new skill, slash
+command, provider setting, or automatic model switch is introduced.
 
 ## [2.0.2] — 2026-09-15 — "Every task has a beginning and an end — release ledger correction"
 
