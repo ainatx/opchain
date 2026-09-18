@@ -1,7 +1,7 @@
 ---
 name: oc-app-architect
 displayName: OC · App Architect
-version: 2.0.2
+version: 2.0.3
 license: Apache-2.0
 shortDesc: Idea → spec → design → build → launch in one skill. Reads PM tickets and writes sprints back via PM-MCP.
 phases: [plan, build]

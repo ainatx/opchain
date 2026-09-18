@@ -1,7 +1,7 @@
 ---
 name: oc-fleet-ops
 displayName: OC · Fleet Ops
-version: 2.0.2
+version: 2.0.3
 license: Apache-2.0
 shortDesc: "Provision and operate containers across self-managed infra — k8s/Nomad/Compose/VMs. Terraform when it fits, not always."
 phases: [build]
