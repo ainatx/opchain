@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-17T17:02:38.434Z",
+  "updated_at": "2026-09-18T20:54:02.466Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "baseline-f196207",
-  "progress_summary": "PR readiness PASS for the f196207 monitoring baseline. Catalogs/sync clean; docs packet current.",
+  "step": "pr-556-v2.0.3",
+  "progress_summary": "PR #556 (v2.0.3) readiness gate PASS: catalog/bundle/plugin-skills sync clean, release surfaces agree at v2.0, docs packet present and current, working tree clean.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -27,13 +27,13 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "d60cc042aca5d0abdab0de5a4378f1da203f2ecb",
+    "verified_for_sha": "7898886a527868d82754a9acfcea1476d75f2f5d",
     "last_verify": {
-      "branch": "chore/monitoring-f196207-runtime-baseline",
-      "base": "origin/main@f1962076e39bff939407b7a9731fb1f7bae05043",
+      "at": "2026-09-18T20:54:02.466Z",
+      "branch": "claude/release-2-0-3-production-a10510",
+      "base": "origin/main@1dc86ad4d0affa58c276a3f8b7eb980e74c27a8c",
       "verdict": "PASS",
-      "blocking_findings": [],
-      "at": "2026-09-17T17:02:38.187Z"
+      "blocking_findings": []
     }
   },
   "next_actions": [],
@@ -364,7 +364,34 @@
           "node scripts/checkpoint.mjs validate"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr556-39b7ca78d9a7",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-18T20:54:02.466Z",
+      "verified_at": "2026-09-18T20:54:02.466Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-556-2.0.3"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:39b7ca78d9a7bed4626b9361a101d73477cce451e5b3309f787467a1662c2480"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "PR #556 (v2.0.3): catalog validation, sync-bundles/sync-plugin-skills clean, check-release-surfaces.mjs all-agree, docs packet current, working tree clean.",
+        "evidence": [
+          "npm run gen-catalog",
+          "npm run sync-bundles:check",
+          "npm run sync-plugin-skills:check",
+          "node scripts/check-release-surfaces.mjs",
+          "https://github.com/ainatx/opchain/pull/556"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-17T17:02:38.434Z"
+  "record_updated_at": "2026-09-18T20:54:02.466Z"
 }
