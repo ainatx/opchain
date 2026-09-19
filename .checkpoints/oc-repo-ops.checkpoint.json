@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-19T03:57:31.929Z",
+  "updated_at": "2026-09-19T04:21:04.299Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "monitoring-baseline-v2.0.3",
-  "progress_summary": "Monitoring baseline PR (v2.0.3) readiness gate PASS: docs packet present, working tree clean, single-file JSON change validated.",
+  "step": "codex/checkpoint-hygiene-contracts",
+  "progress_summary": "PR readiness gate PASS for PR #547 (oc-telemetry-ops checkpoint-hygiene exemption) on main fbd3dfd. Diff is the hook, the C3 test and the new audit doc. Docs packet present; candidate verification passed; working tree clean.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -21,17 +21,19 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [],
+    "warnings": [
+      "The audit doc still describes #545 as open; accurate as a dated record of 2026-09-14."
+    ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "a5889be22932324320f940939a9b6c0d12621bac",
+    "verified_for_sha": "34314e8c7ced346ea4e707670f29a7b5c0201e93",
     "last_verify": {
-      "at": "2026-09-19T03:57:31.929Z",
-      "branch": "chore/v2.0.3-monitoring-baseline",
-      "base": "origin/main@8bad1a03048cc30428eb7a1f76b18bdd1b398f83",
+      "at": "2026-09-19T04:21:04.299Z",
+      "branch": "codex/checkpoint-hygiene-contracts",
+      "base": "origin/main@fbd3dfd81e47dcc4ee42ce1fbac32a78a13c07c3",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -443,7 +445,33 @@
           "python3 -c \"import json; json.load(...)\": valid"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr547-7b86360b27b5",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-19T04:21:04.299Z",
+      "verified_at": "2026-09-19T04:21:04.299Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr547-checkpoint-hygiene-telemetry"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:7b86360b27b511f4c49c0a9f3107fdb4028cdbc2aaf6329bb1967d4d1daf1ece"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "PR #547 rebuilt on main fbd3dfd: telemetry exemption commit replayed cleanly (the duplicated oc-update commit landed as #545; the old evidence commit c837a14 is not carried). Pre-commit candidate verification (build + tests) passed; working tree clean.",
+        "evidence": [
+          ".checkpoints/oc-docs-forge.checkpoint.json",
+          ".claude/hooks/checkpoint-hygiene.sh",
+          "tests/audit-state/c3-current-run-hygiene.test.js",
+          "https://github.com/ainatx/opchain/pull/547"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-19T03:57:31.929Z"
+  "record_updated_at": "2026-09-19T04:21:04.299Z"
 }
