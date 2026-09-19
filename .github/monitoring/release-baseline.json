@@ -2,20 +2,20 @@
   "schemaVersion": 1,
   "status": "approved-release-baseline",
   "release": {
-    "tag": "v2.0.2",
-    "tagObject": "dbc5951ba24e637b25fdfb109daac94d97a7856a",
-    "sourceSha": "d4f926b7d994155a64f9d3ef78f0007a8b0d2b94",
-    "sourceShortSha": "d4f926b"
+    "tag": "v2.0.3",
+    "tagObject": "d41e72f09776e6e789b2feea146ff048f6ecaf4a",
+    "sourceSha": "da202a0f9e9e4ffa836ee1b52e547e98937f9313",
+    "sourceShortSha": "da202a0"
   },
   "environments": {
     "staging": {
       "worker": "opchain-staging",
       "hostname": "staging.opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "4fc39cd1-42d2-4459-a8e8-0993b26dfc23",
-      "versionId": "c55fb3cd-8a4b-46ae-a2f7-ae0ddcbc951d",
+      "deploymentId": "90333475-b077-47f4-9fc4-58fb4c007a34",
+      "versionId": "25f1598a-03f7-4043-84ef-36c329d3682d",
       "trafficPercentage": 100,
-      "scriptEtag": "785d78e39ed8b8491eaf06d8459119a7c3a51d9a3803600d6b3de11c7246dcfc",
+      "scriptEtag": "9c72a4fc6efe41976f4ec8a968e67d2153366a0467459f28581b779d033fb75a",
       "handlers": [
         "fetch"
       ],
@@ -35,10 +35,10 @@
       "worker": "opchain-dev",
       "hostname": "opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "7318ab1f-54c5-443b-a413-fae00e59cd46",
-      "versionId": "a8502c62-e39e-4a89-a449-83b36745da84",
+      "deploymentId": "b2647a50-6ce8-4087-b025-5628ea8dafe5",
+      "versionId": "9454e2ce-ea53-4753-a531-9b8c8750439d",
       "trafficPercentage": 100,
-      "scriptEtag": "785d78e39ed8b8491eaf06d8459119a7c3a51d9a3803600d6b3de11c7246dcfc",
+      "scriptEtag": "9c72a4fc6efe41976f4ec8a968e67d2153366a0467459f28581b779d033fb75a",
       "handlers": [
         "fetch"
       ],
@@ -89,13 +89,13 @@
     ]
   },
   "pointInTimeEvidence": {
-    "healthVersion": "f196207",
+    "healthVersion": "8bad1a0",
     "continuousCustomDomainProbe": false,
-    "note": "Production and staging both serve origin/main f196207 after PR #553. Custom-domain HTTP is not the continuous probe; control-plane plus local smoke are the evidence."
+    "note": "Production and staging both serve origin/main 8bad1a0, two checkpoint-only commits past the v2.0.3 tag (da202a0). Custom-domain HTTP is not the continuous probe; control-plane plus local smoke are the evidence."
   },
   "runtime": {
-    "sha": "f1962076e39bff939407b7a9731fb1f7bae05043",
-    "shortSha": "f196207",
-    "approval": "Post-release hotfix from main: PR #553 (fix(site): align 2.0.2 live-claim copy and gate L4 hero-ver), which also includes #551, was deployed to staging then production on 2026-09-17 without a new tag. Approved as the production runtime by the reviewed baseline change that added this block (git log -- .github/monitoring/release-baseline.json); the next release cut removes it when release re-binds to the new signed tag."
+    "sha": "8bad1a03048cc30428eb7a1f76b18bdd1b398f83",
+    "shortSha": "8bad1a0",
+    "approval": "Post-tag, pre-deploy checkpoint commits from main: PR #557 (chore(checkpoint): record v2.0.3 tag in oc-git-ops) and PR #558 (chore: pre-deploy code-audit + security-posture evidence for v2.0.3) — both .checkpoints/-only, listed in nonDeployPathPrefixes, so they carry no deploy-relevant diff from the tagged v2.0.3 source. Deployed to staging then production on 2026-09-19 as part of the same release cut. Verified via npm run smoke:staging / smoke:prod and GET /api/health on both hosts."
   }
 }
