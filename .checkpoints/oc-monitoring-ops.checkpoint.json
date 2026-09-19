@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-20T03:50:45.264Z",
-  "updated_at": "2026-09-11T14:25:26.803Z",
+  "updated_at": "2026-09-19T04:06:21.556Z",
   "phase": "observe",
-  "step": "runtime-approval-merged-awaiting-scheduled-cycle",
-  "status": "in_progress",
-  "progress_summary": "2026-09-11: PR #510 merged (534152d) — 78567c2 approved as the post-release production runtime via the baseline's new `runtime` block; release stays v1.9.0 (244bf13). Post-merge default-branch validation dispatched at 14:24Z: Canary (environment=production) run 34609906583 success — control-plane baseline matches v1.9.0 (244bf13) + approved runtime 78567c2; Deploy lag run 34609909497 success — production control-plane ✓, deploy-diff after the runtime found deploy-relevant paths on main and filed tracking issue #513 ('Deploy lag: deploy-relevant changes after approved release') for the next release workstream. Also merged this session: #508 (site Cloudflare adapter chain; clears Dependabot sharp alert #73) and #509 (structural /changelog e2e). Staging still serves the off-main demo-rebuild preview (213d401) by owner decision, so the scheduled all-environment Canary stays red on its staging half until staging is redeployed from main. continuous_monitoring_status returns to healthy for production once the 2026-09-13 scheduled cycle passes.",
+  "step": "v2.0.3-post-deploy-health-check",
+  "status": "complete",
+  "progress_summary": "Post-deploy health check for v2.0.3. Production (opchain.dev): 5/5 GET /api/health samples returned 200 with version 8bad1a0, latency 120-168ms (avg ~141ms). Staging (staging.opchain.dev): 200, version 8bad1a0, 251ms. TLS cert valid until 2026-11-18 (60d out, no renewal action needed). Deployed version matches oc-deploy-ops last-known-good (8bad1a0). No degraded/unhealthy signal.",
   "progress_table": [
     {
       "id": "live-runtime",
@@ -232,5 +232,6 @@
       "owner_decision": "bless 78567c2 and re-baseline (2026-09-11)",
       "resolution": "2026-09-11: 78567c2 approved as the post-release runtime (PR #510 merged 534152d); validated by dispatch runs 34609906583 (Canary, production) and 34609909497 (Deploy lag → issue #513); staging kept as intentional preview"
     }
-  }
+  },
+  "record_updated_at": "2026-09-19T04:06:21.556Z"
 }
