@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-08-27T23:49:17.485Z",
-  "updated_at": "2026-09-19T01:29:27.560Z",
-  "phase": "staging",
-  "step": "v2.0.3-pre-deploy-evidence-in-flight",
-  "status": "in_progress",
-  "progress_summary": "Invoked for v2.0.3 staging deploy. Pre-deploy audit gate required fresh oc-code-auditor (pre-deploy-code-audit-v1) and oc-security-auditor (pre-deploy-security-posture-v1) PASS handoffs bound to the current git_tree_projection — both written this session (bounded review: v2.0.3's delta from v2.0.2 touches no dependency, MCP boundary, header, hook, auth or routing surface, only flag-description text, CI e2e-comment logic, release-surface copy and a regenerated runtime bundle). Those checkpoint writes were pushed via PR #558 (chore/v2.0.3-pre-deploy-evidence), pending CI, since scripts/deploy.mjs requires a clean HEAD-equals-origin/main checkout before it runs release-evidence.mjs --stage deploy. Actual npm run deploy:staging has not run yet.",
+  "updated_at": "2026-09-19T04:05:48.498Z",
+  "phase": "production",
+  "step": "v2.0.3-shipped",
+  "status": "complete",
+  "progress_summary": "v2.0.3 shipped to staging then production. Staging: opchain-staging deployment 90333475-b077-47f4-9fc4-58fb4c007a34 (version 25f1598a), verified via GET /api/health (version 8bad1a0) + npm run smoke:staging + hardening manifest 2/2 PASS. Production: opchain-dev deployment b2647a50-6ce8-4087-b025-5628ea8dafe5 (version 9454e2ce), verified via GET /api/health (version 8bad1a0) + npm run smoke:prod + hardening manifest 2/2 PASS. Both hosts serve the same script fingerprint (9c72a4fc...). Signed tag v2.0.3 on da202a0; deployed SHA 8bad1a0 is two checkpoint-only post-tag commits later (#557, #558), both under nonDeployPathPrefixes. Monitoring baseline refreshed and merged (PR #559) with the new deployment/version ids and the runtime override note.",
   "blockers": [],
   "next_actions": [
     "Laptop: npx wrangler deployments list --json and versions view for deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72 (version id + script etag), then record them in .github/monitoring/release-baseline.json with sourceSha 78567c2d70e6f00836000e4bd6bbad842ba04a42.",
@@ -176,5 +176,5 @@
       "status": "blocked"
     }
   ],
-  "record_updated_at": "2026-09-19T01:29:27.560Z"
+  "record_updated_at": "2026-09-19T04:05:48.498Z"
 }
