@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-08-27T23:49:17.485Z",
-  "updated_at": "2026-09-11T04:05:36.049Z",
-  "phase": "production",
-  "step": "v1.9-baseline-superseded-by-2026-09-05-production-deploy",
+  "updated_at": "2026-09-19T01:29:27.560Z",
+  "phase": "staging",
+  "step": "v2.0.3-pre-deploy-evidence-in-flight",
   "status": "in_progress",
-  "progress_summary": "Production no longer serves the approved v1.9.0 baseline. opchain.dev/api/health reports 78567c2 (merge of PR #483, 2026-09-05 01:57Z) from Cloudflare deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72; the approved record is 244bf13 at deployment 54ef8a21-0665-4a83-bc1a-5768c2bae0d5. The deploy happened between 01:57Z and the 13:49Z scheduled Canary on Sept 5 and was not followed by a baseline refresh or a checkpoint update. Staging serves fbb24a8, a SHA on no origin branch, so it is an off-main branch preview. The owner confirmed on 2026-09-11 that the 78567c2 deploy was deliberate and is to be blessed. deploy.mjs now ends every deploy with a stale-baseline warning so this cannot go unnoticed again.",
+  "progress_summary": "Invoked for v2.0.3 staging deploy. Pre-deploy audit gate required fresh oc-code-auditor (pre-deploy-code-audit-v1) and oc-security-auditor (pre-deploy-security-posture-v1) PASS handoffs bound to the current git_tree_projection — both written this session (bounded review: v2.0.3's delta from v2.0.2 touches no dependency, MCP boundary, header, hook, auth or routing surface, only flag-description text, CI e2e-comment logic, release-surface copy and a regenerated runtime bundle). Those checkpoint writes were pushed via PR #558 (chore/v2.0.3-pre-deploy-evidence), pending CI, since scripts/deploy.mjs requires a clean HEAD-equals-origin/main checkout before it runs release-evidence.mjs --stage deploy. Actual npm run deploy:staging has not run yet.",
   "blockers": [],
   "next_actions": [
     "Laptop: npx wrangler deployments list --json and versions view for deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72 (version id + script etag), then record them in .github/monitoring/release-baseline.json with sourceSha 78567c2d70e6f00836000e4bd6bbad842ba04a42.",
@@ -175,5 +175,6 @@
       "label": "staging redeployed from 78567c2 instead of the off-main preview fbb24a8",
       "status": "blocked"
     }
-  ]
+  ],
+  "record_updated_at": "2026-09-19T01:29:27.560Z"
 }
