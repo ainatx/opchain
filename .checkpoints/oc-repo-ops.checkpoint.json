@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-18T21:00:19.127Z",
+  "updated_at": "2026-09-19T01:11:04.750Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-556-v2.0.3-e2e-fix",
-  "progress_summary": "PR #556 (v2.0.3) readiness gate PASS after fixing the changelog e2e hero-ver assertion; catalog/bundle/plugin-skills sync clean, release surfaces agree at v2.0, docs packet current, working tree clean.",
+  "step": "chore/deps-2026-09-14",
+  "progress_summary": "PR readiness gate PASS for the consolidated deps PR #549 (supersedes #543, #544, #511, #502) at main da202a0. Docs packet present. Bundles, plugin copy and catalogs in sync; candidate verification passed; working tree clean.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -21,17 +21,20 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [],
+    "warnings": [
+      "npm resolved zod 4.6.5 and marked 18.0.13, one patch newer than Dependabot's #543/#511 targets.",
+      "vitest 5.0.0 (#500) deliberately excluded."
+    ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "a22cecb8d684ca4668be9adbf2b0703b43d8c4e5",
+    "verified_for_sha": "327e5694e02756c3aff19afb74c6162ce5adc6dc",
     "last_verify": {
-      "at": "2026-09-18T21:00:19.127Z",
-      "branch": "claude/release-2-0-3-production-a10510",
-      "base": "origin/main@1dc86ad4d0affa58c276a3f8b7eb980e74c27a8c",
+      "at": "2026-09-19T01:11:04.750Z",
+      "branch": "chore/deps-2026-09-14",
+      "base": "origin/main@da202a0f9e9e4ffa836ee1b52e547e98937f9313",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -419,7 +422,34 @@
           "https://github.com/ainatx/opchain/pull/556"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr549-d40db847d7c7",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-19T01:11:04.750Z",
+      "verified_at": "2026-09-19T01:11:04.750Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr549-deps-2026-09-14"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:d40db847d7c7f1997e653aaa07f506e9e785e22292e353a3c26934fcfbb052d8"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Consolidated deps branch merged with main da202a0: root zod bump, site astro/markdown/playwright bumps, sync-bundles + sync-plugin-skills regenerated; merge conflicts only in the docs/repo evidence checkpoints (main's side kept). sync-bundles:check and sync-plugin-skills:check pass; pre-commit candidate verification (build + tests) passed on the merge; working tree clean.",
+        "evidence": [
+          ".checkpoints/oc-docs-forge.checkpoint.json",
+          "package-lock.json",
+          "site/package-lock.json",
+          "scripts/runtime/prompt-engine.mjs",
+          "https://github.com/ainatx/opchain/pull/549"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-18T21:00:19.127Z"
+  "record_updated_at": "2026-09-19T01:11:04.750Z"
 }
