@@ -1,7 +1,7 @@
 ---
 name: oc-repo-ops
 displayName: OC · Repo Ops
-version: 2.0.2
+version: 2.0.3
 license: Apache-2.0
 shortDesc: "Repository hygiene and PR readiness gate. Ensures docs, generated files, git state, catalogs, and cleanup are PR-ready."
 phases: [build]

@@ -1,6 +1,6 @@
 # opchain (Claude Code plugin)
 
-> **Opchain 2.0.2.** Released September 14–15, 2026. Includes the verified 1.9.2 repairs, shared runtime, updater, Hindsight and Evolve. See the [changelog](https://opchain.dev/changelog#v2-0) and the [2.0.0 release record](../../docs/releases/2.0-production-release.md).
+> **Opchain 2.0.3.** Released September 14–18, 2026. Includes the verified 1.9.2 repairs, shared runtime, updater, Hindsight and Evolve, plus the 2.0.3 release-surface honesty and CI signal cleanup. See the [changelog](https://opchain.dev/changelog#v2-0) and the [2.0.0 release record](../../docs/releases/2.0-production-release.md).
 
 The opchain skill pipeline **plus the gates that enforce it**.
 

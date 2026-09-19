@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-17T17:12:44.920Z",
+  "updated_at": "2026-09-18T21:00:19.127Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "chore/deps-2026-09-14",
-  "progress_summary": "PR readiness gate PASS for the consolidated deps PR #549 (supersedes #543, #544, #511, #502) at main 1dc86ad. Docs packet present. Bundles, plugin copy and catalogs in sync; candidate verification passed; working tree clean.",
+  "step": "pr-556-v2.0.3-e2e-fix",
+  "progress_summary": "PR #556 (v2.0.3) readiness gate PASS after fixing the changelog e2e hero-ver assertion; catalog/bundle/plugin-skills sync clean, release surfaces agree at v2.0, docs packet current, working tree clean.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -21,19 +21,16 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [
-      "npm resolved zod 4.6.5 and marked 18.0.13, one patch newer than Dependabot's #543/#511 targets.",
-      "vitest 5.0.0 (#500) deliberately excluded."
-    ],
+    "warnings": [],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "b36c2ddf0fca56c7368b22f06e3df620df673277",
+    "verified_for_sha": "a22cecb8d684ca4668be9adbf2b0703b43d8c4e5",
     "last_verify": {
-      "at": "2026-09-17T17:12:44.920Z",
-      "branch": "chore/deps-2026-09-14",
+      "at": "2026-09-18T21:00:19.127Z",
+      "branch": "claude/release-2-0-3-production-a10510",
       "base": "origin/main@1dc86ad4d0affa58c276a3f8b7eb980e74c27a8c",
       "verdict": "PASS",
       "blocking_findings": []
@@ -369,32 +366,60 @@
       }
     },
     {
-      "id": "oc-repo-ops-pr549-ec7375248a2c",
+      "id": "oc-repo-ops-pr556-39b7ca78d9a7",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-09-17T17:12:44.920Z",
-      "verified_at": "2026-09-17T17:12:44.920Z",
+      "created_at": "2026-09-18T20:54:02.466Z",
+      "verified_at": "2026-09-18T20:54:02.466Z",
       "producer": {
         "skill": "oc-repo-ops",
-        "run_id": "pr549-deps-2026-09-14"
+        "run_id": "pr-556-2.0.3"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:ec7375248a2c18257fa099f38dac2a5f0cec45fab10bb2c45c8c0c4857c5e86a"
+        "id": "sha256:39b7ca78d9a7bed4626b9361a101d73477cce451e5b3309f787467a1662c2480"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "Consolidated deps branch merged with main 1dc86ad: root zod bump, site astro/markdown/playwright bumps, sync-bundles + sync-plugin-skills regenerated; merge conflicts only in the docs/repo evidence checkpoints (main's side kept). sync-bundles:check and sync-plugin-skills:check pass; pre-commit candidate verification (build + tests) passed on the merge; working tree clean.",
+        "scope": "PR #556 (v2.0.3): catalog validation, sync-bundles/sync-plugin-skills clean, check-release-surfaces.mjs all-agree, docs packet current, working tree clean.",
         "evidence": [
-          ".checkpoints/oc-docs-forge.checkpoint.json",
-          "package-lock.json",
-          "site/package-lock.json",
-          "scripts/runtime/prompt-engine.mjs",
-          "https://github.com/ainatx/opchain/pull/549"
+          "npm run gen-catalog",
+          "npm run sync-bundles:check",
+          "npm run sync-plugin-skills:check",
+          "node scripts/check-release-surfaces.mjs",
+          "https://github.com/ainatx/opchain/pull/556"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr556-4fe2f11c0b1d",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-18T21:00:19.127Z",
+      "verified_at": "2026-09-18T21:00:19.127Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-556-2.0.3-e2e-fix"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:4fe2f11c0b1da05378a5c1db7429aa357c2bde7bbe551bbc8d752dc1320256c4"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "PR #556 (v2.0.3), extended: e2e assertion fix reviewed, candidate verifier PASS, catalog/bundle/plugin-skills sync clean, release surfaces agree, docs packet current.",
+        "evidence": [
+          "npm run gen-catalog",
+          "npm run sync-bundles:check",
+          "npm run sync-plugin-skills:check",
+          "node scripts/check-release-surfaces.mjs",
+          "npx playwright test tests/e2e/changelog-and-scenarios.spec.ts -g \"three tabs\"",
+          "https://github.com/ainatx/opchain/pull/556"
         ]
       }
     }
   ],
-  "record_updated_at": "2026-09-17T17:12:44.920Z"
+  "record_updated_at": "2026-09-18T21:00:19.127Z"
 }
