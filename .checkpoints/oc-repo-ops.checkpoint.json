@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-18T21:00:19.127Z",
+  "updated_at": "2026-09-19T03:57:31.929Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-556-v2.0.3-e2e-fix",
-  "progress_summary": "PR #556 (v2.0.3) readiness gate PASS after fixing the changelog e2e hero-ver assertion; catalog/bundle/plugin-skills sync clean, release surfaces agree at v2.0, docs packet current, working tree clean.",
+  "step": "monitoring-baseline-v2.0.3",
+  "progress_summary": "Monitoring baseline PR (v2.0.3) readiness gate PASS: docs packet present, working tree clean, single-file JSON change validated.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -27,11 +27,11 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "a22cecb8d684ca4668be9adbf2b0703b43d8c4e5",
+    "verified_for_sha": "a5889be22932324320f940939a9b6c0d12621bac",
     "last_verify": {
-      "at": "2026-09-18T21:00:19.127Z",
-      "branch": "claude/release-2-0-3-production-a10510",
-      "base": "origin/main@1dc86ad4d0affa58c276a3f8b7eb980e74c27a8c",
+      "at": "2026-09-19T03:57:31.929Z",
+      "branch": "chore/v2.0.3-monitoring-baseline",
+      "base": "origin/main@8bad1a03048cc30428eb7a1f76b18bdd1b398f83",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -419,7 +419,31 @@
           "https://github.com/ainatx/opchain/pull/556"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-baseline-v2.0.3-03788c91db12",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-19T03:57:31.929Z",
+      "verified_at": "2026-09-19T03:57:31.929Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "baseline-v2.0.3"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:03788c91db129286bf03ed20017a4bc7ce0ef68e0ca7f7ea635e0fbbfd3a42d8"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Monitoring baseline PR (v2.0.3): single JSON file change, valid JSON, docs packet present, working tree clean.",
+        "evidence": [
+          ".github/monitoring/release-baseline.json",
+          "python3 -c \"import json; json.load(...)\": valid"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-18T21:00:19.127Z"
+  "record_updated_at": "2026-09-19T03:57:31.929Z"
 }
