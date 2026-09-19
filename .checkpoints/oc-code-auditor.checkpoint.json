@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-09-17T07:58:37.174Z",
+  "updated_at": "2026-09-19T01:26:33.419Z",
   "phase": "audit",
-  "step": "release-surface-rca-2026-09-17",
+  "step": "pre-deploy-v2.0.3",
   "status": "in_progress",
-  "progress_summary": "Focused quality/config audit of the 2.0.0 vs 2.0.2 release-surface split. Mechanical catalog/tag/seal/plugin lockstep is clean at 2.0.2. Five HIGH/MEDIUM honesty findings remain: L4 hero still pinned to v2.0.0, README/mirror/walkthroughs still advertise 2.0.0, architecture leftover planned/1.9.2 copy, skill pages still say v2.0 \\u00b7 next, oc-release-ops checkpoint still claimed v1.9.0. Historical OSS/portability findings remain separately open. Grade for this sweep: C+ (gates green, user-visible copy disagrees).",
+  "progress_summary": "Pre-deploy code-audit sweep for v2.0.3 (delta from v2.0.2: flags/registry.js description text, scripts/axe-comment.cjs e2e-comment gating, check-release-surfaces.mjs, site copy/changelog/styleguide/architecture surfaces, generated mcp-catalog.json). No shell exec, eval, or new external surface in the diff; axe-comment.cjs is filesystem-only. No new CRITICAL/HIGH introduced. The pre-existing 157-finding OSS/portability audit (14 critical/41 high) remains separately open and out of this bounded release's scope, consistent with how v2.0.1/v2.0.2 shipped.",
   "blockers": [],
   "next_actions": [
     "Release-surface honesty PR: extend changelog L4 hero to v2.0.0 \u2192 v2.0.2, rewrite README/mirror/skills README/walkthroughs off 2.0.0, architecture leftover planned/1.9.2 copy, skills/[id].astro v2.0 \u00b7 next \u2192 shipped, and probe .hero-ver in check-release-surfaces.mjs.",
@@ -507,6 +507,35 @@
           "site/src/pages/changelog.astro"
         ]
       }
+    },
+    {
+      "id": "oc-code-auditor-predeploy-203-4fe2f11c0b1d",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-19T01:26:33.419Z",
+      "verified_at": "2026-09-19T01:26:33.419Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-2.0.3"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:4fe2f11c0b1da05378a5c1db7429aa357c2bde7bbe551bbc8d752dc1320256c4"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "v2.0.3 release delta from v2.0.2 (PRs #407, #551, #553, #555, #556, #557): flag registry description text, Playwright e2e PR-comment gating, check-release-surfaces.mjs, site copy/changelog/styleguide/architecture surfaces, regenerated prompt-engine runtime bundle, regenerated mcp-catalog.json. No release-blocking CRITICAL or HIGH code finding.",
+        "evidence": [
+          "node scripts/verify-candidate.mjs run --json: PASS on tree c36264fc4b4d04cd50359a40ff32763e021a19a0",
+          "npm test: 93 files, 1253 tests passed",
+          "npx playwright test tests/e2e/changelog-and-scenarios.spec.ts -g \"three tabs\": PASS",
+          "manual review: scripts/axe-comment.cjs is filesystem-only (no exec/spawn/eval); no auth, routing, or Worker handler change in the diff"
+        ],
+        "accepted_residuals": [
+          "Historical OSS/portability findings (14 critical / 41 high) remain open outside this bounded v2.0.3 release audit, unchanged since v2.0.1/v2.0.2."
+        ]
+      }
     }
   ],
   "latest_pre_deploy": {
@@ -521,5 +550,5 @@
       "The v2.0.2 tag is intentionally absent; tag creation is outside this task."
     ]
   },
-  "record_updated_at": "2026-09-17T07:58:37.174Z"
+  "record_updated_at": "2026-09-19T01:26:33.419Z"
 }
