@@ -23,18 +23,18 @@
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.3.0",
-    "@astrojs/markdown-remark": "^7.3.0",
+    "@astrojs/markdown-remark": "^7.3.1",
     "@astrojs/sitemap": "^3.7.4",
-    "astro": "^7.3.1",
-    "dompurify": "^3.4.14",
-    "isomorphic-dompurify": "^4.1.0",
-    "marked": "^18.0.5"
+    "astro": "^7.3.2",
+    "dompurify": "^3.4.15",
+    "isomorphic-dompurify": "^4.2.0",
+    "marked": "^18.0.13"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
     "@axe-core/playwright": "^4.12.1",
     "@lhci/cli": "^0.15.1",
-    "@playwright/test": "^1.61.1",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.3.3",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.6.0"

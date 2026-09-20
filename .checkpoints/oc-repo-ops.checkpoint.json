@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-19T04:21:04.299Z",
+  "updated_at": "2026-09-20T05:57:31.002Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "codex/checkpoint-hygiene-contracts",
-  "progress_summary": "PR readiness gate PASS for PR #547 (oc-telemetry-ops checkpoint-hygiene exemption) on main fbd3dfd. Diff is the hook, the C3 test and the new audit doc. Docs packet present; candidate verification passed; working tree clean.",
+  "step": "chore/deps-2026-09-14",
+  "progress_summary": "PR readiness gate PASS for the consolidated deps PR #549 (supersedes #543, #544, #511, #502) at main 7167eeb. Docs packet present. Bundles, plugin copy and catalogs in sync; candidate verification passed; working tree clean.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -22,18 +22,19 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "The audit doc still describes #545 as open; accurate as a dated record of 2026-09-14."
+      "npm resolved zod 4.6.5 and marked 18.0.13, one patch newer than Dependabot's #543/#511 targets.",
+      "vitest 5.0.0 (#500) deliberately excluded."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "34314e8c7ced346ea4e707670f29a7b5c0201e93",
+    "verified_for_sha": "72a1e461716e0a4f4546eb0e0512ce599ac0bf34",
     "last_verify": {
-      "at": "2026-09-19T04:21:04.299Z",
-      "branch": "codex/checkpoint-hygiene-contracts",
-      "base": "origin/main@fbd3dfd81e47dcc4ee42ce1fbac32a78a13c07c3",
+      "at": "2026-09-20T05:57:31.002Z",
+      "branch": "chore/deps-2026-09-14",
+      "base": "origin/main@7167eebfe60c26f45367842ca44e8ea7962936fb",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -471,7 +472,34 @@
           "https://github.com/ainatx/opchain/pull/547"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr549-1b5870062b05",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-20T05:57:31.002Z",
+      "verified_at": "2026-09-20T05:57:31.002Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr549-deps-2026-09-14"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:1b5870062b058b5389cd758de5cfcdb24416674f79c5494644bd1435c4d1b6d2"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Consolidated deps branch merged with main 7167eeb: root zod bump, site astro/markdown/playwright bumps, sync-bundles + sync-plugin-skills regenerated; merge conflicts only in the docs/repo evidence checkpoints (main's side kept). sync-bundles:check and sync-plugin-skills:check pass; pre-commit candidate verification (build + tests) passed on the merge; working tree clean.",
+        "evidence": [
+          ".checkpoints/oc-docs-forge.checkpoint.json",
+          "package-lock.json",
+          "site/package-lock.json",
+          "scripts/runtime/prompt-engine.mjs",
+          "https://github.com/ainatx/opchain/pull/549"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-19T04:21:04.299Z"
+  "record_updated_at": "2026-09-20T05:57:31.002Z"
 }
