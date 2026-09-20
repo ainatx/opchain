@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-19T04:07:41.372Z",
+  "updated_at": "2026-09-19T04:21:04.299Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "chore/deps-2026-09-14",
-  "progress_summary": "PR readiness gate PASS for the consolidated deps PR #549 (supersedes #543, #544, #511, #502) at main 2c50154. Docs packet present. Bundles, plugin copy and catalogs in sync; candidate verification passed; working tree clean.",
+  "step": "codex/checkpoint-hygiene-contracts",
+  "progress_summary": "PR readiness gate PASS for PR #547 (oc-telemetry-ops checkpoint-hygiene exemption) on main fbd3dfd. Diff is the hook, the C3 test and the new audit doc. Docs packet present; candidate verification passed; working tree clean.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -22,19 +22,18 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "npm resolved zod 4.6.5 and marked 18.0.13, one patch newer than Dependabot's #543/#511 targets.",
-      "vitest 5.0.0 (#500) deliberately excluded."
+      "The audit doc still describes #545 as open; accurate as a dated record of 2026-09-14."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "319b223b099b5b1bb1a380e04305776fe77b1190",
+    "verified_for_sha": "34314e8c7ced346ea4e707670f29a7b5c0201e93",
     "last_verify": {
-      "at": "2026-09-19T04:07:41.372Z",
-      "branch": "chore/deps-2026-09-14",
-      "base": "origin/main@2c501547b93717bced3bd003bf533dc48cce3be4",
+      "at": "2026-09-19T04:21:04.299Z",
+      "branch": "codex/checkpoint-hygiene-contracts",
+      "base": "origin/main@fbd3dfd81e47dcc4ee42ce1fbac32a78a13c07c3",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -448,32 +447,31 @@
       }
     },
     {
-      "id": "oc-repo-ops-pr549-4d543bf06b8b",
+      "id": "oc-repo-ops-pr547-7b86360b27b5",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-09-19T04:07:41.372Z",
-      "verified_at": "2026-09-19T04:07:41.372Z",
+      "created_at": "2026-09-19T04:21:04.299Z",
+      "verified_at": "2026-09-19T04:21:04.299Z",
       "producer": {
         "skill": "oc-repo-ops",
-        "run_id": "pr549-deps-2026-09-14"
+        "run_id": "pr547-checkpoint-hygiene-telemetry"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:4d543bf06b8b696501a942486e5f110aa87214bbceb6e2ef3d99f7764df6be09"
+        "id": "sha256:7b86360b27b511f4c49c0a9f3107fdb4028cdbc2aaf6329bb1967d4d1daf1ece"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "Consolidated deps branch merged with main 2c50154: root zod bump, site astro/markdown/playwright bumps, sync-bundles + sync-plugin-skills regenerated; merge conflicts only in the docs/repo evidence checkpoints (main's side kept). sync-bundles:check and sync-plugin-skills:check pass; pre-commit candidate verification (build + tests) passed on the merge; working tree clean.",
+        "scope": "PR #547 rebuilt on main fbd3dfd: telemetry exemption commit replayed cleanly (the duplicated oc-update commit landed as #545; the old evidence commit c837a14 is not carried). Pre-commit candidate verification (build + tests) passed; working tree clean.",
         "evidence": [
           ".checkpoints/oc-docs-forge.checkpoint.json",
-          "package-lock.json",
-          "site/package-lock.json",
-          "scripts/runtime/prompt-engine.mjs",
-          "https://github.com/ainatx/opchain/pull/549"
+          ".claude/hooks/checkpoint-hygiene.sh",
+          "tests/audit-state/c3-current-run-hygiene.test.js",
+          "https://github.com/ainatx/opchain/pull/547"
         ]
       }
     }
   ],
-  "record_updated_at": "2026-09-19T04:07:41.372Z"
+  "record_updated_at": "2026-09-19T04:21:04.299Z"
 }
