@@ -64,4 +64,7 @@ describe('shared runtime consumer package',()=>{
     const result=run(['learning','status'],{OPCHAIN_TRUSTED_KEYS:trust});
     expect(result.status).toBe(1);expect(result.stderr).toContain('outside the consuming repository');
   });
-});
+// Every test builds and installs the full bundle before spawning CLIs: up to
+// 2.1s idle, past vitest's 5s default under load (commit-gate timeout on
+// 2026-09-17).
+},30_000);

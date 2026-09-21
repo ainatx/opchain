@@ -259,4 +259,6 @@ describe('source repository update', () => {
     expect(readlinkSync(join(root, first))).toBe(original);
     expect(files(root)).toEqual(before);
   });
-});
+// Every test copies scripts/ and spawns both source generators: 0.3-1s idle,
+// past vitest's 5s default under load (commit-gate timeouts on 2026-09-17).
+}, 30_000);
