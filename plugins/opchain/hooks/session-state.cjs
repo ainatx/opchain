@@ -40,6 +40,9 @@ const dir = path.join(root, ".checkpoints");
 
 // SessionStart is the first executable opchain entry point. Keep this stamp
 // first in stdout so every task begins with a local date, time, and IANA zone.
+// SessionStart also fires when a session is resumed or its context compacted;
+// that is the same task continuing, so it says "resumed", not "started".
+const stampVerb = input.source === "resume" || input.source === "compact" ? "resumed" : "started";
 const startedAt = new Date();
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
 const localStamp = new Intl.DateTimeFormat("en-US", {
@@ -47,7 +50,7 @@ const localStamp = new Intl.DateTimeFormat("en-US", {
   hour: "2-digit", minute: "2-digit", second: "2-digit",
   hour12: false, timeZone, timeZoneName: "short",
 }).format(startedAt);
-process.stdout.write(`Task started: ${localStamp} (${timeZone})\n`);
+process.stdout.write(`Task ${stampVerb}: ${localStamp} (${timeZone})\n`);
 
 function recordUpdatedAt(d) {
   return d.record_updated_at || d.updated_at || "";

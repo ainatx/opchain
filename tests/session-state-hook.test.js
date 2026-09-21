@@ -61,3 +61,32 @@ describe("session-state hook", () => {
     expect(out).toContain("next: oc-b-working: keep building");
   });
 });
+
+// 2.0.1 promised every task begins with a stamp; the 2.0.3 audit found that
+// resume and compact re-stamped the same task as a fresh start.
+describe("session-state task stamp", () => {
+  function stamp(source, { checkpoints = true } = {}) {
+    const root = mkdtempSync(join(tmpdir(), "oc-ss-"));
+    scratch.push(root);
+    spawnSync("git", ["init", "-q"], { cwd: root });
+    if (checkpoints) mkdirSync(join(root, ".checkpoints"));
+    const r = spawnSync("node", [HOOK], {
+      input: JSON.stringify({ cwd: root, source }), encoding: "utf8",
+      env: { ...process.env, TZ: "America/Chicago" },
+    });
+    return r.stdout.split("\n")[0];
+  }
+  const at = String.raw`\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2}:\d{2} [A-Z]{2,5} \(America\/Chicago\)`;
+
+  it.each(["startup", "clear", undefined])("starts the task on source=%s", (source) => {
+    expect(stamp(source)).toMatch(new RegExp(`^Task started: ${at}$`));
+  });
+
+  it.each(["resume", "compact"])("resumes, not restarts, the task on source=%s", (source) => {
+    expect(stamp(source)).toMatch(new RegExp(`^Task resumed: ${at}$`));
+  });
+
+  it("stamps a repo with no .checkpoints/ too", () => {
+    expect(stamp("startup", { checkpoints: false })).toMatch(new RegExp(`^Task started: ${at}$`));
+  });
+});
