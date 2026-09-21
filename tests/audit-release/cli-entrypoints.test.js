@@ -115,5 +115,7 @@ describe.each(["checkout", "release candidate #1%"])("release CLI in %s", (name)
     const gate = cli("scripts/lib/release-evidence.mjs", "--stage", "deploy", "--json");
     expect(gate.status, gate.stdout).toBe(1);
     expect(JSON.parse(gate.stderr)).toMatchObject({ ok: false, verdict: "FAIL" });
-  });
+  // Two CLI spawns that hash the candidate tree take 5-9s on a loaded machine;
+  // at vitest's 5s default this flaked the commit gate's tests check.
+  }, 30000);
 });
