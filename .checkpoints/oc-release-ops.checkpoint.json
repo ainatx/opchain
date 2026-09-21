@@ -3,7 +3,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-21T13:40:12.666Z",
+  "updated_at": "2026-09-21T14:29:37.462Z",
   "skill": "oc-release-ops",
   "phase": "shipped",
   "step": "v2.0.3-shipped",
@@ -80,12 +80,8 @@
   "blockers": [],
   "next_actions": [
     {
-      "text": "Record the 2026-09-21 scheduled Canary and Deploy lag results against the #559 baseline. If Deploy lag flags #547/#549 (plugins/, skills/, site/, package-lock after 8bad1a0), deploy from main or record them, then reconcile #554.",
-      "done_when": "Canary and Deploy lag both green on the current baseline, or #554 updated with the reason"
-    },
-    {
-      "text": "/oc-release plan for the 2026-09-21 audit remediation (task-end stamp everywhere, Task resumed on resume/compact, five new release-surface probes, one-PR patch flow in the oc-release-ops docs).",
-      "done_when": "a release PR carrying the remediation is merged and tagged"
+      "text": "/oc-release for 2.0.4 once the audit-remediation PR merges: bump, [Unreleased] → [2.0.4], patch site surfaces in the same PR, tag, deploy. The deploy also clears #554 (25 deploy-relevant paths from #547/#549).",
+      "done_when": "v2.0.4 tagged, deployed, re-baselined, and #554 closed"
     }
   ],
   "pm_refs": [
@@ -210,7 +206,12 @@
       "baseline_pr": 559,
       "baseline_merge_sha": "2c501547b93717bced3bd003bf533dc48cce3be4",
       "runtime_sha": "8bad1a03048cc30428eb7a1f76b18bdd1b398f83",
-      "continuous_status": "unverified: no Canary or Deploy lag run since the #559 refresh; last scheduled runs (2026-09-17, pre-refresh) failed and #554 is open. Next scheduled runs 2026-09-21 13:47 / 14:17 UTC."
+      "continuous_status": "verified 2026-09-21: Canary green against the #559 baseline (production matches). Deploy lag green but reports 25 deploy-relevant paths on main after runtime 8bad1a0 (#547, #549 undeployed); #554 stays open until the next deploy.",
+      "canary_run_id": 35608459499,
+      "canary_conclusion": "success",
+      "deploy_lag_run_id": 35612180894,
+      "deploy_lag_conclusion": "success",
+      "deploy_relevant_paths": 25
     },
     "post_release_drift": {
       "detected_at": "2026-09-11T03:45:00Z",
@@ -280,5 +281,5 @@
       "verdict": "shipped code executes as described where it runs; 8 findings, remediation in the working tree"
     }
   },
-  "record_updated_at": "2026-09-21T13:40:12.666Z"
+  "record_updated_at": "2026-09-21T14:29:37.462Z"
 }
