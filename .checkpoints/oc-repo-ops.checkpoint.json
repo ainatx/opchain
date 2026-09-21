@@ -3,7 +3,7 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-21T19:55:27.676Z",
+  "updated_at": "2026-09-21T20:02:42.939Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
@@ -30,9 +30,9 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "f2fbad15bb110aa4f95f171a7f90ec5a37672a31",
+    "verified_for_sha": "0d6376add6eda6e1927044e58ac4b0b889886233",
     "last_verify": {
-      "at": "2026-09-21T19:55:27.676Z",
+      "at": "2026-09-21T20:02:42.939Z",
       "branch": "claude/release-v2.0.4",
       "base": "origin/main@74d4184",
       "verdict": "PASS",
@@ -578,8 +578,34 @@
           "scripts/check-release-surfaces.mjs"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-rel204-0c49492783d3",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-21T20:02:42.939Z",
+      "verified_at": "2026-09-21T20:02:42.939Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "release-v2.0.4-2026-09-21-remerge"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:0c49492783d3c3fb808f75b538506f4e08e4fda7132d58bc593b2ccc95b8a91b"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "gen-catalog, gen-mcp-catalog (no drift), sync-bundles:check, sync-plugin-skills:check, check-skill-contracts, check-release-surfaces (2.0.4), lint-internal-refs, git diff --check, checkpoint:validate, no untracked files. Re-bound after merging origin/main #565 (test-fixture timeouts only; no docs or catalog surface changed).",
+        "evidence": [
+          "skills/README.md",
+          "src/generated/mcp-catalog.json",
+          "release-seal.json",
+          "scripts/check-release-surfaces.mjs"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-21T19:55:27.676Z",
+  "record_updated_at": "2026-09-21T20:02:42.939Z",
   "blockers": []
 }
