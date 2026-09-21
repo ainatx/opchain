@@ -1604,6 +1604,9 @@ const plannedReleaseGroups = [
     color: var(--muted);
   }
   .compat-box strong { color: var(--success); }
+  /* Muted body text next to accent links fails axe link-in-text-block on
+     colour alone; the underline carries the distinction. */
+  .compat-box a { text-decoration: underline; text-underline-offset: 2px; }
   .planned-box {
     margin-top: 0.85rem;
     padding: 0.6rem 0.85rem;
