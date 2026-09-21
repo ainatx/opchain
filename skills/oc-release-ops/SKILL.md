@@ -97,8 +97,8 @@ RELEASE TRIGGER
         ▼
 ┌───────────────┐  rewrites every skills/<id>/SKILL.md `version:` field +
 │   /oc-release    │  the release-coupled site surfaces (release bar, header
-│   bump        │  chip, badges) — one atomic change for a minor; a
-│               │  patch's site rows follow the tag in a site PR.
+│   bump        │  chip, badges) — one atomic change, before the tag,
+│               │  for a minor or a patch.
 └───────┬───────┘
         │
         ▼
@@ -183,8 +183,8 @@ tab (forward surface F2). For a minor release, the release PR (before the tag)
 turns it into the open `hero-card hero-card--released is-open` card with
 `<span class="hero-ver">vN.N.0 · shipped <Mon DD, YYYY></span>`, and the heroes
 age per the five-hero rule (live-claim surface L4). A patch release does not get
-its own hero: after the tag, its site PR extends the open hero's version/date
-range and adds a compact `<article class="rel-card">`.
+its own hero: its release PR, also before the tag, extends the open hero's
+version/date range and adds a compact `<article class="rel-card">`.
 
 ### Validation
 
@@ -217,25 +217,28 @@ Atomic version bump across the catalog.
 - The release-coupled site surfaces in `references/version-locations.md` and
   `references/site-release-surfaces.md`, on a schedule set by the release type.
   `check-release-surfaces.mjs` (CI) requires the site's live-claim line to match
-  the newest `skills/CHANGELOG.md` heading at major.minor level:
+  the newest `skills/CHANGELOG.md` heading at major.minor level, and the
+  full-semver claims (open hero-ver, README, mirror README, plugin README,
+  styleguide badge) to match it exactly:
   - **Minor:** the bump PR also flips every probed live-claim surface (header
     chip, release bar, stat chip, open hero + aging, Skill Library callout,
     styleguide badge, architecture labels) and recounts the tab, before the tag.
     A PR that adds the heading without them fails CI. Tag and deploy in the same
     sitting; v1.9.0's #476 sat a day before the tag landed on #477.
-  - **Patch:** the bump is a product-only PR (the major.minor line does not
-    change). After the tag, a site PR carries the patch-only surfaces: the open
-    hero's range + a patch `rel-card`, the tab recount, and the styleguide
-    badge's full patch version.
+  - **Patch:** the major.minor line does not change, but the full-semver claims
+    do, so the bump PR carries the patch-only surfaces too: the open hero's
+    range + a patch `rel-card`, the tab recount, the styleguide badge's full
+    patch version, and the three README leading lines. A product-only patch PR
+    fails CI. v2.0.3's #556 is the shape; the site PR that used to follow the
+    tag is gone.
 
 ### Atomicity
 
 For a minor release the bump is one git commit (or a single file write batch in
 a Claude Code session). Partial bumps leave the catalog in a state where
 `scripts/gen-skills-catalog.mjs` may still validate but the homepage and
-styleguide disagree on version — confusing to readers. For a patch, the styleguide
-and changelog range lagging the catalog between the tag and the site PR is
-intended, not a partial bump. Always run
+styleguide disagree on version — confusing to readers. A patch is the same: one
+PR, and `check-release-surfaces.mjs` fails any surface left behind. Always run
 `/oc-release bump` end-to-end; if it fails midway, revert and retry.
 
 ### What is NOT bumped
@@ -290,9 +293,9 @@ End-of-pipeline handoff.
 
 ### Sequence
 
-1. For a minor release, confirm the release PR flips the live-claim site surfaces
-   (`references/site-release-surfaces.md`, Minor column, L1–L10) alongside the
-   bump; a patch's release PR is product-only. Then run `/oc-release verify` — the pre-tag rows of the gate. Hard-blocks on any
+1. Confirm the release PR carries the live-claim site surfaces alongside the
+   bump (`references/site-release-surfaces.md`: the Minor column, L1–L10, for a
+   minor; the Patch column for a patch). Then run `/oc-release verify` — the pre-tag rows of the gate. Hard-blocks on any
    failure. (The tag row cannot pass yet: the tag is created in step 3.)
 2. Invoke `oc-docs-forge` for the release docs packet:
    - Run `/oc-docs pr` so the release PR carries its `## Documentation` section,
@@ -316,9 +319,6 @@ End-of-pipeline handoff.
      skipping this step blocks the deploy rather than silently shipping.
    - Then run the post-tag phase: `npm run release-sequence -- --stage post-tag`.
      It runs `node scripts/check-release-tag.mjs`; it must exit 0.
-   - **Patch only:** open and merge the site PR (Patch column of
-     `references/site-release-surfaces.md`: L4 range + `rel-card`, L5 recount, L7
-     full version) through the same pre-PR gate, before deploying.
 4. Hand off to `oc-deploy-ops` — always after the tag:
    - Invoke oc-deploy-ops.
    - Run `/oc-deploy staging` first; user eyeballs.
@@ -344,7 +344,7 @@ aborts on the first failure (rows marked warn-class report and continue).
 | Flag registry mirror is current | pre-tag | `npm run gen-flags` |
 | Tests pass | pre-tag | `npm test` |
 | Site builds | pre-tag | `npm run site:build` |
-| Live-claim site surfaces (changelog Just-Released hero, header chip, release bar, stat chip, Skill Library callout, styleguide badge, architecture labels) agree on one release line, at minor level (`v1.9`), with the newest `skills/CHANGELOG.md` entry | pre-tag | `node scripts/check-release-surfaces.mjs` |
+| Live-claim site surfaces (changelog Just-Released hero, header chip, release bar, stat chip, Skill Library callout, styleguide badge, architecture labels) agree on one release line, at minor level (`v1.9`), with the newest `skills/CHANGELOG.md` entry; the full-semver claims (hero-ver, README, mirror README, plugin README, styleguide badge) equal it exactly; the skill-page loop tag never calls a shipped release `next` | pre-tag | `node scripts/check-release-surfaces.mjs` |
 | Release-PR docs packet current | pre-tag | oc-docs-forge `/oc-docs verify` — checkpoint `verified_for_sha` matches HEAD, PR body fragment has `## Documentation` |
 | Repo is PR-ready | pre-tag | oc-repo-ops `/oc-repo verify` — verdict PASS |
 | All skill versions match the release version | pre-tag | `node scripts/check-release-tag.mjs --json` — `version` must equal `<semver>` and `reason` must be exactly `missing-tag` (any other reason means the bump or seal is incomplete) |

@@ -17,7 +17,7 @@ in `site/src/pages/changelog.astro`: `hero-card--next` while it is being built
 release, and a collapsed `hero-card--released` after that until it ages out to a
 compact `<article class="rel-card">` (the five-hero window in
 `site-release-surfaces.md` L4). Patches get a `rel-card` of their own and extend
-the open hero's version/date range, in the site PR that follows the patch tag. Inside a hero, in order:
+the open hero's version/date range, in the patch's release PR before the tag. Inside a hero, in order:
 
 1. `<button class="hero-head">` — `hero-badge` ("latest release" / "previous
    release"), `hero-ver` (`vN.N.N · shipped <Mon DD, YYYY>`), `hero-title`, and

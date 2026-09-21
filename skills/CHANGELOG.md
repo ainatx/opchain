@@ -13,7 +13,31 @@ checkpoint `protocol_version` is tracked separately (see
 
 ## [Unreleased]
 
-_Nothing yet._
+Fixes from the 2026-09-21 feature-execution audit of 2.0.1–2.0.3
+(`docs/audits/2026-09-21-v2.0.3-feature-execution-audit.md`), which ran the
+shipped hooks and gates in real Claude Code sessions.
+
+### Fixed
+
+- **Task lifecycle stamps.** `Task ended:` now prints in every repository, not
+  only ones with `.checkpoints/`: the start stamp always printed, so a new
+  repository saw tasks begin and never end. A resumed or compacted session now
+  prints `Task resumed:` instead of a second `Task started:`. Stop still fires
+  after every reply; the last `Task ended:` is the task's end.
+- **Release-surface gate.** `check-release-surfaces.mjs` now probes the mirror
+  README, plugin README and styleguide badge at full semver, and fails the
+  skill-page loop tag if it calls a shipped release `next`. The 2.0.3 entry
+  said these were gated; three of them were not.
+- **Patch releases are one PR.** oc-release-ops and `RELEASING.md` described a
+  product-only patch PR followed by a site PR after the tag, but the 2.0.3 gate
+  fails a product-only patch PR. The docs now describe what #556 did: the patch
+  release PR carries its site surfaces.
+- **`skills.coverage` copy.** The registry header, `/flag` table, CLAUDE.md and
+  `/architecture` now describe the per-pack flags as reserved; nothing reads them.
+
+### Compatibility
+
+Back-compatible with v2.0; no migration required.
 
 ## [2.0.3] — 2026-09-18 — "Release-surface honesty and CI signal cleanup"
 

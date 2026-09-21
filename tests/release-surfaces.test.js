@@ -95,3 +95,58 @@ describe("open-hero hero-ver tracks the catalog patch", () => {
     }
   });
 });
+
+// The 2.0.3 changelog said the mirror README, plugin README and skill-page chip
+// were gated; the 2.0.3 feature-execution audit found each could go stale with
+// CI green. Each mutation below must now fail, and only on its own probe.
+describe("surfaces the 2.0.3 changelog named are gated", () => {
+  async function mutated(file, edit) {
+    const { mkdtempSync, mkdirSync, copyFileSync, readFileSync, writeFileSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join, dirname } = await import("node:path");
+    const root = mkdtempSync(join(tmpdir(), "opchain-release-surfaces-"));
+    const files = new Set(checkReleaseSurfaces().results.map((r) => r.file));
+    files.delete("skills/*/SKILL.md");
+    files.add("skills/oc-update/SKILL.md");
+    for (const f of files) {
+      mkdirSync(dirname(join(root, f)), { recursive: true });
+      copyFileSync(f, join(root, f));
+    }
+    const target = join(root, file);
+    const before = readFileSync(target, "utf8");
+    const after = edit(before);
+    expect(after, `mutation for ${file} did not apply`).not.toBe(before);
+    writeFileSync(target, after);
+    return root;
+  }
+
+  const line = checkReleaseSurfaces().expected; // e.g. "v2.0"
+  it.each([
+    ["mirror README leading version", "mirror/README.md", (t) => t.replace(/^> Opchain \d+\.\d+\.\d+ ·/m, "> Opchain 0.0.1 ·")],
+    ["plugin README leading version", "plugins/opchain/README.md", (t) => t.replace(/^> \*\*Opchain \d+\.\d+\.\d+\.\*\*/m, "> **Opchain 0.0.1.**")],
+    ["styleguide version Badge (full)", "site/src/pages/styleguide.astro", (t) => t.replace(/(<Badge[^>]*>)v\d+\.\d+\.\d+(<\/Badge>)/, `$1${line}.99$2`)],
+    ["skill-page loop tag", "site/src/pages/skills/[id].astro", (t) => t.replace(/(<span class="inloop-tag">v\d+\.\d+) · shipped/, "$1 · next")],
+    ["skill-page loop tag", "site/src/pages/skills/[id].astro", (t) => t.replace(/<span class="inloop-tag">v\d+\.\d+ · shipped/, '<span class="inloop-tag">v99.0 · shipped')],
+  ])("fails when the %s lags (%s)", async (label, file, edit) => {
+    const { rmSync } = await import("node:fs");
+    const root = await mutated(file, edit);
+    try {
+      const report = checkReleaseSurfaces({ root });
+      expect(report.ok).toBe(false);
+      expect(report.errors.every((error) => error.startsWith(label))).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("lets the skill-page loop tag trail the release line", async () => {
+    const { rmSync } = await import("node:fs");
+    const root = await mutated("site/src/pages/skills/[id].astro", (t) =>
+      t.replace(/<span class="inloop-tag">v\d+\.\d+ · shipped/, '<span class="inloop-tag">v1.0 · shipped'));
+    try {
+      expect(checkReleaseSurfaces({ root }).errors).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
