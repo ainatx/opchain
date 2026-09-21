@@ -527,6 +527,33 @@
       }
     },
     {
+      "id": "oc-repo-ops-gateflake-e03b701760ea",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-21T15:09:40.418Z",
+      "verified_at": "2026-09-21T15:09:40.418Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "gate-flaky-timeouts-2026-09-21"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:e03b701760eab5f7fc073a1f62b28eae035feec0674abdb236865c62ba7c83c1"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Branch claude/wonderful-ellis-4d4a56 rebased on main 8d6ba25: four tests/ files gain explicit 30s vitest timeouts; assertions unchanged. Pre-commit candidate verification passed on the rebased tree; docs packet present and current; sync-plugin-skills:check, sync-bundles:check, check-skill-contracts, lint-internal-refs and checkpoint:validate clean; working tree clean apart from gate checkpoints.",
+        "evidence": [
+          ".checkpoints/oc-docs-forge.checkpoint.json",
+          "tests/audit-state/c3-current-run-hygiene.test.js",
+          "tests/update-bundle.test.js",
+          "tests/shared-runtime-artifact.test.js",
+          "tests/source-update.test.js"
+        ]
+      }
+    },
+    {
       "id": "oc-repo-ops-rel204-d40c91ae695f",
       "contract_version": "1.0",
       "type": "verification.verdict",

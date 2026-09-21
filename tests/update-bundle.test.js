@@ -54,7 +54,9 @@ describe('complete release artifact', () => {
     expect(spawnSync(process.execPath, [join(skillRoot, 'oc-checkpoint-protocol/scripts/checkpoint.mjs'), 'list'], { cwd: consumer }).status).toBe(0);
     expect(spawnSync(process.execPath, [join(skillRoot, 'oc-update/scripts/update.mjs'), '--help'], { cwd: consumer }).status).toBe(0);
     expect((await installBundle(fetched, { root: consumer })).changed).toBe(0);
-  });
+  // Two full installs plus three CLI spawns: ~0.6s idle, past vitest's 5s
+  // default under load (commit-gate timeout on 2026-09-17).
+  }, 30_000);
 
   it('executes the distributed updater CLI with an offline first-party transport', () => {
     const consumer = join(temp, 'cli-consumer');
@@ -99,7 +101,9 @@ describe('complete release artifact', () => {
     const aliased = spawnSync(process.execPath, [join(alias, 'update.mjs'), '--help'], { cwd: consumer, encoding: 'utf8' });
     expect(aliased.status, aliased.stderr).toBe(0);
     expect(aliased.stdout).toContain('opchain update');
-  });
+  // Seven updater CLI spawns take ~1.3s idle but 5.7s on a loaded machine; at
+  // vitest's 5s default this flaked the commit gate's tests check.
+  }, 30_000);
 });
 
 describe('bootstrap execution', () => {
