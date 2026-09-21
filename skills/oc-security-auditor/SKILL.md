@@ -1,7 +1,7 @@
 ---
 name: oc-security-auditor
 displayName: OC · Security Auditor
-version: 2.0.3
+version: 2.0.4
 license: Apache-2.0
 shortDesc: Threat modeling, OWASP hardening, attack-surface review. v1.2 files CRITICAL findings as PM incident tickets.
 phases: [build]

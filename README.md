@@ -1,6 +1,6 @@
 # opchain
 
-> **Opchain 2.0.3.** Released September 14–18, 2026. Includes the verified 1.9.2 repairs, shared runtime, updater, Hindsight and Evolve, plus the 2.0.3 release-surface honesty and CI signal cleanup. See the [changelog](https://opchain.dev/changelog#v2-0) and the [2.0.0 release record](docs/releases/2.0-production-release.md).
+> **Opchain 2.0.4.** Released September 14–21, 2026. Includes the verified 1.9.2 repairs, shared runtime, updater, Hindsight and Evolve, plus the 2.0.3 release-surface cleanup and the 2.0.4 bug fixes. See the [changelog](https://opchain.dev/changelog#v2-0) and the [2.0.0 release record](docs/releases/2.0-production-release.md).
 
 > skills that ship.
 

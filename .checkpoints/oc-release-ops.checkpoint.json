@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-21T14:29:37.462Z",
+  "updated_at": "2026-09-21T19:53:16.550Z",
   "skill": "oc-release-ops",
-  "phase": "shipped",
-  "step": "v2.0.3-shipped",
-  "status": "complete",
-  "progress_summary": "v2.0.3 shipped: release PR #556 squash-merged at da202a0, signed tag v2.0.3 (publisher run 35395392686, MCP registry 2.0.3 isLatest), deployed as 8bad1a0 to staging and production on 2026-09-19 and re-baselined in #559. This close-out was missed at ship time and written by the 2026-09-21 feature-execution audit (docs/audits/2026-09-21-v2.0.3-feature-execution-audit.md), which also found the hook stamps, release-surface gate and patch-flow docs narrower than the 2.0.1–2.0.3 changelog; those fixes are staged for the next release.",
+  "phase": "ship",
+  "step": "v2.0.4-bump-applied",
+  "status": "in_progress",
+  "progress_summary": "v2.0.4 'Bug fixes' (patch) bump applied on claude/release-v2.0.4 at fa03a1e: 36 skills, seal, manifests, scan-exception digests and the patch site surfaces in one PR. check-release-tag reports exactly missing-tag; release-sequence pre-merge 10/11 (Lighthouse blocked locally by a port conflict, covered by CI). Linear release ticket deferred (connector not authenticated). Next: release PR, owner squash-merge, owner-signed tag, staging, then wait for the owner before production.",
   "progress_table": [
     {
       "id": "scope",
@@ -71,7 +71,8 @@
       ".opchain/qa.yaml",
       ".opchain/hardening.yaml",
       "release-seal.json",
-      "releases/v1.9.0/announcement-internal.md"
+      "releases/v1.9.0/announcement-internal.md",
+      "releases/v2.0.4/announcement-internal.md"
     ],
     "user_preferences": [
       "Complete the production push and v1.9 release sign-off autonomously."
@@ -80,8 +81,16 @@
   "blockers": [],
   "next_actions": [
     {
-      "text": "/oc-release for 2.0.4 once the audit-remediation PR merges: bump, [Unreleased] → [2.0.4], patch site surfaces in the same PR, tag, deploy. The deploy also clears #554 (25 deploy-relevant paths from #547/#549).",
-      "done_when": "v2.0.4 tagged, deployed, re-baselined, and #554 closed"
+      "text": "Open and merge the v2.0.4 release PR (owner squash-merge), then from origin/main run npm run release-sequence -- --stage pre-tag --version 2.0.4.",
+      "done_when": "release PR merged; pre-tag stage PASS"
+    },
+    {
+      "text": "Owner signs and pushes v2.0.4 (git tag -s), then npm run release-sequence -- --stage post-tag; then npm run deploy:staging and wait for the owner's staging review before production.",
+      "done_when": "check-release-tag exits 0 and staging serves the tagged SHA"
+    },
+    {
+      "text": "Flush the deferred Linear release ticket with /oc-release announce --retry-pm once the Linear connector is authorized.",
+      "done_when": "release ticket exists with the v2.0.4 marker"
     }
   ],
   "pm_refs": [
@@ -108,77 +117,105 @@
   ],
   "skill_state": {
     "current_release": {
-      "semver": "2.0.3",
-      "theme": "Release-surface honesty and CI signal cleanup",
-      "phase": "shipped",
-      "started_at": "2026-09-17",
-      "shipped_at": "2026-09-19T04:05:48Z"
+      "semver": "2.0.4",
+      "theme": "Bug fixes",
+      "phase": "bump-applied",
+      "started_at": "2026-09-21",
+      "shipped_at": null
     },
     "prior_release": {
-      "semver": "2.0.2",
-      "tag": "v2.0.2",
-      "source_sha": "d4f926b7d994155a64f9d3ef78f0007a8b0d2b94",
-      "shipped_at": "2026-09-14T22:12:39-05:00"
+      "semver": "2.0.3",
+      "tag": "v2.0.3",
+      "source_sha": "da202a0f9e9e4ffa836ee1b52e547e98937f9313",
+      "shipped_at": "2026-09-19T04:05:48Z",
+      "evidence": {
+        "release_pr": {
+          "number": 556,
+          "url": "https://github.com/ainatx/opchain/pull/556",
+          "merge_sha": "da202a0f9e9e4ffa836ee1b52e547e98937f9313",
+          "merged_at": "2026-09-18T21:09:12Z",
+          "required_checks": "PASS"
+        },
+        "tag": {
+          "name": "v2.0.3",
+          "local": true,
+          "origin": true,
+          "tag_object": "d41e72f09776e6e789b2feea146ff048f6ecaf4a",
+          "peeled_commit": "da202a0f9e9e4ffa836ee1b52e547e98937f9313"
+        },
+        "publisher": {
+          "tag_run": "PASS",
+          "tag_run_id": 35395392686,
+          "tag_run_url": "https://github.com/ainatx/opchain/actions/runs/35395392686",
+          "registry_status": "active-and-latest-exact (2.0.3 isLatest, checked 2026-09-21)",
+          "server_name": "io.github.asfbay-bit/opchain-skills"
+        },
+        "staging": {
+          "status": "verified",
+          "url": "https://staging.opchain.dev",
+          "deployment_id": "90333475-b077-47f4-9fc4-58fb4c007a34",
+          "version_id": "25f1598a-03f7-4043-84ef-36c329d3682d",
+          "health_version": "8bad1a0",
+          "traffic_percent": 100,
+          "hardening_replay": "PASS"
+        },
+        "production": {
+          "status": "verified",
+          "url": "https://opchain.dev",
+          "deployment_id": "b2647a50-6ce8-4087-b025-5628ea8dafe5",
+          "version_id": "9454e2ce-ea53-4753-a531-9b8c8750439d",
+          "health_version": "8bad1a0",
+          "traffic_percent": 100,
+          "hardening_replay": "PASS",
+          "rollback_used": false
+        },
+        "monitoring": {
+          "baseline_pr": 559,
+          "baseline_merge_sha": "2c501547b93717bced3bd003bf533dc48cce3be4",
+          "runtime_sha": "8bad1a03048cc30428eb7a1f76b18bdd1b398f83",
+          "continuous_status": "verified 2026-09-21: Canary green against the #559 baseline (production matches). Deploy lag green but reports 25 deploy-relevant paths on main after runtime 8bad1a0 (#547, #549 undeployed); #554 stays open until the next deploy.",
+          "canary_run_id": 35608459499,
+          "canary_conclusion": "success",
+          "deploy_lag_run_id": 35612180894,
+          "deploy_lag_conclusion": "success",
+          "deploy_relevant_paths": 25
+        }
+      }
     },
     "catalog": {
-      "version": "2.0.3",
+      "version": "2.0.4",
       "skills": 36,
       "previous_skills": 36
     },
     "pre_merge": {
-      "verdict": "PASS",
-      "workflow_steps": 11,
-      "warnings": 0,
-      "skipped": 0,
-      "failed": 0,
-      "unit_tests": "43 files; 579 tests passed",
-      "independent_review": "SHIP"
+      "verdict": "PASS (10/11)",
+      "ran_at": "2026-09-21T19:53:16.550Z",
+      "warnings": [
+        "lighthouse-budgets could not run locally: port 4321 held by the owner's long-running astro dev (~/IdeaProjects/opchain); the PR's LHCI job covers it"
+      ],
+      "failed": []
     },
     "release_seal": {
       "schema_version": 1,
-      "catalog_version": "1.9.0",
+      "catalog_version": "2.0.4",
       "generation": 1,
-      "verified_for_sha": "244bf13e9b4e0abbca5a3d8cb8dfdb811d0b1248"
+      "verified_for_sha": "fa03a1e"
     },
     "release_pr": {
-      "number": 556,
-      "url": "https://github.com/ainatx/opchain/pull/556",
-      "merge_sha": "da202a0f9e9e4ffa836ee1b52e547e98937f9313",
-      "merged_at": "2026-09-18T21:09:12Z",
-      "required_checks": "PASS"
+      "status": "pending"
     },
     "tag": {
-      "name": "v2.0.3",
-      "local": true,
-      "origin": true,
-      "tag_object": "d41e72f09776e6e789b2feea146ff048f6ecaf4a",
-      "peeled_commit": "da202a0f9e9e4ffa836ee1b52e547e98937f9313"
+      "name": "v2.0.4",
+      "status": "pending — owner signs after the release PR merges"
     },
     "publisher": {
-      "tag_run": "PASS",
-      "tag_run_id": 35395392686,
-      "tag_run_url": "https://github.com/ainatx/opchain/actions/runs/35395392686",
-      "registry_status": "active-and-latest-exact (2.0.3 isLatest, checked 2026-09-21)",
-      "server_name": "io.github.asfbay-bit/opchain-skills"
+      "status": "pending"
     },
     "staging": {
-      "status": "verified",
-      "url": "https://staging.opchain.dev",
-      "deployment_id": "90333475-b077-47f4-9fc4-58fb4c007a34",
-      "version_id": "25f1598a-03f7-4043-84ef-36c329d3682d",
-      "health_version": "8bad1a0",
-      "traffic_percent": 100,
-      "hardening_replay": "PASS"
+      "status": "pending"
     },
     "production": {
-      "status": "verified",
-      "url": "https://opchain.dev",
-      "deployment_id": "b2647a50-6ce8-4087-b025-5628ea8dafe5",
-      "version_id": "9454e2ce-ea53-4753-a531-9b8c8750439d",
-      "health_version": "8bad1a0",
-      "traffic_percent": 100,
-      "hardening_replay": "PASS",
-      "rollback_used": false
+      "status": "pending"
     },
     "retention": {
       "legacy_checkpoint_count": 16,
@@ -203,15 +240,8 @@
       "label": "roadmap:shipped"
     },
     "monitoring": {
-      "baseline_pr": 559,
-      "baseline_merge_sha": "2c501547b93717bced3bd003bf533dc48cce3be4",
-      "runtime_sha": "8bad1a03048cc30428eb7a1f76b18bdd1b398f83",
-      "continuous_status": "verified 2026-09-21: Canary green against the #559 baseline (production matches). Deploy lag green but reports 25 deploy-relevant paths on main after runtime 8bad1a0 (#547, #549 undeployed); #554 stays open until the next deploy.",
-      "canary_run_id": 35608459499,
-      "canary_conclusion": "success",
-      "deploy_lag_run_id": 35612180894,
-      "deploy_lag_conclusion": "success",
-      "deploy_relevant_paths": 25
+      "baseline_pr": null,
+      "continuous_status": "pending: re-baseline after the 2.0.4 deploy; #554 (25 deploy-relevant paths) closes with it"
     },
     "post_release_drift": {
       "detected_at": "2026-09-11T03:45:00Z",
@@ -274,12 +304,27 @@
         "check-release-tag": "PASS 2.0.2 tagged"
       },
       "prod_health": "d4f926b"
-    },
-    "closeout_audit": {
-      "path": "docs/audits/2026-09-21-v2.0.3-feature-execution-audit.md",
-      "ran_at": "2026-09-21T13:40:12.666Z",
-      "verdict": "shipped code executes as described where it runs; 8 findings, remediation in the working tree"
     }
   },
-  "record_updated_at": "2026-09-21T14:29:37.462Z"
+  "record_updated_at": "2026-09-21T19:53:16.550Z",
+  "pm_deferred_actions": [
+    {
+      "id": "deferred-2026-09-21T19:53:16Z-7f2f",
+      "skill": "oc-release-ops",
+      "verb": "/oc-release announce",
+      "operation": "save_issue",
+      "provider": "linear",
+      "tool_name": "mcp__claude_ai_Linear__save_issue",
+      "marker": "<!-- opchain:oc-release-ops:release-ticket:v2.0.4 -->",
+      "payload": {
+        "title": "Release v2.0.4 — Bug fixes",
+        "description": "<!-- opchain:oc-release-ops:release-ticket:v2.0.4 -->\nPatch release: #564 feature-execution audit fixes (task stamps in every repository, Task resumed, release-surface probes, one-PR patch docs, skills.coverage copy) + #549 dependency refresh. Back-compatible with v2.0. Bump commit fa03a1e."
+      },
+      "queued_at": "2026-09-21T19:53:16.550Z",
+      "last_attempt_at": "2026-09-21T19:53:16.550Z",
+      "attempts": 0,
+      "last_error": "Linear MCP not authenticated in this session (plugin:productivity:linear requires OAuth)",
+      "retriable": true
+    }
+  ]
 }

@@ -1,7 +1,7 @@
 ---
 name: oc-checkpoint-protocol
 displayName: OC · Checkpoint Protocol
-version: 2.0.3
+version: 2.0.4
 license: Apache-2.0
 shortDesc: Session persistence across skills — JSON checkpoint contract + status/next/doctor/validate tooling, catches drift.
 phases: [foundation]

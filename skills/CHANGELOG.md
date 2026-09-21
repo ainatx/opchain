@@ -13,9 +13,14 @@ checkpoint `protocol_version` is tracked separately (see
 
 ## [Unreleased]
 
-Fixes from the 2026-09-21 feature-execution audit of 2.0.1–2.0.3
-(`docs/audits/2026-09-21-v2.0.3-feature-execution-audit.md`), which ran the
-shipped hooks and gates in real Claude Code sessions.
+_Nothing yet._
+
+## [2.0.4] — 2026-09-21 — "Bug fixes"
+
+A patch release. It fixes what the 2026-09-21 feature-execution audit of
+2.0.1–2.0.3 (`docs/audits/2026-09-21-v2.0.3-feature-execution-audit.md`) found
+when it ran the shipped hooks and gates in real Claude Code sessions, and
+refreshes dependencies. No new capability.
 
 ### Fixed
 
@@ -34,6 +39,9 @@ shipped hooks and gates in real Claude Code sessions.
   release PR carries its site surfaces.
 - **`skills.coverage` copy.** The registry header, `/flag` table, CLAUDE.md and
   `/architecture` now describe the per-pack flags as reserved; nothing reads them.
+- **Dependency refresh.** zod 4.6.5, the Astro and Markdown groups and
+  `@playwright/test` are bumped, and the skills' bundled runtimes are rebuilt
+  against them (#549).
 
 ### Compatibility
 

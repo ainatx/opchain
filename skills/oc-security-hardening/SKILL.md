@@ -1,7 +1,7 @@
 ---
 name: oc-security-hardening
 displayName: OC · Security Hardening
-version: 2.0.3
+version: 2.0.4
 license: Apache-2.0
 shortDesc: "Remediation operator: execute hardening fixes and stand the per-deploy hardening gate. Auditor finds; this fixes."
 phases: [build]

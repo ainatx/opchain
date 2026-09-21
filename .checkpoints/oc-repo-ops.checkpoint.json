@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-21T15:09:40.418Z",
+  "updated_at": "2026-09-21T20:13:42.009Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "claude/wonderful-ellis-4d4a56",
-  "progress_summary": "Readiness gate PASS for claude/wonderful-ellis-4d4a56 (aaa72ac on main 8d6ba25): test-only explicit vitest timeouts for subprocess-heavy tests that flaked the pre-commit gate. Docs packet current for the same tree projection; plugin mirror, skill bundles, skill contracts, internal refs and checkpoint schema clean; no untracked files.",
+  "step": "claude/release-v2.0.4",
+  "progress_summary": "Readiness gate PASS for the v2.0.4 release PR (claude/release-v2.0.4). Docs packet current for the same tree projection; catalog (36 = 36), MCP catalog, bundles, plugin mirror, release surfaces (all 2.0.4), skill contracts, internal refs, whitespace and checkpoint schema clean; no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -22,18 +22,19 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "checkpoint:validate reports 7 advisory warnings, all pre-existing on untouched checkpoints (progress_summary length, missing progress_table/context_primer); none block."
+      "release-sequence pre-merge lighthouse-budgets could not run locally (port 4321 held by the owner's astro dev); the PR's LHCI job covers it.",
+      "checkpoint:validate: 7 pre-existing advisory warnings."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "aaa72acf0a50fdd2701eb572d50c579661a1afb2",
+    "verified_for_sha": "53b4dd8837756b4d8588e14e571732bea7bba239",
     "last_verify": {
-      "at": "2026-09-21T15:09:40.418Z",
-      "branch": "claude/wonderful-ellis-4d4a56",
-      "base": "origin/main@8d6ba2547d848e7ba31d641525cd010e07025d76",
+      "at": "2026-09-21T20:02:42.939Z",
+      "branch": "claude/release-v2.0.4",
+      "base": "origin/main@74d4184",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -551,8 +552,86 @@
           "tests/source-update.test.js"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-rel204-d40c91ae695f",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-21T19:55:27.676Z",
+      "verified_at": "2026-09-21T19:55:27.676Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "release-v2.0.4-2026-09-21"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:d40c91ae695f0054fa1f87a58d7cf7e6eba3e82bd4ebcd9c463d297b8de998a2"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "gen-catalog, gen-mcp-catalog (no drift), sync-bundles:check, sync-plugin-skills:check, check-skill-contracts, check-release-surfaces (2.0.4), lint-internal-refs, git diff --check, checkpoint:validate, no untracked files.",
+        "evidence": [
+          "skills/README.md",
+          "src/generated/mcp-catalog.json",
+          "release-seal.json",
+          "scripts/check-release-surfaces.mjs"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-rel204-0c49492783d3",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-21T20:02:42.939Z",
+      "verified_at": "2026-09-21T20:02:42.939Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "release-v2.0.4-2026-09-21-remerge"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:0c49492783d3c3fb808f75b538506f4e08e4fda7132d58bc593b2ccc95b8a91b"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "gen-catalog, gen-mcp-catalog (no drift), sync-bundles:check, sync-plugin-skills:check, check-skill-contracts, check-release-surfaces (2.0.4), lint-internal-refs, git diff --check, checkpoint:validate, no untracked files. Re-bound after merging origin/main #565 (test-fixture timeouts only; no docs or catalog surface changed).",
+        "evidence": [
+          "skills/README.md",
+          "src/generated/mcp-catalog.json",
+          "release-seal.json",
+          "scripts/check-release-surfaces.mjs"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-rel204-c4be2f04021f",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-21T20:13:42.009Z",
+      "verified_at": "2026-09-21T20:13:42.009Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "release-v2.0.4-2026-09-21-a11y"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c4be2f04021f91901c2956e2bb386b3fd84b59824f4edcd72c1e84bad6a7dfd6"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "gen-catalog, gen-mcp-catalog (no drift), sync-bundles:check, sync-plugin-skills:check, check-skill-contracts, check-release-surfaces (2.0.4), lint-internal-refs, git diff --check, checkpoint:validate, no untracked files. Re-bound after merging #565 and the /changelog compat-box link underline (axe link-in-text-block).",
+        "evidence": [
+          "skills/README.md",
+          "src/generated/mcp-catalog.json",
+          "release-seal.json",
+          "scripts/check-release-surfaces.mjs"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-21T15:09:40.418Z",
+  "record_updated_at": "2026-09-21T20:13:42.009Z",
   "blockers": []
 }
