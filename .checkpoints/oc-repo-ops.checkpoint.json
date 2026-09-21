@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-21T14:30:12.811Z",
+  "updated_at": "2026-09-21T15:09:40.418Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "claude/skill-203-audit-08dfc4",
-  "progress_summary": "Readiness gate PASS for claude/skill-203-audit-08dfc4 (v2.0.3 feature-execution audit fixes). Docs packet current for the same tree projection; catalog (36 skills = 36 README rows), MCP catalog, bundles, plugin mirror, release surfaces, skill contracts, internal refs and checkpoint schema all clean; no untracked files.",
+  "step": "claude/wonderful-ellis-4d4a56",
+  "progress_summary": "Readiness gate PASS for claude/wonderful-ellis-4d4a56 (aaa72ac on main 8d6ba25): test-only explicit vitest timeouts for subprocess-heavy tests that flaked the pre-commit gate. Docs packet current for the same tree projection; plugin mirror, skill bundles, skill contracts, internal refs and checkpoint schema clean; no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -22,18 +22,18 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "checkpoint:validate reports 7 advisory warnings, all pre-existing (progress_summary length, missing progress_table/context_primer on untouched or in-progress checkpoints); none block."
+      "checkpoint:validate reports 7 advisory warnings, all pre-existing on untouched checkpoints (progress_summary length, missing progress_table/context_primer); none block."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "b1cccaab1e78bfcdc443979c559f4bff5e310c20",
+    "verified_for_sha": "aaa72acf0a50fdd2701eb572d50c579661a1afb2",
     "last_verify": {
-      "at": "2026-09-21T14:30:12.811Z",
-      "branch": "claude/skill-203-audit-08dfc4",
-      "base": "origin/main@b40672a",
+      "at": "2026-09-21T15:09:40.418Z",
+      "branch": "claude/wonderful-ellis-4d4a56",
+      "base": "origin/main@8d6ba2547d848e7ba31d641525cd010e07025d76",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -524,8 +524,35 @@
           "scripts/check-release-surfaces.mjs"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-gateflake-e03b701760ea",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-21T15:09:40.418Z",
+      "verified_at": "2026-09-21T15:09:40.418Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "gate-flaky-timeouts-2026-09-21"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:e03b701760eab5f7fc073a1f62b28eae035feec0674abdb236865c62ba7c83c1"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Branch claude/wonderful-ellis-4d4a56 rebased on main 8d6ba25: four tests/ files gain explicit 30s vitest timeouts; assertions unchanged. Pre-commit candidate verification passed on the rebased tree; docs packet present and current; sync-plugin-skills:check, sync-bundles:check, check-skill-contracts, lint-internal-refs and checkpoint:validate clean; working tree clean apart from gate checkpoints.",
+        "evidence": [
+          ".checkpoints/oc-docs-forge.checkpoint.json",
+          "tests/audit-state/c3-current-run-hygiene.test.js",
+          "tests/update-bundle.test.js",
+          "tests/shared-runtime-artifact.test.js",
+          "tests/source-update.test.js"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-21T14:30:12.811Z",
+  "record_updated_at": "2026-09-21T15:09:40.418Z",
   "blockers": []
 }

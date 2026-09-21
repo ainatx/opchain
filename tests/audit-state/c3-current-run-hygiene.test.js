@@ -157,6 +157,10 @@ describe("C3 current-run checkpoint hygiene", () => {
         rmSync(root, { recursive: true, force: true });
       }
     },
+    // Three hook spawns against the real skill inventory take ~0.8s idle but
+    // 5.5-6s on a loaded machine; at vitest's 5s default this flaked the
+    // commit gate's tests check.
+    30_000,
   );
 
   it("allows real telemetry status and opted-out recording without creating a checkpoint", () => {
