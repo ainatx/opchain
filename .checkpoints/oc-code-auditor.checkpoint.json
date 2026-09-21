@@ -4,15 +4,14 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-09-19T01:26:33.419Z",
+  "updated_at": "2026-09-21T13:40:12.756Z",
   "phase": "audit",
   "step": "pre-deploy-v2.0.3",
   "status": "in_progress",
   "progress_summary": "Pre-deploy code-audit sweep for v2.0.3 (delta from v2.0.2: flags/registry.js description text, scripts/axe-comment.cjs e2e-comment gating, check-release-surfaces.mjs, site copy/changelog/styleguide/architecture surfaces, generated mcp-catalog.json). No shell exec, eval, or new external surface in the diff; axe-comment.cjs is filesystem-only. No new CRITICAL/HIGH introduced. The pre-existing 157-finding OSS/portability audit (14 critical/41 high) remains separately open and out of this bounded release's scope, consistent with how v2.0.1/v2.0.2 shipped.",
   "blockers": [],
   "next_actions": [
-    "Release-surface honesty PR: extend changelog L4 hero to v2.0.0 \u2192 v2.0.2, rewrite README/mirror/skills README/walkthroughs off 2.0.0, architecture leftover planned/1.9.2 copy, skills/[id].astro v2.0 \u00b7 next \u2192 shipped, and probe .hero-ver in check-release-surfaces.mjs.",
-    "OSS-readiness audit 2026-08-22 (grade D+): triage the 24 HIGH findings in docs/audits/2026-08-22-oss-readiness-audit.md \u2014 the must-fix set is in docs/plans/2026-08-22-oss-split-licensing-compliance.md \u00a74.1 and \u00a74.3.",
+    "OSS-readiness audit 2026-08-22 (grade D+): triage the 24 HIGH findings in docs/audits/2026-08-22-oss-readiness-audit.md — the must-fix set is in docs/plans/2026-08-22-oss-split-licensing-compliance.md §4.1 and §4.3.",
     "Fix PX-01/PX-02 in src/index.js + site/src/pages/privacy.astro before pointing any enterprise at opchain.dev/mcp.",
     "Triage remaining MEDIUM/LOW findings from prior audits (none block this RCA).",
     "Pre-existing: 14 critical / 41 high from the 2026-07-04 portability audit remain open."
@@ -102,7 +101,7 @@
         "low": 43,
         "info": 20
       },
-      "verified": "7 lenses \u00d7 adversarial verifier; 0 refuted",
+      "verified": "7 lenses × adversarial verifier; 0 refuted",
       "report": "docs/audits/2026-08-22-oss-readiness-audit.md",
       "plan": "docs/plans/2026-08-22-oss-split-licensing-compliance.md"
     },
@@ -550,5 +549,11 @@
       "The v2.0.2 tag is intentionally absent; tag creation is outside this task."
     ]
   },
-  "record_updated_at": "2026-09-19T01:26:33.419Z"
+  "record_updated_at": "2026-09-21T13:40:12.756Z",
+  "recently_done": [
+    {
+      "at": "2026-09-21T13:40:12.755Z",
+      "action": "Release-surface honesty PR: extend changelog L4 hero to v2.0.0 → v2.0.2, rewrite README/mirror/skills README/walkthroughs off 2.0.0, architecture leftover planned/1.9.2 copy, skills/[id].astro v2.0 · next → shipped, and probe .hero-ver in check-release-surfaces.mjs."
+    }
+  ]
 }

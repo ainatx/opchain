@@ -4,32 +4,27 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-08-27T23:49:17.485Z",
-  "updated_at": "2026-09-19T04:05:48.498Z",
+  "updated_at": "2026-09-21T13:40:12.666Z",
   "phase": "production",
   "step": "v2.0.3-shipped",
   "status": "complete",
   "progress_summary": "v2.0.3 shipped to staging then production. Staging: opchain-staging deployment 90333475-b077-47f4-9fc4-58fb4c007a34 (version 25f1598a), verified via GET /api/health (version 8bad1a0) + npm run smoke:staging + hardening manifest 2/2 PASS. Production: opchain-dev deployment b2647a50-6ce8-4087-b025-5628ea8dafe5 (version 9454e2ce), verified via GET /api/health (version 8bad1a0) + npm run smoke:prod + hardening manifest 2/2 PASS. Both hosts serve the same script fingerprint (9c72a4fc...). Signed tag v2.0.3 on da202a0; deployed SHA 8bad1a0 is two checkpoint-only post-tag commits later (#557, #558), both under nonDeployPathPrefixes. Monitoring baseline refreshed and merged (PR #559) with the new deployment/version ids and the runtime override note.",
   "blockers": [],
-  "next_actions": [
-    "Laptop: npx wrangler deployments list --json and versions view for deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72 (version id + script etag), then record them in .github/monitoring/release-baseline.json with sourceSha 78567c2d70e6f00836000e4bd6bbad842ba04a42.",
-    "Laptop: npm run deploy:staging from main@78567c2 so staging stops serving the off-main preview fbb24a8, then record the staging ids in the same baseline update.",
-    "Laptop: node .github/scripts/cloudflare-monitor.mjs control-plane && deploy-diff with credentials, open the baseline PR, dispatch Canary and Deploy lag after merge.",
-    "Retain production predecessor version c55ae124-ff35-4924-80af-00e92bd8879c until the re-baselined state is verified."
-  ],
+  "next_actions": [],
   "skill_state": {
     "current_env": "production",
-    "staging_version": "fbb24a8",
-    "prod_version": "78567c2",
-    "production_sha": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
-    "target_version": "78567c2d70e6f00836000e4bd6bbad842ba04a42",
-    "cloudflare_version_id": "unknown until wrangler deployments list runs on the laptop",
-    "cloudflare_deployment_id": "8da6c19d-a89a-4214-8e58-4606c7ce2f72",
-    "staging_cloudflare_version_id": "d07bb08a-9662-4e77-a2a1-673fc0c7a8a5",
-    "staging_cloudflare_deployment_id": "791c1851-2b81-4408-b881-dac381fa6d07",
+    "staging_version": "8bad1a0",
+    "prod_version": "8bad1a0",
+    "production_sha": "8bad1a03048cc30428eb7a1f76b18bdd1b398f83",
+    "target_version": "8bad1a03048cc30428eb7a1f76b18bdd1b398f83",
+    "cloudflare_version_id": "9454e2ce-ea53-4753-a531-9b8c8750439d",
+    "cloudflare_deployment_id": "b2647a50-6ce8-4087-b025-5628ea8dafe5",
+    "staging_cloudflare_version_id": "25f1598a-03f7-4043-84ef-36c329d3682d",
+    "staging_cloudflare_deployment_id": "90333475-b077-47f4-9fc4-58fb4c007a34",
     "staging_url": "https://staging.opchain.dev",
     "production_url": "https://opchain.dev",
     "branch_preview": true,
-    "last_deploy": "2026-09-02T20:11:25.746861Z",
+    "last_deploy": "2026-09-19T04:05:48Z",
     "source_pr": 483,
     "audit_gate": {
       "critical": 0,
@@ -176,5 +171,27 @@
       "status": "blocked"
     }
   ],
-  "record_updated_at": "2026-09-19T04:05:48.498Z"
+  "record_updated_at": "2026-09-21T13:40:12.666Z",
+  "recently_done": [
+    {
+      "text": "Laptop: npx wrangler deployments list --json and versions view for deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72 (version id + script etag), then record them in .github/monitoring/release-baseline.json with sourceSha 78567c2d70e6f00836000e4bd6bbad842ba04a42.",
+      "done_at": "2026-09-21T13:40:12.666Z",
+      "note": "superseded by the 2.0.3 re-baseline (#559)"
+    },
+    {
+      "text": "Laptop: npm run deploy:staging from main@78567c2 so staging stops serving the off-main preview fbb24a8, then record the staging ids in the same baseline update.",
+      "done_at": "2026-09-21T13:40:12.666Z",
+      "note": "superseded by the 2.0.3 re-baseline (#559)"
+    },
+    {
+      "text": "Laptop: node .github/scripts/cloudflare-monitor.mjs control-plane && deploy-diff with credentials, open the baseline PR, dispatch Canary and Deploy lag after merge.",
+      "done_at": "2026-09-21T13:40:12.666Z",
+      "note": "superseded by the 2.0.3 re-baseline (#559)"
+    },
+    {
+      "text": "Retain production predecessor version c55ae124-ff35-4924-80af-00e92bd8879c until the re-baselined state is verified.",
+      "done_at": "2026-09-21T13:40:12.666Z",
+      "note": "superseded by the 2.0.3 re-baseline (#559)"
+    }
+  ]
 }
