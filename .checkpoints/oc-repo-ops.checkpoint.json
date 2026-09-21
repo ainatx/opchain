@@ -3,7 +3,7 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-21T20:02:42.939Z",
+  "updated_at": "2026-09-21T20:13:42.009Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
@@ -30,7 +30,7 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "0d6376add6eda6e1927044e58ac4b0b889886233",
+    "verified_for_sha": "53b4dd8837756b4d8588e14e571732bea7bba239",
     "last_verify": {
       "at": "2026-09-21T20:02:42.939Z",
       "branch": "claude/release-v2.0.4",
@@ -604,8 +604,34 @@
           "scripts/check-release-surfaces.mjs"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-rel204-c4be2f04021f",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-21T20:13:42.009Z",
+      "verified_at": "2026-09-21T20:13:42.009Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "release-v2.0.4-2026-09-21-a11y"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c4be2f04021f91901c2956e2bb386b3fd84b59824f4edcd72c1e84bad6a7dfd6"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "gen-catalog, gen-mcp-catalog (no drift), sync-bundles:check, sync-plugin-skills:check, check-skill-contracts, check-release-surfaces (2.0.4), lint-internal-refs, git diff --check, checkpoint:validate, no untracked files. Re-bound after merging #565 and the /changelog compat-box link underline (axe link-in-text-block).",
+        "evidence": [
+          "skills/README.md",
+          "src/generated/mcp-catalog.json",
+          "release-seal.json",
+          "scripts/check-release-surfaces.mjs"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-21T20:02:42.939Z",
+  "record_updated_at": "2026-09-21T20:13:42.009Z",
   "blockers": []
 }
