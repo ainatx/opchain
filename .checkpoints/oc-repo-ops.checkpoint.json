@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-20T05:57:31.002Z",
+  "updated_at": "2026-09-21T10:28:31.017Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "chore/deps-2026-09-14",
-  "progress_summary": "PR readiness gate PASS for the consolidated deps PR #549 (supersedes #543, #544, #511, #502) at main 7167eeb. Docs packet present. Bundles, plugin copy and catalogs in sync; candidate verification passed; working tree clean.",
+  "step": "fix/2-0-colors-auditor-and-pipeline",
+  "progress_summary": "PR readiness gate PASS for PR #494 (geometry auditor marker table + PipelineDiagram --assure) on main b40672a. Docs packet present; local verifier bypassed by owner decision; CI verifies; working tree clean.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -22,19 +22,18 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "npm resolved zod 4.6.5 and marked 18.0.13, one patch newer than Dependabot's #543/#511 targets.",
-      "vitest 5.0.0 (#500) deliberately excluded."
+      "Evidence commit made with the local pre-commit verifier bypassed (--no-verify), by owner decision 2026-09-21: tests/audit-release/cli-entrypoints.test.js times out locally on main itself (10.8s vs a 5s limit) but passes in CI. CI's verify-candidate + evidence:pr remain the gate."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "72a1e461716e0a4f4546eb0e0512ce599ac0bf34",
+    "verified_for_sha": "e120283887b13dce5d8f1765332d3196a4e49c28",
     "last_verify": {
-      "at": "2026-09-20T05:57:31.002Z",
-      "branch": "chore/deps-2026-09-14",
-      "base": "origin/main@7167eebfe60c26f45367842ca44e8ea7962936fb",
+      "at": "2026-09-21T10:28:31.017Z",
+      "branch": "fix/2-0-colors-auditor-and-pipeline",
+      "base": "origin/main@b40672aed725e45e778e13f68c033c50e1b4dff9",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -499,7 +498,33 @@
           "https://github.com/ainatx/opchain/pull/549"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr494-98779cc0e6e3",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-21T10:28:31.017Z",
+      "verified_at": "2026-09-21T10:28:31.017Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr494-diagram-marker-table"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:98779cc0e6e32e4dd1d7c2b2378a2448385f490e5bb10ff23a6f844b27f62fa2"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "PR #494 rebuilt on main b40672a: marker-table/PipelineDiagram fix and the light --assure alignment replayed cleanly alongside #553's PipelineDiagram header/node edits. Content replayed cleanly; auditor returns TOTAL 17; sync-bundles:check passes; local pre-commit verifier bypassed for the checkpoint-only evidence commit (see warning); CI's candidate verification is the gate; working tree clean.",
+        "evidence": [
+          ".checkpoints/oc-docs-forge.checkpoint.json",
+          "scripts/audit-diagram-geometry.mjs",
+          "site/src/components/PipelineDiagram.astro",
+          "https://github.com/ainatx/opchain/pull/494"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-20T05:57:31.002Z"
+  "record_updated_at": "2026-09-21T10:28:31.017Z"
 }
