@@ -26,10 +26,11 @@ prod.** So release-coupled surfaces fall into two groups:
 CI adds a constraint: `scripts/check-release-surfaces.mjs` (run by
 `tests/release-surfaces.test.js`) requires every probed live-claim surface to
 name the same **major.minor** line as the newest `## [x.y.z]` heading in
-`skills/CHANGELOG.md`. It reads the open hero's `id` and the styleguide badge only
-to major.minor, and also probes the open hero's `.hero-ver` full semver (range
-RHS, else the single version) against that CHANGELOG heading. This is the same
-rule as opchain's RELEASING.md governance doc, §5:
+`skills/CHANGELOG.md`. It reads the open hero's `id` to major.minor, and probes
+the full-semver claims (the open hero's `.hero-ver` range RHS or single version,
+the README, mirror README and plugin README leading lines, and the styleguide
+badge) against that CHANGELOG heading exactly. This is the same rule as
+opchain's RELEASING.md governance doc, §5:
 
 - **Minor release (vN.N.0):** one release PR carries the version bump and the new
   CHANGELOG heading **together with** every probed live-claim surface (L1–L3, the
@@ -37,10 +38,11 @@ rule as opchain's RELEASING.md governance doc, §5:
   adds the heading without the flips fails CI. Merge → `/oc-git-release` tag →
   deploy, in one sitting. v1.9.0 shows why: #476 carried the bump and flips together,
   but the tag and deploy landed a day later on #477.
-- **Patch release (vN.N.x):** the major.minor line does not change, so the split
-  holds: a **product PR** (version bump + CHANGELOG entry) → tag → a **site PR**
-  with the patch-only surfaces (L4 range extension + patch `rel-card`, L5
-  recount, L7 full patch version) → deploy.
+- **Patch release (vN.N.x):** the major.minor line does not change, but the
+  full-semver claims do, so one release PR carries the version bump, the
+  CHANGELOG entry and the patch-only surfaces (L4 range extension + patch
+  `rel-card`, L5 recount, L7 full patch version, the README leading lines) →
+  tag → deploy. A product-only patch PR fails CI; v2.0.3's #556 is the shape.
 - **Either way, the deploy follows the tag.** Roadmap data (F5) is regenerated
   at deploy time, not edited in a PR.
 
@@ -136,9 +138,9 @@ surface still references a superseded release once `CURRENT_RELEASE` has moved.
    (L1–L10) + their coupled changelog tests, alongside the version bump and the new
    `skills/CHANGELOG.md` heading. Run `node scripts/check-release-surfaces.mjs`
    before merging. After merge: `/oc-git-release <semver>` (signed tag).
-   **Patch release:** merge the product PR (version bump + CHANGELOG entry), run
-   `/oc-git-release <semver>`, then open the site PR with the Patch column (L4
-   range + `rel-card`, L5 recount, L7 full version).
+   **Patch release:** the release PR carries the version bump, the CHANGELOG
+   entry and the Patch column (L4 range + `rel-card`, L5 recount, L7 full
+   version, README leading lines). Merge, then `/oc-git-release <semver>`.
 3. **Deploy, after the tag:** move the shipped release's roadmap issues from
    `roadmap:in-progress` to `roadmap:shipped` and close its milestone, then
    `npm run gen-roadmap && npm run deploy:staging` (the JSON is gitignored; a

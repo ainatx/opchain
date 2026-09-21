@@ -286,6 +286,7 @@ Single source of truth: **`src/lib/flags/registry.js`**. Every flag has a name, 
 - `skills.registry.<id>.enabled` — per-skill visibility (one per `skills/<id>/`)
 - `skills.capability.*` — cross-cutting (tri-agent, checkpoint-protocol)
 - `skills.command.<verb>.enabled` — slash-command verb gates (subcommands inherit)
+- `skills.coverage.<id>.enabled` — one per oc-stack-forge pack (generated from `pack.yml`; reserved, nothing reads it yet)
 - `skills.experiment.<id>.<feature>` — experimental skill behaviour
 - `platform.observability.*` / `platform.security.*` — infra-level toggles
 

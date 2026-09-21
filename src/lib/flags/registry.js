@@ -16,7 +16,7 @@
  *   skills.registry.<id>.enabled Show / hide an individual skill in the catalog
  *   skills.capability.<name>     Cross-cutting capability (tri-agent, checkpoint)
  *   skills.command.<cmd>.enabled Individual slash command on/off
- *   skills.coverage.<id>.enabled Show / hide a oc-stack-forge pack (language, framework, mobile)
+ *   skills.coverage.<id>.enabled Reserved per-pack oc-stack-forge coverage flag (read nowhere yet)
  *   skills.experiment.<id>.<f>   Experimental skill features
  *
  *   platform.observability.<sink>

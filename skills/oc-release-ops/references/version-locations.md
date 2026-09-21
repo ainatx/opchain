@@ -1,7 +1,7 @@
 # Version locations in the opchain repo
 
-`/oc-release bump` rewrites every location below in lockstep for a minor release;
-for a patch, the site rows move in the site PR after the tag. If you add a
+`/oc-release bump` rewrites every location below in lockstep, in the release PR
+before the tag, for a minor or a patch (a patch moves only its patch rows). If you add a
 new place that displays a version string, add it here AND to the probes in
 `scripts/check-release-surfaces.mjs` (pinned by `tests/release-surfaces.test.js`).
 The skill-catalog half is checked by `scripts/check-release-tag.mjs`, which
@@ -9,15 +9,16 @@ reports a split catalog as `catalog-split`.
 
 Companion to `site-release-surfaces.md`, which says *when* each site surface
 moves: forward surfaces in the build PR; live-claim surfaces in the release PR
-before the tag for a minor release, or in a site PR after the tag for a patch
-(only the patch-only rows). This file lists *what* carries the version.
+before the tag, for a minor or a patch (a patch moves only the patch-only rows).
+This file lists *what* carries the version.
 
 `check-release-surfaces.mjs` compares **major.minor only** (`v1.9`) for the
 live-claim site labels, and uses the newest `## [x.y.z]` heading in
 `skills/CHANGELOG.md` as the full-semver source for the catalog, seal, server,
 marketplace, and plugin manifest. Open-hero `.hero-ver` (right-hand range side,
-or the single version) and the README leading `Opchain x.y.z` are also
-full-semver and must equal that newest CHANGELOG heading.
+or the single version), the README, mirror README and plugin README leading
+`Opchain x.y.z`, and the styleguide badge are also full-semver and must equal
+that newest CHANGELOG heading.
 
 ---
 
@@ -38,8 +39,11 @@ changelog card id (`v1-9`).
 | `site/src/pages/index.astro` | Homepage release bar (shipped label) + "latest release" stat chip | `<span class="rb-tag"><minor> · shipped</span>`, `<span class="stat-num"><minor></span>` | `check-release-surfaces.mjs` |
 | `site/src/pages/changelog.astro` | Just Released open hero | `<article class="hero-card hero-card--released is-open" id="<anchor>">` with `<span class="hero-ver"><release> · shipped <Mon DD, YYYY></span>` (or a `vN.N.0 → vN.N.x` range) | `check-release-surfaces.mjs` (hero `id`, major.minor; `.hero-ver` full semver / range RHS) |
 | `README.md` | Leading release line | `> **Opchain <release>.**` | `check-release-surfaces.mjs` |
+| `mirror/README.md` | Public mirror leading line | `> Opchain <release> · <N> skills · released <dates>.` | `check-release-surfaces.mjs` |
+| `plugins/opchain/README.md` | Plugin leading line | `> **Opchain <release>.**` | `check-release-surfaces.mjs` |
+| `site/src/pages/skills/[id].astro` | "In the 2.0 loop" tag | `<span class="inloop-tag">v2.0 · shipped</span>` (names the release that shipped the loop; may trail the current line) | `check-release-surfaces.mjs` (never `next` for a shipped line, never `shipped` for a future one) |
 | `site/src/pages/skills/index.astro` | Skill Library release callout + its href | `<span class="release-callout-tag"><minor> · SHIPPED</span>`, `<a class="release-callout" href="/changelog#<anchor>"` | `check-release-surfaces.mjs` |
-| `site/src/pages/styleguide.astro` | Badge example | `<Badge>v<release></Badge>` | `check-release-surfaces.mjs` (major.minor only; the patch digit is review only) |
+| `site/src/pages/styleguide.astro` | Badge example | `<Badge>v<release></Badge>` | `check-release-surfaces.mjs` (full semver) |
 | `site/src/pages/architecture.astro` | Diagram eyebrow + footer | `SKILLS · ARCHITECTURE · v2 · RELEASE <minor>`, `spine ordinals · <minor> · checkpoint-driven` | `check-release-surfaces.mjs` |
 | `site/src/components/MobileArchitecture.astro` | Mobile diagram eyebrow | `SKILLS · ARCHITECTURE · v2 · MOBILE · <minor>` | `check-release-surfaces.mjs` |
 

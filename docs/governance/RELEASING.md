@@ -184,21 +184,22 @@ release is the **deploy**, not the merge. The order is fixed:
      and deploy follow in the same sitting. v1.9.0 shows why: #476 carried the
      bump and the flips together, but the tag and deploy landed a day later on
      #477, after a second PR re-dated and re-sealed the release.
-   - **Patch (vN.N.x):** the major.minor line does not change, so the split
-     holds. **Product PR** — P1–P6 bumped together, changelog entry written.
-     **Site PR** — after the tag exists: the patch-only surfaces (L4 range
-     extension + patch `rel-card`, L5 recount, L7 full patch version). Run the
-     §6 audit prompt on the site PR; merge it only when the deploy follows in
-     the same sitting.
+   - **Patch (vN.N.x):** the major.minor line does not change, but the
+     full-semver claims (open hero-ver, README, mirror README, plugin README,
+     styleguide badge) do, and `check-release-surfaces.mjs` requires them to
+     equal the new heading. So one **release PR** carries P1–P6, the changelog
+     entry and the patch-only surfaces (L4 range extension + patch `rel-card`,
+     L5 recount, L7 full patch version, README leading lines). A product-only
+     patch PR fails CI; v2.0.3's #556 is the shape. Run the §6 audit prompt on
+     it; merge only when the tag and deploy follow in the same sitting.
 
    Either way: CI green (including lockstep + catalog validation), review per
    CODEOWNERS, squash-merge with `Signed-off-by` preserved.
-3. **Tag (P7):** on the merged release commit (minor) or product commit
-   (patch), create the signed tag, run
+3. **Tag (P7):** on the merged release commit, create the signed tag, run
    `node scripts/check-release-tag.mjs --local`, and only then push it. Re-run
    without `--local` to prove origin holds the same signed tag object.
 4. **Deploy — always after the tag:** from the exact reviewed release checkout
-   (normally pulled `origin/main`; for a patch, after the site PR merges) —
+   (normally pulled `origin/main`) —
    `npm run gen-roadmap && npm run deploy:staging` → automated smoke
    (`npm run smoke:staging`) → **human eyeballs staging at the exact SHA that
    will ship** → `npm run gen-roadmap && npm run deploy` →
@@ -216,8 +217,8 @@ release is the **deploy**, not the merge. The order is fixed:
    approved baseline.
    See [the Cloudflare challenge runbook](../runbooks/cloudflare-challenge.md)
    for the control-plane assurance limit.
-5. **If the release is abandoned mid-review:** close the unmerged release PR
-   (minor) or site PR (patch). Because the tag and deploy come after the merge,
+5. **If the release is abandoned mid-review:** close the unmerged release PR.
+   Because the tag and deploy come after the merge,
    there is nothing live to roll back.
 
 ## 6. The mandatory surface audit

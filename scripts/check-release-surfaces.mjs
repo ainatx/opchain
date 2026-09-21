@@ -186,15 +186,12 @@ export function checkReleaseSurfaces({ root = ROOT } = {}) {
           return (m[2] || m[1]).replace(/^v/, "");
         },
       ],
-      [
-        "README leading version",
-        "README.md",
-        (text) => {
-          const m = text.match(/^\> \*\*Opchain (\d+\.\d+\.\d+)\.\*\*/m);
-          if (!m) throw new Error("pattern not found");
-          return m[1];
-        },
-      ],
+      ["README leading version", "README.md", semverAt(/^\> \*\*Opchain (\d+\.\d+\.\d+)\.\*\*/m)],
+      // The 2.0.3 changelog named these three as gated; until the 2.0.3 audit
+      // only the README above was.
+      ["mirror README leading version", "mirror/README.md", semverAt(/^> Opchain (\d+\.\d+\.\d+) ·/m)],
+      ["plugin README leading version", "plugins/opchain/README.md", semverAt(/^\> \*\*Opchain (\d+\.\d+\.\d+)\.\*\*/m)],
+      ["styleguide version Badge (full)", "site/src/pages/styleguide.astro", semverAt(/<Badge[^>]*>v(\d+\.\d+\.\d+)<\/Badge>/)],
     ]) {
       try {
         const value = read(readFileSync(p(file), "utf8"));
@@ -207,7 +204,43 @@ export function checkReleaseSurfaces({ root = ROOT } = {}) {
     }
   }
 
+  // The skill page's "In the 2.0 loop" tag names the release that shipped the
+  // loop, not the current line, so it may trail the site. It must still never
+  // call a shipped release "next" (it did after 2.0.2 shipped) or call a
+  // future release shipped.
+  if (expected) {
+    const label = "skill-page loop tag";
+    const file = "site/src/pages/skills/[id].astro";
+    try {
+      const m = readFileSync(p(file), "utf8").match(/<span class="inloop-tag">(v\d+\.\d+) · (\w+)<\/span>/);
+      if (!m) throw new Error("pattern not found");
+      const [tag, state] = [m[1], m[2].toLowerCase()];
+      const shipped = compareLine(tag, expected) <= 0;
+      const pass = state === "shipped" ? shipped : !shipped;
+      results.push({ label, file, value: `${tag} · ${state}`, pass });
+      if (!pass) errors.push(`${label} (${file}): says ${tag} · ${state}, but the site's release line is ${expected}`);
+    } catch (error) {
+      results.push({ label, file, value: null, error: "unreadable" });
+      errors.push(`${label} (${file}): unreadable (${error.message})`);
+    }
+  }
+
   return { ok: errors.length === 0, expected, releaseVersion, results, errors };
+}
+
+function semverAt(re) {
+  return (text) => {
+    const m = text.match(re);
+    if (!m) throw new Error("pattern not found");
+    return m[1];
+  };
+}
+
+// Orders two "vX.Y" release lines; negative when a is older than b.
+function compareLine(a, b) {
+  const [a1, a2] = a.slice(1).split(".").map(Number);
+  const [b1, b2] = b.slice(1).split(".").map(Number);
+  return a1 - b1 || a2 - b2;
 }
 
 // CLI
@@ -216,7 +249,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.ar
   console.log("RELEASE SURFACE CHECK");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   for (const r of results) {
-    console.log(`  ${r.error ? "✗" : r.value === (r.expected ?? expected) ? "✓" : "✗"} ${r.label}: ${r.value ?? `(${r.error})`}`);
+    console.log(`  ${r.error ? "✗" : (r.pass ?? r.value === (r.expected ?? expected)) ? "✓" : "✗"} ${r.label}: ${r.value ?? `(${r.error})`}`);
   }
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   if (ok) {

@@ -1184,8 +1184,8 @@
       "references": [
         {
           "path": "references/changelog-recipe.md",
-          "bytes": 6580,
-          "sha256": "aaa75ecdb2425a24377b105534be2a9356fc59654485fed8f39c89696ef8602e"
+          "bytes": 6579,
+          "sha256": "8cb813374b0dc82e69a1f982f26ec38f6261ed53cd4506a091651b76855bcbff"
         },
         {
           "path": "references/checkpoint-protocol.md",
@@ -1204,13 +1204,13 @@
         },
         {
           "path": "references/site-release-surfaces.md",
-          "bytes": 11735,
-          "sha256": "c26d78a05a9e7dae24babeb397bf6b5135a7ba50d37d258f49dc499371d3e2af"
+          "bytes": 11906,
+          "sha256": "3a6488248b0cacd1e0ec995d6149d4b49c7843f371b1974ab0001af9c9f4819d"
         },
         {
           "path": "references/version-locations.md",
-          "bytes": 6400,
-          "sha256": "4c33c7fac7be18278e48c9232aabbf85753d7103f8a5bded720b47e8c77e534e"
+          "bytes": 6946,
+          "sha256": "f30ce10a36a3bcc56ab481a6031f689ed07e0712a3c7d24f03945526720fdb99"
         }
       ]
     },
