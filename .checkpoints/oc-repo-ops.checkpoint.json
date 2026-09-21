@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-21T14:30:12.811Z",
+  "updated_at": "2026-09-21T19:55:27.676Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "claude/skill-203-audit-08dfc4",
-  "progress_summary": "Readiness gate PASS for claude/skill-203-audit-08dfc4 (v2.0.3 feature-execution audit fixes). Docs packet current for the same tree projection; catalog (36 skills = 36 README rows), MCP catalog, bundles, plugin mirror, release surfaces, skill contracts, internal refs and checkpoint schema all clean; no untracked files.",
+  "step": "claude/release-v2.0.4",
+  "progress_summary": "Readiness gate PASS for the v2.0.4 release PR (claude/release-v2.0.4). Docs packet current for the same tree projection; catalog (36 = 36), MCP catalog, bundles, plugin mirror, release surfaces (all 2.0.4), skill contracts, internal refs, whitespace and checkpoint schema clean; no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -22,18 +22,19 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "checkpoint:validate reports 7 advisory warnings, all pre-existing (progress_summary length, missing progress_table/context_primer on untouched or in-progress checkpoints); none block."
+      "release-sequence pre-merge lighthouse-budgets could not run locally (port 4321 held by the owner's astro dev); the PR's LHCI job covers it.",
+      "checkpoint:validate: 7 pre-existing advisory warnings."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "b1cccaab1e78bfcdc443979c559f4bff5e310c20",
+    "verified_for_sha": "f2fbad15bb110aa4f95f171a7f90ec5a37672a31",
     "last_verify": {
-      "at": "2026-09-21T14:30:12.811Z",
-      "branch": "claude/skill-203-audit-08dfc4",
-      "base": "origin/main@b40672a",
+      "at": "2026-09-21T19:55:27.676Z",
+      "branch": "claude/release-v2.0.4",
+      "base": "origin/main@74d4184",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -524,8 +525,34 @@
           "scripts/check-release-surfaces.mjs"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-rel204-d40c91ae695f",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-21T19:55:27.676Z",
+      "verified_at": "2026-09-21T19:55:27.676Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "release-v2.0.4-2026-09-21"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:d40c91ae695f0054fa1f87a58d7cf7e6eba3e82bd4ebcd9c463d297b8de998a2"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "gen-catalog, gen-mcp-catalog (no drift), sync-bundles:check, sync-plugin-skills:check, check-skill-contracts, check-release-surfaces (2.0.4), lint-internal-refs, git diff --check, checkpoint:validate, no untracked files.",
+        "evidence": [
+          "skills/README.md",
+          "src/generated/mcp-catalog.json",
+          "release-seal.json",
+          "scripts/check-release-surfaces.mjs"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-21T14:30:12.811Z",
+  "record_updated_at": "2026-09-21T19:55:27.676Z",
   "blockers": []
 }
