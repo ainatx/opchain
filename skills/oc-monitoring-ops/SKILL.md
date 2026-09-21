@@ -1,7 +1,7 @@
 ---
 name: oc-monitoring-ops
 displayName: OC · Monitoring Ops
-version: 2.0.3
+version: 2.0.4
 license: Apache-2.0
 shortDesc: Post-deploy observability — uptime, errors, alerts, incidents. Opens PM incident tickets when alerts fire.
 phases: [build]

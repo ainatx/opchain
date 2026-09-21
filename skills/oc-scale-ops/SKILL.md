@@ -1,7 +1,7 @@
 ---
 name: oc-scale-ops
 displayName: OC · Scale Ops
-version: 2.0.3
+version: 2.0.4
 license: Apache-2.0
 shortDesc: Load, caching, capacity planning. v1.2 posts load-test reports to the PM ticket; HIGH risks as sub-tickets.
 phases: [plan]

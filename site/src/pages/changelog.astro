@@ -159,7 +159,7 @@ const plannedReleaseGroups = [
           aria-selected="true"
           tabindex="0"
         >
-          Just Released <span class="tab-count">23 shipped</span>
+          Just Released <span class="tab-count">24 shipped</span>
         </button>
         <button
           class="tab-btn tab-btn--next"
@@ -208,7 +208,7 @@ const plannedReleaseGroups = [
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">latest release</span>
-          <span class="hero-ver">v2.0.0 → v2.0.3 · Sep 14 – Sep 18, 2026</span>
+          <span class="hero-ver">v2.0.0 → v2.0.4 · Sep 14 – Sep 21, 2026</span>
           <span class="hero-title">The self-improving pipeline</span>
           <span class="hero-desc">A shared runtime for updates, saved progress, local tracking and reviewed learning.</span>
         </button>
@@ -258,6 +258,24 @@ const plannedReleaseGroups = [
           <div class="card-body-inner">
             <div class="tag-row"><span class="tag">task lifecycle</span><span class="tag">hooks</span><span class="tag">back-compatible</span></div>
             <p>The plugin&rsquo;s first SessionStart hook now emits <code>Task started:</code> before checkpoint context. A dedicated Stop hook emits <code>Task ended:</code> independently of next-skill suggestions, using the host&rsquo;s local timezone and IANA identifier. v2.0.2 carries the same behavior on the squash-merged production line.</p>
+            <div class="compat-box"><strong>Back-compatible with v2.0.</strong> No migration required.</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- v2.0.4 — bug fixes from the 2026-09-21 feature-execution audit. Deep-linkable from #v2-0-4. -->
+      <article class="rel-card" id="v2-0-4" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v2-0-4-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v2.0.4 patch</span><span class="rc-title">Bug fixes</span><span class="rc-date">Sep 21, 2026</span></span>
+            <span class="rc-summary">Task stamps that end in every repository, a release-surface gate that covers what 2.0.3 said it did, and a dependency refresh.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v2-0-4-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">plugin hooks</span><span class="tag">release gate</span><span class="tag">dependencies</span><span class="tag">back-compatible</span></div>
+            <p>The plugin now prints <code>Task ended:</code> in every repository, not only ones with <code>.checkpoints/</code>, and a resumed or compacted session prints <code>Task resumed:</code> instead of a second <code>Task started:</code>. <code>check-release-surfaces.mjs</code> now gates the mirror README, plugin README, styleguide badge and skill-page loop tag, and a patch release ships as one PR with its site surfaces. <code>skills.coverage</code> flags are documented as reserved, and zod, Astro, Markdown and Playwright are refreshed.</p>
             <div class="compat-box"><strong>Back-compatible with v2.0.</strong> No migration required.</div>
           </div>
         </div>
