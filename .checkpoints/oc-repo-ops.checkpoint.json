@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-27T06:58:18.332754Z",
+  "updated_at": "2026-09-27T07:24:42.432573Z",
   "skill": "oc-repo-ops",
   "phase": "pr-verify",
   "status": "complete",
   "step": "time-tracking-sprint-2-replay",
-  "progress_summary": "Time-tracking Sprint 2 owner-authorized corpus replay: corrected producer formats pass; Sprint 2 has zero unpriced usage and verified ledgers on 56 repository-days. Incremental real-corpus collection exceeds the one-second acceptance target. PR code/evidence gates pass; acceptance and merge are not claimed.",
+  "progress_summary": "Time-tracking Sprint 2 owner-authorized corpus replay: corrected producer formats pass; Sprint 2 has zero unpriced usage and verified ledgers on 56 repository-days. Owner explicitly accepted the 1.35s (1.90s under load) incremental timing deviation and authorized Signed-off-by: Aidan Elsesser <admin@opchain.dev> in Codex on 2026-09-27. Code/evidence gates pass; merge remains subject to current CI.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -37,15 +37,14 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "PR readiness is not final acceptance: real-corpus incremental replay exceeds <1s.",
-      "Human DCO sign-off remains required for merge."
+      "Owner accepted incremental replay latency of 1.35s (1.90s under load) as a documented deviation; <1s remains a performance follow-up."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "3eef43c1d3c4343145c32c37373525c2cd95bc0d",
+    "verified_for_sha": "d513ed613e405516516d4226854f95635536c36e",
     "last_verify": {
       "at": "2026-09-27T06:18:59.773427Z",
       "branch": "codex/time-tracking-sprint-2",
@@ -895,8 +894,33 @@
           "docs/runbooks/time-tracking.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-time-s2-accepted-38ba68b0742f",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T07:24:42.432573Z",
+      "verified_at": "2026-09-27T07:24:42.432573Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "time-s2-accepted-2026-09-27"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:38ba68b0742f66a5d46f2732c73b908456c59a2bedb22c6a08f291f6ed9a0ddc"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Current content passes mandatory code checks and scoped documentation/readiness review. Real-corpus evidence is sanitized. Known incremental timing deviation is disclosed and accepted by the owner. The owner explicitly authorized the named DCO trailer in chat; merge is subject to current CI.",
+        "evidence": [
+          "docs/plans/time-tracking/transcript-format.md",
+          "docs/plans/time-tracking/sprints/sprint-2/replay-2026-09-27.md",
+          "docs/runbooks/time-tracking.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-27T06:58:18.332754Z",
+  "record_updated_at": "2026-09-27T07:24:42.432573Z",
   "blockers": []
 }
