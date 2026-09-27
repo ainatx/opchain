@@ -3,38 +3,43 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-27T06:46:54.679Z",
+  "updated_at": "2026-09-27T04:13:23.974646Z",
   "skill": "oc-repo-ops",
-  "phase": "pr-readiness",
+  "phase": "pr-verify",
   "status": "complete",
-  "step": "pr-494-rebase",
-  "progress_summary": "PR readiness PASS for #494 after rebase onto 14eff29: tests, build, geometry auditor clean, full Playwright suite, clean tree.",
+  "step": "time-tracking-sprint-1",
+  "progress_summary": "Time-tracking Sprint 1 PR readiness PASS for content commit a69eea0. Candidate-bound evidence covers a checkpoint-only follow-up commit. Owner corpus replay and human squash-merge/sign-off remain pending; no release cut.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
-      ".checkpoints/ is tracked; the evidence commit touches only checkpoints."
+      ".checkpoints/ is tracked; the evidence commit touches only checkpoints.",
+      "Time-tracking Sprint 1 evidence binds the non-checkpoint tree projection; v2 release metadata and frozen product paths stay unchanged."
     ],
     "generated_files": [
-      ".checkpoints/oc-repo-ops.checkpoint.json"
+      ".checkpoints/oc-repo-ops.checkpoint.json",
+      "docs/plans/time-tracking/README.md",
+      "docs/plans/time-tracking/transcript-format.md",
+      "docs/plans/time-tracking/sprints/sprint-1/contract.md",
+      "docs/plans/time-tracking/sprints/sprint-1/eval-round-1.md",
+      "docs/plans/time-tracking/sprints/sprint-1/pr-description.md"
     ]
   },
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "release-sequence pre-merge lighthouse-budgets could not run locally (port 4321 held by the owner's astro dev); the PR's LHCI job covers it.",
-      "checkpoint:validate: 7 pre-existing advisory warnings."
+      "Owner corpus replay remains pending. Existing unrelated checkpoint lint warnings remain outside this sprint."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "53b4dd8837756b4d8588e14e571732bea7bba239",
+    "verified_for_sha": "a69eea069e4c4aab85925060638f5edb7929db14",
     "last_verify": {
-      "at": "2026-09-21T20:02:42.939Z",
-      "branch": "claude/release-v2.0.4",
-      "base": "origin/main@74d4184",
+      "at": "2026-09-27T04:13:23.974646Z",
+      "branch": "codex/time-tracking-sprint-1",
+      "base": "origin/main@2760094",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -727,8 +732,35 @@
           "site/src/components/PipelineDiagram.astro"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-time-s1-43cef8414dc2",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T04:13:23.974646Z",
+      "verified_at": "2026-09-27T04:13:23.974646Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "time-tracking-sprint-1-2026-09-26"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:43cef8414dc25f9c4a3ecdc59c92ba45d2c365a76073367b963a0dc00d901b16"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Mandatory candidate verifier PASS: types, lint, tests, anti-patterns, secrets, build, root/site dependencies. Catalog and bundle checks ran in npm pretest/build. Scope boundary, clean content commit, local links and checkpoint validity reviewed; real-corpus acceptance explicitly pending owner.",
+        "evidence": [
+          "docs/plans/time-tracking/README.md",
+          "docs/plans/time-tracking/transcript-format.md",
+          "docs/plans/time-tracking/sprints/sprint-1/contract.md",
+          "docs/plans/time-tracking/sprints/sprint-1/eval-round-1.md",
+          "docs/plans/time-tracking/sprints/sprint-1/pr-description.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-27T06:46:54.679Z",
+  "record_updated_at": "2026-09-27T04:13:23.974646Z",
   "blockers": []
 }
