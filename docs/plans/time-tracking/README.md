@@ -1,18 +1,25 @@
-# Time tracking — Sprint 1
+# Time tracking — Sprint 2
 
-The collector is available now; daily drafts, approval and export arrive in
-Sprints 2 and 3. It uses Node 24 built-ins and makes no network calls.
+Collection, ledger-only daily drafts and verification are available now. Approval,
+Markdown and export arrive in Sprint 3. Runtime uses Node 24 built-ins; optional
+read-only GitHub CLI enrichment supplies PR branch/title metadata.
 
 ```sh
 node scripts/timesheet.mjs collect
 node scripts/timesheet.mjs collect --report
+# Run draft/verify from a registered client repo (use an absolute CLI path).
+node /absolute/path/to/opchain/scripts/timesheet.mjs draft 2026-09-26
+node /absolute/path/to/opchain/scripts/timesheet.mjs verify
 ```
 
 State defaults to `~/.opchain/time/`; `OPCHAIN_TIME_HOME` overrides it. Every
 project is included so internal work can participate in later overlap allocation.
-See [transcript-format.md](transcript-format.md) for privacy, canary, recovery
-and owner replay instructions. `billing.yaml` parsing and repo registry helpers
-are available to the next sprint; `init` and the npm shortcut arrive in Sprint 3.
+See [transcript-format.md](transcript-format.md) for collection and privacy, the
+[commented config](billing.example.yaml) for billing policy, and the
+[runbook](../../runbooks/time-tracking.md) for registration, drafting, verification
+and owner replay. `init` and the npm shortcut arrive in Sprint 3. All seven model
+families have [sourced pricing](sprints/sprint-2/pricing-evidence.md); owner
+confirmation and real-corpus acceptance remain pending.
 
 ## Hooks
 

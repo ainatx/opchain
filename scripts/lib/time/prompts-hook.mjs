@@ -22,13 +22,21 @@ export function mergePrompts(events, hooks) {
   }
   for (const stamps of bySession.values()) stamps.sort((a, b) => a - b);
   let duplicates = 0;
+  const mergedHooks = hooks.map(h => ({ ...h }));
   const result = events.filter(event => {
     if (event.class !== 'human_prompt' || event.parent_session) return true;
     const stamps = bySession.get(event.session) || [], at = Date.parse(event.ts);
     let lo = 0, hi = stamps.length;
     while (lo < hi) { const mid = (lo + hi) >>> 1; if (stamps[mid] < at - 5000) lo = mid + 1; else hi = mid; }
-    if (lo < stamps.length && stamps[lo] <= at + 5000) { duplicates++; return false; }
+    if (lo < stamps.length && stamps[lo] <= at + 5000) {
+      // Keep branch/worktree metadata from the matching transcript prompt while
+      // retaining the hook timestamp and human classification as authoritative.
+      for (const h of mergedHooks) if (h.session === event.session && Math.abs(Date.parse(h.ts) - at) <= 5000) {
+        h.branch ??= event.branch; h.worktree ??= event.worktree;
+      }
+      duplicates++; return false;
+    }
     return true;
   });
-  return { events: [...result, ...hooks], duplicates };
+  return { events: [...result, ...mergedHooks], duplicates };
 }

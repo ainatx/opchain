@@ -50,6 +50,7 @@ function normalize(line, file, offset, resolver, counts) {
     event.usage = normalizeUsage(line.message?.usage);
   }
   if (line.type === 'pr-link' && Number.isSafeInteger(line.prNumber) && line.prNumber > 0) event.pr = line.prNumber;
+  if (absolutePath(line.cwd)) event.worktree = line.cwd;
   const text = contentText(line);
   const skill = text.match(/^\s*<command-name>\/?(oc-[a-z0-9-]+)<\/command-name>/)?.[1];
   if (skill) event.skill = skill;
@@ -129,7 +130,7 @@ async function readHooks(paths, resolver) {
       const uuid = `hook:${digest(`${ts}:${session}:${line.cwd}`)}`;
       if (seen.has(uuid)) return;
       seen.add(uuid);
-      hooks.push({ ts, uuid, session, parent_session: null, repo: resolver(line.cwd).repo,
+      hooks.push({ ts, uuid, session, parent_session: null, repo: resolver(line.cwd).repo, worktree: line.cwd,
         branch: null, class: 'human_prompt', type: 'user' });
     } catch { malformed++; }
   });

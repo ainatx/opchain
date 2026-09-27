@@ -316,3 +316,24 @@ Future skill verbs, after the freeze: `/oc-time`, `/oc-time review`, `/oc-time a
 2. **Storage:** everything lives under `~/.opchain/time/`, including `billing.yaml` per [P10]. The repo holds only the gitignored `timesheets/`.
 3. **Engagement model:** session blocks with agent runtime included, subagent continuity, and `agent_tail_cap_minutes: 30` as the default per [P5]. That default is the only change from the gate answer, and it's surfaced for re-approval.
 4. **Name:** `oc-time-ops`, verb `/oc-time`.
+
+## Sprint 2 implementation clarifications (2026-09-27)
+
+- Current sourced cache-read multipliers are model-specific: Fable 5.1 0.025×,
+  Opus 5.5 0.05×, other covered families 0.10×. See
+  [pricing evidence](../sprints/sprint-2/pricing-evidence.md).
+- A block starts at its first human touch; earlier autonomous activity is excluded.
+  Human provenance carries across the midnight split, preserving only the capped tail.
+- All registered clients share timezone, overlap, idle and tail-cap settings, so
+  separate client drafts use the same global allocation. Mismatch fails closed.
+- `worktree` path metadata supports detached HEAD in addition to canonical `repo`.
+  Dated checkpoint refs require `active_from`/optional `active_to`; undated current
+  state is ignored. Optional read-only `gh` enrichment supplies PR titles transiently.
+- Nonbillable scopes remain ledger evidence with zero hours. Allocation proofs
+  verify raw time separately from rounded hours. AI list-price equivalents remain
+  USD, independently of time currency; no exchange rate is inferred.
+- Ledger records additionally carry a previous-row hash, row hash and revision.
+  These detect corruption, not malicious full-history rewriting or suffix deletion.
+  Re-derivation preserves human edits as well as approvals, and retires vanished
+  drafts by append-only discard events. The complete operational limits are in the
+  [runbook](../../../runbooks/time-tracking.md).

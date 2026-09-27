@@ -1,0 +1,51 @@
+# Schema version; only version 1 is supported.
+version: 1
+# Stable client id (lowercase slug) and human-readable client name.
+client:
+  id: acme
+  name: Acme Corp
+# Hourly fee and ISO currency for time. AI list-price equivalents stay USD.
+rate:
+  hourly: 175
+  currency: USD
+# Billing increment, in hours.
+increment_hours: 0.25
+# up or nearest. Nearest can reduce the raw total.
+rounding: up
+# client-day rounds once then distributes integer increments by largest remainder.
+# matter-day rounds each matter independently.
+rounding_scope: client-day
+# A scope below this raw-minute threshold is retained as nonbillable evidence.
+min_minutes: 3
+# Consecutive activity gaps greater than this split session blocks.
+idle_minutes: 10
+# Maximum elapsed minutes after the final human touch; null means uncapped.
+agent_tail_cap_minutes: 30
+# last-touch or split-even; internal/unregistered sessions compete globally.
+overlap: last-touch
+# IANA billing zone. This, idle, tail cap and overlap must agree across clients.
+timezone: America/Chicago
+# Matter precedence: dated checkpoint refs, PR metadata, branch rules, default.
+matters:
+  # Ticket regex, applied only to bounded metadata; at most 200 characters.
+  ticket: '(ACME-\d+)'
+  # Ordered branch rules; first match wins at the branch fallback stage.
+  rules:
+    # Branch regex, also limited to 200 characters.
+    - branch: '^chore/deps'
+      # Optional matter name; otherwise use ticket match or default.
+      matter: maintenance
+      # False retains evidence but excludes hours and prevents approval.
+      billable: false
+  # Fallback name, also receives the smallest matters when the limit is exceeded.
+  default: general
+  # Maximum distinct matter names per client day, including default when merged.
+  max_per_day: 6
+# Separate, disclosed AI token-cost line; never added to time hours.
+ai_cost:
+  # none, pass-through, or markup.
+  mode: pass-through
+  # Only api-list is supported: standard global API list-price equivalent.
+  basis: api-list
+  # Used only in markup mode; 0 means no markup.
+  markup_pct: 0

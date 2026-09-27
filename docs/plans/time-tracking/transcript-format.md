@@ -139,3 +139,12 @@ then appended exactly those lines. It read only the appended 33,819,395 bytes,
 but took 1.35 seconds against the <1-second target. A later run under concurrent
 machine load took 1.90 seconds; the no-change replay read zero bytes. The timing
 target remains unmet; synthetic timing success is not substituted for this result.
+## Sprint 2 metadata extension
+
+Normalized events may additionally contain `worktree`, the original absolute cwd,
+so detached-HEAD reflog lookup can use the correct worktree after `repo` has been
+canonicalized. Hook merging preserves matching transcript branch/worktree metadata
+while retaining the hook's human timestamp. Older cache rows without this field
+remain readable and fall back to the canonical repo; rebuild collection in a new
+private replay directory if original worktree evidence is needed. No prompt text,
+PR title or commit subject is added to the cache.
