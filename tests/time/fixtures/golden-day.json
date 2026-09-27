@@ -1,0 +1,4 @@
+[
+  {"entry":"acme-2026-09-26-ACME-1-t","type":"time","hours":0.25,"raw_minutes":15,"agent_only_minutes":5},
+  {"entry":"acme-2026-09-26-ai","type":"disbursement","amount":0,"unpriced_share":0}
+]

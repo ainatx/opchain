@@ -90,7 +90,7 @@ it('full and unordered input produce equivalent classified events', async () => 
   const lines = [user('u', 0), assistant('a', 10), user('b', 5)];
   a.file('s.jsonl', lines); b.file('s.jsonl', [...lines].reverse());
   await collect({ env: a.env }); await collect({ env: b.env });
-  const normalize = f => events(f).map(({ repo, ...row }) => row);
+  const normalize = f => events(f).map(({ repo, worktree, ...row }) => row);
   expect(normalize(a)).toEqual(normalize(b));
 });
 it('refuses conflicting writers and incomplete storage configuration', async () => {

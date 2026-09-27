@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-09-27T07:20:32.398340Z",
+  "updated_at": "2026-09-27T07:24:42.432573Z",
   "phase": "sprint-plan",
   "step": "v2.0-sprint-plan-approved-blocked-on-oss-split",
   "status": "in_progress",
@@ -91,8 +91,11 @@
       "2026-09-26 time-tracking Sprint 1 contract accepted against approved A1-A9/B2/B14/C4/C6 scope; builds collect and hook prompt only. Contract: docs/plans/time-tracking/sprints/sprint-1/contract.md. Release-ops keeps catalog release/version surfaces out of this sprint.",
       "2026-09-26 time-tracking Sprint 1 implementation evaluated PASS 8.0/10 (all dimensions 8), 69 tests, 100% library line coverage. Synthetic hook median 42.22ms and 10k append 147.48ms. Real-corpus replay and manual hook adoption remain pending owner; sprint acceptance is not yet complete. Report: docs/plans/time-tracking/sprints/sprint-1/eval-round-1.md.",
       "Time-tracking Sprint 1 owner-authorized replay 2026-09-27: corpus format fixes and actual timing documented; seven prices confirmed; 56 repository-days verify with zero unpriced usage. Incremental collector timing still exceeds <1s, so final acceptance is not claimed. Validation uses isolated private data and zero hourly rates.",
-      "Time-tracking Sprint 1 owner-authorized replay 2026-09-27: corpus format fixes and actual timing documented; seven prices confirmed; 56 repository-days verify with zero unpriced usage. Incremental collector timing still exceeds <1s, so final acceptance is not claimed. Validation uses isolated private data and zero hourly rates.",
-      "Time-tracking Sprint 1 owner-authorized replay 2026-09-27: corpus format fixes and actual timing documented; seven prices confirmed; 56 repository-days verify with zero unpriced usage. Owner accepted the measured incremental timing deviation and authorized Signed-off-by: Aidan Elsesser <admin@opchain.dev> for the squash merges on 2026-09-27. Validation uses isolated private data and zero hourly rates."
+      "Time-tracking Sprint 1 owner-authorized replay 2026-09-27: corpus format fixes and actual timing documented; seven prices confirmed; 56 repository-days verify with zero unpriced usage. Owner accepted the measured incremental timing deviation and authorized Signed-off-by: Aidan Elsesser <admin@opchain.dev> for the squash merges on 2026-09-27. Validation uses isolated private data and zero hourly rates.",
+      "2026-09-27 time-tracking Sprint 2 contract: implement A10-A18, ledger-only draft/verify and C2 on Sprint 1 tip 4f47b503; PR #569 remains a landing prerequisite. Global client allocation policies agree; sourced per-model cache rates supersede old blanket multiplier. Contract: docs/plans/time-tracking/sprints/sprint-2/contract.md.",
+      "2026-09-27 time-tracking Sprint 2 Generator/Evaluator round 1 FAIL led to worktree/matter-boundary, retirement, activity-query and locking fixes. Round 2 implementation PASS (all dimensions 8), 104 time tests, 100% new module line coverage; 200 randomized days and 20 process writers. Owner 14-day corpus replay, seven price confirmations, Sprint 1 merge and human sign-off remain pending. No catalog release.",
+      "Time-tracking Sprint 2 owner-authorized replay 2026-09-27: corpus format fixes and actual timing documented; seven prices confirmed; 56 repository-days verify with zero unpriced usage. Incremental collector timing still exceeds <1s, so final acceptance is not claimed. Validation uses isolated private data and zero hourly rates.",
+      "Time-tracking Sprint 2 owner-authorized replay 2026-09-27: corpus format fixes and actual timing documented; seven prices confirmed; 56 repository-days verify with zero unpriced usage. Owner accepted the measured incremental timing deviation and authorized Signed-off-by: Aidan Elsesser <admin@opchain.dev> for the squash merges on 2026-09-27. Validation uses isolated private data and zero hourly rates."
     ],
     "generated_files": [
       "site/src/blog/2026-06-25-v1-6-the-instrumented-pipeline.md",
@@ -529,6 +532,33 @@
       },
       "ref": "docs/plans/time-tracking/sprints/sprint-1/eval-round-1.md",
       "note": "time-tracking Sprint 1 implementation PASS; owner corpus replay pending; unrelated v2.0 state preserved"
+    },
+    {
+      "rubric": "oc-app-architect",
+      "score": 5.6,
+      "max": 10,
+      "at": "2026-09-27T06:06:36.596360Z",
+      "dimensions": {
+        "functionality": 5,
+        "completeness": 5,
+        "quality": 6,
+        "ux": 7
+      },
+      "ref": "docs/plans/time-tracking/sprints/sprint-2/eval-round-1.md"
+    },
+    {
+      "rubric": "oc-app-architect",
+      "score": 8,
+      "max": 10,
+      "at": "2026-09-27T06:06:36.596360Z",
+      "dimensions": {
+        "functionality": 8,
+        "completeness": 8,
+        "quality": 8,
+        "ux": 8
+      },
+      "ref": "docs/plans/time-tracking/sprints/sprint-2/eval-round-2.md",
+      "note": "Implementation PASS; owner acceptance and Sprint 1 merge pending; no release cut"
     }
   ],
   "recently_done": [

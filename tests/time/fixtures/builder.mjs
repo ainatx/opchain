@@ -12,7 +12,12 @@ export function fixture({ git = false } = {}) {
   const home = mkdtempSync(join(tmpdir(), 'opchain-time-'));
   const root = join(home, 'state'), projects = join(home, '.claude', 'projects'), repo = join(home, 'repo');
   mkdirSync(projects, { recursive: true }); mkdirSync(repo);
-  const env = { ...process.env, HOME: home, OPCHAIN_TIME_HOME: root, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1' };
+  const env = { ...process.env, HOME: home, OPCHAIN_TIME_HOME: root, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1',
+    GIT_AUTHOR_NAME: 'Fixture', GIT_AUTHOR_EMAIL: 'fixture@example.invalid',
+    GIT_COMMITTER_NAME: 'Fixture', GIT_COMMITTER_EMAIL: 'fixture@example.invalid' };
+  // Git pre-commit exports the real commit's author/date. Synthetic activity
+  // must use its own identity and current fixture timestamps in that host too.
+  delete env.GIT_AUTHOR_DATE; delete env.GIT_COMMITTER_DATE;
   const command = (...args) => execFileSync('git', ['-C', repo, ...args], { env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   if (git) {
     command('init', '-q'); command('config', 'user.name', 'Fixture'); command('config', 'user.email', 'fixture@example.invalid');
