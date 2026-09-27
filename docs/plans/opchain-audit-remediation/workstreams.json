@@ -1,0 +1,347 @@
+{
+  "id": "opchain-audit-remediation-2026-09-13",
+  "baseline": "4d39b937313181f84d08b517a1445d3d1eda7e6a",
+  "coordinator_thread": "01a09adb-204b-7803-990a-8df5dfb78d48",
+  "scope": "All 32 revised audit IDs, including optional bounded improvements; no Hindsight/Evolve, repository split, release publication or deployment.",
+  "status": "complete_preparation",
+  "streams": [
+    {
+      "id": "A",
+      "title": "Opchain \u2014 Commit verification",
+      "findings": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F05",
+        "F06",
+        "F17",
+        "F18",
+        "F25"
+      ],
+      "effort": "6\u201310 person-days",
+      "owns": [
+        "plugins/opchain/hooks/pre-commit-gate.cjs",
+        "plugins/opchain/hooks/test-gate.cjs",
+        "plugins/opchain/hooks/hooks.json",
+        ".claude/settings.json",
+        ".claude/hooks/pre-commit-bugcheck.sh",
+        "scripts/install-git-drivers.mjs",
+        "scripts/lib/verification-receipt.cjs",
+        "scripts/verify-candidate.mjs",
+        "skills/oc-bug-check/SKILL.md",
+        "tests/audit-commit/**",
+        "plugins/opchain/commands/oc-commit.md",
+        "plugins/opchain/commands/oc-bugcheck.md",
+        "plugins/opchain/commands/oc-enroll.md",
+        "tests/install-git-drivers.test.js"
+      ],
+      "sprints": [
+        [
+          "A1",
+          "Receipt contract and compatibility repairs",
+          "Define the candidate receipt API and policy configuration before coding the verifier. Correct canonical verdict consumption, path quoting, duplicate hook ownership, and PEM scan. Add the audit reproductions as meaningful regression fixtures. Publish the proposed receipt API; do not invent a second checkpoint store.",
+          "No dependencies."
+        ],
+        [
+          "A2",
+          "Exact candidate verification",
+          "Implement an executable verifier that tests an immutable effective commit candidate and stores its receipt outside the tree. Bind repository, candidate, policy/toolchain and results. Integrate commit-time verification after mutating hooks; fail closed on missing or mismatched evidence.",
+          "Coordinator accepts A1 API."
+        ],
+        [
+          "A3",
+          "Commit boundary acceptance",
+          "Test partial staging, tracked checkpoints, compound commands, substitutions, -C, worktrees, post-check mutation, missing dependencies and combined hook installs. Record which tests are native-host versus script fixtures.",
+          "A2 and state contract available."
+        ]
+      ],
+      "status": "accepted_integrated_parked",
+      "active_sprint": null,
+      "model": "gpt-5.6-sol",
+      "reasoning": "high"
+    },
+    {
+      "id": "B",
+      "title": "Opchain \u2014 Release and PR gates",
+      "findings": [
+        "F07",
+        "F13",
+        "F14",
+        "F15",
+        "F16"
+      ],
+      "effort": "5\u20138 person-days",
+      "owns": [
+        "scripts/release-sequence.mjs",
+        "scripts/check-release-surfaces.mjs",
+        "scripts/check-release-tag.mjs",
+        "scripts/deploy.mjs",
+        "scripts/lib/release-*.mjs",
+        "skills/oc-release-ops/**",
+        "skills/oc-git-ops/**",
+        "skills/oc-docs-forge/**",
+        "skills/oc-repo-ops/**",
+        "skills/oc-deploy-ops/**",
+        "tests/audit-release/**"
+      ],
+      "sprints": [
+        [
+          "B1",
+          "Release phases and required checks",
+          "Separate pre-merge, pre-tag, post-tag and post-deploy verification. Missing mandatory tools/checks produce FAIL or INCOMPLETE. Reconcile local monitoring baseline policy with CI and define a complete version-surface inventory.",
+          "No dependencies; do not duplicate A receipt implementation."
+        ],
+        [
+          "B2",
+          "Evidence consumers",
+          "Use A receipt and C checkpoint APIs for PR/docs/repo/audit consumers. Required evidence must bind the candidate artifact; compliance stays warn-only. Submit CI/package wiring requests to the coordinator.",
+          "Accepted A/C interfaces and implementations."
+        ],
+        [
+          "B3",
+          "Untagged-to-release rehearsal",
+          "Run a disposable release lifecycle and failure-path tests, including absent browsers, bad evidence, all version surfaces, and approved older runtime with newer docs. Do not push a tag or deploy.",
+          "B2 integrated by coordinator."
+        ]
+      ],
+      "status": "accepted_integrated_parked",
+      "active_sprint": null,
+      "scope_guard": "Ownership reserves gate-related edits only; unrelated prose in the assigned skill trees is frozen. B1 may read existing CI freely; I owns its changes.",
+      "model": "gpt-5.6-luna",
+      "reasoning": "low"
+    },
+    {
+      "id": "C",
+      "title": "Opchain \u2014 State, routing and handoffs",
+      "findings": [
+        "F08",
+        "F10",
+        "F11",
+        "F12",
+        "F19",
+        "F20",
+        "F21",
+        "F28",
+        "F31"
+      ],
+      "effort": "9\u201315 person-days",
+      "owns": [
+        "scripts/checkpoint.mjs",
+        "scripts/lib/checkpoint-*.mjs",
+        "src/lib/mcp/**",
+        "mcp/local-server.mjs",
+        "scripts/sync-docs.sh",
+        "plugins/opchain/hooks/session-state.cjs",
+        "plugins/opchain/hooks/next-suggestion.cjs",
+        "plugins/opchain/hooks/test-suggestion.cjs",
+        ".claude/hooks/checkpoint-hygiene.sh",
+        "skills/oc-checkpoint-protocol/**",
+        "skills/oc-orchestrator/**",
+        "skills/orchestrator.md",
+        "tests/audit-state/**",
+        "mcp/README.md"
+      ],
+      "sprints": [
+        [
+          "C1",
+          "Canonical state and routing contracts",
+          "Publish a versioned envelope, typed handoff contracts, lifecycle timestamps and atomic store API. Keep wire 1.1 compatibility; do not introduce 2.0 eval-history changes. Correct natural-language routing and reference retrieval with real-router and MCP-only fixtures.",
+          "No dependencies."
+        ],
+        [
+          "C2",
+          "Durability and lifecycle consumers",
+          "Implement durable project-scoped local storage, shared validation and concurrency-safe writes. Repair first-use suggestions, invocation normalization, current-run hygiene, finding lifecycle and verification freshness. Maintain hosted session isolation and advisory trust.",
+          "Coordinator accepts C1 API; do not edit A gate or E telemetry writer."
+        ],
+        [
+          "C3",
+          "Fresh-consumer handoff journeys",
+          "Verify reference loading, restart/resume, cross-skill typed reads, interrupted/concurrent writes, first-use suggestions, metadata-only updates and routing coverage. Supply the seven-description publication correction to coordinator packaging.",
+          "C2 plus coordinator generated catalog."
+        ]
+      ],
+      "status": "accepted_integrated_parked",
+      "active_sprint": null,
+      "model": "gpt-5.6-sol",
+      "reasoning": "high"
+    },
+    {
+      "id": "E",
+      "title": "Opchain \u2014 Telemetry and PM reliability",
+      "findings": [
+        "F22",
+        "F23",
+        "F24",
+        "F26",
+        "F27"
+      ],
+      "effort": "5\u20138 person-days",
+      "owns": [
+        "scripts/telemetry.mjs",
+        "scripts/lib/pm-mcp-checks.mjs",
+        "scripts/lib/telemetry-*.mjs",
+        "skills/oc-telemetry-ops/**",
+        "skills/oc-integrations-engineer/references/pm-mcp-protocol.md",
+        "skills/oc-app-architect/SKILL.md",
+        "tests/audit-telemetry-pm/**",
+        "scripts/validate-pm-mcp.mjs"
+      ],
+      "sprints": [
+        [
+          "E1",
+          "Local consent, privacy and PM identities",
+          "Make consent machine-local; validate catalog IDs, verbs and numeric inputs. Separate retries from revised PM events and expand required-contract inventory. Preserve existing data and use synthetic/mocked tests only.",
+          "No dependencies; define integration needs against C contract."
+        ],
+        [
+          "E2",
+          "Aggregate/export and store integration",
+          "Implement reusable rollup/export/event paths with schema-versioned artifacts, denominator handling and privacy suppression. Consume C atomic store for checkpoint writes. Fix fail\u2192pass and changed-contract PM behavior.",
+          "Accepted C store API."
+        ],
+        [
+          "E3",
+          "Privacy and update journeys",
+          "Test fresh clone without consent, disable/re-enable, malformed data, aggregation/export, uncertain delivery retry and legitimate revised updates. No external PM messages or data publication.",
+          "E2 integrated."
+        ]
+      ],
+      "status": "accepted_integrated_parked",
+      "active_sprint": null,
+      "model": "gpt-5.6-terra",
+      "reasoning": "medium"
+    },
+    {
+      "id": "F",
+      "title": "Opchain \u2014 Prompt and cost execution",
+      "findings": [
+        "F09"
+      ],
+      "effort": "4\u20137 person-days",
+      "owns": [
+        "scripts/prompt-eval.mjs",
+        "scripts/cost.mjs",
+        "scripts/lib/prompt-eval/**",
+        "scripts/lib/cost/**",
+        "skills/oc-prompt-ops/**",
+        "skills/oc-cost-ops/**",
+        "tests/audit-eval/**"
+      ],
+      "sprints": [
+        [
+          "F1",
+          "Executable evaluation contract",
+          "Reconcile the absent runner with the approved 2.0 runner design without building Hindsight/Evolve. Specify dataset, result, baseline and cost schemas, provider adapter interface and non-authorizing failure states. Implement deterministic grader/core fixtures independently of external credentials.",
+          "No dependencies; publish result schema for G/A."
+        ],
+        [
+          "F2",
+          "Runner and budget gates",
+          "Implement the shared prompt runner and cost CLI, one real provider adapter with mocked network tests, versioned artifacts and nonzero quality/budget exits. Keep provider/model/pricing configurable and explicitly sourced; no live paid calls needed. Submit package script additions to coordinator.",
+          "Coordinator accepts F1 schema; integrate C/A APIs only if needed."
+        ],
+        [
+          "F3",
+          "Honest evaluation acceptance",
+          "Prove candidate versus baseline distinctions, quality regression, budget failure, missing credentials/baselines and interruption. Distinguish deterministic fixtures from live model validation. Produce a migration handoff for the post-split 2.0 plan.",
+          "F2 integrated."
+        ]
+      ],
+      "status": "accepted_integrated_parked",
+      "active_sprint": null,
+      "model": "gpt-5.6-luna",
+      "reasoning": "low"
+    },
+    {
+      "id": "G",
+      "title": "Opchain \u2014 Reusable execution kits",
+      "findings": [
+        "F30"
+      ],
+      "effort": "5\u201310 person-days; optional improvement accepted as follow-on scope",
+      "owns": [
+        "plugins/opchain/kits/audit-runtime/**",
+        "scripts/lib/role-execution/**",
+        "scripts/lib/data-contract/**",
+        "skills/oc-agent-forge/references/execution-kit.md",
+        "skills/oc-data-ops/references/execution-kit.md",
+        "tests/audit-kits/**",
+        "scripts/lib/execution-kits/**"
+      ],
+      "sprints": [
+        [
+          "G1",
+          "Bounded execution-kit contract",
+          "Design opt-in role launcher and data-contract compiler interfaces for one host and one dbt-style adapter. Define immutable inputs, bounded retries, explicit capability limits and dependency manifest. Review-only contract first; do not build another workflow engine, store or eval runner.",
+          "No dependencies for contract; implementation waits for A/C/F contracts."
+        ],
+        [
+          "G2",
+          "Initial reusable kits",
+          "Implement the agreed adapter subset using the shared A/C/F libraries. Reject unsupported dialects/hosts explicitly; validate SQL expressions without claiming universal SQL correctness. Package transitive dependencies through coordinator inventory.",
+          "Coordinator releases G2 after A/C/F APIs are stable."
+        ],
+        [
+          "G3",
+          "Artifact-only assurance",
+          "Run from an isolated artifact without authoring-repo/cache imports. Verify separate role inputs, mutation refusal, retry bounds, contract failures and honest runtime/tool isolation labels.",
+          "G2 and coordinator packaging."
+        ]
+      ],
+      "status": "accepted_integrated_parked",
+      "active_sprint": null,
+      "model": "gpt-5.6-luna",
+      "reasoning": "low"
+    }
+  ],
+  "coordinator": {
+    "id": "I",
+    "title": "Current task \u2014 Integration and acceptance",
+    "findings": [
+      "F29",
+      "F32"
+    ],
+    "owns": [
+      "package.json",
+      "package-lock.json",
+      ".github/workflows/**",
+      "README.md",
+      "plugins/opchain/README.md",
+      "src/generated/**",
+      "plugins/opchain/skills/**",
+      "all generated reference mirrors",
+      "docs/plans/opchain-audit-remediation/**",
+      "docs/audits/2026-09-13*",
+      "sprints/audit-remediation/status.json",
+      ".claude-plugin/**",
+      "plugins/opchain/.claude-plugin/**",
+      "tests/audit-integration/**"
+    ],
+    "sprints": [
+      "I0: freeze ownership and interface contracts",
+      "I1: assemble reviewed changes and regenerate outputs once",
+      "I2: capability matrix/diagnostics, artifact-only/native-host journeys and release-readiness report"
+    ]
+  },
+  "interface_boundaries": {
+    "receipt": "A owns external verification receipts, candidate identity, policy identity and verifier results. They are not checkpoints and must never be imported from hosted/client-authored state.",
+    "checkpoint": "C owns project state under .checkpoints and its durable local MCP provider, validation, lifecycle and atomic writer. No verification receipt is stored inside its own candidate tree.",
+    "integration": "I owns tests/audit-integration, package/CI wiring and agreement tests between A receipt readers, C state readers and B consumers.",
+    "eval": "F result schema is consumed by G and optional future checks. A does not depend on F to verify ordinary repository checks."
+  },
+  "model_policy": {
+    "max_active_implementations": 3,
+    "default_model": "gpt-5.6-terra",
+    "default_reasoning": "medium",
+    "complex_contract_model": "gpt-5.6-sol",
+    "complex_contract_reasoning": "high",
+    "parked_model": "gpt-5.6-luna",
+    "parked_reasoning": "low",
+    "escalation": "gpt-6-astra only for a specific unresolved issue or focused critical review"
+  },
+  "implementation_baseline": "aef40809fef4bbded9a47c936c7c544631397fb6",
+  "upstream_reconciled_through": "7234ad60b375ede708b8ee4fa17bf22b0d329600",
+  "current_status_source": "sprints/audit-remediation/status.json"
+}

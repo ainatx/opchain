@@ -217,6 +217,19 @@ release is the **deploy**, not the merge. The order is fixed:
    approved baseline.
    See [the Cloudflare challenge runbook](../runbooks/cloudflare-challenge.md)
    for the control-plane assurance limit.
+
+   **Release freeze — from the tag until production is live.** Nothing merges
+   to `main` between pushing the release tag and a passing `npm run smoke:prod`
+   (baseline and pre-deploy evidence PRs for this release excepted). The deploy
+   ships the exact fetched `origin/main`, and the pre-deploy code-audit and
+   security-posture verdicts bind to that exact tree, so any merge in the window
+   makes them stale and forces a fresh audit. Tell every other session or agent
+   working in the repo that a cut is in progress before you tag. Run
+   `npm run deploy` **once** per release: a second run of the same commit
+   creates a new Cloudflare deployment and version id and leaves the monitoring
+   baseline pointing at the replaced one. (Learned on v2.0.4, 2026-09-27: two
+   mid-cut merges forced two re-audits, and a repeat production deploy needed
+   a follow-up baseline PR, #574.)
 5. **If the release is abandoned mid-review:** close the unmerged release PR.
    Because the tag and deploy come after the merge,
    there is nothing live to roll back.
