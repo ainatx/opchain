@@ -7,17 +7,17 @@ import { expect, test } from "@playwright/test";
  * /changelog uses the Option C v2 layout: three full-width ARIA tabs —
  * "Just Released" (release history, newest first), "Coming Next" (the next
  * slot, v1.9 assurance and governed delivery — direction set), and "Planned"
- * (votable v2.1 / v2.2 / v2.3 cards). The newest release (v1.9, shipped
+ * (v2.1 direction set in Coming Next; advisory-vote v2.2 / v2.3 cards). The newest release (v1.9, shipped
  * Sep 2026) is the open hero in Just Released, with v1.8 / v1.7 / v1.6 collapsed
  * heroes below it; each card is a button[aria-expanded] disclosure.
  * Deep links: #v1-9/#v1-8/#v1-7/#v1-6 → Just Released; #v2-0 → Coming Next;
- * #v2-1/#v2-2/#v2-3 → Planned; #v1-4 still carries the /coverage link.
+ * #v2-1 → Coming Next; #v2-2/#v2-3 → Planned; #v1-4 still carries the /coverage link.
  *
  * Two specs:
  *   1. /changelog — three tabs; v1.9 is the open hero in Just Released;
  *      the v1.4 card still deep-links to /coverage; Coming Next leads with
  *      the selected v1.9 assurance direction; Planned commits v2.0 and
- *      establishes voting across v2.1-v2.3 (every rendered planned item is
+ *      establishes advisory voting across v2.2-v2.3 (every rendered planned item is
  *      votable — the items themselves come from live GitHub Issues at build
  *      time, so the spec asserts structure, never a specific issue set).
  *
@@ -97,23 +97,30 @@ test.describe("/changelog", () => {
       .toBeVisible();
   });
 
-  test("Coming Next points to v2.1 and the 2.0 deep link opens its release", async ({ page }) => {
+  test("Coming Next holds v2.1 (direction set) and the 2.0 deep link opens its release", async ({ page }) => {
     await page.goto("/changelog#v2-0");
     await expect(page.locator("#panel-released #v2-0")).toBeVisible();
     await page.locator("#tab-coming").click();
     await expect(page.locator("#panel-coming")).toBeVisible();
-    await expect(page.locator('#panel-coming a[href="/changelog#v2-1"]')).toBeVisible();
+    await expect(page.locator("#panel-coming #v2-1 .pc-timing")).toHaveText(/direction set/i);
+    await expect(page.locator("#panel-coming #v2-1 [data-vote-target]")).toHaveCount(0);
     await expect(page.locator("#panel-coming #v2-0")).toHaveCount(0);
   });
 
-  test("Planned establishes voting across v2.1-v2.3", async ({ page }) => {
+  test("deep-link #v2-1 opens Coming Next and the v2.1 card", async ({ page }) => {
+    await page.goto("/changelog#v2-1");
+    await expect(page.locator("#tab-coming")).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#v2-1 [data-disclosure-toggle]")).toHaveAttribute("aria-expanded", "true");
+  });
+
+  test("Planned establishes advisory voting across v2.2-v2.3", async ({ page }) => {
     await page.goto("/changelog");
     await page.locator("#tab-planned").click();
 
     await expect(page.locator("#panel-planned")).toBeVisible();
     // v2.0 moved to Coming Next at the v1.9 cut; Planned is the votable set.
     await expect(page.locator("#panel-planned #v2-0")).toHaveCount(0);
-    await expect(page.locator("#v2-1 .pc-title")).toHaveText(/distribution and installation/i);
+    await expect(page.locator("#panel-planned #v2-1")).toHaveCount(0);
     await expect(page.locator("#v2-2 .pc-title")).toHaveText(/agency and multi-project/i);
     await expect(page.locator("#v2-3 .pc-title")).toHaveText(/discovery and pipeline depth/i);
     // v1.8 shipped (Just Released) and v1.9 is the fixed Coming Next slot.
@@ -132,7 +139,7 @@ test.describe("/changelog", () => {
     // ci.yml documents as the intended outcome.
     await expect(page.locator("#v2-0 [data-vote-target]")).toHaveCount(0);
     let votable = 0;
-    for (const group of ["v2-1", "v2-2", "v2-3"]) {
+    for (const group of ["v2-2", "v2-3"]) {
       await page.locator(`#${group} [data-disclosure-toggle]`).click();
       const items = page.locator(`#${group} .horizon-item`);
       const votes = page.locator(`#${group} [data-vote-target]`);

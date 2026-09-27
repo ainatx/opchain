@@ -5,8 +5,8 @@
  *
  *   Just Released → v2.0 open hero + v1.9 / v1.8 / v1.7 / v1.6 collapsed
  *                   heroes + compact release cards (patches and older).
- *   Coming Next   → v2.1 distribution and installation.
- *   Planned       → votable v2.1/v2.2/v2.3 roadmap groups and the request form.
+ *   Coming Next   → v2.1 · direction set (#v2-1), not votable.
+ *   Planned       → v2.2/v2.3 roadmap groups with advisory votes, and the request form.
  *
  * Voting is real: vote buttons carry data-vote-target=<id> and the client
  * script batches GET /api/votes then POSTs /api/votes/<id> per click (the
@@ -14,11 +14,13 @@
  * (e.g. "42") pulled live from `asfbay-bit/opchain-skills` via
  * `loadRoadmap()` — see scripts/gen-roadmap.mjs and
  * docs/plans/2026-08-26-roadmap-github-issues.md. The v1.9 and v2.0 scope
- * is committed; voting is attached only to the v2.1-v2.3 candidates. All
+ * is committed; v2.1's direction is set by the maintainer (D-F); advisory
+ * voting is attached only to the v2.2-v2.3 candidates. All
  * roadmap items are `roadmap:planned` issues, distinguished by milestone.
  * v1.8 shipped 2026-07-10, so it has no vote buttons.
  *
- * Deep links (#v2-0/#v1-9/#v1-8/… → Just Released; #v2-1/#v2-2/#v2-3 → Planned;
+ * Deep links (#v2-0/#v1-9/#v1-8/… → Just Released; #v2-1 → Coming Next;
+ * #v2-2/#v2-3 → Planned;
  * #v1-4 → /coverage) are handled client-side:
  * the matching tab is activated, the target card expanded, and scrolled into
  * view.
@@ -81,31 +83,18 @@ const v18Skills = [
   },
 ];
 
-// v2.0 is committed. v2.1-v2.3 are the voting horizon: their issue-level vote
-// controls preserve the existing vote ids while making the sequence explicit.
+// v2.0 shipped and v2.1's direction is set (Coming Next, #v2-1). v2.2-v2.3 are
+// the advisory voting horizon: their issue-level vote controls preserve the
+// existing vote ids while making the sequence explicit.
 // v2.0 is NOT listed here: at the v1.9 cut it moved to the Coming Next panel as
 // the committed next release (hero #v2-0). Keeping a Planned card for it too
 // would duplicate that DOM id.
 const plannedReleaseGroups = [
   {
-    version: "v2.1",
-    id: "v2-1",
-    title: "Distribution and installation",
-    timing: "voting open",
-    summary:
-      "Make opchain easier to discover and install in the places people already work: the public catalog, Claude.ai, and editors.",
-    votable: true,
-    items: itemsForMilestone(roadmap, "planned", "v2.1").map((item) => ({
-      id: item.id,
-      title: item.title,
-      blurb: item.blurb,
-    })),
-  },
-  {
     version: "v2.2",
     id: "v2-2",
     title: "Agency and multi-project delivery",
-    timing: "voting open",
+    timing: "advisory vote",
     summary:
       "Give studios and larger programs first-class coordination across clients, repositories, checkpoints, releases, and handoffs.",
     votable: true,
@@ -119,7 +108,7 @@ const plannedReleaseGroups = [
     version: "v2.3",
     id: "v2-3",
     title: "Discovery and pipeline depth",
-    timing: "voting open",
+    timing: "advisory vote",
     summary:
       "Strengthen the pipeline before implementation with sharper problem discovery, opportunity framing, and evaluator evidence.",
     votable: true,
@@ -179,7 +168,7 @@ const plannedReleaseGroups = [
           aria-selected="false"
           tabindex="-1"
         >
-          Planned <span class="tab-count">v2.1 → v2.3</span>
+          Planned <span class="tab-count">v2.2 → v2.3</span>
         </button>
       </div>
       <span class="tab-indicator" data-tab-indicator aria-hidden="true"></span>
@@ -1142,11 +1131,32 @@ const plannedReleaseGroups = [
     >
       <div class="panel-head">
         <h2>What's coming</h2>
-        <span class="panel-sub">Help shape the next release.</span>
+        <span class="panel-sub">The next release's direction is set.</span>
       </div>
 
-      <!-- v2.1 is the next committed theme. v2.0 shipped; deep-link #v2-0. -->
-      <div class="planned-box"><strong>Next: distribution and installation.</strong> Explore the proposed v2.1 work and vote for what would help your team. <a href="/changelog#v2-1">View the v2.1 plan</a>.</div>
+      <!-- v2.1 direction set (decision D-F): hand-written, not votable. v2.0 shipped; deep-link #v2-0. -->
+      <article class="plan-card" id="v2-1" data-card>
+        <button class="pc-row" type="button" aria-expanded="false" aria-controls="v2-1-body" data-disclosure-toggle>
+          <span class="pc-toggle" aria-hidden="true">▶</span>
+          <span class="pc-meta">
+            <span class="pc-head"><span class="ver-pill ver-pill--next">v2.1</span><span class="pc-title">Installs anywhere, says so honestly</span><span class="pc-timing">direction set</span></span>
+            <span class="pc-summary">Distribution and installation: an open-source product repo, an honest install path for Claude.ai and Desktop, starter templates, and signed updates.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v2-1-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag tag--info">direction set</span></div>
+            <ul class="horizon-list">
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Skills move to their own open-source repo</span><p class="horizon-blurb">The skills, plugin and MCP server become the product source in <a href="https://github.com/asfbay-bit/opchain-skills">asfbay-bit/opchain-skills</a>, with full history, instead of a mirrored snapshot.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">An install path that says what works where</span><p class="horizon-blurb">A tested install matrix for Claude Code, Claude.ai, Desktop, Cowork and MCP clients, and skills that still resume without Node or git. No one-click promise until it is proven.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Starter templates and a marketplace listing</span><p class="horizon-blurb">Opinionated starters that pair a stack pack with the right skills, and a public listing of skills, packs and templates with install paths.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Portability fixes</span><p class="horizon-blurb">The open install and portability findings, so opchain runs cleanly on a machine that isn't the maintainer's.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Signed updates</span><p class="horizon-blurb">A published <code>did:web</code> identity and a signed update manifest the updater verifies.</p></div></li>
+            </ul>
+            <div class="planned-box">The editor extension has moved to a later release. <a href="https://github.com/asfbay-bit/opchain-skills/milestone/4">Follow the v2.1 milestone</a>.</div>
+          </div>
+        </div>
+      </article>
     </section>
 
     <!-- ══ PANEL 2 — PLANNED ═════════════════════════════════ -->
@@ -1160,7 +1170,7 @@ const plannedReleaseGroups = [
     >
       <div class="panel-head">
         <h2>What's planned</h2>
-        <span class="panel-sub">Vote within v2.1-v2.3 to shape what follows 2.0.</span>
+        <span class="panel-sub">Votes on v2.2–v2.3 are advisory; the maintainer sets each release’s direction.</span>
       </div>
 
       {plannedReleaseGroups.map((group) => (
@@ -1200,7 +1210,7 @@ const plannedReleaseGroups = [
               </ul>
               <div class="planned-box">
                 {group.votable ? (
-                  "Voting is open — use each item to signal priority within this release."
+                  "Votes are advisory — use each item to signal priority within this release."
                 ) : (
                   <>Committed after v1.9 — <a href="https://github.com/ainatx/opchain/blob/main/docs/releases/2.0-plan.md">read the full 2.0 plan of record</a>.</>
                 )}
