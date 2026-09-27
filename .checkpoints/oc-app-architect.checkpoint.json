@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-09-14T07:07:58.097Z",
+  "updated_at": "2026-09-27T01:23:41.158Z",
   "phase": "sprint-plan",
   "step": "v2.0-sprint-plan-approved-blocked-on-oss-split",
   "status": "in_progress",
@@ -80,7 +80,14 @@
       "Series ledger: 'Dogfooding opchain' grew to 5 parts (cost pair joined); July opens 'Seams & Signals in practice' (4 parts: modularize playbook, golden-fixture anatomy, fleet playbook, signal playbook).",
       "Hero rotation relies on newest-featured-wins in blog/index.astro — old featured flags don't need retiring.",
       "Voice: house style per §3 (confident, technical, slightly irreverent, shows the seams) with humor dialed up on user request; every post keeps descriptions 120–160 chars and ≥2 internal links.",
-      "v1.9 adds four skills first (29→33); v2.0 then adds two workflow skills (33→35): oc-hindsight governs operational memory and oc-evolve governs behavior change; both isolate Planner/Generator/Evaluator contexts and end activation at a human gate."
+      "v1.9 adds four skills first (29→33); v2.0 then adds two workflow skills (33→35): oc-hindsight governs operational memory and oc-evolve governs behavior change; both isolate Planner/Generator/Evaluator contexts and end activation at a human gate.",
+      "2026-09-26 time-tracking thread (oc-time-ops, separate from v2.0): discovery approved — repo→client / branch→matter via .opchain/billing.yaml; auto-draft + human approve (OpenCase model); human engaged time + AI cost pass-through; 0.25h per matter-day; narratives from local activity only; md/CSV + SessionStart nudge; CSV-only export v1; dogfood first in scripts/ (outside C1 freeze paths). Spec draft at docs/plans/time-tracking/spec/ awaiting spec gate (4 decisions in 02-architecture.md).",
+      "2026-09-26 oc-time-ops spec-gate decisions: AI cost basis api-list (labelled list-price equivalent); ledger outside repo at ~/.opchain/time/<client>/; engagement = session blocks incl. agent runtime (idle split 10m, agent_only_minutes surfaced, optional agent_tail_cap_minutes); name oc-time-ops (/oc-time).",
+      "2026-09-26 oc-time-ops spec audit (D+, would not work as specified: automated turns billed, subagent files missed, ~half of models unpriced, cross-file dup) — all 16 punch-list items applied to the spec. Two defaults changed from the gate and need re-approval: agent_tail_cap_minutes 30 (was off), rounding_scope client-day (was matter-day). Config moved to ~/.opchain/time/<client>/billing.yaml; UserPromptSubmit hook is the primary human signal.",
+      "2026-09-26 ★ oc-time-ops SPEC APPROVED (revised spec incl. tail cap 30m + client-day rounding). Phase 3 design next: CLI/Markdown surfaces only (no web UI).",
+      "2026-09-26 ★ oc-time-ops DESIGN APPROVED (terminal + markdown surfaces, docs/plans/time-tracking/design/surfaces.md). In-chat review card (show_widget mockup) explicitly OUT of scope. Punch list drafted: 19 modules / 15 verbs / 8 wiring items.",
+      "2026-09-26 ★ oc-time-ops PUNCH LIST APPROVED. Sprint plan drafted: S1 collect+classify (6h), S2 derive+ledger (8h, needs user-verified pricing for 7 model families), S3 CLI+surfaces+dogfood (7h); 21h Claude / 2h user; one PR per sprint, all outside C1 freeze paths.",
+      "2026-09-26 ★ oc-time-ops SPRINT PLAN APPROVED; build delegated to Codex via docs/plans/time-tracking/CODEX-HANDOFF.md (3 sprints, one PR each). Planning docs land first as a docs-only PR."
     ],
     "generated_files": [
       "site/src/blog/2026-06-25-v1-6-the-instrumented-pipeline.md",
@@ -98,7 +105,20 @@
       "site/src/pages/changelog.astro",
       "sprints/compare-refresh/eval-2.0.md",
       "sprints/compare-refresh/research-2.0.md",
-      "docs/releases/2.0-comparison-handoff.md"
+      "docs/releases/2.0-comparison-handoff.md",
+      "docs/plans/time-tracking/spec/00-project-overview.md",
+      "docs/plans/time-tracking/spec/01-tech-stack.md",
+      "docs/plans/time-tracking/spec/02-architecture.md",
+      "docs/plans/time-tracking/spec/03-security-privacy.md",
+      "docs/plans/time-tracking/spec/04-integrations.md",
+      "docs/plans/time-tracking/spec/06-testing.md",
+      "docs/plans/time-tracking/spec/07-devops.md",
+      "docs/plans/time-tracking/spec/09-documentation-plan.md",
+      "docs/plans/time-tracking/audit-2026-09-26.md",
+      "docs/plans/time-tracking/design/surfaces.md",
+      "docs/plans/time-tracking/design/punch-list.md",
+      "docs/plans/time-tracking/sprints/sprint-plan.md",
+      "docs/plans/time-tracking/CODEX-HANDOFF.md"
     ],
     "user_preferences": [
       "Picks options when given clear choices; comfortable with 'go with defaults'.",
@@ -121,7 +141,8 @@
     "At C1, no longer needed: the new engines (scorecard/hindsight/evolve/prompt-eval/merge-hindsight, plugins/opchain/kits/) are authored in the product repo post-flip, so they need no split-manifest entry. checkpoint.mjs and merge-checkpoint.mjs stay dual-homed.",
     "After C7: Sprint 0 (branches in their post-flip homes), then Sprint 1 wire 1.2 substrate.",
     "Before Sprint 6: re-derive Appendix B against the real Phase D checklist - the product repo's package.json, CI job ids, its RELEASING.md copy, check-version-lockstep.mjs and the submodule-pin form of check-release-tag.mjs do not exist yet.",
-    "Sprint 5 carries the R3a fix, now harder post-flip: it must read the pinned submodule's skills/CHANGELOG.md, which is also handoff item R3c. Build them together."
+    "Sprint 5 carries the R3a fix, now harder post-flip: it must read the pinned submodule's skills/CHANGELOG.md, which is also handoff item R3c. Build them together.",
+    "time-tracking: planning PR open → owner squash-merges → Codex builds Sprint 1 (collect & classify) per CODEX-HANDOFF.md; owner runs corpus replay + price verification at S1/S2 DoD."
   ],
   "skill_state": {
     "feature": {
@@ -492,5 +513,5 @@
       "action": "Quick-feature: v2.0 asset hotfix (favicon, fallback OG card, architecture shade) on claude/v2-asset-hotfix after v2.0.0 shipped without it"
     }
   ],
-  "record_updated_at": "2026-09-14T07:07:58.097Z"
+  "record_updated_at": "2026-09-27T01:23:41.158Z"
 }

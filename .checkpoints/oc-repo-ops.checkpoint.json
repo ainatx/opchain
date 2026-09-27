@@ -3,7 +3,7 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-21T20:13:42.009Z",
+  "updated_at": "2026-09-27T01:25:56.413Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
@@ -630,8 +630,32 @@
           "scripts/check-release-surfaces.mjs"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-ttplan-311ebe0da642",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T01:25:56.413Z",
+      "verified_at": "2026-09-27T01:25:56.413Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "time-tracking-plan-2026-09-26"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:311ebe0da64295ed7b8900603fb79e709b9bf1770850ff7952bd90a9f66d16ad"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "gen-catalog, sync-bundles:check, sync-plugin-skills:check, check-skill-contracts, lint-internal-refs, checkpoint:validate, git diff --check, clean tree; docs-only diff outside frozen OSS-split paths; pre-commit candidate verifier passed (5bc53720548c).",
+        "evidence": [
+          "docs/plans/time-tracking/",
+          "scripts/lib/release-evidence.mjs"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-21T20:13:42.009Z",
+  "record_updated_at": "2026-09-27T01:25:56.413Z",
   "blockers": []
 }
