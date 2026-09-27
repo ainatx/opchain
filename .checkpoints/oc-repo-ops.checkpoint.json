@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-27T04:13:23.974646Z",
+  "updated_at": "2026-09-27T06:50:31.017045Z",
   "skill": "oc-repo-ops",
   "phase": "pr-verify",
   "status": "complete",
-  "step": "time-tracking-sprint-1",
-  "progress_summary": "Time-tracking Sprint 1 PR readiness PASS for content commit a69eea0. Candidate-bound evidence covers a checkpoint-only follow-up commit. Owner corpus replay and human squash-merge/sign-off remain pending; no release cut.",
+  "step": "time-tracking-sprint-1-replay",
+  "progress_summary": "Time-tracking Sprint 1 owner-authorized corpus replay: corrected producer formats pass; Sprint 2 has zero unpriced usage and verified ledgers on 56 repository-days. Incremental real-corpus collection exceeds the one-second acceptance target. PR code/evidence gates pass; acceptance and merge are not claimed.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -28,14 +28,15 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Owner corpus replay remains pending. Existing unrelated checkpoint lint warnings remain outside this sprint."
+      "PR readiness is not final acceptance: real-corpus incremental replay exceeds <1s.",
+      "Human DCO sign-off remains required for merge."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "a69eea069e4c4aab85925060638f5edb7929db14",
+    "verified_for_sha": "36bb329bc1d1ff6c1e8f501de627fd75cda18146",
     "last_verify": {
       "at": "2026-09-27T04:13:23.974646Z",
       "branch": "codex/time-tracking-sprint-1",
@@ -759,8 +760,31 @@
           "docs/plans/time-tracking/sprints/sprint-1/pr-description.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-time-s1-replay-6bdf5f0ff7a3",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T06:50:31.017045Z",
+      "verified_at": "2026-09-27T06:50:31.017045Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "time-s1-replay-2026-09-27"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:6bdf5f0ff7a3a2b49c9cfeb53e3b2487c81c31135f2dae1de139a6175561fa48"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Current content passes mandatory code checks and scoped documentation/readiness review. Real-corpus evidence is sanitized. Known incremental timing acceptance gap is disclosed; this verdict does not assert acceptance, approval, or merge sign-off.",
+        "evidence": [
+          "docs/plans/time-tracking/transcript-format.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-27T04:13:23.974646Z",
+  "record_updated_at": "2026-09-27T06:50:31.017045Z",
   "blockers": []
 }
