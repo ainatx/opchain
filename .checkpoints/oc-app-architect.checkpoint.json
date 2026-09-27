@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-09-27T06:50:31.017045Z",
+  "updated_at": "2026-09-27T06:58:18.332754Z",
   "phase": "sprint-plan",
   "step": "v2.0-sprint-plan-approved-blocked-on-oss-split",
   "status": "in_progress",
@@ -93,7 +93,8 @@
       "Time-tracking Sprint 1 owner-authorized replay 2026-09-27: corpus format fixes and actual timing documented; seven prices confirmed; 56 repository-days verify with zero unpriced usage. Incremental collector timing still exceeds <1s, so final acceptance is not claimed. Validation uses isolated private data and zero hourly rates.",
       "Time-tracking Sprint 1 owner-authorized replay 2026-09-27: corpus format fixes and actual timing documented; seven prices confirmed; 56 repository-days verify with zero unpriced usage. Owner accepted the measured incremental timing deviation and authorized Signed-off-by: Aidan Elsesser <admin@opchain.dev> for the squash merges on 2026-09-27. Validation uses isolated private data and zero hourly rates.",
       "2026-09-27 time-tracking Sprint 2 contract: implement A10-A18, ledger-only draft/verify and C2 on Sprint 1 tip 4f47b503; PR #569 remains a landing prerequisite. Global client allocation policies agree; sourced per-model cache rates supersede old blanket multiplier. Contract: docs/plans/time-tracking/sprints/sprint-2/contract.md.",
-      "2026-09-27 time-tracking Sprint 2 Generator/Evaluator round 1 FAIL led to worktree/matter-boundary, retirement, activity-query and locking fixes. Round 2 implementation PASS (all dimensions 8), 104 time tests, 100% new module line coverage; 200 randomized days and 20 process writers. Owner 14-day corpus replay, seven price confirmations, Sprint 1 merge and human sign-off remain pending. No catalog release."
+      "2026-09-27 time-tracking Sprint 2 Generator/Evaluator round 1 FAIL led to worktree/matter-boundary, retirement, activity-query and locking fixes. Round 2 implementation PASS (all dimensions 8), 104 time tests, 100% new module line coverage; 200 randomized days and 20 process writers. Owner 14-day corpus replay, seven price confirmations, Sprint 1 merge and human sign-off remain pending. No catalog release.",
+      "Time-tracking Sprint 2 owner-authorized replay 2026-09-27: corpus format fixes and actual timing documented; seven prices confirmed; 56 repository-days verify with zero unpriced usage. Incremental collector timing still exceeds <1s, so final acceptance is not claimed. Validation uses isolated private data and zero hourly rates."
     ],
     "generated_files": [
       "site/src/blog/2026-06-25-v1-6-the-instrumented-pipeline.md",
