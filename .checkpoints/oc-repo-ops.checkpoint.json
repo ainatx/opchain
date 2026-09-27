@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-27T18:57:55.739024Z",
+  "updated_at": "2026-09-27T19:10:04.386Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "time-tracking-sprint-3",
-  "progress_summary": "Time-tracking Sprint 3 implementation ready: 146 tests, 99.74% library line coverage, full subprocess daily loop, bounded cache-only hooks, eight mandatory candidate checks PASS. Generated package manifests synchronized for the required npm shortcut. Real-client dogfood and hook installation pending owner; no real billing approved or exported.",
+  "step": "v2-1-plan-release-rule-sim-audit",
+  "progress_summary": "PR readiness PASS for the docs-only v2.1 plan / release rule / audit record PR after rebase: paths redacted, checkpoints valid, clean tree.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -996,8 +996,32 @@
           "docs/plans/time-tracking/sprints/sprint-3/eval-round-2.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-v21plan-b52aadf4d3b0",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T19:10:04.000Z",
+      "verified_at": "2026-09-27T19:10:04.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "v2-1-plan-release-rule-sim-audit-rebase"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:b52aadf4d3b07ebe527686e0c20c5d80e15c9794c8043ab046eb42ee2dfdf937"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Rebased on 72b87dc; architect checkpoint conflict resolved by applying this PR update on top of main copy (skill_state preserved); no local paths in added files; checkpoint:validate all 17 valid; clean tree; pre-commit candidate verifier passed (d8cbe7fe63ff).",
+        "evidence": [
+          "docs/audits/2026-09-14-v2-simulation/",
+          "docs/plans/opchain-audit-remediation/"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-27T18:57:55.739024Z",
+  "record_updated_at": "2026-09-27T19:10:04.386Z",
   "blockers": []
 }

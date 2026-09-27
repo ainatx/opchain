@@ -1,0 +1,1025 @@
+{
+  "candidate": "63bb189dabb7c98b2fd961f11de144925a6e9519",
+  "catalog_count": 36,
+  "covered_count": 36,
+  "coverage_percent": 100.0,
+  "missing": [],
+  "duplicates": [],
+  "unexpected": [],
+  "errors": [],
+  "counting_rule": "Substantive representative workflow with actual output/refusal; failed/blocked still exercised; not all verbs or production acceptance",
+  "skills": [
+    {
+      "skill": "oc-agent-forge",
+      "scenario": "S6",
+      "invocations": [
+        "/oc-agent plan",
+        "/oc-agent tools",
+        "/oc-agent fixtures"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-agent-forge/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/scenario.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/claude/routing.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/rag/documents.json"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/agent/design.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/claude/tools.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/agent/fixtures.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/agent/results.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/agent/eval-round-1.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/.checkpoints/oc-agent-forge.checkpoint.json"
+      ],
+      "expected": "Freeze topology, allowlist, limits and >=20 meaningful fixtures; refuse unsafe or runaway tool trajectories.",
+      "observed": "Single-agent design, 2 tools, 4-call ceiling, 20/20 local contract outcomes.",
+      "outcome": "PASS",
+      "mode": "agent workflow + prepared local harness",
+      "limits": "Planning/fixtures scope complete. Live SDK execution and real model trajectory quality untested; design gate pending.",
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s6/coverage.json"
+    },
+    {
+      "skill": "oc-api-dev",
+      "scenario": "S4",
+      "invocations": [
+        "/oc-api design",
+        "/oc-api spec",
+        "/oc-api test"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-api-dev/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/specs/02-architecture.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/signals/catalog.md"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/api/design.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/api/openapi.yaml",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/api/observed-summary.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/run.py",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/results.json"
+      ],
+      "expected": "Versioned resource, uniform errors, authorization and actual local HTTP conformance",
+      "observed": "Fresh200/unauth401/wrong-tenant403/malformed400/stale503; schema shape checked; formal lint and list endpoint remain GAP",
+      "outcome": "PASS_WITH_GAPS",
+      "mode": "agent workflow with executable local synthetic fixture checks",
+      "limits": [
+        "Representative workflow only; not all verbs",
+        "No real deployment, warehouse or authentication provider",
+        "Scenario application code is agent-authored, not shipped Opchain runtime"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s4/coverage.json"
+    },
+    {
+      "skill": "oc-app-architect",
+      "scenario": "S4",
+      "invocations": [
+        "/oc-discover",
+        "/oc-spec"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-app-architect/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/brief.md"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/specs/00-project-overview.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/specs/02-architecture.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/specs/03-security-auth.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/specs/04-integrations.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/specs/05-monetization.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/specs/07-devops.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/specs/08-analytics.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/specs/09-documentation-plan.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/specs/10-cost-estimate.md"
+      ],
+      "expected": "Spec preparation and correct stack/data/QA handoffs; stop at spec review",
+      "observed": "Substantive eleven-document spec set; no invented product approval",
+      "outcome": "EXERCISED_BLOCKED",
+      "mode": "agent workflow with executable local synthetic fixture checks",
+      "limits": [
+        "Representative workflow only; not all verbs",
+        "No real deployment, warehouse or authentication provider",
+        "Scenario application code is agent-authored, not shipped Opchain runtime"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s4/coverage.json"
+    },
+    {
+      "skill": "oc-bug-check",
+      "scenario": "audit",
+      "invocations": [
+        "/oc-bugcheck run --all",
+        "node scripts/verify-candidate.mjs run --json"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-bug-check/SKILL.md",
+      "inputs": [
+        "<worktree>/opchain-v2-simulation/.bugcheck.json",
+        "<worktree>/opchain-v2-simulation/package.json"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/bugcheck-verifier.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/bugcheck-receipt.json",
+        "docs/audits/2026-09-14-v2-simulation/BUGCHECK.md"
+      ],
+      "expected": "Immutable candidate checks and receipt, expose policy limits",
+      "observed": "8/8 declared checks PASS on tree6a65895; site advisory debt retained separately",
+      "outcome": "PASS_DECLARED_POLICY",
+      "mode": "shipped immutable candidate verifier",
+      "limits": [
+        "Representative bounded workflow only; not every command or real host acceptance"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/root-coverage.json"
+    },
+    {
+      "skill": "oc-checkpoint-protocol",
+      "scenario": "S1",
+      "invocations": [
+        "opchain checkpoint status",
+        "opchain checkpoint validate"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-checkpoint-protocol/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s1/mixed-before.json"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s1/07-status.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s1/08-validate.json"
+      ],
+      "expected": "Preserve and read consumer checkpoint from installed runtime",
+      "observed": "One preserved checkpoint valid with correct next action",
+      "outcome": "PASS_SCOPED",
+      "mode": "shipped packaged persistence runtime",
+      "limits": [
+        "Representative bounded workflow only; not every command or real host acceptance"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s1/coverage.json"
+    },
+    {
+      "skill": "oc-claude-api",
+      "scenario": "S6",
+      "invocations": [
+        "/oc-claude-api tool-use",
+        "/oc-claude-api cache-audit"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-claude-api/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/scenario.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/claude/tools.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/prompts/support/v1.0.0/prompt.md"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/claude/routing.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/claude/request.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/claude/tool-results.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/claude/cache-audit.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/claude/review.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/.checkpoints/oc-claude-api.checkpoint.json"
+      ],
+      "expected": "Validate schema/message layout and stable cache prefix; do not invent provider cache usage.",
+      "observed": "Reference-shape checks passed; one stable breakpoint; actual hit rate null and cache verdict PARTIAL.",
+      "outcome": "PARTIAL",
+      "mode": "agent workflow + local shape probes",
+      "limits": "No verified live model or actual provider request; short-prefix eligibility unresolved.",
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s6/coverage.json"
+    },
+    {
+      "skill": "oc-code-auditor",
+      "scenario": "audit",
+      "invocations": [
+        "/oc-audit full (as-is, Auditor only)"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-code-auditor/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/PLAN.md",
+        "docs/audits/2026-09-14-v2-simulation/EXPANSION-PLAN.md"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/REPORT.md",
+        "docs/audits/2026-09-14-v2-simulation/S1.md",
+        "docs/audits/2026-09-14-v2-simulation/S3.md"
+      ],
+      "expected": "Scoped source-backed findings, severity, evidence, grade and release decision",
+      "observed": "Seven scenario reports and preserved reproducible evidence; no Fixer changes",
+      "outcome": "AUDIT_COMPLETE_OPEN_FINDINGS",
+      "mode": "agent audit workflow with independent category/evaluator reviews",
+      "limits": [
+        "Representative bounded workflow only; not every command or real host acceptance"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/root-coverage.json"
+    },
+    {
+      "skill": "oc-compliance-ops",
+      "scenario": "S7",
+      "invocations": [
+        "/oc-comply scope; /oc-comply register; /oc-comply evidence; /oc-comply gaps"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-compliance-ops/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/threat-model.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/.opchain/hardening.yaml"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/.opchain/compliance.yaml",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/compliance.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/compliance-gaps.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/compliance-evidence/index.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/compliance-evidence/header-control.md"
+      ],
+      "expected": "Contract outcome met for representative scoped operation; limitations explicitly recorded",
+      "observed": "SHA-bounded committed config captured; two partial/one gap; zero unmapped; honest delta absence",
+      "outcome": "COMPLETE_WITH_GAPS",
+      "mode": "agent workflow + local evidence capture",
+      "limits": "Three-control synthetic scope; no certification or external captures",
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s7/coverage.json"
+    },
+    {
+      "skill": "oc-cost-ops",
+      "scenario": "S6",
+      "invocations": [
+        "/oc-cost baseline",
+        "/oc-cost budget",
+        "/oc-cost attribute",
+        "/oc-cost gate"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-cost-ops/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/cost/rates.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/cost/budget.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/prompts/support/eval/eval.yaml",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/prompts/support/eval/baseline-run.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/prompts/support/eval/candidate-run.json"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/cost/baseline.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/cost/frozen-baseline.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/cost/candidate.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/cost/gate.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/cost/missing-pricing.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/cost/missing-usage.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/cost/no-baseline-gate.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/cost/ledger.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/cost/report.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/.checkpoints/oc-cost-ops.checkpoint.json"
+      ],
+      "expected": "Compute usage-based fixture costs at explicit rates; fail cap/regression; missing facts unavailable/blocked.",
+      "observed": "$0.0032 to $0.0096 (+200%); cap and regression FAIL; total ledger $0.0128 reconciles; missing facts unavailable/blocked.",
+      "outcome": "PASS",
+      "mode": "shipped runtime + assistant budget/ledger workflow",
+      "limits": "Fixture accounting only, no real spend; stale budget-gates reference disagrees with shipped behavior.",
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s6/coverage.json"
+    },
+    {
+      "skill": "oc-dash-forge",
+      "scenario": "S4",
+      "invocations": [
+        "/oc-df-spec-only"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-dash-forge/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/design/design-spec.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/design/tokens.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/signals/catalog.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/api/openapi.yaml"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/dash-forge-handoff/spec.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/dash-forge-handoff/tokens.ts",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/dash-forge-handoff/integration-notes.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/dash-forge-handoff/README.md"
+      ],
+      "expected": "Operations archetype, layout/density/chart rationale, interaction, token handoff; no prototype required",
+      "observed": "Summary UI contract complete; nonexistent exception-list payload explicitly deferred; no fabricated rows or trend",
+      "outcome": "PASS_SCOPED",
+      "mode": "agent workflow with executable local synthetic fixture checks",
+      "limits": [
+        "Representative workflow only; not all verbs",
+        "No real deployment, warehouse or authentication provider",
+        "Scenario application code is agent-authored, not shipped Opchain runtime"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s4/coverage.json"
+    },
+    {
+      "skill": "oc-data-ops",
+      "scenario": "S4",
+      "invocations": [
+        "/oc-data-ops design",
+        "/oc-data-ops contracts",
+        "/oc-data-ops build",
+        "/oc-data-ops verify"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-data-ops/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/specs/01-tech-stack.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/data/events.json"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/data/layer-map.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/.opchain/data-contracts/staging.shipment_events.yaml",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/.opchain/data-contracts/marts.shipment_state.yaml",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/data/verification.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/run.py"
+      ],
+      "expected": "Layer/consumer map; staging and mart contracts; replay conformance, unsafe expression refusal; fixtures cannot create evolution baseline",
+      "observed": "SQLite fixture transform verified with read-only named target,2-second query deadline and row cap; no .verified snapshot",
+      "outcome": "PASS_FIXTURES",
+      "mode": "agent workflow with executable local synthetic fixture checks",
+      "limits": [
+        "Representative workflow only; not all verbs",
+        "No real deployment, warehouse or authentication provider",
+        "Scenario application code is agent-authored, not shipped Opchain runtime"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s4/coverage.json"
+    },
+    {
+      "skill": "oc-deploy-ops",
+      "scenario": "S7",
+      "invocations": [
+        "/oc-deploy audit"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-deploy-ops/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/threat-model.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/compliance-gaps.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/.opchain/hardening.yaml",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/candidate.json"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/deploy-audit.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/execution.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/.checkpoints/oc-deploy-ops.checkpoint.json"
+      ],
+      "expected": "Contract outcome met for representative scoped operation; limitations explicitly recorded",
+      "observed": "Current INCOMPLETE audits rejected despite real receipt; hardening PASS; compliance WARN",
+      "outcome": "BLOCKED",
+      "mode": "agent workflow + shipped runtime gate",
+      "limits": "No network deploy, staging smoke, provider rollback or promotion approval",
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s7/coverage.json"
+    },
+    {
+      "skill": "oc-docs-forge",
+      "scenario": "S7",
+      "invocations": [
+        "/oc-docs pr"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-docs-forge/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/changed-files.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/git-log.txt",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/src/service.mjs"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/README.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/docs/api.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/CHANGELOG.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/pr-body.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/docs-verification.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/docs-and-repo.md"
+      ],
+      "expected": "Contract outcome met for representative scoped operation; limitations explicitly recorded",
+      "observed": "Behavior/docs/link/fresh-diff checks passed; evaluated checkpoint/handoff emitted",
+      "outcome": "PASS",
+      "mode": "agent workflow + local checks",
+      "limits": "No external PR comment or PM write",
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s7/coverage.json"
+    },
+    {
+      "skill": "oc-evolve",
+      "scenario": "S2",
+      "invocations": [
+        "/oc-evolve reflect",
+        "learning evolve stage"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-evolve/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s2/consumer/frozen-contract.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s2/consumer/baseline-synthetic.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s2/consumer/rule-proposal.json"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/S2.md",
+        "docs/audits/2026-09-14-v2-simulation/S2-EVALUATOR.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s2/results.json"
+      ],
+      "expected": "Frozen task contract; genuine task baseline required; no fabricated adoption",
+      "observed": "Proposed rule and task evidence prepared; synthetic baseline correctly refuses; no external approval or live model claim",
+      "outcome": "EXERCISED_BLOCKED",
+      "mode": "agent workflow plus shipped task grader and lifecycle refusal",
+      "limits": [
+        "Representative bounded workflow only; not every command or real host acceptance"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s2/coverage.json"
+    },
+    {
+      "skill": "oc-fleet-ops",
+      "scenario": "S5",
+      "invocations": [
+        "/oc-fleet topology"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-fleet-ops/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/modularization/module-map.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/modularization/seams/orders-read.md"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/fleet/topology.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/fleet/topology.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/.checkpoints/oc-fleet-ops.checkpoint.json"
+      ],
+      "expected": "Produce contract-specific artifacts/refusals; measure fixture only; preserve real-data and approval gates",
+      "observed": "Topology complete from module map; provisioning/deploy unexecuted because equivalence/credentials/replica targets/images/approval absent.",
+      "outcome": "exercised_blocked",
+      "mode": "agent workflow",
+      "limits": [
+        "No live traffic, infrastructure, deployment, auth provider or capacity acceptance",
+        "Workflow coverage is not production success"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s5/coverage.json"
+    },
+    {
+      "skill": "oc-git-ops",
+      "scenario": "S7",
+      "invocations": [
+        "/oc-commit"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-git-ops/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/src/service.mjs",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/scripts/check-service.mjs",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/.bugcheck.json"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/git-workflow.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/candidate.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/git-log.txt",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/execution.json"
+      ],
+      "expected": "Contract outcome met for representative scoped operation; limitations explicitly recorded",
+      "observed": "Staged auth regression commit rejected with unchanged HEAD; corrected conventional commit verified",
+      "outcome": "PASS_WITH_EXPECTED_NEGATIVE",
+      "mode": "agent workflow + actual Git boundary",
+      "limits": "Disposable commits only; no push/PR/tag; initial seeding precedes enrollment",
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s7/coverage.json"
+    },
+    {
+      "skill": "oc-hindsight",
+      "scenario": "S2",
+      "invocations": [
+        "/oc-hindsight harvest",
+        "learning hindsight stage/query/activate/retire"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-hindsight/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s2/consumer/frozen-contract.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s2/consumer/lesson.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s2/consumer/malicious-lesson.json"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/S2.md",
+        "docs/audits/2026-09-14-v2-simulation/S2-EVALUATOR.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s2/results.json"
+      ],
+      "expected": "Source-grounded staged candidate; isolated safety review; no activation without trust",
+      "observed": "24 boundary checks pass; malicious lesson rejected; independent review marks safe candidate provenance partial",
+      "outcome": "EXERCISED_BLOCKED",
+      "mode": "agent workflow plus shipped runtime; independent evaluator",
+      "limits": [
+        "Representative bounded workflow only; not every command or real host acceptance"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s2/coverage.json"
+    },
+    {
+      "skill": "oc-integrations-engineer",
+      "scenario": "S6",
+      "invocations": [
+        "/oc-integrate plan",
+        "/oc-integrate webhook",
+        "/oc-integrate test"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-integrations-engineer/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/scenario.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/connector/provider-contract.md"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/connector/integration-spec.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/service.mjs",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/connector/results.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/connector/test-report.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/.checkpoints/oc-integrations-engineer.checkpoint.json"
+      ],
+      "expected": "Reject unauthenticated/conflicting/replayed mutations, preserve tenant scope, and bound retry failure.",
+      "observed": "11 webhook assertions passed over local HTTP, exactly 2 mutations, tenant collision kept isolated; scripted retry schedules matched.",
+      "outcome": "PASS",
+      "mode": "agent workflow + prepared local HTTP connector",
+      "limits": "Single-process in-memory fixture, test-only auth; no live vendor/sandbox or durable concurrency; approval pending.",
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s6/coverage.json"
+    },
+    {
+      "skill": "oc-migration-ops",
+      "scenario": "S5",
+      "invocations": [
+        "/oc-migrate assess",
+        "/oc-migrate plan",
+        "/oc-migrate dry-run",
+        "/oc-migrate verify"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-migration-ops/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/modularization/module-map.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/modularization/seams/orders-read.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/reverse-spec-output/orientation.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/src/order_projection.py"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/migrations/assessment.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/migrations/migration-plan.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/migrations/verification/final-verify.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/simulation/checks.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/simulation/equivalence.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/simulation/interrupted.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/.checkpoints/oc-migration-ops.checkpoint.json"
+      ],
+      "expected": "Produce contract-specific artifacts/refusals; measure fixture only; preserve real-data and approval gates",
+      "observed": "Synthetic reversible replay17/17 passed, including partial resume and rollback; real cutover remains blocked.",
+      "outcome": "exercised_blocked",
+      "mode": "agent workflow + bounded fixture execution",
+      "limits": [
+        "No live traffic, infrastructure, deployment, auth provider or capacity acceptance",
+        "Workflow coverage is not production success"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s5/coverage.json"
+    },
+    {
+      "skill": "oc-modularize-ops",
+      "scenario": "S5",
+      "invocations": [
+        "/oc-modularize assess",
+        "/oc-modularize characterize",
+        "/oc-modularize plan"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-modularize-ops/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/reverse-spec-output/orientation.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/inputs/requests.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/src/monolith.py"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/modularization/assessment.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/modularization/characterize-refusal.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/modularization/module-map.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/modularization/plan.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/modularization/seams/orders-read.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/.checkpoints/oc-modularize-ops.checkpoint.json"
+      ],
+      "expected": "Produce contract-specific artifacts/refusals; measure fixture only; preserve real-data and approval gates",
+      "observed": "Production split rejected for insufficient drivers; characterize blocked by mock-only inputs; unapproved seam/map retain equivalence=false.",
+      "outcome": "exercised_blocked",
+      "mode": "agent workflow",
+      "limits": [
+        "No live traffic, infrastructure, deployment, auth provider or capacity acceptance",
+        "Workflow coverage is not production success"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s5/coverage.json"
+    },
+    {
+      "skill": "oc-monitoring-ops",
+      "scenario": "S5",
+      "invocations": [
+        "/oc-monitor slo",
+        "/oc-monitor runbook",
+        "/oc-monitor postmortem"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-monitoring-ops/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/scaling/budget.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/scaling/benchmark.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/monitoring/incidents/trace.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/simulation/checks.json"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/monitoring/slo.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/monitoring/alerts.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/monitoring/runbooks/order-extraction.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/monitoring/postmortems/PM-S5.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/monitoring/alert-replay.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/.checkpoints/oc-monitoring-ops.checkpoint.json"
+      ],
+      "expected": "Produce contract-specific artifacts/refusals; measure fixture only; preserve real-data and approval gates",
+      "observed": "SLO/runbook/postmortem generated from fault trace;3 rules evaluated;no real monitors/messages or monthly SLO claim.",
+      "outcome": "completed_scoped_workflow",
+      "mode": "agent workflow + bounded fixture execution",
+      "limits": [
+        "No live traffic, infrastructure, deployment, auth provider or capacity acceptance",
+        "Workflow coverage is not production success"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s5/coverage.json"
+    },
+    {
+      "skill": "oc-orchestrator",
+      "scenario": "S7",
+      "invocations": [
+        "/oc-ops status; /oc-ops next; /oc-ops route"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-orchestrator/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/.checkpoints/oc-security-hardening.checkpoint.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/service-before.mjs"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/router.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/execution.json"
+      ],
+      "expected": "Contract outcome met for representative scoped operation; limitations explicitly recorded",
+      "observed": "Blocked hardening ranked above stale PASS/advisory learning; target actually invoked",
+      "outcome": "PASS",
+      "mode": "agent workflow + shipped runtime",
+      "limits": "One fixture project; no global registry mutation",
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s7/coverage.json"
+    },
+    {
+      "skill": "oc-prompt-ops",
+      "scenario": "S6",
+      "invocations": [
+        "/oc-prompt goldset",
+        "/oc-prompt eval",
+        "/oc-prompt baseline",
+        "/oc-prompt regress"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-prompt-ops/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/prompts/support/v1.0.0/prompt.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/prompts/support/eval/inputs.jsonl",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/prompts/support/eval/expected.jsonl",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/prompts/support/eval/eval.yaml"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/prompts/support/eval/baseline-run.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/prompts/support/eval/baseline.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/prompts/support/eval/candidate-run.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/prompts/support/eval/regression.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/prompts/support/eval/outage-run.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/prompts/support/eval/rate-limit-run.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/prompts/support/eval/missing-usage-run.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/prompts/support/eval/missing-provider-run.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/prompts/support/eval/report.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/logs/adapter-transcript.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/logs/commands.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/.checkpoints/oc-prompt-ops.checkpoint.json"
+      ],
+      "expected": "Freeze actual runner baseline; flag poisoned and held-out regressions; provider/usage failures stay blocked.",
+      "observed": "8/8 baseline; 6/8 negative adapter; FAIL names a-poison and heldout-ambiguity; outage/rate-limit/missing usage/provider non-completed.",
+      "outcome": "PASS",
+      "mode": "shipped runtime + explicit localhost synthetic adapter",
+      "limits": "Gate behavior passed; negative candidate FAIL. No actual model or semantic quality claim; synthetic provenance stored outside strict runtime result schema.",
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s6/coverage.json"
+    },
+    {
+      "skill": "oc-qa-ops",
+      "scenario": "S4",
+      "invocations": [
+        "/oc-qa pyramid",
+        "/oc-qa contracts",
+        "/oc-qa loadplan"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-qa-ops/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/specs/02-architecture.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/.opchain/data-contracts/marts.shipment_state.yaml",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/api/openapi.yaml"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/.opchain/qa.yaml",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/specs/06-testing.md"
+      ],
+      "expected": "Pyramid, boundary owners and complete target/SLO/duration; no fabricated coverage",
+      "observed": "Three owner rows; coverage omitted; missing CI and UI-e2e explicitly GAP",
+      "outcome": "PASS_WITH_GAPS",
+      "mode": "agent workflow with executable local synthetic fixture checks",
+      "limits": [
+        "Representative workflow only; not all verbs",
+        "No real deployment, warehouse or authentication provider",
+        "Scenario application code is agent-authored, not shipped Opchain runtime"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s4/coverage.json"
+    },
+    {
+      "skill": "oc-rag-forge",
+      "scenario": "S6",
+      "invocations": [
+        "/oc-rag design",
+        "/oc-rag goldset",
+        "/oc-rag eval"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-rag-forge/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/scenario.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/claude/routing.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/rag/documents.json"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/rag/design.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/rag/goldset.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/rag/results.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/rag/eval-round-1.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s6/.checkpoints/oc-rag-forge.checkpoint.json"
+      ],
+      "expected": "Run >=50 relevance pairs; recall>=0.9/MRR>=0.75/nDCG>=0.8 and zero tenant leakage.",
+      "observed": "50 queries; recall=.87, MRR=.7467, nDCG=.7758: FAIL. Zero observed tenant leaks; paraphrase weakness retained.",
+      "outcome": "FAIL",
+      "mode": "agent workflow + local lexical fixture",
+      "limits": "No real embeddings/vector store/generator; synthetic correlated query labels; no production approval.",
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s6/coverage.json"
+    },
+    {
+      "skill": "oc-release-ops",
+      "scenario": "S7",
+      "invocations": [
+        "/oc-release plan; /oc-release draft; /oc-release verify"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-release-ops/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/candidate.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/git-log.txt",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/package.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/repo-readiness.json"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/release-plan.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/CHANGELOG.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/.opchain/release.yaml",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/release-verification.json"
+      ],
+      "expected": "Contract outcome met for representative scoped operation; limitations explicitly recorded",
+      "observed": "Scoped patch proposal/draft; tests/docs PASS; proposed bump not approved and tag absent",
+      "outcome": "BLOCKED",
+      "mode": "agent workflow + local verification",
+      "limits": "Plan/draft review not approved; no actual release or date; external signed cut untested",
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s7/coverage.json"
+    },
+    {
+      "skill": "oc-repo-ops",
+      "scenario": "S7",
+      "invocations": [
+        "/oc-repo verify"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-repo-ops/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/pr-body.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/docs-verification.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/.gitignore"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/repo-readiness.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/readiness-late-edit.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/docs-and-repo.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/execution.json"
+      ],
+      "expected": "Contract outcome met for representative scoped operation; limitations explicitly recorded",
+      "observed": "Git/docs/paths/policy checks passed; late README edit rejected; shipped PR evidence gate passed",
+      "outcome": "PASS_WITH_EXPECTED_NEGATIVE",
+      "mode": "agent workflow + shipped evidence gate",
+      "limits": "No catalog in fixture; direct PR creation remains agent-governed",
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s7/coverage.json"
+    },
+    {
+      "skill": "oc-reverse-spec",
+      "scenario": "S5",
+      "invocations": [
+        "/oc-rev-scan"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-reverse-spec/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/README.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/src/monolith.py",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/src/order_projection.py",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/rehearse.py",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/inputs/requests.json"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/reverse-spec-output/orientation.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/reverse-spec-output/inventory.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/.checkpoints/oc-reverse-spec.checkpoint.json"
+      ],
+      "expected": "Produce contract-specific artifacts/refusals; measure fixture only; preserve real-data and approval gates",
+      "observed": "Six original fixture files inventoried; routes/tables/coupling and unknown production traits documented.",
+      "outcome": "completed_scoped_workflow",
+      "mode": "agent workflow",
+      "limits": [
+        "No live traffic, infrastructure, deployment, auth provider or capacity acceptance",
+        "Workflow coverage is not production success"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s5/coverage.json"
+    },
+    {
+      "skill": "oc-scale-ops",
+      "scenario": "S5",
+      "invocations": [
+        "/oc-scale budget",
+        "/oc-scale benchmark"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-scale-ops/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/src/order_projection.py",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/rehearse.py",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/scaling/budget.json"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/scaling/budget.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/scaling/budget.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/scaling/benchmark.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/scaling/benchmark.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s5/consumer/.checkpoints/oc-scale-ops.checkpoint.json"
+      ],
+      "expected": "Produce contract-specific artifacts/refusals; measure fixture only; preserve real-data and approval gates",
+      "observed": "82 bounded local HTTP requests;normal p95 0.638ms;injected p95 36.477ms crosses20ms budget;no capacity claim.",
+      "outcome": "completed_scoped_workflow",
+      "mode": "agent workflow + bounded fixture execution",
+      "limits": [
+        "No live traffic, infrastructure, deployment, auth provider or capacity acceptance",
+        "Workflow coverage is not production success"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s5/coverage.json"
+    },
+    {
+      "skill": "oc-security-auditor",
+      "scenario": "S7",
+      "invocations": [
+        "/oc-security threat-model; /oc-security prioritize"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-security-auditor/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/service-before.mjs",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/src/service.mjs",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/scripts/check-service.mjs"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/threat-model.md"
+      ],
+      "expected": "Contract outcome met for representative scoped operation; limitations explicitly recorded",
+      "observed": "Two boundaries \u00d7 six STRIDE categories; actual route evidence; HIGH production identity prerequisite retained",
+      "outcome": "COMPLETE_WITH_OPEN_FINDINGS",
+      "mode": "agent workflow",
+      "limits": "Threat-model operation only, no live infrastructure posture",
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s7/coverage.json"
+    },
+    {
+      "skill": "oc-security-hardening",
+      "scenario": "S7",
+      "invocations": [
+        "/oc-harden fix SA-S7-001; /oc-harden verify; bounded /oc-harden gate"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-security-hardening/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/threat-model.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/service-before.mjs"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/fixture/.opchain/hardening.yaml",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/hardening.diff",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/hardening.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s7/execution.json"
+      ],
+      "expected": "Contract outcome met for representative scoped operation; limitations explicitly recorded",
+      "observed": "One finding fix replayed FAIL/PASS and negative regression FAIL; 5 route assertions unaffected",
+      "outcome": "PASS",
+      "mode": "agent workflow + shipped runtime",
+      "limits": "One declared header control; no full baseline or production wrapper",
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s7/coverage.json"
+    },
+    {
+      "skill": "oc-signal-forge",
+      "scenario": "S4",
+      "invocations": [
+        "/oc-signal frame",
+        "/oc-signal design",
+        "/oc-signal build",
+        "/oc-signal verify",
+        "/oc-signal wire"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-signal-forge/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/specs/08-analytics.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/.opchain/data-contracts/marts.shipment_state.yaml"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/signals/catalog.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/api/observed-summary.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/data/monitor-handoff.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/results.json"
+      ],
+      "expected": "Correct question, numerator/denominator, independent oracle, duplicate/late/tenant/empty robustness and stable read shape",
+      "observed": "Northstar open2 overdue1 rate0.5; Harbor1/1; Pine0/0=null; exact Python-vs-SQL reconciliation; one inherited monitor",
+      "outcome": "PASS_FIXTURES",
+      "mode": "agent workflow with executable local synthetic fixture checks",
+      "limits": [
+        "Representative workflow only; not all verbs",
+        "No real deployment, warehouse or authentication provider",
+        "Scenario application code is agent-authored, not shipped Opchain runtime"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s4/coverage.json"
+    },
+    {
+      "skill": "oc-stack-forge",
+      "scenario": "S4",
+      "invocations": [
+        "/oc-stack-decide"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-stack-forge/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/brief.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/specs/00-project-overview.md"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/specs/01-tech-stack.md"
+      ],
+      "expected": "Requirements-driven platform/backend/db/auth/frontend plus data-platform input keys",
+      "observed": "Local fixture stack chosen with alternatives and three data-platform inputs; production auth and costs unknown",
+      "outcome": "PASS_SCOPED",
+      "mode": "agent workflow with executable local synthetic fixture checks",
+      "limits": [
+        "Representative workflow only; not all verbs",
+        "No real deployment, warehouse or authentication provider",
+        "Scenario application code is agent-authored, not shipped Opchain runtime"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s4/coverage.json"
+    },
+    {
+      "skill": "oc-telemetry-ops",
+      "scenario": "S1",
+      "invocations": [
+        "/oc-telemetry status"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-telemetry-ops/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s1/mixed-before.json"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s1/09-telemetry.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s1/telemetry-enabled-unhealthy.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s1/telemetry-legacy-only-no-local-consent.json"
+      ],
+      "expected": "Local consent is authoritative; unhealthy enabled store errors",
+      "observed": "Status respects SQLite consent and rejects broken table; updater disagreement is separate",
+      "outcome": "PASS_SCOPED",
+      "mode": "shipped packaged telemetry runtime",
+      "limits": [
+        "Representative bounded workflow only; not every command or real host acceptance"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s1/coverage.json"
+    },
+    {
+      "skill": "oc-update",
+      "scenario": "S1",
+      "invocations": [
+        "/oc-update check",
+        "/oc-update",
+        "opchain recover"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-update/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s1/mixed-before.json"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/S1.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s1/results.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s1/receipt.json",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s1/interrupted-journal.json"
+      ],
+      "expected": "Mixed-host update/recovery preserves state and reports local consent accurately",
+      "observed": "15/20 checks pass; five telemetry-reporting mismatches, no byte loss",
+      "outcome": "FAIL",
+      "mode": "shipped packaged runtime with fixture transport",
+      "limits": [
+        "Representative bounded workflow only; not every command or real host acceptance"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s1/coverage.json"
+    },
+    {
+      "skill": "oc-ux-engineer",
+      "scenario": "S4",
+      "invocations": [
+        "/oc-uxe plan",
+        "/oc-uxe dash"
+      ],
+      "skill_file": "<worktree>/opchain-v2-simulation/skills/oc-ux-engineer/SKILL.md",
+      "inputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/brief.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/specs/02-architecture.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/api/openapi.yaml"
+      ],
+      "outputs": [
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/design/design-spec.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/design/design-sprints.md",
+        "docs/audits/2026-09-14-v2-simulation/evidence/s4/consumer/design/tokens.json"
+      ],
+      "expected": "Meaningful flows, states, screen/component inventory, semantic tokens, explicit dense-screen routing",
+      "observed": "Spec and design sprints authored; token contrast checked; dashboard owns detailed view; design approval pending",
+      "outcome": "EXERCISED_BLOCKED",
+      "mode": "agent workflow with executable local synthetic fixture checks",
+      "limits": [
+        "Representative workflow only; not all verbs",
+        "No real deployment, warehouse or authentication provider",
+        "Scenario application code is agent-authored, not shipped Opchain runtime"
+      ],
+      "source": "docs/audits/2026-09-14-v2-simulation/evidence/s4/coverage.json"
+    }
+  ]
+}

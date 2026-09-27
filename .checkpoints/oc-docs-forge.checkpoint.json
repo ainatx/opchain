@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-27T18:57:55.739024Z",
+  "updated_at": "2026-09-27T19:10:04.297Z",
   "skill": "oc-docs-forge",
   "phase": "pr-docs",
   "status": "complete",
-  "step": "time-tracking-sprint-3",
-  "progress_summary": "Time-tracking Sprint 3 implementation ready: 146 tests, 99.74% library line coverage, full subprocess daily loop, bounded cache-only hooks, eight mandatory candidate checks PASS. Generated package manifests synchronized for the required npm shortcut. Real-client dogfood and hook installation pending owner; no real billing approved or exported.",
+  "step": "v2-1-plan-release-rule-sim-audit",
+  "progress_summary": "PR docs packet for the v2.1 sprint plan, the RELEASING.md release-freeze rule and the v2.0 simulation audit record, rebased onto main. Docs are the change.",
   "context_primer": {
     "key_decisions": [
       "Every PR requires a Documentation section; this PR carries it inline.",
@@ -990,8 +990,33 @@
           "docs/plans/time-tracking/sprints/sprint-3/eval-round-2.md"
         ]
       }
+    },
+    {
+      "id": "oc-docs-forge-v21plan-b52aadf4d3b0",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T19:10:04.000Z",
+      "verified_at": "2026-09-27T19:10:04.000Z",
+      "producer": {
+        "skill": "oc-docs-forge",
+        "run_id": "v2-1-plan-release-rule-sim-audit-rebase"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:b52aadf4d3b07ebe527686e0c20c5d80e15c9794c8043ab046eb42ee2dfdf937"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-docs-v1",
+        "scope": "Docs-only PR rebased onto 72b87dc: v2.1 sprint plan, RELEASING.md release-freeze rule, v2.0 simulation audit record (paths redacted, raw evidence omitted), audit-remediation plan. No site, catalog or product surface change.",
+        "evidence": [
+          "docs/governance/RELEASING.md",
+          "sprints/release-2.1/sprint-plan.md",
+          "docs/audits/2026-09-14-v2-simulation/README.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-27T18:57:55.739024Z",
+  "record_updated_at": "2026-09-27T19:10:04.297Z",
   "blockers": []
 }
