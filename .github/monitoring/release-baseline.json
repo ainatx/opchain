@@ -35,8 +35,8 @@
       "worker": "opchain-dev",
       "hostname": "opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "792e89c0-92b9-4dc1-869f-ea8b38120b38",
-      "versionId": "2fd39191-828d-4d0a-8c5b-397fa88373d0",
+      "deploymentId": "8222ee28-84d4-4adc-b034-b06cc2371964",
+      "versionId": "3a9ffe6f-0014-468d-b69f-cdf112488609",
       "trafficPercentage": 100,
       "scriptEtag": "82898295b559e4cac94ac41723dd2a48013f9eae145737f05674824f70494c6a",
       "handlers": [
@@ -91,7 +91,7 @@
   "pointInTimeEvidence": {
     "healthVersion": "0f3410c",
     "continuousCustomDomainProbe": false,
-    "note": "Production and staging both serve origin/main 0f3410c, deployed 2026-09-27 from a clean detached checkout after the signed v2.0.4 tag (91a2124). Custom-domain HTTP is not the continuous probe; control-plane plus local smoke are the evidence."
+    "note": "Production and staging both serve origin/main 0f3410c after the signed v2.0.4 tag (91a2124). Production was redeployed from the same commit at 2026-09-27T18:31Z (deployment 8222ee28, version 3a9ffe6f, same script fingerprint); staging is unchanged. Custom-domain HTTP is not the continuous probe; control-plane plus local smoke are the evidence."
   },
   "runtime": {
     "sha": "0f3410c349564137a6d173932d17cfb32f1862ae",

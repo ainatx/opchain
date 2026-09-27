@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-27T17:24:40.850Z",
+  "updated_at": "2026-09-27T18:34:41.082Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "monitoring-baseline-2.0.4",
-  "progress_summary": "PR readiness PASS for the v2.0.4 monitoring baseline: deploy-diff clean, ids and fingerprint read from Cloudflare via wrangler, clean tree.",
+  "step": "monitoring-baseline-2.0.4-redeploy",
+  "progress_summary": "PR readiness PASS for the v2.0.4 baseline correction: ids from Cloudflare via wrangler, deploy-diff clean, clean tree.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -943,8 +943,32 @@
           ".github/scripts/cloudflare-monitor.mjs"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-baseline204b-d2013cf4f86c",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T18:34:40.000Z",
+      "verified_at": "2026-09-27T18:34:40.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "monitoring-baseline-2.0.4-redeploy"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:d2013cf4f86ca5de098dab1366990db4090b7b345ceae9b1105d33aa02099c93"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Three-line baseline change; ids and fingerprint read with wrangler deployments list and versions view; bindings unchanged; deploy-diff 0 deploy-relevant paths; clean tree; pre-commit candidate verifier passed (3cffcc2a9dbb). Control-plane verified via branch Canary.",
+        "evidence": [
+          ".github/monitoring/release-baseline.json",
+          ".github/scripts/cloudflare-monitor.mjs"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-27T17:24:40.850Z",
+  "record_updated_at": "2026-09-27T18:34:41.082Z",
   "blockers": []
 }

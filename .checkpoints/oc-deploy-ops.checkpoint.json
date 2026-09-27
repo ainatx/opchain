@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-08-27T23:49:17.485Z",
-  "updated_at": "2026-09-27T17:27:10.393Z",
+  "updated_at": "2026-09-27T18:32:45.966Z",
   "phase": "production",
   "step": "v2.0.4-shipped",
   "status": "complete",
-  "progress_summary": "v2.0.4 shipped 2026-09-27. Signed tag v2.0.4 on 91a2124; deployed origin/main 0f3410c (six reviewed post-tag PRs, covered by the #572 pre-deploy code-audit and security-posture verdicts) to staging (deployment 34d77863, version 2d2a67ac) and production (deployment 792e89c0, version 2fd39191). Hardening checks against both hosts: 0 failed; smoke:staging and smoke:prod all passed; /api/health = 0f3410c and /skills.json catalogVersion = 2.0.4 on both hosts. Monitoring baseline refreshed in #573; branch Canary control-plane check passed. Rollback target: production version 9454e2ce (v2.0.3 runtime 8bad1a0).",
+  "progress_summary": "v2.0.4 shipped 2026-09-27. Signed tag v2.0.4 on 91a2124; deployed origin/main 0f3410c (six reviewed post-tag PRs, covered by the #572 pre-deploy verdicts) to staging (deployment 34d77863, version 2d2a67ac) and production. Production was deployed twice from the same commit; the live one is deployment 8222ee28, version 3a9ffe6f (18:31Z), same script fingerprint 82898295. Hardening checks and smoke:staging / smoke:prod all passed; /api/health = 0f3410c and /skills.json catalogVersion = 2.0.4 on both hosts. Baseline refreshed in #573 and re-pointed at the redeploy in this follow-up. Rollback target: production version 2fd39191 (same code) or 9454e2ce (v2.0.3 runtime 8bad1a0).",
   "blockers": [],
   "next_actions": [],
   "skill_state": {
@@ -17,8 +17,8 @@
     "prod_version": "0f3410c",
     "production_sha": "0f3410c349564137a6d173932d17cfb32f1862ae",
     "target_version": "2.0.4",
-    "cloudflare_version_id": "2fd39191-828d-4d0a-8c5b-397fa88373d0",
-    "cloudflare_deployment_id": "792e89c0-92b9-4dc1-869f-ea8b38120b38",
+    "cloudflare_version_id": "3a9ffe6f-0014-468d-b69f-cdf112488609",
+    "cloudflare_deployment_id": "8222ee28-84d4-4adc-b034-b06cc2371964",
     "staging_cloudflare_version_id": "2d2a67ac-aea1-4663-a85f-12163624b8b3",
     "staging_cloudflare_deployment_id": "34d77863-1656-4a64-b30b-3bf706928e03",
     "staging_url": "https://staging.opchain.dev",
@@ -122,7 +122,7 @@
       "reconciled_issue": 475
     },
     "rollback_available": true,
-    "rollback_target": "9454e2ce-ea53-4753-a531-9b8c8750439d",
+    "rollback_target": "2fd39191-828d-4d0a-8c5b-397fa88373d0",
     "unrecorded_deploy": {
       "detected_at": "2026-09-11T03:45:00Z",
       "live_version": "78567c2",
@@ -167,7 +167,7 @@
       "status": "blocked"
     }
   ],
-  "record_updated_at": "2026-09-27T17:27:10.393Z",
+  "record_updated_at": "2026-09-27T18:32:45.966Z",
   "recently_done": [
     {
       "text": "Laptop: npx wrangler deployments list --json and versions view for deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72 (version id + script etag), then record them in .github/monitoring/release-baseline.json with sourceSha 78567c2d70e6f00836000e4bd6bbad842ba04a42.",
