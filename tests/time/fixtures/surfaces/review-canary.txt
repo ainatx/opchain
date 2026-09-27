@@ -1,0 +1,26 @@
+Meridian Freight · Mon 2026-09-28 · DRAFT 2.00h · $350.00 + $6.42 AI (list-price eq.)
+
+  DRAFT · meridian-2026-09-28-MER-214-t
+    2.00h · raw 1h 58m · agent-only 0h 34m · source pr-link #88
+    Carrier rate-card import: built parser and validation; opened PR
+    #88.
+    · 2 sessions · 2 commits · 11 files touched
+    · PRs #88
+    · skills oc-app-architect, oc-bug-check
+    · 2026-09-28T14:12:00.000Z – 2026-09-28T16:10:00.000Z · share 1
+
+  DRAFT · meridian-2026-09-28-ai
+    $6.42 (list-price eq.) · unpriced 0.0%
+    AI compute (list-price equivalent).
+    · 2100000 tokens · unpriced 0.0%
+    · claude-opus-5-5: $6.42 (list-price eq.)
+
+Day totals · block model 1h 58m · human cadence 1h 20m · rounding 2m
+Overlap · 0h 41m internal excluded
+✗ Format canary 2.4% unknown/quarantined; approval blocked. Run verify; see transcript-format.md.
+! Quarantined 2 lines · details: review --quarantine
+Quarantine metadata only (no prompt text):
+unknown: 2
+  Untested version: 9.0.0
+
+Next: approve 2026-09-28 · edit <id> --hours 2.25 --reason "…" · discard <id> --reason "…"

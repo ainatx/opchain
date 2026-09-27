@@ -60,7 +60,8 @@
     "runtime:package": "node scripts/package-runtime.mjs",
     "evidence:pr": "node scripts/lib/release-evidence.mjs --stage pr",
     "evidence:deploy": "node scripts/lib/release-evidence.mjs --stage deploy",
-    "build-update-bundle": "node scripts/build-update-bundle.mjs"
+    "build-update-bundle": "node scripts/build-update-bundle.mjs",
+    "timesheet": "node scripts/timesheet.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

@@ -18,6 +18,7 @@ afterEach(() => { vi.unstubAllEnvs(); fixtures.splice(0).forEach(f => f.cleanup(
 function setup() {
   const f = fixture({ git: true }); fixtures.push(f);
   addRepo(timePaths(f.env), f.repo, 'acme');
+  writeFileSync(join(f.repo, '.gitignore'), '/timesheets/\n');
   writePrivate(join(f.root, 'acme', 'billing.yaml'), 'client: { id: acme, name: Acme }\nrate: { hourly: 100, currency: USD }\n');
   f.file('session-a.jsonl', [user('h'), assistant('a', 300)]);
   return f;

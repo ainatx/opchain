@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-27T18:34:41.082Z",
+  "updated_at": "2026-09-27T18:57:55.739024Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "monitoring-baseline-2.0.4-redeploy",
-  "progress_summary": "PR readiness PASS for the v2.0.4 baseline correction: ids from Cloudflare via wrangler, deploy-diff clean, clean tree.",
+  "step": "time-tracking-sprint-3",
+  "progress_summary": "Time-tracking Sprint 3 implementation ready: 146 tests, 99.74% library line coverage, full subprocess daily loop, bounded cache-only hooks, eight mandatory candidate checks PASS. Generated package manifests synchronized for the required npm shortcut. Real-client dogfood and hook installation pending owner; no real billing approved or exported.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -37,14 +37,16 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Owner accepted incremental replay latency of 1.35s (1.90s under load) as a documented deviation; <1s remains a performance follow-up."
+      "Owner real-client dogfood remains pending.",
+      "Ten generated package.json mirrors are the documented necessary exception to the earlier path freeze.",
+      "Previously accepted real-corpus incremental collector latency remains a performance follow-up."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "d513ed613e405516516d4226854f95635536c36e",
+    "verified_for_sha": "e58dd26865b4d9655b34cc1347994e332ee56469",
     "last_verify": {
       "at": "2026-09-27T06:18:59.773427Z",
       "branch": "codex/time-tracking-sprint-2",
@@ -967,8 +969,35 @@
           ".github/scripts/cloudflare-monitor.mjs"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-time-s3-7ca46fbb2715",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T18:57:55.739024Z",
+      "verified_at": "2026-09-27T18:57:55.739024Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "time-s3-2026-09-27"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:7ca46fbb27151c7d816dc2351d6ba91ac6727606989317e72d086a9d94c44aff"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Sprint 3 local CLI implementation, tests and docs pass mandatory candidate checks. Generated package mirrors match root. Pending owner dogfood and existing performance follow-up are explicit; no release or real billing action.",
+        "evidence": [
+          "docs/plans/time-tracking/README.md",
+          "docs/runbooks/time-tracking.md",
+          "docs/plans/time-tracking/sprints/sprint-3/contract.md",
+          "docs/plans/time-tracking/sprints/sprint-3/eval-round-1.md",
+          "docs/plans/time-tracking/sprints/sprint-3/eval-round-2.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-27T18:34:41.082Z",
+  "record_updated_at": "2026-09-27T18:57:55.739024Z",
   "blockers": []
 }

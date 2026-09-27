@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-09-27T07:24:42.432573Z",
+  "updated_at": "2026-09-27T18:54:31.668643Z",
   "phase": "sprint-plan",
   "step": "v2.0-sprint-plan-approved-blocked-on-oss-split",
   "status": "in_progress",
@@ -95,7 +95,9 @@
       "2026-09-27 time-tracking Sprint 2 contract: implement A10-A18, ledger-only draft/verify and C2 on Sprint 1 tip 4f47b503; PR #569 remains a landing prerequisite. Global client allocation policies agree; sourced per-model cache rates supersede old blanket multiplier. Contract: docs/plans/time-tracking/sprints/sprint-2/contract.md.",
       "2026-09-27 time-tracking Sprint 2 Generator/Evaluator round 1 FAIL led to worktree/matter-boundary, retirement, activity-query and locking fixes. Round 2 implementation PASS (all dimensions 8), 104 time tests, 100% new module line coverage; 200 randomized days and 20 process writers. Owner 14-day corpus replay, seven price confirmations, Sprint 1 merge and human sign-off remain pending. No catalog release.",
       "Time-tracking Sprint 2 owner-authorized replay 2026-09-27: corpus format fixes and actual timing documented; seven prices confirmed; 56 repository-days verify with zero unpriced usage. Incremental collector timing still exceeds <1s, so final acceptance is not claimed. Validation uses isolated private data and zero hourly rates.",
-      "Time-tracking Sprint 2 owner-authorized replay 2026-09-27: corpus format fixes and actual timing documented; seven prices confirmed; 56 repository-days verify with zero unpriced usage. Owner accepted the measured incremental timing deviation and authorized Signed-off-by: Aidan Elsesser <admin@opchain.dev> for the squash merges on 2026-09-27. Validation uses isolated private data and zero hourly rates."
+      "Time-tracking Sprint 2 owner-authorized replay 2026-09-27: corpus format fixes and actual timing documented; seven prices confirmed; 56 repository-days verify with zero unpriced usage. Owner accepted the measured incremental timing deviation and authorized Signed-off-by: Aidan Elsesser <admin@opchain.dev> for the squash merges on 2026-09-27. Validation uses isolated private data and zero hourly rates.",
+      "2026-09-27: time-tracking Sprint 3 contract established at docs/plans/time-tracking/sprints/sprint-3/contract.md; resume authorized. Build on codex/time-tracking-sprint-3; no release or merge. Owner dogfood details pending.",
+      "2026-09-27: time-tracking Sprint 3 implementation PASS (8/10 each dimension), 146 time tests, 99.74% library lines; CLI review/edit/amend/add/approve/export/today/nudge/spotcheck and private Markdown complete. Manual entries preserved on re-draft; cross-client allocation check before approval/export. Owner dogfood pending; merges resumed by owner after v2.0.4. No hooks installed or real billing approved."
     ],
     "generated_files": [
       "site/src/blog/2026-06-25-v1-6-the-instrumented-pipeline.md",
@@ -131,7 +133,10 @@
       "docs/plans/time-tracking/sprints/sprint-1/eval-round-1.md",
       "docs/plans/time-tracking/sprints/sprint-1/pr-description.md",
       "docs/plans/time-tracking/transcript-format.md",
-      "docs/plans/time-tracking/README.md"
+      "docs/plans/time-tracking/README.md",
+      "docs/plans/time-tracking/sprints/sprint-3/contract.md",
+      "docs/plans/time-tracking/sprints/sprint-3/eval-round-1.md",
+      "docs/plans/time-tracking/sprints/sprint-3/eval-round-2.md"
     ],
     "user_preferences": [
       "Picks options when given clear choices; comfortable with 'go with defaults'.",
@@ -155,7 +160,7 @@
     "After C7: Sprint 0 (branches in their post-flip homes), then Sprint 1 wire 1.2 substrate.",
     "Before Sprint 6: re-derive Appendix B against the real Phase D checklist - the product repo's package.json, CI job ids, its RELEASING.md copy, check-version-lockstep.mjs and the submodule-pin form of check-release-tag.mjs do not exist yet.",
     "Sprint 5 carries the R3a fix, now harder post-flip: it must read the pinned submodule's skills/CHANGELOG.md, which is also handoff item R3c. Build them together.",
-    "time-tracking: Owner acceptance and DCO authorization are complete. Land Sprint 1 #569 after current CI, then retarget and land Sprint 2 #571. Retain incremental collection <1s as a performance follow-up. Sprint 3 daily review/approval/export follows; no release cut."
+    "time-tracking: land Sprint 3 after candidate gate, docs/readiness evidence and CI; owner real-client setup, manual hook installation, day review/approval and CSV import check remain pending."
   ],
   "skill_state": {
     "feature": {
@@ -559,6 +564,18 @@
       },
       "ref": "docs/plans/time-tracking/sprints/sprint-2/eval-round-2.md",
       "note": "Implementation PASS; owner acceptance and Sprint 1 merge pending; no release cut"
+    },
+    {
+      "rubric": "oc-app-architect",
+      "score": 8,
+      "max": 10,
+      "dimensions": {
+        "functionality": 8,
+        "completeness": 8,
+        "quality": 8,
+        "ux": 8
+      },
+      "ref": "docs/plans/time-tracking/sprints/sprint-3/eval-round-2.md"
     }
   ],
   "recently_done": [

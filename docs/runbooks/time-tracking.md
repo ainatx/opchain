@@ -1,8 +1,8 @@
-# Local time tracking: collect, draft and verify
+# Local time tracking: review, approve and export
 
-Sprint 2 supports ledger-only drafting. Review, edit/amend/approve CLI commands, Markdown and exports arrive in Sprint 3. No hooks are installed automatically.
+The daily CLI supports private setup, collection, Markdown drafts, review, edit/amend/add/discard, approval, CSV export, spotcheck and verification. No hooks are installed automatically. See the [quick start and hook snippets](../plans/time-tracking/README.md).
 
-Use Node 24. All state goes to `~/.opchain/time/`, or `OPCHAIN_TIME_HOME`. Until `init` exists, copy the commented `docs/plans/time-tracking/billing.example.yaml` to `<time-home>/<client>/billing.yaml` and register the canonical absolute git root in `<time-home>/registry.json` as `{ "/absolute/repo": "client-id" }`. Keep these files private (0600, directories 0700), outside the repo. Multiple registered clients must agree on timezone, idle/tail cap and overlap policy; this prevents inconsistent global allocation. Rates, rounding and matter rules may differ.
+Use Node 24. All state goes to `~/.opchain/time/`, or `OPCHAIN_TIME_HOME`. Run `init --client <id> --name <name> --rate <n> --repo <path> --timezone <zone>` to create the commented config and registry. Existing clients require `--force` to replace their config; review its policy first. Ticket matching starts empty rather than guessing a client prefix. Keep these files private (0600, directories 0700), outside the repo. Multiple registered clients must agree on timezone, idle/tail cap and overlap policy; this prevents inconsistent global allocation. Rates, rounding and matter rules may differ.
 
 Run from the registered client repo using the absolute path to this checkout's CLI:
 
@@ -21,7 +21,7 @@ A block begins at its first human touch, conservatively excluding preceding auto
 
 ## Wrong day or stale derivation
 
-Check timezone first. Re-draft every affected client/date after policy or source changes. Removed unapproved matters receive append-only retirement events. User-discarded entries stay discarded; automatically retired drafts can reappear. If a day contains approved or manually edited/amended entries, changed derivation gives a drift warning and preserves the entire day. Use the future `amend` workflow for approved corrections, then reapprove; never edit ledger bytes.
+Check timezone first. Re-draft every affected client/date after policy or source changes. Removed unapproved matters receive append-only retirement events. User-discarded entries stay discarded; automatically retired drafts can reappear. If a day contains approved or manually edited/amended entries, changed derivation gives a drift warning and preserves the entire day. Use `amend <id> --hours <h> --reason "…"` for approved corrections, then review and reapprove; never edit ledger bytes.
 
 ## Verification and recovery
 
@@ -33,4 +33,37 @@ Cache reads hold the collector lock, so a draft observes one complete published 
 
 ## Required owner acceptance
 
-Confirm all seven prices against Anthropic's source and assess the list-price-equivalent basis. On a private replay state directory, register/configure the real client repos, run collect and `draft --since <local-date-14-days-ago>` per client, then verify. Require zero unpriced share on every day, review block/cadence totals side by side, and record only sanitized timings/aggregates. On 2026-09-27 the owner confirmed the seven prices and authorized a private validation replay: all 56 repository-days had zero unpriced usage, ledger verification passed, and repeated derivation appended zero entries. The collector incremental timing target remains unmet; the owner explicitly accepted the measured deviation for these two sprints and retained <1s as a performance follow-up. See [replay evidence](../plans/time-tracking/sprints/sprint-2/replay-2026-09-27.md) for validation settings, aggregate minutes, and limitations. Sprint 1 must merge before Sprint 2 can land; this work does not cut a catalog release.
+Confirm all seven prices against Anthropic's source and assess the list-price-equivalent basis. On a private replay state directory, register/configure the real client repos, run collect and `draft --since <local-date-14-days-ago>` per client, then verify. Require zero unpriced share on every day, review block/cadence totals side by side, and record only sanitized timings/aggregates. On 2026-09-27 the owner confirmed the seven prices and authorized a private validation replay: all 56 repository-days had zero unpriced usage, ledger verification passed, and repeated derivation appended zero entries. The collector incremental timing target remains unmet; the owner explicitly accepted the measured deviation for these two sprints and retained <1s as a performance follow-up. See [replay evidence](../plans/time-tracking/sprints/sprint-2/replay-2026-09-27.md) for validation settings, aggregate minutes, and limitations. Sprints 1 and 2 have merged. Sprint 3 adds the usable daily loop; its real-client trial, manual hook installation, owner review/approval and CSV import check remain pending. This work does not cut a catalog release.
+
+
+## Corrections, exports and spotchecks
+
+For an unapproved entry use `edit <id> --hours 0.50 --reason "…"`; for an approved
+entry use `amend` with the same flags. The amendment increments the revision and
+removes it from export until re-approved. Narratives and matter names can also be
+edited; AI amounts use `--amount`. Unknown token prices cannot be bypassed with an
+amount edit. Manual `add` entries require date, matter, hours, narrative and reason;
+re-drafting preserves them. Use `discard` with a reason for an unapproved line that
+must not be invoiced. Approved entries must first be amended.
+
+For the wrong date, amend approved time to zero with a correction reason (or amend,
+then discard), add the corrected entry on the right day, and review/reapprove before
+export. Keep both audit trails. Do not alter the original date or raw allocation.
+
+`export --from YYYY-MM-DD --to YYYY-MM-DD` includes only current approved entries,
+including approved lines on partially reviewed days. Its summary lists dates with
+remaining unapproved entries. `spotcheck --n 3` samples distinct approved entries,
+showing allocation intervals, metadata counts and derivation references without
+reading prompt text. `verify` remains the full ledger-integrity check.
+
+If output is tracked, remove it from Git's index and add `/timesheets/` to the
+checkout's `.gitignore`; review staged changes yourself. A later negation can defeat
+an earlier ignore rule, so the CLI checks effective ignore status before writing.
+If rendering fails after a mutation, the saved ledger is authoritative: the CLI
+reports this and a later `draft` refreshes Markdown without erasing the edit.
+
+Nudge is best-effort: missing registry/cache, corrupt state, unregistered repo,
+no pending activity or a slow read produces no output and exit 0. Run `verify` and
+`review` directly to diagnose silent reminders. No normalized event stream or
+transcript is read by nudge. All ordinary read commands operate on cached data;
+run `collect` or `draft` when fresh activity is needed.
