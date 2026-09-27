@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-09-21T13:40:12.756Z",
+  "updated_at": "2026-09-27T15:02:40.273Z",
   "phase": "audit",
-  "step": "pre-deploy-v2.0.3",
+  "step": "pre-deploy-v2.0.4",
   "status": "in_progress",
-  "progress_summary": "Pre-deploy code-audit sweep for v2.0.3 (delta from v2.0.2: flags/registry.js description text, scripts/axe-comment.cjs e2e-comment gating, check-release-surfaces.mjs, site copy/changelog/styleguide/architecture surfaces, generated mcp-catalog.json). No shell exec, eval, or new external surface in the diff; axe-comment.cjs is filesystem-only. No new CRITICAL/HIGH introduced. The pre-existing 157-finding OSS/portability audit (14 critical/41 high) remains separately open and out of this bounded release's scope, consistent with how v2.0.1/v2.0.2 shipped.",
+  "progress_summary": "Pre-deploy code-audit sweep for v2.0.4 (delta from deployed runtime 8bad1a0 to c09a63e): hook stamp changes that remove a git subprocess, release-surface gate probes, geometry-auditor fix, PipelineDiagram colour, /changelog v2.1 direction-set copy, patch/minor dependency bumps, and the local-only oc-time-ops timesheet CLI (#569, #571). Candidate verifier PASS on all 8 checks; 1386 tests pass. No new CRITICAL/HIGH introduced. The pre-existing OSS/portability audit (14 critical/41 high) remains separately open and out of this bounded release's scope.",
   "blockers": [],
   "next_actions": [
     "OSS-readiness audit 2026-08-22 (grade D+): triage the 24 HIGH findings in docs/audits/2026-08-22-oss-readiness-audit.md — the must-fix set is in docs/plans/2026-08-22-oss-split-licensing-compliance.md §4.1 and §4.3.",
@@ -535,21 +535,46 @@
           "Historical OSS/portability findings (14 critical / 41 high) remain open outside this bounded v2.0.3 release audit, unchanged since v2.0.1/v2.0.2."
         ]
       }
+    },
+    {
+      "id": "oc-code-auditor-predeploy-204-38ba68b0742f",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T15:02:40.000Z",
+      "verified_at": "2026-09-27T15:02:40.000Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-2.0.4"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:38ba68b0742f66a5d46f2732c73b908456c59a2bedb22c6a08f291f6ed9a0ddc"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "v2.0.4 release delta from the deployed runtime 8bad1a0 to c09a63e (PRs #547, #549, #559, #560, #564, #565, #566, #567, #568, #570, #494, #569, #571): task-end/session-state hook changes, check-release-surfaces.mjs probes, geometry-auditor fix, PipelineDiagram colour, /changelog v2.1 direction-set copy, dependency patch/minor bumps with rebuilt bundled runtimes, regenerated mcp-catalog.json, oc-release-ops docs and lockstep bumps, and oc-time-ops sprints 1-2 (local timesheet CLI in scripts/lib/time/ and scripts/timesheet.mjs; not referenced by the Worker, site, skills, plugin hooks or deploy). No release-blocking CRITICAL or HIGH code finding.",
+        "evidence": [
+          "node scripts/verify-candidate.mjs run --json: PASS (anti_patterns, build, dependencies, dependencies_site, lint, secrets, tests, type_safety) on tree 2600dc20e1d0ef69711eaeb651143ba372fe7ec1",
+          "npm test: 99 files, 1386 tests passed",
+          "git diff 8bad1a0..c09a63e -- src/ excluding generated: one comment line in src/lib/flags/registry.js; no Worker handler, routing or auth change",
+          "manual review: task-end.cjs removes its git child_process call; session-state.cjs selects between two fixed strings",
+          "manual review of #569/#571: subprocesses are execFileSync(\"git\", [...]) and a read-only execFileSync(\"gh\", [\"pr\",\"view\",...]) with argument arrays and no shell; files written 0600; no shipped surface imports scripts/lib/time"
+        ],
+        "accepted_residuals": [
+          "Historical OSS/portability findings (14 critical / 41 high) remain open outside this bounded release audit, as with v2.0.1-v2.0.3.",
+          "oc-time-ops is local sprint tooling; its sprint evaluations govern its quality, not this release gate."
+        ]
+      }
     }
   ],
   "latest_pre_deploy": {
-    "candidate": "f590ad3de24d3fccd71d159084e8201632d50c3a",
-    "candidate_identity": "sha256:53307aa08606a92343ebdf5b03d269230f1ca524224d8d4256adfb47ae67481d",
+    "candidate": "c09a63ea0e2e95c725f44d194569761d7b95d933",
+    "candidate_identity": "sha256:38ba68b0742f66a5d46f2732c73b908456c59a2bedb22c6a08f291f6ed9a0ddc",
     "verdict": "PASS",
-    "blocking_findings": 0,
-    "accepted_residuals": [
-      "Historical OSS/portability audit findings remain open outside this staging release delta.",
-      "Site dev/e2e dependencies retain 7 HIGH advisories; production dependency audit is clean.",
-      "Site Astro check has 39 non-blocking deprecation hints.",
-      "The v2.0.2 tag is intentionally absent; tag creation is outside this task."
-    ]
+    "blocking_findings": 0
   },
-  "record_updated_at": "2026-09-21T13:40:12.756Z",
+  "record_updated_at": "2026-09-27T15:02:40.273Z",
   "recently_done": [
     {
       "at": "2026-09-21T13:40:12.755Z",
