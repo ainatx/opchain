@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-27T07:24:42.432573Z",
+  "updated_at": "2026-09-27T17:24:40.757Z",
   "skill": "oc-docs-forge",
   "phase": "pr-docs",
   "status": "complete",
-  "step": "time-tracking-sprint-2-replay",
-  "progress_summary": "Time-tracking Sprint 2 owner-authorized corpus replay: corrected producer formats pass; Sprint 2 has zero unpriced usage and verified ledgers on 56 repository-days. Owner explicitly accepted the 1.35s (1.90s under load) incremental timing deviation and authorized Signed-off-by: Aidan Elsesser <admin@opchain.dev> in Codex on 2026-09-27. Code/evidence gates pass; merge remains subject to current CI.",
+  "step": "monitoring-baseline-2.0.4",
+  "progress_summary": "PR docs packet for the v2.0.4 monitoring baseline. Inline Documentation section; no product-doc follow-up.",
   "context_primer": {
     "key_decisions": [
       "Every PR requires a Documentation section; this PR carries it inline.",
@@ -914,8 +914,32 @@
           "docs/runbooks/time-tracking.md"
         ]
       }
+    },
+    {
+      "id": "oc-docs-forge-baseline204-9748e3078600",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T17:24:40.000Z",
+      "verified_at": "2026-09-27T17:24:40.000Z",
+      "producer": {
+        "skill": "oc-docs-forge",
+        "run_id": "monitoring-baseline-2.0.4"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:9748e3078600524bf0fd5786447fade60e376c6a942c56e3aca3e4d79ab6c71e"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-docs-v1",
+        "scope": "Monitoring baseline refresh for v2.0.4: release tag, approved post-release runtime 0f3410c, staging and production deployment/version ids and script fingerprint. Monitoring data only; the runbook already documents the procedure; no reader-facing doc change.",
+        "evidence": [
+          ".github/monitoring/release-baseline.json",
+          "docs/runbooks/cloudflare-challenge.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-27T07:24:42.432573Z",
+  "record_updated_at": "2026-09-27T17:24:40.757Z",
   "blockers": []
 }

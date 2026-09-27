@@ -4,28 +4,28 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-08-27T23:49:17.485Z",
-  "updated_at": "2026-09-21T13:40:12.666Z",
+  "updated_at": "2026-09-27T17:27:10.393Z",
   "phase": "production",
-  "step": "v2.0.3-shipped",
+  "step": "v2.0.4-shipped",
   "status": "complete",
-  "progress_summary": "v2.0.3 shipped to staging then production. Staging: opchain-staging deployment 90333475-b077-47f4-9fc4-58fb4c007a34 (version 25f1598a), verified via GET /api/health (version 8bad1a0) + npm run smoke:staging + hardening manifest 2/2 PASS. Production: opchain-dev deployment b2647a50-6ce8-4087-b025-5628ea8dafe5 (version 9454e2ce), verified via GET /api/health (version 8bad1a0) + npm run smoke:prod + hardening manifest 2/2 PASS. Both hosts serve the same script fingerprint (9c72a4fc...). Signed tag v2.0.3 on da202a0; deployed SHA 8bad1a0 is two checkpoint-only post-tag commits later (#557, #558), both under nonDeployPathPrefixes. Monitoring baseline refreshed and merged (PR #559) with the new deployment/version ids and the runtime override note.",
+  "progress_summary": "v2.0.4 shipped 2026-09-27. Signed tag v2.0.4 on 91a2124; deployed origin/main 0f3410c (six reviewed post-tag PRs, covered by the #572 pre-deploy code-audit and security-posture verdicts) to staging (deployment 34d77863, version 2d2a67ac) and production (deployment 792e89c0, version 2fd39191). Hardening checks against both hosts: 0 failed; smoke:staging and smoke:prod all passed; /api/health = 0f3410c and /skills.json catalogVersion = 2.0.4 on both hosts. Monitoring baseline refreshed in #573; branch Canary control-plane check passed. Rollback target: production version 9454e2ce (v2.0.3 runtime 8bad1a0).",
   "blockers": [],
   "next_actions": [],
   "skill_state": {
     "current_env": "production",
-    "staging_version": "8bad1a0",
-    "prod_version": "8bad1a0",
-    "production_sha": "8bad1a03048cc30428eb7a1f76b18bdd1b398f83",
-    "target_version": "8bad1a03048cc30428eb7a1f76b18bdd1b398f83",
-    "cloudflare_version_id": "9454e2ce-ea53-4753-a531-9b8c8750439d",
-    "cloudflare_deployment_id": "b2647a50-6ce8-4087-b025-5628ea8dafe5",
-    "staging_cloudflare_version_id": "25f1598a-03f7-4043-84ef-36c329d3682d",
-    "staging_cloudflare_deployment_id": "90333475-b077-47f4-9fc4-58fb4c007a34",
+    "staging_version": "0f3410c",
+    "prod_version": "0f3410c",
+    "production_sha": "0f3410c349564137a6d173932d17cfb32f1862ae",
+    "target_version": "2.0.4",
+    "cloudflare_version_id": "2fd39191-828d-4d0a-8c5b-397fa88373d0",
+    "cloudflare_deployment_id": "792e89c0-92b9-4dc1-869f-ea8b38120b38",
+    "staging_cloudflare_version_id": "2d2a67ac-aea1-4663-a85f-12163624b8b3",
+    "staging_cloudflare_deployment_id": "34d77863-1656-4a64-b30b-3bf706928e03",
     "staging_url": "https://staging.opchain.dev",
     "production_url": "https://opchain.dev",
     "branch_preview": true,
     "last_deploy": "2026-09-19T04:05:48Z",
-    "source_pr": 483,
+    "source_pr": "572",
     "audit_gate": {
       "critical": 0,
       "high": 0,
@@ -122,11 +122,7 @@
       "reconciled_issue": 475
     },
     "rollback_available": true,
-    "rollback_target": {
-      "deployment_id": "bf2ee2b8-8d1e-4155-89cb-fcd91b45ff00",
-      "cloudflare_version_id": "c55ae124-ff35-4924-80af-00e92bd8879c",
-      "reason": "Captured active production predecessor; retained because production rollback was not needed."
-    },
+    "rollback_target": "9454e2ce-ea53-4753-a531-9b8c8750439d",
     "unrecorded_deploy": {
       "detected_at": "2026-09-11T03:45:00Z",
       "live_version": "78567c2",
@@ -171,7 +167,7 @@
       "status": "blocked"
     }
   ],
-  "record_updated_at": "2026-09-21T13:40:12.666Z",
+  "record_updated_at": "2026-09-27T17:27:10.393Z",
   "recently_done": [
     {
       "text": "Laptop: npx wrangler deployments list --json and versions view for deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72 (version id + script etag), then record them in .github/monitoring/release-baseline.json with sourceSha 78567c2d70e6f00836000e4bd6bbad842ba04a42.",
