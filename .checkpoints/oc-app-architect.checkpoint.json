@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-09-27T01:23:41.158Z",
+  "updated_at": "2026-09-27T04:08:56.896616Z",
   "phase": "sprint-plan",
   "step": "v2.0-sprint-plan-approved-blocked-on-oss-split",
   "status": "in_progress",
@@ -87,7 +87,9 @@
       "2026-09-26 ★ oc-time-ops SPEC APPROVED (revised spec incl. tail cap 30m + client-day rounding). Phase 3 design next: CLI/Markdown surfaces only (no web UI).",
       "2026-09-26 ★ oc-time-ops DESIGN APPROVED (terminal + markdown surfaces, docs/plans/time-tracking/design/surfaces.md). In-chat review card (show_widget mockup) explicitly OUT of scope. Punch list drafted: 19 modules / 15 verbs / 8 wiring items.",
       "2026-09-26 ★ oc-time-ops PUNCH LIST APPROVED. Sprint plan drafted: S1 collect+classify (6h), S2 derive+ledger (8h, needs user-verified pricing for 7 model families), S3 CLI+surfaces+dogfood (7h); 21h Claude / 2h user; one PR per sprint, all outside C1 freeze paths.",
-      "2026-09-26 ★ oc-time-ops SPRINT PLAN APPROVED; build delegated to Codex via docs/plans/time-tracking/CODEX-HANDOFF.md (3 sprints, one PR each). Planning docs land first as a docs-only PR."
+      "2026-09-26 ★ oc-time-ops SPRINT PLAN APPROVED; build delegated to Codex via docs/plans/time-tracking/CODEX-HANDOFF.md (3 sprints, one PR each). Planning docs land first as a docs-only PR.",
+      "2026-09-26 time-tracking Sprint 1 contract accepted against approved A1-A9/B2/B14/C4/C6 scope; builds collect and hook prompt only. Contract: docs/plans/time-tracking/sprints/sprint-1/contract.md. Release-ops keeps catalog release/version surfaces out of this sprint.",
+      "2026-09-26 time-tracking Sprint 1 implementation evaluated PASS 8.0/10 (all dimensions 8), 69 tests, 100% library line coverage. Synthetic hook median 42.22ms and 10k append 147.48ms. Real-corpus replay and manual hook adoption remain pending owner; sprint acceptance is not yet complete. Report: docs/plans/time-tracking/sprints/sprint-1/eval-round-1.md."
     ],
     "generated_files": [
       "site/src/blog/2026-06-25-v1-6-the-instrumented-pipeline.md",
@@ -118,7 +120,12 @@
       "docs/plans/time-tracking/design/surfaces.md",
       "docs/plans/time-tracking/design/punch-list.md",
       "docs/plans/time-tracking/sprints/sprint-plan.md",
-      "docs/plans/time-tracking/CODEX-HANDOFF.md"
+      "docs/plans/time-tracking/CODEX-HANDOFF.md",
+      "docs/plans/time-tracking/sprints/sprint-1/contract.md",
+      "docs/plans/time-tracking/sprints/sprint-1/eval-round-1.md",
+      "docs/plans/time-tracking/sprints/sprint-1/pr-description.md",
+      "docs/plans/time-tracking/transcript-format.md",
+      "docs/plans/time-tracking/README.md"
     ],
     "user_preferences": [
       "Picks options when given clear choices; comfortable with 'go with defaults'.",
@@ -142,7 +149,7 @@
     "After C7: Sprint 0 (branches in their post-flip homes), then Sprint 1 wire 1.2 substrate.",
     "Before Sprint 6: re-derive Appendix B against the real Phase D checklist - the product repo's package.json, CI job ids, its RELEASING.md copy, check-version-lockstep.mjs and the submodule-pin form of check-release-tag.mjs do not exist yet.",
     "Sprint 5 carries the R3a fix, now harder post-flip: it must read the pinned submodule's skills/CHANGELOG.md, which is also handoff item R3c. Build them together.",
-    "time-tracking: planning PR open → owner squash-merges → Codex builds Sprint 1 (collect & classify) per CODEX-HANDOFF.md; owner runs corpus replay + price verification at S1/S2 DoD."
+    "time-tracking: Sprint 1 implementation passed; open/review its PR, owner runs collect --report corpus replay and human squash-merges. Then Sprint 2 derive/ledger with owner-verified prices. See docs/plans/time-tracking/sprints/sprint-1/pr-description.md."
   ],
   "skill_state": {
     "feature": {
@@ -505,6 +512,20 @@
         "ux": 8
       },
       "ref": "sprints/compare-refresh/eval-2.0.md"
+    },
+    {
+      "rubric": "oc-app-architect",
+      "score": 8,
+      "max": 10,
+      "at": "2026-09-27T04:08:56.896616Z",
+      "dimensions": {
+        "functionality": 8,
+        "completeness": 8,
+        "quality": 8,
+        "ux": 8
+      },
+      "ref": "docs/plans/time-tracking/sprints/sprint-1/eval-round-1.md",
+      "note": "time-tracking Sprint 1 implementation PASS; owner corpus replay pending; unrelated v2.0 state preserved"
     }
   ],
   "recently_done": [
@@ -513,5 +534,5 @@
       "action": "Quick-feature: v2.0 asset hotfix (favicon, fallback OG card, architecture shade) on claude/v2-asset-hotfix after v2.0.0 shipped without it"
     }
   ],
-  "record_updated_at": "2026-09-27T01:23:41.158Z"
+  "record_updated_at": "2026-09-27T04:08:56.896616Z"
 }
