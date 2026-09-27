@@ -3,17 +3,18 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-27T07:20:32.398340Z",
+  "updated_at": "2026-09-27T06:18:59.773427Z",
   "skill": "oc-repo-ops",
   "phase": "pr-verify",
   "status": "complete",
-  "step": "time-tracking-sprint-1-replay",
-  "progress_summary": "Time-tracking Sprint 1 owner-authorized corpus replay: corrected producer formats pass; Sprint 2 has zero unpriced usage and verified ledgers on 56 repository-days. Owner explicitly accepted the 1.35s (1.90s under load) incremental timing deviation and authorized Signed-off-by: Aidan Elsesser <admin@opchain.dev> in Codex on 2026-09-27. Code/evidence gates pass; merge remains subject to current CI.",
+  "step": "time-tracking-sprint-2",
+  "progress_summary": "Time-tracking Sprint 2 implementation and PR evidence PASS for content commit 255416d. Owner price confirmation, 14-day corpus replay and Sprint 1 #569 merge remain required; no catalog release. Evidence follows the content projection across checkpoint-only commits.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
       ".checkpoints/ is tracked; the evidence commit touches only checkpoints.",
-      "Time-tracking Sprint 1 evidence binds the non-checkpoint tree projection; v2 release metadata and frozen product paths stay unchanged."
+      "Time-tracking Sprint 1 evidence binds the non-checkpoint tree projection; v2 release metadata and frozen product paths stay unchanged.",
+      "Time-tracking Sprint 2 uses a stacked PR against Sprint 1, candidate-bound Docs/Repo handoffs, and explicit pending-owner acceptance. No frozen product/version surface changes."
     ],
     "generated_files": [
       ".checkpoints/oc-repo-ops.checkpoint.json",
@@ -21,25 +22,35 @@
       "docs/plans/time-tracking/transcript-format.md",
       "docs/plans/time-tracking/sprints/sprint-1/contract.md",
       "docs/plans/time-tracking/sprints/sprint-1/eval-round-1.md",
-      "docs/plans/time-tracking/sprints/sprint-1/pr-description.md"
+      "docs/plans/time-tracking/sprints/sprint-1/pr-description.md",
+      "docs/plans/time-tracking/billing.example.yaml",
+      "docs/plans/time-tracking/spec/02-architecture.md",
+      "docs/runbooks/time-tracking.md",
+      "docs/plans/time-tracking/sprints/sprint-2/contract.md",
+      "docs/plans/time-tracking/sprints/sprint-2/eval-round-1.md",
+      "docs/plans/time-tracking/sprints/sprint-2/eval-round-2.md",
+      "docs/plans/time-tracking/sprints/sprint-2/pricing-evidence.md",
+      "docs/plans/time-tracking/sprints/sprint-2/pr-description.md"
     ]
   },
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Owner accepted incremental replay latency of 1.35s (1.90s under load) as a documented deviation; <1s remains a performance follow-up."
+      "Sprint 1 #569 must land first; retarget/rebase Sprint 2 onto main after it merges.",
+      "Owner price confirmation and 14-day corpus replay pending.",
+      "Existing site dependency advisories/checkpoint warnings are unchanged."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "063e78a1c252dc4d9f84adb24f395e247a541509",
+    "verified_for_sha": "255416dfcdea03e3d7cd6a787a573e531c9447f2",
     "last_verify": {
-      "at": "2026-09-27T04:13:23.974646Z",
-      "branch": "codex/time-tracking-sprint-1",
-      "base": "origin/main@2760094",
+      "at": "2026-09-27T06:18:59.773427Z",
+      "branch": "codex/time-tracking-sprint-2",
+      "base": "codex/time-tracking-sprint-1@4f47b503c8ca1d407fa6206c47a0f01b6997c38e",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -828,8 +839,40 @@
           "docs/plans/time-tracking/transcript-format.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-time-s2-ee35c45c6e06",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T06:18:59.773427Z",
+      "verified_at": "2026-09-27T06:18:59.773427Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "time-tracking-sprint-2-2026-09-27"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:ee35c45c6e063ae3a4574436b4ec6bac87e8e38e011593cf8f119db8af39369b"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Mandatory staged candidate checks passed: types, lint, tests, anti-patterns, secrets, build, root/site dependency policies. Scoped diff, golden/privacy/locking tests, docs and frozen surface parity reviewed. Owner acceptance and Sprint 1 landing remain pending.",
+        "evidence": [
+          "docs/plans/time-tracking/README.md",
+          "docs/plans/time-tracking/billing.example.yaml",
+          "docs/plans/time-tracking/transcript-format.md",
+          "docs/plans/time-tracking/spec/02-architecture.md",
+          "docs/runbooks/time-tracking.md",
+          "docs/plans/time-tracking/sprints/sprint-2/contract.md",
+          "docs/plans/time-tracking/sprints/sprint-2/eval-round-1.md",
+          "docs/plans/time-tracking/sprints/sprint-2/eval-round-2.md",
+          "docs/plans/time-tracking/sprints/sprint-2/pricing-evidence.md",
+          "docs/plans/time-tracking/sprints/sprint-2/pr-description.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-27T07:20:32.398340Z",
+  "record_updated_at": "2026-09-27T06:18:59.773427Z",
   "blockers": []
 }
