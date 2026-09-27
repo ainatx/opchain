@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-27T04:10:19.800Z",
+  "updated_at": "2026-09-27T06:07:03.931Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "deps-2026-09-26",
-  "progress_summary": "PR readiness PASS for the 2026-09-26 dependency consolidation: tests, hooks, astro check, full build, catalog/bundle/plugin sync checks, contracts, internal-refs lint, checkpoint validation, clean tree.",
+  "step": "changelog-v2-1-direction-set",
+  "progress_summary": "PR readiness PASS for the /changelog v2.1 direction-set change after rebase onto d0d753f: tests, live roadmap build, full Playwright suite, release-surface gate, clean tree.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -679,8 +679,32 @@
           "plugins/opchain/skills/"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-cl21-4f3fc2ddf636",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T06:07:03.000Z",
+      "verified_at": "2026-09-27T06:07:03.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "changelog-v2-1-direction-set-rebase"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:4f3fc2ddf636855977e6832efeea229972c473c30b2d0868022883c506ac84dd"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Rebased on d0d753f: npm ci per new lockfiles, npm test 1272/1272, gen-roadmap live, full build, Playwright 119 passed / 1 skipped, check-release-surfaces agrees on v2.0, clean tree; pre-commit candidate verifier passed (021dbc1ec151).",
+        "evidence": [
+          "site/src/pages/changelog.astro",
+          "scripts/check-release-surfaces.mjs"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-27T04:10:19.800Z",
+  "record_updated_at": "2026-09-27T06:07:03.931Z",
   "blockers": []
 }
