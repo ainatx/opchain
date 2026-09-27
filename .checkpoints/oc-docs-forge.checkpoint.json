@@ -3,7 +3,7 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-21T20:13:42.009Z",
+  "updated_at": "2026-09-27T01:25:56.413Z",
   "skill": "oc-docs-forge",
   "phase": "pr-docs",
   "status": "complete",
@@ -626,8 +626,34 @@
           "releases/v2.0.4/announcement-internal.md"
         ]
       }
+    },
+    {
+      "id": "oc-docs-forge-ttplan-311ebe0da642",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T01:25:56.413Z",
+      "verified_at": "2026-09-27T01:25:56.413Z",
+      "producer": {
+        "skill": "oc-docs-forge",
+        "run_id": "time-tracking-plan-2026-09-26"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:311ebe0da64295ed7b8900603fb79e709b9bf1770850ff7952bd90a9f66d16ad"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-docs-v1",
+        "scope": "oc-time-ops planning PR (docs + app-architect checkpoint only): spec 00-09, design audit with resolution table, surfaces design, punch list, sprint plan, Codex build handoff. PR body carries the ## Documentation packet; no README/catalog/changelog surface changes (no shipped behaviour).",
+        "evidence": [
+          "docs/plans/time-tracking/CODEX-HANDOFF.md",
+          "docs/plans/time-tracking/sprints/sprint-plan.md",
+          "docs/plans/time-tracking/design/punch-list.md",
+          "docs/plans/time-tracking/spec/02-architecture.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-21T20:13:42.009Z",
+  "record_updated_at": "2026-09-27T01:25:56.413Z",
   "blockers": []
 }
