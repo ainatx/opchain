@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-27T01:25:56.413Z",
+  "updated_at": "2026-09-27T04:10:19.704Z",
   "skill": "oc-docs-forge",
   "phase": "pr-docs",
   "status": "complete",
-  "step": "claude/release-v2.0.4",
-  "progress_summary": "PR docs packet for the v2.0.4 'Bug fixes' release PR: changelog entry, /changelog hero range + rel-card + recount, README/mirror/plugin leading lines, styleguide badge and the internal announcement. Every release-coupled reader surface is updated in the branch; the Linear release ticket is the only deferred item.",
+  "step": "deps-2026-09-26",
+  "progress_summary": "PR docs packet for the 2026-09-26 dependency consolidation (supersedes Dependabot #561-#563). Dependency-only; inline Documentation section, no product-doc follow-up.",
   "context_primer": {
     "key_decisions": [
       "Every PR requires a Documentation section; this PR carries it inline.",
@@ -652,8 +652,33 @@
           "docs/plans/time-tracking/spec/02-architecture.md"
         ]
       }
+    },
+    {
+      "id": "oc-docs-forge-deps0926-a6ad32dc659e",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T04:10:19.000Z",
+      "verified_at": "2026-09-27T04:10:19.000Z",
+      "producer": {
+        "skill": "oc-docs-forge",
+        "run_id": "deps-2026-09-26"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:a6ad32dc659ed9144b361d1f988366a6bfac97262824bf8be8dc21adf46986ab"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-docs-v1",
+        "scope": "Dependency-only PR (js-yaml, wrangler, astro, @astrojs/cloudflare patch/minor bumps + rebuilt bundled runtimes). No shipped behaviour, README, catalog or changelog surface changes; the PR body carries the ## Documentation packet.",
+        "evidence": [
+          "package.json",
+          "site/package.json",
+          "scripts/runtime/prompt-engine.mjs"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-27T01:25:56.413Z",
+  "record_updated_at": "2026-09-27T04:10:19.704Z",
   "blockers": []
 }
