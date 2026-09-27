@@ -125,7 +125,7 @@ export async function draftDay(context, date, options = {}) {
   const path = join(clientPath(context.paths, context.client), 'ledger.jsonl');
   const appended = await transactLedger(path, state => {
     const existing = [...state.values()].filter(e => e.date === date), next = new Map(result.entries.map(e => [e.entry, e]));
-    const changed = existing.filter(e => e.status !== 'discarded').some(e => e.derivation !== next.get(e.entry)?.derivation) || result.entries.some(e => !state.has(e.entry));
+    const changed = existing.filter(e => e.status !== 'discarded' && e.derivation).some(e => e.derivation !== next.get(e.entry)?.derivation) || result.entries.some(e => !state.has(e.entry));
     if (changed && existing.some(e => ['approved', 'amended', 'edited'].includes(e.status))) {
       result.warnings.push(`Protected ${date}: derivation drift; entries unchanged. Use amend for approved entries.`); return [];
     }
@@ -135,7 +135,7 @@ export async function draftDay(context, date, options = {}) {
       if ((old?.status !== 'discarded' && old?.derivation === e.derivation) || (old?.status === 'discarded' && old.reason !== 'No longer derived')) continue;
       events.push({ ...e, event: 'entry.drafted', revision: (old?.revision || 0) + 1, ...(options.at ? { at: options.at } : {}) });
     }
-    for (const e of existing) if (!next.has(e.entry) && e.status !== 'discarded') events.push({ event: 'entry.discarded', entry: e.entry,
+    for (const e of existing) if (e.derivation && !next.has(e.entry) && e.status !== 'discarded') events.push({ event: 'entry.discarded', entry: e.entry,
       revision: e.revision, reason: 'No longer derived', ...(options.at ? { at: options.at } : {}) });
     return events;
   });

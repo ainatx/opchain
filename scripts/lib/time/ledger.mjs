@@ -13,7 +13,7 @@ export const hash = value => `sha256:${createHash('sha256').update(canonical(val
 export class LedgerError extends Error { constructor(message) { super(message); this.exitCode = 1; } }
 const fail = message => { throw new LedgerError(message); };
 const nonnegative = n => Number.isFinite(n) && n >= 0;
-const reserved = new Set(['v', 'at', 'event', 'revision', 'prev', 'hash', 'status', 'derivation']);
+const reserved = new Set(['v', 'at', 'event', 'revision', 'prev', 'hash', 'status', 'derivation', 'approved_at', 'edited_at']);
 export function draftHash(row) {
   return hash(Object.fromEntries(Object.entries(row).filter(([key]) => !reserved.has(key))));
 }
@@ -56,12 +56,12 @@ export function foldLedger(rows) {
       if (!row.reason?.trim() || !row.changes || Object.keys(row.changes).some(k => !['hours', 'matter', 'narrative', 'amount'].includes(k))) fail('Invalid edit or reason');
       if ((row.event === 'entry.amended') !== (old.status === 'approved') || old.status === 'discarded') fail('Approved entries require amend; drafts require edit');
       if (row.revision !== old.revision + 1) fail('Invalid edit revision');
-      const next = { ...old, ...row.changes, revision: row.revision, status: row.event === 'entry.amended' ? 'amended' : 'edited' };
+      const next = { ...old, ...row.changes, reason: row.reason, edited_at: row.at, revision: row.revision, status: row.event === 'entry.amended' ? 'amended' : 'edited' };
       validateEntry(next); state.set(row.entry, next);
     } else if (row.event === 'entry.approved') {
       if (row.revision !== old.revision || ['discarded', 'approved'].includes(old.status)) fail('Invalid approval revision or status');
       if (old.canary_pass === false || old.billable === false || old.unpriced_share > 0) fail('Approval blocked: canary, nonbillable or unpriced');
-      state.set(row.entry, { ...old, status: 'approved' });
+      state.set(row.entry, { ...old, status: 'approved', approved_at: row.at });
     } else if (row.event === 'entry.discarded') {
       if (!row.reason?.trim() || row.revision !== old.revision || old.status === 'approved') fail('Invalid discard');
       state.set(row.entry, { ...old, status: 'discarded', reason: row.reason });
