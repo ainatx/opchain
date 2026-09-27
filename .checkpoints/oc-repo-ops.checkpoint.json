@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-27T07:24:42.432573Z",
+  "updated_at": "2026-09-27T17:24:40.850Z",
   "skill": "oc-repo-ops",
-  "phase": "pr-verify",
+  "phase": "pr-readiness",
   "status": "complete",
-  "step": "time-tracking-sprint-2-replay",
-  "progress_summary": "Time-tracking Sprint 2 owner-authorized corpus replay: corrected producer formats pass; Sprint 2 has zero unpriced usage and verified ledgers on 56 repository-days. Owner explicitly accepted the 1.35s (1.90s under load) incremental timing deviation and authorized Signed-off-by: Aidan Elsesser <admin@opchain.dev> in Codex on 2026-09-27. Code/evidence gates pass; merge remains subject to current CI.",
+  "step": "monitoring-baseline-2.0.4",
+  "progress_summary": "PR readiness PASS for the v2.0.4 monitoring baseline: deploy-diff clean, ids and fingerprint read from Cloudflare via wrangler, clean tree.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -919,8 +919,32 @@
           "docs/runbooks/time-tracking.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-baseline204-9748e3078600",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T17:24:40.000Z",
+      "verified_at": "2026-09-27T17:24:40.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "monitoring-baseline-2.0.4"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:9748e3078600524bf0fd5786447fade60e376c6a942c56e3aca3e4d79ab6c71e"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Single-file baseline change; cloudflare-monitor deploy-diff: 0 deploy-relevant paths since the approved runtime; ids and fingerprint read from wrangler deployments list and versions view for both Workers; bindings unchanged; clean tree; pre-commit candidate verifier passed (1203ae077625). Control-plane verification with credentials runs via the Canary workflow.",
+        "evidence": [
+          ".github/monitoring/release-baseline.json",
+          ".github/scripts/cloudflare-monitor.mjs"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-27T07:24:42.432573Z",
+  "record_updated_at": "2026-09-27T17:24:40.850Z",
   "blockers": []
 }
