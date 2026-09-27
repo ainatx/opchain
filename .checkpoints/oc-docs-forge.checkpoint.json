@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-27T04:10:19.704Z",
+  "updated_at": "2026-09-27T06:07:03.827Z",
   "skill": "oc-docs-forge",
   "phase": "pr-docs",
   "status": "complete",
-  "step": "deps-2026-09-26",
-  "progress_summary": "PR docs packet for the 2026-09-26 dependency consolidation (supersedes Dependabot #561-#563). Dependency-only; inline Documentation section, no product-doc follow-up.",
+  "step": "changelog-v2-1-direction-set",
+  "progress_summary": "PR docs packet for the /changelog v2.1 direction-set change, rebased onto main after #568. The page is the reader-facing documentation; no product-doc follow-up.",
   "context_primer": {
     "key_decisions": [
       "Every PR requires a Documentation section; this PR carries it inline.",
@@ -677,8 +677,32 @@
           "scripts/runtime/prompt-engine.mjs"
         ]
       }
+    },
+    {
+      "id": "oc-docs-forge-cl21-4f3fc2ddf636",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T06:07:03.000Z",
+      "verified_at": "2026-09-27T06:07:03.000Z",
+      "producer": {
+        "skill": "oc-docs-forge",
+        "run_id": "changelog-v2-1-direction-set-rebase"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:4f3fc2ddf636855977e6832efeea229972c473c30b2d0868022883c506ac84dd"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-docs-v1",
+        "scope": "Site copy change on /changelog, rebased onto main after #568: v2.1 direction-set card in Coming Next, advisory-vote copy for v2.2-v2.3. The page is the reader-facing doc; no README, skill catalog or changelog-file surface changes.",
+        "evidence": [
+          "site/src/pages/changelog.astro",
+          "site/tests/e2e/changelog-and-scenarios.spec.ts"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-27T04:10:19.704Z",
+  "record_updated_at": "2026-09-27T06:07:03.827Z",
   "blockers": []
 }
