@@ -148,3 +148,11 @@ while retaining the hook's human timestamp. Older cache rows without this field
 remain readable and fall back to the canonical repo; rebuild collection in a new
 private replay directory if original worktree evidence is needed. No prompt text,
 PR title or commit subject is added to the cache.
+
+## Owner acceptance — 2026-09-27
+
+After reviewing the replay results, the owner explicitly accepted the measured
+1.35-second incremental replay (1.90 seconds under load) for Sprint 1 and Sprint 2
+and authorized the human DCO trailer for their squash merges. The original
+<1-second goal remains a performance follow-up; this acceptance does not change
+the measured timings or assert that the original timing target passed.
