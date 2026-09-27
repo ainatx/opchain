@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-27T19:10:04.386Z",
+  "updated_at": "2026-09-27T19:59:05.682Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "v2-1-plan-release-rule-sim-audit",
-  "progress_summary": "PR readiness PASS for the docs-only v2.1 plan / release rule / audit record PR after rebase: paths redacted, checkpoints valid, clean tree.",
+  "step": "oss-split-rederive-sprint1-prep",
+  "progress_summary": "PR readiness PASS for the v2.1 Sprint 1 prep: manifest paths exist, closure documented, clean tree.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -1020,8 +1020,31 @@
           "docs/plans/opchain-audit-remediation/"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-ossprep-0efa93035af4",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T19:59:05.000Z",
+      "verified_at": "2026-09-27T19:59:05.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "oss-split-rederive-sprint1-prep"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:0efa93035af4b0b17061f71ce755c0ee9a1607cf91bf346e21c7fb9119580386"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Every manifest entry exists on the tree; import closure from the manifest leaves one documented site edge; no local paths in added docs; clean tree; pre-commit candidate verifier passed (a3af9fd48da7).",
+        "evidence": [
+          "split/product-paths.txt"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-27T19:10:04.386Z",
+  "record_updated_at": "2026-09-27T19:59:05.682Z",
   "blockers": []
 }
