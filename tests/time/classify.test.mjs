@@ -64,3 +64,25 @@ it('fixture #3: hook merge ±5s is authoritative only within the same session', 
   expect(mergePrompts(events, [hook]).duplicates).toBe(3);
   expect(mergePrompts(events, []).events).toEqual(events);
 });
+
+// Shapes from the owner replay; all payloads are synthetic.
+describe('producer 2.1.281 replay regressions', () => {
+  it.each(['atis-latch', 'ai-title', 'bridge-session', 'permission-mode', 'cost-state',
+    'frame-link', 'artifact-comment-monitor', 'artifact-autoreact-ledger'])('treats %s as metadata', type => {
+    const row = { type, sessionId: 'synthetic', version: '2.1.281', title: 'PRIVATE_FIXTURE' };
+    expect(classify(row).class).toBe('metadata');
+    const counts = emptyCounts(); observe(counts, row, classify(row));
+    expect(checkCanary(counts)).toMatchObject({ pass: true, unknown: 0 });
+  });
+  it('unwraps reminder prefixes without turning machine or unknown payloads into human turns', () => {
+    const prefix = '<system-reminder>fixture</system-reminder>\n<system-reminder>fixture</system-reminder>\n';
+    for (const [body, kind] of [['hello', 'human_prompt'], ['<ci-monitor-event>fixture</ci-monitor-event>', 'machine'],
+      ['<bash-input>fixture</bash-input>', 'human_prompt'], ['<role>fixture</role>', 'quarantine'], ['', 'machine']]) {
+      expect(classify(user('u', 0, prefix + body, { version: '2.1.281' })).class).toBe(kind);
+      expect(classify(user('u', 0, prefix + body), { subagent: true }).class).toBe(kind.startsWith('human') ? 'machine' : kind);
+    }
+    expect(classify(user('u', 0, prefix + 'hello', { isMeta: true })).class).toBe('machine');
+    expect(classify(user('u', 0, '<system-reminder>unclosed')).class).toBe('quarantine');
+    expect(classify(user('u', 0, prefix + 'hello', { origin: { kind: 'agent' } })).class).toBe('machine');
+  });
+});

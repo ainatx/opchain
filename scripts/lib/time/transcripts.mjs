@@ -9,6 +9,10 @@ import { createResolver, loadRegistry } from './registry.mjs';
 import { digest, mergePrompts } from './prompts-hook.mjs';
 import { reconcileQueue } from './queue.mjs';
 
+// Classification changes require replaying available raw sources. Never silently
+// reuse old classifications merely because a source's byte cursor is current.
+const SOURCE_FORMAT = 2;
+
 function entries(path) {
   try { return readdirSync(path, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name)); }
   catch (error) { if (error.code === 'ENOENT') return []; throw error; }
@@ -68,21 +72,19 @@ function normalize(line, file, offset, resolver, counts) {
 export function materialize(shards, hooks = []) {
   let eventDuplicates = 0, messageDuplicates = 0;
   const ordered = [...shards].sort((a, b) => a.order - b.order);
-  const all = ordered.flatMap(s => s.records);
   const tools = Object.assign(Object.create(null), ...shards.map(s => s.tools));
-  const usage = new Map();
+  const usage = new Map(), seen = new Set(), records = [];
   // Cost maxima include UUID copies and partial assistant streaming records.
-  for (const { event } of all) {
-    if (!event.message?.id || event.model === '<synthetic>') continue;
-    const key = event.message.id, previous = usage.get(key);
-    if (previous) messageDuplicates++;
-    usage.set(key, { model: previous?.model || event.model, usage: maxUsage(previous?.usage || {}, event.usage || {}) });
+  for (const shard of ordered) for (const r of shard.records) {
+    const { event } = r;
+    if (event.message?.id && event.model !== '<synthetic>') {
+      const key = event.message.id, previous = usage.get(key);
+      if (previous) messageDuplicates++;
+      usage.set(key, { model: previous?.model || event.model, usage: maxUsage(previous?.usage || {}, event.usage || {}) });
+    }
+    if (seen.has(event.uuid)) { eventDuplicates++; continue; }
+    seen.add(event.uuid); records.push({ ...r, event: { ...event } });
   }
-  const seen = new Set();
-  const records = all.filter(r => {
-    if (seen.has(r.event.uuid)) { eventDuplicates++; return false; }
-    seen.add(r.event.uuid); return true;
-  }).map(r => ({ ...r, event: { ...r.event } }));
   for (const r of records) {
     if (!r.event.parent_session && r.answers?.some(id => Object.hasOwn(tools, `${r.event.session}:${id}`))) r.event.class = 'human_answer';
     if (r.event.message?.id) {
@@ -95,7 +97,8 @@ export function materialize(shards, hooks = []) {
   // nearest preceding explicit repo (or its first explicit repo), never a global
   // last cwd from another session. Explicit cwd changes always win.
   const locations = new Map();
-  for (const r of [...records].sort((a, b) => a.event.ts.localeCompare(b.event.ts))) {
+  records.sort((a, b) => a.event.ts.localeCompare(b.event.ts));
+  for (const r of records) {
     if (!r.missingCwd) {
       const key = r.event.parent_session || r.event.session, list = locations.get(key) || [];
       list.push(r.event); locations.set(key, list);
@@ -108,7 +111,7 @@ export function materialize(shards, hooks = []) {
     const location = list[Math.max(0, lo - 1)];
     if (location) { r.event.repo = location.repo; r.event.branch ??= location.branch; }
   }
-  const queue = reconcileQueue(records);
+  const queue = reconcileQueue(records, { sorted: true });
   const merged = mergePrompts(queue.records.map(r => r.event), hooks);
   merged.events.sort((a, b) => a.ts.localeCompare(b.ts) || a.uuid.localeCompare(b.uuid));
   return { events: merged.events, duplicates: { events: eventDuplicates, messages: messageDuplicates, queue: queue.duplicates, hooks: merged.duplicates } };
@@ -159,12 +162,12 @@ export async function collect({ env = process.env, projects } = {}) {
       try {
         const stat = statSync(file.path), previous = cursor[file.path];
         const stored = shards.get(key);
-        const consistent = JSON.stringify(stored?.cursor) === JSON.stringify(previous);
+        const consistent = stored?.format === SOURCE_FORMAT && JSON.stringify(stored?.cursor) === JSON.stringify(previous);
         const start = consistent ? startOffset(previous, stat) : 0;
         if (previous && start === stat.size && shards.has(key)) { nextCursor[file.path] = previous; continue; }
         const old = shards.get(key);
         const reset = start === 0 || !old;
-        const shard = reset ? { order: old?.order ?? Math.max(-1, ...[...shards.values()].map(s => s.order)) + 1, records: [], tools: {}, counts: emptyCounts() } : structuredClone(old);
+        const shard = reset ? { format: SOURCE_FORMAT, order: old?.order ?? Math.max(-1, ...[...shards.values()].map(s => s.order)) + 1, records: [], tools: {}, counts: emptyCounts() } : structuredClone(old);
         const counts = emptyCounts();
         const next = await readLines(file.path, stat, reset ? null : previous, (raw, offset) => {
           if (!raw.trim()) return;

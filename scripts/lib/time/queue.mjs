@@ -1,9 +1,9 @@
 // Only hashes/IDs survive parsing. Match repeated identical prompts FIFO, using
 // enqueue time rather than the delayed user turn. Removed prompts never bill.
-export function reconcileQueue(records) {
+export function reconcileQueue(records, { sorted = false } = {}) {
   const pending = new Map(), delivered = new Map(), cancelled = new Set();
   let duplicates = 0;
-  for (const record of [...records].sort((a, b) => a.event.ts.localeCompare(b.event.ts))) {
+  for (const record of sorted ? records : [...records].sort((a, b) => a.event.ts.localeCompare(b.event.ts))) {
     const { event, queue } = record;
     let key = `${event.parent_session || event.session}:${record.fingerprint}`;
     if ((queue === 'remove' || queue === 'dequeue') && record.queueId) {

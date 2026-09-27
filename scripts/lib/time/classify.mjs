@@ -5,7 +5,9 @@ export const ANSWER_TOOLS = new Set(["AskUserQuestion", "ExitPlanMode"]);
 export const KNOWN_TYPES = new Set(["user", "assistant", "queue-operation", "attachment", "system", "pr-link",
   "file-history-snapshot", "file-history-delta", "summary", "progress", "last-prompt", "custom-title",
   "agent-name", "agent-color", "agent-setting", "tag", "session-agent", "mode", "custom-summary",
-  "saved_hook_context", "bridge_status", "microcompact_boundary", "compact_boundary"]);
+  "saved_hook_context", "bridge_status", "microcompact_boundary", "compact_boundary",
+  "atis-latch", "ai-title", "bridge-session", "permission-mode", "cost-state", "frame-link",
+  "artifact-comment-monitor", "artifact-autoreact-ledger"]);
 
 export function contentText(line) {
   const content = line.message?.content ?? line.content;
@@ -23,7 +25,9 @@ export function toolCalls(line) {
 export function classify(line, { tools = {}, subagent = false } = {}) {
   if (!KNOWN_TYPES.has(line.type)) return { class: "unknown", envelope: "none" };
   if (line.type !== "user") return { class: line.type === "assistant" ? "assistant" : "metadata", envelope: "none" };
-  const text = contentText(line).trim();
+  // Producers prepend reminders to both human turns and machine notifications.
+  // Classify the remaining payload; a reminder cannot confer human provenance.
+  const text = contentText(line).trim().replace(/^(?:<system-reminder>[\s\S]*?<\/system-reminder>\s*)+/, '');
   const tag = text.match(/^<([a-z][a-z0-9-]{0,63})(?:\s|>)/)?.[1];
   const envelope = MACHINE_ENVELOPES.includes(tag) || HUMAN_ENVELOPES.includes(tag) || tag === "system-reminder"
     ? tag : tag ? `unknown:${tag}` : text.startsWith("<") ? "unknown" : "none";

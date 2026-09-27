@@ -1,7 +1,7 @@
 # Transcript collection format — Sprint 1
 
 Implemented from the [audited shapes](audit-2026-09-26.md), with synthetic
-fixtures only. **Owner corpus replay is pending.** No real transcript content
+fixtures and an owner-authorized metadata-only corpus replay. No real transcript content
 is included in this repository or its tests.
 
 ## Read contract
@@ -17,7 +17,7 @@ location, or first explicit location if no earlier one exists.
 
 The classifier checks meta/compaction flags first, then these machine envelopes:
 `task-notification`, `scheduled-task`, `ci-monitor-event`, `cross-session-message`,
-`local-command-stdout`, `local-command-stderr`, and system-reminder-only messages.
+`local-command-stdout`, `local-command-stderr`, and system-reminder-only messages. Leading system reminders are removed before classifying the remaining payload; wrapped machine events stay machine events.
 A human origin does not override them. Human command envelopes are `command-name`,
 `command-message`, `bash-input`, `create-pr-command`, plus user interruptions.
 Plain text from a human origin or a legacy missing origin is a human prompt.
@@ -27,8 +27,7 @@ on an incremental read. Other tool results are activity only.
 
 An unknown leading XML envelope is quarantined. Synthetic quarantine fixture:
 `<foo>`. The canary records bounded lowercase tag names, never their bodies;
-invalid/long names become `unknown`. Actual corpus quarantine names are
-**pending owner replay**; add them here only after reviewing their shapes.
+invalid/long names become `unknown`. The 2026-09-27 corpus retained three quarantined messages: one leading `role` envelope and two non-matching angle-bracket forms. Their contents are not retained.
 
 Queue operations use `queueId` / `id` when present and otherwise a SHA-256 content
 fingerprint. Enqueue contributes one event at the original time, remove cancels
@@ -86,13 +85,12 @@ hide in an otherwise clean corpus. Malformed lines, hook records or failed sourc
 reads also fail closed. `collect` remains best effort (exit 0 with a warning),
 while fatal storage/configuration errors return 2.
 
-The tested producer baseline is **2.1.0**, exercised synthetically, not a claim
-about the owner's installed client. Newer semantic versions fail the canary and
+The reviewed producer baseline is **2.1.281**. The 2026-09-27 replay covered producer versions 2.1.126–2.1.281; synthetic regressions cover the newly observed metadata types and reminder prefixes. Newer semantic versions fail the canary and
 are listed in `untested_versions`. Review the new shapes, add synthetic fixtures,
 and update `TESTED_VERSION` in `canary.mjs`; do not suppress the warning blindly.
 Pricing, billing verification and approval are Sprint 2/3 work.
 
-## Owner replay (pending)
+## Owner replay
 
 From the repository root, choose an isolated replay directory and run:
 
@@ -117,3 +115,27 @@ node tests/time/benchmark.mjs
 
 Run the benchmark without concurrent builds/tests. It measures 20 fresh hook
 processes (median <50ms) and a 10k-line append (<1s); CI budgets scale by 3.
+
+## 2026-09-27 replay findings
+
+Owner-authorized replay read 611 files (about 1.12 GB) in 7.38 seconds before fixes,
+then 7.10 seconds after classification review. Eight producer metadata types are
+now recognized: `atis-latch`, `ai-title`, `bridge-session`, `permission-mode`,
+`cost-state`, `frame-link`, `artifact-comment-monitor`, `artifact-autoreact-ledger`.
+Their arbitrary fields are never persisted. Reminder prefixes may precede plain
+human text, human commands, or machine notifications; the payload is classified
+with the same conservative precedence after removing complete leading reminders.
+
+The corrected replay has zero unknown types, three quarantines (0.0059% of user
+lines), no malformed JSON or failed reads, and all per-day canaries pass. Source
+format version 2 invalidates old classifications for available transcript files;
+retained shards whose original source has expired keep their old evidence and
+canary failures rather than being silently blessed. No transcript bodies, source
+paths, client identities, or billing artifacts accompany this evidence.
+
+Controlled incremental replay used a private copy of all 611 files, withheld
+10,000 complete real-corpus lines across existing files, collected the baseline,
+then appended exactly those lines. It read only the appended 33,819,395 bytes,
+but took 1.35 seconds against the <1-second target. A later run under concurrent
+machine load took 1.90 seconds; the no-change replay read zero bytes. The timing
+target remains unmet; synthetic timing success is not substituted for this result.

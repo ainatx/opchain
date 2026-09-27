@@ -1,8 +1,8 @@
 import { KNOWN_TYPES } from './classify.mjs';
 
-// This baseline is exercised by synthetic fixtures; the owner's replay must
-// establish whether newer producer versions require additional fixtures.
-export const TESTED_VERSION = '2.1.0';
+// Metadata-only owner replay through 2.1.281, backed by synthetic regressions.
+// A newer producer still requires shape review before extending this baseline.
+export const TESTED_VERSION = '2.1.281';
 export const emptyCounts = () => ({ lines: 0, users: 0, unknown: 0, quarantine: 0,
   malformed: 0, missing_timestamp: 0, types: {}, envelopes: {}, versions: {}, days: {} });
 const bump = (map, key, n = 1) => { map[key] = (map[key] || 0) + n; };

@@ -145,3 +145,15 @@ it('queue records without cwd inherit their own session location across cwd chan
   await collect({ env: f.env });
   expect(events(f).filter(e => e.type === 'queue-operation').map(e => e.repo)).toEqual([f.repo, '/missing/repo-b']);
 });
+
+it('replays an unchanged source when its stored classifier format is obsolete', async () => {
+  const f = make(); f.file('a.jsonl', [user('wrapped', 0, '<system-reminder>synthetic</system-reminder>hello')]);
+  await collect({ env: f.env });
+  const source = join(f.root, 'events', '.sources', readdirSync(join(f.root, 'events', '.sources'))[0]);
+  const shard = JSON.parse(readFileSync(source)); delete shard.format;
+  shard.records[0].event.class = 'quarantine'; writeFileSync(source, JSON.stringify(shard));
+  const result = await collect({ env: f.env });
+  expect(result.bytes).toBeGreaterThan(0);
+  expect(events(f)[0].class).toBe('human_prompt');
+  expect((await collect({ env: f.env })).bytes).toBe(0);
+});
