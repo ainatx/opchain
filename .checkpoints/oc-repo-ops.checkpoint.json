@@ -3,38 +3,43 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-27T06:46:54.679Z",
+  "updated_at": "2026-09-27T07:20:32.398340Z",
   "skill": "oc-repo-ops",
-  "phase": "pr-readiness",
+  "phase": "pr-verify",
   "status": "complete",
-  "step": "pr-494-rebase",
-  "progress_summary": "PR readiness PASS for #494 after rebase onto 14eff29: tests, build, geometry auditor clean, full Playwright suite, clean tree.",
+  "step": "time-tracking-sprint-1-replay",
+  "progress_summary": "Time-tracking Sprint 1 owner-authorized corpus replay: corrected producer formats pass; Sprint 2 has zero unpriced usage and verified ledgers on 56 repository-days. Owner explicitly accepted the 1.35s (1.90s under load) incremental timing deviation and authorized Signed-off-by: Aidan Elsesser <admin@opchain.dev> in Codex on 2026-09-27. Code/evidence gates pass; merge remains subject to current CI.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
-      ".checkpoints/ is tracked; the evidence commit touches only checkpoints."
+      ".checkpoints/ is tracked; the evidence commit touches only checkpoints.",
+      "Time-tracking Sprint 1 evidence binds the non-checkpoint tree projection; v2 release metadata and frozen product paths stay unchanged."
     ],
     "generated_files": [
-      ".checkpoints/oc-repo-ops.checkpoint.json"
+      ".checkpoints/oc-repo-ops.checkpoint.json",
+      "docs/plans/time-tracking/README.md",
+      "docs/plans/time-tracking/transcript-format.md",
+      "docs/plans/time-tracking/sprints/sprint-1/contract.md",
+      "docs/plans/time-tracking/sprints/sprint-1/eval-round-1.md",
+      "docs/plans/time-tracking/sprints/sprint-1/pr-description.md"
     ]
   },
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "release-sequence pre-merge lighthouse-budgets could not run locally (port 4321 held by the owner's astro dev); the PR's LHCI job covers it.",
-      "checkpoint:validate: 7 pre-existing advisory warnings."
+      "Owner accepted incremental replay latency of 1.35s (1.90s under load) as a documented deviation; <1s remains a performance follow-up."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "53b4dd8837756b4d8588e14e571732bea7bba239",
+    "verified_for_sha": "063e78a1c252dc4d9f84adb24f395e247a541509",
     "last_verify": {
-      "at": "2026-09-21T20:02:42.939Z",
-      "branch": "claude/release-v2.0.4",
-      "base": "origin/main@74d4184",
+      "at": "2026-09-27T04:13:23.974646Z",
+      "branch": "codex/time-tracking-sprint-1",
+      "base": "origin/main@2760094",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -727,8 +732,104 @@
           "site/src/components/PipelineDiagram.astro"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-time-s1-43cef8414dc2",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T04:13:23.974646Z",
+      "verified_at": "2026-09-27T04:13:23.974646Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "time-tracking-sprint-1-2026-09-26"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:43cef8414dc25f9c4a3ecdc59c92ba45d2c365a76073367b963a0dc00d901b16"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Mandatory candidate verifier PASS: types, lint, tests, anti-patterns, secrets, build, root/site dependencies. Catalog and bundle checks ran in npm pretest/build. Scope boundary, clean content commit, local links and checkpoint validity reviewed; real-corpus acceptance explicitly pending owner.",
+        "evidence": [
+          "docs/plans/time-tracking/README.md",
+          "docs/plans/time-tracking/transcript-format.md",
+          "docs/plans/time-tracking/sprints/sprint-1/contract.md",
+          "docs/plans/time-tracking/sprints/sprint-1/eval-round-1.md",
+          "docs/plans/time-tracking/sprints/sprint-1/pr-description.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-time-s1-replay-6bdf5f0ff7a3",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T06:50:31.017045Z",
+      "verified_at": "2026-09-27T06:50:31.017045Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "time-s1-replay-2026-09-27"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:6bdf5f0ff7a3a2b49c9cfeb53e3b2487c81c31135f2dae1de139a6175561fa48"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Current content passes mandatory code checks and scoped documentation/readiness review. Real-corpus evidence is sanitized. Known incremental timing acceptance gap is disclosed; this verdict does not assert acceptance, approval, or merge sign-off.",
+        "evidence": [
+          "docs/plans/time-tracking/transcript-format.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-time-s1-replay-9af875296c06",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T06:56:03.141895Z",
+      "verified_at": "2026-09-27T06:56:03.141895Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "time-s1-replay-2026-09-27"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:9af875296c061b278936414ba7f43ec67126dc3a232726516e26109d4db89ff3"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Current content passes mandatory code checks and scoped documentation/readiness review. Real-corpus evidence is sanitized. Known incremental timing acceptance gap is disclosed; this verdict does not assert acceptance, approval, or merge sign-off.",
+        "evidence": [
+          "docs/plans/time-tracking/transcript-format.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-time-s1-accepted-ff2db9512055",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T07:20:32.398340Z",
+      "verified_at": "2026-09-27T07:20:32.398340Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "time-s1-accepted-2026-09-27"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:ff2db95120553763eb2108b0308dfbcdee38b822c61fb712c08391bf119e47e5"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Current content passes mandatory code checks and scoped documentation/readiness review. Real-corpus evidence is sanitized. Known incremental timing deviation is disclosed and accepted by the owner. The owner explicitly authorized the named DCO trailer in chat; merge is subject to current CI.",
+        "evidence": [
+          "docs/plans/time-tracking/transcript-format.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-27T06:46:54.679Z",
+  "record_updated_at": "2026-09-27T07:20:32.398340Z",
   "blockers": []
 }
