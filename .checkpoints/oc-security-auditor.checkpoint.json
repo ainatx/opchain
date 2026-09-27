@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-09-14T00:38:43.799Z",
-  "updated_at": "2026-09-19T01:27:04.773Z",
+  "updated_at": "2026-09-27T15:02:40.355Z",
   "phase": "verify",
-  "step": "posture-2.0.3-2026-09-18",
+  "step": "posture-2.0.4",
   "status": "complete",
-  "progress_summary": "Security posture reconfirmed for v2.0.3 (bounded delta from the reviewed v2.0.2 posture at f590ad3). Diff since v2.0.2 touches only: a flag-description string (no gating logic change), scripts/axe-comment.cjs (CI-only, filesystem I/O, no exec/eval, gated on Playwright step outcome), check-release-surfaces.mjs (read-only local script), site copy/changelog/styleguide/architecture text, and a regenerated runtime bundle with no source change. No package.json/package-lock change \u2014 no new dependency, no MCP boundary, header, hook, auth, or routing change. No new release-blocking HIGH or CRITICAL finding; the v2.0.2 assessment's OWASP Top 10:2025 mapping and hardening controls remain current.",
+  "progress_summary": "Pre-deploy security posture for v2.0.4 (delta from 8bad1a0 to c09a63e): no MCP boundary, header, CSP, auth or routing change; hooks reduce surface; patch/minor dependency bumps; production npm audit clean; #569/#571 are a local-only CLI. PASS, with tracked dev-only and defense-in-depth residuals unchanged.",
   "next_actions": [
     "Define the first real next action for this skill."
   ],
@@ -425,18 +425,43 @@
           ".checkpoints/oc-security-auditor.checkpoint.json prior posture-2.0.2-2026-09-15 assessment (unchanged surfaces)"
         ]
       }
+    },
+    {
+      "id": "oc-security-auditor-posture-204-38ba68b0742f",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T15:02:40.000Z",
+      "verified_at": "2026-09-27T15:02:40.000Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "posture-2.0.4"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:38ba68b0742f66a5d46f2732c73b908456c59a2bedb22c6a08f291f6ed9a0ddc"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "v2.0.4 release delta from the deployed runtime 8bad1a0 to c09a63e reviewed against the standing posture assessment: no MCP boundary, header, CSP, auth or routing change; plugin hooks reduce their surface; dependency changes are patch/minor bumps; #569/#571 add a local-only CLI that is not deployed.",
+        "evidence": [
+          "npm audit --omit=dev (root and site): 0 vulnerabilities",
+          "dependency delta: js-yaml 5.4.2, wrangler 4.141.0, zod 4.6.5, astro 7.3.5, @astrojs/cloudflare 14.3.3, @astrojs/markdown-remark 7.3.1, dompurify 3.4.15, isomorphic-dompurify 4.2.0, marked 18.0.13, @playwright/test 1.63.0 (dev)",
+          "git diff 8bad1a0..c09a63e -- src/ package.json site/package.json wrangler.jsonc plugins/opchain/hooks/hooks.json: comment-only change in src/, patch/minor dependency bumps, no config or hook-registration change",
+          "prior posture-2.0.3 assessment for unchanged surfaces"
+        ],
+        "accepted_residuals": [
+          "Dev-only site dependency advisories, mutable CI action refs and defense-in-depth header gaps remain tracked residuals.",
+          "The timesheet CLI reads local Claude Code transcripts on the maintainer machine and calls gh read-only; its data handling is reviewed in its own sprints, not by this deploy gate."
+        ]
+      }
     }
   ],
   "latest_pre_deploy": {
-    "candidate": "f590ad3de24d3fccd71d159084e8201632d50c3a",
-    "candidate_identity": "sha256:53307aa08606a92343ebdf5b03d269230f1ca524224d8d4256adfb47ae67481d",
+    "candidate": "c09a63ea0e2e95c725f44d194569761d7b95d933",
+    "candidate_identity": "sha256:38ba68b0742f66a5d46f2732c73b908456c59a2bedb22c6a08f291f6ed9a0ddc",
     "verdict": "PASS",
-    "blocking_findings": 0,
-    "accepted_residuals": [
-      "No live staging/runtime reassessment because deployment was explicitly out of scope.",
-      "Dev-only site dependency advisories, mutable CI action refs, and defense-in-depth header gaps remain tracked residuals.",
-      "The v2.0.2 tag is intentionally absent; live staging/runtime controls were not reassessed."
-    ]
+    "blocking_findings": 0
   },
-  "record_updated_at": "2026-09-19T01:27:04.773Z"
+  "record_updated_at": "2026-09-27T15:02:40.355Z"
 }
