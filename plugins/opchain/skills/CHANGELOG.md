@@ -13,7 +13,20 @@ checkpoint `protocol_version` is tracked separately (see
 
 ## [Unreleased]
 
-_Nothing yet._
+### Fixed
+
+- **The legacy commit gate checks the repository the commit lands in.**
+  `plugins/opchain/hooks/pre-commit-gate.cjs` read the bug-check checkpoint of
+  the session's working directory, whatever the command said. A session rooted
+  in one repo that ran `cd <other repo> && git commit` or `git -C <other repo>
+  commit` was denied although the other repo held a fresh PASS matching its
+  tree. The reverse failed open: a PASS in the session's repo cleared a commit
+  in a repo that had none. The gate now follows `cd`, `pushd`/`popd`,
+  subshells, literal variables, `eval` and `sh -c` to each commit, gates every
+  commit in its own repo, and names that repo in every deny (GATE-12). A
+  directory it cannot know, such as `cd "$(mktemp -d)"`, denies only when the
+  session's repo is enrolled. The hook has been unregistered since 1.9.2, but
+  installs on 1.9.1 or earlier still run it.
 
 ## [2.0.4] — 2026-09-21 — "Bug fixes"
 
