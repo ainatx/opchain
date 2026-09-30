@@ -3,6 +3,7 @@ import { classify, contentText, toolCalls, normalizeUsage, maxUsage, MACHINE_ENV
 import { emptyCounts, observe, mergeCounts, checkCanary } from '../../scripts/lib/time/canary.mjs';
 import { mergePrompts } from '../../scripts/lib/time/prompts-hook.mjs';
 import { user, assistant, stamp } from './fixtures/builder.mjs';
+import { PRODUCER_2_1_284, RELOCATED } from './fixtures/producer-2.1.284.mjs';
 
 describe('fixture #1: conservative classification', () => {
   it.each(MACHINE_ENVELOPES)('machine envelope %s beats human origin', tag => expect(classify(user('u', 0, `<${tag}>secret</${tag}>`)).class).toBe('machine'));
@@ -84,5 +85,29 @@ describe('producer 2.1.281 replay regressions', () => {
     expect(classify(user('u', 0, prefix + 'hello', { isMeta: true })).class).toBe('machine');
     expect(classify(user('u', 0, '<system-reminder>unclosed')).class).toBe('quarantine');
     expect(classify(user('u', 0, prefix + 'hello', { origin: { kind: 'agent' } })).class).toBe('machine');
+  });
+});
+
+describe('producer 2.1.284 shape review', () => {
+  it.each(PRODUCER_2_1_284.map(([row, kind]) => [row.uuid, row, kind]))('%s', (_, row, kind) => {
+    expect(classify(row).class).toBe(kind);
+    expect(classify(row, { subagent: true }).class).toBe(kind.startsWith('human') ? 'machine' : kind);
+  });
+  it('records known envelopes; only the pre-existing residue stays quarantined', () => {
+    const envelopes = PRODUCER_2_1_284.map(([row]) => classify(row).envelope);
+    expect(envelopes.filter(e => e.startsWith('unknown'))).toEqual([]);
+    expect(envelopes).toEqual(expect.arrayContaining(['pasted_content', 'local-command-caveat']));
+    expect(classify(user('u', 0, '<role>fixture</role>', { version: '2.1.284' }))).toEqual({ class: 'quarantine', envelope: 'unknown:role' });
+    expect(classify(user('u', 0, '<artifact-view-context artifact="x">unclosed')).class).toBe('quarantine');
+    expect(classify(user('u', 0, '<pasted_content>unclosed')).class).toBe('human_prompt');
+  });
+  it('treats the untimestamped relocated marker as metadata and passes the 2.1.284 canary', () => {
+    expect(classify(RELOCATED).class).toBe('metadata');
+    const counts = emptyCounts();
+    for (const row of [RELOCATED, ...PRODUCER_2_1_284.map(([r]) => r)]) observe(counts, row, classify(row));
+    expect(checkCanary(counts)).toMatchObject({ pass: true, unknown: 0, quarantine: 0, missing_timestamp: 1, tested_version: '2.1.284', untested_versions: [] });
+    expect(checkCanary(counts).days.undated).toMatchObject({ unknown: 0, pass: true });
+    const next = emptyCounts(), row = user('n', 0, 'hello', { version: '2.1.285' }); observe(next, row, classify(row));
+    expect(checkCanary(next)).toMatchObject({ pass: false, untested_versions: ['2.1.285'] });
   });
 });

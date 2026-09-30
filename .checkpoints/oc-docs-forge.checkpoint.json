@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-27T19:10:04.297Z",
+  "updated_at": "2026-09-30T07:16:28.000Z",
   "skill": "oc-docs-forge",
   "phase": "pr-docs",
   "status": "complete",
   "step": "v2-1-plan-release-rule-sim-audit",
-  "progress_summary": "PR docs packet for the v2.1 sprint plan, the RELEASING.md release-freeze rule and the v2.0 simulation audit record, rebased onto main. Docs are the change.",
+  "progress_summary": "Time-tracking canary PR (claude/time-canary-2.1.284): format notes updated for the 2.1.284 producer review; PR body carries each classification decision.",
   "context_primer": {
     "key_decisions": [
       "Every PR requires a Documentation section; this PR carries it inline.",
@@ -1015,8 +1015,31 @@
           "docs/audits/2026-09-14-v2-simulation/README.md"
         ]
       }
+    },
+    {
+      "id": "oc-docs-forge-time-canary-2-1-284-8d712299e89b",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-30T07:16:28.000Z",
+      "verified_at": "2026-09-30T07:16:28.000Z",
+      "producer": {
+        "skill": "oc-docs-forge",
+        "run_id": "time-canary-2-1-284"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:8d712299e89b6f3e1fe6f3d029a516bc0439776cc32e0d87c483c95a80762ab4"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-docs-v1",
+        "scope": "Time-tracking canary PR: transcript-format.md now names the 2.1.284 baseline, the context-prefix/provenance rules and a sanitized 2026-09-30 review table (decision + aggregate corpus effect per shape). Runbook canary procedure unchanged and still accurate. No site, catalog or skill surface change.",
+        "evidence": [
+          "docs/plans/time-tracking/transcript-format.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-27T19:10:04.297Z",
+  "record_updated_at": "2026-09-30T07:16:28.000Z",
   "blockers": []
 }
