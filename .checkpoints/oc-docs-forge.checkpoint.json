@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-27T19:10:04.297Z",
+  "updated_at": "2026-09-30T05:37:54.927Z",
   "skill": "oc-docs-forge",
   "phase": "pr-docs",
   "status": "complete",
-  "step": "v2-1-plan-release-rule-sim-audit",
-  "progress_summary": "PR docs packet for the v2.1 sprint plan, the RELEASING.md release-freeze rule and the v2.0 simulation audit record, rebased onto main. Docs are the change.",
+  "step": "gate-12-commit-target-repo",
+  "progress_summary": "PR docs packet for the GATE-12 commit-gate fix: skills/CHANGELOG.md [Unreleased] Fixed entry (synced to the plugin copy) and the GATE-12 entry in the gate's defect history. Plugin README and skill docs already describe the PreToolUse hook as an unregistered compatibility fixture; no further doc change needed.",
   "context_primer": {
     "key_decisions": [
       "Every PR requires a Documentation section; this PR carries it inline.",
@@ -1015,8 +1015,33 @@
           "docs/audits/2026-09-14-v2-simulation/README.md"
         ]
       }
+    },
+    {
+      "id": "oc-docs-forge-gate12-acfb46d36e2d",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-30T05:37:54.927Z",
+      "verified_at": "2026-09-30T05:37:54.927Z",
+      "producer": {
+        "skill": "oc-docs-forge",
+        "run_id": "gate-12-commit-target-repo"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:acfb46d36e2d5b7b08b9b683b99fa2d3d8400090ace964b6ac3890c61fd709f3"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-docs-v1",
+        "scope": "Legacy PreToolUse gate fix (GATE-12): changelog [Unreleased] entry + plugin mirror, gate header defect history. No site, catalog, skill-contract or release surface change.",
+        "evidence": [
+          "skills/CHANGELOG.md",
+          "plugins/opchain/skills/CHANGELOG.md",
+          "plugins/opchain/hooks/pre-commit-gate.cjs"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-27T19:10:04.297Z",
+  "record_updated_at": "2026-09-30T05:37:54.927Z",
   "blockers": []
 }
