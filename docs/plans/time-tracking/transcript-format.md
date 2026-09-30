@@ -17,10 +17,13 @@ location, or first explicit location if no earlier one exists.
 
 The classifier checks meta/compaction flags first, then these machine envelopes:
 `task-notification`, `scheduled-task`, `ci-monitor-event`, `cross-session-message`,
-`local-command-stdout`, `local-command-stderr`, and system-reminder-only messages. Leading system reminders are removed before classifying the remaining payload; wrapped machine events stay machine events.
+`local-command-stdout`, `local-command-stderr`, `local-command-caveat`, and context-only messages. Leading
+`system-reminder` and `artifact-view-context` blocks are removed before classifying the remaining payload; wrapped machine events stay machine events.
 A human origin does not override them. Human command envelopes are `command-name`,
 `command-message`, `bash-input`, `create-pr-command`, plus user interruptions.
-Plain text from a human origin or a legacy missing origin is a human prompt.
+Plain text, a `pasted_content` envelope, or an image-only turn is a human prompt
+when its provenance is human: `origin.kind` when present, otherwise `turnOrigin`,
+otherwise (legacy producers with neither) human.
 Tool results are human answers only when their ID matches an AskUserQuestion or
 ExitPlanMode call in that session. Calls can occur later in file order or arrive
 on an incremental read. Other tool results are activity only.
@@ -85,7 +88,7 @@ hide in an otherwise clean corpus. Malformed lines, hook records or failed sourc
 reads also fail closed. `collect` remains best effort (exit 0 with a warning),
 while fatal storage/configuration errors return 2.
 
-The reviewed producer baseline is **2.1.281**. The 2026-09-27 replay covered producer versions 2.1.126–2.1.281; synthetic regressions cover the newly observed metadata types and reminder prefixes. Newer semantic versions fail the canary and
+The reviewed producer baseline is **2.1.284**. The 2026-09-27 replay covered producer versions 2.1.126–2.1.281; the 2026-09-30 review extended it to 2.1.284 (see below). Synthetic regressions cover the newly observed metadata types, context prefixes and provenance fields. Newer semantic versions fail the canary and
 are listed in `untested_versions`. Review the new shapes, add synthetic fixtures,
 and update `TESTED_VERSION` in `canary.mjs`; do not suppress the warning blindly.
 Pricing, billing verification and approval are Sprint 2/3 work.
@@ -156,3 +159,30 @@ After reviewing the replay results, the owner explicitly accepted the measured
 and authorized the human DCO trailer for their squash merges. The original
 <1-second goal remains a performance follow-up; this acceptance does not change
 the measured timings or assert that the original timing target passed.
+
+## 2026-09-30 producer 2.1.284 review
+
+After the first real trial client was registered, `collect --report` failed on
+2.1.284 as an untested version, and on nine unknown-type lines with no timestamp.
+The review read only key sets, enum-like field values, XML tag skeletons (tag and
+attribute names, text replaced by lengths) and counts. Synthetic fixtures live in
+`tests/time/fixtures/producer-2.1.284.mjs`. `SOURCE_FORMAT` is now 3, so the next
+collect replays every available source under the new rules.
+
+| Shape | Decision | Corpus effect |
+|---|---|---|
+| `relocated` record (`sessionId`, `relocatedCwd`; no timestamp or version) | Known metadata type; ignored. Later lines carry their own `cwd`. | 9 undated unknowns → 0 |
+| `<local-command-caveat>` (always `isMeta`) | Machine envelope | 58; already machine via `isMeta`, now a named envelope |
+| `<artifact-view-context artifact=…>` before a typed prompt | Context prefix: stripped like a reminder, then the remainder is classified. Context alone is machine. | 6 quarantines → human prompts |
+| `<pasted_content id=…>` (underscore tag, previously unparsed) | Human text: human prompt only with human provenance | 2 quarantines → human prompts |
+| Image-only turn with human origin (`imagePasteIds`) | Human prompt | 1 machine → human prompt |
+| `turnOrigin` without `origin` (`sdk`, `system`, `peer`, `task_notification`) | `turnOrigin` is the provenance; only `human` counts | 1 `sdk` turn human → machine |
+| `classifierBoundary`, `serverClassifierContext` on tool results; `queueTranscriptOnly`; system retry fields; assistant `error` | No change: tool results stay activity, the rest are already machine or metadata | none |
+
+The record types flagged in the failing report (`atis-latch`, `bridge-session`,
+`frame-link`, `artifact-comment-monitor`, `artifact-autoreact-ledger`, `pr-link`,
+`cost-state`, `permission-mode`) were all already recognized. A scratch-directory
+replay on the review machine then passed the canary with zero unknown types.
+The remaining three quarantines (0.005% of user lines) are the three accepted in the
+2026-09-27 replay: a leading `role` envelope at 2.1.209, and two human-origin lines
+at 2.1.241 that begin with `<` but no tag. They stay quarantined.
