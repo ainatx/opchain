@@ -67,7 +67,7 @@
     "esbuild": "^0.28.2",
     "js-yaml": "^5.4.2",
     "vitest": "^4.1.11",
-    "wrangler": "^4.141.0"
+    "wrangler": "^4.146.0"
   },
   "dependencies": {
     "zod": "^4.6.5"
