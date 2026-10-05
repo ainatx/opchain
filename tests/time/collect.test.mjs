@@ -6,6 +6,7 @@ import { timePaths, readJson, writePrivate } from '../../scripts/lib/time/paths.
 import { recordPrompt } from '../../scripts/lib/time/prompts-hook.mjs';
 import { fixture, user, assistant, queue, stamp, CANARY } from './fixtures/builder.mjs';
 import { PRODUCER_2_1_284, RELOCATED } from './fixtures/producer-2.1.284.mjs';
+import { PRODUCER_2_1_286 } from './fixtures/producer-2.1.286.mjs';
 const fixtures = [];
 const make = () => { const f = fixture(); fixtures.push(f); return f; };
 afterEach(() => { for (const f of fixtures.splice(0)) f.cleanup(); });
@@ -165,5 +166,14 @@ it('producer 2.1.284 shapes collect with a passing canary and no retained text',
   expect(report.canary).toMatchObject({ pass: true, unknown: 0, quarantine: 0, missing_timestamp: 1, untested_versions: [] });
   const rows = events(f);
   for (const [row, kind] of PRODUCER_2_1_284) expect(rows.find(r => r.uuid === row.uuid)?.class).toBe(kind);
+  for (const path of allFiles(f.root)) expect(readFileSync(path, 'utf8')).not.toContain(CANARY);
+});
+it('producer 2.1.286 shapes collect with a passing canary and no retained text', async () => {
+  const f = make();
+  f.file('a.jsonl', PRODUCER_2_1_286.map(([row]) => row));
+  const report = await collect({ env: f.env });
+  expect(report.canary).toMatchObject({ pass: true, unknown: 0, quarantine: 0, untested_versions: [] });
+  const rows = events(f);
+  for (const [row, kind] of PRODUCER_2_1_286) expect(rows.find(r => r.uuid === row.uuid)?.class).toBe(kind);
   for (const path of allFiles(f.root)) expect(readFileSync(path, 'utf8')).not.toContain(CANARY);
 });

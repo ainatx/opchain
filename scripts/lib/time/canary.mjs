@@ -1,8 +1,8 @@
 import { KNOWN_TYPES } from './classify.mjs';
 
-// Metadata-only shape review through 2.1.284, backed by synthetic regressions.
+// Metadata-only shape review through 2.1.286, backed by synthetic regressions.
 // A newer producer still requires shape review before extending this baseline.
-export const TESTED_VERSION = '2.1.284';
+export const TESTED_VERSION = '2.1.286';
 export const emptyCounts = () => ({ lines: 0, users: 0, unknown: 0, quarantine: 0,
   malformed: 0, missing_timestamp: 0, types: {}, envelopes: {}, versions: {}, days: {} });
 const bump = (map, key, n = 1) => { map[key] = (map[key] || 0) + n; };
