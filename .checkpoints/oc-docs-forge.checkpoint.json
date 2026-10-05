@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-30T07:16:28.000Z",
+  "updated_at": "2026-10-05T22:45:00.000Z",
   "skill": "oc-docs-forge",
   "phase": "pr-docs",
   "status": "complete",
   "step": "v2-1-plan-release-rule-sim-audit",
-  "progress_summary": "Time-tracking canary PR (claude/time-canary-2.1.284): format notes updated for the 2.1.284 producer review; PR body carries each classification decision.",
+  "progress_summary": "Time-tracking canary PR (fix/time-canary-2.1.286): transcript-format.md updated for the 2.1.286 producer review; PR body carries each decision.",
   "context_primer": {
     "key_decisions": [
       "Every PR requires a Documentation section; this PR carries it inline.",
@@ -1038,8 +1038,31 @@
           "docs/plans/time-tracking/transcript-format.md"
         ]
       }
+    },
+    {
+      "id": "oc-docs-forge-time-canary-2-1-286-3387e05ffd6f",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-05T22:45:00.000Z",
+      "verified_at": "2026-10-05T22:45:00.000Z",
+      "producer": {
+        "skill": "oc-docs-forge",
+        "run_id": "time-canary-2-1-286"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:3387e05ffd6f4ffee07cbf0bff374889ea005be0f41b7834f4c5f50393929bd1"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-docs-v1",
+        "scope": "Time-tracking canary PR: transcript-format.md now names the 2.1.286 baseline and adds a sanitized 2026-10-05 review table (decision + aggregate corpus effect per shape). No classification rule changed, so SOURCE_FORMAT stays 3 and no doc describes a replay. Runbook and README name no producer version; canary procedure unchanged and still accurate. No site, catalog or skill surface change.",
+        "evidence": [
+          "docs/plans/time-tracking/transcript-format.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-30T07:16:28.000Z",
+  "record_updated_at": "2026-10-05T22:45:00.000Z",
   "blockers": []
 }
