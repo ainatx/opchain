@@ -88,7 +88,7 @@ hide in an otherwise clean corpus. Malformed lines, hook records or failed sourc
 reads also fail closed. `collect` remains best effort (exit 0 with a warning),
 while fatal storage/configuration errors return 2.
 
-The reviewed producer baseline is **2.1.284**. The 2026-09-27 replay covered producer versions 2.1.126–2.1.281; the 2026-09-30 review extended it to 2.1.284 (see below). Synthetic regressions cover the newly observed metadata types, context prefixes and provenance fields. Newer semantic versions fail the canary and
+The reviewed producer baseline is **2.1.286**. The 2026-09-27 replay covered producer versions 2.1.126–2.1.281; the 2026-09-30 review extended it to 2.1.284 and the 2026-10-05 review to 2.1.286 (see below). Synthetic regressions cover the newly observed metadata types, context prefixes and provenance fields. Newer semantic versions fail the canary and
 are listed in `untested_versions`. Review the new shapes, add synthetic fixtures,
 and update `TESTED_VERSION` in `canary.mjs`; do not suppress the warning blindly.
 Pricing, billing verification and approval are Sprint 2/3 work.
@@ -186,3 +186,22 @@ replay on the review machine then passed the canary with zero unknown types.
 The remaining three quarantines (0.005% of user lines) are the three accepted in the
 2026-09-27 replay: a leading `role` envelope at 2.1.209, and two human-origin lines
 at 2.1.241 that begin with `<` but no tag. They stay quarantined.
+
+## 2026-10-05 producer 2.1.286 review
+
+The first collect after the 2.1.284 baseline failed only on 2.1.286 as an untested
+version (3,533 lines); every day passed and unknown types were zero. The same
+metadata-only method compared 2.1.286 key sets, enum values, leading tags and
+classifier results against every older producer. Synthetic fixtures live in
+`tests/time/fixtures/producer-2.1.286.mjs`. No classification rule changed, so
+`SOURCE_FORMAT` stays 3 and no replay is forced.
+
+| Shape | Decision | Corpus effect |
+|---|---|---|
+| `renderedRole` (`system`/`user`) on `attachment` records; the only key never seen before 2.1.286 | Attachments stay metadata whatever their rendered role | none |
+| `turnPosition` on human, command, bash and notification turns | Positional only; provenance still comes from `origin`/`turnOrigin` and envelopes | none |
+| `turnCompanion` turns (always `isMeta`, no origin) | Machine via `isMeta` | none |
+| `toolDenialKind` on a tool result; `origin.kind` `coordinator` in subagents | Tool results stay activity; non-human origin stays machine | none |
+
+A scratch-directory replay then passed the canary with zero unknown types and
+no new quarantines: the three accepted in the 2026-09-27 replay remain.
