@@ -11,7 +11,7 @@ import { reconcileQueue } from './queue.mjs';
 
 // Classification changes require replaying available raw sources. Never silently
 // reuse old classifications merely because a source's byte cursor is current.
-const SOURCE_FORMAT = 2;
+const SOURCE_FORMAT = 3;
 
 function entries(path) {
   try { return readdirSync(path, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name)); }
