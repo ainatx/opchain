@@ -110,9 +110,10 @@ function documentedCheckpoint(dir) {
  *                     bug-check checkpoint, so the run rewrites a tracked file
  *   opts.stage      — AFTER the checkpoint write: `git add -A` into the real index
  *   opts.otherCheckpoint — AFTER the run: write another skill's tracked checkpoint
+ *   opts.spaced     — put a space in the repo's path, so a `cd` must honour quotes
  */
 function mkRepo(opts = {}) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "oc-gate-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), opts.spaced ? "oc gate " : "oc-gate-"));
   scratches.push(dir);
   sh(["init", "-q", "-b", "main"], dir);
   sh(["config", "user.email", "t@t"], dir);
@@ -183,18 +184,21 @@ function run(command, cwd, toolName = "Bash", extraEnv = {}) {
   // its timeout, and a killed hook writes no deny (GATE-07).
   const r = spawnSync("node", [GATE], { input: payload, encoding: "utf8", env, timeout: 5000 });
   if (r.status !== 0 || r.error) {
-    return { verdict: "CRASHED", detail: (r.error ? String(r.error.code) : r.stderr || "").split("\n")[0].slice(0, 80) };
+    const detail = (r.error ? String(r.error.code) : r.stderr || "").split("\n")[0].slice(0, 80);
+    return { verdict: "CRASHED", detail, reason: detail };
   }
   const out = (r.stdout || "").trim();
-  if (!out) return { verdict: "ALLOW", detail: "" };
+  if (!out) return { verdict: "ALLOW", detail: "", reason: "" };
   try {
     const d = JSON.parse(out).hookSpecificOutput;
+    const reason = d.permissionDecisionReason || "";
     return {
       verdict: d.permissionDecision === "deny" ? "DENY" : "ALLOW",
-      detail: (d.permissionDecisionReason || "").split("\n")[0].slice(0, 58),
+      detail: reason.split("\n")[0].slice(0, 58),
+      reason,
     };
   } catch {
-    return { verdict: "MALFORMED", detail: out.slice(0, 58) };
+    return { verdict: "MALFORMED", detail: out.slice(0, 58), reason: out };
   }
 }
 
@@ -261,6 +265,14 @@ const trackedStaged = mkRepo({ track: "file", verdict: "PASS", bindTree: true, s
 const trackedDocumented = mkRepo({ track: "file", documented: true, wip: true });
 const trackedDirty = mkRepo({ track: "dir", verdict: "PASS", bindTree: true, dirty: true });
 const trackedOtherCp = mkRepo({ track: "dir", verdict: "PASS", bindTree: true, otherCheckpoint: true });
+
+// GATE-12 — the commit's repository comes from the command, not the session.
+// `noCp` stands in for the session repo in the 2026-09-30 report: enrolled, no
+// PASS. `clean` is the repo the command actually commits in, with a fresh one.
+const real = (dir) => fs.realpathSync(dir);
+const names = (dir) => new RegExp(real(dir).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+const spaced = mkRepo({ verdict: "PASS", bindTree: true, spaced: true });
+const tmpParent = real(os.tmpdir());
 
 // GATE-07 — a hook payload whose command is a commit, carried as data by a dry run
 const dryRunPayload = JSON.stringify({ tool_name: "Bash", tool_input: { command: `${GC} -F msg.txt` }, cwd: "/x" });
@@ -351,7 +363,8 @@ const cases = [
   ["bash -c wrapper", `bash -c "${GC} -am x"`, failed, "DENY"],
   ["eval wrapper", `eval "${GC} -m x"`, failed, "DENY"],
   ["sh -c, then a bare commit", `sh -c 'echo hi'; ${GC} -m x`, failed, "DENY"],
-  ["separator inside -c string", `bash -c "cd /tmp && ${GC} -m x"`, failed, "DENY"],
+  // (The `cd` inside the string is followed since GATE-12, so it names the FAIL repo.)
+  ["separator inside -c string", `bash -c "cd ${failed} && ${GC} -m x"`, noCp, "DENY"],
   ["wrapper on a later line", `ls\nbash -c '${GC} -m x'`, failed, "DENY"],
   ["redirect before eval arg", `eval &>/dev/null "${GC} -m x"`, failed, "DENY"],
   ["; inside $(…) given to eval", `eval $(printf x; echo ${GC} -m y)`, failed, "DENY"],
@@ -476,6 +489,49 @@ const cases = [
   ["flat verdict field, bound", `${GC} -m x`, flatVerdict, "ALLOW"],
   ["xargs wrapper", `echo x | xargs ${GC} -m`, failed, "DENY"],
   ["sudo prefix", `sudo ${GC} -m x`, failed, "DENY"],
+
+  // GATE-12 — gate the repository the commit lands in. The first case is the
+  // commit denied on 2026-09-30: the session sat in one repo, the command cd'd
+  // into another whose fresh PASS matched its tree, and the gate read the
+  // session's checkpoint instead. The second is the fail-open half.
+  ["cd <other> && commit, PASS there", `cd ${clean} && ${GC} -m x`, noCp, "ALLOW"],
+  ["cd <other> && commit, none there", `cd ${noCp} && ${GC} -m x`, clean, "DENY", "Bash", {}, names(noCp)],
+  ["cd <other>; commit", `cd ${clean}; ${GC} -m x`, noCp, "ALLOW"],
+  ["git -C <other> commit, PASS there", `git -C ${clean} commit -m x`, noCp, "ALLOW"],
+  ["git -C <other> commit, none there", `git -C ${noCp} commit -m x`, clean, "DENY", "Bash", {}, names(noCp)],
+  ["plain commit, PASS in cwd", `${GC} -m x`, clean, "ALLOW"],
+  ["plain commit, none in cwd", `${GC} -m x`, noCp, "DENY", "Bash", {}, names(noCp)],
+  ["deny names repo on FAIL too", `cd ${failed} && ${GC} -m x`, clean, "DENY", "Bash", {}, names(failed)],
+  // the last cd before the commit wins, and each commit is gated where it lands
+  ["cd a && cd b && commit", `cd ${noCp} && cd ${clean} && ${GC} -m x`, noCp, "ALLOW"],
+  ["cd b && commit && cd a && commit", `cd ${clean} && ${GC} -m x && cd ${noCp} && ${GC} -m y`, clean, "DENY", "Bash", {}, names(noCp)],
+  ["relative cd", `cd ../${path.basename(clean)} && ${GC} -m x`, noCp, "ALLOW"],
+  ["cd ~/…", `cd ~/${path.basename(real(clean))} && ${GC} -m x`, noCp, "ALLOW", "Bash", { HOME: tmpParent }],
+  ["cd $HOME/…", `cd "$HOME/${path.basename(real(clean))}" && ${GC} -m x`, noCp, "ALLOW", "Bash", { HOME: tmpParent }],
+  ["quoted cd path with a space", `cd "${spaced}" && ${GC} -m x`, noCp, "ALLOW"],
+  ["git -C relative to a cd", `cd ${os.tmpdir()} && git -C ${path.basename(clean)} commit -m x`, noCp, "ALLOW"],
+  ["pushd <other> && commit", `pushd ${clean} >/dev/null && ${GC} -m x`, noCp, "ALLOW"],
+  ["pushd; popd; commit", `pushd ${clean} && popd && ${GC} -m x`, noCp, "DENY", "Bash", {}, names(noCp)],
+  ["(cd <other>) then commit", `(cd ${clean}) && ${GC} -m x`, noCp, "DENY", "Bash", {}, names(noCp)],
+  ["(cd <other> && commit)", `(cd ${clean} && ${GC} -m x)`, noCp, "ALLOW"],
+  ["sh -c 'cd <other> && commit'", `sh -c 'cd ${clean} && ${GC} -m x'`, noCp, "ALLOW"],
+  ["cd into a missing dir; commit", `cd ${noCp}/nope; ${GC} -m x`, clean, "ALLOW"],
+  ["cd <unenrolled> && commit", `cd ${notEnrolled} && ${GC} -m x`, failed, "ALLOW"],
+  // a commit the walk cannot place gates every directory the command entered
+  ["cd <other>, $(commit) there", `cd ${noCp} && echo "$(${GC} -m x)"`, clean, "DENY", "Bash", {}, names(noCp)],
+  // a variable assigned a literal earlier in the command is followed
+  ["W=<other>; cd \"$W\" && commit", `W=${clean}; cd "$W" && ${GC} -m x`, noCp, "ALLOW"],
+  ["W=<none>; cd $W && commit", `W=${noCp}\ncd $W\n${GC} -m x`, clean, "DENY", "Bash", {}, names(noCp)],
+  ["M=<other> && git -C \"$M\" commit", `M=${clean} && git -C "$M" commit -m x`, noCp, "ALLOW"],
+  ["export W=…; W=… as a prefix only", `export W=${clean}; W=${noCp} cd "$W" && ${GC} -m x`, noCp, "ALLOW"],
+  ["sh -c \"cd $W\" expands outside", `W=${clean}; sh -c "cd $W && ${GC} -m x"`, noCp, "ALLOW"],
+  ["cd \"$(git rev-parse --show-toplevel)\"", `cd ${clean}/.git && cd "$(git rev-parse --show-toplevel)" && ${GC} -m x`, noCp, "ALLOW"],
+  // an unknowable directory denies — where the session's repo opted in
+  ["sh -c 'cd $W': the child has no W", `W=${clean}; sh -c 'cd $W && ${GC} -m x'`, noCp, "DENY", "Bash", {}, /could not tell which repository/],
+  ["cd \"$(mktemp -d)\" && commit", `cd "$(mktemp -d)" && ${GC} -m x`, clean, "DENY", "Bash", {}, /could not tell which repository/],
+  ["cd \"$DIR\" && commit", `cd "$DIR" && ${GC} -m x`, clean, "DENY", "Bash", {}, /could not tell which repository/],
+  ["cd \"$DIR\", unenrolled session", `cd "$DIR" && ${GC} -m x`, notEnrolled, "ALLOW"],
+  ["GIT_DIR=… git commit", `GIT_DIR=/x/.git ${GC} -m x`, clean, "DENY", "Bash", {}, /could not tell which repository/],
 ];
 
 let failedCount = 0;
@@ -483,9 +539,9 @@ console.log("opchain commit-gate — hermetic fixtures\n");
 console.log("  CASE                              EXPECT  GOT       NOTE");
 console.log("  " + "─".repeat(100));
 for (const [name, cmd, cwd, expect, tool, extraEnv, reason] of cases) {
-  const { verdict, detail } = run(cmd, cwd, tool, extraEnv);
+  const { verdict, detail, reason: why } = run(cmd, cwd, tool, extraEnv);
   // A reason pins WHY it denied, for cases where a different check would deny too.
-  const ok = verdict === expect && (!reason || reason.test(detail));
+  const ok = verdict === expect && (!reason || reason.test(why));
   if (!ok) failedCount++;
   console.log(
     `  ${ok ? "✓" : "✗"} ${name.padEnd(32)}${expect.padEnd(8)}${verdict.padEnd(10)}${detail}`,
