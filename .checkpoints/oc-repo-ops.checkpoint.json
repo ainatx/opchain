@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-07T19:40:35.000Z",
+  "updated_at": "2026-10-07T21:59:51.637Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "v2-1-plan-release-rule-sim-audit",
-  "progress_summary": "PR readiness PASS for deps/clear-audit-gate after npm 10 site lock regeneration.",
+  "step": "pr-590-top-nav-rule",
+  "progress_summary": "PR readiness PASS for rule/top-nav-only (PR #590) on candidate 96ee10c3d203: docs packet current, catalogs and generated files in sync, no untracked files, no broken links in touched docs. Local commit gate bypassed with owner approval (tests timeout under load); CI reruns the candidate verifier.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -37,20 +37,19 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Owner real-client dogfood remains pending.",
-      "Ten generated package.json mirrors are the documented necessary exception to the earlier path freeze.",
-      "Previously accepted real-corpus incremental collector latency remains a performance follow-up."
+      "Local pre-commit verifier: tests ERROR (300s timeout under load avg ~33-42 from other sessions); owner-approved --no-verify on d735716 and the evidence commit; CI verifies the received candidate.",
+      "checkpoint:doctor: pre-existing stale generated_files pointers in oc-app-architect, oc-orchestrator and oc-stack-forge checkpoints (not touched by this PR)."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "e58dd26865b4d9655b34cc1347994e332ee56469",
+    "verified_for_sha": "d7357162c21761b2cf447a5b4e402944d4ef8ed4",
     "last_verify": {
-      "at": "2026-09-27T06:18:59.773427Z",
-      "branch": "codex/time-tracking-sprint-2",
-      "base": "codex/time-tracking-sprint-1@4f47b503c8ca1d407fa6206c47a0f01b6997c38e",
+      "at": "2026-10-07T21:59:51.000Z",
+      "branch": "rule/top-nav-only",
+      "base": "origin/main@63fea9f",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1115,8 +1114,32 @@
           "site/package-lock.json"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-top-nav-rule-96ee10c3d203",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T21:59:51.000Z",
+      "verified_at": "2026-10-07T21:59:51.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-590-top-nav-rule"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:96ee10c3d2030372861cdcd112359bde987e1bc847378f01584d06a4bf97d7a0"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Rebased on 63fea9f. pretest generation chain leaves no drift (mcp-catalog regenerated and committed); sync-plugin-skills, sync-bundles, lint-internal-refs, check-skill-contracts, check-skill-flags and gen-catalog pass; vitest 1408/1408; astro check 0 errors; no untracked files; touched docs have no broken links. Local candidate verifier 7/8 PASS, tests timed out at 300s under machine load; owner-approved bypass, CI reruns the verifier.",
+        "evidence": [
+          "src/generated/mcp-catalog.json",
+          "skills/CHANGELOG.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-07T19:40:35.000Z",
+  "record_updated_at": "2026-10-07T21:59:51.637Z",
   "blockers": []
 }
