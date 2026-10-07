@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-07T22:56:54.648Z",
+  "updated_at": "2026-10-07T23:35:25.024Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "gate-12-merge-main",
-  "progress_summary": "PR readiness PASS for the GATE-12 commit-gate fix after merging origin/main bbe74ce: clean tree, plugin-skills mirror in sync, checkpoints valid, no local paths in added files.",
+  "step": "pr-secret-change-baseline-docs",
+  "progress_summary": "PR readiness PASS for the docs-only #582 follow-up PR (CLAUDE.md + cloudflare-challenge runbook): catalogs, bundles and generated surfaces in sync, docs packet bound to HEAD, no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -37,19 +37,18 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Earlier commits d735716 and 4fc8729 used an owner-approved --no-verify (tests timeout under machine load); the merge commit 691c469 passed the full local gate and CI reruns the verifier.",
-      "checkpoint:doctor: pre-existing stale generated_files pointers in oc-app-architect, oc-orchestrator and oc-stack-forge checkpoints (not touched by this PR)."
+      "checkpoint doctor: 30 pre-existing date-based staleness warnings (non-blocking)."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "691c469da6c225109254788b0b63440d34916de2",
+    "verified_for_sha": "5de000f7e22a4cfcd83cea660e93e7a3a12fd22f",
     "last_verify": {
-      "at": "2026-10-07T22:30:11.000Z",
-      "branch": "rule/top-nav-only",
-      "base": "origin/main@bce032f",
+      "at": "2026-10-07T23:35:25.024Z",
+      "branch": "docs/secret-change-baseline-refresh",
+      "base": "origin/main@d81562c",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1212,8 +1211,32 @@
           "skills/CHANGELOG.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-secret-change-baseline-docs-b5853ff3a42f",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T23:35:25.024Z",
+      "verified_at": "2026-10-07T23:35:25.024Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-secret-change-baseline-docs"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:b5853ff3a42f63070c8189777a1ccdf2a74f9d76b79edb1f07415aa82621aa2a"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "docs/secret-change-baseline-refresh at 5de000f (one docs commit on origin/main d81562c; CLAUDE.md + docs/runbooks/cloudflare-challenge.md only). sync-bundles:check, sync-plugin-skills:check, lint-internal-refs, gen-catalog, check-skill-contracts, checkpoint:validate pass; checkpoint doctor 0 errors (30 pre-existing staleness warnings); no untracked files; paths referenced by the new runbook text exist; pre-commit candidate verifier PASS (213351ba56fd). Docs Forge packet verified_for_sha = HEAD.",
+        "evidence": [
+          "CLAUDE.md",
+          "docs/runbooks/cloudflare-challenge.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-07T22:56:54.648Z",
+  "record_updated_at": "2026-10-07T23:35:25.024Z",
   "blockers": []
 }
