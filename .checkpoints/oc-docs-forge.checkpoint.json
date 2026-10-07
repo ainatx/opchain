@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-07T22:56:54.648Z",
+  "updated_at": "2026-10-07T23:31:07.500Z",
   "skill": "oc-docs-forge",
   "phase": "pr-docs",
   "status": "complete",
   "step": "gate-12-merge-main",
-  "progress_summary": "PR docs packet for the GATE-12 commit-gate fix after merging origin/main bbe74ce: skills/CHANGELOG.md [Unreleased] keeps #590's Added entry and this PR's Fixed entry (synced to the plugin copy); GATE-12 entry in the gate's defect history. Plugin README and skill docs already describe the PreToolUse hook as an unregistered compatibility fixture.",
+  "progress_summary": "Dependabot markdown bump PR 592: site/package.json and site/package-lock.json only (isomorphic-dompurify 4.4.0, marked 18.0.14); site lock re-locked with npm 10 for CI; no docs change needed.",
   "context_primer": {
     "key_decisions": [
       "Every PR requires a Documentation section; this PR carries it inline.",
@@ -1206,8 +1206,32 @@
           "plugins/opchain/hooks/pre-commit-gate.cjs"
         ]
       }
+    },
+    {
+      "id": "oc-docs-forge-pr592-markdown-0630eafd125b",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T23:30:15.000Z",
+      "verified_at": "2026-10-07T23:30:15.000Z",
+      "producer": {
+        "skill": "oc-docs-forge",
+        "run_id": "pr592-markdown-npm10"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:0630eafd125bd7593d76d4296921e33a1bdc1d640a909949fbf0986874b0223c"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-docs-v1",
+        "scope": "Dependency-only PR merged with main through d81562c: site/package.json and site/package-lock.json (isomorphic-dompurify 4.2.0 to 4.4.0, marked 18.0.13 to 18.0.14; npm 10 regen restores the optional proxy-agent peer subtree CI needs). No current doc pins a moved version (marked ^18 in specs/spec/01-tech-stack.md still holds); its stale isomorphic-dompurify ^3.9 predates this PR and is listed as a follow-up. Built site byte-identical to the previous marked build apart from a timestamp, so no reader-facing change. PR body carries the Documentation fragment and the npm 10 lock note.",
+        "evidence": [
+          "site/package.json",
+          "site/package-lock.json"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-07T22:56:54.648Z",
+  "record_updated_at": "2026-10-07T23:31:07.500Z",
   "blockers": []
 }
