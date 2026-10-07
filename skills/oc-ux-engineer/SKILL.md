@@ -163,7 +163,7 @@ User can force routing with `/oc-uxe dash [brief]`. oc-ux-engineer packages its 
 
 ### Token handoff (bidirectional)
 
-- **oc-ux-engineer → oc-dash-forge:** If oc-ux-engineer already has approved tokens, pass them as design constraints. oc-dash-forge will specialize density/chart-color tokens within that system.
+- **oc-ux-engineer → oc-dash-forge:** If oc-ux-engineer already has approved tokens, pass them as design constraints. oc-dash-forge will specialize density/chart-color tokens within that system. Always pass the Navigation Rule with them: the dashboard keeps the top bar, and a returned shell with a sidebar fails the Navigation gate.
 - **oc-dash-forge → oc-ux-engineer:** When oc-dash-forge produces dashboard tokens (semantic color, density scales), hand them back so oc-ux-engineer's living component library stays consistent.
 
 ### When NOT to route
@@ -174,6 +174,27 @@ Keep the work in oc-ux-engineer if:
 - User explicitly wants the tri-design harness applied
 
 Rule of thumb: if the screen IS the dashboard, route. If the screen CONTAINS a small data widget, handle it in oc-ux-engineer.
+
+---
+
+## Navigation Rule (applies to every phase and module)
+
+**Navigation rule — top navigation only (hard rule, added 2026-10-07).** Primary
+navigation on every surface — public sites, apps, admin and CRM shells, dashboards,
+docs — is a top bar / header. On phones the header keeps a menu button (or a bottom
+tab bar); the menu it opens is part of the top nav. A left or right sidebar or rail
+used as primary navigation is a **regression and a blocking FAIL**, no matter what the
+design direction, template, component library, reference app or prior version shows.
+Not covered (allowed): an in-page table of contents, filter panels, a record's detail
+side panel, a settings sub-menu inside a page. The only exception is the project
+owner's written approval for one named screen, recorded in the checkpoint's
+`skill_state.nav_exceptions[]` (`{screen, date, quote}`); it never carries over to
+another screen or a later redesign. An existing sidebar found in a project is a
+migration item on the punch list, not a pattern to copy.
+
+In this skill: the Planner writes it into the spec's Constraints, the Generator never
+draws a sidebar, the Design Evaluator runs the Navigation gate before scoring, the Flow
+Audit and Fidelity modules check it, and `/oc-uxe dash` passes it to oc-dash-forge.
 
 ---
 
@@ -234,6 +255,8 @@ The Planner is an experienced design director. Key behaviors:
 
 ## Constraints
 [Device targets, performance budgets, a11y requirements]
+Navigation: top bar on every screen; no sidebar or rail as primary navigation
+(Navigation Rule). List any recorded `nav_exceptions[]` here, or "none".
 ```
 
 **design-sprints.md:**
@@ -305,6 +328,8 @@ Key Generator behaviors:
 - Use realistic data (not Lorem ipsum, not "Test User")
 - Test at all breakpoints (375px, 768px, 1280px)
 - Include keyboard navigation and focus indicators
+- Primary navigation is a top bar on every screen and breakpoint — never a sidebar or
+  rail, even when a reference, template or the previous version used one (Navigation Rule)
 - Self-check against contract before handing off (but don't self-grade)
 
 ### Step 3: Design Evaluator QA
@@ -314,6 +339,13 @@ a discipline, not a mechanism: re-read the design spec and the contract, then gr
 the artifact from those alone — set aside the generator's exploration and decision
 process. For the Accessibility criterion, work through
 `references/ux-audit-checklist.md` (the same checklist oc-code-auditor's `/oc-audit ux` uses).
+
+**Navigation gate (blocking, runs before scoring).** Open every screen in the artifact
+at 375 / 768 / 1280px. If any screen's primary navigation is a sidebar or rail (a
+persistent panel on the left or right edge holding the site/app sections), the verdict
+is **ITERATE** with the finding "sidebar navigation regression — move primary nav to the
+top bar", and Consistency is capped at 3/10. Scores cannot outvote this gate. Skip it
+only for a screen listed in `nav_exceptions[]`.
 
 **Design Evaluator Criteria:**
 
@@ -436,6 +468,7 @@ analysis OR as part of a design sprint focused on flows.
 | Deep link | Screen requires prior nav state | MEDIUM |
 | Missing confirmation | Destructive action without prompt | HIGH |
 | Inconsistent nav | Different nav patterns across screens | HIGH |
+| Sidebar navigation | Primary nav in a side bar or rail instead of the top bar (Navigation Rule) | BLOCKING |
 | Loading waterfalls | Nested sequential loads | LOW |
 
 ### Flow Coherence Score
@@ -526,6 +559,7 @@ Compares approved design against built code.
 | Wireframe layout | Page components | Zone placement, breakpoints |
 | Punch list | Component inventory | Every item exists with all states |
 | Flow map | Router + navigation | Every flow navigable, no dead ends |
+| Navigation Rule | Layout / shell components | Primary nav is the header/top bar; no sidebar or rail shipped |
 
 ### Fidelity Report
 
