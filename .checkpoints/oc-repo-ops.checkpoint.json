@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-07T22:12:54.110Z",
+  "updated_at": "2026-10-07T22:30:13.774Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr582-baseline-secret-drift",
-  "progress_summary": "PR #582 (baseline secret-drift) readiness PASS: one-file monitoring baseline change, catalogs and generated surfaces in sync, docs packet current.",
+  "step": "pr-590-top-nav-rule",
+  "progress_summary": "PR readiness PASS for rule/top-nav-only (PR #590) on merge 691c469 with main@bce032f, candidate bc43809283e1: checkpoint conflicts resolved to main's version, npm ci on the vitest 5 lock, pretest chain leaves no drift, no untracked files; pre-commit candidate verifier PASS on all 8 checks (no bypass).",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -37,19 +37,19 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "checkpoint doctor: 30 pre-existing date-based staleness warnings (non-blocking).",
-      "Follow-up docs (pre-existing, listed in PR body): cloudflare-challenge runbook lacks a secret-change note; CLAUDE.md names 78567c2 as production runtime."
+      "Earlier commits d735716 and 4fc8729 used an owner-approved --no-verify (tests timeout under machine load); the merge commit 691c469 passed the full local gate and CI reruns the verifier.",
+      "checkpoint:doctor: pre-existing stale generated_files pointers in oc-app-architect, oc-orchestrator and oc-stack-forge checkpoints (not touched by this PR)."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "e12373a3fa00aa97563de9c7b8a9746b63ca9831",
+    "verified_for_sha": "691c469da6c225109254788b0b63440d34916de2",
     "last_verify": {
-      "at": "2026-10-07T22:12:53Z",
-      "branch": "chore/baseline-secret-drift",
-      "base": "origin/main@adca5f8",
+      "at": "2026-10-07T22:30:11.000Z",
+      "branch": "rule/top-nav-only",
+      "base": "origin/main@bce032f",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1163,8 +1163,32 @@
           ".checkpoints/oc-docs-forge.checkpoint.json"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-top-nav-rule-bc43809283e1",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T22:30:11.000Z",
+      "verified_at": "2026-10-07T22:30:11.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-590-top-nav-rule-merge-bce032f"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:bc43809283e17f1ecb5b40182c73fc802b90ac23c36f4c8438ff7638010412cd"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Merged main@bce032f into rule/top-nav-only (691c469); .checkpoints conflicts resolved to main's version. npm ci on the vitest 5.0.3 lock; pretest generation chain leaves no drift; sync-plugin-skills, sync-bundles, lint-internal-refs and check-skill-contracts pass; no untracked files. Pre-commit candidate verifier PASS on all 8 checks for tree 9fcbf3e05b57, no bypass.",
+        "evidence": [
+          "package-lock.json",
+          "src/generated/mcp-catalog.json"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-07T22:12:54.110Z",
+  "record_updated_at": "2026-10-07T22:30:13.774Z",
   "blockers": []
 }
