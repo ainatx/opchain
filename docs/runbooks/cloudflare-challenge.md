@@ -117,6 +117,33 @@ From the exact reviewed and approved runtime checkout:
    is active only after the change is on the default branch and a scheduled run
    succeeds.
 
+### Secret changes
+
+`wrangler secret put` and `wrangler secret delete` also mint a new deployment
+and version on the Worker, at 100% traffic, with no code change. The version
+carries the annotation `workers/triggered_by: secret`, the same script etag
+and, unless the command added or removed a secret name, the same bindings.
+Canary compares deployment and version ids, so it fails on every run after a
+secret change until the baseline is refreshed. After any secret change to
+`opchain-dev` or `opchain-staging`:
+
+1. confirm the version is secret-only: `npx wrangler versions view
+   <version-id> --name <worker>` shows `workers/triggered_by: secret` and the
+   baseline's script etag, and `npx wrangler secret list --name <worker>`
+   shows the expected secrets;
+2. record that environment's new `deploymentId` and `versionId` in
+   `.github/monitoring/release-baseline.json` (and `bindings`, if the set of
+   secret names changed), with the reason in `pointInTimeEvidence.note`;
+3. run the `control-plane` check from step 5 locally with credentials, then
+   merge the update through a reviewed PR (step 6).
+
+Wrangler takes the Worker name from the `wrangler.jsonc` in the current
+directory, so a secret command meant for another Worker lands on `opchain-dev`
+if it runs from this checkout. Run it from that Worker's own checkout, or pass
+`--name`. On 2026-09-29 that produced six secret-only deployments on
+`opchain-dev`, and Canary failed on every run until PR #582 moved the baseline
+to deployment `d52944b3` / version `da2f416a`.
+
 ### Staging-only release review
 
 When the maintainer authorizes staging without production promotion, refresh only
@@ -133,7 +160,9 @@ mean staging and production run the same version.
 ## Interpreting failures
 
 - **Deployment/version/traffic mismatch:** stop and inspect Cloudflare history.
-  Do not silently bless an unknown version by editing the baseline. Deploy lag
+  Do not silently bless an unknown version by editing the baseline. A version
+  annotated `workers/triggered_by: secret` with the baseline's script etag is a
+  secret change; refresh the ids as described in *Secret changes*. Deploy lag
   files or updates its tracking issue with the mismatch before failing the run
   (until 2026-09-11 it died before the issue step, so a mismatch produced red
   runs and nothing else), and `npm run deploy` ends every deploy whose SHA is
