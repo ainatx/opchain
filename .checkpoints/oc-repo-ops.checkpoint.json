@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-07T22:56:54.648Z",
+  "updated_at": "2026-10-07T23:41:29.000Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "gate-12-merge-main",
-  "progress_summary": "PR readiness PASS for the GATE-12 commit-gate fix after merging origin/main bbe74ce: clean tree, plugin-skills mirror in sync, checkpoints valid, no local paths in added files.",
+  "step": "ci-npm11",
+  "progress_summary": "PR readiness PASS for ci-npm11 (#593): workflows + CONTRIBUTING.md only; npm-11 lock probe committed, run in CI, and reverted exactly.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -37,19 +37,20 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Earlier commits d735716 and 4fc8729 used an owner-approved --no-verify (tests timeout under machine load); the merge commit 691c469 passed the full local gate and CI reruns the verifier.",
-      "checkpoint:doctor: pre-existing stale generated_files pointers in oc-app-architect, oc-orchestrator and oc-stack-forge checkpoints (not touched by this PR)."
+      "PR history carries a deliberate probe commit (e340434, npm-11 site lock) and its exact revert; the squash merge nets no lockfile change.",
+      "npm >= 11.17 prints allow-scripts notices for dependency install scripts (esbuild, fsevents); scripts still run (strict-allow-scripts=false).",
+      "checkpoint:doctor: pre-existing stale generated_files pointers in oc-app-architect, oc-orchestrator, oc-stack-forge and oc-ux-engineer checkpoints (not touched by this PR); 0 errors."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "691c469da6c225109254788b0b63440d34916de2",
+    "verified_for_sha": "815f925fc299ca001f0ad0273d98bc5a7dbd9559",
     "last_verify": {
-      "at": "2026-10-07T22:30:11.000Z",
-      "branch": "rule/top-nav-only",
-      "base": "origin/main@bce032f",
+      "at": "2026-10-07T23:41:29.000Z",
+      "branch": "ci/node24-npm11",
+      "base": "origin/main@d81562c",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1212,8 +1213,33 @@
           "skills/CHANGELOG.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-ci-npm11-17a081063c91",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T23:41:29.000Z",
+      "verified_at": "2026-10-07T23:41:29.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "ci-npm11"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:17a081063c91a284b89a62b0d0d683611dc072187e1b2f522d6da617bd2ce26c"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Diff vs origin/main d81562c is exactly 4 files (3 workflows, CONTRIBUTING.md); probe revert leaves the tree identical to the fix commit (c7c5d752af7b). Clean npm ci root+site under npm 11.17, npm test 101 files / 1452 tests, astro check 0 errors, npm run build exit 0 with no tracked drift. checkpoint:validate, sync-bundles:check, sync-plugin-skills:check, lint-internal-refs, check-skill-contracts and test:hooks pass. Pre-commit candidate verifier PASS on every commit. No local paths in the diff; working tree clean.",
+        "evidence": [
+          ".github/workflows/ci.yml",
+          ".github/workflows/lighthouse.yml",
+          ".github/workflows/lighthouse-prod.yml"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-07T22:56:54.648Z",
+  "record_updated_at": "2026-10-07T23:41:29.000Z",
   "blockers": []
 }
