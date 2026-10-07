@@ -2,6 +2,16 @@
 
 **Status:** DRAFT for the ⛔ HUMAN manifest review at C1. No extraction, no history rewrite, no pushes to `asfbay-bit/opchain-skills` have happened.
 **Base:** `origin/main` @ `5737bc2` (v2.0.4 shipped; production serves `0f3410c`). The import closure was re-run on this commit, after oc-time-ops #576, with the same result.
+**Re-checked 2026-10-07** on `origin/main` @ `d81562c`. Since the base, main has merged:
+
+- #585 and #589: oc-time-ops transcript fixes;
+- #591: dependency overrides;
+- #500: vitest 5;
+- #582: production baseline after a secret change (production still serves `0f3410c`);
+- #590: the top-navigation rule in skill content;
+- #584: GATE-12 in the plugin hooks, which still import nothing local.
+
+All 72 entries still exist, the import closure still has one site edge (decision 1), and the tag, skill and command counts below are unchanged. The manifest did not change. The C4 row was corrected: see the note under the table.
 **Supersedes, where they differ:** the counts, tag list, `package.json` block and first-release version in `docs/runbooks/oss-split-execution-handoff.md` (rev 5, written against v1.8.3). Everything else in that runbook — ordering, human gates, rollback — still holds.
 
 ## Why this exists
@@ -50,10 +60,22 @@ After these additions the import closure has **one** unresolved edge, listed fir
 |---|---|---|
 | C3 expected tags | `v1.8.0 v1.8.1 v1.8.2 v1.8.3` | `v1.8.0` … `v2.0.4` (12 tags). Check which tagged commits touch manifest paths; a tag on a commit that becomes empty after filtering moves to its nearest rewritten ancestor |
 | C3 skill count | 29 `SKILL.md` | **36** |
-| C4 product `package.json` | `version: 1.8.3`, `dependencies: js-yaml` | `version: 2.0.4`; runtime dependency `zod` ^4.6.5, dev `js-yaml` ^5.4.2 (both bundled into the runtime build) |
+| C4 product `package.json` | `version: 1.8.3`, `dependencies: js-yaml` | `version: 2.0.4`; runtime dependencies `zod` ^4.6.5 and `js-yaml` ^5.4.2; dev dependencies `vitest` and `esbuild`; no `overrides` |
 | C7 plugin install check | "hooks + 29 skills" | hooks + **36** skills, **16** plugin commands |
 | Phase D first product release | `v1.8.4` or `v1.9.0` | **v2.1.0** (the release this sprint belongs to) |
 | Runbook "current state" block | v1.8.3 closeout, prod `395fc31` | v2.0.4, prod `0f3410c`, baseline #573 / #574 |
+
+**C4 `package.json`, corrected 2026-10-07.** The first draft of the row above listed `js-yaml` as a dev dependency and left out `vitest` and `esbuild`. The bare imports in the manifest's closure give:
+
+- `js-yaml` stays a **runtime** dependency, as rev 5 said. `mcp/local-server.mjs` runs unbundled and reaches it through `gen-mcp-catalog.mjs` → `scripts/lib/frontmatter.mjs`.
+- `esbuild` is a dev dependency because `scripts/build-runtime.mjs` imports it. That file is new to the manifest since rev 5.
+- `vitest` is a dev dependency, unchanged from rev 5.
+- Leave out the root `overrides.sharp` added by #591. `sharp` only arrives through `wrangler` → `miniflare`, and both stay site-side.
+
+`scripts/runtime-manifest.json` bundles the root `package.json` into the five runtime owners as an exact copy. #591 and #500 show the effect: each was a root-only dependency change, and each rewrote 10 manifest-path files (`skills/*/scripts/runtime/package.json` and their plugin copies). Two consequences:
+
+- **C4:** after writing the product `package.json`, run `npm run sync-bundles` and commit the regenerated runtime copies in the bootstrap commit. Otherwise `sync-bundles:check` fails in product CI.
+- **Freeze (C1–C6):** a root dependency PR is a product-path change and breaks the C6 ancestry check. Hold Dependabot and manual root-deps PRs for the freeze.
 
 ## Next
 

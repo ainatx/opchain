@@ -349,12 +349,13 @@ aborts on the first failure (rows marked warn-class report and continue).
 | Repo is PR-ready | pre-tag | oc-repo-ops `/oc-repo verify` — verdict PASS |
 | All skill versions match the release version | pre-tag | `node scripts/check-release-tag.mjs --json` — `version` must equal `<semver>` and `reason` must be exactly `missing-tag` (any other reason means the bump or seal is incomplete) |
 | Compliance delta bundle exists (conditional, v1.9) | pre-tag | only when `.opchain/compliance.yaml` exists: oc-compliance-ops `/oc-comply evidence` ran for this release with the delta section; absent profile, row skipped. **Warn-class:** a missing delta bundle is reported in the verify output and the chain continues — matching the deploy gate's presence-checked row (compliance is reported, never enforced) |
+| Primary navigation is still a top bar — no sidebar regression (Navigation rule below) | pre-tag | Agent-executed on the built site/app: open every primary page and screen the release touched at 375 / 768 / 1280px and confirm primary navigation is the header/top bar, with no sidebar or rail holding the sections. Compare with the last shipped release's screenshots when they exist. Any sidebar not listed in the project's `nav_exceptions[]` **blocks the release**. Applies in every project, not only opchain.dev |
 | Release is tagged and pushed | **post-tag** — runs after `/oc-git-release`, never before | `node scripts/check-release-tag.mjs` exits 0 — the same check `npm run deploy` runs, so the gate you run and the gate that blocks you cannot disagree |
 
 In a project other than opchain.dev (multi-project mode below), the rows that
 name opchain scripts or site files do not apply: run the project's own test and
 build commands, check the version locations listed in `.opchain/release.yaml`,
-and keep the docs-packet, repo-readiness and tag rows. A missing opchain script
+and keep the docs-packet, repo-readiness, navigation and tag rows. A missing opchain script
 is not a gate failure there.
 
 ---
@@ -551,5 +552,19 @@ the PM write fails; flush is reconciliation only.
    skips the oc-git-ops tag cannot reach production.
 7. **Reversibility until prod.** Every step before `/oc-deploy prod` is reversible.
    After prod, fix forward with a new release.
-8. **Dogfood the cadence.** opchain itself uses oc-release-ops for its own
+8. **Never ship a sidebar (Navigation rule — top navigation only, added 2026-10-07).**
+   Primary navigation on every surface — public sites, apps, admin and CRM shells, dashboards,
+   docs — is a top bar / header. On phones the header keeps a menu button (or a bottom
+   tab bar); the menu it opens is part of the top nav. A left or right sidebar or rail
+   used as primary navigation is a **regression and a blocking FAIL**, no matter what the
+   design direction, template, component library, reference app or prior version shows.
+   Not covered (allowed): an in-page table of contents, filter panels, a record's detail
+   side panel, a settings sub-menu inside a page. The only exception is the project
+   owner's written approval for one named screen, recorded in the checkpoint's
+   `skill_state.nav_exceptions[]` (`{screen, date, quote}`); it never carries over to
+   another screen or a later redesign. An existing sidebar found in a project is a
+   migration item on the punch list, not a pattern to copy.
+   `/oc-release verify` holds it with the navigation row; `/oc-deploy` never sees a
+   release that failed it.
+9. **Dogfood the cadence.** opchain itself uses oc-release-ops for its own
    releases — the v1.3 release shipped via `/oc-release ship v1.3.0`.
