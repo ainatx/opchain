@@ -156,7 +156,7 @@ Purpose: [One sentence — what the user accomplishes here]
 Layout:
 ┌──────────────────────────────────────┐
 │  [ASCII art showing major zones]     │
-│  [Header, sidebar, content, footer]  │
+│  [Top-nav header, content, footer]   │
 └──────────────────────────────────────┘
 
 Key elements:
@@ -255,8 +255,8 @@ number with CLAUDE/USER prefix.
 
 ### Layout
 CLAUDE T[N].x — Build dashboard page layout
-  - Navbar + sidebar + main content area
-  - Responsive: sidebar collapses to hamburger < 1024px
+  - Top navbar + main content area (no sidebar — Navigation rule, SKILL.md Phase 3)
+  - Responsive: nav links collapse into a header menu button < 1024px
   - Max-width container: 1280px centered
 
 ### Stat Cards (x3)
@@ -348,7 +348,7 @@ Build everything from the punch list in the chosen framework using the approved 
 ### Build Order (dependency-based)
 1. **Design token layer** — CSS variables / Tailwind config matching style book exactly
 2. **Base components** — Button, Input, Badge, Card, Avatar, Icon wrapper
-3. **Composite components** — DataTable, Form, Modal, Sidebar, Toast container
+3. **Composite components** — DataTable, Form, Modal, Navbar, Toast container
 4. **Layout components** — AppLayout, AuthLayout, SettingsLayout
 5. **Screen pages** — Each screen from the punch list, top to bottom
 6. **Navigation / routing** — Wire screens together, guards, redirects
@@ -396,8 +396,8 @@ Fully functional application with real data, real auth, real persistence.
 ### Component Categories
 | Category | Components |
 |---|---|
-| Layout | Container, Stack, Row, Grid, Sidebar, Card |
-| Navigation | Navbar, Sidebar nav, Breadcrumbs, Tabs, Pagination |
+| Layout | Container, Stack, Row, Grid, Side panel (filters, record detail), Card |
+| Navigation | Top navbar, Mobile menu / bottom tab bar, Breadcrumbs, Tabs, Pagination |
 | Data Display | Table, Stat card, Badge, Avatar, Empty state, Skeleton |
 | Input | Text, Select, Checkbox/Radio, Toggle, Date picker, File upload, Search |
 | Feedback | Toast, Alert banner, Progress/Spinner, Confirmation dialog |

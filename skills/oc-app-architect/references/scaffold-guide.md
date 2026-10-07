@@ -49,7 +49,7 @@ project-name/
 │   │   │   ├── login/page.tsx
 │   │   │   └── signup/page.tsx
 │   │   └── (dashboard)/
-│   │       ├── layout.tsx          # Dashboard layout + sidebar
+│   │       ├── layout.tsx          # Dashboard layout + top nav
 │   │       └── page.tsx
 │   ├── components/
 │   │   ├── ui/                     # Base components (shadcn or custom)

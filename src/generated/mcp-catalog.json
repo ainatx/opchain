@@ -137,8 +137,8 @@
       "references": [
         {
           "path": "references/architecture-patterns.md",
-          "bytes": 13285,
-          "sha256": "be6b1cff76f2c8205b0c9de59d81817aaebf3a5ae90f839a06fadecc8a954cf6"
+          "bytes": 13284,
+          "sha256": "d7d201df0d201e639bbc6d56aec2965efc645f59e7297cde09a81b09d6ffd0ea"
         },
         {
           "path": "references/checkpoint-protocol.md",
@@ -152,13 +152,13 @@
         },
         {
           "path": "references/phase-planning.md",
-          "bytes": 9535,
-          "sha256": "46524ca6edd1aa508da17729955ee30b3ff65d183c69c9a82adf94ccce3d18bc"
+          "bytes": 9534,
+          "sha256": "5d74c755c7b8b508945a1c8646aae45de67523544d7e270769b27e9df2f1ffab"
         },
         {
           "path": "references/scaffold-guide.md",
           "bytes": 18630,
-          "sha256": "904a4da1337cdac768e38882461586597408bd26590f5ab0ab98e31542fe5096"
+          "sha256": "84465367755a80501ca24b0a154f82f5b5e18f00362193d6d251770b44b6cc45"
         },
         {
           "path": "references/spec-template.md",
@@ -167,8 +167,8 @@
         },
         {
           "path": "references/ux-design-guide.md",
-          "bytes": 18519,
-          "sha256": "023b76e67e2e55b45fb7fc74e0a067680a4dd01cb54e26ce622b226706f172a4"
+          "bytes": 18626,
+          "sha256": "e43926f41040cc77dc680fd2fecb5dd6d0f679a11b7f081c65149238264a63e7"
         }
       ]
     },
