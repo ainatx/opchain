@@ -13,6 +13,23 @@ checkpoint `protocol_version` is tracked separately (see
 
 ## [Unreleased]
 
+### Added
+
+- **Navigation rule: top navigation only.** Primary navigation on every surface
+  (public sites, apps, admin and CRM shells, dashboards, docs) is a top bar or
+  header. A sidebar or rail used as primary navigation is a blocking regression.
+  `oc-app-architect` holds the rule through Phase 3 (wireframes, the
+  oc-dash-forge handoff, the design-approval gate), the Phase 6 Evaluator
+  (Visual/UX capped at 3/10, sprint FAIL) and the launch checklist, and its
+  reference guides no longer teach a sidebar layout. `oc-ux-engineer` adds a
+  blocking Navigation gate before scoring, plus Flow Audit and Fidelity rows.
+  `oc-release-ops` adds a pre-tag `/oc-release verify` row in every project. In-page
+  tables of contents, filter panels and record side panels are not navigation.
+  The only exception is the project owner's written approval for one named
+  screen, recorded in `skill_state.nav_exceptions[]`. A project that ships a
+  sidebar today fails `/oc-release verify` until that screen moves to a top bar
+  or is recorded as an exception.
+
 ### Fixed
 
 - **The legacy commit gate checks the repository the commit lands in.**

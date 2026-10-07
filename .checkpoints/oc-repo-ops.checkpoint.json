@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-30T05:37:54.927Z",
+  "updated_at": "2026-10-07T22:30:13.774Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "gate-12-commit-target-repo",
-  "progress_summary": "PR readiness PASS for the GATE-12 commit-gate fix: one content commit on origin/main 5737bc2, clean tree, plugin-skills mirror in sync, checkpoints valid, no local paths in added files.",
+  "step": "pr-590-top-nav-rule",
+  "progress_summary": "PR readiness PASS for rule/top-nav-only (PR #590) on merge 691c469 with main@bce032f, candidate bc43809283e1: checkpoint conflicts resolved to main's version, npm ci on the vitest 5 lock, pretest chain leaves no drift, no untracked files; pre-commit candidate verifier PASS on all 8 checks (no bypass).",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -37,20 +37,19 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Owner real-client dogfood remains pending.",
-      "Ten generated package.json mirrors are the documented necessary exception to the earlier path freeze.",
-      "Previously accepted real-corpus incremental collector latency remains a performance follow-up."
+      "Earlier commits d735716 and 4fc8729 used an owner-approved --no-verify (tests timeout under machine load); the merge commit 691c469 passed the full local gate and CI reruns the verifier.",
+      "checkpoint:doctor: pre-existing stale generated_files pointers in oc-app-architect, oc-orchestrator and oc-stack-forge checkpoints (not touched by this PR)."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "e58dd26865b4d9655b34cc1347994e332ee56469",
+    "verified_for_sha": "691c469da6c225109254788b0b63440d34916de2",
     "last_verify": {
-      "at": "2026-09-27T06:18:59.773427Z",
-      "branch": "codex/time-tracking-sprint-2",
-      "base": "codex/time-tracking-sprint-1@4f47b503c8ca1d407fa6206c47a0f01b6997c38e",
+      "at": "2026-10-07T22:30:11.000Z",
+      "branch": "rule/top-nav-only",
+      "base": "origin/main@bce032f",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1022,30 +1021,174 @@
       }
     },
     {
-      "id": "oc-repo-ops-gate12-acfb46d36e2d",
+      "id": "oc-repo-ops-time-canary-2-1-284-8d712299e89b",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-09-30T05:37:54.927Z",
-      "verified_at": "2026-09-30T05:37:54.927Z",
+      "created_at": "2026-09-30T07:16:28.000Z",
+      "verified_at": "2026-09-30T07:16:28.000Z",
       "producer": {
         "skill": "oc-repo-ops",
-        "run_id": "gate-12-commit-target-repo"
+        "run_id": "time-canary-2-1-284"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:acfb46d36e2d5b7b08b9b683b99fa2d3d8400090ace964b6ac3890c61fd709f3"
+        "id": "sha256:8d712299e89b6f3e1fe6f3d029a516bc0439776cc32e0d87c483c95a80762ab4"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "Based on 5737bc2 (origin/main); single content commit 88aeb48; sync-plugin-skills:check, lint-internal-refs, check-skill-contracts, checkpoint:validate all pass; test:hooks 183/183 + 19/19; pre-commit candidate verifier PASS (4e3eec77d45b).",
+        "scope": "Branch from origin/main 5737bc2; 7 files, no generated/catalog drift (sync-bundles:check clean); diff scanned for local paths, usernames, client names and transcript paths: none; fixtures synthetic only; checkpoint:validate all valid; pre-commit candidate verifier PASS 8/8 (7cac55a6e9a6).",
         "evidence": [
-          "plugins/opchain/hooks/pre-commit-gate.cjs",
-          "plugins/opchain/hooks/test-gate.cjs"
+          "scripts/lib/time/classify.mjs",
+          "tests/time/fixtures/producer-2.1.284.mjs"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-time-canary-2-1-286-3387e05ffd6f",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-05T22:45:00.000Z",
+      "verified_at": "2026-10-05T22:45:00.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "time-canary-2-1-286"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:3387e05ffd6f4ffee07cbf0bff374889ea005be0f41b7834f4c5f50393929bd1"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Branch from origin/main 585bb0b; 5 files, no generated/catalog drift (sync-bundles:check clean); diff scanned for local paths, usernames, client names and transcript paths: none; fixtures synthetic only; checkpoint:validate all valid; pre-commit candidate verifier PASS on all seven checks (96445918fddd).",
+        "evidence": [
+          "scripts/lib/time/canary.mjs",
+          "tests/time/fixtures/producer-2.1.286.mjs"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-deps-audit-gate-c2f20dc1e358",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T19:20:45.000Z",
+      "verified_at": "2026-10-07T19:20:45.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "deps-audit-gate"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c2f20dc1e3585acb92be1498bc0a70a84a5d076af25ea24dc0ebf129b9f0d4ef"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Branch from origin/main bff3441; 14 files, all dependency manifests/lockfiles or generated runtime package.json copies (sync-bundles:check and sync-plugin-skills:check clean). npm audit: 0 vulnerabilities at root and site after npm ci. npm test 1452/1452, site astro check and npm run build PASS; check-skill-contracts PASS; local lhci collect+assert PASS on all 7 routes with the @puppeteer/browsers override. Candidate verifier PASS on all eight checks incl. dependencies and dependencies_site (tree b01aae6aec50). No local paths, usernames or client names in the diff.",
+        "evidence": [
+          "package-lock.json",
+          "site/package-lock.json"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-deps-audit-gate-7cec9ac0658e",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T19:40:35.000Z",
+      "verified_at": "2026-10-07T19:40:35.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "deps-audit-gate-npm10"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:7cec9ac0658e9a3f304b41f6979cbb895821e3f581ddc285b4157cc8ac523107"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "CI npm ci (npm 10) rejected the npm 11 site lock (missing proxy-agent@8.0.2 tree for the optional peer of @puppeteer/browsers 3.x). Regenerated with npm 10.9.9; clean npm ci passes under npm 10 and npm 11 at root and site; npm audit 0 under both. Site astro check 0 errors, astro build PASS, lhci collect+assert PASS on 7 routes. Pre-commit candidate verifier PASS (tree 79311eca1260). No local paths or usernames in the diff.",
+        "evidence": [
+          "site/package-lock.json"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr-500-vitest-5-2a03620cf580",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T21:42:25.000Z",
+      "verified_at": "2026-10-07T21:42:25.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-500-vitest-5"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:2a03620cf5802b39346be5ee64d12db0fe2d7a426a751cc4bfaf8b8edcd4cfe8"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "CI failed sync-bundles:check because the five bundled runtime package.json mirrors still pinned vitest ^4.1.11; regenerated with sync-bundles and sync-plugin-skills. gen-catalog (36 skills), gen-mcp-catalog, sync-bundles:check, sync-plugin-skills:check, check-skill-contracts and checkpoint:validate all PASS; working tree clean, no untracked files. Vitest 5.0.3 runs 101 files / 1452 tests, identical to the last green main runs on vitest 4. npm audit 0 at root and site; all lock entries resolve from registry.npmjs.org. Pre-commit candidate verifier PASS (tree a87aea54772c). No local paths or usernames in the diff.",
+        "evidence": [
+          "package.json",
+          "package-lock.json",
+          "plugins/opchain/skills/oc-update/scripts/runtime/package.json"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr582-baseline-secret-drift-44029d554ede",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T22:12:53.924Z",
+      "verified_at": "2026-10-07T22:12:53.924Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr582-baseline-secret-drift"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:44029d554edebcf4403ad6b82bd26acfa2c20b77841391201fb1fd96f60e8b62"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "ainatx/opchain#582 at e12373a (origin/main adca5f8 merged clean; root deps reinstalled for the vitest 5 lock). Net diff vs main is .github/monitoring/release-baseline.json only; worktree clean apart from the checkpoint update; build regenerated nothing tracked. sync-bundles:check, sync-plugin-skills:check, check-skill-contracts, lint-internal-refs PASS; checkpoint validate 0 errors, doctor 0 errors (30 date-based warnings, pre-existing). Docs Forge pr-docs-v1 PASS bound to e12373a; PR body has ## Documentation with two pre-existing follow-ups. Candidate verifier PASS 8/8 on the pre-merge tree; the commit boundary and CI rerun it on this tree. Read-only control-plane monitor passes against this baseline for production and staging.",
+        "evidence": [
+          ".github/monitoring/release-baseline.json",
+          ".checkpoints/oc-docs-forge.checkpoint.json"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-top-nav-rule-bc43809283e1",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T22:30:11.000Z",
+      "verified_at": "2026-10-07T22:30:11.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-590-top-nav-rule-merge-bce032f"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:bc43809283e17f1ecb5b40182c73fc802b90ac23c36f4c8438ff7638010412cd"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Merged main@bce032f into rule/top-nav-only (691c469); .checkpoints conflicts resolved to main's version. npm ci on the vitest 5.0.3 lock; pretest generation chain leaves no drift; sync-plugin-skills, sync-bundles, lint-internal-refs and check-skill-contracts pass; no untracked files. Pre-commit candidate verifier PASS on all 8 checks for tree 9fcbf3e05b57, no bypass.",
+        "evidence": [
+          "package-lock.json",
+          "src/generated/mcp-catalog.json"
         ]
       }
     }
   ],
-  "record_updated_at": "2026-09-30T05:37:54.927Z",
+  "record_updated_at": "2026-10-07T22:30:13.774Z",
   "blockers": []
 }
