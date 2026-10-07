@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-07T22:30:13.418Z",
+  "updated_at": "2026-10-07T22:56:54.648Z",
   "skill": "oc-docs-forge",
   "phase": "pr-docs",
   "status": "complete",
-  "step": "pr-590-top-nav-rule",
-  "progress_summary": "PR #590 rule/top-nav-only docs packet PASS on merge 691c469 (main@bce032f merged in): [Unreleased] CHANGELOG note (RELEASING.md §7), oc-app-architect references aligned with the Navigation rule, PR body carries ## Documentation. Main's changes (vitest 5, runtime package.json mirrors, monitoring baseline) need no reader docs. One LOW follow-up named in the packet (nav_exceptions[] canonical location).",
+  "step": "gate-12-merge-main",
+  "progress_summary": "PR docs packet for the GATE-12 commit-gate fix after merging origin/main bbe74ce: skills/CHANGELOG.md [Unreleased] keeps #590's Added entry and this PR's Fixed entry (synced to the plugin copy); GATE-12 entry in the gate's defect history. Plugin README and skill docs already describe the PreToolUse hook as an unregistered compatibility fixture.",
   "context_primer": {
     "key_decisions": [
       "Every PR requires a Documentation section; this PR carries it inline.",
@@ -1181,8 +1181,33 @@
           "skills/oc-app-architect/references/ux-design-guide.md"
         ]
       }
+    },
+    {
+      "id": "oc-docs-forge-gate12-a23aa3a9a50a",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T22:56:54.648Z",
+      "verified_at": "2026-10-07T22:56:54.648Z",
+      "producer": {
+        "skill": "oc-docs-forge",
+        "run_id": "gate-12-merge-main"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:a23aa3a9a50a8efca1d9b8ff94e71ac5b953efb60e84709db9d1130e97ce1797"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-docs-v1",
+        "scope": "Legacy PreToolUse gate fix (GATE-12) merged with origin/main bbe74ce: changelog [Unreleased] Added (#590) + Fixed (this PR), plugin mirror in sync, gate header defect history. No site, catalog, skill-contract or release surface change.",
+        "evidence": [
+          "skills/CHANGELOG.md",
+          "plugins/opchain/skills/CHANGELOG.md",
+          "plugins/opchain/hooks/pre-commit-gate.cjs"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-07T22:30:13.418Z",
+  "record_updated_at": "2026-10-07T22:56:54.648Z",
   "blockers": []
 }

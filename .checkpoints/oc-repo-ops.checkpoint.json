@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-07T22:30:13.774Z",
+  "updated_at": "2026-10-07T22:56:54.648Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-590-top-nav-rule",
-  "progress_summary": "PR readiness PASS for rule/top-nav-only (PR #590) on merge 691c469 with main@bce032f, candidate bc43809283e1: checkpoint conflicts resolved to main's version, npm ci on the vitest 5 lock, pretest chain leaves no drift, no untracked files; pre-commit candidate verifier PASS on all 8 checks (no bypass).",
+  "step": "gate-12-merge-main",
+  "progress_summary": "PR readiness PASS for the GATE-12 commit-gate fix after merging origin/main bbe74ce: clean tree, plugin-skills mirror in sync, checkpoints valid, no local paths in added files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -1187,8 +1187,33 @@
           "src/generated/mcp-catalog.json"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-gate12-a23aa3a9a50a",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T22:56:54.648Z",
+      "verified_at": "2026-10-07T22:56:54.648Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "gate-12-merge-main"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:a23aa3a9a50a8efca1d9b8ff94e71ac5b953efb60e84709db9d1130e97ce1797"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Merged origin/main bbe74ce (#500, #582, #590, #591) at bbf1af5; changelog conflict resolved keeping both [Unreleased] entries; docs-forge/repo-ops checkpoint conflicts take main then append these verdicts. sync-plugin-skills:check, lint-internal-refs, check-skill-contracts, checkpoint:validate pass; test:hooks 183/183 + 19/19; pre-commit candidate verifier PASS (b77d380097e6) on retry after a load-driven 5s timeout in tests/time/draft-cli.test.mjs (passes 3/3 alone in ~3s).",
+        "evidence": [
+          "plugins/opchain/hooks/pre-commit-gate.cjs",
+          "plugins/opchain/hooks/test-gate.cjs",
+          "skills/CHANGELOG.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-07T22:30:13.774Z",
+  "record_updated_at": "2026-10-07T22:56:54.648Z",
   "blockers": []
 }
