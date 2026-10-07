@@ -92,7 +92,7 @@ Adjust phase count to project scope:
 Follow the design pipeline's dependency chain:
 1. Design tokens → CSS variables / Tailwind config
 2. Base components (Button, Input, Badge, Card)
-3. Composite components (DataTable, Form, Modal, Sidebar)
+3. Composite components (DataTable, Form, Modal, Navbar)
 4. Layout components (AppLayout, AuthLayout)
 5. Screen pages (from punch list)
 6. Navigation / routing
