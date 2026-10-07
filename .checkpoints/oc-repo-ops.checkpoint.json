@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-09-27T19:10:04.386Z",
+  "updated_at": "2026-10-07T19:40:35.000Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
   "step": "v2-1-plan-release-rule-sim-audit",
-  "progress_summary": "PR readiness PASS for the docs-only v2.1 plan / release rule / audit record PR after rebase: paths redacted, checkpoints valid, clean tree.",
+  "progress_summary": "PR readiness PASS for deps/clear-audit-gate after npm 10 site lock regeneration.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -1020,8 +1020,103 @@
           "docs/plans/opchain-audit-remediation/"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-time-canary-2-1-284-8d712299e89b",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-30T07:16:28.000Z",
+      "verified_at": "2026-09-30T07:16:28.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "time-canary-2-1-284"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:8d712299e89b6f3e1fe6f3d029a516bc0439776cc32e0d87c483c95a80762ab4"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Branch from origin/main 5737bc2; 7 files, no generated/catalog drift (sync-bundles:check clean); diff scanned for local paths, usernames, client names and transcript paths: none; fixtures synthetic only; checkpoint:validate all valid; pre-commit candidate verifier PASS 8/8 (7cac55a6e9a6).",
+        "evidence": [
+          "scripts/lib/time/classify.mjs",
+          "tests/time/fixtures/producer-2.1.284.mjs"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-time-canary-2-1-286-3387e05ffd6f",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-05T22:45:00.000Z",
+      "verified_at": "2026-10-05T22:45:00.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "time-canary-2-1-286"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:3387e05ffd6f4ffee07cbf0bff374889ea005be0f41b7834f4c5f50393929bd1"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Branch from origin/main 585bb0b; 5 files, no generated/catalog drift (sync-bundles:check clean); diff scanned for local paths, usernames, client names and transcript paths: none; fixtures synthetic only; checkpoint:validate all valid; pre-commit candidate verifier PASS on all seven checks (96445918fddd).",
+        "evidence": [
+          "scripts/lib/time/canary.mjs",
+          "tests/time/fixtures/producer-2.1.286.mjs"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-deps-audit-gate-c2f20dc1e358",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T19:20:45.000Z",
+      "verified_at": "2026-10-07T19:20:45.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "deps-audit-gate"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c2f20dc1e3585acb92be1498bc0a70a84a5d076af25ea24dc0ebf129b9f0d4ef"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Branch from origin/main bff3441; 14 files, all dependency manifests/lockfiles or generated runtime package.json copies (sync-bundles:check and sync-plugin-skills:check clean). npm audit: 0 vulnerabilities at root and site after npm ci. npm test 1452/1452, site astro check and npm run build PASS; check-skill-contracts PASS; local lhci collect+assert PASS on all 7 routes with the @puppeteer/browsers override. Candidate verifier PASS on all eight checks incl. dependencies and dependencies_site (tree b01aae6aec50). No local paths, usernames or client names in the diff.",
+        "evidence": [
+          "package-lock.json",
+          "site/package-lock.json"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-deps-audit-gate-7cec9ac0658e",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T19:40:35.000Z",
+      "verified_at": "2026-10-07T19:40:35.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "deps-audit-gate-npm10"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:7cec9ac0658e9a3f304b41f6979cbb895821e3f581ddc285b4157cc8ac523107"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "CI npm ci (npm 10) rejected the npm 11 site lock (missing proxy-agent@8.0.2 tree for the optional peer of @puppeteer/browsers 3.x). Regenerated with npm 10.9.9; clean npm ci passes under npm 10 and npm 11 at root and site; npm audit 0 under both. Site astro check 0 errors, astro build PASS, lhci collect+assert PASS on 7 routes. Pre-commit candidate verifier PASS (tree 79311eca1260). No local paths or usernames in the diff.",
+        "evidence": [
+          "site/package-lock.json"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-09-27T19:10:04.386Z",
+  "record_updated_at": "2026-10-07T19:40:35.000Z",
   "blockers": []
 }
