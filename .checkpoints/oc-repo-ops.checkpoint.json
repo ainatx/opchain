@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-07T19:40:35.000Z",
+  "updated_at": "2026-10-07T22:56:54.648Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "v2-1-plan-release-rule-sim-audit",
-  "progress_summary": "PR readiness PASS for deps/clear-audit-gate after npm 10 site lock regeneration.",
+  "step": "gate-12-merge-main",
+  "progress_summary": "PR readiness PASS for the GATE-12 commit-gate fix after merging origin/main bbe74ce: clean tree, plugin-skills mirror in sync, checkpoints valid, no local paths in added files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -37,20 +37,19 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Owner real-client dogfood remains pending.",
-      "Ten generated package.json mirrors are the documented necessary exception to the earlier path freeze.",
-      "Previously accepted real-corpus incremental collector latency remains a performance follow-up."
+      "Earlier commits d735716 and 4fc8729 used an owner-approved --no-verify (tests timeout under machine load); the merge commit 691c469 passed the full local gate and CI reruns the verifier.",
+      "checkpoint:doctor: pre-existing stale generated_files pointers in oc-app-architect, oc-orchestrator and oc-stack-forge checkpoints (not touched by this PR)."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "e58dd26865b4d9655b34cc1347994e332ee56469",
+    "verified_for_sha": "691c469da6c225109254788b0b63440d34916de2",
     "last_verify": {
-      "at": "2026-09-27T06:18:59.773427Z",
-      "branch": "codex/time-tracking-sprint-2",
-      "base": "codex/time-tracking-sprint-1@4f47b503c8ca1d407fa6206c47a0f01b6997c38e",
+      "at": "2026-10-07T22:30:11.000Z",
+      "branch": "rule/top-nav-only",
+      "base": "origin/main@bce032f",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1115,8 +1114,106 @@
           "site/package-lock.json"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-500-vitest-5-2a03620cf580",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T21:42:25.000Z",
+      "verified_at": "2026-10-07T21:42:25.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-500-vitest-5"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:2a03620cf5802b39346be5ee64d12db0fe2d7a426a751cc4bfaf8b8edcd4cfe8"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "CI failed sync-bundles:check because the five bundled runtime package.json mirrors still pinned vitest ^4.1.11; regenerated with sync-bundles and sync-plugin-skills. gen-catalog (36 skills), gen-mcp-catalog, sync-bundles:check, sync-plugin-skills:check, check-skill-contracts and checkpoint:validate all PASS; working tree clean, no untracked files. Vitest 5.0.3 runs 101 files / 1452 tests, identical to the last green main runs on vitest 4. npm audit 0 at root and site; all lock entries resolve from registry.npmjs.org. Pre-commit candidate verifier PASS (tree a87aea54772c). No local paths or usernames in the diff.",
+        "evidence": [
+          "package.json",
+          "package-lock.json",
+          "plugins/opchain/skills/oc-update/scripts/runtime/package.json"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr582-baseline-secret-drift-44029d554ede",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T22:12:53.924Z",
+      "verified_at": "2026-10-07T22:12:53.924Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr582-baseline-secret-drift"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:44029d554edebcf4403ad6b82bd26acfa2c20b77841391201fb1fd96f60e8b62"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "ainatx/opchain#582 at e12373a (origin/main adca5f8 merged clean; root deps reinstalled for the vitest 5 lock). Net diff vs main is .github/monitoring/release-baseline.json only; worktree clean apart from the checkpoint update; build regenerated nothing tracked. sync-bundles:check, sync-plugin-skills:check, check-skill-contracts, lint-internal-refs PASS; checkpoint validate 0 errors, doctor 0 errors (30 date-based warnings, pre-existing). Docs Forge pr-docs-v1 PASS bound to e12373a; PR body has ## Documentation with two pre-existing follow-ups. Candidate verifier PASS 8/8 on the pre-merge tree; the commit boundary and CI rerun it on this tree. Read-only control-plane monitor passes against this baseline for production and staging.",
+        "evidence": [
+          ".github/monitoring/release-baseline.json",
+          ".checkpoints/oc-docs-forge.checkpoint.json"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-top-nav-rule-bc43809283e1",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T22:30:11.000Z",
+      "verified_at": "2026-10-07T22:30:11.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-590-top-nav-rule-merge-bce032f"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:bc43809283e17f1ecb5b40182c73fc802b90ac23c36f4c8438ff7638010412cd"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Merged main@bce032f into rule/top-nav-only (691c469); .checkpoints conflicts resolved to main's version. npm ci on the vitest 5.0.3 lock; pretest generation chain leaves no drift; sync-plugin-skills, sync-bundles, lint-internal-refs and check-skill-contracts pass; no untracked files. Pre-commit candidate verifier PASS on all 8 checks for tree 9fcbf3e05b57, no bypass.",
+        "evidence": [
+          "package-lock.json",
+          "src/generated/mcp-catalog.json"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-gate12-a23aa3a9a50a",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T22:56:54.648Z",
+      "verified_at": "2026-10-07T22:56:54.648Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "gate-12-merge-main"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:a23aa3a9a50a8efca1d9b8ff94e71ac5b953efb60e84709db9d1130e97ce1797"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Merged origin/main bbe74ce (#500, #582, #590, #591) at bbf1af5; changelog conflict resolved keeping both [Unreleased] entries; docs-forge/repo-ops checkpoint conflicts take main then append these verdicts. sync-plugin-skills:check, lint-internal-refs, check-skill-contracts, checkpoint:validate pass; test:hooks 183/183 + 19/19; pre-commit candidate verifier PASS (b77d380097e6) on retry after a load-driven 5s timeout in tests/time/draft-cli.test.mjs (passes 3/3 alone in ~3s).",
+        "evidence": [
+          "plugins/opchain/hooks/pre-commit-gate.cjs",
+          "plugins/opchain/hooks/test-gate.cjs",
+          "skills/CHANGELOG.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-07T19:40:35.000Z",
+  "record_updated_at": "2026-10-07T22:56:54.648Z",
   "blockers": []
 }
