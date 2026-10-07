@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-09-27T15:02:40.273Z",
+  "updated_at": "2026-10-07T21:45:23.376Z",
   "phase": "audit",
-  "step": "pre-deploy-v2.0.4",
+  "step": "diff-pr-500-vitest-5",
   "status": "in_progress",
-  "progress_summary": "Pre-deploy code-audit sweep for v2.0.4 (delta from deployed runtime 8bad1a0 to c09a63e): hook stamp changes that remove a git subprocess, release-surface gate probes, geometry-auditor fix, PipelineDiagram colour, /changelog v2.1 direction-set copy, patch/minor dependency bumps, and the local-only oc-time-ops timesheet CLI (#569, #571). Candidate verifier PASS on all 8 checks; 1386 tests pass. No new CRITICAL/HIGH introduced. The pre-existing OSS/portability audit (14 critical/41 high) remains separately open and out of this bounded release's scope.",
+  "progress_summary": "Diff audit (/oc-audit diff) of Dependabot PR #500, vitest 4.1.11 → 5.0.3 dev-toolchain bump plus ten regenerated bundled runtime package.json mirrors: 0 findings. Dev-only lock moves (vitest 5 folds @vitest/{expect,runner,snapshot,utils,pretty-format} into core; vite 8.3.0 → 8.3.2), registry-only resolution, npm audit 0, test collection parity with main (101 files / 1452 tests), Node engines ^22.12||^24||>=26 satisfied by CI Node 22.23. Not a graded sweep: the pre-existing repository findings (3 critical / 12 high in skill_state, plus the OSS-readiness backlog) remain open and loop_state stays open.",
   "blockers": [],
   "next_actions": [
     "OSS-readiness audit 2026-08-22 (grade D+): triage the 24 HIGH findings in docs/audits/2026-08-22-oss-readiness-audit.md — the must-fix set is in docs/plans/2026-08-22-oss-split-licensing-compliance.md §4.1 and §4.3.",
@@ -148,6 +148,12 @@
         "live host/model evaluation",
         "exact 2.0 release rehearsal"
       ]
+    },
+    "last_diff_audit": {
+      "at": "2026-10-07T21:45:22Z",
+      "scope": "PR #500 diff vs origin/main@63fea9f",
+      "findings": 0,
+      "verdict": "no findings"
     }
   },
   "handoffs": [
@@ -574,7 +580,7 @@
     "verdict": "PASS",
     "blocking_findings": 0
   },
-  "record_updated_at": "2026-09-27T15:02:40.273Z",
+  "record_updated_at": "2026-10-07T21:45:23.376Z",
   "recently_done": [
     {
       "at": "2026-09-21T13:40:12.755Z",
