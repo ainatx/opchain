@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-07T19:40:35.000Z",
+  "updated_at": "2026-10-07T21:42:25.000Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
   "step": "v2-1-plan-release-rule-sim-audit",
-  "progress_summary": "PR readiness PASS for deps/clear-audit-gate after npm 10 site lock regeneration.",
+  "progress_summary": "PR readiness PASS for Dependabot PR #500 (vitest 5) after bundled runtime package.json re-sync.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -38,19 +38,19 @@
     "blocking_findings": [],
     "warnings": [
       "Owner real-client dogfood remains pending.",
-      "Ten generated package.json mirrors are the documented necessary exception to the earlier path freeze.",
-      "Previously accepted real-corpus incremental collector latency remains a performance follow-up."
+      "Previously accepted real-corpus incremental collector latency remains a performance follow-up.",
+      "Ten generated package.json mirrors (skills/ + plugins/opchain/skills runtime bundles) move with the root devDependency by design."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "e58dd26865b4d9655b34cc1347994e332ee56469",
+    "verified_for_sha": "c0420241a0c3000e66b3f07174531ee02ec69aab",
     "last_verify": {
-      "at": "2026-09-27T06:18:59.773427Z",
-      "branch": "codex/time-tracking-sprint-2",
-      "base": "codex/time-tracking-sprint-1@4f47b503c8ca1d407fa6206c47a0f01b6997c38e",
+      "at": "2026-10-07T21:42:25.000Z",
+      "branch": "dependabot/npm_and_yarn/worker-test-4b52c90628",
+      "base": "origin/main@63fea9fd53d723648244f92f7c0657c4f02faffb",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1115,8 +1115,33 @@
           "site/package-lock.json"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-500-vitest-5-2a03620cf580",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T21:42:25.000Z",
+      "verified_at": "2026-10-07T21:42:25.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-500-vitest-5"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:2a03620cf5802b39346be5ee64d12db0fe2d7a426a751cc4bfaf8b8edcd4cfe8"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "CI failed sync-bundles:check because the five bundled runtime package.json mirrors still pinned vitest ^4.1.11; regenerated with sync-bundles and sync-plugin-skills. gen-catalog (36 skills), gen-mcp-catalog, sync-bundles:check, sync-plugin-skills:check, check-skill-contracts and checkpoint:validate all PASS; working tree clean, no untracked files. Vitest 5.0.3 runs 101 files / 1452 tests, identical to the last green main runs on vitest 4. npm audit 0 at root and site; all lock entries resolve from registry.npmjs.org. Pre-commit candidate verifier PASS (tree a87aea54772c). No local paths or usernames in the diff.",
+        "evidence": [
+          "package.json",
+          "package-lock.json",
+          "plugins/opchain/skills/oc-update/scripts/runtime/package.json"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-07T19:40:35.000Z",
+  "record_updated_at": "2026-10-07T21:42:25.000Z",
   "blockers": []
 }
