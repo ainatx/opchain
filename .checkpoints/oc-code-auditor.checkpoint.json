@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-10-07T21:46:57.975Z",
+  "updated_at": "2026-10-07T21:45:23.376Z",
   "phase": "audit",
-  "step": "diff-pr-590",
+  "step": "diff-pr-500-vitest-5",
   "status": "in_progress",
-  "progress_summary": "PR #590 diff audit (rule/top-nav-only, skill-doc Navigation rule): grade A- for the diff after fix. F-001 HIGH fixed and verified: oc-app-architect references (ux-design-guide, scaffold-guide, phase-planning, architecture-patterns) taught sidebar layouts the new rule forbids; rewritten to top nav, MCP catalog regenerated. F-002 LOW left open: nav_exceptions[] names no canonical checkpoint (fails closed). Repo-wide loop unchanged and still open: C+ release-surface grade, 3 CRITICAL / 12 HIGH, plus the separate OSS/portability audit.",
+  "progress_summary": "Diff audit (/oc-audit diff) of Dependabot PR #500, vitest 4.1.11 → 5.0.3 dev-toolchain bump plus ten regenerated bundled runtime package.json mirrors: 0 findings. Dev-only lock moves (vitest 5 folds @vitest/{expect,runner,snapshot,utils,pretty-format} into core; vite 8.3.0 → 8.3.2), registry-only resolution, npm audit 0, test collection parity with main (101 files / 1452 tests), Node engines ^22.12||^24||>=26 satisfied by CI Node 22.23. Not a graded sweep: the pre-existing repository findings (3 critical / 12 high in skill_state, plus the OSS-readiness backlog) remain open and loop_state stays open.",
   "blockers": [],
   "next_actions": [
     "OSS-readiness audit 2026-08-22 (grade D+): triage the 24 HIGH findings in docs/audits/2026-08-22-oss-readiness-audit.md — the must-fix set is in docs/plans/2026-08-22-oss-split-licensing-compliance.md §4.1 and §4.3.",
@@ -67,16 +67,6 @@
         "config": 7
       },
       "note": "Focused release-surface RCA; catalog lockstep PASS, user-visible 2.0.0 vs 2.0.2 split is unprobed copy + missed L4 range."
-    },
-    {
-      "rubric": "oc-code-auditor",
-      "score": 9,
-      "max": 10,
-      "at": "2026-10-07T21:45:00Z",
-      "dimensions": {
-        "quality": 9
-      },
-      "ref": "PR #590 diff audit"
     }
   ],
   "skill_state": {
@@ -160,23 +150,10 @@
       ]
     },
     "last_diff_audit": {
-      "at": "2026-10-07T21:45:00Z",
-      "scope": "origin/main...rule/top-nav-only (PR #590)",
-      "grade": "A-",
-      "findings": [
-        {
-          "id": "F-001",
-          "severity": "HIGH",
-          "title": "oc-app-architect references still prescribe sidebar navigation",
-          "status": "fixed-verified"
-        },
-        {
-          "id": "F-002",
-          "severity": "LOW",
-          "title": "nav_exceptions[] has no canonical checkpoint location; fails closed",
-          "status": "open"
-        }
-      ]
+      "at": "2026-10-07T21:45:22Z",
+      "scope": "PR #500 diff vs origin/main@63fea9f",
+      "findings": 0,
+      "verdict": "no findings"
     }
   },
   "handoffs": [
@@ -603,7 +580,7 @@
     "verdict": "PASS",
     "blocking_findings": 0
   },
-  "record_updated_at": "2026-10-07T21:46:57.975Z",
+  "record_updated_at": "2026-10-07T21:45:23.376Z",
   "recently_done": [
     {
       "at": "2026-09-21T13:40:12.755Z",

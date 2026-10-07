@@ -35,8 +35,8 @@
       "worker": "opchain-dev",
       "hostname": "opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "8222ee28-84d4-4adc-b034-b06cc2371964",
-      "versionId": "3a9ffe6f-0014-468d-b69f-cdf112488609",
+      "deploymentId": "d52944b3-620d-4ca1-969a-89dbe6609400",
+      "versionId": "da2f416a-4908-42fb-b726-a521ca7b5f4d",
       "trafficPercentage": 100,
       "scriptEtag": "82898295b559e4cac94ac41723dd2a48013f9eae145737f05674824f70494c6a",
       "handlers": [
@@ -91,7 +91,7 @@
   "pointInTimeEvidence": {
     "healthVersion": "0f3410c",
     "continuousCustomDomainProbe": false,
-    "note": "Production and staging both serve origin/main 0f3410c after the signed v2.0.4 tag (91a2124). Production was redeployed from the same commit at 2026-09-27T18:31Z (deployment 8222ee28, version 3a9ffe6f, same script fingerprint); staging is unchanged. Custom-domain HTTP is not the continuous probe; control-plane plus local smoke are the evidence."
+    "note": "Production and staging both serve origin/main 0f3410c after the signed v2.0.4 tag (91a2124). On 2026-09-29 six secret-only changes hit opchain-dev by mistake (wrangler secret put/delete run from the opchain checkout while setting up a different Worker): stray NOTIFY_TO and FASTMAIL_API_TOKEN were added and deleted, leaving the same four secrets as before. Each change minted a new deployment and version with the same script (etag 82898295…) and the same bindings; the current one is deployment d52944b3, version da2f416a (annotation workers/triggered_by=secret), verified with wrangler versions view and GET /api/health = 0f3410c. Staging is unchanged. Custom-domain HTTP is not the continuous probe; control-plane plus local smoke are the evidence."
   },
   "runtime": {
     "sha": "0f3410c349564137a6d173932d17cfb32f1862ae",

@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-07T21:59:51.637Z",
+  "updated_at": "2026-10-07T22:12:54.110Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-590-top-nav-rule",
-  "progress_summary": "PR readiness PASS for rule/top-nav-only (PR #590) on candidate 96ee10c3d203: docs packet current, catalogs and generated files in sync, no untracked files, no broken links in touched docs. Local commit gate bypassed with owner approval (tests timeout under load); CI reruns the candidate verifier.",
+  "step": "pr582-baseline-secret-drift",
+  "progress_summary": "PR #582 (baseline secret-drift) readiness PASS: one-file monitoring baseline change, catalogs and generated surfaces in sync, docs packet current.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -37,19 +37,19 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Local pre-commit verifier: tests ERROR (300s timeout under load avg ~33-42 from other sessions); owner-approved --no-verify on d735716 and the evidence commit; CI verifies the received candidate.",
-      "checkpoint:doctor: pre-existing stale generated_files pointers in oc-app-architect, oc-orchestrator and oc-stack-forge checkpoints (not touched by this PR)."
+      "checkpoint doctor: 30 pre-existing date-based staleness warnings (non-blocking).",
+      "Follow-up docs (pre-existing, listed in PR body): cloudflare-challenge runbook lacks a secret-change note; CLAUDE.md names 78567c2 as production runtime."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "d7357162c21761b2cf447a5b4e402944d4ef8ed4",
+    "verified_for_sha": "e12373a3fa00aa97563de9c7b8a9746b63ca9831",
     "last_verify": {
-      "at": "2026-10-07T21:59:51.000Z",
-      "branch": "rule/top-nav-only",
-      "base": "origin/main@63fea9f",
+      "at": "2026-10-07T22:12:53Z",
+      "branch": "chore/baseline-secret-drift",
+      "base": "origin/main@adca5f8",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1116,30 +1116,55 @@
       }
     },
     {
-      "id": "oc-repo-ops-top-nav-rule-96ee10c3d203",
+      "id": "oc-repo-ops-pr-500-vitest-5-2a03620cf580",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-10-07T21:59:51.000Z",
-      "verified_at": "2026-10-07T21:59:51.000Z",
+      "created_at": "2026-10-07T21:42:25.000Z",
+      "verified_at": "2026-10-07T21:42:25.000Z",
       "producer": {
         "skill": "oc-repo-ops",
-        "run_id": "pr-590-top-nav-rule"
+        "run_id": "pr-500-vitest-5"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:96ee10c3d2030372861cdcd112359bde987e1bc847378f01584d06a4bf97d7a0"
+        "id": "sha256:2a03620cf5802b39346be5ee64d12db0fe2d7a426a751cc4bfaf8b8edcd4cfe8"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "Rebased on 63fea9f. pretest generation chain leaves no drift (mcp-catalog regenerated and committed); sync-plugin-skills, sync-bundles, lint-internal-refs, check-skill-contracts, check-skill-flags and gen-catalog pass; vitest 1408/1408; astro check 0 errors; no untracked files; touched docs have no broken links. Local candidate verifier 7/8 PASS, tests timed out at 300s under machine load; owner-approved bypass, CI reruns the verifier.",
+        "scope": "CI failed sync-bundles:check because the five bundled runtime package.json mirrors still pinned vitest ^4.1.11; regenerated with sync-bundles and sync-plugin-skills. gen-catalog (36 skills), gen-mcp-catalog, sync-bundles:check, sync-plugin-skills:check, check-skill-contracts and checkpoint:validate all PASS; working tree clean, no untracked files. Vitest 5.0.3 runs 101 files / 1452 tests, identical to the last green main runs on vitest 4. npm audit 0 at root and site; all lock entries resolve from registry.npmjs.org. Pre-commit candidate verifier PASS (tree a87aea54772c). No local paths or usernames in the diff.",
         "evidence": [
-          "src/generated/mcp-catalog.json",
-          "skills/CHANGELOG.md"
+          "package.json",
+          "package-lock.json",
+          "plugins/opchain/skills/oc-update/scripts/runtime/package.json"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr582-baseline-secret-drift-44029d554ede",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T22:12:53.924Z",
+      "verified_at": "2026-10-07T22:12:53.924Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr582-baseline-secret-drift"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:44029d554edebcf4403ad6b82bd26acfa2c20b77841391201fb1fd96f60e8b62"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "ainatx/opchain#582 at e12373a (origin/main adca5f8 merged clean; root deps reinstalled for the vitest 5 lock). Net diff vs main is .github/monitoring/release-baseline.json only; worktree clean apart from the checkpoint update; build regenerated nothing tracked. sync-bundles:check, sync-plugin-skills:check, check-skill-contracts, lint-internal-refs PASS; checkpoint validate 0 errors, doctor 0 errors (30 date-based warnings, pre-existing). Docs Forge pr-docs-v1 PASS bound to e12373a; PR body has ## Documentation with two pre-existing follow-ups. Candidate verifier PASS 8/8 on the pre-merge tree; the commit boundary and CI rerun it on this tree. Read-only control-plane monitor passes against this baseline for production and staging.",
+        "evidence": [
+          ".github/monitoring/release-baseline.json",
+          ".checkpoints/oc-docs-forge.checkpoint.json"
         ]
       }
     }
   ],
-  "record_updated_at": "2026-10-07T21:59:51.637Z",
+  "record_updated_at": "2026-10-07T22:12:54.110Z",
   "blockers": []
 }
