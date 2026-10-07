@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-07T22:56:54.648Z",
+  "updated_at": "2026-10-07T23:31:07.666Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
   "step": "gate-12-merge-main",
-  "progress_summary": "PR readiness PASS for the GATE-12 commit-gate fix after merging origin/main bbe74ce: clean tree, plugin-skills mirror in sync, checkpoints valid, no local paths in added files.",
+  "progress_summary": "PR readiness PASS for PR 592 (Dependabot markdown bump) after merging main through d81562c and re-locking the site lock with npm 10.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -1212,8 +1212,32 @@
           "skills/CHANGELOG.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr592-markdown-0630eafd125b",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T23:30:15.000Z",
+      "verified_at": "2026-10-07T23:30:15.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr592-markdown-npm10"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:0630eafd125bd7593d76d4296921e33a1bdc1d640a909949fbf0986874b0223c"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Branch dependabot/npm_and_yarn/site/markdown-15d9085268 merged with origin/main d81562c (clean merge). Diff vs main: site/package.json and site/package-lock.json only, 10 insertions and 10 deletions. Dependabot lock dropped 14 optional-peer entries; npm 10.9.9 package-lock-only regen restores them and reports up to date after the merge. Clean npm ci passes under npm 10 and npm 11 for site; root npm ci under npm 10 installs vitest 5.0.3 from main. sync-bundles:check and sync-plugin-skills:check clean, checkpoint validate clean, no untracked files, no local paths in the diff. Pre-merge: astro check 0 errors, site and worker builds PASS, npm test 1452/1452, lhci autorun PASS on 7 routes. The commit gate re-runs the full strict policy on this tree.",
+        "evidence": [
+          "site/package.json",
+          "site/package-lock.json"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-07T22:56:54.648Z",
+  "record_updated_at": "2026-10-07T23:31:07.666Z",
   "blockers": []
 }
