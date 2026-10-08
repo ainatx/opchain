@@ -15,7 +15,7 @@ runner, no validation library, and an Anthropic SDK in the Worker._
 | Bundler (Worker) | esbuild ^0.28 (ESM, `target: esnext`) | `build.mjs`, `package.json` | Single Worker entry → `dist/index.js`; `__OPCHAIN_VERSION__` injected via `define` |
 | Site framework | Astro 5 (`output: "static"`) | `site/astro.config.mjs`, `site/package.json` | Sprint 6 cutover; static HTML served via the Worker's `ASSETS` binding (no Astro SSR adapter active) |
 | Site CSS | Tailwind 4 via Vite plugin | `site/package.json` (`@tailwindcss/vite ^4.2.2`), `astro.config.mjs` `vite.plugins` | Replaces the previous hand-written `styles.css` |
-| Markdown rendering (UI) | `marked` ^18 + `isomorphic-dompurify` ^3.9 | `site/src/lib/markdown.ts` | Used to render skill markdown / walkthrough transcripts safely; explicit `href` scheme allow-list |
+| Markdown rendering (UI) | `marked` ^18 + `isomorphic-dompurify` ^4.4 | `site/src/lib/markdown.ts` | Used to render skill markdown / walkthrough transcripts safely; explicit `href` scheme allow-list |
 | Validation | Zod ^4.3 | `package.json` `dependencies`, `src/lib/schemas.js` | Every POST endpoint runs through `parseBody(request, schema)` |
 | Analytics (server) | PostHog `/capture/` over raw fetch | `src/lib/analytics.js` | No SDK (Workers-incompatible Node shims); fire-and-forget via `ctx.waitUntil` |
 | Analytics (client) | PostHog JS, consent-gated | `site/src/components/ConsentBanner.astro`, `site/src/lib/analytics.ts` | Loaded only after explicit accept; uses `PUBLIC_POSTHOG_KEY` env at build time |
@@ -36,7 +36,7 @@ runner, no validation library, and an Anthropic SDK in the Worker._
 
 ### Dependencies (`site/`)
 
-- Runtime: `astro ^5`, `@astrojs/cloudflare ^12`, `@astrojs/sitemap ^3.7`, `marked ^18`, `dompurify ^3.4`, `isomorphic-dompurify ^3.9`.
+- Runtime: `astro ^5`, `@astrojs/cloudflare ^12`, `@astrojs/sitemap ^3.7`, `marked ^18`, `dompurify ^3.4`, `isomorphic-dompurify ^4.4`.
 - Dev: `@astrojs/check ^0.9`, `@axe-core/playwright ^4.11`, `@lhci/cli ^0.15`, `@playwright/test ^1.59`, `@tailwindcss/vite ^4.2`, `tailwindcss ^4.2`, `typescript ^5.6`.
 
 ### Data model
