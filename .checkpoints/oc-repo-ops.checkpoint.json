@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-07T23:35:25.024Z",
+  "updated_at": "2026-10-08T00:05:23.000Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-secret-change-baseline-docs",
-  "progress_summary": "PR readiness PASS for the docs-only #582 follow-up PR (CLAUDE.md + cloudflare-challenge runbook): catalogs, bundles and generated surfaces in sync, docs packet bound to HEAD, no untracked files.",
+  "step": "ci-npm11",
+  "progress_summary": "PR readiness PASS for ci-npm11 (#593) after merging origin/main (#592): workflows + CONTRIBUTING.md only; probe run in CI and reverted exactly.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -37,18 +37,19 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "checkpoint doctor: 30 pre-existing date-based staleness warnings (non-blocking)."
+      "PR history carries a deliberate probe commit (e340434, npm-11 site lock) and its exact revert; the squash merge nets no lockfile change.",
+      "npm >= 11.17 prints allow-scripts notices for dependency install scripts (esbuild, fsevents); scripts still run (strict-allow-scripts=false)."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "5de000f7e22a4cfcd83cea660e93e7a3a12fd22f",
+    "verified_for_sha": "19b7a9d1c2c456feebfbdb4b320f12cefaa905f3",
     "last_verify": {
-      "at": "2026-10-07T23:35:25.024Z",
-      "branch": "docs/secret-change-baseline-refresh",
-      "base": "origin/main@d81562c",
+      "at": "2026-10-08T00:05:23.000Z",
+      "branch": "ci/node24-npm11",
+      "base": "origin/main@6b75a8d",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1213,30 +1214,55 @@
       }
     },
     {
-      "id": "oc-repo-ops-pr-secret-change-baseline-docs-b5853ff3a42f",
+      "id": "oc-repo-ops-pr592-markdown-0630eafd125b",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-10-07T23:35:25.024Z",
-      "verified_at": "2026-10-07T23:35:25.024Z",
+      "created_at": "2026-10-07T23:30:15.000Z",
+      "verified_at": "2026-10-07T23:30:15.000Z",
       "producer": {
         "skill": "oc-repo-ops",
-        "run_id": "pr-secret-change-baseline-docs"
+        "run_id": "pr592-markdown-npm10"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:b5853ff3a42f63070c8189777a1ccdf2a74f9d76b79edb1f07415aa82621aa2a"
+        "id": "sha256:0630eafd125bd7593d76d4296921e33a1bdc1d640a909949fbf0986874b0223c"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "docs/secret-change-baseline-refresh at 5de000f (one docs commit on origin/main d81562c; CLAUDE.md + docs/runbooks/cloudflare-challenge.md only). sync-bundles:check, sync-plugin-skills:check, lint-internal-refs, gen-catalog, check-skill-contracts, checkpoint:validate pass; checkpoint doctor 0 errors (30 pre-existing staleness warnings); no untracked files; paths referenced by the new runbook text exist; pre-commit candidate verifier PASS (213351ba56fd). Docs Forge packet verified_for_sha = HEAD.",
+        "scope": "Branch dependabot/npm_and_yarn/site/markdown-15d9085268 merged with origin/main d81562c (clean merge). Diff vs main: site/package.json and site/package-lock.json only, 10 insertions and 10 deletions. Dependabot lock dropped 14 optional-peer entries; npm 10.9.9 package-lock-only regen restores them and reports up to date after the merge. Clean npm ci passes under npm 10 and npm 11 for site; root npm ci under npm 10 installs vitest 5.0.3 from main. sync-bundles:check and sync-plugin-skills:check clean, checkpoint validate clean, no untracked files, no local paths in the diff. Pre-merge: astro check 0 errors, site and worker builds PASS, npm test 1452/1452, lhci autorun PASS on 7 routes. The commit gate re-runs the full strict policy on this tree.",
         "evidence": [
-          "CLAUDE.md",
-          "docs/runbooks/cloudflare-challenge.md"
+          "site/package.json",
+          "site/package-lock.json"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-ci-npm11-00c8a4a112de",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-08T00:05:23.000Z",
+      "verified_at": "2026-10-08T00:05:23.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "ci-npm11-resync"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:00c8a4a112de94ac866ab6aec18d8b6bd1d50977f7df65fabd70a4d1b9f2ec10"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Diff vs origin/main 6b75a8d is exactly 4 files (3 workflows, CONTRIBUTING.md). Merge conflicts were checkpoint files only (took main, re-bound here). Clean site npm ci under npm 11.17 on #592's lock exit 0; earlier head passed npm test 101 files / 1452 tests, astro check, npm run build and the CI probe. Pre-commit candidate verifier PASS on the merge commit. No local paths in the diff.",
+        "evidence": [
+          ".github/workflows/ci.yml",
+          ".github/workflows/lighthouse.yml",
+          ".github/workflows/lighthouse-prod.yml"
         ]
       }
     }
   ],
-  "record_updated_at": "2026-10-07T23:35:25.024Z",
+  "record_updated_at": "2026-10-08T00:05:23.000Z",
   "blockers": []
 }

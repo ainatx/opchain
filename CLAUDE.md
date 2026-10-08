@@ -255,7 +255,7 @@ clients fetching it; there is no Free-plan WAF Skip exception for that mode.
 
 ## Environment Variables
 
-Template lives in `.env.example`. Copy to `.dev.vars` for local dev; set in the Cloudflare dashboard (or via `wrangler secret put`) for staging + production.
+Template lives in `.env.example`. Copy to `.dev.vars` for local dev; set in the Cloudflare dashboard (or via `wrangler secret put`) for staging + production. Run `wrangler secret` only from this checkout and only for `opchain-dev` / `opchain-staging` (pass `--name` to be explicit): Wrangler takes the Worker from the local `wrangler.jsonc`, and every secret put/delete mints a new deployment that fails Canary until the baseline is refreshed (see `docs/runbooks/cloudflare-challenge.md` → "Secret changes").
 
 - `LINEAR_API_KEY` — Linear API key for `POST /api/feedback` (bug/improvement/security/general tickets only — roadmap feature requests go to GitHub instead, see below)
 - `LINEAR_TEAM_ID`, `LINEAR_PROJECT_ID` — optional overrides for the default team/project
