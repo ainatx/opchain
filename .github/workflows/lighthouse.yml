@@ -24,6 +24,9 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: site/package-lock.json
+      - name: Use npm 11 (lockfile format)
+        # Node 22's npm 10 rejects npm 11 / Dependabot lockfiles; see ci.yml.
+        run: npm install -g npm@11 && npm -v
       - name: Install (site)
         working-directory: site
         run: npm ci

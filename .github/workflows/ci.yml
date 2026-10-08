@@ -23,6 +23,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Use npm 11 (lockfile format)
+        # Node 22 bundles npm 10, whose `npm ci` rejects lockfiles written by
+        # npm 11 (Dependabot, Node 24): npm 10 expects optional peer deps in the
+        # lock (site: @puppeteer/browsers → proxy-agent), npm 11 leaves them out.
+        # Node stays 22 so CI keeps covering the runtime's 22.13 floor. Pin the
+        # major Dependabot writes, not `latest`. Every `npm ci` job does this.
+        run: npm install -g npm@11 && npm -v
       - name: Install (root)
         run: npm ci
       - name: Install (site) — needed because `npm run build` now runs astro build
@@ -110,6 +117,8 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: site/package-lock.json
+      - name: Use npm 11 (lockfile format)
+        run: npm install -g npm@11 && npm -v
       - name: Install
         working-directory: site
         run: npm ci
@@ -136,6 +145,8 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: site/package-lock.json
+      - name: Use npm 11 (lockfile format)
+        run: npm install -g npm@11 && npm -v
       - name: Install (site)
         working-directory: site
         run: npm ci
