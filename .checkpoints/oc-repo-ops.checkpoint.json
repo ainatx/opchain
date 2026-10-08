@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-07T23:31:34.000Z",
+  "updated_at": "2026-10-08T00:10:02.000Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
   "step": "oss-split-rederive-sprint1-prep",
-  "progress_summary": "PR readiness PASS for the OSS split prep (#577) after merging origin/main d81562c: manifest paths exist, closure unchanged, clean tree.",
+  "progress_summary": "PR readiness PASS for the OSS split prep (#577) after merging origin/main 6b75a8d: 114 manifest paths exist, closure has no unlisted edges, clean tree.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -1237,30 +1237,55 @@
       }
     },
     {
-      "id": "oc-repo-ops-ossprep-recheck-a19aa376f839",
+      "id": "oc-repo-ops-pr592-markdown-0630eafd125b",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-10-07T23:31:34.000Z",
-      "verified_at": "2026-10-07T23:31:34.000Z",
+      "created_at": "2026-10-07T23:30:15.000Z",
+      "verified_at": "2026-10-07T23:30:15.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr592-markdown-npm10"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:0630eafd125bd7593d76d4296921e33a1bdc1d640a909949fbf0986874b0223c"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Branch dependabot/npm_and_yarn/site/markdown-15d9085268 merged with origin/main d81562c (clean merge). Diff vs main: site/package.json and site/package-lock.json only, 10 insertions and 10 deletions. Dependabot lock dropped 14 optional-peer entries; npm 10.9.9 package-lock-only regen restores them and reports up to date after the merge. Clean npm ci passes under npm 10 and npm 11 for site; root npm ci under npm 10 installs vitest 5.0.3 from main. sync-bundles:check and sync-plugin-skills:check clean, checkpoint validate clean, no untracked files, no local paths in the diff. Pre-merge: astro check 0 errors, site and worker builds PASS, npm test 1452/1452, lhci autorun PASS on 7 routes. The commit gate re-runs the full strict policy on this tree.",
+        "evidence": [
+          "site/package.json",
+          "site/package-lock.json"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-ossprep-recheck-6cf38c72e8bd",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-08T00:10:02.000Z",
+      "verified_at": "2026-10-08T00:10:02.000Z",
       "producer": {
         "skill": "oc-repo-ops",
         "run_id": "oss-split-rederive-sprint1-prep-recheck"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:a19aa376f839168660a41a0df0b606e9989addfed2f01eeb0062e40e28bac456"
+        "id": "sha256:6cf38c72e8bd80a9e431c0f179097457a194721e9ddc68beb9e607d88ad6eb5e"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "Merged origin/main d81562c; conflicts only in two .checkpoints files (both sides kept). All 72 manifest entries exist; import closure leaves the one documented site edge (decision 1); tag, skill and command counts unchanged; no local paths in the diff; checkpoint:validate all valid; the commit-boundary candidate verifier gates the final tree.",
+        "scope": "Merged origin/main 6b75a8d; conflicts only in two .checkpoints files (both sides kept). All 114 manifest entries exist and the import closure has no unlisted edges; 33 manifest tests passed a scratch-copy run with the C4 package.json; 11 stay site-side; tag, skill and command counts unchanged; no local paths in the diff; checkpoint:validate all valid; the commit-boundary candidate verifier gates the final tree.",
         "evidence": [
           "split/product-paths.txt",
-          "docs/runbooks/oss-split-rederivation-2026-09-27.md"
+          "docs/runbooks/oss-split-rederivation-2026-09-27.md",
+          "docs/runbooks/oss-split-execution-handoff.md"
         ]
       }
     }
   ],
-  "record_updated_at": "2026-10-07T23:31:34.000Z",
+  "record_updated_at": "2026-10-08T00:10:02.000Z",
   "blockers": []
 }

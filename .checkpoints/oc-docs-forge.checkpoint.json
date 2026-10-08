@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-07T23:31:34.000Z",
+  "updated_at": "2026-10-08T00:10:02.000Z",
   "skill": "oc-docs-forge",
   "phase": "pr-docs",
   "status": "complete",
   "step": "oss-split-rederive-sprint1-prep",
-  "progress_summary": "OSS split prep (#577) updated on origin/main d81562c: manifest unchanged; runbook re-check line and corrected C4 package.json row.",
+  "progress_summary": "OSS split prep (#577) on origin/main 6b75a8d: owner C1 decisions 1-7 applied; manifest 72 -> 114 entries; runbook rev 7.",
   "context_primer": {
     "key_decisions": [
       "Every PR requires a Documentation section; this PR carries it inline.",
@@ -1233,30 +1233,56 @@
       }
     },
     {
-      "id": "oc-docs-forge-ossprep-recheck-a19aa376f839",
+      "id": "oc-docs-forge-pr592-markdown-0630eafd125b",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-10-07T23:31:34.000Z",
-      "verified_at": "2026-10-07T23:31:34.000Z",
+      "created_at": "2026-10-07T23:30:15.000Z",
+      "verified_at": "2026-10-07T23:30:15.000Z",
+      "producer": {
+        "skill": "oc-docs-forge",
+        "run_id": "pr592-markdown-npm10"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:0630eafd125bd7593d76d4296921e33a1bdc1d640a909949fbf0986874b0223c"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-docs-v1",
+        "scope": "Dependency-only PR merged with main through d81562c: site/package.json and site/package-lock.json (isomorphic-dompurify 4.2.0 to 4.4.0, marked 18.0.13 to 18.0.14; npm 10 regen restores the optional proxy-agent peer subtree CI needs). No current doc pins a moved version (marked ^18 in specs/spec/01-tech-stack.md still holds); its stale isomorphic-dompurify ^3.9 predates this PR and is listed as a follow-up. Built site byte-identical to the previous marked build apart from a timestamp, so no reader-facing change. PR body carries the Documentation fragment and the npm 10 lock note.",
+        "evidence": [
+          "site/package.json",
+          "site/package-lock.json"
+        ]
+      }
+    },
+    {
+      "id": "oc-docs-forge-ossprep-recheck-6cf38c72e8bd",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-08T00:10:02.000Z",
+      "verified_at": "2026-10-08T00:10:02.000Z",
       "producer": {
         "skill": "oc-docs-forge",
         "run_id": "oss-split-rederive-sprint1-prep-recheck"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:a19aa376f839168660a41a0df0b606e9989addfed2f01eeb0062e40e28bac456"
+        "id": "sha256:6cf38c72e8bd80a9e431c0f179097457a194721e9ddc68beb9e607d88ad6eb5e"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pr-docs-v1",
-        "scope": "Planning PR updated on origin/main d81562c. Runbook gains a 2026-10-07 re-check line and a corrected C4 product package.json row (js-yaml runtime, vitest + esbuild dev, no overrides) with the #591 and #500 bundling note; the change is described in a PR comment. split/product-paths.txt unchanged; it is read only by the future extraction step.",
+        "scope": "Planning PR updated on origin/main 6b75a8d. Records the owner C1 answers 1-7 (2026-10-07) in the re-derivation doc and bumps the execution runbook to rev 7 (12 tags, 36 skills, product package.json with type module, v2.1.0 first release). split/product-paths.txt grows to 114 entries; it is read only by the future extraction step. The eval test drops its site-registry import. Three open items are listed for the owner and default to site-side. The change is described in PR comments.",
         "evidence": [
           "docs/runbooks/oss-split-rederivation-2026-09-27.md",
-          "split/product-paths.txt"
+          "docs/runbooks/oss-split-execution-handoff.md",
+          "split/product-paths.txt",
+          "tests/opchain-eval.test.js"
         ]
       }
     }
   ],
-  "record_updated_at": "2026-10-07T23:31:34.000Z",
+  "record_updated_at": "2026-10-08T00:10:02.000Z",
   "blockers": []
 }
