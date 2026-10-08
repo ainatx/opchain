@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-10-08T07:07:32.000Z",
+  "updated_at": "2026-10-08T07:22:46.000Z",
   "phase": "design",
-  "step": "v2.1-ow-build-plan-design-approved",
+  "step": "v2.1-ow-build-design-approved",
   "status": "in_progress",
-  "progress_summary": "v2.1.0 = the ow- skill family (Deftwright planning layer), built one skill at a time, shipped together; per-skill versions from 1.0.0; old 2.1 plan superseded -> 2.2. Approved designs: ow-start (fit call -> client recap, 2026-10-06) and ow-build-plan (Build Plan offer, plan, quote, quick quote, 2026-10-08). Family rules: no ow-review (same-session self-checks); one code add-on ow-tools; no public ow- skill names a private skill (handoffs.yaml per workspace; blocklist llc-ops). Next: stage 03 Build skill design.",
+  "progress_summary": "v2.1.0 = the ow- skill family (Deftwright planning layer), built one skill at a time, shipped together; per-skill versions from 1.0.0; old 2.1 plan superseded -> 2.2. Approved designs: ow-start (fit call -> client recap, 2026-10-06) and ow-build-plan (Build Plan offer, plan, quote, quick quote, 2026-10-08). Family rules: no ow-review (same-session self-checks); one code add-on ow-tools; no public ow- skill names a private skill (handoffs.yaml per workspace; blocklist llc-ops). ow-build (stage 03: weekly HTML update, demos, signed change orders, payment ledger, acceptance) approved 2026-10-08. Next: stage 04 Handoff design or the 2.1.0 sprint plan.",
   "progress_table": [
     {
       "id": "v20-spec",
@@ -92,8 +92,13 @@
     },
     {
       "id": "v21-stage03-design",
-      "label": "Stage 03 Build skill design (weekly updates, demos, change orders)",
-      "status": "in_progress"
+      "label": "ow-build design (stage 03)",
+      "status": "complete"
+    },
+    {
+      "id": "v21-ow-build-gate",
+      "label": "* ow-build design approval (approved 2026-10-08)",
+      "status": "complete"
     },
     {
       "id": "v21-sprint-plan",
@@ -178,7 +183,7 @@
   },
   "blockers": [],
   "next_actions": [
-    "Design the stage 03 Build skill (staging.deftwright.com/how-we-work: weekly written update, working demo per milestone, additional work written down and priced before it starts).",
+    "Decide the next ow- skill (stage 04 Handoff is the natural one; ow-build's -accept hands off to it) or write the v2.1.0 sprint plan.",
     "Then write the v2.1.0 ow- family sprint plan; first sprint is catalogs.json tooling before any ow- SKILL.md lands.",
     "Open: price-book numbers (owner), delivery-mode Build Plan re-runs, ow-tools plugin home, transcription speed spike.",
     "Open: Dependabot #500 (vitest 5 major) needs its own decision."
@@ -605,5 +610,5 @@
       "action": "Quick-feature: v2.0 asset hotfix (favicon, fallback OG card, architecture shade) on claude/v2-asset-hotfix after v2.0.0 shipped without it"
     }
   ],
-  "record_updated_at": "2026-10-08T07:07:32.000Z"
+  "record_updated_at": "2026-10-08T07:22:46.000Z"
 }
