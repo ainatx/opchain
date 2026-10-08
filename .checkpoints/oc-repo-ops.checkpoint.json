@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-08T00:38:53.000Z",
+  "updated_at": "2026-10-08T06:11:23.219Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "oss-split-rederive-sprint1-prep",
-  "progress_summary": "PR readiness PASS for the OSS split prep (#577) after merging origin/main 5a40d97: 114 manifest paths exist, closure has no unlisted edges, clean tree.",
+  "step": "pr-spec-isomorphic-dompurify-4",
+  "progress_summary": "PR readiness PASS for the docs-only spec version fix (specs/spec/01-tech-stack.md isomorphic-dompurify ^4.4): catalogs, bundles and generated surfaces in sync, docs packet bound to HEAD, no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -37,18 +37,18 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "checkpoint doctor: 30 pre-existing date-based staleness warnings (non-blocking)."
+      "checkpoint doctor: 30 pre-existing warnings (non-blocking)."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "a2a773e1f4da17100e467392819b3c65d2c10a0b",
+    "verified_for_sha": "420f998b9c5a07a4ac9c1de524b7a7ec7dd341ac",
     "last_verify": {
-      "at": "2026-10-08T00:26:29.396Z",
-      "branch": "docs/secret-change-baseline-refresh",
-      "base": "origin/main@b79df5b",
+      "at": "2026-10-08T06:11:23.219Z",
+      "branch": "docs/spec-isomorphic-dompurify-4",
+      "base": "origin/main@87de52f",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1332,8 +1332,31 @@
           "docs/runbooks/oss-split-execution-handoff.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-spec-isomorphic-dompurify-4-b7c40bc71409",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-08T06:11:23.219Z",
+      "verified_at": "2026-10-08T06:11:23.219Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-spec-isomorphic-dompurify-4"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:b7c40bc714096ef98588c26318b4033eef5114054da1468621c66c0d80cc850e"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "docs/spec-isomorphic-dompurify-4 at 420f998 (one docs commit on origin/main 87de52f; specs/spec/01-tech-stack.md only). sync-bundles:check, sync-plugin-skills:check, lint-internal-refs, gen-catalog, check-skill-contracts, checkpoint:validate pass; checkpoint doctor 0 errors (30 pre-existing warnings); no untracked files; pre-commit candidate verifier PASS (6e5013dd). Docs Forge packet verified_for_sha = HEAD.",
+        "evidence": [
+          "specs/spec/01-tech-stack.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-08T00:38:53.000Z",
+  "record_updated_at": "2026-10-08T06:11:23.219Z",
   "blockers": []
 }
