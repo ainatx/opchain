@@ -1,9 +1,11 @@
 # OSS split — re-derivation against the v2.0.4 tree (2026-09-27)
 
-**Status:** the owner answered decisions 1–7 on 2026-10-07 and they are applied below (manifest now 114 entries; three open items remain in "Open items from the test-placement pass"). The ⛔ HUMAN review of the final manifest diff is still pending. No extraction, no history rewrite, no pushes to `asfbay-bit/opchain-skills` have happened.
+**Status:** the owner answered decisions 1–7 on 2026-10-07 and they are applied below (manifest now 114 entries). The three open items from the test-placement pass were also decided: all stay site-side (see "Open items from the test-placement pass"). The ⛔ HUMAN review of the final manifest diff is still pending. No extraction, no history rewrite, no pushes to `asfbay-bit/opchain-skills` have happened.
 **Base:** `origin/main` @ `5737bc2` (v2.0.4 shipped; production serves `0f3410c`). The import closure was re-run on this commit, after oc-time-ops #576, with the same result.
-**Re-checked 2026-10-07** on `origin/main` @ `6b75a8d`. Since the base, main has merged:
+**Re-checked 2026-10-07** on `origin/main` @ `5a40d97`. Since the base, main has merged:
 
+- #594: docs only (`CLAUDE.md` and the Cloudflare-challenge runbook; neither is a manifest path);
+- #593: CI installs with npm 11 (three workflows, which stay site-side, and one added sentence in `CONTRIBUTING.md`, a manifest path that needs no manifest change);
 - #592: site dependency bump (`site/` only);
 - #585 and #589: oc-time-ops transcript fixes;
 - #591: dependency overrides;
@@ -78,7 +80,7 @@ The import closure of the final 114 entries has **no** unlisted edges.
 
 ## Open items from the test-placement pass
 
-These are not covered by decisions 1–7. Until you decide, each defaults to site-side.
+These were not covered by decisions 1–7. **Decided 2026-10-07 (owner, relayed by the merge-coordination session): all three keep the site-side default**, and `release-sequence.mjs` staying site-side is approved. The recommendations below record the alternative that was not taken.
 
 1. **Repo-local `.claude/` dev hooks** (`.claude/settings.json` and `.claude/hooks/checkpoint-hygiene.sh`, the Stop hook for `.checkpoints/`). They are not in the manifest, and two tests need them: `audit-commit/compatibility.test.js` and `audit-state/c3-current-run-hygiene.test.js`. *Recommend:* if the product repo is to keep `.checkpoints/` hygiene for contributors, move the two hook files and both tests together; otherwise leave all four site-side. C6 already says to document the repo-local `.claude` hooks.
 2. **`scripts/build-update-bundle.mjs`** builds the site's content-addressed update assets (`public/`) from the skills tree. It imports the product's `update-opchain.mjs`, and three tests need it: `update-bundle`, `update-recovery`, `shared-runtime-artifact`. *Recommend:* site-side, since it is a site build step. Record that the product's `oc-update` fetches from the site's assets.
@@ -120,6 +122,6 @@ These are not covered by decisions 1–7. Until you decide, each defaults to sit
 
 ## Next
 
-1. Owner reviews this document and the final manifest diff, and answers the three open items above.
+1. Owner reviews this document and the final manifest diff. The three open items above are decided (site-side).
 2. Decisions 1–7 are applied and the test-placement pass is done. The execution runbook `oss-split-execution-handoff.md` is bumped to rev 7 with the corrected values.
 3. Then C1's human freeze announcement, and C2 in a fresh clone. **Work stops before C5** for an explicit "flip now".

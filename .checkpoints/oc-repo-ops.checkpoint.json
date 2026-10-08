@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-08T00:10:02.000Z",
+  "updated_at": "2026-10-08T00:38:53.000Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
   "step": "oss-split-rederive-sprint1-prep",
-  "progress_summary": "PR readiness PASS for the OSS split prep (#577) after merging origin/main 6b75a8d: 114 manifest paths exist, closure has no unlisted edges, clean tree.",
+  "progress_summary": "PR readiness PASS for the OSS split prep (#577) after merging origin/main 5a40d97: 114 manifest paths exist, closure has no unlisted edges, clean tree.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -37,19 +37,18 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Earlier commits d735716 and 4fc8729 used an owner-approved --no-verify (tests timeout under machine load); the merge commit 691c469 passed the full local gate and CI reruns the verifier.",
-      "checkpoint:doctor: pre-existing stale generated_files pointers in oc-app-architect, oc-orchestrator and oc-stack-forge checkpoints (not touched by this PR)."
+      "checkpoint doctor: 30 pre-existing date-based staleness warnings (non-blocking)."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "691c469da6c225109254788b0b63440d34916de2",
+    "verified_for_sha": "a2a773e1f4da17100e467392819b3c65d2c10a0b",
     "last_verify": {
-      "at": "2026-10-07T22:30:11.000Z",
-      "branch": "rule/top-nav-only",
-      "base": "origin/main@bce032f",
+      "at": "2026-10-08T00:26:29.396Z",
+      "branch": "docs/secret-change-baseline-refresh",
+      "base": "origin/main@b79df5b",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1261,23 +1260,72 @@
       }
     },
     {
-      "id": "oc-repo-ops-ossprep-recheck-6cf38c72e8bd",
+      "id": "oc-repo-ops-ci-npm11-00c8a4a112de",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-10-08T00:10:02.000Z",
-      "verified_at": "2026-10-08T00:10:02.000Z",
+      "created_at": "2026-10-08T00:05:23.000Z",
+      "verified_at": "2026-10-08T00:05:23.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "ci-npm11-resync"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:00c8a4a112de94ac866ab6aec18d8b6bd1d50977f7df65fabd70a4d1b9f2ec10"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Diff vs origin/main 6b75a8d is exactly 4 files (3 workflows, CONTRIBUTING.md). Merge conflicts were checkpoint files only (took main, re-bound here). Clean site npm ci under npm 11.17 on #592's lock exit 0; earlier head passed npm test 101 files / 1452 tests, astro check, npm run build and the CI probe. Pre-commit candidate verifier PASS on the merge commit. No local paths in the diff.",
+        "evidence": [
+          ".github/workflows/ci.yml",
+          ".github/workflows/lighthouse.yml",
+          ".github/workflows/lighthouse-prod.yml"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr-secret-change-baseline-docs-ee78c1bff6d6",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-08T00:26:29.396Z",
+      "verified_at": "2026-10-08T00:26:29.396Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-secret-change-baseline-docs"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:ee78c1bff6d6f7ee522948ee8a76e1f77a4b378c47a2e77efd2f660e357b1e6a"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "docs/secret-change-baseline-refresh at a2a773e (one docs commit on origin/main b79df5b; CLAUDE.md + docs/runbooks/cloudflare-challenge.md only). sync-bundles:check, sync-plugin-skills:check, lint-internal-refs, gen-catalog, check-skill-contracts, checkpoint:validate pass; checkpoint doctor 0 errors (30 pre-existing staleness warnings); no untracked files; paths referenced by the new runbook text exist; pre-commit candidate verifier PASS (87c72348a41c). Docs Forge packet verified_for_sha = HEAD.",
+        "evidence": [
+          "CLAUDE.md",
+          "docs/runbooks/cloudflare-challenge.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-ossprep-recheck-675c31650c62",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-08T00:38:53.000Z",
+      "verified_at": "2026-10-08T00:38:53.000Z",
       "producer": {
         "skill": "oc-repo-ops",
         "run_id": "oss-split-rederive-sprint1-prep-recheck"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:6cf38c72e8bd80a9e431c0f179097457a194721e9ddc68beb9e607d88ad6eb5e"
+        "id": "sha256:675c31650c625cce4641b0c9e95b1c293875e37c675e36e074cf3efa82fac9ee"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "Merged origin/main 6b75a8d; conflicts only in two .checkpoints files (both sides kept). All 114 manifest entries exist and the import closure has no unlisted edges; 33 manifest tests passed a scratch-copy run with the C4 package.json; 11 stay site-side; tag, skill and command counts unchanged; no local paths in the diff; checkpoint:validate all valid; the commit-boundary candidate verifier gates the final tree.",
+        "scope": "Merged origin/main 5a40d97; conflicts only in two .checkpoints files (both sides kept). All 114 manifest entries exist and the import closure has no unlisted edges; 33 manifest tests passed a scratch-copy run with the C4 package.json; 11 stay site-side; tag, skill and command counts unchanged; no local paths in the diff; checkpoint:validate all valid; the commit-boundary candidate verifier gates the final tree.",
         "evidence": [
           "split/product-paths.txt",
           "docs/runbooks/oss-split-rederivation-2026-09-27.md",
@@ -1286,6 +1334,6 @@
       }
     }
   ],
-  "record_updated_at": "2026-10-08T00:10:02.000Z",
+  "record_updated_at": "2026-10-08T00:38:53.000Z",
   "blockers": []
 }

@@ -99,7 +99,7 @@ C0 closeout evidence: `git-filter-repo` 2.47.0 and `gitleaks` 8.30.1 are install
   - **Move:**
     - the shared runtime, the updater, and the cost, execution-kits, capabilities and package-runtime CLIs (with `docs/capabilities.md`);
     - 33 tests that passed the decision-5 scratch-copy pass (the manifest is 114 entries).
-  - **Open for the owner** (defaults to site-side): the repo-local `.claude/` hooks and their two tests, `build-update-bundle.mjs` and its three tests, and splitting `cli-entrypoints.test.js`. See the rederivation doc.
+  - **Decided site-side** (owner, 2026-10-07): the repo-local `.claude/` hooks and their two tests, `build-update-bundle.mjs` and its three tests, and `cli-entrypoints.test.js` (not split). See the rederivation doc.
   - `tests/opchain-eval.test.js` no longer imports the site flag registry.
 - Governance files: add root `SECURITY.md`, `CODE_OF_CONDUCT.md`, `TRADEMARKS.md`, `NOTICE`, `LICENSES/` explicitly. **CONTRIBUTING.md precedence:** the root file wins; therefore C2 must NOT rename `mirror/CONTRIBUTING.md` (collision — two sources mapping to one destination makes filter-repo refuse or pick arbitrarily); same logic for `mirror/SECURITY.md` (root `SECURITY.md` supersedes it — exclude the mirror copy from the manifest).
 PR the manifest for `⛔ HUMAN` review — the filter run is one-shot. **Then** `⛔ HUMAN` — Aidan announces the freeze on *every path in `split/product-paths.txt`* (not just the six directories; the manifest moves dozens of scripts and tests too). A root `package.json` dependency PR is also a frozen-path change: it rewrites the bundled `skills/*/scripts/runtime/package.json` copies. Freeze holds until the consume PR merges.

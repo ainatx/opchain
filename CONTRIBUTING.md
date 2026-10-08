@@ -15,6 +15,8 @@ npm test               # vitest suite (pretest runs the catalog/pack validators)
 npm run test:hooks     # plugin hook suites — run if you touch plugins/opchain/hooks
 ```
 
+Use npm 11 (bundled with Node 24; on Node 22 run `npm install -g npm@11`). Dependabot writes lockfiles with it and CI installs with it; npm 10's `npm ci` rejects those lockfiles (`Missing: proxy-agent@… from lock file`).
+
 Repo layout is documented at the top of `CLAUDE.md`. The short version: `skills/` is the product, `site/` + `src/` are opchain.dev, `scripts/` is build tooling, `.checkpoints/` is tracked session state.
 
 ## Before you open a PR
