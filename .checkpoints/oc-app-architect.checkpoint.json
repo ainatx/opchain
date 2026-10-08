@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-10-06T18:02:35.000Z",
+  "updated_at": "2026-10-08T07:07:32.000Z",
   "phase": "design",
-  "step": "v2.1-ow-start-design-approved",
+  "step": "v2.1-ow-build-plan-design-approved",
   "status": "in_progress",
-  "progress_summary": "v2.1.0 re-scoped 2026-10-06 by the owner: it is now the ow- skill family release (planning layer for Deftwright, built one skill at a time, shipped together; per-skill versions from 1.0.0; ship gate = owner's own Deftwright use + acceptance tests). The 2026-09-21 'Installs anywhere' plan is superseded in place and moves to 2.2 with the OSS split. ow-start redesign (20-minute fit call -> client recap with a recommended path; local Whisper + pyannote via a separate ow-intake-audio plugin) APPROVED 2026-10-06: docs/plans/2026-10-06-ow-start-intake-redesign.md. opchain.work strategy, audit and v1 draft published from local c7635b8d. Next skill: ow-build-plan (renamed from ow-blueprint).",
+  "progress_summary": "v2.1.0 = the ow- skill family (Deftwright planning layer), built one skill at a time, shipped together; per-skill versions from 1.0.0; old 2.1 plan superseded -> 2.2. Approved designs: ow-start (fit call -> client recap, 2026-10-06) and ow-build-plan (Build Plan offer, plan, quote, quick quote, 2026-10-08). Family rules: no ow-review (same-session self-checks); one code add-on ow-tools; no public ow- skill names a private skill (handoffs.yaml per workspace; blocklist llc-ops). Next: stage 03 Build skill design.",
   "progress_table": [
     {
       "id": "v20-spec",
@@ -83,6 +83,16 @@
     {
       "id": "v21-ow-build-plan-design",
       "label": "ow-build-plan design (scope, acceptance checks, risks, fixed quote)",
+      "status": "complete"
+    },
+    {
+      "id": "v21-ow-build-plan-gate",
+      "label": "* ow-build-plan design approval (approved 2026-10-08)",
+      "status": "complete"
+    },
+    {
+      "id": "v21-stage03-design",
+      "label": "Stage 03 Build skill design (weekly updates, demos, change orders)",
       "status": "in_progress"
     },
     {
@@ -168,9 +178,9 @@
   },
   "blockers": [],
   "next_actions": [
-    "Write the ow-build-plan design doc (stage 02 on staging.deftwright.com/how-we-work: scope, out-of-scope, acceptance checks, risks, fixed quote valid 14 days, 40/40/20 or 50/50 payments, 60-day credit, builder-neutral; hands agreed scope to llc-ops for the SOW).",
-    "Then write the v2.1.0 ow- family sprint plan beside the superseded one; first sprint is catalogs.json tooling before any ow- SKILL.md lands.",
-    "Open from the ow-start design: plugin home for ow-intake-audio; transcription speed spike.",
+    "Design the stage 03 Build skill (staging.deftwright.com/how-we-work: weekly written update, working demo per milestone, additional work written down and priced before it starts).",
+    "Then write the v2.1.0 ow- family sprint plan; first sprint is catalogs.json tooling before any ow- SKILL.md lands.",
+    "Open: price-book numbers (owner), delivery-mode Build Plan re-runs, ow-tools plugin home, transcription speed spike.",
     "Open: Dependabot #500 (vitest 5 major) needs its own decision."
   ],
   "skill_state": {
@@ -595,5 +605,5 @@
       "action": "Quick-feature: v2.0 asset hotfix (favicon, fallback OG card, architecture shade) on claude/v2-asset-hotfix after v2.0.0 shipped without it"
     }
   ],
-  "record_updated_at": "2026-10-06T18:02:35.000Z"
+  "record_updated_at": "2026-10-08T07:07:32.000Z"
 }
