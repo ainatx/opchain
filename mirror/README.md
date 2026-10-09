@@ -67,6 +67,21 @@ Open a new agent session afterward and run `/oc-update check` to verify the
 installed package. Learning remains off until explicitly enabled; provider access
 and an external reviewer must be configured separately.
 
+### ow-tools (Claude Code add-on for the ow- planning skills)
+
+`plugins/ow-tools/` **runs code on your machine**: local call transcription with
+speaker separation, branded PDF and Word export, date and arithmetic checks, and
+a session-start list of open workstreams. It comes from its own marketplace, so
+an administrator can approve it without approving anything else here:
+
+```
+/plugin marketplace add https://raw.githubusercontent.com/asfbay-bit/opchain-skills/main/plugins/ow-tools/.claude-plugin/marketplace.json
+/plugin install ow-tools@opchain-work-tools
+```
+
+Then run `/ow-tools` to see what your machine still needs. ow-tools installs
+nothing itself. See [plugins/ow-tools/README.md](./plugins/ow-tools/README.md).
+
 ---
 
 ## skills
