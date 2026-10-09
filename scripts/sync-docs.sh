@@ -6,6 +6,15 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="${OPCHAIN_SKILLS_DIR:-$ROOT/skills}"
 DEST="${OPCHAIN_DOCS_DIR:-$ROOT/public/docs}"
+# The served docs tree carries the oc- catalog only (catalogs.json: the ow-
+# catalog's docs output is null). Refuse any other tree before writing.
+for d in "$SRC"/*/; do
+  [[ -f "${d}SKILL.md" ]] || continue
+  case "$(basename "$d")" in
+    oc-*) ;;
+    *) echo "sync-docs: refusing to publish $SRC: $(basename "$d") is not in the oc- catalog (catalogs.json)" >&2; exit 1 ;;
+  esac
+done
 mkdir -p "$DEST"
 for d in "$SRC"/*/; do
   [[ -f "${d}SKILL.md" ]] || continue

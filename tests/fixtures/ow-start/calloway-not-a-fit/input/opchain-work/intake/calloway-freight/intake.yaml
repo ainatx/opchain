@@ -1,0 +1,19 @@
+# INVENTED TEST FIXTURE: what /ow-start-prep would have written for a fictional client.
+ow_artefact: ow-start/intake
+schema: 1
+written_by: ow-start 1.0.0 (protocol 1)
+workstream: calloway-freight
+subject: none
+created: 2026-10-07
+clock: user-stated
+origin: skill
+mode: prospect
+client: Calloway Freight
+client_slug: calloway-freight
+call_date: 2026-10-07
+call_time: "14:00"
+time_zone: America/Chicago
+attendees:
+  - you
+  - client (operations director)
+handling: "no"

@@ -1,0 +1,15 @@
+# Answer key: calloway-not-a-fit (INVENTED: fictional client, synthetic call).
+# Design §10 "Path choice", an out-of-fit team of 200. Not the right fit means
+# no NEXT: the workstream is closed in STATUS.md.
+case: calloway-not-a-fit
+input: transcript
+slug: calloway-freight
+client: Calloway Freight
+user: Robin
+checks: [headers, path, due_date, status, private_names]
+outputs: [recap]
+path: { id: not-a-fit, kind: not-a-fit, systems: none }
+due: { call_date: 2026-10-07, send_by: 2026-10-08 }
+status:
+  next: "none (closed: not the right fit)"
+private_names: [llc-ops, Deftwright]
