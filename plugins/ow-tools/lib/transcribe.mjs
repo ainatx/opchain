@@ -76,8 +76,9 @@ export function writeTranscript(dir, doc) {
 }
 
 export async function transcribe(opts, log = () => {}) {
-  const { audio, out, speakers, language = "auto", model = "large-v3-turbo", device = "cpu", force = false } = opts;
-  if (!audio) throw usage("usage: ow-tools transcribe <workstream>/audio/<file> [--out DIR] [--speakers N]");
+  const { audio, out, speakers, language = "auto", model = "large-v3-turbo", device = "cpu", force = false, banner } = opts;
+  if (!audio) throw usage("usage: ow-tools transcribe <workstream>/audio/[<file>] [--out DIR] [--speakers N]");
+  if (banner !== undefined && !/^[^\u0000-\u001f\u007f]{1,200}$/.test(banner)) throw usage("--banner must be one line of at most 200 characters");
   if (!WHISPER_MODELS[model]) throw usage(`unknown model ${model}; use large-v3-turbo or medium`);
   if (speakers !== undefined && !(Number.isInteger(speakers) && speakers > 0 && speakers < 21)) {
     throw usage("--speakers must be a whole number from 1 to 20");
@@ -147,12 +148,15 @@ export async function transcribe(opts, log = () => {}) {
     timings.merge_s = t() - t0;
 
     const doc = {
-      ow_artefact: "transcript",
+      ow_artefact: "ow-tools/transcript",
       schema: 1,
-      written_by: `ow-tools ${VERSION}`,
+      written_by: `ow-tools ${VERSION} (protocol 1)`,
       workstream: workstreamOf(outDir),
+      subject: posix(relative(outDir, audioAbs)),
       created: localDate(),
       clock: "tool",
+      origin: "third-party (recording)",
+      ...(banner ? { banner } : {}),
       language: whisper.language,
       source: {
         audio: posix(relative(outDir, audioAbs)),
@@ -224,7 +228,7 @@ export function speakers({ transcript, set = [] }) {
   const path = resolve(transcript);
   if (!isFile(path) || basename(path) !== "transcript.json") throw usage("give the path to a transcript.json written by ow-tools");
   let doc = JSON.parse(readFileSync(path, "utf8"));
-  if (doc.ow_artefact !== "transcript" || doc.schema !== 1) throw refused("not an ow-tools transcript (schema 1)");
+  if (doc.ow_artefact !== "ow-tools/transcript" || doc.schema !== 1) throw refused("not an ow-tools transcript (schema 1)");
   if (set.length) {
     doc = setRoles(doc, set);
     writeTranscript(dirname(path), doc);

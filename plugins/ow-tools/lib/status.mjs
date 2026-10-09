@@ -41,7 +41,8 @@ export const clean = (v, n = WIDTH) =>
     .trim()
     .slice(0, n);
 
-// R8: `date (clock) | skill version | artefact path | next: … | awaiting: …`
+// ow-protocol v1 §5: `<date> (clock: <source>) | <skill id> <version> | <path>
+// | next: <skill id> <verb or "on"> <path> | awaiting: none, or <what> by <date>`
 export function parseStatus(text) {
   const entries = [];
   let unparsed = 0;
@@ -71,7 +72,8 @@ export function parseStatus(text) {
   return { entries, unparsed };
 }
 
-const isNone = (v) => !v || /^(none|-|n\/a)$/i.test(v.trim());
+// ow-protocol v1 §5: a closed workstream says `next: none (closed: <reason>)`.
+const isNone = (v) => !v || /^(none\b|-$|n\/a$)/i.test(v.trim());
 
 export function openWorkstreams(entries, today) {
   const newest = new Map();

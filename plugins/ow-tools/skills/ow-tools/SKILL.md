@@ -18,7 +18,7 @@ ow-tools **runs code on this machine**. The ow- skills are text only; every piec
 
 | Command | For |
 |---|---|
-| `ow-tools transcribe <workstream>/audio/<file>` | A recording → `transcript.json` + `transcript.md`, local only (via `/ow-start-transcribe`) |
+| `ow-tools transcribe <workstream>/audio/[<file>]` | A recording → `transcript.json` + `transcript.md`, local only (via `/ow-start-transcribe`) |
 | `ow-tools speakers <transcript.json> [--set SPEAKER_00=<role>]` | Show sample lines; record who each speaker is |
 | `ow-tools export <file.md>` | Branded PDF and Word from Markdown and `opchain-work/brand.yaml`, with an accessibility pre-check |
 | `ow-tools calc today \| date \| total \| split` | Today's date, business days, totals and payment splits, checked by a tool |

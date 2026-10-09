@@ -85,9 +85,12 @@ describe("ow-tools transcribe", SPAWN, () => {
     expect(r.json).toMatchObject({ status: "done", speakers: ["SPEAKER_00", "SPEAKER_01"], duration_s: 10 });
     const doc = JSON.parse(readFileSync(join(m.ws, "transcript.json"), "utf8"));
     expect(doc).toMatchObject({
-      ow_artefact: "transcript",
+      ow_artefact: "ow-tools/transcript",
       schema: 1,
+      written_by: expect.stringMatching(/^ow-tools \d+\.\d+\.\d+ \(protocol 1\)$/),
       workstream: "intake/meridian-tile",
+      subject: "audio/fit-call.m4a",
+      origin: "third-party (recording)",
       clock: "tool",
       language: "en",
       source: { audio: "audio/fit-call.m4a", duration_s: 10 },
@@ -98,7 +101,7 @@ describe("ow-tools transcribe", SPAWN, () => {
     ]);
     expect(JSON.stringify(doc)).not.toContain(m.d); // relative paths only (R2)
     const md = readFileSync(join(m.ws, "transcript.md"), "utf8");
-    expect(md).toMatch(/^ow_artefact: transcript \| /);
+    expect(md).toMatch(/^---\now_artefact: ow-tools\/transcript\nschema: 1\n/);
     expect(md).toContain("[00:03] SPEAKER_01: We do about forty a week.");
     expect(r.json.samples.SPEAKER_01[0].text).toBe("We do about forty a week.");
   });
@@ -112,6 +115,17 @@ describe("ow-tools transcribe", SPAWN, () => {
     expect(env).toMatch(/^UV_OFFLINE=1$/m);
     expect(env).not.toContain("planted-token-must-not-pass");
     expect(readdirSync(m.tmp)).toEqual([]);
+  });
+
+  it("takes the audio/ folder ow-start names when it holds one recording, and asks which when it holds two", () => {
+    const m = machine();
+    let r = cli(["transcribe", join(m.ws, "audio"), "--banner", "CONFIDENTIAL", "--json"], { env: m.env });
+    expect(r.status, r.stdout).toBe(0);
+    expect(readFileSync(join(m.ws, "transcript.md"), "utf8").split("\n")[10]).toBe("CONFIDENTIAL");
+    write(join(m.ws, "audio", "second-call.mp4"), "x");
+    r = cli(["transcribe", join(m.ws, "audio"), "--force", "--json"], { env: m.env });
+    expect(r.status).toBe(2);
+    expect(r.json.message).toMatch(/holds 2 recordings; name one: fit-call\.m4a, second-call\.mp4/);
   });
 
   it("refuses a recording outside an audio/ folder (exit 4)", () => {

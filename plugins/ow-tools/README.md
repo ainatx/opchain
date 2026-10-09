@@ -46,7 +46,7 @@ Built and tested on macOS (Apple Silicon). Linux gets the same checks with gener
 
 | Command | |
 |---|---|
-| `/ow-start-transcribe <workstream>/audio/<file>` | Transcribe and confirm speakers (`--setup` shows what's needed) |
+| `/ow-start-transcribe <workstream>/audio/` | Transcribe and confirm speakers (`--setup` shows what's needed) |
 | `/ow-tools` | Status and setup |
 | `ow-tools …` | The command line the ow- skills call. Run `ow-tools help` for the list. Exit codes: 0 done · 2 usage · 3 missing requirement · 4 refused by a rule · 5 a tool failed |
 

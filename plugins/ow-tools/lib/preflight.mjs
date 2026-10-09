@@ -30,8 +30,21 @@ export function preflight(text, mdPath) {
   const bad = (i, msg) => problems.push(`line ${i + 1}: ${msg}`);
   let banner = null;
 
-  // Banner + R3 artefact header (only at the very top).
-  if (/^ow_artefact:/.test(lines[0] || "")) lines[0] = "";
+  // The ow- artefact header (ow-protocol v1 §4) never reaches a client: a YAML
+  // block at the very top holding ow_artefact. banner_text, when set, is the
+  // first line after it (§3b) and is kept for every page header. The audit's
+  // older one-line form (banner above an `ow_artefact: … | …` line) is read too.
+  if (lines[0] === "---") {
+    const end = lines.indexOf("---", 1);
+    if (end > 0 && lines.slice(1, end).some((l) => /^ow_artefact:/.test(l))) {
+      for (let i = 0; i <= end; i++) lines[i] = "";
+      const next = lines[end + 1] ?? "";
+      if (next.trim() && !/^\s{0,3}#/.test(next)) {
+        banner = next.trim();
+        lines[end + 1] = "";
+      }
+    }
+  } else if (/^ow_artefact:/.test(lines[0] || "")) lines[0] = "";
   else if (/^ow_artefact:/.test(lines[1] || "") && (lines[0] || "").trim()) {
     banner = lines[0].trim();
     lines[0] = "";

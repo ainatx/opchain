@@ -12,8 +12,17 @@ const SPAWN = { timeout: 30_000 };
 afterAll(cleanup);
 const ready = has("pandoc") && has("typst") && has("zip") && has("unzip");
 
-const QUOTE = `CONFIDENTIAL — prepared for Meridian Floor & Tile
-ow_artefact: quote | schema: 1 | written_by: ow-build-plan 1.0.0 (protocol 1) | workstream: plans/meridian-tile | subject: none | created: 2026-10-09 (clock: tool) | origin: skill
+const QUOTE = `---
+ow_artefact: ow-build-plan/quote
+schema: 1
+written_by: ow-build-plan 1.0.0 (protocol 1)
+workstream: plans/meridian-tile
+subject: plans/meridian-tile/scope.md
+created: 2026-10-09
+clock: tool
+origin: skill
+---
+CONFIDENTIAL — prepared for Meridian Floor & Tile
 
 # Quote: Meridian order intake
 
@@ -73,7 +82,7 @@ describe.skipIf(!ready)("ow-tools export (pandoc + Typst installed)", SPAWN, () 
     expect(doc).toContain('<w:tblHeader w:val="on" />');
     expect(doc).toContain('descr="Order process: email arrives, then it is retyped"');
     expect(doc).toContain('w:headerReference w:type="default" r:id="rIdOwHeader"');
-    expect(doc).not.toMatch(/integration-unit-zz|6,500\.00|ow_artefact/);
+    expect(doc).not.toMatch(/integration-unit-zz|6,500\.00|ow_artefact|written_by/);
     expect(unzipText(docx, "docProps/core.xml")).toContain("<dc:title>Quote: Meridian order intake</dc:title>");
     expect(unzipText(docx, "word/header-ow.xml")).toContain('descr="Example Studio logo"');
     expect(unzipText(docx, "word/header-ow.xml")).toContain("CONFIDENTIAL — prepared for Meridian Floor &amp; Tile");

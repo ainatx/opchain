@@ -1,15 +1,26 @@
 // Privacy guards that run before ow-tools writes anything (design §8).
-import { mkdtempSync, realpathSync, rmSync } from "node:fs";
+import { mkdtempSync, readdirSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
-import { isDir, isFile, refused, run } from "./core.mjs";
+import { isDir, isFile, refused, run, usage } from "./core.mjs";
 
 export const IGNORE_LINES = ["opchain-work/**/audio/", "opchain-work/**/transcript.*"];
 
+const RECORDING = /\.(m4a|mp4|webm|mp3|wav|aac|ogg|oga|opus|flac|mov|mkv)$/i;
+
 // Recordings are always kept in a folder named `audio` (ow-start §8): one
-// folder rule is safer than an extension list in .gitignore.
+// folder rule is safer than an extension list in .gitignore. ow-start's NEXT
+// names the folder ("use ow-tools to transcribe intake/<client>/audio/"), so
+// a folder holding exactly one recording stands for that recording.
 export function assertAudioInput(file) {
-  const abs = resolve(file);
+  let abs = resolve(file);
+  if (isDir(abs)) {
+    if (basename(abs) !== "audio") throw refused(`recordings must sit in a folder named "audio"; ${file} is a different folder`);
+    const found = readdirSync(abs).filter((n) => RECORDING.test(n) && isFile(join(abs, n))).sort();
+    if (found.length === 0) throw refused(`no recording in ${file} (looked for .m4a, .mp4, .webm, .mp3, .wav and similar)`);
+    if (found.length > 1) throw usage(`${file} holds ${found.length} recordings; name one: ${found.join(", ")}`);
+    abs = join(abs, found[0]);
+  }
   if (!isFile(abs)) throw refused(`no such recording: ${file}`);
   if (basename(dirname(abs)) !== "audio") {
     throw refused(
