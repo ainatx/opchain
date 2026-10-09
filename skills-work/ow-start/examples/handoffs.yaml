@@ -1,0 +1,25 @@
+# opchain-work/handoffs.yaml: INVENTED EXAMPLE with defaults only.
+#
+# Where work goes when it leaves the ow- skills. You write this file; no skill
+# edits it, checks a destination or names one. Each skill writes a neutral
+# handoff file first. With no say: line under a key (as here), the skill
+# prints a public default anyone can follow.
+#
+# To route a handoff, give it a say: line. {files} is replaced with the
+# handoff file's path. For example:
+#
+#   contract:
+#     say: "send {files} to whoever drafts our contracts"
+ow_artefact: ow-start/handoffs
+schema: 1
+written_by: user (created from the ow-start example)
+workstream: none
+subject: none
+created: 2026-10-06
+clock: user-stated
+origin: user
+
+contract:       # after the client accepts a quote (file: contract-inputs.md)
+build:          # once the work is signed (file: build-request.md)
+change_order:   # a change agreed in principle during the build
+invoice:        # a payment that has fallen due during the build

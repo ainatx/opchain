@@ -1,0 +1,60 @@
+{
+  "$comment": [
+    "One entry per skill catalog. scripts/gen-skills-catalog.mjs (frontmatter, packaging) and scripts/check-skill-contracts.mjs (verbs, cross-catalog names, protocol copies) iterate every entry, each with its own prefix and verb regex.",
+    "outputs names the build outputs a catalog feeds. null means the catalog is kept out of that output on purpose: the ow- catalog is in no dev plugin, zip, docs tree, flag registry, hosted MCP catalog or public mirror until a PR of its own wires it in.",
+    "The scripts that write those outputs (sync-plugin-skills, sync-skill-bundles, make-skills-zip, sync-docs, gen-mcp-catalog) refuse a source tree holding any skill outside the oc- prefix, so pointing OPCHAIN_SKILLS_DIR at skills-work/ fails before anything is deleted or written."
+  ],
+  "catalogs": [
+    {
+      "id": "oc",
+      "dir": "skills",
+      "dirEnv": "OPCHAIN_SKILLS_DIR",
+      "prefix": "oc-",
+      "verbPrefix": "/oc-",
+      "frontmatter": "oc",
+      "phases": ["foundation", "plan", "build", "ai-native"],
+      "protocol": { "kind": "orchestrator", "sourceSkill": "oc-checkpoint-protocol" },
+      "notInvocable": ["oc-checkpoint-protocol"],
+      "requiredSkills": ["oc-checkpoint-protocol"],
+      "versionPolicy": "lockstep",
+      "outputs": {
+        "plugin": "plugins/opchain/skills",
+        "zip": "public/opchain-skills.zip",
+        "docs": "public/docs",
+        "flagRegistry": "src/lib/flags/registry.js",
+        "mcpCatalog": "src/generated/mcp-catalog.json",
+        "mirror": ".github/workflows/mirror-public.yml"
+      }
+    },
+    {
+      "id": "ow",
+      "dir": "skills-work",
+      "dirEnv": "OPCHAIN_WORK_SKILLS_DIR",
+      "prefix": "ow-",
+      "verbPrefix": "/ow-",
+      "frontmatter": "agent-skills",
+      "protocol": {
+        "kind": "file",
+        "source": "ow-protocol.md",
+        "copy": "references/ow-protocol.md",
+        "version": 1
+      },
+      "notInvocable": [],
+      "requiredSkills": [],
+      "versionPolicy": "per-skill",
+      "bodyTokenBudget": 5000,
+      "planned": ["ow-build-plan", "ow-build"],
+      "addons": { "ow-tools": ["/ow-start-transcribe"] },
+      "privateNames": ["llc-ops"],
+      "brandNames": ["Deftwright"],
+      "outputs": {
+        "plugin": null,
+        "zip": null,
+        "docs": null,
+        "flagRegistry": null,
+        "mcpCatalog": null,
+        "mirror": null
+      }
+    }
+  ]
+}

@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-10-08T07:22:46.000Z",
-  "phase": "design",
-  "step": "v2.1-ow-build-design-approved",
+  "updated_at": "2026-10-09T20:04:05.000Z",
+  "phase": "build",
+  "step": "v2.1-ow-start-built-pr-open",
   "status": "in_progress",
-  "progress_summary": "v2.1.0 = the ow- skill family (Deftwright planning layer), built one skill at a time, shipped together; per-skill versions from 1.0.0; old 2.1 plan superseded -> 2.2. Approved designs: ow-start (fit call -> client recap, 2026-10-06) and ow-build-plan (Build Plan offer, plan, quote, quick quote, 2026-10-08). Family rules: no ow-review (same-session self-checks); one code add-on ow-tools; no public ow- skill names a private skill (handoffs.yaml per workspace; blocklist llc-ops). ow-build (stage 03: weekly HTML update, demos, signed change orders, payment ledger, acceptance) approved 2026-10-08. Next: stage 04 Handoff design or the 2.1.0 sprint plan.",
+  "progress_summary": "v2.1.0 = the ow- skill family (planning layer over opchain), built one skill at a time, shipped together; per-skill versions from 1.0.0; old 2.1 plan moves to 2.2. Approved designs: ow-start (fit call -> client recap), ow-build-plan, ow-build. Family rules: no ow-review (same-session self-checks); code only in the ow-tools add-on; no public ow- skill names a private skill (handoffs.yaml per workspace; blocklist llc-ops). 2026-10-09: ow-start 1.0.0 built on claude/ow-start-skill: catalogs.json with per-catalog gen-skills-catalog / check-skill-contracts (oc- outputs proven byte-identical), ow-protocol v1, skills-work/ow-start, mechanical \u00a710 acceptance fixtures; ow- kept out of plugin, zips, docs, flags, MCP catalog and mirror by guards. PR open; nothing deployed.",
   "progress_table": [
     {
       "id": "v20-spec",
@@ -101,6 +101,16 @@
       "status": "complete"
     },
     {
+      "id": "v21-catalogs-tooling",
+      "label": "catalogs.json + per-catalog catalog checks (design \u00a79 item 1)",
+      "status": "complete"
+    },
+    {
+      "id": "v21-ow-start-build",
+      "label": "ow-start 1.0.0: ow-protocol v1, skill, acceptance fixtures (PR open)",
+      "status": "in_progress"
+    },
+    {
       "id": "v21-sprint-plan",
       "label": "v2.1.0 ow- family sprint plan",
       "status": "not_started"
@@ -183,10 +193,11 @@
   },
   "blockers": [],
   "next_actions": [
-    "Decide the next ow- skill (stage 04 Handoff is the natural one; ow-build's -accept hands off to it) or write the v2.1.0 sprint plan.",
-    "Then write the v2.1.0 ow- family sprint plan; first sprint is catalogs.json tooling before any ow- SKILL.md lands.",
-    "Open: price-book numbers (owner), delivery-mode Build Plan re-runs, ow-tools plugin home, transcription speed spike.",
-    "Open: Dependabot #500 (vitest 5 major) needs its own decision."
+    "Review and merge the ow-start PR (claude/ow-start-skill); it also carries the three planning-branch design commits.",
+    "Run a real ow-start acceptance pass: node scripts/ow-start-acceptance.mjs --prepare larkspur-prospect <dir>, extract in a session, then check that run.",
+    "Next skill: ow-build-plan (its Reads-from row for intake-record.md and the recap path_* header, price-book and brand examples, edge reciprocity checks).",
+    "Separate PRs: mirror skills-work/ publicly, an install path for ow- skills, the ow-tools add-on (transcription, export, SessionStart hook).",
+    "Open: price-book numbers (owner), delivery-mode Build Plan re-runs, ow-tools plugin home, transcription speed spike."
   ],
   "skill_state": {
     "feature": {
