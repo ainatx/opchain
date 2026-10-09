@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-09-21T15:12:09.631Z",
-  "phase": "pr",
-  "step": "pr-565-open",
+  "updated_at": "2026-09-30T05:41:09.554Z",
+  "phase": "pr-open",
+  "step": "pr-584-gate-12",
   "status": "in_progress",
-  "progress_summary": "Opened PR #565 from claude/wonderful-ellis-4d4a56 on main 8d6ba25: aaa72ac gives subprocess-heavy tests (c3 telemetry hygiene, update-bundle, shared-runtime-artifact, source-update) explicit 30s vitest timeouts after they flaked the pre-commit gate's tests check; plus docs/readiness evidence. Every commit passed the enrolled commit gate. #564 merged 2026-09-21 (8d6ba25), retiring its merge action.",
+  "progress_summary": "Opened PR #584 (fix/commit-gate-target-repo): the legacy PreToolUse commit gate now checks the repository the commit lands in (GATE-12). Two commits: the fix (88aeb48) and the docs-forge/repo-ops handoffs (9d9cfea); pre-commit verifier PASS on both, evidence:pr PASS. Awaiting CI, then the owner's DCO squash-merge. No release or deploy.",
   "progress_table": [
     {
       "id": "v1.9-release-pr",
@@ -162,12 +162,7 @@
   },
   "blockers": [],
   "next_actions": [
-    {
-      "text": "Owner: squash-merge #565 (commit-gate flaky-test timeouts) with DCO sign-off once CI is green.",
-      "done_when": "#565 merged to main"
-    },
-    "Owner, from the laptop: delete the 34 bot/checkpoint-stamp-* branches and the wip/v1-8-docs-mesh-20260703 tag; this session's credentials get HTTP 403 on ref deletion. Command: for b in $(git ls-remote --heads origin 'refs/heads/bot/checkpoint-stamp-*' | awk '{print $2}' | sed 's|refs/heads/||'); do git push origin --delete \"$b\"; done; git push origin --delete wip/v1-8-docs-mesh-20260703",
-    "Owner: triage the stale claude/, codex/, chore/, design/, docs/ branches listed in the session summary (older than 30 days, none merged into main)."
+    "Wait for CI on PR #584, then hand the owner the gh pr merge --squash command with the Signed-off-by trailer"
   ],
   "skill_state": {
     "current_branch": "claude/wonderful-ellis-4d4a56",
@@ -731,5 +726,5 @@
     },
     "dependabot_note": "Comment commands (`@dependabot rebase`, `@dependabot ignore ...`) are not processed on the Dependabot PRs opened on 2026-08-31 during the repository transfer (#471, and by extension #472); Dependabot's scheduled runs still manage them (auto-rebase on conflict works). Use GitHub update-branch for those PRs, as with #473."
   },
-  "record_updated_at": "2026-09-21T15:12:09.631Z"
+  "record_updated_at": "2026-09-30T05:41:09.554Z"
 }

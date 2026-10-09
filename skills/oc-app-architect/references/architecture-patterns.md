@@ -266,7 +266,7 @@ try {
 | State Type | Where It Lives | Tool | Examples |
 |---|---|---|---|
 | Server state | Database, fetched via API | TanStack Query / SWR | User data, items, settings |
-| Client state | Component or store | useState / Zustand | Modal open, sidebar collapsed, form draft |
+| Client state | Component or store | useState / Zustand | Modal open, mobile menu open, form draft |
 | URL state | URL search params | useSearchParams / nuqs | Filters, sort order, pagination, active tab |
 | Derived state | Computed from above | useMemo / computed | Filtered lists, totals, status counts |
 

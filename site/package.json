@@ -27,8 +27,8 @@
     "@astrojs/sitemap": "^3.7.4",
     "astro": "^7.3.5",
     "dompurify": "^3.4.15",
-    "isomorphic-dompurify": "^4.2.0",
-    "marked": "^18.0.13"
+    "isomorphic-dompurify": "^4.4.0",
+    "marked": "^18.0.14"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
@@ -38,5 +38,19 @@
     "@tailwindcss/vite": "^4.3.3",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.6.0"
+  },
+  "overrides": {
+    "sharp": "^0.35.5",
+    "basic-ftp": "^6.2.2",
+    "tmp": "^0.2.7",
+    "uuid": "^11.1.1",
+    "puppeteer-core": {
+      "@puppeteer/browsers": "^3.2.3"
+    },
+    "@lhci/utils": {
+      "js-yaml": {
+        "argparse": "^2.0.1"
+      }
+    }
   }
 }

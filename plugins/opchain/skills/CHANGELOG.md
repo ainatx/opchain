@@ -13,7 +13,37 @@ checkpoint `protocol_version` is tracked separately (see
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+
+- **Navigation rule: top navigation only.** Primary navigation on every surface
+  (public sites, apps, admin and CRM shells, dashboards, docs) is a top bar or
+  header. A sidebar or rail used as primary navigation is a blocking regression.
+  `oc-app-architect` holds the rule through Phase 3 (wireframes, the
+  oc-dash-forge handoff, the design-approval gate), the Phase 6 Evaluator
+  (Visual/UX capped at 3/10, sprint FAIL) and the launch checklist, and its
+  reference guides no longer teach a sidebar layout. `oc-ux-engineer` adds a
+  blocking Navigation gate before scoring, plus Flow Audit and Fidelity rows.
+  `oc-release-ops` adds a pre-tag `/oc-release verify` row in every project. In-page
+  tables of contents, filter panels and record side panels are not navigation.
+  The only exception is the project owner's written approval for one named
+  screen, recorded in `skill_state.nav_exceptions[]`. A project that ships a
+  sidebar today fails `/oc-release verify` until that screen moves to a top bar
+  or is recorded as an exception.
+
+### Fixed
+
+- **The legacy commit gate checks the repository the commit lands in.**
+  `plugins/opchain/hooks/pre-commit-gate.cjs` read the bug-check checkpoint of
+  the session's working directory, whatever the command said. A session rooted
+  in one repo that ran `cd <other repo> && git commit` or `git -C <other repo>
+  commit` was denied although the other repo held a fresh PASS matching its
+  tree. The reverse failed open: a PASS in the session's repo cleared a commit
+  in a repo that had none. The gate now follows `cd`, `pushd`/`popd`,
+  subshells, literal variables, `eval` and `sh -c` to each commit, gates every
+  commit in its own repo, and names that repo in every deny (GATE-12). A
+  directory it cannot know, such as `cd "$(mktemp -d)"`, denies only when the
+  session's repo is enrolled. The hook has been unregistered since 1.9.2, but
+  installs on 1.9.1 or earlier still run it.
 
 ## [2.0.4] — 2026-09-21 — "Bug fixes"
 

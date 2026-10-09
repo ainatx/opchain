@@ -277,6 +277,21 @@ Write checkpoint: phase "spec-approved".
 
 Read `references/ux-design-guide.md` for the full methodology.
 
+**Navigation rule — top navigation only (hard rule, added 2026-10-07).** Primary
+navigation on every surface — public sites, apps, admin and CRM shells, dashboards,
+docs — is a top bar / header. On phones the header keeps a menu button (or a bottom
+tab bar); the menu it opens is part of the top nav. A left or right sidebar or rail
+used as primary navigation is a **regression and a blocking FAIL**, no matter what the
+design direction, template, component library, reference app or prior version shows.
+Not covered (allowed): an in-page table of contents, filter panels, a record's detail
+side panel, a settings sub-menu inside a page. The only exception is the project
+owner's written approval for one named screen, recorded in the checkpoint's
+`skill_state.nav_exceptions[]` (`{screen, date, quote}`); it never carries over to
+another screen or a later redesign. An existing sidebar found in a project is a
+migration item on the punch list, not a pattern to copy.
+It binds every Phase 3 artifact (style book, wireframes, prototypes, punch list), the
+oc-dash-forge handoff, the oc-ux-engineer Design Evaluator and the Phase 6 Evaluator.
+
 ### 3a. Style Book
 Interactive HTML showing all design tokens live: colors, typography, spacing, borders,
 component examples (buttons, forms, cards in all variants × states).
@@ -296,11 +311,14 @@ navigation paths.
 - Above-the-fold vs. scroll content
 - Empty / loading / error / success states (all four)
 - Responsive behavior at 375 / 768 / 1280px (or declare "desktop only" with reason)
+- Navigation: where the top bar sits and what it holds at each breakpoint. A sidebar
+  here is a regression (Navigation rule above) — redraw it as a header before review
 
 **Data-heavy surfaces chain to oc-dash-forge.** When a screen is data-heavy (≥3 charts/tables, real-time updates, BI/monitoring/analyst archetype, or rendering oc-data-ops' contracted marts), invoke oc-dash-forge per orchestrator.md §3:
 
 1. Read `oc-dash-forge/SKILL.md` for the canonical archetype scoping table.
-2. Execute `/oc-data-forge` with the design tokens + spec context.
+2. Execute `/oc-data-forge` with the design tokens + spec context, **and the Navigation
+   rule**: dashboards keep the top bar too, so reject a handoff whose shell is a sidebar.
 3. Mark the screen `source: oc-dash-forge` and skip inline wireframes — oc-dash-forge's handoff bundle plugs into the Phase 3d punch list directly.
 
 Non-data-heavy screens get wireframes generated inline using the Phase 3a token system.
@@ -314,6 +332,9 @@ all states, responsive at 375/768/1280px.
 **Skip for dash-forge-routed screens** — they're handled separately.
 
 ### ★ Design Direction Approval Gate
+Before asking for approval, confirm every screen's primary navigation is a top bar at
+375 / 768 / 1280px. A direction with sidebar navigation is never presented — fix it first
+(Navigation rule; the only exception is a recorded `nav_exceptions[]` entry).
 Write checkpoint: phase "design-approved".
 
 ### 3d. Screen & Component Punch List
@@ -481,6 +502,10 @@ and the code, and grade from those alone — not the generator's exploration.
   instead of an invented threshold; the <50%-contracted-tests penalty still
   applies independently (v1.9)
 - Start dev server, hit endpoints
+- Navigation check (UI sprints): load every changed screen at 375 / 768 / 1280px and
+  confirm primary navigation is the top bar. A sidebar or rail as primary nav →
+  Visual/UX Quality capped at 3/10 and the verdict is FAIL, whatever the other scores
+  (Navigation rule, Phase 3)
 - Build errors, lint issues, type errors
 - Read oc-code-auditor checkpoint for pre-existing issues
 
@@ -535,7 +560,7 @@ standalone ITERATE verdict counts as FAIL here.
 **Evaluator behaviors:**
 - Skeptical by default. Fight the natural tendency to approve mediocre work.
 - Never approve "mostly works." Broken core feature = FAIL.
-- Specific feedback: "sidebar collapses at 768px because no min-width" not "UI needs work."
+- Specific feedback: "header nav wraps to two lines at 768px because no min-width" not "UI needs work."
 - Check the running app, not just the code.
 - 5/10 means mediocre. Give it.
 
@@ -592,6 +617,7 @@ Write this list to `checklists/launch-checklist.md` and tick it off there.
 - [ ] Analytics tracking verified
 - [ ] README published
 - [ ] User tested production URL
+- [ ] Primary navigation is still a top bar on every screen (no sidebar regression)
 
 ### Post-Launch
 - Day 1: Monitor error rates

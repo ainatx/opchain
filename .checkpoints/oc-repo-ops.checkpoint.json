@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-05T22:45:00.000Z",
+  "updated_at": "2026-10-08T06:11:23.219Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "v2-1-plan-release-rule-sim-audit",
-  "progress_summary": "PR readiness PASS for fix/time-canary-2.1.286 (time canary 2.1.286 review).",
+  "step": "pr-spec-isomorphic-dompurify-4",
+  "progress_summary": "PR readiness PASS for the docs-only spec version fix (specs/spec/01-tech-stack.md isomorphic-dompurify ^4.4): catalogs, bundles and generated surfaces in sync, docs packet bound to HEAD, no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -37,20 +37,18 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Owner real-client dogfood remains pending.",
-      "Ten generated package.json mirrors are the documented necessary exception to the earlier path freeze.",
-      "Previously accepted real-corpus incremental collector latency remains a performance follow-up."
+      "checkpoint doctor: 30 pre-existing warnings (non-blocking)."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "e58dd26865b4d9655b34cc1347994e332ee56469",
+    "verified_for_sha": "420f998b9c5a07a4ac9c1de524b7a7ec7dd341ac",
     "last_verify": {
-      "at": "2026-09-27T06:18:59.773427Z",
-      "branch": "codex/time-tracking-sprint-2",
-      "base": "codex/time-tracking-sprint-1@4f47b503c8ca1d407fa6206c47a0f01b6997c38e",
+      "at": "2026-10-08T06:11:23.219Z",
+      "branch": "docs/spec-isomorphic-dompurify-4",
+      "base": "origin/main@87de52f",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1022,6 +1020,29 @@
       }
     },
     {
+      "id": "oc-repo-ops-ossprep-0efa93035af4",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-09-27T19:59:05.000Z",
+      "verified_at": "2026-09-27T19:59:05.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "oss-split-rederive-sprint1-prep"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:0efa93035af4b0b17061f71ce755c0ee9a1607cf91bf346e21c7fb9119580386"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Every manifest entry exists on the tree; import closure from the manifest leaves one documented site edge; no local paths in added docs; clean tree; pre-commit candidate verifier passed (a3af9fd48da7).",
+        "evidence": [
+          "split/product-paths.txt"
+        ]
+      }
+    },
+    {
       "id": "oc-repo-ops-time-canary-2-1-284-8d712299e89b",
       "contract_version": "1.0",
       "type": "verification.verdict",
@@ -1068,8 +1089,274 @@
           "tests/time/fixtures/producer-2.1.286.mjs"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-deps-audit-gate-c2f20dc1e358",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T19:20:45.000Z",
+      "verified_at": "2026-10-07T19:20:45.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "deps-audit-gate"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c2f20dc1e3585acb92be1498bc0a70a84a5d076af25ea24dc0ebf129b9f0d4ef"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Branch from origin/main bff3441; 14 files, all dependency manifests/lockfiles or generated runtime package.json copies (sync-bundles:check and sync-plugin-skills:check clean). npm audit: 0 vulnerabilities at root and site after npm ci. npm test 1452/1452, site astro check and npm run build PASS; check-skill-contracts PASS; local lhci collect+assert PASS on all 7 routes with the @puppeteer/browsers override. Candidate verifier PASS on all eight checks incl. dependencies and dependencies_site (tree b01aae6aec50). No local paths, usernames or client names in the diff.",
+        "evidence": [
+          "package-lock.json",
+          "site/package-lock.json"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-deps-audit-gate-7cec9ac0658e",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T19:40:35.000Z",
+      "verified_at": "2026-10-07T19:40:35.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "deps-audit-gate-npm10"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:7cec9ac0658e9a3f304b41f6979cbb895821e3f581ddc285b4157cc8ac523107"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "CI npm ci (npm 10) rejected the npm 11 site lock (missing proxy-agent@8.0.2 tree for the optional peer of @puppeteer/browsers 3.x). Regenerated with npm 10.9.9; clean npm ci passes under npm 10 and npm 11 at root and site; npm audit 0 under both. Site astro check 0 errors, astro build PASS, lhci collect+assert PASS on 7 routes. Pre-commit candidate verifier PASS (tree 79311eca1260). No local paths or usernames in the diff.",
+        "evidence": [
+          "site/package-lock.json"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr-500-vitest-5-2a03620cf580",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T21:42:25.000Z",
+      "verified_at": "2026-10-07T21:42:25.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-500-vitest-5"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:2a03620cf5802b39346be5ee64d12db0fe2d7a426a751cc4bfaf8b8edcd4cfe8"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "CI failed sync-bundles:check because the five bundled runtime package.json mirrors still pinned vitest ^4.1.11; regenerated with sync-bundles and sync-plugin-skills. gen-catalog (36 skills), gen-mcp-catalog, sync-bundles:check, sync-plugin-skills:check, check-skill-contracts and checkpoint:validate all PASS; working tree clean, no untracked files. Vitest 5.0.3 runs 101 files / 1452 tests, identical to the last green main runs on vitest 4. npm audit 0 at root and site; all lock entries resolve from registry.npmjs.org. Pre-commit candidate verifier PASS (tree a87aea54772c). No local paths or usernames in the diff.",
+        "evidence": [
+          "package.json",
+          "package-lock.json",
+          "plugins/opchain/skills/oc-update/scripts/runtime/package.json"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr582-baseline-secret-drift-44029d554ede",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T22:12:53.924Z",
+      "verified_at": "2026-10-07T22:12:53.924Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr582-baseline-secret-drift"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:44029d554edebcf4403ad6b82bd26acfa2c20b77841391201fb1fd96f60e8b62"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "ainatx/opchain#582 at e12373a (origin/main adca5f8 merged clean; root deps reinstalled for the vitest 5 lock). Net diff vs main is .github/monitoring/release-baseline.json only; worktree clean apart from the checkpoint update; build regenerated nothing tracked. sync-bundles:check, sync-plugin-skills:check, check-skill-contracts, lint-internal-refs PASS; checkpoint validate 0 errors, doctor 0 errors (30 date-based warnings, pre-existing). Docs Forge pr-docs-v1 PASS bound to e12373a; PR body has ## Documentation with two pre-existing follow-ups. Candidate verifier PASS 8/8 on the pre-merge tree; the commit boundary and CI rerun it on this tree. Read-only control-plane monitor passes against this baseline for production and staging.",
+        "evidence": [
+          ".github/monitoring/release-baseline.json",
+          ".checkpoints/oc-docs-forge.checkpoint.json"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-top-nav-rule-bc43809283e1",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T22:30:11.000Z",
+      "verified_at": "2026-10-07T22:30:11.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-590-top-nav-rule-merge-bce032f"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:bc43809283e17f1ecb5b40182c73fc802b90ac23c36f4c8438ff7638010412cd"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Merged main@bce032f into rule/top-nav-only (691c469); .checkpoints conflicts resolved to main's version. npm ci on the vitest 5.0.3 lock; pretest generation chain leaves no drift; sync-plugin-skills, sync-bundles, lint-internal-refs and check-skill-contracts pass; no untracked files. Pre-commit candidate verifier PASS on all 8 checks for tree 9fcbf3e05b57, no bypass.",
+        "evidence": [
+          "package-lock.json",
+          "src/generated/mcp-catalog.json"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-gate12-a23aa3a9a50a",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T22:56:54.648Z",
+      "verified_at": "2026-10-07T22:56:54.648Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "gate-12-merge-main"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:a23aa3a9a50a8efca1d9b8ff94e71ac5b953efb60e84709db9d1130e97ce1797"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Merged origin/main bbe74ce (#500, #582, #590, #591) at bbf1af5; changelog conflict resolved keeping both [Unreleased] entries; docs-forge/repo-ops checkpoint conflicts take main then append these verdicts. sync-plugin-skills:check, lint-internal-refs, check-skill-contracts, checkpoint:validate pass; test:hooks 183/183 + 19/19; pre-commit candidate verifier PASS (b77d380097e6) on retry after a load-driven 5s timeout in tests/time/draft-cli.test.mjs (passes 3/3 alone in ~3s).",
+        "evidence": [
+          "plugins/opchain/hooks/pre-commit-gate.cjs",
+          "plugins/opchain/hooks/test-gate.cjs",
+          "skills/CHANGELOG.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr592-markdown-0630eafd125b",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-07T23:30:15.000Z",
+      "verified_at": "2026-10-07T23:30:15.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr592-markdown-npm10"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:0630eafd125bd7593d76d4296921e33a1bdc1d640a909949fbf0986874b0223c"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Branch dependabot/npm_and_yarn/site/markdown-15d9085268 merged with origin/main d81562c (clean merge). Diff vs main: site/package.json and site/package-lock.json only, 10 insertions and 10 deletions. Dependabot lock dropped 14 optional-peer entries; npm 10.9.9 package-lock-only regen restores them and reports up to date after the merge. Clean npm ci passes under npm 10 and npm 11 for site; root npm ci under npm 10 installs vitest 5.0.3 from main. sync-bundles:check and sync-plugin-skills:check clean, checkpoint validate clean, no untracked files, no local paths in the diff. Pre-merge: astro check 0 errors, site and worker builds PASS, npm test 1452/1452, lhci autorun PASS on 7 routes. The commit gate re-runs the full strict policy on this tree.",
+        "evidence": [
+          "site/package.json",
+          "site/package-lock.json"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-ci-npm11-00c8a4a112de",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-08T00:05:23.000Z",
+      "verified_at": "2026-10-08T00:05:23.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "ci-npm11-resync"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:00c8a4a112de94ac866ab6aec18d8b6bd1d50977f7df65fabd70a4d1b9f2ec10"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Diff vs origin/main 6b75a8d is exactly 4 files (3 workflows, CONTRIBUTING.md). Merge conflicts were checkpoint files only (took main, re-bound here). Clean site npm ci under npm 11.17 on #592's lock exit 0; earlier head passed npm test 101 files / 1452 tests, astro check, npm run build and the CI probe. Pre-commit candidate verifier PASS on the merge commit. No local paths in the diff.",
+        "evidence": [
+          ".github/workflows/ci.yml",
+          ".github/workflows/lighthouse.yml",
+          ".github/workflows/lighthouse-prod.yml"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr-secret-change-baseline-docs-ee78c1bff6d6",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-08T00:26:29.396Z",
+      "verified_at": "2026-10-08T00:26:29.396Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-secret-change-baseline-docs"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:ee78c1bff6d6f7ee522948ee8a76e1f77a4b378c47a2e77efd2f660e357b1e6a"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "docs/secret-change-baseline-refresh at a2a773e (one docs commit on origin/main b79df5b; CLAUDE.md + docs/runbooks/cloudflare-challenge.md only). sync-bundles:check, sync-plugin-skills:check, lint-internal-refs, gen-catalog, check-skill-contracts, checkpoint:validate pass; checkpoint doctor 0 errors (30 pre-existing staleness warnings); no untracked files; paths referenced by the new runbook text exist; pre-commit candidate verifier PASS (87c72348a41c). Docs Forge packet verified_for_sha = HEAD.",
+        "evidence": [
+          "CLAUDE.md",
+          "docs/runbooks/cloudflare-challenge.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-ossprep-recheck-675c31650c62",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-08T00:38:53.000Z",
+      "verified_at": "2026-10-08T00:38:53.000Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "oss-split-rederive-sprint1-prep-recheck"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:675c31650c625cce4641b0c9e95b1c293875e37c675e36e074cf3efa82fac9ee"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Merged origin/main 5a40d97; conflicts only in two .checkpoints files (both sides kept). All 114 manifest entries exist and the import closure has no unlisted edges; 33 manifest tests passed a scratch-copy run with the C4 package.json; 11 stay site-side; tag, skill and command counts unchanged; no local paths in the diff; checkpoint:validate all valid; the commit-boundary candidate verifier gates the final tree.",
+        "evidence": [
+          "split/product-paths.txt",
+          "docs/runbooks/oss-split-rederivation-2026-09-27.md",
+          "docs/runbooks/oss-split-execution-handoff.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr-spec-isomorphic-dompurify-4-b7c40bc71409",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-08T06:11:23.219Z",
+      "verified_at": "2026-10-08T06:11:23.219Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-spec-isomorphic-dompurify-4"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:b7c40bc714096ef98588c26318b4033eef5114054da1468621c66c0d80cc850e"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "docs/spec-isomorphic-dompurify-4 at 420f998 (one docs commit on origin/main 87de52f; specs/spec/01-tech-stack.md only). sync-bundles:check, sync-plugin-skills:check, lint-internal-refs, gen-catalog, check-skill-contracts, checkpoint:validate pass; checkpoint doctor 0 errors (30 pre-existing warnings); no untracked files; pre-commit candidate verifier PASS (6e5013dd). Docs Forge packet verified_for_sha = HEAD.",
+        "evidence": [
+          "specs/spec/01-tech-stack.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-05T22:45:00.000Z",
+  "record_updated_at": "2026-10-08T06:11:23.219Z",
   "blockers": []
 }

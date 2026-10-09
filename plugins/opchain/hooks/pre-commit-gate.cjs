@@ -97,6 +97,16 @@
 //            whether it is untracked, tracked, rewritten or staged no longer
 //            moves the tree. Every other file, other checkpoints included, still
 //            does.
+//   GATE-12  The gate checked the session's working directory, not the repo the
+//            command commits in. On 2026-09-30 a session rooted in one repo ran
+//            `cd <other repo> && git commit`, and was denied as "has not run in
+//            this repo" although the other repo held a fresh PASS matching its
+//            tree. The reverse failed OPEN: a PASS in the session's repo cleared
+//            a commit in a repo that had none. `git -C <dir> commit` (GATE-04's
+//            worktree form) was misread the same way. Fixed: the command is
+//            walked the way bash runs it — `cd`, `pushd`/`popd`, subshells,
+//            literal variables, `eval`, `sh -c` — each commit is gated in its
+//            own repo, and every deny names the repo it checked.
 //
 // The through-line: every one of these failed OPEN. A gate whose error path is
 // "allow" is a formality, not a gate. Hence rule 0.
@@ -793,19 +803,311 @@ if (!(GIT_COMMIT.test(span.stripped) || wrapperRunsCommit(span) || shellRunsComm
   allow();
 }
 
+// ── which repository does the commit land in? (GATE-12) ─────────────────────
+// The gate once checked the session's working directory whatever the command
+// said, so `cd /other/repo && git commit` and `git -C /other/repo commit` were
+// judged by the WRONG repo's checkpoint: a fresh PASS there was denied as
+// "has not run", and — the fail-open half — a PASS in the session's repo let an
+// unverified commit through in the other one. So the command is walked in
+// order, tracking the directory the way bash would through `cd`, `pushd`,
+// `popd`, subshells, `eval` and `sh -c '…'`, and `git -C` is resolved against
+// it. Every commit found is gated in its own repo.
+//
+// The walk locates; it does not detect. Whether this is a commit at all was
+// decided above. When the walk finds no commit it can place — one inside
+// `$(…)`, `find -exec`, a pipe into `sh` — every directory the command visits
+// is gated, the session's included (RULE 0). A variable is followed when the
+// command assigns it a literal first (`W=/path; cd "$W"`), and so is
+// `cd "$(git rev-parse --show-toplevel)"`. A directory the gate still cannot
+// know (`cd "$(mktemp -d)"`, `git --git-dir …`, `GIT_DIR=…`) denies — but only
+// where the session's own repo opted in (RULE 3).
 const cwd = input.cwd || process.cwd();
-const repoRoot = git(["rev-parse", "--show-toplevel"], cwd) || cwd;
+const HOME = os.homedir();
+const UNKNOWN = Symbol("unknown directory");
+const SHELLS = /^(?:sh|bash|zsh|dash|ksh)$/;
+const PREFIX_NAMES = new Set(PREFIXES.split("|"));
+const RESERVED = new Set(["{", "}", "!", "if", "then", "else", "elif", "do", "while", "until", "time"]);
+const ASSIGN = /^([A-Za-z_][A-Za-z0-9_]*)=/;
+const DECLARE = new Set(["export", "readonly", "declare", "local", "typeset"]);
+// A variable reference inside a word, resolved when the walk reaches the word.
+const REF = (name) => `\0${name}\0`;
+const TOPLEVEL = /^\$\(\s*git\s+rev-parse\s+--show-toplevel\s*\)$/;
+
+function isDir(p) {
+  try {
+    return fs.statSync(p).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The simple commands of `src` as words, in order, with `(` and `)` kept as
+ * scope marks. A word is { text, dyn }: quotes removed and `~` expanded, with
+ * `$NAME`, `${NAME}` and `$(git rev-parse --show-toplevel)` left as references
+ * for the walk to resolve; `dyn` when any other expansion or substitution is in
+ * it, since its value is unknowable here. What the shell reading skips —
+ * substitutions, data here-document bodies, comments — it skips too.
+ */
+function words(src, parsed) {
+  const { skip } = parsed;
+  const out = [];
+  let ws = [];
+  let cur = null;
+  const word = () => cur || (cur = { text: "", dyn: false });
+  const endWord = () => {
+    if (cur) ws.push(cur);
+    cur = null;
+  };
+  const endCmd = () => {
+    endWord();
+    if (ws.length) out.push(ws);
+    ws = [];
+  };
+  const skipped = (i) => {
+    const s = skip.get(i);
+    if (!s) return 0;
+    // A substitution; a here-document body or a comment reads as nothing.
+    if (s[1] && TOPLEVEL.test(src.slice(i, s[0]))) word().text += REF("@toplevel");
+    else if (s[1]) word().dyn = true;
+    return s[0];
+  };
+  // `$` outside single quotes: returns the index after the expansion.
+  const dollar = (i) => {
+    const rest = src.slice(i, i + 64);
+    let m;
+    if ((m = /^\$(?:([A-Za-z_][A-Za-z0-9_]*)|\{([A-Za-z_][A-Za-z0-9_]*)\})/.exec(rest))) {
+      word().text += REF(m[1] || m[2]);
+      return i + m[0].length;
+    }
+    if (src[i + 1] === "{") {
+      word().dyn = true; // `${x:-…}` and friends
+      const close = src.indexOf("}", i);
+      return close < 0 ? src.length : close + 1;
+    }
+    if ((m = /^\$[0-9#?*@$!-]/.exec(rest))) {
+      word().dyn = true;
+      return i + m[0].length;
+    }
+    word().text += "$";
+    return i + 1;
+  };
+  for (let i = 0; i < src.length; ) {
+    const to = skipped(i);
+    if (to) {
+      i = to;
+      continue;
+    }
+    const c = src[i];
+    const d = src[i + 1] || "";
+    if (c === "\\") {
+      if (d !== "\n") word().text += d;
+      i += 2;
+    } else if (c === "'") {
+      const close = src.indexOf("'", i + 1);
+      word().text += src.slice(i + 1, close < 0 ? src.length : close);
+      i = close < 0 ? src.length : close + 1;
+    } else if (c === "$" && d === "'") {
+      let j = i + 2;
+      for (; j < src.length && src[j] !== "'"; j++) word().text += src[j] === "\\" ? src[++j] || "" : src[j];
+      i = j + 1;
+    } else if (c === '"') {
+      word();
+      for (i++; i < src.length && src[i] !== '"'; ) {
+        const inner = skipped(i);
+        if (inner) i = inner;
+        else if (src[i] === "\\" && '$`"\\\n'.includes(src[i + 1] || "")) {
+          if (src[i + 1] !== "\n") cur.text += src[i + 1];
+          i += 2;
+        } else if (src[i] === "$") i = dollar(i);
+        else cur.text += src[i++];
+      }
+      i++;
+    } else if (c === "$") i = dollar(i);
+    else if (c === "~" && !cur && (d === "/" || !d || /[\s;&|()]/.test(d))) {
+      word().text += HOME;
+      i++;
+    } else if (c === "#" && !cur) {
+      const eol = src.indexOf("\n", i);
+      i = eol < 0 ? src.length : eol;
+    } else if (c === " " || c === "\t") {
+      endWord();
+      i++;
+    } else if ((c === "&" && (src[i - 1] === ">" || src[i - 1] === "<" || d === ">")) || (c === "|" && src[i - 1] === ">")) {
+      word().text += c; // a redirection: `2>&1`, `&>`, `>|`
+      i++;
+    } else if (c === "\n" || c === ";" || c === "&" || c === "|") {
+      endCmd();
+      i++;
+    } else if (c === "(" || c === ")") {
+      endCmd();
+      out.push(c);
+      i++;
+    } else {
+      word().text += c;
+      i++;
+    }
+  }
+  endCmd();
+  return out;
+}
+
+/**
+ * Walk `src` from directory `start` with shell variables `vars`, adding the
+ * directory of every commit it places to `found` and every directory it enters
+ * to `visited`. Returns the directory it ends in, for `eval`.
+ */
+function walkCommits(src, start, vars, found, visited, parsed = readShell(src)) {
+  let dir = start;
+  let prev = start;
+  let stack = [];
+  const scopes = [];
+  // Resolve a word's references against what the walk knows right now. An
+  // unassigned name, or one assigned something unknowable, makes it unknowable.
+  const expand = (w) => {
+    let dyn = w.dyn;
+    const text = w.text.replace(/\0([^\0]*)\0/g, (_, name) => {
+      let v = name === "PWD" ? dir : name === "@toplevel" && dir !== UNKNOWN ? repoRootOf(dir) : vars.get(name);
+      if (typeof v !== "string") {
+        dyn = true;
+        v = "";
+      }
+      return v;
+    });
+    return { text, dyn };
+  };
+  const assign = (w) => {
+    const m = ASSIGN.exec(w.text);
+    if (m) vars.set(m[1], w.dyn ? UNKNOWN : w.text.slice(m[0].length));
+  };
+  const resolveIn = (base, w) => {
+    if (w.dyn || (base === UNKNOWN && !path.isAbsolute(w.text))) return UNKNOWN;
+    return path.resolve(base, w.text);
+  };
+  // A failed `cd` leaves the directory as it was: with `;` the next command
+  // runs there, and with `&&` it does not run at all.
+  const enter = (to) => {
+    if (to !== UNKNOWN && !isDir(to)) return false;
+    prev = dir;
+    dir = to;
+    visited.push(to);
+    return true;
+  };
+  for (const raw of words(src, parsed)) {
+    if (raw === "(") {
+      scopes.push([dir, prev, stack.slice(), new Map(vars)]);
+      continue;
+    }
+    if (raw === ")") {
+      if (scopes.length) [dir, prev, stack, vars] = scopes.pop();
+      continue;
+    }
+    // Expanded before any assignment in it takes effect, as bash does.
+    const ws = raw.map(expand);
+    let i = 0;
+    let gitEnv = false;
+    for (let m; i < ws.length; i++) {
+      if (RESERVED.has(ws[i].text)) continue;
+      if (!(m = ASSIGN.exec(ws[i].text))) break;
+      if (m[1] === "GIT_DIR" || m[1] === "GIT_WORK_TREE") gitEnv = true;
+    }
+    // Bare assignments set shell variables; a prefix to a command does not.
+    if (i >= ws.length) ws.forEach(assign);
+    while (i < ws.length && (ws[i].text === "builtin" || ws[i].text === "command")) i++;
+    if (i >= ws.length) continue;
+    const name = ws[i].dyn ? "" : ws[i].text;
+    const args = ws.slice(i + 1);
+    if (DECLARE.has(name)) {
+      args.forEach(assign);
+      continue;
+    }
+
+    if (name === "cd" || name === "pushd") {
+      let a = 0;
+      while (a < args.length && /^-[LPe@]+$/.test(args[a].text)) a++;
+      if (args[a] && args[a].text === "--") a++;
+      const arg = args[a];
+      const from = dir;
+      if (name === "pushd" && !arg) {
+        if (stack.length) enter(stack.pop()) && stack.push(from);
+      } else if (name === "pushd" && /^[+-]\d+$/.test(arg.text)) {
+        enter(UNKNOWN);
+      } else if (!arg) {
+        enter(HOME);
+      } else if (name === "cd" && arg.text === "-" && !arg.dyn) {
+        enter(prev);
+      } else if (enter(resolveIn(dir, arg)) && name === "pushd") {
+        stack.push(from);
+      }
+      continue;
+    }
+    if (name === "popd") {
+      if (stack.length) enter(stack.pop());
+      continue;
+    }
+    if (name === "eval") {
+      dir = walkCommits(args.map((w) => w.text).join(" "), dir, vars, found, visited);
+      continue;
+    }
+
+    // Past any `nice`-style prefix and its arguments, to git or a shell.
+    let g = i;
+    const base = (w) => (w.dyn ? "" : w.text.slice(w.text.lastIndexOf("/") + 1));
+    if (PREFIX_NAMES.has(base(ws[g]))) {
+      while (g < ws.length && base(ws[g]) !== "git" && !SHELLS.test(base(ws[g]))) g++;
+      if (g >= ws.length) continue;
+    }
+    if (SHELLS.test(base(ws[g]))) {
+      // `sh -c '…'` runs its script in a child: a `cd` in it stays there. The
+      // script is expanded here first (`"cd $W"`), then read with only HOME set:
+      // the child sees no unexported variable (`'cd $W'`).
+      const flag = ws.findIndex((w, k) => k > g && /^-[a-zA-Z]*c[a-zA-Z]*$/.test(w.text));
+      const script = flag > 0 && ws[flag + 1];
+      if (script && !script.dyn) walkCommits(script.text, dir, new Map([["HOME", HOME]]), found, visited);
+      continue;
+    }
+    if (base(ws[g]) !== "git") continue;
+    let target = gitEnv ? UNKNOWN : dir;
+    let k = g + 1;
+    for (; k < ws.length; k++) {
+      const t = ws[k].text;
+      if (t === "-C" && ws[k + 1]) {
+        target = resolveIn(target, ws[++k]);
+      } else if (/^--(?:git-dir|work-tree)(?:=|$)/.test(t)) {
+        target = UNKNOWN;
+        if (!t.includes("=")) k++;
+      } else if (/^(?:-c|--namespace|--exec-path|--config-env)$/.test(t)) {
+        k++;
+      } else if (t[0] !== "-") {
+        break;
+      }
+    }
+    if (ws[k] && ws[k].text === "commit") found.push(target);
+  }
+  return dir;
+}
+
+function repoRootOf(dir) {
+  return git(["rev-parse", "--show-toplevel"], dir) || dir;
+}
 
 /** Only gate repos that asked for it — rule 3. */
-if (
-  !(
+function enrolled(root) {
+  return (
     process.env.OPCHAIN_GATE === "1" ||
-    fs.existsSync(path.join(repoRoot, ".checkpoints")) ||
-    fs.existsSync(path.join(repoRoot, ".opchain"))
-  )
-) {
-  allow();
+    fs.existsSync(path.join(root, ".checkpoints")) ||
+    fs.existsSync(path.join(root, ".opchain"))
+  );
 }
+
+const found = [];
+const visited = [];
+walkCommits(rawCommand, cwd, new Map([["HOME", HOME]]), found, visited, shell);
+const places = found.length ? found : [cwd, ...visited];
+const roots = [...new Set(places.filter((p) => p !== UNKNOWN).map(repoRootOf))].filter(enrolled);
+const unknowable = places.includes(UNKNOWN) && enrolled(repoRootOf(cwd));
+
+if (!roots.length && !unknowable) allow();
 
 // Explicit, logged bypass — in argument position, and outside quotes in BOTH
 // readings, so neither a commit message (GATE-01b), a span one reading closed in
@@ -818,87 +1120,131 @@ if (BYPASS.test(span.stripped) && BYPASS.test(shellViews(shell).stripped)) {
   allow();
 }
 
-// ── read the bug-check verdict ──────────────────────────────────────────────
-const cpPath = path.join(repoRoot, ".checkpoints", "oc-bug-check.checkpoint.json");
-
 const INVOKE =
   'Run the gate, then retry:\n\n    Skill(skill="oc-bug-check", args="/oc-bugcheck run")\n\n' +
   "If it returns PASS the commit proceeds. If FAIL, fix what it surfaces. If\n" +
   "UNSUPPORTED, the gate could not read this stack — that is not a pass; either\n" +
   "add stack support or bypass deliberately with `git commit --no-verify`.";
 
-if (!fs.existsSync(cpPath)) {
-  deny(`opchain: oc-bug-check has not run in this repo, so this commit is unverified.\n\n${INVOKE}`);
-}
-
-let cp;
-try {
-  cp = JSON.parse(fs.readFileSync(cpPath, "utf8"));
-} catch (e) {
-  deny(`opchain: .checkpoints/oc-bug-check.checkpoint.json is not valid JSON (${e.message}).\n\n${INVOKE}`);
-}
-if (!cp || typeof cp !== "object" || Array.isArray(cp)) {
-  deny(`opchain: .checkpoints/oc-bug-check.checkpoint.json is not a JSON object.\n\n${INVOKE}`);
-}
-
-const st = (cp.skill_state && typeof cp.skill_state === "object" && cp.skill_state) || {};
-
-// The verdict is recorded in up to three places: `last_run_verdict` (the flat
-// field this gate reads first), `verdict`, and `last_run.verdict` (the detailed
-// record oc-bug-check's SKILL.md has always documented, and all the retired
-// repo-local gate read). Any of them counts, but every one present must agree —
-// a checkpoint saying PASS in one field and FAIL in another is not evidence of
-// a pass (RULE 0). Without this, a stale flat PASS could outvote a fresh FAIL.
-const lastRun = (st.last_run && typeof st.last_run === "object" && st.last_run) || {};
-const recorded = [
-  ...new Set(
-    [st.last_run_verdict, st.verdict, lastRun.verdict]
-      .filter((v) => v !== undefined && v !== null && v !== "")
-      .map((v) => String(v).toUpperCase()),
-  ),
-];
-
-if (recorded.includes("UNSUPPORTED")) {
+if (unknowable) {
   deny(
-    "opchain: oc-bug-check returned UNSUPPORTED — it did not recognize this stack,\n" +
-      "so types, lint, tests and build were never run. An absence of findings is not\n" +
-      "a pass.\n\nAdd stack support (skills/oc-bug-check/SKILL.md § Stack-Specific\n" +
-      "Adaptations) or bypass deliberately with `git commit --no-verify`.",
-  );
-}
-if (recorded.length > 1) {
-  deny(
-    `opchain: the oc-bug-check checkpoint records conflicting verdicts (${recorded.join(", ")}),\n` +
-      "so it is not evidence of a PASS.\n\n" +
-      INVOKE,
-  );
-}
-if (recorded[0] !== "PASS") {
-  deny(`opchain: last oc-bug-check verdict was ${recorded[0] || "(none recorded)"}, not PASS.\n\n${INVOKE}`);
-}
-
-// ── an unknowable time is not evidence (GATE-05) ────────────────────────────
-const ts = Date.parse(cp.updated_at || "");
-if (Number.isNaN(ts)) {
-  deny(
-    "opchain: the oc-bug-check checkpoint records a PASS but no readable `updated_at`,\n" +
-      "so there is no way to tell when — or whether — it ran.\n\n" +
-      INVOKE,
+    "opchain: could not tell which repository this commit lands in — a `cd`, `pushd` or\n" +
+      "`git -C` target is a variable or substitution, or `--git-dir`/`--work-tree`/`GIT_DIR`\n" +
+      "points git elsewhere — so there is no checkpoint to check it against.\n\n" +
+      "Commit with a literal path instead (`git -C /path/to/repo commit …` or\n" +
+      "`cd /path/to/repo && git commit …`), or bypass deliberately with\n" +
+      "`git commit --no-verify`.",
   );
 }
 
-// ── the tree is mandatory at every age (GATE-06) ────────────────────────────
-// Recency is not coverage: a PASS recorded one minute ago says nothing about a
-// file edited thirty seconds ago. Only the tree hash can say that.
-const verifiedTree = st.verified_tree || st.verified_for_tree || null;
-if (!verifiedTree) {
-  deny(
-    "opchain: oc-bug-check recorded a PASS but no `skill_state.verified_tree`, so there is\n" +
-      "no way to tell whether it covered the code you are committing — however recently\n" +
-      "it ran. The run must record the tree hash alongside the verdict\n" +
-      "(skills/oc-bug-check/SKILL.md § Commit gate contract).\n\n" +
-      INVOKE,
-  );
+const CHECKPOINT_REL = ".checkpoints/oc-bug-check.checkpoint.json";
+
+/**
+ * Deny unless `repoRoot`'s oc-bug-check checkpoint records a PASS bound to its
+ * current full working tree. Every deny names the repository it checked.
+ */
+function gate(repoRoot) {
+  const refuse = (reason) => deny(`${reason}\n\nRepository checked: ${repoRoot}`);
+  const cpPath = path.join(repoRoot, CHECKPOINT_REL);
+
+  if (!fs.existsSync(cpPath)) {
+    refuse(`opchain: oc-bug-check has not run in ${repoRoot}, so this commit is unverified.\n\n${INVOKE}`);
+  }
+
+  let cp;
+  try {
+    cp = JSON.parse(fs.readFileSync(cpPath, "utf8"));
+  } catch (e) {
+    refuse(`opchain: ${CHECKPOINT_REL} is not valid JSON (${e.message}).\n\n${INVOKE}`);
+  }
+  if (!cp || typeof cp !== "object" || Array.isArray(cp)) {
+    refuse(`opchain: ${CHECKPOINT_REL} is not a JSON object.\n\n${INVOKE}`);
+  }
+
+  const st = (cp.skill_state && typeof cp.skill_state === "object" && cp.skill_state) || {};
+
+  // The verdict is recorded in up to three places: `last_run_verdict` (the flat
+  // field this gate reads first), `verdict`, and `last_run.verdict` (the detailed
+  // record oc-bug-check's SKILL.md has always documented, and all the retired
+  // repo-local gate read). Any of them counts, but every one present must agree —
+  // a checkpoint saying PASS in one field and FAIL in another is not evidence of
+  // a pass (RULE 0). Without this, a stale flat PASS could outvote a fresh FAIL.
+  const lastRun = (st.last_run && typeof st.last_run === "object" && st.last_run) || {};
+  const recorded = [
+    ...new Set(
+      [st.last_run_verdict, st.verdict, lastRun.verdict]
+        .filter((v) => v !== undefined && v !== null && v !== "")
+        .map((v) => String(v).toUpperCase()),
+    ),
+  ];
+
+  if (recorded.includes("UNSUPPORTED")) {
+    refuse(
+      "opchain: oc-bug-check returned UNSUPPORTED — it did not recognize this stack,\n" +
+        "so types, lint, tests and build were never run. An absence of findings is not\n" +
+        "a pass.\n\nAdd stack support (skills/oc-bug-check/SKILL.md § Stack-Specific\n" +
+        "Adaptations) or bypass deliberately with `git commit --no-verify`.",
+    );
+  }
+  if (recorded.length > 1) {
+    refuse(
+      `opchain: the oc-bug-check checkpoint records conflicting verdicts (${recorded.join(", ")}),\n` +
+        "so it is not evidence of a PASS.\n\n" +
+        INVOKE,
+    );
+  }
+  if (recorded[0] !== "PASS") {
+    refuse(`opchain: last oc-bug-check verdict was ${recorded[0] || "(none recorded)"}, not PASS.\n\n${INVOKE}`);
+  }
+
+  // ── an unknowable time is not evidence (GATE-05) ──────────────────────────
+  const ts = Date.parse(cp.updated_at || "");
+  if (Number.isNaN(ts)) {
+    refuse(
+      "opchain: the oc-bug-check checkpoint records a PASS but no readable `updated_at`,\n" +
+        "so there is no way to tell when — or whether — it ran.\n\n" +
+        INVOKE,
+    );
+  }
+
+  // ── the tree is mandatory at every age (GATE-06) ──────────────────────────
+  // Recency is not coverage: a PASS recorded one minute ago says nothing about a
+  // file edited thirty seconds ago. Only the tree hash can say that.
+  const verifiedTree = st.verified_tree || st.verified_for_tree || null;
+  if (!verifiedTree) {
+    refuse(
+      "opchain: oc-bug-check recorded a PASS but no `skill_state.verified_tree`, so there is\n" +
+        "no way to tell whether it covered the code you are committing — however recently\n" +
+        "it ran. The run must record the tree hash alongside the verdict\n" +
+        "(skills/oc-bug-check/SKILL.md § Commit gate contract).\n\n" +
+        INVOKE,
+    );
+  }
+
+  const actual = fullWorkingTree(repoRoot);
+
+  // RULE 0: if we cannot hash the state, we cannot claim it was verified.
+  if (!actual) {
+    refuse(
+      "opchain: could not hash the working tree (unmerged index, index.lock held, or\n" +
+        "git unavailable), so the recorded PASS cannot be bound to this commit. Resolve\n" +
+        "the repo state and retry, or bypass with `git commit --no-verify`.",
+    );
+  }
+
+  if (verifiedTree !== actual) {
+    refuse(
+      "opchain: the repo has changed since oc-bug-check passed, so the PASS does not\n" +
+        "cover what you are about to commit.\n\n" +
+        `    verified:      ${String(verifiedTree).slice(0, 12)}\n` +
+        `    working tree:  ${String(actual).slice(0, 12)}\n\n` +
+        "Some tracked or untracked file differs from the state that was checked. (If\n" +
+        "nothing changed, the tree was recorded wrongly — it must be the full working\n" +
+        "tree, not bare `git write-tree`; see oc-bug-check § Commit gate contract.)\n" +
+        "Re-run the gate so the verdict covers the current code:\n\n" +
+        INVOKE,
+    );
+  }
 }
 
 // ── bind the verdict to the FULL working-tree state ─────────────────────────
@@ -930,9 +1276,7 @@ if (!verifiedTree) {
  * in any repo that tracks `.checkpoints/`. `rm --cached` in the scratch index
  * drops it whether it is untracked, tracked, modified or already staged.
  */
-const CHECKPOINT_REL = ".checkpoints/oc-bug-check.checkpoint.json";
-
-function fullWorkingTree() {
+function fullWorkingTree(repoRoot) {
   const scratch = path.join(os.tmpdir(), `opchain-idx-${process.pid}-${Date.now()}`);
   try {
     const rel = git(["rev-parse", "--git-path", "index"], repoRoot);
@@ -954,29 +1298,8 @@ function fullWorkingTree() {
   }
 }
 
-const actual = fullWorkingTree();
-
-// RULE 0: if we cannot hash the state, we cannot claim it was verified.
-if (!actual) {
-  deny(
-    "opchain: could not hash the working tree (unmerged index, index.lock held, or\n" +
-      "git unavailable), so the recorded PASS cannot be bound to this commit. Resolve\n" +
-      "the repo state and retry, or bypass with `git commit --no-verify`.",
-  );
-}
-
-if (verifiedTree !== actual) {
-  deny(
-    "opchain: the repo has changed since oc-bug-check passed, so the PASS does not\n" +
-      "cover what you are about to commit.\n\n" +
-      `    verified:      ${String(verifiedTree).slice(0, 12)}\n` +
-      `    working tree:  ${String(actual).slice(0, 12)}\n\n` +
-      "Some tracked or untracked file differs from the state that was checked. (If\n" +
-      "nothing changed, the tree was recorded wrongly — it must be the full working\n" +
-      "tree, not bare `git write-tree`; see oc-bug-check § Commit gate contract.)\n" +
-      "Re-run the gate so the verdict covers the current code:\n\n" +
-      INVOKE,
-  );
-}
+// Every repository the command commits in must pass; `deny` exits on the first
+// that does not.
+for (const root of roots) gate(root);
 
 allow();

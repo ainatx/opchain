@@ -67,6 +67,8 @@ After two mid-cut merges and a repeat production deploy during v2.0.4, `docs/gov
 
 ## Sprint 1: OSS split — phases C2–C7
 
+**Prep status (2026-09-27):** manifest and runbook re-derived against the v2.0.4 tree — `docs/runbooks/oss-split-rederivation-2026-09-27.md` (54 → 72 manifest entries; seven decisions at the ⛔ HUMAN C1 review). No extraction has started.
+
 ### Deliverables
 - **Re-derive the runbook first.** `docs/runbooks/oss-split-execution-handoff.md` was written at v1.8.3 with 29 skills; the catalog is now 36 skills at v2.0.x with a shared runtime, `oc-update`, `oc-hindsight`, `oc-evolve` and new scripts. Re-derive `split/product-paths.txt`, the expected tag list, the C4 `package.json` block and the C7 skill count against the current tree, and PR that as runbook rev 5 for human review.
 - C2 extraction in a fresh clone → C3 verification → C4 bootstrap commit.
@@ -92,11 +94,13 @@ Sprint 0 (a quiet PR queue — the freeze covers ~25 scripts). **Effort:** CLAUD
 - Every skill's checkpoint read/write has a documented no-Node, no-git fallback; `gen-skills-catalog` fails a skill that cites a runtime command without one.
 - Skill `references/` reachable for MCP-only clients through a tool, not only `resources/read`.
 - Claude.ai import spike: write down what is actually possible. **No one-click claim unless the spike proves it.**
+- **Focused-execution salvage** (owner, 2026-09-27; scoping in `sprints/release-2.1/focused-execution-salvage.md`): re-author the Execution Discipline protocol (`orchestrator.md` §0, trimmed) and the `checkpoint status` progress view against current `main`, porting the branch's two test files first. Checkpoint rows stamp `started_at` / `completed_at`; oc-time-ops reads them as a signal and stays the only source of time totals.
 
 ### Test requirements
 - Catalog validator unit tests for the new fallback rule (happy + failing fixture).
 - MCP server tests for the references tool.
 - The 36-skill simulation harness re-run in runtime-free mode.
+- `tests/checkpoint-progress.test.js` and `tests/execution-discipline-required.test.js`, ported from `origin/fix/2.0.3-session-clock` and passing against `main`.
 
 ### Definition of done
 The matrix is published on `/install` with every cell backed by an observation and a date; a skill loaded as instructions only can resume from a hand-written checkpoint without being told to run Node.

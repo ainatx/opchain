@@ -3,22 +3,16 @@
 // stays consistent with the real catalog" guard the v1.5 Sprint 3 plan calls
 // for — it does NOT run an LLM (routing is non-deterministic); it asserts the
 // set is well-formed and that every expected route points at a real skill and
-// a registered command verb, so the set can't silently rot.
+// a command that skill declares, so the set can't silently rot.
 
 import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as yaml from "js-yaml"; // namespace import: js-yaml 5 dropped the default export, v4 keeps the named ones
-// The verb→flag drift gate lives in the site half (scripts/check-skill-flags.mjs
-// + the registry). This suite moves to the product repo at the split, where the
-// registry is absent — so the import degrades to a skip instead of an error.
-let isKnown = null;
-try {
-  ({ isKnown } = await import("../src/lib/flags/registry.js"));
-} catch {
-  // product-repo context: no registry, verb gating is checked site-side
-}
+// Product-pure: every verb is checked against the skills' own `commands:`
+// frontmatter. The verb→flag drift gate (every declared verb has a
+// skills.command.<verb>.enabled flag) is site-side, in scripts/check-skill-flags.mjs.
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const EVAL_DIR = join(ROOT, "prompts", "opchain-eval");
@@ -128,19 +122,12 @@ describe("prompts/opchain-eval — dataset integrity", () => {
 
 describe("prompts/opchain-eval — expected routes point at real skills + commands", () => {
   for (const row of expected) {
-    it(`${row.id} has a valid grader and routes to a real skill + registered command`, () => {
+    it(`${row.id} has a valid grader and routes to a real skill + declared command`, () => {
       expect(row.expect, `${row.id} missing expect block`).toBeDefined();
       expect(VALID_MODES.has(row.expect.mode), `${row.id} bad mode ${row.expect.mode}`).toBe(true);
       const { skill, command } = routeTargets(row.expect);
       expect(skill, `${row.id} expect.all names no real skill`).toBeDefined();
       expect(command, `${row.id} expect.all names no /command`).toBeDefined();
-      const verb = command.replace(/^\//, "").split(/\s+/, 1)[0];
-      if (isKnown) {
-        expect(
-          isKnown(`skills.command.${verb}.enabled`),
-          `command /${verb} has no registry flag`,
-        ).toBe(true);
-      }
       expect(
         frontmatterCommands(skill),
         `${row.id}: ${skill} does not declare ${command}`,
