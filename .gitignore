@@ -135,3 +135,7 @@ reports/token-usage/raw_usage.csv
 design-previews/color-2.0-tooling/tokens.json
 design-previews/color-2.0-tooling/tokens.css
 design-previews/color-2.0-tooling/shots/
+
+# ow-tools: its Python environment lives in ~/.local/share/ow-tools, never here.
+plugins/ow-tools/python/.venv/
+plugins/ow-tools/python/__pycache__/
