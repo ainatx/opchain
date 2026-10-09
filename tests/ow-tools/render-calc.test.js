@@ -4,12 +4,14 @@ import { DATA_SENTENCE, clock, header, renderTranscript } from "../../plugins/ow
 import { addDate, fromMinor, split, toMinor, total } from "../../plugins/ow-tools/lib/calc.mjs";
 
 const doc = (over = {}) => ({
-  ow_artefact: "transcript",
+  ow_artefact: "ow-tools/transcript",
   schema: 1,
-  written_by: "ow-tools 1.0.0",
+  written_by: "ow-tools 1.0.0 (protocol 1)",
   workstream: "intake/meridian-tile",
+  subject: "audio/fit-call.m4a",
   created: "2026-10-09",
   clock: "tool",
+  origin: "third-party (recording)",
   source: { audio: "audio/fit-call.m4a", sha256: "x", duration_s: 600 },
   pipeline: { normalise: "ffmpeg 8", transcribe: "whisper.cpp 1.9.5 large-v3-turbo", diarize: "pyannote.audio 4.0.7 community-1 (cpu)", merge: "ow-tools 1.0.0" },
   speakers: [
@@ -25,13 +27,27 @@ const doc = (over = {}) => ({
 });
 
 describe("transcript.md", () => {
-  it("opens with the R3 artefact header and the data sentence", () => {
+  it("opens with the ow-protocol v1 artefact header and the data sentence", () => {
     const md = renderTranscript(doc());
-    expect(md.split("\n")[0]).toBe(header(doc()));
-    expect(md.split("\n")[0]).toBe(
-      "ow_artefact: transcript | schema: 1 | written_by: ow-tools 1.0.0 | workstream: intake/meridian-tile | subject: audio/fit-call.m4a | created: 2026-10-09 (clock: tool) | origin: third-party (recording)",
-    );
+    expect(md.startsWith(header(doc()))).toBe(true);
+    expect(md.split("\n").slice(0, 10)).toEqual([
+      "---",
+      "ow_artefact: ow-tools/transcript",
+      "schema: 1",
+      "written_by: ow-tools 1.0.0 (protocol 1)",
+      "workstream: intake/meridian-tile",
+      "subject: audio/fit-call.m4a",
+      "created: 2026-10-09",
+      "clock: tool",
+      "origin: third-party (recording)",
+      "---",
+    ]);
     expect(md).toContain(DATA_SENTENCE);
+  });
+
+  it("puts banner_text on the first line after the header, verbatim", () => {
+    const md = renderTranscript(doc({ banner: "CONFIDENTIAL — client material" }));
+    expect(md.split("\n")[10]).toBe("CONFIDENTIAL — client material");
   });
 
   it("uses typed roles, marks the unconfirmed and overlapping speech, and quotes in mm:ss", () => {

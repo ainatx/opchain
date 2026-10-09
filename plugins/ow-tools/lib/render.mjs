@@ -17,21 +17,27 @@ export function labelFor(id, speakers) {
   return s?.role || id;
 }
 
+// The ow- artefact header (ow-protocol v1 §4): a YAML block at the top.
 export function header(doc) {
   return [
-    "ow_artefact: transcript",
+    "---",
+    `ow_artefact: ${doc.ow_artefact}`,
     `schema: ${doc.schema}`,
     `written_by: ${doc.written_by}`,
     `workstream: ${doc.workstream || "none"}`,
-    `subject: ${doc.source.audio}`,
-    `created: ${doc.created} (clock: ${doc.clock})`,
-    "origin: third-party (recording)",
-  ].join(" | ");
+    `subject: ${doc.subject}`,
+    `created: ${doc.created}`,
+    `clock: ${doc.clock}`,
+    `origin: ${doc.origin}`,
+    "---",
+  ].join("\n");
 }
 
 export function renderTranscript(doc) {
   const long = (doc.source.duration_s || 0) >= 3600;
-  const lines = [header(doc), "", `# Transcript: ${doc.source.audio.split("/").pop()}`, ""];
+  // banner_text, when the user's handling level sets one, is the first line
+  // after the header (ow-protocol v1 §3b), copied verbatim.
+  const lines = [header(doc), ...(doc.banner ? [doc.banner] : []), "", `# Transcript: ${doc.source.audio.split("/").pop()}`, ""];
   lines.push("Speakers (roles are typed by the user; a speaker without one is not yet confirmed):");
   for (const s of doc.speakers) {
     const role = s.id === "UNKNOWN" ? "words no speaker turn covered" : s.role ? s.role : "not yet confirmed";

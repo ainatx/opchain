@@ -13,7 +13,7 @@ const HELP = `ow-tools ${VERSION} — the code add-on for the ow- skills (Claude
 
   ow-tools version [--json]
   ow-tools doctor [--json] [--quick]
-  ow-tools transcribe <workstream>/audio/<file> [--out DIR] [--speakers N]
+  ow-tools transcribe <workstream>/audio/[<file>] [--out DIR] [--speakers N] [--banner TEXT]
                       [--language auto|en|…] [--model large-v3-turbo|medium] [--device cpu|mps] [--force]
   ow-tools speakers <transcript.json> [--set SPEAKER_00=<role> …]
   ow-tools export <file.md> [--brand brand.yaml] [--out DIR] [--formats pdf,docx]
@@ -27,7 +27,7 @@ ow-tools never installs anything, never sends audio or text anywhere, and never 
 
 const FLAGS = {
   json: "bool", quick: "bool", force: "bool",
-  out: "str", speakers: "int", language: "str", model: "str", device: "str",
+  out: "str", speakers: "int", language: "str", model: "str", device: "str", banner: "str",
   set: "list", brand: "str", formats: "csv",
   tz: "str", from: "str", days: "int", "business-days": "int", holidays: "csv",
   items: "str", currency: "str", total: "str", schedule: "str",

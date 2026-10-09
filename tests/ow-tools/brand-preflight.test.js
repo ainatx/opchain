@@ -82,7 +82,19 @@ describe("export preflight", () => {
     expect(r).toMatchObject({ ok: true, title: "Build Plan", problems: [] });
   });
 
-  it("removes the R3 header, keeps the banner, and strips internal sections", () => {
+  it("removes the ow-protocol v1 header block and keeps the banner line after it", () => {
+    const r = check(
+      "---\now_artefact: ow-build-plan/quote\nschema: 1\nwritten_by: ow-build-plan 1.0.0 (protocol 1)\nworkstream: plans/acme\nsubject: none\ncreated: 2026-10-09\nclock: tool\norigin: skill\n---\nCONFIDENTIAL — Acme\n\n# Quote\n\nTotal.\n",
+    );
+    expect(r).toMatchObject({ ok: true, banner: "CONFIDENTIAL — Acme", title: "Quote" });
+    expect(r.body).not.toMatch(/ow_artefact|written_by|^---$/m);
+  });
+
+  it("leaves a header-less document's first line alone", () => {
+    expect(check("---\ntitle: x\n---\n# A\n").banner).toBeNull();
+  });
+
+  it("also reads the audit's older one-line header with the banner above it", () => {
     const r = check(
       "CONFIDENTIAL\now_artefact: quote | schema: 1\n\n# Quote\n\nTotal $13,000.\n\n<!-- ow:internal -->\n## Appendix\nintegration unit 6,500.00\n<!-- ow:end-internal -->\n",
     );
