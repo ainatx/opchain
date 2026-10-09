@@ -112,6 +112,10 @@ opchain/
 ├── plugins/                # Claude Code plugin source. plugins/opchain/ = hooks (commit
 │   │                       # gate, session state, next-skill pointer) + slash commands +
 │   │                       # a skills symlink into skills/. Ships via the public mirror.
+│   │                       # plugins/ow-tools/ = the ow- family's code add-on (transcription,
+│   │                       # PDF/Word export, calc, workstream hook) with its OWN marketplace
+│   │                       # manifest, never listed in .claude-plugin/marketplace.json
+│   │                       # (docs/plans/2026-10-09-ow-tools-design.md).
 ├── .claude-plugin/         # marketplace.json — makes this repo (and its public mirror)
 │   │                       # a Claude Code plugin marketplace.
 ├── mirror/                 # Source for the public skills mirror — see "Public skill

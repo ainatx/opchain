@@ -305,7 +305,7 @@ The spike harness (§10) is a script, not a CI test: it needs the real models.
 
 **Bar.** Total ≤ 5:00 for 20:00 of audio, and ≥ 95% of words on the right speaker. Synthetic voices are cleaner than a real call, so the accuracy figure is an upper bound; the first real call (yours, never committed) is the real check.
 
-**Result.** *To be filled in after the run (Phase 2).*
+**Result (interim, 2026-10-09).** The recording built by `scripts/ow-tools-spike.mjs --rate 155` is 20:00 long: 141 turns, 17:05 of speech, 1.25 s between turns. On the M3 Pro, **Whisper `large-v3-turbo` transcribed it in 58 s** (whisper.cpp 1.9.5, Metal, 8 threads), about 3.4% of real time. Without a starting prompt the long run came out lowercase with no punctuation; a short punctuated prompt fixed that at the same speed (§5.1). **Speaker separation is not yet measured:** it needs the owner's one-time pyannote model fetch. The full pipeline time and speaker accuracy go here when it has run.
 
 ## 11. Coordination with the sibling builds
 
