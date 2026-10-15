@@ -1,6 +1,6 @@
 # ow-handoff — design
 
-**Date:** 2026-10-08 · **Status:** **APPROVED 2026-10-14** (decision 6), with the ow-uat design's amendments H1 and H2 folded into this text and the owner's answers to open questions 1–3 recorded as decisions 7–9. Revised four times before that after an adversarial review, a completeness check and two contradiction checks (§15). Nothing is built.
+**Date:** 2026-10-08 · **Status:** **APPROVED 2026-10-14** (decision 6), with the ow-uat design's amendments H1 and H2 folded into this text and the owner's answers to open questions 1–3 recorded as decisions 7–9. Revised four times before that after an adversarial review, a completeness check and two contradiction checks (§15). Nothing is built. **Amended 2026-10-15: quick-quote scope file is quick-scope.md (owner decision).**
 **Release:** fourth skill in the ow- family that ships together as v2.1.0. Starts at 1.0.0.
 **Family rules that apply:** no `ow-review` (labelled same-session self-checks); code only in the `ow-tools` add-on; no public ow- skill names a private skill, and handoffs leaving the family go through the workspace's `handoffs.yaml` (ow-start design, decisions 22–23).
 **Upstream:** `ow-uat` (`acceptance-record.md`, `signoff.md`, `punch-list.md`, `agreed/`, `acceptance-addendum-CO-nn.md`, `secrets-seen.log`, `evidence/`, and `uat.yaml` for a governing delivery definition); `ow-build` (`ledger.md`, `build.yaml`, `changes/CO-nn.md`); `ow-build-plan` (`quote.md` client-facing part, `contract-inputs.md`, `map/systems.md`, `evidence.md` access log; the scope and acceptance checks arrive frozen through `uat/<client>/agreed/`); `ow-start` and earlier stages (recording and inbox folders, for the local-copy list only); the workspace's `offers.md` and `handoffs.yaml`. §3.1 gives every read its absent-case.
@@ -58,7 +58,7 @@ Every verb starts with the R4 resume step: it reads `handoff.yaml`, `dates.yaml`
 
 | File | Used for | If absent | If it doesn't match |
 |---|---|---|---|
-| `uat/<client>/signoff.md`, `acceptance-record.md`, `agreed/` | Acceptance date (signed or deemed), build label, the post-acceptance CO list, test accounts (§9 source 5); the acceptance record (§6); the agreed basis, which already holds `scope.md` and `acceptance.md` (or the quick-quote `scope.md`), the COs in the acceptance, the included block and the ownership terms (§7.1) | Any absent: `-start` stops, writes nothing, prints `NEXT: use ow-uat-signoff on uat/<client>/` | A `uat/<client>/agreed/` file newer than this skill's copy: basis mismatch (§7.1). The acceptance record covers every check in `agreed/` by construction, so there is no partial-coverage case |
+| `uat/<client>/signoff.md`, `acceptance-record.md`, `agreed/` | Acceptance date (signed or deemed), build label, the post-acceptance CO list, test accounts (§9 source 5); the acceptance record (§6); the agreed basis, which already holds `scope.md` and `acceptance.md` (or, for a quick-quote job, `quick-scope.md`), the COs in the acceptance, the included block and the ownership terms (§7.1) | Any absent: `-start` stops, writes nothing, prints `NEXT: use ow-uat-signoff on uat/<client>/` | A `uat/<client>/agreed/` file newer than this skill's copy: basis mismatch (§7.1). The acceptance record covers every check in `agreed/` by construction, so there is no partial-coverage case |
 | `uat/<client>/punch-list.md` | Signed minors and cosmetics, each logged by `-fix` as a covered FIX-nn (§7.2) | Nothing to log | — |
 | `uat/<client>/acceptance-addendum-CO-nn.md` | A post-acceptance CO's checks, results and acceptance date (the confirmation date), which starts its own fix period (§7.1, §7.2); `-package` adds it to the acceptance record section | That CO isn't accepted yet: reports against its work go to ow-uat's addendum flow (§7.1) | — |
 | `uat/<client>/secrets-seen.log` | Reset/rotate items (§9 source 3) and the sessions named in it (source 4) | Nothing to add | — |
@@ -149,7 +149,7 @@ Format: branded **PDF and Word** through `ow-tools` (a document to keep, like th
 
 `-start` copies `uat/<client>/agreed/`, the basis ow-uat froze and the client accepted, into its own `agreed/` and lists it in `handoff.yaml` as `agreed_basis`, with each file's date. That folder already holds:
 
-- `scope.md` and `acceptance.md` (or the quick-quote `scope.md`)
+- `scope.md` and `acceptance.md` (or, for a quick-quote job, `quick-scope.md`)
 - every `CO-nn.md` that is part of the acceptance (in ow-uat's `agreed/` when the sign-off was recorded)
 - the **included** block from `quote.md` (client-facing part): e.g. error handling and alerts, run logs, acceptance tests, operator notes
 - the **ownership terms** (from `contract-inputs.md`, else the plan's Ownership section): repository, accounts, data, documentation and tests
@@ -323,7 +323,7 @@ Deletes a file · opens a `.env` file or secrets store, asks for a secret value,
 
 - **Synthetic handoff:** three accounts (one owned by the builder, one billed through the builder, one integration running as the builder with the builder's MFA), two configured alerts and one on a vendor dashboard, one integration with no retry docs, one runbook, one MEDIUM row. Expect four transfer items, three alert entries, a coverage FINDING until a retry note or "not applicable" is added, a takeover section citing paths, and the MEDIUM row shown "to confirm" without blocking `-package`.
 - **One writer:** a build-time check that every file in §3 has exactly one writer verb, apart from `STATUS.md` and `secrets-seen.log`.
-- **Quick-quote job:** no map and checks in `scope.md` produce the "built without a systems map" mark and the completeness prompt.
+- **Quick-quote job:** no map and checks in `quick-scope.md` produce the "built without a systems map" mark and the completeness prompt.
 - **Missing sign-off:** with no `uat/<client>/signoff.md` or `acceptance-record.md`, `-start` stops, writes nothing, and prints `NEXT: use ow-uat-signoff on uat/<client>/`.
 - **Punch list:** a signed punch list with two minors makes `-start` point to `-fix`, which logs two covered FIX-nn with `reported` = each UAT-nn's logged date.
 - **Post-acceptance CO window:** a CO accepted by ow-uat addendum 20 days after delivery gets a `co-windows.yaml` row ending 30 days later (with `fix_window_days` 30); a report against it on day 45 after delivery is a covered Fix, the same report against the main basis is After the window, and `-close` is refused until the CO's window ends. A report against a CO with no addendum is not logged and points to ow-uat.

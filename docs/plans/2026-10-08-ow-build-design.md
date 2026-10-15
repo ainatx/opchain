@@ -1,6 +1,6 @@
 # ow-build — design
 
-**Date:** 2026-10-08 · **Status:** APPROVED 2026-10-08. **Amendment 2026-10-09 (builder integration, §12, decisions 8–11) APPROVED 2026-10-14 with the fixes in §12.8.** **Amendments applied 2026-10-14** (decision 12): ow-uat B1 (`-accept` becomes `-ready`, §3, §8), B2 (final payment triggers, §7), B3 and ow-handoff A2 without its post-acceptance mark (`-change`, §6.1). Nothing is built.
+**Date:** 2026-10-08 · **Status:** APPROVED 2026-10-08. **Amendment 2026-10-09 (builder integration, §12, decisions 8–11) APPROVED 2026-10-14 with the fixes in §12.8.** **Amendments applied 2026-10-14** (decision 12): ow-uat B1 (`-accept` becomes `-ready`, §3, §8), B2 (final payment triggers, §7), B3 and ow-handoff A2 without its post-acceptance mark (`-change`, §6.1). Nothing is built. **Amended 2026-10-15: quick-quote scope file is quick-scope.md (owner decision).**
 **Release:** third skill in the ow- family that ships together as v2.1.0. Starts at 1.0.0.
 **Family rules that apply:** no `ow-review` (labelled same-session self-checks); code only in the `ow-tools` add-on; no public ow- skill names a private skill, and handoffs leaving the family go through the workspace's `handoffs.yaml` (ow-start design, decisions 22–23).
 **Upstream:** `ow-build-plan` (plan, `acceptance.md`, `quote.md`, `price-book.yaml`); for change requests and the final payment triggers, `ow-uat` (`defects/UAT-nn.md`, `signoff.md`, `backstop.md`, `uat.yaml`) and `ow-handoff` (`fixes/FIX-nn.md`, `dates.yaml`). **Downstream:** `ow-uat` through `ready-for-uat.md` (its sign-off is final acceptance), then `ow-handoff` (stage 04); plus the user's contract and invoicing destinations.
@@ -93,7 +93,7 @@ Rules: never call something done unless its acceptance check passes with evidenc
 
 ## 6. Change orders
 
-1. **Classify first.** The request is checked against `scope.md`, out-of-scope and the acceptance checks. If it is already in scope, it's recorded as in scope with no charge and goes on the builder's list.
+1. **Classify first.** The request is checked against `scope.md` (or `quick-scope.md` for a quick-quote job), out-of-scope and the acceptance checks. If it is already in scope, it's recorded as in scope with no charge and goes on the builder's list.
 2. **Price it.** A real change is priced from the same `price-book.yaml` with the same rules as the quote: units with reasons, modifiers only with evidence, **an unpriced item stops and asks the user**.
 3. **Write it.** `CO-nn` states what changes, why, the price, the schedule impact, the acceptance check(s) it adds, and an approval line. Sent as the branded HTML email.
 4. **Signature before work** (decision 7). Status: draft → sent → **amendment out** → signed / declined. When the client agrees in principle, the skill writes `change-inputs.md` (neutral) and NEXT prints the workspace's `change_order` destination from `handoffs.yaml` (for Deftwright, the contract step that drafts the amendment). An email reply moves it to *amendment out*, never to signed. It becomes **signed** only when the user records the signed amendment (`signed amendment received <date>, recorded by <user>; signature not verified by this skill`). Until then the ledger marks the work **not started**, and the update's *Changes* section says so.
