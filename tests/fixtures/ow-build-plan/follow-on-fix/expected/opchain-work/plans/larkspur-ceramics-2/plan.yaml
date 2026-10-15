@@ -1,0 +1,28 @@
+ow_artefact: ow-build-plan/plan
+schema: 1
+written_by: ow-build-plan 1.0.0 (protocol 1)
+workstream: larkspur-ceramics-2
+subject: handoffs/larkspur-ceramics/fixes/FIX-03.md
+created: 2026-12-01
+clock: user-stated
+origin: skill
+client: Larkspur Ceramics
+client_slug: larkspur-ceramics-2
+handling: "no"
+intake: handoffs/larkspur-ceramics/fixes/FIX-03.md
+request: ""
+follows: plans/larkspur-ceramics/
+path_id: none
+tier: one_system
+tier_source: user-stated
+tier_reason: "one new system: stock records"
+weeks: 1
+fee: 1500
+start: 2026-12-07
+collection_deadline: 2026-12-09
+plan_delivery: 2026-12-14
+date_check: not machine-checked
+sessions:
+  - { name: kick-off, date: 2026-12-07 }
+  - { name: "workshop W1: how stock is counted today", date: 2026-12-08, attendees: [operations manager, warehouse lead] }
+  - { name: plan read-through, date: 2026-12-14 }

@@ -1,0 +1,23 @@
+# Answer key: unpriced-package (INVENTED). Design §9.2 "Unpriced package": a
+# package with no price-book unit (WP-4, the one-off code clean-up) stops the
+# quote and asks; the golden run records the user's own price as
+# "priced by Robin, <date>, reason: …". Nothing is estimated. This run (-quote
+# then -export on tier2-plan) is also graded by modifier-evidence,
+# dates-terms-above, uat-documentation and builder-neutral.
+case: unpriced-package
+section: Unpriced package
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+base: tier2-plan
+checks: [headers, unpriced, internal_appendix, status, private_names]
+outputs:
+  - plans/larkspur-ceramics/quote.md
+  - plans/larkspur-ceramics/build-plan.md
+  - plans/larkspur-ceramics/export/export-report.md
+unpriced: [WP-4]
+status:
+  lines:
+    - { path: plans/larkspur-ceramics/quote.md, next: ow-build-plan /ow-build-plan-export plans/larkspur-ceramics/, awaiting: "client's answer by 2026-11-09; Build Plan credit by 2026-12-25" }
+    - { path: plans/larkspur-ceramics/export/export-report.md, next: ow-build-plan /ow-build-plan-quote plans/larkspur-ceramics/, awaiting: "client's answer by 2026-11-09; Build Plan credit by 2026-12-25" }
+private_names: [llc-ops, Deftwright]

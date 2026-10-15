@@ -1,0 +1,11 @@
+# Answer key: signed-before-accepted (INVENTED). Design §9.2 "Accepted and
+# signed": --signed before --accepted refuses. The run starts from a sent quote
+# (unpriced-package) with no contract-inputs.md; the golden run wrote nothing
+# (no expected/ folder): no build-request.md and no STATUS line.
+case: signed-before-accepted
+section: Accepted and signed (signing refused before acceptance)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+base: unpriced-package
+checks: [signed_refusal]

@@ -181,7 +181,7 @@ Then the **internal appendix**, wholly between the two markers, each on a line o
 3. Write `build-request.md` **from the plan, not the quote**: no price, fee or rate anywhere in it. Header (`ow_artefact: ow-build-plan/build-request`, `subject: plans/<client>/scope.md` or `quick-scope.md`, keys `client`, `signed`, `signing_note`), then:
 
         # Build request: <client>
-        Signed <date written out>. This comes from the Build Plan and holds no prices.
+        Signed <date written out>. This comes from the Build Plan, not the quote.
         ## What to build            (the work packages, in plain words)
         ## How the client will check it   (acceptance.md or quick-scope.md, by reference, with the AC ids)
         ## Systems and data

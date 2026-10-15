@@ -1,0 +1,18 @@
+# Answer key: quick-quote (INVENTED: fictional bookshop, from notes). Design
+# §9.2 "Quick quote": a two-unit job produces a quick scope and a quote with no
+# map, offer or collection; tester roles are listed by role name only (the
+# notes name the shop manager, Priya; the scope must not). Below size_threshold,
+# so dates-terms-below grades this run's 50/50 split and delivery sentence.
+case: quick-quote
+section: Quick quote (two-unit job)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+checks: [headers, quick, unpriced, uat_lines, internal_appendix, fix_window, status, private_names]
+outputs: [plans/mossgate-books/quick-scope.md, plans/mossgate-books/quote.md]
+quick: { units: 2, people: [Priya] }
+uat: { size: S, tester_roles: 1 }
+status:
+  lines:
+    - { path: plans/mossgate-books/quote.md, next: ow-build-plan /ow-build-plan-export plans/mossgate-books/, awaiting: "client's answer by 2026-11-03" }
+private_names: [llc-ops, Deftwright]

@@ -1,0 +1,17 @@
+# Answer key: follow-on-asks (INVENTED). Design §9.2 "Follow-on intake": without
+# a FIX-nn.md, -start asks for the request; the golden run records the user's
+# words (intake "stated by Robin, <date>") and names no FIX file.
+case: follow-on-asks
+section: Follow-on intake (no FIX file; the request is asked for)
+client: Larkspur Ceramics
+slug: larkspur-ceramics-2
+user: Robin
+base: accepted-signed
+checks: [headers, start, follow_on, status, private_names]
+outputs: [plans/larkspur-ceramics-2/plan.yaml, plans/larkspur-ceramics-2/collection.md]
+start: { tier: one_system, fee: 1500, start: 2026-12-07 }
+follow_on: { follows: plans/larkspur-ceramics/ }
+status:
+  lines:
+    - { path: plans/larkspur-ceramics-2/collection.md, next: ow-build-plan /ow-build-plan-collect plans/larkspur-ceramics-2/, awaiting: material from Larkspur Ceramics by 2026-12-09 }
+private_names: [llc-ops, Deftwright]

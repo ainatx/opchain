@@ -1,0 +1,46 @@
+# ow-build-plan acceptance fixtures
+
+Everything here is **invented**: fictional clients (Larkspur Ceramics, Mossgate Books, Calder Joinery), a fictional consultant ("Robin" of "Example Studio"), a made-up price book and synthetic artefacts, workshops and access results. No real client material and no real price belongs in this folder.
+
+These are the acceptance tests from `docs/plans/2026-10-06-ow-build-plan-design.md` §9.2, written so they can be checked mechanically. ow-build-plan is a text-only skill, so a model has to run it; the checker (`scripts/ow-build-plan-acceptance.mjs`) reads what the run wrote and tests it against an answer key, the price book and `offers.md`. "Real use" (one real Build Plan end to end) is not here: it is graded in Sprint 6.
+
+## One story, several cases
+
+Larkspur Ceramics continues ow-start's `larkspur-prospect` golden run (recap path: Build Plan, 2 systems). Each case starts from the run of its `base:` case, so the chain is one engagement:
+
+| Case | §9.2 test | Run | What is planted |
+|---|---|---|---|
+| `offer` | Build Plan offer | `-offer` | Tier from the recap's `path_systems`; fee, weeks, credit and validity from the price book |
+| `tier2-plan` | Synthetic client, tier 2 | `-start`, `-collect`, `-map`, `-scope` | Three artefacts in `inbox/`, one workshop transcript, a fake read-only schema (`input/session/`); an instruction planted in the client's procedure document |
+| `unpriced-package` | Unpriced package | `-quote`, `-export` | WP-4 (a one-off code clean-up) matches no price-book unit and is priced by the user, recorded |
+| `modifier-evidence` | Modifiers cite evidence | the `unpriced-package` run | `data-messy` cites the workshop row E-07 |
+| `dates-terms-above` | Dates and terms | the `unpriced-package` run | Fixed price above `size_threshold`: 40/40/20, the credit deadline from plan delivery |
+| `credentials` | Credentials | the `unpriced-package` run | The read-only key in `tier2-plan/input/session/README.md` must appear in no file; the access is logged |
+| `builder-neutral` | Builder-neutral | the `unpriced-package` run | The assembled `build-plan.md` names no price, unit, business or skill wording (the client's own reshipping cost is a fact, not a price) |
+| `uat-documentation` | UAT and documentation lines | the `unpriced-package` run | A TOOL-M build: UAT · M with 3 tester roles on an M that includes 2; Documentation & training · M declinable; the extension rate only inside the markers, checked with the ow-tools preflight |
+| `accepted-signed` | Accepted and signed | `--accepted`, `--signed` | Defaults-only `handoffs.yaml`, so both NEXT blocks print the public defaults |
+| `signed-before-accepted` | Accepted and signed | `--signed` on a sent quote | No `expected/`: the refusal writes nothing |
+| `fix-window` | Fix window | the `accepted-signed` run | `fix_window_days: 30` in `offers.md` → "30 days of fixes" in the quote and contract inputs |
+| `private-names-default` | No private names | the `accepted-signed` run | Every file the chain wrote, with the shipped `handoffs.yaml` |
+| `private-names-business` | No private names | `--accepted` | A business's own `handoffs.yaml` (in `input/`) whose contract line names a private skill: that line, printed exactly, is the only place it may appear |
+| `follow-on-fix` | Follow-on intake | `-start` | `handoffs/larkspur-ceramics/fixes/FIX-03.md` becomes the intake for `plans/larkspur-ceramics-2/` |
+| `follow-on-asks` | Follow-on intake | `-start` | No FIX file: the request is asked for and recorded in the user's words |
+| `quick-quote` | Quick quote | `-quote --quick` | Mossgate Books: a two-unit job from notes; the notes name the tester (Priya), the scope must list the role only |
+| `dates-terms-below` | Dates and terms | the `quick-quote` run | Below `size_threshold`: 50/50 and the delivery sentence; no Build Plan credit |
+| `quick-over-limit` | Quick quote | `-quote --quick` | Calder Joinery: four units against a limit of three; no quote, a STATUS line pointing at the offer |
+
+Each case has `answer-key.yaml`; a case that owns a run also has `input/` (the `opchain-work/` files it adds to its starting state) and `expected/` (the hand-written golden output). A case with `run:` grades another case's run. `workspace/opchain-work/` holds the shared invented `profile.md` and `price-book.yaml`; `offers.md` and `handoffs.yaml` come from the skill's own `examples/`.
+
+## Checking a real run
+
+```bash
+node scripts/ow-build-plan-acceptance.mjs --prepare unpriced-package /path/to/empty-folder
+```
+
+That lays out the starting state (the workspace files, ow-start's run, every earlier case's output and this case's input; `session/` holds what the user does in the session, such as the read-only key). Then, in a session where ow-build-plan is installed and that folder is attached, run the step the table names (for `unpriced-package`: "use ow-build-plan to quote plans/larkspur-ceramics/", then export). When the quote stops on WP-4, price it yourself as 1900.00 with a reason; say the client has six people to train and three tester roles. Then:
+
+```bash
+node scripts/ow-build-plan-acceptance.mjs unpriced-package /path/to/empty-folder
+```
+
+With no arguments, the script checks every golden run (the same thing `tests/ow-build-plan-acceptance.test.js` does in `npm test`).
