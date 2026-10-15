@@ -8,6 +8,7 @@ section: No private names (a business's own handoffs.yaml)
 client: Larkspur Ceramics
 slug: larkspur-ceramics
 user: Robin
+people: [Jess]          # named in the fit call; testers are recorded by role
 base: unpriced-package
 checks: [headers, accepted, status, private_names]
 outputs: [plans/larkspur-ceramics/contract-inputs.md]

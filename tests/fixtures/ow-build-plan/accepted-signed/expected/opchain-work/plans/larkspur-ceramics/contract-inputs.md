@@ -77,6 +77,7 @@ Contract clauses: not set.
 
 ## Next
     DONE: client accepted 2026-11-02 (recorded by Robin; not verified by this skill) -> plans/larkspur-ceramics/contract-inputs.md
-    NEXT: handoffs.yaml `contract`: no say: line is set, so the public default follows
-    IF IT IS NOT AVAILABLE: send contract-inputs.md to whoever drafts your contracts, or fill your own SOW template from it.
+    NEXT: send contract-inputs.md to whoever drafts your contracts, or fill your own SOW template from it
+    IF IT IS NOT AVAILABLE: contract-inputs.md holds what the contract needs; draft it from that file by hand.
     WHEN IT IS SIGNED: say "use ow-build-plan to record the signing on plans/larkspur-ceramics/"   (where slash commands exist: /ow-build-plan-quote --signed <date>)
+          It will read: quote.md, contract-inputs.md, and the scope files

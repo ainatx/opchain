@@ -50,3 +50,12 @@ handling: "no"
 ## UAT approach
 - tester roles: shop manager
 - test mix: the shop manager checks WP-1 and WP-2
+
+<!-- ow:internal -->
+## Self-checks (same-session self-check)
+Same-session self-check: the same assistant that wrote the scope, applying a checklist; a discipline, not an independent review. Agent-checked.
+| check | result |
+| --- | --- |
+| Acceptance coverage | OK |
+| Out of scope present | OK |
+<!-- ow:end-internal -->

@@ -9,4 +9,5 @@
 2026-10-26 (clock: user-stated) | ow-build-plan 1.0.0 | plans/larkspur-ceramics/export/export-report.md | next: ow-build-plan /ow-build-plan-quote plans/larkspur-ceramics/ | awaiting: client's answer by 2026-11-09; Build Plan credit by 2026-12-25
 2026-11-02 (clock: user-stated) | ow-build-plan 1.0.0 | plans/larkspur-ceramics/contract-inputs.md | next: ow-build-plan /ow-build-plan-quote plans/larkspur-ceramics/ | awaiting: signing for the Build Plan credit by 2026-12-25
 2026-11-09 (clock: user-stated) | ow-build-plan 1.0.0 | plans/larkspur-ceramics/build-request.md | next: ow-build /ow-build-start plans/larkspur-ceramics/ | awaiting: none
-2026-12-01 (clock: user-stated) | ow-build-plan 1.0.0 | plans/larkspur-ceramics-2/collection.md | next: ow-build-plan /ow-build-plan-collect plans/larkspur-ceramics-2/ | awaiting: material from Larkspur Ceramics by 2026-12-09
+2026-12-01 (clock: user-stated) | ow-build-plan 1.0.0 | plans/larkspur-ceramics-2/build-plan-offer.md | next: ow-build-plan /ow-build-plan-start plans/larkspur-ceramics-2/ | awaiting: offer reply from Larkspur Ceramics by 2026-12-15
+2026-12-03 (clock: user-stated) | ow-build-plan 1.0.0 | plans/larkspur-ceramics-2/collection.md | next: ow-build-plan /ow-build-plan-collect plans/larkspur-ceramics-2/ | awaiting: material from Larkspur Ceramics by 2026-12-09

@@ -4,7 +4,7 @@ schema: 1
 written_by: ow-build-plan 1.0.0 (protocol 1)
 workstream: larkspur-ceramics-2
 subject: handoffs/larkspur-ceramics/fixes/FIX-03.md
-created: 2026-12-01
+created: 2026-12-03
 clock: user-stated
 origin: skill
 covers:

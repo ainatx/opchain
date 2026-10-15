@@ -24,8 +24,8 @@ afterAll(() => scratch.forEach((d) => rmSync(d, { recursive: true, force: true }
 
 const CASES = [
   "accepted-signed", "builder-neutral", "credentials", "dates-terms-above", "dates-terms-below", "fix-window",
-  "follow-on-asks", "follow-on-fix", "modifier-evidence", "offer", "private-names-business", "private-names-default",
-  "quick-over-limit", "quick-quote", "signed-before-accepted", "tier2-plan", "uat-documentation", "unpriced-package",
+  "follow-on-asks", "follow-on-fix", "follow-on-offer", "modifier-evidence", "offer", "private-names-business", "private-names-default",
+  "quick-over-limit", "quick-quote", "route-build-plan", "route-defined-work", "signed-before-accepted", "tier2-plan", "uat-documentation", "unpriced-package",
 ];
 
 /** The case's run as a real folder (starting state + its golden output), edited by `edits` (path under opchain-work -> fn). */
@@ -55,7 +55,7 @@ describe("golden runs", () => {
   it("has a case for every §9.2 acceptance test except Real use (Sprint 6)", () => {
     expect(listCases()).toEqual(CASES);
     const sections = listCases().map((c) => loadKey(join(FIXTURES, c)).section).join("\n");
-    for (const s of ["Synthetic client, tier 2", "Unpriced package", "Modifiers cite evidence", "Dates and terms (at or above", "Dates and terms (below", "Credentials never written", "Builder-neutral", "Build Plan offer", "Quick quote (two-unit job)", "Quick quote (over the limit", "UAT and documentation lines", "Fix window", "Accepted and signed", "signing refused before acceptance", "Follow-on intake (from FIX-nn.md)", "Follow-on intake (no FIX file", "No private names (defaults-only", "No private names (a business"]) {
+    for (const s of ["Synthetic client, tier 2", "Unpriced package", "Modifiers cite evidence", "Dates and terms (at or above", "Dates and terms (below", "Credentials never written", "Builder-neutral", "Build Plan offer", "Quick quote (two-unit job)", "Quick quote (over the limit", "UAT and documentation lines", "Fix window", "Accepted and signed", "signing refused before acceptance", "Follow-on intake (from FIX-nn.md)", "Follow-on intake (no FIX file", "Follow-on intake (offer from FIX-nn.md)", "No private names (defaults-only", "No private names (a business", "Inbound route from ow-start (Build Plan path)", "Inbound route from ow-start (defined piece of work)"]) {
       expect(sections).toContain(s);
     }
   });
@@ -256,12 +256,21 @@ describe("the checker catches a planted failure in each §9.2 case", () => {
     const run = mutated("accepted-signed", {
       [`${L}/contract-inputs.md`]: (t) => t.replace("acceptance_note: client accepted 2026-11-02, recorded by Robin; not verified by this skill", "acceptance_note: client accepted 2026-11-02")
         .replace("contract_clauses: not set", "contract_clauses: { deemed_acceptance: { ref: \"12.1\", business_days: 5 } }")
-        .replace("IF IT IS NOT AVAILABLE: send contract-inputs.md to whoever drafts your contracts, or fill your own SOW template from it.", "IF IT IS NOT AVAILABLE: draft the contract."),
+        .replace("    NEXT: send contract-inputs.md to whoever drafts your contracts, or fill your own SOW template from it", "    NEXT: draft the contract"),
     });
     const out = failures("accepted-signed", run).accepted;
     expect(out).toMatch(/acceptance_note must read "client accepted 2026-11-02, recorded by Robin; not verified by this skill"/);
     expect(out).toMatch(/offers\.md has no contract_clauses block, so contract_clauses is "not set"/);
-    expect(out).toMatch(/## Next does not print the public contract default/);
+    expect(out).toMatch(/the printed NEXT line is "draft the contract"; it must be exactly the public default/);
+  });
+
+  it("accepted (decision c, bug 7): a printed NEXT carrying a handoffs.yaml prefix or an explanation fails", () => {
+    const prefixed = mutated("private-names-business", { [`${L}/contract-inputs.md`]: (t) => t.replace("    NEXT: use llc-ops", "    NEXT: handoffs.yaml `contract`: use llc-ops") });
+    const out = failures("private-names-business", prefixed).accepted;
+    expect(out).toMatch(/it must be exactly the handoffs\.yaml contract say: line/);
+    expect(out).toMatch(/## Next prints configuration wording/);
+    const explained = mutated("accepted-signed", { [`${L}/contract-inputs.md`]: (t) => t.replace("    NEXT: send contract-inputs.md", "    NEXT: no say: line is set, so: send contract-inputs.md") });
+    expect(failures("accepted-signed", explained).accepted).toMatch(/## Next prints configuration wording/);
   });
 
   it("accepted: clauses in offers.md that contract-inputs.md does not copy", () => {
@@ -273,12 +282,12 @@ describe("the checker catches a planted failure in each §9.2 case", () => {
   it("signed (C9): a NEXT without /ow-build-start, an unavailable branch without the build destination, a price", () => {
     const run = mutated("accepted-signed", {
       [`${L}/build-request.md`]: (t) => t.replace('say "use ow-build to start plans/larkspur-ceramics/"   (where slash commands exist: /ow-build-start)', 'say "start the build"')
-        .replace("IF IT IS NOT AVAILABLE: handoffs.yaml `build` has no say: line, so: give build-request.md to whoever builds it.", "IF IT IS NOT AVAILABLE: build it yourself.")
+        .replace("IF IT IS NOT AVAILABLE: give build-request.md to whoever builds it.", "IF IT IS NOT AVAILABLE: handoffs.yaml `build`: give build-request.md to whoever builds it.")
         .replace("## Milestones\n", "## Milestones\nThe fixed price is USD 17,450.00.\n"),
     });
     const out = failures("accepted-signed", run).signed;
     expect(out).toMatch(/the NEXT line must say "use ow-build to start plans\/larkspur-ceramics\/" with \/ow-build-start/);
-    expect(out).toMatch(/IF IT IS NOT AVAILABLE must carry the build destination \(the public default\)/);
+    expect(out).toMatch(/IF IT IS NOT AVAILABLE must be exactly the build destination \(the public default\)/);
     expect(out).toMatch(/names a price; the build request holds none/);
   });
 
@@ -305,12 +314,98 @@ describe("the checker catches a planted failure in each §9.2 case", () => {
     const out = failures("private-names-business", reworded);
     expect(out.private_names).toMatch(/contract-inputs\.md:\d+: names "llc-ops"/);
     expect(out.private_names).toMatch(/the handoffs\.yaml say: line "use llc-ops to draft the SOW from plans\/larkspur-ceramics\/contract-inputs\.md" is not printed exactly/);
-    expect(out.accepted).toMatch(/## Next does not print the handoffs\.yaml contract line exactly/);
+    expect(out.accepted).toMatch(/the printed NEXT line is "ask llc-ops for the SOW"; it must be exactly the handoffs\.yaml contract say: line/);
   });
 
   it("status: an earlier STATUS line rewritten", () => {
     const run = mutated("tier2-plan", { "STATUS.md": (t) => t.replace("awaiting: call on 2026-10-06", "awaiting: none") });
     expect(failures("tier2-plan", run).status).toMatch(/STATUS\.md line 1 was rewritten; STATUS\.md is append-only/);
+  });
+});
+
+// Eval round 1: the slips the Evaluator planted (bug 9), the routing (bug 1), the
+// follow-on folder (bug 5), the quick self-check (bug 15) and the schedule (owner decision g).
+describe("round 2: the checker catches what round 1 let through", () => {
+  const PRICING_ROW = "| L5 | WP-5 | integration | 1 | 2000.00 | none | 2000.00 | orders into QuickBooks Online as invoices |\n";
+
+  it("an add-unit modifier applied with no evidence row, or on the wrong unit", () => {
+    const run = mutated("modifier-evidence", { [`${L}/quote.md`]: (t) => t.replace(PRICING_ROW, `${PRICING_ROW}| L6 | WP-5 | report | 1 | 600.00 | data-sensitive adds | 600.00 | added for sensitive data |\n`) });
+    const out = failures("modifier-evidence", run).modifiers;
+    expect(out).toMatch(/modifier data-sensitive is applied but has no row in the Modifiers table/);
+    expect(out).toMatch(/L6: modifier data-sensitive adds unit data-protection-review; the line must carry that unit/);
+  });
+
+  it("a fragment of the read-only key", () => {
+    const run = mutated("credentials", { [`${L}/systems/quickbooks-online.md`]: (t) => `${t}\nKey prefix used: LARKSPUR-QBO.\n` });
+    expect(failures("credentials", run).credentials).toMatch(/systems\/quickbooks-online\.md:\d+: carries part of the read-only key/);
+  });
+
+  it("the UAT extension rate restated by number in the client's part", () => {
+    const run = mutated("uat-documentation", { [`${L}/quote.md`]: (t) => t.replace("## Valid until\n", "## Valid until\nExtra sessions are USD 175.00 each.\n") });
+    expect(failures("uat-documentation", run).uat_lines).toMatch(/the UAT extension rate 175\.00 appears in the client's part of the quote/);
+  });
+
+  it("only the Valid until sentence wrong, or only the fix-window duration wrong", () => {
+    const valid = mutated("dates-terms-above", { [`${L}/quote.md`]: (t) => t.replace("This quote is valid until 9 November 2026.", "This quote is valid until 10 November 2026.") });
+    expect(failures("dates-terms-above", valid).dates_terms).toMatch(/the quote says "valid until 10 November 2026", expected 9 November 2026/);
+    const window = mutated("fix-window", { [`${L}/quote.md`]: (t) => t.replace("for 30 days after delivery", "for 14 days after delivery") });
+    expect(failures("fix-window", window).fix_window).toMatch(/quote\.md: states a fix window of 14 days; offers\.md says 30/);
+  });
+
+  it("a unit price or a person's name in contract-inputs.md", () => {
+    const run = mutated("accepted-signed", {
+      [`${L}/contract-inputs.md`]: (t) => t.replace("## Change rule\n", "## Change rule\nThe confirmation view alone is USD 8,000.00.\n").replace("tester_roles: [order coordinator, operations manager, bookkeeper]", "tester_roles: [Jess, operations manager, bookkeeper]"),
+    });
+    const out = failures("accepted-signed", run).accepted;
+    expect(out).toMatch(/carries the internal amount 8000\.00 from quote\.md's appendix/);
+    expect(out).toMatch(/names a person \(Jess\) where a tester role belongs/);
+  });
+
+  it("a person's name as the tester in a quick quote", () => {
+    const run = mutated("quick-quote", { [`${M}/quote.md`]: (t) => t.replace("1 tester role (shop manager)", "1 tester role (Priya)") });
+    expect(failures("quick-quote", run).uat_lines).toMatch(/names a person \(Priya\) where a tester role belongs/);
+  });
+
+  it("a follow-on that rewrites the earlier plan, or whose offer sits in another folder", () => {
+    const rewrites = mutated("follow-on-fix", { [`${L}/plan.yaml`]: (t) => t.replace("tier_reason: \"\"", "tier_reason: \"reopened for the follow-on\"") });
+    expect(failures("follow-on-fix", rewrites).follow_on).toMatch(/plans\/larkspur-ceramics\/plan\.yaml: the follow-on wrote into the earlier plan/);
+    const split = mutated("follow-on-fix", { "plans/larkspur-ceramics-2/build-plan-offer.md": (t) => t.replace("subject: handoffs/larkspur-ceramics/fixes/FIX-03.md", "subject: handoffs/larkspur-ceramics/fixes/FIX-09.md") });
+    expect(failures("follow-on-fix", split).follow_on).toMatch(/build-plan-offer\.md: its subject is handoffs\/larkspur-ceramics\/fixes\/FIX-09\.md, but this plan's intake is .*FIX-03\.md; the offer and the plan must share one folder/);
+  });
+
+  it("a business say: line printed for the wrong file", () => {
+    const run = mutated("private-names-business", { [`${L}/contract-inputs.md`]: (t) => t.replace("## Contract clauses\n", "## Contract clauses\nuse llc-ops to draft the SOW from plans/larkspur-ceramics/quote.md\n") });
+    expect(failures("private-names-business", run).private_names).toMatch(/contract-inputs\.md:\d+: names "llc-ops"/);
+  });
+
+  it("a price-book amount in shorthand in the plan", () => {
+    const run = mutated("builder-neutral", { [`${L}/build-plan.md`]: (t) => t.replace("## Ownership\n", "## Ownership\nThe whole build costs about 17k.\n") });
+    expect(failures("builder-neutral", run).builder_neutral).toMatch(/carries the amount 17450\.00 in shorthand/);
+  });
+
+  it("bug 1: the inbound route runs the wrong verb, or the intake was never handed over", () => {
+    const wrong = mutated("route-build-plan", { [`${L}/quote.md`]: () => "---\now_artefact: ow-build-plan/quote\n---\n# Quote\n" });
+    expect(failures("route-build-plan", wrong).route).toMatch(/routes to the offer only; the run wrote plans\/larkspur-ceramics\/quote\.md/);
+    const noOffer = mutated("route-defined-work", { [`${M}/build-plan-offer.md`]: () => "---\nsubject: x\n---\n# Offer\n" });
+    expect(failures("route-defined-work", noOffer).route).toMatch(/routes to the quick quote, but an offer was written/);
+    const fix = mutated("follow-on-offer", { [`${L}/build-plan-offer.md`]: (t) => t.replace("valid_until: 2026-10-21", "valid_until: 2026-12-15") });
+    expect(failures("follow-on-offer", fix).route).toMatch(/plans\/larkspur-ceramics\/build-plan-offer\.md: the follow-on offer wrote into the earlier plan's folder/);
+  });
+
+  it("bug 15: a quick scope without its coverage self-checks, or with them outside the markers", () => {
+    const missing = mutated("quick-quote", { [`${M}/quick-scope.md`]: (t) => t.replace("| Out of scope present | OK |\n", "") });
+    expect(failures("quick-quote", missing).quick).toMatch(/no "Out of scope present" self-check inside the ow:internal markers/);
+    const outside = mutated("quick-quote", { [`${M}/quick-scope.md`]: (t) => t.replace("<!-- ow:internal -->\n", "").replace("<!-- ow:end-internal -->\n", "") });
+    expect(failures("quick-quote", outside).quick).toMatch(/no "Acceptance coverage" self-check inside the ow:internal markers/);
+  });
+
+  it("decision g: deadlines that ignore the price book's schedule, or a missing schedule not stated by the user", () => {
+    const days = mutated("tier2-plan", { [`${L}/plan.yaml`]: (t) => t.replace("collection_deadline: 2026-10-16", "collection_deadline: 2026-10-14").replace("collection_business_days: 4", "collection_business_days: 2") });
+    const out = failures("tier2-plan", days).start;
+    expect(out).toMatch(/collection\/delivery business days 2\/10, expected 4\/10/);
+    expect(out).toMatch(/collection_deadline 2026-10-14, expected start \+ 4 business days = 2026-10-16/);
+    const noSchedule = mutated("tier2-plan", { "price-book.yaml": (t) => t.replace(/build_plan_schedule:\n(?: {2}[^\n]+\n)+/, "") });
+    expect(failures("tier2-plan", noSchedule).start).toMatch(/the price book has no build_plan_schedule\.two_systems, so schedule_source must be user-stated/);
   });
 });
 
@@ -341,6 +436,25 @@ describe("each check fails on its own, never the whole run", () => {
     const out = failures("offer", run);
     expect(Object.keys(out)).toEqual(["offer"]);
     expect(out.offer).toMatch(/^check could not run: price-book\.yaml was not written$/);
+  });
+
+  it("bug 11: a malformed answer key fails its own case; the CLI goes on to every other case", () => {
+    const caseDir = mkdtempSync(join(tmpdir(), "ow-build-plan-badkey-"));
+    scratch.push(caseDir);
+    cpSync(join(FIXTURES, "offer"), caseDir, { recursive: true });
+    writeFileSync(join(caseDir, "answer-key.yaml"), "case: offer\nchecks: offer\n");
+    expect(runCase("offer", null, { caseDir })).toEqual([{ check: "answer-key", problems: ["answer-key.yaml could not be used: `checks` must be a list of check names"] }]);
+    writeFileSync(join(caseDir, "answer-key.yaml"), "case: [offer\n");
+    expect(runCase("offer", null, { caseDir })[0].problems[0]).toMatch(/^answer-key\.yaml could not be used: [^\n]+$/);
+  });
+
+  it("bug 11: YAML errors name the file they come from", () => {
+    const hand = mutated("accepted-signed", { "handoffs.yaml": (t) => `${t}\n  bad: [\n` });
+    expect(failures("accepted-signed", hand).accepted).toMatch(/^check could not run: handoffs\.yaml: not valid YAML \(/);
+    const off = mutated("fix-window", { "offers.md": (t) => t.replace("fix_window_days: 30 ", "fix_window_days: [30 ") });
+    expect(failures("fix-window", off).fix_window).toMatch(/^check could not run: offers\.md: the after_handoff block is not valid YAML \(/);
+    const book = mutated("offer", { "price-book.yaml": (t) => `${t}\nunits: [\n` });
+    expect(failures("offer", book).offer).toMatch(/^check could not run: price-book\.yaml: not valid YAML \(/);
   });
 
   it("a check that throws on a broken answer key fails alone with a one-line reason", () => {

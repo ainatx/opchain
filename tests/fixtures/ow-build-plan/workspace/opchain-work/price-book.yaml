@@ -12,6 +12,10 @@ origin: user
 currency: USD
 build_plan_fees: { one_system: 1500, two_systems: 3000, three_plus_or_mvp: 4500 }
 build_plan_weeks: { one_system: 1, two_systems: 2, three_plus_or_mvp: 2 }
+build_plan_schedule:
+  one_system: { collection_business_days: 2, delivery_business_days: 5 }
+  two_systems: { collection_business_days: 4, delivery_business_days: 10 }
+  three_plus_or_mvp: { collection_business_days: 4, delivery_business_days: 10 }
 units:
   - { id: integration, label: Connect two systems for one workflow, price: 2000, includes: [error handling and alerts, run logs, acceptance tests, operator notes] }
   - { id: workflow-step-exceptions, label: An exception path that needs a person, price: 800 }

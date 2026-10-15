@@ -3,7 +3,7 @@ schema: 1
 written_by: ow-build-plan 1.0.0 (protocol 1)
 workstream: larkspur-ceramics-2
 subject: handoffs/larkspur-ceramics/fixes/FIX-03.md
-created: 2026-12-01
+created: 2026-12-03
 clock: user-stated
 origin: skill
 client: Larkspur Ceramics
@@ -14,13 +14,16 @@ request: ""
 follows: plans/larkspur-ceramics/
 path_id: none
 tier: one_system
-tier_source: user-stated
+tier_source: offer
 tier_reason: "one new system: stock records"
 weeks: 1
 fee: 1500
 start: 2026-12-07
 collection_deadline: 2026-12-09
 plan_delivery: 2026-12-14
+schedule_source: price-book
+collection_business_days: 2
+delivery_business_days: 5
 date_check: not machine-checked
 sessions:
   - { name: kick-off, date: 2026-12-07 }

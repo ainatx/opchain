@@ -21,6 +21,9 @@ fee: 1500
 start: 2026-12-07
 collection_deadline: 2026-12-09
 plan_delivery: 2026-12-14
+schedule_source: price-book
+collection_business_days: 2
+delivery_business_days: 5
 date_check: not machine-checked
 sessions:
   - { name: kick-off, date: 2026-12-07 }

@@ -13,7 +13,7 @@ signing_note: client signed 2026-11-09, recorded by Robin; not verified by this 
 ---
 # Build request: Larkspur Ceramics
 
-Signed 9 November 2026 (client signed 2026-11-09, recorded by Robin; not verified by this skill). This is a working note made by an AI assistant at your instruction. It is not a signature or an official record. This comes from the Build Plan, not the quote.
+Signed 9 November 2026 (client signed 2026-11-09, recorded by Robin; not verified by this skill). This is a working note made by an AI assistant at your instruction. It is not a signature or an official record. This comes from the scope (the Build Plan, or the quick scope), not the quote.
 
 ## What to build
 1. Purchase orders from email into the order sheet, with the product code settled.
@@ -49,7 +49,8 @@ Size M: 3 tester roles (order coordinator, operations manager, bookkeeper), 3 se
 ## Next
     DONE: client signed 2026-11-09 (recorded by Robin; not verified by this skill) -> plans/larkspur-ceramics/build-request.md
     NEXT: say "use ow-build to start plans/larkspur-ceramics/"   (where slash commands exist: /ow-build-start)
-          It will read: build-request.md, plan.yaml, scope.md, acceptance.md
-    IF IT IS NOT AVAILABLE: handoffs.yaml `build` has no say: line, so: give build-request.md to whoever builds it.
+          It will read: build-request.md, quote.md, plan.yaml, scope.md, acceptance.md
+          [no folder attached: attach them when you say it]
+    IF IT IS NOT AVAILABLE: give build-request.md to whoever builds it.
 
 Give this file to whoever builds it.

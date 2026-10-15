@@ -57,6 +57,9 @@ const TEXT = /\.(md|ya?ml|txt|json|csv)$/;
 const CLOCKS = /^(tool|host-supplied|user-stated|assumed)$/;
 const TIERS = ["one_system", "two_systems", "three_plus_or_mvp"];
 const SIZES = ["S", "M", "L"];
+const FRAGMENT = 8; // characters of a credential in a row that count as "a part of one"
+const PUBLIC_CONTRACT = "send contract-inputs.md to whoever drafts your contracts, or fill your own SOW template from it";
+const PUBLIC_BUILD = "give build-request.md to whoever builds it";
 
 // ── small helpers ────────────────────────────────────────────────────────────
 
@@ -94,6 +97,13 @@ const amountRe = (c) => {
   const w = [...new Set([grouped, String(whole)])].map(esc).join("|");
   return new RegExp(`(?<![\\d,.])(?:${w})${c % 100 ? `\\.${dec}` : `(?:\\.${dec})?`}(?![\\d])`);
 };
+/** 17450.00 -> patterns for "17k", "17.5k", "17.45k", "17 thousand". */
+function shorthand(c) {
+  const k = c / 100000;
+  const forms = new Set([Math.floor(k), Math.round(k), Number(k.toFixed(1)), Number(k.toFixed(2))].map(String));
+  return [...forms].map((f) => new RegExp(`(?<![\\d.])${esc(f)}\\s?(?:k|K|thousand)\\b`));
+}
+
 export function split(totalCents, schedule) {
   const pct = schedule.split("/").map(Number);
   const shares = pct.map((p) => Math.floor((totalCents * p) / 100));
@@ -249,10 +259,14 @@ function parsed(run, rel, kind) {
   const text = run.read(rel);
   if (text == null) throw new Error(`${rel} was not written`);
   try {
-    if (kind === "yaml") return yaml.load(text) ?? {};
+    if (kind === "yaml") {
+      const v = yaml.load(text) ?? {};
+      if (typeof v !== "object" || Array.isArray(v)) throw new Error("the top level is not a map");
+      return v;
+    }
     return matter(text);
   } catch (e) {
-    throw new Error(`${rel}: header is not valid YAML (${reason(e)})`);
+    throw new Error(`${rel}: ${kind === "yaml" ? "not valid YAML" : "header is not valid YAML"} (${reason(e)})`);
   }
 }
 const book = (run) => parsed(run, "price-book.yaml", "yaml");
@@ -268,14 +282,20 @@ function offers(run) {
     const m = sec?.match(/```ya?ml\n([\s\S]*?)```/);
     // A block of comments only (the shipped empty contract_clauses) holds nothing.
     if (!m || m[1].split("\n").every((l) => !l.trim() || l.trim().startsWith("#"))) return null;
-    return yaml.load(m[1]);
+    try {
+      return yaml.load(m[1]);
+    } catch (e) {
+      throw new Error(`offers.md: the ${name} block is not valid YAML (${reason(e)})`);
+    }
   };
   return { after: block("after_handoff") ?? {}, clauses: block("contract_clauses"), ownership: sectionText(text, "ownership") };
 }
 function handoffSay(run, dest) {
   const text = run.read("handoffs.yaml");
   if (!text) return null;
-  const d = yaml.load(text)?.[dest];
+  let doc;
+  try { doc = yaml.load(text); } catch (e) { throw new Error(`handoffs.yaml: not valid YAML (${reason(e)})`); }
+  const d = doc?.[dest];
   return d && typeof d === "object" && typeof d.say === "string" ? d.say : null;
 }
 
@@ -356,10 +376,22 @@ function checkStart(key, run) {
   if (Number(plan.weeks) !== weeks) p.push(`plan.yaml: weeks ${plan.weeks} is not build_plan_weeks.${plan.tier} (${weeks})`);
   if (want.fee !== undefined && cents(plan.fee) !== cents(want.fee)) p.push(`plan.yaml: fee ${plan.fee}, expected ${want.fee}`);
   if (iso(plan.start) !== iso(want.start)) p.push(`plan.yaml: start ${iso(plan.start)}, expected ${iso(want.start)}`);
-  const collect = addBusinessDays(plan.start, 2 * weeks, holidays);
-  const deliver = addBusinessDays(plan.start, 5 * weeks, holidays);
-  if (iso(plan.collection_deadline) !== collect) p.push(`plan.yaml: collection_deadline ${iso(plan.collection_deadline)}, expected start + ${2 * weeks} business days = ${collect}`);
-  if (iso(plan.plan_delivery) !== deliver) p.push(`plan.yaml: plan_delivery ${iso(plan.plan_delivery)}, expected start + ${5 * weeks} business days = ${deliver}`);
+  // The deadlines are the user's: build_plan_schedule.<tier> in the price book, or stated by the user.
+  const sched = b.build_plan_schedule?.[plan.tier];
+  let cDays, dDays;
+  if (sched) {
+    if (plan.schedule_source !== "price-book") p.push(`plan.yaml: schedule_source is ${plan.schedule_source}; the price book has build_plan_schedule.${plan.tier}`);
+    cDays = Number(sched.collection_business_days); dDays = Number(sched.delivery_business_days);
+  } else {
+    if (plan.schedule_source !== "user-stated") p.push(`plan.yaml: the price book has no build_plan_schedule.${plan.tier}, so schedule_source must be user-stated`);
+    cDays = Number(plan.collection_business_days); dDays = Number(plan.delivery_business_days);
+    if (!(cDays > 0 && dDays > 0)) p.push("plan.yaml: a user-stated schedule records collection_business_days and delivery_business_days");
+  }
+  if (Number(plan.collection_business_days) !== cDays || Number(plan.delivery_business_days) !== dDays) p.push(`plan.yaml: collection/delivery business days ${plan.collection_business_days}/${plan.delivery_business_days}, expected ${cDays}/${dDays}`);
+  const collect = addBusinessDays(plan.start, cDays, holidays);
+  const deliver = addBusinessDays(plan.start, dDays, holidays);
+  if (iso(plan.collection_deadline) !== collect) p.push(`plan.yaml: collection_deadline ${iso(plan.collection_deadline)}, expected start + ${cDays} business days = ${collect}`);
+  if (iso(plan.plan_delivery) !== deliver) p.push(`plan.yaml: plan_delivery ${iso(plan.plan_delivery)}, expected start + ${dDays} business days = ${deliver}`);
   if (want.intake && plan.intake !== want.intake) p.push(`plan.yaml: intake is "${plan.intake}", expected "${want.intake}"`);
   // The collection list.
   const { data, content } = parsed(run, `${dir}/collection.md`, "md");
@@ -382,6 +414,12 @@ function checkFollowOn(key, run) {
   const want = key.follow_on;
   if (plan.follows !== want.follows) p.push(`plan.yaml: follows is "${plan.follows}", expected "${want.follows}"`);
   if (!run.exists(`${want.follows}plan.yaml`)) p.push(`the earlier plan ${want.follows}plan.yaml is not beside the follow-on`);
+  for (const f of run.written()) if (f.startsWith(want.follows)) p.push(`${f}: the follow-on wrote into the earlier plan; it reads it for context only`);
+  const offerRel = `${plansDir(key)}/build-plan-offer.md`;
+  if (run.exists(offerRel)) {
+    const subject = parsed(run, offerRel, "md").data.subject;
+    if (subject !== (want.fix ?? "none") && !(want.fix == null && /^none$|^stated/.test(String(subject)))) p.push(`${offerRel}: its subject is ${subject}, but this plan's intake is ${want.fix ?? "the user's words"}; the offer and the plan must share one folder`);
+  }
   if (want.fix) {
     if (plan.intake !== want.fix) p.push(`plan.yaml: intake is "${plan.intake}", expected the request ${want.fix}`);
     if (!run.exists(want.fix)) p.push(`${want.fix} does not exist in the run`);
@@ -463,7 +501,13 @@ function checkCredentials(key, run) {
   for (const rel of run.all().filter((r) => TEXT.test(r))) {
     const text = run.read(rel) ?? "";
     text.split("\n").forEach((line, i) => {
-      for (const secret of key.credentials?.values ?? []) if (line.includes(secret)) p.push(`${rel}:${i + 1}: carries the read-only key used in the session`);
+      for (const secret of key.credentials?.values ?? []) {
+        // Not the key, and not a part of one: any 8 characters of it in a row.
+        const parts = new Set();
+        for (let k = 0; k + FRAGMENT <= secret.length; k++) parts.add(secret.slice(k, k + FRAGMENT));
+        if (line.includes(secret)) p.push(`${rel}:${i + 1}: carries the read-only key used in the session`);
+        else if ([...parts].some((x) => line.includes(x))) p.push(`${rel}:${i + 1}: carries part of the read-only key used in the session`);
+      }
       if (/\b(?:api[_-]?key|access[_-]?token|password|secret)\s*[:=]\s*["']?[A-Za-z0-9_\-]{12,}/i.test(line)) p.push(`${rel}:${i + 1}: looks like a credential`);
     });
   }
@@ -535,7 +579,10 @@ function checkBuilderNeutral(key, run) {
   ];
   content.split("\n").forEach((line, i) => {
     for (const [re, what] of words) if (re.test(line)) p.push(`${rel}:${i + 1}: names ${what}`);
-    for (const c of amounts) if (amountRe(c).test(line)) p.push(`${rel}:${i + 1}: carries the amount ${money(c)} from the price book or the quote`);
+    for (const c of amounts) {
+      if (amountRe(c).test(line)) p.push(`${rel}:${i + 1}: carries the amount ${money(c)} from the price book or the quote`);
+      else if (c >= 100000 && shorthand(c).some((re) => re.test(line))) p.push(`${rel}:${i + 1}: carries the amount ${money(c)} in shorthand`);
+    }
   });
   return p;
 }
@@ -609,7 +656,15 @@ function checkModifiers(key, run) {
   const p = [];
   const q = quote(run, key);
   const ev = evidenceIds(run, plansDir(key));
-  const used = new Set(q.pricing.filter((r) => /x\s*[\d.]/.test(r.modifier)).map((r) => r.modifier.split(/\s+/)[0]));
+  const book_ = new Map((book(run).modifiers ?? []).map((m) => [m.id, m]));
+  // Both kinds count: "data-messy x1.25" on the line it changes, "data-sensitive adds" on the unit it adds.
+  const usedLines = q.pricing.filter((r) => book_.has(r.modifier.split(/\s+/)[0]));
+  const used = new Set(usedLines.map((r) => r.modifier.split(/\s+/)[0]));
+  for (const r of usedLines) {
+    const mod = book_.get(r.modifier.split(/\s+/)[0]);
+    if (mod.add_unit !== undefined && (r.unit !== mod.add_unit || !/\badds$/.test(r.modifier))) p.push(`${q.rel}: ${r.line}: modifier ${mod.id} adds unit ${mod.add_unit}; the line must carry that unit and "${mod.id} adds"`);
+    if (mod.multiply !== undefined && !/x\s*[\d.]+$/.test(r.modifier)) p.push(`${q.rel}: ${r.line}: modifier ${mod.id} multiplies; write it as "${mod.id} x${mod.multiply}"`);
+  }
   for (const id of used) {
     const row = q.mods.find((m) => m.modifier === id);
     if (!row) { p.push(`${q.rel}: modifier ${id} is applied but has no row in the Modifiers table`); continue; }
@@ -633,7 +688,9 @@ function checkDates(key, run) {
   const b = book(run);
   const valid = addDays(d.issued, Number(b.quote_validity_days));
   if (iso(d.valid_until) !== valid) p.push(`${q.rel}: valid_until ${iso(d.valid_until)}, expected issued + ${b.quote_validity_days} = ${valid}`);
-  if (!q.client.includes(`valid until ${written(valid)}`)) p.push(`${q.rel}: the quote does not say "valid until ${written(valid)}"`);
+  const validMentions = [...q.client.matchAll(/valid until (\d{1,2} [A-Z][a-z]+ \d{4})/g)].map((m) => m[1]);
+  if (!validMentions.length) p.push(`${q.rel}: the quote does not say "valid until ${written(valid)}"`);
+  for (const m of validMentions) if (m !== written(valid)) p.push(`${q.rel}: the quote says "valid until ${m}", expected ${written(valid)}`);
   const fixed = cents(d.fixed_price);
   if (fixed !== cents(d.build_total) + cents(d.uat?.price)) p.push(`${q.rel}: fixed_price ${money(fixed)} is not build_total + the testing line (${money(cents(d.build_total) + cents(d.uat?.price))})`);
   const above = fixed >= cents(b.size_threshold);
@@ -711,8 +768,16 @@ function checkUat(key, run) {
   // The extension rate stays inside the markers.
   const rate = cents(b.uat?.extension?.per_session_or_round);
   if (!/extension/i.test(q.internal) || !amountRe(rate).test(q.internal)) p.push(`${q.rel}: the UAT extension rate is not recorded in the internal appendix`);
-  q.client.split("\n").forEach((l, i) => { if (/extension/i.test(l)) p.push(`${q.rel}: the extension rate appears outside the internal markers ("${l.trim().slice(0, 50)}")`); });
+  q.client.split("\n").forEach((l) => {
+    if (/extension/i.test(l)) p.push(`${q.rel}: the extension rate appears outside the internal markers ("${l.trim().slice(0, 50)}")`);
+    else if (amountRe(rate).test(l)) p.push(`${q.rel}: the UAT extension rate ${money(rate)} appears in the client's part of the quote`);
+  });
+  p.push(...peopleIn(key, q.rel, [JSON.stringify(q.data.uat ?? {}), sec ?? ""].join("\n")));
   return p;
+}
+/** Testers are recorded by role: a person's name (the answer key's people) never appears. */
+function peopleIn(key, rel, text) {
+  return (key.people ?? []).filter((n) => new RegExp(`\\b${esc(n)}\\b`).test(text)).map((n) => `${rel}: names a person (${n}) where a tester role belongs`);
 }
 const fixedIncludesDoc = (q) => cents(q.data.fixed_price) === cents(q.data.build_total) + cents(q.data.uat?.price) + cents(q.data.documentation_training?.price ?? 0) && cents(q.data.documentation_training?.price ?? 0) > 0;
 
@@ -746,14 +811,22 @@ function checkFixWindow(key, run) {
   const q = quote(run, key);
   if (Number(q.data.fix_window_days) !== n) p.push(`${q.rel}: fix_window_days ${q.data.fix_window_days}, offers.md says ${n}`);
   if (!q.client.includes(`${n} days of fixes`)) p.push(`${q.rel}: the quote does not say "${n} days of fixes"`);
+  p.push(...windowMentions(q.rel, q.client, n));
   const ciRel = `${plansDir(key)}/contract-inputs.md`;
   if (key.fix_window?.contract_inputs) {
     const { data, content } = parsed(run, ciRel, "md");
     if (Number(data.fix_window_days) !== n) p.push(`${ciRel}: fix_window_days ${data.fix_window_days}, offers.md says ${n}`);
     if (data.fix_window_wording !== `${n} days of fixes`) p.push(`${ciRel}: fix_window_wording is "${data.fix_window_wording}"`);
     if (!(sectionText(content, "After delivery") ?? "").includes(`${n} days of fixes`)) p.push(`${ciRel}: "## After delivery" does not say "${n} days of fixes"`);
+    p.push(...windowMentions(ciRel, content, n));
   }
   return p;
+}
+
+/** Every statement of the fix window's length says the same number of days. */
+function windowMentions(rel, text, n) {
+  const found = [...text.matchAll(/(\d+) days of fixes|for (\d+) days after delivery/g)].map((m) => Number(m[1] ?? m[2]));
+  return found.filter((d) => d !== n).map((d) => `${rel}: states a fix window of ${d} days; offers.md says ${n}`);
 }
 
 const CI_KEYS = ["client", "accepted", "acceptance_note", "parties", "quote", "scope", "acceptance_checks", "currency", "fixed_price", "schedule", "payments", "payment_terms_days", "valid_until", "fix_window_days", "fix_window_wording", "uat", "documentation_sku", "acceptance_definition", "delivery_definition", "contract_clauses", "vendor_subscriptions"];
@@ -791,21 +864,23 @@ function checkAccepted(key, run) {
     if (!/Contract clauses: not set\./.test(content)) p.push(`${rel}: the body does not say "Contract clauses: not set."`);
   }
   for (const s of CI_SECTIONS) if (sectionText(content, s) == null) p.push(`${rel}: no "## ${s}" section`);
-  // No internal number.
+  // No internal number: unit prices, line amounts, manual prices and the extension rate stay in quote.md.
   const b = book(run);
-  const internal = [cents(b.uat?.extension?.per_session_or_round), ...q.pricing.filter((r) => /^WP-/.test(r.package)).map((r) => cents(r["unit price"])).filter((c) => c > 0)];
+  const legit = new Set([cents(q.data.fixed_price), ...(q.data.payments ?? []).map(cents), cents(q.data.uat?.price), cents(q.data.build_plan_fee), typeof q.data.documentation_training?.price === "number" ? cents(q.data.documentation_training.price) : NaN]);
+  const internal = new Set([cents(b.uat?.extension?.per_session_or_round), ...q.pricing.flatMap((r) => [cents(r["unit price"]), r.amountC])].filter((c) => Number.isFinite(c) && c > 0 && !legit.has(c)));
   content.split("\n").forEach((l, i) => {
     if (/priced by|extension|unit price/i.test(l)) p.push(`${rel}:${i + 1}: carries internal pricing`);
+    for (const c of internal) if (amountRe(c).test(l)) p.push(`${rel}:${i + 1}: carries the internal amount ${money(c)} from quote.md's appendix`);
   });
-  if (internal.some((c) => Number.isFinite(c) && content.split("\n").some((l) => /rate|per extra session/i.test(l) && amountRe(c).test(l)))) p.push(`${rel}: carries an internal rate`);
-  // The contract NEXT.
+  p.push(...peopleIn(key, rel, [JSON.stringify(data.uat ?? {}), sectionText(content, "User acceptance testing") ?? ""].join("\n")));
+  // The contract NEXT, as printed: the say: line exactly, or the public default, and nothing else.
   const next = sectionText(content, "Next") ?? "";
   const file = `${plansDir(key)}/contract-inputs.md`;
   const say = handoffSay(run, "contract");
-  if (say) {
-    const filled = say.replace(/\{files\}/g, file);
-    if (!next.includes(filled)) p.push(`${rel}: ## Next does not print the handoffs.yaml contract line exactly ("${filled}")`);
-  } else if (!/send contract-inputs\.md to whoever drafts your contracts, or fill your own SOW template from it/.test(next)) p.push(`${rel}: ## Next does not print the public contract default`);
+  const want = say ? say.replace(/\{files\}/g, file) : PUBLIC_CONTRACT;
+  const nextLine = (next.split("\n").find((l) => /^\s*NEXT:/.test(l)) ?? "").replace(/^\s*NEXT:\s*/, "").replace(/\.$/, "");
+  if (nextLine !== want) p.push(`${rel}: the printed NEXT line is "${nextLine}"; it must be exactly ${say ? "the handoffs.yaml contract say: line" : "the public default"}: "${want}"`);
+  if (/handoffs\.yaml|say: line/.test(next)) p.push(`${rel}: ## Next prints configuration wording; it prints only the say: line or the public default`);
   if (!/use ow-build-plan to record the signing on plans\/[a-z0-9-]+\//.test(next) || !/\/ow-build-plan-quote --signed/.test(next)) p.push(`${rel}: ## Next has no signing line`);
   return p;
 }
@@ -833,8 +908,10 @@ function checkSigned(key, run) {
   const ifLine = next.split("\n").find((l) => /^\s*IF IT IS NOT AVAILABLE:/.test(l)) ?? "";
   const say = handoffSay(run, "build");
   const file = `${dir}/build-request.md`;
+  const wantIf = say ? say.replace(/\{files\}/g, file) : PUBLIC_BUILD;
+  const gotIf = ifLine.replace(/^\s*IF IT IS NOT AVAILABLE:\s*/, "").replace(/\.$/, "");
   if (!ifLine) p.push(`${rel}: the NEXT has no IF IT IS NOT AVAILABLE line`);
-  else if (say ? !ifLine.includes(say.replace(/\{files\}/g, file)) : !/give build-request\.md to whoever builds it/.test(ifLine)) p.push(`${rel}: IF IT IS NOT AVAILABLE must carry the build destination (${say ? "its say: line" : "the public default"})`);
+  else if (gotIf !== wantIf) p.push(`${rel}: IF IT IS NOT AVAILABLE must be exactly the build destination (${say ? "its say: line" : "the public default"}): "${wantIf}"`);
   if (!/Give this file to whoever builds it\.\s*$/.test(content.trimEnd())) p.push(`${rel}: does not end "Give this file to whoever builds it."`);
   return p;
 }
@@ -868,7 +945,15 @@ function checkQuick(key, run) {
   const roles = (uat.match(/^-\s+tester roles:\s*(.+)$/m)?.[1] ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   if (!roles.length) p.push("quick-scope.md: the UAT approach lists no tester roles");
   if (roles.length !== Number(q.data.uat?.tester_roles)) p.push(`quick-scope.md lists ${roles.length} tester roles, the quote prices ${q.data.uat?.tester_roles}`);
-  for (const person of key.quick?.people ?? []) if (new RegExp(`\\b${esc(person)}\\b`).test(uat)) p.push(`quick-scope.md: the UAT approach names a person (${person}); roles only`);
+  for (const person of key.people ?? []) if (new RegExp(`\\b${esc(person)}\\b`).test(uat)) p.push(`quick-scope.md: the UAT approach names a person (${person}); roles only`);
+  // The quick path runs the scope's coverage self-checks itself, inside the markers the export strips.
+  const lines = content.split("\n");
+  const a = lines.findIndex((l) => /^\s*<!--\s*ow\s*:\s*internal\s*-->\s*$/i.test(l));
+  const z = lines.findIndex((l) => /^\s*<!--\s*ow\s*:\s*end\s*-\s*internal\s*-->\s*$/i.test(l));
+  const inside = a >= 0 && z > a ? lines.slice(a + 1, z).join("\n") : "";
+  for (const name of ["Acceptance coverage", "Out of scope present"]) if (!new RegExp(`\\| ${name} \\| (OK|FINDING|NOT-CHECKED)`).test(inside)) p.push(`quick-scope.md: no "${name}" self-check inside the ow:internal markers`);
+  if (!/Same-session self-check: the same assistant/.test(inside)) p.push("quick-scope.md: the self-checks are not labelled as a same-session self-check inside the ow:internal markers");
+  if (/^## Self-checks/m.test(lines.filter((_, i) => i < a || i > z).join("\n"))) p.push("quick-scope.md: a self-check section sits outside the ow:internal markers and would reach the client");
   return p;
 }
 
@@ -906,14 +991,16 @@ function checkStatus(key, run) {
 function checkPrivateNames(key, run) {
   const p = [];
   const names = key.private_names ?? [];
-  const allowed = ["contract", "build"].map((d) => handoffSay(run, d)).filter(Boolean);
+  // The user's own say: lines, filled with the file each destination is for.
+  const files = { contract: `${plansDir(key)}/contract-inputs.md`, build: `${plansDir(key)}/build-request.md` };
+  const allowed = Object.entries(files).map(([d, f]) => handoffSay(run, d)?.replace(/\{files\}/g, f)).filter(Boolean);
   for (const rel of run.written().filter((r) => TEXT.test(r))) {
     (run.read(rel) ?? "").split("\n").forEach((line, i) => {
       for (const n of names) {
         const re = new RegExp(`(?<![\\w-])${esc(n)}(?![\\w-])`, "i");
         if (!re.test(line)) continue;
         // The user's own say: line, printed exactly, is the one place a private name may appear.
-        const stripped = allowed.reduce((l, say) => l.split(say.split("{files}")[0]).join(" "), line);
+        const stripped = allowed.reduce((l, say) => l.split(say).join(" "), line);
         if (re.test(stripped)) p.push(`${rel}:${i + 1}: names "${n}"`);
       }
     });
@@ -925,7 +1012,53 @@ function checkPrivateNames(key, run) {
   return p;
 }
 
+/**
+ * "use ow-build-plan on <path>" (bug 1 of eval round 1): the handed-over file
+ * decides the verb. An intake record goes by the recap's path_kind
+ * (build-plan -> the offer, defined-work -> the quick quote); a FIX-nn.md
+ * becomes a follow-on offer in its own folder.
+ */
+function checkRoute(key, run) {
+  const p = [];
+  const from = key.route.from;
+  const dir = plansDir(key);
+  const written = run.written();
+  const has = (f) => written.includes(`${dir}/${f}`);
+  let expect;
+  if (/\/fixes\/FIX-\d+\.md$/.test(from)) expect = "follow-on offer";
+  else if (/^intake\/[^/]+\/intake-record\.md$/.test(from)) {
+    const recap = run.read(from.replace(/intake-record\.md$/, "recap.md"));
+    const kind = recap ? matter(recap).data.path_kind : null;
+    expect = kind === "build-plan" ? "offer" : kind === "defined-work" ? "quick quote" : "ask";
+    const before = (run.priorRead("STATUS.md") ?? "").split("\n").filter((l) => l.trim()).at(-1) ?? "";
+    if (!before.includes(`next: ow-build-plan on ${from}`)) p.push(`the starting STATUS.md does not hand ${from} to ow-build-plan (its newest line is "${before}")`);
+  } else return [`route: ${from} is neither an intake record nor a FIX file`];
+  if (key.route.expect && key.route.expect !== expect) p.push(`this case expects the route "${key.route.expect}", but ${from} routes to "${expect}"`);
+  const offer = has("build-plan-offer.md");
+  const quick = has("quick-scope.md") || has("quote.md");
+  if (expect === "offer" || expect === "follow-on offer") {
+    if (!offer) p.push(`${from} routes to /ow-build-plan-offer, but ${dir}/build-plan-offer.md was not written`);
+    if (quick || has("plan.yaml")) p.push(`${from} routes to the offer only; the run wrote ${written.filter((f) => /quote|scope|plan\.yaml/.test(f)).join(", ")}`);
+    if (offer) {
+      const subject = parsed(run, `${dir}/build-plan-offer.md`, "md").data.subject;
+      const want = expect === "offer" ? from.replace(/intake-record\.md$/, "recap.md") : from;
+      if (subject !== want) p.push(`${dir}/build-plan-offer.md: subject ${subject}, expected ${want}`);
+    }
+    if (expect === "follow-on offer") {
+      const client = from.split("/")[1];
+      if (!new RegExp(`^${esc(client)}-\\d+$`).test(key.slug)) p.push(`a follow-on goes in plans/${client}-<n>/, not ${dir}/`);
+      for (const f of written) if (f.startsWith(`plans/${client}/`)) p.push(`${f}: the follow-on offer wrote into the earlier plan's folder`);
+    }
+  } else if (expect === "quick quote") {
+    if (!has("quick-scope.md") || !has("quote.md")) p.push(`${from} routes to /ow-build-plan-quote --quick, but ${dir}/quick-scope.md and quote.md were not both written`);
+    if (offer) p.push(`${from} routes to the quick quote, but an offer was written`);
+    if (has("quick-scope.md") && parsed(run, `${dir}/quick-scope.md`, "md").data.subject !== from) p.push(`${dir}/quick-scope.md: its subject is not ${from}`);
+  } else if (written.some((f) => f.startsWith(`${dir}/`))) p.push(`${from} has no build-plan or defined-work path, so the skill asks before writing; the run wrote ${dir}/`);
+  return p;
+}
+
 const CHECKS = {
+  route: checkRoute,
   headers: checkHeaders,
   offer: checkOffer,
   start: checkStart,
@@ -950,7 +1083,15 @@ const CHECKS = {
 
 /** Run a case's checks against its golden run, or a real run folder. Returns [{ check, problems }]. */
 export function runCase(caseName, runDir = null, { caseDir = join(FIXTURES, caseName) } = {}) {
-  const key = loadKey(caseDir);
+  let key;
+  try {
+    key = loadKey(caseDir);
+    if (!key || typeof key !== "object") throw new Error("the answer key is not a map");
+    if (!Array.isArray(key.checks)) throw new Error("`checks` must be a list of check names");
+  } catch (e) {
+    // A broken key fails this case on its own; the other cases still run (eval round 1, bug 11).
+    return [{ check: "answer-key", problems: [`answer-key.yaml could not be used: ${reason(e)}`] }];
+  }
   let run;
   try {
     run = runView(caseName, runDir);

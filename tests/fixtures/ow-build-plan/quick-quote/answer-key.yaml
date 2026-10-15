@@ -10,7 +10,8 @@ slug: mossgate-books
 user: Robin
 checks: [headers, quick, unpriced, uat_lines, internal_appendix, fix_window, status, private_names]
 outputs: [plans/mossgate-books/quick-scope.md, plans/mossgate-books/quote.md]
-quick: { units: 2, people: [Priya] }
+quick: { units: 2 }
+people: [Priya]
 uat: { size: S, tester_roles: 1 }
 status:
   lines:

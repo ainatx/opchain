@@ -10,6 +10,7 @@ section: Accepted and signed
 client: Larkspur Ceramics
 slug: larkspur-ceramics
 user: Robin
+people: [Jess]          # named in the fit call; testers are recorded by role
 base: unpriced-package
 checks: [headers, accepted, signed, status, private_names]
 outputs:

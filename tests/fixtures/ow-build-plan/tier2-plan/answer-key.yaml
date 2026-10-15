@@ -10,6 +10,7 @@ section: Synthetic client, tier 2
 client: Larkspur Ceramics
 slug: larkspur-ceramics
 user: Robin
+people: [Jess]          # named in the fit call; testers are recorded by role
 base: offer
 checks: [headers, start, plan_checks, status, private_names]
 outputs:

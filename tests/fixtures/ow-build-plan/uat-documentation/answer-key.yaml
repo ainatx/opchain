@@ -9,6 +9,7 @@ section: UAT and documentation lines
 client: Larkspur Ceramics
 slug: larkspur-ceramics
 user: Robin
+people: [Jess]          # named in the fit call; testers are recorded by role
 run: unpriced-package
 checks: [uat_lines, internal_appendix]
 uat: { size: M, tester_roles: 3 }

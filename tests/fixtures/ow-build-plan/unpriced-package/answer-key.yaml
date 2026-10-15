@@ -9,6 +9,7 @@ section: Unpriced package
 client: Larkspur Ceramics
 slug: larkspur-ceramics
 user: Robin
+people: [Jess]          # named in the fit call; testers are recorded by role
 base: tier2-plan
 checks: [headers, unpriced, internal_appendix, status, private_names]
 outputs:

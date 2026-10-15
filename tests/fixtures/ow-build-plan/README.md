@@ -10,7 +10,9 @@ Larkspur Ceramics continues ow-start's `larkspur-prospect` golden run (recap pat
 
 | Case | §9.2 test | Run | What is planted |
 |---|---|---|---|
-| `offer` | Build Plan offer | `-offer` | Tier from the recap's `path_systems`; fee, weeks, credit and validity from the price book |
+| `offer` | Build Plan offer | `-offer`, reached by ow-start's NEXT "use ow-build-plan on intake/larkspur-ceramics/intake-record.md" | Tier from the recap's `path_systems`; fee, weeks, credit and validity from the price book |
+| `route-build-plan` | (eval round 1, bug 1) | the `offer` run | The inbound NEXT routes a `build-plan` recap to the offer, and nothing else |
+| `route-defined-work` | (eval round 1, bug 1) | the `quick-quote` run | The same NEXT routes a `defined-work` recap to the quick quote |
 | `tier2-plan` | Synthetic client, tier 2 | `-start`, `-collect`, `-map`, `-scope` | Three artefacts in `inbox/`, one workshop transcript, a fake read-only schema (`input/session/`); an instruction planted in the client's procedure document |
 | `unpriced-package` | Unpriced package | `-quote`, `-export` | WP-4 (a one-off code clean-up) matches no price-book unit and is priced by the user, recorded |
 | `modifier-evidence` | Modifiers cite evidence | the `unpriced-package` run | `data-messy` cites the workshop row E-07 |
@@ -23,13 +25,14 @@ Larkspur Ceramics continues ow-start's `larkspur-prospect` golden run (recap pat
 | `fix-window` | Fix window | the `accepted-signed` run | `fix_window_days: 30` in `offers.md` → "30 days of fixes" in the quote and contract inputs |
 | `private-names-default` | No private names | the `accepted-signed` run | Every file the chain wrote, with the shipped `handoffs.yaml` |
 | `private-names-business` | No private names | `--accepted` | A business's own `handoffs.yaml` (in `input/`) whose contract line names a private skill: that line, printed exactly, is the only place it may appear |
-| `follow-on-fix` | Follow-on intake | `-start` | `handoffs/larkspur-ceramics/fixes/FIX-03.md` becomes the intake for `plans/larkspur-ceramics-2/` |
+| `follow-on-offer` | Follow-on intake | "use ow-build-plan on handoffs/larkspur-ceramics/fixes/FIX-03.md" → `-offer` | FIX-03 (in `input/`) becomes the intake for an offer in `plans/larkspur-ceramics-2/`, beside the signed first plan |
+| `follow-on-fix` | Follow-on intake | `-start` after `follow-on-offer` | `-start` reuses the offer's folder; the earlier plan is read, never written |
 | `follow-on-asks` | Follow-on intake | `-start` | No FIX file: the request is asked for and recorded in the user's words |
 | `quick-quote` | Quick quote | `-quote --quick` | Mossgate Books: a two-unit job from notes; the notes name the tester (Priya), the scope must list the role only |
 | `dates-terms-below` | Dates and terms | the `quick-quote` run | Below `size_threshold`: 50/50 and the delivery sentence; no Build Plan credit |
 | `quick-over-limit` | Quick quote | `-quote --quick` | Calder Joinery: four units against a limit of three; no quote, a STATUS line pointing at the offer |
 
-Each case has `answer-key.yaml`; a case that owns a run also has `input/` (the `opchain-work/` files it adds to its starting state) and `expected/` (the hand-written golden output). A case with `run:` grades another case's run. `workspace/opchain-work/` holds the shared invented `profile.md` and `price-book.yaml`; `offers.md` and `handoffs.yaml` come from the skill's own `examples/`.
+Each case has `answer-key.yaml`; a case that owns a run also has `input/` (the `opchain-work/` files it adds to its starting state) and `expected/` (the hand-written golden output). A case with `run:` grades another case's run. `workspace/opchain-work/` holds the shared invented `profile.md` and `price-book.yaml` (whose `build_plan_schedule` sets the collection and delivery deadlines); `offers.md` and `handoffs.yaml` come from the skill's own `examples/`.
 
 ## Checking a real run
 
