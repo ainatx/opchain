@@ -44,6 +44,8 @@ Open \`references/ow-protocol.md\` and run its step 0. If you cannot open it, sa
 
     DONE: report -> report.md
     NEXT: say "use ow-beta on report.md"   (where slash commands exist: /ow-beta)
+          It will read: report.md
+          [no folder attached: attach report.md when you say it]
     IF IT IS NOT AVAILABLE: report.md stands alone.
 
     DONE: terms -> terms.md
@@ -54,6 +56,12 @@ Open \`references/ow-protocol.md\` and run its step 0. If you cannot open it, sa
 const BETA_BODY = `# ow-beta
 
 Open \`references/ow-protocol.md\` and run its step 0. If you cannot open it, say so and stop.
+
+## Verbs
+
+| Verb | Does |
+|---|---|
+| \`/ow-beta on <path>\` | Takes a handed-over file (\`references/route.md\`) |
 
 ## Reads from
 
@@ -82,6 +90,7 @@ reads:
 hands_off:
   - when: Report done
     to: ow-beta
+    verb: /ow-beta
     say: use ow-beta on report.md
     files: [{ path: report.md, fields: [title, date] }]
     if_unavailable: report.md stands alone
@@ -93,6 +102,7 @@ hands_off:
 
 const BETA_EDGES = `schema: 1
 skill: ow-beta
+routes: { verb: /ow-beta, reference: references/route.md, paths: [report.md] }
 writes:
   - { path: summary.md, verb: /ow-beta }
   - { path: STATUS.md, verb: /ow-beta, append: true }
@@ -114,6 +124,7 @@ function family({ alphaEdges = ALPHA_EDGES, betaEdges = BETA_EDGES, alphaBody = 
   };
   skill("ow-alpha", ["/ow-alpha", "/ow-alpha-accept"], alphaBody, alphaEdges);
   skill("ow-beta", ["/ow-beta"], betaBody, betaEdges);
+  writeFileSync(join(dir, "ow-beta", "references", "route.md"), "# Route\n\n`report.md` runs the summary.\n");
   writeFileSync(join(dir, "ow-alpha", "examples", "handoffs.yaml"), HANDOFFS);
   const ow = {
     id: "ow", dir, relDir: "skills-work", prefix: "ow-", verbPrefix: "/ow-", frontmatter: "agent-skills",
@@ -290,7 +301,8 @@ describe("edges: the real family", () => {
     const block = body.slice(body.indexOf("DONE: client signed"), body.indexOf("A quick quote over the limit"));
     expect(block).toMatch(/NEXT: say "use ow-build to start plans\/<client>\/" {3}\(where slash commands exist: \/ow-build-start\)/);
     expect(block).toMatch(/IF IT IS NOT AVAILABLE: handoffs\.yaml `build`\n/);
-    expect(body).toMatch(/The signing's `IF IT IS NOT AVAILABLE:` line is, in the same way, the `build` say: line exactly, or "give build-request\.md to whoever builds it"/);
+    expect(body).toMatch(/A `handoffs\.yaml` line below is never printed as written: print that key's say: line exactly, `\{files\}` filled in, or the public default/);
+    expect(readFileSync(join(ROOT, "skills-work", "ow-build-plan", "references", "phase-quote.md"), "utf8")).toMatch(/or, with none, `give build-request\.md to whoever builds it`\. Nothing else goes on that line\./);
   });
 
   // Round 2 (eval-round-1 bugs 2 and 10): the slips the Evaluator planted.
@@ -334,9 +346,9 @@ describe("edges: the real family", () => {
   it("bug 1: ow-start's handoff to ow-build-plan names the verb that routes it", () => {
     const edges = readFileSync(join(ROOT, "skills-work", "ow-start", "skill.edges.yaml"), "utf8");
     expect(edges).toMatch(/to: ow-build-plan\n {4}verb: \/ow-build-plan /);
-    const body = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "SKILL.md"), "utf8");
-    for (const row of [/`intake\/<client>\/intake-record\.md`, with `recap\.md` `path_kind: build-plan` \| `\/ow-build-plan-offer`/, /`path_kind: defined-work` \| `\/ow-build-plan-quote --quick`/, /`handoffs\/<client>\/fixes\/FIX-nn\.md` \| `\/ow-build-plan-offer` for a follow-on/]) {
-      expect(body).toMatch(row);
+    const routing = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "references", "routing-and-resume.md"), "utf8");
+    for (const row of [/\| `build-plan` \| `\/ow-build-plan-offer` for this intake \|/, /\| `defined-work` \| `\/ow-build-plan-quote --quick` for this intake \|/, /\| `next-stage` \| `\/ow-build-plan-start` for this intake \| .*\*\*Never an offer\*\*/, /## 2\.2 A follow-on request: `handoffs\/<slug>\/fixes\/FIX-nn\.md`\n\nRuns `\/ow-build-plan-offer`/, /\*\*the quote is done: never run `-quote` again from here\.\*\*/]) {
+      expect(routing).toMatch(row);
     }
     const noRoute = realTree({ "ow-start/skill.edges.yaml": (t) => t.replace("    verb: /ow-build-plan      #", "    verb: /ow-build-run      #") });
     expect(checkEdges(noRoute).join("\n")).toMatch(/verb `\/ow-build-run` is not declared/);
@@ -346,5 +358,74 @@ describe("edges: the real family", () => {
     for (const f of ["offers.md", "handoffs.yaml"]) {
       expect(readFileSync(join(ROOT, "skills-work", "ow-start", "examples", f), "utf8"), f).toBe(readFileSync(join(ROOT, "skills-work", "ow-build-plan", "examples", f), "utf8"));
     }
+  });
+
+  // Round 3 (eval-round-2 bug 7 and item 0): each slip the Evaluator planted fails.
+  const R3 = "ow-build-plan/references/routing-and-resume.md";
+  const all = (cats) => [...checkFamily(cats), ...checkEdges(cats)].join("\n");
+
+  it("item 0 / C1: the routing reference missing, emptied, or without the routes it must cover", () => {
+    expect(all(realTree({ [R3]: () => "" }))).toMatch(/routing-and-resume\.md: no route for intake\/<client>\/intake-record\.md/);
+    expect(all(realTree({ [R3]: (t) => t.replace(/## 2\. `\/ow-build-plan on <path>`[\s\S]*$/, "") }))).toMatch(/no route for handoffs\/<client>\/fixes\/FIX-nn\.md/);
+    const gone = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("reference: references/routing-and-resume.md", "reference: references/routing.md") });
+    expect(all(gone)).toMatch(/routes reference references\/routing\.md does not exist/);
+  });
+
+  it("item 0 / C2: the body's verbs-table pointer to the routing reference removed", () => {
+    const cats = realTree({ "ow-build-plan/SKILL.md": (t) => t.replace(/\| `\/ow-build-plan on <path>` \|[^\n]*\n/, "") });
+    expect(all(cats)).toMatch(/the "## Verbs" table has no `\/ow-build-plan on <path>` row pointing to `references\/routing-and-resume\.md`/);
+  });
+
+  it("C3 and C11: an 'on <path>' handoff with the wrong verb, or for a path the routes do not cover", () => {
+    const verb = realTree({ "ow-start/skill.edges.yaml": (t) => t.replace("    verb: /ow-build-plan      #", "    verb: /ow-build-plan-map      #") });
+    expect(all(verb)).toMatch(/must name ow-build-plan's routing verb \/ow-build-plan, not \/ow-build-plan-map/);
+    const path = realTree({
+      "ow-start/SKILL.md": (t) => t.split("use ow-build-plan on intake/<client>/intake-record.md").join("use ow-build-plan on intake/<client>/recap.md"),
+      "ow-start/skill.edges.yaml": (t) => t.replace("say: use ow-build-plan on intake/<client>/intake-record.md", "say: use ow-build-plan on intake/<client>/recap.md"),
+    });
+    expect(all(path)).toMatch(/hands intake\/<client>\/recap\.md, which ow-build-plan's routes do not cover/);
+  });
+
+  it("C4 and C16: a second writer spelled with '..' or as a follow-on folder", () => {
+    const dots = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("writes:\n", "writes:\n  - { path: plans/<client>/export/../contract-inputs.md, verb: /ow-build-plan-scope }\n") });
+    expect(all(dots)).toMatch(/plans\/<\*>\/contract-inputs\.md: 2 writers/);
+    const folder = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("writes:\n", "writes:\n  - { path: plans/<client>-<n>/plan.yaml, verb: /ow-build-plan-offer }\n") });
+    expect(all(folder)).toMatch(/plans\/<\*>\/plan\.yaml: 2 writers/);
+  });
+
+  it("C5: a slash hint with a mode the owner's body never documents, on a NEXT or a later template line", () => {
+    const when = realTree({ "ow-build-plan/SKILL.md": (t) => t.replace("(where slash commands exist: /ow-build-plan-quote --signed <date>)", "(where slash commands exist: /ow-build-plan-quote --bogus <date>)") });
+    expect(all(when)).toMatch(/`\/ow-build-plan-quote --bogus` is not a mode ow-build-plan's body documents/);
+    const next = realTree({ "ow-build-plan/SKILL.md": (t) => t.replace("(where slash commands exist: /ow-build-plan-quote --accepted <date>)", "(where slash commands exist: /ow-build-plan-quote --bogus <date>)") });
+    expect(all(next)).toMatch(/NEXT's `\/ow-build-plan-quote --bogus` is not a mode ow-build-plan's body documents/);
+  });
+
+  it("C6: shared: true on a client file instead of a hands-off row", () => {
+    const cats = realTree({
+      "ow-build-plan/skill.edges.yaml": (t) => t.replace("reads:\n", "reads:\n  - from: ow-start\n    path: intake/<client>/call-guide.md\n    shared: true\n    fields: [the must-ask list]\n    if_absent: Ask\n    if_mismatch: Use what parses\n"),
+      "ow-build-plan/SKILL.md": (t) => t.replace("| ow-start | `intake/<client>/coverage.md`", "| ow-start | intake/<client>/call-guide.md: must-asks | Ask | Use what parses |\n| ow-start | `intake/<client>/coverage.md`"),
+    });
+    expect(all(cats)).toMatch(/shared: true is for workspace files at the top of opchain-work\/ .*intake\/<client>\/call-guide\.md is a client file/);
+  });
+
+  it("C7 and C8 (protocol §9): a NEXT template without its 'It will read:' or no-folder line", () => {
+    const read = realTree({ "ow-build-plan/SKILL.md": (t) => t.replace("          It will read: plan.yaml, evidence.md, systems/\n", "") });
+    expect(all(read)).toMatch(/this NEXT template has no "It will read:" line \(protocol §9\)/);
+    const folder = realTree({ "ow-build-plan/SKILL.md": (t) => t.replace("          It will read: plan.yaml, evidence.md, systems/\n          [no folder attached: attach them when you say it]\n", "          It will read: plan.yaml, evidence.md, systems/\n") });
+    expect(all(folder)).toMatch(/this NEXT template has no "\[no folder attached: …\]" line/);
+    // The accepted block's signing line carries both (round 1 bug 14 residue).
+    const body = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "SKILL.md"), "utf8");
+    expect(body).toMatch(/WHEN IT IS SIGNED: say "use ow-build-plan to record the signing[^\n]*\n {10}It will read: [^\n]*\n {10}\[no folder attached: attach them when you say it\]/);
+  });
+
+  it("item 7: the example schedule is sized to the plan's weeks, and the one example price is a stated placeholder", () => {
+    const book = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "examples", "price-book.yaml"), "utf8");
+    for (const [tier, weeks, collect, deliver] of [["one_system", 1, 2, 5], ["two_systems", 2, 4, 10], ["three_plus_or_mvp", 2, 4, 10]]) {
+      expect(book).toMatch(new RegExp(`${tier}: \\{ collection_business_days: ${collect}, delivery_business_days: ${deliver} \\}`));
+      expect(deliver).toBe(5 * weeks);
+    }
+    const offers = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "examples", "offers.md"), "utf8");
+    expect(offers).not.toMatch(/not prices/);
+    expect(offers).toMatch(/hourly_help: \{ price: 1000 \} +# placeholder/);
   });
 });

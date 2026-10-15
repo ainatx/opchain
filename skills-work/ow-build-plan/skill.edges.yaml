@@ -6,8 +6,16 @@
 schema: 1
 skill: ow-build-plan
 
+# The verb other skills hand files to ("use ow-build-plan on <path>"): its rules
+# live in the reference named here, which must cover every path below.
+routes:
+  verb: /ow-build-plan
+  reference: references/routing-and-resume.md
+  paths: [intake/<client>/intake-record.md, handoffs/<client>/fixes/FIX-nn.md, plans/<client>/]
+
 writes:
   - { path: plans/<client>/build-plan-offer.md, verb: /ow-build-plan-offer }
+  - { path: plans/<client>/request.md, verb: /ow-build-plan-offer }          # a follow-on stated in the user's words
   - { path: plans/<client>/export/build-plan-offer.pdf, verb: /ow-build-plan-offer }
   - { path: plans/<client>/export/build-plan-offer.docx, verb: /ow-build-plan-offer }
   - { path: plans/<client>/plan.yaml, verb: /ow-build-plan-start }
@@ -26,6 +34,8 @@ writes:
   # One writer verb in two modes: the full quote and the quick quote write the same files.
   - { path: plans/<client>/quote.md, verb: /ow-build-plan-quote, modes: [--quick] }
   - { path: plans/<client>/quote-items.json, verb: /ow-build-plan-quote, modes: [--quick] }
+  - { path: plans/<client>/quote-r<n>.md, verb: /ow-build-plan-quote }          # a revised quote, only on request
+  - { path: plans/<client>/quote-r<n>-items.json, verb: /ow-build-plan-quote }
   - { path: plans/<client>/contract-inputs.md, verb: /ow-build-plan-quote --accepted }
   - { path: plans/<client>/build-request.md, verb: /ow-build-plan-quote --signed }
   - { path: plans/<client>/build-plan.md, verb: /ow-build-plan-export }
@@ -105,6 +115,7 @@ reads:
 
   # Its own earlier files (the body's last "Reads from" row; detail in each phase file).
   - { from: ow-build-plan, path: plans/<client>/build-plan-offer.md, if_absent: "Take the tier from the recap, else ask", if_mismatch: "Report the fields found; ask the user to confirm the tier" }
+  - { from: ow-build-plan, path: plans/<client>/request.md, if_absent: "Ask for the request in the user's words", if_mismatch: "Quote what was found; ask the user to confirm the request" }
   - { from: ow-build-plan, path: plans/<client>/plan.yaml, if_absent: "Say the schedule is missing; offer /ow-build-plan-start", if_mismatch: "Report the keys found; ask for the missing ones" }
   - { from: ow-build-plan, path: plans/<client>/collection.md, if_absent: "Work from the intake alone and say so", if_mismatch: "Use the requests that parse" }
   - { from: ow-build-plan, path: plans/<client>/evidence.md, if_absent: "Say the collection has not run; offer /ow-build-plan-collect", if_mismatch: "Use the rows that parse; facts citing other rows are FINDINGs" }
@@ -127,7 +138,7 @@ hands_off:
     to: ow-build-plan
     verb: /ow-build-plan-start
     say: use ow-build-plan to start plans/<client>/
-    files: [plans/<client>/build-plan-offer.md]
+    files: [plans/<client>/build-plan-offer.md, plans/<client>/request.md]
     if_unavailable: The offer stands alone; agree the dates by hand
   - when: Schedule set
     to: ow-build-plan

@@ -10,7 +10,7 @@ origin: user
 ---
 # Offers and fit: INVENTED EXAMPLE
 
-This is an invented example, shipped the same in every ow- skill that reads it. Replace every line with your own paths and the clients you serve. ow-start reads the `fit` and `path:` sections to propose one path after each call; ow-build-plan reads `ownership`, `after_handoff` and `contract_clauses` for the plan, the quote and the contract inputs. No skill edits this file. It names paths and terms, not prices: prices live in `price-book.yaml`.
+This is an invented example, shipped the same in every ow- skill that reads it. Replace every line with your own paths and the clients you serve. ow-start reads the `fit` and `path:` sections to propose one path after each call; ow-build-plan reads `ownership`, `after_handoff` and `contract_clauses` for the plan, the quote and the contract inputs. No skill edits this file. It names paths and terms; build prices live in `price-book.yaml`. The one price below, `hourly_help`, is an invented placeholder like every number there: put your own in.
 
 Each path is a `## path: <id>` section. `kind` is one of `defined-work`, `build-plan`, `feasibility` or `not-a-fit`; `systems` is `1`, `2`, `3+` or `none`. `propose when` is what the call has to show; `after yes` is what the recap says happens next.
 
@@ -81,7 +81,7 @@ What follows delivery. ow-build-plan reads `fix_window_days` for the quote's fix
 fix_window_days: 30                    # the quote prints "30 days of fixes"; the signed terms win later
 access_removal_lead_business_days: 3
 excluded: [out-of-hours on-call, new builds]
-hourly_help: { price: 100 }
+hourly_help: { price: 1000 }          # placeholder: your own hourly price
 ```
 
 ## contract_clauses

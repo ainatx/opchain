@@ -123,6 +123,7 @@ After extract, delivery mode, when the path is another session:
     DONE: recap ready -> intake/<client>/recap.md (send by <date>; next session: <date or "to agree">)
     NEXT: before that session, say "use ow-start to prep <client>"   (where slash commands exist: /ow-start-prep)
           It will read: intake-record.md (open questions become must-asks)
+          [no folder attached: attach intake-record.md when you say it]
     IF IT IS NOT AVAILABLE: take the open questions in intake-record.md into the session yourself.
 
 After extract, when the path is not the right fit:

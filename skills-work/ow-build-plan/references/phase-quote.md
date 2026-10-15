@@ -13,6 +13,12 @@ Run step 0 of `references/ow-protocol.md` first. Every price comes from the user
 
 A missing input: say which file and offer the verb that writes it. Never continue as if it existed.
 
+**A quote is written once.** Before `-quote` or `--quick` writes anything, look in the folder:
+
+- `quote.md` exists and the client has accepted it (`contract-inputs.md` exists), or it has been exported (`export/quote.*` or an export line in `STATUS.md`): **refuse to write `quote.md` or `quote-items.json`.** Say the quote is done and offer the next step instead: `--accepted <date>` if no `contract-inputs.md` exists, else `--signed <date>`.
+- Only when the user explicitly asks for a revised quote, write it as a new file, `quote-r<n>.md` (n from 2), with its own items file `quote-r<n>-items.json`; `quote.md`, `quote-items.json` and `contract-inputs.md` stay as they are. Never rewrite an accepted quote in place.
+- `quote.md` exists but was never exported or accepted: say so, show its date, and ask before writing over it.
+
 ## 2. Price the work (`-quote` and `--quick`)
 
 1. **Lines.** For each work package, list the price-book units it consists of, each with a quantity and a one-line reason. A unit id that is not in the price book is not a unit.
@@ -24,7 +30,7 @@ A missing input: say which file and offer the verb that writes it. Never continu
 7. **Arithmetic.** Write `plans/<client>/quote-items.json` (the build lines and the testing line, as `[{ "label", "quantity", "unit_price" } | { "label", "amount" }]`). If you can run code here and `ow-tools version` answers, run `ow-tools calc total --items plans/<client>/quote-items.json --currency <currency>` and `ow-tools calc split --total <fixed price> --schedule <40/40/20 or 50/50>`, and record each command and its raw output in the internal appendix. Otherwise write `arithmetic not machine-checked` in the header and the appendix, and ask the user to check the sums.
 8. **Fixed price** = build lines + the testing line. Documentation & training is not in it: it is its own line.
 9. **Payment schedule.** Fixed price at or above `size_threshold`: 40% to book · 40% at the working demo · 20% at acceptance. Below it: 50% to book · 50% at delivery. Shares that do not divide evenly put the remainder on the last payment. Invoices due in `payment_terms_days`. The schedule covers the fixed price; when documentation & training is taken, the contract says when it is invoiced.
-10. **Dates.** `issued` from the protocol's ladder; `valid_until` = issued + `quote_validity_days`. Build Plan mode only: `credit_deadline` = `plan.yaml` `plan_delivery` + `build_plan_credit_days`, and the credit line names the fee from `plan.yaml`. Through `ow-tools calc date` when it answers, recorded; otherwise marked not machine-checked.
+10. **Dates.** `issued` from the protocol's ladder; `valid_until` = issued + `quote_validity_days`. Build Plan mode only: `credit_deadline` = `plan.yaml` `plan_delivery` + `build_plan_credit_days`, and the credit line names the fee from `plan.yaml`. A plan on signed work (`fee: none`) has no credit line and no `credit_deadline`. Through `ow-tools calc date` when it answers, recorded; otherwise marked not machine-checked.
 11. **Fix window.** `fix_window_days` from `offers.md` → `after_handoff`; rendered "<N> days of fixes". No value: ask the user and record `fix_window_source: user-stated`.
 12. **Milestones**, each ending in a **working demo**, by work package; plus a written update each week.
 13. **Vendor subscriptions** the build needs, by name, from the map's systems; ask the user to confirm. Billed directly to the client, without a markup.

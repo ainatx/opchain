@@ -21,6 +21,10 @@ An edge between two ow- skills is a file one writes and the other reads, plus th
 ```yaml
 schema: 1
 skill: ow-example
+routes:                    # optional: the verb other skills hand files to ("use ow-example on <path>")
+  verb: /ow-example
+  reference: references/routing.md       # the routing rules; must cite every path below
+  paths: [intake/<client>/intake-record.md, plans/<client>/]
 writes:                    # every file this skill writes, with the one verb that writes it
   - { path: plans/<client>/scope.md, verb: /ow-example-scope }
   - { path: plans/<client>/contract-inputs.md, verb: /ow-example-quote --accepted }   # a mode of a verb is its own writer
@@ -34,7 +38,7 @@ reads:
     fields: [path_id, path_kind]
     if_absent: what the skill does without it (never "proceed as if passed")
     if_mismatch: what it does when the fields are not as expected
-    shared: true           # optional: a workspace file the producer keeps for the whole family, not a handoff
+    shared: true           # optional: a workspace file at the top of opchain-work/ (profile.md), not a handoff
 hands_off:
   - when: The quote is ready
     to: ow-example         # a family skill, planned skill or add-on; or `destination: contract` (a handoffs.yaml key) for work leaving the family
@@ -48,9 +52,11 @@ hands_off:
 `node scripts/check-skill-contracts.mjs` holds the family to these rules:
 
 - **Complete.** Every skill has the file; every reads row has an absent and a mismatch case and every hands-off row an unavailable branch; each reads path and each `say:` line appears in the body's tables; every writer verb is one the skill declares, and every mode (`--accepted`, a `modes:` flag) is one its body cites in backticks; every hands-off `verb:` belongs to the receiving skill.
+- **Routes.** A say of the form "use <id> on <path>" lands on <id>'s `routes:` verb, for a path its `routes.paths` cover. The receiver's routing reference exists, cites every routed path, and is named beside `<verb> on <path>` in the body's "## Verbs" table.
+- **Protocol lines.** Every NEXT template line that says "use <id>" is followed by its `It will read:` and `[no folder attached: …]` lines (protocol §9); a slash hint's mode is one its owner documents.
 - **NEXT templates match.** Every hands-off to a family skill has a NEXT template in the body that says exactly its `say:`, and every NEXT template's say is an edges row (contract R15); a `destination:` row has a NEXT or IF IT IS NOT AVAILABLE line naming its handoffs.yaml key. An add-on's handoff is printed by its own absent-case text.
-- **Reciprocal.** Every file a skill hands to another family skill has a reads row for it in the receiver (with the fields it needs among those handed off), and every reads row naming a family skill has a hands-off row in that producer, unless it is `shared:` (then the producer must write it). A planned skill or an add-on has no edges file yet; its rows are checked once it does.
-- **One writer.** No file has two writer verbs across the family. Paths compare as one file whatever their spelling: a leading `opchain-work/`, `./` segments and letter case are ignored. The exception is an append-only log the protocol names (`STATUS.md`, protocol §4), which every writer declares with `append: true`.
+- **Reciprocal.** Every file a skill hands to another family skill has a reads row for it in the receiver (with the fields it needs among those handed off), and every reads row naming a family skill has a hands-off row in that producer, unless it is `shared:` (allowed only for top-level workspace files; the producer must write it). A planned skill or an add-on has no edges file yet; its rows are checked once it does.
+- **One writer.** No file has two writer verbs across the family. Paths compare as one file whatever their spelling: a leading `opchain-work/`, `./` and `..` segments, letter case, and a follow-on folder's `<client>-<n>` placeholder are all normalised. The exception is an append-only log the protocol names (`STATUS.md`, protocol §4), which every writer declares with `append: true`.
 - **NEXT targets resolve.** A NEXT block says "use <family id>", and its slash verb belongs to that skill (a planned skill's verbs are declared in `catalogs.json` `plannedVerbs`); or it names a handoffs.yaml destination (`` handoffs.yaml `contract` ``) that a family `examples/handoffs.yaml` declares.
 
 ## How it is checked

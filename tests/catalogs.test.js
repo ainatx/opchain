@@ -89,6 +89,8 @@ const BODY = [
   "",
   "    DONE: demo -> out.md",
   "    NEXT: say \"use ow-later on out.md\"   (where slash commands exist: /ow-later-start)",
+  "          It will read: out.md",
+  "          [no folder attached: attach out.md when you say it]",
   "    IF IT IS NOT AVAILABLE: out.md stands alone.",
   "",
 ].join("\n");

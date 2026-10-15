@@ -23,10 +23,10 @@ build_plan_fees:            # the Build Plan itself, per tier
 
 build_plan_weeks: { one_system: 1, two_systems: 2, three_plus_or_mvp: 2 }
 
-build_plan_schedule:        # business days from the start date to each deadline, per tier
-  one_system: { collection_business_days: 1, delivery_business_days: 1 }
-  two_systems: { collection_business_days: 1, delivery_business_days: 1 }
-  three_plus_or_mvp: { collection_business_days: 1, delivery_business_days: 1 }
+build_plan_schedule:        # business days from the start date; placeholders sized to build_plan_weeks (5 a week)
+  one_system: { collection_business_days: 2, delivery_business_days: 5 }
+  two_systems: { collection_business_days: 4, delivery_business_days: 10 }
+  three_plus_or_mvp: { collection_business_days: 4, delivery_business_days: 10 }
 
 units:
   - id: integration
