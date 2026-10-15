@@ -1,9 +1,9 @@
 # ow-build — design
 
-**Date:** 2026-10-08 · **Status:** APPROVED 2026-10-08. **Amendment 2026-10-09 (builder integration, §12, decisions 8–11) APPROVED 2026-10-14 with the fixes in §12.8.** **Amendments applied 2026-10-14** (decision 12): ow-uat B1 (`-accept` becomes `-ready`, §3, §8), B2 (final payment triggers, §7), B3 and ow-handoff A2 without its post-acceptance mark (`-change`, §6.1). Nothing is built. **Amended 2026-10-15: quick-quote scope file is quick-scope.md (owner decision).**
+**Date:** 2026-10-08 · **Status:** APPROVED 2026-10-08. **Amendment 2026-10-09 (builder integration, §12, decisions 8–11) APPROVED 2026-10-14 with the fixes in §12.8.** **Amendments applied 2026-10-14** (decision 12): ow-uat B1 (`-accept` becomes `-ready`, §3, §8), B2 (final payment triggers, §7), B3 and ow-handoff A2 without its post-acceptance mark (`-change`, §6.1). Nothing is built. **Amended 2026-10-15: quick-quote scope file is quick-scope.md (owner decision); a quick-quote job's acceptance checks are read from quick-scope.md, since it has no acceptance.md (owner decision (a), §3, §8, §12).**
 **Release:** third skill in the ow- family that ships together as v2.1.0. Starts at 1.0.0.
 **Family rules that apply:** no `ow-review` (labelled same-session self-checks); code only in the `ow-tools` add-on; no public ow- skill names a private skill, and handoffs leaving the family go through the workspace's `handoffs.yaml` (ow-start design, decisions 22–23).
-**Upstream:** `ow-build-plan` (plan, `acceptance.md`, `quote.md`, `price-book.yaml`); for change requests and the final payment triggers, `ow-uat` (`defects/UAT-nn.md`, `signoff.md`, `backstop.md`, `uat.yaml`) and `ow-handoff` (`fixes/FIX-nn.md`, `dates.yaml`). **Downstream:** `ow-uat` through `ready-for-uat.md` (its sign-off is final acceptance), then `ow-handoff` (stage 04); plus the user's contract and invoicing destinations.
+**Upstream:** `ow-build-plan` (plan, `acceptance.md`, or `quick-scope.md` for a quick-quote job, `quote.md`, `price-book.yaml`); for change requests and the final payment triggers, `ow-uat` (`defects/UAT-nn.md`, `signoff.md`, `backstop.md`, `uat.yaml`) and `ow-handoff` (`fixes/FIX-nn.md`, `dates.yaml`). **Downstream:** `ow-uat` through `ready-for-uat.md` (its sign-off is final acceptance), then `ow-handoff` (stage 04); plus the user's contract and invoicing destinations.
 
 `ow-build` does **not** write code itself. Since the 2026-10-09 amendment it **drives the builder in the same session** (§12): with an opchain-compatible builder (Deftwright's: `oc-app-architect`, named only in the workspace's `handoffs.yaml`), it hands over the signed scope in the builder's own input format, runs the builder's planning and sprint steps per milestone, and reads the builder's outputs back. `ow-build` runs the client side of stage 03: what the client sees each week, at each demo, when they ask for more, and when money is due.
 
@@ -38,7 +38,7 @@
 
 | Verb | Does | Writes (under `opchain-work/builds/<client>/`) |
 |---|---|---|
-| `/ow-build-start` | After signing. Reads the plan and quote: milestones, acceptance checks per milestone, payment schedule, price book. Asks the update day and the progress sources. Records booking payment as due. Then hands the signed scope to the builder and runs its planning step (§12.2) | `build.yaml` (incl. milestone → sprint map), `ledger.md` (milestones, payments, change orders), `STATUS.md` line; in the client's project repo: `spec/` (the builder's input, §12.2) |
+| `/ow-build-start` | After signing. Reads the plan and quote: milestones, acceptance checks per milestone (from `acceptance.md`, or from `quick-scope.md` for a quick-quote job, which has no `acceptance.md`; with neither, stop), payment schedule, price book. Asks the update day and the progress sources. Records booking payment as due. Then hands the signed scope to the builder and runs its planning step (§12.2) | `build.yaml` (incl. milestone → sprint map), `ledger.md` (milestones, payments, change orders), `STATUS.md` line; in the client's project repo: `spec/` (the builder's input, §12.2) |
 | `/ow-build-run <milestone>` | Runs the next unfinished builder sprint of one milestone in this session, one sprint per invocation, and reads its result (§12.3) | `build.yaml` (sprint results, milestone status), `STATUS.md` line |
 | `/ow-build-update` | The weekly update (§4) | `updates/YYYY-MM-DD.html` + `.txt`, `margin.md` (internal) |
 | `/ow-build-demo` | Before a milestone demo: the script. After it: the record (§5) | `demos/M<n>-script.md`, `demos/M<n>-record.md` |
@@ -130,7 +130,7 @@ Rules: never call something done unless its acceptance check passes with evidenc
 
 Final acceptance is the client's sign-off in `ow-uat` (decision 12). `ow-build` only says the build is ready for it.
 
-`-ready` runs once every milestone's demo is recorded. It runs every acceptance check from `acceptance.md` plus those added by signed change orders, as the builder's own run: each result pass / fail / not run, with test data by pointer (source, count and fields; never copied customer records) and cases passed. With `build.mode: opchain`, that run comes from the final sprint evaluation reports plus one confirmation pass the user runs against `spec/06-testing.md` (§12.6). It then writes `ready-for-uat.md`:
+`-ready` runs once every milestone's demo is recorded. It runs every acceptance check from `acceptance.md` (a quick-quote job: from `quick-scope.md`) plus those added by signed change orders, as the builder's own run: each result pass / fail / not run, with test data by pointer (source, count and fields; never copied customer records) and cases passed. With `build.mode: opchain`, that run comes from the final sprint evaluation reports plus one confirmation pass the user runs against `spec/06-testing.md` (§12.6). It then writes `ready-for-uat.md`:
 
 | Field | Contents |
 |---|---|
@@ -211,7 +211,7 @@ The builder already starts from spec files in `spec/` ("from existing specs"), s
 | `spec/00-project-overview.md` | Plan summary, what should change, client dependencies |
 | `spec/02-architecture.md` | Systems and data (`map/systems.md`, `map/data.md`), future process |
 | `spec/04-integrations.md` | Systems and integrations in scope |
-| `spec/06-testing.md` | **Every acceptance check**, verbatim with its test data and case count (these become the builder's sprint done-criteria) |
+| `spec/06-testing.md` | **Every acceptance check** (from `acceptance.md`, or `quick-scope.md` for a quick-quote job), verbatim with its test data and case count (these become the builder's sprint done-criteria) |
 | `spec/scope-and-milestones.md` | Work packages, out of scope, risks, and the quote's milestones (no prices) |
 
 Each file carries the ow- artefact header (`written_by: ow-build`) and a note that the signed Build Plan is the source of truth. Prices, margin and the quote's internal appendix never go into `spec/`. Then `-start` runs the `plan` say-line in-session. The builder's own sprint-plan approval gate stays the user's.
