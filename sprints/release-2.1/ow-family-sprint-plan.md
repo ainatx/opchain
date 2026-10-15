@@ -115,7 +115,7 @@ Sprint 3. **Effort:** CLAUDE 12–16h | USER 1h.
 - Install from a clean folder; the zip refuses a planted catalog failure; the marketplace manifest test asserts a pinned commit.
 
 ### Definition of done
-A fresh user can install the four ow- skills and ow-tools from the public repo by following the README only, and every documented verify step works.
+A fresh user can install the five ow- skills and ow-tools from the public repo by following the README only, and every documented verify step works.
 
 ### Dependencies
 Sprints 1–4 for content; the #596 audit follow-ups from Sprint 0. **Effort:** CLAUDE 8–10h | USER 2h (public repo settings, signed tag).
