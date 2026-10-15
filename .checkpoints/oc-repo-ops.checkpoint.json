@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/ow-skills-orchestration-0e05bd",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-15T04:11:08.821Z",
+  "updated_at": "2026-10-15T04:21:53.271Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-ow-designs-approved",
-  "progress_summary": "PR #603 readiness PASS at 3437f9c7: gen-catalog, lint-internal-refs, check-skill-contracts, sync-bundles:check, sync-plugin-skills:check, checkpoint:validate pass and leave the tree unchanged; checkpoint doctor 0 errors (29 pre-existing warnings); candidate verifier PASS on tree a775a5e3 (8/8); no untracked files. Docs-only diff.",
+  "step": "pr-ow-tools-on-main-eb43b6c7",
+  "progress_summary": "ow-tools PR #597 readiness PASS at 2a8814fc: rebased cleanly on main eb43b6c7 (CLAUDE.md hunks merged); gen-catalog, lint-internal-refs, check-skill-contracts, sync-bundles:check, sync-plugin-skills:check, gen-ow-tools-manifest --check, checkpoint:validate pass; doctor 0 errors (29 pre-existing warnings); candidate verifier PASS on tree 69d0f14d (8/8, includes the 128 ow-tools tests); no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -24,18 +24,19 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "checkpoint doctor: 29 pre-existing warnings, none from this branch"
+      "checkpoint doctor: 29 pre-existing warnings, none from this branch",
+      "stale evidence-only commits dropped in the rebases onto b8bd8795 (#596) and eb43b6c7 (#603); this commit replaces them"
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "3437f9c776fec858595de58255b8df2a55799829",
+    "verified_for_sha": "2a8814fc873450514de6965b07b7361153c07153",
     "last_verify": {
-      "at": "2026-10-15T04:11:08.821Z",
-      "branch": "claude/ow-handoff-uat-designs",
-      "base": "origin/main@b8bd8795",
+      "at": "2026-10-15T04:21:53.271Z",
+      "branch": "claude/modest-feistel-8a44b6",
+      "base": "origin/main@eb43b6c7",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1406,8 +1407,36 @@
           "docs/audits/2026-10-14-ow-tools-security-posture.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-ow-tools-on-main-eb43b6c7-89933f9c9ace",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-15T04:21:53.271Z",
+      "verified_at": "2026-10-15T04:21:53.271Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-ow-tools-on-main-eb43b6c7"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:89933f9c9ace6b8aa3d64f166c574e7b30d1f2bfb79a46283c87c47016835ca2"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/modest-feistel-8a44b6 at 2a8814fc on origin/main eb43b6c7. Drift checks for both catalogs, the dev plugin and the ow-tools security manifest pass and leave the tree unchanged; dev .claude-plugin/marketplace.json does not list ow-tools; checkpoint:validate passes; doctor 0 errors; candidate verifier PASS receipt covers tree 69d0f14d; no untracked files. Docs Forge packet verified_for_sha = HEAD. Not touched: plugins/opchain/, skills/, skills-work/.",
+        "evidence": [
+          "docs/plans/2026-10-09-ow-tools-design.md",
+          "plugins/ow-tools/README.md",
+          "plugins/ow-tools/SECURITY-MANIFEST.md",
+          "plugins/ow-tools/.claude-plugin/marketplace.json",
+          "mirror/README.md",
+          "CLAUDE.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-15T04:11:08.821Z",
+  "record_updated_at": "2026-10-15T04:21:53.271Z",
   "blockers": []
 }
