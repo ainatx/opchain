@@ -13,8 +13,8 @@
 // Run:        node scripts/sync-skill-bundles.mjs
 // CI check:   node scripts/sync-skill-bundles.mjs --check   (exit 1 if drift)
 
-import { readFileSync, writeFileSync, readdirSync, statSync, mkdirSync, rmSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { readFileSync, writeFileSync, readdirSync, realpathSync, statSync, mkdirSync, rmSync } from 'node:fs';
+import { basename, join, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -27,12 +27,33 @@ const PROTOCOL_SOURCE_SKILL = 'oc-checkpoint-protocol';
 
 const checkMode = process.argv.includes('--check');
 
-// Bundles are written into every skill folder under SKILLS_DIR, so only the oc-
+// Bundles are written into every directory under SKILLS_DIR, so only the oc-
 // catalog may be the source (catalogs.json: the ow- catalog carries its own
-// protocol file, never the oc- orchestrator). Refuse before anything is written.
-const foreign = readdirSync(SKILLS_DIR, { withFileTypes: true })
-  .filter((e) => e.isDirectory() && !e.name.startsWith('oc-') && readdirSync(join(SKILLS_DIR, e.name)).includes('SKILL.md'))
-  .map((e) => e.name);
+// protocol file, never the oc- orchestrator). The guard and the writer share one
+// enumeration, `scanSkillsDir()`, which follows symlinks the way the writer does:
+// a directory, or a symlink resolving to one, is a bundle target. Every target
+// must be an oc- directory, and no symlink may resolve outside SKILLS_DIR.
+// Refuse before anything is written.
+function scanSkillsDir() {
+  const rootReal = realpathSync(SKILLS_DIR);
+  return readdirSync(SKILLS_DIR, { withFileTypes: true }).map((e) => {
+    if (!e.isSymbolicLink()) return { name: e.name, dir: e.isDirectory() };
+    let real;
+    try {
+      real = realpathSync(join(SKILLS_DIR, e.name));
+    } catch {
+      return { name: e.name, dir: false, problem: `${e.name} (symlink that does not resolve)` };
+    }
+    if (!real.startsWith(rootReal + sep)) return { name: e.name, dir: false, problem: `${e.name} (symlink to ${real}, outside ${SKILLS_DIR})` };
+    const dir = statSync(real).isDirectory();
+    if (dir && !basename(real).startsWith('oc-')) return { name: e.name, dir, problem: `${e.name} (symlink to ${basename(real)})` };
+    return { name: e.name, dir };
+  });
+}
+
+const foreign = scanSkillsDir()
+  .filter((e) => e.problem || (e.dir && !e.name.startsWith('oc-')))
+  .map((e) => e.problem ?? e.name);
 if (foreign.length) {
   console.error(`✗ refusing to bundle the oc- protocol into ${SKILLS_DIR}: ${foreign.join(', ')} not in the oc- catalog (catalogs.json)`);
   process.exit(1);
@@ -46,16 +67,7 @@ function stripFrontmatter(md) {
 }
 
 function listSkills() {
-  return readdirSync(SKILLS_DIR)
-    .filter((entry) => {
-      const path = join(SKILLS_DIR, entry);
-      try {
-        return statSync(path).isDirectory();
-      } catch {
-        return false;
-      }
-    })
-    .sort();
+  return scanSkillsDir().filter((e) => e.dir).map((e) => e.name).sort();
 }
 
 function syncTarget(targetPath, expected, label) {

@@ -281,6 +281,94 @@ describe("oc- output scripts refuse a tree holding ow- skills", () => {
     expect(readdirSync(join(copy, "ow-start", "references"))).not.toContain("orchestrator.md");
   });
 
+  // Audit F-001: Dirent.isDirectory() is false for a symlink, while the writers
+  // follow links. The guards must see a symlinked skill dir the way the writer does.
+  function ocTree() {
+    const base = temp("oc-symlink-guard-");
+    const skills = join(base, "skills");
+    for (const id of ["oc-checkpoint-protocol", "oc-dummy"]) {
+      mkdirSync(join(skills, id), { recursive: true });
+      writeFileSync(join(skills, id, "SKILL.md"), `---\nname: ${id}\n---\n\n# ${id}\n`);
+    }
+    writeFileSync(join(skills, "orchestrator.md"), "# orchestrator\n");
+    // Outside the source root: a copy of the real ow- skill, and a dir with an oc- name.
+    cpSync(join(SKILLS_WORK, "ow-start"), join(base, "elsewhere", "ow-start"), { recursive: true });
+    mkdirSync(join(base, "elsewhere", "oc-elsewhere"));
+    return { base, skills };
+  }
+  const bundle = (skills) => run(process.execPath, [join(ROOT, "scripts", "sync-skill-bundles.mjs")], { OPCHAIN_SKILLS_DIR: skills });
+
+  it("sync-skill-bundles bundles a plain oc- scratch tree (control for the symlink cases)", () => {
+    const { skills } = ocTree();
+    const r = bundle(skills);
+    expect(r.status, r.stderr).toBe(0);
+    expect(readdirSync(join(skills, "oc-dummy", "references")).sort()).toEqual(["checkpoint-protocol.md", "orchestrator.md"]);
+  });
+
+  it("sync-skill-bundles refuses a symlinked ow-start dir before bundling into it", () => {
+    const { base, skills } = ocTree();
+    symlinkSync(join(base, "elsewhere", "ow-start"), join(skills, "ow-start"), "dir");
+    const r = bundle(skills);
+    expect(r.status).toBe(1);
+    expect(r.stderr).toMatch(/refusing to bundle the oc- protocol into .*ow-start \(symlink to .*outside/);
+    expect(readdirSync(join(base, "elsewhere", "ow-start", "references"))).not.toContain("orchestrator.md");
+    expect(existsSync(join(skills, "oc-dummy", "references"))).toBe(false);
+  });
+
+  it("sync-skill-bundles refuses a symlinked non-oc- name even when its target is an oc- dir inside the root", () => {
+    const { skills } = ocTree();
+    symlinkSync(join(skills, "oc-dummy"), join(skills, "ow-start"), "dir");
+    const r = bundle(skills);
+    expect(r.status).toBe(1);
+    expect(r.stderr).toMatch(/ow-start not in the oc- catalog/);
+    expect(existsSync(join(skills, "oc-dummy", "references"))).toBe(false);
+  });
+
+  it("sync-skill-bundles refuses an oc- named symlink whose target leaves the source root", () => {
+    const { base, skills } = ocTree();
+    symlinkSync(join(base, "elsewhere", "oc-elsewhere"), join(skills, "oc-alias"), "dir");
+    const r = bundle(skills);
+    expect(r.status).toBe(1);
+    expect(r.stderr).toMatch(/oc-alias \(symlink to .*oc-elsewhere, outside /);
+    expect(readdirSync(join(base, "elsewhere", "oc-elsewhere"))).toEqual([]);
+  });
+
+  function pluginRoot() {
+    const { base, skills } = ocTree();
+    mkdirSync(join(base, "scripts"));
+    cpSync(join(ROOT, "scripts", "sync-plugin-skills.mjs"), join(base, "scripts", "sync-plugin-skills.mjs"));
+    mkdirSync(join(base, "plugins", "opchain", "skills", "oc-x"), { recursive: true });
+    writeFileSync(join(base, "plugins", "opchain", "skills", "oc-x", "SKILL.md"), "keep");
+    const go = () => run(process.execPath, [join(base, "scripts", "sync-plugin-skills.mjs")], { OPCHAIN_SKILLS_DIR: skills }, base);
+    const kept = () => readFileSync(join(base, "plugins", "opchain", "skills", "oc-x", "SKILL.md"), "utf8");
+    return { base, skills, go, kept };
+  }
+
+  it("sync-plugin-skills refuses a symlinked ow-start dir before deleting the plugin copy", () => {
+    const t = pluginRoot();
+    symlinkSync(join(t.base, "elsewhere", "ow-start"), join(t.skills, "ow-start"), "dir");
+    const r = t.go();
+    expect(r.status).toBe(1);
+    expect(r.stderr).toMatch(/refusing to build plugins\/opchain\/skills from .*ow-start \(symlink to .*outside/);
+    expect(t.kept()).toBe("keep");
+  });
+
+  it("sync-plugin-skills refuses an oc- named symlink leaving the root, and a nested symlink, before deleting", () => {
+    const leaving = pluginRoot();
+    symlinkSync(join(leaving.base, "elsewhere", "oc-elsewhere"), join(leaving.skills, "oc-alias"), "dir");
+    const r1 = leaving.go();
+    expect(r1.status).toBe(1);
+    expect(r1.stderr).toMatch(/oc-alias \(symlink to .*oc-elsewhere, outside /);
+    expect(leaving.kept()).toBe("keep");
+
+    const nested = pluginRoot();
+    symlinkSync(join(nested.base, "elsewhere", "ow-start"), join(nested.skills, "oc-dummy", "ow-start"), "dir");
+    const r2 = nested.go();
+    expect(r2.status).toBe(1);
+    expect(r2.stderr).toMatch(/unexpected symlink in tree: .*oc-dummy\/ow-start/);
+    expect(nested.kept()).toBe("keep");
+  });
+
   it("gen-mcp-catalog refuses before writing the hosted catalog", () => {
     const root = temp("oc-mcp-guard-");
     mkdirSync(join(root, "scripts", "lib"), { recursive: true });
