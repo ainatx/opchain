@@ -50,13 +50,14 @@ function machine({ ffmpegFails = false, withWhisper = true } = {}) {
   writeFileSync(join(d, "turns.json"), TURNS_JSON);
   stub(bin, "ffmpeg", ffmpegFails
     ? 'echo "Invalid data found when processing input" >&2; exit 1'
-    : '[ "$1" = "-version" ] && { echo "ffmpeg version 9.9-stub"; exit 0; }\nfor a; do last="$a"; done\nhead -c 320044 /dev/zero > "$last"');
+    : `[ "$1" = "-version" ] && { echo "ffmpeg version 9.9-stub"; exit 0; }\nprintf '%s\\n' "$@" > "${join(d, "ffmpeg-argv.txt")}"\nfor a; do last="$a"; done\nhead -c 320044 /dev/zero > "$last"`);
   if (withWhisper) {
     stub(bin, "whisper-cli", `[ "$1" = "--version" ] && { echo "whisper.cpp version: 0.0-stub"; exit 0; }
 while [ $# -gt 0 ]; do [ "$1" = "-of" ] && base="$2"; shift; done
 cp "${join(d, "whisper.json")}" "$base.json"`);
   }
   stub(bin, "uv", `env > "${envLog}"
+printf '%s\\n' "$@" > "${join(d, "uv-argv.txt")}"
 next=""; for a; do
   if [ "$next" = wav ]; then next=out; continue; fi
   if [ "$next" = out ]; then cp "${join(d, "turns.json")}" "$a"; next=done; fi
@@ -115,6 +116,21 @@ describe("ow-tools transcribe", SPAWN, () => {
     expect(env).toMatch(/^UV_OFFLINE=1$/m);
     expect(env).not.toContain("planted-token-must-not-pass");
     expect(readdirSync(m.tmp)).toEqual([]);
+  });
+
+  // SA-002: ffmpeg picks a demuxer from content, so a "recording" that is a
+  // playlist could reach other files or the network without the whitelist.
+  // F-004: uv run must not sync (install into) the environment.
+  it("limits ffmpeg to the local file protocol and runs uv without syncing", () => {
+    const m = machine();
+    expect(cli(["transcribe", m.audio, "--json"], { env: m.env }).status).toBe(0);
+    const ff = readFileSync(join(m.d, "ffmpeg-argv.txt"), "utf8").trim().split("\n");
+    const w = ff.indexOf("-protocol_whitelist");
+    expect(w).toBeGreaterThanOrEqual(0);
+    expect(ff[w + 1]).toBe("file");
+    expect(w).toBeLessThan(ff.indexOf("-i"));
+    const uv = readFileSync(join(m.d, "uv-argv.txt"), "utf8").trim().split("\n");
+    expect(uv.slice(0, 3)).toEqual(["run", "--frozen", "--no-sync"]);
   });
 
   it("takes the audio/ folder ow-start names when it holds one recording, and asks which when it holds two", () => {

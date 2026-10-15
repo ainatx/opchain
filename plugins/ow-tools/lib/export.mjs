@@ -77,12 +77,15 @@ export async function exportDoc({ file, brand: brandPath, out, formats = FORMATS
 
   await withTempDir(async (tmp) => {
     // Copy images in under neutral names so nothing outside the temp folder
-    // is reachable from Typst (--root) and paths can't escape.
+    // is reachable from Typst (--root). Preflight has already confined each
+    // image to the document's folder (or its opchain-work/ folder), resolved
+    // symlinks and checked the file really is a PNG, JPEG or GIF; the copy
+    // takes the type it detected, not the name's extension.
     let body = pre.body;
     mkdirSync(join(tmp, "assets"));
     pre.images.forEach((img, n) => {
-      const local = `assets/img-${n}${extname(img.src) || ".png"}`;
-      copyFileSync(resolve(dirname(src), decodeURI(img.src)), join(tmp, local));
+      const local = `assets/img-${n}.${img.type}`;
+      copyFileSync(img.abs, join(tmp, local));
       body = body.split(`](${img.src}`).join(`](${local}`);
     });
     writeFileSync(join(tmp, "doc.md"), body);

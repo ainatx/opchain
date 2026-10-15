@@ -136,9 +136,9 @@ No `package.json` at the plugin root: Claude Code installs npm dependencies auto
 | Step | Tool | Detail |
 |---|---|---|
 | 0. Guards | ow-tools | The input must sit in a folder named `audio`. If the output folder is inside a git work tree, `git check-ignore` must report the recording and both `transcript.*` paths as ignored; otherwise exit 4 with the two lines to add (`opchain-work/**/audio/`, `opchain-work/**/transcript.*`). ow-tools never edits `.gitignore`: `/ow-start-prep` does that after asking (one writer) |
-| 1. Normalise | `ffmpeg` | 16 kHz mono WAV into a private temp folder (mode 0700), removed when the run ends, including on failure |
+| 1. Normalise | `ffmpeg -protocol_whitelist file` | 16 kHz mono WAV into a private temp folder (mode 0700), removed when the run ends, including on failure. The whitelist matters because ffmpeg picks a demuxer from the bytes, not the file name: a "recording" that is really an HLS or concat playlist could otherwise open other files' URLs or the network |
 | 2. Transcribe | `whisper-cli`, `ggml-large-v3-turbo.bin` | Metal on Apple Silicon; JSON with per-token timestamps; `--language auto` unless given. For English or auto-detected calls a short punctuated starting prompt is passed, because the spike showed long recordings drifting into lowercase text with no punctuation. `doctor` checks the model file against a pinned SHA-256 |
-| 3. Separate speakers | `python/diarize.py` via `uv run --frozen` on Python 3.12, `pyannote/speaker-diarization-community-1` (3.1 as the fallback model) | Runs with `HF_HUB_OFFLINE=1` and `TRANSFORMERS_OFFLINE=1`, and without the token in its environment: after setup, no network call is possible from this step. `--speakers N` passes a known head count |
+| 3. Separate speakers | `python/diarize.py` via `uv run --frozen --no-sync` on Python 3.12 (`--no-sync`: the run uses the environment the user built and never installs into it), `pyannote/speaker-diarization-community-1` (3.1 as the fallback model) | Runs with `HF_HUB_OFFLINE=1` and `TRANSFORMERS_OFFLINE=1`, and without the token in its environment: after setup, no network call is possible from this step. `--speakers N` passes a known head count |
 | 4. Merge | `merge.mjs` | Each word goes to the speaker turn it overlaps most; a Whisper segment that spans a turn change is split at the word boundary; words in overlapping speech are marked `overlap: true`; words in no turn get `UNKNOWN` |
 | 5. Confirm | `ow-tools speakers` | Prints two sample lines per speaker (the two longest distinct turns) with timestamps. The user types the roles; ow-tools records them. A 3+ person call works the same way |
 
@@ -170,10 +170,11 @@ Paths are relative to the workstream folder (R2: no absolute path, username or m
 | Check | Rule |
 |---|---|
 | Headings | Exactly one H1; no skipped levels |
-| Images | Every image has non-empty alt text; the file exists, relative to the Markdown |
+| Images | Every image has non-empty alt text. The path is relative to the Markdown and, after symlinks are resolved, stays inside the Markdown's folder, or inside the enclosing `opchain-work/` folder when there is one (so a shared `opchain-work/brand/` image works). The file's first bytes must say PNG, JPEG or GIF; SVG (Word needs `rsvg-convert`, and SVG can reference other files) and WebP (pandoc can't read it) are refused. The copy in the temp folder takes the detected type, not the name's extension |
 | Tables | Every table has a header row with no empty header cell; no merged cells (Markdown has none) |
 | Links | Link text is not a bare URL, "here" or "click here" |
-| Internal sections | `<!-- ow:internal -->` … `<!-- ow:end-internal -->` blocks are removed; unbalanced markers refuse; the output is checked not to contain the removed text |
+| Internal sections | `<!-- ow:internal -->` … `<!-- ow:end-internal -->` blocks are removed. Markers are matched regardless of case and spacing (`<!-- OW: Internal -->` counts) on a line of their own. Any other HTML comment mentioning "internal", in fenced code or not (a misspelt, mid-line, multi-line or unclosed marker), refuses, as do unbalanced and nested markers; the output is checked not to contain the removed text |
+| Messages | Each refusal names its line number and never quotes the document: no image path, link text or internal-section text |
 | Artefact header | The ow- header block (a `---` YAML block holding `ow_artefact`, ow-protocol v1 §4) is removed from client documents. The `banner_text` line right after it, when set, is kept and repeated in every page header. The audit's older one-line form is read too |
 
 **`brand.yaml`** (user-written; ow-tools reads it, the skills ship the invented example; found by walking up from the Markdown to `opchain-work/brand.yaml`, or `--brand`):
@@ -229,7 +230,7 @@ The skill passes holidays it read from `profile.md`; ow-tools never reads `profi
 
 | Requirement | For | Check | Printed fix (macOS) |
 |---|---|---|---|
-| Node ≥ 20 | everything | `bin/ow-tools` itself | `brew install node` |
+| Node ≥ 20 | everything | `bin/ow-tools` itself, before any module loads; the hook verb exits 0 silently on an older Node | `brew install node` |
 | ffmpeg | transcribe | on PATH, version | `brew install ffmpeg` |
 | whisper.cpp `whisper-cli` | transcribe | on PATH, version | `brew install whisper-cpp` |
 | Whisper model | transcribe | file + pinned SHA-256 in the data folder | one `curl` line from Hugging Face (~1.6 GB, not gated) |
@@ -264,15 +265,24 @@ The audit's rule (A:177, A:3005–3019) is that admin approval matches a marketp
 
 | Rule | How ow-tools keeps it |
 |---|---|
-| Audio stays local | No upload anywhere. The diarization step runs offline with no token in its environment; whisper.cpp and ffmpeg read local files only. No telemetry, no update check |
+| Audio stays local | No upload anywhere. The diarization step runs offline with no token in its environment. ffmpeg runs with `-protocol_whitelist file`, so it can open local files only, even when a recording is really a playlist; whisper.cpp reads only the temp WAV. No telemetry, no update check |
 | Recordings live under `audio/` | `transcribe` refuses input outside a folder named `audio` (exit 4) |
 | Audio and transcripts are git-ignored | Before writing, `git check-ignore` must pass for the recording and both transcript files; otherwise exit 4 with the lines to add. ow-tools never edits `.gitignore` |
 | Temp copies don't linger | The normalised WAV and intermediate JSON live in a 0700 temp folder removed in a `finally` |
-| The token is never written by ow-tools | The user stores it in the keychain (Linux: `~/.config/ow-tools/hf-token`, refused unless mode 0600). ow-tools reads it only in the setup fetch, never prints it, and never passes it to the transcription run |
-| Credentials never in files | No ow-tools output contains one; the export preflight doesn't print document text, only line numbers |
+| The token is never written by ow-tools | The user stores it in the keychain (Linux: `~/.config/ow-tools/hf-token`, refused unless mode 0600 or 0400: `doctor` reports any other mode as not stored and prints the `chmod`, and the printed fetch command reads the file only at those modes, through `find -perm`). ow-tools reads it only in the setup fetch, never prints it, and never passes it to the transcription run |
+| Credentials never in files | No ow-tools output contains one; the export preflight's messages name line numbers only and never quote document text (§5.2) |
+| Internal sections stay internal | Markers are matched regardless of case and spacing; any other comment mentioning "internal" refuses the export (§5.2), so a typo can't let a section through |
+| A client document carries only its own images | Image paths are confined to the document's folder (or its `opchain-work/` folder) after symlinks are resolved, and must be PNG, JPEG or GIF by content (§5.2) |
 | Redacted scanning only | §5.5: the match is never emitted, written or logged; unredactable means not run |
 | No private names | A test fails if any file in `plugins/ow-tools/` names `llc-ops`, a skill outside the ow- family, or "Deftwright"; `lint-internal-refs` already covers personal identifiers in `plugins/` |
 | Files are data | Transcripts carry the data sentence; the hook wraps STATUS.md content as data and strips control characters |
+
+### Known residuals (2026-10-14 audit)
+
+Open, pending owner decisions; reports at `docs/audits/2026-10-14-pr-597-diff-audit.md` and `docs/audits/2026-10-14-ow-tools-security-posture.md`.
+
+- **SA-001 (HIGH), distribution pinning:** the marketplace entry follows the force-pushed mirror at `ref: main` with no `sha` or archive hash, and `SECURITY-MANIFEST.md` travels in the tree it attests, so nothing a consumer can check pins what is installed.
+- **SA-004 (MEDIUM), model revision pins:** the pyannote snapshot is fetched and loaded with no pinned revision, and the Whisper model's SHA-256 is checked by `doctor` but not by `transcribe`.
 
 ## 9. Tests
 
@@ -286,10 +296,10 @@ All Vitest, under `tests/ow-tools/`, run by `npm test` and CI. Real-tool tests s
 | guards | Audio outside `audio/` refused; an un-ignored output in a temp git repo refused; temp folder removed after success and after a forced failure |
 | pipeline (stubbed) | Fake `ffmpeg`, `whisper-cli` and `uv` on PATH produce canned output end to end; the diarizer's environment has the offline flags and no token |
 | doctor | Each requirement present/missing via a stub PATH; exact printed fixes; a stub `brew` records that it was never called |
-| export preflight | Skipped heading level, two H1s, missing alt, empty header cell, bare-URL link text, unbalanced internal markers: each refused with its line; internal text absent from the output |
+| export preflight | Skipped heading level, two H1s, missing alt, empty header cell, bare-URL link text, unbalanced or nested internal markers: each refused with its line; case and spacing variants of the markers stripped; misspelt, mid-line, multi-line and unclosed markers refused; images outside the folder, behind a symlink, or not PNG/JPEG/GIF refused; messages never quote the document; internal text absent from the output |
 | brand | The schema accepted; anchors and multi-line strings refused; WCAG contrast ratios on known pairs; failing brand refused with the ratio |
 | export (real, skips without pandoc/Typst) | PDF has a structure tree, `/Lang`, `/Title`, bookmarks, and no internal-section text; Word has Heading styles, a repeating table header row, image descriptions, title and language |
-| hook | Fixture STATUS.md → expected lines; silent without `opchain-work/`; malformed lines counted, not shown; an embedded "ignore previous instructions" line stays inside the data wrapper; overdue against a fixed clock |
+| hook | Fixture STATUS.md → expected lines; silent without `opchain-work/`, without `node` and with a stub Node 18; malformed lines counted, not shown; an embedded "ignore previous instructions" line stays inside the data wrapper; overdue against a fixed clock |
 | calc | Business days across weekends and listed holidays; splits that sum exactly |
 | plugin shape | `plugin.json`, `hooks.json` and `marketplace.json` parse and point at real files; the dev marketplace doesn't list ow-tools; no `package.json` at the plugin root; `SECURITY-MANIFEST.md` matches; no private or out-of-family names; no banned gate words (A:117) in output strings; `claude plugin validate --strict` when the CLI is present |
 | scan-secrets (waits) | A stub gitleaks that leaks a match → NOT-CHECKED and nothing printed; real gitleaks on a temp repo with a planted fake key → output never contains the key |
@@ -320,7 +330,7 @@ ow-tools needs nothing from those branches, so it branches from `main` and doesn
 
 ## 12. What ow-tools never does
 
-Installs a system package or runs `sudo` · sends audio, a transcript or document text anywhere · edits `.gitignore`, `STATUS.md`, `profile.md`, `brand.yaml` or any file an ow- skill writes · stores, prints or logs a credential or a secret match · scans a working tree or opens a `.env` file · deletes a user file (only its own temp files) · guesses who a speaker is · claims accessibility conformance, a verified signature or an approval.
+Installs a system package, runs `sudo`, or installs into its own Python environment (`uv run --no-sync`) · sends audio, a transcript or document text anywhere (ffmpeg is held to the `file` protocol) · embeds a file from outside the document's folder or its `opchain-work/` folder in a client document · quotes document text in a preflight message · edits `.gitignore`, `STATUS.md`, `profile.md`, `brand.yaml` or any file an ow- skill writes · stores, prints or logs a credential or a secret match · scans a working tree or opens a `.env` file · deletes a user file (only its own temp files) · guesses who a speaker is · claims accessibility conformance, a verified signature or an approval.
 
 ## 13. Open questions
 

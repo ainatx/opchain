@@ -7,7 +7,7 @@
 | **Transcription** | A recorded call → `transcript.json` + `transcript.md`, with speakers separated and then confirmed by you. ffmpeg → whisper.cpp (`large-v3-turbo`) → pyannote (`speaker-diarization-community-1`) → merge. **Local only.** |
 | **Export** | Markdown → branded, accessible **PDF and Word**, styled from your `opchain-work/brand.yaml`. pandoc + Typst (tagged PDF/UA-1). |
 | **calc** | Today's date, business days with your holidays, totals and payment splits, checked by a tool so skills don't have to mark them "not machine-checked". |
-| **Session start** | Lists the open workstreams in `opchain-work/STATUS.md` with their next step and anything overdue. Silent in every other folder. |
+| **Session start** | Lists the open workstreams in `opchain-work/STATUS.md` with their next step and anything overdue. Silent in every other folder, and silent when the `node` on your PATH is older than 20. |
 
 Without ow-tools the ow- skills still work: paste a transcript or notes, and keep the Markdown as the document.
 
@@ -22,7 +22,7 @@ This marketplace lists **ow-tools only**, so an administrator can approve it (fo
 
 ## What it needs
 
-`/ow-tools` (or `ow-tools doctor`) checks each requirement and prints the command that fixes it. **ow-tools installs nothing itself.** You run every step in your own terminal.
+`/ow-tools` (or `ow-tools doctor`) checks each requirement and prints the command that fixes it. **ow-tools installs nothing itself**, not even into its own Python environment: transcription runs `uv run --frozen --no-sync`. You run every step in your own terminal.
 
 | For | Needs |
 |---|---|
@@ -36,11 +36,13 @@ Built and tested on macOS (Apple Silicon). Linux gets the same checks with gener
 
 ## Privacy
 
-- **Audio and transcripts never leave the machine.** The speaker model runs with Hugging Face's offline switches on and no token in its environment. There is no telemetry and no update check.
+- **Audio and transcripts never leave the machine.** The speaker model runs with Hugging Face's offline switches on and no token in its environment. ffmpeg runs with `-protocol_whitelist file`, so a "recording" that is really a playlist can't make it open a network address. There is no telemetry and no update check.
 - Recordings must be in a folder named `audio/`. If that folder or the transcript would be committable in a git repository, ow-tools refuses and prints the `.gitignore` lines to add. It never edits `.gitignore` itself.
-- The Hugging Face token is read only by the one-time fetch command you run. Store it in your keychain (macOS) or a `0600` file (Linux), never in a repository. Once the model is fetched you can delete the token.
+- The Hugging Face token is read only by the one-time fetch command you run. Store it in your keychain (macOS) or in `~/.config/ow-tools/hf-token` at mode `0600` (Linux; at any other mode `ow-tools doctor` reports it as not stored and the fetch command doesn't read it), never in a repository. Once the model is fetched you can delete the token.
 - Normalised audio and intermediate files go to a private temp folder that is removed when the run ends, including on failure.
-- Exports leave out anything between `<!-- ow:internal -->` and `<!-- ow:end-internal -->`, such as a quote's internal pricing appendix.
+- Exports leave out anything between `<!-- ow:internal -->` and `<!-- ow:end-internal -->`, such as a quote's internal pricing appendix. The markers are matched regardless of case and spacing; any other HTML comment that mentions "internal" (a misspelt or mid-line marker) stops the export, so a section is never let through by a typo.
+- Exports embed only images from the document's folder, or from the `opchain-work/` folder it sits in, after following symlinks, and only real PNG, JPEG or GIF files. A path that leads anywhere else stops the export.
+- When the export preflight refuses a document, it names line numbers only; it never repeats the document's text.
 
 ## Commands
 

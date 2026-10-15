@@ -103,7 +103,10 @@ export async function transcribe(opts, log = () => {}) {
     let t0 = t();
     const wav = join(tmp, "audio.wav");
     log("normalising audio");
-    let r = run("ffmpeg", ["-nostdin", "-loglevel", "error", "-y", "-i", audioAbs, "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", wav]);
+    // -protocol_whitelist file: ffmpeg picks a demuxer from the bytes, not the
+    // name, so a "recording" that is really a playlist could otherwise open
+    // other files' URLs or the network. Only the local file protocol is allowed.
+    let r = run("ffmpeg", ["-nostdin", "-loglevel", "error", "-y", "-protocol_whitelist", "file", "-i", audioAbs, "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", wav]);
     if (r.status !== 0) throw failed(`ffmpeg could not read the recording: ${oneLine(r.stderr)}`);
     timings.normalise_s = t() - t0;
     const durationS = (readSize(wav) - 44) / 32000;
@@ -134,7 +137,8 @@ export async function transcribe(opts, log = () => {}) {
       HF_HUB_DISABLE_TELEMETRY: "1",
       PYTHONDONTWRITEBYTECODE: "1",
     });
-    const args = ["run", "--frozen", "--project", PY_PROJECT, "python", join(PY_PROJECT, "diarize.py"), wav, join(tmp, "turns.json"), "--device", device];
+    // --no-sync: run in the environment the user built; never install into it.
+    const args = ["run", "--frozen", "--no-sync", "--project", PY_PROJECT, "python", join(PY_PROJECT, "diarize.py"), wav, join(tmp, "turns.json"), "--device", device];
     if (speakers) args.push("--speakers", String(speakers));
     r = run("uv", args, { env });
     if (r.status !== 0 || !isFile(join(tmp, "turns.json"))) {

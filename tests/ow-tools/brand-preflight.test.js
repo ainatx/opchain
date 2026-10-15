@@ -1,6 +1,6 @@
 // ow-tools design §5.2: brand.yaml reader, contrast, and the export preflight.
 import { afterAll, describe, expect, it } from "vitest";
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { contrast, loadBrand, parseBrandYaml, validateBrand } from "../../plugins/ow-tools/lib/brand.mjs";
 import { preflight } from "../../plugins/ow-tools/lib/preflight.mjs";
@@ -108,11 +108,11 @@ describe("export preflight", () => {
     ["## No title\n", /exactly one level-1 heading/],
     ["# A\n\n# B\n", /line 3: a second level-1 heading/],
     ["# A\n\n### Skipped\n", /line 3: heading level jumps from 1 to 3/],
-    ["# A\n\n![](map.png)\n", /line 3: image map\.png has no alt text/],
-    ["# A\n\n![Map](missing.png)\n", /image not found: missing\.png/],
+    ["# A\n\n![](map.png)\n", /line 3: an image has no alt text/],
+    ["# A\n\n![Map](missing.png)\n", /line 3: an image file was not found/],
     ["# A\n\n![Map](https://example.com/m.png)\n", /remote/],
     ["# A\n\n| Step |  |\n| --- | --- |\n", /line 3: a table header cell is empty/],
-    ["# A\n\nRead [here](https://example.com).\n", /link text "here"/],
+    ["# A\n\nRead [here](https://example.com).\n", /line 3: link text like "here"/],
     ["# A\n\nSee [https://example.com](https://example.com).\n", /bare URL as link text/],
     ["# A\n\nSee <https://example.com>.\n", /bare URL as link text/],
     ["# A\n\n<div>raw</div>\n", /raw HTML/],
@@ -130,5 +130,134 @@ describe("export preflight", () => {
 
   it("treats a setext underline as a heading", () => {
     expect(check("Title\n=====\n\nSub\n---\n").title).toBe("Title");
+  });
+});
+
+// F-001 (2026-10-14 audit): a marker that differs only in case or spacing is
+// still a marker; any other comment mentioning "internal" is refused, so the
+// internal section can never reach the client silently.
+describe("export preflight: internal markers", () => {
+  const dir = tempDir();
+  const check = (md) => preflight(md, join(dir, "doc.md"));
+  const SECRET = "unit margin 41 percent zq";
+
+  it.each([
+    ["<!-- ow:internal -->", "<!-- ow:end-internal -->"],
+    ["<!-- OW:INTERNAL -->", "<!-- OW:END-INTERNAL -->"],
+    ["<!-- ow: internal -->", "<!-- ow : end-internal -->"],
+    ["<!--ow:Internal-->", "<!--ow:End-Internal-->"],
+    ["  <!--   Ow :Internal   -->", "<!-- ow:end - internal -->"],
+  ])("strips a section marked %j … %j", (open, close) => {
+    const r = check(`# Quote\n\nTotal.\n\n${open}\n## Appendix\n${SECRET}\n${close}\n`);
+    expect(r.problems).toEqual([]);
+    expect(r.ok).toBe(true);
+    expect(r.removedSections).toBe(1);
+    expect(r.body).not.toMatch(/Appendix|margin|internal/i);
+  });
+
+  it.each([
+    ["<!-- OW:INTERNAL -->"],
+    ["<!-- ow: internal -->"],
+    ["<!--ow:Internal-->"],
+  ])("refuses an unclosed section opened with %j", (open) => {
+    const r = check(`# Quote\n\n${open}\n${SECRET}\n`);
+    expect(r.ok).toBe(false);
+    expect(r.problems.join("\n")).toMatch(/line 3: ow:internal section never closed/);
+  });
+
+  it.each([
+    ["<!-- ow-internal -->\nsecret\n<!-- ow:end-internal -->", /line 3: an HTML comment mentions "internal" but is not a marker/],
+    ["<!-- internal pricing below -->", /line 3: an HTML comment mentions "internal"/],
+    ["<!-- ow:internal start -->", /line 3: an HTML comment mentions "internal"/],
+    ["Total. <!-- ow:internal -->", /line 3: an HTML comment mentions "internal"/],
+    ["<!--\now:internal\n-->", /line 3: an HTML comment mentions "internal"/],
+    ["Text\n\n<!-- internal notes, never closed", /line 5: an HTML comment mentions "internal"/],
+    ["```\n<!-- OW internal -->\n```", /line 4: an HTML comment mentions "internal"/],
+    ["<!-- ow:intrenal -->\nsecret\n<!-- ow:end-internal -->", /line 5: ow:end-internal without an opening/],
+    ["ow: internal", /line 3: stray ow:internal marker/],
+  ])("refuses a malformed marker: %j", (md, re) => {
+    const r = check(`# Quote\n\n${md}\n`);
+    expect(r.ok).toBe(false);
+    expect(r.problems.join("\n")).toMatch(re);
+  });
+
+  it("refuses nested markers", () => {
+    const r = check("# Q\n\n<!-- ow:internal -->\na\n<!-- OW:INTERNAL -->\nb\n<!-- ow:end-internal -->\n<!-- ow:end-internal -->\n");
+    expect(r.ok).toBe(false);
+    expect(r.problems.join("\n")).toMatch(/line 5: an ow:internal section opens inside another one/);
+    expect(r.problems.join("\n")).toMatch(/line 8: ow:end-internal without an opening/);
+  });
+
+  // SA-006 / design §8: messages carry line numbers, never the document's text.
+  it("names lines, never quotes the document's text", () => {
+    const r = check(
+      `# Quote\n\nWe charge ${SECRET} on this.\n\n<!-- ow:internal -->\n${SECRET}\n<!-- ow:end-internal -->\n\n![](secret-diagram-zq.png)\n\nRead [click here](https://example.com/zq-private).\n`,
+    );
+    expect(r.ok).toBe(false);
+    const all = r.problems.join("\n");
+    expect(all).toMatch(/line 3: text from the internal section \(line 6\) also appears here/);
+    expect(all).toMatch(/line 9: an image has no alt text/);
+    expect(all).toMatch(/line 11: link text like/);
+    expect(all).not.toMatch(/margin|secret-diagram|zq|click here/);
+  });
+});
+
+// F-003 / SA-003 (2026-10-14 audit): images stay inside the document's folder
+// (or its opchain-work/ folder), symlinks are resolved first, and only real
+// PNG, JPEG and GIF files are accepted.
+describe("export preflight: image files", () => {
+  const JPEG = Buffer.from("ffd8ffe000104a46494600010100000100010000ffd9", "hex");
+  const GIF = Buffer.from("47494638396101000100800000000000ffffff2c00000000010001000002024401003b", "hex");
+
+  function layout() {
+    const d = tempDir();
+    const docDir = join(d, "client", "docs");
+    mkdirSync(docDir, { recursive: true });
+    writeFileSync(join(docDir, "map.png"), png());
+    writeFileSync(join(docDir, "photo.jpg"), JPEG);
+    writeFileSync(join(docDir, "anim.gif"), GIF);
+    writeFileSync(join(docDir, "fake.png"), "stand-in for a private file, not an image\n");
+    writeFileSync(join(docDir, "drawing.svg"), '<svg xmlns="http://www.w3.org/2000/svg"/>');
+    writeFileSync(join(d, "client", "secret.png"), png());
+    writeFileSync(join(d, "id_ed25519"), "stand-in for a private file, not an image\n");
+    symlinkSync(join(d, "id_ed25519"), join(docDir, "logo.png"));
+    return { d, docDir, check: (md) => preflight(md, join(docDir, "doc.md")) };
+  }
+
+  it("accepts PNG, JPEG and GIF beside the document and records the detected type", () => {
+    const { check } = layout();
+    const r = check("# A\n\n![Map](map.png)\n\n![Photo](photo.jpg)\n\n![Anim](anim.gif)\n");
+    expect(r.problems).toEqual([]);
+    expect(r.images.map((i) => i.type)).toEqual(["png", "jpg", "gif"]);
+    expect(r.images[0].abs.endsWith(join("docs", "map.png"))).toBe(true);
+    expect(r.images[0].abs.startsWith("/")).toBe(true);
+  });
+
+  it.each([
+    ["![Key](../../id_ed25519)", /line 3: an image is outside the document's folder/],
+    ["![Up](../secret.png)", /line 3: an image is outside the document's folder/],
+    ["![Logo](logo.png)", /line 3: an image is outside the document's folder/],
+    ["![Fake](fake.png)", /line 3: an image is not a PNG, JPEG or GIF file/],
+    ["![Vector](drawing.svg)", /line 3: an image is not a PNG, JPEG or GIF file/],
+    ["![Bad](a%zz.png)", /line 3: an image path has a malformed %-escape/],
+    ["![Dir](.)", /line 3: an image is not a PNG, JPEG or GIF file/],
+  ])("refuses %j", (md, re) => {
+    const { check } = layout();
+    const r = check(`# A\n\n${md}\n`);
+    expect(r.ok).toBe(false);
+    expect(r.problems.join("\n")).toMatch(re);
+    expect(r.problems.join("\n")).not.toMatch(/id_ed25519|secret|logo|fake|drawing/);
+  });
+
+  it("allows an image anywhere under the enclosing opchain-work/ folder, and nothing above it", () => {
+    const d = tempDir();
+    const ws = join(d, "opchain-work", "plans", "acme");
+    mkdirSync(ws, { recursive: true });
+    mkdirSync(join(d, "opchain-work", "brand"));
+    writeFileSync(join(d, "opchain-work", "brand", "diagram.png"), png());
+    writeFileSync(join(d, "outside.png"), png());
+    const check = (md) => preflight(md, join(ws, "plan.md"));
+    expect(check("# A\n\n![Diagram](../../brand/diagram.png)\n").problems).toEqual([]);
+    expect(check("# A\n\n![Out](../../../outside.png)\n").problems.join("\n")).toMatch(/line 3: an image is outside the opchain-work folder/);
   });
 });

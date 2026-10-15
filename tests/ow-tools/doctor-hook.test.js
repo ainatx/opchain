@@ -1,7 +1,9 @@
 // ow-tools design §5.3 (SessionStart hook) and §6 (doctor: print-only setup).
 import { afterAll, describe, expect, it } from "vitest";
-import { existsSync, mkdirSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { chmodSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { fetchCommand, tokenExpression, tokenFileState } from "../../plugins/ow-tools/lib/doctor.mjs";
 import { cleanup, cli, gitRepo, stub, tempDir, write } from "./helpers.js";
 
 // Each case spawns bin/ow-tools (and git/stubs): ~0.2-0.6 s idle, several
@@ -41,6 +43,30 @@ describe("ow-tools doctor", SPAWN, () => {
     const fetch = r.json.checks.find((c) => c.id === "speaker-model").fix;
     expect(fetch).toMatch(/^HF_TOKEN="\$\(/);
     expect(JSON.stringify(r.json)).not.toMatch(/hf_[A-Za-z0-9]{20,}/);
+  });
+
+  // Design §8 / SA claims check 8.5b: on Linux the token file is refused
+  // unless it is mode 0600 (0400 also accepted), by doctor and by the fetch.
+  it("refuses a Linux token file that is not mode 0600, in doctor and in the fetch command", () => {
+    const home = tempDir();
+    const file = write(join(home, ".config", "ow-tools", "hf-token"), "hf_planted_value_zq\n");
+    const read = () =>
+      spawnSync("sh", ["-c", `printf '[%s]' ${tokenExpression("linux")}`], { encoding: "utf8", env: { PATH: "/usr/bin:/bin", HOME: home } }).stdout;
+    for (const [mode, state, value] of [
+      [0o600, "stored", "[hf_planted_value_zq]"],
+      [0o400, "stored", "[hf_planted_value_zq]"],
+      [0o644, "wrong-mode", "[]"],
+      [0o640, "wrong-mode", "[]"],
+      [0o700, "wrong-mode", "[]"],
+    ]) {
+      chmodSync(file, mode);
+      expect(tokenFileState(file), mode.toString(8)).toBe(state);
+      expect(read(), mode.toString(8)).toBe(value);
+    }
+    expect(tokenFileState(join(home, "nope"))).toBe("absent");
+    expect(tokenFileState(home)).toBe("absent");
+    expect(fetchCommand({ OW_TOOLS_HOME: join(home, "data") }, "linux")).toMatch(/^HF_TOKEN="\$\(find ~\/\.config\/ow-tools\/hf-token -type f /);
+    expect(fetchCommand({ OW_TOOLS_HOME: join(home, "data") }, "darwin")).toMatch(/^HF_TOKEN="\$\(security find-generic-password -s \S+ -w\)"/);
   });
 
   it("version answers fast with the capability summary skills use to detect ow-tools", () => {
@@ -109,6 +135,30 @@ describe("SessionStart hook", SPAWN, () => {
     write(join(d, "opchain-work", "STATUS.md"), STATUS);
     mkdirSync(join(d, "src", "deep"), { recursive: true });
     expect(hook(join(d, "src", "deep")).stdout).toContain("intake/meridian-tile");
+  });
+
+  // F-002 (2026-10-14 audit): an older default node must not turn every
+  // session start into a hook error. The check runs before any module loads.
+  it("exits 0 silently on Node older than 20, and names the version for other verbs", () => {
+    const d = tempDir();
+    write(join(d, "opchain-work", "STATUS.md"), STATUS);
+    const old = join(d, "old-node");
+    mkdirSync(old);
+    stub(old, "node", '[ "$1" = "--version" ] && { echo v18.0.0; exit 0; }\necho "SyntaxError: availableParallelism" >&2; exit 1');
+    const env = { PATH: `${old}:/bin` };
+    const r = cli(["hook", "session-start"], { input: JSON.stringify({ cwd: d, source: "startup" }), env });
+    expect(r).toMatchObject({ status: 0, stdout: "", stderr: "" });
+    const v = cli(["version"], { env });
+    expect(v.status).toBe(3);
+    expect(v.stderr).toBe("ow-tools: Node.js 20 or newer is required (found v18.0.0; macOS: brew install node)\n");
+  });
+
+  it("exits 0 silently when there is no node at all", () => {
+    const d = tempDir();
+    write(join(d, "opchain-work", "STATUS.md"), STATUS);
+    const r = cli(["hook", "session-start"], { input: JSON.stringify({ cwd: d, source: "startup" }), env: { PATH: join(d, "empty") } });
+    expect(r).toMatchObject({ status: 0, stdout: "", stderr: "" });
+    expect(cli(["version"], { env: { PATH: join(d, "empty") } }).stderr).toMatch(/found none/);
   });
 
   it("never fails the session on bad input", () => {

@@ -185,9 +185,12 @@ const invokedDirectly = (() => {
   }
 })();
 if (invokedDirectly) {
+  // Fallback only: bin/ow-tools checks the version before any module loads.
   if (Number(process.versions.node.split(".")[0]) < 20) {
-    process.stderr.write("ow-tools: Node.js 20 or newer is required\n");
-    process.exitCode = EXIT.MISSING;
+    if (process.argv[2] !== "hook") {
+      process.stderr.write("ow-tools: Node.js 20 or newer is required\n");
+      process.exitCode = EXIT.MISSING;
+    }
   } else {
     process.exitCode = await run(process.argv.slice(2));
   }

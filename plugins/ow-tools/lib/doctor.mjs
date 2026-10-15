@@ -31,23 +31,39 @@ function versionOf(cmd, args, re) {
   return (r.stdout + r.stderr).match(re)?.[1] || null;
 }
 
-function tokenStored() {
-  if (mac()) {
-    // No -w: presence only. The value is never read here.
-    return run("security", ["find-generic-password", "-s", KEYCHAIN_SERVICE]).status === 0;
-  }
+// Linux keeps the token in a file. It counts as stored only at mode 0600 (or
+// 0400); any other mode is refused: doctor says so and prints the chmod, and
+// the fetch command below reads nothing from the file.
+export const TOKEN_FILE = "~/.config/ow-tools/hf-token";
+export function tokenFileState(path = join(homedir(), ".config", "ow-tools", "hf-token")) {
   try {
-    const st = statSync(join(homedir(), ".config", "ow-tools", "hf-token"));
-    return st.isFile() && (st.mode & 0o077) === 0;
+    const st = statSync(path);
+    if (!st.isFile()) return "absent";
+    return [0o600, 0o400].includes(st.mode & 0o777) ? "stored" : "wrong-mode";
   } catch {
-    return false;
+    return "absent";
   }
 }
 
-export function fetchCommand(env = process.env) {
-  const token = mac()
+function tokenState() {
+  if (mac()) {
+    // No -w: presence only. The value is never read here.
+    return run("security", ["find-generic-password", "-s", KEYCHAIN_SERVICE]).status === 0 ? "stored" : "absent";
+  }
+  return tokenFileState();
+}
+
+// The Linux form reads the file only when find (POSIX -perm, exact mode)
+// confirms 0600 or 0400; any other mode gives an empty HF_TOKEN, and
+// diarize.py --fetch refuses to start without one (exit 3).
+export function tokenExpression(os = platform()) {
+  return os === "darwin"
     ? `"$(security find-generic-password -s ${KEYCHAIN_SERVICE} -w)"`
-    : '"$(cat ~/.config/ow-tools/hf-token)"';
+    : `"$(find ${TOKEN_FILE} -type f \\( -perm 600 -o -perm 400 \\) -exec cat {} +)"`;
+}
+
+export function fetchCommand(env = process.env, os = platform()) {
+  const token = tokenExpression(os);
   return [
     `HF_TOKEN=${token}`,
     `HF_HOME=${q(hfHome(env))}`,
@@ -86,9 +102,11 @@ export function checks({ verifyModel = true, env = process.env } = {}) {
 
   const cached = diarizationCached(env);
   if (!cached) {
-    const tok = tokenStored();
-    add("hf-token", ["transcribe"], tok, tok ? "stored outside every repository" : "not stored",
-      [
+    const tok = tokenState();
+    const loose = tok === "wrong-mode";
+    add("hf-token", ["transcribe"], tok === "stored",
+      tok === "stored" ? "stored outside every repository" : loose ? `${TOKEN_FILE} is not mode 0600; refused until it is` : "not stored",
+      loose ? `chmod 600 ${TOKEN_FILE}` : [
         `1. Sign in at huggingface.co and accept the terms of https://huggingface.co/${DIARIZATION_MODEL}`,
         "2. Create a read token at https://huggingface.co/settings/tokens",
         mac()

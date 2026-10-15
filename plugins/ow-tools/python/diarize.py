@@ -51,7 +51,11 @@ def turns(annotation):
 def fetch(model):
     token = os.environ.get("HF_TOKEN")
     if not token:
-        fail("HF_TOKEN is not set; read it from your keychain in the same command (see ow-tools doctor)", 3)
+        fail(
+            "HF_TOKEN is not set; read it from your keychain (macOS) or from ~/.config/ow-tools/hf-token,"
+            " which is read only at mode 0600 (Linux), in the same command (see ow-tools doctor)",
+            3,
+        )
     from pyannote.audio import Pipeline
 
     Pipeline.from_pretrained(model, token=token)

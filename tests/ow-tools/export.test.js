@@ -1,7 +1,7 @@
 // ow-tools design §5.2: real pandoc + Typst export. Skips (and says so) when
 // the tools aren't installed, e.g. in CI; the preflight suite runs everywhere.
 import { afterAll, describe, expect, it } from "vitest";
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { cleanup, cli, has, pdfText, png, tempDir, unzipText, write } from "./helpers.js";
 
@@ -104,7 +104,23 @@ describe("ow-tools export refusals (any machine)", SPAWN, () => {
     write(join(ws, "bad.md"), "# A\n\n![](map.png)\n\n### Jump\n");
     const r = cli(["export", join(ws, "bad.md"), "--json"]);
     expect(r.status).toBe(4);
-    expect(r.json.problems).toEqual(["line 3: image map.png has no alt text", "line 5: heading level jumps from 1 to 3"]);
+    expect(r.json.problems).toEqual(["line 3: an image has no alt text", "line 5: heading level jumps from 1 to 3"]);
+  });
+
+  // F-003 / SA-003: an image path can't carry a local file into the client
+  // document, whichever formats are asked for (Word would embed any bytes).
+  it.each([["pdf,docx"], ["docx"]])("refuses an image outside the opchain-work folder or behind a symlink (--formats %s)", (formats) => {
+    const { d, ws } = workspace();
+    write(join(d, "id_ed25519"), "stand-in for a private file, not an image\n");
+    symlinkSync(join(d, "id_ed25519"), join(ws, "logo.png"));
+    write(join(ws, "leak.md"), "# A\n\n![Key](../../../id_ed25519)\n\n![Logo](logo.png)\n");
+    const r = cli(["export", join(ws, "leak.md"), "--formats", formats, "--json"]);
+    expect(r.status).toBe(4);
+    expect(r.json.problems).toEqual([
+      "line 3: an image is outside the opchain-work folder; copy it beside the document",
+      "line 5: an image is outside the opchain-work folder; copy it beside the document",
+    ]);
+    expect(existsSync(join(ws, "export"))).toBe(false);
   });
 
   it("refuses a brand below contrast with the measured ratio", () => {
