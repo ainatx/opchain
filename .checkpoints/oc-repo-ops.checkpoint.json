@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/write-ow-start-command-135317",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/ow-skills-orchestration-0e05bd",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-14T18:12:04.753Z",
+  "updated_at": "2026-10-15T04:11:08.821Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-ow-start-1-0-0",
-  "progress_summary": "ow-start PR (#596) readiness PASS at 7b855924: gen-stack-packs, gen-api-dev-adapters, gen-packs-catalog, gen-flags, gen-catalog (36 oc- + 1 ow-), lint-internal-refs, check-skill-flags, check-skill-contracts (both catalogs), gen-mcp-catalog, validate-pm-mcp, sync-bundles:check, sync-plugin-skills:check and sync-docs pass and leave the tree unchanged; checkpoint:validate 18/18; checkpoint doctor 0 errors (30 pre-existing warnings); ow-start-acceptance golden runs pass; no untracked files; pre-commit candidate verifier PASS receipt covers tree 25075115. Docs Forge packet verified_for_sha = HEAD.",
+  "step": "pr-ow-designs-approved",
+  "progress_summary": "PR #603 readiness PASS at 3437f9c7: gen-catalog, lint-internal-refs, check-skill-contracts, sync-bundles:check, sync-plugin-skills:check, checkpoint:validate pass and leave the tree unchanged; checkpoint doctor 0 errors (29 pre-existing warnings); candidate verifier PASS on tree a775a5e3 (8/8); no untracked files. Docs-only diff.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -24,19 +24,18 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "checkpoint doctor: 30 pre-existing warnings, none from this branch",
-      "checkpoint:validate: oc-docs-forge and oc-repo-ops checkpoints exceed 32KB (handoff history); rotate into .checkpoints/history/ in a housekeeping PR"
+      "checkpoint doctor: 29 pre-existing warnings, none from this branch"
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "7b85592449d6d60065facecdeec7ce62704ef83a",
+    "verified_for_sha": "3437f9c776fec858595de58255b8df2a55799829",
     "last_verify": {
-      "at": "2026-10-14T18:12:04.753Z",
-      "branch": "claude/ow-start-skill",
-      "base": "origin/main@b562955c",
+      "at": "2026-10-15T04:11:08.821Z",
+      "branch": "claude/ow-handoff-uat-designs",
+      "base": "origin/main@b8bd8795",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1376,8 +1375,39 @@
           "tests/fixtures/ow-start/README.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-ow-designs-approved-b3b16a24ff47",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-15T04:11:08.821Z",
+      "verified_at": "2026-10-15T04:11:08.821Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-ow-designs-approved"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:b3b16a24ff47803476bd4418aa8629e2bc2a2eb59e2c52a0293caaaf6d53f2e3"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/ow-handoff-uat-designs at 3437f9c7 on origin/main b8bd8795. Docs-only (docs/plans, docs/audits, sprints/release-2.1). Catalog, contract, bundle and plugin drift checks pass for both catalogs; checkpoint:validate passes; doctor 0 errors; candidate verifier PASS receipt covers tree a775a5e3; no untracked files. Docs Forge packet verified_for_sha = HEAD.",
+        "evidence": [
+          "docs/plans/2026-10-08-ow-handoff-design.md",
+          "docs/plans/2026-10-09-ow-uat-design.md",
+          "docs/plans/2026-10-08-ow-build-design.md",
+          "docs/plans/2026-10-06-ow-build-plan-design.md",
+          "docs/plans/2026-10-06-ow-start-intake-redesign.md",
+          "sprints/release-2.1/ow-family-sprint-plan.md",
+          "docs/audits/2026-10-14-pr-596-diff-audit.md",
+          "docs/audits/2026-10-14-pr-597-diff-audit.md",
+          "docs/audits/2026-10-14-ow-tools-security-posture.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-14T18:12:04.753Z",
+  "record_updated_at": "2026-10-15T04:11:08.821Z",
   "blockers": []
 }
