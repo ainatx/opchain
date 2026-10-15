@@ -75,6 +75,15 @@ export function buildCatalog(skillsDir = SKILLS_DIR) {
 }
 
 function main() {
+  // The hosted MCP catalog lists the oc- catalog only (catalogs.json: the ow-
+  // catalog's mcpCatalog output is null), so refuse a tree holding anything else.
+  const foreign = listSkillDirs(SKILLS_DIR).filter((id) => !id.startsWith("oc-"));
+  if (foreign.length) {
+    throw new Error(
+      `gen-mcp-catalog: refusing to build the hosted catalog from ${SKILLS_DIR}: ` +
+      `${foreign.join(", ")} not in the oc- catalog (catalogs.json keeps other catalogs out of it)`,
+    );
+  }
   const catalog = buildCatalog();
   if (catalog.skills.length === 0) {
     throw new Error("gen-mcp-catalog: no skills/ directories with a SKILL.md found");

@@ -1,0 +1,5 @@
+po_number,customer,sku,quantity,ship_date
+PO-88213,Ridgeline Builders,LC-1204,40,2026-10-08
+PO-88214,Ridgeline Builders,lc1204,12,2026-10-08
+PO-88219,Northgate Homes,1204-LC,25,2026-10-09
+PO-88220,Northgate Homes,LC 2210,18,2026-10-09

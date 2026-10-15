@@ -13,6 +13,15 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SKILLS="${OPCHAIN_SKILLS_DIR:-$ROOT/skills}"
 PUBLIC="${OPCHAIN_PUBLIC_DIR:-$ROOT/public}"
+# The public zips carry the oc- catalog only (catalogs.json: the ow- catalog's
+# zip output is null). Refuse any other tree before the rm -f calls below.
+for dir in "$SKILLS"/*/; do
+  [[ -f "${dir}SKILL.md" ]] || continue
+  case "$(basename "$dir")" in
+    oc-*) ;;
+    *) echo "make-skills-zip: refusing to zip $SKILLS: $(basename "$dir") is not in the oc- catalog (catalogs.json)" >&2; exit 1 ;;
+  esac
+done
 # Normalize to an absolute path — COMBINED/out are used from subshells that
 # cd into $SKILLS / $STAGE, where a relative override would silently point
 # the zips somewhere else.

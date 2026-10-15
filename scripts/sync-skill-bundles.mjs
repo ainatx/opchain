@@ -27,6 +27,17 @@ const PROTOCOL_SOURCE_SKILL = 'oc-checkpoint-protocol';
 
 const checkMode = process.argv.includes('--check');
 
+// Bundles are written into every skill folder under SKILLS_DIR, so only the oc-
+// catalog may be the source (catalogs.json: the ow- catalog carries its own
+// protocol file, never the oc- orchestrator). Refuse before anything is written.
+const foreign = readdirSync(SKILLS_DIR, { withFileTypes: true })
+  .filter((e) => e.isDirectory() && !e.name.startsWith('oc-') && readdirSync(join(SKILLS_DIR, e.name)).includes('SKILL.md'))
+  .map((e) => e.name);
+if (foreign.length) {
+  console.error(`✗ refusing to bundle the oc- protocol into ${SKILLS_DIR}: ${foreign.join(', ')} not in the oc- catalog (catalogs.json)`);
+  process.exit(1);
+}
+
 function stripFrontmatter(md) {
   if (!md.startsWith('---\n')) return md;
   const end = md.indexOf('\n---\n', 4);

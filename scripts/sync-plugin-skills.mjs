@@ -32,6 +32,16 @@ function runtimeDrift() {
   });
 }
 
+// The dev plugin carries the oc- catalog only (catalogs.json: the ow- catalog's
+// plugin output is null). Refuse any other tree before the rmSync below can run.
+const foreign = readdirSync(SRC, { withFileTypes: true })
+  .filter((e) => e.isDirectory() && !e.name.startsWith("oc-") && existsSync(join(SRC, e.name, "SKILL.md")))
+  .map((e) => e.name);
+if (foreign.length) {
+  console.error(`✗ refusing to build plugins/opchain/skills from ${SRC}: ${foreign.join(", ")} not in the oc- catalog (catalogs.json)`);
+  process.exit(1);
+}
+
 function listFiles(dir, base = dir) {
   const out = [];
   for (const e of readdirSync(dir, { withFileTypes: true })) {

@@ -92,6 +92,12 @@ opchain/
 │   ├── orchestrator.md     # Shared orchestration rules
 │   ├── CHANGELOG.md        # Lockstep skill-catalog release log
 │   └── README.md           # Installation instructions + full skill/phase table
+├── skills-work/            # The ow- catalog (v2.1.0 planning family; first skill ow-start).
+│   │                       # Text-only, own protocol (ow-protocol.md), per-skill versions.
+│   │                       # Validated by the catalog checks but in NO build output yet
+│   │                       # (plugin, zips, docs, flags, MCP catalog, mirror). skills-work/README.md.
+├── catalogs.json           # The skill catalogs (oc- in skills/, ow- in skills-work/) that
+│                           # gen-skills-catalog and check-skill-contracts iterate
 ├── scripts/                # ~20 scripts; a few examples (full list: `ls scripts/`)
 │   ├── sync-docs.sh                # skills/ → public/docs/ sync
 │   ├── make-skills-zip.sh          # skills/ → public/opchain-skills.zip
@@ -139,7 +145,8 @@ npm run deploy:staging   # wrangler deploy --env staging (staging.opchain.dev)
 npm test                 # vitest unit + integration-ish suite
 npm run test:hooks       # plugin hook suites (commit gate + next-suggestion), plain node
 npm run gen-catalog      # validates skills/<id>/SKILL.md frontmatter at build time
-npm run check-skill-contracts # every cited /oc-* verb is declared; orchestrator.md §7 matches frontmatter
+npm run check-skill-contracts # every cited /oc-* and /ow-* verb is declared; orchestrator.md §7 matches frontmatter; ow- family rules
+node scripts/ow-start-acceptance.mjs # ow-start acceptance checks against tests/fixtures/ow-start (golden runs, or a real run)
 npm run check-release-tag # is the lockstep catalog version actually tagged in git?
 npm run sync-docs        # skills/ → public/docs/ (runs in prebuild)
 npm run make-zip         # skills/ → public/opchain-skills.zip (runs in prebuild)

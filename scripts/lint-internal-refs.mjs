@@ -43,8 +43,22 @@ function* walk(dir) {
 // (decision D2 of the OSS-split plan); everywhere else the name is leakage.
 const ALLOWED_LINE = /Copyright \d{4} Aidan Elsesser/;
 
+// Every other catalog in catalogs.json (the ow- catalog in skills-work/) ships
+// text too, so it is walked as well. Optional: the extracted product repo may
+// carry no catalogs.json.
+const OTHER_CATALOG_DIRS = [];
+try {
+  const { catalogs } = JSON.parse(readFileSync(join(ROOT, "catalogs.json"), "utf8"));
+  for (const c of catalogs) {
+    if (c.dir === "skills") continue;
+    OTHER_CATALOG_DIRS.push((c.dirEnv && process.env[c.dirEnv]) || join(ROOT, c.dir));
+  }
+} catch (e) {
+  if (e.code !== "ENOENT") throw e;
+}
+
 const hits = [];
-for (const base of [SKILLS_DIR, PLUGINS_DIR]) {
+for (const base of [SKILLS_DIR, PLUGINS_DIR, ...OTHER_CATALOG_DIRS]) {
   let st;
   try { st = statSync(base); } catch { continue; }
   if (!st.isDirectory()) continue;
@@ -68,4 +82,4 @@ if (hits.length > 0) {
   console.error("Replace with neutral fixtures (acme-app / example.com / Meridian — see docs/plans/2026-08-22-oss-split-licensing-compliance.md §2.3 S3).");
   process.exit(1);
 }
-console.log("✓ no internal identifiers in skills/ or plugins/");
+console.log(`✓ no internal identifiers in skills/, plugins/${OTHER_CATALOG_DIRS.length ? " or " + OTHER_CATALOG_DIRS.map((d) => relative(ROOT, d) + "/").join(", ") : ""}`);

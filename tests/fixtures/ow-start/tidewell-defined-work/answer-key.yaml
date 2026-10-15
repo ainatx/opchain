@@ -1,0 +1,17 @@
+# Answer key: tidewell-defined-work (INVENTED: fictional client, synthetic call).
+# Design §10 "Path choice", small clean job. The transcript is in a meeting
+# tool's style (speaker names, sparse time markers). The call is on a Friday
+# and the profile lists the following Monday as a holiday, so the recap is due
+# on Tuesday.
+case: tidewell-defined-work
+input: transcript
+slug: tidewell-bakery
+client: Tidewell Bakery
+user: Robin
+checks: [headers, path, due_date, status, private_names]
+outputs: [recap]
+path: { id: defined-work, kind: defined-work, systems: none }
+due: { call_date: 2026-10-09, send_by: 2026-10-13 }
+status:
+  next: "ow-build-plan on intake/tidewell-bakery/intake-record.md"
+private_names: [llc-ops, Deftwright]

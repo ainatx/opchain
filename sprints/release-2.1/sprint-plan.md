@@ -1,5 +1,7 @@
 # v2.1.0 sprint plan — "Installs anywhere, says so honestly"
 
+> **Superseded 2026-10-06 (owner decision).** v2.1.0 is now the ow- skill family release, planned in `docs/plans/2026-10-06-ow-start-intake-redesign.md` and the ow- 2.1.0 sprint plan to follow. Everything below, including the OSS split, moves to v2.2. Kept unchanged as the record of what was planned.
+
 **Date:** 2026-09-21 · **Skill:** oc-app-architect `/oc-roadmap` · **Status:** APPROVED by the owner 2026-09-21. Sprint 0 run the same day; work then stopped at the owner's instruction (see Sprint 0 status).
 **Source:** the maintainer's 2.1 strategy review (2026-09-18 → 2026-09-21), not published.
 **Scope decided by the owner (2026-09-21):** finish the OSS split as the first sprint; Claude.ai install path with no one-click promise; templates **and** a marketplace whose first version is a **listing page only**; editor extension deferred; the install debt owned.

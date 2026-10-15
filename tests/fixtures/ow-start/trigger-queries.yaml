@@ -1,0 +1,21 @@
+# Trigger queries for ow-start (authoring standard: "TRIGGER EVALUATION").
+# Run by hand, with Anthropic's operations, legal and product-management plugins
+# and the oc- catalog installed beside ow-start; a judge grades the ambiguous
+# ones. No harness runs these yet (audit gap G19: 20 hand-run prompts).
+skill: ow-start
+should_trigger:
+  - "Prep my fit call with Larkspur Ceramics on Tuesday."
+  - "Here's the transcript of my call with a prospect, write the recap."
+  - "Turn these call notes into a client recap with a recommended next step."
+  - "Where did I leave off with my intake calls?"
+  - "Set up my profile and offers for client calls."
+should_not_trigger:
+  - "Summarise the action items from our internal standup."   # meeting minutes, not a client fit call
+  - "Draft a five-email nurture sequence for new leads."       # sales email sequence
+  - "Review this client contract for risky clauses."           # contract review
+  - "What should I charge for a two-week integration project?" # pricing advice; ow-start never names a price
+  - "Audit this repository for bugs before I deploy."          # oc- catalog
+ambiguous:
+  - "I just got off a call with a new client, what now?"       # ow-start if a transcript or notes exist; otherwise ask
+  - "Write up my meeting with Acme."                           # client fit call or internal minutes?
+  - "Plan the discovery session for the signed project."       # ow-start delivery mode

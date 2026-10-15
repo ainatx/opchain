@@ -1,0 +1,23 @@
+# Answer key: larkspur-notes (INVENTED: fictional client).
+# Design §10 "Notes-only path": the larkspur-prospect call as the consultant's
+# typed notes. Every value is capped at MEDIUM, cited "per Robin's notes", with
+# no timestamps; the contradiction and the interviewer-led answer still hold.
+case: larkspur-notes
+input: notes
+slug: larkspur-ceramics
+client: Larkspur Ceramics
+user: Robin
+checks: [headers, facts, contradictions, speaker_rule, notes_only, private_names]
+outputs: [intake-record]
+facts:
+  - { field: trigger, value: "contractor chain|biggest customer", confidence: MEDIUM, by: notes }
+  - { field: timeline, value: "march", confidence: MEDIUM, by: notes }
+  - { field: pain, value: "1,800|three pallets", confidence: MEDIUM, by: notes }
+  - { field: systems, value: "quickbooks", confidence: MEDIUM, by: notes }
+  - { field: data_condition, value: "monday", confidence: MEDIUM, by: notes }
+  - { field: budget, value: "unknown", confidence: UNKNOWN }
+contradictions:
+  - { field: volume }
+speaker_rule:
+  - { field: pain, value: "morning" }
+private_names: [llc-ops, Deftwright]

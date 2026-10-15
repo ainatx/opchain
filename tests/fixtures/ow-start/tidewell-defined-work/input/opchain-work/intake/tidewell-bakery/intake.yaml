@@ -1,0 +1,19 @@
+# INVENTED TEST FIXTURE: what /ow-start-prep would have written for a fictional client.
+ow_artefact: ow-start/intake
+schema: 1
+written_by: ow-start 1.0.0 (protocol 1)
+workstream: tidewell-bakery
+subject: none
+created: 2026-10-09
+clock: user-stated
+origin: skill
+mode: prospect
+client: Tidewell Bakery
+client_slug: tidewell-bakery
+call_date: 2026-10-09
+call_time: "09:00"
+time_zone: America/Chicago
+attendees:
+  - you
+  - client (owner)
+handling: "no"
