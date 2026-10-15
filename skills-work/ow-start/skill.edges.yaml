@@ -1,0 +1,81 @@
+# ow-start edges (ow- cross-talk contract R15), schema 1.
+# What this skill writes, reads and hands off, as data. The body's "Reads from"
+# and "Hands off to" tables say the same in words; check-skill-contracts reads
+# this file to hold the family to one writer per file and to edges that match
+# on both ends. Paths are relative to opchain-work/. Format: skills-work/README.md.
+schema: 1
+skill: ow-start
+
+writes:
+  - { path: intake/<client>/intake.yaml, verb: /ow-start-prep }
+  - { path: intake/<client>/call-guide.md, verb: /ow-start-prep }
+  - { path: intake/<client>/send-ahead.md, verb: /ow-start-prep }
+  - { path: intake/<client>/intake-record.md, verb: /ow-start-extract }
+  - { path: intake/<client>/coverage.md, verb: /ow-start-extract }
+  - { path: intake/<client>/recap.md, verb: /ow-start-extract }
+  - path: profile.md
+    verb: /ow-setup
+    seeded_by: /ow-start-extract      # creates it on the first run only, when it does not exist
+  - { path: offers.md, verb: /ow-setup, once: true }        # created once from the example; then the user's
+  - { path: handoffs.yaml, verb: /ow-setup, once: true }    # created once from the example; then the user's
+  - { path: STATUS.md, verb: /ow-start-prep, append: true }
+  - { path: STATUS.md, verb: /ow-start-extract, append: true }
+
+reads:
+  - from: any
+    path: STATUS.md
+    fields: [the protocol's STATUS form]
+    if_absent: "First run: show the welcome"
+    if_mismatch: Quote the lines as found, say which do not match the form, and use only the dates and paths you can read
+  - from: ow-start
+    verb: /ow-setup
+    path: profile.md
+    fields: [name, time_zone, holidays, handling]
+    if_absent: Ask only what this run needs (at most three questions, each skippable); extract seeds the file on first run
+    if_mismatch: Report the fields found against the ones expected; ask only for the missing ones
+  - from: user
+    path: offers.md
+    fields: [fit, "path: sections with label, kind, propose when, after yes"]
+    if_absent: Say no paths are set up; offer /ow-setup to create the file from the example, or ask the user to name the path in their own words
+    if_mismatch: Use the sections that parse, list the ones that do not, and ask the user to choose the path
+  - from: ow-start
+    verb: /ow-start-prep
+    path: intake/<client>/intake.yaml
+    fields: [mode, client, call_date]
+    if_absent: Extract asks the mode, the client's name and the call date
+    if_mismatch: Report what was found and ask for the missing keys
+  - from: ow-start
+    verb: /ow-start-prep
+    path: intake/<client>/call-guide.md
+    fields: [the must-ask list]
+    if_absent: Score coverage against the bank's default must-asks for the mode; coverage.md says "no call guide found"
+    if_mismatch: Score against the must-asks that parse; mark the rest NOT-CHECKED (guide unreadable)
+  - from: ow-tools
+    path: intake/<client>/transcript.md
+    fields: [speaker labels, times]
+    if_absent: Ask for a transcript or notes; nothing is extracted from memory
+    if_mismatch: Use what is readable and mark unreadable spans missing in coverage.md; a transcript with no speaker labels is treated as notes (MEDIUM cap)
+
+hands_off:
+  - when: Prep is done
+    to: ow-start
+    verb: /ow-start-extract
+    say: use ow-start to extract intake/<client>/
+    files:
+      - { path: intake/<client>/intake.yaml, fields: [mode, client, call_date] }
+      - { path: intake/<client>/call-guide.md, fields: [the must-ask list] }
+    if_unavailable: Extract still runs from a transcript or notes; coverage uses the bank's defaults
+  - when: A recording exists and no transcript
+    to: ow-tools
+    verb: /ow-start-transcribe
+    say: use ow-tools to transcribe intake/<client>/audio/
+    files: []
+    if_unavailable: Supply the meeting tool's transcript or your notes
+  - when: The recap is done, the path leads to a Build Plan or a defined piece of work, and the client agrees
+    to: ow-build-plan
+    say: use ow-build-plan on intake/<client>/intake-record.md
+    files:
+      - { path: intake/<client>/intake-record.md, fields: [mode, client, call_date, the bank's fields with confidence] }
+      - { path: intake/<client>/recap.md, fields: [path_id, path_label, path_kind, path_systems, send_by] }
+      - { path: intake/<client>/coverage.md, fields: [must-ask statuses] }
+    if_unavailable: The recap and the intake record stand on their own; scope the next step by hand from them

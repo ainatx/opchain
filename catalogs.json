@@ -2,7 +2,8 @@
   "$comment": [
     "One entry per skill catalog. scripts/gen-skills-catalog.mjs (frontmatter, packaging) and scripts/check-skill-contracts.mjs (verbs, cross-catalog names, protocol copies) iterate every entry, each with its own prefix and verb regex.",
     "outputs names the build outputs a catalog feeds. null means the catalog is kept out of that output on purpose: the ow- catalog is in no dev plugin, zip, docs tree, flag registry, hosted MCP catalog or public mirror until a PR of its own wires it in.",
-    "The scripts that write those outputs (sync-plugin-skills, sync-skill-bundles, make-skills-zip, sync-docs, gen-mcp-catalog) refuse a source tree holding any skill outside the oc- prefix, so pointing OPCHAIN_SKILLS_DIR at skills-work/ fails before anything is deleted or written."
+    "The scripts that write those outputs (sync-plugin-skills, sync-skill-bundles, make-skills-zip, sync-docs, gen-mcp-catalog) refuse a source tree holding any skill outside the oc- prefix, so pointing OPCHAIN_SKILLS_DIR at skills-work/ fails before anything is deleted or written.",
+    "edges names the per-skill edges file (ow- contract R15). planned lists family skills not built yet; plannedVerbs declares the verbs a NEXT block may already name for one of them (ow-build-plan's signed NEXT names /ow-build-start). Both resolve names only: reciprocity is checked once the planned skill has its own edges file."
   ],
   "catalogs": [
     {
@@ -43,7 +44,9 @@
       "requiredSkills": [],
       "versionPolicy": "per-skill",
       "bodyTokenBudget": 5000,
-      "planned": ["ow-build-plan", "ow-build"],
+      "edges": "skill.edges.yaml",
+      "planned": ["ow-build-plan", "ow-build", "ow-uat", "ow-handoff"],
+      "plannedVerbs": { "ow-build": ["/ow-build-start"] },
       "addons": { "ow-tools": ["/ow-start-transcribe"] },
       "privateNames": ["llc-ops"],
       "brandNames": ["Deftwright"],

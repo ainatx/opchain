@@ -11,6 +11,44 @@ The ow- skills are opchain's planning family for client work: the fit call and i
 
 - `ow-protocol.md`: the shared protocol (version 1). Every ow- skill carries a byte-identical copy at `references/ow-protocol.md`. Edit this source, then run `node scripts/check-skill-contracts.mjs --write` to refresh the copies; the check fails while any copy differs.
 - `<id>/SKILL.md` plus `references/` and `examples/`: text only. No scripts, no hooks, no network text; only `.md .txt .json .yaml .yml .csv` files. Code the family needs (transcription, document export) lives in the separate `ow-tools` add-on, which is not in this folder.
+- `<id>/skill.edges.yaml`: the skill's edges as data (ow- cross-talk contract R15), described below.
+
+## Edges (`skill.edges.yaml`)
+
+An edge between two ow- skills is a file one writes and the other reads, plus the NEXT block the user acts on. Each skill lists its edges in `skill.edges.yaml` (schema 1), beside its SKILL.md; the body's "Reads from" and "Hands off to" tables say the same in words. Paths are relative to `opchain-work/`; a placeholder such as `<client>` matches any placeholder in the same place.
+
+```yaml
+schema: 1
+skill: ow-example
+writes:                    # every file this skill writes, with the one verb that writes it
+  - { path: plans/<client>/scope.md, verb: /ow-example-scope }
+  - { path: plans/<client>/contract-inputs.md, verb: /ow-example-quote --accepted }   # a mode of a verb is its own writer
+  - { path: profile.md, verb: /ow-example-setup, seeded_by: /ow-example-extract }     # created by another of its own verbs, first run only
+  - { path: offers.md, verb: /ow-example-setup, once: true }                          # created once from the example; then the user's
+  - { path: STATUS.md, verb: /ow-example-scope, append: true }                        # only for append-only logs the protocol names
+reads:
+  - from: ow-start         # a family skill, a planned skill, an add-on, "user" (files the user owns) or "any"
+    path: intake/<client>/recap.md
+    fields: [path_id, path_kind]
+    if_absent: what the skill does without it (never "proceed as if passed")
+    if_mismatch: what it does when the fields are not as expected
+    shared: true           # optional: a workspace file the producer keeps for the whole family, not a handoff
+hands_off:
+  - when: The quote is ready
+    to: ow-example         # a family skill, planned skill or add-on; or `destination: contract` (a handoffs.yaml key) for work leaving the family
+    verb: /ow-example-quote
+    say: use ow-example to record the acceptance on plans/<client>/
+    files:
+      - { path: plans/<client>/quote.md, fields: [valid_until] }
+    if_unavailable: what the written files already give, and how to do the next step by hand
+```
+
+`node scripts/check-skill-contracts.mjs` holds the family to these rules:
+
+- **Complete.** Every skill has the file; every reads row has an absent and a mismatch case and every hands-off row an unavailable branch; each reads path and each `say:` line appears in the body's tables; every writer verb is one the skill declares.
+- **Reciprocal.** Every file a skill hands to another family skill has a reads row for it in the receiver (with the fields it needs among those handed off), and every reads row naming a family skill has a hands-off row in that producer, unless it is `shared:` (then the producer must write it). A planned skill or an add-on has no edges file yet; its rows are checked once it does.
+- **One writer.** No file has two writer verbs across the family. The exception is an append-only log the protocol names (`STATUS.md`, protocol §4), which every writer declares with `append: true`.
+- **NEXT targets resolve.** A NEXT block says "use <family id>", and its slash verb belongs to that skill (a planned skill's verbs are declared in `catalogs.json` `plannedVerbs`); or it names a handoffs.yaml destination (`` handoffs.yaml `contract` ``) that a family `examples/handoffs.yaml` declares.
 
 ## How it is checked
 
@@ -18,7 +56,7 @@ The ow- skills are opchain's planning family for client work: the fit call and i
 
 - **Frontmatter**: only the Agent Skills keys (`name`, `description`, `license`, `allowed-tools`, `metadata`, `compatibility`); catalog fields sit under `metadata` as strings. The description names the skill id in its first 200 characters and has no angle brackets.
 - **Packaging**: text files only, no hidden or executable files, no network text in a `network: none` skill, and a SKILL.md body under 5,000 tokens.
-- **Contracts**: every `/ow-` verb cited is declared (one merged verb index with the oc- catalog); every NEXT block leads with `use <skill id>` and carries its `IF IT IS NOT AVAILABLE` line; Reads-from rows have absent and mismatch cases; Hands-off rows have an unavailable branch.
+- **Contracts**: every `/ow-` verb cited is declared (one merged verb index with the oc- catalog); every NEXT block leads with `use <skill id>` and carries its `IF IT IS NOT AVAILABLE` line; Reads-from rows have absent and mismatch cases; Hands-off rows have an unavailable branch; each skill's `skill.edges.yaml` is reciprocal with the others, with one writer per file (Edges, above).
 - **Family names** (design §8.1): no ow- skill file names an oc- skill, a private skill (`privateNames` in `catalogs.json`, today `llc-ops`) or a business (`brandNames`). Handoffs that leave the family go through the user's own `opchain-work/handoffs.yaml`.
 - **Acceptance**: `node scripts/ow-start-acceptance.mjs` checks the golden runs in `tests/fixtures/ow-start/`; its README says how to check a real run.
 

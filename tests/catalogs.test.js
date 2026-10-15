@@ -86,7 +86,7 @@ const BODY = [
   "| Done | ow-later | \"use ow-later on out.md\" | out.md stands alone |",
   "",
   "    DONE: demo -> out.md",
-  "    NEXT: say \"use ow-later on out.md\"   (where slash commands exist: /ow-demo)",
+  "    NEXT: say \"use ow-later on out.md\"   (where slash commands exist: /ow-later-start)",
   "    IF IT IS NOT AVAILABLE: out.md stands alone.",
   "",
 ].join("\n");
@@ -117,7 +117,7 @@ function owTree({ frontmatter = FRONTMATTER, body = BODY, files = {} } = {}) {
   const ow = {
     id: "ow", dir, relDir: "skills-work", prefix: "ow-", verbPrefix: "/ow-", frontmatter: "agent-skills",
     protocol: { kind: "file", source: "ow-protocol.md", copy: "references/ow-protocol.md", version: 1 },
-    bodyTokenBudget: 5000, planned: ["ow-later"], addons: { "ow-tools": ["/ow-demo-transcribe"] },
+    bodyTokenBudget: 5000, planned: ["ow-later"], plannedVerbs: { "ow-later": ["/ow-later-start"] }, addons: { "ow-tools": ["/ow-demo-transcribe"] },
     privateNames: ["llc-ops"], brandNames: ["Privateco"], requiredSkills: [], notInvocable: [],
   };
   const oc = { id: "oc", dir: ocDir, relDir: "skills", prefix: "oc-", verbPrefix: "/oc-", frontmatter: "oc", protocol: { kind: "orchestrator" }, outputs: {} };
