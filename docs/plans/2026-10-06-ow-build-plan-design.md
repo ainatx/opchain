@@ -1,9 +1,9 @@
 # ow-build-plan — design
 
-**Date:** 2026-10-06 · **Status:** APPROVED 2026-10-08. Nothing is built.
+**Date:** 2026-10-06 · **Status:** APPROVED 2026-10-08. **Amendments applied 2026-10-14** (decision 10): ow-handoff A1 (fix window, §6.3, §8) and A4 (follow-on intake, §4), ow-uat P1 (UAT line and documentation & training SKU, §4, §6.1, §6.3, §8) and P2 (contract clauses, §8), the ow-tools internal-appendix markers (§6.2), and the owner's 2026-10-09 rulings on `-quote --accepted` / `--signed` (decisions 8–9, §4, §8). Nothing is built.
 **Release:** second skill in the ow- family that ships together as v2.1.0 (see `docs/plans/2026-10-06-ow-start-intake-redesign.md`, decisions 13–19). Starts at 1.0.0.
 **Replaces:** `ow-blueprint` from `docs/plans/2026-09-21-opchain-work-and-2.1-strategy.md` §6.5. It keeps blueprint's mapping and gap work and adds what Deftwright sells as stage 02.
-**Upstream:** `ow-start` (intake record + recap with a recommended path). **Downstream:** a neutral `contract-inputs.md` for whoever drafts the contract, and `build-request.md` for whoever builds it. Where each goes next is configured by the user (family rule, ow-start design decision 23).
+**Upstream:** `ow-start` (intake record + recap with a recommended path). **Downstream:** a neutral `contract-inputs.md` for whoever drafts the contract (written by `-quote --accepted`), and `build-request.md` for whoever builds it (written by `-quote --signed`, whose NEXT names `ow-build-start` first). `contract-inputs.md` is also read later by `ow-uat` and `ow-handoff`. Where each goes next is configured by the user (family rule, ow-start design decision 23).
 
 ## 1. What the site promises (staging.deftwright.com, read 2026-10-06)
 
@@ -19,26 +19,29 @@
 | /how-we-work | A written update each week and a working demo at each milestone | §6 milestones each end in a demo |
 | /how-we-work | Your repository, your accounts, your data; documentation and tests | §5 ownership section |
 | /how-we-work | Payments: larger projects 40% to book / 40% working demo / 20% acceptance; smaller half to book, half at delivery; invoices due in 14 days; vendor subscriptions billed directly, no markup | §6 payment schedule; the size threshold comes from the price book |
-| /services (operations) | Included: error handling and alerts, run logs, acceptance tests, operator notes, 30 days of fixes | §6 "included" block per offer, from the price book |
+| /services (operations) | Included: error handling and alerts, run logs, acceptance tests, operator notes, 30 days of fixes | §6 "included" block per offer, from the price book; the fix window's length from `fix_window_days` (§6.3) |
 
-## 2. Owner decisions (2026-10-06)
+## 2. Owner decisions
 
-| # | Question | Answer |
-|---|---|---|
-| 1 | Name | `ow-build-plan`, matching stage 02 on the site |
-| 2 | How the quote is priced | **Fixed tiers / price book.** Work packages map to priced units in a price book the user keeps; the skill adds them up and never invents a price |
-| 3 | How systems are examined | **All three:** artefacts the user collects; read-only access where the client grants it; recordings of process-mapping workshops (via `ow-tools`) |
-| 4 | Client-facing format | **Branded PDF and Word (.docx)**, both from the same Markdown source |
-| 5 | Where it stops | **Quote only.** On acceptance it writes `contract-inputs.md`. The public skill points to no private skill: NEXT prints the user's `contract` destination from `handoffs.yaml` (Deftwright's says `use llc-ops to draft the SOW`), or a public default for anyone |
-| 6 | Review | No `ow-review` skill; the checks in §9.1 run inside this skill as a labelled same-session self-check |
-| 7 | Code add-on | One Claude Code-only add-on, `ow-tools`: transcription, PDF/Word export, SessionStart hook |
+| # | Date | Question | Answer |
+|---|---|---|---|
+| 1 | 2026-10-06 | Name | `ow-build-plan`, matching stage 02 on the site |
+| 2 | 2026-10-06 | How the quote is priced | **Fixed tiers / price book.** Work packages map to priced units in a price book the user keeps; the skill adds them up and never invents a price |
+| 3 | 2026-10-06 | How systems are examined | **All three:** artefacts the user collects; read-only access where the client grants it; recordings of process-mapping workshops (via `ow-tools`) |
+| 4 | 2026-10-06 | Client-facing format | **Branded PDF and Word (.docx)**, both from the same Markdown source |
+| 5 | 2026-10-06 | Where it stops | **Quote only.** On acceptance it writes `contract-inputs.md`. The public skill points to no private skill: NEXT prints the user's `contract` destination from `handoffs.yaml` (Deftwright's says `use llc-ops to draft the SOW`), or a public default for anyone |
+| 6 | 2026-10-06 | Review | No `ow-review` skill; the checks in §9.1 run inside this skill as a labelled same-session self-check |
+| 7 | 2026-10-06 | Code add-on | One Claude Code-only add-on, `ow-tools`: transcription, PDF/Word export, SessionStart hook |
+| 8 | 2026-10-09 | How the client's acceptance of the quote is recorded | **`/ow-build-plan-quote --accepted <date>`** records `client accepted <date>, recorded by <user>; not verified by this skill`, writes `contract-inputs.md` and prints the `contract` NEXT from `handoffs.yaml` (§4, §8) |
+| 9 | 2026-10-09 | How signing is recorded, and what comes next | **`--signed <date>`** records `client signed <date>, recorded by <user>; not verified by this skill`, writes `build-request.md` and prints the build NEXT. That NEXT names **`ow-build-start`** (in-family, with an IF IT IS NOT AVAILABLE branch) **and** the `build` destination from `handoffs.yaml` (§8). This gives `contract-inputs.md` and `build-request.md` named writer verbs |
+| 10 | 2026-10-14 | Amendments from later designs | **Approved and applied:** ow-handoff A1 and A4, ow-uat P1 and P2, and the ow-tools internal-appendix markers (status line names the sections) |
 
 ## 3. Shape
 
 Two main client documents, deliberately separate (plus the one-page Build Plan offer that comes before them):
 
 - **The Build Plan**: builder-neutral. Process map, systems, what should change, scope, out of scope, acceptance checks, risks, assumptions, client dependencies. No prices, no Deftwright-only method. Another developer could quote from it.
-- **The Quote**: Deftwright's offer against that plan. Fixed price, milestones, payment schedule, validity, credit, change rule, what's included.
+- **The Quote**: Deftwright's offer against that plan. Fixed price, milestones, payment schedule, validity, credit, change rule, what's included, the fix window, the user acceptance testing line and the optional documentation & training line.
 
 The **tier** (1 system / 2 systems / 3+ or MVP) comes from the recap's recommended path and sets the timeline (1 week or 2), the session plan and the collection list. It can be changed at `/ow-build-plan-start` with a reason.
 
@@ -51,10 +54,14 @@ The **tier** (1 system / 2 systems / 3+ or MVP) comes from the recap's recommend
 | `/ow-build-plan-collect` | Ingests evidence from the three sources (§4.1) into one evidence register. Run as often as material arrives | `evidence.md`, `systems/<system>.md` per system |
 | `/ow-build-plan-map` | Current process, future process, who does what, systems inventory, data condition. Each fact carries the ow- confidence level (HIGH shown · MEDIUM stated · LOW inferred · UNKNOWN) | `map/current.md`, `map/future.md`, `map/roles.md`, `map/systems.md`, `map/data.md` |
 | `/ow-build-plan-scope` | Work packages, out-of-scope list, an acceptance check per in-scope item, risks, assumptions, client dependencies | `scope.md`, `acceptance.md`, `risks.md` |
-| `/ow-build-plan-quote` | Maps each work package to price-book units, totals, sets milestones and the payment schedule, computes dates | `quote.md` |
+| `/ow-build-plan-quote` | Maps each work package to price-book units, totals, sets milestones and the payment schedule, computes dates. Adds the UAT line, the optional documentation & training line and the fix window (§6.3) | `quote.md` |
+| `/ow-build-plan-quote --accepted <date>` | Records `client accepted <date>, recorded by <user>; not verified by this skill`, asks whether the client took the documentation & training line, and prints the `contract` NEXT (§8; decision 8) | `contract-inputs.md` |
+| `/ow-build-plan-quote --signed <date>` | Records `client signed <date>, recorded by <user>; not verified by this skill` and prints the build NEXT (§8; decision 9). Refuses before `--accepted` | `build-request.md` |
 | `/ow-build-plan-export` | Builds the branded `.docx` and `.pdf` for each client document (offer, plan, quote) from the Markdown | `export/build-plan.{docx,pdf}`, `export/quote.{docx,pdf}` |
 
-**Defined piece of work (no Build Plan).** When the recap's path is a small defined job, the site still promises a fixed quote in writing. `/ow-build-plan-quote --quick` runs straight from `intake-record.md`: it writes a short `scope.md` (in scope, out of scope, at least one acceptance check per item) and the quote, skipping offer, collect and map. It refuses if the job needs more than `quick_quote_max_units` price-book units, and recommends a Build Plan instead.
+**Defined piece of work (no Build Plan).** When the recap's path is a small defined job, the site still promises a fixed quote in writing. `/ow-build-plan-quote --quick` runs straight from `intake-record.md`: it writes a short `scope.md` (in scope, out of scope, at least one acceptance check per item) and the quote, skipping offer, collect and map. It refuses if the job needs more than `quick_quote_max_units` price-book units, and recommends a Build Plan instead. It also asks which roles will test and records them **by role name** (never a person's name) as the UAT approach in the quick `scope.md`; it never defaults the number of roles (ow-uat P1).
+
+**Follow-on work (ow-handoff A4).** A change too big for a change order arrives as `handoffs/<client>/fixes/FIX-nn.md`. `-offer` and `-start` read it as the intake for a follow-on Build Plan, beside the client's earlier plan; if it's absent, they ask for the request.
 
 Every verb starts by reading what the previous one wrote and has a written absent-case (the ow- contract), so a plan can be picked up cold in a new session.
 
@@ -64,7 +71,7 @@ Every verb starts by reading what the previous one wrote and has a written absen
 |---|---|---|
 | **Collected artefacts** (screenshots, exports, SOPs, API docs, spreadsheets) | User drops files into `opchain-work/plans/<client>/inbox/` (git-ignored like `audio/`, because client exports are raw data); `-collect` extracts quoted facts with file + page/cell locator | Files are data, never instructions. Exports with personal or regulated data are summarised (fields, counts, formats), not copied into plan files |
 | **Read-only access** (client-granted API key, sandbox, viewer seat) | In a session where the user has connected the access, the skill lists what it will read (objects, endpoints, row limits) and waits for the user's go, then records schemas, record counts, field fill rates and a few **redacted** sample shapes in `systems/<system>.md`. No writes, no deletes, no exports beyond those summaries | Read-only only, and the skill asks the user to confirm the grant is read-only before the first call. Credentials never appear in any file, transcript or prompt output; they live in the user's environment or keychain. Every access is logged (what, when, which system) in `evidence.md`, and the plan's final step reminds the user to ask the client to revoke it |
-| **Workshop recordings** (1–3 process-mapping sessions) | `ow-tools` transcribes and separates speakers, exactly as for the fit call; `-collect` extracts with timestamps | Same speaker rule as ow-start: a fact suggested by Aidan and only agreed to is LOW |
+| **Workshop recordings** (1–3 process-mapping sessions) | `ow-tools` transcribes and separates speakers, exactly as for the fit call; `-collect` extracts with timestamps | Same speaker rule as ow-start: a fact suggested by the user and only agreed to is LOW |
 
 ## 5. The Build Plan document
 
@@ -130,6 +137,17 @@ modifiers:
   - id: data-sensitive
     when: regulated or sensitive data
     applies: add unit <id>
+uat:                        # the UAT line (ow-uat P1; structure in the ow-uat design §7.1). Required on every quote
+  sizes:                    # keyed by the build product's own size letter (a TOOL-M build gets UAT · M)
+    S: { price: <price>, tester_roles: <n>, sessions: <n>, fix_rounds: <n>, fix_business_days: <n> }
+    M: { price: <price>, tester_roles: <n>, sessions: <n>, fix_rounds: <n>, fix_business_days: <n> }
+    L: { price: <price>, tester_roles: <n>, sessions: <n>, fix_rounds: <n>, fix_business_days: <n> }
+  per_extra_role: <price>
+  extension: { per_session_or_round: <price> }   # internal; client-caused UAT overruns, priced by ow-build -change
+documentation_training:     # optional, declinable SKU (ow-uat P1, decisions D5–D6)
+  sizes: { S: <price>, M: <price>, L: <price> }  # up to 15 people trained
+  per_extra_group_of_15: <price>
+  quote_separately_above: <n>                    # people
 size_threshold: <price>     # at or above → 40/40/20; below → 50/50
 payment_terms_days: 14
 quote_validity_days: 14
@@ -144,7 +162,7 @@ quick_quote_max_units: <n>
 2. Modifiers apply only through their written `when` condition, citing the evidence that triggered them (e.g. `data-messy — evidence.md E-14: "we fix the SKUs by hand every Monday"`).
 3. **A work package with no matching unit stops the quote.** The skill asks the user to price it, then records `priced by <user>, <date>, reason: <text>` on that line. It never estimates a price.
 4. Arithmetic: when a code tool is available, the total is computed by tool and the command output recorded; otherwise the quote is marked `arithmetic not machine-checked` for the user to verify (ow- "never invent a machine fact" rule).
-5. The client sees the fixed total, the work packages and what each includes. Unit prices and modifiers stay in `quote.md`'s internal appendix, which `-export` leaves out.
+5. The client sees the fixed total, the work packages and what each includes. Unit prices and modifiers stay in `quote.md`'s internal appendix, which `-export` leaves out. The appendix is wrapped in `<!-- ow:internal -->` … `<!-- ow:end-internal -->` markers, and `ow-tools` export drops everything between them (ow-tools design §11). The UAT extension rate sits inside the markers too. A `quote.md` with an internal appendix outside the markers fails Quote integrity (§9.1).
 
 ### 6.3 What the quote states
 
@@ -154,7 +172,10 @@ quick_quote_max_units: <n>
 - Vendor subscriptions the build needs, listed by name, **billed directly to the client without a markup**.
 - **Valid until** the quote's issue date + `quote_validity_days`, printed as an absolute date.
 - **Build Plan credit:** "The Build Plan fee of <amount> is credited against this build if signed by <date>" (plan delivery + `build_plan_credit_days`).
-- Acceptance: the build is accepted when the acceptance checks in the Build Plan pass.
+- **User acceptance testing · <size>** (ow-uat P1), its own required line, sized by the build product's size letter: tester roles, test mix, sessions, fix rounds and fix days, at the size price plus the per-role add-on for roles beyond those included. The extension rate stays in the internal appendix.
+- **Documentation & training · <size>** (ow-uat P1), its own recommended line that the client can decline: up to 15 people trained at the size price, plus the per-group add-on for each extra group of up to 15; above `quote_separately_above` people, "quoted separately".
+- **N days of fixes** (ow-handoff A1): rendered from `fix_window_days` in `offers.md` `after_handoff`, and copied into `quote.md` so the window is part of the signed terms.
+- Acceptance (ow-uat P1): "The build is accepted when the client signs off user acceptance testing with every acceptance check passing, or as the contract's deemed-acceptance clause provides." Smaller projects add: "Delivery: the day the Handoff notes are delivered, or as the contract's delivery-backstop clause provides."
 
 ## 7. Export: branded PDF and Word
 
@@ -167,14 +188,39 @@ quick_quote_max_units: <n>
 
 ```
 DONE: Build Plan + Quote ready -> plans/<client>/export/ (quote valid until 2026-10-27)
-NEXT: when the client accepts: <contract.say from handoffs.yaml, {files} = plans/<client>/contract-inputs.md>
-      default: send contract-inputs.md to whoever drafts your contracts,
-               or fill your own SOW template from it
+NEXT: when the client accepts: use ow-build-plan-quote --accepted <date>
 ```
 
-After signing: `build-request.md` (from the plan, not the quote) is an **export a person carries**, not a chain (ow- contract, edge 12). NEXT prints the user's `build` destination from `handoffs.yaml`; when Deftwright builds it, that is `oc-app-architect`, which reads it, entering at `/oc-roadmap` with the scope, acceptance checks and risks as spec inputs. That needs a "reads from" row on the oc- side.
+**Acceptance** (`-quote --accepted <date>`, decision 8) records `client accepted <date>, recorded by <user>; not verified by this skill`, writes `contract-inputs.md` and prints:
 
-`contract-inputs.md` (written by `-quote` once the user records acceptance) holds what any contract needs and nothing tool-specific: parties as the user supplies them, the scope and acceptance checks by reference, the fixed price, milestones, payment schedule and due days, the change rule, the validity and credit dates, ownership terms and the vendor subscriptions billed directly. It states that it is contract input, not a contract.
+```
+DONE: client accepted <date> (recorded by <user>; not verified) -> plans/<client>/contract-inputs.md
+NEXT: <contract.say from handoffs.yaml, {files} = plans/<client>/contract-inputs.md>
+      default: send contract-inputs.md to whoever drafts your contracts,
+               or fill your own SOW template from it
+      when it's signed: use ow-build-plan-quote --signed <date>
+```
+
+**Signing** (`-quote --signed <date>`, decision 9) records `client signed <date>, recorded by <user>; not verified by this skill`, writes `build-request.md` (from the plan, not the quote) and prints:
+
+```
+DONE: client signed <date> (recorded by <user>; not verified) -> plans/<client>/build-request.md
+NEXT: use ow-build-start on plans/<client>/
+      IF IT IS NOT AVAILABLE: <build destination from handoffs.yaml, {files} = plans/<client>/build-request.md>
+      default: give build-request.md to whoever builds it
+```
+
+`ow-build-start` is the in-family next step: it hands the signed scope to the builder named in the `build` destination itself (ow-build design §12). Without `ow-build`, `build-request.md` is an **export a person carries**, not a chain (ow- contract, edge 12), and the `build` destination is printed instead.
+
+`contract-inputs.md` (written only by `-quote --accepted`) holds what any contract needs and nothing tool-specific: parties as the user supplies them, the scope and acceptance checks by reference, the fixed price, milestones, payment schedule and due days, the change rule, the validity and credit dates, ownership terms and the vendor subscriptions billed directly. It also holds, for the stages after the build:
+
+- `fix_window_days` and the "N days of fixes" wording (ow-handoff A1)
+- the **UAT line** as quoted: size, tester roles, test mix, sessions, fix rounds and fix days (ow-uat P1)
+- `documentation_sku: bought | declined`, as the user records the client's choice (ow-uat P1)
+- the **acceptance and delivery definitions** as the quote states them (§6.3)
+- a **`contract_clauses`** block (ow-uat P2): `deemed_acceptance` and `delivery_backstop`, each `{ref, business_days, calendar, wording}`, copied unchanged from the user-maintained `offers.md`. The user adds that block once their contract step has drafted the standard clauses; with no block, `contract-inputs.md` says "contract clauses: not set"
+
+It states that it is contract input, not a contract. `build-request.md` is written only by `-quote --signed`.
 
 `STATUS.md` carries two dated awaitings: `quote valid until <date>` and `credit expires <date>`, so `/ow-status` shows them.
 
@@ -191,7 +237,7 @@ Each check reports OK / FINDING / NOT-CHECKED(reason) and is labelled *same-sess
 | Out of scope present | `-scope` | The out-of-scope list is not empty |
 | Risk owners | `-scope` | Every risk has an owner and a mitigation |
 | Evidence trace | `-map`, `-scope` | Every HIGH/MEDIUM fact cites an `evidence.md` line |
-| Quote integrity | `-quote` | Every package maps to price-book units or a recorded manual price; modifiers cite evidence; dates and terms match the price book |
+| Quote integrity | `-quote` | Every package maps to price-book units or a recorded manual price; modifiers cite evidence; dates and terms match the price book; the UAT line is present and matches `uat` for the build's size; the fix window matches `fix_window_days`; the internal appendix sits wholly inside the `<!-- ow:internal -->` … `<!-- ow:end-internal -->` markers |
 
 ### 9.2 Acceptance tests
 
@@ -202,11 +248,15 @@ Each check reports OK / FINDING / NOT-CHECKED(reason) and is labelled *same-sess
 - **Credentials:** a read-only key used in a session never appears in any file under `plans/`.
 - **Builder-neutral:** a reviewer pass on the plan finds no Deftwright pricing or opchain-specific wording.
 - **Build Plan offer:** the fee, weeks and credit match the tier in the price book; validity is issue date + 14 days.
-- **Quick quote:** a two-unit job produces scope + quote with no map; a job over `quick_quote_max_units` is refused with a Build Plan recommendation.
+- **Quick quote:** a two-unit job produces scope + quote with no map; a job over `quick_quote_max_units` is refused with a Build Plan recommendation. The quick `scope.md` lists tester roles by role name only.
+- **UAT and documentation lines:** a TOOL-M quote shows UAT · M with its roles, sessions and fix bounds, and Documentation & training · M as a declinable line; 3 tester roles on an M that includes 2 add one per-role add-on; the extension rate appears only inside the internal markers, and the export has nothing from between them.
+- **Fix window:** `fix_window_days` 30 renders "30 days of fixes" and appears in `quote.md` and `contract-inputs.md`.
+- **Accepted and signed:** `--accepted` writes `contract-inputs.md` (fix window, UAT line, `documentation_sku`, acceptance and delivery definitions, `contract_clauses` or "not set") and prints the `contract` NEXT; `--signed` before `--accepted` refuses; `--signed` writes `build-request.md` and its NEXT names `ow-build-start` with the `build` destination as the IF IT IS NOT AVAILABLE branch.
+- **Follow-on intake:** `-start` with a `handoffs/<client>/fixes/FIX-nn.md` uses it as the intake; without one, it asks for the request.
 - **No private names:** with an empty `handoffs.yaml`, every NEXT and every file the skill writes is free of private skill names and of 'Deftwright'; with Deftwright's file, NEXT says `use llc-ops`.
 - **Real use:** one real Deftwright Build Plan produced end to end; the bar is a plan and quote you would send with light edits.
 
 ## 10. Open questions
 
-1. **The price book's numbers.** The structure is designed; the units and prices are yours. A first draft can be built from your last few real quotes.
+1. **The price book's numbers.** The structure is designed; the units and prices are yours, including the UAT and documentation & training sizes, and they live only in your own `price-book.yaml`, never in this repo (ow-uat decision 13). A first draft can be built from your last few real quotes.
 2. **Delivery-mode plans.** For signed work, is a Build Plan ever re-run (e.g. phase 2 of a client), and does that change the quote rules?
