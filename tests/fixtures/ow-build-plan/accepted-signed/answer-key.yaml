@@ -12,7 +12,7 @@ slug: larkspur-ceramics
 user: Robin
 people: [Jess]          # named in the fit call; testers are recorded by role
 base: unpriced-package
-checks: [headers, accepted, signed, status, private_names]
+checks: [headers, quote_frozen, accepted, signed, status, private_names]
 outputs:
   - plans/larkspur-ceramics/contract-inputs.md
   - plans/larkspur-ceramics/build-request.md

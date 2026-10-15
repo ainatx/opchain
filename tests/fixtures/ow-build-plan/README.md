@@ -27,6 +27,10 @@ Larkspur Ceramics continues ow-start's `larkspur-prospect` golden run (recap pat
 | `private-names-business` | No private names | `--accepted` | A business's own `handoffs.yaml` (in `input/`) whose contract line names a private skill: that line, printed exactly, is the only place it may appear |
 | `follow-on-offer` | Follow-on intake | "use ow-build-plan on handoffs/larkspur-ceramics/fixes/FIX-03.md" → `-offer` | FIX-03 (in `input/`) becomes the intake for an offer in `plans/larkspur-ceramics-2/`, beside the signed first plan |
 | `follow-on-fix` | Follow-on intake | `-start` after `follow-on-offer` | `-start` reuses the offer's folder; the earlier plan is read, never written |
+| `follow-on-stated-offer` | Follow-on intake | `-offer` from the user's words (no FIX file) | The request is written to `plans/larkspur-ceramics-2/request.md`, the offer's subject |
+| `follow-on-stated-start` | Follow-on intake | `-start` after `follow-on-stated-offer` | `-start` reuses that folder and reads `request.md`; it does not ask again |
+| `route-next-stage` | (eval round 2, item 2) | "use ow-build-plan on intake/fernhill-florists/intake-record.md" → `-start` | Fernhill Florists: a delivery-mode recap (`next-stage`, work already signed) starts the plan, never an offer; `fee: none` |
+| `route-folder` | (eval round 2, item 3) | "use ow-build-plan on plans/larkspur-ceramics/" → `--accepted` | After the export the folder route records the acceptance; the sent quote is never written again |
 | `follow-on-asks` | Follow-on intake | `-start` | No FIX file: the request is asked for and recorded in the user's words |
 | `quick-quote` | Quick quote | `-quote --quick` | Mossgate Books: a two-unit job from notes; the notes name the tester (Priya), the scope must list the role only |
 | `dates-terms-below` | Dates and terms | the `quick-quote` run | Below `size_threshold`: 50/50 and the delivery sentence; no Build Plan credit |

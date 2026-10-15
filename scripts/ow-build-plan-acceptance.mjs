@@ -341,6 +341,15 @@ function checkOffer(key, run) {
   if (!amountRe(cents(b.build_plan_fees?.[tier])).test(content)) p.push(`${rel}: the offer text does not state the fee`);
   if (!new RegExp(`\\b${b.build_plan_credit_days} days\\b`).test(content)) p.push(`${rel}: the offer text does not state the ${b.build_plan_credit_days}-day credit`);
   for (const s of ["What you get", "How long", "Fee", "Credit", "Valid until"]) if (sectionText(content, s) == null) p.push(`${rel}: no "## ${s}" section`);
+  // A follow-on stated in the user's words: the offer records the request and names it as its subject.
+  if (key.offer.request) {
+    if (data.subject !== key.offer.request) p.push(`${rel}: subject is ${data.subject}; a follow-on offer names the request it was made from (${key.offer.request})`);
+    if (!run.written().includes(key.offer.request)) p.push(`${key.offer.request} was not written; the offer records a stated follow-on request before it is offered`);
+    else {
+      const req = parsed(run, key.offer.request, "md");
+      if (req.data.ow_artefact !== "ow-build-plan/request" || req.data.origin !== "user" || !req.data.stated_by || !req.content.trim()) p.push(`${key.offer.request}: needs the ow-build-plan/request header (origin: user, stated_by) and the user's words`);
+    }
+  }
   return p;
 }
 
@@ -374,7 +383,8 @@ function checkStart(key, run) {
   if (!TIERS.includes(plan.tier)) p.push(`plan.yaml: tier ${plan.tier} is not one of ${TIERS.join(", ")}`);
   const weeks = Number(b.build_plan_weeks?.[plan.tier]);
   if (Number(plan.weeks) !== weeks) p.push(`plan.yaml: weeks ${plan.weeks} is not build_plan_weeks.${plan.tier} (${weeks})`);
-  if (want.fee !== undefined && cents(plan.fee) !== cents(want.fee)) p.push(`plan.yaml: fee ${plan.fee}, expected ${want.fee}`);
+  if (want.fee === "none") { if (plan.fee !== "none") p.push(`plan.yaml: fee is ${plan.fee}; work already signed has no Build Plan fee (fee: none)`); }
+  else if (want.fee !== undefined && cents(plan.fee) !== cents(want.fee)) p.push(`plan.yaml: fee ${plan.fee}, expected ${want.fee}`);
   if (iso(plan.start) !== iso(want.start)) p.push(`plan.yaml: start ${iso(plan.start)}, expected ${iso(want.start)}`);
   // The deadlines are the user's: build_plan_schedule.<tier> in the price book, or stated by the user.
   const sched = b.build_plan_schedule?.[plan.tier];
@@ -410,24 +420,57 @@ function checkStart(key, run) {
 
 function checkFollowOn(key, run) {
   const p = [];
-  const plan = parsed(run, `${plansDir(key)}/plan.yaml`, "yaml");
+  const dir = plansDir(key);
   const want = key.follow_on;
+  // One follow-on folder: no plan.yaml written into any other plans/<client>-<n>/ (eval round 2, N20b).
+  const client = want.follows.split("/")[1];
+  for (const f of run.written()) {
+    const m = f.match(new RegExp(`^plans/(${esc(client)}-\\d+)/plan\\.yaml$`));
+    if (m && `plans/${m[1]}` !== dir) p.push(`${f}: the follow-on plan was written in plans/${m[1]}/, but its offer and request are in ${dir}/; one follow-on, one folder`);
+  }
+  const plan = parsed(run, `${dir}/plan.yaml`, "yaml");
   if (plan.follows !== want.follows) p.push(`plan.yaml: follows is "${plan.follows}", expected "${want.follows}"`);
   if (!run.exists(`${want.follows}plan.yaml`)) p.push(`the earlier plan ${want.follows}plan.yaml is not beside the follow-on`);
   for (const f of run.written()) if (f.startsWith(want.follows)) p.push(`${f}: the follow-on wrote into the earlier plan; it reads it for context only`);
-  const offerRel = `${plansDir(key)}/build-plan-offer.md`;
+  // The intake: a FIX file, the request.md its offer recorded, or (no offer) the user's words.
+  const intake = want.fix ?? want.request ?? null;
+  const offerRel = `${dir}/build-plan-offer.md`;
   if (run.exists(offerRel)) {
     const subject = parsed(run, offerRel, "md").data.subject;
-    if (subject !== (want.fix ?? "none") && !(want.fix == null && /^none$|^stated/.test(String(subject)))) p.push(`${offerRel}: its subject is ${subject}, but this plan's intake is ${want.fix ?? "the user's words"}; the offer and the plan must share one folder`);
-  }
-  if (want.fix) {
-    if (plan.intake !== want.fix) p.push(`plan.yaml: intake is "${plan.intake}", expected the request ${want.fix}`);
-    if (!run.exists(want.fix)) p.push(`${want.fix} does not exist in the run`);
+    if (subject !== intake) p.push(`${offerRel}: its subject is ${subject}, but this plan's intake is ${intake ?? "the user's words"}; the offer and the plan must share one folder and one request`);
+  } else if (want.request) p.push(`${offerRel} is missing; a request.md comes from the follow-on offer in the same folder`);
+  if (intake) {
+    if (plan.intake !== intake) p.push(`plan.yaml: intake is "${plan.intake}", expected ${intake}`);
+    if (!run.exists(intake)) p.push(`${intake} does not exist in the run`);
+    if (want.request) {
+      if (String(plan.request ?? "").trim()) p.push("plan.yaml: records the request again; with request.md from the offer, -start does not ask for it");
+      if (run.written().includes(want.request)) p.push(`${want.request}: rewritten by the start; the offer wrote it and -start only reads it`);
+      const req = parsed(run, want.request, "md");
+      if (req.data.ow_artefact !== "ow-build-plan/request" || req.data.origin !== "user" || !req.data.stated_by) p.push(`${want.request}: header must be ow-build-plan/request, origin: user, with stated_by`);
+      if (!req.content.trim()) p.push(`${want.request}: holds no request`);
+    }
   } else {
-    if (!/^stated by \S.*, \d{4}-\d{2}-\d{2}$/.test(String(plan.intake ?? ""))) p.push(`plan.yaml: intake is "${plan.intake}"; with no FIX file it must be "stated by <user>, <date>"`);
+    if (!/^stated by \S.*, \d{4}-\d{2}-\d{2}$/.test(String(plan.intake ?? ""))) p.push(`plan.yaml: intake is "${plan.intake}"; with no FIX file and no offer it must be "stated by <user>, <date>"`);
     if (!String(plan.request ?? "").trim()) p.push("plan.yaml: no request recorded in the user's words");
     for (const f of run.written()) if (/FIX-\d+/.test(run.read(f) ?? "")) p.push(`${f}: names a FIX file, but there is none for this follow-on`);
   }
+  return p;
+}
+
+/**
+ * A quote is written once (eval round 2, new bug 2): once it has been exported or
+ * accepted, a run never writes quote.md or quote-items.json again. A revised quote
+ * is a new quote-r<n>.md, and only on the user's request.
+ */
+function checkQuoteFrozen(key, run) {
+  const p = [];
+  const dir = plansDir(key);
+  const before = run.priorRead(`${dir}/quote.md`);
+  if (before == null) return [`this case starts with no ${dir}/quote.md to keep`];
+  const exported = (run.priorRead("STATUS.md") ?? "").split("\n").some((l) => l.includes(`${dir}/export/`)) || run.priorRead(`${dir}/export/export-report.md`) != null;
+  const accepted = run.priorRead(`${dir}/contract-inputs.md`) != null;
+  if (!exported && !accepted) return ["this case's quote was neither exported nor accepted before the run"];
+  for (const f of ["quote.md", "quote-items.json"]) if (run.written().includes(`${dir}/${f}`)) p.push(`${dir}/${f} was rewritten after the quote was ${accepted ? "accepted" : "exported"}; a quote is written once (a revision is quote-r<n>.md, on request)`);
   return p;
 }
 
@@ -486,6 +529,7 @@ function checkPlan(key, run) {
   for (const name of ["Acceptance coverage", "Out of scope present", "Risk owners", "Evidence trace"]) {
     const row = sc.find((r) => r.check === name);
     if (!row) p.push(`scope.md: the self-check table has no "${name}" row`);
+    else if (row.result !== "OK") p.push(`scope.md: the "${name}" self-check is ${row.result}; a finished scope has every self-check OK (fix and run again)`);
   }
   if (!/Same-session self-check: the same assistant/.test(scope)) p.push("scope.md: the self-checks are not labelled as a same-session self-check");
   // A planted instruction in the client's material is quoted, never followed.
@@ -940,7 +984,14 @@ function checkQuick(key, run) {
   if (!(sectionText(content, "Out of scope") ?? "").split("\n").some((l) => /^\s*-\s+\S/.test(l))) p.push("quick-scope.md: Out of scope is empty");
   const checks = keyedBlocks(`## x\n${sectionText(content, "Acceptance checks") ?? ""}`, /^AC-\d+\.\d+$/);
   for (const id of wps.keys()) if (![...checks.keys()].some((c) => c.startsWith(`AC-${id.split("-")[1]}.`))) p.push(`quick-scope.md: ${id} has no acceptance check`);
-  for (const c of checks.values()) for (const k of ["when", "then", "how we check", "test data", "cases", "kind"]) if (!c.keys[k]) p.push(`quick-scope.md: ${c.id} has no "${k}"`);
+  for (const c of checks.values()) {
+    for (const k of ["when", "then", "how we check", "test data", "cases", "kind"]) if (!c.keys[k]) p.push(`quick-scope.md: ${c.id} has no "${k}"`);
+    if (c.keys.cases && !/^[1-9]\d*$/.test(c.keys.cases)) p.push(`quick-scope.md: ${c.id} cases "${c.keys.cases}" is not a whole number of at least 1`);
+  }
+  if (checks.size && ![...checks.values()].some((c) => c.keys.kind === "error")) p.push("quick-scope.md: no check is kind: error (error cases get checks too)");
+  // Before a plan exists, the quick quote keeps the step 0 handling answer in its own headers.
+  if (!("handling" in parsed(run, `${dir}/quick-scope.md`, "md").data)) p.push("quick-scope.md: the header has no handling (the step 0 answer; there is no plan.yaml)");
+  if (!("handling" in q.data)) p.push(`${q.rel}: the header has no handling (the step 0 answer; there is no plan.yaml)`);
   const uat = sectionText(content, "UAT approach") ?? "";
   const roles = (uat.match(/^-\s+tester roles:\s*(.+)$/m)?.[1] ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   if (!roles.length) p.push("quick-scope.md: the UAT approach lists no tester roles");
@@ -951,7 +1002,11 @@ function checkQuick(key, run) {
   const a = lines.findIndex((l) => /^\s*<!--\s*ow\s*:\s*internal\s*-->\s*$/i.test(l));
   const z = lines.findIndex((l) => /^\s*<!--\s*ow\s*:\s*end\s*-\s*internal\s*-->\s*$/i.test(l));
   const inside = a >= 0 && z > a ? lines.slice(a + 1, z).join("\n") : "";
-  for (const name of ["Acceptance coverage", "Out of scope present"]) if (!new RegExp(`\\| ${name} \\| (OK|FINDING|NOT-CHECKED)`).test(inside)) p.push(`quick-scope.md: no "${name}" self-check inside the ow:internal markers`);
+  for (const name of ["Acceptance coverage", "Out of scope present"]) {
+    const row = inside.match(new RegExp(`\\| ${name} \\| ([^|\\n]+)\\|`));
+    if (!row) p.push(`quick-scope.md: no "${name}" self-check inside the ow:internal markers`);
+    else if (row[1].trim() !== "OK") p.push(`quick-scope.md: the "${name}" self-check is ${row[1].trim()}; a finished quick scope has every self-check OK (fix and run again)`);
+  }
   if (!/Same-session self-check: the same assistant/.test(inside)) p.push("quick-scope.md: the self-checks are not labelled as a same-session self-check inside the ow:internal markers");
   if (/^## Self-checks/m.test(lines.filter((_, i) => i < a || i > z).join("\n"))) p.push("quick-scope.md: a self-check section sits outside the ow:internal markers and would reach the client");
   return p;
@@ -1024,18 +1079,26 @@ function checkRoute(key, run) {
   const dir = plansDir(key);
   const written = run.written();
   const has = (f) => written.includes(`${dir}/${f}`);
+  const prior = (f) => run.priorRead(`${dir}/${f}`) != null;
   let expect;
   if (/\/fixes\/FIX-\d+\.md$/.test(from)) expect = "follow-on offer";
   else if (/^intake\/[^/]+\/intake-record\.md$/.test(from)) {
     const recap = run.read(from.replace(/intake-record\.md$/, "recap.md"));
     const kind = recap ? matter(recap).data.path_kind : null;
-    expect = kind === "build-plan" ? "offer" : kind === "defined-work" ? "quick quote" : "ask";
+    expect = { "build-plan": "offer", "defined-work": "quick quote", "next-stage": "start" }[kind] ?? "ask";
     const before = (run.priorRead("STATUS.md") ?? "").split("\n").filter((l) => l.trim()).at(-1) ?? "";
     if (!before.includes(`next: ow-build-plan on ${from}`)) p.push(`the starting STATUS.md does not hand ${from} to ow-build-plan (its newest line is "${before}")`);
-  } else return [`route: ${from} is neither an intake record nor a FIX file`];
+  } else if (/^plans\/[^/]+\/$/.test(from)) {
+    // A folder resumes at the step its files show; an existing quote is never quoted again.
+    if (!prior("quote.md")) expect = "next step";
+    else if (!prior("contract-inputs.md")) expect = "accepted";
+    else if (!prior("build-request.md")) expect = "signed";
+    else expect = "nothing";
+  } else return [`route: ${from} is neither an intake record, a FIX file nor a plans/ folder`];
   if (key.route.expect && key.route.expect !== expect) p.push(`this case expects the route "${key.route.expect}", but ${from} routes to "${expect}"`);
   const offer = has("build-plan-offer.md");
   const quick = has("quick-scope.md") || has("quote.md");
+  const planWork = ["plan.yaml", "collection.md", "evidence.md", "scope.md"].filter(has).concat(written.filter((f) => f.startsWith(`${dir}/map/`)).map((f) => f.slice(dir.length + 1)));
   if (expect === "offer" || expect === "follow-on offer") {
     if (!offer) p.push(`${from} routes to /ow-build-plan-offer, but ${dir}/build-plan-offer.md was not written`);
     if (quick || has("plan.yaml")) p.push(`${from} routes to the offer only; the run wrote ${written.filter((f) => /quote|scope|plan\.yaml/.test(f)).join(", ")}`);
@@ -1052,13 +1115,31 @@ function checkRoute(key, run) {
   } else if (expect === "quick quote") {
     if (!has("quick-scope.md") || !has("quote.md")) p.push(`${from} routes to /ow-build-plan-quote --quick, but ${dir}/quick-scope.md and quote.md were not both written`);
     if (offer) p.push(`${from} routes to the quick quote, but an offer was written`);
+    if (planWork.length) p.push(`${from} routes to the quick quote, which has no Build Plan; the run also wrote ${planWork.join(", ")}`);
     if (has("quick-scope.md") && parsed(run, `${dir}/quick-scope.md`, "md").data.subject !== from) p.push(`${dir}/quick-scope.md: its subject is not ${from}`);
-  } else if (written.some((f) => f.startsWith(`${dir}/`))) p.push(`${from} has no build-plan or defined-work path, so the skill asks before writing; the run wrote ${dir}/`);
+  } else if (expect === "start") {
+    if (!has("plan.yaml") || !has("collection.md")) p.push(`${from} is delivery-mode work already signed, which routes to /ow-build-plan-start; ${dir}/plan.yaml and collection.md were not both written`);
+    if (offer) p.push(`${from} is work already signed: never an offer, but ${dir}/build-plan-offer.md was written`);
+    if (quick) p.push(`${from} routes to -start, but a quote or quick scope was written`);
+    if (has("plan.yaml")) {
+      const plan = parsed(run, `${dir}/plan.yaml`, "yaml");
+      if (plan.intake !== from) p.push(`${dir}/plan.yaml: intake is ${plan.intake}, expected ${from}`);
+      if (plan.fee !== "none") p.push(`${dir}/plan.yaml: fee is ${plan.fee}; signed work has no Build Plan fee`);
+    }
+  } else if (expect === "accepted" || expect === "signed") {
+    const want = expect === "accepted" ? "contract-inputs.md" : "build-request.md";
+    if (!has(want)) p.push(`${from} holds a ${expect === "accepted" ? "sent quote" : "accepted quote"}, so it routes to /ow-build-plan-quote --${expect}; ${dir}/${want} was not written`);
+    for (const f of ["quote.md", "quote-items.json"]) if (has(f)) p.push(`${from}: the route ran -quote again over the existing quote (${dir}/${f} rewritten); it must run --${expect}`);
+    if (expect === "accepted" && has("build-request.md")) p.push(`${from}: a build request was written before the acceptance was recorded`);
+  } else if (expect === "nothing") {
+    if (written.some((f) => f.startsWith(`${dir}/`))) p.push(`${from} is signed: nothing is left for this skill, but the run wrote into ${dir}/`);
+  } else if (expect === "ask" && written.some((f) => f.startsWith(`${dir}/`))) p.push(`${from} has no path this skill routes on its own, so it asks before writing; the run wrote ${dir}/`);
   return p;
 }
 
 const CHECKS = {
   route: checkRoute,
+  quote_frozen: checkQuoteFrozen,
   headers: checkHeaders,
   offer: checkOffer,
   start: checkStart,

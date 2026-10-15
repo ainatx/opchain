@@ -24,8 +24,9 @@ afterAll(() => scratch.forEach((d) => rmSync(d, { recursive: true, force: true }
 
 const CASES = [
   "accepted-signed", "builder-neutral", "credentials", "dates-terms-above", "dates-terms-below", "fix-window",
-  "follow-on-asks", "follow-on-fix", "follow-on-offer", "modifier-evidence", "offer", "private-names-business", "private-names-default",
-  "quick-over-limit", "quick-quote", "route-build-plan", "route-defined-work", "signed-before-accepted", "tier2-plan", "uat-documentation", "unpriced-package",
+  "follow-on-asks", "follow-on-fix", "follow-on-offer", "follow-on-stated-offer", "follow-on-stated-start", "modifier-evidence", "offer",
+  "private-names-business", "private-names-default", "quick-over-limit", "quick-quote", "route-build-plan", "route-defined-work", "route-folder",
+  "route-next-stage", "signed-before-accepted", "tier2-plan", "uat-documentation", "unpriced-package",
 ];
 
 /** The case's run as a real folder (starting state + its golden output), edited by `edits` (path under opchain-work -> fn). */
@@ -55,7 +56,7 @@ describe("golden runs", () => {
   it("has a case for every §9.2 acceptance test except Real use (Sprint 6)", () => {
     expect(listCases()).toEqual(CASES);
     const sections = listCases().map((c) => loadKey(join(FIXTURES, c)).section).join("\n");
-    for (const s of ["Synthetic client, tier 2", "Unpriced package", "Modifiers cite evidence", "Dates and terms (at or above", "Dates and terms (below", "Credentials never written", "Builder-neutral", "Build Plan offer", "Quick quote (two-unit job)", "Quick quote (over the limit", "UAT and documentation lines", "Fix window", "Accepted and signed", "signing refused before acceptance", "Follow-on intake (from FIX-nn.md)", "Follow-on intake (no FIX file", "Follow-on intake (offer from FIX-nn.md)", "No private names (defaults-only", "No private names (a business", "Inbound route from ow-start (Build Plan path)", "Inbound route from ow-start (defined piece of work)"]) {
+    for (const s of ["Synthetic client, tier 2", "Unpriced package", "Modifiers cite evidence", "Dates and terms (at or above", "Dates and terms (below", "Credentials never written", "Builder-neutral", "Build Plan offer", "Quick quote (two-unit job)", "Quick quote (over the limit", "UAT and documentation lines", "Fix window", "Accepted and signed", "signing refused before acceptance", "Follow-on intake (from FIX-nn.md)", "Follow-on intake (no FIX file", "Follow-on intake (offer from FIX-nn.md)", "No private names (defaults-only", "No private names (a business", "Inbound route from ow-start (Build Plan path)", "Inbound route from ow-start (defined piece of work)", "Inbound route from ow-start (delivery mode, signed work)", "Folder route after the quote", "Follow-on intake (offer from the user's words)", "Follow-on intake (start after an offer from the user's words)"]) {
       expect(sections).toContain(s);
     }
   });
@@ -300,10 +301,10 @@ describe("the checker catches a planted failure in each §9.2 case", () => {
 
   it("follow-on: the FIX file not used as the intake, and a FIX file named when there is none", () => {
     const fix = mutated("follow-on-fix", { "plans/larkspur-ceramics-2/plan.yaml": (t) => t.replace("intake: handoffs/larkspur-ceramics/fixes/FIX-03.md", "intake: intake/larkspur-ceramics/intake-record.md") });
-    expect(failures("follow-on-fix", fix).follow_on).toMatch(/intake is "intake\/larkspur-ceramics\/intake-record\.md", expected the request handoffs\/larkspur-ceramics\/fixes\/FIX-03\.md/);
+    expect(failures("follow-on-fix", fix).follow_on).toMatch(/intake is "intake\/larkspur-ceramics\/intake-record\.md", expected handoffs\/larkspur-ceramics\/fixes\/FIX-03\.md/);
     const asks = mutated("follow-on-asks", { "plans/larkspur-ceramics-2/plan.yaml": (t) => t.replace("intake: stated by Robin, 2026-12-01", "intake: handoffs/larkspur-ceramics/fixes/FIX-07.md") });
     const out = failures("follow-on-asks", asks).follow_on;
-    expect(out).toMatch(/with no FIX file it must be "stated by <user>, <date>"/);
+    expect(out).toMatch(/with no FIX file and no offer it must be "stated by <user>, <date>"/);
     expect(out).toMatch(/plan\.yaml: names a FIX file, but there is none/);
   });
 
@@ -409,12 +410,90 @@ describe("round 2: the checker catches what round 1 let through", () => {
   });
 });
 
+// Eval round 2: items 1-3 and the seven acceptance-checker slips (new bug 6).
+describe("round 3: the checker catches what round 2 let through", () => {
+  const F = "plans/larkspur-ceramics-2";
+
+  it("item 1: a stated follow-on offer without its request.md, and a start that asks again or splits the folder", () => {
+    const noReq = mutated("follow-on-stated-offer", { [`${F}/build-plan-offer.md`]: (t) => t.replace("subject: plans/larkspur-ceramics-2/request.md", "subject: none") });
+    expect(failures("follow-on-stated-offer", noReq).offer).toMatch(/subject is none; a follow-on offer names the request it was made from/);
+    const asks = mutated("follow-on-stated-start", { [`${F}/plan.yaml`]: (t) => t.replace('request: ""', 'request: "stock checks before confirming"') });
+    expect(failures("follow-on-stated-start", asks).follow_on).toMatch(/records the request again; with request\.md from the offer, -start does not ask for it/);
+    const rewrote = mutated("follow-on-stated-start", { [`${F}/request.md`]: (t) => `${t}\nAlso a weekly stock report.\n` });
+    expect(failures("follow-on-stated-start", rewrote).follow_on).toMatch(/request\.md: rewritten by the start/);
+    const split = mutated("follow-on-stated-start", { "plans/larkspur-ceramics-3/plan.yaml": () => readFileSync(join(FIXTURES, "follow-on-stated-start", "expected", "opchain-work", F, "plan.yaml"), "utf8") });
+    expect(failures("follow-on-stated-start", split).follow_on).toMatch(/plans\/larkspur-ceramics-3\/plan\.yaml: the follow-on plan was written in plans\/larkspur-ceramics-3\/, but its offer and request are in plans\/larkspur-ceramics-2\//);
+  });
+
+  it("item 2: a delivery-mode recap answered with an offer, or a plan that charges a Build Plan fee", () => {
+    const offer = mutated("route-next-stage", { "plans/fernhill-florists/build-plan-offer.md": () => "---\nsubject: intake/fernhill-florists/recap.md\n---\n# Offer\n" });
+    expect(failures("route-next-stage", offer).route).toMatch(/is work already signed: never an offer/);
+    const fee = mutated("route-next-stage", { "plans/fernhill-florists/plan.yaml": (t) => t.replace("fee: none", "fee: 1500") });
+    const out = failures("route-next-stage", fee);
+    expect(out.route).toMatch(/fee is 1500; signed work has no Build Plan fee/);
+    expect(out.start).toMatch(/work already signed has no Build Plan fee \(fee: none\)/);
+  });
+
+  it("item 3: the folder route quotes again over the sent quote", () => {
+    const run = mutated("route-folder", {
+      [`${L}/quote.md`]: (t) => t.replace("issued: 2026-10-26", "issued: 2026-11-02"),
+      [`${L}/quote-items.json`]: (t) => t.replace('"1900.00"', '"2000.00"'),
+    });
+    const out = failures("route-folder", run);
+    expect(out.route).toMatch(/the route ran -quote again over the existing quote \(plans\/larkspur-ceramics\/quote\.md rewritten\); it must run --accepted/);
+    expect(out.quote_frozen).toMatch(/quote\.md was rewritten after the quote was exported; a quote is written once/);
+    const accepted = mutated("accepted-signed", { [`${L}/quote.md`]: (t) => t.replace("issued: 2026-10-26", "issued: 2026-11-09") });
+    expect(failures("accepted-signed", accepted).quote_frozen).toMatch(/quote\.md was rewritten after the quote was exported/);
+  });
+
+  it("item 4: the resume rules group by client and keep refused quick quotes and pending FIX requests", () => {
+    const r = readFileSync(join(SKILL, "references", "routing-and-resume.md"), "utf8");
+    // Grouped by client, newest line per group.
+    expect(r).toMatch(/`intake\/<slug>\/…`, `plans\/<slug>\/…` and `handoffs\/<slug>\/…` all belong to the group `<slug>`/);
+    expect(r).toMatch(/A follow-on folder `plans\/<slug>-<n>\/…` is its own group/);
+    // A refused quick quote (next: ow-build-plan /ow-build-plan-offer intake/…) is listed.
+    expect(r).toMatch(/or as `ow-build-plan \/<verb> <path>` \(an open plan or quote, or a refused quick quote waiting for its offer\)/);
+    // A FIX request stays until a follow-on names it; a fit call drops once its offer's line is newer.
+    expect(r).toMatch(/A FIX request stays pending until a follow-on plan takes it up/);
+    expect(r).toMatch(/once its offer, quick quote or plan exists, that run wrote a newer line in the same group, which replaces the fit call's line/);
+    // The golden refusal's STATUS line is in the listed shape.
+    const status = readFileSync(join(FIXTURES, "quick-over-limit", "expected", "opchain-work", "STATUS.md"), "utf8");
+    expect(status).toMatch(/\| intake\/calder-joinery\/intake-record\.md \| next: ow-build-plan \/ow-build-plan-offer /);
+  });
+
+  it("N4/N5: handling dropped from the quick quote's or quick scope's header", () => {
+    const q = mutated("quick-quote", { [`${M}/quote.md`]: (t) => t.replace('handling: "no"\n', "") });
+    expect(failures("quick-quote", q).quick).toMatch(/quote\.md: the header has no handling/);
+    const sc = mutated("quick-quote", { [`${M}/quick-scope.md`]: (t) => t.replace('handling: "no"\n', "") });
+    expect(failures("quick-quote", sc).quick).toMatch(/quick-scope\.md: the header has no handling/);
+  });
+
+  it("N13: a defined-work route that also starts a Build Plan", () => {
+    const run = mutated("route-defined-work", { [`${M}/plan.yaml`]: () => "ow_artefact: ow-build-plan/plan\n" });
+    expect(failures("route-defined-work", run).route).toMatch(/routes to the quick quote, which has no Build Plan; the run also wrote plan\.yaml/);
+  });
+
+  it("N14/N21: a self-check left as FINDING in the quick scope or the tier-2 scope", () => {
+    const quick = mutated("quick-quote", { [`${M}/quick-scope.md`]: (t) => t.replace("| Out of scope present | OK |", "| Out of scope present | FINDING |") });
+    expect(failures("quick-quote", quick).quick).toMatch(/the "Out of scope present" self-check is FINDING/);
+    const scope = mutated("tier2-plan", { [`${L}/scope.md`]: (t) => t.replace("| Out of scope present | OK |", "| Out of scope present | FINDING |") });
+    expect(failures("tier2-plan", scope).plan_checks).toMatch(/scope\.md: the "Out of scope present" self-check is FINDING/);
+  });
+
+  it("N15/N23: a quick scope with no error check, or a case count that is not a number", () => {
+    const run = mutated("quick-quote", { [`${M}/quick-scope.md`]: (t) => t.replace("- kind: error", "- kind: normal").replace("- cases: 2", "- cases: a few") });
+    const out = failures("quick-quote", run).quick;
+    expect(out).toMatch(/no check is kind: error/);
+    expect(out).toMatch(/AC-1\.1 cases "a few" is not a whole number/);
+  });
+});
+
 // Contract C11: the ow-start follow-up's per-check isolation, kept here.
 describe("each check fails on its own, never the whole run", () => {
   it("an empty STATUS.md fails status with a reason; every other check still runs", () => {
     const run = mutated("accepted-signed", { "STATUS.md": () => "" });
     const results = runCase("accepted-signed", run);
-    expect(results).toHaveLength(5);
+    expect(results).toHaveLength(6);
     expect(Object.keys(failures("accepted-signed", run))).toEqual(["status"]);
   });
 

@@ -1,0 +1,18 @@
+# Answer key: follow-on-stated-offer (INVENTED). Eval round 2, item 1 (round 1
+# bug 5): a follow-on stated in the user's own words, with no FIX file. The
+# offer records the request in plans/larkspur-ceramics-2/request.md and names
+# it as its subject, so -start (follow-on-stated-start) finds the same folder
+# and does not ask again.
+case: follow-on-stated-offer
+section: Follow-on intake (offer from the user's words)
+client: Larkspur Ceramics
+slug: larkspur-ceramics-2
+user: Robin
+base: accepted-signed
+checks: [headers, offer, status, private_names]
+outputs: [plans/larkspur-ceramics-2/build-plan-offer.md]
+offer: { tier: one_system, issued: 2026-12-01, request: plans/larkspur-ceramics-2/request.md }
+status:
+  lines:
+    - { path: plans/larkspur-ceramics-2/build-plan-offer.md, next: ow-build-plan /ow-build-plan-start plans/larkspur-ceramics-2/, awaiting: offer reply from Larkspur Ceramics by 2026-12-15 }
+private_names: [llc-ops, Deftwright]
