@@ -26,7 +26,7 @@
 | 6 | Speaker labels | Yes, infer who said what |
 | 7 | Visibility | Push to `ainatx/opchain` and mirror publicly |
 | 8 | First pass | This design doc before any skill files |
-| 9 | Transcription code and hook | Separate Claude Code-only plugin, **`ow-tools`** (renamed 2026-10-06 from `ow-tools` when it also took document export for `ow-build-plan`); `ow-start` stays text-only |
+| 9 | Transcription code and hook | Separate Claude Code-only plugin, **`ow-tools`** (renamed 2026-10-06 from `ow-intake-audio` when it also took document export for `ow-build-plan`); `ow-start` stays text-only |
 | 10 | Speaker separation | pyannote |
 | 11 | Earlier opchain.work docs | Publish the 09-21 strategy and the audit into the repo |
 | 12 | Recording consent | Left to the user; the guide doesn't script it |
@@ -207,15 +207,20 @@ The public catalog and a user's private workflow meet in one file the user owns,
 # opchain-work/handoffs.yaml (user-written; the public skill ships an example with only defaults)
 contract:                      # from ow-build-plan, after the client accepts the quote
   say: "use llc-ops to draft the SOW from {files}"     # Deftwright's private setup
-build:                         # from ow-build-plan, once signed
-  say: "use oc-app-architect and attach {files}"
+build:                         # from ow-build-plan, once signed; full schema: ow-build design §12.1
+  mode: opchain                # the builder reads spec/ and writes sprints/ + .checkpoints/ in the opchain project format
+  checkpoint: oc-app-architect
+  plan: "use oc-app-architect /oc-roadmap"
+  sprint: "use oc-app-architect /oc-build sprint {n}"
+  fix: "use oc-app-architect /oc-build {description}"
+  # a single `say:` line instead of the keys above is the `other` mode: NEXT prints it with {files} filled in
 ```
 
 | Rule | Detail |
 |---|---|
 | Neutral file first | The producing skill always writes a handoff file anyone can use (e.g. `contract-inputs.md`), whoever acts on it next |
 | Where the file lives | **Per workspace** (owner decision 2026-10-08): `opchain-work/handoffs.yaml` in each project folder, so different businesses or folders can point to different places. No global file |
-| Configured destination | NEXT prints the `say:` line from `handoffs.yaml`, with `{files}` filled in. The skill never checks or names what that destination is |
+| Configured destination | NEXT prints the `say:` line from `handoffs.yaml`, with `{files}` filled in. The skill never checks or names what that destination is. The `build` entry may instead carry the structured keys of the ow-build design §12.1 (approved 2026-10-14), which `ow-build` reads; every other skill treats it as a say-line destination |
 | Public default | No entry → a default written for anyone, e.g. "Send `contract-inputs.md` to whoever drafts your contracts, or fill your own SOW template from it." |
 | Same rule for brand names | Skill text never names Deftwright. Business-specific wording lives in `offers.md`, `brand.yaml`, `price-book.yaml` and `handoffs.yaml` |
 | Build check | The ow- catalog build fails if a SKILL.md, reference or command names a skill outside the ow- family, apart from the declared opchain.dev export (`build-request.md`). A private-name blocklist is checked too, so a leak fails loudly. Owner decision 2026-10-08: the list is **`llc-ops`**; names are added when a new private handoff appears |
