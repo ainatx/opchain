@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/ow-skills-orchestration-0e05bd",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-15T04:21:53.271Z",
+  "updated_at": "2026-10-15T15:10:34.878Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-ow-tools-on-main-eb43b6c7",
-  "progress_summary": "ow-tools PR #597 readiness PASS at 2a8814fc: rebased cleanly on main eb43b6c7 (CLAUDE.md hunks merged); gen-catalog, lint-internal-refs, check-skill-contracts, sync-bundles:check, sync-plugin-skills:check, gen-ow-tools-manifest --check, checkpoint:validate pass; doctor 0 errors (29 pre-existing warnings); candidate verifier PASS on tree 69d0f14d (8/8, includes the 128 ow-tools tests); no untracked files.",
+  "step": "pr-ow-start-audit-followups",
+  "progress_summary": "Follow-up PR readiness PASS at 95e69c13: catalog, contract, bundle, plugin and ow-tools manifest drift checks pass for both catalogs and leave the tree unchanged; ow-start acceptance golden runs pass; checkpoint:validate passes; doctor 0 errors (29 pre-existing warnings); candidate verifier PASS on tree 08eef785 (8/8); no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -24,19 +24,18 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "checkpoint doctor: 29 pre-existing warnings, none from this branch",
-      "stale evidence-only commits dropped in the rebases onto b8bd8795 (#596) and eb43b6c7 (#603); this commit replaces them"
+      "checkpoint doctor: 29 pre-existing warnings, none from this branch"
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "2a8814fc873450514de6965b07b7361153c07153",
+    "verified_for_sha": "95e69c13f72b77f3db0f0f62f2f623a15b4dce94",
     "last_verify": {
-      "at": "2026-10-15T04:21:53.271Z",
-      "branch": "claude/modest-feistel-8a44b6",
-      "base": "origin/main@eb43b6c7",
+      "at": "2026-10-15T15:10:34.878Z",
+      "branch": "claude/ow-start-audit-followups",
+      "base": "origin/main@2a0a3c98",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1435,8 +1434,32 @@
           "CLAUDE.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-ow-start-audit-followups-16b1202359aa",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-15T15:10:34.878Z",
+      "verified_at": "2026-10-15T15:10:34.878Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-ow-start-audit-followups"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:16b1202359aa53d5aa2d800fe428977292837b5d54ec96e5cdaba5a102119357"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/ow-start-audit-followups at 95e69c13 on origin/main 2a0a3c98. Seven files: two sync scripts, the acceptance checker, two test files, the audit report and the sprint plan. Drift checks pass and change nothing; oc- outputs byte-identical (no skills/ or plugins/opchain change); candidate verifier PASS receipt covers tree 08eef785; no untracked files. Docs Forge packet verified_for_sha = HEAD.",
+        "evidence": [
+          "docs/audits/2026-10-14-pr-596-diff-audit.md",
+          "sprints/release-2.1/ow-family-sprint-plan.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-15T04:21:53.271Z",
+  "record_updated_at": "2026-10-15T15:10:34.878Z",
   "blockers": []
 }
