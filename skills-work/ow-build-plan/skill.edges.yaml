@@ -23,8 +23,9 @@ writes:
   - { path: plans/<client>/acceptance.md, verb: /ow-build-plan-scope }
   - { path: plans/<client>/risks.md, verb: /ow-build-plan-scope }
   - { path: plans/<client>/quick-scope.md, verb: /ow-build-plan-quote --quick }
-  - { path: plans/<client>/quote.md, verb: /ow-build-plan-quote }
-  - { path: plans/<client>/quote-items.json, verb: /ow-build-plan-quote }
+  # One writer verb in two modes: the full quote and the quick quote write the same files.
+  - { path: plans/<client>/quote.md, verb: /ow-build-plan-quote, modes: [--quick] }
+  - { path: plans/<client>/quote-items.json, verb: /ow-build-plan-quote, modes: [--quick] }
   - { path: plans/<client>/contract-inputs.md, verb: /ow-build-plan-quote --accepted }
   - { path: plans/<client>/build-request.md, verb: /ow-build-plan-quote --signed }
   - { path: plans/<client>/build-plan.md, verb: /ow-build-plan-export }
@@ -157,7 +158,7 @@ hands_off:
     verb: /ow-build-plan-export
     say: use ow-build-plan to export plans/<client>/
     files: [plans/<client>/quote.md, plans/<client>/quick-scope.md]
-    if_unavailable: Send the Markdown
+    if_unavailable: Send the quote without its header and without everything between the ow:internal markers
   - when: Sent
     to: ow-build-plan
     verb: /ow-build-plan-quote --accepted
@@ -184,5 +185,5 @@ hands_off:
     to: ow-build
     verb: /ow-build-start
     say: use ow-build to start plans/<client>/
-    files: [plans/<client>/build-request.md, plans/<client>/plan.yaml, plans/<client>/scope.md, plans/<client>/acceptance.md]
+    files: [plans/<client>/build-request.md, plans/<client>/quote.md, plans/<client>/plan.yaml, plans/<client>/scope.md, plans/<client>/acceptance.md, plans/<client>/quick-scope.md]
     if_unavailable: "handoffs.yaml build: its say: line; with none, give build-request.md to whoever builds it"

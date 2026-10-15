@@ -27,7 +27,7 @@ Client voice: no confidence labels, evidence ids, quotes or tool words; leave ou
 
 Same-session self-check: the same assistant that wrote the plan, applying a checklist; a discipline, not an independent review. Agent-checked. It passes when `build-plan.md` names:
 
-- no price, fee, rate or currency amount;
+- none of the user's prices, fees or rates, and no amount from `price-book.yaml` or `quote.md`. The client's own figures stay: volumes, times and what today's process costs them (the cost of a miss the map records) are facts about the client, not a price;
 - no tool, service or method that is only the user's own (from `profile.md`, `offers.md` or `price-book.yaml`: their business name, unit ids and labels);
 - no wording from these skills: no `ow-` name, no "opchain", no check names and no tool words (checkpoint, evaluator, rubric, gate);
 - a technology only where the client's systems require it.
@@ -36,7 +36,7 @@ A FINDING lists each line; fix `build-plan.md` (or the file it came from) and ru
 
 ## 3. Export
 
-For `build-plan.md` and `quote.md` (quick mode: `quick-scope.md` and `quote.md`): if you can run code here and `ow-tools version` answers, run `ow-tools export <file> --out plans/<client>/export/`. ow-tools removes the header and the internal appendix between the `ow:internal` markers, checks the structure and writes `<name>.pdf` and `<name>.docx`. Exit 3: say which requirement is missing and take the absent-case. Exit 4: show the reason, fix the Markdown, run again. Otherwise: "The PDF and Word files need the ow-tools add-on, which is not installed here." Print the finished Markdown of each document (the quote without its header and internal appendix) and say the documents could not be generated here.
+For `build-plan.md` and `quote.md` (quick mode: `quick-scope.md` and `quote.md`): if you can run code here and `ow-tools version` answers, run `ow-tools export <file> --out plans/<client>/export/`. ow-tools removes the header and everything between the `ow:internal` markers (the quote's internal appendix, the quick scope's self-checks), checks the structure and writes `<name>.pdf` and `<name>.docx`. Exit 3: say which requirement is missing and take the absent-case. Exit 4: show the reason, fix the Markdown, run again. Otherwise: "The PDF and Word files need the ow-tools add-on, which is not installed here." Print the finished Markdown of each document without its header and without everything between the `ow:internal` markers (never the quote's internal appendix), and say the documents could not be generated here.
 
 ## 4. `export/export-report.md`
 

@@ -289,6 +289,62 @@ describe("edges: the real family", () => {
     const body = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "SKILL.md"), "utf8");
     const block = body.slice(body.indexOf("DONE: client signed"), body.indexOf("A quick quote over the limit"));
     expect(block).toMatch(/NEXT: say "use ow-build to start plans\/<client>\/" {3}\(where slash commands exist: \/ow-build-start\)/);
-    expect(block).toMatch(/IF IT IS NOT AVAILABLE: handoffs\.yaml `build`: print its say: line exactly/);
+    expect(block).toMatch(/IF IT IS NOT AVAILABLE: handoffs\.yaml `build`\n/);
+    expect(body).toMatch(/The signing's `IF IT IS NOT AVAILABLE:` line is, in the same way, the `build` say: line exactly, or "give build-request\.md to whoever builds it"/);
+  });
+
+  // Round 2 (eval-round-1 bugs 2 and 10): the slips the Evaluator planted.
+  it("bug 2: --quick declared honestly as a mode of the quote's writer passes; as a second writer it fails", () => {
+    const edges = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "skill.edges.yaml"), "utf8");
+    expect(edges).toMatch(/path: plans\/<client>\/quote\.md, verb: \/ow-build-plan-quote, modes: \[--quick\]/);
+    const second = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("writes:\n", "writes:\n  - { path: plans/<client>/quote.md, verb: /ow-build-plan-quote --quick }\n") });
+    expect(checkEdges(second).join("\n")).toMatch(/plans\/<\*>\/quote\.md: 2 writers/);
+    const bogus = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("verb: /ow-build-plan-quote, modes: [--quick] }\n  - { path: plans/<client>/quote-items.json", "verb: /ow-build-plan-quote, modes: [--quick, --bogus] }\n  - { path: plans/<client>/quote-items.json") });
+    expect(checkEdges(bogus).join("\n")).toMatch(/mode `\/ow-build-plan-quote --bogus` is not a mode ow-build-plan's body documents/);
+  });
+
+  it("bug 10: a writer mode the body never documents fails", () => {
+    const cats = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("verb: /ow-build-plan-quote --accepted }", "verb: /ow-build-plan-quote --bogus }") });
+    expect(checkEdges(cats).join("\n")).toMatch(/writer mode `\/ow-build-plan-quote --bogus` is not a mode ow-build-plan's body documents/);
+  });
+
+  it("bug 10: one file spelled with an opchain-work/ prefix, ./ or other case is still one file", () => {
+    for (const spelled of ["opchain-work/plans/<client>/contract-inputs.md", "plans/<client>/./contract-inputs.md", "plans/<client>/Contract-Inputs.md"]) {
+      const cats = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("  - { path: plans/<client>/risks.md, verb: /ow-build-plan-scope }\n", `  - { path: plans/<client>/risks.md, verb: /ow-build-plan-scope }\n  - { path: ${spelled}, verb: /ow-build-plan-scope }\n`) });
+      expect(checkEdges(cats).join("\n"), spelled).toMatch(/plans\/<\*>\/contract-inputs\.md: 2 writers/);
+    }
+  });
+
+  it("bug 10: a hands_off verb that resolves nowhere, or to another skill, fails", () => {
+    const dangling = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("    verb: /ow-build-start\n", "    verb: /ow-build-run\n") });
+    expect(checkEdges(dangling).join("\n")).toMatch(/verb `\/ow-build-run` is not declared by any skill, add-on or planned skill/);
+    const other = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("    verb: /ow-build-start\n", "    verb: /ow-build-plan-start\n") });
+    expect(checkEdges(other).join("\n")).toMatch(/verb `\/ow-build-plan-start` belongs to ow-build-plan, not to ow-build/);
+  });
+
+  it("bug 10 (R15): a NEXT template whose say differs from its edges row, and a handoff with no template, fail", () => {
+    const differs = realTree({ "ow-build-plan/SKILL.md": (t) => t.replace('say "use ow-build-plan to map plans/<client>/"', 'say "use ow-build-plan to draw the map of plans/<client>/"') });
+    const out = checkEdges(differs).join("\n");
+    expect(out).toMatch(/the handoff "use ow-build-plan to map plans\/<client>\/" has no NEXT template in ow-build-plan's body/);
+    expect(out).toMatch(/the NEXT template "use ow-build-plan to draw the map of plans\/<client>\/" matches no hands_off say/);
+    const noDest = realTree({ "ow-build-plan/SKILL.md": (t) => t.replace("    NEXT: handoffs.yaml `contract`\n", "    NEXT: send it on\n") });
+    expect(checkEdges(noDest).join("\n")).toMatch(/the handoff to handoffs\.yaml `contract` has no NEXT template/);
+  });
+
+  it("bug 1: ow-start's handoff to ow-build-plan names the verb that routes it", () => {
+    const edges = readFileSync(join(ROOT, "skills-work", "ow-start", "skill.edges.yaml"), "utf8");
+    expect(edges).toMatch(/to: ow-build-plan\n {4}verb: \/ow-build-plan /);
+    const body = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "SKILL.md"), "utf8");
+    for (const row of [/`intake\/<client>\/intake-record\.md`, with `recap\.md` `path_kind: build-plan` \| `\/ow-build-plan-offer`/, /`path_kind: defined-work` \| `\/ow-build-plan-quote --quick`/, /`handoffs\/<client>\/fixes\/FIX-nn\.md` \| `\/ow-build-plan-offer` for a follow-on/]) {
+      expect(body).toMatch(row);
+    }
+    const noRoute = realTree({ "ow-start/skill.edges.yaml": (t) => t.replace("    verb: /ow-build-plan      #", "    verb: /ow-build-run      #") });
+    expect(checkEdges(noRoute).join("\n")).toMatch(/verb `\/ow-build-run` is not declared/);
+  });
+
+  it("bug 12: the family ships one offers.md and one handoffs.yaml example", () => {
+    for (const f of ["offers.md", "handoffs.yaml"]) {
+      expect(readFileSync(join(ROOT, "skills-work", "ow-start", "examples", f), "utf8"), f).toBe(readFileSync(join(ROOT, "skills-work", "ow-build-plan", "examples", f), "utf8"));
+    }
   });
 });

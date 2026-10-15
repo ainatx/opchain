@@ -17,7 +17,7 @@ A missing input: say which file and offer the verb that writes it. Never continu
 
 1. **Lines.** For each work package, list the price-book units it consists of, each with a quantity and a one-line reason. A unit id that is not in the price book is not a unit.
 2. **A package with no matching unit stops the quote.** Say which package, and ask the user to price it. Record their answer on that line exactly as `priced by <user name>, <date>, reason: <their words>`. Never suggest a number.
-3. **Modifiers** apply only through their written `when`, citing the `evidence.md` row that shows the condition: `data-messy: evidence.md E-07 "we fix the codes by hand every Monday"`. The quoted words must be in that row. No row, no modifier; tell the user which modifier was considered and why it does not apply.
+3. **Modifiers** apply only through their written `when`, citing the `evidence.md` row that shows the condition: `data-messy: evidence.md E-07 "we fix the codes by hand every Monday"`. The quoted words must be in that row. No row, no modifier; tell the user which modifier was considered and why it does not apply. In the pricing lines, a `multiply` modifier is written on the line it changes (`data-messy x1.25`); an `add_unit` modifier adds its own line, with the added unit and `<modifier id> adds` in the modifier column (`data-sensitive adds`).
 4. **The build's size** is the largest `size` among the product units on the quote; with none, ask the user (`build_size_source: user-stated`).
 5. **User acceptance testing · <size>** (required). Tester roles come from `scope.md` (or `quick-scope.md`) `## UAT approach`, by role name. Price = size price + `per_extra_role` × (roles − included roles, when more).
 6. **Documentation & training · <size>** (optional, recommended). Ask how many people will be trained. Up to 15: the size price; each further group of up to 15: `per_extra_group_of_15`; above `quote_separately_above`: "quoted separately", no price.
@@ -36,7 +36,7 @@ For one small, defined job (the recap's `path_kind: defined-work`, or the user s
 1. Read the intake record. Draft the work packages and their units (§2.1).
 2. **Count the units** (the sum of quantities on the build lines). Above `quick_quote_max_units`: write **no** quote and no scope. Say the job needs <n> units and the limit is <max>, recommend a Build Plan, append the STATUS line in §8 and print the refusal NEXT block from SKILL.md.
 3. Ask which roles will test, by role name; never default the number, and never record a person's name.
-4. Write `quick-scope.md` (header `ow_artefact: ow-build-plan/quick-scope`, `subject:` the intake record):
+4. Write `quick-scope.md` (header `ow_artefact: ow-build-plan/quick-scope`, `subject:` the intake record, and `handling`, the step 0 answer, since no `plan.yaml` exists):
 
         # Scope: <client>
         ## In scope
@@ -51,7 +51,16 @@ For one small, defined job (the recap's `path_kind: defined-work`, or the user s
         - tester roles: <role names>
         - test mix: <what each role checks>
 
-   Every in-scope package has at least one check.
+        <!-- ow:internal -->
+        ## Self-checks (same-session self-check)
+        Same-session self-check: the same assistant that wrote the scope, applying a checklist; a discipline, not an independent review. Agent-checked.
+        | check | result |
+        | --- | --- |
+        | Acceptance coverage | OK |
+        | Out of scope present | OK |
+        <!-- ow:end-internal -->
+
+   Run the two self-checks the scope phase runs, as it defines them: **Acceptance coverage** (every in-scope package has at least one check, each with test data and a whole-number case count; at least one `kind: error` check) and **Out of scope present**. Write them inside the `ow:internal` markers, so the export leaves them out. Fix and run again while either is FINDING.
 5. Price it (§2) and write `quote.md` with `mode: quick`. No Build Plan fee and no credit line.
 
 ## 4. `quote.md`
@@ -59,6 +68,7 @@ For one small, defined job (the recap's `path_kind: defined-work`, or the user s
 The header (protocol §4, `ow_artefact: ow-build-plan/quote`, `subject:` `scope.md` or `quick-scope.md`), then these keys:
 
     client: <client>
+    handling: "no"                      # quick mode only: the step 0 answer (a plan keeps it in plan.yaml)
     mode: build-plan | quick
     currency: USD
     issued: <YYYY-MM-DD>
@@ -172,7 +182,7 @@ Then the **internal appendix**, wholly between the two markers, each on a line o
 2. Ask: did the client take Documentation & training? (`bought` / `declined`). Ask the parties' names as the user wants them in the contract.
 3. Record, word for word: `client accepted <date>, recorded by <user name>; not verified by this skill`. Add the protocol §8 approval sentence.
 4. Write `contract-inputs.md` exactly as `references/contract-inputs-schema.md` says, ending with its `## Next` section.
-5. Read `handoffs.yaml`. With a `contract:` entry that has a `say:` line, print that line exactly, `{files}` = `plans/<client>/contract-inputs.md`; never check or name what the destination is. With none, print the public default. Then the accepted NEXT block from SKILL.md.
+5. Read `handoffs.yaml`. Print the accepted NEXT block from SKILL.md. Its `NEXT:` line is, after `NEXT: `, exactly one of two things and nothing else: the `contract:` entry's `say:` line with `{files}` = `plans/<client>/contract-inputs.md`, or, with no say: line, the public default `send contract-inputs.md to whoever drafts your contracts, or fill your own SOW template from it`. Never print the words `handoffs.yaml`, never explain which one was used, and never check or name what the destination is.
 
 ## 6. Record the signing (`--signed <date>`)
 
@@ -181,7 +191,7 @@ Then the **internal appendix**, wholly between the two markers, each on a line o
 3. Write `build-request.md` **from the plan, not the quote**: no price, fee or rate anywhere in it. Header (`ow_artefact: ow-build-plan/build-request`, `subject: plans/<client>/scope.md` or `quick-scope.md`, keys `client`, `signed`, `signing_note`), then:
 
         # Build request: <client>
-        Signed <date written out>. This comes from the Build Plan, not the quote.
+        Signed <date written out>. This comes from the scope (the Build Plan, or the quick scope), not the quote.
         ## What to build            (the work packages, in plain words)
         ## How the client will check it   (acceptance.md or quick-scope.md, by reference, with the AC ids)
         ## Systems and data
@@ -193,7 +203,7 @@ Then the **internal appendix**, wholly between the two markers, each on a line o
         (the signed NEXT block, filled in, as printed)
         Give this file to whoever builds it.
 
-4. Print the signed NEXT block from SKILL.md. Its IF IT IS NOT AVAILABLE line carries `handoffs.yaml`'s `build:` say line exactly, `{files}` = `plans/<client>/build-request.md`, or the public default.
+4. Print the signed NEXT block from SKILL.md. Its `IF IT IS NOT AVAILABLE:` line is, after the colon, exactly the `build:` say line with `{files}` = `plans/<client>/build-request.md`, or, with none, `give build-request.md to whoever builds it`. Nothing else goes on that line.
 
 ## 7. The NEXT text in files
 

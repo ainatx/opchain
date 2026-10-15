@@ -24,6 +24,7 @@ skill: ow-example
 writes:                    # every file this skill writes, with the one verb that writes it
   - { path: plans/<client>/scope.md, verb: /ow-example-scope }
   - { path: plans/<client>/contract-inputs.md, verb: /ow-example-quote --accepted }   # a mode of a verb is its own writer
+  - { path: plans/<client>/quote.md, verb: /ow-example-quote, modes: [--quick] }      # one writer verb that also writes the file in another mode
   - { path: profile.md, verb: /ow-example-setup, seeded_by: /ow-example-extract }     # created by another of its own verbs, first run only
   - { path: offers.md, verb: /ow-example-setup, once: true }                          # created once from the example; then the user's
   - { path: STATUS.md, verb: /ow-example-scope, append: true }                        # only for append-only logs the protocol names
@@ -37,7 +38,7 @@ reads:
 hands_off:
   - when: The quote is ready
     to: ow-example         # a family skill, planned skill or add-on; or `destination: contract` (a handoffs.yaml key) for work leaving the family
-    verb: /ow-example-quote
+    verb: /ow-example-quote --accepted   # a verb (and mode) the receiver owns
     say: use ow-example to record the acceptance on plans/<client>/
     files:
       - { path: plans/<client>/quote.md, fields: [valid_until] }
@@ -46,9 +47,10 @@ hands_off:
 
 `node scripts/check-skill-contracts.mjs` holds the family to these rules:
 
-- **Complete.** Every skill has the file; every reads row has an absent and a mismatch case and every hands-off row an unavailable branch; each reads path and each `say:` line appears in the body's tables; every writer verb is one the skill declares.
+- **Complete.** Every skill has the file; every reads row has an absent and a mismatch case and every hands-off row an unavailable branch; each reads path and each `say:` line appears in the body's tables; every writer verb is one the skill declares, and every mode (`--accepted`, a `modes:` flag) is one its body cites in backticks; every hands-off `verb:` belongs to the receiving skill.
+- **NEXT templates match.** Every hands-off to a family skill has a NEXT template in the body that says exactly its `say:`, and every NEXT template's say is an edges row (contract R15); a `destination:` row has a NEXT or IF IT IS NOT AVAILABLE line naming its handoffs.yaml key. An add-on's handoff is printed by its own absent-case text.
 - **Reciprocal.** Every file a skill hands to another family skill has a reads row for it in the receiver (with the fields it needs among those handed off), and every reads row naming a family skill has a hands-off row in that producer, unless it is `shared:` (then the producer must write it). A planned skill or an add-on has no edges file yet; its rows are checked once it does.
-- **One writer.** No file has two writer verbs across the family. The exception is an append-only log the protocol names (`STATUS.md`, protocol §4), which every writer declares with `append: true`.
+- **One writer.** No file has two writer verbs across the family. Paths compare as one file whatever their spelling: a leading `opchain-work/`, `./` segments and letter case are ignored. The exception is an append-only log the protocol names (`STATUS.md`, protocol §4), which every writer declares with `append: true`.
 - **NEXT targets resolve.** A NEXT block says "use <family id>", and its slash verb belongs to that skill (a planned skill's verbs are declared in `catalogs.json` `plannedVerbs`); or it names a handoffs.yaml destination (`` handoffs.yaml `contract` ``) that a family `examples/handoffs.yaml` declares.
 
 ## How it is checked

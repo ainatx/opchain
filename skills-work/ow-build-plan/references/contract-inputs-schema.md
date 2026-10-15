@@ -67,6 +67,6 @@ Copy it unchanged; never draft, shorten or reword a clause. With no block, write
     ## Acceptance and delivery (the two definitions, word for word)
     ## Contract clauses        (the block, or "not set")
     ## Next
-    (the accepted NEXT block, filled in: the handoffs.yaml contract say: line exactly, or the public default; then the signing line)
+    (the accepted NEXT block as printed: its NEXT: line is the contract say: line exactly, with {files} filled, or the public default, and nothing else; then the IF IT IS NOT AVAILABLE and signing lines)
 
 Rules: no unit price, modifier or internal rate (they stay in `quote.md`'s internal appendix); people by role, never by name, apart from the parties; dates written out in the body.

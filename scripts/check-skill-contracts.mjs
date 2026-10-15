@@ -503,7 +503,18 @@ export function checkFamily(catalogs) {
 // ── edges (ow-, contract R15) ────────────────────────────────────────────────
 
 /** `intake/<client>/recap.md` and `intake/<slug>/recap.md` are the same file. */
-const normPath = (p) => String(p).trim().replace(/<[^>]+>/g, "<*>");
+/**
+ * One spelling per file: placeholders match any placeholder, a leading
+ * `opchain-work/` or `./` and `.` segments drop, slashes collapse, and case is
+ * folded (macOS treats `Contract-Inputs.md` and `contract-inputs.md` as one file).
+ */
+export const normPath = (p) => String(p).trim()
+  .replace(/<[^>]+>/g, "<*>")
+  .replace(/\\/g, "/")
+  .replace(/\/{2,}/g, "/")
+  .split("/").filter((seg) => seg !== "." && seg !== "").join("/")
+  .replace(/^opchain-work\//, "")
+  .toLowerCase();
 const filled = (v) => typeof v === "string" ? !EMPTY_CELL.test(v.trim()) : Array.isArray(v) ? v.length > 0 : v != null;
 
 /** Files the protocol declares append-only: a backticked name on a line that says "append-only". */
@@ -560,6 +571,16 @@ export function checkEdges(catalogs) {
     const addons = new Set(Object.keys(c.addons ?? {}));
     const destinations = familyDestinations(c, ids);
     const appendOnly = appendOnlyFiles(c);
+    const owners = familyVerbOwners(c, skills);
+    const bodies = new Map(skills.map((x) => [x.id, x.body]));
+    // A verb with a mode (`/ow-x-quote --accepted`) is real only when its owner's body cites it in backticks.
+    const modeDocumented = (owner, verb) => {
+      const parts = String(verb).trim().split(/\s+/);
+      if (parts.length === 1) return true;
+      const body = bodies.get(owner);
+      if (body == null) return true; // a planned skill or an add-on: no text to check yet
+      return parts.slice(1).every((m) => body.includes(`\`${parts[0]} ${m}`));
+    };
     const edges = new Map();
     for (const s of skills) {
       const e = readEdges(c, s, problems);
@@ -573,6 +594,11 @@ export function checkEdges(catalogs) {
         const at = `${e.rel}: writes[${n}] (${w.path})`;
         if (!filled(w.path)) problems.push(`${e.rel}: writes[${n}] has no path`);
         if (!verbs.has(verbRoot(w.verb))) problems.push(`${at}: writer verb \`${w.verb}\` is not one of ${s.id}'s declared verbs`);
+        else if (!modeDocumented(s.id, w.verb)) problems.push(`${at}: writer mode \`${w.verb}\` is not a mode ${s.id}'s body documents`);
+        if (w.modes !== undefined) {
+          if (!Array.isArray(w.modes) || !w.modes.length) problems.push(`${at}: modes must be a non-empty list of flags`);
+          else for (const m of w.modes) if (!modeDocumented(s.id, `${verbRoot(w.verb)} ${m}`)) problems.push(`${at}: mode \`${verbRoot(w.verb)} ${m}\` is not a mode ${s.id}'s body documents`);
+        }
         if (w.seeded_by !== undefined && !verbs.has(verbRoot(w.seeded_by))) problems.push(`${at}: seeded_by \`${w.seeded_by}\` is not one of ${s.id}'s declared verbs (only the owning skill may seed its own file)`);
       });
       e.reads.forEach((r, n) => {
@@ -602,7 +628,30 @@ export function checkEdges(catalogs) {
         if (!Array.isArray(h.files)) problems.push(`${at}: files must be a list`);
         if (h.to !== "none" && h.to !== undefined && !filled(h.say)) problems.push(`${at}: no say: line`);
         if (filled(h.say) && !handsTable.includes(String(h.say))) problems.push(`${at}: the body's "## Hands off to" table does not carry "${h.say}"`);
+        // The row's verb resolves to the receiving skill (or its planned or add-on verbs).
+        if (h.verb !== undefined && h.to !== undefined && h.to !== "none") {
+          const owner = owners.get(verbRoot(h.verb));
+          if (!owner) problems.push(`${at}: verb \`${h.verb}\` is not declared by any skill, add-on or planned skill`);
+          else if (owner !== h.to) problems.push(`${at}: verb \`${h.verb}\` belongs to ${owner}, not to ${h.to}`);
+          else if (!modeDocumented(owner, h.verb)) problems.push(`${at}: \`${h.verb}\` is not a mode ${owner}'s body documents`);
+        }
       });
+      // R15: every handoff to a family skill has its NEXT template in the body, saying
+      // exactly the edges say:, and every NEXT template's say: is an edges row.
+      // (An add-on prints its own instructions; a destination row has a handoffs.yaml NEXT.)
+      const templateSays = new Set();
+      s.body.split("\n").forEach((line) => {
+        if (!/^ {4,}\S/.test(line)) return;
+        for (const m of line.matchAll(/say "(use [^"]+)"/g)) templateSays.add(m[1]);
+      });
+      const edgeSays = new Set(e.hands_off.filter((h) => filled(h.say) && !addons.has(h.to)).map((h) => String(h.say)));
+      for (const say of edgeSays) if (!templateSays.has(say)) problems.push(`${e.rel}: the handoff "${say}" has no NEXT template in ${s.id}'s body (ow- contract R15)`);
+      for (const say of templateSays) if (!edgeSays.has(say)) problems.push(`${c.relDir}/${s.id}/SKILL.md: the NEXT template "${say}" matches no hands_off say: in ${e.rel}`);
+      for (const h of e.hands_off) {
+        if (h.destination !== undefined && !new RegExp(`^\\s+(?:NEXT|IF IT IS NOT AVAILABLE):\\s*handoffs\\.yaml \`${escapeRegExp(String(h.destination))}\``, "m").test(s.body)) {
+          problems.push(`${e.rel}: the handoff to handoffs.yaml \`${h.destination}\` has no NEXT template in ${s.id}'s body (ow- contract R15)`);
+        }
+      }
     }
 
     // One writer verb per file across the family; append-only logs excepted.

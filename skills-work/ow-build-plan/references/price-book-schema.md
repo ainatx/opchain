@@ -9,8 +9,9 @@ Every price is a number in `currency`, with at most two decimals. A key this ski
 | `currency` | ISO code, e.g. `USD` | every amount |
 | `build_plan_fees` | `{ one_system, two_systems, three_plus_or_mvp }`: the Build Plan's own fee per tier | `-offer`, `-start`, the quote's credit line |
 | `build_plan_weeks` | `{ one_system, two_systems, three_plus_or_mvp }`: plan length in weeks | `-offer`, `-start` |
+| `build_plan_schedule` | `{ one_system, two_systems, three_plus_or_mvp }`, each `{ collection_business_days, delivery_business_days }`: business days from the start date to the collection deadline and to plan delivery. Missing: `-start` asks and records `user-stated` | `-start` |
 | `units` | list of `{ id, label, price, includes?, size? }` | `-quote` |
-| `modifiers` | list of `{ id, when, multiply? , add_unit? }` | `-quote` |
+| `modifiers` | list of `{ id, when, multiply?, add_unit? }` | `-quote` |
 | `uat` | `{ sizes: { S, M, L }, per_extra_role, extension: { per_session_or_round } }`; each size `{ price, tester_roles, sessions, fix_rounds, fix_business_days }` | `-quote` (required on every quote) |
 | `documentation_training` | `{ sizes: { S, M, L }, per_extra_group_of_15, quote_separately_above }` | `-quote` (optional line) |
 | `size_threshold` | amount: a fixed price at or above it pays 40/40/20, below it 50/50 | `-quote` |

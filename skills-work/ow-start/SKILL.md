@@ -97,6 +97,7 @@ If the working folder is inside a git repository, prep asks once whether to add 
 | Prep is done | ow-start | `/ow-start-extract` | "use ow-start to extract intake/<client>/" | `intake.yaml`, `call-guide.md` | Extract still runs from a transcript or notes; coverage uses the bank's defaults |
 | A recording exists and no transcript | ow-tools (add-on) | `/ow-start-transcribe` | "use ow-tools to transcribe intake/<client>/audio/" | nothing; reads `audio/` | Supply the meeting tool's transcript or your notes (paths above) |
 | The recap is done, the path leads to a Build Plan or a defined piece of work, and the client agrees | ow-build-plan | its first verb | "use ow-build-plan on intake/<client>/intake-record.md" | `intake-record.md` (fields), `recap.md` (header `path_id`, `path_label`, `path_kind`, `path_systems`), `coverage.md` | The recap and the intake record stand on their own; scope the next step by hand from them |
+| Delivery mode, and the next stage is another session | ow-start | `/ow-start-prep` | "use ow-start to prep <client>" | `intake-record.md` (open questions) | Take the open questions in intake-record.md into the session yourself |
 | The path is not the right fit | none | none | none | `recap.md`, an honest no with a suggestion if there is one | Nothing follows: STATUS closes the workstream |
 
 ## NEXT templates

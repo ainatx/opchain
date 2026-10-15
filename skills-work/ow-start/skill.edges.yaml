@@ -50,6 +50,12 @@ reads:
     fields: [the must-ask list]
     if_absent: Score coverage against the bank's default must-asks for the mode; coverage.md says "no call guide found"
     if_mismatch: Score against the must-asks that parse; mark the rest NOT-CHECKED (guide unreadable)
+  - from: ow-start
+    verb: /ow-start-extract
+    path: intake/<client>/intake-record.md
+    fields: [open questions]
+    if_absent: Prep from the bank's default must-asks for the mode
+    if_mismatch: Use the open questions that parse; list the rest
   - from: ow-tools
     path: intake/<client>/transcript.md
     fields: [speaker labels, times]
@@ -71,11 +77,19 @@ hands_off:
     say: use ow-tools to transcribe intake/<client>/audio/
     files: []
     if_unavailable: Supply the meeting tool's transcript or your notes
+  - when: Delivery mode, and the next stage is another session
+    to: ow-start
+    verb: /ow-start-prep
+    say: use ow-start to prep <client>
+    files:
+      - { path: intake/<client>/intake-record.md, fields: [open questions] }
+    if_unavailable: Take the open questions in intake-record.md into the session yourself
   - when: The recap is done, the path leads to a Build Plan or a defined piece of work, and the client agrees
     to: ow-build-plan
+    verb: /ow-build-plan      # "on <path>": ow-build-plan routes by the recap's path_kind
     say: use ow-build-plan on intake/<client>/intake-record.md
     files:
-      - { path: intake/<client>/intake-record.md, fields: [mode, client, call_date, the bank's fields with confidence] }
+      - { path: intake/<client>/intake-record.md, fields: [mode, client, call_date, the bank's fields with confidence, open questions] }
       - { path: intake/<client>/recap.md, fields: [path_id, path_label, path_kind, path_systems, send_by] }
       - { path: intake/<client>/coverage.md, fields: [must-ask statuses] }
     if_unavailable: The recap and the intake record stand on their own; scope the next step by hand from them

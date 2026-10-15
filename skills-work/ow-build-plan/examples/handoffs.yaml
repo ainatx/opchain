@@ -1,4 +1,5 @@
-# opchain-work/handoffs.yaml: INVENTED EXAMPLE with defaults only.
+# opchain-work/handoffs.yaml: INVENTED EXAMPLE with defaults only, shipped the
+# same in every ow- skill that reads it.
 #
 # Where work goes when it leaves the ow- skills. You write this file; no skill
 # edits it, checks a destination or names one. Each skill writes a neutral
@@ -8,13 +9,13 @@
 # ow-build-plan reads two keys: contract (after the client accepts a quote;
 # file: contract-inputs.md) and build (once the work is signed and no ow-
 # skill takes the build; file: build-request.md). {files} is replaced with
-# the handoff file's path. For example:
+# the handoff file's path, as in:
 #
 #   contract:
 #     say: "send {files} to whoever drafts our contracts"
 ow_artefact: ow-start/handoffs
 schema: 1
-written_by: user (created from the ow-build-plan example)
+written_by: user (created from the ow- example)
 workstream: none
 subject: none
 created: 2026-10-15

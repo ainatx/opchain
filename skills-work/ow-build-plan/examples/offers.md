@@ -1,7 +1,7 @@
 ---
 ow_artefact: ow-start/offers
 schema: 1
-written_by: user (created from the ow-build-plan example)
+written_by: user (created from the ow- example)
 workstream: none
 subject: none
 created: 2026-10-06
@@ -10,7 +10,7 @@ origin: user
 ---
 # Offers and fit: INVENTED EXAMPLE
 
-This is an invented example. Replace every line with your own paths and the clients you serve. ow-start reads the `fit` and `path:` sections to propose one path after each call; ow-build-plan reads `ownership`, `after_handoff` and `contract_clauses` for the plan, the quote and the contract inputs. No skill edits this file. It names paths and terms, not prices: prices live in `price-book.yaml`.
+This is an invented example, shipped the same in every ow- skill that reads it. Replace every line with your own paths and the clients you serve. ow-start reads the `fit` and `path:` sections to propose one path after each call; ow-build-plan reads `ownership`, `after_handoff` and `contract_clauses` for the plan, the quote and the contract inputs. No skill edits this file. It names paths and terms, not prices: prices live in `price-book.yaml`.
 
 Each path is a `## path: <id>` section. `kind` is one of `defined-work`, `build-plan`, `feasibility` or `not-a-fit`; `systems` is `1`, `2`, `3+` or `none`. `propose when` is what the call has to show; `after yes` is what the recap says happens next.
 

@@ -25,7 +25,11 @@ Only in a session where the user has connected the access themselves.
 
 ## 3. Workshop recordings and transcripts
 
-- A recording in `plans/<client>/audio/`: if you can run code here and `ow-tools version` answers, run `ow-tools transcribe plans/<client>/audio/<file> --out plans/<client>/workshops/W<n>/`, then confirm who is who as ow-tools asks. Otherwise: "Transcribing a recording needs the ow-tools add-on, which is not installed here." Ask for the meeting tool's own transcript or the user's notes instead. Never transcribe audio yourself.
+- A recording in `plans/<client>/audio/`: if you can run code here and `ow-tools version` answers, run `ow-tools transcribe plans/<client>/audio/<file> --out plans/<client>/workshops/W<n>/`, then confirm who is who as ow-tools asks. If it exits:
+  - **3** (a requirement is missing): say which one, from its `missing` list, and take the absent-case below.
+  - **4** (refused by a rule; nothing was written): show its reason. When it says the transcript would be committable, the `.gitignore` lines from the start phase are missing: offer to add `opchain-work/**/workshops/` and `opchain-work/**/transcript.*` (only on yes), then run it again; otherwise take the absent-case.
+  - **5** (a tool failed): show its one-line error and take the absent-case.
+  Without the add-on (no answer to `ow-tools version`): "Transcribing a recording needs the ow-tools add-on, which is not installed here." **Absent-case:** ask for the meeting tool's own transcript or the user's notes instead. Never transcribe audio yourself.
 - A transcript: confirm each speaker's role with the user; never guess from a name or a voice. Quote with the time (`— client (warehouse lead), 12:40`).
 - **Speaker rule** (as in ow-start): a fact the user suggested and the client only agreed to ("yeah", "sure") is LOW, with both turns quoted. From notes: no times, nothing above MEDIUM.
 
