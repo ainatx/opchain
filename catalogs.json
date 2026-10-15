@@ -45,7 +45,7 @@
       "versionPolicy": "per-skill",
       "bodyTokenBudget": 5000,
       "edges": "skill.edges.yaml",
-      "planned": ["ow-build-plan", "ow-build", "ow-uat", "ow-handoff"],
+      "planned": ["ow-build", "ow-uat", "ow-handoff"],
       "plannedVerbs": { "ow-build": ["/ow-build-start"] },
       "addons": { "ow-tools": ["/ow-start-transcribe"] },
       "privateNames": ["llc-ops"],

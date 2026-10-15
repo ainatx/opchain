@@ -255,4 +255,40 @@ describe("edges: the real family", () => {
     const cats = realTree({ "ow-start/skill.edges.yaml": (t) => t.replace(/ {2}- from: ow-start\n {4}verb: \/ow-start-prep\n {4}path: intake\/<client>\/call-guide\.md\n(?: {4}[^\n]+\n)+/, "") });
     expect(checkEdges(cats).join("\n")).toMatch(/hands off intake\/<client>\/call-guide\.md to ow-start, but skills-work\/ow-start\/skill\.edges\.yaml has no reads row for it from ow-start/);
   });
+
+  // Contract C4 and C5 on ow-build-plan itself.
+  it("C5: contract-inputs.md planted as a second verb's output fails", () => {
+    const cats = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("  - { path: plans/<client>/risks.md, verb: /ow-build-plan-scope }\n", "  - { path: plans/<client>/risks.md, verb: /ow-build-plan-scope }\n  - { path: plans/<client>/contract-inputs.md, verb: /ow-build-plan-scope }\n") });
+    expect(checkEdges(cats).join("\n")).toMatch(/plans\/<\*>\/contract-inputs\.md: 2 writers \(ow-build-plan \/ow-build-plan-scope, ow-build-plan \/ow-build-plan-quote --accepted\); one writer verb per file/);
+  });
+
+  it("C5: another family skill writing ow-build-plan's quote fails", () => {
+    const cats = realTree({ "ow-start/skill.edges.yaml": (t) => t.replace("writes:\n", "writes:\n  - { path: plans/<client>/quote.md, verb: /ow-start-extract }\n") });
+    expect(checkEdges(cats).join("\n")).toMatch(/plans\/<\*>\/quote\.md: 2 writers \(ow-start \/ow-start-extract, ow-build-plan \/ow-build-plan-quote\)|plans\/<\*>\/quote\.md: 2 writers \(ow-build-plan \/ow-build-plan-quote, ow-start \/ow-start-extract\)/);
+  });
+
+  it("C4: a one-sided edge between ow-start and ow-build-plan fails, in either direction", () => {
+    const noRead = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace(/ {2}- from: ow-start\n {4}path: intake\/<client>\/recap\.md\n(?: {4}[^\n]+\n)+/, "") });
+    expect(checkEdges(noRead).join("\n")).toMatch(/ow-start\/skill\.edges\.yaml: hands off intake\/<client>\/recap\.md to ow-build-plan, but skills-work\/ow-build-plan\/skill\.edges\.yaml has no reads row for it from ow-start/);
+    const noHand = realTree({ "ow-start/skill.edges.yaml": (t) => t.replace("      - { path: intake/<client>/coverage.md, fields: [must-ask statuses] }\n", "") });
+    expect(checkEdges(noHand).join("\n")).toMatch(/ow-build-plan\/skill\.edges\.yaml: reads intake\/<client>\/coverage\.md from ow-start, but skills-work\/ow-start\/skill\.edges\.yaml has no hands_off row to ow-build-plan carrying it/);
+    const field = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("fields: [path_id, path_label, path_kind, path_systems]", "fields: [path_id, path_label, path_kind, path_systems, path_price]") });
+    expect(checkEdges(field).join("\n")).toMatch(/reads field `path_price` of intake\/<client>\/recap\.md/);
+  });
+
+  it("C4: a dangling NEXT planted in ow-build-plan fails", () => {
+    const verb = realTree({ "ow-build-plan/SKILL.md": (t) => t.replace("(where slash commands exist: /ow-build-start)", "(where slash commands exist: /ow-build-run)") });
+    expect(checkFamily(verb).join("\n")).toMatch(/ow-build-plan\/SKILL\.md:\d+: NEXT's verb `\/ow-build-run` is not declared/);
+    const dest = realTree({ "ow-build-plan/SKILL.md": (t) => t.replace("NEXT: handoffs.yaml `contract`", "NEXT: handoffs.yaml `lawyer`") });
+    expect(checkFamily(dest).join("\n")).toMatch(/ow-build-plan\/SKILL\.md:\d+: names handoffs\.yaml `lawyer`/);
+    const owner = realTree({ "ow-build-plan/SKILL.md": (t) => t.replace('say "use ow-build to start plans/<client>/"', 'say "use ow-build-plan to start plans/<client>/"') });
+    expect(checkFamily(owner).join("\n")).toMatch(/NEXT says "use ow-build-plan" but its verb `\/ow-build-start` belongs to ow-build/);
+  });
+
+  it("C9: the signed NEXT names /ow-build-start with the build destination as its unavailable branch", () => {
+    const body = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "SKILL.md"), "utf8");
+    const block = body.slice(body.indexOf("DONE: client signed"), body.indexOf("A quick quote over the limit"));
+    expect(block).toMatch(/NEXT: say "use ow-build to start plans\/<client>\/" {3}\(where slash commands exist: \/ow-build-start\)/);
+    expect(block).toMatch(/IF IT IS NOT AVAILABLE: handoffs\.yaml `build`: print its say: line exactly/);
+  });
 });

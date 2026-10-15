@@ -585,7 +585,8 @@ export function checkEdges(catalogs) {
           if (!filled(r[k])) problems.push(`${at}: ${k} is empty (ow- contract R5)`);
           else if (PASS_THROUGH.test(r[k])) problems.push(`${at}: ${k} may never proceed as if the input passed`);
         }
-        if (filled(r.path) && !readsTable.includes(String(r.path))) problems.push(`${at}: the body's "## Reads from" table does not name ${r.path}`);
+        // A skill's reads of its own earlier files are detailed in its phase files, not the body table.
+        if (filled(r.path) && r.from !== s.id && !readsTable.includes(String(r.path))) problems.push(`${at}: the body's "## Reads from" table does not name ${r.path}`);
       });
       e.hands_off.forEach((h, n) => {
         const at = `${e.rel}: hands_off[${n}] (${h.when ?? "?"})`;

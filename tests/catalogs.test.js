@@ -47,7 +47,7 @@ describe("catalogs.json", () => {
 
   it("validates both real catalogs", () => {
     expect(validateCatalog(byId.oc).length).toBeGreaterThanOrEqual(36);
-    expect(validateCatalog(byId.ow)).toEqual(["ow-start"]);
+    expect(validateCatalog(byId.ow)).toEqual(["ow-build-plan", "ow-start"]);
   });
 
   it("the real tree passes the protocol, verb and family checks", () => {
@@ -58,9 +58,11 @@ describe("catalogs.json", () => {
 
   it("the ow- catalog appears in no tracked oc- output", () => {
     const mcp = readFileSync(join(ROOT, "src", "generated", "mcp-catalog.json"), "utf8");
-    expect(mcp).not.toMatch(/"ow-start"/);
-    expect(existsSync(join(ROOT, "plugins", "opchain", "skills", "ow-start"))).toBe(false);
-    expect(existsSync(join(ROOT, ".claude", "skills", "ow-start"))).toBe(false);
+    for (const id of ["ow-start", "ow-build-plan"]) {
+      expect(mcp).not.toMatch(new RegExp(`"${id}"`));
+      expect(existsSync(join(ROOT, "plugins", "opchain", "skills", id))).toBe(false);
+      expect(existsSync(join(ROOT, ".claude", "skills", id))).toBe(false);
+    }
     expect(readFileSync(join(ROOT, ".github", "workflows", "mirror-public.yml"), "utf8")).not.toMatch(/skills-work/);
   });
 });
@@ -186,6 +188,16 @@ describe("ow- family, NEXT and edge rules (check-skill-contracts)", () => {
     expect(family({ files: { "references/next.md": "The recap is never sent automatically.\n" } })).toBe("");
   });
 
+  it("flags a private skill name planted in a real ow-build-plan reference (contract C3)", () => {
+    const dir = temp("ow-real-names-");
+    cpSync(join(ROOT, "skills-work"), dir, { recursive: true });
+    const ref = join(dir, "ow-build-plan", "references", "phase-quote.md");
+    writeFileSync(ref, `${readFileSync(ref, "utf8")}\nThen use llc-ops to draft the SOW.\n`);
+    const cats = loadCatalogs({ env: { OPCHAIN_WORK_SKILLS_DIR: dir } });
+    expect(checkFamily(cats).join("\n")).toMatch(/ow-build-plan\/references\/phase-quote\.md:\d+: names `llc-ops`, a private skill/);
+    expect(checkFamily(loadCatalogs({ env: {} }))).toEqual([]);
+  });
+
   it("flags a business name", () => {
     expect(family({ files: { "references/voice.md": "Write like Privateco does.\n" } })).toMatch(/names `Privateco`, a business/);
   });
@@ -245,7 +257,7 @@ describe("oc- output scripts refuse a tree holding ow- skills", () => {
     writeFileSync(join(pub, "skills", "oc-x.zip"), "keep");
     const r = run("bash", [join(ROOT, "scripts", "make-skills-zip.sh")], { OPCHAIN_SKILLS_DIR: SKILLS_WORK, OPCHAIN_PUBLIC_DIR: pub });
     expect(r.status).toBe(1);
-    expect(r.stderr).toMatch(/refusing to zip .*ow-start is not in the oc- catalog/);
+    expect(r.stderr).toMatch(/refusing to zip .*ow-(?:build-plan|start) is not in the oc- catalog/);
     expect(readFileSync(join(pub, "opchain-skills.zip"), "utf8")).toBe("keep");
     expect(readFileSync(join(pub, "skills", "oc-x.zip"), "utf8")).toBe("keep");
   });
@@ -254,7 +266,7 @@ describe("oc- output scripts refuse a tree holding ow- skills", () => {
     const docs = join(temp("oc-docs-guard-"), "docs");
     const r = run("bash", [join(ROOT, "scripts", "sync-docs.sh")], { OPCHAIN_SKILLS_DIR: SKILLS_WORK, OPCHAIN_DOCS_DIR: docs });
     expect(r.status).toBe(1);
-    expect(r.stderr).toMatch(/refusing to publish .*ow-start is not in the oc- catalog/);
+    expect(r.stderr).toMatch(/refusing to publish .*ow-(?:build-plan|start) is not in the oc- catalog/);
     expect(existsSync(docs)).toBe(false);
   });
 
