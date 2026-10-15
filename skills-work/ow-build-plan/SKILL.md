@@ -48,8 +48,8 @@ Try: "write the Build Plan offer for Acme" · "quote this small job from the int
 | `/ow-build-plan-collect` | Adds artefacts, read-only access and workshop transcripts to one evidence register; run as often as material arrives | `evidence.md`, `systems/<system>.md` |
 | `/ow-build-plan-map` | Today's process, the future process, who does what, the systems, the data, each fact with its confidence | `map/current.md`, `future.md`, `roles.md`, `systems.md`, `data.md` |
 | `/ow-build-plan-scope` | Work packages, out of scope, acceptance checks, risks, assumptions, client dependencies | `scope.md`, `acceptance.md`, `risks.md` |
-| `/ow-build-plan-quote` | Prices each package from the price book, then milestones, payment schedule, dates, the testing, training and fix-window lines | `quote.md` |
-| `/ow-build-plan-quote --quick` | A small defined job straight from the intake record; refuses over `quick_quote_max_units` | `quick-scope.md`, `quote.md` |
+| `/ow-build-plan-quote` | Prices each package from the price book, then milestones, payment schedule, dates, the testing, training and fix-window lines | `quote.md`, `quote-items.json` |
+| `/ow-build-plan-quote --quick` | A small defined job straight from the intake record; refuses over `quick_quote_max_units` | `quick-scope.md`, `quote.md`, `quote-items.json` |
 | `/ow-build-plan-quote --accepted <date>` | Records the client's acceptance; asks whether they took documentation & training | `contract-inputs.md` |
 | `/ow-build-plan-quote --signed <date>` | Records the signing; refuses before `--accepted` | `build-request.md` |
 | `/ow-build-plan-export` | Assembles the plan, runs the builder-neutral check, makes branded PDF and Word files | `build-plan.md`, `export/build-plan.*` (quick: `export/quick-scope.*`), `export/quote.*`, `export/export-report.md` |
