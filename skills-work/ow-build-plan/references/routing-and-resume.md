@@ -10,7 +10,7 @@ Step 0 without the handling question: this verb reads `STATUS.md` and file names
 
 1. Read every line of `opchain-work/STATUS.md` in the protocol's form. Lines that do not parse are counted, never shown raw.
 2. Give each line a group from its path field:
-   - `intake/<slug>/…`, `plans/<slug>/…` and `handoffs/<slug>/…` all belong to the group `<slug>`.
+   - `intake/<slug>/…`, `plans/<slug>/…`, `builds/<slug>/…`, `uat/<slug>/…` and `handoffs/<slug>/…` all belong to the group `<slug>`, so a signed plan stops being listed once ow-build has written for it.
    - A follow-on folder `plans/<slug>-<n>/…` is its own group, `<slug>-<n>`.
 3. In each group keep only the newest line (the latest date; on the same date, the later line in the file).
 

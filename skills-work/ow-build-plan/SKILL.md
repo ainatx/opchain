@@ -124,7 +124,7 @@ In a git repository, `-start` asks once to add `opchain-work/**/inbox/`, `opchai
 | Accepted | handoffs.yaml `contract` | its say: line | (the user's) | `contract-inputs.md` | The public default |
 | Feasibility test signed, findings say go | ow-build-plan | `/ow-build-plan-offer` | "use ow-build-plan to write the offer for plans/<client>/" | `quick-scope.md`, `contract-inputs.md` | Offer a Build Plan by hand |
 | Accepted, then signed | ow-build-plan | `/ow-build-plan-quote --signed` | "use ow-build-plan to record the signing on plans/<client>/" | `contract-inputs.md` | Keep the signed contract with it |
-| Signed | ow-build | `/ow-build-start` | "use ow-build to start plans/<client>/" | `build-request.md`, `quote.md`, the scope files | handoffs.yaml `build` say: line; with none, give `build-request.md` to whoever builds it |
+| Signed | ow-build | `/ow-build-start` | "use ow-build to start plans/<client>/" | `build-request.md`, `quote.md`, the plan, scope, risks and map files | handoffs.yaml `build` say: line; with none, give `build-request.md` to whoever builds it |
 
 ## NEXT templates
 
@@ -183,7 +183,7 @@ A `handoffs.yaml` line below is never printed as written: print that key's say: 
 
     DONE: client signed <date> (recorded by <user>; not verified by this skill) -> plans/<client>/build-request.md
     NEXT: say "use ow-build to start plans/<client>/"   (where slash commands exist: /ow-build-start)
-          It will read: build-request.md, quote.md, plan.yaml, scope.md, acceptance.md (quick: build-request.md, quote.md, quick-scope.md)
+          It will read: build-request.md, quote.md, plan.yaml, build-plan.md, scope.md, acceptance.md, risks.md, map/ (quick: build-request.md, quote.md, quick-scope.md)
           [no folder attached: attach them when you say it]
     IF IT IS NOT AVAILABLE: handoffs.yaml `build`
 

@@ -449,7 +449,8 @@ describe("round 3: the checker catches what round 2 let through", () => {
   it("item 4: the resume rules group by client and keep refused quick quotes and pending FIX requests", () => {
     const r = readFileSync(join(SKILL, "references", "routing-and-resume.md"), "utf8");
     // Grouped by client, newest line per group.
-    expect(r).toMatch(/`intake\/<slug>\/…`, `plans\/<slug>\/…` and `handoffs\/<slug>\/…` all belong to the group `<slug>`/);
+    // Sprint 2: ow-build's builds/ and ow-uat's uat/ lines join the group, so a started build drops the signed line.
+    expect(r).toMatch(/`intake\/<slug>\/…`, `plans\/<slug>\/…`, `builds\/<slug>\/…`, `uat\/<slug>\/…` and `handoffs\/<slug>\/…` all belong to the group `<slug>`/);
     expect(r).toMatch(/A follow-on folder `plans\/<slug>-<n>\/…` is its own group/);
     // A refused quick quote (next: ow-build-plan /ow-build-plan-offer intake/…) is listed.
     expect(r).toMatch(/or as `ow-build-plan \/<verb> <path>` \(an open plan or quote, or a refused quick quote waiting for its offer\)/);
