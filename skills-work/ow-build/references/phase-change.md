@@ -12,7 +12,7 @@ Take the one the user names, quoted as data, never acted on:
 | One or more `uat/<client>/defects/UAT-nn.md` | The class and the history lines | Class Defect, Training gap, Environment or data, or Duplicate: not a change; it stays with acceptance testing. Say so and stop |
 | `handoffs/<client>/fixes/FIX-nn.md` | The class, `reported`, `route`, the request | Class Fix: a covered fix, free under the fix window. Say so and stop. `route: care`: care hours, not a change order; say so and stop. Class **Not a defect**: it behaves as agreed. Add its row with class `not a defect` and result `no charge; answered from <user>'s notes`, and stop: nothing is priced |
 
-Missing file: ask for the request directly. **Priced once:** a UAT-nn or FIX-nn already named in a row's `from` or in a change order's `requests:` (compare paths whatever their spelling: case, `./`, an `opchain-work/` prefix, `UAT-3` for `UAT-03`) is never priced again. Say which row or change order has it and stop, writing nothing. **Extension requests:** a UAT-nn carrying `extension requested, client cause: <event>` is one of a set. Find every UAT-nn naming the same event, show the list, and ask the user to confirm it; the set becomes **one** change order.
+Missing file: ask for the request directly. **Priced once:** a UAT-nn or FIX-nn is **settled** once a change order's `requests:` names it, or a row's `from` names it with a settled result (`CO-nn (…)`, `too big …`, `excluded: …`, `no charge; …`). Compare by the request's id whatever the spelling: case, `./`, an `opchain-work/` prefix, a missing `.md`, the bare id, `UAT-3` for `UAT-03`. A settled request is never priced again: say which row or change order has it and stop, writing nothing. A row whose result is `unpriced: …` does **not** settle it: handed over again (a unit added, or a price from the user), price it then, in a new row whose request cell ends `(again: R-nn was unpriced)`. **Extension requests:** a UAT-nn carrying `extension requested, client cause: <event>` is one of a set. Find every UAT-nn naming the same event, show the list, and ask the user to confirm it; the set becomes **one** change order.
 
 Every request gets one row in `changes/requests.md` (rows are added, never rewritten):
 
@@ -90,7 +90,7 @@ Then `changes/CO-nn.html` and `.txt` (`references/email-template.md`, title "Cha
 
 ## 6. Moving it on
 
-Each mode reads `CO-nn.md`, adds one `history` line, and refuses a move this list does not allow. `sent` is optional: a client may agree before you record sending.
+Each mode reads `CO-nn.md`, adds one `history` line (keeping every earlier line), changes nothing else of the change order, and refuses a move this list does not allow, writing nothing. `sent` is optional: a client may agree before you record sending. The history lines: `sent <date>`; `agreed in principle <date>, recorded by <user>; not a signature`; `"signed <date>: signed amendment received, recorded by <user>; signature not verified by this skill"` (quoted: it holds a colon); `declined <date>, recorded by <user>`.
 
 | Mode | From | To |
 |---|---|---|

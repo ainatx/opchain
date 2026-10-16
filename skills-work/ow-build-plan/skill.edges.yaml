@@ -205,5 +205,17 @@ hands_off:
     to: ow-build
     verb: /ow-build-start
     say: use ow-build to start plans/<client>/
-    files: [plans/<client>/build-request.md, plans/<client>/quote.md, { path: plans/<client>/contract-inputs.md, fields: [documentation_sku, documentation_price] }, plans/<client>/plan.yaml, plans/<client>/build-plan.md, plans/<client>/scope.md, plans/<client>/acceptance.md, plans/<client>/risks.md, plans/<client>/quick-scope.md, plans/<client>/map/systems.md, plans/<client>/map/data.md, plans/<client>/map/future.md]
+    files:
+      - { path: plans/<client>/build-request.md, fields: [signed, signing_note, the milestones, client dependencies] }
+      - { path: plans/<client>/quote.md, fields: [mode, currency, fixed_price, schedule, payments, payment_terms_days, handling, the client part's milestones] }
+      - { path: plans/<client>/contract-inputs.md, fields: [documentation_sku, documentation_price] }
+      - { path: plans/<client>/plan.yaml, fields: [handling] }
+      - { path: plans/<client>/build-plan.md, fields: [Summary, What should change] }
+      - { path: plans/<client>/scope.md, fields: [work packages, out of scope, client dependencies] }
+      - { path: plans/<client>/acceptance.md, fields: [AC ids with when, then, how we check, test data, cases, kind] }
+      - { path: plans/<client>/risks.md, fields: [risks with owner and mitigation] }
+      - { path: plans/<client>/quick-scope.md, fields: [in scope, out of scope, acceptance checks] }
+      - { path: plans/<client>/map/systems.md, fields: [systems] }
+      - { path: plans/<client>/map/data.md, fields: [data] }
+      - { path: plans/<client>/map/future.md, fields: [future process] }
     if_unavailable: "handoffs.yaml build: its say: line; with none, give build-request.md to whoever builds it"

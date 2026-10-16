@@ -1,0 +1,48 @@
+---
+ow_artefact: ow-build/ledger
+schema: 1
+written_by: ow-build 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: plans/larkspur-ceramics/quote.md
+created: 2026-11-10
+clock: user-stated
+origin: skill
+client: Larkspur Ceramics
+currency: USD
+fixed_price: 17450.00
+schedule: 40/40/20
+payment_terms_days: 14
+working_demo: M1
+working_demo_source: user-stated 2026-11-10
+payments:
+  - { trigger: booking, share: 40, amount: 6980.00, state: due, met: 2026-11-09, basis: signed 2026-11-09 (build-request.md) }
+  - { trigger: working-demo, share: 40, amount: 6980.00, state: not met }
+  - { trigger: acceptance, share: 20, amount: 3490.00, state: not met }
+documentation: { sku: bought, amount: 4000.00, state: not met }
+change_orders: []
+invoice_requests: []
+arithmetic:
+  command: ow-tools calc split --total 17450.00 --schedule 40/40/20
+  output: '{"total":"17450.00","schedule":"40/40/20","amounts":["6980.00","6980.00","3490.00"]}'
+---
+# Ledger: Larkspur Ceramics
+
+This is not an accounting record. It holds the payment schedule from the signed quote, the signed change orders and the invoice requests, with what you report about them.
+
+## Payments
+| trigger | share | amount | state |
+|---|---|---|---|
+| booking | 40% | USD 6,980.00 | due (signed 9 November 2026) |
+| working demo (milestone 1) | 40% | USD 6,980.00 | not met |
+| acceptance | 20% | USD 3,490.00 | not met |
+
+The working-demo payment follows milestone 1's demo: Robin said so on 2026-11-10 (user-stated); the quote names one working demo for two milestones.
+
+## Documentation & training
+Bought (contract-inputs.md): USD 4,000.00, outside the fixed price; invoiced once, when the documents are delivered. State: not met.
+
+## Change orders
+None.
+
+## Invoice requests
+None yet.

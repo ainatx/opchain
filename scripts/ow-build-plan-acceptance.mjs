@@ -1118,7 +1118,7 @@ function checkRoute(key, run) {
   const has = (f) => written.includes(`${dir}/${f}`);
   const prior = (f) => run.priorRead(`${dir}/${f}`) != null;
   let expect;
-  if (/\/fixes\/FIX-\d+\.md$/.test(from)) expect = "follow-on offer";
+  if (/\/fixes\/FIX-\d+\.md$|\/defects\/UAT-\d+\.md$/.test(from)) expect = "follow-on offer";
   else if (/^intake\/[^/]+\/intake-record\.md$/.test(from)) {
     const recap = run.read(from.replace(/intake-record\.md$/, "recap.md"));
     const kind = recap ? matter(recap).data.path_kind : null;

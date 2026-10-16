@@ -18,5 +18,6 @@ builder_name: none
 ledger: { booking: due, working_demo: M1, machine_checked: true }
 status:
   lines:
+    - { path: builds/larkspur-ceramics/build.yaml, next: ow-build on builds/larkspur-ceramics/, awaiting: none }
     - { path: builds/larkspur-ceramics/build.yaml, next: ow-build /ow-build-invoice builds/larkspur-ceramics/, awaiting: update to Larkspur Ceramics by 2026-11-13 }
 private_names: [llc-ops, Deftwright]

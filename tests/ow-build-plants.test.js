@@ -9,6 +9,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, write
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import * as yaml from "js-yaml";
+import { symlinkSync } from "node:fs";
 import { FIXTURES, loadKey, prepare, runCase } from "../scripts/ow-build-acceptance.mjs";
 import { checkEdges, checkFamily, checkProtocolCopies, checkVerbs } from "../scripts/check-skill-contracts.mjs";
 import { loadCatalogs } from "../scripts/lib/catalogs.mjs";
@@ -235,7 +236,7 @@ describe("round-2 plants: bugs 1-17 and the owner decisions of 2026-10-16", () =
 
   it("email contrast: a light grey paragraph on white fails", () => {
     const run = mutated("update", { [`${B}/updates/2026-11-13.html`]: (t) => t.replace(/(<p style="[^"]*?)(?<![-\w])color:\s*#[0-9a-fA-F]{6}/, "$1color: #BBBBBB") });
-    expect(failures("update", run).email).toMatch(/<p> text #BBBBBB on #FFFFFF is 1\.92:1, under 4\.5:1/);
+    expect(failures("update", run).email).toMatch(/text #bbbbbb on #ffffff is 1\.92:1, under 4\.5:1/);
   });
 
   it("a further training group priced at anything but the price book's per-group price", () => {
@@ -286,7 +287,7 @@ describe("round-1 contract plants: check-skill-contracts and the catalog budget 
   contract("C05", "a NEXT template whose verb is undeclared (/ow-build-close)", { [S]: (t) => t.replace("## Self-checks", "    DONE: closed -> builds/<client>/build.yaml\n    NEXT: say \"use ow-build to close builds/<client>/\"   (where slash commands exist: /ow-build-close)\n          It will read: build.yaml\n          [no folder attached: attach build.yaml when you say it]\n    IF IT IS NOT AVAILABLE: close it by hand.\n\n## Self-checks") });
   contract("C06", "a NEXT template with a declared verb but no edges row (say not in hands_off)", { [S]: (t) => t.replace("## Self-checks", "    DONE: margin -> builds/<client>/margin.md\n    NEXT: say \"use ow-build to review the margin for builds/<client>/\"   (where slash commands exist: /ow-build-update)\n          It will read: margin.md\n          [no folder attached: attach margin.md when you say it]\n    IF IT IS NOT AVAILABLE: read margin.md.\n\n## Self-checks") });
   contract("C07", "a NEXT drifting into a phase file only (phase-ready.md prints use ow-handoff …)", { [R("phase-ready.md")]: (t) => t.replace("## 5. Finish", "    NEXT: say \"use ow-handoff on builds/<client>/ready-for-uat.md\"   (where slash commands exist: /ow-handoff-start)\n          It will read: ready-for-uat.md\n          [no folder attached: attach it when you say it]\n    IF IT IS NOT AVAILABLE: hand it over by hand.\n\n## 5. Finish") });
-  contract("C08", "a STATUS next: template naming an undeclared verb (phase-run.md: /ow-build-sprint)", { [R("phase-run.md")]: (t) => t.replace("`next: ow-build /ow-build-run builds/<client>/ | awaiting: none`;", "`next: ow-build /ow-build-sprint builds/<client>/ | awaiting: none`;") });
+  contract("C08", "a STATUS next: template naming an undeclared verb (phase-run.md: /ow-build-sprint)", { [R("phase-run.md")]: (t) => t.replace("`next: ow-build /ow-build-run builds/<client>/ | awaiting: M<n> sprint <k>`", "`next: ow-build /ow-build-sprint builds/<client>/ | awaiting: M<n> sprint <k>`") });
   contract("C09", "the builder named by its oc- id in a phase file (control)", { [R("phase-run.md")]: (t) => `${t}\nSay "use oc-app-architect /oc-build sprint 1".\n` });
   contract("C10", "the builder named without the oc- prefix ('app-architect')", { [R("phase-run.md")]: (t) => `${t}\nThe app-architect builder runs the sprint.\n` });
   contract("C11", "the business named with a space ('Deft wright')", { [R("phase-change.md")]: (t) => `${t}\nFor Deft wright, the contract step drafts it.\n` });
@@ -299,4 +300,186 @@ describe("round-1 contract plants: check-skill-contracts and the catalog budget 
   contract("C18", "SKILL.md body pushed over 4,500 tokens (but under 5,000)", { [S]: (t) => `${t}\n${"Padding sentence for the token budget test. ".repeat(30)}\n` });
   contract("C19", "reads row removed for delivered.md (ow-documentation) while the body still reads it", { [E]: (t) => t.replace(/  - from: ow-documentation\n(    .*\n){4}/, "") });
   contract("C20", "hands_off say: changed so it no longer matches the SKILL.md NEXT (invoice say)", { [E]: (t) => t.replace("say: use ow-build to invoice what is due for builds/<client>/", "say: use ow-build to invoice builds/<client>/") });
+});
+
+describe("round-2 evaluation plants (plant2.mjs): every one is caught by the check it targets", () => {
+  const WANT = {"N01":"internal_numbers","N02":"internal_numbers","N03":"internal_numbers","N04":"internal_numbers","N05":"internal_numbers","N06":"internal_numbers","N07":"internal_numbers","N08":"internal_numbers","N09":"internal_numbers","N10":"internal_numbers","N11":"internal_numbers","N12":"no_false_done","N13":"no_false_done","N14":"no_false_done","N15":"signature_gate","N16":"signature_gate","N17":"demo_record","N18":"writes","N19":"writes","N20":"writes","N21":"writes","N22":"ready","N23":"start","N24":"writes","N25":"writes","N26":"start","N27":"status","N28":"signed","N29":"signature_gate","N30":"invoice","N31":"email","N32":"email","N33":"email","N34":"email","N35":"email","N36":"email","N37":"email","N38":"email","N39":"route","N40":"route","N41":"route","N42":"signature_gate","N43":"signature_gate","N44":"invoice"};
+  const T = { FIXTURES };
+  const plant = (id, desc, caseName, edits, { only = null } = {}) => it(`${id}: ${desc}`, () => {
+    const out = failures(caseName, mutated(caseName, edits));
+    const got = Object.keys(out).filter((c) => !only || only.includes(c));
+    expect(got, JSON.stringify(out)).toContain(WANT[id]);
+  });
+  /** A copy of the checker and its fixtures, so a plant can change the starting state (a run's prior files). */
+  async function alt() {
+    const d = temp("ow-build-alt-");
+    for (const p of ["scripts", "skills-work", "plugins/ow-tools", "tests/fixtures/ow-build", "tests/fixtures/ow-build-plan"]) cpSync(join(ROOT, p), join(d, p), { recursive: true });
+    for (const f of ["catalogs.json", "package.json"]) cpSync(join(ROOT, f), join(d, f));
+    symlinkSync(join(ROOT, "node_modules"), join(d, "node_modules"));
+    return import(join(d, "scripts", "ow-build-acceptance.mjs"));
+  }
+  const keyDirs = temp("ow-build-keys-");
+  function probeKey(name, route) {
+    const d = join(keyDirs, name);
+    mkdirSync(d, { recursive: true });
+    writeFileSync(join(d, "answer-key.yaml"), `case: ${name}\nsection: evaluator probe\nclient: Larkspur Ceramics\nslug: larkspur-ceramics\nuser: Robin\nrepo: larkspur-repo\nchecks: [route]\nroute: { from: ${route.from}${route.expect ? `, expect: ${route.expect}` : ""} }\n`);
+    return d;
+  }
+  const priorPlant = (id, desc, caseName, fixtureEdits, { keyDir = null, only = null } = {}) => it(`${id}: ${desc}`, async () => {
+    const A = await alt();
+    for (const [rel, edit] of Object.entries(fixtureEdits)) {
+      const path = join(A.FIXTURES, rel);
+      const before = existsSync(path) ? readFileSync(path, "utf8") : null;
+      const after = edit(before);
+      if (after === before) throw new Error(`mutation of ${rel} changed nothing`);
+      mkdirSync(dirname(path), { recursive: true });
+      writeFileSync(path, after);
+    }
+    const out = Object.fromEntries(A.runCase(caseName, null, keyDir ? { caseDir: keyDir } : undefined).filter((r) => r.problems.length && (!only || only.includes(r.check))).map((r) => [r.check, r.problems.join("\n")]));
+    expect(Object.keys(out), JSON.stringify(out)).toContain(WANT[id]);
+  }, 30000);
+
+  // helpers
+  const section = (head) => (s) => (t) => t.replace(new RegExp(`(${head}</h2>\\n<p[^>]*>)`), `$1${s} `).replace(new RegExp(`(\\n${head}\\n)`), `$1${s} `);
+  const traced = (sentence, src) => (t) => t.replace(/(## Trace\n\| # \| sentence \| source \|\n\|---\|---\|---\|\n)/, `$1| 0 | ${sentence} | ${src} |\n`);
+  const tw = (date, s, src) => ({ ...both(`${B}/updates/${date}`, section("This week")(s)), [`${B}/updates/${date}-checks.md`]: traced(s, src) });
+  const addCOWhy = (s) => (t) => t.replace(/(Your stock sheet is not one of the systems in the agreed scope, so this is new work\.)/, `$1 ${s}`);
+  const spec = (file, s) => ({ [`larkspur-repo/spec/${file}`]: (t) => t.replace("## What should change", `${s}\n\n## What should change`) });
+
+  // ── A. internal numbers by meaning (traced, so only the meaning check can catch) ──
+  plant("N01", "update: effort as 'a fortnight of work' (traced to a note)", "update", tw("2026-11-13", "The order sheet import took a fortnight of work.", "note Robin 2026-11-13"));
+  plant("N02", "update: effort as 'we put in three long evenings' (traced)", "update", tw("2026-11-13", "We put in three long evenings on the code clean-up.", "note Robin 2026-11-13"));
+  plant("N03", "update: margin by meaning ('this milestone is costing us more than we charged for it')", "update", tw("2026-11-13", "This milestone is costing us more than we charged for it.", "note Robin 2026-11-13"));
+  plant("N04", "update: margin by meaning ('we are losing money on milestone 1')", "update", tw("2026-11-13", "We are losing money on milestone 1, but that is ours to carry.", "note Robin 2026-11-13"));
+  plant("N05", "CO email: a unit price as '2k'", "change-priced", both(`${B}/changes/CO-01`, addCOWhy("The integration line alone is 2k.")));
+  plant("N06", "CO email: a modifier as 'a quarter on top of the usual price'", "change-priced", both(`${B}/changes/CO-01`, addCOWhy("Messy data adds a quarter on top of the usual price.")));
+  plant("N07", "CO email: a modifier as 'one and a quarter times the standard amount'", "change-priced", both(`${B}/changes/CO-01`, addCOWhy("It is charged at one and a quarter times the standard amount.")));
+  plant("N08", "spec/: payment terms without a percentage ('The second payment follows the milestone 1 demo.')", "start", spec("00-project-overview.md", "The second payment follows the milestone 1 demo."));
+  plant("N09", "spec/: the contract value in words without 'worth' ('The client is paying seventeen thousand four hundred and fifty dollars.')", "start", spec("00-project-overview.md", "The client is paying seventeen thousand four hundred and fifty dollars for this."));
+  plant("N10", "spec/: 'Half of the money is invoiced at booking.'", "start", spec("00-project-overview.md", "Half of the money is invoiced at booking and the rest after the demo."));
+  plant("N11", "demo summary: effort as 'we spent a fortnight on'", "demo-record", both(`${B}/demos/M1-summary`, section("What we showed")("We spent a fortnight on the code clean-up.")));
+
+  // ── B. false done / started by meaning ──
+  plant("N12", "update: false done without a done word ('Your old product codes have all been converted.') traced to a note", "update", tw("2026-11-13", "Your old product codes have all been converted to the new form.", "note Robin 2026-11-13"));
+  plant("N13", "update: false done ('The confirmation screen now shows every order line.') traced to a note", "update", tw("2026-11-13", "The confirmation screen now shows every order line.", "note Robin 2026-11-13"));
+  plant("N14", "update: done claim traced to a passing report that does not cover it (sprint 1 covers AC-1.1/1.2, not the code tidy)", "update", tw("2026-11-13", "The one-off tidy of your product codes is wrapped up.", "report sprints/sprint-1/eval-round-2.md"));
+  plant("N15", "signature gate: unsigned CO started, referred to by pronoun in the next sentence (both sentences traced)", "signature-gate", { ...tw("2026-12-04", "Robin's request about stock on hand went out for signature. We have made a start on it anyway.", "note Robin 2026-12-04"), [`${B}/updates/2026-12-04-checks.md`]: (t) => traced("We have made a start on it anyway.", "note Robin 2026-12-04")(traced("Robin's request about stock on hand went out for signature.", "note Robin 2026-12-04")(t)) });
+  plant("N16", "signature gate: 'Stock on hand: the groundwork is laid.'", "signature-gate", tw("2026-12-04", "For stock on hand, the groundwork is laid.", "note Robin 2026-12-04"));
+  plant("N17", "demo summary: unsigned change 'we have already put the first screens together'", "demo-record", both(`${B}/demos/M1-summary`, (t) => t.replace(/I will write it up with a price before any work on it\./, "We have already put the first screens together.")));
+
+  // ── C. one writer inside a run ──
+  plant("N18", "-change --signed also rewrites CO-01.html (only the draft run writes the email)", "change-signed", { [`${B}/changes/CO-01.html`]: () => readFileSync(join(T.FIXTURES, "change-priced/expected", `${B}/changes/CO-01.html`), "utf8").replace("</p>", " (signed)</p>") }, { only: ["writes"] });
+  plant("N19", "-demo --record also rewrites M1-script.md (a script is never rewritten)", "demo-record", { [`${B}/demos/M1-script.md`]: () => readFileSync(join(T.FIXTURES, "demo-script/expected", `${B}/demos/M1-script.md`), "utf8").replace("## Questions to ask", "## Questions to ask\n- (added after the demo)") });
+  plant("N20", "-change --signed also adds a requests.md row", "change-signed", { [`${B}/changes/requests.md`]: () => `${readFileSync(join(T.FIXTURES, "change-unpriced/expected", `${B}/changes/requests.md`), "utf8").trimEnd()}\n| R-09 | 2026-12-07 | "signed" | CO-01 | change | CO-01 (signed) |\n` });
+  plant("N21", "control: -change --agreed writes spec/06-testing-change-orders.md", "signature-gate", { "larkspur-repo/spec/06-testing-change-orders.md": () => readFileSync(join(T.FIXTURES, "change-signed/expected/larkspur-repo/spec/06-testing-change-orders.md"), "utf8") }, { control: true });
+  plant("N22", "control: -ready writes ledger.md", "ready-passing", { [`${B}/ledger.md`]: (t) => t.replace(/trigger: acceptance, share: 20, amount: ([\d.]+), state: not met/, "trigger: acceptance, share: 20, amount: $1, state: due") }, { control: true });
+  plant("N23", "control: resumed -start rewrites spec/00-project-overview.md", "start-resume", { "larkspur-repo/spec/00-project-overview.md": (t) => `${t}\n` }, { control: true });
+  plant("N24", "-run (no-builder) also writes ledger.md 'working-demo due'", "run-no-builder", { [`${B}/ledger.md`]: (t) => t.replace(/state: not met/, "state: due") });
+  plant("N25", "-change (draft) writes change-inputs-CO-01.md before any agreement", "change-priced", { [`${B}/changes/change-inputs-CO-01.md`]: () => readFileSync(join(T.FIXTURES, "signature-gate/expected", `${B}/changes/change-inputs-CO-01.md`), "utf8") });
+
+  // ── D. resume of -start ──
+  plant("N26", "start-resume: map written but map_check left pending", "start-resume", { [`${B}/build.yaml`]: (t) => t.replace(/map_check: OK/, "map_check: pending (sprint plan not approved)") });
+  plant("N27", "start-resume: STATUS still says next -start after the map is OK", "start-resume", { "opchain-work/STATUS.md": (t) => t.replace(/next: ow-build \/ow-build-invoice builds\/larkspur-ceramics\/ \| awaiting: update to Larkspur Ceramics by 2026-11-13\s*$/, "next: ow-build /ow-build-start plans/larkspur-ceramics/ | awaiting: none\n") });
+
+  // ── E. change-order state machine ──
+  plant("N28", "--signed adds no history line (each mode adds one)", "change-signed", { [`${B}/changes/CO-01.md`]: (t) => t.replace(/\n\s*- "?signed[^\n]*/, "") });
+  plant("N29", "--agreed drops the earlier 'draft' history line", "signature-gate", { [`${B}/changes/CO-01.md`]: (t) => t.replace(/\n\s*- draft [^\n]*/, "") });
+
+  // ── F. B4 ──
+  plant("N30", "B4: documentation request with share: 40 and amount_source: quote", "invoice-documentation", { [`${B}/invoices/INV-request-documentation.md`]: (t) => t.replace("share: none", "share: 40") }, { control: true });
+
+  // ── G. email contrast / images ──
+  plant("N31", "email: base text colour on the 600 table set to #AAAAAA (2.3:1)", "update", { [`${B}/updates/2026-11-13.html`]: (t) => t.replace("line-height:1.5;color:#1A1A1A;", "line-height:1.5;color:#AAAAAA;") });
+  plant("N32", "email: h2 headings in 3-digit hex #999 (2.8:1)", "update", { [`${B}/updates/2026-11-13.html`]: (t) => t.replaceAll("font-size:18px;color:#1F4E79;", "font-size:18px;color:#999;") });
+  plant("N33", "email: h2 headings in rgb(160,160,160)", "update", { [`${B}/updates/2026-11-13.html`]: (t) => t.replaceAll("font-size:18px;color:#1F4E79;", "font-size:18px;color:rgb(160,160,160);") });
+  plant("N34", "email: <p> #8A8A8A inside a td with background #F2F2F2 (3.1:1; checker measures against the body)", "update", { [`${B}/updates/2026-11-13.html`]: (t) => t.replace('<td style="padding:16px 0 0 0;">', '<td style="padding:16px 0 0 0;background-color:#F2F2F2;">').replace('<p style="margin:0 0 12px 0;">Purchase', '<p style="margin:0 0 12px 0;color:#8A8A8A;">Purchase') });
+  plant("N35", "email: control: <p> text #AAAAAA", "update", { [`${B}/updates/2026-11-13.html`]: (t) => t.replace('<p style="margin:0 0 12px 0;">Purchase', '<p style="margin:0 0 12px 0;color:#AAAAAA;">Purchase') }, { control: true });
+  plant("N36", "email: a logo with alt=\"image\" (says nothing; brand.yaml has no logo_alt) — weak plant, not counted", "update", { [`${B}/updates/2026-11-13.html`]: (t) => t.replace('<p style="margin:0;font-size:14px;color:#1F4E79;">Example Studio</p>', '<img src="logo.png" alt="image" width="160" style="display:block;border:0;">\n<p style="margin:0;font-size:14px;color:#1F4E79;">Example Studio</p>') });
+  plant("N37", "email: a remote image (no remote image allowed)", "update", { [`${B}/updates/2026-11-13.html`]: (t) => t.replace('<p style="margin:0;font-size:14px;color:#1F4E79;">Example Studio</p>', '<img src="https://example.com/logo.png" alt="Example Studio logo" width="160" style="display:block;border:0;">\n<p style="margin:0;font-size:14px;color:#1F4E79;">Example Studio</p>') });
+  plant("N38", "email: link text 'click here'", "update", { [`${B}/updates/2026-11-13.html`]: (t) => t.replace("as the plan says.</p>", 'as the plan says. <a href="https://example.com/plan" style="color:#1F4E79;">click here</a></p>') });
+
+  // ── H. prior-state plants (alt) ──
+  // Priced once, with spellings the checker's request-key does not normalise.
+  const uatReq = (from) => ({ "change-uat-extension/input/opchain-work/builds/larkspur-ceramics/changes/requests.md": () => `---\now_artefact: ow-build/change-requests\n---\n# Change requests\n\n| # | date | request | from | class | result |\n|---|---|---|---|---|---|\n| R-07 | 2027-01-20 | "one more round" | ${from} | extension | CO-09 (draft) |\n` });
+  const routeUat = probeKey("route-uat-03", { from: "uat/larkspur-ceramics/defects/UAT-03.md" });
+  priorPlant("N39", "priced once: requests.md row 'from' spelled 'UAT-03' (no .md) — the route still prices UAT-03 again", "change-uat-extension", uatReq("UAT-03"), { keyDir: routeUat, only: ["route"] });
+  priorPlant("N40", "priced once: from spelled 'uat/larkspur-ceramics/defects/UAT-03' (no extension)", "change-uat-extension", uatReq("uat/larkspur-ceramics/defects/UAT-03"), { keyDir: routeUat, only: ["route"] });
+  priorPlant("N41", "control: priced once, from 'uat/larkspur-ceramics/defects/uat-3.md'", "change-uat-extension", uatReq("uat/larkspur-ceramics/defects/uat-3.md"), { keyDir: routeUat, only: ["route"], control: true });
+  // --agreed from a declined change order (the state machine allows only draft or sent).
+  priorPlant("N42", "--agreed recorded over a DECLINED change order", "signature-gate", { "change-priced/expected/opchain-work/builds/larkspur-ceramics/changes/CO-01.md": (t) => t.replace("status: draft", "status: declined").replace(/history:\n(\s*)- draft ([\d-]+)/, "history:\n$1- draft $2\n$1- declined $2") });
+  priorPlant("N43", "--agreed recorded over an already SIGNED change order", "signature-gate", { "change-priced/expected/opchain-work/builds/larkspur-ceramics/changes/CO-01.md": (t) => t.replace("status: draft", "status: signed") });
+  // B4: quoted separately; the golden invents the line's price from the quote.
+  priorPlant("N44", "B4: contract-inputs says 'quoted separately' but the request uses 4,000.00 with amount_source: contract-inputs", "invoice-documentation", { "../ow-build-plan/accepted-signed/expected/opchain-work/plans/larkspur-ceramics/contract-inputs.md": (t) => t.replace(/documentation_price:.*/, "documentation_price: quoted separately") });
+});
+
+describe("round-2 contract plants (plant-contracts2.mjs): check-skill-contracts and the catalog catch each", () => {
+  const E = "ow-build/skill.edges.yaml";
+  const S = "ow-build/SKILL.md";
+  const R = (f) => `ow-build/references/${f}`;
+  const BP = "ow-build-plan/skill.edges.yaml";
+  const CWANT = {"K01":"reads handoffs/<client>/care\\.md, which .* has no reads row","K02":"reads uat/<client>/uat-plan\\.md, which has no reads row","K03":"reads plans/<client>/pricing\\.md from ow-build-plan, which","K04":"reads field `margin_target` of plans/<client>/quote\\.md","K05":"over the 4500-token budget","K06":"description","K07":"does not carry \"use ow-uat on","K08":"`/ow-uat-run` is not declared","K09":"names `llc ops`, a private skill","K10":"names `\\$1`, a price","K11":"names `fifteen hundred dollars`, a price \\(an amount in words\\)","K12":"names `oc-build`","K13":"NEXT says \"use ow-uat-plan\" but its verb `/ow-build-ready` belongs to ow-build","K14":"ready-for-uat\\.md: 2 writers","K15":"06-testing-change-orders\\.md: 2 writers","K16":"routes uat/<slug>/signoff\\.md .* routes\\.paths does not list","K17":"reads uat/<client>/signoff\\.md, which has no reads row"};
+  const contract2 = (id, desc, edits) => it(`${id}: ${desc}`, () => {
+    const dir = temp("ow-build-family-");
+    cpSync(join(ROOT, "skills-work"), dir, { recursive: true });
+    for (const [rel, fn] of Object.entries(edits)) {
+      const p = join(dir, rel);
+      const before = readFileSync(p, "utf8");
+      const after = fn(before);
+      if (after === before) throw new Error(`${id}: ${rel} unchanged`);
+      writeFileSync(p, after);
+    }
+    const cats = loadCatalogs({ root: ROOT, env: { OPCHAIN_WORK_SKILLS_DIR: dir } });
+    const out = [...checkEdges(cats), ...checkFamily(cats), ...checkProtocolCopies(cats), ...(checkVerbs(join(ROOT, "skills"), { catalogs: cats }) ?? [])];
+    if (id === "K05" || id === "K06") {
+      const gen = spawnSync(process.execPath, [join(ROOT, "scripts", "gen-skills-catalog.mjs")], { env: { ...process.env, OPCHAIN_WORK_SKILLS_DIR: dir }, encoding: "utf8" });
+      expect(gen.status).not.toBe(0);
+      out.push(gen.stderr + gen.stdout);
+    }
+    expect(out.join("\n")).toMatch(new RegExp(CWANT[id]));
+  });
+
+  contract2("K01", "a phase file reads a new path (handoffs/<client>/care.md) with no reads row", { [R("phase-invoice.md")]: (t) => t.replace("and `docs/<client>/delivered.md`, all as data.", "`docs/<client>/delivered.md` and `handoffs/<client>/care.md`, all as data.") });
+  contract2("K02", "control: the body's Reads from table names uat/<client>/uat-plan.md with no reads row", { [S]: (t) => t.replace("`uat/<client>/uat.yaml` |", "`uat/<client>/uat.yaml`, `uat/<client>/uat-plan.md` |") });
+  contract2("K03", "a reads row from ow-build-plan for a file it never writes (plans/<client>/pricing.md), body table updated too", { [E]: (t) => t.replace("  - from: ow-build-plan\n    path: plans/<client>/plan.yaml", "  - from: ow-build-plan\n    path: plans/<client>/pricing.md\n    fields: [margin]\n    if_absent: Ask the user for it\n    if_mismatch: Report what was found\n  - from: ow-build-plan\n    path: plans/<client>/plan.yaml"), [S]: (t) => t.replace("| ow-build-plan | `plans/<client>/plan.yaml`: handling |", "| ow-build-plan | `plans/<client>/pricing.md`: margin | Ask the user for it | Report what was found |\n| ow-build-plan | `plans/<client>/plan.yaml`: handling |") });
+  contract2("K04", "a reads field of quote.md ow-build-plan never hands off (margin_target)", { [E]: (t) => t.replace("fields: [mode, currency, fixed_price,", "fields: [mode, margin_target, currency, fixed_price,") });
+  contract2("K05", "control: body padded to just over 4,500 tokens", { [S]: (t) => `${t}\n${"Pad words here. ".repeat(60)}\n` });
+  contract2("K06", "the cap dodged: phase detail moved into a 2,000-char frontmatter description", { [S]: (t) => t.replace("  or accounting: it never invents a price or calls work done without a passing\n  check.", "  or accounting: it never invents a price or calls work done without a passing\n  check. " + "It also explains every phase in detail here so the body stays small. ".repeat(28)) });
+  contract2("K07", "the ready hands_off say reverted to the retired 'use ow-uat on …' while the body says ow-uat-plan", { [E]: (t) => t.replace("say: use ow-uat-plan on builds/<client>/ready-for-uat.md", "say: use ow-uat on builds/<client>/ready-for-uat.md") });
+  contract2("K08", "phase-ready STATUS next: names an undeclared ow-uat verb (/ow-uat-run)", { [R("phase-ready.md")]: (t) => t.replace("next: ow-uat /ow-uat-plan builds/<client>/ready-for-uat.md", "next: ow-uat /ow-uat-run builds/<client>/ready-for-uat.md") });
+  contract2("K09", "private skill named with a space ('llc ops')", { [R("phase-change.md")]: (t) => `${t}\nThe llc ops contract step drafts the amendment.\n` });
+  contract2("K10", "a real price as '$1.5k' in skill text", { [R("phase-change.md")]: (t) => `${t}\nA typical change order is about $1.5k.\n` });
+  contract2("K11", "a real price in words ('fifteen hundred dollars')", { [R("phase-change.md")]: (t) => `${t}\nA typical change order is fifteen hundred dollars.\n` });
+  contract2("K12", "an oc- verb named without its skill ('/oc-build')", { [R("phase-run.md")]: (t) => `${t}\nThe builder's sprint verb is /oc-build.\n` });
+  contract2("K13", "a NEXT in a phase file says 'use ow-uat-plan on …' with the slash hint of another verb (/ow-build-ready)", { [R("phase-ready.md")]: (t) => t.replace("## 5. Finish", "    NEXT: say \"use ow-uat-plan on builds/<client>/ready-for-uat.md\"   (where slash commands exist: /ow-build-ready)\n          It will read: ready-for-uat.md\n          [no folder attached: attach it when you say it]\n    IF IT IS NOT AVAILABLE: plan the test by hand.\n\n## 5. Finish") });
+  contract2("K14", "a second writer of ready-for-uat.md (-invoice) declared in the edges", { [E]: (t) => t.replace("  - { path: builds/<client>/ready-for-uat.md, verb: /ow-build-ready }", "  - { path: builds/<client>/ready-for-uat.md, verb: /ow-build-ready }\n  - { path: builds/<client>/ready-for-uat.md, verb: /ow-build-invoice }") });
+  contract2("K15", "spec/06-testing-change-orders.md also written by -start, spelled with a ./ prefix", { [E]: (t) => t.replace("  - { path: <repo>/spec/scope-and-milestones.md, verb: /ow-build-start }", "  - { path: <repo>/spec/scope-and-milestones.md, verb: /ow-build-start }\n  - { path: <repo>/./spec/06-testing-change-orders.md, verb: /ow-build-start }") });
+  contract2("K16", "routes.paths drops signoff.md but routing-and-resume.md still routes it (route without an edge)", { [E]: (t) => t.replace(" uat/<client>/signoff.md,", "") });
+  contract2("K17", "a body Reads-from path spelled with a trailing colon-field ('uat/<client>/signoff.md: date') whose reads row is removed", { [E]: (t) => t.replace(/  - from: ow-uat\n    path: uat\/<client>\/signoff\.md\n(    .*\n){3}/, "") });
+});
+
+describe("round-3 plants: D2, D3, D10 and D11", () => {
+  it("D2: an unpriced request priced twice, or priced again without naming its unpriced row", () => {
+    // Once CO-03 cites it, UAT-07 is settled: handed over again (spelled UAT-7), it routes nowhere.
+    const k = temp("ow-build-key-");
+    writeFileSync(join(k, "answer-key.yaml"), "case: probe\nsection: probe\nclient: Larkspur Ceramics\nslug: larkspur-ceramics\nuser: Robin\nrepo: larkspur-repo\nchecks: [route]\nroute: { from: uat/larkspur-ceramics/defects/UAT-7.md, expect: change }\n");
+    expect(runCase("change-sent", null, { caseDir: k })[0].problems.join("\n")).toMatch(/routes to "nothing"/);
+    const silent = mutated("change-uat-repriced", { [`${B}/changes/requests.md`]: (t) => t.replace(" (again: R-06 was unpriced)", "") });
+    expect(failures("change-uat-repriced", silent).change).toMatch(/prices uat\/larkspur-ceramics\/defects\/UAT-07\.md again after R-06 left it unpriced; its request cell names R-06/);
+  });
+  it("D3: a resumed -start that skips spec/, or never records its steps", () => {
+    const edits = Object.fromEntries(["00-project-overview", "02-architecture", "04-integrations", "06-testing", "scope-and-milestones"].map((f) => [`larkspur-repo/spec/${f}.md`, () => null]));
+    expect(failures("start-resume-spec", mutated("start-resume-spec", edits)).start).toMatch(/the spec step was not done before this -start \(start_steps\), so it writes spec\/ before the map; it did not/);
+    const steps = mutated("start-resume-spec", { [`${B}/build.yaml`]: (t) => t.replace(/^start_steps: .*$/m, "start_steps: [answers, ledger]") });
+    expect(failures("start-resume-spec", steps).start).toMatch(/start_steps has no "builder"/);
+  });
+  it("D10: a -run STATUS line that names no milestone", () => {
+    const run = mutated("run-escalated", { "opchain-work/STATUS.md": (t) => t.replace(/awaiting: M1 stopped: escalation on sprint 2\n$/, "awaiting: none\n") });
+    expect(failures("run-escalated", run).run).toMatch(/must name the milestone: "awaiting: M1 stopped: escalation on sprint 2"/);
+  });
+  it("D5: --sent over a signed change order, and --declined that keeps work open", () => {
+    const run = mutated("change-declined", { [`${B}/changes/CO-03.md`]: (t) => t.replace("work: none", "work: not started") });
+    expect(failures("change-declined", run).co_move).toMatch(/a declined change order's work is none/);
+    const extra = mutated("change-sent", { [`${B}/changes/CO-03.md`]: (t) => t.replace("price: 450.00", "price: 500.00") });
+    expect(failures("change-sent", extra).co_move).toMatch(/price changed on a --sent move/);
+  });
 });

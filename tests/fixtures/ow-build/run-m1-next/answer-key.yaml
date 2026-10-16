@@ -15,5 +15,5 @@ checks: [run, builder_name, status, private_names, writes]
 sprint: { milestone: M1, result: pass }
 status:
   lines:
-    - { path: builds/larkspur-ceramics/build.yaml, next: ow-build /ow-build-run builds/larkspur-ceramics/, awaiting: none }
+    - { path: builds/larkspur-ceramics/build.yaml, next: ow-build /ow-build-run builds/larkspur-ceramics/, awaiting: "M1 sprint 2" }
 private_names: [llc-ops, Deftwright]

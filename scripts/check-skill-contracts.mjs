@@ -471,6 +471,7 @@ function familyVerbOwners(c, skills) {
  * business; every own-prefix name is a known family member; NEXT blocks and
  * edge rows are complete.
  */
+const NUMWORDS = "(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million)";
 export function checkFamily(catalogs) {
   const problems = [];
   for (const c of catalogs) {
@@ -493,12 +494,15 @@ export function checkFamily(catalogs) {
     const named = [
       // R1: edges are files and NEXT blocks; ow- text never claims one skill drives another.
       { re: /\bchains? to\b|\binvok(?:e|es|ed|ing)\b|\bauto\b|\bactively invoke/i, what: "wording the cross-talk contract (R1) keeps out of ow- text" },
-      ...c.privateNames.map((n) => ({ re: new RegExp(`(?<![\\w-])${escapeRegExp(n)}(?![\\w-])`, "i"), what: "a private skill" })),
+      // A private skill, however it is spaced ("llc ops", "llc_ops", "llcops").
+      ...c.privateNames.map((n) => ({ re: new RegExp(`(?<![\\w-])${String(n).split(/[-_\s]+/).map(escapeRegExp).join("[\\s_-]?")}(?![\\w-])`, "i"), what: "a private skill" })),
       // A business, however it is spaced or hyphenated ("Deft wright", "Deft-wright").
       ...(c.brandNames ?? []).map((n) => ({ re: new RegExp(`\\b${[...n].map(escapeRegExp).join("[\\s-]?")}\\b`, "i"), what: "a business" })),
       ...(stemRe ? [{ re: stemRe, what: "a skill from another catalog, named without its prefix" }] : []),
       // No real price in skill text: a currency amount, in figures or as "<n> dollars".
       { re: /[$€£]\s?\d|\b\d[\d,]*(?:\.\d+)?\s?(?:dollars?|euros?|pounds? sterling|USD|EUR|GBP)\b|\b(?:USD|EUR|GBP)\s?\d/i, what: "a price (a currency amount)" },
+      // ... or in words ("fifteen hundred dollars").
+      { re: new RegExp(`\\b${NUMWORDS}(?:[\\s-]+(?:and[\\s-]+)?${NUMWORDS})*\\s+(?:dollars?|euros?|pounds?|bucks|quid|grand)\\b`, "i"), what: "a price (an amount in words)" },
     ];
     const files = ids.flatMap((id) => textFiles(join(c.dir, id)).map((r) => ({ rel: `${c.relDir}/${id}/${r}`, abs: join(c.dir, id, r) })));
     // A missing source is reported by checkProtocolCopies.
@@ -713,7 +717,24 @@ export function checkEdges(catalogs) {
           const refText = readFileSync(refPath, "utf8");
           const cited = new Set([...refText.matchAll(/`([^`\s]+)`/g)].map((m) => normPath(m[1])));
           for (const path of rt.paths) if (!cited.has(normPath(path))) problems.push(`${c.relDir}/${s.id}/${rt.reference}: no route for ${path}, which ${e.rel} routes`);
+          // The other way round: a path the reference routes (a "### " route heading names it) is in routes.paths.
+          const routed = new Set(rt.paths.map(normPath));
+          for (const line of refText.split("\n").filter((l) => /^###\s/.test(l))) {
+            for (const m of line.matchAll(/`([^`\s]+)`/g)) if (/\//.test(m[1]) && !routed.has(normPath(m[1]))) problems.push(`${c.relDir}/${s.id}/${rt.reference}: routes ${m[1]} (${line.replace(/^###\s*/, "").slice(0, 40)}…), which ${e.rel} routes.paths does not list`);
+          }
         }
+      }
+      // A phase file that reads a client file (a backticked path with a placeholder, on a line that reads)
+      // has that file in the edges: a reads row, its own writes, or a route.
+      const known = new Set([...e.reads.map((r) => normPath(r.path)), ...e.writes.map((w) => normPath(w.path)), ...(e.routes?.paths ?? []).map(normPath)]);
+      const refDir = join(c.dir, s.id, "references");
+      for (const r of existsSync(refDir) ? readdirSync(refDir).filter((n) => /^phase-.*\.md$/.test(n)).sort() : []) {
+        readFileSync(join(refDir, r), "utf8").split("\n").forEach((line, i) => {
+          if (!/\bread(?:s|ing)?\b/i.test(line)) return;
+          for (const m of line.matchAll(/`([a-z][\w.-]*\/<[a-z]+>\/[^`\s]+\.(?:md|ya?ml|json|csv))`/g)) {
+            if (!known.has(normPath(m[1]))) problems.push(`${c.relDir}/${s.id}/references/${r}:${i + 1}: reads ${m[1]}, which ${e.rel} has no reads row for (nor writes or routes)`);
+          }
+        });
       }
       const edgeSays = new Set(e.hands_off.filter((h) => filled(h.say) && !addons.has(h.to)).map((h) => String(h.say)));
       for (const say of edgeSays) if (!templateSays.has(say)) problems.push(`${e.rel}: the handoff "${say}" has no NEXT template in ${s.id}'s body (ow- contract R15)`);
@@ -773,6 +794,8 @@ export function checkEdges(catalogs) {
           const row = r.reads.find((x) => x.from === p.id && normPath(x.path) === normPath(path));
           if (!row) { problems.push(`${p.rel}: hands off ${path} to ${h.to}, but ${r.rel} has no reads row for it from ${p.id}`); continue; }
           const offered = typeof f === "object" && Array.isArray(f.fields) ? new Set(f.fields.map(String)) : null;
+          // Fields read must be fields handed off (D8): a producer that hands a file to a reader of named fields lists them.
+          if (!offered && Array.isArray(row.fields) && row.fields.length) problems.push(`${p.rel}: hands off ${path} to ${h.to} with no fields list, but ${r.rel} reads fields ${row.fields.join(", ")} of it; list the fields it hands off`);
           if (offered && Array.isArray(row.fields)) {
             for (const field of row.fields.map(String)) if (!offered.has(field)) problems.push(`${r.rel}: reads field \`${field}\` of ${path}, which ${p.rel} does not hand off`);
           }

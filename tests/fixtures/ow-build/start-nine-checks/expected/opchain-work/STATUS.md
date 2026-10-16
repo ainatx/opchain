@@ -2,5 +2,5 @@
 2026-10-30 (clock: user-stated) | ow-build-plan 1.0.0 | plans/fernhill-florists/collection.md | next: ow-build-plan /ow-build-plan-collect plans/fernhill-florists/ | awaiting: material from Fernhill Florists by 2026-11-04
 2026-11-12 (clock: user-stated) | ow-build-plan 1.0.0 | plans/fernhill-florists/quote.md | next: ow-build-plan /ow-build-plan-export plans/fernhill-florists/ | awaiting: client's answer by 2026-11-26
 2026-11-19 (clock: user-stated) | ow-build-plan 1.0.0 | plans/fernhill-florists/build-request.md | next: ow-build /ow-build-start plans/fernhill-florists/ | awaiting: none
-2026-11-23 (clock: user-stated) | ow-build 1.0.0 | builds/fernhill-florists/build.yaml | next: ow-build /ow-build-start plans/fernhill-florists/ | awaiting: none
+2026-11-23 (clock: user-stated) | ow-build 1.0.0 | builds/fernhill-florists/build.yaml | next: ow-build on builds/fernhill-florists/ | awaiting: none
 2026-11-23 (clock: user-stated) | ow-build 1.0.0 | builds/fernhill-florists/build.yaml | next: ow-build /ow-build-invoice builds/fernhill-florists/ | awaiting: update to Fernhill Florists by 2026-11-27

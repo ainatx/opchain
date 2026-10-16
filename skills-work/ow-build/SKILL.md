@@ -97,7 +97,8 @@ Your `handoffs.yaml` `build` entry names it; this skill never does. `mode: opcha
 | ow-build-plan | `plans/<client>/quote.md`: price, schedule, payments, milestones | Refuse `-start` | Record no payment until the user confirms |
 | ow-build-plan | `plans/<client>/plan.yaml`: handling | Quick quote: from `quote.md` | Ask the handling question |
 | ow-build-plan | `plans/<client>/contract-inputs.md`: `documentation_sku`, `documentation_price` | `documentation: none` | Record no line until the user confirms |
-| ow-build-plan | `plans/<client>/scope.md`, `plans/<client>/acceptance.md`, `plans/<client>/risks.md`, `plans/<client>/build-plan.md` (quick: `plans/<client>/quick-scope.md`) | No checks from either: stop `-start` | Stop until every check parses |
+| ow-build-plan | `plans/<client>/scope.md`, `plans/<client>/acceptance.md` (quick: `plans/<client>/quick-scope.md`) | No checks from either: stop `-start` | Stop until every check parses |
+| ow-build-plan | `plans/<client>/risks.md`, `plans/<client>/build-plan.md` | Risks: none recorded; the summary from `build-request.md` | Use the lines that parse |
 | ow-build-plan | `plans/<client>/map/systems.md`, `plans/<client>/map/data.md`, `plans/<client>/map/future.md` | Use `build-request.md`; say so | Use the lines that parse |
 | ow-uat | `uat/<client>/defects/UAT-nn.md`; `uat/<client>/signoff.md`, `uat/<client>/backstop.md`, `uat/<client>/uat.yaml` | Ask for the request; no file, no trigger | Mark no trigger until the user confirms |
 | ow-handoff | `handoffs/<client>/fixes/FIX-nn.md`; `handoffs/<client>/dates.yaml`: `handoff_date` | Ask for the request; no date, no trigger | Ask the user to confirm |
@@ -195,7 +196,8 @@ Print the one that fits when a phase finishes, filled in. A `handoffs.yaml` line
     IF IT IS NOT AVAILABLE: invoice the change order's price by hand; for the builder: handoffs.yaml `build`
 
     DONE: too big for a change order (<n> units; your limit is <max>) -> builds/<client>/changes/requests.md
-    NEXT: say "use ow-build-plan on handoffs/<client>/fixes/FIX-nn.md"   (a UAT request: say "use ow-build-plan on uat/<client>/defects/UAT-nn.md")
+    NEXT: say "use ow-build-plan on handoffs/<client>/fixes/FIX-nn.md"   (where slash commands exist: /ow-build-plan)
+          a UAT request: say "use ow-build-plan on uat/<client>/defects/UAT-nn.md"   (where slash commands exist: /ow-build-plan)
           It will read: the FIX-nn or UAT-nn file, the earlier plan
           [no folder attached: attach that file when you say it]
     IF IT IS NOT AVAILABLE: offer a follow-on Build Plan by hand.

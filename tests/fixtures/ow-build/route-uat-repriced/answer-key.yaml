@@ -1,0 +1,12 @@
+# Answer key: route-uat-repriced (INVENTED). Sprint 2 round 2, D2: UAT-07's
+# only row is unpriced, which does not settle it, so handing it over again lands
+# on -change (routing-and-resume.md 2.2). Graded on the change-uat-repriced run.
+case: route-uat-repriced
+section: "Inbound route (a UAT-nn whose row is unpriced)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+run: change-uat-repriced
+checks: [route]
+route: { from: uat/larkspur-ceramics/defects/UAT-07.md, expect: change }

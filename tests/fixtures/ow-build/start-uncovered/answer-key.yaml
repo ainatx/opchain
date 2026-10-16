@@ -19,6 +19,6 @@ start_stopped: true
 spec: { checks: 9 }
 status:
   lines:
-    - { path: builds/fernhill-florists/build.yaml, next: ow-build /ow-build-start plans/fernhill-florists/, awaiting: none }
+    - { path: builds/fernhill-florists/build.yaml, next: ow-build on builds/fernhill-florists/, awaiting: none }
     - { path: builds/fernhill-florists/build.yaml, next: ow-build on builds/fernhill-florists/, awaiting: none }
 private_names: [llc-ops, Deftwright]

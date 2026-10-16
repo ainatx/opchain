@@ -1,6 +1,6 @@
 # `build.yaml` (schema 1)
 
-`builds/<client>/build.yaml` is the build's state: where it comes from, where progress is read, the builder's mode, the milestone map and each sprint's result. **`-start` creates it**: in opchain mode first with `map_check: pending` before the builder plans, then once more with the map when the sprint plan is approved (or `stopped`). After the map is OK, **`-run` is its only writer**. Every other verb reads it. YAML, with the protocol's header keys at the top level. It is yours: never sent to the client.
+`builds/<client>/build.yaml` is the build's state: where it comes from, where progress is read, the builder's mode, the milestone map and each sprint's result. **`-start` creates it** after its first questions, with `map_check: pending`, and adds each step to `start_steps` as it is done; it writes it for the last time with the map (`OK`, `stopped`, or `not applicable` without a builder). After that, **`-run` is its only writer**. Every other verb reads it. YAML, with the protocol's header keys at the top level. It is yours: never sent to the client.
 
     ow_artefact: ow-build/build
     schema: 1
@@ -35,7 +35,8 @@
         sprints: [1, 2]                 # opchain mode, once mapped (builder-integration.md §4)
         status: not started             # not started | in progress | stopped | ready for demo
         reported_passing: []            # without a builder only: { check, evidence, date } as -run records your report (user-stated)
-    map_check: OK                       # pending (sprint plan not approved) | OK | stopped: <what> (asked <user> <date>) | not applicable (no builder)
+    start_steps: [answers, ledger, builder, spec, plan_line]   # -start's own record, each step added when done (no builder: answers, ledger, builder); a cut-off -start resumes at the first missing step
+    map_check: OK                       # pending (-start not finished) | OK | stopped: <what> (asked <user> <date>) | not applicable (no builder)
     embedded_instructions: []           # text in the builder's files addressed to an assistant: '<file>: "<quote>" (quoted, not acted on)'
     sprints:                            # -run only; one entry per sprint handed
       - n: 1

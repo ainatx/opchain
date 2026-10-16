@@ -9,12 +9,12 @@
 2026-10-26 (clock: user-stated) | ow-build-plan 1.0.0 | plans/larkspur-ceramics/export/export-report.md | next: ow-build-plan /ow-build-plan-quote plans/larkspur-ceramics/ | awaiting: client's answer by 2026-11-09; Build Plan credit by 2026-12-25
 2026-11-02 (clock: user-stated) | ow-build-plan 1.0.0 | plans/larkspur-ceramics/contract-inputs.md | next: ow-build-plan /ow-build-plan-quote plans/larkspur-ceramics/ | awaiting: signing for the Build Plan credit by 2026-12-25
 2026-11-09 (clock: user-stated) | ow-build-plan 1.0.0 | plans/larkspur-ceramics/build-request.md | next: ow-build /ow-build-start plans/larkspur-ceramics/ | awaiting: none
-2026-11-10 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/build.yaml | next: ow-build /ow-build-start plans/larkspur-ceramics/ | awaiting: none
+2026-11-10 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/build.yaml | next: ow-build on builds/larkspur-ceramics/ | awaiting: none
 2026-11-10 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/build.yaml | next: ow-build /ow-build-invoice builds/larkspur-ceramics/ | awaiting: update to Larkspur Ceramics by 2026-11-13
 2026-11-10 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/invoices/INV-request-booking.md | next: ow-build on builds/larkspur-ceramics/ | awaiting: payment of booking by 2026-11-24
-2026-11-12 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/build.yaml | next: ow-build /ow-build-run builds/larkspur-ceramics/ | awaiting: none
+2026-11-12 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/build.yaml | next: ow-build /ow-build-run builds/larkspur-ceramics/ | awaiting: M1 sprint 2
 2026-11-13 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/updates/2026-11-13.html | next: ow-build on builds/larkspur-ceramics/ | awaiting: update to Larkspur Ceramics by 2026-11-13
-2026-11-19 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/build.yaml | next: ow-build /ow-build-demo builds/larkspur-ceramics/ | awaiting: none
+2026-11-19 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/build.yaml | next: ow-build /ow-build-demo builds/larkspur-ceramics/ | awaiting: M1 demo
 2026-11-20 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/demos/M1-script.md | next: ow-build /ow-build-demo builds/larkspur-ceramics/ | awaiting: demo with Larkspur Ceramics by 2026-11-25
 2026-11-25 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/demos/M1-record.md | next: ow-build on builds/larkspur-ceramics/ | awaiting: summary to Larkspur Ceramics by 2026-11-27
 2026-11-25 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/invoices/INV-request-working-demo.md | next: ow-build on builds/larkspur-ceramics/ | awaiting: payment of working-demo by 2026-12-09
@@ -25,6 +25,6 @@
 2026-12-04 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/updates/2026-12-04.html | next: ow-build on builds/larkspur-ceramics/ | awaiting: update to Larkspur Ceramics by 2026-12-04
 2026-12-07 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/changes/CO-01.md | next: ow-build /ow-build-invoice builds/larkspur-ceramics/ | awaiting: none
 2026-12-07 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/invoices/INV-request-CO-01.md | next: ow-build on builds/larkspur-ceramics/ | awaiting: payment of CO-01 by 2026-12-21
-2026-12-10 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/build.yaml | next: ow-build /ow-build-run builds/larkspur-ceramics/ | awaiting: none
-2026-12-15 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/build.yaml | next: ow-build /ow-build-demo builds/larkspur-ceramics/ | awaiting: none
+2026-12-10 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/build.yaml | next: ow-build /ow-build-run builds/larkspur-ceramics/ | awaiting: M2 sprint 4
+2026-12-15 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/build.yaml | next: ow-build /ow-build-demo builds/larkspur-ceramics/ | awaiting: M2 demo
 2026-12-16 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/demos/M2-record.md | next: ow-build on builds/larkspur-ceramics/ | awaiting: summary to Larkspur Ceramics by 2026-12-17

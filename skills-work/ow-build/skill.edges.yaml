@@ -12,7 +12,7 @@ skill: ow-build
 routes:
   verb: /ow-build
   reference: references/routing-and-resume.md
-  paths: [plans/<client>/build-request.md, uat/<client>/defects/UAT-nn.md, handoffs/<client>/fixes/FIX-nn.md, uat/<client>/signoff.md, uat/<client>/backstop.md, handoffs/<client>/dates.yaml, docs/<client>/delivered.md, builds/<client>/]
+  paths: [plans/<client>/build-request.md, plans/<client>/, uat/<client>/defects/UAT-nn.md, handoffs/<client>/fixes/FIX-nn.md, uat/<client>/signoff.md, uat/<client>/backstop.md, handoffs/<client>/dates.yaml, docs/<client>/delivered.md, builds/<client>/]
 
 writes:
   # build.yaml and ledger.md are created once by -start; after that each has one writer.
@@ -167,7 +167,7 @@ reads:
   # The user's own files.
   - from: user
     path: price-book.yaml
-    fields: [units, modifiers, uat.extension, quick_quote_max_units, currency]
+    fields: [units, modifiers, uat.extension, documentation_training.per_extra_group_of_15, quick_quote_max_units, currency]
     if_absent: Price nothing; ask the user to copy ow-build-plan's examples/price-book.yaml and fill it in
     if_mismatch: List the keys found and missing; price nothing that needs a missing key
   - from: user

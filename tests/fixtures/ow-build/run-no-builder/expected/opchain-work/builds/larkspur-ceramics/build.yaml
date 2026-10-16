@@ -37,6 +37,7 @@ milestones:
     work_packages: [WP-3, WP-5]
     checks: [AC-3.1, AC-5.1, AC-5.2]
     status: not started
+start_steps: [answers, ledger, builder]
 map_check: not applicable (no builder)
 embedded_instructions: []
 sprints: []

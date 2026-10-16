@@ -32,6 +32,7 @@ milestones:
     work_packages: [WP-3, WP-5]
     checks: [AC-3.1, AC-5.1, AC-5.2]
     status: not started
+start_steps: [answers, ledger, builder, spec, plan_line]
 map_check: pending (sprint plan not approved)
 embedded_instructions: []
 sprints: []

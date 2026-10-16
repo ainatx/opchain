@@ -43,7 +43,7 @@ Every spec file:
 - copies checks and packages by their ids (`WP-n`, `AC-n.m`), so the builder's sprint plan can cite them;
 - holds **no price, fee, payment terms, rate, margin, unit or modifier of yours**: never the quote's amounts or internal appendix, and nothing from `price-book.yaml`. The quote is read for its Milestones list only. The client's own facts stay as the plan has them (a till export's price column, the cost of a mistake in their numbers).
 
-`spec/06-testing.md` holds one `## WP-n <name>` section per package and, under it, each `### AC-n.m` block exactly as the plan has it (`when`, `then`, `how we check`, `test data`, `cases`, `kind`). These become the builder's done-criteria. Its last line before `## Sources` reads: "Checks added later by signed change orders are in `spec/06-testing-change-orders.md`." Nothing edits the file after `-start`; the checks a signed change order adds go in `spec/06-testing-change-orders.md` (section 6), and `06-testing.md` says so in its last line before `## Sources`.
+`spec/06-testing.md` holds one `## WP-n <name>` section per package and, under it, each `### AC-n.m` block exactly as the plan has it (`when`, `then`, `how we check`, `test data`, `cases`, `kind`). These become the builder's done-criteria. Its last line before `## Sources` reads: "Checks added later by signed change orders are in `spec/06-testing-change-orders.md`." Nothing edits the file after `-start`: those checks go in that file (section 6).
 
 Run the **No internal numbers** self-check over the five files before printing the `plan` line.
 

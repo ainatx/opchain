@@ -346,8 +346,11 @@ const ALLOWED = new Set(["html", "head", "meta", "title", "body", "table", "tbod
 const PARENTS = { tr: ["table", "tbody", "thead"], td: ["tr"], th: ["tr"], li: ["ul", "ol"], tbody: ["table"], thead: ["table"], head: ["html"], body: ["html"], title: ["head"], meta: ["head"] };
 
 /** Validate one email's HTML as the template's rules say; returns problems. */
-export function validateEmailHtml(html) {
+export function validateEmailHtml(html, { logoAlt } = {}) {
   const p = [];
+  // Contrast (D6): the text colour and background each piece of text actually gets, inherited down the tree.
+  const styles = [{ color: "#000000", bg: "#FFFFFF", size: 16, bold: false }];
+  const lowContrast = new Set();
   if (!/^<!DOCTYPE html>\s*\n/i.test(html)) p.push("does not start with <!DOCTYPE html>");
   const body = html.replace(/^<!DOCTYPE html>/i, "");
   const tokens = [...body.matchAll(/<!--[\s\S]*?-->|<\/?([A-Za-z][A-Za-z0-9]*)([^<>]*?)(\/?)>|([^<]+)|(<)/g)];
@@ -361,6 +364,13 @@ export function validateEmailHtml(html) {
     if (text !== undefined) {
       if (/&(?![a-z]+;|#\d+;|#x[0-9a-f]+;)/i.test(text)) p.push(`a raw & in the text ("${text.trim().slice(0, 30)}")`);
       if (stack.at(-1) === "title") seen.title += text;
+      if (stack.includes("body") && decode(text).trim()) {
+        const s = styles.at(-1);
+        const large = s.size >= 24 || (s.size >= 18.66 && s.bold);
+        const r = contrast(s.color, s.bg);
+        const min = large ? 3 : 4.5;
+        if (r < min) lowContrast.add(`text ${s.color} on ${s.bg} is ${r.toFixed(2)}:1, under ${min}:1 ("${decode(text).trim().slice(0, 30)}")`);
+      }
       continue;
     }
     const tag = name;
@@ -372,6 +382,7 @@ export function validateEmailHtml(html) {
       if (VOID.has(t)) { p.push(`</${t}>: ${t} is a void element`); continue; }
       if (stack.at(-1) !== t) { p.push(`</${t}> closes ${stack.at(-1) ? `<${stack.at(-1)}>` : "nothing"}`); const i = stack.lastIndexOf(t); if (i >= 0) stack.length = i; continue; }
       stack.pop();
+      if (styles.length > 1) styles.pop();
       continue;
     }
     // Attributes: name="value", lower case, no duplicates, no event handlers.
@@ -392,7 +403,12 @@ export function validateEmailHtml(html) {
     if (t === "meta" && /utf-8/i.test(attr("charset") ?? "")) charset = true;
     if (t === "h1") seen.h1++;
     if (/^h[1-3]$/.test(t)) seen.headings.push(Number(t[1]));
-    if (t === "img") { seen.img++; if (!(attr("alt") ?? "").trim()) p.push("an <img> without alt text"); }
+    if (t === "img") {
+      seen.img++;
+      if (!(attr("alt") ?? "").trim()) p.push("an <img> without alt text");
+      // A logo only with logo_alt, and its alt is that text (email-template.md).
+      else if (logoAlt !== undefined && attr("alt") !== logoAlt) p.push(logoAlt ? `an <img> whose alt "${attr("alt")}" is not brand.yaml logo_alt "${logoAlt}"` : `an <img> (alt "${attr("alt")}"), but brand.yaml has no logo_alt; the logo is left out then`);
+    }
     if (t === "table" && attr("role") !== "presentation") seen.tablesWithoutRole++;
     if (t === "table" && attr("width") === "600") seen.width600 = true;
     if (t === "a") {
@@ -401,8 +417,19 @@ export function validateEmailHtml(html) {
       if (/^(?:here|click here|https?:\/\/\S+)$/i.test(label)) p.push(`a link whose text is "${label}"; link text says where it goes`);
     }
     if (!VOID.has(t) && raw.endsWith("/>")) p.push(`<${t} />: only void elements close themselves`);
-    if (!VOID.has(t)) stack.push(t);
+    if (!VOID.has(t)) {
+      stack.push(t);
+      const up = styles.at(-1);
+      const st = attr("style") ?? "";
+      const pick = (re) => (st.match(re) ?? [])[1];
+      const color = cssColor(pick(/(?:^|;)\s*color:\s*([^;]+)/i));
+      const bg = cssColor(pick(/background(?:-color)?:\s*([^;]+)/i) ?? attr("bgcolor"));
+      const size = Number((pick(/font-size:\s*([\d.]+)px/i) ?? NaN));
+      const bold = /^h[1-3]$|^(?:strong|th)$/.test(t) || /font-weight:\s*(?:bold|[6-9]00)/i.test(st);
+      styles.push({ color: color ?? up.color, bg: bg ?? up.bg, size: Number.isFinite(size) ? size : t === "h1" ? 32 : t === "h2" ? 24 : t === "h3" ? 18.72 : up.size, bold: bold || up.bold });
+    }
   }
+  for (const x of lowContrast) p.push(x);
   if (stack.length) p.push(`unclosed: ${stack.map((t) => `<${t}>`).join(" ")}`);
   if (!lang) p.push("<html> has no lang");
   if (!charset) p.push('no <meta charset="utf-8">');
@@ -412,14 +439,19 @@ export function validateEmailHtml(html) {
   if (seen.tablesWithoutRole) p.push(`${seen.tablesWithoutRole} layout table(s) without role="presentation"`);
   if (!seen.width600) p.push("no 600 px content table");
   if (/<style|<link|<script/i.test(html)) p.push("a <style>, <link> or <script> element; every style is inline");
-  // Contrast (email-template.md): every text colour 4.5:1 on the background; an h1 (24 px and up) 3:1.
-  const bg = (html.match(/<body[^>]*background-color:\s*(#[0-9a-f]{6})/i) ?? [])[1] ?? "#FFFFFF";
-  for (const m of html.matchAll(/<(h1|h2|h3|p|li|td|span|a|strong|em)\b[^>]*style="[^"]*?(?<![-\w])color:\s*(#[0-9a-f]{6})/gi)) {
-    const r = contrast(m[2], bg);
-    const min = m[1].toLowerCase() === "h1" ? 3 : 4.5;
-    if (r < min) p.push(`<${m[1]}> text ${m[2]} on ${bg} is ${r.toFixed(2)}:1, under ${min}:1`);
-  }
   return p;
+}
+/** A CSS colour as #rrggbb: #rgb, #rrggbb, rgb(r, g, b), or a few names; anything else (inherit, transparent) is no colour. */
+export function cssColor(v) {
+  if (v == null) return null;
+  const s = String(v).trim().toLowerCase().replace(/\s*!important$/, "");
+  const NAMES = { white: "#ffffff", black: "#000000", gray: "#808080", grey: "#808080", silver: "#c0c0c0", red: "#ff0000", blue: "#0000ff", navy: "#000080" };
+  if (NAMES[s]) return NAMES[s];
+  let m;
+  if ((m = s.match(/^#([0-9a-f]{3})$/))) return `#${[...m[1]].map((c) => c + c).join("")}`;
+  if ((m = s.match(/^#([0-9a-f]{6})$/))) return `#${m[1]}`;
+  if ((m = s.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/))) return `#${m.slice(1, 4).map((x) => Math.min(255, Number(x)).toString(16).padStart(2, "0")).join("")}`;
+  return null;
 }
 const lum = (hex) => { const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
 export const contrast = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
@@ -437,7 +469,8 @@ function checkEmailPair(run, htmlRel) {
   const p = [];
   const html = run.read(htmlRel);
   if (html == null) return [`${htmlRel} was not written`];
-  for (const x of validateEmailHtml(html)) p.push(`${htmlRel}: ${x}`);
+  const brand = (() => { try { return yaml.load(run.read(`${OW}brand.yaml`) ?? "") ?? {}; } catch { return {}; } })();
+  for (const x of validateEmailHtml(html, { logoAlt: brand.logo_alt ?? "" })) p.push(`${htmlRel}: ${x}`);
   const txtRel = htmlRel.replace(/\.html$/, ".txt");
   const txt = run.read(txtRel);
   if (txt == null) return [...p, `${txtRel} was not written; every email has a plain-text twin`];
@@ -485,6 +518,117 @@ export const DONE_WORDS = /\b(?:done|finished|complete[ds]?|completed|working|wo
 /** "Started", however worded (design §6 signature gate). */
 export const STARTED_WORDS = /\b(?:start(?:ed|ing|s)?|begun|began|underway|under way|in progress|working on|work on|building|built|added|adding|making progress|kicked off|on it|picked up|got going|rolling|implement(?:ed|ing)?|develop(?:ed|ing)?|handed (?:it )?to the builder|making headway|progressing|first cut|first pass|prototyp(?:e|ed|ing)|sketch(?:ed|ing)?|scaffold(?:ed|ing)?|coming along|shaping up|well advanced|nearly there|almost (?:done|there|ready)|under construction|in the works|in hand|on track)\b/i;
 
+// ── meaning by category (round 2, D1) ───────────────────────────────────────
+// Category rules, not phrase lists: each names a kind of statement a client
+// output never makes, matched by its shape (a quantity with a unit of time, an
+// amount of money, a ratio, our side of the money, a completion claim, work
+// under way). An allowed client-facing field is exempt by where it sits (the
+// payment terms, a change order's Schedule, a date that moves), never by wording.
+const QTY = `(?:\\d+(?:[.,]\\d+)?|${NUMWORD}(?:[\\s-]+(?:and[\\s-]+)?${NUMWORD})*|an?|half an?|a couple of|a few|several|a dozen|dozens of|many|most of(?: the| a| last| this| that)?|all(?: of)?(?: the| last| this)?)`;
+const TIME_UNIT = "(?:minutes?|mins?|hours?|hrs?|days?|nights?|evenings?|mornings?|afternoons?|weekends?|weeks?|fortnights?|months?|[a-z]+-days?|[a-z]+-hours?|[a-z]+-weeks?)";
+/** Any quantity of time or effort: "a fortnight", "three long evenings", "40 hours", "two developer-days", "most of last weekend". */
+export const TIME_QTY = new RegExp(`\\b${QTY}[\\s-]+(?:[a-z]+[\\s-]+){0,2}?${TIME_UNIT}\\b|\\bfortnight\\b`, "i");
+/** Any amount of money: a currency sign or code with a number, "2k", "1.5 grand", "500 bucks", an amount in words. */
+export const MONEY_QTY = new RegExp(`[$€£]\\s?\\d|\\b(?:USD|EUR|GBP)\\s?\\d|\\b\\d+(?:[.,]\\d+)?\\s?(?:k|K|grand|bucks|quid|dollars?|euros?|pounds?)\\b|\\b${NUMWORD}(?:[\\s-]+(?:and[\\s-]+)?${NUMWORD})*\\s+(?:dollars?|pounds?|euros?|bucks|quid|grand)\\b`, "i");
+/** Any ratio, multiplier or fraction of a price: "25%", "1.25×", "one and a quarter times", "a quarter on top", "doubled", "a fifth". */
+export const RATIO = /\b\d+(?:\.\d+)?\s?(?:%|per ?cent|percent)|\b\d+(?:\.\d+)?\s?[x×](?!\w)|(?:^|[\s(])[x×]\s?\d|\b(?:\w+ )?(?:and an? (?:half|quarter|third) )?times (?:the|our|as|what|that)\b|\b(?:doubl|tripl|halv)(?:e|ed|es|ing)\b|\btwice (?:the|our|as)\b|\b(?:an?|one|two|three) (?:half|third|quarter|fifth|tenth)s?\b(?! of the (?:orders?|lines?|items?|codes?|customers?))|\bfactor\b|\bon top\b/i;
+/** Our side of the money: what the work costs us against what we charged, a profit or a loss, our rates. */
+export const OUR_MONEY = /\b(?:profit\w*|loss(?:es)?|los(?:e|es|ing|t) money|cost(?:s|ing)? (?:us|me)|(?:over|under)[- ]?charg\w*|charged|out of pocket|in the red|break(?:ing)? even|eat(?:s|ing)? into|our (?:costs?|rates?|charges?|fees?|pricing|estimates?|budgets?|hours?|time)|(?:usual|normal|standard|list|base) (?:charge|rate|price|amount|fee))\b/i;
+/** Ran past what we planned, with no number: a comparison against our own plan or estimate. */
+export const OVER_PLAN = /\b(?:past|over|beyond|more than|longer than|exceed\w*|above)\s+(?:what\s+|the time\s+)?(?:we|I|our)\b[^.]{0,30}\b(?:allowed|planned|expected|estimated|budgeted|thought|hoped|allocated|quoted)\b/i;
+/** A client-facing time is exempt where it sits: the payment terms, a change order's Schedule, a date that moves. */
+const TIME_FIELD = (head, s) => /^Schedule$/i.test(head) || /\bdue within \d+ days\b/i.test(s) || (/\b(?:mov(?:e|es|ed|ing)|later|earlier|delay(?:s|ed)?|postpone[sd]?|back by|forward by)\b/i.test(s) && /\b(?:demo|milestone|date|dates|testing|deadline|handoff|sign-?off)\b/i.test(s));
+/** A percentage is client-facing in a payment schedule sentence. */
+const PAYMENT_SENTENCE = /\b(?:payment|invoice[ds]?|booking|deposit|balance|due)\b/i;
+
+/** A completion claim, however worded: a done word, "now <verb>", "no longer", or a perfect that is not a start ("has run", "have been converted"). */
+const STARTISH = /^(?:begun|started|kicked|got|been working|been building)$/i;
+export function completionClaim(s) {
+  const t = s.replace(NEGATED_DONE, " ");
+  const m = t.match(DONE_WORDS) ?? t.match(/\bnow\b(?! that| on\b| and then)(?:\s+\w+)?|\bno longer\b|\b(?:has|have|had)\s+(?:all\s+|now\s+|already\s+|just\s+|finally\s+)?been\s+\w+/i);
+  if (m) return m[0];
+  const perf = t.match(/\b(?:has|have)\s+(?:all\s+|now\s+|already\s+|just\s+|finally\s+)?(\w+(?:ed|en|un|ne|wn|t))\b/i);
+  return perf && !STARTISH.test(perf[1]) && !/^been$/i.test(perf[1]) ? perf[0] : null;
+}
+/** Work under way, however worded: a started word, "already", a first-person deed, work half done, work continuing. */
+const PAPERWORK = /^(?:sent|asked|priced|agreed|written|wrote|drafted|received|raised|quoted|noted|recorded|requested|signed|emailed|discussed|explained|shown|showed|went|talked|told|said|heard|confirmed|checked|read|looked|met|called|spoke|answered|replied|offered|proposed|suggested)$/i;
+export function underWay(s) {
+  const t = s.replace(NOT_STARTED, " ");
+  const m = t.match(STARTED_WORDS) ?? t.match(/\balready\b|\b(?:half|partly|partially|mostly|largely)[\s-](?:built|done|finished|made|working|ready|written|complete)\b|\bfirst (?:draft|cut|version|pass|screens?|steps?|parts?)\b|\bground ?work\b|\bfoundations?\b|\bprototype\b|\b(?:keep|continue|carry on|carrying on|still)\s+\w+ing\b|\brefin\w+|\bpolish\w+/i);
+  if (m) return m[0];
+  const deed = t.match(/\b(?:we|I|our (?:team|builder)|the builder)\s+(?:have\s+|has\s+|'ve\s+|had\s+|are\s+|is\s+|am\s+)?(?:already\s+|just\s+)?(\w+(?:ed|en|ing|t)|made|put|built|laid|got|set|began|did|done|wrote)\b/i);
+  return deed && !PAPERWORK.test(deed[1]) && !/^(?:will|would|can|could|should)$/i.test(deed[1]) ? deed[0] : null;
+}
+
+/**
+ * The acceptance checks a sentence is about: those its words share most with
+ * (when + then), every one tied at the top. A sentence naming a check id is
+ * about that check. None when it shares no word with any check.
+ */
+export function checksAbout(s, checks) {
+  const named = [...new Set(s.match(/\bAC-[\w.-]*\d/g) ?? [])];
+  if (named.length) return named;
+  const w = new Set(tokens(s));
+  const sets = [...checks].map(([id, b]) => [id, new Set(tokens(`${b.keys?.when ?? ""} ${b.keys?.then ?? ""}`))]);
+  // Words most checks share ("order", "sheet") say little; a word only one check uses says most.
+  const idf = (x) => Math.log((sets.length + 1) / (sets.filter(([, c]) => c.has(x)).length || sets.length + 1));
+  let best = 0, top = [];
+  for (const [id, cw] of sets) {
+    const score = Math.round([...w].filter((x) => cw.has(x)).reduce((a, x) => a + idf(x), 0) * 1000) / 1000;
+    if (score > best) { best = score; top = [id]; } else if (score === best && score > 0) top.push(id);
+  }
+  return best > 0 ? top : [];
+}
+
+/** A file's client text as blocks under their headings: [{ head, text }] (html h2s, md ##, txt paragraphs). */
+function blocksOf(f, raw, client) {
+  if (f.endsWith(".html")) {
+    const heads = [...raw.matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/g)].map((m) => decode(m[1]).trim());
+    return [{ head: "", text: decode((raw.split(/<h2/)[0] ?? "").replace(/<title>[\s\S]*?<\/title>/i, "").replace(/<[^>]+>/g, " ")) }, ...heads.map((h) => ({ head: h, text: htmlSection(raw, h) ?? "" }))];
+  }
+  if (f.endsWith(".md")) return client.split(/^##\s+/m).map((b, i) => (i === 0 ? { head: "", text: b } : { head: b.split("\n")[0].trim(), text: b.split("\n").slice(1).join("\n") }));
+  return client.split(/\n\s*\n/).map((b) => { const l = b.trim().split("\n"); return l.length > 1 && l[0].length < 60 && !/[.!?:]$/.test(l[0]) ? { head: l[0].trim(), text: l.slice(1).join("\n") } : { head: "", text: b }; });
+}
+/** Prose only: no table rows, no check blocks (a check's own wording is the plan's), no Next blocks. */
+const proseOf = (text) => text.split("\n").filter((l) => !/^\s*\|/.test(l) && !/^\s*-\s*(?:when|then|how we check|test data|cases|kind):/i.test(l) && !/^\s*(?:NEXT|DONE|IF IT IS NOT AVAILABLE)\b/.test(l.trim())).join("\n");
+/** The category findings for one client sentence. */
+function categoryFindings(head, s, legit) {
+  const out = [];
+  const t = s.replace(/\bAC-[\w.-]+/g, " ").replace(/`[^`]*`/g, " ");
+  if (/acceptance checks?/i.test(head)) return out;
+  let m;
+  // A frequency ("once a day", "twice a week", "per hour") is how the client's system runs, not our effort.
+  const timeHit = [...t.matchAll(new RegExp(TIME_QTY.source, "gi"))].find((x) => !/\b(?:once|twice|times|per|each|every)\s*$/i.test(t.slice(0, x.index)) || !/^an?\s/i.test(x[0]));
+  if (timeHit && !TIME_FIELD(head, t)) out.push(["a quantity of time or effort", timeHit[0]]);
+  for (const x of t.matchAll(new RegExp(MONEY_QTY.source, "gi"))) {
+    const usd = x[0].match(/^(?:USD|EUR|GBP)\s?(\d[\d,]*(?:\.\d+)?)/i) ?? x[0].match(/^[$€£]\s?(\d[\d,]*(?:\.\d+)?)/);
+    const full = usd ? t.slice(x.index).match(/^(?:USD|EUR|GBP|[$€£])\s?(\d[\d,]*(?:\.\d+)?)/i) : null;
+    if (full && legit.has(cents(full[1]))) continue;
+    out.push(["an amount of money that is not a client-facing figure", x[0]]);
+  }
+  if ((m = t.match(RATIO)) && !(/%|per ?cent|percent/i.test(m[0]) && PAYMENT_SENTENCE.test(t) && !OUR_MONEY.test(t))) out.push(["a ratio, multiplier or fraction of a price", m[0]]);
+  if ((m = t.match(OUR_MONEY))) out.push(["our side of the money (cost against charge, profit or loss, our rates)", m[0]]);
+  if ((m = t.match(OVER_PLAN))) out.push(["an overrun against our own plan", m[0]]);
+  return out;
+}
+
+/** Spec words (§12.2, §12.7): any money or payment wording at all, unless the line is the client's own fact from the plan. */
+export const SPEC_MONEY = new RegExp(`\\b(?:pay|pays|paying|paid|payments?|payable|invoic\\w*|bill(?:s|ed|ing)?|deposits?|instal?ments?|balance|money|fees?|price[ds]?|pricing|costs?|costing|charge[ds]?|worth|valued?|owed?|owing|dollars?|euros?|pounds?|budgets?|margins?|profit\\w*|half|halves|percent|per cent|refund\\w*)\\b|%|[$€£]|\\b(?:USD|EUR|GBP)\\b|\\b\\d+k\\b|${AMOUNT_IN_WORDS.source}`, "i");
+const tokens = (s) => (String(s).toLowerCase().match(/[a-z][a-z-]{2,}/g) ?? []).filter((w) => !SPEC_STOP.has(w)).map((w) => w.replace(/(?:ing|ed|es|s|e)$/, "")).filter((w) => w.length > 2);
+const SPEC_STOP = new Set(["the", "and", "for", "are", "with", "that", "this", "from", "into", "your", "our", "not", "all", "one", "its", "their", "them", "they", "each", "who", "what", "when", "then", "there", "which", "will", "would", "can", "has", "have", "was", "were", "been", "being", "but", "any", "every", "per", "via", "out", "also", "than"]);
+/** Lines of the client's own facts: the plan files a spec file names under ## Sources, never the quote, the contract inputs or the price book (and no payment line of the build request). */
+function clientFactLines(run, key, specText) {
+  const src = [...(sectionText(specText, "Sources") ?? "").matchAll(/`([^`]+)`/g)].map((m) => m[1]).filter((p) => !/quote\.md|contract-inputs|price-book/.test(p));
+  // Windows of three lines: a package heading and its description are one fact.
+  return src.flatMap((p) => { const l = (run.read(rootRel(key, p.replace(/^\.?\/?(?:opchain-work\/)?/, ""))) ?? "").split("\n").filter((x) => x.trim()); const w = l.map((_, i) => l.slice(i, i + 3).join(" ")); return /build-request\.md/.test(p) ? w.filter((x) => !/\b(?:pay\w*|deposit|instal\w*|balance|booking|fixed price|signed|signing)\b|%/i.test(x)) : w; });
+}
+/** A spec line is a client fact when most of its words come from one line of the plan's own files. */
+function isClientFact(line, facts) {
+  const w = tokens(line);
+  if (!w.length) return true;
+  return facts.some((f) => { const fw = new Set(tokens(f)); return w.filter((x) => fw.has(x)).length / w.length >= 0.7; });
+}
+
 /** Amounts (cents) that are internal: price-book units, quote pricing lines, the extension rate, margin figures. */
 function internalAmounts(run, key) {
   const out = new Set();
@@ -518,8 +662,14 @@ function legitAmounts(run, key) {
     add(d.fixed_price); add(d.build_total); (d.payments ?? []).forEach(add); add(d.uat?.price);
     if (typeof d.documentation_training?.price === "number") add(d.documentation_training.price);
   }
-  for (const f of run.all().filter((x) => new RegExp(`^${esc(build(key))}/changes/CO-\\d+\\.md$`).test(x))) {
-    try { add(matter(run.read(f)).data.price); } catch { /* reported by change */ }
+  let total = q ? cents(matter(q).data.fixed_price) : NaN;
+  for (const f of run.all().filter((x) => new RegExp(`^${esc(build(key))}/changes/CO-\\d+\\.md$`).test(x)).sort()) {
+    try {
+      const d = matter(run.read(f)).data;
+      add(d.price);
+      // The contract total once a change order is signed: the fixed price plus the signed change orders.
+      if (d.status === "signed" && Number.isFinite(total)) { total += cents(d.price); out.add(total); }
+    } catch { /* reported by change */ }
   }
   return out;
 }
@@ -620,10 +770,16 @@ function checkStart(key, run) {
     if (/\/ledger\.md$/.test(f) || /\/spec\//.test(f)) p.push(`${f}: existed before this -start and was rewritten; a resumed -start goes to the map and leaves the ledger and spec/ alone`);
   }
   const priorB = run.priorRead(rel);
-  if (priorB != null) {
-    const pb = (() => { try { return yaml.load(priorB) ?? {}; } catch { return {}; } })();
-    if (!/^(pending|stopped)/.test(String(pb.map_check ?? ""))) p.push(`build.yaml: -start ran over a build.yaml whose map_check is ${pb.map_check}; it resumes only a pending or stopped map`);
-  }
+  const pb = priorB == null ? null : (() => { try { return yaml.load(priorB) ?? {}; } catch { return {}; } })();
+  if (pb && !/^(pending|stopped)/.test(String(pb.map_check ?? ""))) p.push(`build.yaml: -start ran over a build.yaml whose map_check is ${pb.map_check}; it resumes only a pending or stopped map`);
+  // The per-step record (D3): a finished -start has done every step its mode has; a resumed one does the steps not yet done.
+  const steps = mode === "opchain" ? ["answers", "ledger", "builder", "spec", "plan_line"] : ["answers", "ledger", "builder"];
+  const done = new Set((b.start_steps ?? []).map(String));
+  for (const s of steps) if (!done.has(s)) p.push(`build.yaml: start_steps has no "${s}"; -start records each step as it finishes (${steps.join(", ")})`);
+  const was = new Set(pb ? (pb.start_steps ?? []).map(String) : [...(run.priorExists(`${build(key)}/ledger.md`) ? ["ledger"] : []), ...(SPEC_FILES.every((f) => run.priorExists(`${key.repo}/spec/${f}.md`)) ? ["spec"] : [])]);
+  if (!was.has("ledger") && !run.written().includes(`${build(key)}/ledger.md`)) p.push(`${build(key)}/ledger.md: the ledger step was not done before and this -start did not write it`);
+  if (mode === "opchain" && !was.has("spec")) for (const f of SPEC_FILES) if (!run.written().includes(`${key.repo}/spec/${f}.md`)) p.push(`${key.repo}/spec/${f}.md: the spec step was not done before this -start (start_steps), so it writes spec/ before the map; it did not`);
+  if (mode === "opchain" && (!b.builder?.repo || b.builder.repo === "none")) p.push("build.yaml: builder.repo is not recorded (section 5)");
   if (key.embedded) {
     const e = (b.embedded_instructions ?? []).map(String).join("\n");
     if (!e.includes(key.embedded)) p.push(`build.yaml: the planted instruction ("${key.embedded}") is not quoted under embedded_instructions`);
@@ -848,6 +1004,9 @@ function checkRun(key, run) {
   const last = (run.read(`${OW}STATUS.md`) ?? "").split("\n").filter(Boolean).at(-1) ?? "";
   const nextVerb = done ? "/ow-build-demo" : "/ow-build-run";
   if (!last.includes(`next: ow-build ${nextVerb} builds/${key.slug}/`)) p.push(`STATUS.md: the newest line must point at ${nextVerb} (${done ? `every sprint of ${want.milestone} passes: the demo` : "a sprint is left, not passed yet or escalated"}), not "${last.split(" | ")[3] ?? last}"`);
+  // The milestone is named (D10): /ow-build says which milestone waits, and on what.
+  const aw = done ? `${want.milestone} demo` : expect === "escalated" ? `${want.milestone} stopped: escalation on sprint ${s.n}` : `${want.milestone} sprint ${(m.sprints ?? []).find((n) => resultOf(n) !== "pass")}`;
+  if (!last.endsWith(`| awaiting: ${aw}`)) p.push(`STATUS.md: the newest line must name the milestone: "awaiting: ${aw}"`);
   for (const f of run.written()) if (f !== rel && f !== `${OW}STATUS.md`) p.push(`${f}: -run writes build.yaml and STATUS.md only`);
   return p;
 }
@@ -880,6 +1039,8 @@ function checkRunReported(key, run, before, after, m) {
   const last = (run.read(`${OW}STATUS.md`) ?? "").split("\n").filter(Boolean).at(-1) ?? "";
   const nextVerb = all ? "/ow-build-demo" : "/ow-build-run";
   if (!last.includes(`next: ow-build ${nextVerb} builds/${key.slug}/`)) p.push(`STATUS.md: the newest line must point at ${nextVerb}`);
+  const aw = all ? `${m.id} demo` : `${m.id} checks not yet reported`;
+  if (!last.endsWith(`| awaiting: ${aw}`)) p.push(`STATUS.md: the newest line must name the milestone: "awaiting: ${aw}"`);
   return p;
 }
 
@@ -992,9 +1153,9 @@ function changeGateIn(run, key, rel, html, { listing = true } = {}) {
   // In a Changes section, nothing that is not signed is "started", whatever it is called.
   for (const h of changeHeads) {
     for (const s of sentences(htmlSection(html, h) ?? "")) {
-      const m = s.replace(NOT_STARTED, " ").match(STARTED_WORDS);
+      const m = underWay(s);
       const signed = cos.some(({ d }) => d.status === "signed" && new RegExp(`\\b${esc(d.id)}\\b`).test(s));
-      if (m && !signed) p.push(`${rel}: "${h}" reports a change as started ("${m[0]}") before an amendment is signed ("${s.slice(0, 60)}")`);
+      if (m && !signed) p.push(`${rel}: "${h}" reports a change as started ("${m}") before an amendment is signed ("${s.slice(0, 60)}")`);
     }
   }
   for (const { f, d } of cos) {
@@ -1003,10 +1164,13 @@ function changeGateIn(run, key, rel, html, { listing = true } = {}) {
     const phrases = coPhrases(run, key, d, f);
     const about = (s) => phrases.some((ph) => new RegExp(`\\b${esc(ph)}`, "i").test(s));
     for (const name of heads.filter((h) => !changeHeads.includes(h))) {
+      // The change order's context: a sentence about it, and the next sentence when it refers back ("it", "this", "that").
+      let inContext = false;
       for (const s of sentences(htmlSection(html, name) ?? "")) {
-        if (!about(s)) continue;
-        const m = s.replace(NOT_STARTED, " ").match(STARTED_WORDS);
-        if (m) p.push(`${rel}: "${name}" reports ${id} as started ("${m[0]}") before its amendment is signed ("${s.slice(0, 60)}")`);
+        inContext = about(s) || (inContext && /\b(?:it|this|that|these|those|them|they)\b/i.test(s));
+        if (!inContext) continue;
+        const m = underWay(s);
+        if (m) p.push(`${rel}: "${name}" reports ${id} as started ("${m}") before its amendment is signed ("${s.slice(0, 60)}")`);
       }
     }
     if (!listing) continue;
@@ -1255,7 +1419,12 @@ function checkChange(key, run) {
   // A request is priced once: no new change order cites a request an earlier row or change order had.
   const earlier = pricedRequests(priorView(run), key.slug);
   for (const f of newCos) {
-    for (const r of (() => { try { return md(run, f).data.requests ?? []; } catch { return []; } })()) if (earlier.has(requestKey(r).split("/").pop())) p.push(`${f}: cites ${r}, which was priced already (changes/requests.md or an earlier change order); a request is priced once`);
+    for (const r of (() => { try { return md(run, f).data.requests ?? []; } catch { return []; } })()) if (requestIds(r).some((id) => earlier.has(id))) p.push(`${f}: cites ${r}, which was priced already (changes/requests.md or an earlier change order); a request is priced once`);
+  }
+  if (SETTLED.test(result) && requestIds(row.from).some((id) => earlier.has(id))) p.push(`${reqRel}: the new row settles ${row.from}, which an earlier row or change order settled already; a request is priced once`);
+  // An unpriced row does not settle its request (D2): pricing it later is a new row that names the unpriced one.
+  for (const old of before.filter((r) => /^unpriced\b/i.test(String(r.result ?? "")) && requestIds(r.from).some((id) => requestIds(row.from).includes(id)))) {
+    if (!new RegExp(`\\b${esc(old["#"])}\\b`).test(String(row.request ?? ""))) p.push(`${reqRel}: the new row prices ${row.from} again after ${old["#"]} left it unpriced; its request cell names ${old["#"]} ("(again: ${old["#"]} was unpriced)")`);
   }
   // Never a post-acceptance mark, in any change order (ow-uat B3).
   for (const f of coFiles(run, key)) if (/post[-_ ]?acceptance/i.test(run.read(f) ?? "")) p.push(`${f}: carries a post-acceptance mark; acceptance testing decides that, never the change order`);
@@ -1267,10 +1436,53 @@ function checkChange(key, run) {
   return p;
 }
 
+/** The change-order moves of phase-change.md §6: the statuses each mode moves from and to, and the one history line it adds. */
+const CO_MOVES = {
+  "--sent": { from: ["draft"], to: "sent", line: (d) => new RegExp(`^sent ${d}$`) },
+  "--agreed": { from: ["draft", "sent"], to: "amendment out", line: (d, u) => new RegExp(`^agreed in principle ${d}, recorded by ${esc(u)}; not a signature$`) },
+  "--signed": { from: ["amendment out"], to: "signed", line: (d, u) => new RegExp(`^signed ${d}: signed amendment received, recorded by ${esc(u)}; signature not verified by this skill$`) },
+  "--declined": { from: ["draft", "sent", "amendment out"], to: "declined", line: (d, u) => new RegExp(`^declined ${d}, recorded by ${esc(u)}$`) },
+};
+/** One move of one change order (D5): from an allowed status, to its status, history kept and one line added; nothing else of it changes. */
+function coMoveProblems(key, run, id, mode, date) {
+  const p = [];
+  const rel = `${build(key)}/changes/${id}.md`;
+  const mv = CO_MOVES[mode];
+  if (!mv) return [`answer key: no change-order move ${mode}`];
+  const was = run.priorRead(rel);
+  if (was == null) return [`${rel}: there was no change order to move with ${mode}`];
+  const before = matter(was);
+  const { data, content } = md(run, rel);
+  if (!mv.from.includes(before.data.status)) p.push(`${rel}: was ${before.data.status}; ${mode} moves a change order only from ${mv.from.join(" or ")} (phase-change.md §6), so it refuses and writes nothing`);
+  if (data.status !== mv.to) p.push(`${rel}: status is ${data.status}; ${mode} makes it ${mv.to}`);
+  const h0 = (before.data.history ?? []).map(String);
+  const h1 = (data.history ?? []).map(String);
+  if (h0.some((h, i) => h1[i] !== h)) p.push(`${rel}: history lost or changed an earlier line; history is appended, never rewritten`);
+  const added = h1.slice(h0.length);
+  if (added.length !== 1) p.push(`${rel}: ${added.length} history lines added; ${mode} adds one`);
+  else if (!mv.line(iso(date), key.user).test(added[0])) p.push(`${rel}: the history line "${added[0]}" is not the ${mode} line (phase-change.md §6)`);
+  if (internalSplit(content).client !== internalSplit(before.content).client) p.push(`${rel}: the change order's client text changed; a move changes its header only`);
+  for (const k of ["id", "kind", "price", "requests", "adds_checks", "schedule_impact", "payment", "currency"]) if (JSON.stringify(data[k]) !== JSON.stringify(before.data[k])) p.push(`${rel}: ${k} changed on a ${mode} move`);
+  return p;
+}
+function checkCoMove(key, run) {
+  const { co, mode, date } = key.co_move ?? {};
+  const p = coMoveProblems(key, run, co, mode, date);
+  const { data } = md(run, `${build(key)}/changes/${co}.md`);
+  if (mode === "--declined" && data.work !== "none") p.push(`changes/${co}.md: work is "${data.work}"; a declined change order's work is none`);
+  if (mode === "--sent" && data.work !== "not started") p.push(`changes/${co}.md: work is "${data.work}"; sending changes nothing but the status`);
+  if (key.co_move.next) {
+    const last = (run.read(`${OW}STATUS.md`) ?? "").split("\n").filter(Boolean).at(-1) ?? "";
+    if (!last.includes(`next: ${key.co_move.next}`)) p.push(`STATUS.md: the newest line must be "next: ${key.co_move.next}"`);
+  }
+  return p;
+}
+
 function checkSignatureGate(key, run) {
   const p = [];
   const id = key.gate.co;
   const rel = `${build(key)}/changes/${id}.md`;
+  p.push(...coMoveProblems(key, run, id, "--agreed", key.gate.date ?? (md(run, rel).data.history ?? []).map(String).find((h) => /^agreed in principle/.test(h))?.match(/\d{4}-\d{2}-\d{2}/)?.[0]));
   const { data } = md(run, rel);
   if (data.status !== "amendment out") p.push(`${rel}: status is ${data.status}; an agreement in principle (an email reply) moves it to amendment out, never to signed`);
   if (data.work !== "not started") p.push(`${rel}: work is "${data.work}"; until the amendment is signed the work is not started`);
@@ -1305,8 +1517,7 @@ function checkSigned(key, run) {
   const date = iso(key.signed.date);
   const rel = `${build(key)}/changes/${id}.md`;
   const { data } = md(run, rel);
-  const before = priorMd(run, rel).data;
-  if (before.status !== "amendment out") p.push(`${rel}: was ${before.status} before; --signed records a signature only after the agreement (amendment out)`);
+  p.push(...coMoveProblems(key, run, id, "--signed", date));
   if (data.status !== "signed") p.push(`${rel}: status is ${data.status}, expected signed`);
   if (iso(data.signed) !== date) p.push(`${rel}: signed is ${iso(data.signed) ?? "missing"}; a signed change order records signed: ${date} (ow-uat and ow-handoff read it)`);
   const note = `signed amendment received ${date}, recorded by ${key.user}; signature not verified by this skill`;
@@ -1529,11 +1740,24 @@ function checkInternalNumbers(key, run) {
   });
   // ready-for-uat.md is read by acceptance testing, not sent: it may name the builder's reports, never a number of ours.
   for (const f of clientFiles(run)) scan(f, clientText(run, f), /ready-for-uat\.md$/.test(f) ? INTERNAL_TERMS.filter(([, w]) => w !== "a tool word") : INTERNAL_TERMS, [...internal].filter((c) => !legit.has(c)));
-  // spec/: no price at all, client-facing or not (§12.7).
+  // By category (D1): every sentence of every client output, by what it says, not by its words.
+  for (const f of clientFiles(run)) {
+    const raw = run.read(f) ?? "";
+    for (const { head, text } of blocksOf(f, raw, clientText(run, f))) {
+      for (const s of sentences(proseOf(text))) for (const [what, hit] of categoryFindings(head, s, legit)) p.push(`${f}: carries ${what} ("${hit}" in "${s.slice(0, 70)}")`);
+    }
+  }
+  // spec/: no price at all, client-facing or not (§12.7), and no money or payment wording unless it is the client's own fact.
   const all = new Set([...internal, ...legit]);
   for (const f of run.written().filter((x) => /\/spec\//.test(x))) {
     const { content } = matter(run.read(f) ?? "");
-    scan(f, content.replace(/^## Sources[\s\S]*$/m, ""), [...SPEC_TERMS, ...INTERNAL_TERMS.filter(([, w]) => /margin|pricing internals|modifier factor/.test(w))], [...all]);
+    const body = content.replace(/^## Sources[\s\S]*$/m, "");
+    scan(f, body, [...SPEC_TERMS, [AMOUNT_IN_WORDS, "an amount in words"], ...INTERNAL_TERMS.filter(([, w]) => /margin|pricing internals|modifier factor/.test(w))], [...all]);
+    const facts = clientFactLines(run, key, content);
+    body.split("\n").forEach((line, i) => {
+      const m = line.replace(/`[^`]*`/g, " ").match(SPEC_MONEY);
+      if (m && !isClientFact(line, facts)) p.push(`${f}:${i + 1}: money or payment wording ("${m[0]}") that is not the client's own fact from the plan; spec/ carries no payment, price or amount of ours`);
+    });
   }
   return p;
 }
@@ -1562,14 +1786,21 @@ function checkNoFalseDone(key, run) {
     const checks = run.read(f.replace(/\.html$/, "-checks.md"));
     if (checks == null) continue;
     const trace = tableAfter(matter(checks).content, /^trace/i) ?? [];
+    const acs = (() => { try { return planChecks(run, key).checks; } catch { return new Map(); } })();
     for (const s of sentences(htmlSection(run.read(f), "This week") ?? "")) {
-      const m = s.replace(NEGATED_DONE, " ").match(DONE_WORDS);
-      if (!m) continue;
+      const claim = completionClaim(s);
+      if (!claim) continue;
       const src = trace.find((r) => r.sentence === s)?.source ?? "";
       const rep = src.match(/^report (\S+)$/);
-      const passing = rep && /###\s*Verdict:\s*\**\s*PASS/i.test(run.read(`${repo}/${rep[1]}`) ?? "");
       const demo = /^demo \S+-record\.md$/.test(src);
-      if (!passing && !demo) p.push(`${f}: "${s.slice(0, 60)}" calls something ${m[0]}, but traces to ${src || "nothing"}; a done claim needs a passing builder report or a demo record`);
+      if (demo) continue;
+      const text = rep ? run.read(`${repo}/${rep[1]}`) ?? "" : "";
+      if (!rep || !/###\s*Verdict:\s*\**\s*PASS/i.test(text)) { p.push(`${f}: "${s.slice(0, 60)}" claims something is done ("${claim}"), but traces to ${src || "nothing"}; a done claim needs a passing builder report or a demo record`); continue; }
+      // The report must cover the claim (D1): the checks the sentence is about are ones that report marks PASS.
+      const pass = new Set([...text.matchAll(/(AC-[\w.-]+)\s*(?:—|-|\|)\s*PASS\b/g)].map((x) => x[1]));
+      const about = checksAbout(s, acs);
+      if (!about.length) p.push(`${f}: "${s.slice(0, 60)}" claims something is done ("${claim}"), but it matches no acceptance check; a done claim is about a check that passes`);
+      else if (about.some((c) => !pass.has(c))) p.push(`${f}: "${s.slice(0, 60)}" claims something is done ("${claim}") about ${about.join(" or ")}, which ${rep[1]} does not mark PASS`);
     }
   }
   return p;
@@ -1667,7 +1898,8 @@ export function writerRows() {
 }
 /** The verbs (with their modes) that may write a root-relative file. */
 export const writersOf = (rel) => writerRows().filter((r) => r.re.test(rel)).flatMap((r) => r.verbs);
-const verbMatches = (runVerb, writer) => runVerb === writer || (!writer.includes(" ") && runVerb.split(" ")[0] === writer);
+/** Mode-exact (D4): a bare writer verb is its base mode only; the modes it also writes in are listed under modes: (skills-work/README.md). */
+const verbMatches = (runVerb, writer) => runVerb === writer;
 const verbName = (v) => String(v).split(" ")[0].replace(/^\/ow-build-?/, "") || "route";
 
 /** One writer per file, inside a run too: every file written belongs to a verb this run ran. */
@@ -1685,15 +1917,19 @@ function checkWrites(key, run) {
   return p;
 }
 
-/** One spelling per request file: case, "./", an opchain-work/ prefix and UAT-3 for UAT-03 are the same file. */
-export const requestKey = (p) => String(p).trim().toLowerCase().replace(/^\.\//, "").replace(/^opchain-work\//, "").replace(/\b(uat|fix)-0*(\d+)\.md$/, "$1-$2.md");
-/** Request files already priced: a requests.md row's `from`, or a change order's `requests:`. */
+/** One spelling per request file: case, "./", an opchain-work/ prefix, a missing .md and UAT-3 for UAT-03 are the same file. */
+export const requestKey = (p) => String(p).trim().toLowerCase().replace(/^\.\//, "").replace(/^opchain-work\//, "").replace(/\b(uat|fix)-0*(\d+)(?:\.md)?$/, "$1-$2.md");
+/** The request ids a cell or path names, however spelled ("UAT-03", "uat/x/defects/uat-3", "FIX-07.md"): "uat-3", "fix-7" (D7). */
+export const requestIds = (s) => [...String(s ?? "").matchAll(/\b(uat|fix)-0*(\d+)(?!\d)/gi)].map((m) => `${m[1].toLowerCase()}-${m[2]}`);
+/** A requests.md result that settles its request: a change order, too big, excluded, or no charge. "unpriced: …" does not (D2). */
+export const SETTLED = /^(?:CO-\d+\b|too big for a change order|excluded:|no charge\b)/i;
+/** Requests already settled (priced once): a requests.md row with a settled result, or a change order's `requests:`, as ids. */
 function pricedRequests(view, slug) {
   const out = new Set();
   const rq = view.read(`${OW}builds/${slug}/changes/requests.md`);
-  if (rq) for (const r of firstTable(matter(rq).content)) for (const m of String(r.from ?? "").matchAll(/(?:uat|handoffs)\/[^\s,|]+?\.md|\b(?:UAT|FIX)-\d+\.md/gi)) out.add(requestKey(m[0]).split("/").pop());
+  if (rq) for (const r of firstTable(matter(rq).content)) if (SETTLED.test(String(r.result ?? "").trim())) for (const id of requestIds(r.from)) out.add(id);
   for (const f of view.all().filter((x) => new RegExp(`^${esc(OW)}builds/${esc(slug)}/changes/CO-\\d+\\.md$`).test(x))) {
-    try { for (const r of matter(view.read(f)).data.requests ?? []) out.add(requestKey(r).split("/").pop()); } catch { /* reported by change */ }
+    try { for (const r of matter(view.read(f)).data.requests ?? []) for (const id of requestIds(r)) out.add(id); } catch { /* reported by change */ }
   }
   return out;
 }
@@ -1715,7 +1951,7 @@ export function expectedRoute(run, key, from) {
   }
   const request = /^uat\/[^/]+\/defects\/UAT-\d+\.md$/.test(from) ? "uat" : /^handoffs\/[^/]+\/fixes\/FIX-\d+\.md$/.test(from) ? "fix" : null;
   if (request) {
-    if (pricedRequests(priorView(run), slug).has(requestKey(from).split("/").pop())) return "nothing";
+    if (requestIds(from).some((id) => pricedRequests(priorView(run), slug).has(id))) return "nothing";
     const t = run.read(`${OW}${from}`) ?? "";
     if (request === "uat") {
       if (/extension requested, client cause/i.test(t) || /^class:\s*Change\b/im.test(t)) return "change";
@@ -1736,11 +1972,14 @@ export function folderRoute(run, key) {
   const B = build(key);
   if (!run.priorExists(`${B}/build.yaml`)) return new Set(["start"]);
   const b = priorYml(run, `${B}/build.yaml`);
-  if (!/^(OK|not applicable)/.test(String(b.map_check ?? ""))) return new Set(["start"]);
-  const ledger = priorMd(run, `${B}/ledger.md`).data;
   const view = priorView(run);
+  const mapped = /^(OK|not applicable)/.test(String(b.map_check ?? ""));
+  // A booking that is due is invoiced before the map resumes (D11); with no ledger yet, -start resumes.
+  if (!mapped && !run.priorExists(`${B}/ledger.md`)) return new Set(["start"]);
+  const ledger = priorMd(run, `${B}/ledger.md`).data;
   const done = new Set((ledger.payments ?? []).filter((x) => /^(requested|paid)$/.test(x.state)).map((x) => x.trigger).concat((ledger.change_orders ?? []).filter((c) => /^(requested|paid)$/.test(c.state)).map((c) => c.id), /^(requested|paid)$/.test(ledger.documentation?.state ?? "") ? ["documentation"] : []));
   if (metTriggers(view, key, ledger).some((m) => !done.has(m.trigger))) return new Set(["invoice", "update"]);
+  if (!mapped) return new Set(["start"]);
   const cos = coFiles(view, key).map((f) => { try { return matter(view.read(f)).data; } catch { return {}; } });
   if (cos.some((d) => /^(draft|sent|amendment out)$/.test(d.status))) ok.add("change");
   const sprints = b.sprints ?? [];
@@ -1750,7 +1989,8 @@ export function folderRoute(run, key) {
   const ready = (m) => m.status === "ready for demo";
   const waiting = ms.find((m) => ready(m) && !recorded(m));
   if (waiting) { ok.add("demo"); return ok; }
-  const next = ms.find((m) => !recorded(m) && !ready(m) && m.status !== "stopped");
+  // The earliest milestone not demoed: a stopped one is run again once the user says its escalation is resolved (D10).
+  const next = ms.find((m) => !recorded(m) && !ready(m));
   if (next) { ok.add("run"); return ok; }
   if (ms.length && ms.every(recorded)) {
     const r = run.priorRead(`${B}/ready-for-uat.md`);
@@ -1797,6 +2037,7 @@ const CHECKS = {
   change: checkChange,
   signature_gate: checkSignatureGate,
   signed: checkSigned,
+  co_move: checkCoMove,
   invoice: checkInvoice,
   invoice_refused: checkInvoiceRefused,
   ready: checkReady,

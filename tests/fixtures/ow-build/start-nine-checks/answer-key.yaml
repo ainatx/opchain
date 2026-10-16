@@ -29,6 +29,6 @@ spec: { checks: 9 }
 ledger: { booking: due, machine_checked: true }
 status:
   lines:
-    - { path: builds/fernhill-florists/build.yaml, next: ow-build /ow-build-start plans/fernhill-florists/, awaiting: none }
+    - { path: builds/fernhill-florists/build.yaml, next: ow-build on builds/fernhill-florists/, awaiting: none }
     - { path: builds/fernhill-florists/build.yaml, next: ow-build /ow-build-invoice builds/fernhill-florists/, awaiting: update to Fernhill Florists by 2026-11-27 }
 private_names: [llc-ops, Deftwright]

@@ -30,6 +30,6 @@ spec: { checks: 3 }
 ledger: { booking: due, machine_checked: false }
 status:
   lines:
-    - { path: builds/mossgate-books/build.yaml, next: ow-build /ow-build-start plans/mossgate-books/, awaiting: none }
+    - { path: builds/mossgate-books/build.yaml, next: ow-build on builds/mossgate-books/, awaiting: none }
     - { path: builds/mossgate-books/build.yaml, next: ow-build /ow-build-invoice builds/mossgate-books/, awaiting: update to Mossgate Books by 2026-11-06 }
 private_names: [llc-ops, Deftwright, Priya]

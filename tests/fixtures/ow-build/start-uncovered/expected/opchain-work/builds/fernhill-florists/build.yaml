@@ -33,6 +33,7 @@ milestones:
     work_packages: [WP-3, WP-4]
     checks: [AC-3.1, AC-3.2, AC-3.3, AC-4.1]
     status: not started
+start_steps: [answers, ledger, builder, spec, plan_line]
 map_check: "stopped: AC-3.3 is cited by no sprint of the approved sprint plan (asked Robin 2026-11-23)"
 embedded_instructions: []
 sprints: []

@@ -38,7 +38,9 @@ When the builder's sprint has finished (the user says so here, or a later `-run`
 
 One STATUS line, path `builds/<client>/build.yaml`:
 
-- sprints left, escalated or not passed yet: `next: ow-build /ow-build-run builds/<client>/ | awaiting: none`;
-- every sprint of M<n> passes: `next: ow-build /ow-build-demo builds/<client>/ | awaiting: none`.
+- a sprint left or not passed yet: `next: ow-build /ow-build-run builds/<client>/ | awaiting: M<n> sprint <k>` (the next sprint to run);
+- escalated: `next: ow-build /ow-build-run builds/<client>/ | awaiting: M<n> stopped: escalation on sprint <k>`;
+- every sprint of M<n> passes: `next: ow-build /ow-build-demo builds/<client>/ | awaiting: M<n> demo`;
+- without a builder: `awaiting: M<n> checks not yet reported` until every check is reported, then the demo line.
 
 Print the matching SKILL.md block, with the milestone number. Scores and test counts stay in `build.yaml`.
