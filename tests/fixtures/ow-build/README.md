@@ -24,7 +24,9 @@ These are the acceptance tests from `docs/plans/2026-10-08-ow-build-design.md` �
 |---|---|---|---|
 | `start` | §12.2, §12.7 | `-start` | The business's `handoffs.yaml` names the builder; the builder's approved sprint plan maps sprints 1-2 to M1 and 3-4 to M2 and carries a planted instruction |
 | `route-signed-plan` | C4 | the `start` run | ow-build-plan's signed NEXT lands on `-start` |
+| `start-resume` | §12.7, round 1 bug 1 | `-start` again | The session that wrote `spec/` and the ledger ended while the builder planned: `build.yaml` is `map_check: pending`. The next day `-start` maps the approved plan and rewrites neither the ledger nor `spec/` |
 | `start-no-build` | §12.7 | `-start` | The shipped defaults-only `handoffs.yaml`: no `spec/`, the public default |
+| `run-no-builder` | §12.3, round 1 bug 10 | `-run M1` after `start-no-build` | No builder: Robin reports (`session/report.md`) each M1 check with its evidence; `reported_passing`, and NEXT is the demo |
 | `invoice-booking` | §7, §10 | `-invoice` | The booking 40%, with `ow-tools calc split` output recorded |
 | `run-m1-next` | §12.3, §12.7 | `-run M1` | Sprint 1 fails round 1 and passes round 2; sprint 2 is left |
 | `update` | §4, §10 | `-update` | A week of commits (one a planted instruction), notes, a time export |
@@ -33,13 +35,17 @@ These are the acceptance tests from `docs/plans/2026-10-08-ow-build-design.md` �
 | `run-escalated` | §12.3, §12.7 | `-run M1` | Sprint 2 fails three rounds with a blocker: the milestone stops |
 | `demo-script`, `demo-record` | §5 | `-demo`, `-demo --record` | Robin's demo notes: one in-scope request, one change; Robin confirms the working demo |
 | `invoice-demo`, `route-folder` | §7, C4 | `-invoice` | The working demo meets the 40%; "use ow-build on builds/larkspur-ceramics/" lands on `-invoice` |
+| `route-folder-run`, `-demo`, `-signed`, `-ready`, `-signoff` | C4, round 1 bug 2 | the `run-m1-next`, `demo-script`, `change-signed`, `ready-passing`, `invoice-acceptance` runs | The folder route at every stage (`routing-and-resume.md` 2.5): a sprint to run, a demo due, a signed amendment, every milestone demoed, the UAT sign-off |
+| `route-trigger-signoff`, `route-trigger-delivered` | C4, round 1 bug 3 | the `invoice-acceptance`, `invoice-documentation` runs | A sibling skill hands over `uat/<client>/signoff.md` or `docs/<client>/delivered.md`: both land on `-invoice` |
 | `change-in-scope`, `change-priced`, `change-unpriced` | §6, §10 | `-change` | Already covered by AC-1.2; stock on hand (priced: one integration, one report); a text message (no unit: asks) |
 | `signature-gate` | §6, §10 | `-change --agreed`, `-update` | The client's email "go ahead … start straight away": amendment out, work not started |
-| `change-signed`, `invoice-co` | §6, §7, §12.5 | `-change --signed`, `-invoice` | The signed amendment: checks appended to `spec/06-testing.md`; CO-01 invoiced on signature |
+| `change-signed`, `invoice-co` | §6, §7, §12.5 | `-change --signed`, `-invoice` | The signed amendment: CO-01's checks go to `spec/06-testing-change-orders.md` (its only writer; `06-testing.md` is `-start`'s and is never rewritten); CO-01 invoiced on signature |
 | `ready-failing`, `ready-passing` | §8, §10 | `-ready` | M2 demoed off-fixture (`input/`); Robin's confirmation pass fails AC-5.2, then passes after the builder's fix |
 | `change-uat-extension`, `route-uat` | §6.1, §10, C4 | `-change` | Three UAT-nn files with one client-side event: one extension change order |
 | `invoice-acceptance` | §7, §10 | `-invoice` | ow-uat's sign-off meets the 20% |
+| `change-uat-too-big`, `route-uat-too-big` | §6.1, owner decision 2026-10-16 | `-change` | UAT-06 (class Change, a repeat-order portal) is 3 units against a limit of 3: no change order, a hand-off to ow-build-plan exactly as for a FIX-nn |
 | `change-fix-too-big`, `route-fix` | §6.1, §10, C4 | `-change` | FIX-07 (a customer portal) is 3 units against a limit of 3: no change order, a hand-off to ow-build-plan |
+| `change-not-a-defect`, `route-fix-not-a-defect` | §6.1, round 1 bug 4 | `-change` | FIX-08 (class Not a defect: phone orders were never in scope): a row at no charge, answered from Robin's notes; nothing priced |
 | `invoice-documentation`, `invoice-documentation-refused` | §7, amendment B4 | `-invoice`, twice | The documentation & training line was bought (`contract-inputs.md`); `docs/larkspur-ceramics/delivered.md` (in the ow-documentation design's shape) meets it: one request, and a second run writes nothing |
 
 Mossgate Books declined the documentation line and Fernhill Florists has no `contract-inputs.md`: their ledgers carry `documentation: none` and there is no such trigger.
@@ -60,4 +66,6 @@ That lays out the starting state (the workspace files, the ow-build-plan run, ev
 node scripts/ow-build-acceptance.mjs update /path/to/empty-folder
 ```
 
-With no arguments, the script checks every golden run (the same thing `tests/ow-build-acceptance.test.js` does in `npm test`).
+With no arguments, the script checks every golden run (the same thing `tests/ow-build-acceptance.test.js` does in `npm test`). `tests/ow-build-plants.test.js` holds the planted failures: every plant from the Sprint 2 round 1 evaluation and the round-2 plants, each caught by the check it targets.
+
+Every `STATUS.md` from `-start` on carries the line `-start` writes before it prints the builder's plan line (`next: ow-build /ow-build-start plans/<client>/`, `map_check: pending`); a build without a builder skips it.
