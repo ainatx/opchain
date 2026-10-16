@@ -527,18 +527,18 @@ describe("a feasibility quote: just the test", () => {
   it("a user acceptance testing line (in the client part or the header) fails", () => {
     const run = mutated("route-feasibility", { [`${K}/quote.md`]: (t) => t.replace("## Price\n", `${UAT}## Price\n`).replace("mode: feasibility\n", "mode: feasibility\nuat: { size: S, tester_roles: 1, price: 1000.00 }\n") });
     const out = failures("route-feasibility", run).feasibility;
-    expect(out).toMatch(/the client part carries a user acceptance testing line/);
+    expect(out).toMatch(/\(client part\): carries user acceptance testing/);
     expect(out).toMatch(/header key uat; a feasibility quote carries just the test/);
   });
 
   it("a fix window fails", () => {
     const run = mutated("route-feasibility", { [`${K}/quote.md`]: (t) => t.replace("## Valid until\n", "## After delivery\n30 days of fixes: for 30 days after delivery, anything that does not work is fixed at no charge.\n\n## Valid until\n") });
-    expect(failures("route-feasibility", run).feasibility).toMatch(/the client part carries a fix window/);
+    expect(failures("route-feasibility", run).feasibility).toMatch(/\(client part\): carries a fix window/);
   });
 
   it("a documentation & training line fails", () => {
     const run = mutated("route-feasibility", { [`${K}/quote.md`]: (t) => t.replace("## Price\n", "## Documentation & training · S (optional)\nUp to 15 people trained: USD 2,000.00. You can decline this line.\n\n## Price\n") });
-    expect(failures("route-feasibility", run).feasibility).toMatch(/the client part carries a documentation & training line/);
+    expect(failures("route-feasibility", run).feasibility).toMatch(/\(client part\): carries documentation, training or handover/);
   });
 
   it("a build hand-off fails: a build request written, or an ow-build NEXT", () => {
@@ -557,6 +557,36 @@ describe("a feasibility quote: just the test", () => {
     const out = failures("feasibility-signed", run).accepted;
     expect(out).toMatch(/a feasibility test's contract inputs hold just the test; fix_window_days belongs to a build/);
     expect(out).toMatch(/documentation_sku belongs to a build/);
+  });
+
+  // Paraphrases count (matched by meaning): each line is planted just before the ow:internal marker.
+  const paraphrases = [
+    ["a fix window", "We include two weeks of fixes after the findings note is delivered."],
+    ["a fix window", "Any bug-fixing you need in the following month is on us."],
+    ["a fix window", "For thirty days, anything that breaks gets fixed free."],
+    ["user acceptance testing", "Your team tests it in a user acceptance session before sign-off."],
+    ["user acceptance testing", "Your staff check the result in an acceptance session."],
+    ["user acceptance testing", "Two testers from your office confirm it works before you sign off."],
+    ["documentation, training or handover", "Training for up to 15 people is available."],
+    ["documentation, training or handover", "A short user guide comes with the findings."],
+    ["documentation, training or handover", "We will onboard your staff after the test."],
+    ["a build, milestone, demo or hand-off", "The first milestone is a demo of the invoice reader."],
+    ["a build, milestone, demo or hand-off", "We then hand the results over to the builder."],
+  ];
+  for (const [what, line] of paraphrases) {
+    it(`a paraphrased build term in the quote fails: "${line}"`, () => {
+      const run = mutated("route-feasibility", { [`${K}/quote.md`]: (t) => t.replace("<!-- ow:internal -->", `${line}\n\n<!-- ow:internal -->`) });
+      expect(failures("route-feasibility", run).feasibility).toMatch(new RegExp(`\\(client part\\): carries ${what.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\("${line.slice(0, 20).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+    });
+  }
+
+  it("the same terms in the feasibility contract inputs fail too; the golden's go or no-go wording passes", () => {
+    const run = mutated("feasibility-signed", { [`${K}/contract-inputs.md`]: (t) => t.replace("## Dates\n", "## After the test\nWe include two weeks of fixes, and training for your team.\n\n## Dates\n") });
+    const out = failures("feasibility-signed", run).feasibility;
+    expect(out).toMatch(/contract-inputs\.md: carries a fix window/);
+    expect(out).toMatch(/contract-inputs\.md: carries documentation, training or handover/);
+    expect(readFileSync(join(FIXTURES, "route-feasibility", "expected", "opchain-work", K, "quote.md"), "utf8")).toMatch(/a go or no-go: whether a build is worth doing/);
+    expect(failures("route-feasibility")).toEqual({});
   });
 
   it("the feasibility unit is the one the price book marks", () => {

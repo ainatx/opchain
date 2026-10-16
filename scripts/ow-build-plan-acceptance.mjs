@@ -1186,6 +1186,19 @@ function checkRoute(key, run) {
 }
 
 /**
+ * What a feasibility test never offers (owner decision 2026-10-16), by meaning:
+ * fix periods however worded, client acceptance testing or sign-off, training,
+ * documentation or handover, and any build, milestone, demo or hand-off to a
+ * builder. "Whether a build is worth doing" (the go or no-go) stays allowed.
+ */
+const FEASIBILITY_FORBIDDEN = [
+  [/\bfix(?:es|ing)?\b|bug[- ]?fix|\bfixed (?:free|for free|at no (?:extra )?charge)\b|\bwarranty\b|\bdefects? (?:period|window)\b|\b(?:after[- ]?care|care) period\b|\banything that breaks\b|\b(?:days?|weeks?|months?|fortnight) of (?:support|cover|corrections)\b/i, "a fix window"],
+  [/\buser acceptance\b|\bUAT\b|\btesters?\b|\bacceptance (?:tests?|testing|sessions?|run|sign[- ]?off)\b|\bsign(?:s|ed|ing)?[- ]off\b|\btests? it in\b|\b(?:your|the client's|their) (?:team|staff|people|users) (?:tests?|checks?|tries|try)\b/i, "user acceptance testing"],
+  [/\btrain(?:ing|ed|s|er)?\b|\bdocumentation\b|\bguides?\b|\bmanuals?\b|\bhand-?over\b|\bonboard(?:ing|ed)?\b|\bwalk-?through\b|\bhow-to\b/i, "documentation, training or handover"],
+  [/\bmilestones?\b|\bdemos?\b|\bhand-?off\b|\bhand(?:s|ed)? (?:it |the results |them )?(?:over |on )?to (?:the |a |your )?builder|\bbuilders?\b|\bbuild request\b|\bow-build\b(?!-plan)|\bwe (?:will |then )?build\b|\bthe build (?:starts|includes|will|phase)\b|\bbuild phase\b/i, "a build, milestone, demo or hand-off"],
+];
+
+/**
  * A feasibility quote carries just the test (owner decision 2026-10-16): price,
  * what is tested, what the client gets (a findings note and a go or no-go),
  * payment terms and validity. No testing line, fix window, training line, or
@@ -1199,15 +1212,13 @@ function checkFeasibility(key, run) {
   for (const k of ["uat", "documentation_training", "fix_window_days", "build_size", "build_size_source", "vendor_subscriptions", "credit_deadline", "build_plan_fee"]) {
     if (k in q.data) p.push(`${q.rel}: header key ${k}; a feasibility quote carries just the test`);
   }
-  const forbidden = [
-    [/user acceptance testing|\bUAT\b|tester roles?/i, "a user acceptance testing line"],
-    [/days of fixes|fix window|## After delivery/i, "a fix window"],
-    [/documentation & training|documentation and training|people trained/i, "a documentation & training line"],
-    [/working demo|## Milestones|The build is accepted|Delivery: the day the Handoff notes/i, "a build's milestones or acceptance"],
-  ];
-  q.client.split("\n").forEach((l, i) => {
-    for (const [re, what] of forbidden) if (re.test(l)) p.push(`${q.rel}: the client part carries ${what} ("${l.trim().slice(0, 50)}"); a feasibility quote has none`);
+  // Matched by meaning, not by one phrase (paraphrases count): a feasibility test offers none of these.
+  const scan = (rel, text) => text.split("\n").forEach((l) => {
+    for (const [re, what] of FEASIBILITY_FORBIDDEN) if (re.test(l)) p.push(`${rel}: carries ${what} ("${l.trim().slice(0, 60)}"); a feasibility test offers none`);
   });
+  scan(`${q.rel} (client part)`, q.client);
+  const ciRel = `${dir}/contract-inputs.md`;
+  if (run.exists(ciRel)) scan(ciRel, parsed(run, ciRel, "md").content);
   for (const s of ["What is tested", "What you get", "Price", "Payment schedule", "Valid until"]) if (sectionText(q.client, s) == null) p.push(`${q.rel}: no "## ${s}" section`);
   const get = sectionText(q.client, "What you get") ?? "";
   if (!/findings note/i.test(get) || !/no-go/i.test(get)) p.push(`${q.rel}: "What you get" must name the findings note and the go or no-go`);
