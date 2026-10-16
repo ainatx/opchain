@@ -157,7 +157,7 @@ process.on("uncaughtException", (e) => {
   deny(
     `opchain: the commit gate errored (${e && e.message}) and refuses to allow an ` +
       "unverified commit. This is a bug in the gate — please report it. To proceed " +
-      "anyway: `git commit --no-verify`.",
+      "anyway, bypass deliberately with /oc-bugcheck bypass (records it), then `OPCHAIN_BYPASS=1 git commit …`.",
   );
 });
 
@@ -1116,7 +1116,10 @@ if (!roots.length && !unknowable) allow();
 // can trigger it.
 const BYPASS = /(?:^|\s)(?:--no-verify|OPCHAIN_BYPASS=1)(?:\s|$)/;
 if (BYPASS.test(span.stripped) && BYPASS.test(shellViews(shell).stripped)) {
-  process.stderr.write("[opchain] ⚠ commit gate bypassed explicitly (--no-verify / OPCHAIN_BYPASS=1)\n");
+  process.stderr.write(
+    "[opchain] ⚠ commit gate bypassed explicitly (OPCHAIN_BYPASS=1 / --no-verify) — " +
+      "record it with /oc-bugcheck bypass if you have not already\n",
+  );
   allow();
 }
 
@@ -1124,7 +1127,7 @@ const INVOKE =
   'Run the gate, then retry:\n\n    Skill(skill="oc-bug-check", args="/oc-bugcheck run")\n\n' +
   "If it returns PASS the commit proceeds. If FAIL, fix what it surfaces. If\n" +
   "UNSUPPORTED, the gate could not read this stack — that is not a pass; either\n" +
-  "add stack support or bypass deliberately with `git commit --no-verify`.";
+  "add stack support or bypass deliberately with /oc-bugcheck bypass (records it), then `OPCHAIN_BYPASS=1 git commit …`.";
 
 if (unknowable) {
   deny(
@@ -1132,8 +1135,8 @@ if (unknowable) {
       "`git -C` target is a variable or substitution, or `--git-dir`/`--work-tree`/`GIT_DIR`\n" +
       "points git elsewhere — so there is no checkpoint to check it against.\n\n" +
       "Commit with a literal path instead (`git -C /path/to/repo commit …` or\n" +
-      "`cd /path/to/repo && git commit …`), or bypass deliberately with\n" +
-      "`git commit --no-verify`.",
+      "`cd /path/to/repo && git commit …`), or " +
+      "bypass deliberately with /oc-bugcheck bypass (records it), then `OPCHAIN_BYPASS=1 git commit …`.",
   );
 }
 
@@ -1183,7 +1186,7 @@ function gate(repoRoot) {
       "opchain: oc-bug-check returned UNSUPPORTED — it did not recognize this stack,\n" +
         "so types, lint, tests and build were never run. An absence of findings is not\n" +
         "a pass.\n\nAdd stack support (skills/oc-bug-check/SKILL.md § Stack-Specific\n" +
-        "Adaptations) or bypass deliberately with `git commit --no-verify`.",
+        "Adaptations) or bypass deliberately with /oc-bugcheck bypass (records it), then `OPCHAIN_BYPASS=1 git commit …`.",
     );
   }
   if (recorded.length > 1) {
@@ -1228,7 +1231,7 @@ function gate(repoRoot) {
     refuse(
       "opchain: could not hash the working tree (unmerged index, index.lock held, or\n" +
         "git unavailable), so the recorded PASS cannot be bound to this commit. Resolve\n" +
-        "the repo state and retry, or bypass with `git commit --no-verify`.",
+        "the repo state and retry, or bypass with /oc-bugcheck bypass (records it), then `OPCHAIN_BYPASS=1 git commit …`.",
     );
   }
 

@@ -1,0 +1,258 @@
+{
+  "$comment": "Hand-written routing copy merged by scripts/gen-route-spec.mjs into plugins/opchain/hooks/route-spec.json. Rule (TypeSafe cookbook): describe the IDEA the user has, never the flag or parameter name. `index` is the ≤160-char option text in the request-1 Choice over all skills; `notFor` is appended in the request-2 rerank and fit questions where siblings confuse; `verbs` override derived command-reference lines; `verbQuestion` is the per-skill verb Choice prompt; `baseVerb` overrides the verb used when the request names no sub-task.",
+  "skills": {
+    "oc-agent-forge": {
+      "index": "Designing or building an agent on the Claude Agent SDK: subagent topology, tool budgets, harness loop shape, agent evals.",
+      "notFor": "Not raw Claude API mechanics such as prompt caching, tool-use schemas or model migration (oc-claude-api), and not prompt eval datasets (oc-prompt-ops).",
+      "verbQuestion": "Which part of the agent work does the request ask for: planning the topology, building it, evaluating or tracing it? Choose \"unspecified\" when it names none."
+    },
+    "oc-api-dev": {
+      "index": "Designing, versioning, linting or generating SDKs for the project's own first-party API (OpenAPI/GraphQL); spec-vs-code drift.",
+      "notFor": "Not consuming someone else's API, OAuth or webhooks (oc-integrations-engineer), and not warehouse or data schema drift (oc-data-ops).",
+      "verbQuestion": "Which API task does the request ask for: designing, writing the spec, scaffolding handlers, versioning or deprecating, generating an SDK, checking drift? Choose \"unspecified\" when it names none."
+    },
+    "oc-app-architect": {
+      "index": "Taking a product idea through discovery, spec, design, sprint plan, scaffold, build loop and launch; 'build me an app', 'I have an idea'.",
+      "notFor": "Not a stack-only decision (oc-stack-forge), not UI design work on its own (oc-ux-engineer), not documenting an existing codebase (oc-reverse-spec), and not changing a live system's engine (oc-migration-ops).",
+      "verbQuestion": "Which phase of the app pipeline does the request ask for: discovery interview, spec, design, sprint roadmap, scaffold, the build loop, or launch? Choose \"unspecified\" when it names none."
+    },
+    "oc-bug-check": {
+      "index": "Fast checks on what is about to be committed: lint, types, tests, secrets, build; 'is this safe to commit?'. Also enrolling the commit gate.",
+      "notFor": "Not a deliberate audit with a findings report and a fix loop (oc-code-auditor), not threat modelling or infrastructure security (oc-security-auditor), and not test strategy (oc-qa-ops).",
+      "verbQuestion": "Does the request want the checks run, something auto-fixed, the gate configured, a report or history shown, the gate bypassed once, or the repo enrolled in the commit gate? Choose \"unspecified\" when it names none.",
+      "verbs": {
+        "/oc-enroll": "Install the opchain commit gate in this repository so every commit is checked (enrollment, not a check run).",
+        "/oc-bugcheck": "Run all the pre-commit checks now on staged or changed files."
+      }
+    },
+    "oc-checkpoint-protocol": {
+      "index": "The shared checkpoint JSON contract every other skill implements for session persistence; nothing a request invokes directly.",
+      "verbQuestion": "Not invocable; no verbs."
+    },
+    "oc-claude-api": {
+      "index": "Writing, debugging or migrating code that calls the Claude API / Anthropic SDK: prompt caching, tool use, model versions, batches.",
+      "notFor": "Not agent topology or harness design (oc-agent-forge), not prompt eval datasets (oc-prompt-ops), and not retrieval systems (oc-rag-forge).",
+      "verbQuestion": "Does the request want a model-version migration, a prompt-cache audit, tool-use design, or a cost look at Claude API usage? Choose \"unspecified\" when it names none.",
+      "verbs": {
+        "/oc-claude-api tool-use": "Schema-first tool-use patterns: defer-loaded and parallel tool definitions."
+      }
+    },
+    "oc-code-auditor": {
+      "index": "A deliberate code-quality audit of a codebase, file or diff with a findings report and a fix/verify loop: 'audit this', 'find bugs', 'code review'.",
+      "notFor": "Not the fast pre-commit gate (oc-bug-check), not architecture or infrastructure security posture (oc-security-auditor), and not executing hardening fixes (oc-security-hardening).",
+      "verbQuestion": "What scope of audit does the request ask for: the full codebase, security, performance, quality, UX, a pre-deploy gate, a specific file, the diff; or fixing findings, verifying fixes, bootstrapping tests, or regenerating the report? Choose \"unspecified\" when it names none.",
+      "verbs": {
+        "/oc-audit": "Audit without a stated scope; the auditor picks the sweep."
+      }
+    },
+    "oc-compliance-ops": {
+      "index": "SOC 2 / HIPAA / GDPR compliance: the control register, audit-ready evidence bundles, policy docs, 'what would an auditor ask for'.",
+      "notFor": "Not the point-in-time security assessment (oc-security-auditor) and not executing technical controls (oc-security-hardening).",
+      "verbQuestion": "Does the request want the compliance scope set, the control register, an evidence bundle, the open gaps, policy documents, or status? Choose \"unspecified\" when it names none.",
+      "verbs": {
+        "/oc-compliance": "Alias of the compliance entry point.",
+        "/oc-comply gaps": "The open controls: unmapped, unsatisfied, or stale against the register."
+      }
+    },
+    "oc-cost-ops": {
+      "index": "What LLM or token spend a skill phase, feature or run cost; budget gates in checkpoints; which model tier to route work to.",
+      "notFor": "Not prompt quality regression (oc-prompt-ops), not usage metering of which skills ran (oc-telemetry-ops), and not cloud infrastructure bills (oc-scale-ops).",
+      "verbQuestion": "Does the request want a cost baseline, spend attributed to phases, a budget set, model-tier routing advice, the budget gate checked, or a report? Choose \"unspecified\" when it names none."
+    },
+    "oc-dash-forge": {
+      "index": "Designing a dashboard, BI view, KPI screen or dense data UI: a design spec plus a React prototype with mock data.",
+      "notFor": "Not general UI/UX design (oc-ux-engineer), not the metric backend that feeds it (oc-signal-forge), and not production monitoring itself (oc-monitoring-ops).",
+      "verbQuestion": "Which dashboard-design step does the request ask for: intake, picking the archetype, layout, tokens, the prototype, spec only, the full run, an audit of an existing dashboard, or variants? Choose \"unspecified\" when it names none.",
+      "baseVerb": "/oc-dash-forge",
+      "verbs": {
+        "/oc-dash-forge": "Start the dashboard design pipeline from the beginning.",
+        "/oc-data-forge": "Alias of the dashboard design entry point."
+      }
+    },
+    "oc-data-ops": {
+      "index": "Designing or building data pipelines: ingestion, dbt/transform layers, warehouse modeling, data contracts, freshness and quality checks.",
+      "notFor": "Not a single metric (oc-signal-forge), not dashboards (oc-dash-forge), not swapping a live pipeline engine (oc-migration-ops), and not API spec-vs-code drift (oc-api-dev).",
+      "verbQuestion": "Does the request want the pipeline designed, data contracts written, the pipeline built, contracts verified, observability added, or status? Choose \"unspecified\" when it names none."
+    },
+    "oc-deploy-ops": {
+      "index": "Shipping a single managed app: deploy to staging or production, roll back, smoke tests, health check, environment config, deploy status.",
+      "notFor": "Not commits, pushes, PRs or tags (oc-git-ops), not planning or cutting the release itself (oc-release-ops), not multi-container or IaC infrastructure (oc-fleet-ops), and not post-deploy monitoring (oc-monitoring-ops).",
+      "verbQuestion": "Which deployment action does the request ask for: staging, production, rollback, the pre-deploy audit, smoke tests, a health check, environment variables, initial setup, or status? Choose \"unspecified\" when it names none."
+    },
+    "oc-docs-forge": {
+      "index": "Writing or refreshing the documentation a change needs: the PR docs packet, README, changelog, ADRs, product docs.",
+      "notFor": "Not generated-catalog or generated-file drift (oc-repo-ops) and not the commit/PR mechanics (oc-git-ops).",
+      "verbQuestion": "Does the request want the PR documentation packet, a README update, docs standardized, general docs upkeep, or docs verified? Choose \"unspecified\" when it names none."
+    },
+    "oc-evolve": {
+      "index": "Reflecting on something that keeps going wrong in the workflow and proposing, evaluating or reviewing a learned behaviour rule.",
+      "notFor": "Not recalling past incidents or lessons (oc-hindsight).",
+      "verbQuestion": "Does the request want a reflection on recurring failures, or the status of proposed rules? Choose \"unspecified\" when it names none.",
+      "verbs": {
+        "/oc-evolve": "Open the behaviour-improvement loop without a named step.",
+        "/oc-evolve reflect": "Look at what keeps going wrong and propose a rule change.",
+        "/oc-evolve status": "Show proposed and adopted rules and their evaluation state."
+      }
+    },
+    "oc-fleet-ops": {
+      "index": "Deploying or operating many containers on self-managed infrastructure: Kubernetes, Terraform, Nomad, Compose, VMs, on-prem.",
+      "notFor": "Not a single managed-platform app deploy (oc-deploy-ops).",
+      "verbQuestion": "Which fleet action does the request ask for: declaring topology, provisioning infra, deploying, verifying, scaling, draining, rollback, or status? Choose \"unspecified\" when it names none."
+    },
+    "oc-git-ops": {
+      "index": "Git operations: branch, commit, push, open a PR, the whole commit→push→PR sync, tag a merged release.",
+      "notFor": "Not planning or drafting a versioned release (oc-release-ops) and not deploying anything to an environment (oc-deploy-ops). Tagging an already-merged release IS this skill.",
+      "verbQuestion": "What does the request want done with git: just a commit, a PR description, a push, the full commit→push→PR sync, or tagging a merged release? Choose \"unspecified\" when it names none.",
+      "verbs": {
+        "/oc-git": "A git task with no specific step named: status, conventions, repo setup."
+      }
+    },
+    "oc-hindsight": {
+      "index": "Operational memory: remember this failure or lesson, find a similar past incident, 'what did we learn last time'.",
+      "notFor": "Not proposing or evaluating new behaviour rules (oc-evolve).",
+      "verbQuestion": "Does the request want outcomes harvested into memory, or the memory's status? Choose \"unspecified\" when it names none.",
+      "verbs": {
+        "/oc-hindsight": "Retrieve or record an operational lesson without a named step.",
+        "/oc-hindsight harvest": "Harvest recent outcomes into candidate lessons.",
+        "/oc-hindsight status": "Show the lesson store: pending, approved, provenance."
+      }
+    },
+    "oc-integrations-engineer": {
+      "index": "Connecting to someone else's API or service: OAuth, webhooks, retries, secrets, health — Stripe, Slack, Salesforce-style integrations.",
+      "notFor": "Not the project's own first-party API design (oc-api-dev) and not the warehouse pipeline a connector feeds (oc-data-ops).",
+      "verbQuestion": "Which integration step does the request ask for: planning, secrets, building, testing, connecting, a webhook, OAuth, health, retry policy, or listing integrations? Choose \"unspecified\" when it names none."
+    },
+    "oc-migration-ops": {
+      "index": "Changing a live system from one engine to another: database or framework migration, auth provider swap, platform move, big version upgrade.",
+      "notFor": "Not greenfield building (oc-app-architect), not documenting what exists (oc-reverse-spec), and not decomposing a live monolith into services (oc-modularize-ops).",
+      "verbQuestion": "Where in the migration is the request: assessing, planning, impact analysis, executing, a single step, verifying, rollback, dry run, status, history, an opchain ecosystem upgrade, or abandoning? Choose \"unspecified\" when it names none."
+    },
+    "oc-modularize-ops": {
+      "index": "Breaking a live monolith into modules or services with golden fixtures from real data proving zero behaviour loss; willing to say don't.",
+      "notFor": "Not a behaviour-preserving, git-diffable repo or package reorg (oc-migration-ops) and not deploying the resulting modules (oc-fleet-ops).",
+      "verbQuestion": "Which decomposition step does the request ask for: assessing whether to do it, capturing golden fixtures, planning seams, extracting a module, verifying, diffing, status, or abandoning? Choose \"unspecified\" when it names none.",
+      "verbs": {
+        "/oc-modularize characterize": "Capture golden fixtures from real data at every module boundary (the equivalence oracle)."
+      }
+    },
+    "oc-monitoring-ops": {
+      "index": "Production observability after a deploy: uptime, error tracking, logging, alerts, SLOs, on-call, incidents, runbooks, 'is prod healthy'.",
+      "notFor": "Not metering which opchain skills ran (oc-telemetry-ops) and not the deploy itself (oc-deploy-ops).",
+      "verbQuestion": "Which observability task does the request ask for: setup, choosing the stack, instrumenting, health, errors, uptime, metrics, alerts, on-call, SLOs, an incident, a runbook, a postmortem, a dashboard, a report, an audit, a comparison, or status? Choose \"unspecified\" when it names none."
+    },
+    "oc-orchestrator": {
+      "index": "Where things stand across the pipeline or across projects: status, what to work on next, blockers, routing a vague request to the right skill.",
+      "notFor": "Not performing the git, deploy or release work itself; it reports state and routes.",
+      "verbQuestion": "Does the request want status, the next action, routing of a vague intent, project registry work, the pipeline view, blockers, recent activity, health, or the skill list? Choose \"unspecified\" when it names none.",
+      "verbs": {
+        "/oc-ops switch": "Set the active project for this session."
+      }
+    },
+    "oc-prompt-ops": {
+      "index": "Treating LLM prompts as versioned code: eval datasets, golden sets, judging, regression and drift detection between prompt versions.",
+      "notFor": "Not cost attribution (oc-cost-ops) and not retrieval evaluation (oc-rag-forge).",
+      "verbQuestion": "Does the request want an eval run, a prompt diff, a golden set, a judge, a regression check, a baseline, or drift detection? Choose \"unspecified\" when it names none."
+    },
+    "oc-qa-ops": {
+      "index": "Test strategy rather than test runs: the test pyramid, coverage budgets, contract-test matrix, load-test planning, flaky and slow test debt.",
+      "notFor": "Not running the tests (oc-bug-check), not executing load tests (oc-scale-ops), and not writing the tests themselves.",
+      "verbQuestion": "Does the request want the test pyramid, coverage budgets, the contract-test matrix, a load-test plan, an audit of the existing suite, or status? Choose \"unspecified\" when it names none."
+    },
+    "oc-rag-forge": {
+      "index": "Designing or building retrieval-augmented generation: vector DB choice, embeddings, chunking, hybrid search, reranking, retrieval eval.",
+      "notFor": "Not general Claude API code (oc-claude-api) and not prompt regression suites (oc-prompt-ops).",
+      "verbQuestion": "Which RAG step does the request ask for: design, build, chunking, embeddings, hybrid search, a golden set, eval, benchmark, regression, or inspecting retrievals? Choose \"unspecified\" when it names none."
+    },
+    "oc-release-ops": {
+      "index": "Cutting a versioned release: propose the next semver, draft the changelog, bump every version, announce, verify, ship or roll back the bump.",
+      "notFor": "Not the git mechanics of committing, pushing or tagging (oc-git-ops) and not deploying the built artifact to an environment (oc-deploy-ops).",
+      "verbQuestion": "Where in the release is the request: planning the semver, drafting the changelog, bumping versions, the announcement, the pre-ship verify, shipping the whole pipeline, rollback of the bump, or status? Choose \"unspecified\" when it names none."
+    },
+    "oc-repo-ops": {
+      "index": "Repository hygiene before a PR: generated-file and catalog drift, stale artifacts, orphaned docs, .gitignore policy, 'is this PR ready'.",
+      "notFor": "Not writing the documentation itself (oc-docs-forge) and not the commit/PR mechanics (oc-git-ops).",
+      "verbQuestion": "Does the request want a hygiene audit, PR-readiness verification, cleanup, catalog regeneration, or status? Choose \"unspecified\" when it names none."
+    },
+    "oc-reverse-spec": {
+      "index": "Reverse-engineering an existing codebase into spec documents: inventory scan, full spec set, design-system extraction, stack gaps, sprint onramp.",
+      "notFor": "Not building something new (oc-app-architect) and not changing the existing system (oc-migration-ops).",
+      "verbQuestion": "Does the request want a quick scan, the full spec set, the design system extracted, the stack gap analysis, or a sprint onramp for one feature? Choose \"unspecified\" when it names none.",
+      "baseVerb": "/oc-rev-scan"
+    },
+    "oc-scale-ops": {
+      "index": "Scaling readiness: load tests, performance budgets, bottlenecks, caching strategy, query and CDN tuning, capacity and infra cost planning.",
+      "notFor": "Not test strategy (oc-qa-ops), not production monitoring (oc-monitoring-ops), and not LLM token cost (oc-cost-ops).",
+      "verbQuestion": "Which scaling task does the request ask for: an audit, perf budgets, a load test, a bottleneck hunt, a benchmark, caching, queries, CDN, a capacity plan, or infra cost? Choose \"unspecified\" when it names none."
+    },
+    "oc-security-auditor": {
+      "index": "Assessing security posture above the code: threat model, OWASP mapping, attack surface, framework readiness, headers/TLS/DNS/WAF review.",
+      "notFor": "Not code-level bug finding (oc-code-auditor), not pre-commit checks (oc-bug-check), not applying the fixes (oc-security-hardening), and not the standing compliance register (oc-compliance-ops).",
+      "verbQuestion": "Which assessment does the request ask for: the full posture, a threat model, attack surface, adversaries, data flow, OWASP, framework readiness, headers, TLS, DNS, Cloudflare, infra, a comparison of snapshots, prioritization, or the report? Choose \"unspecified\" when it names none.",
+      "verbs": {
+        "/oc-security": "A security assessment with no specific pillar named.",
+        "/oc-secaudit": "Alias of the security assessment entry point.",
+        "/oc-sec": "Alias of the security assessment entry point.",
+        "/oc-threat-model": "Alias of the STRIDE threat model.",
+        "/oc-owasp": "Alias of the OWASP Top 10 checklist.",
+        "/oc-hardening": "Alias of the infrastructure hardening audit (assessment, not fixes).",
+        "/oc-attack-surface": "Alias of the attack-surface map.",
+        "/oc-posture": "Alias of the full posture assessment."
+      }
+    },
+    "oc-security-hardening": {
+      "index": "Executing security fixes: add headers, roll out CSP in stages, rate limits, TLS/WAF config as code, rotate secrets, a per-deploy hardening gate.",
+      "notFor": "Not assessment or threat modelling (oc-security-auditor), not code-bug fixing (oc-code-auditor), and not dependency vulnerability scanning (oc-bug-check).",
+      "verbQuestion": "Does the request want the hardening baseline, a fix applied, the CSP rollout, the deploy gate, verification, or status? Choose \"unspecified\" when it names none."
+    },
+    "oc-signal-forge": {
+      "index": "Turning a question into a trustworthy metric: instrument, harvest, verify the signal actually answers it, then wire it to a consumer.",
+      "notFor": "Not opchain skill-usage telemetry (oc-telemetry-ops), not dashboards (oc-dash-forge), not production uptime (oc-monitoring-ops), and not estate-level data pipelines (oc-data-ops).",
+      "verbQuestion": "Which signal step does the request ask for: framing the question, design, harvesting, building, verifying, wiring to a consumer, the catalog, or status? Choose \"unspecified\" when it names none."
+    },
+    "oc-stack-forge": {
+      "index": "Choosing the tech stack or platform (Cloudflare, Vercel, AWS, Supabase, Rails...) or decomposing a feature into stack-ordered sprints.",
+      "notFor": "Not the full idea-to-launch pipeline (oc-app-architect) and not UI/UX design (oc-ux-engineer).",
+      "verbQuestion": "Does the request want the stack decision tree run, or a feature decomposed into stack-ordered sprints? Choose \"unspecified\" when it names none.",
+      "verbs": {
+        "/oc-stack": "A stack question with no specific step named."
+      }
+    },
+    "oc-telemetry-ops": {
+      "index": "Opt-in, local metering of which opchain skills and phases actually run; usage stats and anonymized aggregate exports.",
+      "notFor": "Not application or production observability (oc-monitoring-ops) and not cost attribution (oc-cost-ops).",
+      "verbQuestion": "Does the request want telemetry enabled, disabled, its status, an event recorded, aggregates, or an export? Choose \"unspecified\" when it names none."
+    },
+    "oc-update": {
+      "index": "Updating the opchain skills installed in this repository, or checking whether a newer opchain version exists.",
+      "notFor": "Not upgrading the project's own dependencies or frameworks (oc-migration-ops).",
+      "verbQuestion": "Does the request want the update applied, only a check for whether one exists, or a diagnosis of which opchain copy the session loads? Choose \"unspecified\" when it names none.",
+      "verbs": {
+        "/oc-update": "Apply the opchain skill update, preserving checkpoints and telemetry.",
+        "/oc-update check": "Only check whether an opchain update is available.",
+        "/oc-update doctor": "Diagnose which opchain install this session loads and why there are duplicate copies (read-only)."
+      }
+    },
+    "oc-ux-engineer": {
+      "index": "UI/UX design work: plan, generate and evaluate screens, user flows, the component library, accessibility audit, design consistency.",
+      "notFor": "Not the whole app pipeline (oc-app-architect), not stack choice (oc-stack-forge), and not dashboards or dense data UIs (oc-dash-forge).",
+      "verbQuestion": "Which design step does the request ask for: planning, the build loop, an evaluation, user flows, components, fidelity against design, routing to dashboard design, attaching or detaching the evaluator, status, or export? Choose \"unspecified\" when it names none."
+    }
+  },
+  "suggest": {
+    "allow": [
+      "oc-git-ops",
+      "oc-deploy-ops",
+      "oc-code-auditor",
+      "oc-bug-check",
+      "oc-release-ops",
+      "oc-docs-forge",
+      "oc-repo-ops",
+      "oc-app-architect",
+      "oc-ux-engineer",
+      "oc-orchestrator",
+      "oc-dash-forge",
+      "oc-update"
+    ],
+    "reason": "Evidence gate. The router may SUGGEST only these skills: the seven core pipeline skills (git-ops 0.92 / deploy-ops 0.88 precision in the 2026-10-09 blind-labelled eval of 574 prompts) plus the skills that had labelled positives in that eval (oc-app-architect, oc-ux-engineer, oc-orchestrator, oc-dash-forge, oc-update). Every other skill was noisy and 11 produced suggestions with zero labelled positives. All skills stay as Choice options so they absorb probability instead of misrouting to oc-git-ops; a winner outside this list yields no suggestion. A skill joins the list when an eval or `route-eval outcomes` shows labelled positives for it."
+  }
+}

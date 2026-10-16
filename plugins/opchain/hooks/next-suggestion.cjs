@@ -46,6 +46,20 @@
 // "oc-code-auditor is still in progress" is a standing condition, and standing
 // conditions already belong to the SessionStart hook, where they're reported.
 //
+// ── 2026-10-08 effectiveness audit (I-06, I-07) ─────────────────────────────
+// Follow-through was 0/62. 17 of 24 consumer-repo suggestions told the session
+// running oc-app-architect to run oc-app-architect, because the target was "the
+// skill whose checkpoint changed" when its action named nothing else; 5 of 38
+// repeated the checkpoint.mjs scaffold sentence. So, in order:
+//   • when the action names no downstream skill, the target is the §3 HANDOFF
+//     of the skill that just finished (oc-code-auditor → /oc-commit), never the
+//     skill itself;
+//   • the suggestion is dropped when this session already invoked the candidate
+//     (read from the transcript's Skill tool_use blocks);
+//   • scaffold text and actions under 12 characters are not actions;
+//   • text identical to the last notice this session emitted is not repeated,
+//     even across a new HEAD.
+//
 // Contract: stdout is either nothing (silent) or one JSON object. Always exit 0.
 // Never emits a `decision` field, so it cannot block, cannot loop, and cannot
 // force a turn.
@@ -88,6 +102,38 @@ const cwd = input.cwd || process.cwd();
 const repoRoot = git(["rev-parse", "--show-toplevel"], cwd) || cwd;
 const cpDir = path.join(repoRoot, ".checkpoints");
 if (!fs.existsSync(cpDir)) silent(); // not an opchain project
+
+// ── which skills did THIS session already invoke? ───────────────────────────
+// The transcript is JSONL; an assistant message's `tool_use` block named
+// "Skill" carries input.skill, as "oc-app-architect" or "opchain:oc-commit".
+// Only lines that mention the tool are parsed, so a 50MB transcript is cheap.
+function invokedSkills() {
+  const set = new Set();
+  const file = input.transcript_path;
+  if (!file || typeof file !== "string") return set;
+  let text;
+  try {
+    text = fs.readFileSync(file, "utf8");
+  } catch {
+    return set;
+  }
+  for (const line of text.split("\n")) {
+    if (!line.includes('"Skill"')) continue;
+    let rec;
+    try {
+      rec = JSON.parse(line);
+    } catch {
+      continue;
+    }
+    const content = rec && rec.message && Array.isArray(rec.message.content) ? rec.message.content : [];
+    for (const c of content) {
+      if (c && c.type === "tool_use" && c.name === "Skill" && c.input && typeof c.input.skill === "string") {
+        set.add(c.input.skill.replace(/^opchain:/, "").trim());
+      }
+    }
+  }
+  return set;
+}
 
 // ── read checkpoints ────────────────────────────────────────────────────────
 let files;
@@ -199,6 +245,14 @@ function actionText(a) {
   return "";
 }
 
+// `scripts/checkpoint.mjs update` on a missing file scaffolds this sentence; it
+// validates, shipped on main for one skill, and was re-advertised here 5 times.
+// Anything under 12 characters ("x", "Fix it", "TBD") is a placeholder too.
+const SCAFFOLD = /define the first real next action/i;
+function usable(t) {
+  return Boolean(t) && t.trim().length >= 12 && !SCAFFOLD.test(t) && !isStale(t);
+}
+
 // ── pick what to say ────────────────────────────────────────────────────────
 const blockers = Array.isArray(source.blockers) ? source.blockers : [];
 const decision = blockers.find((b) => b && b.needs === "user_decision");
@@ -211,14 +265,14 @@ if (decision) {
 } else {
   for (const a of Array.isArray(source.next_actions) ? source.next_actions : []) {
     const t = actionText(a);
-    if (t && !isStale(t)) {
+    if (usable(t)) {
       actionStr = t;
       break;
     }
   }
   why = `${source.skill} just wrote a checkpoint`;
 }
-if (!actionStr || isStale(actionStr)) {
+if (!usable(actionStr)) {
   remember({});
   silent(); // nothing fresh and actionable -> say nothing
 }
@@ -286,25 +340,90 @@ for (const id of KNOWN) {
     at = m.index;
   }
 }
-// A target with a registered command is typeable; any other skill is named,
-// so "Hand off to oc-security-auditor" suggests "run oc-security-auditor"
-// rather than the skill that just finished.
-const typeable = COMMANDS[target] || `"run ${target}"`;
+// When the action names no downstream skill and no decision is pending, the
+// orchestrator.md §3 handoff of the skill that just finished is the target.
+// "Re-run the skill that just ran" was the measured failure mode (0/62
+// followed); the handoff is the next chokepoint the pipeline actually has.
+const HANDOFF = {
+  "oc-bug-check": { to: "oc-git-ops", cmd: "/oc-commit" },
+  "oc-code-auditor": { to: "oc-git-ops", cmd: "/oc-commit (or /oc-deploy staging after pre-deploy)" },
+  "oc-docs-forge": { to: "oc-repo-ops", cmd: "/oc-repo verify" },
+  "oc-repo-ops": { to: "oc-git-ops", cmd: "/oc-pr" },
+  "oc-git-ops": { to: "oc-deploy-ops", cmd: "/oc-deploy staging (user confirms)" },
+  "oc-release-ops": { to: "oc-git-ops", cmd: "/oc-git-release <semver>" },
+  "oc-app-architect": { to: "oc-app-architect", cmd: "/oc-build next sprint" },
+  "oc-ux-engineer": { to: "oc-app-architect", cmd: "/oc-build" },
+  "oc-dash-forge": { to: "oc-ux-engineer", cmd: "/oc-uxe" },
+  "oc-reverse-spec": { to: "oc-app-architect", cmd: "/oc-roadmap" },
+  "oc-integrations-engineer": { to: "oc-app-architect", cmd: "/oc-build" },
+  "oc-api-dev": { to: "oc-app-architect", cmd: "/oc-build" },
+  "oc-qa-ops": { to: "oc-git-ops", cmd: "/oc-commit" },
+  "oc-migration-ops": { to: "oc-git-ops", cmd: "/oc-commit" },
+  "oc-deploy-ops": { to: "oc-monitoring-ops", cmd: "/oc-monitor" },
+  "oc-fleet-ops": { to: "oc-monitoring-ops", cmd: "/oc-monitor" },
+  "oc-security-auditor": { to: "oc-security-hardening", cmd: "/oc-harden fix" },
+  "oc-security-hardening": { to: "oc-security-auditor", cmd: "/oc-security compare" },
+  "oc-modularize-ops": { to: "oc-migration-ops", cmd: "/oc-migrate plan" },
+  "oc-signal-forge": { to: "oc-dash-forge", cmd: "/oc-data-forge" },
+  "oc-claude-api": { to: "oc-prompt-ops", cmd: "/oc-prompt goldset" },
+  "oc-agent-forge": { to: "oc-prompt-ops", cmd: "/oc-prompt goldset" },
+  "oc-rag-forge": { to: "oc-prompt-ops", cmd: "/oc-prompt goldset" },
+};
+function semverFrom(...texts) {
+  for (const t of texts) {
+    const m = /\bv?(\d+\.\d+\.\d+)\b/.exec(String(t || ""));
+    if (m) return m[1];
+  }
+  return null;
+}
+let typeable;
+if (target === source.skill && !decision && HANDOFF[source.skill]) {
+  const h = HANDOFF[source.skill];
+  target = h.to;
+  typeable = h.cmd.replace(
+    "<semver>",
+    semverFrom(actionStr, source.step, source.version, source.progress_summary) || "<semver>",
+  );
+} else {
+  // A target with a registered command is typeable; any other skill is named,
+  // so "Hand off to oc-security-auditor" suggests "run oc-security-auditor"
+  // rather than the skill that just finished.
+  typeable = COMMANDS[target] || `"run ${target}"`;
+}
+
+// Never tell a session to run what it already ran. Command skills are mapped to
+// the skill that owns them ("oc-commit" → oc-git-ops) so either spelling counts.
+const VERB_OWNER = {
+  "oc-build": "oc-app-architect", "oc-roadmap": "oc-app-architect", "oc-spec": "oc-app-architect",
+  "oc-pr": "oc-git-ops", "oc-git-release": "oc-git-ops", "oc-git-sync": "oc-git-ops", "oc-push": "oc-git-ops",
+  "oc-monitor": "oc-monitoring-ops", "oc-uxe": "oc-ux-engineer", "oc-security": "oc-security-auditor",
+  "oc-migrate": "oc-migration-ops", "oc-prompt": "oc-prompt-ops", "oc-data-forge": "oc-dash-forge",
+};
+for (const [skill, cmd] of Object.entries(COMMANDS)) VERB_OWNER[cmd.slice(1)] = skill;
+const invoked = invokedSkills();
+for (const id of [...invoked]) if (VERB_OWNER[id]) invoked.add(VERB_OWNER[id]);
+const verb = (/^\/(oc-[a-z0-9-]+)/.exec(typeable) || [])[1];
+if (invoked.has(target) || (verb && invoked.has(verb))) {
+  remember({});
+  silent();
+}
 
 // Don't repeat the same suggestion for the same commit.
 const head = git(["rev-parse", "--short", "HEAD"], repoRoot) || "nohead";
 const key = `${typeable}@${head}@${actionStr.slice(0, 60)}`;
 if (prior.lastKey === key) {
-  remember({ lastKey: key });
+  remember({ lastKey: key, lastText: prior.lastText });
   silent();
 }
 
 const oneLine = actionStr.replace(/\s+/g, " ").trim().slice(0, 120);
-remember({ lastKey: key });
+const message = `opchain · next → ${typeable}   (${why}: ${oneLine})`;
+// ...nor the same words at all, even after a commit: the reader saw them once.
+if (prior.lastText === message) {
+  remember({ lastKey: key, lastText: message });
+  silent();
+}
+remember({ lastKey: key, lastText: message });
 
-process.stdout.write(
-  JSON.stringify({
-    systemMessage: `opchain · next → ${typeable}   (${why}: ${oneLine})`,
-  }),
-);
+process.stdout.write(JSON.stringify({ systemMessage: message }));
 process.exit(0);

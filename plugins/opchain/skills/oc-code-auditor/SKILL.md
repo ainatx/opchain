@@ -54,6 +54,7 @@ CODE AUDITOR COMMANDS
   /oc-audit pre-deploy      Pre-deployment gate (security + perf + config)
   /oc-audit file [path]     Audit specific file(s)
   /oc-audit diff            Audit git diff or staged changes
+  /oc-audit diff --read-only <range>   Auditor-only review of a range; writes audit/findings-<sha>.json
 
   TRI-AGENT HARNESS
   /oc-audit fix-all         Run full Auditor → Fixer → Verifier loop
@@ -380,9 +381,36 @@ If a fix is REJECTED or PARTIAL:
 | `/oc-audit quality` | 1c | Auditor only | Tech debt assessment |
 | `/oc-audit ux` | 1e | Auditor only | Before UAT, UX health check |
 | `/oc-audit pre-deploy` | 1a + 1b + 1d | Auditor only | Deploy gate |
+| `/oc-audit diff --read-only <range>` | 1a–1e over the range's changed files | Auditor only | Review lanes, evaluator spawns, PR review; emits a findings artifact |
 | `/oc-audit fix <id>` | — | Fixer + Verifier | Fix one specific finding |
 | `/oc-audit fix-all` | All applicable | All three agents | Full find-fix-verify cycle |
 | `/oc-audit verify` | — | Verifier only | Re-verify previous fixes |
+
+### Read-only diff review (`/oc-audit diff --read-only <range>`)
+
+The Auditor alone, over a Git range (`main..HEAD`, `<base>..<head>`, or a PR's
+merge-base range). It never modifies code and never spawns the Fixer, which is what
+makes it safe to run from a review lane or an evaluator subagent on a branch it does
+not own. It produces two things, and a run that produces neither is not a review:
+
+1. **`audit/findings-<sha>.json`** (`<sha>` = the range head), an array of
+   `{ id, severity, title, file, line, evidence, fix }` — `id` as `F-NNN`, `severity`
+   one of CRITICAL/HIGH/MEDIUM/LOW, `evidence` the quoted lines that prove the finding,
+   `fix` the minimal remediation in one sentence. An empty array is a valid, PASS-grade
+   result.
+2. **A `handoffs.verification.verdict` entry** in this skill's checkpoint, shaped as in
+   *Candidate-bound deployment handoff* below but with `payload.policy:
+   "code-review-diff-v1"`, `payload.range`, and `payload.findings_ref` pointing at the
+   artifact. `verdict` is FAIL when any CRITICAL or HIGH finding is open, INCOMPLETE
+   when the range could not be fully read, PASS otherwise.
+
+When spawned, the report's first line is `skill_invoked: yes|no (<args>)` and its
+second is the artifact path — the caller grades from the artifact, not the prose.
+
+**For orchestrators:** when a FAIL comes back, ask the same reviewer for
+`/oc-audit fix-all` on a writable branch (it already holds the findings) and take the
+diff plus Verifier verdict, instead of bouncing the FAIL to another lane. The
+2026-10-08 audit (I-12) traced ≥11 review rounds on one PR to exactly that bounce.
 
 ---
 

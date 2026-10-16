@@ -28,6 +28,13 @@
  *                                     --strict promotes warnings to errors.
  *   update <skill> [--field=value...] Read existing checkpoint (or scaffold), apply
  *                                     updates, stamp updated_at, validate, write.
+ *                                     Creating a file requires --next_actions:json.
+ *   handoff <skill> --policy <id> --verdict PASS|FAIL|INCOMPLETE --scope "<text>"
+ *           [--evidence <path>]... [--summary "<text>"] [--run-id <id>] [--json]
+ *                                     Bind a C-contract verification.verdict handoff
+ *                                     to the current git_tree_projection candidate —
+ *                                     the entry scripts/lib/release-evidence.mjs
+ *                                     (pre-PR / pre-deploy gates) looks up.
  *   done <skill>                      Pop next_actions[0] into recently_done + restamp.
  *   init                              Scaffold .checkpoints/ on a fresh project.
  *
@@ -106,6 +113,76 @@ const SCHEMA_VERSION = "1.1";
 /** Wire versions the validator accepts. 1.0 checkpoints predate the v1.1 fields and
  *  stay valid (those fields are optional); oc-migration-ops sweeps 1.0 → 1.1. */
 const ACCEPTED_SCHEMA_VERSIONS = ["1.0", "1.1"];
+
+/** The placeholder `update` scaffolds into next_actions. It used to validate, shipped
+ *  on main for oc-security-auditor from v2.0.0 through 2.0.4, and the plugin's
+ *  next-suggestion hook re-advertised it five times (2026-10-08 audit, I-06). Only an
+ *  untouched scaffold (phase "init" / step "scaffolded") may carry it. */
+const SCAFFOLD_NEXT_ACTION = "Define the first real next action for this skill.";
+
+/** Skill source tree, present only in the authoring repo. Consumer repos have none,
+ *  so the phase allowlist below is simply absent there. */
+const SKILLS_DIR = process.env.OPCHAIN_SKILLS_DIR ?? join(ROOT, "skills");
+const phaseDeclarations = new Map();
+
+/**
+ * Values of the YAML list under `key:` in a SKILL.md frontmatter block — flow form
+ * (`key: [a, b]`) or block form (`key:` followed by `  - a` lines). Hand-rolled on
+ * purpose: this CLI stays zero-dep so it can be copied into consumer repos.
+ * Returns null when the key is absent.
+ */
+function frontmatterList(frontmatter, key) {
+  const m = frontmatter.match(new RegExp(`^${key}:[ \\t]*(.*)$`, "m"));
+  if (!m) return null;
+  const clean = (s) => s.trim().replace(/^["']|["']$/g, "");
+  const inline = m[1].replace(/\s+#.*$/, "").trim();
+  if (inline.startsWith("[")) {
+    return inline.replace(/^\[/, "").replace(/\]\s*$/, "").split(",").map(clean).filter(Boolean);
+  }
+  if (inline) return [clean(inline)];
+  const items = [];
+  for (const line of frontmatter.slice(m.index + m[0].length).split("\n")) {
+    const item = line.match(/^\s+-\s+(.+)$/);
+    if (item) { items.push(clean(item[1].replace(/\s+#.*$/, ""))); continue; }
+    if (line.trim() === "") continue;
+    break;
+  }
+  return items;
+}
+
+/**
+ * Which checkpoint `phase` ids a skill declares, read from skills/<skill>/SKILL.md:
+ *   - `checkpoint_phases: [...]` in the frontmatter → strict: an unknown phase is a
+ *     validation ERROR (I-09: `master-2-workstreams` passed checkpoint:validate).
+ *   - otherwise the frontmatter `phases:` list — which is the pipeline taxonomy
+ *     (foundation|plan|build|ai-native), not the checkpoint vocabulary — plus every
+ *     `"phase": "<id>"` / `--phase=<id>` example in the body → advisory: an unknown
+ *     phase is a WARNING. When this landed, 16 of 17 tracked checkpoints used ids
+ *     outside `phases:`, so a hard check there would have failed CI on main.
+ * null when there is no SKILL.md (consumer repo, or a checkpoint that is not a skill).
+ */
+function skillPhaseDeclaration(skill) {
+  if (typeof skill !== "string" || !/^[a-z][a-z0-9-]*$/.test(skill)) return null;
+  if (phaseDeclarations.has(skill)) return phaseDeclarations.get(skill);
+  let decl = null;
+  const file = join(SKILLS_DIR, skill, "SKILL.md");
+  if (existsSync(file)) {
+    const raw = readFileSync(file, "utf8");
+    const fm = raw.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
+    const frontmatter = fm ? fm[1] : "";
+    const strictList = frontmatterList(frontmatter, "checkpoint_phases");
+    if (strictList && strictList.length) {
+      decl = { strict: true, source: "checkpoint_phases", allowed: [...new Set(strictList)] };
+    } else {
+      const allowed = new Set(frontmatterList(frontmatter, "phases") ?? []);
+      for (const m of raw.matchAll(/"phase":\s*"([a-z0-9][a-z0-9-]*)"/g)) allowed.add(m[1]);
+      for (const m of raw.matchAll(/--phase=([a-z0-9][a-z0-9-]*)/g)) allowed.add(m[1]);
+      if (allowed.size) decl = { strict: false, source: "phases", allowed: [...allowed] };
+    }
+  }
+  phaseDeclarations.set(skill, decl);
+  return decl;
+}
 
 /** Required scalar fields (hard errors if missing). */
 const REQUIRED = [
@@ -340,6 +417,30 @@ function validate(path, data, bytes = 0) {
       }
       errors.push(`next_actions[${i}] must be a string or { text, done_when? }`);
     });
+    // I-06: the scaffold placeholder is not a next action. Only an untouched scaffold
+    // (phase init / step scaffolded — what `update` creates before any real write)
+    // may carry it; anywhere else it is filler that validated and got re-advertised.
+    const untouchedScaffold = data.phase === "init" && data.step === "scaffolded";
+    na.forEach((a, i) => {
+      if (!untouchedScaffold && actionText(a).trim() === SCAFFOLD_NEXT_ACTION) {
+        errors.push(`next_actions[${i}] is the scaffold placeholder "${SCAFFOLD_NEXT_ACTION}" — replace it with the real next action (checkpoint update <skill> --next_actions:json='["…"]')`);
+      }
+    });
+  }
+
+  // I-09: phase ids come from the skill's declaration when this checkout carries the
+  // skill source (strict with `checkpoint_phases:`, advisory with `phases:` alone).
+  // Steps stay free text; a step with whitespace is only a nudge.
+  if (typeof data.phase === "string" && data.phase && typeof data.skill === "string") {
+    const decl = skillPhaseDeclaration(data.skill);
+    if (decl && !decl.allowed.includes(data.phase)) {
+      const msg = `phase "${data.phase}" is not declared by skills/${data.skill}/SKILL.md (${decl.source}: ${decl.allowed.join(", ")})`;
+      if (decl.strict) errors.push(msg);
+      else warnings.push(`${msg} — add \`checkpoint_phases: [...]\` to that frontmatter to make this a hard check`);
+    }
+  }
+  if (typeof data.step === "string" && /\s/.test(data.step.trim())) {
+    warnings.push(`step "${data.step}" contains whitespace — step ids are free text, but hooks and docs expect a single token (e.g. sprint-2-eval-round-1)`);
   }
 
   // context_primer is strongly recommended (it's what lets resume skip a full re-read).
@@ -872,6 +973,14 @@ async function cmdDoctor(opts = {}) {
         }
       }
     }
+
+    // Drift 6 (I-06): the scaffold placeholder is still queued as a "next action".
+    // Outside an untouched scaffold validate() already made that a hard error above;
+    // the scaffold itself still deserves a nudge — nothing resumes from it.
+    if (data.phase === "init" && data.step === "scaffolded" &&
+        (Array.isArray(data.next_actions) ? data.next_actions : []).some((a) => actionText(a).trim() === SCAFFOLD_NEXT_ACTION)) {
+      add("warn", skill, `next_actions still carries the scaffold placeholder — write the first real action (checkpoint update ${skill} --next_actions:json='["…"]')`);
+    }
   }
 
   // Drift 5 (F1/F3, optional): point-in-time health response vs the approved
@@ -995,7 +1104,7 @@ function scaffoldCheckpoint(skill) {
     step: "scaffolded",
     status: "in_progress",
     progress_summary: `Checkpoint scaffolded for ${skill}.`,
-    next_actions: ["Define the first real next action for this skill."],
+    next_actions: [SCAFFOLD_NEXT_ACTION],
   };
 }
 
@@ -1020,11 +1129,182 @@ function cmdUpdate(skill, rest) {
   }
   if (!existsSync(DIR)) mkdirSync(DIR, { recursive: true });
   const path = join(DIR, `${skill}.checkpoint.json`);
-  const data = existsSync(path) ? readCheckpoint(path).data : scaffoldCheckpoint(skill);
+  const exists = existsSync(path);
+  // I-06: creating a file needs a real first next action. The scaffold placeholder
+  // used to be written silently and then validated for weeks.
+  if (!exists && !rest.some((a) => /^--next_actions(?:\+|:json)*=/.test(a))) {
+    console.error(`✗ no checkpoint exists yet for "${skill}" (${path}).`);
+    console.error(`  Creating one needs its first real next action — the scaffold placeholder is rejected by the validator. Re-run with:`);
+    console.error(`    node scripts/checkpoint.mjs update ${skill} ${rest.join(" ")} --next_actions:json='["<the next concrete action>"]'`);
+    return 1;
+  }
+  const data = exists ? readCheckpoint(path).data : scaffoldCheckpoint(skill);
+  if (!exists) data.next_actions = []; // replaced, or appended to, by the supplied action(s)
   try { applyUpdates(data, rest); }
   catch (e) { console.error(`✗ ${e.message}`); return 1; }
+  if (typeof data.next_actions === "string") data.next_actions = [data.next_actions]; // --next_actions=<one action>
   if (!writeValidated(path, data)) return 1;
   console.log(`✓ wrote ${basename(path)}`);
+  return 0;
+}
+
+// ───────────────────────────── handoff (I-05) ────────────────────────────────
+//
+// One deterministic binder for the C-contract `verification.verdict` handoff that
+// scripts/lib/release-evidence.mjs — and the pre-PR / pre-deploy gates built on it —
+// look up: type verification.verdict, producer.skill = the checkpoint's skill,
+// candidate = the git_tree_projection identity of HEAD minus .checkpoints/,
+// payload.policy + payload.verdict. Sixteen PRs since 2026-09-14 hand-wrote this
+// with four different ad-hoc node/python snippets (audit Q5-F1); this is the writer.
+
+const VERDICTS = ["PASS", "FAIL", "INCOMPLETE"];
+const POLICY_ID = /^[a-z0-9][a-z0-9.-]*$/;
+const HANDOFF_USAGE = [
+  "usage: checkpoint handoff <skill> [<policy>] --policy <id> --verdict PASS|FAIL|INCOMPLETE --scope \"<text>\"",
+  "                          [--evidence <path>]... [--summary \"<text>\"] [--run-id <id>] [--phase <id>] [--step <id>] [--json]",
+  "  (the policy may be given positionally instead of --policy)",
+  "  e.g. npm run checkpoint -- handoff oc-docs-forge --policy pr-docs-v1 --verdict PASS \\",
+  "         --scope \"README + CHANGELOG refreshed for #601\" --evidence skills/README.md",
+  "  policies the gates read: pr-docs-v1 (oc-docs-forge) · pr-readiness-v1 (oc-repo-ops) ·",
+  "    pre-deploy-code-audit-v1 (oc-code-auditor) · pre-deploy-security-posture-v1 (oc-security-auditor)",
+].join("\n");
+
+/** scripts/lib/release-evidence.mjs, first hit wins: the checkout's own copy (the
+ *  authoring repo); the copy `/oc-enroll --ci` vendors into a consumer's
+ *  .opchain/runtime/ (what its evidence:pr workflow runs, so the handoff binds the
+ *  same candidate identity CI checks); the copy shipped next to this CLI; the
+ *  installed plugin's copy when CLAUDE_PLUGIN_ROOT is set. The skill-bundled
+ *  runtime does not carry it, which is why consumers failed here (audit C-05). */
+function releaseEvidenceScript() {
+  const candidates = [
+    join(ROOT, "scripts", "lib", "release-evidence.mjs"),
+    join(ROOT, ".opchain", "runtime", "scripts", "lib", "release-evidence.mjs"),
+    join(dirname(fileURLToPath(import.meta.url)), "lib", "release-evidence.mjs"),
+    ...(process.env.CLAUDE_PLUGIN_ROOT ? [join(process.env.CLAUDE_PLUGIN_ROOT, "scripts", "lib", "release-evidence.mjs")] : []),
+  ];
+  return candidates.find((file) => existsSync(file)) ?? null;
+}
+
+/** Phase for a checkpoint `handoff` creates: one the skill declares (the last id of
+ *  its checkpoint_phases, or of its advisory phases + body examples, which is where
+ *  the gate skills spell their verify step: pr-docs, pr-verify), so validate does
+ *  not warn about a phase no skill uses. "verify" only when nothing is declared. */
+function defaultHandoffPhase(skill) {
+  const decl = skillPhaseDeclaration(skill);
+  if (!decl?.allowed?.length) return "verify";
+  return decl.allowed.includes("verify") ? "verify" : decl.allowed.at(-1);
+}
+
+/** { candidate, tree, candidate_identity: { kind, id } } for HEAD of `root` — the
+ *  same identity `release-evidence --print-candidate --json` prints. */
+function printCandidate(root = ROOT) {
+  const script = releaseEvidenceScript();
+  if (!script) throw new Error("scripts/lib/release-evidence.mjs is not available (looked in scripts/lib/, .opchain/runtime/scripts/lib/, beside this CLI, and $CLAUDE_PLUGIN_ROOT/scripts/lib/) — run /oc-enroll --ci to vendor it; cannot compute the candidate identity")
+  const r = spawnSync(process.execPath, [script, "--repo", root, "--print-candidate", "--json"], { encoding: "utf8" });
+  let report = null;
+  try { report = JSON.parse((r.stdout || "").trim()); } catch { /* reported below */ }
+  if (r.status !== 0 || !report?.ok || !report.candidate_identity?.id) {
+    throw new Error(report?.error || (r.stderr || "release-evidence --print-candidate failed").trim());
+  }
+  return report;
+}
+
+/** `--key value` and `--key=value`, --evidence repeatable, --json a bare flag. The
+ *  policy may also be the first positional (`handoff oc-repo-ops pr-readiness-v1 …`),
+ *  which is how release-evidence's FAIL detail spells the fix. */
+function parseHandoffArgs(rest) {
+  const opts = { evidence: [], json: false };
+  const scalar = { policy: "policy", verdict: "verdict", scope: "scope", summary: "summary", "run-id": "run_id", phase: "phase", step: "step" };
+  for (let i = 0; i < rest.length; i++) {
+    const arg = rest[i];
+    if (!arg.startsWith("--")) {
+      if (opts.policy === undefined && POLICY_ID.test(arg)) { opts.policy = arg; continue; }
+      throw new Error(`unexpected argument "${arg}"`);
+    }
+    let key = arg.slice(2);
+    let value;
+    const eq = key.indexOf("=");
+    if (eq >= 0) { value = key.slice(eq + 1); key = key.slice(0, eq); }
+    if (key === "json") { opts.json = value === undefined ? true : value !== "false"; continue; }
+    if (value === undefined) {
+      value = rest[++i];
+      if (value === undefined || value.startsWith("--")) throw new Error(`--${key} needs a value`);
+    }
+    if (key === "evidence") opts.evidence.push(value);
+    else if (scalar[key]) opts[scalar[key]] = value;
+    else throw new Error(`unknown option --${key}`);
+  }
+  if (!opts.policy) throw new Error("--policy is required (e.g. pr-docs-v1)");
+  if (!POLICY_ID.test(opts.policy)) throw new Error(`--policy "${opts.policy}" must be a lower-case id (letters, digits, . and -)`);
+  if (!VERDICTS.includes(opts.verdict)) throw new Error(`--verdict must be one of ${VERDICTS.join("|")} (got ${JSON.stringify(opts.verdict ?? "")})`);
+  if (!opts.scope || !opts.scope.trim()) throw new Error("--scope is required: one sentence saying what this verdict covers");
+  return opts;
+}
+
+/** Exactly the shape release-evidence's checkpointResult() matches. */
+function buildHandoff({ skill, policy, verdict, scope, evidence = [], runId, candidate, now = new Date().toISOString() }) {
+  const digest = candidate.candidate_identity.id.replace(/^sha256:/, "").slice(0, 12);
+  const handoff = {
+    id: `${skill}-${policy}-${digest}`,
+    contract_version: "1.0",
+    type: "verification.verdict",
+    created_at: now,
+    verified_at: now,
+    producer: { skill, run_id: runId || `${policy}-${now}` },
+    candidate: { kind: candidate.candidate_identity.kind, id: candidate.candidate_identity.id },
+    payload: { verdict, policy, scope },
+  };
+  if (evidence.length) handoff.payload.evidence = [...evidence];
+  return handoff;
+}
+
+function cmdHandoff(skill, rest) {
+  if (!skill) { console.error(HANDOFF_USAGE); return 1; }
+  let opts;
+  try { opts = parseHandoffArgs(rest); }
+  catch (e) { console.error(`✗ ${e.message}\n${HANDOFF_USAGE}`); return 1; }
+  let candidate;
+  try { candidate = printCandidate(); }
+  catch (e) { console.error(`✗ ${e.message}`); return 1; }
+
+  if (!existsSync(DIR)) mkdirSync(DIR, { recursive: true });
+  const path = join(DIR, `${skill}.checkpoint.json`);
+  const exists = existsSync(path);
+  const data = exists ? readCheckpoint(path).data : scaffoldCheckpoint(skill);
+  if (!exists) {
+    // A gate skill that only ever binds verdicts still gets a valid, resumable file.
+    Object.assign(data, {
+      phase: opts.phase ?? defaultHandoffPhase(skill),
+      step: opts.step ?? opts.policy,
+      status: "complete",
+      progress_summary: opts.summary ?? `${skill}: ${opts.policy} ${opts.verdict} for candidate ${candidate.candidate.slice(0, 12)}.`,
+      next_actions: [],
+    });
+  } else {
+    if (opts.phase) data.phase = opts.phase;
+    if (opts.step) data.step = opts.step;
+    if (opts.summary) data.progress_summary = opts.summary;
+  }
+
+  const handoff = buildHandoff({ skill, policy: opts.policy, verdict: opts.verdict, scope: opts.scope.trim(), evidence: opts.evidence, runId: opts.run_id, candidate });
+  // getCheckpointHandoff() refuses "multiple handoffs matched", so re-binding the same
+  // candidate replaces the earlier entry instead of stacking a second one.
+  const prior = Array.isArray(data.handoffs) ? data.handoffs : [];
+  const kept = prior.filter((h) => !(h?.type === handoff.type && h?.candidate?.id === handoff.candidate.id));
+  const replaced = prior.length - kept.length;
+  data.handoffs = [...kept, handoff];
+  // Display/compat field oc-repo-ops verify and doctor read; the handoff is the contract.
+  const state = data.skill_state && typeof data.skill_state === "object" && !Array.isArray(data.skill_state) ? data.skill_state : {};
+  data.skill_state = { ...state, verified_for_sha: candidate.candidate };
+
+  if (!writeValidated(path, data)) return 1;
+  if (opts.json) {
+    console.log(JSON.stringify({ ok: true, file: basename(path), handoff, candidate: candidate.candidate, tree: candidate.tree, replaced }));
+  } else {
+    console.log(`✓ ${basename(path)}: handoff ${handoff.id}`);
+    console.log(`  ${opts.verdict} under ${opts.policy}, bound to ${handoff.candidate.kind} ${handoff.candidate.id}`);
+    console.log(`  HEAD ${candidate.candidate}${replaced ? ` — replaced ${replaced} earlier handoff(s) bound to the same candidate` : ""}`);
+  }
   return 0;
 }
 
@@ -1116,7 +1396,7 @@ function cmdReset(skill) {
 
 // Exported for tests. The CLI dispatch below only runs when invoked directly,
 // so importing this module (e.g. from vitest) is side-effect-free.
-export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, harvestTokens, actionIsStale, firstFreshAction, budgetExceeded, readApprovedReleaseBaseline, applyUpdates, repoPathCandidate, projectName, resolveCheckpointLock, atomicWriteFile, SCHEMA_VERSION, ACCEPTED_SCHEMA_VERSIONS };
+export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, harvestTokens, actionIsStale, firstFreshAction, budgetExceeded, readApprovedReleaseBaseline, applyUpdates, repoPathCandidate, projectName, resolveCheckpointLock, atomicWriteFile, frontmatterList, skillPhaseDeclaration, parseHandoffArgs, buildHandoff, printCandidate, SCHEMA_VERSION, ACCEPTED_SCHEMA_VERSIONS, SCAFFOLD_NEXT_ACTION };
 
 // ───────────────────────────── arg parsing ──────────────────────────────────
 
@@ -1146,9 +1426,11 @@ function run() {
     case "reset":    return named(arg0, cmdReset);
     case "update":   return named(rest[0], (s) => cmdUpdate(s, rest.slice(1)));
     case "done":     return named(rest[0], cmdDone);
+    case "handoff":  return named(rest[0], (s) => cmdHandoff(s, rest.slice(1)));
     case "init":     return cmdInit();
     default:
-      console.error("usage: checkpoint <status|next|doctor|list|show|reset|validate|update|done|init>");
+      console.error("usage: checkpoint <status|next|doctor|list|show|reset|validate|update|handoff|done|init>");
+      console.error("       (via npm: `npm run checkpoint -- <command> ...`; shortcuts: checkpoint:status, :next, :doctor, :validate)");
       console.error("  status [skill] [--brief] [--since=ISO] — session-resume summary; one skill exits 1 if absent");
       console.error("  next                                — the single highest-priority non-stale action");
       console.error("  doctor [--online] [--fail-on-warnings] — flag checkpoints that drifted from reality");
@@ -1156,7 +1438,9 @@ function run() {
       console.error("  show [skill]                        — print full JSON for one checkpoint, or all");
       console.error("  reset <skill>                       — archive a checkpoint into .checkpoints/history/");
       console.error("  validate [--strict]                 — schema gate (CI); --strict fails on warnings");
-      console.error("  update <skill> [--field=value ...]  — apply field updates, stamp updated_at");
+      console.error("  update <skill> [--field=value ...]  — apply field updates, stamp updated_at (a new file needs --next_actions:json='[\"…\"]')");
+      console.error("  handoff <skill> --policy <id> --verdict PASS|FAIL|INCOMPLETE --scope \"…\" [--evidence <path>]...");
+      console.error("                                      — bind a verification.verdict handoff to the current candidate (what the PR/deploy evidence gates read)");
       console.error("  done <skill>                        — complete next_actions[0] → recently_done");
       console.error("  init                                — scaffold .checkpoints/ on a fresh project");
       return 1;
@@ -1164,7 +1448,7 @@ function run() {
 }
 
 function mutationSkill() {
-  if (!["update", "done", "reset"].includes(cmd)) return null;
+  if (!["update", "done", "reset", "handoff"].includes(cmd)) return null;
   return rest[0] && SKILL_NAME.test(rest[0]) ? rest[0] : null;
 }
 

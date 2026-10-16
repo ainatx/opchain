@@ -1,6 +1,20 @@
 #!/usr/bin/env node
 
-import { spawnSync } from "node:child_process";
+// opchain candidate verifier — the executable half of the commit gate.
+//
+// Exit codes (the hook propagates them):
+//   0  PASS, skipped (not enrolled), or an existing PASS receipt was reused
+//   1  FAIL — a check really failed; fix the candidate
+//   2  INCONCLUSIVE — timeout / exit 127 / gate lock wait; retry, nothing to fix
+//   3  BLOCKED — a precondition is missing (deps not installed, policy predates
+//      the gate); no receipt is written
+//
+// Audit references (docs/audits/2026-10-08-opchain-effectiveness-audit.md):
+//   I-03  opaque failures, hollow node_modules, orphaned workers, timeouts as FAIL
+//   I-04  bypass records
+//   I-05  receipt reuse for identical / checkpoint-only trees
+
+import { spawn, spawnSync } from "node:child_process";
 import {
   closeSync,
   existsSync,
@@ -17,7 +31,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { createRequire } from "node:module";
-import { tmpdir } from "node:os";
+import { loadavg, tmpdir } from "node:os";
 import { basename, delimiter, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -30,6 +44,7 @@ const {
   createRepositoryIdentity,
   createToolchain,
   receiptPath,
+  receiptRoot,
   sha256Bytes,
   validateReceipt,
 } = require("./lib/verification-receipt.cjs");
@@ -37,8 +52,47 @@ const {
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const RECEIPT_LIB_PATH = fileURLToPath(new URL("./lib/verification-receipt.cjs", import.meta.url));
 const VERIFIER_NAME = "opchain-candidate-verifier";
-const VERIFIER_VERSION = "1";
+const VERIFIER_VERSION = "2";
 const SKIP_DIRS = new Set([".git", ".checkpoints", "node_modules", "dist", "build", "coverage", ".next"]);
+
+const EXIT_OK = 0;
+const EXIT_FAIL = 1;
+const EXIT_INCONCLUSIVE = 2;
+const EXIT_BLOCKED = 3;
+
+// I-03: a node_modules holding only tool caches is "absent", not "installed".
+const HOLLOW_ENTRIES = new Set([".vite", ".cache", ".package-lock.json", ".DS_Store", ".modules.yaml"]);
+// Command words that are never a package bin, so their absence from
+// node_modules/.bin is not a dependency problem.
+const SYSTEM_COMMANDS = new Set([
+  "node", "npm", "npx", "pnpm", "yarn", "bun", "deno", "corepack", "git", "sh", "bash", "zsh", "env", "cross-env",
+  "echo", "printf", "test", "[", "true", "false", "exit", "export", "set", "cd", "rm", "cp", "mv", "mkdir", "cat",
+  "ls", "find", "xargs", "chmod", "touch", "sleep", "tar", "curl", "wget", "python", "python3", "make", "docker",
+  "sed", "awk", "grep", "sort", "head", "tail", "tee", "wc", "which", "date", "dirname", "basename",
+]);
+
+const DIAGNOSTIC_TAIL_LINES = 40;
+const LOCK_WAIT_MS = Number(process.env.OPCHAIN_GATE_LOCK_WAIT_MS) || 15 * 60 * 1000;
+const LOCK_STALE_MS = Number(process.env.OPCHAIN_GATE_LOCK_STALE_MS) || 20 * 60 * 1000;
+const LOCK_POLL_MS = Number(process.env.OPCHAIN_GATE_LOCK_POLL_MS) || 1000;
+const LOCK_REPORT_MS = Number(process.env.OPCHAIN_GATE_LOCK_REPORT_MS) || 10 * 1000;
+
+/** A missing precondition: reported as BLOCKED (exit 3), never as a receipt. */
+class BlockedError extends Error {
+  constructor(message, details = []) {
+    super(message);
+    this.blocked = true;
+    this.details = details;
+  }
+}
+
+/** An environmental non-answer that produced no receipt (e.g. lock wait). */
+class InconclusiveError extends Error {
+  constructor(message) {
+    super(message);
+    this.inconclusive = true;
+  }
+}
 
 function run(executable, args, options = {}) {
   return spawnSync(executable, args, {
@@ -63,22 +117,37 @@ function gitOutput(root, ...args) {
   return (result.stdout || "").trim();
 }
 
+const ACTIONS = new Set(["run", "enforce", "explain", "bypass-record", "bypass-list"]);
+
 function parseArgs(argv) {
   const args = { action: "run", repo: process.cwd(), policy: ".bugcheck.json", json: false };
   const rest = [...argv];
-  if (rest[0] === "run" || rest[0] === "enforce") args.action = rest.shift();
+  if (ACTIONS.has(rest[0])) args.action = rest.shift();
+  if (args.action === "explain") {
+    if (!rest.length || rest[0].startsWith("--")) throw new Error("explain requires a receipt path or run id");
+    args.target = rest.shift();
+  }
   while (rest.length) {
     const flag = rest.shift();
     if (flag === "--repo") args.repo = rest.shift();
     else if (flag === "--policy") args.policy = rest.shift();
     else if (flag === "--json") args.json = true;
     else if (flag === "--commit-boundary") args.commitBoundary = true;
+    else if (flag === "--commit") args.commit = rest.shift();
+    else if (flag === "--reason") args.reason = rest.shift();
+    else if (flag === "--source") args.source = rest.shift();
+    else if (flag === "--approved-by") args.approvedBy = rest.shift();
+    else if (flag === "--rewritten-from") args.rewrittenFrom = rest.shift();
+    else if (flag === "--range") args.range = rest.shift();
+    else if (flag === "--full") args.full = true;
     else throw new Error(`unknown argument: ${flag}`);
   }
   if (!args.repo || !args.policy) throw new Error("--repo and --policy require values");
   if (isAbsolute(args.policy) || args.policy.split(/[\\/]+/).includes("..")) {
     throw new Error("--policy must be a repository-relative path");
   }
+  if (args.action === "bypass-record" && !args.commit) throw new Error("bypass-record requires --commit <sha>");
+  if (args.action === "bypass-list" && !args.range) throw new Error("bypass-list requires --range <base>..<head>");
   return args;
 }
 
@@ -104,6 +173,19 @@ function candidateTree(root) {
   return gitOutput(root, "write-tree");
 }
 
+function readJson(file) {
+  try {
+    const parsed = JSON.parse(readFileSync(file, "utf8"));
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Candidate materialisation
+// ---------------------------------------------------------------------------
+
 function materializeCandidate(info, tree) {
   const scratch = mkdtempSync(join(tmpdir(), "opchain-candidate-"));
   const candidate = join(scratch, "tree");
@@ -115,7 +197,8 @@ function materializeCandidate(info, tree) {
   const checkout = run("git", ["-C", info.root, "checkout-index", "--all", "--force", `--prefix=${candidate}${sep}`], { env });
   if (checkout.status !== 0) throw new Error(`could not materialize candidate tree: ${checkout.stderr}`);
   initializeCandidateGit(candidate, tree);
-  mountPackageDependencies(info.root, candidate);
+  // Dependencies are mounted later, once the policy is known (I-03: the policy
+  // decides which package dirs and which .bin entries are needed).
   return { scratch, candidate };
 }
 
@@ -175,20 +258,220 @@ function packageDirectories(candidate) {
   return directories;
 }
 
-function mountPackageDependencies(sourceRoot, candidate) {
+// ---------------------------------------------------------------------------
+// I-03 (b): dependency demands, node_modules validity, ancestor walk
+// ---------------------------------------------------------------------------
+
+function portable(relativePath) {
+  const normalized = relativePath.split(sep).join("/").replace(/^\.\/+/, "").replace(/\/+$/, "");
+  return normalized === "" ? "." : normalized;
+}
+
+function joinRelative(base, next) {
+  return portable(relative("/", resolve("/", base === "." ? "" : base, next)));
+}
+
+/**
+ * Walk every policy command (and the npm scripts it dispatches to) and return
+ * Map<relativePackageDir, Set<binName>>: the package dirs a check will run in
+ * ("targeted") and the node_modules/.bin entries each one needs. Untargeted
+ * nested packages (e.g. packaged runtimes with no node_modules anywhere) are
+ * mounted when present and otherwise left alone.
+ */
+function dependencyDemands(candidate, commands) {
+  const demands = new Map([[".", new Set()]]);
+  const touch = (directory) => {
+    if (!demands.has(directory)) demands.set(directory, new Set());
+    return demands.get(directory);
+  };
+  const scriptsIn = (directory) => {
+    const parsed = readJson(join(candidate, ...(directory === "." ? [] : directory.split("/")), "package.json"));
+    return parsed && typeof parsed.scripts === "object" && parsed.scripts ? parsed.scripts : {};
+  };
+
+  const analyzeArgv = (argv, directory, depth) => {
+    if (!argv.length || depth > 4) return;
+    let cwd = directory;
+    let index = 0;
+    while (index < argv.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(argv[index])) index += 1;
+    if (argv[index] === "env" || argv[index] === "cross-env") {
+      index += 1;
+      while (index < argv.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(argv[index])) index += 1;
+    }
+    const executable = argv[index];
+    if (!executable) return;
+    const tail = argv.slice(index + 1);
+    if (["npm", "pnpm", "yarn", "bun"].includes(executable)) {
+      const words = [];
+      for (let i = 0; i < tail.length; i += 1) {
+        const word = tail[i];
+        if (word === "--prefix" || word === "-C" || word === "--dir") cwd = joinRelative(cwd, tail[++i] || ".");
+        else if (word.startsWith("--prefix=")) cwd = joinRelative(cwd, word.slice("--prefix=".length));
+        else if (word.startsWith("-")) continue;
+        else words.push(word);
+      }
+      const bins = touch(cwd);
+      const [verb, name] = words;
+      const runScript = (scriptName) => {
+        const scripts = scriptsIn(cwd);
+        // npm runs pre<name> and post<name> around <name>; follow all three.
+        for (const key of [`pre${scriptName}`, scriptName, `post${scriptName}`]) {
+          if (scripts[key]) analyzeScript(scripts[key], cwd, depth + 1);
+        }
+      };
+      if (verb === "run" || verb === "run-script") {
+        if (name) runScript(name);
+      } else if (verb === "test" || verb === "t" || verb === "start") {
+        runScript(verb === "t" ? "test" : verb);
+      } else if ((verb === "exec" || verb === "x" || verb === "dlx") && name) {
+        bins.add(name);
+      }
+      return;
+    }
+    if (executable === "npx") {
+      const target = tail.find((word) => !word.startsWith("-"));
+      if (target) touch(cwd).add(target);
+      return;
+    }
+    touch(cwd);
+    if (SYSTEM_COMMANDS.has(executable) || executable.includes("/") || executable.includes(sep)) return;
+    touch(cwd).add(executable);
+  };
+
+  const analyzeScript = (text, directory, depth) => {
+    let cwd = directory;
+    for (const segment of String(text).split(/\s*(?:&&|\|\||;|\|)\s*/)) {
+      const tokens = segment.trim().replace(/["']/g, "").split(/\s+/).filter(Boolean);
+      if (!tokens.length) continue;
+      let index = 0;
+      while (index < tokens.length && /^[A-Za-z_][A-Za-z0-9_]*=/.test(tokens[index])) index += 1;
+      if (tokens[index] === "cd" && tokens[index + 1]) {
+        cwd = joinRelative(cwd, tokens[index + 1]);
+        touch(cwd);
+        continue;
+      }
+      analyzeArgv(tokens.slice(index), cwd, depth);
+    }
+  };
+
+  for (const command of Object.values(commands)) analyzeArgv(command, ".", 0);
+  return demands;
+}
+
+function declaredDependencies(packageJson) {
+  const names = new Set();
+  for (const field of ["dependencies", "devDependencies"]) {
+    const block = packageJson && packageJson[field];
+    if (block && typeof block === "object") Object.keys(block).forEach((name) => names.add(name));
+  }
+  return names;
+}
+
+function nodeModulesPresent(directory) {
+  const target = join(directory, "node_modules");
+  try {
+    if (!statSync(target).isDirectory()) return false;
+    return readdirSync(target).some((entry) => !HOLLOW_ENTRIES.has(entry));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Is <installRoot>/node_modules a usable dependency root for the candidate
+ * package at <candidateDir>? Checks, in order: presence (hollow = absent),
+ * the .bin entries the policy needs, direct dependencies declared in
+ * package.json, and version agreement between the candidate's package-lock.json
+ * and npm's hidden node_modules/.package-lock.json.
+ */
+function dependencyRootStatus(installRoot, candidateDir, bins) {
+  if (!nodeModulesPresent(installRoot)) return { ok: false, reason: "node_modules is absent or hollow" };
+  const nodeModules = join(installRoot, "node_modules");
+  for (const bin of bins) {
+    if (!existsSync(join(nodeModules, ".bin", bin)) && !executablePath(bin)) {
+      return { ok: false, reason: `node_modules/.bin/${bin} is missing` };
+    }
+  }
+  const packageJson = readJson(join(candidateDir, "package.json")) || {};
+  const lock = readJson(join(candidateDir, "package-lock.json"));
+  const lockPackages = lock && lock.packages && typeof lock.packages === "object" ? lock.packages : {};
+  for (const name of declaredDependencies(packageJson)) {
+    const entry = lockPackages[`node_modules/${name}`];
+    if (entry && entry.optional) continue;
+    if (!existsSync(join(nodeModules, ...name.split("/")))) {
+      return { ok: false, reason: `dependency ${name} is not installed` };
+    }
+  }
+  const hidden = lock ? readJson(join(nodeModules, ".package-lock.json")) : null;
+  const hiddenPackages = hidden && hidden.packages && typeof hidden.packages === "object" ? hidden.packages : {};
+  for (const [key, installed] of Object.entries(hiddenPackages)) {
+    if (!key.startsWith("node_modules/")) continue;
+    const expected = lockPackages[key];
+    if (!expected || !installed || !expected.version || !installed.version) continue;
+    if (expected.version !== installed.version) {
+      return { ok: false, reason: `${key} is ${installed.version} but package-lock.json wants ${expected.version}` };
+    }
+  }
+  return { ok: true };
+}
+
+function* ancestorDirectories(root) {
+  let directory = dirname(root);
+  while (directory && directory !== dirname(directory)) {
+    yield directory;
+    directory = dirname(directory);
+  }
+}
+
+/**
+ * I-03 (b): mount a validated dependency root for each candidate package.
+ * Targeted dirs that need dependencies and have no valid root in the worktree
+ * or any ancestor checkout abort with BLOCKED before any check runs.
+ */
+function mountPackageDependencies(sourceRoot, candidate, demands) {
   const excludes = [];
   for (const directory of packageDirectories(candidate)) {
-    const relativeDirectory = relative(candidate, directory);
-    const source = join(sourceRoot, relativeDirectory, "node_modules");
+    const relativeDirectory = portable(relative(candidate, directory));
     const target = join(directory, "node_modules");
-    if (!existsSync(source) || existsSync(target)) continue;
-    symlinkSync(source, target, "junction");
-    excludes.push(`/${relative(candidate, target).split(sep).join("/")}/`);
+    if (existsSync(target)) continue;
+    const bins = demands.get(relativeDirectory);
+    const targeted = bins !== undefined;
+    const needed = targeted && (bins.size > 0 || declaredDependencies(readJson(join(directory, "package.json"))).size > 0);
+    const worktreeDir = relativeDirectory === "." ? sourceRoot : join(sourceRoot, ...relativeDirectory.split("/"));
+
+    const roots = [worktreeDir];
+    if (needed) {
+      for (const ancestor of ancestorDirectories(sourceRoot)) {
+        roots.push(relativeDirectory === "." ? ancestor : join(ancestor, ...relativeDirectory.split("/")));
+      }
+    }
+    let chosen = null;
+    const rejected = [];
+    for (const root of roots) {
+      const status = dependencyRootStatus(root, directory, bins || new Set());
+      if (status.ok) {
+        chosen = root;
+        break;
+      }
+      if (nodeModulesPresent(root) || root === worktreeDir) rejected.push(`${join(root, "node_modules")}: ${status.reason}`);
+    }
+    if (!chosen) {
+      if (needed) {
+        throw new BlockedError(`dependencies not installed for ${worktreeDir} (run npm ci there)`, rejected);
+      }
+      continue;
+    }
+    symlinkSync(join(chosen, "node_modules"), target, "junction");
+    excludes.push(`/${portable(relative(candidate, target))}/`);
   }
   if (excludes.length) {
     writeFileSync(join(candidate, ".git", "info", "exclude"), `${excludes.join("\n")}\n`, "utf8");
   }
 }
+
+// ---------------------------------------------------------------------------
+// Policy
+// ---------------------------------------------------------------------------
 
 function packageScripts(candidate) {
   const packagePath = join(candidate, "package.json");
@@ -246,15 +529,19 @@ function scanExceptionsForCandidate(candidate, value) {
 
 function policyForCandidate(candidate, policyPath) {
   const fullPath = join(candidate, policyPath);
-  let parsed = {};
-  let config = { path: policyPath, present: false };
-  if (existsSync(fullPath)) {
-    const content = readFileSync(fullPath);
-    parsed = JSON.parse(content.toString("utf8"));
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error(`${policyPath} must contain a JSON object`);
-    config = { path: policyPath, content };
+  // I-03 (e): a policy without a `verification` block predates the commit gate.
+  // Running defaults against it flagged the skill's own docs; refuse instead.
+  if (!existsSync(fullPath)) {
+    throw new BlockedError(`${policyPath} is missing (no "verification" block); merge main or run /oc-enroll`);
   }
-  const verification = parsed.verification && typeof parsed.verification === "object" ? parsed.verification : {};
+  const content = readFileSync(fullPath);
+  const parsed = JSON.parse(content.toString("utf8"));
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error(`${policyPath} must contain a JSON object`);
+  if (!parsed.verification || typeof parsed.verification !== "object" || Array.isArray(parsed.verification)) {
+    throw new BlockedError(`${policyPath} predates the commit gate (no "verification" block); merge main or run /oc-enroll`);
+  }
+  const config = { path: policyPath, content };
+  const verification = parsed.verification;
   let required = verification.required_checks;
   if (required === undefined && parsed.checks && typeof parsed.checks === "object") {
     required = Object.entries(parsed.checks)
@@ -282,6 +569,10 @@ function policyForCandidate(candidate, policyPath) {
     scanExceptions: scanExceptionsForCandidate(candidate, verification.scan_exceptions),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Toolchain
+// ---------------------------------------------------------------------------
 
 function executablePath(name) {
   if (name.includes(sep)) return isAbsolute(name) ? name : null;
@@ -320,6 +611,10 @@ function toolchainFor(commands, requiredChecks) {
   }
   return createToolchain({ components });
 }
+
+// ---------------------------------------------------------------------------
+// Built-in scanners
+// ---------------------------------------------------------------------------
 
 function candidateTextBlobs(candidate, tree) {
   const env = isolatedCandidateEnvironment(tree);
@@ -402,7 +697,87 @@ function boundedDiagnostic(value) {
   return header + tail.toString("utf8");
 }
 
-function executeCheck(id, command, candidate, timeout, tree, scanExceptions) {
+// ---------------------------------------------------------------------------
+// I-03 (c): process-group execution with a whole-group kill on timeout
+// ---------------------------------------------------------------------------
+
+const activeGroups = new Set();
+
+function killGroup(pid, signal) {
+  for (const target of [-pid, pid]) {
+    try {
+      process.kill(target, signal);
+    } catch {
+      // Already gone, or no group on this platform.
+    }
+  }
+}
+
+function killActiveGroups() {
+  for (const pid of activeGroups) killGroup(pid, "SIGKILL");
+  activeGroups.clear();
+}
+
+process.on("exit", killActiveGroups);
+for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) {
+  process.on(signal, () => {
+    killActiveGroups();
+    process.exit(128 + (signal === "SIGINT" ? 2 : signal === "SIGTERM" ? 15 : 1));
+  });
+}
+
+/**
+ * spawnSync-shaped result, but the child is a detached process-group leader
+ * and a timeout kills the whole group (SIGTERM, then SIGKILL two seconds
+ * later) so vitest workers and test fixtures cannot outlive the gate.
+ */
+function spawnGroup(executable, args, { cwd, env, timeout }) {
+  const cap = 10 * 1024 * 1024;
+  return new Promise((resolveResult) => {
+    let settled = false;
+    let timedOut = false;
+    let timer;
+    let hardTimer;
+    let child;
+    let stdout = Buffer.alloc(0);
+    let stderr = Buffer.alloc(0);
+    const append = (current, chunk) => {
+      const next = Buffer.concat([current, chunk]);
+      return next.length > cap ? next.subarray(next.length - cap) : next;
+    };
+    const settle = (value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      clearTimeout(hardTimer);
+      if (child && child.pid) activeGroups.delete(child.pid);
+      resolveResult({ stdout: stdout.toString("utf8"), stderr: stderr.toString("utf8"), timedOut, ...value });
+    };
+    try {
+      child = spawn(executable, args, { cwd, env, detached: process.platform !== "win32", stdio: ["ignore", "pipe", "pipe"] });
+    } catch (error) {
+      settle({ error, status: null, signal: null });
+      return;
+    }
+    timer = setTimeout(() => {
+      timedOut = true;
+      killGroup(child.pid, "SIGTERM");
+      hardTimer = setTimeout(() => killGroup(child.pid, "SIGKILL"), 2000);
+    }, timeout);
+    if (child.pid) activeGroups.add(child.pid);
+    child.stdout.on("data", (chunk) => { stdout = append(stdout, chunk); });
+    child.stderr.on("data", (chunk) => { stderr = append(stderr, chunk); });
+    child.on("error", (error) => settle({ error, status: null, signal: null }));
+    child.on("close", (status, signal) => {
+      // After a timeout the leader may have died before the SIGKILL sweep;
+      // make sure nothing it spawned lingers. A normal exit is left alone.
+      if (timedOut && child.pid) killGroup(child.pid, "SIGKILL");
+      settle({ status, signal });
+    });
+  });
+}
+
+async function executeCheck(id, command, candidate, timeout, tree, scanExceptions) {
   const started = Date.now();
   const selected = command ? { command } : builtinCheck(id, candidate, tree, scanExceptions);
   if (!selected.command) {
@@ -416,7 +791,7 @@ function executeCheck(id, command, candidate, timeout, tree, scanExceptions) {
     };
   }
   const [executable, ...args] = selected.command;
-  const result = run(executable, args, {
+  const result = await spawnGroup(executable, args, {
     cwd: candidate,
     timeout,
     env: isolatedCandidateEnvironment(tree),
@@ -424,24 +799,37 @@ function executeCheck(id, command, candidate, timeout, tree, scanExceptions) {
   let status;
   let exitCode;
   if (result.error && result.error.code === "ENOENT") {
+    // The configured executable itself does not exist: a toolchain gap, not a
+    // flaky environment. Kept as UNSUPPORTED so pre-existing receipts agree.
     status = "UNSUPPORTED";
     exitCode = 127;
-  } else if (result.error && result.error.code === "ETIMEDOUT") {
-    status = "ERROR";
+  } else if (result.timedOut) {
+    // I-03 (d): a deadline is a non-answer, recorded as TIMEOUT -> INCONCLUSIVE.
+    status = "TIMEOUT";
     exitCode = 124;
+  } else if (result.status === 127) {
+    // I-03 (b): "command not found" inside the check (hollow node_modules,
+    // broken PATH) is never a plain FAIL of the candidate.
+    status = "UNSUPPORTED_ENV";
+    exitCode = 127;
   } else {
     exitCode = Number.isInteger(result.status) && result.status >= 0 ? result.status : 1;
     status = exitCode === 0 ? "PASS" : "FAIL";
   }
+  const output = `${result.stdout || ""}\n${result.stderr || ""}`;
   return {
     id,
     status,
     exit_code: exitCode,
     duration_ms: Date.now() - started,
-    output_digest: sha256Bytes(`${result.stdout || ""}\n${result.stderr || ""}`),
-    diagnostic: status === "PASS" ? undefined : boundedDiagnostic(`${result.stdout || ""}\n${result.stderr || ""}`),
+    output_digest: sha256Bytes(output),
+    diagnostic: status === "PASS" ? undefined : boundedDiagnostic(output),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Receipts
+// ---------------------------------------------------------------------------
 
 function verifierIdentity() {
   return {
@@ -449,6 +837,10 @@ function verifierIdentity() {
     version: VERIFIER_VERSION,
     digest: sha256Bytes(Buffer.concat([readFileSync(SCRIPT_PATH), readFileSync(RECEIPT_LIB_PATH)])),
   };
+}
+
+function currentLoad() {
+  return Math.round((loadavg()[0] || 0) * 100) / 100;
 }
 
 function writeImmutableReceipt(receipt, info) {
@@ -467,6 +859,37 @@ function writeImmutableReceipt(receipt, info) {
     closeSync(descriptor);
   }
   return target;
+}
+
+/** I-03 (a): the `<run_id>.log` sidecar holds every non-PASS diagnostic in full (bounded). */
+function writeDiagnosticLog(receipt, receiptFile, checks) {
+  const target = receiptFile.replace(/\.json$/, ".log");
+  const sections = [
+    `# opchain verification log run_id=${receipt.run_id} tree=${receipt.candidate.tree} verdict=${receipt.verdict} verified_at=${receipt.verified_at}`,
+  ];
+  for (const check of checks) {
+    if (check.status === "PASS") continue;
+    sections.push(`## ${check.id} ${check.status} exit=${check.exit_code} duration_ms=${check.duration_ms}`);
+    sections.push(check.diagnostic || "(no output)");
+  }
+  writeFileSync(target, `${sections.join("\n")}\n`, { mode: 0o600 });
+  return target;
+}
+
+function readDiagnosticLog(file) {
+  if (!existsSync(file)) return null;
+  const sections = new Map();
+  let current = null;
+  for (const line of readFileSync(file, "utf8").split("\n")) {
+    const header = /^## (\S+) (\S+) exit=(\d+)/.exec(line);
+    if (header) {
+      current = header[1];
+      sections.set(current, []);
+    } else if (current) {
+      sections.get(current).push(line);
+    }
+  }
+  return sections;
 }
 
 function matchingReceipt(info, tree, policy, toolchain, verifier) {
@@ -500,23 +923,467 @@ function matchingReceipt(info, tree, policy, toolchain, verifier) {
   return matches[0] || null;
 }
 
+/** Every valid receipt for a tree under any policy, with its verdict. */
+function receiptsForTree(info, tree) {
+  const directory = join(receiptRoot(info.commonDir), tree);
+  if (!existsSync(directory)) return [];
+  const found = [];
+  for (const policyDir of readdirSync(directory)) {
+    const policyPath = join(directory, policyDir);
+    let names;
+    try {
+      names = readdirSync(policyPath).filter((entry) => entry.endsWith(".json"));
+    } catch {
+      continue;
+    }
+    for (const name of names) {
+      try {
+        const checked = validateReceipt(JSON.parse(readFileSync(join(policyPath, name), "utf8")), {
+          repository_id: info.repository.id,
+          candidate_tree: tree,
+        });
+        if (checked.ok) found.push({ path: join(policyPath, name), receipt: checked.receipt });
+      } catch {
+        // ignore
+      }
+    }
+  }
+  return found;
+}
+
+function bestVerdictForTree(info, tree) {
+  const verdicts = new Set(receiptsForTree(info, tree).map((entry) => entry.receipt.verdict));
+  for (const verdict of ["PASS", "INCONCLUSIVE", "UNSUPPORTED", "FAIL"]) if (verdicts.has(verdict)) return verdict;
+  return "none";
+}
+
+function findReceiptByRunId(info, runId) {
+  const root = receiptRoot(info.commonDir);
+  if (!existsSync(root)) return null;
+  for (const tree of readdirSync(root)) {
+    const treeDir = join(root, tree);
+    let policies;
+    try {
+      policies = readdirSync(treeDir);
+    } catch {
+      continue;
+    }
+    for (const policyDir of policies) {
+      const file = join(treeDir, policyDir, `${runId}.json`);
+      if (existsSync(file)) return file;
+    }
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// I-05: checkpoint-only projection reuse
+// ---------------------------------------------------------------------------
+
+/** Identity of a tree with its top-level `.checkpoints` entry removed. */
+function projectionKey(info, tree) {
+  const listing = git(info.root, "ls-tree", tree);
+  if (listing.status !== 0) return null;
+  const lines = listing.stdout.split("\n").filter((line) => line && !line.endsWith("\t.checkpoints"));
+  return sha256Bytes(lines.sort().join("\n"));
+}
+
+/** True when the staged candidate differs from HEAD only under `.checkpoints/`. */
+function checkpointOnlyChange(info, tree) {
+  const head = git(info.root, "rev-parse", "--verify", "--quiet", "HEAD^{tree}");
+  if (head.status !== 0) return false;
+  const diff = git(info.root, "diff-tree", "-r", "--name-only", head.stdout.trim(), tree);
+  if (diff.status !== 0) return false;
+  const names = diff.stdout.split("\n").filter(Boolean);
+  return names.length > 0 && names.every((name) => name.startsWith(".checkpoints/"));
+}
+
+function matchingProjectedReceipt(info, tree, policy, toolchain, verifier) {
+  const wanted = projectionKey(info, tree);
+  if (!wanted) return null;
+  const root = receiptRoot(info.commonDir);
+  if (!existsSync(root)) return null;
+  const policyHex = policy.fingerprint.slice("sha256:".length);
+  const candidates = [];
+  for (const name of readdirSync(root)) {
+    if (name === tree || !existsSync(join(root, name, policyHex))) continue;
+    try {
+      candidates.push({ tree: name, mtime: statSync(join(root, name, policyHex)).mtimeMs });
+    } catch {
+      // ignore
+    }
+  }
+  candidates.sort((a, b) => b.mtime - a.mtime);
+  for (const entry of candidates.slice(0, 200)) {
+    if (projectionKey(info, entry.tree) !== wanted) continue;
+    const match = matchingReceipt(info, entry.tree, policy, toolchain, verifier);
+    if (match) return match;
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// I-03 (d): per-repository gate lock
+// ---------------------------------------------------------------------------
+
+function pidAlive(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return error.code === "EPERM";
+  }
+}
+
+function sleep(ms) {
+  return new Promise((resolveSleep) => setTimeout(resolveSleep, ms));
+}
+
+async function withGateLock(info, work) {
+  const lockDir = join(info.commonDir, "opchain", "commit-gate", "lock");
+  const ownerFile = join(lockDir, "owner.json");
+  mkdirSync(dirname(lockDir), { recursive: true, mode: 0o700 });
+  const startedWaiting = Date.now();
+  let lastReport = 0;
+  for (;;) {
+    try {
+      mkdirSync(lockDir, { mode: 0o700 });
+      writeFileSync(ownerFile, `${JSON.stringify({ pid: process.pid, at: new Date().toISOString(), worktree: info.root })}\n`, { mode: 0o600 });
+      break;
+    } catch (error) {
+      if (error.code !== "EEXIST") throw error;
+    }
+    const owner = readJson(ownerFile);
+    let stale;
+    if (!owner) {
+      // Another process may be between its mkdir and its owner write.
+      let directoryAge = 0;
+      try {
+        directoryAge = Date.now() - statSync(lockDir).mtimeMs;
+      } catch {
+        continue;
+      }
+      stale = directoryAge > 5000;
+    } else {
+      const age = Date.now() - (Date.parse(owner.at) || 0);
+      stale = !owner.pid || !pidAlive(owner.pid) || age > LOCK_STALE_MS;
+    }
+    if (stale) {
+      rmSync(lockDir, { recursive: true, force: true });
+      continue;
+    }
+    const waited = Date.now() - startedWaiting;
+    const holder = owner || {};
+    if (waited >= LOCK_WAIT_MS) {
+      throw new InconclusiveError(
+        `another verification in ${holder.worktree || "an unknown worktree"} (pid ${holder.pid || "?"}) held the gate lock for ${waited} ms — retry when it finishes`,
+      );
+    }
+    if (Date.now() - lastReport >= LOCK_REPORT_MS || lastReport === 0) {
+      process.stderr.write(`[opchain] waiting for another verification in ${holder.worktree || "an unknown worktree"} (pid ${holder.pid || "?"})\n`);
+      lastReport = Date.now();
+    }
+    await sleep(Math.min(LOCK_POLL_MS, LOCK_WAIT_MS - waited));
+  }
+  try {
+    return await work();
+  } finally {
+    const owner = readJson(ownerFile);
+    if (owner && owner.pid === process.pid) rmSync(lockDir, { recursive: true, force: true });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Reporting (I-03 (a): the hook path shows what failed, not just that it did)
+// ---------------------------------------------------------------------------
+
+function tailLines(text, count = DIAGNOSTIC_TAIL_LINES) {
+  const lines = String(text || "").replace(/\s+$/, "").split("\n");
+  return lines.length > count ? ["[... earlier output in the log sidecar]", ...lines.slice(-count)] : lines;
+}
+
+function formatFailures(failures, options = {}) {
+  const lines = [];
+  for (const failure of failures || []) {
+    lines.push(`  ✗ ${failure.id} ${failure.status} exit=${failure.exit_code}`);
+    const body = options.full ? String(failure.diagnostic || "").replace(/\s+$/, "").split("\n") : tailLines(failure.diagnostic);
+    for (const line of body) if (line !== "") lines.push(`    ${line}`);
+  }
+  return lines;
+}
+
 function report(args, value, ok) {
-  if (args.json) process.stdout.write(`${JSON.stringify(value)}\n`);
-  else if (ok && value.skipped) return;
-  else if (ok) process.stdout.write(`[opchain] verified staged candidate ${value.candidate_tree.slice(0, 12)}\n`);
+  if (args.json) {
+    process.stdout.write(`${JSON.stringify(value)}\n`);
+    return;
+  }
+  if (ok && value.skipped) return;
+  if (ok && value.reused) {
+    process.stdout.write(`[opchain] receipt reused (${value.run_id}, ${value.verified_at})${value.reused === "checkpoint-only" ? " — checkpoint-only change" : ""}\n`);
+    return;
+  }
+  if (ok && value.bypassed) {
+    process.stderr.write(`[opchain] ⚠ gate bypassed via OPCHAIN_BYPASS=1 — will be recorded post-commit\n`);
+    return;
+  }
+  if (ok) {
+    process.stdout.write(`[opchain] verified staged candidate ${value.candidate_tree.slice(0, 12)}\n`);
+    return;
+  }
+  const lines = formatFailures(value.failures);
+  if (value.receipt_path) lines.push(`  receipt: ${value.receipt_path}`);
+  if (value.log_path) lines.push(`  log: ${value.log_path}`);
+  if (value.details && value.details.length) for (const detail of value.details) lines.push(`  ${detail}`);
+  if (lines.length) process.stderr.write(`${lines.join("\n")}\n`);
+  if (value.blocked) process.stderr.write(`[opchain] BLOCKED — ${value.error}; no receipt written\n`);
+  else if (value.verdict === "INCONCLUSIVE" || value.inconclusive) process.stderr.write(`[opchain] candidate verification inconclusive: ${value.error}\n`);
   else process.stderr.write(`[opchain] candidate verification failed: ${value.error}\n`);
 }
+
+function inconclusiveSummary(checks, load) {
+  const timedOut = checks.find((check) => check.status === "TIMEOUT");
+  if (timedOut) {
+    return `${timedOut.id} timed out after ${timedOut.duration_ms} ms under load ${load} — retry when load drops`;
+  }
+  const notFound = checks.find((check) => check.status === "UNSUPPORTED_ENV");
+  if (notFound) {
+    return `${notFound.id} exited 127 (command not found) — dependencies missing or PATH broken; run npm ci and retry`;
+  }
+  return "checks did not produce an enforceable receipt — retry";
+}
+
+// ---------------------------------------------------------------------------
+// Subcommands
+// ---------------------------------------------------------------------------
+
+function bypassLib() {
+  try {
+    return require("./lib/bypass-record.cjs");
+  } catch (error) {
+    if (error.code === "MODULE_NOT_FOUND") {
+      throw new Error("bypass-record runtime is missing beside verify-candidate.mjs; rerun explicit enrollment");
+    }
+    throw error;
+  }
+}
+
+function explain(args) {
+  let file = args.target;
+  if (!existsSync(file)) {
+    const info = repositoryInfo(args.repo);
+    file = findReceiptByRunId(info, args.target);
+    if (!file) throw new Error(`no receipt found for ${args.target}`);
+  }
+  file = resolve(file);
+  const receipt = JSON.parse(readFileSync(file, "utf8"));
+  const checked = validateReceipt(receipt);
+  const log = readDiagnosticLog(file.replace(/\.json$/, ".log"));
+  const failures = (receipt.checks || [])
+    .filter((check) => check.status !== "PASS")
+    .map((check) => ({
+      ...check,
+      diagnostic: log && log.has(check.id) ? log.get(check.id).join("\n") : "(no diagnostics stored; run was not at a commit boundary)",
+    }));
+  if (args.json) {
+    process.stdout.write(`${JSON.stringify({ ok: checked.ok, receipt_path: file, run_id: receipt.run_id, verdict: receipt.verdict, candidate_tree: receipt.candidate && receipt.candidate.tree, verified_at: receipt.verified_at, environment: receipt.environment, failures, errors: checked.errors })}\n`);
+    return EXIT_OK;
+  }
+  const lines = [
+    `receipt ${receipt.run_id} verdict=${receipt.verdict} tree=${receipt.candidate && receipt.candidate.tree} verified_at=${receipt.verified_at}${checked.ok ? "" : " (INVALID: " + checked.errors.join("; ") + ")"}`,
+  ];
+  if (receipt.environment && receipt.environment.loadavg_1m !== undefined) lines.push(`  loadavg_1m=${receipt.environment.loadavg_1m}`);
+  if (receipt.environment && receipt.environment.reused_from) lines.push(`  reused from ${receipt.environment.reused_from.run_id} (tree ${receipt.environment.reused_from.tree})`);
+  lines.push(...formatFailures(failures, { full: args.full }));
+  if (!failures.length) lines.push("  every check passed");
+  lines.push(`  receipt: ${file}`);
+  if (log) lines.push(`  log: ${file.replace(/\.json$/, ".log")}`);
+  process.stdout.write(`${lines.join("\n")}\n`);
+  return EXIT_OK;
+}
+
+// A-08: the bypass reason is a real Git trailer with a non-empty value, read
+// by Git's own trailer parser, not a pattern anywhere in the message. The
+// legacy `bugcheck: bypassed (<reason>)` form counts only as a trailer line
+// with a reason. install-git-drivers.mjs and lib/release-evidence.mjs read the
+// trailer the same way, so the three readers agree.
+const LEGACY_BYPASS_VALUE = /^bypassed\s*\(\s*(\S[^)]*?)\s*\)\s*$/i;
+
+function trailerReason(root, commit) {
+  const result = git(root, "log", "-1", "--format=%(trailers:key=Opchain-Bypass,valueonly,separator=%x1f)%x1e%(trailers:key=bugcheck,valueonly,separator=%x1f)", commit);
+  if (result.status !== 0) return null;
+  const [explicit = "", legacy = ""] = (result.stdout || "").replace(/\n+$/, "").split("\x1e");
+  for (const value of explicit.split("\x1f")) if (value.trim()) return value.trim();
+  for (const value of legacy.split("\x1f")) {
+    const match = LEGACY_BYPASS_VALUE.exec(value.trim());
+    if (match) return match[1];
+  }
+  return null;
+}
+
+function appendCheckpointBypass(root, entry) {
+  const checkpointsDir = join(root, ".checkpoints");
+  if (!existsSync(checkpointsDir)) return null;
+  const file = join(checkpointsDir, "oc-bug-check.checkpoint.json");
+  const now = new Date().toISOString();
+  let checkpoint = readJson(file);
+  if (!checkpoint) {
+    checkpoint = {
+      protocol_version: "1.1",
+      skill: "oc-bug-check",
+      project: basename(root),
+      project_dir: root,
+      created_at: now,
+      updated_at: now,
+      phase: "commit-gate",
+      step: "bypass-recorded",
+      status: "in_progress",
+      progress_summary: "Created by verify-candidate.mjs bypass-record to hold the gate-bypass ledger.",
+      skill_state: { bypasses: [] },
+    };
+  }
+  if (!checkpoint.skill_state || typeof checkpoint.skill_state !== "object") checkpoint.skill_state = {};
+  if (!Array.isArray(checkpoint.skill_state.bypasses)) checkpoint.skill_state.bypasses = [];
+  if (!checkpoint.skill_state.bypasses.some((existing) => existing && existing.commit === entry.commit)) {
+    checkpoint.skill_state.bypasses.push(entry);
+    checkpoint.updated_at = now;
+    writeFileSync(file, `${JSON.stringify(checkpoint, null, 2)}\n`, "utf8");
+  }
+  return file;
+}
+
+// A-08: only a PASS the enforce path would accept — same policy fingerprint,
+// toolchain and verifier digest — counts as coverage, for bypass-record,
+// bypass-list and the rewrite excuse alike. A PASS left by another policy
+// (`run --policy weak.json`) or an older verifier is not coverage for this tree.
+const toolchainMemo = new Map();
+function enforceablePass(info, tree, policyPath) {
+  if (!receiptsForTree(info, tree).some((entry) => entry.receipt.verdict === "PASS")) return false;
+  let materialized;
+  try {
+    materialized = materializeCandidate(info, tree);
+    const { policy, commands } = policyForCandidate(materialized.candidate, policyPath);
+    const key = JSON.stringify([commands, policy.required_checks]);
+    if (!toolchainMemo.has(key)) toolchainMemo.set(key, toolchainFor(commands, policy.required_checks));
+    return Boolean(matchingReceipt(info, tree, policy, toolchainMemo.get(key), verifierIdentity()));
+  } catch {
+    return false;
+  } finally {
+    if (materialized) rmSync(materialized.scratch, { recursive: true, force: true });
+  }
+}
+
+// A-01: a rebase or cherry-pick is excused only when the commit it was picked
+// from was itself accountable: a PASS receipt for the original's tree, a bypass
+// trailer on it, or an excused rewrite in turn. A record that merely says it is
+// a rewrite (or whose reason says "rewritten by") is not evidence.
+function excusedRewrite(info, lib, record, policyPath, seen = new Set()) {
+  const original = record && record.rewritten_from;
+  if (!original || seen.has(original) || seen.size >= 32) return false;
+  seen.add(original);
+  const tree = git(info.root, "rev-parse", "--verify", "--quiet", `${original}^{tree}`);
+  if (tree.status !== 0) return false;
+  if (enforceablePass(info, tree.stdout.trim(), policyPath)) return true;
+  if (trailerReason(info.root, original)) return true;
+  return excusedRewrite(info, lib, lib.readBypassRecord(info.commonDir, original), policyPath, seen);
+}
+
+/** I-04: `bypass-record --commit <sha>` — record a commit that has no PASS receipt. */
+function bypassRecordCommand(args) {
+  const lib = bypassLib();
+  const info = repositoryInfo(args.repo);
+  const commit = gitOutput(info.root, "rev-parse", "--verify", `${args.commit}^{commit}`);
+  const tree = gitOutput(info.root, "rev-parse", `${commit}^{tree}`);
+  if (enforceablePass(info, tree, args.policy)) {
+    if (args.json) process.stdout.write(`${JSON.stringify({ ok: true, commit, tree, recorded: false, reason: "PASS receipt covers this tree" })}\n`);
+    return EXIT_OK;
+  }
+  const options = {
+    commonDir: info.commonDir,
+    commit,
+    tree,
+    reason: args.reason || trailerReason(info.root, commit) || undefined,
+    source: args.source,
+    approvedBy: args.approvedBy,
+    rewrittenFrom: args.rewrittenFrom ? gitOutput(info.root, "rev-parse", "--verify", `${args.rewrittenFrom}^{commit}`) : undefined,
+  };
+  let written = lib.finalizePendingRecord(options);
+  if (!written) written = lib.writeBypassRecord({ ...options, source: options.source || "no-verify" });
+  const entry = { commit, tree, at: written.record.at, reason: written.record.reason };
+  const checkpointFile = appendCheckpointBypass(info.root, entry);
+  if (args.json) {
+    process.stdout.write(`${JSON.stringify({ ok: true, commit, tree, recorded: true, record_path: written.path, checkpoint_path: checkpointFile, record: written.record })}\n`);
+  } else {
+    process.stderr.write(`[opchain] ⚠ commit ${commit} bypassed the gate — recorded\n`);
+  }
+  return EXIT_OK;
+}
+
+/** I-04: `bypass-list --range <base>..<head>` — receipt and bypass status per commit. */
+function bypassListCommand(args) {
+  const lib = bypassLib();
+  const info = repositoryInfo(args.repo);
+  const commits = gitOutput(info.root, "rev-list", "--reverse", args.range).split("\n").filter(Boolean);
+  const rows = commits.map((commit) => {
+    const tree = gitOutput(info.root, "rev-parse", `${commit}^{tree}`);
+    const record = lib.readBypassRecord(info.commonDir, commit);
+    // `receipt` is PASS only for an enforceable PASS; a PASS under another
+    // policy or verifier is reported as PASS_UNMATCHED, which is not coverage.
+    const best = bestVerdictForTree(info, tree);
+    return {
+      commit,
+      tree,
+      receipt: best === "PASS" && !enforceablePass(info, tree, args.policy) ? "PASS_UNMATCHED" : best,
+      bypassRecord: lib.hasBypassRecord(info.commonDir, { commit, tree }),
+      trailer: Boolean(trailerReason(info.root, commit)),
+      rewrite: excusedRewrite(info, lib, record, args.policy),
+      rewritten_from: record && record.rewritten_from ? record.rewritten_from : null,
+      subject: gitOutput(info.root, "log", "-1", "--format=%s", commit),
+    };
+  });
+  if (args.json) {
+    process.stdout.write(`${JSON.stringify(rows.map(({ subject, ...row }) => row))}\n`);
+  } else {
+    for (const row of rows) {
+      process.stdout.write(`${row.commit.slice(0, 12)} receipt=${row.receipt} bypass=${row.bypassRecord ? "yes" : "no"} trailer=${row.trailer ? "yes" : "no"}${row.rewrite ? " rewrite=excused" : ""} ${row.subject}\n`);
+    }
+  }
+  return EXIT_OK;
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
 
 async function main(argv = process.argv.slice(2)) {
   let args;
   try {
     args = parseArgs(argv);
+    if (args.action === "explain") return explain(args);
+    if (args.action === "bypass-record") return bypassRecordCommand(args);
+    if (args.action === "bypass-list") return bypassListCommand(args);
+
     const info = repositoryInfo(args.repo);
     if (!isEnrolled(info.root)) {
       report(args, { ok: true, skipped: true, reason: "repository is not enrolled" }, true);
-      return 0;
+      return EXIT_OK;
     }
     const tree = candidateTree(info.root);
+
+    // I-04: OPCHAIN_BYPASS=1 means exactly one thing at the commit boundary —
+    // skip the checks and leave a pending record for post-commit to finalise.
+    if (args.action === "run" && args.commitBoundary && process.env.OPCHAIN_BYPASS === "1") {
+      const written = bypassLib().writeBypassRecord({
+        commonDir: info.commonDir,
+        tree,
+        source: "env",
+        reason: process.env.OPCHAIN_BYPASS_REASON || undefined,
+        pending: true,
+      });
+      report(args, { ok: true, action: "run", candidate_tree: tree, bypassed: true, record_path: written.path }, true);
+      return EXIT_OK;
+    }
+
     const materialized = materializeCandidate(info, tree);
     try {
       const { policy, commands, timeout, scanExceptions } = policyForCandidate(materialized.candidate, args.policy);
@@ -527,53 +1394,110 @@ async function main(argv = process.argv.slice(2)) {
         const match = matchingReceipt(info, tree, policy, toolchain, verifier);
         if (!match) {
           report(args, { ok: false, action: "enforce", candidate_tree: tree, error: "no matching PASS receipt" }, false);
-          return 1;
+          return EXIT_FAIL;
         }
         report(args, { ok: true, action: "enforce", candidate_tree: tree, receipt_path: match.path }, true);
-        return 0;
+        return EXIT_OK;
       }
 
-      const startedAt = new Date().toISOString();
-      const checks = policy.required_checks.map((id) => executeCheck(id, commands[id], materialized.candidate, timeout, tree, scanExceptions));
-      if (candidateTree(info.root) !== tree) {
-        report(args, { ok: false, action: "run", candidate_tree: tree, error: "staged candidate changed during verification" }, false);
-        return 1;
+      // I-05: an identical tree already carries an enforceable PASS.
+      const existing = matchingReceipt(info, tree, policy, toolchain, verifier);
+      if (existing) {
+        report(args, {
+          ok: true, action: "run", candidate_tree: tree, receipt_path: existing.path, verdict: "PASS",
+          reused: "identical", run_id: existing.receipt.run_id, verified_at: existing.receipt.verified_at,
+        }, true);
+        return EXIT_OK;
       }
-      const receipt = createReceipt({
-        repository: info.repository,
-        candidate: { tree },
-        policy,
-        toolchain,
-        verifier,
-        started_at: startedAt,
-        verified_at: new Date().toISOString(),
-        checks,
-      });
-      const target = writeImmutableReceipt(receipt, info);
-      const match = matchingReceipt(info, candidateTree(info.root), policy, toolchain, verifier);
-      if (!match || match.path !== target || receipt.verdict !== "PASS") {
+      // I-05: a checkpoint-only change inherits the PASS of its projection.
+      if (checkpointOnlyChange(info, tree)) {
+        const projected = matchingProjectedReceipt(info, tree, policy, toolchain, verifier);
+        if (projected) {
+          const now = new Date().toISOString();
+          const derived = createReceipt({
+            repository: info.repository,
+            candidate: { tree },
+            policy,
+            toolchain,
+            verifier,
+            started_at: now,
+            verified_at: now,
+            checks: projected.receipt.checks,
+            environment: { loadavg_1m: currentLoad(), reused_from: { run_id: projected.receipt.run_id, tree: projected.receipt.candidate.tree } },
+          });
+          const target = writeImmutableReceipt(derived, info);
+          report(args, {
+            ok: true, action: "run", candidate_tree: tree, receipt_path: target, verdict: "PASS",
+            reused: "checkpoint-only", run_id: projected.receipt.run_id, verified_at: projected.receipt.verified_at,
+          }, true);
+          return EXIT_OK;
+        }
+      }
+
+      // I-03 (b): validated dependency roots, or BLOCKED before any check runs.
+      mountPackageDependencies(info.root, materialized.candidate, dependencyDemands(materialized.candidate, commands));
+
+      return await withGateLock(info, async () => {
+        const startedAt = new Date().toISOString();
+        const checks = [];
+        for (const id of policy.required_checks) {
+          checks.push(await executeCheck(id, commands[id], materialized.candidate, timeout, tree, scanExceptions));
+        }
+        if (candidateTree(info.root) !== tree) {
+          report(args, { ok: false, action: "run", candidate_tree: tree, error: "staged candidate changed during verification" }, false);
+          return EXIT_FAIL;
+        }
+        const load = currentLoad();
+        const receipt = createReceipt({
+          repository: info.repository,
+          candidate: { tree },
+          policy,
+          toolchain,
+          verifier,
+          started_at: startedAt,
+          verified_at: new Date().toISOString(),
+          checks,
+          environment: { loadavg_1m: load },
+        });
+        const target = writeImmutableReceipt(receipt, info);
         const failures = checks
           .filter((check) => check.status !== "PASS")
           .map(({ id, status, exit_code, diagnostic }) => ({ id, status, exit_code, diagnostic }));
+        const logPath = args.commitBoundary && failures.length ? writeDiagnosticLog(receipt, target, checks) : undefined;
+
+        if (receipt.verdict === "PASS") {
+          report(args, { ok: true, action: "run", candidate_tree: tree, receipt_path: target, verdict: receipt.verdict, checks }, true);
+          return EXIT_OK;
+        }
+        const inconclusive = receipt.verdict === "INCONCLUSIVE";
         report(args, {
           ok: false,
           action: "run",
           candidate_tree: tree,
           receipt_path: target,
+          log_path: logPath,
           verdict: receipt.verdict,
+          loadavg: load,
           failures,
-          error: "checks did not produce an enforceable PASS receipt",
+          error: inconclusive ? inconclusiveSummary(checks, load) : "checks did not produce an enforceable PASS receipt",
         }, false);
-        return 1;
-      }
-      report(args, { ok: true, action: "run", candidate_tree: tree, receipt_path: target, verdict: receipt.verdict, checks }, true);
-      return 0;
+        return inconclusive ? EXIT_INCONCLUSIVE : EXIT_FAIL;
+      });
     } finally {
       rmSync(materialized.scratch, { recursive: true, force: true });
     }
   } catch (error) {
-    report(args || { json: argv.includes("--json") }, { ok: false, error: error.message }, false);
-    return 1;
+    const fallback = args || { json: argv.includes("--json") };
+    if (error && error.blocked) {
+      report(fallback, { ok: false, blocked: true, error: error.message, details: error.details }, false);
+      return EXIT_BLOCKED;
+    }
+    if (error && error.inconclusive) {
+      report(fallback, { ok: false, inconclusive: true, verdict: "INCONCLUSIVE", error: error.message }, false);
+      return EXIT_INCONCLUSIVE;
+    }
+    report(fallback, { ok: false, error: error.message }, false);
+    return EXIT_FAIL;
   }
 }
 
@@ -581,4 +1505,4 @@ if (process.argv[1] && realpathSync(SCRIPT_PATH) === realpathSync(resolve(proces
   process.exitCode = await main();
 }
 
-export { main };
+export { dependencyDemands, dependencyRootStatus, main };
