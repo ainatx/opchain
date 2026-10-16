@@ -1,0 +1,21 @@
+# Answer key: delivery-quote (INVENTED: fictional florist, delivery mode).
+# Eval round 4, follow-up 7: the quote on a plan on signed work. Fernhill
+# Florists' plan (route-next-stage) has fee: none; the evidence and scope files
+# that follow it are given in input/ (abridged to what the quote reads). -quote
+# prices the two packages from the price book. There is no Build Plan fee, so
+# the quote has no credit line, its header leaves build_plan_fee and
+# credit_deadline out, and STATUS awaits only the client's answer.
+case: delivery-quote
+section: Quote on signed work (delivery mode, fee none)
+client: Fernhill Florists
+slug: fernhill-florists
+user: Robin
+base: route-next-stage
+checks: [headers, unpriced, modifiers, dates_terms, uat_lines, internal_appendix, fix_window, status, private_names]
+outputs: [plans/fernhill-florists/quote.md]
+dates: { schedule: 50/50 }
+uat: { size: S, tester_roles: 2 }
+status:
+  lines:
+    - { path: plans/fernhill-florists/quote.md, next: ow-build-plan /ow-build-plan-export plans/fernhill-florists/, awaiting: "client's answer by 2026-11-23" }
+private_names: [llc-ops, Deftwright]

@@ -1,6 +1,6 @@
 # ow-build-plan acceptance fixtures
 
-Everything here is **invented**: fictional clients (Larkspur Ceramics, Mossgate Books, Calder Joinery), a fictional consultant ("Robin" of "Example Studio"), a made-up price book and synthetic artefacts, workshops and access results. No real client material and no real price belongs in this folder.
+Everything here is **invented**: fictional clients (Larkspur Ceramics, Mossgate Books, Calder Joinery, Fernhill Florists, Kestrel Bindery), a fictional consultant ("Robin" of "Example Studio"), a made-up price book and synthetic artefacts, workshops and access results. No real client material and no real price belongs in this folder.
 
 These are the acceptance tests from `docs/plans/2026-10-06-ow-build-plan-design.md` §9.2, written so they can be checked mechanically. ow-build-plan is a text-only skill, so a model has to run it; the checker (`scripts/ow-build-plan-acceptance.mjs`) reads what the run wrote and tests it against an answer key, the price book and `offers.md`. "Real use" (one real Build Plan end to end) is not here: it is graded in Sprint 6.
 
@@ -30,6 +30,8 @@ Larkspur Ceramics continues ow-start's `larkspur-prospect` golden run (recap pat
 | `follow-on-stated-offer` | Follow-on intake | `-offer` from the user's words (no FIX file) | The request is written to `plans/larkspur-ceramics-2/request.md`, the offer's subject |
 | `follow-on-stated-start` | Follow-on intake | `-start` after `follow-on-stated-offer` | `-start` reuses that folder and reads `request.md`; it does not ask again |
 | `route-next-stage` | (eval round 2, item 2) | "use ow-build-plan on intake/fernhill-florists/intake-record.md" → `-start` | Fernhill Florists: a delivery-mode recap (`next-stage`, work already signed) starts the plan, never an offer; `fee: none` |
+| `delivery-quote` | (eval round 4, follow-up 7) | `-quote` on Fernhill's plan (its evidence and scope files, abridged, in `input/`) | A plan on signed work (`fee: none`): the quote has no Build Plan fee or credit line, its header leaves `build_plan_fee` and `credit_deadline` out, and STATUS awaits only the client's answer |
+| `route-fix-covered` | (eval round 3, bug 8) | "use ow-build-plan on handoffs/larkspur-ceramics/fixes/FIX-04.md" | FIX-04 (in `input/`) is `classification: fix`, a covered Fix: free under the fix window, so the route says so and writes nothing; no paid follow-on is offered |
 | `route-folder-signed` | (eval round 3, item 3) | "use ow-build-plan on plans/larkspur-ceramics/" after signing | `build-request.md` exists: the route prints the signed NEXT and stops; no file is written, `-start` is never run again |
 | `route-feasibility` | (owner decisions 2026-10-15, 2026-10-16) | "use ow-build-plan on intake/kestrel-bindery/intake-record.md" → `-quote --quick` | Kestrel Bindery: a feasibility recap is a quick quote priced as the unit marked `feasibility: true`, carrying just the test: no UAT line, fix window, training line or build hand-off |
 | `feasibility-signed` | (owner decision 2026-10-16) | `--accepted`, then `--signed`, on the feasibility quote | `contract-inputs.md` holds just the test; `--signed` writes no `build-request.md`, and STATUS points at a Build Plan offer for a go |

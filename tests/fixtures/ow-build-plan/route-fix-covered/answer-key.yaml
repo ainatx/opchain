@@ -1,0 +1,14 @@
+# Answer key: route-fix-covered (INVENTED). Eval round 3, bug 8: the route reads
+# a FIX file's class before it offers anything. FIX-04 (in input/) is
+# classification: fix, a covered Fix: free under the fix window. "use
+# ow-build-plan on handoffs/larkspur-ceramics/fixes/FIX-04.md" says it is covered
+# and goes to whoever builds it, and stops. It never offers, starts or quotes it
+# as paid work. The golden run wrote nothing (no expected/ folder).
+case: route-fix-covered
+section: Follow-on route refused for a covered Fix (free under the fix window)
+client: Larkspur Ceramics
+slug: larkspur-ceramics-2
+user: Robin
+base: accepted-signed
+checks: [route]
+route: { from: handoffs/larkspur-ceramics/fixes/FIX-04.md, expect: covered fix }
