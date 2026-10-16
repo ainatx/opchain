@@ -13,9 +13,9 @@
 //   node scripts/sync-plugin-skills.mjs           # copy skills/ -> plugins/opchain/skills/
 //   node scripts/sync-plugin-skills.mjs --check   # exit 1 on any drift
 import {
-  cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync,
+  cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync,
 } from "node:fs";
-import { join, dirname, relative } from "node:path";
+import { basename, join, dirname, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -33,10 +33,32 @@ function runtimeDrift() {
 }
 
 // The dev plugin carries the oc- catalog only (catalogs.json: the ow- catalog's
-// plugin output is null). Refuse any other tree before the rmSync below can run.
-const foreign = readdirSync(SRC, { withFileTypes: true })
-  .filter((e) => e.isDirectory() && !e.name.startsWith("oc-") && existsSync(join(SRC, e.name, "SKILL.md")))
-  .map((e) => e.name);
+// plugin output is null). cpSync below copies every entry of SRC, so the guard
+// looks at every entry the way the copy will: a directory, or a symlink resolving
+// to one, must be an oc- directory, and no symlink may resolve outside SRC.
+// Refuse any other tree before the rmSync below can run.
+function foreignEntries() {
+  const rootReal = realpathSync(SRC);
+  const out = [];
+  for (const e of readdirSync(SRC, { withFileTypes: true })) {
+    if (!e.isSymbolicLink()) {
+      if (e.isDirectory() && !e.name.startsWith("oc-")) out.push(e.name);
+      continue;
+    }
+    let real;
+    try {
+      real = realpathSync(join(SRC, e.name));
+    } catch {
+      out.push(`${e.name} (symlink that does not resolve)`);
+      continue;
+    }
+    if (!real.startsWith(rootReal + sep)) out.push(`${e.name} (symlink to ${real}, outside ${SRC})`);
+    else if (statSync(real).isDirectory() && !(e.name.startsWith("oc-") && basename(real).startsWith("oc-"))) out.push(`${e.name} (symlink to ${basename(real)})`);
+  }
+  return out;
+}
+
+const foreign = foreignEntries();
 if (foreign.length) {
   console.error(`✗ refusing to build plugins/opchain/skills from ${SRC}: ${foreign.join(", ")} not in the oc- catalog (catalogs.json)`);
   process.exit(1);
@@ -83,6 +105,14 @@ if (CHECK) {
   }
   console.log("✓ plugins/opchain/skills matches skills/");
 } else {
+  // The copy keeps symlinks as links and the --check pass refuses any, so refuse
+  // a symlink anywhere in SRC here, before the plugin copy is deleted.
+  try {
+    listFiles(SRC);
+  } catch (e) {
+    console.error(`✗ refusing to build plugins/opchain/skills from ${SRC}: ${e.message}`);
+    process.exit(1);
+  }
   if (existsSync(DEST)) rmSync(DEST, { recursive: true, force: true });
   mkdirSync(dirname(DEST), { recursive: true });
   cpSync(SRC, DEST, { recursive: true });
