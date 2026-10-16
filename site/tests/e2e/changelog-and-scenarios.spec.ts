@@ -7,19 +7,24 @@ import { expect, test } from "@playwright/test";
  * /changelog uses the Option C v2 layout: three full-width ARIA tabs —
  * "Just Released" (release history, newest first), "Coming Next" (the next
  * slot, v1.9 assurance and governed delivery — direction set), and "Planned"
- * (v2.1 direction set in Coming Next; advisory-vote v2.2 / v2.3 cards). The newest release (v1.9, shipped
+ * (v2.1 "The ow- planning family + enforcement at chokepoints" in Coming Next,
+ * with the skill router labelled "experimental preview"; Planned holds v2.2
+ * "Installs anywhere + the open-source split", direction set, and two
+ * advisory-vote groups rendered as "later"). The newest release (v1.9, shipped
  * Sep 2026) is the open hero in Just Released, with v1.8 / v1.7 / v1.6 collapsed
  * heroes below it; each card is a button[aria-expanded] disclosure.
  * Deep links: #v1-9/#v1-8/#v1-7/#v1-6 → Just Released; #v2-0 → Coming Next;
- * #v2-1 → Coming Next; #v2-2/#v2-3 → Planned; #v1-4 still carries the /coverage link.
+ * #v2-1 → Coming Next; #v2-2/#agency-delivery/#discovery-depth → Planned; the
+ * old ids #v2-3 and #installs-anywhere resolve through HASH_ALIASES; #v1-4 still
+ * carries the /coverage link.
  *
  * Two specs:
  *   1. /changelog — three tabs; v1.9 is the open hero in Just Released;
  *      the v1.4 card still deep-links to /coverage; Coming Next leads with
- *      the selected v1.9 assurance direction; Planned commits v2.0 and
- *      establishes advisory voting across v2.2-v2.3 (every rendered planned item is
- *      votable — the items themselves come from live GitHub Issues at build
- *      time, so the spec asserts structure, never a specific issue set).
+ *      the selected v1.9 assurance direction; Planned sets v2.2 (not votable)
+ *      and keeps advisory voting on the "later" groups (every rendered item in
+ *      them is votable — the items themselves come from live GitHub Issues at
+ *      build time, so the spec asserts structure, never a specific issue set).
  *
  *   2. /demo — every curated scenario remains pickable on /demo. v1.5
  *      ("Build the AI app") added the four AI-native scenarios (RAG, agent,
@@ -103,6 +108,16 @@ test.describe("/changelog", () => {
     await page.locator("#tab-coming").click();
     await expect(page.locator("#panel-coming")).toBeVisible();
     await expect(page.locator("#panel-coming #v2-1 .pc-timing")).toHaveText(/direction set/i);
+    // Two themes (owner, 2026-10-16): the ow- planning family and enforcement.
+    await expect(page.locator("#panel-coming #v2-1 .pc-title")).toHaveText(
+      "The ow- planning family + enforcement at chokepoints",
+    );
+    // Router release term 1: every router mention carries the label.
+    await page.locator("#panel-coming #v2-1 [data-disclosure-toggle]").click();
+    await expect(page.locator("#panel-coming #v2-1")).toContainText(/skill router/i);
+    await expect(page.locator("#panel-coming #v2-1")).toContainText(/experimental preview/i);
+    // Forward copy only: nothing on the card claims 2.1 shipped.
+    await expect(page.locator("#panel-coming #v2-1")).not.toContainText(/\bshipped\b/i);
     await expect(page.locator("#panel-coming #v2-1 [data-vote-target]")).toHaveCount(0);
     await expect(page.locator("#panel-coming #v2-0")).toHaveCount(0);
   });
@@ -113,7 +128,16 @@ test.describe("/changelog", () => {
     await expect(page.locator("#v2-1 [data-disclosure-toggle]")).toHaveAttribute("aria-expanded", "true");
   });
 
-  test("Planned establishes advisory voting across v2.2-v2.3", async ({ page }) => {
+  test("old deep-link #v2-3 lands on the Discovery and pipeline depth group", async ({ page }) => {
+    await page.goto("/changelog#v2-3");
+    await expect(page.locator("#tab-planned")).toHaveAttribute("aria-selected", "true");
+    await expect(
+      page.locator("#discovery-depth [data-disclosure-toggle]"),
+    ).toHaveAttribute("aria-expanded", "true");
+    await expect(page).toHaveURL(/#discovery-depth$/);
+  });
+
+  test("Planned sets v2.2 (Installs anywhere + the open-source split) and votes on the later groups", async ({ page }) => {
     await page.goto("/changelog");
     await page.locator("#tab-planned").click();
 
@@ -121,8 +145,17 @@ test.describe("/changelog", () => {
     // v2.0 moved to Coming Next at the v1.9 cut; Planned is the votable set.
     await expect(page.locator("#panel-planned #v2-0")).toHaveCount(0);
     await expect(page.locator("#panel-planned #v2-1")).toHaveCount(0);
-    await expect(page.locator("#v2-2 .pc-title")).toHaveText(/agency and multi-project/i);
-    await expect(page.locator("#v2-3 .pc-title")).toHaveText(/discovery and pipeline depth/i);
+    // 2026-10-16: v2.2 is Installs anywhere + the OSS split, direction set and
+    // not votable; the vote groups carry no release number ("later").
+    await expect(page.locator("#v2-2 .pc-title")).toHaveText(/installs anywhere/i);
+    await expect(page.locator("#v2-2 .pc-title")).toHaveText(/open-source split/i);
+    await expect(page.locator("#v2-2 .pc-timing")).toHaveText(/direction set/i);
+    await expect(page.locator("#v2-2 [data-vote-target]")).toHaveCount(0);
+    await expect(page.locator("#v2-3")).toHaveCount(0);
+    await expect(page.locator("#agency-delivery .pc-title")).toHaveText(/agency and multi-project/i);
+    await expect(page.locator("#agency-delivery .ver-pill")).toHaveText("later");
+    await expect(page.locator("#discovery-depth .pc-title")).toHaveText(/discovery and pipeline depth/i);
+    await expect(page.locator("#discovery-depth .ver-pill")).toHaveText("later");
     // v1.8 shipped (Just Released) and v1.9 is the fixed Coming Next slot.
     await expect(page.locator("#panel-planned #v1-8")).toHaveCount(0);
     await expect(page.locator("#panel-planned #v1-9")).toHaveCount(0);
@@ -139,7 +172,7 @@ test.describe("/changelog", () => {
     // ci.yml documents as the intended outcome.
     await expect(page.locator("#v2-0 [data-vote-target]")).toHaveCount(0);
     let votable = 0;
-    for (const group of ["v2-2", "v2-3"]) {
+    for (const group of ["agency-delivery", "discovery-depth"]) {
       await page.locator(`#${group} [data-disclosure-toggle]`).click();
       const items = page.locator(`#${group} .horizon-item`);
       const votes = page.locator(`#${group} [data-vote-target]`);
@@ -151,10 +184,13 @@ test.describe("/changelog", () => {
       }
       votable += count;
     }
+    // RELEASING.md F4: the vote block needs a top-3, so at least three votable
+    // options must render. An empty roadmap (GitHub unreachable at build) fails
+    // here too, loudly.
     expect(
       votable,
-      "no votable planned items rendered — was roadmap.json empty at build time?",
-    ).toBeGreaterThan(0);
+      "fewer than three votable planned items rendered — was roadmap.json empty at build time?",
+    ).toBeGreaterThanOrEqual(3);
     await expect(page.locator("[data-vote-target]")).toHaveCount(votable);
   });
 
@@ -203,13 +239,22 @@ test.describe("/changelog", () => {
     ).toHaveAttribute("aria-expanded", "true");
   });
 
-  test("deep-link #v2-3 opens the Planned tab and the v2.3 group", async ({ page }) => {
-    await page.goto("/changelog#v2-3");
+  test("deep-link #v2-2 opens the Planned tab and the v2.2 card", async ({ page }) => {
+    await page.goto("/changelog#v2-2");
     await expect(page.locator("#tab-planned")).toHaveAttribute("aria-selected", "true");
     await expect(page.locator("#panel-planned")).toBeVisible();
     await expect(
-      page.locator("#v2-3 [data-disclosure-toggle]"),
+      page.locator("#v2-2 [data-disclosure-toggle]"),
     ).toHaveAttribute("aria-expanded", "true");
+  });
+
+  test("old deep-link #installs-anywhere lands on the v2.2 card", async ({ page }) => {
+    await page.goto("/changelog#installs-anywhere");
+    await expect(page.locator("#tab-planned")).toHaveAttribute("aria-selected", "true");
+    await expect(
+      page.locator("#v2-2 [data-disclosure-toggle]"),
+    ).toHaveAttribute("aria-expanded", "true");
+    await expect(page).toHaveURL(/#v2-2$/);
   });
 });
 
