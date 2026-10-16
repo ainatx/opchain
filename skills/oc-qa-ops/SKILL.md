@@ -91,6 +91,16 @@ Output: the pyramid section of `.opchain/qa.yaml` (format:
 oc-app-architect Phase 2, the human summary IS `06-testing.md`; the yaml lands
 in `.opchain/qa.yaml` either way.
 
+**Gate artifact.** The gate for this verb keys on its two outputs, not on the verb
+having run — specified, not yet wired: no hook checks it yet, so the agent does. When
+`.checkpoints/oc-app-architect.checkpoint.json` is in a build phase (`sprint-*`,
+`launch`) and `spec/06-testing.md` is missing or still carries its `scaffold-spec`
+producer line, or `.opchain/qa.yaml` is absent, treat it as "no testing contract — run
+/oc-qa pyramid" and do not start the build. Writing both files clears it; a checkpoint
+entry alone does not. The 2026-10-08 audit traced 19 of 229 PRs in one
+consumer repo (≈8% of throughput) to test repair that a declared contract — time
+pinning, per-runner ports, what belongs at which level — would have prevented.
+
 ## `/oc-qa coverage`
 
 Set coverage budgets that gates can actually enforce:

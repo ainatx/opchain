@@ -1,0 +1,18 @@
+# Answer key: route-next-stage (INVENTED: fictional florist, delivery mode).
+# Eval round 2, item 2: ow-start's delivery-mode recap (path_kind next-stage:
+# work already signed, the next stage is the Build Plan) hands over
+# "use ow-build-plan on intake/fernhill-florists/intake-record.md". The route
+# runs -start, never an offer: plan.yaml records fee: none.
+case: route-next-stage
+section: Inbound route from ow-start (delivery mode, signed work)
+client: Fernhill Florists
+slug: fernhill-florists
+user: Robin
+checks: [headers, route, start, status, private_names]
+outputs: [plans/fernhill-florists/plan.yaml, plans/fernhill-florists/collection.md]
+route: { from: intake/fernhill-florists/intake-record.md, expect: start }
+start: { tier: one_system, fee: none, start: 2026-11-02, intake: intake/fernhill-florists/intake-record.md, intake_dir: intake/fernhill-florists }
+status:
+  lines:
+    - { path: plans/fernhill-florists/collection.md, next: ow-build-plan /ow-build-plan-collect plans/fernhill-florists/, awaiting: material from Fernhill Florists by 2026-11-04 }
+private_names: [llc-ops, Deftwright]

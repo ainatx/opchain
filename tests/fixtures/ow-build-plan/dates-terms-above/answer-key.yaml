@@ -1,0 +1,12 @@
+# Answer key: dates-terms-above (INVENTED). Design §9.2 "Dates and terms", above
+# size_threshold: validity, the Build Plan credit deadline (plan delivery + 60
+# days), the 40/40/20 split and the due days all match the price book. Grades
+# the unpriced-package run; dates-terms-below grades a quote under the threshold.
+case: dates-terms-above
+section: Dates and terms (at or above size_threshold)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+run: unpriced-package
+checks: [dates_terms]
+dates: { schedule: 40/40/20 }

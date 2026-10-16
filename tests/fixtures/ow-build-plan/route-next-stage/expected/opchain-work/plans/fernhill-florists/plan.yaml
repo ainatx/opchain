@@ -1,0 +1,31 @@
+ow_artefact: ow-build-plan/plan
+schema: 1
+written_by: ow-build-plan 1.0.0 (protocol 1)
+workstream: fernhill-florists
+subject: intake/fernhill-florists/intake-record.md
+created: 2026-10-30
+clock: user-stated
+origin: skill
+client: Fernhill Florists
+client_slug: fernhill-florists
+handling: "no"
+intake: intake/fernhill-florists/intake-record.md
+request: ""
+follows: none
+path_id: next-stage
+tier: one_system
+tier_source: recap
+tier_reason: ""
+weeks: 1
+fee: none
+start: 2026-11-02
+collection_deadline: 2026-11-04
+plan_delivery: 2026-11-09
+schedule_source: price-book
+collection_business_days: 2
+delivery_business_days: 5
+date_check: not machine-checked
+sessions:
+  - { name: kick-off, date: 2026-11-02 }
+  - { name: "workshop W1: wedding orders from phone to van", date: 2026-11-03, attendees: [shop owner, van driver] }
+  - { name: plan read-through, date: 2026-11-09 }

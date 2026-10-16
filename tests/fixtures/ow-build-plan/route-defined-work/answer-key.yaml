@@ -1,0 +1,11 @@
+# Answer key: route-defined-work (INVENTED). Eval round 1, bug 1: the same
+# inbound NEXT for a recap whose path_kind is defined-work runs the quick
+# quote. Grades the quick-quote run.
+case: route-defined-work
+section: Inbound route from ow-start (defined piece of work)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+run: quick-quote
+checks: [route]
+route: { from: intake/mossgate-books/intake-record.md, expect: quick quote }

@@ -1,0 +1,5 @@
+[
+  { "label": "WP-1 report", "quantity": 1, "unit_price": "600.00" },
+  { "label": "WP-2 screen", "quantity": 1, "unit_price": "500.00" },
+  { "label": "UAT S", "quantity": 1, "unit_price": "1000.00" }
+]

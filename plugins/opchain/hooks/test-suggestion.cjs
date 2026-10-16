@@ -46,6 +46,32 @@ function writeCp(dir, skill, body) {
   );
 }
 
+/**
+ * A transcript fixture in Claude Code's JSONL shape: one assistant message per
+ * skill, each carrying a `tool_use` block named "Skill" (what the hook reads to
+ * learn which skills this session already invoked).
+ */
+function transcript(dir, skills) {
+  const file = path.join(dir, "transcript.jsonl");
+  const lines = [
+    JSON.stringify({ type: "user", message: { role: "user", content: "go" } }),
+    ...skills.map((skill, i) =>
+      JSON.stringify({
+        type: "assistant",
+        message: {
+          role: "assistant",
+          content: [
+            { type: "text", text: "Running it." },
+            { type: "tool_use", id: `toolu_${i}`, name: "Skill", input: { skill, args: "" } },
+          ],
+        },
+      })),
+    JSON.stringify({ type: "assistant", message: { role: "assistant", content: [{ type: "text", text: "Done." }] } }),
+  ];
+  fs.writeFileSync(file, lines.join("\n") + "\n");
+  return file;
+}
+
 function run(dir, sessionId, env = {}) {
   const payload = JSON.stringify({
     hook_event_name: "Stop",
@@ -53,6 +79,7 @@ function run(dir, sessionId, env = {}) {
     cwd: dir,
     stop_hook_active: false,
     ...(env.stopActive ? { stop_hook_active: true } : {}),
+    ...(env.transcript ? { transcript_path: env.transcript } : {}),
   });
   const childEnv = { ...process.env, ...(env.vars || {}) };
   const r = spawnSync("node", [HOOK], { input: payload, encoding: "utf8", env: childEnv });
@@ -245,9 +272,10 @@ t("blocker w/o proposed_resolution", "SPOKE", () => {
   return run(d, sid);
 }, /next → \/oc-release\s.*waiting on your decision: Decide patch or minor/);
 
-t("dedup resets on a new HEAD", "SPOKE", () => {
-  // Same suggestion as the previous Stop, but a commit landed in between: the
-  // dedup key is per-commit, so it speaks again.
+t("same words after a new HEAD: deduped", "SILENT", () => {
+  // Same suggestion as the previous Stop with a commit in between. The dedup
+  // key is per-commit, but identical notice TEXT is never repeated within a
+  // session (2026-10-08 audit: byte-identical notices were the complaint).
   const d = mkRepo();
   writeCp(d, "oc-bug-check", { status: "complete", next_actions: ["Triage the audit findings"] });
   const sid = prime(d);
@@ -257,7 +285,122 @@ t("dedup resets on a new HEAD", "SPOKE", () => {
   sh(["-c", "core.hooksPath=/dev/null", "commit", "-qm", "next", "--allow-empty"], d);
   writeCp(d, "oc-bug-check", { status: "complete", next_actions: ["Triage the audit findings"], phase: "b" });
   return run(d, sid);
-}, /next → \/oc-bugcheck\s/);
+});
+
+// ── 2026-10-08 audit: handoff targets, same-skill suppression, scaffold text ──
+
+t("handoff: audited -> /oc-commit", "SPOKE", () => {
+  // The action names no other skill, so the §3 handoff of the skill that just
+  // finished is the target — not /oc-audit, which is what just ran.
+  const d = mkRepo();
+  writeCp(d, "oc-code-auditor", { status: "in_progress", next_actions: ["x"] });
+  const sid = prime(d);
+  writeCp(d, "oc-code-auditor", { status: "complete", next_actions: ["Triage the remaining medium findings"] });
+  return run(d, sid);
+}, /next → \/oc-commit \(or \/oc-deploy staging after pre-deploy\)\s/);
+
+t("handoff: bug-check -> /oc-commit", "SPOKE", () => {
+  const d = mkRepo();
+  writeCp(d, "oc-bug-check", { status: "in_progress", next_actions: ["x"] });
+  const sid = prime(d);
+  writeCp(d, "oc-bug-check", { status: "complete", next_actions: ["All checks pass; commit the tree"] });
+  return run(d, sid);
+}, /next → \/oc-commit\s/);
+
+t("handoff: release -> /oc-git-release X", "SPOKE", () => {
+  // The semver is read from the checkpoint (step/progress/action) so the
+  // suggestion is typeable as-is.
+  const d = mkRepo();
+  writeCp(d, "oc-release-ops", { status: "in_progress", next_actions: ["x"] });
+  const sid = prime(d);
+  writeCp(d, "oc-release-ops", {
+    status: "in_progress",
+    step: "v9.9.9-bump-applied",
+    next_actions: ["Release PR merged; owner-signed tag, then staging"],
+  });
+  return run(d, sid);
+}, /next → \/oc-git-release 9\.9\.9\s/);
+
+t("handoff: explicit skill still wins", "SPOKE", () => {
+  // An action that names a downstream skill is more specific than the table.
+  const d = mkRepo();
+  writeCp(d, "oc-code-auditor", { status: "in_progress", next_actions: ["x"] });
+  const sid = prime(d);
+  writeCp(d, "oc-code-auditor", { status: "complete", next_actions: ["Hand off to oc-deploy-ops for staging"] });
+  return run(d, sid);
+}, /next → \/oc-deploy\s/);
+
+t("session already invoked the target", "SILENT", () => {
+  // The session ran /oc-commit (opchain:oc-commit) already; telling it to run
+  // /oc-commit again is the measured no-op.
+  const d = mkRepo();
+  writeCp(d, "oc-bug-check", { status: "in_progress", next_actions: ["x"] });
+  const sid = prime(d);
+  writeCp(d, "oc-bug-check", { status: "complete", next_actions: ["All checks pass; commit the tree"] });
+  return run(d, sid, { transcript: transcript(d, ["opchain:oc-commit"]) });
+});
+
+t("session running the skill itself", "SILENT", () => {
+  // 17/24 consumer-repo notices told the session running oc-app-architect to
+  // run oc-app-architect. Its handoff (/oc-build) is still oc-app-architect.
+  const d = mkRepo();
+  writeCp(d, "oc-app-architect", { status: "in_progress", next_actions: ["x"] });
+  const sid = prime(d);
+  writeCp(d, "oc-app-architect", { status: "in_progress", next_actions: ["Build sprint 3: the settings screen"] });
+  return run(d, sid, { transcript: transcript(d, ["oc-app-architect"]) });
+});
+
+t("transcript names another skill", "SPOKE", () => {
+  // Negative control: a transcript that invoked something unrelated does not
+  // suppress the handoff.
+  const d = mkRepo();
+  writeCp(d, "oc-bug-check", { status: "in_progress", next_actions: ["x"] });
+  const sid = prime(d);
+  writeCp(d, "oc-bug-check", { status: "complete", next_actions: ["All checks pass; commit the tree"] });
+  return run(d, sid, { transcript: transcript(d, ["opchain:oc-bugcheck", "oc-reverse-spec"]) });
+}, /next → \/oc-commit\s/);
+
+t("unreadable transcript path", "SPOKE", () => {
+  const d = mkRepo();
+  writeCp(d, "oc-bug-check", { status: "in_progress", next_actions: ["x"] });
+  const sid = prime(d);
+  writeCp(d, "oc-bug-check", { status: "complete", next_actions: ["All checks pass; commit the tree"] });
+  return run(d, sid, { transcript: path.join(d, "does-not-exist.jsonl") });
+}, /next → \/oc-commit\s/);
+
+t("scaffold placeholder is not an action", "SILENT", () => {
+  // `checkpoint.mjs update` on a missing file writes this sentence; it shipped
+  // on main for one skill and was re-advertised five times.
+  const d = mkRepo();
+  writeCp(d, "oc-security-auditor", { status: "in_progress", next_actions: ["x"] });
+  const sid = prime(d);
+  writeCp(d, "oc-security-auditor", {
+    status: "in_progress",
+    phase: "scaffold",
+    next_actions: ["Define the first real next action for this skill."],
+  });
+  return run(d, sid);
+});
+
+t("short action is skipped, next used", "SPOKE", () => {
+  // "Fix it" is under 12 characters; the first real action after it is used.
+  const d = mkRepo();
+  writeCp(d, "oc-code-auditor", { status: "in_progress", next_actions: ["x"] });
+  const sid = prime(d);
+  writeCp(d, "oc-code-auditor", {
+    status: "complete",
+    next_actions: ["Fix it", "Define the first real next action for this skill.", "Hand off to oc-deploy-ops for staging"],
+  });
+  return run(d, sid);
+}, /next → \/oc-deploy\s.*Hand off to oc-deploy-ops/);
+
+t("only short actions -> silent", "SILENT", () => {
+  const d = mkRepo();
+  writeCp(d, "oc-code-auditor", { status: "in_progress", next_actions: ["x"] });
+  const sid = prime(d);
+  writeCp(d, "oc-code-auditor", { status: "complete", next_actions: ["Fix it", "TBD"] });
+  return run(d, sid);
+});
 
 // ── run ─────────────────────────────────────────────────────────────────────
 let failed = 0;

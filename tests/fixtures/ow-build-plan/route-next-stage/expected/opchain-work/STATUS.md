@@ -1,0 +1,2 @@
+2026-10-27 (clock: user-stated) | ow-start 1.0.0 | intake/fernhill-florists/recap.md | next: ow-build-plan on intake/fernhill-florists/intake-record.md | awaiting: recap to Fernhill Florists by 2026-10-28
+2026-10-30 (clock: user-stated) | ow-build-plan 1.0.0 | plans/fernhill-florists/collection.md | next: ow-build-plan /ow-build-plan-collect plans/fernhill-florists/ | awaiting: material from Fernhill Florists by 2026-11-04

@@ -1,7 +1,7 @@
 ---
 ow_artefact: ow-start/offers
 schema: 1
-written_by: user (created from the ow-start example)
+written_by: user (created from the ow- example)
 workstream: none
 subject: none
 created: 2026-10-06
@@ -10,7 +10,7 @@ origin: user
 ---
 # Offers and fit: INVENTED EXAMPLE
 
-This is an invented example. Replace every line with your own paths and the clients you serve; ow-start reads this file to propose one path after each call, and never edits it. It names paths, not prices.
+This is an invented example, shipped the same in every ow- skill that reads it. Replace every line with your own paths and the clients you serve. ow-start reads the `fit` and `path:` sections to propose one path after each call; ow-build-plan reads `ownership`, `after_handoff` and `contract_clauses` for the plan, the quote and the contract inputs. No skill edits this file. It names paths and terms; build prices live in `price-book.yaml`. The one price below, `hourly_help`, is an invented placeholder like every number there: put your own in.
 
 Each path is a `## path: <id>` section. `kind` is one of `defined-work`, `build-plan`, `feasibility` or `not-a-fit`; `systems` is `1`, `2`, `3+` or `none`. `propose when` is what the call has to show; `after yes` is what the recap says happens next.
 
@@ -59,7 +59,7 @@ Each path is a `## path: <id>` section. `kind` is one of `defined-work`, `build-
 - kind: feasibility
 - systems: none
 - propose when: the client's real question is whether software, or AI, could do this at all
-- after yes: I send a short offer for a time-boxed test on your own examples.
+- after yes: I send a short quote for a time-boxed test on your own examples: its price, what it tests, and what you get, a findings note with a go or no-go.
 
 ## path: not-a-fit
 
@@ -68,3 +68,28 @@ Each path is a `## path: <id>` section. `kind` is one of `defined-work`, `build-
 - systems: none
 - propose when: the client is outside the fit list above
 - after yes: nothing further; say so plainly and kindly, with a suggestion of where else to look if there is one.
+
+## ownership
+
+The work is yours: it lives in your own repository and accounts, under your name, with your data. You receive the documentation and the tests with it.
+
+## after_handoff
+
+What follows delivery. ow-build-plan reads `fix_window_days` for the quote's fix window; the stage after the build reads the rest. Every value here is an invented placeholder.
+
+```yaml
+fix_window_days: 30                    # the quote prints "30 days of fixes"; the signed terms win later
+access_removal_lead_business_days: 3
+excluded: [out-of-hours on-call, new builds]
+hourly_help: { price: 1000 }          # placeholder: your own hourly price
+```
+
+## contract_clauses
+
+Empty on purpose. Your contract step drafts the standard clauses; once you have approved their wording, add them here and `/ow-build-plan-quote --accepted` copies them unchanged into `contract-inputs.md`. Until then it writes "contract clauses: not set".
+
+```yaml
+# contract_clauses:
+#   deemed_acceptance: { ref: "", business_days: 0, calendar: "", wording: "" }
+#   delivery_backstop: { ref: "", business_days: 0, calendar: "", wording: "" }
+```

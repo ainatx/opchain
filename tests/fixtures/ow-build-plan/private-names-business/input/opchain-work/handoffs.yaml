@@ -1,0 +1,18 @@
+# INVENTED TEST FIXTURE: a business's own handoffs.yaml (Deftwright-style: the
+# contract step goes to the business's private skill). The user writes this
+# file; ow-build-plan prints its say: line exactly and never names the
+# destination itself.
+ow_artefact: ow-start/handoffs
+schema: 1
+written_by: user (created from the ow-build-plan example)
+workstream: none
+subject: none
+created: 2026-10-06
+clock: user-stated
+origin: user
+
+contract:
+  say: "use llc-ops to draft the SOW from {files}"
+build:
+change_order:
+invoice:

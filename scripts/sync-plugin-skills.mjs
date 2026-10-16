@@ -23,10 +23,15 @@ const SRC = process.env.OPCHAIN_SKILLS_DIR ?? join(ROOT, "skills");
 const DEST = join(ROOT, "plugins", "opchain", "skills");
 const CHECK = process.argv.includes("--check");
 // Enrollment must remain usable from a plugin-only artifact.
-const RUNTIME = ["scripts/install-git-drivers.mjs", "scripts/verify-candidate.mjs", "scripts/lib/verification-receipt.cjs"];
+const RUNTIME = ["scripts/install-git-drivers.mjs", "scripts/verify-candidate.mjs", "scripts/lib/verification-receipt.cjs",
+  // audit 2026-10-08 I-04/I-01: bypass records + the evidence gate the `--ci` installer vendors into consumer repos
+  "scripts/lib/bypass-record.cjs", "scripts/lib/release-evidence.mjs", "src/lib/mcp/checkpoint-contract.js",
+  // /oc-spec runs it from the plugin in consumer repos
+  "scripts/scaffold-spec.mjs"];
 function runtimeDrift() {
   return RUNTIME.flatMap(file => {
     const target = join(ROOT, "plugins", "opchain", file);
+    if (!existsSync(join(ROOT, file))) return []; // optional in reduced source trees (fixtures, partial checkouts)
     return !existsSync(target) || !readFileSync(join(ROOT, file)).equals(readFileSync(target))
       ? [`runtime content drift: ${file}`] : [];
   });
@@ -117,6 +122,7 @@ if (CHECK) {
   mkdirSync(dirname(DEST), { recursive: true });
   cpSync(SRC, DEST, { recursive: true });
   for (const file of RUNTIME) {
+    if (!existsSync(join(ROOT, file))) continue; // optional in reduced source trees
     const target = join(ROOT, "plugins", "opchain", file);
     mkdirSync(dirname(target), { recursive: true });
     cpSync(join(ROOT, file), target);

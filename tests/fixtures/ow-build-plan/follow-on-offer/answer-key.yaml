@@ -1,0 +1,20 @@
+# Answer key: follow-on-offer (INVENTED). Design §9.2 "Follow-on intake" (A4),
+# first step: "use ow-build-plan on handoffs/larkspur-ceramics/fixes/FIX-03.md"
+# (the NEXT ow-build or ow-handoff prints for a change too big for a change
+# order) routes to a follow-on offer in plans/larkspur-ceramics-2/, beside the
+# signed first plan. FIX-03 is in input/. follow-on-fix starts from this run, so
+# the offer and the plan share one folder (eval round 1, bug 5).
+case: follow-on-offer
+section: Follow-on intake (offer from FIX-nn.md)
+client: Larkspur Ceramics
+slug: larkspur-ceramics-2
+user: Robin
+base: accepted-signed
+checks: [headers, offer, route, status, private_names]
+outputs: [plans/larkspur-ceramics-2/build-plan-offer.md]
+offer: { tier: one_system, issued: 2026-12-01 }
+route: { from: handoffs/larkspur-ceramics/fixes/FIX-03.md, expect: follow-on offer }
+status:
+  lines:
+    - { path: plans/larkspur-ceramics-2/build-plan-offer.md, next: ow-build-plan /ow-build-plan-start plans/larkspur-ceramics-2/, awaiting: offer reply from Larkspur Ceramics by 2026-12-15 }
+private_names: [llc-ops, Deftwright]

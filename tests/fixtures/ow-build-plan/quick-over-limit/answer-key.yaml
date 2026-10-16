@@ -1,0 +1,15 @@
+# Answer key: quick-over-limit (INVENTED). Design §9.2 "Quick quote": a job over
+# quick_quote_max_units (3 in the fixture price book) is refused with a Build
+# Plan recommendation. The job needs two integrations (job sheets into the
+# scheduler and into accounts), a report and a screen: 4 units. The golden run
+# writes no quote and no scope, only a STATUS line pointing at the offer.
+case: quick-over-limit
+section: Quick quote (over the limit, refused)
+client: Calder Joinery
+slug: calder-joinery
+user: Robin
+checks: [quick_refusal, status, private_names]
+status:
+  lines:
+    - { path: intake/calder-joinery/intake-record.md, next: ow-build-plan /ow-build-plan-offer intake/calder-joinery/intake-record.md, awaiting: none }
+private_names: [llc-ops, Deftwright]

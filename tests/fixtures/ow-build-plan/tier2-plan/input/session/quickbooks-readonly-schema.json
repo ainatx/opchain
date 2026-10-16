@@ -1,0 +1,11 @@
+{
+  "note": "INVENTED TEST FIXTURE: a fake read-only schema for an accounting sandbox",
+  "objects": {
+    "Item": { "records": 212, "fields": { "Name": 1.0, "Sku": 0.91, "UnitPrice": 1.0, "Active": 1.0 } },
+    "Invoice": { "records": 1140, "period": "last 12 months", "fields": { "DocNumber": 1.0, "CustomerRef": 1.0, "Line.ItemRef": 1.0, "PrivateNote": 0.12 } },
+    "Customer": { "records": 86, "fields": { "DisplayName": 1.0, "PrimaryEmailAddr": 0.95, "BillAddr": 0.98 } }
+  },
+  "sample_shapes": {
+    "Invoice": { "DocNumber": "<6 digits>", "CustomerRef": "<id>", "Line": [{ "ItemRef": "<id>", "Qty": "<n>" }] }
+  }
+}

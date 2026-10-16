@@ -1,0 +1,20 @@
+# Answer key: route-folder (INVENTED). Eval round 2, item 3: after the quote is
+# exported, STATUS says "next: ow-build-plan /ow-build-plan-quote
+# plans/larkspur-ceramics/". "use ow-build-plan on plans/larkspur-ceramics/"
+# must not run -quote again over the sent quote: with quote.md present and no
+# contract-inputs.md it runs --accepted. quote.md and quote-items.json stay
+# exactly as the client received them.
+case: route-folder
+section: Folder route after the quote (records the acceptance, never re-quotes)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess]
+base: unpriced-package
+checks: [route, quote_frozen, accepted, status, private_names]
+route: { from: plans/larkspur-ceramics/, expect: accepted }
+accepted: { date: 2026-11-02, documentation_sku: bought }
+status:
+  lines:
+    - { path: plans/larkspur-ceramics/contract-inputs.md, next: ow-build-plan /ow-build-plan-quote plans/larkspur-ceramics/, awaiting: signing for the Build Plan credit by 2026-12-25 }
+private_names: [llc-ops, Deftwright]

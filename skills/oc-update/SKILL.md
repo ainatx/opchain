@@ -10,6 +10,7 @@ tryable: false
 commands:
   - /oc-update
   - /oc-update check
+  - /oc-update doctor
 description: >
   Check and update Opchain skills installed in the current repository. Use for
   /oc-update, "update Opchain", "refresh my Opchain skills", or "check for Opchain
@@ -48,6 +49,7 @@ install commands below.
 |---|---|
 | `/oc-update`, "update Opchain" | `node <skill-dir>/scripts/update.mjs` |
 | `/oc-update check`, "is an update available?" | Same command with `--check` (read-only) |
+| `/oc-update doctor`, "which Opchain is this session loading?", "why are there two copies?" | `node <skill-dir>/scripts/update.mjs doctor` (read-only; `--json` for machine output; see below) |
 | Refresh this Opchain source checkout | Same command; `--source` explicitly requires source mode |
 | Install specifically for Claude or Codex | Add `--target=claude` or `--target=codex` |
 | Install for both | Add `--target=both` |
@@ -63,6 +65,34 @@ local helpers, and backs up files it replaces. Legacy `.codex/skills` copies are
 also made available under `.agents/skills`. A fresh automatic install defaults
 to `.claude/skills`. Global/plugin-managed installations use the host's plugin
 manager; do not overwrite plugin caches or change hook configuration.
+
+## `/oc-update doctor`
+
+Read-only. It enumerates every surface a session can load Opchain from — the host's
+plugin cache, this repository's `.claude/skills`, `.agents/skills` and legacy
+`.codex/skills`, copies inside `.claude/worktrees/*`, and a global `~/.claude/skills` —
+with each surface's frontmatter `version:` and, for a source checkout, how many commits
+it is behind `origin/main`. It then flags, one line each:
+
+- **duplicate surfaces** — the same skill ids loaded from two places (e.g. 36 repo-local
+  + 36 plugin-cache copies, which doubles every session's skill descriptions);
+- **version mismatches** — surfaces that disagree on `version:` (the plugin cache serving
+  an older hook than the repo, a worktree on a prior release);
+- **uncommitted installs** — skill files the updater wrote that `git status` still shows
+  as modified or untracked;
+- **parked checkouts** — a source checkout N commits behind `origin/main`, whose sessions
+  run that older version's hooks and settings.
+
+Report the table and the flags; fix nothing. The remedy for a duplicate is to remove
+one surface (usually the repo-local copy once the plugin is installed); for a parked
+checkout, fast-forward or retire it.
+
+**Uncommitted installs.** `update.mjs` writes files and never commits. After a
+successful update, check `git status`; if the installed files are modified or
+untracked, say so explicitly — "installed but NOT committed; other worktrees and
+clones still run <previous version>" — and offer the commit. An install left on an
+unmerged feature branch keeps every worktree cut from `main` on the previous version
+indefinitely, and nothing else warns about it.
 
 ## Source checkout behavior
 

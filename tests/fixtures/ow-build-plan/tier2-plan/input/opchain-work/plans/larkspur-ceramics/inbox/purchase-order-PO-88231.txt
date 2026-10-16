@@ -1,0 +1,9 @@
+INVENTED TEST FIXTURE: a fictional purchase order, as text extracted from the PDF attachment.
+
+RIDGELINE BUILDERS — PURCHASE ORDER PO-88231
+Date: 2026-09-14        Ship to: Site 14, Ridgeline Commons
+Line  Our item   Your item   Description                 Qty
+1     RB-T22     LC-1204     Glazed wall tile, sage      40
+2     RB-T31     lc 2210     Floor tile, slate, 12x12    18
+3     RB-T09     1204LC      Glazed wall tile, sage      12
+Please confirm within one business day.

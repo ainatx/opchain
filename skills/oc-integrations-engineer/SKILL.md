@@ -450,6 +450,17 @@ Check every integration's secrets:
 - Rotation schedule defined?
 - Any secrets in git history?
 
+**Gate artifact.** A new `*_API_TOKEN`, `*_API_KEY` or `*_CLIENT_SECRET` binding — in
+`wrangler.jsonc`, `.env.example`, or the platform's secret manifest — is the chokepoint
+for this skill. That commit should not land unless `integrations/<service>.md` exists
+for the service: the Integration Spec from Phase 1, with its provider, auth, retention
+and rotation decisions written down. This gate is named in the skills, not yet checked:
+no hook refuses the commit yet, so check it yourself before committing the binding. The
+spec is the artifact it keys on; `/oc-integrate plan` is how it gets written, but a
+hand-written one that answers the template's sections clears it just the same. The 2026-10-08
+audit found a consumer whose mail-provider swap, OAuth scopes and retention choices
+existed only in chat; this is the row that gives those decisions a file.
+
 ---
 
 ## Common Integration Patterns

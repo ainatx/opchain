@@ -48,8 +48,8 @@ first commit on a fresh clone.
 | `project_dir` | ✓ | string | Absolute path to the project. |
 | `created_at` | ✓ | ISO-8601 (`Z` or `±hh:mm`) | Don't change once set. |
 | `updated_at` | ✓ | ISO-8601 (`Z` or `±hh:mm`) | `Date.toISOString()` on every write. |
-| `phase` | ✓ | string | Skill-defined. |
-| `step` | ✓ | string | Skill-defined. |
+| `phase` | ✓ | string | Skill-defined. Checked against the skill's declaration when `skills/<skill>/SKILL.md` is present — see *Write rules*. |
+| `step` | ✓ | string | Skill-defined, free text; a single token (`sprint-2-eval-round-1`) — whitespace draws a warning. |
 | `status` | ✓ | enum | `in_progress \| blocked \| complete \| failed` |
 | `progress_summary` | ✓ | string | One-paragraph human-readable. |
 | `progress_table` |   | array | Ordered list of `{ id, label, status }`. |
@@ -60,6 +60,7 @@ first commit on a fresh clone.
 | `cost` |   | object | `{ total_usd?, budget_usd?, by_phase?, by_model?, currency? }` — LLM spend attribution + budget ceiling (oc-cost-ops, wire 1.1+). |
 | `eval_scores` |   | array | `{ rubric, score, max?, at?, dimensions? }[]` — eval scores vs a stable rubric (oc-bug-check / oc-code-auditor / oc-prompt-ops, wire 1.1+). |
 | `telemetry_handle` |   | string \| object | Opt-in local-metering link `{ enabled, id?, sink?, since? }` — default OFF (oc-telemetry-ops, wire 1.1+). |
+| `handoffs` |   | array | C-contract typed handoffs (`src/lib/mcp/checkpoint-contract.js`). The `verification.verdict` entries are what `scripts/lib/release-evidence.mjs` reads at the PR/deploy gates — write them with `checkpoint handoff`, never by hand. |
 | `skill_state` |   | object | Freeform — private to the owning skill. |
 
 Validation runs in CI via `npm run checkpoint:validate`. The validator is
@@ -87,8 +88,42 @@ npm run checkpoint:validate                 # --strict also fails on warnings
 node scripts/checkpoint.mjs update <skill> --status=in_progress --step=...
 #   --key=value replaces · --key+=value appends · --key:json=… parses JSON.
 #   + and :json combine in either order (--key:json+=…); an append adds ONE element.
+#   Creating a file REQUIRES --next_actions:json='["<first real action>"]' (see Write rules).
 node scripts/checkpoint.mjs done <skill>
+
+# Bind a verification.verdict handoff to the current candidate — the one binder for
+# the evidence the pre-PR / pre-deploy gates read. No hand-written handoff JSON.
+node scripts/checkpoint.mjs handoff oc-docs-forge --policy pr-docs-v1 --verdict PASS \
+  --scope "README + CHANGELOG refreshed for #601" --evidence skills/README.md
+#   policies: pr-docs-v1 (oc-docs-forge) · pr-readiness-v1 (oc-repo-ops) ·
+#             pre-deploy-code-audit-v1 (oc-code-auditor) · pre-deploy-security-posture-v1 (oc-security-auditor)
+#   The candidate is HEAD's git_tree_projection (tree minus .checkpoints/), exactly what
+#   `node scripts/lib/release-evidence.mjs --print-candidate --json` prints. Re-binding the
+#   same candidate replaces the earlier entry; --json prints the handoff + candidate.
 ```
+
+Every subcommand is also reachable as `npm run checkpoint -- <command> ...`.
+
+## Write rules the validator enforces
+
+- **No scaffold filler.** `update` on a missing file used to scaffold
+  `"Define the first real next action for this skill."` into `next_actions`, and it
+  validated — oc-security-auditor shipped that sentence on `main` from v2.0.0 to
+  v2.0.4 and the plugin's next-suggestion hook re-advertised it. Now: creating a
+  file requires `--next_actions:json='["…"]'` (or `--next_actions=…`), and the
+  sentence is a validation **error** anywhere except an untouched scaffold
+  (`phase: init`, `step: scaffolded`). `doctor` flags scaffolds that still carry it.
+- **Phase allowlist (authoring repo only).** When `skills/<skill>/SKILL.md` exists:
+  - `checkpoint_phases: [...]` in its frontmatter → **strict**: an undeclared `phase`
+    is an error and the message lists the allowed ids. Declare it per skill to turn
+    the check on (I-09: `master-2-workstreams` passed validation unchallenged).
+  - only `phases: [...]` (the pipeline taxonomy `foundation|plan|build|ai-native`, not
+    the checkpoint vocabulary) → **advisory**: a `phase` outside `phases:` plus the
+    `"phase": "…"` / `--phase=…` examples in the SKILL.md body is a warning. 16 of
+    17 tracked checkpoints were outside `phases:` when this landed, so it is not an
+    error.
+  - no SKILL.md (a consumer repo) → no check.
+  `step` stays free text; whitespace in it is a warning.
 
 ### Status glyphs (canonical legend)
 
@@ -121,6 +156,37 @@ real conflict on substantive content (`progress_summary`, `next_actions`,
 > `git merge` (driver runs), and always `npm run checkpoint:validate` before
 > pushing. Rotating volatile `skill_state` telemetry into
 > `.checkpoints/history/` keeps the conflict surface small in the first place.
+
+## Stop hook: checkpoint hygiene
+
+`.claude/hooks/checkpoint-hygiene.sh` (registered in `.claude/settings.json` as
+`"$CLAUDE_PROJECT_DIR/.claude/hooks/checkpoint-hygiene.sh"`, 30s timeout) blocks a
+session from ending when an oc-* skill was invoked and no current-run checkpoint
+exists. After the 2026-10-08 effectiveness audit (I-06) it is scoped:
+
+- **Repo resolution.** `PROJECT_DIR` is `$CLAUDE_PROJECT_DIR`; without it, the git
+  toplevel of the Stop event's cwd, enforced only when that is the checkout the hook
+  ships in. A drifted shell cwd never pulls in another checkout.
+- **Work-in-this-repo scoping.** A skill is enforced only if, after its invocation,
+  the transcript shows a Write/Edit/MultiEdit/NotebookEdit `file_path` or a Bash
+  `git -C <dir>` / `cd <dir>` target under `PROJECT_DIR`. Deftwright work done from
+  an opchain worktree no longer blocks.
+- **Current-run evidence.** `record_updated_at`/`updated_at` at or after the
+  invocation. Gate skills (`oc-bug-check`, `oc-docs-forge`, `oc-repo-ops`) are also
+  satisfied by a `handoffs[]` `verification.verdict` PASS bound to the current
+  candidate (what `checkpoint handoff` writes), or — when the candidate cannot be
+  computed — by a checkpoint mtime newer than the invocation.
+- **One-shot decline.** The same missing skill set blocks at most twice per session;
+  the third Stop prints one stderr note and exits 0. Counts live in
+  `$TMPDIR/opchain-hygiene-<session_id>.json`.
+- **Incremental.** The same marker caches the transcript byte offset; only the new
+  tail is parsed on each Stop.
+- **The block reason carries the exact CLI**, including
+  `--next_actions:json='["…"]'` and the `handoff` verb for gate skills.
+
+Exempt (owe no tracked current-run checkpoint): oc-orchestrator,
+oc-checkpoint-protocol, oc-update, oc-telemetry-ops. Tests:
+`tests/checkpoint-hygiene.test.js` (fixture transcripts, fake `$CLAUDE_PROJECT_DIR`).
 
 ## Resume protocol (informal)
 

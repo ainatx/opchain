@@ -1,0 +1,13 @@
+# Answer key: private-names-default (INVENTED). Design §9.2 "No private names",
+# with an empty (defaults-only) handoffs.yaml: every NEXT and every file the
+# skill writes is free of private skill names and business names. Grades every
+# file the offer → plan → quote → accepted → signed chain wrote, through the
+# accepted-signed run; private-names-business covers a business's own file.
+case: private-names-default
+section: No private names (defaults-only handoffs.yaml)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+run: accepted-signed
+checks: [private_names]
+private_names: [llc-ops, Deftwright]

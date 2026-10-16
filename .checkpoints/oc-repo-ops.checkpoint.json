@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/ow-skills-orchestration-0e05bd",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-15T15:10:34.878Z",
+  "updated_at": "2026-10-16T18:07:59.632Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-ow-start-audit-followups",
-  "progress_summary": "Follow-up PR readiness PASS at 95e69c13: catalog, contract, bundle, plugin and ow-tools manifest drift checks pass for both catalogs and leave the tree unchanged; ow-start acceptance golden runs pass; checkpoint:validate passes; doctor 0 errors (29 pre-existing warnings); candidate verifier PASS on tree 08eef785 (8/8); no untracked files.",
+  "step": "pr-ow-build-plan-followups",
+  "progress_summary": "Follow-ups PR readiness PASS at e9316b9c: catalog, contract, bundle, plugin and ow-tools manifest drift checks pass; checkpoint:validate passes; doctor 0 errors (29 pre-existing warnings); both acceptance checkers pass (ow-build-plan 29/29); candidate verifier PASS on tree fe10ce1e; no untracked files; oc- outputs unchanged.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -31,11 +31,11 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "95e69c13f72b77f3db0f0f62f2f623a15b4dce94",
+    "verified_for_sha": "c116a55302c22f20322a396d73558d69aa6d9d5a",
     "last_verify": {
-      "at": "2026-10-15T15:10:34.878Z",
-      "branch": "claude/ow-start-audit-followups",
-      "base": "origin/main@2a0a3c98",
+      "at": "2026-10-16T17:31:47.786Z",
+      "branch": "claude/ow-build-plan-followups",
+      "base": "origin/main@ce3dad43",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1458,8 +1458,115 @@
           "sprints/release-2.1/ow-family-sprint-plan.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-ow-build-plan-sprint-1-ac4fbe3de8d6",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-16T17:05:57.660Z",
+      "verified_at": "2026-10-16T17:05:57.660Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-ow-build-plan-sprint-1"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:ac4fbe3de8d6a24d483ae6c1ef5a8c96ef3e9bc114ea9b28f1fda8143343ad51"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/ow-build-plan-sprint-1 at 129c6ba7 on origin/main 6c31e9ed. 145 files, none under skills/, plugins/opchain/ or package.json, so oc- outputs are unchanged. Drift checks for both catalogs, the dev plugin and the ow-tools manifest pass; checkpoint:validate passes; candidate verifier PASS receipt covers tree def31b09; no untracked files. Docs Forge packet verified_for_sha = HEAD.",
+        "evidence": [
+          "skills-work/ow-build-plan/SKILL.md",
+          "skills-work/README.md",
+          "skills-work/ow-start/skill.edges.yaml",
+          "CLAUDE.md",
+          "docs/plans/2026-10-06-ow-build-plan-design.md",
+          "docs/plans/2026-10-08-ow-build-design.md",
+          "docs/plans/2026-10-09-ow-uat-design.md",
+          "docs/plans/2026-10-08-ow-handoff-design.md",
+          "tests/fixtures/ow-build-plan/README.md",
+          "sprints/release-2.1/ow-sprint-1/contract.md",
+          "sprints/release-2.1/ow-sprint-1/eval-round-4.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr-ow-build-plan-followups-993119b82a56",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-16T17:31:47.786Z",
+      "verified_at": "2026-10-16T17:31:47.786Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-ow-build-plan-followups"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:993119b82a566eceaf94cc7f6d06986d86b05d9701f0a0f8c3cd57822e465122"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/ow-build-plan-followups at e9316b9c on origin/main ce3dad43. 24 files under skills-work/ow-build-plan, scripts/ and tests/; none under skills/, plugins/opchain/ or package.json. Drift checks pass and change nothing; candidate verifier PASS receipt covers tree fe10ce1e; no untracked files. Docs Forge packet verified_for_sha = HEAD.",
+        "evidence": [
+          "skills-work/ow-build-plan/SKILL.md",
+          "skills-work/ow-build-plan/references/routing-and-resume.md",
+          "skills-work/ow-build-plan/references/phase-quote.md",
+          "skills-work/ow-build-plan/references/contract-inputs-schema.md",
+          "tests/fixtures/ow-build-plan/README.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-5e1084982980",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-16T17:51:00.268Z",
+      "verified_at": "2026-10-16T17:51:00.268Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-16T17:51:00.268Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:5e1084982980339502b173b94e382d7c3ae3db6673dbfa425627c91507406120"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/2.1-track-e-product at 7b6b2f13 on origin/main 4648e9cf (#609); no content overlap with #609 (only the two evidence checkpoints, kept from main with these handoffs appended). gen-catalog (36 oc- + 2 ow-), check-skill-contracts, gen-route-spec --check, sync-bundles:check and checkpoint validate re-run on this base; pre-commit verifier (full suite) PASS on the committed tree. No site/ change; no untracked files staged.",
+        "evidence": [
+          "scripts/lib/release-evidence.mjs",
+          ".github/workflows/ci.yml"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-46305951c109",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-16T18:07:59.631Z",
+      "verified_at": "2026-10-16T18:07:59.631Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-16T18:07:59.631Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:46305951c10995d252cc13652ca14d91b2633351c94feac8a8e87c62ae7f9741"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/jev-implementation-status-0c66d6 at c116a553 on origin/main 591e6329. Two files: the sprint plan and the release-ops checkpoint; no overlap with #608 or #609. checkpoint validate passes; pre-commit verifier PASS on the committed tree; no generated output touched; no untracked files.",
+        "evidence": [
+          "sprints/release-2.1/ow-family-sprint-plan.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-15T15:10:34.878Z",
+  "record_updated_at": "2026-10-16T18:07:59.632Z",
   "blockers": []
 }
