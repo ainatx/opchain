@@ -4,13 +4,14 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-09-14T00:38:43.799Z",
-  "updated_at": "2026-09-27T15:02:40.355Z",
-  "phase": "verify",
+  "updated_at": "2026-10-09T17:33:07.567Z",
+  "phase": "build",
   "step": "posture-2.0.4",
   "status": "complete",
   "progress_summary": "Pre-deploy security posture for v2.0.4 (delta from 8bad1a0 to c09a63e): no MCP boundary, header, CSP, auth or routing change; hooks reduce surface; patch/minor dependency bumps; production npm audit clean; #569/#571 are a local-only CLI. PASS, with tracked dev-only and defense-in-depth residuals unchanged.",
   "next_actions": [
-    "Define the first real next action for this skill."
+    "Before the next release cut, re-run the pre-deploy posture assessment (/oc-security posture) on the release delta from c09a63e (v2.0.4, the last PASS) and bind it with: node scripts/checkpoint.mjs handoff oc-security-auditor --policy pre-deploy-security-posture-v1 --verdict PASS --scope \"<delta reviewed>\" --evidence <audit doc>",
+    "While there, re-check the residuals every posture since 2.0.1 has carried forward: dev-only site dependency advisories, tag-pinned (not SHA-pinned) CI action refs, missing COOP/CORP headers, and the live headers/TLS/control-plane check that each assessment skipped because no deployment was performed (OWASP A02 PARTIAL)."
   ],
   "handoffs": [
     {
@@ -463,5 +464,5 @@
     "verdict": "PASS",
     "blocking_findings": 0
   },
-  "record_updated_at": "2026-09-27T15:02:40.355Z"
+  "record_updated_at": "2026-10-09T17:33:07.567Z"
 }

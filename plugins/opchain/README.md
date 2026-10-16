@@ -43,8 +43,13 @@ This plugin ships the mechanism instead of describing it.
 /oc-enroll
 ```
 
-Run `/oc-enroll` successfully in each repository. Plugin installation alone does
-not activate commit verification.
+Run `/oc-enroll` successfully in each repository. **Installing the plugin
+installs no gate.** The 2026-10-08 effectiveness audit found a repository that
+ran seven days and 193 commits with the plugin installed and nothing enrolled;
+until `/oc-enroll` succeeds, no hook in that repository checks anything.
+`/oc-enroll --doctor` tells you which state you are in. `/oc-enroll --ci` adds
+the CI workflow that makes the same checks hold for pull requests, and
+`/oc-enroll --claude-md` writes the repository's verbs into `CLAUDE.md`.
 
 ## Registered slash commands
 
@@ -107,9 +112,51 @@ receive isolated Git metadata and dependencies beside candidate package files.
 An existing foreign hook makes enrollment **BLOCKED**, with a nonzero exit and
 an explicit integration snippet. It is preserved for deliberate composition;
 enrollment must not claim success until the final verifier decision is installed.
-The registered plugin hooks are **SessionStart and Stop only**. The old
-`PreToolUse` parser remains a compatibility test fixture, not an authorization
-boundary. Git hooks cover ordinary commits from any agent or terminal.
+The registered plugin hooks are **SessionStart, UserPromptSubmit and Stop**;
+none of them gates a tool call. The old `PreToolUse` parser remains a
+compatibility test fixture, not an authorization boundary. Git hooks cover
+ordinary commits from any agent or terminal.
+
+**Git `post-commit` → bypass record.** Git runs `post-commit` even under
+`--no-verify`, so this is where a bypass becomes a fact instead of a convention.
+When HEAD's tree has no PASS receipt, the hook asks the runtime to write
+`.git/opchain/bypasses/v1/<sha>.json` and append to the bug-check checkpoint's
+`skill_state.bypasses`, and prints
+`[opchain] ⚠ commit <sha> bypassed the gate — recorded`. The reason is read from
+the commit's `Opchain-Bypass:` trailer (`/oc-bugcheck bypass` writes it). Silent
+when a receipt covers the tree. It never blocks: a post-commit hook cannot.
+
+**Git `pre-push` → bypass guard.** Reads the refs being pushed, asks the runtime
+(`bypass-list`) which outgoing commits have neither a PASS receipt nor an
+`Opchain-Bypass:` trailer, and refuses the push while any remain, listing them
+with the amend command. Merge commits and commits already on the remote are not
+examined. A commit a rebase or cherry-pick rewrote is excused only when the
+original it was picked from had a PASS receipt or an `Opchain-Bypass:` trailer;
+the reason text in its record proves nothing. If the outgoing range can't be
+computed (for example, a force-push over remote commits this clone never
+fetched), the push is refused. `OPCHAIN_PUSH_BYPASS=1 git push …` is the loud escape hatch: it prints
+what it let through. History that predates enrollment needs it once.
+`evidence:pr` lists the same commits in the PR gate, so the count survives the
+squash merge that discards the local checkpoint.
+
+**`/oc-enroll --doctor`** is the preflight the 2026-10-08 audit asked for after
+counting 14 exit-127 gate runs (vitest, astro, tsc "command not found" from
+worktrees whose `node_modules` was a `.vite`-only cache) and six FAILs from a
+`.bugcheck.json` with no `verification` block. It installs nothing and prints
+PASS/FAIL for: enrollment, the runtime copy (WARN when stale), each managed
+hook, the policy's `verification` block, every declared command (resolvable in
+`node_modules/.bin` or on PATH; `npm run <script>` must exist in the right
+`package.json`), and `node_modules/` validity for the root and every `--prefix`
+directory a command names.
+
+**`/oc-enroll --ci`** writes `.github/workflows/opchain-evidence.yml` from
+`templates/opchain-evidence.yml` and vendors the verifier (and, when the package
+carries it, the `evidence:pr` gate) into `.opchain/runtime/`, so pull requests
+run `verify-candidate run` and the Docs/Repo evidence check without the plugin
+installed on the runner. It refuses to overwrite an existing workflow without
+`--force`. Dependabot pull requests skip the evidence step; the verifier is their
+gate. **`/oc-enroll --claude-md`** creates or updates a marked section of
+`CLAUDE.md` from `templates/CLAUDE.opchain.md`.
 
 **`SessionStart` → pipeline state** (`hooks/session-state.cjs`). Computes and
 injects what `CLAUDE.md` merely *asks* someone to go run:
@@ -127,6 +174,40 @@ injects what `CLAUDE.md` merely *asks* someone to go run:
 
 Silent when there is nothing to say. An empty nudge every session is how nudges
 get ignored.
+
+**`UserPromptSubmit` → skill router — experimental preview** (`hooks/route-prompt.cjs`).
+Asks TypeSafe/Jev which opchain skill, if any, owns the prompt. It is off until
+you set `TYPESAFE_API_KEY` (a key from TypeSafe, billed to your own account);
+without one the hook exits before any network, git or log work. **Shadow mode
+is the default**: with `OPCHAIN_ROUTE_MODE` unset it routes and logs but injects
+nothing, from a detached background process, so the prompt never waits on it.
+Its only evaluation so far is offline; whether it changes skill use is not yet
+measured. `OPCHAIN_ROUTE_MODE=live` is **unsupported** until the shadow-period
+go/no-go records a GO. Live mode injects the one line the 2026-10-08 audit
+measured at 72/72 compliance:
+
+```
+opchain route (p=0.91): invoke the Skill tool with skill "oc-git-ops" and args "/oc-git-sync". Skip this if the request means something else.
+```
+
+By default the router sees the prompt and the repository state (branch,
+ahead/behind, dirty count, open PR, enrollment, active checkpoint), redacted
+before they are sent to TypeSafe (`api.typesafe.ai`): up to two requests per
+prompt, with decisions cached locally for 24 hours. Conversation context (the previous prompt and
+the end of the assistant's last message, ≤400 chars, also redacted) is
+**opt-in** with `OPCHAIN_ROUTE_CONTEXT=1` and experimental: on the 2026-10-09
+eval it cut precision from 0.81 to 0.51, because bare "yes" / "go" after a PR
+or deploy turn became suggestions. It suggests only skills on the evidence
+allowlist (`suggestAllow` in `hooks/route-spec.json`) unless you name the skill
+yourself; a typed `/oc-*` command routes without a model call, unless it is
+negated ("don't run /oc-deploy"), asked about, or part of a path.
+On each prompt it also writes an outcome record for the previous one (what was
+suggested, which skills and git/deploy commands followed) to
+`$TMPDIR/opchain-route-log.jsonl`. `npm run route:eval -- outcomes` turns that
+log into the day-8 go/no-go for switching to live
+(`docs/runbooks/skill-router-eval.md` §6 in the source repo). Needs
+`TYPESAFE_API_KEY`; silent without it, outside opchain projects, on slash
+commands, and on any failure. `OPCHAIN_ROUTE=0` disables it.
 
 **`Stop` → what to run next** (`hooks/next-suggestion.cjs`). When a skill
 finishes, names the next one — as something you can type:
@@ -184,8 +265,16 @@ misfire — that asymmetry is why it was chosen over `decision: "block"`.
 - **The suggestion needs a checkpoint to fire.** It keys off checkpoint writes,
   so a skill that finishes without writing one is invisible to it. That is the
   same coverage gap the checkpoint protocol has always had, not a new one.
-- **`git commit --no-verify` bypasses local Git hooks.** It cannot produce a
-  trusted CI result. A user with repository access can also remove local hooks.
+- **`git commit --no-verify` still skips the pre-commit gate.** What it no
+  longer does is disappear: `post-commit` records it and `pre-push` refuses it
+  until it carries an `Opchain-Bypass:` trailer. A user with repository access
+  can still delete the hooks or set `OPCHAIN_PUSH_BYPASS=1`; both leave the
+  commit without a receipt, which `evidence:pr` and the consumer CI workflow
+  report. Local hooks cannot produce a trusted CI result.
+- **A rebase voids receipts.** Receipts bind to trees; a rebased commit has a
+  new tree and no receipt. The hooks record the rewrite and excuse it on push;
+  CI re-verifies the received head. Rebinding evidence to the merge-base
+  projection is tracked separately (audit I-05).
 
 ## Testing
 

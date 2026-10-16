@@ -131,6 +131,11 @@ reports/token-usage/raw_usage.csv
 .checkpoints/*.lock
 .checkpoints/.*.tmp
 
+# Skill-router eval harness (scripts/route-eval.mjs): the dataset holds verbatim
+# prompt text from local Claude Code transcripts and the results hold per-row
+# router traces. Machine-local, never committed; see docs/runbooks/skill-router-eval.md.
+/scratch/
+
 # design-previews colour tooling: generated intermediates
 design-previews/color-2.0-tooling/tokens.json
 design-previews/color-2.0-tooling/tokens.css

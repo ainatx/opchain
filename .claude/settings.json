@@ -6,8 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/checkpoint-hygiene.sh",
-            "timeout": 10
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/checkpoint-hygiene.sh\"",
+            "timeout": 30
           }
         ]
       }

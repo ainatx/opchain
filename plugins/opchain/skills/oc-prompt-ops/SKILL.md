@@ -303,6 +303,18 @@ On a deliberate behavior change (a MAJOR prompt bump), the baseline is
 you don't bypass the gate, you move it forward intentionally with a CHANGELOG
 entry recording the new scores.
 
+**Gate artifact.** This gate keys on a *current eval score*, not on `/oc-prompt regress`
+having run. It is named in the skills, not yet checked: no hook refuses the commit yet,
+so check it yourself before committing. A commit that touches a registered prompt path
+(`prompts/**`, or the paths listed under `prompts` in `.bugcheck.json`) should not land unless
+this skill's checkpoint `skill_state.last_eval` was produced for the prompt version being
+committed — its `version` matches the prompt's `version` and its `verdict` is PASS — and
+the checkpoint's `eval_scores[]` carries that run. Re-run `/oc-prompt eval` then
+`/oc-prompt regress`, let the checkpoint update, and commit. The 2026-10-08 audit found a
+consumer shipping a chat feature with its own hand-rolled eval and removing it two days
+later; the score in the checkpoint is what makes "did the prompt get worse" answerable
+at the commit boundary instead of in production.
+
 ---
 
 ## Principle 4: Drift Detection

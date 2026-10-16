@@ -182,6 +182,22 @@ instrumentation (v1.6 "the instrumented pipeline"):
 > stop hooks; its legacy `PreToolUse` parser is not an enforcement boundary. Treat the table below as the contract
 > you follow when you *are* running, not as a mechanism that runs for you.
 
+### Enforcement map
+
+For every edge that must hold, this is where it is held and by what. If a row's
+mechanism is not installed in the repository you are working in, the edge is prose
+there — install it (`/oc-enroll`, `install-git-drivers --ci`, the deploy wrapper)
+before relying on it.
+
+| Edge that must hold | Chokepoint | Mechanism |
+|---|---|---|
+| Every commit passes bug-check | `git commit` | Enrolled `pre-commit` verifier (`/oc-enroll`). A `post-commit` hook — Git runs it even under `--no-verify` — writes `.git/opchain/bypasses/v1/<sha>.json` for any commit whose tree has no PASS receipt; a `pre-push` hook refuses a recorded bypass until the commit carries an `Opchain-Bypass: <reason quoting the user's approval>` git trailer |
+| Every PR carries docs + readiness evidence | PR open | `evidence:pr` CI step (`scripts/lib/release-evidence.mjs --stage pr`) requiring `pr-docs-v1` and `pr-readiness-v1` handoffs bound to the HEAD tree; a consumer repo gets the workflow from `install-git-drivers --ci` |
+| Deploys ship reviewed `main` | the deploy command | Consumer deploy wrapper (copy the plugin's `templates/deploy.mjs` into `scripts/deploy.mjs`; configure it under `opchain.deploy` in `package.json`): a clean working tree, exact `origin/main` (staging may opt out with `--allow-off-main` or `<PROJECT>_ALLOW_OFF_MAIN_STAGING=1`), a live-SHA ancestor check that refuses when the live version can't be read (unless `--allow-unknown-live`), an explicit `--prod` argument for production, and it writes `.checkpoints/oc-deploy-ops.checkpoint.json` after a deploy whose live version converged (a refused run writes nothing) |
+| Releases are tagged before they ship | production deploy; session start | `check-release-tag` refuses an untagged catalog version; the SessionStart release-resume line names `/oc-git-release <semver>` while the release-ops checkpoint is phase=ship and `check-release-tag --local` reports the tag missing (authoring repo only; the hook makes no network call and does not check the live deploy) |
+| The spec phase produces its artifacts | spec → build | `scaffold-spec` writes `spec/01…10` stubs whose first line names the producing skill. Refusing a build-phase commit while a stub still carries its producer line is specified, not yet wired: the skill asks the agent to check it, and no hook does yet |
+| Security, integrations and eval reviews happen | commit or deploy, keyed on an artifact | `.opchain/hardening.yaml` + `security_review_ref` (deploy replays `/oc-harden verify`). Named in the skills, not yet checked: a new `*_API_TOKEN` / `*_CLIENT_SECRET` binding needs `integrations/<service>.md`, and a commit touching prompt files needs a current eval score in the oc-prompt-ops checkpoint; the skills ask the agent to check these, and no hook does yet |
+
 When a skill reaches a handoff point, follow this exact pattern:
 
 ### Pattern: Active Invocation
@@ -192,8 +208,7 @@ WRONG (passive suggestion):
 
 RIGHT (active invocation):
   "Sprint 3 passed. Now committing changes using the oc-git-ops skill."
-  [Read the oc-git-ops SKILL.md]
-  [Execute /oc-git-sync using the sprint context from the checkpoint]
+  [Invoke the Skill tool with skill "oc-git-ops" and args "/oc-git-sync <sprint context from the checkpoint>"]
 ```
 
 ### Handoff Points (when to chain)
@@ -201,7 +216,7 @@ RIGHT (active invocation):
 | Trigger | From | To | What to do |
 |---|---|---|---|
 | All build sprints pass | oc-app-architect | oc-git-ops | Invoke oc-git-ops, run /oc-git-sync with sprint context |
-| /oc-commit or /oc-git-sync starts | oc-git-ops | oc-bug-check | Invoke oc-bug-check; pass → proceed with commit; fail → block, surface report, offer `/oc-bugcheck fix`, or an explicit bypass (`/oc-bugcheck bypass` record + `OPCHAIN_BYPASS=1 git commit` / `--no-verify`); UNSUPPORTED blocks like FAIL |
+| /oc-commit or /oc-git-sync starts | oc-git-ops | oc-bug-check | Invoke oc-bug-check; pass → proceed with commit; fail → block, surface report, offer `/oc-bugcheck fix`, or an explicit bypass: `/oc-bugcheck bypass` (records the quoted approval) + `OPCHAIN_BYPASS=1 git commit` — never bare `--no-verify`. In an enrolled repo the `post-commit` hook records any commit without a PASS receipt and `pre-push` refuses it until the `Opchain-Bypass: <reason quoting the user's approval>` trailer is present; UNSUPPORTED blocks like FAIL |
 | PR creation starts (/oc-pr, or /oc-git-sync reaches the PR step) | oc-git-ops | oc-docs-forge | Invoke `/oc-docs pr` to generate the PR documentation packet (`## Documentation` body fragment + optional marker comment) |
 | Docs packet written or verified | oc-docs-forge | oc-repo-ops | Invoke `/oc-repo verify`; PASS → return control to oc-git-ops to open the PR; FAIL → block PR creation, surface blocking findings, offer `/oc-repo clean` |
 | git-sync completes | oc-git-ops | oc-deploy-ops | Confirm with the user (a deploy is their call), then invoke oc-deploy-ops, run /oc-deploy audit then /oc-deploy staging |
@@ -235,9 +250,14 @@ RIGHT (active invocation):
 ### How to Invoke Another Skill
 
 1. State what you're doing: "Now using [skill-name] to [action]."
-2. Read that skill's SKILL.md (it's in the available skills list). If that skill is not
-   in the available skills list, do the part of the handoff you can inline, tell the
-   user which skill is missing, and record it in `next_actions`.
+2. Invoke the Skill tool with skill `"<id>"` and args `"<verb …>"` — the tool-named
+   form, e.g. `Invoke the Skill tool with skill "oc-code-auditor" and args "/oc-audit diff --read-only main..HEAD"`.
+   The 2026-10-08 audit measured 72/72 invocations for spawn prompts written this way
+   against 80/143 for prompts that named the skill in prose (one lane 0/33), so a
+   spawn prompt that delegates to a skill uses the same form, placed before any
+   checklist, and requires a `skill_invoked: yes|no (args)` line in the report. If
+   the skill is not in the available skills list, do the part of the handoff you can
+   inline, tell the user which skill is missing, and record it in `next_actions`.
 3. Read that skill's orchestrator.md (same file you're reading now)
 4. Check for that skill's checkpoint (resume if exists)
 5. Execute the relevant command with context from the current skill's checkpoint

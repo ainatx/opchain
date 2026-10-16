@@ -10,7 +10,7 @@ const runtimeManifest = JSON.parse(fs.readFileSync(path.join(sourceRoot, 'script
 const declaredEntries = [
   'LICENSE', 'NOTICE', 'skills', 'mcp/local-server.mjs',
   'scripts/checkpoint.mjs', 'scripts/verify-candidate.mjs', 'scripts/install-git-drivers.mjs',
-  'scripts/lib/verification-receipt.cjs', 'scripts/gen-mcp-catalog.mjs',
+  'scripts/lib/verification-receipt.cjs', 'scripts/lib/bypass-record.cjs', 'scripts/gen-mcp-catalog.mjs',
   'scripts/lib/frontmatter.mjs', 'scripts/capabilities.mjs',
   'scripts/prompt-eval.mjs', 'scripts/cost.mjs',
   'scripts/lib/prompt-eval', 'scripts/lib/cost', 'src/lib/mcp',
