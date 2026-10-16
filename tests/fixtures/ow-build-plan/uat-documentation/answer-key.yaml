@@ -1,0 +1,15 @@
+# Answer key: uat-documentation (INVENTED). Design §9.2 "UAT and documentation
+# lines": a TOOL-M quote shows UAT · M with its roles, sessions and fix bounds,
+# and Documentation & training · M as a declinable line; 3 tester roles on an M
+# that includes 2 add one per-role add-on; the extension rate appears only
+# inside the internal markers, and the export (ow-tools preflight) has nothing
+# from between them. Grades the unpriced-package run.
+case: uat-documentation
+section: UAT and documentation lines
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess]          # named in the fit call; testers are recorded by role
+run: unpriced-package
+checks: [uat_lines, internal_appendix]
+uat: { size: M, tester_roles: 3 }

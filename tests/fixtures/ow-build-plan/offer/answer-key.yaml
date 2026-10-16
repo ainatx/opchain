@@ -1,0 +1,19 @@
+# Answer key: offer (INVENTED: fictional client and consultant).
+# Design §9.2 "Build Plan offer": the fee, weeks and credit match the tier in the
+# price book; validity is issue date + 14 days. Starts from ow-start's golden
+# larkspur-prospect run (recap path build-plan-2).
+case: offer
+section: Build Plan offer
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+ow_start: larkspur-prospect
+checks: [headers, offer, status, private_names]
+outputs: [plans/larkspur-ceramics/build-plan-offer.md]
+offer: { tier: two_systems, issued: 2026-10-07 }
+status:
+  lines:
+    - path: plans/larkspur-ceramics/build-plan-offer.md
+      next: ow-build-plan /ow-build-plan-start plans/larkspur-ceramics/
+      awaiting: offer reply from Larkspur Ceramics by 2026-10-21
+private_names: [llc-ops, Deftwright]

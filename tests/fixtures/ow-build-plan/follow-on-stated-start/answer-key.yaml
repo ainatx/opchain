@@ -1,0 +1,18 @@
+# Answer key: follow-on-stated-start (INVENTED). Eval round 2, item 1: after
+# follow-on-stated-offer, -start reuses plans/larkspur-ceramics-2/, reads the
+# request.md the offer wrote as its intake, and does not ask for the request
+# again (plan.yaml request stays empty; request.md is not rewritten).
+case: follow-on-stated-start
+section: Follow-on intake (start after an offer from the user's words)
+client: Larkspur Ceramics
+slug: larkspur-ceramics-2
+user: Robin
+base: follow-on-stated-offer
+checks: [headers, start, follow_on, status, private_names]
+outputs: [plans/larkspur-ceramics-2/plan.yaml, plans/larkspur-ceramics-2/collection.md]
+start: { tier: one_system, fee: 1500, start: 2026-12-07, intake: plans/larkspur-ceramics-2/request.md }
+follow_on: { follows: plans/larkspur-ceramics/, request: plans/larkspur-ceramics-2/request.md }
+status:
+  lines:
+    - { path: plans/larkspur-ceramics-2/collection.md, next: ow-build-plan /ow-build-plan-collect plans/larkspur-ceramics-2/, awaiting: material from Larkspur Ceramics by 2026-12-09 }
+private_names: [llc-ops, Deftwright]

@@ -1,0 +1,25 @@
+# Answer key: accepted-signed (INVENTED). Design §9.2 "Accepted and signed":
+# --accepted writes contract-inputs.md (fix window, UAT line, documentation_sku,
+# acceptance and delivery definitions, contract clauses "not set") and prints the
+# contract NEXT; --signed writes build-request.md (no prices) and its NEXT names
+# /ow-build-start with the build destination as the IF IT IS NOT AVAILABLE
+# branch. Starts from the unpriced-package run with the shipped, defaults-only
+# handoffs.yaml, so both NEXT blocks print the public defaults.
+case: accepted-signed
+section: Accepted and signed
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess]          # named in the fit call; testers are recorded by role
+base: unpriced-package
+checks: [headers, quote_frozen, accepted, signed, status, private_names]
+outputs:
+  - plans/larkspur-ceramics/contract-inputs.md
+  - plans/larkspur-ceramics/build-request.md
+accepted: { date: 2026-11-02, documentation_sku: bought }
+signed: { date: 2026-11-09 }
+status:
+  lines:
+    - { path: plans/larkspur-ceramics/contract-inputs.md, next: ow-build-plan /ow-build-plan-quote plans/larkspur-ceramics/, awaiting: signing for the Build Plan credit by 2026-12-25 }
+    - { path: plans/larkspur-ceramics/build-request.md, next: ow-build /ow-build-start plans/larkspur-ceramics/, awaiting: none }
+private_names: [llc-ops, Deftwright]

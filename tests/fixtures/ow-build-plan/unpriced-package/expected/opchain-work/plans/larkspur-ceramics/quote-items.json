@@ -1,0 +1,9 @@
+[
+  { "label": "WP-1 integration x1.25 (data-messy)", "amount": "2500.00" },
+  { "label": "WP-2 workflow-step-exceptions", "quantity": 1, "unit_price": "800.00" },
+  { "label": "WP-3 tool-m", "quantity": 1, "unit_price": "8000.00" },
+  { "label": "WP-4 priced by Robin", "amount": "1900.00" },
+  { "label": "WP-5 integration", "quantity": 1, "unit_price": "2000.00" },
+  { "label": "UAT M", "quantity": 1, "unit_price": "2000.00" },
+  { "label": "UAT extra role", "quantity": 1, "unit_price": "250.00" }
+]

@@ -1,0 +1,20 @@
+# Answer key: route-feasibility (INVENTED: fictional bindery). Owner decisions
+# 2026-10-15 and 2026-10-16: a feasibility recap routes to -quote --quick,
+# priced as the price book's unit marked feasibility: true, and the quote
+# carries just the test (price, what is tested, a findings note with a go or
+# no-go, payment, validity): no UAT line, fix window, training line or build
+# hand-off. Below size_threshold, so 50/50; no Build Plan credit.
+case: route-feasibility
+section: Inbound route from ow-start (feasibility check)
+client: Kestrel Bindery
+slug: kestrel-bindery
+user: Robin
+checks: [headers, route, quick, unpriced, dates_terms, feasibility, internal_appendix, status, private_names]
+outputs: [plans/kestrel-bindery/quick-scope.md, plans/kestrel-bindery/quote.md]
+route: { from: intake/kestrel-bindery/intake-record.md, expect: quick quote, unit: feasibility-test }
+quick: { units: 1 }
+dates: { schedule: "50/50" }
+status:
+  lines:
+    - { path: plans/kestrel-bindery/quote.md, next: ow-build-plan /ow-build-plan-export plans/kestrel-bindery/, awaiting: "client's answer by 2026-11-24" }
+private_names: [llc-ops, Deftwright]

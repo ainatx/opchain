@@ -1,6 +1,6 @@
 # ow-build-plan — design
 
-**Date:** 2026-10-06 · **Status:** APPROVED 2026-10-08. **Amendments applied 2026-10-14** (decision 10): ow-handoff A1 (fix window, §6.3, §8) and A4 (follow-on intake, §4), ow-uat P1 (UAT line and documentation & training SKU, §4, §6.1, §6.3, §8) and P2 (contract clauses, §8), the ow-tools internal-appendix markers (§6.2), and the owner's 2026-10-09 rulings on `-quote --accepted` / `--signed` (decisions 8–9, §4, §8). Nothing is built.
+**Date:** 2026-10-06 · **Status:** APPROVED 2026-10-08. **Amendments applied 2026-10-14** (decision 10): ow-handoff A1 (fix window, §6.3, §8) and A4 (follow-on intake, §4), ow-uat P1 (UAT line and documentation & training SKU, §4, §6.1, §6.3, §8) and P2 (contract clauses, §8), the ow-tools internal-appendix markers (§6.2), and the owner's 2026-10-09 rulings on `-quote --accepted` / `--signed` (decisions 8–9, §4, §8). Nothing is built. **Amended 2026-10-15: quick-quote scope file is quick-scope.md (owner decision). Amended 2026-10-15: collection and delivery deadlines come from `price-book.yaml` `build_plan_schedule` per tier; absent, `-start` asks and records them user-stated (owner decision, §4, §6.1).** **Amended 2026-10-15 (owner decisions): a feasibility recap takes the quick quote, priced as the feasibility-test unit (§4); a delivery-mode plan (`fee: none`) has no Build Plan credit line or credit-deadline awaiting (§6.3).** **Amended 2026-10-16 (owner decision): a feasibility quote carries just the test, with no UAT line, fix window, documentation & training line or build hand-off (§4, §6.3).**
 **Release:** second skill in the ow- family that ships together as v2.1.0 (see `docs/plans/2026-10-06-ow-start-intake-redesign.md`, decisions 13–19). Starts at 1.0.0.
 **Replaces:** `ow-blueprint` from `docs/plans/2026-09-21-opchain-work-and-2.1-strategy.md` §6.5. It keeps blueprint's mapping and gap work and adds what Deftwright sells as stage 02.
 **Upstream:** `ow-start` (intake record + recap with a recommended path). **Downstream:** a neutral `contract-inputs.md` for whoever drafts the contract (written by `-quote --accepted`), and `build-request.md` for whoever builds it (written by `-quote --signed`, whose NEXT names `ow-build-start` first). `contract-inputs.md` is also read later by `ow-uat` and `ow-handoff`. Where each goes next is configured by the user (family rule, ow-start design decision 23).
@@ -50,7 +50,7 @@ The **tier** (1 system / 2 systems / 3+ or MVP) comes from the recap's recommend
 | Verb | Does | Writes (under `opchain-work/plans/<client>/`) |
 |---|---|---|
 | `/ow-build-plan-offer` | Before the plan starts. The fit call ends with a recommended tier, but the client needs a written price before paying for a Build Plan. Writes a one-page offer: tier, fee from `build_plan_fees`, timeline (`build_plan_weeks`), what they receive, the 60-day credit, payment terms, valid for 14 days | `build-plan-offer.md` (+ export) |
-| `/ow-build-plan-start` | Reads `intake-record.md` and the recap's path. Confirms the tier, lays out the 1–2 week schedule (sessions, collection deadline, plan delivery date) and writes the **collection list**: what the client sends, what access is requested, which workshops to hold. Fields from intake that are LOW or UNKNOWN become collection items | `plan.yaml` (client, tier, dates), `collection.md` (client-facing request list), `STATUS.md` line |
+| `/ow-build-plan-start` | Reads `intake-record.md` and the recap's path. Confirms the tier, lays out the 1–2 week schedule (sessions, collection deadline, plan delivery date; the deadlines in business days from `build_plan_schedule`, else asked and recorded user-stated) and writes the **collection list**: what the client sends, what access is requested, which workshops to hold. Fields from intake that are LOW or UNKNOWN become collection items | `plan.yaml` (client, tier, dates), `collection.md` (client-facing request list), `STATUS.md` line |
 | `/ow-build-plan-collect` | Ingests evidence from the three sources (§4.1) into one evidence register. Run as often as material arrives | `evidence.md`, `systems/<system>.md` per system |
 | `/ow-build-plan-map` | Current process, future process, who does what, systems inventory, data condition. Each fact carries the ow- confidence level (HIGH shown · MEDIUM stated · LOW inferred · UNKNOWN) | `map/current.md`, `map/future.md`, `map/roles.md`, `map/systems.md`, `map/data.md` |
 | `/ow-build-plan-scope` | Work packages, out-of-scope list, an acceptance check per in-scope item, risks, assumptions, client dependencies | `scope.md`, `acceptance.md`, `risks.md` |
@@ -59,7 +59,11 @@ The **tier** (1 system / 2 systems / 3+ or MVP) comes from the recap's recommend
 | `/ow-build-plan-quote --signed <date>` | Records `client signed <date>, recorded by <user>; not verified by this skill` and prints the build NEXT (§8; decision 9). Refuses before `--accepted` | `build-request.md` |
 | `/ow-build-plan-export` | Builds the branded `.docx` and `.pdf` for each client document (offer, plan, quote) from the Markdown | `export/build-plan.{docx,pdf}`, `export/quote.{docx,pdf}` |
 
-**Defined piece of work (no Build Plan).** When the recap's path is a small defined job, the site still promises a fixed quote in writing. `/ow-build-plan-quote --quick` runs straight from `intake-record.md`: it writes a short `scope.md` (in scope, out of scope, at least one acceptance check per item) and the quote, skipping offer, collect and map. It refuses if the job needs more than `quick_quote_max_units` price-book units, and recommends a Build Plan instead. It also asks which roles will test and records them **by role name** (never a person's name) as the UAT approach in the quick `scope.md`; it never defaults the number of roles (ow-uat P1).
+**Defined piece of work (no Build Plan).** When the recap's path is a small defined job, the site still promises a fixed quote in writing. `/ow-build-plan-quote --quick` runs straight from `intake-record.md`: it writes a short `quick-scope.md` (in scope, out of scope, at least one acceptance check per item; a separate file, so `-scope` and `--quick` are not two writers of `scope.md`) and the quote, skipping offer, collect and map. It refuses if the job needs more than `quick_quote_max_units` price-book units, and recommends a Build Plan instead. It also asks which roles will test and records them **by role name** (never a person's name) as the UAT approach in `quick-scope.md`; it never defaults the number of roles (ow-uat P1).
+
+*Amended 2026-10-15 (owner decision): a **feasibility** recap (`path_kind: feasibility`) also takes `/ow-build-plan-quote --quick`, priced as the price book's feasibility-test unit (`feasibility-test` in the example); with no such unit the package is unpriced and the quote stops and asks (§6.2).*
+
+*Amended 2026-10-16 (owner decision): a feasibility quote carries **just the test**: its price (from the price book's unit marked `feasibility: true`), what is tested, what the client gets (a findings note and a go or no-go), payment terms and validity. It has no user acceptance testing line, no fix window, no documentation & training line and no build hand-off: `--signed` on a feasibility quote writes no `build-request.md` and prints no ow-build NEXT; the findings note follows, and on a go the NEXT is a Build Plan offer (a follow-on).*
 
 **Follow-on work (ow-handoff A4).** A change too big for a change order arrives as `handoffs/<client>/fixes/FIX-nn.md`. `-offer` and `-start` read it as the intake for a follow-on Build Plan, beside the client's earlier plan; if it's absent, they ask for the request.
 
@@ -153,6 +157,10 @@ payment_terms_days: 14
 quote_validity_days: 14
 build_plan_credit_days: 60   # counted from plan delivery (assumption: the site says 'within 60 days')
 build_plan_weeks: { one_system: 1, two_systems: 2, three_plus_or_mvp: 2 }
+build_plan_schedule:        # business days from the start date: collection deadline and plan delivery, per tier
+  one_system:        { collection_business_days: <n>, delivery_business_days: <n> }
+  two_systems:       { collection_business_days: <n>, delivery_business_days: <n> }
+  three_plus_or_mvp: { collection_business_days: <n>, delivery_business_days: <n> }
 quick_quote_max_units: <n>
 ```
 
@@ -166,12 +174,14 @@ quick_quote_max_units: <n>
 
 ### 6.3 What the quote states
 
+*Amended 2026-10-16 (owner decision): none of the lines below except the price, payment schedule and validity apply to a feasibility quote; it states what is tested and what the client gets (a findings note and a go or no-go) instead (§4).*
+
 - Fixed price and the change rule: "If I underestimate the agreed scope, that's on me. Additional work is written down and priced before it starts."
 - Milestones, each ending in a **working demo**, plus the weekly written update.
 - Payment schedule by size: at or above `size_threshold`, 40% to book · 40% at the working demo · 20% at acceptance; below it, half to book · half at delivery. Invoices due in `payment_terms_days`.
 - Vendor subscriptions the build needs, listed by name, **billed directly to the client without a markup**.
 - **Valid until** the quote's issue date + `quote_validity_days`, printed as an absolute date.
-- **Build Plan credit:** "The Build Plan fee of <amount> is credited against this build if signed by <date>" (plan delivery + `build_plan_credit_days`).
+- **Build Plan credit:** "The Build Plan fee of <amount> is credited against this build if signed by <date>" (plan delivery + `build_plan_credit_days`). *Amended 2026-10-15 (owner decision): a plan on work already signed (delivery mode, `plan.yaml` `fee: none`) has no Build Plan fee, so its quote has no credit line and its STATUS lines carry no credit-deadline awaiting.*
 - **User acceptance testing · <size>** (ow-uat P1), its own required line, sized by the build product's size letter: tester roles, test mix, sessions, fix rounds and fix days, at the size price plus the per-role add-on for roles beyond those included. The extension rate stays in the internal appendix.
 - **Documentation & training · <size>** (ow-uat P1), its own recommended line that the client can decline: up to 15 people trained at the size price, plus the per-group add-on for each extra group of up to 15; above `quote_separately_above` people, "quoted separately".
 - **N days of fixes** (ow-handoff A1): rendered from `fix_window_days` in `offers.md` `after_handoff`, and copied into `quote.md` so the window is part of the signed terms.
@@ -248,7 +258,7 @@ Each check reports OK / FINDING / NOT-CHECKED(reason) and is labelled *same-sess
 - **Credentials:** a read-only key used in a session never appears in any file under `plans/`.
 - **Builder-neutral:** a reviewer pass on the plan finds no Deftwright pricing or opchain-specific wording.
 - **Build Plan offer:** the fee, weeks and credit match the tier in the price book; validity is issue date + 14 days.
-- **Quick quote:** a two-unit job produces scope + quote with no map; a job over `quick_quote_max_units` is refused with a Build Plan recommendation. The quick `scope.md` lists tester roles by role name only.
+- **Quick quote:** a two-unit job produces scope + quote with no map; a job over `quick_quote_max_units` is refused with a Build Plan recommendation. The `quick-scope.md` lists tester roles by role name only.
 - **UAT and documentation lines:** a TOOL-M quote shows UAT · M with its roles, sessions and fix bounds, and Documentation & training · M as a declinable line; 3 tester roles on an M that includes 2 add one per-role add-on; the extension rate appears only inside the internal markers, and the export has nothing from between them.
 - **Fix window:** `fix_window_days` 30 renders "30 days of fixes" and appears in `quote.md` and `contract-inputs.md`.
 - **Accepted and signed:** `--accepted` writes `contract-inputs.md` (fix window, UAT line, `documentation_sku`, acceptance and delivery definitions, `contract_clauses` or "not set") and prints the `contract` NEXT; `--signed` before `--accepted` refuses; `--signed` writes `build-request.md` and its NEXT names `ow-build-start` with the `build` destination as the IF IT IS NOT AVAILABLE branch.

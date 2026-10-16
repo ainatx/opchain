@@ -1,0 +1,11 @@
+# Answer key: fix-window (INVENTED). Design §9.2 "Fix window": fix_window_days 30
+# in offers.md (after_handoff) renders "30 days of fixes" and appears in
+# quote.md and contract-inputs.md. Grades the accepted-signed run.
+case: fix-window
+section: Fix window
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+run: accepted-signed
+checks: [fix_window]
+fix_window: { contract_inputs: true }

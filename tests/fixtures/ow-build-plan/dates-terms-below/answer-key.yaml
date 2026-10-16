@@ -1,0 +1,11 @@
+# Answer key: dates-terms-below (INVENTED). Design §9.2 "Dates and terms", below
+# size_threshold: validity, the 50/50 split, the due days and the delivery
+# sentence; a quick quote carries no Build Plan credit. Grades the quick-quote run.
+case: dates-terms-below
+section: Dates and terms (below size_threshold)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+run: quick-quote
+checks: [dates_terms]
+dates: { schedule: "50/50" }

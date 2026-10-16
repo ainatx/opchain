@@ -1,0 +1,19 @@
+# Answer key: follow-on-fix (INVENTED). Design §9.2 "Follow-on intake" (ow-handoff
+# A4): -start with handoffs/<client>/fixes/FIX-nn.md uses it as the intake for a
+# follow-on Build Plan in plans/<client>-2/, beside the client's earlier plan.
+# Starts from follow-on-offer, whose offer for FIX-03 already chose the folder:
+# -start reuses it (eval round 1, bug 5).
+case: follow-on-fix
+section: Follow-on intake (from FIX-nn.md)
+client: Larkspur Ceramics
+slug: larkspur-ceramics-2
+user: Robin
+base: follow-on-offer
+checks: [headers, start, follow_on, status, private_names]
+outputs: [plans/larkspur-ceramics-2/plan.yaml, plans/larkspur-ceramics-2/collection.md]
+start: { tier: one_system, fee: 1500, start: 2026-12-07, intake: handoffs/larkspur-ceramics/fixes/FIX-03.md }
+follow_on: { follows: plans/larkspur-ceramics/, fix: handoffs/larkspur-ceramics/fixes/FIX-03.md }
+status:
+  lines:
+    - { path: plans/larkspur-ceramics-2/collection.md, next: ow-build-plan /ow-build-plan-collect plans/larkspur-ceramics-2/, awaiting: material from Larkspur Ceramics by 2026-12-09 }
+private_names: [llc-ops, Deftwright]

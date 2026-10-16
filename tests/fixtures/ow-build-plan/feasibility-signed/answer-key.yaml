@@ -1,0 +1,20 @@
+# Answer key: feasibility-signed (INVENTED). Owner decision 2026-10-16: after
+# route-feasibility, --accepted writes the feasibility form of
+# contract-inputs.md (just the test: no fix window, UAT, documentation &
+# training or acceptance definitions), and --signed writes no build-request.md
+# and prints no ow-build NEXT: the findings note follows, and on a go the
+# STATUS next is a Build Plan offer.
+case: feasibility-signed
+section: Feasibility test accepted and signed (no build hand-off)
+client: Kestrel Bindery
+slug: kestrel-bindery
+user: Robin
+base: route-feasibility
+checks: [headers, feasibility, accepted, status, private_names]
+outputs: [plans/kestrel-bindery/contract-inputs.md]
+accepted: { date: 2026-11-16 }
+status:
+  lines:
+    - { path: plans/kestrel-bindery/contract-inputs.md, next: ow-build-plan /ow-build-plan-quote plans/kestrel-bindery/, awaiting: none }
+    - { path: plans/kestrel-bindery/contract-inputs.md, next: ow-build-plan /ow-build-plan-offer plans/kestrel-bindery/, awaiting: none }
+private_names: [llc-ops, Deftwright]

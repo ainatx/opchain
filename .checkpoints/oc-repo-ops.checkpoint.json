@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/ow-skills-orchestration-0e05bd",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-15T15:10:34.878Z",
+  "updated_at": "2026-10-16T17:05:57.660Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-ow-start-audit-followups",
-  "progress_summary": "Follow-up PR readiness PASS at 95e69c13: catalog, contract, bundle, plugin and ow-tools manifest drift checks pass for both catalogs and leave the tree unchanged; ow-start acceptance golden runs pass; checkpoint:validate passes; doctor 0 errors (29 pre-existing warnings); candidate verifier PASS on tree 08eef785 (8/8); no untracked files.",
+  "step": "pr-ow-build-plan-sprint-1",
+  "progress_summary": "Sprint 1 PR readiness PASS at 129c6ba7: gen-catalog (36 oc- + 2 ow-), lint-internal-refs, check-skill-contracts, sync-bundles:check, sync-plugin-skills:check, gen-ow-tools-manifest --check, checkpoint:validate, both acceptance checkers pass and leave the tree unchanged; doctor 0 errors (29 pre-existing warnings); candidate verifier PASS on tree def31b09 (8/8); no untracked files; no skills/, plugins/opchain/ or package.json change.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -31,11 +31,11 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "95e69c13f72b77f3db0f0f62f2f623a15b4dce94",
+    "verified_for_sha": "129c6ba74b4153d0c9dc94987a119882c64af6db",
     "last_verify": {
-      "at": "2026-10-15T15:10:34.878Z",
-      "branch": "claude/ow-start-audit-followups",
-      "base": "origin/main@2a0a3c98",
+      "at": "2026-10-16T17:05:57.660Z",
+      "branch": "claude/ow-build-plan-sprint-1",
+      "base": "origin/main@6c31e9ed",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1458,8 +1458,41 @@
           "sprints/release-2.1/ow-family-sprint-plan.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-ow-build-plan-sprint-1-ac4fbe3de8d6",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-16T17:05:57.660Z",
+      "verified_at": "2026-10-16T17:05:57.660Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-ow-build-plan-sprint-1"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:ac4fbe3de8d6a24d483ae6c1ef5a8c96ef3e9bc114ea9b28f1fda8143343ad51"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/ow-build-plan-sprint-1 at 129c6ba7 on origin/main 6c31e9ed. 145 files, none under skills/, plugins/opchain/ or package.json, so oc- outputs are unchanged. Drift checks for both catalogs, the dev plugin and the ow-tools manifest pass; checkpoint:validate passes; candidate verifier PASS receipt covers tree def31b09; no untracked files. Docs Forge packet verified_for_sha = HEAD.",
+        "evidence": [
+          "skills-work/ow-build-plan/SKILL.md",
+          "skills-work/README.md",
+          "skills-work/ow-start/skill.edges.yaml",
+          "CLAUDE.md",
+          "docs/plans/2026-10-06-ow-build-plan-design.md",
+          "docs/plans/2026-10-08-ow-build-design.md",
+          "docs/plans/2026-10-09-ow-uat-design.md",
+          "docs/plans/2026-10-08-ow-handoff-design.md",
+          "tests/fixtures/ow-build-plan/README.md",
+          "sprints/release-2.1/ow-sprint-1/contract.md",
+          "sprints/release-2.1/ow-sprint-1/eval-round-4.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-15T15:10:34.878Z",
+  "record_updated_at": "2026-10-16T17:05:57.660Z",
   "blockers": []
 }

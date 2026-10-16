@@ -1,0 +1,12 @@
+# Answer key: modifier-evidence (INVENTED). Design §9.2 "Modifiers cite
+# evidence": a messy-data modifier applies only with an evidence.md row that
+# shows the condition. Grades the unpriced-package run.
+case: modifier-evidence
+section: Modifiers cite evidence
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+run: unpriced-package
+checks: [modifiers]
+modifiers:
+  - { id: data-messy, evidence: E-07 }

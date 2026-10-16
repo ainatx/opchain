@@ -1,0 +1,14 @@
+# Answer key: route-build-plan (INVENTED). Eval round 1, bug 1: ow-start's NEXT
+# "use ow-build-plan on intake/larkspur-ceramics/intake-record.md" must reach a
+# verb that does the work. The recap's path_kind is build-plan, so
+# "/ow-build-plan on <path>" runs the offer. Grades the offer run, which starts
+# from ow-start's golden larkspur-prospect output (its STATUS hands the intake
+# record to ow-build-plan).
+case: route-build-plan
+section: Inbound route from ow-start (Build Plan path)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+run: offer
+checks: [route]
+route: { from: intake/larkspur-ceramics/intake-record.md, expect: offer }

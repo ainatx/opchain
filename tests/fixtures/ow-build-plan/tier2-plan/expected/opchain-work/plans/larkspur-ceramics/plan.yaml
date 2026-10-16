@@ -1,0 +1,31 @@
+ow_artefact: ow-build-plan/plan
+schema: 1
+written_by: ow-build-plan 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: intake/larkspur-ceramics/intake-record.md
+created: 2026-10-12
+clock: user-stated
+origin: skill
+client: Larkspur Ceramics
+client_slug: larkspur-ceramics
+handling: "no"
+intake: intake/larkspur-ceramics/intake-record.md
+request: ""
+follows: none
+path_id: build-plan-2
+tier: two_systems
+tier_source: offer
+tier_reason: ""
+weeks: 2
+fee: 3000
+start: 2026-10-12
+collection_deadline: 2026-10-16
+plan_delivery: 2026-10-26
+schedule_source: price-book
+collection_business_days: 4
+delivery_business_days: 10
+date_check: not machine-checked
+sessions:
+  - { name: kick-off, date: 2026-10-12 }
+  - { name: "workshop W1: orders from email to invoice", date: 2026-10-14, attendees: [order coordinator, operations manager] }
+  - { name: plan read-through, date: 2026-10-26 }

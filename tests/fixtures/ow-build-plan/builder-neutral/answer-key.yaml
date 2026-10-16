@@ -1,0 +1,12 @@
+# Answer key: builder-neutral (INVENTED). Design §9.2 "Builder-neutral": the
+# assembled plan names no price, no price-book unit or amount, no business name
+# and no wording from these skills. Grades the unpriced-package run's
+# build-plan.md (the client's own cost of a wrong pallet is a fact, not a price).
+case: builder-neutral
+section: Builder-neutral
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+run: unpriced-package
+checks: [builder_neutral]
+private_names: [llc-ops, Deftwright]
