@@ -26,8 +26,8 @@ The header carries the machine-readable keys; the body says the same in plain wo
     payments: [<amount>, …]
     payment_terms_days: <n>
     valid_until: <YYYY-MM-DD>
-    credit_deadline: <YYYY-MM-DD>                  # build-plan mode; else none
-    build_plan_fee: <amount>                       # build-plan mode; else none
+    credit_deadline: <YYYY-MM-DD>                  # the quote's, when it has a Build Plan credit; else none
+    build_plan_fee: <amount>                       # the quote's, when it has a Build Plan credit; else none
     fix_window_days: <n>
     fix_window_wording: <n> days of fixes
     uat: { size: M, tester_roles: [<role>, …], test_mix: <text>, sessions: <n>, fix_rounds: <n>, fix_business_days: <n>, price: <amount> }
@@ -38,6 +38,8 @@ The header carries the machine-readable keys; the body says the same in plain wo
     contract_clauses: not set                      # or the block below, copied unchanged from offers.md
     vendor_subscriptions: [<names>]
     ---
+
+**The Build Plan credit** is copied from the quote, never worked out here. Only a Build Plan quote on a plan with a fee has one. A quick quote, or a plan on signed work (`plan.yaml` `fee: none`, delivery mode), has none: write `credit_deadline: none` and `build_plan_fee: none`, and say nothing about a credit in the body. (A feasibility test leaves both keys out; see the last section.)
 
 `contract_clauses`, when `offers.md` has the block (the user adds it once their contract step has drafted the standard clauses):
 
@@ -58,7 +60,7 @@ Copy it unchanged; never draft, shorten or reword a clause. With no block, write
     ## What is agreed          (the scope and acceptance checks, by file and id; not copied)
     ## Price and payment       (fixed price, milestones each ending in a working demo, schedule, due days)
     ## Change rule             (the quote's sentence, unchanged)
-    ## Dates                   (valid until; Build Plan credit deadline)
+    ## Dates                   (valid until; the Build Plan credit deadline only when the quote has one)
     ## Ownership               (offers.md `ownership` text, or the plan's Ownership section)
     ## Vendor subscriptions    (billed directly to the client, without a markup)
     ## After delivery          (<n> days of fixes, and what that covers)

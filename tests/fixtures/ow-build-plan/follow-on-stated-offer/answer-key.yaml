@@ -11,7 +11,16 @@ user: Robin
 base: accepted-signed
 checks: [headers, offer, status, private_names]
 outputs: [plans/larkspur-ceramics-2/build-plan-offer.md]
-offer: { tier: one_system, issued: 2026-12-01, request: plans/larkspur-ceramics-2/request.md }
+offer:
+  tier: one_system
+  issued: 2026-12-01
+  request: plans/larkspur-ceramics-2/request.md
+  # What the user says in the session, word for word (eval round 3, A13): request.md
+  # holds these words unchanged, never a summary of them.
+  request_words: >-
+    Larkspur Ceramics wants each order checked against the stock the warehouse holds
+    before it is confirmed, and a short order flagged to the customer the same day.
+    Stock is kept on a whiteboard today.
 status:
   lines:
     - { path: plans/larkspur-ceramics-2/build-plan-offer.md, next: ow-build-plan /ow-build-plan-start plans/larkspur-ceramics-2/, awaiting: offer reply from Larkspur Ceramics by 2026-12-15 }

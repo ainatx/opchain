@@ -60,6 +60,12 @@ const SIZES = ["S", "M", "L"];
 const FRAGMENT = 8; // characters of a credential in a row that count as "a part of one"
 const PUBLIC_CONTRACT = "send contract-inputs.md to whoever drafts your contracts, or fill your own SOW template from it";
 const PUBLIC_BUILD = "give build-request.md to whoever builds it";
+/**
+ * A Build Plan credit, by meaning (eval round 4, N4): the credit line, a paraphrase
+ * ("the planning fee is deducted"), or the Build Plan fee named at all.
+ */
+const CREDIT_WORDS = /Build Plan (?:credit|fee)|\bcredit(?:s|ed|ing)? (?:against|towards?|to|on)\b|\b(?:planning|plan) fee\b|\bdeduct(?:s|ed|ing|ion)?\b|\boffset(?:s|ting)? against\b|\bcount(?:s|ed)? (?:towards?|against)\b/i;
+const normWords = (t) => String(t ?? "").replace(/\s+/g, " ").trim().toLowerCase();
 
 // ── small helpers ────────────────────────────────────────────────────────────
 
@@ -345,10 +351,26 @@ function checkOffer(key, run) {
   if (key.offer.request) {
     if (data.subject !== key.offer.request) p.push(`${rel}: subject is ${data.subject}; a follow-on offer names the request it was made from (${key.offer.request})`);
     if (!run.written().includes(key.offer.request)) p.push(`${key.offer.request} was not written; the offer records a stated follow-on request before it is offered`);
-    else {
-      const req = parsed(run, key.offer.request, "md");
-      if (req.data.ow_artefact !== "ow-build-plan/request" || req.data.origin !== "user" || !req.data.stated_by || !req.content.trim()) p.push(`${key.offer.request}: needs the ow-build-plan/request header (origin: user, stated_by) and the user's words`);
-    }
+    else p.push(...requestProblems(run, key.offer.request, key.offer.request_words));
+  }
+  return p;
+}
+
+/**
+ * A follow-on request in the user's words (plans/<client>-<n>/request.md): the
+ * ow-build-plan/request header with origin: user, stated_by and stated_on (eval
+ * round 3, A16), and, when the answer key records them, the user's own words
+ * unchanged (A13: a paraphrase is not the request).
+ */
+function requestProblems(run, rel, words) {
+  const p = [];
+  const req = parsed(run, rel, "md");
+  const d = req.data;
+  if (d.ow_artefact !== "ow-build-plan/request" || d.origin !== "user" || !d.stated_by || !req.content.trim()) p.push(`${rel}: needs the ow-build-plan/request header (origin: user, stated_by) and the user's words`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso(d.stated_on) ?? "")) p.push(`${rel}: stated_on "${iso(d.stated_on) ?? ""}" is not the YYYY-MM-DD date the user stated the request`);
+  if (words) {
+    const body = req.content.replace(/^#[^\n]*\n/m, "");
+    if (!normWords(body).includes(normWords(words))) p.push(`${rel}: does not hold the user's words unchanged ("${String(words).slice(0, 50)}…"); the request is recorded as said, never summarised`);
   }
   return p;
 }
@@ -381,6 +403,12 @@ function checkStart(key, run) {
   const want = key.start;
   if (plan.tier !== want.tier) p.push(`plan.yaml: tier is ${plan.tier}, expected ${want.tier}`);
   if (!TIERS.includes(plan.tier)) p.push(`plan.yaml: tier ${plan.tier} is not one of ${TIERS.join(", ")}`);
+  // Where the tier came from (eval round 3, A8): an offer only when there is one.
+  if (!["offer", "recap", "user-stated"].includes(plan.tier_source)) p.push(`plan.yaml: tier_source is ${plan.tier_source}, not offer, recap or user-stated`);
+  else if (plan.tier_source === "offer" && !run.exists(`${dir}/build-plan-offer.md`)) p.push(`plan.yaml: tier_source is offer, but ${dir}/ holds no build-plan-offer.md (signed work has no offer; the tier comes from the recap or the user)`);
+  if (want.tier_source && plan.tier_source !== want.tier_source) p.push(`plan.yaml: tier_source is ${plan.tier_source}, expected ${want.tier_source}`);
+  // Never -start over an existing plan (eval round 4, new 8), however -start was reached.
+  if (run.priorRead(`${dir}/plan.yaml`) != null && run.written().includes(`${dir}/plan.yaml`)) p.push(`${dir}/plan.yaml: -start wrote over an existing plan; a folder with a plan resumes at its next step, and a second plan is a follow-on`);
   const weeks = Number(b.build_plan_weeks?.[plan.tier]);
   if (Number(plan.weeks) !== weeks) p.push(`plan.yaml: weeks ${plan.weeks} is not build_plan_weeks.${plan.tier} (${weeks})`);
   if (want.fee === "none") { if (plan.fee !== "none") p.push(`plan.yaml: fee is ${plan.fee}; work already signed has no Build Plan fee (fee: none)`); }
@@ -445,9 +473,7 @@ function checkFollowOn(key, run) {
     if (want.request) {
       if (String(plan.request ?? "").trim()) p.push("plan.yaml: records the request again; with request.md from the offer, -start does not ask for it");
       if (run.written().includes(want.request)) p.push(`${want.request}: rewritten by the start; the offer wrote it and -start only reads it`);
-      const req = parsed(run, want.request, "md");
-      if (req.data.ow_artefact !== "ow-build-plan/request" || req.data.origin !== "user" || !req.data.stated_by) p.push(`${want.request}: header must be ow-build-plan/request, origin: user, with stated_by`);
-      if (!req.content.trim()) p.push(`${want.request}: holds no request`);
+      p.push(...requestProblems(run, want.request, want.request_words));
     }
   } else {
     if (!/^stated by \S.*, \d{4}-\d{2}-\d{2}$/.test(String(plan.intake ?? ""))) p.push(`plan.yaml: intake is "${plan.intake}"; with no FIX file and no offer it must be "stated by <user>, <date>"`);
@@ -475,9 +501,17 @@ function checkQuoteFrozen(key, run) {
   return p;
 }
 
-/** No second quote file: a different quote is a new Build Plan or follow-on, never quote-r<n>.md. */
+/**
+ * No second quote file: a different quote is a new Build Plan or follow-on. Any
+ * file in the folder named like a quote (quote-r2.md, quote-v2.md, revised-quote.md)
+ * other than the one quote, its items and their exports is a second quote (eval
+ * round 4, N14).
+ */
+const ONE_QUOTE = /^(?:quote\.md|quote-items\.json|export\/quote\.(?:pdf|docx))$/;
 function secondQuotes(run, dir) {
-  return run.written().filter((f) => f.startsWith(`${dir}/`) && /\/quote-r[^/]*$/i.test(f)).map((f) => `${f}: a second quote file; 1.0.0 has one quote per folder (a different quote is a new Build Plan or follow-on)`);
+  return run.written()
+    .filter((f) => f.startsWith(`${dir}/`) && /quote/i.test(f.split("/").pop()) && !ONE_QUOTE.test(f.slice(dir.length + 1)))
+    .map((f) => `${f}: a second quote file; 1.0.0 has one quote per folder (a different quote is a new Build Plan or follow-on)`);
 }
 
 function evidenceIds(run, dir) {
@@ -768,7 +802,8 @@ function checkDates(key, run) {
   const planNoFee = d.mode === "build-plan" && run.exists(`${plansDir(key)}/plan.yaml`) && parsed(run, `${plansDir(key)}/plan.yaml`, "yaml").fee === "none";
   if (planNoFee) {
     // Delivery mode: work already signed; no Build Plan fee, so no credit line (owner decision 2026-10-15).
-    if (/Build Plan credit|credited against/i.test(q.client) || d.credit_deadline || d.build_plan_fee != null) p.push(`${q.rel}: the plan has fee: none (signed work), so the quote has no Build Plan fee, credit line or credit_deadline`);
+    // The header leaves both keys out (phase-quote.md section 4); `none` there fails too.
+    if (CREDIT_WORDS.test(q.client) || "credit_deadline" in d || "build_plan_fee" in d) p.push(`${q.rel}: the plan has fee: none (signed work), so the quote has no Build Plan fee, credit line or credit_deadline (the header leaves both keys out)`);
   } else if (d.mode === "build-plan") {
     const plan = parsed(run, `${plansDir(key)}/plan.yaml`, "yaml");
     if (iso(d.plan_delivered) !== iso(plan.plan_delivery)) p.push(`${q.rel}: plan_delivered ${iso(d.plan_delivered)} is not plan.yaml's plan_delivery ${iso(plan.plan_delivery)}`);
@@ -776,7 +811,7 @@ function checkDates(key, run) {
     if (iso(d.credit_deadline) !== credit) p.push(`${q.rel}: credit_deadline ${iso(d.credit_deadline)}, expected plan delivery + ${b.build_plan_credit_days} = ${credit}`);
     if (cents(d.build_plan_fee) !== cents(plan.fee)) p.push(`${q.rel}: build_plan_fee ${d.build_plan_fee} is not plan.yaml's fee ${plan.fee}`);
     if (!q.client.includes(`credited against this build if signed by ${written(credit)}`)) p.push(`${q.rel}: no Build Plan credit sentence ending "signed by ${written(credit)}"`);
-  } else if (/Build Plan credit|credited against/i.test(q.client) || d.credit_deadline) p.push(`${q.rel}: a quick quote has no Build Plan, so no credit line`);
+  } else if (CREDIT_WORDS.test(q.client) || "credit_deadline" in d || "build_plan_fee" in d) p.push(`${q.rel}: a quick quote has no Build Plan, so no credit line (the header leaves build_plan_fee and credit_deadline out)`);
   return p;
 }
 
@@ -928,6 +963,16 @@ function checkAccepted(key, run) {
   if (cents(u.price) !== cents(q.data.uat?.price)) p.push(`${rel}: uat price ${u.price} differs from the quote's ${q.data.uat?.price}`);
   if (!Array.isArray(u.tester_roles) || u.tester_roles.length !== Number(q.data.uat?.tester_roles)) p.push(`${rel}: uat tester_roles must list the ${q.data.uat?.tester_roles} roles by name`);
   if (!u.test_mix) p.push(`${rel}: uat has no test_mix`);
+  // The Build Plan credit is the quote's (eval round 4, new 2 / N21): copied when the quote has one, else none.
+  const credit = q.data.credit_deadline != null && q.data.credit_deadline !== "none";
+  if (credit) {
+    if (iso(data.credit_deadline) !== iso(q.data.credit_deadline)) p.push(`${rel}: credit_deadline ${iso(data.credit_deadline)} differs from quote.md's ${iso(q.data.credit_deadline)}`);
+    if (cents(data.build_plan_fee) !== cents(q.data.build_plan_fee)) p.push(`${rel}: build_plan_fee ${data.build_plan_fee} differs from quote.md's ${q.data.build_plan_fee}`);
+    if (!(sectionText(content, "Dates") ?? "").includes(written(q.data.credit_deadline))) p.push(`${rel}: "## Dates" does not give the Build Plan credit deadline, ${written(q.data.credit_deadline)}`);
+  } else {
+    for (const k of ["credit_deadline", "build_plan_fee"]) if (data[k] !== "none") p.push(`${rel}: ${k} is ${iso(data[k]) ?? "missing"}; quote.md has no Build Plan credit (a quick quote, or a plan with fee: none), so ${k} is none`);
+    content.split("\n").forEach((l, i) => { if (CREDIT_WORDS.test(l)) p.push(`${rel}:${i + 1}: speaks of a Build Plan credit, which quote.md does not have ("${l.trim().slice(0, 60)}")`); });
+  }
   const acc = "The build is accepted when you sign off user acceptance testing with every acceptance check passing, or as the contract's deemed-acceptance clause provides.";
   if (data.acceptance_definition !== acc) p.push(`${rel}: acceptance_definition is not the quote's acceptance sentence`);
   const below = q.data.schedule === "50/50";
@@ -1117,11 +1162,23 @@ function checkRoute(key, run) {
   const has = (f) => written.includes(`${dir}/${f}`);
   const prior = (f) => run.priorRead(`${dir}/${f}`) != null;
   let expect;
-  if (/\/fixes\/FIX-\d+\.md$/.test(from)) expect = "follow-on offer";
+  if (/\/fixes\/FIX-\d+\.md$/.test(from)) {
+    // Read the FIX file's class first (eval round 3, bug 8): a covered Fix is free under the fix window.
+    const fix = run.read(from);
+    let cls = null;
+    try { cls = fix == null ? null : String(matter(fix).data.classification ?? "").trim().toLowerCase(); } catch { cls = null; }
+    expect = cls === "fix" ? "covered fix" : cls === "change" || cls === "after the window" ? "follow-on offer" : "ask";
+  }
   else if (/^intake\/[^/]+\/intake-record\.md$/.test(from)) {
     const recap = run.read(from.replace(/intake-record\.md$/, "recap.md"));
     const kind = recap ? matter(recap).data.path_kind : null;
     expect = { "build-plan": "offer", "defined-work": "quick quote", "feasibility": "quick quote", "next-stage": "start" }[kind] ?? "ask";
+    // Never twice (eval round 4, new 10): a folder that already holds what the verb writes is routed as a folder.
+    const already = { offer: "build-plan-offer.md", "quick quote": "quote.md", start: "plan.yaml" }[expect];
+    if (already && prior(already)) {
+      if (has(already)) p.push(`${dir}/${already}: ${dir}/ already held one before the run; the route never runs that verb twice, it routes the folder instead`);
+      expect = "existing folder";
+    }
     if (kind === "feasibility" && run.written().includes(`${dir}/quote.md`)) {
       // A feasibility test is priced as the price book's feasibility-test unit, nothing else.
       const units = quote(run, key).pricing.filter((r) => /^WP-/.test(r.package)).map((r) => r.unit);
@@ -1178,10 +1235,19 @@ function checkRoute(key, run) {
   } else if (expect === "nothing") {
     // Signed: print the signed NEXT and stop. Nothing is written anywhere, and no other skill's verb is run.
     for (const f of written) p.push(`${f}: ${from} is signed, so the route prints the signed NEXT and stops; it writes nothing`);
+  } else if (expect === "covered fix") {
+    // A covered Fix is free under the fix window: never offered, started or quoted as paid work.
+    for (const f of written) p.push(`${f}: ${from} is a covered Fix (classification: fix), free under the fix window; the route says so and writes nothing`);
+  } else if (expect === "ask" && /\/fixes\/FIX-\d+\.md$/.test(from)) {
+    for (const f of written) p.push(`${f}: ${from} has no paid class (change or after the window); the route asks the user before writing anything`);
   } else if (expect === "ask" && written.some((f) => f.startsWith(`${dir}/`))) p.push(`${from} has no path this skill routes on its own, so it asks before writing; the run wrote ${dir}/`);
   // Never -start over an existing plan, and never a second quote file.
   if (prior("plan.yaml") && has("plan.yaml")) p.push(`${dir}/plan.yaml: the route ran -start over an existing plan; a folder with a plan resumes at its next step`);
   p.push(...secondQuotes(run, dir));
+  // A route works in one folder (eval round 4, N15): nothing else but its STATUS line.
+  if (!["nothing", "covered fix"].includes(expect)) {
+    for (const f of written) if (!f.startsWith(`${dir}/`) && f !== "STATUS.md") p.push(`${f}: the route works in ${dir}/ only; it wrote outside it`);
+  }
   return p;
 }
 

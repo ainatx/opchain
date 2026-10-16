@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/ow-skills-orchestration-0e05bd",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-16T17:21:50.935Z",
+  "updated_at": "2026-10-16T17:31:47.786Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-ow-build-plan-sprint-1",
-  "progress_summary": "Sprint 1 PR readiness PASS at 129c6ba7: gen-catalog (36 oc- + 2 ow-), lint-internal-refs, check-skill-contracts, sync-bundles:check, sync-plugin-skills:check, gen-ow-tools-manifest --check, checkpoint:validate, both acceptance checkers pass and leave the tree unchanged; doctor 0 errors (29 pre-existing warnings); candidate verifier PASS on tree def31b09 (8/8); no untracked files; no skills/, plugins/opchain/ or package.json change.",
+  "step": "pr-ow-build-plan-followups",
+  "progress_summary": "Follow-ups PR readiness PASS at e9316b9c: catalog, contract, bundle, plugin and ow-tools manifest drift checks pass; checkpoint:validate passes; doctor 0 errors (29 pre-existing warnings); both acceptance checkers pass (ow-build-plan 29/29); candidate verifier PASS on tree fe10ce1e; no untracked files; oc- outputs unchanged.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -31,11 +31,11 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "129c6ba74b4153d0c9dc94987a119882c64af6db",
+    "verified_for_sha": "e9316b9c9532aceed06cd1d3a2c91490feb7355f",
     "last_verify": {
-      "at": "2026-10-16T17:05:57.660Z",
-      "branch": "claude/ow-build-plan-sprint-1",
-      "base": "origin/main@6c31e9ed",
+      "at": "2026-10-16T17:31:47.786Z",
+      "branch": "claude/ow-build-plan-followups",
+      "base": "origin/main@ce3dad43",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1493,30 +1493,33 @@
       }
     },
     {
-      "id": "oc-repo-ops-pr-oc-update-new-skills-test-e6633b5552a3",
+      "id": "oc-repo-ops-pr-ow-build-plan-followups-993119b82a56",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-10-16T17:21:50.935Z",
-      "verified_at": "2026-10-16T17:21:50.935Z",
+      "created_at": "2026-10-16T17:31:47.786Z",
+      "verified_at": "2026-10-16T17:31:47.786Z",
       "producer": {
         "skill": "oc-repo-ops",
-        "run_id": "pr-oc-update-new-skills-test"
+        "run_id": "pr-ow-build-plan-followups"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:e6633b5552a3153f9edd31f68a83daf57fda955f79b69c560ab180bc936766a5"
+        "id": "sha256:993119b82a566eceaf94cc7f6d06986d86b05d9701f0a0f8c3cd57822e465122"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "claude/oc-update-skill-testing-dfd206 at 0b290ea7 on origin/main ce3dad43 (#605). Three added files: tests/update-new-skills.test.js, its fixture tests/fixtures/update/updater-2.0.4.mjs (byte-identical to the live v2.0.4 release's updater), and docs/plans/2026-10-16-oc-update-plugins-design.md, APPROVED with the four owner decisions in section 7 (nothing built). sync-bundles:check, sync-plugin-skills:check, gen-catalog, check-skill-contracts and lint-internal-refs pass and change nothing; candidate verifier PASS receipt covers tree 74c33822; no untracked files; lockfiles unchanged by #605.",
+        "scope": "claude/ow-build-plan-followups at e9316b9c on origin/main ce3dad43. 24 files under skills-work/ow-build-plan, scripts/ and tests/; none under skills/, plugins/opchain/ or package.json. Drift checks pass and change nothing; candidate verifier PASS receipt covers tree fe10ce1e; no untracked files. Docs Forge packet verified_for_sha = HEAD.",
         "evidence": [
-          "docs/plans/2026-10-16-oc-update-plugins-design.md",
-          "tests/update-new-skills.test.js"
+          "skills-work/ow-build-plan/SKILL.md",
+          "skills-work/ow-build-plan/references/routing-and-resume.md",
+          "skills-work/ow-build-plan/references/phase-quote.md",
+          "skills-work/ow-build-plan/references/contract-inputs-schema.md",
+          "tests/fixtures/ow-build-plan/README.md"
         ]
       }
     }
   ],
-  "record_updated_at": "2026-10-16T17:21:50.935Z",
+  "record_updated_at": "2026-10-16T17:31:47.786Z",
   "blockers": []
 }

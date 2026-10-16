@@ -9,6 +9,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { loadCatalogs } from "../scripts/lib/catalogs.mjs";
 import { appendOnlyFiles, checkEdges, checkFamily, checkVerbs } from "../scripts/check-skill-contracts.mjs";
+import { BANS, PINS, pinProblems } from "./ow-text-pins.mjs";
 
 const ROOT = join(import.meta.dirname, "..");
 const scratch = [];
@@ -366,7 +367,7 @@ describe("edges: the real family", () => {
 
   it("item 0 / C1: the routing reference missing, emptied, or without the routes it must cover", () => {
     expect(all(realTree({ [R3]: () => "" }))).toMatch(/routing-and-resume\.md: no route for intake\/<client>\/intake-record\.md/);
-    expect(all(realTree({ [R3]: (t) => t.replace(/## 2\. `\/ow-build-plan on <path>`[\s\S]*$/, "") }))).toMatch(/no route for handoffs\/<client>\/fixes\/FIX-nn\.md/);
+    expect(all(realTree({ [R3]: (t) => t.replace(/## 2\. `\/ow-build-plan on <path>`[\s\S]*$/, "") }))).toMatch(/no route for plans\/<client>\/, which/);
     const gone = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("reference: references/routing-and-resume.md", "reference: references/routing.md") });
     expect(all(gone)).toMatch(/routes reference references\/routing\.md does not exist/);
   });
@@ -424,11 +425,90 @@ describe("edges: the real family", () => {
       expect(book).toMatch(new RegExp(`${tier}: \\{ collection_business_days: ${collect}, delivery_business_days: ${deliver} \\}`));
     }
     // Owner decision (g): the deadlines are the user's numbers only; no rule ties them to the weeks.
-    for (const f of ["references/phase-start.md", "references/price-book-schema.md", "examples/price-book.yaml"]) {
-      expect(readFileSync(join(ROOT, "skills-work", "ow-build-plan", f), "utf8"), f).not.toMatch(/5 ×|5 a week|5 \* weeks/);
-    }
+    // The ban (tests/ow-text-pins.mjs) covers every ow- skill file and every spelling the evaluator tried.
+    const week = BANS.find((b) => b.id.startsWith("no 5-a-week")).re;
+    for (const said of ["5 × `weeks`", "5 a week", "5 * weeks", "five business days per week", "5x `build_plan_weeks`", "5 working days a week", "business days per week"]) expect(said).toMatch(week);
+    for (const fine of ["40 orders a week", "fix_business_days: 5", "2 weeks from the start date", "a written update each week"]) expect(fine).not.toMatch(week);
+    expect(pinProblems(join(ROOT, "skills-work")).filter((x) => x.includes("5-a-week"))).toEqual([]);
     const offers = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "examples", "offers.md"), "utf8");
     expect(offers).not.toMatch(/not prices/);
     expect(offers).toMatch(/hourly_help: \{ price: 1000 \} +# placeholder/);
+  });
+});
+
+// Eval round 4 follow-ups: the prose rules are pinned, and the checker slips of rounds 3 and 4 fail.
+describe("eval round 4 follow-ups", () => {
+  const plantedDir = (edit) => realTree(edit).find((c) => c.prefix === "ow-").dir;
+  const pins = (edit) => pinProblems(plantedDir(edit)).join("\n");
+
+  it("the real tree keeps every pinned rule and no banned wording", () => {
+    expect(pinProblems(join(ROOT, "skills-work"))).toEqual([]);
+  });
+
+  for (const pin of PINS) {
+    it(`pinned rule "${pin.id}": deleting it fails`, () => {
+      const out = pins({ [pin.file]: (t) => (typeof pin.must === "string" ? t.split(pin.must).join("") : t.replace(new RegExp(pin.must.source, pin.must.flags.replace("g", "") + "g"), "")) });
+      expect(out).toContain(`the pinned rule "${pin.id}" is missing or reworded`);
+    });
+  }
+
+  const RR = "ow-build-plan/references/routing-and-resume.md", PQ = "ow-build-plan/references/phase-quote.md", PS = "ow-build-plan/references/phase-start.md";
+  const rep = (a, b) => (t) => { if (!t.includes(a)) throw new Error(`no match: ${a.slice(0, 60)}`); return t.replace(a, b); };
+  // The evaluator's round-4 text plants (eval-s1-r4/plant-contracts4.mjs), each now caught.
+  const plants = [
+    ["K22 rule 1 says run ow-build's verb", { [RR]: rep("Print the signed NEXT block from SKILL.md (`use ow-build to start plans/<slug>/`, with its IF IT IS NOT AVAILABLE line) and stop. Run nothing.", "Run `/ow-build-start plans/<slug>/` for the user.") }, /folder-signed \(K22\)/],
+    ["K23 the other-skill bullet says run it", { [RR]: rep("its `next:` names another skill: print that skill's NEXT and stop;", "its `next:` names another skill: run that skill's verb;") }, /folder-other-skill \(K23\)/],
+    ["K24 the plan.yaml guard dropped", { [RR]: rep("(`-start` only when the folder has no `plan.yaml`; then ", "(`-start`, ") }, /folder-start-guard \(K24\)/],
+    ["K26 the credit heading loses 'never with fee: none'", { [PQ]: rep("(build-plan mode with a fee only; never with `fee: none`)", "(build-plan mode only)") }, /credit-heading \(K26\)/],
+    ["K27 the fee: none sentence removed", { [PQ]: rep(" A plan on signed work (`fee: none`) has no credit line and no `credit_deadline`.", "") }, /credit-fee-none \(K27\)/],
+    ["K28 the delivery-mode fee sentence removed", { [PS]: rep(" **Delivery mode** (a `next-stage` recap, work already signed) takes no fee from the price book: `fee: none`.", "") }, /start-delivery-fee \(K28\)/],
+    ["K29 revised quotes brought back", { [PQ]: (t) => t.replace(/- If the user wants a different quote after that[^\n]*\n/, "- Only when the user explicitly asks for a revised quote, write it as a new file, `quote-r<n>.md` (n from 2).\n") }, /quote-no-second \(K29\)[\s\S]*no revised or second quote file/],
+    ["K30 the 5-a-week rule reworded", { [PS]: rep("never pick them yourself.", "never pick them yourself. `delivery_business_days` should be five business days per week of `weeks`; ask if not.") }, /phase-start\.md:\d+: "five business days per week"/],
+    ["K31 the 5-a-week rule as 5x", { "ow-build-plan/references/price-book-schema.md": rep("Missing: `-start` asks and records `user-stated`", "`delivery_business_days` = 5x `build_plan_weeks`. Missing: `-start` asks and records `user-stated`") }, /price-book-schema\.md:\d+: "5x/],
+    ["K33 the export awaiting keeps the credit for fee: none", { "ow-build-plan/references/phase-export.md": rep(" (quick mode, or a plan with `fee: none`: `awaiting: client's answer by <valid_until>`)", " (quick mode: `awaiting: client's answer by <valid_until>`)") }, /export-awaiting-fee-none \(K33\)/],
+    ["K34 the folder route's export condition dropped", { [RR]: rep("4. `quote.md` exists and has been exported (`export/quote.*`, or an export line for this folder in `STATUS.md`):", "4. `quote.md` exists:") }, /folder-exported \(K34\)/],
+    ["K6 the quote phase's write-once rule deleted", { [PQ]: (t) => t.replace(/\*\*A quote is written once\.\*\*[\s\S]*?ask before writing over it\.\n/, "") }, /quote-written-once \(K6\)/],
+    ["new 6: 'issue a new quote' restored", { [PQ]: rep("say the quote expired on that date, and continue", "say the quote expired on that date and ask whether to issue a new quote, and continue") }, /issue a new quote/],
+  ];
+  for (const [name, edit, want] of plants) it(`${name} fails`, () => expect(pins(edit)).toMatch(want));
+
+  const E = "ow-build-plan/skill.edges.yaml", B = "ow-build-plan/SKILL.md";
+  const all = (cats) => [...checkFamily(cats), ...checkEdges(cats)].join("\n");
+
+  it("K7: a second writer spelled with a literal follow-on number is still one file", () => {
+    const cats = realTree({ [E]: rep("writes:\n", "writes:\n  - { path: plans/<client>-2/plan.yaml, verb: /ow-build-plan-offer }\n") });
+    expect(all(cats)).toMatch(/plans\/<\*>\/plan\.yaml: 2 writers/);
+  });
+
+  it("K8: shared: true on a client file spelled with backslashes", () => {
+    const cats = realTree({
+      [E]: rep("reads:\n", "reads:\n  - from: ow-start\n    path: intake\\<client>\\call-guide.md\n    shared: true\n    fields: [the must-ask list]\n    if_absent: Ask\n    if_mismatch: Use what parses\n"),
+      [B]: rep("| ow-start | `intake/<client>/coverage.md`", "| ow-start | intake\\<client>\\call-guide.md: must-asks | Ask | Use what parses |\n| ow-start | `intake/<client>/coverage.md`"),
+    });
+    expect(all(cats)).toMatch(/shared: true is for workspace files at the top of opchain-work\/ .*call-guide\.md is a client file/);
+  });
+
+  it("K13: a NEXT template's slash hint with a mode its edges row does not hand off", () => {
+    const cats = realTree({ [B]: rep("(where slash commands exist: /ow-build-plan-quote)", "(where slash commands exist: /ow-build-plan-quote --quick)") });
+    expect(all(cats)).toMatch(/the NEXT template "use ow-build-plan to quote plans\/<client>\/" hints `\/ow-build-plan-quote --quick`, but .*skill\.edges\.yaml hands it off with `\/ow-build-plan-quote`/);
+  });
+
+  it("K14: routes.paths dropping a path the routing reference routes", () => {
+    const cats = realTree({ [E]: rep("paths: [intake/<client>/intake-record.md, handoffs/<client>/fixes/FIX-nn.md, plans/<client>/]", "paths: [intake/<client>/intake-record.md, handoffs/<client>/fixes/FIX-nn.md]") });
+    expect(all(cats)).toMatch(/routes\.paths does not list plans\/<slug>\/, which references\/routing-and-resume\.md routes/);
+  });
+
+  it("K16/K32: an edges writes: row the body's Verbs table never names", () => {
+    for (const verb of ["/ow-build-plan-export", "/ow-build-plan-quote"]) {
+      const cats = realTree({ [E]: rep("writes:\n", `writes:\n  - { path: plans/<client>/quote-r<n>.md, verb: ${verb} }\n`) });
+      expect(all(cats), verb).toMatch(new RegExp(`the body's "## Verbs" table does not name plans/<client>/quote-r<n>\\.md in the Writes column of \`${verb}\``));
+    }
+    const noRow = realTree({ [E]: rep("writes:\n", "writes:\n  - { path: plans/<client>/notes.md, verb: /ow-build-plan-quote --signed }\n") });
+    expect(all(noRow)).toMatch(/does not name plans\/<client>\/notes\.md in the Writes column of `\/ow-build-plan-quote --signed`/);
+  });
+
+  it("K19: a STATUS next: carrying a mode in a phase file", () => {
+    const cats = realTree({ [PQ]: rep("- `--accepted`: path `plans/<client>/contract-inputs.md`; `next: ow-build-plan /ow-build-plan-quote plans/<client>/`", "- `--accepted`: path `plans/<client>/contract-inputs.md`; `next: ow-build-plan /ow-build-plan-quote --signed plans/<client>/`") });
+    expect(all(cats)).toMatch(/phase-quote\.md:\d+: a STATUS `next:` carries the mode `--signed`; it holds only a skill id, a verb and a path \(protocol §5\)/);
   });
 });
