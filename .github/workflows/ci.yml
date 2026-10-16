@@ -19,6 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # evidence:pr's bypass-accountability check reads merge-base(origin/main,
+          # HEAD)..HEAD for Opchain-Bypass: trailers; a shallow clone has no
+          # origin/main and the check would be skipped.
+          fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -38,9 +43,29 @@ jobs:
       - name: Verify the received candidate in CI
         env:
           OPCHAIN_VERSION: ${{ github.sha }}
+        # Intentionally the head's own verifier and policy: this repository is where the verifier is developed.
         run: node scripts/verify-candidate.mjs run --repo . --json
       - name: Require source-bound Docs and Repo evidence
-        run: npm run evidence:pr
+        # Dependabot PRs have no session behind them, so nobody binds pr-docs-v1
+        # / pr-readiness-v1 for them: all 13 Dependabot PRs since 2026-09-14
+        # failed this step on their only run and were closed (audit I-05). For
+        # them, "Verify the received candidate in CI" above is the gate. The
+        # skip keys on the PR author only: a `dependencies` label is something
+        # any PR author can add, so it skipped evidence for anyone (C-07).
+        if: github.event.pull_request.user.login != 'dependabot[bot]'
+        run: |
+          status=0
+          # CI has no receipts but HEAD's: read trailers only (see release-evidence.mjs).
+          npm run evidence:pr -- --bypass-source trailers || status=$?
+          if [ "$status" -ne 0 ]; then
+            echo "::error title=Source-bound evidence missing::Each FAIL line above names what this head lacks: the oc-docs-forge handoff (pr-docs-v1) or the oc-repo-ops handoff (pr-readiness-v1). CI has no receipts, so bypass-accountability here only lists Opchain-Bypass: trailers; the local pre-push hook is what refuses an unrecorded bypass."
+            echo "Bind the missing handoff from the branch, then commit .checkpoints/ and push:"
+            echo "  npm run checkpoint -- handoff oc-docs-forge pr-docs-v1 --verdict PASS --scope \"<what changed>\"   # the docs packet   (or: /oc-docs pr)"
+            echo "  npm run checkpoint -- handoff oc-repo-ops pr-readiness-v1 --verdict PASS --scope \"<what changed>\"  # repo readiness    (or: /oc-repo audit)"
+            echo "/oc-pr does both. Evidence binds to this head's tree projection (.checkpoints/ excluded), so a rebase or a merge from main needs a rebind."
+            echo "A bypassed commit with no trailer: git commit --amend --no-verify --trailer 'Opchain-Bypass: <who approved, what failed>'  (or: /oc-bugcheck bypass)."
+            exit "$status"
+          fi
       - name: Validate checkpoints (.checkpoints/<skill>.checkpoint.json)
         run: npm run checkpoint:validate
       - name: Plugin hook suites (commit gate + next-suggestion)

@@ -28,7 +28,8 @@ describe("hook ownership and portable commands", () => {
     const commands = Object.values(registration.hooks).flatMap((entries) =>
       entries.flatMap((entry) => entry.hooks.map((hook) => hook.command)),
     );
-    expect(commands).toHaveLength(3);
+    // session-state, task-end, next-suggestion, and (audit 2026-10-08) the UserPromptSubmit skill router.
+    expect(commands).toHaveLength(4);
     for (const command of commands) {
       expect(command).toMatch(/^node "\$\{CLAUDE_PLUGIN_ROOT\}\/hooks\/[a-z-]+\.cjs"$/);
       const result = spawnSync("sh", ["-c", command], {

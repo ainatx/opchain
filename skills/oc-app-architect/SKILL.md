@@ -180,6 +180,26 @@ oc-stack-forge reads the discovery context in Phase 2.
 
 ## Phase 2: Spec Generation (`/oc-spec`)
 
+### Spec Scaffold (first step of `/oc-spec`)
+
+Before any spec content, `/oc-spec` runs the scaffold — from the opchain plugin,
+`node "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold-spec.mjs" --root "$(git rev-parse --show-toplevel)"`
+(the same convention `/oc-enroll` uses); in the opchain repo itself,
+`node scripts/scaffold-spec.mjs`. It creates
+`spec/00…10` as stubs whose **first line names the producing skill or verb**, derived
+from the Spec Documents table below: `00-project-overview.md` → `/oc-discover`,
+`01-tech-stack.md`, `07-devops.md` and `10-cost-estimate.md` → `oc-stack-forge`,
+`06-testing.md` → `/oc-qa pyramid`, and the rest (`02`–`05`, `08`, `09`, including
+`03-security-auth.md` and `04-integrations.md`) → `/oc-spec` itself. A stub is replaced, not appended to, when its producer runs. The producer
+line is what a gate would read: refusing a commit while any stub still carries its
+producer line, on a repository whose oc-app-architect checkpoint is in a build phase
+(`sprint-*`, `launch`), is specified, not yet wired. Until a hook does it, check it
+yourself before the first build sprint: re-running the scaffold prints the stubs still
+waiting for their producer (it never overwrites a written file), and a build does not
+start on one. The 2026-10-08 audit's one-week launch had no
+`spec/` tree at all, so every artifact-keyed handoff in orchestrator.md §3 silently
+never existed; the stubs make the missing artifact visible.
+
 ### Stack Selection (chains to oc-stack-forge)
 
 Before generating spec files, chain to oc-stack-forge per orchestrator.md §3 (Active Invocation):
@@ -485,6 +505,27 @@ The Evaluator grades the sprint against four criteria. It runs in the same sessi
 the Generator, so its separation is a discipline, not a mechanism: re-read the contract
 and the code, and grade from those alone — not the generator's exploration.
 
+**Spawning an evaluator or reviewer.** When the Evaluator runs as a subagent (an Agent
+spawn, a review lane) instead of inline, the spawn prompt opens with the tool-named
+invocation, before the checklist and the rubric. Not "use oc-code-auditor if available,
+else review manually": the 2026-10-08 audit measured that wording at 80/143 invocations
+(one lane 0/33) against 72/72 for this exact form.
+
+```
+Invoke the Skill tool with skill "oc-code-auditor" and args "/oc-audit diff --read-only <range>".
+Then grade the sprint against the four criteria below.
+Report format — first line: `skill_invoked: yes|no (<args as passed>)`;
+second line: the findings artifact path (`audit/findings-<sha>.json`);
+then the scores table and the verdict.
+```
+
+A report without the `skill_invoked:` line or the artifact path is INCOMPLETE, not a
+verdict. The read-only auditor writes the findings artifact plus a
+`handoffs.verification.verdict` entry in its own checkpoint and never runs the Fixer,
+so "the Fixer would modify the branch" is no longer a reason to skip it. On FAIL, ask
+the same reviewer for `/oc-audit fix-all` on a writable branch rather than bouncing the
+fix to another lane.
+
 | Criterion | Weight | Measures |
 |---|---|---|
 | **Functionality** | 30% | Does it work? Can users complete intended flows? |
@@ -576,6 +617,46 @@ tell whether the ≥ 6 gate was met: append to `eval_scores[]` an entry with
 `rubric: "oc-app-architect"`, `score` (the weighted Code Score), `max: 10`, `dimensions`
 (`functionality`, `completeness`, `quality`, `ux`), and `ref` pointing at the eval report
 (see `references/checkpoint-protocol.md` → *Wire 1.1 extensions*).
+
+Also keep one entry per sprint in `skill_state.sprints[]` —
+`{ "id": "sprint-N", "contract": "sprints/sprint-N/contract.md", "rounds": M,
+"verdict": "PASS|FAIL", "ux_eval_ref": …, "security_review_ref": … }` — so a gate can
+read the two review refs without parsing eval reports:
+
+- `ux_eval_ref` — the path of the oc-ux-engineer Design Evaluator report for this sprint
+  (the `/oc-uxe attach` output), or `null` with the reason (`"no-ui"`).
+- `security_review_ref` — the oc-security-auditor report (or the `/oc-audit security`
+  findings artifact) that covered this sprint's auth, secrets or personal-data changes,
+  or `null` with the reason (`"no-auth-or-data-change"`).
+
+A UI sprint with `ux_eval_ref: null`, or a sprint that touched auth/secrets/data with
+`security_review_ref: null`, is not PASS, whatever the scores say.
+
+### Delegated lanes
+
+Phase 6 is written for one session: one Generator, one Evaluator, one checkpoint writer.
+When a build is split across lanes (several sprints in parallel under a coordinating
+Master), these conventions apply instead of improvising:
+
+- **Prefer Agent subagents from one session.** The Master spawns each lane as an Agent
+  subagent using the spawn template in Step 3; a lane's result is its report. Separate
+  interactive sessions talking over SendMessage are the fallback, not the default — the
+  2026-10-08 audit counted 1,800+ approval-held messages in one week of that pattern.
+- **Per-lane checkpoints.** A lane writes
+  `.checkpoints/oc-app-architect.<lane>.checkpoint.json` (same schema; `phase` and
+  `step` ids only from this skill's frontmatter `phases:`, never invented ones) and
+  never the Master file. The Master merges lane files into
+  `.checkpoints/oc-app-architect.checkpoint.json` with `checkpoint.mjs`. The lane-merge
+  subcommand is future work: until it lands the Master merges by hand, and the
+  `scripts/merge-checkpoint.mjs` Git driver (installed by enrollment) keeps the lane
+  files from producing false conflicts on PR.
+- **Lane↔Master traffic goes through checkpoint files, not messages.** Sprint contract,
+  eval round, blocker and `next_actions` travel in the checkpoint per orchestrator.md §3
+  "Context Passing". State that exists only in a message is lost on resume.
+- **One reviewer verdict per PR.** The review lane is `/oc-audit diff --read-only <range>`
+  with the Phase 6 criteria; its findings artifact and `handoffs.verification.verdict`
+  are what the Master grades from, and a FAIL goes back to that reviewer for
+  `/oc-audit fix-all` on a writable branch.
 
 ### Scoring Calibration
 

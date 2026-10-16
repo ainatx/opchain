@@ -11,8 +11,16 @@ const POLICY_VERSION = 1;
 const TOOLCHAIN_SCHEMA = "opchain.verification-toolchain";
 const TOOLCHAIN_VERSION = 1;
 
-const VERDICTS = new Set(["PASS", "FAIL", "UNSUPPORTED"]);
-const CHECK_STATUSES = new Set(["PASS", "WARN", "FAIL", "UNSUPPORTED", "ERROR"]);
+// I-03: INCONCLUSIVE is the verdict for an environmental non-answer (a check
+// timed out or exited 127). It is never an enforceable PASS and is kept
+// distinct from FAIL so the hook can say "retry" instead of "fix".
+const VERDICTS = new Set(["PASS", "FAIL", "UNSUPPORTED", "INCONCLUSIVE"]);
+// TIMEOUT = exit 124 (killed at the policy deadline); UNSUPPORTED_ENV = exit 127
+// (the command itself was not found, e.g. a hollow node_modules). ERROR stays
+// mapped to FAIL so receipts written before this release still validate.
+const CHECK_STATUSES = new Set(["PASS", "WARN", "FAIL", "UNSUPPORTED", "ERROR", "TIMEOUT", "UNSUPPORTED_ENV"]);
+const INCONCLUSIVE_STATUSES = new Set(["TIMEOUT", "UNSUPPORTED_ENV"]);
+const RUN_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 const DEFAULT_REQUIRED_CHECKS = Object.freeze([
   "type_safety",
   "lint",
@@ -230,9 +238,37 @@ function deriveVerdict(policy, checks) {
     if (!byId.has(id)) throw new TypeError(`receipt is missing required check ${id}`);
   }
   if (checks.some((check) => check.status === "FAIL" || check.status === "ERROR")) return "FAIL";
+  // I-03: a real FAIL still wins; otherwise an environmental non-answer is
+  // INCONCLUSIVE (retry), not FAIL (fix) and not PASS (never authorizes).
+  if (checks.some((check) => INCONCLUSIVE_STATUSES.has(check.status))) return "INCONCLUSIVE";
   if (checks.some((check) => check.status === "UNSUPPORTED")) return "UNSUPPORTED";
   if (policy.warning_behavior === "fail" && checks.some((check) => check.status === "WARN")) return "FAIL";
   return "PASS";
+}
+
+// I-03/I-05: optional receipt-level context. Only emitted when the verifier
+// supplies it, so receipts written before this release still round-trip
+// through validateReceipt unchanged.
+function normalizedEnvironment(input) {
+  if (input === undefined) return undefined;
+  if (!plainObject(input)) throw new TypeError("environment must be an object");
+  const output = {};
+  if (input.loadavg_1m !== undefined) {
+    if (typeof input.loadavg_1m !== "number" || !Number.isFinite(input.loadavg_1m) || input.loadavg_1m < 0) {
+      throw new TypeError("environment.loadavg_1m must be a non-negative finite number");
+    }
+    output.loadavg_1m = input.loadavg_1m;
+  }
+  if (input.reused_from !== undefined) {
+    if (!plainObject(input.reused_from)) throw new TypeError("environment.reused_from must be an object");
+    const runId = String(input.reused_from.run_id || "");
+    if (!RUN_ID_PATTERN.test(runId)) throw new TypeError("environment.reused_from.run_id is invalid");
+    output.reused_from = { run_id: runId, tree: assertOid(input.reused_from.tree, "environment.reused_from.tree") };
+  }
+  for (const key of Object.keys(input)) {
+    if (!["loadavg_1m", "reused_from"].includes(key)) throw new TypeError(`environment.${key} is not a known field`);
+  }
+  return output;
 }
 
 function createReceipt(input = {}) {
@@ -273,7 +309,9 @@ function createReceipt(input = {}) {
     checks,
     verdict: deriveVerdict(policy, checks),
   };
-  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(body.run_id)) {
+  const environment = normalizedEnvironment(input.environment);
+  if (environment !== undefined) body.environment = environment;
+  if (!RUN_ID_PATTERN.test(body.run_id)) {
     throw new TypeError("run_id contains unsafe path characters");
   }
   if (Date.parse(body.verified_at) < Date.parse(body.started_at)) {
@@ -317,7 +355,7 @@ function receiptPath({ git_common_dir, candidate_tree, policy_fingerprint, run_i
   const tree = assertOid(candidate_tree, "candidate_tree");
   const policyHex = assertDigest(policy_fingerprint, "policy_fingerprint").slice("sha256:".length);
   const runId = String(run_id || "");
-  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(runId)) {
+  if (!RUN_ID_PATTERN.test(runId)) {
     throw new TypeError("run_id contains unsafe path characters");
   }
   return path.join(receiptRoot(git_common_dir), tree, policyHex, `${runId}.json`);
@@ -325,6 +363,9 @@ function receiptPath({ git_common_dir, candidate_tree, policy_fingerprint, run_i
 
 module.exports = {
   CHECK_STATUSES,
+  INCONCLUSIVE_STATUSES,
+  RUN_ID_PATTERN,
+  VERDICTS,
   DEFAULT_REQUIRED_CHECKS,
   POLICY_SCHEMA,
   POLICY_VERSION,
