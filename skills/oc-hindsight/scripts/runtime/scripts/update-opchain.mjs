@@ -6,7 +6,7 @@ import { copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSy
 import { dirname, join, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 
 const ORIGIN = 'https://opchain.dev';
 const TARGETS = ['.claude/skills', '.agents/skills', '.codex/skills'];
@@ -629,31 +629,76 @@ function summarizeSurface(surface) {
   return { ...surface, count: surface.skills.length, versions, kinds };
 }
 
-export function readInstalledPlugins(home) {
-  try {
-    const data = JSON.parse(readFileSync(join(home, '.claude/plugins/installed_plugins.json'), 'utf8'));
-    const entries = [];
-    for (const [key, list] of Object.entries(data?.plugins ?? {})) {
-      if (!/^opchain(@|$)/.test(key)) continue;
-      for (const entry of Array.isArray(list) ? list : [list]) entries.push({ key, installPath: entry?.installPath ?? null, version: entry?.version ?? null, scope: entry?.scope ?? null });
-    }
-    return entries;
-  } catch { return []; }
+// ---------------------------------------------------------------------------
+// Plugin discovery (docs/plans/2026-10-16-oc-update-plugins-design.md §5.1).
+// Claude Code owns plugin state; this only reads it. An entry in
+// installed_plugins.json loads in this repository when it is user-scoped, or
+// project/local-scoped with projectPath naming this repository: the same file
+// holds every other repository's project installs too.
+// ---------------------------------------------------------------------------
+export const KNOWN_PLUGINS = Object.freeze([
+  Object.freeze({ id: 'opchain@opchain', marketplace: 'opchain', source: Object.freeze({ source: 'github', repo: 'asfbay-bit/opchain-skills' }), skills: true }),
+  Object.freeze({ id: 'ow-tools@opchain-work-tools', marketplace: 'opchain-work-tools', source: Object.freeze({ source: 'url', url: 'https://raw.githubusercontent.com/asfbay-bit/opchain-skills/main/plugins/ow-tools/.claude-plugin/marketplace.json' }), skills: false }),
+]);
+const SCOPE_RANK = { local: 0, project: 1, user: 2 };
+
+export function claudeConfigDir(env = process.env) {
+  return env.CLAUDE_CONFIG_DIR || join(env.HOME || homedir(), '.claude');
 }
 
-function pluginCacheSkillDirs(home) {
-  // ~/.claude/plugins/cache/opchain/<plugin>/<version>/skills (current layout) and
-  // ~/.claude/plugins/cache/opchain/<version>/skills (older layout) both count.
-  const base = join(home, '.claude/plugins/cache/opchain');
-  const found = [];
-  const visit = (dir, depth) => {
-    if (existsSync(join(dir, 'skills'))) { found.push(join(dir, 'skills')); return; }
-    if (depth === 0) return;
-    let names; try { names = readdirSync(dir); } catch { return; }
-    for (const name of names.sort()) { try { if (lstatSync(join(dir, name)).isDirectory()) visit(join(dir, name), depth - 1); } catch {} }
-  };
-  if (existsSync(base)) visit(base, 2);
-  return found;
+function readJson(path) {
+  try { return JSON.parse(readFileSync(path, 'utf8')); } catch { return null; }
+}
+
+function realpathOrNull(path) {
+  try { return realpathSync(path); } catch { return null; }
+}
+
+function sameSource(actual, expected) {
+  if (!actual || typeof actual !== 'object' || Array.isArray(actual)) return false;
+  const keys = Object.keys(actual);
+  return keys.length === Object.keys(expected).length && keys.every(key => actual[key] === expected[key]);
+}
+
+// Every installed_plugins.json entry for `id`, normalised. Schema version 2 keeps
+// an array of { scope, version, installPath, projectPath } per id; the older
+// shape kept one object and had no scopes, so it reads as a user install.
+export function installedPluginEntries(configDir, id) {
+  const raw = readJson(join(configDir, 'plugins/installed_plugins.json'))?.plugins?.[id];
+  if (!raw || typeof raw !== 'object') return [];
+  return (Array.isArray(raw) ? raw : [raw]).filter(entry => entry && typeof entry === 'object').map(entry => ({
+    scope: typeof entry.scope === 'string' ? entry.scope : 'user',
+    version: typeof entry.version === 'string' ? entry.version : null,
+    installPath: typeof entry.installPath === 'string' ? entry.installPath : null,
+    projectPath: typeof entry.projectPath === 'string' ? entry.projectPath : null,
+  }));
+}
+
+// One row per known plugin: { id, marketplace, sourceOk, enabledHere, enabledIn,
+// scope, installedVersion, installPath, entries }. Local scope is treated like
+// project (design §7 decision 4). `entries` lists every install that loads here,
+// most specific first; the scalar fields describe the first of them.
+export function pluginState(root = projectRoot(), { configDir = claudeConfigDir() } = {}) {
+  const rootReal = realpathOrNull(root) ?? resolve(root);
+  const settings = [['project', readJson(join(root, '.claude/settings.json'))], ['local', readJson(join(root, '.claude/settings.local.json'))]];
+  return KNOWN_PLUGINS.map(plugin => {
+    const sources = settings.map(([, data]) => data?.extraKnownMarketplaces?.[plugin.marketplace]).filter(Boolean);
+    const enabledIn = settings.filter(([, data]) => data?.enabledPlugins?.[plugin.id] === true).map(([scope]) => scope);
+    const entries = installedPluginEntries(configDir, plugin.id)
+      .filter(entry => entry.scope === 'user' || ((entry.scope === 'project' || entry.scope === 'local') && entry.projectPath && realpathOrNull(entry.projectPath) === rootReal))
+      .sort((a, b) => (SCOPE_RANK[a.scope] ?? 3) - (SCOPE_RANK[b.scope] ?? 3));
+    return {
+      id: plugin.id,
+      marketplace: plugin.marketplace,
+      sourceOk: sources.length > 0 && sources.every(entry => sameSource(entry?.source, plugin.source)),
+      enabledHere: enabledIn.length > 0,
+      enabledIn,
+      scope: entries[0]?.scope ?? null,
+      installedVersion: entries[0]?.version ?? null,
+      installPath: entries[0]?.installPath ?? null,
+      entries,
+    };
+  });
 }
 
 function worktreeEntries(root) {
@@ -677,21 +722,29 @@ function behindOriginMain(dir) {
 
 // Enumerate every place a Claude Code / Codex session may load oc-* skills from
 // and say which ones disagree. Exit 0 always: this is a report, not a gate.
-export function doctor({ root = projectRoot(), home = process.env.HOME ?? '' } = {}) {
+export function doctor({ root = projectRoot(), configDir = claudeConfigDir() } = {}) {
   root = resolve(root);
-  const report = { root, home, surfaces: [], worktrees: [], findings: [] };
+  const report = { root, configDir, surfaces: [], plugins: [], worktrees: [], findings: [] };
   const loadable = [];
   const add = (surface) => { const s = summarizeSurface(surface); report.surfaces.push(s); if (s.loadable) loadable.push(s); return s; };
 
-  if (home) add({ name: 'global', path: join(home, '.claude/skills'), scope: 'global', loadable: true, skills: readSkillDir(join(home, '.claude/skills')) });
+  add({ name: 'global', path: join(configDir, 'skills'), scope: 'global', loadable: true, skills: readSkillDir(join(configDir, 'skills')) });
   for (const target of TARGETS) add({ name: `repo-local ${target}`, path: join(root, target), scope: 'repo-local', loadable: true, skills: readSkillDir(join(root, target)) });
-  const plugins = home ? readInstalledPlugins(home) : [];
-  for (const dir of home ? pluginCacheSkillDirs(home) : []) {
-    const owner = plugins.find(p => p.installPath && (dir === join(p.installPath, 'skills') || dir.startsWith(p.installPath + '/')));
-    add({ name: 'plugin cache', path: dir, scope: 'plugin', loadable: true, installedVersion: owner?.version ?? null, registered: Boolean(owner), skills: readSkillDir(dir) });
-  }
-  for (const plugin of plugins.filter(p => p.installPath && !existsSync(join(p.installPath, 'skills')))) {
-    report.findings.push({ level: 'warn', code: 'plugin-cache-missing', message: `installed_plugins.json lists ${plugin.key} ${plugin.version} at ${plugin.installPath} but no skills/ directory is there` });
+  report.plugins = pluginState(root, { configDir });
+  for (const plugin of report.plugins.filter(p => KNOWN_PLUGINS.find(k => k.id === p.id).skills)) {
+    // Only installs that load in this repository count; two scopes sharing one
+    // cache directory are one surface.
+    const seen = new Set();
+    for (const entry of plugin.entries.filter(e => e.installPath)) {
+      const dir = join(entry.installPath, 'skills');
+      if (seen.has(dir)) continue;
+      seen.add(dir);
+      if (!existsSync(dir)) {
+        report.findings.push({ level: 'warn', code: 'plugin-cache-missing', message: `installed_plugins.json lists ${plugin.id} ${entry.version} (${entry.scope}) at ${entry.installPath} but no skills/ directory is there` });
+        continue;
+      }
+      add({ name: 'plugin cache', path: dir, scope: 'plugin', pluginId: plugin.id, pluginScope: entry.scope, loadable: true, installedVersion: entry.version, registered: true, skills: readSkillDir(dir) });
+    }
   }
 
   const authoring = existsSync(join(root, 'skills/orchestrator.md')) && readSkillDir(join(root, 'skills')).length > 0;
@@ -736,7 +789,7 @@ export function formatDoctor(report) {
   for (const s of report.surfaces) {
     const notes = [];
     if (s.count && s.kinds.length) notes.push(s.kinds.join('+'));
-    if (s.scope === 'plugin') notes.push(s.registered ? `installed_plugins.json ${s.installedVersion}` : 'not in installed_plugins.json');
+    if (s.scope === 'plugin') notes.push(`${s.pluginScope} scope; installed_plugins.json ${s.installedVersion}`);
     rows.push([s.name, s.path, String(s.count), s.count ? s.versions.join('/') : '—', notes.join('; ')]);
   }
   for (const w of report.worktrees) {
@@ -746,6 +799,15 @@ export function formatDoctor(report) {
   const widths = rows[0].map((_, i) => Math.max(...rows.map(r => r[i].length)));
   for (const row of rows) lines.push(row.map((cell, i) => cell.padEnd(widths[i])).join('  ').trimEnd());
   lines.push('');
+  const plugins = [['plugin', 'installed here', 'enabled repo-wide', 'notes']];
+  for (const p of report.plugins ?? []) {
+    const notes = [p.sourceOk ? 'marketplace source ok' : 'marketplace source not set or unrecognised'];
+    if (p.enabledIn.includes('local')) notes.push('enabled in settings.local.json (not shared)');
+    plugins.push([p.id, p.installedVersion ? `${p.installedVersion} (${p.scope})` : 'no', p.enabledIn.includes('project') ? 'yes' : 'no', notes.join('; ')]);
+  }
+  const pluginWidths = plugins[0].map((_, i) => Math.max(...plugins.map(r => r[i].length)));
+  for (const row of plugins) lines.push(row.map((cell, i) => cell.padEnd(pluginWidths[i])).join('  ').trimEnd());
+  lines.push('');
   if (!report.findings.length) lines.push('OK: one version everywhere, nothing duplicated, install committed.');
   for (const f of report.findings) lines.push(`${f.level.toUpperCase()}: ${f.message}`);
   return lines.join('\n');
@@ -753,7 +815,7 @@ export function formatDoctor(report) {
 
 export async function main(args = process.argv.slice(2)) {
   if (args.includes('--help')) {
-    console.log('opchain update [--check] [--source] [--target=claude|codex|both] [--root=/path/to/repo]\nopchain update doctor [--json] [--root=/path/to/repo]\nSource checkouts sync from their current skills/ tree; consumer installs download releases. Preserves telemetry and checkpoints.\ndoctor lists every install surface (global, repo-local, plugin cache, worktrees) with versions and flags duplicates, mismatches, uncommitted installs and parked checkouts.\n' + componentsBanner());
+    console.log('opchain update [--check] [--source] [--target=claude|codex|both] [--root=/path/to/repo]\nopchain update doctor [--json] [--root=/path/to/repo]\nSource checkouts sync from their current skills/ tree; consumer installs download releases. Preserves telemetry and checkpoints.\ndoctor lists every install surface (global, repo-local, plugin cache, worktrees) and the opchain/ow-tools plugins that load in this repo, with versions and flags duplicates, mismatches, uncommitted installs and parked checkouts.\n' + componentsBanner());
     return 0;
   }
   const options = {};

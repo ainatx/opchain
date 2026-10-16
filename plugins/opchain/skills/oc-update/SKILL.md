@@ -72,7 +72,13 @@ Read-only. It enumerates every surface a session can load Opchain from — the h
 plugin cache, this repository's `.claude/skills`, `.agents/skills` and legacy
 `.codex/skills`, copies inside `.claude/worktrees/*`, and a global `~/.claude/skills` —
 with each surface's frontmatter `version:` and, for a source checkout, how many commits
-it is behind `origin/main`. It then flags, one line each:
+it is behind `origin/main`. The Claude config directory is `$CLAUDE_CONFIG_DIR` when set,
+else `~/.claude`. A plugin install counts only when it loads in this repository: user
+scope, or project/local scope whose `projectPath` is this repository (another repository's
+project install is ignored). A plugins table lists `opchain@opchain` and
+`ow-tools@opchain-work-tools` (version only; it ships no oc- skills) with the installed
+version and scope, whether `.claude/settings.json` enables it repo-wide, and whether the
+repository's marketplace source is the known one. It then flags, one line each:
 
 - **duplicate surfaces** — the same skill ids loaded from two places (e.g. 36 repo-local
   + 36 plugin-cache copies, which doubles every session's skill descriptions);
