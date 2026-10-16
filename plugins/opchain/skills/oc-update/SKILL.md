@@ -50,6 +50,7 @@ install commands below.
 | `/oc-update`, "update Opchain" | `node <skill-dir>/scripts/update.mjs` |
 | `/oc-update check`, "is an update available?" | Same command with `--check` (read-only) |
 | `/oc-update doctor`, "which Opchain is this session loading?", "why are there two copies?" | `node <skill-dir>/scripts/update.mjs doctor` (read-only; `--json` for machine output; see below) |
+| Update only this repo's Opchain plugins | `node <skill-dir>/scripts/update.mjs plugins` (`--check` for read-only) |
 | Refresh this Opchain source checkout | Same command; `--source` explicitly requires source mode |
 | Install specifically for Claude or Codex | Add `--target=claude` or `--target=codex` |
 | Install for both | Add `--target=both` |
@@ -65,6 +66,35 @@ local helpers, and backs up files it replaces. Legacy `.codex/skills` copies are
 also made available under `.agents/skills`. A fresh automatic install defaults
 to `.claude/skills`. Global/plugin-managed installations use the host's plugin
 manager; do not overwrite plugin caches or change hook configuration.
+
+## Plugins
+
+After skills, the updater keeps this repository's first-party Claude Code plugins
+current: `opchain@opchain` and `ow-tools@opchain-work-tools`, when the repo's
+`.claude/settings.json` (project scope) or `.claude/settings.local.json` (local
+scope) enables them **and** names the known Opchain marketplace source. It runs
+the `claude` CLI itself (`plugin marketplace update`, then `plugin update <id>
+--scope project|local`) and reports `id: before → after` or `already current`.
+Report those lines as printed. Do not run `/plugin` commands, edit settings files
+or touch the plugin cache yourself.
+
+- **Run `plugins` after a successful update.** When an update (not `--check`)
+  exits 0, 2 or 4 and its output has no `Plugins:` line, an updater from before
+  this feature ran; run `node <skill-dir>/scripts/update.mjs plugins` once so the
+  plugin step runs from the updater that was just installed.
+- **Restart.** When the output says "Restart Claude Code to load the new hooks",
+  tell the user: the running session keeps the old hooks until restart.
+- **Local scope** installs (enabled in `settings.local.json`) are updated for this
+  user only; say they are not shared with the repo.
+- **Skipped, not failed:** a plugin with an unrecognised marketplace source, one
+  enabled but not installed for this user, and **user-scope** installs (they
+  belong to the whole machine; `/plugin update <id>` in Claude Code). Without the
+  `claude` CLI on PATH the step prints `plugins: skipped (Claude Code CLI not
+  found)` with the `/plugin` commands to run, and skills still exit 0. Codex has
+  no plugin system; its `.agents/skills` updates are skills only.
+- `--check` makes no CLI call: `opchain@opchain` is compared with the release
+  (it ships in lockstep with the skills); `ow-tools` shows its installed version
+  only.
 
 ## `/oc-update doctor`
 
@@ -123,6 +153,9 @@ merging newer source requires the user's separate Git-update request.
 - **Exit 2:** skills installed or checked, but enabled telemetry is unhealthy.
   Report the database issue and preserve the consent flag and history. Do not
   run `enable`, `disable`, `record`, or invent an empty replacement database.
+- **Exit 4:** skills installed and verified, but a plugin update failed (the
+  `FAILED —` line names it). Report both halves: skills done, plugin not. Do not
+  re-run the skill update to fix a plugin. **Exit 6** is exit 2 and exit 4 together.
 - **Exit 1:** report the error. A failed download or invalid bundle changes no
   skill files. For an installation failure, report the rollback/recovery status
   exactly as returned; do not claim completion or keep retrying.
