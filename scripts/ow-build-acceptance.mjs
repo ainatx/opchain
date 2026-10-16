@@ -426,7 +426,8 @@ export function validateEmailHtml(html, { logoAlt } = {}) {
       const bg = cssColor(pick(/background(?:-color)?:\s*([^;]+)/i) ?? attr("bgcolor"));
       const size = Number((pick(/font-size:\s*([\d.]+)px/i) ?? NaN));
       const bold = /^h[1-3]$|^(?:strong|th)$/.test(t) || /font-weight:\s*(?:bold|[6-9]00)/i.test(st);
-      styles.push({ color: color ?? up.color, bg: bg ?? up.bg, size: Number.isFinite(size) ? size : t === "h1" ? 32 : t === "h2" ? 24 : t === "h3" ? 18.72 : up.size, bold: bold || up.bold });
+      const under = blend(bg, up.bg) ?? up.bg;
+      styles.push({ color: blend(color, under) ?? up.color, bg: under, size: Number.isFinite(size) ? size : t === "h1" ? 32 : t === "h2" ? 24 : t === "h3" ? 18.72 : up.size, bold: bold || up.bold });
     }
   }
   for (const x of lowContrast) p.push(x);
@@ -441,6 +442,13 @@ export function validateEmailHtml(html, { logoAlt } = {}) {
   if (/<style|<link|<script/i.test(html)) p.push("a <style>, <link> or <script> element; every style is inline");
   return p;
 }
+/** A colour with alpha (#rrggbbaa) laid over the colour behind it, as the reader sees it. */
+const blend = (c, behind) => {
+  if (c == null || c.length !== 9) return c;
+  const a = parseInt(c.slice(7), 16) / 255;
+  const ch = (hex, i) => parseInt(hex.slice(i, i + 2), 16);
+  return `#${[1, 3, 5].map((i) => Math.round(a * ch(c, i) + (1 - a) * ch(behind, i)).toString(16).padStart(2, "0")).join("")}`;
+};
 /** A CSS colour as #rrggbb: #rgb, #rrggbb, rgb(r, g, b), or a few names; anything else (inherit, transparent) is no colour. */
 export function cssColor(v) {
   if (v == null) return null;
@@ -450,7 +458,12 @@ export function cssColor(v) {
   let m;
   if ((m = s.match(/^#([0-9a-f]{3})$/))) return `#${[...m[1]].map((c) => c + c).join("")}`;
   if ((m = s.match(/^#([0-9a-f]{6})$/))) return `#${m[1]}`;
-  if ((m = s.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/))) return `#${m.slice(1, 4).map((x) => Math.min(255, Number(x)).toString(16).padStart(2, "0")).join("")}`;
+  // rgba() keeps its alpha as a fourth byte (#rrggbbaa); the validator blends it over the background behind it (R3-5).
+  if ((m = s.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+%?)\s*)?\)/))) {
+    const hex = `#${m.slice(1, 4).map((x) => Math.min(255, Number(x)).toString(16).padStart(2, "0")).join("")}`;
+    const a = m[4] == null ? 1 : m[4].endsWith("%") ? Number(m[4].slice(0, -1)) / 100 : Number(m[4]);
+    return a >= 1 ? hex : `${hex}${Math.round(Math.max(0, a) * 255).toString(16).padStart(2, "0")}`;
+  }
   return null;
 }
 const lum = (hex) => { const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
@@ -490,16 +503,14 @@ const NUMWORD = "(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twel
 /** An amount written in words ("two thousand dollars", "seventeen thousand four hundred and fifty dollars"). */
 export const AMOUNT_IN_WORDS = new RegExp(`\\b${NUMWORD}(?:[\\s-]+(?:and[\\s-]+)?${NUMWORD})*\\s+(?:dollars?|pounds?|euros?|bucks|quid)\\b`, "i");
 export const INTERNAL_TERMS = [
-  [/\b\d+(?:[.,]\d+)?\s*(?:h|hrs?|hours?)\b/i, "an hour count"],
-  [/\bhours?\b|\bhrs\b/i, "hours"],
-  [/\b(?:effort|person[- ]?days?|man[- ]?days?|time (?:spent|logged|booked|tracked)|timesheets?|billable|logged)\b/i, "effort"],
-  [/\b(?:days?|weeks?|months?|evenings?)(?: and a half)? of (?:work|effort|development|building|coding|time)\b|\bspent (?:\w+ ){0,3}(?:days?|weeks?|evenings?|nights?|mornings?|afternoons?)\b|\b(?:took|takes|taking) (?:us |me )?(?:\w+ ){0,3}(?:days?|weeks?)\b/i, "effort"],
-  [/\b(?:hourly|per hour|day rate|rates?)\b/i, "a rate"],
-  [/\b(?:margins?|profit|burn(?:ed|ing|s)?|overrun|over-?ran|over budget|under budget|budgets?)\b/i, "margin"],
-  [/\bover (?:our |the |my )?(?:estimate[ds]?|plan(?:ned)?)\b|\bover what (?:was|we|I) (?:had )?(?:planned|estimated|expected)\b|\b(?:above|beyond|exceed(?:ed|s|ing)?) (?:our |the |my )?(?:estimate|plan|quote)\b|\bestimate[ds]?\b/i, "an overrun or estimate"],
-  [/\b(?:unit prices?|modifiers?|mark-?up|multiplier|surcharge|uplift|loading)\b/i, "pricing internals"],
-  [/(?:^|[\s(])[x×]\s?\d+(?:\.\d+)?\b|\b\d+(?:\.\d+)?\s?[x×](?![\w])|\b\d+\s?(?:%|per ?cent|percent) (?:extra|more|on top|added|surcharge|uplift)/i, "a modifier factor"],
-  [AMOUNT_IN_WORDS, "an amount in words"],
+  // Our effort: named as effort, or as days and weeks of work. A client's hours ("an hour of your coordinator's time") are not ours.
+  [/\b(?:effort|person[- ]?days?|man[- ]?days?|developer[- ]?(?:hours?|days?)|time (?:spent|logged|booked|tracked)|timesheets?|billable)\b/i, "effort"],
+  [/\b(?:days?|weeks?|months?|evenings?)(?: and a half)? of (?:work|effort|development|building|coding|our time)\b|\bspent (?:\w+ ){0,3}(?:days?|weeks?|evenings?|nights?|mornings?|afternoons?)\b|\b(?:took|takes|taking) (?:us |me )?(?:\w+ ){0,3}(?:days?|weeks?)\b/i, "effort"],
+  [/\b\d+(?:[.,]\d+)?\s*(?:h|hrs?|hours?)\b(?=[^.]*\b(?:we|us|our|went into|spent|took|needed|developer|effort|work)\b)|\b(?:we|us|our)\b[^.]*\b\d+(?:[.,]\d+)?\s*(?:h|hrs?|hours?)\b/i, "our hours"],
+  [/\b(?:hourly(?: rate)?|day rate|our (?:\w+ )?rates?|rate card)\b/i, "a rate"],
+  [/\b(?:margins?|burn(?:ed|ing|s)? (?:rate|through)|overrun|over-?ran|over budget|under budget)\b/i, "margin"],
+  [/\bover (?:our |my )?(?:estimate[ds]?|plan(?:ned)?)\b|\bover what (?:was|we|I) (?:had )?(?:planned|estimated|expected)\b|\b(?:above|beyond|exceed(?:ed|s|ing)?) (?:our |my )?(?:estimate|plan|quote)\b|\bour estimate[ds]?\b/i, "an overrun or estimate"],
+  [/\b(?:unit prices?|modifiers?|mark-?up|multiplier|surcharge|uplift)\b/i, "pricing internals"],
   [/\b(?:checkpoints?|evaluators?|rubrics?|gates?|sprints?|scores?|scored)\b/i, "a tool word"],
 ];
 /**
@@ -518,43 +529,74 @@ export const DONE_WORDS = /\b(?:done|finished|complete[ds]?|completed|working|wo
 /** "Started", however worded (design §6 signature gate). */
 export const STARTED_WORDS = /\b(?:start(?:ed|ing|s)?|begun|began|underway|under way|in progress|working on|work on|building|built|added|adding|making progress|kicked off|on it|picked up|got going|rolling|implement(?:ed|ing)?|develop(?:ed|ing)?|handed (?:it )?to the builder|making headway|progressing|first cut|first pass|prototyp(?:e|ed|ing)|sketch(?:ed|ing)?|scaffold(?:ed|ing)?|coming along|shaping up|well advanced|nearly there|almost (?:done|there|ready)|under construction|in the works|in hand|on track)\b/i;
 
-// ── meaning by category (round 2, D1) ───────────────────────────────────────
-// Category rules, not phrase lists: each names a kind of statement a client
-// output never makes, matched by its shape (a quantity with a unit of time, an
-// amount of money, a ratio, our side of the money, a completion claim, work
-// under way). An allowed client-facing field is exempt by where it sits (the
-// payment terms, a change order's Schedule, a date that moves), never by wording.
+// ── meaning by category (round 2 D1, narrowed in round 4 by owner decision 1) ──
+// "Internal number" means OUR side only (owner decision 1, 2026-10-16): our effort
+// and hours, our rates, our costs, margin, profit or loss on the job, multipliers
+// and modifiers, overruns against our own plan. A client's own schedule ("your
+// testers will have two weeks"), figures and ratios ("orders over $750", "98% of
+// the sampled codes matched", "your order volume doubled"), payment terms and
+// dates are client facts. So each shape counts only with OUR attribution: a
+// first-person subject or an effort word for a duration, price context or a
+// first-person subject for money and ratios.
 const QTY = `(?:\\d+(?:[.,]\\d+)?|${NUMWORD}(?:[\\s-]+(?:and[\\s-]+)?${NUMWORD})*|an?|half an?|a couple of|a few|several|a dozen|dozens of|many|most of(?: the| a| last| this| that)?|all(?: of)?(?: the| last| this)?)`;
 const TIME_UNIT = "(?:minutes?|mins?|hours?|hrs?|days?|nights?|evenings?|mornings?|afternoons?|weekends?|weeks?|fortnights?|months?|[a-z]+-days?|[a-z]+-hours?|[a-z]+-weeks?)";
-/** Any quantity of time or effort: "a fortnight", "three long evenings", "40 hours", "two developer-days", "most of last weekend". */
+/** A quantity of time: "a fortnight", "three long evenings", "40 hours", "two developer-days", "most of last weekend". */
 export const TIME_QTY = new RegExp(`\\b${QTY}[\\s-]+(?:[a-z]+[\\s-]+){0,2}?${TIME_UNIT}\\b|\\bfortnight\\b`, "i");
-/** Any amount of money: a currency sign or code with a number, "2k", "1.5 grand", "500 bucks", an amount in words. */
+/** Ours: a first-person subject ("we", "our", "us"). */
+export const OURS = /\b(?:we|we've|we're|I|I've|I'm|us|our|ours|ourselves|me|my)\b/i;
+/** Effort: the time went into the work ("took", "spent", "went into", "developer hours"). */
+export const EFFORT = /\b(?:took|take[sn]?|taking|spent|spend(?:s|ing)?|went into|went on|go(?:es)? into|needed|ate up|used up|put in|sunk|effort|developer|engineer|billable|of work|of (?:development|building|coding))\b/i;
+/** An amount of money: a currency sign or code with a number, "2k", "1.5 grand", "500 bucks", an amount in words. */
 export const MONEY_QTY = new RegExp(`[$€£]\\s?\\d|\\b(?:USD|EUR|GBP)\\s?\\d|\\b\\d+(?:[.,]\\d+)?\\s?(?:k|K|grand|bucks|quid|dollars?|euros?|pounds?)\\b|\\b${NUMWORD}(?:[\\s-]+(?:and[\\s-]+)?${NUMWORD})*\\s+(?:dollars?|pounds?|euros?|bucks|quid|grand)\\b`, "i");
-/** Any ratio, multiplier or fraction of a price: "25%", "1.25×", "one and a quarter times", "a quarter on top", "doubled", "a fifth". */
-export const RATIO = /\b\d+(?:\.\d+)?\s?(?:%|per ?cent|percent)|\b\d+(?:\.\d+)?\s?[x×](?!\w)|(?:^|[\s(])[x×]\s?\d|\b(?:\w+ )?(?:and an? (?:half|quarter|third) )?times (?:the|our|as|what|that)\b|\b(?:doubl|tripl|halv)(?:e|ed|es|ing)\b|\btwice (?:the|our|as)\b|\b(?:an?|one|two|three) (?:half|third|quarter|fifth|tenth)s?\b(?! of the (?:orders?|lines?|items?|codes?|customers?))|\bfactor\b|\bon top\b/i;
-/** Our side of the money: what the work costs us against what we charged, a profit or a loss, our rates. */
-export const OUR_MONEY = /\b(?:profit\w*|loss(?:es)?|los(?:e|es|ing|t) money|cost(?:s|ing)? (?:us|me)|(?:over|under)[- ]?charg\w*|charged|out of pocket|in the red|break(?:ing)? even|eat(?:s|ing)? into|our (?:costs?|rates?|charges?|fees?|pricing|estimates?|budgets?|hours?|time)|(?:usual|normal|standard|list|base) (?:charge|rate|price|amount|fee))\b/i;
+/** A ratio, multiplier or fraction: "25%", "twenty-five percent", "1.25×", "one and a quarter times", "a quarter on top", "doubled", "a fifth". */
+export const RATIO = new RegExp(`\\b\\d+(?:\\.\\d+)?\\s?(?:%|per ?cent|percent)|\\b${NUMWORD}(?:[\\s-]+${NUMWORD})*[\\s-]+(?:per ?cent|percent)\\b|\\b\\d+(?:\\.\\d+)?\\s?[x×](?!\\w)|(?:^|[\\s(])[x×]\\s?\\d|\\b(?:\\w+ )?(?:and an? (?:half|quarter|third) )?times (?:the|our|as|what|that)\\b|\\b(?:doubl|tripl|halv)(?:e|ed|es|ing)\\b|\\btwice (?:the|our|as)\\b|\\b(?:an?|one|two|three) (?:half|third|quarter|fifth|tenth)s?\\b|\\bas much again\\b|\\bfactor\\b|\\bon top\\b`, "i");
+/** Price context: the sentence is about what something is priced or charged at. */
+export const PRICE_CTX = /\b(?:price[ds]?|pricing|charge[ds]?|charging|fees?|rates?|quote[ds]?|billed|bill(?:s|ing)?|line|lines|units?|add(?:s|ed)?|plus|alone|all in|runs? to|comes? to|surcharge|uplift|modifier|multiplier|messy|usual|standard|normal|integration|report)\b/i;
+/** A date on the calendar: a client-facing schedule, not our effort. */
+const DATED = /\b\d{1,2} (?:January|February|March|April|May|June|July|August|September|October|November|December)\b|\b(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b/;
+/** Our side of the money: what the work costs us against what we charged, a profit or a loss on the job, our rates, the build's money. */
+export const OUR_MONEY = /\b(?:profit(?:s|able)? (?:on|from) (?:this|the) (?:job|work|build|milestone)|(?:our|the job's|the build's) (?:profit|margin)s?|los(?:e|es|ing|t) money|(?:at|made) a loss|loss on (?:this|the) (?:job|work|build|milestone)|cost(?:s|ing)? (?:us|me)|(?:over|under)[- ]?charg\w*|(?:we|I|us) (?:have |had )?charged|out of pocket|in the red|in the hole|break(?:ing)? even|eat(?:s|ing)? into (?:our|the) (?:margin|profit|time)|our (?:costs?|rates?|charges?|fees?|pricing|estimates?|budgets?|hours?|time|money)|(?:the build's|the job's) (?:money|budget)|(?:usual|normal|standard|base) (?:charge|rate|fee)|mak(?:e|es|ing) (?:us|me) (?:any|no)?(?:thing|money))\b/i;
 /** Ran past what we planned, with no number: a comparison against our own plan or estimate. */
-export const OVER_PLAN = /\b(?:past|over|beyond|more than|longer than|exceed\w*|above)\s+(?:what\s+|the time\s+)?(?:we|I|our)\b[^.]{0,30}\b(?:allowed|planned|expected|estimated|budgeted|thought|hoped|allocated|quoted)\b/i;
+export const OVER_PLAN = /\b(?:past|over|beyond|more than|longer than|exceed\w*|above)\s+(?:what\s+|the time\s+)?(?:we|I|our)\b[^.]{0,30}\b(?:allowed|planned|expected|estimated|budgeted|thought|hoped|allocated|quoted|bargained|reckoned|counted on)\b/i;
+/** The payment terms a text states, in days, however worded ("due within 14 days", "due 14 days after", "payable within two weeks"). Owner decision 1: terms are client-facing. */
+const WORDNUM = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, fourteen: 14, fifteen: 15, twenty: 20, thirty: 30, sixty: 60, ninety: 90, a: 1 };
+export function termsDays(text) {
+  const out = [];
+  for (const m of String(text).matchAll(/\b(?:due|payable|paid)\b[^.]{0,30}?\b(?:within|in|after)?\s*(\d+|[a-z]+)[\s-]+(days?|weeks?)\b/gi)) {
+    const n = /^\d+$/.test(m[1]) ? Number(m[1]) : WORDNUM[m[1].toLowerCase()];
+    if (n) out.push(n * (/^week/i.test(m[2]) ? 7 : 1));
+  }
+  return out;
+}
 /** A client-facing time is exempt where it sits: the payment terms, a change order's Schedule, a date that moves. */
-const TIME_FIELD = (head, s) => /^Schedule$/i.test(head) || /\bdue within \d+ days\b/i.test(s) || (/\b(?:mov(?:e|es|ed|ing)|later|earlier|delay(?:s|ed)?|postpone[sd]?|back by|forward by)\b/i.test(s) && /\b(?:demo|milestone|date|dates|testing|deadline|handoff|sign-?off)\b/i.test(s));
+const TIME_FIELD = (head, s) => /^Schedule$/i.test(head) || /\b(?:due|payable)\b[^.]*\b(?:within|after)\b/i.test(s) || (/\b(?:mov(?:e|es|ed|ing)|later|earlier|delay(?:s|ed)?|postpone[sd]?|back by|forward by)\b/i.test(s) && /\b(?:demo|milestone|date|dates|testing|deadline|handoff|sign-?off)\b/i.test(s));
 /** A percentage is client-facing in a payment schedule sentence. */
 const PAYMENT_SENTENCE = /\b(?:payment|invoice[ds]?|booking|deposit|balance|due)\b/i;
+/** A plan for the future: "we will test with a full week of orders" is a schedule, not our effort. */
+const FUTURE_PLAN = /\b(?:will|'ll|shall|going to)\b/i;
 
 /** A completion claim, however worded: a done word, "now <verb>", "no longer", or a perfect that is not a start ("has run", "have been converted"). */
 const STARTISH = /^(?:begun|started|kicked|got|been working|been building)$/i;
+/** A person as the subject: a pronoun, or the client's people by role. */
+const PERSON = /\b(?:we|I|you|they|he|she)\b|\byour (?:[\w-]+ ){0,3}?(?:coordinators?|managers?|bookkeepers?|team|testers?|staff|directors?|owners?|leads?|accountants?|colleagues?|people|customers?|clients?)\b/i;
 export function completionClaim(s) {
   const t = s.replace(NEGATED_DONE, " ");
   const m = t.match(DONE_WORDS) ?? t.match(/\bnow\b(?! that| on\b| and then)(?:\s+\w+)?|\bno longer\b|\b(?:has|have|had)\s+(?:all\s+|now\s+|already\s+|just\s+|finally\s+)?been\s+\w+/i);
   if (m) return m[0];
   const perf = t.match(/\b(?:has|have)\s+(?:all\s+|now\s+|already\s+|just\s+|finally\s+)?(\w+(?:ed|en|un|ne|wn|t))\b/i);
-  return perf && !STARTISH.test(perf[1]) && !/^been$/i.test(perf[1]) ? perf[0] : null;
+  if (!perf || STARTISH.test(perf[1]) || /^been$/i.test(perf[1])) return null;
+  // The present perfect claims something works only when its subject is the system, not a person ("your bookkeeper has approved").
+  return PERSON.test(t.slice(0, perf.index)) ? null : perf[0];
 }
 /** Work under way, however worded: a started word, "already", a first-person deed, work half done, work continuing. */
-const PAPERWORK = /^(?:sent|asked|priced|agreed|written|wrote|drafted|received|raised|quoted|noted|recorded|requested|signed|emailed|discussed|explained|shown|showed|went|talked|told|said|heard|confirmed|checked|read|looked|met|called|spoke|answered|replied|offered|proposed|suggested)$/i;
+const PAPERWORK = /^(?:sent|asked|priced|agreed|written|wrote|drafted|received|raised|quoted|noted|recorded|requested|signed|emailed|discussed|explained|shown|showed|went|talked|told|said|heard|confirmed|checked|read|looked|met|called|spoke|answered|replied|offered|proposed|suggested|attached|enclosed)$/i;
+const CONTINUING = /\b(?:keep|continue|carry on|carrying on|still)\s+\w+ing\b|\brefin\w+|\bpolish\w+|\bfinish\w* (?:off|up)\b/i;
+const FUTURE = /\b(?:will|would|shall|'ll|is going to|are going to|once|after|when)\b/i;
 export function underWay(s) {
   const t = s.replace(NOT_STARTED, " ");
-  const m = t.match(STARTED_WORDS) ?? t.match(/\balready\b|\b(?:half|partly|partially|mostly|largely)[\s-](?:built|done|finished|made|working|ready|written|complete)\b|\bfirst (?:draft|cut|version|pass|screens?|steps?|parts?)\b|\bground ?work\b|\bfoundations?\b|\bprototype\b|\b(?:keep|continue|carry on|carrying on|still)\s+\w+ing\b|\brefin\w+|\bpolish\w+/i);
+  // A future or conditional clause ("will be built once the amendment is signed") reports no work, unless the work continues.
+  if (FUTURE.test(t) && !/\balready\b/i.test(t)) return (t.match(CONTINUING) ?? [])[0] ?? null;
+  const m = t.match(STARTED_WORDS) ?? t.match(CONTINUING) ?? t.match(/\balready\b|\b(?:half|partly|partially|mostly|largely)[\s-](?:built|done|finished|made|working|ready|written|complete)\b|\b(?:first|early|rough|draft|beta) (?:draft|cut|version|pass|screens?|steps?|parts?)\b|\bin draft\b|\bmock-?ups?\b|\bwireframes?\b|\bground ?work\b|\bfoundations?\b|\bprototype\b/i);
   if (m) return m[0];
   const deed = t.match(/\b(?:we|I|our (?:team|builder)|the builder)\s+(?:have\s+|has\s+|'ve\s+|had\s+|are\s+|is\s+|am\s+)?(?:already\s+|just\s+)?(\w+(?:ed|en|ing|t)|made|put|built|laid|got|set|began|did|done|wrote)\b/i);
   return deed && !PAPERWORK.test(deed[1]) && !/^(?:will|would|can|could|should)$/i.test(deed[1]) ? deed[0] : null;
@@ -591,29 +633,36 @@ function blocksOf(f, raw, client) {
 }
 /** Prose only: no table rows, no check blocks (a check's own wording is the plan's), no Next blocks. */
 const proseOf = (text) => text.split("\n").filter((l) => !/^\s*\|/.test(l) && !/^\s*-\s*(?:when|then|how we check|test data|cases|kind):/i.test(l) && !/^\s*(?:NEXT|DONE|IF IT IS NOT AVAILABLE)\b/.test(l.trim())).join("\n");
-/** The category findings for one client sentence. */
-function categoryFindings(head, s, legit) {
+/** The category findings for one client sentence: each shape counts only with OUR attribution (owner decision 1). */
+function categoryFindings(head, s, legit, unitIds = []) {
   const out = [];
   const t = s.replace(/\bAC-[\w.-]+/g, " ").replace(/`[^`]*`/g, " ");
   if (/acceptance checks?/i.test(head)) return out;
+  const ours = OURS.test(t);
+  const priced = PRICE_CTX.test(t) || unitIds.some((u) => new RegExp(`\\b${esc(u)}\\b`, "i").test(t));
   let m;
-  // A frequency ("once a day", "twice a week", "per hour") is how the client's system runs, not our effort.
-  const timeHit = [...t.matchAll(new RegExp(TIME_QTY.source, "gi"))].find((x) => !/\b(?:once|twice|times|per|each|every)\s*$/i.test(t.slice(0, x.index)) || !/^an?\s/i.test(x[0]));
-  if (timeHit && !TIME_FIELD(head, t)) out.push(["a quantity of time or effort", timeHit[0]]);
+  // Time is ours only when we did it, or it is effort: "we spent", "took", "developer hours". A frequency is the client's system.
+  // A frequency ("once a day", "40 orders a week", "per hour") is how the client's business runs, not our effort.
+  const timeHit = [...t.matchAll(new RegExp(TIME_QTY.source, "gi"))].find((x) => !(/\b(?:once|twice|times|per|each|every)\s*$/i.test(t.slice(0, x.index)) && /^an?\s/i.test(x[0])) && !/\s(?:a|an|per|each|every)\s+\S+$/i.test(x[0]));
+  // Ours: an effort word, or a first-person subject in the past or present (a plan for the future is schedule). A dated sentence is a schedule unless it names effort.
+  const effort = EFFORT.test(t);
+  if (timeHit && (effort || (ours && !FUTURE_PLAN.test(t) && !DATED.test(t))) && !TIME_FIELD(head, t)) out.push(["a quantity of our time or effort", timeHit[0]]);
+  // Money is ours when it is priced or charged (or we name it), and it is not a client-facing figure.
   for (const x of t.matchAll(new RegExp(MONEY_QTY.source, "gi"))) {
-    const usd = x[0].match(/^(?:USD|EUR|GBP)\s?(\d[\d,]*(?:\.\d+)?)/i) ?? x[0].match(/^[$€£]\s?(\d[\d,]*(?:\.\d+)?)/);
-    const full = usd ? t.slice(x.index).match(/^(?:USD|EUR|GBP|[$€£])\s?(\d[\d,]*(?:\.\d+)?)/i) : null;
+    const full = t.slice(x.index).match(/^(?:USD|EUR|GBP|[$€£])\s?(\d[\d,]*(?:\.\d+)?)/i);
     if (full && legit.has(cents(full[1]))) continue;
-    out.push(["an amount of money that is not a client-facing figure", x[0]]);
+    if (!(priced || ours)) continue;
+    out.push(["an amount of money of ours that is not a client-facing figure", x[0]]);
   }
-  if ((m = t.match(RATIO)) && !(/%|per ?cent|percent/i.test(m[0]) && PAYMENT_SENTENCE.test(t) && !OUR_MONEY.test(t))) out.push(["a ratio, multiplier or fraction of a price", m[0]]);
+  // A ratio is a modifier only next to a price: the client's ratios ("98% matched", "volume doubled") are facts.
+  if ((m = t.match(RATIO)) && priced && !(/%|per ?cent|percent/i.test(m[0]) && PAYMENT_SENTENCE.test(t) && !OUR_MONEY.test(t))) out.push(["a ratio, multiplier or fraction of a price", m[0]]);
   if ((m = t.match(OUR_MONEY))) out.push(["our side of the money (cost against charge, profit or loss, our rates)", m[0]]);
   if ((m = t.match(OVER_PLAN))) out.push(["an overrun against our own plan", m[0]]);
   return out;
 }
 
 /** Spec words (§12.2, §12.7): any money or payment wording at all, unless the line is the client's own fact from the plan. */
-export const SPEC_MONEY = new RegExp(`\\b(?:pay|pays|paying|paid|payments?|payable|invoic\\w*|bill(?:s|ed|ing)?|deposits?|instal?ments?|balance|money|fees?|price[ds]?|pricing|costs?|costing|charge[ds]?|worth|valued?|owed?|owing|dollars?|euros?|pounds?|budgets?|margins?|profit\\w*|half|halves|percent|per cent|refund\\w*)\\b|%|[$€£]|\\b(?:USD|EUR|GBP)\\b|\\b\\d+k\\b|${AMOUNT_IN_WORDS.source}`, "i");
+export const SPEC_MONEY = new RegExp(`\\b(?:pay|pays|paying|paid|payments?|payable|invoic\\w*|bill(?:s|ed|ing)?|deposits?|instal?ments?|balance|money|fees?|price[ds]?|pricing|costs?|costing|charge[ds]?|worth|valued?|owed?|owing|dollars?|euros?|pounds?|budgets?|margins?|profit\\w*|half|halves|percent|per cent|refund\\w*|tranches?)\\b|%|[$€£]|\\b(?:USD|EUR|GBP)\\b|\\b\\d+k\\b|${AMOUNT_IN_WORDS.source}`, "i");
 const tokens = (s) => (String(s).toLowerCase().match(/[a-z][a-z-]{2,}/g) ?? []).filter((w) => !SPEC_STOP.has(w)).map((w) => w.replace(/(?:ing|ed|es|s|e)$/, "")).filter((w) => w.length > 2);
 const SPEC_STOP = new Set(["the", "and", "for", "are", "with", "that", "this", "from", "into", "your", "our", "not", "all", "one", "its", "their", "them", "they", "each", "who", "what", "when", "then", "there", "which", "will", "would", "can", "has", "have", "was", "were", "been", "being", "but", "any", "every", "per", "via", "out", "also", "than"]);
 /** Lines of the client's own facts: the plan files a spec file names under ## Sources, never the quote, the contract inputs or the price book (and no payment line of the build request). */
@@ -778,6 +827,14 @@ function checkStart(key, run) {
   for (const s of steps) if (!done.has(s)) p.push(`build.yaml: start_steps has no "${s}"; -start records each step as it finishes (${steps.join(", ")})`);
   const was = new Set(pb ? (pb.start_steps ?? []).map(String) : [...(run.priorExists(`${build(key)}/ledger.md`) ? ["ledger"] : []), ...(SPEC_FILES.every((f) => run.priorExists(`${key.repo}/spec/${f}.md`)) ? ["spec"] : [])]);
   if (!was.has("ledger") && !run.written().includes(`${build(key)}/ledger.md`)) p.push(`${build(key)}/ledger.md: the ledger step was not done before and this -start did not write it`);
+  // The working-demo answer (R3-6) is kept in build.yaml with the first answers, and the ledger agrees with it.
+  try {
+    const lg = md(run, `${build(key)}/ledger.md`).data;
+    const wd = String(b.working_demo ?? "").match(/^(M\d+|none)\b/)?.[1];
+    if (!wd) p.push(`build.yaml: no working_demo; -start records the working-demo answer with its first answers, so a cut-off run keeps it`);
+    else if (String(lg.working_demo ?? "none") !== wd) p.push(`build.yaml: working_demo is ${wd}, but ledger.md says ${lg.working_demo}`);
+    else if (/^user-stated/.test(String(lg.working_demo_source ?? "")) && !/\(user-stated \d{4}-\d{2}-\d{2}\)$/.test(String(b.working_demo))) p.push(`build.yaml: working_demo "${b.working_demo}" does not say it is user-stated, as the ledger records it`);
+  } catch { /* the ledger check reports a broken ledger */ }
   if (mode === "opchain" && !was.has("spec")) for (const f of SPEC_FILES) if (!run.written().includes(`${key.repo}/spec/${f}.md`)) p.push(`${key.repo}/spec/${f}.md: the spec step was not done before this -start (start_steps), so it writes spec/ before the map; it did not`);
   if (mode === "opchain" && (!b.builder?.repo || b.builder.repo === "none")) p.push("build.yaml: builder.repo is not recorded (section 5)");
   if (key.embedded) {
@@ -1443,6 +1500,8 @@ const CO_MOVES = {
   "--signed": { from: ["amendment out"], to: "signed", line: (d, u) => new RegExp(`^signed ${d}: signed amendment received, recorded by ${esc(u)}; signature not verified by this skill$`) },
   "--declined": { from: ["draft", "sent", "amendment out"], to: "declined", line: (d, u) => new RegExp(`^declined ${d}, recorded by ${esc(u)}$`) },
 };
+/** The keys a move may change beyond status and history. */
+const MOVE_KEYS = { "--sent": [], "--agreed": [], "--signed": ["signed", "signature_note", "work"], "--declined": ["work"] };
 /** One move of one change order (D5): from an allowed status, to its status, history kept and one line added; nothing else of it changes. */
 function coMoveProblems(key, run, id, mode, date) {
   const p = [];
@@ -1462,7 +1521,11 @@ function coMoveProblems(key, run, id, mode, date) {
   if (added.length !== 1) p.push(`${rel}: ${added.length} history lines added; ${mode} adds one`);
   else if (!mv.line(iso(date), key.user).test(added[0])) p.push(`${rel}: the history line "${added[0]}" is not the ${mode} line (phase-change.md §6)`);
   if (internalSplit(content).client !== internalSplit(before.content).client) p.push(`${rel}: the change order's client text changed; a move changes its header only`);
-  for (const k of ["id", "kind", "price", "requests", "adds_checks", "schedule_impact", "payment", "currency"]) if (JSON.stringify(data[k]) !== JSON.stringify(before.data[k])) p.push(`${rel}: ${k} changed on a ${mode} move`);
+  // A move changes only the keys its mode names (R3-3): status and history, and for --signed and --declined their own.
+  const may = new Set(["status", "history", ...(MOVE_KEYS[mode] ?? [])]);
+  for (const k of new Set([...Object.keys(before.data), ...Object.keys(data)])) if (!may.has(k) && JSON.stringify(data[k]) !== JSON.stringify(before.data[k])) p.push(`${rel}: ${k} changed on a ${mode} move; ${mode} changes only ${[...may].join(", ")}`);
+  // ... and only its own change order: no other CO-nn.md is rewritten in the run.
+  for (const f of run.written().filter((x) => /\/changes\/CO-\d+\.md$/.test(x) && x !== rel && run.priorExists(x))) p.push(`${f}: rewritten on a ${mode} move of ${id}; a move changes only its own change order`);
   return p;
 }
 function checkCoMove(key, run) {
@@ -1615,7 +1678,7 @@ function checkInvoice(key, run) {
     if (data.currency !== q.currency) p.push(`${f}: currency ${data.currency}`);
     if (m && !String(data.basis ?? "").includes(m.basis.split("/").pop())) p.push(`${f}: basis "${data.basis}" does not name ${m.basis}`);
     if (!/This is a request for your invoicing tool, not an invoice\. The ledger is not an accounting record\./.test(content)) p.push(`${f}: does not say it is a request, not an invoice, and that the ledger is not an accounting record`);
-    if (!amountRe(cents(data.amount)).test(content) || !new RegExp(`due within ${q.payment_terms_days} days`).test(content)) p.push(`${f}: the text does not state the amount and "due within ${q.payment_terms_days} days"`);
+    if (!amountRe(cents(data.amount)).test(content) || !termsDays(content).includes(Number(q.payment_terms_days))) p.push(`${f}: the text does not state the amount and the payment terms (${q.payment_terms_days} days, however worded: "due within ${q.payment_terms_days} days", "payable within two weeks")`);
     p.push(...arithmeticProblems(f, data.arithmetic, row ? { total: q.fixed_price, schedule: q.schedule } : null));
     const say = sayOf(run, "invoice");
     const want = say ? say.replace(/\{files\}/g, f.slice(OW.length)) : PUBLIC_INVOICE;
@@ -1729,13 +1792,13 @@ function checkInternalNumbers(key, run) {
   const internal = internalAmounts(run, key);
   const legit = legitAmounts(run, key);
   const hours = hourFigures(run, key);
-  let units = [], mods = [];
-  try { const b = book(run); units = (b.units ?? []).map((u) => u.id).filter((id) => id.includes("-")); mods = (b.modifiers ?? []).map((m) => m.id); } catch { /* a broken price book is reported by the checks that price */ }
-  const scan = (f, text, terms, amounts) => text.split("\n").forEach((line, i) => {
+  let units = [], mods = [], unitIds = [];
+  try { const b = book(run); unitIds = (b.units ?? []).map((u) => String(u.id)); units = unitIds.filter((id) => id.includes("-")); mods = (b.modifiers ?? []).map((m) => m.id); } catch { /* a broken price book is reported by the checks that price */ }
+  const scan = (f, text, terms, amounts, client = true) => text.split("\n").forEach((line, i) => {
     const l = line.replace(/`[^`]*`/g, " ");
     for (const [re, what] of terms) { const m = l.match(re); if (m) p.push(`${f}:${i + 1}: carries ${what} ("${m[0].trim()}")`); }
     for (const id of [...units, ...mods]) if (new RegExp(`(?<![\\w-])${esc(id)}(?![\\w-])`).test(l)) p.push(`${f}:${i + 1}: names the price-book entry ${id}`);
-    for (const c of amounts) if (amountRe(c).test(l)) p.push(`${f}:${i + 1}: carries the internal amount ${money(c)}`);
+    for (const c of amounts) if (amountRe(c).test(l) && (!client || PRICE_CTX.test(l) || OURS.test(l))) p.push(`${f}:${i + 1}: carries the internal amount ${money(c)}`);
     for (const h of hours) if (new RegExp(`(?<![\\d,.])${esc(h)}(?![\\d])`).test(l)) p.push(`${f}:${i + 1}: carries the hour figure ${h}`);
   });
   // ready-for-uat.md is read by acceptance testing, not sent: it may name the builder's reports, never a number of ours.
@@ -1744,7 +1807,7 @@ function checkInternalNumbers(key, run) {
   for (const f of clientFiles(run)) {
     const raw = run.read(f) ?? "";
     for (const { head, text } of blocksOf(f, raw, clientText(run, f))) {
-      for (const s of sentences(proseOf(text))) for (const [what, hit] of categoryFindings(head, s, legit)) p.push(`${f}: carries ${what} ("${hit}" in "${s.slice(0, 70)}")`);
+      for (const s of sentences(proseOf(text))) for (const [what, hit] of categoryFindings(head, s, legit, unitIds)) p.push(`${f}: carries ${what} ("${hit}" in "${s.slice(0, 70)}")`);
     }
   }
   // spec/: no price at all, client-facing or not (§12.7), and no money or payment wording unless it is the client's own fact.
@@ -1752,7 +1815,7 @@ function checkInternalNumbers(key, run) {
   for (const f of run.written().filter((x) => /\/spec\//.test(x))) {
     const { content } = matter(run.read(f) ?? "");
     const body = content.replace(/^## Sources[\s\S]*$/m, "");
-    scan(f, body, [...SPEC_TERMS, [AMOUNT_IN_WORDS, "an amount in words"], ...INTERNAL_TERMS.filter(([, w]) => /margin|pricing internals|modifier factor/.test(w))], [...all]);
+    scan(f, body, [...SPEC_TERMS, [AMOUNT_IN_WORDS, "an amount in words"], ...INTERNAL_TERMS.filter(([, w]) => /margin|pricing internals|modifier factor/.test(w))], [...all], false);
     const facts = clientFactLines(run, key, content);
     body.split("\n").forEach((line, i) => {
       const m = line.replace(/`[^`]*`/g, " ").match(SPEC_MONEY);
@@ -1920,7 +1983,7 @@ function checkWrites(key, run) {
 /** One spelling per request file: case, "./", an opchain-work/ prefix, a missing .md and UAT-3 for UAT-03 are the same file. */
 export const requestKey = (p) => String(p).trim().toLowerCase().replace(/^\.\//, "").replace(/^opchain-work\//, "").replace(/\b(uat|fix)-0*(\d+)(?:\.md)?$/, "$1-$2.md");
 /** The request ids a cell or path names, however spelled ("UAT-03", "uat/x/defects/uat-3", "FIX-07.md"): "uat-3", "fix-7" (D7). */
-export const requestIds = (s) => [...String(s ?? "").matchAll(/\b(uat|fix)-0*(\d+)(?!\d)/gi)].map((m) => `${m[1].toLowerCase()}-${m[2]}`);
+export const requestIds = (s) => [...String(s ?? "").matchAll(/\b(uat|fix)[-\s]?0*(\d+)(?!\d)/gi)].map((m) => `${m[1].toLowerCase()}-${m[2]}`);
 /** A requests.md result that settles its request: a change order, too big, excluded, or no charge. "unpriced: …" does not (D2). */
 export const SETTLED = /^(?:CO-\d+\b|too big for a change order|excluded:|no charge\b)/i;
 /** Requests already settled (priced once): a requests.md row with a settled result, or a change order's `requests:`, as ids. */

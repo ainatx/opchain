@@ -13,6 +13,7 @@ quote_mode: quick
 signed: 2026-10-29
 update_day: Friday
 first_update: 2026-11-06
+working_demo: none
 gitignore: not a git repository
 sources:
   git: { repo: ../mossgate-repo, branch: main }

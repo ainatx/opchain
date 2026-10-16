@@ -256,7 +256,7 @@ describe("§10: planted failures", () => {
 
   it("weekly update: no hours, rates or margin, however worded (meaning, not one phrase)", () => {
     for (const [plant, what] of [
-      ["We put 31 hours into the order intake.", /an hour count|hours/],
+      ["We put 31 hours into the order intake.", /our hours|our time or effort/],
       ["It took about four days of work to get right.", /effort/],
       ["Time logged this week was higher than planned.", /effort/],
       ["The first milestone ran over budget, which is on us.", /margin/],
@@ -744,7 +744,11 @@ describe("round-2 text rules (Sprint 2 round 3)", () => {
     expect(readFileSync(join(SKILL, "SKILL.md"), "utf8")).toMatch(/NEXT: say "use ow-build-plan on handoffs\/<client>\/fixes\/FIX-nn\.md"   \(where slash commands exist: \/ow-build-plan\)/);
   });
   it("D1: the self-checks name the categories, and what a checker cannot catch", () => {
-    expect(ref("self-checks.md")).toMatch(/\*\*The categories of an internal number\.\*\*/);
+    expect(ref("self-checks.md")).toMatch(/\*\*An internal number is ours only\*\* \(owner decision 2026-10-16\)/);
+    // Owner decision 1: the client's schedule, figures and ratios are allowed; a duration is banned only as our effort.
+    expect(ref("self-checks.md")).toMatch(/your testers will have two weeks/);
+    expect(ref("self-checks.md")).toMatch(/A duration of our build work is not banned by itself; it is banned when it shows our effort or hours/);
+    expect(ref("self-checks.md")).not.toMatch(/any number, in figures or words, of minutes, hours, days/);
     expect(ref("self-checks.md")).toMatch(/\*\*What a checker cannot catch\.\*\*/);
   });
 });

@@ -13,6 +13,7 @@ quote_mode: build-plan
 signed: 2026-11-09
 update_day: Friday
 first_update: 2026-11-13
+working_demo: M1 (user-stated 2026-11-10)
 gitignore: added
 sources:
   git: { repo: ../larkspur-repo, branch: main }

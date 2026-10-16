@@ -13,6 +13,7 @@ quote_mode: build-plan
 signed: 2026-11-19
 update_day: Friday
 first_update: 2026-11-27
+working_demo: none
 gitignore: added
 sources:
   git: { repo: ../fernhill-repo, branch: main }

@@ -430,7 +430,7 @@ function checkNextBlocks(file, text, lineOffset, ctx, problems) {
     // The slash hint on any template line (NEXT, or a later line such as WHEN IT IS SIGNED) resolves too.
     const use0 = line.match(/say "use ([a-z0-9-]+)/)[1];
     const use = known.has(use0) ? use0 : verbNames?.has(use0) ? owners.get(`/${use0}`) ?? use0 : use0;
-    const hint = line.match(/\(where slash commands exist: (\/[a-z0-9-]+)((?: --[a-z][a-z0-9-]*)*)/);
+    const hint = line.match(/\((?:[^()]*?; )?where slash commands exist: (\/[a-z0-9-]+)((?: --[a-z][a-z0-9-]*)*)/);
     if (hint && !/^\s*NEXT:/.test(line)) {
       if (!owners.has(hint[1])) problems.push(`${where}: the slash hint \`${hint[1]}\` is not declared by any skill, add-on or planned skill`);
       else if (owners.get(hint[1]) !== use) problems.push(`${where}: the line says "use ${use}" but \`${hint[1]}\` belongs to ${owners.get(hint[1])}`);
@@ -438,6 +438,8 @@ function checkNextBlocks(file, text, lineOffset, ctx, problems) {
     if (hint && hint[2] && bodies?.has(use) && !hint[2].trim().split(/\s+/).every((f) => bodies.get(use).includes(`\`${hint[1]} ${f}`))) {
       if (!/^\s*NEXT:/.test(line)) problems.push(`${where}: \`${hint[1]}${hint[2]}\` is not a mode ${use}'s body documents`);
     }
+    // Protocol §9 form: every printed "use <id>" line carries its slash hint (round 3, K18).
+    if (!hint) problems.push(`${where}: this NEXT template has no slash hint "(where slash commands exist: /<verb>)" (protocol §9)`);
     if (!after.some((l) => /^\s+It will read:/.test(l))) problems.push(`${where}: this NEXT template has no "It will read:" line (protocol §9)`);
     if (!after.some((l) => /^\s+\[no folder attached:/.test(l))) problems.push(`${where}: this NEXT template has no "[no folder attached: …]" line (protocol §9)`);
   });
@@ -532,6 +534,18 @@ export function checkFamily(catalogs) {
         problems.push(`${file}: the body carries no NEXT template (ow- contract R6/R7)`);
       }
       checkEdgeTables(s, file, problems);
+      // A verb whose STATUS lines must name what it acts on (catalogs.json statusNames, e.g. "/ow-build-run": "M<n>"):
+      // every `next: … | awaiting: …` template in its phase file carries that name (round 3, K19).
+      for (const [verb, name] of Object.entries(c.statusNames ?? {})) {
+        if (!verb.startsWith(`/${s.id}-`)) continue;
+        const phase = join(c.dir, s.id, "references", `phase-${verb.slice(s.id.length + 2)}.md`);
+        if (!existsSync(phase)) { problems.push(`${c.relDir}/${s.id}: catalogs.json statusNames names ${verb}, but references/${basename(phase)} does not exist`); continue; }
+        readFileSync(phase, "utf8").split("\n").forEach((line, i) => {
+          for (const m of line.matchAll(/`(next: [^`]*\| awaiting: [^`]*)`/g)) {
+            if (!m[1].includes(name)) problems.push(`${c.relDir}/${s.id}/references/${basename(phase)}:${i + 1}: the STATUS line "${m[1]}" does not name ${name} (catalogs.json statusNames: ${verb})`);
+          }
+        });
+      }
       const refs = join(c.dir, s.id, "references");
       if (existsSync(refs)) {
         for (const r of readdirSync(refs).filter((n) => n.endsWith(".md")).sort()) {

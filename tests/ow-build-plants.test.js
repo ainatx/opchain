@@ -483,3 +483,181 @@ describe("round-3 plants: D2, D3, D10 and D11", () => {
     expect(failures("change-sent", extra).co_move).toMatch(/price changed on a --sent move/);
   });
 });
+
+describe("round-3 evaluation set (fresh3.mjs) and false-positive controls (owner decision 1, 2026-10-16)", () => {
+  // Function replacements throughout: a sentence holding "$120" must not be read as a group reference.
+  const B3 = "opchain-work/builds/larkspur-ceramics";
+  const B = B3;
+  const T = { FIXTURES };
+  const both3 = (rel, fn) => ({ [`${rel}.html`]: fn, [`${rel}.txt`]: fn });
+  const pSection = (head) => (s) => (x) => x.replace(new RegExp(`(${head}</h2>\\n<p[^>]*>)`), (m) => `${m}${s} `).replace(new RegExp(`(\\n${head}\\n)`), (m) => `${m}${s} `);
+  const liSection = (head) => (s) => (x) => x.replace(new RegExp(`(${head}</h2>\\n<ul[^>]*>\\n)`), (m) => `${m}<li style="margin:0 0 4px 0;">${s}</li>\n`).replace(new RegExp(`(\\n${head}\\n)`), (m) => `${m}- ${s}\n`);
+  const traced = (sentence, src) => (x) => x.replace(/(## Trace\n\| # \| sentence \| source \|\n\|---\|---\|---\|\n)/, (m) => `${m}| 0 | ${sentence} | ${src} |\n`);
+  const tw = (date, s, src) => ({ ...both3(`${B3}/updates/${date}`, pSection("This week")(s)), [`${B3}/updates/${date}-checks.md`]: traced(s, src) });
+  const nextWeek = (date, s) => both3(`${B3}/updates/${date}`, pSection("Next week")(s));
+  const needs = (date, s) => both3(`${B3}/updates/${date}`, liSection("Needs from you")(s));
+  const coWhy = (s) => both3(`${B3}/changes/CO-01`, (x) => x.replace(/(Your stock sheet is not one of the systems in the agreed scope, so this is new work\.)/, (m) => `${m} ${s}`));
+  const demoWorks = (s) => both3(`${B3}/demos/M1-summary`, pSection("What we showed")(s));
+  const spec = (file, s) => ({ [`larkspur-repo/spec/${file}`]: (x) => x.replace(/\n## Sources/, (m) => `\n${s}\n${m}`) });
+  const note = "note Robin 2026-11-13", R1 = "report sprints/sprint-1/eval-round-2.md";
+  const KNOWN = {"F02":"idiom","F03":"idiom","F04":"idiom","F07":"an amount in words with no currency word","F26":"idiom","F28":"idiom","F29":"marker-less done claim (U11 class)"};
+  /** P: a plant, caught (some finding). FP: a legitimate sentence, no finding at all (the golden has none). */
+  function test(kind, id, cat, desc, caseName, edits) {
+    if (KNOWN[id]) return it.skip(`${id}: ${desc} — left uncaught, owner decision 2 (${KNOWN[id]}); the self-check covers it`, () => {});
+    it(`${kind} ${id}: ${desc}`, () => {
+      const out = failures(caseName, mutated(caseName, edits));
+      if (kind === "P") expect(Object.keys(out).length, `${id} slipped`).toBeGreaterThan(0);
+      else expect(out, `${id} is a false positive`).toEqual({});
+    });
+  }
+  const keyDir = temp("ow-build-key3-");
+  writeFileSync(join(keyDir, "answer-key.yaml"), "case: route-uat-03\nsection: probe\nclient: Larkspur Ceramics\nslug: larkspur-ceramics\nuser: Robin\nrepo: larkspur-repo\nchecks: [route]\nroute: { from: uat/larkspur-ceramics/defects/UAT-03.md }\n");
+  async function alt() {
+    const d = temp("ow-build-alt3-");
+    for (const p of ["scripts", "skills-work", "plugins/ow-tools", "tests/fixtures/ow-build", "tests/fixtures/ow-build-plan"]) cpSync(join(ROOT, p), join(d, p), { recursive: true });
+    for (const f of ["catalogs.json", "package.json"]) cpSync(join(ROOT, f), join(d, f));
+    symlinkSync(join(ROOT, "node_modules"), join(d, "node_modules"));
+    return import(join(d, "scripts", "ow-build-acceptance.mjs"));
+  }
+  function priorProbe(kind, id, cat, desc, caseName, fixtureEdits, key) {
+    it(`${kind} ${id}: ${desc}`, async () => {
+      const A = await alt();
+      for (const [rel, edit] of Object.entries(fixtureEdits)) {
+        const p = join(A.FIXTURES, rel);
+        const before = existsSync(p) ? readFileSync(p, "utf8") : null;
+        mkdirSync(dirname(p), { recursive: true });
+        writeFileSync(p, edit(before));
+      }
+      const found = A.runCase(caseName, null, key ? { caseDir: key } : undefined).flatMap((r) => r.problems);
+      if (kind === "P") expect(found.length, `${id} slipped`).toBeGreaterThan(0);
+      else expect(found, `${id} is a false positive`).toEqual([]);
+    }, 30000);
+  }
+
+  test("P", "F01", "time", "'took the better part of a week'", "update", tw("2026-11-13", "The import took the better part of a week.", note));
+  test("P", "F02", "time", "'ate up most of Tuesday and Wednesday'", "update", tw("2026-11-13", "Getting the codes right ate up most of Tuesday and Wednesday.", note));
+  test("P", "F03", "time", "'we were at it until midnight twice'", "update", tw("2026-11-13", "We were at it until midnight twice on the code clean-up.", note));
+  test("P", "F04", "time", "'a long slog of late nights'", "update", tw("2026-11-13", "The clean-up was a long slog of late nights.", note));
+  test("P", "F05", "time", "'roughly forty developer hours'", "update", tw("2026-11-13", "The clean-up needed roughly forty developer hours.", note));
+  test("P", "F06", "time", "demo summary: 'it took us a solid week'", "demo-record", demoWorks("It took us a solid week to get the codes right."));
+  test("P", "F07", "money", "CO email: 'priced at eighteen hundred' (no currency word)", "change-priced", coWhy("The integration line is priced at eighteen hundred."));
+  test("P", "F08", "money", "CO email: 'US$600 for the report'", "change-priced", coWhy("The report adds US$600 to it."));
+  test("P", "F09", "money", "CO email: 'about two grand'", "change-priced", coWhy("That part alone runs to about two grand."));
+  test("P", "F10", "money", "update: 'the clean-up cost 1,200 of the build'", "update", tw("2026-11-13", "The clean-up used up 1,200 of the build's money.", note));
+  test("P", "F11", "ratio", "CO email: 'bumps the price up by a quarter'", "change-priced", coWhy("Messy data bumps the price up by a quarter."));
+  test("P", "F12", "ratio", "CO email: 'we add twenty-five percent when the data is messy'", "change-priced", coWhy("We add twenty-five percent when the data is messy."));
+  test("P", "F13", "ratio", "CO email: 'half as much again'", "change-priced", coWhy("Messy data makes it half as much again."));
+  test("P", "F14", "ratio", "CO email: '125 percent of the usual line'", "change-priced", coWhy("It is billed at 125 percent of the usual line."));
+  test("P", "F15", "ours", "update: 'will barely cover our time'", "update", tw("2026-11-13", "At this pace milestone 1 will barely cover our time.", note));
+  test("P", "F16", "ours", "update: 'has gone over what we allowed for it'", "update", tw("2026-11-13", "Milestone 1 has gone over what we allowed for it.", note));
+  test("P", "F17", "ours", "update: 'this one is not making us anything'", "update", tw("2026-11-13", "Between ourselves, this one is not making us anything.", note));
+  test("P", "F18", "ours", "update: 'we are in the hole on milestone 1'", "update", tw("2026-11-13", "We are in the hole on milestone 1.", note));
+  test("P", "F19", "ours", "update: 'took longer than we bargained for'", "update", tw("2026-11-13", "The code clean-up took longer than we bargained for.", note));
+  test("P", "F20", "spec", "spec: 'settles the remaining balance after acceptance'", "start", spec("00-project-overview.md", "The client settles the remaining balance after acceptance."));
+  test("P", "F21", "spec", "spec: 'Forty percent comes in at booking'", "start", spec("00-project-overview.md", "Forty percent comes in at booking."));
+  test("P", "F22", "spec", "spec: 'a seventeen-thousand-dollar job'", "start", spec("00-project-overview.md", "This is a seventeen-thousand-dollar job."));
+  test("P", "F23", "spec", "spec: 'The second tranche follows the demo.'", "start", spec("00-project-overview.md", "The second tranche follows the milestone 1 demo."));
+  test("P", "F24", "spec", "spec: 'Larkspur is billed on signing and after the demo'", "scope-and-milestones" === "" ? "" : "start", spec("scope-and-milestones.md", "Larkspur is billed on signing and again after the demo."));
+  test("P", "F25", "done", "'Your staff can now print packing slips' (note)", "update", tw("2026-11-13", "Your staff can now print packing slips straight from the order.", note));
+  test("P", "F26", "done", "'The duplicate-order problem is gone.' (note)", "update", tw("2026-11-13", "The duplicate-order problem is gone.", note));
+  test("P", "F27", "done", "'The order sheet has stopped dropping lines.' (note)", "update", tw("2026-11-13", "The order sheet has stopped dropping lines.", note));
+  test("P", "F28", "done", "'We got the QuickBooks link behaving.' (note)", "update", tw("2026-11-13", "We got the QuickBooks link behaving.", note));
+  test("P", "F29", "done-U11", "marker-less: 'Packing slips print straight from the order.' (U11 class)", "update", tw("2026-11-13", "Packing slips print straight from the order.", note));
+  const sg = (s) => tw("2026-12-04", s, "note Robin 2026-12-04");
+  test("P", "F30", "started", "'Stock on hand is partly built.'", "signature-gate", sg("Stock on hand is partly built."));
+  test("P", "F31", "started", "'We have been laying out the stock screen.'", "signature-gate", sg("We have been laying out the stock on hand screen."));
+  test("P", "F32", "started", "'There is an early version of the stock display to look at.'", "signature-gate", sg("There is an early version of the stock on hand display to look at."));
+  test("P", "F33", "started", "'Stock on hand: the screens exist in draft.'", "signature-gate", sg("For stock on hand, the screens exist in draft."));
+  const reqs = (from, result) => ({ "change-uat-extension/input/opchain-work/builds/larkspur-ceramics/changes/requests.md": () => `---\now_artefact: ow-build/change-requests\n---\n# Change requests\n\n| # | date | request | from | class | result |\n|---|---|---|---|---|---|\n| R-07 | 2027-01-20 | "one more round" | ${from} | change | ${result} |\n` });
+  priorProbe("P", "O01", "D2", "settled 'CO-09 (draft)' with from 'UAT 03' (space)", "change-uat-extension", reqs("UAT 03", "CO-09 (draft)"), keyDir);
+  priorProbe("P", "O02", "D2", "settled with from 'uat/larkspur-ceramics/defects/UAT-03' (no .md)", "change-uat-extension", reqs("uat/larkspur-ceramics/defects/UAT-03", "CO-09 (draft)"), keyDir);
+  priorProbe("P", "O03", "D2", "settled 'too big for a change order (40 units; limit 30)'", "change-uat-extension", reqs("uat/larkspur-ceramics/defects/UAT-03.md", "too big for a change order (40 units; limit 30)"), keyDir);
+  priorProbe("FP", "O04", "D2", "unpriced row does NOT settle: re-pricing is allowed", "change-uat-extension", reqs("uat/larkspur-ceramics/defects/UAT-03.md", "unpriced: no price-book unit; asked Robin 2027-01-20"), keyDir);
+  priorProbe("P", "O05", "D2", "settled 'CO-09 (declined)' — a declined CO still names it (should it be re-priceable?) [informational]", "change-uat-extension", reqs("uat/larkspur-ceramics/defects/UAT-03.md", "CO-09 (declined)"), keyDir);
+  test("P", "O06", "D2", "repriced row drops '(again: R-nn was unpriced)'", "change-uat-repriced", { [`${B}/changes/requests.md`]: (t) => t.replace(/ \(again: R-\d+ was unpriced\)/, "") });
+  test("P", "O07", "D3", "start-resume-spec: ledger rewritten on resume", "start-resume-spec", { [`${B}/ledger.md`]: (t) => t.replace("# Ledger", "# Ledger (again)") });
+  test("P", "O08", "D3", "start-resume-spec: start_steps lacks 'spec' after spec/ was written", "start-resume-spec", { [`${B}/build.yaml`]: (t) => t.replace(/start_steps: \[([^\]]*?), ?spec/, "start_steps: [$1") });
+  test("P", "O09", "D3", "start-resume-spec: a spec/ file missing after resume", "start-resume-spec", { "larkspur-repo/spec/04-integrations.md": () => null });
+  test("P", "O10", "D4", "--sent run rewrites CO-01.html", "change-sent", { [`${B}/changes/CO-01.html`]: (t) => (t ?? readFileSync(join(T.FIXTURES, "change-priced/expected", `${B}/changes/CO-01.html`), "utf8")).replace("</h1>", " (sent)</h1>") });
+  test("P", "O11", "D5", "--sent also changes the price", "change-sent", { [`${B}/changes/CO-01.md`]: (t) => t.replace(/^price: [\d.]+/m, "price: 2900.00") });
+  test("P", "O12", "D5", "--declined leaves status sent", "change-declined", { [`${B}/changes/CO-03.md`]: (t) => t.replace(/^status: declined/m, "status: sent") });
+  test("P", "O13", "D6", "dark td background with default dark text", "update", { [`${B}/updates/2026-11-13.html`]: (t) => t.replace('<td style="padding:16px 0 0 0;">', '<td style="padding:16px 0 0 0;background-color:#1F4E79;">') });
+  test("P", "O14", "D6", "named colour 'color:gray' on h2", "update", { [`${B}/updates/2026-11-13.html`]: (t) => t.replaceAll("font-size:18px;color:#1F4E79;", "font-size:18px;color:gray;") });
+  test("P", "O15", "D6", "rgba(0,0,0,0.3) text", "update", { [`${B}/updates/2026-11-13.html`]: (t) => t.replaceAll("font-size:18px;color:#1F4E79;", "font-size:18px;color:rgba(0,0,0,0.3);") });
+  test("FP", "X01", "fp", "invoice request: 'due 14 days after the invoice date'", "invoice-booking", { [`${B}/invoices/INV-request-booking.md`]: (t) => t.replace("due within 14 days of the invoice", "due 14 days after the invoice date") });
+  test("FP", "X02", "fp", "invoice request: 'payable within two weeks of the invoice'", "invoice-booking", { [`${B}/invoices/INV-request-booking.md`]: (t) => t.replace("due within 14 days of the invoice", "payable within two weeks of the invoice") });
+  test("FP", "X03", "fp", "This week (note): 'Your order coordinator has sent the corrected product codes.'", "update", tw("2026-11-13", "Your order coordinator has sent the corrected product codes.", note));
+  test("FP", "X04", "fp", "This week (note): 'We have agreed the demo date with your operations manager.'", "update", tw("2026-11-13", "We have agreed the demo date with your operations manager.", note));
+  test("FP", "X05", "fp", "This week (report covering AC-1.1): legit done 'Email orders now reach your order sheet with every line.'", "update", tw("2026-11-13", "Purchase orders sent by email now reach your order sheet with every line.", R1));
+  test("FP", "X06", "fp", "This week (report covering AC-1.2): 'Emails with no readable purchase order no longer reach the order sheet.'", "update", tw("2026-11-13", "Emails with no readable purchase order no longer reach the order sheet.", R1));
+  test("FP", "X07", "fp", "Next week: 'the import will check for new orders every 15 minutes, as agreed'", "update", nextWeek("2026-11-13", "The import will check for new orders every 15 minutes, as agreed."));
+  test("FP", "X08", "fp", "Next week: 'Orders over $500 will wait for your approval, as the plan says.'", "update", nextWeek("2026-11-13", "Orders over $500 will wait for your approval, as the plan says."));
+  test("FP", "X09", "fp", "Needs from you: 'about an hour of your order coordinator's time for the demo'", "update", needs("2026-11-13", "About an hour of your order coordinator's time for the demo on 25 November 2026."));
+  test("FP", "X10", "fp", "Needs from you: 'Please send the corrected codes within a week of this email.'", "update", needs("2026-11-13", "Please send the corrected codes within a week of this email, by 20 November 2026."));
+  test("FP", "X11", "fp", "Next week: 'Testers will have two weeks for acceptance testing, from 4 January 2027.'", "update", nextWeek("2026-11-13", "Your testers will have two weeks for acceptance testing, from 4 January 2027."));
+  test("FP", "X12", "fp", "Next week: 'Roughly a third of your September orders had an unknown product code.'", "update", nextWeek("2026-11-13", "Roughly a third of your September orders had an unknown product code."));
+  test("FP", "X13", "fp", "Next week: 'The exceptions list will sit on top of the order sheet.'", "update", nextWeek("2026-11-13", "The exceptions list will sit on top of the order sheet."));
+  test("FP", "X14", "fp", "Next week: 'Your order volume doubled in December, so we will test with December orders.'", "update", nextWeek("2026-11-13", "Your order volume doubled in December, so we will test with December orders."));
+  test("FP", "X15", "fp", "Next week: 'Stock losses stay in your stock sheet; nothing here changes them.'", "update", nextWeek("2026-11-13", "Stock losses stay in your stock sheet; nothing here changes them."));
+  test("FP", "X16", "fp", "demo summary: 'Each order line shows the list price from your catalogue.'", "demo-record", demoWorks("Each order line shows the list price from your catalogue."));
+  test("FP", "X17", "fp", "demo summary: '98% of the sampled product codes matched the new form.'", "demo-record", demoWorks("Of the sampled product codes, 98% matched the new form."));
+  test("FP", "X18", "fp", "Next week: 'Nothing in this update changes the fixed price of USD 17,450.00.'", "update", nextWeek("2026-11-13", "Nothing in this update changes the fixed price of USD 17,450.00."));
+  test("FP", "X19", "fp", "Next week: 'The milestone 1 demo is in two weeks, on 25 November 2026.'", "update", nextWeek("2026-11-13", "The milestone 1 demo is in two weeks, on 25 November 2026."));
+  test("FP", "X20", "fp", "signature gate (This week, note): 'We have attached change order CO-01 for stock on hand; it needs your signed amendment before any work.'", "signature-gate", sg("We have attached change order CO-01 for stock on hand; it needs your signed amendment before any work."));
+  test("FP", "X21", "fp", "signature gate (This week, note): 'Stock on hand will be built once the amendment is signed.' (future)", "signature-gate", sg("Stock on hand will be built once the amendment is signed."));
+  test("FP", "X22", "fp", "spec/: a client fact paraphrased from scope.md ('Each day's confirmed orders turn into QuickBooks Online invoices, no retyping.')", "start", spec("00-project-overview.md", "Each day's confirmed orders turn into QuickBooks Online invoices, with no retyping."));
+  test("FP", "X23", "fp", "spec/: client fact from systems.md ('QuickBooks Online holds 1,140 invoices a year across 212 items.')", "start", spec("02-architecture.md", "QuickBooks Online holds 1,140 invoices a year across 212 items."));
+  test("FP", "X24", "fp", "CO email Why: 'A wrong tile costs your team a reshipment, which is why stock matters.' (client's cost)", "change-priced", coWhy("A wrong tile costs your team a reshipment, which is why stock on hand matters to you."));
+  test("FP", "X25", "fp", "This week (note): 'Your bookkeeper confirmed that invoices are made in QuickBooks Online every afternoon.'", "update", tw("2026-11-13", "Your bookkeeper confirmed that invoices are made in QuickBooks Online every afternoon.", note));
+  test("FP", "Y01", "fp", "Next week: 'Orders over $750 will wait for your approval, as the plan says.' (not a price-book value)", "update", nextWeek("2026-11-13", "Orders over $750 will wait for your approval, as the plan says."));
+  test("FP", "Y02", "fp", "Needs from you: '45 minutes with your bookkeeper to walk through the invoice step'", "update", needs("2026-11-13", "45 minutes with your bookkeeper to walk through the invoice step, by 20 November 2026."));
+  test("FP", "Y03", "fp", "This week (note): 'Your operations manager has approved the list of email customers.'", "update", tw("2026-11-13", "Your operations manager has approved the list of email customers.", note));
+  test("FP", "Y04", "fp", "This week (note): 'We met your bookkeeper on Wednesday to walk through the invoice step.'", "update", tw("2026-11-13", "We met your bookkeeper on Wednesday to walk through the invoice step.", note));
+  test("FP", "Y05", "fp", "Next week: 'We start on the order confirmation view on Monday.'", "update", nextWeek("2026-11-13", "We start on the order confirmation view on Monday."));
+  test("FP", "Y06", "fp", "Risks-like in Next week: 'If the codes arrive late, the demo moves back by the same number of days.'", "update", nextWeek("2026-11-13", "If the codes arrive late, the demo moves back by the same number of days."));
+  test("FP", "Y07", "fp", "This week (note): 'Thank you for the quick reply on Tuesday.'", "update", tw("2026-11-13", "Thank you for the quick reply on Tuesday.", note));
+  test("FP", "Y08", "fp", "CO email Why: 'Your team re-keys stock counts twice a week today.'", "change-priced", coWhy("Your team re-keys stock counts twice a week today."));
+
+  // The Generator's own legitimate sentences, written before they were run (round 4).
+  test("FP", "Z01", "fp", "Next week: bookkeeper's two hours", "update", nextWeek("2026-11-13", "Your bookkeeper will need about two hours on 2 December 2026 to check the first invoices."));
+  test("FP", "Z02", "fp", "Needs: a three-day freeze while we switch over", "update", needs("2026-11-13", "Please keep the order sheet unchanged for three days from 1 December 2026 while we switch over."));
+  test("FP", "Z03", "fp", "demo: two of ten orders had a second page", "demo-record", demoWorks("Two of the ten September orders had a second page, and both arrived with every line."));
+  test("FP", "Z04", "fp", "Next week: 40 orders a week, test with a full week", "update", nextWeek("2026-11-13", "Your customers place about 40 orders a week by email, so we will test with a full week of them."));
+  test("FP", "Z05", "fp", "CO Why: a wrong shipment costs about $120", "change-priced", coWhy("Your warehouse lead says a wrong shipment costs about $120 to put right."));
+  test("FP", "Z06", "fp", "Next week: the demo stays on its date", "update", nextWeek("2026-11-13", "The milestone 2 demo stays on 16 December 2026."));
+  test("FP", "Z07", "fp", "This week (note): coordinator has checked the items", "update", tw("2026-11-13", "Your order coordinator has checked the 212 items in QuickBooks Online.", note));
+  test("FP", "Z08", "fp", "spec: credit limit rule", "start", spec("00-project-overview.md", "Orders over the credit limit go to the exceptions list."));
+  test("FP", "Z09", "fp", "Next week: codes late more than a week, demo moves", "update", nextWeek("2026-11-13", "If the corrected codes take more than a week to arrive, the demo date moves."));
+  test("FP", "Z10", "fp", "Next week: working-demo payment 40% of fixed price", "update", nextWeek("2026-11-13", "The working-demo payment is 40% of the fixed price, invoiced after the demo."));
+  test("FP", "Z11", "fp", "Next week: half of orders from four customers", "update", nextWeek("2026-11-13", "Half of your September orders came from four customers."));
+  test("FP", "Z12", "fp", "demo: price list name per line", "demo-record", demoWorks("The exceptions list shows the customer's price list name for each line."));
+  test("FP", "Z13", "fp", "Needs: we need 30 minutes with your bookkeeper", "update", needs("2026-11-13", "We need 30 minutes with your bookkeeper before 4 December 2026."));
+});
+
+describe("round-4 guards (R3-5, R3-6)", () => {
+  const contractOut = (edits) => {
+    const dir = temp("ow-build-family4-");
+    cpSync(join(ROOT, "skills-work"), dir, { recursive: true });
+    for (const [rel, fn] of Object.entries(edits)) {
+      const p = join(dir, rel);
+      const before = readFileSync(p, "utf8");
+      const after = fn(before);
+      if (after === before) throw new Error(`${rel} unchanged`);
+      writeFileSync(p, after);
+    }
+    const cats = loadCatalogs({ root: ROOT, env: { OPCHAIN_WORK_SKILLS_DIR: dir } });
+    return [...checkEdges(cats), ...checkFamily(cats)].join("\n");
+  };
+  it("K18: the too-big NEXT block loses its slash hint again", () => {
+    expect(contractOut({ "ow-build/SKILL.md": (x) => x.replace('NEXT: say "use ow-build-plan on handoffs/<client>/fixes/FIX-nn.md"   (where slash commands exist: /ow-build-plan)', 'NEXT: say "use ow-build-plan on handoffs/<client>/fixes/FIX-nn.md"') })).toMatch(/this NEXT template has no slash hint/);
+  });
+  it("K19: the -run STATUS line drops the milestone (catalogs.json statusNames)", () => {
+    expect(contractOut({ "ow-build/references/phase-run.md": (x) => x.replace("| awaiting: M<n> sprint <k>`", "| awaiting: none`") })).toMatch(/does not name M<n> \(catalogs\.json statusNames: \/ow-build-run\)/);
+  });
+  it("R3-6: a -start that keeps no working-demo answer in build.yaml, or one the ledger contradicts", () => {
+    const lost = mutated("start-resume-spec", { [`${B}/build.yaml`]: (x) => x.replace(/^working_demo: .*\n/m, "") });
+    expect(failures("start-resume-spec", lost).start).toMatch(/no working_demo; -start records the working-demo answer with its first answers/);
+    const other = mutated("start", { [`${B}/build.yaml`]: (x) => x.replace("working_demo: M1 (user-stated 2026-11-10)", "working_demo: M2 (user-stated 2026-11-10)") });
+    expect(failures("start", other).start).toMatch(/working_demo is M2, but ledger\.md says M1/);
+  });
+});

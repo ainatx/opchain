@@ -90,7 +90,7 @@ Then `changes/CO-nn.html` and `.txt` (`references/email-template.md`, title "Cha
 
 ## 6. Moving it on
 
-Each mode reads `CO-nn.md`, adds one `history` line (keeping every earlier line), changes nothing else of the change order, and refuses a move this list does not allow, writing nothing. `sent` is optional: a client may agree before you record sending. The history lines: `sent <date>`; `agreed in principle <date>, recorded by <user>; not a signature`; `"signed <date>: signed amendment received, recorded by <user>; signature not verified by this skill"` (quoted: it holds a colon); `declined <date>, recorded by <user>`.
+Each mode reads `CO-nn.md`, adds one `history` line (keeping every earlier line), changes nothing else of the change order and no other change order, and refuses a move this list does not allow, writing nothing. `sent` is optional: a client may agree before you record sending. The history lines: `sent <date>`; `agreed in principle <date>, recorded by <user>; not a signature`; `"signed <date>: signed amendment received, recorded by <user>; signature not verified by this skill"` (quoted: it holds a colon); `declined <date>, recorded by <user>`.
 
 | Mode | From | To |
 |---|---|---|

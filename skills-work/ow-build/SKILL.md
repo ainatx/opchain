@@ -162,7 +162,7 @@ Print the one that fits when a phase finishes, filled in. A `handoffs.yaml` line
     IF IT IS NOT AVAILABLE: note each check as works, not yet or not shown.
 
     DONE: demo record -> builds/<client>/demos/M<n>-record.md (summary to <client> by <date>)
-    NEXT: say "use ow-build on builds/<client>/"   (it picks the demo payment, the next milestone or readiness)
+    NEXT: say "use ow-build on builds/<client>/"   (where slash commands exist: /ow-build; it picks the demo payment, the next milestone or readiness)
           It will read: build.yaml, ledger.md, demos/
           [no folder attached: attach them when you say it]
     THEN: for each change it lists, say "use ow-build to price a change for builds/<client>/"   (where slash commands exist: /ow-build-change)

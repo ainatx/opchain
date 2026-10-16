@@ -3,7 +3,7 @@
     "One entry per skill catalog. scripts/gen-skills-catalog.mjs (frontmatter, packaging) and scripts/check-skill-contracts.mjs (verbs, cross-catalog names, protocol copies) iterate every entry, each with its own prefix and verb regex.",
     "outputs names the build outputs a catalog feeds. null means the catalog is kept out of that output on purpose: the ow- catalog is in no dev plugin, zip, docs tree, flag registry, hosted MCP catalog or public mirror until a PR of its own wires it in.",
     "The scripts that write those outputs (sync-plugin-skills, sync-skill-bundles, make-skills-zip, sync-docs, gen-mcp-catalog) refuse a source tree holding any skill outside the oc- prefix, so pointing OPCHAIN_SKILLS_DIR at skills-work/ fails before anything is deleted or written.",
-    "edges names the per-skill edges file (ow- contract R15). planned lists family skills not built yet; plannedVerbs declares the verbs a NEXT block may already name for one of them (ow-build's ready NEXT names ow-uat's /ow-uat-plan by name, owner decision 2026-10-16; ow-build reads ow-documentation's delivered.md, which /ow-documentation-delivered writes, for amendment B4). bodyTokenBudgets caps one skill's body below the catalog's bodyTokenBudget. Both resolve names only: reciprocity is checked once the planned skill has its own edges file."
+    "edges names the per-skill edges file (ow- contract R15). planned lists family skills not built yet; plannedVerbs declares the verbs a NEXT block may already name for one of them (ow-build's ready NEXT names ow-uat's /ow-uat-plan by name, owner decision 2026-10-16; ow-build reads ow-documentation's delivered.md, which /ow-documentation-delivered writes, for amendment B4). bodyTokenBudgets caps one skill's body below the catalog's bodyTokenBudget. statusNames names what a verb's STATUS lines must carry (every `next: … | awaiting: …` template in its phase file). Both resolve names only: reciprocity is checked once the planned skill has its own edges file."
   ],
   "catalogs": [
     {
@@ -48,6 +48,7 @@
       "planned": ["ow-uat", "ow-handoff", "ow-documentation"],
       "plannedVerbs": { "ow-uat": ["/ow-uat-plan"], "ow-documentation": ["/ow-documentation-delivered"] },
       "bodyTokenBudgets": { "ow-build": 4500 },
+      "statusNames": { "/ow-build-run": "M<n>" },
       "addons": { "ow-tools": ["/ow-start-transcribe"] },
       "privateNames": ["llc-ops"],
       "brandNames": ["Deftwright"],

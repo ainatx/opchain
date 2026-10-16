@@ -17,6 +17,7 @@
     signed: <YYYY-MM-DD>                # from build-request.md; recorded by the user, not verified
     update_day: Friday                  # asked at -start
     first_update: <YYYY-MM-DD>          # the first update_day after the start; the user confirms it
+    working_demo: M1 (user-stated <date>)   # 40/40/20 with more than one milestone: whose demo the payment follows (phase-start §2); else none or the one milestone (quote)
     gitignore: added                    # added | declined | not a git repository
     sources:
       git: { repo: ../<project folder>, branch: main }       # commits and merged pull requests
