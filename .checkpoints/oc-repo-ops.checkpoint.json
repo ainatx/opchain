@@ -3,7 +3,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/ow-skills-orchestration-0e05bd",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-16T19:22:23.960Z",
+  "updated_at": "2026-10-16T20:07:07.943Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
@@ -31,7 +31,7 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "1ee0029995f89c201bc90a6465f75c935bb10890",
+    "verified_for_sha": "273999cb27820ec5e169d248b21487779c8b2e8e",
     "last_verify": {
       "at": "2026-10-16T19:22:23.960Z",
       "branch": "claude/track-s-s0-forward",
@@ -1591,8 +1591,32 @@
           "site/src/pages/install.astro"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-9b71975e3c9d",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-16T20:07:07.943Z",
+      "verified_at": "2026-10-16T20:07:07.943Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "baseline-staging-1fbd48fa"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:9b71975e3c9d6b2e5e1ec0175ada82e460f0bbe46e2360e2db53a32f4fffb12e"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Baseline PR chore/baseline-1fbd48fa at 273999cb, branched from origin/main 1fbd48fa (lockfiles match; root deps installed with --ignore-scripts). Net diff vs main is .github/monitoring/release-baseline.json only (staging half: 3 lines); worktree clean apart from this checkpoint update; build output (public/, site/dist/) ignored and nothing tracked regenerated. sync-bundles:check, sync-plugin-skills:check, check-skill-contracts, lint-internal-refs PASS; checkpoint validate 0 errors, doctor 0 errors (24 warnings, pre-existing). Docs Forge pr-docs-v1 PASS bound to this candidate. Candidate verifier PASS 8/8 at the commit boundary (tree 5a2393be). The new staging values match wrangler deployments list (31ec0438, version 8fe43bf6 at 100%) and wrangler versions view (etag 909e2daf..., handlers [fetch], 8 bindings unchanged); the credentialed control-plane monitor was not run locally (no CLOUDFLARE_API_TOKEN on this machine), so it is left as a PR check item.",
+        "evidence": [
+          ".github/monitoring/release-baseline.json",
+          ".checkpoints/oc-docs-forge.checkpoint.json"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-16T19:22:23.960Z",
+  "record_updated_at": "2026-10-16T20:07:07.943Z",
   "blockers": []
 }
