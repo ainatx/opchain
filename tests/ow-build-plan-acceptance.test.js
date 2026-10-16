@@ -23,7 +23,7 @@ const scratch = [];
 afterAll(() => scratch.forEach((d) => rmSync(d, { recursive: true, force: true })));
 
 const CASES = [
-  "accepted-signed", "builder-neutral", "credentials", "dates-terms-above", "dates-terms-below", "fix-window",
+  "accepted-signed", "builder-neutral", "credentials", "dates-terms-above", "dates-terms-below", "feasibility-signed", "fix-window",
   "follow-on-asks", "follow-on-fix", "follow-on-offer", "follow-on-stated-offer", "follow-on-stated-start", "modifier-evidence", "offer",
   "private-names-business", "private-names-default", "quick-over-limit", "quick-quote", "route-build-plan", "route-defined-work", "route-feasibility",
   "route-folder", "route-folder-signed", "route-next-stage", "signed-before-accepted", "tier2-plan", "uat-documentation", "unpriced-package",
@@ -56,7 +56,7 @@ describe("golden runs", () => {
   it("has a case for every §9.2 acceptance test except Real use (Sprint 6)", () => {
     expect(listCases()).toEqual(CASES);
     const sections = listCases().map((c) => loadKey(join(FIXTURES, c)).section).join("\n");
-    for (const s of ["Synthetic client, tier 2", "Unpriced package", "Modifiers cite evidence", "Dates and terms (at or above", "Dates and terms (below", "Credentials never written", "Builder-neutral", "Build Plan offer", "Quick quote (two-unit job)", "Quick quote (over the limit", "UAT and documentation lines", "Fix window", "Accepted and signed", "signing refused before acceptance", "Follow-on intake (from FIX-nn.md)", "Follow-on intake (no FIX file", "Follow-on intake (offer from FIX-nn.md)", "No private names (defaults-only", "No private names (a business", "Inbound route from ow-start (Build Plan path)", "Inbound route from ow-start (defined piece of work)", "Inbound route from ow-start (delivery mode, signed work)", "Folder route after the quote", "Follow-on intake (offer from the user's words)", "Follow-on intake (start after an offer from the user's words)", "Folder route after signing", "Inbound route from ow-start (feasibility check)"]) {
+    for (const s of ["Synthetic client, tier 2", "Unpriced package", "Modifiers cite evidence", "Dates and terms (at or above", "Dates and terms (below", "Credentials never written", "Builder-neutral", "Build Plan offer", "Quick quote (two-unit job)", "Quick quote (over the limit", "UAT and documentation lines", "Fix window", "Accepted and signed", "signing refused before acceptance", "Follow-on intake (from FIX-nn.md)", "Follow-on intake (no FIX file", "Follow-on intake (offer from FIX-nn.md)", "No private names (defaults-only", "No private names (a business", "Inbound route from ow-start (Build Plan path)", "Inbound route from ow-start (defined piece of work)", "Inbound route from ow-start (delivery mode, signed work)", "Folder route after the quote", "Follow-on intake (offer from the user's words)", "Follow-on intake (start after an offer from the user's words)", "Folder route after signing", "Inbound route from ow-start (feasibility check)", "Feasibility test accepted and signed (no build hand-off)"]) {
       expect(sections).toContain(s);
     }
   });
@@ -516,6 +516,54 @@ describe("round 4: one quote per folder, signed folders stop, delivery mode, fea
   it("item 5: a feasibility quote priced with another unit", () => {
     const run = mutated("route-feasibility", { "plans/kestrel-bindery/quote.md": (t) => t.replace("| L1 | WP-1 | feasibility-test | 1 | 900.00 |", "| L1 | WP-1 | report | 1 | 600.00 |") });
     expect(failures("route-feasibility", run).route).toMatch(/is a feasibility recap: the quick quote is priced as the feasibility-test unit, but its lines use report/);
+  });
+});
+
+// Owner decision 2026-10-16: a feasibility quote carries just the test.
+describe("a feasibility quote: just the test", () => {
+  const K = "plans/kestrel-bindery";
+  const UAT = "## User acceptance testing · S\n1 tester role (office manager), 2 sessions, up to 1 fix round within 3 business days each: USD 1,000.00.\n\n";
+
+  it("a user acceptance testing line (in the client part or the header) fails", () => {
+    const run = mutated("route-feasibility", { [`${K}/quote.md`]: (t) => t.replace("## Price\n", `${UAT}## Price\n`).replace("mode: feasibility\n", "mode: feasibility\nuat: { size: S, tester_roles: 1, price: 1000.00 }\n") });
+    const out = failures("route-feasibility", run).feasibility;
+    expect(out).toMatch(/the client part carries a user acceptance testing line/);
+    expect(out).toMatch(/header key uat; a feasibility quote carries just the test/);
+  });
+
+  it("a fix window fails", () => {
+    const run = mutated("route-feasibility", { [`${K}/quote.md`]: (t) => t.replace("## Valid until\n", "## After delivery\n30 days of fixes: for 30 days after delivery, anything that does not work is fixed at no charge.\n\n## Valid until\n") });
+    expect(failures("route-feasibility", run).feasibility).toMatch(/the client part carries a fix window/);
+  });
+
+  it("a documentation & training line fails", () => {
+    const run = mutated("route-feasibility", { [`${K}/quote.md`]: (t) => t.replace("## Price\n", "## Documentation & training · S (optional)\nUp to 15 people trained: USD 2,000.00. You can decline this line.\n\n## Price\n") });
+    expect(failures("route-feasibility", run).feasibility).toMatch(/the client part carries a documentation & training line/);
+  });
+
+  it("a build hand-off fails: a build request written, or an ow-build NEXT", () => {
+    const request = mutated("feasibility-signed", { [`${K}/build-request.md`]: () => "---\now_artefact: ow-build-plan/build-request\n---\n# Build request\n" });
+    expect(failures("feasibility-signed", request).feasibility).toMatch(/plans\/kestrel-bindery\/build-request\.md: a feasibility test hands over no build; --signed writes no build request/);
+    const next = mutated("feasibility-signed", { [`${K}/contract-inputs.md`]: (t) => `${t}    NEXT: say "use ow-build to start plans/kestrel-bindery/"   (where slash commands exist: /ow-build-start)\n` });
+    expect(failures("feasibility-signed", next).feasibility).toMatch(/contract-inputs\.md: names the ow-build hand-off/);
+    const status = mutated("feasibility-signed", { "STATUS.md": (t) => t.replace("next: ow-build-plan /ow-build-plan-offer plans/kestrel-bindery/", "next: ow-build /ow-build-start plans/kestrel-bindery/") });
+    const out = failures("feasibility-signed", status);
+    expect(out.feasibility).toMatch(/STATUS\.md: names the ow-build hand-off/);
+    expect(out.status).toMatch(/expected "next: ow-build-plan \/ow-build-plan-offer plans\/kestrel-bindery\/"/);
+  });
+
+  it("feasibility contract inputs that carry a build's terms fail", () => {
+    const run = mutated("feasibility-signed", { [`${K}/contract-inputs.md`]: (t) => t.replace("deliverables: [findings note, go or no-go]\n", "deliverables: [findings note, go or no-go]\nfix_window_days: 30\ndocumentation_sku: declined\n") });
+    const out = failures("feasibility-signed", run).accepted;
+    expect(out).toMatch(/a feasibility test's contract inputs hold just the test; fix_window_days belongs to a build/);
+    expect(out).toMatch(/documentation_sku belongs to a build/);
+  });
+
+  it("the feasibility unit is the one the price book marks", () => {
+    const book = readFileSync(join(SKILL, "examples", "price-book.yaml"), "utf8");
+    expect(book).toMatch(/- id: feasibility-test\n[^\n]*\n[^\n]*\n {4}feasibility: true/);
+    const schema = readFileSync(join(SKILL, "references", "price-book-schema.md"), "utf8");
+    expect(schema).toMatch(/`feasibility: true`: marks the unit a feasibility test is priced from/);
   });
 });
 

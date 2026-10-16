@@ -52,7 +52,7 @@ Read `intake/<slug>/recap.md` beside it, header only, and go by `path_kind`:
 | `build-plan` | `/ow-build-plan-offer` for this intake | A prospect: the client needs a written price for the Build Plan first |
 | `defined-work` | `/ow-build-plan-quote --quick` for this intake | A small, defined job: a quick scope and a fixed quote, no Build Plan |
 | `next-stage` | `/ow-build-plan-start` for this intake | Delivery mode: the work is already signed and the next stage is the Build Plan. **Never an offer**: the client has agreed it already. `plan.yaml` records `fee: none` |
-| `feasibility` | `/ow-build-plan-quote --quick` for this intake, priced as the feasibility-test unit | A time-boxed test on the client's own examples is a small, defined job. Price it from the price book's feasibility-test unit (`feasibility-test` in the example); with no such unit, the quote stops and asks, as for any unpriced package |
+| `feasibility` | `/ow-build-plan-quote --quick` for this intake, priced as the feasibility-test unit | A time-boxed test on the client's own examples. The quote carries just the test (price, what is tested, a findings note with a go or no-go, payment, validity), priced from the price book's unit marked `feasibility: true` (`feasibility-test` in the example); with no such unit, the quote stops and asks. The quote phase's §3.1 has the rules |
 | `not-a-fit` or `next-session` | nothing | Nothing for this skill: the recap closed the workstream, or the next step is another ow-start session. Say so |
 | missing, or no `recap.md` | ask | Ask the user which one they want: an offer, a quick quote, a start on signed work, or nothing |
 
@@ -65,9 +65,10 @@ Runs `/ow-build-plan-offer` for a follow-on Build Plan, with the FIX file as the
 Decide from the files the folder holds first, in this order, and take the first that applies:
 
 1. `build-request.md` exists: **the plan is signed; nothing is left for this skill.** Print the signed NEXT block from SKILL.md (`use ow-build to start plans/<slug>/`, with its IF IT IS NOT AVAILABLE line) and stop. Run nothing.
-2. `contract-inputs.md` exists (no `build-request.md`): `/ow-build-plan-quote --signed <date>`. Ask the signing date.
-3. `quote.md` exists and has been exported (`export/quote.*`, or an export line for this folder in `STATUS.md`): `/ow-build-plan-quote --accepted <date>`. Ask the date the client accepted. **Never run `-quote` again over it.**
-4. Otherwise, take the newest STATUS line whose path is in the folder:
+2. A feasibility quote (`quote.md` has `mode: feasibility`) never gets a `build-request.md`. If the folder's newest STATUS line names `/ow-build-plan-offer` (written by `--signed`), the test is signed: print the feasibility signed NEXT block from SKILL.md and stop. Run nothing.
+3. `contract-inputs.md` exists (no `build-request.md`): `/ow-build-plan-quote --signed <date>`. Ask the signing date.
+4. `quote.md` exists and has been exported (`export/quote.*`, or an export line for this folder in `STATUS.md`): `/ow-build-plan-quote --accepted <date>`. Ask the date the client accepted. **Never run `-quote` again over it.**
+5. Otherwise, take the newest STATUS line whose path is in the folder:
    - its `next:` names an ow-build-plan verb: run that verb (`-start` only when the folder has no `plan.yaml`; then `-collect`, `-map`, `-scope`, a first `-quote`, or `-export` for a quote not yet exported);
    - its `next:` names another skill: print that skill's NEXT and stop;
    - no STATUS line names the folder: say so and ask which step to run.

@@ -122,6 +122,7 @@ In a git repository, `-start` asks once to add `opchain-work/**/inbox/`, `opchai
 | Sent | ow-build-plan | `/ow-build-plan-quote --accepted` | "use ow-build-plan to record the acceptance on plans/<client>/" | `quote.md`, `build-plan.md` | Keep the reply with the quote |
 | Quick quote over the limit | ow-build-plan | `/ow-build-plan-offer` | "use ow-build-plan to write the offer for intake/<client>/intake-record.md" | nothing | Offer a Build Plan by hand |
 | Accepted | handoffs.yaml `contract` | its say: line | (the user's) | `contract-inputs.md` | The public default |
+| Feasibility test signed, findings say go | ow-build-plan | `/ow-build-plan-offer` | "use ow-build-plan to write the offer for plans/<client>/" | `quick-scope.md`, `contract-inputs.md` | Offer a Build Plan by hand |
 | Accepted, then signed | ow-build-plan | `/ow-build-plan-quote --signed` | "use ow-build-plan to record the signing on plans/<client>/" | `contract-inputs.md` | Keep the signed contract with it |
 | Signed | ow-build | `/ow-build-start` | "use ow-build to start plans/<client>/" | `build-request.md`, `quote.md`, the scope files | handoffs.yaml `build` say: line; with none, give `build-request.md` to whoever builds it |
 
@@ -185,6 +186,14 @@ A `handoffs.yaml` line below is never printed as written: print that key's say: 
           It will read: build-request.md, quote.md, plan.yaml, scope.md, acceptance.md (quick: build-request.md, quote.md, quick-scope.md)
           [no folder attached: attach them when you say it]
     IF IT IS NOT AVAILABLE: handoffs.yaml `build`
+
+A feasibility test, once signed, hands over no build (no `build-request.md`); the findings note comes next:
+
+    DONE: client signed <date> (recorded by <user>; not verified by this skill) -> plans/<client>/contract-inputs.md (feasibility test: the findings note follows)
+    NEXT: if the findings note says go, say "use ow-build-plan to write the offer for plans/<client>/"   (where slash commands exist: /ow-build-plan-offer)
+          It will read: quick-scope.md, contract-inputs.md, and the findings in your words
+          [no folder attached: attach them when you say it]
+    IF IT IS NOT AVAILABLE: the findings note is the result; on a go, offer a Build Plan by hand.
 
 A quick quote over the limit prints no quote and recommends a Build Plan:
 

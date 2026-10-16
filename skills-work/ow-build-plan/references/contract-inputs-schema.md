@@ -69,4 +69,10 @@ Copy it unchanged; never draft, shorten or reword a clause. With no block, write
     ## Next
     (the accepted NEXT block as printed: its NEXT: line is the contract say: line exactly, with {files} filled, or the public default, and nothing else; then the IF IT IS NOT AVAILABLE and signing lines)
 
+## A feasibility quote (`mode: feasibility`)
+
+`contract-inputs.md` for a feasibility test holds just the test (owner decision 2026-10-16). Header keys: the protocol header, then `client`, `mode: feasibility`, `accepted`, `acceptance_note`, `parties`, `quote`, `scope` (`plans/<client>/quick-scope.md`), `currency`, `fixed_price`, `schedule`, `payments`, `payment_terms_days`, `valid_until`, `deliverables: [findings note, go or no-go]` and `contract_clauses`. **None of** `fix_window_days`, `fix_window_wording`, `uat`, `documentation_sku`, `documentation_price`, `acceptance_definition`, `delivery_definition`, `vendor_subscriptions`, `credit_deadline` or `build_plan_fee`.
+
+Body sections: `## Parties`, `## What is tested` (by reference to `quick-scope.md`), `## What you get` (the findings note and the go or no-go), `## Price and payment`, `## Dates` (valid until), `## Contract clauses`, `## Next` (the accepted NEXT block, as for any quote).
+
 Rules: no unit price, modifier or internal rate (they stay in `quote.md`'s internal appendix); people by role, never by name, apart from the parties; dates written out in the body.

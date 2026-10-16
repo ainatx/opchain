@@ -59,7 +59,7 @@ Each path is a `## path: <id>` section. `kind` is one of `defined-work`, `build-
 - kind: feasibility
 - systems: none
 - propose when: the client's real question is whether software, or AI, could do this at all
-- after yes: I send a short offer for a time-boxed test on your own examples.
+- after yes: I send a short quote for a time-boxed test on your own examples: its price, what it tests, and what you get, a findings note with a go or no-go.
 
 ## path: not-a-fit
 

@@ -184,6 +184,12 @@ hands_off:
     destination: contract
     files: [plans/<client>/contract-inputs.md]
     if_unavailable: Send contract-inputs.md to whoever drafts your contracts, or fill your own SOW template from it
+  - when: Feasibility test signed, findings say go
+    to: ow-build-plan
+    verb: /ow-build-plan-offer
+    say: use ow-build-plan to write the offer for plans/<client>/
+    files: [plans/<client>/quick-scope.md, plans/<client>/contract-inputs.md]
+    if_unavailable: Offer a Build Plan by hand
   - when: Accepted, then signed
     to: ow-build-plan
     verb: /ow-build-plan-quote --signed

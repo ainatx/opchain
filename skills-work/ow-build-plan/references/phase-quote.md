@@ -37,7 +37,7 @@ A missing input: say which file and offer the verb that writes it. Never continu
 
 ## 3. Quick quote (`--quick`)
 
-For one small, defined job (the recap's `path_kind: defined-work`, or the user says so), and for a feasibility test (`path_kind: feasibility`), which is priced as the price book's feasibility-test unit (`feasibility-test` in the example; with no such unit the package is unpriced and §2.2 applies). It skips the offer, the collection and the map.
+For one small, defined job (the recap's `path_kind: defined-work`, or the user says so). A feasibility test (`path_kind: feasibility`) also runs as `--quick`, with the differences in §3.1. It skips the offer, the collection and the map.
 
 1. Read the intake record. Draft the work packages and their units (§2.1).
 2. **Count the units** (the sum of quantities on the build lines). Above `quick_quote_max_units`: write **no** quote and no scope. Say the job needs <n> units and the limit is <max>, recommend a Build Plan, append the STATUS line in §8 and print the refusal NEXT block from SKILL.md.
@@ -68,6 +68,37 @@ For one small, defined job (the recap's `path_kind: defined-work`, or the user s
 
    Run the two self-checks the scope phase runs, as it defines them: **Acceptance coverage** (every in-scope package has at least one check, each with test data and a whole-number case count; at least one `kind: error` check) and **Out of scope present**. Write them inside the `ow:internal` markers, so the export leaves them out. Fix and run again while either is FINDING.
 5. Price it (§2) and write `quote.md` with `mode: quick`. No Build Plan fee and no credit line.
+
+### 3.1 A feasibility test (`path_kind: feasibility`)
+
+A feasibility quote carries **just the test** (owner decision 2026-10-16): its price, what is tested, what the client gets (a findings note and a go or no-go), the payment terms and the validity. Nothing about a build.
+
+- **Price** only from the price book's feasibility unit: the unit marked `feasibility: true` (`feasibility-test` in the example). With no such unit, the package is unpriced and §2.2 applies.
+- **No** user acceptance testing line, **no** fix window, **no** documentation & training line, no milestones, no vendor subscriptions, no acceptance or delivery sentence, no Build Plan credit. Skip §2 steps 4–6 and 11–13, and step 3 of §3 (there are no testers to ask about).
+- `quick-scope.md` as in §3, without `## UAT approach`. Its acceptance checks describe how the client knows the test is done (the findings note, and the cases it covers).
+- `quote.md`: the header keys of §4 without `build_size`, `build_size_source`, `uat`, `documentation_training`, `fix_window_days` and `vendor_subscriptions`, and with `mode: feasibility`; `fixed_price` = the test lines. The client part:
+
+        # Quote: <client>
+
+        Issued <date> · valid until <date>
+
+        ## What is tested
+        <the question, on which of the client's examples, and for how long>
+
+        ## What you get
+        A findings note: what worked, what did not, on which examples. And a go or no-go: whether a build is worth doing, and why.
+
+        ## Price
+        <amount> for the test.
+
+        ## Payment schedule
+        (the table of §2.9; invoices are due within <payment_terms_days> days)
+
+        ## Valid until
+        This quote is valid until <date>.
+
+  then the internal appendix inside the markers: pricing lines, arithmetic, and Quote integrity with rows for the feasibility unit, dates and terms, and the markers.
+- `--accepted` writes the feasibility form of `contract-inputs.md` (`references/contract-inputs-schema.md`) and asks nothing about documentation & training. `--signed` writes **no** `build-request.md` and prints **no** ow-build NEXT: see §6.
 
 ## 4. `quote.md`
 
@@ -185,7 +216,7 @@ Then the **internal appendix**, wholly between the two markers, each on a line o
 ## 5. Record the acceptance (`--accepted <date>`)
 
 1. Read `quote.md`. An acceptance date after `valid_until`: say the quote expired on that date and ask whether to issue a new quote; continue only if the user confirms the client accepted this one, and record that.
-2. Ask: did the client take Documentation & training? (`bought` / `declined`). Ask the parties' names as the user wants them in the contract.
+2. Ask: did the client take Documentation & training? (`bought` / `declined`; never for a feasibility quote). Ask the parties' names as the user wants them in the contract.
 3. Record, word for word: `client accepted <date>, recorded by <user name>; not verified by this skill`. Add the protocol §8 approval sentence.
 4. Write `contract-inputs.md` exactly as `references/contract-inputs-schema.md` says, ending with its `## Next` section.
 5. Read `handoffs.yaml`. Print the accepted NEXT block from SKILL.md. Its `NEXT:` line is, after `NEXT: `, exactly one of two things and nothing else: the `contract:` entry's `say:` line with `{files}` = `plans/<client>/contract-inputs.md`, or, with no say: line, the public default `send contract-inputs.md to whoever drafts your contracts, or fill your own SOW template from it`. Never print the words `handoffs.yaml`, never explain which one was used, and never check or name what the destination is.
@@ -194,6 +225,7 @@ Then the **internal appendix**, wholly between the two markers, each on a line o
 
 1. **No `contract-inputs.md`: refuse.** Say "The acceptance is not recorded yet; run `/ow-build-plan-quote --accepted <date>` first." Write nothing and append no STATUS line.
 2. Record, word for word: `client signed <date>, recorded by <user name>; not verified by this skill`, with the protocol §8 approval sentence.
+   **A feasibility quote** (`mode: feasibility`): write nothing. There is no build to hand over: the next thing the client receives is the findings note. Append the feasibility STATUS line (§8) and print the feasibility signed NEXT block from SKILL.md (on a go, a Build Plan offer: "use ow-build-plan to write the offer for plans/<client>/"). Steps 3 and 4 do not apply.
 3. Write `build-request.md` **from the plan, not the quote**: no price, fee or rate anywhere in it. Header (`ow_artefact: ow-build-plan/build-request`, `subject: plans/<client>/scope.md` or `quick-scope.md`, keys `client`, `signed`, `signing_note`), then:
 
         # Build request: <client>
@@ -223,4 +255,5 @@ Append one line per run (protocol §5), with these fields after the date and `ow
 - `--quick` refused: path `intake/<client>/intake-record.md`; `next: ow-build-plan /ow-build-plan-offer intake/<client>/intake-record.md`; `awaiting: none`.
 - `--accepted`: path `plans/<client>/contract-inputs.md`; `next: ow-build-plan /ow-build-plan-quote plans/<client>/`; `awaiting: signing for the Build Plan credit by <credit_deadline>` (quick mode, or a plan with `fee: none`: `awaiting: none`).
 - `--signed`: path `plans/<client>/build-request.md`; `next: ow-build /ow-build-start plans/<client>/`; `awaiting: none`.
+- `--signed` on a feasibility quote: path `plans/<client>/contract-inputs.md`; `next: ow-build-plan /ow-build-plan-offer plans/<client>/`; `awaiting: none`.
 - `--signed` refused: no line.

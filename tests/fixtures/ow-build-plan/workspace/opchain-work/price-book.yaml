@@ -25,7 +25,7 @@ units:
   - { id: tool-m, label: Internal tool or portal (medium), price: 8000, size: M, includes: [error handling and alerts, run logs, acceptance tests, operator notes] }
   - { id: tool-l, label: Internal tool or portal (large), price: 14000, size: L, includes: [error handling and alerts, run logs, acceptance tests, operator notes] }
   - { id: data-protection-review, label: Extra handling for sensitive data, price: 1200 }
-  - { id: feasibility-test, label: A time-boxed feasibility test on your own examples, price: 900 }
+  - { id: feasibility-test, label: A time-boxed feasibility test on your own examples, price: 900, feasibility: true }
 modifiers:
   - { id: data-messy, when: data_condition is messy, multiply: 1.25 }
   - { id: data-sensitive, when: regulated or sensitive data, add_unit: data-protection-review }

@@ -656,9 +656,10 @@ function quote(run, key) {
 }
 
 function workPackages(run, key, q) {
-  const file = q.data.mode === "quick" ? "quick-scope.md" : "scope.md";
+  const quick = q.data.mode === "quick" || q.data.mode === "feasibility";
+  const file = quick ? "quick-scope.md" : "scope.md";
   const { content } = parsed(run, `${plansDir(key)}/${file}`, "md");
-  const sec = sectionText(content, q.data.mode === "quick" ? "In scope" : "Work packages") ?? "";
+  const sec = sectionText(content, quick ? "In scope" : "Work packages") ?? "";
   return [...keyedBlocks(`## x\n${sec}`, /^WP-\d+$/).keys()];
 }
 
@@ -742,7 +743,9 @@ function checkDates(key, run) {
   if (!validMentions.length) p.push(`${q.rel}: the quote does not say "valid until ${written(valid)}"`);
   for (const m of validMentions) if (m !== written(valid)) p.push(`${q.rel}: the quote says "valid until ${m}", expected ${written(valid)}`);
   const fixed = cents(d.fixed_price);
-  if (fixed !== cents(d.build_total) + cents(d.uat?.price)) p.push(`${q.rel}: fixed_price ${money(fixed)} is not build_total + the testing line (${money(cents(d.build_total) + cents(d.uat?.price))})`);
+  const feas = d.mode === "feasibility";
+  if (feas) { if (fixed !== cents(d.build_total)) p.push(`${q.rel}: fixed_price ${money(fixed)} is not the test's lines (${money(cents(d.build_total))})`); }
+  else if (fixed !== cents(d.build_total) + cents(d.uat?.price)) p.push(`${q.rel}: fixed_price ${money(fixed)} is not build_total + the testing line (${money(cents(d.build_total) + cents(d.uat?.price))})`);
   const above = fixed >= cents(b.size_threshold);
   const schedule = above ? "40/40/20" : "50/50";
   if (d.schedule !== schedule) p.push(`${q.rel}: schedule ${d.schedule}; fixed price ${money(fixed)} is ${above ? "at or above" : "below"} size_threshold ${b.size_threshold}, so ${schedule}`);
@@ -757,9 +760,11 @@ function checkDates(key, run) {
   if (Number(d.payment_terms_days) !== Number(b.payment_terms_days)) p.push(`${q.rel}: payment_terms_days ${d.payment_terms_days} is not the price book's ${b.payment_terms_days}`);
   if (!q.client.includes(`due within ${b.payment_terms_days} days`)) p.push(`${q.rel}: the quote does not say invoices are due within ${b.payment_terms_days} days`);
   const delivery = /Delivery: the day the Handoff notes are delivered, or as the contract's delivery-backstop clause provides\./.test(q.client);
-  if (delivery !== !above) p.push(`${q.rel}: the delivery sentence belongs ${above ? "only on quotes below size_threshold" : "on a quote below size_threshold"}`);
-  if (!/The build is accepted when you sign off user acceptance testing with every acceptance check passing, or as the contract's deemed-acceptance clause provides\./.test(q.client)) p.push(`${q.rel}: no acceptance sentence`);
-  if (!/If I underestimate the agreed scope, that's on me\. Additional work is written down and priced before it starts\./.test(q.client)) p.push(`${q.rel}: no change rule`);
+  if (feas) {
+    // Just the test: no build sentences (owner decision 2026-10-16); the feasibility check names what else is absent.
+  } else if (delivery !== !above) p.push(`${q.rel}: the delivery sentence belongs ${above ? "only on quotes below size_threshold" : "on a quote below size_threshold"}`);
+  if (!feas && !/The build is accepted when you sign off user acceptance testing with every acceptance check passing, or as the contract's deemed-acceptance clause provides\./.test(q.client)) p.push(`${q.rel}: no acceptance sentence`);
+  if (!feas && !/If I underestimate the agreed scope, that's on me\. Additional work is written down and priced before it starts\./.test(q.client)) p.push(`${q.rel}: no change rule`);
   const planNoFee = d.mode === "build-plan" && run.exists(`${plansDir(key)}/plan.yaml`) && parsed(run, `${plansDir(key)}/plan.yaml`, "yaml").fee === "none";
   if (planNoFee) {
     // Delivery mode: work already signed; no Build Plan fee, so no credit line (owner decision 2026-10-15).
@@ -842,7 +847,9 @@ function checkInternal(key, run) {
   if (q.start < 0 || q.end < 0) return [`${q.rel}: the internal appendix is not wrapped in <!-- ow:internal --> … <!-- ow:end-internal -->`];
   if (starts !== 1 || q.end < q.start) p.push(`${q.rel}: expected exactly one ow:internal section`);
   if (q.lines.slice(q.end + 1).some((l) => l.trim())) p.push(`${q.rel}: text follows the internal appendix; it must be the last thing in the file`);
-  for (const h of ["Internal appendix", "Pricing lines", "Modifiers", "Rates kept internal", "Arithmetic", "Quote integrity"]) {
+  // A feasibility quote has no modifiers and no UAT extension rate to keep internal.
+  const heads = q.data.mode === "feasibility" ? ["Internal appendix", "Pricing lines", "Arithmetic", "Quote integrity"] : ["Internal appendix", "Pricing lines", "Modifiers", "Rates kept internal", "Arithmetic", "Quote integrity"];
+  for (const h of heads) {
     if (!new RegExp(`^#{2,3} ${esc(h)}`, "m").test(q.internal)) p.push(`${q.rel}: "${h}" is not inside the internal markers`);
     if (new RegExp(`^#{2,3} ${esc(h)}`, "m").test(q.client)) p.push(`${q.rel}: "${h}" sits outside the internal markers`);
   }
@@ -884,6 +891,10 @@ function windowMentions(rel, text, n) {
 }
 
 const CI_KEYS = ["client", "accepted", "acceptance_note", "parties", "quote", "scope", "acceptance_checks", "currency", "fixed_price", "schedule", "payments", "payment_terms_days", "valid_until", "fix_window_days", "fix_window_wording", "uat", "documentation_sku", "acceptance_definition", "delivery_definition", "contract_clauses", "vendor_subscriptions"];
+// A feasibility test (owner decision 2026-10-16): just the test.
+const FEAS_CI_KEYS = ["client", "mode", "accepted", "acceptance_note", "parties", "quote", "scope", "currency", "fixed_price", "schedule", "payments", "payment_terms_days", "valid_until", "deliverables", "contract_clauses"];
+const BUILD_ONLY_CI_KEYS = ["fix_window_days", "fix_window_wording", "uat", "documentation_sku", "documentation_price", "acceptance_definition", "delivery_definition", "vendor_subscriptions", "credit_deadline", "build_plan_fee"];
+const FEAS_CI_SECTIONS = ["Parties", "What is tested", "What you get", "Price and payment", "Dates", "Contract clauses", "Next"];
 const CI_SECTIONS = ["Parties", "What is agreed", "Price and payment", "Change rule", "Dates", "Ownership", "Vendor subscriptions", "After delivery", "User acceptance testing", "Documentation & training", "Acceptance and delivery", "Contract clauses", "Next"];
 
 function checkAccepted(key, run) {
@@ -891,7 +902,15 @@ function checkAccepted(key, run) {
   const rel = `${plansDir(key)}/contract-inputs.md`;
   const { data, content } = parsed(run, rel, "md");
   const q = quote(run, key);
-  for (const k of CI_KEYS) if (!(k in data)) p.push(`${rel}: header has no ${k}`);
+  const feas = q.data.mode === "feasibility";
+  for (const k of feas ? FEAS_CI_KEYS : CI_KEYS) if (!(k in data)) p.push(`${rel}: header has no ${k}`);
+  if (feas) {
+    // Owner decision 2026-10-16: a feasibility test's contract inputs hold just the test.
+    for (const k of BUILD_ONLY_CI_KEYS) if (k in data) p.push(`${rel}: a feasibility test's contract inputs hold just the test; ${k} belongs to a build`);
+    if (data.mode !== "feasibility") p.push(`${rel}: mode is ${data.mode}; the quote is a feasibility quote`);
+    const deliv = (data.deliverables ?? []).map(String).join(" | ");
+    if (!/findings note/i.test(deliv) || !/no-go/i.test(deliv)) p.push(`${rel}: deliverables must name the findings note and the go or no-go`);
+  }
   const theQuote = `${plansDir(key)}/quote.md`;
   if (data.quote !== theQuote) p.push(`${rel}: quote is ${data.quote}; the folder's one quote is ${theQuote}`);
   if (data.subject !== theQuote) p.push(`${rel}: subject is ${data.subject}; contract inputs are made from ${theQuote}`);
@@ -901,8 +920,9 @@ function checkAccepted(key, run) {
   if (data.acceptance_note !== note) p.push(`${rel}: acceptance_note must read "${note}"`);
   if (!/working note made by an AI assistant at your instruction\. It is not a signature or an official record\./.test(content)) p.push(`${rel}: no protocol §8 approval sentence`);
   if (!/contract input, not a contract/i.test(content)) p.push(`${rel}: does not say it is contract input, not a contract`);
+  for (const k of feas ? ["fixed_price", "schedule", "payment_terms_days", "valid_until"] : ["fixed_price", "schedule", "payment_terms_days", "valid_until", "fix_window_days"]) if (String(iso(data[k])) !== String(iso(q.data[k]))) p.push(`${rel}: ${k} ${iso(data[k])} differs from quote.md's ${iso(q.data[k])}`);
+  if (!feas) {
   if (data.documentation_sku !== key.accepted.documentation_sku) p.push(`${rel}: documentation_sku is ${data.documentation_sku}, expected ${key.accepted.documentation_sku}`);
-  for (const k of ["fixed_price", "schedule", "payment_terms_days", "valid_until", "fix_window_days"]) if (String(iso(data[k])) !== String(iso(q.data[k]))) p.push(`${rel}: ${k} ${iso(data[k])} differs from quote.md's ${iso(q.data[k])}`);
   const u = data.uat ?? {};
   for (const k of ["size", "sessions", "fix_rounds", "fix_business_days"]) if (String(u[k]) !== String(q.data.uat?.[k])) p.push(`${rel}: uat ${k} ${u[k]} differs from the quote's ${q.data.uat?.[k]}`);
   if (cents(u.price) !== cents(q.data.uat?.price)) p.push(`${rel}: uat price ${u.price} differs from the quote's ${q.data.uat?.price}`);
@@ -913,6 +933,7 @@ function checkAccepted(key, run) {
   const below = q.data.schedule === "50/50";
   const del = "Delivery: the day the Handoff notes are delivered, or as the contract's delivery-backstop clause provides.";
   if (below ? data.delivery_definition !== del : data.delivery_definition !== "none") p.push(`${rel}: delivery_definition must be ${below ? "the quote's delivery sentence" : "none above size_threshold"}`);
+  }
   const clauses = offers(run).clauses;
   if (clauses?.contract_clauses) {
     if (JSON.stringify(data.contract_clauses) !== JSON.stringify(clauses.contract_clauses)) p.push(`${rel}: contract_clauses differ from offers.md's block`);
@@ -920,7 +941,8 @@ function checkAccepted(key, run) {
     if (data.contract_clauses !== "not set") p.push(`${rel}: offers.md has no contract_clauses block, so contract_clauses is "not set"`);
     if (!/Contract clauses: not set\./.test(content)) p.push(`${rel}: the body does not say "Contract clauses: not set."`);
   }
-  for (const s of CI_SECTIONS) if (sectionText(content, s) == null) p.push(`${rel}: no "## ${s}" section`);
+  for (const s of feas ? FEAS_CI_SECTIONS : CI_SECTIONS) if (sectionText(content, s) == null) p.push(`${rel}: no "## ${s}" section`);
+  if (feas) for (const s of ["After delivery", "User acceptance testing", "Documentation & training", "Acceptance and delivery"]) if (sectionText(content, s) != null) p.push(`${rel}: a feasibility test's contract inputs have no "## ${s}" section`);
   // No internal number: unit prices, line amounts, manual prices and the extension rate stay in quote.md.
   const b = book(run);
   const legit = new Set([cents(q.data.fixed_price), ...(q.data.payments ?? []).map(cents), cents(q.data.uat?.price), cents(q.data.build_plan_fee), typeof q.data.documentation_training?.price === "number" ? cents(q.data.documentation_training.price) : NaN]);
@@ -985,7 +1007,7 @@ function checkQuick(key, run) {
   const p = [];
   const dir = plansDir(key);
   const q = quote(run, key);
-  if (q.data.mode !== "quick") p.push(`${q.rel}: mode is ${q.data.mode}, expected quick`);
+  if (!["quick", "feasibility"].includes(q.data.mode)) p.push(`${q.rel}: mode is ${q.data.mode}, expected quick (or feasibility)`);
   for (const f of ["map/current.md", "collection.md", "plan.yaml", "build-plan-offer.md", "scope.md"]) if (run.exists(`${dir}/${f}`)) p.push(`${dir}/${f} exists; a quick quote skips the offer, the collection, the map and the full scope`);
   const b = book(run);
   const units = q.pricing.filter((r) => /^WP-/.test(r.package)).reduce((a, r) => a + (Number(r.qty) || 0), 0);
@@ -1007,8 +1029,9 @@ function checkQuick(key, run) {
   if (!("handling" in q.data)) p.push(`${q.rel}: the header has no handling (the step 0 answer; there is no plan.yaml)`);
   const uat = sectionText(content, "UAT approach") ?? "";
   const roles = (uat.match(/^-\s+tester roles:\s*(.+)$/m)?.[1] ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-  if (!roles.length) p.push("quick-scope.md: the UAT approach lists no tester roles");
-  if (roles.length !== Number(q.data.uat?.tester_roles)) p.push(`quick-scope.md lists ${roles.length} tester roles, the quote prices ${q.data.uat?.tester_roles}`);
+  if (q.data.mode === "feasibility") { /* no testers: the feasibility check rules out a UAT approach */ }
+  else if (!roles.length) p.push("quick-scope.md: the UAT approach lists no tester roles");
+  else if (roles.length !== Number(q.data.uat?.tester_roles)) p.push(`quick-scope.md lists ${roles.length} tester roles, the quote prices ${q.data.uat?.tester_roles}`);
   for (const person of key.people ?? []) if (new RegExp(`\\b${esc(person)}\\b`).test(uat)) p.push(`quick-scope.md: the UAT approach names a person (${person}); roles only`);
   // The quick path runs the scope's coverage self-checks itself, inside the markers the export strips.
   const lines = content.split("\n");
@@ -1102,8 +1125,9 @@ function checkRoute(key, run) {
     if (kind === "feasibility" && run.written().includes(`${dir}/quote.md`)) {
       // A feasibility test is priced as the price book's feasibility-test unit, nothing else.
       const units = quote(run, key).pricing.filter((r) => /^WP-/.test(r.package)).map((r) => r.unit);
-      const want = key.route.unit ?? "feasibility-test";
-      if (!units.length || units.some((u) => u !== want)) p.push(`${from} is a feasibility recap: the quick quote is priced as the ${want} unit, but its lines use ${units.join(", ") || "none"}`);
+      const marked = (book(run).units ?? []).filter((u) => u.feasibility === true).map((u) => u.id);
+      const want = marked.length ? marked.join(" or ") : (key.route.unit ?? "feasibility-test");
+      if (!units.length || units.some((u) => !(marked.length ? marked.includes(u) : u === want))) p.push(`${from} is a feasibility recap: the quick quote is priced as the ${want} unit, but its lines use ${units.join(", ") || "none"}`);
     }
     const before = (run.priorRead("STATUS.md") ?? "").split("\n").filter((l) => l.trim()).at(-1) ?? "";
     if (!before.includes(`next: ow-build-plan on ${from}`)) p.push(`the starting STATUS.md does not hand ${from} to ow-build-plan (its newest line is "${before}")`);
@@ -1161,7 +1185,45 @@ function checkRoute(key, run) {
   return p;
 }
 
+/**
+ * A feasibility quote carries just the test (owner decision 2026-10-16): price,
+ * what is tested, what the client gets (a findings note and a go or no-go),
+ * payment terms and validity. No testing line, fix window, training line, or
+ * build hand-off anywhere in the run.
+ */
+function checkFeasibility(key, run) {
+  const p = [];
+  const dir = plansDir(key);
+  const q = quote(run, key);
+  if (q.data.mode !== "feasibility") p.push(`${q.rel}: mode is ${q.data.mode}, expected feasibility`);
+  for (const k of ["uat", "documentation_training", "fix_window_days", "build_size", "build_size_source", "vendor_subscriptions", "credit_deadline", "build_plan_fee"]) {
+    if (k in q.data) p.push(`${q.rel}: header key ${k}; a feasibility quote carries just the test`);
+  }
+  const forbidden = [
+    [/user acceptance testing|\bUAT\b|tester roles?/i, "a user acceptance testing line"],
+    [/days of fixes|fix window|## After delivery/i, "a fix window"],
+    [/documentation & training|documentation and training|people trained/i, "a documentation & training line"],
+    [/working demo|## Milestones|The build is accepted|Delivery: the day the Handoff notes/i, "a build's milestones or acceptance"],
+  ];
+  q.client.split("\n").forEach((l, i) => {
+    for (const [re, what] of forbidden) if (re.test(l)) p.push(`${q.rel}: the client part carries ${what} ("${l.trim().slice(0, 50)}"); a feasibility quote has none`);
+  });
+  for (const s of ["What is tested", "What you get", "Price", "Payment schedule", "Valid until"]) if (sectionText(q.client, s) == null) p.push(`${q.rel}: no "## ${s}" section`);
+  const get = sectionText(q.client, "What you get") ?? "";
+  if (!/findings note/i.test(get) || !/no-go/i.test(get)) p.push(`${q.rel}: "What you get" must name the findings note and the go or no-go`);
+  if (!amountRe(cents(q.data.fixed_price)).test(sectionText(q.client, "Price") ?? "")) p.push(`${q.rel}: "## Price" does not state the price ${money(cents(q.data.fixed_price))}`);
+  const scope = run.read(`${dir}/quick-scope.md`);
+  if (scope && sectionText(matter(scope).content, "UAT approach") != null) p.push(`${dir}/quick-scope.md: a feasibility test has no testers, so no "## UAT approach"`);
+  // No build hand-off: no build request, and no NEXT to ow-build, anywhere the run wrote.
+  for (const f of run.written()) {
+    if (/\/build-request\.md$/.test(f)) p.push(`${f}: a feasibility test hands over no build; --signed writes no build request`);
+    if (/use ow-build to start|\/ow-build-start/.test(run.read(f) ?? "")) p.push(`${f}: names the ow-build hand-off; after a feasibility test the findings note follows, and on a go a Build Plan offer`);
+  }
+  return p;
+}
+
 const CHECKS = {
+  feasibility: checkFeasibility,
   route: checkRoute,
   quote_frozen: checkQuoteFrozen,
   headers: checkHeaders,

@@ -51,6 +51,7 @@ units:
   - id: feasibility-test
     label: A time-boxed feasibility test on your own examples
     price: 1000
+    feasibility: true          # the unit a feasibility quote is priced from
   - id: tool-s
     label: Internal tool or portal, small
     price: 1000

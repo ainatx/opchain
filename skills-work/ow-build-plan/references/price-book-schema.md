@@ -10,7 +10,7 @@ Every price is a number in `currency`, with at most two decimals. A key this ski
 | `build_plan_fees` | `{ one_system, two_systems, three_plus_or_mvp }`: the Build Plan's own fee per tier | `-offer`, `-start`, the quote's credit line |
 | `build_plan_weeks` | `{ one_system, two_systems, three_plus_or_mvp }`: plan length in weeks | `-offer`, `-start` |
 | `build_plan_schedule` | `{ one_system, two_systems, three_plus_or_mvp }`, each `{ collection_business_days, delivery_business_days }`: business days from the start date to the collection deadline and to plan delivery. Missing: `-start` asks and records `user-stated` | `-start` |
-| `units` | list of `{ id, label, price, includes?, size? }` | `-quote` |
+| `units` | list of `{ id, label, price, includes?, size?, feasibility? }` | `-quote` |
 | `modifiers` | list of `{ id, when, multiply?, add_unit? }` | `-quote` |
 | `uat` | `{ sizes: { S, M, L }, per_extra_role, extension: { per_session_or_round } }`; each size `{ price, tester_roles, sessions, fix_rounds, fix_business_days }` | `-quote` (required on every quote) |
 | `documentation_training` | `{ sizes: { S, M, L }, per_extra_group_of_15, quote_separately_above }` | `-quote` (optional line) |
@@ -25,6 +25,7 @@ Every price is a number in `currency`, with at most two decimals. A key this ski
 - `id`: lower case with hyphens, unique. A work package cites units by id.
 - `label`: what the client would call it.
 - `includes`: what every package built from this unit includes (error handling and alerts, run logs, acceptance tests, operator notes, and so on). The quote prints it under the package.
+- `feasibility: true`: marks the unit a feasibility test is priced from (the example's `feasibility-test`). A feasibility quote uses that unit and nothing else (`references/phase-quote.md` §3.1); a book with no such unit leaves a feasibility test unpriced, and the quote stops and asks. Mark one unit at most.
 - `size`: `S`, `M` or `L`, only on a **product** unit (an internal tool, a portal, a new product) whose size sets the testing and training lines. The build's size is the largest `size` among the product units on the quote; with none on the quote, ask the user and record `build_size_source: user-stated`.
 
 ## Modifiers

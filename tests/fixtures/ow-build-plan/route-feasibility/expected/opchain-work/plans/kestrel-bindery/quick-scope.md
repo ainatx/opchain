@@ -36,10 +36,6 @@ handling: "no"
 - cases: 2
 - kind: error
 
-## UAT approach
-- tester roles: office manager
-- test mix: the office manager checks WP-1
-
 <!-- ow:internal -->
 ## Self-checks (same-session self-check)
 Same-session self-check: the same assistant that wrote the scope, applying a checklist; a discipline, not an independent review. Agent-checked.
