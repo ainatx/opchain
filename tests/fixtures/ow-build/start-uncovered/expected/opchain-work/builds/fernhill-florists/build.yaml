@@ -1,0 +1,38 @@
+ow_artefact: ow-build/build
+schema: 1
+written_by: ow-build 1.0.0 (protocol 1)
+workstream: fernhill-florists
+subject: plans/fernhill-florists/build-request.md
+created: 2026-11-23
+clock: user-stated
+origin: skill
+client: Fernhill Florists
+handling: "no"
+plan: plans/fernhill-florists/
+quote_mode: build-plan
+signed: 2026-11-19
+update_day: Friday
+first_update: 2026-11-27
+gitignore: added
+sources:
+  git: { repo: ../fernhill-repo, branch: main }
+  checkpoints: { dir: ../fernhill-repo/.checkpoints }
+  time: none
+  notes: true
+builder:
+  mode: opchain
+  repo: ../fernhill-repo
+  handover: spec written 2026-11-23; plan line printed
+  sprint_plan: { file: sprints/sprint-plan.md, approved: 2026-11-23, approved_by: Robin (user-stated) }
+milestones:
+  - id: M1
+    work_packages: [WP-1, WP-2]
+    checks: [AC-1.1, AC-1.2, AC-1.3, AC-2.1, AC-2.2]
+    status: not started
+  - id: M2
+    work_packages: [WP-3, WP-4]
+    checks: [AC-3.1, AC-3.2, AC-3.3, AC-4.1]
+    status: not started
+map_check: "stopped: AC-3.3 is cited by no sprint of the approved sprint plan (asked Robin 2026-11-23)"
+embedded_instructions: []
+sprints: []

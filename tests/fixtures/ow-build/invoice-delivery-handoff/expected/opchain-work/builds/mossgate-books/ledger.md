@@ -1,0 +1,44 @@
+---
+ow_artefact: ow-build/ledger
+schema: 1
+written_by: ow-build 1.0.0 (protocol 1)
+workstream: mossgate-books
+subject: plans/mossgate-books/quote.md
+created: 2026-11-02
+clock: user-stated
+origin: skill
+client: Mossgate Books
+currency: USD
+fixed_price: 2100.00
+schedule: 50/50
+payment_terms_days: 14
+working_demo: none
+payments:
+  - { trigger: booking, share: 50, amount: 1050.00, state: requested, met: 2026-10-29, basis: signed 2026-10-29 (build-request.md) }
+  - { trigger: delivery, share: 50, amount: 1050.00, state: requested, met: 2027-01-11, basis: "handoff_date 2027-01-11 (dates.yaml)" }
+change_orders: []
+invoice_requests:
+  - { file: invoices/INV-request-booking.md, trigger: booking, amount: 1050.00, written: 2026-11-02, paid: none }
+  - { file: invoices/INV-request-delivery.md, trigger: delivery, amount: 1050.00, written: 2027-01-11, paid: none }
+arithmetic: not machine-checked
+---
+# Ledger: Mossgate Books
+
+This is not an accounting record. It holds the payment schedule from the signed quote, the signed change orders and the invoice requests, with what you report about them.
+
+## Payments
+| trigger | share | amount | state |
+|---|---|---|---|
+| booking | 50% | USD 1,050.00 | requested 2 November 2026 |
+| delivery | 50% | USD 1,050.00 | requested 11 January 2027 (handoff) |
+
+The payments add up to the fixed price by hand: not machine-checked (the ow-tools add-on was not installed).
+
+## Change orders
+None.
+
+## Invoice requests
+| request | trigger | amount | written | paid |
+|---|---|---|---|---|
+| invoices/INV-request-booking.md | booking | USD 1,050.00 | 2 November 2026 | not yet reported |
+| invoices/INV-request-delivery.md | delivery | USD 1,050.00 | 11 January 2027 (handoff) | not yet reported |

@@ -1,0 +1,11 @@
+# INVENTED TEST FIXTURE: a dates file in the shape the ow-handoff design describes (ow-handoff is not built yet).
+ow_artefact: ow-handoff/dates
+schema: 1
+written_by: ow-handoff 1.0.0 (protocol 1)
+workstream: mossgate-books
+subject: handoffs/mossgate-books/handoff-notes.md
+created: 2027-01-11
+clock: user-stated
+origin: skill
+handoff_date: 2027-01-11
+window_end: 2027-02-10

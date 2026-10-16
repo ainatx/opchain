@@ -1,0 +1,18 @@
+# Answer key: run-m1-next (INVENTED). Design §12.3 and §12.7 ("-run M1 runs
+# only M1's sprints"): -run M1 hands M1's first sprint (sprint 1) and, once the
+# builder has finished, reads its newest report (round 2: PASS; round 1 failed)
+# and records the result Robin confirmed. Sprint 2 is left, so NEXT is -run M1
+# again: one sprint per call.
+case: run-m1-next
+section: Running a milestone (one sprint per call, sprints left)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: invoice-booking
+checks: [run, builder_name, status, private_names]
+sprint: { milestone: M1, result: pass }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/build.yaml, next: ow-build /ow-build-run builds/larkspur-ceramics/, awaiting: none }
+private_names: [llc-ops, Deftwright]

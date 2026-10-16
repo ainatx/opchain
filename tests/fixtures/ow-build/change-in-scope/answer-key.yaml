@@ -1,0 +1,17 @@
+# Answer key: change-in-scope (INVENTED). Design §6 step 1 and §10 "In scope
+# vs change": the client asks for something AC-1.2 already covers, so -change
+# records it in scope, at no charge, on the builder's list. No change order.
+case: change-in-scope
+section: In scope vs change (already in scope)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: invoice-demo
+checks: [headers, change, builder_name, status, private_names]
+outputs: [builds/larkspur-ceramics/changes/requests.md]
+change: { kind: in scope, cites: AC-1.2 }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/changes/requests.md, next: ow-build on builds/larkspur-ceramics/, awaiting: none }
+private_names: [llc-ops, Deftwright]

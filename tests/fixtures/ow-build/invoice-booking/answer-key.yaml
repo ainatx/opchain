@@ -1,0 +1,21 @@
+# Answer key: invoice-booking (INVENTED). Design §7 and §10 "Payment triggers"
+# (40/40/20, at booking): after -start, the signing has met the booking
+# trigger, so -invoice writes one request for 40% of the fixed price, taken
+# from the ledger (the quote's amount), with the ow-tools split recorded, and
+# prints the public default (the business's handoffs.yaml leaves invoice empty).
+case: invoice-booking
+section: Payment triggers (40/40/20, booking)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: start
+checks: [headers, invoice, internal_numbers, builder_name, status, private_names]
+outputs:
+  - builds/larkspur-ceramics/ledger.md
+  - builds/larkspur-ceramics/invoices/INV-request-booking.md
+invoice: { triggers: [booking] }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/invoices/INV-request-booking.md, next: ow-build on builds/larkspur-ceramics/, awaiting: payment of booking by 2026-11-24 }
+private_names: [llc-ops, Deftwright]

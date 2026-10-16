@@ -199,7 +199,8 @@ function priorLayers(caseName, seen = new Set()) {
   if (key.ow_start) layers.push(join(OW_START_FIXTURES, key.ow_start, "expected", "opchain-work"), join(OW_START_FIXTURES, key.ow_start, "input", "opchain-work"));
   return layers;
 }
-function runLayers(caseName, seen = new Set()) {
+/** The opchain-work/ layers of a case's finished run, newest first (ow-build's acceptance cases start from these). */
+export function runLayers(caseName, seen = new Set()) {
   const dir = join(FIXTURES, caseName);
   const key = loadKey(dir);
   if (key.run) return runLayers(key.run, seen);

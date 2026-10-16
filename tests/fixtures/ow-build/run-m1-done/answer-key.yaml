@@ -1,0 +1,16 @@
+# Answer key: run-m1-done (INVENTED). Design §12.3 and §12.7: -run M1 hands
+# M1's last sprint (sprint 2); its report passes, so every sprint of M1 passes,
+# M1 is ready for its demo, and NEXT points to the M1 demo, not another sprint.
+case: run-m1-done
+section: Running a milestone (the last sprint passes; NEXT is the demo)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: update
+checks: [run, builder_name, status, private_names]
+sprint: { milestone: M1, result: pass }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/build.yaml, next: ow-build /ow-build-demo builds/larkspur-ceramics/, awaiting: none }
+private_names: [llc-ops, Deftwright]

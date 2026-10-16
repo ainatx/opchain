@@ -1,0 +1,20 @@
+# Answer key: invoice-acceptance (INVENTED). Design §7 (ow-uat B2) and §10
+# "Payment triggers" (40/40/20, then the sign-off): uat/<client>/signoff.md
+# (input/, in the ow-uat design's shape) meets the 20% acceptance trigger;
+# ready-for-uat.md never did. CO-02 is not signed, so it is not invoiced.
+case: invoice-acceptance
+section: Payment triggers (40/40/20, the ow-uat sign-off)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: change-uat-extension
+checks: [headers, invoice, internal_numbers, builder_name, status, private_names]
+outputs:
+  - builds/larkspur-ceramics/ledger.md
+  - builds/larkspur-ceramics/invoices/INV-request-acceptance.md
+invoice: { triggers: [acceptance] }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/invoices/INV-request-acceptance.md, next: ow-build on builds/larkspur-ceramics/, awaiting: payment of acceptance by 2027-02-10 }
+private_names: [llc-ops, Deftwright]

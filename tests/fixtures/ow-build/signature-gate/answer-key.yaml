@@ -1,0 +1,29 @@
+# Answer key: signature-gate (INVENTED). Design §6 step 4 and §10 "Signature
+# gate": the client replies "yes, go ahead ... start on it straight away" by
+# email. -change --agreed moves CO-01 to amendment out (never to signed),
+# writes the change inputs and prints the business's change_order line; the
+# work stays not started. That week's update lists CO-01 in Changes as not
+# started and nowhere reports it started; nothing reaches spec/, the ledger or
+# an invoice.
+case: signature-gate
+section: Signature gate (an email reply is not a signature)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: change-unpriced
+checks: [headers, signature_gate, update, email, internal_numbers, no_false_done, builder_name, status, private_names]
+outputs:
+  - builds/larkspur-ceramics/changes/CO-01.md
+  - builds/larkspur-ceramics/changes/change-inputs-CO-01.md
+  - builds/larkspur-ceramics/updates/2026-12-04-checks.md
+  - builds/larkspur-ceramics/margin.md
+gate: { co: CO-01 }
+update: { date: 2026-12-04 }
+change_phrases: { CO-01: [stock on hand, stock column, stock sheet] }
+not_passing: [confirmation view, QuickBooks Online, stock on hand, stock column]
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/changes/change-inputs-CO-01.md, next: ow-build /ow-build-change builds/larkspur-ceramics/, awaiting: signed amendment for CO-01 by 2026-12-07 }
+    - { path: builds/larkspur-ceramics/updates/2026-12-04.html, next: ow-build on builds/larkspur-ceramics/, awaiting: update to Larkspur Ceramics by 2026-12-04 }
+private_names: [llc-ops, Deftwright]

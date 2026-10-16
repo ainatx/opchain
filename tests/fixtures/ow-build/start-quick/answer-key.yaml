@@ -1,0 +1,33 @@
+# Answer key: start-quick (INVENTED). Design §3 and §12.2 for a quick-quote
+# job (the 2026-10-15 amendment and the Sprint 2 follow-up): Mossgate Books'
+# signed quick quote (ow-build-plan's quick-quote run, plus the signing in
+# plans-signed/) has no acceptance.md, no map and no risks file. -start reads
+# its checks from quick-scope.md and writes every spec/ file from the sources
+# a quick-quote job has: build-request.md, quick-scope.md and the quote's
+# Milestones list. The 50/50 ledger is added by hand (no ow-tools here).
+case: start-quick
+section: Builder integration (a quick-quote job)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+repo: mossgate-repo
+plan_case: quick-quote
+extra: [plans-signed/mossgate-books]
+checks: [headers, start, spec, ledger, builder_name, internal_numbers, status, private_names]
+outputs:
+  - builds/mossgate-books/build.yaml
+  - builds/mossgate-books/ledger.md
+  - spec/00-project-overview.md
+  - spec/02-architecture.md
+  - spec/04-integrations.md
+  - spec/06-testing.md
+  - spec/scope-and-milestones.md
+start:
+  first_update: 2026-11-06
+  milestones: { M1: [1, 2] }
+spec: { checks: 3 }
+ledger: { booking: due, machine_checked: false }
+status:
+  lines:
+    - { path: builds/mossgate-books/build.yaml, next: ow-build /ow-build-invoice builds/mossgate-books/, awaiting: update to Mossgate Books by 2026-11-06 }
+private_names: [llc-ops, Deftwright, Priya]

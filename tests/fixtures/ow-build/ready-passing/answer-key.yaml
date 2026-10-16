@@ -1,0 +1,19 @@
+# Answer key: ready-passing (INVENTED). Design §8 and §10 "Ready for UAT":
+# the builder fixed AC-5.2 (builder/), and Robin's second confirmation pass
+# passes all nine checks. -ready rewrites ready-for-uat.md with ready: yes and
+# NEXT "use ow-uat on builds/larkspur-ceramics/ready-for-uat.md"; still no
+# payment trigger and no acceptance record.
+case: ready-passing
+section: Ready for UAT (every check passing)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: ready-failing
+checks: [headers, ready, internal_numbers, builder_name, status, private_names]
+outputs: [builds/larkspur-ceramics/ready-for-uat.md]
+ready: { failing: [] }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/ready-for-uat.md, next: ow-uat on builds/larkspur-ceramics/ready-for-uat.md, awaiting: none }
+private_names: [llc-ops, Deftwright]

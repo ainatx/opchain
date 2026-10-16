@@ -1,0 +1,24 @@
+Example Studio
+Weekly update: Larkspur Ceramics
+13 November 2026
+
+This week
+Purchase orders that arrive by email now go straight into your order sheet, every line included, tested on ten of your September orders. An email that holds no readable purchase order now goes to the exceptions list instead of the order sheet. We agreed with your operations manager that phone orders stay out of the new flow, as the plan says.
+
+Milestone progress
+- Milestone 1: 2 of 4 acceptance checks passing. Demo on 25 November 2026.
+- Milestone 2: 0 of 3 acceptance checks passing. Its demo date is still to agree.
+
+Next week
+Codes that match nothing will stop on the exceptions list for your order coordinator, and the one-off clean-up of your existing product codes will run.
+
+Needs from you
+- Sign-off on the corrected product codes, from your order coordinator, by 18 November 2026. If it is late, the code clean-up and the milestone 1 demo move back by the same number of days.
+
+Changes
+No change orders so far.
+
+Risks
+No new risks this week.
+
+Example Studio

@@ -1,0 +1,18 @@
+# Answer key: demo-script (INVENTED). Design §5: before the M1 demo, -demo
+# turns each of M1's acceptance checks into a walk-through (what to show, the
+# test data by pointer, what working looks like, a question) and lists what is
+# not in this milestone so the demo does not drift.
+case: demo-script
+section: Milestone demo (script)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: run-m1-done
+checks: [headers, demo_script, builder_name, status, private_names]
+outputs: [builds/larkspur-ceramics/demos/M1-script.md]
+demo: { milestone: M1 }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/demos/M1-script.md, next: ow-build /ow-build-demo builds/larkspur-ceramics/, awaiting: demo with Larkspur Ceramics by 2026-11-25 }
+private_names: [llc-ops, Deftwright]

@@ -1,0 +1,21 @@
+# Answer key: invoice-co (INVENTED). Design §7 "Change order: per its own
+# terms (default: on signature)": CO-01's signed amendment meets its trigger;
+# -invoice adds it to the ledger's change orders and writes its request at the
+# change order's price. The arithmetic is marked not machine-checked (no
+# ow-tools in this case).
+case: invoice-co
+section: Payment triggers (a signed change order)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: change-signed
+checks: [headers, invoice, internal_numbers, builder_name, status, private_names]
+outputs:
+  - builds/larkspur-ceramics/ledger.md
+  - builds/larkspur-ceramics/invoices/INV-request-CO-01.md
+invoice: { triggers: [CO-01] }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/invoices/INV-request-CO-01.md, next: ow-build on builds/larkspur-ceramics/, awaiting: payment of CO-01 by 2026-12-21 }
+private_names: [llc-ops, Deftwright]

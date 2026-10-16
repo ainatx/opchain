@@ -1,0 +1,13 @@
+# Answer key: route-folder (INVENTED). Routing by files first (routing-and-
+# resume.md 2.4): the demo record's NEXT, "use ow-build on
+# builds/larkspur-ceramics/", lands on -invoice because the working-demo
+# trigger is met and not yet requested. Graded on the invoice-demo run.
+case: route-folder
+section: Inbound route (a build folder, by files first)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+run: invoice-demo
+checks: [route]
+route: { from: builds/larkspur-ceramics/, expect: invoice }

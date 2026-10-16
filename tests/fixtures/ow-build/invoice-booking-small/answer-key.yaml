@@ -1,0 +1,19 @@
+# Answer key: invoice-booking-small (INVENTED). Design §7 and §10 "Payment
+# triggers" (50/50, at booking): Mossgate Books' signing meets the booking
+# half; -invoice writes it from the ledger, added by hand (no ow-tools).
+case: invoice-booking-small
+section: Payment triggers (50/50, booking)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+repo: mossgate-repo
+base: start-quick
+checks: [headers, invoice, internal_numbers, builder_name, status, private_names]
+outputs:
+  - builds/mossgate-books/ledger.md
+  - builds/mossgate-books/invoices/INV-request-booking.md
+invoice: { triggers: [booking] }
+status:
+  lines:
+    - { path: builds/mossgate-books/invoices/INV-request-booking.md, next: ow-build on builds/mossgate-books/, awaiting: payment of booking by 2026-11-16 }
+private_names: [llc-ops, Deftwright, Priya]

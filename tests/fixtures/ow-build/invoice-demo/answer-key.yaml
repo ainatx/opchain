@@ -1,0 +1,20 @@
+# Answer key: invoice-demo (INVENTED). Design §5, §7 and §10 "Payment
+# triggers" (40/40/20, at the working demo): the M1 record confirms the
+# working demo (human-decided), so -invoice writes the 40% request from the
+# ledger's amount. Booking was already requested, so it is not requested again.
+case: invoice-demo
+section: Payment triggers (40/40/20, working demo)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: demo-record
+checks: [headers, invoice, internal_numbers, builder_name, status, private_names]
+outputs:
+  - builds/larkspur-ceramics/ledger.md
+  - builds/larkspur-ceramics/invoices/INV-request-working-demo.md
+invoice: { triggers: [working-demo] }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/invoices/INV-request-working-demo.md, next: ow-build on builds/larkspur-ceramics/, awaiting: payment of working-demo by 2026-12-09 }
+private_names: [llc-ops, Deftwright]
