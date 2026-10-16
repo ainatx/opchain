@@ -25,12 +25,12 @@ Effort figures are rough ranges for one maintainer working with Claude, not comm
 |---|---|---|
 | `ow-documentation` | Documents, training and tracked rollout (the documentation & training SKU); after UAT | **Design APPROVED 2026-10-16** (`docs/plans/2026-10-16-ow-documentation-design.md`, decisions 7–16, amendments T1, T2, H3, B4, P3) |
 | `ow-care` | Monthly care plans after handoff, and for systems taken over | **Design APPROVED 2026-10-16** (`docs/plans/2026-10-16-ow-care-design.md`, decisions 1–11, amendments T3, T4, H4, S1, P4) |
-| `ow-draft` | Brief → evidence → draft → deliver for client documents | To design (09-21 strategy §6.3; no `ow-review`, so its checks are same-session self-checks) |
-| `ow-research` | Web-sourced evidence (network) | To design (09-21 strategy §6.3, audit "Connected" bundle) |
-| `ow-vendor-eval` | Vendor evaluation; commercial vs formal public procurement mode | To design (audit skill list) |
-| `ow-controls` + framework packs | Standing control register; NIST 800-53 proving pack; bring-your-own loader | To design (09-21 strategy §6.6; licensed-text questions go to counsel) |
-| `ow-currency` | Checks for newer framework revisions (network) | To design (pairs with `ow-controls`) |
-| ow-start meeting and decision logs | `/ow-start-log-meeting`, `/ow-start-log-decision` | Amendment to the ow-start design |
+| `ow-draft` | Brief → evidence → draft → deliver: client deliverables, marketing, internal documents, client comms; documents, decks, sheets, emails and posts | **Design APPROVED 2026-10-16** (`docs/plans/2026-10-16-ow-draft-design.md`, decisions 1–8, amendments T6, T7) |
+| `ow-research` | Web-sourced evidence (network): background, technical feasibility, market, regulations and frameworks | **Design APPROVED 2026-10-16** (`docs/plans/2026-10-16-ow-research-design.md`, decisions 1–4, amendments P5, D1) |
+| `ow-vendor-eval` | Vendor evaluation; commercial vs formal public procurement mode | **Design APPROVED 2026-10-16** (`docs/plans/2026-10-16-ow-vendor-eval-design.md`, decisions 1–4, amendments P6, S2, D2) |
+| `ow-controls` + framework packs | Standing control register; packs: NIST 800-53, HIPAA (mapping only), US state privacy + GDPR, SOC 2 own words; open-licence loader | **Design APPROVED 2026-10-16** (`docs/plans/2026-10-16-ow-controls-design.md`, decisions 1–8, amendments P7, P8, H6, C1, S3, R2); licensed-text path waits for counsel |
+| `ow-currency` | Watches framework revisions, watched research findings, clients' vendor prices and published claims (network) | **Design APPROVED 2026-10-16** (`docs/plans/2026-10-16-ow-currency-design.md`, decisions 1–4, amendments K1, P9, C2) |
+| ow-start meeting and decision logs | `/ow-start-prep-meeting`, `-log-meeting`, `-action`, `-log-decision`, `-log` (ow-start 1.1.0) | **Amendment APPROVED 2026-10-16** (`docs/plans/2026-10-16-ow-start-logs-amendment.md`, decisions L1–L5, amendments H5, T5) |
 
 Design order: `ow-documentation`, `ow-care`, the ow-start logs amendment, `ow-draft`, `ow-research`, `ow-vendor-eval`, `ow-controls` with packs, `ow-currency`. Build sprints and effort are re-planned once every design is approved.
 
