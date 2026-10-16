@@ -96,3 +96,21 @@ export function itemsForMilestone(
     .filter((item) => item.milestone === milestoneName)
     .sort((a, b) => Number(a.id) - Number(b.id));
 }
+
+/**
+ * Items in `bucket` whose GitHub milestone NUMBER is `milestoneNumber`
+ * (`milestoneSort` is the milestone number, see gen-roadmap.mjs). Use this
+ * where a milestone's title is expected to change: a milestone's number
+ * survives a rename, so the page reads the same issues before and after the
+ * title moves (e.g. "v2.2" → "later: agency delivery"), and an issue never
+ * lands in the wrong group because another milestone took the old title.
+ */
+export function itemsForMilestoneNumber(
+  roadmap: Roadmap,
+  bucket: RoadmapBucket,
+  milestoneNumber: number,
+): RoadmapItem[] {
+  return roadmap.items[bucket]
+    .filter((item) => item.milestoneSort === milestoneNumber)
+    .sort((a, b) => Number(a.id) - Number(b.id));
+}
