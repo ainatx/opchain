@@ -59,8 +59,13 @@ url = "https://opchain.dev/mcp"`;
 
 const upgrade20Cmd = `/oc-update check
 /oc-update`;
+// Installing the plugin installs no gate (true since 1.9.2): the plugin's
+// registered hooks are SessionStart and Stop only, and the Git pre-commit
+// gate is installed per repository by /oc-enroll (plugins/opchain/README.md,
+// "The gates"). Maintainer correction, Track S S0.
 const pluginCmd = `/plugin marketplace add asfbay-bit/opchain-skills
-/plugin install opchain`;
+/plugin install opchain
+/oc-enroll`;
 
 const codexSkillsCmd = `curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
 unzip opchain-skills.zip -d .agents/skills/
@@ -120,17 +125,22 @@ codex`;
           <a href="https://claude.com/claude-code" rel="noopener">
             Install Claude Code
           </a>, then pick a path. The <strong>plugin</strong> is the one to
-          use if you can — it carries the skills <em>and</em> the hooks that
-          enforce them. The zip carries the skills only.
+          use if you can — it carries the skills, the session hooks,
+          <em>and</em> <code class="ic">/oc-enroll</code>, which installs the
+          commit gate. The zip carries the skills only.
         </p>
 
         <h3 class="flow-sub">Plugin <span class="flow-tag">recommended</span></h3>
         <p>
-          Two commands. Adds the 36 skills, sixteen registered slash commands,
-          and three hooks: a commit gate that refuses <code class="ic">git
-          commit</code> unless the code being committed passed bug-check,
-          pipeline state at session start, and a pointer to the next skill
-          when one finishes.
+          Two commands install it; the third turns on the gate. The plugin adds
+          the 36 skills, sixteen registered slash commands, pipeline state at
+          session start, and a pointer to the next skill when one finishes.
+          <strong>Installing the plugin installs no gate.</strong> Run
+          <code class="ic">/oc-enroll</code> in each repository: it installs a
+          Git <code class="ic">pre-commit</code> hook that refuses a commit
+          unless the exact staged code passed the checks in
+          <code class="ic">.bugcheck.json</code>. Until enrollment succeeds,
+          nothing checks your commits.
         </p>
         <div class="code-row">
           <pre class="codeblock" tabindex="0" role="region" aria-label="Plugin install commands"><code>{pluginCmd}</code></pre>
@@ -415,7 +425,7 @@ git diff --stat`}</code></pre>
       <ul>
         <li><strong>One skill per pipeline phase</strong> covering discover · spec · design · build · audit · ship · monitor · migrate · scale</li>
         <li><strong>Session persistence</strong> — JSON checkpoints in <code class="ic">.checkpoints/</code>; pick up exactly where you left off, next chat or next week</li>
-        <li><strong>Documented handoffs</strong> — each skill names the one that follows it, so you always know what to run next; with the plugin installed, the commit gate is enforced and finished skills suggest the next step</li>
+        <li><strong>Documented handoffs</strong> — each skill names the one that follows it, so you always know what to run next; with the plugin installed, finished skills suggest the next step, and in a repository enrolled with <code class="ic">/oc-enroll</code> the commit gate is enforced</li>
         <li><strong>Natural-language triggers</strong> — type "build me an app" or "audit this before Friday" and opchain routes you to the right skill</li>
       </ul>
       <p style="margin-top: 1.5rem;">
