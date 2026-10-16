@@ -25,6 +25,7 @@ These are the acceptance tests from `docs/plans/2026-10-08-ow-build-design.md` �
 | `start` | §12.2, §12.7 | `-start` | The business's `handoffs.yaml` names the builder; the builder's approved sprint plan maps sprints 1-2 to M1 and 3-4 to M2 and carries a planted instruction |
 | `route-signed-plan` | C4 | the `start` run | ow-build-plan's signed NEXT lands on `-start` |
 | `start-resume` | §12.7, round 1 bug 1 | `-start` again | The session that wrote `spec/` and the ledger ended while the builder planned: `build.yaml` is `map_check: pending`. The next day `-start` maps the approved plan and rewrites neither the ledger nor `spec/` |
+| `start-resume-spec` | §12.7, round 2 D3 | `-start` again | Cut off after the ledger, before `spec/`: `start_steps` holds `[answers, ledger]`, so the resumed `-start` records the builder, writes `spec/`, prints the plan line and maps, and never rewrites the ledger |
 | `start-no-build` | §12.7 | `-start` | The shipped defaults-only `handoffs.yaml`: no `spec/`, the public default |
 | `run-no-builder` | §12.3, round 1 bug 10 | `-run M1` after `start-no-build` | No builder: Robin reports (`session/report.md`) each M1 check with its evidence; `reported_passing`, and NEXT is the demo |
 | `invoice-booking` | §7, §10 | `-invoice` | The booking 40%, with `ow-tools calc split` output recorded |
@@ -43,6 +44,8 @@ These are the acceptance tests from `docs/plans/2026-10-08-ow-build-design.md` �
 | `ready-failing`, `ready-passing` | §8, §10 | `-ready` | M2 demoed off-fixture (`input/`); Robin's confirmation pass fails AC-5.2, then passes after the builder's fix |
 | `change-uat-extension`, `route-uat` | §6.1, §10, C4 | `-change` | Three UAT-nn files with one client-side event: one extension change order |
 | `invoice-acceptance` | §7, §10 | `-invoice` | ow-uat's sign-off meets the 20% |
+| `change-uat-unpriced`, `change-uat-repriced`, `route-uat-repriced` | §6.1, round 2 D2 | `-change`, twice | UAT-07 (a weekly text message) has no price-book unit: an `unpriced` row, which settles nothing. Handed over again, Robin gives the price: CO-03, priced once, in a row that names R-06 |
+| `change-sent`, `change-declined` | §6, round 2 D5 | `-change --sent`, `--declined` | CO-03 moves draft → sent → declined: one history line per move, nothing else changes |
 | `change-uat-too-big`, `route-uat-too-big` | §6.1, owner decision 2026-10-16 | `-change` | UAT-06 (class Change, a repeat-order portal) is 3 units against a limit of 3: no change order, a hand-off to ow-build-plan exactly as for a FIX-nn |
 | `change-fix-too-big`, `route-fix` | §6.1, §10, C4 | `-change` | FIX-07 (a customer portal) is 3 units against a limit of 3: no change order, a hand-off to ow-build-plan |
 | `change-not-a-defect`, `route-fix-not-a-defect` | §6.1, round 1 bug 4 | `-change` | FIX-08 (class Not a defect: phone orders were never in scope): a row at no charge, answered from Robin's notes; nothing priced |
@@ -68,4 +71,4 @@ node scripts/ow-build-acceptance.mjs update /path/to/empty-folder
 
 With no arguments, the script checks every golden run (the same thing `tests/ow-build-acceptance.test.js` does in `npm test`). `tests/ow-build-plants.test.js` holds the planted failures: every plant from the Sprint 2 round 1 evaluation and the round-2 plants, each caught by the check it targets.
 
-Every `STATUS.md` from `-start` on carries the line `-start` writes before it prints the builder's plan line (`next: ow-build /ow-build-start plans/<client>/`, `map_check: pending`); a build without a builder skips it.
+Every `STATUS.md` from `-start` on carries the line `-start` writes when it first writes `build.yaml` (`next: ow-build on builds/<client>/`, `map_check: pending`, `start_steps: [answers]`), with or without a builder; each `build.yaml` records `-start`'s finished steps in `start_steps`. A `-run` STATUS line names the milestone and what it waits on (`awaiting: M1 sprint 2`, `M1 demo`, `M1 stopped: escalation on sprint 2`).
