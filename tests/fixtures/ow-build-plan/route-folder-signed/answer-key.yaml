@@ -1,0 +1,15 @@
+# Answer key: route-folder-signed (INVENTED). Eval round 3, item 3: after
+# --signed, the folder's newest STATUS line is "next: ow-build /ow-build-start
+# plans/larkspur-ceramics/". "use ow-build-plan on plans/larkspur-ceramics/"
+# routes by the files first: build-request.md exists, so the plan is signed and
+# nothing is left for this skill. It prints the signed NEXT and stops. It never
+# runs another skill's verb and never runs -start over the existing plan.yaml.
+# The golden run wrote nothing (no expected/ folder).
+case: route-folder-signed
+section: Folder route after signing (prints the signed NEXT, runs nothing)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+base: accepted-signed
+checks: [route]
+route: { from: plans/larkspur-ceramics/, expect: nothing }

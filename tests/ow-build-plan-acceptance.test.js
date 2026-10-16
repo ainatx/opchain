@@ -25,8 +25,8 @@ afterAll(() => scratch.forEach((d) => rmSync(d, { recursive: true, force: true }
 const CASES = [
   "accepted-signed", "builder-neutral", "credentials", "dates-terms-above", "dates-terms-below", "fix-window",
   "follow-on-asks", "follow-on-fix", "follow-on-offer", "follow-on-stated-offer", "follow-on-stated-start", "modifier-evidence", "offer",
-  "private-names-business", "private-names-default", "quick-over-limit", "quick-quote", "route-build-plan", "route-defined-work", "route-folder",
-  "route-next-stage", "signed-before-accepted", "tier2-plan", "uat-documentation", "unpriced-package",
+  "private-names-business", "private-names-default", "quick-over-limit", "quick-quote", "route-build-plan", "route-defined-work", "route-feasibility",
+  "route-folder", "route-folder-signed", "route-next-stage", "signed-before-accepted", "tier2-plan", "uat-documentation", "unpriced-package",
 ];
 
 /** The case's run as a real folder (starting state + its golden output), edited by `edits` (path under opchain-work -> fn). */
@@ -56,7 +56,7 @@ describe("golden runs", () => {
   it("has a case for every §9.2 acceptance test except Real use (Sprint 6)", () => {
     expect(listCases()).toEqual(CASES);
     const sections = listCases().map((c) => loadKey(join(FIXTURES, c)).section).join("\n");
-    for (const s of ["Synthetic client, tier 2", "Unpriced package", "Modifiers cite evidence", "Dates and terms (at or above", "Dates and terms (below", "Credentials never written", "Builder-neutral", "Build Plan offer", "Quick quote (two-unit job)", "Quick quote (over the limit", "UAT and documentation lines", "Fix window", "Accepted and signed", "signing refused before acceptance", "Follow-on intake (from FIX-nn.md)", "Follow-on intake (no FIX file", "Follow-on intake (offer from FIX-nn.md)", "No private names (defaults-only", "No private names (a business", "Inbound route from ow-start (Build Plan path)", "Inbound route from ow-start (defined piece of work)", "Inbound route from ow-start (delivery mode, signed work)", "Folder route after the quote", "Follow-on intake (offer from the user's words)", "Follow-on intake (start after an offer from the user's words)"]) {
+    for (const s of ["Synthetic client, tier 2", "Unpriced package", "Modifiers cite evidence", "Dates and terms (at or above", "Dates and terms (below", "Credentials never written", "Builder-neutral", "Build Plan offer", "Quick quote (two-unit job)", "Quick quote (over the limit", "UAT and documentation lines", "Fix window", "Accepted and signed", "signing refused before acceptance", "Follow-on intake (from FIX-nn.md)", "Follow-on intake (no FIX file", "Follow-on intake (offer from FIX-nn.md)", "No private names (defaults-only", "No private names (a business", "Inbound route from ow-start (Build Plan path)", "Inbound route from ow-start (defined piece of work)", "Inbound route from ow-start (delivery mode, signed work)", "Folder route after the quote", "Follow-on intake (offer from the user's words)", "Follow-on intake (start after an offer from the user's words)", "Folder route after signing", "Inbound route from ow-start (feasibility check)"]) {
       expect(sections).toContain(s);
     }
   });
@@ -485,6 +485,37 @@ describe("round 3: the checker catches what round 2 let through", () => {
     const out = failures("quick-quote", run).quick;
     expect(out).toMatch(/no check is kind: error/);
     expect(out).toMatch(/AC-1\.1 cases "a few" is not a whole number/);
+  });
+});
+
+// Eval round 3 (round 4 of fixes): owner items 2-5.
+describe("round 4: one quote per folder, signed folders stop, delivery mode, feasibility", () => {
+  it("item 2: a second quote file, or contract inputs pointing at one (A1, A5, A22)", () => {
+    const r2 = mutated("route-folder", { [`${L}/quote-r2.md`]: () => "---\now_artefact: ow-build-plan/quote\n---\n# Quote\n", [`${L}/quote-r2-items.json`]: () => "[]\n" });
+    const out = failures("route-folder", r2);
+    expect(out.route).toMatch(/plans\/larkspur-ceramics\/quote-r2\.md: a second quote file; 1\.0\.0 has one quote per folder/);
+    expect(out.quote_frozen).toMatch(/quote-r2-items\.json: a second quote file/);
+    const ptr = mutated("route-folder", { [`${L}/contract-inputs.md`]: (t) => t.replace("quote: plans/larkspur-ceramics/quote.md", "quote: plans/larkspur-ceramics/quote-r2.md") });
+    expect(failures("route-folder", ptr).accepted).toMatch(/quote is plans\/larkspur-ceramics\/quote-r2\.md; the folder's one quote is plans\/larkspur-ceramics\/quote\.md/);
+  });
+
+  it("item 3: a signed folder that runs -start again, or writes anything at all", () => {
+    const start = mutated("route-folder-signed", { [`${L}/plan.yaml`]: (t) => t.replace("start: 2026-10-12", "start: 2026-11-16") });
+    const out = failures("route-folder-signed", start).route;
+    expect(out).toMatch(/plans\/larkspur-ceramics\/plan\.yaml: plans\/larkspur-ceramics\/ is signed, so the route prints the signed NEXT and stops; it writes nothing/);
+    expect(out).toMatch(/the route ran -start over an existing plan/);
+    const other = mutated("route-folder-signed", { "STATUS.md": (t) => `${t}2026-11-16 (clock: user-stated) | ow-build-plan 1.0.0 | builds/larkspur-ceramics/build.yaml | next: ow-build /ow-build-start plans/larkspur-ceramics/ | awaiting: none\n` });
+    expect(failures("route-folder-signed", other).route).toMatch(/STATUS\.md: plans\/larkspur-ceramics\/ is signed/);
+  });
+
+  it("item 4: a quote on signed work (fee: none) that still carries the Build Plan credit", () => {
+    const run = mutated("dates-terms-above", { [`${L}/plan.yaml`]: (t) => t.replace("fee: 3000", "fee: none") });
+    expect(failures("dates-terms-above", run).dates_terms).toMatch(/the plan has fee: none \(signed work\), so the quote has no Build Plan fee, credit line or credit_deadline/);
+  });
+
+  it("item 5: a feasibility quote priced with another unit", () => {
+    const run = mutated("route-feasibility", { "plans/kestrel-bindery/quote.md": (t) => t.replace("| L1 | WP-1 | feasibility-test | 1 | 900.00 |", "| L1 | WP-1 | report | 1 | 600.00 |") });
+    expect(failures("route-feasibility", run).route).toMatch(/is a feasibility recap: the quick quote is priced as the feasibility-test unit, but its lines use report/);
   });
 });
 

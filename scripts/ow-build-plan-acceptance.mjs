@@ -459,8 +459,8 @@ function checkFollowOn(key, run) {
 
 /**
  * A quote is written once (eval round 2, new bug 2): once it has been exported or
- * accepted, a run never writes quote.md or quote-items.json again. A revised quote
- * is a new quote-r<n>.md, and only on the user's request.
+ * accepted, a run never writes quote.md or quote-items.json again. 1.0.0 has no
+ * revised quotes (owner decision 2026-10-15): a second quote file fails too.
  */
 function checkQuoteFrozen(key, run) {
   const p = [];
@@ -470,8 +470,14 @@ function checkQuoteFrozen(key, run) {
   const exported = (run.priorRead("STATUS.md") ?? "").split("\n").some((l) => l.includes(`${dir}/export/`)) || run.priorRead(`${dir}/export/export-report.md`) != null;
   const accepted = run.priorRead(`${dir}/contract-inputs.md`) != null;
   if (!exported && !accepted) return ["this case's quote was neither exported nor accepted before the run"];
-  for (const f of ["quote.md", "quote-items.json"]) if (run.written().includes(`${dir}/${f}`)) p.push(`${dir}/${f} was rewritten after the quote was ${accepted ? "accepted" : "exported"}; a quote is written once (a revision is quote-r<n>.md, on request)`);
+  for (const f of ["quote.md", "quote-items.json"]) if (run.written().includes(`${dir}/${f}`)) p.push(`${dir}/${f} was rewritten after the quote was ${accepted ? "accepted" : "exported"}; a quote is written once`);
+  p.push(...secondQuotes(run, dir));
   return p;
+}
+
+/** No second quote file: a different quote is a new Build Plan or follow-on, never quote-r<n>.md. */
+function secondQuotes(run, dir) {
+  return run.written().filter((f) => f.startsWith(`${dir}/`) && /\/quote-r[^/]*$/i.test(f)).map((f) => `${f}: a second quote file; 1.0.0 has one quote per folder (a different quote is a new Build Plan or follow-on)`);
 }
 
 function evidenceIds(run, dir) {
@@ -754,7 +760,11 @@ function checkDates(key, run) {
   if (delivery !== !above) p.push(`${q.rel}: the delivery sentence belongs ${above ? "only on quotes below size_threshold" : "on a quote below size_threshold"}`);
   if (!/The build is accepted when you sign off user acceptance testing with every acceptance check passing, or as the contract's deemed-acceptance clause provides\./.test(q.client)) p.push(`${q.rel}: no acceptance sentence`);
   if (!/If I underestimate the agreed scope, that's on me\. Additional work is written down and priced before it starts\./.test(q.client)) p.push(`${q.rel}: no change rule`);
-  if (d.mode === "build-plan") {
+  const planNoFee = d.mode === "build-plan" && run.exists(`${plansDir(key)}/plan.yaml`) && parsed(run, `${plansDir(key)}/plan.yaml`, "yaml").fee === "none";
+  if (planNoFee) {
+    // Delivery mode: work already signed; no Build Plan fee, so no credit line (owner decision 2026-10-15).
+    if (/Build Plan credit|credited against/i.test(q.client) || d.credit_deadline || d.build_plan_fee != null) p.push(`${q.rel}: the plan has fee: none (signed work), so the quote has no Build Plan fee, credit line or credit_deadline`);
+  } else if (d.mode === "build-plan") {
     const plan = parsed(run, `${plansDir(key)}/plan.yaml`, "yaml");
     if (iso(d.plan_delivered) !== iso(plan.plan_delivery)) p.push(`${q.rel}: plan_delivered ${iso(d.plan_delivered)} is not plan.yaml's plan_delivery ${iso(plan.plan_delivery)}`);
     const credit = addDays(plan.plan_delivery, Number(b.build_plan_credit_days));
@@ -882,6 +892,9 @@ function checkAccepted(key, run) {
   const { data, content } = parsed(run, rel, "md");
   const q = quote(run, key);
   for (const k of CI_KEYS) if (!(k in data)) p.push(`${rel}: header has no ${k}`);
+  const theQuote = `${plansDir(key)}/quote.md`;
+  if (data.quote !== theQuote) p.push(`${rel}: quote is ${data.quote}; the folder's one quote is ${theQuote}`);
+  if (data.subject !== theQuote) p.push(`${rel}: subject is ${data.subject}; contract inputs are made from ${theQuote}`);
   const date = iso(key.accepted.date);
   if (iso(data.accepted) !== date) p.push(`${rel}: accepted ${iso(data.accepted)}, expected ${date}`);
   const note = `client accepted ${date}, recorded by ${key.user}; not verified by this skill`;
@@ -1085,15 +1098,22 @@ function checkRoute(key, run) {
   else if (/^intake\/[^/]+\/intake-record\.md$/.test(from)) {
     const recap = run.read(from.replace(/intake-record\.md$/, "recap.md"));
     const kind = recap ? matter(recap).data.path_kind : null;
-    expect = { "build-plan": "offer", "defined-work": "quick quote", "next-stage": "start" }[kind] ?? "ask";
+    expect = { "build-plan": "offer", "defined-work": "quick quote", "feasibility": "quick quote", "next-stage": "start" }[kind] ?? "ask";
+    if (kind === "feasibility" && run.written().includes(`${dir}/quote.md`)) {
+      // A feasibility test is priced as the price book's feasibility-test unit, nothing else.
+      const units = quote(run, key).pricing.filter((r) => /^WP-/.test(r.package)).map((r) => r.unit);
+      const want = key.route.unit ?? "feasibility-test";
+      if (!units.length || units.some((u) => u !== want)) p.push(`${from} is a feasibility recap: the quick quote is priced as the ${want} unit, but its lines use ${units.join(", ") || "none"}`);
+    }
     const before = (run.priorRead("STATUS.md") ?? "").split("\n").filter((l) => l.trim()).at(-1) ?? "";
     if (!before.includes(`next: ow-build-plan on ${from}`)) p.push(`the starting STATUS.md does not hand ${from} to ow-build-plan (its newest line is "${before}")`);
   } else if (/^plans\/[^/]+\/$/.test(from)) {
-    // A folder resumes at the step its files show; an existing quote is never quoted again.
-    if (!prior("quote.md")) expect = "next step";
-    else if (!prior("contract-inputs.md")) expect = "accepted";
-    else if (!prior("build-request.md")) expect = "signed";
-    else expect = "nothing";
+    // A folder routes by its files first (routing-and-resume.md 2.3); an existing quote is never quoted again.
+    const exported = prior("export/export-report.md") || (run.priorRead("STATUS.md") ?? "").split("\n").some((l) => l.includes(`${dir}/export/`));
+    if (prior("build-request.md")) expect = "nothing";
+    else if (prior("contract-inputs.md")) expect = "signed";
+    else if (prior("quote.md") && exported) expect = "accepted";
+    else expect = "next step";
   } else return [`route: ${from} is neither an intake record, a FIX file nor a plans/ folder`];
   if (key.route.expect && key.route.expect !== expect) p.push(`this case expects the route "${key.route.expect}", but ${from} routes to "${expect}"`);
   const offer = has("build-plan-offer.md");
@@ -1132,8 +1152,12 @@ function checkRoute(key, run) {
     for (const f of ["quote.md", "quote-items.json"]) if (has(f)) p.push(`${from}: the route ran -quote again over the existing quote (${dir}/${f} rewritten); it must run --${expect}`);
     if (expect === "accepted" && has("build-request.md")) p.push(`${from}: a build request was written before the acceptance was recorded`);
   } else if (expect === "nothing") {
-    if (written.some((f) => f.startsWith(`${dir}/`))) p.push(`${from} is signed: nothing is left for this skill, but the run wrote into ${dir}/`);
+    // Signed: print the signed NEXT and stop. Nothing is written anywhere, and no other skill's verb is run.
+    for (const f of written) p.push(`${f}: ${from} is signed, so the route prints the signed NEXT and stops; it writes nothing`);
   } else if (expect === "ask" && written.some((f) => f.startsWith(`${dir}/`))) p.push(`${from} has no path this skill routes on its own, so it asks before writing; the run wrote ${dir}/`);
+  // Never -start over an existing plan, and never a second quote file.
+  if (prior("plan.yaml") && has("plan.yaml")) p.push(`${dir}/plan.yaml: the route ran -start over an existing plan; a folder with a plan resumes at its next step`);
+  p.push(...secondQuotes(run, dir));
   return p;
 }
 
