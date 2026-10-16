@@ -1,0 +1,20 @@
+# Answer key: run-no-builder (INVENTED). Sprint 2 round 1, bug 10: with no
+# builder (start-no-build), -run M1 hands no sprint. It records the checks
+# Robin reports passing (session/report.md), each with its evidence and date,
+# in M1's reported_passing list. All four of M1's checks are reported, so
+# M1 is ready for demo and NEXT is -demo.
+case: run-no-builder
+section: "Running a milestone (no builder: the user's report)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: start-no-build
+verbs: [/ow-build-run]
+checks: [run, builder_name, status, private_names, writes]
+builder_name: none
+sprint: { milestone: M1, reported: [AC-1.1, AC-1.2, AC-2.1, AC-4.1] }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/build.yaml, next: ow-build /ow-build-demo builds/larkspur-ceramics/, awaiting: none }
+private_names: [llc-ops, Deftwright]

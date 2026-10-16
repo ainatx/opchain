@@ -10,7 +10,8 @@ slug: larkspur-ceramics
 user: Robin
 repo: larkspur-repo
 base: invoice-booking
-checks: [run, builder_name, status, private_names]
+verbs: [/ow-build-run]
+checks: [run, builder_name, status, private_names, writes]
 sprint: { milestone: M1, result: pass }
 status:
   lines:

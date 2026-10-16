@@ -13,6 +13,7 @@ basis: uat/larkspur-ceramics/signoff.md, signed 2027-01-27
 currency: USD
 amount: 3490.00
 share: 20
+amount_source: quote
 due_days: 14
 arithmetic:
   command: ow-tools calc split --total 17450.00 --schedule 40/40/20

@@ -42,5 +42,7 @@ Every acceptance check of the signed quick scope, verbatim, with its test data a
 - cases: 1
 - kind: normal
 
+Checks added later by signed change orders are in `spec/06-testing-change-orders.md`.
+
 ## Sources
 - `plans/mossgate-books/quick-scope.md`

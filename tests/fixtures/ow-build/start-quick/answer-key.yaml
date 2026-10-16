@@ -13,7 +13,8 @@ user: Robin
 repo: mossgate-repo
 plan_case: quick-quote
 extra: [plans-signed/mossgate-books]
-checks: [headers, start, spec, ledger, builder_name, internal_numbers, status, private_names]
+verbs: [/ow-build-start]
+checks: [headers, start, spec, ledger, builder_name, internal_numbers, status, private_names, writes]
 outputs:
   - builds/mossgate-books/build.yaml
   - builds/mossgate-books/ledger.md
@@ -29,5 +30,6 @@ spec: { checks: 3 }
 ledger: { booking: due, machine_checked: false }
 status:
   lines:
+    - { path: builds/mossgate-books/build.yaml, next: ow-build /ow-build-start plans/mossgate-books/, awaiting: none }
     - { path: builds/mossgate-books/build.yaml, next: ow-build /ow-build-invoice builds/mossgate-books/, awaiting: update to Mossgate Books by 2026-11-06 }
 private_names: [llc-ops, Deftwright, Priya]

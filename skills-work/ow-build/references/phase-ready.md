@@ -4,9 +4,10 @@ Run step 0 of `references/ow-protocol.md` first. Read `build.yaml`, every `demos
 
 The client's sign-off in acceptance testing is final acceptance. This verb only says whether the build is ready for that test. **It marks no payment trigger and writes no acceptance record.**
 
-## 1. Only when every milestone is demoed
+## 1. Only when every milestone is demoed, and never after acceptance testing has started
 
-Every milestone in `build.yaml` needs its `demos/M<n>-record.md`. Any missing: list them and stop.
+- Every milestone in `build.yaml` needs its `demos/M<n>-record.md`. Any missing: list them and stop.
+- **Acceptance testing has started** (`uat/<client>/uat.yaml` or `uat/<client>/signoff.md` exists): acceptance testing froze this file's build label and environment. Refuse, write nothing, and say a failing check found now is a UAT-nn for acceptance testing, not a new readiness run.
 
 ## 2. The builder's own run of every check
 
@@ -49,12 +50,12 @@ The **test environment** the client will test in (staging or sandbox, by name), 
     ## Self-checks (same-session self-check)
     <!-- ow:end-internal -->
 
-- **Any check `fail` or `not run`:** `ready: no`. The failing checks go back to the builder with their evidence: opchain mode, the `fix` line with `{description}` naming this file and the checks; otherwise the build destination with this file. Acceptance testing refuses a file with a failing check. NEXT: the SKILL.md not-ready block. Run `-ready` again once they are fixed; it rewrites this file.
-- **Every check `pass`:** `ready: yes`. NEXT: `use ow-uat on builds/<client>/ready-for-uat.md`.
+- **Any check `fail` or `not run`:** `ready: no`. The failing checks go back to the builder with their evidence: opchain mode, the `fix` line with `{description}` naming this file and the checks; otherwise the build destination with this file. Acceptance testing refuses a file with a failing check. NEXT: the SKILL.md not-ready block. Run `-ready` again once they are fixed; it rewrites this file only while acceptance testing has not started (section 1).
+- **Every check `pass`:** `ready: yes`. NEXT: `use ow-uat-plan on builds/<client>/ready-for-uat.md` (where slash commands exist: `/ow-uat-plan`), the wording the owner chose on 2026-10-16.
 - **Self-checks** (same-session label): **No false done** (`ready: yes` only with every check `pass`), **No internal numbers** (no scores, rounds, hours or prices), **No private names**.
 
 `## Next` holds the printed NEXT line. A builder's line is printed in the session only: here it is recorded as "the build destination's fix line, for <checks> with this file (printed in the session; the builder's line is not written here)". Nothing here, and nothing in this run, writes `ledger.md` or an invoice request.
 
 ## 5. Finish
 
-One STATUS line, path `builds/<client>/ready-for-uat.md`: ready `next: ow-uat on builds/<client>/ready-for-uat.md | awaiting: none`; not ready `next: ow-build /ow-build-ready builds/<client>/ | awaiting: none`.
+One STATUS line, path `builds/<client>/ready-for-uat.md` (none on a refusal): ready `next: ow-uat /ow-uat-plan builds/<client>/ready-for-uat.md | awaiting: none`; not ready `next: ow-build /ow-build-ready builds/<client>/ | awaiting: none`.

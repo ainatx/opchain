@@ -1,0 +1,11 @@
+# Answer key: route-folder-demo (INVENTED). Sprint 2 round 1, bugs 2 and 3: Every M1 sprint passes and there is no record yet, so the folder route lands on -demo M1 (step 6).
+# Graded on the demo-script run.
+case: route-folder-demo
+section: "Inbound route (a build folder: a milestone ready for its demo)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+run: demo-script
+checks: [route]
+route: { from: builds/larkspur-ceramics/, expect: demo }

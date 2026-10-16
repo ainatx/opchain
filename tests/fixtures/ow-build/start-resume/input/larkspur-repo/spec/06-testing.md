@@ -80,25 +80,7 @@ Every acceptance check of the signed plan, verbatim, with its test data and case
 - cases: 1
 - kind: error
 
+Checks added later by signed change orders are in `spec/06-testing-change-orders.md`.
+
 ## Sources
 - `plans/larkspur-ceramics/acceptance.md`
-
-## Change order CO-01 (signed 2026-12-07)
-
-Added by the signed amendment for change order CO-01 (`builds/larkspur-ceramics/changes/CO-01.md`).
-
-### AC-CO-01.1
-- when: an order's lines are on the confirmation view
-- then: each line shows the stock on hand for its product code from the stock sheet, as of the last evening update
-- how we check: open 5 confirmed orders; each line's stock matches the stock sheet
-- test data: 5 orders from the AC-1.1 set and the stock sheet of the same day
-- cases: 5
-- kind: normal
-
-### AC-CO-01.2
-- when: a line's product code is not in the stock sheet
-- then: the line shows "stock not known" instead of a number
-- how we check: confirm 1 order with a code missing from the stock sheet
-- test data: 1 order made for the test
-- cases: 1
-- kind: error

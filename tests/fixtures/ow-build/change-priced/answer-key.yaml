@@ -12,7 +12,8 @@ slug: larkspur-ceramics
 user: Robin
 repo: larkspur-repo
 base: change-in-scope
-checks: [headers, change, email, internal_numbers, builder_name, status, private_names]
+verbs: [/ow-build-change]
+checks: [headers, change, email, internal_numbers, builder_name, status, private_names, writes]
 outputs: [builds/larkspur-ceramics/changes/CO-01.md, builds/larkspur-ceramics/changes/requests.md]
 change: { kind: change, units: { integration: 1, report: 1 } }
 status:

@@ -11,7 +11,7 @@ skill: ow-build-plan
 routes:
   verb: /ow-build-plan
   reference: references/routing-and-resume.md
-  paths: [intake/<client>/intake-record.md, handoffs/<client>/fixes/FIX-nn.md, plans/<client>/]
+  paths: [intake/<client>/intake-record.md, handoffs/<client>/fixes/FIX-nn.md, uat/<client>/defects/UAT-nn.md, plans/<client>/]
 
 writes:
   - { path: plans/<client>/build-plan-offer.md, verb: /ow-build-plan-offer }
@@ -80,6 +80,11 @@ reads:
     fields: [must-ask statuses]
     if_absent: Collection items come from the intake record alone
     if_mismatch: Use the rows that parse
+  - from: ow-uat
+    path: uat/<client>/defects/UAT-nn.md
+    fields: [the request]
+    if_absent: Ask for the request in the user's words
+    if_mismatch: Quote what was found; ask the user to state the request
   - from: ow-handoff
     path: handoffs/<client>/fixes/FIX-nn.md
     fields: [the request]
@@ -200,5 +205,5 @@ hands_off:
     to: ow-build
     verb: /ow-build-start
     say: use ow-build to start plans/<client>/
-    files: [plans/<client>/build-request.md, plans/<client>/quote.md, plans/<client>/contract-inputs.md, plans/<client>/plan.yaml, plans/<client>/build-plan.md, plans/<client>/scope.md, plans/<client>/acceptance.md, plans/<client>/risks.md, plans/<client>/quick-scope.md, plans/<client>/map/systems.md, plans/<client>/map/data.md, plans/<client>/map/future.md]
+    files: [plans/<client>/build-request.md, plans/<client>/quote.md, { path: plans/<client>/contract-inputs.md, fields: [documentation_sku, documentation_price] }, plans/<client>/plan.yaml, plans/<client>/build-plan.md, plans/<client>/scope.md, plans/<client>/acceptance.md, plans/<client>/risks.md, plans/<client>/quick-scope.md, plans/<client>/map/systems.md, plans/<client>/map/data.md, plans/<client>/map/future.md]
     if_unavailable: "handoffs.yaml build: its say: line; with none, give build-request.md to whoever builds it"

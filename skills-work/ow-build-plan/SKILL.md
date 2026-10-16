@@ -43,7 +43,7 @@ Try: "write the Build Plan offer for Acme" · "quote this small job from the int
 | Verb | Does | Writes (under `opchain-work/plans/<client>/`) |
 |---|---|---|
 | `/ow-build-plan` | Resume: what is open or handed over, from `STATUS.md` (`references/routing-and-resume.md`) | nothing |
-| `/ow-build-plan on <path>` | Runs the step a handed-over intake record, FIX request or plan folder needs (`references/routing-and-resume.md`) | what that step writes |
+| `/ow-build-plan on <path>` | Runs the step a handed-over intake record, FIX or UAT request, or plan folder needs (`references/routing-and-resume.md`) | what that step writes |
 | `/ow-build-plan-offer` | One-page offer for the Build Plan: tier, fee, weeks, the credit, payment terms, validity | `build-plan-offer.md`, `request.md` (a follow-on in your words), `export/build-plan-offer.{pdf,docx}` |
 | `/ow-build-plan-start` | Confirms the tier, lays out the schedule, writes the collection list; a follow-on's intake is its FIX file or `request.md` | `plan.yaml`, `collection.md` |
 | `/ow-build-plan-collect` | Adds artefacts, read-only access and workshops to one evidence register; run as material arrives | `evidence.md`, `systems/<system>.md` |
@@ -102,6 +102,7 @@ In a git repository, `-start` asks once to add `opchain-work/**/inbox/`, `opchai
 | ow-start | `intake/<client>/recap.md`: `path_id`, `path_label`, `path_kind`, `path_systems` | Ask the tier; record it `user-stated` | Ask the user to confirm the tier |
 | ow-start | `intake/<client>/coverage.md`: must-ask statuses | Collection items come from the intake record alone | Use the rows that parse |
 | ow-handoff | `handoffs/<client>/fixes/FIX-nn.md`: the request | Ask for it in the user's words | Ask the user to state the request |
+| ow-uat | `uat/<client>/defects/UAT-nn.md`: a request too big for a change order | Ask for it in the user's words | Ask the user to state the request |
 | the user | `price-book.yaml`: keys in `references/price-book-schema.md` | Stop before any price; ask the user to copy `examples/price-book.yaml` and fill it in | List missing keys; price nothing that needs one |
 | the user | `offers.md`: `ownership`, `after_handoff.fix_window_days`, `contract_clauses` | Ownership and fix window: ask, record `user-stated`; clauses: "not set" | Use what parses; ask for the rest |
 | the user | `handoffs.yaml`: `contract`, `build` | Print the public default | The public default; say it did not parse |

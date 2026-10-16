@@ -1,0 +1,11 @@
+# Answer key: route-trigger-delivered (INVENTED). Sprint 2 round 1, bugs 2 and 3: The documents delivered meet the documentation line, so the file lands on -invoice (2.4).
+# Graded on the invoice-documentation run.
+case: route-trigger-delivered
+section: "Inbound route (ow-documentation's delivered file)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+run: invoice-documentation
+checks: [route]
+route: { from: docs/larkspur-ceramics/delivered.md, expect: invoice }

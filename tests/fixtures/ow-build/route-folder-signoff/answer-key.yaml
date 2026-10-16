@@ -1,0 +1,11 @@
+# Answer key: route-folder-signoff (INVENTED). Sprint 2 round 1, bugs 2 and 3: ow-uat's signoff.md meets the acceptance payment, so the folder route lands on -invoice (step 3) and never reprints the ready NEXT.
+# Graded on the invoice-acceptance run.
+case: route-folder-signoff
+section: "Inbound route (a build folder after the UAT sign-off)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+run: invoice-acceptance
+checks: [route]
+route: { from: builds/larkspur-ceramics/, expect: invoice }

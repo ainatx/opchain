@@ -381,9 +381,11 @@ const DESTINATION = /handoffs\.yaml `([a-z_]+)`/g;
  * declares (work leaving the family, protocol §11).
  */
 function checkNextBlocks(file, text, lineOffset, ctx, problems) {
-  const { known, owners, destinations, bodies } = ctx;
+  const { known, owners, destinations, bodies, verbNames } = ctx;
   const lines = text.split("\n");
   let count = 0;
+  // "use <skill id>", or "use <verb name>" (owner decision 2026-10-16): the skill that owns it.
+  const skillOf = (w) => (known.has(w) ? w : verbNames?.has(w) ? owners.get(`/${w}`) ?? w : w);
   const destinationsIn = (line, where) => {
     for (const d of line.matchAll(DESTINATION)) {
       if (!destinations.has(d[1])) problems.push(`${where}: names handoffs.yaml \`${d[1]}\`, which no family examples/handoffs.yaml declares`);
@@ -402,12 +404,14 @@ function checkNextBlocks(file, text, lineOffset, ctx, problems) {
     if (!use && /say "use <[^>]+>/.test(m[1])) { /* template */ }
     else if (dest) destinationsIn(m[1], where);
     else if (!use) problems.push(`${where}: NEXT must lead with the skill id: say "use <skill id> …" (ow- contract R7), or name a handoffs.yaml destination`);
-    else if (!known.has(use[1])) problems.push(`${where}: NEXT names \`${use[1]}\`, which is not an ow- skill, planned skill or add-on`);
+    else if (!known.has(skillOf(use[1]))) problems.push(`${where}: NEXT names \`${use[1]}\`, which is not an ow- skill, planned skill, add-on or a declared verb`);
     else {
+      const useSkill = skillOf(use[1]);
       const verb = m[1].match(/\(where slash commands exist: (\/[a-z0-9-]+)((?: --[a-z][a-z0-9-]*)*)/);
       if (verb && !owners.has(verb[1])) problems.push(`${where}: NEXT's verb \`${verb[1]}\` is not declared by any skill, add-on or planned skill`);
-      else if (verb && owners.get(verb[1]) !== use[1]) problems.push(`${where}: NEXT says "use ${use[1]}" but its verb \`${verb[1]}\` belongs to ${owners.get(verb[1])}`);
-      else if (verb && verb[2] && bodies?.has(use[1]) && !verb[2].trim().split(/\s+/).every((f) => bodies.get(use[1]).includes(`\`${verb[1]} ${f}`))) problems.push(`${where}: NEXT's \`${verb[1]}${verb[2]}\` is not a mode ${use[1]}'s body documents`);
+      else if (verb && owners.get(verb[1]) !== useSkill) problems.push(`${where}: NEXT says "use ${use[1]}" but its verb \`${verb[1]}\` belongs to ${owners.get(verb[1])}`);
+      else if (verb && use[1] !== useSkill && verb[1] !== `/${use[1]}`) problems.push(`${where}: NEXT names the verb ${use[1]} but its slash hint is \`${verb[1]}\``);
+      else if (verb && verb[2] && bodies?.has(useSkill) && !verb[2].trim().split(/\s+/).every((f) => bodies.get(useSkill).includes(`\`${verb[1]} ${f}`))) problems.push(`${where}: NEXT's \`${verb[1]}${verb[2]}\` is not a mode ${useSkill}'s body documents`);
     }
     let ok = false;
     for (let j = i + 1; j < Math.min(lines.length, i + 8); j++) {
@@ -424,7 +428,8 @@ function checkNextBlocks(file, text, lineOffset, ctx, problems) {
     for (let j = i + 1; j < lines.length && /^\s{6,}\S/.test(lines[j]); j++) after.push(lines[j]);
     const where = `${file}:${i + 1 + lineOffset}`;
     // The slash hint on any template line (NEXT, or a later line such as WHEN IT IS SIGNED) resolves too.
-    const use = line.match(/say "use ([a-z0-9-]+)/)[1];
+    const use0 = line.match(/say "use ([a-z0-9-]+)/)[1];
+    const use = known.has(use0) ? use0 : verbNames?.has(use0) ? owners.get(`/${use0}`) ?? use0 : use0;
     const hint = line.match(/\(where slash commands exist: (\/[a-z0-9-]+)((?: --[a-z][a-z0-9-]*)*)/);
     if (hint && !/^\s*NEXT:/.test(line)) {
       if (!owners.has(hint[1])) problems.push(`${where}: the slash hint \`${hint[1]}\` is not declared by any skill, add-on or planned skill`);
@@ -473,14 +478,27 @@ export function checkFamily(catalogs) {
     const ids = listSkillIds(c.dir);
     const protocolName = c.protocol?.kind === "file" ? basename(c.protocol.source, ".md") : null;
     const known = new Set([...ids, ...(c.planned ?? []), ...Object.keys(c.addons ?? {}), ...(protocolName ? [protocolName] : [])]);
+    // A NEXT may name the receiving verb itself ("use ow-uat-plan on …", owner decision 2026-10-16):
+    // a declared or planned verb's name, without its slash, is a family name too.
+    const verbNames = new Set();
+    for (const s of loadSkills(c.dir)) for (const v of declaredCommands(s.data, c)) verbNames.add(v.split(" ")[0].slice(1));
+    for (const vs of Object.values(c.plannedVerbs ?? {})) for (const v of vs) verbNames.add(v.slice(1));
+    for (const vs of Object.values(c.addons ?? {})) for (const v of vs) verbNames.add(v.slice(1));
     const others = catalogs.filter((o) => o !== c).map((o) => o.prefix);
+    // Another catalog's skill named without its prefix ("app-architect") is still that skill.
+    const stems = catalogs.filter((o) => o !== c).flatMap((o) => (existsSync(o.dir) ? listSkillIds(o.dir) : []).map((id) => id.slice(o.prefix.length)).filter((s) => s.includes("-")));
+    const stemRe = stems.length ? new RegExp(`(?<![\\w/-])(?:${stems.map(escapeRegExp).join("|")})(?![\\w-])`, "i") : null;
     const foreign = others.length ? new RegExp(`(?<![\\w-])(?:${others.map(escapeRegExp).join("|")})[a-z0-9]+(?:-[a-z0-9]+)*`, "g") : null;
     const own = new RegExp(`(?<![\\w/-])${escapeRegExp(c.prefix)}[a-z0-9]+(?:-[a-z0-9]+)*`, "g");
     const named = [
       // R1: edges are files and NEXT blocks; ow- text never claims one skill drives another.
       { re: /\bchains? to\b|\binvok(?:e|es|ed|ing)\b|\bauto\b|\bactively invoke/i, what: "wording the cross-talk contract (R1) keeps out of ow- text" },
       ...c.privateNames.map((n) => ({ re: new RegExp(`(?<![\\w-])${escapeRegExp(n)}(?![\\w-])`, "i"), what: "a private skill" })),
-      ...(c.brandNames ?? []).map((n) => ({ re: new RegExp(`\\b${escapeRegExp(n)}\\b`, "i"), what: "a business" })),
+      // A business, however it is spaced or hyphenated ("Deft wright", "Deft-wright").
+      ...(c.brandNames ?? []).map((n) => ({ re: new RegExp(`\\b${[...n].map(escapeRegExp).join("[\\s-]?")}\\b`, "i"), what: "a business" })),
+      ...(stemRe ? [{ re: stemRe, what: "a skill from another catalog, named without its prefix" }] : []),
+      // No real price in skill text: a currency amount, in figures or as "<n> dollars".
+      { re: /[$€£]\s?\d|\b\d[\d,]*(?:\.\d+)?\s?(?:dollars?|euros?|pounds? sterling|USD|EUR|GBP)\b|\b(?:USD|EUR|GBP)\s?\d/i, what: "a price (a currency amount)" },
     ];
     const files = ids.flatMap((id) => textFiles(join(c.dir, id)).map((r) => ({ rel: `${c.relDir}/${id}/${r}`, abs: join(c.dir, id, r) })));
     // A missing source is reported by checkProtocolCopies.
@@ -498,12 +516,12 @@ export function checkFamily(catalogs) {
           if (m) problems.push(`${where}: names \`${m[0]}\`, ${what}${what.startsWith("a ") ? `; public ${c.prefix} text never does (business wording lives in the user's own files)` : ""}`);
         }
         for (const m of line.matchAll(own)) {
-          if (!known.has(m[0])) problems.push(`${where}: \`${m[0]}\` is not an ${c.prefix} skill, planned skill, add-on or the protocol file`);
+          if (!known.has(m[0]) && !verbNames.has(m[0])) problems.push(`${where}: \`${m[0]}\` is not an ${c.prefix} skill, planned skill, add-on or the protocol file`);
         }
       });
     }
     const skills = loadSkills(c.dir);
-    const ctx = { known, owners: familyVerbOwners(c, skills), destinations: familyDestinations(c, ids), bodies: new Map(skills.map((x) => [x.id, x.body])) };
+    const ctx = { known, verbNames, owners: familyVerbOwners(c, skills), destinations: familyDestinations(c, ids), bodies: new Map(skills.map((x) => [x.id, x.body])) };
     for (const s of skills) {
       const file = `${c.relDir}/${s.id}/SKILL.md`;
       if (checkNextBlocks(file, s.body, s.bodyOffset, ctx, problems) === 0) {
@@ -642,6 +660,15 @@ export function checkEdges(catalogs) {
         // A skill's reads of its own earlier files are detailed in its phase files, not the body table.
         if (filled(r.path) && r.from !== s.id && !readsTable.includes(String(r.path))) problems.push(`${at}: the body's "## Reads from" table does not name ${r.path}`);
       });
+      // The other way round: every file the body's "## Reads from" table names has a reads row
+      // (a row dropped from the edges while the body still reads the file fails).
+      const readPaths = new Set(e.reads.filter((r) => filled(r.path)).map((r) => normPath(r.path)));
+      const pathCells = (tableAfter(s.body, "## Reads from")?.rows ?? []).map((r) => r.cells[1] ?? "").join("\n");
+      for (const m of pathCells.matchAll(/`([^`\s]+)`/g)) {
+        const span = m[1].replace(/:$/, "");
+        if (!/\/|\.(?:md|ya?ml|json|csv)$/.test(span) || /^\/|^(?:references|examples)\//.test(span)) continue;
+        if (!readPaths.has(normPath(span))) problems.push(`${e.rel}: the body's "## Reads from" table reads ${span}, which has no reads row`);
+      }
       e.hands_off.forEach((h, n) => {
         const at = `${e.rel}: hands_off[${n}] (${h.when ?? "?"})`;
         if (!filled(h.when)) problems.push(`${e.rel}: hands_off[${n}] has no \`when\``);

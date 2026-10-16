@@ -80,5 +80,7 @@ Every acceptance check of the signed plan, verbatim, with its test data and case
 - cases: 1
 - kind: error
 
+Checks added later by signed change orders are in `spec/06-testing-change-orders.md`.
+
 ## Sources
 - `plans/larkspur-ceramics/acceptance.md`

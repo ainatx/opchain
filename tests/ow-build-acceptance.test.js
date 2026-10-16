@@ -26,12 +26,14 @@ afterAll(() => scratch.forEach((d) => rmSync(d, { recursive: true, force: true }
 const temp = (p) => { const d = mkdtempSync(join(tmpdir(), p)); scratch.push(d); return d; };
 
 const CASES = [
-  "change-fix-too-big", "change-in-scope", "change-priced", "change-signed", "change-uat-extension", "change-unpriced",
+  "change-fix-too-big", "change-in-scope", "change-not-a-defect", "change-priced", "change-signed", "change-uat-extension", "change-uat-too-big", "change-unpriced",
   "demo-record", "demo-script", "invoice-acceptance", "invoice-booking", "invoice-booking-small", "invoice-co", "invoice-delivery-backstop",
   "invoice-delivery-handoff", "invoice-delivery-refused", "invoice-demo", "invoice-documentation", "invoice-documentation-refused",
   "margin-internal", "ready-failing", "ready-passing",
-  "route-fix", "route-folder", "route-signed-plan", "route-uat", "run-escalated", "run-m1-done", "run-m1-next", "signature-gate",
-  "start", "start-nine-checks", "start-no-build", "start-quick", "start-uncovered", "update",
+  "route-fix", "route-fix-not-a-defect", "route-folder", "route-folder-demo", "route-folder-ready", "route-folder-run", "route-folder-signed", "route-folder-signoff",
+  "route-signed-plan", "route-trigger-delivered", "route-trigger-signoff", "route-uat", "route-uat-too-big",
+  "run-escalated", "run-m1-done", "run-m1-next", "run-no-builder", "signature-gate",
+  "start", "start-nine-checks", "start-no-build", "start-quick", "start-resume", "start-uncovered", "update",
 ];
 const B = "opchain-work/builds/larkspur-ceramics";
 const MB = "opchain-work/builds/mossgate-books";
@@ -78,6 +80,13 @@ describe("golden runs", () => {
       "Running a milestone (one sprint per call, sprints left)", "Running a milestone (the last sprint passes; NEXT is the demo)", "Running a milestone (an escalating sprint stops the milestone)",
       // C4
       "Inbound route (ow-build-plan's signed NEXT)", "Inbound route (a UAT-nn file)", "Inbound route (a FIX-nn file)", "Inbound route (a build folder, by files first)",
+      // Sprint 2 round 1 and the owner decisions of 2026-10-16
+      "Requests from UAT and handoff (Not a defect)", "Requests from UAT and handoff (a UAT request too big for a change order)",
+      "Running a milestone (no builder: the user's report)", "Builder integration (resume after the builder planned in another session)",
+      "Inbound route (a FIX-nn classed Not a defect)", "Inbound route (a UAT-nn classed Change)",
+      "Inbound route (a build folder: a sprint to run)", "Inbound route (a build folder: a milestone ready for its demo)", "Inbound route (a build folder: an amendment out, now signed)",
+      "Inbound route (a build folder: every milestone demoed)", "Inbound route (a build folder after the UAT sign-off)",
+      "Inbound route (ow-uat's sign-off file)", "Inbound route (ow-documentation's delivered file)",
     ]) expect(sections).toContain(s);
   });
 
@@ -316,7 +325,7 @@ describe("§10: planted failures", () => {
   it("signature gate: the update reports unsigned work as started, by meaning", () => {
     for (const plant of ["the builder has started on it", "work is under way", "we are building the stock column", "the stock column is in progress", "we are making headway on it", "a first cut of the stock column exists"]) {
       const run = mutated("signature-gate", both(`${B}/updates/2026-12-04`, (t) => t.replace("amendment out for signing; work not started.", `amendment out for signing; work not started, but ${plant}.`)));
-      expect(failures("signature-gate", run).signature_gate, plant).toMatch(/Changes reports CO-01 as started/);
+      expect(failures("signature-gate", run).signature_gate, plant).toMatch(/"Changes" reports (?:CO-01|a change) as started/);
     }
     const elsewhere = mutated("signature-gate", both(`${B}/updates/2026-12-04`, (t) => t.replace("The order confirmation view continues,", "We have begun the stock column on the order confirmation view, and it continues,")));
     expect(failures("signature-gate", elsewhere).signature_gate).toMatch(/"Next week" reports CO-01 as started \("begun"\)/);
@@ -337,7 +346,8 @@ describe("§10: planted failures", () => {
       [`${B}/changes/CO-01.md`]: (t) => t.replace("signature not verified by this skill\n", "signature verified\n"),
     });
     const out = failures("change-signed", rewrite).signed;
-    expect(out).toMatch(/the earlier text changed; a signed change order only appends/);
+    expect(out).toMatch(/06-testing\.md: rewritten by -change --signed; its only writer is -start/);
+    expect(failures("change-signed", rewrite).writes).toMatch(/only \/ow-build-start may write it \(one writer per file\)/);
     expect(out).toMatch(/signature_note must read "signed amendment received 2026-12-07, recorded by Robin; signature not verified by this skill"/);
   });
 
@@ -489,7 +499,7 @@ describe("§10: planted failures", () => {
 
 describe("routing (contract C4): every inbound edge lands on exactly one verb", () => {
   it("each golden route lands where its key says", () => {
-    for (const c of ["route-signed-plan", "route-uat", "route-fix", "route-folder"]) expect(failures(c), c).toEqual({});
+    for (const c of CASES.filter((x) => x.startsWith("route-"))) expect(failures(c), c).toEqual({});
   });
 
   it("a UAT-nn of class Defect, Training gap or Duplicate is not a change: the route writes nothing", () => {
@@ -505,7 +515,7 @@ describe("routing (contract C4): every inbound edge lands on exactly one verb", 
   });
 
   it("the signed plan's NEXT on a build that has started routes the folder, never -start again; an unsigned plan routes nowhere", () => {
-    const state = (files) => ({ priorRead: (r) => files[r] ?? null, priorExists: (r) => r in files, read: (r) => files[r] ?? null });
+    const state = (files) => ({ priorRead: (r) => files[r] ?? null, priorExists: (r) => r in files, priorAll: () => Object.keys(files), read: (r) => files[r] ?? null });
     const key = { slug: "acme" };
     const started = state({ "opchain-work/builds/acme/build.yaml": "map_check: OK\n", "opchain-work/plans/acme/build-request.md": "x" });
     expect(expectedRoute(started, key, "plans/acme/")).toBe("folder");
@@ -515,6 +525,21 @@ describe("routing (contract C4): every inbound edge lands on exactly one verb", 
     expect(expectedRoute(state({ "opchain-work/uat/acme/defects/UAT-01.md": "class: Change\n" }), key, "uat/acme/defects/UAT-01.md")).toBe("change");
     expect(expectedRoute(state({ "opchain-work/uat/acme/defects/UAT-01.md": "no class line\n" }), key, "uat/acme/defects/UAT-01.md")).toBe("ask");
     expect(expectedRoute(state({ "opchain-work/handoffs/acme/fixes/FIX-01.md": "class: After the window\n" }), key, "handoffs/acme/fixes/FIX-01.md")).toBe("change");
+    // Bug 1: a build whose map is pending, or a ledger and spec/ with no build.yaml, resumes -start.
+    expect(expectedRoute(state({ "opchain-work/builds/acme/build.yaml": "map_check: pending\n", "opchain-work/plans/acme/build-request.md": "x" }), key, "plans/acme/")).toBe("start");
+    expect(expectedRoute(state({ "opchain-work/builds/acme/ledger.md": "x", "opchain-work/plans/acme/build-request.md": "x" }), key, "plans/acme/")).toBe("start");
+    // Bug 4: route: care is care hours, not a change order; Not a defect is recorded by -change at no charge.
+    expect(expectedRoute(state({ "opchain-work/handoffs/acme/fixes/FIX-02.md": "class: After the window\nroute: care\n" }), key, "handoffs/acme/fixes/FIX-02.md")).toBe("nothing");
+    expect(expectedRoute(state({ "opchain-work/handoffs/acme/fixes/FIX-03.md": "class: Not a defect\n" }), key, "handoffs/acme/fixes/FIX-03.md")).toBe("change");
+    // Bug 4: a request is priced once, whether its row or a change order cites it.
+    const priced = { "opchain-work/uat/acme/defects/UAT-02.md": "class: Change\n", "opchain-work/builds/acme/changes/CO-01.md": "---\nrequests: [uat/acme/defects/UAT-02.md]\n---\n" };
+    expect(expectedRoute(state(priced), key, "uat/acme/defects/UAT-02.md")).toBe("nothing");
+    expect(expectedRoute(state({ "opchain-work/uat/acme/defects/UAT-04.md": "class: Change\n", "opchain-work/builds/acme/changes/requests.md": "---\nx: 1\n---\n| # | from |\n|---|---|\n| R-01 | ./opchain-work/uat/acme/defects/UAT-04.md |\n" }), key, "uat/acme/defects/UAT-04.md")).toBe("nothing");
+    // Bug 3: the sibling payment-trigger files route to -invoice once the build has a ledger.
+    for (const from of ["uat/acme/signoff.md", "uat/acme/backstop.md", "handoffs/acme/dates.yaml", "docs/acme/delivered.md"]) {
+      expect(expectedRoute(state({ "opchain-work/builds/acme/ledger.md": "x" }), key, from), from).toBe("invoice");
+      expect(expectedRoute(state({}), key, from), from).toBe("nothing");
+    }
   });
 
   it("a route that runs a second verb's files fails", () => {
@@ -589,8 +614,10 @@ describe("the skill text keeps the rules the checker cannot see", () => {
   const body = () => { const t = readFileSync(join(SKILL, "SKILL.md"), "utf8"); return t.slice(t.indexOf("\n---", 3) + 4); };
   const ref = (f) => readFileSync(join(SKILL, "references", f), "utf8");
 
-  it("C2: the body stays under 4,500 tokens; the protocol copy is byte-identical", () => {
+  it("C2: the body stays under 4,500 tokens, a cap the catalog enforces; the protocol copy is byte-identical", () => {
     expect(Math.ceil(body().length / 4)).toBeLessThan(4500);
+    // Enforced at build time (gen-skills-catalog), not only here; the over-budget plant is C18 in ow-build-plants.test.js.
+    expect(loadCatalogs({ root: ROOT }).find((c) => c.id === "ow").bodyTokenBudgets).toEqual({ "ow-build": 4500 });
     expect(readFileSync(join(SKILL, "references", "ow-protocol.md"))).toEqual(readFileSync(join(ROOT, "skills-work", "ow-protocol.md")));
     expect(checkProtocolCopies(loadCatalogs({ root: ROOT }))).toEqual([]);
   });
@@ -628,12 +655,16 @@ describe("the skill text keeps the rules the checker cannot see", () => {
     const plan = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "SKILL.md"), "utf8");
     expect(plan).toMatch(/NEXT: say "use ow-build to start plans\/<client>\/"   \(where slash commands exist: \/ow-build-start\)/);
     const edges = yaml.load(readFileSync(join(SKILL, "skill.edges.yaml"), "utf8"));
-    expect(edges.routes.paths).toEqual(["plans/<client>/build-request.md", "uat/<client>/defects/UAT-nn.md", "handoffs/<client>/fixes/FIX-nn.md", "builds/<client>/"]);
+    // Bug 3: the sibling payment-trigger files route too.
+    expect(edges.routes.paths).toEqual(["plans/<client>/build-request.md", "uat/<client>/defects/UAT-nn.md", "handoffs/<client>/fixes/FIX-nn.md", "uat/<client>/signoff.md", "uat/<client>/backstop.md", "handoffs/<client>/dates.yaml", "docs/<client>/delivered.md", "builds/<client>/"]);
+    // Owner decision 2026-10-16: a UAT-nn too big for a change order goes to ow-build-plan, which routes it.
+    const planEdges = yaml.load(readFileSync(join(ROOT, "skills-work", "ow-build-plan", "skill.edges.yaml"), "utf8"));
+    expect(planEdges.routes.paths).toContain("uat/<client>/defects/UAT-nn.md");
   });
 
   it("the routing reference: files first, never another skill's verb, never -start over a started build, the UAT and FIX classes", () => {
     const r = ref("routing-and-resume.md");
-    for (const re of [/\*\*Files first, always\.\*\*/, /\*\*This skill never runs another skill's verb\.\*\*/, /\*\*This skill never runs `-start` over a build that has started\.\*\*/, /\| `extension requested, client cause: <event>` \| `\/ow-build-change` with every UAT-nn that names the same event \|/, /\| class Fix \| nothing \|/, /4\. No `build-request\.md`: the plan is not signed/]) expect(r).toMatch(re);
+    for (const re of [/\*\*Files first, always\.\*\*/, /\*\*This skill never runs another skill's verb\.\*\*/, /\*\*This skill never runs `-start` over a build that has started\*\*, and never rewrites `ledger\.md` or `spec\/` that an earlier `-start` wrote/, /\*\*A request is priced once\.\*\*/, /\| `extension requested, client cause: <event>` \| `\/ow-build-change` with every UAT-nn that names the same event \|/, /\| class Fix \| nothing \|/, /5\. No `build-request\.md`: the plan is not signed/, /\| class Not a defect \| `\/ow-build-change`, which records it with no charge \|/]) expect(r).toMatch(re);
   });
 
   it("the builder: printed for the user to say, never started; its files are data; one sprint per -run", () => {
@@ -648,7 +679,11 @@ describe("the skill text keeps the rules the checker cannot see", () => {
     expect(ref("phase-update.md")).toMatch(/The quote and price book hold no such figure, so ask for it the first time and record it `user-stated`/);
     expect(ref("phase-change.md")).toMatch(/The UAT-nn files do not say how many, so ask the user and record the answer `user-stated`/);
     expect(ref("phase-change.md")).toMatch(/Ask the user for the \*\*schedule impact\*\* \(record it `user-stated`\)/);
-    expect(ref("phase-change.md")).toMatch(/For a UAT-nn there is no set route: say it is too big for a change order and ask the user how to go on/);
+    // Owner decision 2026-10-16: no run-time question; a too-big UAT-nn goes to ow-build-plan like a FIX-nn.
+    expect(ref("phase-change.md")).toMatch(/Hand the file to ow-build-plan for a follow-on Build Plan \(owner decision 2026-10-16: a UAT-nn goes the same way as a FIX-nn\)/);
+    expect(ref("phase-change.md")).not.toMatch(/ask the user how to go on/);
+    // Bug 7: "quoted separately" is asked, never invented.
+    expect(ref("phase-invoice.md")).toMatch(/quoted separately/i);
   });
 
   it("the payment triggers follow ow-uat B2, and the delivery half is invoiced once", () => {

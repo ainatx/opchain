@@ -10,7 +10,8 @@ slug: larkspur-ceramics
 user: Robin
 repo: larkspur-repo
 plan_case: accepted-signed
-checks: [headers, start, no_spec, ledger, builder_name, status, private_names]
+verbs: [/ow-build-start]
+checks: [headers, start, no_spec, ledger, builder_name, status, private_names, writes]
 outputs: [builds/larkspur-ceramics/build.yaml, builds/larkspur-ceramics/ledger.md]
 start: { first_update: 2026-11-13 }
 builder_name: none

@@ -43,16 +43,16 @@ Try: "use ow-build to start plans/acme/" · "write this week's update for Acme" 
 | Verb | Does | Writes (under `opchain-work/builds/<client>/`) |
 |---|---|---|
 | `/ow-build` | Resume: each build's state, files first (`references/routing-and-resume.md`) | nothing |
-| `/ow-build on <path>` | Runs the verb a signed plan, `UAT-nn.md`, `FIX-nn.md` or build folder needs (`references/routing-and-resume.md`) | what that verb writes |
+| `/ow-build on <path>` | Runs the verb a signed plan, `UAT-nn.md`, `FIX-nn.md`, payment-trigger file or build folder needs (`references/routing-and-resume.md`) | what that verb writes |
 | `/ow-build-start` | After signing: milestones, checks, payments, update day, sources; `spec/` and the builder's sprint plan mapped to milestones | `build.yaml`, `ledger.md`, `<repo>/spec/` |
 | `/ow-build-run M<n>` | The milestone's next unfinished sprint, one per call; records its result | `build.yaml` |
 | `/ow-build-update` | The weekly update, traced; the internal margin view | `updates/<date>.html`, `.txt`, `-checks.md`; `margin.md` |
 | `/ow-build-demo M<n>` | The demo script; `/ow-build-demo --record M<n>` the record and client summary | `demos/M<n>-script.md`, `-record.md`, `-summary.html`, `.txt` |
-| `/ow-build-change` | A request (yours, `UAT-nn.md`, `FIX-nn.md`) classified and priced; `/ow-build-change --sent`, `/ow-build-change --agreed`, `/ow-build-change --signed`, `/ow-build-change --declined` (`CO-nn <date>`) move it on | `changes/requests.md`, `CO-nn.md`, `.html`, `.txt`, `change-inputs-CO-nn.md` |
+| `/ow-build-change` | A request (yours, `UAT-nn.md`, `FIX-nn.md`) classified and priced, once; `/ow-build-change --sent`, `/ow-build-change --agreed`, `/ow-build-change --signed`, `/ow-build-change --declined` (`CO-nn <date>`) move it on | `changes/requests.md`, `CO-nn.md`, `.html`, `.txt`, `change-inputs-CO-nn.md`; `<repo>/spec/06-testing-change-orders.md` |
 | `/ow-build-invoice` | A request per payment trigger met; `/ow-build-invoice --paid` records payment | `invoices/INV-request-<trigger>.md`, `ledger.md` |
 | `/ow-build-ready` | Every check's run once every milestone is demoed; marks no payment | `ready-for-uat.md` |
 
-Every run that writes appends one `STATUS.md` line; every verb reads `ledger.md` and `build.yaml` first, so a build resumes cold.
+Each run that writes appends `STATUS.md` lines as its phase file says (none on a refusal); every verb reads `ledger.md` and `build.yaml` first, so a build resumes cold.
 
 ## Phases
 
@@ -60,7 +60,7 @@ Each verb opens its phase file first. **Open the file before acting; if you cann
 
 - `/ow-build`, `/ow-build on <path>` → `references/routing-and-resume.md`
 - `-start` → `references/phase-start.md`, with `builder-integration.md`, `build-yaml-schema.md`, `ledger-schema.md`
-- `-run` → `references/phase-run.md`, with `builder-integration.md`
+- `-run` → `references/phase-run.md`, with `builder-integration.md`, `build-yaml-schema.md`
 - `-update`, `-demo`, `-change` → `references/phase-update.md`, `phase-demo.md`, `phase-change.md`, each with `email-template.md`
 - `-invoice` → `references/phase-invoice.md`, with `ledger-schema.md` · `-ready` → `references/phase-ready.md`
 
@@ -94,7 +94,9 @@ Your `handoffs.yaml` `build` entry names it; this skill never does. `mode: opcha
 | any ow- skill | `STATUS.md` | First run: the welcome | Use the lines that parse |
 | ow-start | `profile.md`: name, time zone, holidays, handling | Ask name and time zone; skip weekends only | Ask for the missing fields |
 | ow-build-plan | `plans/<client>/build-request.md`: the signing | Refuse `-start`: not signed | Ask the user to confirm the date |
-| ow-build-plan | `plans/<client>/quote.md`: price, schedule, payments, milestones; `plans/<client>/plan.yaml`: handling; `plans/<client>/contract-inputs.md`: `documentation_sku` | Refuse `-start` | Record no payment until the user confirms |
+| ow-build-plan | `plans/<client>/quote.md`: price, schedule, payments, milestones | Refuse `-start` | Record no payment until the user confirms |
+| ow-build-plan | `plans/<client>/plan.yaml`: handling | Quick quote: from `quote.md` | Ask the handling question |
+| ow-build-plan | `plans/<client>/contract-inputs.md`: `documentation_sku`, `documentation_price` | `documentation: none` | Record no line until the user confirms |
 | ow-build-plan | `plans/<client>/scope.md`, `plans/<client>/acceptance.md`, `plans/<client>/risks.md`, `plans/<client>/build-plan.md` (quick: `plans/<client>/quick-scope.md`) | No checks from either: stop `-start` | Stop until every check parses |
 | ow-build-plan | `plans/<client>/map/systems.md`, `plans/<client>/map/data.md`, `plans/<client>/map/future.md` | Use `build-request.md`; say so | Use the lines that parse |
 | ow-uat | `uat/<client>/defects/UAT-nn.md`; `uat/<client>/signoff.md`, `uat/<client>/backstop.md`, `uat/<client>/uat.yaml` | Ask for the request; no file, no trigger | Mark no trigger until the user confirms |
@@ -103,28 +105,29 @@ Your `handoffs.yaml` `build` entry names it; this skill never does. `mode: opcha
 | ow-tools | `builds/<client>/demos/M<n>/transcript.md` | Your notes | No speakers: notes |
 | the user | `price-book.yaml`, `offers.md` (`after_handoff.excluded`), `handoffs.yaml`, `brand.yaml` | No price book: price nothing. Else the default | Price nothing that needs a missing key |
 | the builder | `<repo>/sprints/`; `<repo>/.checkpoints/<checkpoint>.checkpoint.json` (protocol fields) | No result: nothing passes | Record nothing unconfirmed |
-| the user | `<time export>` (`margin.md` only), git history, weekly notes | `margin.md` says no time was recorded | Ask how to assign the rows |
+| the user | `<time export>` (the margin view only), git history, weekly notes | `margin.md` says no time was recorded | Ask how to assign the rows |
 | ow-build | its own files, as each phase file lists | Say which step is missing | Report what was found |
 
 ## Hands off to
 
-| When | Next skill | Verb | Say | Writes for it | If not available |
-|---|---|---|---|---|---|
-| A trigger met | ow-build | `/ow-build-invoice` | "use ow-build to invoice what is due for builds/<client>/" | `ledger.md` | Invoice by hand |
-| Sprints left | ow-build | `/ow-build-run` | "use ow-build to run M<n> for builds/<client>/" | `build.yaml` | Say the sprint line yourself |
-| Milestone's sprints pass | ow-build | `/ow-build-demo` | "use ow-build to prepare the M<n> demo for builds/<client>/" | `build.yaml` | Walk through its checks |
-| Script written | ow-build | `/ow-build-demo --record` | "use ow-build to record the M<n> demo for builds/<client>/" | `M<n>-script.md` | Note results beside it |
-| All demoed | ow-build | `/ow-build-ready` | "use ow-build to mark builds/<client>/ ready for UAT" | `demos/` | List results by hand |
-| Demo recorded | ow-build | `/ow-build` | "use ow-build on builds/<client>/" | `M<n>-record.md` | Follow the record |
-| A request | ow-build | `/ow-build-change` | "use ow-build to price a change for builds/<client>/" | `M<n>-record.md` | Price it by hand |
-| Each week | ow-build | `/ow-build-update` | "use ow-build to write the update for builds/<client>/" | `build.yaml` | Write it by hand |
-| CO sent | ow-build | `/ow-build-change --agreed` | "use ow-build to record the agreement on builds/<client>/changes/CO-nn.md" | `CO-nn.md` | A reply is not a signature |
-| Amendment out | ow-build | `/ow-build-change --signed` | "use ow-build to record the signed amendment on builds/<client>/changes/CO-nn.md" | `CO-nn.md` | No work before signing |
-| Agreed in principle | handoffs.yaml `change_order` | its say: line | (yours) | `change-inputs-CO-nn.md` | The public default |
-| Payment due | handoffs.yaml `invoice` | its say: line | (yours) | `INV-request-<trigger>.md` | The public default |
-| For the builder | handoffs.yaml `build` | its say: line | (yours) | `change-inputs-CO-nn.md`, `ready-for-uat.md` | The public default |
-| Too big for a CO | ow-build-plan | `/ow-build-plan` | "use ow-build-plan on handoffs/<client>/fixes/FIX-nn.md" | nothing | A follow-on plan by hand |
-| Ready | ow-uat | `/ow-uat` | "use ow-uat on builds/<client>/ready-for-uat.md" | `ready-for-uat.md`, `CO-nn.md` | Plan the test by hand |
+| When | Next skill | Verb | Say | If not available |
+|---|---|---|---|---|
+| A trigger met | ow-build | `/ow-build-invoice` | "use ow-build to invoice what is due for builds/<client>/" | Invoice by hand |
+| Sprints left | ow-build | `/ow-build-run` | "use ow-build to run M<n> for builds/<client>/" | Say the sprint line yourself |
+| Milestone's sprints pass | ow-build | `/ow-build-demo` | "use ow-build to prepare the M<n> demo for builds/<client>/" | Walk through its checks |
+| Script written | ow-build | `/ow-build-demo --record` | "use ow-build to record the M<n> demo for builds/<client>/" | Note results beside it |
+| All demoed | ow-build | `/ow-build-ready` | "use ow-build to mark builds/<client>/ ready for UAT" | List results by hand |
+| Demo recorded | ow-build | `/ow-build` | "use ow-build on builds/<client>/" | Follow the record |
+| A request | ow-build | `/ow-build-change` | "use ow-build to price a change for builds/<client>/" | Price it by hand |
+| Each week | ow-build | `/ow-build-update` | "use ow-build to write the update for builds/<client>/" | Write it by hand |
+| CO sent | ow-build | `/ow-build-change --agreed` | "use ow-build to record the agreement on builds/<client>/changes/CO-nn.md" | A reply is not a signature |
+| Amendment out | ow-build | `/ow-build-change --signed` | "use ow-build to record the signed amendment on builds/<client>/changes/CO-nn.md" | No work before signing |
+| Agreed in principle | handoffs.yaml `change_order` | its say: line | (yours) | The public default |
+| Payment due | handoffs.yaml `invoice` | its say: line | (yours) | The public default |
+| For the builder | handoffs.yaml `build` | its say: line | (yours) | The public default |
+| FIX-nn too big for a CO | ow-build-plan | `/ow-build-plan` | "use ow-build-plan on handoffs/<client>/fixes/FIX-nn.md" | A follow-on plan by hand |
+| UAT-nn too big for a CO | ow-build-plan | `/ow-build-plan` | "use ow-build-plan on uat/<client>/defects/UAT-nn.md" | A follow-on plan by hand |
+| Ready | ow-uat | `/ow-uat-plan` | "use ow-uat-plan on builds/<client>/ready-for-uat.md" | Plan the test by hand |
 
 ## NEXT templates
 
@@ -192,9 +195,9 @@ Print the one that fits when a phase finishes, filled in. A `handoffs.yaml` line
     IF IT IS NOT AVAILABLE: invoice the change order's price by hand; for the builder: handoffs.yaml `build`
 
     DONE: too big for a change order (<n> units; your limit is <max>) -> builds/<client>/changes/requests.md
-    NEXT: say "use ow-build-plan on handoffs/<client>/fixes/FIX-nn.md"
-          It will read: FIX-nn.md, the earlier plan
-          [no folder attached: attach FIX-nn.md when you say it]
+    NEXT: say "use ow-build-plan on handoffs/<client>/fixes/FIX-nn.md"   (a UAT request: say "use ow-build-plan on uat/<client>/defects/UAT-nn.md")
+          It will read: the FIX-nn or UAT-nn file, the earlier plan
+          [no folder attached: attach that file when you say it]
     IF IT IS NOT AVAILABLE: offer a follow-on Build Plan by hand.
 
     DONE: invoice request -> builds/<client>/invoices/INV-request-<trigger>.md
@@ -202,7 +205,7 @@ Print the one that fits when a phase finishes, filled in. A `handoffs.yaml` line
     IF IT IS NOT AVAILABLE: create this invoice in your invoicing tool.
 
     DONE: ready for UAT, <n> of <n> checks pass -> builds/<client>/ready-for-uat.md
-    NEXT: say "use ow-uat on builds/<client>/ready-for-uat.md"
+    NEXT: say "use ow-uat-plan on builds/<client>/ready-for-uat.md"   (where slash commands exist: /ow-uat-plan)
           It will read: ready-for-uat.md, changes/
           [no folder attached: attach them when you say it]
     IF IT IS NOT AVAILABLE: plan the client's test by hand from ready-for-uat.md.
@@ -218,16 +221,7 @@ With a failing check, `-ready` marks no payment and prints instead:
 
 ## Self-checks
 
-Each is a **same-session self-check: the same assistant that wrote the output, applying a checklist; a discipline, not an independent review.** OK, FINDING or NOT-CHECKED (reason), agent-checked, recorded where the phase file says; fix and re-run while any is FINDING.
-
-| Check | Runs in | Passes when |
-|---|---|---|
-| No internal numbers | client outputs, `spec/` | No hours, effort, rates, margin, unit prices or modifiers, however worded; `spec/` names no price |
-| Trace | `-update` | Every "This week" sentence maps to a commit, builder report, checkpoint row or note |
-| No false done | `-update`, `-demo`, `-ready` | Nothing is called done, working or ready without a passing acceptance check |
-| Priced and signed before work | `-change`, `-update` | No change-order work is reported started, handed to the builder or put in `spec/` before a signed amendment |
-| Ledger arithmetic | `-start`, `-invoice` | Amounts match the quote and signed change orders: tool output recorded, else `not machine-checked` |
-| No private names | every output | No private skill, no business, not the builder's name or say: lines |
+Each is a **same-session self-check: the same assistant that wrote the output, applying a checklist; a discipline, not an independent review.** No internal numbers, Trace, No false done, Priced and signed before work, Ledger arithmetic and No private names: `references/self-checks.md` says when each runs and passes. Fix and re-run while any is FINDING.
 
 ## Works on its own
 

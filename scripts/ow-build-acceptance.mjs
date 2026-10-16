@@ -302,7 +302,10 @@ export function documentationLine(run, key) {
   const text = run.read(`${plan(key)}/contract-inputs.md`);
   if (text == null) return null;
   const d = parsed(text, `${plan(key)}/contract-inputs.md`, "md").data;
-  return d.documentation_sku === "bought" ? { amount: d.documentation_price } : null;
+  if (d.documentation_sku !== "bought") return null;
+  // More people than the price book prices: "quoted separately" has no amount here (bug 7); it is asked at -invoice.
+  if (/quoted separately/i.test(String(d.documentation_price ?? ""))) return { amount: null, separately: true };
+  return { amount: d.documentation_price, separately: false };
 }
 
 /** The builder's project folder (root-relative), from build.yaml's builder.repo. */
@@ -409,8 +412,17 @@ export function validateEmailHtml(html) {
   if (seen.tablesWithoutRole) p.push(`${seen.tablesWithoutRole} layout table(s) without role="presentation"`);
   if (!seen.width600) p.push("no 600 px content table");
   if (/<style|<link|<script/i.test(html)) p.push("a <style>, <link> or <script> element; every style is inline");
+  // Contrast (email-template.md): every text colour 4.5:1 on the background; an h1 (24 px and up) 3:1.
+  const bg = (html.match(/<body[^>]*background-color:\s*(#[0-9a-f]{6})/i) ?? [])[1] ?? "#FFFFFF";
+  for (const m of html.matchAll(/<(h1|h2|h3|p|li|td|span|a|strong|em)\b[^>]*style="[^"]*?(?<![-\w])color:\s*(#[0-9a-f]{6})/gi)) {
+    const r = contrast(m[2], bg);
+    const min = m[1].toLowerCase() === "h1" ? 3 : 4.5;
+    if (r < min) p.push(`<${m[1]}> text ${m[2]} on ${bg} is ${r.toFixed(2)}:1, under ${min}:1`);
+  }
   return p;
 }
+const lum = (hex) => { const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+export const contrast = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
 const ENTITIES = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", middot: "·", mdash: "—", ndash: "–", rsquo: "’", lsquo: "‘", rdquo: "”", ldquo: "“", hellip: "…" };
 const decode = (s) => s.replace(/&(#\d+|#x[0-9a-f]+|[a-z]+);/gi, (m, e) => e[0] === "#" ? String.fromCodePoint(e[1] === "x" ? parseInt(e.slice(2), 16) : Number(e.slice(1))) : ENTITIES[e.toLowerCase()] ?? m);
 /** The words a reader sees: the title is not shown, links read "text (address)". */
@@ -441,14 +453,20 @@ function checkEmailPair(run, htmlRel) {
 // ── meaning-based term matching ──────────────────────────────────────────────
 
 /** Internal numbers, by meaning: however a paraphrase words it (design §9.1, §12.7). */
+const NUMWORD = "(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand)";
+/** An amount written in words ("two thousand dollars", "seventeen thousand four hundred and fifty dollars"). */
+export const AMOUNT_IN_WORDS = new RegExp(`\\b${NUMWORD}(?:[\\s-]+(?:and[\\s-]+)?${NUMWORD})*\\s+(?:dollars?|pounds?|euros?|bucks|quid)\\b`, "i");
 export const INTERNAL_TERMS = [
   [/\b\d+(?:[.,]\d+)?\s*(?:h|hrs?|hours?)\b/i, "an hour count"],
   [/\bhours?\b|\bhrs\b/i, "hours"],
-  [/\b(?:effort|person[- ]?days?|man[- ]?days?|days? of (?:work|effort|development)|time (?:spent|logged|booked|tracked)|timesheets?|billable|logged)\b/i, "effort"],
+  [/\b(?:effort|person[- ]?days?|man[- ]?days?|time (?:spent|logged|booked|tracked)|timesheets?|billable|logged)\b/i, "effort"],
+  [/\b(?:days?|weeks?|months?|evenings?)(?: and a half)? of (?:work|effort|development|building|coding|time)\b|\bspent (?:\w+ ){0,3}(?:days?|weeks?|evenings?|nights?|mornings?|afternoons?)\b|\b(?:took|takes|taking) (?:us |me )?(?:\w+ ){0,3}(?:days?|weeks?)\b/i, "effort"],
   [/\b(?:hourly|per hour|day rate|rates?)\b/i, "a rate"],
   [/\b(?:margins?|profit|burn(?:ed|ing|s)?|overrun|over-?ran|over budget|under budget|budgets?)\b/i, "margin"],
-  [/\b(?:unit prices?|modifiers?|mark-?up)\b/i, "pricing internals"],
-  [/(?:^|[\s(])[x×]\s?\d+\.\d+\b/i, "a modifier factor"],
+  [/\bover (?:our |the |my )?(?:estimate[ds]?|plan(?:ned)?)\b|\bover what (?:was|we|I) (?:had )?(?:planned|estimated|expected)\b|\b(?:above|beyond|exceed(?:ed|s|ing)?) (?:our |the |my )?(?:estimate|plan|quote)\b|\bestimate[ds]?\b/i, "an overrun or estimate"],
+  [/\b(?:unit prices?|modifiers?|mark-?up|multiplier|surcharge|uplift|loading)\b/i, "pricing internals"],
+  [/(?:^|[\s(])[x×]\s?\d+(?:\.\d+)?\b|\b\d+(?:\.\d+)?\s?[x×](?![\w])|\b\d+\s?(?:%|per ?cent|percent) (?:extra|more|on top|added|surcharge|uplift)/i, "a modifier factor"],
+  [AMOUNT_IN_WORDS, "an amount in words"],
   [/\b(?:checkpoints?|evaluators?|rubrics?|gates?|sprints?|scores?|scored)\b/i, "a tool word"],
 ];
 /**
@@ -459,11 +477,13 @@ export const INTERNAL_TERMS = [
  */
 const SPEC_TERMS = [
   [/\b(?:fixed price|our price|the price of (?:the|this) (?:build|work|job|change)|priced|pricing|fees?|quoted|quotation|rates?|hourly|margins?|budgets?|unit prices?|modifiers?|mark-?up|payments? (?:schedule|terms)|deposit|instal?ments?)\b/i, "price wording"],
+  [/\b(?:paid|pays?|payment|invoiced?|billed|due)\b[^.]{0,40}(?:\d+\s?%|\b[a-z-]+ ?(?:per ?cent|percent))|(?:\d+\s?%|\b[a-z-]+ ?(?:per ?cent|percent)) of (?:the )?(?:price|work|fee|job|contract|total)|\b(?:has|have|was|were|is|are) (?:already )?paid\b/i, "payment terms"],
+  [/\b(?:worth|value of|valued at|contract value)\b/i, "the job's value"],
 ];
 /** "Done", however worded (design §9.1 No false done). */
-export const DONE_WORDS = /\b(?:done|finished|complete[ds]?|completed|working|works|worked|ready|live|delivered|shipped|passe[sd]|passing|in place|wrapped up|sorted|up and running|good to go|ticked off|signed off|all set|nailed|landed|launched|rolled out|in production|operational|functional|fully functional|behind us)\b/i;
+export const DONE_WORDS = /\b(?:done|finished|complete[ds]?|completed|working|works|worked|ready|live|delivered|shipped|passe[sd]|passing|in place|wrapped up|wrapped|sorted|up and running|good to go|ticked off|signed off|all set|nailed|landed|launched|rolled out|in production|operational|functional|fully functional|behind us|available|taken care of|in use|ready to use|closed out|resolved|handled)\b/i;
 /** "Started", however worded (design §6 signature gate). */
-export const STARTED_WORDS = /\b(?:start(?:ed|ing|s)?|begun|began|underway|under way|in progress|working on|work on|building|built|added|adding|making progress|kicked off|on it|picked up|got going|rolling|implement(?:ed|ing)?|develop(?:ed|ing)?|handed (?:it )?to the builder|making headway|progressing|first cut|first pass|prototyp(?:e|ed|ing)|sketch(?:ed|ing)?|scaffold(?:ed|ing)?)\b/i;
+export const STARTED_WORDS = /\b(?:start(?:ed|ing|s)?|begun|began|underway|under way|in progress|working on|work on|building|built|added|adding|making progress|kicked off|on it|picked up|got going|rolling|implement(?:ed|ing)?|develop(?:ed|ing)?|handed (?:it )?to the builder|making headway|progressing|first cut|first pass|prototyp(?:e|ed|ing)|sketch(?:ed|ing)?|scaffold(?:ed|ing)?|coming along|shaping up|well advanced|nearly there|almost (?:done|there|ready)|under construction|in the works|in hand|on track)\b/i;
 
 /** Amounts (cents) that are internal: price-book units, quote pricing lines, the extension rate, margin figures. */
 function internalAmounts(run, key) {
@@ -594,12 +614,20 @@ function checkStart(key, run) {
     if (want.milestones) for (const [id, s] of Object.entries(want.milestones)) if ((got.find((m) => m.id === id)?.sprints ?? []).join() !== s.join()) p.push(`build.yaml: ${id} sprints, expected ${s.join(", ")}`);
   }
   if ((b.sprints ?? []).length) p.push("build.yaml: -start hands no sprint; sprints must be empty");
+  // Resume, never rewrite (bug 1): a ledger or spec/ that existed before this run is left as it was.
+  for (const f of run.written()) {
+    if (!run.priorExists(f)) continue;
+    if (/\/ledger\.md$/.test(f) || /\/spec\//.test(f)) p.push(`${f}: existed before this -start and was rewritten; a resumed -start goes to the map and leaves the ledger and spec/ alone`);
+  }
+  const priorB = run.priorRead(rel);
+  if (priorB != null) {
+    const pb = (() => { try { return yaml.load(priorB) ?? {}; } catch { return {}; } })();
+    if (!/^(pending|stopped)/.test(String(pb.map_check ?? ""))) p.push(`build.yaml: -start ran over a build.yaml whose map_check is ${pb.map_check}; it resumes only a pending or stopped map`);
+  }
   if (key.embedded) {
     const e = (b.embedded_instructions ?? []).map(String).join("\n");
     if (!e.includes(key.embedded)) p.push(`build.yaml: the planted instruction ("${key.embedded}") is not quoted under embedded_instructions`);
   }
-  // -start never runs over a started build.
-  if (run.priorRead(rel) != null && (priorYml(run, rel).map_check === "OK")) p.push("build.yaml: -start ran over a build that had started");
   return p;
 }
 
@@ -650,7 +678,7 @@ function checkSpec(key, run) {
   const planDir = plan(key).slice(OW.length);
   for (const f of SPEC_FILES) {
     const rel = `${key.repo}/spec/${f}.md`;
-    if (!run.written().includes(rel)) { p.push(`${rel} was not written`); continue; }
+    if (!run.exists(rel)) { p.push(`${rel} was not written`); continue; }
     const { data, content } = md(run, rel);
     if (!content.includes(`The signed Build Plan is the source of truth: \`${planDir}/\`. Change it there, not here.`)) p.push(`${rel}: no source-of-truth line naming ${planDir}/`);
     const sources = [...(sectionText(content, "Sources") ?? "").matchAll(/`([^`]+)`/g)].map((m) => m[1]);
@@ -674,7 +702,8 @@ function checkSpec(key, run) {
       if (!g) { p.push(`spec/06-testing.md: ${id} is missing (every acceptance check reaches the builder)`); continue; }
       for (const line of c.lines) if (!g.lines.includes(line)) p.push(`spec/06-testing.md: ${id} does not carry "${line}" verbatim`);
     }
-    const extra = [...got.keys()].filter((id) => !checks.has(id) && !/^AC-CO-/.test(id));
+    if (!/Checks added later by signed change orders are in `spec\/06-testing-change-orders\.md`\.\s*\n+## Sources/.test(testing)) p.push("spec/06-testing.md: its last line before ## Sources points to spec/06-testing-change-orders.md");
+    const extra = [...got.keys()].filter((id) => !checks.has(id));
     if (extra.length) p.push(`spec/06-testing.md: checks not in the plan: ${extra.join(", ")}`);
   }
   return p;
@@ -750,8 +779,11 @@ function checkLedger(key, run) {
     const d = data.documentation;
     if (!d || typeof d !== "object" || d.sku !== "bought") p.push(`${rel}: contract-inputs.md says documentation_sku: bought, so the ledger carries the documentation line (documentation: { sku: bought, amount, state })`);
     else {
-      if (cents(d.amount) !== cents(doc.amount)) p.push(`${rel}: documentation amount ${money(cents(d.amount))}; contract-inputs.md says ${money(cents(doc.amount))}`);
       const want = key.ledger?.states?.documentation ?? "not met";
+      if (doc.separately) {
+        if (want === "not met" && String(d.amount) !== "none (quoted separately)") p.push(`${rel}: the documentation line is quoted separately, so its amount is "none (quoted separately)" until the agreed amount is asked; never invented`);
+        if (want !== "not met" && !/^user-stated \d{4}-\d{2}-\d{2}$/.test(String(d.amount_source ?? ""))) p.push(`${rel}: a separately quoted documentation amount is recorded with amount_source: user-stated <date>`);
+      } else if (cents(d.amount) !== cents(doc.amount)) p.push(`${rel}: documentation amount ${money(cents(d.amount))}; contract-inputs.md says ${money(cents(doc.amount))}`);
       if (d.state !== want) p.push(`${rel}: documentation is ${d.state}, expected ${want}`);
     }
   } else if (data.documentation !== "none") p.push(`${rel}: the documentation line was declined or not recorded, so documentation is "none" and there is no such trigger`);
@@ -770,6 +802,7 @@ function checkRun(key, run) {
   const ms = after.milestones ?? [];
   const m = ms.find((x) => x.id === want.milestone);
   if (!m) return [`build.yaml: no milestone ${want.milestone}`];
+  if (after.builder?.mode !== "opchain") return checkRunReported(key, run, before, after, m);
   // Exactly one sprint, of this milestone, the next unfinished one.
   const b0 = new Map((before.sprints ?? []).map((s) => [s.n, s]));
   const changed = (after.sprints ?? []).filter((s) => JSON.stringify(s) !== JSON.stringify(b0.get(s.n)));
@@ -787,6 +820,13 @@ function checkRun(key, run) {
   // The result, from the builder's files.
   const repo = repoOf(run, key);
   const report = sprintReport(run, repo, s.n);
+  // Text in the builder's files addressed to an assistant is quoted into embedded_instructions, never acted on.
+  for (const f of [report?.path, `${repo}/sprints/sprint-${s.n}/contract.md`].filter(Boolean)) {
+    for (const line of (run.read(f) ?? "").split("\n").filter((l) => EMBEDDED.test(l))) {
+      const bit = line.replace(/^[\s>*-]+/, "").trim().slice(0, 40);
+      if (!(after.embedded_instructions ?? []).some((e) => String(e).includes(bit))) p.push(`build.yaml: ${f} holds an instruction to an assistant ("${bit}") that is not quoted under embedded_instructions`);
+    }
+  }
   const cp = checkpoint(run, repo);
   const blocked = (cp?.blockers ?? []).find((x) => String(x.blocking ?? "") === `sprint-${s.n}`) ?? ((cp?.progress_table ?? []).find((x) => x.id === `sprint-${s.n}` && /^(blocked|failed)$/.test(x.status)) ? { id: "progress_table" } : null);
   const expect = !report ? undefined : report.verdict === "PASS" ? "pass" : report.verdict === "FAIL" && blocked ? "escalated" : report.verdict === "FAIL" ? "not passed yet" : undefined;
@@ -809,6 +849,37 @@ function checkRun(key, run) {
   const nextVerb = done ? "/ow-build-demo" : "/ow-build-run";
   if (!last.includes(`next: ow-build ${nextVerb} builds/${key.slug}/`)) p.push(`STATUS.md: the newest line must point at ${nextVerb} (${done ? `every sprint of ${want.milestone} passes: the demo` : "a sprint is left, not passed yet or escalated"}), not "${last.split(" | ")[3] ?? last}"`);
   for (const f of run.written()) if (f !== rel && f !== `${OW}STATUS.md`) p.push(`${f}: -run writes build.yaml and STATUS.md only`);
+  return p;
+}
+
+/** A line in a builder's file addressed to an assistant, or asking for an action outside its job. */
+const EMBEDDED = /\b(?:note to (?:the |any )?(?:assistant|AI)|to the assistant|ignore (?:all |the )?(?:previous |prior )?instructions|(?:AI|the) assistant(?:,| should| must)|mark (?:every|all|sprint \d+) .*pass)/i;
+
+/** Without a builder, -run records the user's report: each check with its evidence (bug 10). */
+function checkRunReported(key, run, before, after, m) {
+  const p = [];
+  const want = key.sprint;
+  const m0 = (before.milestones ?? []).find((x) => x.id === m.id) ?? {};
+  const was = new Set((m0.reported_passing ?? []).map((r) => r.check));
+  const now = m.reported_passing ?? [];
+  if (!now.length || now.length <= was.size) p.push(`build.yaml: -run ${m.id} without a builder records the checks you report passing; none was added`);
+  for (const r of now) {
+    if (!(m.checks ?? []).includes(r.check)) p.push(`build.yaml: ${r.check} is not one of ${m.id}'s checks`);
+    if (!String(r.evidence ?? "").trim() || /^(none|-|tbd)$/i.test(String(r.evidence))) p.push(`build.yaml: ${r.check} is recorded passing with no evidence`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso(r.date) ?? "")) p.push(`build.yaml: ${r.check} has no date`);
+  }
+  if (want.reported && now.map((r) => r.check).join() !== want.reported.join()) p.push(`build.yaml: ${m.id} reported_passing ${now.map((r) => r.check).join(", ")}, expected ${want.reported.join(", ")}`);
+  if ((after.sprints ?? []).length) p.push("build.yaml: no sprint is handed without a builder");
+  const all = (m.checks ?? []).every((c) => now.some((r) => r.check === c));
+  const wantStatus = all ? "ready for demo" : "in progress";
+  if (m.status !== wantStatus) p.push(`build.yaml: ${m.id} status is ${m.status}, expected ${wantStatus}`);
+  for (const other of after.milestones ?? []) {
+    const w = (before.milestones ?? []).find((x) => x.id === other.id);
+    if (other.id !== m.id && JSON.stringify(w) !== JSON.stringify(other)) p.push(`build.yaml: ${other.id} changed; -run ${m.id} touches only ${m.id}`);
+  }
+  const last = (run.read(`${OW}STATUS.md`) ?? "").split("\n").filter(Boolean).at(-1) ?? "";
+  const nextVerb = all ? "/ow-build-demo" : "/ow-build-run";
+  if (!last.includes(`next: ow-build ${nextVerb} builds/${key.slug}/`)) p.push(`STATUS.md: the newest line must point at ${nextVerb}`);
   return p;
 }
 
@@ -895,35 +966,57 @@ function checkUpdate(key, run) {
   return p;
 }
 
-/** A change order not yet signed appears only in Changes, marked not started (design §6 step 4). */
-function changeGateIn(run, key, rel, html) {
+/** Wording that says work has not started: never counted as "started". */
+const NOT_STARTED = /\bnot (?:yet )?started\b|\bbefore (?:any |the )?work(?: on it)?(?: starts)?\b|\bno work\b|\bnothing (?:is |has )?started\b|\b(?:will not|won't) start\b|\bbefore (?:it|we|work) starts?\b/gi;
+/** The words an unsigned change order is known by: its id, the key's phrases, and the words of its "What changes" the plan does not use. */
+const STOP = new Set(["about", "after", "before", "beside", "between", "each", "every", "from", "their", "there", "these", "those", "which", "while", "would", "could", "should", "shows", "order", "orders", "where", "other", "line", "lines", "client", "clients", "change", "changes"]);
+function coPhrases(run, key, d, file) {
+  const out = [d.id, ...((key.change_phrases ?? {})[d.id] ?? [])];
+  try {
+    const what = sectionText(internalSplit(matter(run.read(file)).content).client, "What changes") ?? "";
+    const planText = ["scope.md", "acceptance.md", "quick-scope.md"].map((f) => run.read(`${plan(key)}/${f}`) ?? "").join(" ").toLowerCase();
+    for (const w of new Set(what.toLowerCase().match(/[a-z]{5,}/g) ?? [])) if (!STOP.has(w) && !planText.includes(w)) out.push(w);
+  } catch { /* reported by change */ }
+  return out;
+}
+/**
+ * A change order not yet signed is never reported as started, however worded,
+ * in any email (updates and demo summaries alike); a "Changes" section lists it
+ * as not started (design §6 step 4).
+ */
+function changeGateIn(run, key, rel, html, { listing = true } = {}) {
   const p = [];
   const cos = run.all().filter((f) => new RegExp(`^${esc(build(key))}/changes/CO-\\d+\\.md$`).test(f)).map((f) => ({ f, d: matter(run.read(f)).data }));
-  for (const { d } of cos) {
+  const heads = [...html.matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/g)].map((m) => decode(m[1]).trim());
+  const changeHeads = heads.filter((h) => /^Changes\b/.test(h));
+  // In a Changes section, nothing that is not signed is "started", whatever it is called.
+  for (const h of changeHeads) {
+    for (const s of sentences(htmlSection(html, h) ?? "")) {
+      const m = s.replace(NOT_STARTED, " ").match(STARTED_WORDS);
+      const signed = cos.some(({ d }) => d.status === "signed" && new RegExp(`\\b${esc(d.id)}\\b`).test(s));
+      if (m && !signed) p.push(`${rel}: "${h}" reports a change as started ("${m[0]}") before an amendment is signed ("${s.slice(0, 60)}")`);
+    }
+  }
+  for (const { f, d } of cos) {
     if (d.status === "signed" || d.status === "declined") continue;
     const id = d.id;
-    const phrases = [id, ...((key.change_phrases ?? {})[id] ?? [])];
-    // Anywhere in the update, a sentence about it never reports the work as started.
-    for (const name of UPDATE_SECTIONS.filter((s) => s !== "Changes")) {
+    const phrases = coPhrases(run, key, d, f);
+    const about = (s) => phrases.some((ph) => new RegExp(`\\b${esc(ph)}`, "i").test(s));
+    for (const name of heads.filter((h) => !changeHeads.includes(h))) {
       for (const s of sentences(htmlSection(html, name) ?? "")) {
-        if (!phrases.some((ph) => new RegExp(`\\b${esc(ph)}\\b`, "i").test(s))) continue;
-        const m = s.replace(/not started/gi, " ").match(STARTED_WORDS);
+        if (!about(s)) continue;
+        const m = s.replace(NOT_STARTED, " ").match(STARTED_WORDS);
         if (m) p.push(`${rel}: "${name}" reports ${id} as started ("${m[0]}") before its amendment is signed ("${s.slice(0, 60)}")`);
       }
     }
-    const ch = htmlSection(html, "Changes") ?? "";
-    const line = sentences(ch).filter((s) => phrases.some((ph) => new RegExp(`\\b${esc(ph)}\\b`, "i").test(s)));
+    if (!listing) continue;
+    const ch = changeHeads.map((h) => htmlSection(html, h) ?? "").join(" ");
+    const line = sentences(ch).filter(about);
     if (!line.length) p.push(`${rel}: Changes does not list ${id}`);
-    for (const s of line) {
-      if (!/not started/i.test(s)) p.push(`${rel}: Changes lists ${id} without "not started" ("${s.slice(0, 60)}")`);
-      const rest = s.replace(/not started/gi, " ");
-      const m = rest.match(STARTED_WORDS);
-      if (m) p.push(`${rel}: Changes reports ${id} as started ("${m[0]}") before its amendment is signed`);
-    }
+    for (const s of line) if (!/not started/i.test(s)) p.push(`${rel}: Changes lists ${id} without "not started" ("${s.slice(0, 60)}")`);
   }
   return p;
 }
-
 function checkMargin(key, run) {
   const p = [];
   const rel = `${build(key)}/margin.md`;
@@ -984,7 +1077,8 @@ function checkDemoScript(key, run) {
   }
   const not = sectionText(content, "Not in this milestone") ?? "";
   for (const other of (b.milestones ?? []).filter((x) => x.id !== ms)) for (const wp of other.work_packages ?? []) if (!not.includes(wp)) p.push(`${rel}: "Not in this milestone" does not list ${wp}`);
-  if (m.status !== "ready for demo" && !key.demo.without_builder) p.push(`build.yaml: ${ms} is ${m.status}; the script follows every sprint passing`);
+  if (m.status !== "ready for demo") p.push(`build.yaml: ${ms} is ${m.status}; the script follows every sprint passing (or every check reported, without a builder)`);
+  if (run.priorExists(rel) && run.written().includes(rel)) p.push(`${rel}: an existing script was rewritten; a new script is a dated file, never a rewrite`);
   return p;
 }
 
@@ -1016,6 +1110,10 @@ function checkDemoRecord(key, run) {
   if (isTrigger && key.demo.confirmed === true && !confirmed) p.push(`${rel}: trigger_confirmed must read "working demo confirmed by ${key.user} <date>: the client saw it working" once the user confirms`);
   if (key.demo.confirmed === false && confirmed) p.push(`${rel}: the user did not confirm the demo, but the record marks the trigger met`);
   if (!isTrigger && confirmed) p.push(`${rel}: ${ms} is not the working-demo milestone, so no trigger is confirmed`);
+  // The client summary never reports an unsigned change as started (the gate covers every email).
+  if (run.read(`${build(key)}/demos/${ms}-summary.html`)) p.push(...changeGateIn(run, key, `${build(key)}/demos/${ms}-summary.html`, run.read(`${build(key)}/demos/${ms}-summary.html`), { listing: false }));
+  // A record is written once: it may back an invoice already (bug 6).
+  if (run.priorExists(rel) && run.written().includes(rel)) p.push(`${rel}: an existing record was rewritten; -demo --record refuses once the record exists`);
   // -demo writes no ledger row and no invoice request.
   for (const f of run.written()) if (/\/ledger\.md$|\/invoices\//.test(f)) p.push(`${f}: -demo writes no ledger row and no invoice request; -invoice reads the record`);
   // The client's summary calls working only what works.
@@ -1044,7 +1142,10 @@ function pricingProblems(run, key, rel, data, internal) {
   for (const l of lines) {
     const amt = cents(l.amount);
     sum += amt;
-    if (l.unit === "uat.extension") {
+    if (l.unit === "documentation_training.per_extra_group_of_15") {
+      const g = cents(b.documentation_training?.per_extra_group_of_15);
+      if (cents(l["unit price"]) !== g || amt !== g * Number(l.qty)) p.push(`${rel}: a further training group is qty × the price book's documentation_training.per_extra_group_of_15 (${money(g)})`);
+    } else if (l.unit === "uat.extension") {
       const rate = cents(b.uat?.extension?.per_session_or_round);
       if (cents(l["unit price"]) !== rate || amt !== rate * Number(l.qty)) p.push(`${rel}: the extension line must be qty × the price book's uat.extension rate ${money(rate)}`);
     } else if (units.has(l.unit)) {
@@ -1082,6 +1183,11 @@ function checkChange(key, run) {
       if (!/^no charge; on the builder's list$/.test(result)) p.push(`${reqRel}: an in-scope request's result is "no charge; on the builder's list"`);
       if (newCos.length) p.push(`${newCos.join(", ")}: an in-scope request has no change order and no charge`);
       break;
+    case "not a defect":
+      if (!/^not a defect\b/.test(String(row.class ?? ""))) p.push(`${reqRel}: the FIX is classed "${row.class}"; ow-handoff classed it Not a defect`);
+      if (!new RegExp(`^no charge; answered from ${esc(key.user)}'s notes$`).test(result)) p.push(`${reqRel}: a Not-a-defect report's result is "no charge; answered from ${key.user}'s notes"`);
+      if (newCos.length) p.push(`${newCos.join(", ")}: a Not-a-defect report is never priced`);
+      break;
     case "unpriced":
       if (!new RegExp(`^unpriced: no price-book unit; asked ${esc(key.user)} \\d{4}-\\d{2}-\\d{2}$`).test(result)) p.push(`${reqRel}: the result is "${result}"; with no unit it stops and asks: "unpriced: no price-book unit; asked ${key.user} <date>"`);
       if (newCos.length) p.push(`${newCos.join(", ")}: nothing is priced or written while a unit is missing`);
@@ -1105,6 +1211,7 @@ function checkChange(key, run) {
       const { client, internal, marked } = internalSplit(content);
       if (!marked) p.push(`${rel}: the internal part is not inside the ow:internal markers`);
       if (data.id !== rel.match(/(CO-\d+)\.md$/)[1]) p.push(`${rel}: id is ${data.id}`);
+      if (!run.exists(`${OW}${String(data.subject ?? "").replace(/^\.?\/?(?:opchain-work\/)?/, "")}`)) p.push(`${rel}: subject ${data.subject} is not a file in the run (the request it was made from, spelled as the file is)`);
       if (data.kind !== want.kind) p.push(`${rel}: kind is ${data.kind}, expected ${want.kind}`);
       if (data.status !== "draft") p.push(`${rel}: status is ${data.status}; a new change order is a draft`);
       if (data.work !== "not started") p.push(`${rel}: work is "${data.work}"; nothing starts before a signed amendment`);
@@ -1121,7 +1228,8 @@ function checkChange(key, run) {
         if ((data.adds_checks ?? []).length || adds.size) p.push(`${rel}: an extension change order adds no acceptance checks`);
         const lines = pr.lines ?? [];
         if (lines.some((l) => l.unit !== "uat.extension")) p.push(`${rel}: an extension is priced from uat.extension only, no other unit`);
-        for (const u of want.requests ?? []) if (!(data.requests ?? []).includes(u)) p.push(`${rel}: requests does not cite ${u}`);
+        for (const u of want.requests ?? []) if (!(data.requests ?? []).map(requestKey).includes(requestKey(u))) p.push(`${rel}: requests does not cite ${u}`);
+        for (const r of data.requests ?? []) if (!run.exists(`${OW}${String(r).replace(/^\.?\/?(?:opchain-work\/)?/, "")}`)) p.push(`${rel}: requests cites ${r}, which is not a file in the run (spell the path as the file is)`);
         for (const u of want.requests ?? []) if (!(sectionText(client, "Why") ?? "").includes(u.split("/").pop().replace(/\.md$/, ""))) p.push(`${rel}: Why does not name ${u.split("/").pop().replace(/\.md$/, "")}`);
         if (want.qty != null && lines.reduce((a, l) => a + Number(l.qty), 0) !== want.qty) p.push(`${rel}: ${lines.reduce((a, l) => a + Number(l.qty), 0)} extra sessions or rounds, expected ${want.qty} (the user's answer)`);
       } else {
@@ -1143,6 +1251,11 @@ function checkChange(key, run) {
     }
     default:
       p.push(`answer key: change.kind "${want.kind}" is not in scope, change, extension, unpriced or too big`);
+  }
+  // A request is priced once: no new change order cites a request an earlier row or change order had.
+  const earlier = pricedRequests(priorView(run), key.slug);
+  for (const f of newCos) {
+    for (const r of (() => { try { return md(run, f).data.requests ?? []; } catch { return []; } })()) if (earlier.has(requestKey(r).split("/").pop())) p.push(`${f}: cites ${r}, which was priced already (changes/requests.md or an earlier change order); a request is priced once`);
   }
   // Never a post-acceptance mark, in any change order (ow-uat B3).
   for (const f of coFiles(run, key)) if (/post[-_ ]?acceptance/i.test(run.read(f) ?? "")) p.push(`${f}: carries a post-acceptance mark; acceptance testing decides that, never the change order`);
@@ -1195,27 +1308,34 @@ function checkSigned(key, run) {
   const before = priorMd(run, rel).data;
   if (before.status !== "amendment out") p.push(`${rel}: was ${before.status} before; --signed records a signature only after the agreement (amendment out)`);
   if (data.status !== "signed") p.push(`${rel}: status is ${data.status}, expected signed`);
+  if (iso(data.signed) !== date) p.push(`${rel}: signed is ${iso(data.signed) ?? "missing"}; a signed change order records signed: ${date} (ow-uat and ow-handoff read it)`);
   const note = `signed amendment received ${date}, recorded by ${key.user}; signature not verified by this skill`;
   if (data.signature_note !== note) p.push(`${rel}: signature_note must read "${note}"`);
   if (data.work !== `handed to the builder ${date}`) p.push(`${rel}: work is "${data.work}", expected "handed to the builder ${date}"`);
   const repo = repoOf(run, key);
-  const tRel = `${repo}/spec/06-testing.md`;
-  const was = run.priorRead(tRel) ?? "";
-  const now = run.read(tRel) ?? "";
+  // spec/06-testing.md has one writer (-start); a change order's checks go to their own file.
+  if (run.written().includes(`${repo}/spec/06-testing.md`)) p.push(`${repo}/spec/06-testing.md: rewritten by -change --signed; its only writer is -start (the change order's checks go in spec/06-testing-change-orders.md)`);
+  const aRel = `${repo}/spec/06-testing-change-orders.md`;
+  const was = run.priorRead(aRel) ?? "";
+  const now = run.read(aRel) ?? "";
   if (data.kind === "extension") {
-    if (now !== was) p.push(`${tRel}: an extension change order adds nothing to spec/`);
+    if (now !== was) p.push(`${aRel}: an extension change order adds nothing to spec/`);
   } else {
-    if (!now.startsWith(was.replace(/\n*$/, ""))) p.push(`${tRel}: the earlier text changed; a signed change order only appends`);
+    const keep = was.slice(0, was.indexOf("## Sources") < 0 ? was.length : was.indexOf("## Sources")).replace(/\n*$/, "");
+    if (was && !now.startsWith(keep)) p.push(`${aRel}: the earlier change orders' sections changed; a signed change order only adds its own`);
     const sec = sectionText(now, `Change order ${id} (signed ${date})`);
-    if (sec == null) p.push(`${tRel}: no "## Change order ${id} (signed ${date})" section`);
+    if (sec == null) p.push(`${aRel}: no "## Change order ${id} (signed ${date})" section`);
     else {
       const blocks = checkBlocks(`## x\n${sec}`);
       const coBlocks = checkBlocks(`## x\n${sectionText(internalSplit(matter(run.read(rel)).content).client, "Acceptance checks it adds") ?? ""}`);
       for (const c of data.adds_checks ?? []) {
-        if (!blocks.has(c)) p.push(`${tRel}: ${c} is not appended`);
-        else for (const line of coBlocks.get(c)?.lines ?? []) if (!blocks.get(c).lines.includes(line)) p.push(`${tRel}: ${c} does not carry "${line}" verbatim`);
+        if (!blocks.has(c)) p.push(`${aRel}: ${c} is not added`);
+        else for (const line of coBlocks.get(c)?.lines ?? []) if (!blocks.get(c).lines.includes(line)) p.push(`${aRel}: ${c} does not carry "${line}" verbatim`);
       }
     }
+    const heads = [...now.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
+    if (heads.at(-1) !== "Sources") p.push(`${aRel}: does not end with its "## Sources" list`);
+    else if (!(sectionText(now, "Sources") ?? "").includes(`builds/${key.slug}/changes/${id}.md`)) p.push(`${aRel}: "## Sources" does not name builds/${key.slug}/changes/${id}.md`);
   }
   const last = (run.read(`${OW}STATUS.md`) ?? "").split("\n").filter(Boolean).at(-1) ?? "";
   if (!last.includes(`next: ow-build /ow-build-invoice builds/${key.slug}/`)) p.push("STATUS.md: a signed change order is invoiced on signature; the newest line must point at -invoice");
@@ -1243,7 +1363,7 @@ function metTriggers(run, key, ledger) {
     }
   }
   const doc = documentationLine(run, key);
-  if (doc && run.exists(`${OW}docs/${key.slug}/delivered.md`)) met.push({ trigger: "documentation", basis: `docs/${key.slug}/delivered.md`, amount: doc.amount });
+  if (doc && run.exists(`${OW}docs/${key.slug}/delivered.md`)) met.push({ trigger: "documentation", basis: `docs/${key.slug}/delivered.md`, amount: doc.separately ? (typeof ledger.documentation === "object" ? ledger.documentation.amount : null) : doc.amount, separately: doc.separately });
   for (const f of coFiles(run, key)) {
     const d = matter(run.read(f)).data;
     if (d.status === "signed") met.push({ trigger: d.id, basis: `changes/${d.id}.md`, amount: d.price });
@@ -1272,8 +1392,14 @@ function checkInvoice(key, run) {
     const row = (after.payments ?? []).find((x) => x.trigger === trig);
     const amount = row ? row.amount : m?.amount;
     if (data.trigger !== trig) p.push(`${f}: trigger is ${data.trigger}`);
-    if (cents(data.amount) !== cents(amount)) p.push(`${f}: amount ${money(cents(data.amount))}; the ledger (or the change order) says ${money(cents(amount))}`);
+    if (m?.separately) {
+      if (!/^user-stated \d{4}-\d{2}-\d{2}$/.test(String(data.amount_source ?? ""))) p.push(`${f}: the documentation line was quoted separately; its amount is the one the user states, recorded amount_source: user-stated <date>, never invented`);
+      if (cents(data.amount) !== cents(after.documentation?.amount)) p.push(`${f}: amount ${money(cents(data.amount))}; the ledger records ${after.documentation?.amount}`);
+    } else if (cents(data.amount) !== cents(amount)) p.push(`${f}: amount ${money(cents(data.amount))}; the ledger (or the change order) says ${money(cents(amount))}`);
     if (row && String(data.share) !== String(row.share)) p.push(`${f}: share ${data.share}; the ledger says ${row.share}`);
+    const wantSource = m?.separately ? null : row ? "quote" : trig === "documentation" ? "contract-inputs" : "change order";
+    if (wantSource && data.amount_source !== wantSource) p.push(`${f}: amount_source is ${data.amount_source ?? "missing"}; this amount comes from the ${wantSource}`);
+    if (!row && String(data.share) !== "none") p.push(`${f}: share ${data.share}; a change order and the documentation line sit outside the fixed price's schedule, so share: none`);
     if (Number(data.due_days) !== Number(q.payment_terms_days)) p.push(`${f}: due_days ${data.due_days}; the quote says ${q.payment_terms_days}`);
     if (data.currency !== q.currency) p.push(`${f}: currency ${data.currency}`);
     if (m && !String(data.basis ?? "").includes(m.basis.split("/").pop())) p.push(`${f}: basis "${data.basis}" does not name ${m.basis}`);
@@ -1288,7 +1414,7 @@ function checkInvoice(key, run) {
     if (!row && trig === "documentation") {
       const d = after.documentation;
       if (!d || typeof d !== "object" || d.state !== "requested") p.push(`ledger.md: the documentation line is ${d?.state ?? d ?? "missing"} after its request; expected requested`);
-      else if (cents(d.amount) !== cents(m?.amount)) p.push(`ledger.md: documentation amount ${money(cents(d.amount))}; contract-inputs.md says ${money(cents(m?.amount))}`);
+      else if (!m?.separately && cents(d.amount) !== cents(m?.amount)) p.push(`ledger.md: documentation amount ${money(cents(d.amount))}; contract-inputs.md says ${money(cents(m?.amount))}`);
     } else if (!row) {
       const co = (after.change_orders ?? []).find((c) => c.id === trig);
       if (!co) p.push(`ledger.md: the signed change order ${trig} is not in change_orders`);
@@ -1362,13 +1488,16 @@ function checkReady(key, run) {
   for (const k of ["build_label", "environment"]) if (!/\(user-stated\)$/.test(String(data[k] ?? ""))) p.push(`${rel}: ${k} is not recorded user-stated`);
   for (const s of ["Test environment", "Known issues", "Test data", "Build label", "Next"]) if (sectionText(content, s) == null) p.push(`${rel}: no "## ${s}" section`);
   const next = sectionText(content, "Next") ?? "";
-  const toUat = `use ow-uat on builds/${key.slug}/ready-for-uat.md`;
-  if (ready && !next.includes(toUat)) p.push(`${rel}: every check passes, so NEXT is "${toUat}"`);
-  if (!ready && next.includes(toUat)) p.push(`${rel}: a failing check goes back to the builder; NEXT never hands a failing build to acceptance testing`);
+  // Owner decision 2026-10-16: the ready NEXT names ow-uat's verb, with its slash hint.
+  const toUat = `say "use ow-uat-plan on builds/${key.slug}/ready-for-uat.md"   (where slash commands exist: /ow-uat-plan)`;
+  if (ready && !next.includes(toUat)) p.push(`${rel}: every check passes, so NEXT is ${toUat}`);
+  if (!ready && /use ow-uat/.test(next)) p.push(`${rel}: a failing check goes back to the builder; NEXT never hands a failing build to acceptance testing`);
   // No payment trigger and no acceptance record.
   for (const f of run.written()) if (/\/ledger\.md$|\/invoices\/|acceptance-record|signoff/.test(f)) p.push(`${f}: -ready marks no payment trigger and writes no acceptance record`);
   const last = (run.read(`${OW}STATUS.md`) ?? "").split("\n").filter(Boolean).at(-1) ?? "";
-  if (ready && !last.includes(`next: ow-uat on builds/${key.slug}/ready-for-uat.md`)) p.push("STATUS.md: ready, so the newest line hands ready-for-uat.md to ow-uat");
+  if (ready && !last.includes(`next: ow-uat /ow-uat-plan builds/${key.slug}/ready-for-uat.md`)) p.push("STATUS.md: ready, so the newest line hands ready-for-uat.md to ow-uat's /ow-uat-plan");
+  // A re-run never rewrites the file acceptance testing already froze (bug 6).
+  if (run.written().includes(rel) && (run.priorExists(`${OW}uat/${key.slug}/uat.yaml`) || run.priorExists(`${OW}uat/${key.slug}/signoff.md`))) p.push(`${rel}: rewritten after acceptance testing started (uat.yaml or signoff.md exists); -ready refuses then`);
   if (!ready && !last.includes(`next: ow-build /ow-build-ready builds/${key.slug}/`)) p.push("STATUS.md: not ready, so the newest line points back at -ready");
   return p;
 }
@@ -1409,25 +1538,42 @@ function checkInternalNumbers(key, run) {
   return p;
 }
 
-/** Nothing not passing is called done, working or ready (design §9.1), by meaning. */
+const NEGATED_DONE = /\bnot (?:yet )?(?:done|finished|complete|working|ready|live|passing|available)\b|\bnot yet\b|\b\d+ of \d+ (?:acceptance )?checks (?:passing|working)\b/gi;
+/**
+ * Nothing not passing is called done (design §9.1), by meaning: a sentence in
+ * an update's "This week" that calls something done, working, available or
+ * ready traces to a passing builder report or a demo record, never to a note
+ * or a commit alone; and no feature the key lists as not passing is called done
+ * anywhere.
+ */
 function checkNoFalseDone(key, run) {
   const p = [];
   const phrases = key.not_passing ?? [];
-  if (!phrases.length) return ["answer key: not_passing lists no features to watch"];
+  const repo = repoOf(run, key);
   for (const f of run.written().filter((x) => /\.(html|txt)$/.test(x) || /\/ready-for-uat\.md$/.test(x))) {
     // Prose only: a table row's result column is checked by its own check.
     for (const s of sentences(clientText(run, f).split("\n").filter((l) => !l.trim().startsWith("|")).join("\n"))) {
-      for (const ph of phrases) {
-        if (!new RegExp(`\\b${esc(ph)}\\b`, "i").test(s)) continue;
-        const neg = s.replace(/\bnot (?:yet )?(?:done|finished|complete|working|ready|live|passing)\b|\bnot yet\b|\b\d+ of \d+ (?:acceptance )?checks (?:passing|working)\b/gi, " ");
-        const m = neg.match(DONE_WORDS);
-        if (m) p.push(`${f}: calls "${ph}" ${m[0]} ("${s.slice(0, 70)}"), but its check does not pass`);
-      }
+      const m = s.replace(NEGATED_DONE, " ").match(DONE_WORDS);
+      if (!m) continue;
+      for (const ph of phrases) if (new RegExp(`\\b${esc(ph)}\\b`, "i").test(s)) p.push(`${f}: calls "${ph}" ${m[0]} ("${s.slice(0, 70)}"), but its check does not pass`);
+    }
+  }
+  for (const f of run.written().filter((x) => /\/updates\/\d{4}-\d{2}-\d{2}\.html$/.test(x))) {
+    const checks = run.read(f.replace(/\.html$/, "-checks.md"));
+    if (checks == null) continue;
+    const trace = tableAfter(matter(checks).content, /^trace/i) ?? [];
+    for (const s of sentences(htmlSection(run.read(f), "This week") ?? "")) {
+      const m = s.replace(NEGATED_DONE, " ").match(DONE_WORDS);
+      if (!m) continue;
+      const src = trace.find((r) => r.sentence === s)?.source ?? "";
+      const rep = src.match(/^report (\S+)$/);
+      const passing = rep && /###\s*Verdict:\s*\**\s*PASS/i.test(run.read(`${repo}/${rep[1]}`) ?? "");
+      const demo = /^demo \S+-record\.md$/.test(src);
+      if (!passing && !demo) p.push(`${f}: "${s.slice(0, 60)}" calls something ${m[0]}, but traces to ${src || "nothing"}; a done claim needs a passing builder report or a demo record`);
     }
   }
   return p;
 }
-
 function checkEmail(key, run) {
   const p = [];
   const htmls = run.written().filter((f) => f.endsWith(".html"));
@@ -1442,7 +1588,9 @@ function checkBuilderName(key, run) {
   if (!names.length) return key.builder_name === "none" ? [] : ["handoffs.yaml has no builder to keep out of the files"];
   for (const f of run.written().filter((x) => TEXT.test(x))) {
     (run.read(f) ?? "").split("\n").forEach((line, i) => {
-      for (const n of names) if (line.includes(n)) p.push(`${f}:${i + 1}: names the builder ("${n}"); its name and lines stay in handoffs.yaml`);
+      // However it is cased, spaced or hyphenated ("Example-Builder", "example builder").
+      const flat = line.toLowerCase().replace(/[\s_-]+/g, "");
+      for (const n of names) if (flat.includes(n.toLowerCase().replace(/[\s_-]+/g, ""))) p.push(`${f}:${i + 1}: names the builder ("${n}"); its name and lines stay in handoffs.yaml`);
     });
   }
   return p;
@@ -1486,7 +1634,8 @@ function checkPrivateNames(key, run) {
   for (const rel of run.written().filter((r) => TEXT.test(r))) {
     (run.read(rel) ?? "").split("\n").forEach((line, i) => {
       for (const n of names) {
-        const re = new RegExp(`(?<![\\w-])${esc(n)}(?![\\w-])`, "i");
+        // A name however it is spaced or hyphenated ("Deft-wright", "Deft wright").
+        const re = new RegExp(`(?<![\\w-])${[...n].map(esc).join("[\\s-]?")}(?![\\w-])`, "i");
         if (!re.test(line)) continue;
         const stripped = allowed.reduce((l, say) => l.split(say).join(" "), line);
         if (re.test(stripped)) p.push(`${rel}:${i + 1}: names "${n}"`);
@@ -1497,71 +1646,143 @@ function checkPrivateNames(key, run) {
 }
 
 /**
- * "use ow-build on <path>" and ow-build-plan's signed NEXT: the handed-over
- * file decides the verb (routing-and-resume.md §2), files first.
+ * Every file this skill may write, with the verbs that may write it, read from
+ * skills-work/ow-build/skill.edges.yaml (the one-writer rule's own source).
+ */
+const EDGES = join(ROOT, "skills-work", "ow-build", "skill.edges.yaml");
+let writerCache = null;
+export function writerRows() {
+  if (!writerCache) {
+    const e = yaml.load(readFileSync(EDGES, "utf8"));
+    writerCache = (e.writes ?? []).filter((w) => w.path !== "STATUS.md").map((w) => {
+      const p = String(w.path);
+      const pat = p.startsWith("<repo>/") ? `<repo>/${p.slice(7)}` : `${OW}${p}`;
+      const re = new RegExp(`^${pat.split(/(<[^>]+>|\bnn\b)/).map((s) => (/^<[^>]+>$/.test(s) ? "[^/]+" : s === "nn" ? "\\d+" : esc(s))).join("")}$`, "i");
+      const root = String(w.verb).split(" ")[0];
+      const verbs = [String(w.verb), ...(w.modes ?? []).map((m) => `${root} ${m}`), ...(w.seeded_by ? [String(w.seeded_by)] : [])];
+      return { path: p, re, verbs };
+    });
+  }
+  return writerCache;
+}
+/** The verbs (with their modes) that may write a root-relative file. */
+export const writersOf = (rel) => writerRows().filter((r) => r.re.test(rel)).flatMap((r) => r.verbs);
+const verbMatches = (runVerb, writer) => runVerb === writer || (!writer.includes(" ") && runVerb.split(" ")[0] === writer);
+const verbName = (v) => String(v).split(" ")[0].replace(/^\/ow-build-?/, "") || "route";
+
+/** One writer per file, inside a run too: every file written belongs to a verb this run ran. */
+function checkWrites(key, run) {
+  const p = [];
+  let verbs = key.verbs;
+  try { verbs = loadKey(join(FIXTURES, run.home)).verbs ?? verbs; } catch { /* a probe key outside the fixtures */ }
+  if (!Array.isArray(verbs) || !verbs.length) return ["answer key: verbs lists no verb this run ran"];
+  for (const f of run.written()) {
+    if (f === `${OW}STATUS.md`) continue;
+    const ws = writersOf(f);
+    if (!ws.length) { p.push(`${f}: no verb of this skill writes this file (skill.edges.yaml)`); continue; }
+    if (!verbs.some((v) => ws.some((w) => verbMatches(v, w)))) p.push(`${f}: written in a run of ${verbs.join(", ")}, but only ${[...new Set(ws)].join(", ")} may write it (one writer per file)`);
+  }
+  return p;
+}
+
+/** One spelling per request file: case, "./", an opchain-work/ prefix and UAT-3 for UAT-03 are the same file. */
+export const requestKey = (p) => String(p).trim().toLowerCase().replace(/^\.\//, "").replace(/^opchain-work\//, "").replace(/\b(uat|fix)-0*(\d+)\.md$/, "$1-$2.md");
+/** Request files already priced: a requests.md row's `from`, or a change order's `requests:`. */
+function pricedRequests(view, slug) {
+  const out = new Set();
+  const rq = view.read(`${OW}builds/${slug}/changes/requests.md`);
+  if (rq) for (const r of firstTable(matter(rq).content)) for (const m of String(r.from ?? "").matchAll(/(?:uat|handoffs)\/[^\s,|]+?\.md|\b(?:UAT|FIX)-\d+\.md/gi)) out.add(requestKey(m[0]).split("/").pop());
+  for (const f of view.all().filter((x) => new RegExp(`^${esc(OW)}builds/${esc(slug)}/changes/CO-\\d+\\.md$`).test(x))) {
+    try { for (const r of matter(view.read(f)).data.requests ?? []) out.add(requestKey(r).split("/").pop()); } catch { /* reported by change */ }
+  }
+  return out;
+}
+const priorView = (run) => ({ ...run, read: run.priorRead, exists: run.priorExists, all: run.priorAll });
+
+/**
+ * "use ow-build on <path>" and the family's NEXT wording: the handed-over file
+ * decides the verb (routing-and-resume.md §2), files first.
  */
 export function expectedRoute(run, key, from) {
   const slug = from.split("/")[1];
-  const b = run.priorRead(`${OW}builds/${slug}/build.yaml`);
-  const started = b ? (() => { try { return yaml.load(b); } catch { return {}; } })() : null;
+  const B = `${OW}builds/${slug}`;
+  const b = run.priorRead(`${B}/build.yaml`);
+  const started = b ? (() => { try { return yaml.load(b) ?? {}; } catch { return {}; } })() : null;
   if (/^plans\/[^/]+\/(?:build-request\.md)?$/.test(from)) {
     if (started && /^(OK|not applicable)/.test(String(started.map_check ?? ""))) return "folder";
-    if (started) return "start";
+    if (started || run.priorExists(`${B}/ledger.md`) || (key.repo && run.priorExists(`${key.repo}/spec/06-testing.md`))) return "start";
     return run.priorExists(`${OW}plans/${slug}/build-request.md`) ? "start" : "nothing";
   }
-  if (/^uat\/[^/]+\/defects\/UAT-\d+\.md$/.test(from)) {
+  const request = /^uat\/[^/]+\/defects\/UAT-\d+\.md$/.test(from) ? "uat" : /^handoffs\/[^/]+\/fixes\/FIX-\d+\.md$/.test(from) ? "fix" : null;
+  if (request) {
+    if (pricedRequests(priorView(run), slug).has(requestKey(from).split("/").pop())) return "nothing";
     const t = run.read(`${OW}${from}`) ?? "";
-    if (/extension requested, client cause/i.test(t) || /^class:\s*Change\b/im.test(t)) return "change";
+    if (request === "uat") {
+      if (/extension requested, client cause/i.test(t) || /^class:\s*Change\b/im.test(t)) return "change";
+      return /^class:\s*\S/im.test(t) ? "nothing" : "ask";
+    }
+    if (/^class:\s*(Change|After the window)\b/im.test(t)) return /^route:\s*care\b/im.test(t) ? "nothing" : "change";
+    if (/^class:\s*Not a defect\b/im.test(t)) return "change";
     return /^class:\s*\S/im.test(t) ? "nothing" : "ask";
   }
-  if (/^handoffs\/[^/]+\/fixes\/FIX-\d+\.md$/.test(from)) {
-    const t = run.read(`${OW}${from}`) ?? "";
-    if (/^class:\s*(Change|After the window)\b/im.test(t)) return "change";
-    return /^class:\s*\S/im.test(t) ? "nothing" : "ask";
-  }
+  if (/^(?:uat\/[^/]+\/(?:signoff|backstop)\.md|handoffs\/[^/]+\/dates\.yaml|docs\/[^/]+\/delivered\.md)$/.test(from)) return run.priorExists(`${B}/ledger.md`) ? "invoice" : "nothing";
   if (/^builds\/[^/]+\/$/.test(from)) return "folder";
   return null;
 }
-/** The verb a folder route picks (routing-and-resume.md 2.4), for the cases the fixtures reach. */
-function folderRoute(run, key) {
-  const lRel = `${build(key)}/ledger.md`;
-  if (!run.priorExists(`${build(key)}/build.yaml`)) return "start";
-  const ledger = priorMd(run, lRel).data;
-  const prior = { ...run, read: run.priorRead, exists: run.priorExists, all: run.priorAll };
-  const met = metTriggers(prior, key, ledger);
+
+/** The verbs a folder route may pick (routing-and-resume.md 2.5), stage by stage; the weekly update is always the user's choice. */
+export function folderRoute(run, key) {
+  const ok = new Set(["update"]);
+  const B = build(key);
+  if (!run.priorExists(`${B}/build.yaml`)) return new Set(["start"]);
+  const b = priorYml(run, `${B}/build.yaml`);
+  if (!/^(OK|not applicable)/.test(String(b.map_check ?? ""))) return new Set(["start"]);
+  const ledger = priorMd(run, `${B}/ledger.md`).data;
+  const view = priorView(run);
   const done = new Set((ledger.payments ?? []).filter((x) => /^(requested|paid)$/.test(x.state)).map((x) => x.trigger).concat((ledger.change_orders ?? []).filter((c) => /^(requested|paid)$/.test(c.state)).map((c) => c.id), /^(requested|paid)$/.test(ledger.documentation?.state ?? "") ? ["documentation"] : []));
-  if (met.some((m) => !done.has(m.trigger))) return "invoice";
-  return "other";
+  if (metTriggers(view, key, ledger).some((m) => !done.has(m.trigger))) return new Set(["invoice", "update"]);
+  const cos = coFiles(view, key).map((f) => { try { return matter(view.read(f)).data; } catch { return {}; } });
+  if (cos.some((d) => /^(draft|sent|amendment out)$/.test(d.status))) ok.add("change");
+  const sprints = b.sprints ?? [];
+  if (sprints.some((s) => s.handed && !s.result)) { ok.add("run"); return ok; }
+  const ms = b.milestones ?? [];
+  const recorded = (m) => run.priorExists(`${B}/demos/${m.id}-record.md`);
+  const ready = (m) => m.status === "ready for demo";
+  const waiting = ms.find((m) => ready(m) && !recorded(m));
+  if (waiting) { ok.add("demo"); return ok; }
+  const next = ms.find((m) => !recorded(m) && !ready(m) && m.status !== "stopped");
+  if (next) { ok.add("run"); return ok; }
+  if (ms.length && ms.every(recorded)) {
+    const r = run.priorRead(`${B}/ready-for-uat.md`);
+    const yes = r && String(matter(r).data.ready) === "yes";
+    if (!yes) ok.add("ready");
+  }
+  return ok;
 }
 
 function checkRoute(key, run) {
   const p = [];
   const from = key.route.from;
-  let expect = expectedRoute(run, key, from);
-  if (expect === "folder") expect = folderRoute(run, key);
-  if (!expect) return [`route: ${from} is not a path ow-build routes`];
-  if (key.route.expect && key.route.expect !== expect) p.push(`this case expects the route "${key.route.expect}", but ${from} routes to "${expect}"`);
-  const w = run.written();
-  const wrote = (re) => w.some((f) => re.test(f));
-  const verbFiles = {
-    start: /\/build\.yaml$|\/ledger\.md$|\/spec\//,
-    change: /\/changes\//,
-    invoice: /\/invoices\/|\/ledger\.md$/,
-  };
-  if (expect === "start" && !wrote(/\/builds\/[^/]+\/build\.yaml$/)) p.push(`${from} routes to /ow-build-start, but no build.yaml was written`);
-  if (expect === "change" && !wrote(/\/changes\/requests\.md$/)) p.push(`${from} routes to /ow-build-change, but changes/requests.md gained no row`);
-  if (expect === "invoice" && !wrote(/\/invoices\//)) p.push(`${from} routes to /ow-build-invoice, but no invoice request was written`);
-  if (expect === "nothing" || expect === "ask") for (const f of w) p.push(`${f}: ${from} ${expect === "nothing" ? "is not this skill's to run" : "needs the user's answer first"}; the route writes nothing`);
-  for (const [verb, re] of Object.entries(verbFiles)) {
-    if (verb === expect) continue;
-    for (const f of w) if (re.test(f) && !(verbFiles[expect]?.test(f))) p.push(`${f}: written by ${verb}, but ${from} routes to ${expect}`);
+  const exp = expectedRoute(run, key, from);
+  if (!exp) return [`route: ${from} is not a path ow-build routes`];
+  const acceptable = exp === "folder" ? folderRoute(run, key) : new Set([exp]);
+  if (key.route.expect && !acceptable.has(key.route.expect)) p.push(`this case expects the route "${key.route.expect}", but ${from} routes to ${[...acceptable].map((v) => `"${v}"`).join(" or ")}`);
+  const w = run.written().filter((f) => f !== `${OW}STATUS.md`);
+  if (acceptable.has("nothing") || acceptable.has("ask")) {
+    for (const f of w) p.push(`${f}: ${from} ${acceptable.has("nothing") ? "is not this skill's to run (or was priced already)" : "needs the user's answer first"}; the route writes nothing`);
+    return p;
   }
-  for (const f of w) if (/\/updates\/|\/demos\/|ready-for-uat/.test(f)) p.push(`${f}: a route runs one verb; this file belongs to another`);
+  if (!w.length) p.push(`${from} routes to ${[...acceptable].join(" or ")}, but the run wrote nothing`);
+  for (const f of w) {
+    const names = [...new Set(writersOf(f).map(verbName))];
+    if (!names.some((n) => acceptable.has(n))) p.push(`${f}: written by ${names.join(" or ") || "no verb"}, but ${from} routes to ${[...acceptable].join(" or ")}`);
+  }
   return p;
 }
 
 const CHECKS = {
   route: checkRoute,
+  writes: checkWrites,
   headers: checkHeaders,
   start: checkStart,
   start_stopped: checkStartStopped,

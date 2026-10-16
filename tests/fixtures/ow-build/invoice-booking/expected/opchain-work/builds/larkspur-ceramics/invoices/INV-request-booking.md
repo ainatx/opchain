@@ -13,6 +13,7 @@ basis: signed 2026-11-09 (build-request.md)
 currency: USD
 amount: 6980.00
 share: 40
+amount_source: quote
 due_days: 14
 arithmetic:
   command: ow-tools calc split --total 17450.00 --schedule 40/40/20

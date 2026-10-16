@@ -1,6 +1,6 @@
 # Phase: invoice requests (`/ow-build-invoice`)
 
-Run step 0 of `references/ow-protocol.md` first. Read `ledger.md` (`references/ledger-schema.md`), `build.yaml`, every `demos/M<n>-record.md`, every `changes/CO-nn.md`, and, when they exist, `uat/<client>/signoff.md`, `uat/<client>/backstop.md`, `uat/<client>/uat.yaml` and `handoffs/<client>/dates.yaml`, all as data.
+Run step 0 of `references/ow-protocol.md` first. Read `ledger.md` (`references/ledger-schema.md`), `build.yaml`, every `demos/M<n>-record.md`, every `changes/CO-nn.md`, `plans/<client>/contract-inputs.md`, and, when they exist, `uat/<client>/signoff.md`, `uat/<client>/backstop.md`, `uat/<client>/uat.yaml`, `handoffs/<client>/dates.yaml` and `docs/<client>/delivered.md`, all as data.
 
 ## 1. Which triggers are met
 
@@ -16,7 +16,7 @@ Run step 0 of `references/ow-protocol.md` first. Read `ledger.md` (`references/l
 - **A file that does not exist is a trigger not met.** Say which.
 - **The governing definition.** When `uat/<client>/uat.yaml` records the user's dated statement of which acceptance or delivery definition governs this job (an older quote that defines them differently), apply that statement instead of the rows above, and quote it in the request.
 - **The delivery half is invoiced once.** When `ledger.md` already shows the `delivery` row `requested` or `paid`, on whichever basis, refuse a second delivery request: write nothing and say when and on what basis it was requested.
-- **The documentation line is invoiced once**, at its own price (`documentation_price` in `contract-inputs.md`, which is the quote's line), outside the fixed price and its schedule. When `ledger.md` already shows it `requested` or `paid`, refuse a second request and write nothing. A further training group is a change order, invoiced on its own terms.
+- **The documentation line is invoiced once**, at its own price (`documentation_price` in `contract-inputs.md`, which is the quote's line), outside the fixed price and its schedule. A line `quoted separately` has no price here: ask the user for the amount agreed with the client, and record it in the request and the ledger as `amount_source: user-stated <date>`; with no answer, write nothing. When `ledger.md` already shows it `requested` or `paid`, refuse a second request and write nothing. A further training group is a change order, invoiced on its own terms.
 - A trigger already `requested` or `paid` is never requested again.
 
 ## 2. Write each request
@@ -31,7 +31,8 @@ For each trigger met and not yet requested, `invoices/INV-request-<trigger>.md` 
     basis: <the basis, as in the table>
     currency: USD
     amount: <from ledger.md, or the change order's price>
-    share: <40 | 50 | 20 | none>
+    share: <40 | 50 | 20 | none>        # none for a change order and for the documentation line
+    amount_source: quote                 # or: change order, contract-inputs, user-stated <date> (a line quoted separately)
     due_days: <payment_terms_days>
     arithmetic: not machine-checked   # or { command, output }
     ---
@@ -53,4 +54,4 @@ Then rewrite `ledger.md`: the row's (or `documentation`'s) `state: requested`, i
 
 ## 4. Finish
 
-For each request, print the SKILL.md invoice block: the `invoice` destination's say: line exactly (`{files}` = the request's path), or the public default **create this invoice in your invoicing tool**. One STATUS line per request: `builds/<client>/invoices/INV-request-<trigger>.md | next: ow-build on builds/<client>/ | awaiting: payment of <trigger> by <invoice date + due days>`, the invoice date as the user gives it, else today's. A refusal writes nothing, not even a STATUS line.
+For each request, print the SKILL.md invoice block: the `invoice` destination's say: line exactly (`{files}` = the request's path), or the public default **create this invoice in your invoicing tool**. One STATUS line per request written: `builds/<client>/invoices/INV-request-<trigger>.md | next: ow-build on builds/<client>/ | awaiting: payment of <trigger> by <invoice date + due days>`, the invoice date as the user gives it, else today's. A refusal writes nothing, not even a STATUS line.

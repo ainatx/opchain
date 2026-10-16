@@ -8,7 +8,8 @@ slug: larkspur-ceramics
 user: Robin
 repo: larkspur-repo
 base: invoice-demo
-checks: [headers, change, builder_name, status, private_names]
+verbs: [/ow-build-change]
+checks: [headers, change, builder_name, status, private_names, writes]
 outputs: [builds/larkspur-ceramics/changes/requests.md]
 change: { kind: in scope, cites: AC-1.2 }
 status:

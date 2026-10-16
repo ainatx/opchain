@@ -10,6 +10,7 @@ slug: mossgate-books
 user: Robin
 repo: mossgate-repo
 base: invoice-delivery-backstop
-checks: [invoice_refused]
+verbs: [/ow-build-invoice]
+checks: [invoice_refused, writes]
 invoice_refused: the delivery half was already requested under the backstop
 invoice_refused_delivery: true

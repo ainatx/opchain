@@ -13,6 +13,7 @@ basis: handoff_date 2027-01-11 (dates.yaml)
 currency: USD
 amount: 1050.00
 share: 50
+amount_source: quote
 due_days: 14
 arithmetic: not machine-checked
 ---

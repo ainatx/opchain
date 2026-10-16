@@ -11,7 +11,8 @@ slug: larkspur-ceramics
 user: Robin
 repo: larkspur-repo
 base: run-m1-next
-checks: [headers, update, email, internal_numbers, no_false_done, builder_name, status, private_names]
+verbs: [/ow-build-update]
+checks: [headers, update, email, internal_numbers, no_false_done, builder_name, status, private_names, writes]
 outputs:
   - builds/larkspur-ceramics/updates/2026-11-13-checks.md
   - builds/larkspur-ceramics/margin.md

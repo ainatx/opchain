@@ -13,6 +13,7 @@ basis: signed 2026-10-29 (build-request.md)
 currency: USD
 amount: 1050.00
 share: 50
+amount_source: quote
 due_days: 14
 arithmetic: not machine-checked
 ---

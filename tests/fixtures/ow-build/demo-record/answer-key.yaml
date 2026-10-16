@@ -11,7 +11,8 @@ slug: larkspur-ceramics
 user: Robin
 repo: larkspur-repo
 base: demo-script
-checks: [headers, demo_record, email, internal_numbers, no_false_done, builder_name, status, private_names]
+verbs: [/ow-build-demo --record]
+checks: [headers, demo_record, email, internal_numbers, no_false_done, builder_name, status, private_names, writes]
 outputs: [builds/larkspur-ceramics/demos/M1-record.md]
 demo:
   milestone: M1

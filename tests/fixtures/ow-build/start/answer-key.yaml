@@ -14,7 +14,8 @@ slug: larkspur-ceramics
 user: Robin
 repo: larkspur-repo
 plan_case: accepted-signed
-checks: [headers, start, spec, ledger, builder_name, internal_numbers, status, private_names]
+verbs: [/ow-build-start]
+checks: [headers, start, spec, ledger, builder_name, internal_numbers, status, private_names, writes]
 outputs:
   - builds/larkspur-ceramics/build.yaml
   - builds/larkspur-ceramics/ledger.md
@@ -31,5 +32,6 @@ spec: { checks: 7 }
 ledger: { booking: due, working_demo: M1, machine_checked: true }
 status:
   lines:
+    - { path: builds/larkspur-ceramics/build.yaml, next: ow-build /ow-build-start plans/larkspur-ceramics/, awaiting: none }
     - { path: builds/larkspur-ceramics/build.yaml, next: ow-build /ow-build-invoice builds/larkspur-ceramics/, awaiting: update to Larkspur Ceramics by 2026-11-13 }
 private_names: [llc-ops, Deftwright]

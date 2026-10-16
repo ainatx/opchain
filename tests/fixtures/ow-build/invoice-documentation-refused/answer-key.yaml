@@ -9,5 +9,6 @@ slug: larkspur-ceramics
 user: Robin
 repo: larkspur-repo
 base: invoice-documentation
-checks: [invoice_refused]
+verbs: [/ow-build-invoice]
+checks: [invoice_refused, writes]
 invoice_refused: the documentation line was already requested

@@ -12,7 +12,8 @@ slug: larkspur-ceramics
 user: Robin
 repo: larkspur-repo
 base: invoice-co
-checks: [headers, ready, internal_numbers, no_false_done, builder_name, status, private_names]
+verbs: [/ow-build-ready]
+checks: [headers, ready, internal_numbers, no_false_done, builder_name, status, private_names, writes]
 outputs: [builds/larkspur-ceramics/ready-for-uat.md]
 ready: { failing: [AC-5.2] }
 not_passing: [new customer]

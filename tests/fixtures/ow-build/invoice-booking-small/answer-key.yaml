@@ -8,7 +8,8 @@ slug: mossgate-books
 user: Robin
 repo: mossgate-repo
 base: start-quick
-checks: [headers, invoice, internal_numbers, builder_name, status, private_names]
+verbs: [/ow-build-invoice]
+checks: [headers, invoice, internal_numbers, builder_name, status, private_names, writes]
 outputs:
   - builds/mossgate-books/ledger.md
   - builds/mossgate-books/invoices/INV-request-booking.md

@@ -11,12 +11,14 @@ user: Robin
 repo: fernhill-repo
 plan_case: route-next-stage
 extra: [plans-signed/fernhill-florists]
-checks: [headers, start, start_stopped, spec, builder_name, status, private_names]
+verbs: [/ow-build-start]
+checks: [headers, start, start_stopped, spec, builder_name, status, private_names, writes]
 outputs: [builds/fernhill-florists/build.yaml, builds/fernhill-florists/ledger.md]
 start: { first_update: 2026-11-27 }
 start_stopped: true
 spec: { checks: 9 }
 status:
   lines:
+    - { path: builds/fernhill-florists/build.yaml, next: ow-build /ow-build-start plans/fernhill-florists/, awaiting: none }
     - { path: builds/fernhill-florists/build.yaml, next: ow-build on builds/fernhill-florists/, awaiting: none }
 private_names: [llc-ops, Deftwright]

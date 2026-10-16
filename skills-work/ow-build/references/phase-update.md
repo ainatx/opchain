@@ -21,7 +21,7 @@ Write `updates/<date>.html` and its twin `updates/<date>.txt` (`references/email
 | Section | Contents |
 |---|---|
 | This week | 3 to 5 plain sentences on what moved, each one traceable (section 3). A week with little progress says so plainly, with the reason |
-| Milestone progress | One line per milestone: "Milestone <n>: <k> of <m> acceptance checks passing." and its next demo date, written out. `k` counts the milestone's checks in `checks_passing` of a sprint with `result: pass`; without a builder, the checks you report passing with evidence. A demo date not recorded: ask, and record it `user-stated` in the checks file |
+| Milestone progress | One line per milestone: "Milestone <n>: <k> of <m> acceptance checks passing." and its next demo date, written out. `k` counts the milestone's checks in `checks_passing` of a sprint with `result: pass`; without a builder, the milestone's `reported_passing` checks in `build.yaml`. A demo date not recorded: ask, and record it `user-stated` in the checks file |
 | Next week | What is planned, in plain words |
 | Needs from you | Each decision, access or sample with a by-date and what slips if it is late, from your notes and the plan's client dependencies |
 | Changes | Each change order: its number, what it changes in a few words, its status. **Until it is signed, the line says "work not started"**; a declined one says declined |
@@ -52,7 +52,7 @@ Never call anything done, working, finished or ready unless its acceptance check
 
     ## Self-checks (same-session self-check)
 
-A source is `commit <id>` (in the week's git history), `report <path of a sprint report>`, `checkpoint <progress_table id>` or `note <user> <date>`. Every *This week* sentence has one row, word for word.
+A source is `commit <id>` (in the week's git history), `report <path of a sprint report>`, `checkpoint <progress_table id>`, `demo <demos/M<n>-record.md>` or `note <user> <date>`. Every *This week* sentence has one row, word for word. A sentence that calls something done, working, available or ready traces to a passing report or a demo record, never to a note or a commit alone.
 
 The self-checks, each OK, FINDING or NOT-CHECKED (reason), agent-checked, with the same-session label: **No internal numbers** (the `.html` and `.txt`), **Trace**, **No false done**, **Priced and signed before work** (every unsigned change order is in *Changes* marked not started, and no sentence reports it started), **No private names** (no private skill, business or the builder's name). Fix and re-run while any is FINDING.
 

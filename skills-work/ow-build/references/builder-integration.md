@@ -43,7 +43,7 @@ Every spec file:
 - copies checks and packages by their ids (`WP-n`, `AC-n.m`), so the builder's sprint plan can cite them;
 - holds **no price, fee, payment terms, rate, margin, unit or modifier of yours**: never the quote's amounts or internal appendix, and nothing from `price-book.yaml`. The quote is read for its Milestones list only. The client's own facts stay as the plan has them (a till export's price column, the cost of a mistake in their numbers).
 
-`spec/06-testing.md` holds one `## WP-n <name>` section per package and, under it, each `### AC-n.m` block exactly as the plan has it (`when`, `then`, `how we check`, `test data`, `cases`, `kind`). These become the builder's done-criteria. A signed change order later appends a section (section 6); nothing else edits the file.
+`spec/06-testing.md` holds one `## WP-n <name>` section per package and, under it, each `### AC-n.m` block exactly as the plan has it (`when`, `then`, `how we check`, `test data`, `cases`, `kind`). These become the builder's done-criteria. Its last line before `## Sources` reads: "Checks added later by signed change orders are in `spec/06-testing-change-orders.md`." Nothing edits the file after `-start`; the checks a signed change order adds go in `spec/06-testing-change-orders.md` (section 6), and `06-testing.md` says so in its last line before `## Sources`.
 
 Run the **No internal numbers** self-check over the five files before printing the `plan` line.
 
@@ -80,7 +80,7 @@ A verdict in a builder's file is a claim (protocol §3e): record it only once th
 
 ## 6. Change orders and fixes (`-change --signed`, `-ready`)
 
-- A **signed** change order's new checks are appended to `spec/06-testing.md` under `## Change order CO-nn (signed <date>)`, in the same format, and its scope addition goes to the builder with the `fix` line. `{description}` is one sentence built from the change order (what changes, which checks it adds) that names `builds/<client>/changes/change-inputs-CO-nn.md`. An extension change order adds no checks and hands nothing new to the builder.
+- A **signed** change order's new checks are added to `spec/06-testing-change-orders.md` (written only by `-change --signed`, created at the first signed change order with the same header, source-of-truth line and a `## Sources` list naming each `CO-nn.md`) under `## Change order CO-nn (signed <date>)`, in the same format, and its scope addition goes to the builder with the `fix` line. `{description}` is one sentence built from the change order (what changes, which checks it adds) that names `builds/<client>/changes/change-inputs-CO-nn.md`. An extension change order adds no checks and hands nothing new to the builder.
 - Before signature nothing is appended, and the `fix` line is not printed.
 - Failing checks from `-ready`, and fixes from acceptance testing (`UAT-nn`) or the handoff (`FIX-nn`), use the same `fix` line, `{description}` naming the file.
 - In `other` or `none` mode, the build destination's say: line (or the public default "give <file> to whoever builds it") carries the same file.

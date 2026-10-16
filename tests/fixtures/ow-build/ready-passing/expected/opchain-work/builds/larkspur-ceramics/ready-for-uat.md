@@ -50,7 +50,7 @@ The September purchase orders and the item list, by pointer as in the builder's 
 larkspur-uat-2
 
 ## Next
-    NEXT: say "use ow-uat on builds/larkspur-ceramics/ready-for-uat.md"
+    NEXT: say "use ow-uat-plan on builds/larkspur-ceramics/ready-for-uat.md"   (where slash commands exist: /ow-uat-plan)
 
 <!-- ow:internal -->
 ## Self-checks (same-session self-check)

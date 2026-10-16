@@ -9,7 +9,8 @@ slug: larkspur-ceramics
 user: Robin
 repo: larkspur-repo
 base: demo-record
-checks: [headers, invoice, internal_numbers, builder_name, status, private_names]
+verbs: [/ow-build-invoice]
+checks: [headers, invoice, internal_numbers, builder_name, status, private_names, writes]
 outputs:
   - builds/larkspur-ceramics/ledger.md
   - builds/larkspur-ceramics/invoices/INV-request-working-demo.md

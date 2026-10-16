@@ -9,4 +9,5 @@
 2026-10-26 (clock: user-stated) | ow-build-plan 1.0.0 | plans/larkspur-ceramics/export/export-report.md | next: ow-build-plan /ow-build-plan-quote plans/larkspur-ceramics/ | awaiting: client's answer by 2026-11-09; Build Plan credit by 2026-12-25
 2026-11-02 (clock: user-stated) | ow-build-plan 1.0.0 | plans/larkspur-ceramics/contract-inputs.md | next: ow-build-plan /ow-build-plan-quote plans/larkspur-ceramics/ | awaiting: signing for the Build Plan credit by 2026-12-25
 2026-11-09 (clock: user-stated) | ow-build-plan 1.0.0 | plans/larkspur-ceramics/build-request.md | next: ow-build /ow-build-start plans/larkspur-ceramics/ | awaiting: none
+2026-11-10 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/build.yaml | next: ow-build /ow-build-start plans/larkspur-ceramics/ | awaiting: none
 2026-11-10 (clock: user-stated) | ow-build 1.0.0 | builds/larkspur-ceramics/build.yaml | next: ow-build /ow-build-invoice builds/larkspur-ceramics/ | awaiting: update to Larkspur Ceramics by 2026-11-13

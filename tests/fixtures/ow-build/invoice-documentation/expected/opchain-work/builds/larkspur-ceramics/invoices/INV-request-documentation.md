@@ -13,6 +13,7 @@ basis: docs/larkspur-ceramics/delivered.md, 2027-02-15
 currency: USD
 amount: 4000.00
 share: none
+amount_source: contract-inputs
 due_days: 14
 arithmetic: not machine-checked
 ---

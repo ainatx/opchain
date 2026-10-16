@@ -10,10 +10,11 @@ slug: larkspur-ceramics
 user: Robin
 repo: larkspur-repo
 base: ready-failing
-checks: [headers, ready, internal_numbers, builder_name, status, private_names]
+verbs: [/ow-build-ready]
+checks: [headers, ready, internal_numbers, builder_name, status, private_names, writes]
 outputs: [builds/larkspur-ceramics/ready-for-uat.md]
 ready: { failing: [] }
 status:
   lines:
-    - { path: builds/larkspur-ceramics/ready-for-uat.md, next: ow-uat on builds/larkspur-ceramics/ready-for-uat.md, awaiting: none }
+    - { path: builds/larkspur-ceramics/ready-for-uat.md, next: ow-uat /ow-uat-plan builds/larkspur-ceramics/ready-for-uat.md, awaiting: none }
 private_names: [llc-ops, Deftwright]

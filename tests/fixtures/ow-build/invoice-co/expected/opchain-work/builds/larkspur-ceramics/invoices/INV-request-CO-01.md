@@ -13,6 +13,7 @@ basis: CO-01 signed 2026-12-07 (changes/CO-01.md)
 currency: USD
 amount: 2600.00
 share: none
+amount_source: change order
 due_days: 14
 arithmetic: not machine-checked
 ---

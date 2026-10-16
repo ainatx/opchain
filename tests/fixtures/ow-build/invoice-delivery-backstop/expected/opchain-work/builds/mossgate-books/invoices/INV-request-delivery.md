@@ -13,6 +13,7 @@ basis: backstop 2027-01-15 (backstop.md)
 currency: USD
 amount: 1050.00
 share: 50
+amount_source: quote
 due_days: 14
 arithmetic: not machine-checked
 ---

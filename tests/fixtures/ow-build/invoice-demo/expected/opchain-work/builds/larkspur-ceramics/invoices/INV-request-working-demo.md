@@ -13,6 +13,7 @@ basis: demos/M1-record.md, confirmed by Robin 2026-11-25
 currency: USD
 amount: 6980.00
 share: 40
+amount_source: quote
 due_days: 14
 arithmetic:
   command: ow-tools calc split --total 17450.00 --schedule 40/40/20

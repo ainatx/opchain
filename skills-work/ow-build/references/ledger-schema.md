@@ -54,7 +54,7 @@
 
 ## The documentation & training line
 
-When `contract-inputs.md` says `documentation_sku: bought`, `-start` copies the line into `documentation` with its price (`documentation_price`, the quote's line). It sits outside the fixed price and its schedule, and has one trigger: the documents delivered (`docs/<client>/delivered.md`), invoiced once. Declined, or no `contract-inputs.md`: `documentation: none`, and there is no such trigger.
+When `contract-inputs.md` says `documentation_sku: bought`, `-start` copies the line into `documentation` with its price (`documentation_price`, the quote's line); a line `quoted separately` is copied as `amount: none (quoted separately)`, and `-invoice` asks the agreed amount and records it `user-stated`. It sits outside the fixed price and its schedule, and has one trigger: the documents delivered (`docs/<client>/delivered.md`), invoiced once. Declined, or no `contract-inputs.md`: `documentation: none`, and there is no such trigger.
 
 ## The working-demo payment (40/40/20)
 

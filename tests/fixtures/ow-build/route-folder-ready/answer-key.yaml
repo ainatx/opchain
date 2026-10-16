@@ -1,0 +1,11 @@
+# Answer key: route-folder-ready (INVENTED). Sprint 2 round 1, bugs 2 and 3: Both milestones are demoed and ready-for-uat.md says ready: no, so the folder route lands on -ready (step 8).
+# Graded on the ready-passing run.
+case: route-folder-ready
+section: "Inbound route (a build folder: every milestone demoed)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+run: ready-passing
+checks: [route]
+route: { from: builds/larkspur-ceramics/, expect: ready }

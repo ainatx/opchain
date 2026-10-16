@@ -12,7 +12,7 @@ skill: ow-build
 routes:
   verb: /ow-build
   reference: references/routing-and-resume.md
-  paths: [plans/<client>/build-request.md, uat/<client>/defects/UAT-nn.md, handoffs/<client>/fixes/FIX-nn.md, builds/<client>/]
+  paths: [plans/<client>/build-request.md, uat/<client>/defects/UAT-nn.md, handoffs/<client>/fixes/FIX-nn.md, uat/<client>/signoff.md, uat/<client>/backstop.md, handoffs/<client>/dates.yaml, docs/<client>/delivered.md, builds/<client>/]
 
 writes:
   # build.yaml and ledger.md are created once by -start; after that each has one writer.
@@ -34,6 +34,14 @@ writes:
   - { path: builds/<client>/changes/change-inputs-CO-nn.md, verb: /ow-build-change --agreed }
   - { path: builds/<client>/invoices/INV-request-<trigger>.md, verb: /ow-build-invoice }
   - { path: builds/<client>/ready-for-uat.md, verb: /ow-build-ready }
+  # The builder's input in the client's project folder: -start writes the five spec/ files once;
+  # a signed change order's checks go to their own file, so every spec/ file has one writer.
+  - { path: <repo>/spec/00-project-overview.md, verb: /ow-build-start }
+  - { path: <repo>/spec/02-architecture.md, verb: /ow-build-start }
+  - { path: <repo>/spec/04-integrations.md, verb: /ow-build-start }
+  - { path: <repo>/spec/06-testing.md, verb: /ow-build-start }
+  - { path: <repo>/spec/scope-and-milestones.md, verb: /ow-build-start }
+  - { path: <repo>/spec/06-testing-change-orders.md, verb: /ow-build-change --signed }
   - { path: STATUS.md, verb: /ow-build-start, append: true }
   - { path: STATUS.md, verb: /ow-build-run, append: true }
   - { path: STATUS.md, verb: /ow-build-update, append: true }
@@ -276,15 +284,21 @@ hands_off:
     destination: build
     files: [builds/<client>/changes/change-inputs-CO-nn.md, builds/<client>/changes/requests.md, builds/<client>/ready-for-uat.md]
     if_unavailable: Give build-request.md, or the change, request or check file, to whoever builds it
-  - when: Too big for a change order
+  - when: A FIX-nn too big for a change order
     to: ow-build-plan
     verb: /ow-build-plan
     say: use ow-build-plan on handoffs/<client>/fixes/FIX-nn.md
     files: []
     if_unavailable: Offer a follow-on Build Plan by hand, from the FIX file
+  - when: A UAT-nn too big for a change order (owner decision 2026-10-16)
+    to: ow-build-plan
+    verb: /ow-build-plan
+    say: use ow-build-plan on uat/<client>/defects/UAT-nn.md
+    files: []
+    if_unavailable: Offer a follow-on Build Plan by hand, from the UAT file
   - when: Ready for UAT, every check passing
     to: ow-uat
-    verb: /ow-uat
-    say: use ow-uat on builds/<client>/ready-for-uat.md
+    verb: /ow-uat-plan
+    say: use ow-uat-plan on builds/<client>/ready-for-uat.md   # owner decision 2026-10-16: the verb's name, as the ow-uat design gives it
     files: [builds/<client>/ready-for-uat.md, builds/<client>/changes/CO-nn.md]
     if_unavailable: ready-for-uat.md lists every check, the environment and the test data; plan the client's test by hand from it
