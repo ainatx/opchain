@@ -1,8 +1,8 @@
 # /oc-update plugins — design
 
-**Date:** 2026-10-16 · **Status:** DRAFT, at the spec gate. Nothing in §5 is built.
+**Date:** 2026-10-16 · **Status:** APPROVED 2026-10-16 (decisions in §7). Not built; S1 starts after the 2.1 Jev branch merges.
 **Release:** after the 2.1 "Jev" consolidation (`claude/consolidate-2-1-updates-6054cf`) merges. That branch rewrites `update.mjs` (components banner, `doctor`), so this work starts on top of it, not on today's `main`.
-**Owner decision so far (2026-10-16):** `/oc-update` should keep a repository's Opchain plugins current, not only its skills. The questions in §7 are still open.
+**Owner decisions (2026-10-16):** `/oc-update` should keep a repository's Opchain plugins current, not only its skills. The four open questions are settled in §7.
 
 ## 1. Why
 
@@ -100,9 +100,11 @@ The components banner becomes truthful per host. Under Claude Code with the CLI:
 
 Effort: CLAUDE about 6–8 h over four sprints; USER about 1 h (the gate, and one live rehearsal on a real repo).
 
-## 7. Open questions for the gate
+## 7. Owner decisions (2026-10-16)
 
-1. **First-run gap (§5.2).** Accept "the second `/oc-update` updates plugins"? Or have the 2.1 release notes tell users to run `/plugin update opchain@opchain` once?
-2. **`ow-tools` in a bare `--with-plugins`.** Off (recommended, because it runs code) or on?
-3. **Duplicate guard default.** Warn only (recommended, nothing removed without a flag), or refuse to update until one surface is chosen?
-4. **Local scope.** Treat `settings.local.json` (`--scope local`) the same as project? Recommended yes: same machine, same repo, just not committed.
+| # | Question | Decision |
+|---|---|---|
+| 1 | First-run gap (§5.2) | **The second `/oc-update` updates plugins**, plus a **release-notes line**: the 2.1 notes tell plugin users to run `/plugin marketplace update opchain` and `/plugin update opchain@opchain` once (add `--scope project` for a repo-wide install), then restart. That line belongs to the Jev release (`skills/CHANGELOG.md` and the `/changelog` entry on that branch), not to this build. |
+| 2 | `ow-tools` in a bare `--with-plugins` | **Off.** A bare flag adds `opchain` only; `ow-tools` is installed only when named (`--with-plugins=ow-tools` or `=opchain,ow-tools`), because it runs code on the machine. |
+| 3 | Duplicate guard default (§5.4) | **Warn only.** `/oc-update` keeps updating both surfaces and says how to pick one; nothing is removed without `--drop-local-skills`. `--with-plugins` still refuses until `--drop-local-skills` or `--keep-both` is given. |
+| 4 | Local scope | **Same as project.** An entry enabled in `.claude/settings.local.json` is updated with `--scope local`; the output says it isn't shared with the repo. |
