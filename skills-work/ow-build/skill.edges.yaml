@@ -262,10 +262,10 @@ hands_off:
     destination: invoice
     files: [builds/<client>/invoices/INV-request-<trigger>.md]
     if_unavailable: Create this invoice in your invoicing tool
-  - when: Signed scope, a signed change order or a failed check for the builder
+  - when: Signed scope, a signed change order, an in-scope request or a failed check for the builder
     destination: build
-    files: [builds/<client>/changes/change-inputs-CO-nn.md, builds/<client>/ready-for-uat.md]
-    if_unavailable: Give build-request.md, or the change or check file, to whoever builds it
+    files: [builds/<client>/changes/change-inputs-CO-nn.md, builds/<client>/changes/requests.md, builds/<client>/ready-for-uat.md]
+    if_unavailable: Give build-request.md, or the change, request or check file, to whoever builds it
   - when: Too big for a change order
     to: ow-build-plan
     verb: /ow-build-plan

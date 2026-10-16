@@ -27,7 +27,7 @@ Write `updates/<date>.html` and its twin `updates/<date>.txt` (`references/email
 | Changes | Each change order: its number, what it changes in a few words, its status. **Until it is signed, the line says "work not started"**; a declined one says declined |
 | Risks | Only new or changed risks, with what is being done |
 
-Never call anything done, working, finished or ready unless its acceptance check passes with evidence. A change order not yet signed appears **only** in *Changes*, and is never described as started, under way or in progress.
+Never call anything done, working, finished or ready unless its acceptance check passes with evidence. A change order not yet signed is listed in *Changes* as "work not started"; elsewhere it may be named only to ask for the signed amendment (*Needs from you*), and it is never described as started, begun, under way or in progress, however worded.
 
 ## 3. The checks file (yours)
 
@@ -54,7 +54,7 @@ Never call anything done, working, finished or ready unless its acceptance check
 
 A source is `commit <id>` (in the week's git history), `report <path of a sprint report>`, `checkpoint <progress_table id>` or `note <user> <date>`. Every *This week* sentence has one row, word for word.
 
-The self-checks, each OK, FINDING or NOT-CHECKED (reason), agent-checked, with the same-session label: **No internal numbers** (the `.html` and `.txt`), **Trace**, **No false done**, **Priced and signed before work** (every unsigned change order is only in *Changes*, marked not started), **No private names** (no private skill, business or the builder's name). Fix and re-run while any is FINDING.
+The self-checks, each OK, FINDING or NOT-CHECKED (reason), agent-checked, with the same-session label: **No internal numbers** (the `.html` and `.txt`), **Trace**, **No false done**, **Priced and signed before work** (every unsigned change order is in *Changes* marked not started, and no sentence reports it started), **No private names** (no private skill, business or the builder's name). Fix and re-run while any is FINDING.
 
 ## 4. The margin view (yours)
 

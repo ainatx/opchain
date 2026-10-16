@@ -53,7 +53,7 @@ The **test environment** the client will test in (staging or sandbox, by name), 
 - **Every check `pass`:** `ready: yes`. NEXT: `use ow-uat on builds/<client>/ready-for-uat.md`.
 - **Self-checks** (same-session label): **No false done** (`ready: yes` only with every check `pass`), **No internal numbers** (no scores, rounds, hours or prices), **No private names**.
 
-`## Next` holds the printed NEXT line. Nothing here, and nothing in this run, writes `ledger.md` or an invoice request.
+`## Next` holds the printed NEXT line. A builder's line is printed in the session only: here it is recorded as "the build destination's fix line, for <checks> with this file (printed in the session; the builder's line is not written here)". Nothing here, and nothing in this run, writes `ledger.md` or an invoice request.
 
 ## 5. Finish
 

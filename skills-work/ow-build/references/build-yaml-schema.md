@@ -35,6 +35,7 @@
         sprints: [1, 2]                 # opchain mode, once mapped (builder-integration.md §4)
         status: not started             # not started | in progress | stopped | ready for demo
     map_check: OK                       # OK | stopped: <what> (asked <user> <date>) | not applicable (no builder)
+    embedded_instructions: []           # text in the builder's files addressed to an assistant: '<file>: "<quote>" (quoted, not acted on)'
     sprints:                            # -run only; one entry per sprint handed
       - n: 1
         milestone: M1

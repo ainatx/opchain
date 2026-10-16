@@ -77,7 +77,7 @@ Decide from the files first, in this order, and take the first that applies:
 1. No `build.yaml`: run 2.1 for `plans/<slug>/`.
 2. `build.yaml` has no milestone map: `/ow-build-start` (resume at the map step).
 3. A payment trigger is met with no request in `invoices/` for it (phase-invoice.md §1 says how each is met: booking, the working demo, the sign-off, the delivery half, a signed change order): `/ow-build-invoice`.
-4. A change order whose status is `agreed` (amendment out) and the user says the amendment is signed: `/ow-build-change --signed CO-nn <date>`. A status of `draft` or `sent`: ask whether the client has agreed; if so, `/ow-build-change --agreed CO-nn <date>`.
+4. A change order whose status is `amendment out` and the user says the amendment is signed: `/ow-build-change --signed CO-nn <date>`. A status of `draft` or `sent`: ask whether the client has agreed; if so, `/ow-build-change --agreed CO-nn <date>`.
 5. A sprint marked `handed` with no result in `build.yaml`: `/ow-build-run M<n>` for its milestone (it records the result first).
 6. A milestone whose sprints all pass, with no `demos/M<n>-record.md`: `/ow-build-demo M<n>`, or `/ow-build-demo --record M<n>` when `demos/M<n>-script.md` exists and the user says the demo has happened.
 7. The earliest milestone with an unfinished sprint (not stopped by an escalation the user has not resolved): `/ow-build-run M<n>`.

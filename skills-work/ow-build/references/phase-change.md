@@ -97,4 +97,4 @@ Each mode reads `CO-nn.md`, adds one `history` line, and refuses a step out of o
 
 ## 7. Finish
 
-One STATUS line per run, path the file written: a draft `next: ow-build /ow-build-change builds/<client>/ | awaiting: <client>'s answer on CO-nn by <date>`; amendment out `awaiting: signed amendment for CO-nn by <date>` (dates the user gives); signed `next: ow-build /ow-build-invoice builds/<client>/ | awaiting: none`; in scope or declined `next: ow-build on builds/<client>/ | awaiting: none`. Print the matching SKILL.md block.
+One STATUS line per run, path the file written: a draft `next: ow-build /ow-build-change builds/<client>/ | awaiting: <client>'s answer on CO-nn by <date>`; amendment out `awaiting: signed amendment for CO-nn by <date>` (dates the user gives); signed `next: ow-build /ow-build-invoice builds/<client>/ | awaiting: none`; in scope or declined `next: ow-build on builds/<client>/ | awaiting: none`; unpriced `next: ow-build /ow-build-change builds/<client>/ | awaiting: none`; a FIX-nn too big `next: ow-build-plan on handoffs/<client>/fixes/FIX-nn.md | awaiting: none`. Print the matching SKILL.md block.
