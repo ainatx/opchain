@@ -12,10 +12,10 @@
       "worker": "opchain-staging",
       "hostname": "staging.opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "34d77863-1656-4a64-b30b-3bf706928e03",
-      "versionId": "2d2a67ac-aea1-4663-a85f-12163624b8b3",
+      "deploymentId": "31ec0438-2332-4b3d-9638-012890019221",
+      "versionId": "8fe43bf6-e480-4167-b450-4708c227fd75",
       "trafficPercentage": 100,
-      "scriptEtag": "82898295b559e4cac94ac41723dd2a48013f9eae145737f05674824f70494c6a",
+      "scriptEtag": "909e2daf7380885b1a4dccec039e451ab5ca8146f15ce4dd22125c3f074e67be",
       "handlers": [
         "fetch"
       ],

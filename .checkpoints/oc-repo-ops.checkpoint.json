@@ -3,7 +3,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/ow-skills-orchestration-0e05bd",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-16T23:31:56.688Z",
+  "updated_at": "2026-10-16T23:42:50.106Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
@@ -31,7 +31,7 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "479cd818d947045302154e078c4921d560c409a3",
+    "verified_for_sha": "0cdf98c362ad0038f6dba090cf9783b940336b2d",
     "last_verify": {
       "at": "2026-10-16T19:22:23.960Z",
       "branch": "claude/track-s-s0-forward",
@@ -1695,8 +1695,32 @@
         "policy": "pr-readiness-v1",
         "scope": "PR #611 branch claude/ow-documentation-design at the #612 merge"
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-a242f5cf24c2",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-16T23:42:50.106Z",
+      "verified_at": "2026-10-16T23:42:50.106Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "baseline-staging-1fbd48fa-after-611"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:a242f5cf24c2baf0b068d2efda666147edd61eb1297e4b6353927d07059e75e2"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Baseline PR #614 at 0cdf98c3, origin/main 8aa3145b (#611, docs and sprint plan only) merged; only the oc-docs-forge/oc-repo-ops evidence checkpoints conflicted and main's copies were kept. Net diff vs main is .github/monitoring/release-baseline.json only (staging half, 3 lines); worktree clean apart from this checkpoint update; build output ignored. sync-bundles:check, sync-plugin-skills:check, check-skill-contracts, lint-internal-refs PASS; checkpoint validate 0 errors, doctor 0 errors. Docs Forge pr-docs-v1 PASS bound to this candidate. Candidate verifier PASS at the merge commit boundary (tree 614b0893). Canary workflow_dispatch on this branch (run 38959940049) verified production d52944b3 and staging 31ec0438 against the baseline; the later main merges change no baseline value, and staging still serves 1fbd48fa.",
+        "evidence": [
+          ".github/monitoring/release-baseline.json",
+          ".checkpoints/oc-docs-forge.checkpoint.json"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-16T23:31:56.688Z",
+  "record_updated_at": "2026-10-16T23:42:50.106Z",
   "blockers": []
 }
