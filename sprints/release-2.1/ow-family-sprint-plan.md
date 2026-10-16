@@ -1,6 +1,6 @@
 # v2.1.0 sprint plan — the ow- family
 
-**Date:** 2026-10-14 · **Skill:** oc-app-architect `/oc-roadmap`, coordinated by oc-orchestrator · **Status:** APPROVED by the owner 2026-10-14.
+**Date:** 2026-10-14 · **Skill:** oc-app-architect `/oc-roadmap`, coordinated by oc-orchestrator · **Status:** APPROVED by the owner 2026-10-14. **Scope change 2026-10-16 (owner): every skill is released in v2.1.0. The release covers the full client lifecycle (adding `ow-documentation` and `ow-care`) plus `ow-draft`, `ow-research`, `ow-vendor-eval`, `ow-controls` with framework packs, `ow-currency`, and ow-start's meeting and decision logs. Order: design all the remaining skills first, then build them** (§ Scope change below; draft sprints until their designs are approved).
 **Replaces:** `sprints/release-2.1/sprint-plan.md` ("Installs anywhere"), superseded 2026-10-06; its work moves to v2.2.
 **Designs (all approved):** ow-start (2026-10-06), ow-build-plan (2026-10-08, amendments 2026-10-14), ow-build (2026-10-08, §12 builder integration and amendments 2026-10-14), ow-uat (2026-10-14), ow-handoff (2026-10-14), ow-tools (2026-10-09). All under `docs/plans/`.
 **Audits that feed this plan:** `docs/audits/2026-09-18-ow-pack-design-audit.md` (cross-talk contract R1–R16, authoring standard), and the 2026-10-14 diff audits of #596 and #597 plus the ow-tools security posture report.
@@ -16,6 +16,23 @@ Effort figures are rough ranges for one maintainer working with Claude, not comm
 | ow-handoff, ow-uat designs; ow-build §12; cross-design amendments | Approved 2026-10-14; draft PR on `claude/ow-handoff-uat-designs` (stacked on #596) |
 | ow-build-plan, ow-build, ow-uat, ow-handoff skills | Not started |
 | Mirror, install path, ow- zip, ow- tag policy | Not started |
+
+## Scope change (owner, 2026-10-16)
+
+"All of the skills should be released": v2.1.0 grows from five ow- skills to twelve plus `ow-tools`. **Design every remaining skill first, then build** (owner choice). Earlier decisions this reverses: ow-start decision 13 (meeting/decision logs, `ow-research`, `ow-controls`, framework packs dropped from the release train) and this plan's "Not in v2.1.0" list.
+
+| Skill | Role | Design state |
+|---|---|---|
+| `ow-documentation` | Documents, training and tracked rollout (the documentation & training SKU); after UAT | **Design APPROVED 2026-10-16** (`docs/plans/2026-10-16-ow-documentation-design.md`, decisions 7–16, amendments T1, T2, H3, B4, P3) |
+| `ow-care` | Monthly care plans after handoff, and for systems taken over | **Design APPROVED 2026-10-16** (`docs/plans/2026-10-16-ow-care-design.md`, decisions 1–11, amendments T3, T4, H4, S1, P4) |
+| `ow-draft` | Brief → evidence → draft → deliver for client documents | To design (09-21 strategy §6.3; no `ow-review`, so its checks are same-session self-checks) |
+| `ow-research` | Web-sourced evidence (network) | To design (09-21 strategy §6.3, audit "Connected" bundle) |
+| `ow-vendor-eval` | Vendor evaluation; commercial vs formal public procurement mode | To design (audit skill list) |
+| `ow-controls` + framework packs | Standing control register; NIST 800-53 proving pack; bring-your-own loader | To design (09-21 strategy §6.6; licensed-text questions go to counsel) |
+| `ow-currency` | Checks for newer framework revisions (network) | To design (pairs with `ow-controls`) |
+| ow-start meeting and decision logs | `/ow-start-log-meeting`, `/ow-start-log-decision` | Amendment to the ow-start design |
+
+Design order: `ow-documentation`, `ow-care`, the ow-start logs amendment, `ow-draft`, `ow-research`, `ow-vendor-eval`, `ow-controls` with packs, `ow-currency`. Build sprints and effort are re-planned once every design is approved.
 
 ## Sprint 0: Land what is built
 
@@ -87,6 +104,13 @@ A synthetic UAT runs from `ready-for-uat.md` to a signed acceptance record, a su
 ### Dependencies
 Sprint 2 (reads `ready-for-uat.md`). **Effort:** CLAUDE 12–16h | USER 1–2h. Clause wording is the owner's contract step, not this sprint.
 
+## Sprint 3b: ow-documentation 1.0.0 (added 2026-10-16)
+
+Design APPROVED 2026-10-16 (`docs/plans/2026-10-16-ow-documentation-design.md`). It runs only when the SKU is bought, writes the full runbook and developer handover (ow-handoff's notes point to them, H3), auto-captures screenshots (`ow-tools capture`, T1), exports slides (`export --pptx`, T2), and the line is invoiced at delivery (B4, P3). Recorded decisions D1–D6 in the ow-uat design apply: four document types, four training formats, a planned and tracked rollout, delivery as branded PDF/Word, Markdown in the client's repo, the client's wiki or Google Docs and slides; priced by build size plus groups of 15 people; a floor (developer handover and operator notes) stays in every build.
+
+### Dependencies
+Sprint 3 (reads ow-uat's scenarios, roles, training gaps and cleared evidence); ow-tools T1 and T2 land with it; the H3, B4 and P3 amendments land in Sprints 4, 2 and 1's skills. **Effort:** estimated in the re-plan once every design is approved.
+
 ## Sprint 4: ow-handoff 1.0.0 (stage 04)
 
 ### Deliverables
@@ -102,6 +126,13 @@ A synthetic handoff runs from a UAT sign-off to close, including a reopened clos
 
 ### Dependencies
 Sprint 3. **Effort:** CLAUDE 12–16h | USER 1h.
+
+## Sprint 4b: ow-care 1.0.0 (added 2026-10-16)
+
+Design APPROVED 2026-10-16 (`docs/plans/2026-10-16-ow-care-design.md`). Two ways in: `care-start.md` from ow-handoff, or a takeover through a fixed-fee onboarding review (ow-start S1, ow-build-plan P4). Runs months from the start date, hours recorded per request with the site's rollover rule, extra hours only on a go-ahead, reply targets, a monthly health check (`ow-tools health`, T3) and report, tier and terms changes, notice and end with access removal.
+
+### Dependencies
+Sprint 4; ow-tools T3 and T4 land with it; the S1, P4 and H4 amendments land in the ow-start, ow-build-plan and ow-handoff skills. **Effort:** estimated in the re-plan once every design is approved.
 
 ## Sprint 5: Distribution and integrity
 
@@ -136,7 +167,7 @@ Sprints 0–5. **Effort:** CLAUDE 6–8h | USER 6–10h (real jobs, pyannote fet
 
 ## Not in v2.1.0
 
-- `ow-care` (care plans) and `ow-documentation` (the documentation and training SKU): not designed. Both have written absent-case branches in ow-handoff and ow-uat, so 2.1.0 works without them.
+- ~~`ow-care` and `ow-documentation`~~: moved into v2.1.0 on 2026-10-16 (Sprints 3b and 4b). Their absent-case branches in ow-handoff and ow-uat stay, for installs without them.
 - Meeting and decision logs, ow-research, ow-controls, framework packs: dropped from the release train (ow-start decision 13).
 - The OSS split and the old "Installs anywhere" scope: v2.2.
 
@@ -155,3 +186,5 @@ Sprints 0–5. **Effort:** CLAUDE 6–8h | USER 6–10h (real jobs, pyannote fet
 ## Approval
 
 - [x] Owner approved this plan 2026-10-14: scope and order as drafted; `ow-care` and `ow-documentation` stay out of 2.1.0.
+- [x] Owner scope change 2026-10-16: `ow-documentation` and `ow-care` join 2.1.0.
+- [ ] Sprints 3b and 4b approved with their designs and effort estimates.
