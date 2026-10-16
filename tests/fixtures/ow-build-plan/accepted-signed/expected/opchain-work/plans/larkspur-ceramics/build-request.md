@@ -49,7 +49,7 @@ Size M: 3 tester roles (order coordinator, operations manager, bookkeeper), 3 se
 ## Next
     DONE: client signed 2026-11-09 (recorded by Robin; not verified by this skill) -> plans/larkspur-ceramics/build-request.md
     NEXT: say "use ow-build to start plans/larkspur-ceramics/"   (where slash commands exist: /ow-build-start)
-          It will read: build-request.md, quote.md, plan.yaml, build-plan.md, scope.md, acceptance.md, risks.md, map/
+          It will read: build-request.md, quote.md, contract-inputs.md, plan.yaml, build-plan.md, scope.md, acceptance.md, risks.md, map/
           [no folder attached: attach them when you say it]
     IF IT IS NOT AVAILABLE: give build-request.md to whoever builds it.
 

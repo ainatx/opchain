@@ -1,0 +1,13 @@
+# Answer key: invoice-documentation-refused (INVENTED). Amendment B4, invoiced
+# once: -invoice runs again after the documentation request was written. The
+# ledger already shows the line requested and no other trigger is new, so it
+# writes nothing.
+case: invoice-documentation-refused
+section: Payment triggers (documentation & training invoiced once, B4)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: invoice-documentation
+checks: [invoice_refused]
+invoice_refused: the documentation line was already requested

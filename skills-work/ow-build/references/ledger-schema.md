@@ -24,6 +24,7 @@
       - { trigger: booking, share: 40, amount: 6980.00, state: due, met: 2026-11-09, basis: signed 2026-11-09 (build-request.md) }
       - { trigger: working-demo, share: 40, amount: 6980.00, state: not met }
       - { trigger: acceptance, share: 20, amount: 3490.00, state: not met }
+    documentation: { sku: bought, amount: 4000.00, state: not met }   # or: documentation: none (declined, or no contract-inputs.md)
     change_orders: []                    # { id: CO-nn, amount, terms: on signature, signed: <date>, state }
     invoice_requests: []                 # { file, trigger, amount, written: <date>, paid: <date> | none }
     arithmetic:                          # or: arithmetic: not machine-checked
@@ -50,6 +51,10 @@
 | 50/50 | `booking` 50 · `delivery` 50 |
 
 `amount` is copied from the quote's `payments`, never recomputed into something else. `state` moves `not met` → `due` (the trigger is met; `met` and `basis` say when and from which file) → `requested` (an `INV-request-<trigger>.md` exists) → `paid` (as you report it, with the date). A signed change order is added to `change_orders` by `-invoice`, with its own terms (on signature, unless the change order says otherwise).
+
+## The documentation & training line
+
+When `contract-inputs.md` says `documentation_sku: bought`, `-start` copies the line into `documentation` with its price (`documentation_price`, the quote's line). It sits outside the fixed price and its schedule, and has one trigger: the documents delivered (`docs/<client>/delivered.md`), invoiced once. Declined, or no `contract-inputs.md`: `documentation: none`, and there is no such trigger.
 
 ## The working-demo payment (40/40/20)
 

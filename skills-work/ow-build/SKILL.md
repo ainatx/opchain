@@ -52,7 +52,7 @@ Try: "use ow-build to start plans/acme/" · "write this week's update for Acme" 
 | `/ow-build-invoice` | A request per payment trigger met; `/ow-build-invoice --paid` records payment | `invoices/INV-request-<trigger>.md`, `ledger.md` |
 | `/ow-build-ready` | Every check's run once every milestone is demoed; marks no payment | `ready-for-uat.md` |
 
-Every run that writes appends one `STATUS.md` line. Every verb reads `ledger.md` and `build.yaml` first, so a build resumes cold.
+Every run that writes appends one `STATUS.md` line; every verb reads `ledger.md` and `build.yaml` first, so a build resumes cold.
 
 ## Phases
 
@@ -70,7 +70,7 @@ Your `handoffs.yaml` `build` entry names it; this skill never does. `mode: opcha
 
 ## The ow-tools add-on
 
-**If you can run code here and `ow-tools version` answers, run the call; otherwise take the absent-case.** Never imitate it. Record each call's command and raw output where the phase file says.
+**If you can run code here and `ow-tools version` answers, run the call; otherwise take the absent-case.** Never imitate it; record each call's command and raw output.
 
 | Need | Call | Without the add-on |
 |---|---|---|
@@ -85,7 +85,7 @@ Your `handoffs.yaml` `build` entry names it; this skill never does. `mode: opcha
                            updates/ demos/ changes/ invoices/ audio/
     <repo>/spec/           in the client's project folder, named in build.yaml
 
-`margin.md`, `updates/<date>-checks.md` and the internal part of `CO-nn.md` are yours only. In a git repository, `-start` asks once to ignore `opchain-work/**/audio/` and `opchain-work/**/transcript.*`.
+`margin.md`, `updates/<date>-checks.md` and the internal part of `CO-nn.md` are yours only. `-start` asks once to git-ignore `opchain-work/**/audio/` and `opchain-work/**/transcript.*`.
 
 ## Reads from
 
@@ -94,14 +94,15 @@ Your `handoffs.yaml` `build` entry names it; this skill never does. `mode: opcha
 | any ow- skill | `STATUS.md` | First run: the welcome | Use the lines that parse |
 | ow-start | `profile.md`: name, time zone, holidays, handling | Ask name and time zone; skip weekends only | Ask for the missing fields |
 | ow-build-plan | `plans/<client>/build-request.md`: the signing | Refuse `-start`: not signed | Ask the user to confirm the date |
-| ow-build-plan | `plans/<client>/quote.md`: price, schedule, payments, milestones; `plans/<client>/plan.yaml`: handling | Refuse `-start` | Record no payment until the user confirms |
+| ow-build-plan | `plans/<client>/quote.md`: price, schedule, payments, milestones; `plans/<client>/plan.yaml`: handling; `plans/<client>/contract-inputs.md`: `documentation_sku` | Refuse `-start` | Record no payment until the user confirms |
 | ow-build-plan | `plans/<client>/scope.md`, `plans/<client>/acceptance.md`, `plans/<client>/risks.md`, `plans/<client>/build-plan.md` (quick: `plans/<client>/quick-scope.md`) | No checks from either: stop `-start` | Stop until every check parses |
 | ow-build-plan | `plans/<client>/map/systems.md`, `plans/<client>/map/data.md`, `plans/<client>/map/future.md` | Use `build-request.md`; say so | Use the lines that parse |
 | ow-uat | `uat/<client>/defects/UAT-nn.md`; `uat/<client>/signoff.md`, `uat/<client>/backstop.md`, `uat/<client>/uat.yaml` | Ask for the request; no file, no trigger | Mark no trigger until the user confirms |
 | ow-handoff | `handoffs/<client>/fixes/FIX-nn.md`; `handoffs/<client>/dates.yaml`: `handoff_date` | Ask for the request; no date, no trigger | Ask the user to confirm |
+| ow-documentation | `docs/<client>/delivered.md` | No file, no trigger | Ask the user to confirm |
 | ow-tools | `builds/<client>/demos/M<n>/transcript.md` | Your notes | No speakers: notes |
 | the user | `price-book.yaml`, `offers.md` (`after_handoff.excluded`), `handoffs.yaml`, `brand.yaml` | No price book: price nothing. Else the default | Price nothing that needs a missing key |
-| the builder | `<repo>/sprints/`; `<repo>/.checkpoints/<checkpoint>.checkpoint.json` (protocol fields only) | No result: nothing passes | Record no result until the user confirms |
+| the builder | `<repo>/sprints/`; `<repo>/.checkpoints/<checkpoint>.checkpoint.json` (protocol fields) | No result: nothing passes | Record nothing unconfirmed |
 | the user | `<time export>` (`margin.md` only), git history, weekly notes | `margin.md` says no time was recorded | Ask how to assign the rows |
 | ow-build | its own files, as each phase file lists | Say which step is missing | Report what was found |
 
@@ -230,7 +231,7 @@ Each is a **same-session self-check: the same assistant that wrote the output, a
 
 ## Works on its own
 
-Without ow-build-plan, give it a signed scope with numbered checks, milestones and payments. Without a builder here, it runs from git history and your notes; without ow-tools, amounts are marked not machine-checked.
+Without ow-build-plan: a signed scope with numbered checks, milestones and payments. Without a builder: the history of commits and your notes. Without ow-tools: amounts marked not machine-checked.
 
 ## What this skill never does
 

@@ -66,6 +66,11 @@ reads:
     if_absent: Refuse -start; ask for the signed quote
     if_mismatch: Report the keys found; record no payment until the user confirms the amounts
   - from: ow-build-plan
+    path: plans/<client>/contract-inputs.md
+    fields: [documentation_sku, documentation_price]
+    if_absent: "No documentation line: documentation: none, and no such trigger"
+    if_mismatch: Record no documentation line until the user confirms bought or declined
+  - from: ow-build-plan
     path: plans/<client>/plan.yaml
     fields: [handling]
     if_absent: "A quick quote has none: take handling from the quote's header, else ask"
@@ -141,6 +146,11 @@ reads:
     fields: [handoff_date]
     if_absent: "The handoff date has not come; the delivery half waits for it or the backstop"
     if_mismatch: Report what was found; mark no trigger until the user confirms the date
+  - from: ow-documentation
+    path: docs/<client>/delivered.md
+    fields: [the delivery date]
+    if_absent: "The documentation trigger is not met; say so"
+    if_mismatch: Report what was found; mark no trigger until the user confirms the delivery date
   - from: ow-tools
     path: builds/<client>/demos/M<n>/transcript.md
     fields: [speaker labels, times]

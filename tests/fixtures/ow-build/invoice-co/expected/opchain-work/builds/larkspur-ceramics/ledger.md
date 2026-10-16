@@ -18,6 +18,7 @@ payments:
   - { trigger: booking, share: 40, amount: 6980.00, state: requested, met: 2026-11-09, basis: signed 2026-11-09 (build-request.md) }
   - { trigger: working-demo, share: 40, amount: 6980.00, state: requested, met: 2026-11-25, basis: "demos/M1-record.md, confirmed by Robin 2026-11-25" }
   - { trigger: acceptance, share: 20, amount: 3490.00, state: not met }
+documentation: { sku: bought, amount: 4000.00, state: not met }
 change_orders:
   - { id: CO-01, amount: 2600.00, terms: on signature, signed: 2026-12-07, state: requested }
 invoice_requests:
@@ -40,6 +41,9 @@ This is not an accounting record. It holds the payment schedule from the signed 
 | acceptance | 20% | USD 3,490.00 | not met |
 
 The working-demo payment follows milestone 1's demo: Robin said so on 2026-11-10 (user-stated); the quote names one working demo for two milestones.
+
+## Documentation & training
+Bought (contract-inputs.md): USD 4,000.00, outside the fixed price; invoiced once, when the documents are delivered. State: not met.
 
 ## Change orders
 | change order | amount | terms | signed | state |

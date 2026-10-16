@@ -2,6 +2,8 @@
 
 **Plan:** `sprints/release-2.1/ow-family-sprint-plan.md` Sprint 2 · **Design:** `docs/plans/2026-10-08-ow-build-design.md` (approved 2026-10-08; §12 builder integration approved 2026-10-14; amendments 2026-10-14 and 2026-10-15) · **Skill:** oc-app-architect `/oc-build`, Generator proposes, Evaluator reviewed · **Status:** APPROVED by the owner 2026-10-16.
 
+Amended 2026-10-16 (owner): B4 documentation trigger added (ow-documentation design §11, amendment B4; build re-plan, Sprint 2 row). `-invoice` gains the trigger "Documentation & training (when bought): `docs/<client>/delivered.md` exists → invoice request for the line's price, invoiced once", reading `documentation_sku: bought | declined` from `contract-inputs.md` (declined or absent: no trigger); `ow-documentation` joins the planned skills.
+
 ## Deliverables
 
 1. `skills-work/ow-build/SKILL.md`: Agent Skills frontmatter only, version 1.0.0, protocol 1, body under 4,500 tokens (headroom kept, lesson from Sprint 1), step 0 pointer, welcome, verb table, absent-cases, NEXT blocks.
@@ -26,6 +28,7 @@
 | C9 | Payment triggers per B2 (40/40/20 and 50/50; delivery half invoiced once) with ledger arithmetic via ow-tools `calc` or marked not machine-checked | goldens |
 | C10 | oc- outputs byte-identical | snapshot before and after |
 | C11 | The checker fails per check and never crashes | malformed-file tests |
+| C12 | B4: with `documentation_sku: bought` and `docs/<client>/delivered.md`, `-invoice` writes one request for the line's price, invoiced once; declined or absent is no trigger | golden (bought: one request; a second run refuses) + planted failures (declined still invoiced; invoiced twice) |
 
 ## Test requirements
 

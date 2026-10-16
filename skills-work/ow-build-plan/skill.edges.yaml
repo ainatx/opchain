@@ -200,5 +200,5 @@ hands_off:
     to: ow-build
     verb: /ow-build-start
     say: use ow-build to start plans/<client>/
-    files: [plans/<client>/build-request.md, plans/<client>/quote.md, plans/<client>/plan.yaml, plans/<client>/build-plan.md, plans/<client>/scope.md, plans/<client>/acceptance.md, plans/<client>/risks.md, plans/<client>/quick-scope.md, plans/<client>/map/systems.md, plans/<client>/map/data.md, plans/<client>/map/future.md]
+    files: [plans/<client>/build-request.md, plans/<client>/quote.md, plans/<client>/contract-inputs.md, plans/<client>/plan.yaml, plans/<client>/build-plan.md, plans/<client>/scope.md, plans/<client>/acceptance.md, plans/<client>/risks.md, plans/<client>/quick-scope.md, plans/<client>/map/systems.md, plans/<client>/map/data.md, plans/<client>/map/future.md]
     if_unavailable: "handoffs.yaml build: its say: line; with none, give build-request.md to whoever builds it"

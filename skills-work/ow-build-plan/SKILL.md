@@ -183,7 +183,7 @@ A `handoffs.yaml` line below is never printed as written: print that key's say: 
 
     DONE: client signed <date> (recorded by <user>; not verified by this skill) -> plans/<client>/build-request.md
     NEXT: say "use ow-build to start plans/<client>/"   (where slash commands exist: /ow-build-start)
-          It will read: build-request.md, quote.md, plan.yaml, build-plan.md, scope.md, acceptance.md, risks.md, map/ (quick: build-request.md, quote.md, quick-scope.md)
+          It will read: build-request.md, quote.md, contract-inputs.md, plan.yaml, build-plan.md, scope.md, acceptance.md, risks.md, map/ (quick: build-request.md, quote.md, contract-inputs.md, quick-scope.md)
           [no folder attached: attach them when you say it]
     IF IT IS NOT AVAILABLE: handoffs.yaml `build`
 

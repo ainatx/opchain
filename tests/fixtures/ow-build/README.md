@@ -40,6 +40,9 @@ These are the acceptance tests from `docs/plans/2026-10-08-ow-build-design.md` �
 | `change-uat-extension`, `route-uat` | §6.1, §10, C4 | `-change` | Three UAT-nn files with one client-side event: one extension change order |
 | `invoice-acceptance` | §7, §10 | `-invoice` | ow-uat's sign-off meets the 20% |
 | `change-fix-too-big`, `route-fix` | §6.1, §10, C4 | `-change` | FIX-07 (a customer portal) is 3 units against a limit of 3: no change order, a hand-off to ow-build-plan |
+| `invoice-documentation`, `invoice-documentation-refused` | §7, amendment B4 | `-invoice`, twice | The documentation & training line was bought (`contract-inputs.md`); `docs/larkspur-ceramics/delivered.md` (in the ow-documentation design's shape) meets it: one request, and a second run writes nothing |
+
+Mossgate Books declined the documentation line and Fernhill Florists has no `contract-inputs.md`: their ledgers carry `documentation: none` and there is no such trigger.
 
 **Mossgate Books** (quick quote, 50/50, one milestone): `start-quick` (every `spec/` file from a quick-quote job's sources), `invoice-booking-small`, `invoice-delivery-backstop` (the backstop comes first), `invoice-delivery-refused` (the handoff date later: the delivery half is invoiced once), `invoice-delivery-handoff` (the handoff date first).
 

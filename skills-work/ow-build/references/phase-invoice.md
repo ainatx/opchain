@@ -11,15 +11,17 @@ Run step 0 of `references/ow-protocol.md` first. Read `ledger.md` (`references/l
 | `acceptance` (20%, larger projects) | `uat/<client>/signoff.md` exists, signed or deemed. `ready-for-uat.md` is **not** this trigger | `uat/<client>/signoff.md, <signed or deemed> <date>` |
 | `delivery` (50%, smaller projects) | Whichever comes **first**: `handoffs/<client>/dates.yaml` `handoff_date` (the Handoff notes delivered), or `uat/<client>/backstop.md` (the contract's delivery backstop) | `handoff_date <date> (dates.yaml)` or `backstop <date> (backstop.md)` |
 | `CO-nn` | `changes/CO-nn.md` has `status: signed`, on its own terms (default: on signature) | `CO-nn signed <date>` |
+| `documentation` (the documentation & training line, only when bought) | `plans/<client>/contract-inputs.md` says `documentation_sku: bought` and `docs/<client>/delivered.md` exists (the documents were delivered). Declined, or no `contract-inputs.md`: there is no such trigger | `docs/<client>/delivered.md, <date>` |
 
 - **A file that does not exist is a trigger not met.** Say which.
 - **The governing definition.** When `uat/<client>/uat.yaml` records the user's dated statement of which acceptance or delivery definition governs this job (an older quote that defines them differently), apply that statement instead of the rows above, and quote it in the request.
 - **The delivery half is invoiced once.** When `ledger.md` already shows the `delivery` row `requested` or `paid`, on whichever basis, refuse a second delivery request: write nothing and say when and on what basis it was requested.
+- **The documentation line is invoiced once**, at its own price (`documentation_price` in `contract-inputs.md`, which is the quote's line), outside the fixed price and its schedule. When `ledger.md` already shows it `requested` or `paid`, refuse a second request and write nothing. A further training group is a change order, invoiced on its own terms.
 - A trigger already `requested` or `paid` is never requested again.
 
 ## 2. Write each request
 
-For each trigger met and not yet requested, `invoices/INV-request-<trigger>.md` (`booking`, `working-demo`, `acceptance`, `delivery`, or the change order's id):
+For each trigger met and not yet requested, `invoices/INV-request-<trigger>.md` (`booking`, `working-demo`, `acceptance`, `delivery`, `documentation`, or the change order's id):
 
     ---
     ow_artefact: ow-build/invoice-request
@@ -43,7 +45,7 @@ For each trigger met and not yet requested, `invoices/INV-request-<trigger>.md` 
 
 **Ledger arithmetic.** The amount is the ledger's (from the quote) or the signed change order's, never recomputed into another figure. Check, with ow-tools when you can run code here and `ow-tools version` answers: `ow-tools calc split --total <fixed_price> --schedule <schedule>` for a schedule payment, and `ow-tools calc total --items <file.json>` for the contract total with signed change orders. Record each command and its raw output in the request; otherwise write `arithmetic: not machine-checked`. A mismatch with the quote or the change order: stop and show both.
 
-Then rewrite `ledger.md`: the row's `state: requested`, its `met` and `basis`; any signed change order not yet in `change_orders`, with its terms; one `invoice_requests` row per request.
+Then rewrite `ledger.md`: the row's (or `documentation`'s) `state: requested`, its `met` and `basis`; any signed change order not yet in `change_orders`, with its terms; one `invoice_requests` row per request.
 
 ## 3. Paid
 

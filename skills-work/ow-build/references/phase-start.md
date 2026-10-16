@@ -27,7 +27,7 @@ In a git repository, ask once to add `opchain-work/**/audio/` and `opchain-work/
 
 ## 4. The ledger
 
-Write `builds/<client>/ledger.md` (`references/ledger-schema.md`): the trigger rows for the quote's schedule with the quote's amounts; `booking` is **due**, met on the signing date in `build-request.md` (recorded by the user, not verified by this skill). Check the arithmetic: if you can run code here and `ow-tools version` answers, run `ow-tools calc split --total <fixed_price> --schedule <schedule>` and record the command and its raw output; otherwise add by hand and write `arithmetic: not machine-checked`. Amounts that disagree with the quote: stop and show both; record nothing until the user confirms.
+Write `builds/<client>/ledger.md` (`references/ledger-schema.md`): the trigger rows for the quote's schedule with the quote's amounts; `booking` is **due**, met on the signing date in `build-request.md` (recorded by the user, not verified by this skill). Read `plans/<client>/contract-inputs.md`: with `documentation_sku: bought`, copy the documentation & training line (`documentation_price`) into `documentation`, state `not met`; declined or no file: `documentation: none`. Check the arithmetic: if you can run code here and `ow-tools version` answers, run `ow-tools calc split --total <fixed_price> --schedule <schedule>` and record the command and its raw output; otherwise add by hand and write `arithmetic: not machine-checked`. Amounts that disagree with the quote: stop and show both; record nothing until the user confirms.
 
 ## 5. The builder
 

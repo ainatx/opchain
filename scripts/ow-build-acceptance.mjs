@@ -293,6 +293,18 @@ export function quoteMilestones(content) {
 }
 const wpOf = (ac) => `WP-${String(ac).replace(/^AC-/, "").split(".")[0]}`;
 
+/**
+ * The documentation & training line (ow-documentation amendment B4): bought in
+ * contract-inputs.md, at its documentation_price. Declined, or no
+ * contract-inputs.md: no line and no trigger.
+ */
+export function documentationLine(run, key) {
+  const text = run.read(`${plan(key)}/contract-inputs.md`);
+  if (text == null) return null;
+  const d = parsed(text, `${plan(key)}/contract-inputs.md`, "md").data;
+  return d.documentation_sku === "bought" ? { amount: d.documentation_price } : null;
+}
+
 /** The builder's project folder (root-relative), from build.yaml's builder.repo. */
 function repoOf(run, key) {
   const b = (() => { try { return yml(run, `${build(key)}/build.yaml`); } catch { return null; } })();
@@ -732,6 +744,17 @@ function checkLedger(key, run) {
       if (key.ledger?.working_demo && data.working_demo !== key.ledger.working_demo) p.push(`${rel}: working_demo is ${data.working_demo}, expected ${key.ledger.working_demo} (the user's answer)`);
     }
   } else if (data.working_demo != null && data.working_demo !== "none") p.push(`${rel}: a 50/50 schedule has no working-demo payment`);
+  // The documentation line (B4): copied when bought, outside the fixed price; none otherwise.
+  const doc = documentationLine(run, key);
+  if (doc) {
+    const d = data.documentation;
+    if (!d || typeof d !== "object" || d.sku !== "bought") p.push(`${rel}: contract-inputs.md says documentation_sku: bought, so the ledger carries the documentation line (documentation: { sku: bought, amount, state })`);
+    else {
+      if (cents(d.amount) !== cents(doc.amount)) p.push(`${rel}: documentation amount ${money(cents(d.amount))}; contract-inputs.md says ${money(cents(doc.amount))}`);
+      const want = key.ledger?.states?.documentation ?? "not met";
+      if (d.state !== want) p.push(`${rel}: documentation is ${d.state}, expected ${want}`);
+    }
+  } else if (data.documentation !== "none") p.push(`${rel}: the documentation line was declined or not recorded, so documentation is "none" and there is no such trigger`);
   p.push(...arithmeticProblems(rel, data.arithmetic, { total: q.fixed_price, schedule: q.schedule }));
   if (key.ledger?.machine_checked === true && data.arithmetic === "not machine-checked") p.push(`${rel}: this case ran ow-tools; the arithmetic must be recorded`);
   if (key.ledger?.machine_checked === false && data.arithmetic !== "not machine-checked") p.push(`${rel}: ow-tools was not installed in this case; the arithmetic is "not machine-checked"`);
@@ -1219,6 +1242,8 @@ function metTriggers(run, key, ledger) {
       if (first) met.push({ trigger: "delivery", basis: first.basis, date: first.d });
     }
   }
+  const doc = documentationLine(run, key);
+  if (doc && run.exists(`${OW}docs/${key.slug}/delivered.md`)) met.push({ trigger: "documentation", basis: `docs/${key.slug}/delivered.md`, amount: doc.amount });
   for (const f of coFiles(run, key)) {
     const d = matter(run.read(f)).data;
     if (d.status === "signed") met.push({ trigger: d.id, basis: `changes/${d.id}.md`, amount: d.price });
@@ -1233,7 +1258,7 @@ function checkInvoice(key, run) {
   const before = priorMd(run, lRel).data;
   const q = md(run, `${plan(key)}/quote.md`).data;
   const met = metTriggers(run, key, after);
-  const requested = (l) => new Set((l.payments ?? []).filter((x) => /^(requested|paid)$/.test(x.state)).map((x) => x.trigger).concat((l.change_orders ?? []).filter((c) => /^(requested|paid)$/.test(c.state)).map((c) => c.id)));
+  const requested = (l) => new Set((l.payments ?? []).filter((x) => /^(requested|paid)$/.test(x.state)).map((x) => x.trigger).concat((l.change_orders ?? []).filter((c) => /^(requested|paid)$/.test(c.state)).map((c) => c.id), /^(requested|paid)$/.test(l.documentation?.state ?? "") ? ["documentation"] : []));
   const was = requested(before);
   const wantNew = met.filter((m) => !was.has(m.trigger)).map((m) => m.trigger);
   if (key.invoice?.triggers && wantNew.join() !== key.invoice.triggers.join()) p.push(`the files meet ${wantNew.join(", ") || "no new trigger"}; this case expects ${key.invoice.triggers.join(", ")}`);
@@ -1260,7 +1285,11 @@ function checkInvoice(key, run) {
     const nextLine = ((sectionText(content, "Next") ?? "").split("\n").find((l) => /^\s*NEXT:/.test(l)) ?? "").replace(/^\s*NEXT:\s*/, "").replace(/\.$/, "");
     if (nextLine !== want) p.push(`${f}: the printed NEXT is "${nextLine}"; it must be exactly ${say ? "the invoice say: line" : "the public default"}: "${want}"`);
     if (row && row.state !== "requested") p.push(`ledger.md: ${trig} is ${row.state} after its request; expected requested`);
-    if (!row) {
+    if (!row && trig === "documentation") {
+      const d = after.documentation;
+      if (!d || typeof d !== "object" || d.state !== "requested") p.push(`ledger.md: the documentation line is ${d?.state ?? d ?? "missing"} after its request; expected requested`);
+      else if (cents(d.amount) !== cents(m?.amount)) p.push(`ledger.md: documentation amount ${money(cents(d.amount))}; contract-inputs.md says ${money(cents(m?.amount))}`);
+    } else if (!row) {
       const co = (after.change_orders ?? []).find((c) => c.id === trig);
       if (!co) p.push(`ledger.md: the signed change order ${trig} is not in change_orders`);
       else {
@@ -1271,6 +1300,7 @@ function checkInvoice(key, run) {
     }
     if (!(after.invoice_requests ?? []).some((r) => String(r.file ?? "").endsWith(f.split("/").pop()))) p.push(`ledger.md: no invoice_requests row for ${f.split("/").pop()}`);
   }
+  if (/^(requested|paid)$/.test(before.documentation?.state ?? "") && after.documentation?.state !== before.documentation.state) p.push(`ledger.md: the documentation line moved back from ${before.documentation.state}`);
   // Only this verb writes the ledger, and a request is never repeated.
   for (const x of before.payments ?? []) {
     const y = (after.payments ?? []).find((z) => z.trigger === x.trigger);
@@ -1499,7 +1529,7 @@ function folderRoute(run, key) {
   const ledger = priorMd(run, lRel).data;
   const prior = { ...run, read: run.priorRead, exists: run.priorExists, all: run.priorAll };
   const met = metTriggers(prior, key, ledger);
-  const done = new Set((ledger.payments ?? []).filter((x) => /^(requested|paid)$/.test(x.state)).map((x) => x.trigger).concat((ledger.change_orders ?? []).filter((c) => /^(requested|paid)$/.test(c.state)).map((c) => c.id)));
+  const done = new Set((ledger.payments ?? []).filter((x) => /^(requested|paid)$/.test(x.state)).map((x) => x.trigger).concat((ledger.change_orders ?? []).filter((c) => /^(requested|paid)$/.test(c.state)).map((c) => c.id), /^(requested|paid)$/.test(ledger.documentation?.state ?? "") ? ["documentation"] : []));
   if (met.some((m) => !done.has(m.trigger))) return "invoice";
   return "other";
 }

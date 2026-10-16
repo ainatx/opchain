@@ -16,6 +16,7 @@ working_demo: none
 payments:
   - { trigger: booking, share: 50, amount: 1050.00, state: requested, met: 2026-10-29, basis: signed 2026-10-29 (build-request.md) }
   - { trigger: delivery, share: 50, amount: 1050.00, state: not met }
+documentation: none
 change_orders: []
 invoice_requests:
   - { file: invoices/INV-request-booking.md, trigger: booking, amount: 1050.00, written: 2026-11-02, paid: none }
@@ -32,6 +33,9 @@ This is not an accounting record. It holds the payment schedule from the signed 
 | delivery | 50% | USD 1,050.00 | not met: the first of the Handoff notes delivered or the contract's delivery backstop; invoiced once |
 
 The payments add up to the fixed price by hand: not machine-checked (the ow-tools add-on was not installed).
+
+## Documentation & training
+Declined (contract-inputs.md): no documentation line, no trigger.
 
 ## Change orders
 None.

@@ -1,0 +1,28 @@
+# Answer key: invoice-documentation (INVENTED). Amendment B4 (ow-documentation
+# design §11, owner-approved scope addition 2026-10-16): Larkspur bought the
+# documentation & training line (contract-inputs.md: documentation_sku:
+# bought, 4000.00), so -start copied it into the ledger. When
+# docs/larkspur-ceramics/delivered.md exists (input/, in the ow-documentation
+# design's shape), -invoice writes one request for the line's price, outside
+# the fixed price, and marks it requested.
+case: invoice-documentation
+section: Payment triggers (documentation & training delivered, B4)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: change-fix-too-big
+checks: [headers, invoice, ledger, internal_numbers, builder_name, status, private_names]
+outputs:
+  - builds/larkspur-ceramics/ledger.md
+  - builds/larkspur-ceramics/invoices/INV-request-documentation.md
+invoice: { triggers: [documentation] }
+ledger:
+  booking: requested
+  working_demo: M1
+  machine_checked: true
+  states: { working-demo: requested, acceptance: requested, documentation: requested }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/invoices/INV-request-documentation.md, next: ow-build on builds/larkspur-ceramics/, awaiting: payment of documentation by 2027-03-01 }
+private_names: [llc-ops, Deftwright]

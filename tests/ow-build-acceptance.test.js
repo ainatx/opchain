@@ -28,7 +28,8 @@ const temp = (p) => { const d = mkdtempSync(join(tmpdir(), p)); scratch.push(d);
 const CASES = [
   "change-fix-too-big", "change-in-scope", "change-priced", "change-signed", "change-uat-extension", "change-unpriced",
   "demo-record", "demo-script", "invoice-acceptance", "invoice-booking", "invoice-booking-small", "invoice-co", "invoice-delivery-backstop",
-  "invoice-delivery-handoff", "invoice-delivery-refused", "invoice-demo", "margin-internal", "ready-failing", "ready-passing",
+  "invoice-delivery-handoff", "invoice-delivery-refused", "invoice-demo", "invoice-documentation", "invoice-documentation-refused",
+  "margin-internal", "ready-failing", "ready-passing",
   "route-fix", "route-folder", "route-signed-plan", "route-uat", "run-escalated", "run-m1-done", "run-m1-next", "signature-gate",
   "start", "start-nine-checks", "start-no-build", "start-quick", "start-uncovered", "update",
 ];
@@ -67,7 +68,7 @@ describe("golden runs", () => {
       "Weekly update", "Margin stays internal", "In scope vs change (already in scope)", "In scope vs change (a real change, priced)", "In scope vs change (no price-book unit stops and asks)",
       "Signature gate (an email reply is not a signature)", "Signature gate (a signed amendment recorded)",
       "Payment triggers (40/40/20, booking)", "Payment triggers (40/40/20, working demo)", "Payment triggers (40/40/20, the ow-uat sign-off)", "Payment triggers (50/50, booking)",
-      "Payment triggers (50/50, delivery under the backstop)", "Payment triggers (50/50, delivery at the handoff)", "Payment triggers (50/50, the delivery half invoiced once)", "Payment triggers (a signed change order)",
+      "Payment triggers (50/50, delivery under the backstop)", "Payment triggers (50/50, delivery at the handoff)", "Payment triggers (50/50, the delivery half invoiced once)", "Payment triggers (a signed change order)", "Payment triggers (documentation & training delivered, B4)", "Payment triggers (documentation & training invoiced once, B4)",
       "Ready for UAT (one failing check)", "Ready for UAT (every check passing)",
       "Requests from UAT and handoff (one extension change order)", "Requests from UAT and handoff (too big for a change order)",
       "Milestone demo (script)", "Milestone demo (record, the working-demo trigger)",
@@ -372,6 +373,19 @@ describe("§10: planted failures", () => {
     expect(failures("invoice-acceptance", amount).invoice).toMatch(/acceptance's amount changed; it comes from the quote/);
   });
 
+  it("B4: a declined documentation line invoiced anyway, or invoiced twice; a ledger that copies a declined line", () => {
+    const declined = mutated("invoice-documentation", { "opchain-work/plans/larkspur-ceramics/contract-inputs.md": (t) => t.replace("documentation_sku: bought", "documentation_sku: declined") });
+    expect(failures("invoice-documentation", declined).invoice).toMatch(/invoice requests written: documentation; the triggers met and not yet requested are none/);
+    const undelivered = mutated("invoice-documentation", { "opchain-work/docs/larkspur-ceramics/delivered.md": () => null });
+    expect(failures("invoice-documentation", undelivered).invoice).toMatch(/the triggers met and not yet requested are none/);
+    const twice = mutated("invoice-documentation-refused", { [`${B}/invoices/INV-request-documentation-2.md`]: () => "---\ntrigger: documentation\namount: 4000.00\n---\n" });
+    expect(failures("invoice-documentation-refused", twice).invoice_refused).toMatch(/INV-request-documentation-2\.md was written; the documentation line was already requested/);
+    const copied = mutated("start-quick", { [`${MB}/ledger.md`]: (t) => t.replace("documentation: none", "documentation: { sku: bought, amount: 2000.00, state: not met }") });
+    expect(failures("start-quick", copied).ledger).toMatch(/the documentation line was declined or not recorded, so documentation is "none"/);
+    const missing = mutated("start", { [`${B}/ledger.md`]: (t) => t.replace("documentation: { sku: bought, amount: 4000.00, state: not met }\n", "") });
+    expect(failures("start", missing).ledger).toMatch(/contract-inputs\.md says documentation_sku: bought, so the ledger carries the documentation line/);
+  });
+
   it("ledger arithmetic: payments that do not add up, a tool output that is not real, the working demo picked by the skill", () => {
     const run = mutated("start", {
       [`${B}/ledger.md`]: (t) => t.replace("trigger: acceptance, share: 20, amount: 3490.00", "trigger: acceptance, share: 20, amount: 3400.00")
@@ -643,6 +657,9 @@ describe("the skill text keeps the rules the checker cannot see", () => {
     expect(p).toMatch(/Whichever comes \*\*first\*\*: `handoffs\/<client>\/dates\.yaml` `handoff_date`/);
     expect(p).toMatch(/\*\*The delivery half is invoiced once\.\*\*/);
     expect(p).toMatch(/\*\*The governing definition\.\*\*/);
+    // B4 (owner-approved 2026-10-16): the documentation line, only when bought, invoiced once.
+    expect(p).toMatch(/\| `documentation` \(the documentation & training line, only when bought\) \| `plans\/<client>\/contract-inputs\.md` says `documentation_sku: bought` and `docs\/<client>\/delivered\.md` exists/);
+    expect(p).toMatch(/\*\*The documentation line is invoiced once\*\*/);
   });
 
   it("the shared handoffs.yaml example: byte-identical in all three skills, defaults only, both build modes shown with placeholders", () => {
