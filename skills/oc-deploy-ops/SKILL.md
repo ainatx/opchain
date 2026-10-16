@@ -293,6 +293,46 @@ runs `npm run hardening:verify`, then replays the hardening manifest and the smo
 suite against the live target and rolls back on a miss. A bare `wrangler deploy`
 skips all of that. The raw sequences below are for projects without a wrapper.
 
+### Consumer deploy wrapper
+
+A project that has no wrapper gets one by copying the plugin's `templates/deploy.mjs`
+into `scripts/deploy.mjs`, configuring it in `package.json` under `opchain.deploy`
+(all optional: `project`, the env-var prefix, defaulting to the package name in
+UPPER_SNAKE; `healthPath`, default `/api/health`; `versionField`, default `version`;
+`production` / `staging`, each `{ "url", "command" }`, defaulting to `npx wrangler
+deploy` and `npx wrangler deploy --env staging`; `smoke`, a command run with
+`DEPLOY_URL` set), and wiring `deploy:staging` (`node scripts/deploy.mjs --staging`)
+and `deploy` (`node scripts/deploy.mjs --prod`) in `package.json`. No installer flag writes it for
+you. It carries the guards the 2026-10-08 audit found a consumer writing for itself
+after two incidents:
+
+- **Clean tree, exact `main`.** It refuses a dirty working tree, and HEAD must be the
+  fetched `origin/main` commit for either target, so staging is a
+  faithful preview of what production will get; a branch preview needs an explicit
+  opt-in, `--allow-off-main` or `<PROJECT>_ALLOW_OFF_MAIN_STAGING=1`, never a bare
+  `--env`. Production has no branch bypass. The clean-tree check ignores the wrapper's
+  own `.checkpoints/oc-deploy-ops.checkpoint.json`, so a deploy after a deploy works.
+- **Live-SHA ancestor check.** Before deploying, it reads the live version (the
+  `healthPath` endpoint's `versionField`) and refuses when
+  HEAD does not contain that SHA, printing the commits that would be lost. This is the
+  guard against overwriting a newer deploy from a stale checkout. When the live version
+  can't be read (health unreachable, a bot challenge, no `version` field) it refuses
+  rather than guessing; `--allow-unknown-live` is the explicit override.
+- **Explicit production token.** Production requires a deliberate `--prod` argument on
+  the command line; with neither `--staging` nor `--prod` it refuses. No environment
+  variable is accepted as the production selector, because one can be left set in a
+  shell.
+- **It writes `.checkpoints/oc-deploy-ops.checkpoint.json` after every deploy that
+  lands** — once the deploy command succeeds and the live version converges to HEAD;
+  a refused or failed run writes nothing — with environment, SHA, URL, smoke result
+  and timestamp, whether or not this skill was invoked. Without a configured `url`
+  it skips the ancestor check and convergence and says so.
+  oc-monitoring-ops and `/oc-deploy status` read that file, so monitoring has state
+  even for a deploy run by hand or from a scheduled job.
+
+When the wrapper exists, `/oc-deploy staging` and `/oc-deploy prod` run it and add the
+audit gate above; they do not reimplement its checks.
+
 ### Deploy Sequence (Cloudflare Workers + D1)
 
 ```bash
@@ -521,6 +561,7 @@ what is specific to oc-deploy-ops.
 | Production promoted | Version, previous version, timestamp |
 | Health check | Status, latency, error count |
 | Rollback executed | From → to, reason |
+| Any wrapper deploy | Written by the consumer deploy wrapper itself (env, SHA, deployment id, smoke) — present even when this skill never ran |
 
 ### skill_state Template
 

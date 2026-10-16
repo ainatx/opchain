@@ -120,8 +120,8 @@ oc-app-architect /oc-build ──► BUG-CHECK (gate) ──► oc-git-ops /oc-c
 **Auto-invocation:** oc-git-ops calls oc-bug-check before every `/oc-commit` and `/oc-git-sync`.
 If oc-bug-check fails, the commit is blocked with a clear failure report. The user can
 override explicitly: `/oc-bugcheck bypass` records it (logged, not silent), and the
-commit itself carries `OPCHAIN_BYPASS=1` or `--no-verify` where the commit-gate hook is
-installed — the record alone does not clear the hook.
+commit itself carries `OPCHAIN_BYPASS=1` — never bare `--no-verify`; see Bypass
+Protocol for the post-commit record and the pre-push refusal that back this up.
 
 **Position in the every-PR gate (v1.8):** bug-check is step 3 of the required
 order oc-repo-ops enforces — oc-docs-forge (docs packet) → oc-repo-ops (repo
@@ -403,14 +403,44 @@ npx prettier --write "src/**/*.{ts,tsx}"
 ## Bypass Protocol (`/oc-bugcheck bypass`)
 
 Sometimes you need to commit WIP or unblock a pipeline. `/oc-bugcheck bypass` allows it,
-but with accountability:
+but with accountability — and in an enrolled repository the accountability is a
+mechanism, not a naming convention:
 
-1. User confirms they want to bypass
-2. Bug-check logs the bypass in the checkpoint: which checks failed, when, who bypassed
-3. The commit message gets a `[BYPASS]` prefix: `[BYPASS] feat(auth): WIP session handling`.
-   Where the commit-gate hook is installed, the commit also carries its explicit bypass
-   (`OPCHAIN_BYPASS=1 git commit …`) — the logged entry alone does not clear the hook
+1. User confirms they want to bypass. Quote that approval verbatim in the trailer below;
+   "with the owner's approval" and no quote is not a record (the 2026-10-08 audit found
+   two PR bodies claiming approvals that no transcript contained).
+2. Bug-check logs the bypass in the checkpoint: which checks failed, when, who bypassed,
+   and the quoted approval.
+3. Commit with `OPCHAIN_BYPASS=1 git commit …`. The verifier honours the variable, logs
+   it and records the bypass. The commit message carries the `[BYPASS]` subject prefix
+   and the git trailer `Opchain-Bypass: <reason>`, with the user's approval quoted inside
+   `<reason>` (`git commit --trailer "Opchain-Bypass: <reason>"`). Never bare
+   `--no-verify`: it skips the pre-commit hook but not the post-commit one, so the
+   bypass is recorded after the fact anyway and the push is refused until the trailer
+   is added.
 4. Next `/oc-bugcheck run` shows: "Last commit bypassed gate — N issues carried forward"
+
+### Mechanism (enrolled repositories)
+
+- **`post-commit`** — Git runs it even under `--no-verify`. When HEAD's tree has no PASS
+  receipt it writes `.git/opchain/bypasses/v1/<sha>.json`, appends the entry to
+  `skill_state.bypasses`, and prints `[opchain] ⚠ commit <sha> bypassed the gate — recorded`.
+- **`pre-push`** — refuses to push a recorded bypass whose commit lacks an
+  `Opchain-Bypass: <reason>` trailer. `git commit --amend --no-verify --trailer
+  "Opchain-Bypass: <reason>"` to add it, then push again. The older
+  `bugcheck: bypassed (<reason>)` footer is a legacy alias some tooling still reads; the
+  hooks read `Opchain-Bypass:`, so write that.
+- **`OPCHAIN_BYPASS=1`** — the one sanctioned incantation: honoured by the verifier and
+  recorded. `--no-verify` alone is recorded after the fact and refused at push.
+- **`node "$(git rev-parse --git-common-dir)/opchain/commit-gate/v1/verify-candidate.mjs"
+  explain <receipt>`** (the enrolled runtime; `.opchain/runtime/scripts/verify-candidate.mjs`
+  after `install-git-drivers --ci`; `scripts/verify-candidate.mjs` in the opchain repo
+  itself) prints why a receipt is non-PASS (per-check status, exit code, the diagnostic tail). Read it before deciding a
+  bypass is warranted. `bypass-list` enumerates the recorded bypasses; `bypass-record`
+  writes one by hand for a commit the hook missed.
+- **INCONCLUSIVE is not FAIL.** A timeout or an environment precondition (exit 124, a
+  hollow `node_modules`, `vitest` not found) is recorded as INCONCLUSIVE with no receipt.
+  Retry it — after `npm ci`, or when the machine is under less load. Do not bypass it.
 
 **Bypass is NOT silent.** It creates visible debt that surfaces on every subsequent run
 until resolved. This prevents bypass-as-habit.
@@ -424,7 +454,9 @@ until resolved. This prevents bypass-as-habit.
       "at": "2026-04-23T15:30:00Z",
       "commit": "abc1234",
       "failed_checks": ["type_safety", "tests"],
-      "reason": "WIP — types incomplete, will fix in next commit"
+      "reason": "WIP — types incomplete, will fix in next commit",
+      "approval": "user: \"ok, bypass this one, fix types in the follow-up\"",
+      "record": ".git/opchain/bypasses/v1/abc1234.json"
     }
   ]
 }
@@ -526,7 +558,8 @@ When oc-git-ops receives `/oc-commit` or `/oc-git-sync`:
 5. If UNSUPPORTED: block like FAIL — the gate did not read the code (see
    Stack-Specific Adaptations)
 6. User can fix and re-run, or bypass explicitly: `/oc-bugcheck bypass` records it and
-   the commit carries `OPCHAIN_BYPASS=1` / `--no-verify` (see Commit gate contract)
+   the commit carries `OPCHAIN_BYPASS=1` plus the `Opchain-Bypass: <reason>`
+   trailer — never bare `--no-verify` (see Bypass Protocol)
 
 ### Commit Message Annotation
 
@@ -537,16 +570,18 @@ commit footer:
 bugcheck: pass (7/7, 0 warnings, 1.2s)
 ```
 
-If bypassed:
+If bypassed, the last footer line is the git trailer:
 
 ```
-bugcheck: bypassed (type_safety FAIL, tests FAIL)
+Opchain-Bypass: type_safety FAIL, tests FAIL — user: "<quoted approval>"
 ```
 
-This is an agent-executed naming convention, not a mechanism: oc-git-ops's commit
-template does not add it, and no hook, script, or workflow reads the footer or the
-`[BYPASS]` prefix today. The accountability records that are read are the checkpoint's
-`bypasses[]` and the commit-gate hook's bypass warning.
+The `bugcheck: pass` footer and the `[BYPASS]` prefix are agent-executed naming
+conventions: oc-git-ops's commit template does not add them and nothing reads them.
+The `Opchain-Bypass:` trailer is different — in an enrolled repository the
+`pre-push` hook refuses a recorded bypass without it (see Bypass Protocol). The older
+`bugcheck: bypassed (<reason>)` footer is a legacy alias; do not write it. The accountability records that are read are
+`.git/opchain/bypasses/v1/<sha>.json`, the checkpoint's `bypasses[]`, and that trailer.
 
 ---
 
@@ -670,9 +705,11 @@ tracked candidate source. Live history, refs, remotes, and arbitrary host paths 
 not supplied to checks through inherited Git pointers. Checks still run as the local
 user and can access host files; the temporary checkout is not a security sandbox.
 
-`git commit --no-verify` remains Git's explicit local bypass. Local hooks cannot
-defend against an actor who deliberately disables them, so protected CI must verify
-the received candidate independently.
+`git commit --no-verify` remains Git's explicit local bypass of the `pre-commit` stage.
+In an enrolled repository it does not skip the `post-commit` record or the `pre-push`
+refusal (Bypass Protocol), but local hooks cannot defend against an actor who
+deliberately disables them, so protected CI must verify the received candidate
+independently.
 
 ### Cross-Skill Reads
 

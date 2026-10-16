@@ -26,24 +26,34 @@
  *      deploys through Wrangler.
  *   6. Verifies the live SHA, hardening manifest, and smoke suite; any miss
  *      automatically rolls traffic back to the captured version.
+ *   7. With --refresh-baseline (or OPCHAIN_REFRESH_BASELINE=1), rewrites
+ *      .github/monitoring/release-baseline.json from the deployment it just
+ *      made and prints the branch/commit/PR commands for a human to run.
+ *      Without the flag it warns that the baseline is stale, as before.
  *
  * Local dev (`npm run dev`) is unaffected — wrangler reads .dev.vars
  * on its own there.
+ *
+ * The pure pieces (latestDeployment, refreshBaseline, baselineRefreshRefusal,
+ * baselinePrCommands) are exported for tests; the deploy itself only runs when
+ * this file is the entry point.
  */
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { checkReleaseTag, remediation } from "./check-release-tag.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const REPO_ROOT  = path.resolve(path.dirname(__filename), "..");
 const DEV_VARS   = path.join(REPO_ROOT, ".dev.vars");
 const BASELINE   = path.join(REPO_ROOT, ".github/monitoring/release-baseline.json");
+export const BASELINE_PATH = ".github/monitoring/release-baseline.json";
 
 const STAGING = process.argv.includes("--staging");
 const TARGET  = STAGING ? "staging" : "production";
 const TARGET_URL = STAGING ? "https://staging.opchain.dev" : "https://opchain.dev";
+const REFRESH_BASELINE = process.argv.includes("--refresh-baseline") || process.env.OPCHAIN_REFRESH_BASELINE === "1";
 
 function loadDevVars() {
   if (!fs.existsSync(DEV_VARS)) return { loaded: 0, source: null };
@@ -255,25 +265,43 @@ function assertNoHardeningOverrides() {
   }
 }
 
-function captureRollbackVersion() {
+/**
+ * The newest deployment in a `wrangler deployments list --json` inventory and
+ * its 100% version. Pure; throws on an inventory with no fully-active version.
+ */
+export function latestDeployment(inventory) {
+  const deployments = (typeof inventory === "string" ? JSON.parse(inventory) : inventory)
+    .slice()
+    .sort((a, b) => Date.parse(a.created_on) - Date.parse(b.created_on));
+  const current = deployments.at(-1);
+  const active = current?.versions?.find((version) => Number(version.percentage) === 100);
+  if (!active?.version_id) throw new Error("no 100% active version");
+  return { deploymentId: current.id ?? null, versionId: active.version_id, percentage: Number(active.percentage), createdOn: current.created_on ?? null };
+}
+
+function captureDeploymentInventory() {
   const args = ["wrangler", "deployments", "list", ...(STAGING ? ["--env", "staging"] : []), "--json"];
   const raw = capture("npx", args);
-  if (!raw) {
+  if (!raw) return null;
+  try { return latestDeployment(raw); }
+  catch (error) { console.error(`[deploy:${TARGET}] ✗ invalid deployment inventory: ${error.message}`); return null; }
+}
+
+function captureRollbackVersion() {
+  const current = captureDeploymentInventory();
+  if (!current) {
     console.error(`[deploy:${TARGET}] ✗ could not capture the active rollback version`);
     process.exit(1);
   }
-  try {
-    const deployments = JSON.parse(raw)
-      .slice()
-      .sort((a, b) => Date.parse(a.created_on) - Date.parse(b.created_on));
-    const active = deployments.at(-1)?.versions?.find((version) => Number(version.percentage) === 100);
-    if (!active?.version_id) throw new Error("no 100% active version");
-    console.log(`[deploy:${TARGET}] rollback version ${active.version_id}`);
-    return active.version_id;
-  } catch (error) {
-    console.error(`[deploy:${TARGET}] ✗ invalid deployment inventory: ${error.message}`);
-    process.exit(1);
-  }
+  console.log(`[deploy:${TARGET}] rollback version ${current.versionId}`);
+  return current.versionId;
+}
+
+/** `wrangler versions view <id> --json`, or null. Shape is Cloudflare's version object. */
+function captureVersionDetail(versionId) {
+  const raw = capture("npx", ["wrangler", "versions", "view", versionId, ...(STAGING ? ["--env", "staging"] : []), "--json"]);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
 }
 
 function rollbackAfterFailure(versionId, failure) {
@@ -316,10 +344,10 @@ async function verifyLiveVersion() {
  * .github/monitoring/release-baseline.json. A deploy that is not followed by a
  * baseline refresh turns both monitors red on every scheduled run until someone
  * notices: on 2026-09-05 production moved to 78567c2 while the baseline still
- * said v1.9.0, and four scheduled runs failed before anyone looked. This does
- * not refresh the baseline — that needs the post-deploy evidence the runbook
- * asks for — it makes the obligation impossible to miss at the moment it
- * starts. Prints, never fails: the deploy itself succeeded.
+ * said v1.9.0, and four scheduled runs failed before anyone looked. Without
+ * --refresh-baseline this does not refresh the baseline — it makes the
+ * obligation impossible to miss at the moment it starts. Prints, never fails:
+ * the deploy itself succeeded.
  */
 function warnIfBaselineStale(liveVersion) {
   let baseline;
@@ -352,54 +380,238 @@ function warnIfBaselineStale(liveVersion) {
     node .github/scripts/cloudflare-monitor.mjs control-plane   # verify with credentials
     node .github/scripts/cloudflare-monitor.mjs deploy-diff
   then open the baseline PR. ${STAGING ? "A staging branch preview also invalidates the staging half of the baseline." : "Do not bless an unreviewed SHA by editing the baseline alone."}
+  Hint: re-run with --refresh-baseline (or OPCHAIN_REFRESH_BASELINE=1) and this
+  script writes the baseline from the deployment it just made and prints the
+  git/gh commands for the PR.
 `);
 }
 
-if (!STAGING && fs.existsSync(path.join(REPO_ROOT, "release-preview.json"))) {
-  throw new Error("This tree is a staging preview. Complete the release review and remove release-preview.json before production.");
+/**
+ * Rewrite the approved baseline from a deployment this script just made and
+ * verified. Pure: returns a new object plus a change log; never touches disk.
+ *
+ *   target        "staging" | "production"
+ *   liveVersion   short SHA /api/health returned after the deploy
+ *   fullSha       `git rev-parse HEAD` of the deployed tree
+ *   deployment    latestDeployment() result for that environment
+ *   versionDetail optional `wrangler versions view --json` object; when absent
+ *                 scriptEtag/handlers/bindings are carried over and reported
+ *   approval      text for runtime.approval when the SHA is not the tagged
+ *                 release (the reviewed PRs between the tag and HEAD)
+ *
+ * Rules (docs/runbooks/cloudflare-challenge.md → After an intentional
+ * deployment, step 4):
+ *   - environments[target] gets the new deployment/version ids and 100% traffic;
+ *   - production deploys also move the approved runtime: a SHA equal to the
+ *     tagged release removes the `runtime` block, any other SHA writes it;
+ *   - staging deploys never move the runtime (production is still serving the
+ *     old one) — the staging half is refreshed and the caller is told to run
+ *     again after production;
+ *   - pointInTimeEvidence.healthVersion follows production.
+ */
+export function refreshBaseline(baseline, { target, liveVersion, fullSha, deployment, versionDetail = null, approval = null, now = new Date().toISOString() }) {
+  if (!["staging", "production"].includes(target)) throw new Error(`unknown target ${target}`);
+  if (!/^[0-9a-f]{40}$/.test(fullSha ?? "")) throw new Error("fullSha must be a 40-hex commit SHA");
+  if (!liveVersion || !fullSha.startsWith(liveVersion)) throw new Error(`live version ${liveVersion} is not a prefix of deployed SHA ${fullSha}`);
+  if (!deployment?.deploymentId || !deployment?.versionId) throw new Error("deployment must carry deploymentId and versionId");
+  if (Number(deployment.percentage) !== 100) throw new Error(`deployment ${deployment.deploymentId} is at ${deployment.percentage}% — the baseline records only 100% traffic`);
+  const next = structuredClone(baseline);
+  const changes = [];
+  const carriedOver = [];
+  const env = next.environments?.[target];
+  if (!env) throw new Error(`baseline has no environments.${target}`);
+
+  for (const [key, value] of [["deploymentId", deployment.deploymentId], ["versionId", deployment.versionId], ["trafficPercentage", 100]]) {
+    if (env[key] !== value) { changes.push(`environments.${target}.${key}: ${env[key]} → ${value}`); env[key] = value; }
+  }
+  const script = versionDetail?.resources?.script;
+  const bindings = versionDetail?.resources?.bindings;
+  if (typeof script?.etag === "string" && /^[0-9a-f]{64}$/.test(script.etag)) {
+    if (env.scriptEtag !== script.etag) { changes.push(`environments.${target}.scriptEtag: ${env.scriptEtag?.slice(0, 8)}… → ${script.etag.slice(0, 8)}…`); env.scriptEtag = script.etag; }
+  } else carriedOver.push("scriptEtag");
+  if (Array.isArray(script?.handlers) && script.handlers.length) {
+    const handlers = [...script.handlers].sort();
+    if (JSON.stringify(handlers) !== JSON.stringify(env.handlers)) { changes.push(`environments.${target}.handlers: ${JSON.stringify(env.handlers)} → ${JSON.stringify(handlers)}`); env.handlers = handlers; }
+  } else carriedOver.push("handlers");
+  if (Array.isArray(bindings) && bindings.length) {
+    const names = [...new Set(bindings.map((b) => b?.name).filter(Boolean))].sort();
+    if (JSON.stringify(names) !== JSON.stringify(env.bindings)) { changes.push(`environments.${target}.bindings: ${JSON.stringify(env.bindings)} → ${JSON.stringify(names)}`); env.bindings = names; }
+  } else carriedOver.push("bindings");
+
+  const releaseSha = next.release?.sourceSha;
+  if (target === "production") {
+    if (fullSha === releaseSha) {
+      if (next.runtime) { changes.push(`runtime: removed (production serves the tagged release ${next.release.tag})`); delete next.runtime; }
+    } else {
+      const previous = next.runtime?.sha === fullSha ? next.runtime : null;
+      const text = approval ?? previous?.approval ?? `TODO: list the reviewed PRs between ${next.release?.tag ?? releaseSha?.slice(0, 7)} and ${liveVersion} before opening the PR.`;
+      if (next.runtime?.sha !== fullSha || next.runtime?.approval !== text) {
+        changes.push(`runtime: ${next.runtime?.shortSha ?? "(none)"} → ${liveVersion}`);
+        next.runtime = { sha: fullSha, shortSha: liveVersion, approval: text };
+      }
+    }
+    next.pointInTimeEvidence = {
+      ...(next.pointInTimeEvidence ?? {}),
+      healthVersion: liveVersion,
+      continuousCustomDomainProbe: false,
+      note: `Production serves ${liveVersion} as of ${now} (deployment ${deployment.deploymentId}, version ${deployment.versionId}); recorded by scripts/deploy.mjs --refresh-baseline after the live smoke suite passed. Verify with node .github/scripts/cloudflare-monitor.mjs control-plane before merging.`,
+    };
+    changes.push(`pointInTimeEvidence.healthVersion → ${liveVersion}`);
+  }
+  return { baseline: next, changes, carriedOver, pendingProduction: target === "staging" };
 }
-assertDeployFromMain();
-assertCleanCheckout("preflight");
-assertReleaseTagged();
-run("node", ["scripts/lib/release-evidence.mjs", "--stage", "deploy"]);
 
-const { loaded, source } = loadDevVars();
-if (source) {
-  console.log(`[deploy:${TARGET}] loaded ${loaded} var(s) from ${path.relative(REPO_ROOT, source)}`);
-}
-assertNoHardeningOverrides();
-
-// Client analytics are opt-in for self-hosters. The public opchain project key
-// is safe to expose in browser code, but must never be silently baked into a
-// fork. Official operators enable the known defaults explicitly; any caller
-// can instead supply its own PUBLIC_POSTHOG_KEY/HOST environment variables.
-if (process.env.OPCHAIN_OFFICIAL_ANALYTICS === "1") {
-  process.env.PUBLIC_POSTHOG_KEY ||= "phc_m4mpaJBA3EsEFRiGeVQWESFX8pz6CtS6B8y85Va6rmJV"; // gitleaks:allow — public browser identifier
-  process.env.PUBLIC_POSTHOG_HOST ||= STAGING
-    ? "https://t.staging.opchain.dev"
-    : "https://t.opchain.dev";
+/** POSIX single-quoting: nothing inside is expanded when the line is pasted. */
+function shellQuote(text) {
+  return `'${String(text).replace(/'/g, `'\\''`)}'`;
 }
 
-console.log(`[deploy:${TARGET}] preflight ok`);
+const PR_BODY_DELIMITER = "OPCHAIN_BASELINE_PR_BODY";
 
-run("npm", ["run", "prebuild"]);
-assertCleanCheckout("after prebuild");
-// Verify the exact generated catalog/assets Wrangler is about to deploy.
-run("npm", ["run", "hardening:verify"]);
-const rollbackVersion = captureRollbackVersion();
-run("npx", STAGING ? ["wrangler", "deploy", "--env", "staging"] : ["wrangler", "deploy"]);
-
-const versionCheck = await verifyLiveVersion();
-if (!versionCheck.ok) rollbackAfterFailure(rollbackVersion, versionCheck.detail);
-console.log(`[deploy:${TARGET}] ✓ ${versionCheck.detail}`);
-
-for (const [cmd, args, label] of [
-  ["node", ["scripts/check-hardening.mjs", "--target", TARGET_URL], "live hardening replay failed"],
-  ["npm", ["run", STAGING ? "smoke:staging" : "smoke:prod"], "live smoke suite failed"],
-]) {
-  const result = execute(cmd, args);
-  if (result.status !== 0) rollbackAfterFailure(rollbackVersion, label);
+/**
+ * The exact commands a human runs to open the baseline PR. Never executed here.
+ * Paste-safe (audit C-08): the title is single-quoted and the body goes through
+ * `--body-file -` with a QUOTED heredoc, so the backticks in it never run as
+ * command substitution and its newlines arrive as real newlines. The PR entry is
+ * multi-line; its terminator line must stay unindented.
+ */
+export function baselinePrCommands({ target, liveVersion, changes, carriedOver = [], pendingProduction = false }) {
+  const branch = `chore/baseline-${liveVersion}`;
+  const title = `chore(monitoring): refresh release baseline to ${liveVersion} (${target})`;
+  const body = [
+    `Baseline refreshed by \`scripts/deploy.mjs --refresh-baseline\` after the ${target} deploy of ${liveVersion}.`,
+    "",
+    "Changes:",
+    ...changes.map((c) => `- ${c}`),
+    ...(carriedOver.length ? ["", `Carried over from the previous baseline (wrangler did not return them): ${carriedOver.join(", ")}. Verified by \`cloudflare-monitor.mjs control-plane\` below.`] : []),
+    "",
+    "Verification:",
+    "- [ ] `node .github/scripts/cloudflare-monitor.mjs control-plane` green locally with credentials",
+    "- [ ] `node .github/scripts/cloudflare-monitor.mjs deploy-diff` green",
+    ...(pendingProduction ? ["", "Staging only: production is still on the previous baseline. Deploy production and re-run with --refresh-baseline before merging."] : []),
+  ].join("\n");
+  return [
+    `node .github/scripts/cloudflare-monitor.mjs control-plane   # must be green before you commit`,
+    `node .github/scripts/cloudflare-monitor.mjs deploy-diff`,
+    `git switch -c ${branch}`,
+    `git add ${BASELINE_PATH}`,
+    `git commit -s -m ${shellQuote(title)}`,
+    `git push -u origin ${branch}`,
+    `gh pr create --title ${shellQuote(title)} --body-file - <<'${PR_BODY_DELIMITER}'\n${body}\n${PR_BODY_DELIMITER}`,
+  ];
 }
 
-console.log(`\n[deploy:${TARGET}] done.`);
-warnIfBaselineStale(versionCheck.version);
+/**
+ * --refresh-baseline records the deployment as APPROVED, so it must only follow a
+ * deploy of the exact fetched origin/main (audit C-09). A staging branch preview
+ * (OPCHAIN_ALLOW_OFF_MAIN_STAGING=1 — the same signal assertDeployFromMain and the
+ * stale-baseline warning's "branch preview" note key on) is never approved bytes.
+ * Pure: returns the refusal text, or null when the refresh may proceed.
+ */
+export function baselineRefreshRefusal({ allowOffMain, head, originMain }) {
+  if (allowOffMain) {
+    return "OPCHAIN_ALLOW_OFF_MAIN_STAGING=1 is set: a branch preview is not a reviewed deployment, so it cannot become the approved monitoring baseline. Redeploy staging from main, then refresh.";
+  }
+  if (!head || !originMain) return "cannot resolve HEAD and origin/main, so the deployed tree cannot be shown to be the reviewed main commit.";
+  if (head !== originMain) {
+    return `HEAD ${head.slice(0, 12)} is not origin/main ${originMain.slice(0, 12)}; only an exact-main deploy can become the approved baseline.`;
+  }
+  return null;
+}
+
+function currentRefreshRefusal() {
+  return baselineRefreshRefusal({
+    allowOffMain: process.env.OPCHAIN_ALLOW_OFF_MAIN_STAGING === "1",
+    head: capture("git", ["rev-parse", "HEAD"]),
+    originMain: capture("git", ["rev-parse", "origin/main"]),
+  });
+}
+
+function refreshBaselineFile(liveVersion) {
+  const refusal = currentRefreshRefusal();
+  if (refusal) {
+    console.warn(`[deploy:${TARGET}] ⚠ --refresh-baseline refused: ${refusal}`);
+    warnIfBaselineStale(liveVersion);
+    return;
+  }
+  let baseline;
+  try { baseline = JSON.parse(fs.readFileSync(BASELINE, "utf8")); }
+  catch (err) { console.warn(`[deploy:${TARGET}] ⚠ cannot refresh: ${path.relative(REPO_ROOT, BASELINE)} unreadable: ${err.message}`); return; }
+  const fullSha = capture("git", ["rev-parse", "HEAD"]);
+  const deployment = captureDeploymentInventory();
+  if (!fullSha || !deployment) { console.warn(`[deploy:${TARGET}] ⚠ cannot refresh the baseline without HEAD and the deployment inventory; falling back to the stale-baseline warning`); warnIfBaselineStale(liveVersion); return; }
+  const versionDetail = captureVersionDetail(deployment.versionId);
+  const releaseSha = baseline?.release?.sourceSha;
+  const approval = releaseSha && releaseSha !== fullSha
+    ? `Post-tag commits from main after ${baseline.release.tag}: ${(capture("git", ["log", "--format=%h %s", `${releaseSha}..HEAD`]) || "(git log unavailable)").split("\n").join("; ")}. Deployed to ${TARGET} by scripts/deploy.mjs after the live hardening replay and smoke suite passed. Review and tighten this text before merging.`
+    : null;
+  let result;
+  try { result = refreshBaseline(baseline, { target: TARGET, liveVersion, fullSha, deployment, versionDetail, approval }); }
+  catch (err) { console.warn(`[deploy:${TARGET}] ⚠ baseline refresh refused: ${err.message}`); warnIfBaselineStale(liveVersion); return; }
+  if (!result.changes.length) { console.log(`[deploy:${TARGET}] baseline already records this deployment; nothing to refresh`); return; }
+  fs.writeFileSync(BASELINE, JSON.stringify(result.baseline, null, 2) + "\n");
+  console.log(`\n[deploy:${TARGET}] ✓ wrote ${BASELINE_PATH}:\n${result.changes.map((c) => `    ${c}`).join("\n")}`);
+  if (result.carriedOver.length) console.warn(`[deploy:${TARGET}] ⚠ carried over from the previous baseline (wrangler versions view returned no usable detail): ${result.carriedOver.join(", ")} — control-plane must confirm them`);
+  if (result.pendingProduction) console.warn(`[deploy:${TARGET}] ⚠ staging half refreshed; production still serves the previous baseline. Deploy production with --refresh-baseline before opening the PR.`);
+  console.log(`\n[deploy:${TARGET}] baseline PR — run these yourself (nothing below was executed):\n${baselinePrCommands({ target: TARGET, liveVersion, ...result }).map((c) => `    ${c}`).join("\n")}\n`);
+}
+
+async function deploy() {
+  if (!STAGING && fs.existsSync(path.join(REPO_ROOT, "release-preview.json"))) {
+    throw new Error("This tree is a staging preview. Complete the release review and remove release-preview.json before production.");
+  }
+  if (REFRESH_BASELINE && process.env.OPCHAIN_ALLOW_OFF_MAIN_STAGING === "1") {
+    console.error(`[deploy:${TARGET}] ✗ REFUSING: --refresh-baseline with OPCHAIN_ALLOW_OFF_MAIN_STAGING=1. ${baselineRefreshRefusal({ allowOffMain: true })}`);
+    process.exit(1);
+  }
+  assertDeployFromMain();
+  assertCleanCheckout("preflight");
+  assertReleaseTagged();
+  run("node", ["scripts/lib/release-evidence.mjs", "--stage", "deploy"]);
+
+  const { loaded, source } = loadDevVars();
+  if (source) {
+    console.log(`[deploy:${TARGET}] loaded ${loaded} var(s) from ${path.relative(REPO_ROOT, source)}`);
+  }
+  assertNoHardeningOverrides();
+
+  // Client analytics are opt-in for self-hosters. The public opchain project key
+  // is safe to expose in browser code, but must never be silently baked into a
+  // fork. Official operators enable the known defaults explicitly; any caller
+  // can instead supply its own PUBLIC_POSTHOG_KEY/HOST environment variables.
+  if (process.env.OPCHAIN_OFFICIAL_ANALYTICS === "1") {
+    process.env.PUBLIC_POSTHOG_KEY ||= "phc_m4mpaJBA3EsEFRiGeVQWESFX8pz6CtS6B8y85Va6rmJV"; // gitleaks:allow — public browser identifier
+    process.env.PUBLIC_POSTHOG_HOST ||= STAGING
+      ? "https://t.staging.opchain.dev"
+      : "https://t.opchain.dev";
+  }
+
+  console.log(`[deploy:${TARGET}] preflight ok`);
+
+  run("npm", ["run", "prebuild"]);
+  assertCleanCheckout("after prebuild");
+  // Verify the exact generated catalog/assets Wrangler is about to deploy.
+  run("npm", ["run", "hardening:verify"]);
+  const rollbackVersion = captureRollbackVersion();
+  run("npx", STAGING ? ["wrangler", "deploy", "--env", "staging"] : ["wrangler", "deploy"]);
+
+  const versionCheck = await verifyLiveVersion();
+  if (!versionCheck.ok) rollbackAfterFailure(rollbackVersion, versionCheck.detail);
+  console.log(`[deploy:${TARGET}] ✓ ${versionCheck.detail}`);
+
+  for (const [cmd, args, label] of [
+    ["node", ["scripts/check-hardening.mjs", "--target", TARGET_URL], "live hardening replay failed"],
+    ["npm", ["run", STAGING ? "smoke:staging" : "smoke:prod"], "live smoke suite failed"],
+  ]) {
+    const result = execute(cmd, args);
+    if (result.status !== 0) rollbackAfterFailure(rollbackVersion, label);
+  }
+
+  console.log(`\n[deploy:${TARGET}] done.`);
+  if (REFRESH_BASELINE) refreshBaselineFile(versionCheck.version);
+  else warnIfBaselineStale(versionCheck.version);
+}
+
+if (process.argv[1] && fs.existsSync(process.argv[1]) && import.meta.url === pathToFileURL(fs.realpathSync(process.argv[1])).href) {
+  await deploy();
+}

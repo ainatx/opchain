@@ -621,6 +621,20 @@ PM-MCP scope by design.
 7. **Proportional response.** Match security investment to data sensitivity and exposure.
    A hobby app doesn't need SOC2.
 
+### Gate artifact
+
+The deploy and sprint gates key on two artifacts this skill's work produces, not on the
+skill having been invoked. `.opchain/hardening.yaml` is the baseline `/oc-harden baseline`
+writes from these findings; once it exists, oc-deploy-ops' audit-gate row replays it with
+`/oc-harden verify` at every deploying SHA, so a repository without the manifest has that
+row permanently disarmed. `security_review_ref` is the path of this skill's posture or
+data-flow report, recorded on the oc-app-architect sprint entry
+(`skill_state.sprints[].security_review_ref`) for any sprint that touched auth, secrets or
+personal data; a sprint with such changes and a `null` ref is not PASS. A build-phase
+repository with neither artifact has had no security review, whatever the transcript
+says — run `/oc-security data-flow` once against the data-handling surface, commit the
+report, and let the rows arm.
+
 ### Candidate-bound deployment handoff
 
 After completing the existing verification criteria, obtain the source identity with `node scripts/lib/release-evidence.mjs --print-candidate --json`. Publish a versioned `verification.verdict` entry in this skill's checkpoint `handoffs`, using that exact `candidate_identity` object. This identity excludes checkpoint evidence from the source projection; it does not attest built bytes or ignored environment configuration. Do not manufacture PASS from a prior summary. Missing criteria produce FAIL or INCOMPLETE.

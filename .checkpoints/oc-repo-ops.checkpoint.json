@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/ow-skills-orchestration-0e05bd",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-16T17:51:06.055Z",
+  "updated_at": "2026-10-16T17:51:00.269Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-track-s-s0-forward",
-  "progress_summary": "Track S S0 readiness PASS at 6101466e: catalog, contract, bundle and plugin drift checks pass; check-release-surfaces agrees on v2.0; checkpoint:validate passes; candidate verifier PASS on tree 06232853; site build, astro check and the changelog/routes Playwright specs pass; no untracked files.",
+  "step": "pr-ow-build-plan-followups",
+  "progress_summary": "Follow-ups PR readiness PASS at e9316b9c: catalog, contract, bundle, plugin and ow-tools manifest drift checks pass; checkpoint:validate passes; doctor 0 errors (29 pre-existing warnings); both acceptance checkers pass (ow-build-plan 29/29); candidate verifier PASS on tree fe10ce1e; no untracked files; oc- outputs unchanged.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -24,18 +24,18 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Lighthouse runs in CI only"
+      "checkpoint doctor: 29 pre-existing warnings, none from this branch"
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "6101466e6d30e46bb792eaf17718d19dc475b34c",
+    "verified_for_sha": "7b6b2f13c17f8d385945331f70aa7a441f05e6b1",
     "last_verify": {
-      "at": "2026-10-16T17:51:06.055Z",
-      "branch": "claude/track-s-s0-forward",
-      "base": "origin/main@after-609",
+      "at": "2026-10-16T17:31:47.786Z",
+      "branch": "claude/ow-build-plan-followups",
+      "base": "origin/main@ce3dad43",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1520,32 +1520,30 @@
       }
     },
     {
-      "id": "oc-repo-ops-pr-track-s-s0-forward-5b1e1b04bee9",
+      "id": "oc-repo-ops-pr-readiness-v1-5e1084982980",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-10-16T17:51:06.055Z",
-      "verified_at": "2026-10-16T17:51:06.055Z",
+      "created_at": "2026-10-16T17:51:00.268Z",
+      "verified_at": "2026-10-16T17:51:00.268Z",
       "producer": {
         "skill": "oc-repo-ops",
-        "run_id": "pr-track-s-s0-forward"
+        "run_id": "pr-readiness-v1-2026-10-16T17:51:00.268Z"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:5b1e1b04bee9b2e4830504332af8caf2dda0a5ae7297bf29b26ef886e531237f"
+        "id": "sha256:5e1084982980339502b173b94e382d7c3ae3db6673dbfa425627c91507406120"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "claude/track-s-s0-forward at 6101466e on current origin/main. Six files under site/ and sprints/; none under skills/, skills-work/, plugins/ or package.json. check-release-surfaces: all live-claim surfaces agree on v2.0. Candidate verifier PASS receipt covers tree 06232853; no untracked files. Docs Forge packet verified_for_sha = HEAD.",
+        "scope": "claude/2.1-track-e-product at 7b6b2f13 on origin/main 4648e9cf (#609); no content overlap with #609 (only the two evidence checkpoints, kept from main with these handoffs appended). gen-catalog (36 oc- + 2 ow-), check-skill-contracts, gen-route-spec --check, sync-bundles:check and checkpoint validate re-run on this base; pre-commit verifier (full suite) PASS on the committed tree. No site/ change; no untracked files staged.",
         "evidence": [
-          "sprints/release-2.1/track-s-site-surfaces.md",
-          "site/src/pages/changelog.astro",
-          "site/src/pages/index.astro",
-          "site/src/pages/install.astro"
+          "scripts/lib/release-evidence.mjs",
+          ".github/workflows/ci.yml"
         ]
       }
     }
   ],
-  "record_updated_at": "2026-10-16T17:51:06.055Z",
+  "record_updated_at": "2026-10-16T17:51:00.269Z",
   "blockers": []
 }

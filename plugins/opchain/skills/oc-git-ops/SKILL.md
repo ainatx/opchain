@@ -230,6 +230,12 @@ git commit -m "test(auth): add unit + integration tests for passkey auth"
 
 ### Pre-Commit Gate (auto-invokes oc-bug-check)
 
+**Enrollment precondition.** `/oc-commit` refuses to commit in a repository that is
+not enrolled (no installed verifier beneath the Git common directory — `git rev-parse
+--git-common-dir` has no `opchain/` runtime and no opchain `pre-commit` hook). Say so
+in one line — "repo not enrolled — run `/oc-enroll` first" — and stop; do not fall back
+to reasoning over test output as the gate. Enrollment is a one-time step per clone.
+
 **Stage the intended commit, then invoke oc-bug-check before `git commit`.**
 This is the canonical pre-commit workflow — oc-git-ops does NOT run its own
 ad-hoc lint/type/test checks. Bug-check owns the seven-check suite
@@ -249,7 +255,7 @@ and revalidates a matching PASS receipt beneath the Git common directory
 | Verdict | Action |
 |---|---|
 | PASS | Proceed to `git commit` for the staged candidate. The enrolled hook verifies that exact index tree; a changed candidate, policy, toolchain or verifier needs matching evidence. A checkpoint PASS is never a substitute for the receipt. |
-| FAIL | **ABORT.** Surface the failing checks and offer the user `/oc-bugcheck fix` (auto-fix lint/format), then stage the fixes and rerun. If the user explicitly chooses to bypass, record `/oc-bugcheck bypass` and use Git's `git commit --no-verify`. The record alone does not clear the Git hook. Do NOT commit until verification passes or the user explicitly bypasses. |
+| FAIL | **ABORT.** Surface the failing checks (`node "$(git rev-parse --git-common-dir)/opchain/commit-gate/v1/verify-candidate.mjs" explain <receipt>` — or `.opchain/runtime/scripts/verify-candidate.mjs` after `install-git-drivers --ci` — prints the per-check reason) and offer the user `/oc-bugcheck fix` (auto-fix lint/format), then stage the fixes and rerun. If the user explicitly chooses to bypass, record `/oc-bugcheck bypass`, commit with `OPCHAIN_BYPASS=1 git commit` and add the git trailer `Opchain-Bypass: <reason>` quoting the user's approval — never bare `--no-verify` (the enrolled `post-commit` hook records it anyway and `pre-push` refuses it without the trailer). INCONCLUSIVE (timeout, missing toolchain) is not FAIL: retry, do not bypass. Do NOT commit until verification passes or the user explicitly bypasses. |
 | UNSUPPORTED | **Not a pass.** Bug-check did not recognize the stack and skipped types, lint, tests and build. Surface that; commit only if the user explicitly bypasses, as for FAIL. |
 | ERROR or missing/mismatched receipt | **ABORT.** Surface the verification failure and rerun after correcting its cause; an informational checkpoint cannot clear it. |
 | (no run result) | Invoke bug-check first; do not infer a successful run from old checkpoint state. |
@@ -341,12 +347,28 @@ changed, oc-docs-forge says so explicitly and explains why — silence is not a 
 Refs: TICKET-1234
 ```
 
-### Pre-PR Gate (auto-invokes oc-docs-forge, then oc-repo-ops)
+### Pre-PR Gate (binder by default; oc-docs-forge → oc-repo-ops when docs change)
 
-**Before creating any PR, run the v1.8 quality-gate rail.** This is the canonical
-pre-PR gate — oc-git-ops does NOT write its own docs packet or hygiene checks.
-Docs Forge owns the PR documentation packet; Repo Ops decides whether the
-repository is clean enough to open the PR.
+**Before creating any PR, bind the pre-PR evidence and verify it — before `git push`.**
+The order is bind → push → PR, so the evidence travels with the branch and no PR opens
+red on the `evidence:pr` check (2026-10-08 audit, Q5-F2: 10 of 33 PRs opened with no
+evidence and were repaired after CI red at 3–10× the proactive cost). oc-git-ops does
+NOT write its own docs packet or hygiene checks; Docs Forge owns the PR documentation
+packet and Repo Ops decides whether the repository is clean enough to open the PR.
+
+**Default path — the PR changes no reader-facing docs.** One deterministic binder
+writes both tree-bound handoffs; no Skill invocation and no hand-written JSON:
+
+```
+node scripts/checkpoint.mjs handoff oc-docs-forge --policy pr-docs-v1 --verdict PASS --scope "<files the PR touches>" --evidence "<why no README/CHANGELOG/docs/runbook/SKILL.md changed>"
+node scripts/checkpoint.mjs handoff oc-repo-ops --policy pr-readiness-v1 --verdict PASS --scope "<same scope>" --evidence "<generated files current; no orphaned artifacts; gitignore policy holds>"
+npm run evidence:pr
+```
+
+Commit the checkpoint edits (`chore(evidence): bind pre-PR handoffs`), then push.
+
+**Docs path — the PR changes README, CHANGELOG, `docs/`, runbooks or a SKILL.md.**
+Keep the two Skill invocations; each writes its own handoff and the packet is real work:
 
 ```
 Skill(skill="oc-docs-forge", args="/oc-docs pr")
@@ -360,11 +382,18 @@ If `pr_comment_marker` is set, post the docs comment after the PR opens.
 Skill(skill="oc-repo-ops", args="/oc-repo verify")
 ```
 
-Then run `node scripts/lib/release-evidence.mjs --stage pr`. It requires A's
-canonical PASS receipt for the exact candidate tree plus C-contract Docs Forge
-(`pr-docs-v1`) and Repo Ops (`pr-readiness-v1`) PASS handoffs bound to the HEAD
-tree projection excluding `.checkpoints/`. A squash merge whose source content
-changes produces a different projection and cannot reuse the prior evidence.
+Either path ends with `npm run evidence:pr` (`node scripts/lib/release-evidence.mjs
+--stage pr`). It requires A's canonical PASS receipt for the exact candidate tree plus
+C-contract Docs Forge (`pr-docs-v1`) and Repo Ops (`pr-readiness-v1`) PASS handoffs
+bound to the HEAD tree projection excluding `.checkpoints/`. A squash merge whose
+source content changes produces a different projection and cannot reuse the prior
+evidence.
+
+**Consumer repositories.** The `evidence:pr` CI check exists in a consumer repo only
+after `node scripts/install-git-drivers.mjs --ci` (offered by `/oc-enroll`) has written
+the evidence workflow into its `.github/workflows/`. Until it runs there, no PR check
+backs this gate and the edge is prose; run it once per repo and treat a red evidence job
+as a blocker, not a flake.
 
 | Verdict | Action |
 |---|---|
@@ -404,10 +433,10 @@ One command that runs the entire flow:
 4. **Stage changes** — intelligently stage (skip build artifacts, node_modules)
 5. **Run oc-bug-check gate** — invoke `Skill(skill="oc-bug-check", args="/oc-bugcheck run")` after the last edit and before any commit. **FAIL aborts the sync** — surface the failing checks and stop. The user can `/oc-bugcheck fix`, address the failures and re-run `/oc-git-sync`, or bypass explicitly as described in the Pre-Commit Gate table.
 6. **Structure commits** — group by logical unit. For each distinct staged group, rerun step 5 before committing; the enrolled Git hook verifies that group's exact candidate and matching receipt. A PASS for one index tree does not cover other groups or later edits.
-7. **Push** — `git push -u origin <branch>`
-8. **Generate PR docs packet** — invoke `Skill(skill="oc-docs-forge", args="/oc-docs pr")` to produce the `## Documentation` body fragment (and any README/product-doc edits that must travel with the change)
-9. **Commit the docs edits** — if step 8 changed files, stage them, re-run the oc-bug-check gate (step 5), commit (`docs: …`), push, and re-run `/oc-docs pr` at most once more so the packet's `verified_for_sha` is the new HEAD (if that run edits files again, stop and surface it rather than looping). Skip when step 8 changed no files.
-10. **Run oc-repo-ops gate** — invoke `Skill(skill="oc-repo-ops", args="/oc-repo verify")`, then `node scripts/lib/release-evidence.mjs --stage pr`. **FAIL aborts the sync before the PR is created** — surface the blocking findings; the user can `/oc-repo clean` or fix and re-run.
+7. **Bind pre-PR evidence** (before the push, so the PR never opens red). Code-only change → run the two `node scripts/checkpoint.mjs handoff …` binder lines from the Pre-PR Gate. Reader-facing docs changed → invoke `Skill(skill="oc-docs-forge", args="/oc-docs pr")` to produce the `## Documentation` body fragment (and any README/product-doc edits that must travel with the change)
+8. **Commit the docs edits** — if step 7 changed files, stage them, re-run the oc-bug-check gate (step 5), commit (`docs: …`), and re-run `/oc-docs pr` at most once more so the packet's `verified_for_sha` is the new HEAD (if that run edits files again, stop and surface it rather than looping). Skip when step 7 changed no files.
+9. **Run the readiness gate** — docs path: invoke `Skill(skill="oc-repo-ops", args="/oc-repo verify")`; binder path: the `pr-readiness-v1` handoff from step 7 stands. Either way, `npm run evidence:pr`. **FAIL aborts the sync before anything is pushed** — surface the blocking findings; the user can `/oc-repo clean` or fix and re-run. Commit the checkpoint edits (`chore(evidence): bind pre-PR handoffs`).
+10. **Push** — `git push -u origin <branch>` (bind → push → PR; in a consumer repo the `evidence:pr` CI job from `install-git-drivers --ci` re-checks the pushed head)
 11. **Generate PR description** — from all available context, inserting the docs packet's `## Documentation` fragment
 12. **Create PR** — via gh CLI or output for manual creation
 

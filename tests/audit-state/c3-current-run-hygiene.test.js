@@ -36,16 +36,23 @@ function checkpoint(root, updatedAt) {
 
 function transcript(root, invokedAt, ...skills) {
   const path = join(root, "transcript.jsonl");
-  writeFileSync(path, (skills.length ? skills : ["opchain:oc-code-auditor"]).map((skill) => `${JSON.stringify({
-    timestamp: invokedAt,
-    message: { content: [{ type: "tool_use", name: "plugin/Skill", input: { skill } }] },
-  })}\n`).join(""));
+  // Since the 2026-10-08 audit the hook only demands a checkpoint for a skill whose
+  // invocation was followed by work inside THIS repo (a Write/Edit under the project
+  // root, or a shell command targeting it); a Skill call alone no longer counts.
+  writeFileSync(path, (skills.length ? skills : ["opchain:oc-code-auditor"]).flatMap((skill) => [
+    JSON.stringify({ timestamp: invokedAt, message: { content: [{ type: "tool_use", name: "plugin/Skill", input: { skill } }] } }),
+    JSON.stringify({ timestamp: invokedAt, type: "assistant", message: { content: [{ type: "tool_use", name: "Write", input: { file_path: join(root, "notes.md"), content: "x" } }] } }),
+  ]).map((line) => `${line}\n`).join(""));
   return path;
 }
 
 function run(root, transcriptPath, extra = {}) {
+  // The harness hands the hook CLAUDE_PROJECT_DIR; without it the hook treats a cwd
+  // that is not its own checkout as "another repo" and stays silent. A fresh
+  // session_id per call keeps the per-session decline counter out of these tests.
   return spawnSync("bash", [HOOK], {
-    input: JSON.stringify({ cwd: root, transcript_path: transcriptPath, ...extra }),
+    input: JSON.stringify({ cwd: root, transcript_path: transcriptPath, session_id: `c3-${Math.random().toString(36).slice(2)}`, ...extra }),
+    env: { ...process.env, CLAUDE_PROJECT_DIR: root },
     encoding: "utf8",
   });
 }
@@ -127,11 +134,11 @@ describe("C3 current-run checkpoint hygiene", () => {
           writeFileSync(privatePath, privateContent);
         }
         // Use the real inventory so an absent fixture skill cannot fake an exemption.
-        const env = { ...process.env, OPCHAIN_SKILLS_DIR: join(ROOT, "skills") };
+        const env = { ...process.env, OPCHAIN_SKILLS_DIR: join(ROOT, "skills"), CLAUDE_PROJECT_DIR: root };
         for (const skill of ["oc-telemetry-ops", "opchain:oc-telemetry-ops"]) {
           const result = spawnSync("bash", [HOOK], {
             env,
-            input: JSON.stringify({ cwd: root, transcript_path: transcript(root, "2026-09-14T10:01:00Z", skill) }),
+            input: JSON.stringify({ cwd: root, session_id: `c3-tel-${Math.random().toString(36).slice(2)}`, transcript_path: transcript(root, "2026-09-14T10:01:00Z", skill) }),
             encoding: "utf8",
           });
           expect(result.status, result.stderr).toBe(0);
@@ -141,7 +148,7 @@ describe("C3 current-run checkpoint hygiene", () => {
         checkpoint(root, "2026-09-14T10:00:00Z");
         const mixed = spawnSync("bash", [HOOK], {
           env,
-          input: JSON.stringify({ cwd: root, transcript_path: transcript(root, "2026-09-14T10:01:00Z",
+          input: JSON.stringify({ cwd: root, session_id: `c3-mix-${Math.random().toString(36).slice(2)}`, transcript_path: transcript(root, "2026-09-14T10:01:00Z",
             "opchain:oc-update", "opchain:oc-telemetry-ops", "opchain:oc-code-auditor") }),
           encoding: "utf8",
         });

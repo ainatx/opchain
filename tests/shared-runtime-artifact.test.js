@@ -27,7 +27,8 @@ describe('shared runtime consumer package',()=>{
     expect(run(['learning','status']).status).toBe(0);
     expect(run(['context']).status).toBe(0);
     expect(existsSync(join(root,'.opchain'))).toBe(false);
-    expect(run(['checkpoint','update','oc-app-architect']).status).toBe(0);
+    // Since the 2026-10-08 audit, creating a checkpoint needs a real next action (no scaffold placeholder).
+    expect(run(['checkpoint','update','oc-app-architect','--next_actions:json=["Run /oc-discover"]']).status).toBe(0);
     const cp=JSON.parse(readFileSync(join(root,'.checkpoints/oc-app-architect.checkpoint.json')));
     expect(cp.project).toBe('consumer-project');
     expect(run(['telemetry','status']).stdout).toContain('OFF');
