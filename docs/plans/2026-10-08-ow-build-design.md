@@ -1,6 +1,6 @@
 # ow-build — design
 
-**Date:** 2026-10-08 · **Status:** APPROVED 2026-10-08. **Amendment 2026-10-09 (builder integration, §12, decisions 8–11) APPROVED 2026-10-14 with the fixes in §12.8.** **Amendments applied 2026-10-14** (decision 12): ow-uat B1 (`-accept` becomes `-ready`, §3, §8), B2 (final payment triggers, §7), B3 and ow-handoff A2 without its post-acceptance mark (`-change`, §6.1). Nothing is built. **Amended 2026-10-15: quick-quote scope file is quick-scope.md (owner decision); a quick-quote job's acceptance checks are read from quick-scope.md, since it has no acceptance.md (owner decision (a), §3, §8, §12).**
+**Date:** 2026-10-08 · **Status:** APPROVED 2026-10-08. **Amendment 2026-10-09 (builder integration, §12, decisions 8–11) APPROVED 2026-10-14 with the fixes in §12.8.** **Amendments applied 2026-10-14** (decision 12): ow-uat B1 (`-accept` becomes `-ready`, §3, §8), B2 (final payment triggers, §7), B3 and ow-handoff A2 without its post-acceptance mark (`-change`, §6.1). Nothing is built. **Amended 2026-10-15: quick-quote scope file is quick-scope.md (owner decision); a quick-quote job's acceptance checks are read from quick-scope.md, since it has no acceptance.md (owner decision (a), §3, §8, §12).** **Amended 2026-10-16 (Sprint 2): ow-documentation amendment B4 applied (§7, owner-approved scope addition); a quick-quote job's source for every `spec/` file (§12.2, the Sprint 1 evaluation's follow-up); built as ow-build 1.0.0, with the filled-in details in §13.**
 **Release:** third skill in the ow- family that ships together as v2.1.0. Starts at 1.0.0.
 **Family rules that apply:** no `ow-review` (labelled same-session self-checks); code only in the `ow-tools` add-on; no public ow- skill names a private skill, and handoffs leaving the family go through the workspace's `handoffs.yaml` (ow-start design, decisions 22–23).
 **Upstream:** `ow-build-plan` (plan, `acceptance.md`, or `quick-scope.md` for a quick-quote job, `quote.md`, `price-book.yaml`); for change requests and the final payment triggers, `ow-uat` (`defects/UAT-nn.md`, `signoff.md`, `backstop.md`, `uat.yaml`) and `ow-handoff` (`fixes/FIX-nn.md`, `dates.yaml`). **Downstream:** `ow-uat` through `ready-for-uat.md` (its sign-off is final acceptance), then `ow-handoff` (stage 04); plus the user's contract and invoicing destinations.
@@ -121,6 +121,7 @@ Rules: never call something done unless its acceptance check passes with evidenc
 | Acceptance (larger projects) | `uat/<client>/signoff.md` exists, signed or deemed (ow-uat B2). `-ready` (§8) is **not** a trigger | Invoice request for 20% |
 | Delivery (smaller projects) | Whichever comes first of `handoffs/<client>/dates.yaml` `handoff_date` (the Handoff notes delivered) or `uat/<client>/backstop.md` (the contract's delivery backstop) | Invoice request for 50%, **invoiced once**: `-invoice` refuses a second delivery-half request when `ledger.md` already has one |
 | Change order | Per its own terms (default: on signature) | Invoice request for its price |
+| Documentation & training (when bought; ow-documentation B4, added 2026-10-16) | `contract-inputs.md` says `documentation_sku: bought` and `docs/<client>/delivered.md` exists. Declined or absent: no trigger | Invoice request for the line's price, outside the fixed price, **invoiced once**. `-start` copies the line into `ledger.md` from `contract-inputs.md`. A further training group is a change order on its own terms |
 
 **Governing definition.** Where `uat/<client>/uat.yaml` records the user's dated statement of which acceptance or delivery definition governs this job (an older quote that defines them differently), `-invoice` applies that statement instead of the rows above. If `signoff.md`, `dates.yaml` or `backstop.md` is absent, that trigger isn't met.
 
@@ -214,6 +215,16 @@ The builder already starts from spec files in `spec/` ("from existing specs"), s
 | `spec/06-testing.md` | **Every acceptance check** (from `acceptance.md`, or `quick-scope.md` for a quick-quote job), verbatim with its test data and case count (these become the builder's sprint done-criteria) |
 | `spec/scope-and-milestones.md` | Work packages, out of scope, risks, and the quote's milestones (no prices) |
 
+**A quick-quote job** (added 2026-10-16, the Sprint 1 evaluation's follow-up to decision (a)) has no `acceptance.md`, no process map and no risks file. Its sources:
+
+| Builder input | Written from (quick-quote job) |
+|---|---|
+| `spec/00-project-overview.md` | `build-request.md` (What to build, Client dependencies); `quick-scope.md` (In scope: each package's "what changes") |
+| `spec/02-architecture.md` | `build-request.md` (Systems and data), saying the job has no process map |
+| `spec/04-integrations.md` | `build-request.md` (Systems and data); `quick-scope.md` (In scope) |
+| `spec/06-testing.md` | `quick-scope.md` (Acceptance checks), every check verbatim |
+| `spec/scope-and-milestones.md` | `quick-scope.md` (In scope, Out of scope); "Risks: none recorded"; the quote's Milestones list, without prices |
+
 Each file carries the ow- artefact header (`written_by: ow-build`) and a note that the signed Build Plan is the source of truth. Prices, margin and the quote's internal appendix never go into `spec/`. Then `-start` runs the `plan` say-line in-session. The builder's own sprint-plan approval gate stays the user's.
 
 **Milestone map (decision 10).** Once the user approves the builder's sprint plan, `-start` records in `build.yaml` which sprints make up each quote milestone. Every acceptance check must fall in some milestone's sprints; a milestone with no sprints, or a check no sprint covers, stops `-start` and asks. The quote's milestones and payments don't move to fit the sprints.
@@ -257,3 +268,20 @@ Decisions 8–11 and this section were approved by the owner on 2026-10-14, with
 3. **The `fix` say-line carries a description** (§12.1, §12.5). The builder's quick-feature mode takes a one-sentence description, not a file list.
 4. **`-accept` vs `-ready`** (§3, §8, §12.6). §12.6 already assumes the ow-uat amendment B1 (`-accept` becomes `-ready`) while §3 and §8 still say `-accept`. Resolved with the ow-uat design approval, not here.
    **Now resolved by ow-uat amendment B1 on 2026-10-14:** §3 and §8 say `-ready` (decision 12).
+
+## 13. Build notes (ow-build 1.0.0, Sprint 2, 2026-10-16)
+
+Where the build filled in what this design leaves open, or departed from its wording. None changes a price, a payment rule or a business rule; where the design is silent on a figure or a choice, the skill asks the user and records the answer `user-stated`.
+
+| # | Where | What the build does | Why |
+|---|---|---|---|
+| 1 | §3, §6, §7 | `ledger.md` is created by `-start` and written afterwards only by `-invoice`; `build.yaml` is created by `-start` and written afterwards only by `-run`. `-demo --record` records the working demo in the demo record, and `-invoice` marks the trigger met in the ledger; a signed change order enters the ledger when `-invoice` raises its request | The family's one-writer rule (contract R3); the design gave the ledger four writers |
+| 2 | §12 | "In session" means the skill prints the builder's line from `handoffs.yaml` and the user says it in the same conversation; the skill never starts the builder | ow-protocol §1 (no skill starts or loads another) |
+| 3 | §6 | One `changes/change-inputs-CO-nn.md` per change order (the design names `change-inputs.md`); every request gets a row in `changes/requests.md`, including in-scope and unpriced ones; change orders take the statuses draft, sent, amendment out, signed, declined through `-change --sent/--agreed/--signed/--declined`; added checks have ids `AC-CO-nn.m` | Several change orders per build; a record of each classification |
+| 4 | §4, §9.1 | The trace and the self-checks of each update go in `updates/<date>-checks.md` (yours), never in the email | An HTML comment would travel with an attached copy |
+| 5 | §9 | `-demo --record` writes `demos/M<n>-summary.html` + `.txt` beside the record | §9 names a demo summary email; §3 lists only the record |
+| 6 | §4.3 | `margin.md`: a milestone's share is the quote's pricing lines for its packages; burn is hours × an internal hour value the user states once | The quote and price book hold no hourly figure |
+| 7 | §5, §7 | With more than one milestone and one working-demo payment, `-start` asks which milestone's demo the payment follows (`user-stated`) | The quote names one working demo |
+| 8 | §6.1 | An extension change order's quantity (extra sessions or rounds) and every change order's schedule impact are asked; a UAT-nn request too big for a change order stops and asks how to go on (only the FIX-nn route is given) | Not stated in the designs |
+| 9 | §8 | `ready-for-uat.md` passes a check only when both the builder's last report and the user's confirmation pass say so; NEXT is `use ow-uat on builds/<client>/ready-for-uat.md` (protocol §9 form of "use ow-uat-plan on …") | §12.6 and protocol §9 |
+| 10 | §12.1 | The builder's name and say: lines are never written into a file the skill writes (`build.yaml` records the mode and what was printed); `spec/` holds no price of yours, but keeps the client's own facts | Decision 9, §12.7 |
