@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/ow-skills-orchestration-0e05bd",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-16T23:22:58.558Z",
+  "updated_at": "2026-10-16T23:31:56.688Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
   "step": "pr-track-s-s0-forward",
-  "progress_summary": "Track S S0 readiness PASS at 1ee00299: catalog, contract, bundle and plugin drift checks pass; check-release-surfaces agrees on v2.0; checkpoint:validate passes; candidate verifier PASS on tree 5bdb6c7c; site build, astro check and the changelog/routes Playwright specs pass; no untracked files.",
+  "progress_summary": "Contains current origin/main (675d3aff); every commit DCO signed off; commit-boundary verifier PASS 8/8; checkpoint conflicts resolved by three-way key merge keeping both sides' handoffs",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -31,7 +31,7 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "fb1a29964b8ce25b85686e8f29d0478c3e1b7906",
+    "verified_for_sha": "479cd818d947045302154e078c4921d560c409a3",
     "last_verify": {
       "at": "2026-10-16T19:22:23.960Z",
       "branch": "claude/track-s-s0-forward",
@@ -1637,30 +1637,66 @@
       }
     },
     {
-      "id": "oc-repo-ops-pr-readiness-v1-2d3d2100948e",
+      "id": "oc-repo-ops-pr-readiness-v1-11f150166b59",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-10-16T23:22:58.557Z",
-      "verified_at": "2026-10-16T23:22:58.557Z",
+      "created_at": "2026-10-16T20:09:57.932Z",
+      "verified_at": "2026-10-16T20:09:57.932Z",
       "producer": {
         "skill": "oc-repo-ops",
-        "run_id": "baseline-staging-1fbd48fa-after-612"
+        "run_id": "pr-readiness-v1-2026-10-16T20:09:57.932Z"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:2d3d2100948e7084af6fc67a0178ebba4f9fda1d421e5c32b226afb1f49d658d"
+        "id": "sha256:11f150166b591fc391383b3ae2144e65175a655a499208442ef4200d48424e6a"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "Baseline PR #614 at fb1a2996, origin/main 675d3aff (#612) merged; only the oc-docs-forge/oc-repo-ops evidence checkpoints conflicted and main's copies were kept. Net diff vs main is .github/monitoring/release-baseline.json only (staging half, 3 lines); worktree clean apart from this checkpoint update; build output ignored. sync-bundles:check, sync-plugin-skills:check, check-skill-contracts, lint-internal-refs PASS; checkpoint validate 0 errors, doctor 0 errors. Docs Forge pr-docs-v1 PASS bound to this candidate. Candidate verifier PASS at the merge commit boundary (tree 7c83d2bd). Canary workflow_dispatch on this branch (run 38959940049) verified production d52944b3 and staging 31ec0438 against the baseline; the later main merges change no baseline value. Staging still serves 1fbd48fa, which is what this baseline records; #612 is not deployed to staging yet.",
-        "evidence": [
-          ".github/monitoring/release-baseline.json",
-          ".checkpoints/oc-docs-forge.checkpoint.json"
-        ]
+        "scope": "PR #611 branch claude/ow-documentation-design at the #613 merge"
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-6c6a3e948ec2",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-16T20:59:37.275Z",
+      "verified_at": "2026-10-16T20:59:37.275Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-16T20:59:37.275Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:6c6a3e948ec2f1cd5177a9475ff5ba620bee9165702369be35ebbbd2a1c25e8d"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "PR #611 branch claude/ow-documentation-design at the #607 merge"
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-cd67f515f70f",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-16T23:31:56.687Z",
+      "verified_at": "2026-10-16T23:31:56.687Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-16T23:31:56.687Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:cd67f515f70fd7eda519975ff275a8d7a2cfed1f83d6e4311a1dceaa860f911b"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "PR #611 branch claude/ow-documentation-design at the #612 merge"
       }
     }
   ],
-  "record_updated_at": "2026-10-16T23:22:58.558Z",
+  "record_updated_at": "2026-10-16T23:31:56.688Z",
   "blockers": []
 }
