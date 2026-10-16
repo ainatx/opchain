@@ -34,8 +34,6 @@ writes:
   # One writer verb in two modes: the full quote and the quick quote write the same files.
   - { path: plans/<client>/quote.md, verb: /ow-build-plan-quote, modes: [--quick] }
   - { path: plans/<client>/quote-items.json, verb: /ow-build-plan-quote, modes: [--quick] }
-  - { path: plans/<client>/quote-r<n>.md, verb: /ow-build-plan-quote }          # a revised quote, only on request
-  - { path: plans/<client>/quote-r<n>-items.json, verb: /ow-build-plan-quote }
   - { path: plans/<client>/contract-inputs.md, verb: /ow-build-plan-quote --accepted }
   - { path: plans/<client>/build-request.md, verb: /ow-build-plan-quote --signed }
   - { path: plans/<client>/build-plan.md, verb: /ow-build-plan-export }

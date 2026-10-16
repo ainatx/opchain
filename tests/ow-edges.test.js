@@ -347,7 +347,7 @@ describe("edges: the real family", () => {
     const edges = readFileSync(join(ROOT, "skills-work", "ow-start", "skill.edges.yaml"), "utf8");
     expect(edges).toMatch(/to: ow-build-plan\n {4}verb: \/ow-build-plan /);
     const routing = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "references", "routing-and-resume.md"), "utf8");
-    for (const row of [/\| `build-plan` \| `\/ow-build-plan-offer` for this intake \|/, /\| `defined-work` \| `\/ow-build-plan-quote --quick` for this intake \|/, /\| `next-stage` \| `\/ow-build-plan-start` for this intake \| .*\*\*Never an offer\*\*/, /## 2\.2 A follow-on request: `handoffs\/<slug>\/fixes\/FIX-nn\.md`\n\nRuns `\/ow-build-plan-offer`/, /\*\*the quote is done: never run `-quote` again from here\.\*\*/]) {
+    for (const row of [/\| `build-plan` \| `\/ow-build-plan-offer` for this intake \|/, /\| `defined-work` \| `\/ow-build-plan-quote --quick` for this intake \|/, /\| `next-stage` \| `\/ow-build-plan-start` for this intake \| .*\*\*Never an offer\*\*/, /## 2\.2 A follow-on request: `handoffs\/<slug>\/fixes\/FIX-nn\.md`\n\nRuns `\/ow-build-plan-offer`/, /1\. `build-request\.md` exists: \*\*the plan is signed; nothing is left for this skill\.\*\*/, /\*\*Never run `-quote` again over it\.\*\*/, /\*\*This skill never runs another skill's verb\.\*\*/, /\*\*This skill never runs `-start` over an existing `plan\.yaml`\.\*\*/, /\| `feasibility` \| `\/ow-build-plan-quote --quick` for this intake, priced as the feasibility-test unit \|/]) {
       expect(routing).toMatch(row);
     }
     const noRoute = realTree({ "ow-start/skill.edges.yaml": (t) => t.replace("    verb: /ow-build-plan      #", "    verb: /ow-build-run      #") });
@@ -418,11 +418,14 @@ describe("edges: the real family", () => {
     expect(body).toMatch(/WHEN IT IS SIGNED: say "use ow-build-plan to record the signing[^\n]*\n {10}It will read: [^\n]*\n {10}\[no folder attached: attach them when you say it\]/);
   });
 
-  it("item 7: the example schedule is sized to the plan's weeks, and the one example price is a stated placeholder", () => {
+  it("item 7: the example schedule has real placeholders, and the one example price is a stated placeholder", () => {
     const book = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "examples", "price-book.yaml"), "utf8");
-    for (const [tier, weeks, collect, deliver] of [["one_system", 1, 2, 5], ["two_systems", 2, 4, 10], ["three_plus_or_mvp", 2, 4, 10]]) {
+    for (const [tier, collect, deliver] of [["one_system", 2, 5], ["two_systems", 4, 10], ["three_plus_or_mvp", 4, 10]]) {
       expect(book).toMatch(new RegExp(`${tier}: \\{ collection_business_days: ${collect}, delivery_business_days: ${deliver} \\}`));
-      expect(deliver).toBe(5 * weeks);
+    }
+    // Owner decision (g): the deadlines are the user's numbers only; no rule ties them to the weeks.
+    for (const f of ["references/phase-start.md", "references/price-book-schema.md", "examples/price-book.yaml"]) {
+      expect(readFileSync(join(ROOT, "skills-work", "ow-build-plan", f), "utf8"), f).not.toMatch(/5 ×|5 a week|5 \* weeks/);
     }
     const offers = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "examples", "offers.md"), "utf8");
     expect(offers).not.toMatch(/not prices/);

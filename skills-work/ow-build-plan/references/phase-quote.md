@@ -15,8 +15,8 @@ A missing input: say which file and offer the verb that writes it. Never continu
 
 **A quote is written once.** Before `-quote` or `--quick` writes anything, look in the folder:
 
-- `quote.md` exists and the client has accepted it (`contract-inputs.md` exists), or it has been exported (`export/quote.*` or an export line in `STATUS.md`): **refuse to write `quote.md` or `quote-items.json`.** Say the quote is done and offer the next step instead: `--accepted <date>` if no `contract-inputs.md` exists, else `--signed <date>`.
-- Only when the user explicitly asks for a revised quote, write it as a new file, `quote-r<n>.md` (n from 2), with its own items file `quote-r<n>-items.json`; `quote.md`, `quote-items.json` and `contract-inputs.md` stay as they are. Never rewrite an accepted quote in place.
+- `quote.md` exists and the client has accepted it (`contract-inputs.md` exists), or it has been exported (`export/quote.*` or an export line in `STATUS.md`): **refuse to write `quote.md` or `quote-items.json`.** Say the quote is done and offer the next step instead: `--accepted <date>` if no `contract-inputs.md` exists, `--signed <date>` if no `build-request.md` exists.
+- If the user wants a different quote after that, there is no second quote in this folder: say that a different quote is a new Build Plan or a follow-on (`-offer` or `-start` in a new `plans/<client>-<n>/` folder), and stop. This skill never writes a second quote file, and never rewrites an exported or accepted quote.
 - `quote.md` exists but was never exported or accepted: say so, show its date, and ask before writing over it.
 
 ## 2. Price the work (`-quote` and `--quick`)
@@ -37,7 +37,7 @@ A missing input: say which file and offer the verb that writes it. Never continu
 
 ## 3. Quick quote (`--quick`)
 
-For one small, defined job (the recap's `path_kind: defined-work`, or the user says so). It skips the offer, the collection and the map.
+For one small, defined job (the recap's `path_kind: defined-work`, or the user says so), and for a feasibility test (`path_kind: feasibility`), which is priced as the price book's feasibility-test unit (`feasibility-test` in the example; with no such unit the package is unpriced and §2.2 applies). It skips the offer, the collection and the map.
 
 1. Read the intake record. Draft the work packages and their units (§2.1).
 2. **Count the units** (the sum of quantities on the build lines). Above `quick_quote_max_units`: write **no** quote and no scope. Say the job needs <n> units and the limit is <max>, recommend a Build Plan, append the STATUS line in §8 and print the refusal NEXT block from SKILL.md.
@@ -131,7 +131,7 @@ Then the client's part. Amounts are written with the currency and two decimals; 
     ## Vendor subscriptions
     Billed directly to you by each vendor, without a markup: <names>, or "None needed".
 
-    ## Build Plan credit                       (build-plan mode only)
+    ## Build Plan credit                       (build-plan mode with a fee only; never with `fee: none`)
     The Build Plan fee of <amount> is credited against this build if signed by <credit_deadline>.
 
     ## After delivery
@@ -219,8 +219,8 @@ The `## Next` sections of `contract-inputs.md` and `build-request.md` hold the s
 
 Append one line per run (protocol §5), with these fields after the date and `ow-build-plan 1.0.0`:
 
-- `-quote`: path `plans/<client>/quote.md`; `next: ow-build-plan /ow-build-plan-export plans/<client>/`; `awaiting: client's answer by <valid_until>; Build Plan credit by <credit_deadline>` (quick mode: the first part only).
+- `-quote`: path `plans/<client>/quote.md`; `next: ow-build-plan /ow-build-plan-export plans/<client>/`; `awaiting: client's answer by <valid_until>; Build Plan credit by <credit_deadline>` (quick mode, or a plan with `fee: none`: the first part only, `awaiting: client's answer by <valid_until>`).
 - `--quick` refused: path `intake/<client>/intake-record.md`; `next: ow-build-plan /ow-build-plan-offer intake/<client>/intake-record.md`; `awaiting: none`.
-- `--accepted`: path `plans/<client>/contract-inputs.md`; `next: ow-build-plan /ow-build-plan-quote plans/<client>/`; `awaiting: signing for the Build Plan credit by <credit_deadline>` (quick mode: `awaiting: none`).
+- `--accepted`: path `plans/<client>/contract-inputs.md`; `next: ow-build-plan /ow-build-plan-quote plans/<client>/`; `awaiting: signing for the Build Plan credit by <credit_deadline>` (quick mode, or a plan with `fee: none`: `awaiting: none`).
 - `--signed`: path `plans/<client>/build-request.md`; `next: ow-build /ow-build-start plans/<client>/`; `awaiting: none`.
 - `--signed` refused: no line.

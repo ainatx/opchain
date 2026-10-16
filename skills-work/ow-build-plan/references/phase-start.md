@@ -16,11 +16,11 @@ Also read `build-plan-offer.md` if it exists (tier, fee, weeks), `price-book.yam
 
 ## 2. Confirm the tier
 
-The tier comes from the offer, else the recap's `path_systems` (`1` → `one_system`, `2` → `two_systems`, `3+` → `three_plus_or_mvp`), else the user. Ask the user to confirm it. A change needs a reason, recorded as `tier_reason`. `weeks` = `build_plan_weeks.<tier>`; `fee` = `build_plan_fees.<tier>` (or the offer's fee when the offer exists).
+The tier comes from the offer, else the recap's `path_systems` (`1` → `one_system`, `2` → `two_systems`, `3+` → `three_plus_or_mvp`), else the user. Ask the user to confirm it. A change needs a reason, recorded as `tier_reason`. `weeks` = `build_plan_weeks.<tier>`. `fee` = the offer's fee when the offer exists, else `build_plan_fees.<tier>`. **Delivery mode** (a `next-stage` recap, work already signed) takes no fee from the price book: `fee: none`.
 
 ## 3. The schedule
 
-Ask the start date. The deadlines are the user's, per tier, in `price-book.yaml` → `build_plan_schedule.<tier>`: `collection_business_days` and `delivery_business_days`. If the key or the tier is missing, ask the user for both numbers and record `schedule_source: user-stated` (else `schedule_source: price-book`); never pick them yourself. If `delivery_business_days` is not 5 × `weeks`, say that the offer promised <weeks> week(s) and ask which is right before going on. Count business days from the start date, skipping Saturdays, Sundays and every date under `holidays` in `profile.md`:
+Ask the start date. The deadlines are the user's, per tier, in `price-book.yaml` → `build_plan_schedule.<tier>`: `collection_business_days` and `delivery_business_days`. If the key or the tier is missing, ask the user for both numbers and record `schedule_source: user-stated` (else `schedule_source: price-book`); never pick them yourself. Count business days from the start date, skipping Saturdays, Sundays and every date under `holidays` in `profile.md`:
 
 - `collection_deadline` = start + `collection_business_days`.
 - `plan_delivery` = start + `delivery_business_days`.

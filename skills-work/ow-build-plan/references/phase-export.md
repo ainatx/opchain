@@ -44,4 +44,4 @@ Header (`ow_artefact: ow-build-plan/export-report`), then: the self-check result
 
 ## 5. STATUS and NEXT
 
-Append: `… | plans/<client>/export/export-report.md | next: ow-build-plan /ow-build-plan-quote plans/<client>/ | awaiting: client's answer by <valid_until>; Build Plan credit by <credit_deadline>`. Remind the user to ask the client to remove any read-only access the plan used (the access log in `evidence.md`), and suggest calendar reminders for both dates. Print the export NEXT block from SKILL.md. Nothing is sent: the user sends the documents.
+Append: `… | plans/<client>/export/export-report.md | next: ow-build-plan /ow-build-plan-quote plans/<client>/ | awaiting: client's answer by <valid_until>; Build Plan credit by <credit_deadline>` (quick mode, or a plan with `fee: none`: `awaiting: client's answer by <valid_until>`). Remind the user to ask the client to remove any read-only access the plan used (the access log in `evidence.md`), and suggest calendar reminders for both dates. Print the export NEXT block from SKILL.md. Nothing is sent: the user sends the documents.

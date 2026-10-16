@@ -23,7 +23,7 @@ build_plan_fees:            # the Build Plan itself, per tier
 
 build_plan_weeks: { one_system: 1, two_systems: 2, three_plus_or_mvp: 2 }
 
-build_plan_schedule:        # business days from the start date; placeholders sized to build_plan_weeks (5 a week)
+build_plan_schedule:        # business days from the start date to each deadline, per tier (placeholders)
   one_system: { collection_business_days: 2, delivery_business_days: 5 }
   two_systems: { collection_business_days: 4, delivery_business_days: 10 }
   three_plus_or_mvp: { collection_business_days: 4, delivery_business_days: 10 }
@@ -48,8 +48,8 @@ units:
   - id: data-migration-source
     label: Move data in from one source
     price: 1000
-  - id: ai-feasibility-test
-    label: A time-boxed test of an AI step on your own examples
+  - id: feasibility-test
+    label: A time-boxed feasibility test on your own examples
     price: 1000
   - id: tool-s
     label: Internal tool or portal, small
