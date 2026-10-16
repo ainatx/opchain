@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/ow-skills-orchestration-0e05bd",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-16T17:51:00.269Z",
+  "updated_at": "2026-10-16T18:30:06.005Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-ow-build-plan-followups",
-  "progress_summary": "Follow-ups PR readiness PASS at e9316b9c: catalog, contract, bundle, plugin and ow-tools manifest drift checks pass; checkpoint:validate passes; doctor 0 errors (29 pre-existing warnings); both acceptance checkers pass (ow-build-plan 29/29); candidate verifier PASS on tree fe10ce1e; no untracked files; oc- outputs unchanged.",
+  "step": "pr-track-s-s0-forward",
+  "progress_summary": "Track S S0 readiness PASS at 14ba3218: catalog, contract, bundle and plugin drift checks pass; check-release-surfaces agrees on v2.0; checkpoint:validate passes; candidate verifier PASS on tree f2f09837; site build, astro check and the changelog/routes Playwright specs pass; no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -24,18 +24,18 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "checkpoint doctor: 29 pre-existing warnings, none from this branch"
+      "Lighthouse runs in CI only"
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "7b6b2f13c17f8d385945331f70aa7a441f05e6b1",
+    "verified_for_sha": "14ba321868c27f13f003eb69107cda5efe9d2d8e",
     "last_verify": {
-      "at": "2026-10-16T17:31:47.786Z",
-      "branch": "claude/ow-build-plan-followups",
-      "base": "origin/main@ce3dad43",
+      "at": "2026-10-16T18:30:06.005Z",
+      "branch": "claude/track-s-s0-forward",
+      "base": "origin/main@591e6329",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1542,8 +1542,34 @@
           ".github/workflows/ci.yml"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-track-s-s0-forward-merge-591e6329-292bb340fc8b",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-16T18:30:06.005Z",
+      "verified_at": "2026-10-16T18:30:06.005Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-track-s-s0-forward-merge-591e6329"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:292bb340fc8b195454f8c74c0f102b255c8acd6188ebe5a56a5a2a4b8025a64e"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/track-s-s0-forward at 14ba3218 on current origin/main. Six files under site/ and sprints/; none under skills/, skills-work/, plugins/ or package.json. check-release-surfaces: all live-claim surfaces agree on v2.0. Candidate verifier PASS receipt covers tree f2f09837; no untracked files. Docs Forge packet verified_for_sha = HEAD. Brought up to date by merging main 591e6329 (#608, Track E product half); S0 touches no file #608 changed.",
+        "evidence": [
+          "sprints/release-2.1/track-s-site-surfaces.md",
+          "site/src/pages/changelog.astro",
+          "site/src/pages/index.astro",
+          "site/src/pages/install.astro"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-16T17:51:00.269Z",
+  "record_updated_at": "2026-10-16T18:30:06.005Z",
   "blockers": []
 }
