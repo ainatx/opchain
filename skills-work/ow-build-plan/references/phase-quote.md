@@ -111,8 +111,8 @@ The header (protocol §4, `ow_artefact: ow-build-plan/quote`, `subject:` `scope.
     issued: <YYYY-MM-DD>
     valid_until: <YYYY-MM-DD>
     plan_delivered: <YYYY-MM-DD>        # build-plan mode
-    build_plan_fee: <amount>            # build-plan mode
-    credit_deadline: <YYYY-MM-DD>       # build-plan mode
+    build_plan_fee: <amount>            # build-plan mode with a fee; left out with `fee: none`
+    credit_deadline: <YYYY-MM-DD>       # build-plan mode with a fee; left out with `fee: none`
     build_size: S | M | L
     build_size_source: price-book | user-stated
     build_total: <amount>
@@ -126,6 +126,8 @@ The header (protocol §4, `ow_artefact: ow-build-plan/quote`, `subject:` `scope.
     vendor_subscriptions: [<names>]
     arithmetic: ow-tools calc total | not machine-checked
     dates: ow-tools calc date | not machine-checked
+
+A quick quote, a feasibility quote and a quote on signed work (`plan.yaml` `fee: none`) have no Build Plan credit: leave `build_plan_fee` and `credit_deadline` out of the header altogether (not `none`; only `contract-inputs.md` spells the absence as `none`).
 
 Then the client's part. Amounts are written with the currency and two decimals; dates are written out:
 
@@ -215,7 +217,7 @@ Then the **internal appendix**, wholly between the two markers, each on a line o
 
 ## 5. Record the acceptance (`--accepted <date>`)
 
-1. Read `quote.md`. An acceptance date after `valid_until`: say the quote expired on that date and ask whether to issue a new quote; continue only if the user confirms the client accepted this one, and record that.
+1. Read `quote.md`. An acceptance date after `valid_until`: say the quote expired on that date, and continue only if the user confirms the client accepted this quote as it stands; record that. There is no new quote in this folder: if the price has to change, that is a new Build Plan or a follow-on (section 1), and you stop.
 2. Ask: did the client take Documentation & training? (`bought` / `declined`; never for a feasibility quote). Ask the parties' names as the user wants them in the contract.
 3. Record, word for word: `client accepted <date>, recorded by <user name>; not verified by this skill`. Add the protocol §8 approval sentence.
 4. Write `contract-inputs.md` exactly as `references/contract-inputs-schema.md` says, ending with its `## Next` section.
