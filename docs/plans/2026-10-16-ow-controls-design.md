@@ -144,7 +144,7 @@ Says anything is compliant · loads licensed framework text · stores a record, 
 | # | Design | Amendment |
 |---|---|---|
 | P7 | `ow-build-plan` | With a compliance profile, `-map` offers `NEXT: use ow-controls-map`; `-scope` reads `compliance/<client>/register.md` and turns each control the client picks into a scope item with an acceptance check citing `CTL-nn`. Without a profile, nothing changes (inert) |
-| P8 | `ow-build-plan` | `price-book.yaml` gains `controls_readiness: { sizes: { S, M, L }, size_by: { frameworks, processes } }`; `-quote --quick --controls` writes the readiness scope (§5.3) and a fixed-fee quote; `--signed` prints `NEXT: use ow-controls-scope` |
+| P8 | `ow-build-plan` | `price-book.yaml` gains `controls_readiness: { sizes: { S, M, L }, size_by: { frameworks, processes } }`; `-quote --quick --controls` writes the readiness scope (§5.3) and a fixed-fee quote; `--signed` prints `NEXT: use ow-controls-scope`. Like a feasibility quote (ow-build-plan amendment of 2026-10-16), it carries no user acceptance testing line, fix window, documentation & training line or build hand-off; its scope goes in `quick-scope.md`. |
 | H6 | `ow-handoff` | When `compliance/<client>/register.md` exists: `-notes` adds an `OP-nn` entry per recurring control test (frequency, how, evidence pointer); the Handoff notes list controls with their evidence pointers and next due dates |
 | C1 | `ow-care` | The health checklist lists control tests due in the month from the register; a test performed under care is recorded through `ow-controls-evidence` |
 | S3 | `ow-start` | An `offers.md` path may carry `quote: controls-readiness` (same mechanism as S2) |

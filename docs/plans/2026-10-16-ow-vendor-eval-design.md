@@ -128,7 +128,7 @@ Names a vendor before the criteria are frozen · scores without evidence · comp
 
 | # | Design | Amendment |
 |---|---|---|
-| P6 | `ow-build-plan` | `price-book.yaml` gains `vendor_selection: { sizes: { S, M, L }, size_by_vendors: {…} }`; `-quote --quick --vendor-eval` writes the scope (§4's steps, the vendors to compare) and a fixed-fee quote, and `--signed` prints `NEXT: use ow-vendor-eval-scope`. Inside a Build Plan, a selection work package prints the same NEXT, and `-map` reads `vendor-eval/<client>/VE-nn-*/decision.md` into the systems inventory |
+| P6 | `ow-build-plan` | `price-book.yaml` gains `vendor_selection: { sizes: { S, M, L }, size_by_vendors: {…} }`; `-quote --quick --vendor-eval` writes the scope (§4's steps, the vendors to compare) and a fixed-fee quote, and `--signed` prints `NEXT: use ow-vendor-eval-scope`. Like a feasibility quote (ow-build-plan amendment of 2026-10-16), it carries no user acceptance testing line, fix window, documentation & training line or build hand-off; its scope goes in `quick-scope.md`. Inside a Build Plan, a selection work package prints the same NEXT, and `-map` reads `vendor-eval/<client>/VE-nn-*/decision.md` into the systems inventory |
 | S2 | `ow-start` | An `offers.md` path may carry `quote: vendor-eval`; the recap header passes it on so ow-build-plan's quick quote uses the selection line |
 | D2 | `ow-draft` | Its reads row names `vendor-eval/<workstream>/VE-nn-<slug>/recommendation.md` |
 

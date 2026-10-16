@@ -229,7 +229,7 @@ Recomputes a frozen term · counts an hour twice or charges for a carried fix ·
 | T4 | `ow-tools` | `calc hours --ledger <file.json> --rollover <share>,<of>,<months>`: month totals in integer minutes (available, used by kind, extra, rolled over, lapsed), oldest hours first |
 | H4 | `ow-handoff` | `offers.md` → `after_handoff` gains a structured `rollover: { share, of: unused \| included, months }` beside its wording, and an optional `urgent_price`; `-offer` freezes both into `after-offer.md` |
 | S1 | `ow-start` | A new path kind `care-takeover` (with `kind` in `offers.md` and `path_kind` in the intake record); its NEXT is `use ow-build-plan-quote --quick --onboarding`; the example `offers.md` gains a care path |
-| P4 | `ow-build-plan` | `price-book.yaml` gains `care_onboarding: { sizes: { S, M, L }, size_by_systems: {…}, payment: on_signature \| on_delivery }`; `-quote --quick --onboarding` writes the review scope (§4's parts) and a fixed-fee quote; `--signed` prints `NEXT: use ow-care-onboard on plans/<client>/` instead of the build NEXT |
+| P4 | `ow-build-plan` | `price-book.yaml` gains `care_onboarding: { sizes: { S, M, L }, size_by_systems: {…}, payment: on_signature \| on_delivery }`; `-quote --quick --onboarding` writes the review scope (§4's parts) and a fixed-fee quote; `--signed` prints `NEXT: use ow-care-onboard on plans/<client>/` instead of the build NEXT. Like a feasibility quote (ow-build-plan amendment of 2026-10-16), it carries no user acceptance testing line, fix window, documentation & training line or build hand-off; its scope goes in `quick-scope.md`. |
 
 ## 13. Open questions
 
