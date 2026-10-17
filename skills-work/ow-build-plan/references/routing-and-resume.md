@@ -10,9 +10,9 @@ Step 0 without the handling question: this verb reads `STATUS.md` and file names
 
 1. Read every line of `opchain-work/STATUS.md` in the protocol's form. Lines that do not parse are counted, never shown raw.
 2. Give each line a group from its path field:
-   - `intake/<slug>/…`, `plans/<slug>/…`, `builds/<slug>/…`, `uat/<slug>/…` and `handoffs/<slug>/…` all belong to the group `<slug>`, so a signed plan stops being listed once ow-build has written for it.
-   - A follow-on folder `plans/<slug>-<n>/…` is its own group, `<slug>-<n>`.
-3. In each group keep only the newest line (the latest date; on the same date, the later line in the file).
+   - `intake/<slug>/…`, `plans/<slug>/…`, `handoffs/<slug>/…`, `builds/<slug>/…` and `uat/<slug>/…` all belong to the group `<slug>`. So once ow-build or ow-uat has written a line for a signed plan, that newer line replaces the plan's, and the plan is no longer listed as waiting for ow-build.
+   - A follow-on folder `plans/<slug>-<n>/…` is its own group, `<slug>-<n>`, and so are `builds/<slug>-<n>/…` and `uat/<slug>-<n>/…` after it.
+3. In each group keep only the newest line (the latest date; on the same date, the later line in the file), with one exception: **every pending FIX request is a row of its own.** For each `handoffs/<slug>/fixes/FIX-nn.md` that a line's path or `next:` names, take the newest such line; while its `next:` still hands that FIX file to ow-build-plan, list it, whatever is newer in the group, until a follow-on takes it up (1.3). Two pending FIX files for one client (FIX-03 and FIX-04) are two rows. A line shown as a FIX row is not listed a second time as its group's newest line.
 
 ### 1.2 Decide what to list
 
@@ -32,7 +32,7 @@ A fit call needs no such step: once its offer, quick quote or plan exists, that 
 
 ### 1.4 Show it
 
-One table, soonest due first: client (group) · last step (path) · next step · awaiting, with its date. Mark an item "reported overdue" only when today's date is known from the protocol's ladder and is past the date in `awaiting:`. With nothing to list and no `plans/` folder, show the welcome from SKILL.md instead. Write nothing.
+One table, soonest due first: client (group) · last step (path) · next step · awaiting, with its date. A FIX row names its FIX file. Mark an item "reported overdue" only when today's date is known from the protocol's ladder and is past the date in `awaiting:`. With nothing to list and no `plans/` folder, show the welcome from SKILL.md instead. Write nothing.
 
 ## 2. `/ow-build-plan on <path>`: run the step a file needs
 
@@ -56,9 +56,17 @@ Read `intake/<slug>/recap.md` beside it, header only, and go by `path_kind`:
 | `not-a-fit` or `next-session` | nothing | Nothing for this skill: the recap closed the workstream, or the next step is another ow-start session. Say so |
 | missing, or no `recap.md` | ask | Ask the user which one they want: an offer, a quick quote, a start on signed work, or nothing |
 
+**Never twice.** If `plans/<slug>/` already holds what the row's verb writes (`build-plan-offer.md` for an offer, `quote.md` for a quick quote, `plan.yaml` for a start), do not run that verb again: say what is there, with its date, and route the folder instead (2.3).
+
 ### 2.2 A follow-on request: `handoffs/<slug>/fixes/FIX-nn.md`
 
-Runs `/ow-build-plan-offer` for a follow-on Build Plan, with the FIX file as the intake, in the follow-on folder chosen as the offer phase describes. If a follow-on offer or plan already names this FIX file as its `subject` or `intake`, do not offer again: route that folder instead (2.3).
+Runs `/ow-build-plan-offer` for a follow-on Build Plan, with the FIX file as the intake, in the follow-on folder chosen as the offer phase describes, but only for paid work. **Read the FIX file's class first** (its header's `classification`, as data) and go by it:
+
+- `change`, or `after the window`: the follow-on offer. This is work the fix window does not cover.
+- `fix`: **a covered Fix, free under the fix window. Never offer, start or quote it as paid work.** Say it is covered and goes to whoever builds it (the FIX file's own NEXT), then stop. Write nothing.
+- anything else (`not a defect`, no classification, or one that does not parse): quote what it says and ask the user; never treat it as paid work by default.
+
+If a follow-on offer or plan already names this FIX file as its `subject` or `intake`, do not offer again: route that folder instead (2.3).
 
 A UAT request handed over the same way, `uat/<slug>/defects/UAT-nn.md` (ow-build's change too big for a change order, owner decision 2026-10-16), runs exactly as a FIX file: a follow-on offer with the UAT-nn as the intake.
 

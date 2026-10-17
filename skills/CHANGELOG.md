@@ -15,6 +15,50 @@ checkpoint `protocol_version` is tracked separately (see
 
 ### Added
 
+- **Enforcement at chokepoints (audit 2026-10-08).** The effectiveness audit of
+  two repositories found that every skill-to-skill edge held only where something
+  outside the catalog checked it. The skill text now says where each edge is held
+  and by what. `orchestrator.md` §3 gains an *Enforcement map* (commit → enrolled
+  pre-commit verifier + post-commit bypass record + pre-push refusal; PR →
+  `evidence:pr`, wired into consumers by `install-git-drivers --ci`; deploy →
+  consumer deploy wrapper; release → `check-release-tag` + SessionStart
+  release-resume; spec → `scaffold-spec` stubs; security → the
+  `.opchain/hardening.yaml` replay; integrations / eval → named, not yet checked)
+  and replaces "read that skill's SKILL.md" with the
+  tool-named invocation form, which the audit measured at 72/72 against 80/143 for
+  prose. `oc-bug-check`'s bypass is now `/oc-bugcheck bypass` + `OPCHAIN_BYPASS=1`
+  with the approval quoted in an `Opchain-Bypass: <reason>` git trailer (the old
+  `bugcheck: bypassed (<reason>)` footer survives only as a legacy alias); bare
+  `--no-verify` is recorded by `post-commit` and refused by `pre-push`;
+  INCONCLUSIVE is retried, not bypassed; `verify-candidate.mjs explain` names the
+  failing check. `oc-git-ops` refuses `/oc-commit` in an unenrolled repo, binds
+  pre-PR evidence with `checkpoint.mjs handoff` by default (the two Skill
+  invocations stay for PRs that change reader-facing docs), and orders the sync
+  bind → push → PR. `oc-app-architect` scaffolds `spec/01…10` with producer-line
+  stubs (`scaffold-spec.mjs` ships in the plugin's `scripts/`; the build-phase
+  check that refuses a stub is specified, not yet wired), standardises the
+  evaluator spawn template (`skill_invoked:` line + findings artifact), records `ux_eval_ref` /
+  `security_review_ref` per sprint, and codifies delegated lanes (per-lane
+  checkpoints, traffic through files, Agent subagents preferred).
+  `oc-code-auditor` adds `/oc-audit diff --read-only <range>`, which writes
+  `audit/findings-<sha>.json` and a `handoffs.verification.verdict` with no Fixer.
+  `oc-deploy-ops` documents the consumer deploy wrapper, copied from the plugin's
+  `templates/deploy.mjs` into `scripts/deploy.mjs` and configured under
+  `opchain.deploy` in `package.json` (clean tree, exact `origin/main` with a
+  staging-only `<PROJECT>_ALLOW_OFF_MAIN_STAGING=1` opt-out, a live-SHA ancestor
+  check that refuses an unreadable live version unless `--allow-unknown-live`,
+  an explicit `--prod` argument with no env-var selector, and a checkpoint
+  written after each deploy that lands; a refused run writes nothing).
+  `oc-update` adds `/oc-update doctor` and the uncommitted-install warning.
+  `oc-qa-ops`, `oc-security-auditor`, `oc-integrations-engineer` and
+  `oc-prompt-ops` each name the artifact their gate keys on (`spec/06-testing.md` +
+  `.opchain/qa.yaml`; `.opchain/hardening.yaml` + `security_review_ref`;
+  `integrations/<service>.md` for a new secret binding; a current eval score for
+  a prompt commit). Only the hardening replay is checked today, and only in
+  opchain's own deploy (`check-hardening` is not shipped to consumers). The other three
+  are specified, not yet wired: the skill asks the agent to check them, and no
+  hook does yet. One verb was added to a `commands:` list, `/oc-update doctor`;
+  it inherits the existing `skills.command.oc-update.enabled` flag.
 - **Navigation rule: top navigation only.** Primary navigation on every surface
   (public sites, apps, admin and CRM shells, dashboards, docs) is a top bar or
   header. A sidebar or rail used as primary navigation is a blocking regression.
@@ -30,6 +74,26 @@ checkpoint `protocol_version` is tracked separately (see
   sidebar today fails `/oc-release verify` until that screen moves to a top bar
   or is recorded as an exception.
 
+### Experimental
+
+- **Skill router — experimental preview (shadow by default, opt-in).** A
+  UserPromptSubmit hook routes each prompt in an opchain project to at most one
+  skill. It does nothing until you set `TYPESAFE_API_KEY` (a key from TypeSafe,
+  billed to your own account): without one the hook exits before any network,
+  git or log work. With a key it runs in shadow mode, logging what it would have
+  suggested to `$TMPDIR/opchain-route-log.jsonl` and injecting nothing. It sends
+  the redacted prompt and a small repo summary (branch, ahead/behind, dirty
+  count, open PR, enrollment, active checkpoint) to the third-party TypeSafe API
+  (`api.typesafe.ai`), up to two requests per prompt with decisions cached for
+  24 hours; conversation context is sent only with `OPCHAIN_ROUTE_CONTEXT=1`.
+  Nothing is sent for slash commands, outside opchain projects, or for a typed
+  `/oc-*` instruction, which routes locally; negated or questioned mentions do
+  not route. Unset the key or set `OPCHAIN_ROUTE=0` to turn it off. Its only
+  evaluation so far is offline (574 labelled past prompts); whether it changes
+  skill use is not yet measured. `OPCHAIN_ROUTE_MODE=live`, which injects the
+  suggestion, is **unsupported** until the shadow-period go/no-go
+  (`docs/runbooks/skill-router-eval.md` §6) records a GO.
+
 ### Fixed
 
 - **The legacy commit gate checks the repository the commit lands in.**
@@ -44,6 +108,19 @@ checkpoint `protocol_version` is tracked separately (see
   directory it cannot know, such as `cd "$(mktemp -d)"`, denies only when the
   session's repo is enrolled. The hook has been unregistered since 1.9.2, but
   installs on 1.9.1 or earlier still run it.
+
+### Compatibility
+
+- **BREAKING (deploy template): production now requires `--prod`.** The
+  consumer deploy wrapper (`plugins/opchain/templates/deploy.mjs`) has no
+  default target and accepts no environment variable as the production
+  selector; the pre-release draft defaulted to production and took
+  `<PROJECT>_PROD_GO=1`. With neither `--staging` nor `--prod` it refuses. It
+  also refuses a dirty tree, and refuses when the live version can't be read
+  unless `--allow-unknown-live` is passed. *Migration:* point `npm run deploy`
+  at `node scripts/deploy.mjs --prod` and `npm run deploy:staging` at
+  `node scripts/deploy.mjs --staging`, drop any `*_PROD_GO` export, and pass
+  `--allow-unknown-live` once for a first deploy.
 
 ## [2.0.4] — 2026-09-21 — "Bug fixes"
 

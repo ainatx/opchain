@@ -5,25 +5,36 @@
  *
  *   Just Released → v2.0 open hero + v1.9 / v1.8 / v1.7 / v1.6 collapsed
  *                   heroes + compact release cards (patches and older).
- *   Coming Next   → v2.1 · direction set (#v2-1), not votable.
- *   Planned       → v2.2/v2.3 roadmap groups with advisory votes, and the request form.
+ *   Coming Next   → v2.1 "The ow- planning family + enforcement at chokepoints"
+ *                   · direction set (#v2-1), not votable. The skill router is its
+ *                   own item, labelled "experimental preview".
+ *   Planned       → v2.2 "Installs anywhere + the open-source split" (#v2-2,
+ *                   direction set, not votable); two advisory-vote groups that
+ *                   carry no release number, rendered as "later"
+ *                   (#agency-delivery, #discovery-depth); and the request form.
  *
  * Voting is real: vote buttons carry data-vote-target=<id> and the client
  * script batches GET /api/votes then POSTs /api/votes/<id> per click (the
  * Worker dedups per-IP/day in KV). Votable ids are GitHub issue numbers
  * (e.g. "42") pulled live from `asfbay-bit/opchain-skills` via
  * `loadRoadmap()` — see scripts/gen-roadmap.mjs and
- * docs/plans/2026-08-26-roadmap-github-issues.md. The v1.9 and v2.0 scope
- * is committed; v2.1's direction is set by the maintainer (D-F); advisory
- * voting is attached only to the v2.2-v2.3 candidates. All
+ * docs/plans/2026-08-26-roadmap-github-issues.md. v2.1's and v2.2's
+ * directions are set by the maintainer (2026-10-16, two-theme 2.1:
+ * sprints/release-2.1/track-s-site-surfaces.md); advisory voting is attached
+ * only to the "later" candidates. Those groups read their issues by GitHub
+ * milestone NUMBER (5 and 6), not title, so the page stays right before and
+ * after the milestones are renamed from "v2.2"/"v2.3" to "later: …". All
  * roadmap items are `roadmap:planned` issues, distinguished by milestone.
  * v1.8 shipped 2026-07-10, so it has no vote buttons.
  *
  * Deep links (#v2-0/#v1-9/#v1-8/… → Just Released; #v2-1 → Coming Next;
- * #v2-2/#v2-3 → Planned;
+ * #v2-2/#agency-delivery/#discovery-depth → Planned;
  * #v1-4 → /coverage) are handled client-side:
  * the matching tab is activated, the target card expanded, and scrolled into
- * view.
+ * view. Old ids resolve through HASH_ALIASES: #v2-3 (the pre-2026-10-16
+ * "Discovery and pipeline depth" group) → #discovery-depth, and
+ * #installs-anywhere → #v2-2. #v2-2 now names the v2.2 card; its note points
+ * readers of the old #v2-2 (agency delivery) to #agency-delivery.
  *
  * Accessibility: tablist with roving tabindex + arrow/Home/End keys; the
  * inactive panels are `hidden` (not a CSS slide — keeps the page Axe-clean);
@@ -32,7 +43,7 @@
  */
 import Base from "../layouts/Base.astro";
 import RoadmapForm from "../components/RoadmapForm.astro";
-import { loadRoadmap, itemsForMilestone } from "../data/roadmap-types";
+import { loadRoadmap, itemsForMilestoneNumber } from "../data/roadmap-types";
 
 const roadmap = loadRoadmap();
 
@@ -83,36 +94,94 @@ const v18Skills = [
   },
 ];
 
-// v2.0 shipped and v2.1's direction is set (Coming Next, #v2-1). v2.2-v2.3 are
-// the advisory voting horizon: their issue-level vote controls preserve the
-// existing vote ids while making the sequence explicit.
-// v2.0 is NOT listed here: at the v1.9 cut it moved to the Coming Next panel as
-// the committed next release (hero #v2-0). Keeping a Planned card for it too
-// would duplicate that DOM id.
-const plannedReleaseGroups = [
+// Planned panel (owner decisions 2026-10-16). v2.1 is one release with two
+// themes (Coming Next, #v2-1). v2.2 is "Installs anywhere, says so honestly"
+// plus the open-source split, the scope that was 2.1 until 2026-10-06
+// (sprints/release-2.1/sprint-plan.md, superseded): direction set, not
+// votable, hand-written. The two advisory-vote groups no longer carry a
+// release number and render as "later". They read GitHub milestones 5 and 6
+// by number (see itemsForMilestoneNumber), because those milestones are
+// renamed "later: …" on GitHub and milestone 4's issues move to v2.2
+// (track-s-site-surfaces.md, decision D2). v2.0 is NOT listed here: it
+// shipped (#v2-0, Just Released).
+type PlannedItem = { id?: string; title: string; blurb: string };
+type PlannedGroup = {
+  version: string;
+  id: string;
+  title: string;
+  timing: string;
+  summary: string;
+  votable: boolean;
+  note?: string;
+  items: PlannedItem[];
+};
+const AGENCY_MILESTONE = 5; // GitHub title "v2.2" → "later: agency delivery"
+const DISCOVERY_MILESTONE = 6; // GitHub title "v2.3" → "later: discovery depth"
+const plannedReleaseGroups: PlannedGroup[] = [
   {
     version: "v2.2",
     id: "v2-2",
+    title: "Installs anywhere + the open-source split",
+    timing: "direction set",
+    summary:
+      "Distribution and installation, said honestly: the skills move to their own open-source repo, an install path that says what works where, starter templates, and signed updates.",
+    votable: false,
+    note: "Direction set by the maintainer. This was the 2.1 direction until 2.1 became the ow- planning family and enforcement; it now follows 2.1. The editor extension has moved to a later release. Until October 2026, #v2-2 was the agency and multi-project vote; it is under Later, below.",
+    items: [
+      {
+        title: "Skills move to their own open-source repo",
+        blurb:
+          "The skills, plugin and MCP server become the product source in asfbay-bit/opchain-skills, with full history, instead of a mirrored snapshot.",
+      },
+      {
+        title: "An install path that says what works where",
+        blurb:
+          "A tested install matrix for Claude Code, Claude.ai, Desktop, Cowork and MCP clients, and skills that still resume without Node or git. No one-click promise until it is proven.",
+      },
+      {
+        title: "Starter templates and a marketplace listing",
+        blurb:
+          "Opinionated starters that pair a stack pack with the right skills, and a public listing of skills, packs and templates with install paths.",
+      },
+      {
+        title: "Portability fixes",
+        blurb:
+          "The open install and portability findings, so opchain runs cleanly on a machine that isn't the maintainer's.",
+      },
+      {
+        title: "Signed updates",
+        blurb: "A published did:web identity and a signed update manifest the updater verifies.",
+      },
+      {
+        title: "Focused execution, visible progress",
+        blurb:
+          "The unshipped session-clock work, scoped against current main: wall-clock actuals and visible checkpoint progress.",
+      },
+    ],
+  },
+  {
+    version: "later",
+    id: "agency-delivery",
     title: "Agency and multi-project delivery",
     timing: "advisory vote",
     summary:
       "Give studios and larger programs first-class coordination across clients, repositories, checkpoints, releases, and handoffs.",
     votable: true,
-    items: itemsForMilestone(roadmap, "planned", "v2.2").map((item) => ({
+    items: itemsForMilestoneNumber(roadmap, "planned", AGENCY_MILESTONE).map((item) => ({
       id: item.id,
       title: item.title,
       blurb: item.blurb,
     })),
   },
   {
-    version: "v2.3",
-    id: "v2-3",
+    version: "later",
+    id: "discovery-depth",
     title: "Discovery and pipeline depth",
     timing: "advisory vote",
     summary:
       "Strengthen the pipeline before implementation with sharper problem discovery, opportunity framing, and evaluator evidence.",
     votable: true,
-    items: itemsForMilestone(roadmap, "planned", "v2.3").map((item) => ({
+    items: itemsForMilestoneNumber(roadmap, "planned", DISCOVERY_MILESTONE).map((item) => ({
       id: item.id,
       title: item.title,
       blurb: item.blurb,
@@ -168,7 +237,7 @@ const plannedReleaseGroups = [
           aria-selected="false"
           tabindex="-1"
         >
-          Planned <span class="tab-count">v2.2 → v2.3</span>
+          Planned <span class="tab-count">v2.2 → later</span>
         </button>
       </div>
       <span class="tab-indicator" data-tab-indicator aria-hidden="true"></span>
@@ -1134,26 +1203,50 @@ const plannedReleaseGroups = [
         <span class="panel-sub">The next release's direction is set.</span>
       </div>
 
-      <!-- v2.1 direction set (decision D-F): hand-written, not votable. v2.0 shipped; deep-link #v2-0. -->
+      <!-- v2.1 direction set (owner decisions 2026-10-16): one release, two themes — the ow-
+           planning family for client work, and enforcement at chokepoints. Hand-written, not
+           votable, forward copy only: it says what 2.1 is planned to contain and claims nothing
+           shipped. The skill router is its own item under "Experimental preview" and follows the
+           router release terms (label; no effectiveness claim; live mode unsupported until a GO).
+           Rewrite against the merged release diff when 2.1 is promoted to the open hero at the
+           cut (RELEASING.md §4 rule 5). Plan: sprints/release-2.1/track-s-site-surfaces.md.
+           v2.0 shipped; deep-link #v2-0. -->
       <article class="plan-card" id="v2-1" data-card>
         <button class="pc-row" type="button" aria-expanded="false" aria-controls="v2-1-body" data-disclosure-toggle>
           <span class="pc-toggle" aria-hidden="true">▶</span>
           <span class="pc-meta">
-            <span class="pc-head"><span class="ver-pill ver-pill--next">v2.1</span><span class="pc-title">Installs anywhere, says so honestly</span><span class="pc-timing">direction set</span></span>
-            <span class="pc-summary">Distribution and installation: an open-source product repo, an honest install path for Claude.ai and Desktop, starter templates, and signed updates.</span>
+            <span class="pc-head"><span class="ver-pill ver-pill--next">v2.1</span><span class="pc-title">The ow- planning family + enforcement at chokepoints</span><span class="pc-timing">direction set</span></span>
+            <span class="pc-summary">Two themes in one release: a family of planning skills for people who build software for clients, and a check at each place the dev pipeline&rsquo;s work goes through, so its handoffs hold. The skill router comes as an experimental preview.</span>
           </span>
         </button>
         <div class="card-body" id="v2-1-body" data-disclosure-body inert>
           <div class="card-body-inner">
-            <div class="tag-row"><span class="tag tag--info">direction set</span></div>
+            <div class="tag-row"><span class="tag tag--info">direction set</span><span class="tag">client-work planning</span><span class="tag">enforcement</span><span class="tag tag--warn">router: experimental preview</span></div>
+            <h3>The ow- planning family, for client work</h3>
+            <p>Five text-only skills that follow a client job from the first call to the handoff, each at its own version from 1.0.0, plus one optional add-on. They never invent a price, give legal advice or send anything for you.</p>
             <ul class="horizon-list">
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Skills move to their own open-source repo</span><p class="horizon-blurb">The skills, plugin and MCP server become the product source in <a href="https://github.com/asfbay-bit/opchain-skills">asfbay-bit/opchain-skills</a>, with full history, instead of a mirrored snapshot.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">An install path that says what works where</span><p class="horizon-blurb">A tested install matrix for Claude Code, Claude.ai, Desktop, Cowork and MCP clients, and skills that still resume without Node or git. No one-click promise until it is proven.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Starter templates and a marketplace listing</span><p class="horizon-blurb">Opinionated starters that pair a stack pack with the right skills, and a public listing of skills, packs and templates with install paths.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Portability fixes</span><p class="horizon-blurb">The open install and portability findings, so opchain runs cleanly on a machine that isn't the maintainer's.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Signed updates</span><p class="horizon-blurb">A published <code>did:web</code> identity and a signed update manifest the updater verifies.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-start</span><p class="horizon-blurb">The 20-minute fit call: a one-page call guide before it, and a client recap with one recommended path after it, written from the transcript or your notes.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-build-plan</span><p class="horizon-blurb">The Build Plan and the fixed quote: a one-page offer, a process map, scope with acceptance checks, and a quote added up only from your own price book.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-build</span><p class="horizon-blurb">The client side of the build: a written update each week, a demo at each milestone, changes priced before they start, and payments.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-uat</span><p class="horizon-blurb">The acceptance test: the client&rsquo;s people try the build against what was agreed, in-scope problems are fixed, and the client signs off.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-handoff</span><p class="horizon-blurb">The handoff: documents, code and accounts in the client&rsquo;s name, the fix window, and the builder&rsquo;s access taken back out.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-tools (Claude Code add-on)</span><p class="horizon-blurb">Optional code that runs on your machine and says so: local transcription, PDF and Word export, a reminder of open work at session start, and a secrets scan that never prints a match. The skills do their job without it.</p></div></li>
             </ul>
-            <div class="planned-box">The editor extension has moved to a later release. <a href="https://github.com/asfbay-bit/opchain-skills/milestone/4">Follow the v2.1 milestone</a>.</div>
+            <h3>Enforcement at chokepoints</h3>
+            <p>A skill file can describe a handoff; only a check outside it can make the handoff hold. 2.1 puts that check where the work goes through (the commit, the push, the pull request, the deploy) and says which handoffs have none yet.</p>
+            <ul class="horizon-list">
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">A commit gate that says why</span><p class="horizon-blurb">A failing check prints its name, exit code and the end of its output. A timeout or a command-not-found exit is INCONCLUSIVE and missing dependencies are BLOCKED; neither counts as a FAIL.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Bypasses leave a record</span><p class="horizon-blurb">A commit with no PASS receipt, <code>--no-verify</code> included, is recorded, and a push refuses it until the commit carries an <code>Opchain-Bypass:</code> trailer saying who approved it and why.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Enrollment you can check</span><p class="horizon-blurb"><code>/oc-enroll --doctor</code> reports whether the gate will run in a repository; <code>--ci</code> adds a pull-request workflow that re-runs the checks; <code>--claude-md</code> writes the repository&rsquo;s verbs into <code>CLAUDE.md</code>.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">An enforcement map</span><p class="horizon-blurb">The shared orchestrator names the chokepoint and the mechanism for each handoff that must hold, and marks the ones nothing holds yet.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Deploy and release guards</span><p class="horizon-blurb">A deploy wrapper template that deploys staging only from the exact <code>main</code> and production only when asked, and a session-start reminder when a release merged without its tag.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Top navigation only</span><p class="horizon-blurb">The design skills fail a sidebar used as primary navigation unless the owner approved that one screen in writing.</p></div></li>
+            </ul>
+            <h3>Experimental preview</h3>
+            <ul class="horizon-list">
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Skill router <span class="tag tag--warn">experimental preview</span></span><p class="horizon-blurb">An opt-in hook that asks TypeSafe&rsquo;s Jev model which opchain skill owns a request. It is off unless you set <code>TYPESAFE_API_KEY</code>; with a key it sends the redacted prompt and a short repository summary to <code>api.typesafe.ai</code> and only logs its answer on your machine. Showing the suggestion in your session (live mode) stays unsupported until a recorded go/no-go says otherwise.</p></div></li>
+            </ul>
+            <div class="planned-box">Direction set by the maintainer on 2026-10-16. This card is the plan, not the release notes; the notes will list what the release contains. Installs anywhere and the open-source split moved to 2.2 (see Planned).</div>
           </div>
         </div>
       </article>
@@ -1170,7 +1263,7 @@ const plannedReleaseGroups = [
     >
       <div class="panel-head">
         <h2>What's planned</h2>
-        <span class="panel-sub">Votes on v2.2–v2.3 are advisory; the maintainer sets each release’s direction.</span>
+        <span class="panel-sub">The maintainer sets each release’s direction; votes on the later candidates are advisory.</span>
       </div>
 
       {plannedReleaseGroups.map((group) => (
@@ -1184,36 +1277,36 @@ const plannedReleaseGroups = [
           </button>
           <div class="card-body" id={`${group.id}-body`} data-disclosure-body inert>
             <div class="card-body-inner">
-            <div class="tag-row"><span class="tag tag--info">planned</span><span class="tag">{group.items.length} {group.items.length === 1 ? "item" : "items"}</span></div>
+            <div class="tag-row"><span class="tag tag--info">{group.votable ? "planned" : group.timing}</span>{group.items.length > 0 && <span class="tag">{group.items.length} {group.items.length === 1 ? "item" : "items"}</span>}</div>
               <p>{group.summary}</p>
-              <ul class="horizon-list">
-                {group.items.map((h) => (
-                  <li class="horizon-item">
-                    <div class="horizon-meta">
-                      <span class="horizon-title">{h.title}</span>
-                      <p class="horizon-blurb">{h.blurb}</p>
-                    </div>
-                    {group.votable && (
-                      <button
-                        class="vote-btn"
-                        type="button"
-                        data-vote-target={h.id}
-                        aria-label={`Vote for ${h.title}`}
-                      >
-                        <span class="v-arrow" aria-hidden="true">▲</span>
-                        <span class="v-count" data-vote-count>—</span>
-                        <span class="v-label" data-vote-label>vote</span>
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              {group.items.length > 0 && (
+                <ul class="horizon-list">
+                  {group.items.map((h) => (
+                    <li class="horizon-item">
+                      <div class="horizon-meta">
+                        <span class="horizon-title">{h.title}</span>
+                        <p class="horizon-blurb">{h.blurb}</p>
+                      </div>
+                      {group.votable && h.id && (
+                        <button
+                          class="vote-btn"
+                          type="button"
+                          data-vote-target={h.id}
+                          aria-label={`Vote for ${h.title}`}
+                        >
+                          <span class="v-arrow" aria-hidden="true">▲</span>
+                          <span class="v-count" data-vote-count>—</span>
+                          <span class="v-label" data-vote-label>vote</span>
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
               <div class="planned-box">
-                {group.votable ? (
-                  "Votes are advisory — use each item to signal priority within this release."
-                ) : (
-                  <>Committed after v1.9 — <a href="https://github.com/ainatx/opchain/blob/main/docs/releases/2.0-plan.md">read the full 2.0 plan of record</a>.</>
-                )}
+                {group.votable
+                  ? "Votes are advisory — use each item to signal priority. These candidates carry no release number yet."
+                  : group.note}
               </div>
             </div>
           </div>
@@ -1312,8 +1405,19 @@ const plannedReleaseGroups = [
       if (!panel) return null;
       return tabs.find((t) => t.getAttribute("aria-controls") === panel.id) ?? null;
     }
+    // Old ids whose content moved in the 2026-10-16 re-plan. #v2-2 is not
+    // here: it still names a card (the v2.2 card), whose note says where the
+    // old agency group went.
+    const HASH_ALIASES: Record<string, string> = {
+      "#v2-3": "#discovery-depth",
+      "#installs-anywhere": "#v2-2",
+    };
     function revealHash(hash: string) {
       if (!hash || hash.length < 2) return;
+      if (HASH_ALIASES[hash]) {
+        hash = HASH_ALIASES[hash];
+        history.replaceState(null, "", hash);
+      }
       let card: HTMLElement | null = null;
       try {
         card = document.querySelector<HTMLElement>(`${hash}[data-card]`);

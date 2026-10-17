@@ -23,10 +23,10 @@ const scratch = [];
 afterAll(() => scratch.forEach((d) => rmSync(d, { recursive: true, force: true })));
 
 const CASES = [
-  "accepted-signed", "builder-neutral", "credentials", "dates-terms-above", "dates-terms-below", "feasibility-signed", "fix-window",
+  "accepted-signed", "builder-neutral", "credentials", "dates-terms-above", "dates-terms-below", "delivery-quote", "feasibility-signed", "fix-window",
   "follow-on-asks", "follow-on-fix", "follow-on-offer", "follow-on-stated-offer", "follow-on-stated-start", "follow-on-uat", "follow-on-uat-offer", "modifier-evidence", "offer",
   "private-names-business", "private-names-default", "quick-over-limit", "quick-quote", "route-build-plan", "route-defined-work", "route-feasibility",
-  "route-folder", "route-folder-signed", "route-next-stage", "signed-before-accepted", "tier2-plan", "uat-documentation", "unpriced-package",
+  "route-fix-covered", "route-folder", "route-folder-signed", "route-next-stage", "signed-before-accepted", "tier2-plan", "uat-documentation", "unpriced-package",
 ];
 
 /** The case's run as a real folder (starting state + its golden output), edited by `edits` (path under opchain-work -> fn). */
@@ -56,7 +56,7 @@ describe("golden runs", () => {
   it("has a case for every §9.2 acceptance test except Real use (Sprint 6)", () => {
     expect(listCases()).toEqual(CASES);
     const sections = listCases().map((c) => loadKey(join(FIXTURES, c)).section).join("\n");
-    for (const s of ["Synthetic client, tier 2", "Unpriced package", "Modifiers cite evidence", "Dates and terms (at or above", "Dates and terms (below", "Credentials never written", "Builder-neutral", "Build Plan offer", "Quick quote (two-unit job)", "Quick quote (over the limit", "UAT and documentation lines", "Fix window", "Accepted and signed", "signing refused before acceptance", "Follow-on intake (from FIX-nn.md)", "Follow-on intake (no FIX file", "Follow-on intake (offer from FIX-nn.md)", "No private names (defaults-only", "No private names (a business", "Inbound route from ow-start (Build Plan path)", "Inbound route from ow-start (defined piece of work)", "Inbound route from ow-start (delivery mode, signed work)", "Folder route after the quote", "Follow-on intake (offer from the user's words)", "Follow-on intake (start after an offer from the user's words)", "Folder route after signing", "Inbound route from ow-start (feasibility check)", "Feasibility test accepted and signed (no build hand-off)", "Follow-on intake (offer from UAT-nn.md)", "Follow-on intake (from UAT-nn.md)"]) {
+    for (const s of ["Synthetic client, tier 2", "Unpriced package", "Modifiers cite evidence", "Dates and terms (at or above", "Dates and terms (below", "Credentials never written", "Builder-neutral", "Build Plan offer", "Quick quote (two-unit job)", "Quick quote (over the limit", "UAT and documentation lines", "Fix window", "Accepted and signed", "signing refused before acceptance", "Follow-on intake (from FIX-nn.md)", "Follow-on intake (no FIX file", "Follow-on intake (offer from FIX-nn.md)", "No private names (defaults-only", "No private names (a business", "Inbound route from ow-start (Build Plan path)", "Inbound route from ow-start (defined piece of work)", "Inbound route from ow-start (delivery mode, signed work)", "Folder route after the quote", "Follow-on intake (offer from the user's words)", "Follow-on intake (start after an offer from the user's words)", "Folder route after signing", "Inbound route from ow-start (feasibility check)", "Feasibility test accepted and signed (no build hand-off)", "Quote on signed work (delivery mode, fee none)", "Follow-on route refused for a covered Fix", "Follow-on intake (offer from UAT-nn.md)", "Follow-on intake (from UAT-nn.md)"]) {
       expect(sections).toContain(s);
     }
   });
@@ -457,8 +457,7 @@ describe("round 3: the checker catches what round 2 let through", () => {
   it("item 4: the resume rules group by client and keep refused quick quotes and pending FIX requests", () => {
     const r = readFileSync(join(SKILL, "references", "routing-and-resume.md"), "utf8");
     // Grouped by client, newest line per group.
-    // Sprint 2: ow-build's builds/ and ow-uat's uat/ lines join the group, so a started build drops the signed line.
-    expect(r).toMatch(/`intake\/<slug>\/…`, `plans\/<slug>\/…`, `builds\/<slug>\/…`, `uat\/<slug>\/…` and `handoffs\/<slug>\/…` all belong to the group `<slug>`/);
+    expect(r).toMatch(/`intake\/<slug>\/…`, `plans\/<slug>\/…`, `handoffs\/<slug>\/…`, `builds\/<slug>\/…` and `uat\/<slug>\/…` all belong to the group `<slug>`/);
     expect(r).toMatch(/A follow-on folder `plans\/<slug>-<n>\/…` is its own group/);
     // A refused quick quote (next: ow-build-plan /ow-build-plan-offer intake/…) is listed.
     expect(r).toMatch(/or as `ow-build-plan \/<verb> <path>` \(an open plan or quote, or a refused quick quote waiting for its offer\)/);
@@ -603,6 +602,99 @@ describe("a feasibility quote: just the test", () => {
     expect(book).toMatch(/- id: feasibility-test\n[^\n]*\n[^\n]*\n {4}feasibility: true/);
     const schema = readFileSync(join(SKILL, "references", "price-book-schema.md"), "utf8");
     expect(schema).toMatch(/`feasibility: true`: marks the unit a feasibility test is priced from/);
+  });
+});
+
+// Eval round 4 follow-ups: the checker slips of rounds 3 and 4 (eval-s1-r3 and eval-s1-r4 plants).
+describe("eval round 4 follow-ups: the checker catches what rounds 3 and 4 let through", () => {
+  const F = "plans/fernhill-florists", L2 = "plans/larkspur-ceramics-2";
+  /** A scratch answer key (a copy of `from`'s, edited) for grading a run with other checks. */
+  const keyFrom = (from, edit) => {
+    const caseDir = mkdtempSync(join(tmpdir(), "ow-build-plan-key-"));
+    scratch.push(caseDir);
+    writeFileSync(join(caseDir, "answer-key.yaml"), edit(readFileSync(join(FIXTURES, from, "answer-key.yaml"), "utf8")));
+    return caseDir;
+  };
+  const failuresWith = (caseName, runDir, caseDir) => Object.fromEntries(runCase(caseName, runDir, { caseDir }).filter((r) => r.problems.length).map((r) => [r.check, r.problems.join("\n")]));
+  const noCredit = (t) => t.replace(/build_plan_fee: [^\n]*\n/, "").replace(/credit_deadline: [^\n]*\n/, "").replace(/## Build Plan credit\n[^\n]*\n\n/, "");
+
+  it("A8: a plan on signed work whose tier_source is an offer that does not exist", () => {
+    const run = mutated("route-next-stage", { [`${F}/plan.yaml`]: (t) => t.replace("tier_source: recap", "tier_source: offer") });
+    expect(failures("route-next-stage", run).start).toMatch(/tier_source is offer, but plans\/fernhill-florists\/ holds no build-plan-offer\.md/);
+  });
+
+  it("A13 and A16: request.md paraphrased, or without its stated_on date", () => {
+    const para = mutated("follow-on-stated-offer", { [`${L2}/request.md`]: (t) => t.replace(/# Request: Larkspur Ceramics\n\n[\s\S]*$/, "# Request: Larkspur Ceramics\n\nAdd a stock check (summarised by the assistant).\n") });
+    expect(failures("follow-on-stated-offer", para).offer).toMatch(/request\.md: does not hold the user's words unchanged/);
+    const undated = mutated("follow-on-stated-offer", { [`${L2}/request.md`]: (t) => t.replace("stated_on: 2026-12-01\n", "") });
+    expect(failures("follow-on-stated-offer", undated).offer).toMatch(/request\.md: stated_on "" is not the YYYY-MM-DD date the user stated the request/);
+  });
+
+  it("follow-up 7: the delivery-mode quote golden carries no Build Plan fee or credit", () => {
+    const q = readFileSync(join(FIXTURES, "delivery-quote", "expected", "opchain-work", F, "quote.md"), "utf8");
+    expect(q).not.toMatch(/build_plan_fee|credit_deadline|Build Plan credit/);
+    expect(readFileSync(join(FIXTURES, "route-next-stage", "expected", "opchain-work", F, "plan.yaml"), "utf8")).toMatch(/^fee: none$/m);
+  });
+
+  it("N2 / follow-up 9: a fee: none quote whose header spells the keys as none (the template leaves them out)", () => {
+    const run = mutated("delivery-quote", { [`${F}/quote.md`]: (t) => t.replace("valid_until:", "build_plan_fee: none\ncredit_deadline: none\nvalid_until:") });
+    expect(failures("delivery-quote", run).dates_terms).toMatch(/the plan has fee: none \(signed work\), so the quote has no Build Plan fee, credit line or credit_deadline \(the header leaves both keys out\)/);
+  });
+
+  it("N4: a credit paraphrased on a fee: none quote", () => {
+    const run = mutated("delivery-quote", { [`${F}/quote.md`]: (t) => t.replace("## Valid until", "## Planning fee\nThe planning fee of USD 1,500.00 is deducted from this build if signed by 8 January 2027.\n\n## Valid until") });
+    expect(failures("delivery-quote", run).dates_terms).toMatch(/the plan has fee: none/);
+    const above = mutated("dates-terms-above", { [`${L}/plan.yaml`]: (t) => t.replace("fee: 3000", "fee: none"), [`${L}/quote.md`]: (t) => noCredit(t).replace("## Valid until", "## Planning fee\nThe planning fee of USD 3,000.00 is deducted from this build if signed by 25 December 2026.\n\n## Valid until") });
+    expect(failures("dates-terms-above", above).dates_terms).toMatch(/the plan has fee: none/);
+    // The correct delivery-mode quote (round 4's N1) still passes.
+    const ok = mutated("dates-terms-above", { [`${L}/plan.yaml`]: (t) => t.replace("fee: 3000", "fee: none"), [`${L}/quote.md`]: noCredit });
+    expect(failures("dates-terms-above", ok)).toEqual({});
+  });
+
+  it("N14 and N15: a second quote under another name, or in a follow-on folder nobody asked for", () => {
+    const v2 = mutated("route-folder", { [`${L}/quote-v2.md`]: () => readFileSync(join(FIXTURES, "unpriced-package", "expected", "opchain-work", L, "quote.md"), "utf8") });
+    const out = failures("route-folder", v2);
+    expect(out.route).toMatch(/plans\/larkspur-ceramics\/quote-v2\.md: a second quote file/);
+    expect(out.quote_frozen).toMatch(/quote-v2\.md: a second quote file/);
+    const other = mutated("route-folder", { [`${L2}/quote.md`]: () => readFileSync(join(FIXTURES, "unpriced-package", "expected", "opchain-work", L, "quote.md"), "utf8") });
+    expect(failures("route-folder", other).route).toMatch(/plans\/larkspur-ceramics-2\/quote\.md: the route works in plans\/larkspur-ceramics\/ only; it wrote outside it/);
+  });
+
+  it("N21 / follow-up 8: contract inputs whose Build Plan credit is not the quote's", () => {
+    const key = keyFrom("route-folder", (t) => t.replace(/checks: \[[^\]]*\]/, "checks: [accepted, dates_terms]"));
+    const plan = { [`${L}/plan.yaml`]: (t) => t.replace("fee: 3000", "fee: none"), [`${L}/quote.md`]: noCredit };
+    const kept = mutated("route-folder", plan);
+    const out = failuresWith("route-folder", kept, key);
+    expect(out.accepted).toMatch(/credit_deadline is 2026-12-25; quote\.md has no Build Plan credit .* so credit_deadline is none/);
+    expect(out.accepted).toMatch(/contract-inputs\.md:\d+: speaks of a Build Plan credit, which quote\.md does not have/);
+    expect(out.dates_terms).toBeUndefined();
+    // Written as the schema says (none, and no credit in ## Dates): passes.
+    const right = mutated("route-folder", { ...plan, [`${L}/contract-inputs.md`]: (t) => t.replace("credit_deadline: 2026-12-25", "credit_deadline: none").replace("build_plan_fee: 3000", "build_plan_fee: none").replace(" The Build Plan fee of USD 3,000.00 is credited against this build if signed by 25 December 2026.", "") });
+    expect(failuresWith("route-folder", right, key)).toEqual({});
+    // A quote with a credit: the contract inputs copy it.
+    const wrong = mutated("route-folder", { [`${L}/contract-inputs.md`]: (t) => t.replace("credit_deadline: 2026-12-25", "credit_deadline: 2026-12-31") });
+    expect(failures("route-folder", wrong).accepted).toMatch(/credit_deadline 2026-12-31 differs from quote\.md's 2026-12-25/);
+  });
+
+  it("bug 8 (FIX class): a covered Fix is never offered as a paid plan", () => {
+    const offered = mutated("route-fix-covered", { [`${L2}/build-plan-offer.md`]: () => readFileSync(join(FIXTURES, "follow-on-offer", "expected", "opchain-work", L2, "build-plan-offer.md"), "utf8") });
+    expect(failures("route-fix-covered", offered).route).toMatch(/is a covered Fix \(classification: fix\), free under the fix window; the route says so and writes nothing/);
+    const fix03 = mutated("follow-on-offer", { "handoffs/larkspur-ceramics/fixes/FIX-03.md": (t) => t.replace("classification: change", "classification: fix") });
+    expect(failures("follow-on-offer", fix03).route).toMatch(/this case expects the route "follow-on offer", but handoffs\/larkspur-ceramics\/fixes\/FIX-03\.md routes to "covered fix"/);
+    const unclassed = mutated("follow-on-offer", { "handoffs/larkspur-ceramics/fixes/FIX-03.md": (t) => t.replace("classification: change\n", "") });
+    expect(failures("follow-on-offer", unclassed).route).toMatch(/has no paid class \(change or after the window\); the route asks the user before writing anything/);
+  });
+
+  it("new 10: an intake route that writes a second offer over the folder's offer", () => {
+    const key = keyFrom("tier2-plan", (t) => t.replace(/checks: \[[^\]]*\]/, "checks: [route]").replace("start:\n", "route: { from: intake/larkspur-ceramics/intake-record.md }\nstart:\n"));
+    const run = mutated("tier2-plan", { [`${L}/build-plan-offer.md`]: (t) => (t ?? readFileSync(join(FIXTURES, "offer", "expected", "opchain-work", L, "build-plan-offer.md"), "utf8")).replace("issued: 2026-10-07", "issued: 2026-10-20") });
+    expect(failuresWith("tier2-plan", run, key).route).toMatch(/build-plan-offer\.md: plans\/larkspur-ceramics\/ already held one before the run; the route never runs that verb twice/);
+  });
+
+  it("new 8: -start over an existing plan.yaml fails however it was reached", () => {
+    const key = keyFrom("tier2-plan", (t) => t.replace(/checks: \[[^\]]*\]/, "checks: [start]"));
+    const run = mutated("unpriced-package", { [`${L}/plan.yaml`]: (t) => (t ?? readFileSync(join(FIXTURES, "tier2-plan", "expected", "opchain-work", L, "plan.yaml"), "utf8")).replace("tier_reason: \"\"", "tier_reason: \"again\"") });
+    expect(failuresWith("unpriced-package", run, key).start).toMatch(/plans\/larkspur-ceramics\/plan\.yaml: -start wrote over an existing plan/);
   });
 });
 

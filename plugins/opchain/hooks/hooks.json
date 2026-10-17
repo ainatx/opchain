@@ -6,6 +6,17 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-state.cjs\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/route-prompt.cjs\"",
             "timeout": 10
           }
         ]
@@ -17,7 +28,7 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/task-end.cjs\"",
-            "timeout": 5
+            "timeout": 15
           }
         ]
       },
@@ -26,7 +37,7 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/next-suggestion.cjs\"",
-            "timeout": 5
+            "timeout": 15
           }
         ]
       }

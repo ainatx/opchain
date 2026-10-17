@@ -4,13 +4,14 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-09-14T00:38:43.799Z",
-  "updated_at": "2026-09-27T15:02:40.355Z",
-  "phase": "verify",
-  "step": "posture-2.0.4",
+  "updated_at": "2026-10-16T19:35:38.491Z",
+  "phase": "build",
+  "step": "posture-main-e00f9623",
   "status": "complete",
-  "progress_summary": "Pre-deploy security posture for v2.0.4 (delta from 8bad1a0 to c09a63e): no MCP boundary, header, CSP, auth or routing change; hooks reduce surface; patch/minor dependency bumps; production npm audit clean; #569/#571 are a local-only CLI. PASS, with tracked dev-only and defense-in-depth residuals unchanged.",
+  "progress_summary": "Pre-deploy security posture 2026-10-16 for main e00f9623 (#610 merged), staging deploy: PASS, carried from posture-staging-preview-97cba5d; the only change since is a planning doc that is not deployed. Before production: resolve the code audit's M-1 (unreleased skills/ content labelled 2.0.4) with a release bump; residuals carried forward unchanged.",
   "next_actions": [
-    "Define the first real next action for this skill."
+    "Before the next release cut, re-run the pre-deploy posture assessment (/oc-security posture) on the release delta from c09a63e (v2.0.4, the last PASS) and bind it with: node scripts/checkpoint.mjs handoff oc-security-auditor --policy pre-deploy-security-posture-v1 --verdict PASS --scope \"<delta reviewed>\" --evidence <audit doc>",
+    "While there, re-check the residuals every posture since 2.0.1 has carried forward: dev-only site dependency advisories, tag-pinned (not SHA-pinned) CI action refs, missing COOP/CORP headers, and the live headers/TLS/control-plane check that each assessment skipped because no deployment was performed (OWASP A02 PARTIAL)."
   ],
   "handoffs": [
     {
@@ -455,13 +456,70 @@
           "The timesheet CLI reads local Claude Code transcripts on the maintainer machine and calls gh read-only; its data handling is reviewed in its own sprints, not by this deploy gate."
         ]
       }
+    },
+    {
+      "id": "oc-security-auditor-pre-deploy-security-posture-v1-292bb340fc8b",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-16T19:20:44.284Z",
+      "verified_at": "2026-10-16T19:20:44.284Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "posture-staging-preview-97cba5d"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:292bb340fc8b195454f8c74c0f102b255c8acd6188ebe5a56a5a2a4b8025a64e"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Staging branch-preview posture delta from posture-2.0.4 (0f3410c) to 97cba5d reviewed against the standing assessment (tier unchanged): no Worker route, MCP boundary, header/CSP (src/lib/http.js), auth, binding or wrangler.jsonc change; the MCP catalog change is reference digests only; the site change is forward copy with GitHub-issue text escaped; the served updater keeps its opchain.dev-pinned origin, redirect:'error', sha256 bundle verification and symlink-refusing writes; dependency changes are patch bumps plus security overrides (sharp, basic-ftp, tmp, uuid, @puppeteer/browsers, argparse); the new opt-in UserPromptSubmit router hook and hook timeouts ship through the public plugin mirror, not this deploy. Accepted for staging only: the code audit's M-1 (skills/ content changed under version 2.0.4) blocks production promotion until a release bump.",
+        "evidence": [
+          "npm audit --omit=dev (root and site): 0 vulnerabilities",
+          "git diff 0f3410c..97cba5d -- src/ wrangler.jsonc build.mjs: only src/generated/mcp-catalog.json; src/index.js and src/lib/ unchanged",
+          "live staging headers before deploy: HSTS, nosniff, X-Frame-Options DENY, Referrer-Policy, Permissions-Policy present (re-checked after deploy)",
+          "oc-code-auditor pre-deploy-staging-preview-97cba5d: PASS, 0 CRITICAL / 0 HIGH",
+          "prior posture-2.0.4 assessment for unchanged surfaces; residuals carried forward: dev-only site advisories, tag-pinned CI action refs, missing COOP/CORP"
+        ]
+      }
+    },
+    {
+      "id": "oc-security-auditor-pre-deploy-security-posture-v1-764435509fb7",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-16T19:35:38.294Z",
+      "verified_at": "2026-10-16T19:35:38.294Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "posture-main-e00f9623"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:764435509fb799a0ee3d9764ac2b9f88db9bc305c54e6e876bdb9204df6d3285"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "main e00f9623 (tree db5186ea, identical to PR #610 head b7364aa5) for the staging deploy, reviewed against the 97cba5d posture delta from posture-2.0.4 (handoff oc-security-auditor-pre-deploy-security-posture-v1-292bb340fc8b): no Worker route, MCP boundary, header/CSP, auth, binding or wrangler.jsonc change; site change is forward copy; the served updater keeps its opchain.dev-pinned origin and sha256 verification; dependency changes are patch bumps and security overrides. git diff 97cba5d..e00f9623 outside .checkpoints/ is one planning doc (sprints/release-2.1/ow-family-sprint-plan.md) that no build step reads. Accepted for staging only: the code audit's M-1 blocks production promotion until a release bump.",
+        "evidence": [
+          "git diff --stat 97cba5d e00f9623 -- . ':!.checkpoints': sprints/release-2.1/ow-family-sprint-plan.md only",
+          "staging preview of 97cba5d (deployment 8db8edc8): live headers HSTS, nosniff, X-Frame-Options DENY, Referrer-Policy, Permissions-Policy unchanged after deploy; smoke headers check passed",
+          "oc-code-auditor pre-deploy-main-e00f9623: PASS, 0 CRITICAL / 0 HIGH",
+          "residuals carried forward: dev-only site advisories, tag-pinned CI action refs, missing COOP/CORP"
+        ]
+      }
     }
   ],
   "latest_pre_deploy": {
-    "candidate": "c09a63ea0e2e95c725f44d194569761d7b95d933",
-    "candidate_identity": "sha256:38ba68b0742f66a5d46f2732c73b908456c59a2bedb22c6a08f291f6ed9a0ddc",
+    "candidate": "e00f962357353e91b54e6874f6b2ac51508bcc45",
+    "candidate_identity": "sha256:764435509fb799a0ee3d9764ac2b9f88db9bc305c54e6e876bdb9204df6d3285",
     "verdict": "PASS",
-    "blocking_findings": 0
+    "blocking_findings": 0,
+    "target": "staging from main"
   },
-  "record_updated_at": "2026-09-27T15:02:40.355Z"
+  "record_updated_at": "2026-10-16T19:35:38.491Z",
+  "skill_state": {
+    "verified_for_sha": "e00f962357353e91b54e6874f6b2ac51508bcc45"
+  }
 }

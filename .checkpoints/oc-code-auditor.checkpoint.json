@@ -4,17 +4,14 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-10-07T23:31:07.822Z",
+  "updated_at": "2026-10-16T19:35:38.382Z",
   "phase": "audit",
-  "step": "pr-592-diff-audit",
-  "status": "in_progress",
-  "progress_summary": "Diff audit for PR 592 (Dependabot markdown group): grade A, 0 CRITICAL/HIGH introduced, 1 MEDIUM (CI npm 10 vs npm 11/Dependabot lock policy, pre-existing, root-cause fix running as a separate task) and 1 LOW (stale isomorphic-dompurify ^3.9 in specs/spec/01-tech-stack.md, pre-existing). isomorphic-dompurify 4.4.0 has no code change; marked 18.0.14 bug fixes leave the built site byte-identical and the sanitize pipeline safe. The repo-wide audit loop (3 critical / 12 high from earlier sweeps) stays open and out of this PR scope, so status remains in_progress.",
+  "step": "pre-deploy-main-e00f9623",
+  "status": "complete",
+  "progress_summary": "Pre-deploy audit 2026-10-16 for main e00f9623 (#610 merged), staging deploy: PASS, 0 CRITICAL / 0 HIGH / 1 MEDIUM / 3 LOW, carried from the full delta audit of 97cba5d (pre-deploy-staging-preview-97cba5d); the only non-checkpoint change since is sprints/release-2.1/ow-family-sprint-plan.md (#606, not built or deployed). M-1 (unreleased skills/ content still labelled 2.0.4) blocks a production promotion without a version bump.",
   "blockers": [],
   "next_actions": [
-    "OSS-readiness audit 2026-08-22 (grade D+): triage the 24 HIGH findings in docs/audits/2026-08-22-oss-readiness-audit.md — the must-fix set is in docs/plans/2026-08-22-oss-split-licensing-compliance.md §4.1 and §4.3.",
-    "Fix PX-01/PX-02 in src/index.js + site/src/pages/privacy.astro before pointing any enterprise at opchain.dev/mcp.",
-    "Triage remaining MEDIUM/LOW findings from prior audits (none block this RCA).",
-    "Pre-existing: 14 critical / 41 high from the 2026-07-04 portability audit remain open."
+    "Add CODEOWNERS (or required review) on .github/workflows/ and .opchain/ before relying on the evidence:pr template in consumer repos"
   ],
   "eval_scores": [
     {
@@ -83,8 +80,8 @@
   "skill_state": {
     "mode": "diff",
     "scope": "PR 592 diff: site/package.json and site/package-lock.json (isomorphic-dompurify 4.2.0 to 4.4.0, marked 18.0.13 to 18.0.14, restored npm 10 optional-peer lock entries)",
-    "loop_state": "open",
-    "findings_total": 41,
+    "loop_state": "closed",
+    "findings_total": "39",
     "findings_confirmed": 31,
     "findings_refuted": 10,
     "findings_by_severity": {
@@ -94,8 +91,8 @@
       "low": 10
     },
     "fixes_applied": 9,
-    "fixes_verified": 9,
-    "fixes_rejected": 0,
+    "fixes_verified": "37",
+    "fixes_rejected": "0",
     "grade": "C+ (release-surface honesty); repo-wide OSS/portability loop still open",
     "verified_tree": "7c59d269ca269bc10035b0bbd706697df230b920",
     "note": "loop_state stays 'open': this round fixed the changeset's own defects, but the pre-existing 157-finding portability audit (14 critical / 41 high, 2 fixed) has never been closed. Marking this checkpoint 'complete' would repeat exactly the defect the overhaul's P3 exists to prevent.",
@@ -184,7 +181,8 @@
         "findings": 0,
         "verdict": "no findings"
       }
-    ]
+    ],
+    "verified_for_sha": "e00f962357353e91b54e6874f6b2ac51508bcc45"
   },
   "handoffs": [
     {
@@ -602,15 +600,69 @@
           "oc-time-ops is local sprint tooling; its sprint evaluations govern its quality, not this release gate."
         ]
       }
+    },
+    {
+      "id": "oc-code-auditor-pre-deploy-code-audit-v1-292bb340fc8b",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-16T19:20:35.998Z",
+      "verified_at": "2026-10-16T19:20:35.998Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-staging-preview-97cba5d"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:292bb340fc8b195454f8c74c0f102b255c8acd6188ebe5a56a5a2a4b8025a64e"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Pre-deploy sweep (1a security, 1b perf, 1d config) of the runtime delta from the last audited deployment 0f3410c (v2.0.4) to 97cba5d (PR #610 head, staging branch preview): Worker src/ unchanged except the regenerated mcp-catalog.json (reference digests only); /changelog, homepage next-bar and /install copy plus roadmap-types.ts (no set:html, GitHub-issue text escaped by Astro, hash-alias script uses a fixed map and a try-wrapped querySelector); the served updater /update.mjs and its runtime bundle (opchain.dev-pinned origin, redirect:'error', sha256 bundle and per-file checks, symlink-refusing atomic writes and no-shell spawns all preserved); oc- only guards in sync-docs, make-skills-zip and gen-mcp-catalog; dependency patch bumps and overrides. Findings: M-1 skills/ changed in 90 files (+9,856 lines, incl. behaviour changes listed under [Unreleased]) with version still 2.0.4, so a production promotion would ship it to /oc-update consumers as 2.0.4 (equal-version bundles install silently; release-process, not tampering; staging's /update.mjs fetches from opchain.dev). L-1 runtime checkpoint.mjs:1178-1185 runs a repo-local scripts/lib/release-evidence.mjs before the verified copy beside the CLI. L-2 checkpoint.mjs handoff accepts any skill/policy, so an audit PASS can be typed rather than produced (checkpoint.mjs:1215-1253 vs release-evidence.mjs:76). L-3 release-evidence.mjs:37,49 spawnSync default 1 MiB buffer gives ENOBUFS on ~10k-file repos, and the skill-bundled copy cannot run --stage pr|deploy (both fail closed).",
+        "evidence": [
+          "node scripts/verify-candidate.mjs run: PASS (anti_patterns, build, dependencies, dependencies_site, lint, secrets, tests, type_safety) on tree 93dd3a172fb9",
+          "npm audit --omit=dev (root and site): 0 vulnerabilities",
+          "git diff 0f3410c..97cba5d -- src/ wrangler.jsonc build.mjs: only src/generated/mcp-catalog.json changed; src/lib/http.js (headers/CSP) unchanged",
+          "PR #610 CI on 97cba5d: Worker build/test/catalog verify, site type-check/build, Playwright e2e, LHCI perf/a11y/best-practices/SEO budgets all SUCCESS",
+          "served-updater and build-script delta review (skills/oc-update/scripts, build-update-bundle.mjs, sync-docs.sh, make-skills-zip.sh, gen-mcp-catalog.mjs): 0 CRITICAL, 0 HIGH"
+        ]
+      }
+    },
+    {
+      "id": "oc-code-auditor-pre-deploy-code-audit-v1-764435509fb7",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-16T19:35:38.091Z",
+      "verified_at": "2026-10-16T19:35:38.091Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-main-e00f9623"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:764435509fb799a0ee3d9764ac2b9f88db9bc305c54e6e876bdb9204df6d3285"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "main e00f9623 (PR #610 squash-merged; tree db5186ea, identical to the PR head b7364aa5) for the staging deploy. The deployed bytes were audited in full as the 97cba5d delta from the last audited runtime 0f3410c (handoff oc-code-auditor-pre-deploy-code-audit-v1-292bb340fc8b, pre-deploy sweep 1a/1b/1d: Worker src/ unchanged except the regenerated mcp-catalog.json, /changelog, homepage and /install copy, the served updater and its runtime bundle, oc- only build guards, dependency patch bumps and overrides). git diff 97cba5d..e00f9623 outside .checkpoints/ is one planning doc, sprints/release-2.1/ow-family-sprint-plan.md, which no build step reads, so the deployed site, Worker and bundles are unchanged. Findings unchanged: M-1 skills/ content changed under version 2.0.4 (production promotion needs a release bump), L-1 runtime checkpoint.mjs runs a repo-local release-evidence.mjs before the verified copy, L-2 the handoff binder accepts any skill/policy, L-3 release-evidence spawnSync 1 MiB buffer and the bundled copy cannot run --stage pr|deploy (fail closed).",
+        "evidence": [
+          "git diff --stat 97cba5d e00f9623 -- . ':!.checkpoints': sprints/release-2.1/ow-family-sprint-plan.md only; package-lock.json and site/package-lock.json unchanged",
+          "97cba5d audited as a staging branch preview (deployment 8db8edc8, version 9b06a8bf): smoke:staging all checks passed, hardening controls passed, owner reviewed staging",
+          "PR #610 CI on b7364aa5 (same tree as e00f9623): Worker build/test/catalog verify, site type-check/build, Playwright e2e, LHCI budgets all SUCCESS",
+          "npm audit --omit=dev (root and site): 0 vulnerabilities"
+        ]
+      }
     }
   ],
   "latest_pre_deploy": {
-    "candidate": "c09a63ea0e2e95c725f44d194569761d7b95d933",
-    "candidate_identity": "sha256:38ba68b0742f66a5d46f2732c73b908456c59a2bedb22c6a08f291f6ed9a0ddc",
+    "candidate": "e00f962357353e91b54e6874f6b2ac51508bcc45",
+    "candidate_identity": "sha256:764435509fb799a0ee3d9764ac2b9f88db9bc305c54e6e876bdb9204df6d3285",
     "verdict": "PASS",
-    "blocking_findings": 0
+    "blocking_findings": 0,
+    "target": "staging from main"
   },
-  "record_updated_at": "2026-10-07T23:31:07.822Z",
+  "record_updated_at": "2026-10-16T19:35:38.382Z",
   "recently_done": [
     {
       "at": "2026-09-21T13:40:12.755Z",

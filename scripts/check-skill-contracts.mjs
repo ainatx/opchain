@@ -25,8 +25,9 @@
 //          skill, an add-on, or the protocol file). Every NEXT block leads with
 //          `use <family id>` and carries its IF IT IS NOT AVAILABLE branch; the
 //          body's Reads-from rows have non-empty absent and mismatch cases and
-//          its Hands-off rows a non-empty unavailable branch. (ow-start design
-//          §8.1; ow- cross-talk contract R5–R7.)
+//          its Hands-off rows a non-empty unavailable branch. A STATUS `next:`
+//          holds no mode (protocol §5). (ow-start design §8.1; ow- cross-talk
+//          contract R5–R7.)
 //   protocol  For a catalog whose protocol is a shared file (ow-), every
 //          skill's copy is byte-identical to the source. `--write` refreshes
 //          the copies.
@@ -39,7 +40,11 @@
 //          writes it as a shared workspace file). No file has two writer verbs
 //          across the family, except the append-only logs the protocol declares.
 //          Every NEXT target resolves: `use <id>` with a slash verb that <id>
-//          owns, or a handoffs.yaml destination a family example declares.
+//          owns, or a handoffs.yaml destination a family example declares, and a
+//          template's slash hint is its edges row's verb, mode and all. Every
+//          file an edges row says a verb writes is in that verb's Writes cell in
+//          the body's Verbs table, and routes.paths lists every path the routing
+//          reference heads a section with (and the reverse).
 //
 // How strictly text is read (see scanText): quoted verbs (backticks, or
 // `"/oc-…"` strings such as a Skill() call's args) are strict. Unquoted text is
@@ -524,6 +529,9 @@ export function checkFamily(catalogs) {
         for (const m of line.matchAll(own)) {
           if (!known.has(m[0]) && !verbNames.has(m[0])) problems.push(`${where}: \`${m[0]}\` is not an ${c.prefix} skill, planned skill, add-on or the protocol file`);
         }
+        // Protocol §5: a STATUS `next:` holds only a skill id, a verb and a path; a mode never goes in it.
+        const mode = line.match(/\bnext: [a-z0-9-]+ \/[a-z0-9-]+ (--[a-z][a-z0-9-]*)/);
+        if (mode) problems.push(`${where}: a STATUS \`next:\` carries the mode \`${mode[1]}\`; it holds only a skill id, a verb and a path (protocol §5)`);
       });
     }
     const skills = loadSkills(c.dir);
@@ -573,8 +581,9 @@ export const normPath = (p) => {
     segs.push(seg);
   }
   return segs.join("/")
-    // `<client>-<n>` (a follow-on folder) is still one placeholder segment.
-    .replace(/<[^>]+>(?:-<[^>]+>)*/g, "<*>")
+    // `<client>-<n>` (a follow-on folder), spelled with a placeholder or a number
+    // (`<client>-2`), is still one placeholder segment.
+    .replace(/<[^>]+>(?:-(?:<[^>]+>|\d+))*/g, "<*>")
     .replace(/^opchain-work\//, "")
     .toLowerCase();
 };
@@ -619,6 +628,35 @@ function readEdges(c, s, problems) {
   return out;
 }
 
+/** `a.{pdf,docx}` -> [`a.pdf`, `a.docx`]. */
+const expandBraces = (t) => {
+  const m = t.match(/\{([^{}]+)\}/);
+  return m ? m[1].split(",").flatMap((x) => expandBraces(t.replace(m[0], x.trim()))) : [t];
+};
+
+/**
+ * The body's "## Verbs" table as [{ verb, files }]: the verb in the first cell
+ * (arguments such as `<date>` dropped) and every backticked file in the Writes column.
+ */
+function writesColumn(body) {
+  const t = tableAfter(body, "## Verbs");
+  if (!t) return null;
+  const col = t.header.findIndex((h) => /^writes\b/i.test(h));
+  if (col < 0) return null;
+  return t.rows.map((r) => ({
+    verb: (r.cells[0]?.match(/`([^`]+)`/)?.[1] ?? "").replace(/\s*<[^>]*>/g, "").trim(),
+    files: [...(r.cells[col] ?? "").matchAll(/`([^`]+)`/g)].flatMap((m) => expandBraces(m[1])),
+  }));
+}
+
+/** A Writes-cell file names an edges path: the same file, the path's tail (`future.md` for `…/map/future.md`), or a `*` pattern. */
+function namesFile(cell, path) {
+  const want = normPath(path);
+  const got = normPath(cell);
+  if (got.includes("*")) return new RegExp(`(?:^|/)${got.split("*").map(escapeRegExp).join("[^/]*")}$`).test(want);
+  return want === got || want.endsWith(`/${got}`);
+}
+
 /**
  * Edge rules for every catalog with an edges file (ow-): each skill's
  * skill.edges.yaml is complete and matches its body tables; edges are
@@ -650,6 +688,7 @@ export function checkEdges(catalogs) {
       if (!e) continue;
       edges.set(s.id, e);
       const verbs = new Set(declaredCommands(s.data, c));
+      const verbsWrites = writesColumn(s.body);
       const readsTable = (tableAfter(s.body, "## Reads from")?.rows ?? []).map((r) => r.cells.join(" | ")).join("\n");
       const handsTable = (tableAfter(s.body, "## Hands off to")?.rows ?? []).map((r) => r.cells.join(" | ")).join("\n");
       const verbRoot = (v) => String(v ?? "").trim().split(/\s+/)[0];
@@ -663,6 +702,16 @@ export function checkEdges(catalogs) {
           else for (const m of w.modes) if (!modeDocumented(s.id, `${verbRoot(w.verb)} ${m}`)) problems.push(`${at}: mode \`${verbRoot(w.verb)} ${m}\` is not a mode ${s.id}'s body documents`);
         }
         if (w.seeded_by !== undefined && !verbs.has(verbRoot(w.seeded_by))) problems.push(`${at}: seeded_by \`${w.seeded_by}\` is not one of ${s.id}'s declared verbs (only the owning skill may seed its own file)`);
+        // Every file the edges say a verb writes is in that verb's Writes cell in the body's
+        // "## Verbs" table (a row the body never names is drift, eval round 4 K16/K32).
+        // Appends to a shared log (STATUS.md) are said once under the table, not per row.
+        if (filled(w.path) && w.append !== true && verbsWrites) {
+          const verb = String(w.verb ?? "").trim();
+          const accept = new Set([verb, ...(Array.isArray(w.modes) ? w.modes.map((m) => `${verbRoot(verb)} ${m}`) : [])]);
+          const cells = verbsWrites.filter((r) => accept.has(r.verb));
+          if (!cells.length) problems.push(`${at}: the body's "## Verbs" table has no row for the writer verb \`${verb}\``);
+          else if (!cells.some((r) => r.files.some((f) => namesFile(f, w.path)))) problems.push(`${at}: the body's "## Verbs" table does not name ${w.path} in the Writes column of \`${verb}\` (every file the edges declare is one the body says the verb writes)`);
+        }
       });
       e.reads.forEach((r, n) => {
         const at = `${e.rel}: reads[${n}] (${r.path})`;
@@ -674,7 +723,7 @@ export function checkEdges(catalogs) {
           if (!filled(r[k])) problems.push(`${at}: ${k} is empty (ow- contract R5)`);
           else if (PASS_THROUGH.test(r[k])) problems.push(`${at}: ${k} may never proceed as if the input passed`);
         }
-        if (r.shared === true && String(r.path).includes("/")) problems.push(`${at}: shared: true is for workspace files at the top of opchain-work/ (profile.md, STATUS.md); ${r.path} is a client file, so it needs a hands-off row`);
+        if (r.shared === true && normPath(r.path).includes("/")) problems.push(`${at}: shared: true is for workspace files at the top of opchain-work/ (profile.md, STATUS.md); ${r.path} is a client file, so it needs a hands-off row`);
         // A skill's reads of its own earlier files are detailed in its phase files, not the body table.
         if (filled(r.path) && r.from !== s.id && !readsTable.includes(String(r.path))) problems.push(`${at}: the body's "## Reads from" table does not name ${r.path}`);
       });
@@ -713,10 +762,21 @@ export function checkEdges(catalogs) {
       // exactly the edges say:, and every NEXT template's say: is an edges row.
       // (An add-on prints its own instructions; a destination row has a handoffs.yaml NEXT.)
       const templateSays = new Set();
+      const templateHints = [];
       s.body.split("\n").forEach((line) => {
         if (!/^ {4,}\S/.test(line)) return;
         for (const m of line.matchAll(/say "(use [^"]+)"/g)) templateSays.add(m[1]);
+        const say = line.match(/say "(use [^"]+)"/);
+        const hint = line.match(/\(where slash commands exist: (\/[a-z0-9-]+)((?: --[a-z][a-z0-9-]*)*)/);
+        if (say && hint) templateHints.push({ say: say[1], hint: `${hint[1]}${hint[2]}`.trim() });
       });
+      // A template's slash hint is the verb its edges row hands off with, mode and all (eval round 3, K13).
+      for (const h of e.hands_off) {
+        if (!filled(h.say) || h.verb === undefined) continue;
+        for (const t of templateHints) {
+          if (t.say === String(h.say) && t.hint !== String(h.verb).trim()) problems.push(`${c.relDir}/${s.id}/SKILL.md: the NEXT template "${t.say}" hints \`${t.hint}\`, but ${e.rel} hands it off with \`${String(h.verb).trim()}\``);
+        }
+      }
       // The routing verb ("use <id> on <path>"): its reference must exist, the body must point to it from
       // the verb's row, and the reference must cover every path the edges route.
       if (e.routes) {
@@ -731,10 +791,12 @@ export function checkEdges(catalogs) {
           const refText = readFileSync(refPath, "utf8");
           const cited = new Set([...refText.matchAll(/`([^`\s]+)`/g)].map((m) => normPath(m[1])));
           for (const path of rt.paths) if (!cited.has(normPath(path))) problems.push(`${c.relDir}/${s.id}/${rt.reference}: no route for ${path}, which ${e.rel} routes`);
-          // The other way round: a path the reference routes (a "### " route heading names it) is in routes.paths.
-          const routed = new Set(rt.paths.map(normPath));
-          for (const line of refText.split("\n").filter((l) => /^###\s/.test(l))) {
-            for (const m of line.matchAll(/`([^`\s]+)`/g)) if (/\//.test(m[1]) && !routed.has(normPath(m[1]))) problems.push(`${c.relDir}/${s.id}/${rt.reference}: routes ${m[1]} (${line.replace(/^###\s*/, "").slice(0, 40)}…), which ${e.rel} routes.paths does not list`);
+          // And the other way (eval round 3, K14): a path the reference routes under a ### heading is one routes.paths lists.
+          const listed = new Set(rt.paths.map(normPath));
+          for (const h of refText.match(/^###[^\n]*$/gm) ?? []) {
+            for (const m of h.matchAll(/`([^`\s]+\/[^`\s]*)`/g)) {
+              if (!listed.has(normPath(m[1]))) problems.push(`${e.rel}: routes.paths does not list ${m[1]}, which ${rt.reference} routes ("${h.replace(/^#+\s*/, "")}")`);
+            }
           }
         }
       }

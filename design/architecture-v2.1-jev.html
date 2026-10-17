@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>opchain 2.1 architecture</title>
+  <meta name="description" content="opchain 2.1 draft architecture: 36 skills in phase bands, the Jev skill router on UserPromptSubmit, session hooks, and the chokepoint enforcement map as an overlay.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Tokens · opchain 2.0 Slate & Emerald (site/src/styles/tokens.css) ──
+       The diagram's register is MECHANISM, not archetype: how an edge holds.
+       routed = Jev suggests one Skill-tool line · enforced = a chokepoint refuses
+       · convention = prose a model may ignore · informs = hook context only ·
+       planned = Jev uses scheduled for 2.1+. No warm (gold/orange) hues. */
+    :root {
+      --bg:          #12191f;
+      --surface:     #162028;
+      --card:        #161f26;
+      --well:        #0f151a;
+      --border:      #445461;
+      --hair:        #28333d;
+      --text:        #d4e2ef;
+      --muted:       #a5bcd1;
+      --subtle:      #7d91a4;
+      --accent:      #2be179;
+      --accent-dim:  rgba(43, 225, 121, 0.10);
+
+      --route:       #8cb9fc;
+      --enforce:     #fb5998;
+      --convention:  #7d91a4;
+      --informs:     #86c1d9;
+      --planned:     #d79fe9;
+
+      --shadow-pop:  0 8px 32px rgba(0, 0, 0, 0.45);
+      color-scheme: dark;
+    }
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme="dark"]) {
+        --bg: #e9f0f7; --surface: #f7fbfe; --card: #ffffff; --well: #eef3f8;
+        --border: #b9c6d2; --hair: #d3dde6; --text: #092438; --muted: #5d6b77; --subtle: #586c7d;
+        --accent: #0d7a3e; --accent-dim: rgba(51, 217, 119, 0.18);
+        --route: #0265d9; --enforce: #bb0963; --convention: #586c7d; --informs: #3a717c; --planned: #9f3ebb;
+        --shadow-pop: 0 8px 28px rgba(18, 28, 40, 0.16);
+        color-scheme: light;
+      }
+    }
+    :root[data-theme="light"] {
+      --bg: #e9f0f7; --surface: #f7fbfe; --card: #ffffff; --well: #eef3f8;
+      --border: #b9c6d2; --hair: #d3dde6; --text: #092438; --muted: #5d6b77; --subtle: #586c7d;
+      --accent: #0d7a3e; --accent-dim: rgba(51, 217, 119, 0.18);
+      --route: #0265d9; --enforce: #bb0963; --convention: #586c7d; --informs: #3a717c; --planned: #9f3ebb;
+      --shadow-pop: 0 8px 28px rgba(18, 28, 40, 0.16);
+      color-scheme: light;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: clamp(13px, 1.05vw, 20px); }
+    body {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; padding: 2rem;
+    }
+    @media (max-width: 640px) { body { padding: 16px; } }
+    .container { max-width: 1500px; margin: 0 auto; }
+    code { font-family: 'JetBrains Mono', monospace; font-size: 0.92em; color: var(--text);
+           background: var(--well); border: 0.5px solid var(--hair); border-radius: 3px; padding: 0 0.3em; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+    /* ── Header ── */
+    .header { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .header-eyebrow { display: flex; align-items: center; gap: 0.5em; font-size: 0.625rem; font-weight: 500;
+      letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.4em; }
+    .header-eyebrow::before { content: '—'; font-size: 1.125rem; line-height: 1; }
+    h1 { font-family: 'Outfit', system-ui, sans-serif; font-size: 1.5rem; font-weight: 600; letter-spacing: -0.015em; }
+    .subtitle { color: var(--muted); font-size: 0.75rem; margin-top: 0.3em; max-width: 60rem; line-height: 1.6; }
+    .theme-toggle { font: inherit; font-size: 0.625rem; color: var(--muted); background: var(--surface);
+      border: 0.5px solid var(--border); border-radius: 999px; padding: 0.45em 0.9em; cursor: pointer; }
+    .theme-toggle:hover { color: var(--text); border-color: var(--accent); }
+
+    /* ── Diagram container ── */
+    .diagram-container { background: var(--surface); border: 0.5px solid var(--border); border-radius: 8px; padding: 1rem; }
+    .diagram-scroll { overflow-x: auto; }
+    .bands-wrap { position: relative; min-width: 900px; border: 1px dashed var(--hair); border-radius: 6px; padding: 0.75rem 0.5rem 0.75rem 0; }
+
+    /* Overlay toggle (the one overlay: the enforcement map) */
+    .overlay-bar { display: flex; align-items: center; gap: 0.9rem; padding: 0 0 0.75rem 1rem; flex-wrap: wrap; position: relative; z-index: 5; }
+    .gate-toggle { display: inline-flex; align-items: center; gap: 0.6em; font: inherit; cursor: pointer;
+      background: color-mix(in srgb, var(--enforce) 9%, transparent); color: var(--enforce);
+      border: 0.5px solid color-mix(in srgb, var(--enforce) 55%, transparent); border-radius: 5px;
+      padding: 0.35em 0.7em; font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.05em; }
+    .gate-toggle .gt-dia { width: 0.6em; height: 0.6em; background: var(--enforce); transform: rotate(45deg); }
+    .gate-toggle[aria-expanded="true"] { background: color-mix(in srgb, var(--enforce) 18%, transparent); }
+    .overlay-hint { font-size: 0.5625rem; color: var(--subtle); }
+    .foundation { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin-left: auto; padding-right: 0.5rem; }
+    .fd-label { font-size: 0.5rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--subtle); }
+    .fd-chip { font-size: 0.5625rem; color: var(--text); background: var(--card); border: 0.5px solid var(--border);
+      border-radius: 4px; padding: 0.3em 0.55em; display: inline-flex; gap: 0.45em; align-items: center; }
+    .fd-chip .ph { color: var(--subtle); }
+    .pip { font-size: 0.5rem; font-weight: 700; border-radius: 3px; padding: 0 0.35em; line-height: 1.5; }
+    .pip.core { background: var(--route); color: var(--bg); }
+    .pip.allow { border: 0.5px solid var(--route); color: var(--route); }
+
+    /* ── Bands ── */
+    .band { display: flex; align-items: stretch; position: relative; transition: opacity 1.5s ease, filter 1.5s ease; }
+    .band.dimmed { opacity: 0.08; filter: grayscale(1) brightness(0.6); }
+    .band-label { width: 22px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      position: relative; margin-left: 6px; cursor: pointer; }
+    .band-label-text { writing-mode: vertical-rl; text-orientation: mixed; font-size: 0.55rem; font-weight: 700;
+      letter-spacing: 0.15em; color: var(--subtle); white-space: nowrap; transition: color 0.2s; }
+    .band.active .band-label-text, .band:hover .band-label-text { color: var(--text); }
+    .band-label-bar { position: absolute; left: 0; top: 6px; bottom: 6px; width: 2px; border-radius: 1px; opacity: 0; transition: opacity 0.2s; }
+    .band.active .band-label-bar { opacity: 1; }
+    .band-content { flex: 1; min-width: 0; position: relative; }
+    .band-content > svg { width: 100%; display: block; overflow: visible; }
+    .band-arrow { height: 34px; transition: opacity 1.5s ease; }
+    .band-arrow.dimmed { opacity: 0.05; }
+
+    /* Detail panel — collapsed by default */
+    .band-detail { max-height: 0; overflow: hidden; opacity: 0; padding: 0 12px;
+      transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.4s ease 0.08s, padding 0.5s ease; }
+    .band.active .band-detail { max-height: 420px; opacity: 1; padding: 8px 12px 12px; }
+    .bd-inner { border-radius: 6px; padding: 12px 16px; display: flex; gap: 16px; align-items: flex-start;
+      background: var(--well); border: 0.5px solid var(--hair); }
+    .bd-meta { flex-shrink: 0; max-width: 46%; border-radius: 5px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px;
+      background: var(--surface); border: 0.5px solid var(--hair); }
+    .bd-meta-row { display: flex; align-items: flex-start; gap: 8px; }
+    .bd-meta-label { font-size: 0.5rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--subtle);
+      flex-shrink: 0; width: 64px; padding-top: 0.2em; }
+    .bd-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+    .bd-tag { font-size: 0.5625rem; padding: 1px 6px; border-radius: 4px; border: 0.5px solid var(--hair); color: var(--muted); }
+    .bd-tag.enf { color: var(--enforce); border-color: color-mix(in srgb, var(--enforce) 45%, transparent); }
+    .bd-tag.conv { color: var(--convention); border-style: dashed; }
+    .bd-tag.rt { color: var(--route); border-color: color-mix(in srgb, var(--route) 45%, transparent); }
+    .bd-tag.pl { color: var(--planned); border-style: dotted; border-color: var(--planned); }
+    .bd-text { flex: 1; min-width: 0; }
+    .bd-badge { font-size: 0.5rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 3px; color: var(--muted); }
+    .bd-title { font-family: 'Outfit', system-ui, sans-serif; font-size: 0.8125rem; font-weight: 600; margin-bottom: 5px; }
+    .bd-desc { font-size: 0.625rem; color: var(--muted); line-height: 1.65; }
+    .bd-desc + .bd-desc { margin-top: 0.5em; }
+
+    /* ── SVG vocabulary (in-band) ── */
+    .chip { cursor: pointer; }
+    .chip .bg { fill: var(--card); stroke: var(--border); stroke-width: 1; transition: stroke 0.2s; }
+    .chip:hover .bg, .chip:focus .bg { stroke: var(--accent); }
+    .chip:focus { outline: none; }
+    .chip .stripe { fill: var(--enforce); }
+    .t-title { font-family: 'Outfit', system-ui, sans-serif; font-weight: 600; font-size: 12.5px; fill: var(--text); }
+    .t-sub { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; fill: var(--muted); }
+    .t-ph { font-family: 'JetBrains Mono', monospace; font-size: 8.5px; fill: var(--subtle); }
+    .t-lbl { font-family: 'JetBrains Mono', monospace; font-size: 8.5px; font-weight: 500; }
+    .t-lbl.route { fill: var(--route); } .t-lbl.enforce { fill: var(--enforce); } .t-lbl.conv { fill: var(--convention); }
+    .t-lbl.informs { fill: var(--informs); } .t-lbl.planned { fill: var(--planned); } .t-lbl.neutral { fill: var(--subtle); }
+    .pip-core rect { fill: var(--route); } .pip-core text { fill: var(--bg); font-family: 'JetBrains Mono', monospace; font-size: 7.5px; font-weight: 700; }
+    .pip-allow rect { fill: none; stroke: var(--route); stroke-width: 0.8; } .pip-allow text { fill: var(--route); font-family: 'JetBrains Mono', monospace; font-size: 7.5px; font-weight: 700; }
+
+    .node .bg { fill: var(--card); stroke: var(--border); stroke-width: 1; }
+    .node.route .bg { stroke: var(--route); fill: color-mix(in srgb, var(--route) 8%, var(--card)); }
+    .node.informs .bg { stroke: var(--informs); stroke-dasharray: 4 3; }
+    .node.planned .bg { stroke: var(--planned); stroke-dasharray: 2 3; fill: color-mix(in srgb, var(--planned) 6%, var(--card)); }
+    .node.shadow .bg { stroke: var(--convention); }
+    .node .t-head { font-family: 'JetBrains Mono', monospace; font-size: 7.6px; font-weight: 700; letter-spacing: 0.02em; }
+    .node .t-sub { font-size: 8.6px; }
+    .node.route .t-head { fill: var(--route); } .node.informs .t-head { fill: var(--informs); }
+    .node.planned .t-head { fill: var(--planned); } .node.shadow .t-head, .node.neutral .t-head { fill: var(--subtle); }
+    .node text { white-space: pre; }
+    .node .t-quote { font-family: 'JetBrains Mono', monospace; font-size: 9px; fill: var(--route); }
+
+    .edge { fill: none; stroke-width: 1.4; }
+    .edge.route { stroke: var(--route); stroke-width: 1.6; }
+    .edge.enforce { stroke: var(--enforce); stroke-width: 1.7; }
+    .edge.conv { stroke: var(--convention); stroke-dasharray: 5 4; }
+    .edge.informs { stroke: var(--informs); stroke-dasharray: 3 3; }
+    .edge.planned { stroke: var(--planned); stroke-dasharray: 2 3; }
+    .edge.neutral { stroke: var(--subtle); }
+    .ah-route { fill: var(--route); } .ah-enforce { fill: var(--enforce); } .ah-conv { fill: var(--convention); }
+    .ah-informs { fill: var(--informs); } .ah-planned { fill: var(--planned); } .ah-neutral { fill: var(--subtle); }
+
+    #glow-route feFlood { flood-color: var(--route); }
+    #glow-enforce feFlood { flood-color: var(--enforce); }
+
+    /* ── Canvases ── */
+    .lines-canvas, .gates-canvas { position: absolute; left: 0; top: 0; pointer-events: none; }
+    .lines-canvas { z-index: 2; transition: opacity 0.75s ease; }
+    .lines-canvas.dimmed { opacity: 0.05; }
+    .gates-canvas { z-index: 4; }
+
+    /* ── Overlay mode: the enforcement map ── */
+    .bands-wrap.gate-mode .band { opacity: 0.16; filter: grayscale(0.85) brightness(0.7); }
+    .bands-wrap.gate-mode .band-arrow { opacity: 0.05; }
+    .bands-wrap.gate-mode .lines-canvas { opacity: 0.05; }
+    .gate-panel { max-height: 0; overflow: hidden; opacity: 0; position: relative; z-index: 5;
+      transition: max-height 0.6s cubic-bezier(0.4,0,0.2,1), opacity 0.5s ease 0.1s; }
+    .bands-wrap.gate-mode .gate-panel { max-height: 900px; opacity: 1; }
+    .gp-inner { margin: 0 8px 14px 16px; padding: 14px 16px; border-radius: 8px; position: relative;
+      background: var(--well); border: 0.5px solid color-mix(in srgb, var(--enforce) 40%, transparent); }
+    .gp-inner::before { content: ''; display: block; height: 1px; margin: -14px -16px 12px;
+      background: linear-gradient(90deg, transparent, var(--enforce) 30%, var(--enforce) 70%, transparent); opacity: 0.4; }
+    .gp-badge { font-size: 0.5rem; font-weight: 700; color: var(--enforce); letter-spacing: 0.12em; }
+    .gp-title { font-family: 'Outfit', system-ui, sans-serif; font-size: 0.9rem; font-weight: 600; margin: 2px 0 4px; }
+    .gp-intro { font-size: 0.625rem; color: var(--muted); line-height: 1.6; max-width: 70rem; margin-bottom: 12px; }
+    .gp-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; position: relative; z-index: 2; }
+    .gp-card { background: var(--card); border: 0.5px solid var(--hair); border-radius: 6px; padding: 9px 11px; position: relative; }
+    .gp-card .num { display: inline-flex; align-items: center; justify-content: center; width: 1.5em; height: 1.5em; border-radius: 50%;
+      background: var(--enforce); color: var(--bg); font-size: 0.5625rem; font-weight: 700; margin-right: 0.4em; }
+    .gp-cp { font-size: 0.6875rem; font-weight: 700; color: var(--enforce); display: flex; align-items: center; }
+    .gp-edge { font-family: 'Outfit', system-ui, sans-serif; font-size: 0.6875rem; font-weight: 500; margin: 5px 0 4px; }
+    .gp-mech { font-size: 0.5625rem; color: var(--muted); line-height: 1.6; }
+    .gp-fail { font-size: 0.5rem; color: var(--subtle); margin-top: 5px; line-height: 1.5; }
+    .gp-foot { font-size: 0.5625rem; color: var(--muted); margin-top: 12px; line-height: 1.6; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    .gp-foot b { color: var(--text); font-weight: 600; }
+    .gp-canvas { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+
+    /* ── Legend ── */
+    .legend { display: flex; flex-wrap: wrap; gap: 10px 26px; padding: 18px 16px 6px; justify-content: center; align-items: center; position: relative; }
+    .legend-divider { flex-basis: 100%; height: 0; border-top: 0.5px solid var(--hair); margin: 4px 0; }
+    .legend-cap { font-size: 0.5rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--subtle); }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.625rem; color: var(--muted); cursor: default;
+      position: relative; transition: opacity 0.6s ease; border-radius: 4px; padding: 2px 4px; }
+    .legend-item.dimmed { opacity: 0.12; }
+    .li-line { width: 28px; height: 0; border-top: 2px solid; }
+    .li-swatch { display: inline-flex; align-items: center; }
+    .legend-card { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); width: 17rem;
+      padding: 11px 13px; border-radius: 6px; background: var(--card); border: 0.5px solid var(--border); box-shadow: var(--shadow-pop);
+      z-index: 20; pointer-events: none; opacity: 0; transition: opacity 0.25s ease; font-size: 0.5625rem; color: var(--muted); line-height: 1.6; }
+    .legend-item.show .legend-card { opacity: 1; }
+    .legend-card-title { font-family: 'Outfit', system-ui, sans-serif; font-size: 0.6875rem; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+    .legend-card-examples { margin-top: 5px; font-size: 0.5rem; color: var(--subtle); }
+
+    /* ── Info cards + footer ── */
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-top: 1.25rem; }
+    .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 8px; padding: 1.1rem; }
+    .card-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; }
+    .card-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .card h3 { font-family: 'Outfit', system-ui, sans-serif; font-size: 0.8rem; font-weight: 600; }
+    .card ul { list-style: none; color: var(--muted); font-size: 0.625rem; line-height: 1.55; }
+    .card li { margin-bottom: 0.45rem; }
+    .footer { text-align: center; margin-top: 1.25rem; color: var(--subtle); font-size: 0.625rem; line-height: 1.6; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Shared SVG defs: glow filters (flood colour set from CSS tokens) + arrow markers -->
+  <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+    <defs>
+      <filter id="glow-route" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="6" result="b"/>
+        <feFlood flood-opacity="0.45" result="c"/>
+        <feComposite in="c" in2="b" operator="in" result="s"/>
+        <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="glow-enforce" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="6" result="b"/>
+        <feFlood flood-opacity="0.45" result="c"/>
+        <feComposite in="c" in2="b" operator="in" result="s"/>
+        <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <marker id="ah-route" markerWidth="9" markerHeight="7" refX="8.5" refY="3.5" orient="auto"><polygon class="ah-route" points="0 0, 9 3.5, 0 7"/></marker>
+      <marker id="ah-enforce" markerWidth="9" markerHeight="7" refX="8.5" refY="3.5" orient="auto"><polygon class="ah-enforce" points="0 0, 9 3.5, 0 7"/></marker>
+      <marker id="ah-conv" markerWidth="9" markerHeight="7" refX="8.5" refY="3.5" orient="auto"><polygon class="ah-conv" points="0 0, 9 3.5, 0 7"/></marker>
+      <marker id="ah-informs" markerWidth="9" markerHeight="7" refX="8.5" refY="3.5" orient="auto"><polygon class="ah-informs" points="0 0, 9 3.5, 0 7"/></marker>
+      <marker id="ah-planned" markerWidth="9" markerHeight="7" refX="8.5" refY="3.5" orient="auto"><polygon class="ah-planned" points="0 0, 9 3.5, 0 7"/></marker>
+      <marker id="ah-neutral" markerWidth="9" markerHeight="7" refX="8.5" refY="3.5" orient="auto"><polygon class="ah-neutral" points="0 0, 9 3.5, 0 7"/></marker>
+    </defs>
+  </svg>
+
+  <div class="container">
+    <header class="header">
+      <div>
+        <div class="header-eyebrow">opchain 2.1 · architecture · draft 2026-10-09</div>
+        <h1>Enforcement at chokepoints, routing by Jev</h1>
+        <p class="subtitle">36 skills in 6 pipeline bands, plus the session layer that now surrounds them. Skill-to-skill prose is labelled <b style="color:var(--convention)">convention</b>: it produced no autonomous invocations in the audit. What holds is <b style="color:var(--enforce)">enforced</b> at a chokepoint or <b style="color:var(--route)">routed</b> as one tool-named line. Hover a band for details, or open the enforcement map.</p>
+      </div>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch colour theme">◐ theme</button>
+    </header>
+
+    <div class="diagram-container">
+      <div class="diagram-scroll">
+      <div class="bands-wrap" id="bands-wrap">
+        <canvas class="lines-canvas" id="lines-canvas" aria-hidden="true"></canvas>
+        <canvas class="gates-canvas" id="gates-canvas" aria-hidden="true"></canvas>
+
+        <div class="overlay-bar">
+          <button class="gate-toggle" id="gate-toggle" type="button" aria-expanded="false" aria-controls="gate-panel">
+            <span class="gt-dia" aria-hidden="true"></span> ENFORCEMENT MAP · 7 chokepoints + artifact rows
+          </button>
+          <span class="overlay-hint">hover to preview · click to pin · <span style="color:var(--enforce)">◆</span> marks where each one sits</span>
+          <div class="foundation" role="group" aria-label="Foundation skills">
+            <span class="fd-label">foundation</span>
+            <span class="fd-chip" title="oc-checkpoint-protocol: checkpoint schema bundled in every skill">oc-checkpoint-protocol <span class="ph">foundation</span></span>
+            <span class="fd-chip" title="oc-orchestrator: cross-project status and routing (/oc-ops)">oc-orchestrator <span class="ph">foundation</span> <span class="pip allow">allow</span></span>
+            <span class="fd-chip" title="oc-update: update repo-local skills">oc-update <span class="ph">foundation</span> <span class="pip allow">allow</span></span>
+          </div>
+        </div>
+
+        <!-- ══ OVERLAY PANEL: ENFORCEMENT MAP (orchestrator.md §3) ══ -->
+        <div class="gate-panel" id="gate-panel" role="region" aria-label="Enforcement map">
+          <div class="gp-inner">
+            <canvas class="gp-canvas" id="gp-canvas" aria-hidden="true"></canvas>
+            <div class="gp-badge">ENFORCEMENT MAP · orchestrator.md §3</div>
+            <div class="gp-title">Where each edge that must hold is held, and by what</div>
+            <p class="gp-intro">Ordered along the lifecycle. Each card is one chokepoint, and the numbered <span style="color:var(--enforce)">◆</span> in the dimmed bands shows where it sits. If a row's mechanism is not installed in the repository you are working in, that edge is prose there: install it with <code>/oc-enroll</code>, <code>install-git-drivers --ci</code> or the deploy wrapper before relying on it.</p>
+            <div class="gp-grid" id="gp-grid">
+              <div class="gp-card"><div class="gp-cp"><span class="num">1</span>spec → build</div>
+                <div class="gp-edge">The spec phase produces its artifacts</div>
+                <div class="gp-mech"><code>scaffold-spec</code> writes <code>spec/01…10</code> stubs whose first line names the producing skill.</div>
+                <div class="gp-fail">Once oc-app-architect's checkpoint is in a build phase, the enrolled gate refuses a commit while a stub still carries its producer line.</div></div>
+              <div class="gp-card"><div class="gp-cp"><span class="num">2</span>git commit</div>
+                <div class="gp-edge">Every commit passes bug-check</div>
+                <div class="gp-mech">Enrolled <code>pre-commit</code> verifier (<code>/oc-enroll</code>) writes tree-bound receipts: PASS, FAIL, UNSUPPORTED or INCONCLUSIVE.</div>
+                <div class="gp-fail">A timeout, exit 127 or environment failure gives INCONCLUSIVE (exit 2): retry it, there is nothing to fix. Only PASS authorizes.</div></div>
+              <div class="gp-card"><div class="gp-cp"><span class="num">3</span>post-commit</div>
+                <div class="gp-edge">A bypass is a recorded event</div>
+                <div class="gp-mech">Git runs <code>post-commit</code> even under <code>--no-verify</code>. It writes <code>.git/opchain/bypasses/v1/&lt;sha&gt;.json</code> for any commit with no PASS receipt.</div>
+                <div class="gp-fail">This hook cannot block a commit that already exists. It records the bypass so the push step can see it.</div></div>
+              <div class="gp-card"><div class="gp-cp"><span class="num">4</span>git push</div>
+                <div class="gp-edge">Bypassed commits do not leave the machine silently</div>
+                <div class="gp-mech"><code>pre-push</code> refuses a recorded bypass until the commit carries a <code>bugcheck: bypassed (&lt;reason&gt;)</code> trailer.</div>
+                <div class="gp-fail">Audit I-04 counted ≥18 unrecorded bypasses before this guard existed.</div></div>
+              <div class="gp-card"><div class="gp-cp"><span class="num">5</span>PR open</div>
+                <div class="gp-edge">Every PR carries docs + readiness evidence</div>
+                <div class="gp-mech">CI <code>evidence:pr</code> (<code>release-evidence.mjs --stage pr</code>) requires <code>pr-docs-v1</code> (oc-docs-forge) and <code>pr-readiness-v1</code> (oc-repo-ops) handoffs bound to the HEAD tree.</div>
+                <div class="gp-fail">A consumer repo gets the workflow from <code>install-git-drivers --ci</code>.</div></div>
+              <div class="gp-card"><div class="gp-cp"><span class="num">6</span>release</div>
+                <div class="gp-edge">Releases are tagged before they ship</div>
+                <div class="gp-mech"><code>check-release-tag</code> refuses a production deploy of an untagged catalog version (signed tag).</div>
+                <div class="gp-fail">The SessionStart release-resume line names <code>/oc-git-release &lt;semver&gt;</code> while oc-release-ops is phase=ship and the tag or live SHA is missing.</div></div>
+              <div class="gp-card"><div class="gp-cp"><span class="num">7</span>deploy</div>
+                <div class="gp-edge">Deploys ship reviewed <code>main</code></div>
+                <div class="gp-mech">The deploy wrapper checks the exact <code>origin/main</code> for staging, the live-SHA ancestor, and an explicit production token.</div>
+                <div class="gp-fail">It writes <code>.checkpoints/oc-deploy-ops.checkpoint.json</code> on every run.</div></div>
+              <div class="gp-card"><div class="gp-cp"><span class="num">8</span>artifact-keyed rows</div>
+                <div class="gp-edge">Security, integration and eval reviews happen</div>
+                <div class="gp-mech"><code>.opchain/hardening.yaml</code> + <code>security_review_ref</code> (deploy replays <code>/oc-harden verify</code>). A new <code>*_API_TOKEN</code> needs <code>integrations/&lt;service&gt;.md</code>. A prompt-file commit needs a current eval score.</div>
+                <div class="gp-fail">These rows apply at commit or deploy, and only when their artifact exists.</div></div>
+            </div>
+            <div class="gp-foot">
+              <span><b>Held:</b> the native pre-commit gate was the only enforcement that held (FAIL 41% deftwright / 22% opchain).</span>
+              <span><b>Not a gate:</b> the Jev router only suggests and never blocks. It runs in shadow mode by default.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ BAND 0: SESSION + ROUTE ══ -->
+        <div class="band" id="band-route" data-band="route" tabindex="0" aria-label="Session and routing layer">
+          <div class="band-label"><div class="band-label-bar" style="background:var(--route)"></div><span class="band-label-text" style="color:var(--route)">SESSION · ROUTE</span></div>
+          <div class="band-content">
+            <svg viewBox="0 0 1000 330" role="img" aria-label="Session hooks and the Jev skill router"></svg>
+            <div class="band-detail"><div class="bd-inner">
+              <div class="bd-meta">
+                <div class="bd-meta-row"><span class="bd-meta-label">hooks</span><div class="bd-tags"><span class="bd-tag rt">UserPromptSubmit · route-prompt.cjs</span><span class="bd-tag">SessionStart · session-state.cjs</span><span class="bd-tag">Stop · next-suggestion.cjs</span><span class="bd-tag">Stop · task-end.cjs</span></div></div>
+                <div class="bd-meta-row"><span class="bd-meta-label">router</span><div class="bd-tags"><span class="bd-tag rt">TypeSafe Jev · jev-1.13.0 (pinned)</span><span class="bd-tag rt">2 requests · cache 24 h</span><span class="bd-tag">8 s budget · fail open</span></div></div>
+                <div class="bd-meta-row"><span class="bd-meta-label">status</span><div class="bd-tags"><span class="bd-tag">uncommitted · chain-fixes worktree</span><span class="bd-tag">shadow default</span></div></div>
+                <div class="bd-meta-row"><span class="bd-meta-label">planned</span><div class="bd-tags"><span class="bd-tag pl">1 verifier FAIL triage</span><span class="bd-tag pl">2 Stop handoff detection</span><span class="bd-tag pl">3 semantic gate rows</span></div></div>
+              </div>
+              <div class="bd-text">
+                <div class="bd-badge" style="color:var(--route)">Every prompt · routed, never blocking</div>
+                <div class="bd-title">Session hooks and the Jev skill router</div>
+                <div class="bd-desc">The UserPromptSubmit hook redacts the prompt and sends it to TypeSafe Jev with the conversation tail and repo state. Request 1 is a Choice over every routable skill plus <code>none</code>, with three gate Nouls. Request 2 reranks the top 3, with a <code>fits</code> Noul and a verb Choice per candidate. A suggestion needs gate ≥ 0.5, top probability ≥ 0.35, <code>fits</code> ≥ 0.4 for the 7 core skills (0.9 for the rest), and membership in the 12-skill evidence allowlist. The output is the one line the audit measured at 72/72: <code>invoke the Skill tool with skill X and args /verb</code>.</div>
+                <div class="bd-desc">An explicit <code>/oc-*</code> mention routes deterministically with no Jev call. Shadow mode is the default: it logs and injects nothing. Each prompt also appends an outcome record for the previous one (skill calls, commit, push, PR, deploy), which <code>route-eval outcomes</code> uses for the go/no-go decision. SessionStart and Stop only inform; neither is a gate.</div>
+              </div>
+            </div></div>
+          </div>
+        </div>
+        <div class="band-arrow" id="ba-0"></div>
+
+        <!-- ══ BAND 1: CONCEPT · SPEC ══ -->
+        <div class="band" id="band-spec" data-band="spec" tabindex="0" aria-label="Concept and spec band">
+          <div class="band-label"><div class="band-label-bar" style="background:var(--accent)"></div><span class="band-label-text">CONCEPT · SPEC</span></div>
+          <div class="band-content">
+            <svg viewBox="0 0 1000 150" role="img" aria-label="Concept and spec skills"></svg>
+            <div class="band-detail"><div class="bd-inner">
+              <div class="bd-meta">
+                <div class="bd-meta-row"><span class="bd-meta-label">skills</span><div class="bd-tags"><span class="bd-tag">8 · frontmatter phases plan / plan+build</span></div></div>
+                <div class="bd-meta-row"><span class="bd-meta-label">convention</span><div class="bd-tags"><span class="bd-tag conv">reverse-spec → app-architect</span><span class="bd-tag conv">app-architect → stack-forge</span><span class="bd-tag conv">→ qa-ops (06-testing)</span><span class="bd-tag conv">→ api-dev · data-ops · claude-api</span><span class="bd-tag conv">→ git-ops (sprints pass)</span></div></div>
+                <div class="bd-meta-row"><span class="bd-meta-label">enforced</span><div class="bd-tags"><span class="bd-tag enf">① scaffold-spec stubs</span></div></div>
+              </div>
+              <div class="bd-text">
+                <div class="bd-badge">Band 1 of 6 · concept → spec</div>
+                <div class="bd-title">Concept · Spec</div>
+                <div class="bd-desc">oc-app-architect turns an idea or a reverse-spec into <code>spec/01…10</code>. It calls stack-forge, qa-ops, api-dev, data-ops and the AI skills from Phase 2, but only by convention: these are SKILL.md instructions, and nothing refuses a skipped call. The one mechanical edge is ①. Stubs name their producing skill, and a build-phase commit is refused while a stub remains.</div>
+              </div>
+            </div></div>
+          </div>
+        </div>
+        <div class="band-arrow" id="ba-1"></div>
+
+        <!-- ══ BAND 2: DESIGN ══ -->
+        <div class="band" id="band-design" data-band="design" tabindex="0" aria-label="Design band">
+          <div class="band-label"><div class="band-label-bar" style="background:var(--accent)"></div><span class="band-label-text">DESIGN</span></div>
+          <div class="band-content">
+            <svg viewBox="0 0 1000 82" role="img" aria-label="Design skills"></svg>
+            <div class="band-detail"><div class="bd-inner">
+              <div class="bd-meta">
+                <div class="bd-meta-row"><span class="bd-meta-label">skills</span><div class="bd-tags"><span class="bd-tag">4 · plan / plan+build</span></div></div>
+                <div class="bd-meta-row"><span class="bd-meta-label">convention</span><div class="bd-tags"><span class="bd-tag conv">app-architect → ux-engineer (build-loop step)</span><span class="bd-tag conv">ux-engineer → dash-forge (data-heavy screen)</span><span class="bd-tag conv">signal-forge → data-ops</span></div></div>
+                <div class="bd-meta-row"><span class="bd-meta-label">enforced</span><div class="bd-tags"><span class="bd-tag">none</span></div></div>
+              </div>
+              <div class="bd-text">
+                <div class="bd-badge">Band 2 of 6 · design</div>
+                <div class="bd-title">Design</div>
+                <div class="bd-desc">UI, dashboard, first-party API and data-contract design. Every edge into this band is a convention. No chokepoint refuses a skipped design step, so an oc-app-architect run that skips Phase 2 artifacts (audit I-09) is not caught here.</div>
+              </div>
+            </div></div>
+          </div>
+        </div>
+        <div class="band-arrow" id="ba-2"></div>
+
+        <!-- ══ BAND 3: AI-NATIVE ══ -->
+        <div class="band" id="band-ai" data-band="ai" tabindex="0" aria-label="AI-native band">
+          <div class="band-label"><div class="band-label-bar" style="background:var(--accent)"></div><span class="band-label-text">AI-NATIVE</span></div>
+          <div class="band-content">
+            <svg viewBox="0 0 1000 82" role="img" aria-label="AI-native skills"></svg>
+            <div class="band-detail"><div class="bd-inner">
+              <div class="bd-meta">
+                <div class="bd-meta-row"><span class="bd-meta-label">skills</span><div class="bd-tags"><span class="bd-tag">4 · build+ai-native</span></div></div>
+                <div class="bd-meta-row"><span class="bd-meta-label">convention</span><div class="bd-tags"><span class="bd-tag conv">app-architect → claude-api → rag / agent</span><span class="bd-tag conv">→ prompt-ops goldset + eval</span></div></div>
+                <div class="bd-meta-row"><span class="bd-meta-label">enforced</span><div class="bd-tags"><span class="bd-tag enf">⑧ prompt-file commit needs current eval score</span></div></div>
+              </div>
+              <div class="bd-text">
+                <div class="bd-badge">Band 3 of 6 · AI-native build</div>
+                <div class="bd-title">AI-native</div>
+                <div class="bd-desc">Model routing, retrieval, agent harnesses and prompt evals. The model-routing handoffs are conventions. Only the eval has a chokepoint: a commit touching prompt files needs a current eval score in the oc-prompt-ops checkpoint.</div>
+              </div>
+            </div></div>
+          </div>
+        </div>
+        <div class="band-arrow" id="ba-3"></div>
+
+        <!-- ══ BAND 4: BUILD ══ -->
+        <div class="band" id="band-build" data-band="build" tabindex="0" aria-label="Build band">
+          <div class="band-label"><div class="band-label-bar" style="background:var(--accent)"></div><span class="band-label-text">BUILD</span></div>
+          <div class="band-content">
+            <svg viewBox="0 0 1000 150" role="img" aria-label="Build skills"></svg>
+            <div class="band-detail"><div class="bd-inner">
+              <div class="bd-meta">
+                <div class="bd-meta-row"><span class="bd-meta-label">skills</span><div class="bd-tags"><span class="bd-tag">5 · build</span></div></div>
+                <div class="bd-meta-row"><span class="bd-meta-label">convention</span><div class="bd-tags"><span class="bd-tag conv">code-auditor → security-auditor</span><span class="bd-tag conv">security-auditor → security-hardening</span><span class="bd-tag conv">integrations → code-auditor</span><span class="bd-tag conv">code-auditor → deploy-ops (pre-deploy)</span></div></div>
+                <div class="bd-meta-row"><span class="bd-meta-label">enforced</span><div class="bd-tags"><span class="bd-tag enf">⑧ integrations/&lt;service&gt;.md for new secrets</span><span class="bd-tag enf">⑧ hardening.yaml replayed at deploy</span></div></div>
+              </div>
+              <div class="bd-text">
+                <div class="bd-badge">Band 4 of 6 · build + review</div>
+                <div class="bd-title">Build</div>
+                <div class="bd-desc">Integrations, signals and the review skills. The auditor chain is a convention. It is the clearest positive in the audit (≈$370 of auditor work produced 23 HIGH / 106 MEDIUM findings) when a spawn prompt names the Skill tool. Two artifact-keyed rows make the integration doc and the hardening manifest checkable.</div>
+              </div>
+            </div></div>
+          </div>
+        </div>
+        <div class="band-arrow" id="ba-4"></div>
+
+        <!-- ══ BAND 5: DEPLOY (commit → PR → release → deploy) ══ -->
+        <div class="band" id="band-deploy" data-band="deploy" tabindex="0" aria-label="Deploy band: commit, PR, release, deploy">
+          <div class="band-label"><div class="band-label-bar" style="background:var(--enforce)"></div><span class="band-label-text">DEPLOY</span></div>
+          <div class="band-content">
+            <svg viewBox="0 0 1000 150" role="img" aria-label="Commit, PR, release and deploy skills"></svg>
+            <div class="band-detail"><div class="bd-inner">
+              <div class="bd-meta">
+                <div class="bd-meta-row"><span class="bd-meta-label">skills</span><div class="bd-tags"><span class="bd-tag">7 · build (docs-forge plan+build)</span></div></div>
+                <div class="bd-meta-row"><span class="bd-meta-label">enforced</span><div class="bd-tags"><span class="bd-tag enf">② commit</span><span class="bd-tag enf">③ post-commit</span><span class="bd-tag enf">④ push</span><span class="bd-tag enf">⑤ PR evidence</span><span class="bd-tag enf">⑥ release tag</span><span class="bd-tag enf">⑦ deploy wrapper</span></div></div>
+                <div class="bd-meta-row"><span class="bd-meta-label">convention</span><div class="bd-tags"><span class="bd-tag conv">app-architect → git-ops</span><span class="bd-tag conv">git-ops → deploy-ops (user confirms)</span></div></div>
+                <div class="bd-meta-row"><span class="bd-meta-label">routed</span><div class="bd-tags"><span class="bd-tag rt">6 of the 7 core-tier skills live here</span></div></div>
+              </div>
+              <div class="bd-text">
+                <div class="bd-badge" style="color:var(--enforce)">Band 5 of 6 · commit → PR → release → deploy</div>
+                <div class="bd-title">Deploy</div>
+                <div class="bd-desc">This is where 2.1's enforcement lives. The skill <em>invocations</em> here are still prose, and 0/229 deftwright PRs entered oc-git-ops. The <em>outcomes</em> are checked at the git hooks, in CI and in the deploy wrapper, so a skipped skill now produces a refusal instead of a silent gap.</div>
+              </div>
+            </div></div>
+          </div>
+        </div>
+        <div class="band-arrow" id="ba-5"></div>
+
+        <!-- ══ BAND 6: OPERATE · LEARN ══ -->
+        <div class="band" id="band-operate" data-band="operate" tabindex="0" aria-label="Operate and learn band">
+          <div class="band-label"><div class="band-label-bar" style="background:var(--accent)"></div><span class="band-label-text">OPERATE · LEARN</span></div>
+          <div class="band-content">
+            <svg viewBox="0 0 1000 82" role="img" aria-label="Operate and learn skills"></svg>
+            <div class="band-detail"><div class="bd-inner">
+              <div class="bd-meta">
+                <div class="bd-meta-row"><span class="bd-meta-label">skills</span><div class="bd-tags"><span class="bd-tag">5 · build / foundation+ai-native</span></div></div>
+                <div class="bd-meta-row"><span class="bd-meta-label">convention</span><div class="bd-tags"><span class="bd-tag conv">deploy-ops → monitoring-ops</span><span class="bd-tag conv">cost-ops → telemetry-ops</span></div></div>
+                <div class="bd-meta-row"><span class="bd-meta-label">enforced</span><div class="bd-tags"><span class="bd-tag">none</span></div></div>
+              </div>
+              <div class="bd-text">
+                <div class="bd-badge">Band 6 of 6 · post-ship</div>
+                <div class="bd-title">Operate · Learn</div>
+                <div class="bd-desc">Monitoring, spend attribution, opt-in usage metering and the 2.0 learning pair (oc-hindsight, oc-evolve). The router's own outcome records are a learning loop too, but they live in the session layer, not in a skill.</div>
+              </div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <!-- ══ LEGEND ══ -->
+      <div class="legend" id="legend">
+        <span class="legend-cap">how an edge holds</span>
+        <span class="legend-item" tabindex="0" aria-describedby="lg-route"><span class="li-line" style="border-color:var(--route)"></span>routed
+          <span class="legend-card" role="tooltip" id="lg-route"><span class="legend-card-title">Routed (Jev)</span>The UserPromptSubmit hook names one skill and verb in a tool-named line. It only suggests and never blocks, and in shadow mode it injects nothing.<span class="legend-card-examples" style="display:block">e.g. "invoke the Skill tool with skill "oc-git-ops" and args "/oc-git-sync"" · left-gutter bus</span></span></span>
+        <span class="legend-item" tabindex="0" aria-describedby="lg-enf"><span class="li-line" style="border-color:var(--enforce)"></span>enforced
+          <span class="legend-card" role="tooltip" id="lg-enf"><span class="legend-card-title">Enforced at a chokepoint</span>Something outside the skill catalog refuses the step if the edge did not hold: a git hook, a CI check or a deploy script. Numbered ◆ markers tie each one to the enforcement map.<span class="legend-card-examples" style="display:block">e.g. ② pre-commit verifier · ⑤ CI evidence:pr · ⑦ deploy wrapper</span></span></span>
+        <span class="legend-item" tabindex="0" aria-describedby="lg-conv"><span class="li-line" style="border-color:var(--convention);border-top-style:dashed"></span>convention
+          <span class="legend-card" role="tooltip" id="lg-conv"><span class="legend-card-title">Convention (prose handoff)</span>A SKILL.md or orchestrator.md §3 instruction to invoke the next skill. In 87 sessions it produced zero autonomous invocations. Follow it when you are running, but don't count on it.<span class="legend-card-examples" style="display:block">e.g. app-architect → git-ops: 0/229 deftwright PRs entered oc-git-ops</span></span></span>
+        <span class="legend-item" tabindex="0" aria-describedby="lg-inf"><span class="li-line" style="border-color:var(--informs);border-top-style:dotted"></span>informs
+          <span class="legend-card" role="tooltip" id="lg-inf"><span class="legend-card-title">Informs (hook context)</span>A hook that puts state or a suggestion in front of the model or the user without refusing anything.<span class="legend-card-examples" style="display:block">e.g. SessionStart next: line (acted on ≤1/53 and ≤4/27 times) · Stop next-suggestion (0/62 followed)</span></span></span>
+        <span class="legend-item" tabindex="0" aria-describedby="lg-pl"><span class="li-line" style="border-color:var(--planned);border-top-style:dotted"></span>planned 2.1+
+          <span class="legend-card" role="tooltip" id="lg-pl"><span class="legend-card-title">Planned (2.1+)</span>Jev uses after the router, in the owner's order: 1 verifier FAIL triage, 2 Stop handoff detection, 3 semantic gate rows. None of them is built.<span class="legend-card-examples" style="display:block">drawn dotted, never solid</span></span></span>
+        <div class="legend-divider"></div>
+        <span class="legend-cap">skill markers</span>
+        <span class="legend-item" tabindex="0" aria-describedby="lg-core"><span class="li-swatch"><span class="pip core">core</span></span>core tier
+          <span class="legend-card" role="tooltip" id="lg-core"><span class="legend-card-title">Core routing tier · fits ≥ 0.4</span>The seven pipeline skills the router may suggest at the lower bar. In the 2026-10-09 eval, git-ops (0.92) and deploy-ops (0.88) held precision down to fits 0.4.<span class="legend-card-examples" style="display:block">git-ops · deploy-ops · code-auditor · bug-check · release-ops · docs-forge · repo-ops</span></span></span>
+        <span class="legend-item" tabindex="0" aria-describedby="lg-allow"><span class="li-swatch"><span class="pip allow">allow</span></span>allowlisted
+          <span class="legend-card" role="tooltip" id="lg-allow"><span class="legend-card-title">Evidence allowlist · fits ≥ 0.9</span>Other skills with labelled positives in the eval. The router can suggest them only at fits ≥ 0.9. Unmarked skills remain Choice options that absorb probability, but they are never suggested (an explicit /oc-* mention still routes).<span class="legend-card-examples" style="display:block">app-architect · ux-engineer · dash-forge · orchestrator · update</span></span></span>
+        <span class="legend-item" tabindex="0" aria-describedby="lg-stripe"><span class="li-swatch"><svg width="22" height="14" aria-hidden="true"><rect x="0.5" y="0.5" width="21" height="13" rx="3" style="fill:var(--card);stroke:var(--border)"/><rect x="0.5" y="0.5" width="3" height="13" rx="1.5" style="fill:var(--enforce)"/></svg></span>gated skill
+          <span class="legend-card" role="tooltip" id="lg-stripe"><span class="legend-card-title">Gated skill</span>A chokepoint checks this skill's output: a missing receipt, handoff, tag, manifest or stub causes a refusal. The skill is still invoked by convention.<span class="legend-card-examples" style="display:block">bug-check ② · docs-forge/repo-ops ⑤ · release-ops ⑥ · deploy-ops ⑦</span></span></span>
+        <span class="legend-item" tabindex="0" aria-describedby="lg-ph"><span class="li-swatch" style="font-size:0.5625rem;color:var(--subtle)">plan · build</span>frontmatter phases
+          <span class="legend-card" role="tooltip" id="lg-ph"><span class="legend-card-title">Frontmatter phases</span>The literal <code>phases:</code> value in each <code>skills/oc-*/SKILL.md</code>. Frontmatter has only four values (foundation, plan, build, ai-native). The bands are the finer lifecycle stage from orchestrator.md §2 and /architecture.<span class="legend-card-examples" style="display:block">bands ≠ frontmatter phases, and both are shown</span></span></span>
+      </div>
+    </div>
+
+    <!-- ══ INFO CARDS ══ -->
+    <div class="cards">
+      <div class="card">
+        <div class="card-header"><div class="card-dot" style="background:var(--enforce)"></div><h3>What held (audit 2026-10-08)</h3></div>
+        <ul>
+          <li>· The native git pre-commit verifier was the only enforcement that held. Its FAIL rate was 41% in deftwright and 22% in opchain.</li>
+          <li>· docs-forge → repo-ops was the one chain edge that held, because CI checks it (<code>evidence:pr</code>).</li>
+          <li>· Tool-named spawn prompts got 72/72 invocations; the <code>/oc-code-auditor</code> shorthand got 80/143 (one lane 0/33).</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-dot" style="background:var(--convention)"></div><h3>What did not</h3></div>
+        <ul>
+          <li>· Prose skill-to-skill handoffs produced zero autonomous invocations across 87 sessions.</li>
+          <li>· 0/229 deftwright PRs entered oc-git-ops. Claude Code's built-in <code>gh pr create</code> recipe won every time.</li>
+          <li>· Stop next-suggestion was followed 0/62 times. SessionStart state fired 53/55 and 27/41 sessions and was acted on in the first turn ≤1 and ≤4 times.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-dot" style="background:var(--route)"></div><h3>Jev router status (uncommitted)</h3></div>
+        <ul>
+          <li>· Shadow mode is the default. Injection requires <code>OPCHAIN_ROUTE_MODE=live</code>.</li>
+          <li>· The 2026-10-09 blind-labelled eval used 574 prompts with 41 positives. It set the tiered <code>fits</code> bar and the 12-skill allowlist.</li>
+          <li>· Go/no-go comes from <code>route-eval outcomes</code> over shadow-run outcome records (the day-8 check).</li>
+        </ul>
+      </div>
+    </div>
+    <p class="footer">opchain 2.1 draft · 36 skills (3 foundation + 33 in bands) · 7 chokepoints + artifact rows · 1 router, shadow by default · every claim is sourced in <code>design/architecture-v2.1-jev.md</code></p>
+  </div>
+
+  <script>
+  (() => {
+    // ── Data ──────────────────────────────────────────────────────────────
+    // Phases are the literal `phases:` frontmatter of skills/oc-*/SKILL.md.
+    const CORE  = ['oc-git-ops','oc-deploy-ops','oc-code-auditor','oc-bug-check','oc-release-ops','oc-docs-forge','oc-repo-ops'];
+    const ALLOW = ['oc-app-architect','oc-bug-check','oc-code-auditor','oc-dash-forge','oc-deploy-ops','oc-docs-forge','oc-git-ops','oc-orchestrator','oc-release-ops','oc-repo-ops','oc-update','oc-ux-engineer'];
+    const GATED = ['oc-app-architect','oc-bug-check','oc-git-ops','oc-docs-forge','oc-repo-ops','oc-release-ops','oc-deploy-ops','oc-security-hardening','oc-integrations-engineer','oc-prompt-ops'];
+
+    const C4 = [90, 313, 536, 759], CW = 190, CH = 50, R1 = 16, R2 = 84;
+    const C5 = [90, 270, 450, 630, 810], CW5 = 160;
+    const S = (band, col, row, desc, ph, w) => ({ band, x: col, y: row, w: w || CW, h: CH, desc, ph });
+    const SKILLS = {
+      // CONCEPT · SPEC
+      'oc-reverse-spec':        S('spec', C4[0], R1, 'code → spec docs', 'plan'),
+      'oc-app-architect':       S('spec', C4[1], R1, 'idea → spec → build → launch', 'plan · build'),
+      'oc-stack-forge':         S('spec', C4[2], R1, 'stack decision', 'plan · build'),
+      'oc-scale-ops':           S('spec', C4[3], R1, 'scaling advisory', 'plan'),
+      'oc-qa-ops':              S('spec', C4[0], R2, 'test pyramid → qa.yaml', 'plan · build'),
+      'oc-compliance-ops':      S('spec', C4[1], R2, 'control register + evidence', 'plan · build'),
+      'oc-migration-ops':       S('spec', C4[2], R2, 'live-system migrations', 'plan · build'),
+      'oc-modularize-ops':      S('spec', C4[3], R2, 'module extraction plan', 'plan · build'),
+      // DESIGN
+      'oc-ux-engineer':         S('design', C4[0], R1, 'design planner / evaluator', 'plan · build'),
+      'oc-dash-forge':          S('design', C4[1], R1, 'dashboards, dense UI', 'plan'),
+      'oc-api-dev':             S('design', C4[2], R1, 'first-party API contract', 'plan · build'),
+      'oc-data-ops':            S('design', C4[3], R1, 'pipelines + data contracts', 'plan · build'),
+      // AI-NATIVE
+      'oc-claude-api':          S('ai', C4[0], R1, 'model routing + caching', 'build · ai-native'),
+      'oc-agent-forge':         S('ai', C4[1], R1, 'agent topology + harness', 'build · ai-native'),
+      'oc-rag-forge':           S('ai', C4[2], R1, 'retrieval design', 'build · ai-native'),
+      'oc-prompt-ops':          S('ai', C4[3], R1, 'goldsets + evals', 'build · ai-native'),
+      // BUILD
+      'oc-integrations-engineer': S('build', C4[0], R1, 'external APIs', 'build'),
+      'oc-signal-forge':        S('build', C4[1], R1, 'metric / signal validation', 'build'),
+      'oc-code-auditor':        S('build', C4[2], R1, 'auditor / fixer / verifier', 'build'),
+      'oc-security-auditor':    S('build', C4[3], R1, 'threat model, posture', 'build'),
+      'oc-security-hardening':  S('build', C4[3], R2, 'executes findings → hardening.yaml', 'build'),
+      // DEPLOY
+      'oc-bug-check':           S('deploy', C4[0], R1, 'pre-commit QA gate', 'build'),
+      'oc-git-ops':             S('deploy', C4[1], R1, 'branch, commit, PR, tag', 'build'),
+      'oc-docs-forge':          S('deploy', C4[2], R1, 'PR documentation packet', 'plan · build'),
+      'oc-repo-ops':            S('deploy', C4[3], R1, 'PR readiness gate', 'build'),
+      'oc-release-ops':         S('deploy', C4[0], R2, 'plan → bump → ship release', 'build'),
+      'oc-deploy-ops':          S('deploy', C4[1], R2, 'audit → staging → prod', 'build'),
+      'oc-fleet-ops':           S('deploy', C4[2], R2, 'self-managed / IaC deploys', 'build'),
+      // OPERATE · LEARN
+      'oc-monitoring-ops':      S('operate', C5[0], R1, 'uptime, errors, alerts', 'build', CW5),
+      'oc-cost-ops':            S('operate', C5[1], R1, 'LLM spend per phase', 'build', CW5),
+      'oc-telemetry-ops':       S('operate', C5[2], R1, 'opt-in usage metering', 'build', CW5),
+      'oc-hindsight':           S('operate', C5[3], R1, 'operational memory', 'foundation · ai-native', CW5),
+      'oc-evolve':              S('operate', C5[4], R1, 'governed rule proposals', 'foundation · ai-native', CW5),
+    };
+
+    // Session + route band nodes (viewBox 1000 × 330)
+    const N = (x, y, w, h, cls, head, lines, extra) => Object.assign({ band: 'route', x, y, w, h, cls, head, lines }, extra || {});
+    const NODES = {
+      start:   N(90, 16, 200, 58, 'informs', 'SESSIONSTART · session-state.cjs', ['next: change-triggered, age-tagged', 'behind origin · enrolled: no', 'plugin drift · release resume']),
+      ups:     N(330, 16, 200, 58, 'route', 'USERPROMPTSUBMIT · route-prompt.cjs', ['fail open · 8 s budget', 'silent: no key, /cmd, not opchain', 'default shadow; MODE=live injects'], { glow: true }),
+      model:   N(566, 16, 170, 58, 'neutral', 'MODEL TURN', ['Skill tool → skill X', '(or the inline path the', 'model already knows)']),
+      stop:    N(780, 16, 200, 58, 'informs', 'STOP · next-suggestion.cjs', ['§3 handoff target → user', 'systemMessage, no model turn', '+ task-end.cjs time stamp']),
+      explicit:N(90, 112, 130, 74, 'route', 'EXPLICIT /oc-* ?', ['names one skill', '→ decision, p = 1', 'no Jev call']),
+      state:   N(238, 112, 160, 74, 'neutral', 'REDACT → STATE', ['redactSecrets first', 'request · conversation', '{previous_request,', ' assistant_last} · repo']),
+      req1:    N(416, 112, 170, 74, 'route', 'JEV REQUEST 1 · jev-1.13.0', ['Choice which: skills + none', 'Nouls: acts · procedure', '      · prose (inverted)', 'gate = mean ≥ 0.5']),
+      req2:    N(604, 112, 170, 74, 'route', 'JEV REQUEST 2 · rerank', ['top 3, full descriptions', 'fits::<id> Noul × 3', 'verb::<id> Choice × 3', 'top p ≥ 0.35']),
+      decide:  N(792, 112, 188, 74, 'route', 'DECISION · tiered', ['core 7: fits ≥ 0.4', 'others: fits ≥ 0.9', 'evidence allowlist (12)', 'p = min(top, fits, gate)'], { glow: true }),
+      planned: N(90, 228, 210, 70, 'planned', 'JEV · PLANNED 2.1+', ['1  verifier FAIL triage', '2  Stop handoff detection', '3  semantic gate rows']),
+      evalloop:N(318, 228, 180, 70, 'informs', 'EVAL LOOP', ['route log JSONL', '+ outcome records', 'route-eval outcomes →', 'thresholds · allowlist ↺']),
+      shadow:  N(516, 228, 230, 70, 'shadow', 'SHADOW · default', ['route + log', 'inject nothing', 'next prompt labels the', 'outcome of this one']),
+      live:    N(764, 228, 216, 70, 'route', 'LIVE · additionalContext', [], { quote: ['"invoke the Skill tool with', ' skill X and args /verb"', 'one line · no menu'] }),
+    };
+
+    // In-band edges: [band, points (viewBox units), class, label, labelXY, anchor]
+    const EDGES = [
+      // session timeline
+      ['route', [[290,45],[330,45]], 'neutral', 'prompt', [310,38]],
+      ['route', [[530,45],[566,45]], 'neutral', '', null],
+      ['route', [[736,45],[780,45]], 'neutral', 'reply', [758,38]],
+      ['route', [[350,74],[350,93],[155,93],[155,112]], 'route', '', null],
+      ['route', [[220,149],[238,149]], 'route', 'no', [229,142]],
+      ['route', [[398,149],[416,149]], 'route', '', null],
+      ['route', [[586,149],[604,149]], 'route', '', null],
+      ['route', [[774,149],[792,149]], 'route', '', null],
+      ['route', [[155,186],[155,200],[800,200],[800,186]], 'route', 'explicit mention → decision, no Jev call', [470,212]],
+      ['route', [[835,186],[835,214],[631,214],[631,228]], 'route', 'default', [600,222]],
+      ['route', [[940,186],[940,228]], 'route', 'MODE=live', [905,222]],
+      ['route', [[980,262],[994,262],[994,7],[690,7],[690,16]], 'route', 'additionalContext (live only)', [860,4]],
+      ['route', [[516,262],[498,262]], 'informs', '', null],
+      ['route', [[872,298],[872,312],[408,312],[408,298]], 'informs', 'every routed prompt is logged', [640,324]],
+      // CONCEPT · SPEC
+      ['spec', [[280,41],[313,41]], 'conv', '', null],
+      ['spec', [[503,41],[536,41]], 'conv', '', null],
+      ['spec', [[330,66],[262,84]], 'conv', '', null],
+      // DESIGN
+      ['design', [[280,41],[313,41]], 'conv', '', null],
+      // AI
+      ['ai', [[280,41],[313,41]], 'conv', '', null],
+      ['ai', [[726,41],[759,41]], 'conv', '', null],
+      // BUILD
+      ['build', [[726,41],[759,41]], 'conv', '', null],
+      ['build', [[854,66],[854,84]], 'conv', '', null],
+      // DEPLOY
+      ['deploy', [[313,41],[280,41]], 'enforce', '', null],
+      ['deploy', [[503,41],[536,41]], 'enforce', '', null],
+      ['deploy', [[726,41],[759,41]], 'enforce', '', null],
+      ['deploy', [[262,84],[328,66]], 'enforce', '', null],
+      ['deploy', [[408,66],[408,84]], 'conv', 'user confirms', [446,77]],
+      // OPERATE
+      ['operate', [[430,41],[450,41]], 'conv', '', null],
+    ];
+
+    // Chokepoint markers: [n, band, x, y, short label]
+    const GATES = [
+      [1, 'spec',   408, 75,  'spec → build'],
+      [6, 'route',  282, 16,  'release resume'],
+      [2, 'deploy', 296, 41,  'commit'],
+      [3, 'deploy', 185, 75,  'post-commit'],
+      [4, 'deploy', 345, 9,   'push'],
+      [5, 'deploy', 742, 41,  'PR'],
+      [6, 'deploy', 295, 75,  'release'],
+      [7, 'deploy', 519, 109, 'deploy'],
+      [8, 'ai',     944, 16,  'eval score'],
+      [8, 'build',  275, 16,  'integrations doc'],
+      [8, 'build',  944, 84,  'hardening.yaml'],
+    ];
+    const BANDS = ['route','spec','design','ai','build','deploy','operate'];
+    const PIPE_BANDS = ['spec','design','ai','build','deploy','operate'];
+
+    // ── SVG render ─────────────────────────────────────────────────────────
+    const NS = 'http://www.w3.org/2000/svg';
+    const el = (tag, attrs, parent, text) => {
+      const e = document.createElementNS(NS, tag);
+      for (const k in attrs) e.setAttribute(k, attrs[k]);
+      if (text !== undefined) e.textContent = text;
+      if (parent) parent.appendChild(e);
+      return e;
+    };
+    const svgOf = (band) => document.querySelector('#band-' + band + ' .band-content > svg');
+
+    function renderEdges() {
+      for (const [band, pts, cls, label, at] of EDGES) {
+        const g = svgOf(band);
+        el('path', { d: 'M' + pts.map(p => p.join(',')).join(' L'), class: 'edge ' + cls, 'marker-end': 'url(#ah-' + cls + ')' }, g);
+        if (label) el('text', { x: at[0], y: at[1], class: 't-lbl ' + cls, 'text-anchor': 'middle' }, g, label);
+      }
+      // Band-local captions
+      el('text', { x: 296, y: 34, class: 't-lbl conv', 'text-anchor': 'middle' }, svgOf('spec'), 'conv.');
+      el('text', { x: 519, y: 34, class: 't-lbl conv', 'text-anchor': 'middle' }, svgOf('spec'), 'Phase 2');
+      el('text', { x: 296, y: 34, class: 't-lbl conv', 'text-anchor': 'middle' }, svgOf('design'), 'conv.');
+      el('text', { x: 742, y: 34, class: 't-lbl conv', 'text-anchor': 'middle' }, svgOf('ai'), 'goldset');
+      el('text', { x: 742, y: 34, class: 't-lbl conv', 'text-anchor': 'middle' }, svgOf('build'), 'conv.');
+      el('text', { x: 818, y: 78, class: 't-lbl conv', 'text-anchor': 'middle' }, svgOf('build'), '/oc-harden fix');
+    }
+
+    function renderSkills() {
+      for (const [id, s] of Object.entries(SKILLS)) {
+        const g = el('g', { class: 'chip', tabindex: '0', role: 'link', 'data-skill': id }, svgOf(s.band));
+        const tier = CORE.includes(id) ? 'core · fits ≥ 0.4' : ALLOW.includes(id) ? 'allowlisted · fits ≥ 0.9' : 'Choice option only';
+        el('title', {}, g, id + ' — ' + s.desc + '. Frontmatter phases: ' + s.ph + '. Router: ' + tier + (GATED.includes(id) ? '. Output checked at a chokepoint.' : '.'));
+        el('rect', { class: 'bg', x: s.x, y: s.y, width: s.w, height: s.h, rx: 5 }, g);
+        if (GATED.includes(id)) el('rect', { class: 'stripe', x: s.x, y: s.y + 4, width: 3, height: s.h - 8, rx: 1.5 }, g);
+        el('text', { x: s.x + 12, y: s.y + 17, class: 't-title' }, g, id);
+        el('text', { x: s.x + 12, y: s.y + 31, class: 't-sub' }, g, s.desc);
+        el('text', { x: s.x + 12, y: s.y + 43, class: 't-ph' }, g, s.ph);
+        if (CORE.includes(id) || ALLOW.includes(id)) {
+          const core = CORE.includes(id);
+          const pg = el('g', { class: core ? 'pip-core' : 'pip-allow' }, g);
+          const pw = core ? 26 : 30;
+          el('rect', { x: s.x + s.w - pw - 6, y: s.y + 6, width: pw, height: 11, rx: 2.5 }, pg);
+          el('text', { x: s.x + s.w - pw / 2 - 6, y: s.y + 14.3, 'text-anchor': 'middle' }, pg, core ? 'core' : 'allow');
+        }
+        g.addEventListener('click', () => window.open('https://opchain.dev/skills/' + id, '_blank', 'noopener'));
+        g.addEventListener('keydown', (e) => { if (e.key === 'Enter') window.open('https://opchain.dev/skills/' + id, '_blank', 'noopener'); });
+      }
+    }
+
+    function renderNodes() {
+      for (const [key, n] of Object.entries(NODES)) {
+        const g = el('g', { class: 'node ' + n.cls, 'data-node': key }, svgOf(n.band));
+        el('title', {}, g, n.head + ' — ' + (n.lines.concat(n.quote || [])).join(' '));
+        const bg = el('rect', { class: 'bg', x: n.x, y: n.y, width: n.w, height: n.h, rx: 5 }, g);
+        if (n.glow) bg.setAttribute('filter', 'url(#glow-route)');
+        el('text', { x: n.x + 10, y: n.y + 14, class: 't-head' }, g, n.head);
+        n.lines.forEach((l, i) => el('text', { x: n.x + 10, y: n.y + 28 + i * 12, class: 't-sub' }, g, l));
+        (n.quote || []).forEach((l, i) => el('text', { x: n.x + 10, y: n.y + 28 + i * 12, class: i < 2 ? 't-quote' : 't-sub' }, g, l));
+      }
+    }
+
+    // ── Canvas helpers ────────────────────────────────────────────────────
+    const wrap = document.getElementById('bands-wrap');
+    const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+    function sizeCanvas(cv) {
+      const r = wrap.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+      cv.width = r.width * dpr; cv.height = r.height * dpr;
+      cv.style.width = r.width + 'px'; cv.style.height = r.height + 'px';
+      const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, r.width, r.height);
+      return { ctx, r };
+    }
+    function bxy(band, x, y) {
+      const svg = svgOf(band), sr = svg.getBoundingClientRect(), wr = wrap.getBoundingClientRect();
+      const vb = svg.viewBox.baseVal;
+      return { x: sr.left - wr.left + x * sr.width / vb.width, y: sr.top - wr.top + y * sr.height / vb.height, k: sr.width / vb.width };
+    }
+    function spacerMid(id) {
+      const a = document.getElementById(id).getBoundingClientRect(), wr = wrap.getBoundingClientRect();
+      return a.top - wr.top + a.height / 2;
+    }
+    function polyline(ctx, pts, color, { dash = null, width = 1.4, arrow = true, alpha = 0.9 } = {}) {
+      ctx.save(); ctx.strokeStyle = color; ctx.fillStyle = color; ctx.globalAlpha = alpha; ctx.lineWidth = width;
+      ctx.setLineDash(dash || []); ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.stroke(); ctx.setLineDash([]);
+      if (arrow) {
+        const p = pts[pts.length - 2], q = pts[pts.length - 1], a = Math.atan2(q.y - p.y, q.x - p.x), s = 6;
+        ctx.translate(q.x, q.y); ctx.rotate(a); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-s * 1.5, -s * 0.55); ctx.lineTo(-s * 1.5, s * 0.55); ctx.closePath(); ctx.fill();
+      }
+      ctx.restore();
+    }
+    function label(ctx, text, x, y, color, { rotate = false, size = 10, align = 'center' } = {}) {
+      ctx.save(); ctx.fillStyle = color; ctx.globalAlpha = 0.9; ctx.font = '500 ' + size + 'px "JetBrains Mono", monospace';
+      ctx.textAlign = align; ctx.textBaseline = 'middle'; ctx.translate(x, y); if (rotate) ctx.rotate(rotate); ctx.fillText(text, 0, 0); ctx.restore();
+    }
+
+    // ── Cross-band connections (canvas) ───────────────────────────────────
+    function drawLines() {
+      const { ctx } = sizeCanvas(document.getElementById('lines-canvas'));
+      const ROUTE = css('--route'), CONV = css('--convention');
+      const k = bxy('spec', 0, 0).k, fs = Math.max(8, 9 * k);
+
+      // 1. Routing bus: Skill tool (model turn) → any skill, down the left gutter.
+      const m = bxy('route', 600, 16), top = bxy('route', 600, 3), gx = bxy('route', 40, 3);
+      const last = bxy('operate', 40, 41);
+      polyline(ctx, [m, top, gx, { x: gx.x, y: last.y }], ROUTE, { arrow: false, width: 1.6 });
+      for (const b of PIPE_BANDS) {
+        const vbH = svgOf(b).viewBox.baseVal.height;
+        const a = bxy(b, 40, vbH / 2), z = bxy(b, 84, vbH / 2);
+        polyline(ctx, [a, z], ROUTE, { width: 1.6 });
+      }
+      const midY = (bxy('spec', 0, 0).y + last.y) / 2;
+      label(ctx, 'routed · the Skill tool lands on skill X in any band (suggests only allowlisted)', gx.x - 12 * k, midY, ROUTE, { rotate: -Math.PI / 2, size: fs });
+      label(ctx, 'Skill tool → skill X', (gx.x + top.x) / 2, top.y - 6 * k, ROUTE, { size: fs });
+
+      // 2. app-architect → git-ops: convention, right gutter (the 0/229 edge).
+      const aa = bxy('spec', 408, 16), aaUp = bxy('spec', 408, 5), rg = bxy('spec', 985, 5);
+      const yGap = spacerMid('ba-4'), go = bxy('deploy', 450, 16);
+      polyline(ctx, [aa, aaUp, rg, { x: rg.x, y: yGap }, { x: go.x, y: yGap }, go], CONV, { dash: [5, 4] });
+      label(ctx, 'convention · audit: 0/229 deftwright PRs entered oc-git-ops', rg.x + 10 * k, (rg.y + yGap) / 2, CONV, { rotate: Math.PI / 2, size: fs });
+
+      // 3. deploy-ops → monitoring-ops: convention, post-ship.
+      const dp = bxy('deploy', 408, 134), yG5 = spacerMid('ba-5'), mo = bxy('operate', 170, 16);
+      polyline(ctx, [dp, { x: dp.x, y: yG5 }, { x: mo.x, y: yG5 }, mo], CONV, { dash: [5, 4] });
+      label(ctx, 'convention · post-ship', (dp.x + mo.x) / 2, yG5 - 7 * k, CONV, { size: fs });
+    }
+
+    // ── Chokepoint markers (canvas above the dimmable bands) ──────────────
+    function drawGates() {
+      const { ctx } = sizeCanvas(document.getElementById('gates-canvas'));
+      const ENF = css('--enforce'), BG = css('--bg'), TXT = css('--text');
+      const on = wrap.classList.contains('gate-mode');
+      for (const [n, band, x, y, name] of GATES) {
+        if (!on && active && band !== active) continue;   // band focus: only the active band's markers
+        const p = bxy(band, x, y), r = (on ? 9 : 7) * Math.max(0.85, p.k);
+        ctx.save(); ctx.translate(p.x, p.y);
+        if (on) { ctx.shadowColor = ENF; ctx.shadowBlur = 14; }
+        ctx.rotate(Math.PI / 4); ctx.fillStyle = ENF; ctx.fillRect(-r / 1.414, -r / 1.414, r * 1.414, r * 1.414);
+        ctx.restore();
+        label(ctx, String(n), p.x, p.y + 0.5, BG, { size: Math.round(r * 1.05) });
+        if (on) {
+          ctx.save(); ctx.font = '700 ' + Math.round(10.5 * Math.max(0.9, p.k)) + 'px "JetBrains Mono", monospace';
+          const tw = ctx.measureText(name).width, ly = p.y;
+          const lx = x > 850 ? p.x - r - 5 - tw : p.x + r + 5;   // right-edge markers label to the left
+          ctx.fillStyle = BG; ctx.globalAlpha = 0.85; ctx.fillRect(lx - 3, ly - 8, tw + 6, 16);
+          ctx.globalAlpha = 1; ctx.fillStyle = ENF; ctx.textBaseline = 'middle'; ctx.fillText(name, lx, ly);
+          ctx.restore();
+        }
+      }
+    }
+
+    function drawPanelRail() {
+      const cv = document.getElementById('gp-canvas'), inner = cv.parentElement, ir = inner.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      cv.width = ir.width * dpr; cv.height = ir.height * dpr; cv.style.width = ir.width + 'px'; cv.style.height = ir.height + 'px';
+      const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, ir.width, ir.height);
+      if (!wrap.classList.contains('gate-mode')) return;
+      const nums = [...document.querySelectorAll('#gp-grid .num')].map(nEl => {
+        const r = nEl.getBoundingClientRect(); return { x: r.left - ir.left + r.width / 2, y: r.top - ir.top + r.height / 2 };
+      });
+      ctx.strokeStyle = css('--enforce'); ctx.globalAlpha = 0.35; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+      ctx.beginPath(); nums.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y))); ctx.stroke();
+    }
+
+    const redraw = () => { drawLines(); drawGates(); drawPanelRail(); };
+
+    // ── Band hover / focus: dim the others ────────────────────────────────
+    let active = null, leaveT = null, gatePinned = false, gateHover = false, legendOn = false;
+    const bandEl = (b) => document.getElementById('band-' + b);
+    const arrows = () => document.querySelectorAll('.band-arrow');
+    function bandEnter(b) {
+      clearTimeout(leaveT);
+      if (wrap.classList.contains('gate-mode') || legendOn || active === b) return;
+      active = b;
+      BANDS.forEach(x => { bandEl(x).classList.toggle('active', x === b); bandEl(x).classList.toggle('dimmed', x !== b); });
+      arrows().forEach(a => a.classList.add('dimmed'));
+      document.getElementById('lines-canvas').classList.add('dimmed');
+      setTimeout(redraw, 560);
+    }
+    function bandLeave() {
+      leaveT = setTimeout(() => {
+        active = null;
+        BANDS.forEach(x => bandEl(x).classList.remove('active', 'dimmed'));
+        arrows().forEach(a => a.classList.remove('dimmed'));
+        document.getElementById('lines-canvas').classList.remove('dimmed');
+        setTimeout(redraw, 560);
+      }, 200);
+    }
+    BANDS.forEach(b => {
+      const e = bandEl(b);
+      e.addEventListener('mouseenter', () => bandEnter(b));
+      e.addEventListener('mouseleave', bandLeave);
+      e.addEventListener('focus', () => bandEnter(b));
+      e.addEventListener('focusout', (ev) => { if (!e.contains(ev.relatedTarget)) bandLeave(); });
+    });
+
+    // ── Overlay: enforcement map ──────────────────────────────────────────
+    const toggle = document.getElementById('gate-toggle'), panel = document.getElementById('gate-panel');
+    function setGate(on) {
+      if (on === wrap.classList.contains('gate-mode')) return;
+      clearTimeout(leaveT); active = null;
+      BANDS.forEach(x => bandEl(x).classList.remove('active', 'dimmed'));
+      arrows().forEach(a => a.classList.remove('dimmed'));
+      document.getElementById('lines-canvas').classList.remove('dimmed');
+      wrap.classList.toggle('gate-mode', on);
+      toggle.setAttribute('aria-expanded', String(on));
+      redraw(); setTimeout(redraw, 680);
+    }
+    let gateT = null;
+    const syncGate = () => { clearTimeout(gateT); gateT = setTimeout(() => setGate(gatePinned || gateHover), gateHover ? 0 : 250); };
+    toggle.addEventListener('click', () => { gatePinned = !gatePinned; gateHover = gatePinned; syncGate(); });
+    [toggle, panel].forEach(t => {
+      t.addEventListener('mouseenter', () => { gateHover = true; syncGate(); });
+      t.addEventListener('mouseleave', () => { gateHover = false; syncGate(); });
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && gatePinned) { gatePinned = false; gateHover = false; syncGate(); } });
+
+    // ── Legend: isolate the hovered item, show its card ───────────────────
+    const items = [...document.querySelectorAll('.legend-item')];
+    function legendEnter(it) {
+      legendOn = true;
+      items.forEach(o => { o.classList.toggle('dimmed', o !== it); o.classList.toggle('show', o === it); });
+    }
+    function legendLeave() { legendOn = false; items.forEach(o => o.classList.remove('dimmed', 'show')); }
+    items.forEach(it => {
+      it.addEventListener('mouseenter', () => legendEnter(it)); it.addEventListener('mouseleave', legendLeave);
+      it.addEventListener('focus', () => legendEnter(it)); it.addEventListener('blur', legendLeave);
+    });
+
+    // ── Theme ─────────────────────────────────────────────────────────────
+    const root = document.documentElement;
+    try { const t = localStorage.getItem('oc-arch-theme'); if (t) root.dataset.theme = t; } catch (e) {}
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const dark = root.dataset.theme ? root.dataset.theme === 'dark' : !matchMedia('(prefers-color-scheme: light)').matches;
+      root.dataset.theme = dark ? 'light' : 'dark';
+      try { localStorage.setItem('oc-arch-theme', root.dataset.theme); } catch (e) {}
+      redraw();
+    });
+    matchMedia('(prefers-color-scheme: light)').addEventListener('change', redraw);
+
+    renderNodes(); renderEdges(); renderSkills();
+    window.addEventListener('load', redraw);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);
+    window.addEventListener('resize', redraw);
+    new ResizeObserver(redraw).observe(wrap);
+    redraw();
+  })();
+  </script>
+</body>
+</html>

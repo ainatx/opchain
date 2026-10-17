@@ -44,11 +44,14 @@ Try: "use ow-build to start plans/acme/" · "write this week's update for Acme" 
 |---|---|---|
 | `/ow-build` | Resume: each build's state, files first (`references/routing-and-resume.md`) | nothing |
 | `/ow-build on <path>` | Runs the verb a signed plan, `UAT-nn.md`, `FIX-nn.md`, payment-trigger file or build folder needs (`references/routing-and-resume.md`) | what that verb writes |
-| `/ow-build-start` | After signing: milestones, checks, payments, update day, sources; `spec/` and the builder's sprint plan mapped to milestones | `build.yaml`, `ledger.md`, `<repo>/spec/` |
-| `/ow-build-run M<n>` | The milestone's next unfinished sprint, one per call; records its result | `build.yaml` |
-| `/ow-build-update` | The weekly update, traced; the internal margin view | `updates/<date>.html`, `.txt`, `-checks.md`; `margin.md` |
-| `/ow-build-demo M<n>` | The demo script; `/ow-build-demo --record M<n>` the record and client summary | `demos/M<n>-script.md`, `-record.md`, `-summary.html`, `.txt` |
-| `/ow-build-change` | A request (yours, `UAT-nn.md`, `FIX-nn.md`) classified and priced, once; `/ow-build-change --sent`, `/ow-build-change --agreed`, `/ow-build-change --signed`, `/ow-build-change --declined` (`CO-nn <date>`) move it on | `changes/requests.md`, `CO-nn.md`, `.html`, `.txt`, `change-inputs-CO-nn.md`; `<repo>/spec/06-testing-change-orders.md` |
+| `/ow-build-start` | After signing: milestones, checks, payments, update day, sources; `spec/` and the builder's sprint plan mapped to milestones | `build.yaml`, `ledger.md`, `<repo>/spec/{00-project-overview,02-architecture,04-integrations,06-testing,scope-and-milestones}.md` |
+| `/ow-build-run` `M<n>` | The milestone's next unfinished sprint, one per call; records its result | `build.yaml` |
+| `/ow-build-update` | The weekly update, traced; the internal margin view | `updates/<date>.{html,txt}`, `updates/<date>-checks.md`, `margin.md` |
+| `/ow-build-demo` `M<n>` | The demo script | `demos/M<n>-script.md` |
+| `/ow-build-demo --record` `M<n>` | The record and the client summary | `demos/M<n>-record.md`, `demos/M<n>-summary.{html,txt}` |
+| `/ow-build-change` | A request (yours, `UAT-nn.md`, `FIX-nn.md`) classified and priced, once; `/ow-build-change --sent`, `/ow-build-change --declined` (`CO-nn <date>`) move it on | `changes/requests.md`, `CO-nn.md`, `CO-nn.{html,txt}` |
+| `/ow-build-change --agreed` `CO-nn <date>` | Agreed in principle: amendment out | `CO-nn.md`, `change-inputs-CO-nn.md` |
+| `/ow-build-change --signed` `CO-nn <date>` | The signed amendment recorded | `CO-nn.md`, `<repo>/spec/06-testing-change-orders.md` |
 | `/ow-build-invoice` | A request per payment trigger met; `/ow-build-invoice --paid` records payment | `invoices/INV-request-<trigger>.md`, `ledger.md` |
 | `/ow-build-ready` | Every check's run once every milestone is demoed; marks no payment | `ready-for-uat.md` |
 

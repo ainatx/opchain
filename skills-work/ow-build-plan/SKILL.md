@@ -90,7 +90,7 @@ Record each call's command and raw output where its phase file says; nothing is 
         contract-inputs.md  build-request.md  build-plan.md  export/
         inbox/  audio/  workshops/        client material; never committed
 
-In a git repository, `-start` asks once to add `opchain-work/**/inbox/`, `opchain-work/**/audio/`, `opchain-work/**/workshops/` and `opchain-work/**/transcript.*` to `.gitignore` (ow-tools will not transcribe where git could commit it). A follow-on Build Plan goes in `plans/<client>-<n>/`. This skill never writes your files: copy `examples/price-book.yaml` and `examples/brand.yaml` and fill them in; `offers.md` and `handoffs.yaml` come from ow-start's `/ow-setup`, from the same examples as `examples/offers.md` and `examples/handoffs.yaml` here.
+In a git repository, `-start` asks once to add `opchain-work/**/inbox/`, `opchain-work/**/audio/`, `opchain-work/**/workshops/` and `opchain-work/**/transcript.*` to `.gitignore` (ow-tools will not transcribe where git could commit it). A follow-on Build Plan goes in `plans/<client>-<n>/`. This skill never writes your files: copy `examples/price-book.yaml` and `examples/brand.yaml` and fill them in; `offers.md` and `handoffs.yaml` come from ow-start's `/ow-setup`, from the same examples as `examples/offers.md` and `examples/handoffs.yaml`.
 
 ## Reads from
 
@@ -133,7 +133,7 @@ Print the one that fits when a phase finishes, filled in. Each "use" line works 
 
     DONE: Build Plan offer -> plans/<client>/build-plan-offer.md (valid until <date>)
     NEXT: when the client accepts, say "use ow-build-plan to start plans/<client>/"   (where slash commands exist: /ow-build-plan-start)
-          It will read: build-plan-offer.md, and the intake record or FIX file it names
+          It will read: build-plan-offer.md, and the intake record, FIX file or request.md it names
           [no folder attached: attach them when you say it]
     IF IT IS NOT AVAILABLE: the offer stands alone; agree the dates by hand.
 
@@ -188,7 +188,7 @@ A `handoffs.yaml` line below is never printed as written: print that key's say: 
           [no folder attached: attach them when you say it]
     IF IT IS NOT AVAILABLE: handoffs.yaml `build`
 
-A feasibility test, once signed, hands over no build (no `build-request.md`); the findings note comes next:
+A signed feasibility test hands over no build (no `build-request.md`); the findings note comes next:
 
     DONE: client signed <date> (recorded by <user>; not verified by this skill) -> plans/<client>/contract-inputs.md (feasibility test: the findings note follows)
     NEXT: if the findings note says go, say "use ow-build-plan to write the offer for plans/<client>/"   (where slash commands exist: /ow-build-plan-offer)

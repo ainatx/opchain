@@ -6,7 +6,7 @@ import { copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSy
 import { dirname, join, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 
 const ORIGIN = 'https://opchain.dev';
 const TARGETS = ['.claude/skills', '.agents/skills', '.codex/skills'];
@@ -469,6 +469,7 @@ export async function syncSourceRepo({ root = projectRoot(), check = false, befo
   const scripts = treeFiles(root, 'scripts');
   const originalPlugin = treeFiles(root, 'plugins/opchain/skills');
   const originalPluginRuntime = treeFiles(root, 'plugins/opchain/scripts');
+  const originalPluginSrc = treeFiles(root, 'plugins/opchain/src');
   const runtimeManifest = JSON.parse(read(root, 'scripts/runtime-manifest.json').bytes);
   const support = new Map();
   for (const path of runtimeManifest.files.filter(path => !path.startsWith('scripts/'))) {
@@ -519,7 +520,8 @@ export async function syncSourceRepo({ root = projectRoot(), check = false, befo
     if (plugin.size !== generated.size || [...generated].some(([path, value]) => !sameEntry(value, plugin.get(`plugins/opchain/${path}`)))) {
       throw new Error('Generated plugin mirror does not match the staged skills.');
     }
-    const pluginRuntime = treeFiles(stage, 'plugins/opchain/scripts');
+    // sync-plugin-skills also mirrors src/lib/mcp/checkpoint-contract.js (the --ci evidence gate's dependency).
+    const pluginRuntime = new Map([...treeFiles(stage, 'plugins/opchain/scripts'), ...treeFiles(stage, 'plugins/opchain/src')]);
     const desired = new Map([...generated, ...plugin, ...pluginRuntime]);
     for (const path of source.keys()) if (!generated.has(path)) desired.set(path, null);
     for (const path of originalPlugin.keys()) if (!plugin.has(path)) desired.set(path, null);
@@ -547,21 +549,281 @@ export async function syncSourceRepo({ root = projectRoot(), check = false, befo
       }
       assertSnapshot(root, 'plugins/opchain/skills', originalPlugin);
       assertSnapshot(root, 'plugins/opchain/scripts', originalPluginRuntime);
+      assertSnapshot(root, 'plugins/opchain/src', originalPluginSrc);
     } });
     return { ...result, mode: 'source', version: [...versions][0], skills: ids.length,
       targets: ['skills/', 'plugins/opchain/skills/', '.claude/skills/'], telemetry, retained: [] };
   } finally { rmSync(stage, { recursive: true, force: true }); }
 }
 
+// ---------------------------------------------------------------------------
+// Components. /oc-update ships skill files and nothing else. The 2026-10-08
+// effectiveness audit (I-11) found a session asked to "update opchain" that
+// could not be served because hooks and the time CLI live elsewhere, so the
+// agent improvised a global-settings side-install. Say what this command can
+// and cannot ship before doing anything.
+// ---------------------------------------------------------------------------
+export const COMPONENTS = Object.freeze([
+  { id: 'skills', label: 'skills', shippedBy: 'update', how: '/oc-update' },
+  { id: 'plugin-hooks', label: 'plugin hooks', shippedBy: 'plugin', how: '/plugin marketplace update opchain' },
+  { id: 'commit-gate-runtime', label: 'commit-gate runtime', shippedBy: 'plugin', how: '/plugin marketplace update opchain' },
+  { id: 'time-cli', label: 'time CLI', shippedBy: 'checkout', how: 'git pull in ~/repos/opchain-time' },
+]);
+
+export function componentsBanner() {
+  const ships = COMPONENTS.filter(c => c.shippedBy === 'update').map(c => c.label).join(', ');
+  const byHow = new Map();
+  for (const c of COMPONENTS.filter(c => c.shippedBy !== 'update')) byHow.set(c.how, [...(byHow.get(c.how) ?? []), c.label]);
+  const cannot = [...byHow].map(([how, labels]) => `${labels.join(' + ')} (use ${how})`).join(', ');
+  return `This command ships: ${ships}. Cannot update: ${cannot}.`;
+}
+
+function git(cwd, args, { timeout = 10000 } = {}) {
+  try {
+    return execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout }).replace(/\n$/, '');
+  } catch { return null; }
+}
+
+// Files under the install targets that git sees as modified or untracked. An
+// install that is written but never committed runs the OLD version in every
+// other checkout and in the next session on a different branch (get-ripped ran
+// 1.8.2 against a 2.0.0 install for weeks; see memory note 2026-09-18).
+export function uncommittedInstall(root, targets = TARGETS) {
+  const present = targets.filter(target => existsSync(join(root, target)));
+  if (!present.length || git(root, ['rev-parse', '--is-inside-work-tree']) !== 'true') return [];
+  const status = git(root, ['status', '--porcelain', '--untracked-files=all', '--', ...present]);
+  return status ? status.split('\n').filter(Boolean) : [];
+}
+
+function skillVersion(text) {
+  const head = text.startsWith('---\n') ? text.slice(4, text.indexOf('\n---', 4) + 1) : '';
+  return /^version:\s*(\d+\.\d+\.\d+)\s*$/m.exec(head || text)?.[1] ?? null;
+}
+
+function readSkillDir(dir) {
+  // Returns [{ id, version, kind }] for every oc-* entry holding a SKILL.md.
+  let names;
+  try { names = readdirSync(dir); } catch { return []; }
+  const skills = [];
+  for (const name of names.sort()) {
+    if (!/^oc-[a-z0-9-]+$/.test(name)) continue;
+    const path = join(dir, name);
+    let kind = 'dir';
+    try {
+      const stat = lstatSync(path);
+      if (stat.isSymbolicLink()) {
+        kind = 'symlink';
+        try { realpathSync(path); } catch { kind = 'broken-symlink'; }
+      } else if (!stat.isDirectory()) continue;
+    } catch { continue; }
+    let version = null;
+    try { version = skillVersion(readFileSync(join(path, 'SKILL.md'), 'utf8')); } catch { if (kind !== 'broken-symlink') continue; }
+    skills.push({ id: name, version, kind });
+  }
+  return skills;
+}
+
+function summarizeSurface(surface) {
+  const versions = [...new Set(surface.skills.map(s => s.version ?? 'unknown'))].sort();
+  const kinds = [...new Set(surface.skills.map(s => s.kind))].sort();
+  return { ...surface, count: surface.skills.length, versions, kinds };
+}
+
+// ---------------------------------------------------------------------------
+// Plugin discovery (docs/plans/2026-10-16-oc-update-plugins-design.md §5.1).
+// Claude Code owns plugin state; this only reads it. An entry in
+// installed_plugins.json loads in this repository when it is user-scoped, or
+// project/local-scoped with projectPath naming this repository: the same file
+// holds every other repository's project installs too.
+// ---------------------------------------------------------------------------
+export const KNOWN_PLUGINS = Object.freeze([
+  Object.freeze({ id: 'opchain@opchain', marketplace: 'opchain', source: Object.freeze({ source: 'github', repo: 'asfbay-bit/opchain-skills' }), skills: true }),
+  Object.freeze({ id: 'ow-tools@opchain-work-tools', marketplace: 'opchain-work-tools', source: Object.freeze({ source: 'url', url: 'https://raw.githubusercontent.com/asfbay-bit/opchain-skills/main/plugins/ow-tools/.claude-plugin/marketplace.json' }), skills: false }),
+]);
+const SCOPE_RANK = { local: 0, project: 1, user: 2 };
+
+export function claudeConfigDir(env = process.env) {
+  return env.CLAUDE_CONFIG_DIR || join(env.HOME || homedir(), '.claude');
+}
+
+function readJson(path) {
+  try { return JSON.parse(readFileSync(path, 'utf8')); } catch { return null; }
+}
+
+function realpathOrNull(path) {
+  try { return realpathSync(path); } catch { return null; }
+}
+
+function sameSource(actual, expected) {
+  if (!actual || typeof actual !== 'object' || Array.isArray(actual)) return false;
+  const keys = Object.keys(actual);
+  return keys.length === Object.keys(expected).length && keys.every(key => actual[key] === expected[key]);
+}
+
+// Every installed_plugins.json entry for `id`, normalised. Schema version 2 keeps
+// an array of { scope, version, installPath, projectPath } per id; the older
+// shape kept one object and had no scopes, so it reads as a user install.
+export function installedPluginEntries(configDir, id) {
+  const raw = readJson(join(configDir, 'plugins/installed_plugins.json'))?.plugins?.[id];
+  if (!raw || typeof raw !== 'object') return [];
+  return (Array.isArray(raw) ? raw : [raw]).filter(entry => entry && typeof entry === 'object').map(entry => ({
+    scope: typeof entry.scope === 'string' ? entry.scope : 'user',
+    version: typeof entry.version === 'string' ? entry.version : null,
+    installPath: typeof entry.installPath === 'string' ? entry.installPath : null,
+    projectPath: typeof entry.projectPath === 'string' ? entry.projectPath : null,
+  }));
+}
+
+// One row per known plugin: { id, marketplace, sourceOk, enabledHere, enabledIn,
+// scope, installedVersion, installPath, entries }. Local scope is treated like
+// project (design §7 decision 4). `entries` lists every install that loads here,
+// most specific first; the scalar fields describe the first of them.
+export function pluginState(root = projectRoot(), { configDir = claudeConfigDir() } = {}) {
+  const rootReal = realpathOrNull(root) ?? resolve(root);
+  const settings = [['project', readJson(join(root, '.claude/settings.json'))], ['local', readJson(join(root, '.claude/settings.local.json'))]];
+  return KNOWN_PLUGINS.map(plugin => {
+    const sources = settings.map(([, data]) => data?.extraKnownMarketplaces?.[plugin.marketplace]).filter(Boolean);
+    const enabledIn = settings.filter(([, data]) => data?.enabledPlugins?.[plugin.id] === true).map(([scope]) => scope);
+    const entries = installedPluginEntries(configDir, plugin.id)
+      .filter(entry => entry.scope === 'user' || ((entry.scope === 'project' || entry.scope === 'local') && entry.projectPath && realpathOrNull(entry.projectPath) === rootReal))
+      .sort((a, b) => (SCOPE_RANK[a.scope] ?? 3) - (SCOPE_RANK[b.scope] ?? 3));
+    return {
+      id: plugin.id,
+      marketplace: plugin.marketplace,
+      sourceOk: sources.length > 0 && sources.every(entry => sameSource(entry?.source, plugin.source)),
+      enabledHere: enabledIn.length > 0,
+      enabledIn,
+      scope: entries[0]?.scope ?? null,
+      installedVersion: entries[0]?.version ?? null,
+      installPath: entries[0]?.installPath ?? null,
+      entries,
+    };
+  });
+}
+
+function worktreeEntries(root) {
+  const raw = git(root, ['worktree', 'list', '--porcelain']);
+  if (!raw) return [];
+  const entries = [];
+  let current = null;
+  for (const line of raw.split('\n')) {
+    if (line.startsWith('worktree ')) { current = { path: line.slice(9), branch: null, head: null }; entries.push(current); }
+    else if (current && line.startsWith('HEAD ')) current.head = line.slice(5, 12);
+    else if (current && line.startsWith('branch ')) current.branch = line.slice(7).replace(/^refs\/heads\//, '');
+    else if (current && line === 'detached') current.branch = '(detached)';
+  }
+  return entries;
+}
+
+function behindOriginMain(dir) {
+  const count = git(dir, ['rev-list', '--count', 'HEAD..origin/main']);
+  return count === null ? null : Number(count);
+}
+
+// Enumerate every place a Claude Code / Codex session may load oc-* skills from
+// and say which ones disagree. Exit 0 always: this is a report, not a gate.
+export function doctor({ root = projectRoot(), configDir = claudeConfigDir() } = {}) {
+  root = resolve(root);
+  const report = { root, configDir, surfaces: [], plugins: [], worktrees: [], findings: [] };
+  const loadable = [];
+  const add = (surface) => { const s = summarizeSurface(surface); report.surfaces.push(s); if (s.loadable) loadable.push(s); return s; };
+
+  add({ name: 'global', path: join(configDir, 'skills'), scope: 'global', loadable: true, skills: readSkillDir(join(configDir, 'skills')) });
+  for (const target of TARGETS) add({ name: `repo-local ${target}`, path: join(root, target), scope: 'repo-local', loadable: true, skills: readSkillDir(join(root, target)) });
+  report.plugins = pluginState(root, { configDir });
+  for (const plugin of report.plugins.filter(p => KNOWN_PLUGINS.find(k => k.id === p.id).skills)) {
+    // Only installs that load in this repository count; two scopes sharing one
+    // cache directory are one surface.
+    const seen = new Set();
+    for (const entry of plugin.entries.filter(e => e.installPath)) {
+      const dir = join(entry.installPath, 'skills');
+      if (seen.has(dir)) continue;
+      seen.add(dir);
+      if (!existsSync(dir)) {
+        report.findings.push({ level: 'warn', code: 'plugin-cache-missing', message: `installed_plugins.json lists ${plugin.id} ${entry.version} (${entry.scope}) at ${entry.installPath} but no skills/ directory is there` });
+        continue;
+      }
+      add({ name: 'plugin cache', path: dir, scope: 'plugin', pluginId: plugin.id, pluginScope: entry.scope, loadable: true, installedVersion: entry.version, registered: true, skills: readSkillDir(dir) });
+    }
+  }
+
+  const authoring = existsSync(join(root, 'skills/orchestrator.md')) && readSkillDir(join(root, 'skills')).length > 0;
+  if (authoring) {
+    for (const entry of worktreeEntries(root)) {
+      const skills = readSkillDir(join(entry.path, 'skills'));
+      const versions = [...new Set(skills.map(s => s.version ?? 'unknown'))].sort();
+      const behind = entry.branch === 'main' ? behindOriginMain(entry.path) : null;
+      report.worktrees.push({ ...entry, count: skills.length, versions, behind });
+      if (behind > 0) report.findings.push({ level: 'warn', code: 'parked-checkout', message: `${entry.path} is on main but ${behind} commits behind origin/main (skills ${versions.join('/')})` });
+    }
+  }
+
+  // Duplicates: the same skill id present on more than one loadable surface.
+  const bySkill = new Map();
+  for (const surface of loadable) for (const skill of surface.skills) bySkill.set(skill.id, [...(bySkill.get(skill.id) ?? []), surface]);
+  const duplicated = [...bySkill].filter(([, surfaces]) => surfaces.length > 1);
+  if (duplicated.length) {
+    const names = [...new Set(duplicated.flatMap(([, s]) => s.map(x => `${x.name} (${x.count} @${x.versions.join('/')})`)))];
+    report.findings.push({ level: 'warn', code: 'duplicate-surfaces', skills: duplicated.map(([id]) => id), message: `duplicate surfaces: ${duplicated.length} skills load from more than one place — ${names.join(' + ')}` });
+  }
+  const populated = loadable.filter(s => s.count);
+  const allVersions = [...new Set(populated.flatMap(s => s.versions))].sort();
+  if (allVersions.length > 1) report.findings.push({ level: 'warn', code: 'version-mismatch', versions: allVersions, message: `version mismatch across surfaces: ${populated.map(s => `${s.name} @${s.versions.join('/')}`).join(', ')}` });
+  for (const surface of populated.filter(s => s.versions.length > 1)) report.findings.push({ level: 'warn', code: 'mixed-versions', message: `${surface.name} mixes versions ${surface.versions.join(', ')}` });
+  for (const surface of populated.filter(s => s.scope === 'plugin' && s.installedVersion && s.versions.some(v => v !== s.installedVersion))) {
+    report.findings.push({ level: 'warn', code: 'plugin-version-drift', message: `plugin cache skills are ${surface.versions.join('/')} but installed_plugins.json says ${surface.installedVersion}` });
+  }
+  const dirty = uncommittedInstall(root);
+  if (dirty.length) report.findings.push({ level: 'warn', code: 'uncommitted-install', paths: dirty, message: `installed but NOT committed — ${dirty.length} path(s) under ${TARGETS.join('/')} are modified or untracked; commit them or the next session will run the old version` });
+  if (git(root, ['rev-parse', '--abbrev-ref', 'HEAD']) === 'main') {
+    const behind = behindOriginMain(root);
+    if (behind > 0) report.findings.push({ level: 'warn', code: 'parked-checkout', message: `checkout ${behind} commits behind origin/main` });
+  }
+  report.ok = report.findings.length === 0;
+  return report;
+}
+
+export function formatDoctor(report) {
+  const lines = [`opchain doctor — ${report.root}`, componentsBanner(), ''];
+  const rows = [['surface', 'path', 'skills', 'version', 'notes']];
+  for (const s of report.surfaces) {
+    const notes = [];
+    if (s.count && s.kinds.length) notes.push(s.kinds.join('+'));
+    if (s.scope === 'plugin') notes.push(`${s.pluginScope} scope; installed_plugins.json ${s.installedVersion}`);
+    rows.push([s.name, s.path, String(s.count), s.count ? s.versions.join('/') : '—', notes.join('; ')]);
+  }
+  for (const w of report.worktrees) {
+    const notes = [w.branch ?? '', w.behind > 0 ? `${w.behind} behind origin/main` : ''].filter(Boolean).join('; ');
+    rows.push(['worktree', w.path, String(w.count), w.count ? w.versions.join('/') : '—', notes]);
+  }
+  const widths = rows[0].map((_, i) => Math.max(...rows.map(r => r[i].length)));
+  for (const row of rows) lines.push(row.map((cell, i) => cell.padEnd(widths[i])).join('  ').trimEnd());
+  lines.push('');
+  const plugins = [['plugin', 'installed here', 'enabled repo-wide', 'notes']];
+  for (const p of report.plugins ?? []) {
+    const notes = [p.sourceOk ? 'marketplace source ok' : 'marketplace source not set or unrecognised'];
+    if (p.enabledIn.includes('local')) notes.push('enabled in settings.local.json (not shared)');
+    plugins.push([p.id, p.installedVersion ? `${p.installedVersion} (${p.scope})` : 'no', p.enabledIn.includes('project') ? 'yes' : 'no', notes.join('; ')]);
+  }
+  const pluginWidths = plugins[0].map((_, i) => Math.max(...plugins.map(r => r[i].length)));
+  for (const row of plugins) lines.push(row.map((cell, i) => cell.padEnd(pluginWidths[i])).join('  ').trimEnd());
+  lines.push('');
+  if (!report.findings.length) lines.push('OK: one version everywhere, nothing duplicated, install committed.');
+  for (const f of report.findings) lines.push(`${f.level.toUpperCase()}: ${f.message}`);
+  return lines.join('\n');
+}
+
 export async function main(args = process.argv.slice(2)) {
   if (args.includes('--help')) {
-    console.log('opchain update [--check] [--source] [--target=claude|codex|both] [--root=/path/to/repo]\nSource checkouts sync from their current skills/ tree; consumer installs download releases. Preserves telemetry and checkpoints.');
+    console.log('opchain update [--check] [--source] [--target=claude|codex|both] [--root=/path/to/repo]\nopchain update doctor [--json] [--root=/path/to/repo]\nSource checkouts sync from their current skills/ tree; consumer installs download releases. Preserves telemetry and checkpoints.\ndoctor lists every install surface (global, repo-local, plugin cache, worktrees) and the opchain/ow-tools plugins that load in this repo, with versions and flags duplicates, mismatches, uncommitted installs and parked checkouts.\n' + componentsBanner());
     return 0;
   }
   const options = {};
   for (const arg of args) {
     if (arg === '--check') options.check = true;
     else if (arg === '--source') options.source = true;
+    else if (arg === 'doctor' || arg === '--doctor') options.doctor = true;
+    else if (arg === '--json') options.json = true;
     else if (arg.startsWith('--target=')) options.target = arg.slice(9);
     else if (arg.startsWith('--root=')) options.root = arg.slice(7);
     else throw new Error(`Unknown option: ${arg}`);
@@ -569,18 +831,43 @@ export async function main(args = process.argv.slice(2)) {
   const [major, minor] = process.versions.node.split('.').map(Number);
   if (major < 22 || (major === 22 && minor < 13)) throw new Error('Opchain requires Node.js 22.13 or newer. No files changed.');
   const root = realpathSync(resolve(options.root ?? projectRoot()));
+  if (options.doctor) {
+    const report = doctor({ root });
+    console.log(options.json ? JSON.stringify(report, null, 2) : formatDoctor(report));
+    return 0;
+  }
+  if (options.json) throw new Error('--json is only valid with doctor');
   const sourceMode = options.source || isSourceRepo(root);
   if (sourceMode && options.target) throw new Error('Source mode maintains the checkout links; --target is only for consumer installs.');
+  if (!sourceMode) console.log(componentsBanner());
   console.log(sourceMode ? 'Checking Opchain against this source checkout…' : 'Checking the latest Opchain release…');
   const result = sourceMode ? await syncSourceRepo({ ...options, root }) : await installBundle(await downloadRelease(), options);
-  console.log(`Opchain ${result.version}: ${options.check ? `${result.changed} files would change` : result.changed ? `${result.changed} files updated and verified` : 'already current; files verified'}.`);
+  if (!result.changed) {
+    // No-op runs used to pay the full welcome text; six of six /oc-update runs
+    // in the audit corpus changed nothing. One line, then out.
+    console.log(`opchain ${result.version} is already current on ${result.targets.join(', ')}. Telemetry: ${result.telemetry.message}.`);
+    if (!result.telemetry.healthy) console.error(`${options.check ? 'Check completed without installing' : 'Skills are current'}; telemetry needs attention. Restore the local database or run /oc-telemetry status to investigate. Consent was preserved.`);
+    if (!sourceMode && !options.check) warnUncommitted(root, result.targets);
+    return result.telemetry.healthy ? 0 : 2;
+  }
+  console.log(`Opchain ${result.version}: ${options.check ? `${result.changed} files would change` : `${result.changed} files updated and verified`}.`);
   console.log(`Skills: ${result.targets.join(', ')}\nTelemetry: ${result.telemetry.message}.`);
   if (sourceMode) console.log(`${options.check ? 'Source check completed without installing' : 'Source checkout synchronized'}; Git branch and authored skill definitions retained. No release download.`);
   if (result.backup) console.log(`Previous files: ${result.backup}`);
   if (result.retained.length) console.log(`Kept ${result.retained.length} customized obsolete files.`);
   if (!result.telemetry.healthy) console.error(`${options.check ? 'Check completed without installing' : 'Skills are ready'}; telemetry needs attention. Restore the local database or run /oc-telemetry status to investigate. Consent was preserved.`);
-  if (result.changed && !options.check) console.log('Start a new agent session if the updated skills do not appear.');
+  if (!options.check) console.log('Start a new agent session if the updated skills do not appear.');
+  if (!sourceMode && !options.check) warnUncommitted(root, result.targets);
   return result.telemetry.healthy ? 0 : 2;
+}
+
+function warnUncommitted(root, targets) {
+  const dirty = uncommittedInstall(root, targets);
+  if (!dirty.length) return;
+  let dirs = [...new Set(dirty.map(line => line.slice(3).split('/').slice(0, 2).join('/')))].filter(d => TARGETS.includes(d));
+  if (!dirs.length) dirs = targets;
+  const where = dirs.length > 1 ? `${dirs[0]} (and ${dirs.slice(1).join(', ')})` : dirs[0];
+  console.warn(`installed but NOT committed — commit ${where} or the next session will run the old version (${dirty.length} path(s) modified or untracked).`);
 }
 
 if (process.argv[1] && existsSync(process.argv[1]) && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
