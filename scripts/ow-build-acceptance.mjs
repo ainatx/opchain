@@ -505,12 +505,13 @@ export const AMOUNT_IN_WORDS = new RegExp(`\\b${NUMWORD}(?:[\\s-]+(?:and[\\s-]+)
 export const INTERNAL_TERMS = [
   // Our effort: named as effort, or as days and weeks of work. A client's hours ("an hour of your coordinator's time") are not ours.
   [/\b(?:effort|person[- ]?days?|man[- ]?days?|developer[- ]?(?:hours?|days?)|time (?:spent|logged|booked|tracked)|timesheets?|billable)\b/i, "effort"],
-  [/\b(?:days?|weeks?|months?|evenings?)(?: and a half)? of (?:work|effort|development|building|coding|our time)\b|\bspent (?:\w+ ){0,3}(?:days?|weeks?|evenings?|nights?|mornings?|afternoons?)\b|\b(?:took|takes|taking) (?:us |me )?(?:\w+ ){0,3}(?:days?|weeks?)\b/i, "effort"],
+  [/\b(?:days?|weeks?|months?|evenings?)(?: and a half)? of (?:work|effort|development|building|coding|our time)\b/i, "effort"],
   [/\b\d+(?:[.,]\d+)?\s*(?:h|hrs?|hours?)\b(?=[^.]*\b(?:we|us|our|went into|spent|took|needed|developer|effort|work)\b)|\b(?:we|us|our)\b[^.]*\b\d+(?:[.,]\d+)?\s*(?:h|hrs?|hours?)\b/i, "our hours"],
   [/\b(?:hourly(?: rate)?|day rate|our (?:\w+ )?rates?|rate card)\b/i, "a rate"],
   [/\b(?:margins?|burn(?:ed|ing|s)? (?:rate|through)|overrun|over-?ran|over budget|under budget)\b/i, "margin"],
-  [/\bover (?:our |my )?(?:estimate[ds]?|plan(?:ned)?)\b|\bover what (?:was|we|I) (?:had )?(?:planned|estimated|expected)\b|\b(?:above|beyond|exceed(?:ed|s|ing)?) (?:our |my )?(?:estimate|plan|quote)\b|\bour estimate[ds]?\b/i, "an overrun or estimate"],
-  [/\b(?:unit prices?|modifiers?|mark-?up|multiplier|surcharge|uplift)\b/i, "pricing internals"],
+  [/\bover (?:our |my )?(?:\w+ )?(?:estimate[ds]?|plan(?:ned)?|forecast)\b|\bover what (?:was|we|I) (?:had )?(?:planned|estimated|expected)\b|\b(?:above|beyond|exceed(?:ed|s|ing)?) (?:our |my )?(?:\w+ )?(?:estimate|plan|quote|forecast)\b|\bour (?:\w+ )?estimate[ds]?\b/i, "an overrun or estimate"],
+  // A unit price is ours unless it is the client's own ("the unit price from your price list").
+  [/(?<!\byour (?:own )?)\bunit prices?\b(?![^.]{0,40}\b(?:from|in|on|of) your\b)|\b(?:modifiers?|mark-?up|multiplier|surcharge|uplift)\b/i, "pricing internals"],
   [/\b(?:checkpoints?|evaluators?|rubrics?|gates?|sprints?|scores?|scored)\b/i, "a tool word"],
 ];
 /**
@@ -520,7 +521,7 @@ export const INTERNAL_TERMS = [
  * client's currency amount are not ours; our amounts are matched by value.
  */
 const SPEC_TERMS = [
-  [/\b(?:fixed price|our price|the price of (?:the|this) (?:build|work|job|change)|priced|pricing|fees?|quoted|quotation|rates?|hourly|margins?|budgets?|unit prices?|modifiers?|mark-?up|payments? (?:schedule|terms)|deposit|instal?ments?)\b/i, "price wording"],
+  [/\b(?:fixed price|our price|the price of (?:the|this) (?:build|work|job|change)|priced|pricing|fees?|quoted|quotation|our rates?|day rate|rate card|hourly|margins?|budgets?|unit prices?|modifiers?|mark-?up|payments? (?:schedule|terms)|deposit|instal?ments?)\b/i, "price wording"],
   [/\b(?:paid|pays?|payment|invoiced?|billed|due)\b[^.]{0,40}(?:\d+\s?%|\b[a-z-]+ ?(?:per ?cent|percent))|(?:\d+\s?%|\b[a-z-]+ ?(?:per ?cent|percent)) of (?:the )?(?:price|work|fee|job|contract|total)|\b(?:has|have|was|were|is|are) (?:already )?paid\b/i, "payment terms"],
   [/\b(?:worth|value of|valued at|contract value)\b/i, "the job's value"],
 ];
@@ -538,38 +539,42 @@ export const STARTED_WORDS = /\b(?:start(?:ed|ing|s)?|begun|began|underway|under
 // dates are client facts. So each shape counts only with OUR attribution: a
 // first-person subject or an effort word for a duration, price context or a
 // first-person subject for money and ratios.
-const QTY = `(?:\\d+(?:[.,]\\d+)?|${NUMWORD}(?:[\\s-]+(?:and[\\s-]+)?${NUMWORD})*|an?|half an?|a couple of|a few|several|a dozen|dozens of|many|most of(?: the| a| last| this| that)?|all(?: of)?(?: the| last| this)?)`;
+const QTY = `(?:\\d+(?:[.,]\\d+)?|${NUMWORD}(?:[\\s-]+(?:and[\\s-]+)?${NUMWORD})*|an?|half an?|a couple of|a few|several|a dozen|dozens of|many|most of(?: the| a| last| this| that)?|all(?: of)?(?: the| last| this)?|(?:the|a) (?:whole|entire|full)|the better part of(?: a| the)?)`;
 const TIME_UNIT = "(?:minutes?|mins?|hours?|hrs?|days?|nights?|evenings?|mornings?|afternoons?|weekends?|weeks?|fortnights?|months?|[a-z]+-days?|[a-z]+-hours?|[a-z]+-weeks?)";
 /** A quantity of time: "a fortnight", "three long evenings", "40 hours", "two developer-days", "most of last weekend". */
 export const TIME_QTY = new RegExp(`\\b${QTY}[\\s-]+(?:[a-z]+[\\s-]+){0,2}?${TIME_UNIT}\\b|\\bfortnight\\b`, "i");
 /** Ours: a first-person subject ("we", "our", "us"). */
 export const OURS = /\b(?:we|we've|we're|I|I've|I'm|us|our|ours|ourselves|me|my)\b/i;
 /** Effort: the time went into the work ("took", "spent", "went into", "developer hours"). */
-export const EFFORT = /\b(?:took|take[sn]?|taking|spent|spend(?:s|ing)?|went into|went on|go(?:es)? into|needed|ate up|used up|put in|sunk|effort|developer|engineer|billable|of work|of (?:development|building|coding))\b/i;
+export const EFFORT = /\b(?:took|take[sn]?|taking|spent|spend(?:s|ing)?|went into|went on|go(?:es)? into|put (?:\w+ ){0,4}into|needed|ate up|used up|put in|sunk|effort|developer|engineer|billable|of work|of (?:development|building|coding))\b/i;
 /** An amount of money: a currency sign or code with a number, "2k", "1.5 grand", "500 bucks", an amount in words. */
-export const MONEY_QTY = new RegExp(`[$€£]\\s?\\d|\\b(?:USD|EUR|GBP)\\s?\\d|\\b\\d+(?:[.,]\\d+)?\\s?(?:k|K|grand|bucks|quid|dollars?|euros?|pounds?)\\b|\\b${NUMWORD}(?:[\\s-]+(?:and[\\s-]+)?${NUMWORD})*\\s+(?:dollars?|pounds?|euros?|bucks|quid|grand)\\b`, "i");
+export const MONEY_QTY = new RegExp(`[$€£]\\s?\\d|\\b(?:USD|EUR|GBP)\\s?\\d|\\b\\d+(?:[.,]\\d+)?\\s?(?:k|K|grand|bucks|quid|dollars?|euros?|pounds?)\\b|\\b${NUMWORD}(?:[\\s-]+(?:and[\\s-]+)?${NUMWORD})*\\s+(?:dollars?|pounds?|euros?|bucks|quid|grand)\\b|\\b(?:${NUMWORD}[\\s-]+)+(?:hundred|thousand)\\b`, "i");
 /** A ratio, multiplier or fraction: "25%", "twenty-five percent", "1.25×", "one and a quarter times", "a quarter on top", "doubled", "a fifth". */
-export const RATIO = new RegExp(`\\b\\d+(?:\\.\\d+)?\\s?(?:%|per ?cent|percent)|\\b${NUMWORD}(?:[\\s-]+${NUMWORD})*[\\s-]+(?:per ?cent|percent)\\b|\\b\\d+(?:\\.\\d+)?\\s?[x×](?!\\w)|(?:^|[\\s(])[x×]\\s?\\d|\\b(?:\\w+ )?(?:and an? (?:half|quarter|third) )?times (?:the|our|as|what|that)\\b|\\b(?:doubl|tripl|halv)(?:e|ed|es|ing)\\b|\\btwice (?:the|our|as)\\b|\\b(?:an?|one|two|three) (?:half|third|quarter|fifth|tenth)s?\\b|\\bas much again\\b|\\bfactor\\b|\\bon top\\b`, "i");
+export const RATIO = new RegExp(`\\b\\d+(?:\\.\\d+)?\\s?(?:%|per ?cent|percent)|\\b${NUMWORD}(?:[\\s-]+${NUMWORD})*[\\s-]+(?:per ?cent|percent)\\b|\\b\\d+(?:\\.\\d+)?\\s?[x×](?!\\w)|(?:^|[\\s(])[x×]\\s?\\d|\\b(?:\\w+ )?(?:and an? (?:half|quarter|third) )?times (?:the|our|as|what|that)\\b|\\b(?:doubl|tripl|halv)(?:e|ed|es|ing)\\b|\\btwice (?:the|our|as)\\b|\\b(?:an?|one|two|three) (?:half|third|quarter|fifth|tenth)s?\\b|\\bas much again\\b|\\bmultiplied by\\b|\\bfactor\\b|\\bon top\\b`, "i");
 /** Price context: the sentence is about what something is priced or charged at. */
-export const PRICE_CTX = /\b(?:price[ds]?|pricing|charge[ds]?|charging|fees?|rates?|quote[ds]?|billed|bill(?:s|ing)?|line|lines|units?|add(?:s|ed)?|plus|alone|all in|runs? to|comes? to|surcharge|uplift|modifier|multiplier|messy|usual|standard|normal|integration|report)\b/i;
+export const PRICE_CTX = /\b(?:price[ds]?|pricing|charge[ds]?|charging|fees?|rates?|quote[ds]?|billed|billing|all in|runs? to|comes? to|surcharge|uplift|premium|loading|modifier|multiplier|messy|(?:usual|standard|normal|base|our) (?:price|rate|charge|fee|amount|figure|line)|the (?:total|figure))\b/i;
+/** A price line by name: "the integration line", "for the report" (the unit ids come from the price book). */
+const unitCtx = (t, unitIds) => unitIds.some((u) => new RegExp(`\\b(?:the|a|one|per) ${esc(u)}(?: (?:line|unit)s?)?\\b|\\b${esc(u)} (?:line|unit)s?\\b`, "i").test(t));
 /** A date on the calendar: a client-facing schedule, not our effort. */
 const DATED = /\b\d{1,2} (?:January|February|March|April|May|June|July|August|September|October|November|December)\b|\b(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b/;
 /** Our side of the money: what the work costs us against what we charged, a profit or a loss on the job, our rates, the build's money. */
-export const OUR_MONEY = /\b(?:profit(?:s|able)? (?:on|from) (?:this|the) (?:job|work|build|milestone)|(?:our|the job's|the build's) (?:profit|margin)s?|los(?:e|es|ing|t) money|(?:at|made) a loss|loss on (?:this|the) (?:job|work|build|milestone)|cost(?:s|ing)? (?:us|me)|(?:over|under)[- ]?charg\w*|(?:we|I|us) (?:have |had )?charged|out of pocket|in the red|in the hole|break(?:ing)? even|eat(?:s|ing)? into (?:our|the) (?:margin|profit|time)|our (?:costs?|rates?|charges?|fees?|pricing|estimates?|budgets?|hours?|time|money)|(?:the build's|the job's) (?:money|budget)|(?:usual|normal|standard|base) (?:charge|rate|fee)|mak(?:e|es|ing) (?:us|me) (?:any|no)?(?:thing|money))\b/i;
+export const OUR_MONEY = /\b(?:profit(?:s|able)? (?:on|from) (?:this|the) (?:job|work|build|milestone)|(?:our|the job's|the build's) (?:profit|margin)s?|los(?:e|es|ing|t) money|(?:at|made) a loss|loss on (?:this|the) (?:job|work|build|milestone)|cost(?:s|ing)? (?:us|me)|(?:over|under)[- ]?(?:charg|quot|pric|estimat)\w*|(?:we|I|us) (?:have |had )?charged|out of pocket|in the red|in the hole|break(?:ing)? even|eat(?:s|ing)? into (?:our|the) (?:margin|profit|time)|our (?:costs?|rates?|charges?|fees?|pricing|estimates?|budgets?|hours?|time|money)|(?:the build's|the job's) (?:money|budget)|(?:usual|normal|standard|base) (?:\w+ )?(?:charge|rate|fee)|mak(?:e|es|ing) (?:us|me) (?:any|no)?(?:thing|money))\b/i;
 /** Ran past what we planned, with no number: a comparison against our own plan or estimate. */
-export const OVER_PLAN = /\b(?:past|over|beyond|more than|longer than|exceed\w*|above)\s+(?:what\s+|the time\s+)?(?:we|I|our)\b[^.]{0,30}\b(?:allowed|planned|expected|estimated|budgeted|thought|hoped|allocated|quoted|bargained|reckoned|counted on)\b/i;
+export const OVER_PLAN = /\b(?:past|over|beyond|more than|longer than|exceed\w*|above)\s+(?:what\s+|the time\s+)?(?:we|I|our)\b[^.]{0,30}\b(?:allowed|planned|expected|estimated?|estimates|forecast|plan|budget(?:ed)?|thought|hoped|allocated|quoted|bargained|reckoned|counted on)\b/i;
 /** The payment terms a text states, in days, however worded ("due within 14 days", "due 14 days after", "payable within two weeks"). Owner decision 1: terms are client-facing. */
 const WORDNUM = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, fourteen: 14, fifteen: 15, twenty: 20, thirty: 30, sixty: 60, ninety: 90, a: 1 };
 export function termsDays(text) {
   const out = [];
-  for (const m of String(text).matchAll(/\b(?:due|payable|paid)\b[^.]{0,30}?\b(?:within|in|after)?\s*(\d+|[a-z]+)[\s-]+(days?|weeks?)\b/gi)) {
+  for (const m of String(text).matchAll(/\b(?:due|payable|paid)\b[^.]{0,30}?\b(?:within|in|after)?\s*(\d+|[a-z]+)[\s-]+(?:calendar[\s-]+)?(days?|weeks?|fortnights?)\b/gi)) {
     const n = /^\d+$/.test(m[1]) ? Number(m[1]) : WORDNUM[m[1].toLowerCase()];
-    if (n) out.push(n * (/^week/i.test(m[2]) ? 7 : 1));
+    if (n) out.push(n * (/^week/i.test(m[2]) ? 7 : /^fortnight/i.test(m[2]) ? 14 : 1));
   }
+  for (const m of String(text).matchAll(/\b(?:due|payable|paid)\b[^.]{0,30}?\ba fortnight\b/gi)) out.push(14);
+  for (const m of String(text).matchAll(/\b(\d+)-day terms\b/gi)) out.push(Number(m[1]));
   return out;
 }
 /** A client-facing time is exempt where it sits: the payment terms, a change order's Schedule, a date that moves. */
-const TIME_FIELD = (head, s) => /^Schedule$/i.test(head) || /\b(?:due|payable)\b[^.]*\b(?:within|after)\b/i.test(s) || (/\b(?:mov(?:e|es|ed|ing)|later|earlier|delay(?:s|ed)?|postpone[sd]?|back by|forward by)\b/i.test(s) && /\b(?:demo|milestone|date|dates|testing|deadline|handoff|sign-?off)\b/i.test(s));
+const TIME_FIELD = (head, s) => /^Schedule$/i.test(head) || /\b(?:due|payable|paid)\b[^.]*\b(?:within|after)\b|\b\d+-day terms\b/i.test(s) || (/\b(?:mov(?:e|es|ed|ing)|later|earlier|delay(?:s|ed)?|postpone[sd]?|back by|forward by)\b/i.test(s) && /\b(?:demo|milestone|date|dates|testing|deadline|handoff|sign-?off)\b/i.test(s));
 /** A percentage is client-facing in a payment schedule sentence. */
 const PAYMENT_SENTENCE = /\b(?:payment|invoice[ds]?|booking|deposit|balance|due)\b/i;
 /** A plan for the future: "we will test with a full week of orders" is a schedule, not our effort. */
@@ -578,10 +583,14 @@ const FUTURE_PLAN = /\b(?:will|'ll|shall|going to)\b/i;
 /** A completion claim, however worded: a done word, "now <verb>", "no longer", or a perfect that is not a start ("has run", "have been converted"). */
 const STARTISH = /^(?:begun|started|kicked|got|been working|been building)$/i;
 /** A person as the subject: a pronoun, or the client's people by role. */
-const PERSON = /\b(?:we|I|you|they|he|she)\b|\byour (?:[\w-]+ ){0,3}?(?:coordinators?|managers?|bookkeepers?|team|testers?|staff|directors?|owners?|leads?|accountants?|colleagues?|people|customers?|clients?)\b/i;
+const ROLES = "(?:coordinators?|managers?|bookkeepers?|team|testers?|staff|directors?|owners?|leads?|accountants?|colleagues?|people|customers?|clients?)";
+const PERSON = new RegExp(`\\b(?:we|I|you|they|he|she)\\b|\\b(?:your|the) (?:[\\w-]+ ){0,3}?${ROLES}\\b|\\b[A-Z][a-z]+ from your team\\b`, "i");
 export function completionClaim(s) {
   const t = s.replace(NEGATED_DONE, " ");
-  const m = t.match(DONE_WORDS) ?? t.match(/\bnow\b(?! that| on\b| and then)(?:\s+\w+)?|\bno longer\b|\b(?:has|have|had)\s+(?:all\s+|now\s+|already\s+|just\s+|finally\s+)?been\s+\w+/i);
+  const d = t.match(DONE_WORDS);
+  // A person's deed with a done word ("the order coordinator has signed off the codes") is not the system working.
+  if (d && !(PERSON.test(t.slice(0, d.index)) && /\b(?:has|have|had)\s+(?:\w+\s+)?$/i.test(t.slice(0, d.index)))) return d[0];
+  const m = t.match(/\bnow\b(?! that| on\b| and then)(?:\s+\w+)?|\bno longer\b|\b(?:has|have|had)\s+(?:all\s+|now\s+|already\s+|just\s+|finally\s+)?been\s+\w+/i);
   if (m) return m[0];
   const perf = t.match(/\b(?:has|have)\s+(?:all\s+|now\s+|already\s+|just\s+|finally\s+)?(\w+(?:ed|en|un|ne|wn|t))\b/i);
   if (!perf || STARTISH.test(perf[1]) || /^been$/i.test(perf[1])) return null;
@@ -633,35 +642,56 @@ function blocksOf(f, raw, client) {
 }
 /** Prose only: no table rows, no check blocks (a check's own wording is the plan's), no Next blocks. */
 const proseOf = (text) => text.split("\n").filter((l) => !/^\s*\|/.test(l) && !/^\s*-\s*(?:when|then|how we check|test data|cases|kind):/i.test(l) && !/^\s*(?:NEXT|DONE|IF IT IS NOT AVAILABLE)\b/.test(l.trim())).join("\n");
-/** The category findings for one client sentence: each shape counts only with OUR attribution (owner decision 1). */
-function categoryFindings(head, s, legit, unitIds = []) {
+/** A meeting with the client's people: our time with them is not our build effort. */
+const MEETING = new RegExp(`\\bwith (?:you|your (?:[\\w-]+ ){0,3}?${ROLES})\\b`, "i");
+/** The client's people as the agent of the effort ("your team spends two hours a week"). */
+const CLIENT_AGENT = new RegExp(`\\b(?:your|the client'?s?) (?:[\\w-]+ ){0,3}?(?:${ROLES}|shop|business|warehouse|office)\\b[^.]*?\\b(?:spends?|spent|needs?|needed|takes?|took|works?|worked|puts?)\\b`, "i");
+/**
+ * The category findings for one sentence (client outputs, and spec/ with `spec: true`):
+ * each shape counts only with OUR attribution (owner decision 1, 2026-10-16), and in
+ * spec/ our effort too (owner decision 2026-10-17).
+ */
+function categoryFindings(head, s, legit, { unitIds = [], user = null, spec = false } = {}) {
   const out = [];
   const t = s.replace(/\bAC-[\w.-]+/g, " ").replace(/`[^`]*`/g, " ");
   if (/acceptance checks?/i.test(head)) return out;
-  const ours = OURS.test(t);
-  const priced = PRICE_CTX.test(t) || unitIds.some((u) => new RegExp(`\\b${esc(u)}\\b`, "i").test(t));
+  // Ours: a first-person subject, or the user by name ("Robin put a week and a half into it").
+  const ours = OURS.test(t) || (user ? new RegExp(`\\b${esc(user)}\\b`).test(t) : false);
+  const priced = PRICE_CTX.test(t) || unitCtx(t, unitIds);
   let m;
-  // Time is ours only when we did it, or it is effort: "we spent", "took", "developer hours". A frequency is the client's system.
-  // A frequency ("once a day", "40 orders a week", "per hour") is how the client's business runs, not our effort.
-  const timeHit = [...t.matchAll(new RegExp(TIME_QTY.source, "gi"))].find((x) => !(/\b(?:once|twice|times|per|each|every)\s*$/i.test(t.slice(0, x.index)) && /^an?\s/i.test(x[0])) && !/\s(?:a|an|per|each|every)\s+\S+$/i.test(x[0]));
-  // Ours: an effort word, or a first-person subject in the past or present (a plan for the future is schedule). A dated sentence is a schedule unless it names effort.
-  const effort = EFFORT.test(t);
-  if (timeHit && (effort || (ours && !FUTURE_PLAN.test(t) && !DATED.test(t))) && !TIME_FIELD(head, t)) out.push(["a quantity of our time or effort", timeHit[0]]);
-  // Money is ours when it is priced or charged (or we name it), and it is not a client-facing figure.
-  for (const x of t.matchAll(new RegExp(MONEY_QTY.source, "gi"))) {
-    const full = t.slice(x.index).match(/^(?:USD|EUR|GBP|[$€£])\s?(\d[\d,]*(?:\.\d+)?)/i);
-    if (full && legit.has(cents(full[1]))) continue;
-    if (!(priced || ours)) continue;
-    out.push(["an amount of money of ours that is not a client-facing figure", x[0]]);
+  // A frequency ("once a day", "40 orders a week", "per hour") is how the client's business runs, not our effort;
+  // "most of a month" is a span, not a frequency. A span "of your orders" is test data, not effort.
+  const FREQ = new RegExp(`^(?:\\d+|${NUMWORD}|about|around)\\s+(?!of\\b)[a-z]+\\s+(?:a|an|per|each|every)\\s+\\S+$`, "i");
+  const timeHit = [...t.matchAll(new RegExp(TIME_QTY.source, "gi"))].find((x) =>
+    !(/\b(?:once|twice|times|per|each|every)\s*$/i.test(t.slice(0, x.index)) && /^an?\s/i.test(x[0])) && !FREQ.test(x[0])
+    && !/^\s+of (?:your|their|the client'?s)\b/i.test(t.slice(x.index + x[0].length)));
+  // Our effort: an effort word whose agent is not the client's people, or a first-person subject in the past or present
+  // (a plan for the future and a dated schedule are not effort), never a meeting with the client's people.
+  const effort = EFFORT.test(t) && !(CLIENT_AGENT.test(t) && !ours);
+  const meeting = MEETING.test(t) && !/\b(?:developer|engineer|billable|of work|of development)\b/i.test(t);
+  if (timeHit && !meeting && (effort || (ours && !FUTURE_PLAN.test(t) && !DATED.test(t))) && !TIME_FIELD(head, t)) out.push(["a quantity of our time or effort", timeHit[0]]);
+  if (!spec) {
+    // Money is ours when it is priced or charged (or we name it), and it is not a client-facing figure; the client's own money ("your $1,200 bill") is theirs.
+    for (const x of t.matchAll(new RegExp(MONEY_QTY.source, "gi"))) {
+      const full = t.slice(x.index).match(/^(?:USD|EUR|GBP|[$€£])\s?(\d[\d,]*(?:\.\d+)?)/i);
+      if (full && legit.has(cents(full[1]))) continue;
+      if (/\byour\s+$/i.test(t.slice(0, x.index))) continue;
+      if (!(priced || ours)) continue;
+      out.push(["an amount of money of ours that is not a client-facing figure", x[0]]);
+    }
+    // A ratio is a modifier only next to a price: the client's ratios ("98% matched", "volume doubled") are facts.
+    if ((m = t.match(RATIO)) && priced && !(/%|per ?cent|percent/i.test(m[0]) && PAYMENT_SENTENCE.test(t) && !OUR_MONEY.test(t))) out.push(["a ratio, multiplier or fraction of a price", m[0]]);
+    // The price lines behind a price, named without a number ("charged as one integration plus one report").
+    if (/\b(?:charged|priced|billed|quoted|made up of|built up from)\b/i.test(t) && unitIds.filter((u) => new RegExp(`\\b${esc(u)}\\b`, "i").test(t)).length) out.push(["the price lines behind a price", t.match(/\b(?:charged|priced|billed|quoted|made up of|built up from)\b/i)[0]]);
   }
-  // A ratio is a modifier only next to a price: the client's ratios ("98% matched", "volume doubled") are facts.
-  if ((m = t.match(RATIO)) && priced && !(/%|per ?cent|percent/i.test(m[0]) && PAYMENT_SENTENCE.test(t) && !OUR_MONEY.test(t))) out.push(["a ratio, multiplier or fraction of a price", m[0]]);
   if ((m = t.match(OUR_MONEY))) out.push(["our side of the money (cost against charge, profit or loss, our rates)", m[0]]);
   if ((m = t.match(OVER_PLAN))) out.push(["an overrun against our own plan", m[0]]);
   return out;
 }
 
-/** Spec words (§12.2, §12.7): any money or payment wording at all, unless the line is the client's own fact from the plan. */
+/** The deal in a spec/ line: us, the build, its payments and value (the client's own money facts are not the deal). */
+const DEAL_CTX = /\b(?:we|us|our|the (?:build|job|work|project|contract|quote|deal|engagement)|this (?:build|job|work|project)|milestones?|booking|the demo|acceptance|signing|signed|instal\w*|deposits?|tranches?|balance|fixed price|percent|per cent|half|halves|first|second|third|final|remaining|owed?|owing|billed|budget\w*|fees?|quoted|worth|dollars?|euros?|pounds?)\b|%|[$€£]|\b(?:USD|EUR|GBP)\b|\b\d+k\b/i;
+/** Spec words (§12.2, §12.7): any money or payment wording about the deal, unless the line is the client's own fact from the plan. */
 export const SPEC_MONEY = new RegExp(`\\b(?:pay|pays|paying|paid|payments?|payable|invoic\\w*|bill(?:s|ed|ing)?|deposits?|instal?ments?|balance|money|fees?|price[ds]?|pricing|costs?|costing|charge[ds]?|worth|valued?|owed?|owing|dollars?|euros?|pounds?|budgets?|margins?|profit\\w*|half|halves|percent|per cent|refund\\w*|tranches?)\\b|%|[$€£]|\\b(?:USD|EUR|GBP)\\b|\\b\\d+k\\b|${AMOUNT_IN_WORDS.source}`, "i");
 const tokens = (s) => (String(s).toLowerCase().match(/[a-z][a-z-]{2,}/g) ?? []).filter((w) => !SPEC_STOP.has(w)).map((w) => w.replace(/(?:ing|ed|es|s|e)$/, "")).filter((w) => w.length > 2);
 const SPEC_STOP = new Set(["the", "and", "for", "are", "with", "that", "this", "from", "into", "your", "our", "not", "all", "one", "its", "their", "them", "they", "each", "who", "what", "when", "then", "there", "which", "will", "would", "can", "has", "have", "was", "were", "been", "being", "but", "any", "every", "per", "via", "out", "also", "than"]);
@@ -1798,7 +1828,7 @@ function checkInternalNumbers(key, run) {
     const l = line.replace(/`[^`]*`/g, " ");
     for (const [re, what] of terms) { const m = l.match(re); if (m) p.push(`${f}:${i + 1}: carries ${what} ("${m[0].trim()}")`); }
     for (const id of [...units, ...mods]) if (new RegExp(`(?<![\\w-])${esc(id)}(?![\\w-])`).test(l)) p.push(`${f}:${i + 1}: names the price-book entry ${id}`);
-    for (const c of amounts) if (amountRe(c).test(l) && (!client || PRICE_CTX.test(l) || OURS.test(l))) p.push(`${f}:${i + 1}: carries the internal amount ${money(c)}`);
+    for (const c of amounts) if (amountRe(c).test(l) && (!client || PRICE_CTX.test(l) || unitCtx(l, unitIds) || OURS.test(l))) p.push(`${f}:${i + 1}: carries the internal amount ${money(c)}`);
     for (const h of hours) if (new RegExp(`(?<![\\d,.])${esc(h)}(?![\\d])`).test(l)) p.push(`${f}:${i + 1}: carries the hour figure ${h}`);
   });
   // ready-for-uat.md is read by acceptance testing, not sent: it may name the builder's reports, never a number of ours.
@@ -1807,7 +1837,7 @@ function checkInternalNumbers(key, run) {
   for (const f of clientFiles(run)) {
     const raw = run.read(f) ?? "";
     for (const { head, text } of blocksOf(f, raw, clientText(run, f))) {
-      for (const s of sentences(proseOf(text))) for (const [what, hit] of categoryFindings(head, s, legit, unitIds)) p.push(`${f}: carries ${what} ("${hit}" in "${s.slice(0, 70)}")`);
+      for (const s of sentences(proseOf(text))) for (const [what, hit] of categoryFindings(head, s, legit, { unitIds, user: key.user })) p.push(`${f}: carries ${what} ("${hit}" in "${s.slice(0, 70)}")`);
     }
   }
   // spec/: no price at all, client-facing or not (§12.7), and no money or payment wording unless it is the client's own fact.
@@ -1815,12 +1845,19 @@ function checkInternalNumbers(key, run) {
   for (const f of run.written().filter((x) => /\/spec\//.test(x))) {
     const { content } = matter(run.read(f) ?? "");
     const body = content.replace(/^## Sources[\s\S]*$/m, "");
-    scan(f, body, [...SPEC_TERMS, [AMOUNT_IN_WORDS, "an amount in words"], ...INTERNAL_TERMS.filter(([, w]) => /margin|pricing internals|modifier factor/.test(w))], [...all], false);
+    scan(f, body, [...SPEC_TERMS, [AMOUNT_IN_WORDS, "an amount in words"], ...INTERNAL_TERMS.filter(([, w]) => /effort|our hours|a rate|margin|overrun|pricing internals|modifier factor/.test(w))], [...all], false);
     const facts = clientFactLines(run, key, content);
     body.split("\n").forEach((line, i) => {
-      const m = line.replace(/`[^`]*`/g, " ").match(SPEC_MONEY);
-      if (m && !isClientFact(line, facts)) p.push(`${f}:${i + 1}: money or payment wording ("${m[0]}") that is not the client's own fact from the plan; spec/ carries no payment, price or amount of ours`);
+      const l = line.replace(/`[^`]*`/g, " ");
+      // Money wording about the deal (our price, the payments, the build's value): a client's own money fact ("the client pays to reship") is theirs.
+      const m = l.match(SPEC_MONEY);
+      if (m && DEAL_CTX.test(l) && !isClientFact(line, facts)) p.push(`${f}:${i + 1}: money or payment wording ("${m[0]}") about the deal that is not the client's own fact from the plan; spec/ carries no payment, price or amount of ours`);
+      // Price-book sizing: units and the price book (R4-2).
+      const u = l.match(new RegExp(`\\bsized at\\b|\\bprice[- ]book\\b|\\b(?:\\d+|${NUMWORD})(?:\\s+to\\s+(?:\\d+|${NUMWORD}))?\\s+(?:(?:${unitIds.map(esc).join("|") || "unit"})\\s+)?units?\\b`, "i"));
+      if (u) p.push(`${f}:${i + 1}: carries price-book sizing ("${u[0]}"); spec/ names no unit of ours`);
     });
+    // Our effort and time in spec/ (owner decision 2026-10-17): the same our-side rules as client output.
+    for (const s of sentences(proseOf(body))) for (const [what, hit] of categoryFindings("", s, legit, { unitIds, user: key.user, spec: true })) p.push(`${f}: carries ${what} ("${hit}" in "${s.slice(0, 70)}")`);
   }
   return p;
 }
