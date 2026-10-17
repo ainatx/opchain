@@ -8,10 +8,10 @@ workstream: business
 user: Robin
 base: logs-git-declined
 verbs: [/ow-start-log-meeting]
-checks: [headers, writes, write_once, status, status_grammar, route, notes, trace, owner_date, embedded, follow_up, people, private_names, gitignore]
+checks: [headers, writes, write_once, status, status_grammar, route, notes, trace, owner_date, embedded, follow_up, people, private_names, gitignore, handling]
 route:
   verb: /ow-start-log-meeting
-  says: ["MTG-01", "use ow-start to log the decisions in logs/business/meetings/MTG-01/notes.md"]
+  tokens: [["DONE:", "logs/business/meetings/MTG-01/notes.md"], ["NEXT:", "use ow-start to log the decisions in logs/business/meetings/MTG-01/notes.md"]]
 notes:
   id: MTG-01
   input: notes

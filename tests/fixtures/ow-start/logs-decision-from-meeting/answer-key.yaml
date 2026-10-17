@@ -7,10 +7,10 @@ workstream: larkspur-ceramics
 user: Robin
 base: logs-larkspur-checkin
 verbs: [/ow-start-log-decision]
-checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names, gitignore]
+checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names, gitignore, handling]
 route:
   verb: /ow-start-log-decision
-  says: ["D1:", "D2:"]
+  tokens: [["D1"], ["D2"], ["DONE:", "logs/larkspur-ceramics/decisions/DEC-01.md"], ["NEXT: none"]]
 decision:
   files:
     - { id: DEC-01, review: 2026-10-19, supersedes: none, subject: "logs/larkspur-ceramics/meetings/MTG-01/notes.md#D1", confirmed: client }

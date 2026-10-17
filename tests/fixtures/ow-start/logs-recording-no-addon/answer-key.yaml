@@ -8,9 +8,9 @@ user: Robin
 base: logs-prep-first
 verbs: [/ow-start-log-meeting]
 writes_nothing: true
-checks: [writes, write_once, status, route, private_names]
+checks: [writes, write_once, status, route, private_names, handling]
 route:
   verb: /ow-start-log-meeting
-  says: ["not installed here", "logs/larkspur-ceramics/meetings/MTG-01/transcript.md", "your notes"]
-  never: ["DONE:"]
+  says: ["not installed here", "your notes"]
+  tokens: [["logs/larkspur-ceramics/meetings/MTG-01/transcript.md"], ["use ow-start to log the meeting logs/larkspur-ceramics/meetings/MTG-01/"]]
 status: { lines: [] }

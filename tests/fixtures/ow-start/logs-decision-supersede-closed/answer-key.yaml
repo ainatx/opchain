@@ -7,10 +7,10 @@ workstream: larkspur-ceramics
 user: Robin
 base: logs-action-reviewed
 verbs: [/ow-start-log-decision]
-checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names]
+checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names, handling]
 route:
   verb: /ow-start-log-decision
-  says: ["DEC-02 supersedes it"]
+  tokens: [["DEC-02", "DEC-01"], ["DONE:", "logs/larkspur-ceramics/decisions/DEC-02.md"]]
 decision:
   files:
     - { id: DEC-02, review: no review, supersedes: DEC-01, subject: none, confirmed: internal }

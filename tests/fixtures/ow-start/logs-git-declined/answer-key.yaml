@@ -6,10 +6,10 @@ workstream: business
 user: Robin
 base: logs-action-done
 verbs: [/ow-start-prep-meeting]
-checks: [headers, writes, write_once, status, status_grammar, route, agenda, people, private_names, gitignore]
+checks: [headers, writes, write_once, status, status_grammar, route, agenda, people, private_names, gitignore, handling]
 route:
   verb: /ow-start-prep-meeting
-  says: ["MTG-01"]
+  tokens: [["DONE:", "logs/business/meetings/MTG-01/agenda.md", "2026-10-23"], ["NEXT:", "use ow-start to log the meeting logs/business/meetings/MTG-01/"]]
 agenda:
   id: MTG-01
   date: 2026-10-23

@@ -7,10 +7,10 @@ user: Robin
 base: logs-business-vendor
 verbs: [/ow-start-log]
 writes_nothing: true
-checks: [writes, status, route, private_names]
+checks: [writes, status, route, private_names, handling]
 route:
   verb: /ow-start-log
   ask: "which workstream"
-  says: ["larkspur-ceramics", "business"]
-  never: ["^- MTG-01"]
+  tokens: [["larkspur-ceramics"], ["business"]]
+  never: ["^(?!Step 0\\.).*\\b(?:MTG|A|DEC)-\\d{2}\\b"]
 status: { lines: [] }

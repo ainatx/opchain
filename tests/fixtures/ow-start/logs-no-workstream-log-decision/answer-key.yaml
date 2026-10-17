@@ -8,10 +8,10 @@ user: Robin
 base: logs-larkspur-checkin
 verbs: [/ow-start-log-decision]
 writes_nothing: true
-checks: [writes, write_once, status, route, private_names]
+checks: [writes, write_once, status, route, private_names, handling]
 route:
   verb: /ow-start-log-decision
   ask: "confirm it"
-  says: ["larkspur-ceramics", "D1", "D2"]
-  never: ["DONE: "]
+  tokens: [["larkspur-ceramics"]]
+  never: ["^(?!Step 0\\.).*\\bDEC-\\d{2}\\.md\\b"]
 status: { lines: [] }

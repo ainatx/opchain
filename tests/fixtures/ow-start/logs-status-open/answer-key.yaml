@@ -8,9 +8,10 @@ user: Robin
 base: logs-decision-from-meeting
 verbs: [/ow-start]
 writes_nothing: true
-checks: [writes, status, route, screen, private_names]
-route: { verb: /ow-start }
+checks: [writes, status, route, screen, private_names, handling]
+route:
+  verb: /ow-start
 screen:
-  must: ["A-01: client ops lead", "A-02: you", "A-03: client owner", "DEC-01: review by 2026-10-19", "ow-build-plan /ow-build-plan-start plans/larkspur-ceramics/"]
-  must_not: ["\\(reported overdue\\)", "MTG-01"]
+  tokens: [["larkspur-ceramics", "2026-10-21"], ["A-01", "client ops lead", "2026-10-16"], ["A-02", "you", "2026-10-19"], ["A-03", "client owner", "2026-10-15"], ["DEC-01", "2026-10-19"]]
+  must_not: ["\\b(?:A|DEC)-\\d{2}\\b[^\\n]*overdue", "^(?!Step 0\\.).*\\bMTG-01\\b"]
 status: { lines: [] }

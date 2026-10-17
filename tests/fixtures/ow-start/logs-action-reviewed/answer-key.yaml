@@ -5,8 +5,11 @@ workstream: larkspur-ceramics
 user: Robin
 base: logs-action-done
 verbs: [/ow-start-action]
-checks: [writes, write_once, status, status_grammar, route, private_names]
-route: { verb: /ow-start-action }
+checks: [writes, write_once, status, status_grammar, route, private_names, handling]
+route:
+  verb: /ow-start-action
+  says: ["Appended:", "Open in larkspur-ceramics:"]
+  tokens: [["Appended:", "DEC-01", "none (closed: reviewed)"]]
 status:
   lines:
     - { path: "logs/larkspur-ceramics/decisions/DEC-01.md", next: "none (closed: reviewed)", awaiting: "none (reviewed 2026-10-19, kept)" }

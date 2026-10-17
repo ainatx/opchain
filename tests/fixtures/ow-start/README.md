@@ -44,6 +44,7 @@ These are the acceptance tests from `docs/plans/2026-10-06-ow-start-intake-redes
 | `logs-prep-business` | C4, C11 | the business agenda |
 | `logs-git-declined` | C16 | a repository without the ignore lines; the user says no |
 | `logs-log-index` | C4, C10 | own items plus the index: ow-build's signed and declined change orders by path, date and `status`; a demo record with no readable header; copies nothing |
+| `logs-log-index-price2000` | C10, round 2 m4 | the index with a signed change order priced 2000.00, a number in the year range: listed by path, date and `status`, its price copied in no form |
 | `logs-log-empty`, `logs-log-business` | C4 | an empty workstream; `business` |
 | `logs-status-open`, `logs-status-after-done` | C4, C8, C15 | `/ow-start` and `/ow-status`: the newest line per item next to the open intake; after one action closes |
 | `logs-private-names` | C13 | the shipped empty `handoffs.yaml`; a typed waiver for the private names, refused |
@@ -55,7 +56,7 @@ These are the acceptance tests from `docs/plans/2026-10-06-ow-start-intake-redes
 | `logs-no-workstream-log-meeting`, `-log-decision`, `-action`, `-log` | C4 (round 1 m5) | no workstream given: two that fit are listed and the user asked; one that fits is named and confirmed; nothing written |
 | `logs-handling-asked`, `logs-handling-read-back` | C16 (round 1 m6) | a logs-only workstream with no handling default: the protocol's question once, the answer in the agenda's header; read back, not asked, by the next verb |
 
-Round 1's Evaluator sentence sets (`tests/ow-start-logs-eval-r1-sentences.mjs`) and plants are permanent tests, and so is a held-out set written before round 2 changed any rule (`tests/ow-start-logs-heldout.mjs`). Screens are graded only on text the skill prescribes and on structure (owner decision R1-4), which `tests/ow-start-logs-acceptance.test.js` enforces for every answer key. Private names come from `catalogs.json`, not from the answer keys.
+Round 1's Evaluator sentence sets (`tests/ow-start-logs-eval-r1-sentences.mjs`) and plants are permanent tests, and so is a held-out set written before round 2 changed any rule (`tests/ow-start-logs-heldout.mjs`). Round 2's Evaluator sentence sets (`tests/ow-start-logs-eval-r2-sentences.mjs`) and plants are permanent too, and so is a second held-out set written before round 3 changed any rule (`tests/ow-start-logs-heldout-r3.mjs`). Screens are graded only on text the skill prescribes and on structure (owner decision R1-4): a key's `says`, `ask` and `must` are each one prescribed text, its `tokens` are ids, dates, paths, file names, workstreams and roles that share a line, and `never` and `must_not` are guards. `tests/ow-start-logs-acceptance.test.js` enforces this for every answer key, against a list of the prescribed texts and the files that prescribe them. Private names come from `catalogs.json`, not from the answer keys.
 
 The planted failures for every criterion are in `tests/ow-start-plants.test.js`; the controls the meaning checks are held to, written before the rules, are in `tests/ow-start-logs-sentences.mjs`. ow-uat's real sign-off golden joins `logs-log-index` when OW-04 merges.
 

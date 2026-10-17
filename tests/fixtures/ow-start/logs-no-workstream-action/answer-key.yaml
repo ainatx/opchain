@@ -8,10 +8,9 @@ user: Robin
 base: logs-business-vendor
 verbs: [/ow-start-action]
 writes_nothing: true
-checks: [writes, status, route, private_names]
+checks: [writes, status, route, private_names, handling]
 route:
   verb: /ow-start-action
   ask: "which workstream"
-  says: ["A-01 \\(client ops lead\\) by 2026-10-16", "A-01 \\(vendor account manager\\) by 2026-10-22"]
-  never: ["Appended:"]
+  tokens: [["larkspur-ceramics"], ["business"]]
 status: { lines: [] }

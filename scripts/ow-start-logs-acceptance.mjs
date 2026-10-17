@@ -14,7 +14,8 @@
 //   write_once     agenda.md (unless a confirmed redo), notes.md and DEC-nn.md are never overwritten
 //   status         STATUS.md appended, never rewritten; the lines the key expects; no duplicate line
 //   status_grammar no client text in STATUS: every logs line in the closed grammar, owners attendee roles
-//   route          the run landed on one verb: its printed screen, what it says, nothing else printed
+//   route          the run landed on one verb: its printed screen, its prescribed text and structure, nothing
+//                  else printed; a route that writes nothing prints no DONE: or Appended: line
 //   agenda         every expected item with its source; closed and other-workstream items absent
 //   notes          attendees by role, decisions, actions and open questions as the key expects
 //   trace          every decision, action and open question cites words that are at that time (±10 s),
@@ -31,7 +32,13 @@
 //   business       nothing crosses between logs/business/ and a client's files
 //   gitignore      asks once without the two lines, adds them only on yes; never asks when present
 //   screen         the printed screen shows the prescribed text and structure the key names, and nothing it must not
-//   handling       a logs-only workstream asks the handling question once and keeps the answer in the logs header
+//   handling       the handling question is asked only when no value is stored, once, and the answer kept in the
+//                  logs header; asked again in any words while a value is stored, it fails
+//
+// Owner decision R1-4: a screen is graded only on text the references prescribe and on structure. In a key,
+// `says`, `ask` and `must` are each one prescribed text; `tokens` are groups of ids, dates, paths, file
+// names, workstreams and roles that must share a line (the step-0 echo never counts); `never` and
+// `must_not` are guards that fail a wrong screen. tests/ow-start-logs-acceptance.test.js holds every key to this.
 //
 // Each check runs on its own: a malformed file (notes.md as a folder, a header
 // that is not valid YAML, a truncated STATUS line, a binary transcript, an empty
@@ -282,6 +289,8 @@ export function followUpFindings(s, { user = null } = {}) {
   const ours = OURS.test(t) || (user ? new RegExp(`\\b${esc(user)}\\b`).test(t) : false);
   for (const [what, hit] of categoryFindings("", t, new Set(), { user })) {
     if (/time or effort/.test(what) && !ours && CLIENT_SIDE.test(t)) continue;
+    // A ratio of the client's own price is theirs (D1: "your price list goes up by about 5%").
+    if (/ratio/.test(what) && !ours && /\b(?:your|their|the client'?s)\s+(?:[\w-]+\s+){0,2}?(?:price|prices|price list|rates?|fees?|charges?|costs?|margin)\b/i.test(t)) continue;
     out.push([what, hit]);
   }
   for (const [re, what] of OUR_SIDE_WORDING) { const m = t.match(re); if (m) out.push([what, m[0]]); }
@@ -305,13 +314,26 @@ const OUR_SIDE_WORDING = [
   [new RegExp(`${NOT_THEIRS}\\bmargins?\\b`, "i"), "a margin that is not the client's"],
   [new RegExp(`${NOT_THEIRS}\\b(?:over|under)\\s+(?:the\\s+|our\\s+|my\\s+)?budget\\b`, "i"), "over or under our budget"],
   [/\bbudget(?:ed)?\s+(?:effort|hours|time|days)\b|\bdiscounted\s+(?:rate|price|fee)\b|\b(?:blended|day|hourly|standard|usual|normal)\s+rate\b(?<!\byour\s+\w+\s+rate)/i, "our rate or budgeted effort"],
+  // Round 2 m1: the plain wording that still slipped, by category.
+  [/\b(?:I|we)\b[^.]{0,20}\b(?:bill|charge|invoic)\w*\b[^.]{0,30}\b(?:by the (?:half[\s-])?(?:day|hour|week|month)|per (?:hour|day|half[\s-]day)|hourly|at (?:my|our)\b|at cost|separately|on top)/i, "the basis we bill or charge on"],
+  [/\bat\s+(?:my|our)\s+(?:usual|normal|standard|regular|full|discounted|hourly|daily)\b/i, "our usual basis for a price"],
+  [/\b(?:I|we)(?:'ve|'d| have| had)?\s+(?:\w+ly\s+)?(?:spent|spend|put in|sank|sunk|lost)\b(?![^.]*\bwith (?:you|your)\b)[^.]{0,25}?\b(?:(?:most|all|half|part) of\s+)?(?:the\s+)?(?:whole\s+)?(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|day|days|week|weekend|evening|evenings|morning|afternoon|night|nights)\b/i, "a span of our effort"],
+  [/\b(?:used up|burned through|burnt through|burned|burnt|blown through|eaten (?:up|into)|ran through|run through|gone through)\b[^.]{0,30}\b(?:hours|days|budget|time|contingency|allowance|buffer|estimate)\b(?<=^(?=.*\b(?:I|we|our|my|us)\b).*)/i, "an allowance of ours used up"],
+  [/\b(?:hours|days|time|budget)\s+(?:that\s+)?(?:we|I)\s+(?:had\s+)?(?:set aside|budgeted|planned|allowed|allocated)\b/i, "an allowance of ours"],
+  [/\b(?:I|we)(?:'ll| will| would)?\s+(?:\w+ly\s+)?(?:add|put|apply|charge)\b[^.]{0,20}(?:\d+(?:\.\d+)?\s?%|\bper ?cent\b|\bpercent\b)/i, "a percentage we add to a price"],
+  [/\b(?:my|our)\s+(?:time|hours|effort|days)\b(?!\s+(?:on the call|together|today|with you|this morning|this afternoon))/i, "our time or effort (without a number)"],
+  [/\b(?:I|we)(?:'ve| have| had)?\s+(?:\w+ly\s+)?(?:priced|quoted|charged|billed|estimated|underestimated|overestimated)\b[^.]{0,30}\b(?:below|under|above|over|at a loss|at cost|too|low|high)\b/i, "how we priced or quoted it"],
+  [/\b(?:quote|quoted|price|priced|estimate|estimated)\b[^.]{0,40}\btoo\s+(?:low|high|tight|thin)\b(?<=^(?=.*\b(?:I|we|our|my|us)\b).*)/i, "an under- or over-quote of ours"],
+  [/(?<!\b(?:your|their)\s+(?:\w+\s+)?)\bbillable\b/i, "billable time of ours"],
 ];
 
 const HONORIFIC = /\b(?:Mr|Mrs|Ms|Mx|Miss|Dr|Prof)\.?\s+[A-Z][a-z]+/;
 const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/;
 // A phone number: with an area code ("512-555-0147", "(512) 555-0199", "+1 512 555 0177"), or a
 // 7-digit local number ("555-0142", "555 0123"); an ISO date (4-2-2) is never one.
-const PHONE = /(?:\+?\d{1,3}[\s.-]?)?(?:\(\d{3}\)\s?|\b\d{3}[\s.-])\d{3}[\s.-]\d{4}\b|(?<![\d.-])\b\d{3}[\s.-]\d{4}\b(?![.-]\d)/;
+// An international number with a country code ("+44 20 7946 0958"), or 10 or 11 digits unformatted
+// ("5125550199") count too (round 2 m6).
+const PHONE = /(?:\+?\d{1,3}[\s.-]?)?(?:\(\d{3}\)\s?|\b\d{3}[\s.-])\d{3}[\s.-]\d{4}\b|(?<![\d.-])\b\d{3}[\s.-]\d{4}\b(?![.-]\d)|(?<![\w+])\+\d{1,3}(?:[\s.-]?\(?\d\)?){7,12}(?!\d)|(?<![\w.,-])\d{10,11}(?![\w.,-])/;
 // `<Name> from <Organisation>`. Mid-sentence, a capitalised word before "from <Capitalised>" is a
 // name. At the start of a sentence it may be a noun ("Stoneware from Laguna arrives"), so there it
 // counts only when a person's verb follows the organisation ("Jordan from Larkspur will send").
@@ -520,11 +542,32 @@ function checkRoute(key, run) {
   for (const x of printed) if (x !== want) p.push(`${x}: the run printed for another verb; one verb per run`);
   const screen = run.screen(want) ?? "";
   if (!screen.trim()) return [`${want} is empty`];
-  for (const s of r.says ?? []) if (!new RegExp(s, "i").test(screen)) p.push(`${want} does not say /${s}/`);
-  for (const s of r.never ?? []) if (new RegExp(s, "i").test(screen)) p.push(`${want} says /${s}/, which this route never prints`);
+  // Owner decision R1-4: a screen is graded on the text the skill prescribes (says, ask) and on
+  // structure (tokens: ids, paths, dates and roles together on one line), never on golden wording.
+  // Guards (`never`) are compiled per line, so `^` anchors a line (round 2 D1′b).
+  for (const s of r.says ?? []) if (!new RegExp(s, "im").test(screen)) p.push(`${want} does not say /${s}/`);
+  p.push(...tokenProblems(want, screen, r.tokens));
+  for (const s of r.never ?? []) if (new RegExp(s, "m").test(screen)) p.push(`${want} says /${s}/, which this route never prints`);
+  // A route that writes nothing never reports a result: no DONE line, no appended STATUS line (round 2 D1′b).
+  if (key.writes_nothing) {
+    for (const [re, what] of [[/^\s*DONE:/m, "a DONE: line"], [/^\s*Appended:/m, "an Appended: line"]]) if (re.test(screen)) p.push(`${want} prints ${what}, but this route writes nothing`);
+  }
   if (r.ask && run.written().some((f) => f !== ".gitignore")) p.push(`the route asks first (${r.ask}), but the run wrote ${run.written().join(", ")}`);
-  if (r.ask && !new RegExp(r.ask, "i").test(screen)) p.push(`${want} does not ask /${r.ask}/`);
+  if (r.ask && !new RegExp(r.ask, "im").test(screen)) p.push(`${want} does not ask /${r.ask}/`);
   return p;
+}
+
+/**
+ * Structure on a screen: each group of tokens (ids, paths, dates, roles, and the few words the
+ * references prescribe) appears together on one line, in any order and any wording around them.
+ * The step-0 echo of the newest STATUS line is the protocol's, not the route's, so it never counts.
+ * An id matches as a whole word ("A-01" is not in "A-010").
+ */
+function tokenProblems(rel, screen, groups = []) {
+  const lines = String(screen).split("\n").filter((l) => !/^\s*Step 0\b/.test(l)).map((l) => l.toLowerCase());
+  const has = (l, t) => { const s = String(t).toLowerCase(); return /^[a-z]+(?:-|_)?\d+$/.test(s) ? new RegExp(`(?<![\\w-])${esc(s)}(?![\\w-])`).test(l) : l.includes(s); };
+  return (groups ?? []).filter((g) => !lines.some((l) => g.every((t) => has(l, t))))
+    .map((g) => `${rel} has no line with ${g.map((t) => `"${t}"`).join(", ")} together`);
 }
 
 function checkAgenda(key, run) {
@@ -789,28 +832,35 @@ function checkIndex(key, run) {
   if (!screen.trim()) return [`${screenRel} is empty`];
   const rows = indexRows(ix.client);
   const files = run.all().filter((f) => f.startsWith(OW) && rows.some((r) => r.re.test(f)));
-  // What the index must never copy, by meaning (round 1 D2a): the amounts in any header value
-  // the row does not name, compared by value ("USD 2,600" is 2600.00, "3,000" is 3000); the
-  // phrases of those values, compared five words at a time; and body text (the key's canaries).
-  const amounts = new Set(), shingles = new Set();
+  // What the index must never copy, by meaning: the amounts in any header value the row does
+  // not name, compared by value ("USD 2,600" is 2600.00, "(2,000)" is 2000) on the line that
+  // lists that file, or on a line about money; the phrases of those values, five words at a time
+  // (the family's own wording, such as "not verified by this skill", is not theirs to copy); a
+  // person; and body text (the key's canaries).
+  const amountsOf = new Map(), shingles = new Set();
   const leaves = (v) => (v == null ? [] : Array.isArray(v) ? v.flatMap(leaves) : typeof v === "object" && !(v instanceof Date) ? Object.values(v).flatMap(leaves) : [String(iso(v))]);
+  const family = familyShingles();
   for (const f of files) {
     const row = rows.find((r) => r.re.test(f));
     const rel = f.slice(OW.length);
     let data = null;
     try { const t = run.read(f) ?? ""; data = f.endsWith(".yaml") ? yaml.load(t) : matter(t).data; } catch { data = null; }
     const named = row.keys.filter((k) => k !== "created");
-    const line = !data || !data.created ? `${rel} · no date in its header` : [rel, iso(data.created), ...named.map((k) => `${k}: ${iso(data[k])}`)].join(" · ");
-    if (!screen.includes(line)) p.push(`the index does not list "${line}"`);
+    // The prescribed screen form is "<path> · <date> · <key>: <value>"; graded as structure (the path,
+    // the date and the named key's value together on one line), so a table of the same is fine.
+    const want = !data || !data.created ? [rel, "no date in its header"] : [rel, iso(data.created), ...named.map((k) => `${k}: ${iso(data[k])}`)];
+    if (!screen.split("\n").some((l) => want.every((w) => l.includes(w)))) p.push(`the index does not list ${want.map((w) => `"${w}"`).join(", ")} on one line`);
+    const amounts = new Set();
     for (const [k, v] of Object.entries(data ?? {})) {
       if (row.keys.includes(k) || ["ow_artefact", "schema", "written_by", "workstream", "clock", "origin", "subject", "client", "id"].includes(k)) continue;
       for (const s of leaves(v)) {
         if (/^[\w.<>-]+(?:\/[\w.<>-]+)+\/?$/.test(s.trim())) continue; // a path: the index shows paths by design
-        for (const n of numbersIn(s)) if (n >= 100 && !(Number.isInteger(n) && n >= 1900 && n <= 2100)) amounts.add(n); // a year is not an amount
+        for (const x of numbersIn(s)) if (x.n >= 100 && !x.year) amounts.add(x.n);
         const w = norm(s).split(" ").filter(Boolean);
-        for (let i = 0; i + 5 <= w.length; i++) shingles.add(w.slice(i, i + 5).join(" "));
+        for (let i = 0; i + 5 <= w.length; i++) { const g = w.slice(i, i + 5).join(" "); if (!family.has(g)) shingles.add(g); }
       }
     }
+    amountsOf.set(rel, amounts);
   }
   for (const want of ix.expect ?? []) if (!screen.includes(want)) p.push(`the index does not list "${want}"`);
   const words5 = norm(screen).split(" ").filter(Boolean);
@@ -818,10 +868,14 @@ function checkIndex(key, run) {
     const s = words5.slice(i, i + 5).join(" ");
     if (shingles.has(s)) { p.push(`${screenRel} copies the words of a header value the index row does not name ("${s}")`); break; }
   }
-  for (const n of numbersIn(screen)) if (amounts.has(n)) p.push(`${screenRel} copies an amount from an indexed file's header (${n}), in whatever form it is written`);
+  const MONEY_LINE = /\b(?:price[ds]?|fees?|costs?|amounts?|payments?|totals?|charges?|rates?|invoiced?|paid|USD|EUR|GBP)\b|[$€£]/i;
+  const all = new Set([...amountsOf.values()].flatMap((s) => [...s]));
   screen.split("\n").forEach((l, i) => {
     const m = l.match(MONEY_QTY);
     if (m) p.push(`${screenRel}:${i + 1}: an amount of money ("${m[0]}"); the index never shows one`);
+    // By attribution, not by value alone: a number counts on the line that lists its file, or on a line about money.
+    const own = [...amountsOf.entries()].filter(([rel]) => l.includes(rel)).flatMap(([, s]) => [...s]);
+    for (const x of numbersIn(l)) if (!x.year && (own.includes(x.n) || (MONEY_LINE.test(l) && all.has(x.n)))) p.push(`${screenRel}:${i + 1}: copies an amount from an indexed file's header (${x.n}), in whatever form it is written`);
   });
   const names = knownNames(key, run);
   screen.split("\n").forEach((l, i) => { for (const [what, hit] of peopleFindings(l, names)) p.push(`${screenRel}:${i + 1}: ${what} ("${hit}"); the index never shows a person`); });
@@ -830,10 +884,34 @@ function checkIndex(key, run) {
   return p;
 }
 
-/** Numbers in a text by value, dates and ids left out: "USD 2,600.00" and "2,600" are both 2600. */
+/**
+ * Numbers in a text by value, dates and ids left out: "USD 2,600.00" and "2,600" are both 2600.
+ * A bare four-digit 1900-2100 is a year only in a date-like context ("in 2026", "December 2026");
+ * a figure with a comma or decimals ("(2,000)", "2000.00") is never one (round 2 m4).
+ */
+const MONTHS_RE = "(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)";
+const YEAR_BEFORE = new RegExp(`(?:\\b${MONTHS_RE}\\.?|\\b(?:in|since|until|by|of|from|to|year|years|early|late|mid)|\\b\\d{1,2})\\s+$`, "i");
 function numbersIn(text) {
   const t = String(text).replace(/\b\d{4}-\d{2}-\d{2}\b/g, " ").replace(/\b[A-Z]{1,4}-?\d+(?:\.\d+)*\b/g, " ").replace(/\b\d{1,2}:\d{2}\b/g, " ");
-  return [...t.matchAll(/(?<![\w.])\d{1,3}(?:,\d{3})+(?:\.\d+)?|(?<![\w.,])\d+(?:\.\d+)?/g)].map((m) => Number(m[0].replace(/,/g, ""))).filter((n) => Number.isFinite(n));
+  return [...t.matchAll(/(?<![\w.])\d{1,3}(?:,\d{3})+(?:\.\d+)?|(?<![\w.,])\d+(?:\.\d+)?/g)].map((m) => {
+    const n = Number(m[0].replace(/,/g, ""));
+    const year = /^\d{4}$/.test(m[0]) && n >= 1900 && n <= 2100 && YEAR_BEFORE.test(t.slice(Math.max(0, m.index - 14), m.index));
+    return { n, year };
+  }).filter((x) => Number.isFinite(x.n));
+}
+
+/** Every five-word run of the family's own skill text (the ow- skills and protocol): wording a screen may share. */
+let familyCache = null;
+function familyShingles() {
+  if (!familyCache) {
+    familyCache = new Set();
+    const dir = join(ROOT, "skills-work");
+    for (const rel of walk(dir).filter((r) => /\.md$/.test(r))) {
+      const w = norm(readFileSync(join(dir, rel), "utf8")).split(" ").filter(Boolean);
+      for (let i = 0; i + 5 <= w.length; i++) familyCache.add(w.slice(i, i + 5).join(" "));
+    }
+  }
+  return familyCache;
 }
 
 function checkBusiness(key, run) {
@@ -886,26 +964,35 @@ function checkGitignore(key, run) {
 }
 
 /**
- * Handling for a logs-only workstream (round 1 m6; build note 6): with no intake.yaml and
- * no profile default, the protocol's question is asked once and the answer is written as
- * `handling:` in the header of the logs file being written (never into profile.md); a later
- * verb reads it back from the newest logs file that records one and does not ask again.
+ * Handling (step 0b; build note 6). The question is asked only when no value is stored: not
+ * in `intake/<client>/intake.yaml` (a client), not in `profile.md`, not in a logs file of the
+ * workstream. Then it is asked once and the answer is written as `handling:` in the header of
+ * the logs file being written (never into profile.md). Asked again, in any words, while a value
+ * is stored, it fails (round 2 m5).
  */
 const HANDLING_QUESTION = "Does any of this material carry a sensitivity marking";
+// The question in other words: a question line about sensitivity, a marking, restrictions or where it may be processed.
+const HANDLING_ASKED = /^(?=[^\n]*\?)[^\n]*\b(?:sensitiv\w*|marking|restricted|restriction|confidential|classified|handling (?:rule|level|requirement)s?|where (?:it|this|they|the material) (?:may|can|is allowed to) be (?:processed|used|stored)|allowed to process)\b/im;
+function storedHandling(key, run) {
+  const sources = [];
+  const read = (rel, yamlFile) => { try { const t = run.priorRead(rel); if (t == null) return; const d = yamlFile ? yaml.load(t) : matter(t).data; if (d && d.handling != null && String(d.handling) !== "") sources.push(rel.replace(OW, "")); } catch { /* unreadable: not a stored value */ } };
+  if (key.workstream !== "business") read(`${OW}intake/${key.workstream}/intake.yaml`, true);
+  read(`${OW}profile.md`, false);
+  for (const f of run.priorAll().filter((x) => x.startsWith(`${ws(key)}/`) && x.endsWith(".md"))) read(f, false);
+  return sources;
+}
 function checkHandling(key, run) {
   const p = [];
   const h = key.handling ?? {};
   const screens = run.printed().map((s) => run.screen(s) ?? "").join("\n");
-  const asked = screens.includes(HANDLING_QUESTION);
-  const recorded = run.priorAll().filter((f) => f.startsWith(`${ws(key)}/`) && f.endsWith(".md")).some((f) => {
-    try { return header(run.priorRead(f) ?? "", f).data.handling != null; } catch { return false; }
-  });
+  const asked = screens.includes(HANDLING_QUESTION) || HANDLING_ASKED.test(screens);
+  const stored = storedHandling(key, run);
   if (run.written().includes(`${OW}profile.md`)) p.push("profile.md was written by a logs verb; the handling answer goes in the logs file's header");
   const file = logsWritten(run).find((x) => x.endsWith(".md"));
   let value;
   try { value = file ? header(run.read(file), file).data.handling : undefined; } catch { value = undefined; }
-  if (recorded) {
-    if (asked) p.push("the handling question was asked again, though a logs file of this workstream records the answer; read it from there");
+  if (stored.length) {
+    if (asked) p.push(`the handling question was asked, in whatever words, though ${stored[0]} stores the answer; read it from there`);
   } else if (h.asked) {
     if (!asked) p.push(`no handling value is stored for ${key.workstream}, and the run did not ask the protocol's question ("${HANDLING_QUESTION}…")`);
     if (String(value ?? "") !== String(h.answer)) p.push(`the logs file's header says handling: ${value ?? "(none)"}, expected ${h.answer} (the answer, recorded where it was asked)`);
@@ -921,6 +1008,7 @@ function checkScreen(key, run) {
   if (screen == null) return [`${rel} was not saved`];
   if (!screen.trim()) return [`${rel} is empty`];
   for (const m of s.must ?? []) if (!new RegExp(m, "im").test(screen)) p.push(`${rel} does not show /${m}/`);
+  p.push(...tokenProblems(rel, screen, s.tokens));
   for (const m of s.must_not ?? []) if (new RegExp(m, "im").test(screen)) p.push(`${rel} shows /${m}/, which it must not`);
   return p;
 }

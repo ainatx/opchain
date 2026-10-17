@@ -7,9 +7,10 @@ user: Robin
 base: logs-prep-first
 verbs: [/ow-start-log]
 writes_nothing: true
-checks: [writes, status, route, screen, private_names]
-route: { verb: /ow-start-log }
+checks: [writes, status, route, screen, private_names, handling]
+route:
+  verb: /ow-start-log
 screen:
-  must: ["Nothing logged yet"]
-  must_not: ["^- ", "^larkspur"]
+  must: ["Nothing logged yet for meridian-tile"]
+  must_not: ["^(?!Step 0\\.).*\\b(?:MTG|A|DEC)-\\d{2}\\b", "^(?!Step 0\\.).*larkspur", "^(?!Step 0\\.).*\\b(?:intake|plans|builds|uat|care|handoffs)/"]
 status: { lines: [] }

@@ -6,11 +6,11 @@ workstream: larkspur-ceramics
 user: Robin
 base: logs-larkspur-checkin
 verbs: [/ow-start-log-decision]
-checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names]
+checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names, handling]
 route:
   verb: /ow-start-log-decision
-  says: ["D1:", "D2 does not parse"]
-  never: ["- D2:"]
+  tokens: [["D1"], ["D2"], ["DONE:", "logs/larkspur-ceramics/decisions/DEC-01.md"]]
+  never: ["^\\s*(?:[-*\u2022]\\s*|\\d+[.)]\\s*)?D2\\s*[:\u2014\u2013-]"]
 decision:
   files:
     - { id: DEC-01, review: 2026-10-19, supersedes: none, subject: "logs/larkspur-ceramics/meetings/MTG-01/notes.md#D1", confirmed: client }

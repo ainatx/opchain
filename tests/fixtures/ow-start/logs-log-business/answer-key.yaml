@@ -7,11 +7,13 @@ user: Robin
 base: logs-business-vendor
 verbs: [/ow-start-log]
 writes_nothing: true
-checks: [writes, status, route, screen, business, private_names]
-route: { verb: /ow-start-log }
+checks: [writes, status, route, screen, business, private_names, handling]
+route:
+  verb: /ow-start-log
 screen:
-  must: ["MTG-01", "A-01 · vendor account manager", "A-02 · you"]
-  must_not: ["larkspur", "DEC-01 review", "intake/", "builds/"]
+  must: ["Index copies nothing"]
+  tokens: [["MTG-01", "2026-10-15", "logged"], ["A-01", "vendor account manager", "2026-10-22"], ["A-02", "you", "no date"]]
+  must_not: ["^(?!Step 0\\.).*larkspur", "^(?!Step 0\\.).*\\bDEC-\\d{2}\\b", "^(?!Step 0\\.).*\\bintake/", "^(?!Step 0\\.).*\\bbuilds/"]
 business:
   client_canaries: [contractor chain, purchase orders, Larkspur, order view]
 status: { lines: [] }

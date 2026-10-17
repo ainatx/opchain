@@ -11,7 +11,7 @@ verbs: [/ow-start-prep-meeting]
 checks: [headers, writes, write_once, status, status_grammar, route, agenda, handling, people, private_names, gitignore]
 route:
   verb: /ow-start-prep-meeting
-  says: ["MTG-01", "use ow-start to log the meeting logs/business/meetings/MTG-01/"]
+  tokens: [["DONE:", "logs/business/meetings/MTG-01/agenda.md", "2026-10-14"], ["NEXT:", "use ow-start to log the meeting logs/business/meetings/MTG-01/"]]
 agenda:
   id: MTG-01
   date: 2026-10-14

@@ -6,11 +6,15 @@ workstream: larkspur-ceramics
 user: Robin
 base: logs-decision-from-meeting
 verbs: [/ow-start-action]
-checks: [writes, write_once, status, status_grammar, route, screen, private_names]
-route: { verb: /ow-start-action }
+checks: [writes, write_once, status, status_grammar, route, screen, private_names, handling]
+route:
+  verb: /ow-start-action
+  says: ["Appended:", "Open in larkspur-ceramics:"]
+  tokens: [["Appended:", "notes.md#A-03", "none (closed: done)"]]
 screen:
-  must: ["Open in larkspur-ceramics:", "A-01 \\(client ops lead\\) by 2026-10-16", "A-02 \\(you\\) by 2026-10-19", "DEC-01 review by 2026-10-19", "No client text in STATUS"]
-  must_not: ["Open in larkspur-ceramics:.*A-03"]
+  must: ["No client text in STATUS", "No private names"]
+  tokens: [["A-01", "client ops lead", "2026-10-16"], ["A-02", "you", "2026-10-19"], ["DEC-01", "2026-10-19"]]
+  must_not: ["\\bA-03\\b[^\\n|]*client owner"]
 status:
   lines:
     - { path: logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-03, next: "none (closed: done)", awaiting: none (done 2026-10-15) }

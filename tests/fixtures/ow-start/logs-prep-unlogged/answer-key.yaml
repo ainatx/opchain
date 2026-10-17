@@ -7,9 +7,9 @@ user: Robin
 base: logs-prep-items
 verbs: [/ow-start-prep-meeting]
 writes_nothing: true
-checks: [writes, write_once, status, route, private_names]
+checks: [writes, write_once, status, route, private_names, handling]
 route:
   verb: /ow-start-prep-meeting
   ask: "redo that agenda or start a new meeting"
-  never: ["DONE:"]
+  tokens: [["MTG-02"]]
 status: { lines: [] }

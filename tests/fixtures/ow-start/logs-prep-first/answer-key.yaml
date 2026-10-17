@@ -7,10 +7,10 @@ client: Larkspur Ceramics
 user: Robin
 plan_case: offer
 verbs: [/ow-start-prep-meeting]
-checks: [headers, writes, write_once, status, status_grammar, route, agenda, people, private_names, gitignore]
+checks: [headers, writes, write_once, status, status_grammar, route, agenda, people, private_names, gitignore, handling]
 route:
   verb: /ow-start-prep-meeting
-  says: ["MTG-01", "use ow-start to log the meeting logs/larkspur-ceramics/meetings/MTG-01/", "where slash commands exist: /ow-start-log-meeting", "no folder attached"]
+  tokens: [["DONE:", "logs/larkspur-ceramics/meetings/MTG-01/agenda.md", "2026-10-13"], ["NEXT:", "use ow-start to log the meeting logs/larkspur-ceramics/meetings/MTG-01/"], ["where slash commands exist:", "/ow-start-log-meeting"], ["no folder attached"]]
 agenda:
   id: MTG-01
   date: 2026-10-13

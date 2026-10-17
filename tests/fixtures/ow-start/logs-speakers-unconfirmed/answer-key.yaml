@@ -7,10 +7,11 @@ user: Robin
 base: logs-prep-first
 verbs: [/ow-start-log-meeting]
 writes_nothing: true
-checks: [writes, write_once, status, route, people, private_names]
+checks: [writes, write_once, status, route, people, private_names, handling]
 route:
   verb: /ow-start-log-meeting
   ask: "who is who by role"
-  never: ["DONE: ", "NEXT: say"]
+  tokens: [["SPEAKER_00"], ["SPEAKER_01"], ["SPEAKER_02"]]
+  never: ["^\\s*NEXT:"]
 status: { lines: [] }
 names: [Dana, Jess, Marcus]

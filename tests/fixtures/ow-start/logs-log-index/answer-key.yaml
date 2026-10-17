@@ -13,8 +13,9 @@ base: logs-action-done
 build_cases: [change-signed, change-declined]
 verbs: [/ow-start-log]
 writes_nothing: true
-checks: [writes, status, route, index, screen, private_names]
-route: { verb: /ow-start-log }
+checks: [writes, status, route, index, screen, private_names, handling]
+route:
+  verb: /ow-start-log
 index:
   client: larkspur-ceramics
   expect:
@@ -25,6 +26,7 @@ index:
   canaries: ["stock on hand beside each order line", "text message with the number of orders", "17450", "2600.00", "450.00", "recorded by Robin"]
   absent: ["uat/larkspur-ceramics/signoff.md", "care/larkspur-ceramics/"]
 screen:
-  must: ["^- MTG-01", "^- A-01", "^- A-02", "^- DEC-01", "Index copies nothing"]
-  must_not: ["^- A-03", "Ledgerly"]
+  must: ["Index copies nothing"]
+  tokens: [["MTG-01", "2026-10-13", "logged"], ["A-01", "client ops lead", "2026-10-16", "reported overdue"], ["A-02", "you", "2026-10-19", "reported overdue"], ["DEC-01", "2026-10-13", "2026-10-19"]]
+  must_not: ["^(?!Step 0\\.).*\\bA-03\\b", "Ledgerly"]
 status: { lines: [] }

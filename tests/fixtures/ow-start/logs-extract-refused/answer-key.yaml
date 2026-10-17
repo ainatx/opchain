@@ -7,8 +7,9 @@ user: Robin
 base: logs-prep-first
 verbs: [/ow-start-extract]
 writes_nothing: true
-checks: [writes, write_once, status, route, private_names]
+checks: [writes, write_once, status, route, private_names, handling]
 route:
   verb: /ow-start-extract
-  says: ["is a meeting, not a fit call", "use ow-start to log the meeting logs/larkspur-ceramics/meetings/MTG-01/", "/ow-start-log-meeting"]
+  says: ["not a fit call"]
+  tokens: [["use ow-start to log the meeting logs/larkspur-ceramics/meetings/MTG-01/"], ["/ow-start-log-meeting"]]
 status: { lines: [] }

@@ -697,11 +697,35 @@ function headerKeyLines(dir, key) {
 }
 
 /**
+ * Every value a family skill's own text gives `key`, wherever it is written: the template
+ * line's value, and each `` `key: <value>` `` the prose quotes (ow-build documents
+ * `trigger_confirmed: working demo confirmed by <user> <date>` away from its template line).
+ */
+function headerKeyValues(dir, key) {
+  const files = [join(dir, "SKILL.md"), ...(existsSync(join(dir, "references")) ? readdirSync(join(dir, "references")).filter((n) => n.endsWith(".md")).map((n) => join(dir, "references", n)) : [])];
+  const template = new RegExp(`^\\s{2,}${escapeRegExp(key)}:\\s*(.*)$`);
+  const quoted = new RegExp(`\`${escapeRegExp(key)}:\\s*([^\`]*)\``, "g");
+  const out = [];
+  for (const f of files) {
+    if (!existsSync(f)) continue;
+    for (const l of readFileSync(f, "utf8").split("\n")) {
+      const m = l.match(template);
+      if (m) out.push(m[1].replace(/\s+#.*$/, ""));
+      for (const q of l.matchAll(quoted)) out.push(q[1]);
+    }
+  }
+  return out;
+}
+
+/**
  * An index never reads money or a person (owner decision after round 1, D2b): a key
  * named for an amount or a note, or a person, or documented with an amount or a
  * user's name as its value, is refused whatever its producer.
  */
-const MONEY_OR_PERSON_KEY = /(?:^|_)(?:price|prices|fee|fees|amount|amounts|payment|payments|cost|costs|total|totals|rate|rates|budget|budgets|margin|margins|value|values|deposit|deposits|balance|invoice|invoices|currency|discount|name|names|email|emails|phone|phones|signer|signers|user|users|person|people|contact|contacts|by)(?:_|$)|(?:^|_)notes?$/;
+const MONEY_OR_PERSON_KEY = /(?:^|_)(?:price|prices|fee|fees|amount|amounts|payment|payments|cost|costs|total|totals|subtotal|subtotals|rate|rates|budget|budgets|margin|margins|value|values|deposit|deposits|balance|invoice|invoices|currency|discount|retainer|retainers|hours|name|names|email|emails|phone|phones|signer|signers|user|users|person|people|contact|contacts|owner|owners|attendees|history|confirmed|signature|recorded)(?:_|$)|(?:^|_)notes?$/;
+// A key ending in `_by` is a person ("recorded_by"), unless its producer documents it as a date ("send_by: <YYYY-MM-DD>").
+const BY_KEY = /(?:^|_)by$/;
+const DATE_VALUE = /^\s*(?:<YYYY-MM-DD>|\d{4}-\d{2}-\d{2})\s*$/;
 const MONEY_OR_PERSON_VALUE = /<amount>|<price>|[$€£]\s?\d|\b\d[\d,]*\.\d{2}\b|<user(?: name)?>|\brecorded by\b|<name>/i;
 
 /**
@@ -723,10 +747,11 @@ function indexRowProblems(c, s, e, r, at, { ids, planned, addons }) {
     for (const f of r.fields.map(String)) {
       if (!/^[a-z][a-z0-9_]*$/.test(f)) { out.push(`${at}: index field "${f}" is not a header key; an index reads header keys only, never a body section (owner decision O1)`); continue; }
       if (MONEY_OR_PERSON_KEY.test(f)) { out.push(`${at}: index field \`${f}\` holds money, a note or a person; an index never reads an amount or a name (owner decision O1, round 1 D2b)`); continue; }
+      if (BY_KEY.test(f) && !(ids.includes(r.from) && headerKeyValues(join(c.dir, r.from), f).some((v) => DATE_VALUE.test(v)))) { out.push(`${at}: index field \`${f}\` names who did something; an index reads it only when its producer documents it as a date (owner decision O1, round 2 m2)`); continue; }
       if (PROTOCOL_HEADER_KEYS.has(f) || !ids.includes(r.from)) continue;
       const lines = headerKeyLines(join(c.dir, r.from), f);
       if (!lines.length) out.push(`${at}: index field \`${f}\` is not a header key ${r.from} documents; an index reads header keys only, never a body section (owner decision O1)`);
-      else if (lines.some((l) => MONEY_OR_PERSON_VALUE.test(l.replace(/^[^:]*:/, "").replace(/\s+#.*$/, "")))) out.push(`${at}: index field \`${f}\` is documented by ${r.from} with an amount or a person's name as its value; an index never reads one (owner decision O1, round 1 D2b)`);
+      else if ([...lines.map((l) => l.replace(/^[^:]*:/, "").replace(/\s+#.*$/, "")), ...headerKeyValues(join(c.dir, r.from), f)].some((v) => MONEY_OR_PERSON_VALUE.test(v))) out.push(`${at}: index field \`${f}\` is documented by ${r.from} with an amount or a person's name as its value; an index never reads one (owner decision O1, round 1 D2b)`);
     }
   }
   if (!filled(r.reference)) out.push(`${at}: an index row names the reference that cites it (reference:)`);

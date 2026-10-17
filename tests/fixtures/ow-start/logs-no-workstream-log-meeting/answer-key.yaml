@@ -8,10 +8,9 @@ user: Robin
 base: logs-prep-items
 verbs: [/ow-start-log-meeting]
 writes_nothing: true
-checks: [writes, write_once, status, route, private_names]
+checks: [writes, write_once, status, route, private_names, handling]
 route:
   verb: /ow-start-log-meeting
   ask: "which workstream"
-  says: ["larkspur-ceramics \\(MTG-02, meeting on 2026-10-20\\)", "business \\(MTG-02, meeting on 2026-10-27\\)"]
-  never: ["DONE: "]
+  tokens: [["larkspur-ceramics"], ["business"]]
 status: { lines: [] }

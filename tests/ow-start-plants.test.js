@@ -402,11 +402,11 @@ describe("C15: the resume screens", () => {
   });
   it("an open action hidden after another closes fails (logs-status-after-done)", () => {
     const c = "logs-status-after-done";
-    expect(failures(c, mutated(c, { "printed/status.md": (t) => t.replace(/^\| larkspur-ceramics \| A-02 [^\n]*\n/m, "") })).screen).toMatch(/does not show .*A-02/);
+    expect(failures(c, mutated(c, { "printed/status.md": (t) => t.replace(/^\| larkspur-ceramics \| A-02 [^\n]*\n/m, "") })).screen).toMatch(/no line with "A-02"/);
   });
   it("an item reported overdue without today's date fails (logs-status-open)", () => {
     const c = "logs-status-open";
-    expect(failures(c, mutated(c, { "printed/start.md": logs.rep("client owner, by 2026-10-15", "client owner, by 2026-10-15 (reported overdue)") })).screen).toMatch(/reported overdue/);
+    expect(failures(c, mutated(c, { "printed/start.md": logs.rep("client owner, by 2026-10-15", "client owner, by 2026-10-15 (reported overdue)") })).screen).toMatch(/overdue/);
   });
 });
 
@@ -760,7 +760,7 @@ describe("round 2: the fixes hold", () => {
   });
   it("m5: naming one workstream when two fit fails (logs-no-workstream-log-meeting)", () => {
     const c = "logs-no-workstream-log-meeting";
-    expect(logs.failures(c, logs.mutated(c, { "printed/log-meeting.md": (t) => t.replace(" and business (MTG-02, meeting on 2026-10-27)", "") })).route).toMatch(/does not say \/business/);
+    expect(logs.failures(c, logs.mutated(c, { "printed/log-meeting.md": (t) => t.replace(" and business (MTG-02, meeting on 2026-10-27)", "") })).route).toMatch(/no line with "business"/);
   });
   it("m5: an action closed without asking which workstream fails (logs-no-workstream-action)", () => {
     const c = "logs-no-workstream-action";
@@ -783,7 +783,7 @@ describe("round 2: the fixes hold", () => {
   });
   it("m6: asking again after the answer is recorded fails (logs-handling-read-back)", () => {
     const c = "logs-handling-read-back";
-    expect(logs.failures(c, logs.mutated(c, { "printed/log-decision.md": (t) => `${t}Does any of this material carry a sensitivity marking, or a rule about where it may be processed? (no / yes / not sure)\n` })).handling).toMatch(/asked again/);
+    expect(logs.failures(c, logs.mutated(c, { "printed/log-decision.md": (t) => `${t}Does any of this material carry a sensitivity marking, or a rule about where it may be processed? (no / yes / not sure)\n` })).handling).toMatch(/was asked, in whatever words/);
   });
   it("m7: an -action screen without its self-check results fails (logs-action-done)", () => {
     const c = "logs-action-done";
@@ -802,5 +802,235 @@ describe("round 2: the fixes hold", () => {
     const { estimateTokens } = await import("../scripts/gen-skills-catalog.mjs");
     const raw = readFileSync(join(ROOT, "skills-work", B), "utf8");
     expect(estimateTokens(raw.slice(raw.indexOf("\n---", 3) + 4))).toBeLessThanOrEqual(4100);
+  });
+});
+
+describe("round 2 evaluator plants (h/plants2.mjs: 42 P, 13 FP, and S05, which the Evaluator excluded as acceptable)", () => {
+  // Ported unchanged from the Evaluator's round-2 harness, except: its probe case logs-zz-eval2-price2000 is
+  // the golden logs-log-index-price2000 now, and S05 is a legitimate edit (the Evaluator's own ruling).
+  // Each plant is graded only on the failures that are new against the unedited golden or tree.
+  const L = { FIXTURES };
+  const findings = (c, dir) => runCase(join(FIXTURES, c), dir).flatMap((r) => r.problems.map((p) => `${r.check}: ${p}`));
+  const golden = new Map();
+  const base = (c) => { if (!golden.has(c)) golden.set(c, new Set(findings(c, null))); return golden.get(c); };
+  const add = (s) => (t) => `${t}${s}`;
+  const rep = logs.rep;
+  function plant(kind, id, area, desc, caseName, edits, want = null) {
+    it(`${id} [${area}] ${desc}: ${kind === "FP" ? "passes" : "is caught"}`, () => {
+      const b = base(caseName);
+      const found = findings(caseName, mutated(caseName, edits)).filter((f) => !b.has(f));
+      if (kind === "FP") expect(found).toEqual([]);
+      else if (want) expect(found.some((f) => want.test(f)), found.join("\n") || "(nothing new failed)").toBe(true);
+      else expect(found.length, "(nothing new failed)").toBeGreaterThan(0);
+    });
+  }
+  /** A copy of skills-work/ with `edit` applied (null deletes a file): its folder and its catalogs. */
+  function realDir(edit) {
+    const dir = temp("ow08-r2-real-");
+    cpSync(join(ROOT, "skills-work"), dir, { recursive: true });
+    for (const [rel, fn] of Object.entries(edit)) {
+      const p = join(dir, rel);
+      if (fn === null) { rmSync(p); continue; }
+      const before = readFileSync(p, "utf8");
+      const after = fn(before);
+      if (after === before) throw new Error(`edit of ${rel} changed nothing`);
+      writeFileSync(p, after);
+    }
+    return { dir, cats: loadCatalogs({ env: { OPCHAIN_WORK_SKILLS_DIR: dir } }) };
+  }
+  const contractList = (cats) => [...checkVerbs(null, { catalogs: cats }), ...checkFamily(cats), ...checkEdges(cats)];
+  const contractBase = new Set(contractList(loadCatalogs({ env: {} })));
+  const pinBase = new Set(pinProblems(join(ROOT, "skills-work")).map(String));
+  function tplant(kind, id, area, desc, edit, want = null) {
+    it(`${id} [${area}] ${desc}: ${kind === "FP" ? "passes" : "is caught"}`, () => {
+      const { dir, cats } = realDir(edit);
+      const found = contractList(cats).filter((f) => !contractBase.has(f));
+      try { validateCatalog(cats.find((c) => c.prefix === "ow-")); } catch (e) { found.push(`catalog: ${e.message.split("\n")[0]}`); }
+      found.push(...pinProblems(dir).map(String).filter((f) => !pinBase.has(f)).map((f) => `pin: ${f}`));
+      if (kind === "FP") expect(found).toEqual([]);
+      else if (want) expect(found.some((f) => want.test(f)), found.join("\n") || "(nothing new failed)").toBe(true);
+      else expect(found.length, "(nothing new failed)").toBeGreaterThan(0);
+    });
+  }
+
+  const LK = "opchain-work/logs/larkspur-ceramics";
+  const LB = "opchain-work/logs/business";
+  const ST = "opchain-work/STATUS.md";
+  const E = "ow-start/skill.edges.yaml", B = "ow-start/SKILL.md", PSU = "ow-start/references/phase-setup.md";
+
+  // ═════ Body trim (R1-1): anything lost or unreachable? ═════
+  tplant("P", "T01", "body trim", "the body's pointer to phase-setup.md dropped", { [B]: rep("- `/ow-setup` → `references/phase-setup.md`\n", "") });
+  tplant("P", "T02", "body trim", "phase-setup.md deleted", { [PSU]: null });
+  tplant("P", "T03", "body trim", "/ow-setup's handling question dropped from the moved text", { [PSU]: rep("the handling default; ", "") });
+  tplant("P", "T04", "body trim", "the transcription absent-case's notes option dropped", { [PSU]: rep("; (2) your notes (MEDIUM cap in an intake record)", "") });
+  tplant("P", "T05", "body trim", "the body's transcription pointer to phase-setup §3 dropped (Never transcribe kept)", { [B]: rep("Transcription is the ow-tools add-on's; without it, `references/phase-setup.md` §3. Never transcribe audio yourself.", "Never transcribe audio yourself.") });
+  tplant("P", "T06", "body trim", "/ow-status's 'two tables' (its only remaining layout rule) dropped", { [B]: rep("; `/ow-status` shows them as two tables", "") });
+  tplant("P", "T07", "body trim", "the 'never waived' sentence in the body dropped", { [B]: rep(" **People by role, No client text in STATUS and No private names can never be waived.**", "") });
+
+  // ═════ D2b: money, note and person keys in an index row (check-skill-contracts) ═════
+  const CO = "path: builds/<client>/changes/CO-nn.md, fields: [created, status]";
+  const DEMO = "path: builds/<client>/demos/M<n>-record.md, fields: [created, demo_date]";
+  const CARE = "path: care/<client>/reports/M-nn.md, fields: [created]";
+  tplant("P", "K01", "D2b money key", "CO row reads `price`", { [E]: rep(CO, CO.replace("status]", "status, price]")) }, /money, a note or a person/);
+  tplant("P", "K02", "D2b person key", "demo-record row reads `source` (documented 'notes from <user>')", { [E]: rep(DEMO, DEMO.replace("demo_date]", "source]")) }, /amount or a person/);
+  tplant("P", "K03", "D2b person key", "demo-record row reads `trigger_confirmed` ('confirmed by <user> <date>' in ow-build's text)", { [E]: rep(DEMO, DEMO.replace("demo_date]", "trigger_confirmed]")) });
+  tplant("P", "K04", "D2b person key", "CO row reads `history` (entries 'recorded by <user>')", { [E]: rep(CO, CO.replace("status]", "history]")) });
+  tplant("P", "K05", "D2b money key, planned producer", "ow-care row reads `retainer`", { [E]: rep(CARE, CARE.replace("[created]", "[created, retainer]")) });
+  tplant("P", "K06", "D2b amount key, planned producer", "ow-care row reads `hours_used`", { [E]: rep(CARE, CARE.replace("[created]", "[created, hours_used]")) });
+  tplant("P", "K07", "D2b money key, planned producer", "ow-handoff row reads `subtotal`", { [E]: rep("path: handoffs/<client>/after-offer.md, fields: [created, choice]", "path: handoffs/<client>/after-offer.md, fields: [created, subtotal]") });
+  tplant("P", "K08", "D2b money key", "contract-inputs row reads `build_plan_fee`", { [E]: rep("path: plans/<client>/contract-inputs.md, fields: [created, accepted]", "path: plans/<client>/contract-inputs.md, fields: [created, build_plan_fee]") }, /money, a note or a person/);
+  tplant("FP", "K09", "D2b control", "recap row reads `send_by` (a date, documented `<YYYY-MM-DD>`)", { [E]: rep("path: intake/<client>/recap.md, fields: [created, path_label]", "path: intake/<client>/recap.md, fields: [created, send_by]") });
+  tplant("FP", "K10", "D2b control", "demo-record row reads `milestone` (an id)", { [E]: rep(DEMO, DEMO.replace("demo_date]", "milestone]")) });
+
+  // ═════ D2a: index value comparison by meaning (run level) ═════
+  const CO1 = "- builds/larkspur-ceramics/changes/CO-01.md · 2026-11-30 · status: signed";
+  const CO4 = "- builds/larkspur-ceramics/changes/CO-04.md · 2027-01-20 · status: signed";
+  plant("P", "X01", "D2a amount in the year range", "CO-04's price 2000.00 shown as '(2,000)'", "logs-log-index-price2000", { "printed/log.md": rep(CO4, `${CO4} (2,000)`) }, /index: /);
+  plant("P", "X02", "D2a amount in the year range", "CO-04's price shown as 'USD 2,000'", "logs-log-index-price2000", { "printed/log.md": rep(CO4, `${CO4} (USD 2,000)`) }, /index: /);
+  plant("P", "X03", "D2a amount", "CO-01's price shown as '2,600 USD' (currency after)", "logs-log-index", { "printed/log.md": rep(CO1, `${CO1} (2,600 USD)`) }, /index: /);
+  plant("P", "X04", "D2a amount", "CO-01's price shown as '2.6k'", "logs-log-index", { "printed/log.md": rep(CO1, `${CO1} (2.6k)`) }, /index: /);
+  plant("P", "X05", "D2a amount", "CO-01's price in words ('twenty-six hundred dollars')", "logs-log-index", { "printed/log.md": rep(CO1, `${CO1} (twenty-six hundred dollars)`) }, /index: /);
+  plant("P", "X06", "D2a header phrase", "CO-01's schedule_impact, 5 words copied", "logs-log-index", { "printed/log.md": rep(CO1, `${CO1}; the milestone 2 demo moves later`) }, /index: /);
+  plant("P", "X07", "D2a person", "the user's name next to a CO", "logs-log-index", { "printed/log.md": rep(CO1, `${CO1} (Robin)`) }, /index: /);
+  plant("P", "X08", "D2a amount", "contract-inputs' first payment '6,980' copied", "logs-log-index", { "printed/log.md": rep("accepted: 2026-11-02\n", "accepted: 2026-11-02 (first payment 6,980)\n") }, /index: /);
+  plant("FP", "X09", "D2a control", "today's date written out ('Today: 25 January 2027')", "logs-log-index", { "printed/log.md": rep("Today: 2027-01-25 (clock: tool).", "Today: 25 January 2027 (2027-01-25, clock: tool).") });
+  plant("FP", "X10", "D2a control", "a disclaimer 'dates are as recorded in each file; not verified by this skill'", "logs-log-index", { "printed/log.md": rep("nothing is copied from them.", "nothing is copied from them. Dates are as each file records them, not verified by this skill.") });
+  plant("FP", "X11", "D2a control", "a decision line with the client's own figure (about 450 orders a month)", "logs-log-index", { "printed/log.md": (t) => t.replace(/^- DEC-01 · decided 2026-10-13 · review by 2026-10-19$/m, "- DEC-01 · decided 2026-10-13 · review by 2026-10-19 (email orders first; about 450 orders a month)") });
+  plant("FP", "X12", "D2a control", "the index rows as a table instead of '·' lines", "logs-log-index", { "printed/log.md": rep(CO1, `${CO1}\n| builds/larkspur-ceramics/changes/CO-01.md | 2026-11-30 | status: signed |`) });
+
+  // ═════ Never guess the workstream (m5) ═════
+  plant("P", "W01", "m5 never guess", "-log-meeting guesses larkspur-ceramics and writes notes.md", "logs-no-workstream-log-meeting", {
+    [`${LK}/meetings/MTG-02/notes.md`]: () => readFileSync(join(L.FIXTURES, "logs-larkspur-checkin/expected", LK, "meetings/MTG-01/notes.md"), "utf8").replace(/MTG-01/g, "MTG-02"),
+  }, /writes: /);
+  plant("P", "W02", "m5 never guess", "-log-meeting lists only one of the two workstreams", "logs-no-workstream-log-meeting", { "printed/log-meeting.md": rep(" and business (MTG-02, meeting on 2026-10-27)", "") }, /route: /);
+  plant("P", "W03", "m5 never guess", "-log-decision (one fits) logs D1 without confirming", "logs-no-workstream-log-decision", {
+    [`${LK}/decisions/DEC-02.md`]: () => readFileSync(join(L.FIXTURES, "logs-decision-from-meeting/expected", LK, "decisions/DEC-01.md"), "utf8").replace(/DEC-01/g, "DEC-02"),
+  }, /writes: /);
+  plant("P", "W04", "m5 never guess", "-action appends to larkspur-ceramics without asking", "logs-no-workstream-action", {
+    [ST]: add("2026-10-17 (clock: user-stated) | ow-start 1.1.0 | logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-01 | next: none (closed: done) | awaiting: none (done 2026-10-17)\n"),
+  }, /writes: |status: /);
+  plant("P", "W05", "m5 never guess", "-action screen picks larkspur and prints 'Appended:' without writing", "logs-no-workstream-action", { "printed/action.md": add("Appended: A-01 done in larkspur-ceramics.\n") }, /route: /);
+  plant("P", "W06", "m5 never guess", "-log shows larkspur's screen without asking", "logs-no-workstream-log", { "printed/log.md": add("\nlarkspur-ceramics\n- MTG-01 · 2026-10-13 · logged\n") }, /route: /);
+  plant("FP", "W07", "m5 prescribed text", "the two-workstream question in another reasonable format", "logs-no-workstream-log-meeting", { "printed/log-meeting.md": rep("Two workstreams fit: larkspur-ceramics (MTG-02, meeting on 2026-10-20) and business (MTG-02, meeting on 2026-10-27).", "Two workstreams have a prepared, unlogged MTG-02: larkspur-ceramics (meeting 2026-10-20) and business (meeting 2026-10-27).") });
+
+  // ═════ Handling for a logs-only workstream (m6) ═════
+  plant("P", "H01", "m6 handling", "the answer not recorded in the agenda header", "logs-handling-asked", { [`${LB}/meetings/MTG-01/agenda.md`]: rep('handling: "no"\n', "") }, /handling: /);
+  plant("P", "H02", "m6 handling", "the answer written into profile.md", "logs-handling-asked", { "opchain-work/profile.md": (t) => t.replace("name: Robin", 'name: Robin\nhandling: "no"') }, /handling: |writes: /);
+  plant("P", "H03", "m6 handling", "the protocol question asked again on read-back", "logs-handling-read-back", { "printed/log-decision.md": rep('Handling: "no" (logs/business/meetings/MTG-01/agenda.md); a one-line notice, nothing to ask.', "Does any of this material carry a sensitivity marking, or a rule about where it may be processed? (no / yes / not sure)") }, /handling: /);
+  plant("P", "H04", "m6 handling", "asked again on read-back in other words", "logs-handling-read-back", { "printed/log-decision.md": rep('Handling: "no" (logs/business/meetings/MTG-01/agenda.md); a one-line notice, nothing to ask.', "Before I start: is any of this material sensitive, or restricted in where it may be processed?") }, /handling: /);
+  plant("P", "H05", "m6 handling", "a wrong value recorded ('yes' for no)", "logs-handling-asked", { [`${LB}/meetings/MTG-01/agenda.md`]: rep('handling: "no"', 'handling: "yes"') }, /handling: /);
+  plant("P", "H06", "m6 handling", "a business run asks the question though profile.md has handling", "logs-business-vendor", { "printed/log-meeting.md": rep('Handling: "no" (profile.md); a one-line notice, nothing to ask.', "Does any of this material carry a sensitivity marking, or a rule about where it may be processed? (no / yes / not sure)") });
+
+  // ═════ Moved-back STATUS dedupe (m4) ═════
+  plant("P", "M01", "m4 moved back", "the moved-back line skipped (nothing appended)", "logs-action-moved-back", { [ST]: (t) => t.replace(/^2026-10-18 .*\n/m, "") }, /status: /);
+  plant("P", "M02", "m4 true duplicate", "the moved line re-appended (same as the newest line)", "logs-action-moved", { [ST]: (t) => `${t}2026-10-17 (clock: user-stated) | ow-start 1.1.0 | logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-01 | next: ow-start /ow-start-action logs/larkspur-ceramics/ | awaiting: A-01 (client ops lead) by 2026-10-23\n` }, /status: .*duplicate/);
+  plant("P", "M03", "m4 moved back", "the screen still shows the old date", "logs-action-moved-back", { "printed/action.md": rep("Open in larkspur-ceramics: A-01 (client ops lead) by 2026-10-16", "Open in larkspur-ceramics: A-01 (client ops lead) by 2026-10-23") }, /screen: /);
+
+  // ═════ Prescribed-text grading (R1-4): does a wrong screen pass now? ═════
+  plant("P", "S01", "R1-4 wrong screen", "none-in-notes: a refusal that also prints DONE (nothing written)", "logs-decision-none-in-notes", { "printed/log-decision.md": add("\nDONE: decision logged -> logs/larkspur-ceramics/decisions/DEC-02.md\n") }, /route: |screen: /);
+  plant("P", "S02", "R1-4 wrong screen", "notes-missing: claims DONE instead of asking for the decision", "logs-decision-notes-missing", { "printed/log-decision.md": (t) => t.replace(/^Give me the decision[^\n]*$/m, "DONE: decision logged -> logs/larkspur-ceramics/decisions/DEC-02.md (from logs/larkspur-ceramics/meetings/MTG-03/notes.md)") }, /route: |screen: /);
+  plant("P", "S03", "R1-4 wrong screen", "extract-refused: also prints a recap DONE line", "logs-extract-refused", { "printed/extract.md": add("DONE: recap ready -> intake/larkspur-ceramics/recap.md\n") }, /route: |screen: /);
+  plant("P", "S04", "R1-4 wrong screen", "action-unknown: says Refuse but prints 'Appended:'", "logs-action-unknown", { "printed/action.md": add("Appended: 2026-10-16 (clock: user-stated) | ow-start 1.1.0 | logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-09 | next: none (closed: done) | awaiting: none (done 2026-10-16)\n") }, /route: |screen: /);
+  // S05: the Evaluator excluded it ("proposing roles for the user to confirm is acceptable"), so it is kept as a legitimate edit.
+  plant("FP", "S05", "R1-4 wrong screen, excluded", "speakers-unconfirmed: asks, and proposes roles for the user to confirm", "logs-speakers-unconfirmed", { "printed/log-meeting.md": add("Probably: SPEAKER_01 = client owner, SPEAKER_02 = client ops lead.\n") }, /route: /);
+  plant("FP", "S06", "R1-4 other wording", "status-open: open items as 'A-01 (client ops lead) by 2026-10-16'", "logs-status-open", { "printed/start.md": (t) => t.replace("A-03: client owner, by 2026-10-15", "A-03 (client owner) by 2026-10-15").replace("A-01: client ops lead, by 2026-10-16", "A-01 (client ops lead) by 2026-10-16").replace("A-02: you, by 2026-10-19", "A-02 (you) by 2026-10-19").replace("DEC-01: review by 2026-10-19", "DEC-01 review by 2026-10-19") });
+  plant("FP", "S07", "R1-4 other wording", "some-logged: 'D1 already has a decision file, DEC-01'", "logs-decision-some-logged", { "printed/log-decision.md": rep("D1 is logged already as DEC-01", "D1 already has a decision file, DEC-01") });
+  plant("FP", "S08", "R1-4 other wording", "notes-mismatch: 'D2 could not be read'", "logs-decision-notes-mismatch", { "printed/log-decision.md": rep("D2 does not parse", "D2 could not be read") });
+  plant("FP", "S09", "R1-4 other wording", "supersede-open: 'DEC-02 replaces DEC-01'", "logs-decision-supersede-open", { "printed/log-decision.md": rep("DEC-02 supersedes it", "DEC-02 replaces it") });
+  plant("FP", "S10", "R1-4 other wording", "business-vendor: 'MTG-01, with no agenda'", "logs-business-vendor", { "printed/log-meeting.md": rep("MTG-01, logged with no agenda", "MTG-01 (no agenda)") });
+  plant("FP", "S11", "R1-4 other wording", "log-index: own items as a table, not '- ' bullets", "logs-log-index", { "printed/log.md": (t) => t.replace(/^- (MTG-01|A-01|A-02|DEC-01) /gm, "| $1 | ") });
+});
+
+describe("round 3: the fixes hold (evaluation round 2)", () => {
+  const LW3 = "opchain-work/logs/larkspur-ceramics";
+  const writesNothing = listLogsCases().filter((c) => loadKey(join(FIXTURES, c)).writes_nothing);
+  it("D1′b: twenty-two routes write nothing (refusals, questions, and the -log, /ow-start and /ow-status screens)", () => expect(writesNothing.length).toBe(22));
+  // D1′b: on every route that writes nothing, a screen that reports a result fails, whatever else it says.
+  for (const c of writesNothing) {
+    const screenFile = () => readdirSync(join(FIXTURES, c, "expected", "printed"))[0];
+    it(`${c}: a DONE: line on a route that writes nothing fails`, () => {
+      expect(failures(c, mutated(c, { [`printed/${screenFile()}`]: (t) => `${t}\nDONE: decision logged -> logs/larkspur-ceramics/decisions/DEC-09.md\n` })).route).toMatch(/prints a DONE: line, but this route writes nothing/);
+    });
+    it(`${c}: an Appended: line on a route that writes nothing fails`, () => {
+      expect(failures(c, mutated(c, { [`printed/${screenFile()}`]: (t) => `${t}Appended: 2026-10-16 (clock: user-stated) | ow-start 1.1.0 | logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-01 | next: none (closed: done) | awaiting: none (done 2026-10-16)\n` })).route).toMatch(/prints an Appended: line, but this route writes nothing/);
+    });
+  }
+  it("D1′b: the never-guess guard of a bare /ow-start-log fires on a guessed screen (it is compiled per line)", () => {
+    const c = "logs-no-workstream-log";
+    const out = failures(c, mutated(c, { "printed/log.md": (t) => `${t}\nlarkspur-ceramics\nMeetings\n- MTG-01 · 2026-10-13 · logged\n` }));
+    expect(out.route).toMatch(/which this route never prints/);
+    // A guessed screen in a table, without the "- " bullet, is caught the same way.
+    expect(failures(c, mutated(c, { "printed/log.md": (t) => `${t}| MTG-01 | 2026-10-13 | logged |\n` })).route).toMatch(/which this route never prints/);
+    // The step-0 echo of the newest STATUS line names an item, and is not a guess.
+    expect(failures(c)).toEqual({});
+  });
+  it("D1′a: an -action screen with its open items one per line, in another layout, passes", () => {
+    const c = "logs-action-done";
+    expect(failures(c, mutated(c, { "printed/action.md": rep("Open in larkspur-ceramics: A-01 (client ops lead) by 2026-10-16 · A-02 (you) by 2026-10-19 · DEC-01 review by 2026-10-19.", "Open in larkspur-ceramics:\n  A-01, client ops lead, due 2026-10-16\n  A-02, you, due 2026-10-19\n  DEC-01, review due 2026-10-19") }))).toEqual({});
+  });
+  it("D1′a: an -action refusal in other words passes, and one that drops the reason (the id) fails", () => {
+    const c = "logs-action-unknown";
+    expect(failures(c, mutated(c, { "printed/action.md": rep("Refused: A-09 has no line in larkspur-ceramics. Nothing was written.", "I can't change A-09: larkspur-ceramics has no such action, so nothing changed.") }))).toEqual({});
+    expect(failures(c, mutated(c, { "printed/action.md": rep("Refused: A-09 has no line in larkspur-ceramics. Nothing was written.", "Refused. Nothing was written.") })).route).toMatch(/no line with "A-09"/);
+  });
+  it("D1′a: the /ow-status tables with reworded headings and the same columns pass", () => {
+    const c = "logs-status-after-done";
+    expect(failures(c, mutated(c, { "printed/status.md": (t) => t.replace("| client | last step | next | awaiting |", "| Client | Last step | Next | Awaiting (date) |").replace("| workstream | item | owner role | due |", "| Workstream | Item | Owner role | Due |") }))).toEqual({});
+    expect(failures(c, mutated(c, { "printed/status.md": (t) => t.replace("| workstream | item | owner role | due |", "| workstream | item | due |") })).screen).toMatch(/"owner role"/);
+  });
+  it("D1′a: a supersede screen that does not name the decision it replaces fails", () => {
+    const c = "logs-decision-supersede-open";
+    expect(failures(c, mutated(c, { "printed/log-decision.md": (t) => t.replace(/^This changes DEC-01[^\n]*\n/m, "This is a new decision, DEC-02.\n").replace(/^DEC-01's review[^\n]*\n/m, "") })).route).toMatch(/no line with "DEC-02", "DEC-01"/);
+  });
+  it("D1′a: a decision offered again although it is logged fails, in any bullet or numbering", () => {
+    const c = "logs-decision-some-logged";
+    for (const offer of ["- D1: Purchase orders by email come first.", "1. D1 — Purchase orders by email come first.", "D1: Purchase orders by email come first."]) {
+      expect(failures(c, mutated(c, { "printed/log-decision.md": rep("- D2: Updates", `${offer}\n- D2: Updates`) })).route, offer).toMatch(/which this route never prints/);
+    }
+  });
+  it("D1′b: a refusal that accepts a waiver fails on the prescribed words, whatever the rest says", () => {
+    const c = "logs-private-names";
+    expect(failures(c, mutated(c, { "printed/log-decision.md": rep("refused. No private names can never be waived;", "noted, and written as you asked;") })).route).toMatch(/does not say \/refused\//);
+    expect(failures(c, mutated(c, { "printed/log-decision.md": rep("You asked to write your business's name and a private checklist's name into the decision: refused. No private names can never be waived; the decision says \"your own tools\".", "Not written: No private names can never be waived, so your request is refused and the decision says \"your own tools\".") }))).toEqual({});
+  });
+  it("m4: the price-2000 golden lists CO-04 by path, date and status, and passes", () => {
+    expect(failures("logs-log-index-price2000")).toEqual({});
+    expect(readFileSync(join(FIXTURES, "logs-log-index-price2000", "expected", "printed", "log.md"), "utf8")).toMatch(/^- builds\/larkspur-ceramics\/changes\/CO-04\.md · 2027-01-20 · status: signed$/m);
+  });
+  it("m4: CO-04's price in a year-like form, \"2000.00\", on its line fails", () => {
+    const c = "logs-log-index-price2000";
+    expect(failures(c, mutated(c, { "printed/log.md": rep("CO-04.md · 2027-01-20 · status: signed", "CO-04.md · 2027-01-20 · status: signed · 2000.00") })).index).toMatch(/2000/);
+  });
+  it("m5: a business run that asks the handling question though profile.md holds the answer fails (logs-business-vendor)", () => {
+    const c = "logs-business-vendor";
+    expect(failures(c, mutated(c, { "printed/log-meeting.md": rep('Handling: "no" (profile.md); a one-line notice, nothing to ask.', "Before we start: is any of this material restricted in where it may be processed?") })).handling).toMatch(/profile\.md stores the answer/);
+  });
+  it("m5: every logs key grades the handling question", () => {
+    expect(listLogsCases().filter((c) => !loadKey(join(FIXTURES, c)).checks.includes("handling"))).toEqual([]);
+  });
+  it("m7: the description keeps at least 120 characters of the 1,024 for S1 to S3, with its trigger phrases", () => {
+    const fm = readFileSync(join(ROOT, "skills-work", B), "utf8").split("\n---")[0];
+    const desc = fm.slice(fm.indexOf("description: >") + 14).split("\nlicense:")[0].replace(/\s+/g, " ").trim();
+    expect(1024 - desc.length).toBeGreaterThanOrEqual(120);
+    for (const t of ['"prep my call with"', '"write the recap from this call"', '"turn this transcript into a client recap"', '"log this meeting"', '"log this decision"', '"where did I leave off"']) expect(desc, t).toContain(t);
+  });
+  it("m8: the shipped skill text carries no evaluation ids and names no repository script", () => {
+    const S = join(ROOT, "skills-work", "ow-start");
+    const files = ["SKILL.md", ...readdirSync(join(S, "references")).map((f) => `references/${f}`)];
+    const hits = files.flatMap((f) => readFileSync(join(S, f), "utf8").split("\n").map((l, i) => [f, i + 1, l]))
+      .filter(([, , l]) => /\(round \d|\bround \d+ (?:D|m)\d|\bcheck-skill-contracts\b|\bgen-skills-catalog\b/.test(l)).map(([f, n]) => `${f}:${n}`);
+    expect(hits).toEqual([]);
+  });
+  it("m3: /ow-status's 1.0.0 column list is in the references, word for word, and the body points to it", () => {
+    const li = readFileSync(join(ROOT, "skills-work", IDX), "utf8");
+    expect(li).toContain("a table of open intakes (client · last step · next · awaiting, with its date)");
+    expect(readFileSync(join(ROOT, "skills-work", B), "utf8")).toContain("with the columns in `references/logs-status-and-index.md` §3");
+  });
+  it("m2: a new person-bearing or money key on a planned row fails, and a documented date key passes", () => {
+    const care = "path: care/<client>/reports/M-nn.md, fields: [created]";
+    for (const k of ["retainer", "hours_used", "subtotal", "history", "trigger_confirmed", "approved_by"]) {
+      expect(contracts(realTree({ [E]: rep(care, care.replace("[created]", `[created, ${k}]`)) })), k).toMatch(/index field `/);
+    }
+    expect(contracts(realTree({ [E]: rep("path: intake/<client>/recap.md, fields: [created, path_label]", "path: intake/<client>/recap.md, fields: [created, send_by]") }))).toBe("");
   });
 });

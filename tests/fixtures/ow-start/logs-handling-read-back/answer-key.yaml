@@ -10,7 +10,7 @@ verbs: [/ow-start-log-decision]
 checks: [headers, writes, write_once, status, status_grammar, route, decision, handling, people, private_names]
 route:
   verb: /ow-start-log-decision
-  says: ["DEC-01", "logs/business/meetings/MTG-01/agenda\\.md"]
+  tokens: [["DONE:", "logs/business/decisions/DEC-01.md"], ["NEXT: none"]]
 decision:
   files:
     - { id: DEC-01, review: no review, supersedes: none, subject: none, confirmed: internal }

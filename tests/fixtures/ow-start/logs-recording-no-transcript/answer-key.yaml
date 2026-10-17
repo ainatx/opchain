@@ -8,9 +8,8 @@ user: Robin
 base: logs-prep-first
 verbs: [/ow-start-log-meeting]
 writes_nothing: true
-checks: [writes, write_once, status, route, private_names]
+checks: [writes, write_once, status, route, private_names, handling]
 route:
   verb: /ow-start-log-meeting
-  says: ["use ow-tools to transcribe logs/larkspur-ceramics/meetings/MTG-01/audio/", "/ow-start-transcribe"]
-  never: ["DONE:"]
+  tokens: [["use ow-tools to transcribe logs/larkspur-ceramics/meetings/MTG-01/audio/"], ["/ow-start-transcribe"]]
 status: { lines: [] }

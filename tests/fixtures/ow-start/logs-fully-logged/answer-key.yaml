@@ -7,8 +7,9 @@ user: Robin
 base: logs-larkspur-checkin
 verbs: [/ow-start-log-meeting]
 writes_nothing: true
-checks: [writes, write_once, status, route, private_names]
+checks: [writes, write_once, status, route, private_names, handling]
 route:
   verb: /ow-start-log-meeting
   says: ["fully logged"]
+  tokens: [["MTG-01"]]
 status: { lines: [] }

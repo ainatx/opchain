@@ -9,10 +9,10 @@ workstream: larkspur-ceramics
 user: Robin
 base: logs-business-vendor
 verbs: [/ow-start-prep-meeting]
-checks: [headers, writes, write_once, status, status_grammar, route, agenda, people, private_names, business, gitignore]
+checks: [headers, writes, write_once, status, status_grammar, route, agenda, people, private_names, business, gitignore, handling]
 route:
   verb: /ow-start-prep-meeting
-  says: ["MTG-02", "use ow-start to log the meeting logs/larkspur-ceramics/meetings/MTG-02/"]
+  tokens: [["DONE:", "logs/larkspur-ceramics/meetings/MTG-02/agenda.md", "2026-10-20"], ["NEXT:", "use ow-start to log the meeting logs/larkspur-ceramics/meetings/MTG-02/"]]
 agenda:
   id: MTG-02
   date: 2026-10-20

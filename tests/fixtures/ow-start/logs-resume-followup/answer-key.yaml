@@ -7,10 +7,10 @@ client: Larkspur Ceramics
 user: Robin
 base: logs-prep-first
 verbs: [/ow-start-log-meeting]
-checks: [writes, write_once, status, status_grammar, route, follow_up, follow_up_clean, people, private_names]
+checks: [writes, write_once, status, status_grammar, route, follow_up, follow_up_clean, people, private_names, handling]
 route:
   verb: /ow-start-log-meeting
-  says: ["MTG-01"]
+  tokens: [["DONE:", "logs/larkspur-ceramics/meetings/MTG-01/notes.md", "never sent"], ["NEXT:", "use ow-start to log the decisions in logs/larkspur-ceramics/meetings/MTG-01/notes.md"]]
 notes:
   id: MTG-01
   input: transcript

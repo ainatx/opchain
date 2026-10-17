@@ -6,10 +6,10 @@ user: Robin
 base: logs-action-done
 verbs: [/ow-start-action]
 writes_nothing: true
-checks: [writes, write_once, status, route, screen, private_names]
+checks: [writes, write_once, status, route, screen, private_names, handling]
 route:
   verb: /ow-start-action
-  says: ["Refuse"]
+  tokens: [["A-09"]]
 screen:
-  must: ["Open in larkspur-ceramics:", "A-01 \\(client ops lead\\) by 2026-10-16", "A-02 \\(you\\) by 2026-10-19", "DEC-01 review by 2026-10-19"]
+  tokens: [["A-01", "client ops lead", "2026-10-16"], ["A-02", "you", "2026-10-19"], ["DEC-01", "2026-10-19"]]
 status: { lines: [] }

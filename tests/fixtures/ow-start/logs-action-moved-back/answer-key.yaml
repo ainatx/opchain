@@ -8,11 +8,14 @@ workstream: larkspur-ceramics
 user: Robin
 base: logs-action-moved
 verbs: [/ow-start-action]
-checks: [writes, write_once, status, status_grammar, route, screen, private_names]
-route: { verb: /ow-start-action }
+checks: [writes, write_once, status, status_grammar, route, screen, private_names, handling]
+route:
+  verb: /ow-start-action
+  says: ["Appended:", "Open in larkspur-ceramics:"]
+  tokens: [["Appended:", "notes.md#A-01", "2026-10-16"]]
 screen:
-  must: ["Open in larkspur-ceramics:", "A-01 \\(client ops lead\\) by 2026-10-16"]
-  must_not: ["Open in larkspur-ceramics:.*2026-10-23"]
+  tokens: [["A-01", "client ops lead", "2026-10-16"], ["A-02", "you", "2026-10-19"], ["DEC-01", "2026-10-19"]]
+  must_not: ["^(?!Step 0\\.)(?!\\s*Appended:).*\\bA-01\\b[^\\n|]*2026-10-23"]
 status:
   lines:
     - { path: logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-01, next: "ow-start /ow-start-action logs/larkspur-ceramics/", awaiting: A-01 (client ops lead) by 2026-10-16 }

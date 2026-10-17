@@ -4,7 +4,7 @@ Run step 0 of `references/ow-protocol.md` first. Formats: `references/logs-schem
 
 ## 0. Which meeting, and where to resume
 
-1. **The meeting** (owner decision O5). **No workstream given** (round 1 m5): never guess. If exactly one workstream fits what was asked (one with a prepared, unlogged meeting; one holding that id; one with notes whose decisions are not logged yet), name it and ask the user to confirm it; otherwise list the workstreams that fit and ask which workstream. Write nothing until the user answers. With an id, that `MTG-nn`. With none: the newest meeting that has an `agenda.md` and no `notes.md`; if there is none, the next id, logged with `agenda: none (no agenda)`.
+1. **The meeting** (owner decision O5). **No workstream given**: never guess. If exactly one workstream fits what was asked (one with a prepared, unlogged meeting; one holding that id; one with notes whose decisions are not logged yet), name it and ask the user to confirm it; otherwise list the workstreams that fit and ask which workstream. Write nothing until the user answers. With an id, that `MTG-nn`. With none: the newest meeting that has an `agenda.md` and no `notes.md`; if there is none, the next id, logged with `agenda: none (no agenda)`.
 2. **Resume, per step.** If `notes.md` exists, never write it again: read its `log_steps`, then do only what is missing. A follow-up file missing (and `external: yes`): write the missing one, or both, from `notes.md`. Some STATUS lines missing: append only those (logs-schema §6: skip a line that is already its item's newest line). Everything done: say the meeting is fully logged and write nothing.
 3. **Handling and the repository check**, as in `references/phase-prep-meeting.md` §1, recorded in the `notes.md` header.
 

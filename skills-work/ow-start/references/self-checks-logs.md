@@ -2,7 +2,7 @@
 
 Each is a **same-session self-check: the same assistant that wrote the file, applying a checklist; a discipline, not an independent review** (protocol §8). Each is agent-checked and reports OK, FINDING or NOT-CHECKED (reason). `-log-meeting` writes the table into `notes.md`, `-log-decision` into `DEC-nn.md`; `-prep-meeting`, `-action` and `-log` print theirs on their screen. A verb prints its NEXT block only when none is FINDING.
 
-**Three can never be waived: People by role, No client text in STATUS, No private names.** A request to skip one, or to write a name anyway, is refused, and the check runs.
+**Three can never be waived: People by role, No client text in STATUS, No private names.** A request to skip one, or to write a name anyway, is refused, and the check runs; the screen says `refused` and `<check> can never be waived`.
 
 | Check | Runs in | Passes when |
 |---|---|---|
@@ -34,7 +34,7 @@ Also kept out: anything under an internal marker, our working notes, ids, file n
 Kept out of every file the logs verbs write:
 
 - a person's name: a name the transcript or notes use for a speaker or anyone else, written as a name, with an honorific (Ms, Mr, Mrs, Dr), as `<Name> from <organisation>`, or on a `cc:` line;
-- an email address or a phone number, in any shape, a 7-digit local number included.
+- an email address or a phone number, in any shape: a 7-digit local number, ten digits run together, and an international number with its country code included.
 
 **Allowed**: roles (`you`, `client ops lead`, `vendor account manager`, `the bookkeeper`, `client CFO`), a `cc:` line that holds only a role; the client's business name; product and system names (QuickBooks Online, the order sheet); places, weekdays and months; a noun at the start of a sentence ("Stoneware from Laguna arrives on Monday"); speaker labels with a confirmed role (`SPEAKER_01, confirmed by you`). A capitalised word is not a name by itself.
 

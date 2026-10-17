@@ -7,10 +7,10 @@ workstream: larkspur-ceramics
 user: Robin
 base: logs-action-done
 verbs: [/ow-start-log-meeting]
-checks: [headers, writes, write_once, status, status_grammar, route, notes, trace, owner_date, embedded, follow_up, people, private_names, gitignore]
+checks: [headers, writes, write_once, status, status_grammar, route, notes, trace, owner_date, embedded, follow_up, people, private_names, gitignore, handling]
 route:
   verb: /ow-start-log-meeting
-  says: ["MTG-02"]
+  tokens: [["DONE:", "logs/larkspur-ceramics/meetings/MTG-02/notes.md"], ["NEXT: none"]]
 notes:
   id: MTG-02
   input: notes

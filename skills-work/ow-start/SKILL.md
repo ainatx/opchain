@@ -2,18 +2,17 @@
 name: ow-start
 description: >
   ow-start runs the 20-minute client fit call and keeps your meeting and
-  decision logs. Before a call: a one-page call guide; after it: a client recap
-  with one recommended path, due within one business day, from the transcript
-  or your notes. The logs: an agenda before a meeting, notes and a follow-up
-  draft after it, actions tracked in STATUS.md until done, and decisions kept
-  one per file with a review date, for each client and for your own business.
-  Use for /ow-start, /ow-start-prep, /ow-start-extract, /ow-start-prep-meeting,
+  decision logs. Fit call: a call guide before it, a client recap with one
+  recommended path after it, from a transcript or your notes. Logs: agendas,
+  meeting notes, follow-up drafts, actions tracked until done, decisions with
+  review dates, per client and for your business. Use for /ow-start,
+  /ow-start-prep, /ow-start-extract, /ow-start-prep-meeting,
   /ow-start-log-meeting, /ow-start-action, /ow-start-log-decision,
   /ow-start-log, /ow-setup, /ow-status, "prep my call with", "write the recap
   from this call", "turn this transcript into a client recap", "log this
-  meeting", "log this decision", "where did I leave off". Text only. NOT for meetings another ow- skill records (Build Plan
-  workshops, demos, UAT sessions, care calls), sales email sequences,
-  contracts, or legal, tax or pricing advice: it names a path, never a price.
+  meeting", "log this decision", "where did I leave off". Text only. NOT for
+  meetings another ow- skill records (Build Plan workshops, demos, UAT sessions,
+  care calls), sales emails, contracts, or legal, tax or pricing advice.
 license: Apache-2.0
 compatibility: Text only, no scripts and no network. Best with a folder attached; works in a single conversation without one.
 metadata:
@@ -185,7 +184,7 @@ The logs' checks: `references/self-checks-logs.md`. **People by role, No client 
 
 ## The verbs without a phase file
 
-**`/ow-start` and `/ow-status`.** Run step 0; write nothing. `/ow-start` with no `STATUS.md` shows the welcome. Otherwise list each open intake (the newest STATUS line per intake workstream that is not closed: its next step and anything awaited) and each open logs item (the newest line per `MTG-nn`, `A-nn` and `DEC-nn`; `references/logs-status-and-index.md` §3), soonest due first; `/ow-status` shows them as two tables. Mark an item "reported overdue" only when today's date is known from the protocol's ladder and is past the due date.
+**`/ow-start` and `/ow-status`.** Run step 0; write nothing. `/ow-start` with no `STATUS.md` shows the welcome. Otherwise list each open intake (the newest STATUS line per intake workstream that is not closed: its next step and anything awaited) and each open logs item (the newest line per `MTG-nn`, `A-nn` and `DEC-nn`; `references/logs-status-and-index.md` §3), soonest due first; `/ow-status` shows them as two tables, with the columns in `references/logs-status-and-index.md` §3. Mark an item "reported overdue" only when today's date is known from the protocol's ladder and is past the due date.
 
 ## What this skill never does
 

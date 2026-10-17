@@ -6,10 +6,10 @@ workstream: larkspur-ceramics
 user: Robin
 base: logs-prep-first
 verbs: [/ow-start-log-meeting]
-checks: [writes, write_once, status, status_grammar, route, private_names]
+checks: [writes, write_once, status, status_grammar, route, private_names, handling]
 route:
   verb: /ow-start-log-meeting
-  says: ["MTG-01"]
+  tokens: [["DONE:", "logs/larkspur-ceramics/meetings/MTG-01/notes.md"], ["NEXT:", "use ow-start to log the decisions in logs/larkspur-ceramics/meetings/MTG-01/notes.md"]]
 status:
   lines:
     - { path: logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-02, next: "ow-start /ow-start-action logs/larkspur-ceramics/", awaiting: A-02 (you) by 2026-10-19 }
