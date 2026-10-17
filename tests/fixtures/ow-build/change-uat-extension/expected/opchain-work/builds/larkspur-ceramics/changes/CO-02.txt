@@ -1,0 +1,23 @@
+Example Studio
+Change order CO-02: Larkspur Ceramics
+13 January 2027
+
+What changes
+One extra user acceptance testing session, so the three problems found in session 1 can be retested.
+
+Why
+Your testers were not at session 2 on 12 January 2027, so UAT-03, UAT-04 and UAT-05 could not be retested in the sessions agreed. One client-side event, so one change order covers all three.
+
+Price
+USD 175.00, invoiced when the amendment is signed, due within 14 days of the invoice.
+
+Schedule
+One extra test session, on a date we agree.
+
+Acceptance checks it adds
+None. The checks are the ones already agreed.
+
+Approval
+This change order is approved only by a signed amendment to our contract. A reply to this email is not approval, and no work starts before the amendment is signed.
+
+Example Studio

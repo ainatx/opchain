@@ -1,0 +1,24 @@
+Example Studio
+Milestone 1 demo: Larkspur Ceramics
+25 November 2026
+
+What we showed
+Purchase orders from email into your order sheet, the exceptions list for codes that match nothing, and the one-off clean-up of your product codes.
+
+What works
+4 of 4 checks working.
+- Ten September orders arrived in the sheet with every line right.
+- Emails with no readable purchase order went to the exceptions list.
+- Codes that match nothing stopped on the exceptions list with the code and the customer.
+- Every sampled product code is in the LC-nnnn form.
+
+Not yet
+Nothing from this milestone. The order confirmation view and the orders into QuickBooks Online come in milestone 2.
+
+What happens next
+The exceptions list will be sorted by customer, as your order coordinator asked; that is part of the agreed scope, at no charge. Then milestone 2 begins.
+
+Changes to price
+Showing stock on hand on the confirmation view is new: no system in the agreed scope holds stock levels. I will write it up with a price before any work on it.
+
+Example Studio

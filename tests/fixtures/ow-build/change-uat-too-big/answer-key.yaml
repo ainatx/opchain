@@ -1,0 +1,19 @@
+# Answer key: change-uat-too-big (INVENTED). Owner decision 2026-10-16: a
+# UAT-nn classed Change that is too big for a change order goes to
+# ow-build-plan exactly like a too-big FIX-nn. UAT-06 (input/, in the ow-uat
+# design's shape) asks for a repeat-order portal: 3 units, at the limit. No
+# change order; the row and the STATUS line hand UAT-06 to ow-build-plan.
+case: change-uat-too-big
+section: Requests from UAT and handoff (a UAT request too big for a change order)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: change-uat-extension
+verbs: [/ow-build-change]
+checks: [change, builder_name, status, private_names, writes]
+change: { kind: too big, units: 3, from: uat/larkspur-ceramics/defects/UAT-06.md }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/changes/requests.md, next: ow-build-plan on uat/larkspur-ceramics/defects/UAT-06.md, awaiting: none }
+private_names: [llc-ops, Deftwright]

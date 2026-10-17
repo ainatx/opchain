@@ -1,0 +1,22 @@
+# Answer key: invoice-delivery-handoff (INVENTED). Design §7 (ow-uat B2) and
+# §10 "Payment triggers" (50/50): here the Handoff notes are delivered first
+# (handoffs/mossgate-books/dates.yaml handoff_date, in the ow-handoff design's
+# shape) and no backstop applied, so the delivery half is requested on the
+# handoff date's basis.
+case: invoice-delivery-handoff
+section: Payment triggers (50/50, delivery at the handoff)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+repo: mossgate-repo
+base: invoice-booking-small
+verbs: [/ow-build-invoice]
+checks: [headers, invoice, internal_numbers, builder_name, status, private_names, writes]
+outputs:
+  - builds/mossgate-books/ledger.md
+  - builds/mossgate-books/invoices/INV-request-delivery.md
+invoice: { triggers: [delivery] }
+status:
+  lines:
+    - { path: builds/mossgate-books/invoices/INV-request-delivery.md, next: ow-build on builds/mossgate-books/, awaiting: payment of delivery by 2027-01-25 }
+private_names: [llc-ops, Deftwright, Priya]

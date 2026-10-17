@@ -11,7 +11,7 @@ skill: ow-build-plan
 routes:
   verb: /ow-build-plan
   reference: references/routing-and-resume.md
-  paths: [intake/<client>/intake-record.md, handoffs/<client>/fixes/FIX-nn.md, plans/<client>/]
+  paths: [intake/<client>/intake-record.md, handoffs/<client>/fixes/FIX-nn.md, uat/<client>/defects/UAT-nn.md, plans/<client>/]
 
 writes:
   - { path: plans/<client>/build-plan-offer.md, verb: /ow-build-plan-offer }
@@ -80,6 +80,11 @@ reads:
     fields: [must-ask statuses]
     if_absent: Collection items come from the intake record alone
     if_mismatch: Use the rows that parse
+  - from: ow-uat
+    path: uat/<client>/defects/UAT-nn.md
+    fields: [the request]
+    if_absent: Ask for the request in the user's words
+    if_mismatch: Quote what was found; ask the user to state the request
   - from: ow-handoff
     path: handoffs/<client>/fixes/FIX-nn.md
     fields: [the request]
@@ -200,5 +205,17 @@ hands_off:
     to: ow-build
     verb: /ow-build-start
     say: use ow-build to start plans/<client>/
-    files: [plans/<client>/build-request.md, plans/<client>/quote.md, plans/<client>/plan.yaml, plans/<client>/scope.md, plans/<client>/acceptance.md, plans/<client>/quick-scope.md]
+    files:
+      - { path: plans/<client>/build-request.md, fields: [signed, signing_note, the milestones, client dependencies] }
+      - { path: plans/<client>/quote.md, fields: [mode, currency, fixed_price, schedule, payments, payment_terms_days, handling, the client part's milestones] }
+      - { path: plans/<client>/contract-inputs.md, fields: [documentation_sku, documentation_price] }
+      - { path: plans/<client>/plan.yaml, fields: [handling] }
+      - { path: plans/<client>/build-plan.md, fields: [Summary, What should change] }
+      - { path: plans/<client>/scope.md, fields: [work packages, out of scope, client dependencies] }
+      - { path: plans/<client>/acceptance.md, fields: [AC ids with when, then, how we check, test data, cases, kind] }
+      - { path: plans/<client>/risks.md, fields: [risks with owner and mitigation] }
+      - { path: plans/<client>/quick-scope.md, fields: [in scope, out of scope, acceptance checks] }
+      - { path: plans/<client>/map/systems.md, fields: [systems] }
+      - { path: plans/<client>/map/data.md, fields: [data] }
+      - { path: plans/<client>/map/future.md, fields: [future process] }
     if_unavailable: "handoffs.yaml build: its say: line; with none, give build-request.md to whoever builds it"

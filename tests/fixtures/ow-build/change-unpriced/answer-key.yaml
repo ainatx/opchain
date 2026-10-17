@@ -1,0 +1,18 @@
+# Answer key: change-unpriced (INVENTED). Design §6 step 2 and §10 "In scope
+# vs change": a text message to the customer on confirmation is a change, but
+# no unit in the price book prices a text message. -change stops and asks
+# Robin; nothing is priced, estimated or written beyond the request's row.
+case: change-unpriced
+section: In scope vs change (no price-book unit stops and asks)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: change-priced
+verbs: [/ow-build-change]
+checks: [change, builder_name, status, private_names, writes]
+change: { kind: unpriced }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/changes/requests.md, next: ow-build /ow-build-change builds/larkspur-ceramics/, awaiting: none }
+private_names: [llc-ops, Deftwright]

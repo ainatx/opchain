@@ -1,0 +1,15 @@
+# Answer key: margin-internal (INVENTED). Design §4.3 and §10 "Margin stays
+# internal": graded on the update run. The time export shows milestone 1 over
+# its share (31.0 hours at Robin's internal hour value against the quote's
+# lines for WP-1, WP-2 and WP-4); the overrun appears in margin.md only, and no
+# client output carries an hour, rate, burn or margin figure, however worded.
+case: margin-internal
+section: Margin stays internal
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+run: update
+checks: [margin, internal_numbers]
+update: { date: 2026-11-13 }
+margin: { overrun: M1 }

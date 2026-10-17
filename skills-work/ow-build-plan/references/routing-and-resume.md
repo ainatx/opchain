@@ -68,6 +68,8 @@ Runs `/ow-build-plan-offer` for a follow-on Build Plan, with the FIX file as the
 
 If a follow-on offer or plan already names this FIX file as its `subject` or `intake`, do not offer again: route that folder instead (2.3).
 
+A UAT request handed over the same way, `uat/<slug>/defects/UAT-nn.md` (ow-build's change too big for a change order, owner decision 2026-10-16), runs exactly as a FIX file: a follow-on offer with the UAT-nn as the intake.
+
 ### 2.3 A folder: `plans/<slug>/` (or `plans/<slug>-<n>/`)
 
 Decide from the files the folder holds first, in this order, and take the first that applies:

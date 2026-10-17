@@ -1,0 +1,22 @@
+# Answer key: change-priced (INVENTED). Design §6 and §10 "In scope vs
+# change": stock on hand on the confirmation view (asked at the M1 demo) is
+# outside the plan, so -change prices it from the price book with reasons
+# (one integration, one report), adds two acceptance checks (one an error
+# case), records the schedule impact as Robin stated it, and writes CO-01 as a
+# draft with work not started, plus its branded email and text twin. The
+# client part names no unit price.
+case: change-priced
+section: In scope vs change (a real change, priced)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: change-in-scope
+verbs: [/ow-build-change]
+checks: [headers, change, email, internal_numbers, builder_name, status, private_names, writes]
+outputs: [builds/larkspur-ceramics/changes/CO-01.md, builds/larkspur-ceramics/changes/requests.md]
+change: { kind: change, units: { integration: 1, report: 1 } }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/changes/CO-01.md, next: ow-build /ow-build-change builds/larkspur-ceramics/, awaiting: "Larkspur Ceramics's answer on CO-01 by 2026-12-07" }
+private_names: [llc-ops, Deftwright]

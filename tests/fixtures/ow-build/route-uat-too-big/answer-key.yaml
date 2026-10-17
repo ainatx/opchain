@@ -1,0 +1,11 @@
+# Answer key: route-uat-too-big (INVENTED). Owner decision 2026-10-16: UAT-06 is class Change, so the route lands on -change, which finds it too big and hands it to ow-build-plan (2.2).
+# Graded on the change-uat-too-big run.
+case: route-uat-too-big
+section: "Inbound route (a UAT-nn classed Change)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+run: change-uat-too-big
+checks: [route]
+route: { from: uat/larkspur-ceramics/defects/UAT-06.md, expect: change }

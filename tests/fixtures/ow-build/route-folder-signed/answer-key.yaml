@@ -1,0 +1,11 @@
+# Answer key: route-folder-signed (INVENTED). Sprint 2 round 1, bugs 2 and 3: CO-01 is amendment out and Robin says the amendment is signed, so the folder route lands on -change --signed (step 4).
+# Graded on the change-signed run.
+case: route-folder-signed
+section: "Inbound route (a build folder: an amendment out, now signed)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+run: change-signed
+checks: [route]
+route: { from: builds/larkspur-ceramics/, expect: change }

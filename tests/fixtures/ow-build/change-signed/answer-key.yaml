@@ -1,0 +1,21 @@
+# Answer key: change-signed (INVENTED). Design §6 steps 4-5 and §12.5: Robin
+# records the signed amendment for CO-01 (only now, after amendment out). The
+# change order becomes signed with the "signature not verified" note, its two
+# checks go to spec/06-testing-change-orders.md (its only writer) under a dated
+# heading, spec/06-testing.md is untouched, the scope addition goes to the builder with the fix line
+# (printed, never written), and NEXT is the invoice (payment on signature).
+case: change-signed
+section: Signature gate (a signed amendment recorded)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: signature-gate
+verbs: [/ow-build-change --signed]
+checks: [headers, signed, internal_numbers, builder_name, status, private_names, writes]
+outputs: [builds/larkspur-ceramics/changes/CO-01.md]
+signed: { co: CO-01, date: 2026-12-07 }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/changes/CO-01.md, next: ow-build /ow-build-invoice builds/larkspur-ceramics/, awaiting: none }
+private_names: [llc-ops, Deftwright]

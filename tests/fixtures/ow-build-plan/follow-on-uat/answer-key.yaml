@@ -1,0 +1,18 @@
+# Answer key: follow-on-uat (INVENTED). Sprint 2 round 2, D12: -start with
+# uat/larkspur-ceramics/defects/UAT-08.md records it as the intake of the follow-on
+# Build Plan (intake: uat/larkspur-ceramics/defects/UAT-08.md), never a FIX path,
+# in the folder its offer chose.
+case: follow-on-uat
+section: Follow-on intake (from UAT-nn.md)
+client: Larkspur Ceramics
+slug: larkspur-ceramics-2
+user: Robin
+base: follow-on-uat-offer
+checks: [headers, start, follow_on, status, private_names]
+outputs: [plans/larkspur-ceramics-2/plan.yaml, plans/larkspur-ceramics-2/collection.md]
+start: { tier: one_system, fee: 1500, start: 2026-12-07, intake: uat/larkspur-ceramics/defects/UAT-08.md }
+follow_on: { follows: plans/larkspur-ceramics/, fix: uat/larkspur-ceramics/defects/UAT-08.md }
+status:
+  lines:
+    - { path: plans/larkspur-ceramics-2/collection.md, next: ow-build-plan /ow-build-plan-collect plans/larkspur-ceramics-2/, awaiting: material from Larkspur Ceramics by 2026-12-09 }
+private_names: [llc-ops, Deftwright]

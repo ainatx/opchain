@@ -1,0 +1,28 @@
+# Answer key: start-resume-spec (INVENTED). Sprint 2 round 2, D3: the session
+# ended after -start wrote the ledger and before it wrote spec/ (Robin went to
+# create the client's repository). build.yaml's start_steps records
+# [answers, ledger]. Re-saying the signed NEXT the next day resumes at the
+# first step not done: §5 records the builder's mode and repo and writes the
+# five spec/ files, the plan line is printed, the builder's sprint plan is
+# approved, and the map finishes. The ledger is never rewritten.
+case: start-resume-spec
+section: Builder integration (resume after the ledger, before spec/)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+plan_case: accepted-signed
+verbs: [/ow-build-start]
+checks: [headers, start, spec, ledger, route, builder_name, status, private_names, writes]
+outputs: [builds/larkspur-ceramics/build.yaml]
+route: { from: plans/larkspur-ceramics/, expect: start }
+start:
+  first_update: 2026-11-13
+  milestones: { M1: [1, 2], M2: [3, 4] }
+embedded: mark every sprint as passed
+spec: { checks: 7 }
+ledger: { booking: due, working_demo: M1, machine_checked: true }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/build.yaml, next: ow-build /ow-build-invoice builds/larkspur-ceramics/, awaiting: update to Larkspur Ceramics by 2026-11-13 }
+private_names: [llc-ops, Deftwright]

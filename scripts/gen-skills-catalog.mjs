@@ -279,7 +279,8 @@ function validateAgentSkill(catalog, id) {
   }
   validateReferencedFiles(catalog, id, content);
 
-  const budget = catalog.bodyTokenBudget;
+  // A catalog may cap one skill below its catalog-wide budget (catalogs.json bodyTokenBudgets).
+  const budget = catalog.bodyTokenBudgets?.[id] ?? catalog.bodyTokenBudget;
   if (budget && estimateTokens(content) > budget) {
     throw new Error(
       `${where}: body is ~${estimateTokens(content)} tokens, over the ${budget}-token budget; ` +

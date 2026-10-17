@@ -1,0 +1,11 @@
+# Answer key: route-fix-not-a-defect (INVENTED). Sprint 2 round 1, bug 4: FIX-08 is class Not a defect, so the route lands on -change, which records it with no charge (routing-and-resume.md 2.3).
+# Graded on the change-not-a-defect run.
+case: route-fix-not-a-defect
+section: "Inbound route (a FIX-nn classed Not a defect)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+run: change-not-a-defect
+checks: [route]
+route: { from: handoffs/larkspur-ceramics/fixes/FIX-08.md, expect: change }

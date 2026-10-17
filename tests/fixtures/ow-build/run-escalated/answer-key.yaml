@@ -1,0 +1,19 @@
+# Answer key: run-escalated (INVENTED). Design §12.3 and §12.7 ("a builder
+# sprint that escalates stops the milestone"): sprint 2 fails three rounds and
+# the builder's checkpoint records blocker b2 against it. -run records the
+# sprint escalated, stops M1 there, credits no check from it, and never points
+# to the demo.
+case: run-escalated
+section: Running a milestone (an escalating sprint stops the milestone)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: update
+verbs: [/ow-build-run]
+checks: [run, builder_name, status, private_names, writes]
+sprint: { milestone: M1, result: escalated }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/build.yaml, next: ow-build /ow-build-run builds/larkspur-ceramics/, awaiting: "M1 stopped: escalation on sprint 2" }
+private_names: [llc-ops, Deftwright]

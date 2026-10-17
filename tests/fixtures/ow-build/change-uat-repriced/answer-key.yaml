@@ -1,0 +1,20 @@
+# Answer key: change-uat-repriced (INVENTED). Sprint 2 round 2, D2: UAT-07
+# stopped unpriced (change-uat-unpriced), which does not settle it. Handed over
+# again, Robin gives the price; -change prices it once, as CO-03 (draft), in a
+# new row that cites the unpriced one. A second hand-over after this is refused
+# (priced once).
+case: change-uat-repriced
+section: Requests from UAT and handoff (an unpriced UAT request priced later, once)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: change-uat-unpriced
+verbs: [/ow-build-change]
+checks: [headers, change, email, internal_numbers, builder_name, status, private_names, writes]
+outputs: [builds/larkspur-ceramics/changes/CO-03.md, builds/larkspur-ceramics/changes/requests.md]
+change: { kind: change, from: uat/larkspur-ceramics/defects/UAT-07.md }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/changes/CO-03.md, next: ow-build /ow-build-change builds/larkspur-ceramics/, awaiting: "Larkspur Ceramics's answer on CO-03 by 2027-01-25" }
+private_names: [llc-ops, Deftwright]

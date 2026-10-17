@@ -1,0 +1,19 @@
+# Answer key: change-uat-unpriced (INVENTED). Sprint 2 round 2, D2: UAT-07
+# (input/, in the ow-uat design's shape) is class Change, a weekly text
+# message about the exceptions list. No price-book unit sends a text message,
+# so -change stops and asks Robin: the row is unpriced, nothing else is written,
+# and the request is not settled (change-uat-repriced prices it later).
+case: change-uat-unpriced
+section: Requests from UAT and handoff (a UAT request with no unit stops and asks)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: change-uat-too-big
+verbs: [/ow-build-change]
+checks: [change, builder_name, status, private_names, writes]
+change: { kind: unpriced, from: uat/larkspur-ceramics/defects/UAT-07.md }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/changes/requests.md, next: ow-build /ow-build-change builds/larkspur-ceramics/, awaiting: none }
+private_names: [llc-ops, Deftwright]

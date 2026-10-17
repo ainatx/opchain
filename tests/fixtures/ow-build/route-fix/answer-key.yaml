@@ -1,0 +1,13 @@
+# Answer key: route-fix (INVENTED). Inbound route (routing-and-resume.md 2.3):
+# "use ow-build on handoffs/larkspur-ceramics/fixes/FIX-07.md" (or ow-handoff's
+# "use ow-build to price the change from …") lands on -change, because FIX-07
+# is class Change. Graded on the change-fix-too-big run.
+case: route-fix
+section: Inbound route (a FIX-nn file)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+run: change-fix-too-big
+checks: [route]
+route: { from: handoffs/larkspur-ceramics/fixes/FIX-07.md, expect: change }

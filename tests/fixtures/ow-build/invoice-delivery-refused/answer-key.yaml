@@ -1,0 +1,16 @@
+# Answer key: invoice-delivery-refused (INVENTED). Design §7 and §10 "A
+# smaller project invoiced under the backstop refuses a second delivery-half
+# request after delivery": the Handoff notes are delivered later
+# (handoffs/mossgate-books/dates.yaml), but the ledger already shows the
+# delivery half requested under the backstop, so -invoice writes nothing.
+case: invoice-delivery-refused
+section: Payment triggers (50/50, the delivery half invoiced once)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+repo: mossgate-repo
+base: invoice-delivery-backstop
+verbs: [/ow-build-invoice]
+checks: [invoice_refused, writes]
+invoice_refused: the delivery half was already requested under the backstop
+invoice_refused_delivery: true

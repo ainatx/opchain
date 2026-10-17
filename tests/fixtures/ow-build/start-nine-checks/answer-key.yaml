@@ -1,0 +1,34 @@
+# Answer key: start-nine-checks (INVENTED). Design §12.7 ("with build.mode:
+# opchain, a signed plan with 9 acceptance checks produces spec/06-testing.md
+# holding all 9"): Fernhill Florists continues ow-build-plan's route-next-stage
+# run (delivery mode, signed off-fixture in plans-signed/). All nine checks
+# reach spec/06-testing.md verbatim, and the approved sprint plan maps
+# sprints 1-2 to M1 and 3-4 to M2.
+case: start-nine-checks
+section: Builder integration (nine checks reach spec/06-testing.md)
+client: Fernhill Florists
+slug: fernhill-florists
+user: Robin
+repo: fernhill-repo
+plan_case: route-next-stage
+extra: [plans-signed/fernhill-florists]
+verbs: [/ow-build-start]
+checks: [headers, start, spec, ledger, builder_name, internal_numbers, status, private_names, writes]
+outputs:
+  - builds/fernhill-florists/build.yaml
+  - builds/fernhill-florists/ledger.md
+  - spec/00-project-overview.md
+  - spec/02-architecture.md
+  - spec/04-integrations.md
+  - spec/06-testing.md
+  - spec/scope-and-milestones.md
+start:
+  first_update: 2026-11-27
+  milestones: { M1: [1, 2], M2: [3, 4] }
+spec: { checks: 9 }
+ledger: { booking: due, machine_checked: true }
+status:
+  lines:
+    - { path: builds/fernhill-florists/build.yaml, next: ow-build on builds/fernhill-florists/, awaiting: none }
+    - { path: builds/fernhill-florists/build.yaml, next: ow-build /ow-build-invoice builds/fernhill-florists/, awaiting: update to Fernhill Florists by 2026-11-27 }
+private_names: [llc-ops, Deftwright]

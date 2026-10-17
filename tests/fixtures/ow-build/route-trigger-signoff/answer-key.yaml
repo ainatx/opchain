@@ -1,0 +1,11 @@
+# Answer key: route-trigger-signoff (INVENTED). Sprint 2 round 1, bugs 2 and 3: ow-uat's NEXT, "use ow-build to invoice the acceptance payment from uat/larkspur-ceramics/signoff.md", lands on -invoice (2.4, 2.6).
+# Graded on the invoice-acceptance run.
+case: route-trigger-signoff
+section: "Inbound route (ow-uat's sign-off file)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+run: invoice-acceptance
+checks: [route]
+route: { from: uat/larkspur-ceramics/signoff.md, expect: invoice }

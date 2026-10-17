@@ -1,0 +1,28 @@
+# Answer key: demo-record (INVENTED). Design §5: after the M1 demo, -demo
+# --record writes every check's result from Robin's notes, classes the two
+# requests (sorting the exceptions list is in scope, WP-2; stock on hand is a
+# change), and records the working-demo payment as human-decided: Robin
+# confirmed the client saw it working. It writes no ledger row; -invoice reads
+# the record. The client summary calls working only what works.
+case: demo-record
+section: Milestone demo (record, the working-demo trigger)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: demo-script
+verbs: [/ow-build-demo --record]
+checks: [headers, demo_record, email, internal_numbers, no_false_done, builder_name, status, private_names, writes]
+outputs: [builds/larkspur-ceramics/demos/M1-record.md]
+demo:
+  milestone: M1
+  confirmed: true
+  adjustments:
+    - { says: sorted by customer, class: in scope (WP-2) }
+    - { says: stock on hand, class: change }
+not_passing: [confirmation view, QuickBooks Online, stock on hand]
+people: [Jess]
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/demos/M1-record.md, next: ow-build on builds/larkspur-ceramics/, awaiting: summary to Larkspur Ceramics by 2026-11-27 }
+private_names: [llc-ops, Deftwright, Jess]

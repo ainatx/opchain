@@ -289,8 +289,8 @@ describe("edges: the real family", () => {
   });
 
   it("C4: a dangling NEXT planted in ow-build-plan fails", () => {
-    const verb = realTree({ "ow-build-plan/SKILL.md": (t) => t.replace("(where slash commands exist: /ow-build-start)", "(where slash commands exist: /ow-build-run)") });
-    expect(checkFamily(verb).join("\n")).toMatch(/ow-build-plan\/SKILL\.md:\d+: NEXT's verb `\/ow-build-run` is not declared/);
+    const verb = realTree({ "ow-build-plan/SKILL.md": (t) => t.replace("(where slash commands exist: /ow-build-start)", "(where slash commands exist: /ow-build-launch)") });
+    expect(checkFamily(verb).join("\n")).toMatch(/ow-build-plan\/SKILL\.md:\d+: NEXT's verb `\/ow-build-launch` is not declared/);
     const dest = realTree({ "ow-build-plan/SKILL.md": (t) => t.replace("NEXT: handoffs.yaml `contract`", "NEXT: handoffs.yaml `lawyer`") });
     expect(checkFamily(dest).join("\n")).toMatch(/ow-build-plan\/SKILL\.md:\d+: names handoffs\.yaml `lawyer`/);
     const owner = realTree({ "ow-build-plan/SKILL.md": (t) => t.replace('say "use ow-build to start plans/<client>/"', 'say "use ow-build-plan to start plans/<client>/"') });
@@ -329,8 +329,8 @@ describe("edges: the real family", () => {
   });
 
   it("bug 10: a hands_off verb that resolves nowhere, or to another skill, fails", () => {
-    const dangling = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("    verb: /ow-build-start\n", "    verb: /ow-build-run\n") });
-    expect(checkEdges(dangling).join("\n")).toMatch(/verb `\/ow-build-run` is not declared by any skill, add-on or planned skill/);
+    const dangling = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("    verb: /ow-build-start\n", "    verb: /ow-build-launch\n") });
+    expect(checkEdges(dangling).join("\n")).toMatch(/verb `\/ow-build-launch` is not declared by any skill, add-on or planned skill/);
     const other = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("    verb: /ow-build-start\n", "    verb: /ow-build-plan-start\n") });
     expect(checkEdges(other).join("\n")).toMatch(/verb `\/ow-build-plan-start` belongs to ow-build-plan, not to ow-build/);
   });
@@ -351,8 +351,8 @@ describe("edges: the real family", () => {
     for (const row of [/\| `build-plan` \| `\/ow-build-plan-offer` for this intake \|/, /\| `defined-work` \| `\/ow-build-plan-quote --quick` for this intake \|/, /\| `next-stage` \| `\/ow-build-plan-start` for this intake \| .*\*\*Never an offer\*\*/, /## 2\.2 A follow-on request: `handoffs\/<slug>\/fixes\/FIX-nn\.md`\n\nRuns `\/ow-build-plan-offer`/, /1\. `build-request\.md` exists: \*\*the plan is signed; nothing is left for this skill\.\*\*/, /\*\*Never run `-quote` again over it\.\*\*/, /\*\*This skill never runs another skill's verb\.\*\*/, /\*\*This skill never runs `-start` over an existing `plan\.yaml`\.\*\*/, /\| `feasibility` \| `\/ow-build-plan-quote --quick` for this intake, priced as the feasibility-test unit \|/]) {
       expect(routing).toMatch(row);
     }
-    const noRoute = realTree({ "ow-start/skill.edges.yaml": (t) => t.replace("    verb: /ow-build-plan      #", "    verb: /ow-build-run      #") });
-    expect(checkEdges(noRoute).join("\n")).toMatch(/verb `\/ow-build-run` is not declared/);
+    const noRoute = realTree({ "ow-start/skill.edges.yaml": (t) => t.replace("    verb: /ow-build-plan      #", "    verb: /ow-build-launch      #") });
+    expect(checkEdges(noRoute).join("\n")).toMatch(/verb `\/ow-build-launch` is not declared/);
   });
 
   it("bug 12: the family ships one offers.md and one handoffs.yaml example", () => {
@@ -494,7 +494,7 @@ describe("eval round 4 follow-ups", () => {
   });
 
   it("K14: routes.paths dropping a path the routing reference routes", () => {
-    const cats = realTree({ [E]: rep("paths: [intake/<client>/intake-record.md, handoffs/<client>/fixes/FIX-nn.md, plans/<client>/]", "paths: [intake/<client>/intake-record.md, handoffs/<client>/fixes/FIX-nn.md]") });
+    const cats = realTree({ [E]: rep("paths: [intake/<client>/intake-record.md, handoffs/<client>/fixes/FIX-nn.md, uat/<client>/defects/UAT-nn.md, plans/<client>/]", "paths: [intake/<client>/intake-record.md, handoffs/<client>/fixes/FIX-nn.md, uat/<client>/defects/UAT-nn.md]") });
     expect(all(cats)).toMatch(/routes\.paths does not list plans\/<slug>\/, which references\/routing-and-resume\.md routes/);
   });
 
