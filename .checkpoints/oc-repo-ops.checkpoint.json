@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/ow-skills-orchestration-0e05bd",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a9151b76e8c402aea",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-17T00:02:22.914Z",
+  "updated_at": "2026-10-17T00:32:39.428Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-track-s-s0-forward",
-  "progress_summary": "Contains current origin/main (675d3aff); every commit DCO signed off; commit-boundary verifier PASS 8/8; checkpoint conflicts resolved by three-way key merge keeping both sides' handoffs",
+  "step": "Sprint 2 (ow-build 1.0.0) PR evidence on merge d3819ec4 (origin/main bea0970b + Sprint 2)",
+  "progress_summary": "PR readiness for claude/ow-build-sprint-2 at d3819ec4: origin/main merged in (c9868931, #605-#614, then bea0970b, #615; the second merge conflicted only on these two checkpoints, main's taken), conflicts resolved file by file (main's routing text and reverse-routes rule kept; Sprint 2's UAT follow-on route and test lists added; ow-build's Verbs table extended for #609's writes rule). verify-candidate PASS on the merge tree; npm test and npm run build green; no tracked file changed by the build.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -24,23 +24,28 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Lighthouse runs in CI only"
+      "The branch was merged with origin/main, not rebased: replaying the Sprint 2 commits onto main fails #609's new Verbs-table rule at every commit before the merge fix, so a rebase could not keep each commit verifier-clean. The Sprint 2 commits keep their own PASS receipts; the merge commit carries the fix and its own PASS receipt.",
+      "ow-start 1.0.0's SKILL.md gains one slash hint (check-skill-contracts K18) without a version bump; ow-start 1.1.0 in Sprint L records it.",
+      "R4-1 to R4-3 from evaluation round 4 are known minor checker gaps, deferred to a follow-up PR by the owner's instruction."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "5dbd0724a587be35c29aa1d7fef3cce6e20b16e6",
+    "verified_for_sha": "d3819ec43377a39c1a3d48a12e7357b05343f5c2",
     "last_verify": {
-      "at": "2026-10-16T19:22:23.960Z",
-      "branch": "claude/track-s-s0-forward",
-      "base": "origin/main@after-606",
+      "at": "2026-10-17T00:32:39.428Z",
+      "branch": "claude/ow-build-sprint-2",
+      "base": "main",
       "verdict": "PASS",
       "blocking_findings": []
     }
   },
-  "next_actions": [],
+  "next_actions": [
+    "Push claude/ow-build-sprint-2 and open the PR to main",
+    "Watch CI on the PR"
+  ],
   "handoffs": [
     {
       "id": "oc-repo-ops-release-f6b167fcbd3a",
@@ -1744,8 +1749,48 @@
           "tests/update-new-skills.test.js"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-ow-sprint-2-pr-2026-10-16b-ad7887be5d24",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-17T00:32:39.428Z",
+      "verified_at": "2026-10-17T00:32:39.428Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "ow-sprint-2-pr-2026-10-16b"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:ad7887be5d24603caaa5319eac548c527f93c2a9dfc0edf72dbf22c79b97b086"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Checked on d3819ec4: node scripts/verify-candidate.mjs run (PASS, full gate incl. tests and build); npm test (128 files, 2,519 passing, 7 skipped by name under owner decision 2); npm run build (exit 0, git status clean afterwards); gen-skills-catalog, check-skill-contracts, lint-internal-refs; the three ow- acceptance checkers. git diff origin/main..HEAD on skills/, plugins/opchain/, src/, site/, package*.json and build.mjs is empty, so every oc- build output is main's. No secrets, no generated or untracked files in the change set; .checkpoints/ changes are only these two evidence checkpoints. Not checked: CI on GitHub (runs on the PR), deployment.",
+        "evidence": [
+          "skills-work/ow-build/SKILL.md",
+          "skills-work/ow-build/references/",
+          "skills-work/ow-build/skill.edges.yaml",
+          "skills-work/ow-build/examples/",
+          "skills-work/README.md",
+          "skills-work/ow-build-plan/SKILL.md",
+          "skills-work/ow-build-plan/references/phase-offer.md",
+          "skills-work/ow-build-plan/references/phase-start.md",
+          "skills-work/ow-build-plan/references/routing-and-resume.md",
+          "skills-work/ow-start/SKILL.md",
+          "docs/plans/2026-10-08-ow-build-design.md",
+          "sprints/release-2.1/ow-sprint-2/contract.md",
+          "sprints/release-2.1/ow-sprint-2/eval-round-1.md",
+          "sprints/release-2.1/ow-sprint-2/eval-round-2.md",
+          "sprints/release-2.1/ow-sprint-2/eval-round-3.md",
+          "sprints/release-2.1/ow-sprint-2/eval-round-4.md",
+          "tests/fixtures/ow-build/README.md",
+          "CLAUDE.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-17T00:02:22.914Z",
+  "record_updated_at": "2026-10-17T00:32:39.428Z",
   "blockers": []
 }
