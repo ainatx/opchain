@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": ".",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-aa44912f3edaa24ac",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-17T18:58:39.297Z",
+  "updated_at": "2026-10-17T19:26:18.720Z",
   "skill": "oc-repo-ops",
-  "phase": "pr-verify",
+  "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-verify-compresshtml",
-  "progress_summary": "Repo readiness PASS for the compressHTML whitespace fix (#622, merged with main at 7d61f85b): docs packet current for HEAD, 2 files changed vs main, no catalog/generated drift, nothing untracked.",
+  "step": "pr-web-01-track-s-site",
+  "progress_summary": "WEB-01 readiness PASS at 27bf0eb1 (held branch for the 2.1 cut, merged with origin/main d61b2a3a): site copy unchanged since 24b22ce3; npm test, astro check, site:build and the full e2e (140 passed, including html-whitespace) pass; checkpoint:validate, checkpoint:doctor (0 errors), check-skill-contracts and sync-bundles:check pass; candidate verifier PASS on tree 7203af79; no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -24,18 +24,19 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Local LHCI on /changelog read Best Practices 0.96 (gate 0.95): /api/votes 404 from scripts/lhci-preview.mjs after a local gen-roadmap. CI Lighthouse does not generate roadmap data, so it does not fetch votes; unrelated to this diff."
+      "Held branch: must not merge before REL-02, the 2.1.0 release cut",
+      "Rebase on main after each product merge; re-run evidence on the new tree"
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "7d61f85b824b6d80981290c65555f5b9bf2633ec",
+    "verified_for_sha": "27bf0eb11aba018dc6a5322b6e47af3e170d08b4",
     "last_verify": {
-      "at": "2026-10-17T18:58:38.842Z",
-      "branch": "claude/unruffled-lamarr-f92540",
-      "base": "origin/main@05afedd1",
+      "at": "2026-10-17T19:26:18.720Z",
+      "branch": "claude/track-s-site",
+      "base": "origin/main@d61b2a3a",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1900,8 +1901,40 @@
         "policy": "pr-readiness-v1",
         "scope": "PR readiness for compressHTML: true + html-whitespace e2e guard (#622 at 7d61f85b): docs packet current, no catalog/generated drift, clean tree"
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-web-01-track-s-site-13cb73808222",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-17T19:26:18.720Z",
+      "verified_at": "2026-10-17T19:26:18.720Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-web-01-track-s-site"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:13cb738082224fe588b978c148fcb3b1fb5e8e1d7f530a66b2c8d03433865830"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/track-s-site at 27bf0eb1, draft PR #620, held for the 2.1.0 cut (REL-02); it flips no live 2.1 claim (scripts/check-release-surfaces.mjs unchanged, v2.0 on every surface). Merged origin/main d61b2a3a (#619 sprint names, #621 router disclosure wording, #622 compressHTML: true plus the html-whitespace e2e); each conflict was limited to the oc-docs-forge and oc-repo-ops checkpoints, resolved to main's version and re-evidenced here. Branch files against main: site/src (pages, components, data, the draft blog post), site/tests/e2e (router-label.spec.ts new, routes.spec.ts), lighthouserc.cjs (/install at error), sprints/release-2.1/web-01-claims-ledger.md; none under skills/, skills-work/, plugins/, src/, scripts/ or package.json, so no catalog, bundle, plugin or Worker output changes. site/ is byte-identical to the JEV-approved 24b22ce3. Tested after the merge: npm test (2624 passed, 9 skipped), astro check (0 errors), npm run site:build, full Playwright e2e (140 passed, 1 skipped) including router-label.spec, routes.spec Axe and html-whitespace; checkpoint:validate, checkpoint:doctor, check-skill-contracts and sync-bundles:check pass; candidate verifier PASS receipt covers tree 7203af79; no untracked files.",
+        "evidence": [
+          "sprints/release-2.1/web-01-claims-ledger.md",
+          "site/src/pages/install.astro",
+          "site/src/pages/privacy.astro",
+          "site/src/pages/security.astro",
+          "site/src/pages/architecture.astro",
+          "site/src/pages/glossary.astro",
+          "site/src/pages/for-agencies.astro",
+          "site/src/components/EnforcementMap.astro",
+          "site/src/components/MobileArchitecture.astro",
+          "site/src/blog/2026-10-09-0-of-229-what-our-skills-did-when-nobody-checked.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-17T18:58:39.297Z",
+  "record_updated_at": "2026-10-17T19:26:18.720Z",
   "blockers": []
 }
