@@ -503,16 +503,22 @@ The audit's rule (A:177, A:3005–3019) is that admin approval matches a marketp
 | Exports are recorded (1.1.0, SA-007) | Every export writes `export/<name>.export.json`: per format, the output's and source's SHA-256, the tool version and the time from the tool's clock, and whether it replaced a file. `speakers --set` runs the same ignore check as `transcribe` |
 | Private writes (1.1.0, F-005, F-006) | Without `git` the ignore check is exit 3, never a pass. Transcripts, screenshots and export records are written 0600 through a `.tmp-<pid>` sibling the ignore check also covers |
 
-### Known residuals (2026-10-14 audit, updated for 1.1.0)
+### Known residuals (updated from the 1.1.0 security review, 2026-10-16)
 
-Open, pending owner decisions; reports at `docs/audits/2026-10-14-pr-597-diff-audit.md` and `docs/audits/2026-10-14-ow-tools-security-posture.md`. Closed in 1.1.0: SA-007, SA-008, F-005, F-006, F-007, F-008, F-010. The 1.1.0 security review (§14.6) re-rates SA-001 and adds what stays open.
+Reports: `docs/audits/2026-10-16-ow-tools-1.1-security-posture.md` (posture, PASS-WITH-NOTES) and `docs/audits/2026-10-16-ow-tools-1.1-diff-audit.md` (diff audit, PASS-WITH-NOTES); the 2026-10-14 reports for the 1.0.0 items. Closed in 1.1.0 (verified by the review): SA-007, SA-008, F-005, F-006, F-007, F-008, F-010. No new CRITICAL or HIGH.
 
-- **SA-001 (HIGH), distribution pinning:** the marketplace entry follows the force-pushed mirror at `ref: main` with no `sha` or archive hash, and `SECURITY-MANIFEST.md` travels in the tree it attests, so nothing a consumer can check pins what is installed.
-- **SA-004 (MEDIUM), model revision pins:** the pyannote snapshot is fetched and loaded with no pinned revision, and the Whisper model's SHA-256 is checked by `doctor` but not by `transcribe`.
-- **SA-009 (LOW), the print channel:** doctor's printed fixes are still something the user runs; 1.1.0 adds only package-manager lines (no `curl | sh`). Tied to SA-001.
-- **F-011 (LOW), Word run order:** open; the owner's real-app check covers the same class of risk for PPTX and XLSX.
-- **1.1.0, the capture profile at rest:** cookies in the profile are protected by folder permissions only (§8). Accepted as designed: the alternative puts an item in the user's login keychain and prompts during headless runs.
-- **1.1.0, capture's browser traffic:** the Fetch guard sees the page's requests; the browser's own background traffic is reduced by flags and the host-resolver map, not proven absent. A worker's request to an allowed host on another port or scheme is not intercepted.
+**Carried, still open:**
+- **SA-001 (HIGH, re-rated 2026-10-16: impact up, likelihood unchanged), distribution pinning:** the marketplace entry follows the force-pushed mirror at `ref: main` with no `sha` or archive hash, and `SECURITY-MANIFEST.md` travels in the tree it attests. 1.1.0 gives a compromised update no new capability (the SessionStart hook already runs its code), but it widens what that code reaches: live sessions on client test environments in the capture profile, and the ability to drive the browser. Not CRITICAL: a compromise still needs `MIRROR_TOKEN`, the `asfbay-bit` account or upstream `main`, then a manual update. Planned for Sprint 5; SA-011's fix pulls most of the added impact back.
+- **SA-004 (MEDIUM), model revision pins:** unchanged; transcription is untouched by 1.1.0.
+- **SA-009 (LOW), the print channel:** unchanged; 1.1.0 adds only package-manager lines (`brew install --cask google-chrome`, `brew install pip-audit` / `pipx install pip-audit`). Tied to SA-001.
+- **F-011 (LOW), Word run order:** open; XLSX part order checked against the schema by the review; PPTX is covered by the owner's real-app check.
+
+**New in the 1.1.0 review** (MEDIUM: fixed before the PR leaves draft; LOW: fixed in the same PR or listed here with a reason):
+- **SA-010 / F-012 (MEDIUM), image containment bypass** by reference-style images, single-quoted titles and brackets in alt text, reaching PPTX and DOCX.
+- **SA-011 (MEDIUM), the capture profile at rest:** `--use-mock-keychain` left the cookie key fixed and public. Owner decision 2026-10-17: use the real macOS Keychain (one "Always Allow" approval) and wipe cookies and storage after every production run (§14.1).
+- **SA-012 / F-013 (MEDIUM), advisories that can't be rated reported OK** (`MAL-` entries, CVSS-only advisories, a failed detail fetch, ids past the 200th).
+- **LOW:** SA-013 / F-015 loopback origin variants; SA-014 npm organisation-private packages on registry.npmjs.org; SA-015 / F-017 special-purpose address ranges; F-016 the socket check after the request is sent, and unfenced stub suites; SA-017 / F-014 failed exports leave files; F-018 digest parent swap; F-019 Excel limits; SA-018 / F-020 `model.md` internal markers; F-021 plan key echo; F-022 unsafe integers in `calc hours`; F-023 capture clean-up list; F-024 docs drift.
+- **Accepted residual, capture's browser traffic:** the Fetch guard sees the page's requests only. Service-worker fetches, WebSockets and WebRTC are not intercepted, and the browser's own background traffic is reduced by flags, not proven absent. The host-resolver map still limits all of them to the plan's hosts.
 
 ## 9. Tests
 
@@ -666,4 +672,4 @@ Usage errors are exit 2 and missing requirements exit 3 with a `missing` list, a
 
 ### 14.6 Security review
 
-One review for all six parts on the finished tree, before the PR leaves draft (contract § Security review): an oc-security-auditor posture pass and an oc-code-auditor diff audit, reported under `docs/audits/`. Their findings and the re-rating of SA-001 update §8's Known residuals.
+Done 2026-10-16 on `62af404f`: `docs/audits/2026-10-16-ow-tools-1.1-security-posture.md` (oc-security-auditor posture pass, Standard tier) and `docs/audits/2026-10-16-ow-tools-1.1-diff-audit.md` (oc-code-auditor diff audit). Both PASS-WITH-NOTES: no CRITICAL, no HIGH introduced by 1.1.0, three MEDIUMs (SA-010 = F-012, SA-011, SA-012 = F-013) and the LOWs listed in §8. SA-001 stays HIGH with its impact re-rated up. §8's Known residuals carry the result.
