@@ -2,11 +2,13 @@
 // Node built-ins only: the plugin ships no package.json, so Claude Code never
 // runs an npm install for it.
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import { accessSync, constants, readFileSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { delimiter, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { sha256File } from "./hash.mjs";
+
+export { sha256File };
 
 export const PLUGIN_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const PY_PROJECT = join(PLUGIN_ROOT, "python");
@@ -25,7 +27,9 @@ export class OwError extends Error {
   }
 }
 export const usage = (msg) => new OwError(EXIT.USAGE, msg);
-export const refused = (msg, extra) => new OwError(EXIT.REFUSED, msg, extra);
+// Every exit-4 refusal carries a stable `reason` code, listed with its next
+// step in design §14.3, so a calling skill can relay it in its own words.
+export const refused = (reason, msg, extra = {}) => new OwError(EXIT.REFUSED, msg, { reason, ...extra });
 export const missing = (msg, extra) => new OwError(EXIT.MISSING, msg, extra);
 export const failed = (msg, extra) => new OwError(EXIT.FAILED, msg, extra);
 
@@ -60,10 +64,6 @@ export const lockHash = () => sha256File(join(PY_PROJECT, "uv.lock")).slice(0, 1
 export const venvDir = (env) => join(dataHome(env), `venv-${lockHash()}`);
 export const diarizationCached = (env) =>
   isDir(join(hfHome(env), "hub", `models--${DIARIZATION_MODEL.replace("/", "--")}`, "snapshots"));
-
-export function sha256File(path) {
-  return createHash("sha256").update(readFileSync(path)).digest("hex");
-}
 
 export function isFile(p) {
   try {
@@ -104,7 +104,7 @@ export function run(cmd, args, opts = {}) {
   return { status: r.status, stdout: r.stdout || "", stderr: r.stderr || "", error: r.error };
 }
 
-// First line of a tool's stderr, for an exit-5 message. Never the whole log:
+// Last non-empty line of a tool's stderr, for an exit-5 message. Never the whole log:
 // a tool's log can echo file contents.
 export function oneLine(text, n = 200) {
   const line = String(text || "")

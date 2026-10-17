@@ -46,16 +46,16 @@ function scalar(raw, where) {
   const s = raw.trim();
   if (s.startsWith('"')) {
     const m = /^"((?:[^"\\]|\\.)*)"$/.exec(s);
-    if (!m) throw refused(`brand.yaml ${where}: unterminated or extra text after a quoted value`);
+    if (!m) throw refused("brand-invalid", `brand.yaml ${where}: unterminated or extra text after a quoted value`);
     return m[1].replace(/\\(.)/g, (_, c) => (c === "n" ? " " : c));
   }
   if (s.startsWith("'")) {
     const m = /^'((?:[^']|'')*)'$/.exec(s);
-    if (!m) throw refused(`brand.yaml ${where}: unterminated or extra text after a quoted value`);
+    if (!m) throw refused("brand-invalid", `brand.yaml ${where}: unterminated or extra text after a quoted value`);
     return m[1].replace(/''/g, "'");
   }
   if (/^[&*!|>[\]@`%]/.test(s) || s === "-" || s.startsWith("- ")) {
-    throw refused(`brand.yaml ${where}: anchors, tags, lists and multi-line values are not supported; write a plain value`);
+    throw refused("brand-invalid", `brand.yaml ${where}: anchors, tags, lists and multi-line values are not supported; write a plain value`);
   }
   return s;
 }
@@ -79,13 +79,13 @@ function flowMap(raw, where) {
       parts.push(cur);
       cur = "";
     } else if (c === "{" || c === "}") {
-      throw refused(`brand.yaml ${where}: nested braces are not supported`);
+      throw refused("brand-invalid", `brand.yaml ${where}: nested braces are not supported`);
     } else cur += c;
   }
   if (cur.trim()) parts.push(cur);
   for (const p of parts) {
     const m = /^\s*([A-Za-z_][\w-]*)\s*:\s*(.*)$/.exec(p);
-    if (!m) throw refused(`brand.yaml ${where}: could not read "${p.trim()}"`);
+    if (!m) throw refused("brand-invalid", `brand.yaml ${where}: could not read one entry of the { } map`);
     out[m[1]] = scalar(m[2], `${where}.${m[1]}`);
   }
   return out;
@@ -96,40 +96,40 @@ export function parseBrandYaml(text) {
   let parent = null;
   text.split("\n").forEach((rawLine, i) => {
     const where = `line ${i + 1}`;
-    if (/\t/.test(rawLine.replace(/#.*$/, ""))) throw refused(`brand.yaml ${where}: use spaces, not tabs`);
+    if (/\t/.test(rawLine.replace(/#.*$/, ""))) throw refused("brand-invalid", `brand.yaml ${where}: use spaces, not tabs`);
     const line = stripComment(rawLine).replace(/\s+$/, "");
     if (!line.trim() || line.trim() === "---") return;
     const indent = line.length - line.trimStart().length;
     const m = /^([A-Za-z_][\w-]*)\s*:(?:\s+(.*))?$/.exec(line.trim());
-    if (!m) throw refused(`brand.yaml ${where}: expected "key: value"`);
+    if (!m) throw refused("brand-invalid", `brand.yaml ${where}: expected "key: value"`);
     const [, key, value = ""] = m;
     if (indent === 0) {
-      if (!(key in SHAPE)) throw refused(`brand.yaml ${where}: unknown key "${key}" (allowed: ${Object.keys(SHAPE).join(", ")})`);
-      if (key in root) throw refused(`brand.yaml ${where}: "${key}" appears twice`);
+      if (!(key in SHAPE)) throw refused("brand-invalid", `brand.yaml ${where}: unknown key "${key}" (allowed: ${Object.keys(SHAPE).join(", ")})`);
+      if (key in root) throw refused("brand-invalid", `brand.yaml ${where}: "${key}" appears twice`);
       if (typeof SHAPE[key] === "object") {
         if (value.trim().startsWith("{")) {
-          if (!value.trim().endsWith("}")) throw refused(`brand.yaml ${where}: a { } map must close on the same line`);
+          if (!value.trim().endsWith("}")) throw refused("brand-invalid", `brand.yaml ${where}: a { } map must close on the same line`);
           root[key] = flowMap(value, key);
           parent = null;
         } else if (!value.trim()) {
           root[key] = {};
           parent = key;
-        } else throw refused(`brand.yaml ${where}: "${key}" holds keys, not a single value`);
+        } else throw refused("brand-invalid", `brand.yaml ${where}: "${key}" holds keys, not a single value`);
       } else {
-        if (!value.trim()) throw refused(`brand.yaml ${where}: "${key}" needs a value`);
+        if (!value.trim()) throw refused("brand-invalid", `brand.yaml ${where}: "${key}" needs a value`);
         root[key] = scalar(value, key);
         parent = null;
       }
     } else {
-      if (!parent) throw refused(`brand.yaml ${where}: unexpected indentation`);
-      if (key in root[parent]) throw refused(`brand.yaml ${where}: "${parent}.${key}" appears twice`);
+      if (!parent) throw refused("brand-invalid", `brand.yaml ${where}: unexpected indentation`);
+      if (key in root[parent]) throw refused("brand-invalid", `brand.yaml ${where}: "${parent}.${key}" appears twice`);
       root[parent][key] = scalar(value, `${parent}.${key}`);
     }
   });
   for (const [k, sub] of Object.entries(root)) {
     if (typeof sub !== "object") continue;
     for (const kk of Object.keys(sub)) {
-      if (!(kk in SHAPE[k])) throw refused(`brand.yaml: unknown key "${k}.${kk}" (allowed: ${Object.keys(SHAPE[k]).join(", ")})`);
+      if (!(kk in SHAPE[k])) throw refused("brand-invalid", `brand.yaml: unknown key "${k}.${kk}" (allowed: ${Object.keys(SHAPE[k]).join(", ")})`);
     }
   }
   return root;
@@ -160,29 +160,29 @@ export function validateBrand(raw, baseDir) {
     colors: { ...NEUTRAL.colors, ...(raw.colors || {}) },
     fonts: { ...NEUTRAL.fonts, ...(raw.fonts || {}) },
   };
-  if (String(b.schema) !== "1") throw refused("brand.yaml: schema must be 1");
+  if (String(b.schema) !== "1") throw refused("brand-invalid", "brand.yaml: schema must be 1");
   b.schema = 1;
   for (const [k, v] of Object.entries(b.colors)) {
-    if (!HEX.test(v)) throw refused(`brand.yaml: colors.${k} must look like "#1A2B3C", got ${v}`);
+    if (!HEX.test(v)) throw refused("brand-invalid", `brand.yaml: colors.${k} must look like "#1A2B3C"`);
     b.colors[k] = v.toUpperCase();
   }
   for (const [k, max] of [["name", 80], ["footer", 120], ["logo_alt", 120]]) {
     if (b[k] != null && (String(b[k]).length > max || /[\u0000-\u001f]/.test(b[k]))) {
-      throw refused(`brand.yaml: ${k} must be one line of at most ${max} characters`);
+      throw refused("brand-invalid", `brand.yaml: ${k} must be one line of at most ${max} characters`);
     }
   }
   for (const k of ["heading", "body"]) {
-    if (b.fonts[k] != null && !/^[\w .'-]{1,60}$/.test(b.fonts[k])) throw refused(`brand.yaml: fonts.${k} is not a font family name`);
+    if (b.fonts[k] != null && !/^[\w .'-]{1,60}$/.test(b.fonts[k])) throw refused("brand-invalid", `brand.yaml: fonts.${k} is not a font family name`);
   }
-  if (!/^[a-z]{2,3}(-[A-Z]{2})?$/.test(b.lang)) throw refused(`brand.yaml: lang must look like en or en-US, got ${b.lang}`);
-  if (!["letter", "a4"].includes(b.page)) throw refused(`brand.yaml: page must be letter or a4, got ${b.page}`);
+  if (!/^[a-z]{2,3}(-[A-Z]{2})?$/.test(b.lang)) throw refused("brand-invalid", `brand.yaml: lang must look like en or en-US`);
+  if (!["letter", "a4"].includes(b.page)) throw refused("brand-invalid", `brand.yaml: page must be letter or a4`);
   if (b.logo) {
-    if (isAbsolute(b.logo) || b.logo.split(/[\\/]/).includes("..")) throw refused("brand.yaml: logo must be a path inside the brand folder (no absolute path, no ..)");
+    if (isAbsolute(b.logo) || b.logo.split(/[\\/]/).includes("..")) throw refused("brand-invalid", "brand.yaml: logo must be a path inside the brand folder (no absolute path, no ..)");
     const abs = resolve(baseDir, b.logo);
-    if (!isFile(abs)) throw refused(`brand.yaml: logo not found: ${b.logo}`);
+    if (!isFile(abs)) throw refused("brand-invalid", "brand.yaml: the logo file was not found");
     const sig = readFileSync(abs).subarray(0, 8).toString("hex");
-    if (sig !== "89504e470d0a1a0a") throw refused("brand.yaml: logo must be a PNG file (Word needs PNG)");
-    if (!b.logo_alt || !String(b.logo_alt).trim()) throw refused("brand.yaml: logo_alt is required when logo is set");
+    if (sig !== "89504e470d0a1a0a") throw refused("brand-invalid", "brand.yaml: logo must be a PNG file (Word needs PNG)");
+    if (!b.logo_alt || !String(b.logo_alt).trim()) throw refused("brand-invalid", "brand.yaml: logo_alt is required when logo is set");
     b.logoPath = abs;
   }
 
@@ -192,10 +192,10 @@ export function validateBrand(raw, baseDir) {
     headings_on_background: contrast(c.primary, c.background),
   };
   if (ratios.text_on_background < TEXT_MIN) {
-    throw refused(`brand.yaml: text on background is ${ratios.text_on_background}:1; body text needs at least ${TEXT_MIN}:1`);
+    throw refused("brand-contrast", `brand.yaml: text on background is ${ratios.text_on_background}:1; body text needs at least ${TEXT_MIN}:1`);
   }
   if (ratios.headings_on_background < LARGE_MIN) {
-    throw refused(`brand.yaml: primary on background is ${ratios.headings_on_background}:1; headings need at least ${LARGE_MIN}:1`);
+    throw refused("brand-contrast", `brand.yaml: primary on background is ${ratios.headings_on_background}:1; headings need at least ${LARGE_MIN}:1`);
   }
   // Black or white always reaches at least 4.58:1 on any colour; take the better.
   const onAccent = [["#FFFFFF", contrast("#FFFFFF", c.accent)], ["#000000", contrast("#000000", c.accent)]].sort((x, y) => y[1] - x[1])[0];
@@ -211,7 +211,7 @@ export function validateBrand(raw, baseDir) {
 // --brand wins; otherwise the nearest opchain-work/brand.yaml above the file.
 export function findBrand(mdPath, explicit) {
   if (explicit) {
-    if (!isFile(explicit)) throw refused(`no such brand file: ${explicit}`);
+    if (!isFile(explicit)) throw refused("brand-missing", "the brand file given with --brand does not exist");
     return resolve(explicit);
   }
   let d = dirname(resolve(mdPath));
