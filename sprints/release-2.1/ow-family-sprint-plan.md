@@ -84,26 +84,28 @@ Design order: `ow-documentation`, `ow-care`, the ow-start logs amendment, `ow-dr
 
 ### Sprint list
 
-| Sprint (old) | Lane | Builds | Amendments that land with it | Needs first | CLAUDE | USER |
-|---|---|---|---|---|---|---|
-| OW-00 (0) | — | ✅ ow-start 1.0.0, ow-tools 1.0.0, designs | — | — | done | done |
-| OW-01 (1) | A | ✅ ow-build-plan 1.0.0 | — | OW-00 | done | done |
-| OW-02 (2) | A | ✅ ow-build 1.0.0 (#616, #618) | B4 (documentation trigger) | OW-01 | 14–20h | 1–2h |
-| OW-03 (T) | — | **ow-tools 1.1.0:** `digest` (T7), `calc hours` (T4), `export --pptx` (T2), `export --xlsx` (T6), `health` (T3), `capture` (T1); one security review for all six | T5 (calls table) | OW-00 | 18–26h | 2–3h |
-| OW-04 (3) | A | **ow-uat 1.0.0** (+ `calc --calendar us-federal`) | — | OW-02 | 17–22h | 1–2h |
-| OW-05 (3b) | A | **ow-documentation 1.0.0** | P3 (ow-build-plan 1.1.0) | OW-04, OW-03 | 16–22h | 1–2h |
-| OW-06 (4) | A | **ow-handoff 1.0.0** (+ `scan-secrets` redacted) | H3, H4 | OW-05 | 16–22h | 1h |
-| OW-07 (4b) | A | **ow-care 1.0.0** (both ways in) | S1 (ow-start 1.1.0), P4 (ow-build-plan 1.1.0) | OW-06, OW-03 | 18–24h | 1–2h |
-| OW-08 (L) | B | **ow-start 1.1.0 logs** | H5 if ow-handoff is merged, else with OW-06 | OW-00 | 8–12h | 1h |
-| OW-09 (R) | B | **ow-research 1.0.0** | P5 | OW-03 (digest) | 10–14h | 1h |
-| OW-10 (D) | B | **ow-draft 1.0.0** | D1, D2 (already in its design) | OW-09, OW-03 | 16–22h | 1–2h |
-| OW-11 (V) | B | **ow-vendor-eval 1.0.0** | P6, S2 | OW-09, OW-03 (xlsx) | 12–16h | 1h |
-| OW-12 (C) | B | **ow-controls 1.0.0 + four packs + `ow-packs` plugin** | K1, P7, P8, S3, R2; H6 and C1 if ow-handoff / ow-care are merged, else with them | OW-09, OW-03 | 30–42h | 3–5h |
-| OW-13 (Cu) | B | **ow-currency 1.0.0** | P9, C2 (or with OW-07 if ow-care is later) | OW-12, OW-09 | 10–14h | 1h |
-| REL-01 (5) | — | Distribution and integrity for 12 skills, ow-tools and ow-packs (mirror, zips, clean-folder install, SA-001, SA-004, trigger harness) | — | all builds | 12–16h | 2h |
-| REL-02 (6) | — | Real use and the cut: one real job per skill, real-model acceptance runs, transcription spike, `v2.1.0` tag, staging, production | — | REL-01 | 10–14h | 14–22h |
+| Sprint (old) | Lane | Builds | Amendments that land with it | Needs first | CLAUDE | CLAUDE realistic (2026-10-17) | USER |
+|---|---|---|---|---|---|---|---|
+| OW-00 (0) | — | ✅ ow-start 1.0.0, ow-tools 1.0.0, designs | — | — | done | done | done |
+| OW-01 (1) | A | ✅ ow-build-plan 1.0.0 | — | OW-00 | done | done (≈4.5h) | done |
+| OW-02 (2) | A | ✅ ow-build 1.0.0 (#616, #618) | B4 (documentation trigger) | OW-01 | 14–20h | done (≈6h) | 1–2h |
+| OW-03 (T) | — | **ow-tools 1.1.0:** `digest` (T7), `calc hours` (T4), `export --pptx` (T2), `export --xlsx` (T6), `health` (T3), `capture` (T1); one security review for all six | T5 (calls table) | OW-00 | 18–26h | 6.5–7h (≈4.5h spent) | 2–3h |
+| OW-04 (3) | A | **ow-uat 1.0.0** (+ `calc --calendar us-federal`) | — | OW-02 | 17–22h | 5.5–7h | 1–2h |
+| OW-05 (3b) | A | **ow-documentation 1.0.0** | P3 (ow-build-plan 1.1.0) | OW-04, OW-03 | 16–22h | 5–6h | 1–2h |
+| OW-06 (4) | A | **ow-handoff 1.0.0** (+ `scan-secrets` redacted) | H3, H4 | OW-05 | 16–22h | 5.5–6.5h | 1h |
+| OW-07 (4b) | A | **ow-care 1.0.0** (both ways in) | S1 (ow-start 1.1.0), P4 (ow-build-plan 1.1.0) | OW-06, OW-03 | 18–24h | 5.5–6.5h | 1–2h |
+| OW-08 (L) | B | **ow-start 1.1.0 logs** | H5 if ow-handoff is merged, else with OW-06 | OW-00 | 8–12h | 3–3.5h | 1h |
+| OW-09 (R) | B | **ow-research 1.0.0** | P5 | OW-03 (digest) | 10–14h | 3.5–4.5h | 1h |
+| OW-10 (D) | B | **ow-draft 1.0.0** | D1, D2 (already in its design) | OW-09, OW-03 | 16–22h | 5–6h | 1–2h |
+| OW-11 (V) | B | **ow-vendor-eval 1.0.0** | P6, S2 | OW-09, OW-03 (xlsx) | 12–16h | 4–4.5h | 1h |
+| OW-12 (C) | B | **ow-controls 1.0.0 + four packs + `ow-packs` plugin** | K1, P7, P8, S3, R2; H6 and C1 if ow-handoff / ow-care are merged, else with them | OW-09, OW-03 | 30–42h | 9–12h | 3–5h |
+| OW-13 (Cu) | B | **ow-currency 1.0.0** | P9, C2 (or with OW-07 if ow-care is later) | OW-12, OW-09 | 10–14h | 3.5–4h | 1h |
+| REL-01 (5) | — | Distribution and integrity for 12 skills, ow-tools and ow-packs (mirror, zips, clean-folder install, SA-001, SA-004, trigger harness) | — | all builds | 12–16h | 4–5h | 2h |
+| REL-02 (6) | — | Real use and the cut: one real job per skill, real-model acceptance runs, transcription spike, `v2.1.0` tag, staging, production | — | REL-01 | 10–14h | ≈3h | 14–22h |
 
 **Totals for what remains:** CLAUDE about 207–286h, USER about 31–47h, across 14 sprints. Lanes A and B in parallel shorten the calendar, not the hours.
+
+**Realistic column (2026-10-17):** measured Claude wall-clock, not the 2026-10-16 planning figures. OW-01 took about 4.5h and OW-02 about 6h end to end (first build 1–1.5h, four rounds of fix plus evaluation at about 55 min each, about 45 min to land a PR, plus about 20 min for each PR that lands on `main` ahead of it); tools sprints run heavier (OW-03 about 4.5h after two rounds). What remains comes to about 64h for OW and REL, plus about 8h for WEB-01 – WEB-05; with three lanes the longest chain is about 30h. USER time is unchanged: about 20 minutes per sprint for the contract and the merge, plus OW-12's pack review and REL-02's real jobs. The release date is set by EN-01 and EN-02's calendar windows and REL-02's real jobs, not by Claude hours.
 
 ### Amendment roll-up (which skill each one changes)
 
