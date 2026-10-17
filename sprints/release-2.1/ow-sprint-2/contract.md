@@ -2,6 +2,8 @@
 
 **Plan:** `sprints/release-2.1/ow-family-sprint-plan.md` Sprint 2 · **Design:** `docs/plans/2026-10-08-ow-build-design.md` (approved 2026-10-08; §12 builder integration approved 2026-10-14; amendments 2026-10-14 and 2026-10-15) · **Skill:** oc-app-architect `/oc-build`, Generator proposes, Evaluator reviewed · **Status:** APPROVED by the owner 2026-10-16.
 
+Amended 2026-10-17 (owner, after evaluation round 4): R4-1 to R4-3 are fixed in a follow-up PR; "no internal numbers in `spec/`" includes our effort estimates, so `spec/` gets the same our-side effort and time rules as client output.
+
 Amended 2026-10-16 (owner, after evaluation round 3): decision 1, "internal number" means our side only (C5 below); decision 2, C5 is verified by the checker as a regression net plus the skill's self-check, the U11 carve-out accepted, real-model runs in Sprint 6 measuring the rest. Round 4 is scoped to R3-1 to R3-6.
 
 Amended 2026-10-16 (owner): B4 documentation trigger added (ow-documentation design §11, amendment B4; build re-plan, Sprint 2 row). `-invoice` gains the trigger "Documentation & training (when bought): `docs/<client>/delivered.md` exists → invoice request for the line's price, invoiced once", reading `documentation_sku: bought | declined` from `contract-inputs.md` (declined or absent: no trigger); `ow-documentation` joins the planned skills.
