@@ -1,0 +1,20 @@
+# health.yaml (ow-tools design §5.8): what ow-tools health checks, nothing else.
+schema: 1
+repo: app
+lockfiles: [package-lock.json]
+registry: public
+private_scopes: ['@harbor']
+python: app/requirements.txt
+hosts:
+  - app.example.com
+domains: [example.com]
+urls:
+  - https://app.example.com/health
+  - https://app.example.com/moved
+backups:
+  - backups/nightly.sql.gz
+thresholds:
+  cert_days: 30
+  domain_days: 30
+  advisory: high
+  outdated: major

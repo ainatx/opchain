@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "months": [
+    {
+      "id": "M-01",
+      "included": 480,
+      "entries": [
+        {
+          "id": "CARE-01",
+          "kind": "care",
+          "minutes": 300
+        }
+      ]
+    },
+    {
+      "id": "M-02",
+      "included": 480,
+      "entries": []
+    },
+    {
+      "id": "M-03",
+      "included": 480,
+      "entries": [
+        {
+          "id": "CARE-02",
+          "kind": "care",
+          "minutes": 120
+        }
+      ],
+      "credit": 60
+    }
+  ]
+}
