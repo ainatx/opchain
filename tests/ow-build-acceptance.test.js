@@ -749,6 +749,9 @@ describe("round-2 text rules (Sprint 2 round 3)", () => {
     expect(ref("self-checks.md")).toMatch(/your testers will have two weeks/);
     expect(ref("self-checks.md")).toMatch(/A duration of our build work is not banned by itself; it is banned when it shows our effort or hours/);
     expect(ref("self-checks.md")).not.toMatch(/any number, in figures or words, of minutes, hours, days/);
+    // Owner decision 2026-10-17: our effort estimates are internal numbers in spec/ too.
+    expect(ref("self-checks.md")).toMatch(/`spec\/` also carries no effort estimate or time of ours/);
+    expect(ref("self-checks.md")).toMatch(/The same holds in `spec\/` \(owner decision 2026-10-17\)/);
     expect(ref("self-checks.md")).toMatch(/\*\*What a checker cannot catch\.\*\*/);
   });
 });

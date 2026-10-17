@@ -500,7 +500,7 @@ describe("round-3 evaluation set (fresh3.mjs) and false-positive controls (owner
   const demoWorks = (s) => both3(`${B3}/demos/M1-summary`, pSection("What we showed")(s));
   const spec = (file, s) => ({ [`larkspur-repo/spec/${file}`]: (x) => x.replace(/\n## Sources/, (m) => `\n${s}\n${m}`) });
   const note = "note Robin 2026-11-13", R1 = "report sprints/sprint-1/eval-round-2.md";
-  const KNOWN = {"F02":"idiom","F03":"idiom","F04":"idiom","F07":"an amount in words with no currency word","F26":"idiom","F28":"idiom","F29":"marker-less done claim (U11 class)"};
+  const KNOWN = {"F02":"idiom","F03":"idiom","F04":"idiom","F26":"idiom","F28":"idiom","F29":"marker-less done claim (U11 class)"};
   /** P: a plant, caught (some finding). FP: a legitimate sentence, no finding at all (the golden has none). */
   function test(kind, id, cat, desc, caseName, edits) {
     if (KNOWN[id]) return it.skip(`${id}: ${desc} — left uncaught, owner decision 2 (${KNOWN[id]}); the self-check covers it`, () => {});
@@ -659,5 +659,137 @@ describe("round-4 guards (R3-5, R3-6)", () => {
     expect(failures("start-resume-spec", lost).start).toMatch(/no working_demo; -start records the working-demo answer with its first answers/);
     const other = mutated("start", { [`${B}/build.yaml`]: (x) => x.replace("working_demo: M1 (user-stated 2026-11-10)", "working_demo: M2 (user-stated 2026-11-10)") });
     expect(failures("start", other).start).toMatch(/working_demo is M2, but ledger\.md says M1/);
+  });
+});
+
+describe("round-4 evaluation set (fresh4.mjs), the round-5 honesty set (untuned5.mjs), and spec/ effort (owner decisions 2026-10-17)", () => {
+  const B = "opchain-work/builds/larkspur-ceramics";
+  const both4 = (rel, fn) => ({ [`${rel}.html`]: fn, [`${rel}.txt`]: fn });
+  const pSection = (head) => (s) => (x) => x.replace(new RegExp(`(${head}</h2>\\n<p[^>]*>)`), (m) => `${m}${s} `).replace(new RegExp(`(\\n${head}\\n)`), (m) => `${m}${s} `);
+  const liSection = (head) => (s) => (x) => x.replace(new RegExp(`(${head}</h2>\\n<ul[^>]*>\\n)`), (m) => `${m}<li style="margin:0 0 4px 0;">${s}</li>\n`).replace(new RegExp(`(\\n${head}\\n)`), (m) => `${m}- ${s}\n`);
+  const traced = (sentence, src) => (x) => x.replace(/(## Trace\n\| # \| sentence \| source \|\n\|---\|---\|---\|\n)/, (m) => `${m}| 0 | ${sentence} | ${src} |\n`);
+  const tw = (date, s, src) => ({ ...both4(`${B}/updates/${date}`, pSection("This week")(s)), [`${B}/updates/${date}-checks.md`]: traced(s, src) });
+  const nextWeek = (date, s) => both4(`${B}/updates/${date}`, pSection("Next week")(s));
+  const needs = (date, s) => both4(`${B}/updates/${date}`, liSection("Needs from you")(s));
+  const coWhy = (s) => both4(`${B}/changes/CO-01`, (x) => x.replace(/(Your stock sheet is not one of the systems in the agreed scope, so this is new work\.)/, (m) => `${m} ${s}`));
+  const demoWorks = (s) => both4(`${B}/demos/M1-summary`, pSection("What we showed")(s));
+  const spec = (file, s) => ({ [`larkspur-repo/spec/${file}`]: (x) => x.replace(/\n## Sources/, (m) => `\n${s}\n${m}`) });
+  const note = "note Robin 2026-11-13";
+  const sg = (s) => tw("2026-12-04", s, "note Robin 2026-12-04");
+  const inv = (phrase) => ({ [`${B}/invoices/INV-request-booking.md`]: (x) => x.replace("due within 14 days of the invoice", () => phrase) });
+  const coPrice = (phrase) => both4(`${B}/changes/CO-01`, (x) => x.replace(/due within 14 days of the invoice/, () => phrase));
+  const KNOWN = {"G03":"idiom (\"three solid days of graft\")","G13":"implied meaning (costs more to build than its share)","G14":"idiom (\"underwater\")"};
+  /** P: a plant, caught (some finding). FP: a legitimate sentence, no finding at all (the golden has none). */
+  function test(kind, id, cat, desc, caseName, edits) {
+    if (KNOWN[id]) return it.skip(`${id}: ${desc} — left uncaught, owner decision 2 (${KNOWN[id]}); the self-check covers it`, () => {});
+    it(`${kind} ${id}: ${desc}`, () => {
+      const out = failures(caseName, mutated(caseName, edits));
+      if (kind === "P") expect(Object.keys(out).length, `${id} slipped`).toBeGreaterThan(0);
+      else expect(out, `${id} is a false positive`).toEqual({});
+    });
+  }
+
+  // fresh4.mjs (evaluator, round 4): 27 our-side plants, 31 legitimate sentences, and its probes.
+  test("P", "G01", "effort", "update: 'Getting the codes right cost us a fortnight.'", "update", tw("2026-11-13", "Getting the codes right cost us a fortnight.", note));
+  test("P", "G02", "effort", "update: 'The PDF reader swallowed four of our evenings.'", "update", tw("2026-11-13", "The PDF reader swallowed four of our evenings.", note));
+  test("P", "G03", "effort", "update: 'the clean-up was three solid days of graft'", "update", tw("2026-11-13", "Behind the scenes, the clean-up was three solid days of graft.", note));
+  test("P", "G04", "effort", "update: 'The exceptions list soaked up two working weeks.'", "update", tw("2026-11-13", "The exceptions list soaked up two working weeks.", note));
+  test("P", "G05", "effort", "demo summary: 'needed around 60 hours at our end'", "demo-record", demoWorks("Milestone 1 needed around 60 hours at our end."));
+  test("P", "G06", "effort", "update: 'Robin put roughly a week and a half into the import.' (Robin = us)", "update", tw("2026-11-13", "Robin put roughly a week and a half into the import.", note));
+  test("P", "G07", "rate", "CO email: 'Our rate for this kind of work is 120 an hour.'", "change-priced", coWhy("Our rate for this kind of work is 120 an hour."));
+  test("P", "G08", "lines", "CO email: price lines with no number ('charged as a standard integration plus a report')", "change-priced", coWhy("The stock feed is charged as one standard integration plus one report."));
+  test("P", "G09", "lines", "CO email: 'the integration line at 2,000 plus the report at 600'", "change-priced", coWhy("That figure is the integration line at 2,000 plus the report at 600."));
+  test("P", "G10", "modifier", "CO email: 'Messy data lifts the figure by twenty percent.'", "change-priced", coWhy("Messy data lifts the figure by twenty percent."));
+  test("P", "G11", "modifier", "CO email: 'the total is multiplied by 1.2'", "change-priced", coWhy("Because the stock sheet is untidy, the total is multiplied by 1.2."));
+  test("P", "G12", "modifier", "CO email: 'A messy-data loading of a fifth applies.'", "change-priced", coWhy("A messy-data loading of a fifth applies."));
+  test("P", "G13", "margin", "update: 'Milestone 1 now costs more to build than its share of the price.'", "update", tw("2026-11-13", "Milestone 1 costs more to build than its share of the price.", note));
+  test("P", "G14", "margin", "update: 'the job is underwater at the moment'", "update", tw("2026-11-13", "Frankly the job is underwater at the moment.", note));
+  test("P", "G15", "margin", "update: 'Milestone 1 has eaten the margin we had on it.'", "update", tw("2026-11-13", "Milestone 1 has eaten the margin we had on it.", note));
+  test("P", "G16", "margin", "update: 'We are working at a loss on this milestone.'", "update", tw("2026-11-13", "We are working at a loss on this milestone.", note));
+  test("P", "G17", "overrun", "update: 'ran well beyond our original estimate'", "update", tw("2026-11-13", "The import ran well beyond our original estimate.", note));
+  test("P", "G18", "overrun", "update: 'has blown through the time we set aside for it'", "update", tw("2026-11-13", "The code clean-up has blown through the time we set aside for it.", note));
+  test("P", "G19", "overrun", "update: 'about a third over what we planned'", "update", tw("2026-11-13", "Milestone 1 is about a third over what we planned.", note));
+  test("P", "G20", "spec", "spec: 'Our rate card prices this at the integration unit.'", "start", spec("00-project-overview.md", "Our rate card prices this at the integration unit."));
+  test("P", "G21", "spec", "spec: 'Effort estimate: about three weeks of development.'", "start", spec("00-project-overview.md", "Effort estimate: about three weeks of development."));
+  test("P", "G22", "spec", "spec: 'The build was quoted with a messy-data uplift.'", "start", spec("scope-and-milestones.md", "The build was quoted with a messy-data uplift."));
+  test("P", "G23", "spec", "spec: 'Each work package is sized at two to three integration units.'", "start", spec("scope-and-milestones.md", "Each work package is sized at two to three integration units."));
+  test("P", "G24", "effort", "demo summary: 'took the two of us most of a month'", "demo-record", demoWorks("This milestone took the two of us most of a month."));
+  test("P", "G25", "modifier", "CO email: 'We have doubled the usual figure because the data is messy.'", "change-priced", coWhy("We have doubled the usual figure because the data is messy."));
+  test("P", "G26", "rate", "CO email: 'our standard charge with a bit added for the messy data'", "change-priced", coWhy("In plain terms, it is our standard charge with a bit added for the messy data."));
+  test("P", "G27", "margin", "update: 'We underquoted milestone 1.'", "update", tw("2026-11-13", "We underquoted milestone 1.", note));
+  test("FP", "L01", "schedule", "Next week: 'Your testers will have ten working days for acceptance testing, from 4 January 2027.'", "update", nextWeek("2026-11-13", "Your testers will have ten working days for acceptance testing, from 4 January 2027."));
+  test("FP", "L02", "schedule", "Needs: 'Half an hour with your bookkeeper before 20 November 2026'", "update", needs("2026-11-13", "Half an hour with your bookkeeper before 20 November 2026, to walk through the invoice step."));
+  test("FP", "L03", "schedule", "Next week: 'We will run the import against a full month of your past orders.'", "update", nextWeek("2026-11-13", "We will run the import against a full month of your past orders."));
+  test("FP", "L04", "status", "This week (note): 'We tested the import on a week of your October orders.'", "update", tw("2026-11-13", "We tested the import on a week of your October orders.", note));
+  test("FP", "L05", "client-fig", "Next week: 'Your shop takes about 40 orders a day, so the exceptions list stays short.'", "update", nextWeek("2026-11-13", "Your shop takes about 40 orders a day, so the exceptions list will stay short."));
+  test("FP", "L06", "client-fig", "demo summary: 'Orders over £1,000 wait for your approval, as the plan says.'", "demo-record", demoWorks("Orders over £1,000 wait for your approval, as the plan says."));
+  test("FP", "L07", "client-fig", "demo summary: 'Each order line keeps the unit price from your price list.'", "demo-record", demoWorks("Each order line keeps the unit price from your own price list."));
+  test("FP", "L08", "client-ratio", "demo summary: '47 of the 48 sample orders, about 98 percent, matched first time.'", "demo-record", demoWorks("Of the 48 sample orders, 47 (about 98 percent) matched first time."));
+  test("FP", "L09", "client-ratio", "Next week: 'Your December volume is roughly twice the usual month.'", "update", nextWeek("2026-11-13", "Your December volume is roughly twice the usual month, so we will test with December orders."));
+  test("FP", "L10", "client-ratio", "CO email Why: 'Your team re-keys about a third of the stock lines by hand today.'", "change-priced", coWhy("Your team re-keys about a third of the stock lines by hand today."));
+  test("FP", "L11", "terms", "CO email Price: 'payable 14 days after the invoice'", "change-priced", coPrice("payable 14 days after the invoice"));
+  test("FP", "L12", "terms", "invoice: 'payable within two weeks of the invoice date'", "invoice-booking", inv("payable within two weeks of the invoice date"));
+  test("FP", "L13", "terms", "invoice: 'due a fortnight after the invoice'", "invoice-booking", inv("due a fortnight after the invoice"));
+  test("FP", "L14", "terms", "invoice: 'to be paid within 14 calendar days of the invoice'", "invoice-booking", inv("to be paid within 14 calendar days of the invoice"));
+  test("FP", "L15", "terms", "invoice: 'on 14-day terms from the invoice date'", "invoice-booking", inv("on 14-day terms from the invoice date"));
+  test("FP", "L16", "status", "This week (note): 'Your bookkeeper has checked the first invoices against the orders.'", "update", tw("2026-11-13", "Your bookkeeper has checked the first invoices against the orders.", note));
+  test("FP", "L17", "status", "This week (note): 'The order coordinator has signed off the corrected product codes.'", "update", tw("2026-11-13", "The order coordinator has signed off the corrected product codes.", note));
+  test("FP", "L18", "status", "This week (note): 'Jess from your team has approved the customer list.'", "update", tw("2026-11-13", "Jess from your team has approved the customer list.", note));
+  test("FP", "L19", "spec-fact", "spec: 'Larkspur raises about 1,140 invoices a year in QuickBooks Online.' (systems.md fact)", "start", spec("02-architecture.md", "Larkspur raises about 1,140 invoices a year in QuickBooks Online."));
+  test("FP", "L20", "spec-fact", "spec: 'A wrong product code ships the wrong tile, which the client pays to reship.' (plan fact + client cost)", "start", spec("00-project-overview.md", "A wrong product code ships the wrong tile, and the client pays to reship it."));
+  test("FP", "L21", "spec-fact", "spec: verbatim scope fact 'the day's confirmed orders become invoices without retyping.'", "start", spec("04-integrations.md", "The day's confirmed orders become invoices without retyping."));
+  test("FP", "L22", "status", "signature gate This week (note): 'We have enclosed the amendment for CO-01 so you can sign it.'", "signature-gate", sg("We have enclosed the amendment for CO-01 so you can sign it."));
+  test("FP", "L23", "schedule", "Next week: 'Acceptance testing runs for two weeks from 4 January 2027.'", "update", nextWeek("2026-11-13", "Acceptance testing runs for two weeks from 4 January 2027."));
+  test("FP", "L24", "schedule", "Next week: 'Your order coordinator expects to need three afternoons to check the codes.'", "update", nextWeek("2026-11-13", "Your order coordinator expects to need three afternoons to check the codes."));
+  test("FP", "L25", "status", "This week (note): 'We spent Tuesday afternoon with your order coordinator going through the codes.'", "update", tw("2026-11-13", "We spent Tuesday afternoon with your order coordinator going through the codes.", note));
+  test("FP", "L26", "status", "This week (note): 'We met for an hour on Wednesday to agree the test data.'", "update", tw("2026-11-13", "We met for an hour on Wednesday to agree the test data.", note));
+  test("FP", "L27", "status", "This week (note): 'We reviewed two weeks of your September orders with your coordinator.'", "update", tw("2026-11-13", "We reviewed two weeks of your September orders with your coordinator.", note));
+  test("FP", "L28", "client-fig", "demo summary: 'Your September orders came to $48,200 across 212 customers.'", "demo-record", demoWorks("Your September orders came to $48,200 across 212 customers."));
+  test("FP", "L29", "client-fig", "CO email Why: 'Today your team spends about two hours a week updating the stock sheet.'", "change-priced", coWhy("Today your team spends about two hours a week updating the stock sheet."));
+  test("FP", "L30", "client-fig", "CO email Why: 'Stock errors cost your team around £300 a month in reshipped tiles.'", "change-priced", coWhy("Stock errors cost your team around £300 a month in reshipped tiles."));
+  test("FP", "L31", "client-fig", "Next week: 'Your $1,200 monthly courier bill is not affected by the new flow.' ($1 insertion check)", "update", nextWeek("2026-11-13", "Your $1,200 monthly courier bill is not affected by the new flow."));
+  test("P", "V01", "R3-6", "start: build.yaml loses working_demo", "start", { [`${B}/build.yaml`]: (t) => t.replace(/^working_demo:.*\n/m, "") });
+  test("P", "V02", "R3-6", "start: build.yaml working_demo M2 while the ledger says M1", "start", { [`${B}/build.yaml`]: (t) => t.replace(/^working_demo: M1/m, "working_demo: M2") });
+  test("P", "V03", "freq-bug", "update: 'The import took us most of a week.'", "update", tw("2026-11-13", "The import took us most of a week.", note));
+  test("P", "V04", "freq-bug", "update: 'We spent the better part of a month on the codes.'", "update", tw("2026-11-13", "We spent the better part of a month on the codes.", note));
+  test("FP", "V05", "R3-5", "email: rgba(26,26,26,0.95) h2 text (opaque enough, 15:1)", "update", { [`${B}/updates/2026-11-13.html`]: (t) => t.replaceAll("font-size:18px;color:#1F4E79;", "font-size:18px;color:rgba(26,26,26,0.95);") });
+
+  // untuned5.mjs (Generator, round 5): written before any rule change; see the PR for its before and after numbers.
+  test("P", "N5-V01", "untuned", "burned through four working days", "update", tw("2026-11-13", "We burned through four working days on the PDF parser.", note));
+  test("P", "N5-V02", "untuned", "our developer logged twelve hours", "update", tw("2026-11-13", "Our developer logged twelve hours against the exceptions list.", note));
+  test("P", "N5-V03", "untuned", "CO: our standard integration fee drives the price", "change-priced", coWhy("Our standard integration fee is what drives most of this price."));
+  test("P", "N5-V04", "untuned", "CO: a 15% complexity premium", "change-priced", coWhy("We applied a 15% complexity premium for the stock sheet."));
+  test("P", "N5-V05", "untuned", "eaten our whole contingency", "update", tw("2026-11-13", "Between us, this milestone has eaten our whole contingency.", note));
+  test("P", "N5-V06", "untuned", "three days over our forecast", "update", tw("2026-11-13", "Milestone 1 came in three days over our forecast.", note));
+  test("P", "N5-V07", "untuned", "spec: ten developer days for WP-3", "start", spec("scope-and-milestones.md", "Estimated effort for WP-3: ten developer days."));
+  test("P", "N5-V08", "untuned", "spec: sized at 2 units in the price book", "start", spec("scope-and-milestones.md", "The integration package is sized at 2 units in the price book."));
+  test("P", "N5-V09", "untuned", "demo: took our team about nine days", "demo-record", demoWorks("It took our team about nine days to get the codes right."));
+  test("P", "N5-V10", "untuned", "CO: billed at our hourly rate of 120", "change-priced", coWhy("That line is billed at our hourly rate of 120."));
+  test("P", "N5-V11", "untuned", "Robin spent the whole weekend on the import", "update", tw("2026-11-13", "Robin spent the whole weekend on the import.", note));
+  test("P", "N5-V12", "untuned", "spec: budgeted at roughly four weeks of work", "start", spec("00-project-overview.md", "This build is budgeted at roughly four weeks of work."));
+  test("P", "N5-V13", "untuned", "CO: the report line comes to six hundred on its own", "change-priced", coWhy("The report line comes to six hundred on its own."));
+  test("P", "N5-V14", "untuned", "another two days of effort beyond the plan", "update", nextWeek("2026-11-13", "We'll need another two days of effort beyond the plan."));
+  test("P", "N5-V15", "untuned", "signature gate: stock screens about half finished", "signature-gate", tw("2026-12-04", "The stock on hand screens are about half finished.", "note Robin 2026-12-04"));
+  test("FP", "N5-W01", "untuned", "bookkeeper needs two days to close the month; we test on a date", "update", nextWeek("2026-11-13", "Your bookkeeper usually needs two days to close the month, so we will run the invoice test on 9 December 2026."));
+  test("FP", "N5-W02", "untuned", "Needs: ten more purchase orders by a date", "update", needs("2026-11-13", "Ten more of your purchase orders from November, by 20 November 2026."));
+  test("FP", "N5-W03", "untuned", "warehouse lead has sent the stock counts (note)", "update", tw("2026-11-13", "Your warehouse lead has sent the stock counts for all 212 items.", note));
+  test("FP", "N5-W04", "untuned", "about 15% of orders come by phone", "update", nextWeek("2026-11-13", "About 15% of your orders come in by phone, and those stay out of the new flow."));
+  test("FP", "N5-W05", "untuned", "demo: every line kept its quantity and its price", "demo-record", demoWorks("Every line kept its quantity and its price from the purchase order."));
+  test("FP", "N5-W06", "untuned", "CO: your team re-enters 30 stock figures a day", "change-priced", coWhy("Your team re-enters around 30 stock figures a day by hand."));
+  test("FP", "N5-W07", "untuned", "the testing window is three weeks long", "update", nextWeek("2026-11-13", "The testing window is three weeks long, from 4 January 2027."));
+  test("FP", "N5-W08", "untuned", "we walked your coordinator through the list for half an hour", "update", tw("2026-11-13", "We walked your order coordinator through the exceptions list for half an hour on Tuesday.", note));
+  test("FP", "N5-W09", "untuned", "order volume roughly tripled over the holidays", "update", nextWeek("2026-11-13", "Your customers' order volume roughly tripled over the holidays last year."));
+  test("FP", "N5-W10", "untuned", "CO: the stock sheet is updated twice a day", "change-priced", coWhy("Your stock sheet is updated twice a day, at 9:00 and 17:00."));
+  test("FP", "N5-W11", "untuned", "Needs: a one-hour session with your operations manager", "update", needs("2026-11-13", "A one-hour session with your operations manager in the week of 7 December 2026."));
+  test("FP", "N5-W12", "untuned", "spec: orders arrive at about 40 a day in the busy season", "start", spec("00-project-overview.md", "Orders arrive at a rate of about 40 a day in the busy season."));
+  test("FP", "N5-W13", "untuned", "the working-demo payment falls due once the demo is accepted", "update", nextWeek("2026-11-13", "The working-demo payment falls due once the demo is accepted."));
+  test("FP", "N5-W14", "untuned", "your coordinator spent a morning checking the codes (note)", "update", tw("2026-11-13", "Your order coordinator spent a morning checking the corrected codes.", note));
+  test("FP", "N5-W15", "untuned", "CO: your list prices change every quarter", "change-priced", coWhy("Your list prices change every quarter, and the confirmation view will show whichever is current."));
+
+  // Owner decision 2026-10-17: our effort estimates are internal numbers in spec/ too.
+  it("spec/: an effort estimate, in any wording, fails the internal-numbers check", () => {
+    for (const s of ["Effort estimate: about three weeks of development.", "WP-3 should take our developer ten days.", "The build is budgeted at roughly four weeks of work."]) {
+      expect(failures("start", mutated("start", spec("00-project-overview.md", s))).internal_numbers, s).toMatch(/our time or effort|effort/);
+    }
   });
 });
