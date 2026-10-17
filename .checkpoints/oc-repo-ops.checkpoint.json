@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": ".",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-17T18:51:47.678Z",
+  "updated_at": "2026-10-17T18:34:44.439Z",
   "skill": "oc-repo-ops",
-  "phase": "pr-verify",
+  "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-verify-compresshtml",
-  "progress_summary": "Repo readiness PASS for the compressHTML whitespace fix (#622, merged with main at 78eebe4b): docs packet current for HEAD, 2 files changed vs main, no catalog/generated drift, nothing untracked.",
+  "step": "pr-sprint-naming",
+  "progress_summary": "Sprint naming PR readiness PASS at 11f6c390: docs-only diff (two files under sprints/release-2.1/); check-skill-contracts and checkpoint:validate pass; candidate verifier PASS on tree e3719d96; no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -23,19 +23,17 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [
-      "Local LHCI on /changelog read Best Practices 0.96 (gate 0.95): /api/votes 404 from scripts/lhci-preview.mjs after a local gen-roadmap. CI Lighthouse does not generate roadmap data, so it does not fetch votes; unrelated to this diff."
-    ],
+    "warnings": [],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "78eebe4b408e6d608d5ed2ac67c73302fa63c72f",
+    "verified_for_sha": "aec343f1f0d21e313fd78f5f2a0b6f16501c5c44",
     "last_verify": {
-      "at": "2026-10-17T18:51:46.671Z",
-      "branch": "claude/unruffled-lamarr-f92540",
-      "base": "origin/main@9f32774a",
+      "at": "2026-10-17T18:06:28.937Z",
+      "branch": "claude/sprint-naming",
+      "base": "origin/main@90e61149",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1859,26 +1857,29 @@
       }
     },
     {
-      "id": "oc-repo-ops-pr-readiness-v1-bec7fb6a0be0",
+      "id": "oc-repo-ops-pr-readiness-v1-099eb1cd1b57",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-10-17T18:51:47.678Z",
-      "verified_at": "2026-10-17T18:51:47.678Z",
+      "created_at": "2026-10-17T18:34:44.439Z",
+      "verified_at": "2026-10-17T18:34:44.439Z",
       "producer": {
         "skill": "oc-repo-ops",
-        "run_id": "pr-readiness-v1-2026-10-17T18:51:47.678Z"
+        "run_id": "pr-readiness-v1-2026-10-17T18:34:44.439Z"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:bec7fb6a0be01c50fdc89ccb0fe454f8fa24d3d7b3bcc44ecaf88912e2dc247b"
+        "id": "sha256:099eb1cd1b57d0c2f5525a5e1d0b004b79bde1aa802ff4db10b6e109070f8452"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "PR readiness for compressHTML: true + html-whitespace e2e guard (#622 at 78eebe4b): docs packet current, no catalog/generated drift, clean tree"
+        "scope": "claude/track-e-router-disclosure at aec343f1 on origin/main 9f32774a. Four files (plan, CHANGELOG + plugin copy, plugin README), docs only. check-release-surfaces (v2.0 agree), check-skill-contracts, sync-bundles:check pass; pre-commit verifier PASS on the committed tree; no untracked files.",
+        "evidence": [
+          "skills/CHANGELOG.md"
+        ]
       }
     }
   ],
-  "record_updated_at": "2026-10-17T18:51:47.678Z",
+  "record_updated_at": "2026-10-17T18:34:44.439Z",
   "blockers": []
 }
