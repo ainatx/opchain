@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": ".",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-17T18:34:44.439Z",
+  "updated_at": "2026-10-17T18:58:39.297Z",
   "skill": "oc-repo-ops",
-  "phase": "pr-readiness",
+  "phase": "pr-verify",
   "status": "complete",
-  "step": "pr-sprint-naming",
-  "progress_summary": "Sprint naming PR readiness PASS at 11f6c390: docs-only diff (two files under sprints/release-2.1/); check-skill-contracts and checkpoint:validate pass; candidate verifier PASS on tree e3719d96; no untracked files.",
+  "step": "pr-verify-compresshtml",
+  "progress_summary": "Repo readiness PASS for the compressHTML whitespace fix (#622, merged with main at 7d61f85b): docs packet current for HEAD, 2 files changed vs main, no catalog/generated drift, nothing untracked.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -23,17 +23,19 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [],
+    "warnings": [
+      "Local LHCI on /changelog read Best Practices 0.96 (gate 0.95): /api/votes 404 from scripts/lhci-preview.mjs after a local gen-roadmap. CI Lighthouse does not generate roadmap data, so it does not fetch votes; unrelated to this diff."
+    ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "aec343f1f0d21e313fd78f5f2a0b6f16501c5c44",
+    "verified_for_sha": "7d61f85b824b6d80981290c65555f5b9bf2633ec",
     "last_verify": {
-      "at": "2026-10-17T18:06:28.937Z",
-      "branch": "claude/sprint-naming",
-      "base": "origin/main@90e61149",
+      "at": "2026-10-17T18:58:38.842Z",
+      "branch": "claude/unruffled-lamarr-f92540",
+      "base": "origin/main@05afedd1",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1878,8 +1880,28 @@
           "skills/CHANGELOG.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-4417a15cff04",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-17T18:58:39.296Z",
+      "verified_at": "2026-10-17T18:58:39.296Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-17T18:58:39.296Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:4417a15cff04d1d8e436405a7611f01a65e47d882d39bdfbc9879ff9f998f793"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "PR readiness for compressHTML: true + html-whitespace e2e guard (#622 at 7d61f85b): docs packet current, no catalog/generated drift, clean tree"
+      }
     }
   ],
-  "record_updated_at": "2026-10-17T18:34:44.439Z",
+  "record_updated_at": "2026-10-17T18:58:39.297Z",
   "blockers": []
 }
