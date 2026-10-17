@@ -102,10 +102,6 @@
           "digest": "sha256:af52d0f3bcb333a45e761990620516e7121f4f82d795ba7848d78039bb98e2e3"
         },
         {
-          "path": "docs/audits/2026-10-16-ow-tools-1.1-security-posture.md",
-          "digest": "sha256:770a5e84a988b429db1b92d2afa2315a38cd742fd79108fae614dafe5b211028"
-        },
-        {
           "path": "plugins/opchain/skills/oc-bug-check/SKILL.md",
           "digest": "sha256:0c3bc2a5b02327dbed6f02bbfd45c016c6d38520eca4ad8318c12b47faf30fbb"
         },
