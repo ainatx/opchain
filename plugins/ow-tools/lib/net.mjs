@@ -16,6 +16,7 @@ import { request as httpsRequest } from "node:https";
 import { lookup } from "node:dns";
 import { isIP } from "node:net";
 import { connect as tlsConnect } from "node:tls";
+import { blockedAddress } from "./addr.mjs";
 import { VERSION } from "./core.mjs";
 
 export const DESTINATIONS = Object.freeze({
@@ -27,59 +28,8 @@ export const USER_AGENT = `ow-tools/${VERSION} (health; read-only)`;
 export const BODY_CAP = 64 * 1024;
 const TIMEOUT_MS = 15000;
 
-// ---- address rules -----------------------------------------------------------
-function v4(a) {
-  const p = a.split(".").map(Number);
-  return p.length === 4 && p.every((n) => Number.isInteger(n) && n >= 0 && n <= 255) ? p : null;
-}
-function v4Blocked([a, b, c = -1]) {
-  return (
-    a === 0 || // "this" network
-    a === 10 || // private
-    a === 127 || // loopback
-    (a === 100 && b >= 64 && b <= 127) || // CGNAT
-    (a === 169 && b === 254) || // link-local, cloud metadata
-    (a === 172 && b >= 16 && b <= 31) || // private
-    (a === 192 && b === 168) || // private
-    (a === 192 && b === 0 && (c === 0 || c === 2)) || // IETF protocol assignments, TEST-NET-1
-    (a === 198 && (b === 18 || b === 19)) || // benchmarking
-    a >= 224 // multicast, reserved, broadcast
-  );
-}
-function v6Words(a) {
-  let s = a.toLowerCase().replace(/%.*$/, "");
-  const tail = /(\d+\.\d+\.\d+\.\d+)$/.exec(s);
-  if (tail) {
-    const p = v4(tail[1]);
-    if (!p) return null;
-    s = s.slice(0, -tail[1].length) + `${((p[0] << 8) | p[1]).toString(16)}:${((p[2] << 8) | p[3]).toString(16)}`;
-  }
-  const [head, rest] = s.split("::");
-  const h = head ? head.split(":") : [];
-  const r = rest !== undefined && rest ? rest.split(":") : [];
-  const fill = s.includes("::") ? 8 - h.length - r.length : 0;
-  const words = [...h, ...new Array(Math.max(0, fill)).fill("0"), ...r].map((w) => parseInt(w || "0", 16));
-  return words.length === 8 && words.every((w) => w >= 0 && w <= 0xffff) ? words : null;
-}
-
-// True when ow-tools must not connect to this address.
-export function blockedAddress(address) {
-  const fam = isIP(address);
-  if (fam === 4) return v4Blocked(v4(address));
-  if (fam !== 6) return true;
-  const w = v6Words(address);
-  if (!w) return true;
-  if (w.slice(0, 7).every((x) => x === 0) && (w[7] === 0 || w[7] === 1)) return true; // :: and ::1
-  if (w.slice(0, 5).every((x) => x === 0) && w[5] === 0xffff) return v4Blocked([w[6] >> 8, w[6] & 255, w[7] >> 8]); // IPv4-mapped
-  if (w.slice(0, 6).every((x) => x === 0)) return v4Blocked([w[6] >> 8, w[6] & 255, w[7] >> 8]); // IPv4-compatible
-  if ((w[0] & 0xfe00) === 0xfc00) return true; // unique local (fc00::/7, incl. fd00:ec2::254)
-  if ((w[0] & 0xffc0) === 0xfe80) return true; // link-local
-  if ((w[0] & 0xff00) === 0xff00) return true; // multicast
-  if (w[0] === 0x64 && w[1] === 0xff9b) return v4Blocked([w[6] >> 8, w[6] & 255, w[7] >> 8]); // NAT64
-  if (w[0] === 0x2001 && w[1] === 0xdb8) return true; // documentation
-  if (w[0] === 0x2002) return v4Blocked([w[1] >> 8, w[1] & 255, w[2] >> 8]); // 6to4
-  return false;
-}
+// ---- address rules: lib/addr.mjs (shared with capture) -------------------------
+export { blockedAddress } from "./addr.mjs";
 
 // ---- the client --------------------------------------------------------------
 const defaultResolver = (host) =>
@@ -184,13 +134,14 @@ export function createNet({ hosts = [], resolver = defaultResolver, connector = 
         createConnection: () => connected(connector({ address, port, servername: host }), address),
       });
       const timer = setTimeout(() => req.destroy(new NetError("unreachable", "timed out")), timeoutMs);
+      // Belt and braces (F-016): the socket must be the one this module
+      // opened to the checked address, never one Node opened by itself. The
+      // 'socket' event fires before the request is flushed, so a regression
+      // here fails with nothing sent.
+      req.on("socket", (sock) => {
+        if (sock?.[CHECKED] !== address) req.destroy(new NetError("address-not-allowed", "the connection was not made to the checked address"));
+      });
       req.on("response", (res) => {
-        // Belt and braces: the socket must be the one this module opened to
-        // the checked address, never one Node opened by itself.
-        if (req.socket?.[CHECKED] !== address) {
-          req.destroy(new NetError("address-not-allowed", "the connection was not made to the checked address"));
-          return;
-        }
         const chunks = [];
         let n = 0;
         res.on("data", (c) => {

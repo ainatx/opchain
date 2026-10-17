@@ -23,7 +23,18 @@ export function sourceOfUrl(url) {
   }
 }
 
-const pkg = (name, version, source, direct = false) => ({ name, version, source, direct });
+// A version that isn't plain semver is a URL, a git spec, an alias or a
+// path: whatever the lockfile says about its registry, it never leaves the
+// machine (Bug 1, OD-1). `registry: public` can't cover it either.
+export const PLAIN_SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
+export function versionSource(version) {
+  const v = String(version ?? "");
+  if (PLAIN_SEMVER.test(v)) return null;
+  if (/^(file|link|workspace|portal|exec):/.test(v) || /^[./~]/.test(v)) return "local";
+  return "private"; // git+…, github:…, https://…tgz, npm:alias@…, user/repo, anything else
+}
+
+const pkg = (name, version, source, direct = false) => ({ name, version, source: versionSource(version) ?? source, direct });
 const nameFromPath = (p) => p.slice(p.lastIndexOf("node_modules/") + "node_modules/".length);
 
 export function parseNpm(json) {
@@ -186,6 +197,19 @@ export function directDeps(repo) {
   try {
     const j = JSON.parse(r.text);
     return [...new Set([...Object.keys(j.dependencies || {}), ...Object.keys(j.devDependencies || {})])];
+  } catch {
+    return null;
+  }
+}
+
+// The scope of the project's own package name ("@acme/app" → "@acme"), held
+// back from every request by default (SA-014).
+export function projectScope(repo) {
+  try {
+    const r = readSmall(join(repo, "package.json"));
+    if (r.error) return null;
+    const m = /^(@[a-z0-9][a-z0-9._-]*)\//.exec(String(JSON.parse(r.text).name || ""));
+    return m ? m[1] : null;
   } catch {
     return null;
   }

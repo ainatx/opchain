@@ -147,13 +147,20 @@ export function preflight(text, mdPath) {
       if (/<https?:\/\//i.test(l)) bad(i, "a bare URL as link text; write [what it is](url)");
       else bad(i, "raw HTML is not exported; use Markdown");
     }
-    for (const m of l.matchAll(/!\[([^\]]*)\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)/g)) {
+    const INLINE_IMAGE = /!\[([^\]]*)\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)/g;
+    for (const m of l.matchAll(INLINE_IMAGE)) {
       const [, alt, src] = m;
       if (!alt.trim()) bad(i, "an image has no alt text");
       if (/^[a-z]+:\/\//i.test(src)) bad(i, "an image is remote; exports use local files only");
       else images.push({ i, src, alt });
     }
-    if (/!\[[^\]]*\]\[[^\]]*\]/.test(l)) bad(i, "reference-style images are not supported; use ![alt](file)");
+    // Any other image form (a reference or shortcut image, a title in single
+    // quotes or brackets, brackets in the alt text, a path with spaces) is
+    // refused here, by line (SA-010 / F-012). export also checks every image
+    // pandoc itself reads, so nothing this regex misses can reach a client.
+    if (l.replace(/`[^`]*`/g, "").replace(INLINE_IMAGE, "").includes("![")) {
+      bad(i, /!\[[^\]]*\]\[[^\]]*\]/.test(l) ? "reference-style images are not supported; use ![alt](file)" : "an image not written as ![alt](file) (a reference or shortcut image, a title in single quotes, brackets in the alt text or a space in the path); write it as ![alt](file)");
+    }
     for (const m of l.matchAll(/(?<!!)\[([^\]]+)\]\(([^)]+)\)/g)) {
       const [, t, href] = m;
       const txt = plain(t);

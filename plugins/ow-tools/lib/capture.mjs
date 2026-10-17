@@ -13,6 +13,7 @@ import { chmodSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSyn
 import { homedir } from "node:os";
 import { basename, join, relative, resolve, sep } from "node:path";
 import { dataHome, failed, isFile, localDate, missing, refused, usage, which } from "./core.mjs";
+import { isLinkLocalHost, isLoopbackHost } from "./addr.mjs";
 import { CDP_METHODS, killTree, launchBrowser } from "./cdp.mjs";
 import { assertIgnored, withTmpSiblings, writePrivate } from "./guards.mjs";
 import { sha256File } from "./hash.mjs";
@@ -27,9 +28,34 @@ const MAX_STEPS = 200;
 const DEFAULT_VIEWPORT = { width: 1280, height: 800 };
 
 // A field ow-tools never types into: by type, by autocomplete, or by a name,
-// id or selector matching this pattern (design §5.6).
-export const SECRET_NAME =
-  /pass(?:word|wd|code|phrase)?|pwd|\botp\b|one-?time|totp|\bmfa\b|2fa|secret|token|api[-_]?key|\bpin\b|cvv|cvc|card-?num|cc-?(?:num|csc|exp)|\bssn\b|security[-_]?code|verification[-_]?code|auth[-_]?code/i;
+// id or selector whose words name a secret (design §5.6). Identifiers are
+// split into words first (camelCase, snake_case, kebab-case, any
+// punctuation; a trailing digit dropped), so `otp_code`, `mfaCode`, `otp1`,
+// `pin_code`, `one_time_code` and `ssn_last4` all match (Bug 2).
+export function nameWords(text) {
+  return String(text)
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+    .map((w) => w.replace(/(?<=[a-z])\d+$/, ""));
+}
+export const SECRET_WORDS = Object.freeze([
+  "otp", "otpcode", "mfa", "mfacode", "totp", "hotp", "2fa", "tfa", "twofa", "pin", "pincode", "passcode", "password", "passwd", "pwd", "pw",
+  "pass", "passphrase", "secret", "token", "cvv", "cvc", "csc", "cvn", "ssn", "apikey", "onetimecode", "onetimepassword", "cardnumber",
+  "cardnum", "ccnum", "ccnumber", "cccsc", "ccexp", "securitycode", "verificationcode", "authcode", "smscode",
+]);
+export const SECRET_SEQUENCES = Object.freeze([
+  ["one", "time"], ["two", "factor"], ["card", "number"], ["card", "num"], ["cc", "num"], ["cc", "number"], ["cc", "csc"], ["cc", "exp"],
+  ["security", "code"], ["security", "answer"], ["verification", "code"], ["auth", "code"], ["sms", "code"], ["api", "key"], ["access", "key"],
+]);
+const WORDS = new Set(SECRET_WORDS);
+export function secretName(text) {
+  const w = nameWords(text);
+  if (w.some((x) => WORDS.has(x))) return true;
+  return SECRET_SEQUENCES.some((seq) => w.some((_, k) => seq.every((s, j) => w[k + j] === s)));
+}
 const SECRET_AUTOCOMPLETE = /\b(current-password|new-password|one-time-code|cc-number|cc-csc|cc-exp(?:-month|-year)?)\b/i;
 // A plan value that looks like a credential is refused, whatever the field.
 export const SECRET_VALUE = [
@@ -71,7 +97,11 @@ const planBad = (msg, extra = {}) => refused("plan-invalid", `capture plan: ${ms
 
 function checkKeys(obj, allowed, where) {
   if (!obj || typeof obj !== "object" || Array.isArray(obj)) throw planBad(`${where} must be an object`);
-  for (const k of Object.keys(obj)) if (!allowed.includes(k)) throw planBad(`${where}: unknown key "${k}" (allowed: ${allowed.join(", ")})`);
+  // A key is shown only when it is a plain short word (F-021): plan text never
+  // reaches the session unbounded.
+  for (const k of Object.keys(obj)) {
+    if (!allowed.includes(k)) throw planBad(`${where}: ${/^[a-z_]{1,32}$/.test(k) ? `unknown key "${k}"` : "an unknown key"} (allowed: ${allowed.join(", ")})`);
+  }
 }
 
 function line(v, max, what) {
@@ -89,9 +119,9 @@ function origin(text, testOrigins, what) {
   }
   if (u.protocol !== "https:") throw planBad(`${what} must be https://`);
   if (u.username || u.password) throw planBad(`${what} must not hold a user name or password`);
+  if (isLoopbackHost(u.hostname)) throw planBad(`${what} must not be a loopback address`);
+  if (isLinkLocalHost(u.hostname)) throw planBad(`${what} must not be a link-local or cloud-metadata address`);
   if (u.origin !== text.replace(/\/$/, "")) throw planBad(`${what} must be an origin only (scheme, host, port), with no path`);
-  const h = u.hostname;
-  if (h === "localhost" || h.endsWith(".localhost") || /^\[?(::1|0:0:0:0:0:0:0:1)\]?$/.test(h) || /^(127|0)\./.test(h)) throw planBad(`${what} must not be a loopback address`);
   return u.origin;
 }
 
@@ -108,7 +138,7 @@ function inOrigins(url, origins, what) {
 }
 
 function secretField(text) {
-  return SECRET_NAME.test(text) || /type\s*=\s*["']?password/i.test(text) || SECRET_AUTOCOMPLETE.test(text);
+  return secretName(text) || /type\s*=\s*["']?password/i.test(text) || SECRET_AUTOCOMPLETE.test(text);
 }
 
 export function readPlan(json, { testOrigins = [] } = {}) {
@@ -305,8 +335,8 @@ export function browserArgs({ profileDir, headless, viewport, origins }) {
     "--disable-features=Translate,OptimizationHints,MediaRouter,AutofillServerCommunication,PasswordManagerOnboarding",
     "--metrics-recording-only",
     "--no-pings",
-    "--use-mock-keychain",
-    "--password-store=basic",
+    // No --use-mock-keychain (SA-011): the cookie key lives in the user's
+    // keychain (macOS asks once; "Always Allow"), not a fixed public key.
     "--no-proxy-server",
     `--host-resolver-rules=MAP * ~NOTFOUND , ${hosts.map((h) => `EXCLUDE ${h}`).join(" , ")}`,
     `--window-size=${viewport.width},${viewport.height}`,
@@ -315,9 +345,27 @@ export function browserArgs({ profileDir, headless, viewport, origins }) {
 }
 
 // Browser caches can hold page content; they go after every run.
-const TEMP_STATE = [["Default", "Cache"], ["Default", "Code Cache"], ["Default", "GPUCache"], ["Default", "DawnGraphiteCache"], ["Default", "DawnWebGPUCache"], ["ShaderCache"], ["GrShaderCache"], ["GraphiteDawnCache"], ["Crashpad"], ["SingletonLock"], ["SingletonSocket"], ["SingletonCookie"]];
+export const TEMP_STATE = [
+  ["Default", "Cache"], ["Default", "Code Cache"], ["Default", "GPUCache"], ["Default", "DawnGraphiteCache"], ["Default", "DawnWebGPUCache"],
+  ["Default", "Service Worker", "CacheStorage"], ["Default", "Service Worker", "ScriptCache"], ["GPUPersistentCache"], ["ShaderCache"],
+  ["GrShaderCache"], ["GraphiteDawnCache"], ["Crashpad"], ["SingletonLock"], ["SingletonSocket"], ["SingletonCookie"],
+];
 function cleanTempState(dir) {
   for (const parts of TEMP_STATE) rmSync(join(dir, ...parts), { recursive: true, force: true });
+}
+
+// After any run against an environment marked production, the signed-in
+// session and everything the pages stored are wiped (owner decision
+// 2026-10-17): a production session is never kept.
+export const SESSION_STATE = [
+  ["Default", "Cookies"], ["Default", "Cookies-journal"], ["Default", "Network"], ["Default", "Local Storage"], ["Default", "Session Storage"],
+  ["Default", "IndexedDB"], ["Default", "Service Worker"], ["Default", "WebStorage"], ["Default", "Shared Storage"], ["Default", "File System"],
+  ["Default", "databases"], ["Default", "Storage"], ["Default", "Sessions"], ["Default", "Current Session"], ["Default", "Last Session"],
+  ["Default", "History"], ["Default", "History-journal"], ["Default", "Top Sites"], ["Default", "Visited Links"], ["Default", "Login Data"],
+  ["Default", "Login Data-journal"], ["Default", "Web Data"], ["Default", "Web Data-journal"],
+];
+function wipeSession(dir) {
+  for (const parts of SESSION_STATE) rmSync(join(dir, ...parts), { recursive: true, force: true });
 }
 
 function pngSize(buf) {
@@ -442,7 +490,7 @@ async function runStep(x, plan, step, outDir) {
     if (!nodeId) throw stepFail("selector-not-found", `step ${step.id}: nothing on the page matches the selector (signed out? run --sign-in)`, { step: step.id });
     if (step.do === "fill") {
       const a = await attrs(x, nodeId);
-      if (a.type?.toLowerCase() === "password" || SECRET_AUTOCOMPLETE.test(a.autocomplete || "") || SECRET_NAME.test(a.name || "") || SECRET_NAME.test(a.id || "")) {
+      if (a.type?.toLowerCase() === "password" || SECRET_AUTOCOMPLETE.test(a.autocomplete || "") || secretName(a.name || "") || secretName(a.id || "")) {
         throw refused("secret-field", `step ${step.id}: the field is a password, one-time-code or similar field; nothing was typed`, { step: step.id });
       }
       await x.call("DOM.focus", { nodeId });
@@ -501,6 +549,8 @@ export async function capture(opts, log = () => {}, deps = {}) {
   if (outDir) mkdirSync(outDir, { recursive: true });
 
   const profileDir = prepareProfile(plan.profile, env);
+  cleanTempState(profileDir); // a run killed last time left its caches (F-023)
+  const production = plan.environment === "production";
   const headless = !opts.signIn;
   const b = launchBrowser(binary, browserArgs({ profileDir, headless, viewport: plan.viewport, origins: plan.origins }), { env });
   const images = [];
@@ -547,6 +597,7 @@ export async function capture(opts, log = () => {}, deps = {}) {
     killTree(b.proc);
     await Promise.race([b.exited, sleep(2000)]);
     cleanTempState(profileDir);
+    if (production) wipeSession(profileDir);
     writeFileSync(join(profileDir, LAST_USED), `${localDate()}\n`, { mode: 0o600 });
   }
   return {
@@ -559,6 +610,7 @@ export async function capture(opts, log = () => {}, deps = {}) {
     browser: product.slice(0, 60),
     images,
     blocked_requests: blocked,
+    session: production ? "wiped (production: cookies and site storage removed after the run)" : `kept in ${profileDir} (delete with --delete-profile ${plan.profile})`,
     note: "Every image still needs its data check (real customer data, credentials, a person's name, email or photo) before it is used; ow-tools did not do it.",
   };
 }

@@ -2,9 +2,10 @@
 // (the streamed hash doctor uses) and F-008 (calc date keys).
 import { afterAll, describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
-import { chmodSync, cpSync, readFileSync, renameSync, symlinkSync, utimesSync, writeFileSync } from "node:fs";
+import { chmodSync, cpSync, lstatSync, readFileSync, renameSync, rmSync, symlinkSync, utimesSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { DIGEST_NOTE, digest, digestTree } from "../../plugins/ow-tools/lib/digest.mjs";
+import { sha256File } from "../../plugins/ow-tools/lib/hash.mjs";
 import { addDate, hours, parseRollover } from "../../plugins/ow-tools/lib/calc.mjs";
 import { PLUGIN, ROOT, cleanup, cli, has, tempDir, write } from "./helpers.js";
 
@@ -225,5 +226,118 @@ describe("calc hours: refusals never quote ledger text", () => {
       return;
     }
     throw new Error("not refused");
+  });
+});
+
+// ---- Sprint T round 2 -------------------------------------------------------------
+
+describe("round 2: digest guards (D02–D05, F-018)", SPAWN, () => {
+  it("D02: a file swapped for a symlink between the walk and the read is refused by O_NOFOLLOW", () => {
+    const d = tree();
+    const outside = write(join(tempDir(), "outside.txt"), "not part of the pack\n");
+    let err;
+    try {
+      digestTree(d, {
+        beforeRead: (p) => {
+          if (p.endsWith("a.txt")) {
+            rmSync(p);
+            symlinkSync(outside, p);
+          }
+        },
+      });
+    } catch (e) {
+      err = e;
+    }
+    expect(err?.extra).toMatchObject({ reason: "symlink-in-tree", path: "a.txt" });
+    expect(err.message).toMatch(/^a file was swapped for a symlink while it was being digested/);
+    expect(() => sha256File(join(d, "a.txt"), { noFollow: true })).toThrow(expect.objectContaining({ code: "ELOOP" }));
+  });
+
+  it("F-018: a folder on the path swapped for a symlink is refused too", () => {
+    const d = tree();
+    const elsewhere = join(tempDir(), "elsewhere");
+    write(join(elsewhere, "deeper", "c.md"), "# c\n");
+    write(join(elsewhere, "b.json"), '{"b":1}\n');
+    let err;
+    try {
+      digestTree(d, {
+        beforeRead: (p) => {
+          if (p.endsWith("b.json") && !lstatSync(join(d, "sub")).isSymbolicLink()) {
+            rmSync(join(d, "sub"), { recursive: true });
+            symlinkSync(elsewhere, join(d, "sub"));
+          }
+        },
+      });
+    } catch (e) {
+      err = e;
+    }
+    expect(err?.extra?.reason).toBe("symlink-in-tree");
+    expect(err.message).toMatch(/^a folder on the path was swapped for a symlink/);
+  });
+
+  it("D03: only Finder litter is skipped; a .env or any other dotfile is digested", () => {
+    const d = tree();
+    write(join(d, ".env"), "A=1\n");
+    write(join(d, "sub", ".hidden"), "x");
+    write(join(d, "._fork"), "finder");
+    const first = digest({ target: d });
+    expect(first.skipped).toEqual(["._fork"]);
+    expect(first.files).toBe(6);
+    writeFileSync(join(d, ".env"), "A=2\n");
+    expect(digest({ target: d }).sha256).not.toBe(first.sha256);
+  });
+
+  it("D04: files are ordered by their UTF-8 bytes, not UTF-16 code units", () => {
+    const d = join(tempDir(), "uni");
+    write(join(d, "\u{1F600}.txt"), "astral\n");
+    write(join(d, "～.txt"), "fullwidth\n");
+    write(join(d, "a.txt"), "ascii\n");
+    expect(digestTree(d).files.map((f) => f.path)).toEqual(["a.txt", "～.txt", "\u{1F600}.txt"]);
+    if (has("shasum") && has("find") && has("sort") && has("xargs")) {
+      const r = spawnSync("sh", ["-c", `(cd "$1" && find . -type f ! -name .DS_Store ! -name '._*' -print0 | LC_ALL=C sort -z | xargs -0 shasum -a 256) | shasum -a 256`, "sh", d], { encoding: "utf8" });
+      expect(r.stdout.split(" ")[0]).toBe(digestTree(d).sha256);
+    }
+  });
+
+  it.skipIf(!has("mkfifo"))("D05: a FIFO (or a device) in the folder is refused, never read", () => {
+    const d = tree();
+    spawnSync("mkfifo", [join(d, "sub", "pipe")]);
+    const r = cli(["digest", d, "--json"]);
+    expect(r.status).toBe(4);
+    expect(r.json).toMatchObject({ reason: "not-a-file", path: "sub/pipe" });
+    const dev = cli(["digest", "/dev/null", "--json"]);
+    expect(dev.status).toBe(4);
+    expect(dev.json.reason).toBe("not-a-file");
+  });
+});
+
+describe("round 2: calc hours rounding, order and size (K01, K02, F-022)", () => {
+  it("K01: a share that isn't a whole quarter-hour rounds down (0.25 × 150 = 37.5 → 30, never 45)", () => {
+    const L = { schema: 1, months: [{ id: "M-01", included: 480, entries: [{ id: "C-1", kind: "care", minutes: 330 }] }, { id: "M-02", included: 480, entries: [] }] };
+    const [m1, m2] = hours({ ledger: L, rollover: "0.25,unused,1" }).months;
+    expect(m1).toMatchObject({ rolled_over: 30, lapsed: 120 });
+    expect(m2.rolled_in).toBe(30);
+    // and with of: included, ⌊0.3 × 470⌋ = 141 → 135
+    const L2 = { schema: 1, months: [{ id: "M-01", included: 465, entries: [] }] };
+    expect(hours({ ledger: L2, rollover: "0.3,included,1" }).months[0].rolled_over).toBe(135);
+  });
+
+  it("K02: the oldest rolled-in batch is used first when two are partly used", () => {
+    const L = { schema: 1, months: [
+      { id: "M-01", included: 480, entries: [] },
+      { id: "M-02", included: 480, entries: [] },
+      { id: "M-03", included: 480, entries: [{ id: "C-3", kind: "care", minutes: 60 }] },
+    ] };
+    const m3 = hours({ ledger: L, rollover: "0.25,unused,2" }).months[2];
+    // M-01's batch (120, last usable in M-03) gives the 60 minutes and lapses
+    // with 60 left; M-02's 120 rolls on with M-03's own 120.
+    expect(m3).toMatchObject({ rolled_in: 240, rolled_over: 240, lapsed: 60 + 360 });
+  });
+
+  it("F-022: minute counts must be safe integers of at most 100,000", () => {
+    const big = { schema: 1, months: [{ id: "M-01", included: 15 * 2 ** 56, entries: [] }] };
+    expect(() => hours({ ledger: big, rollover: "0.25,unused,1" })).toThrow(expect.objectContaining({ code: 2 }));
+    const over = { schema: 1, months: [{ id: "M-01", included: 480, entries: [{ id: "C-1", kind: "care", minutes: 100015 }] }] };
+    expect(() => hours({ ledger: over, rollover: "0.25,unused,1" })).toThrow(/more than 100000 minutes/);
   });
 });

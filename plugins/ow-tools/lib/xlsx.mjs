@@ -77,12 +77,15 @@ export function colName(n) {
   for (let x = n; x > 0; x = Math.floor((x - 1) / 26)) s = String.fromCharCode(65 + ((x - 1) % 26)) + s;
   return s;
 }
+// Excel's grid (F-019): columns A to XFD, rows 1 to 1,048,576.
+export const MAX_ROWS = 1048576;
+export const MAX_COLS = 16384;
 const CELL = /^\$?([A-Za-z]{1,3})\$?([1-9][0-9]{0,6})$/;
 export function parseCell(ref) {
   const m = CELL.exec(ref);
   if (!m) return null;
   const col = colNum(m[1]);
-  if (col > 16384) return null;
+  if (col > MAX_COLS || Number(m[2]) > MAX_ROWS) return null;
   return { col, row: Number(m[2]), name: `${m[1].toUpperCase()}${m[2]}` };
 }
 function parseRange(ref) {
@@ -115,6 +118,16 @@ export function parseModel(text) {
   const sheets = [];
   let cur = null;
   let header = null;
+  // model.md is Markdown the skills write, so an internal marker in it would
+  // look honoured and isn't: any comment mentioning "internal" stops the
+  // export (SA-018 / F-020), as in Markdown export.
+  const text2 = lines.join("\n");
+  for (const m of text2.matchAll(/<!--[\s\S]*?(?:-->|$)/g)) {
+    if (/internal/i.test(m[0])) {
+      const at = text2.slice(0, m.index).split("\n").length;
+      throw refused("preflight", `model.md line ${at}: an internal-section marker or a comment mentioning "internal"; a workbook has no internal sections, so move that sheet out of the folder`, { line: at });
+    }
+  }
   for (; i < lines.length; i++) {
     const l = lines[i];
     const where = `model.md line ${i + 1}`;
@@ -213,7 +226,11 @@ function readCsvFile(path) {
   const st = lstatSync(path);
   if (!st.isFile()) throw refused("not-a-file", `${basename(path)} is not a regular file (a symlink is not read)`);
   if (st.size > MAX_CSV_BYTES) throw usage(`${basename(path)} is over 10 MB`);
-  return parseCsv(readFileSync(path, "utf8"));
+  const rows = parseCsv(readFileSync(path, "utf8"));
+  if (rows.length > MAX_ROWS) throw usage(`${basename(path)} has more rows than a worksheet holds (${MAX_ROWS})`);
+  const wide = rows.findIndex((r) => r.length > MAX_COLS);
+  if (wide >= 0) throw usage(`${basename(path)} row ${wide + 1} has more columns than a worksheet holds (${MAX_COLS})`);
+  return rows;
 }
 
 const isNumber = (v) => /^-?(\d+|\d*\.\d+)$/.test(v);
@@ -241,8 +258,14 @@ export function readSheetFolder(dir) {
     sheets.set(name, { name, rows: readCsvFile(join(dir, f)), map: new Map(), formats: [] });
   }
   if (sourcesFile) sheets.set("Sources", { name: "Sources", rows: readCsvFile(join(dir, sourcesFile)), map: new Map(), formats: [], sources: true });
-  // Order: the model's sheet order, then the other CSVs by name, Sources last.
-  const order = [...model.sheets.map((s) => s.name), ...[...sheets.keys()].filter((n) => n !== "Sources" && !model.sheets.some((s) => s.name === n))];
+  // Scoping: a CSV that model.md doesn't name never ships (SA-018). Each data
+  // sheet needs its `## Sheet:` section; Sources is the one exception.
+  for (const name of sheets.keys()) {
+    if (name !== "Sources" && !model.sheets.some((s) => s.name === name)) {
+      throw refused("unknown-sheet", `${name}.csv has no "## Sheet: ${name}" section in model.md; only the sheets model.md names are exported`, { sheet: name });
+    }
+  }
+  const order = model.sheets.map((s) => s.name);
   if (sourcesFile) order.push("Sources");
   return { model, sheets, order };
 }
@@ -328,11 +351,18 @@ export function buildWorkbook({ sheets, order, model }, { title } = {}) {
       return found;
     };
     const { rows, cols } = extents.get(name);
-    const widths = new Array(cols).fill(10);
+    // Sparse (F-019): only cells that hold something are visited, so a
+    // formula at XFD1048576 costs one cell, not 17 billion.
+    const csvCols = Math.max(0, ...sh.rows.map((r) => r.length));
+    const widths = new Array(csvCols).fill(10);
+    const byRow = new Map();
+    const mark = (r, c) => (byRow.get(r) || byRow.set(r, new Set()).get(r)).add(c);
+    sh.rows.forEach((row, ri) => row.forEach((v, ci) => v !== "" && mark(ri + 1, ci + 1)));
+    for (const f of sh.map.values()) mark(f.row, f.col);
     const rowXml = [];
-    for (let r = 1; r <= rows; r++) {
+    for (const r of [...byRow.keys()].sort((a, b) => a - b)) {
       const cells = [];
-      for (let c = 1; c <= cols; c++) {
+      for (const c of [...byRow.get(r)].sort((a, b) => a - b)) {
         const ref = `${colName(c)}${r}`;
         const f = sh.map.get(ref);
         if (f) {
@@ -341,7 +371,7 @@ export function buildWorkbook({ sheets, order, model }, { title } = {}) {
         }
         const v = sh.rows[r - 1]?.[c - 1];
         if (v === undefined || v === "") continue;
-        widths[c - 1] = Math.min(60, Math.max(widths[c - 1], v.length + 2));
+        if (c <= csvCols) widths[c - 1] = Math.min(60, Math.max(widths[c - 1], v.length + 2));
         const head = r === 1;
         const fmt = head ? null : fmtAt(r, c);
         if (!head && fmt === FORMATS.date.id && /^\d{4}-\d{2}-\d{2}$/.test(v)) {
@@ -364,7 +394,7 @@ export function buildWorkbook({ sheets, order, model }, { title } = {}) {
       `<dimension ref="A1:${colName(Math.max(cols, 1))}${Math.max(rows, 1)}"/>` +
       '<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="A2" sqref="A2"/></sheetView></sheetViews>' +
       '<sheetFormatPr defaultRowHeight="15"/>' +
-      (cols ? `<cols>${widths.map((w, k) => `<col min="${k + 1}" max="${k + 1}" width="${w}" customWidth="1"/>`).join("")}</cols>` : "") +
+      (csvCols ? `<cols>${widths.map((w, k) => `<col min="${k + 1}" max="${k + 1}" width="${w}" customWidth="1"/>`).join("")}</cols>` : "") +
       `<sheetData>${rowXml.join("")}</sheetData>` +
       '<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>' +
       banner +

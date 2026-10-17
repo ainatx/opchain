@@ -130,9 +130,13 @@ export function parseRollover(text) {
 
 const quarterDown = (num, den, minutes) => Math.floor((num * minutes) / (den * 15)) * 15;
 
+// At most 100,000 minutes (about 1,667 hours) per entry or month field:
+// every sum stays a safe integer, so the arithmetic stays exact (F-022).
+export const MAX_MINUTES = 100000;
 function minutesField(v, where, entryId) {
-  if (!Number.isInteger(v)) throw usage(`${where} must be a whole number of minutes`);
+  if (!Number.isSafeInteger(v)) throw usage(`${where} must be a whole number of minutes`);
   if (v < 0) throw usage(`${where} must not be negative`);
+  if (v > MAX_MINUTES) throw usage(`${where} is more than ${MAX_MINUTES} minutes`);
   if (v % 15 !== 0) {
     throw refused("not-quarter-hour", `${entryId ?? where} is not a whole quarter-hour (minutes must be a multiple of 15)`, { entry: entryId ?? where });
   }

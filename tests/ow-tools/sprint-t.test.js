@@ -355,3 +355,21 @@ describe("manifest and version (C28, C30, C31)", SPAWN, () => {
     }
   });
 });
+
+describe("round 2: what the help and doctor say", SPAWN, () => {
+  it("Bug 13: help network names pip-audit's own requests and says where they go (OD-7)", () => {
+    const r = cli(["help", "network"]);
+    expect(r.stdout).toMatch(/pip-audit[\s\S]*api\.osv\.dev itself \(--vulnerability-service osv\)/);
+  });
+
+  it("SA-011: doctor tells a macOS user to choose Always Allow for the browser's keychain item", () => {
+    const d = tempDir();
+    const bin = join(d, "bin");
+    mkdirSync(bin);
+    stub(bin, "google-chrome", "exit 0");
+    const r = cli(["doctor", "--json", "--quick"], { env: { PATH: `${bin}:${process.execPath.replace(/\/node$/, "")}:/bin:/usr/bin`, OW_TOOLS_HOME: join(d, "home") } });
+    const browser = r.json.checks.find((c) => c.id === "browser");
+    if (process.platform === "darwin") expect(browser.detail).toMatch(/Chrome Safe Storage.*Always Allow/);
+    expect(readFileSync(join(PLUGIN, "README.md"), "utf8")).toMatch(/Always Allow/);
+  });
+});

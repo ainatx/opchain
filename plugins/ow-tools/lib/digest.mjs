@@ -13,7 +13,7 @@
 //
 // It detects accidental change only. It is not tamper-evidence: anyone who
 // can change the files can recompute it.
-import { lstatSync, readdirSync } from "node:fs";
+import { lstatSync, readdirSync, realpathSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { refused, usage } from "./core.mjs";
 import { sha256File, sha256Text } from "./hash.mjs";
@@ -50,11 +50,14 @@ const byBytes = (a, b) => Buffer.compare(Buffer.from(a, "utf8"), Buffer.from(b, 
 
 // Exported for scripts/build-packs.mjs (Sprint C), so packs and pins are
 // computed by this one implementation.
-export function digestTree(dir) {
+// `hooks.beforeRead(path)` is a test seam: it runs between the walk and each
+// read, so a test can swap a file or folder for a symlink in that window.
+export function digestTree(dir, hooks = {}) {
   const root = resolve(dir);
   const top = lstatSync(root);
   if (top.isSymbolicLink()) throw refuseSymlink(".");
   if (!top.isDirectory()) throw usage("digestTree takes a folder");
+  const realRoot = realpathSync(root);
   const rels = [];
   const skipped = [];
   walk(root, "", rels, skipped);
@@ -63,12 +66,20 @@ export function digestTree(dir) {
     .sort(byBytes)
     .map((p) => {
       let sha;
+      hooks.beforeRead?.(join(root, p));
       try {
+        // O_NOFOLLOW: a file swapped for a symlink after the walk is refused.
         sha = sha256File(join(root, p), { noFollow: true });
       } catch (err) {
-        // Swapped for a symlink between the walk and the read.
-        if (err.code === "ELOOP" || err.code === "ENOTFILE") throw refuseSymlink(p.slice(2));
+        if (err.code === "ELOOP" || err.code === "ENOTFILE") {
+          throw refused("symlink-in-tree", `a file was swapped for a symlink while it was being digested: ${shown(p.slice(2))}`, { path: p.slice(2) });
+        }
         throw err;
+      }
+      // O_NOFOLLOW guards only the last name (F-018): a folder on the path
+      // swapped for a symlink is caught by checking the real path after.
+      if (realpathSync(join(root, p)) !== join(realRoot, p)) {
+        throw refused("symlink-in-tree", `a folder on the path was swapped for a symlink while it was being digested: ${shown(p.slice(2))}`, { path: p.slice(2) });
       }
       return { path: p.slice(2), sha256: sha };
     });

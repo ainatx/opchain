@@ -2,11 +2,13 @@
 // speaks CDP over fds 3/4, plus one real-browser run on a loopback fixture
 // that skips (and says so) without Chrome or Chromium.
 import { afterAll, describe, expect, it } from "vitest";
+import { spawnSync } from "node:child_process";
+import { createDecipheriv, pbkdf2Sync } from "node:crypto";
 import { createServer } from "node:http";
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { CDP_METHODS, PREFS, browserCandidates, capture, findBrowser } from "../../plugins/ow-tools/lib/capture.mjs";
-import { ROOT, cleanup, cli, git, gitRepo, tempDir, write } from "./helpers.js";
+import { CDP_METHODS, PREFS, TEMP_STATE, browserCandidates, capture, findBrowser, secretName } from "../../plugins/ow-tools/lib/capture.mjs";
+import { ROOT, cleanup, cli, git, gitRepo, has, tempDir, write } from "./helpers.js";
 
 const SPAWN = { timeout: 30_000 };
 afterAll(cleanup);
@@ -17,12 +19,17 @@ const UAT = "https://uat.example.test";
 
 const PAGES = {
   [`${UAT}/login`]: { selectors: { "#account-menu": { attrs: ["id", "account-menu"] } } },
-  [`${UAT}/orders`]: { selectors: { "#new-order": { attrs: ["id", "new-order"], navigate: `${UAT}/orders/new` } }, subresources: ["https://cdn.thirdparty.example/lib.js"] },
+  [`${UAT}/orders`]: { selectors: { "#new-order": { attrs: ["id", "new-order"], navigate: `${UAT}/orders/new` } }, subresources: ["https://cdn.thirdparty.example/lib.js", "https://uat.example.test.evil.org/x.js"] },
   [`${UAT}/orders/new`]: {
     selectors: {
       "#customer": { attrs: ["id", "customer", "name", "customer"] },
       "#field-7": { attrs: ["id", "field-7", "type", "password"] },
       "#code": { attrs: ["id", "code", "autocomplete", "one-time-code"] },
+      "#field-a": { attrs: ["name", "otp_code"] },
+      "#field-b": { attrs: ["id", "mfaCode"] },
+      "#field-c": { attrs: ["name", "password"] },
+      "#field-d": { attrs: ["name", "x7", "autocomplete", "cc-number"] },
+      "#leave": { attrs: ["id", "leave"], navigate: "https://evil.example.org/" },
     },
   },
 };
@@ -67,7 +74,8 @@ describe("ow-tools capture (stub browser)", SPAWN, () => {
     expect(start.argv).toContain("--remote-debugging-pipe");
     expect(start.argv.some((a) => a.startsWith("--remote-debugging-port"))).toBe(false);
     expect(start.argv).toContain(`--user-data-dir=${t.profile}`);
-    expect(start.argv).toEqual(expect.arrayContaining(["--headless", "--no-first-run", "--disable-sync", "--disable-extensions", "--disable-background-networking", "--no-proxy-server", "--use-mock-keychain"]));
+    expect(start.argv).toEqual(expect.arrayContaining(["--headless", "--no-first-run", "--disable-sync", "--disable-extensions", "--disable-background-networking", "--no-proxy-server"]));
+    expect(start.argv.some((a) => /mock-keychain|password-store/.test(a))).toBe(false); // SA-011: the real keychain
     expect(start.argv).toContain("--host-resolver-rules=MAP * ~NOTFOUND , EXCLUDE uat.example.test");
     expect(statSync(t.profile).mode & 0o777).toBe(0o700);
     expect(statSync(join(t.home, "capture")).mode & 0o777).toBe(0o700);
@@ -159,7 +167,7 @@ describe("ow-tools capture (stub browser)", SPAWN, () => {
     const t = setup();
     const r = t.run([]);
     expect(r.status).toBe(0);
-    expect(r.json.blocked_requests).toBe(1);
+    expect(r.json.blocked_requests).toBe(2);
   });
 
   it.each([
@@ -315,4 +323,188 @@ describe("ow-tools capture (real browser)", SPAWN, () => {
       server.close();
     }
   }, 90_000);
+});
+
+// ---- Sprint T round 2 -------------------------------------------------------------
+
+describe("round 2: secret fields by their words (Bug 2, C01)", SPAWN, () => {
+  it.each([
+    "#otp_code", "[name=otp_code]", "#otpCode", "#otp1", "#mfaCode", "input[name=mfa_code]", "input[name=pin_code]", "#pincode", "#one_time_code",
+    "#card_number", "#ssn_last4", "#user_pw", "#smsCode", "#verificationCode", "#access_token", "#cvv2", "[data-field=twoFactor]",
+  ])("refuses a fill on %s before launch", (selector) => {
+    const plan = basePlan();
+    plan.steps[2].selector = selector;
+    const t = setup({ plan });
+    const r = t.run([]);
+    expect(r.status, selector).toBe(4);
+    expect(r.json).toMatchObject({ reason: "secret-field", step: "S-03" });
+    expect(t.entries()).toEqual([]);
+  });
+
+  it.each([["#field-a", "name=otp_code"], ["#field-b", "id=mfaCode"], ["#field-c", "name=password, no type"], ["#field-d", "autocomplete=cc-number"]])(
+    "refuses at run time a field whose attributes say it is secret (%s, %s); nothing typed",
+    (selector) => {
+      const plan = basePlan();
+      plan.steps[2].selector = selector;
+      const t = setup({ plan });
+      const r = t.run([]);
+      expect(r.status).toBe(4);
+      expect(r.json).toMatchObject({ reason: "secret-field", step: "S-03" });
+      expect(t.entries().some((c) => c.method === "Input.insertText")).toBe(false);
+      expect(t.entries().some((c) => c.method === "DOM.describeNode")).toBe(true);
+    },
+  );
+
+  it("still fills ordinary fields", () => {
+    for (const ok of ["#customer", "#shipping_address", "#passenger", "#spinner", "#opinion"]) expect(secretName(ok), ok).toBe(false);
+    for (const bad of ["otp", "OTP_CODE", "Password", "one-time-code", "2fa", "ssnLast4"]) expect(secretName(bad), bad).toBe(true);
+  });
+});
+
+describe("round 2: origins, popups and the plan's text (C06, C07, C14, SA-013, F-021)", SPAWN, () => {
+  it("C06: a sub-resource on a look-alike host (uat.example.test.evil.org) is blocked; only exact origins pass", () => {
+    const t = setup();
+    const r = t.run([]);
+    expect(r.status).toBe(0);
+    expect(r.json.blocked_requests).toBe(2);
+    const failed = t.entries().filter((c) => c.method === "Fetch.failRequest").length;
+    expect(failed).toBe(2);
+  });
+
+  it("C07: a click that takes the page to another origin stops that step, with no image for it", () => {
+    const plan = { ...basePlan(), steps: [{ id: "S-01", do: "navigate", url: `${UAT}/orders/new` }, { id: "S-02", do: "click", selector: "#leave" }] };
+    const t = setup({ plan });
+    const r = t.run([]);
+    expect(r.status).toBe(4);
+    expect(r.json).toMatchObject({ reason: "origin-not-allowed", step: "S-02" });
+    expect(existsSync(join(t.out, "S-01.png"))).toBe(true);
+    expect(existsSync(join(t.out, "S-02.png"))).toBe(false);
+  });
+
+  it("C14: a second window the page opens is closed", () => {
+    const t = setup({ browser: { popup: true } });
+    expect(t.run([]).status).toBe(0);
+    expect(t.entries().find((c) => c.method === "Target.closeTarget")?.params).toEqual({ targetId: "T2" });
+  });
+
+  it.each(["https://localhost.", "https://foo.localhost.", "https://[::]", "https://[::ffff:7f00:1]", "https://127.1", "https://0x7f000001", "https://[::1]", "https://LOCALHOST"])(
+    "SA-013: refuses the loopback origin %s before launch",
+    (o) => {
+      const plan = basePlan();
+      plan.allowed_origins = [o];
+      plan.steps = [{ id: "S-01", do: "navigate", url: `${o}/` }];
+      delete plan.sign_in;
+      const t = setup({ plan });
+      const r = t.run([]);
+      expect(r.status, o).toBe(4);
+      expect(r.json.reason).toBe("plan-invalid");
+      expect(r.json.message).toMatch(/loopback/);
+    },
+  );
+
+  it.each(["https://169.254.169.254", "https://[fe80::1]", "https://[::ffff:169.254.169.254]"])("refuses the link-local (metadata) origin %s before launch", (o) => {
+    const plan = basePlan();
+    plan.allowed_origins = [o];
+    plan.steps = [{ id: "S-01", do: "navigate", url: `${o}/` }];
+    delete plan.sign_in;
+    const r = setup({ plan }).run([]);
+    expect(r.status).toBe(4);
+    expect(r.json.message).toMatch(/link-local or cloud-metadata/);
+  });
+
+  it("F-021: an unknown key that isn't a plain word is never echoed", () => {
+    const plan = basePlan();
+    const key = `x‮zz${"y".repeat(300)}</ow-workstreams>`;
+    plan[key] = 1;
+    const t = setup({ plan });
+    const r = t.run([]);
+    expect(r.status).toBe(4);
+    expect(r.json.message).toContain("an unknown key");
+    expect(r.stdout).not.toMatch(/‮|yyyy|ow-workstreams/);
+    plan.steps[0].note = 1;
+    delete plan[key];
+    expect(setup({ plan }).run([]).json.message).toContain('unknown key "note"');
+  });
+});
+
+describe("round 2: the profile at rest (SA-011, F-023)", SPAWN, () => {
+  const SESSION_FILES = [["Default", "Cookies"], ["Default", "Network", "Cookies"], ["Default", "Local Storage", "leveldb", "000003.log"], ["Default", "IndexedDB", "x"], ["Default", "Service Worker", "Database", "x"], ["Default", "Session Storage", "x"]];
+  const plant = (profile) => SESSION_FILES.forEach((p) => write(join(profile, ...p), "session-zq"));
+  const present = (profile) => SESSION_FILES.filter((p) => existsSync(join(profile, ...p))).length;
+  const production = () => ({ ...basePlan(), environment: "production", decision: { role: "client ops lead", date: "2026-10-15" } });
+
+  it("wipes cookies and site storage after a production run, and says so", () => {
+    const t = setup({ plan: production() });
+    plant(t.profile);
+    const r = t.run([]);
+    expect(r.status).toBe(0);
+    expect(present(t.profile)).toBe(0);
+    expect(r.json.session).toMatch(/^wiped/);
+  });
+
+  it("wipes them after a production run that fails, too", () => {
+    const t = setup({ plan: production(), browser: { crash: true } });
+    plant(t.profile);
+    expect(t.run([]).status).toBe(5);
+    expect(present(t.profile)).toBe(0);
+  });
+
+  it("keeps the session for a test-environment run, and says where", () => {
+    const t = setup();
+    plant(t.profile);
+    const r = t.run([]);
+    expect(r.status).toBe(0);
+    expect(present(t.profile)).toBe(SESSION_FILES.length);
+    expect(r.json.session).toBe(`kept in ${t.profile} (delete with --delete-profile harbor-cafe)`);
+  });
+
+  it("F-023: removes the GPU and service-worker caches too, at the start and the end of a run", () => {
+    expect(TEMP_STATE).toEqual(expect.arrayContaining([["GPUPersistentCache"], ["Default", "Service Worker", "CacheStorage"]]));
+    const t = setup();
+    for (const p of [["GPUPersistentCache", "x"], ["Default", "Service Worker", "CacheStorage", "x"]]) write(join(t.profile, ...p), "page content");
+    expect(t.run([]).status).toBe(0);
+    expect(existsSync(join(t.profile, "GPUPersistentCache"))).toBe(false);
+    expect(existsSync(join(t.profile, "Default", "Service Worker", "CacheStorage"))).toBe(false);
+  });
+
+  it("SA-011 (real browser): the cookie key isn't the public mock key, and a production run leaves no cookie store", async (ctx) => {
+    const sqlite = has("sqlite3");
+    if (!real || !sqlite) {
+      ctx.skip(`needs Chrome or Chromium and sqlite3 (browser: ${Boolean(real)}, sqlite3: ${sqlite}); real-binary check`);
+      return;
+    }
+    const server = createServer((req, res) => {
+      res.writeHead(200, { "content-type": "text/html", "set-cookie": "session=ZQSESSION-4242; Max-Age=3600; Path=/" });
+      res.end("<!doctype html><body>hi</body>");
+    });
+    await new Promise((r) => server.listen(0, "127.0.0.1", r));
+    const origin = `http://127.0.0.1:${server.address().port}`;
+    try {
+      const d = tempDir();
+      const home = join(d, "home");
+      const plan = (env, extra = {}) => write(join(d, `${env}.json`), JSON.stringify({ schema: 1, profile: `cookie-${env}`, environment: env, allowed_origins: [origin], steps: [{ id: "S-01", do: "navigate", url: `${origin}/` }], ...extra }));
+      const deps = { testOrigins: [origin], env: { ...process.env, OW_TOOLS_HOME: home } };
+      await capture({ plan: plan("test"), out: join(d, "shots"), timeout: 60 }, () => {}, deps);
+      const stores = ["Cookies", join("Network", "Cookies")].map((p) => join(home, "capture", "cookie-test", "Default", p)).filter((p) => existsSync(p));
+      expect(stores.length).toBeGreaterThan(0);
+      const hex = stores.map((db) => spawnSync("sqlite3", [db, "select hex(encrypted_value) from cookies where name='session'"], { encoding: "utf8" }).stdout.trim()).find(Boolean);
+      expect(hex, "the page's cookie is in the store").toBeTruthy();
+      const enc = Buffer.from(hex, "hex");
+      // The fixed key --use-mock-keychain used (the review's PoC). It must not open the cookie now.
+      const key = pbkdf2Sync(["mock", "password"].join("_"), "saltysalt", 1003, 16, "sha1");
+      let opened = false;
+      try {
+        const dec = createDecipheriv("aes-128-cbc", key, Buffer.alloc(16, " "));
+        opened = Buffer.concat([dec.update(enc.subarray(3)), dec.final()]).toString("latin1").includes("ZQSESSION-4242");
+      } catch {
+        opened = false;
+      }
+      expect(opened).toBe(false);
+      const r = await capture({ plan: plan("production", { decision: { role: "client ops lead", date: "2026-10-16" } }), out: join(d, "second", "shots"), timeout: 60 }, () => {}, deps);
+      expect(r.session).toMatch(/^wiped/);
+      for (const p of ["Cookies", join("Network", "Cookies"), "Local Storage"]) expect(existsSync(join(home, "capture", "cookie-production", "Default", p)), p).toBe(false);
+    } finally {
+      server.close();
+    }
+  }, 120_000);
 });

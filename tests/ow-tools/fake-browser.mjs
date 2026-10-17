@@ -66,16 +66,22 @@ function guarded(url, sessionId, redirectedFrom, resourceType = "Document") {
   });
 }
 
+let popupSent = false;
 async function navigate(url, sessionId) {
   event("Page.frameStartedLoading", { frameId: "F" }, sessionId);
-  if (!(await guarded(url, sessionId))) {
+  // Like Chrome, a blocked navigation still loads the error page.
+  const blocked = () => {
     current = "chrome-error://chromewebdata/";
+    setTimeout(() => event("Page.loadEventFired", { timestamp: 1 }, sessionId), 5);
     return "net::ERR_BLOCKED_BY_CLIENT";
-  }
+  };
+  if (!(await guarded(url, sessionId))) return blocked();
   const target = cfg.redirect?.[url];
-  if (target && !(await guarded(target, sessionId, "redir"))) {
-    current = "chrome-error://chromewebdata/";
-    return "net::ERR_BLOCKED_BY_CLIENT";
+  if (target && !(await guarded(target, sessionId, "redir"))) return blocked();
+  // A page that opens a second window (window.open, target=_blank).
+  if (cfg.popup && !popupSent) {
+    popupSent = true;
+    event("Target.targetCreated", { targetInfo: { targetId: "T2", type: "page", url: "https://uat.example.test/popup" } });
   }
   current = target || url;
   // A page may load a sub-resource from another origin.

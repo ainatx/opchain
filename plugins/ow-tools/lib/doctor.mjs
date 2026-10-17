@@ -138,7 +138,9 @@ export function checks({ verifyModel = true, env = process.env } = {}) {
   // capture: an installed Chrome or Chromium, found on PATH or at the
   // standard paths. Its version is not asked: that would start the browser.
   const br = findBrowser(browserCandidates(env), env);
-  add("browser", ["capture"], Boolean(br), br ? `found at ${br}` : "Chrome or Chromium not found",
+  // SA-011: the capture profile keeps its cookie key in the user's keychain.
+  const keychain = mac() ? '; on first use macOS asks to let the browser use its "Chrome Safe Storage" (or "Chromium Safe Storage") keychain item: choose Always Allow' : "";
+  add("browser", ["capture"], Boolean(br), br ? `found at ${br}${keychain}` : "Chrome or Chromium not found",
     mac() ? "brew install --cask google-chrome" : "install Google Chrome or Chromium with your package manager");
   // health on Python projects only; health runs without it.
   const pa = which("pip-audit", env);

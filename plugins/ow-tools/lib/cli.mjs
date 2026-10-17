@@ -39,6 +39,8 @@ const NETWORK = `What leaves this machine, by verb (design §8, Network):
   health    api.osv.dev (package names and versions of public-registry packages only),
             registry.npmjs.org (the same names), data.iana.org (the RDAP list), the RDAP
             server for each listed domain, and the hosts and URLs health.yaml lists.
+            pip-audit, when it runs on a pinned requirements file, sends those Python
+            package names and versions to api.osv.dev itself (--vulnerability-service osv).
             --no-network sends nothing.
   all other verbs, and the session hook: nothing.`;
 

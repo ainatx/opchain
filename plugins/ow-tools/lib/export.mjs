@@ -1,7 +1,7 @@
 // `ow-tools export` (design §5.2, §5.7, §5.9): Markdown → branded, accessible
 // PDF, Word and PowerPoint; a sheet folder (CSV + model.md) → XLSX. Every run
 // writes `export/<name>.export.json`, the record of what was exported (SA-007).
-import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { PLUGIN_ROOT, VERSION, failed, isDir, isFile, missing, nowDate, oneLine, refused, run, sha256File, timeZone, usage, which } from "./core.mjs";
 import { loadBrand } from "./brand.mjs";
@@ -52,6 +52,30 @@ export function brandTyp(brand, { title, banner, logoFile }) {
 function availableFonts() {
   const r = run("typst", ["fonts"]);
   return new Set(r.stdout.split("\n").map((l) => l.trim().toLowerCase()).filter(Boolean));
+}
+
+// SA-010 / F-012: list every image pandoc itself will read (its AST, not a
+// regex) and refuse unless each is one of the copies ow-tools made in the
+// temp folder. Reference images, odd titles and nested brackets are all
+// Image nodes here, whatever the preflight's line check saw.
+export function imagesPandocReads(file, from, allowed, cwd) {
+  const r = run("pandoc", [file, "-f", from, "-t", "json"], { cwd });
+  if (r.status !== 0) throw failed(`pandoc could not read the document: ${oneLine(r.stderr)}`);
+  const targets = [];
+  const walk = (node) => {
+    if (Array.isArray(node)) node.forEach(walk);
+    else if (node && typeof node === "object") {
+      if (node.t === "Image" && Array.isArray(node.c) && Array.isArray(node.c[2])) targets.push(String(node.c[2][0]));
+      for (const v of Object.values(node)) if (v && typeof v === "object") walk(v);
+    }
+  };
+  walk(JSON.parse(r.stdout).blocks);
+  const stray = targets.filter((t) => !allowed.has(t));
+  if (stray.length) {
+    const problems = [`${stray.length} image(s) pandoc would read are not in the form ![alt](file) the preflight checks (a reference or shortcut image, a title in single quotes, or brackets in the alt text); write each as ![alt](file)`];
+    throw refused("preflight", `not exported; fix these first:\n  ${problems[0]}`, { problems });
+  }
+  return targets;
 }
 
 // xlsx needs Node only, so it is never absent where ow-tools runs.
@@ -152,17 +176,16 @@ export async function exportDoc({ file, brand: brandPath, out, formats }) {
   if (need.length) throw missing(`export needs: ${need.join(", ")}. Run ow-tools doctor for the exact steps.`, { missing: need });
 
   const outDir = resolve(out ?? join(dirname(src), "export"));
-  mkdirSync(outDir, { recursive: true });
   const name = basename(src, ".md");
   const outputs = {};
   const notes = [];
   const replaced = [];
   const deckInfo = {};
-  const target = (ext) => {
-    const p = join(outDir, `${name}.${ext}`);
-    if (existsSync(p)) replaced.push(p);
-    return p;
-  };
+  // Every format is built in the private temp folder and moved into export/
+  // only after all of them pass (Bug 4, SA-017): a failure leaves export/ as
+  // it was, with no unbranded deck, no half-done PDF and no 0644 file.
+  const staged = {};
+  const target = (ext, tmp) => (staged[ext] = join(tmp, "out", `${name}.${ext}`));
 
   await withTempDir(async (tmp) => {
     // Copy images in under neutral names so nothing outside the temp folder
@@ -170,6 +193,7 @@ export async function exportDoc({ file, brand: brandPath, out, formats }) {
     // image to the document's folder (or its opchain-work/ folder), resolved
     // symlinks and checked the file really is a PNG, JPEG or GIF; the copy
     // takes the type it detected, not the name's extension.
+    mkdirSync(join(tmp, "out"), { mode: 0o700 });
     let body = pre.body;
     // O14: the H1 is the deck's title only, never a slide (a setext H1's
     // underline goes with it).
@@ -183,6 +207,8 @@ export async function exportDoc({ file, brand: brandPath, out, formats }) {
       deckBody = deckBody.split(`](${img.src}`).join(`](${local}`);
     });
     writePrivate(join(tmp, "doc.md"), body);
+    const allowedImages = new Set(pre.images.map((img, n) => `assets/img-${n}.${img.type}`));
+    if (fmts.includes("pdf") || fmts.includes("docx")) imagesPandocReads(join(tmp, "doc.md"), PANDOC_FROM, allowedImages, tmp);
 
     if (fmts.includes("pdf")) {
       let r = run("pandoc", [join(tmp, "doc.md"), "-f", PANDOC_FROM, "-t", "typst", "-o", join(tmp, "body.typ")], { cwd: tmp });
@@ -202,14 +228,14 @@ export async function exportDoc({ file, brand: brandPath, out, formats }) {
       for (const f of [brand.fonts.body, brand.fonts.heading].filter(Boolean)) {
         if (!fonts.has(f.toLowerCase())) notes.push(`font "${f}" is not installed; the PDF uses a fallback font`);
       }
-      const pdf = target("pdf");
+      const pdf = target("pdf", tmp);
       r = run("typst", ["compile", "--root", tmp, "--pdf-standard", "ua-1", join(tmp, "main.typ"), pdf]);
       if (r.status !== 0) throw failed(`typst could not build an accessible PDF: ${oneLine(r.stderr)}`);
       outputs.pdf = pdf;
     }
 
     if (fmts.includes("docx")) {
-      const docx = target("docx");
+      const docx = target("docx", tmp);
       const r = run("pandoc", [join(tmp, "doc.md"), "-f", PANDOC_FROM, "-t", "docx", "-M", `lang=${brand.lang}`, "--resource-path", tmp, "-o", docx], { cwd: tmp });
       if (r.status !== 0) throw failed(`pandoc (Word) failed: ${oneLine(r.stderr)}`);
       brandDocx(docx, brand, { title: pre.title, banner: pre.banner, workDir: tmp });
@@ -219,17 +245,27 @@ export async function exportDoc({ file, brand: brandPath, out, formats }) {
 
     if (fmts.includes("pptx")) {
       writePrivate(join(tmp, "deck.md"), deckBody);
+      imagesPandocReads(join(tmp, "deck.md"), PANDOC_DECK_FROM, allowedImages, tmp);
       const ref = buildReferenceDeck(brand, tmp);
-      const pptx = target("pptx");
+      const pptx = target("pptx", tmp);
       const r = run("pandoc", [join(tmp, "deck.md"), "-f", PANDOC_DECK_FROM, "-t", "pptx", "--slide-level=2", "--reference-doc", ref, "-M", `lang=${brand.lang}`, "--resource-path", tmp, "-o", pptx], { cwd: tmp });
       if (r.status !== 0) throw failed(`pandoc (PowerPoint) failed: ${oneLine(r.stderr)}`);
       Object.assign(deckInfo, brandPptx(pptx, brand, { title: pre.title, banner: pre.banner, alts: pre.images.map((i) => i.alt), slides: deck.slides, workDir: tmp }));
       outputs.pptx = pptx;
       if (brand.fonts.body || brand.fonts.heading) notes.push("PowerPoint shows a substitute font on machines without the brand fonts");
     }
+
+    // Everything passed: move each output into export/ 0600, through a
+    // guarded sibling, so a crash mid-move never leaves a partial file.
+    mkdirSync(outDir, { recursive: true });
+    for (const [ext, from] of Object.entries(staged)) {
+      const final = join(outDir, `${name}.${ext}`);
+      if (existsSync(final)) replaced.push(final);
+      writePrivate(final, readFileSync(from));
+      outputs[ext] = final;
+    }
   });
 
-  for (const p of Object.values(outputs)) chmodSync(p, 0o600);
   const sourceSha = sha256File(src);
   const record = recordExport(
     outDir,

@@ -8,6 +8,8 @@ import { inflateRawSync } from "node:zlib";
 import { buildWorkbook, checkFormula, readSheetFolder } from "../../plugins/ow-tools/lib/xlsx.mjs";
 import { crc32, zip } from "../../plugins/ow-tools/lib/zip.mjs";
 import { deckChecks } from "../../plugins/ow-tools/lib/pptx.mjs";
+import { imagesPandocReads } from "../../plugins/ow-tools/lib/export.mjs";
+import { fromMinor, toMinor, total } from "../../plugins/ow-tools/lib/calc.mjs";
 import { ROOT, cleanup, cli, has, png, stub, tempDir, write } from "./helpers.js";
 
 const SPAWN = { timeout: 30_000 };
@@ -330,6 +332,193 @@ describe("ow-tools export --formats pptx preflight (any machine)", SPAWN, () => 
     for (const z of ["zip", "unzip"]) stub(bin, z, "exit 0");
     const r = cli(["export", join(ws, "deck.md"), "--formats", "pptx", "--json"], { env: { PATH: `${bin}:${NODE_DIR}:/bin:/usr/bin` } });
     expect(r.status).toBe(5);
-    expect(r.json.message).toBe("pandoc could not write its default reference deck: pandoc: the last line says what broke");
+    expect(r.json.message).toBe("pandoc could not read the document: pandoc: the last line says what broke");
+  });
+});
+
+// ---- Sprint T round 2 -------------------------------------------------------------
+
+describe("round 2: xlsx bounds, scoping and markers (X04–X07, F-019, SA-018)", SPAWN, () => {
+  const run = (mutate) => {
+    const src = sheetCopy();
+    mutate(src);
+    return { src, r: cli(["export", src, "--formats", "xlsx", "--json"]) };
+  };
+  const model = (src, fn) => writeFileSync(join(src, "model.md"), fn(readFileSync(join(src, "model.md"), "utf8")));
+  const setD5 = (src, cell, formula) => model(src, (m) => m.replace("| D5 | =SUM(D2:D4) | currency:USD |", `| ${cell} | ${formula} | currency:USD |`));
+
+  it("X04: a CSV over 10 MB is refused (exit 2) before it is read", () => {
+    const { r } = run((s) => writeFileSync(join(s, "Costs.csv"), `Item,Units\n${"x,1\n".repeat(2_700_000)}`));
+    expect(r.status).toBe(2);
+    expect(r.json.message).toBe("Costs.csv is over 10 MB");
+  });
+
+  it.each([["=SUM(E2:E4)"], ["=Z2"], ["=Rates!C2"]])("X05: a reference past the sheet's columns (%s) is unknown-cell", (f) => {
+    const { r } = run((s) => setD5(s, "D5", f));
+    expect(r.status).toBe(4);
+    expect(r.json).toMatchObject({ reason: "unknown-cell", cell: "Costs!D5" });
+  });
+
+  it.each([['=IMPORTXML("https://example.test","//a")'], ['=IMAGE("https://example.test/x.png")'], ['=IMPORTDATA("https://example.test")'], ['=FILTERXML("<a/>","//a")']])("X06: %s is refused as reaching outside the workbook", (f) => {
+    const { r } = run((s) => setD5(s, "D5", f));
+    expect(r.status).toBe(4);
+    expect(r.json.reason).toBe("dde-or-link-formula");
+  });
+
+  it("X07: a formula in the header row is refused", () => {
+    const { r } = run((s) => setD5(s, "D1", "=1+1"));
+    expect(r.status).toBe(4);
+    expect(r.json).toMatchObject({ reason: "formula-in-header", cell: "Costs!D1" });
+  });
+
+  it.each([["A1048577"], ["XFE5"], ["A9999999"]])("F-019: a mapped cell past Excel's grid (%s) is refused", (cell) => {
+    const { r, src } = run((s) => setD5(s, cell, "=1"));
+    expect(r.status).toBe(2);
+    expect(existsSync(join(src, "..", "export"))).toBe(false);
+  });
+
+  it("F-019: the last cell of the grid is written at once, not by walking 17 billion cells", () => {
+    const t0 = Date.now();
+    const { r } = run((s) => setD5(s, "XFD1048576", "=1"));
+    expect(r.status, r.stdout).toBe(0);
+    expect(Date.now() - t0).toBeLessThan(10_000);
+    expect(unzipAll(readFileSync(r.json.outputs.xlsx))["xl/worksheets/sheet1.xml"]).toContain('<dimension ref="A1:XFD1048576"/>');
+  });
+
+  it("F-019: a CSV row wider than a worksheet is refused", () => {
+    const { r } = run((s) => writeFileSync(join(s, "Costs.csv"), `${"h,".repeat(16384)}h\n`));
+    expect(r.status).toBe(2);
+    expect(r.json.message).toMatch(/^Costs\.csv row 1 has more columns than a worksheet holds/);
+  });
+
+  it.each([
+    ["an ow:internal section", "<!-- ow:internal -->\n## Sheet: Margin\n\n| Cell | Formula | Format |\n| --- | --- | --- |\n<!-- ow:end-internal -->\n"],
+    ["a misspelt marker", "<!-- OW: Internal-only -->\n"],
+    ["an unclosed comment mentioning internal", "<!-- internal pricing below\n"],
+  ])("SA-018: model.md with %s is refused, naming the line", (_, block) => {
+    const { r, src } = run((s) => {
+      writeFileSync(join(s, "Margin.csv"), "Unit,Cost\nx,61.50\n");
+      model(s, (m) => `${m}\n${block}`);
+    });
+    expect(r.status).toBe(4);
+    expect(r.json.reason).toBe("preflight");
+    expect(r.json.message).toMatch(/^model\.md line \d+: an internal-section marker/);
+    expect(r.stdout).not.toContain("61.50");
+    expect(existsSync(join(src, "..", "export"))).toBe(false);
+  });
+
+  it("SA-018: a CSV that model.md doesn't name never ships (exit 4, unknown-sheet)", () => {
+    const { r, src } = run((s) => writeFileSync(join(s, "Margin.csv"), "Unit,Cost\nx,61.50\n"));
+    expect(r.status).toBe(4);
+    expect(r.json).toMatchObject({ reason: "unknown-sheet", sheet: "Margin" });
+    expect(existsSync(join(src, "..", "export"))).toBe(false);
+  });
+});
+
+describe("round 2: C8 cell by cell (real soffice)", SPAWN, () => {
+  it("every computed cell LibreOffice recalculates equals what ow-tools calc computes", (ctx) => {
+    if (!has("soffice")) {
+      ctx.skip("LibreOffice (soffice) is not installed; C8 is a real-binary check");
+      return;
+    }
+    const src = sheetCopy();
+    const r = cli(["export", src, "--formats", "xlsx", "--json"]);
+    const out = join(src, "..", "csv");
+    mkdirSync(out);
+    // Every sheet to its own CSV (LibreOffice 7.2+), raw values, UTF-8.
+    spawnSync("soffice", ["--headless", "--convert-to", 'csv:Text - txt - csv (StarCalc):44,34,76,1,,0,false,true,false,false,false,-1', "--outdir", out, r.json.outputs.xlsx], { encoding: "utf8", timeout: 120000 });
+    const sheet = (name) => {
+      const f = readdirSync(out).find((n) => n.includes(name) && n.endsWith(".csv"));
+      expect(f, `LibreOffice wrote the ${name} sheet`).toBeTruthy();
+      return readFileSync(join(out, f), "utf8").trim().split(/\r?\n/).map((l) => l.split(","));
+    };
+    const costs = sheet("Costs");
+    const rates = sheet("Rates");
+    const lines = [["2", "1500.00"], ["1", "2500.50"], ["3", "400.00"]].map(([quantity, unit_price], k) => ({ label: `line ${k + 1}`, quantity: Number(quantity), unit_price }));
+    const each = lines.map((l) => total({ items: [l] }).total);
+    const sum = total({ items: lines }).total;
+    const withContingency = fromMinor((toMinor(sum) * 110n + 50n) / 100n); // ROUND(x × 1.1, 2), half up
+    const num = (s) => Number(String(s).replace(/"/g, ""));
+    each.forEach((v, k) => expect(num(costs[k + 1][3]), `Costs!D${k + 2}`).toBe(Number(v)));
+    expect(num(costs[4][3]), "Costs!D5").toBe(Number(sum));
+    expect(num(rates[2][1]), "Rates!B3").toBe(Number(withContingency));
+  });
+});
+
+describe("round 2: export failures leave export/ as it was (Bug 4, SA-017, E01)", SPAWN, () => {
+  it.each([["---"], ["***"], ["___"], ["- - -"]])("Bug 4: a deck line %s is refused before pandoc runs", (rule) => {
+    const ws = deckWorkspace();
+    write(join(ws, "rule.md"), `# Deck\n\n## One\n\nFirst part.\n\n${rule}\n\nSecond part.\n\n## Two\n\nB.\n`);
+    const r = cli(["export", join(ws, "rule.md"), "--formats", "pptx", "--json"]);
+    expect(r.status).toBe(4);
+    expect(r.json.problems).toEqual(["line 7: a line of ---, *** or ___ (a thematic break or a setext heading) would start an extra slide; use ## headings for slides"]);
+    expect(existsSync(join(ws, "export"))).toBe(false);
+  });
+
+  it.skipIf(!(pptxReady && has("typst")))("Bug 4: when a later format fails, export/ keeps the previous good files and gets nothing new", () => {
+    const ws = deckWorkspace();
+    const good = cli(["export", join(ws, "deck.md"), "--formats", "pptx", "--json"]);
+    expect(good.status).toBe(0);
+    const before = Object.fromEntries(readdirSync(join(ws, "export")).map((n) => [n, readFileSync(join(ws, "export", n)).toString("base64")]));
+    // pandoc and Typst work; zip fails, so the PowerPoint part fails after the PDF was built.
+    const bin = join(tempDir(), "bin");
+    mkdirSync(bin);
+    for (const t of ["pandoc", "typst", "unzip"]) symlinkSync(spawnSync("sh", ["-c", `command -v ${t}`], { encoding: "utf8" }).stdout.trim(), join(bin, t));
+    symlinkSync(process.execPath, join(bin, "node"));
+    stub(bin, "zip", 'echo "zip: no space left" >&2; exit 9');
+    const r = cli(["export", join(ws, "deck.md"), "--formats", "pdf,pptx", "--json"], { env: { PATH: `${bin}:/bin` } });
+    expect(r.status, r.stdout).toBe(5);
+    const after = Object.fromEntries(readdirSync(join(ws, "export")).map((n) => [n, readFileSync(join(ws, "export", n)).toString("base64")]));
+    expect(after).toEqual(before); // no deck.pdf, no unbranded deck, the record unchanged
+  });
+
+  it.skipIf(!(pptxReady && has("typst")))("E01: PDF, Word and PowerPoint exports are written 0600", () => {
+    const ws = deckWorkspace();
+    const r = cli(["export", join(ws, "deck.md"), "--formats", "pdf,docx,pptx", "--json"]);
+    expect(r.status, r.stdout + r.stderr).toBe(0);
+    for (const f of ["pdf", "docx", "pptx"]) expect(statSync(r.json.outputs[f]).mode & 0o777, f).toBe(0o600);
+    expect(statSync(r.json.record).mode & 0o777).toBe(0o600);
+  });
+});
+
+describe("round 2: image containment by pandoc's own reading (SA-010 / F-012)", SPAWN, () => {
+  const CANARY = "ZQ-IMAGE-CANARY-7731";
+  function poc(form) {
+    const root = tempDir();
+    const secret = write(join(root, "elsewhere", "private.png"), "");
+    writeFileSync(secret, Buffer.concat([png(4, 4), Buffer.from(CANARY)]));
+    const key = write(join(root, "id_test_key"), `${CANARY}\n`);
+    const md = write(join(root, "doc", "deck.md"), `# Title\n\n## Slide one\n\n${form(secret, key)}\n`);
+    return { root, md };
+  }
+  const FORMS = [
+    ["brackets in the alt text", (p) => `![a [b] c](${p})`],
+    ["a single-quoted title", (p) => `![alt](${p} 'title')`],
+    ["a shortcut reference", (p) => `![logo]\n\n[logo]: ${p}`],
+    ["a collapsed reference", (p) => `![logo][]\n\n[logo]: ${p}`],
+    ["a non-image key file", (_, k) => `![key](${k} 'x')`],
+  ];
+  it.each(FORMS.flatMap(([n, f]) => ["pptx", "docx", "pdf"].map((fmt) => [n, fmt, f])))("refuses %s (%s) and embeds nothing", (_, fmt, form) => {
+    const { root, md } = poc(form);
+    const r = cli(["export", md, "--formats", fmt, "--json"]);
+    expect(r.status, r.stdout).toBe(4);
+    expect(r.json.reason).toBe("preflight");
+    // The preflight names the line itself; pandoc's AST check is the second layer.
+    expect(r.json.problems[0]).toMatch(/^line 5: (an image not written as !\[alt\]\(file\)|reference-style images are not supported)/);
+    expect(existsSync(join(root, "doc", "export"))).toBe(false);
+  });
+
+  it.skipIf(!has("pandoc"))("the pandoc check alone catches a reference image the line check never saw", () => {
+    const d = tempDir();
+    const f = write(join(d, "doc.md"), "# T\n\n![logo]\n\n[logo]: /etc/hosts\n\n![ok](assets/img-0.png)\n");
+    let err;
+    try {
+      imagesPandocReads(f, "gfm-autolink_bare_uris", new Set(["assets/img-0.png"]), d);
+    } catch (e) {
+      err = e;
+    }
+    expect(err?.extra?.reason).toBe("preflight");
+    expect(err.message).toMatch(/1 image\(s\) pandoc would read are not in the form/);
+    expect(imagesPandocReads(write(join(d, "ok.md"), "# T\n\n![ok](assets/img-0.png)\n"), "gfm-autolink_bare_uris", new Set(["assets/img-0.png"]), d)).toEqual(["assets/img-0.png"]);
   });
 });

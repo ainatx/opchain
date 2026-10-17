@@ -2,12 +2,16 @@
 // pip-audit's pinned argv (O8). Network checks run against in-process stubs
 // injected through health's module parameters; nothing here reaches the
 // internet (Test requirements: no live-internet test in CI).
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
+import { X509Certificate } from "node:crypto";
+import { request as httpRequest } from "node:http";
+import { createServer as createTcpServer } from "node:net";
 import { cpSync, existsSync, mkdirSync, readFileSync, utimesSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { DEFAULT_THRESHOLDS, health, pipAuditArgs, readHealthConfig, sendable } from "../../plugins/ow-tools/lib/health.mjs";
-import { packageSet, readLockfile } from "../../plugins/ow-tools/lib/lockfiles.mjs";
+import { ADVISORY_CAP, DEFAULT_THRESHOLDS, cvss3Severity, health, healthText, pipAuditArgs, rateAdvisory, readHealthConfig, sendable } from "../../plugins/ow-tools/lib/health.mjs";
+import { packageSet, parseNpm, parseYarn, readLockfile, versionSource } from "../../plugins/ow-tools/lib/lockfiles.mjs";
+import { attempts as fenceAttempts, installLoopbackFence, uninstallLoopbackFence } from "./loopback-fence.mjs";
 import { blockedAddress, createNet } from "../../plugins/ow-tools/lib/net.mjs";
 import { digestTree } from "../../plugins/ow-tools/lib/digest.mjs";
 import { HAS_OPENSSL, startStubs } from "./health-stubs.mjs";
@@ -15,6 +19,13 @@ import { ROOT, cleanup, cli, stub, tempDir, write } from "./helpers.js";
 
 const SPAWN = { timeout: 30_000 };
 afterAll(cleanup);
+// F-016: every in-process stub run in this file is fenced to loopback, so a
+// regression that bypasses the injected connector fails with nothing sent.
+beforeAll(installLoopbackFence);
+afterAll(() => {
+  uninstallLoopbackFence();
+  expect(fenceAttempts).toEqual([]);
+});
 const FIX = join(ROOT, "tests", "fixtures", "ow-tools", "sprint-t");
 const FENCE = join(ROOT, "tests", "ow-tools", "fence.mjs");
 const NODE_DIR = process.execPath.replace(/\/node$/, "");
@@ -241,7 +252,7 @@ describe.skipIf(!HAS_OPENSSL)("ow-tools health against stub services (C12–C14)
     const log = join(tempDir(), "fence.log");
     const r = spawnSync(process.execPath, ["--import", FENCE, join(ROOT, "tests", "ow-tools", "health-child.mjs"), tempDir(), join(d, "health.yaml")], {
       encoding: "utf8",
-      env: { ...process.env, HOME: home, PATH: `${bin}:${NODE_DIR}:/usr/bin:/bin`, OW_FENCE_LOG: log, OW_FENCE_FS: "1", OW_FENCE_NET: "0" },
+      env: { ...process.env, HOME: home, PATH: `${bin}:${NODE_DIR}:/usr/bin:/bin`, OW_FENCE_LOG: log, OW_FENCE_FS: "1", OW_FENCE_NET: "loopback" },
     });
     expect(r.status, r.stderr).toBe(0);
     expect(JSON.parse(r.stdout).summary.attention).toBeGreaterThan(0);
@@ -270,7 +281,7 @@ describe("ow-tools health under --no-network and the fence (C15, C25 c)", SPAWN,
     for (const c of ["tls", "domain", "http", "outdated", "python-advisories"]) {
       for (const x of r.json.results.filter((y) => y.check === c)) expect(x.reason, c).toBe("network off");
     }
-    expect(byCheck(r.json, "advisories").reason).toBe("network off (4 packages read: 3 public, 1 held back)");
+    expect(byCheck(r.json, "advisories")).toMatchObject({ reason: "network off", detail: "4 packages read: 3 would be sent, 1 held back" });
     expect(byCheck(r.json, "backup").result).toBe("OK");
     expect(r.json.requests).toEqual([]);
   });
@@ -291,7 +302,8 @@ describe("ow-tools health under --no-network and the fence (C15, C25 c)", SPAWN,
 
 describe("pip-audit (O8): no-install mode only, argv pinned", SPAWN, () => {
   it("pins the argv: -r with --disable-pip and --no-deps, never the installing mode", () => {
-    expect(pipAuditArgs("/w/requirements.txt")).toEqual(["-r", "/w/requirements.txt", "--disable-pip", "--no-deps", "--format", "json", "--progress-spinner", "off"]);
+    // OD-7: pinned to OSV, so Python names go to a destination already on the list.
+    expect(pipAuditArgs("/w/requirements.txt")).toEqual(["-r", "/w/requirements.txt", "--disable-pip", "--no-deps", "--vulnerability-service", "osv", "--format", "json", "--progress-spinner", "off"]);
   });
 
   async function withStub(requirements) {
@@ -322,5 +334,244 @@ describe("pip-audit (O8): no-install mode only, argv pinned", SPAWN, () => {
     const { r, argv } = await withStub("requests>=2\n");
     expect(argv).toBeNull();
     expect(byCheck(r, "python-advisories").reason).toMatch(/not fully pinned/);
+  });
+});
+
+// ---- Sprint T round 2 -------------------------------------------------------------
+// Each block names the evaluator plant (H-, eval-round-1) or review finding
+// (SA-/F-) it pins, so none of them can be reintroduced without a failure.
+
+const lockfileOf = (form) => (form.startsWith("npm") ? "package-lock.json" : form.startsWith("pnpm") ? "pnpm-lock.yaml" : "yarn.lock");
+
+// Remove the registry URL lodash resolved from, in whatever form the lockfile
+// records it, so its source becomes "unrecorded" in every form.
+function unrecordLodash(form, text) {
+  if (form.startsWith("npm")) {
+    const j = JSON.parse(text);
+    if (j.packages) delete j.packages["node_modules/lodash"].resolved;
+    if (j.dependencies) delete j.dependencies.lodash.resolved;
+    return JSON.stringify(j, null, 2);
+  }
+  if (form === "yarn-v1") return text.replace(/(lodash@\^4\.17\.21:\n {2}version "4\.17\.21"\n) {2}resolved "[^"]+"\n/, "$1");
+  return text; // pnpm and yarn berry never record it
+}
+
+describe.skipIf(!HAS_OPENSSL)("round 2: what leaves the machine (Bug 1, H17, H18, SA-014)", SPAWN, () => {
+  async function runWith(d) {
+    const stubs = await startStubs(tempDir());
+    try {
+      const r = await health({ config: join(d, "health.yaml") }, stubs.deps);
+      return { r, stubs, sent: stubs.requests.map((q) => `${q.method} ${q.host}${q.path} ${q.body}`).join("\n") };
+    } finally {
+      await stubs.close();
+    }
+  }
+
+  it("Bug 1: an npm v1 git or tarball dependency is never sent, even under registry: public", async () => {
+    const d = workspace({ lock: "npm-v1" });
+    const lock = JSON.parse(readFileSync(join(d, "app", "package-lock.json"), "utf8"));
+    lock.dependencies["acme-core"] = { version: "git+ssh://git@github.example/acme-client/acme-core.git#0123456789abcdef", from: "git+ssh://git@github.example/acme-client/acme-core.git" };
+    lock.dependencies["acme-ui"] = { version: "https://npm.acme-client.internal/acme-ui/-/acme-ui-2.0.0.tgz" };
+    lock.dependencies["acme-alias"] = { version: "npm:left-pad@1.3.0" };
+    lock.dependencies["acme-local"] = { version: "file:../acme-local" };
+    writeFileSync(join(d, "app", "package-lock.json"), JSON.stringify(lock));
+    const pkg = JSON.parse(readFileSync(join(d, "app", "package.json"), "utf8"));
+    Object.assign(pkg.dependencies, { "acme-core": "github:acme-client/acme-core", "acme-ui": "https://npm.acme-client.internal/acme-ui/-/acme-ui-2.0.0.tgz" });
+    writeFileSync(join(d, "app", "package.json"), JSON.stringify(pkg));
+    expect(readFileSync(join(d, "health.yaml"), "utf8")).toMatch(/^registry: public$/m);
+    const { r, sent } = await runWith(d);
+    expect(sent).not.toMatch(/acme|git\+ssh|npm\.acme-client|github\.example|file:/);
+    for (const n of ["acme-core", "acme-ui", "acme-alias"]) {
+      expect(r.results.find((x) => x.check === "advisories" && x.target.includes(`: ${n}@`)), n).toMatchObject({ result: "not checked", reason: "private registry" });
+    }
+    expect(byCheck(r, "outdated", "acme-core")).toMatchObject({ result: "not checked" });
+    // The same file under --no-network says what would and wouldn't be sent.
+    const off = await health({ config: join(d, "health.yaml"), noNetwork: true }, { env: { ...process.env, OW_TOOLS_HOME: join(tempDir(), "h") } });
+    expect(byCheck(off, "advisories").detail).toBe("7 packages read: 3 would be sent, 4 held back");
+  });
+
+  it("Bug 1 / OD-1: a version that isn't plain semver is held in every source state", () => {
+    const cfg = { private_scopes: [], registry: "public" };
+    for (const version of ["git+https://git.example/x.git#abc", "github:acme/x", "https://h.example/x-1.0.0.tgz", "npm:other@1.0.0", "file:../x", "acme/x", "1.0", "latest"]) {
+      for (const source of ["public", "unrecorded", "private", "local"]) {
+        expect(sendable([{ name: "x", version, source }], cfg).send, `${version} ${source}`).toEqual([]);
+      }
+    }
+    expect(versionSource("git+ssh://git@h/x.git")).toBe("private");
+    // The parsers apply it themselves, before sendable's backstop sees anything.
+    const v1 = { lockfileVersion: 1, dependencies: { a: { version: "git+ssh://git@h/a.git#1" }, b: { version: "https://h.example/b-1.0.0.tgz" }, c: { version: "1.0.0" } } };
+    expect(parseNpm(v1).map((x) => `${x.name}:${x.source}`)).toEqual(["a:private", "b:private", "c:unrecorded"]);
+    expect(parseYarn('"d@github:acme/d":\n  version "github:acme/d#abc"\n').packages.map((x) => x.source)).toEqual(["private"]);
+    expect(versionSource("file:../x")).toBe("local");
+    expect(versionSource("1.2.3-beta.1+build.7")).toBe(null);
+  });
+
+  it.each(["npm-v1", "npm-v2", "npm-v3", "pnpm-v6", "pnpm-v9", "yarn-v1", "yarn-berry"])(
+    "H17 / H18: in %s, a package whose registry isn't recorded is sent only under registry: public",
+    async (form) => {
+      for (const declared of [false, true]) {
+        const d = workspace({ lock: form });
+        const f = join(d, "app", lockfileOf(form));
+        writeFileSync(f, unrecordLodash(form, readFileSync(f, "utf8")));
+        if (!declared) writeFileSync(join(d, "health.yaml"), readFileSync(join(d, "health.yaml"), "utf8").replace("registry: public\n", ""));
+        const { r, stubs } = await runWith(d);
+        const batch = stubs.requests.find((q) => q.path === "/v1/querybatch");
+        const names = batch ? JSON.parse(batch.body).queries.map((q) => q.package.name) : [];
+        expect(names.includes("lodash"), `${form} declared=${declared}`).toBe(declared);
+        expect(stubs.requests.some((q) => q.path === "/lodash/latest"), `${form} npm declared=${declared}`).toBe(declared);
+        if (!declared) expect(byCheck(r, "advisories", "lodash@4.17.21").reason).toMatch(/^registry not recorded in the lockfile/);
+      }
+    },
+  );
+
+  it("SA-014: the project's own npm scope is held back without being listed", async () => {
+    const d = workspace({ lock: "npm-v3" });
+    const lock = JSON.parse(readFileSync(join(d, "app", "package-lock.json"), "utf8"));
+    lock.packages["node_modules/@harbor-co/ui"] = { version: "1.0.0", resolved: "https://registry.npmjs.org/@harbor-co/ui/-/ui-1.0.0.tgz" };
+    writeFileSync(join(d, "app", "package-lock.json"), JSON.stringify(lock));
+    const pkg = JSON.parse(readFileSync(join(d, "app", "package.json"), "utf8"));
+    pkg.name = "@harbor-co/app";
+    pkg.dependencies["@harbor-co/ui"] = "^1.0.0";
+    writeFileSync(join(d, "app", "package.json"), JSON.stringify(pkg));
+    const { r, sent } = await runWith(d);
+    expect(sent).not.toContain("@harbor-co");
+    expect(byCheck(r, "advisories", "@harbor-co/ui@1.0.0")).toMatchObject({ result: "not checked", reason: "private scope" });
+    expect(sendable([{ name: "@harbor-co/ui", version: "1.0.0", source: "public" }], { private_scopes: [], ownScope: "@harbor-co" }).held[0].why).toBe("private scope");
+  });
+});
+
+describe.skipIf(!HAS_OPENSSL)("round 2: advisories that can't be rated are never OK (SA-012 / F-013)", SPAWN, () => {
+  const osv = (vulnsFor, details) => ({
+    "api.osv.dev": (req, body) => {
+      if (req.method === "POST") return { status: 200, json: { results: JSON.parse(body).queries.map((q) => ({ vulns: (vulnsFor[q.package.name] || []).map((id) => ({ id })) })) } };
+      const id = decodeURIComponent(req.url.replace("/v1/vulns/", ""));
+      return details(id);
+    },
+  });
+  async function rows(routes) {
+    const d = workspace();
+    const stubs = await startStubs(tempDir(), { routes });
+    try {
+      return await health({ config: join(d, "health.yaml") }, stubs.deps);
+    } finally {
+      await stubs.close();
+    }
+  }
+
+  it("a MAL- entry is critical; a CVSS-only advisory is rated from its vector; a failed detail fetch is attention", async () => {
+    const r = await rows(osv({ lodash: ["MAL-2026-0001"], "left-pad": ["GHSA-cvss-only"], "@babel/code-frame": ["GHSA-gone"] }, (id) => {
+      if (id === "MAL-2026-0001") return { status: 200, json: { id, summary: "Malicious code", database_specific: { "malicious-packages-origins": [{ source: "ossf" }] } } };
+      if (id === "GHSA-cvss-only") return { status: 200, json: { id, severity: [{ type: "CVSS_V3", score: "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N" }] } }; // 8.1
+      return { status: 503, json: {} };
+    }));
+    expect(byCheck(r, "advisories", "lodash@4.17.21")).toMatchObject({ result: "attention", detail: "MAL-2026-0001 (critical)" });
+    expect(byCheck(r, "advisories", "left-pad@1.3.0")).toMatchObject({ result: "attention", detail: "GHSA-cvss-only (high)" });
+    expect(byCheck(r, "advisories", "@babel/code-frame@7.12.13")).toMatchObject({ result: "attention" });
+    expect(byCheck(r, "advisories", "@babel/code-frame@7.12.13").detail).toMatch(/unknown \(detail not fetched\).*severity not available/);
+  });
+
+  it("an advisory with no severity at all is attention, not 'listed below the threshold'", async () => {
+    const r = await rows(osv({ lodash: ["GHSA-bare"] }, (id) => ({ status: 200, json: { id } })));
+    expect(byCheck(r, "advisories", "lodash@4.17.21")).toMatchObject({ result: "attention" });
+    expect(byCheck(r, "advisories", "lodash@4.17.21").detail).toMatch(/GHSA-bare \(unknown\); severity not available/);
+  });
+
+  it("ids past the 200th are not rated, and that makes the package attention", async () => {
+    expect(ADVISORY_CAP).toBe(200);
+    const ids = Array.from({ length: 201 }, (_, k) => `GHSA-low-${String(k).padStart(3, "0")}`);
+    const r = await rows(osv({ lodash: ids }, (id) => ({ status: 200, json: { id, database_specific: { severity: "LOW" } } })));
+    const row = byCheck(r, "advisories", "lodash@4.17.21");
+    expect(row.result).toBe("attention");
+    expect(row.detail).toContain("GHSA-low-200 (not rated (more than 200 advisories))");
+    expect(row.advisories.filter((a) => a.severity === "low")).toHaveLength(200);
+  });
+
+  it("rates CVSS 3 vectors to the published bands", () => {
+    expect(cvss3Severity("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H")).toBe("critical"); // 9.8
+    expect(cvss3Severity("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N")).toBe("critical"); // 9.1
+    expect(cvss3Severity("CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N")).toBe("high"); // 8.1
+    expect(cvss3Severity("CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N")).toBe("moderate"); // 6.1
+    expect(cvss3Severity("CVSS:3.1/AV:L/AC:H/PR:H/UI:R/S:U/C:L/I:N/A:N")).toBe("low"); // 1.6
+    expect(cvss3Severity("CVSS:4.0/AV:N")).toBe(null);
+    expect(rateAdvisory({ id: "GHSA-x", database_specific: { severity: "MEDIUM" } })).toBe("moderate");
+  });
+});
+
+describe.skipIf(!HAS_OPENSSL)("round 2: the network rules' variants (H03, H09, H10, H15)", SPAWN, () => {
+  async function run(config, opts = {}) {
+    const d = workspace({ config });
+    const stubs = await startStubs(tempDir(), opts);
+    try {
+      const r = await health({ config: join(d, "health.yaml") }, stubs.deps);
+      return { r, stubs };
+    } finally {
+      await stubs.close();
+    }
+  }
+
+  it("H03: a redirect to the same host is reported, not followed", async () => {
+    const { r, stubs } = await run("schema: 1\nurls: [https://app.example.com/same]\n");
+    expect(byCheck(r, "http")).toMatchObject({ result: "attention", detail: "HTTP 302, redirects to app.example.com; not followed" });
+    expect(stubs.requests.map((q) => q.path)).toEqual(["/same"]);
+  });
+
+  it.each([
+    [["203.0.113.10", "10.0.0.5"]],
+    [["10.0.0.5", "203.0.113.10"]],
+    [["203.0.113.10", "::1"]],
+    [["2606:4700::1111", "fd00:ec2::254"]],
+  ])("H10: a DNS answer %j with any blocked address is refused, and nothing connects", async (answer) => {
+    const { r, stubs } = await run("schema: 1\nhosts: [app.example.com]\nurls: [https://app.example.com/health]\n", { addresses: { "app.example.com": answer } });
+    expect(byCheck(r, "tls").reason).toBe("address-not-allowed");
+    expect(byCheck(r, "http").reason).toBe("address-not-allowed");
+    expect(stubs.connectorCalls).toEqual([]);
+  });
+
+  it("H09: with several public answers, the socket goes to the address that was checked first", async () => {
+    const { stubs } = await run("schema: 1\nhosts: [app.example.com]\nurls: [https://app.example.com/health]\n", { addresses: { "app.example.com": ["203.0.113.10", "203.0.113.11", "203.0.113.12"] } });
+    expect(stubs.connectorCalls.length).toBe(2);
+    for (const c of stubs.connectorCalls) expect(c.address).toBe("203.0.113.10");
+  });
+
+  it("H15: a certificate or a domain exactly 30 days from expiry is attention (the threshold is ≤ 30)", async () => {
+    const stubsForDate = await startStubs(tempDir());
+    const validTo = Date.parse(new X509Certificate(stubsForDate.certs.short).validTo);
+    await stubsForDate.close();
+    const old = process.env.OW_TOOLS_NOW;
+    process.env.OW_TOOLS_NOW = new Date(validTo - 30 * 86400000 - 3600000).toISOString(); // 30 days and an hour before expiry
+    try {
+      const now = Date.parse(process.env.OW_TOOLS_NOW);
+      const { r } = await run("schema: 1\nhosts: [app.example.com]\ndomains: [edge.com]\n", { now });
+      expect(byCheck(r, "tls")).toMatchObject({ result: "attention" });
+      expect(byCheck(r, "tls").detail).toMatch(/\(30 days\)$/);
+      expect(byCheck(r, "domain")).toMatchObject({ result: "attention" });
+      expect(byCheck(r, "domain").detail).toMatch(/\(30 days\)$/);
+    } finally {
+      if (old === undefined) delete process.env.OW_TOOLS_NOW;
+      else process.env.OW_TOOLS_NOW = old;
+    }
+  });
+
+  it("F-016: Node fires a request's 'socket' event before it writes a byte, which is where net.mjs checks the socket", async () => {
+    let bytes = 0;
+    const srv = createTcpServer((s) => s.on("data", (b) => (bytes += b.length)));
+    await new Promise((res) => srv.listen(0, "127.0.0.1", res));
+    const req = httpRequest({ host: "127.0.0.1", port: srv.address().port, method: "POST", path: "/x", agent: false, headers: { "content-length": "5" } });
+    req.on("socket", () => req.destroy(new Error("stop")));
+    req.on("error", () => {});
+    req.end("hello");
+    await new Promise((res) => setTimeout(res, 200));
+    srv.close();
+    expect(bytes).toBe(0);
+    expect(readFileSync(join(ROOT, "plugins", "ow-tools", "lib", "net.mjs"), "utf8")).toMatch(/req\.on\("socket", \(sock\) => \{\n\s+if \(sock\?\.\[CHECKED\] !== address\) req\.destroy/);
+  });
+});
+
+describe("round 2: health's text output (Bug 14)", () => {
+  it("prints the result in one column and the reason in the detail column", () => {
+    const text = healthText({ summary: { ok: 1, attention: 0, not_checked: 1 }, network: "off", note: "n", results: [{ check: "tls", target: "app.example.com", result: "not checked", reason: "network off" }, { check: "advisories", target: "package-lock.json", result: "not checked", reason: "network off", detail: "4 packages read" }] });
+    expect(text).not.toMatch(/not checked \(/);
+    expect(text).toContain("not checked  tls                app.example.com — network off");
+    expect(text).toContain("package-lock.json — network off; 4 packages read");
   });
 });

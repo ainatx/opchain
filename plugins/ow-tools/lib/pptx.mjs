@@ -65,6 +65,12 @@ export function deckChecks(lines) {
       return;
     }
     if (!l.trim()) return;
+    // A thematic break (or a setext underline) starts a new slide in pandoc
+    // (Bug 4): refused before pandoc runs.
+    if (/^\s{0,3}([-*_])(\s*\1){2,}\s*$/.test(l)) {
+      bad(i, "a line of ---, *** or ___ (a thematic break or a setext heading) would start an extra slide; use ## headings for slides");
+      return;
+    }
     if (!slide) {
       if (seenH1) bad(i, "text between the title (#) and the first slide (##); put it on a slide");
       return;

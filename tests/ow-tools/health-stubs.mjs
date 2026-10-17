@@ -46,11 +46,15 @@ function defaultRoutes(now) {
     "rdap.example.test": (req) => {
       if (req.url === "/domain/example.com") return { status: 200, json: { ldhName: "example.com", events: [{ eventAction: "registration", eventDate: "2000-01-01T00:00:00Z" }, { eventAction: "expiration", eventDate: new Date(now + 200 * day).toISOString() }] } };
       if (req.url === "/domain/soon.com") return { status: 200, json: { events: [{ eventAction: "expiration", eventDate: new Date(now + 10 * day).toISOString() }] } };
+      // Exactly the threshold: 30 days and an hour away is "30 days".
+      if (req.url === "/domain/edge.com") return { status: 200, json: { events: [{ eventAction: "expiration", eventDate: new Date(now + 30 * day + 3600000).toISOString() }] } };
       return { status: 404, json: {} };
     },
     "app.example.com": (req) => {
       if (req.url === "/health") return { status: 200, text: "ok" };
       if (req.url === "/moved") return { status: 301, text: "", headers: { location: "https://elsewhere.example.org/next" } };
+      if (req.url === "/same") return { status: 302, text: "", headers: { location: "https://app.example.com/landing" } };
+      if (req.url === "/landing") return { status: 200, text: "followed" };
       if (req.url === "/big") return { status: 200, text: "x".repeat(200 * 1024) };
       return { status: 404, text: "" };
     },
@@ -104,6 +108,7 @@ export async function startStubs(dir, { now = Date.now(), addresses = {}, routes
   };
   return {
     deps,
+    certs: { long: long.cert, short: short.cert },
     requests,
     resolverCalls,
     connectorCalls,

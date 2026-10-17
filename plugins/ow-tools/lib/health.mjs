@@ -7,7 +7,7 @@ import { lstatSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { dataHome, nowDate, refused, run, usage, which } from "./core.mjs";
 import { writePrivate } from "./guards.mjs";
-import { LOCKFILES, directDeps, packageSet, readLockfile } from "./lockfiles.mjs";
+import { LOCKFILES, PLAIN_SEMVER, directDeps, packageSet, projectScope, readLockfile } from "./lockfiles.mjs";
 import { DESTINATIONS, NetError, createNet } from "./net.mjs";
 
 // ---- health.yaml -------------------------------------------------------------
@@ -187,6 +187,7 @@ const ok = (check, target, detail) => ({ check, target, result: "OK", detail });
 const attention = (check, target, detail, extra = {}) => ({ check, target, result: "attention", detail, ...extra });
 const notChecked = (check, target, reason) => ({ check, target, result: "not checked", reason });
 const SEVERITY = ["low", "moderate", "high", "critical"];
+export const ADVISORY_CAP = 200;
 const DAY = 86400000;
 const daysUntil = (when, now) => Math.floor((when.getTime() - now.getTime()) / DAY);
 
@@ -236,20 +237,60 @@ function lockfilePackages(cfg) {
 
 // Which packages may be sent: public registry only, never a private scope,
 // and "unrecorded" (pnpm, yarn berry) only when health.yaml says registry: public.
+// The project's own npm scope (from package.json's name) is held back like a
+// listed private scope (SA-014). A version that isn't plain semver (a URL, a
+// git spec, an alias or a path) is never sent, whatever `registry` says (OD-1).
 export function sendable(pkgs, cfg) {
+  const scopes = [...cfg.private_scopes, ...(cfg.ownScope ? [cfg.ownScope] : [])];
   const send = [];
   const held = [];
   for (const p of pkgs) {
-    const privateScope = cfg.private_scopes.some((s) => p.name.startsWith(`${s}/`));
-    if (!privateScope && (p.source === "public" || (p.source === "unrecorded" && cfg.registry === "public"))) send.push(p);
-    else held.push({ ...p, why: privateScope ? "private scope" : p.source === "unrecorded" ? "registry not recorded in the lockfile" : p.source === "local" ? "local package" : "private registry" });
+    const privateScope = scopes.some((s) => p.name.startsWith(`${s}/`));
+    const plain = PLAIN_SEMVER.test(String(p.version));
+    if (!privateScope && plain && (p.source === "public" || (p.source === "unrecorded" && cfg.registry === "public"))) send.push(p);
+    else {
+      const why = privateScope ? "private scope" : p.source === "local" ? "local package" : !plain || p.source === "private" ? "private registry" : "registry not recorded in the lockfile";
+      held.push({ ...p, why });
+    }
   }
   return { send, held };
 }
 
+// CVSS 3.x base score from a vector, for advisories without a named
+// severity (SA-012). Anything else is "unknown", which is never OK.
+export function cvss3Severity(vector) {
+  const m = /^CVSS:3\.[01]\/(.*)$/.exec(String(vector || ""));
+  if (!m) return null;
+  const v = Object.fromEntries(m[1].split("/").map((kv) => kv.split(":")));
+  const W = { AV: { N: 0.85, A: 0.62, L: 0.55, P: 0.2 }, AC: { L: 0.77, H: 0.44 }, UI: { N: 0.85, R: 0.62 }, CIA: { H: 0.56, L: 0.22, N: 0 } };
+  const changed = v.S === "C";
+  const PR = { N: 0.85, L: changed ? 0.68 : 0.62, H: changed ? 0.5 : 0.27 }[v.PR];
+  const [av, ac, ui, c, i, a] = [W.AV[v.AV], W.AC[v.AC], W.UI[v.UI], W.CIA[v.C], W.CIA[v.I], W.CIA[v.A]];
+  if ([av, ac, ui, c, i, a, PR].some((x) => x === undefined) || !["U", "C"].includes(v.S)) return null;
+  const iss = 1 - (1 - c) * (1 - i) * (1 - a);
+  const impact = changed ? 7.52 * (iss - 0.029) - 3.25 * (iss - 0.02) ** 15 : 6.42 * iss;
+  const expl = 8.22 * av * ac * PR * ui;
+  const roundUp = (x) => Math.ceil(x * 10 - 1e-9) / 10;
+  const score = impact <= 0 ? 0 : roundUp(Math.min(changed ? 1.08 * (impact + expl) : impact + expl, 10));
+  return score >= 9 ? "critical" : score >= 7 ? "high" : score >= 4 ? "moderate" : "low";
+}
+
+export function rateAdvisory(j) {
+  const id = String(j?.id || "");
+  if (/^MAL-/.test(id) || j?.database_specific?.["malicious-packages-origins"]) return "critical";
+  const s = String(j?.database_specific?.severity || "").toLowerCase();
+  if (s === "medium") return "moderate";
+  if (SEVERITY.includes(s)) return s;
+  for (const sev of Array.isArray(j?.severity) ? j.severity : []) {
+    const r = /^CVSS_V3/.test(sev?.type || "") ? cvss3Severity(sev.score) : null;
+    if (r) return r;
+  }
+  return "unknown";
+}
+
 async function advisories(net, file, pkgs, cfg) {
   const { send, held } = sendable(pkgs, cfg);
-  const results = held.map((p) => notChecked("advisories", `${file}: ${p.name}@${p.version}`, p.why === "registry not recorded in the lockfile" ? "registry not recorded in the lockfile; add registry: public to health.yaml if every package comes from the public npm registry" : p.why === "local package" ? "local package" : "private registry"));
+  const results = held.map((p) => notChecked("advisories", `${file}: ${p.name}@${p.version}`, p.why === "registry not recorded in the lockfile" ? "registry not recorded in the lockfile; add registry: public to health.yaml if every package comes from the public npm registry" : p.why));
   if (!send.length) return results;
   const hits = new Map(); // id → [pkg]
   for (let k = 0; k < send.length; k += 1000) {
@@ -276,25 +317,30 @@ async function advisories(net, file, pkgs, cfg) {
       }
     });
   }
-  const ids = [...hits.keys()].slice(0, 200);
-  const severity = new Map();
+  // Fail closed (SA-012): a malware entry is critical; an advisory whose
+  // severity can't be read, whose detail fetch failed, or that lies past the
+  // 200 ow-tools rates, is attention, never OK.
+  const all = [...hits.keys()];
+  const ids = all.slice(0, ADVISORY_CAP);
+  const severity = new Map(all.slice(ADVISORY_CAP).map((id) => [id, "not rated (more than 200 advisories)"]));
   await pool(ids, 6, async (id) => {
     try {
       const r = await net.request(`https://${DESTINATIONS.osv}/v1/vulns/${encodeURIComponent(id)}`, { cap: 512 * 1024 });
-      const j = JSON.parse(r.body.toString("utf8"));
-      const s = String(j?.database_specific?.severity || "").toLowerCase();
-      severity.set(id, s === "medium" ? "moderate" : SEVERITY.includes(s) ? s : "unknown");
+      if (r.status !== 200) throw new Error("not 200");
+      severity.set(id, rateAdvisory(JSON.parse(r.body.toString("utf8"))));
     } catch {
-      severity.set(id, "unknown");
+      severity.set(id, "unknown (detail not fetched)");
     }
   });
   const min = SEVERITY.indexOf(cfg.thresholds.advisory);
   const byPkg = new Map();
   for (const [id, list] of hits) for (const p of list) (byPkg.get(`${p.name}@${p.version}`) || byPkg.set(`${p.name}@${p.version}`, []).get(`${p.name}@${p.version}`)).push({ id, severity: severity.get(id) || "unknown" });
   for (const [k, list] of byPkg) {
-    const top = list.some((a) => SEVERITY.indexOf(a.severity) >= min);
+    const unrated = list.filter((a) => !SEVERITY.includes(a.severity));
+    const top = unrated.length > 0 || list.some((a) => SEVERITY.indexOf(a.severity) >= min);
     const detail = list.map((a) => `${a.id} (${a.severity})`).join(", ");
-    results.push(top ? attention("advisories", `${file}: ${k}`, detail, { advisories: list }) : { check: "advisories", target: `${file}: ${k}`, result: "OK", detail: `listed below the threshold: ${detail}`, advisories: list });
+    const why = unrated.length ? `${detail}; severity not available, so not rated below the threshold` : detail;
+    results.push(top ? attention("advisories", `${file}: ${k}`, why, { advisories: list }) : { check: "advisories", target: `${file}: ${k}`, result: "OK", detail: `listed below the threshold: ${detail}`, advisories: list });
   }
   const clean = send.length - byPkg.size;
   results.push(ok("advisories", file, `${send.length} package(s) sent to the advisory service; ${clean} with no known advisory`));
@@ -331,7 +377,7 @@ async function outdated(net, file, pkgs, cfg) {
 // pip-audit (O8): only with a fully pinned requirements file, and only in its
 // no-install mode, so it never builds an environment or installs anything.
 export function pipAuditArgs(file) {
-  return ["-r", file, "--disable-pip", "--no-deps", "--format", "json", "--progress-spinner", "off"];
+  return ["-r", file, "--disable-pip", "--no-deps", "--vulnerability-service", "osv", "--format", "json", "--progress-spinner", "off"];
 }
 
 function python(cfg, noNetwork) {
@@ -485,6 +531,7 @@ export async function health({ config, noNetwork = false }, deps = {}) {
     throw usage("no health.yaml at the --config path");
   }
   const cfg = readHealthConfig(text, dirname(path));
+  cfg.ownScope = cfg.repo ? projectScope(cfg.repo) : null;
   const now = nowDate();
   const env = deps.env || process.env;
   const requests = [];
@@ -507,7 +554,7 @@ export async function health({ config, noNetwork = false }, deps = {}) {
       const set = packageSet(l.packages);
       if (noNetwork) {
         const { send, held } = sendable(set, cfg);
-        results.push(notChecked("advisories", l.file, `network off (${set.length} packages read: ${send.length} public, ${held.length} held back)`), notChecked("outdated", l.file, "network off"));
+        results.push({ ...notChecked("advisories", l.file, "network off"), detail: `${set.length} packages read: ${send.length} would be sent, ${held.length} held back` }, notChecked("outdated", l.file, "network off"));
         continue;
       }
       results.push(...(await advisories(net, l.file, set, cfg)), ...(await outdated(net, l.file, set, cfg)));
@@ -539,10 +586,11 @@ export async function health({ config, noNetwork = false }, deps = {}) {
 }
 
 export function healthText(r) {
-  const lines = [`ow-tools health — ${r.summary.ok} OK · ${r.summary.attention} attention · ${r.summary.not_checked} not checked (network ${r.network})`, ""];
+  const lines = [`ow-tools health — ${r.summary.ok} OK · ${r.summary.attention} attention · ${r.summary.not_checked} not checked · network ${r.network}`, ""];
+  // One column for the result, the reason in the detail column (Bug 14).
   for (const x of r.results) {
-    const res = x.result === "not checked" ? `not checked (${x.reason})` : x.result;
-    lines.push(`${res.padEnd(12)} ${x.check.padEnd(17)} ${x.target}${x.detail ? ` — ${x.detail}` : ""}`);
+    const said = [x.reason, x.detail].filter(Boolean).join("; ");
+    lines.push(`${x.result.padEnd(11)}  ${x.check.padEnd(17)}  ${x.target}${said ? ` — ${said}` : ""}`);
   }
   lines.push("", r.note);
   return lines.join("\n");

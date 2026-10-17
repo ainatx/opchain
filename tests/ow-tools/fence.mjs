@@ -38,7 +38,13 @@ try {
   /* absent */
 }
 
-const NET = process.env.OW_FENCE_NET !== "0";
+// OW_FENCE_NET: unset = every socket, DNS and fetch call fails; "loopback" =
+// only 127.0.0.1 sockets are allowed (the in-process stub servers); "0" = off.
+const NET = !["0", "loopback"].includes(process.env.OW_FENCE_NET ?? "");
+if (process.env.OW_FENCE_NET === "loopback") {
+  const { installLoopbackFence } = await import("./loopback-fence.mjs");
+  installLoopbackFence();
+}
 if (NET) {
   net.connect = trap("net.connect", (a, b) => (typeof a === "number" ? `${b}:${a}` : hostOf(a)));
   net.createConnection = net.connect;
