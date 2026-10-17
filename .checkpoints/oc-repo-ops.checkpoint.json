@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a9151b76e8c402aea",
+  "project_dir": ".",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-17T15:45:46.084Z",
+  "updated_at": "2026-10-17T18:58:39.297Z",
   "skill": "oc-repo-ops",
-  "phase": "pr-readiness",
+  "phase": "pr-verify",
   "status": "complete",
-  "step": "Sprint 2 R4 follow-up (ow-build checker) PR evidence on a4e9547d (origin/main 691afdfe + 2 commits)",
-  "progress_summary": "PR readiness for claude/ow-build-followups at a4e9547d (origin/main 691afdfe + 2 commits): verify-candidate PASS on both commits; npm test green (128 files, 2,624 passing, 9 skipped by name under owner decision 2); the three ow- acceptance checkers, gen-skills-catalog, check-skill-contracts and lint-internal-refs pass; npm run build exits 0 and leaves the tree clean.",
+  "step": "pr-verify-compresshtml",
+  "progress_summary": "Repo readiness PASS for the compressHTML whitespace fix (#622, merged with main at 7d61f85b): docs packet current for HEAD, 2 files changed vs main, no catalog/generated drift, nothing untracked.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -24,27 +24,23 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "The Generator's round-5 honesty set (15 our-side, 15 legitimate) was written before any rule change, but three of its sentences then prompted rule changes (V03 'our standard integration fee', V04 'a 15% complexity premium', W12 spec 'a rate of 40 a day'), so its after-numbers are not untuned; the PR states this.",
-      "Three round-4 plants stay skipped by name under owner decision 2 (G03, G13, G14: idioms or implied meaning), alongside the six earlier ones."
+      "Local LHCI on /changelog read Best Practices 0.96 (gate 0.95): /api/votes 404 from scripts/lhci-preview.mjs after a local gen-roadmap. CI Lighthouse does not generate roadmap data, so it does not fetch votes; unrelated to this diff."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "a4e9547d109c19aeb3432b78aec03f5a4816a7b2",
+    "verified_for_sha": "7d61f85b824b6d80981290c65555f5b9bf2633ec",
     "last_verify": {
-      "at": "2026-10-17T15:45:46.084Z",
-      "branch": "claude/ow-build-followups",
-      "base": "main",
+      "at": "2026-10-17T18:58:38.842Z",
+      "branch": "claude/unruffled-lamarr-f92540",
+      "base": "origin/main@05afedd1",
       "verdict": "PASS",
       "blocking_findings": []
     }
   },
-  "next_actions": [
-    "Push claude/ow-build-followups and open the PR to main",
-    "Watch CI on the PR"
-  ],
+  "next_actions": [],
   "handoffs": [
     {
       "id": "oc-repo-ops-release-f6b167fcbd3a",
@@ -1837,8 +1833,75 @@
           "docs/plans/2026-10-08-ow-build-design.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-sprint-naming-e3f7dcc99173",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-17T18:06:28.937Z",
+      "verified_at": "2026-10-17T18:06:28.937Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-sprint-naming"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:e3f7dcc991731d0deed48c2d731297d8ed28517e4ece13db1b08c55505f5fe2a"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/sprint-naming at 11f6c390 on origin/main 90e61149 (#618). Two files under sprints/release-2.1/; none under skills/, skills-work/, plugins/, site/, src/, scripts/ or package.json, so no catalog, bundle, plugin or release-surface output can change. check-skill-contracts and checkpoint:validate pass; candidate verifier PASS receipt covers tree e3719d96; no untracked files.",
+        "evidence": [
+          "sprints/release-2.1/ow-family-sprint-plan.md",
+          "sprints/release-2.1/track-s-site-surfaces.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-099eb1cd1b57",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-17T18:34:44.439Z",
+      "verified_at": "2026-10-17T18:34:44.439Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-17T18:34:44.439Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:099eb1cd1b57d0c2f5525a5e1d0b004b79bde1aa802ff4db10b6e109070f8452"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/track-e-router-disclosure at aec343f1 on origin/main 9f32774a. Four files (plan, CHANGELOG + plugin copy, plugin README), docs only. check-release-surfaces (v2.0 agree), check-skill-contracts, sync-bundles:check pass; pre-commit verifier PASS on the committed tree; no untracked files.",
+        "evidence": [
+          "skills/CHANGELOG.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-4417a15cff04",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-17T18:58:39.296Z",
+      "verified_at": "2026-10-17T18:58:39.296Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-17T18:58:39.296Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:4417a15cff04d1d8e436405a7611f01a65e47d882d39bdfbc9879ff9f998f793"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "PR readiness for compressHTML: true + html-whitespace e2e guard (#622 at 7d61f85b): docs packet current, no catalog/generated drift, clean tree"
+      }
     }
   ],
-  "record_updated_at": "2026-10-17T15:45:46.084Z",
+  "record_updated_at": "2026-10-17T18:58:39.297Z",
   "blockers": []
 }
