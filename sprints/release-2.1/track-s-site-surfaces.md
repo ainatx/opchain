@@ -1,6 +1,6 @@
-# Track S: 2.1 site surfaces — workstream plan
+# Track S (WEB): 2.1 site surfaces — workstream plan
 
-**Date:** 2026-10-16 · **Skill:** oc-app-architect Phase 4 (`/oc-roadmap`), coordinated by oc-orchestrator · **Status:** **APPROVED by the owner 2026-10-16.** S0 built on `claude/track-s-s0-forward`; S1–S5 not started.
+**Date:** 2026-10-16 · **Skill:** oc-app-architect Phase 4 (`/oc-roadmap`), coordinated by oc-orchestrator · **Status:** **APPROVED by the owner 2026-10-16.** WEB-00 (S0) merged in #610; WEB-01 – WEB-05 (S1–S5) not started. **Names:** sprints renamed 2026-10-17 to WEB-00 – WEB-05 (`ow-family-sprint-plan.md` § Sprint names); text below uses the old S0–S5.
 **Base:** `origin/main` @ `ce3dad43` (ow-build-plan 1.0.0, #605).
 **Release:** opchain v2.1.0, one release with two themes (owner, 2026-10-16): (1) the ow- planning family for client work (ow-start, ow-build-plan, ow-build, ow-uat, ow-handoff, plus the Claude Code add-on ow-tools); (2) Track E, enforcement at chokepoints, with the Jev skill router as an experimental preview. One changelog, one tag, one deploy, one release freeze.
 **Relationship to the sprint plan:** this is the parallel track the Track S amendment adds to `sprints/release-2.1/ow-family-sprint-plan.md` ("site surfaces" in Sprint 6, and Track E's E3). That file is not edited here; the Track E amendment (PR #606) is editing it.
@@ -200,7 +200,7 @@ Guards: the `skills` collection schema gains `name: z.string().regex(/^oc-/)`, s
 
 Effort is CLAUDE h | USER h, rough ranges.
 
-### S0: Forward surfaces (now)
+### WEB-00 (S0): Forward surfaces (now)
 
 **Status (2026-10-16):** built on `claude/track-s-s0-forward` (not pushed). See "S0 as built" below.
 
@@ -230,7 +230,7 @@ Not changed (live-claim): Header chip, homepage shipped bar and stat, the Just R
 
 GitHub (F5): no change made. The proposed `gh` commands for D2 are with the orchestrator for the owner to confirm.
 
-### S1: Take over Track E's site work and rework it
+### WEB-01 (S1): Take over Track E's site work and rework it
 
 **Deliverables**
 - Create `claude/track-s-site` with Track E's site diff (§4).
@@ -244,7 +244,7 @@ GitHub (F5): no change made. The proposed `gh` commands for D2 are with the orch
 
 **Depends on** E0 merged (the copy must describe `main`). **Effort:** 5–7 | 1 (JEV review is that session's time).
 
-### S2: The `/work` section
+### WEB-02 (S2): The `/work` section
 
 **Deliverables**
 - Rows 37–44 and 46–48: the `work` collection, `lib/work.ts`, `data/work.ts`, pages for the skills built so far (ow-start, ow-build-plan) and ow-tools, `/work/install` as a stub pointing at the mirror, nav and search entries, `outputs.site`, the `^oc-` schema guard, guard tests, the release-surface probe, axe and Lighthouse entries.
@@ -256,7 +256,7 @@ GitHub (F5): no change made. The proposed `gh` commands for D2 are with the orch
 
 **Depends on** ow- Sprint 1 (merged). Runs alongside S1 on the same branch. **Effort:** 8–12 | 1–2.
 
-### S3: Fill in as the ow- sprints land
+### WEB-03 (S3): Fill in as the ow- sprints land
 
 **Deliverables**
 - After ow- Sprints 2, 3, 4: the `data/work.ts` entry for ow-build, ow-uat, ow-handoff (their pages come from the collection); the overview's stage diagram gains each stage.
@@ -268,7 +268,7 @@ GitHub (F5): no change made. The proposed `gh` commands for D2 are with the orch
 
 **Depends on** ow- Sprints 2–5. **Effort:** 4–6 | 1.
 
-### S4: Blog posts and the copy pass
+### WEB-04 (S4): Blog posts and the copy pass
 
 **Deliverables**
 - The ow- launch post (row 36), `draft: true`, using Sprint 6's one-line outcome per real run.
@@ -281,7 +281,7 @@ GitHub (F5): no change made. The proposed `gh` commands for D2 are with the orch
 
 **Depends on** E1, E2 recorded; Sprint 6 real-use lines. **Effort:** 4–6 | 1–2.
 
-### S5: The release-cut PR (absorbs E3 and Sprint 6's site part)
+### WEB-05 (S5): The release-cut PR (absorbs E3 and Sprint 6's site part)
 
 **Deliverables**
 - Rows 6–19: every live-claim flip, the aging pass, the L5 recount, the counts sweep, the homepage block (D3), the upgrade box, the Skill Library callout, the open hero written from the merged diff with the Experimental block.
