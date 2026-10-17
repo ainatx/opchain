@@ -1,11 +1,47 @@
 # v2.1.0 sprint plan — the ow- family
 
-**Date:** 2026-10-14 · **Skill:** oc-app-architect `/oc-roadmap`, coordinated by oc-orchestrator · **Status:** APPROVED by the owner 2026-10-14. Amendment 2026-10-16 (Track E, enforcement and the skill router) APPROVED by the owner 2026-10-16. **Scope change 2026-10-16 (owner): every skill is released in v2.1.0. The release covers the full client lifecycle (adding `ow-documentation` and `ow-care`) plus `ow-draft`, `ow-research`, `ow-vendor-eval`, `ow-controls` with framework packs, `ow-currency`, and ow-start's meeting and decision logs. Order: design all the remaining skills first, then build them** (§ Scope change below). **Every design approved 2026-10-16; build re-plan approved the same day (§ Build re-plan): two lanes, Sprint T and Sprint 2 start in parallel.**
+**Date:** 2026-10-14 · **Skill:** oc-app-architect `/oc-roadmap`, coordinated by oc-orchestrator · **Status:** APPROVED by the owner 2026-10-14. Amendment 2026-10-16 (Track E, enforcement and the skill router) APPROVED by the owner 2026-10-16. **Scope change 2026-10-16 (owner): every skill is released in v2.1.0. The release covers the full client lifecycle (adding `ow-documentation` and `ow-care`) plus `ow-draft`, `ow-research`, `ow-vendor-eval`, `ow-controls` with framework packs, `ow-currency`, and ow-start's meeting and decision logs. Order: design all the remaining skills first, then build them** (§ Scope change below). **Every design approved 2026-10-16; build re-plan approved the same day (§ Build re-plan): two lanes, Sprint T and Sprint 2 start in parallel.** Sprints renamed 2026-10-17 (§ Sprint names); old names stay in parentheses.
 **Replaces:** `sprints/release-2.1/sprint-plan.md` ("Installs anywhere"), superseded 2026-10-06; its work moves to v2.2.
 **Designs (all approved):** ow-start (2026-10-06), ow-build-plan (2026-10-08, amendments 2026-10-14), ow-build (2026-10-08, §12 builder integration and amendments 2026-10-14), ow-uat (2026-10-14), ow-handoff (2026-10-14), ow-tools (2026-10-09). All under `docs/plans/`.
 **Audits that feed this plan:** `docs/audits/2026-09-18-ow-pack-design-audit.md` (cross-talk contract R1–R16, authoring standard), and the 2026-10-14 diff audits of #596 and #597 plus the ow-tools security posture report.
 
 Effort figures are rough ranges for one maintainer working with Claude, not commitments. Each skill ships at its own version from 1.0.0; the family ships together as opchain v2.1.0. Build order follows the stage order, because every skill reads its upstream's files: a skill is built only after the skill it reads from.
+
+## Sprint names (2026-10-17)
+
+Every sprint is named **workstream prefix + two-digit number**, and the number is the order it is planned to start in within its workstream. Numbers are never reused or reshuffled: a sprint added later takes the next free number in its workstream (no more `3b`-style inserts). The lane (A, the client lifecycle; B, the side skills) is a column in the tables, not part of the name.
+
+| Prefix | Workstream |
+|---|---|
+| `OW` | ow- family builds: the skills and ow-tools |
+| `REL` | Release work for both themes: distribution, real use, the cut |
+| `EN` | Track E: enforcement at chokepoints and the skill router |
+| `WEB` | Track S: the 2.1 site surfaces (`track-s-site-surfaces.md`) |
+
+| Name | Old name | Lane | Builds | State 2026-10-17 |
+|---|---|---|---|---|
+| OW-00 | Sprint 0 | — | Land what was built: ow-start 1.0.0, ow-tools 1.0.0, designs | done |
+| OW-01 | Sprint 1 | A | ow-build-plan 1.0.0 | done (#605, #609) |
+| OW-02 | Sprint 2 | A | ow-build 1.0.0 | done (#616, #618) |
+| OW-03 | Sprint T | — | ow-tools 1.1.0 | in evaluation |
+| OW-04 | Sprint 3 | A | ow-uat 1.0.0 | building |
+| OW-05 | Sprint 3b | A | ow-documentation 1.0.0 | not started |
+| OW-06 | Sprint 4 | A | ow-handoff 1.0.0 | not started |
+| OW-07 | Sprint 4b | A | ow-care 1.0.0 | not started |
+| OW-08 | Sprint L | B | ow-start 1.1.0 logs | not started |
+| OW-09 | Sprint R | B | ow-research 1.0.0 | not started |
+| OW-10 | Sprint D | B | ow-draft 1.0.0 | not started |
+| OW-11 | Sprint V | B | ow-vendor-eval 1.0.0 | not started |
+| OW-12 | Sprint C | B | ow-controls 1.0.0, four packs, `ow-packs` plugin | not started |
+| OW-13 | Sprint Cu | B | ow-currency 1.0.0 | not started |
+| REL-01 | Sprint 5 | — | Distribution and integrity | not started |
+| REL-02 | Sprint 6 | — | Real use and the cut | not started |
+| EN-00 – EN-03 | Sprints E0 – E3 | — | Track E (§ Track E) | EN-00 done (#608) |
+| WEB-00 – WEB-05 | S0 – S5 | — | Track S (`track-s-site-surfaces.md`) | WEB-00 done (#610) |
+
+- **Rounds and follow-ups:** "OW-04 round 2"; a follow-up PR is "OW-02 follow-up".
+- **Files and branches from now on:** contract folder `sprints/release-2.1/ow-05/` (lowercase name), branch `claude/ow-05-<skill>`. Folders and branches that already exist (`ow-sprint-1`, `ow-sprint-2`, `ow-sprint-t`, `ow-sprint-3`) keep their names.
+- **Older text:** everything written before 2026-10-17 (this plan's body text, contracts, evaluation reports, PR titles) uses the old names; the table above maps them. Headings below carry both.
 
 ## Where we start (2026-10-14)
 
@@ -48,24 +84,24 @@ Design order: `ow-documentation`, `ow-care`, the ow-start logs amendment, `ow-dr
 
 ### Sprint list
 
-| Sprint | Lane | Builds | Amendments that land with it | Needs first | CLAUDE | USER |
+| Sprint (old) | Lane | Builds | Amendments that land with it | Needs first | CLAUDE | USER |
 |---|---|---|---|---|---|---|
-| 0 | — | ✅ ow-start 1.0.0, ow-tools 1.0.0, designs | — | — | done | done |
-| 1 | A | ✅ ow-build-plan 1.0.0 | — | 0 | done | done |
-| T | — | **ow-tools 1.1.0:** `digest` (T7), `calc hours` (T4), `export --pptx` (T2), `export --xlsx` (T6), `health` (T3), `capture` (T1); one security review for all six | T5 (calls table) | 0 | 18–26h | 2–3h |
-| 2 | A | **ow-build 1.0.0** | B4 (documentation trigger) | 1 | 14–20h | 1–2h |
-| 3 | A | **ow-uat 1.0.0** (+ `calc --calendar us-federal`) | — | 2 | 17–22h | 1–2h |
-| 3b | A | **ow-documentation 1.0.0** | P3 (ow-build-plan 1.1.0) | 3, T | 16–22h | 1–2h |
-| 4 | A | **ow-handoff 1.0.0** (+ `scan-secrets` redacted) | H3, H4 | 3b | 16–22h | 1h |
-| 4b | A | **ow-care 1.0.0** (both ways in) | S1 (ow-start 1.1.0), P4 (ow-build-plan 1.1.0) | 4, T | 18–24h | 1–2h |
-| L | B | **ow-start 1.1.0 logs** | H5 if ow-handoff is merged, else with Sprint 4 | 0 | 8–12h | 1h |
-| R | B | **ow-research 1.0.0** | P5 | T (digest) | 10–14h | 1h |
-| D | B | **ow-draft 1.0.0** | D1, D2 (already in its design) | R, T | 16–22h | 1–2h |
-| V | B | **ow-vendor-eval 1.0.0** | P6, S2 | R, T (xlsx) | 12–16h | 1h |
-| C | B | **ow-controls 1.0.0 + four packs + `ow-packs` plugin** | K1, P7, P8, S3, R2; H6 and C1 if ow-handoff / ow-care are merged, else with them | R, T | 30–42h | 3–5h |
-| Cu | B | **ow-currency 1.0.0** | P9, C2 (or with Sprint 4b if ow-care is later) | C, R | 10–14h | 1h |
-| 5 | — | Distribution and integrity for 12 skills, ow-tools and ow-packs (mirror, zips, clean-folder install, SA-001, SA-004, trigger harness) | — | all builds | 12–16h | 2h |
-| 6 | — | Real use and the cut: one real job per skill, real-model acceptance runs, transcription spike, `v2.1.0` tag, staging, production | — | 5 | 10–14h | 14–22h |
+| OW-00 (0) | — | ✅ ow-start 1.0.0, ow-tools 1.0.0, designs | — | — | done | done |
+| OW-01 (1) | A | ✅ ow-build-plan 1.0.0 | — | OW-00 | done | done |
+| OW-02 (2) | A | ✅ ow-build 1.0.0 (#616, #618) | B4 (documentation trigger) | OW-01 | 14–20h | 1–2h |
+| OW-03 (T) | — | **ow-tools 1.1.0:** `digest` (T7), `calc hours` (T4), `export --pptx` (T2), `export --xlsx` (T6), `health` (T3), `capture` (T1); one security review for all six | T5 (calls table) | OW-00 | 18–26h | 2–3h |
+| OW-04 (3) | A | **ow-uat 1.0.0** (+ `calc --calendar us-federal`) | — | OW-02 | 17–22h | 1–2h |
+| OW-05 (3b) | A | **ow-documentation 1.0.0** | P3 (ow-build-plan 1.1.0) | OW-04, OW-03 | 16–22h | 1–2h |
+| OW-06 (4) | A | **ow-handoff 1.0.0** (+ `scan-secrets` redacted) | H3, H4 | OW-05 | 16–22h | 1h |
+| OW-07 (4b) | A | **ow-care 1.0.0** (both ways in) | S1 (ow-start 1.1.0), P4 (ow-build-plan 1.1.0) | OW-06, OW-03 | 18–24h | 1–2h |
+| OW-08 (L) | B | **ow-start 1.1.0 logs** | H5 if ow-handoff is merged, else with OW-06 | OW-00 | 8–12h | 1h |
+| OW-09 (R) | B | **ow-research 1.0.0** | P5 | OW-03 (digest) | 10–14h | 1h |
+| OW-10 (D) | B | **ow-draft 1.0.0** | D1, D2 (already in its design) | OW-09, OW-03 | 16–22h | 1–2h |
+| OW-11 (V) | B | **ow-vendor-eval 1.0.0** | P6, S2 | OW-09, OW-03 (xlsx) | 12–16h | 1h |
+| OW-12 (C) | B | **ow-controls 1.0.0 + four packs + `ow-packs` plugin** | K1, P7, P8, S3, R2; H6 and C1 if ow-handoff / ow-care are merged, else with them | OW-09, OW-03 | 30–42h | 3–5h |
+| OW-13 (Cu) | B | **ow-currency 1.0.0** | P9, C2 (or with OW-07 if ow-care is later) | OW-12, OW-09 | 10–14h | 1h |
+| REL-01 (5) | — | Distribution and integrity for 12 skills, ow-tools and ow-packs (mirror, zips, clean-folder install, SA-001, SA-004, trigger harness) | — | all builds | 12–16h | 2h |
+| REL-02 (6) | — | Real use and the cut: one real job per skill, real-model acceptance runs, transcription spike, `v2.1.0` tag, staging, production | — | REL-01 | 10–14h | 14–22h |
 
 **Totals for what remains:** CLAUDE about 207–286h, USER about 31–47h, across 14 sprints. Lanes A and B in parallel shorten the calendar, not the hours.
 
@@ -92,9 +128,9 @@ Design order: `ow-documentation`, `ow-care`, the ow-start logs amendment, `ow-dr
 | Network skills (ow-research, ow-currency) read untrusted pages | Pages are data; the injection fixture is an acceptance test in both; no fetch under a handling level |
 | `capture` drives a real browser | Dedicated profile, user signs in, never types or stores a credential, refuses production without the recorded decision; covered by the ow-tools 1.1.0 security review |
 
-The sprint sections below keep their deliverables and tests; where the table above differs (order, effort, amendments), the table wins. Sprints T, L, R, D, V, C and Cu get their own contract file under `sprints/release-2.1/` when they start, as Sprint 1 did.
+The sprint sections below keep their deliverables and tests; where the table above differs (order, effort, amendments), the table wins. OW-03 and OW-08 – OW-13 (Sprints T, L, R, D, V, C and Cu) have no section below; each gets its own contract file under `sprints/release-2.1/` when they start, as Sprint 1 did.
 
-## Sprint 0: Land what is built (done)
+## OW-00 (Sprint 0): Land what is built (done)
 
 ### Deliverables
 - Merge #596 (owner squash-merge with sign-off).
@@ -112,7 +148,7 @@ The sprint sections below keep their deliverables and tests; where the table abo
 ### Dependencies
 None. **Effort:** CLAUDE 3–5h | USER 1h (four squash-merges).
 
-## Sprint 1: ow-build-plan 1.0.0 (stage 02) (done: #605, #609)
+## OW-01 (Sprint 1): ow-build-plan 1.0.0 (stage 02) (done: #605, #609)
 
 ### Deliverables
 - `skills-work/ow-build-plan/`: SKILL.md (body under 5k tokens) and references for each phase; verbs `-offer`, `-start`, `-collect`, `-map`, `-scope`, `-quote` (with `--quick`, `--accepted`, `--signed`), `-export`.
@@ -131,7 +167,7 @@ Every §9.2 acceptance case has a golden run that passes and a planted failure t
 ### Dependencies
 Sprint 0. **Effort:** CLAUDE 8–12h | USER 1h (review, price-book structure check).
 
-## Sprint 2: ow-build 1.0.0 (stage 03)
+## OW-02 (Sprint 2): ow-build 1.0.0 (stage 03) (done: #616, #618)
 
 ### Deliverables
 - `skills-work/ow-build/`: verbs `-start`, `-run` (one sprint per call, resume from `build.yaml`), `-update`, `-demo`, `-change`, `-invoice`, `-ready`.
@@ -148,7 +184,7 @@ A synthetic signed plan flows to `spec/` with every acceptance check present; `-
 ### Dependencies
 Sprint 1 (reads its plan, quote and price book). **Effort:** CLAUDE 10–14h | USER 1h.
 
-## Sprint 3: ow-uat 1.0.0
+## OW-04 (Sprint 3): ow-uat 1.0.0
 
 ### Deliverables
 - `skills-work/ow-uat/`: verbs `-plan`, `-pack`, `-run`, `-defect`, `-signoff` with every mode in design §3.
@@ -164,14 +200,14 @@ A synthetic UAT runs from `ready-for-uat.md` to a signed acceptance record, a su
 ### Dependencies
 Sprint 2 (reads `ready-for-uat.md`). **Effort:** CLAUDE 12–16h | USER 1–2h. Clause wording is the owner's contract step, not this sprint.
 
-## Sprint 3b: ow-documentation 1.0.0 (added 2026-10-16)
+## OW-05 (Sprint 3b): ow-documentation 1.0.0 (added 2026-10-16)
 
 Design APPROVED 2026-10-16 (`docs/plans/2026-10-16-ow-documentation-design.md`). It runs only when the SKU is bought, writes the full runbook and developer handover (ow-handoff's notes point to them, H3), auto-captures screenshots (`ow-tools capture`, T1), exports slides (`export --pptx`, T2), and the line is invoiced at delivery (B4, P3). Recorded decisions D1–D6 in the ow-uat design apply: four document types, four training formats, a planned and tracked rollout, delivery as branded PDF/Word, Markdown in the client's repo, the client's wiki or Google Docs and slides; priced by build size plus groups of 15 people; a floor (developer handover and operator notes) stays in every build.
 
 ### Dependencies
 Sprint 3 (reads ow-uat's scenarios, roles, training gaps and cleared evidence); ow-tools T1 and T2 land with it; the H3, B4 and P3 amendments land in Sprints 4, 2 and 1's skills. **Effort:** CLAUDE 16–22h | USER 1–2h (re-plan).
 
-## Sprint 4: ow-handoff 1.0.0 (stage 04)
+## OW-06 (Sprint 4): ow-handoff 1.0.0 (stage 04)
 
 ### Deliverables
 - `skills-work/ow-handoff/`: nine verbs per design §3, H1/H2 wiring from ow-uat, five access-removal sources, per-CO fix periods.
@@ -187,14 +223,14 @@ A synthetic handoff runs from a UAT sign-off to close, including a reopened clos
 ### Dependencies
 Sprint 3. **Effort:** CLAUDE 12–16h | USER 1h.
 
-## Sprint 4b: ow-care 1.0.0 (added 2026-10-16)
+## OW-07 (Sprint 4b): ow-care 1.0.0 (added 2026-10-16)
 
 Design APPROVED 2026-10-16 (`docs/plans/2026-10-16-ow-care-design.md`). Two ways in: `care-start.md` from ow-handoff, or a takeover through a fixed-fee onboarding review (ow-start S1, ow-build-plan P4). Runs months from the start date, hours recorded per request with the site's rollover rule, extra hours only on a go-ahead, reply targets, a monthly health check (`ow-tools health`, T3) and report, tier and terms changes, notice and end with access removal.
 
 ### Dependencies
 Sprint 4; ow-tools T3 and T4 land with it; the S1, P4 and H4 amendments land in the ow-start, ow-build-plan and ow-handoff skills. **Effort:** CLAUDE 18–24h | USER 1–2h (re-plan).
 
-## Sprint 5: Distribution and integrity
+## REL-01 (Sprint 5): Distribution and integrity
 
 ### Deliverables
 - Mirror `skills-work/` to the public repo; an install path for ow- skills (Claude Code link or copy, claude.ai upload) documented and tested from a clean folder.
@@ -211,7 +247,7 @@ A fresh user can install the five ow- skills and ow-tools from the public repo b
 ### Dependencies
 Sprints 1–4 for content; the #596 audit follow-ups from Sprint 0. **Effort:** CLAUDE 8–10h | USER 2h (public repo settings, signed tag).
 
-## Sprint 6: Real use and the cut
+## REL-02 (Sprint 6): Real use and the cut
 
 ### Deliverables
 - A real-model acceptance run of each skill's main fixture, checked by its script, recorded in `docs/audits/`.
@@ -225,7 +261,7 @@ Every skill has passed one real-model run and one real job; `npm run check-relea
 ### Dependencies
 Sprints 0–5. **Effort:** CLAUDE 6–8h | USER 6–10h (real jobs, pyannote fetch, merges, deploy review).
 
-## Track E: Enforcement at chokepoints and the skill router (parallel track)
+## Track E (EN): Enforcement at chokepoints and the skill router (parallel track)
 
 **Added and approved 2026-10-16** (see Approval). This work was built on 2026-10-08 and 2026-10-09, before this plan was written, and is not in Sprints 0–6. It answers the risk in the first row of Totals and risks below: the 2026-10-08 effectiveness audit (`docs/audits/2026-10-08-opchain-effectiveness-audit.md`) found that a skill-to-skill edge held only when something outside the catalog checked it.
 
@@ -258,7 +294,7 @@ It runs beside the ow- sprints. It touches `skills/` (oc-), `plugins/opchain/`, 
 5. **Opting in.** TypeSafe keys are publicly available (owner, 2026-10-16), so `/install` documents opting in: get a key from TypeSafe, set `TYPESAFE_API_KEY`, and read the shadow log. Calls go to the user's own TypeSafe account. Each routed prompt makes up to two requests, and decisions are cached for 24 hours.
 6. **No cost to users who do not opt in.** Without a key the hook exits at its first check (`route-prompt.cjs:199`), before any network, git or log work. The only cost is one Node process start per prompt.
 
-### Sprint E0: Land the product half
+### EN-00 (Sprint E0): Land the product half
 
 **Status 2026-10-16: E0 product half merged.** #608 was squash-merged as `591e6329` on 2026-10-16 (242 files, no `site/`). It also carries a fix its first CI run found in the new bypass-accountability check: CI reads trailers only (`--bypass-source trailers`). E0's definition of done is met; E1 and E2 can start. The two uncommitted edits were committed as `ef2591cc` on the consolidation branch. The full rebased tree, site half included, is kept at `claude/2.1-track-e-full`. **Owner decision 2026-10-16:** one site branch serves both themes, owned by Track S (comprehensive 2.1 site surfaces, run by the ow-skills orchestration session). Track S takes over the `site/` half of the consolidation branch, reworks it for the two-theme release and adds the ow- pages. E0 is the product half only, and Track E does not edit `site/`.
 
@@ -278,7 +314,7 @@ The product PR is merged with green CI and evidence; the `site/` half is with Tr
 #### Dependencies
 None; it can land between ow- Sprint 0 and Sprint 1. **Effort:** CLAUDE 3–5h | USER 1–2h (review of a large diff, squash-merge).
 
-### Sprint E1: Consumer enrollment and the measurement week
+### EN-01 (Sprint E1): Consumer enrollment and the measurement week
 
 #### Deliverables
 - Install the E0 plugin build in deftwright-site (the audit's consumer) and run `/oc-enroll` with `install-git-drivers --ci`, so `evidence:pr` runs in its CI.
@@ -294,7 +330,7 @@ A recorded measurement for each of fix 1 (exit-127 = 0, FAIL share under 15%), f
 #### Dependencies
 E0. **Effort:** CLAUDE 3–5h | USER 2–3h (deftwright enrollment, a week of real work).
 
-### Sprint E2: Router shadow period and the day-8 go/no-go
+### EN-02 (Sprint E2): Router shadow period and the day-8 go/no-go
 
 #### Deliverables
 - Set `TYPESAFE_API_KEY` on the owner's machine only; leave `OPCHAIN_ROUTE_MODE` unset (shadow). Run in opchain and deftwright-site.
@@ -312,7 +348,7 @@ A recorded go/no-go verdict with its three numbers, and a 2.1.0 changelog line t
 #### Dependencies
 E0. It runs alongside E1. **Effort:** CLAUDE 2–4h | USER 1h (key, eight elapsed days, the verdict).
 
-### Sprint E3: Router copy and review for Track S, changelog at the cut (folds into Sprint 6)
+### EN-03 (Sprint E3): Router copy and review for Track S, changelog at the cut (folds into Sprint 6)
 
 **Owner decision 2026-10-16:** the site deliverables below are built on Track S's single site branch, not by Track E. Track E supplies the router copy (the experimental-preview terms, the `api.typesafe.ai` disclosure, the opt-in steps) and reviews every router page before the cut. Track E also supplies the enforcement blog draft ("0 of 229…"), revised for the two-theme release; it stays a draft until the cut.
 
