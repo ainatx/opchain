@@ -18,6 +18,14 @@ export default defineConfig({
   server: { port: Number(process.env.PORT) || 4321 },
   output: "static",
   trailingSlash: "never",
+  // Astro 7 changed the default to 'jsx' (React's whitespace rules): a line
+  // break between a word and an inline element is deleted, not collapsed to
+  // a space. The copy here was written under Astro <=6's lossless `true`, so
+  // the #444 migration rendered "Email<a ...>" and "</a>or" across ~90
+  // places. `true` restores that behaviour at +0.4% gzip; `false` would cost
+  // +2.8%. tests/e2e/html-whitespace.spec.ts fails the build if words run
+  // into <a>/<code>/<strong>/<em> again.
+  compressHTML: true,
   integrations: [sitemap()],
   markdown: {
     // Astro 7 defaults to the Sätteri markdown processor, which doesn't
