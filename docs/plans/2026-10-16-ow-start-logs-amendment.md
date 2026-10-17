@@ -117,3 +117,20 @@ Labelled *same-session self-check: the same assistant applying a checklist; a di
 ## 10. Open questions
 
 None at drafting; every question was decided as L1–L5.
+
+## 11. Build notes (ow-start 1.1.0, OW-08)
+
+Contract: `sprints/release-2.1/ow-08/contract.md` (approved 2026-10-17).
+
+### 11.1 Owner rulings (2026-10-17, recommendations O1–O8 accepted)
+
+| # | Question | Ruling |
+|---|---|---|
+| O1 | How the index is declared in the edges | A reads row with `index: true`: header keys only, cited in the reference the row names, and its producer must write the path (unless it is planned or an add-on). No hand-off row and no chain. `check-skill-contracts` enforces it |
+| O2 | STATUS form for actions and reviews | Protocol §5's form. Open lines say `next: ow-start /ow-start-action logs/<workstream>/`; closing lines say `next: none (closed: done \| dropped \| reviewed \| superseded by DEC-nn)`. `awaiting:` is as in §4.2 and §6 |
+| O3 | Does `-prep-meeting` append a STATUS line? | Yes: `awaiting: meeting on <date>`, closed by `-log-meeting` with `held <date>` |
+| O4 | The ow-tools SessionStart hook hides open actions | Fix `lib/status.mjs` (newest line per item under `logs/`) as the next ow-tools patch, after OW-03 merges |
+| O5 | The `-log-meeting` argument | `<workstream> [MTG-nn]`. With no id: the newest prepared, unlogged meeting, else a new `MTG-nn` marked "no agenda". Ids are numbered per workstream |
+| O6 | Follow-up styling | `brand.yaml` when present (a `from: user` read), with ow-build's email rules; neutral styling without it |
+| O7 | Where ow-start's changelog lives | `skills-work/ow-start/CHANGELOG.md`, per skill |
+| O8 | Precision bar for the two meaning checks before REL-02 | The must-pass controls in C7 and C12 are the bar; a false positive found in evaluation becomes a control in the same round |

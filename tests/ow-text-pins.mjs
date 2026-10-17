@@ -14,6 +14,16 @@ const CI = "ow-build-plan/references/contract-inputs-schema.md";
 const BODY = "ow-build-plan/SKILL.md";
 const OFFERS = "ow-build-plan/examples/offers.md";
 
+// ow-start 1.1.0, the logs (OW-08 deliverable 5; tests only, no sibling text edits).
+const LS = "ow-start/references/logs-schema.md";
+const LI = "ow-start/references/logs-status-and-index.md";
+const LM = "ow-start/references/phase-log-meeting.md";
+const LD = "ow-start/references/phase-log-decision.md";
+const SC = "ow-start/references/self-checks-logs.md";
+const SB = "ow-start/SKILL.md";
+const CL = "ow-start/CHANGELOG.md";
+const BRR = "ow-build/references/routing-and-resume.md";
+
 /** Each rule a file must keep: `must` is a literal sentence or a pattern. */
 export const PINS = [
   // Routing (routing-and-resume.md section 2): the inbound route table.
@@ -61,6 +71,23 @@ export const PINS = [
   { id: "offer-next-reads-request (bug 8)", file: BODY, must: "It will read: build-plan-offer.md, and the intake record, FIX file or request.md it names" },
   // The example offers: a feasibility test is a short quote (owner decision 2026-10-16).
   { id: "offers-feasibility-quote (new 7)", file: OFFERS, must: "- after yes: I send a short quote for a time-boxed test on your own examples" },
+  // ow-start 1.1.0: the logs' prose rules the goldens cannot see.
+  { id: "logs: a decision is never edited", file: LS, must: "**Never edited.** A decision file is written once, with its self-check results, and never changed." },
+  { id: "logs: a decision is never edited (phase)", file: LD, must: "A decision is **never edited**. To change one, write a new `DEC-nn` whose `supersedes:` names the old one; the old file stays byte for byte." },
+  { id: "logs: superseding closes the old review", file: LD, must: "- Superseding a decision whose newest line is an open review: one more line for the old decision, `next: none (closed: superseded by DEC-nn) | awaiting: none (superseded <YYYY-MM-DD>)`." },
+  { id: "logs: the newest line per item", file: LI, must: "the **newest line per item** (`MTG-nn`, `A-nn`, `DEC-nn`; logs-schema §6). An item is open while its newest line is not closed. Closing one action never hides another." },
+  { id: "logs: the newest line per item (body)", file: SB, must: "each open logs item (the newest line per `MTG-nn`, `A-nn` and `DEC-nn`" },
+  { id: "logs: the follow-up is never sent", file: LM, must: "Never send it: tell the user to copy it and add names." },
+  { id: "logs: people by role", file: LS, must: "**People by role, everywhere**: `you`, `client ops lead`, `client owner`, `vendor account manager`. No name, email address or phone number in any file the logs verbs write, yours included. A request to write one is refused, even with a waiver." },
+  { id: "logs: three checks never waived", file: SC, must: "**Three can never be waived: People by role, No client text in STATUS, No private names.**" },
+  { id: "logs: three checks never waived (body)", file: SB, must: "**People by role, No client text in STATUS and No private names can never be waived.**" },
+  { id: "logs: a business log never reaches a client file", file: LS, must: "**Nothing crosses.** Nothing from `logs/business/` is written into a client file or a client agenda, and nothing from a client workstream into `logs/business/`." },
+  { id: "logs: ow-start never transcribes", file: LM, must: "**A recording and no transcript** (a file in `MTG-nn/audio/`): do not transcribe." },
+  { id: "logs: ow-start never transcribes (body)", file: SB, must: "Never transcribe audio yourself." },
+  { id: "logs: a logs line joins no sibling group (ow-build)", file: BRR, must: "2. Group by the client slug in the path field: `plans/<slug>/…`, `builds/<slug>/…`, `uat/<slug>/…`, `handoffs/<slug>/…` and `docs/<slug>/…` all belong to `<slug>`." },
+  // C20: the changelog records both in-place edits to 1.0.0 (owner decision O7).
+  { id: "changelog: #605's in-place edit", file: CL, must: "- **#605 (OW-01, ow-build-plan 1.0.0):** the Hands-off row for delivery mode when the next stage is another session (`/ow-start-prep`, \"use ow-start to prep <client>\"), and its NEXT template's `[no folder attached: attach intake-record.md when you say it]` line." },
+  { id: "changelog: #616's in-place edit", file: CL, must: "- **#616 (OW-02, ow-build 1.0.0):** the K18 slash hint `(where slash commands exist: /ow-build-plan)` on the after-extract NEXT." },
 ];
 
 /**
@@ -76,6 +103,9 @@ export const BANS = [
   { id: "no revised or second quote file (K29)", re: /quote-r(?:<|\d)|\brevised quote\b|\bquote-v\d/i, only: "ow-build-plan/" },
   { id: "no 'issue a new quote' (new 6)", re: /\bissue a new quote\b/i, only: "ow-build-plan/" },
   { id: "feasibility is a quote, not an offer (new 7)", re: /short offer for a time-boxed test/i },
+  // OW-08: a logs/ line joins no sibling group; the group lists stay explicit.
+  { id: "a logs line joins no ow-build-plan group", re: /`logs\/<slug>\/|\blogs\/<slug>\/\S*\s+(?:all\s+)?belongs?\b|\bevery (?:path|line)\b[^.]*\bbelongs? to\b/i, only: "ow-build-plan/references/routing-and-resume.md" },
+  { id: "a logs line joins no ow-build group", re: /`logs\/<slug>\/|\blogs\/<slug>\/\S*\s+(?:all\s+)?belongs?\b|\bevery (?:path|line)\b[^.]*\bbelongs? to\b/i, only: "ow-build/references/routing-and-resume.md" },
 ];
 
 function textFiles(dir, rel = "") {

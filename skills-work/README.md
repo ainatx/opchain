@@ -4,7 +4,7 @@ The ow- skills are opchain's planning family for client work: the fit call and i
 
 | Skill | Status |
 |---|---|
-| `ow-start` | 1.0.0: the 20-minute fit call, prep and recap |
+| `ow-start` | 1.1.0: the 20-minute fit call, prep and recap; meeting and decision logs (`CHANGELOG.md`) |
 | `ow-build-plan` | 1.0.0: the Build Plan offer, plan and fixed quote, with contract inputs and the build request |
 | `ow-build` | 1.0.0: the client side of a signed build: the builder driven one sprint at a time (named only in `handoffs.yaml`), weekly updates, demos, change orders, invoice requests and readiness for UAT |
 | `ow-uat`, `ow-handoff`, `ow-documentation` | designed, not built |
@@ -40,6 +40,13 @@ reads:
     if_absent: what the skill does without it (never "proceed as if passed")
     if_mismatch: what it does when the fields are not as expected
     shared: true           # optional: a workspace file at the top of opchain-work/ (profile.md), not a handoff
+  - from: ow-build         # an index row (owner decision O1): another skill's file listed by path and header keys only
+    index: true
+    reference: references/logs-status-and-index.md   # must cite the path
+    path: builds/<client>/changes/CO-nn.md
+    fields: [created, status]                         # header keys only, never a body section
+    if_absent: No row
+    if_mismatch: List the path with no date in its header
 hands_off:
   - when: The quote is ready
     to: ow-example         # a family skill, planned skill or add-on; or `destination: contract` (a handoffs.yaml key) for work leaving the family
@@ -57,6 +64,7 @@ hands_off:
 - **Protocol lines.** Every NEXT template line that says "use <id>" is followed by its `It will read:` and `[no folder attached: …]` lines (protocol §9); a slash hint's mode is one its owner documents.
 - **NEXT templates match.** Every hands-off to a family skill has a NEXT template in the body that says exactly its `say:`, and every NEXT template's say is an edges row (contract R15); a `destination:` row has a NEXT or IF IT IS NOT AVAILABLE line naming its handoffs.yaml key. An add-on's handoff is printed by its own absent-case text.
 - **Reciprocal.** Every file a skill hands to another family skill has a reads row for it in the receiver (with the fields it needs among those handed off), and every reads row naming a family skill has a hands-off row in that producer, unless it is `shared:` (allowed only for top-level workspace files; the producer must write it). A planned skill or an add-on has no edges file yet; its rows are checked once it does.
+- **Index rows** (owner decision O1, OW-08). A reads row with `index: true` lists a file another skill writes, copying nothing: it reads from a family skill, a planned skill or an add-on; its `fields` are header keys only (identifier-shaped, and documented as header keys in a built producer's text); the reference it names cites its path; and a producer with an edges file writes the path. It needs no hand-off row, no chain and no body row; the reference is where it is described.
 - **One writer.** No file has two writer verbs across the family. Paths compare as one file whatever their spelling: a leading `opchain-work/`, `./` and `..` segments, letter case, and a follow-on folder's `<client>-<n>` placeholder are all normalised. The exception is an append-only log the protocol names (`STATUS.md`, protocol §4), which every writer declares with `append: true`.
 - **NEXT targets resolve.** A NEXT block says "use <family id>", and its slash verb belongs to that skill (a planned skill's verbs are declared in `catalogs.json` `plannedVerbs`); or it names a handoffs.yaml destination (`` handoffs.yaml `contract` ``) that a family `examples/handoffs.yaml` declares.
 
