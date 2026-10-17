@@ -78,14 +78,16 @@ checkpoint `protocol_version` is tracked separately (see
 
 - **Skill router — experimental preview (shadow by default, opt-in).** A
   UserPromptSubmit hook routes each prompt in an opchain project to at most one
-  skill. It does nothing until you set `TYPESAFE_API_KEY` (a key from TypeSafe,
-  billed to your own account): without one the hook exits before any network,
-  git or log work. With a key it runs in shadow mode, logging what it would have
+  skill. It does nothing until you set `TYPESAFE_API_KEY` (a key from
+  TypeSafe; calls are made under your TypeSafe account and its terms): without
+  one the hook exits before any network, git or log work. With a key it runs in shadow mode, logging what it would have
   suggested to `$TMPDIR/opchain-route-log.jsonl` and injecting nothing. It sends
-  the redacted prompt and a small repo summary (branch, ahead/behind, dirty
-  count, open PR, enrollment, active checkpoint) to the third-party TypeSafe API
-  (`api.typesafe.ai`), up to two requests per prompt with decisions cached for
-  24 hours; conversation context is sent only with `OPCHAIN_ROUTE_CONTEXT=1`.
+  the redacted prompt and a small repo summary (branch name, ahead/behind, dirty
+  count, open PR, enrollment, and the active checkpoint's skill, phase and first
+  next action, up to 200 characters) to the third-party TypeSafe API
+  (`api.typesafe.ai`); credential-shaped text is redacted, but names in the
+  branch or that next action are sent as written. It makes up to two requests
+  per prompt, with decisions cached for 24 hours; conversation context is sent only with `OPCHAIN_ROUTE_CONTEXT=1`.
   Nothing is sent for slash commands, outside opchain projects, or for a typed
   `/oc-*` instruction, which routes locally; negated or questioned mentions do
   not route. Unset the key or set `OPCHAIN_ROUTE=0` to turn it off. Its only

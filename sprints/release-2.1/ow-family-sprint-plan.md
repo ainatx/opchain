@@ -287,13 +287,13 @@ It runs beside the ow- sprints. It touches `skills/` (oc-), `plugins/opchain/`, 
 1. **Label.** Each mention calls it "experimental preview". In the 2.1.0 changelog it sits under its own *Experimental* heading, not among the headline items.
 2. **No effectiveness claims before a GO.** Copy may cite the offline eval (574 labelled past prompts, precision 0.92 oc-git-ops / 0.88 oc-deploy-ops), named as offline, and the E2 verdict as recorded. It must not say the router raises skill use or chain completion until a GO verdict exists, and even then only with the E2 numbers.
 3. **Disclosure on `/privacy`**, matched by the security page and the plugin README:
-   - With `TYPESAFE_API_KEY` set, the hook sends the redacted prompt and a repo summary to `api.typesafe.ai`. The summary covers branch, ahead/behind, dirty count, open PR, enrollment and active checkpoint.
+   - With `TYPESAFE_API_KEY` set, the hook sends the redacted prompt and a repo summary to `api.typesafe.ai`. The summary covers the branch name, ahead/behind, dirty count, open PR, enrollment, and the active checkpoint's skill, phase and first next action (up to 200 characters). Credential-shaped text is redacted; names in the branch or that next action are sent as written. *(Corrected 2026-10-17: the 2026-10-16 wording said only "active checkpoint"; `activeCheckpoint()` in `route-prompt.cjs` also sends the first `next_actions` entry.)*
    - The previous prompt and the end of the last assistant message are sent only with `OPCHAIN_ROUTE_CONTEXT=1`.
    - Nothing is sent without a key, for slash commands, outside opchain projects, or for a typed `/oc-*` mention.
    - Decisions are logged locally to `$TMPDIR/opchain-route-log.jsonl`.
    - Unsetting the key or setting `OPCHAIN_ROUTE=0` turns it off.
 4. **Live mode is unsupported until a GO.** `OPCHAIN_ROUTE_MODE=live` is documented as unsupported until E2 records a GO. After a GO it is supported but still opt-in; the shipped default stays shadow in 2.1.0.
-5. **Opting in.** TypeSafe keys are publicly available (owner, 2026-10-16), so `/install` documents opting in: get a key from TypeSafe, set `TYPESAFE_API_KEY`, and read the shadow log. Calls go to the user's own TypeSafe account. Each routed prompt makes up to two requests, and decisions are cached for 24 hours.
+5. **Opting in.** TypeSafe keys are publicly available (owner, 2026-10-16), so `/install` documents opting in: get a key from TypeSafe, set `TYPESAFE_API_KEY`, and read the shadow log. Calls are made with the user's key, under their TypeSafe account and its terms (corrected 2026-10-17: nothing establishes how TypeSafe bills, so no copy says "billed"). Each routed prompt makes up to two requests, and decisions are cached for 24 hours.
 6. **No cost to users who do not opt in.** Without a key the hook exits at its first check (`route-prompt.cjs:199`), before any network, git or log work. The only cost is one Node process start per prompt.
 
 ### EN-00 (Sprint E0): Land the product half
