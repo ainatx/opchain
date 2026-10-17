@@ -51,7 +51,9 @@ export function parseNpm(json) {
   const walk = (deps, top) => {
     for (const [name, v] of Object.entries(deps || {})) {
       if (/^(file|link):/.test(v.version || "")) continue;
-      out.push(pkg(name, v.version, v.bundled ? "local" : sourceOfUrl(v.resolved), top));
+      const alias = npmAlias(v.version); // "npm:left-pad@1.3.0": check left-pad 1.3.0
+      if (alias) out.push(pkg(alias.name, alias.version, v.bundled ? "local" : sourceOfUrl(v.resolved), top));
+      else out.push(pkg(name, v.version, v.bundled ? "local" : sourceOfUrl(v.resolved), top));
       walk(v.dependencies, false);
     }
   };
@@ -82,7 +84,8 @@ export function parsePnpm(text) {
     if (key) {
       flush();
       const spec = key[3].replace(/\(.*$/, ""); // peer suffix "(react@18.2.0)"
-      const at = spec.lastIndexOf("@");
+      // The first "@" after a scope's: a git or URL version can hold more.
+      const at = spec.indexOf("@", 1);
       if (at <= 0) continue;
       cur = { name: spec.slice(0, at), version: spec.slice(at + 1), source: "unrecorded" };
       if (/^(link|file|workspace):/.test(cur.version)) cur = null;
@@ -117,6 +120,31 @@ const keyName = (k) => {
   const at = s.indexOf("@", 1);
   return at > 0 ? s.slice(0, at) : s;
 };
+const keySpec = (k) => {
+  const s = k.trim().replace(/^"|"$/g, "");
+  const at = s.indexOf("@", 1);
+  return at > 0 ? s.slice(at + 1) : "";
+};
+
+// `npm:<real name>@<version or range>`: an alias. Only the real package is
+// ever checked, under its own name; the alias label never leaves (Bug 3).
+// yarn berry writes `npm:<range>` for every registry package (`npm:^1.2.3`):
+// a range or version there is no alias.
+export function npmAlias(spec) {
+  const m = /^npm:((?:@[^@/\s]+\/)?[^@\s]+)(?:@(.+))?$/.exec(String(spec || ""));
+  if (!m || /^(?:[\d^~<>=*]|v\d)/.test(m[1]) || /\s/.test(m[1])) return null;
+  return { name: m[1], version: m[2] ?? null };
+}
+
+// What a yarn key's spec says about where the package comes from (Bug 3):
+// `file:` / `link:` / `portal:` / `workspace:` / `exec:` are local (yarn v1
+// writes no `resolved` for them), git and URL specs private.
+export function specSource(spec) {
+  // A path: "./x", "../x", "~/x", "/x" (not "~1.0", a range).
+  if (/^(file|link|portal|workspace|exec):/.test(spec) || /^(\.{1,2}\/|~\/|\/)/.test(spec)) return "local";
+  if (/^(git\+|git:|github:|gitlab:|bitbucket:|gist:|https?:|ssh:)/.test(spec) || /^[\w.-]+\/[\w.-]+(#.*)?$/.test(spec)) return "private";
+  return null;
+}
 
 export function parseYarn(text) {
   const lines = text.replace(/\r\n?/g, "\n").split("\n");
@@ -133,7 +161,10 @@ export function parseYarn(text) {
       flush();
       if (l.startsWith("__metadata")) continue;
       const keys = l.replace(/:\s*$/, "").split(/,\s*/);
-      cur = { name: keyName(keys[0]), keys: keys.map((k) => k.trim().replace(/^"|"$/g, "")), version: null, source: "unrecorded" };
+      const specs = keys.map(keySpec);
+      const alias = specs.map(npmAlias).find(Boolean);
+      const fixed = specs.map(specSource).find((x) => x === "local") ?? specs.map(specSource).find(Boolean) ?? null;
+      cur = { name: alias ? alias.name : keyName(keys[0]), version: null, source: fixed ?? "unrecorded", fixed };
       continue;
     }
     if (!cur) continue;
@@ -144,10 +175,12 @@ export function parseYarn(text) {
       if (r) {
         const proto = /@(npm|workspace|patch|git|https?|file|link|portal|exec):/.exec(r[1])?.[1];
         cur.source = proto === "npm" ? "unrecorded" : proto === "workspace" || proto === "link" || proto === "portal" || proto === "file" ? "skip" : "private";
+        if (proto === "npm") cur.name = keyName(r[1]); // the resolution names the real package
+        if (cur.fixed === "private" && cur.source === "unrecorded") cur.source = "private";
       }
     } else {
       const r = /^ {2}resolved\s+"([^"]+)"/.exec(l);
-      if (r) cur.source = sourceOfUrl(r[1]);
+      if (r && !cur.fixed) cur.source = sourceOfUrl(r[1]);
     }
   }
   flush();

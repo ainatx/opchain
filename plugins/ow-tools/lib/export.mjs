@@ -18,7 +18,10 @@ export const NOT_CONFORMANCE =
 export const HASH_NOTE = "The SHA-256 detects accidental change only; it is not tamper-evidence.";
 const FORMATS = ["pdf", "docx"];
 const MD_FORMATS = ["pdf", "docx", "pptx"];
-const PANDOC_FROM = "gfm-autolink_bare_uris";
+// No YAML metadata (Bug 1, round 3): a YAML block's values are Markdown that
+// pandoc renders (an `abstract` holding an image embedded any file). ow-tools
+// sets the only metadata it needs (`lang`) on the command line.
+export const PANDOC_FROM = "gfm-autolink_bare_uris-yaml_metadata_block";
 
 export const typstString = (s) => `"${String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
 
@@ -69,11 +72,12 @@ export function imagesPandocReads(file, from, allowed, cwd) {
       for (const v of Object.values(node)) if (v && typeof v === "object") walk(v);
     }
   };
-  walk(JSON.parse(r.stdout).blocks);
+  // The whole document: metadata as well as blocks (round 3, Bug 1).
+  walk(JSON.parse(r.stdout));
   const stray = targets.filter((t) => !allowed.has(t));
   if (stray.length) {
     const problems = [`${stray.length} image(s) pandoc would read are not in the form ![alt](file) the preflight checks (a reference or shortcut image, a title in single quotes, or brackets in the alt text); write each as ![alt](file)`];
-    throw refused("preflight", `not exported; fix these first:\n  ${problems[0]}`, { problems });
+    throw refused("unchecked-image", `not exported; fix these first:\n  ${problems[0]}`, { problems });
   }
   return targets;
 }
@@ -157,7 +161,9 @@ async function exportSheet({ src, out, fmts }) {
   };
 }
 
-export async function exportDoc({ file, brand: brandPath, out, formats }) {
+// `deps.preflight` is a test seam: a test can stand in a preflight that
+// misses something, to show the pandoc check refuses it on its own.
+export async function exportDoc({ file, brand: brandPath, out, formats }, deps = {}) {
   if (!file) throw usage("usage: ow-tools export <file.md|sheet-folder> [--brand brand.yaml] [--out DIR] [--formats pdf,docx,pptx|xlsx]");
   const src = resolve(file);
   if (isDir(src)) return exportSheet({ src, out, fmts: [...new Set(formats ?? ["xlsx"])] });
@@ -166,7 +172,7 @@ export async function exportDoc({ file, brand: brandPath, out, formats }) {
   if (!fmts.length || fmts.some((f) => !MD_FORMATS.includes(f))) throw usage("--formats takes pdf, docx and pptx for a Markdown file (xlsx takes a sheet folder)");
 
   const text = readFileSync(src, "utf8");
-  const pre = preflight(text, src);
+  const pre = (deps.preflight ?? preflight)(text, src);
   const deck = fmts.includes("pptx") ? deckChecks(pre.lines) : null;
   const problems = [...pre.problems, ...(deck ? deck.problems : [])];
   if (problems.length) throw refused("preflight", `not exported; fix these in ${basename(src)} first:\n  ${problems.join("\n  ")}`, { problems });

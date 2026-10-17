@@ -207,6 +207,13 @@ describe("network fence (C25, C27)", SPAWN, () => {
     // Only net.mjs (and health through it) touches the network modules.
     for (const f of libFiles) if (NET_MODULES.test(lib(f))) expect(["net.mjs"], f).toContain(f);
     expect(lib("cli.mjs")).toMatch(/await import\("\.\/health\.mjs"\)/);
+    // capture's one name lookup (round 3): node:dns loaded inside the default
+    // resolver, so nothing on the no-network verbs' graph imports it.
+    for (const f of libFiles) {
+      const dyn = [...lib(f).matchAll(/import\("(node:[^"]+)"\)/g)].map((m) => m[1]);
+      expect(dyn, f).toEqual(f === "capture.mjs" ? ["node:dns"] : []);
+    }
+    expect(lib("capture.mjs")).toMatch(/async function defaultResolver\(host\) \{\n {2}const \{ lookup \} = await import\("node:dns"\);/);
   });
 
   const fenced = (args, extra = {}) => {
@@ -351,7 +358,8 @@ describe("manifest and version (C28, C30, C31)", SPAWN, () => {
     expect(existsSync(join(PLUGIN, "package.json"))).toBe(false);
     for (const f of libFiles) {
       for (const [, spec] of lib(f).matchAll(/from "([^"]+)"/g)) expect(spec.startsWith("node:") || spec.startsWith("./"), `${f}: ${spec}`).toBe(true);
-      for (const [, spec] of lib(f).matchAll(/import\("([^"]+)"\)/g)) expect(spec.startsWith("./"), `${f}: ${spec}`).toBe(true);
+      // capture resolves the plan's hosts with node:dns, loaded only when a run starts (round 3, Bug 6).
+      for (const [, spec] of lib(f).matchAll(/import\("([^"]+)"\)/g)) expect(spec.startsWith("./") || (f === "capture.mjs" && spec === "node:dns"), `${f}: ${spec}`).toBe(true);
     }
   });
 });

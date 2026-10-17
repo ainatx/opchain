@@ -3,8 +3,12 @@
 // argv, the profile's Preferences at launch and every method it receives, and
 // returns canned PNGs at the emulated viewport. FAKE_BROWSER names a JSON
 // file: { log, pages: { url: { selectors: { sel: { attrs, navigate } } } },
-// redirect: { url: target }, hang: bool, crash: bool }.
-import { appendFileSync, createReadStream, createWriteStream, readFileSync } from "node:fs";
+// redirect: { url: target }, hang: bool, crash: bool, writeSession: bool }.
+// writeSession: write cookie and storage files at start, as a signed-in
+// Chrome would (the round-3 signal and SIGKILL tests).
+import { appendFileSync, createWriteStream, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { Socket } from "node:net";
+import { join } from "node:path";
 import { deflateSync } from "node:zlib";
 
 const cfg = JSON.parse(readFileSync(process.env.FAKE_BROWSER, "utf8"));
@@ -17,7 +21,20 @@ try {
 } catch {
   prefs = null;
 }
-log({ argv, prefs, pid: process.pid });
+// What the profile held when the browser started: the start-of-run clean
+// (F-023, R26) and the start-of-run wipe (SA-019) are judged by this.
+const at = (...p) => existsSync(join(profile, ...p));
+const atLaunch = {
+  cache: at("Default", "Cache") || at("GPUPersistentCache") || at("Default", "Code Cache"),
+  session: at("Default", "Cookies") || at("Default", "Network", "Cookies") || at("Default", "Local Storage"),
+};
+log({ argv, prefs, pid: process.pid, atLaunch });
+if (cfg.writeSession) {
+  for (const p of [["Default", "Cookies"], ["Default", "Network", "Cookies"], ["Default", "Local Storage", "leveldb", "000003.log"]]) {
+    mkdirSync(join(profile, ...p.slice(0, -1)), { recursive: true });
+    writeFileSync(join(profile, ...p), "session-zq");
+  }
+}
 
 const out = createWriteStream(null, { fd: 4 });
 const send = (o) => out.write(`${JSON.stringify(o)}\0`);
@@ -91,7 +108,10 @@ async function navigate(url, sessionId) {
 }
 
 let buf = Buffer.alloc(0);
-createReadStream(null, { fd: 3 }).on("data", async (chunk) => {
+// A socket on the pipe, not an fs stream: a blocked fs read on fd 3 sits in
+// the thread pool and holds process.exit() until it returns, so the fake
+// would outlive Browser.close the way real Chrome doesn't.
+new Socket({ fd: 3, readable: true, writable: false }).on("data", async (chunk) => {
   buf = Buffer.concat([buf, chunk]);
   for (let i = buf.indexOf(0); i >= 0; i = buf.indexOf(0)) {
     const msg = JSON.parse(buf.subarray(0, i).toString("utf8"));

@@ -62,6 +62,8 @@ export function blockedAddress(address) {
   if (w[0] === 0x64 && w[1] === 0xff9b && w[2] === 0 && w[3] === 0 && w[4] === 0 && w[5] === 0) return v4Blocked(embedded(w[6], w[7])); // NAT64 well-known
   if ((w[0] & 0xe000) !== 0x2000) return true; // outside global unicast: fc00::/7, fe80::/10, fec0::/10, ff00::/8, 100::/64, 64:ff9b:1::/48, …
   if (w[0] === 0x2001 && w[1] === 0) return true; // Teredo
+  if (w[0] === 0x2001 && w[1] === 2 && w[2] === 0) return true; // benchmarking 2001:2::/48
+  if (w[0] === 0x3fff && (w[1] & 0xf000) === 0) return true; // documentation 3fff::/20 (RFC 9637)
   if (w[0] === 0x2001 && w[1] === 0xdb8) return true; // documentation
   if (w[0] === 0x2001 && (w[1] & 0xffe0) === 0x0020) return true; // ORCHIDv2 2001:20::/28
   if (w[0] === 0x2001 && (w[1] & 0xfff0) === 0x0010) return true; // ORCHID 2001:10::/28
@@ -69,9 +71,23 @@ export function blockedAddress(address) {
   return false;
 }
 
+// The IPv4 address an IPv6 address wraps, if it is one of the forms that do:
+// IPv4-mapped, IPv4-translated, IPv4-compatible (::a.b.c.d), NAT64
+// (64:ff9b::/96) and 6to4 (2002::/16). Bug 6: the capture origin rules judge
+// these by the address inside, as blockedAddress already did.
+export function embeddedIpv4(w) {
+  const zeros = (n) => w.slice(0, n).every((x) => x === 0);
+  if (zeros(5) && w[5] === 0xffff) return embedded(w[6], w[7]);
+  if (zeros(4) && w[4] === 0xffff && w[5] === 0) return embedded(w[6], w[7]);
+  if (zeros(6)) return embedded(w[6], w[7]);
+  if (w[0] === 0x64 && w[1] === 0xff9b && w[2] === 0 && w[3] === 0 && w[4] === 0 && w[5] === 0) return embedded(w[6], w[7]);
+  if (w[0] === 0x2002) return embedded(w[1], w[2]);
+  return null;
+}
+
 // Loopback or unspecified, in any spelling a URL's host can take (SA-013):
-// `localhost`, `*.localhost`, either with a trailing dot, and IPv4, IPv6,
-// IPv4-mapped and IPv4-compatible literals of 127/8, 0/8, ::1 and ::.
+// `localhost`, `*.localhost`, either with a trailing dot, IPv4 and IPv6
+// literals of 127/8, 0/8, ::1 and ::, and every IPv6 form that wraps one.
 export function isLoopbackHost(hostname) {
   const h = String(hostname).toLowerCase().replace(/\.$/, "");
   if (h === "localhost" || h.endsWith(".localhost")) return true;
@@ -79,22 +95,20 @@ export function isLoopbackHost(hostname) {
   if (four) return four[0] === 127 || four[0] === 0;
   const w = ipv6Words(h);
   if (!w) return false;
-  const zeros = (n) => w.slice(0, n).every((x) => x === 0);
-  if (zeros(5) && w[5] === 0xffff) return [127, 0].includes(w[6] >> 8);
-  if (zeros(4) && w[4] === 0xffff && w[5] === 0) return [127, 0].includes(w[6] >> 8);
-  if (zeros(6)) return w[6] === 0 || [127, 0].includes(w[6] >> 8); // ::, ::1, ::a.b.c.d
-  return false;
+  const v4 = embeddedIpv4(w);
+  return Boolean(v4 && (v4[0] === 127 || v4[0] === 0)); // ::, ::1, ::a.b.c.d, mapped, NAT64, 6to4
 }
 
-// Link-local, where cloud metadata services live (169.254.169.254,
-// fd00:ec2::254 is unique-local and allowed as an origin only if listed):
-// never a capture origin.
+// Link-local, where cloud metadata services live (169.254.169.254): IPv4,
+// fe80::/10, and every IPv6 form that wraps 169.254/16 (::a9fe:a9fe,
+// ::ffff:169.254.x.x, 64:ff9b::a9fe:a9fe, 2002:a9fe:…). Never a capture origin.
 export function isLinkLocalHost(hostname) {
   const h = String(hostname).toLowerCase().replace(/\.$/, "");
   const four = ipv4(h);
   if (four) return four[0] === 169 && four[1] === 254;
   const w = ipv6Words(h);
   if (!w) return false;
-  if (w.slice(0, 5).every((x) => x === 0) && w[5] === 0xffff) return w[6] >> 8 === 169 && (w[6] & 255) === 254;
+  const v4 = embeddedIpv4(w);
+  if (v4) return v4[0] === 169 && v4[1] === 254;
   return (w[0] & 0xffc0) === 0xfe80;
 }

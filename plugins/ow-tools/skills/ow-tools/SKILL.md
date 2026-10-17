@@ -25,7 +25,7 @@ ow-tools **runs code on this machine**. The ow- skills are text only; every piec
 | `ow-tools calc today \| date \| total \| split \| hours` | Today's date, business days, totals, payment splits and care-plan hours, checked by a tool |
 | `ow-tools digest <file\|folder>` | A SHA-256 that detects accidental change only; not tamper-evidence |
 | `ow-tools health --config health.yaml [--no-network]` | Read-only checks of what `health.yaml` lists. **Sends** package names and versions to OSV and npm, domains to RDAP, and requests to the listed hosts and URLs; `--no-network` sends nothing (`ow-tools help network`) |
-| `ow-tools capture --plan plan.json --out <…>/shots/ [--sign-in]` | Screenshots of the test environment the plan lists, in the user's Chrome or Chromium. The user signs in; ow-tools never types a password. `--profiles` lists the browser profiles, `--delete-profile <id>` removes one |
+| `ow-tools capture --plan plan.json --out <…>/shots/ [--sign-in] [--timeout S]` | Screenshots of the test environment the plan lists, in the user's Chrome or Chromium. The user signs in; ow-tools never types a password. It stops after 110 s by default: for a `--sign-in` that may take longer, pass `--timeout` (up to 590) and start it with `run_in_background`, then wait for it. `--profiles` lists the browser profiles, `--delete-profile <id>` removes one |
 | `ow-tools version` | Is it installed, and what is ready |
 
 At session start it also lists the open workstreams in `opchain-work/STATUS.md`. It reads that file and never writes it.

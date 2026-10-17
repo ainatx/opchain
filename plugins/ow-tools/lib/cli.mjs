@@ -35,7 +35,8 @@ ow-tools never installs anything and never prints a credential. Only health and 
 network, and only for what their config or plan lists (ow-tools help network).`;
 
 const NETWORK = `What leaves this machine, by verb (design §8, Network):
-  capture   the origins the plan lists in allowed_origins, through the browser; nothing else
+  capture   one name lookup per host in allowed_origins (before the browser starts), then
+            the origins the plan lists, through the browser; nothing else
   health    api.osv.dev (package names and versions of public-registry packages only),
             registry.npmjs.org (the same names), data.iana.org (the RDAP list), the RDAP
             server for each listed domain, and the hosts and URLs health.yaml lists.

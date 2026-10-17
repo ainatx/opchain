@@ -2,18 +2,19 @@
 // speaks CDP over fds 3/4, plus one real-browser run on a loopback fixture
 // that skips (and says so) without Chrome or Chromium.
 import { afterAll, describe, expect, it } from "vitest";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { createDecipheriv, pbkdf2Sync } from "node:crypto";
 import { createServer } from "node:http";
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { CDP_METHODS, PREFS, TEMP_STATE, browserCandidates, capture, findBrowser, secretName } from "../../plugins/ow-tools/lib/capture.mjs";
-import { ROOT, cleanup, cli, git, gitRepo, has, tempDir, write } from "./helpers.js";
+import { CDP_METHODS, DEFAULT_TIMEOUT, PREFS, PRODUCTION_PENDING, SESSION_STATE, TEMP_STATE, browserCandidates, capture, findBrowser, hostRules, nameWords, pinOrigins, readPlan, secretName } from "../../plugins/ow-tools/lib/capture.mjs";
+import { BIN, ROOT, cleanup, cli, git, gitRepo, has, tempDir, write } from "./helpers.js";
 
 const SPAWN = { timeout: 30_000 };
 afterAll(cleanup);
 const FIX = join(ROOT, "tests", "fixtures", "ow-tools", "sprint-t");
 const FAKE = join(ROOT, "tests", "ow-tools", "fake-browser.mjs");
+const FENCE = join(ROOT, "tests", "ow-tools", "fence.mjs");
 const NODE_DIR = process.execPath.replace(/\/node$/, "");
 const UAT = "https://uat.example.test";
 
@@ -49,10 +50,16 @@ function setup({ plan, browser = {}, repo = false, ignored = true } = {}) {
   const out = join(root, "opchain-work", "docs", "harbor-cafe", "shots");
   const planFile = write(join(d, "plan.json"), JSON.stringify(plan ?? JSON.parse(readFileSync(join(FIX, "capture", "plan.json"), "utf8"))));
   const home = join(d, "home");
-  const env = { PATH: `${bin}:${NODE_DIR}:/usr/bin:/bin`, OW_TOOLS_HOME: home, FAKE_BROWSER: cfg };
+  // Every CLI run here is under the network fence (round 3): the only thing
+  // capture may attempt is one DNS lookup per allowed host name, which the
+  // fence records and refuses, so nothing reaches a real resolver.
+  const fenceLog = join(d, "fence.log");
+  writeFileSync(fenceLog, "");
+  const env = { PATH: `${bin}:${NODE_DIR}:/usr/bin:/bin`, OW_TOOLS_HOME: home, FAKE_BROWSER: cfg, NODE_OPTIONS: `--import ${FENCE}`, OW_FENCE_LOG: fenceLog };
   const run = (args) => cli(["capture", "--plan", planFile, "--out", out, ...args, "--json"], { env });
   const entries = () => readFileSync(log, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l));
-  return { d, out, home, env, run, entries, planFile, profile: join(home, "capture", "harbor-cafe") };
+  const fence = () => readFileSync(fenceLog, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l));
+  return { d, out, home, env, run, entries, fence, cfg, planFile, profile: join(home, "capture", "harbor-cafe") };
 }
 const basePlan = () => JSON.parse(readFileSync(join(FIX, "capture", "plan.json"), "utf8"));
 const alive = (pid) => {
@@ -76,7 +83,10 @@ describe("ow-tools capture (stub browser)", SPAWN, () => {
     expect(start.argv).toContain(`--user-data-dir=${t.profile}`);
     expect(start.argv).toEqual(expect.arrayContaining(["--headless", "--no-first-run", "--disable-sync", "--disable-extensions", "--disable-background-networking", "--no-proxy-server"]));
     expect(start.argv.some((a) => /mock-keychain|password-store/.test(a))).toBe(false); // SA-011: the real keychain
-    expect(start.argv).toContain("--host-resolver-rules=MAP * ~NOTFOUND , EXCLUDE uat.example.test");
+    // Under the fence uat.example.test doesn't resolve, so it gets no rule and
+    // Chrome can resolve nothing (round 3, Bug 6).
+    expect(start.argv).toContain("--host-resolver-rules=MAP * ~NOTFOUND");
+    expect(t.fence()).toEqual([{ kind: "dns.lookup", target: "uat.example.test" }]);
     expect(statSync(t.profile).mode & 0o777).toBe(0o700);
     expect(statSync(join(t.home, "capture")).mode & 0o777).toBe(0o700);
     expect(start.prefs).toMatchObject({ credentials_enable_service: false, profile: { password_manager_enabled: false }, autofill: { enabled: false, profile_enabled: false, credit_card_enabled: false } });
@@ -434,16 +444,19 @@ describe("round 2: the profile at rest (SA-011, F-023)", SPAWN, () => {
   const production = () => ({ ...basePlan(), environment: "production", decision: { role: "client ops lead", date: "2026-10-15" } });
 
   it("wipes cookies and site storage after a production run, and says so", () => {
-    const t = setup({ plan: production() });
+    // writeSession: the browser writes its own session during the run, so the
+    // end-of-run wipe is tested, not only the start-of-run one (round 3).
+    const t = setup({ plan: production(), browser: { writeSession: true } });
     plant(t.profile);
     const r = t.run([]);
     expect(r.status).toBe(0);
     expect(present(t.profile)).toBe(0);
     expect(r.json.session).toMatch(/^wiped/);
+    expect(existsSync(join(t.profile, PRODUCTION_PENDING))).toBe(false); // a clean run leaves no marker
   });
 
   it("wipes them after a production run that fails, too", () => {
-    const t = setup({ plan: production(), browser: { crash: true } });
+    const t = setup({ plan: production(), browser: { crash: true, writeSession: true } });
     plant(t.profile);
     expect(t.run([]).status).toBe(5);
     expect(present(t.profile)).toBe(0);
@@ -503,6 +516,419 @@ describe("round 2: the profile at rest (SA-011, F-023)", SPAWN, () => {
       const r = await capture({ plan: plan("production", { decision: { role: "client ops lead", date: "2026-10-16" } }), out: join(d, "second", "shots"), timeout: 60 }, () => {}, deps);
       expect(r.session).toMatch(/^wiped/);
       for (const p of ["Cookies", join("Network", "Cookies"), "Local Storage"]) expect(existsSync(join(home, "capture", "cookie-production", "Default", p)), p).toBe(false);
+      // The re-review's PoC 13b: nothing on the wipe list survives, the session-adjacent stores included.
+      for (const p of SESSION_STATE) expect(existsSync(join(home, "capture", "cookie-production", ...p)), p.join("/")).toBe(false);
+      expect(existsSync(join(home, "capture", "cookie-production", PRODUCTION_PENDING))).toBe(false);
+    } finally {
+      server.close();
+    }
+  }, 120_000);
+});
+
+// ---- Sprint T round 3 -------------------------------------------------------------
+// Controls first (written before the round-3 rule change): ordinary field
+// names a capture plan fills every day. None may ever be refused.
+const ORDINARY_FIELDS = [
+  "customer", "customer_name", "first_name", "lastName", "email", "company", "quantity", "search", "description", "address_line2",
+  "zip_code", "phone", "shipping_address", "passenger", "spinner", "opinion", "pinterest_url", "option_list", "footprint", "hotpink",
+  "classname", "businessName", "topping", "laptop_model", "secretary_name", "passport_country", "compass_heading", "notes", "order_ref",
+  "delivery_date", "username", "promo_code", "postcode", "zipcode", "options", "description2",
+];
+
+describe("round 3: secret-field controls (ordinary names are never refused)", () => {
+  it.each(ORDINARY_FIELDS)("fills %s", (name) => {
+    expect(secretName(name), name).toBe(false);
+    expect(secretName(`#${name}`), name).toBe(false);
+    expect(secretName(`input[name=${name}]`), name).toBe(false);
+  });
+});
+
+// Bug 2 (round 3): every name below is refused, by the name rule and by the
+// plan reader before launch. The first ten are round 2's regressions (round
+// 1's regex refused them); then the evaluator's and the owner's lists.
+const SECRET_FIELDS = [
+  "newpassword", "confirmpassword", "loginpassword", "userpassword", "loginpwd", "passwort", "mot_de_passe", "totpcode", "mfatoken", "cardcvc",
+  "smsotp", "emailotp", "otpvalue", "otpinput", "verifyCode", "recovery_code", "backup_code", "privatekey",
+  "password", "passwd", "motdepasse", "pwd", "passcode", "otp", "totp", "mfa", "2fa", "cvc", "cvv", "cardnumber", "ccnumber", "securitycode",
+  "verificationcode", "recoverycode", "backupcode", "pin", "ssn", "iban", "routing", "accountnumber", "secret",
+  "user_password", "confirm-password", "PasswordConfirm", "pinCode", "account_number", "routing_number", "bank_iban", "client_secret", "apiToken",
+  "contrasena", "otp_code", "mfaCode", "cvv2", "ssnLast4", "newPwd", "card-cvv", "TOTP_SECRET",
+  // A short stem at the edge of a middle word: only the per-word stem check sees these.
+  "login_totpcode_box", "acct-loginpwd-field", "x_cardcvc_y",
+];
+
+describe("round 3: secret fields by words and stems (Bug 2)", SPAWN, () => {
+  // Each layer on its own, so the stem rule can't hide a broken word rule
+  // (R19, R20 and R2-B2b slipped behind it once).
+  it("the word rule splits camelCase, snake_case and kebab-case and drops a trailing digit", () => {
+    expect(nameWords("otp1")).toEqual(["otp"]);
+    expect(nameWords("cvv2")).toEqual(["cvv"]);
+    expect(nameWords("ssnLast4")).toEqual(["ssn", "last"]);
+    expect(nameWords("#one_time-codeX")).toEqual(["one", "time", "code", "x"]);
+    expect(nameWords("[data-field=twoFactor]")).toEqual(["data", "field", "two", "factor"]);
+    expect(nameWords("2fa")).toEqual(["2fa"]);
+  });
+
+  it("the ordinary-name controls: at least 15, none refused", () => {
+    expect(ORDINARY_FIELDS.length).toBeGreaterThanOrEqual(15);
+    for (const n of ORDINARY_FIELDS) expect(secretName(n), n).toBe(false);
+  });
+
+  it.each(SECRET_FIELDS)("refuses %s by name, as an id, as an attribute selector, and in a plan before launch", (name) => {
+    for (const text of [name, `#${name}`, `input[name=${name}]`, `[data-field='${name}']`]) expect(secretName(text), text).toBe(true);
+    const plan = basePlan();
+    plan.steps[2].selector = `#${name}`;
+    let err = null;
+    try {
+      readPlan(plan);
+    } catch (e) {
+      err = e;
+    }
+    expect(err?.extra?.reason, name).toBe("secret-field");
+  });
+
+  it("refuses the round-2 regressions through the CLI too, before launch", () => {
+    for (const name of ["newpassword", "mot_de_passe", "totpcode", "smsotp", "recovery_code"]) {
+      const plan = basePlan();
+      plan.steps[2].selector = `#${name}`;
+      const t = setup({ plan });
+      const r = t.run([]);
+      expect(r.status, name).toBe(4);
+      expect(r.json).toMatchObject({ reason: "secret-field", step: "S-03" });
+      expect(t.entries(), name).toEqual([]);
+    }
+  });
+
+  // At run time the selector is innocent; only the field's own attributes
+  // name the secret (a show-password toggle makes type=text).
+  const RUNTIME = [
+    ["name", "newpassword"], ["id", "confirmPassword"], ["name", "loginpwd"], ["name", "mot_de_passe"], ["name", "totpcode"], ["id", "mfatoken"],
+    ["name", "cardcvc"], ["name", "smsotp"], ["id", "recovery_code"], ["name", "backup_code"], ["aria-label", "Verify code"], ["placeholder", "Passwort"],
+  ];
+  it.each(RUNTIME)("refuses at run time a field whose %s is %s; nothing typed", (attr, value) => {
+    const pages = { ...PAGES, [`${UAT}/orders/new`]: { selectors: { "#f1": { attrs: ["id", "f1", attr, value, "type", "text"] } } } };
+    const plan = basePlan();
+    plan.steps[2].selector = "#f1";
+    const t = setup({ plan, browser: { pages } });
+    const r = t.run([]);
+    expect(r.status, value).toBe(4);
+    expect(r.json).toMatchObject({ reason: "secret-field", step: "S-03" });
+    expect(t.entries().some((c) => c.method === "Input.insertText")).toBe(false);
+  });
+
+  it("fills a field whose attributes are ordinary (control at run time)", () => {
+    const pages = { ...PAGES, [`${UAT}/orders/new`]: { selectors: { "#f1": { attrs: ["id", "passenger", "name", "shipping_address", "aria-label", "Your opinion", "type", "text"] } } } };
+    const plan = basePlan();
+    plan.steps[2].selector = "#f1";
+    const t = setup({ plan, browser: { pages } });
+    const r = t.run([]);
+    expect(r.status, r.stdout).toBe(0);
+    expect(t.entries().find((c) => c.method === "Input.insertText").params).toEqual({ text: "Test Customer 01" });
+  });
+});
+
+describe("round 3: origins by what they are and what they resolve to (Bug 6)", SPAWN, () => {
+  const planWith = (origins) => ({ ...basePlan(), allowed_origins: origins, steps: [{ id: "S-01", do: "navigate", url: `${origins[0]}/` }], sign_in: undefined });
+  const run = (origins) => {
+    const plan = planWith(origins);
+    delete plan.sign_in;
+    const t = setup({ plan });
+    return { t, r: t.run([]) };
+  };
+
+  it.each([
+    ["https://[::a9fe:a9fe]", /link-local/],
+    ["https://[::169.254.169.254]", /link-local/],
+    ["https://[64:ff9b::a9fe:a9fe]", /link-local/],
+    ["https://[2002:a9fe:a9fe::]", /link-local/],
+    ["https://[::7f00:1]", /loopback/],
+    ["https://[64:ff9b::7f00:1]", /loopback/],
+    ["https://[2002:7f00:1::]", /loopback/],
+    ["https://[64:ff9b::a00:1]", /special-purpose/],
+    ["https://[2002:a00:1::]", /special-purpose/],
+    ["https://[fd00::1]", /special-purpose/],
+    ["https://[3fff::1]", /special-purpose/],
+    ["https://[2001:2::1]", /special-purpose/],
+    ["https://[2001:0:4136:e378::1]", /special-purpose/],
+    ["https://[2001:db8::1]", /special-purpose/],
+  ])("refuses the origin %s before launch, with no lookup", (o, why) => {
+    const { t, r } = run([o]);
+    expect(r.status, o).toBe(4);
+    expect(r.json.reason).toBe("plan-invalid");
+    expect(r.json.message).toMatch(why);
+    expect(t.entries()).toEqual([]);
+    expect(t.fence()).toEqual([]);
+  });
+
+  it("looks up exactly the plan's host names, once each, and nothing else; IP literals are excluded, not looked up", () => {
+    const origins = ["https://uat.example.test", "https://203.0.113.10", "https://[2606:4700::1111]", "https://cdn.example.test", "https://uat.example.test:8443"];
+    const plan = { ...basePlan(), allowed_origins: origins };
+    const t = setup({ plan });
+    const r = t.run([]);
+    expect(r.status, r.stdout).toBe(0);
+    expect(t.fence()).toEqual([{ kind: "dns.lookup", target: "uat.example.test" }, { kind: "dns.lookup", target: "cdn.example.test" }]);
+    expect(t.entries()[0].argv).toContain("--host-resolver-rules=EXCLUDE 203.0.113.10 , EXCLUDE 2606:4700::1111 , MAP * ~NOTFOUND");
+  });
+
+  const answers = (map) => async (host) => {
+    if (!(host in map)) throw Object.assign(new Error("not found"), { code: "ENOTFOUND" });
+    return map[host];
+  };
+  it.each([
+    ["127.0.0.1.nip.io", ["127.0.0.1"]],
+    ["lvh.me", ["127.0.0.1"]], // the re-review's PoC 2: accepted by the plan reader, refused here
+    ["metadata.google.internal", ["169.254.169.254"]],
+    ["instance-data", ["169.254.169.254"]],
+    ["v6.example.test", ["::1"]],
+    ["unspec.example.test", ["0.0.0.0"]],
+    ["mapped.example.test", ["::ffff:127.0.0.1"]],
+    ["fe.example.test", ["fe80::1"]],
+    ["nat64.example.test", ["64:ff9b::a9fe:a9fe"]],
+    ["sixtofour.example.test", ["2002:7f00:1::"]],
+    ["mixed.example.test", ["203.0.113.10", "127.0.0.1"]],
+  ])("refuses a name that resolves to loopback or link-local: %s → %j", async (host, list) => {
+    await expect(pinOrigins({ origins: ["https://uat.example.test", `https://${host}`] }, { resolver: answers({ "uat.example.test": ["203.0.113.10"], [host]: list }) })).rejects.toMatchObject({
+      code: 4,
+      extra: { reason: "origin-address-not-allowed", origin: 1 },
+    });
+  });
+
+  it("pins each name to the address it checked; a name that doesn't resolve gets no rule; a literal is excluded", async () => {
+    const pins = await pinOrigins(
+      { origins: ["https://uat.example.test", "https://lan.example.test", "https://v6only.example.test", "https://gone.example.test", "https://203.0.113.10", "https://[2606:4700::1111]"] },
+      { resolver: answers({ "uat.example.test": ["2606:4700::6810:2", "203.0.113.10", "203.0.113.11"], "lan.example.test": ["10.0.0.5"], "v6only.example.test": ["2606:4700::6810:1"] }) },
+    );
+    expect(pins).toEqual([
+      { host: "uat.example.test", address: "203.0.113.10" },
+      { host: "lan.example.test", address: "10.0.0.5" },
+      { host: "v6only.example.test", address: "2606:4700::6810:1" },
+      { host: "203.0.113.10", literal: true },
+      { host: "[2606:4700::1111]", literal: true },
+    ]);
+    expect(hostRules(pins)).toBe(
+      "--host-resolver-rules=MAP uat.example.test 203.0.113.10 , MAP lan.example.test 10.0.0.5 , MAP v6only.example.test [2606:4700::6810:1] , EXCLUDE 203.0.113.10 , EXCLUDE 2606:4700::1111 , MAP * ~NOTFOUND",
+    );
+    expect(hostRules([])).toBe("--host-resolver-rules=MAP * ~NOTFOUND");
+  });
+
+  it("a test origin (the suite's loopback fixture) may resolve to loopback; nothing else may", async () => {
+    const resolver = answers({ "fixture.test": ["127.0.0.1"] });
+    expect(await pinOrigins({ origins: ["http://fixture.test:4000"] }, { resolver, testOrigins: ["http://fixture.test:4000"] })).toEqual([{ host: "fixture.test", address: "127.0.0.1" }]);
+    await expect(pinOrigins({ origins: ["https://fixture.test"] }, { resolver })).rejects.toMatchObject({ extra: { reason: "origin-address-not-allowed" } });
+  });
+
+  it("the refusal comes before launch and names only the origin's index, never the address", async () => {
+    const t = setup();
+    const err = await capture({ plan: t.planFile, out: t.out }, () => {}, {
+      env: { ...process.env, ...t.env, NODE_OPTIONS: "" },
+      browsers: { path: [], files: [join(t.d, "bin", "google-chrome")] },
+      resolver: answers({ "uat.example.test": ["169.254.169.254"] }),
+    }).catch((e) => e);
+    expect(err.extra).toEqual({ reason: "origin-address-not-allowed", origin: 0 });
+    expect(err.message).not.toContain("169.254");
+    expect(t.entries()).toEqual([]);
+    expect(existsSync(t.profile)).toBe(false);
+  });
+
+  it("the browser gets the checked address as its only route to the name", async () => {
+    const t = setup();
+    const r = await capture({ plan: t.planFile, out: t.out }, () => {}, {
+      env: { ...process.env, ...t.env, NODE_OPTIONS: "" },
+      browsers: { path: [], files: [join(t.d, "bin", "google-chrome")] },
+      resolver: answers({ "uat.example.test": ["203.0.113.10"] }),
+    });
+    expect(r.status).toBe("done");
+    expect(t.entries()[0].argv).toContain("--host-resolver-rules=MAP uat.example.test 203.0.113.10 , MAP * ~NOTFOUND");
+  });
+
+  it("(real browser) Chrome follows the pin: a name mapped to the fixture loads, an unpinned one doesn't, and an IPv6 literal loads", async (ctx) => {
+    if (!real) {
+      ctx.skip("no Chrome or Chromium at the standard paths or on PATH; real-binary check");
+      return;
+    }
+    const page = (req, res) => {
+      res.writeHead(200, { "content-type": "text/html" });
+      res.end('<!doctype html><body><p id="ready">ready</p></body>');
+    };
+    const v4 = createServer(page);
+    const v6 = createServer(page);
+    await new Promise((r) => v4.listen(0, "127.0.0.1", r));
+    const v6ok = await new Promise((r) => {
+      v6.once("error", () => r(false));
+      v6.listen(0, "::1", () => r(true));
+    });
+    try {
+      const d = tempDir();
+      const go = async (origin, resolver) => {
+        const plan = write(join(d, `${Math.random()}.json`), JSON.stringify({
+          schema: 1, profile: "fixture", environment: "test", allowed_origins: [origin], viewport: { width: 400, height: 400 },
+          steps: [{ id: "S-01", do: "navigate", url: `${origin}/` }, { id: "S-02", do: "wait", selector: "#ready" }],
+        }));
+        return capture({ plan, out: join(d, "shots"), timeout: 60 }, () => {}, { testOrigins: [origin], resolver, env: { ...process.env, OW_TOOLS_HOME: join(d, "home") } }).catch((e) => e);
+      };
+      const named = `http://fixture.test:${v4.address().port}`;
+      expect((await go(named, answers({ "fixture.test": ["127.0.0.1"] }))).images).toHaveLength(2);
+      const unpinned = await go(named, answers({}));
+      expect(unpinned.message).toMatch(/did not load/);
+      if (v6ok) expect((await go(`http://[::1]:${v6.address().port}`, answers({}))).images).toHaveLength(2);
+    } finally {
+      v4.close();
+      v6.close();
+    }
+  }, 120_000);
+});
+
+describe("round 3: a killed run never keeps a production session (Bug 4, SA-019 / F-025)", SPAWN, () => {
+  const production = () => ({ ...basePlan(), environment: "production", decision: { role: "client ops lead", date: "2026-10-17" } });
+  const SESSION = [["Default", "Cookies"], ["Default", "Network", "Cookies"], ["Default", "Local Storage"]];
+  const left = (profile) => SESSION.filter((p) => existsSync(join(profile, ...p))).map((p) => p.join("/"));
+  const until = async (fn, ms = 15000) => {
+    const end = Date.now() + ms;
+    while (Date.now() < end) {
+      if (fn()) return true;
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    return false;
+  };
+  const start = (t) => {
+    const child = spawn(BIN, ["capture", "--plan", t.planFile, "--out", t.out, "--json"], { env: { ...process.env, ...t.env }, stdio: ["ignore", "ignore", "ignore"] });
+    const done = new Promise((r) => child.on("exit", (code, signal) => r({ code, signal })));
+    return { child, done };
+  };
+  const navigating = (t) => t.entries().some((c) => c.method === "Page.navigate");
+
+  it.each([["SIGTERM", 143], ["SIGINT", 130], ["SIGHUP", 129]])("%s: closes the browser, wipes the session it wrote, removes the marker and exits %i", async (sig, code) => {
+    const t = setup({ plan: production(), browser: { hang: true, writeSession: true } });
+    const { child, done } = start(t);
+    expect(await until(() => navigating(t) && existsSync(join(t.profile, "Default", "Cookies")))).toBe(true);
+    expect(existsSync(join(t.profile, PRODUCTION_PENDING))).toBe(true);
+    child.kill(sig);
+    expect(await done).toEqual({ code, signal: null });
+    expect(left(t.profile)).toEqual([]);
+    expect(existsSync(join(t.profile, PRODUCTION_PENDING))).toBe(false);
+    const pid = t.entries()[0].pid;
+    expect(await until(() => !alive(pid), 5000)).toBe(true);
+  });
+
+  it("SIGKILL can't be handled, so the marker stays and the next run on the profile, of any environment, wipes first", async () => {
+    const t = setup({ plan: production(), browser: { hang: true, writeSession: true } });
+    const { child, done } = start(t);
+    expect(await until(() => navigating(t) && existsSync(join(t.profile, "Default", "Cookies")))).toBe(true);
+    child.kill("SIGKILL");
+    expect((await done).signal).toBe("SIGKILL");
+    const pid = t.entries()[0].pid;
+    try {
+      process.kill(-pid, "SIGKILL"); // the orphaned browser: what the user would quit
+    } catch {
+      /* gone */
+    }
+    await until(() => !alive(pid), 5000);
+    expect(existsSync(join(t.profile, PRODUCTION_PENDING))).toBe(true);
+    expect(left(t.profile).length).toBeGreaterThan(0); // the killed run's session is still there
+    // The next run is a uat run on the same profile: it starts from a wiped session.
+    writeFileSync(t.cfg, JSON.stringify({ ...JSON.parse(readFileSync(t.cfg, "utf8")), hang: false, writeSession: false }));
+    const next = write(join(t.d, "uat.json"), JSON.stringify(basePlan()));
+    const r = cli(["capture", "--plan", next, "--out", t.out, "--json"], { env: t.env });
+    expect(r.status, r.stdout).toBe(0);
+    const starts = t.entries().filter((e) => e.argv);
+    expect(starts).toHaveLength(2);
+    expect(starts[1].atLaunch.session).toBe(false);
+    expect(left(t.profile)).toEqual([]);
+    expect(existsSync(join(t.profile, PRODUCTION_PENDING))).toBe(false);
+  });
+
+  it("a production run starts from a wiped session even with no marker; a uat run keeps its own", () => {
+    const plant = (profile) => SESSION.forEach((p) => write(join(profile, ...p, ...(p.at(-1) === "Local Storage" ? ["x"] : [])), "session-zq"));
+    const prod = setup({ plan: production() });
+    plant(prod.profile);
+    expect(prod.run([]).status).toBe(0);
+    expect(prod.entries()[0].atLaunch.session).toBe(false);
+    const uat = setup();
+    plant(uat.profile);
+    expect(uat.run([]).status).toBe(0);
+    expect(uat.entries()[0].atLaunch.session).toBe(true);
+    expect(SESSION_STATE).toEqual(expect.arrayContaining([["Default", "Device Bound Sessions"], ["Default", "Login Data For Account"], ["Default", "Trust Tokens"]]));
+  });
+
+  it("R26 / F-023: caches a killed run left are gone before the browser starts, not only after", () => {
+    const t = setup();
+    for (const p of [["Default", "Cache", "x"], ["GPUPersistentCache", "x"], ["Default", "Code Cache", "x"]]) write(join(t.profile, ...p), "page content");
+    expect(t.run([]).status).toBe(0);
+    expect(t.entries()[0].atLaunch.cache).toBe(false);
+  });
+
+  it("the default wait is under Claude Code's 120 s Bash timeout, for --sign-in too", () => {
+    expect(DEFAULT_TIMEOUT).toBeLessThan(120);
+    // The sign-in wait says how long it waits; the fixture's login page shows the signed-in selector at once.
+    const s = setup();
+    const signIn = cli(["capture", "--plan", s.planFile, "--out", s.out, "--sign-in"], { env: s.env });
+    expect(signIn.status, signIn.stderr).toBe(0);
+    expect(signIn.stderr).toContain(`ow-tools waits up to ${DEFAULT_TIMEOUT} s for the page`);
+    const t = setup({ browser: { hang: true } });
+    const r = t.run(["--sign-in", "--timeout", "5"]);
+    expect(r.status).toBe(5);
+    expect(r.json.message).toMatch(/after 5 s/);
+  });
+});
+
+describe("round 3: killed production runs with the real browser (Bug 4, SA-019 PoC 13c)", SPAWN, () => {
+  it("SIGTERM leaves no cookie store; a SIGKILL leaves the page's cookie on disk, and the next run wipes it before its browser starts", async (ctx) => {
+    const sqlite = has("sqlite3");
+    if (!real || !sqlite) {
+      ctx.skip(`needs Chrome or Chromium and sqlite3 (browser: ${Boolean(real)}, sqlite3: ${sqlite}); real-binary check`);
+      return;
+    }
+    const server = createServer((req, res) => {
+      // Only / sets the cookie, so the next run's visit to /x can't put it back.
+      res.writeHead(200, { "content-type": "text/html", ...(req.url === "/" ? { "set-cookie": "sid=ZQKILL-77; Max-Age=3600; Path=/" } : {}) });
+      res.end('<!doctype html><body><p id="ready">ok</p></body>');
+    });
+    await new Promise((r) => server.listen(0, "127.0.0.1", r));
+    const origin = `http://127.0.0.1:${server.address().port}`;
+    const d = tempDir();
+    const home = join(d, "home");
+    const prof = join(home, "capture", "killprod");
+    const stores = () => ["Cookies", join("Network", "Cookies")].map((f) => join(prof, "Default", f)).filter((f) => existsSync(f));
+    const sids = () =>
+      ["Cookies", join("Network", "Cookies")]
+        .map((f) => join(prof, "Default", f))
+        .filter((f) => existsSync(f))
+        .reduce((n, f) => n + Number(spawnSync("sqlite3", [f, "select count(*) from cookies where name='sid'"], { encoding: "utf8" }).stdout.trim() || 0), 0);
+    const plan = (env, steps) => write(join(d, `${env}-${steps.length}.json`), JSON.stringify({ schema: 1, profile: "killprod", environment: env, ...(env === "production" ? { decision: { role: "client ops lead", date: "2026-10-17" } } : {}), allowed_origins: [origin], steps }));
+    const hanging = plan("production", [{ id: "S-01", do: "navigate", url: `${origin}/` }, { id: "S-02", do: "wait", selector: "#ready" }, { id: "S-03", do: "wait", selector: "#never", timeout_ms: 60000 }]);
+    const script = `const { capture } = await import(${JSON.stringify(join(ROOT, "plugins", "ow-tools", "lib", "capture.mjs"))});
+      await capture({ plan: ${JSON.stringify(hanging)}, out: ${JSON.stringify(join(d, "shots"))}, timeout: 100 }, () => {}, { testOrigins: [${JSON.stringify(origin)}], env: { ...process.env, OW_TOOLS_HOME: ${JSON.stringify(home)} } });`;
+    const until = async (fn, ms = 30000) => {
+      const end = Date.now() + ms;
+      while (Date.now() < end) {
+        if (fn()) return true;
+        await new Promise((r) => setTimeout(r, 200));
+      }
+      return false;
+    };
+    const runKilled = async (sig) => {
+      const child = spawn(process.execPath, ["--input-type=module", "-e", script], { stdio: "ignore" });
+      const done = new Promise((r) => child.on("exit", (code, signal) => r({ code, signal })));
+      // Chrome writes the cookie to disk lazily; its store exists from the first load.
+      expect(await until(() => stores().length > 0), "the browser opened its cookie store").toBe(true);
+      await new Promise((r) => setTimeout(r, 1500));
+      child.kill(sig);
+      return done;
+    };
+    try {
+      expect(await runKilled("SIGTERM")).toEqual({ code: 143, signal: null });
+      expect(stores()).toEqual([]);
+      expect(existsSync(join(prof, "Default", "Local Storage"))).toBe(false);
+      expect(existsSync(join(prof, PRODUCTION_PENDING))).toBe(false);
+
+      expect((await runKilled("SIGKILL")).signal).toBe("SIGKILL");
+      await new Promise((r) => setTimeout(r, 2000)); // Chrome exits when its pipe closes
+      expect(sids()).toBe(1);
+      expect(existsSync(join(prof, PRODUCTION_PENDING))).toBe(true);
+      const r = await capture({ plan: plan("test", [{ id: "S-01", do: "navigate", url: `${origin}/x` }]), out: join(d, "next", "shots"), timeout: 60 }, () => {}, { testOrigins: [origin], env: { ...process.env, OW_TOOLS_HOME: home } });
+      expect(r.status).toBe("done");
+      expect(sids()).toBe(0);
+      expect(existsSync(join(prof, PRODUCTION_PENDING))).toBe(false);
     } finally {
       server.close();
     }

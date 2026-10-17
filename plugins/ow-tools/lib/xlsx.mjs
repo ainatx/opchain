@@ -262,7 +262,9 @@ export function readSheetFolder(dir) {
   // sheet needs its `## Sheet:` section; Sources is the one exception.
   for (const name of sheets.keys()) {
     if (name !== "Sources" && !model.sheets.some((s) => s.name === name)) {
-      throw refused("unknown-sheet", `${name}.csv has no "## Sheet: ${name}" section in model.md; only the sheets model.md names are exported`, { sheet: name });
+      // OD-8 (owner, 2026-10-17): its own reason, so a caller can tell it from
+      // a model that names a missing CSV (unknown-sheet).
+      throw refused("sheet-not-in-model", `${name}.csv has no "## Sheet: ${name}" section in model.md; only the sheets model.md names are exported`, { sheet: name });
     }
   }
   const order = model.sheets.map((s) => s.name);

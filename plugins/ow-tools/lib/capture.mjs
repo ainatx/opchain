@@ -9,11 +9,11 @@
 // profile. It lives in the ow-tools data folder (0700), is listed by
 // `--profiles` and removed by `--delete-profile`, and ow-handoff's access
 // removal names it.
-import { chmodSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join, relative, resolve, sep } from "node:path";
 import { dataHome, failed, isFile, localDate, missing, refused, usage, which } from "./core.mjs";
-import { isLinkLocalHost, isLoopbackHost } from "./addr.mjs";
+import { blockedAddress, ipv4, isLinkLocalHost, isLoopbackHost } from "./addr.mjs";
 import { CDP_METHODS, killTree, launchBrowser } from "./cdp.mjs";
 import { assertIgnored, withTmpSiblings, writePrivate } from "./guards.mjs";
 import { sha256File } from "./hash.mjs";
@@ -26,12 +26,24 @@ const STEP_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$/;
 const KINDS = ["navigate", "click", "fill", "wait", "shot"];
 const MAX_STEPS = 200;
 const DEFAULT_VIEWPORT = { width: 1280, height: 800 };
+// Under Claude Code's 120 s Bash timeout, for --sign-in too (Bug 4): a run
+// that is killed mid-wait is the likeliest way a session outlives it. A
+// longer sign-in passes --timeout and runs with run_in_background.
+export const DEFAULT_TIMEOUT = 110;
 
 // A field ow-tools never types into: by type, by autocomplete, or by a name,
-// id or selector whose words name a secret (design §5.6). Identifiers are
-// split into words first (camelCase, snake_case, kebab-case, any
-// punctuation; a trailing digit dropped), so `otp_code`, `mfaCode`, `otp1`,
-// `pin_code`, `one_time_code` and `ssn_last4` all match (Bug 2).
+// id or selector that names a secret (design §5.6). Two rules, either one
+// refuses (round 3, Bug 2):
+//
+// - words: the text split into words (camelCase, snake_case, kebab-case,
+//   any punctuation; a trailing digit dropped: `otp1` → `otp`) matched
+//   against whole secret words and word pairs (`pin`, `one time`, …);
+// - stems: each word, and the whole text lower-cased with every separator
+//   and digit removed (`mot_de_passe` → `motdepasse`), searched for secret
+//   stems. Long stems match anywhere (`newpassword`, `cardcvc`); short ones
+//   only at the start or end of a word (`smsotp`, `totpcode`, `mfatoken`),
+//   so `footprint` and `hotpink` stay ordinary. Real words that merely
+//   contain a stem (`secretary`, `classname`) are removed first.
 export function nameWords(text) {
   return String(text)
     .replace(/([a-z])([A-Z])/g, "$1 $2")
@@ -42,19 +54,44 @@ export function nameWords(text) {
     .map((w) => w.replace(/(?<=[a-z])\d+$/, ""));
 }
 export const SECRET_WORDS = Object.freeze([
-  "otp", "otpcode", "mfa", "mfacode", "totp", "hotp", "2fa", "tfa", "twofa", "pin", "pincode", "passcode", "password", "passwd", "pwd", "pw",
-  "pass", "passphrase", "secret", "token", "cvv", "cvc", "csc", "cvn", "ssn", "apikey", "onetimecode", "onetimepassword", "cardnumber",
-  "cardnum", "ccnum", "ccnumber", "cccsc", "ccexp", "securitycode", "verificationcode", "authcode", "smscode",
+  "otp", "otpcode", "mfa", "mfacode", "totp", "hotp", "2fa", "tfa", "twofa", "pin", "pincode", "pinnumber", "passcode", "password", "passwd",
+  "pwd", "pw", "pass", "passphrase", "secret", "token", "cvv", "cvc", "csc", "cvn", "ssn", "iban", "routing", "apikey", "onetimecode",
+  "onetimepassword", "cardnumber", "cardnum", "ccnum", "ccnumber", "cccsc", "ccexp", "securitycode", "verificationcode", "authcode",
+  "smscode",
 ]);
 export const SECRET_SEQUENCES = Object.freeze([
   ["one", "time"], ["two", "factor"], ["card", "number"], ["card", "num"], ["cc", "num"], ["cc", "number"], ["cc", "csc"], ["cc", "exp"],
-  ["security", "code"], ["security", "answer"], ["verification", "code"], ["auth", "code"], ["sms", "code"], ["api", "key"], ["access", "key"],
+  ["security", "code"], ["security", "answer"], ["verification", "code"], ["verify", "code"], ["auth", "code"], ["sms", "code"],
+  ["recovery", "code"], ["backup", "code"], ["api", "key"], ["access", "key"], ["private", "key"], ["account", "number"], ["routing", "number"],
+]);
+// Matched anywhere in a word or in the compacted text.
+export const SECRET_STEMS_ANYWHERE = Object.freeze([
+  "password", "passwd", "passwort", "motdepasse", "contrasena", "passcode", "passphrase", "cardnumber", "ccnumber", "securitycode",
+  "verificationcode", "verifycode", "recoverycode", "backupcode", "accountnumber", "routingnumber", "apikey", "privatekey", "secret",
+  "token", "iban",
+]);
+// Matched only at the start or the end of a word or of the compacted text.
+export const SECRET_STEMS_EDGE = Object.freeze(["otp", "totp", "mfa", "pwd", "cvc", "cvv", "ssn", "twofa", "tfa"]);
+// Real words that contain a stem and are not secrets.
+export const ORDINARY_WORDS = Object.freeze([
+  "secretary", "secretariat", "classname", "businessname", "passenger", "passport", "compass", "bypass", "trespass", "tokenize", "tokenizer",
+  "footprint", "hotpink", "laptop", "desktop", "hotplate", "spinner", "opinion", "pinterest", "shipping", "option", "options", "topping",
 ]);
 const WORDS = new Set(SECRET_WORDS);
+const ORDINARY = [...ORDINARY_WORDS].sort((a, b) => b.length - a.length);
+const scrub = (s) => ORDINARY.reduce((t, w) => t.split(w).join(" "), s);
+const stemHit = (s) => {
+  if (SECRET_STEMS_ANYWHERE.some((st) => s.includes(st))) return true;
+  return s.split(" ").filter(Boolean).some((part) => SECRET_STEMS_EDGE.some((st) => part.startsWith(st) || part.endsWith(st)));
+};
 export function secretName(text) {
   const w = nameWords(text);
   if (w.some((x) => WORDS.has(x))) return true;
-  return SECRET_SEQUENCES.some((seq) => w.some((_, k) => seq.every((s, j) => w[k + j] === s)));
+  if (SECRET_SEQUENCES.some((seq) => w.some((_, k) => seq.every((s, j) => w[k + j] === s)))) return true;
+  // Stems in each word, then in the whole text with separators and digits gone.
+  if (w.some((x) => stemHit(scrub(x.replace(/\d+/g, ""))))) return true;
+  const compact = String(text).toLowerCase().replace(/[^a-z]+/g, "");
+  return stemHit(scrub(compact));
 }
 const SECRET_AUTOCOMPLETE = /\b(current-password|new-password|one-time-code|cc-number|cc-csc|cc-exp(?:-month|-year)?)\b/i;
 // A plan value that looks like a credential is refused, whatever the field.
@@ -121,6 +158,9 @@ function origin(text, testOrigins, what) {
   if (u.username || u.password) throw planBad(`${what} must not hold a user name or password`);
   if (isLoopbackHost(u.hostname)) throw planBad(`${what} must not be a loopback address`);
   if (isLinkLocalHost(u.hostname)) throw planBad(`${what} must not be a link-local or cloud-metadata address`);
+  // An IPv6 literal must be global unicast (Bug 6): no IPv4-compatible,
+  // NAT64 or 6to4 wrapping of a private address, no documentation range.
+  if (u.hostname.startsWith("[") && blockedAddress(u.hostname)) throw planBad(`${what} must not be a special-purpose IPv6 address`);
   if (u.origin !== text.replace(/\/$/, "")) throw planBad(`${what} must be an origin only (scheme, host, port), with no path`);
   return u.origin;
 }
@@ -316,8 +356,17 @@ export function prepareProfile(id, env) {
   return dir;
 }
 
-export function browserArgs({ profileDir, headless, viewport, origins }) {
-  const hosts = [...new Set(origins.map((o) => new URL(o).hostname))];
+// Chrome resolves only the plan's host names, and only to the address
+// ow-tools checked (Bug 6): `MAP host address` for each, everything else
+// NOTFOUND. An IP-literal origin (already checked by the plan reader) is
+// excluded from the catch-all, since Chrome applies it to literals too; a
+// name ow-tools couldn't resolve gets no rule, so the browser can't reach it.
+export function hostRules(pins) {
+  const rules = pins.map((p) => (p.literal ? `EXCLUDE ${p.host.replace(/^\[|\]$/g, "")}` : `MAP ${p.host} ${p.address.includes(":") ? `[${p.address}]` : p.address}`));
+  return `--host-resolver-rules=${[...rules, "MAP * ~NOTFOUND"].join(" , ")}`;
+}
+
+export function browserArgs({ profileDir, headless, viewport, pins = [] }) {
   return [
     "--remote-debugging-pipe",
     `--user-data-dir=${profileDir}`,
@@ -338,7 +387,7 @@ export function browserArgs({ profileDir, headless, viewport, origins }) {
     // No --use-mock-keychain (SA-011): the cookie key lives in the user's
     // keychain (macOS asks once; "Always Allow"), not a fixed public key.
     "--no-proxy-server",
-    `--host-resolver-rules=MAP * ~NOTFOUND , ${hosts.map((h) => `EXCLUDE ${h}`).join(" , ")}`,
+    hostRules(pins),
     `--window-size=${viewport.width},${viewport.height}`,
     "about:blank",
   ];
@@ -363,7 +412,15 @@ export const SESSION_STATE = [
   ["Default", "databases"], ["Default", "Storage"], ["Default", "Sessions"], ["Default", "Current Session"], ["Default", "Last Session"],
   ["Default", "History"], ["Default", "History-journal"], ["Default", "Top Sites"], ["Default", "Visited Links"], ["Default", "Login Data"],
   ["Default", "Login Data-journal"], ["Default", "Web Data"], ["Default", "Web Data-journal"],
+  // SA-019: session-adjacent stores too.
+  ["Default", "Device Bound Sessions"], ["Default", "Device Bound Sessions-journal"], ["Default", "Account Web Data"],
+  ["Default", "Account Web Data-journal"], ["Default", "Login Data For Account"], ["Default", "Login Data For Account-journal"],
+  ["Default", "Reporting and NEL"], ["Default", "Reporting and NEL-journal"], ["Default", "Trust Tokens"], ["Default", "Trust Tokens-journal"],
 ];
+// Written before a production run starts and removed only after its wipe:
+// a run that was killed (even SIGKILL) leaves it, and the next run on the
+// profile, whatever its environment, wipes the session first (SA-019 / F-025).
+export const PRODUCTION_PENDING = ".ow-tools-production-pending";
 function wipeSession(dir) {
   for (const parts of SESSION_STATE) rmSync(join(dir, ...parts), { recursive: true, force: true });
 }
@@ -490,7 +547,10 @@ async function runStep(x, plan, step, outDir) {
     if (!nodeId) throw stepFail("selector-not-found", `step ${step.id}: nothing on the page matches the selector (signed out? run --sign-in)`, { step: step.id });
     if (step.do === "fill") {
       const a = await attrs(x, nodeId);
-      if (a.type?.toLowerCase() === "password" || SECRET_AUTOCOMPLETE.test(a.autocomplete || "") || secretName(a.name || "") || secretName(a.id || "")) {
+      // Its name, id and the words a person reads (aria-label, placeholder):
+      // a show-password toggle makes type=text, so the words still count.
+      const named = ["name", "id", "aria-label", "placeholder"].some((k) => secretName(a[k] || ""));
+      if (a.type?.toLowerCase() === "password" || SECRET_AUTOCOMPLETE.test(a.autocomplete || "") || named) {
         throw refused("secret-field", `step ${step.id}: the field is a password, one-time-code or similar field; nothing was typed`, { step: step.id });
       }
       await x.call("DOM.focus", { nodeId });
@@ -522,6 +582,43 @@ async function runStep(x, plan, step, outDir) {
   return { step: step.id, file, ...size, sha256: sha256File(file), data_check: DATA_CHECK };
 }
 
+// Resolve each allowed host once, before launch. An answer that is loopback,
+// unspecified or link-local (cloud metadata) refuses the plan: a name like
+// 127.0.0.1.nip.io or metadata.google.internal is no test environment.
+// `deps.resolver` is the test seam; the default is the system resolver.
+async function defaultResolver(host) {
+  const { lookup } = await import("node:dns");
+  return new Promise((ok, no) => lookup(host, { all: true, verbatim: true }, (err, list) => (err ? no(err) : ok(list.map((x) => x.address)))));
+}
+
+export async function pinOrigins(plan, { resolver = defaultResolver, testOrigins = [] } = {}) {
+  const testHosts = new Set(testOrigins.map((o) => new URL(o).hostname));
+  const pins = [];
+  const seen = new Set(); // one lookup per name, whatever its ports
+  for (const [k, o] of plan.origins.entries()) {
+    const host = new URL(o).hostname;
+    if (seen.has(host)) continue;
+    seen.add(host);
+    if (ipv4(host) || host.startsWith("[")) {
+      pins.push({ host, literal: true });
+      continue;
+    }
+    let list = [];
+    try {
+      list = await resolver(host);
+    } catch {
+      continue; // unresolvable: no rule, so the browser can't reach it
+    }
+    if (!testHosts.has(host) && list.some((a) => isLoopbackHost(a) || isLinkLocalHost(a))) {
+      throw refused("origin-address-not-allowed", `capture plan: allowed_origins[${k}] resolves to a loopback or link-local (cloud-metadata) address`, { origin: k });
+    }
+    // Every answer was checked; the browser gets one: the first IPv4 answer
+    // (an IPv6 route may be missing), else the first.
+    if (list.length) pins.push({ host, address: list.find((a) => ipv4(a)) ?? list[0] });
+  }
+  return pins;
+}
+
 export async function capture(opts, log = () => {}, deps = {}) {
   const env = deps.env || process.env;
   if (opts.profiles) return { status: "ok", profiles: listProfiles(env), note: "Ids, sizes and last-used dates only; ow-tools never reads what a profile holds." };
@@ -535,7 +632,7 @@ export async function capture(opts, log = () => {}, deps = {}) {
   }
   const plan = readPlan(raw, { testOrigins: deps.testOrigins || [] });
   if (opts.signIn && !plan.signIn) throw planBad("--sign-in needs sign_in: { url, done_selector } in the plan");
-  const timeout = opts.timeout ?? (opts.signIn ? 300 : 120);
+  const timeout = opts.timeout ?? DEFAULT_TIMEOUT;
   if (!Number.isInteger(timeout) || timeout < 5 || timeout > 590) throw usage("--timeout is 5 to 590 seconds");
   let outDir = null;
   if (plan.steps.length) {
@@ -546,13 +643,42 @@ export async function capture(opts, log = () => {}, deps = {}) {
   }
   const binary = findBrowser(deps.browsers || browserCandidates(env), env);
   if (!binary) throw missing("capture needs Chrome or Chromium. Run ow-tools doctor for the exact step.", { missing: ["browser (Chrome or Chromium)"] });
+  const pins = await pinOrigins(plan, { resolver: deps.resolver, testOrigins: deps.testOrigins || [] });
   if (outDir) mkdirSync(outDir, { recursive: true });
 
   const profileDir = prepareProfile(plan.profile, env);
   cleanTempState(profileDir); // a run killed last time left its caches (F-023)
   const production = plan.environment === "production";
+  const pending = join(profileDir, PRODUCTION_PENDING);
+  // SA-019: a production run, or any run after a production run that never
+  // finished, starts from a wiped session.
+  if (production || existsSync(pending)) wipeSession(profileDir);
+  if (production) writeFileSync(pending, `${localDate()}\n`, { mode: 0o600 });
+  else rmSync(pending, { force: true });
   const headless = !opts.signIn;
-  const b = launchBrowser(binary, browserArgs({ profileDir, headless, viewport: plan.viewport, origins: plan.origins }), { env });
+  const b = launchBrowser(binary, browserArgs({ profileDir, headless, viewport: plan.viewport, pins }), { env });
+  // Bug 4: an interrupt or a kill signal still closes the browser and wipes a
+  // production session before ow-tools exits. The wipe runs at once (a
+  // SIGKILL may follow) and again once the browser has gone, so nothing it
+  // flushed on the way out survives. A SIGKILL itself can't be handled: the
+  // pending marker makes the next run wipe first (SA-019).
+  let stopping = false;
+  const onSignal = async (sig) => {
+    if (stopping) return;
+    stopping = true;
+    killTree(b.proc);
+    const tidy = () => {
+      cleanTempState(profileDir);
+      if (production) wipeSession(profileDir);
+    };
+    tidy();
+    await Promise.race([b.exited, sleep(2000)]);
+    tidy();
+    if (production) rmSync(pending, { force: true });
+    process.exit(128 + ({ SIGHUP: 1, SIGINT: 2, SIGTERM: 15 }[sig] || 15));
+  };
+  const SIGNALS = ["SIGINT", "SIGTERM", "SIGHUP"];
+  for (const sig of SIGNALS) process.on(sig, onSignal);
   const images = [];
   let timer;
   let product = "";
@@ -571,7 +697,7 @@ export async function capture(opts, log = () => {}, deps = {}) {
       const x = await session(b, plan, log);
       product = x.product;
       if (opts.signIn) {
-        log("sign in in the browser window; ow-tools waits for the page to show you are signed in");
+        log(`sign in in the browser window; ow-tools waits up to ${timeout} s for the page to show you are signed in`);
         if (!(await navigateAndSettle(x, plan.signIn.url)) && !x.guard.blockedDocument) throw stepFail("navigation-failed", "the sign-in page did not load");
         if (!(await waitSelector(x, plan.signIn.done, (timeout - 5) * 1000))) throw stepFail("not-signed-in", "the signed-in page never appeared; nothing captured");
       }
@@ -590,6 +716,7 @@ export async function capture(opts, log = () => {}, deps = {}) {
     if (err && typeof err === "object" && "extra" in err && images.length) err.extra = { ...err.extra, written: images.map((i) => i.file) };
     throw err;
   } finally {
+    for (const sig of SIGNALS) process.off(sig, onSignal);
     clearTimeout(timer);
     // Every exit path closes the browser: asked first, then killed.
     if (b.proc.exitCode === null && b.proc.signalCode === null) b.session.send("Browser.close").catch(() => {});
@@ -597,7 +724,10 @@ export async function capture(opts, log = () => {}, deps = {}) {
     killTree(b.proc);
     await Promise.race([b.exited, sleep(2000)]);
     cleanTempState(profileDir);
-    if (production) wipeSession(profileDir);
+    if (production) {
+      wipeSession(profileDir);
+      rmSync(pending, { force: true });
+    }
     writeFileSync(join(profileDir, LAST_USED), `${localDate()}\n`, { mode: 0o600 });
   }
   return {

@@ -8,7 +8,9 @@ import { inflateRawSync } from "node:zlib";
 import { buildWorkbook, checkFormula, readSheetFolder } from "../../plugins/ow-tools/lib/xlsx.mjs";
 import { crc32, zip } from "../../plugins/ow-tools/lib/zip.mjs";
 import { deckChecks } from "../../plugins/ow-tools/lib/pptx.mjs";
-import { imagesPandocReads } from "../../plugins/ow-tools/lib/export.mjs";
+import { PANDOC_FROM, exportDoc, imagesPandocReads } from "../../plugins/ow-tools/lib/export.mjs";
+import { PANDOC_DECK_FROM } from "../../plugins/ow-tools/lib/pptx.mjs";
+import { preflight } from "../../plugins/ow-tools/lib/preflight.mjs";
 import { fromMinor, toMinor, total } from "../../plugins/ow-tools/lib/calc.mjs";
 import { ROOT, cleanup, cli, has, png, stub, tempDir, write } from "./helpers.js";
 
@@ -265,6 +267,28 @@ describe.skipIf(!pptxReady)("ow-tools export --formats pptx (real pandoc)", SPAW
     expect(all).not.toMatch(/internal-rate-zz|Internal notes|ow_artefact|written_by|ow:internal/);
   });
 
+  // P03 was an equivalent mutant: this pandoc already marks the header row.
+  // A pandoc that doesn't (a stand-in that strips the mark from real output)
+  // shows ow-tools sets it itself.
+  it("P03: a header row pandoc left unmarked is marked by ow-tools", () => {
+    const ws = deckWorkspace();
+    const real = spawnSync("sh", ["-c", "command -v pandoc"], { encoding: "utf8" }).stdout.trim();
+    const bin = join(tempDir(), "bin");
+    mkdirSync(bin);
+    const log = join(bin, "stripped.log");
+    writeFileSync(
+      join(bin, "pandoc"),
+      `#!/bin/sh\n"${real}" "$@" || exit $?\nout=""; prev=""; pptx=0\nfor a in "$@"; do\n  [ "$prev" = "-o" ] && out="$a"\n  [ "$prev" = "-t" ] && [ "$a" = "pptx" ] && pptx=1\n  prev="$a"\ndone\n[ "$pptx" = 1 ] || exit 0\nd=$(mktemp -d)\ncd "$d" && unzip -q "$out" && for f in ppt/slides/slide*.xml; do sed 's/ firstRow="1"//g' "$f" > "$f.x" && mv "$f.x" "$f"; done && rm -f "$out" && zip -q -r -X "$out" . && echo stripped >> "${log}"\ncd / && rm -rf "$d"\n`,
+      { mode: 0o755 },
+    );
+    const r = cli(["export", join(ws, "deck.md"), "--formats", "pptx", "--json"], { env: { PATH: `${bin}:${process.env.PATH}` } });
+    expect(r.status, r.stdout + r.stderr).toBe(0);
+    expect(readFileSync(log, "utf8")).toContain("stripped");
+    const tables = Object.values(pptxParts(r.json.outputs.pptx)).join("\n").match(/<a:tblPr[^>]*>/g);
+    expect(tables.length).toBeGreaterThan(0);
+    for (const t of tables) expect(t).toContain('firstRow="1"');
+  });
+
   it("O14: a setext title is the deck's title too, never a slide", () => {
     const ws = deckWorkspace();
     write(join(ws, "setext.md"), "Deck title\n==========\n\n## One\n\nA.\n\n## Two\n\nB.\n");
@@ -407,10 +431,10 @@ describe("round 2: xlsx bounds, scoping and markers (X04–X07, F-019, SA-018)",
     expect(existsSync(join(src, "..", "export"))).toBe(false);
   });
 
-  it("SA-018: a CSV that model.md doesn't name never ships (exit 4, unknown-sheet)", () => {
+  it("SA-018: a CSV that model.md doesn't name never ships (exit 4, sheet-not-in-model since OD-8)", () => {
     const { r, src } = run((s) => writeFileSync(join(s, "Margin.csv"), "Unit,Cost\nx,61.50\n"));
     expect(r.status).toBe(4);
-    expect(r.json).toMatchObject({ reason: "unknown-sheet", sheet: "Margin" });
+    expect(r.json).toMatchObject({ reason: "sheet-not-in-model", sheet: "Margin" });
     expect(existsSync(join(src, "..", "export"))).toBe(false);
   });
 });
@@ -517,8 +541,201 @@ describe("round 2: image containment by pandoc's own reading (SA-010 / F-012)", 
     } catch (e) {
       err = e;
     }
-    expect(err?.extra?.reason).toBe("preflight");
+    expect(err?.extra?.reason).toBe("unchecked-image"); // its own reason since round 3
     expect(err.message).toMatch(/1 image\(s\) pandoc would read are not in the form/);
     expect(imagesPandocReads(write(join(d, "ok.md"), "# T\n\n![ok](assets/img-0.png)\n"), "gfm-autolink_bare_uris", new Set(["assets/img-0.png"]), d)).toEqual(["assets/img-0.png"]);
+  });
+});
+
+// ---- Sprint T round 3 -------------------------------------------------------------
+
+describe("round 3: YAML metadata never reaches an export (Bug 1, R29)", SPAWN, () => {
+  const CANARY = "ZQ-META-CANARY-5521";
+  // The evaluator's repro: an ow- header, a banner, then a YAML block whose
+  // abstract is Markdown holding an escaped image of a file outside the folder.
+  function repro(form = "hdr") {
+    const root = tempDir();
+    const secret = join(root, "secret", "client-secret.png");
+    mkdirSync(join(root, "secret"));
+    writeFileSync(secret, Buffer.concat([png(4, 4), Buffer.from(CANARY)]));
+    const yaml = `---\nabstract: "!\\x5Bdiagram](${secret})"\n...\n`;
+    const text = {
+      hdr: `---\now_artefact: ow-documentation/guide\nschema: 1\n---\nCONFIDENTIAL — Acme\n\n${yaml}\n# Guide\n\n## Steps\n\nDo the thing.\n`,
+      top: `${yaml}\n# Guide\n\n## Steps\n\nDo the thing.\n`,
+      mid: `# Guide\n\nIntro text.\n\n${yaml}\n## Steps\n\nDo the thing.\n`,
+    }[form];
+    const md = write(join(root, "ws", "opchain-work", "docs", "acme", `${form}.md`), text);
+    return { root, md, secret };
+  }
+
+  it.each(["pdf", "docx", "pptx"].flatMap((fmt) => ["hdr", "top", "mid"].map((form) => [form, fmt])))("the %s YAML block is refused before pandoc runs (%s), naming its line", (form, fmt) => {
+    const { md } = repro(form);
+    const r = cli(["export", md, "--formats", fmt, "--json"]);
+    expect(r.status, r.stdout).toBe(4);
+    expect(r.json.reason).toBe("preflight");
+    expect(r.json.problems.join("\n")).toMatch(/line \d+: a YAML metadata block is not exported/);
+    expect(existsSync(join(md, "..", "export"))).toBe(false);
+  });
+
+  it("a horizontal rule, a paragraph with a colon and another rule are not a YAML block", () => {
+    const d = tempDir();
+    const md = write(join(d, "doc.md"), "# T\n\nIntro.\n\n---\n\nNote: this is text.\n\n---\n\nEnd.\n");
+    expect(preflight(readFileSync(md, "utf8"), md).problems).toEqual([]);
+  });
+
+  it.skipIf(!has("pandoc"))("pandoc's readers read no YAML metadata, and the image check walks the metadata when a reader does", () => {
+    const { root, md } = repro("top");
+    for (const from of [PANDOC_FROM, PANDOC_DECK_FROM]) {
+      expect(from).toMatch(/-yaml_metadata_block$/);
+      const ast = JSON.parse(spawnSync("pandoc", [md, "-f", from, "-t", "json"], { encoding: "utf8" }).stdout);
+      expect(ast.meta, from).toEqual({});
+      expect(imagesPandocReads(md, from, new Set(), root), from).toEqual([]);
+      // The second layer: a reader with metadata on still can't slip an image past.
+      let err = null;
+      try {
+        imagesPandocReads(md, `${from}+yaml_metadata_block`, new Set(), root);
+      } catch (e) {
+        err = e;
+      }
+      expect(err?.extra?.reason, from).toBe("unchecked-image");
+    }
+  });
+
+  const bypass = (text, src) => ({ ...preflight(text, src), problems: [] });
+  it.skipIf(!(has("pandoc") && has("zip") && has("unzip")))("with the preflight bypassed, Word gets the block as text and embeds nothing", async () => {
+    const { md } = repro("hdr");
+    const r = await exportDoc({ file: md, formats: ["docx"] }, { preflight: bypass });
+    const parts = unzipAll(readFileSync(r.outputs.docx));
+    expect(Object.keys(parts).filter((n) => n.startsWith("word/media/"))).toEqual([]);
+    expect(Object.values(parts).join("")).not.toContain(CANARY);
+  });
+
+  it.skipIf(!(has("pandoc") && has("typst")))("with the preflight bypassed, the PDF embeds nothing either", async () => {
+    const { md } = repro("hdr");
+    const r = await exportDoc({ file: md, formats: ["pdf"] }, { preflight: bypass });
+    expect(readFileSync(r.outputs.pdf).includes(Buffer.from(CANARY))).toBe(false);
+  });
+
+  // R29: the pandoc AST check reached directly, for every format, with a
+  // preflight that sees nothing wrong.
+  it.skipIf(!(has("pandoc") && has("zip") && has("unzip")))("R29: with the preflight bypassed, the pandoc check alone refuses an image outside the folder (pdf, docx, pptx)", async () => {
+    for (const fmt of ["pdf", "docx", "pptx"]) {
+      const root = tempDir();
+      const secret = write(join(root, "elsewhere", "private.png"), "");
+      writeFileSync(secret, Buffer.concat([png(4, 4), Buffer.from(CANARY)]));
+      const md = write(join(root, "doc", "deck.md"), `# Title\n\n## Slide one\n\n![logo]\n\n[logo]: ${secret}\n`);
+      const err = await exportDoc({ file: md, formats: [fmt] }, { preflight: bypass }).catch((e) => e);
+      expect(err?.extra?.reason, fmt).toBe("unchecked-image");
+      expect(existsSync(join(root, "doc", "export")), fmt).toBe(false);
+    }
+  });
+});
+
+describe("round 3: escaped backticks open no code span (Bug 8)", SPAWN, () => {
+  it.each([
+    ["an escaped pair", "See \\`<img src=\"/etc/hosts\" alt=\"x\">\\` here."],
+    ["an escaped opener", "See \\`<b>x</b>` here."],
+    ["a double escape", "See \\`\\`<i>x</i>\\`\\` here."],
+  ])("refuses raw HTML behind %s", (_, line) => {
+    const d = tempDir();
+    const md = write(join(d, "doc.md"), `# T\n\n${line}\n`);
+    expect(preflight(readFileSync(md, "utf8"), md).problems).toEqual(["line 3: raw HTML is not exported; use Markdown"]);
+  });
+
+  it.each(["pdf", "docx", "pptx"])("the evaluator's repro is refused (%s)", (fmt) => {
+    const d = tempDir();
+    const md = write(join(d, "doc.md"), "# Guide\n\n## Steps\n\nSee \\`<img src=\"/etc/hosts\" alt=\"x\">\\` here.\n");
+    const r = cli(["export", md, "--formats", fmt, "--json"]);
+    expect(r.status).toBe(4);
+    expect(r.json.problems).toEqual(["line 5: raw HTML is not exported; use Markdown"]);
+  });
+
+  it("a real code span with HTML in it is still fine", () => {
+    const d = tempDir();
+    const md = write(join(d, "doc.md"), "# T\n\nWrite `<div>` or ``a ` <span> `` in code.\n");
+    expect(preflight(readFileSync(md, "utf8"), md).problems).toEqual([]);
+  });
+});
+
+describe("round 3: OD-8, a CSV the model doesn't name has its own reason", SPAWN, () => {
+  function run(change) {
+    const src = sheetCopy();
+    change(src);
+    return { r: cli(["export", src, "--formats", "xlsx", "--json"]), src };
+  }
+  it("sheet-not-in-model for a CSV with no section; unknown-sheet for a section with no CSV", () => {
+    const a = run((s) => writeFileSync(join(s, "Margin.csv"), "Unit,Cost\nx,61.50\n"));
+    expect(a.r.json).toMatchObject({ reason: "sheet-not-in-model", sheet: "Margin" });
+    const b = run((s) => writeFileSync(join(s, "model.md"), `${readFileSync(join(s, "model.md"), "utf8")}\n## Sheet: Extra\n\n| Cell | Formula | Format |\n| --- | --- | --- |\n| B2 | | integer |\n`));
+    expect(b.r.status).toBe(4);
+    expect(b.r.json.reason).toBe("unknown-sheet");
+  });
+});
+
+// The 1.1.0 re-review's PoCs (docs/audits/2026-10-16-ow-tools-1.1-security-posture.md),
+// each a permanent test: PoC 3 and 12 (image forms), 12b (a reference
+// definition beside a good inline image) and 4 (Excel bounds, formulas).
+describe("round 3: the re-review's image and workbook PoCs", SPAWN, () => {
+  const CANARY = "ZQ-OUTSIDE-FILE-CANARY";
+  const LEGIT = "ZQ-LEGIT-ONLY";
+  const marked = (label) => Buffer.concat([png(4, 4), Buffer.from(label)]);
+  function doc(form) {
+    const root = tempDir();
+    const secret = join(root, "outside", "private.png");
+    mkdirSync(join(root, "outside"));
+    writeFileSync(secret, marked(CANARY));
+    mkdirSync(join(root, "doc"));
+    writeFileSync(join(root, "doc", "img-ok.png"), marked(LEGIT));
+    const md = write(join(root, "doc", "deck.md"), `# Title\n\n## Slide one\n\n${form(secret)}\n`);
+    return { root, md };
+  }
+  const REFUSED = [
+    ["PoC 3: nested brackets", (p) => `![a [b] c](${p})`, /an image not written as/],
+    ["PoC 3: a single-quoted title", (p) => `![alt](${p} 'title')`, /an image not written as/],
+    ["PoC 3: a shortcut reference", (p) => `![logo]\n\n[logo]: ${p}`, /reference-style images are not supported|an image not written as/],
+    ["PoC 3: an angle-bracket path", (p) => `![alt](<${p}>)`, /raw HTML is not exported|an image/],
+    ["PoC 12: an HTML img", (p) => `<img src="${p}" alt="x">`, /raw HTML is not exported/],
+    ["PoC 12: a raw HTML block", (p) => `<div><img src="${p}"></div>`, /raw HTML is not exported/],
+    ["PoC 12: a data URI", () => "![x](data:image/png;base64,iVBORw0KGgo=)", /an image/],
+    ["PoC 12: an image in an HTML comment", (p) => `<!-- ![x](${p}) -->`, /an image/],
+  ];
+  it.skipIf(!pptxReady).each(REFUSED.flatMap(([n, f, why]) => ["pptx", "docx"].map((fmt) => [n, fmt, f, why])))("%s (%s) is refused and embeds nothing", (_, fmt, form, why) => {
+    const { root, md } = doc(form);
+    const r = cli(["export", md, "--formats", fmt, "--json"]);
+    expect(r.status, r.stdout).toBe(4);
+    expect(r.json.problems.join("\n")).toMatch(why);
+    expect(existsSync(join(root, "doc", "export"))).toBe(false);
+  });
+
+  it.skipIf(!pptxReady).each(["pptx", "docx"])("PoC 12b: a reference definition beside a good inline image embeds only the good image (%s)", (fmt) => {
+    const { md } = doc((p) => `![good](img-ok.png)\n\n[good]: ${p}`);
+    const r = cli(["export", md, "--formats", fmt, "--json"]);
+    expect(r.status, r.stdout).toBe(0);
+    const parts = unzipAll(readFileSync(r.json.outputs[fmt]));
+    const media = Object.keys(parts).filter((n) => /^(ppt|word)\/media\//.test(n));
+    expect(media.length).toBeGreaterThan(0);
+    const raw = readFileSync(r.json.outputs[fmt]);
+    // Stored or deflated, the outside file's bytes never reach the package.
+    for (const n of media) expect(parts[n].includes(CANARY), n).toBe(false);
+    expect(raw.includes(Buffer.from(CANARY))).toBe(false);
+  });
+
+  it("PoC 4: cells past Excel's grid are refused, a far cell inside it costs one cell, and DDE or _xlfn web formulas are refused", () => {
+    const mk = (cell) => ({ sheets: new Map([["S", { name: "S", rows: [["h1", "h2"], ["1", "2"]], map: new Map(), formats: [] }]]), order: ["S"], model: { title: null, banner: null, sheets: [{ name: "S", line: 1, cells: [{ line: 2, cell, formula: "=1", format: "" }] }] } });
+    for (const cell of ["A1048577", "A9999999"]) expect(() => buildWorkbook(mk(cell)), cell).toThrow(/Cell column/);
+    const t = Date.now();
+    expect(buildWorkbook(mk("ZZ20000")).length).toBeLessThan(10000);
+    expect(Date.now() - t).toBeLessThan(2000);
+    const reason = (f) => {
+      try {
+        checkFormula(f, "S!B2");
+        return "accepted";
+      } catch (e) {
+        return e.extra?.reason;
+      }
+    };
+    expect(reason("=IF(1,\"=cmd|' /C calc'!A0\",0)")).toBe("dde-or-link-formula");
+    expect(reason('=_xlfn.WEBSERVICE("x")')).toBe("formula-syntax");
+    expect(reason("=SUM(A1)")).toBe("accepted");
   });
 });

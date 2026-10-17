@@ -9,8 +9,8 @@ import { request as httpRequest } from "node:http";
 import { createServer as createTcpServer } from "node:net";
 import { cpSync, existsSync, mkdirSync, readFileSync, utimesSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { ADVISORY_CAP, DEFAULT_THRESHOLDS, cvss3Severity, health, healthText, pipAuditArgs, rateAdvisory, readHealthConfig, sendable } from "../../plugins/ow-tools/lib/health.mjs";
-import { packageSet, parseNpm, parseYarn, readLockfile, versionSource } from "../../plugins/ow-tools/lib/lockfiles.mjs";
+import { ADVISORY_CAP, DEFAULT_THRESHOLDS, cvss3Score, cvss3Severity, health, healthText, pipAuditArgs, rateAdvisory, readHealthConfig, sendable } from "../../plugins/ow-tools/lib/health.mjs";
+import { npmAlias, packageSet, parseNpm, parseYarn, readLockfile, specSource, versionSource } from "../../plugins/ow-tools/lib/lockfiles.mjs";
 import { attempts as fenceAttempts, installLoopbackFence, uninstallLoopbackFence } from "./loopback-fence.mjs";
 import { blockedAddress, createNet } from "../../plugins/ow-tools/lib/net.mjs";
 import { digestTree } from "../../plugins/ow-tools/lib/digest.mjs";
@@ -381,13 +381,17 @@ describe.skipIf(!HAS_OPENSSL)("round 2: what leaves the machine (Bug 1, H17, H18
     expect(readFileSync(join(d, "health.yaml"), "utf8")).toMatch(/^registry: public$/m);
     const { r, sent } = await runWith(d);
     expect(sent).not.toMatch(/acme|git\+ssh|npm\.acme-client|github\.example|file:/);
-    for (const n of ["acme-core", "acme-ui", "acme-alias"]) {
+    for (const n of ["acme-core", "acme-ui"]) {
       expect(r.results.find((x) => x.check === "advisories" && x.target.includes(`: ${n}@`)), n).toMatchObject({ result: "not checked", reason: "private registry" });
     }
+    // Round 3 (Bug 3): the alias is checked as the package it names.
+    expect(r.results.some((x) => x.target.includes("acme-alias"))).toBe(false);
+    expect(sent).toContain('{"package":{"name":"left-pad","ecosystem":"npm"},"version":"1.3.0"}');
     expect(byCheck(r, "outdated", "acme-core")).toMatchObject({ result: "not checked" });
     // The same file under --no-network says what would and wouldn't be sent.
     const off = await health({ config: join(d, "health.yaml"), noNetwork: true }, { env: { ...process.env, OW_TOOLS_HOME: join(tempDir(), "h") } });
-    expect(byCheck(off, "advisories").detail).toBe("7 packages read: 3 would be sent, 4 held back");
+    // Round 3 (Bug 3): acme-alias is left-pad@1.3.0, already in the lockfile.
+    expect(byCheck(off, "advisories").detail).toBe("6 packages read: 3 would be sent, 3 held back");
   });
 
   it("Bug 1 / OD-1: a version that isn't plain semver is held in every source state", () => {
@@ -398,6 +402,11 @@ describe.skipIf(!HAS_OPENSSL)("round 2: what leaves the machine (Bug 1, H17, H18
       }
     }
     expect(versionSource("git+ssh://git@h/x.git")).toBe("private");
+    // Each shape by itself (R01): no other layer may be what holds them.
+    const shapes = ["git+https://git.example/x.git#abc", "github:acme/x", "gitlab:acme/x", "bitbucket:acme/x", "https://h.example/x-1.0.0.tgz", "npm:other@1.0.0", "acme/x", "1.0", "latest", "v1.0.0", "*"];
+    expect(shapes.map(versionSource)).toEqual(shapes.map(() => "private"));
+    // An npm v1 entry has no key spec, so its version alone decides.
+    expect(parseNpm({ lockfileVersion: 1, dependencies: { g: { version: "github:acme/g#abc", resolved: "https://registry.npmjs.org/g/-/g-1.0.0.tgz" } } })[0].source).toBe("private");
     // The parsers apply it themselves, before sendable's backstop sees anything.
     const v1 = { lockfileVersion: 1, dependencies: { a: { version: "git+ssh://git@h/a.git#1" }, b: { version: "https://h.example/b-1.0.0.tgz" }, c: { version: "1.0.0" } } };
     expect(parseNpm(v1).map((x) => `${x.name}:${x.source}`)).toEqual(["a:private", "b:private", "c:unrecorded"]);
@@ -574,4 +583,235 @@ describe("round 2: health's text output (Bug 14)", () => {
     expect(text).toContain("not checked  tls                app.example.com — network off");
     expect(text).toContain("package-lock.json — network off; 4 packages read");
   });
+});
+
+// ---- Sprint T round 3 -------------------------------------------------------------
+
+// Bug 3: in every lockfile form, an alias is checked under its real name and
+// version, and a local, git or URL package never leaves. Each form gets the
+// same three planted packages, written the way that package manager writes them.
+const PLANT = {
+  "npm-v1": (t) => {
+    const j = JSON.parse(t);
+    Object.assign(j.dependencies, {
+      "acme-shim": { version: "npm:left-pad@1.2.0", resolved: "https://registry.npmjs.org/left-pad/-/left-pad-1.2.0.tgz", integrity: "sha512-EEEE" },
+      "acme-local": { version: "file:../acme-local" },
+      "acme-git": { version: "git+ssh://git@git.example.test/acme/acme-git.git#0123abc", from: "git+ssh://git@git.example.test/acme/acme-git.git" },
+    });
+    return JSON.stringify(j);
+  },
+  npm: (t) => {
+    const j = JSON.parse(t);
+    Object.assign(j.packages, {
+      "node_modules/acme-shim": { name: "left-pad", version: "1.2.0", resolved: "https://registry.npmjs.org/left-pad/-/left-pad-1.2.0.tgz", integrity: "sha512-EEEE" },
+      "node_modules/acme-local": { resolved: "../acme-local", link: true },
+      "../acme-local": { name: "acme-local", version: "3.2.1" },
+      "node_modules/acme-git": { version: "1.0.0", resolved: "git+ssh://git@git.example.test/acme/acme-git.git#0123abc" },
+    });
+    return JSON.stringify(j);
+  },
+  "pnpm-v6": (t) =>
+    t.replace("packages:\n\n", "packages:\n\n  /left-pad@1.2.0:\n    resolution: {integrity: sha512-EEEE}\n    dev: false\n\n  file:../acme-local:\n    resolution: {directory: ../acme-local, type: directory}\n    name: acme-local\n    version: 3.2.1\n    dev: false\n\n  git.example.test/acme/acme-git/0123abc:\n    resolution: {commit: 0123abc, repo: git@git.example.test:acme/acme-git.git, type: git}\n    name: acme-git\n    version: 1.0.0\n    dev: false\n\n")
+      .replace("dependencies:\n  internal-lib:", "dependencies:\n  acme-shim:\n    specifier: npm:left-pad@1.2.0\n    version: /left-pad@1.2.0\n  acme-local:\n    specifier: file:../acme-local\n    version: file:../acme-local\n  internal-lib:"),
+  "pnpm-v9": (t) =>
+    t.replace("packages:\n\n", "packages:\n\n  acme-local@file:../acme-local:\n    resolution: {directory: ../acme-local, type: directory}\n\n  acme-git@git+ssh://git@git.example.test/acme/acme-git.git#0123abc:\n    resolution: {commit: 0123abc, repo: git@git.example.test:acme/acme-git.git, type: git}\n    version: 1.0.0\n\n  left-pad@1.2.0:\n    resolution: {integrity: sha512-EEEE}\n\n")
+      .replace("    dependencies:\n      internal-lib:", "    dependencies:\n      acme-shim:\n        specifier: npm:left-pad@1.2.0\n        version: left-pad@1.2.0\n      acme-local:\n        specifier: file:../acme-local\n        version: file:../acme-local\n      internal-lib:"),
+  "yarn-v1": (t) =>
+    `${t}\n"acme-shim@npm:left-pad@1.2.0":\n  version "1.2.0"\n  resolved "https://registry.yarnpkg.com/left-pad/-/left-pad-1.2.0.tgz#eeee"\n  integrity sha512-EEEE\n\n"acme-local@file:../acme-local":\n  version "3.2.1"\n\n"acme-tarball@https://npm.acme-client.internal/acme-tarball-1.0.0.tgz":\n  version "1.0.0"\n\n"acme-gh@github:acme/acme-gh":\n  version "1.0.0"\n  resolved "https://codeload.github.com/acme/acme-gh/tar.gz/0123abc"\n`,
+  "yarn-berry": (t) =>
+    `${t}\n"acme-shim@npm:left-pad@1.2.0":\n  version: 1.2.0\n  resolution: "left-pad@npm:1.2.0"\n  checksum: 10c0/eeee\n  languageName: node\n  linkType: hard\n\n"acme-local@file:../acme-local::locator=fixture-app%40workspace%3A.":\n  version: 3.2.1\n  resolution: "acme-local@file:../acme-local#../acme-local::hash=1&locator=fixture-app%40workspace%3A."\n  languageName: node\n  linkType: hard\n\n"acme-gh@github:acme/acme-gh#0123abc":\n  version: 1.0.0\n  resolution: "acme-gh@https://github.com/acme/acme-gh.git#commit=0123abc"\n  languageName: node\n  linkType: hard\n`,
+};
+const plantFor = (form) => PLANT[form] || PLANT.npm;
+
+describe.skipIf(!HAS_OPENSSL)("round 3: yarn key specs and npm aliases (Bug 3)", SPAWN, () => {
+  async function runWith(d) {
+    const stubs = await startStubs(tempDir());
+    try {
+      const r = await health({ config: join(d, "health.yaml") }, stubs.deps);
+      return { r, stubs };
+    } finally {
+      await stubs.close();
+    }
+  }
+
+  it.each(["npm-v1", "npm-v2", "npm-v3", "pnpm-v6", "pnpm-v9", "yarn-v1", "yarn-berry"])(
+    "%s: the alias is checked as left-pad@1.2.0; no local, git, URL or alias name is sent, with or without registry: public",
+    async (form) => {
+      for (const declared of [true, false]) {
+        const d = workspace({ lock: form });
+        const f = join(d, "app", lockfileOf(form));
+        writeFileSync(f, plantFor(form)(readFileSync(f, "utf8")));
+        if (!declared) writeFileSync(join(d, "health.yaml"), readFileSync(join(d, "health.yaml"), "utf8").replace("registry: public\n", ""));
+        const pkgs = packageSet(readLockfile(f).packages);
+        expect(pkgs.map((p) => p.name).filter((n) => /^acme-(shim)$/.test(n)), form).toEqual([]);
+        // A pnpm v9 git key keeps its name: the version is what follows the first "@".
+        if (form === "pnpm-v9") expect(pkgs.find((p) => p.name === "acme-git")).toMatchObject({ source: "private" });
+        const { r, stubs } = await runWith(d);
+        const sent = stubs.requests.map((q) => `${q.method} ${q.host}${q.path} ${q.body}`).join("\n");
+        expect(sent, `${form} declared=${declared}`).not.toMatch(/acme|git\.example|codeload|file:|0123abc/);
+        const batch = stubs.requests.find((q) => q.path === "/v1/querybatch");
+        const queries = batch ? JSON.parse(batch.body).queries.map((q) => `${q.package.name}@${q.version}`) : [];
+        // left-pad 1.2.0 is sent where the lockfile records the public registry,
+        // or where registry: public covers an unrecorded one.
+        const recorded = ["npm-v1", "npm-v2", "npm-v3", "yarn-v1"].includes(form);
+        expect(queries.includes("left-pad@1.2.0"), `${form} declared=${declared}`).toBe(declared || recorded);
+        for (const x of r.results.filter((y) => /acme/.test(y.target))) expect(x.result, `${form}: ${x.target}`).toBe("not checked");
+      }
+    },
+  );
+
+  it("the evaluator's yarn v1 repro: file: and tarball keys are held back by their key spec, alias by its real name", () => {
+    const text = '"acme-billing-internal@file:../acme-billing-internal":\n  version "3.2.1"\n  dependencies:\n    lodash "^4.17.21"\n\n"acme-tarball@https://npm.acme-client.internal/acme-tarball-1.0.0.tgz":\n  version "1.0.0"\n\n"acme-internal-shim@npm:left-pad@1.3.0":\n  version "1.3.0"\n  resolved "https://registry.yarnpkg.com/left-pad/-/left-pad-1.3.0.tgz#abc"\n\nlodash@^4.17.21:\n  version "4.17.21"\n  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#abc"\n';
+    const pkgs = packageSet(parseYarn(text).packages);
+    expect(pkgs.map((p) => `${p.name}@${p.version}:${p.source}`)).toEqual(["acme-billing-internal@3.2.1:local", "acme-tarball@1.0.0:private", "left-pad@1.3.0:public", "lodash@4.17.21:public"]);
+    for (const registry of [null, "public"]) {
+      expect(sendable(pkgs, { private_scopes: [], registry }).send.map((p) => p.name)).toEqual(["left-pad", "lodash"]);
+    }
+  });
+
+  it("reads every key spec form", () => {
+    expect(["file:../x", "link:../x", "portal:../x", "workspace:*", "exec:./gen.js", "./x", "../x", "~/x"].map(specSource)).toEqual(Array(8).fill("local"));
+    expect(["git+ssh://git@h/x.git", "git://h/x.git", "github:acme/x", "gitlab:acme/x", "bitbucket:acme/x", "gist:abc", "https://h.example/x.tgz", "http://h.example/x.tgz", "ssh://h/x", "acme/x", "acme/x#v1"].map(specSource)).toEqual(Array(11).fill("private"));
+    expect(["^1.2.3", "1.2.3", "~1.0", "~1.0.0", "*", "latest", ">=1 <2", "npm:left-pad@1.3.0"].map(specSource)).toEqual(Array(8).fill(null));
+    expect(["/abs/x"].map(specSource)).toEqual(["local"]);
+    expect(npmAlias("npm:left-pad@1.3.0")).toEqual({ name: "left-pad", version: "1.3.0" });
+    expect(npmAlias("npm:@scope/real@^2.0.0")).toEqual({ name: "@scope/real", version: "^2.0.0" });
+    expect(npmAlias("npm:left-pad")).toEqual({ name: "left-pad", version: null });
+    expect(npmAlias("npm:vue@3.4.0")).toEqual({ name: "vue", version: "3.4.0" });
+    expect(npmAlias("^1.0.0")).toBe(null);
+    // yarn berry's own registry form is no alias.
+    for (const s of ["npm:^7.12.13", "npm:7.12.13", "npm:~1.0", "npm:>=1 <2", "npm:*", "npm:v1.2.3"]) expect(npmAlias(s), s).toBe(null);
+    // A berry key with a tag (npm:latest) is named by its resolution, not its spec.
+    expect(parseYarn('__metadata:\n  version: 8\n\n"lodash@npm:latest":\n  version: 4.17.21\n  resolution: "lodash@npm:4.17.21"\n').packages.map((p) => `${p.name}@${p.version}`)).toEqual(["lodash@4.17.21"]);
+    // A multi-key yarn v1 entry: one local spec makes the whole entry local.
+    expect(parseYarn('"x@^1.0.0", "x@file:../x":\n  version "1.0.0"\n  resolved "https://registry.yarnpkg.com/x/-/x-1.0.0.tgz"\n').packages[0].source).toBe("local");
+  });
+});
+
+describe.skipIf(!HAS_OPENSSL)("round 3: an advisory answer ow-tools can't fully read is never OK (Bug 5)", SPAWN, () => {
+  // npm-v3 sends three packages, in this order: @babel/code-frame, left-pad, lodash.
+  const answer = (make) => ({
+    "api.osv.dev": (req, body) => (req.method === "POST" ? { status: 200, json: make(JSON.parse(body).queries) } : { status: 200, json: { id: "x", database_specific: { severity: "LOW" } } }),
+  });
+  async function rows(routes) {
+    const d = workspace();
+    const stubs = await startStubs(tempDir(), { routes });
+    try {
+      return await health({ config: join(d, "health.yaml") }, stubs.deps);
+    } finally {
+      await stubs.close();
+    }
+  }
+  const NAMES = ["@babel/code-frame@7.12.13", "left-pad@1.3.0", "lodash@4.17.21"];
+
+  it.each([
+    ["no results at all", () => ({}), NAMES, /gave no answer/],
+    ["an empty results list", () => ({ results: [] }), NAMES, /gave no answer/],
+    ["results shorter than the queries", (q) => ({ results: q.slice(0, 2).map(() => ({})) }), ["lodash@4.17.21"], /gave no answer/],
+    ["a null result", (q) => ({ results: q.map((_, k) => (k === 1 ? null : {})) }), ["left-pad@1.3.0"], /gave no answer/],
+    ["a next_page_token", (q) => ({ results: q.map((_, k) => (k === 0 ? { vulns: [], next_page_token: "p2" } : {})) }), ["@babel/code-frame@7.12.13"], /more advisories for it than one page/],
+    ["vulns that aren't a list", (q) => ({ results: q.map((_, k) => (k === 2 ? { vulns: { id: "GHSA-x" } } : {})) }), ["lodash@4.17.21"], /unexpected shape/],
+    ["an id with a space", (q) => ({ results: q.map((_, k) => (k === 2 ? { vulns: [{ id: "GHSA bad" }] } : {})) }), ["lodash@4.17.21"], /couldn't read/],
+    ["an id over 80 characters", (q) => ({ results: q.map((_, k) => (k === 2 ? { vulns: [{ id: `GHSA-${"x".repeat(80)}` }] } : {})) }), ["lodash@4.17.21"], /couldn't read/],
+    ["an entry with no id", (q) => ({ results: q.map((_, k) => (k === 2 ? { vulns: [{}] } : {})) }), ["lodash@4.17.21"], /couldn't read/],
+  ])("%s: the package is attention, and so is the file's summary", async (_, make, flagged, why) => {
+    const r = await rows(answer(make));
+    for (const k of NAMES) {
+      const row = byCheck(r, "advisories", k);
+      if (flagged.includes(k)) {
+        expect(row, k).toMatchObject({ result: "attention" });
+        expect(row.detail, k).toMatch(why);
+      } else expect(row, k).toBeUndefined(); // clean: counted in the summary
+    }
+    const summary = r.results.find((x) => x.check === "advisories" && x.target === "package-lock.json");
+    expect(summary.result).toBe("attention");
+    expect(summary.detail).toContain(`${flagged.length} whose answer ow-tools couldn't fully read`);
+    expect(r.results.filter((x) => x.check === "advisories" && x.result === "OK")).toEqual([]);
+  });
+
+  it("a full, readable answer still gives OK", async () => {
+    const r = await rows(answer((q) => ({ results: q.map(() => ({})) })));
+    expect(r.results.find((x) => x.check === "advisories" && x.target === "package-lock.json")).toMatchObject({ result: "OK", detail: "3 package(s) sent to the advisory service; 3 with no known advisory" });
+  });
+});
+
+describe("round 3: the rating boundaries (R09, R10)", () => {
+  it.each([
+    ["CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:H", 7.0, "high"],
+    ["CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:H/A:H", 9.0, "critical"],
+    ["CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H", 9.8, "critical"],
+    ["CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:H/I:H/A:H", 7.2, "high"],
+    ["CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", 7.5, "high"],
+    ["CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N", 5.5, "moderate"],
+    ["CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N", 6.1, "moderate"],
+    ["CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N", 4.3, "moderate"],
+    ["CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N", 3.7, "low"],
+  ])("%s scores %d (the published NVD score) and rates %s", (vector, score, band) => {
+    expect(cvss3Score(vector)).toBe(score);
+    expect(cvss3Severity(vector)).toBe(band);
+  });
+
+  it("a MAL- entry is critical whatever severity it also names", () => {
+    for (const severity of ["LOW", "MODERATE", "MEDIUM", "HIGH"]) {
+      expect(rateAdvisory({ id: "MAL-2026-0002", database_specific: { severity } }), severity).toBe("critical");
+      expect(rateAdvisory({ id: "GHSA-x", database_specific: { severity, "malicious-packages-origins": [{ source: "ossf" }] } }), severity).toBe("critical");
+    }
+    expect(rateAdvisory({ id: "MAL-2026-0003", severity: [{ type: "CVSS_V3", score: "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N" }] })).toBe("critical");
+  });
+
+  it.skipIf(!HAS_OPENSSL)("a MAL- entry with a LOW severity makes its package attention (critical), through the service", async () => {
+    const d = workspace();
+    const stubs = await startStubs(tempDir(), {
+      routes: {
+        "api.osv.dev": (req, body) =>
+          req.method === "POST"
+            ? { status: 200, json: { results: JSON.parse(body).queries.map((q) => ({ vulns: q.package.name === "lodash" ? [{ id: "MAL-2026-0002" }] : [] })) } }
+            : { status: 200, json: { id: "MAL-2026-0002", database_specific: { severity: "LOW" } } },
+      },
+    });
+    try {
+      const r = await health({ config: join(d, "health.yaml") }, stubs.deps);
+      expect(byCheck(r, "advisories", "lodash@4.17.21")).toMatchObject({ result: "attention", detail: "MAL-2026-0002 (critical)" });
+    } finally {
+      await stubs.close();
+    }
+  });
+});
+
+describe("round 3: special-purpose addresses (R13, R15, Bug 7)", () => {
+  it.each([
+    ["2001:0:4136:e378:8000:63bf:3fff:fdd2", "Teredo 2001::/32"],
+    ["2001::1", "Teredo 2001::/32"],
+    ["192.88.99.1", "6to4 relay anycast 192.88.99.0/24"],
+    ["192.88.99.254", "6to4 relay anycast 192.88.99.0/24"],
+    ["3fff::1", "documentation 3fff::/20"],
+    ["3fff:fff:ffff::1", "documentation 3fff::/20"],
+    ["2001:2::1", "benchmarking 2001:2::/48"],
+    ["2001:2:0:ffff::1", "benchmarking 2001:2::/48"],
+    ["::a9fe:a9fe", "IPv4-compatible link-local"],
+    ["64:ff9b::a9fe:a9fe", "NAT64 link-local"],
+    ["64:ff9b::7f00:1", "NAT64 loopback"],
+    ["64:ff9b::a00:1", "NAT64 private"],
+    ["2002:a9fe:a9fe::", "6to4 link-local"],
+    ["2002:7f00:1::", "6to4 loopback"],
+    ["2002:c0a8:1::", "6to4 private"],
+    // The re-review's PoC 2 list.
+    ["fec0::1", "site-local"],
+    ["64:ff9b:1::a00:1", "local-use NAT64"],
+    ["::ffff:0:7f00:1", "IPv4-translated"],
+    ["100::1", "discard-only"],
+    ["2001:10::1", "ORCHID"],
+    ["::ffff:169.254.169.254", "IPv4-mapped metadata"],
+    ["fd00:ec2::254", "ULA metadata"],
+    ["2002:7f00:1::1", "6to4 loopback"],
+  ])("blocks %s (%s)", (a) => {
+    expect(blockedAddress(a)).toBe(true);
+  });
+
+  it.each(["2606:4700::1111", "2a00:1450:4001::200e", "2001:4860:4860::8888", "3fff:1000::1", "2001:3::1", "2001:2:1::1", "64:ff9b::808:808", "2002:808:808::", "93.184.215.14"])(
+    "allows the public address %s",
+    (a) => {
+      expect(blockedAddress(a)).toBe(false);
+    },
+  );
 });

@@ -27,6 +27,10 @@ const cells = (row) =>
     .split(/(?<!\\)\|/)
     .map((c) => c.trim());
 
+// A line without its code spans. An escaped backtick (\`) is a literal
+// backtick, not a code span, so it can't hide raw HTML or an image (Bug 8).
+const withoutCode = (l) => l.replace(/\\`/g, "").replace(/(`+)[\s\S]*?\1/g, "");
+
 const plain = (s) => s.replace(/[*_`]/g, "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").trim();
 
 // Image types both engines embed without extra tools: Typst reads all three,
@@ -143,7 +147,19 @@ export function preflight(text, mdPath) {
       headings.push({ i: i - 1, level: l.trim()[0] === "=" ? 1 : 2, text: plain(prev) });
     }
 
-    if (/<[A-Za-z!/]/.test(l.replace(/`[^`]*`/g, "")) && !/^\s*<!--.*-->\s*$/.test(l)) {
+    // A YAML metadata block below the ow- header (Bug 1, round 3): its values
+    // would be Markdown pandoc renders. pandoc reads none (the reader has
+    // yaml_metadata_block off, and the image check walks the metadata too);
+    // this refusal says so instead of letting the block print as text. A
+    // block is `---`, after a blank line, then `key:` lines up to a closing
+    // `---` or `...` with no blank line between.
+    if (/^---\s*$/.test(l) && !prev.trim() && /^[A-Za-z_][\w -]*:(\s|$)/.test(lines[i + 1] || "")) {
+      let j = i + 1;
+      while (j < lines.length && lines[j].trim() && !/^(---|\.\.\.)\s*$/.test(lines[j])) j++;
+      if (/^(---|\.\.\.)\s*$/.test(lines[j] || "")) bad(i, "a YAML metadata block is not exported (only the ow- header at the very top is read); remove it");
+    }
+    // Code spans don't hide HTML, and an escaped backtick opens none (Bug 8).
+    if (/<[A-Za-z!/]/.test(withoutCode(l)) && !/^\s*<!--.*-->\s*$/.test(l)) {
       if (/<https?:\/\//i.test(l)) bad(i, "a bare URL as link text; write [what it is](url)");
       else bad(i, "raw HTML is not exported; use Markdown");
     }
@@ -158,7 +174,7 @@ export function preflight(text, mdPath) {
     // quotes or brackets, brackets in the alt text, a path with spaces) is
     // refused here, by line (SA-010 / F-012). export also checks every image
     // pandoc itself reads, so nothing this regex misses can reach a client.
-    if (l.replace(/`[^`]*`/g, "").replace(INLINE_IMAGE, "").includes("![")) {
+    if (withoutCode(l).replace(INLINE_IMAGE, "").includes("![")) {
       bad(i, /!\[[^\]]*\]\[[^\]]*\]/.test(l) ? "reference-style images are not supported; use ![alt](file)" : "an image not written as ![alt](file) (a reference or shortcut image, a title in single quotes, brackets in the alt text or a space in the path); write it as ![alt](file)");
     }
     for (const m of l.matchAll(/(?<!!)\[([^\]]+)\]\(([^)]+)\)/g)) {

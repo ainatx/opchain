@@ -257,8 +257,9 @@ export function sendable(pkgs, cfg) {
 }
 
 // CVSS 3.x base score from a vector, for advisories without a named
-// severity (SA-012). Anything else is "unknown", which is never OK.
-export function cvss3Severity(vector) {
+// severity (SA-012), by the 3.1 specification and its Roundup (R09: a 7.0
+// is 7.0, so high). Anything else is "unknown", which is never OK.
+export function cvss3Score(vector) {
   const m = /^CVSS:3\.[01]\/(.*)$/.exec(String(vector || ""));
   if (!m) return null;
   const v = Object.fromEntries(m[1].split("/").map((kv) => kv.split(":")));
@@ -270,11 +271,21 @@ export function cvss3Severity(vector) {
   const iss = 1 - (1 - c) * (1 - i) * (1 - a);
   const impact = changed ? 7.52 * (iss - 0.029) - 3.25 * (iss - 0.02) ** 15 : 6.42 * iss;
   const expl = 8.22 * av * ac * PR * ui;
-  const roundUp = (x) => Math.ceil(x * 10 - 1e-9) / 10;
-  const score = impact <= 0 ? 0 : roundUp(Math.min(changed ? 1.08 * (impact + expl) : impact + expl, 10));
+  const roundUp = (x) => {
+    const n = Math.round(x * 100000);
+    return n % 10000 === 0 ? n / 100000 : (Math.floor(n / 10000) + 1) / 10;
+  };
+  return impact <= 0 ? 0 : roundUp(Math.min(changed ? 1.08 * (impact + expl) : impact + expl, 10));
+}
+// The published bands: 9.0+ critical, 7.0–8.9 high, 4.0–6.9 medium, below low.
+export function cvss3Severity(vector) {
+  const score = cvss3Score(vector);
+  if (score === null) return null;
   return score >= 9 ? "critical" : score >= 7 ? "high" : score >= 4 ? "moderate" : "low";
 }
 
+// A malware entry is critical whatever severity it also names (R10): the MAL-
+// check comes first and stays first.
 export function rateAdvisory(j) {
   const id = String(j?.id || "");
   if (/^MAL-/.test(id) || j?.database_specific?.["malicious-packages-origins"]) return "critical";
@@ -293,6 +304,9 @@ async function advisories(net, file, pkgs, cfg) {
   const results = held.map((p) => notChecked("advisories", `${file}: ${p.name}@${p.version}`, p.why === "registry not recorded in the lockfile" ? "registry not recorded in the lockfile; add registry: public to health.yaml if every package comes from the public npm registry" : p.why));
   if (!send.length) return results;
   const hits = new Map(); // id → [pkg]
+  // Bug 5 (round 3): a reply ow-tools can't fully read never becomes OK.
+  const flags = new Map(); // "name@version" → [why]
+  const flag = (p, why) => (flags.get(`${p.name}@${p.version}`) || flags.set(`${p.name}@${p.version}`, []).get(`${p.name}@${p.version}`)).push(why);
   for (let k = 0; k < send.length; k += 1000) {
     const batch = send.slice(k, k + 1000);
     const body = { queries: batch.map((p) => ({ package: { name: p.name, ecosystem: "npm" }, version: p.version })) };
@@ -309,11 +323,19 @@ async function advisories(net, file, pkgs, cfg) {
     } catch {
       return [...results, notChecked("advisories", file, "advisory service answered with something unreadable")];
     }
-    (j.results || []).forEach((res, n) => {
-      for (const v of res?.vulns || []) {
-        if (!/^[A-Za-z0-9._:-]{1,80}$/.test(String(v.id))) continue;
+    const replies = Array.isArray(j?.results) ? j.results : [];
+    batch.forEach((p, n) => {
+      const res = replies[n];
+      if (!res || typeof res !== "object" || Array.isArray(res)) return flag(p, "the advisory service gave no answer for it");
+      if (res.next_page_token) flag(p, "the advisory service has more advisories for it than one page");
+      if (res.vulns !== undefined && !Array.isArray(res.vulns)) return flag(p, "the advisory service answered with an unexpected shape");
+      for (const v of res.vulns || []) {
+        if (typeof v?.id !== "string" || !/^[A-Za-z0-9._:-]{1,80}$/.test(v.id)) {
+          flag(p, "an advisory id ow-tools couldn't read");
+          continue;
+        }
         if (!hits.has(v.id)) hits.set(v.id, []);
-        hits.get(v.id).push(batch[n]);
+        hits.get(v.id).push(p);
       }
     });
   }
@@ -335,15 +357,18 @@ async function advisories(net, file, pkgs, cfg) {
   const min = SEVERITY.indexOf(cfg.thresholds.advisory);
   const byPkg = new Map();
   for (const [id, list] of hits) for (const p of list) (byPkg.get(`${p.name}@${p.version}`) || byPkg.set(`${p.name}@${p.version}`, []).get(`${p.name}@${p.version}`)).push({ id, severity: severity.get(id) || "unknown" });
+  for (const k of flags.keys()) if (!byPkg.has(k)) byPkg.set(k, []);
   for (const [k, list] of byPkg) {
     const unrated = list.filter((a) => !SEVERITY.includes(a.severity));
-    const top = unrated.length > 0 || list.some((a) => SEVERITY.indexOf(a.severity) >= min);
+    const odd = flags.get(k) || [];
+    const top = odd.length > 0 || unrated.length > 0 || list.some((a) => SEVERITY.indexOf(a.severity) >= min);
     const detail = list.map((a) => `${a.id} (${a.severity})`).join(", ");
-    const why = unrated.length ? `${detail}; severity not available, so not rated below the threshold` : detail;
+    const why = [detail, unrated.length ? "severity not available, so not rated below the threshold" : "", ...odd].filter(Boolean).join("; ");
     results.push(top ? attention("advisories", `${file}: ${k}`, why, { advisories: list }) : { check: "advisories", target: `${file}: ${k}`, result: "OK", detail: `listed below the threshold: ${detail}`, advisories: list });
   }
   const clean = send.length - byPkg.size;
-  results.push(ok("advisories", file, `${send.length} package(s) sent to the advisory service; ${clean} with no known advisory`));
+  const summary = `${send.length} package(s) sent to the advisory service; ${clean} with no known advisory`;
+  results.push(flags.size ? attention("advisories", file, `${summary}; ${flags.size} whose answer ow-tools couldn't fully read`) : ok("advisories", file, summary));
   return results;
 }
 
