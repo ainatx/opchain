@@ -4,6 +4,8 @@ import { readFileSync, realpathSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { EXIT, OwError, VERSION, usage } from "./core.mjs";
 import { calc } from "./calc.mjs";
+import { capture, captureText } from "./capture.mjs";
+import { digest, digestText } from "./digest.mjs";
 import { capabilities, checks, doctor, doctorText } from "./doctor.mjs";
 import { exportDoc } from "./export.mjs";
 import { sessionStart } from "./status.mjs";
@@ -16,22 +18,41 @@ const HELP = `ow-tools ${VERSION} — the code add-on for the ow- skills (Claude
   ow-tools transcribe <workstream>/audio/[<file>] [--out DIR] [--speakers N] [--banner TEXT]
                       [--language auto|en|…] [--model large-v3-turbo|medium] [--device cpu|mps] [--force]
   ow-tools speakers <transcript.json> [--set SPEAKER_00=<role> …]
-  ow-tools export <file.md> [--brand brand.yaml] [--out DIR] [--formats pdf,docx]
+  ow-tools export <file.md> [--brand brand.yaml] [--out DIR] [--formats pdf,docx,pptx]
+  ow-tools export <sheet-folder> --formats xlsx [--out DIR]
+  ow-tools digest <file|folder>
   ow-tools calc today [--tz ZONE]
-  ow-tools calc date --from YYYY-MM-DD (--days N | --business-days N) [--holidays D1,D2,…]
+  ow-tools calc date --from YYYY-MM-DD (--days N | --business-days N [--holidays D1,D2,…])
   ow-tools calc total --items items.json [--currency USD]
   ow-tools calc split --total 12000.00 --schedule 40/40/20
+  ow-tools calc hours --ledger ledger.json --rollover 0.25,unused,1
+  ow-tools health --config health.yaml [--no-network]
+  ow-tools capture --plan plan.json --out <…>/shots/ [--sign-in] [--timeout SECONDS]
+  ow-tools capture --profiles | --delete-profile <id>
 
-Exit codes: 0 done · 2 usage · 3 a requirement is missing · 4 refused by a rule · 5 a tool failed.
-ow-tools never installs anything, never sends audio or text anywhere, and never prints a credential.`;
+Every verb takes --json. Exit codes: 0 done · 2 usage · 3 a requirement is missing · 4 refused by a rule · 5 a tool failed.
+ow-tools never installs anything and never prints a credential. Only health and capture use the
+network, and only for what their config or plan lists (ow-tools help network).`;
 
-const FLAGS = {
+const NETWORK = `What leaves this machine, by verb (design §8, Network):
+  capture   the origins the plan lists in allowed_origins, through the browser; nothing else
+  health    api.osv.dev (package names and versions of public-registry packages only),
+            registry.npmjs.org (the same names), data.iana.org (the RDAP list), the RDAP
+            server for each listed domain, and the hosts and URLs health.yaml lists.
+            --no-network sends nothing.
+  all other verbs, and the session hook: nothing.`;
+
+export const FLAGS = {
   json: "bool", quick: "bool", force: "bool",
   out: "str", speakers: "int", language: "str", model: "str", device: "str", banner: "str",
   set: "list", brand: "str", formats: "csv",
   tz: "str", from: "str", days: "int", "business-days": "int", holidays: "csv",
   items: "str", currency: "str", total: "str", schedule: "str",
+  ledger: "str", rollover: "str",
+  config: "str", "no-network": "bool",
+  plan: "str", "sign-in": "bool", timeout: "int", profiles: "bool", "delete-profile": "str",
 };
+export const VERBS = ["help", "version", "doctor", "transcribe", "speakers", "export", "digest", "calc", "health", "capture", "hook"];
 
 export function parseArgs(argv) {
   const pos = [];
@@ -83,7 +104,8 @@ function samplesText(samples) {
 export async function main(argv, { stdin } = {}) {
   const [verb, ...rest] = argv;
   if (!verb || verb === "help" || verb === "--help" || verb === "-h") {
-    print({ status: "help", text: HELP }, false, HELP);
+    const text = rest[0] === "network" ? NETWORK : HELP;
+    print({ status: "help", text }, false, text);
     return EXIT.OK;
   }
   if (verb === "hook") {
@@ -132,8 +154,10 @@ export async function main(argv, { stdin } = {}) {
       const text = [
         `Exported "${r.title}":`,
         ...Object.values(r.outputs).map((p) => `  ${p}`),
-        `PDF SHA-256: ${r.sha256.pdf || "no PDF"} · source SHA-256: ${r.sha256.source}`,
-        `Brand: ${r.brand}`,
+        ...(r.replaced.length ? [`Replaced: ${r.replaced.join(", ")}`] : []),
+        `Record: ${r.record}`,
+        `${r.sha256.pdf ? `PDF SHA-256: ${r.sha256.pdf} · ` : ""}source SHA-256: ${r.sha256.source}`,
+        ...(r.brand ? [`Brand: ${r.brand}`] : []),
         ...r.notes.map((n) => `Note: ${n}`),
         `Checked: ${r.checked.join("; ")}.`,
         r.statement,
@@ -148,13 +172,34 @@ export async function main(argv, { stdin } = {}) {
         from: opts.from,
         days: opts.days,
         businessDays: opts["business-days"],
-        holidays: opts.holidays || [],
+        holidays: opts.holidays,
+        ledger: opts.ledger,
+        rollover: opts.rollover,
         items: opts.items,
         currency: opts.currency,
         total: opts.total,
         schedule: opts.schedule,
       });
       print({ status: "ok", ...r }, json, JSON.stringify(r));
+      return EXIT.OK;
+    }
+    case "digest": {
+      const r = digest({ target: pos[0] });
+      print(r, json, digestText(r, pos[0]));
+      return EXIT.OK;
+    }
+    case "health": {
+      // Loaded only for this verb: health is the one module that imports
+      // node:https, node:tls and node:dns (design §8, Network).
+      const { health, healthText } = await import("./health.mjs");
+      const r = await health({ config: opts.config, noNetwork: Boolean(opts["no-network"]) });
+      print(r, json, healthText(r));
+      return EXIT.OK;
+    }
+    case "capture": {
+      const log = json ? () => {} : (m) => process.stderr.write(`ow-tools: ${m}\n`);
+      const r = await capture({ plan: opts.plan, out: opts.out, signIn: Boolean(opts["sign-in"]), timeout: opts.timeout, profiles: Boolean(opts.profiles), deleteProfile: opts["delete-profile"] }, log);
+      print(r, json, captureText(r));
       return EXIT.OK;
     }
     default:

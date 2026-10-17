@@ -1,6 +1,6 @@
 # ow-tools — design
 
-**Date:** 2026-10-09 · **Status:** APPROVED 2026-10-09 (decisions in §1.1). Build in progress; the speed spike result goes in §10.
+**Date:** 2026-10-09 · **Status:** APPROVED 2026-10-09 (decisions in §1.1). Build in progress; the speed spike result goes in §10. **Amended 2026-10-16 for 1.1.0** (amendments T1–T7, approved with their designs; Sprint T contract `sprints/release-2.1/ow-sprint-t/contract.md`): the sections marked 1.1.0 below, and §14.
 **Release:** the one Claude Code-only add-on of the ow- family that ships together as v2.1.0. Starts at 1.0.0 (ow-start decision 19).
 **Sources** (on branch `claude/planning-family-skills-82032d`): ow-start (`2026-10-06-ow-start-intake-redesign.md` §6, §7, §8, §10, decisions 9, 22–23, open questions 1–2) · ow-build-plan (`2026-10-06-ow-build-plan-design.md` §4.1, §6.2, §7, decision 7) · ow-build (`2026-10-08-ow-build-design.md` §5, §9) · ow-handoff, draft (`2026-10-08-ow-handoff-design.md` §4, §6) · ow-uat, draft (`2026-10-09-ow-uat-design.md` §5, §9) · the authoring standard in `docs/audits/2026-09-18-ow-pack-design-audit.md` (R1–R16 and the bullets under it).
 **Family rules that apply:** ow- skills stay text-only and every piece of code the family needs lives here (ow-start decision 9, ow-build-plan decision 7); no `ow-review`, so checks are labelled same-session self-checks (decision 22); no public ow- file names a private skill, blocklist `llc-ops` (decision 23, §8.1).
@@ -16,11 +16,15 @@
 | **export** | Markdown → branded, accessible **PDF and Word** from the workspace's `brand.yaml` | ow-build-plan (offer, plan, quote) · ow-handoff and ow-uat later |
 | **session hook** | At session start, lists open workstreams from `opchain-work/STATUS.md` with their next step and anything overdue | every ow- skill (ow-start §7) |
 | **scan-secrets** | Repository scan for committed secrets in **redacted mode only**: path, commit, line, rule id, never the match | ow-handoff (draft) |
+| **capture** (1.1.0) | Screenshots of a running test environment from a declarative plan (navigate, click, fill test data, wait, shot), in an installed Chrome or Chromium on a dedicated per-workstream profile; the user signs in themselves | ow-documentation `-capture` |
+| **export --pptx, --xlsx** (1.1.0) | A deck (one slide per H2, speaker notes) as branded PowerPoint; CSV files and a formula map as an Excel workbook that keeps its formulas | ow-documentation `-export`, ow-draft `-deliver`, ow-vendor-eval `-formal` |
+| **health** (1.1.0) | Read-only checks from `health.yaml`: dependency advisories and outdated packages, TLS and domain expiry, HTTP status of listed URLs, a backup file's age | ow-care `-health` |
+| **calc hours, digest** (1.1.0) | Care-plan hours in minutes (oldest first, rollover, extra, lapse); the SHA-256 of a file or of a folder's canonical manifest | ow-care `-month`; ow-draft `-freeze`/`-deliver`, ow-research `-framework`, ow-controls `-pin` |
 | **doctor** | Checks every requirement and prints the exact install commands. Never installs a system package | all of the above |
 
 - One CLI, `ow-tools <verb>`, is the contract. The plugin's `bin/` puts it on the PATH of Claude Code's Bash tool, so a skill finds it by name. Two thin plugin skills give the user typeable entry points: `/ow-start-transcribe` (the approved verb) and `/ow-tools` (status and setup).
 - Its own marketplace manifest lists only ow-tools, so an administrator can approve it separately from the dev marketplace and from any text-only ow- marketplace (§7).
-- Audio and transcripts never leave the machine, and the transcription step runs with network access switched off for the speaker model. Credentials are never written by ow-tools, and the secrets scan never prints or stores a match (§8).
+- Audio and transcripts never leave the machine, and the transcription step runs with network access switched off for the speaker model. Credentials are never written by ow-tools, and the secrets scan never prints or stores a match (§8). From 1.1.0, two verbs use the network, each only for what its config or plan lists: `health` and `capture` (§8, Network). Every other verb opens no socket.
 
 ### 1.1 Owner decisions (2026-10-09)
 
@@ -56,6 +60,13 @@
 | 18 | Tester pack per role as PDF/Word (HTML and the results CSV are skill-written text) | ow-uat §5 | ow-uat (draft) | Engine ready with #11; its fixtures and tests **wait** |
 | 19 | Credentials never in files; logins never in any file | ow-uat §9, ow-handoff §4 | drafts | Applies to ow-tools now (§8); nothing extra to build |
 | 20 | Business days on the contract's calendar (weekdays except US federal holidays) | ow-uat §8.1 | ow-uat (draft) | **Waits** (a `calc` calendar) |
+| 21 | Screenshots of the UAT environment for every task step; the user signs in; never a credential; production only with the client's recorded decision; a data check on every image (not by ow-tools) | ow-documentation §5.5, decision 8, T1 | ow-documentation | **Yes, 1.1.0** (§5.6) |
+| 22 | Branded PPTX: one slide per H2, speaker notes, the same preflight | ow-documentation §6.1, §7.1, decision 10, T2; ow-draft §4.2, §11 | ow-documentation, ow-draft | **Yes, 1.1.0** (§5.7) |
+| 23 | Read-only health checks of what `health.yaml` lists; no credential; Python only through pip-audit | ow-care §5.4, §9, §11, decision 4, T3 | ow-care | **Yes, 1.1.0** (§5.8) |
+| 24 | Care hours in integer minutes: oldest first, rollover by the frozen rule, extra, lapse | ow-care §6, §9, §11, decisions 5, 7, 8, 10, T4, H4 | ow-care | **Yes, 1.1.0** (§5.4) |
+| 25 | The ow-start meeting transcript call | ow-start logs amendment §3, §8, T5 | ow-start | **Yes, 1.1.0**: a §4.2 row; no code change |
+| 26 | XLSX from CSV and a formula map: formulas kept, number formats, a header row per sheet, a Sources sheet | ow-draft §4.2, §8, §11, T6; ow-vendor-eval §7 | ow-draft, ow-vendor-eval | **Yes, 1.1.0** (§5.9) |
+| 27 | A digest of a file or a folder, labelled "detects accidental change only; not tamper-evidence" | ow-draft §7, T7; ow-research §6; ow-controls §4, §6.3 | ow-draft, ow-research, ow-controls | **Yes, 1.1.0** (§5.10) |
 
 ## 3. What the plugin contains
 
@@ -78,7 +89,16 @@ plugins/ow-tools/
 │   ├── docx.mjs               # brands the Word file: styles, header, footer, title
 │   ├── status.mjs             # STATUS.md reader for the hook
 │   ├── guards.mjs             # audio/ folder rule, git-ignore check, temp dirs
-│   └── calc.mjs               # dates, business days, totals, splits
+│   ├── calc.mjs               # dates, business days, totals, splits, care hours (1.1.0)
+│   ├── hash.mjs               # streamed SHA-256 (1.1.0)
+│   ├── digest.mjs             # file and folder digests (1.1.0)
+│   ├── pptx.mjs               # deck rules, the per-run reference deck, PPTX branding (1.1.0)
+│   ├── xlsx.mjs, zip.mjs      # CSV + formula map → XLSX; a deterministic zip writer (1.1.0)
+│   ├── health.mjs             # read-only health checks (1.1.0)
+│   ├── lockfiles.mjs          # npm, pnpm and yarn lockfile readers (1.1.0)
+│   ├── net.mjs                # the one outbound-request module (1.1.0)
+│   ├── capture.mjs            # capture plans, profiles, the step runner (1.1.0)
+│   └── cdp.mjs                # DevTools protocol over --remote-debugging-pipe (1.1.0)
 ├── python/
 │   ├── pyproject.toml         # requires-python ==3.12.*; pyannote.audio pinned
 │   ├── uv.lock                # committed; `uv sync --frozen`
@@ -123,9 +143,20 @@ No `package.json` at the plugin root: Claude Code installs npm dependencies auto
 | ow-build-plan `-offer`, `-export` | `ow-tools export <file.md> [--out <dir>]` | the Markdown, the workspace `brand.yaml` | `export/<name>.pdf`, `export/<name>.docx` | Prints the finished Markdown and says the documents could not be generated here |
 | ow-handoff `-package` (draft) | `ow-tools export handoffs/<client>/handoff-notes.md` | same | `export/handoff-notes.{pdf,docx}` | Same |
 | ow-uat `-pack` (draft) | `ow-tools export uat/<client>/uat-pack-<role>.md` | same | `export/uat-pack-<role>.{pdf,docx}` | HTML pack only (skill-written) |
-| ow-handoff `-accounts` (draft) | `ow-tools scan-secrets <repo>` | committed history only | nothing; prints rows | NOT-CHECKED: "this repository has not been scanned for committed secrets" |
+| ow-handoff `-accounts` (draft; **not built**: `scan-secrets` waits for Sprint 4) | `ow-tools scan-secrets <repo>` | committed history only | nothing; prints rows | NOT-CHECKED: "this repository has not been scanned for committed secrets" |
 | Any verb needing a date or a total | `ow-tools calc …` (§5.4) | arguments only | nothing | Time-source ladder (host date, else ask); "arithmetic NOT machine-checked" |
 | Any session (resume) | SessionStart hook | `opchain-work/STATUS.md` | nothing | Step 0 inside each skill (ow-protocol v1 §3a); `/ow-status` |
+| ow-start `-log-meeting` (1.1.0, T5) | `ow-tools transcribe logs/<workstream>/meetings/MTG-nn/audio/<file> --out logs/<workstream>/meetings/MTG-nn/` | the recording | `transcript.{json,md}` in `MTG-nn/` | The user's notes (ow-start logs amendment §3: "from the transcript … or the user's notes") |
+| ow-documentation `-capture` (1.1.0, T1) | `ow-tools capture --plan <plan.json> --out docs/<client>/shots/ [--sign-in] [--timeout S]`; `ow-tools capture --profiles`, `ow-tools capture --delete-profile <client>` | the plan (§5.6); the test environment it names | `shots/<step-id>.png`; the profile in the data folder | UAT's `cleared` evidence where it fits; remaining steps get a marked placeholder `[screenshot: <step>]` that blocks export (ow-documentation §5.5) |
+| ow-documentation `-export` (1.1.0, T2) | `ow-tools export docs/<client>/training/deck.md --formats pptx`; guides as 1.0.0 | the Markdown, `brand.yaml` | `export/deck.pptx`, `export/deck.export.json` | Not stated in the caller's design: **proposed** "the deck stays Markdown; say the PPTX could not be generated here", as for PDF and Word. Flagged for Sprint 3b |
+| ow-care `-health` (1.1.0, T3) | `ow-tools health --config care/<client>/health.yaml --json [--no-network]` | `health.yaml` (§5.8), the lockfiles it names | nothing (an RDAP list cache in the data folder) | All checklist (ow-care §5.4). Under a handling level the caller's design does not say: **proposed** `--no-network` (O9). Flagged for Sprint 4b |
+| ow-care `-month` (1.1.0, T4) | `ow-tools calc hours --ledger <ledger.json> --rollover <share>,<of>,<months>`; the report through `ow-tools export` | the ledger JSON the skill writes (§5.4) | nothing | "computed without ow-tools; check it" (ow-care §6) |
+| ow-draft `-freeze` (1.1.0, T7) | `ow-tools digest drafts/<workstream>/DR-nn-<slug>/candidates/C-n.md` (a sheet: the `C-n` folder) | the candidate | nothing | A weak fingerprint (length, first and last lines) labelled weak (ow-draft §7) |
+| ow-draft `-deliver` (1.1.0, T2, T6, T7) | `ow-tools digest <draft>` to match the signed-off candidate; `ow-tools export <C-n.md> [--formats pdf,docx]` or `--formats pptx`; `ow-tools export <C-n sheet folder> --formats xlsx` | the candidate, `brand.yaml` | `export/` and `<name>.export.json` | Digest: the same text when only a weak fingerprint exists (ow-draft §9). Export: not stated in the caller's design: **proposed** "deliver the Markdown or CSV and say the documents could not be generated here". Flagged for Sprint D |
+| ow-vendor-eval `-score` (1.1.0) | `ow-tools calc total --items <items.json>` for costs over the horizon | the items JSON | nothing | "computed without ow-tools; check it" (ow-vendor-eval §5). Weighted scores (decimal weights × 0–3) have no calc verb in 1.1.0: **proposed** a weighted-sum verb or `calc total` in minor units. Flagged for Sprint V |
+| ow-vendor-eval `-formal` (1.1.0, T6) | `ow-tools export <evaluation-workbook folder> --formats xlsx --out vendor-eval/<workstream>/VE-nn-<slug>/` | the CSVs and `model.md` | `evaluation-workbook.xlsx` | Not stated in the caller's design: **proposed** "write the CSVs and `model.md`, and say the workbook could not be generated here". Flagged for Sprint V |
+| ow-research `-framework` (1.1.0, T7) | `ow-tools digest frameworks/<id>/<date>/<file>` per file in `manifest.yaml` | the fetched files | nothing | Not stated in the caller's design: **proposed** `digest: not computed (no ow-tools)` in `manifest.yaml`. Flagged for Sprint R |
+| ow-controls `-pin` (1.1.0, T7) | `ow-tools digest compliance/packs/<framework>/<edition>/` | the pack folder | nothing | Not stated in the caller's design: **proposed** the pin records `digest: not computed`, and Pin match is NOT-CHECKED. Flagged for Sprint C |
 
 **Partial installs.** `doctor` reports per capability. Export works without the transcription tools and the other way round; a call to a capability whose requirements are missing exits 3 and names them.
 
@@ -214,6 +245,35 @@ The reader accepts only this shape (no anchors, tags or multi-line strings) and 
 | `ow-tools calc date --from D (--days N \| --business-days N) [--holidays D1,D2,…] [--calendar us-federal]` | The date, the calendar used, the holidays skipped |
 | `ow-tools calc total --items <file.json>` | Sum in integer minor units, per-line products, currency |
 | `ow-tools calc split --total T --schedule 40/40/20` | Amounts that add up exactly (remainder to the last) |
+| `ow-tools calc hours --ledger <file.json> --rollover <share>,<of>,<months>` (1.1.0) | Per care month, in integer minutes: available, used by kind, extra, rolled over, lapsed, credit, and the identity line |
+
+Both `calc date` modes return the same keys (`date`, `from`, `days` or `business_days`, `calendar`, `holidays_skipped`); `--holidays` with `--days` is a usage error (F-008).
+
+#### calc hours (1.1.0, amendment T4): the ledger read contract
+
+ow-care's `-month` writes the ledger; ow-tools reads it and nothing else. Minutes are integers and every value is a whole quarter-hour (a multiple of 15).
+
+```json
+{
+  "schema": 1,
+  "months": [
+    { "id": "M-01", "included": 480,
+      "entries": [ { "id": "CARE-01", "kind": "care", "minutes": 210 },
+                   { "id": "HEALTH-M-01", "kind": "health", "minutes": 45 },
+                   { "id": "REPORT-M-01", "kind": "report", "minutes": 45 } ],
+      "extra_approved": 0, "credit": 0 }
+  ]
+}
+```
+
+- `months` run `M-01`, `M-02`, … in order with none missing (the month identity). `included` is the tier's hours for that month in minutes; a tier change is just a different `included`.
+- `entries[].kind` is one of `care`, `health`, `report`, `meeting` (ow-care §6, §7, decision 11). Entry ids are 1–40 letters, digits, `.`, `_` or `-`, unique in their month.
+- `extra_approved` is the minutes the client's go-ahead approved for that month (ow-care decision 8); `credit` is recorded capacity credit, reported and never computed.
+- `--rollover share,of,months` is the frozen `rollover: { share, of, months }` (H4). `share` is 0 to 1 with up to four decimals and stays an exact fraction; `of` is `unused` or `included`; `months` is 1 to 12.
+
+The rule. **Oldest hours first:** each month uses rolled-in batches (oldest month first), then its own included minutes, then approved extra. With `of: unused`, the rollover is ⌊share × own unused⌋ to the quarter-hour; with `of: included` it is min(own unused, ⌊share × included⌋ to the quarter-hour) (O11). A month's rollover batch can be used for the next `months` months and lapses after the last of them. **Lapsed** = own unused not rolled + any batch whose last month this was. Every month must satisfy *rolled in + included + extra = used + rolled over + lapsed*, and ow-tools checks it. The ow-care §6 example gives M-01: 300 of 480 used, 45 rolled over, 135 lapsed; M-02: 525 available, 600 used, 75 extra.
+
+Refusals: an entry (or month field) that is not a quarter-hour is exit 4 `not-quarter-hour`, naming the entry id only; minutes past available + approved extra is exit 4 `over-available`, naming the month and the entry where it crossed. A negative value, an unknown kind or key, or a gap in the month ids is exit 2.
 
 The skill passes holidays it read from `profile.md`; ow-tools never reads `profile.md` or `price-book.yaml` itself. Callers: ow-start's recap due date; ow-build-plan's offer and quote validity, credit deadline and totals; ow-build's ledger; later ow-handoff's window dates and ow-uat's contract calendar (`us-federal` waits for ow-uat).
 
@@ -223,6 +283,161 @@ The skill passes holidays it read from `profile.md`; ow-tools never reads `profi
 - Every report row must match a strict pattern; one that doesn't aborts the scan, deletes the report and returns NOT-CHECKED. A gitleaks without `--redact` and `--report-template` is not run (NOT-CHECKED).
 - It never scans the working tree, so it never opens a `.env` file (ow-handoff §4). It uses gitleaks' built-in rules, ignores a repository's own `.gitleaks.toml` and `.gitleaksignore`, and reports that they exist.
 - Result: `CLEAN`, `HITS` with rows, or `NOT-CHECKED(reason)`. Removing a secret from history stays the client's choice.
+
+### 5.6 capture (1.1.0, amendment T1)
+
+`ow-tools capture --plan <plan.json> --out <…>/shots/ [--sign-in] [--timeout S]` drives an installed Chrome or Chromium through the DevTools protocol over `--remote-debugging-pipe` (`cdp.mjs`): commands on the browser's fd 3, replies on fd 4, no TCP debugging port and no WebSocket, so nothing else on the machine can attach and Node 20's built-ins suffice. It never downloads a browser (O5): doctor finds one on PATH (`google-chrome`, `google-chrome-stable`, `chromium`, `chromium-browser`, `chrome`) or at the standard macOS paths.
+
+**Modes.**
+- **Capture** (default): headless, on the stored profile, at the plan's fixed viewport. Works where the test environment keeps the sign-in in a cookie with an expiry.
+- **Sign-in** (`--sign-in`): a headed window opens at `sign_in.url`; the user signs in themselves; ow-tools waits (up to `--timeout`, default 300 s) for `sign_in.done_selector` on an allowed origin, then runs the plan's steps **in the same browser session** and closes it. The spike (`sprints/release-2.1/ow-sprint-t/capture-spike.md`) found that Chrome drops session-only cookies on every restart, so a headed sign-in followed by a separate headless run only works for "remember me" sessions; running the steps in the sign-in session covers the rest without ow-tools ever reading a cookie.
+- **Profiles:** `--profiles` lists each profile's id, size and last-used date, never its contents; `--delete-profile <id>` deletes `$OW_TOOLS_HOME/capture/<id>/` only, after refusing an id that isn't lowercase letters, digits and `-`, a symlink, or a folder whose real path isn't directly inside the capture folder, and prints what it removed.
+
+**The plan (read contract; ow-documentation `-capture` writes it, Sprint 3b).** JSON, strict: an unknown key anywhere is refused.
+
+```json
+{
+  "schema": 1,
+  "profile": "harbor-cafe",
+  "environment": "uat",
+  "decision": { "role": "client ops lead", "date": "2026-10-15" },
+  "allowed_origins": ["https://uat.example.test"],
+  "viewport": { "width": 1280, "height": 800 },
+  "sign_in": { "url": "https://uat.example.test/login", "done_selector": "#account-menu" },
+  "steps": [
+    { "id": "S-01", "do": "navigate", "url": "https://uat.example.test/orders" },
+    { "id": "S-02", "do": "click", "selector": "#new-order" },
+    { "id": "S-03", "do": "fill", "selector": "#customer", "value": "Test Customer 01" },
+    { "id": "S-04", "do": "wait", "selector": ".order-form", "timeout_ms": 5000 },
+    { "id": "S-05", "do": "shot" }
+  ]
+}
+```
+
+| Key | Rule |
+|---|---|
+| `profile` | The workstream id (O2): lowercase letters, digits, `-`; the profile is `$OW_TOOLS_HOME/capture/<profile>/`, mode 0700 |
+| `environment` | `test`, `uat`, `staging`, `demo` or `production` (O3). `production` needs `decision: { role, date }` (the client's recorded decision); it is echoed in the output as given, labelled "not verified by ow-tools". `decision` on any other environment is refused |
+| `allowed_origins` | 1–20 `https://` origins (scheme, host, port; no path, no user name or password, never loopback). Every navigation, redirect and sub-resource request to another origin is failed by the Fetch guard; a step whose page leaves the list stops with no image |
+| `viewport` | 320–3840 each way; default 1280×800; screenshots are exactly this size (device scale 1) |
+| `steps[].id` | 1–40 letters, digits, `_`, `-`; unique ignoring case; names the image `<id>.png` |
+| `steps[].do` | `navigate` (`url`, inside `allowed_origins`) · `click` (`selector`) · `fill` (`selector`, `value`: test data, ≤ 500 characters) · `wait` (`selector`, `timeout_ms` 100–60000, default 10000) · `shot` (nothing). **Every step writes one PNG** after its action |
+
+**Secret fields and values.** ow-tools never types into a password or one-time-code field. A `fill` whose selector names one (`type=password`; `autocomplete` of `current-password`, `new-password`, `one-time-code`, `cc-number`, `cc-csc`, `cc-exp…`; or text matching `pass(word|wd|code|phrase)`, `pwd`, `otp`, `one-time`, `totp`, `mfa`, `2fa`, `secret`, `token`, `api-key`, `pin`, `cvv`, `cvc`, `card-num`, `cc-num`, `ssn`, `security-code`, `verification-code`, `auth-code`, any case) is exit 4 before launch; at run time the target's `type`, `autocomplete`, `name` and `id` are checked again through `DOM.describeNode` and a match stops the run before anything is typed. A `value` that looks like a credential (a private-key block, an AWS, GitHub, Slack, Stripe-style or Google API key, a JWT, or a 24+ character token mixing upper, lower and digits) is exit 4 before launch.
+
+**The browser.** Started with `--remote-debugging-pipe` (never `--remote-debugging-port`), `--user-data-dir=<profile>`, `--headless` in capture mode, first run, sync, extensions, background networking, the component updater, domain reliability, phishing detection and crash reporting off, `--use-mock-keychain` (no item in the user's login keychain, no keychain prompt in a headless run), `--no-proxy-server`, a `--host-resolver-rules` map that resolves only the allowed hosts, and the viewport as the window size. The profile's `Preferences` are written before every launch with the password manager, autofill (addresses and cards), Safe Browsing, translate and browser sign-in off, and downloads denied (also `Browser.setDownloadBehavior: deny`). A second window (`target=_blank`) is closed; a JavaScript dialog is dismissed. On every exit path (success, failure, timeout) the browser is asked to close, then its process group is killed, and its caches (`Cache`, `Code Cache`, `GPUCache`, shader caches, `Crashpad`, the singleton locks) are removed from the profile: they can hold page content.
+
+**CDP methods** (a fixed allowlist in `cdp.mjs`; anything else is refused before it reaches the pipe): `Browser.close`, `Browser.getVersion`, `Browser.setDownloadBehavior`, `Target.attachToTarget`, `Target.closeTarget`, `Target.createTarget`, `Target.getTargets`, `Target.setDiscoverTargets`, `Page.enable`, `Page.navigate`, `Page.getFrameTree`, `Page.captureScreenshot`, `Page.handleJavaScriptDialog`, `Emulation.setDeviceMetricsOverride`, `DOM.enable`, `DOM.getDocument`, `DOM.querySelector`, `DOM.describeNode`, `DOM.getBoxModel`, `DOM.scrollIntoViewIfNeeded`, `DOM.focus`, `Input.dispatchMouseEvent`, `Input.insertText`, `Fetch.enable`, `Fetch.continueRequest`, `Fetch.failRequest`. None reads a cookie or storage; none evaluates JavaScript (a click is a box-model centre and two mouse events; a fill is focus and inserted text; a wait polls `DOM.querySelector`).
+
+**Output.** `<out>/<step-id>.png` (0600, through a `.tmp-<pid>` sibling), only in a folder named `shots`; inside a work tree each image and its sibling must be git-ignored (`opchain-work/**/shots/`, O4). The JSON lists each image with its size, SHA-256 and `data_check: pending (not done by ow-tools)`; the data check is ow-documentation's (§5.5 there). A failed run keeps the images written before the failing step and lists them (`written`).
+
+### 5.7 export --pptx (1.1.0, amendment T2)
+
+`ow-tools export <deck.md> --formats pptx` (it can be combined with `pdf,docx`). Needs pandoc, `zip` and `unzip`.
+
+- **Input:** the 1.0.0 preflight runs unchanged (one H1, no skipped levels, alt text, table headers, link text, internal sections stripped, artefact header removed, images confined), then the **deck rules**: the H1 is the deck's title only (O14: N `##` headings give N slides; it goes in the file's title, not on a slide); no text between the title and the first `##`; no H3 or deeper outside speaker notes; at most one image or table per slide (pandoc would split a slide with two); speaker notes are fenced blocks `::: notes` … `:::` on lines of their own, and no other `:::` block. pandoc reads the deck as `gfm-autolink_bare_uris+fenced_divs`, `--slide-level=2`.
+- **Reference deck, built per run** from pandoc's own default (`pandoc -o reference.pptx --print-default-data-file reference.pptx`): the theme's colours (`dk1` text, `lt1`/`lt2` background, `dk2`/`accent1` primary, `accent2` accent, `hlink` the link colour) and fonts (major = heading, minor = body) from `brand.yaml`, and the logo on the slide master with its alt text.
+- **After pandoc** (unzip, edit, zip, as `docx.mjs`): the banner (`banner_text`) as a text box on **every slide**; each picture's description set from its Markdown alt text; every table's `firstRow="1"`; the core title. Then checked: the slide count equals the `##` count, and every picture has a non-empty description (exit 5 otherwise).
+- **Output:** `export/<name>.pptx` (0600) and the export record (§8).
+
+### 5.8 health (1.1.0, amendment T3)
+
+`ow-tools health --config <health.yaml> [--json] [--no-network]`. Read-only: it checks only what `health.yaml` lists, writes nothing in the repository or under a listed path (its one write is the RDAP list cache in the data folder), sends no credential, and never reads `.npmrc`, `.yarnrc.yml`, `.pypirc`, `.netrc` or a keychain. Exit 0 whenever the config is valid, whatever the results; one unreachable host doesn't fail the run.
+
+**`health.yaml` (read contract; ow-care `-health` writes it, Sprint 4b).** A strict YAML subset: scalars, one-line `[a, b]` lists or `- item` block lists, and the `thresholds` map. No anchors, aliases, tags or multi-line values; an unknown key is refused. Refusals (exit 4 `config-invalid`) name the line and the key, never the value.
+
+```yaml
+schema: 1
+repo: ../client-app                  # folder holding the lockfiles (relative to health.yaml)
+lockfiles: [package-lock.json]       # optional; default: any of package-lock.json, npm-shrinkwrap.json, pnpm-lock.yaml, yarn.lock
+registry: public                     # optional: packages the lockfile doesn't place elsewhere come from the public npm registry
+private_scopes: ['@acme']            # optional: never sent, whatever the lockfile says
+python: ../client-app/requirements.txt   # optional: a fully pinned file for pip-audit
+hosts: [app.example.com]             # TLS certificate expiry (host or host:port)
+domains: [example.com]               # domain expiry over RDAP
+urls:
+  - https://app.example.com/health   # HTTP status (https only; no user name, password, query or fragment)
+backups:
+  - /Volumes/backup/app.sql.gz       # age by lstat; never opened
+thresholds: { cert_days: 30, domain_days: 30, backup_days: 2, advisory: high, outdated: major }
+```
+
+Hosts and URL hosts must be public host names (no IP address, no localhost). At most 50 items per list.
+
+**Checks and results.** Every result is `OK`, `attention` or `not checked (reason)`. Thresholds are the O10 defaults, each overridable: certificate and domain ≤ 30 days → attention; an advisory of `high` or `critical` severity → attention, others listed; outdated → attention only when a major version behind (below 1.0, a minor); a backup older than 2 days → attention.
+
+| Check | How | What leaves the machine |
+|---|---|---|
+| advisories (npm, pnpm, yarn) | Lockfiles parsed locally (`lockfiles.mjs`: npm v1–v3, pnpm v6 and v9, yarn v1 and berry), then one `POST https://api.osv.dev/v1/querybatch` per 1,000 packages, then `GET /v1/vulns/<id>` for each advisory id (at most 200) to read its severity | The name and version of each public-registry package (all of them, not only direct ones: one batch request bounds the count), and the advisory ids |
+| outdated | Direct dependencies from `package.json` (`dependencies`, `devDependencies`) at their lockfile version; `GET https://registry.npmjs.org/<name>/latest` each | Each direct public-registry dependency's name |
+| python-advisories | `pip-audit -r <file> --disable-pip --no-deps --format json --progress-spinner off` (O8), only when pip-audit is installed and every line of the file is `name==version`; with `NETRC=/dev/null` and `PIP_CONFIG_FILE=/dev/null`. Never pip-audit's installing mode | pip-audit's own requests (PyPI's advisory data) for the pinned names and versions |
+| tls | A TLS handshake to each host (SNI, port 443 or the given one), reading the certificate's expiry and whether it is trusted; nothing is sent over it | The handshake |
+| domain | The IANA RDAP list (`GET https://data.iana.org/rdap/dns.json`, cached 30 days in the data folder), then `GET <https base>domain/<name>` and its `expiration` event | Each listed domain to its registry's RDAP server |
+| http | `GET` each listed URL; a 3xx is reported with its Location host and never followed | The request to each listed URL |
+| backup | `lstat` of each listed path: missing → attention; a symlink or not a file → not checked | Nothing |
+
+**Which packages are sent (C13).** A package is sent only when its resolution is the public registry (`registry.npmjs.org` or `registry.yarnpkg.com` in the lockfile), or when the lockfile records no registry (pnpm, yarn berry, an npm entry without `resolved`) and `health.yaml` says `registry: public`; never when it is in a `private_scopes` scope, resolves to another host, a git URL or a tarball, or is a workspace or local package. Those are `not checked (private registry)`, `(local package)` or `(registry not recorded in the lockfile; …)`.
+
+**`net.mjs`, the one outbound-request module.** https only; the host must be on the run's destination list (the three fixed destinations, the listed hosts and URL hosts, and the RDAP servers the IANA list names over https); `GET` or `HEAD`, and `POST` only to `api.osv.dev`. The name is resolved once; any answer in a blocked range (0/8, 10/8, 100.64/10, 127/8, 169.254/16, 172.16/12, 192.0.0/24, 192.0.2/24, 192.168/16, 198.18/15, 224/4 and above; `::`, `::1`, fc00::/7, fe80::/10, ff00::/8, 2001:db8::/32, and IPv4-mapped, -compatible, NAT64 and 6to4 forms of those) refuses the destination, and the socket connects to the checked address with the name kept for SNI and the certificate, so a second DNS answer can't redirect it. No redirect is followed; headers are only `Host`, `User-Agent: ow-tools/<version> (health; read-only)`, `Accept`, `Connection: close` (and `Content-Type`, `Content-Length` on the POST); 15 s timeout; a body cap (64 KB, larger only for the OSV batch, advisory details and the RDAP list). The resolver, connector and destination table are module parameters for tests; no environment variable or flag changes them.
+
+**`--no-network` (O9):** lockfile parsing (it reports how many packages it read and how many would be sent) and backup age only; every network check is `not checked (network off)`, and no socket, DNS or fetch call is made.
+
+**`not checked` reasons:** `network off`, `unreachable`, `address-not-allowed`, `not-a-destination`, `tls-untrusted`, `too-large`, `no lockfile`, `symlink`, `not a file`, `lockfile over 50 MB`, `lockfile could not be read`, `no package.json`, `not in the lockfile`, `not a public-registry package`, `private registry`, `local package`, `registry not recorded in the lockfile; …`, `version not comparable`, `registry answered <status>`, `advisory service answered <status>`, `RDAP server answered <status>`, `RDAP server redirects to <host>`, `no RDAP server for this domain's ending`, `no expiry date published`, `certificate date unreadable`, `pip-audit not installed`, `pip-audit failed`, `pip-audit output unreadable`, `no requirements file`, `the requirements file is not fully pinned …`.
+
+### 5.9 export --xlsx (1.1.0, amendment T6)
+
+`ow-tools export <sheet-folder> --formats xlsx [--out DIR]`. Node built-ins only (XLSX is zipped XML; `zip.mjs` writes stored or deflated entries with a table CRC-32 and one fixed timestamp), so it is never absent where ow-tools is. The same input gives byte-identical output.
+
+**The folder.** One `<Sheet>.csv` per sheet (RFC 4180, UTF-8; row 1 is the header), `model.md` (required, even when nothing is computed), and optionally `sources.csv`, which becomes a last sheet named `Sources` (O13: written only when given; ow-draft's Sources check requires it skill-side, ow-vendor-eval's blank workbook has none). Sheet names (the file names) are 1–31 letters, digits, spaces, `.`, `_` or `-`.
+
+**`model.md`, the formula map (read contract; ow-draft and ow-vendor-eval write it, Sprints D and V).**
+
+```markdown
+---
+ow_artefact: ow-draft/sheet-model
+…
+---
+CONFIDENTIAL — banner text, when the handling level sets one
+
+# Model: Fit-out costs
+
+## Sheet: Costs
+
+| Cell | Formula | Format |
+| --- | --- | --- |
+| D2 | =B2*C2 | currency:USD |
+| D5 | =SUM(D2:D4) | currency:USD |
+| C2:C4 | | currency:USD |
+
+## Sheet: Rates
+
+| Cell | Formula | Format |
+| --- | --- | --- |
+| B3 | =ROUND(Costs!D5*(1+B2),2) | currency:USD |
+```
+
+- The optional ow- header block and `banner_text` line work as in Markdown export; the banner becomes every sheet's printed header. The first H1 (with an optional `Model:` prefix) is the workbook title. Prose anywhere else is ignored.
+- `## Sheet: <name>` names `<name>.csv`; the sheets come in this order, then any other CSV by name, then Sources.
+- Each row: **Cell** is one cell (`D5`) for a formula, or a cell or range (`C2:C4`) for a format only; **Formula** is empty or starts with `=` (one cell per formula, never in row 1; a `|` inside a formula is written `\|`); **Format** is `text`, `integer` (`#,##0`), `decimal` (`#,##0.00`), `percent` (`0.00%`), `date` (`yyyy-mm-dd`; an ISO date in the CSV becomes a date), `currency:XXX` (`"XXX "#,##0.00`), or empty.
+- Allowed functions: `ABS`, `AND`, `AVERAGE`, `COUNT`, `COUNTA`, `COUNTIF`, `IF`, `IFERROR`, `MAX`, `MIN`, `NOT`, `OR`, `ROUND`, `ROUNDDOWN`, `ROUNDUP`, `SUM`, `SUMIF`, `SUMPRODUCT`. References: `A1`, `$A$1`, ranges, `Sheet!A1` and `'Sheet name'!A1:B2`. Nothing else is written: no defined names, array constants or error literals.
+
+**Preflight** (exit 4, naming `sheet!cell` only, never a value): a typed value in the CSV where the map gives a formula (`typed-value-in-formula-cell`); a reference to a sheet that isn't in the workbook (`unknown-sheet`) or to a cell outside the sheet's data (`unknown-cell`); a function outside the list (`function-not-allowed`); another workbook (`[Book.xlsx]Sheet!A1`, `external-reference`); a DDE-style formula (`cmd|…`) or one that reaches outside the workbook (`WEBSERVICE`, `HYPERLINK`, `FILTERXML`, `RTD`, `DDE`, `CALL`, `REGISTER`, `IMPORT…`; `dde-or-link-formula`); anything else the tokenizer doesn't know (`formula-syntax`); a formula in row 1 (`formula-in-header`).
+
+**Output.** Formula cells carry `<f>` and **no stored value**; the workbook is set to recalculate on load (`fullCalcOnLoad`). Each sheet has one bold header row, frozen. CSV text is written as text (inline strings), including text that starts with `=`, `+`, `-` or `@`, which also gets Excel's quote prefix so editing the cell doesn't turn it into a formula. Numbers are written as numbers. `export/<name>.xlsx` (0600) and the export record; the source digest is the folder digest (§5.10).
+
+### 5.10 digest (1.1.0, amendment T7)
+
+`ow-tools digest <file|folder> [--json]`. It prints, every time: **"detects accidental change only; not tamper-evidence"**.
+
+- **A file:** the SHA-256 of its bytes (`form: file-bytes`), equal to `shasum -a 256`.
+- **A folder:** the SHA-256 of its canonical manifest (`form: ow-tools-tree-v1`): one line per regular file, `<sha256 hex>  ./<relative/path>\n` (two spaces), sorted by the bytes of `./<relative/path>`, hashed as a whole. Modes, times, owners and empty folders are not part of it; content, names, adds and removes are. The shell one-liner that reproduces it, where `find`, `sort` and `shasum` (or `sha256sum`) exist:
+
+  ```sh
+  (cd DIR && find . -type f ! -name .DS_Store ! -name '._*' -print0 | LC_ALL=C sort -z | xargs -0 shasum -a 256) | shasum -a 256
+  ```
+- `.DS_Store` and `._*` (Finder litter) are skipped and always listed in the output (O12).
+- **Refused (exit 4, naming the path):** a symlink anywhere, including the path given (`symlink-in-tree`); a name with a backslash or a control character, which the shell form would escape (`unsafe-name`); anything that isn't a regular file or folder (`not-a-file`). Files are opened with `O_NOFOLLOW`, so one swapped for a symlink after the walk is refused, not followed.
+- `digestTree()` in `lib/digest.mjs` is exported, so Sprint C's `scripts/build-packs.mjs` imports this implementation. Hashes stream in 1 MiB chunks (`hash.mjs`), which doctor's model check now uses too (F-007).
 
 ## 6. Install and setup checks
 
@@ -240,6 +455,11 @@ The skill passes holidays it read from `profile.md`; ow-tools never reads `profi
 | pandoc, Typst | export | on PATH, versions | `brew install pandoc typst` |
 | `zip`, `unzip` | export (Word reference doc) | on PATH | part of macOS |
 | gitleaks ≥ 8.19 | scan (draft) | flags present | `brew install gitleaks` |
+| Chrome or Chromium (1.1.0) | capture | on PATH (`google-chrome`, `chromium`, …) or at the standard macOS paths; never started by doctor | `brew install --cask google-chrome` |
+| pandoc, `zip`, `unzip` (1.1.0) | export --pptx | the same rows as export | as above |
+| pip-audit (1.1.0, optional) | health on Python projects | on PATH | `brew install pip-audit` (Linux: `pipx install pip-audit`) |
+
+Typst's version is compared as full semver (F-010). xlsx, health, calc and digest need only Node, so they are never reported missing. doctor stays print-only and offline: it opens no socket, and every printed fix is a package-manager line.
 
 **Where things live.** Code: Claude Code's plugin cache (replaced on update). Venv, models and Hugging Face cache: `${OW_TOOLS_HOME:-~/.local/share/ow-tools}`, outside every repository. (Claude Code's `CLAUDE_PLUGIN_DATA` is not visible to commands run through the Bash tool, so ow-tools can't rely on it.) The venv is keyed by the `uv.lock` hash, so a plugin update that changes the lock is reported by `doctor` as one `uv sync` away. `doctor` prints the folder's size and how to remove it; uninstalling the plugin does not delete it.
 
@@ -275,14 +495,24 @@ The audit's rule (A:177, A:3005–3019) is that admin approval matches a marketp
 | A client document carries only its own images | Image paths are confined to the document's folder (or its `opchain-work/` folder) after symlinks are resolved, and must be PNG, JPEG or GIF by content (§5.2) |
 | Redacted scanning only | §5.5: the match is never emitted, written or logged; unredactable means not run |
 | No private names | A test fails if any file in `plugins/ow-tools/` names `llc-ops`, a skill outside the ow- family, or "Deftwright"; `lint-internal-refs` already covers personal identifiers in `plugins/` |
-| Files are data | Transcripts carry the data sentence; the hook wraps STATUS.md content as data and strips control characters |
+| Files are data | Transcripts carry the data sentence; the hook wraps STATUS.md content as data and strips control characters, bidi controls and zero-width characters (SA-008) |
+| **Network (1.1.0)** | Only two verbs open a socket. **health** reaches the fixed destinations `api.osv.dev`, `registry.npmjs.org` and `data.iana.org`, the RDAP server the IANA list names (https only) for each listed domain, and the hosts and URLs `health.yaml` lists; through one module (`net.mjs`) that refuses loopback, private, link-local, CGNAT and metadata addresses after resolving the name, connects to the checked address, follows no redirect, sends no cookie or auth header, and caps every body. `--no-network` sends nothing. **capture** drives the browser to the plan's `allowed_origins` only: every request to another origin is failed, and the browser's own background traffic is turned down by flags and a host-resolver map (§5.6). Every other verb, doctor and the hook open no socket; a test runs each under a fence that fails any socket, DNS or fetch call |
+| What health sends (1.1.0) | The name and version of each **public-registry** package in the lockfile to `api.osv.dev` (POST) and each direct dependency's name to `registry.npmjs.org` (GET). A package from a private registry, a private scope, a local path, or one whose lockfile doesn't record its registry (pnpm, yarn berry) without `registry: public` in `health.yaml`, is never sent. It never reads `.npmrc`, `.yarnrc.yml`, `.pypirc`, `.netrc` or a keychain |
+| Screenshots are git-ignored (1.1.0) | `capture` writes only into a folder named `shots/`; inside a work tree `git check-ignore` must pass for each image and its temp sibling, otherwise exit 4 with the line `opchain-work/**/shots/` (O4). Images are 0600 and every one is reported `data_check: pending (not done by ow-tools)` |
+| The capture profile (1.1.0) | A signed-in test session lives in `$OW_TOOLS_HOME/capture/<workstream>/` (0700), one per workstream (O2). The password manager and autofill are off in it, first run and sync are off, and downloads are denied. ow-tools never reads a cookie or storage and never evaluates JavaScript. The profile's cookies are protected by the folder's permissions only (`--use-mock-keychain`). `--profiles` lists it; `--delete-profile` removes it; ow-handoff's access removal names it (H3) |
+| Exports are recorded (1.1.0, SA-007) | Every export writes `export/<name>.export.json`: per format, the output's and source's SHA-256, the tool version and the time from the tool's clock, and whether it replaced a file. `speakers --set` runs the same ignore check as `transcribe` |
+| Private writes (1.1.0, F-005, F-006) | Without `git` the ignore check is exit 3, never a pass. Transcripts, screenshots and export records are written 0600 through a `.tmp-<pid>` sibling the ignore check also covers |
 
-### Known residuals (2026-10-14 audit)
+### Known residuals (2026-10-14 audit, updated for 1.1.0)
 
-Open, pending owner decisions; reports at `docs/audits/2026-10-14-pr-597-diff-audit.md` and `docs/audits/2026-10-14-ow-tools-security-posture.md`.
+Open, pending owner decisions; reports at `docs/audits/2026-10-14-pr-597-diff-audit.md` and `docs/audits/2026-10-14-ow-tools-security-posture.md`. Closed in 1.1.0: SA-007, SA-008, F-005, F-006, F-007, F-008, F-010. The 1.1.0 security review (§14.6) re-rates SA-001 and adds what stays open.
 
 - **SA-001 (HIGH), distribution pinning:** the marketplace entry follows the force-pushed mirror at `ref: main` with no `sha` or archive hash, and `SECURITY-MANIFEST.md` travels in the tree it attests, so nothing a consumer can check pins what is installed.
 - **SA-004 (MEDIUM), model revision pins:** the pyannote snapshot is fetched and loaded with no pinned revision, and the Whisper model's SHA-256 is checked by `doctor` but not by `transcribe`.
+- **SA-009 (LOW), the print channel:** doctor's printed fixes are still something the user runs; 1.1.0 adds only package-manager lines (no `curl | sh`). Tied to SA-001.
+- **F-011 (LOW), Word run order:** open; the owner's real-app check covers the same class of risk for PPTX and XLSX.
+- **1.1.0, the capture profile at rest:** cookies in the profile are protected by folder permissions only (§8). Accepted as designed: the alternative puts an item in the user's login keychain and prompts during headless runs.
+- **1.1.0, capture's browser traffic:** the Fetch guard sees the page's requests; the browser's own background traffic is reduced by flags and the host-resolver map, not proven absent. A worker's request to an allowed host on another port or scheme is not intercepted.
 
 ## 9. Tests
 
@@ -303,6 +533,13 @@ All Vitest, under `tests/ow-tools/`, run by `npm test` and CI. Real-tool tests s
 | calc | Business days across weekends and listed holidays; splits that sum exactly |
 | plugin shape | `plugin.json`, `hooks.json` and `marketplace.json` parse and point at real files; the dev marketplace doesn't list ow-tools; no `package.json` at the plugin root; `SECURITY-MANIFEST.md` matches; no private or out-of-family names; no banned gate words (A:117) in output strings; `claude plugin validate --strict` when the CLI is present |
 | scan-secrets (waits) | A stub gitleaks that leaks a match → NOT-CHECKED and nothing printed; real gitleaks on a temp repo with a planted fake key → output never contains the key |
+| digest (1.1.0) | File digest = `shasum -a 256`; folder digest unchanged by mtime, mode, `cp -R` and creation order, changed by any byte, rename, add or remove; a symlink anywhere is exit 4 naming it; Finder litter skipped and listed; the shell one-liner gives the same hex |
+| calc hours (1.1.0) | The ow-care §6 example; the identity on every fixture month; quarter-hour and over-available refusals naming the entry id; lapse after the next month; `of: included`; `months: N` |
+| xlsx (1.1.0) | `<f>` and no value in formula cells; bold frozen header; number formats; Sources sheet when given; recalc on load; byte-identical double run; one plant per refusal; formula-looking CSV text written as text; LibreOffice recalculation where `soffice` exists |
+| pptx (1.1.0) | A six-H2 deck → six slides and six notes slides (real pandoc); one title per slide; theme colours and fonts; the logo on the master; the banner on every slide; descriptions and header rows; no internal text in any part; deck-rule plants; exit 3 without pandoc or zip; exit 5 from a stub pandoc |
+| health (1.1.0) | The strict `health.yaml` reader and its plants; stub TLS, RDAP, HTTP and OSV servers injected through module parameters; O10 thresholds; one unreachable host; private-registry packages never sent; read-only (tree hash, methods, headers, no redirect); an fs spy that sees no `.npmrc`, `.pypirc` or `.netrc` read; `--no-network` under the fence; pip-audit's argv pinned |
+| capture (1.1.0) | A stub browser speaking CDP over fds 3/4: argv (pipe, never a port), the profile's prefs, every method on the allowlist; secret fields refused before launch and at run time; secret-looking values refused; origin and redirect plants; production decision; PNG size and naming; the shots guard; profile list and delete with planted escapes; the browser killed on failure and timeout; one real Chrome or Chromium run on a loopback page |
+| network fence (1.1.0) | Static: modules reachable from the no-network verbs import no network module and name no fetch or WebSocket. Runtime: every no-network verb, doctor and the hook run under a preload that fails and records every socket, DNS and fetch call, with zero attempts |
 
 The spike harness (§10) is a script, not a CI test: it needs the real models.
 
@@ -330,8 +567,103 @@ ow-tools needs nothing from those branches, so it branches from `main` and doesn
 
 ## 12. What ow-tools never does
 
-Installs a system package, runs `sudo`, or installs into its own Python environment (`uv run --no-sync`) · sends audio, a transcript or document text anywhere (ffmpeg is held to the `file` protocol) · embeds a file from outside the document's folder or its `opchain-work/` folder in a client document · quotes document text in a preflight message · edits `.gitignore`, `STATUS.md`, `profile.md`, `brand.yaml` or any file an ow- skill writes · stores, prints or logs a credential or a secret match · scans a working tree or opens a `.env` file · deletes a user file (only its own temp files) · guesses who a speaker is · claims accessibility conformance, a verified signature or an approval.
+Installs a system package, runs `sudo`, or installs into its own Python environment (`uv run --no-sync`), or downloads a browser · sends audio, a transcript or document text anywhere (ffmpeg is held to the `file` protocol); only `health` (package names and versions, and the hosts it lists) and `capture` (the test environment the plan lists) use the network, §8 · reads a cookie or storage, or evaluates JavaScript, in a capture browser · types into a password or one-time-code field · embeds a file from outside the document's folder or its `opchain-work/` folder in a client document · quotes document text in a preflight message · edits `.gitignore`, `STATUS.md`, `profile.md`, `brand.yaml` or any file an ow- skill writes · stores, prints or logs a credential or a secret match (a capture profile holds the test session the user signed in to; ow-tools never reads it, §8) · reads `.npmrc`, `.pypirc`, `.netrc` or a keychain value · scans a working tree or opens a `.env` file · deletes a user file (only its own temp files, and a capture profile on `--delete-profile`, confined to `$OW_TOOLS_HOME/capture/`) · guesses who a speaker is · claims accessibility conformance, a verified signature or an approval.
 
 ## 13. Open questions
 
 The four design questions were answered on 2026-10-09 (§1.1). None remain open for 1.0.0. Two items wait on other designs: the secrets scan and the US federal calendar ship with ow-handoff and ow-uat once those designs are approved.
+
+## 14. 1.1.0 (2026-10-16 amendments T1–T7)
+
+**Built in Sprint T** (contract `sprints/release-2.1/ow-sprint-t/contract.md`, approved 2026-10-16). One release, ow-tools **1.1.0**, adds six parts and one calls-table row: `capture` (T1, §5.6), `export --pptx` (T2, §5.7), `health` (T3, §5.8), `calc hours` (T4, §5.4), the ow-start meeting row (T5, §4.2), `export --xlsx` (T6, §5.9) and `digest` (T7, §5.10). The sections they touch are edited in place and marked 1.1.0.
+
+### 14.1 Owner decisions (2026-10-16)
+
+The owner accepted every recommendation in the contract's *Open for the owner* table.
+
+| # | Decision | Answer |
+|---|---|---|
+| O1 | How capture reaches each step | A declarative plan: navigate, click, fill test data, wait, shot. Secret fields refused; no caller JavaScript |
+| O2 | Profile scope | One per workstream: `capture/<client>/` |
+| O3 | Production guard | A declared `environment`, an `allowed_origins` list, and a required decision (role and date) for production, echoed and labelled unverified |
+| O4 | Screenshots at rest | Git-ignored like transcripts: `opchain-work/**/shots/`, checked before writing |
+| O5 | Browser | Chrome or Chromium, found on PATH or at the standard paths; doctor prints `brew install --cask google-chrome`; nothing downloaded |
+| O6 | Capture's release | In 1.1.0 after a 2-hour go/no-go spike (§14.2) |
+| O7 | Advisories: what leaves the machine | OSV (`api.osv.dev`) for public-registry packages only; name and version |
+| O8 | Python | pip-audit when installed, only with `-r` in its no-install mode, argv pinned by test; otherwise `not checked` |
+| O9 | Under a handling level | `--no-network`: local checks only. ow-care §5.4 is flagged for Sprint 4b to use it |
+| O10 | Thresholds | Defaults, overridable in `health.yaml`: certificate and domain ≤ 30 days; advisory high or critical; outdated a major behind |
+| O11 | calc hours beyond the site rule | `of: included` = min(own unused, ⌊share × included⌋ to the quarter-hour); `months: N` = each month's rollover lapses after N months, oldest used first |
+| O12 | Folder digest exclusions | Skip `.DS_Store` and `._*`, and list them |
+| O13 | XLSX Sources sheet | Written when `sources.csv` is given |
+| O14 | Deck H1 | The title only: N `##` headings give N slides |
+
+### 14.2 Capture spike (O6)
+
+**GO, with one change, recorded for the owner's confirmation** (`sprints/release-2.1/ow-sprint-t/capture-spike.md`). CDP over the pipe, the profile's password-manager and autofill prefs, headless on an existing profile, the fixed viewport, the five step kinds without JavaScript, secret-field detection and the redirect guard all worked with Chrome 154. A headed sign-in followed by a separate headless run keeps only cookies with an expiry: Chrome drops session-only cookies on every restart, and ow-tools may not read cookies to carry them over. So `--sign-in` runs the plan's steps in the same browser session after the user signs in (§5.6); the plain headless run serves environments with a persistent sign-in. If the owner wants capture headless-only, dropping the steps from `--sign-in` restores that, for persistent-cookie environments only.
+
+### 14.3 Refusal reasons (exit 4) and run failures (exit 5)
+
+Every exit-4 refusal carries a stable `reason` in its JSON, so a calling skill can relay it in its own words (the Sprint 1 Bug 4 lesson). A test fails if `lib/` throws a code this table doesn't list.
+
+| reason | Exit | Verbs | Means | Next step |
+|---|---:|---|---|---|
+| `not-in-audio-folder` | 4 | transcribe | The recording isn't in a folder named `audio` | Move it into `<workstream>/audio/` |
+| `no-recording` | 4 | transcribe | No recording at that path, or none in the folder | Name the file, or put the recording in the folder |
+| `not-ignored` | 4 | transcribe, speakers, capture | An output (or its `.tmp-` sibling) would be committable | Add the printed `.gitignore` lines (`/ow-start-prep` offers them), then run again |
+| `output-exists` | 4 | transcribe | A transcript is already in that folder | `--out <folder>` for another recording, or `--force` |
+| `not-a-transcript` | 4 | speakers | The JSON isn't an ow-tools transcript (schema 1) | Give the `transcript.json` ow-tools wrote |
+| `brand-invalid` | 4 | export | `brand.yaml` outside its shape | Fix the named line or key |
+| `brand-contrast` | 4 | export | A brand colour pair below WCAG contrast | Change the colours; the ratio is printed |
+| `brand-missing` | 4 | export | `--brand` names no file | Give the right path, or drop `--brand` |
+| `preflight` | 4 | export (pdf, docx, pptx) | Structure, internal-section or deck-rule problems | Fix each listed line in the Markdown |
+| `typed-value-in-formula-cell` | 4 | export (xlsx) | The CSV has a value where `model.md` gives a formula | Empty that cell in the CSV |
+| `unknown-sheet` | 4 | export (xlsx) | A formula (or a `## Sheet:` section) names a sheet that has no CSV | Add the CSV or fix the reference |
+| `unknown-cell` | 4 | export (xlsx) | A reference outside the sheet's data | Fix the reference |
+| `function-not-allowed` | 4 | export (xlsx) | A function outside the allowed list (§5.9) | Rewrite with an allowed function |
+| `external-reference` | 4 | export (xlsx) | A reference to another workbook | Copy the value in as a cited input |
+| `dde-or-link-formula` | 4 | export (xlsx) | A DDE-style formula, or one that reaches outside the workbook | Remove it; links go in the Sources sheet as text |
+| `formula-syntax` | 4 | export (xlsx) | Something the formula reader doesn't write (a name, an array, an error literal) | Use cell references, allowed functions, numbers, text and operators |
+| `formula-in-header` | 4 | export (xlsx) | A formula in row 1 | Move it below the header row |
+| `symlink-in-tree` | 4 | digest | A symlink in the folder, or the path given is one | Replace it with the file it points to |
+| `unsafe-name` | 4 | digest | A file name with a backslash or control character | Rename it |
+| `not-a-file` | 4 | digest, export (xlsx) | Not a regular file or folder (a socket, a device, a symlinked CSV) | Use a regular file |
+| `not-quarter-hour` | 4 | calc hours | A minute count that isn't a multiple of 15 | Record the entry in quarter-hours |
+| `over-available` | 4 | calc hours | Minutes past available without an approved extra | Record the client's go-ahead as `extra_approved`, or move the work to next month |
+| `config-invalid` | 4 | health | `health.yaml` outside its shape, or a URL with a user name, password or query, or a non-https URL | Fix the named line and key |
+| `plan-invalid` | 4 | capture | The plan is outside its shape (§5.6) | Fix the named key or step |
+| `origin-not-allowed` | 4 | capture | A step URL outside `allowed_origins` (before launch), or the page went to another origin (the step stopped; no image) | Add the origin if it belongs to the test environment, or fix the step |
+| `production-without-decision` | 4 | capture | `environment: production` without the client's decision (role and date) | Record the client's decision, or capture in the test environment |
+| `secret-field` | 4 | capture | A fill that targets a password, one-time-code or similar field | Remove the step; the user signs in with `--sign-in` |
+| `secret-value` | 4 | capture | A plan value that looks like a credential | Use synthetic test data |
+| `not-in-shots-folder` | 4 | capture | `--out` isn't a folder named `shots` | Use `<workstream>/shots/` |
+| `profile-id-invalid` | 4 | capture | The id isn't lowercase letters, digits and `-` | Use the id `--profiles` lists |
+| `profile-not-found` | 4 | capture | No profile with that id | Run `--profiles` |
+| `profile-not-contained` | 4 | capture | The profile (or the capture folder) is a symlink or outside the data folder; nothing deleted | Remove it by hand after checking where it points |
+| `navigation-failed` | 5 | capture | A page didn't load | Check the environment is up |
+| `selector-not-found` | 5 | capture | Nothing matched a click, fill or wait selector | Signed out: run `--sign-in`; or fix the selector |
+| `not-signed-in` | 5 | capture | The signed-in selector never appeared during `--sign-in` | Sign in within the timeout, or fix `done_selector` |
+| `screenshot-size` | 5 | capture | A screenshot wasn't the plan's viewport size | Run again; report it if it repeats |
+| `timeout` | 5 | capture | The run passed `--timeout` | Raise `--timeout` (up to 590 s) |
+| `browser-exited` | 5 | capture | The browser closed during the run | Run again; check the browser starts on its own |
+
+Usage errors are exit 2 and missing requirements exit 3 with a `missing` list, as in §4.1; neither carries a `reason`.
+
+### 14.4 Absent-cases of the new verbs (C22)
+
+- **digest, calc hours, export --xlsx and health** need only Node, so they are never absent where ow-tools is. pip-audit is optional inside health (`not checked (pip-audit not installed)`).
+- **capture** without Chrome or Chromium: exit 3, `missing: ["browser (Chrome or Chromium)"]`.
+- **export --pptx** without pandoc, `zip` or `unzip`: exit 3 naming them.
+- Each caller's absent-case is in §4.2; the four the callers' designs don't state are proposed there and flagged for the caller's sprint.
+
+### 14.5 What changed for 1.0.0 callers
+
+- Every exit-4 JSON now has a `reason` (§14.3); messages are unchanged except that `brand.yaml` refusals no longer quote the value they reject.
+- `calc date --days` returns `calendar` and `holidays_skipped` (no `skipped`), and refuses `--holidays` (F-008).
+- `export` writes `export/<name>.export.json` and its outputs are 0600; the JSON adds `record` and `replaced`.
+- `version --json` capabilities add `pptx`, `capture`, `xlsx`, `health`, `digest`; the hook's readiness line adds them from PATH and file checks only, within 160 characters.
+- `transcribe` and `speakers --set` write 0600 through a guarded sibling; `speakers --set` runs the ignore check (SA-007); without `git` the check is exit 3 (F-005).
+
+### 14.6 Security review
+
+One review for all six parts on the finished tree, before the PR leaves draft (contract § Security review): an oc-security-auditor posture pass and an oc-code-auditor diff audit, reported under `docs/audits/`. Their findings and the re-rating of SA-001 update §8's Known residuals.

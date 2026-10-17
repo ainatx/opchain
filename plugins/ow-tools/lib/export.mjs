@@ -1,16 +1,23 @@
-// `ow-tools export` (design §5.2): Markdown → branded, accessible PDF + Word.
-import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+// `ow-tools export` (design §5.2, §5.7, §5.9): Markdown → branded, accessible
+// PDF, Word and PowerPoint; a sheet folder (CSV + model.md) → XLSX. Every run
+// writes `export/<name>.export.json`, the record of what was exported (SA-007).
+import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
-import { PLUGIN_ROOT, failed, isFile, missing, oneLine, refused, run, sha256File, usage, which } from "./core.mjs";
+import { PLUGIN_ROOT, VERSION, failed, isDir, isFile, missing, nowDate, oneLine, refused, run, sha256File, timeZone, usage, which } from "./core.mjs";
 import { loadBrand } from "./brand.mjs";
+import { today } from "./calc.mjs";
+import { digestTree } from "./digest.mjs";
 import { brandDocx } from "./docx.mjs";
-import { withTempDir } from "./guards.mjs";
+import { withTempDir, writePrivate } from "./guards.mjs";
 import { preflight } from "./preflight.mjs";
+import { PANDOC_DECK_FROM, brandPptx, buildReferenceDeck, deckChecks } from "./pptx.mjs";
+import { buildWorkbook, readSheetFolder } from "./xlsx.mjs";
 
 export const NOT_CONFORMANCE =
   "Structure checked in the source this tool generated; this is not a conformance test. Run your organisation's accessibility checker on the exported file.";
 export const HASH_NOTE = "The SHA-256 detects accidental change only; it is not tamper-evidence.";
 const FORMATS = ["pdf", "docx"];
+const MD_FORMATS = ["pdf", "docx", "pptx"];
 const PANDOC_FROM = "gfm-autolink_bare_uris";
 
 export const typstString = (s) => `"${String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
@@ -47,23 +54,98 @@ function availableFonts() {
   return new Set(r.stdout.split("\n").map((l) => l.trim().toLowerCase()).filter(Boolean));
 }
 
+// xlsx needs Node only, so it is never absent where ow-tools runs.
 export function exportRequirements(formats) {
-  const need = ["pandoc"];
+  const need = [];
+  if (formats.some((f) => f !== "xlsx")) need.push("pandoc");
   if (formats.includes("pdf")) need.push("typst");
-  if (formats.includes("docx")) need.push("zip", "unzip");
-  return need.filter((c) => !which(c));
+  if (formats.includes("docx") || formats.includes("pptx")) need.push("zip", "unzip");
+  return [...new Set(need)].filter((c) => !which(c));
 }
 
-export async function exportDoc({ file, brand: brandPath, out, formats = FORMATS }) {
-  if (!file) throw usage("usage: ow-tools export <file.md> [--brand brand.yaml] [--out DIR] [--formats pdf,docx]");
+// The export record (SA-007 (b)): per format, what was exported from what,
+// by which ow-tools, when. Merged by format, so a PDF run and a later PPTX
+// run of the same source both stay on record. Written 0600.
+export function recordExport(outDir, name, entries) {
+  const path = join(outDir, `${name}.export.json`);
+  let rec = null;
+  try {
+    rec = JSON.parse(readFileSync(path, "utf8"));
+  } catch {
+    rec = null;
+  }
+  if (!rec || rec.ow_artefact !== "ow-tools/export-record" || rec.schema !== 1 || typeof rec.outputs !== "object") {
+    rec = { ow_artefact: "ow-tools/export-record", schema: 1, name, outputs: {} };
+  }
+  const t = today();
+  const when = { date: t.date, tz: t.tz || timeZone(), time: nowDate().toISOString(), clock: "tool" };
+  for (const e of entries) {
+    rec.outputs[e.format] = {
+      file: basename(e.output),
+      sha256: sha256File(e.output),
+      bytes: statSync(e.output).size,
+      source: e.source,
+      source_sha256: e.sourceSha,
+      source_form: e.sourceForm,
+      replaced: e.replaced,
+      written_by: `ow-tools ${VERSION}`,
+      ...when,
+    };
+  }
+  rec.hash_note = HASH_NOTE;
+  writePrivate(path, `${JSON.stringify(rec, null, 2)}\n`);
+  return path;
+}
+
+async function exportSheet({ src, out, fmts }) {
+  if (fmts.some((f) => f !== "xlsx")) throw usage("a sheet folder exports to xlsx only (--formats xlsx)");
+  // The folder digest first: it refuses a symlinked folder or file before
+  // anything is read through it or written.
+  const tree = digestTree(src);
+  const book = readSheetFolder(src);
+  const bytes = buildWorkbook(book);
+  const outDir = resolve(out ?? join(dirname(src), "export"));
+  mkdirSync(outDir, { recursive: true });
+  const name = basename(src);
+  const xlsx = join(outDir, `${name}.xlsx`);
+  const replaced = existsSync(xlsx);
+  writePrivate(xlsx, bytes);
+  const record = recordExport(outDir, name, [{ format: "xlsx", output: xlsx, source: `${name}/`, sourceSha: tree.sha256, sourceForm: tree.form, replaced }]);
+  return {
+    status: "done",
+    title: book.model.title || name,
+    outputs: { xlsx },
+    sha256: { source: tree.sha256, xlsx: sha256File(xlsx) },
+    source_form: tree.form,
+    record,
+    replaced: replaced ? [xlsx] : [],
+    sheets: book.order,
+    banner: Boolean(book.model.banner),
+    notes: ["The workbook is set to recalculate when it opens; formula cells hold no stored value until then"],
+    checked: [
+      "every mapped formula cell is empty in the CSV",
+      "every reference lands on a sheet and cell that exist",
+      "functions from the allowed list only; no link, web or DDE formula; no other workbook",
+      "CSV text that starts with =, +, - or @ is written as text",
+    ],
+    statement: NOT_CONFORMANCE,
+    hash_note: HASH_NOTE,
+  };
+}
+
+export async function exportDoc({ file, brand: brandPath, out, formats }) {
+  if (!file) throw usage("usage: ow-tools export <file.md|sheet-folder> [--brand brand.yaml] [--out DIR] [--formats pdf,docx,pptx|xlsx]");
   const src = resolve(file);
-  if (!isFile(src) || extname(src) !== ".md") throw usage(`give a Markdown (.md) file; got ${file}`);
-  const fmts = [...new Set(formats)];
-  if (!fmts.length || fmts.some((f) => !FORMATS.includes(f))) throw usage("--formats takes pdf, docx or pdf,docx");
+  if (isDir(src)) return exportSheet({ src, out, fmts: [...new Set(formats ?? ["xlsx"])] });
+  if (!isFile(src) || extname(src) !== ".md") throw usage("give a Markdown (.md) file, or a sheet folder for xlsx");
+  const fmts = [...new Set(formats ?? FORMATS)];
+  if (!fmts.length || fmts.some((f) => !MD_FORMATS.includes(f))) throw usage("--formats takes pdf, docx and pptx for a Markdown file (xlsx takes a sheet folder)");
 
   const text = readFileSync(src, "utf8");
   const pre = preflight(text, src);
-  if (!pre.ok) throw refused(`not exported; fix these in ${basename(src)} first:\n  ${pre.problems.join("\n  ")}`, { problems: pre.problems });
+  const deck = fmts.includes("pptx") ? deckChecks(pre.lines) : null;
+  const problems = [...pre.problems, ...(deck ? deck.problems : [])];
+  if (problems.length) throw refused("preflight", `not exported; fix these in ${basename(src)} first:\n  ${problems.join("\n  ")}`, { problems });
   const { brand, path: brandFile } = loadBrand(src, brandPath);
 
   const need = exportRequirements(fmts);
@@ -74,6 +156,13 @@ export async function exportDoc({ file, brand: brandPath, out, formats = FORMATS
   const name = basename(src, ".md");
   const outputs = {};
   const notes = [];
+  const replaced = [];
+  const deckInfo = {};
+  const target = (ext) => {
+    const p = join(outDir, `${name}.${ext}`);
+    if (existsSync(p)) replaced.push(p);
+    return p;
+  };
 
   await withTempDir(async (tmp) => {
     // Copy images in under neutral names so nothing outside the temp folder
@@ -82,13 +171,18 @@ export async function exportDoc({ file, brand: brandPath, out, formats = FORMATS
     // symlinks and checked the file really is a PNG, JPEG or GIF; the copy
     // takes the type it detected, not the name's extension.
     let body = pre.body;
+    // O14: the H1 is the deck's title only, never a slide (a setext H1's
+    // underline goes with it).
+    const setext = /^\s{0,3}=+\s*$/.test(pre.lines[pre.titleLine + 1] ?? "");
+    let deckBody = pre.lines.map((l, i) => (i === pre.titleLine || (setext && i === pre.titleLine + 1) ? "" : l)).join("\n");
     mkdirSync(join(tmp, "assets"));
     pre.images.forEach((img, n) => {
       const local = `assets/img-${n}.${img.type}`;
       copyFileSync(img.abs, join(tmp, local));
       body = body.split(`](${img.src}`).join(`](${local}`);
+      deckBody = deckBody.split(`](${img.src}`).join(`](${local}`);
     });
-    writeFileSync(join(tmp, "doc.md"), body);
+    writePrivate(join(tmp, "doc.md"), body);
 
     if (fmts.includes("pdf")) {
       let r = run("pandoc", [join(tmp, "doc.md"), "-f", PANDOC_FROM, "-t", "typst", "-o", join(tmp, "body.typ")], { cwd: tmp });
@@ -96,39 +190,60 @@ export async function exportDoc({ file, brand: brandPath, out, formats = FORMATS
       // pandoc centres every table; body text reads better left-aligned
       // (right-aligned number columns keep their own alignment).
       const typBody = readFileSync(join(tmp, "body.typ"), "utf8").replace(/align\(center\)\[#table\(/g, "align(left)[#table(");
-      writeFileSync(join(tmp, "body.typ"), typBody);
+      writePrivate(join(tmp, "body.typ"), typBody);
       let logoFile = null;
       if (brand.logoPath) {
         logoFile = "assets/logo.png";
         copyFileSync(brand.logoPath, join(tmp, logoFile));
       }
-      writeFileSync(join(tmp, "brand.typ"), brandTyp(brand, { title: pre.title, banner: pre.banner, logoFile }));
+      writePrivate(join(tmp, "brand.typ"), brandTyp(brand, { title: pre.title, banner: pre.banner, logoFile }));
       copyFileSync(join(PLUGIN_ROOT, "templates", "ow.typ"), join(tmp, "main.typ"));
       const fonts = availableFonts();
       for (const f of [brand.fonts.body, brand.fonts.heading].filter(Boolean)) {
         if (!fonts.has(f.toLowerCase())) notes.push(`font "${f}" is not installed; the PDF uses a fallback font`);
       }
-      const pdf = join(outDir, `${name}.pdf`);
+      const pdf = target("pdf");
       r = run("typst", ["compile", "--root", tmp, "--pdf-standard", "ua-1", join(tmp, "main.typ"), pdf]);
       if (r.status !== 0) throw failed(`typst could not build an accessible PDF: ${oneLine(r.stderr)}`);
       outputs.pdf = pdf;
     }
 
     if (fmts.includes("docx")) {
-      const docx = join(outDir, `${name}.docx`);
+      const docx = target("docx");
       const r = run("pandoc", [join(tmp, "doc.md"), "-f", PANDOC_FROM, "-t", "docx", "-M", `lang=${brand.lang}`, "--resource-path", tmp, "-o", docx], { cwd: tmp });
       if (r.status !== 0) throw failed(`pandoc (Word) failed: ${oneLine(r.stderr)}`);
       brandDocx(docx, brand, { title: pre.title, banner: pre.banner, workDir: tmp });
       outputs.docx = docx;
       if (brand.fonts.body || brand.fonts.heading) notes.push("Word shows a substitute font on machines without the brand fonts");
     }
+
+    if (fmts.includes("pptx")) {
+      writePrivate(join(tmp, "deck.md"), deckBody);
+      const ref = buildReferenceDeck(brand, tmp);
+      const pptx = target("pptx");
+      const r = run("pandoc", [join(tmp, "deck.md"), "-f", PANDOC_DECK_FROM, "-t", "pptx", "--slide-level=2", "--reference-doc", ref, "-M", `lang=${brand.lang}`, "--resource-path", tmp, "-o", pptx], { cwd: tmp });
+      if (r.status !== 0) throw failed(`pandoc (PowerPoint) failed: ${oneLine(r.stderr)}`);
+      Object.assign(deckInfo, brandPptx(pptx, brand, { title: pre.title, banner: pre.banner, alts: pre.images.map((i) => i.alt), slides: deck.slides, workDir: tmp }));
+      outputs.pptx = pptx;
+      if (brand.fonts.body || brand.fonts.heading) notes.push("PowerPoint shows a substitute font on machines without the brand fonts");
+    }
   });
 
+  for (const p of Object.values(outputs)) chmodSync(p, 0o600);
+  const sourceSha = sha256File(src);
+  const record = recordExport(
+    outDir,
+    name,
+    Object.entries(outputs).map(([format, output]) => ({ format, output, source: basename(src), sourceSha, sourceForm: "file-bytes", replaced: replaced.includes(output) })),
+  );
   return {
     status: "done",
     title: pre.title,
     outputs,
-    sha256: { source: sha256File(src), ...(outputs.pdf ? { pdf: sha256File(outputs.pdf) } : {}) },
+    sha256: { source: sourceSha, ...(outputs.pdf ? { pdf: sha256File(outputs.pdf) } : {}), ...(outputs.pptx ? { pptx: sha256File(outputs.pptx) } : {}) },
+    record,
+    replaced,
+    ...(outputs.pptx ? { slides: deckInfo.slides, notes_slides: deckInfo.notes } : {}),
     brand: brandFile ? brandFile : "none found; neutral styling",
     contrast: brand.ratios,
     removed_internal_sections: pre.removedSections,
@@ -142,6 +257,7 @@ export async function exportDoc({ file, brand: brandPath, out, formats = FORMATS
       "internal sections removed",
       `brand contrast (text ${brand.ratios.text_on_background}:1, headings ${brand.ratios.headings_on_background}:1, table header ${brand.ratios.table_header}:1)`,
       ...(outputs.pdf ? ["PDF built in Typst's PDF/UA-1 mode (tagged, title and language set)"] : []),
+      ...(outputs.pptx ? ["one slide per ## heading, no H3 or deeper outside the notes, every picture described, every table's header row marked, the banner on every slide"] : []),
     ],
     statement: NOT_CONFORMANCE,
     hash_note: HASH_NOTE,

@@ -1,6 +1,6 @@
 // `ow-tools transcribe` and `ow-tools speakers` (design §5.1).
 import { availableParallelism } from "node:os";
-import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import {
   DIARIZATION_MODEL,
@@ -22,7 +22,7 @@ import {
   venvDir,
   which,
 } from "./core.mjs";
-import { assertAudioInput, assertIgnored, withTempDir } from "./guards.mjs";
+import { assertAudioInput, assertIgnored, withTempDir, withTmpSiblings, writePrivate } from "./guards.mjs";
 import { mergeTranscript, speakerStats, wordsFromWhisper } from "./merge.mjs";
 import { renderTranscript } from "./render.mjs";
 
@@ -63,16 +63,11 @@ function toolVersion(cmd, args, re) {
   return m ? m[1] : "unknown";
 }
 
-function writeAtomic(path, text) {
-  const tmp = `${path}.tmp-${process.pid}`;
-  writeFileSync(tmp, text);
-  renameSync(tmp, path);
-}
-
+// Transcripts are written 0600 through a guarded sibling (F-006).
 export function writeTranscript(dir, doc) {
   mkdirSync(dir, { recursive: true });
-  writeAtomic(join(dir, "transcript.json"), JSON.stringify(doc, null, 2) + "\n");
-  writeAtomic(join(dir, "transcript.md"), renderTranscript(doc));
+  writePrivate(join(dir, "transcript.json"), JSON.stringify(doc, null, 2) + "\n");
+  writePrivate(join(dir, "transcript.md"), renderTranscript(doc));
 }
 
 export async function transcribe(opts, log = () => {}) {
@@ -90,9 +85,9 @@ export async function transcribe(opts, log = () => {}) {
   const outDir = resolve(out ?? dirname(dirname(audioAbs)));
   const jsonPath = join(outDir, "transcript.json");
   const mdPath = join(outDir, "transcript.md");
-  assertIgnored([audioAbs, jsonPath, mdPath]);
+  assertIgnored([audioAbs, ...withTmpSiblings([jsonPath, mdPath])]);
   if (!force && (existsSync(jsonPath) || existsSync(mdPath))) {
-    throw refused(`a transcript already exists in ${outDir}; pass --out <folder> for another recording, or --force to replace it`);
+    throw refused("output-exists", `a transcript already exists in ${outDir}; pass --out <folder> for another recording, or --force to replace it`);
   }
   const need = transcribeRequirements(model);
   if (need.length) throw missing(`transcription needs: ${need.join(", ")}. Run ow-tools doctor for the exact steps.`, { missing: need });
@@ -232,8 +227,10 @@ export function speakers({ transcript, set = [] }) {
   const path = resolve(transcript);
   if (!isFile(path) || basename(path) !== "transcript.json") throw usage("give the path to a transcript.json written by ow-tools");
   let doc = JSON.parse(readFileSync(path, "utf8"));
-  if (doc.ow_artefact !== "ow-tools/transcript" || doc.schema !== 1) throw refused("not an ow-tools transcript (schema 1)");
+  if (doc.ow_artefact !== "ow-tools/transcript" || doc.schema !== 1) throw refused("not-a-transcript", "not an ow-tools transcript (schema 1)");
   if (set.length) {
+    // SA-007 (a): the rewrite is held to the same ignore rule as transcribe.
+    assertIgnored(withTmpSiblings([path, join(dirname(path), "transcript.md")]));
     doc = setRoles(doc, set);
     writeTranscript(dirname(path), doc);
   }

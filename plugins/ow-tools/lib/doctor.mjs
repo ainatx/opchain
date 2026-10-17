@@ -21,10 +21,20 @@ import {
   venvDir,
   which,
 } from "./core.mjs";
+import { browserCandidates, findBrowser } from "./capture.mjs";
 
 const mac = () => platform() === "darwin";
 const pkg = (formula) => (mac() ? `brew install ${formula}` : `install ${formula} with your package manager`);
 const q = (s) => `"${s}"`;
+
+// Full major.minor.patch compare (F-010); a pre-release suffix is ignored.
+export function semverAtLeast(found, min) {
+  const parse = (v) => String(v).replace(/^v/, "").split(/[.+-]/).slice(0, 3).map((n) => Number.parseInt(n, 10) || 0);
+  const a = parse(found);
+  const b = parse(min);
+  for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] > b[i];
+  return true;
+}
 
 function versionOf(cmd, args, re) {
   const r = run(cmd, args);
@@ -67,6 +77,7 @@ export function fetchCommand(env = process.env, os = platform()) {
   return [
     `HF_TOKEN=${token}`,
     `HF_HOME=${q(hfHome(env))}`,
+    "HF_HUB_DISABLE_TELEMETRY=1",
     `UV_PROJECT_ENVIRONMENT=${q(venvDir(env))}`,
     `uv run --frozen --project ${q(PY_PROJECT)} python ${q(join(PY_PROJECT, "diarize.py"))} --fetch`,
   ].join(" ");
@@ -74,7 +85,7 @@ export function fetchCommand(env = process.env, os = platform()) {
 
 export function checks({ verifyModel = true, env = process.env } = {}) {
   const out = [];
-  const add = (id, caps, ok, detail, fix) => out.push({ id, for: caps, ok, detail, fix: ok ? null : fix });
+  const add = (id, caps, ok, detail, fix, optional = false) => out.push({ id, for: caps, ok, detail, fix: ok ? null : fix, ...(optional ? { optional: true } : {}) });
   const node = process.versions.node;
   add("node", ["all"], Number(node.split(".")[0]) >= 20, `Node ${node}`, pkg("node"));
 
@@ -118,28 +129,42 @@ export function checks({ verifyModel = true, env = process.env } = {}) {
     `${fetchCommand(env)}   # one time; afterwards the token can be deleted`);
 
   const pd = which("pandoc", env) && versionOf("pandoc", ["--version"], /pandoc (\S+)/);
-  add("pandoc", ["export"], Boolean(pd), pd ? `pandoc ${pd}` : "not found", pkg("pandoc"));
+  add("pandoc", ["export", "pptx"], Boolean(pd), pd ? `pandoc ${pd}` : "not found", pkg("pandoc"));
   const ty = which("typst", env) && versionOf("typst", ["--version"], /typst (\S+)/);
-  const tyOk = Boolean(ty) && ty.split(".").map(Number)[1] >= 14;
+  const tyOk = Boolean(ty) && semverAtLeast(ty, "0.14.0");
   add("typst", ["export"], tyOk, ty ? `typst ${ty}${tyOk ? "" : " (needs 0.14 or newer for tagged PDF/UA-1)"}` : "not found", pkg("typst"));
-  for (const z of ["zip", "unzip"]) add(z, ["export"], Boolean(which(z, env)), which(z, env) ? "present" : "not found", pkg(z));
+  for (const z of ["zip", "unzip"]) add(z, ["export", "pptx"], Boolean(which(z, env)), which(z, env) ? "present" : "not found", pkg(z));
+
+  // capture: an installed Chrome or Chromium, found on PATH or at the
+  // standard paths. Its version is not asked: that would start the browser.
+  const br = findBrowser(browserCandidates(env), env);
+  add("browser", ["capture"], Boolean(br), br ? `found at ${br}` : "Chrome or Chromium not found",
+    mac() ? "brew install --cask google-chrome" : "install Google Chrome or Chromium with your package manager");
+  // health on Python projects only; health runs without it.
+  const pa = which("pip-audit", env);
+  add("pip-audit", ["health"], Boolean(pa), pa ? "present (used only with a pinned requirements file, in its no-install mode)" : "not found (optional: Python advisories are reported not checked)",
+    mac() ? "brew install pip-audit" : "pipx install pip-audit", true);
   return out;
 }
 
+// Optional rows (pip-audit) never make a capability "missing".
 export function capabilities(list) {
   const caps = {};
-  for (const cap of ["transcribe", "export"]) {
-    const miss = list.filter((c) => (c.for.includes(cap) || c.for.includes("all")) && !c.ok).map((c) => c.id);
+  for (const cap of ["transcribe", "export", "pptx", "capture"]) {
+    const miss = list.filter((c) => (c.for.includes(cap) || c.for.includes("all")) && !c.ok && !c.optional).map((c) => c.id);
     caps[cap] = miss.length ? { ready: false, missing: miss } : { ready: true };
   }
-  caps.calc = { ready: true };
+  // Node only: never absent where ow-tools runs.
+  for (const cap of ["xlsx", "health", "calc", "digest"]) caps[cap] = { ready: true };
+  const pa = list.find((c) => c.id === "pip-audit");
+  if (pa && !pa.ok) caps.health.note = "Python advisories need pip-audit (optional)";
   return caps;
 }
 
 export function doctor(opts = {}) {
   const list = checks(opts);
   return {
-    status: list.every((c) => c.ok) ? "ready" : "incomplete",
+    status: list.every((c) => c.ok || c.optional) ? "ready" : "incomplete",
     version: VERSION,
     data_home: dataHome(opts.env),
     capabilities: capabilities(list),
@@ -153,7 +178,7 @@ export function doctorText(r) {
   for (const [cap, s] of Object.entries(r.capabilities)) lines.push(`${cap}: ${s.ready ? "ready" : `missing ${s.missing.join(", ")}`}`);
   lines.push("");
   for (const c of r.checks) {
-    lines.push(`${c.ok ? "ok  " : "MISS"} ${c.id.padEnd(14)} ${c.detail}`);
+    lines.push(`${c.ok ? "ok  " : c.optional ? "opt " : "MISS"} ${c.id.padEnd(14)} ${c.detail}`);
     if (c.fix) lines.push(...c.fix.split("\n").map((l) => `       fix: ${l}`));
   }
   lines.push("", r.note);

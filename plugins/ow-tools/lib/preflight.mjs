@@ -214,8 +214,10 @@ export function preflight(text, mdPath) {
     ok: problems.length === 0,
     problems,
     title: h1[0]?.text || null,
+    titleLine: h1[0]?.i ?? null,
     banner,
     body,
+    lines,
     images,
     removedSections: sections,
   };

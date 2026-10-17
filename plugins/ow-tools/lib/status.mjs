@@ -14,6 +14,7 @@ import {
   venvDir,
   which,
 } from "./core.mjs";
+import { browserCandidates, findBrowser } from "./capture.mjs";
 
 const CAP = 12;
 const WIDTH = 160;
@@ -34,7 +35,9 @@ export function findStatus(cwd) {
 // wrapper or smuggle formatting into context.
 export const clean = (v, n = WIDTH) =>
   String(v)
-    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    // SA-008: bidi controls and zero-width characters too, so a line can't
+    // read differently in the terminal from what the model receives.
+    .replace(/[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u180e\u200b-\u200f\u2028-\u202e\u2060-\u2069\ufeff]/g, " ")
     .replace(/</g, "‹")
     .replace(/>/g, "›")
     .replace(/\s+/g, " ")
@@ -100,8 +103,11 @@ export function readiness(env = process.env) {
   if (!isFile(join(venvDir(env), "bin", "python"))) t.push("Python env");
   if (!diarizationCached(env)) t.push("speaker model");
   const e = ["pandoc", "typst", "zip", "unzip"].filter((c) => !which(c, env));
-  const fmt = (name, miss) => `${name} ${miss.length ? `missing ${miss.join(", ")}` : "ready"}`;
-  return `ow-tools ${VERSION}: ${fmt("transcribe", t)} · ${fmt("export", e)} · calc ready (details: ow-tools doctor)`;
+  const p = ["pandoc", "zip", "unzip"].filter((c) => !which(c, env));
+  // PATH lookups and file checks only: the browser is found, never started.
+  const c = findBrowser(browserCandidates(env), env) ? [] : ["browser"];
+  const fmt = (name, miss) => `${name} ${miss.length === 0 ? "ready" : miss.length <= 2 ? `missing ${miss.join(", ")}` : `missing ${miss.length}`}`;
+  return `ow-tools ${VERSION}: ${fmt("transcribe", t)} · ${fmt("export", e)} · ${fmt("pptx", p)} · ${fmt("capture", c)} · xlsx, health, calc, digest ready (ow-tools doctor)`;
 }
 
 export function sessionStart(input = {}, env = process.env) {
