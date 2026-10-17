@@ -10,7 +10,7 @@ verbs: [/ow-start-log-meeting]
 checks: [headers, writes, write_once, status, status_grammar, route, notes, trace, owner_date, embedded, follow_up, people, private_names, gitignore]
 route:
   verb: /ow-start-log-meeting
-  says: ["MTG-02, logged with no agenda", "no follow-up"]
+  says: ["MTG-02"]
 notes:
   id: MTG-02
   input: notes
@@ -28,4 +28,3 @@ status:
     - { path: logs/larkspur-ceramics/meetings/MTG-02/notes.md#A-04, next: "ow-start /ow-start-action logs/larkspur-ceramics/", awaiting: A-04 (you) by 2026-10-18 }
 git: { repo: false }
 names: [Dana, Jess, Marcus]
-private_names: [llc-ops, Deftwright]

@@ -1,0 +1,31 @@
+# Answer key: logs-git-declined-again (INVENTED). Round 1 D1a: in a repository
+# without the ignore lines, an earlier logs file of the workstream records the
+# decline, so the run does not ask again and records declined. (The evaluator's
+# probe logs-zz-eval-declined, made a golden.)
+kind: logs
+case: logs-git-declined-again
+workstream: business
+user: Robin
+base: logs-git-declined
+verbs: [/ow-start-log-meeting]
+checks: [headers, writes, write_once, status, status_grammar, route, notes, trace, owner_date, embedded, follow_up, people, private_names, gitignore]
+route:
+  verb: /ow-start-log-meeting
+  says: ["MTG-01", "use ow-start to log the decisions in logs/business/meetings/MTG-01/notes.md"]
+notes:
+  id: MTG-01
+  input: notes
+  source: session/notes.md
+  external: false
+  agenda: logs/business/meetings/MTG-01/agenda.md
+  roles: [you]
+  decisions: 1
+  questions: 1
+  actions:
+    - { id: A-01, owner: you, due: 2026-10-30 }
+follow_up: false
+status:
+  lines:
+    - { path: logs/business/meetings/MTG-01/notes.md#A-01, next: "ow-start /ow-start-action logs/business/", awaiting: A-01 (you) by 2026-10-30 }
+    - { path: logs/business/meetings/MTG-01/notes.md, next: "none (closed: held 2026-10-23)", awaiting: none }
+git: { repo: true }

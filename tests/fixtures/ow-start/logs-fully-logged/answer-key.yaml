@@ -10,6 +10,5 @@ writes_nothing: true
 checks: [writes, write_once, status, route, private_names]
 route:
   verb: /ow-start-log-meeting
-  says: ["fully logged", "Nothing was written"]
+  says: ["fully logged"]
 status: { lines: [] }
-private_names: [llc-ops, Deftwright]

@@ -13,4 +13,3 @@ screen:
   must: ["Nothing logged yet"]
   must_not: ["^- ", "^larkspur"]
 status: { lines: [] }
-private_names: [llc-ops, Deftwright]

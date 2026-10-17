@@ -484,6 +484,20 @@ function familyVerbOwners(c, skills) {
  * edge rows are complete.
  */
 const NUMWORDS = "(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million)";
+
+/**
+ * The family's private-name rules, from catalogs.json (`privateNames`, `brandNames`):
+ * a private skill or a business however it is spaced, hyphenated, underscored,
+ * joined or cased ("llc ops", "llc_ops", "llcops", "Deft wright", "Deft_wright").
+ * One source for the skill-text check here and for the ow- acceptance checkers.
+ */
+export function familyNameRules(c) {
+  return [
+    ...(c.privateNames ?? []).map((n) => ({ re: new RegExp(`(?<![\\w-])${String(n).split(/[-_\s]+/).map(escapeRegExp).join("[\\s_-]?")}(?![\\w-])`, "i"), what: "a private skill", name: String(n) })),
+    ...(c.brandNames ?? []).map((n) => ({ re: new RegExp(`\\b${[...String(n)].map(escapeRegExp).join("[\\s_-]?")}\\b`, "i"), what: "a business", name: String(n) })),
+  ];
+}
+
 export function checkFamily(catalogs) {
   const problems = [];
   for (const c of catalogs) {
@@ -506,10 +520,7 @@ export function checkFamily(catalogs) {
     const named = [
       // R1: edges are files and NEXT blocks; ow- text never claims one skill drives another.
       { re: /\bchains? to\b|\binvok(?:e|es|ed|ing)\b|\bauto\b|\bactively invoke/i, what: "wording the cross-talk contract (R1) keeps out of ow- text" },
-      // A private skill, however it is spaced ("llc ops", "llc_ops", "llcops").
-      ...c.privateNames.map((n) => ({ re: new RegExp(`(?<![\\w-])${String(n).split(/[-_\s]+/).map(escapeRegExp).join("[\\s_-]?")}(?![\\w-])`, "i"), what: "a private skill" })),
-      // A business, however it is spaced or hyphenated ("Deft wright", "Deft-wright").
-      ...(c.brandNames ?? []).map((n) => ({ re: new RegExp(`\\b${[...n].map(escapeRegExp).join("[\\s-]?")}\\b`, "i"), what: "a business" })),
+      ...familyNameRules(c),
       ...(stemRe ? [{ re: stemRe, what: "a skill from another catalog, named without its prefix" }] : []),
       // No real price in skill text: a currency amount, in figures or as "<n> dollars".
       { re: /[$€£]\s?\d|\b\d[\d,]*(?:\.\d+)?\s?(?:dollars?|euros?|pounds? sterling|USD|EUR|GBP)\b|\b(?:USD|EUR|GBP)\s?\d/i, what: "a price (a currency amount)" },
@@ -672,11 +683,26 @@ const PROTOCOL_HEADER_KEYS = new Set(["ow_artefact", "schema", "written_by", "wo
  * `key:` line of a header template, or a line about the header naming `key` in backticks?
  */
 function documentsHeaderKey(dir, key) {
-  const files = [join(dir, "SKILL.md"), ...(existsSync(join(dir, "references")) ? readdirSync(join(dir, "references")).filter((n) => n.endsWith(".md")).map((n) => join(dir, "references", n)) : [])];
-  const template = new RegExp(`^\\s{2,}${escapeRegExp(key)}:(?:\\s|$)`, "m");
-  const named = new RegExp(`\\bheader\\b.*\`${escapeRegExp(key)}\``, "i");
-  return files.some((f) => existsSync(f) && (template.test(readFileSync(f, "utf8")) || readFileSync(f, "utf8").split("\n").some((l) => named.test(l))));
+  return headerKeyLines(dir, key).length > 0;
 }
+
+/** The lines of a family skill's own text that document `key` as a header key (template lines first). */
+function headerKeyLines(dir, key) {
+  const files = [join(dir, "SKILL.md"), ...(existsSync(join(dir, "references")) ? readdirSync(join(dir, "references")).filter((n) => n.endsWith(".md")).map((n) => join(dir, "references", n)) : [])];
+  const template = new RegExp(`^\\s{2,}${escapeRegExp(key)}:(?:\\s|$)`);
+  const named = new RegExp(`\\bheader\\b.*\`${escapeRegExp(key)}\``, "i");
+  const out = [];
+  for (const f of files) if (existsSync(f)) for (const l of readFileSync(f, "utf8").split("\n")) if (template.test(l) || named.test(l)) out.push(l);
+  return out;
+}
+
+/**
+ * An index never reads money or a person (owner decision after round 1, D2b): a key
+ * named for an amount or a note, or a person, or documented with an amount or a
+ * user's name as its value, is refused whatever its producer.
+ */
+const MONEY_OR_PERSON_KEY = /(?:^|_)(?:price|prices|fee|fees|amount|amounts|payment|payments|cost|costs|total|totals|rate|rates|budget|budgets|margin|margins|value|values|deposit|deposits|balance|invoice|invoices|currency|discount|name|names|email|emails|phone|phones|signer|signers|user|users|person|people|contact|contacts|by)(?:_|$)|(?:^|_)notes?$/;
+const MONEY_OR_PERSON_VALUE = /<amount>|<price>|[$€£]\s?\d|\b\d[\d,]*\.\d{2}\b|<user(?: name)?>|\brecorded by\b|<name>/i;
 
 /**
  * An `index: true` reads row lists another skill's file by path and a few
@@ -696,8 +722,11 @@ function indexRowProblems(c, s, e, r, at, { ids, planned, addons }) {
   else {
     for (const f of r.fields.map(String)) {
       if (!/^[a-z][a-z0-9_]*$/.test(f)) { out.push(`${at}: index field "${f}" is not a header key; an index reads header keys only, never a body section (owner decision O1)`); continue; }
+      if (MONEY_OR_PERSON_KEY.test(f)) { out.push(`${at}: index field \`${f}\` holds money, a note or a person; an index never reads an amount or a name (owner decision O1, round 1 D2b)`); continue; }
       if (PROTOCOL_HEADER_KEYS.has(f) || !ids.includes(r.from)) continue;
-      if (!documentsHeaderKey(join(c.dir, r.from), f)) out.push(`${at}: index field \`${f}\` is not a header key ${r.from} documents; an index reads header keys only, never a body section (owner decision O1)`);
+      const lines = headerKeyLines(join(c.dir, r.from), f);
+      if (!lines.length) out.push(`${at}: index field \`${f}\` is not a header key ${r.from} documents; an index reads header keys only, never a body section (owner decision O1)`);
+      else if (lines.some((l) => MONEY_OR_PERSON_VALUE.test(l.replace(/^[^:]*:/, "").replace(/\s+#.*$/, "")))) out.push(`${at}: index field \`${f}\` is documented by ${r.from} with an amount or a person's name as its value; an index never reads one (owner decision O1, round 1 D2b)`);
     }
   }
   if (!filled(r.reference)) out.push(`${at}: an index row names the reference that cites it (reference:)`);

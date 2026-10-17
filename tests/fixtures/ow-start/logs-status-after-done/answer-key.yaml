@@ -14,4 +14,3 @@ screen:
   must: ["\\| A-01 \\|", "\\| A-02 \\|", "DEC-01 review", "offer reply from Larkspur Ceramics by 2026-10-21", "A-01 .*reported overdue"]
   must_not: ["\\| A-03 \\|", "A-02 .*overdue"]
 status: { lines: [] }
-private_names: [llc-ops, Deftwright]

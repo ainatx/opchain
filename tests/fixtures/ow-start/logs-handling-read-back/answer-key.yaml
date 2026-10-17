@@ -1,0 +1,18 @@
+# Answer key: logs-handling-read-back (INVENTED). Round 1 m6: the next logs verb
+# reads the answer back from the newest logs file that records one and does not
+# ask again.
+kind: logs
+case: logs-handling-read-back
+workstream: business
+user: Robin
+base: logs-handling-asked
+verbs: [/ow-start-log-decision]
+checks: [headers, writes, write_once, status, status_grammar, route, decision, handling, people, private_names]
+route:
+  verb: /ow-start-log-decision
+  says: ["DEC-01", "logs/business/meetings/MTG-01/agenda\\.md"]
+decision:
+  files:
+    - { id: DEC-01, review: no review, supersedes: none, subject: none, confirmed: internal }
+handling: { asked: false }
+status: { lines: [] }

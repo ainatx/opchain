@@ -17,4 +17,3 @@ decision:
 status: { lines: [] }
 git: { repo: false }
 names: [Dana, Jess, Marcus]
-private_names: [llc-ops, Deftwright]

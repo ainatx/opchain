@@ -10,7 +10,6 @@ writes_nothing: true
 checks: [writes, write_once, status, route, private_names]
 route:
   verb: /ow-start-prep-meeting
-  ask: "Redo that agenda, or start a new meeting"
+  ask: "redo that agenda or start a new meeting"
   never: ["DONE:"]
 status: { lines: [] }
-private_names: [llc-ops, Deftwright]

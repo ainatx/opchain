@@ -10,8 +10,7 @@ writes_nothing: true
 checks: [writes, write_once, status, route, people, private_names]
 route:
   verb: /ow-start-log-meeting
-  ask: "who is who, by role"
+  ask: "who is who by role"
   never: ["DONE: ", "NEXT: say"]
 status: { lines: [] }
 names: [Dana, Jess, Marcus]
-private_names: [llc-ops, Deftwright]

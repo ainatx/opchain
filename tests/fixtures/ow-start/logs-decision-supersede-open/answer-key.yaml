@@ -10,7 +10,7 @@ verbs: [/ow-start-log-decision]
 checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names, gitignore]
 route:
   verb: /ow-start-log-decision
-  says: ["DEC-02 supersedes it", "closed as superseded"]
+  says: ["DEC-02 supersedes it"]
 decision:
   files:
     - { id: DEC-02, review: 2026-11-30, supersedes: DEC-01, subject: none, confirmed: internal }
@@ -20,4 +20,3 @@ status:
     - { path: logs/larkspur-ceramics/decisions/DEC-01.md, next: "none (closed: superseded by DEC-02)", awaiting: none (superseded 2026-10-17) }
 git: { repo: false }
 names: [Dana, Jess, Marcus]
-private_names: [llc-ops, Deftwright]

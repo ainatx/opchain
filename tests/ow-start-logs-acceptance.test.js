@@ -10,7 +10,10 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { FIXTURES, followUpFindings, listLogsCases, loadKey, parseTranscript, peopleFindings, runCase, runView, statusLineProblems } from "../scripts/ow-start-logs-acceptance.mjs";
+import { FIXTURES, followUpFindings, listLogsCases, loadKey, parseTranscript, peopleFindings, privateNameFindings, runCase, runView, statusLineProblems } from "../scripts/ow-start-logs-acceptance.mjs";
+import { HELDOUT_LEGIT, HELDOUT_NAMES, HELDOUT_OURS, HELDOUT_PEOPLE, HELDOUT_PRIVATE } from "./ow-start-logs-heldout.mjs";
+import * as R1 from "./ow-start-logs-eval-r1-sentences.mjs";
+import { readdirSync, rmSync } from "node:fs";
 import { listCases } from "../scripts/ow-start-acceptance.mjs";
 import {
   FOLLOWUP_CONTROLS, FOLLOWUP_PLANTS, FOLLOWUP_UNTUNED_CONTROLS, FOLLOWUP_UNTUNED_PLANTS,
@@ -23,7 +26,7 @@ afterAll(cleanup);
 describe("golden runs", () => {
   const cases = listLogsCases();
   it("has a logs case for every route stage and every reads row's absent and mismatch case", () => {
-    expect(cases.length).toBeGreaterThanOrEqual(41);
+    expect(cases.length).toBeGreaterThanOrEqual(49);
     for (const c of cases) expect(loadKey(join(FIXTURES, c)).kind, c).toBe("logs");
   });
   it("keeps the four intake cases separate (their tests pass unchanged)", () => {
@@ -87,9 +90,11 @@ describe("the meaning and grammar checks: controls written before the rules (own
   it("C7 untuned (frozen before the rules, never tuned): recall and false positives as measured", () => {
     const recall = FOLLOWUP_UNTUNED_PLANTS.filter((s) => followUpFindings(s, { user: "Robin" }).length).length;
     const fp = FOLLOWUP_UNTUNED_CONTROLS.filter((s) => followUpFindings(s, { user: "Robin" }).length).length;
-    // Measured 2026-10-17: 11/15 caught (misses: rate wording with no amount: "our hourly charge",
-    // "my day rate", "I charge a premium", and "take a small hit"); 0/15 false positives. Reported, not tuned.
-    expect({ recall, fp }).toEqual({ recall: 11, fp: 0 });
+    // Round 1 measured 11/15 caught (misses: rate wording with no amount: "our hourly charge",
+    // "my day rate", "I charge a premium", and "take a small hit"); 0/15 false positives. Round 2's rule
+    // for rates and charges said without an amount (m1, from the Evaluator's sentences) catches the first
+    // three; "take a small hit" is the named idiom D2 leaves to the self-check. This set is no longer unseen.
+    expect({ recall, fp }).toEqual({ recall: 14, fp: 0 });
   });
   it(`C12 People by role: all ${PEOPLE_CONTROLS.length} must-pass lines pass (no generic capitalised-word rule)`, () => {
     expect(PEOPLE_CONTROLS.length).toBeGreaterThanOrEqual(30);
@@ -148,5 +153,97 @@ describe("C17: the checker fails per check and never crashes", () => {
   it("a missing answer-key field or an unknown check", () => {
     const dir = temp("ow08-key-");
     expect(runCase(join(FIXTURES, "no-such-case"), dir)[0].problems[0]).toMatch(/could not be loaded/);
+  });
+});
+
+describe("round 1: the Evaluator's sentence sets, permanent (written before the Evaluator read the checker)", () => {
+  const ff = (s) => followUpFindings(s, { user: "Robin" });
+  const names = ["Dana", "Jess", "Marcus", "Robin"];
+  for (const [id, kind, s] of R1.OURS.filter(([, k]) => k === "plain")) it(`${id} (plain, our side) is caught: "${s.slice(0, 50)}"`, () => expect(ff(s).length).toBeGreaterThan(0));
+  it("the implied ones (D2: the self-check's): U29 and U31 caught; U28 and U30 accepted misses", () => {
+    const missed = R1.OURS.filter(([, k, s]) => k === "implied" && !ff(s).length).map(([id]) => id);
+    expect(missed).toEqual(["U28", "U30"]);
+  });
+  for (const [id, s] of R1.LEGIT) it(`${id} (legitimate) passes: "${s.slice(0, 50)}"`, () => expect(ff(s)).toEqual([]));
+  for (const [id, cat, s] of R1.NAMES) it(`${id} (${cat}) is caught`, () => expect(peopleFindings(s, names).length).toBeGreaterThan(0));
+  for (const [id, s] of R1.NAME_CONTROLS) it(`${id} (people control) passes: "${s}"`, () => expect(peopleFindings(s, names)).toEqual([]));
+  for (const [id, s] of R1.PRIVATE) it(`${id} (private name) is caught: "${s}"`, () => expect(privateNameFindings(s).length).toBeGreaterThan(0));
+  for (const [id, s] of R1.PRIVATE_CONTROLS) it(`${id} (private-name control) passes`, () => expect(privateNameFindings(s)).toEqual([]));
+  const roles = () => ["you", "client ops lead", "client owner"];
+  for (const [id, l] of R1.STATUS_OK) it(`${id} (STATUS, legitimate) passes`, () => expect(statusLineProblems(l, roles)).toEqual([]));
+  for (const [id, d, l] of R1.STATUS_BAD) it(`${id} (STATUS: ${d}) fails`, () => expect(statusLineProblems(l, roles).length).toBeGreaterThan(0));
+  it("the supplementary probes: the skill's own example, sentence-initial nouns, acronym roles, joined private names", () => {
+    for (const s of ["The extra workshop is at our day rate.", "My rate goes up in January.", "We are over budget on the field list."]) expect(ff(s).length, s).toBeGreaterThan(0);
+    for (const s of ["Payments from Square arrive on Fridays.", "Clay from Laguna is late.", "Boxes from Uline come on Monday.", "Traffic from Instagram doubled.", "Glaze from Amaco will arrive on Monday.", "Stoneware from Laguna arrives on Monday.", "cc: the studio owner"]) expect(peopleFindings(s, names), s).toEqual([]);
+    for (const s of ["Jordan from Larkspur Ceramics will send the export.", "Call the studio on 555-0142.", "cc: Priya Natarajan"]) expect(peopleFindings(s, names).length, s).toBeGreaterThan(0);
+    for (const s of ["llcops", "llc ops", "llc_ops", "Deft_wright"]) expect(privateNameFindings(s).length, s).toBeGreaterThan(0);
+    const line = (r) => `2026-10-20 (clock: user-stated) | ow-start 1.1.0 | logs/larkspur-ceramics/meetings/MTG-02/notes.md#A-03 | next: ow-start /ow-start-action logs/larkspur-ceramics/ | awaiting: A-03 (${r}) by 2026-10-23`;
+    for (const r of ["client CFO", "client IT lead", "client's bookkeeper"]) expect(statusLineProblems(line(r), () => null), r).toEqual([]);
+    for (const r of ["Dana", "CFO"]) expect(statusLineProblems(line(r), () => null).length, r).toBeGreaterThan(0);
+  });
+});
+
+describe("round 2: a held-out set written before any round-2 rule changed (reported, never tuned)", () => {
+  // Before (round 1's rules): our side 10/15 caught, 0/15 legitimate flagged, people 9/10, private names 5/10.
+  // After (round 2's rules):  our side 11/15 caught, 0/15 legitimate flagged, people 10/10, private names 10/10.
+  // The four our-side misses ("my normal hourly figure", "priced the change below our usual level",
+  // "billable on my side", "the quote I gave you was too low") are left unfixed on purpose: they are the
+  // held-out set, so tuning to them would make the rate meaningless. They go to the next round's Evaluator.
+  const ff = (s) => followUpFindings(s, { user: "Robin" });
+  it("our side: 11 of 15 caught", () => expect(HELDOUT_OURS.filter((s) => ff(s).length).length).toBe(11));
+  it("legitimate client sentences: 0 of 15 flagged", () => expect(HELDOUT_LEGIT.filter((s) => ff(s).length)).toEqual([]));
+  it("people: 10 of 10 caught", () => expect(HELDOUT_PEOPLE.filter((s) => peopleFindings(s, HELDOUT_NAMES).length).length).toBe(10));
+  it("private names: 10 of 10 caught", () => expect(HELDOUT_PRIVATE.filter((s) => privateNameFindings(s).length).length).toBe(10));
+});
+
+describe("R1-4: screens are graded on prescribed text and structure only", () => {
+  // Every route and screen phrase of every logs answer key is structural (an id, a path, a date, NEXT text,
+  // a table cell) or appears in the skill's own text, so a correct run in other words passes (round 1 D1b).
+  const S = join(import.meta.dirname, "..", "skills-work", "ow-start");
+  const text = [readFileSync(join(S, "SKILL.md"), "utf8"), ...readdirSync(join(S, "references")).map((f) => readFileSync(join(S, "references", f), "utf8"))].join("\n")
+    .replace(/<workstream>/g, "larkspur-ceramics").replace(/<client>/g, "larkspur-ceramics");
+  const structural = (p) => /^\^?-? ?(MTG|A|DEC|Q|D)-?\d|logs\/|\/ow-|use ow-|\d{4}-\d{2}-\d{2}|^\\\|/.test(p);
+  for (const c of listLogsCases()) {
+    const k = loadKey(join(FIXTURES, c));
+    const phrases = [...(k.route?.says ?? []), ...(k.route?.ask ? [k.route.ask] : []), ...(k.screen?.must ?? [])];
+    if (!phrases.length) continue;
+    it(`${c}: every graded phrase is prescribed or structural`, () => {
+      expect(phrases.filter((p) => !structural(p) && !new RegExp(p, "im").test(text))).toEqual([]);
+    });
+  }
+});
+
+describe("C17, round 1: the Evaluator's malformed-file probes fail per check, without a crash", () => {
+  const probe = (c, fn) => { const dir = mutated(c); fn(dir); return runCase(join(FIXTURES, c), dir).filter((r) => r.problems.length).map((r) => r.check); };
+  it("agenda.md as a folder", () => {
+    const failed = probe("logs-prep-items", (d) => { const p = join(d, L, "meetings/MTG-02/agenda.md"); rmSync(p); mkdirSync(p); });
+    expect(failed).toContain("agenda");
+    expect(failed).not.toContain("status");
+  });
+  it("DEC-01.md with an invalid YAML header", () => {
+    const failed = probe("logs-decision-from-meeting", (d) => writeFileSync(join(d, L, "decisions/DEC-01.md"), "---\nid: [DEC-01\n---\n# x\n"));
+    expect(failed).toEqual(expect.arrayContaining(["headers", "decision"]));
+    expect(failed).not.toContain("status");
+  });
+  it("STATUS.md deleted, and STATUS.md as a folder", () => {
+    for (const fn of [(d) => rmSync(join(d, "opchain-work/STATUS.md")), (d) => { const p = join(d, "opchain-work/STATUS.md"); rmSync(p); mkdirSync(p); }]) {
+      const failed = probe("logs-larkspur-checkin", fn);
+      expect(failed).toContain("status");
+      expect(failed).not.toContain("notes");
+    }
+  });
+  it("a binary follow-up.html", () => {
+    const failed = probe("logs-larkspur-checkin", (d) => writeFileSync(join(d, L, "meetings/MTG-01/follow-up.html"), Buffer.from([0, 1, 2, 255, 0])));
+    expect(failed).toContain("follow_up");
+    expect(failed).not.toContain("notes");
+  });
+  it("the printed screen as a folder", () => {
+    const failed = probe("logs-log-index", (d) => { const p = join(d, "printed/log.md"); rmSync(p); mkdirSync(p); });
+    expect(failed).toEqual(expect.arrayContaining(["route", "index"]));
+    expect(failed).not.toContain("status");
+  });
+  it("an invalid brand.yaml under the run", () => {
+    const failed = probe("logs-larkspur-checkin", (d) => { mkdirSync(join(d, "opchain-work"), { recursive: true }); writeFileSync(join(d, "opchain-work/brand.yaml"), "colors: [x\n"); });
+    expect(failed).not.toContain("notes");
   });
 });

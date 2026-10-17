@@ -9,9 +9,8 @@ verbs: [/ow-start-action]
 checks: [writes, write_once, status, status_grammar, route, screen, private_names]
 route: { verb: /ow-start-action }
 screen:
-  must: ["Open in larkspur-ceramics: A-01 .* A-02 .* DEC-01 review"]
+  must: ["Open in larkspur-ceramics:", "A-01 \\(client ops lead\\) by 2026-10-16", "A-02 \\(you\\) by 2026-10-19", "DEC-01 review by 2026-10-19", "No client text in STATUS"]
   must_not: ["Open in larkspur-ceramics:.*A-03"]
 status:
   lines:
     - { path: logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-03, next: "none (closed: done)", awaiting: none (done 2026-10-15) }
-private_names: [llc-ops, Deftwright]

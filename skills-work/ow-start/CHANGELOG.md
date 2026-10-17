@@ -10,6 +10,8 @@ Design: `docs/plans/2026-10-16-ow-start-logs-amendment.md` (L1–L5; build notes
 - Files under `logs/<workstream>/` (a client, or `business`); people by role everywhere; no client text in STATUS; `/ow-start` and `/ow-status` show the newest line per logs item.
 - New references: `logs-schema.md`, `logs-status-and-index.md`, `phase-prep-meeting.md`, `phase-log-meeting.md`, `phase-log-decision.md`, `email-template.md`, `self-checks-logs.md`. `intake-record-schema.md` examples say 1.1.0; `phase-prep.md` says its two `.gitignore` lines cover `logs/`; `phase-extract.md` refuses a `logs/` folder and names `/ow-start-log-meeting`.
 - The description brings in meetings no other ow- skill records and decisions; it no longer excludes internal meetings.
+- After evaluation round 1 (owner decisions of 2026-10-17): the body was trimmed to about 4,000 tokens (at least 400 of headroom under its 4,500 cap) by moving `/ow-setup`'s steps, "Works on its own" and the transcription absent-case into a new `references/phase-setup.md`, word for word; the logs verbs ask for a missing workstream instead of guessing; `-log` runs an "Index copies nothing" self-check, and `-action` prints its self-check results; a moved date may move back; roles may hold an acronym or a possessive; `awaiting: A-nn (<role>), no date` is ratified as a logs-only form.
+- Versions: 1.1.0 is the logs release. The later ow-start amendments S1 (care-takeover path), S2 (`quote: vendor-eval`) and S3 (`quote: controls-readiness`) ship as 1.2.0 and later.
 
 ### Recorded here: two in-place edits to 1.0.0's text (made without a version bump)
 
@@ -20,4 +22,4 @@ Data edits in the same PRs, which need no bump: #605 added `skill.edges.yaml` an
 
 ## 1.0.0 (2026-10-14): the fit call and its recap
 
-`/ow-start`, `/ow-start-prep`, `/ow-start-extract`, `/ow-setup`, `/ow-status` (#596; audit follow-ups #604). Design: `docs/plans/2026-10-06-ow-start-intake-redesign.md`.
+`/ow-start`, `/ow-start-prep`, `/ow-start-extract`, `/ow-setup`, `/ow-status` (#596). Design: `docs/plans/2026-10-06-ow-start-intake-redesign.md`. The audit follow-ups in #604 changed the acceptance checker only, not this skill's text.

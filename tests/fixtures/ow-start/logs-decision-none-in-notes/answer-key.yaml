@@ -10,6 +10,5 @@ writes_nothing: true
 checks: [writes, write_once, status, route, private_names]
 route:
   verb: /ow-start-log-decision
-  says: ["records no decisions", "Nothing was written"]
+  says: ["logs/larkspur-ceramics/meetings/MTG-02/notes.md"]
 status: { lines: [] }
-private_names: [llc-ops, Deftwright]

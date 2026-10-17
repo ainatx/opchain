@@ -93,7 +93,7 @@ Design order: `ow-documentation`, `ow-care`, the ow-start logs amendment, `ow-dr
 | OW-04 (3) | A | **ow-uat 1.0.0** (+ `calc --calendar us-federal`) | — | OW-02 | 17–22h | 5.5–7h | 1–2h |
 | OW-05 (3b) | A | **ow-documentation 1.0.0** | P3 (ow-build-plan 1.1.0) | OW-04, OW-03 | 16–22h | 5–6h | 1–2h |
 | OW-06 (4) | A | **ow-handoff 1.0.0** (+ `scan-secrets` redacted) | H3, H4 | OW-05 | 16–22h | 5.5–6.5h | 1h |
-| OW-07 (4b) | A | **ow-care 1.0.0** (both ways in) | S1 (ow-start 1.1.0), P4 (ow-build-plan 1.1.0) | OW-06, OW-03 | 18–24h | 5.5–6.5h | 1–2h |
+| OW-07 (4b) | A | **ow-care 1.0.0** (both ways in) | S1 (ow-start 1.2.0 or later), P4 (ow-build-plan 1.1.0) | OW-06, OW-03 | 18–24h | 5.5–6.5h | 1–2h |
 | OW-08 (L) | B | **ow-start 1.1.0 logs** | H5 if ow-handoff is merged, else with OW-06 | OW-00 | 8–12h | 3–3.5h | 1h |
 | OW-09 (R) | B | **ow-research 1.0.0** | P5 | OW-03 (digest) | 10–14h | 3.5–4.5h | 1h |
 | OW-10 (D) | B | **ow-draft 1.0.0** | D1, D2 (already in its design) | OW-09, OW-03 | 16–22h | 5–6h | 1–2h |
@@ -111,7 +111,8 @@ Design order: `ow-documentation`, `ow-care`, the ow-start logs amendment, `ow-dr
 
 | Skill | Amendments | Lands in |
 |---|---|---|
-| ow-start → 1.1.0 | logs (L1–L5), S1 care-takeover kind, S2 `quote: vendor-eval`, S3 `quote: controls-readiness` | L, 4b, V, C |
+| ow-start → 1.1.0 | logs (L1–L5) | L |
+| ow-start → 1.2.0 and later (one minor per sprint; owner decision 2026-10-17, OW-08 round 1) | S1 care-takeover kind, S2 `quote: vendor-eval`, S3 `quote: controls-readiness` | 4b, V, C |
 | ow-build-plan → 1.1.0 | P3 people quoted, P4 care onboarding quote, P5 research evidence, P6 vendor selection, P7 controls as acceptance checks, P8 readiness quote, P9 pricing page URL | 3b, 4b, R, V, C, Cu |
 | ow-tools → 1.1.0 | T1 capture, T2 pptx, T3 health, T4 calc hours, T5 calls row, T6 xlsx, T7 digest | T |
 | ow-build 1.0.0 | B4 | 2 |

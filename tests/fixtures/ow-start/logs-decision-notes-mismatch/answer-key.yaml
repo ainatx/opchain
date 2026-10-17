@@ -17,4 +17,3 @@ decision:
 status:
   lines:
     - { path: logs/larkspur-ceramics/decisions/DEC-01.md, next: "ow-start /ow-start-action logs/larkspur-ceramics/", awaiting: DEC-01 review by 2026-10-19 }
-private_names: [llc-ops, Deftwright]

@@ -10,7 +10,7 @@ verbs: [/ow-start-log-meeting]
 checks: [headers, writes, write_once, status, status_grammar, route, notes, trace, owner_date, embedded, follow_up, follow_up_clean, people, private_names, gitignore]
 route:
   verb: /ow-start-log-meeting
-  says: ["from your notes", "No brand.yaml", "use ow-start to log the decisions in logs/larkspur-ceramics/meetings/MTG-01/notes.md"]
+  says: ["use ow-start to log the decisions in logs/larkspur-ceramics/meetings/MTG-01/notes.md", "brand\\.yaml"]
 notes:
   id: MTG-01
   input: notes
@@ -33,4 +33,3 @@ status:
     - { path: logs/larkspur-ceramics/meetings/MTG-01/notes.md, next: "none (closed: held 2026-10-13)", awaiting: none }
 git: { repo: false }
 names: [Dana, Jess, Marcus]
-private_names: [llc-ops, Deftwright]

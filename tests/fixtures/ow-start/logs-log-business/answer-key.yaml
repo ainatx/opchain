@@ -15,4 +15,3 @@ screen:
 business:
   client_canaries: [contractor chain, purchase orders, Larkspur, order view]
 status: { lines: [] }
-private_names: [llc-ops, Deftwright]

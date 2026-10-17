@@ -27,3 +27,4 @@ Reviews due
 - DEC-01 review by 2026-10-19 (reported overdue)
 
 Other skills' records are listed by path and the date in their header; nothing is copied from them.
+Self-checks (same-session self-check): Index copies nothing OK · People by role OK · No private names OK.

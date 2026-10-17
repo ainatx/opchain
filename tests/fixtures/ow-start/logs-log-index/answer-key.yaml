@@ -25,7 +25,6 @@ index:
   canaries: ["stock on hand beside each order line", "text message with the number of orders", "17450", "2600.00", "450.00", "recorded by Robin"]
   absent: ["uat/larkspur-ceramics/signoff.md", "care/larkspur-ceramics/"]
 screen:
-  must: ["^- MTG-01", "^- A-01", "^- A-02", "^- DEC-01"]
+  must: ["^- MTG-01", "^- A-01", "^- A-02", "^- DEC-01", "Index copies nothing"]
   must_not: ["^- A-03", "Ledgerly"]
 status: { lines: [] }
-private_names: [llc-ops, Deftwright]

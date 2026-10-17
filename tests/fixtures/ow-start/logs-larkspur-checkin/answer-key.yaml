@@ -38,4 +38,3 @@ status:
     - { path: logs/larkspur-ceramics/meetings/MTG-01/notes.md, next: "none (closed: held 2026-10-13)", awaiting: none }
 git: { repo: false }
 names: [Dana, Jess, Marcus]
-private_names: [llc-ops, Deftwright]

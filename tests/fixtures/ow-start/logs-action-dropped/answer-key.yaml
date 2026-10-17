@@ -10,4 +10,3 @@ route: { verb: /ow-start-action }
 status:
   lines:
     - { path: "logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-02", next: "none (closed: dropped)", awaiting: "none (dropped 2026-10-18)" }
-private_names: [llc-ops, Deftwright]

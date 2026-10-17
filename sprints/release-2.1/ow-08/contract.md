@@ -257,3 +257,16 @@ Follow OW-02's end state and OW-04's contract, not their starting points.
 | PR landing | ~45 min | **~30–45 min** | Rebase onto OW-04, the ow-tools patch after OW-03 (O4), fresh evidence |
 
 USER: about **1–1.5h**. That covers contract approval and O1–O8 (about 30 min), reading two or three evaluation reports and any mid-sprint ruling (about 45 min), and the squash-merge (about 15 min). The §9 Real-use test (one real client check-in and one business decision) is REL-02's, not this sprint's. Calendar time waits on OW-04 merging first, and on OW-03 for the O4 part.
+
+## Owner decisions after round 1 (2026-10-17)
+
+Round 1 (`eval-round-1.md`) failed at 6.6 with two checker majors (D1, D2). The owner decided:
+
+| # | Decision | What it changes |
+|---|---|---|
+| R1-1 | **Body headroom.** Trim SKILL.md now, moving detail into references, so OW-07 (S1, about 150–250 tokens), OW-11 (S2) and OW-12 (S3) have room: at least 400 tokens of headroom under 4,500. Raising ow-start's cap to 5,000 is the fallback, only if a later sprint cannot fit; it is not raised now. Moved text stays reachable and is pinned | C2: the body is held to at least 400 tokens of headroom; `/ow-setup`'s steps, "Works on its own" and the transcription absent-case move to `references/phase-setup.md`, pinned |
+| R1-2 | **Versions.** S1, S2 and S3 ship as ow-start 1.2.0 and later; 1.1.0 is the logs release | The sprint plan's roll-up and the changelog say so |
+| R1-3 | **Undated action form.** `awaiting: A-nn (<role>), no date` is ratified, recorded in `skills-work/README.md` as a logs-only form | Build note 3 is no longer a departure awaiting ratification |
+| R1-4 | **Grading screens.** The checker grades only text the skill prescribes, plus structure (ids, paths, dates, NEXT lines). The golden-only phrases are dropped, and the checker passes the skill's own wording | C4: every `route` and `screen` phrase in a logs answer key is structural or appears in the skill text, enforced by a test |
+
+Fixes taken into this sprint from round 1: D1 (a recorded decline is not asked again; screens graded per R1-4), D2 (the index copies nothing by meaning: amounts in any form, the user's name, partial header values; the O1 rule refuses money, note and person keys; an "Index copies nothing" self-check for `-log`), m1 (rates and charges said without an amount), m2 (7-digit phones; a sentence-initial noun before "from <Organisation>"; a `cc:` line with only a role), m3 (private names from `catalogs.json`, every spelling), m4 (a moved date may move back), m5 (a missing workstream on the four verbs), m6 (the logs-only handling answer), m7 (`-action` prints its self-checks), m8 (roles with an acronym or a possessive), m9 (the held and superseded lines in the body's Writes column) and the nits. Every evaluator plant is a permanent test. A held-out set (15 our-side, 15 legitimate, 10 people, 10 private names) was written before any rule changed, and its before and after rates are reported. O4 and the rebase onto OW-04 still wait on OW-03 and OW-04.

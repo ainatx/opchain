@@ -11,7 +11,7 @@ verbs: [/ow-start-log-meeting]
 checks: [writes, write_once, status, route, notes, trace, follow_up, follow_up_clean, people, private_names]
 route:
   verb: /ow-start-log-meeting
-  says: ["colors does not", "neutral colours"]
+  says: ["brand\\.yaml"]
 notes:
   id: MTG-01
   input: transcript
@@ -35,4 +35,3 @@ status:
     - { path: logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-03, next: "ow-start /ow-start-action logs/larkspur-ceramics/", awaiting: A-03 (client owner) by 2026-10-15 }
     - { path: logs/larkspur-ceramics/meetings/MTG-01/notes.md, next: "none (closed: held 2026-10-13)", awaiting: none }
 names: [Dana, Jess, Marcus]
-private_names: [llc-ops, Deftwright]

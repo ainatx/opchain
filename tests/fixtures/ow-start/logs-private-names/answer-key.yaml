@@ -19,4 +19,3 @@ status:
     - { path: logs/business/decisions/DEC-01.md, next: "ow-start /ow-start-action logs/business/", awaiting: DEC-01 review by 2027-01-15 }
 git: { repo: true }
 names: [Priya, Tomas]
-private_names: [llc-ops, Deftwright]

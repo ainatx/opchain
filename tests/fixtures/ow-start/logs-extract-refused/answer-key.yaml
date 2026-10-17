@@ -12,4 +12,3 @@ route:
   verb: /ow-start-extract
   says: ["is a meeting, not a fit call", "use ow-start to log the meeting logs/larkspur-ceramics/meetings/MTG-01/", "/ow-start-log-meeting"]
 status: { lines: [] }
-private_names: [llc-ops, Deftwright]

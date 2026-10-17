@@ -161,4 +161,4 @@ Example:
 
     2026-10-20 (clock: user-stated) | ow-start 1.1.0 | logs/larkspur-ceramics/meetings/MTG-02/notes.md#A-03 | next: ow-start /ow-start-action logs/larkspur-ceramics/ | awaiting: A-03 (client ops lead) by 2026-10-23
 
-An owner role in a STATUS line is one of the attendee roles in that meeting's `notes.md`, or `you`. A line is appended once: before appending, look for the same path with the same `next:` and `awaiting:`; if it is there, skip it.
+An owner role in a STATUS line is one of the attendee roles in that meeting's `notes.md`, or `you`; a role is lower-case words and may hold an acronym or a possessive (`client CFO`, `client's bookkeeper`). An action with no date uses `awaiting: A-nn (<role>), no date`, a logs-only form (`skills-work/README.md`). A line is appended once: before appending, compare it with its item's newest line; if that line already says the same `next:` and `awaiting:`, skip it. An older form may come back (an action moved to the 23rd, then back to the 16th, appends the 16th again).

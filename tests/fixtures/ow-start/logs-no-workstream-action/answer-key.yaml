@@ -1,0 +1,17 @@
+# Answer key: logs-no-workstream-action (INVENTED). Round 1 m5: ids are numbered
+# per workstream, so a bare A-01 can mean two actions: list them and ask which
+# workstream; write nothing.
+kind: logs
+case: logs-no-workstream-action
+workstream: larkspur-ceramics
+user: Robin
+base: logs-business-vendor
+verbs: [/ow-start-action]
+writes_nothing: true
+checks: [writes, status, route, private_names]
+route:
+  verb: /ow-start-action
+  ask: "which workstream"
+  says: ["A-01 \\(client ops lead\\) by 2026-10-16", "A-01 \\(vendor account manager\\) by 2026-10-22"]
+  never: ["Appended:"]
+status: { lines: [] }

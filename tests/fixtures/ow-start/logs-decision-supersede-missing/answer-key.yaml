@@ -10,7 +10,6 @@ writes_nothing: true
 checks: [writes, write_once, status, route, private_names]
 route:
   verb: /ow-start-log-decision
-  says: ["No decision DEC-05", "DEC-01"]
+  says: ["DEC-05", "DEC-01"]
   never: ["DONE: "]
 status: { lines: [] }
-private_names: [llc-ops, Deftwright]

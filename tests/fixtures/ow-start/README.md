@@ -50,6 +50,12 @@ These are the acceptance tests from `docs/plans/2026-10-06-ow-start-intake-redes
 | `logs-agenda-mismatch`, `logs-brand-mismatch` | reads rows | an agenda row that does not parse; a `brand.yaml` whose colours do not parse |
 | `logs-decision-notes-missing`, `logs-decision-notes-mismatch` | reads rows | notes that do not exist; a decision in the notes that does not parse |
 | `logs-decision-supersede-missing`, `logs-decision-supersede-mismatch` | reads rows | superseding a DEC-nn that does not exist; one whose header does not parse |
+| `logs-git-declined-again` | C16 (round 1 D1a) | a repository without the ignore lines, and an earlier logs file records the decline: not asked again, `declined` recorded again |
+| `logs-action-moved-back` | C8, C14 (round 1 m4) | A-01 moved to the 23rd, then back to the 16th: appended, and resume shows the 16th |
+| `logs-no-workstream-log-meeting`, `-log-decision`, `-action`, `-log` | C4 (round 1 m5) | no workstream given: two that fit are listed and the user asked; one that fits is named and confirmed; nothing written |
+| `logs-handling-asked`, `logs-handling-read-back` | C16 (round 1 m6) | a logs-only workstream with no handling default: the protocol's question once, the answer in the agenda's header; read back, not asked, by the next verb |
+
+Round 1's Evaluator sentence sets (`tests/ow-start-logs-eval-r1-sentences.mjs`) and plants are permanent tests, and so is a held-out set written before round 2 changed any rule (`tests/ow-start-logs-heldout.mjs`). Screens are graded only on text the skill prescribes and on structure (owner decision R1-4), which `tests/ow-start-logs-acceptance.test.js` enforces for every answer key. Private names come from `catalogs.json`, not from the answer keys.
 
 The planted failures for every criterion are in `tests/ow-start-plants.test.js`; the controls the meaning checks are held to, written before the rules, are in `tests/ow-start-logs-sentences.mjs`. ow-uat's real sign-off golden joins `logs-log-index` when OW-04 merges.
 

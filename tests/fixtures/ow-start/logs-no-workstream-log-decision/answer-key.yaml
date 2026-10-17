@@ -1,0 +1,17 @@
+# Answer key: logs-no-workstream-log-decision (INVENTED). Round 1 m5: a bare
+# /ow-start-log-decision with one workstream that fits: name it and ask the
+# user to confirm it, with the meeting's decisions not yet logged; write nothing.
+kind: logs
+case: logs-no-workstream-log-decision
+workstream: larkspur-ceramics
+user: Robin
+base: logs-larkspur-checkin
+verbs: [/ow-start-log-decision]
+writes_nothing: true
+checks: [writes, write_once, status, route, private_names]
+route:
+  verb: /ow-start-log-decision
+  ask: "confirm it"
+  says: ["larkspur-ceramics", "D1", "D2"]
+  never: ["DONE: "]
+status: { lines: [] }

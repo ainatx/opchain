@@ -10,4 +10,3 @@ route: { verb: /ow-start-action }
 status:
   lines:
     - { path: "logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-01", next: "ow-start /ow-start-action logs/larkspur-ceramics/", awaiting: "A-01 (client ops lead) by 2026-10-23" }
-private_names: [llc-ops, Deftwright]

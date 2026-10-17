@@ -9,11 +9,10 @@ verbs: [/ow-start-log-decision]
 checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names, gitignore]
 route:
   verb: /ow-start-log-decision
-  says: ["DEC-02", "no STATUS line"]
+  says: ["DEC-02"]
 decision:
   files:
     - { id: DEC-02, review: no review, supersedes: none, subject: none, confirmed: internal }
 status: { lines: [] }
 git: { repo: false }
 names: [Dana, Jess, Marcus]
-private_names: [llc-ops, Deftwright]

@@ -10,7 +10,6 @@ writes_nothing: true
 checks: [writes, write_once, status, route, private_names]
 route:
   verb: /ow-start-log-decision
-  says: ["header does not parse", "until you confirm"]
+  says: ["DEC-01\\.md"]
   never: ["DONE: "]
 status: { lines: [] }
-private_names: [llc-ops, Deftwright]

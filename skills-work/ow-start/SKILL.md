@@ -10,8 +10,8 @@ description: >
   Use for /ow-start, /ow-start-prep, /ow-start-extract, /ow-start-prep-meeting,
   /ow-start-log-meeting, /ow-start-action, /ow-start-log-decision,
   /ow-start-log, /ow-setup, /ow-status, "prep my call with", "write the recap
-  from this call", "log this meeting", "log this decision", "where did I leave
-  off". Text only. NOT for meetings another ow- skill records (Build Plan
+  from this call", "turn this transcript into a client recap", "log this
+  meeting", "log this decision", "where did I leave off". Text only. NOT for meetings another ow- skill records (Build Plan
   workshops, demos, UAT sessions, care calls), sales email sequences,
   contracts, or legal, tax or pricing advice: it names a path, never a price.
 license: Apache-2.0
@@ -53,16 +53,14 @@ Try: "prep my call with Acme on Thursday" · "here's the transcript, write the r
 | `/ow-start-extract` | After the call | From a transcript or notes: the intake record, coverage, then the client recap with one recommended path. Seeds the profile on first run | **`intake/<client>/recap.md`**, `intake-record.md`, `coverage.md`; `profile.md` (first run only); one `STATUS.md` line with the recap's due date |
 | `/ow-setup` | Any time | Edits the profile; every question can be skipped. Creates `offers.md` and `handoffs.yaml` once from the examples | `profile.md`; `offers.md` and `handoffs.yaml` (once; then they are yours) |
 | `/ow-status` | Any time | One screen from `STATUS.md`: open intakes, open logs items, what is awaited and by when | nothing |
-| `/ow-start-transcribe` | After the call, with a recording | Provided by the **ow-tools** add-on, not by this skill (below) | `intake/<client>/transcript.md`, by the add-on |
-| `/ow-start-prep-meeting <workstream>` | Before a meeting | An agenda of the open items, each with its source; asks purpose, length and attendees by role | `MTG-nn/agenda.md`; a STATUS line |
-| `/ow-start-log-meeting <workstream>` | After it (`MTG-nn` optional) | Notes from a transcript or your notes, every item cited; a follow-up draft when an external party attended | `MTG-nn/notes.md`, `follow-up.{html,txt}`; a STATUS line per action |
+| `/ow-start-transcribe` | After the call, with a recording | Provided by the **ow-tools** add-on, not by this skill (`references/phase-setup.md` §3) | `intake/<client>/transcript.md`, by the add-on |
+| `/ow-start-prep-meeting <workstream>` | Before a meeting | An agenda of the open items, each with its source; asks purpose, date, length and attendees by role | `MTG-nn/agenda.md`; a STATUS line |
+| `/ow-start-log-meeting <workstream>` | After it (`MTG-nn` optional) | Notes from a transcript or your notes, every item cited; a follow-up draft when an external party attended | `MTG-nn/notes.md`, `follow-up.{html,txt}`; a STATUS line per action, and the held line |
 | `/ow-start-action <workstream> <id> <state>` | Any time | `A-nn done`, `A-nn dropped`, `A-nn moved <date>`, `DEC-nn reviewed` | one STATUS line |
-| `/ow-start-log-decision <workstream>` | Any time, or from a meeting's notes | One decision per file, never edited | `decisions/DEC-nn.md`; a STATUS review line |
+| `/ow-start-log-decision <workstream>` | Any time, or from a meeting's notes | One decision per file, never edited | `decisions/DEC-nn.md`; a STATUS review line, and a superseded review's closing line |
 | `/ow-start-log <workstream>` | Any time | One screen of meetings, actions, decisions and reviews, with other skills' records by path | nothing |
 
-**Modes**, chosen at prep: **prospect** (scoping a possible client) or **delivery** (discovery on signed work). Each has its own question bank: `references/question-bank-prospect.md` and `references/question-bank-delivery.md`.
-
-**Transcription is the ow-tools add-on's.** If it does not answer, say "Transcribing a recording needs the ow-tools add-on, which is not installed here," and offer: (1) the meeting tool's own transcript, a `.vtt` or pasted text saved as `intake/<client>/transcript.md` (a meeting: `logs/<workstream>/meetings/MTG-nn/transcript.md`); (2) your notes (MEDIUM cap in an intake record). Then say the extract or log-meeting line again. Never transcribe audio yourself.
+Transcription is the ow-tools add-on's; without it, `references/phase-setup.md` §3. Never transcribe audio yourself.
 
 ## Phases
 
@@ -74,9 +72,10 @@ Each phase verb opens its phase file first. **Open the file before acting; if yo
 - `/ow-start-log-meeting` → `references/phase-log-meeting.md`, with the follow-up in `references/email-template.md`
 - `/ow-start-log-decision` → `references/phase-log-decision.md`
 - `/ow-start-action`, `/ow-start-log`, and the logs on `/ow-start` and `/ow-status` → `references/logs-status-and-index.md`
+- `/ow-setup` → `references/phase-setup.md`
 - Every logs file and STATUS form: `references/logs-schema.md`
 
-`/ow-start`, `/ow-setup` and `/ow-status` need no other phase file; their steps are at the end.
+`/ow-start` and `/ow-status` need no other phase file; their steps are at the end.
 
 ## Where files live
 
@@ -180,21 +179,13 @@ After log-meeting with no decisions, and after log-decision:
 
 ## Self-checks
 
-Inside `/ow-start-extract`: **Recap trace, Speaker rule, Embedded instructions, Coverage and Voice**, each a same-session self-check (protocol §8), agent-checked, written to `coverage.md`; their rules are in `references/phase-extract.md` §7. Overall PASS, FAIL or INCOMPLETE, shown as Ready, Needs fixing or Checked with gaps; the NEXT block prints only when none is FINDING.
+`/ow-start-extract`: Recap trace, Speaker rule, Embedded instructions, Coverage and Voice, same-session self-checks written to `coverage.md` (rules: `references/phase-extract.md` §7).
 
-The logs' seven checks (Trace, Owner and date, People by role, No client text in STATUS, Follow-up clean, Never edited, No private names) are in `references/self-checks-logs.md`. **People by role, No client text in STATUS and No private names can never be waived.**
+The logs' checks: `references/self-checks-logs.md`. **People by role, No client text in STATUS and No private names can never be waived.**
 
 ## The verbs without a phase file
 
-**`/ow-start`.** Run step 0. With no `STATUS.md`, show the welcome. Otherwise list each open intake (the newest STATUS line per intake workstream that is not closed) with its next step and anything awaited, and each open logs item (the newest line per `MTG-nn`, `A-nn` and `DEC-nn`; `references/logs-status-and-index.md` §3), soonest due first. Write nothing.
-
-**`/ow-status`.** Run step 0. One screen: open intakes (client · last step · next · awaiting, with its date) and open logs items (workstream · item · owner role · due), by the same rule. Mark an item "reported overdue" only when today's date is known from the protocol's ladder and is past the due date. Write nothing.
-
-**`/ow-setup`.** Run step 0, then read `profile.md`. Ask one question at a time; every one can be skipped: your name as you sign it; your business name (optional); your time zone; holidays to skip when working out due dates; the handling default; whether your organisation's AI policy has been checked for client material (checked / not checked). Write `profile.md` with the header from the protocol and `origin: user`. If `offers.md` does not exist, offer to create it from `examples/offers.md`; if `handoffs.yaml` does not exist, offer the same from `examples/handoffs.yaml`. Say that both examples are invented and the files are now the user's to edit; never edit either file again.
-
-## Works on its own
-
-Needs no other skill: every verb works from a pasted transcript or notes; without an attached folder, everything happens in one conversation and ends with one portable state file (protocol §2). Without ow-tools, the meeting tool's transcript or your notes replace transcription; without ow-build-plan, the recap and intake record stand alone.
+**`/ow-start` and `/ow-status`.** Run step 0; write nothing. `/ow-start` with no `STATUS.md` shows the welcome. Otherwise list each open intake (the newest STATUS line per intake workstream that is not closed: its next step and anything awaited) and each open logs item (the newest line per `MTG-nn`, `A-nn` and `DEC-nn`; `references/logs-status-and-index.md` §3), soonest due first; `/ow-status` shows them as two tables. Mark an item "reported overdue" only when today's date is known from the protocol's ladder and is past the due date.
 
 ## What this skill never does
 

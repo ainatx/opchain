@@ -10,7 +10,7 @@ verbs: [/ow-start-log-decision]
 checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names, gitignore]
 route:
   verb: /ow-start-log-decision
-  says: ["D1:", "D2:", "You picked D1"]
+  says: ["D1:", "D2:"]
 decision:
   files:
     - { id: DEC-01, review: 2026-10-19, supersedes: none, subject: "logs/larkspur-ceramics/meetings/MTG-01/notes.md#D1", confirmed: client }
@@ -19,4 +19,3 @@ status:
     - { path: logs/larkspur-ceramics/decisions/DEC-01.md, next: "ow-start /ow-start-action logs/larkspur-ceramics/", awaiting: DEC-01 review by 2026-10-19 }
 git: { repo: false }
 names: [Dana, Jess, Marcus]
-private_names: [llc-ops, Deftwright]

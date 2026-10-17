@@ -34,4 +34,3 @@ business:
   client_canaries: [contractor chain, purchase orders, Larkspur, order view]
 git: { repo: true, answer: "yes" }
 names: [Priya, Tomas, Dana, Jess, Marcus]
-private_names: [llc-ops, Deftwright]

@@ -16,3 +16,4 @@ Reviews due
 - none
 
 The index lists client files only: business has no other skills' records.
+Self-checks (same-session self-check): Index copies nothing OK · People by role OK · No private names OK.

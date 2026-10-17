@@ -11,7 +11,6 @@ writes_nothing: true
 checks: [writes, status, route, screen, private_names]
 route: { verb: /ow-start }
 screen:
-  must: ["A-01: client ops lead", "A-02: you", "A-03: client owner", "DEC-01: review by 2026-10-19", "larkspur-ceramics: next, ow-build-plan"]
+  must: ["A-01: client ops lead", "A-02: you", "A-03: client owner", "DEC-01: review by 2026-10-19", "ow-build-plan /ow-build-plan-start plans/larkspur-ceramics/"]
   must_not: ["\\(reported overdue\\)", "MTG-01"]
 status: { lines: [] }
-private_names: [llc-ops, Deftwright]

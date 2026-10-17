@@ -14,4 +14,3 @@ route:
   says: ["not installed here", "logs/larkspur-ceramics/meetings/MTG-01/transcript.md", "your notes"]
   never: ["DONE:"]
 status: { lines: [] }
-private_names: [llc-ops, Deftwright]

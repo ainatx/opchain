@@ -10,6 +10,5 @@ writes_nothing: true
 checks: [writes, write_once, status, route, private_names]
 route:
   verb: /ow-start-log-decision
-  says: ["does not exist", "in your own words, with its source"]
+  says: ["logs/larkspur-ceramics/meetings/MTG-03/notes.md"]
 status: { lines: [] }
-private_names: [llc-ops, Deftwright]

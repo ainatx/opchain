@@ -9,8 +9,7 @@ writes_nothing: true
 checks: [writes, write_once, status, route, screen, private_names]
 route:
   verb: /ow-start-action
-  says: ["Refused", "Nothing was written"]
+  says: ["Refuse"]
 screen:
-  must: ["Open in larkspur-ceramics: A-01 .* A-02 .* DEC-01"]
+  must: ["Open in larkspur-ceramics:", "A-01 \\(client ops lead\\) by 2026-10-16", "A-02 \\(you\\) by 2026-10-19", "DEC-01 review by 2026-10-19"]
 status: { lines: [] }
-private_names: [llc-ops, Deftwright]

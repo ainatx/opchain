@@ -30,7 +30,8 @@
 //   index          /ow-start-log lists other skills' files by path, date and one header key; copies nothing
 //   business       nothing crosses between logs/business/ and a client's files
 //   gitignore      asks once without the two lines, adds them only on yes; never asks when present
-//   screen         the printed screen says what the key expects, and nothing it must not
+//   screen         the printed screen shows the prescribed text and structure the key names, and nothing it must not
+//   handling       a logs-only workstream asks the handling question once and keeps the answer in the logs header
 //
 // Each check runs on its own: a malformed file (notes.md as a folder, a header
 // that is not valid YAML, a truncated STATUS line, a binary transcript, an empty
@@ -48,8 +49,10 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as yaml from "js-yaml";
 import { matter } from "./lib/frontmatter.mjs";
-import { runView as buildRunView, validateEmailHtml, htmlWords, words, categoryFindings, OURS } from "./ow-build-acceptance.mjs";
+import { runView as buildRunView, validateEmailHtml, htmlWords, words, categoryFindings, OURS, MONEY_QTY } from "./ow-build-acceptance.mjs";
 import { runLayers as planRunLayers } from "./ow-build-plan-acceptance.mjs";
+import { familyNameRules } from "./check-skill-contracts.mjs";
+import { loadCatalogs } from "./lib/catalogs.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const FIXTURES = join(ROOT, "tests", "fixtures", "ow-start");
@@ -281,21 +284,46 @@ export function followUpFindings(s, { user = null } = {}) {
     if (/time or effort/.test(what) && !ours && CLIENT_SIDE.test(t)) continue;
     out.push([what, hit]);
   }
-  const margin = t.match(/(?<!\b(?:your|their|client'?s?)\s+)\bmargins?\b/i);
-  if (margin) out.push(["a margin that is not the client's", margin[0]]);
+  for (const [re, what] of OUR_SIDE_WORDING) { const m = t.match(re); if (m) out.push([what, m[0]]); }
   return out;
 }
 
+/**
+ * Our side in plain words, with or without an amount (round 1 m1; D1's categories):
+ * our rates, charges and fees; our charging, billing of time, quoting low or high,
+ * absorbing a cost, padding an estimate; a mark-up, a margin or a budget that is not
+ * the client's. "Take a small hit" and other idioms stay with the self-check (D2).
+ */
+const NOT_THEIRS = "(?<!\\b(?:your|their|client'?s?|the client's)\\s+)";
+const OUR_SIDE_WORDING = [
+  [/\b(?:our|my)\s+(?:[\w-]+\s+){0,2}?(?:rates?|charges?|fees?|pricing|prices|premiums?|mark-?ups?|costs?|budgets?|margins?|profits?)\b/i, "our rate, charge, cost or margin (said without an amount)"],
+  [/\b(?:I|we)(?:'m|'re|'ll|'ve| am| are| will| would| have| had| just| already)*\s+(?:charg(?:e|es|ed|ing)\b(?!\s+(?:your|the)\s+(?:card|account))|absorb(?:s|ed|ing)?\b|pad(?:ded|ding)?\s+(?:the|our|my|this)\s+(?:estimate|quote|price|budget|hours)\b|mark(?:ed|ing)?\s+(?:it\s+|this\s+)?up\b|discount(?:ed|ing)?\s+(?:it|this|the\s+\w+|our)\b)/i, "our charging, absorbing or padding"],
+  [/\b(?:I|we)\b[^.]{0,25}\bbill(?:s|ed|ing)?\b[^.]{0,30}\b(?:time|hours?|effort|separately)\b/i, "our billing of time"],
+  [/\b(?:I|we)\s+(?:have\s+|had\s+|'ve\s+)?quoted\b[^.]{0,30}\b(?:at|low|high|below|above|under|too)\b/i, "how we quoted it"],
+  [/\babsorb(?:s|ed|ing)?\s+(?:the|this|that|any)?\s*(?:extra\s+)?(?:cost|costs|overrun|time|hours)\b/i, "a cost we absorb"],
+  [new RegExp(`${NOT_THEIRS}\\bmark-?ups?\\b`, "i"), "a mark-up that is not the client's"],
+  [new RegExp(`${NOT_THEIRS}\\bmargins?\\b`, "i"), "a margin that is not the client's"],
+  [new RegExp(`${NOT_THEIRS}\\b(?:over|under)\\s+(?:the\\s+|our\\s+|my\\s+)?budget\\b`, "i"), "over or under our budget"],
+  [/\bbudget(?:ed)?\s+(?:effort|hours|time|days)\b|\bdiscounted\s+(?:rate|price|fee)\b|\b(?:blended|day|hourly|standard|usual|normal)\s+rate\b(?<!\byour\s+\w+\s+rate)/i, "our rate or budgeted effort"],
+];
+
 const HONORIFIC = /\b(?:Mr|Mrs|Ms|Mx|Miss|Dr|Prof)\.?\s+[A-Z][a-z]+/;
 const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/;
-const PHONE = /(?:\+?\d{1,3}[\s.-]?)?(?:\(\d{3}\)\s?|\b\d{3}[\s.-])\d{3}[\s.-]\d{4}\b/;
-const NOT_A_NAME = new Set(["Email", "Emails", "Orders", "Order", "Data", "Notes", "Support", "Call", "Calls", "Feedback", "Quote", "Quotes", "Invoice", "Invoices", "Message", "Messages", "Help", "Word", "News", "Update", "Updates", "Export", "Exports", "File", "Files", "Answer", "Answers", "Reply", "Replies", "Someone", "Anyone", "Everyone", "Nobody", "Somebody", "Pallets", "Shipments", "Delivery", "Deliveries", "Samples", "Photos", "Pickup", "Pickups"]);
-const NAME_FROM_ORG = /\b([A-Z][a-z]+) from (?:the )?[A-Z][\w&'-]*/g;
+// A phone number: with an area code ("512-555-0147", "(512) 555-0199", "+1 512 555 0177"), or a
+// 7-digit local number ("555-0142", "555 0123"); an ISO date (4-2-2) is never one.
+const PHONE = /(?:\+?\d{1,3}[\s.-]?)?(?:\(\d{3}\)\s?|\b\d{3}[\s.-])\d{3}[\s.-]\d{4}\b|(?<![\d.-])\b\d{3}[\s.-]\d{4}\b(?![.-]\d)/;
+// `<Name> from <Organisation>`. Mid-sentence, a capitalised word before "from <Capitalised>" is a
+// name. At the start of a sentence it may be a noun ("Stoneware from Laguna arrives"), so there it
+// counts only when a person's verb follows the organisation ("Jordan from Larkspur will send").
+const NAME_FROM_ORG = /\b([A-Z][a-z]+) from (?:the )?[A-Z][\w&'-]*(?:\s+[A-Z][\w&'-]*)*/g;
+const PERSON_VERB = /^\s*(?:(?:will|would|can|could|should|is going to|'ll)\s+(?:send|draft|bring|pay|review|check|confirm|call|email|write|sign|approve|share|join|attend|handle|own|lead|look|follow|reply|prepare|update|provide|meet|book|chase|test|run|ask|tell|let)\b|(?:said|says|asked|asks|confirmed|confirms|sent|sends|agreed|agrees|wants|wanted|called|calls|emailed|emails|mentioned|told|tells|approved|approves|signed|signs|wrote|writes|replied|replies|joined|attended|offered|promised|noted|explained|suggested|prefers|needs|thinks|thought|knows)\b)/;
+const sentenceStart = (before) => /^(?:\s*(?:[-*]|\d+\.)\s+)?$|[.!?]["”)]?\s+$/.test(before);
 
 /**
  * People by role (C12), by category: an email address, a phone number, a known
  * person's name (case-sensitive, whole word), an honorific with a name,
- * `<Name> from <Organisation>`, a `cc:` line. No generic capitalised-word rule.
+ * `<Name> from <Organisation>`, a `cc:` line that names someone (a role is fine).
+ * No generic capitalised-word rule.
  */
 export function peopleFindings(line, names = []) {
   const out = [];
@@ -304,8 +332,24 @@ export function peopleFindings(line, names = []) {
   if (PHONE.test(l)) out.push(["a phone number", l.match(PHONE)[0]]);
   for (const n of names) if (new RegExp(`(?<![\\w-])${esc(n)}(?![\\w-])`).test(l)) out.push(["a person's name", n]);
   if (HONORIFIC.test(l)) out.push(["an honorific with a name", l.match(HONORIFIC)[0]]);
-  for (const m of l.matchAll(NAME_FROM_ORG)) if (!NOT_A_NAME.has(m[1])) out.push(["a name from an organisation", m[0]]);
-  if (/^\s*b?cc\s*:/i.test(l)) out.push(["a cc: line", l.trim().slice(0, 30)]);
+  for (const m of l.matchAll(NAME_FROM_ORG)) {
+    if (sentenceStart(l.slice(0, m.index)) && !PERSON_VERB.test(l.slice(m.index + m[0].length))) continue;
+    out.push(["a name from an organisation", m[0]]);
+  }
+  const cc = l.match(/^\s*b?cc\s*:\s*(.*)$/i);
+  if (cc && (/\b[A-Z][a-z]/.test(cc[1]) || EMAIL.test(cc[1]))) out.push(["a cc: line that names someone", l.trim().slice(0, 30)]);
+  return out;
+}
+
+/** No private names (C13): catalogs.json's rule (privateNames, brandNames), never a per-key copy. */
+let nameRulesCache = null;
+export function privateNameFindings(line) {
+  if (!nameRulesCache) {
+    const ow = loadCatalogs({ root: ROOT, env: {} }).find((c) => Array.isArray(c.privateNames));
+    nameRulesCache = ow ? familyNameRules(ow) : [];
+  }
+  const out = [];
+  for (const r of nameRulesCache) { const m = String(line).match(r.re); if (m) out.push([r.what, m[0]]); }
   return out;
 }
 
@@ -313,7 +357,10 @@ export function peopleFindings(line, names = []) {
 
 const DATE = "\\d{4}-\\d{2}-\\d{2}";
 const WS = "[a-z0-9]+(?:-[a-z0-9]+)*";
-const ROLE = "[a-z]+(?:[ -][a-z]+){0,4}";
+// A role: lower-case words, an acronym ("client CFO", "client IT lead") or a possessive ("client's
+// bookkeeper"), with at least one lower-case word, so a name ("Dana") is never one (round 1 m8).
+const ROLE_WORD = "(?:[a-z]+(?:['’]s)?|[A-Z]{2,5}(?:['’]s)?)";
+const ROLE = `(?=(?:[A-Z]{2,5}(?:['’]s)?[ -])*[a-z])${ROLE_WORD}(?:[ -]${ROLE_WORD}){0,4}`;
 const LINE_RE = new RegExp(`^(${DATE}) \\(clock: (?:tool|host-supplied|user-stated|assumed)\\) \\| ow-start \\d+\\.\\d+\\.\\d+ \\| (logs/(${WS})/(?:meetings/(MTG-\\d{2,})/(?:agenda\\.md|notes\\.md(?:#(A-\\d{2,}))?)|decisions/(DEC-\\d{2,})\\.md)) \\| next: (.+) \\| awaiting: (.+)$`);
 
 /** Problems with one logs STATUS line against the closed grammar; `roles(mtg)` gives that meeting's attendee roles. */
@@ -423,11 +470,14 @@ function checkStatus(key, run) {
   before.forEach((l, i) => { if (after[i] !== l) p.push(`STATUS.md line ${i + 1} was rewritten; STATUS.md is append-only`); });
   const added = after.slice(before.length);
   const want = key.status?.lines ?? [];
+  // A duplicate repeats its item's newest line (logs-schema §6); an older line may come back
+  // (A-01 moved to the 23rd, then back to the 16th: round 1 m4).
   const sig = (l) => fields5(l).slice(2).join(" | ");
-  const seen = new Set(before.map(sig));
+  const newest = new Map();
+  for (const l of before) newest.set(fields5(l)[2], sig(l));
   for (const l of added) {
-    if (seen.has(sig(l))) p.push(`a duplicate STATUS line: "${sig(l)}" is already in STATUS.md`);
-    seen.add(sig(l));
+    if (newest.get(fields5(l)[2]) === sig(l)) p.push(`a duplicate STATUS line: "${sig(l)}" is already its item's newest line`);
+    newest.set(fields5(l)[2], sig(l));
   }
   if (added.length !== want.length) p.push(`${added.length} STATUS line(s) appended, expected ${want.length}`);
   want.forEach((w, i) => {
@@ -682,10 +732,7 @@ function checkPrivateNames(key, run) {
   for (const f of targets) {
     const t = f.startsWith("printed/") ? run.screen(f) ?? "" : run.read(f) ?? "";
     t.split("\n").forEach((line, i) => {
-      for (const n of key.private_names ?? []) {
-        const re = new RegExp(`(?<![\\w-])${[...String(n)].map(esc).join("[\\s_-]?")}(?![\\w-])`, "i");
-        if (re.test(line)) p.push(`${f.replace(OW, "")}:${i + 1}: names "${line.match(re)[0]}"`);
-      }
+      for (const [what, hit] of privateNameFindings(line)) p.push(`${f.replace(OW, "")}:${i + 1}: names "${hit}" (${what}; catalogs.json)`);
     });
   }
   return p;
@@ -742,7 +789,11 @@ function checkIndex(key, run) {
   if (!screen.trim()) return [`${screenRel} is empty`];
   const rows = indexRows(ix.client);
   const files = run.all().filter((f) => f.startsWith(OW) && rows.some((r) => r.re.test(f)));
-  const unnamed = new Set();
+  // What the index must never copy, by meaning (round 1 D2a): the amounts in any header value
+  // the row does not name, compared by value ("USD 2,600" is 2600.00, "3,000" is 3000); the
+  // phrases of those values, compared five words at a time; and body text (the key's canaries).
+  const amounts = new Set(), shingles = new Set();
+  const leaves = (v) => (v == null ? [] : Array.isArray(v) ? v.flatMap(leaves) : typeof v === "object" && !(v instanceof Date) ? Object.values(v).flatMap(leaves) : [String(iso(v))]);
   for (const f of files) {
     const row = rows.find((r) => r.re.test(f));
     const rel = f.slice(OW.length);
@@ -751,29 +802,38 @@ function checkIndex(key, run) {
     const named = row.keys.filter((k) => k !== "created");
     const line = !data || !data.created ? `${rel} · no date in its header` : [rel, iso(data.created), ...named.map((k) => `${k}: ${iso(data[k])}`)].join(" · ");
     if (!screen.includes(line)) p.push(`the index does not list "${line}"`);
-    // Every header value the row does not name: amounts and notes are what must never travel
-    // (the CO's price, contract-inputs.md's fixed_price and acceptance_note). A leaf counts when
-    // it carries a figure or is a phrase; dates, paths and one-word states are not distinctive.
-    const leaves = (v) => (v == null ? [] : Array.isArray(v) ? v.flatMap(leaves) : typeof v === "object" && !(v instanceof Date) ? Object.values(v).flatMap(leaves) : [String(iso(v))]);
     for (const [k, v] of Object.entries(data ?? {})) {
       if (row.keys.includes(k) || ["ow_artefact", "schema", "written_by", "workstream", "clock", "origin", "subject", "client", "id"].includes(k)) continue;
       for (const s of leaves(v)) {
-        if (/^\d{4}-\d{2}-\d{2}$/.test(s) || s.includes("/") || s.length < 4) continue;
-        if (/\d/.test(s) || s.trim().split(/\s+/).length >= 3) unnamed.add(s.trim());
+        if (/^[\w.<>-]+(?:\/[\w.<>-]+)+\/?$/.test(s.trim())) continue; // a path: the index shows paths by design
+        for (const n of numbersIn(s)) if (n >= 100 && !(Number.isInteger(n) && n >= 1900 && n <= 2100)) amounts.add(n); // a year is not an amount
+        const w = norm(s).split(" ").filter(Boolean);
+        for (let i = 0; i + 5 <= w.length; i++) shingles.add(w.slice(i, i + 5).join(" "));
       }
     }
   }
   for (const want of ix.expect ?? []) if (!screen.includes(want)) p.push(`the index does not list "${want}"`);
-  for (const v of unnamed) {
-    if (screen.includes(v)) p.push(`${screenRel} copies a header value the index row does not name ("${v.slice(0, 40)}")`);
-    for (const f of run.written().filter((x) => TEXT.test(x))) if ((run.read(f) ?? "").includes(v)) p.push(`${f}: copies a header value of an indexed file ("${v.slice(0, 40)}")`);
+  const words5 = norm(screen).split(" ").filter(Boolean);
+  for (let i = 0; i + 5 <= words5.length; i++) {
+    const s = words5.slice(i, i + 5).join(" ");
+    if (shingles.has(s)) { p.push(`${screenRel} copies the words of a header value the index row does not name ("${s}")`); break; }
   }
-  for (const c of ix.canaries ?? []) {
-    if (new RegExp(esc(c), "i").test(screen)) p.push(`${screenRel} copies body text of an indexed file ("${c}")`);
-    for (const f of run.written().filter((x) => TEXT.test(x))) if (new RegExp(esc(c), "i").test(run.read(f) ?? "")) p.push(`${f}: copies body text of an indexed file ("${c}")`);
-  }
+  for (const n of numbersIn(screen)) if (amounts.has(n)) p.push(`${screenRel} copies an amount from an indexed file's header (${n}), in whatever form it is written`);
+  screen.split("\n").forEach((l, i) => {
+    const m = l.match(MONEY_QTY);
+    if (m) p.push(`${screenRel}:${i + 1}: an amount of money ("${m[0]}"); the index never shows one`);
+  });
+  const names = knownNames(key, run);
+  screen.split("\n").forEach((l, i) => { for (const [what, hit] of peopleFindings(l, names)) p.push(`${screenRel}:${i + 1}: ${what} ("${hit}"); the index never shows a person`); });
+  for (const c of ix.canaries ?? []) if (norm(screen).includes(norm(c))) p.push(`${screenRel} copies body text of an indexed file ("${c}")`);
   for (const a of ix.absent ?? []) if (screen.includes(a)) p.push(`the index lists ${a}, which does not exist in this run`);
   return p;
+}
+
+/** Numbers in a text by value, dates and ids left out: "USD 2,600.00" and "2,600" are both 2600. */
+function numbersIn(text) {
+  const t = String(text).replace(/\b\d{4}-\d{2}-\d{2}\b/g, " ").replace(/\b[A-Z]{1,4}-?\d+(?:\.\d+)*\b/g, " ").replace(/\b\d{1,2}:\d{2}\b/g, " ");
+  return [...t.matchAll(/(?<![\w.])\d{1,3}(?:,\d{3})+(?:\.\d+)?|(?<![\w.,])\d+(?:\.\d+)?/g)].map((m) => Number(m[0].replace(/,/g, ""))).filter((n) => Number.isFinite(n));
 }
 
 function checkBusiness(key, run) {
@@ -805,9 +865,14 @@ function checkGitignore(key, run) {
     if (!f) return undefined;
     try { return header(run.read(f), f).data.gitignore; } catch { return undefined; }
   };
-  const want = !g.repo ? "not a repository" : has(before) ? "present" : g.answer === "yes" ? "added" : g.answer === "no" ? "declined" : null;
-  if (!g.repo || has(before)) {
-    if (asked) p.push("the run asked about the .gitignore lines, but " + (g.repo ? "they are already there" : "the folder is not in a git repository"));
+  // A decline recorded in an earlier logs file of this workstream is kept: never asked again (round 1 D1a).
+  const declinedBefore = g.repo && !has(before) && run.priorAll().some((f) => {
+    if (!f.startsWith(`${ws(key)}/`) || !f.endsWith(".md")) return false;
+    try { return header(run.priorRead(f) ?? "", f).data.gitignore === "declined"; } catch { return false; }
+  });
+  const want = !g.repo ? "not a repository" : has(before) ? "present" : declinedBefore ? "declined" : g.answer === "yes" ? "added" : g.answer === "no" ? "declined" : null;
+  if (!g.repo || has(before) || declinedBefore) {
+    if (asked) p.push("the run asked about the .gitignore lines, but " + (!g.repo ? "the folder is not in a git repository" : declinedBefore ? "an earlier logs file of this workstream records the decline; it is not asked again" : "they are already there"));
     if (wrote) p.push(".gitignore was written without a question and a yes");
   } else {
     if (!asked) p.push("the folder is in a git repository without the two .gitignore lines, and the run did not ask");
@@ -817,6 +882,34 @@ function checkGitignore(key, run) {
   const h = fileHeader();
   if (want && h !== undefined && h !== want) p.push(`the logs file's header says gitignore: ${h}, expected ${want}`);
   if (want && h === undefined && logsWritten(run).some((x) => x.endsWith(".md"))) p.push(`the logs file's header has no gitignore: (expected ${want})`);
+  return p;
+}
+
+/**
+ * Handling for a logs-only workstream (round 1 m6; build note 6): with no intake.yaml and
+ * no profile default, the protocol's question is asked once and the answer is written as
+ * `handling:` in the header of the logs file being written (never into profile.md); a later
+ * verb reads it back from the newest logs file that records one and does not ask again.
+ */
+const HANDLING_QUESTION = "Does any of this material carry a sensitivity marking";
+function checkHandling(key, run) {
+  const p = [];
+  const h = key.handling ?? {};
+  const screens = run.printed().map((s) => run.screen(s) ?? "").join("\n");
+  const asked = screens.includes(HANDLING_QUESTION);
+  const recorded = run.priorAll().filter((f) => f.startsWith(`${ws(key)}/`) && f.endsWith(".md")).some((f) => {
+    try { return header(run.priorRead(f) ?? "", f).data.handling != null; } catch { return false; }
+  });
+  if (run.written().includes(`${OW}profile.md`)) p.push("profile.md was written by a logs verb; the handling answer goes in the logs file's header");
+  const file = logsWritten(run).find((x) => x.endsWith(".md"));
+  let value;
+  try { value = file ? header(run.read(file), file).data.handling : undefined; } catch { value = undefined; }
+  if (recorded) {
+    if (asked) p.push("the handling question was asked again, though a logs file of this workstream records the answer; read it from there");
+  } else if (h.asked) {
+    if (!asked) p.push(`no handling value is stored for ${key.workstream}, and the run did not ask the protocol's question ("${HANDLING_QUESTION}…")`);
+    if (String(value ?? "") !== String(h.answer)) p.push(`the logs file's header says handling: ${value ?? "(none)"}, expected ${h.answer} (the answer, recorded where it was asked)`);
+  }
   return p;
 }
 
@@ -837,7 +930,7 @@ const CHECKS = {
   status_grammar: checkStatusGrammar, route: checkRoute, agenda: checkAgenda, notes: checkNotes,
   trace: checkTrace, owner_date: checkOwnerDate, embedded: checkEmbedded, follow_up: checkFollowUp,
   follow_up_clean: checkFollowUpClean, people: checkPeople, private_names: checkPrivateNames,
-  decision: checkDecision, index: checkIndex, business: checkBusiness, gitignore: checkGitignore, screen: checkScreen,
+  decision: checkDecision, index: checkIndex, business: checkBusiness, gitignore: checkGitignore, screen: checkScreen, handling: checkHandling,
 };
 
 /** Run a logs case's checks against a run folder (the golden run by default). Returns [{ check, problems }]. */

@@ -31,4 +31,3 @@ business:
   business_canaries: [Ledgerly, yearly plan, user seat]
 git: { repo: true }
 names: [Dana, Jess, Marcus, Priya, Tomas]
-private_names: [llc-ops, Deftwright]

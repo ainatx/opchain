@@ -14,4 +14,3 @@ route:
   says: ["use ow-tools to transcribe logs/larkspur-ceramics/meetings/MTG-01/audio/", "/ow-start-transcribe"]
   never: ["DONE:"]
 status: { lines: [] }
-private_names: [llc-ops, Deftwright]

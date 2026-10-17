@@ -24,4 +24,3 @@ status:
     - { path: logs/larkspur-ceramics/meetings/MTG-01/agenda.md, next: "ow-start /ow-start-log-meeting logs/larkspur-ceramics/", awaiting: meeting on 2026-10-13 }
 git: { repo: false }
 names: [Dana, Jess, Marcus]
-private_names: [llc-ops, Deftwright]

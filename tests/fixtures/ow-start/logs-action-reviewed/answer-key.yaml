@@ -10,4 +10,3 @@ route: { verb: /ow-start-action }
 status:
   lines:
     - { path: "logs/larkspur-ceramics/decisions/DEC-01.md", next: "none (closed: reviewed)", awaiting: "none (reviewed 2026-10-19, kept)" }
-private_names: [llc-ops, Deftwright]

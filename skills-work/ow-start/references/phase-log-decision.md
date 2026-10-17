@@ -4,7 +4,9 @@ Run step 0 of `references/ow-protocol.md` first. Format: `references/logs-schema
 
 ## 1. One decision per file
 
+- **No workstream given** (round 1 m5): never guess. If exactly one workstream fits what was asked (one with a prepared, unlogged meeting; one holding that id; one with notes whose decisions are not logged yet), name it and ask the user to confirm it; otherwise list the workstreams that fit and ask which workstream. Write nothing until the user answers.
 - **From a meeting** ("log the decisions in …/MTG-nn/notes.md"): read the notes' Decisions and the `subject:` of every `DEC-nn.md` in the workstream. Offer each `D<n>` that has no `DEC-nn` yet (its `subject:` is `logs/<workstream>/meetings/MTG-nn/notes.md#D<n>`), and write **only the ones the user picks**. All logged already: say so and write nothing. Notes with no decisions: say so and write nothing.
+- **With only a workstream**: if a logged meeting of the workstream has decisions with no `DEC-nn` yet, offer them first, as from a meeting; otherwise, or if the user declines them, log one on its own.
 - **On its own**: ask for the decision, its context and the options considered, with a source for each (a file, a meeting, or `you`).
 - The next id is one more than the highest `DEC-nn` in the workstream.
 

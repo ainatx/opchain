@@ -6,20 +6,21 @@ File formats and the STATUS forms: `references/logs-schema.md`. Run step 0 of `r
 
 States: `A-nn done`, `A-nn dropped`, `A-nn moved <YYYY-MM-DD>`, `DEC-nn reviewed`.
 
-1. Read `STATUS.md` and take the **newest line per item** for the workstream (section 3).
+1. Read `STATUS.md` and take the **newest line per item** for the workstream (section 3). **No workstream given** (round 1 m5): never guess. If exactly one workstream fits what was asked (one with a prepared, unlogged meeting; one holding that id; one with notes whose decisions are not logged yet), name it and ask the user to confirm it; otherwise list the workstreams that fit and ask which workstream. Write nothing until the user answers.
 2. **Refuse** when the id has no line in this workstream, or its newest line is already closed (`next: none (closed: …)`), or the state does not fit the id (`DEC-nn done`). Say why, list the open ids of the workstream with their awaiting dates, and write nothing.
 3. Otherwise append exactly one line, in the form `references/logs-schema.md` §6 gives for that state. `moved` keeps the owner role from the newest line. Nothing else is written; the notes and the decision file are never edited.
-4. Print what was appended and the open items left. No NEXT block.
+4. Print `Appended:` and the line, then `Open in <workstream>:` and each open item in its STATUS form (`A-nn (<role>) by <date>`, `DEC-nn review by <date>`), then the results of this verb's self-checks (No client text in STATUS, No private names). No NEXT block.
 
 ## 2. `/ow-start-log <workstream>`
 
-One screen. **It writes nothing.**
+One screen. **It writes nothing.** **No workstream given** (round 1 m5): never guess. If only one workstream has logs, name it and ask the user to confirm it; otherwise list the workstreams that fit and ask which workstream. Write nothing until the user answers. An empty workstream: say `Nothing logged yet for <workstream>`.
 
 - **Meetings**: each `MTG-nn` with its date and state (prepared, held, logged), then the other skills' meeting records from the index (section 4).
 - **Open actions**: the newest line per `A-nn` that is open, with owner role and due date, soonest first.
 - **Decisions**: each `DEC-nn` with `decided_on` and `review_on`, superseded ones marked, then the other skills' decision records from the index.
 - **Reviews due**: open `DEC-nn review by <date>` lines.
 - Mark an item "reported overdue" only when today's date is known (protocol §6) and is past its date.
+- Run this verb's self-checks on the screen before printing it (Index copies nothing, People by role, No private names; `references/self-checks-logs.md`) and print their results under it.
 
 `business` has no index rows: the index lists client files only. Nothing from `logs/business/` appears on a client's screen, and nothing from a client's files on `business`.
 
@@ -33,7 +34,7 @@ One screen. **It writes nothing.**
 
 ## 4. The index (decision L5; owner decision O1)
 
-`/ow-start-log <client>` lists what other skills already recorded for the client, **by path, the date in the file's header (`created`) and the one header key its row names**. It reads only those header keys: never a body line, never another header key, never an amount, and it copies nothing into any file. A skill that is not installed, or has not run, has no rows. A file whose header cannot be read is listed by path with "no date in its header".
+`/ow-start-log <client>` lists what other skills already recorded for the client, **by path, the date in the file's header (`created`) and the one header key its row names**. It reads only those header keys: never a body line, never another header key, never an amount or a person's name in any form, and it copies nothing into any file. No row reads a money, note or person key (`check-skill-contracts` refuses one). A skill that is not installed, or has not run, has no rows. A file whose header cannot be read is listed by path with "no date in its header".
 
 | Kind | Producer | Path | Header keys read |
 |---|---|---|---|
@@ -44,7 +45,7 @@ One screen. **It writes nothing.**
 | Meeting (monthly care call) | ow-care | `care/<client>/reports/M-nn.md` | `created` |
 | Decision (quote accepted) | ow-build-plan | `plans/<client>/contract-inputs.md` | `created`, `accepted` |
 | Decision (plan signed) | ow-build-plan | `plans/<client>/build-request.md` | `created`, `signed` |
-| Decision (change order signed or declined) | ow-build | `builds/<client>/changes/CO-nn.md` | `created`, `status` |
+| Decision (a change order, by its status: signed or declined once decided) | ow-build | `builds/<client>/changes/CO-nn.md` | `created`, `status` |
 | Decision (acceptance) | ow-uat | `uat/<client>/signoff.md` | `created`, `acceptance` |
 | Decision (what follows the handoff) | ow-handoff | `handoffs/<client>/after-offer.md` | `created`, `choice` |
 | Decision (who trains) | ow-documentation | `docs/<client>/docs.yaml` | `created`, `trainer` |
