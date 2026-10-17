@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a9151b76e8c402aea",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-17T01:03:47.664Z",
+  "updated_at": "2026-10-17T15:45:46.084Z",
   "skill": "oc-docs-forge",
   "phase": "pr-docs",
   "status": "complete",
-  "step": "Sprint 2 (ow-build 1.0.0) PR evidence on merge b0a8d8ae (origin/main 0de6747e + Sprint 2)",
-  "progress_summary": "PR docs for ow-build 1.0.0 (Sprint 2): the new skill's text (skills-work/ow-build/), its design build notes (docs/plans/2026-10-08-ow-build-design.md §13 rows 1-29, including the owner decisions of 2026-10-16), the amended sprint contract and four evaluation reports (sprints/release-2.1/ow-sprint-2/), the catalog and family READMEs (skills-work/README.md, CLAUDE.md), and the fixture README (tests/fixtures/ow-build/README.md).",
+  "step": "Sprint 2 R4 follow-up (ow-build checker) PR evidence on a4e9547d (origin/main 691afdfe + 2 commits)",
+  "progress_summary": "PR docs for the ow-build checker follow-up (evaluation round 4, R4-1 to R4-3): skills-work/ow-build/references/self-checks.md states that our effort estimates are internal numbers in spec/ too and that the agent of the effort decides whose time it is; the sprint contract and design §13 row 30 record the owner decisions of 2026-10-17.",
   "context_primer": {
     "key_decisions": [
       "Every PR requires a Documentation section; this PR carries it inline.",
@@ -17,60 +17,27 @@
       "Time-tracking Sprint 2 uses a stacked PR against Sprint 1, candidate-bound Docs/Repo handoffs, and explicit pending-owner acceptance. No frozen product/version surface changes."
     ],
     "generated_files": [
-      "skills-work/ow-build/SKILL.md",
-      "skills-work/ow-build/references/",
-      "skills-work/ow-build/skill.edges.yaml",
-      "skills-work/ow-build/examples/",
-      "skills-work/README.md",
-      "skills-work/ow-build-plan/SKILL.md",
-      "skills-work/ow-build-plan/references/phase-offer.md",
-      "skills-work/ow-build-plan/references/phase-start.md",
-      "skills-work/ow-build-plan/references/routing-and-resume.md",
-      "skills-work/ow-start/SKILL.md",
-      "docs/plans/2026-10-08-ow-build-design.md",
+      "skills-work/ow-build/references/self-checks.md",
       "sprints/release-2.1/ow-sprint-2/contract.md",
-      "sprints/release-2.1/ow-sprint-2/eval-round-1.md",
-      "sprints/release-2.1/ow-sprint-2/eval-round-2.md",
-      "sprints/release-2.1/ow-sprint-2/eval-round-3.md",
-      "sprints/release-2.1/ow-sprint-2/eval-round-4.md",
-      "tests/fixtures/ow-build/README.md",
-      "CLAUDE.md"
+      "docs/plans/2026-10-08-ow-build-design.md"
     ]
   },
   "skill_state": {
     "pr_comment_marker": null,
     "docs_changed": [
-      "skills-work/ow-build/SKILL.md",
-      "skills-work/ow-build/references/",
-      "skills-work/ow-build/skill.edges.yaml",
-      "skills-work/ow-build/examples/",
-      "skills-work/README.md",
-      "skills-work/ow-build-plan/SKILL.md",
-      "skills-work/ow-build-plan/references/phase-offer.md",
-      "skills-work/ow-build-plan/references/phase-start.md",
-      "skills-work/ow-build-plan/references/routing-and-resume.md",
-      "skills-work/ow-start/SKILL.md",
-      "docs/plans/2026-10-08-ow-build-design.md",
+      "skills-work/ow-build/references/self-checks.md",
       "sprints/release-2.1/ow-sprint-2/contract.md",
-      "sprints/release-2.1/ow-sprint-2/eval-round-1.md",
-      "sprints/release-2.1/ow-sprint-2/eval-round-2.md",
-      "sprints/release-2.1/ow-sprint-2/eval-round-3.md",
-      "sprints/release-2.1/ow-sprint-2/eval-round-4.md",
-      "tests/fixtures/ow-build/README.md",
-      "CLAUDE.md"
+      "docs/plans/2026-10-08-ow-build-design.md"
     ],
     "docs_not_changed_reason": null,
     "follow_up_docs": [
-      "R4-1 to R4-3 (evaluation round 4): regression-net gaps in scripts/ow-build-acceptance.mjs and the F07 skip label, in a follow-up PR",
-      "ow-start 1.1.0 (Sprint L) records the slash-hint edit made to ow-start 1.0.0's SKILL.md here",
-      "Owner decisions pending from round 4: the regression net's precision bar before Sprint 6, and whether spec/ effort estimates fall under C5"
+      "Sprint 6 real-model runs measure the meaning the regression net cannot (owner decision 2 of 2026-10-16)"
     ],
-    "verified_for_sha": "b0a8d8aea89780cd080ac173216e5195248f1746",
-    "pr_body_fragment": "Docs: adds ow-build 1.0.0 under skills-work/ow-build/ (SKILL.md, 14 references, edges, examples); records the build's departures and the owner decisions of 2026-10-16 in design §13 (rows 1-29) and the contract (C5 restated); adds the four evaluation reports; updates skills-work/README.md and CLAUDE.md for the third ow- skill and its acceptance checker; documents the fixtures in tests/fixtures/ow-build/README.md. ow-build-plan gains its UAT-nn follow-on intake and its hand-off field lists; ow-start 1.0.0's SKILL.md gains one slash hint without a version bump (ow-start 1.1.0 in Sprint L records it)."
+    "verified_for_sha": "a4e9547d109c19aeb3432b78aec03f5a4816a7b2",
+    "pr_body_fragment": "Docs: self-checks.md (No internal numbers covers spec/ effort, price-book sizing and deal money; whose time it is follows the agent of the effort); the Sprint 2 contract gains the 2026-10-17 amendment line; design §13 row 30 records the two owner decisions. No SKILL.md body change (body stays ~4,415 tokens)."
   },
   "next_actions": [
-    "Open the follow-up PR for R4-1 to R4-3",
-    "Owner: rule on the round-4 OWNER-DECISIONs 1 and 2"
+    "Owner: review the follow-up PR"
   ],
   "handoffs": [
     {
@@ -1843,8 +1810,33 @@
           "CLAUDE.md"
         ]
       }
+    },
+    {
+      "id": "oc-docs-forge-ow-build-followups-pr-2026-10-17-994c0ecb6716",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-17T15:45:46.084Z",
+      "verified_at": "2026-10-17T15:45:46.084Z",
+      "producer": {
+        "skill": "oc-docs-forge",
+        "run_id": "ow-build-followups-pr-2026-10-17"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:994c0ecb67168b6c62e462c35d4a6d9bc32bf0e3926cf1eb5635a2a64427b846"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-docs-v1",
+        "scope": "Checked on a4e9547d: the three changed docs were written in this branch and read; the self-checks text is pinned by tests/ow-build-acceptance.test.js; gen-skills-catalog, check-skill-contracts and lint-internal-refs pass. Not checked: the public site and generated public/docs (the ow- catalog feeds no build output).",
+        "evidence": [
+          "skills-work/ow-build/references/self-checks.md",
+          "sprints/release-2.1/ow-sprint-2/contract.md",
+          "docs/plans/2026-10-08-ow-build-design.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-17T01:03:47.664Z",
+  "record_updated_at": "2026-10-17T15:45:46.084Z",
   "blockers": []
 }
