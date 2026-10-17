@@ -4,7 +4,7 @@ Written by `/ow-start-log-meeting` for a meeting an external party attended (own
 
 ## Rules
 
-- **Branding** from `opchain-work/brand.yaml` when it exists (the user's file): `name`, `colors.text`, `colors.background`, `colors.primary` (the brand line, the rule under the header and the `<h2>` headings), `footer`, and `logo` with `logo_alt` when set. No `brand.yaml`: neutral styling (text `#1A1A1A` on `#FFFFFF`, headings `#1F4E79`), and say so.
+- **Branding** from `opchain-work/brand.yaml` when it exists (the user's file): `name`, `colors.text`, `colors.background`, `colors.primary` (the brand line, the rule under the header and the `<h2>` headings), `footer`, and `logo` with `logo_alt` when set. No `brand.yaml`: neutral styling (text `#1A1A1A` on `#FFFFFF`, headings `#1F4E79`), no brand line and no footer, and say so. A key that does not parse is styled neutrally; the keys that parse are used.
 - **Built for email clients:** a layout of tables (`role="presentation"`), every style inline (no `<style>`, `<link>` or `<script>`, no `on…` attributes), a 600 px content table, system fonts, no remote image or font, no HTML comment.
 - **Contrast:** every piece of text reaches 4.5:1 against the background behind it (3:1 for text 24 px and up, or bold and 18.66 px and up). `colors.primary` is used only where it reaches that; otherwise use `colors.text`. A logo only with `logo_alt`.
 - **Accessible by construction:** `lang` on `<html>`, a `<title>`, one `<h1>`, then `<h2>` sections with no skipped level; real lists for lists; link text says where it goes.

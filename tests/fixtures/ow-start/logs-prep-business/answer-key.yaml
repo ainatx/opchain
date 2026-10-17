@@ -1,0 +1,30 @@
+# Answer key: logs-prep-business (INVENTED). C4 prep route, business: the agenda
+# takes items from logs/business/ only. C11: no client canary.
+kind: logs
+case: logs-prep-business
+workstream: business
+user: Robin
+base: logs-business-vendor
+verbs: [/ow-start-prep-meeting]
+checks: [headers, writes, write_once, status, status_grammar, route, agenda, people, private_names, business, gitignore]
+route:
+  verb: /ow-start-prep-meeting
+  says: ["MTG-02", "use ow-start to log the meeting logs/business/meetings/MTG-02/"]
+agenda:
+  id: MTG-02
+  date: 2026-10-27
+  count: 3
+  items:
+    - { item: "A-01", source: "logs/business/meetings/MTG-01/notes.md#A-01" }
+    - { item: "A-02", source: "logs/business/meetings/MTG-01/notes.md#A-02" }
+    - { item: "Q1", source: "logs/business/meetings/MTG-01/notes.md#Q1" }
+  absent: ["larkspur", "DEC-01", "offer reply", "contractor chain"]
+status:
+  lines:
+    - { path: logs/business/meetings/MTG-02/agenda.md, next: "ow-start /ow-start-log-meeting logs/business/", awaiting: meeting on 2026-10-27 }
+business:
+  business_canaries: [Ledgerly, yearly plan, user seat]
+  client_canaries: [contractor chain, purchase orders, Larkspur, order view]
+git: { repo: true }
+names: [Priya, Tomas]
+private_names: [llc-ops, Deftwright]

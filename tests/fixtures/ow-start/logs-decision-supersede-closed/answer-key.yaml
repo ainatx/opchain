@@ -1,0 +1,19 @@
+# Answer key: logs-decision-supersede-closed (INVENTED). C9: superseding DEC-01
+# after its review was closed: DEC-02 written, DEC-01 untouched, no closing line
+# (nothing open to close), and no review line (no review).
+kind: logs
+case: logs-decision-supersede-closed
+workstream: larkspur-ceramics
+user: Robin
+base: logs-action-reviewed
+verbs: [/ow-start-log-decision]
+checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names]
+route:
+  verb: /ow-start-log-decision
+  says: ["DEC-02 supersedes it", "already closed"]
+decision:
+  files:
+    - { id: DEC-02, review: no review, supersedes: DEC-01, subject: none, confirmed: internal }
+status: { lines: [] }
+names: [Dana, Jess, Marcus]
+private_names: [llc-ops, Deftwright]

@@ -1,0 +1,13 @@
+# Answer key: logs-action-reviewed (INVENTED). C8: -action DEC-01 reviewed appends one line in the O2 form.
+kind: logs
+case: logs-action-reviewed
+workstream: larkspur-ceramics
+user: Robin
+base: logs-action-done
+verbs: [/ow-start-action]
+checks: [writes, write_once, status, status_grammar, route, private_names]
+route: { verb: /ow-start-action }
+status:
+  lines:
+    - { path: "logs/larkspur-ceramics/decisions/DEC-01.md", next: "none (closed: reviewed)", awaiting: "none (reviewed 2026-10-19, kept)" }
+private_names: [llc-ops, Deftwright]

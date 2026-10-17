@@ -1,0 +1,1 @@
+INVENTED TEST FIXTURE: this file stands for the meeting recording (mtg-01.m4a). No audio is ever committed to this repository.

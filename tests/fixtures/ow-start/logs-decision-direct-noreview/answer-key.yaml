@@ -1,0 +1,19 @@
+# Answer key: logs-decision-direct-noreview (INVENTED). C9 / C4: -log-decision on
+# its own with no review: one file, every field, no STATUS line.
+kind: logs
+case: logs-decision-direct-noreview
+workstream: larkspur-ceramics
+user: Robin
+base: logs-decision-from-meeting
+verbs: [/ow-start-log-decision]
+checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names, gitignore]
+route:
+  verb: /ow-start-log-decision
+  says: ["DEC-02", "no STATUS line"]
+decision:
+  files:
+    - { id: DEC-02, review: no review, supersedes: none, subject: none, confirmed: internal }
+status: { lines: [] }
+git: { repo: false }
+names: [Dana, Jess, Marcus]
+private_names: [llc-ops, Deftwright]

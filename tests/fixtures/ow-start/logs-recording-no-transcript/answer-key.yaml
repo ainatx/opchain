@@ -1,0 +1,17 @@
+# Answer key: logs-recording-no-transcript (INVENTED). C4 prep NEXT route, a recording with no transcript
+# (the ow-tools line); C16: ow-start never
+# writes into audio/ or transcribes. Writes nothing.
+kind: logs
+case: logs-recording-no-transcript
+workstream: larkspur-ceramics
+user: Robin
+base: logs-prep-first
+verbs: [/ow-start-log-meeting]
+writes_nothing: true
+checks: [writes, write_once, status, route, private_names]
+route:
+  verb: /ow-start-log-meeting
+  says: ["use ow-tools to transcribe logs/larkspur-ceramics/meetings/MTG-01/audio/", "/ow-start-transcribe"]
+  never: ["DONE:"]
+status: { lines: [] }
+private_names: [llc-ops, Deftwright]

@@ -26,6 +26,9 @@
 // Fixtures live in tests/fixtures/ow-start/<case>/ (all invented): input/ is what the
 // run starts from, expected/ is a hand-written golden run, answer-key.yaml the key.
 //
+// The logs cases (ow-start 1.1.0, `kind: logs` in tests/fixtures/ow-start/logs-*/) are
+// checked by scripts/ow-start-logs-acceptance.mjs; this script dispatches to it.
+//
 //   node scripts/ow-start-acceptance.mjs                       # every case against its golden run
 //   node scripts/ow-start-acceptance.mjs <case> <run-dir>      # one case against a real run
 //   node scripts/ow-start-acceptance.mjs --prepare <case> <dir> # set up a folder to run the skill in
@@ -34,6 +37,7 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as yaml from "js-yaml";
 import { matter } from "./lib/frontmatter.mjs";
+import * as logsAcceptance from "./ow-start-logs-acceptance.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const FIXTURES = join(ROOT, "tests", "fixtures", "ow-start");
@@ -600,9 +604,11 @@ export function runCase(caseDir, runRoot = join(caseDir, "expected")) {
   });
 }
 
+/** The intake cases (1.0.0). The logs cases (`kind: logs`, 1.1.0) run in scripts/ow-start-logs-acceptance.mjs. */
 export function listCases() {
   return readdirSync(FIXTURES, { withFileTypes: true })
     .filter((e) => e.isDirectory() && existsSync(join(FIXTURES, e.name, "answer-key.yaml")))
+    .filter((e) => { try { return loadKey(join(FIXTURES, e.name))?.kind !== "logs"; } catch { return true; } })
     .map((e) => e.name)
     .sort();
 }
@@ -635,15 +641,23 @@ function report(name, results) {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const args = process.argv.slice(2);
-  if (args[0] === "--prepare") {
+  if (args[0] === "--prepare" && loadKey(join(FIXTURES, args[1]))?.kind === "logs") {
+    const work = logsAcceptance.prepare(args[1], resolve(args[2]));
+    console.log(`Prepared ${work}. Attach ${resolve(args[2])} to a session with ow-start installed and say what ${join(FIXTURES, args[1], "session", "answers.md")} says.`);
+    console.log("Save the screen it prints as printed/<verb>.md in that folder. Then: node scripts/ow-start-acceptance.mjs " + `${args[1]} ${resolve(args[2])}`);
+  } else if (args[0] === "--prepare") {
     const work = prepare(args[1], resolve(args[2]));
     console.log(`Prepared ${work}. Attach ${resolve(args[2])} to a session with ow-start installed and say "use ow-start to extract intake/${loadKey(join(FIXTURES, args[1])).slug}/".`);
     console.log("Then: node scripts/ow-start-acceptance.mjs " + `${args[1]} ${resolve(args[2])}`);
   } else if (args.length === 2) {
-    process.exit(report(args[0], runCase(join(FIXTURES, args[0]), resolve(args[1]))) ? 1 : 0);
+    const logs = loadKey(join(FIXTURES, args[0]))?.kind === "logs";
+    const results = logs ? logsAcceptance.runCase(join(FIXTURES, args[0]), resolve(args[1])) : runCase(join(FIXTURES, args[0]), resolve(args[1]));
+    process.exit(report(args[0], results) ? 1 : 0);
   } else {
     let failed = 0;
     for (const c of listCases()) failed += report(`${c} (golden run)`, runCase(join(FIXTURES, c))) ? 1 : 0;
+    // The logs cases (ow-start 1.1.0), so the documented command checks both.
+    for (const c of logsAcceptance.listLogsCases()) failed += report(`${c} (golden run)`, logsAcceptance.runCase(join(FIXTURES, c))) ? 1 : 0;
     process.exit(failed ? 1 : 0);
   }
 }

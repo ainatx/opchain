@@ -1,0 +1,17 @@
+# Answer key: logs-action-done (INVENTED). C8: -action A-03 done appends one
+# closing line in the O2 form; notes.md is never edited.
+kind: logs
+case: logs-action-done
+workstream: larkspur-ceramics
+user: Robin
+base: logs-decision-from-meeting
+verbs: [/ow-start-action]
+checks: [writes, write_once, status, status_grammar, route, screen, private_names]
+route: { verb: /ow-start-action }
+screen:
+  must: ["Open in larkspur-ceramics: A-01 .* A-02 .* DEC-01 review"]
+  must_not: ["Open in larkspur-ceramics:.*A-03"]
+status:
+  lines:
+    - { path: logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-03, next: "none (closed: done)", awaiting: none (done 2026-10-15) }
+private_names: [llc-ops, Deftwright]

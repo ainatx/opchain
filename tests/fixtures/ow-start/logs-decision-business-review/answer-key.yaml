@@ -1,0 +1,24 @@
+# Answer key: logs-decision-business-review (INVENTED). C9 / C11: a business
+# decision with a review date appends its review line; nothing from a client.
+kind: logs
+case: logs-decision-business-review
+workstream: business
+user: Robin
+base: logs-business-vendor
+verbs: [/ow-start-log-decision]
+checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names, business, gitignore]
+route:
+  verb: /ow-start-log-decision
+  says: ["D1:", "review on 2027-09-01"]
+decision:
+  files:
+    - { id: DEC-01, review: 2027-09-01, supersedes: none, subject: "logs/business/meetings/MTG-01/notes.md#D1", confirmed: internal }
+status:
+  lines:
+    - { path: logs/business/decisions/DEC-01.md, next: "ow-start /ow-start-action logs/business/", awaiting: DEC-01 review by 2027-09-01 }
+business:
+  business_canaries: [Ledgerly, yearly plan, user seat]
+  client_canaries: [contractor chain, purchase orders, Larkspur, order view]
+git: { repo: true }
+names: [Priya, Tomas]
+private_names: [llc-ops, Deftwright]

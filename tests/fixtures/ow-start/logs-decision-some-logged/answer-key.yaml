@@ -1,0 +1,20 @@
+# Answer key: logs-decision-some-logged (INVENTED). C14: from a meeting, offers
+# only the decisions with no DEC-nn yet; C4: some logged, offer the rest.
+kind: logs
+case: logs-decision-some-logged
+workstream: larkspur-ceramics
+user: Robin
+base: logs-decision-from-meeting
+verbs: [/ow-start-log-decision]
+checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names, gitignore]
+route:
+  verb: /ow-start-log-decision
+  says: ["D1 is logged already as DEC-01", "D2:"]
+  never: ["- D1:"]
+decision:
+  files:
+    - { id: DEC-02, review: no review, supersedes: none, subject: "logs/larkspur-ceramics/meetings/MTG-01/notes.md#D2", confirmed: client }
+status: { lines: [] }
+git: { repo: false }
+names: [Dana, Jess, Marcus]
+private_names: [llc-ops, Deftwright]

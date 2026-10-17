@@ -1,0 +1,13 @@
+# Answer key: logs-action-dropped (INVENTED). C8: -action A-02 dropped appends one line in the O2 form.
+kind: logs
+case: logs-action-dropped
+workstream: larkspur-ceramics
+user: Robin
+base: logs-action-done
+verbs: [/ow-start-action]
+checks: [writes, write_once, status, status_grammar, route, private_names]
+route: { verb: /ow-start-action }
+status:
+  lines:
+    - { path: "logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-02", next: "none (closed: dropped)", awaiting: "none (dropped 2026-10-18)" }
+private_names: [llc-ops, Deftwright]

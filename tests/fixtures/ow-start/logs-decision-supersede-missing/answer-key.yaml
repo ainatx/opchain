@@ -1,0 +1,16 @@
+# Answer key: logs-decision-supersede-missing (INVENTED). The DEC-nn reads row's
+# absent case: list the ids that exist; write nothing.
+kind: logs
+case: logs-decision-supersede-missing
+workstream: larkspur-ceramics
+user: Robin
+base: logs-decision-from-meeting
+verbs: [/ow-start-log-decision]
+writes_nothing: true
+checks: [writes, write_once, status, route, private_names]
+route:
+  verb: /ow-start-log-decision
+  says: ["No decision DEC-05", "DEC-01"]
+  never: ["DONE: "]
+status: { lines: [] }
+private_names: [llc-ops, Deftwright]

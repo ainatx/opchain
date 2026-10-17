@@ -76,7 +76,7 @@ hands_off:
 - **Packaging**: text files only, no hidden or executable files, no network text in a `network: none` skill, and a SKILL.md body under 5,000 tokens.
 - **Contracts**: every `/ow-` verb cited is declared (one merged verb index with the oc- catalog); every NEXT block leads with `use <skill id>` and carries its `IF IT IS NOT AVAILABLE` line; Reads-from rows have absent and mismatch cases; Hands-off rows have an unavailable branch; each skill's `skill.edges.yaml` is reciprocal with the others, with one writer per file (Edges, above).
 - **Family names** (design §8.1): no ow- skill file names an oc- skill, a private skill (`privateNames` in `catalogs.json`, today `llc-ops`) or a business (`brandNames`). Handoffs that leave the family go through the user's own `opchain-work/handoffs.yaml`.
-- **Acceptance**: `node scripts/ow-start-acceptance.mjs`, `node scripts/ow-build-plan-acceptance.mjs` and `node scripts/ow-build-acceptance.mjs` check the golden runs in `tests/fixtures/ow-start/`, `tests/fixtures/ow-build-plan/` and `tests/fixtures/ow-build/`; each folder's README says how to check a real run.
+- **Acceptance**: `node scripts/ow-start-acceptance.mjs` (the intake cases, and the logs cases through `scripts/ow-start-logs-acceptance.mjs`), `node scripts/ow-build-plan-acceptance.mjs` and `node scripts/ow-build-acceptance.mjs` check the golden runs in `tests/fixtures/ow-start/`, `tests/fixtures/ow-build-plan/` and `tests/fixtures/ow-build/`; each folder's README says how to check a real run.
 
 ## Not wired in yet, on purpose
 

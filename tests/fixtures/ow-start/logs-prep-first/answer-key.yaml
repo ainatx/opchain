@@ -1,0 +1,27 @@
+# Answer key: logs-prep-first (INVENTED). C4 prep-meeting route, first meeting:
+# no logs/ folder, so MTG-01. Starts from ow-build-plan's real offer golden.
+kind: logs
+case: logs-prep-first
+workstream: larkspur-ceramics
+client: Larkspur Ceramics
+user: Robin
+plan_case: offer
+verbs: [/ow-start-prep-meeting]
+checks: [headers, writes, write_once, status, status_grammar, route, agenda, people, private_names, gitignore]
+route:
+  verb: /ow-start-prep-meeting
+  says: ["MTG-01", "use ow-start to log the meeting logs/larkspur-ceramics/meetings/MTG-01/", "where slash commands exist: /ow-start-log-meeting", "no folder attached"]
+agenda:
+  id: MTG-01
+  date: 2026-10-13
+  count: 3
+  items:
+    - { item: "offer reply", source: "STATUS.md: plans/larkspur-ceramics/build-plan-offer.md" }
+    - { item: "which orders", source: you }
+    - { item: "updates", source: you }
+status:
+  lines:
+    - { path: logs/larkspur-ceramics/meetings/MTG-01/agenda.md, next: "ow-start /ow-start-log-meeting logs/larkspur-ceramics/", awaiting: meeting on 2026-10-13 }
+git: { repo: false }
+names: [Dana, Jess, Marcus]
+private_names: [llc-ops, Deftwright]

@@ -1,0 +1,17 @@
+# Answer key: logs-status-after-done (INVENTED). C8 and C15: after A-03 closes,
+# /ow-status shows two open actions (the newest line per item), next to the open
+# intake; overdue only with today's date known. Writes nothing.
+kind: logs
+case: logs-status-after-done
+workstream: larkspur-ceramics
+user: Robin
+base: logs-action-done
+verbs: [/ow-status]
+writes_nothing: true
+checks: [writes, status, route, screen, private_names]
+route: { verb: /ow-status }
+screen:
+  must: ["\\| A-01 \\|", "\\| A-02 \\|", "DEC-01 review", "offer reply from Larkspur Ceramics by 2026-10-21", "A-01 .*reported overdue"]
+  must_not: ["\\| A-03 \\|", "A-02 .*overdue"]
+status: { lines: [] }
+private_names: [llc-ops, Deftwright]

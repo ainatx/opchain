@@ -1,0 +1,35 @@
+# Answer key: logs-agenda-mismatch (INVENTED). The agenda reads row's mismatch
+# case: use the items that parse; list the rest under Not covered.
+kind: logs
+case: logs-agenda-mismatch
+workstream: larkspur-ceramics
+client: Larkspur Ceramics
+user: Robin
+base: logs-prep-first
+verbs: [/ow-start-log-meeting]
+checks: [headers, writes, write_once, status, status_grammar, route, notes, trace, owner_date, follow_up, follow_up_clean, people, private_names]
+route:
+  verb: /ow-start-log-meeting
+  says: ["row 3 does not", "Not covered"]
+notes:
+  id: MTG-01
+  input: notes
+  source: session/notes.md
+  external: true
+  agenda: logs/larkspur-ceramics/meetings/MTG-01/agenda.md
+  roles: [you, client owner, client ops lead]
+  decisions: 2
+  questions: 1
+  actions:
+    - { id: A-01, owner: client ops lead, due: 2026-10-16 }
+    - { id: A-02, owner: you, due: 2026-10-19 }
+    - { id: A-03, owner: client owner, due: 2026-10-15 }
+follow_up: true
+status:
+  lines:
+    - { path: logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-01, next: "ow-start /ow-start-action logs/larkspur-ceramics/", awaiting: A-01 (client ops lead) by 2026-10-16 }
+    - { path: logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-02, next: "ow-start /ow-start-action logs/larkspur-ceramics/", awaiting: A-02 (you) by 2026-10-19 }
+    - { path: logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-03, next: "ow-start /ow-start-action logs/larkspur-ceramics/", awaiting: A-03 (client owner) by 2026-10-15 }
+    - { path: logs/larkspur-ceramics/meetings/MTG-01/notes.md, next: "none (closed: held 2026-10-13)", awaiting: none }
+names: [Dana, Jess, Marcus]
+private_names: [llc-ops, Deftwright]

@@ -1,0 +1,23 @@
+# Answer key: logs-git-declined (INVENTED). C16: in a git repository without the
+# two lines, the first logs verb asks once and adds nothing on a no.
+kind: logs
+case: logs-git-declined
+workstream: business
+user: Robin
+base: logs-action-done
+verbs: [/ow-start-prep-meeting]
+checks: [headers, writes, write_once, status, status_grammar, route, agenda, people, private_names, gitignore]
+route:
+  verb: /ow-start-prep-meeting
+  says: ["Add them\\?", "You said no"]
+agenda:
+  id: MTG-01
+  date: 2026-10-23
+  count: 1
+  items:
+    - { item: "tools", source: you }
+status:
+  lines:
+    - { path: logs/business/meetings/MTG-01/agenda.md, next: "ow-start /ow-start-log-meeting logs/business/", awaiting: meeting on 2026-10-23 }
+git: { repo: true, answer: "no" }
+private_names: [llc-ops, Deftwright]

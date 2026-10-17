@@ -1,0 +1,23 @@
+# Answer key: logs-decision-supersede-open (INVENTED). C9: changing a decision
+# writes DEC-02 with Supersedes: DEC-01; DEC-01 stays byte-identical, and its open
+# review line is closed (owner decision: superseding closes the review).
+kind: logs
+case: logs-decision-supersede-open
+workstream: larkspur-ceramics
+user: Robin
+base: logs-decision-from-meeting
+verbs: [/ow-start-log-decision]
+checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names, gitignore]
+route:
+  verb: /ow-start-log-decision
+  says: ["DEC-02 supersedes it", "closed as superseded"]
+decision:
+  files:
+    - { id: DEC-02, review: 2026-11-30, supersedes: DEC-01, subject: none, confirmed: internal }
+status:
+  lines:
+    - { path: logs/larkspur-ceramics/decisions/DEC-02.md, next: "ow-start /ow-start-action logs/larkspur-ceramics/", awaiting: DEC-02 review by 2026-11-30 }
+    - { path: logs/larkspur-ceramics/decisions/DEC-01.md, next: "none (closed: superseded by DEC-02)", awaiting: none (superseded 2026-10-17) }
+git: { repo: false }
+names: [Dana, Jess, Marcus]
+private_names: [llc-ops, Deftwright]

@@ -1,0 +1,31 @@
+# Answer key: logs-notes-noagenda (INVENTED). C4: -log-meeting with no id and no
+# prepared meeting: a new MTG-02 marked "no agenda"; ids go on per workstream
+# (A-04). C6 notes only. C7: an internal planning meeting gets no follow-up.
+kind: logs
+case: logs-notes-noagenda
+workstream: larkspur-ceramics
+user: Robin
+base: logs-action-done
+verbs: [/ow-start-log-meeting]
+checks: [headers, writes, write_once, status, status_grammar, route, notes, trace, owner_date, embedded, follow_up, people, private_names, gitignore]
+route:
+  verb: /ow-start-log-meeting
+  says: ["MTG-02, logged with no agenda", "no follow-up"]
+notes:
+  id: MTG-02
+  input: notes
+  source: session/notes.md
+  external: false
+  agenda: none (no agenda)
+  roles: [you]
+  decisions: 0
+  questions: 1
+  actions:
+    - { id: A-04, owner: you, due: 2026-10-18 }
+follow_up: false
+status:
+  lines:
+    - { path: logs/larkspur-ceramics/meetings/MTG-02/notes.md#A-04, next: "ow-start /ow-start-action logs/larkspur-ceramics/", awaiting: A-04 (you) by 2026-10-18 }
+git: { repo: false }
+names: [Dana, Jess, Marcus]
+private_names: [llc-ops, Deftwright]

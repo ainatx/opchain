@@ -1,0 +1,16 @@
+# Answer key: logs-decision-supersede-mismatch (INVENTED). The DEC-nn reads row's
+# mismatch case: report the header found; supersede nothing until confirmed.
+kind: logs
+case: logs-decision-supersede-mismatch
+workstream: larkspur-ceramics
+user: Robin
+base: logs-decision-from-meeting
+verbs: [/ow-start-log-decision]
+writes_nothing: true
+checks: [writes, write_once, status, route, private_names]
+route:
+  verb: /ow-start-log-decision
+  says: ["header does not parse", "until you confirm"]
+  never: ["DONE: "]
+status: { lines: [] }
+private_names: [llc-ops, Deftwright]
