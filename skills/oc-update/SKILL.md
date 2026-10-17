@@ -51,6 +51,7 @@ install commands below.
 | `/oc-update check`, "is an update available?" | Same command with `--check` (read-only) |
 | `/oc-update doctor`, "which Opchain is this session loading?", "why are there two copies?" | `node <skill-dir>/scripts/update.mjs doctor` (read-only; `--json` for machine output; see below) |
 | Update only this repo's Opchain plugins | `node <skill-dir>/scripts/update.mjs plugins` (`--check` for read-only) |
+| "Add the Opchain plugin to this repo", "use the plugin instead of local skills" | `node <skill-dir>/scripts/update.mjs --with-plugins` (`=ow-tools` or `=opchain,ow-tools` only when named; see Adding plugins) |
 | Refresh this Opchain source checkout | Same command; `--source` explicitly requires source mode |
 | Install specifically for Claude or Codex | Add `--target=claude` or `--target=codex` |
 | Install for both | Add `--target=both` |
@@ -96,6 +97,46 @@ or touch the plugin cache yourself.
   (it ships in lockstep with the skills); `ow-tools` shows its installed version
   only.
 
+## Adding plugins and the duplicate guard
+
+`--with-plugins` adds plugins at **project scope**, through the CLI
+(`plugin marketplace add <known source> --scope project`, then `plugin install
+<id> --scope project`); the CLI writes `.claude/settings.json`.
+
+- A bare `--with-plugins` adds `opchain@opchain` **only**. Add
+  `ow-tools@opchain-work-tools` only when the user names it
+  (`--with-plugins=ow-tools` or `=opchain,ow-tools`): it runs code on the
+  machine. Never add it on your own initiative. Unknown names are refused.
+- Already enabled from the known source: reported as "already enabled"; the
+  update step keeps it current.
+- The output says "enabled for you, NOT yet for the repo — commit
+  `.claude/settings.json`". Relay that, offer the commit, and say a restart is
+  needed. Do not commit without the user's go-ahead.
+- Refused, with nothing changed: a Codex-only install (`.agents/skills` and no
+  `.claude/skills`; Codex has no plugin system), `--check`, `--target`, and an
+  Opchain source checkout. Without the CLI it prints the `/plugin` commands.
+
+**Duplicate guard.** The opchain plugin carries the same skills as the
+receipt-managed `.claude/skills/oc-*` copies, so a repo with both loads every
+skill twice.
+
+- Plain `/oc-update` with both surfaces warns once (`duplicate: …`), still
+  updates both, and exits 0. Relay the warning and ask the user which surface to
+  keep. Do not pick for them.
+- `--with-plugins` that adds opchain to a repo with local copies is **refused**
+  unless the user chose `--drop-local-skills` (plugin only) or `--keep-both`.
+- `--drop-local-skills` is the **only** path that removes skills. It removes the
+  receipt-managed `.claude/skills/oc-*` files that still match their recorded
+  digest, through the usual backup and recovery journal, and updates the
+  receipt. Customised files are kept and listed. `.agents/skills`,
+  `.codex/skills` and non-Opchain skills are never touched. It runs only once the
+  opchain plugin is enabled and installed here; if the install failed or the CLI
+  is missing, local skills are kept. Pass it only on the user's explicit choice.
+  Afterwards the removal is uncommitted: offer the commit as for an install.
+- In a plugin-only repo, plain `/oc-update` does not re-create `.claude/skills`
+  copies; it updates `.agents/skills` if present, and the plugin step updates
+  the plugin.
+
 ## `/oc-update doctor`
 
 Read-only. It enumerates every surface a session can load Opchain from — the host's
@@ -120,8 +161,9 @@ repository's marketplace source is the known one. It then flags, one line each:
   run that older version's hooks and settings.
 
 Report the table and the flags; fix nothing. The remedy for a duplicate is to remove
-one surface (usually the repo-local copy once the plugin is installed); for a parked
-checkout, fast-forward or retire it.
+one surface (usually the repo-local copy once the plugin is installed). For the plugin +
+`.claude/skills` pair the finding names it: `/oc-update --drop-local-skills` (the user's
+choice; see the duplicate guard above). For a parked checkout, fast-forward or retire it.
 
 **Uncommitted installs.** `update.mjs` writes files and never commits. After a
 successful update, check `git status`; if the installed files are modified or
@@ -153,8 +195,9 @@ merging newer source requires the user's separate Git-update request.
 - **Exit 2:** skills installed or checked, but enabled telemetry is unhealthy.
   Report the database issue and preserve the consent flag and history. Do not
   run `enable`, `disable`, `record`, or invent an empty replacement database.
-- **Exit 4:** skills installed and verified, but a plugin update failed (the
-  `FAILED —` line names it). Report both halves: skills done, plugin not. Do not
+- **Exit 4:** skills installed and verified, but a plugin update or install
+  failed (the `FAILED —` line names it; with `--drop-local-skills`, local skills
+  were kept). Report both halves: skills done, plugin not. Do not
   re-run the skill update to fix a plugin. **Exit 6** is exit 2 and exit 4 together.
 - **Exit 1:** report the error. A failed download or invalid bundle changes no
   skill files. For an installation failure, report the rollback/recovery status

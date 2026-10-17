@@ -1,9 +1,9 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { appendFileSync, chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { delimiter, join } from 'node:path';
 import { buildUpdateBundle } from '../scripts/build-update-bundle.mjs';
-import { EXIT_PLUGINS, KNOWN_PLUGINS, componentsBanner, findClaudeCli, main, updatePlugins } from '../scripts/update-opchain.mjs';
+import { EXIT_PLUGINS, KNOWN_PLUGINS, componentsBanner, doctor, findClaudeCli, localSkillCopies, main, updatePlugins } from '../scripts/update-opchain.mjs';
 
 // The plugin step (docs/plans/2026-10-16-oc-update-plugins-design.md §5.2) drives
 // the real `claude` CLI. Here a stub `claude` on PATH records every argv and fakes
@@ -13,8 +13,9 @@ import { EXIT_PLUGINS, KNOWN_PLUGINS, componentsBanner, findClaudeCli, main, upd
 const [OPCHAIN, OW_TOOLS] = KNOWN_PLUGINS;
 let temp, stubBin, gitBin, pub, release;
 
-const STUB = `import { appendFileSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+const STUB = `import { appendFileSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+const KNOWN = ${JSON.stringify(KNOWN_PLUGINS)};
 const argv = process.argv.slice(2);
 appendFileSync(process.env.STUB_LOG, JSON.stringify({ argv, cwd: realpathSync(process.cwd()) }) + '\\n');
 const plan = JSON.parse(readFileSync(process.env.STUB_PLAN, 'utf8'));
@@ -31,6 +32,35 @@ if (argv[0] === 'plugin' && argv[1] === 'update') {
     if (entry.scope === scope && realpathSync(entry.projectPath) === realpathSync(process.cwd()) && plan.bump?.[id]) entry.version = plan.bump[id];
   }
   writeFileSync(file, JSON.stringify(data));
+}
+// What Claude Code does for --with-plugins: declare the marketplace / enable the plugin in the
+// repository's settings, record the install, and unpack it (opchain ships skills/).
+const settingsFile = join(process.cwd(), '.claude/settings.json');
+const settings = () => { try { return JSON.parse(readFileSync(settingsFile, 'utf8')); } catch { return {}; } };
+if (argv[0] === 'plugin' && argv[1] === 'marketplace' && argv[2] === 'add') {
+  const plugin = KNOWN.find(p => (p.source.repo ?? p.source.url) === argv[3]);
+  const data = settings();
+  data.extraKnownMarketplaces = { ...data.extraKnownMarketplaces, [plugin.marketplace]: { source: plugin.source } };
+  mkdirSync(join(process.cwd(), '.claude'), { recursive: true });
+  writeFileSync(settingsFile, JSON.stringify(data));
+}
+if (argv[0] === 'plugin' && argv[1] === 'install') {
+  const [id, , scope] = argv.slice(2);
+  const data = settings();
+  data.enabledPlugins = { ...data.enabledPlugins, [id]: true };
+  writeFileSync(settingsFile, JSON.stringify(data));
+  const version = plan.installVersion ?? '9.9.9';
+  const installPath = join(process.env.CLAUDE_CONFIG_DIR, 'plugins/cache', id, version);
+  if (id.startsWith('opchain@')) {
+    mkdirSync(join(installPath, 'skills/oc-update'), { recursive: true });
+    writeFileSync(join(installPath, 'skills/oc-update/SKILL.md'), '---\\nname: oc-update\\nversion: ' + version + '\\n---\\n');
+  }
+  const file = join(process.env.CLAUDE_CONFIG_DIR, 'plugins/installed_plugins.json');
+  let installed;
+  try { installed = JSON.parse(readFileSync(file, 'utf8')); } catch { installed = { version: 2, plugins: {} }; }
+  installed.plugins[id] = [...(installed.plugins[id] ?? []), { scope, version, installPath, projectPath: realpathSync(process.cwd()) }];
+  mkdirSync(join(file, '..'), { recursive: true });
+  writeFileSync(file, JSON.stringify(installed));
 }
 `;
 
@@ -232,4 +262,188 @@ describe('host detection', () => {
     expect(componentsBanner({ cli: true })).toBe('This command ships: skills, plugin hooks, commit-gate runtime (project-scope plugins). Cannot update: user-scope plugins (use /plugin update), time CLI (use git pull in ~/repos/opchain-time).');
     expect(componentsBanner()).toMatch(/^This command ships: skills\. Cannot update: plugin hooks \+ commit-gate runtime/);
   });
+});
+
+// ---------------------------------------------------------------------------
+// S3: --with-plugins and the duplicate guard (design §5.3, §5.4, §7 decisions 2–3).
+// ---------------------------------------------------------------------------
+async function run(args) {
+  const out = []; const err = []; const warn = [];
+  const spies = [
+    vi.spyOn(console, 'log').mockImplementation((...a) => out.push(a.join(' '))),
+    vi.spyOn(console, 'error').mockImplementation((...a) => err.push(a.join(' '))),
+    vi.spyOn(console, 'warn').mockImplementation((...a) => warn.push(a.join(' '))),
+  ];
+  try { return { code: await main(args), out: out.join('\n'), err: err.join('\n'), warn: warn.join('\n') }; }
+  finally { for (const spy of spies) spy.mockRestore(); }
+}
+function tree(dir) {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { recursive: true, withFileTypes: true }).filter(e => e.isFile())
+    .map(e => join(e.parentPath, e.name).slice(dir.length + 1)).sort();
+}
+const ADD_OPCHAIN = [['plugin', 'marketplace', 'add', 'asfbay-bit/opchain-skills', '--scope', 'project'], ['plugin', 'install', 'opchain@opchain', '--scope', 'project']];
+const ADD_OW_TOOLS = [['plugin', 'marketplace', 'add', OW_TOOLS.source.url, '--scope', 'project'], ['plugin', 'install', 'ow-tools@opchain-work-tools', '--scope', 'project']];
+const installLocal = async target => expect((await run([`--target=${target}`, `--root=${repo}`])).code).toBe(0);
+
+describe('--with-plugins', () => {
+  it('a bare flag adds opchain only, at project scope, and writes no .claude/skills copy', async () => {
+    const r = await run(['--with-plugins', `--root=${repo}`]);
+    expect(r.code).toBe(0);
+    expect(calls().map(c => c.argv)).toEqual(ADD_OPCHAIN);
+    expect(calls().every(c => c.cwd === repo)).toBe(true);
+    expect(r.out).toContain('opchain@opchain: installed 9.9.9 — enabled for you, NOT yet for the repo — commit .claude/settings.json');
+    expect(r.out).toContain('Restart Claude Code to load the new hooks.');
+    expect(r.out).toContain('no repo-local skills to update here; the opchain plugin provides them');
+    expect(existsSync(join(repo, '.claude/skills'))).toBe(false);
+    expect(existsSync(join(repo, '.opchain-install.json'))).toBe(false);
+  }, 60_000);
+
+  it('adds ow-tools only when named, alone or with opchain', async () => {
+    expect((await run(['--with-plugins=ow-tools', `--root=${repo}`])).code).toBe(0);
+    expect(calls().map(c => c.argv)).toEqual(ADD_OW_TOOLS);
+    writeFileSync(log, '');
+    rmSync(join(repo, '.claude/settings.json'));
+    rmSync(join(config, 'plugins'), { recursive: true });
+    rmSync(join(repo, '.claude/skills'), { recursive: true }); // ow-tools alone kept the local skills; start clean
+    rmSync(join(repo, '.opchain-install.json'));
+    expect((await run(['--with-plugins=opchain,ow-tools', `--root=${repo}`])).code).toBe(0);
+    expect(calls().map(c => c.argv)).toEqual([...ADD_OPCHAIN, ...ADD_OW_TOOLS]);
+  }, 60_000);
+
+  it('says already enabled and leaves an enabled plugin to the update step', async () => {
+    enable('settings.json', OPCHAIN);
+    installed({ [OPCHAIN.id]: [entry('project', '2.0.4', repo)] });
+    const r = await run(['--with-plugins', `--root=${repo}`]);
+    expect(r.code).toBe(0);
+    expect(r.out).toContain('opchain@opchain: already enabled for this repository; the update step keeps it current.');
+    expect(calls().map(c => c.argv[1])).toEqual(['marketplace', 'update']); // S2's two calls, no add/install
+  }, 60_000);
+
+  it('refuses an unknown plugin name before anything changes', async () => {
+    await expect(run(['--with-plugins=opchain,bogus', `--root=${repo}`])).rejects.toThrow('Unknown plugin "bogus" for --with-plugins. Known: opchain, ow-tools. No files changed.');
+    expect(calls()).toEqual([]);
+    expect(tree(repo)).toEqual([]);
+  });
+
+  it('refuses a Codex-only install', async () => {
+    await installLocal('codex');
+    const before = tree(repo);
+    await expect(run(['--with-plugins', `--root=${repo}`])).rejects.toThrow(/Codex-only \(\.agents\/skills\)\. Plugins are a Claude Code feature and Codex has no plugin system/);
+    expect(calls()).toEqual([]);
+    expect(tree(repo)).toEqual(before);
+  }, 60_000);
+
+  it('without the CLI prints the /plugin commands, adds nothing and keeps local skills', async () => {
+    await installLocal('claude');
+    vi.stubEnv('PATH', gitBin);
+    const r = await run(['--with-plugins', '--drop-local-skills', `--root=${repo}`]);
+    expect(r.code).toBe(0);
+    expect(r.out).toContain('plugins: not added (Claude Code CLI not found). In Claude Code run `/plugin marketplace add asfbay-bit/opchain-skills` and `/plugin install opchain@opchain`, choosing project scope.');
+    expect(r.out).toContain('Local skills: kept');
+    expect(localSkillCopies(repo).length).toBeGreaterThan(0);
+    expect(calls()).toEqual([]);
+  }, 60_000);
+});
+
+describe('duplicate guard', () => {
+  it('with local copies, --with-plugins refuses without --drop-local-skills or --keep-both', async () => {
+    await installLocal('claude');
+    const before = tree(repo);
+    await expect(run(['--with-plugins', `--root=${repo}`])).rejects.toThrow(/receipt-managed oc-\* skills, and the opchain plugin would load the same skills a second time\. Re-run with --drop-local-skills .* or --keep-both\. No files changed\./);
+    await expect(run(['--with-plugins', '--drop-local-skills', '--keep-both', `--root=${repo}`])).rejects.toThrow('Choose one of --drop-local-skills and --keep-both.');
+    await expect(run(['--drop-local-skills', `--root=${repo}`])).rejects.toThrow(/only when the opchain plugin replaces them/);
+    expect(calls()).toEqual([]);
+    expect(tree(repo)).toEqual(before);
+  }, 60_000);
+
+  it('--drop-local-skills backs up and removes only matching receipt files, keeps a customised one and leaves .agents/skills alone', async () => {
+    await installLocal('both');
+    put(repo, '.claude/skills/my-own-skill/SKILL.md', '---\nname: my-own-skill\n---\n');
+    const custom = '.claude/skills/oc-update/references/orchestrator.md';
+    appendFileSync(join(repo, custom), '\nlocal edit\n');
+    const agents = tree(join(repo, '.agents/skills'));
+    const agentsUpdate = readFileSync(join(repo, '.agents/skills/oc-update/SKILL.md'));
+    const local = localSkillCopies(repo);
+
+    const r = await run(['--with-plugins', '--drop-local-skills', `--root=${repo}`]);
+    expect(r.code).toBe(0);
+    expect(calls().map(c => c.argv)).toEqual(ADD_OPCHAIN);
+    expect(r.out).toContain(`Local skills: removed ${local.length - 1} receipt-managed files from .claude/skills`);
+    expect(r.out).toContain(`Kept 1 customized files in .claude/skills (no longer receipt-managed): ${custom}`);
+    expect(tree(join(repo, '.claude/skills'))).toEqual(['my-own-skill/SKILL.md', 'oc-update/references/orchestrator.md']);
+    expect(readFileSync(join(repo, custom), 'utf8')).toContain('local edit');
+    expect(tree(join(repo, '.agents/skills'))).toEqual(agents);
+    expect(readFileSync(join(repo, '.agents/skills/oc-update/SKILL.md'))).toEqual(agentsUpdate);
+    const receipt = JSON.parse(readFileSync(join(repo, '.opchain-install.json'), 'utf8'));
+    expect(Object.keys(receipt.files).filter(path => path.startsWith('.claude/'))).toEqual([]);
+    expect(Object.keys(receipt.files).filter(path => path.startsWith('.agents/')).length).toBe(agents.length);
+    // The removal went through the backup + journal like any update.
+    const backup = /Previous files: (\.opchain-backups\/\S+)/.exec(r.out.split('Local skills:')[1])[1];
+    const journal = JSON.parse(readFileSync(join(repo, backup, 'journal.json'), 'utf8'));
+    expect(journal.status).toBe('complete');
+    expect(journal.changes.filter(c => c.after === null).map(c => c.path).sort()).toEqual(local.filter(path => path !== custom).sort());
+    expect(existsSync(join(repo, backup, 'files/.claude/skills/oc-update/SKILL.md'))).toBe(true);
+    expect(existsSync(join(repo, '.opchain-update.lock'))).toBe(false);
+  }, 60_000);
+
+  it('rehearsal: local skills → plugin only in one command, and doctor shows no duplicate', async () => {
+    await installLocal('claude');
+    expect(localSkillCopies(repo).length).toBeGreaterThan(0);
+    expect((await run(['--with-plugins', '--drop-local-skills', `--root=${repo}`])).code).toBe(0);
+    expect(localSkillCopies(repo)).toEqual([]);
+    expect(tree(join(repo, '.claude/skills'))).toEqual([]); // emptied skill dirs pruned; .claude/skills itself stays
+    expect(readdirSync(join(repo, '.claude/skills'))).toEqual([]);
+    const report = doctor({ root: repo, configDir: config });
+    expect(report.surfaces.find(s => s.scope === 'plugin')).toMatchObject({ count: 1, pluginScope: 'project' });
+    expect(report.findings.map(f => f.code)).not.toContain('duplicate-surfaces');
+    // And a second plain run neither re-creates the copies nor warns.
+    const again = await run([`--root=${repo}`]);
+    expect(again.code).toBe(0);
+    expect(again.warn).not.toContain('duplicate:');
+  }, 60_000);
+
+  it('--keep-both adds the plugin, keeps updating the local copies, and warns', async () => {
+    await installLocal('claude');
+    const copies = localSkillCopies(repo).length;
+    const r = await run(['--with-plugins', '--keep-both', `--root=${repo}`]);
+    expect(r.code).toBe(0);
+    expect(calls().map(c => c.argv)).toEqual(ADD_OPCHAIN);
+    expect(localSkillCopies(repo).length).toBe(copies);
+    expect(r.warn.match(/duplicate:/g)).toHaveLength(1);
+    expect(r.warn).toContain('Pick one: plugin only — re-run with --drop-local-skills');
+  }, 60_000);
+
+  it('plain /oc-update with both surfaces warns once, updates both and exits 0', async () => {
+    await installLocal('claude');
+    enable('settings.json', OPCHAIN);
+    installed({ [OPCHAIN.id]: [entry('project', '2.0.4', repo)] });
+    const r = await run([`--root=${repo}`]);
+    expect(r.code).toBe(0);
+    expect(r.warn.match(/duplicate:/g)).toHaveLength(1);
+    expect(calls().map(c => c.argv[1])).toEqual(['marketplace', 'update']);
+    expect(localSkillCopies(repo).length).toBeGreaterThan(0);
+    const finding = doctor({ root: repo, configDir: config }).findings.find(f => f.code === 'duplicate-surfaces');
+    expect(finding).toBeUndefined(); // the fake install has no cache dir: no plugin skill surface
+  }, 60_000);
+
+  it('a failed install keeps the local skills and exits with the plugin code', async () => {
+    await installLocal('claude');
+    setPlan({ fail: ['plugin install'] });
+    const r = await run(['--with-plugins', '--drop-local-skills', `--root=${repo}`]);
+    expect(r.code).toBe(EXIT_PLUGINS);
+    expect(r.err).toContain('opchain@opchain: FAILED — Error: stub failure for plugin install opchain@opchain --scope project');
+    expect(r.out).toContain('Local skills: kept');
+    expect(localSkillCopies(repo).length).toBeGreaterThan(0);
+  }, 60_000);
+});
+
+describe('doctor remedy', () => {
+  it('names --drop-local-skills when the plugin and .claude/skills both load the same skills', async () => {
+    await installLocal('claude');
+    expect((await run(['--with-plugins', '--keep-both', `--root=${repo}`])).code).toBe(0);
+    const finding = doctor({ root: repo, configDir: config }).findings.find(f => f.code === 'duplicate-surfaces');
+    expect(finding.remedy).toContain('/oc-update --drop-local-skills');
+    expect(finding.message).toContain('pick one: plugin only — /oc-update --drop-local-skills');
+  }, 60_000);
 });
