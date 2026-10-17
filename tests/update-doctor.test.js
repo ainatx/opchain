@@ -4,10 +4,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { buildUpdateBundle } from '../scripts/build-update-bundle.mjs';
-import { COMPONENTS, KNOWN_PLUGINS, claudeConfigDir, componentsBanner, doctor, formatDoctor, main, pluginState, uncommittedInstall } from '../scripts/update-opchain.mjs';
+import { COMPONENTS, KNOWN_PLUGINS, claudeConfigDir, componentsBanner, doctor, findClaudeCli, formatDoctor, main, pluginState, uncommittedInstall } from '../scripts/update-opchain.mjs';
 
 const skill = (id, version) => `---\nname: ${id}\nversion: ${version}\n---\n# ${id}\n`;
-const git = (cwd, ...args) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', '-c', 'commit.gpgsign=false', ...args], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+// gc.auto=0: committing a full skills install leaves enough loose objects for a
+// detached `git gc --auto`, which can still be writing into tmp during afterAll.
+const git = (cwd, ...args) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', '-c', 'commit.gpgsign=false', '-c', 'gc.auto=0', ...args], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 
 function put(root, path, text) {
   mkdirSync(join(root, path, '..'), { recursive: true });
@@ -290,6 +292,9 @@ describe('consumer install messaging', () => {
     const release = buildUpdateBundle({ publicDir: pub });
     expect(release.version).toMatch(/^\d+\.\d+\.\d+$/);
     vi.stubGlobal('fetch', async url => new Response(readFileSync(join(pub, new URL(url).pathname))));
+    // No plugins enabled here, so the plugin step makes no CLI call and prints one line.
+    vi.stubEnv('CLAUDE_CONFIG_DIR', join(temp, 'messaging-config'));
+    const banner = componentsBanner({ cli: Boolean(findClaudeCli()) });
     const consumer = join(temp, 'consumer');
     mkdirSync(consumer);
     git(consumer, 'init', '-q', '-b', 'main');
@@ -298,14 +303,14 @@ describe('consumer install messaging', () => {
 
     expect(await main([`--root=${consumer}`, '--target=claude'])).toBe(0);
     const first = log.mock.calls.flat().join('\n');
-    expect(first.split('\n')[0]).toBe(componentsBanner());
+    expect(first.split('\n')[0]).toBe(banner);
     expect(first).toContain('files updated and verified');
     expect(warn.mock.calls.flat().join('\n')).toContain('installed but NOT committed — commit .claude/skills or the next session will run the old version');
 
     log.mockClear(); warn.mockClear();
     expect(await main([`--root=${consumer}`, '--target=claude', '--check'])).toBe(0);
     const lines = log.mock.calls.flat().join('\n').split('\n');
-    expect(lines).toEqual([componentsBanner(), 'Checking the latest Opchain release…', `opchain ${release.version} is already current on .claude/skills. Telemetry: OFF (unchanged).`]);
+    expect(lines).toEqual([banner, 'Checking the latest Opchain release…', `opchain ${release.version} is already current on .claude/skills. Telemetry: OFF (unchanged).`, 'Plugins: none enabled for this repository.']);
     expect(warn).not.toHaveBeenCalled(); // --check never nags about commits
 
     git(consumer, 'add', '.');
@@ -315,5 +320,6 @@ describe('consumer install messaging', () => {
     expect(log.mock.calls.flat().join('\n')).toContain(`opchain ${release.version} is already current on .claude/skills.`);
     expect(warn).not.toHaveBeenCalled();
     vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
   }, 60_000);
 });
