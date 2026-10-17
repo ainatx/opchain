@@ -11,6 +11,8 @@
  *
  * Rendered outside the desktop/mobile diagram swap so it shows at every width.
  */
+import RouterLabel from "./RouterLabel.astro";
+
 interface Row {
   edge: string;
   chokepoint: string;
@@ -114,9 +116,11 @@ const heldLabel = { yes: "held", partly: "partly", named: "named only" } as cons
 
   <p class="enf-foot">
     Need the gate in your repository? <a href="/install#enroll">Enroll it</a>.
-    The optional <a href="/install#router">skill router</a> puts the next
-    skill's name in front of the agent in the form it follows best. A
-    suggestion is still not a gate.
+  </p>
+  <p class="enf-foot" data-router-copy>
+    The optional <a href="/install#router">skill router</a> <RouterLabel /> logs
+    which skill it would name for each prompt and adds nothing to the
+    conversation. It is not on this map: a suggestion is not a gate.
   </p>
 </section>
 

@@ -1,6 +1,6 @@
 ---
 title: "0 of 229: what our skills did when nobody checked"
-description: "We audited two repos running opchain 2.0. Skill handoffs held only where a check sat at the chokepoint. What we measured, and what 2.1 changes."
+description: "We audited two repos running opchain 2.0. Skill handoffs held only where a check sat at the chokepoint. What we measured, and what 2.1 changes about enforcement."
 date: "2026-10-09"
 author: opchain
 pillar: engineering
@@ -11,10 +11,19 @@ draft: true
 
 <!--
   DRAFT — unpublished (draft: true keeps it out of /blog, the post routes and RSS).
-  Owner go/no-go: docs/plans/2026-10-09-v2.1-site-update.md §C.3.
-  Before flipping: re-date to the 2.1 release day, confirm every number against
-  §D (claims ledger), and confirm the router section still matches the shipped
-  defaults. Do not link this post from a live page until it is published.
+  Held on claude/track-s-site until the 2.1.0 cut (Track S S1 revision,
+  2026-10-17; sprints/release-2.1/track-s-site-surfaces.md row 35).
+  Publish date: Track S decision D5. Anonymity: D6 ("a consumer repository").
+  Before flipping at the cut (S4/S5):
+    - re-date to the 2.1 release day;
+    - add E1's measurement week and E2's go/no-go verdict as recorded in
+      docs/audits/ (none recorded as of 2026-10-17); the router section changes
+      only if E2 records a GO, and then only with E2's numbers (router term 2);
+    - re-check every claim against sprints/release-2.1/web-01-claims-ledger.md.
+  Router copy follows the router release terms (sprints/release-2.1/
+  ow-family-sprint-plan.md, Track E): the label, no effectiveness claim before
+  a GO, the term 3 data flow, live mode unsupported until a GO.
+  Do not link this post from a live page until it is published.
 -->
 
 We audited two repositories running opchain 2.0: opchain itself, from the
@@ -25,10 +34,12 @@ skill whose job is to put every pull request through the docs and readiness
 gate. The skill files said to. The skills were loaded. Nothing checked, so
 nothing happened.
 
-That is the thesis of 2.1. A handoff written in a skill file is a convention;
-the only handoffs that held had a check sitting where the work passes
-through. 2.1 puts a check at each of those places and stops pretending about
-the rest.
+That is the thesis of one half of 2.1. The release has two themes: the
+other is the ow- planning family for people who build software for clients,
+and it gets its own post. This one is about enforcement. A handoff written in
+a skill file is a convention; the only handoffs that held had a check sitting
+where the work passes through. 2.1 puts a check at each of those places and
+stops pretending about the rest.
 
 ## What held, and what didn't
 
@@ -96,7 +107,7 @@ skill invoked **72 of 72** times. Prompts that used the shorthand
 times, and one lane got it 0 of 33. Prose works when it names the tool. Prose
 that says "now use the other skill" does not.
 
-## What 2.1 changes
+## What 2.1 changes about enforcement
 
 **A gate that says why.** A failing check prints its name, exit code and the
 end of its output, and the full log sits next to the receipt. A timeout, or a
@@ -125,30 +136,36 @@ names, for each edge that must hold, the chokepoint and what holds it, and the
 a status column. Three rows say "partly" or "named only", because that is
 what they are.
 
-## The router, in shadow first
+## The router: an experimental preview, in shadow
 
-2.1 also ships an opt-in skill router. A `UserPromptSubmit` hook sends each
-prompt to TypeSafe's Jev model (`jev-1.13.0`), using your own
-`TYPESAFE_API_KEY`, and asks which opchain skill, if any, owns it. In live mode
-it adds exactly one line, in the tool-named form that scored 72 of 72 in
-spawn prompts: *invoke the Skill tool with skill "oc-git-ops" and args
-"/oc-git-sync"*.
+2.1 also ships an opt-in skill router, and it ships labelled: **experimental
+preview, shadow only, verdict pending**. A `UserPromptSubmit` hook asks
+TypeSafe's Jev model (`jev-1.13.0`) which opchain skill, if any, owns each
+prompt, and logs the answer on your machine. It adds nothing to the
+conversation.
 
-By default it runs in shadow: it calls the API, logs the decision, and adds
-nothing. The prompt leaves your machine either way, after local secret
-redaction, together with a little conversation context and repository state;
-[the install page lists exactly what](/install#router). Set
-`OPCHAIN_ROUTE_MODE=live` to get suggestions, and unset the key or set
-`OPCHAIN_ROUTE=0` to turn it off.
+It does nothing until you set `TYPESAFE_API_KEY`, a key from TypeSafe billed
+to your own account. With `TYPESAFE_API_KEY` set, the hook sends the redacted
+prompt and a repo summary to `api.typesafe.ai`. The summary covers branch,
+ahead/behind, dirty count, open PR, enrollment and active checkpoint. The
+previous prompt and the end of the last assistant message are sent only with
+`OPCHAIN_ROUTE_CONTEXT=1`. Nothing is sent without a key, for slash commands,
+outside opchain projects, or for a typed `/oc-*` mention. Decisions are
+logged locally to `$TMPDIR/opchain-route-log.jsonl`. Unsetting the key or
+setting `OPCHAIN_ROUTE=0` turns it off. [The install page](/install#router)
+has the opt-in steps.
 
-On 574 real prompts with blind intent labels it scored precision 0.81 and
-recall 0.95, and stayed silent on 98% of prompts that needed no pipeline
-skill. On the held-out half, the same three numbers were 0.86, 1.00 and 98%.
-It costs about $0.0001 a prompt; the whole 574 cost $0.077. Those prompts are
-one maintainer's, and only 41 of them were positives. Our baseline for skills
-calling skills was roughly zero, so a router that never suggests anything
-would match it exactly, which is the cheapest kind of parity. Live mode waits
-on a week of shadow data from real sessions.
+Live mode (`OPCHAIN_ROUTE_MODE=live`) is unsupported until the shadow
+period's go/no-go records a GO. It would add one line naming the skill to
+the conversation.
+
+Everything we know about it so far is offline. On 574 labelled past prompts,
+its suggestions had precision 0.92 for oc-git-ops and 0.88 for oc-deploy-ops.
+Those are one maintainer's prompts, labelled after the fact, and they say
+nothing yet about whether a suggestion changes what a session does. Our
+baseline for skills calling skills was roughly zero, so a router that never
+suggests anything would match it exactly, which is the cheapest kind of
+parity. The shadow period is there to find out whether it does better.
 
 ## Where the seams show
 
@@ -161,8 +178,9 @@ on a week of shadow data from real sessions.
 - **Some of the map is still words.** The spec-stub check and the
   integrations and eval gates are named in the skills and not yet checked by
   anything.
-- **The router's numbers are small.** One person's prompts, 41 positives.
-  The shadow week is there to find out what they're worth.
+- **The router's numbers are offline.** One person's past prompts,
+  labelled after the fact. Until the go/no-go records a verdict, it stays
+  an experimental preview in shadow.
 
 ## Check your own repo
 

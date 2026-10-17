@@ -2,6 +2,8 @@
 import { REPO_NEW_ISSUE } from "../lib/repo";
 import Base from "../layouts/Base.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
+import RouterLabel from "../components/RouterLabel.astro";
+import { ROUTER_LIVE_MODE } from "../data/router-status";
 
 interface Term {
   id: string;
@@ -10,6 +12,8 @@ interface Term {
   long?: string;
   /** Release that introduced the term, when it is newer than the current stamp. */
   since?: string;
+  /** Skill-router copy: render the router status label (router release term 1). */
+  router?: boolean;
   related?: Array<{ label: string; href: string }>;
 }
 
@@ -45,8 +49,8 @@ const terms: Term[] = [
   {
     id: "orchestrator",
     term: "Orchestrator",
-    short: "Routing skill that decides which skill should run next based on what you said, what phase you're in, and what the open checkpoints look like.",
-    long: "Exposes /oc-ops — \"where did I leave off?\" Answers across every project on the machine. Reads every skill's checkpoint, writes its own pipeline state, and recommends the next skill. You (or the optional skill router) still invoke it.",
+    short: "Skill that recommends which skill should run next based on what you said, what phase you're in, and what the open checkpoints look like.",
+    long: "Exposes /oc-ops — \"where did I leave off?\" Answers across every project on the machine. Reads every skill's checkpoint, writes its own pipeline state, and recommends the next skill. You still invoke it; it enforces nothing itself.",
     related: [{ label: "Architecture", href: "/architecture" }],
   },
   {
@@ -59,7 +63,7 @@ const terms: Term[] = [
   {
     id: "audit-gate",
     term: "Audit gate",
-    short: "A skill that must pass before oc-deploy-ops will ship to production — oc-bug-check, oc-code-auditor, or oc-security-auditor.",
+    short: "A check that has to pass before work moves on: oc-bug-check before a commit, oc-code-auditor and oc-security-auditor before oc-deploy-ops ships.",
     long: "oc-deploy-ops runs the pre-deploy audits before it ships. That holds when the skill runs; the deploy command itself is held by a deploy wrapper or CI. oc-bug-check is the one audit gate with a mechanism of its own: the enrolled pre-commit hook. A bypass of it is recorded (see bypass record).",
     related: [{ label: "oc-code-auditor", href: "/skills/oc-code-auditor" }, { label: "oc-security-auditor", href: "/skills/oc-security-auditor" }, { label: "oc-bug-check", href: "/skills/oc-bug-check" }],
   },
@@ -150,16 +154,18 @@ const terms: Term[] = [
     id: "skill-router",
     term: "Skill router",
     since: "2.1",
-    short: "An optional plugin hook that asks a classifier which opchain skill owns a prompt and adds one line naming it.",
-    long: "Uses TypeSafe's Jev model (jev-1.13.0) through your own TYPESAFE_API_KEY. The line it adds is the tool-named form: invoke the Skill tool with skill \"oc-git-ops\" and args \"/oc-git-sync\". The prompt and repository state are sent after local secret redaction; the conversation tail is added only with OPCHAIN_ROUTE_CONTEXT=1, which is off by default. Off without a key; OPCHAIN_ROUTE=0 turns it off with one.",
+    router: true,
+    short: "An optional plugin hook that asks a classifier which opchain skill owns a prompt and logs the answer.",
+    long: `Uses TypeSafe's Jev model (jev-1.13.0) through your own TYPESAFE_API_KEY, billed to your own TypeSafe account. With the key set it sends the redacted prompt and a repo summary to api.typesafe.ai; the conversation tail is added only with OPCHAIN_ROUTE_CONTEXT=1, which is off by default. It runs in shadow mode. Live mode, which would add one tool-named line naming the skill, is ${ROUTER_LIVE_MODE}. Its only evaluation so far is offline. Off without a key; OPCHAIN_ROUTE=0 turns it off with one.`,
     related: [{ label: "Install: skill router", href: "/install#router" }, { label: "Shadow mode", href: "/glossary#shadow-mode" }],
   },
   {
     id: "shadow-mode",
     term: "Shadow mode",
     since: "2.1",
-    short: "The skill router's default: it classifies and logs every prompt but adds nothing to the conversation.",
-    long: "Shadow runs still call the classifier API. They exist to measure the router on real prompts before it is allowed to suggest: each log entry records the decision and, on the next prompt, what the session actually did. Set OPCHAIN_ROUTE_MODE=live to add suggestions.",
+    router: true,
+    short: "The skill router's default, and its only supported mode: it classifies and logs every prompt but adds nothing to the conversation.",
+    long: `Shadow runs still call the classifier API. They exist to measure the router on real prompts before it is allowed to suggest: each log entry records the decision and, on the next prompt, what the session actually did. OPCHAIN_ROUTE_MODE=live, which adds the suggestion, is unsupported until the go/no-go records a GO.`,
     related: [{ label: "Skill router", href: "/glossary#skill-router" }],
   },
 ];
@@ -192,8 +198,8 @@ const terms: Term[] = [
 
     <dl class="glossary">
       {terms.map((t) => (
-        <div class="entry" id={t.id}>
-          <dt>{t.term}{t.since && <span class="since">New in {t.since}</span>}</dt>
+        <div class="entry" id={t.id} data-router-copy={t.router ? "" : undefined}>
+          <dt>{t.term}{t.since && <span class="since">New in {t.since}</span>}{t.router && <RouterLabel />}</dt>
           <dd>
             <p class="short"><strong>{t.short}</strong></p>
             {t.long && <p class="long">{t.long}</p>}
@@ -279,6 +285,7 @@ const terms: Term[] = [
     letter-spacing: var(--ls-tight);
     margin-bottom: 0.45rem;
   }
+  dt :global(.router-label) { margin-left: 0.6rem; }
   dt .since { margin-left: 0.6rem; vertical-align: middle; font-family: var(--font-mono); font-size: var(--fs-sm); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--secondary); border: 0.5px solid var(--secondary); background: var(--secondary-dim); border-radius: var(--r-pill); padding: 1px 7px; }
   dd { margin: 0; color: var(--muted); }
   dd p { margin: 0 0 0.55rem; line-height: var(--lh-base); }
