@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a4339013c7f54dbe7",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a0046f77905096f47",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-17T20:43:22.532Z",
+  "updated_at": "2026-10-17T23:31:16.676Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-ow-03-ow-tools-1-1",
-  "progress_summary": "OW-03 PR readiness PASS at c41071df: the ow-tools 1.1.0 diff plus round-3 eval and security reports, merged with origin/main d61b2a3a without conflicts; npm test (133 files, 3142 passed, 11 skipped), npm run build with no tracked changes, check-skill-contracts, ow-start/ow-build-plan/ow-build acceptance, sync-plugin-skills and sync-skill-bundles --check, gen-ow-tools-manifest --check, lint-internal-refs and claude plugin validate --strict all pass; candidate verifier PASS on every commit; no untracked files.",
+  "step": "pr-ow-08-ow-start-logs",
+  "progress_summary": "OW-08 PR readiness PASS at bec07022: check-skill-contracts, gen-catalog (36 oc- + 3 ow-), lint-internal-refs, sync-bundles:check, sync-plugin-skills:check, gen-ow-tools-manifest --check, checkpoint:validate, and the ow-start (54 goldens), ow-build-plan and ow-build acceptance checkers pass; npm test 4,074 passed and 11 skipped across 135 files; npm run build leaves no tracked changes; oc- output snapshot (1,473 lines) identical before and after merging main; doctor 0 errors (24 pre-existing warnings); candidate verifier PASS on tree 3d97de02; no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -24,20 +24,19 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "C8 (LibreOffice recalculation) skipped: soffice is not installed on the verifying machine",
-      "Node 20 not run; verified on Node 24.19 only",
-      "Owner real-app checks pending: sample PPTX and XLSX in the real apps, one real sign-in, Keychain Always Allow on first use"
+      "checkpoint doctor: 24 pre-existing warnings, none from this branch",
+      "C15 partial by design: O4 (the ow-tools SessionStart hook) waits for its follow-up patch"
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "c41071dfa0a26b74349ffe32047b2fbf981e8cb2",
+    "verified_for_sha": "bec07022843ace9fb6ca156d6bfddae64d745828",
     "last_verify": {
-      "at": "2026-10-17T20:43:22.532Z",
-      "branch": "claude/ow-tools-sprint-t",
-      "base": "origin/main@d61b2a3a",
+      "at": "2026-10-17T23:31:16.676Z",
+      "branch": "claude/ow-08-ow-start-logs",
+      "base": "origin/main@d3965168",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1935,8 +1934,52 @@
           "sprints/release-2.1/ow-sprint-t/eval-round-3.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-ow-08-ow-start-logs-ceac638f797b",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-17T23:31:16.676Z",
+      "verified_at": "2026-10-17T23:31:16.676Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-ow-08-ow-start-logs"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:ceac638f797bee071c8a7d59fe0bb9b44c94d909b8e43b04441c8a9425f96927"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/ow-08-ow-start-logs at bec07022 on origin/main d3965168. 280 files against main: skills-work/ow-start/ (skill, references, edges, changelog), skills-work/README.md, catalogs.json (ow-start's body budget, ow-care planned, STATUS names), scripts/ (check-skill-contracts index rule and family names, the logs acceptance checker, one export in ow-build-acceptance), tests/ (242 fixture files for 50 logs goldens, plants, sentence sets, pins), docs/plans and sprints/release-2.1. Nothing under skills/, plugins/, site/, src/ or package.json, so oc- outputs are unchanged (snapshot identical). Drift checks for both catalogs, the dev plugin and the ow-tools manifest pass; checkpoint:validate passes; candidate verifier PASS receipt covers tree 3d97de02; no untracked files. Docs Forge packet verified_for_sha = HEAD.",
+        "evidence": [
+          "skills-work/ow-start/SKILL.md",
+          "skills-work/ow-start/CHANGELOG.md",
+          "skills-work/ow-start/skill.edges.yaml",
+          "skills-work/ow-start/references/logs-schema.md",
+          "skills-work/ow-start/references/logs-status-and-index.md",
+          "skills-work/ow-start/references/phase-prep-meeting.md",
+          "skills-work/ow-start/references/phase-log-meeting.md",
+          "skills-work/ow-start/references/phase-log-decision.md",
+          "skills-work/ow-start/references/email-template.md",
+          "skills-work/ow-start/references/self-checks-logs.md",
+          "skills-work/ow-start/references/phase-setup.md",
+          "skills-work/ow-start/references/phase-extract.md",
+          "skills-work/ow-start/references/phase-prep.md",
+          "skills-work/ow-start/references/intake-record-schema.md",
+          "skills-work/README.md",
+          "docs/plans/2026-10-16-ow-start-logs-amendment.md",
+          "sprints/release-2.1/ow-08/contract.md",
+          "sprints/release-2.1/ow-08/eval-round-1.md",
+          "sprints/release-2.1/ow-08/eval-round-2.md",
+          "sprints/release-2.1/ow-08/eval-round-3.md",
+          "sprints/release-2.1/ow-family-sprint-plan.md",
+          "tests/fixtures/ow-start/README.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-17T20:43:22.532Z",
+  "record_updated_at": "2026-10-17T23:31:16.676Z",
   "blockers": []
 }
