@@ -2,7 +2,7 @@
 // Standalone consumer CLI. Keep this file dependency-free: it is served as /update.mjs.
 import { createHash, randomUUID } from 'node:crypto';
 import { accessSync, constants, copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, readlinkSync, symlinkSync,
-  renameSync, rmSync, statSync, writeFileSync, chmodSync } from 'node:fs';
+  renameSync, rmdirSync, rmSync, statSync, writeFileSync, chmodSync } from 'node:fs';
 import { delimiter, dirname, isAbsolute, join, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
@@ -213,12 +213,16 @@ function replace(root, path, value) {
   } finally { rmSync(temp, { force: true }); }
 }
 
-export async function installBundle(bundle, { root = projectRoot(), target, check = false, beforeWrite = () => {} } = {}) {
+// `exclude` drops install targets for this run (the opchain plugin provides
+// .claude/skills instead); receipt entries under an excluded target are kept
+// untouched. With every target excluded nothing is written, not even the receipt.
+export async function installBundle(bundle, { root = projectRoot(), target, check = false, beforeWrite = () => {}, exclude = [] } = {}) {
   root = realpathSync(resolve(root));
   if (inspect(root, LOCK)) throw new Error(`Another or interrupted update owns ${LOCK}. Inspect its recovery.txt before proceeding.`);
   const files = validateBundle(bundle);
-  const targets = targetsFor(root, target);
+  const targets = targetsFor(root, target).filter(path => !exclude.includes(path));
   const telemetry = await telemetryHealth(root); // Inspect local consent before any mutation; never rewrite it.
+  if (!targets.length) return { changed: 0, backup: null, version: bundle.version, targets, telemetry, retained: [] };
   const previous = read(root, RECEIPT);
   const receipt = previous ? JSON.parse(previous.bytes) : { schema: 1, files: {} };
   if (receipt.schema !== 1 || !receipt.files || typeof receipt.files !== 'object' || Array.isArray(receipt.files) ||
@@ -259,6 +263,54 @@ export async function installBundle(bundle, { root = projectRoot(), target, chec
   desired.set(RECEIPT, { bytes: json({ schema: 1, version: bundle.version, files: inventory }), mode: 0o644 });
   const result = await applyChanges(root, desired, { check, beforeWrite, release: { version: bundle.version, sha256: digest(Buffer.from(JSON.stringify(bundle) + "\n")) } });
   return { ...result, version: bundle.version, targets, telemetry, retained };
+}
+
+function readReceipt(root) {
+  const current = read(root, RECEIPT);
+  const receipt = current ? JSON.parse(current.bytes) : null;
+  if (receipt && (receipt.schema !== 1 || !receipt.files || typeof receipt.files !== 'object' || Array.isArray(receipt.files))) throw new Error('Invalid installed file inventory');
+  return receipt;
+}
+
+const LOCAL_COPY = /^\.claude\/skills\/oc-[a-z0-9-]+\//;
+
+// Receipt-managed oc-* files in .claude/skills that are still on disk: the
+// copies that load a second time when the opchain plugin is enabled (§5.4).
+export function localSkillCopies(root) {
+  const receipt = readReceipt(root);
+  return Object.keys(receipt?.files ?? {}).filter(path => LOCAL_COPY.test(path) && receiptPath(path) && read(root, path));
+}
+
+// Plugin-only switch (§5.4): remove the receipt-managed .claude/skills/oc-*
+// files that still match their receipt digest, through the same backup and
+// recovery journal as an update. Customised files are kept and reported, as
+// obsolete files are; .agents/skills, .codex/skills and non-oc skills are
+// never touched. The receipt keeps its version and loses the dropped paths.
+export function dropLocalSkills({ root = projectRoot(), beforeWrite = () => {} } = {}) {
+  root = realpathSync(resolve(root));
+  if (inspect(root, LOCK)) throw new Error(`Another or interrupted update owns ${LOCK}. Inspect its recovery.txt before proceeding.`);
+  const receipt = readReceipt(root);
+  if (!receipt) return { changed: 0, backup: null, removed: [], retained: [] };
+  const inventory = { ...receipt.files };
+  const desired = new Map();
+  const removed = [];
+  const retained = [];
+  for (const [path, hash] of Object.entries(receipt.files)) {
+    if (!LOCAL_COPY.test(path) || !receiptPath(path)) continue;
+    const current = read(root, path);
+    if (current && digest(current.bytes) === hash) { desired.set(path, null); removed.push(path); }
+    else if (current) retained.push(path);
+    delete inventory[path];
+  }
+  desired.set(RECEIPT, { bytes: json({ ...receipt, files: inventory }), mode: 0o644 });
+  const result = applyChanges(root, desired, { beforeWrite, release: { version: receipt.version ?? null, sha256: null } });
+  // Prune the directories the removal emptied, deepest first; one still holding anything stays.
+  const dirs = new Set();
+  for (const path of removed) for (let dir = dirname(path); dir !== '.claude/skills'; dir = dirname(dir)) dirs.add(dir);
+  for (const dir of [...dirs].sort((a, b) => b.length - a.length)) {
+    try { if (!readdirSync(join(root, dir)).length) rmdirSync(join(root, dir)); } catch { /* keep it */ }
+  }
+  return { ...result, removed, retained };
 }
 
 function sameEntry(a, b) {
@@ -829,6 +881,77 @@ export function updatePlugins({ root = projectRoot(), check = false, releaseVers
   return result;
 }
 
+// ---------------------------------------------------------------------------
+// --with-plugins (design §5.3). Adds first-party plugins at project scope via
+// the CLI: `marketplace add <known source> --scope project`, then
+// `install <id> --scope project`. Both are idempotent in Claude Code, and the
+// CLI writes .claude/settings.json; this code never does. A bare flag means
+// opchain only: ow-tools runs code on the machine, so it is added only when
+// named (§7 decision 2).
+// ---------------------------------------------------------------------------
+export const PLUGIN_NAMES = Object.freeze(Object.fromEntries(KNOWN_PLUGINS.map(plugin => [plugin.id.split('@')[0], plugin.id])));
+
+export function parseWithPlugins(value) {
+  const names = value === true ? ['opchain'] : value.split(',').map(name => name.trim());
+  const ids = [];
+  for (const name of names) {
+    const id = PLUGIN_NAMES[name] ?? (Object.values(PLUGIN_NAMES).includes(name) ? name : null);
+    if (!id) throw new Error(`Unknown plugin "${name}" for --with-plugins. Known: ${Object.keys(PLUGIN_NAMES).join(', ')}. No files changed.`);
+    if (!ids.includes(id)) ids.push(id);
+  }
+  return ids;
+}
+
+const sourceArg = plugin => plugin.source.source === 'github' ? plugin.source.repo : plugin.source.url;
+
+// True when the opchain plugin is enabled for this repository from the known
+// source and installed for this user: then .claude/skills copies are duplicates.
+export function opchainLoadsHere(root, configDir = claudeConfigDir()) {
+  const row = pluginState(root, { configDir }).find(r => r.id === KNOWN_PLUGINS[0].id);
+  return row.enabledHere && row.sourceOk && row.entries.length > 0;
+}
+
+export function installPlugins({ root = projectRoot(), ids, cli = findClaudeCli(), configDir = claudeConfigDir(), run = runClaude } = {}) {
+  const result = { lines: ['Adding plugins (project scope):'], failed: false, installed: [], calls: 0 };
+  const before = pluginState(root, { configDir });
+  const todo = [];
+  for (const id of ids) {
+    const row = before.find(r => r.id === id);
+    if (row.enabledHere && row.sourceOk) result.lines.push(`  ${id}: already enabled for this repository; the update step keeps it current.`);
+    else if (row.enabledHere) result.lines.push(`  ${id}: enabled from a marketplace source that is not the known Opchain one; not changed.`);
+    else todo.push(KNOWN_PLUGINS.find(plugin => plugin.id === id));
+  }
+  if (todo.length && !cli) {
+    const how = todo.map(plugin => `\`/plugin marketplace add ${sourceArg(plugin)}\` and \`/plugin install ${plugin.id}\``).join(', then ');
+    result.lines.push(`  plugins: not added (Claude Code CLI not found). In Claude Code run ${how}, choosing project scope.`);
+    return result;
+  }
+  for (const plugin of todo) {
+    let failure = null;
+    for (const argv of [['plugin', 'marketplace', 'add', sourceArg(plugin), '--scope', 'project'], ['plugin', 'install', plugin.id, '--scope', 'project']]) {
+      result.calls++;
+      try { run(cli, argv, root); }
+      catch (error) { failure = `${argv[1] === 'marketplace' ? 'marketplace add: ' : ''}${cliError(error)}`; break; }
+    }
+    if (failure) {
+      result.failed = true;
+      result.lines.push(`  ${plugin.id}: FAILED — ${failure}`);
+      continue;
+    }
+    const version = pluginState(root, { configDir }).find(r => r.id === plugin.id).entries.find(e => e.scope === 'project')?.version ?? 'unknown version';
+    result.installed.push(plugin.id);
+    result.lines.push(`  ${plugin.id}: installed ${version} — enabled for you, NOT yet for the repo — commit .claude/settings.json`);
+  }
+  if (result.installed.length) result.lines.push('Restart Claude Code to load the new hooks.');
+  if (result.failed) result.lines.push('Plugin install failed; skills are unaffected. Run /plugin install <id> in Claude Code to see the full error.');
+  return result;
+}
+
+export function duplicateWarning(root, copies = localSkillCopies(root)) {
+  const skills = new Set(copies.map(path => path.split('/')[2]));
+  return `duplicate: opchain@opchain is enabled for this repository and .claude/skills holds ${skills.size} receipt-managed oc-* skills, so Claude Code loads them twice. Pick one: plugin only — re-run with --drop-local-skills (backs up and removes the local copies); local only — remove "opchain@opchain" from enabledPlugins in .claude/settings.json.`;
+}
+
 function worktreeEntries(root) {
   const raw = git(root, ['worktree', 'list', '--porcelain']);
   if (!raw) return [];
@@ -892,7 +1015,10 @@ export function doctor({ root = projectRoot(), configDir = claudeConfigDir(), cl
   const duplicated = [...bySkill].filter(([, surfaces]) => surfaces.length > 1);
   if (duplicated.length) {
     const names = [...new Set(duplicated.flatMap(([, s]) => s.map(x => `${x.name} (${x.count} @${x.versions.join('/')})`)))];
-    report.findings.push({ level: 'warn', code: 'duplicate-surfaces', skills: duplicated.map(([id]) => id), message: `duplicate surfaces: ${duplicated.length} skills load from more than one place — ${names.join(' + ')}` });
+    // The plugin + repo-local pair is the one /oc-update can resolve itself (§5.4).
+    const pluginAndLocal = duplicated.some(([, surfaces]) => surfaces.some(x => x.scope === 'plugin') && surfaces.some(x => x.name === `repo-local ${TARGETS[0]}`));
+    const remedy = pluginAndLocal ? 'pick one: plugin only — /oc-update --drop-local-skills (backs up and removes the receipt-managed .claude/skills copies); local only — remove "opchain@opchain" from enabledPlugins in .claude/settings.json' : null;
+    report.findings.push({ level: 'warn', code: 'duplicate-surfaces', skills: duplicated.map(([id]) => id), remedy, message: `duplicate surfaces: ${duplicated.length} skills load from more than one place — ${names.join(' + ')}${remedy ? `; ${remedy}` : ''}` });
   }
   const populated = loadable.filter(s => s.count);
   const allVersions = [...new Set(populated.flatMap(s => s.versions))].sort();
@@ -948,7 +1074,7 @@ export const EXIT_PLUGINS = 4;
 
 export async function main(args = process.argv.slice(2)) {
   if (args.includes('--help')) {
-    console.log('opchain update [--check] [--source] [--target=claude|codex|both] [--root=/path/to/repo]\nopchain update plugins [--check] [--root=/path/to/repo]\nopchain update doctor [--json] [--root=/path/to/repo]\nSource checkouts sync from their current skills/ tree; consumer installs download releases. Preserves telemetry and checkpoints.\nAfter skills, the Claude Code CLI (when on PATH) updates the opchain/ow-tools plugins enabled for this repo at project or local scope; plugins runs only that step. Exit 4 means a plugin failed and skills are unaffected.\ndoctor lists every install surface (global, repo-local, plugin cache, worktrees) and the opchain/ow-tools plugins that load in this repo, with versions and flags duplicates, mismatches, uncommitted installs and parked checkouts.\n' + componentsBanner({ cli: Boolean(findClaudeCli()) }));
+    console.log('opchain update [--check] [--source] [--target=claude|codex|both] [--root=/path/to/repo]\nopchain update --with-plugins[=opchain,ow-tools] [--drop-local-skills | --keep-both] [--root=/path/to/repo]\nopchain update --drop-local-skills [--root=/path/to/repo]\nopchain update plugins [--check] [--root=/path/to/repo]\nopchain update doctor [--json] [--root=/path/to/repo]\nSource checkouts sync from their current skills/ tree; consumer installs download releases. Preserves telemetry and checkpoints.\nAfter skills, the Claude Code CLI (when on PATH) updates the opchain/ow-tools plugins enabled for this repo at project or local scope; plugins runs only that step. Exit 4 means a plugin failed and skills are unaffected.\n--with-plugins adds plugins at project scope (bare: opchain only; ow-tools only when named). With receipt-managed .claude/skills copies it needs --drop-local-skills (plugin only: backs up and removes those copies) or --keep-both.\ndoctor lists every install surface (global, repo-local, plugin cache, worktrees) and the opchain/ow-tools plugins that load in this repo, with versions and flags duplicates, mismatches, uncommitted installs and parked checkouts.\n' + componentsBanner({ cli: Boolean(findClaudeCli()) }));
     return 0;
   }
   const options = {};
@@ -958,6 +1084,10 @@ export async function main(args = process.argv.slice(2)) {
     else if (arg === 'doctor' || arg === '--doctor') options.doctor = true;
     else if (arg === 'plugins') options.plugins = true;
     else if (arg === '--json') options.json = true;
+    else if (arg === '--with-plugins') options.withPlugins = parseWithPlugins(true);
+    else if (arg.startsWith('--with-plugins=')) options.withPlugins = parseWithPlugins(arg.slice(15));
+    else if (arg === '--drop-local-skills') options.dropLocal = true;
+    else if (arg === '--keep-both') options.keepBoth = true;
     else if (arg.startsWith('--target=')) options.target = arg.slice(9);
     else if (arg.startsWith('--root=')) options.root = arg.slice(7);
     else throw new Error(`Unknown option: ${arg}`);
@@ -972,16 +1102,24 @@ export async function main(args = process.argv.slice(2)) {
   }
   if (options.json) throw new Error('--json is only valid with doctor');
   const cli = findClaudeCli();
+  const surfaces = options.withPlugins || options.dropLocal || options.keepBoth;
   if (options.plugins) {
-    if (options.source || options.target) throw new Error('plugins takes only --check and --root.');
+    if (options.source || options.target || surfaces) throw new Error('plugins takes only --check and --root.');
     return reportPlugins(updatePlugins({ root, check: options.check, cli }));
   }
   const sourceMode = options.source || isSourceRepo(root);
   if (sourceMode && options.target) throw new Error('Source mode maintains the checkout links; --target is only for consumer installs.');
+  let exclude = surfaces ? choosePluginSurface(root, options, sourceMode) : [];
+  // Plugin-only repository: the fresh-install default must not re-create the
+  // .claude/skills copies that --drop-local-skills removed.
+  if (!sourceMode && !options.target && !exclude.length && opchainLoadsHere(root) && !localSkillCopies(root).length) exclude = [TARGETS[0]];
   if (!sourceMode) console.log(componentsBanner({ cli: Boolean(cli) }));
   console.log(sourceMode ? 'Checking Opchain against this source checkout…' : 'Checking the latest Opchain release…');
-  const result = sourceMode ? await syncSourceRepo({ ...options, root }) : await installBundle(await downloadRelease(), options);
-  if (!result.changed) {
+  const result = sourceMode ? await syncSourceRepo({ ...options, root }) : await installBundle(await downloadRelease(), { ...options, exclude });
+  if (!result.targets.length) {
+    console.log(`opchain ${result.version}: no repo-local skills to update here; the opchain plugin provides them in Claude Code. Telemetry: ${result.telemetry.message}.`);
+    if (!result.telemetry.healthy) console.error('Skills are not installed locally; telemetry needs attention. Restore the local database or run /oc-telemetry status to investigate. Consent was preserved.');
+  } else if (!result.changed) {
     // No-op runs used to pay the full welcome text; six of six /oc-update runs
     // in the audit corpus changed nothing. One line for skills, then plugins.
     console.log(`opchain ${result.version} is already current on ${result.targets.join(', ')}. Telemetry: ${result.telemetry.message}.`);
@@ -1000,8 +1138,44 @@ export async function main(args = process.argv.slice(2)) {
   // Skills are committed (or were only checked) by now; nothing below can roll them back.
   // A source checkout's tree version is not what the public plugin mirror serves, so only
   // a downloaded release gives --check a lockstep version to compare against.
-  const plugins = updatePlugins({ root, check: options.check, releaseVersion: sourceMode ? null : result.version, cli });
-  return (result.telemetry.healthy ? 0 : EXIT_TELEMETRY) | reportPlugins(plugins);
+  let code = (result.telemetry.healthy ? 0 : EXIT_TELEMETRY) | reportPlugins(updatePlugins({ root, check: options.check, releaseVersion: sourceMode ? null : result.version, cli }));
+  if (options.withPlugins) code |= reportPlugins(installPlugins({ root, ids: options.withPlugins, cli }));
+  if (options.dropLocal) {
+    // Only once the plugin really loads here: a failed or skipped install must
+    // never leave the repository with no Claude Code surface at all.
+    if (opchainLoadsHere(root)) {
+      const dropped = dropLocalSkills({ root });
+      console.log(`Local skills: removed ${dropped.removed.length} receipt-managed files from .claude/skills; the opchain plugin provides these skills now.${dropped.backup ? ` Previous files: ${dropped.backup}` : ''}`);
+      if (dropped.retained.length) console.log(`Kept ${dropped.retained.length} customized files in .claude/skills (no longer receipt-managed): ${dropped.retained.join(', ')}`);
+      if (dropped.removed.length) warnUncommitted(root, [TARGETS[0]]);
+    } else console.log('Local skills: kept — the opchain plugin is not enabled and installed for this repository, so .claude/skills was not removed.');
+  } else if (!options.check && opchainLoadsHere(root) && localSkillCopies(root).length) console.warn(duplicateWarning(root));
+  return code;
+}
+
+// Validates --with-plugins / --drop-local-skills / --keep-both before anything
+// changes, and returns the install targets this run must not write (§5.3, §5.4).
+function choosePluginSurface(root, options, sourceMode) {
+  const fail = message => { throw new Error(`${message} No files changed.`); };
+  if (options.check) fail('--with-plugins, --drop-local-skills and --keep-both change this repository; run them without --check.');
+  if (sourceMode) fail('This is an Opchain source checkout: it loads skills from its own tree. Add plugins with /plugin in Claude Code.');
+  if (options.target) fail('--target cannot be combined with --with-plugins, --drop-local-skills or --keep-both.');
+  if (options.dropLocal && options.keepBoth) fail('Choose one of --drop-local-skills and --keep-both.');
+  const opchain = KNOWN_PLUGINS[0].id;
+  const row = pluginState(root).find(r => r.id === opchain);
+  const adding = options.withPlugins?.includes(opchain) && !(row.enabledHere && row.sourceOk);
+  if (options.withPlugins && !targetsFor(root).includes(TARGETS[0])) {
+    fail('Refusing --with-plugins: this repository\'s Opchain install is Codex-only (.agents/skills). Plugins are a Claude Code feature and Codex has no plugin system. Install for Claude Code first (--target=claude), or add the plugin with /plugin in Claude Code.');
+  }
+  const copies = localSkillCopies(root);
+  if (adding && copies.length && !options.dropLocal && !options.keepBoth) {
+    fail(`Refusing --with-plugins: .claude/skills holds ${new Set(copies.map(path => path.split('/')[2])).size} receipt-managed oc-* skills, and the opchain plugin would load the same skills a second time. Re-run with --drop-local-skills (plugin only: backs up and removes those copies) or --keep-both.`);
+  }
+  if (options.dropLocal && !adding && !opchainLoadsHere(root)) {
+    fail('--drop-local-skills removes the .claude/skills copies only when the opchain plugin replaces them. Add it in the same run with --with-plugins --drop-local-skills.');
+  }
+  // Never write a .claude/skills copy the plugin duplicates, unless --keep-both keeps an existing one.
+  return options.dropLocal || (adding && !(options.keepBoth && copies.length)) ? [TARGETS[0]] : [];
 }
 
 function reportPlugins(plugins) {

@@ -1,6 +1,6 @@
 # /oc-update plugins — design
 
-**Date:** 2026-10-16 · **Status:** APPROVED 2026-10-16 (decisions in §7). S1 merged (#612). S2 (plugin step, `plugins` subcommand, exit-code split, per-host banner; `tests/update-plugins.test.js`) in review. S3–S4 not built.
+**Date:** 2026-10-16 · **Status:** APPROVED 2026-10-16 (decisions in §7). S1 merged (#612). S2 merged (#615). S3 (`--with-plugins`, duplicate guard, `--drop-local-skills`) in review. S4 not built.
 **Release:** after the 2.1 "Jev" consolidation (`claude/consolidate-2-1-updates-6054cf`) merges. That branch rewrites `update.mjs` (components banner, `doctor`), so this work starts on top of it, not on today's `main`.
 **Owner decisions (2026-10-16):** `/oc-update` should keep a repository's Opchain plugins current, not only its skills. The four open questions are settled in §7.
 
