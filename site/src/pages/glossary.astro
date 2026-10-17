@@ -8,6 +8,8 @@ interface Term {
   term: string;
   short: string;
   long?: string;
+  /** Release that introduced the term, when it is newer than the current stamp. */
+  since?: string;
   related?: Array<{ label: string; href: string }>;
 }
 
@@ -23,8 +25,8 @@ const terms: Term[] = [
     id: "skillchain",
     term: "Skillchain",
     short: "The full set of opchain skills working together as a pipeline — discover → spec → design → build → audit → ship → monitor → migrate → scale.",
-    long: "Skills hand work to each other across phase boundaries by writing to and reading from each other's checkpoints. The orchestrator routes invocations so you never have to name the next skill by hand.",
-    related: [{ label: "Architecture", href: "/architecture" }],
+    long: "Skills hand work to each other across phase boundaries by writing to and reading from each other's checkpoints. A handoff written in a skill's text is a convention: a skill cannot make another skill run. The edges that must hold — commit, push, pull request, deploy — are held by a check at that chokepoint once the repository is enrolled. The architecture page's enforcement map lists which mechanism holds each one.",
+    related: [{ label: "Enforcement map", href: "/architecture#enforcement-map" }, { label: "Enrollment", href: "/glossary#enrollment" }],
   },
   {
     id: "checkpoint",
@@ -44,7 +46,7 @@ const terms: Term[] = [
     id: "orchestrator",
     term: "Orchestrator",
     short: "Routing skill that decides which skill should run next based on what you said, what phase you're in, and what the open checkpoints look like.",
-    long: "Exposes /oc-ops — \"where did I leave off?\" Answers across every project on the machine. Reads every skill's checkpoint; writes its own pipeline state.",
+    long: "Exposes /oc-ops — \"where did I leave off?\" Answers across every project on the machine. Reads every skill's checkpoint, writes its own pipeline state, and recommends the next skill. You (or the optional skill router) still invoke it.",
     related: [{ label: "Architecture", href: "/architecture" }],
   },
   {
@@ -58,7 +60,7 @@ const terms: Term[] = [
     id: "audit-gate",
     term: "Audit gate",
     short: "A skill that must pass before oc-deploy-ops will ship to production — oc-bug-check, oc-code-auditor, or oc-security-auditor.",
-    long: "Deploy is blocked until every audit gate's checkpoint shows passed. Gates can be overridden manually, but the override is recorded in the deploy checkpoint.",
+    long: "oc-deploy-ops runs the pre-deploy audits before it ships. That holds when the skill runs; the deploy command itself is held by a deploy wrapper or CI. oc-bug-check is the one audit gate with a mechanism of its own: the enrolled pre-commit hook. A bypass of it is recorded (see bypass record).",
     related: [{ label: "oc-code-auditor", href: "/skills/oc-code-auditor" }, { label: "oc-security-auditor", href: "/skills/oc-security-auditor" }, { label: "oc-bug-check", href: "/skills/oc-bug-check" }],
   },
   {
@@ -114,12 +116,58 @@ const terms: Term[] = [
     short: "List of recommended commands the orchestrator surfaces at the end of every skill invocation.",
     long: "Read from the most recent checkpoint's next_actions array. The orchestrator merges across all open checkpoints so you see one ordered queue, not 18 separate ones.",
   },
+  {
+    id: "enrollment",
+    term: "Enrollment",
+    short: "Running /oc-enroll in a repository so its commits and pushes are actually checked. Installing the plugin does not do this.",
+    long: "Enrollment copies the verifier runtime under the repository's Git directory, installs managed pre-commit, post-commit and pre-push hooks, and creates .opchain/. Until it succeeds, no hook in that repository checks anything. /oc-enroll --doctor reports whether the gate will run; --ci adds the pull-request workflow; --claude-md writes the repository's verbs into CLAUDE.md. New in 2.1: the post-commit and pre-push hooks and all three flags; 2.0.4 installs the pre-commit hook only.",
+    related: [{ label: "Install: turn on the gate", href: "/install#enroll" }, { label: "oc-bug-check", href: "/skills/oc-bug-check" }],
+  },
+  {
+    id: "receipt",
+    term: "Receipt",
+    short: "The JSON record the commit gate writes after it checks a staged tree: which tree, which policy, which checks, and the verdict.",
+    long: "Receipts are bound to the exact candidate tree, so a commit with a PASS receipt is one whose bytes were checked. An identical tree reuses its PASS receipt; a rebase produces a new tree and needs a new one. Non-PASS receipts carry a log file beside them with each failing check's output. Receipts live under .git/opchain/verification-receipts/ and are local; CI re-verifies the received head.",
+    related: [{ label: "INCONCLUSIVE", href: "/glossary#inconclusive" }, { label: "Bypass record", href: "/glossary#bypass-record" }],
+  },
+  {
+    id: "inconclusive",
+    term: "INCONCLUSIVE verdict",
+    since: "2.1",
+    short: "The commit gate's answer when a check timed out or a command inside it was not found: nothing was learned about the code, so retry.",
+    long: "Distinct from FAIL, which means a check ran and the code failed it. INCONCLUSIVE covers timeouts and checks that exit 127 because a command was not found. It is retried, not bypassed. Missing dependencies are reported separately as BLOCKED, with no receipt written: install them and commit again.",
+    related: [{ label: "Receipt", href: "/glossary#receipt" }],
+  },
+  {
+    id: "bypass-record",
+    term: "Bypass record",
+    since: "2.1",
+    short: "A file the post-commit hook writes for any commit that landed without a PASS receipt, including git commit --no-verify.",
+    long: "Written to .git/opchain/bypasses/v1/<sha>.json. Git runs post-commit even when --no-verify skipped pre-commit, so a bypass cannot pass unrecorded. The pre-push hook then refuses to push the commit until it carries an Opchain-Bypass: trailer saying who approved it and why, and the pull-request evidence check lists it, so the count survives a squash merge.",
+    related: [{ label: "Install: what the hooks do", href: "/install#enroll" }, { label: "Security", href: "/security#plugin" }],
+  },
+  {
+    id: "skill-router",
+    term: "Skill router",
+    since: "2.1",
+    short: "An optional plugin hook that asks a classifier which opchain skill owns a prompt and adds one line naming it.",
+    long: "Uses TypeSafe's Jev model (jev-1.13.0) through your own TYPESAFE_API_KEY. The line it adds is the tool-named form: invoke the Skill tool with skill \"oc-git-ops\" and args \"/oc-git-sync\". The prompt and repository state are sent after local secret redaction; the conversation tail is added only with OPCHAIN_ROUTE_CONTEXT=1, which is off by default. Off without a key; OPCHAIN_ROUTE=0 turns it off with one.",
+    related: [{ label: "Install: skill router", href: "/install#router" }, { label: "Shadow mode", href: "/glossary#shadow-mode" }],
+  },
+  {
+    id: "shadow-mode",
+    term: "Shadow mode",
+    since: "2.1",
+    short: "The skill router's default: it classifies and logs every prompt but adds nothing to the conversation.",
+    long: "Shadow runs still call the classifier API. They exist to measure the router on real prompts before it is allowed to suggest: each log entry records the decision and, on the next prompt, what the session actually did. Set OPCHAIN_ROUTE_MODE=live to add suggestions.",
+    related: [{ label: "Skill router", href: "/glossary#skill-router" }],
+  },
 ];
 ---
 
 <Base
   title="Glossary · opchain"
-  description="Definitions for every opchain concept — skill, checkpoint, tri-agent, orchestrator, audit gate, phase, and the rest."
+  description="Definitions for every opchain concept — skill, checkpoint, tri-agent, orchestrator, audit gate, enrollment, receipt, and the rest."
   active="/skills"
 >
   <main class="page">
@@ -145,7 +193,7 @@ const terms: Term[] = [
     <dl class="glossary">
       {terms.map((t) => (
         <div class="entry" id={t.id}>
-          <dt>{t.term}</dt>
+          <dt>{t.term}{t.since && <span class="since">New in {t.since}</span>}</dt>
           <dd>
             <p class="short"><strong>{t.short}</strong></p>
             {t.long && <p class="long">{t.long}</p>}
@@ -231,6 +279,7 @@ const terms: Term[] = [
     letter-spacing: var(--ls-tight);
     margin-bottom: 0.45rem;
   }
+  dt .since { margin-left: 0.6rem; vertical-align: middle; font-family: var(--font-mono); font-size: var(--fs-sm); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--secondary); border: 0.5px solid var(--secondary); background: var(--secondary-dim); border-radius: var(--r-pill); padding: 1px 7px; }
   dd { margin: 0; color: var(--muted); }
   dd p { margin: 0 0 0.55rem; line-height: var(--lh-base); }
   dd .short { color: var(--text); font-size: var(--fs-base); }

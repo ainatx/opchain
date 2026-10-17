@@ -1,6 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import MobileArchitecture from "../components/MobileArchitecture.astro";
+import EnforcementMap from "../components/EnforcementMap.astro";
 
 import packsCatalog from "../../../src/generated/packs-catalog.json";
 
@@ -140,6 +141,15 @@ const packCounts = {
         <marker id="ah-v20-muted" markerWidth="5" markerHeight="3.5" refX="4.5" refY="1.75" orient="auto">
           <polygon points="0 0, 5 1.75, 0 3.5" fill="#a5bcd1"/>
         </marker>
+        <marker id="ah-jev" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+          <polygon points="0 0, 6 2, 0 4" fill="#d79fe9"/>
+        </marker>
+        <filter id="glow-jev" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="6" result="b"/>
+          <feFlood flood-color="#d79fe9" flood-opacity="0.45" result="c"/>
+          <feComposite in="c" in2="b" operator="in" result="s"/>
+          <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
       </defs>
     </svg>
 
@@ -147,7 +157,7 @@ const packCounts = {
       <div class="header">
         <div class="header-eyebrow">SKILLS · ARCHITECTURE · v2 · RELEASE v2.0</div>
         <h1>opchain skills ecosystem</h1>
-        <p class="subtitle">Checkpoint-driven pipeline · 36 skills · 6 phases · 11 tri-agent · 3 audit gates · spine ordinals · <span class="subtitle-packs">v1.5 pack fabric ({packCounts.total})</span> · <span class="subtitle-inst">v1.6 instrument rail</span> · <span style="color:var(--sig)">v1.7 Seams &amp; Signals</span> · <span style="color:var(--docs)">v1.8 quality-gate rail</span> · <span style="color:var(--assure)">v1.9 assurance rail</span> · <span style="color:var(--learn)">v2.0 learning rail</span></p>
+        <p class="subtitle">Checkpoint-driven pipeline · 36 skills · 6 phases · 11 tri-agent · 3 audit gates · spine ordinals · <span class="subtitle-packs">v1.5 pack fabric ({packCounts.total})</span> · <span class="subtitle-inst">v1.6 instrument rail</span> · <span style="color:var(--sig)">v1.7 Seams &amp; Signals</span> · <span style="color:var(--docs)">v1.8 quality-gate rail</span> · <span style="color:var(--assure)">v1.9 assurance rail</span> · <span style="color:var(--learn)">v2.0 learning rail</span> · <span style="color:var(--tert)">v2.1 Jev rail (draft)</span></p>
       </div>
 
       <div class="diagram-container">
@@ -503,7 +513,7 @@ const packCounts = {
                     <div class="bd-text">
                       <div class="bd-badge" style="color:var(--ember)">Phase 2 of 6</div>
                       <div class="bd-title">Plan</div>
-                      <div class="bd-desc">oc-app-architect anchors the spine, auto-invoking oc-stack-forge for platform decisions, taking advisory input from oc-scale-ops on capacity, and routing oc-migration-ops when a live system needs a schema, framework, or platform change. The plan checkpoint is the master record downstream skills consume. <strong style="color:#d87fd1">v1.7</strong> adds <strong style="color:#d87fd1">oc-modularize-ops</strong> here — it decides whether to split a live monolith, captures golden fixtures from real data, proves zero functionality/data loss, then hands the bulk move to oc-migration-ops (the <strong style="color:#d87fd1">Seams</strong> chain → oc-fleet-ops).</div>
+                      <div class="bd-desc">oc-app-architect anchors the spine, handing platform decisions to oc-stack-forge, taking advisory input from oc-scale-ops on capacity, and routing oc-migration-ops when a live system needs a schema, framework, or platform change. The plan checkpoint is the master record downstream skills consume. <strong style="color:#d87fd1">v1.7</strong> adds <strong style="color:#d87fd1">oc-modularize-ops</strong> here — it decides whether to split a live monolith, captures golden fixtures from real data, proves zero functionality/data loss, then hands the bulk move to oc-migration-ops (the <strong style="color:#d87fd1">Seams</strong> chain → oc-fleet-ops).</div>
                     </div>
                   </div>
                 </div>
@@ -1451,6 +1461,114 @@ const packCounts = {
             </span>
           </div>
 
+          <!-- ══ JEV RAIL (v2.1 draft) ══
+               The 2.1 skill router on the UserPromptSubmit hook. Source:
+               plugins/opchain/hooks/route-prompt.cjs + lib/route-dispatch.cjs in the
+               2.1 workstream. Drawn in the 2.0 --tertiary
+               #d79fe9, the colour /changelog gives "planned", with a dashed border
+               like the v2.0 rail had before it shipped: this has not shipped. -->
+          <div class="jrail" role="group" aria-label="2.1 Jev rail (draft): a UserPromptSubmit hook asks TypeSafe Jev which one opchain skill owns the prompt and, in live mode, injects one line naming the Skill tool, the skill and the verb. Shadow mode is the default and injects nothing.">
+            <div class="jrail-head">
+              <span class="jrail-eyebrow">v2.1 · draft · Jev rail</span>
+              <span class="jrail-title">Route each prompt to one skill, as one tool-named line.</span>
+            </div>
+            <div class="jrail-svg-wrap">
+              <svg viewBox="0 0 760 330" role="img" aria-label="Jev rail: route-prompt.cjs, then Jev request 1, Jev request 2 and a tiered decision. An explicit /oc-* mention skips both Jev calls. The decision goes to shadow mode (default, log only) or live mode (one injected line). Every routed prompt feeds the eval loop.">
+                <!-- ══ EXPLICIT WIRE: a prompt that names one /oc-* skill skips both Jev calls ══ -->
+                <text x="380" y="22" fill="#d79fe9" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">explicit /oc-* mention → decision at p = 1 · no Jev call</text>
+                <line x1="94" y1="52" x2="94" y2="30" stroke="#d79fe9" stroke-width="1.4" opacity="0.9"/>
+                <line x1="94" y1="30" x2="660" y2="30" stroke="#d79fe9" stroke-width="1.4" opacity="0.9"/>
+                <line x1="660" y1="30" x2="660" y2="50" stroke="#d79fe9" stroke-width="1.4" opacity="0.9" marker-end="url(#ah-jev)"/>
+                <!-- the four router stages (text ≥ 9.2 viewBox units: ≥ 12 px once the 760-unit viewBox renders at ~1015 px or wider) -->
+                <rect x="14" y="52" width="160" height="100" rx="5" fill="#12191f" stroke="#d79fe9" stroke-width="1" opacity="0.97"><title>UserPromptSubmit hook. Redacts secrets first, then builds the state Jev sees: the request and repo state (branch, ahead/behind, dirty, open PR, enrolled, in-progress checkpoint). The conversation tail (previous prompt, end of the last assistant message) is added only with OPCHAIN_ROUTE_CONTEXT=1, off by default. Silent without TYPESAFE_API_KEY, on slash commands, and outside opchain projects.</title></rect>
+                <rect x="14" y="52" width="160" height="100" rx="5" fill="rgba(215,159,233,0.05)" stroke="#d79fe9" stroke-width="0.5"/>
+                <text x="94" y="72" fill="#d4e2ef" font-size="11" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">route-prompt.cjs</text>
+                <text x="94" y="89" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">UserPromptSubmit hook</text>
+                <text x="94" y="102" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">redact → request · repo</text>
+                <text x="94" y="115" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">conversation: opt-in</text>
+                <text x="94" y="140" fill="#d79fe9" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">fail open · 8 s budget</text>
+                <rect x="194" y="52" width="170" height="100" rx="5" fill="#12191f" stroke="#d79fe9" stroke-width="1" opacity="0.97"><title>TypeSafe Jev, model pinned to jev-1.13.0. One Choice over every routable skill plus none, and three gate Nouls. gate = mean(acts, procedure, 1 − prose).</title></rect>
+                <rect x="194" y="52" width="170" height="100" rx="5" fill="rgba(215,159,233,0.05)" stroke="#d79fe9" stroke-width="0.5"/>
+                <text x="279" y="72" fill="#d4e2ef" font-size="11" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">Jev request 1</text>
+                <text x="279" y="89" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">Choice over skills + none</text>
+                <text x="279" y="102" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">gate Nouls:</text>
+                <text x="279" y="115" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">acts · procedure · prose</text>
+                <text x="279" y="140" fill="#d79fe9" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">gate = mean ≥ 0.5</text>
+                <rect x="384" y="52" width="170" height="100" rx="5" fill="#12191f" stroke="#d79fe9" stroke-width="1" opacity="0.97"><title>Reranks the top three with full descriptions. Each candidate gets a fits Noul and a verb Choice in the same request; only the winner’s answers are read.</title></rect>
+                <rect x="384" y="52" width="170" height="100" rx="5" fill="rgba(215,159,233,0.05)" stroke="#d79fe9" stroke-width="0.5"/>
+                <text x="469" y="72" fill="#d4e2ef" font-size="11" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">Jev request 2</text>
+                <text x="469" y="89" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">rerank the top 3</text>
+                <text x="469" y="102" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">fits::&lt;id&gt; Noul ·</text>
+                <text x="469" y="115" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">verb::&lt;id&gt; Choice</text>
+                <text x="469" y="140" fill="#d79fe9" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">top probability ≥ 0.35</text>
+                <rect x="574" y="52" width="172" height="100" rx="5" fill="#12191f" stroke="#d79fe9" stroke-width="1" filter="url(#glow-jev)" opacity="0.97"><title>Tiered bar: the seven core pipeline skills route at fits ≥ 0.6, every other skill needs 0.9. Only the 12 allowlisted skills (labelled positives in the eval) may be suggested; the rest stay Choice options.</title></rect>
+                <rect x="574" y="52" width="172" height="100" rx="5" fill="rgba(215,159,233,0.05)" stroke="#d79fe9" stroke-width="0.5"/>
+                <text x="660" y="72" fill="#d4e2ef" font-size="11" font-weight="600" font-family="Outfit,system-ui,sans-serif" text-anchor="middle">decision</text>
+                <text x="660" y="89" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">core 7: fits ≥ 0.6</text>
+                <text x="660" y="102" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">others: fits ≥ 0.9</text>
+                <text x="660" y="115" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">allowlist · 12 skills</text>
+                <text x="660" y="140" fill="#d79fe9" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">p = min(top, fits, gate)</text>
+                <line x1="174" y1="102" x2="194" y2="102" stroke="#d79fe9" stroke-width="1.4" opacity="0.9" marker-end="url(#ah-jev)"/>
+                <line x1="364" y1="102" x2="384" y2="102" stroke="#d79fe9" stroke-width="1.4" opacity="0.9" marker-end="url(#ah-jev)"/>
+                <line x1="554" y1="102" x2="574" y2="102" stroke="#d79fe9" stroke-width="1.4" opacity="0.9" marker-end="url(#ah-jev)"/>
+                <!-- outputs + the eval loop -->
+                <rect x="14" y="184" width="200" height="74" rx="5" fill="#12191f" stroke="#d79fe9" stroke-width="1" opacity="0.97"><title>Every routed prompt is logged. On the next prompt the hook records what the session actually did (skill calls, commit, push, PR, deploy). route-eval outcomes turns that into the day-8 go/no-go.</title></rect>
+                <text x="114" y="203" fill="#d79fe9" font-size="9.2" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">EVAL LOOP</text>
+                <text x="114" y="219" fill="#d4e2ef" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">route log + outcome records</text>
+                <text x="114" y="232" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">route-eval outcomes →</text>
+                <text x="114" y="245" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">thresholds · allowlist</text>
+                <rect x="228" y="184" width="170" height="74" rx="5" fill="#12191f" stroke="#d79fe9" stroke-width="1" stroke-dasharray="2,3" opacity="0.97"><title>Planned Jev uses after the router, in order: verifier FAIL triage, Stop handoff detection, semantic gate rows. Not built.</title></rect>
+                <text x="313" y="203" fill="#d79fe9" font-size="9.2" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">JEV · PLANNED 2.1+</text>
+                <text x="313" y="219" fill="#d4e2ef" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">1 verifier FAIL triage</text>
+                <text x="313" y="232" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">2 Stop handoff detection</text>
+                <text x="313" y="245" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">3 semantic gate rows</text>
+                <rect x="412" y="184" width="130" height="74" rx="5" fill="#12191f" stroke="#a5bcd1" stroke-width="1" opacity="0.97"><title>Shadow is the default. OPCHAIN_ROUTE_MODE unset routes and logs but injects nothing.</title></rect>
+                <text x="477" y="203" fill="#a5bcd1" font-size="9.2" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">SHADOW · default</text>
+                <text x="477" y="219" fill="#d4e2ef" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">route + log</text>
+                <text x="477" y="232" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">inject nothing</text>
+                <rect x="556" y="184" width="190" height="74" rx="5" fill="#12191f" stroke="#d79fe9" stroke-width="1" opacity="0.97"><title>Live mode injects exactly one line as additionalContext — the tool-named form the 2026-10-08 audit measured at 72/72.</title></rect>
+                <text x="651" y="203" fill="#d79fe9" font-size="9.2" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">LIVE · OPCHAIN_ROUTE_MODE=live</text>
+                <text x="651" y="219" fill="#d4e2ef" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">"invoke the Skill tool</text>
+                <text x="651" y="232" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">with skill X and args /verb"</text>
+                <text x="651" y="245" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">one line, no menu</text>
+                <line x1="600" y1="152" x2="600" y2="168" stroke="#d79fe9" stroke-width="1.4" opacity="0.9"/>
+                <line x1="600" y1="168" x2="477" y2="168" stroke="#d79fe9" stroke-width="1.4" opacity="0.9"/>
+                <line x1="477" y1="168" x2="477" y2="184" stroke="#d79fe9" stroke-width="1.4" opacity="0.9" marker-end="url(#ah-jev)"/>
+                <line x1="690" y1="152" x2="690" y2="184" stroke="#d79fe9" stroke-width="1.4" opacity="0.9" marker-end="url(#ah-jev)"/>
+                <text x="538" y="164" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">default</text>
+                <text x="722" y="172" fill="#d79fe9" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">MODE=live</text>
+                <line x1="477" y1="258" x2="477" y2="270" stroke="#a5bcd1" stroke-width="1.4" stroke-dasharray="4,3" opacity="0.9"/>
+                <line x1="651" y1="258" x2="651" y2="270" stroke="#a5bcd1" stroke-width="1.4" stroke-dasharray="4,3" opacity="0.9"/>
+                <line x1="651" y1="270" x2="114" y2="270" stroke="#a5bcd1" stroke-width="1.4" stroke-dasharray="4,3" opacity="0.9"/>
+                <line x1="114" y1="270" x2="114" y2="260" stroke="#a5bcd1" stroke-width="1.4" stroke-dasharray="4,3" opacity="0.9" marker-end="url(#ah-v20-muted)"/>
+                <text x="380" y="288" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.85">every routed prompt is logged · the next prompt records what the session actually did</text>
+                <text x="380" y="303" fill="#d79fe9" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle">tiered bar from the 2026-10-09 eval: 574 prompts · 41 positives · git-ops 0.92 / deploy-ops 0.88 precision</text>
+                <text x="380" y="318" fill="#a5bcd1" font-size="9.2" font-family="JetBrains Mono,monospace" text-anchor="middle" opacity="0.85">suggests, never blocks</text>
+              </svg>
+            </div>
+            <div class="jrail-anchors">
+              <div class="jrail-anchor">
+                <span class="ia-name">route-prompt.cjs</span>
+                <span class="ia-meta">UserPromptSubmit hook · plugin</span>
+                <span class="ia-do">shadow by default · OPCHAIN_ROUTE_MODE=live injects</span>
+                <span class="ia-badges"><span class="ia-new">2.1 DRAFT</span></span>
+              </div>
+              <div class="jrail-anchor">
+                <span class="ia-name">TypeSafe Jev · jev-1.13.0</span>
+                <span class="ia-meta">two requests · pinned model · 24 h decision cache</span>
+                <span class="ia-do">which skill → rerank top 3 → fits + verb</span>
+                <span class="ia-badges"><span class="ia-new">ROUTER, NOT A SKILL</span></span>
+              </div>
+              <div class="jrail-anchor">
+                <span class="ia-name">suggest allowlist</span>
+                <span class="ia-meta">core 7 at fits ≥ 0.6 · 5 more at ≥ 0.9</span>
+                <span class="ia-do">git · deploy · code-auditor · bug-check · release · docs · repo · app-architect · ux · dash · orchestrator · update</span>
+                <span class="ia-badges"><span class="ia-new">EVIDENCE GATE</span></span>
+              </div>
+            </div>
+            <div class="jrail-foot">2.1 draft · the audit measured tool-named asks at 72/72 vs 80/143 for shorthand · the router suggests, it never blocks</div>
+          </div>
+
           <!-- Legend -->
           <div class="legend">
             <div class="legend-section-label">connections</div>
@@ -1491,7 +1609,7 @@ const packCounts = {
               <span>audit gate</span>
               <div class="legend-card" role="tooltip">
                 <div class="legend-card-title">Audit Gate</div>
-                Pipeline blocks until the gate writes a passing result. Three gates in this ecosystem: oc-bug-check (pre-commit), oc-code-auditor (code-level), oc-security-auditor (posture).
+                A gate holds only where something checks it: oc-bug-check at <code>git commit</code> once the repository is enrolled; oc-code-auditor and oc-security-auditor when oc-deploy-ops runs its pre-deploy audit. Three gates in this ecosystem: oc-bug-check (pre-commit), oc-code-auditor (code-level), oc-security-auditor (posture). See the enforcement map below the diagram.
                 <div class="legend-card-examples">score ≥ 7/10 · STRIDE clean · zero critical CVEs</div>
               </div>
             </span>
@@ -1501,7 +1619,7 @@ const packCounts = {
               <span>PR-readiness gate <span style="color:var(--docs)">v1.8</span></span>
               <div class="legend-card" role="tooltip">
                 <div class="legend-card-title">PR-readiness gate (v1.8)</div>
-                The v1.8 rail runs oc-docs-forge (writes the docs packet) then oc-repo-ops (repo hygiene + drift) before a PR opens, and oc-repo-ops fails closed when the repo is not ready. Unlike the commit gate — which the opchain plugin enforces with a PreToolUse hook — nothing mechanically blocks a PR today: this is a sequence oc-git-ops follows, not an enforced boundary.
+                The v1.8 rail runs oc-docs-forge (writes the docs packet) then oc-repo-ops (repo hygiene + drift) before a PR opens, and oc-repo-ops fails closed when the repo is not ready. The sequence is a convention oc-git-ops follows; what holds it is the <code>evidence:pr</code> CI check, which fails a pull request whose docs and readiness handoffs do not match its head. opchain runs it on itself; <code>/oc-enroll --ci</code> adds it to your repository.
                 <div class="legend-card-examples">oc-git-ops → oc-docs-forge → oc-repo-ops → PR opens</div>
               </div>
             </span>
@@ -1678,7 +1796,8 @@ const packCounts = {
             <li>· oc-bug-check — pre-commit type/lint/secret scan</li>
             <li>· oc-code-auditor — code-level Auditor/Fixer/Verifier</li>
             <li>· oc-security-auditor — STRIDE / OWASP / infra hardening</li>
-            <li>· All three must pass before oc-deploy-ops ships</li>
+            <li>· oc-deploy-ops runs the pre-deploy audits before it ships; the deploy command itself is held by the deploy wrapper</li>
+            <li>· oc-bug-check is the one with its own mechanism: the enrolled pre-commit hook</li>
             <li>· <span style="color:#8cb9fc">v2.0's ★ promote / adopt gates are human gates, not audit gates — the count stays 3</span></li>
           </ul>
         </div>
@@ -1730,6 +1849,8 @@ const packCounts = {
       <p class="footer">opchain skills ecosystem v2 · ainatx/opchain · 36 skills · 6 phases · 11 tri-agent · 3 audit gates · spine ordinals · v2.0 · checkpoint-driven</p>
     </div>
   </main>
+
+  <EnforcementMap />
 
   <script is:inline>
     /* ══ Architecture v2 — interactive diagram ══ */
@@ -3241,6 +3362,41 @@ const packCounts = {
   }
   .arch-v2 .lrail-foot { font-size: .56rem; color: var(--learn); letter-spacing: .04em; margin-top: 8px; }
 
+  /* ── Jev rail (v2.1 draft) ── same anatomy as the learning rail, in the 2.0
+        --tertiary ("planned"). Dashed because the router has not shipped. */
+  .arch-v2 .jrail {
+    margin: 1.25rem 0 0;
+    border: 1px dashed var(--tert);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--tert) 7%, transparent);
+    padding: 14px 16px 12px;
+  }
+  .arch-v2 .jrail-head { margin-bottom: 12px; }
+  .arch-v2 .jrail-eyebrow {
+    display: block; font-size: .5625rem; font-weight: 700; color: var(--tert);
+    letter-spacing: .14em; text-transform: uppercase; margin-bottom: 4px;
+  }
+  .arch-v2 .jrail-title {
+    font-family: 'Outfit', system-ui, sans-serif; font-size: .9rem;
+    font-weight: 600; color: var(--linen);
+  }
+  .arch-v2 .jrail-svg-wrap { margin: 6px 0 10px; }
+  .arch-v2 .jrail-svg-wrap svg { width: 100%; display: block; }
+  .arch-v2 .jrail-anchors { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .arch-v2 .jrail-anchor {
+    flex: 1 1 220px; max-width: calc(50% - 5px);
+    display: flex; flex-direction: column; gap: 2px;
+    border: 1px dashed var(--tert); border-radius: 6px;
+    background: var(--v20-bg); padding: 9px 11px;
+  }
+  .arch-v2 .jrail-anchor .ia-name { color: var(--v20-text); }
+  .arch-v2 .jrail-anchor .ia-meta { color: var(--v20-muted); }
+  .arch-v2 .jrail-anchor .ia-do  { color: var(--tert); }
+  .arch-v2 .jrail-anchor .ia-new {
+    color: var(--tert); border-color: var(--tert); background: color-mix(in srgb, var(--tert) 14%, transparent);
+  }
+  .arch-v2 .jrail-foot { font-size: .56rem; color: var(--tert); letter-spacing: .04em; margin-top: 8px; }
+
   /* ── Desktop / mobile architecture swap ──
         The desktop interactive diagram is dense and assumes ≥768px gutter
         routing; the static MobileArchitecture component takes over below
@@ -3326,6 +3482,11 @@ const packCounts = {
   .arch-v2 line[stroke="#d58f8f"] { stroke: var(--error-line); }
   .arch-v2 circle[stroke="#ebfe00"] { stroke: var(--warning-line); }
   .arch-v2 text[fill="#8cb9fc"] { fill: var(--learn); }
+  .arch-v2 rect[stroke="#d79fe9"] { stroke: var(--tert-line); }
+  .arch-v2 line[stroke="#d79fe9"] { stroke: var(--tert-line); }
+  .arch-v2 text[fill="#d79fe9"] { fill: var(--tert); }
+  .arch-v2 polygon[fill="#d79fe9"] { fill: var(--tert-line); }
+  .arch-v2 feFlood[flood-color="#d79fe9"] { flood-color: var(--tert-line); }
   .arch-v2 line[stroke="#8cb9fc"] { stroke: var(--learn-line); }
   .arch-v2 rect[fill="rgba(43,225,121,0.06)"] { fill: color-mix(in srgb, var(--ember-line) 6%, transparent); }
   .arch-v2 rect[fill="rgba(140,185,252,.16)"] { fill: color-mix(in srgb, var(--learn-line) 16%, transparent); }

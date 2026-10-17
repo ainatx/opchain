@@ -1,0 +1,203 @@
+---
+/**
+ * EnforcementMap — /architecture "Enforcement map" (v2.1).
+ *
+ * One row per edge that must hold: the chokepoint and the mechanism that holds
+ * it. Source: skills/orchestrator.md §3 "Enforcement map" on the 2.1 branch,
+ * narrowed to what the code on that branch actually does
+ * (docs/plans/2026-10-09-v2.1-site-update.md §D). The `status` column says
+ * where a row is only partly wired; update it when the code catches up, not
+ * before.
+ *
+ * Rendered outside the desktop/mobile diagram swap so it shows at every width.
+ */
+interface Row {
+  edge: string;
+  chokepoint: string;
+  mechanism: string;
+  status: string;
+  held: "yes" | "partly" | "named";
+}
+
+const rows: Row[] = [
+  {
+    edge: "Every commit passes bug-check",
+    chokepoint: "<code>git commit</code>",
+    mechanism:
+      "Enrolled <code>pre-commit</code> verifier: re-runs the <code>.bugcheck.json</code> checks on the exact staged tree and writes a receipt. FAIL blocks; a timeout or command-not-found is INCONCLUSIVE (retry); missing dependencies are BLOCKED.",
+    status: "Held once the repository is enrolled (<code>/oc-enroll</code>).",
+    held: "yes",
+  },
+  {
+    edge: "A bypass is visible",
+    chokepoint: "<code>--no-verify</code>, then <code>git push</code>",
+    mechanism:
+      "<code>post-commit</code> writes a bypass record for any commit with no PASS receipt; <code>pre-push</code> refuses it until the commit carries an <code>Opchain-Bypass:</code> trailer. A rebased commit is excused only if its original was verified, and a push whose outgoing range cannot be computed is refused.",
+    status: "Held on the machine once enrolled. Local hooks can be deleted, and CI cannot see a bypass that left no record.",
+    held: "partly",
+  },
+  {
+    edge: "Every PR carries docs and readiness evidence",
+    chokepoint: "pull request",
+    mechanism:
+      "<code>evidence:pr</code> CI step: the <code>pr-docs-v1</code> and <code>pr-readiness-v1</code> handoffs must be bound to the head's tree. The verifier and policy come from the base branch, not the pull request.",
+    status: "Held in opchain's own CI; in your repository after <code>/oc-enroll --ci</code>, with required review on <code>.github/workflows/</code> and <code>.opchain/</code>.",
+    held: "yes",
+  },
+  {
+    edge: "Deploys ship reviewed <code>main</code>",
+    chokepoint: "the deploy command",
+    mechanism:
+      "Deploy wrapper: staging from exact <code>origin/main</code>, the live build must be an ancestor of HEAD, the working tree must be clean, production needs an explicit <code>--prod</code>, an unreadable live version refuses, and each successful deploy writes a checkpoint.",
+    status: "Held where the wrapper is installed. The plugin ships it as a template.",
+    held: "yes",
+  },
+  {
+    edge: "Releases are tagged before they ship",
+    chokepoint: "production deploy; session start",
+    mechanism:
+      "<code>check-release-tag</code> refuses an untagged catalog version. The session-start hook names <code>/oc-git-release &lt;semver&gt;</code> while a release is merged but untagged.",
+    status: "Held in opchain's own deploy and session start. Not wired in other repositories yet.",
+    held: "partly",
+  },
+  {
+    edge: "The spec phase produces its artifacts",
+    chokepoint: "spec → build",
+    mechanism:
+      "<code>scaffold-spec</code> writes <code>spec/01…10</code> stubs whose first line names the skill that owns the real content.",
+    status: "Stubs are written. The commit check that refuses a build on a stub is specified, not yet wired.",
+    held: "partly",
+  },
+  {
+    edge: "Security, integrations and eval reviews happen",
+    chokepoint: "commit or deploy, keyed on a file",
+    mechanism:
+      "Each gate names the file it keys on: <code>.opchain/hardening.yaml</code> (replayed at deploy), <code>integrations/&lt;service&gt;.md</code> for a new secret binding, a current eval score for a prompt change.",
+    status: "The hardening replay holds in opchain's own deploy. The other two are named in the skills, not yet checked.",
+    held: "named",
+  },
+];
+
+const heldLabel = { yes: "held", partly: "partly", named: "named only" } as const;
+---
+
+<section class="enf" id="enforcement-map" aria-labelledby="enforcement-map-title">
+  <span class="enf-eyebrow">v2.1 · where each edge is held</span>
+  <h2 id="enforcement-map-title">Enforcement map</h2>
+  <p class="enf-lede">
+    The diagram above draws the handoffs. A handoff in a skill's text is a
+    convention: one skill cannot make another run. Across two audited repositories,
+    the only edges that held had a check at the place the work goes through.
+    Those checks are listed below. Every other arrow on
+    this page is a handoff the agent follows when it follows it.
+  </p>
+
+  <div class="enf-table" role="table" aria-label="Enforcement map: edge, chokepoint, mechanism, status">
+    <div class="enf-row enf-head" role="row">
+      <span role="columnheader">Edge that must hold</span>
+      <span role="columnheader">Chokepoint</span>
+      <span role="columnheader">What holds it</span>
+      <span role="columnheader">Status</span>
+    </div>
+    {rows.map((r) => (
+      <div class="enf-row" role="row">
+        <span role="cell" class="enf-edge"><Fragment set:html={r.edge} /></span>
+        <span role="cell" class="enf-choke"><span class="enf-k">Chokepoint</span><Fragment set:html={r.chokepoint} /></span>
+        <span role="cell" class="enf-mech"><span class="enf-k">What holds it</span><Fragment set:html={r.mechanism} /></span>
+        <span role="cell" class="enf-status">
+          <span class:list={["enf-pill", `enf-pill--${r.held}`]}>{heldLabel[r.held]}</span>
+          <Fragment set:html={r.status} />
+        </span>
+      </div>
+    ))}
+  </div>
+
+  <p class="enf-foot">
+    Need the gate in your repository? <a href="/install#enroll">Enroll it</a>.
+    The optional <a href="/install#router">skill router</a> puts the next
+    skill's name in front of the agent in the form it follows best. A
+    suggestion is still not a gate.
+  </p>
+</section>
+
+<style>
+  .enf {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2.5rem 1rem 4rem;
+    color: var(--text);
+  }
+  .enf-eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .enf h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    letter-spacing: var(--ls-tight);
+    margin: 0.4rem 0 0.75rem;
+  }
+  .enf-lede { color: var(--muted); max-width: 46rem; margin: 0 0 1.5rem; line-height: var(--lh-base); }
+  .enf-table {
+    border: 0.5px solid var(--border);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    overflow: hidden;
+  }
+  .enf-row {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr 2fr 1.4fr;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    border-top: 0.5px solid var(--border);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-base);
+    overflow-wrap: anywhere;
+  }
+  .enf-row:first-child { border-top: 0; }
+  .enf-head {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .enf-edge { font-weight: 600; color: var(--text); }
+  .enf-choke, .enf-mech, .enf-status { color: var(--muted); }
+  .enf-k { display: none; }
+  .enf-pill {
+    display: inline-block;
+    margin: 0 0.4rem 0.2rem 0;
+    padding: 1px 7px;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .enf-pill--yes { border-color: var(--success); }
+  .enf-pill--partly { border-color: var(--warning); }
+  .enf-pill--named { border-style: dashed; }
+  .enf-foot { color: var(--muted); margin: 1.25rem 0 0; max-width: 46rem; }
+  .enf a { color: var(--accent); }
+
+  @media (max-width: 767px) {
+    .enf { padding: 2rem 16px 3rem; }
+    .enf-head { display: none; }
+    .enf-row { grid-template-columns: 1fr; gap: 0.35rem; }
+    .enf-k {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: var(--ls-wide);
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+  }
+</style>
