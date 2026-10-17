@@ -1,0 +1,14 @@
+# Answer key: route-uat (INVENTED). Inbound route (routing-and-resume.md 2.2):
+# "use ow-build on uat/larkspur-ceramics/defects/UAT-03.md" (or ow-uat's
+# "use ow-build to price the change from …") lands on -change, because the
+# file records an extension requested for a client cause. Graded on the
+# change-uat-extension run.
+case: route-uat
+section: Inbound route (a UAT-nn file)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+run: change-uat-extension
+checks: [route]
+route: { from: uat/larkspur-ceramics/defects/UAT-03.md, expect: change }

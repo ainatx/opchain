@@ -1,0 +1,17 @@
+# Answer key: change-sent (INVENTED). Sprint 2 round 2, D5: Robin records
+# that CO-03 went to the client. --sent moves it from draft to sent, adds one
+# history line and changes nothing else (phase-change.md §6).
+case: change-sent
+section: Signature gate (a change order recorded as sent)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: change-uat-repriced
+verbs: [/ow-build-change --sent]
+checks: [co_move, builder_name, status, private_names, writes]
+co_move: { co: CO-03, mode: --sent, date: 2027-01-19, next: ow-build /ow-build-change builds/larkspur-ceramics/ }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/changes/CO-03.md, next: ow-build /ow-build-change builds/larkspur-ceramics/, awaiting: "Larkspur Ceramics's answer on CO-03 by 2027-01-25" }
+private_names: [llc-ops, Deftwright]

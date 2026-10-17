@@ -1,0 +1,24 @@
+Example Studio
+Change order CO-01: Larkspur Ceramics
+30 November 2026
+
+What changes
+The order confirmation view shows the stock on hand beside each order line, read from your stock sheet.
+
+Why
+At the milestone 1 demo your operations manager asked to see stock on hand while confirming orders. Your stock sheet is not one of the systems in the agreed scope, so this is new work.
+
+Price
+USD 2,600.00, invoiced when the amendment is signed, due within 14 days of the invoice.
+
+Schedule
+The milestone 2 demo moves one week later, if this is signed by 7 December 2026.
+
+Acceptance checks it adds
+- When an order's lines are on the confirmation view, each line shows the stock on hand for its product code from the stock sheet, as of the last evening update. We check 5 confirmed orders against the stock sheet of the same day.
+- When a line's product code is not in the stock sheet, the line shows "stock not known" instead of a number. We check 1 order made for the test.
+
+Approval
+This change order is approved only by a signed amendment to our contract. A reply to this email is not approval, and no work starts before the amendment is signed.
+
+Example Studio

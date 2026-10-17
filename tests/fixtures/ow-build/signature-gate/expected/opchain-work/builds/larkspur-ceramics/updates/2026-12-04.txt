@@ -1,0 +1,24 @@
+Example Studio
+Weekly update: Larkspur Ceramics
+4 December 2026
+
+This week
+Codes that match nothing now stop on the exceptions list with the code and the customer, as your milestone 1 demo showed. The one-off clean-up of your product codes has run on the order sheet and the item list. Milestone 2 has begun with the order confirmation view.
+
+Milestone progress
+- Milestone 1: 4 of 4 acceptance checks passing. Demonstrated on 25 November 2026.
+- Milestone 2: 0 of 3 acceptance checks passing. Demo on 16 December 2026.
+
+Next week
+The order confirmation view continues, then orders into QuickBooks Online as invoices.
+
+Needs from you
+- The signed amendment for CO-01 by 7 December 2026, if you want the stock column. Without it, the milestone 2 demo stays on 16 December 2026.
+
+Changes
+- CO-01, stock on hand on the confirmation view: agreed in principle on 2 December 2026, amendment out for signing; work not started.
+
+Risks
+No new risks this week.
+
+Example Studio

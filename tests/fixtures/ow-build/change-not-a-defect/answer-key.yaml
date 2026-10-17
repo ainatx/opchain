@@ -1,0 +1,19 @@
+# Answer key: change-not-a-defect (INVENTED). Sprint 2 round 1, bug 4:
+# ow-handoff classed FIX-08 (input/, in the ow-handoff design's shape)
+# Not a defect: phone orders were never in scope. -change adds its row with
+# class "not a defect" and result "no charge; answered from Robin's notes",
+# prices nothing and writes no change order.
+case: change-not-a-defect
+section: Requests from UAT and handoff (Not a defect)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: change-fix-too-big
+verbs: [/ow-build-change]
+checks: [change, builder_name, status, private_names, writes]
+change: { kind: not a defect, from: handoffs/larkspur-ceramics/fixes/FIX-08.md }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/changes/requests.md, next: ow-build on builds/larkspur-ceramics/, awaiting: none }
+private_names: [llc-ops, Deftwright]

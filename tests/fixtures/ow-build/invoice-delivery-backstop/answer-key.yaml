@@ -1,0 +1,22 @@
+# Answer key: invoice-delivery-backstop (INVENTED). Design §7 (ow-uat B2) and
+# §10 "Payment triggers" (50/50): the contract's delivery backstop applies
+# (uat/mossgate-books/backstop.md, in the ow-uat design's shape) before the
+# Handoff notes are delivered, so the delivery half is requested on the
+# backstop's basis.
+case: invoice-delivery-backstop
+section: Payment triggers (50/50, delivery under the backstop)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+repo: mossgate-repo
+base: invoice-booking-small
+verbs: [/ow-build-invoice]
+checks: [headers, invoice, internal_numbers, builder_name, status, private_names, writes]
+outputs:
+  - builds/mossgate-books/ledger.md
+  - builds/mossgate-books/invoices/INV-request-delivery.md
+invoice: { triggers: [delivery] }
+status:
+  lines:
+    - { path: builds/mossgate-books/invoices/INV-request-delivery.md, next: ow-build on builds/mossgate-books/, awaiting: payment of delivery by 2027-02-01 }
+private_names: [llc-ops, Deftwright, Priya]

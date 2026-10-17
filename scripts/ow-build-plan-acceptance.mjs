@@ -205,7 +205,8 @@ function priorLayers(caseName, seen = new Set()) {
   if (key.ow_start) layers.push(join(OW_START_FIXTURES, key.ow_start, "expected", "opchain-work"), join(OW_START_FIXTURES, key.ow_start, "input", "opchain-work"));
   return layers;
 }
-function runLayers(caseName, seen = new Set()) {
+/** The opchain-work/ layers of a case's finished run, newest first (ow-build's acceptance cases start from these). */
+export function runLayers(caseName, seen = new Set()) {
   const dir = join(FIXTURES, caseName);
   const key = loadKey(dir);
   if (key.run) return runLayers(key.run, seen);
@@ -1168,6 +1169,11 @@ function checkRoute(key, run) {
     let cls = null;
     try { cls = fix == null ? null : String(matter(fix).data.classification ?? "").trim().toLowerCase(); } catch { cls = null; }
     expect = cls === "fix" ? "covered fix" : cls === "change" || cls === "after the window" ? "follow-on offer" : "ask";
+  }
+  else if (/\/defects\/UAT-\d+\.md$/.test(from)) {
+    // A UAT-nn too big for a change order goes to a follow-on Build Plan like a FIX-nn (owner decision 2026-10-16).
+    const uat = run.read(from) ?? "";
+    expect = /^class:\s*Change\b/im.test(uat) ? "follow-on offer" : "ask";
   }
   else if (/^intake\/[^/]+\/intake-record\.md$/.test(from)) {
     const recap = run.read(from.replace(/intake-record\.md$/, "recap.md"));

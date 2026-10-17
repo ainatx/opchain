@@ -1,0 +1,35 @@
+ow_artefact: ow-build/build
+schema: 1
+written_by: ow-build 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: plans/larkspur-ceramics/build-request.md
+created: 2026-11-10
+clock: user-stated
+origin: skill
+client: Larkspur Ceramics
+handling: "no"
+plan: plans/larkspur-ceramics/
+quote_mode: build-plan
+signed: 2026-11-09
+update_day: Friday
+first_update: 2026-11-13
+working_demo: M1 (user-stated 2026-11-10)
+gitignore: added
+sources:
+  git: { repo: ../larkspur-repo, branch: main }
+  checkpoints: { dir: ../larkspur-repo/.checkpoints }
+  time: { export: ../time/larkspur-ceramics.csv }
+  notes: true
+milestones:
+  - id: M1
+    work_packages: [WP-1, WP-2, WP-4]
+    checks: [AC-1.1, AC-1.2, AC-2.1, AC-4.1]
+    status: not started
+  - id: M2
+    work_packages: [WP-3, WP-5]
+    checks: [AC-3.1, AC-5.1, AC-5.2]
+    status: not started
+start_steps: [answers, ledger]
+map_check: pending (sprint plan not approved)
+embedded_instructions: []
+sprints: []

@@ -24,7 +24,7 @@ afterAll(() => scratch.forEach((d) => rmSync(d, { recursive: true, force: true }
 
 const CASES = [
   "accepted-signed", "builder-neutral", "credentials", "dates-terms-above", "dates-terms-below", "delivery-quote", "feasibility-signed", "fix-window",
-  "follow-on-asks", "follow-on-fix", "follow-on-offer", "follow-on-stated-offer", "follow-on-stated-start", "modifier-evidence", "offer",
+  "follow-on-asks", "follow-on-fix", "follow-on-offer", "follow-on-stated-offer", "follow-on-stated-start", "follow-on-uat", "follow-on-uat-offer", "modifier-evidence", "offer",
   "private-names-business", "private-names-default", "quick-over-limit", "quick-quote", "route-build-plan", "route-defined-work", "route-feasibility",
   "route-fix-covered", "route-folder", "route-folder-signed", "route-next-stage", "signed-before-accepted", "tier2-plan", "uat-documentation", "unpriced-package",
 ];
@@ -56,7 +56,7 @@ describe("golden runs", () => {
   it("has a case for every §9.2 acceptance test except Real use (Sprint 6)", () => {
     expect(listCases()).toEqual(CASES);
     const sections = listCases().map((c) => loadKey(join(FIXTURES, c)).section).join("\n");
-    for (const s of ["Synthetic client, tier 2", "Unpriced package", "Modifiers cite evidence", "Dates and terms (at or above", "Dates and terms (below", "Credentials never written", "Builder-neutral", "Build Plan offer", "Quick quote (two-unit job)", "Quick quote (over the limit", "UAT and documentation lines", "Fix window", "Accepted and signed", "signing refused before acceptance", "Follow-on intake (from FIX-nn.md)", "Follow-on intake (no FIX file", "Follow-on intake (offer from FIX-nn.md)", "No private names (defaults-only", "No private names (a business", "Inbound route from ow-start (Build Plan path)", "Inbound route from ow-start (defined piece of work)", "Inbound route from ow-start (delivery mode, signed work)", "Folder route after the quote", "Follow-on intake (offer from the user's words)", "Follow-on intake (start after an offer from the user's words)", "Folder route after signing", "Inbound route from ow-start (feasibility check)", "Feasibility test accepted and signed (no build hand-off)", "Quote on signed work (delivery mode, fee none)", "Follow-on route refused for a covered Fix"]) {
+    for (const s of ["Synthetic client, tier 2", "Unpriced package", "Modifiers cite evidence", "Dates and terms (at or above", "Dates and terms (below", "Credentials never written", "Builder-neutral", "Build Plan offer", "Quick quote (two-unit job)", "Quick quote (over the limit", "UAT and documentation lines", "Fix window", "Accepted and signed", "signing refused before acceptance", "Follow-on intake (from FIX-nn.md)", "Follow-on intake (no FIX file", "Follow-on intake (offer from FIX-nn.md)", "No private names (defaults-only", "No private names (a business", "Inbound route from ow-start (Build Plan path)", "Inbound route from ow-start (defined piece of work)", "Inbound route from ow-start (delivery mode, signed work)", "Folder route after the quote", "Follow-on intake (offer from the user's words)", "Follow-on intake (start after an offer from the user's words)", "Folder route after signing", "Inbound route from ow-start (feasibility check)", "Feasibility test accepted and signed (no build hand-off)", "Quote on signed work (delivery mode, fee none)", "Follow-on route refused for a covered Fix", "Follow-on intake (offer from UAT-nn.md)", "Follow-on intake (from UAT-nn.md)"]) {
       expect(sections).toContain(s);
     }
   });
@@ -297,6 +297,14 @@ describe("the checker catches a planted failure in each §9.2 case", () => {
     expect(failures("signed-before-accepted", run).signed_refusal).toMatch(/plans\/larkspur-ceramics\/build-request\.md was written; --signed before --accepted writes nothing/);
     const status = mutated("signed-before-accepted", { "STATUS.md": (t) => `${t}2026-11-09 (clock: user-stated) | ow-build-plan 1.0.0 | ${L}/build-request.md | next: ow-build /ow-build-start ${L}/ | awaiting: none\n` });
     expect(failures("signed-before-accepted", status).signed_refusal).toMatch(/STATUS\.md was written/);
+  });
+
+  it("follow-on from a UAT-nn (owner decision 2026-10-16, round 2 D12): the intake is the UAT file, never a FIX path; the route is a follow-on offer", () => {
+    const fixPath = mutated("follow-on-uat", { "plans/larkspur-ceramics-2/plan.yaml": (t) => t.replace("intake: uat/larkspur-ceramics/defects/UAT-08.md", "intake: handoffs/larkspur-ceramics/fixes/FIX-nn.md") });
+    expect(failures("follow-on-uat", fixPath).follow_on).toMatch(/intake is "handoffs\/larkspur-ceramics\/fixes\/FIX-nn\.md", expected uat\/larkspur-ceramics\/defects\/UAT-08\.md/);
+    expect(readFileSync(join(ROOT, "skills-work", "ow-build-plan", "references", "phase-start.md"), "utf8")).toMatch(/`intake:` that file, as it is spelled \(`handoffs\/<client>\/fixes\/FIX-nn\.md` or `uat\/<client>\/defects\/UAT-nn\.md`\)/);
+    const inPlace = mutated("follow-on-uat-offer", { "plans/larkspur-ceramics/build-plan-offer.md": () => "---\nsubject: uat/larkspur-ceramics/defects/UAT-08.md\n---\n" });
+    expect(failures("follow-on-uat-offer", inPlace).route).toMatch(/the follow-on offer wrote into the earlier plan's folder/);
   });
 
   it("follow-on: the FIX file not used as the intake, and a FIX file named when there is none", () => {

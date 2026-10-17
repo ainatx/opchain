@@ -113,7 +113,7 @@ After prep:
 After extract, when a next stage follows (prospect paths that lead on; delivery mode when the next stage is a Build Plan):
 
     DONE: recap ready -> intake/<client>/recap.md (send by <date>; path: <path label>)
-    NEXT: when the client agrees, say "use ow-build-plan on intake/<client>/intake-record.md"
+    NEXT: when the client agrees, say "use ow-build-plan on intake/<client>/intake-record.md"   (where slash commands exist: /ow-build-plan)
           It will read: intake-record.md, recap.md (path), coverage.md
           [no folder attached: attach those three files when you say it]
     IF IT IS NOT AVAILABLE: the recap and intake record stand on their own; scope the next step by hand from them.

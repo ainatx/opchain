@@ -6,7 +6,8 @@ The ow- skills are opchain's planning family for client work: the fit call and i
 |---|---|
 | `ow-start` | 1.0.0: the 20-minute fit call, prep and recap |
 | `ow-build-plan` | 1.0.0: the Build Plan offer, plan and fixed quote, with contract inputs and the build request |
-| `ow-build`, `ow-uat`, `ow-handoff` | designed, not built |
+| `ow-build` | 1.0.0: the client side of a signed build: the builder driven one sprint at a time (named only in `handoffs.yaml`), weekly updates, demos, change orders, invoice requests and readiness for UAT |
+| `ow-uat`, `ow-handoff`, `ow-documentation` | designed, not built |
 
 ## What is in this folder
 
@@ -67,10 +68,10 @@ hands_off:
 - **Packaging**: text files only, no hidden or executable files, no network text in a `network: none` skill, and a SKILL.md body under 5,000 tokens.
 - **Contracts**: every `/ow-` verb cited is declared (one merged verb index with the oc- catalog); every NEXT block leads with `use <skill id>` and carries its `IF IT IS NOT AVAILABLE` line; Reads-from rows have absent and mismatch cases; Hands-off rows have an unavailable branch; each skill's `skill.edges.yaml` is reciprocal with the others, with one writer per file (Edges, above).
 - **Family names** (design §8.1): no ow- skill file names an oc- skill, a private skill (`privateNames` in `catalogs.json`, today `llc-ops`) or a business (`brandNames`). Handoffs that leave the family go through the user's own `opchain-work/handoffs.yaml`.
-- **Acceptance**: `node scripts/ow-start-acceptance.mjs` and `node scripts/ow-build-plan-acceptance.mjs` check the golden runs in `tests/fixtures/ow-start/` and `tests/fixtures/ow-build-plan/`; each folder's README says how to check a real run.
+- **Acceptance**: `node scripts/ow-start-acceptance.mjs`, `node scripts/ow-build-plan-acceptance.mjs` and `node scripts/ow-build-acceptance.mjs` check the golden runs in `tests/fixtures/ow-start/`, `tests/fixtures/ow-build-plan/` and `tests/fixtures/ow-build/`; each folder's README says how to check a real run.
 
 ## Not wired in yet, on purpose
 
 The ow- catalog is in none of the oc- build outputs. `catalogs.json` gives it `outputs: null` for the dev plugin (`plugins/opchain/skills`), the public zips, `public/docs`, the flag registry, the hosted MCP catalog and the public mirror. The scripts that write those outputs (`sync-plugin-skills`, `sync-skill-bundles`, `make-skills-zip`, `sync-docs`, `gen-mcp-catalog`) refuse a source tree holding any non-oc- skill, so `OPCHAIN_SKILLS_DIR=skills-work` fails before anything is deleted or written. There is also no `.claude/skills/` link for ow- skills in this repo (CI requires every link there to point into `skills/`). Each of these is wired in by a PR of its own.
 
-To try `ow-start` or `ow-build-plan` locally until then, copy or link its folder under `skills-work/` into the `.claude/skills/` folder of the project you work in (for example a client workspace), never into this repo's.
+To try an ow- skill locally until then, copy or link its folder under `skills-work/` into the `.claude/skills/` folder of the project you work in (for example a client workspace), never into this repo's.

@@ -177,7 +177,8 @@ get ignored.
 
 **`UserPromptSubmit` → skill router — experimental preview** (`hooks/route-prompt.cjs`).
 Asks TypeSafe/Jev which opchain skill, if any, owns the prompt. It is off until
-you set `TYPESAFE_API_KEY` (a key from TypeSafe, billed to your own account);
+you set `TYPESAFE_API_KEY` (a key from TypeSafe; calls are made under your
+TypeSafe account and its terms);
 without one the hook exits before any network, git or log work. **Shadow mode
 is the default**: with `OPCHAIN_ROUTE_MODE` unset it routes and logs but injects
 nothing, from a detached background process, so the prompt never waits on it.
@@ -190,10 +191,12 @@ measured at 72/72 compliance:
 opchain route (p=0.91): invoke the Skill tool with skill "oc-git-ops" and args "/oc-git-sync". Skip this if the request means something else.
 ```
 
-By default the router sees the prompt and the repository state (branch,
-ahead/behind, dirty count, open PR, enrollment, active checkpoint), redacted
-before they are sent to TypeSafe (`api.typesafe.ai`): up to two requests per
-prompt, with decisions cached locally for 24 hours. Conversation context (the previous prompt and
+By default the router sees the prompt and the repository state (branch name,
+ahead/behind, dirty count, open PR, enrollment, and the active checkpoint's
+skill, phase and first next action, up to 200 characters), redacted for
+credentials before they are sent to TypeSafe (`api.typesafe.ai`). Names in the
+branch or that next action are sent as written. It makes up to two requests
+per prompt, with decisions cached locally for 24 hours. Conversation context (the previous prompt and
 the end of the assistant's last message, ≤400 chars, also redacted) is
 **opt-in** with `OPCHAIN_ROUTE_CONTEXT=1` and experimental: on the 2026-10-09
 eval it cut precision from 0.81 to 0.51, because bare "yes" / "go" after a PR

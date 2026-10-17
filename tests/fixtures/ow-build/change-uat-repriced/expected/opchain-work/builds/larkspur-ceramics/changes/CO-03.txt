@@ -1,0 +1,24 @@
+Example Studio
+Change order CO-03: Larkspur Ceramics
+18 January 2027
+
+What changes
+Each Monday at 8:00 the operations manager gets a text message with the number of orders on the exceptions list.
+
+Why
+In acceptance testing your operations manager asked for a weekly text message about the exceptions list (UAT-07). No system in the agreed scope sends text messages, so this is new work.
+
+Price
+USD 450.00, invoiced when the amendment is signed, due within 14 days of the invoice.
+
+Schedule
+No change to the acceptance testing dates, if this is signed by 25 January 2027.
+
+Acceptance checks it adds
+- When it is Monday at 8:00, the operations manager's phone gets one text message giving the number of orders on the exceptions list. We check 2 Mondays against the list as it stood at 8:00.
+- When the exceptions list is empty on a Monday, the message says there are no orders on the list. We check 1 Monday with the list emptied for the test.
+
+Approval
+This change order is approved only by a signed amendment to our contract. A reply to this email is not approval, and no work starts before the amendment is signed.
+
+Example Studio

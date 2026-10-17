@@ -1,0 +1,19 @@
+# Answer key: follow-on-uat-offer (INVENTED). Owner decision 2026-10-16 and
+# Sprint 2 round 2, D12: ow-build hands a UAT-nn too big for a change order to
+# ow-build-plan exactly like a FIX-nn: "use ow-build-plan on
+# uat/larkspur-ceramics/defects/UAT-08.md" routes to a follow-on offer in
+# plans/larkspur-ceramics-2/, beside the signed first plan. UAT-08 is in input/.
+case: follow-on-uat-offer
+section: Follow-on intake (offer from UAT-nn.md)
+client: Larkspur Ceramics
+slug: larkspur-ceramics-2
+user: Robin
+base: accepted-signed
+checks: [headers, offer, route, status, private_names]
+outputs: [plans/larkspur-ceramics-2/build-plan-offer.md]
+offer: { tier: one_system, issued: 2026-12-01 }
+route: { from: uat/larkspur-ceramics/defects/UAT-08.md, expect: follow-on offer }
+status:
+  lines:
+    - { path: plans/larkspur-ceramics-2/build-plan-offer.md, next: ow-build-plan /ow-build-plan-start plans/larkspur-ceramics-2/, awaiting: offer reply from Larkspur Ceramics by 2026-12-15 }
+private_names: [llc-ops, Deftwright]

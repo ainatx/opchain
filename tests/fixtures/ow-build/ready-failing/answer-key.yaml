@@ -1,0 +1,23 @@
+# Answer key: ready-failing (INVENTED). Design §8 and §10 "Ready for UAT":
+# both milestones are demoed (M2 off-fixture, in input/). -ready builds the
+# builder's run of all nine checks (the plan's seven and CO-01's two) from the
+# sprint reports plus Robin's confirmation pass (session/), in which AC-5.2
+# fails. It writes the failure, ready: no, marks no payment, writes no
+# acceptance record, and sends AC-5.2 back to the builder instead of to
+# acceptance testing.
+case: ready-failing
+section: Ready for UAT (one failing check)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: invoice-co
+verbs: [/ow-build-ready]
+checks: [headers, ready, internal_numbers, no_false_done, builder_name, status, private_names, writes]
+outputs: [builds/larkspur-ceramics/ready-for-uat.md]
+ready: { failing: [AC-5.2] }
+not_passing: [new customer]
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/ready-for-uat.md, next: ow-build /ow-build-ready builds/larkspur-ceramics/, awaiting: none }
+private_names: [llc-ops, Deftwright]

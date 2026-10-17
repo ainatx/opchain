@@ -1,0 +1,4 @@
+INVENTED TEST FIXTURE: git log --since=2026-11-14 --date=short --format='%h %ad %s' in larkspur-repo, as the session saw it.
+f01b2c3 2026-11-16 Settle unknown codes on the exceptions list with code and customer
+0a9d8e7 2026-11-18 Run the product code clean-up on the sheet and the item list
+1c2b3a4 2026-12-02 Begin the confirmation view: one row per order with its lines

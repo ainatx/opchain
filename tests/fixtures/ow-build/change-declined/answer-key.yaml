@@ -1,0 +1,17 @@
+# Answer key: change-declined (INVENTED). Sprint 2 round 2, D5: the client
+# declines CO-03. --declined moves it from sent to declined, work none, one
+# history line; nothing goes to the builder, nothing is invoiced.
+case: change-declined
+section: Signature gate (a change order declined)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: change-sent
+verbs: [/ow-build-change --declined]
+checks: [co_move, builder_name, status, private_names, writes]
+co_move: { co: CO-03, mode: --declined, date: 2027-01-22, next: ow-build on builds/larkspur-ceramics/ }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/changes/CO-03.md, next: ow-build on builds/larkspur-ceramics/, awaiting: none }
+private_names: [llc-ops, Deftwright]

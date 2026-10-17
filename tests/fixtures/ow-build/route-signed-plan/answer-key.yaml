@@ -1,0 +1,12 @@
+# Answer key: route-signed-plan (INVENTED). ow-build-plan's signed NEXT, "use
+# ow-build to start plans/larkspur-ceramics/", lands on -start: the plan is
+# signed (build-request.md) and no build has started. Graded on the start run.
+case: route-signed-plan
+section: Inbound route (ow-build-plan's signed NEXT)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+run: start
+checks: [route]
+route: { from: plans/larkspur-ceramics/, expect: start }

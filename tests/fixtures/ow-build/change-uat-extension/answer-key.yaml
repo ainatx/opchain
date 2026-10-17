@@ -1,0 +1,26 @@
+# Answer key: change-uat-extension (INVENTED). Design §6.1 and §10 "Requests
+# from UAT and handoff": three UAT-nn files (input/, in the shape the ow-uat
+# design gives) each record "extension requested, client cause" for one
+# event, the testers' absence from session 2. -change finds the set, Robin
+# confirms it and says one extra session is needed; one extension change
+# order cites all three, is priced from the UAT extension rate only, adds no
+# checks, and carries no post-acceptance mark.
+case: change-uat-extension
+section: Requests from UAT and handoff (one extension change order)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: ready-passing
+verbs: [/ow-build-change]
+checks: [headers, change, email, internal_numbers, builder_name, status, private_names, writes]
+outputs: [builds/larkspur-ceramics/changes/CO-02.md, builds/larkspur-ceramics/changes/requests.md]
+change:
+  kind: extension
+  qty: 1
+  from: uat/larkspur-ceramics/defects/UAT-03.md
+  requests: [uat/larkspur-ceramics/defects/UAT-03.md, uat/larkspur-ceramics/defects/UAT-04.md, uat/larkspur-ceramics/defects/UAT-05.md]
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/changes/CO-02.md, next: ow-build /ow-build-change builds/larkspur-ceramics/, awaiting: "Larkspur Ceramics's answer on CO-02 by 2027-01-20" }
+private_names: [llc-ops, Deftwright]

@@ -1,0 +1,11 @@
+# Answer key: route-folder-run (INVENTED). Sprint 2 round 1, bugs 2 and 3: Booking is requested and M1 has no sprint yet, so the folder route lands on -run M1 (routing-and-resume.md 2.5 step 7).
+# Graded on the run-m1-next run.
+case: route-folder-run
+section: "Inbound route (a build folder: a sprint to run)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+run: run-m1-next
+checks: [route]
+route: { from: builds/larkspur-ceramics/, expect: run }

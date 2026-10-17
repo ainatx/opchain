@@ -1,0 +1,20 @@
+# Answer key: change-fix-too-big (INVENTED). Design §6.1 (ow-handoff A2) and
+# §10 "Requests from UAT and handoff": FIX-07 (input/, in the ow-handoff
+# design's shape) asks for a customer portal. Priced from the price book it is
+# a small tool and two integrations, 3 units: at quick_quote_max_units (3), so
+# it is too big for a change order. No change order; the request's row and
+# the STATUS line hand FIX-07 to ow-build-plan for a follow-on Build Plan.
+case: change-fix-too-big
+section: Requests from UAT and handoff (too big for a change order)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+base: invoice-acceptance
+verbs: [/ow-build-change]
+checks: [change, builder_name, status, private_names, writes]
+change: { kind: too big, units: 3, from: handoffs/larkspur-ceramics/fixes/FIX-07.md }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/changes/requests.md, next: ow-build-plan on handoffs/larkspur-ceramics/fixes/FIX-07.md, awaiting: none }
+private_names: [llc-ops, Deftwright]

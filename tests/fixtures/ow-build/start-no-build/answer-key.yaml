@@ -1,0 +1,23 @@
+# Answer key: start-no-build (INVENTED). Design §12.1 and §12.7 ("with no
+# build entry, -start prints the public default and writes no spec/"): the
+# same signed Larkspur plan, with the shipped defaults-only handoffs.yaml.
+# -start writes build.yaml (builder mode none, the public default recorded as
+# printed, no sprint map) and the ledger, and nothing in the client's project.
+case: start-no-build
+section: Builder integration (no build entry)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+repo: larkspur-repo
+plan_case: accepted-signed
+verbs: [/ow-build-start]
+checks: [headers, start, no_spec, ledger, builder_name, status, private_names, writes]
+outputs: [builds/larkspur-ceramics/build.yaml, builds/larkspur-ceramics/ledger.md]
+start: { first_update: 2026-11-13 }
+builder_name: none
+ledger: { booking: due, working_demo: M1, machine_checked: true }
+status:
+  lines:
+    - { path: builds/larkspur-ceramics/build.yaml, next: ow-build on builds/larkspur-ceramics/, awaiting: none }
+    - { path: builds/larkspur-ceramics/build.yaml, next: ow-build /ow-build-invoice builds/larkspur-ceramics/, awaiting: update to Larkspur Ceramics by 2026-11-13 }
+private_names: [llc-ops, Deftwright]

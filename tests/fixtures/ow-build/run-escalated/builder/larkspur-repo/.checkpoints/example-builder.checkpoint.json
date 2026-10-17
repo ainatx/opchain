@@ -1,0 +1,24 @@
+{
+  "protocol_version": "1.1",
+  "skill": "example-builder",
+  "project": "larkspur-repo",
+  "created_at": "2026-11-10T15:00:00Z",
+  "updated_at": "2026-11-19T16:00:00Z",
+  "phase": "build-loop",
+  "step": "sprint-2-eval-round-3",
+  "status": "blocked",
+  "progress_summary": "INVENTED TEST FIXTURE. Sprint 2 failed three rounds: the code clean-up waits on the client's sign-off.",
+  "progress_table": [
+    { "id": "planning", "label": "Sprint plan", "status": "complete" },
+    { "id": "sprint-1", "label": "Sprint 1: Purchase orders in", "status": "complete" },
+    { "id": "sprint-2", "label": "Sprint 2: Exceptions and clean codes", "status": "blocked" },
+    { "id": "sprint-3", "label": "Sprint 3: Confirmation view", "status": "not_started" },
+    { "id": "sprint-4", "label": "Sprint 4: Invoices", "status": "not_started" }
+  ],
+  "eval_scores": [
+    { "rubric": "example-builder", "score": 5.8, "max": 10, "ref": "sprints/sprint-2/eval-round-3.md" }
+  ],
+  "blockers": [
+    { "id": "b2", "description": "The corrected product codes are not signed off, so the clean-up cannot run.", "blocking": "sprint-2", "needs": "user_decision" }
+  ]
+}
