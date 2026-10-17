@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a9151b76e8c402aea",
+  "project_dir": ".",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-17T18:29:48.053Z",
+  "updated_at": "2026-10-17T18:06:28.937Z",
   "skill": "oc-repo-ops",
-  "phase": "pr-verify",
+  "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-verify-compresshtml",
-  "progress_summary": "Repo readiness PASS for the compressHTML whitespace fix (af32a25): docs packet current for HEAD, 2 files changed, no catalog/generated drift, nothing untracked.",
+  "step": "pr-sprint-naming",
+  "progress_summary": "Sprint naming PR readiness PASS at 11f6c390: docs-only diff (two files under sprints/release-2.1/); check-skill-contracts and checkpoint:validate pass; candidate verifier PASS on tree e3719d96; no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -23,27 +23,22 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [
-      "Local LHCI on /changelog read Best Practices 0.96 (gate 0.95): /api/votes 404 from scripts/lhci-preview.mjs after a local gen-roadmap. CI Lighthouse does not generate roadmap data, so it does not fetch votes; unrelated to this diff."
-    ],
+    "warnings": [],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "af32a2573ea85e8a80a372efaf854852d88a5df0",
+    "verified_for_sha": "11f6c390d7e243b07ab8730070b540ea40d61706",
     "last_verify": {
-      "at": "2026-10-17T18:29:47.567Z",
-      "branch": "claude/unruffled-lamarr-f92540",
-      "base": "origin/main@9f32774a",
+      "at": "2026-10-17T18:06:28.937Z",
+      "branch": "claude/sprint-naming",
+      "base": "origin/main@90e61149",
       "verdict": "PASS",
       "blocking_findings": []
     }
   },
-  "next_actions": [
-    "Push claude/ow-build-followups and open the PR to main",
-    "Watch CI on the PR"
-  ],
+  "next_actions": [],
   "handoffs": [
     {
       "id": "oc-repo-ops-release-f6b167fcbd3a",
@@ -1838,26 +1833,30 @@
       }
     },
     {
-      "id": "oc-repo-ops-pr-readiness-v1-18e353e3ddda",
+      "id": "oc-repo-ops-pr-sprint-naming-e3f7dcc99173",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-10-17T18:29:48.052Z",
-      "verified_at": "2026-10-17T18:29:48.052Z",
+      "created_at": "2026-10-17T18:06:28.937Z",
+      "verified_at": "2026-10-17T18:06:28.937Z",
       "producer": {
         "skill": "oc-repo-ops",
-        "run_id": "pr-readiness-v1-2026-10-17T18:29:48.052Z"
+        "run_id": "pr-sprint-naming"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:18e353e3ddda6460b8f73cd4c49418a04afa49884b94993dd5ecfcb30391df02"
+        "id": "sha256:e3f7dcc991731d0deed48c2d731297d8ed28517e4ece13db1b08c55505f5fe2a"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "PR readiness for compressHTML: true + html-whitespace e2e guard (af32a25): docs packet current, no catalog/generated drift, clean tree"
+        "scope": "claude/sprint-naming at 11f6c390 on origin/main 90e61149 (#618). Two files under sprints/release-2.1/; none under skills/, skills-work/, plugins/, site/, src/, scripts/ or package.json, so no catalog, bundle, plugin or release-surface output can change. check-skill-contracts and checkpoint:validate pass; candidate verifier PASS receipt covers tree e3719d96; no untracked files.",
+        "evidence": [
+          "sprints/release-2.1/ow-family-sprint-plan.md",
+          "sprints/release-2.1/track-s-site-surfaces.md"
+        ]
       }
     }
   ],
-  "record_updated_at": "2026-10-17T18:29:48.053Z",
+  "record_updated_at": "2026-10-17T18:06:28.937Z",
   "blockers": []
 }
