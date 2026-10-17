@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // Standalone consumer CLI. Keep this file dependency-free: it is served as /update.mjs.
 import { createHash, randomUUID } from 'node:crypto';
-import { copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, readlinkSync, symlinkSync,
-  renameSync, rmSync, writeFileSync, chmodSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { accessSync, constants, copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, readlinkSync, symlinkSync,
+  renameSync, rmSync, statSync, writeFileSync, chmodSync } from 'node:fs';
+import { delimiter, dirname, isAbsolute, join, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { homedir, tmpdir } from 'node:os';
@@ -557,11 +557,13 @@ export async function syncSourceRepo({ root = projectRoot(), check = false, befo
 }
 
 // ---------------------------------------------------------------------------
-// Components. /oc-update ships skill files and nothing else. The 2026-10-08
-// effectiveness audit (I-11) found a session asked to "update opchain" that
-// could not be served because hooks and the time CLI live elsewhere, so the
-// agent improvised a global-settings side-install. Say what this command can
-// and cannot ship before doing anything.
+// Components. Without the Claude Code CLI, /oc-update ships skill files and
+// nothing else. The 2026-10-08 effectiveness audit (I-11) found a session asked
+// to "update opchain" that could not be served because hooks and the time CLI
+// live elsewhere, so the agent improvised a global-settings side-install. Say
+// what this command can and cannot ship on this host before doing anything:
+// with the CLI it also keeps this repository's project/local-scope plugins
+// current (design §5.5).
 // ---------------------------------------------------------------------------
 export const COMPONENTS = Object.freeze([
   { id: 'skills', label: 'skills', shippedBy: 'update', how: '/oc-update' },
@@ -570,7 +572,12 @@ export const COMPONENTS = Object.freeze([
   { id: 'time-cli', label: 'time CLI', shippedBy: 'checkout', how: 'git pull in ~/repos/opchain-time' },
 ]);
 
-export function componentsBanner() {
+export function componentsBanner({ cli = false } = {}) {
+  if (cli) {
+    const ships = COMPONENTS.filter(c => c.shippedBy !== 'checkout').map(c => c.label).join(', ');
+    const cannot = ['user-scope plugins (use /plugin update)', ...COMPONENTS.filter(c => c.shippedBy === 'checkout').map(c => `${c.label} (use ${c.how})`)];
+    return `This command ships: ${ships} (project-scope plugins). Cannot update: ${cannot.join(', ')}.`;
+  }
   const ships = COMPONENTS.filter(c => c.shippedBy === 'update').map(c => c.label).join(', ');
   const byHow = new Map();
   for (const c of COMPONENTS.filter(c => c.shippedBy !== 'update')) byHow.set(c.how, [...(byHow.get(c.how) ?? []), c.label]);
@@ -701,6 +708,127 @@ export function pluginState(root = projectRoot(), { configDir = claudeConfigDir(
   });
 }
 
+// ---------------------------------------------------------------------------
+// Plugin step (design §5.2). Runs after the skill transaction commits, so a
+// plugin failure never rolls skills back; main() reports it with its own exit
+// bit. Claude Code does the work: a fixed argv, no shell, and the repository as
+// cwd so project/local scope resolve to it. Nothing here writes settings,
+// installed_plugins.json or the plugin cache. --check makes no CLI call at all:
+// `marketplace update` rewrites the marketplace cache.
+// ---------------------------------------------------------------------------
+const PLUGIN_TIMEOUT_MS = 120_000;
+
+// The CLI's absolute path, or null. Only absolute PATH entries count: a
+// relative one ('.', '') would resolve inside the repository being updated.
+export function findClaudeCli(env = process.env) {
+  const name = process.platform === 'win32' ? 'claude.exe' : 'claude';
+  for (const dir of (env.PATH ?? '').split(delimiter).filter(dir => isAbsolute(dir))) {
+    const path = join(dir, name);
+    try {
+      if (!statSync(path).isFile()) continue;
+      accessSync(path, constants.X_OK);
+      return path;
+    } catch { /* not here */ }
+  }
+  return null;
+}
+
+function runClaude(cli, argv, root) {
+  execFileSync(cli, argv, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: PLUGIN_TIMEOUT_MS, maxBuffer: 4 * 1024 * 1024 });
+}
+
+function cliError(error) {
+  const text = `${error.stderr ?? ''}\n${error.stdout ?? ''}`.trim() || error.message;
+  return text.split('\n').map(line => line.trim()).filter(Boolean).slice(0, 2).join(' ');
+}
+
+const scopeLabel = scope => scope === 'local' ? 'local, not shared with the repo' : scope;
+
+// Returns { lines, failed, changed, calls }. `releaseVersion` is the release
+// already fetched for skills (consumer mode); opchain ships in lockstep with it,
+// so --check can compare without the CLI. ow-tools has its own version.
+export function updatePlugins({ root = projectRoot(), check = false, releaseVersion = null, cli = findClaudeCli(), configDir = claudeConfigDir(), run = runClaude } = {}) {
+  const lines = [];
+  const notes = [];
+  const targets = [];
+  const before = pluginState(root, { configDir });
+  for (const row of before) {
+    const known = KNOWN_PLUGINS.find(plugin => plugin.id === row.id);
+    const user = row.entries.find(entry => entry.scope === 'user');
+    if (user && known.skills && releaseVersion && user.version !== releaseVersion) {
+      notes.push(`  ${row.id} (user): ${user.version ?? 'unknown version'} — user scope belongs to your whole machine; /oc-update leaves it alone. Run /plugin update ${row.id} in Claude Code.`);
+    }
+    if (!row.enabledHere) continue;
+    if (!row.sourceOk) {
+      notes.push(`  ${row.id}: skipped — the "${row.marketplace}" marketplace source in .claude/settings*.json is not the known Opchain source.`);
+      continue;
+    }
+    for (const scope of row.enabledIn) {
+      const entry = row.entries.find(e => e.scope === scope);
+      if (entry) targets.push({ row, known, scope, entry });
+      else notes.push(`  ${row.id} (${scopeLabel(scope)}): enabled but not installed for you; skipped. Run /plugin install ${row.id} --scope ${scope} in Claude Code.`);
+    }
+  }
+  const result = { lines, failed: false, changed: false, calls: 0 };
+  if (!targets.length && !notes.length) {
+    lines.push('Plugins: none enabled for this repository.');
+    return result;
+  }
+  lines.push('Plugins:');
+  if (check) {
+    for (const { row, known, scope, entry } of targets) {
+      const installed = entry.version ?? 'unknown';
+      const state = known.skills && releaseVersion
+        ? (installed === releaseVersion ? `already current (${installed})` : `installed ${installed}, available ${releaseVersion}`)
+        : `installed ${installed}; run /oc-update to compare`;
+      lines.push(`  ${row.id} (${scopeLabel(scope)}): ${state}`);
+    }
+    lines.push(...notes);
+    return result;
+  }
+  if (targets.length && !cli) {
+    const how = [...new Map(targets.map(({ row }) => [row.id, `\`/plugin marketplace update ${row.marketplace}\` and \`/plugin update ${row.id}\``])).values()].join(', then ');
+    lines.push(`  plugins: skipped (Claude Code CLI not found). In Claude Code run ${how}.`, ...notes);
+    return result;
+  }
+  const outcome = new Map();
+  const marketplaceFailed = new Map();
+  for (const marketplace of new Set(targets.map(({ row }) => row.marketplace))) {
+    result.calls++;
+    try { run(cli, ['plugin', 'marketplace', 'update', marketplace], root); }
+    catch (error) { marketplaceFailed.set(marketplace, cliError(error)); }
+  }
+  for (const target of targets) {
+    const { row, scope } = target;
+    if (marketplaceFailed.has(row.marketplace)) {
+      outcome.set(target, `FAILED — marketplace update: ${marketplaceFailed.get(row.marketplace)}`);
+      continue;
+    }
+    result.calls++;
+    try { run(cli, ['plugin', 'update', row.id, '--scope', scope], root); }
+    catch (error) { outcome.set(target, `FAILED — ${cliError(error)}`); }
+  }
+  const after = pluginState(root, { configDir });
+  for (const target of targets) {
+    const { row, scope, entry } = target;
+    let state = outcome.get(target);
+    if (state) result.failed = true;
+    else {
+      const now = after.find(r => r.id === row.id)?.entries.find(e => e.scope === scope)?.version ?? null;
+      if (now && now === entry.version) state = `already current (${now})`;
+      else {
+        state = `${entry.version ?? 'unknown'} → ${now ?? 'unknown'}`;
+        result.changed = true;
+      }
+    }
+    lines.push(`  ${row.id} (${scopeLabel(scope)}): ${state}`);
+  }
+  lines.push(...notes);
+  if (result.changed) lines.push('Restart Claude Code to load the new hooks.');
+  if (result.failed) lines.push('Plugin update failed; skills are unaffected. Run /plugin update <id> in Claude Code to see the full error.');
+  return result;
+}
+
 function worktreeEntries(root) {
   const raw = git(root, ['worktree', 'list', '--porcelain']);
   if (!raw) return [];
@@ -722,9 +850,9 @@ function behindOriginMain(dir) {
 
 // Enumerate every place a Claude Code / Codex session may load oc-* skills from
 // and say which ones disagree. Exit 0 always: this is a report, not a gate.
-export function doctor({ root = projectRoot(), configDir = claudeConfigDir() } = {}) {
+export function doctor({ root = projectRoot(), configDir = claudeConfigDir(), cli = Boolean(findClaudeCli()) } = {}) {
   root = resolve(root);
-  const report = { root, configDir, surfaces: [], plugins: [], worktrees: [], findings: [] };
+  const report = { root, configDir, cli, surfaces: [], plugins: [], worktrees: [], findings: [] };
   const loadable = [];
   const add = (surface) => { const s = summarizeSurface(surface); report.surfaces.push(s); if (s.loadable) loadable.push(s); return s; };
 
@@ -784,7 +912,7 @@ export function doctor({ root = projectRoot(), configDir = claudeConfigDir() } =
 }
 
 export function formatDoctor(report) {
-  const lines = [`opchain doctor — ${report.root}`, componentsBanner(), ''];
+  const lines = [`opchain doctor — ${report.root}`, componentsBanner({ cli: report.cli }), ''];
   const rows = [['surface', 'path', 'skills', 'version', 'notes']];
   for (const s of report.surfaces) {
     const notes = [];
@@ -813,9 +941,14 @@ export function formatDoctor(report) {
   return lines.join('\n');
 }
 
+// Exit codes: 0 ok; 1 skills failed (no plugin step ran); 2 telemetry needs
+// attention; 4 a plugin update failed after skills succeeded; 6 = 2 + 4.
+export const EXIT_TELEMETRY = 2;
+export const EXIT_PLUGINS = 4;
+
 export async function main(args = process.argv.slice(2)) {
   if (args.includes('--help')) {
-    console.log('opchain update [--check] [--source] [--target=claude|codex|both] [--root=/path/to/repo]\nopchain update doctor [--json] [--root=/path/to/repo]\nSource checkouts sync from their current skills/ tree; consumer installs download releases. Preserves telemetry and checkpoints.\ndoctor lists every install surface (global, repo-local, plugin cache, worktrees) and the opchain/ow-tools plugins that load in this repo, with versions and flags duplicates, mismatches, uncommitted installs and parked checkouts.\n' + componentsBanner());
+    console.log('opchain update [--check] [--source] [--target=claude|codex|both] [--root=/path/to/repo]\nopchain update plugins [--check] [--root=/path/to/repo]\nopchain update doctor [--json] [--root=/path/to/repo]\nSource checkouts sync from their current skills/ tree; consumer installs download releases. Preserves telemetry and checkpoints.\nAfter skills, the Claude Code CLI (when on PATH) updates the opchain/ow-tools plugins enabled for this repo at project or local scope; plugins runs only that step. Exit 4 means a plugin failed and skills are unaffected.\ndoctor lists every install surface (global, repo-local, plugin cache, worktrees) and the opchain/ow-tools plugins that load in this repo, with versions and flags duplicates, mismatches, uncommitted installs and parked checkouts.\n' + componentsBanner({ cli: Boolean(findClaudeCli()) }));
     return 0;
   }
   const options = {};
@@ -823,6 +956,7 @@ export async function main(args = process.argv.slice(2)) {
     if (arg === '--check') options.check = true;
     else if (arg === '--source') options.source = true;
     else if (arg === 'doctor' || arg === '--doctor') options.doctor = true;
+    else if (arg === 'plugins') options.plugins = true;
     else if (arg === '--json') options.json = true;
     else if (arg.startsWith('--target=')) options.target = arg.slice(9);
     else if (arg.startsWith('--root=')) options.root = arg.slice(7);
@@ -837,28 +971,42 @@ export async function main(args = process.argv.slice(2)) {
     return 0;
   }
   if (options.json) throw new Error('--json is only valid with doctor');
+  const cli = findClaudeCli();
+  if (options.plugins) {
+    if (options.source || options.target) throw new Error('plugins takes only --check and --root.');
+    return reportPlugins(updatePlugins({ root, check: options.check, cli }));
+  }
   const sourceMode = options.source || isSourceRepo(root);
   if (sourceMode && options.target) throw new Error('Source mode maintains the checkout links; --target is only for consumer installs.');
-  if (!sourceMode) console.log(componentsBanner());
+  if (!sourceMode) console.log(componentsBanner({ cli: Boolean(cli) }));
   console.log(sourceMode ? 'Checking Opchain against this source checkout…' : 'Checking the latest Opchain release…');
   const result = sourceMode ? await syncSourceRepo({ ...options, root }) : await installBundle(await downloadRelease(), options);
   if (!result.changed) {
     // No-op runs used to pay the full welcome text; six of six /oc-update runs
-    // in the audit corpus changed nothing. One line, then out.
+    // in the audit corpus changed nothing. One line for skills, then plugins.
     console.log(`opchain ${result.version} is already current on ${result.targets.join(', ')}. Telemetry: ${result.telemetry.message}.`);
     if (!result.telemetry.healthy) console.error(`${options.check ? 'Check completed without installing' : 'Skills are current'}; telemetry needs attention. Restore the local database or run /oc-telemetry status to investigate. Consent was preserved.`);
     if (!sourceMode && !options.check) warnUncommitted(root, result.targets);
-    return result.telemetry.healthy ? 0 : 2;
+  } else {
+    console.log(`Opchain ${result.version}: ${options.check ? `${result.changed} files would change` : `${result.changed} files updated and verified`}.`);
+    console.log(`Skills: ${result.targets.join(', ')}\nTelemetry: ${result.telemetry.message}.`);
+    if (sourceMode) console.log(`${options.check ? 'Source check completed without installing' : 'Source checkout synchronized'}; Git branch and authored skill definitions retained. No release download.`);
+    if (result.backup) console.log(`Previous files: ${result.backup}`);
+    if (result.retained.length) console.log(`Kept ${result.retained.length} customized obsolete files.`);
+    if (!result.telemetry.healthy) console.error(`${options.check ? 'Check completed without installing' : 'Skills are ready'}; telemetry needs attention. Restore the local database or run /oc-telemetry status to investigate. Consent was preserved.`);
+    if (!options.check) console.log('Start a new agent session if the updated skills do not appear.');
+    if (!sourceMode && !options.check) warnUncommitted(root, result.targets);
   }
-  console.log(`Opchain ${result.version}: ${options.check ? `${result.changed} files would change` : `${result.changed} files updated and verified`}.`);
-  console.log(`Skills: ${result.targets.join(', ')}\nTelemetry: ${result.telemetry.message}.`);
-  if (sourceMode) console.log(`${options.check ? 'Source check completed without installing' : 'Source checkout synchronized'}; Git branch and authored skill definitions retained. No release download.`);
-  if (result.backup) console.log(`Previous files: ${result.backup}`);
-  if (result.retained.length) console.log(`Kept ${result.retained.length} customized obsolete files.`);
-  if (!result.telemetry.healthy) console.error(`${options.check ? 'Check completed without installing' : 'Skills are ready'}; telemetry needs attention. Restore the local database or run /oc-telemetry status to investigate. Consent was preserved.`);
-  if (!options.check) console.log('Start a new agent session if the updated skills do not appear.');
-  if (!sourceMode && !options.check) warnUncommitted(root, result.targets);
-  return result.telemetry.healthy ? 0 : 2;
+  // Skills are committed (or were only checked) by now; nothing below can roll them back.
+  // A source checkout's tree version is not what the public plugin mirror serves, so only
+  // a downloaded release gives --check a lockstep version to compare against.
+  const plugins = updatePlugins({ root, check: options.check, releaseVersion: sourceMode ? null : result.version, cli });
+  return (result.telemetry.healthy ? 0 : EXIT_TELEMETRY) | reportPlugins(plugins);
+}
+
+function reportPlugins(plugins) {
+  for (const line of plugins.lines) (line.includes('FAILED') || line.startsWith('Plugin update failed') ? console.error : console.log)(line);
+  return plugins.failed ? EXIT_PLUGINS : 0;
 }
 
 function warnUncommitted(root, targets) {

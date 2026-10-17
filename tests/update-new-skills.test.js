@@ -74,7 +74,10 @@ function runUpdater(updater, cwd) {
       if (new URL(url).origin !== 'https://opchain.dev') throw new Error('unexpected origin');
       return new Response(readFileSync(join(${JSON.stringify(pub)}, new URL(url).pathname)));
     };`);
-  return spawnSync(process.execPath, ['--import', preload, updater], { cwd, encoding: 'utf8' });
+  // A tmp Claude config dir: this tree's updater reads plugin state after skills, and
+  // nothing here enables a plugin, so it never runs the CLI or reads the real ~/.claude.
+  const env = { ...process.env, CLAUDE_CONFIG_DIR: join(temp, 'claude-config') };
+  return spawnSync(process.execPath, ['--import', preload, updater], { cwd, encoding: 'utf8', env });
 }
 
 describe('a release that adds a skill', () => {

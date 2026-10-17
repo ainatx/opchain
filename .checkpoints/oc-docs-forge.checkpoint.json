@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a9151b76e8c402aea",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/ow-skills-orchestration-0e05bd",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-17T00:23:19.383Z",
+  "updated_at": "2026-10-17T00:02:22.641Z",
   "skill": "oc-docs-forge",
   "phase": "pr-docs",
   "status": "complete",
-  "step": "Sprint 2 (ow-build 1.0.0) PR evidence on merge fd3acf8a (origin/main c9868931 + Sprint 2)",
-  "progress_summary": "PR docs for ow-build 1.0.0 (Sprint 2): the new skill's text (skills-work/ow-build/), its design build notes (docs/plans/2026-10-08-ow-build-design.md §13 rows 1-29, including the owner decisions of 2026-10-16), the amended sprint contract and four evaluation reports (sprints/release-2.1/ow-sprint-2/), the catalog and family READMEs (skills-work/README.md, CLAUDE.md), and the fixture README (tests/fixtures/ow-build/README.md).",
+  "step": "pr-track-s-s0-forward",
+  "progress_summary": "PR diff vs main unchanged (same nine files); re-merge brought only #612's oc-update files and the evidence-checkpoint union (64 handoffs each). Review findings stand: no private names outside blocklist rules, no prices, no credentials, invented example names only, cited paths exist or are marked external/future",
   "context_primer": {
     "key_decisions": [
       "Every PR requires a Documentation section; this PR carries it inline.",
@@ -17,61 +17,30 @@
       "Time-tracking Sprint 2 uses a stacked PR against Sprint 1, candidate-bound Docs/Repo handoffs, and explicit pending-owner acceptance. No frozen product/version surface changes."
     ],
     "generated_files": [
-      "skills-work/ow-build/SKILL.md",
-      "skills-work/ow-build/references/",
-      "skills-work/ow-build/skill.edges.yaml",
-      "skills-work/ow-build/examples/",
-      "skills-work/README.md",
-      "skills-work/ow-build-plan/SKILL.md",
-      "skills-work/ow-build-plan/references/phase-offer.md",
-      "skills-work/ow-build-plan/references/phase-start.md",
-      "skills-work/ow-build-plan/references/routing-and-resume.md",
-      "skills-work/ow-start/SKILL.md",
-      "docs/plans/2026-10-08-ow-build-design.md",
-      "sprints/release-2.1/ow-sprint-2/contract.md",
-      "sprints/release-2.1/ow-sprint-2/eval-round-1.md",
-      "sprints/release-2.1/ow-sprint-2/eval-round-2.md",
-      "sprints/release-2.1/ow-sprint-2/eval-round-3.md",
-      "sprints/release-2.1/ow-sprint-2/eval-round-4.md",
-      "tests/fixtures/ow-build/README.md",
-      "CLAUDE.md"
+      "sprints/release-2.1/track-s-site-surfaces.md",
+      "site/src/pages/changelog.astro",
+      "site/src/pages/index.astro",
+      "site/src/pages/install.astro"
     ]
   },
   "skill_state": {
     "pr_comment_marker": null,
     "docs_changed": [
-      "skills-work/ow-build/SKILL.md",
-      "skills-work/ow-build/references/",
-      "skills-work/ow-build/skill.edges.yaml",
-      "skills-work/ow-build/examples/",
-      "skills-work/README.md",
-      "skills-work/ow-build-plan/SKILL.md",
-      "skills-work/ow-build-plan/references/phase-offer.md",
-      "skills-work/ow-build-plan/references/phase-start.md",
-      "skills-work/ow-build-plan/references/routing-and-resume.md",
-      "skills-work/ow-start/SKILL.md",
-      "docs/plans/2026-10-08-ow-build-design.md",
-      "sprints/release-2.1/ow-sprint-2/contract.md",
-      "sprints/release-2.1/ow-sprint-2/eval-round-1.md",
-      "sprints/release-2.1/ow-sprint-2/eval-round-2.md",
-      "sprints/release-2.1/ow-sprint-2/eval-round-3.md",
-      "sprints/release-2.1/ow-sprint-2/eval-round-4.md",
-      "tests/fixtures/ow-build/README.md",
-      "CLAUDE.md"
+      "sprints/release-2.1/track-s-site-surfaces.md",
+      "site/src/pages/changelog.astro",
+      "site/src/pages/index.astro",
+      "site/src/pages/install.astro"
     ],
     "docs_not_changed_reason": null,
     "follow_up_docs": [
-      "R4-1 to R4-3 (evaluation round 4): regression-net gaps in scripts/ow-build-acceptance.mjs and the F07 skip label, in a follow-up PR",
-      "ow-start 1.1.0 (Sprint L) records the slash-hint edit made to ow-start 1.0.0's SKILL.md here",
-      "Owner decisions pending from round 4: the regression net's precision bar before Sprint 6, and whether spec/ effort estimates fall under C5"
+      "GitHub milestone renames (owner confirmation)",
+      "pointer from ow-family-sprint-plan.md after #606",
+      "S1-S5 live-claim surfaces"
     ],
-    "verified_for_sha": "fd3acf8afc0eda95894bb909e701db702b7c227e",
-    "pr_body_fragment": "Docs: adds ow-build 1.0.0 under skills-work/ow-build/ (SKILL.md, 14 references, edges, examples); records the build's departures and the owner decisions of 2026-10-16 in design §13 (rows 1-29) and the contract (C5 restated); adds the four evaluation reports; updates skills-work/README.md and CLAUDE.md for the third ow- skill and its acceptance checker; documents the fixtures in tests/fixtures/ow-build/README.md. ow-build-plan gains its UAT-nn follow-on intake and its hand-off field lists; ow-start 1.0.0's SKILL.md gains one slash hint without a version bump (ow-start 1.1.0 in Sprint L records it)."
+    "verified_for_sha": "5dbd0724a587be35c29aa1d7fef3cce6e20b16e6",
+    "pr_body_fragment": "## Documentation\n\n**Generated by:** oc-docs-forge\n**Docs changed:** new `sprints/release-2.1/track-s-site-surfaces.md` (Track S plan, approved 2026-10-16) · forward site copy on `/changelog` (Coming Next `#v2-1`, Planned), the homepage next-bar and `/install` (enrollment correction)\n**Reader impact:** Visitors now see the real 2.1 direction: two themes, the ow- planning family and enforcement at chokepoints, with the skill router labelled an experimental preview and no effectiveness claims. Installs anywhere and the open-source split move to 2.2. `/install` corrects a live inaccuracy: installing the plugin installs no gate until `/oc-enroll` runs. No live-claim surface changes; `check-release-surfaces` still reads v2.0 everywhere.\n**Follow-up docs:** GitHub milestone renames (owner to confirm) · one-line pointer to the Track S plan from `ow-family-sprint-plan.md` after #606 merges · S1–S5 live-claim surfaces at the cut"
   },
-  "next_actions": [
-    "Open the follow-up PR for R4-1 to R4-3",
-    "Owner: rule on the round-4 OWNER-DECISIONs 1 and 2"
-  ],
+  "next_actions": [],
   "handoffs": [
     {
       "id": "oc-docs-forge-release-f6b167fcbd3a",
@@ -1757,46 +1726,30 @@
       }
     },
     {
-      "id": "oc-docs-forge-ow-sprint-2-pr-2026-10-16-bcb30c20dfb0",
+      "id": "oc-docs-forge-pr-docs-v1-4d2d4e2a49b7",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-10-17T00:23:19.383Z",
-      "verified_at": "2026-10-17T00:23:19.383Z",
+      "created_at": "2026-10-17T00:02:22.641Z",
+      "verified_at": "2026-10-17T00:02:22.641Z",
       "producer": {
         "skill": "oc-docs-forge",
-        "run_id": "ow-sprint-2-pr-2026-10-16"
+        "run_id": "pr-docs-v1-2026-10-17T00:02:22.641Z"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:bcb30c20dfb033c95b6026bc343b9f80e010f06a5f48508471baf7e2a275725b"
+        "id": "sha256:4d2d4e2a49b7003cb18d8cc365c4839241cba9acac4518441eafa701af8e154d"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pr-docs-v1",
-        "scope": "Checked on the merge tree fd3acf8a: every changed doc and skill-text file was written or merged in this branch and read during the merge; the ow- catalog validates (gen-skills-catalog), check-skill-contracts and lint-internal-refs pass, the three ow- acceptance checkers pass (ow-start, ow-build-plan 30 goldens, ow-build 54 goldens), and the changed Markdown has no relative links to break (204 files scanned, 0 links). Not checked: the public site, generated public/docs (the ow- catalog feeds no build output), and Gmail/Outlook rendering of the email templates (Sprint 6).",
+        "scope": "oc-update S2: skills/oc-update/SKILL.md documents the plugin step, plugins subcommand, restart, local scope and exit 4/6; design doc status line updated; plugin mirror synced (after merging main c9868931)",
         "evidence": [
-          "skills-work/ow-build/SKILL.md",
-          "skills-work/ow-build/references/",
-          "skills-work/ow-build/skill.edges.yaml",
-          "skills-work/ow-build/examples/",
-          "skills-work/README.md",
-          "skills-work/ow-build-plan/SKILL.md",
-          "skills-work/ow-build-plan/references/phase-offer.md",
-          "skills-work/ow-build-plan/references/phase-start.md",
-          "skills-work/ow-build-plan/references/routing-and-resume.md",
-          "skills-work/ow-start/SKILL.md",
-          "docs/plans/2026-10-08-ow-build-design.md",
-          "sprints/release-2.1/ow-sprint-2/contract.md",
-          "sprints/release-2.1/ow-sprint-2/eval-round-1.md",
-          "sprints/release-2.1/ow-sprint-2/eval-round-2.md",
-          "sprints/release-2.1/ow-sprint-2/eval-round-3.md",
-          "sprints/release-2.1/ow-sprint-2/eval-round-4.md",
-          "tests/fixtures/ow-build/README.md",
-          "CLAUDE.md"
+          "skills/oc-update/SKILL.md",
+          "docs/plans/2026-10-16-oc-update-plugins-design.md"
         ]
       }
     }
   ],
-  "record_updated_at": "2026-10-17T00:23:19.383Z",
+  "record_updated_at": "2026-10-17T00:02:22.641Z",
   "blockers": []
 }
