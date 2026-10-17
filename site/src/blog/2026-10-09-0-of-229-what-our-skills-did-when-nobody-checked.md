@@ -119,9 +119,7 @@ receipt, and two worktrees committing at once take turns.
 **Bypasses leave a record.** Git runs `post-commit` even under `--no-verify`,
 so that is where the record goes: any commit with no PASS receipt gets a file
 under `.git/opchain/bypasses/`. `pre-push` refuses to push it until the commit
-carries an `Opchain-Bypass:` trailer saying who approved what. The trailer
-survives a squash merge, and where the PR evidence check runs, it lists every
-bypassed commit.
+carries an `Opchain-Bypass:` trailer saying who approved what. The trailer travels with the commit to the pull request, where the PR evidence check lists it before merge; the local record never leaves the machine.
 
 **Enrollment you can see.** [Installing the plugin installs no
 gate](/install#enroll). `/oc-enroll --doctor` says whether the gate will run.
@@ -144,10 +142,9 @@ TypeSafe's Jev model (`jev-1.13.0`) which opchain skill, if any, owns each
 prompt, and logs the answer on your machine. It adds nothing to the
 conversation.
 
-It does nothing until you set `TYPESAFE_API_KEY`, a key from TypeSafe billed
-to your own account. With `TYPESAFE_API_KEY` set, the hook sends the redacted
-prompt and a repo summary to `api.typesafe.ai`. The summary covers branch,
-ahead/behind, dirty count, open PR, enrollment and active checkpoint. The
+It does nothing until you set `TYPESAFE_API_KEY`, a key from TypeSafe.
+Calls are made with your key, under your TypeSafe account and its terms. With `TYPESAFE_API_KEY` set, the hook sends the redacted
+prompt and a repo summary to `api.typesafe.ai`. The summary covers the branch name, ahead/behind, dirty count, open PR, enrollment, and the active checkpoint's skill, phase and first next action (up to 200 characters). Credential-shaped text is redacted; names in the branch or that next action are sent as written. The
 previous prompt and the end of the last assistant message are sent only with
 `OPCHAIN_ROUTE_CONTEXT=1`. Nothing is sent without a key, for slash commands,
 outside opchain projects, or for a typed `/oc-*` mention. Decisions are
@@ -159,10 +156,10 @@ Live mode (`OPCHAIN_ROUTE_MODE=live`) is unsupported until the shadow
 period's go/no-go records a GO. It would add one line naming the skill to
 the conversation.
 
-Everything we know about it so far is offline. On 574 labelled past prompts,
-its suggestions had precision 0.92 for oc-git-ops and 0.88 for oc-deploy-ops.
-Those are one maintainer's prompts, labelled after the fact, and they say
-nothing yet about whether a suggestion changes what a session does. Our
+Everything we know about it so far is offline. On 574 labelled prompts from past Claude Code sessions on one machine, in opchain and a consumer repository, each labelled by what the session did next
+(an offline evaluation, not a measurement of use), its suggestions had
+precision 0.92 for oc-git-ops and 0.88 for oc-deploy-ops. They say nothing
+yet about whether a suggestion changes what a session does. Our
 baseline for skills calling skills was roughly zero, so a router that never
 suggests anything would match it exactly, which is the cheapest kind of
 parity. The shadow period is there to find out whether it does better.
@@ -178,8 +175,8 @@ parity. The shadow period is there to find out whether it does better.
 - **Some of the map is still words.** The spec-stub check and the
   integrations and eval gates are named in the skills and not yet checked by
   anything.
-- **The router's numbers are offline.** One person's past prompts,
-  labelled after the fact. Until the go/no-go records a verdict, it stays
+- **The router's numbers are offline.** Past prompts from one machine,
+  each labelled by what the session did next. Until the go/no-go records a verdict, it stays
   an experimental preview in shadow.
 
 ## Check your own repo

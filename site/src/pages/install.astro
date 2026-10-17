@@ -83,7 +83,8 @@ const bypassCmd = `git commit --amend --no-verify \\
 // Skill router opt-in (router release term 5; plugins/opchain/hooks/route-prompt.cjs).
 // Live mode is not in the copy block: OPCHAIN_ROUTE_MODE=live is unsupported
 // until the shadow-period go/no-go records a GO (term 4).
-const routerCmd = `# 1. get a key from TypeSafe; calls bill your own TypeSafe account
+const routerCmd = `# 1. get a key from TypeSafe; calls are made with your key,
+#    under your TypeSafe account and its terms
 # 2. set it where Claude Code starts: the router runs in shadow mode
 export TYPESAFE_API_KEY=...
 # 3. read what it would have suggested
@@ -365,7 +366,7 @@ codex`;
       </p>
       <h3><Icon name="terminal" /> Opt in</h3>
       <ol class="gate-list">
-        <li><strong>Get a key from TypeSafe.</strong> Calls go to your own TypeSafe account and are billed there. Each routed prompt makes up to two requests, and decisions are cached on your machine for 24 hours.</li>
+        <li><strong>Get a key from TypeSafe.</strong> Calls are made with your key, under your TypeSafe account and its terms. Each routed prompt makes up to two requests, and decisions are cached on your machine for 24 hours.</li>
         <li><strong>Set <code class="ic">TYPESAFE_API_KEY</code></strong> in the environment Claude Code starts in.</li>
         <li><strong>Read the shadow log</strong> at <code class="ic">$TMPDIR/opchain-route-log.jsonl</code>: each prompt's decision and, on the next prompt, what the session actually did. Claude Code&rsquo;s <code class="ic">$TMPDIR</code> can differ from your shell&rsquo;s; set <code class="ic">OPCHAIN_ROUTE_LOG</code> to pin the path.</li>
       </ol>
@@ -377,14 +378,14 @@ codex`;
         </button>
       </div>
       <p class="verify">
-        <strong>Live mode: {ROUTER_LIVE_MODE}.</strong> <code class="ic">OPCHAIN_ROUTE_MODE=live</code> is unsupported until then;
-        it would add the suggestion to the conversation as one line. 2.1.0
-        ships shadow mode as the default either way.
+        <strong>Live mode</strong> (<code class="ic">OPCHAIN_ROUTE_MODE=live</code>) is {ROUTER_LIVE_MODE}; it would add the suggestion
+        to the conversation as one line. 2.1.0 ships shadow mode as the
+        default either way.
       </p>
       <div class="upg">
         <h3 class="upg-h">What leaves your machine <span class="upg-tag">third-party API</span></h3>
         <ul class="upg-list">
-          <li>With <code class="ic">TYPESAFE_API_KEY</code> set, the hook sends the redacted prompt and a repo summary to <code class="ic">api.typesafe.ai</code>. The summary covers branch, ahead/behind, dirty count, open PR, enrollment and active checkpoint.</li>
+          <li>With <code class="ic">TYPESAFE_API_KEY</code> set, the hook sends the redacted prompt and a repo summary to <code class="ic">api.typesafe.ai</code>. The summary covers the branch name, ahead/behind, dirty count, open PR, enrollment, and the active checkpoint's skill, phase and first next action (up to 200 characters). Credential-shaped text is redacted; names in the branch or that next action are sent as written.</li>
           <li>The previous prompt and the end of the last assistant message are sent only with <code class="ic">OPCHAIN_ROUTE_CONTEXT=1</code>.</li>
           <li>Nothing is sent without a key, for slash commands, outside opchain projects, or for a typed <code class="ic">/oc-*</code> mention.</li>
           <li>Decisions are logged locally to <code class="ic">$TMPDIR/opchain-route-log.jsonl</code>.</li>
@@ -401,9 +402,8 @@ codex`;
           pinned); opchain.dev never sees the request.
         </p>
         <p class="upg-foot">
-          <strong>Offline evaluation only.</strong> On 574 labelled past
-          prompts from one maintainer&rsquo;s sessions (an offline evaluation,
-          not a measurement of use), its suggestions had precision 0.92 for
+          <strong>Offline evaluation only.</strong> On 574 labelled prompts from past Claude Code sessions on one machine, in opchain and a consumer repository, each labelled by what the session did next
+          (an offline evaluation, not a measurement of use), its suggestions had precision 0.92 for
           oc-git-ops and 0.88 for oc-deploy-ops. That set the thresholds it
           ships with; the method is in the source repo&rsquo;s <code class="ic">docs/runbooks/skill-router-eval.md</code>.
         </p>

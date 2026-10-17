@@ -197,7 +197,7 @@ import securityTxt from "../../public/.well-known/security.txt?raw";
             <div class="val">
               <ul>
                 <li>A commit with no PASS <a href="/glossary#receipt">receipt</a>, including one made with <code>git commit --no-verify</code>, gets a <a href="/glossary#bypass-record">bypass record</a> from the <code>post-commit</code> hook, which Git runs even when <code>pre-commit</code> was skipped.</li>
-                <li>The <code>pre-push</code> hook refuses to push such a commit until it carries an <code>Opchain-Bypass:</code> trailer saying who approved it and why. The trailer, unlike the local record, survives a squash merge, and the pull-request evidence check lists every bypassed commit.</li>
+                <li>The <code>pre-push</code> hook refuses to push such a commit until it carries an <code>Opchain-Bypass:</code> trailer saying who approved it and why. The trailer travels with the commit to the pull request, where the PR evidence check lists it before merge; the local record never leaves the machine.</li>
                 <li>Local hooks are not a trust boundary. Anyone with the clone can delete them or push with <code>OPCHAIN_PUSH_BYPASS=1</code>; both leave a commit with no receipt, which the <code>/oc-enroll --ci</code> workflow re-verifies and reports. Treat CI as the check, and the local hooks as the early warning.</li>
               </ul>
             </div>
@@ -219,7 +219,7 @@ import securityTxt from "../../public/.well-known/security.txt?raw";
             <div class="key">Skill router <span class="since">New in 2.1</span> <RouterLabel /></div>
             <div class="val">
               <ul>
-                <li>With <code>TYPESAFE_API_KEY</code> set, the hook sends the redacted prompt and a repo summary to <code>api.typesafe.ai</code>. The summary covers branch, ahead/behind, dirty count, open PR, enrollment and active checkpoint.</li>
+                <li>With <code>TYPESAFE_API_KEY</code> set, the hook sends the redacted prompt and a repo summary to <code>api.typesafe.ai</code>. The summary covers the branch name, ahead/behind, dirty count, open PR, enrollment, and the active checkpoint's skill, phase and first next action (up to 200 characters). Credential-shaped text is redacted; names in the branch or that next action are sent as written.</li>
                 <li>The previous prompt and the end of the last assistant message are sent only with <code>OPCHAIN_ROUTE_CONTEXT=1</code>.</li>
                 <li>Nothing is sent without a key, for slash commands, outside opchain projects, or for a typed <code>/oc-*</code> mention.</li>
                 <li>Decisions are logged locally to <code>$TMPDIR/opchain-route-log.jsonl</code>.</li>

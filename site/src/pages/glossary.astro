@@ -147,7 +147,7 @@ const terms: Term[] = [
     term: "Bypass record",
     since: "2.1",
     short: "A file the post-commit hook writes for any commit that landed without a PASS receipt, including git commit --no-verify.",
-    long: "Written to .git/opchain/bypasses/v1/<sha>.json. Git runs post-commit even when --no-verify skipped pre-commit, so a bypass cannot pass unrecorded. The pre-push hook then refuses to push the commit until it carries an Opchain-Bypass: trailer saying who approved it and why, and the pull-request evidence check lists it, so the count survives a squash merge.",
+    long: "Written to .git/opchain/bypasses/v1/<sha>.json. Git runs post-commit even when --no-verify skipped pre-commit, so a bypass cannot pass unrecorded. The pre-push hook then refuses to push the commit until it carries an Opchain-Bypass: trailer saying who approved it and why. The trailer travels with the commit to the pull request, where the PR evidence check lists it before merge; the local record never leaves the machine.",
     related: [{ label: "Install: what the hooks do", href: "/install#enroll" }, { label: "Security", href: "/security#plugin" }],
   },
   {
@@ -156,7 +156,7 @@ const terms: Term[] = [
     since: "2.1",
     router: true,
     short: "An optional plugin hook that asks a classifier which opchain skill owns a prompt and logs the answer.",
-    long: `Uses TypeSafe's Jev model (jev-1.13.0) through your own TYPESAFE_API_KEY, billed to your own TypeSafe account. With the key set it sends the redacted prompt and a repo summary to api.typesafe.ai; the conversation tail is added only with OPCHAIN_ROUTE_CONTEXT=1, which is off by default. It runs in shadow mode. Live mode, which would add one tool-named line naming the skill, is ${ROUTER_LIVE_MODE}. Its only evaluation so far is offline. Off without a key; OPCHAIN_ROUTE=0 turns it off with one.`,
+    long: `Uses TypeSafe's Jev model (jev-1.13.0) through your own TYPESAFE_API_KEY. Calls are made with your key, under your TypeSafe account and its terms. With the key set it sends the redacted prompt, a repo summary and the active checkpoint's next action to api.typesafe.ai; the conversation tail is added only with OPCHAIN_ROUTE_CONTEXT=1, which is off by default. It runs in shadow mode. Live mode, which would add one tool-named line naming the skill, is ${ROUTER_LIVE_MODE}. Its only evaluation so far is offline. Off without a key; OPCHAIN_ROUTE=0 turns it off with one.`,
     related: [{ label: "Install: skill router", href: "/install#router" }, { label: "Shadow mode", href: "/glossary#shadow-mode" }],
   },
   {

@@ -904,7 +904,7 @@ const packCounts = {
         </div>
         <div class="ma-band-caption">
           <p><RouterLabel /></p>
-          <p><b>Route each prompt to one skill, and log it.</b> With your own <code>TYPESAFE_API_KEY</code>, a UserPromptSubmit hook sends the redacted prompt and a repo summary to TypeSafe Jev; the conversation tail is added only with <code>OPCHAIN_ROUTE_CONTEXT=1</code> (off by default). The seven core pipeline skills route at fits ≥ 0.6; the other allowlisted skills need 0.9. Shadow mode, the default, only logs. Live mode (<code>OPCHAIN_ROUTE_MODE=live</code>), which would inject one line naming the Skill tool, the skill and the verb, is unsupported until the go/no-go records a GO. Its only evaluation so far is offline; whether it changes skill use is not measured yet. It never blocks.</p>
+          <p><b>Route each prompt to one skill, and log it.</b> With your own <code>TYPESAFE_API_KEY</code>, a UserPromptSubmit hook sends the redacted prompt, a repo summary and the active checkpoint's next action to TypeSafe Jev; the conversation tail is added only with <code>OPCHAIN_ROUTE_CONTEXT=1</code> (off by default). The seven core pipeline skills route at fits ≥ 0.6; the other allowlisted skills need 0.9. Shadow mode, the default, only logs. Live mode (<code>OPCHAIN_ROUTE_MODE=live</code>), which would inject one line naming the Skill tool, the skill and the verb, is unsupported until the go/no-go records a GO. Its only evaluation so far is offline; whether it changes skill use is not measured yet. It never blocks.</p>
           <div class="ma-bc-cp"><span class="ma-bc-cp-badge">2.1</span><span>TypeSafe Jev jev-1.13.0 · offline eval: 574 labelled past prompts</span></div>
         </div>
       </details>
