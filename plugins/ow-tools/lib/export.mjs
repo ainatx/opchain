@@ -21,7 +21,10 @@ const MD_FORMATS = ["pdf", "docx", "pptx"];
 // No YAML metadata (Bug 1, round 3): a YAML block's values are Markdown that
 // pandoc renders (an `abstract` holding an image embedded any file). ow-tools
 // sets the only metadata it needs (`lang`) on the command line.
-export const PANDOC_FROM = "gfm-autolink_bare_uris-yaml_metadata_block";
+// No TeX math either (1.1.1, Bug 7): a `$…$` would become an equation, and
+// Typst's PDF/UA output refuses an equation without alt text. Dollar signs
+// stay text, as they should in a quote or an invoice.
+export const PANDOC_FROM = "gfm-autolink_bare_uris-yaml_metadata_block-tex_math_dollars-tex_math_gfm";
 
 export const typstString = (s) => `"${String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
 

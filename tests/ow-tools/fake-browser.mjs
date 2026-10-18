@@ -3,7 +3,9 @@
 // argv, the profile's Preferences at launch and every method it receives, and
 // returns canned PNGs at the emulated viewport. FAKE_BROWSER names a JSON
 // file: { log, pages: { url: { selectors: { sel: { attrs, navigate } } } },
-// redirect: { url: target }, hang: bool, crash: bool, writeSession: bool }.
+// redirect: { url: target }, hang: bool, crash: bool, writeSession: bool,
+// malformed: bool }. malformed: after Fetch.enable, send events with their
+// params missing (1.1.1, Bug 3: they must neither crash ow-tools nor pass).
 // writeSession: write cookie and storage files at start, as a signed-in
 // Chrome would (the round-3 signal and SIGKILL tests).
 import { appendFileSync, createWriteStream, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -138,7 +140,13 @@ async function handle({ id, method, params = {}, sessionId }) {
       return reply(id, {}, sessionId);
     case "Fetch.enable":
       fetchOn = true;
-      return reply(id, {}, sessionId);
+      reply(id, {}, sessionId);
+      if (cfg.malformed) {
+        event("Fetch.requestPaused", { requestId: "bad1", resourceType: "Script" }, sessionId);
+        event("Fetch.requestPaused", {}, sessionId);
+        event("Target.targetCreated"); // no params at all
+      }
+      return undefined;
     case "Fetch.continueRequest":
     case "Fetch.failRequest": {
       const r = pendingFetch.get(params.requestId);

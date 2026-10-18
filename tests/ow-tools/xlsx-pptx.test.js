@@ -586,7 +586,8 @@ describe("round 3: YAML metadata never reaches an export (Bug 1, R29)", SPAWN, (
   it.skipIf(!has("pandoc"))("pandoc's readers read no YAML metadata, and the image check walks the metadata when a reader does", () => {
     const { root, md } = repro("top");
     for (const from of [PANDOC_FROM, PANDOC_DECK_FROM]) {
-      expect(from).toMatch(/-yaml_metadata_block$/);
+      expect(from).toContain("-yaml_metadata_block");
+      expect(from).toContain("-tex_math_dollars-tex_math_gfm"); // 1.1.1, Bug 7
       const ast = JSON.parse(spawnSync("pandoc", [md, "-f", from, "-t", "json"], { encoding: "utf8" }).stdout);
       expect(ast.meta, from).toEqual({});
       expect(imagesPandocReads(md, from, new Set(), root), from).toEqual([]);
@@ -737,5 +738,36 @@ describe("round 3: the re-review's image and workbook PoCs", SPAWN, () => {
     expect(reason("=IF(1,\"=cmd|' /C calc'!A0\",0)")).toBe("dde-or-link-formula");
     expect(reason('=_xlfn.WEBSERVICE("x")')).toBe("formula-syntax");
     expect(reason("=SUM(A1)")).toBe("accepted");
+  });
+});
+
+// ---- OW-03 follow-ups (1.1.1) -------------------------------------------------------
+
+describe("1.1.1: dollar signs are text, never equations (Bug 7)", SPAWN, () => {
+  const DOC = "# Quote\n\n## Costs\n\nSee $\\text{hello}$ in the notes. The fit-out is $5,000 and the survey $750.\n\n```math\nx^2\n```\n";
+  it.skipIf(!has("pandoc"))("pandoc reads no Math node from $…$ or a math block", () => {
+    const d = tempDir();
+    const md = write(join(d, "doc.md"), DOC);
+    for (const from of [PANDOC_FROM, PANDOC_DECK_FROM]) {
+      const ast = spawnSync("pandoc", [md, "-f", from, "-t", "json"], { encoding: "utf8" }).stdout;
+      expect(ast, from).not.toContain('"t":"Math"');
+    }
+  });
+
+  it.skipIf(!(has("pandoc") && has("typst")))("a PDF with an inline equation exports (it failed on Typst's alt-text rule)", () => {
+    const d = tempDir();
+    const md = write(join(d, "doc.md"), DOC);
+    const r = cli(["export", md, "--formats", "pdf", "--json"]);
+    expect(r.status, r.stdout + r.stderr).toBe(0);
+    expect(readFileSync(r.json.outputs.pdf).subarray(0, 5).toString()).toBe("%PDF-");
+  });
+
+  it.skipIf(!pptxReady)("Word and PowerPoint keep the same text", () => {
+    const d = tempDir();
+    const md = write(join(d, "doc.md"), DOC);
+    const r = cli(["export", md, "--formats", "docx,pptx", "--json"]);
+    expect(r.status, r.stdout + r.stderr).toBe(0);
+    expect(unzipAll(readFileSync(r.json.outputs.docx))["word/document.xml"]).toContain("$\\text{hello}$");
+    expect(Object.values(unzipAll(readFileSync(r.json.outputs.pptx))).join("")).toContain("$750");
   });
 });

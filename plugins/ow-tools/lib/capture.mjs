@@ -9,11 +9,11 @@
 // profile. It lives in the ow-tools data folder (0700), is listed by
 // `--profiles` and removed by `--delete-profile`, and ow-handoff's access
 // removal names it.
-import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, closeSync, existsSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync, writeSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join, relative, resolve, sep } from "node:path";
 import { dataHome, failed, isFile, localDate, missing, refused, usage, which } from "./core.mjs";
-import { blockedAddress, ipv4, isLinkLocalHost, isLoopbackHost } from "./addr.mjs";
+import { HOST, blockedAddress, ipv4, isLinkLocalHost, isLoopbackHost } from "./addr.mjs";
 import { CDP_METHODS, killTree, launchBrowser } from "./cdp.mjs";
 import { assertIgnored, withTmpSiblings, writePrivate } from "./guards.mjs";
 import { sha256File } from "./hash.mjs";
@@ -32,18 +32,30 @@ const DEFAULT_VIEWPORT = { width: 1280, height: 800 };
 export const DEFAULT_TIMEOUT = 110;
 
 // A field ow-tools never types into: by type, by autocomplete, or by a name,
-// id or selector that names a secret (design §5.6). Two rules, either one
-// refuses (round 3, Bug 2):
+// id, selector, label or placeholder that names a secret (design §5.6). The
+// text is folded first (accents removed: `contraseña` → `contrasena`), then
+// any one of these refuses (1.1.1, OW-03 follow-ups):
 //
-// - words: the text split into words (camelCase, snake_case, kebab-case,
-//   any punctuation; a trailing digit dropped: `otp1` → `otp`) matched
-//   against whole secret words and word pairs (`pin`, `one time`, …);
-// - stems: each word, and the whole text lower-cased with every separator
-//   and digit removed (`mot_de_passe` → `motdepasse`), searched for secret
-//   stems. Long stems match anywhere (`newpassword`, `cardcvc`); short ones
-//   only at the start or end of a word (`smsotp`, `totpcode`, `mfatoken`),
-//   so `footprint` and `hotpink` stay ordinary. Real words that merely
-//   contain a stem (`secretary`, `classname`) are removed first.
+// - a password word in a non-Latin script (`пароль`, `パスワード`, `密码`, …);
+// - a phrase about a code that was sent (`the code we texted you`) or an
+//   N-digit code (`Enter the 6-digit code`; a ZIP code is not one);
+// - words: the text split into words (camelCase, snake_case, kebab-case, any
+//   punctuation; a trailing digit dropped: `otp1` → `otp`). A strong word
+//   anywhere (`password`, `otp`, `cvv`, `iban`, `secret`, …); a word pair
+//   (`card number`, `seed phrase`, `access token`, …); or a weak word that is
+//   the field's only word once selector and label filler is set aside (`pin`,
+//   `pass`, `token`, `routing`, `pan`: `#pin` and "Your PIN" refuse,
+//   `pinLocation`, `boarding_pass` and `tokenCount` don't);
+// - stems inside one word: long stems anywhere (`newpassword`, `userpin`,
+//   `kennwort`), short ones only at the word's start or end (`smsotp`,
+//   `totpcode`, `loginpwd`), so `hotpot`, `footprint` and `camfactor` stay
+//   ordinary. Real words that merely hold a stem (`secretary`, `classname`,
+//   `liban`) are removed first;
+// - long stems across words, in the text with separators removed
+//   (`mot_de_passe` → `motdepasse`, `credit_card`), and again with leet digits
+//   and symbols read as letters (`p@ssw0rd`, `pa55word`). Short stems are
+//   never matched across words, so `apiBanner` (iban) and `photo-kent`
+//   (token) stay ordinary.
 export function nameWords(text) {
   return String(text)
     .replace(/([a-z])([A-Z])/g, "$1 $2")
@@ -53,45 +65,108 @@ export function nameWords(text) {
     .filter(Boolean)
     .map((w) => w.replace(/(?<=[a-z])\d+$/, ""));
 }
+// Always a secret, as a whole word.
 export const SECRET_WORDS = Object.freeze([
-  "otp", "otpcode", "mfa", "mfacode", "totp", "hotp", "2fa", "tfa", "twofa", "pin", "pincode", "pinnumber", "passcode", "password", "passwd",
-  "pwd", "pw", "pass", "passphrase", "secret", "token", "cvv", "cvc", "csc", "cvn", "ssn", "iban", "routing", "apikey", "onetimecode",
-  "onetimepassword", "cardnumber", "cardnum", "ccnum", "ccnumber", "cccsc", "ccexp", "securitycode", "verificationcode", "authcode",
-  "smscode",
+  "otp", "otpcode", "mfa", "mfacode", "totp", "hotp", "2fa", "tfa", "twofa", "pincode", "pinnumber", "passcode", "password", "passwd", "pwd",
+  "pw", "psw", "pswd", "pword", "passw", "passwrd", "passphrase", "secret", "cvv", "cvc", "csc", "cvn", "ssn", "iban", "apikey", "onetimecode",
+  "onetimepassword", "cardnumber", "cardnum", "cardno", "ccnum", "ccnumber", "ccn", "cccsc", "ccexp", "creditcard", "securitycode",
+  "verificationcode", "authcode", "smscode", "emailcode", "logincode", "accesscode", "authenticator", "mnemonic", "seedphrase", "recoverykey",
+  "socialsecurity", "privatekey", "accesstoken", "apitoken", "authtoken", "refreshtoken", "bearertoken", "sessiontoken", "idtoken",
+  // other languages (Latin script, accents folded)
+  "senha", "heslo", "haslo", "geslo", "sifre", "passord", "jelszo", "lozinka", "parool", "adgangskode", "kennwort", "wachtwoord",
+]);
+// A secret only as the field's one word (filler set aside), or in a pair.
+export const WEAK_WORDS = Object.freeze(["pin", "pass", "token", "routing", "pan"]);
+// Selector and label filler, set aside before the one-word test.
+export const FILLER_WORDS = Object.freeze([
+  "input", "textarea", "name", "id", "field", "data", "testid", "test", "cy", "qa", "aria", "label", "placeholder", "enter", "your", "the",
+  "a", "an", "please", "here", "my", "new", "confirm", "current", "old", "user",
 ]);
 export const SECRET_SEQUENCES = Object.freeze([
-  ["one", "time"], ["two", "factor"], ["card", "number"], ["card", "num"], ["cc", "num"], ["cc", "number"], ["cc", "csc"], ["cc", "exp"],
-  ["security", "code"], ["security", "answer"], ["verification", "code"], ["verify", "code"], ["auth", "code"], ["sms", "code"],
-  ["recovery", "code"], ["backup", "code"], ["api", "key"], ["access", "key"], ["private", "key"], ["account", "number"], ["routing", "number"],
+  ["one", "time"], ["two", "factor"], ["two", "step"], ["2", "step"], ["card", "number"], ["card", "num"], ["card", "no"], ["cc", "num"],
+  ["cc", "number"], ["cc", "csc"], ["cc", "exp"], ["credit", "card"], ["social", "security"], ["security", "code"], ["security", "answer"],
+  ["security", "pin"], ["verification", "code"], ["verify", "code"], ["auth", "code"], ["authentication", "code"], ["sms", "code"],
+  ["text", "code"], ["email", "code"], ["login", "code"], ["signin", "code"], ["sign", "in", "code"], ["access", "code"], ["magic", "code"],
+  ["recovery", "code"], ["recovery", "key"], ["recovery", "phrase"], ["backup", "code"], ["seed", "phrase"], ["secret", "phrase"],
+  ["api", "key"], ["access", "key"], ["private", "key"], ["access", "token"], ["api", "token"], ["auth", "token"], ["refresh", "token"],
+  ["bearer", "token"], ["session", "token"], ["id", "token"], ["security", "token"], ["reset", "token"], ["account", "number"],
+  ["routing", "number"], ["routing", "no"], ["pass", "code"], ["pass", "word"], ["pass", "phrase"], ["pin", "code"], ["pin", "number"],
+  ["atm", "pin"], ["card", "pin"], ["login", "pin"], ["account", "pin"], ["sim", "pin"], ["secure", "pin"], ["login", "pass"],
+  ["admin", "pass"], ["digit", "code"], ["digit", "pin"],
 ]);
-// Matched anywhere in a word or in the compacted text.
+// Inside one word, anywhere.
 export const SECRET_STEMS_ANYWHERE = Object.freeze([
-  "password", "passwd", "passwort", "motdepasse", "contrasena", "passcode", "passphrase", "cardnumber", "ccnumber", "securitycode",
-  "verificationcode", "verifycode", "recoverycode", "backupcode", "accountnumber", "routingnumber", "apikey", "privatekey", "secret",
-  "token", "iban",
+  "password", "passwd", "passwrd", "passwort", "motdepasse", "contrasena", "passcode", "passphrase", "kennwort", "wachtwoord", "losenord",
+  "salasana", "jelszo", "lozinka", "adgangskode", "matkhau", "cardnumber", "ccnumber", "creditcard", "securitycode", "verificationcode",
+  "verifycode", "recoverycode", "recoverykey", "recoveryphrase", "backupcode", "seedphrase", "accountnumber", "routingnumber", "apikey",
+  "privatekey", "socialsecurity", "authenticator", "mnemonic", "secret", "userpin", "atmpin", "securepin", "cardpin", "loginpin", "accountpin",
+  "simpin", "userpass", "loginpass", "adminpass", "emailcode", "logincode", "accesscode", "magiccode", "smscode", "authcode", "onetimecode",
+  "twostep", "otpcode", "mfacode", "pincode", "pinnumber",
 ]);
-// Matched only at the start or the end of a word or of the compacted text.
-export const SECRET_STEMS_EDGE = Object.freeze(["otp", "totp", "mfa", "pwd", "cvc", "cvv", "ssn", "twofa", "tfa"]);
+// Inside one word, only at its start or end.
+export const SECRET_STEMS_EDGE = Object.freeze(["otp", "totp", "mfa", "pwd", "psw", "pswd", "pword", "cvc", "cvv", "ssn", "twofa", "tfa"]);
+// Inside one word, only at its end (`accesstoken`, `bankiban`; never `ibanez`).
+export const SECRET_STEMS_END = Object.freeze(["token", "iban", "passw"]);
+// Across words, in the text with separators removed: long, unambiguous stems only.
+export const SECRET_STEMS_ACROSS = Object.freeze([
+  "password", "passwd", "passwort", "motdepasse", "contrasena", "passcode", "passphrase", "kennwort", "wachtwoord", "losenord", "salasana",
+  "matkhau", "cardnumber", "ccnumber", "creditcard", "securitycode", "verificationcode", "verifycode", "recoverycode", "recoverykey",
+  "recoveryphrase", "backupcode", "seedphrase", "accountnumber", "routingnumber", "privatekey", "socialsecurity", "authenticator",
+  "onetimecode", "onetimepassword",
+]);
+// A password in another script, matched in the text as written.
+export const SECRET_SCRIPTS = Object.freeze([
+  "пароль", "парол", "лозинка", "гасло", "パスワード", "暗証番号", "비밀번호", "密码", "密碼", "口令", "סיסמה", "كلمة المرور", "كلمة السر",
+  "รหัสผ่าน", "पासवर्ड", "κωδικός πρόσβασης",
+]);
+// A code that was sent, or an N-digit code (a ZIP or postal code is not one).
+export const SECRET_PHRASES = Object.freeze([
+  /\bcodes?\b[^.\n]{0,30}?\b(?:sent|texted|emailed|messaged)\b/,
+  /\b(?:sent|texted|emailed|messaged)\b[^.\n]{0,30}?\bcodes?\b/,
+  /\b\d{1,2}\s*-?\s*digits?\s+(?:(?:verification|security|login|sign-?in|sms|one-time|access|auth)\s+)?(?:code|pin|passcode)\b/,
+]);
 // Real words that contain a stem and are not secrets.
 export const ORDINARY_WORDS = Object.freeze([
   "secretary", "secretariat", "classname", "businessname", "passenger", "passport", "compass", "bypass", "trespass", "tokenize", "tokenizer",
   "footprint", "hotpink", "laptop", "desktop", "hotplate", "spinner", "opinion", "pinterest", "shipping", "option", "options", "topping",
+  "liban",
 ]);
 const WORDS = new Set(SECRET_WORDS);
+const WEAK = new Set(WEAK_WORDS);
+const FILLER = new Set(FILLER_WORDS);
 const ORDINARY = [...ORDINARY_WORDS].sort((a, b) => b.length - a.length);
 const scrub = (s) => ORDINARY.reduce((t, w) => t.split(w).join(" "), s);
-const stemHit = (s) => {
-  if (SECRET_STEMS_ANYWHERE.some((st) => s.includes(st))) return true;
-  return s.split(" ").filter(Boolean).some((part) => SECRET_STEMS_EDGE.some((st) => part.startsWith(st) || part.endsWith(st)));
+// ł, ø, đ, ß and æ don't decompose; the rest fold through NFD.
+const fold = (s) => String(s).replace(/[łŁ]/g, "l").replace(/[øØ]/g, "o").replace(/[đĐ]/g, "d").replace(/ß/g, "ss").replace(/[æÆ]/g, "ae").normalize("NFD").replace(/\p{M}/gu, "");
+const LEET = { "@": "a", 4: "a", $: "s", 5: "s", 0: "o", 3: "e", 1: "i", "!": "i", 7: "t" };
+const unleet = (s) => s.replace(/[@4$5031!7]/g, (c) => LEET[c]);
+const inWord = (word) => {
+  const x = scrub(word.replace(/\d+/g, ""));
+  return x.split(" ").filter(Boolean).some((p) =>
+    SECRET_STEMS_ANYWHERE.some((st) => p.includes(st)) ||
+    SECRET_STEMS_EDGE.some((st) => p.startsWith(st) || p.endsWith(st)) ||
+    SECRET_STEMS_END.some((st) => p !== st && p.endsWith(st)), // `token` alone is a weak word, not a stem
+  );
 };
-export function secretName(text) {
+function byWords(text) {
   const w = nameWords(text);
   if (w.some((x) => WORDS.has(x))) return true;
   if (SECRET_SEQUENCES.some((seq) => w.some((_, k) => seq.every((s, j) => w[k + j] === s)))) return true;
-  // Stems in each word, then in the whole text with separators and digits gone.
-  if (w.some((x) => stemHit(scrub(x.replace(/\d+/g, ""))))) return true;
-  const compact = String(text).toLowerCase().replace(/[^a-z]+/g, "");
-  return stemHit(scrub(compact));
+  const core = w.filter((x) => !FILLER.has(x));
+  if (core.length === 1 && WEAK.has(core[0])) return true;
+  if (w.some(inWord)) return true;
+  const across = scrub(text.toLowerCase().replace(/[^a-z]+/g, ""));
+  return SECRET_STEMS_ACROSS.some((st) => across.includes(st));
+}
+export function secretName(text) {
+  const raw = String(text).normalize("NFC").toLowerCase();
+  const t = fold(text);
+  const lower = t.toLowerCase();
+  if (SECRET_SCRIPTS.some((s) => raw.includes(s) || lower.includes(s))) return true;
+  // Phrases are read in the words too, so `#Enter_the_code_we_texted_you` counts.
+  const spoken = nameWords(t).join(" ");
+  if (SECRET_PHRASES.some((re) => re.test(lower) || re.test(spoken))) return true;
+  return byWords(t) || byWords(unleet(t));
 }
 const SECRET_AUTOCOMPLETE = /\b(current-password|new-password|one-time-code|cc-number|cc-csc|cc-exp(?:-month|-year)?)\b/i;
 // A plan value that looks like a credential is refused, whatever the field.
@@ -161,6 +236,11 @@ function origin(text, testOrigins, what) {
   // An IPv6 literal must be global unicast (Bug 6): no IPv4-compatible,
   // NAT64 or 6to4 wrapping of a private address, no documentation range.
   if (u.hostname.startsWith("[") && blockedAddress(u.hostname)) throw planBad(`${what} must not be a special-purpose IPv6 address`);
+  // SA-020: a host name, or an IP literal; nothing else reaches the
+  // host-resolver rules (`,` would start another rule, `*` is a wildcard).
+  if (!u.hostname.startsWith("[") && !ipv4(u.hostname) && !HOST.test(u.hostname)) {
+    throw planBad(`${what} must name a host (letters, digits, hyphens and dots, with a top-level name) or an IP address`);
+  }
   if (u.origin !== text.replace(/\/$/, "")) throw planBad(`${what} must be an origin only (scheme, host, port), with no path`);
   return u.origin;
 }
@@ -285,6 +365,51 @@ export function listProfiles(env) {
 }
 
 // The one delete ow-tools does: a profile folder, confined to the data folder.
+// SA-021: one run per profile at a time. The lock holds the running
+// process's id; a lock whose process has gone is stale and taken over.
+export const RUN_LOCK = ".ow-tools-run.lock";
+const alivePid = (pid) => {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (e) {
+    return e?.code === "EPERM";
+  }
+};
+function lockHolder(dir) {
+  try {
+    const pid = Number.parseInt(readFileSync(join(dir, RUN_LOCK), "utf8"), 10);
+    return Number.isSafeInteger(pid) && pid > 0 && alivePid(pid) ? pid : null;
+  } catch {
+    return null;
+  }
+}
+const inUse = (id, pid) => refused("profile-in-use", `capture: another run (process ${pid}) is using the profile ${id}; wait for it to finish`, { profile: id });
+export function takeRunLock(dir, id) {
+  const path = join(dir, RUN_LOCK);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const fd = openSync(path, "wx", 0o600);
+      writeSync(fd, `${process.pid}\n`);
+      closeSync(fd);
+      return path;
+    } catch (e) {
+      if (e?.code !== "EEXIST") throw e;
+      const pid = lockHolder(dir);
+      if (pid) throw inUse(id, pid);
+      rmSync(path, { force: true }); // stale: its run is gone
+    }
+  }
+  throw inUse(id, "unknown");
+}
+export function releaseRunLock(path) {
+  try {
+    if (Number.parseInt(readFileSync(path, "utf8"), 10) === process.pid) rmSync(path, { force: true });
+  } catch {
+    /* already gone */
+  }
+}
+
 export function deleteProfile(id, env) {
   if (typeof id !== "string" || !PROFILE_ID.test(id)) {
     throw refused("profile-id-invalid", "a profile id is lowercase letters, digits and - only (no /, no .., no other characters)");
@@ -310,6 +435,8 @@ export function deleteProfile(id, env) {
   const real = realpathSync(target);
   const rel = relative(realRoot, real);
   if (!rel || rel.startsWith("..") || rel.includes(sep)) throw refused("profile-not-contained", "that profile is not directly inside the capture folder; nothing deleted");
+  const holder = lockHolder(real);
+  if (holder) throw inUse(id, holder);
   const bytes = treeBytes(real);
   rmSync(real, { recursive: true, force: true });
   return { status: "deleted", id, removed: real, bytes };
@@ -334,7 +461,8 @@ function deepMerge(a, b) {
   return out;
 }
 
-export function prepareProfile(id, env) {
+// The profile folder, created 0700 and checked; nothing written in it yet.
+function openProfile(id, env) {
   const root = captureRoot(env);
   mkdirSync(root, { recursive: true, mode: 0o700 });
   const rootSt = lstatSync(root);
@@ -344,6 +472,10 @@ export function prepareProfile(id, env) {
   if (lstatSync(dir).isSymbolicLink()) throw refused("profile-not-contained", "that profile is a symlink; refusing to use it");
   chmodSync(root, 0o700);
   chmodSync(dir, 0o700);
+  return dir;
+}
+
+function writeProfilePrefs(dir) {
   const prefsPath = join(dir, "Default", "Preferences");
   let cur = {};
   try {
@@ -354,6 +486,10 @@ export function prepareProfile(id, env) {
   writeFileSync(prefsPath, JSON.stringify(deepMerge(cur, PREFS)), { mode: 0o600 });
   writeFileSync(join(dir, "First Run"), "", { mode: 0o600 });
   return dir;
+}
+
+export function prepareProfile(id, env) {
+  return writeProfilePrefs(openProfile(id, env));
 }
 
 // Chrome resolves only the plan's host names, and only to the address
@@ -446,8 +582,9 @@ async function session(b, plan, log) {
   const call = (m, p) => s.send(m, p, sessionId);
   // A second window (target=_blank, window.open) is closed, never captured.
   s.on((m) => {
-    if (m.method === "Target.targetCreated" && m.params.targetInfo.type === "page" && m.params.targetInfo.targetId !== page.targetId) {
-      s.send("Target.closeTarget", { targetId: m.params.targetInfo.targetId }).catch(() => {});
+    const info = m.params?.targetInfo;
+    if (m.method === "Target.targetCreated" && info?.type === "page" && info.targetId !== page.targetId) {
+      s.send("Target.closeTarget", { targetId: info.targetId }).catch(() => {});
     }
   });
   const guard = { blockedDocument: false, blockedOther: 0 };
@@ -455,11 +592,13 @@ async function session(b, plan, log) {
     if (m.sessionId !== sessionId) return;
     if (m.method === "Page.javascriptDialogOpening") call("Page.handleJavaScriptDialog", { accept: false }).catch(() => {});
     if (m.method !== "Fetch.requestPaused") return;
-    const url = m.params.request.url;
-    let allowed = /^(data|blob|about):/.test(url);
+    // A malformed event is blocked, never trusted and never a crash (Bug 3).
+    const url = typeof m.params?.request?.url === "string" ? m.params.request.url : "";
+    if (!m.params?.requestId) return;
+    let allowed = url !== "" && /^(data|blob|about):/.test(url);
     if (!allowed) {
       try {
-        allowed = plan.origins.includes(new URL(url).origin);
+        allowed = url !== "" && plan.origins.includes(new URL(url).origin);
       } catch {
         allowed = false;
       }
@@ -646,24 +785,37 @@ export async function capture(opts, log = () => {}, deps = {}) {
   const pins = await pinOrigins(plan, { resolver: deps.resolver, testOrigins: deps.testOrigins || [] });
   if (outDir) mkdirSync(outDir, { recursive: true });
 
-  const profileDir = prepareProfile(plan.profile, env);
-  cleanTempState(profileDir); // a run killed last time left its caches (F-023)
+  const profileDir = openProfile(plan.profile, env);
+  // SA-021: before anything is written in the profile (preferences, clean,
+  // wipe, marker), so a second run can't touch a running run's profile,
+  // remove its production marker or start a second browser on it.
+  const lock = takeRunLock(profileDir, plan.profile);
   const production = plan.environment === "production";
   const pending = join(profileDir, PRODUCTION_PENDING);
-  // SA-019: a production run, or any run after a production run that never
-  // finished, starts from a wiped session.
-  if (production || existsSync(pending)) wipeSession(profileDir);
-  if (production) writeFileSync(pending, `${localDate()}\n`, { mode: 0o600 });
-  else rmSync(pending, { force: true });
-  const headless = !opts.signIn;
-  const b = launchBrowser(binary, browserArgs({ profileDir, headless, viewport: plan.viewport, pins }), { env });
+  let b;
+  try {
+    writeProfilePrefs(profileDir);
+    cleanTempState(profileDir); // a run killed last time left its caches (F-023)
+    // SA-019: a production run, or any run after a production run that never
+    // finished, starts from a wiped session.
+    if (production || existsSync(pending)) wipeSession(profileDir);
+    if (production) writeFileSync(pending, `${localDate()}\n`, { mode: 0o600 });
+    else rmSync(pending, { force: true });
+    b = launchBrowser(binary, browserArgs({ profileDir, headless: !opts.signIn, viewport: plan.viewport, pins }), { env });
+  } catch (err) {
+    releaseRunLock(lock);
+    throw err;
+  }
   // Bug 4: an interrupt or a kill signal still closes the browser and wipes a
   // production session before ow-tools exits. The wipe runs at once (a
   // SIGKILL may follow) and again once the browser has gone, so nothing it
   // flushed on the way out survives. A SIGKILL itself can't be handled: the
   // pending marker makes the next run wipe first (SA-019).
+  //
+  // 1.1.1 (Bug 3): SIGQUIT and an uncaught exception take the same path, so
+  // the in-run wipe doesn't wait for the next run.
   let stopping = false;
-  const onSignal = async (sig) => {
+  const stop = async (code) => {
     if (stopping) return;
     stopping = true;
     killTree(b.proc);
@@ -675,10 +827,18 @@ export async function capture(opts, log = () => {}, deps = {}) {
     await Promise.race([b.exited, sleep(2000)]);
     tidy();
     if (production) rmSync(pending, { force: true });
-    process.exit(128 + ({ SIGHUP: 1, SIGINT: 2, SIGTERM: 15 }[sig] || 15));
+    releaseRunLock(lock);
+    process.exit(code);
   };
-  const SIGNALS = ["SIGINT", "SIGTERM", "SIGHUP"];
+  const SIGNAL_CODES = { SIGHUP: 1, SIGINT: 2, SIGQUIT: 3, SIGTERM: 15 };
+  const SIGNALS = Object.keys(SIGNAL_CODES);
+  const onSignal = (sig) => stop(128 + SIGNAL_CODES[sig]);
+  const onCrash = (err) => {
+    stop(1); // the browser is killed and the session wiped before this returns
+    process.stderr.write(`ow-tools: internal error; capture stopped${production ? " and the production session was wiped" : ""}: ${String(err?.message || err).slice(0, 300)}\n`);
+  };
   for (const sig of SIGNALS) process.on(sig, onSignal);
+  process.on("uncaughtException", onCrash);
   const images = [];
   let timer;
   let product = "";
@@ -717,6 +877,7 @@ export async function capture(opts, log = () => {}, deps = {}) {
     throw err;
   } finally {
     for (const sig of SIGNALS) process.off(sig, onSignal);
+    process.off("uncaughtException", onCrash);
     clearTimeout(timer);
     // Every exit path closes the browser: asked first, then killed.
     if (b.proc.exitCode === null && b.proc.signalCode === null) b.session.send("Browser.close").catch(() => {});
@@ -729,6 +890,7 @@ export async function capture(opts, log = () => {}, deps = {}) {
       rmSync(pending, { force: true });
     }
     writeFileSync(join(profileDir, LAST_USED), `${localDate()}\n`, { mode: 0o600 });
+    releaseRunLock(lock);
   }
   return {
     status: "done",
