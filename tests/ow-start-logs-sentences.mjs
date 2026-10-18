@@ -165,3 +165,50 @@ export const STATUS_PLANTS = [
   ["a closing reason in words", "2026-10-15 (clock: user-stated) | ow-start 1.1.0 | logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-03 | next: none (closed: the owner signed off the codes) | awaiting: none (done 2026-10-15)"],
   ["a title after the decision id", "2026-10-13 (clock: user-stated) | ow-start 1.1.0 | logs/larkspur-ceramics/decisions/DEC-01.md | next: ow-start /ow-start-action logs/larkspur-ceramics/ | awaiting: DEC-01 keep the order sheet review by 2026-10-19"],
 ];
+
+// OW-08 follow-ups (after evaluation round 3): must-pass scheduling and client-side sentences,
+// written BEFORE the follow-up PR changed any our-side rule (owner decision O8: the controls are
+// the precision bar). The first eighteen are the Evaluator's round-3 probes (fp3 Q01-Q18), which
+// round 3's rules flagged 11 times; the rest are new. Every sentence is invented.
+export const FOLLOWUP_SCHEDULING_CONTROLS = [
+  "Let's meet at our usual time on Thursday.",
+  "Our time zone is US Central, so the call is at 10am your time.",
+  "Our days in the studio are Tuesday and Thursday, if you want to drop by.",
+  "We'll add 20% more orders to the test set so the busy days are covered.",
+  "We'll send the invoice separately from the order export.",
+  "Your team's billable hours come from the time sheet.",
+  "Your team used up the spare boxes in two days, so we ordered more.",
+  "We spent the morning at your warehouse, which helped a lot.",
+  "Your price list is too high for wholesale buyers, so we agreed to review it.",
+  "Our hours of support are 9 to 5 on weekdays.",
+  "We spent Tuesday afternoon with your order coordinator.",
+  "Thanks for your time on Tuesday; our time together was useful.",
+  "Your team spent the whole of Wednesday on returns.",
+  "We agreed to invoice your wholesale customers at the end of each month.",
+  "Your bookkeeper bills your trade customers by the month.",
+  "We quoted your customers' feedback in the summary, word for word.",
+  "Your price list goes up by about 5% in January.",
+  "We'll spend part of the next call on returns.",
+  "Let's meet at our usual time next week.",
+  "Our time slot on Thursday works for the demo.",
+  "We'll send the slides separately after the call.",
+  "We spent the afternoon at your shop going through the order sheet.",
+  "Our hours overlap with yours from 9 to 1.",
+  "We'll add 10% more test orders from the busy weeks.",
+  "Our days in town are Monday and Tuesday.",
+  "We used up the hour on the order view, so returns move to next week.",
+  "Your team's billable work for wholesale customers is invoiced monthly.",
+  "Our usual Friday update goes out by email.",
+  "We spent Monday morning with your packing team.",
+  "Your shipping costs are too high in December, so we agreed to look at carriers.",
+];
+
+// The plain our-side sentences the follow-up's rules must catch, from evaluation round 3
+// (held-out r3, the Evaluator's G07, G17 and R01-R03). Must fail.
+export const FOLLOWUP_R3_PLANTS = [
+  "Our team spent the whole of Wednesday rebuilding the import.",
+  "The work took us twice as long as we planned.",
+  "The developer spent most of Monday on the sync on our side.",
+  "We spent the whole of Friday on the import.",
+  "I'll bill the travel at my hourly rate.",
+];
