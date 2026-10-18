@@ -1,6 +1,6 @@
 # ow-start amendment — meeting and decision logs
 
-**Date:** 2026-10-16 · **Status:** APPROVED 2026-10-16 with amendments H5 and T5. Nothing is built.
+**Date:** 2026-10-16 · **Status:** APPROVED 2026-10-16 with amendments H5 and T5. Built as ow-start 1.1.0 (OW-08, 2026-10-17); see §11.
 **Amends:** `docs/plans/2026-10-06-ow-start-intake-redesign.md` (APPROVED 2026-10-06). It reverses that design's decision 13 for the logs only ("Meeting and decision logs are out of scope for 2.1.0"), after the owner's scope change of 2026-10-16 (every skill is released in v2.1.0).
 **Version:** ow-start **1.1.0** (new verbs are a minor, per `semver-decisions.md`), shipping in v2.1.0 with the rest of the family.
 **Family rules that apply:** ow-protocol v1; no `ow-review` (labelled same-session self-checks); code only in the `ow-tools` add-on; no public ow- skill names a private skill; one writer per file; `STATUS.md` is append-only and never holds client text.
@@ -117,3 +117,69 @@ Labelled *same-session self-check: the same assistant applying a checklist; a di
 ## 10. Open questions
 
 None at drafting; every question was decided as L1–L5.
+
+## 11. Build notes (ow-start 1.1.0, OW-08)
+
+Contract: `sprints/release-2.1/ow-08/contract.md` (approved 2026-10-17).
+
+### 11.1 Owner rulings (2026-10-17, recommendations O1–O8 accepted)
+
+| # | Question | Ruling |
+|---|---|---|
+| O1 | How the index is declared in the edges | A reads row with `index: true`: header keys only, cited in the reference the row names, and its producer must write the path (unless it is planned or an add-on). No hand-off row and no chain. `check-skill-contracts` enforces it |
+| O2 | STATUS form for actions and reviews | Protocol §5's form. Open lines say `next: ow-start /ow-start-action logs/<workstream>/`; closing lines say `next: none (closed: done \| dropped \| reviewed \| superseded by DEC-nn)`. `awaiting:` is as in §4.2 and §6 |
+| O3 | Does `-prep-meeting` append a STATUS line? | Yes: `awaiting: meeting on <date>`, closed by `-log-meeting` with `held <date>` |
+| O4 | The ow-tools SessionStart hook hides open actions | Fix `lib/status.mjs` (newest line per item under `logs/`) as the next ow-tools patch, after OW-03 merges |
+| O5 | The `-log-meeting` argument | `<workstream> [MTG-nn]`. With no id: the newest prepared, unlogged meeting, else a new `MTG-nn` marked "no agenda". Ids are numbered per workstream |
+| O6 | Follow-up styling | `brand.yaml` when present (a `from: user` read), with ow-build's email rules; neutral styling without it |
+| O7 | Where ow-start's changelog lives | `skills-work/ow-start/CHANGELOG.md`, per skill |
+| O8 | Precision bar for the two meaning checks before REL-02 | The must-pass controls in C7 and C12 are the bar; a false positive found in evaluation becomes a control in the same round |
+
+### 11.2 Departures and choices the build made
+
+Where the build filled in what this design leaves open, or departed from its wording. None changes a business rule; where the design is silent, the skill asks the user and records the answer.
+
+| # | Where | What the build does | Why |
+|---|---|---|---|
+| 1 | §5 | **The index, as built.** One `index: true` reads row per producer path, cited in `references/logs-status-and-index.md` §4, each reading `created` and at most one named header key: `intake/<client>/recap.md` (`path_label`), `plans/<client>/workshops/W<n>/transcript.md` (ow-tools; `created` only), `builds/<client>/demos/M<n>-record.md` (`demo_date`), `uat/<client>/runs/RUN-nn.md` (`session_date`), `care/<client>/reports/M-nn.md`, `plans/<client>/contract-inputs.md` (`accepted`), `plans/<client>/build-request.md` (`signed`), `builds/<client>/changes/CO-nn.md` (`status`), `uat/<client>/signoff.md` (`acceptance`), `handoffs/<client>/after-offer.md` (`choice`), `docs/<client>/docs.yaml` (`trainer`), `care/<client>/terms-addendum-<date>.md`. §5's `builds/<client>/demos/M<n>/` folder does not exist (ow-build writes `demos/M<n>-record.md`), the workshop folder is ow-tools' transcript, and "signed" for a plan is `build-request.md`. A file with no readable header is listed by path with "no date in its header". `ow-care` is in `catalogs.json` `planned` | O1: drift between this table and the producers is now a check failure; "copies nothing" is graded on every header value a row does not name |
+| 2 | §3 | **The prep STATUS line** (O3): `-prep-meeting` appends `awaiting: meeting on <date>` on `…/MTG-nn/agenda.md`, `next: ow-start /ow-start-log-meeting logs/<workstream>/`; `-log-meeting` closes the meeting with a line on `…/MTG-nn/notes.md`, `next: none (closed: held <date>)`, `awaiting: none` | A prepared meeting is visible to resume |
+| 3 | §4.2, §6 | **The STATUS form** (O2): open lines `next: ow-start /ow-start-action logs/<workstream>/`; closing lines `next: none (closed: done \| dropped \| reviewed \| superseded by DEC-nn)` with the §4.2 and §6 `awaiting:` text (`none (done <date>)`, `none (reviewed <date>, kept)`, `none (superseded <date>)`). An action with no date: `awaiting: A-nn (<role>), no date`. The full table is `references/logs-schema.md` §6; a closed grammar the checker holds every logs line to | A skill may not loosen protocol §5; §4.2 has no form for an undated action |
+| 4 | §3 | **The verb argument** (O5): `/ow-start-log-meeting <workstream> [MTG-nn]`; ids are numbered per workstream, once | `MTG-03` exists in every workstream; an ad-hoc call has no id yet |
+| 5 | §6 | **Superseding closes the review.** A new `DEC-nn` that supersedes one whose newest line is an open review appends a closing line for it (`superseded by DEC-nn`); `-log-decision` declares STATUS writes for both lines | Otherwise the old review stays open forever |
+| 6 | step 0b | **Where handling is stored.** A client reads `intake/<client>/intake.yaml`, then `profile.md`; `business` reads `profile.md`; with neither, the answer is asked once and written as `handling:` in the header of the logs file being written, and later logs verbs read it from the newest logs file of that workstream. A logs verb never writes `profile.md` | One writer verb owns `profile.md`; a logs-only workstream needs a home for the answer |
+| 7 | §2 | **The ignore question in the logs verbs.** The first logs verb that writes a file in a repository without `opchain-work/**/audio/` and `opchain-work/**/transcript.*` asks once and adds them only on yes; the answer is recorded as `gitignore:` (`added`, `declined`, `present`, `not a repository`) in the file's header, and a recorded `declined` is not asked again. The skill never writes into `audio/` and never transcribes | A logs-only workstream never runs prep, which asked before |
+| 8 | §4.1 | **No signature name on the follow-up.** Owners are roles; the user's own actions start `me:`; no name and no signature anywhere (the user adds names and signs when sending). Without `brand.yaml` the email has no brand line and no footer | People by role can never be waived; "you" in a client email would read as the client |
+| 9 | §4.1, C14 | **`notes.md` is written once.** Its header lists `log_steps` (`roles, notes, checks, follow-up, status`; no follow-up for an internal meeting). The roles, notes and checks are done before it is written; the follow-up step is done when both files exist and the STATUS step when every line is there, so a cut-off run resumes at the first missing step and never rewrites `notes.md`. Follow-up clean runs on the draft before `notes.md` is written, and again on resume | Write-once files and per-step resume |
+| 10 | §3 | **An unlogged agenda.** `-prep-meeting` over a meeting with an agenda and no notes asks whether to redo that agenda or start the next meeting; a redo replaces `agenda.md` only on a yes and never once `notes.md` exists | Never overwrite a file without the user |
+| 11 | §3 | **The awaited item** on an agenda is the client's newest STATUS line outside `logs/` (another skill's, or an intake's), when it still awaits something, with `STATUS.md: <path>` as its source | Siblings group a client's lines; one line per client |
+| 12 | §6 | `DEC-nn.md` header keys: `id`, `decided_on`, `review_on`, `supersedes` (plus `handling` and `gitignore` when recorded); sections Context, Options, Decision, Decided by, Confirmed, Review on, Supersedes, Trace and the self-check results, written at creation | A decision file is never edited afterwards |
+| 13 | §3 | `D<n>` and `Q<n>` are local to one `notes.md`; a `DEC-nn` from a meeting has `subject: logs/<workstream>/meetings/MTG-nn/notes.md#D<n>`, which is how `-log-decision` offers only decisions with no `DEC-nn` yet | Resume for decisions |
+| 14 | SKILL.md | The body is capped at 4,500 tokens (`catalogs.json` `bodyTokenBudgets`); the logs' detail is in seven references, and `/ow-start-extract`'s five self-check rules moved from the body to `references/phase-extract.md` §7 (unchanged in substance) | The body budget; no row was lumped |
+| 15 | §7 | Follow-up clean and People by role are category rules keyed on our side and on people, held to must-pass controls written before the rules (`tests/ow-start-logs-sentences.mjs`): ow-build's category rules are imported (our time with an effort word or a first-person subject, money in price context or ours, a ratio of a price, our side of the money, an overrun), plus internal markers and a margin that is not the client's; a quantity of time whose only people are the client's is theirs. People by role: email and phone shapes, the fixture's known names and the user's own, honorifics, `<Name> from <Organisation>`, `cc:` lines; no generic capitalised-word rule | D1, D2, O8 |
+| 16 | §9 | H5 handover: `logs-larkspur-checkin` keeps `meetings/MTG-01/audio/` (a placeholder, no audio) and `transcript.md` for OW-06's H5 golden. The index golden layers ow-build's real change-order goldens; ow-uat's real sign-off golden joins it when OW-04 merges | Contract deliverable 9; never fresh stand-ins |
+
+### 11.3 After evaluation round 1 (owner decisions of 2026-10-17)
+
+| # | Where | What the build does | Why |
+|---|---|---|---|
+| 17 | SKILL.md | **Body headroom (R1-1).** About 4,000 of 4,500 tokens: `/ow-setup`'s steps, "Works on its own" and the transcription absent-case moved word for word into `references/phase-setup.md` (pinned), the modes paragraph (already in `phase-prep.md`) dropped, and the resume and self-check paragraphs tightened. The cap stays 4,500; 5,000 is the fallback for a later sprint that cannot fit | Room for S1 (about 150–250 tokens), S2 and S3 |
+| 18 | versions | **S1, S2 and S3 are ow-start 1.2.0 and later (R1-2)**; 1.1.0 is the logs release | One minor per amendment (OW-04 O9) |
+| 19 | §4.2 | **`awaiting: A-nn (<role>), no date` is ratified (R1-3)** as a logs-only form, recorded in `skills-work/README.md`; build note 3 stands | Protocol v1 stays byte-identical |
+| 20 | checker | **Screens are graded on prescribed text and structure (R1-4).** The `-action` screen's form (`Appended:`, `Open in <workstream>:` with each item in its STATUS form, the self-check results), the empty `-log` screen (`Nothing logged yet for <workstream>`) and the questions a check depends on (redo or new meeting, who is who by role, the ignore lines, the handling question) are prescribed in the references | A correct run in other words passes |
+| 21 | §2, step 0b | A decline of the ignore lines recorded in an earlier logs file is not asked again (`declined` is recorded again); a logs-only workstream's handling answer is asked once and read back from the newest logs file that records it | Round 1 D1a, m6 |
+| 22 | §5 | **The index copies nothing by meaning**: no amount in any form, no person's name, no part of a header value the row does not name; the O1 rule refuses money, note and person keys; `-log` runs an "Index copies nothing" self-check | Round 1 D2 |
+| 23 | §3 | **A missing workstream** on `-log-meeting`, `-log-decision`, `-action` and `-log`: never guessed; one candidate is confirmed, more are listed and the user picks. A bare `-log-decision` first offers a logged meeting's decisions that have no `DEC-nn` yet | Round 1 m5 |
+| 24 | §4.2 | **Dedupe against the item's newest line**, so an action moved to a later date can move back | Round 1 m4 |
+| 25 | §7 | Follow-up clean catches our rates and charges said without an amount; People by role catches 7-digit numbers, lets a sentence-initial noun before "from <Organisation>" and a role-only `cc:` line pass; private names come from `catalogs.json` in every spelling; roles may hold an acronym or a possessive | Round 1 m1, m2, m3, m8 |
+
+### 11.4 After evaluation round 2
+
+| # | Where | What the build does | Why |
+|---|---|---|---|
+| 26 | checker | **R1-4 as written.** A key's `says`, `ask` and `must` are each one text a reference prescribes (with its workstream filled in); `tokens` hold structure (ids, dates, paths, file names, workstreams, the roles of logs-schema) that must share a line, ignoring the step-0 echo; `never` and `must_not` are guards. A test lists every prescribed text with the file that prescribes it and fails any other phrase, so golden wording ("D1 is logged already as DEC-01") and golden layout ("A-01: client ops lead", a `- ` bullet) cannot be graded. A route that writes nothing fails on any `DONE:` or `Appended:` line, and route guards are compiled per line | Round 2 D1′ |
+| 27 | `self-checks-logs.md` | A refusal's screen words are prescribed: `refused`, and `<check> can never be waived` | So the refusal screens grade prescribed text (R1-4), not golden wording |
+| 28 | §7 | Follow-up clean catches a span of our effort ("most of Tuesday"), an allowance of ours used up, a percentage we add, our time named without a number, the basis we bill on, and how we priced or quoted it (the four round-2 held-out misses and the Evaluator's five); a ratio of the client's own price is theirs. People by role catches ten digits run together and international numbers | Round 2 m1, m6 |
+| 29 | O1 rule | The index-row key rule refuses `subtotal`, `retainer`, `hours`, `owner`, `attendees`, `history`, `confirmed`, `signature` and `recorded` keys, and a value the producer documents with a person in prose; a `_by` key is read only when its producer documents it as a date (`send_by`) | Round 2 m2 |
+| 30 | §5 | The index compares numbers by attribution (on the line that lists the file, or a money line) and treats a four-digit number as a year only in a date-like context, so "(2,000)" is caught and a client figure or a written-out date is not; the family's own wording is not a copy. Golden `logs-log-index-price2000` | Round 2 m4 |
+| 31 | step 0b | Asking the handling question again, in any words, fails whenever a value is stored (intake, `profile.md` or a logs file); every logs key grades it | Round 2 m5 |
+| 32 | SKILL.md, references | `/ow-status`'s 1.0.0 column list restored word for word in `logs-status-and-index.md` §3 and pinned with the body's pointer; the description keeps 167 characters free; evaluation ids and a repository script name removed from the shipped text | Round 2 m3, m7, m8 |

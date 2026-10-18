@@ -39,6 +39,11 @@
 //          reads-from row has a hands-off row in the producer (or the producer
 //          writes it as a shared workspace file). No file has two writer verbs
 //          across the family, except the append-only logs the protocol declares.
+//          A reads row marked `index: true` (owner decision O1, OW-08) lists
+//          another skill's file by path and header keys only: it reads from a
+//          family, planned or add-on skill, its fields are header keys, the
+//          reference it names cites its path, and the producer writes it; it
+//          needs no hand-off row and no chain.
 //          Every NEXT target resolves: `use <id>` with a slash verb that <id>
 //          owns, or a handoffs.yaml destination a family example declares, and a
 //          template's slash hint is its edges row's verb, mode and all. Every
@@ -479,6 +484,20 @@ function familyVerbOwners(c, skills) {
  * edge rows are complete.
  */
 const NUMWORDS = "(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million)";
+
+/**
+ * The family's private-name rules, from catalogs.json (`privateNames`, `brandNames`):
+ * a private skill or a business however it is spaced, hyphenated, underscored,
+ * joined or cased ("llc ops", "llc_ops", "llcops", "Deft wright", "Deft_wright").
+ * One source for the skill-text check here and for the ow- acceptance checkers.
+ */
+export function familyNameRules(c) {
+  return [
+    ...(c.privateNames ?? []).map((n) => ({ re: new RegExp(`(?<![\\w-])${String(n).split(/[-_\s]+/).map(escapeRegExp).join("[\\s_-]?")}(?![\\w-])`, "i"), what: "a private skill", name: String(n) })),
+    ...(c.brandNames ?? []).map((n) => ({ re: new RegExp(`\\b${[...String(n)].map(escapeRegExp).join("[\\s_-]?")}\\b`, "i"), what: "a business", name: String(n) })),
+  ];
+}
+
 export function checkFamily(catalogs) {
   const problems = [];
   for (const c of catalogs) {
@@ -501,10 +520,7 @@ export function checkFamily(catalogs) {
     const named = [
       // R1: edges are files and NEXT blocks; ow- text never claims one skill drives another.
       { re: /\bchains? to\b|\binvok(?:e|es|ed|ing)\b|\bauto\b|\bactively invoke/i, what: "wording the cross-talk contract (R1) keeps out of ow- text" },
-      // A private skill, however it is spaced ("llc ops", "llc_ops", "llcops").
-      ...c.privateNames.map((n) => ({ re: new RegExp(`(?<![\\w-])${String(n).split(/[-_\s]+/).map(escapeRegExp).join("[\\s_-]?")}(?![\\w-])`, "i"), what: "a private skill" })),
-      // A business, however it is spaced or hyphenated ("Deft wright", "Deft-wright").
-      ...(c.brandNames ?? []).map((n) => ({ re: new RegExp(`\\b${[...n].map(escapeRegExp).join("[\\s-]?")}\\b`, "i"), what: "a business" })),
+      ...familyNameRules(c),
       ...(stemRe ? [{ re: stemRe, what: "a skill from another catalog, named without its prefix" }] : []),
       // No real price in skill text: a currency amount, in figures or as "<n> dollars".
       { re: /[$€£]\s?\d|\b\d[\d,]*(?:\.\d+)?\s?(?:dollars?|euros?|pounds? sterling|USD|EUR|GBP)\b|\b(?:USD|EUR|GBP)\s?\d/i, what: "a price (a currency amount)" },
@@ -657,6 +673,99 @@ function namesFile(cell, path) {
   return want === got || want.endsWith(`/${got}`);
 }
 
+// ── the index read (owner decision O1, OW-08) ────────────────────────────────
+
+/** The protocol's artefact header keys (§4): every ow- file carries them. */
+const PROTOCOL_HEADER_KEYS = new Set(["ow_artefact", "schema", "written_by", "workstream", "subject", "created", "clock", "origin"]);
+
+/**
+ * Does a family skill's own text document `key` as a header key: an indented
+ * `key:` line of a header template, or a line about the header naming `key` in backticks?
+ */
+function documentsHeaderKey(dir, key) {
+  return headerKeyLines(dir, key).length > 0;
+}
+
+/** The lines of a family skill's own text that document `key` as a header key (template lines first). */
+function headerKeyLines(dir, key) {
+  const files = [join(dir, "SKILL.md"), ...(existsSync(join(dir, "references")) ? readdirSync(join(dir, "references")).filter((n) => n.endsWith(".md")).map((n) => join(dir, "references", n)) : [])];
+  const template = new RegExp(`^\\s{2,}${escapeRegExp(key)}:(?:\\s|$)`);
+  const named = new RegExp(`\\bheader\\b.*\`${escapeRegExp(key)}\``, "i");
+  const out = [];
+  for (const f of files) if (existsSync(f)) for (const l of readFileSync(f, "utf8").split("\n")) if (template.test(l) || named.test(l)) out.push(l);
+  return out;
+}
+
+/**
+ * Every value a family skill's own text gives `key`, wherever it is written: the template
+ * line's value, and each `` `key: <value>` `` the prose quotes (ow-build documents
+ * `trigger_confirmed: working demo confirmed by <user> <date>` away from its template line).
+ */
+function headerKeyValues(dir, key) {
+  const files = [join(dir, "SKILL.md"), ...(existsSync(join(dir, "references")) ? readdirSync(join(dir, "references")).filter((n) => n.endsWith(".md")).map((n) => join(dir, "references", n)) : [])];
+  const template = new RegExp(`^\\s{2,}${escapeRegExp(key)}:\\s*(.*)$`);
+  const quoted = new RegExp(`\`${escapeRegExp(key)}:\\s*([^\`]*)\``, "g");
+  const out = [];
+  for (const f of files) {
+    if (!existsSync(f)) continue;
+    for (const l of readFileSync(f, "utf8").split("\n")) {
+      const m = l.match(template);
+      if (m) out.push(m[1].replace(/\s+#.*$/, ""));
+      for (const q of l.matchAll(quoted)) out.push(q[1]);
+    }
+  }
+  return out;
+}
+
+/**
+ * An index never reads money or a person (owner decision after round 1, D2b): a key
+ * named for an amount or a note, or a person, or documented with an amount or a
+ * user's name as its value, is refused whatever its producer.
+ */
+const MONEY_OR_PERSON_KEY = /(?:^|_)(?:price|prices|fee|fees|amount|amounts|payment|payments|cost|costs|total|totals|subtotal|subtotals|rate|rates|budget|budgets|margin|margins|value|values|deposit|deposits|balance|invoice|invoices|currency|discount|retainer|retainers|hours|name|names|email|emails|phone|phones|signer|signers|user|users|person|people|contact|contacts|owner|owners|attendees|history|confirmed|signature|recorded)(?:_|$)|(?:^|_)notes?$/;
+// A key ending in `_by` is a person ("recorded_by"), unless its producer documents it as a date ("send_by: <YYYY-MM-DD>").
+const BY_KEY = /(?:^|_)by$/;
+const DATE_VALUE = /^\s*(?:<YYYY-MM-DD>|\d{4}-\d{2}-\d{2})\s*$/;
+const MONEY_OR_PERSON_VALUE = /<amount>|<price>|[$€£]\s?\d|\b\d[\d,]*\.\d{2}\b|<user(?: name)?>|\brecorded by\b|<name>/i;
+
+/**
+ * An `index: true` reads row lists another skill's file by path and a few
+ * header keys, copying nothing (ow-start's /ow-start-log, decision L5). It is
+ * accepted only when it reads from a family skill, a planned skill or an
+ * add-on; its fields are header keys only (identifier-shaped, and documented
+ * as header keys by a built producer); and the reference it names exists and
+ * cites its path. The producer must write the path (checked with the
+ * reciprocity rules); it needs no hand-off row and no chain.
+ */
+function indexRowProblems(c, s, e, r, at, { ids, planned, addons }) {
+  const out = [];
+  if (r.index !== true) return [`${at}: index must be true or left out`];
+  const family = ids.includes(r.from) || planned.has(r.from) || addons.has(r.from);
+  if (!family) out.push(`${at}: an index row reads from \`${r.from}\`, which is not a family skill, planned skill or add-on (owner decision O1)`);
+  if (!Array.isArray(r.fields) || !r.fields.length) out.push(`${at}: an index row lists the header keys it reads in fields (owner decision O1)`);
+  else {
+    for (const f of r.fields.map(String)) {
+      if (!/^[a-z][a-z0-9_]*$/.test(f)) { out.push(`${at}: index field "${f}" is not a header key; an index reads header keys only, never a body section (owner decision O1)`); continue; }
+      if (MONEY_OR_PERSON_KEY.test(f)) { out.push(`${at}: index field \`${f}\` holds money, a note or a person; an index never reads an amount or a name (owner decision O1, round 1 D2b)`); continue; }
+      if (BY_KEY.test(f) && !(ids.includes(r.from) && headerKeyValues(join(c.dir, r.from), f).some((v) => DATE_VALUE.test(v)))) { out.push(`${at}: index field \`${f}\` names who did something; an index reads it only when its producer documents it as a date (owner decision O1, round 2 m2)`); continue; }
+      if (PROTOCOL_HEADER_KEYS.has(f) || !ids.includes(r.from)) continue;
+      const lines = headerKeyLines(join(c.dir, r.from), f);
+      if (!lines.length) out.push(`${at}: index field \`${f}\` is not a header key ${r.from} documents; an index reads header keys only, never a body section (owner decision O1)`);
+      else if ([...lines.map((l) => l.replace(/^[^:]*:/, "").replace(/\s+#.*$/, "")), ...headerKeyValues(join(c.dir, r.from), f)].some((v) => MONEY_OR_PERSON_VALUE.test(v))) out.push(`${at}: index field \`${f}\` is documented by ${r.from} with an amount or a person's name as its value; an index never reads one (owner decision O1, round 1 D2b)`);
+    }
+  }
+  if (!filled(r.reference)) out.push(`${at}: an index row names the reference that cites it (reference:)`);
+  else {
+    const ref = join(c.dir, s.id, String(r.reference));
+    if (!existsSync(ref)) out.push(`${at}: reference ${r.reference} does not exist`);
+    else if (filled(r.path)) {
+      const cited = new Set([...readFileSync(ref, "utf8").matchAll(/`([^`\s]+)`/g)].map((m) => normPath(m[1])));
+      if (!cited.has(normPath(r.path))) out.push(`${at}: ${r.reference} does not cite ${r.path} (an index row is cited in its reference, owner decision O1)`);
+    }
+  }
+  return out;
+}
+
 /**
  * Edge rules for every catalog with an edges file (ow-): each skill's
  * skill.edges.yaml is complete and matches its body tables; edges are
@@ -724,6 +833,8 @@ export function checkEdges(catalogs) {
           else if (PASS_THROUGH.test(r[k])) problems.push(`${at}: ${k} may never proceed as if the input passed`);
         }
         if (r.shared === true && normPath(r.path).includes("/")) problems.push(`${at}: shared: true is for workspace files at the top of opchain-work/ (profile.md, STATUS.md); ${r.path} is a client file, so it needs a hands-off row`);
+        // An index row (O1) is cited in the reference it names, not the body table.
+        if (r.index !== undefined) { indexRowProblems(c, s, e, r, at, { ids, planned, addons }).forEach((x) => problems.push(x)); if (r.index === true) return; }
         // A skill's reads of its own earlier files are detailed in its phase files, not the body table.
         if (filled(r.path) && r.from !== s.id && !readsTable.includes(String(r.path))) problems.push(`${at}: the body's "## Reads from" table does not name ${r.path}`);
       });
@@ -883,6 +994,11 @@ export function checkEdges(catalogs) {
         if (!filled(row.path) || !ids.includes(row.from)) continue;
         const p = edges.get(row.from);
         if (!p) continue;
+        if (row.index === true) {
+          // An index row (O1): the producer writes the path; no hand-off and no chain is needed.
+          if (!writes(p.id, row.path)) problems.push(`${r.rel}: indexes ${row.path} from ${p.id}, which ${p.rel} does not write (an index lists only files their producer writes, owner decision O1)`);
+          continue;
+        }
         if (!writes(p.id, row.path)) { problems.push(`${r.rel}: reads ${row.path} from ${p.id}, which ${p.rel} does not write`); continue; }
         if (p.id === r.id || row.shared === true) continue; // its own file, or a workspace file the producer keeps for the family
         const matched = p.hands_off.some((h) => h.to === r.id && (h.files ?? []).some((f) => normPath(typeof f === "string" ? f : f?.path) === normPath(row.path)));

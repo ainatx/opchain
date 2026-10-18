@@ -1,0 +1,15 @@
+# Answer key: logs-fully-logged (INVENTED). C4 prep NEXT route, fully logged: say
+# so and write nothing.
+kind: logs
+case: logs-fully-logged
+workstream: larkspur-ceramics
+user: Robin
+base: logs-larkspur-checkin
+verbs: [/ow-start-log-meeting]
+writes_nothing: true
+checks: [writes, write_once, status, route, private_names, handling]
+route:
+  verb: /ow-start-log-meeting
+  says: ["fully logged"]
+  tokens: [["MTG-01"]]
+status: { lines: [] }

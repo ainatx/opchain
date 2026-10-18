@@ -629,7 +629,7 @@ describe("the skill text keeps the rules the checker cannot see", () => {
   it("C2: the body stays under 4,500 tokens, a cap the catalog enforces; the protocol copy is byte-identical", () => {
     expect(Math.ceil(body().length / 4)).toBeLessThan(4500);
     // Enforced at build time (gen-skills-catalog), not only here; the over-budget plant is C18 in ow-build-plants.test.js.
-    expect(loadCatalogs({ root: ROOT }).find((c) => c.id === "ow").bodyTokenBudgets).toEqual({ "ow-build": 4500 });
+    expect(loadCatalogs({ root: ROOT }).find((c) => c.id === "ow").bodyTokenBudgets).toMatchObject({ "ow-build": 4500 });
     expect(readFileSync(join(SKILL, "references", "ow-protocol.md"))).toEqual(readFileSync(join(ROOT, "skills-work", "ow-protocol.md")));
     expect(checkProtocolCopies(loadCatalogs({ root: ROOT }))).toEqual([]);
   });

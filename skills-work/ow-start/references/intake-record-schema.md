@@ -6,7 +6,7 @@ Every file below starts with the artefact header from `references/ow-protocol.md
 
     ow_artefact: ow-start/intake
     schema: 1
-    written_by: ow-start 1.0.0 (protocol 1)
+    written_by: ow-start 1.1.0 (protocol 1)
     workstream: larkspur-ceramics
     subject: none
     created: 2026-10-05
@@ -33,7 +33,7 @@ Header, then one `## <start>–<end> <block name>` section per block. Under each
     ---
     ow_artefact: ow-start/intake-record
     schema: 1
-    written_by: ow-start 1.0.0 (protocol 1)
+    written_by: ow-start 1.1.0 (protocol 1)
     workstream: <slug>
     subject: intake/<slug>/transcript.md          # or: notes
     created: <YYYY-MM-DD>
@@ -123,7 +123,7 @@ Rules: `status` is one of `answered`, `partly`, `not asked`, `answered unprompte
     ---
     ow_artefact: ow-start/recap
     schema: 1
-    written_by: ow-start 1.0.0 (protocol 1)
+    written_by: ow-start 1.1.0 (protocol 1)
     workstream: <slug>
     subject: intake/<slug>/intake-record.md
     created: <YYYY-MM-DD>
@@ -160,7 +160,7 @@ The `path_*` keys are what the next stage reads to set its scope; copy them from
 
 ## `STATUS.md` (append one line per run)
 
-    2026-10-06 (clock: user-stated) | ow-start 1.0.0 | intake/larkspur-ceramics/recap.md | next: ow-build-plan on intake/larkspur-ceramics/intake-record.md | awaiting: recap to Larkspur Ceramics by 2026-10-07
+    2026-10-06 (clock: user-stated) | ow-start 1.1.0 | intake/larkspur-ceramics/recap.md | next: ow-build-plan on intake/larkspur-ceramics/intake-record.md | awaiting: recap to Larkspur Ceramics by 2026-10-07
 
 Closed workstream: `next: none (closed: not the right fit)`.
 
@@ -169,7 +169,7 @@ Closed workstream: `next: none (closed: not the right fit)`.
     ---
     ow_artefact: ow-start/profile
     schema: 1
-    written_by: ow-start 1.0.0 (protocol 1)
+    written_by: ow-start 1.1.0 (protocol 1)
     workstream: none
     subject: none
     created: <YYYY-MM-DD>

@@ -1,0 +1,21 @@
+# Answer key: logs-action-moved-back (INVENTED). Round 1 m4: A-01 moved to the
+# 23rd, then back to the 16th: the line is compared with its item's newest line
+# (the 23rd), so it is appended, and resume shows the 16th. (The evaluator's
+# probe logs-zz-eval-moveback, made a golden.)
+kind: logs
+case: logs-action-moved-back
+workstream: larkspur-ceramics
+user: Robin
+base: logs-action-moved
+verbs: [/ow-start-action]
+checks: [writes, write_once, status, status_grammar, route, screen, private_names, handling]
+route:
+  verb: /ow-start-action
+  says: ["Appended:", "Open in larkspur-ceramics:"]
+  tokens: [["Appended:", "notes.md#A-01", "2026-10-16"]]
+screen:
+  tokens: [["A-01", "client ops lead", "2026-10-16"], ["A-02", "you", "2026-10-19"], ["DEC-01", "2026-10-19"]]
+  must_not: ["^(?!Step 0\\.)(?!\\s*Appended:).*\\bA-01\\b[^\\n|]*2026-10-23"]
+status:
+  lines:
+    - { path: logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-01, next: "ow-start /ow-start-action logs/larkspur-ceramics/", awaiting: A-01 (client ops lead) by 2026-10-16 }

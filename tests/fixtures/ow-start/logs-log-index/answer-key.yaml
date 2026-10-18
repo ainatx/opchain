@@ -1,0 +1,32 @@
+# Answer key: logs-log-index (INVENTED). C10 (§9 Index, L5): with a signed and a
+# declined change order (ow-build's real change-signed and change-declined
+# goldens, layered in), the screen lists each by path, date and its named header
+# key, and copies nothing: the CO's price, contract-inputs.md's fixed_price and
+# acceptance_note, and body text are absent. ow-uat's sign-off golden joins this
+# layer when OW-04 merges. A producer that has not run has no rows; a file whose
+# header cannot be read is listed by path with "no date in its header". Writes nothing.
+kind: logs
+case: logs-log-index
+workstream: larkspur-ceramics
+user: Robin
+base: logs-action-done
+build_cases: [change-signed, change-declined]
+verbs: [/ow-start-log]
+writes_nothing: true
+checks: [writes, status, route, index, screen, private_names, handling]
+route:
+  verb: /ow-start-log
+index:
+  client: larkspur-ceramics
+  expect:
+    - "builds/larkspur-ceramics/changes/CO-01.md · 2026-11-30 · status: signed"
+    - "builds/larkspur-ceramics/changes/CO-03.md · 2027-01-18 · status: declined"
+    - "plans/larkspur-ceramics/contract-inputs.md · 2026-11-02 · accepted: 2026-11-02"
+    - "builds/larkspur-ceramics/demos/M3-record.md · no date in its header"
+  canaries: ["stock on hand beside each order line", "text message with the number of orders", "17450", "2600.00", "450.00", "recorded by Robin"]
+  absent: ["uat/larkspur-ceramics/signoff.md", "care/larkspur-ceramics/"]
+screen:
+  must: ["Index copies nothing"]
+  tokens: [["MTG-01", "2026-10-13", "logged"], ["A-01", "client ops lead", "2026-10-16", "reported overdue"], ["A-02", "you", "2026-10-19", "reported overdue"], ["DEC-01", "2026-10-13", "2026-10-19"]]
+  must_not: ["^(?!Step 0\\.).*\\bA-03\\b", "Ledgerly"]
+status: { lines: [] }

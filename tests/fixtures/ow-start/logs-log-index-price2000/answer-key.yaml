@@ -1,0 +1,28 @@
+# Answer key: logs-log-index-price2000 (INVENTED). Round 2 m4: a signed change order whose price,
+# 2000.00, is also a number in the year range. The index lists CO-04 by path, date
+# and status, and copies no form of its price: "(2,000)", "USD 2,000" and
+# "2000.00" on its line all fail. Writes nothing.
+kind: logs
+case: logs-log-index-price2000
+workstream: larkspur-ceramics
+user: Robin
+base: logs-action-done
+build_cases: [change-signed, change-declined]
+verbs: [/ow-start-log]
+writes_nothing: true
+checks: [writes, status, route, index, screen, private_names, handling]
+route:
+  verb: /ow-start-log
+index:
+  client: larkspur-ceramics
+  expect:
+    - "builds/larkspur-ceramics/changes/CO-01.md · 2026-11-30 · status: signed"
+    - "builds/larkspur-ceramics/changes/CO-03.md · 2027-01-18 · status: declined"
+    - "builds/larkspur-ceramics/changes/CO-04.md · 2027-01-20 · status: signed"
+  canaries: ["packing slip for each confirmed order", "2000.00", "2,000", "recorded by Robin"]
+  absent: ["uat/larkspur-ceramics/signoff.md", "care/larkspur-ceramics/"]
+screen:
+  must: ["Index copies nothing"]
+  tokens: [["MTG-01", "2026-10-13", "logged"], ["A-01", "client ops lead", "2026-10-16", "reported overdue"], ["A-02", "you", "2026-10-19", "reported overdue"], ["DEC-01", "2026-10-13", "2026-10-19"]]
+  must_not: ["^(?!Step 0\\.).*\\bA-03\\b", "Ledgerly"]
+status: { lines: [] }

@@ -1,0 +1,17 @@
+# Answer key: logs-status-open (INVENTED). C15: /ow-start lists open actions and
+# reviews next to the open intake, which keeps its 1.0.0 behaviour; nothing is
+# overdue without today's date. Writes nothing.
+kind: logs
+case: logs-status-open
+workstream: larkspur-ceramics
+user: Robin
+base: logs-decision-from-meeting
+verbs: [/ow-start]
+writes_nothing: true
+checks: [writes, status, route, screen, private_names, handling]
+route:
+  verb: /ow-start
+screen:
+  tokens: [["larkspur-ceramics", "2026-10-21"], ["A-01", "client ops lead", "2026-10-16"], ["A-02", "you", "2026-10-19"], ["A-03", "client owner", "2026-10-15"], ["DEC-01", "2026-10-19"]]
+  must_not: ["\\b(?:A|DEC)-\\d{2}\\b[^\\n]*overdue", "^(?!Step 0\\.).*\\bMTG-01\\b"]
+status: { lines: [] }

@@ -1,0 +1,17 @@
+# Answer key: logs-resume-status (INVENTED). C14: cut off part-way through the
+# STATUS lines, the run appends only the missing ones (no duplicate A-01 line).
+kind: logs
+case: logs-resume-status
+workstream: larkspur-ceramics
+user: Robin
+base: logs-prep-first
+verbs: [/ow-start-log-meeting]
+checks: [writes, write_once, status, status_grammar, route, private_names, handling]
+route:
+  verb: /ow-start-log-meeting
+  tokens: [["DONE:", "logs/larkspur-ceramics/meetings/MTG-01/notes.md"], ["NEXT:", "use ow-start to log the decisions in logs/larkspur-ceramics/meetings/MTG-01/notes.md"]]
+status:
+  lines:
+    - { path: logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-02, next: "ow-start /ow-start-action logs/larkspur-ceramics/", awaiting: A-02 (you) by 2026-10-19 }
+    - { path: logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-03, next: "ow-start /ow-start-action logs/larkspur-ceramics/", awaiting: A-03 (client owner) by 2026-10-15 }
+    - { path: logs/larkspur-ceramics/meetings/MTG-01/notes.md, next: "none (closed: held 2026-10-13)", awaiting: none }

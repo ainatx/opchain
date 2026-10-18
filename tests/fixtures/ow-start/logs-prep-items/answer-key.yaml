@@ -1,0 +1,33 @@
+# Answer key: logs-prep-items (INVENTED). C5 (§9 Agenda): two open actions, one
+# decision due for review, one awaiting line from another skill for the same
+# client, an open question from the last meeting: all five, each with its
+# source; the closed action and nothing from logs/business/. C4 items open.
+# C16: the lines are present, so no question.
+kind: logs
+case: logs-prep-items
+workstream: larkspur-ceramics
+user: Robin
+base: logs-business-vendor
+verbs: [/ow-start-prep-meeting]
+checks: [headers, writes, write_once, status, status_grammar, route, agenda, people, private_names, business, gitignore, handling]
+route:
+  verb: /ow-start-prep-meeting
+  tokens: [["DONE:", "logs/larkspur-ceramics/meetings/MTG-02/agenda.md", "2026-10-20"], ["NEXT:", "use ow-start to log the meeting logs/larkspur-ceramics/meetings/MTG-02/"]]
+agenda:
+  id: MTG-02
+  date: 2026-10-20
+  count: 5
+  items:
+    - { item: "A-01", source: "logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-01" }
+    - { item: "A-02", source: "logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-02" }
+    - { item: "DEC-01 .*review", source: "logs/larkspur-ceramics/decisions/DEC-01.md" }
+    - { item: "offer reply", source: "STATUS.md: plans/larkspur-ceramics/build-plan-offer.md" }
+    - { item: "Q1", source: "logs/larkspur-ceramics/meetings/MTG-01/notes.md#Q1" }
+  absent: ["A-03", "Ledgerly", "yearly plan", "user seat", "logs/business"]
+status:
+  lines:
+    - { path: logs/larkspur-ceramics/meetings/MTG-02/agenda.md, next: "ow-start /ow-start-log-meeting logs/larkspur-ceramics/", awaiting: meeting on 2026-10-20 }
+business:
+  business_canaries: [Ledgerly, yearly plan, user seat]
+git: { repo: true }
+names: [Dana, Jess, Marcus, Priya, Tomas]

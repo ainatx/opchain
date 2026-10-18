@@ -1,0 +1,15 @@
+# Answer key: logs-prep-unlogged (INVENTED). C4 / C14: an existing agenda for an
+# unlogged meeting: ask whether to redo it or start a new meeting; write nothing.
+kind: logs
+case: logs-prep-unlogged
+workstream: larkspur-ceramics
+user: Robin
+base: logs-prep-items
+verbs: [/ow-start-prep-meeting]
+writes_nothing: true
+checks: [writes, write_once, status, route, private_names, handling]
+route:
+  verb: /ow-start-prep-meeting
+  ask: "redo that agenda or start a new meeting"
+  tokens: [["MTG-02"]]
+status: { lines: [] }

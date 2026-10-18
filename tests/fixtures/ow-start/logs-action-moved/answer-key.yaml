@@ -1,0 +1,15 @@
+# Answer key: logs-action-moved (INVENTED). C8: -action A-01 moved 2026-10-23 appends one line in the O2 form.
+kind: logs
+case: logs-action-moved
+workstream: larkspur-ceramics
+user: Robin
+base: logs-action-done
+verbs: [/ow-start-action]
+checks: [writes, write_once, status, status_grammar, route, private_names, handling]
+route:
+  verb: /ow-start-action
+  says: ["Appended:", "Open in larkspur-ceramics:"]
+  tokens: [["Appended:", "notes.md#A-01", "2026-10-23"]]
+status:
+  lines:
+    - { path: "logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-01", next: "ow-start /ow-start-action logs/larkspur-ceramics/", awaiting: "A-01 (client ops lead) by 2026-10-23" }

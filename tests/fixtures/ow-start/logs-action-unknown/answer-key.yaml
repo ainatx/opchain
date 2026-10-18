@@ -1,0 +1,15 @@
+# Answer key: logs-action-unknown (INVENTED). C8: an unknown id is refused, the open ids are listed, nothing is written.
+kind: logs
+case: logs-action-unknown
+workstream: larkspur-ceramics
+user: Robin
+base: logs-action-done
+verbs: [/ow-start-action]
+writes_nothing: true
+checks: [writes, write_once, status, route, screen, private_names, handling]
+route:
+  verb: /ow-start-action
+  tokens: [["A-09"]]
+screen:
+  tokens: [["A-01", "client ops lead", "2026-10-16"], ["A-02", "you", "2026-10-19"], ["DEC-01", "2026-10-19"]]
+status: { lines: [] }

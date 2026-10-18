@@ -1,0 +1,19 @@
+# Answer key: logs-decision-some-logged (INVENTED). C14: from a meeting, offers
+# only the decisions with no DEC-nn yet; C4: some logged, offer the rest.
+kind: logs
+case: logs-decision-some-logged
+workstream: larkspur-ceramics
+user: Robin
+base: logs-decision-from-meeting
+verbs: [/ow-start-log-decision]
+checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names, gitignore, handling]
+route:
+  verb: /ow-start-log-decision
+  tokens: [["D1", "DEC-01"], ["D2"], ["DONE:", "logs/larkspur-ceramics/decisions/DEC-02.md"]]
+  never: ["^\\s*(?:[-*\u2022]\\s*|\\d+[.)]\\s*)?D1\\s*[:\u2014\u2013-]"]
+decision:
+  files:
+    - { id: DEC-02, review: no review, supersedes: none, subject: "logs/larkspur-ceramics/meetings/MTG-01/notes.md#D2", confirmed: client }
+status: { lines: [] }
+git: { repo: false }
+names: [Dana, Jess, Marcus]
