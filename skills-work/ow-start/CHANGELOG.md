@@ -2,6 +2,15 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`; owner decision O7 of OW-08). The family's v2.1.0 release entry cites each skill's version. Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump (OW-04 ruling O9) and are listed here as data edits.
 
+## 1.1.1 (2026-10-18): prescribed screen words (OW-08 follow-ups)
+
+From evaluation round 3 (`sprints/release-2.1/ow-08/eval-round-3.md`, PASS at 7.6) and the owner's decision to take its minors in one follow-up PR.
+
+- **Screen words.** `references/logs-status-and-index.md` §5 prescribes the words every logs screen uses: a refusal starts `Refused:`; a refusal or a verb with nothing to do prints `Nothing was written.`; notes with no decisions `records no decisions`; a question ends `Nothing is written until you answer.` (`-log`: `Nothing is shown until you answer.`); a refusal, a no-op or a question prints no `DONE:`, `Appended:` or NEXT block and never says an item changed state; every verb that writes, `-action` and `-log` print one self-check line; a verb that writes prints exactly one NEXT block, every line of it. `-action` (§1.2), `-log-decision` (§1), `-log-meeting` (§0.2), the extract refusal of a `logs/` folder (`phase-extract.md` §1) and `self-checks-logs.md` point to it.
+- `/ow-status`'s 1.1.0 text is back word for word in `logs-status-and-index.md` §3 (round 2 had changed its framing words).
+- The description says again that the recap is due within one business day and that the skill names a path, never a price (899 of 1,024 characters).
+- Data edits in the same PR: the logs goldens use the prescribed words (nine screens), their keys grade the self-check line and the whole NEXT block wherever a screen prints them, and the acceptance checker accepts logs files and STATUS lines from ow-start 1.1.0 or later (the goldens keep the 1.1.0 they were written with).
+
 ## 1.1.0 (2026-10-17): meeting and decision logs
 
 Design: `docs/plans/2026-10-16-ow-start-logs-amendment.md` (L1–L5; build notes §11). Contract: `sprints/release-2.1/ow-08/contract.md`.

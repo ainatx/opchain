@@ -4,7 +4,7 @@ Run step 0 of `references/ow-protocol.md` first. Write every file exactly in the
 
 ## 1. Gather the inputs
 
-A folder or transcript under `logs/` is a meeting, not a fit call: extract writes nothing there. Say so, and say "use ow-start to log the meeting logs/<workstream>/meetings/MTG-nn/" (where slash commands exist: /ow-start-log-meeting).
+A folder or transcript under `logs/` is a meeting, not a fit call: extract writes nothing there. Refuse it (`Refused:` and `Nothing was written.`, `references/logs-status-and-index.md` §5), and say "use ow-start to log the meeting logs/<workstream>/meetings/MTG-nn/" (where slash commands exist: /ow-start-log-meeting).
 
 - `intake/<slug>/intake.yaml` and `call-guide.md`. The Reads-from rows in SKILL.md say what to do if either is missing.
 - The call, in one of two forms:

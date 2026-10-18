@@ -11,6 +11,6 @@ writes_nothing: true
 checks: [writes, write_once, status, route, private_names, handling]
 route:
   verb: /ow-start-log-meeting
-  says: ["not installed here", "your notes"]
+  says: ["not installed here", "your notes", "Nothing was written"]
   tokens: [["logs/larkspur-ceramics/meetings/MTG-01/transcript.md"], ["use ow-start to log the meeting logs/larkspur-ceramics/meetings/MTG-01/"]]
 status: { lines: [] }

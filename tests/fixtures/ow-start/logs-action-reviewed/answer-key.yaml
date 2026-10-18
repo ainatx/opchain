@@ -9,7 +9,7 @@ checks: [writes, write_once, status, status_grammar, route, private_names, handl
 route:
   verb: /ow-start-action
   says: ["Appended:", "Open in larkspur-ceramics:"]
-  tokens: [["Appended:", "DEC-01", "none (closed: reviewed)"]]
+  tokens: [["Appended:", "DEC-01", "none (closed: reviewed)"], ["Self-checks", "No client text in STATUS", "No private names"]]
 status:
   lines:
     - { path: "logs/larkspur-ceramics/decisions/DEC-01.md", next: "none (closed: reviewed)", awaiting: "none (reviewed 2026-10-19, kept)" }

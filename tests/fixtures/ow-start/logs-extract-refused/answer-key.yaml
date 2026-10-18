@@ -10,6 +10,6 @@ writes_nothing: true
 checks: [writes, write_once, status, route, private_names, handling]
 route:
   verb: /ow-start-extract
-  says: ["not a fit call"]
+  says: ["Refused:", "not a fit call", "Nothing was written"]
   tokens: [["use ow-start to log the meeting logs/larkspur-ceramics/meetings/MTG-01/"], ["/ow-start-log-meeting"]]
 status: { lines: [] }

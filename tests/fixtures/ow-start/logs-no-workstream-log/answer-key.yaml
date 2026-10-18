@@ -10,6 +10,7 @@ writes_nothing: true
 checks: [writes, status, route, private_names, handling]
 route:
   verb: /ow-start-log
+  says: ["Nothing is shown until you answer\\."]
   ask: "which workstream"
   tokens: [["larkspur-ceramics"], ["business"]]
   never: ["^(?!Step 0\\.).*\\b(?:MTG|A|DEC)-\\d{2}\\b"]

@@ -11,7 +11,7 @@ checks: [headers, writes, write_once, status, status_grammar, route, decision, p
 route:
   verb: /ow-start-log-decision
   says: ["refused"]
-  tokens: [["No private names", "can never be waived"], ["DONE:", "logs/business/decisions/DEC-01.md"], ["NEXT: none"]]
+  tokens: [["No private names", "can never be waived"], ["DONE:", "logs/business/decisions/DEC-01.md"], ["Self-checks", "Trace", "People by role", "No client text in STATUS", "Never edited", "No private names"], ["NEXT: none", "/ow-status"]]
 decision:
   files:
     - { id: DEC-01, review: 2027-01-15, supersedes: none, subject: none, confirmed: internal }

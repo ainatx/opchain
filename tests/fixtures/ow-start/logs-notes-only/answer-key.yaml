@@ -10,7 +10,7 @@ verbs: [/ow-start-log-meeting]
 checks: [headers, writes, write_once, status, status_grammar, route, notes, trace, owner_date, embedded, follow_up, follow_up_clean, people, private_names, gitignore, handling]
 route:
   verb: /ow-start-log-meeting
-  tokens: [["brand.yaml"], ["DONE:", "logs/larkspur-ceramics/meetings/MTG-01/notes.md", "never sent"], ["NEXT:", "use ow-start to log the decisions in logs/larkspur-ceramics/meetings/MTG-01/notes.md"]]
+  tokens: [["brand.yaml"], ["DONE:", "logs/larkspur-ceramics/meetings/MTG-01/notes.md", "never sent"], ["Self-checks", "Trace", "Owner and date", "People by role", "No client text in STATUS", "No private names", "Follow-up clean"], ["NEXT:", "use ow-start to log the decisions in logs/larkspur-ceramics/meetings/MTG-01/notes.md", "where slash commands exist:", "/ow-start-log-decision"], ["It will read:", "notes.md"], ["no folder attached", "notes.md"], ["IF IT IS NOT AVAILABLE:"]]
 notes:
   id: MTG-01
   input: notes

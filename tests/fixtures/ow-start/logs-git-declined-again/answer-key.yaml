@@ -11,7 +11,7 @@ verbs: [/ow-start-log-meeting]
 checks: [headers, writes, write_once, status, status_grammar, route, notes, trace, owner_date, embedded, follow_up, people, private_names, gitignore, handling]
 route:
   verb: /ow-start-log-meeting
-  tokens: [["DONE:", "logs/business/meetings/MTG-01/notes.md"], ["NEXT:", "use ow-start to log the decisions in logs/business/meetings/MTG-01/notes.md"]]
+  tokens: [["DONE:", "logs/business/meetings/MTG-01/notes.md"], ["Self-checks", "Trace", "Owner and date", "People by role", "No client text in STATUS", "No private names"], ["NEXT:", "use ow-start to log the decisions in logs/business/meetings/MTG-01/notes.md", "where slash commands exist:", "/ow-start-log-decision"], ["It will read:", "notes.md"], ["no folder attached", "notes.md"], ["IF IT IS NOT AVAILABLE:"]]
 notes:
   id: MTG-01
   input: notes

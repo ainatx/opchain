@@ -11,5 +11,6 @@ writes_nothing: true
 checks: [writes, write_once, status, route, private_names, handling]
 route:
   verb: /ow-start-log-meeting
+  says: ["Nothing was written"]
   tokens: [["use ow-tools to transcribe logs/larkspur-ceramics/meetings/MTG-01/audio/"], ["/ow-start-transcribe"]]
 status: { lines: [] }

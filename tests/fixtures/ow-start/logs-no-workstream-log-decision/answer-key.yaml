@@ -11,6 +11,7 @@ writes_nothing: true
 checks: [writes, write_once, status, route, private_names, handling]
 route:
   verb: /ow-start-log-decision
+  says: ["Nothing is written until you answer\\."]
   ask: "confirm it"
   tokens: [["larkspur-ceramics"]]
   never: ["^(?!Step 0\\.).*\\bDEC-\\d{2}\\.md\\b"]

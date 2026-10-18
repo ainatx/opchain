@@ -183,3 +183,17 @@ Where the build filled in what this design leaves open, or departed from its wor
 | 30 | §5 | The index compares numbers by attribution (on the line that lists the file, or a money line) and treats a four-digit number as a year only in a date-like context, so "(2,000)" is caught and a client figure or a written-out date is not; the family's own wording is not a copy. Golden `logs-log-index-price2000` | Round 2 m4 |
 | 31 | step 0b | Asking the handling question again, in any words, fails whenever a value is stored (intake, `profile.md` or a logs file); every logs key grades it | Round 2 m5 |
 | 32 | SKILL.md, references | `/ow-status`'s 1.0.0 column list restored word for word in `logs-status-and-index.md` §3 and pinned with the body's pointer; the description keeps 167 characters free; evaluation ids and a repository script name removed from the shipped text | Round 2 m3, m7, m8 |
+
+### 11.5 Follow-ups after evaluation round 3 (ow-start 1.1.1, ow-tools 1.1.2)
+
+Round 3 passed at 7.6; the owner took its minors and nits into one follow-up PR, with O4.
+
+| # | Where | What the build does | Why |
+|---|---|---|---|
+| 33 | `logs-status-and-index.md` §5 | **Prescribed screen words**: `Refused:`, `Nothing was written.`, `records no decisions`, `fully logged`, `Nothing is written until you answer.`; no result claimed on a refusal, a no-op or a question; one self-check line; exactly one NEXT block, every line. Every key grades the self-check line and the whole NEXT block wherever a screen prints them, and a route that writes nothing fails on a NEXT block or a claimed change of state | Round 3 m1 and owner decision 1 (option a): structure alone could not tell a refusal from a false success |
+| 34 | §7 | Follow-up clean: a named subject on our side ("our team spent…", "the developer … on our side"), an overrun against our own plan ("took us twice as long as we planned"); calendar words ("our time zone", "at our usual time", "our hours of support", a meeting's length, a time-zone offset) are not our time; a visit at the client's place is not our effort; ownership is judged per clause; "send the invoice separately", "20% more orders" and "your team's billable hours" are not ours. 30 scheduling controls were written first | Round 3 m2 (O8) |
+| 35 | §5 index | A four-digit number is a year only after a month, a day, "in", "since", "until", "during", "before", "after" or another year ("a fee of 2000" and "up to 2000" are amounts); an amount on a line that continues a listed file is that file's; a money word counts only next to the number | Round 3 m3 |
+| 36 | step 0b | The handling question asked without a question mark ("tell me whether…") fails; a line is the question only when it asks about the material being processed, so an echoed open question about restricted goods is not | Round 3 m4 |
+| 37 | §7 | Ten or eleven digits run together are a phone number only next to a phone word, never with an id's label ("order 1000234567", "batch 20261013001") | Round 3 m5 |
+| 38 | O1 rule | `charge`, `overage`, `spent`, `minutes`, `effort`, `billed`, `invoiced`, `paid`, `signatory` and `approver` keys are refused; a planned producer's `_by` key is read by its form, a deadline (`review_by`) passes and a participle (`approved_by`) is refused | Round 3 m6 |
+| 39 | ow-tools 1.1.2 | **O4**: the SessionStart hook keeps the newest line per item under `logs/<workstream>/` (`MTG-nn`, `A-nn`, `DEC-nn`), so closing one action no longer hides the others; a test with mixed lines | Owner decision O4 |

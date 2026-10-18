@@ -722,9 +722,13 @@ function headerKeyValues(dir, key) {
  * named for an amount or a note, or a person, or documented with an amount or a
  * user's name as its value, is refused whatever its producer.
  */
-const MONEY_OR_PERSON_KEY = /(?:^|_)(?:price|prices|fee|fees|amount|amounts|payment|payments|cost|costs|total|totals|subtotal|subtotals|rate|rates|budget|budgets|margin|margins|value|values|deposit|deposits|balance|invoice|invoices|currency|discount|retainer|retainers|hours|name|names|email|emails|phone|phones|signer|signers|user|users|person|people|contact|contacts|owner|owners|attendees|history|confirmed|signature|recorded)(?:_|$)|(?:^|_)notes?$/;
+const MONEY_OR_PERSON_KEY = /(?:^|_)(?:price|prices|fee|fees|amount|amounts|payment|payments|paid|cost|costs|charge|charges|charged|overage|overages|total|totals|subtotal|subtotals|rate|rates|budget|budgets|margin|margins|value|values|deposit|deposits|balance|invoice|invoices|invoiced|billed|billable|currency|discount|retainer|retainers|hours|minutes|spent|effort|name|names|email|emails|phone|phones|signer|signers|signatory|signatories|approver|approvers|user|users|person|people|contact|contacts|owner|owners|attendees|history|confirmed|signature|recorded)(?:_|$)|(?:^|_)notes?$/;
 // A key ending in `_by` is a person ("recorded_by"), unless its producer documents it as a date ("send_by: <YYYY-MM-DD>").
+// A producer not built yet documents nothing, so its `_by` key is read by its form: a deadline is a verb's base form
+// ("review_by", "reply_by", "due_by"); "who did it" is a participle ("approved_by", "signed_by", "written_by";
+// follow-up m6).
 const BY_KEY = /(?:^|_)by$/;
+const PERSON_BY_KEY = /(?:^|_)(?:[a-z]+(?:ed|en|wn)|sent|made|held|kept|led|paid|run|done|set|put|met|told|sold|bought|taught|thought|got)_by$/;
 const DATE_VALUE = /^\s*(?:<YYYY-MM-DD>|\d{4}-\d{2}-\d{2})\s*$/;
 const MONEY_OR_PERSON_VALUE = /<amount>|<price>|[$€£]\s?\d|\b\d[\d,]*\.\d{2}\b|<user(?: name)?>|\brecorded by\b|<name>/i;
 
@@ -747,7 +751,8 @@ function indexRowProblems(c, s, e, r, at, { ids, planned, addons }) {
     for (const f of r.fields.map(String)) {
       if (!/^[a-z][a-z0-9_]*$/.test(f)) { out.push(`${at}: index field "${f}" is not a header key; an index reads header keys only, never a body section (owner decision O1)`); continue; }
       if (MONEY_OR_PERSON_KEY.test(f)) { out.push(`${at}: index field \`${f}\` holds money, a note or a person; an index never reads an amount or a name (owner decision O1, round 1 D2b)`); continue; }
-      if (BY_KEY.test(f) && !(ids.includes(r.from) && headerKeyValues(join(c.dir, r.from), f).some((v) => DATE_VALUE.test(v)))) { out.push(`${at}: index field \`${f}\` names who did something; an index reads it only when its producer documents it as a date (owner decision O1, round 2 m2)`); continue; }
+      const datedBy = ids.includes(r.from) ? headerKeyValues(join(c.dir, r.from), f).some((v) => DATE_VALUE.test(v)) : !PERSON_BY_KEY.test(f);
+      if (BY_KEY.test(f) && !datedBy) { out.push(`${at}: index field \`${f}\` names who did something; an index reads it only when its producer documents it as a date, or, before its producer is built, when it is a deadline ("review_by") (owner decision O1, round 2 m2)`); continue; }
       if (PROTOCOL_HEADER_KEYS.has(f) || !ids.includes(r.from)) continue;
       const lines = headerKeyLines(join(c.dir, r.from), f);
       if (!lines.length) out.push(`${at}: index field \`${f}\` is not a header key ${r.from} documents; an index reads header keys only, never a body section (owner decision O1)`);

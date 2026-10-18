@@ -1,13 +1,13 @@
 # The logs: actions, the log screen, resume and the index
 
-File formats and the STATUS forms: `references/logs-schema.md`. Run step 0 of `references/ow-protocol.md` first; `/ow-start-log`, `/ow-start` and `/ow-status` read no client material, so they skip its handling question.
+File formats and the STATUS forms: `references/logs-schema.md`. The words every logs screen uses: section 5. Run step 0 of `references/ow-protocol.md` first; `/ow-start-log`, `/ow-start` and `/ow-status` read no client material, so they skip its handling question.
 
 ## 1. `/ow-start-action <workstream> <id> <state>`
 
 States: `A-nn done`, `A-nn dropped`, `A-nn moved <YYYY-MM-DD>`, `DEC-nn reviewed`.
 
 1. Read `STATUS.md` and take the **newest line per item** for the workstream (section 3). **No workstream given**: never guess. If exactly one workstream fits what was asked (one with a prepared, unlogged meeting; one holding that id; one with notes whose decisions are not logged yet), name it and ask the user to confirm it; otherwise list the workstreams that fit and ask which workstream. Write nothing until the user answers.
-2. **Refuse** when the id has no line in this workstream, or its newest line is already closed (`next: none (closed: …)`), or the state does not fit the id (`DEC-nn done`). Say why, list the open ids of the workstream with their awaiting dates, and write nothing.
+2. **Refuse** when the id has no line in this workstream, or its newest line is already closed (`next: none (closed: …)`), or the state does not fit the id (`DEC-nn done`). Print `Refused:` and why, `Nothing was written.`, then `Open in <workstream>:` with the open ids and their awaiting dates, and the self-check results (section 5).
 3. Otherwise append exactly one line, in the form `references/logs-schema.md` §6 gives for that state. `moved` keeps the owner role from the newest line. Nothing else is written; the notes and the decision file are never edited.
 4. Print `Appended:` and the line, then `Open in <workstream>:` and each open item in its STATUS form (`A-nn (<role>) by <date>`, `DEC-nn review by <date>`), then the results of this verb's self-checks (No client text in STATUS, No private names). No NEXT block.
 
@@ -31,7 +31,7 @@ One screen. **It writes nothing.** **No workstream given**: never guess. If only
 - Show the open logs items under their workstream, next to the open intakes: prepared meetings, open actions (owner role, due), reviews due. Soonest due first.
 - A logs line belongs to no other skill's group, and never changes how another skill's lines are grouped.
 - Mark an item "reported overdue" only when today's date is known and is past its due date. Write nothing.
-- **`/ow-status`** (1.0.0's text, with the logs table it gained in 1.1.0): Run step 0. One screen: a table of open intakes (client · last step · next · awaiting, with its date) and one of open logs items (workstream · item · owner role · due), each from the newest line per item. Mark an item "reported overdue" only when today's date is known from the protocol's ladder and is past the due date. Write nothing.
+- **`/ow-status`** (1.1.0's text, moved here word for word): Run step 0. One screen: open intakes (client · last step · next · awaiting, with its date) and open logs items (workstream · item · owner role · due), by the same rule. Mark an item "reported overdue" only when today's date is known from the protocol's ladder and is past the due date. Write nothing.
 
 ## 4. The index (decision L5; owner decision O1)
 
@@ -57,3 +57,14 @@ The decision log never repeats one of these. A `DEC-nn` may link to one by path 
 Screen form, one line per file:
 
     builds/larkspur-ceramics/changes/CO-01.md · 2026-11-30 · status: signed
+
+## 5. Screen words (every logs verb)
+
+Each logs screen uses these words, so a run can be checked against what it did:
+
+- **A refusal** starts `Refused:` and says why (the id, the file or the request). A request to skip a check that can never be waived, or to write a name, is refused in the words of `references/self-checks-logs.md`, and the verb goes on.
+- **Nothing to do.** A refusal, and a verb that finds nothing to do, print `Nothing was written.` Notes with no decisions: say the notes `records no decisions`. A meeting with every step done: say it is `fully logged`.
+- **A question** that waits for the user (which workstream, who is who by role, redo or new meeting, which decision a new one replaces) ends `Nothing is written until you answer.` (`-log`: `Nothing is shown until you answer.`).
+- **No result claimed.** A refusal, a verb with nothing to do and a question print no `DONE:` line, no `Appended:` line and no NEXT block, and never say an item changed state.
+- **Self-checks.** A verb that writes, `-action` (also when it refuses) and `-log` print one line of results: `Self-checks (same-session self-check):` and each check it ran, by name, with OK, FINDING or NOT-CHECKED (reason).
+- **NEXT.** A verb that writes prints exactly one NEXT block from SKILL.md, every line of it: the `DONE:` line; the say, with its slash hint; `It will read:`; the no-folder line; and `IF IT IS NOT AVAILABLE:`. Or `NEXT: none.` with its line.
