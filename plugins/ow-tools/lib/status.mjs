@@ -44,6 +44,11 @@ export const clean = (v, n = WIDTH) =>
     .trim()
     .slice(0, n);
 
+// ow-start's logs (1.1.2, OW-08 owner decision O4): under logs/<workstream>/ the item a line belongs to is its
+// path (ow-start's logs-schema §6): …/MTG-nn/agenda.md and …/MTG-nn/notes.md are MTG-nn, …/notes.md#A-nn is A-nn,
+// decisions/DEC-nn.md is DEC-nn. The newest line per item counts, so closing one action never hides another.
+const LOGS_ITEM = /^logs\/[^/]+\/(?:meetings\/(MTG-\d+)\/(?:agenda\.md|notes\.md)(?:#(A-\d+))?|decisions\/(DEC-\d+)\.md)$/;
+
 // ow-protocol v1 §5: `<date> (clock: <source>) | <skill id> <version> | <path>
 // | next: <skill id> <verb or "on"> <path> | awaiting: none, or <what> by <date>`
 export function parseStatus(text) {
@@ -62,12 +67,17 @@ export function parseStatus(text) {
     }
     const path = f[2].replace(/^\.?\//, "").replace(/^opchain-work\//, "");
     const segs = path.split("/").filter(Boolean);
+    const workstream = segs.length > 1 ? segs.slice(0, 2).join("/") : segs[0] || "(none)";
+    const li = LOGS_ITEM.exec(path);
+    const item = li ? li[2] || li[1] || li[3] : null;
     entries.push({
       order: i,
       date: date[1],
       skill: f[1],
       path,
-      workstream: segs.length > 1 ? segs.slice(0, 2).join("/") : segs[0] || "(none)",
+      workstream,
+      item,
+      group: item ? `${workstream}#${item}` : workstream,
       next: f[nextI].replace(/^next:\s*/i, ""),
       awaiting: f[awaitI].replace(/^awaiting:\s*/i, ""),
     });
@@ -79,10 +89,12 @@ export function parseStatus(text) {
 const isNone = (v) => !v || /^(none\b|-$|n\/a$)/i.test(v.trim());
 
 export function openWorkstreams(entries, today) {
+  // The newest line per workstream, and per item under logs/ (an entry from parseStatus carries its group).
   const newest = new Map();
   for (const e of entries) {
-    const cur = newest.get(e.workstream);
-    if (!cur || e.date > cur.date || (e.date === cur.date && e.order > cur.order)) newest.set(e.workstream, e);
+    const key = e.group ?? e.workstream;
+    const cur = newest.get(key);
+    if (!cur || e.date > cur.date || (e.date === cur.date && e.order > cur.order)) newest.set(key, e);
   }
   return [...newest.values()]
     .filter((e) => !isNone(e.next) || !isNone(e.awaiting))
@@ -129,7 +141,7 @@ export function sessionStart(input = {}, env = process.env) {
   for (const e of open.slice(0, CAP)) {
     const awaiting = isNone(e.awaiting) ? "" : ` · awaiting: ${e.awaiting}${e.overdue ? " (OVERDUE)" : ""}`;
     const next = isNone(e.next) ? "" : ` · next: ${e.next}`;
-    out.push(`  ${clean(`${e.workstream} (${e.date})${next}${awaiting}`)}`);
+    out.push(`  ${clean(`${e.workstream}${e.item ? ` ${e.item}` : ""} (${e.date})${next}${awaiting}`)}`);
   }
   if (open.length > CAP) out.push(`  and ${open.length - CAP} more: /ow-status`);
   if (unparsed) out.push(`  ${unparsed} line(s) in STATUS.md not in the expected form were skipped`);

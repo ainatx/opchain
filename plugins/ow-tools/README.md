@@ -63,6 +63,7 @@ Built and tested on macOS (Apple Silicon). Linux gets the same checks with gener
 
 ## Changes
 
+- **1.1.2:** the session-start list shows each open item of ow-start's logs on its own line (a meeting, an action or a decision review, by the newest line per item), so closing one action no longer hides the other open actions and reviews of that workstream.
 - **1.1.1:** capture's secret-field check reads more names (abbreviations such as `psw`, card, PIN, recovery and one-time-code names, "Enter the 6-digit code", other languages, leet spellings) and no longer refuses ordinary fields such as `lead_routing`, `passType`, `pinLocation` or `tokenCount`. SIGQUIT and an internal error wipe a production session like Ctrl-C does. Two runs can't share a profile (`profile-in-use`). Origins must be host names or IP addresses, and cloud metadata addresses are refused in one list. health asks OSV about each package on its own when a batch answer doesn't line up. A `$…$` in a document is text, so it no longer stops a PDF.
 - **1.1.0:** capture, health, PowerPoint and Excel export, digest and calc hours.
 
