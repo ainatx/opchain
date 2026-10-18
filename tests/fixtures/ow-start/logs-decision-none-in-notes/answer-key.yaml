@@ -1,0 +1,14 @@
+# Answer key: logs-decision-none-in-notes (INVENTED). C4 log-meeting NEXT route:
+# notes with no decisions: say so, write nothing.
+kind: logs
+case: logs-decision-none-in-notes
+workstream: larkspur-ceramics
+user: Robin
+base: logs-notes-noagenda
+verbs: [/ow-start-log-decision]
+writes_nothing: true
+checks: [writes, write_once, status, route, private_names, handling]
+route:
+  verb: /ow-start-log-decision
+  tokens: [["logs/larkspur-ceramics/meetings/MTG-02/notes.md"]]
+status: { lines: [] }

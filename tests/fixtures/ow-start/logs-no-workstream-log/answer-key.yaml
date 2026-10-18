@@ -1,0 +1,16 @@
+# Answer key: logs-no-workstream-log (INVENTED). Round 1 m5: a bare /ow-start-log
+# with logs in two workstreams lists them and asks; writes nothing.
+kind: logs
+case: logs-no-workstream-log
+workstream: larkspur-ceramics
+user: Robin
+base: logs-business-vendor
+verbs: [/ow-start-log]
+writes_nothing: true
+checks: [writes, status, route, private_names, handling]
+route:
+  verb: /ow-start-log
+  ask: "which workstream"
+  tokens: [["larkspur-ceramics"], ["business"]]
+  never: ["^(?!Step 0\\.).*\\b(?:MTG|A|DEC)-\\d{2}\\b"]
+status: { lines: [] }

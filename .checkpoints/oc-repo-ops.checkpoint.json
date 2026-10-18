@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-aa44912f3edaa24ac",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a0046f77905096f47",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-17T23:29:59.198Z",
+  "updated_at": "2026-10-17T23:31:16.676Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-web-01-track-s-site",
-  "progress_summary": "WEB-01 readiness PASS at 586b6844 (held branch for the 2.1 cut, merged with origin/main d3965168): site/src unchanged since 24b22ce3; npm test (3142 passed), astro check, site:build, router-label and routes specs pass; checkpoint:validate, checkpoint:doctor (0 errors), check-skill-contracts and sync-bundles:check pass; candidate verifier PASS on tree a65d1702; no untracked files.",
+  "step": "pr-ow-08-ow-start-logs",
+  "progress_summary": "OW-08 PR readiness PASS at bec07022: check-skill-contracts, gen-catalog (36 oc- + 3 ow-), lint-internal-refs, sync-bundles:check, sync-plugin-skills:check, gen-ow-tools-manifest --check, checkpoint:validate, and the ow-start (54 goldens), ow-build-plan and ow-build acceptance checkers pass; npm test 4,074 passed and 11 skipped across 135 files; npm run build leaves no tracked changes; oc- output snapshot (1,473 lines) identical before and after merging main; doctor 0 errors (24 pre-existing warnings); candidate verifier PASS on tree 3d97de02; no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -24,18 +24,18 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Held branch: must not merge before REL-02, the 2.1.0 release cut",
-      "Rebase on main after each product merge; re-run evidence on the new tree"
+      "checkpoint doctor: 24 pre-existing warnings, none from this branch",
+      "C15 partial by design: O4 (the ow-tools SessionStart hook) waits for its follow-up patch"
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "586b6844b96bff461060df7071b660f2e302a686",
+    "verified_for_sha": "bec07022843ace9fb6ca156d6bfddae64d745828",
     "last_verify": {
-      "at": "2026-10-17T23:29:59.198Z",
-      "branch": "claude/track-s-site",
+      "at": "2026-10-17T23:31:16.676Z",
+      "branch": "claude/ow-08-ow-start-logs",
       "base": "origin/main@d3965168",
       "verdict": "PASS",
       "blocking_findings": []
@@ -1936,38 +1936,50 @@
       }
     },
     {
-      "id": "oc-repo-ops-pr-web-01-track-s-site-63aaa3001dda",
+      "id": "oc-repo-ops-pr-ow-08-ow-start-logs-ceac638f797b",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-10-17T23:29:59.198Z",
-      "verified_at": "2026-10-17T23:29:59.198Z",
+      "created_at": "2026-10-17T23:31:16.676Z",
+      "verified_at": "2026-10-17T23:31:16.676Z",
       "producer": {
         "skill": "oc-repo-ops",
-        "run_id": "pr-web-01-track-s-site"
+        "run_id": "pr-ow-08-ow-start-logs"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:63aaa3001dda02efd0fbd62efb58c00c58e72f7b79789eb5dad066d76b63e133"
+        "id": "sha256:ceac638f797bee071c8a7d59fe0bb9b44c94d909b8e43b04441c8a9425f96927"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "claude/track-s-site at 586b6844, draft PR #620, held for the 2.1.0 cut (REL-02); it flips no live 2.1 claim (scripts/check-release-surfaces.mjs unchanged, v2.0 on every surface). Merged origin/main d3965168 (#619 sprint names, #621 router disclosure wording, #622 compressHTML: true plus the html-whitespace e2e, #623 ow-tools 1.1.0); each conflict was limited to the oc-docs-forge and oc-repo-ops checkpoints, resolved to main's version and re-evidenced here. Branch files against main: site/src (pages, components, data, the draft blog post), site/tests/e2e (router-label.spec.ts new, routes.spec.ts), lighthouserc.cjs (/install at error), sprints/release-2.1/web-01-claims-ledger.md; none under skills/, skills-work/, plugins/, src/, scripts/ or package.json, so no catalog, bundle, plugin or Worker output changes. site/ is byte-identical to the JEV-approved 24b22ce3. Tested after the #623 merge: npm test (3142 passed, 11 skipped), astro check (0 errors), npm run site:build, router-label.spec and routes.spec Axe (46 passed); the full Playwright e2e (140 passed, 1 skipped, including html-whitespace) ran after the #622 merge, and #623 changes no file under site/; checkpoint:validate, checkpoint:doctor, check-skill-contracts and sync-bundles:check pass; candidate verifier PASS receipt covers tree a65d1702; no untracked files.",
+        "scope": "claude/ow-08-ow-start-logs at bec07022 on origin/main d3965168. 280 files against main: skills-work/ow-start/ (skill, references, edges, changelog), skills-work/README.md, catalogs.json (ow-start's body budget, ow-care planned, STATUS names), scripts/ (check-skill-contracts index rule and family names, the logs acceptance checker, one export in ow-build-acceptance), tests/ (242 fixture files for 50 logs goldens, plants, sentence sets, pins), docs/plans and sprints/release-2.1. Nothing under skills/, plugins/, site/, src/ or package.json, so oc- outputs are unchanged (snapshot identical). Drift checks for both catalogs, the dev plugin and the ow-tools manifest pass; checkpoint:validate passes; candidate verifier PASS receipt covers tree 3d97de02; no untracked files. Docs Forge packet verified_for_sha = HEAD.",
         "evidence": [
-          "sprints/release-2.1/web-01-claims-ledger.md",
-          "site/src/pages/install.astro",
-          "site/src/pages/privacy.astro",
-          "site/src/pages/security.astro",
-          "site/src/pages/architecture.astro",
-          "site/src/pages/glossary.astro",
-          "site/src/pages/for-agencies.astro",
-          "site/src/components/EnforcementMap.astro",
-          "site/src/components/MobileArchitecture.astro",
-          "site/src/blog/2026-10-09-0-of-229-what-our-skills-did-when-nobody-checked.md"
+          "skills-work/ow-start/SKILL.md",
+          "skills-work/ow-start/CHANGELOG.md",
+          "skills-work/ow-start/skill.edges.yaml",
+          "skills-work/ow-start/references/logs-schema.md",
+          "skills-work/ow-start/references/logs-status-and-index.md",
+          "skills-work/ow-start/references/phase-prep-meeting.md",
+          "skills-work/ow-start/references/phase-log-meeting.md",
+          "skills-work/ow-start/references/phase-log-decision.md",
+          "skills-work/ow-start/references/email-template.md",
+          "skills-work/ow-start/references/self-checks-logs.md",
+          "skills-work/ow-start/references/phase-setup.md",
+          "skills-work/ow-start/references/phase-extract.md",
+          "skills-work/ow-start/references/phase-prep.md",
+          "skills-work/ow-start/references/intake-record-schema.md",
+          "skills-work/README.md",
+          "docs/plans/2026-10-16-ow-start-logs-amendment.md",
+          "sprints/release-2.1/ow-08/contract.md",
+          "sprints/release-2.1/ow-08/eval-round-1.md",
+          "sprints/release-2.1/ow-08/eval-round-2.md",
+          "sprints/release-2.1/ow-08/eval-round-3.md",
+          "sprints/release-2.1/ow-family-sprint-plan.md",
+          "tests/fixtures/ow-start/README.md"
         ]
       }
     }
   ],
-  "record_updated_at": "2026-10-17T23:29:59.198Z",
+  "record_updated_at": "2026-10-17T23:31:16.676Z",
   "blockers": []
 }

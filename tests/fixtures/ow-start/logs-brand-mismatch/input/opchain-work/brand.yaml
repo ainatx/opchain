@@ -1,0 +1,5 @@
+# INVENTED TEST FIXTURE: a brand.yaml whose colors do not parse.
+schema: 1
+name: Example Studio
+colors: dark blue please
+footer: Example Studio

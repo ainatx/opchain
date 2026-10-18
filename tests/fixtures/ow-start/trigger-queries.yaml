@@ -1,7 +1,7 @@
 # Trigger queries for ow-start (authoring standard: "TRIGGER EVALUATION").
 # Run by hand, with Anthropic's operations, legal and product-management plugins
 # and the oc- catalog installed beside ow-start; a judge grades the ambiguous
-# ones. No harness runs these yet (audit gap G19: 20 hand-run prompts).
+# ones. No harness runs these yet (audit gap G19: 20 hand-run prompts; REL-01).
 skill: ow-start
 should_trigger:
   - "Prep my fit call with Larkspur Ceramics on Tuesday."
@@ -9,13 +9,23 @@ should_trigger:
   - "Turn these call notes into a client recap with a recommended next step."
   - "Where did I leave off with my intake calls?"
   - "Set up my profile and offers for client calls."
+  # The logs (1.1.0): meetings no other ow- skill records, and decisions.
+  - "Prep an agenda for my check-in with Larkspur on Monday."
+  - "Here's the transcript from today's steering call, log the meeting and draft the follow-up."
+  - "Mark A-02 done for larkspur-ceramics."
+  - "Log a decision: we're keeping the yearly plan on our invoicing tool, review it next September."
+  - "Which actions are still open with my clients?"
+  - "Summarise the action items from our internal standup."   # moved from should_not_trigger by L2 (2026-10-16): your own non-client meetings are in scope
 should_not_trigger:
-  - "Summarise the action items from our internal standup."   # meeting minutes, not a client fit call
   - "Draft a five-email nurture sequence for new leads."       # sales email sequence
   - "Review this client contract for risky clauses."           # contract review
   - "What should I charge for a two-week integration project?" # pricing advice; ow-start never names a price
   - "Audit this repository for bugs before I deploy."          # oc- catalog
+  - "Write the summary email for today's milestone 2 demo."    # a demo: ow-build records it
+  - "Log the results of this morning's UAT session."           # a UAT session: ow-uat records it
+  - "Draft this month's care report for the client."           # a care call and report: ow-care records it
+  - "Write up the Build Plan workshop we just ran."             # a Build Plan workshop: ow-build-plan collects it
 ambiguous:
   - "I just got off a call with a new client, what now?"       # ow-start if a transcript or notes exist; otherwise ask
-  - "Write up my meeting with Acme."                           # client fit call or internal minutes?
+  - "Write up my meeting with Acme."                           # a fit call (extract) or a logged meeting (log-meeting)?
   - "Plan the discovery session for the signed project."       # ow-start delivery mode

@@ -1,0 +1,22 @@
+# Answer key: logs-private-names (INVENTED). C13: with the shipped, empty
+# handoffs.yaml, no file the run writes and no screen names llc-ops or the brand
+# (spaced, hyphenated or in another case); the user's typed waiver is refused.
+kind: logs
+case: logs-private-names
+workstream: business
+user: Robin
+base: logs-business-vendor
+verbs: [/ow-start-log-decision]
+checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names, gitignore, handling]
+route:
+  verb: /ow-start-log-decision
+  says: ["refused"]
+  tokens: [["No private names", "can never be waived"], ["DONE:", "logs/business/decisions/DEC-01.md"], ["NEXT: none"]]
+decision:
+  files:
+    - { id: DEC-01, review: 2027-01-15, supersedes: none, subject: none, confirmed: internal }
+status:
+  lines:
+    - { path: logs/business/decisions/DEC-01.md, next: "ow-start /ow-start-action logs/business/", awaiting: DEC-01 review by 2027-01-15 }
+git: { repo: true }
+names: [Priya, Tomas]

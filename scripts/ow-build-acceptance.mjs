@@ -651,7 +651,7 @@ const CLIENT_AGENT = new RegExp(`\\b(?:your|the client'?s?) (?:[\\w-]+ ){0,3}?(?
  * each shape counts only with OUR attribution (owner decision 1, 2026-10-16), and in
  * spec/ our effort too (owner decision 2026-10-17).
  */
-function categoryFindings(head, s, legit, { unitIds = [], user = null, spec = false } = {}) {
+export function categoryFindings(head, s, legit, { unitIds = [], user = null, spec = false } = {}) {
   const out = [];
   const t = s.replace(/\bAC-[\w.-]+/g, " ").replace(/`[^`]*`/g, " ");
   if (/acceptance checks?/i.test(head)) return out;

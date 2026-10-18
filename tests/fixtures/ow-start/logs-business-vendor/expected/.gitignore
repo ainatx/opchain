@@ -1,0 +1,4 @@
+node_modules/
+.DS_Store
+opchain-work/**/audio/
+opchain-work/**/transcript.*

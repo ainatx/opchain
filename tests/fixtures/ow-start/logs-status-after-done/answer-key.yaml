@@ -1,0 +1,17 @@
+# Answer key: logs-status-after-done (INVENTED). C8 and C15: after A-03 closes,
+# /ow-status shows two open actions (the newest line per item), next to the open
+# intake; overdue only with today's date known. Writes nothing.
+kind: logs
+case: logs-status-after-done
+workstream: larkspur-ceramics
+user: Robin
+base: logs-action-done
+verbs: [/ow-status]
+writes_nothing: true
+checks: [writes, status, route, screen, private_names, handling]
+route:
+  verb: /ow-status
+screen:
+  tokens: [["client", "last step", "next", "awaiting"], ["workstream", "item", "owner role", "due"], ["larkspur-ceramics", "2026-10-21"], ["A-01", "client ops lead", "2026-10-16", "reported overdue"], ["A-02", "you", "2026-10-19"], ["DEC-01", "2026-10-19"]]
+  must_not: ["^(?!Step 0\\.).*\\bA-03\\b", "\\bA-02\\b.*overdue", "\\bDEC-01\\b.*overdue"]
+status: { lines: [] }

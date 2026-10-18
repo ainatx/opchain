@@ -1,0 +1,16 @@
+# Answer key: logs-no-workstream-log-meeting (INVENTED). Round 1 m5: the bare
+# slash hint with a prepared, unlogged MTG-02 in two workstreams: list them and
+# ask which workstream; never guess; write nothing.
+kind: logs
+case: logs-no-workstream-log-meeting
+workstream: larkspur-ceramics
+user: Robin
+base: logs-prep-items
+verbs: [/ow-start-log-meeting]
+writes_nothing: true
+checks: [writes, write_once, status, route, private_names, handling]
+route:
+  verb: /ow-start-log-meeting
+  ask: "which workstream"
+  tokens: [["larkspur-ceramics"], ["business"]]
+status: { lines: [] }

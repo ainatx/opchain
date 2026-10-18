@@ -1,0 +1,25 @@
+# Answer key: logs-handling-asked (INVENTED). Round 1 m6: a logs-only workstream
+# (business, no intake) with no handling default in profile.md: the protocol's
+# question is asked once and the answer is written as handling: in the agenda's
+# header, never into profile.md.
+kind: logs
+case: logs-handling-asked
+workstream: business
+user: Robin
+base: logs-prep-first
+verbs: [/ow-start-prep-meeting]
+checks: [headers, writes, write_once, status, status_grammar, route, agenda, handling, people, private_names, gitignore]
+route:
+  verb: /ow-start-prep-meeting
+  tokens: [["DONE:", "logs/business/meetings/MTG-01/agenda.md", "2026-10-14"], ["NEXT:", "use ow-start to log the meeting logs/business/meetings/MTG-01/"]]
+agenda:
+  id: MTG-01
+  date: 2026-10-14
+  count: 1
+  items:
+    - { item: "monthly service", source: you }
+handling: { asked: true, answer: "no" }
+status:
+  lines:
+    - { path: logs/business/meetings/MTG-01/agenda.md, next: "ow-start /ow-start-log-meeting logs/business/", awaiting: meeting on 2026-10-14 }
+git: { repo: false }
