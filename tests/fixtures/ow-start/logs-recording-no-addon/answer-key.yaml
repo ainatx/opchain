@@ -1,0 +1,16 @@
+# Answer key: logs-recording-no-addon (INVENTED). C4 prep NEXT route, a recording with no transcript
+# (the no-add-on absent-case); C16: ow-start never
+# writes into audio/ or transcribes. Writes nothing.
+kind: logs
+case: logs-recording-no-addon
+workstream: larkspur-ceramics
+user: Robin
+base: logs-prep-first
+verbs: [/ow-start-log-meeting]
+writes_nothing: true
+checks: [writes, write_once, status, route, private_names, handling]
+route:
+  verb: /ow-start-log-meeting
+  says: ["not installed here", "your notes"]
+  tokens: [["logs/larkspur-ceramics/meetings/MTG-01/transcript.md"], ["use ow-start to log the meeting logs/larkspur-ceramics/meetings/MTG-01/"]]
+status: { lines: [] }

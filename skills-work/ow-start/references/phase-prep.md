@@ -50,7 +50,7 @@ Three or four questions in plain email form, chosen from the must-asks the clien
       opchain-work/**/audio/
       opchain-work/**/transcript.*
 
-  Recordings always go in `intake/<slug>/audio/`; one folder rule is safer than a list of file extensions.
+  Recordings always go in `intake/<slug>/audio/`; one folder rule is safer than a list of file extensions. The same two lines also cover the logs' recordings and transcripts (`logs/<workstream>/meetings/MTG-nn/audio/` and `transcript.md`).
 - Append one STATUS line: path `intake/<slug>/call-guide.md`, `next: ow-start /ow-start-extract intake/<slug>/`, `awaiting: call on <call_date>`.
 
 ## 7. Finish

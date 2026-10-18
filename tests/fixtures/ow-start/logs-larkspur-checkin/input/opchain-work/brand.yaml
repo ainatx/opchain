@@ -1,0 +1,10 @@
+# brand.yaml: INVENTED EXAMPLE (copied from the ow- example). The user's file.
+schema: 1
+name: Example Studio
+colors:
+  text: "#1A1A1A"
+  background: "#FFFFFF"
+  primary: "#1F4E79"
+  accent: "#2E6B4F"
+footer: Example Studio
+lang: en-US

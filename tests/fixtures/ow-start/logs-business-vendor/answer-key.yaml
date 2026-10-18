@@ -1,0 +1,36 @@
+# Answer key: logs-business-vendor (INVENTED). C11: your own vendor meeting in
+# logs/business/ gets notes (from your notes) and a follow-up; no client canary
+# reaches it. C4: -log-meeting with no id and nothing prepared: a new MTG-01,
+# "no agenda". C16: a repository without the two lines: asked once, added on yes.
+kind: logs
+case: logs-business-vendor
+workstream: business
+user: Robin
+base: logs-action-done
+verbs: [/ow-start-log-meeting]
+checks: [headers, writes, write_once, status, status_grammar, route, notes, trace, owner_date, embedded, follow_up, follow_up_clean, people, private_names, business, gitignore, handling]
+route:
+  verb: /ow-start-log-meeting
+  tokens: [["DONE:", "logs/business/meetings/MTG-01/notes.md", "never sent"], ["NEXT:", "use ow-start to log the decisions in logs/business/meetings/MTG-01/notes.md"]]
+notes:
+  id: MTG-01
+  input: notes
+  source: session/notes.md
+  external: true
+  agenda: none (no agenda)
+  roles: [you, vendor account manager]
+  decisions: 1
+  questions: 1
+  actions:
+    - { id: A-01, owner: vendor account manager, due: 2026-10-22 }
+    - { id: A-02, owner: you, due: "no date: asked" }
+follow_up: true
+status:
+  lines:
+    - { path: logs/business/meetings/MTG-01/notes.md#A-01, next: "ow-start /ow-start-action logs/business/", awaiting: A-01 (vendor account manager) by 2026-10-22 }
+    - { path: logs/business/meetings/MTG-01/notes.md#A-02, next: "ow-start /ow-start-action logs/business/", awaiting: "A-02 (you), no date" }
+business:
+  business_canaries: [Ledgerly, yearly plan, user seat]
+  client_canaries: [contractor chain, purchase orders, Larkspur, order view]
+git: { repo: true, answer: "yes" }
+names: [Priya, Tomas, Dana, Jess, Marcus]
