@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a0046f77905096f47",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-aa44912f3edaa24ac",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-17T23:31:16.676Z",
+  "updated_at": "2026-10-18T00:12:44.415Z",
   "skill": "oc-docs-forge",
   "phase": "pr-docs",
   "status": "complete",
-  "step": "pr-ow-08-ow-start-logs",
-  "progress_summary": "OW-08 PR (ow-start 1.1.0, meeting and decision logs): docs packet checked against the diff. SKILL.md's ten verbs, Writes column and NEXT templates match skill.edges.yaml and check-skill-contracts; the eight new or moved references match the acceptance checker's checks and the 50 logs goldens; the changelog records 1.1.0 and both in-place edits to 1.0.0 (#605, #616); the design's build notes (§11.1-§11.4), the contract with owner decisions R1-1 to R1-4, and three evaluation reports (6.6 FAIL, 7.4 FAIL, 7.6 PASS) are committed. Packet in the PR body.",
+  "step": "pr-web-01-track-s-site",
+  "progress_summary": "WEB-01 (#620, held for the 2.1 cut): docs packet re-checked at 8422dd11 after merging origin/main fd437ac8 (#619, #621, #622, #623, #624 ow-start 1.1.0). site/src is byte-identical to the JEV-approved 24b22ce3; the claims ledger's TERMS reference moved one line (286-298) with #624. Packet in the PR body.",
   "context_primer": {
     "key_decisions": [
       "Every PR requires a Documentation section; this PR carries it inline.",
@@ -17,64 +17,39 @@
       "Time-tracking Sprint 2 uses a stacked PR against Sprint 1, candidate-bound Docs/Repo handoffs, and explicit pending-owner acceptance. No frozen product/version surface changes."
     ],
     "generated_files": [
-      "skills-work/ow-start/SKILL.md",
-      "skills-work/ow-start/CHANGELOG.md",
-      "skills-work/ow-start/skill.edges.yaml",
-      "skills-work/ow-start/references/logs-schema.md",
-      "skills-work/ow-start/references/logs-status-and-index.md",
-      "skills-work/ow-start/references/phase-prep-meeting.md",
-      "skills-work/ow-start/references/phase-log-meeting.md",
-      "skills-work/ow-start/references/phase-log-decision.md",
-      "skills-work/ow-start/references/email-template.md",
-      "skills-work/ow-start/references/self-checks-logs.md",
-      "skills-work/ow-start/references/phase-setup.md",
-      "skills-work/ow-start/references/phase-extract.md",
-      "skills-work/ow-start/references/phase-prep.md",
-      "skills-work/ow-start/references/intake-record-schema.md",
-      "skills-work/README.md",
-      "docs/plans/2026-10-16-ow-start-logs-amendment.md",
-      "sprints/release-2.1/ow-08/contract.md",
-      "sprints/release-2.1/ow-08/eval-round-1.md",
-      "sprints/release-2.1/ow-08/eval-round-2.md",
-      "sprints/release-2.1/ow-08/eval-round-3.md",
-      "sprints/release-2.1/ow-family-sprint-plan.md",
-      "tests/fixtures/ow-start/README.md"
+      "sprints/release-2.1/web-01-claims-ledger.md",
+      "site/src/pages/install.astro",
+      "site/src/pages/privacy.astro",
+      "site/src/pages/security.astro",
+      "site/src/pages/architecture.astro",
+      "site/src/pages/glossary.astro",
+      "site/src/pages/for-agencies.astro",
+      "site/src/components/EnforcementMap.astro",
+      "site/src/components/MobileArchitecture.astro",
+      "site/src/blog/2026-10-09-0-of-229-what-our-skills-did-when-nobody-checked.md"
     ]
   },
   "skill_state": {
     "pr_comment_marker": null,
     "docs_changed": [
-      "skills-work/ow-start/SKILL.md",
-      "skills-work/ow-start/CHANGELOG.md",
-      "skills-work/ow-start/skill.edges.yaml",
-      "skills-work/ow-start/references/logs-schema.md",
-      "skills-work/ow-start/references/logs-status-and-index.md",
-      "skills-work/ow-start/references/phase-prep-meeting.md",
-      "skills-work/ow-start/references/phase-log-meeting.md",
-      "skills-work/ow-start/references/phase-log-decision.md",
-      "skills-work/ow-start/references/email-template.md",
-      "skills-work/ow-start/references/self-checks-logs.md",
-      "skills-work/ow-start/references/phase-setup.md",
-      "skills-work/ow-start/references/phase-extract.md",
-      "skills-work/ow-start/references/phase-prep.md",
-      "skills-work/ow-start/references/intake-record-schema.md",
-      "skills-work/README.md",
-      "docs/plans/2026-10-16-ow-start-logs-amendment.md",
-      "sprints/release-2.1/ow-08/contract.md",
-      "sprints/release-2.1/ow-08/eval-round-1.md",
-      "sprints/release-2.1/ow-08/eval-round-2.md",
-      "sprints/release-2.1/ow-08/eval-round-3.md",
-      "sprints/release-2.1/ow-family-sprint-plan.md",
-      "tests/fixtures/ow-start/README.md"
+      "sprints/release-2.1/web-01-claims-ledger.md",
+      "site/src/pages/install.astro",
+      "site/src/pages/privacy.astro",
+      "site/src/pages/security.astro",
+      "site/src/pages/architecture.astro",
+      "site/src/pages/glossary.astro",
+      "site/src/pages/for-agencies.astro",
+      "site/src/components/EnforcementMap.astro",
+      "site/src/components/MobileArchitecture.astro",
+      "site/src/blog/2026-10-09-0-of-229-what-our-skills-did-when-nobody-checked.md"
     ],
     "docs_not_changed_reason": null,
     "follow_up_docs": [
-      "follow-up PR (owner decision 2026-10-17): prescribed refusal and no-op screen words in the references; every key grades the self-check and NEXT lines; m1-m6 and the nits from eval-round-3.md recorded in the changelog",
-      "O4: the ow-tools SessionStart hook patch (newest line per item under logs/), now unblocked by #623",
-      "REL-02: the v2.1.0 release entry cites ow-start 1.1.0"
+      "S5 at the cut: router label and live-mode text to the E2 verdict, blog re-date and draft: false with E1/E2 results, /privacy Last updated date",
+      "S2: ow- halves of /privacy and /security, /work pointers"
     ],
-    "verified_for_sha": "bec07022843ace9fb6ca156d6bfddae64d745828",
-    "pr_body_fragment": "## Documentation\n\n**Generated by:** oc-docs-forge\n**Docs changed:** `skills-work/ow-start/SKILL.md` (1.1.0: five logs verbs, Writes and Reads rows, NEXT templates; body 4,011 tokens) · new references `logs-schema.md`, `logs-status-and-index.md`, `phase-prep-meeting.md`, `phase-log-meeting.md`, `phase-log-decision.md`, `email-template.md`, `self-checks-logs.md`, `phase-setup.md` (moved word for word from the body, pinned) · `phase-extract.md`, `phase-prep.md`, `intake-record-schema.md` (logs refusal, `.gitignore` lines cover `logs/`, 1.1.0 examples) · `skills-work/ow-start/CHANGELOG.md` (new, per skill: 1.1.0 and the #605/#616 in-place edits) · `skills-work/ow-start/skill.edges.yaml` (`index: true` reads rows) · `skills-work/README.md` (index rows, family names, logs-only STATUS forms) · `catalogs.json` (ow-start's 4,500-token body budget, ow-care planned, STATUS names for the two logs verbs) · `docs/plans/2026-10-16-ow-start-logs-amendment.md` §11 build notes · `sprints/release-2.1/ow-08/` (contract, owner decisions, eval rounds 1-3) · `sprints/release-2.1/ow-family-sprint-plan.md` (S1-S3 as 1.2.0+) · `tests/fixtures/ow-start/README.md` (50 logs goldens, the grading model)\n**Reader impact:** ow-start now keeps per-client and business meeting and decision logs: agendas, notes from a transcript or your notes, follow-up drafts that are never sent, actions tracked in STATUS until done, decisions with review dates that are never edited, and an index of other skills' records by path and header key only. ow- skills are still in no build output (plugin, zips, docs, MCP catalog, mirror), so oc- outputs are byte-identical; the v2.1.0 release (REL-02) cites ow-start 1.1.0 from its changelog.\n**Follow-up docs:** the follow-up PR (owner decision 2026-10-17) adds prescribed refusal and no-op screen words to `logs-status-and-index.md` and the phase references, and records m1-m6 and the nits in the changelog · the O4 ow-tools hook patch documents its newest-line-per-item rule in the ow-tools changelog"
+    "verified_for_sha": "8422dd11b1cb1ba44cc50dd532286ad629a7b376",
+    "pr_body_fragment": "## Documentation\n\n**Generated by:** oc-docs-forge\n**Docs changed:** new `sprints/release-2.1/web-01-claims-ledger.md` (claims ledger, reviewed by the JEV session, §5 closed) · held 2.1 site copy: `/install` (`#enroll`, `#router`), `/privacy` (new \"Plugins on your machine\"), `/security` (`#plugin`, `#router`), `/architecture` (enforcement map, Jev rail, E3 corrections, desktop and mobile), `/glossary` (Track E terms), `/for-agencies` (gate claim), and the draft enforcement post (`draft: true`)\n**Reader impact:** None until the 2.1.0 cut: this is a held branch and flips no live 2.1 claim (`check-release-surfaces` still reports v2.0 everywhere). At release, every router mention carries \"experimental preview, shadow only, verdict pending\"; live mode reads as unsupported until the go/no-go records a GO; `/privacy` discloses what the router sends to `api.typesafe.ai`, including the active checkpoint's next action as written; the only router numbers are the offline eval (precision 0.92 / 0.88 on 574 labelled prompts), with no effectiveness claim. The JEV session's copy review (disclosure summary, trailer claim, billing, prompt provenance) is applied word for word.\n**Follow-up docs:** at the cut (S5): set `ROUTER_LABEL` / `ROUTER_LIVE_MODE` to the E2 verdict, re-date the post and set `draft: false`, add the E1/E2 results to the post, set the `/privacy` \"Last updated\" date · S2 adds the ow- halves of `/privacy` and `/security` and the `/work` pointers on this branch"
   },
   "next_actions": [],
   "handoffs": [
@@ -2019,8 +1994,40 @@
           "tests/fixtures/ow-start/README.md"
         ]
       }
+    },
+    {
+      "id": "oc-docs-forge-pr-web-01-track-s-site-5f9465bc04b1",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-18T00:12:44.415Z",
+      "verified_at": "2026-10-18T00:12:44.415Z",
+      "producer": {
+        "skill": "oc-docs-forge",
+        "run_id": "pr-web-01-track-s-site"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:5f9465bc04b1c2092f917e3b5e08b99cebf94633255f71b9cfdfed0671dceb52"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-docs-v1",
+        "scope": "claude/track-s-site at 8422dd11 (draft PR #620), a held branch for the 2.1.0 cut (REL-02); it must not merge before the cut. It merges origin/main fd437ac8 (#619, #621, #622, #623, #624; each time only the two evidence checkpoints conflicted and took main's version). Its own commits: Track E's site half as built (b562955c..ef2591cc -- site/, minus changelog.astro and its e2e spec), the WEB-01 rework (rows 20-22, 24-25, 27, 29, 31, 33, 35, 49), the claims ledger, and the JEV session's copy edits 1-4 plus the nit, applied word for word; site/ is byte-identical to the JEV-approved 24b22ce3, and the ledger's line references were re-read on 05afedd1. It flips no live 2.1 claim: scripts/check-release-surfaces.mjs is unchanged and reports v2.0 on every surface. Tested: npm test (4074 passed, 11 skipped after #624), astro check (0 errors), npm run site:build (83 pages, the draft post absent from dist and RSS), full Playwright e2e after gen-roadmap (140 passed, 1 skipped, now including #622's html-whitespace scan of dist/) including router-label.spec (14) and routes.spec Axe with /glossary and /for-agencies added, local Lighthouse /architecture and /install at error, and a dist grep showing every OPCHAIN_ROUTE_MODE=live mention within reach of 'unsupported'. PR body carries ## Documentation and the claims ledger.",
+        "evidence": [
+          "sprints/release-2.1/web-01-claims-ledger.md",
+          "site/src/pages/install.astro",
+          "site/src/pages/privacy.astro",
+          "site/src/pages/security.astro",
+          "site/src/pages/architecture.astro",
+          "site/src/pages/glossary.astro",
+          "site/src/pages/for-agencies.astro",
+          "site/src/components/EnforcementMap.astro",
+          "site/src/components/MobileArchitecture.astro",
+          "site/src/blog/2026-10-09-0-of-229-what-our-skills-did-when-nobody-checked.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-17T23:31:16.676Z",
+  "record_updated_at": "2026-10-18T00:12:44.415Z",
   "blockers": []
 }
