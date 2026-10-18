@@ -1,6 +1,8 @@
 ---
 import Base from "../layouts/Base.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
+import RouterLabel from "../components/RouterLabel.astro";
+import { ROUTER_LIVE_MODE } from "../data/router-status";
 ---
 
 <Base
@@ -18,6 +20,8 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
       We collect the minimum needed to make the site useful. No ads, no
       cross-site tracking, no dark patterns.
     </p>
+    {/* Release cut (Track S S5): the "Plugins on your machine" section below
+        changes this policy, so set this date to the 2.1.0 release day. */}
     <p class="updated">Last updated: September 2, 2026</p>
 
     <section>
@@ -101,6 +105,34 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
       </ul>
     </section>
 
+    <section id="plugins">
+      <h2>Plugins on your machine</h2>
+      <p>
+        The opchain plugin runs on your computer, not on opchain.dev. Its
+        commit hooks and session hooks keep their records in your clone; what
+        they keep, and the session-start check against GitHub, are listed on
+        the <a href="/security#plugin">security page</a>. One optional hook
+        sends data to a third party, and only if you turn it on:
+      </p>
+      <div class="router" id="router" data-router-copy>
+        <h3>Skill router <RouterLabel /></h3>
+        <ul>
+          <li>With <code>TYPESAFE_API_KEY</code> set, the hook sends the redacted prompt and a repo summary to <code>api.typesafe.ai</code>. The summary covers the branch name, ahead/behind, dirty count, open PR, enrollment, and the active checkpoint's skill, phase and first next action (up to 200 characters). Credential-shaped text is redacted; names in the branch or that next action are sent as written.</li>
+          <li>The previous prompt and the end of the last assistant message are sent only with <code>OPCHAIN_ROUTE_CONTEXT=1</code>.</li>
+          <li>Nothing is sent without a key, for slash commands, outside opchain projects, or for a typed <code>/oc-*</code> mention.</li>
+          <li>Decisions are logged locally to <code>$TMPDIR/opchain-route-log.jsonl</code>.</li>
+          <li>Unsetting the key or setting <code>OPCHAIN_ROUTE=0</code> turns it off.</li>
+        </ul>
+        <p>
+          The request goes from your machine to TypeSafe under your own key.
+          What TypeSafe keeps is governed by TypeSafe's terms, which opchain does not control or restate; opchain.dev receives none of the request.
+          Shadow mode, the default, sends the
+          same request and adds nothing to the conversation. Live mode is {ROUTER_LIVE_MODE}.
+          How to opt in: <a href="/install#router">install</a>.
+        </p>
+      </div>
+    </section>
+
     <section>
       <h2>Opting out</h2>
       <p>
@@ -174,4 +206,15 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
     color: var(--text);
   }
   section a { color: var(--accent); }
+  .router { margin-top: 0.75rem; }
+  .router h3 {
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    color: var(--text);
+    margin: 0 0 0.4rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
 </style>

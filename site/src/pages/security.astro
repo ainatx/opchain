@@ -4,6 +4,8 @@ import Base from "../layouts/Base.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
 import Card from "../components/ui/Card.astro";
 import Icon from "../components/Icon.astro";
+import RouterLabel from "../components/RouterLabel.astro";
+import { ROUTER_LIVE_MODE } from "../data/router-status";
 
 // Single-sourced from the served file — the page can no longer drift from it.
 import securityTxt from "../../public/.well-known/security.txt?raw";
@@ -168,9 +170,68 @@ import securityTxt from "../../public/.well-known/security.txt?raw";
             <div class="key">Skill supply chain</div>
             <div class="val">Every SKILL.md is plain Markdown, Apache-2.0-licensed, validated at build time, and published on the GitHub repo. No binaries, no runtime deps</div>
           </div>
+          <div class="kv" data-router-copy>
+            <div class="key">Plugin hooks</div>
+            <div class="val">Dependency-free Node scripts run by Claude Code and Git on your machine. One optional hook, the skill router <RouterLabel />, sends prompts to a third party (<code>api.typesafe.ai</code>), and only with your own key. What they record and what they send: <a href="#plugin">below</a></div>
+          </div>
           <div class="kv">
             <div class="key">Infra</div>
             <div class="val">Cloudflare Workers · static assets via ASSETS binding · KV for lead capture, abuse controls, roadmap votes, and hosted MCP checkpoints · no user database or origin servers</div>
+          </div>
+        </div>
+      </Card>
+    </section>
+
+    <section class="block" id="plugin">
+      <h2><Icon name="shield" /> The plugin on your machine</h2>
+      <p>
+        The opchain plugin runs hooks locally: Git hooks after <a href="/install#enroll"><code>/oc-enroll</code></a>,
+        and Claude Code session hooks. This is what they keep, what they send, and what they
+        cannot promise. Rows marked <span class="since">New in 2.1</span> describe the 2.1 release; 2.0.4
+        installs the <code>pre-commit</code> hook only.
+      </p>
+      <Card variant="surface" glow={false}>
+        <div class="kv-list">
+          <div class="kv">
+            <div class="key">Bypass accountability <span class="since">New in 2.1</span></div>
+            <div class="val">
+              <ul>
+                <li>A commit with no PASS <a href="/glossary#receipt">receipt</a>, including one made with <code>git commit --no-verify</code>, gets a <a href="/glossary#bypass-record">bypass record</a> from the <code>post-commit</code> hook, which Git runs even when <code>pre-commit</code> was skipped.</li>
+                <li>The <code>pre-push</code> hook refuses to push such a commit until it carries an <code>Opchain-Bypass:</code> trailer saying who approved it and why. The trailer travels with the commit to the pull request, where the PR evidence check lists it before merge; the local record never leaves the machine.</li>
+                <li>Local hooks are not a trust boundary. Anyone with the clone can delete them or push with <code>OPCHAIN_PUSH_BYPASS=1</code>; both leave a commit with no receipt, which the <code>/oc-enroll --ci</code> workflow re-verifies and reports. Treat CI as the check, and the local hooks as the early warning.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="kv">
+            <div class="key">Stays local</div>
+            <div class="val">Receipts, their logs and bypass records live under <code>.git/opchain/</code> in your clone. Checkpoints live in <code>.checkpoints/</code>. Nothing from the commit, post-commit or pre-push hooks is sent anywhere.</div>
+          </div>
+          <div class="kv">
+            <div class="key">Leaves the machine</div>
+            <div class="val">
+              <ul>
+                <li><strong>Session start:</strong> up to three <code>gh pr view</code> calls to GitHub, through your own <code>gh</code> login, to check whether pull requests named in a checkpoint have merged. <code>OPCHAIN_GH_BIN=0</code> turns them off. The release check runs without network access.</li>
+                <li data-router-copy><strong>Skill router</strong> <RouterLabel />: only if you opt in; see the next row.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="kv" id="router" data-router-copy>
+            <div class="key">Skill router <span class="since">New in 2.1</span> <RouterLabel /></div>
+            <div class="val">
+              <ul>
+                <li>With <code>TYPESAFE_API_KEY</code> set, the hook sends the redacted prompt and a repo summary to <code>api.typesafe.ai</code>. The summary covers the branch name, ahead/behind, dirty count, open PR, enrollment, and the active checkpoint's skill, phase and first next action (up to 200 characters). Credential-shaped text is redacted; names in the branch or that next action are sent as written.</li>
+                <li>The previous prompt and the end of the last assistant message are sent only with <code>OPCHAIN_ROUTE_CONTEXT=1</code>.</li>
+                <li>Nothing is sent without a key, for slash commands, outside opchain projects, or for a typed <code>/oc-*</code> mention.</li>
+                <li>Decisions are logged locally to <code>$TMPDIR/opchain-route-log.jsonl</code>.</li>
+                <li>Unsetting the key or setting <code>OPCHAIN_ROUTE=0</code> turns it off.</li>
+              </ul>
+              <p>
+                <strong>Redaction.</strong> Before a prompt is sent, logged or cached, text that looks like a credential is replaced with <code>[REDACTED]</code>: private keys, provider API keys and tokens (Anthropic, OpenAI, GitHub, Slack, AWS), JWTs, bearer headers, long hex strings, and <code>*_KEY</code>, <code>*_TOKEN</code>, <code>*_SECRET</code> and <code>*_PASSWORD</code> assignments. If the redactor fails to load, the prompt is treated as empty and nothing is sent. Pattern matching is a net, not a guarantee: keep secrets out of prompts.
+              </p>
+              <p>
+                Shadow mode, the default, sends the same request and adds nothing to the conversation. Live mode is {ROUTER_LIVE_MODE}. The request goes to TypeSafe under your own key and account; opchain.dev receives none of it. The local log and the 24-hour cache (<code>$TMPDIR/opchain-route-cache/</code>) can be deleted at any time.
+              </p>
+            </div>
           </div>
         </div>
       </Card>
@@ -271,9 +332,11 @@ import securityTxt from "../../public/.well-known/security.txt?raw";
     letter-spacing: var(--ls-wide);
     text-transform: uppercase;
   }
+  .since { display: inline-block; vertical-align: middle; font-family: var(--font-mono); font-size: var(--fs-sm); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--secondary); border: 0.5px solid var(--secondary); background: var(--secondary-dim); border-radius: var(--r-pill); padding: 1px 7px; }
   .val { color: var(--muted); }
   .val ul { margin: 0 0 0 1.1rem; }
   .val li { margin-bottom: 0.35rem; }
+  .val p { margin: 0.5rem 0 0; }
 
   .footnote {
     margin-top: 3rem;

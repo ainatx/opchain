@@ -6,6 +6,8 @@ import Button from "../components/ui/Button.astro";
 import Card from "../components/ui/Card.astro";
 import Icon from "../components/Icon.astro";
 import CaptureModal from "../components/CaptureModal.astro";
+import RouterLabel from "../components/RouterLabel.astro";
+import { ROUTER_LIVE_MODE } from "../data/router-status";
 import { defaultFor } from "../lib/flags/build-defaults";
 
 const installZipEnabled = defaultFor("site.feature.install-zip-download") as boolean;
@@ -66,6 +68,29 @@ const upgrade20Cmd = `/oc-update check
 const pluginCmd = `/plugin marketplace add asfbay-bit/opchain-skills
 /plugin install opchain
 /oc-enroll`;
+
+// 2.1 enforcement (docs/plans/2026-10-09-v2.1-site-update.md). Installing the
+// plugin installs no gate; /oc-enroll does, once per repository. Modes per
+// plugins/opchain/commands/oc-enroll.md on the 2.1 branch.
+const enrollCmd = `/oc-enroll              # install the hooks (2.0.4: pre-commit only)
+/oc-enroll --doctor     # installs nothing; PASS/FAIL per item
+/oc-enroll --ci         # add the pull-request evidence workflow (commit it)
+/oc-enroll --claude-md  # write this repo's opchain verbs into CLAUDE.md`;
+
+const bypassCmd = `git commit --amend --no-verify \\
+  --trailer "Opchain-Bypass: <who approved, what failed>"`;
+
+// Skill router opt-in (router release term 5; plugins/opchain/hooks/route-prompt.cjs).
+// Live mode is not in the copy block: OPCHAIN_ROUTE_MODE=live is unsupported
+// until the shadow-period go/no-go records a GO (term 4).
+const routerCmd = `# 1. get a key from TypeSafe; calls are made with your key,
+#    under your TypeSafe account and its terms
+# 2. set it where Claude Code starts: the router runs in shadow mode
+export TYPESAFE_API_KEY=...
+# 3. read what it would have suggested
+tail -n 20 "$TMPDIR/opchain-route-log.jsonl"
+# turn it off: unset the key, or
+export OPCHAIN_ROUTE=0`;
 
 const codexSkillsCmd = `curl -L https://opchain.dev/opchain-skills.zip -o opchain-skills.zip
 unzip opchain-skills.zip -d .agents/skills/
@@ -141,6 +166,7 @@ codex`;
           unless the exact staged code passed the checks in
           <code class="ic">.bugcheck.json</code>. Until enrollment succeeds,
           nothing checks your commits.
+          <a href="#enroll">What enrollment installs</a>.
         </p>
         <div class="code-row">
           <pre class="codeblock" tabindex="0" role="region" aria-label="Plugin install commands"><code>{pluginCmd}</code></pre>
@@ -268,6 +294,125 @@ codex`;
         </div>
       </section>
     )}
+
+    <!-- ───────────── Enrollment: the gate (2.1) ───────────── -->
+    <section class="gate" id="enroll">
+      <Eyebrow>enforcement</Eyebrow>
+      <h2><Icon name="shield" /> Turn on the gate: <code class="ic">/oc-enroll</code></h2>
+      <p>
+        Skills describe the pipeline; they cannot make another skill run. What
+        holds is a check at the place the work goes through: the commit, the
+        push, the pull request, the deploy. With the plugin, those checks live
+        in Git hooks, and Git hooks are per repository. A repository that is
+        not enrolled has the skills and none of the checks. We measured one
+        that ran seven days and 193 commits like that.
+      </p>
+      <p class="verify">
+        On 2.0.4, <code class="ic">/oc-enroll</code> installs the <code class="ic">pre-commit</code>
+        hook. Items marked <span class="gate-tag">New in 2.1</span> arrive
+        with the 2.1 release.
+      </p>
+      <div class="code-row">
+        <pre class="codeblock" tabindex="0" role="region" aria-label="Enrollment commands"><code>{enrollCmd}</code></pre>
+        <button class="copy" type="button" data-copy={enrollCmd} data-flow="enroll" aria-label="Copy enrollment commands">
+          <Icon name="copy" size={12} />
+          <span class="copy-label">copy</span>
+        </button>
+      </div>
+      <ul class="gate-list">
+        <li><strong><code class="ic">--doctor</code></strong> <span class="gate-tag">New in 2.1</span> installs nothing and prints one PASS/FAIL line per item that decides whether the gate will run here: enrollment, the verifier runtime, each hook, the <code class="ic">.bugcheck.json</code> <code class="ic">verification</code> block, whether every declared command resolves, and whether <code class="ic">node_modules/</code> is a real install rather than a leftover cache. Run it on a fresh worktree, or when a check fails with exit 127.</li>
+        <li><strong><code class="ic">--ci</code></strong> <span class="gate-tag">New in 2.1</span> copies the verifier into <code class="ic">.opchain/runtime/</code> and writes <code class="ic">.github/workflows/opchain-evidence.yml</code>. Commit both. Every pull request then re-runs the checks on the head it actually received and requires the docs and readiness evidence; local hooks can be skipped, this cannot. It never overwrites an existing workflow without <code class="ic">--force</code>.</li>
+        <li><strong><code class="ic">--claude-md</code></strong> <span class="gate-tag">New in 2.1</span> adds a marked section to <code class="ic">CLAUDE.md</code> naming this repository's verbs (<code class="ic">/oc-commit</code>, <code class="ic">/oc-pr</code>, <code class="ic">/oc-deploy</code>, <code class="ic">/oc-bugcheck</code>) and the rule that <code class="ic">--no-verify</code> never happens without <code class="ic">/oc-bugcheck bypass</code>.</li>
+      </ul>
+      <p class="verify">
+        <strong>An existing hook manager?</strong> Enrollment refuses to
+        overwrite a hook it did not write. It prints the snippet to add to
+        yours, and the gate is not on until your hook manager runs it.
+      </p>
+
+      <h3><Icon name="terminal" /> What the hooks do</h3>
+      <ul class="gate-list">
+        <li><strong><code class="ic">pre-commit</code></strong> re-runs the checks in <code class="ic">.bugcheck.json</code> on the exact staged tree in an isolated checkout and writes a <a href="/glossary#receipt">receipt</a>. PASS lets the commit through. FAIL blocks it and prints each failing check with its exit code and the end of its output; the full log sits next to the receipt.</li>
+        <li><strong>Timeouts and broken environments are not failures.</strong> <span class="gate-tag">New in 2.1</span> A check that times out, or exits 127 because a command was not found, comes back <a href="/glossary#inconclusive">INCONCLUSIVE</a>: retry it, there is nothing to fix in the code. Missing dependencies are BLOCKED, with no receipt written: run <code class="ic">npm ci</code> and commit again. An identical tree, or one that changed only <code class="ic">.checkpoints/</code>, reuses its PASS receipt. Two worktrees committing at once take turns.</li>
+        <li><strong><code class="ic">post-commit</code></strong> <span class="gate-tag">New in 2.1</span> runs even under <code class="ic">--no-verify</code>. When a commit has no PASS receipt it writes a <a href="/glossary#bypass-record">bypass record</a> under <code class="ic">.git/opchain/bypasses/</code> and prints a warning naming the commit.</li>
+        <li><strong><code class="ic">pre-push</code></strong> <span class="gate-tag">New in 2.1</span> refuses to push a commit that has neither a PASS receipt nor an <code class="ic">Opchain-Bypass:</code> trailer, and lists the commits. A commit a rebase or cherry-pick produced is excused only if the original commit had a PASS receipt or an <code class="ic">Opchain-Bypass:</code> trailer. If it cannot work out which commits are outgoing (a force-push over commits you have not fetched, say), it refuses the push. <code class="ic">/oc-bugcheck bypass</code> writes the trailer, or amend by hand:</li>
+      </ul>
+      <div class="code-row">
+        <pre class="codeblock" tabindex="0" role="region" aria-label="Bypass trailer command"><code>{bypassCmd}</code></pre>
+        <button class="copy" type="button" data-copy={bypassCmd} data-flow="bypass-trailer" aria-label="Copy bypass trailer command">
+          <Icon name="copy" size={12} />
+          <span class="copy-label">copy</span>
+        </button>
+      </div>
+      <p>
+        <code class="ic">OPCHAIN_PUSH_BYPASS=1</code> on a push lets
+        unaccounted commits through and prints which ones. Use it once, for
+        history from before enrollment. Anyone with the repository
+        can delete local hooks, which is why <code class="ic">--ci</code> exists.
+      </p>
+    </section>
+
+    <!-- ───────────── Optional: skill router (2.1) ───────────── -->
+    <section class="gate" id="router" data-router-copy>
+      <Eyebrow>optional</Eyebrow>
+      <h2><Icon name="target" /> Skill router <span class="gate-tag">New in 2.1 · opt-in</span> <RouterLabel /></h2>
+      <p>
+        A plugin hook that reads each prompt in an opchain project and asks
+        TypeSafe&rsquo;s classifier which opchain skill, if any, owns it. It is
+        off unless you set a key. With a key it runs in shadow mode: it logs
+        the skill it would have named, on your machine, and adds nothing to
+        the conversation. Its only evaluation so far is offline; whether it
+        changes which skills get used is not measured yet.
+      </p>
+      <h3><Icon name="terminal" /> Opt in</h3>
+      <ol class="gate-list">
+        <li><strong>Get a key from TypeSafe.</strong> Calls are made with your key, under your TypeSafe account and its terms. Each routed prompt makes up to two requests, and decisions are cached on your machine for 24 hours.</li>
+        <li><strong>Set <code class="ic">TYPESAFE_API_KEY</code></strong> in the environment Claude Code starts in.</li>
+        <li><strong>Read the shadow log</strong> at <code class="ic">$TMPDIR/opchain-route-log.jsonl</code>: each prompt's decision and, on the next prompt, what the session actually did. Claude Code&rsquo;s <code class="ic">$TMPDIR</code> can differ from your shell&rsquo;s; set <code class="ic">OPCHAIN_ROUTE_LOG</code> to pin the path.</li>
+      </ol>
+      <div class="code-row">
+        <pre class="codeblock" tabindex="0" role="region" aria-label="Skill router opt-in commands"><code>{routerCmd}</code></pre>
+        <button class="copy" type="button" data-copy={routerCmd} data-flow="router" aria-label="Copy skill router opt-in commands">
+          <Icon name="copy" size={12} />
+          <span class="copy-label">copy</span>
+        </button>
+      </div>
+      <p class="verify">
+        <strong>Live mode</strong> (<code class="ic">OPCHAIN_ROUTE_MODE=live</code>) is {ROUTER_LIVE_MODE}; it would add the suggestion
+        to the conversation as one line. 2.1.0 ships shadow mode as the
+        default either way.
+      </p>
+      <div class="upg">
+        <h3 class="upg-h">What leaves your machine <span class="upg-tag">third-party API</span></h3>
+        <ul class="upg-list">
+          <li>With <code class="ic">TYPESAFE_API_KEY</code> set, the hook sends the redacted prompt and a repo summary to <code class="ic">api.typesafe.ai</code>. The summary covers the branch name, ahead/behind, dirty count, open PR, enrollment, and the active checkpoint's skill, phase and first next action (up to 200 characters). Credential-shaped text is redacted; names in the branch or that next action are sent as written.</li>
+          <li>The previous prompt and the end of the last assistant message are sent only with <code class="ic">OPCHAIN_ROUTE_CONTEXT=1</code>.</li>
+          <li>Nothing is sent without a key, for slash commands, outside opchain projects, or for a typed <code class="ic">/oc-*</code> mention.</li>
+          <li>Decisions are logged locally to <code class="ic">$TMPDIR/opchain-route-log.jsonl</code>.</li>
+          <li>Unsetting the key or setting <code class="ic">OPCHAIN_ROUTE=0</code> turns it off.</li>
+        </ul>
+        <p class="upg-foot">
+          <strong>Redaction first.</strong> Before anything is sent, logged or
+          cached, text that looks like a credential is replaced with <code class="ic">[REDACTED]</code>:
+          private keys, provider API keys and tokens, JWTs, bearer headers,
+          long hex strings, and <code class="ic">*_KEY=</code> / <code class="ic">*_TOKEN=</code> / <code class="ic">*_SECRET=</code> / <code class="ic">*_PASSWORD=</code> assignments.
+          If the redactor cannot load, nothing is sent. Pattern matching misses
+          things; do not paste secrets into prompts. The classifier is
+          TypeSafe&rsquo;s Jev model (<code class="ic">jev-1.13.0</code>,
+          pinned); opchain.dev never sees the request.
+        </p>
+        <p class="upg-foot">
+          <strong>Offline evaluation only.</strong> On 574 labelled prompts from past Claude Code sessions on one machine, in opchain and a consumer repository, each labelled by what the session did next
+          (an offline evaluation, not a measurement of use), its suggestions had precision 0.92 for
+          oc-git-ops and 0.88 for oc-deploy-ops. That set the thresholds it
+          ships with; the method is in the source repo&rsquo;s <code class="ic">docs/runbooks/skill-router-eval.md</code>.
+        </p>
+      </div>
+      <p>
+        The router is a plugin hook; the zip install does not include it. More
+        on what it sends: <a href="/privacy#router">privacy</a> and <a href="/security#plugin">security</a>.
+      </p>
+    </section>
 
     <!-- ───────────── Upgrade ───────────── -->
     <section class="upgrade" id="update">
@@ -425,7 +570,7 @@ git diff --stat`}</code></pre>
       <ul>
         <li><strong>One skill per pipeline phase</strong> covering discover · spec · design · build · audit · ship · monitor · migrate · scale</li>
         <li><strong>Session persistence</strong> — JSON checkpoints in <code class="ic">.checkpoints/</code>; pick up exactly where you left off, next chat or next week</li>
-        <li><strong>Documented handoffs</strong> — each skill names the one that follows it, so you always know what to run next; with the plugin installed, finished skills suggest the next step, and in a repository enrolled with <code class="ic">/oc-enroll</code> the commit gate is enforced</li>
+        <li><strong>Documented handoffs</strong> — each skill names the one that follows it, so you always know what to run next; with the plugin installed, finished skills suggest the next step, and in a repository enrolled with <code class="ic">/oc-enroll</code> commits and pushes are checked</li>
         <li><strong>Natural-language triggers</strong> — type "build me an app" or "audit this before Friday" and opchain routes you to the right skill</li>
       </ul>
       <p style="margin-top: 1.5rem;">
@@ -683,6 +828,49 @@ git diff --stat`}</code></pre>
   .upg-list strong { color: var(--text); font-weight: 600; }
   .upg .codeblock { margin: 0; }
   .upg-foot { margin: 0.6rem 0 0; font-size: 11.5px; color: var(--subtle); }
+
+  /* ── 2.1: enrollment + skill router ── */
+  .gate { margin-top: 0.5rem; margin-bottom: 2.5rem; }
+  .gate h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text);
+    margin: 0.5rem 0 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+  .gate h3:not(.upg-h) {
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+    font-weight: 600;
+    color: var(--text);
+    margin: 1.5rem 0 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .gate p { color: var(--muted); margin: 0 0 0.85rem; }
+  .gate a { color: var(--accent); }
+  .gate .verify {
+    margin-top: 0.9rem;
+    padding: 0.75rem 0.95rem;
+    border-left: 2px solid var(--accent);
+    background: var(--surface);
+    border-radius: var(--r-xs);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .gate .verify strong { color: var(--text); }
+  .gate-list { margin: 0.9rem 0; padding-left: 1.1rem; color: var(--muted); line-height: var(--lh-base); overflow-wrap: anywhere; }
+  .gate-list li { margin: 0.45rem 0; }
+  ol.gate-list { list-style: decimal; padding-left: 1.4rem; }
+  ol.gate-list li::marker { color: var(--text); font-weight: 600; }
+  .gate-list strong { color: var(--text); font-weight: 600; }
+  .gate .upg-list { overflow-wrap: anywhere; }
+  .gate-tag { font-family: var(--font-mono); font-size: var(--fs-sm); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--secondary); border: 0.5px solid var(--secondary); background: var(--secondary-dim); border-radius: var(--r-pill); padding: 1px 7px; }
 
   .upgrade { margin-top: 0.5rem; margin-bottom: 2.5rem; }
   .upgrade h2 {
