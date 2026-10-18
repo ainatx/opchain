@@ -6,6 +6,7 @@
 import { lstatSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { dataHome, nowDate, refused, run, usage, which } from "./core.mjs";
+import { HOST } from "./addr.mjs";
 import { writePrivate } from "./guards.mjs";
 import { LOCKFILES, PLAIN_SEMVER, directDeps, packageSet, projectScope, readLockfile } from "./lockfiles.mjs";
 import { DESTINATIONS, NetError, createNet } from "./net.mjs";
@@ -15,7 +16,6 @@ const SCALARS = new Set(["schema", "repo", "python", "registry"]);
 const LISTS = new Set(["lockfiles", "hosts", "domains", "urls", "backups", "private_scopes"]);
 const THRESHOLDS = { cert_days: "days", domain_days: "days", backup_days: "days", advisory: ["low", "moderate", "high", "critical"], outdated: ["major", "minor", "patch"] };
 export const DEFAULT_THRESHOLDS = Object.freeze({ cert_days: 30, domain_days: 30, backup_days: 2, advisory: "high", outdated: "major" });
-const HOST = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$/;
 const SCOPE = /^@[a-z0-9][a-z0-9._-]{0,213}$/;
 const MAX_ITEMS = 50;
 
@@ -299,7 +299,14 @@ export function rateAdvisory(j) {
   return "unknown";
 }
 
-async function advisories(net, file, pkgs, cfg) {
+// 1.1.1 (Bug 4): a batch answer whose length doesn't match its queries is
+// never read by position. Each package in that batch is asked on its own
+// (`POST /v1/query`, the same name and version), at most this many in a run;
+// the rest are attention.
+export const REQUERY_CAP = 50;
+const affectedNames = (j) => (Array.isArray(j?.affected) ? new Set(j.affected.filter((a) => !a?.package?.ecosystem || a.package.ecosystem === "npm").map((a) => String(a?.package?.name ?? ""))) : null);
+
+async function advisories(net, file, pkgs, cfg, { requeryCap = REQUERY_CAP } = {}) {
   const { send, held } = sendable(pkgs, cfg);
   const results = held.map((p) => notChecked("advisories", `${file}: ${p.name}@${p.version}`, p.why === "registry not recorded in the lockfile" ? "registry not recorded in the lockfile; add registry: public to health.yaml if every package comes from the public npm registry" : p.why));
   if (!send.length) return results;
@@ -307,6 +314,21 @@ async function advisories(net, file, pkgs, cfg) {
   // Bug 5 (round 3): a reply ow-tools can't fully read never becomes OK.
   const flags = new Map(); // "name@version" → [why]
   const flag = (p, why) => (flags.get(`${p.name}@${p.version}`) || flags.set(`${p.name}@${p.version}`, []).get(`${p.name}@${p.version}`)).push(why);
+  let requeried = 0;
+  // One query's answer, for exactly that package.
+  const attribute = (p, res) => {
+    if (!res || typeof res !== "object" || Array.isArray(res)) return flag(p, "the advisory service gave no answer for it");
+    if (res.next_page_token) flag(p, "the advisory service has more advisories for it than one page");
+    if (res.vulns !== undefined && !Array.isArray(res.vulns)) return flag(p, "the advisory service answered with an unexpected shape");
+    for (const v of res.vulns || []) {
+      if (typeof v?.id !== "string" || !/^[A-Za-z0-9._:-]{1,80}$/.test(v.id)) {
+        flag(p, "an advisory id ow-tools couldn't read");
+        continue;
+      }
+      if (!hits.has(v.id)) hits.set(v.id, []);
+      hits.get(v.id).push(p);
+    }
+  };
   for (let k = 0; k < send.length; k += 1000) {
     const batch = send.slice(k, k + 1000);
     const body = { queries: batch.map((p) => ({ package: { name: p.name, ecosystem: "npm" }, version: p.version })) };
@@ -323,21 +345,31 @@ async function advisories(net, file, pkgs, cfg) {
     } catch {
       return [...results, notChecked("advisories", file, "advisory service answered with something unreadable")];
     }
-    const replies = Array.isArray(j?.results) ? j.results : [];
-    batch.forEach((p, n) => {
-      const res = replies[n];
-      if (!res || typeof res !== "object" || Array.isArray(res)) return flag(p, "the advisory service gave no answer for it");
-      if (res.next_page_token) flag(p, "the advisory service has more advisories for it than one page");
-      if (res.vulns !== undefined && !Array.isArray(res.vulns)) return flag(p, "the advisory service answered with an unexpected shape");
-      for (const v of res.vulns || []) {
-        if (typeof v?.id !== "string" || !/^[A-Za-z0-9._:-]{1,80}$/.test(v.id)) {
-          flag(p, "an advisory id ow-tools couldn't read");
+    const replies = Array.isArray(j?.results) ? j.results : null;
+    if (replies && replies.length === batch.length) {
+      batch.forEach((p, n) => attribute(p, replies[n]));
+      continue;
+    }
+    for (const p of batch) {
+      if (requeried >= requeryCap) {
+        flag(p, `the advisory service's batch answer didn't line up with the queries, and it wasn't asked again on its own (more than ${requeryCap})`);
+        continue;
+      }
+      requeried++;
+      let one;
+      try {
+        const r1 = await net.request(`https://${DESTINATIONS.osv}/v1/query`, { method: "POST", body: { package: { name: p.name, ecosystem: "npm" }, version: p.version }, cap: 4 * 1024 * 1024 });
+        if (r1.status !== 200) {
+          flag(p, `the advisory service answered ${r1.status} when asked about it on its own`);
           continue;
         }
-        if (!hits.has(v.id)) hits.set(v.id, []);
-        hits.get(v.id).push(p);
+        one = JSON.parse(r1.body.toString("utf8"));
+      } catch {
+        flag(p, "the advisory service couldn't be asked about it on its own");
+        continue;
       }
-    });
+      attribute(p, one);
+    }
   }
   // Fail closed (SA-012): a malware entry is critical; an advisory whose
   // severity can't be read, whose detail fetch failed, or that lies past the
@@ -345,15 +377,22 @@ async function advisories(net, file, pkgs, cfg) {
   const all = [...hits.keys()];
   const ids = all.slice(0, ADVISORY_CAP);
   const severity = new Map(all.slice(ADVISORY_CAP).map((id) => [id, "not rated (more than 200 advisories)"]));
+  const named = new Map(); // id → the npm packages its detail names
   await pool(ids, 6, async (id) => {
     try {
       const r = await net.request(`https://${DESTINATIONS.osv}/v1/vulns/${encodeURIComponent(id)}`, { cap: 512 * 1024 });
       if (r.status !== 200) throw new Error("not 200");
-      severity.set(id, rateAdvisory(JSON.parse(r.body.toString("utf8"))));
+      const j = JSON.parse(r.body.toString("utf8"));
+      severity.set(id, rateAdvisory(j));
+      const names = affectedNames(j);
+      if (names) named.set(id, names);
     } catch {
       severity.set(id, "unknown (detail not fetched)");
     }
   });
+  // 1.1.1 (Bug 4): an advisory whose detail names other packages was
+  // attributed to this one by mistake; the package is attention.
+  for (const [id, list] of hits) for (const p of list) if (named.has(id) && !named.get(id).has(p.name)) flag(p, `${id} names other packages, so the answer may not be about this one`);
   const min = SEVERITY.indexOf(cfg.thresholds.advisory);
   const byPkg = new Map();
   for (const [id, list] of hits) for (const p of list) (byPkg.get(`${p.name}@${p.version}`) || byPkg.set(`${p.name}@${p.version}`, []).get(`${p.name}@${p.version}`)).push({ id, severity: severity.get(id) || "unknown" });
@@ -582,7 +621,7 @@ export async function health({ config, noNetwork = false }, deps = {}) {
         results.push({ ...notChecked("advisories", l.file, "network off"), detail: `${set.length} packages read: ${send.length} would be sent, ${held.length} held back` }, notChecked("outdated", l.file, "network off"));
         continue;
       }
-      results.push(...(await advisories(net, l.file, set, cfg)), ...(await outdated(net, l.file, set, cfg)));
+      results.push(...(await advisories(net, l.file, set, cfg, { requeryCap: deps.requeryCap })), ...(await outdated(net, l.file, set, cfg)));
     }
   }
   results.push(...python(cfg, noNetwork));

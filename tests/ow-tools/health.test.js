@@ -7,12 +7,13 @@ import { spawnSync } from "node:child_process";
 import { X509Certificate } from "node:crypto";
 import { request as httpRequest } from "node:http";
 import { createServer as createTcpServer } from "node:net";
-import { cpSync, existsSync, mkdirSync, readFileSync, utimesSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, utimesSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { ADVISORY_CAP, DEFAULT_THRESHOLDS, cvss3Score, cvss3Severity, health, healthText, pipAuditArgs, rateAdvisory, readHealthConfig, sendable } from "../../plugins/ow-tools/lib/health.mjs";
+import { ADVISORY_CAP, REQUERY_CAP, DEFAULT_THRESHOLDS, cvss3Score, cvss3Severity, health, healthText, pipAuditArgs, rateAdvisory, readHealthConfig, sendable } from "../../plugins/ow-tools/lib/health.mjs";
 import { npmAlias, packageSet, parseNpm, parseYarn, readLockfile, specSource, versionSource } from "../../plugins/ow-tools/lib/lockfiles.mjs";
 import { attempts as fenceAttempts, installLoopbackFence, uninstallLoopbackFence } from "./loopback-fence.mjs";
 import { blockedAddress, createNet } from "../../plugins/ow-tools/lib/net.mjs";
+import { METADATA_ADDRESSES, isMetadataAddress } from "../../plugins/ow-tools/lib/addr.mjs";
 import { digestTree } from "../../plugins/ow-tools/lib/digest.mjs";
 import { HAS_OPENSSL, startStubs } from "./health-stubs.mjs";
 import { ROOT, cleanup, cli, stub, tempDir, write } from "./helpers.js";
@@ -691,7 +692,10 @@ describe.skipIf(!HAS_OPENSSL)("round 3: yarn key specs and npm aliases (Bug 3)",
 describe.skipIf(!HAS_OPENSSL)("round 3: an advisory answer ow-tools can't fully read is never OK (Bug 5)", SPAWN, () => {
   // npm-v3 sends three packages, in this order: @babel/code-frame, left-pad, lodash.
   const answer = (make) => ({
-    "api.osv.dev": (req, body) => (req.method === "POST" ? { status: 200, json: make(JSON.parse(body).queries) } : { status: 200, json: { id: "x", database_specific: { severity: "LOW" } } }),
+    // 1.1.1: a batch that doesn't line up is asked again one package at a time
+    // (/v1/query); here that fails too, so the package stays attention.
+    "api.osv.dev": (req, body) =>
+      req.url === "/v1/query" ? { status: 503, json: {} } : req.method === "POST" ? { status: 200, json: make(JSON.parse(body).queries) } : { status: 200, json: { id: "x", database_specific: { severity: "LOW" } } },
   });
   async function rows(routes) {
     const d = workspace();
@@ -705,9 +709,9 @@ describe.skipIf(!HAS_OPENSSL)("round 3: an advisory answer ow-tools can't fully 
   const NAMES = ["@babel/code-frame@7.12.13", "left-pad@1.3.0", "lodash@4.17.21"];
 
   it.each([
-    ["no results at all", () => ({}), NAMES, /gave no answer/],
-    ["an empty results list", () => ({ results: [] }), NAMES, /gave no answer/],
-    ["results shorter than the queries", (q) => ({ results: q.slice(0, 2).map(() => ({})) }), ["lodash@4.17.21"], /gave no answer/],
+    ["no results at all", () => ({}), NAMES, /answered 503 when asked about it on its own/],
+    ["an empty results list", () => ({ results: [] }), NAMES, /answered 503 when asked about it on its own/],
+    ["results shorter than the queries", (q) => ({ results: q.slice(0, 2).map(() => ({})) }), NAMES, /answered 503 when asked about it on its own/],
     ["a null result", (q) => ({ results: q.map((_, k) => (k === 1 ? null : {})) }), ["left-pad@1.3.0"], /gave no answer/],
     ["a next_page_token", (q) => ({ results: q.map((_, k) => (k === 0 ? { vulns: [], next_page_token: "p2" } : {})) }), ["@babel/code-frame@7.12.13"], /more advisories for it than one page/],
     ["vulns that aren't a list", (q) => ({ results: q.map((_, k) => (k === 2 ? { vulns: { id: "GHSA-x" } } : {})) }), ["lodash@4.17.21"], /unexpected shape/],
@@ -814,4 +818,91 @@ describe("round 3: special-purpose addresses (R13, R15, Bug 7)", () => {
       expect(blockedAddress(a)).toBe(false);
     },
   );
+});
+
+// ---- OW-03 follow-ups (1.1.1) -------------------------------------------------------
+
+describe.skipIf(!HAS_OPENSSL)("1.1.1: an OSV batch that doesn't line up is never read by position (Bug 4)", SPAWN, () => {
+  // npm-v3 sends three packages, in this order: @babel/code-frame, left-pad, lodash.
+  const NAMES = ["@babel/code-frame@7.12.13", "left-pad@1.3.0", "lodash@4.17.21"];
+  // The service knows one advisory, for lodash only.
+  const truth = { lodash: [{ id: "GHSA-lodash-1" }] };
+  const detail = (id, affected) => ({ status: 200, json: { id, database_specific: { severity: "HIGH" }, ...(affected ? { affected } : {}) } });
+  function routes(batch, { details = {} } = {}) {
+    return {
+      "api.osv.dev": (req, body) => {
+        if (req.url === "/v1/querybatch") return { status: 200, json: batch(JSON.parse(body).queries) };
+        if (req.url === "/v1/query") {
+          const q = JSON.parse(body);
+          return { status: 200, json: { vulns: truth[q.package.name] || [] } };
+        }
+        const id = decodeURIComponent(req.url.replace("/v1/vulns/", ""));
+        return details[id] || detail(id);
+      },
+    };
+  }
+  async function run(r, deps = {}) {
+    const d = workspace();
+    const stubs = await startStubs(tempDir(), { routes: r });
+    try {
+      return { r: await health({ config: join(d, "health.yaml") }, { ...stubs.deps, ...deps }), stubs };
+    } finally {
+      await stubs.close();
+    }
+  }
+  const shifted = (q) => ({ results: q.slice(1).map((x) => ({ vulns: truth[x.package.name] || [] })).reverse() }); // short, and out of order
+  const longer = (q) => ({ results: [{ vulns: [{ id: "GHSA-ghost-1" }] }, ...q.map((x) => ({ vulns: truth[x.package.name] || [] }))] }); // one extra in front
+
+  it.each([["a shorter, shifted batch", shifted], ["a longer batch", longer]])("%s: each package is asked on its own, and only lodash has the advisory", async (_, batch) => {
+    const { r, stubs } = await run(routes(batch));
+    const singles = stubs.requests.filter((q) => q.path === "/v1/query").map((q) => JSON.parse(q.body));
+    expect(singles.map((q) => `${q.package.name}@${q.version}`)).toEqual(NAMES);
+    for (const q of singles) expect(Object.keys(q).sort()).toEqual(["package", "version"]);
+    expect(byCheck(r, "advisories", "lodash@4.17.21")).toMatchObject({ result: "attention", detail: "GHSA-lodash-1 (high)" });
+    expect(byCheck(r, "advisories", "left-pad@1.3.0")).toBeUndefined();
+    expect(byCheck(r, "advisories", "@babel/code-frame@7.12.13")).toBeUndefined();
+    expect(JSON.stringify(r)).not.toContain("GHSA-ghost-1");
+  });
+
+  it("past the cap, packages are attention, not read by position", async () => {
+    const { r, stubs } = await run(routes(shifted), { requeryCap: 1 });
+    expect(stubs.requests.filter((q) => q.path === "/v1/query")).toHaveLength(1);
+    for (const k of NAMES.slice(1)) expect(byCheck(r, "advisories", k).detail, k).toMatch(/wasn't asked again on its own \(more than 1\)/);
+    expect(r.results.find((x) => x.check === "advisories" && x.target === "package-lock.json").result).toBe("attention");
+  });
+
+  it("a batch of the right length is read by position, and an advisory whose detail names another package is attention", async () => {
+    // Same length, but the lodash advisory lands on left-pad.
+    const swapped = (q) => ({ results: q.map((x) => ({ vulns: x.package.name === "left-pad" ? [{ id: "GHSA-lodash-1" }] : [] })) });
+    const { r, stubs } = await run(routes(swapped, { details: { "GHSA-lodash-1": detail("GHSA-lodash-1", [{ package: { ecosystem: "npm", name: "lodash" } }]) } }));
+    expect(stubs.requests.some((q) => q.path === "/v1/query")).toBe(false);
+    expect(byCheck(r, "advisories", "left-pad@1.3.0")).toMatchObject({ result: "attention" });
+    expect(byCheck(r, "advisories", "left-pad@1.3.0").detail).toMatch(/GHSA-lodash-1 names other packages/);
+    // An advisory that names the package it was attributed to is not flagged.
+    const right = (q) => ({ results: q.map((x) => ({ vulns: truth[x.package.name] || [] })) });
+    const ok = await run(routes(right, { details: { "GHSA-lodash-1": detail("GHSA-lodash-1", [{ package: { ecosystem: "npm", name: "lodash" } }]) } }));
+    expect(byCheck(ok.r, "advisories", "lodash@4.17.21")).toMatchObject({ result: "attention", detail: "GHSA-lodash-1 (high)" });
+  });
+
+  it("the single-package query goes to the advisory service only, as a POST, under the loopback fence", async () => {
+    const { stubs } = await run(routes(longer));
+    const singles = stubs.requests.filter((q) => q.path === "/v1/query");
+    expect(singles.every((q) => q.method === "POST" && q.host === "api.osv.dev")).toBe(true);
+    expect(REQUERY_CAP).toBe(50);
+  });
+});
+
+describe("1.1.1: cloud metadata addresses are kept in one place (Bug 5)", () => {
+  it.each(["fd00:ec2::254", "100.100.100.200", "169.254.169.254", "169.254.170.2", "192.0.0.192", "::ffff:100.100.100.200", "64:ff9b::6464:64c8"])("health refuses %s", (a) => {
+    expect(isMetadataAddress(a)).toBe(true);
+    expect(blockedAddress(a)).toBe(true);
+  });
+
+  it("the list lives only in addr.mjs", () => {
+    for (const f of readdirSync(join(ROOT, "plugins", "ow-tools", "lib"))) {
+      if (f === "addr.mjs" || !f.endsWith(".mjs")) continue;
+      const text = readFileSync(join(ROOT, "plugins", "ow-tools", "lib", f), "utf8");
+      for (const a of METADATA_ADDRESSES) expect(text.includes(a), `${f} names ${a}`).toBe(false);
+    }
+  });
 });

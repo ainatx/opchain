@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a0046f77905096f47",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a4339013c7f54dbe7",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-17T23:31:16.676Z",
+  "updated_at": "2026-10-18T01:03:17.676Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-ow-08-ow-start-logs",
-  "progress_summary": "OW-08 PR readiness PASS at bec07022: check-skill-contracts, gen-catalog (36 oc- + 3 ow-), lint-internal-refs, sync-bundles:check, sync-plugin-skills:check, gen-ow-tools-manifest --check, checkpoint:validate, and the ow-start (54 goldens), ow-build-plan and ow-build acceptance checkers pass; npm test 4,074 passed and 11 skipped across 135 files; npm run build leaves no tracked changes; oc- output snapshot (1,473 lines) identical before and after merging main; doctor 0 errors (24 pre-existing warnings); candidate verifier PASS on tree 3d97de02; no untracked files.",
+  "step": "pr-ow-03-followups-1-1-1",
+  "progress_summary": "OW-03 follow-ups PR readiness PASS at 226bc1ae: the 1.1.1 diff, merged with origin/main fd437ac8 without conflicts; npm test and npm run build PASS in the candidate verifier on every commit; ow-tools suite 810 passed, 2 skipped; check-skill-contracts, ow-start/ow-build-plan/ow-build acceptance, sync-plugin-skills and sync-skill-bundles --check, gen-ow-tools-manifest --check, checkpoint:validate and claude plugin validate --strict pass; C29 path diff empty; no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -24,19 +24,19 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "checkpoint doctor: 24 pre-existing warnings, none from this branch",
-      "C15 partial by design: O4 (the ow-tools SessionStart hook) waits for its follow-up patch"
+      "C8 (LibreOffice recalculation) skipped: soffice is not installed on the verifying machine",
+      "Node 20 not run; verified on Node 24.19 only"
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "bec07022843ace9fb6ca156d6bfddae64d745828",
+    "verified_for_sha": "226bc1ae72f8a60dea8c948f5d8c58d43dba1c0a",
     "last_verify": {
-      "at": "2026-10-17T23:31:16.676Z",
-      "branch": "claude/ow-08-ow-start-logs",
-      "base": "origin/main@d3965168",
+      "at": "2026-10-18T01:03:17.676Z",
+      "branch": "claude/ow-03-followups",
+      "base": "origin/main@fd437ac8",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -1978,8 +1978,33 @@
           "tests/fixtures/ow-start/README.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-ow-03-followups-1-1-1-a44c2aebebf1",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-18T01:03:17.676Z",
+      "verified_at": "2026-10-18T01:03:17.676Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-ow-03-followups-1-1-1"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:a44c2aebebf1d5d66f5fe1aece04b7a3897a663c1027c1f6dac95fb5de2946ca"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/ow-03-followups at 226bc1ae on origin/main fd437ac8 (#624). No file under skills/, skills-work/, plugins/opchain/, src/, public/, site/, .claude-plugin/, mirror/, package.json or package-lock.json changes (C29 path diff empty), so no oc- catalog, bundle, plugin, site or release-surface output can change. ow-tools is 1.1.1 in plugin.json and both marketplace.json version fields; the manifest's first line reads 1.1.1. Checked: npm test, npm run build (no tracked changes), check-skill-contracts, the ow- acceptance checkers, sync and manifest checks, claude plugin validate --strict, and a candidate verifier PASS receipt for every commit including tree 3946d546. Not checked: C8 skipped (no LibreOffice), Node 20 not run.",
+        "evidence": [
+          "docs/plans/2026-10-09-ow-tools-design.md",
+          "plugins/ow-tools/README.md",
+          "plugins/ow-tools/SECURITY-MANIFEST.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-17T23:31:16.676Z",
+  "record_updated_at": "2026-10-18T01:03:17.676Z",
   "blockers": []
 }

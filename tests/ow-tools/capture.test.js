@@ -7,7 +7,7 @@ import { createDecipheriv, pbkdf2Sync } from "node:crypto";
 import { createServer } from "node:http";
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { CDP_METHODS, DEFAULT_TIMEOUT, PREFS, PRODUCTION_PENDING, SESSION_STATE, TEMP_STATE, browserCandidates, capture, findBrowser, hostRules, nameWords, pinOrigins, readPlan, secretName } from "../../plugins/ow-tools/lib/capture.mjs";
+import { CDP_METHODS, DEFAULT_TIMEOUT, PREFS, PRODUCTION_PENDING, RUN_LOCK, SESSION_STATE, TEMP_STATE, browserCandidates, capture, findBrowser, hostRules, nameWords, pinOrigins, readPlan, releaseRunLock, secretName, takeRunLock } from "../../plugins/ow-tools/lib/capture.mjs";
 import { BIN, ROOT, cleanup, cli, git, gitRepo, has, tempDir, write } from "./helpers.js";
 
 const SPAWN = { timeout: 30_000 };
@@ -933,4 +933,268 @@ describe("round 3: killed production runs with the real browser (Bug 4, SA-019 P
       server.close();
     }
   }, 120_000);
+});
+
+// ---- OW-03 follow-ups (1.1.1) -------------------------------------------------------
+// Controls first: written before the 1.1.1 rule change. The evaluator's
+// round-3 false refusals (Bug 2), mid-word edge stems (M10: otp, mfa, pwd,
+// cvc, ssn inside a word), and near misses of the new stems and phrases.
+const ORDINARY_FIELDS_111 = [
+  // Bug 2: refused by 1.1.0
+  "lead_routing", "routingRules", "passType", "boarding_pass", "busPass", "eventPass", "season-pass", "pinLocation", "map-pin", "pinCount",
+  "apiBanner", "api-banner", "mini_banner", "taxiBank", "tokenCount", "photo-kent", "auto_kennel", "Liban", "ibanez",
+  // M10: a short stem in the middle of a word
+  "hotpot", "spotPrice", "shotPrice", "potpourri", "camfactor", "updated_at", "cascade_style",
+  // near misses of the 1.1.1 stems, pairs and phrases
+  "card_notes", "cardHolderName", "credit_limit", "confirmation_code", "country_code", "postal_code", "discount_code", "tokenType", "the_slot",
+  "pass_order", "pan_x", "user_name", "pass_through", "routing_table", "Enter your 5-digit ZIP code", "Code of conduct", "Sent date",
+];
+
+describe("1.1.1: ordinary names stay fillable (controls written before the rule change)", () => {
+  it("at least 20 new controls", () => expect(ORDINARY_FIELDS_111.length).toBeGreaterThanOrEqual(20));
+  it.each(ORDINARY_FIELDS_111)("fills %s", (name) => {
+    expect(secretName(name), name).toBe(false);
+    expect(secretName(`#${name.replace(/\s+/g, "_")}`), name).toBe(false);
+    expect(secretName(`input[name=${name.replace(/\s+/g, "_")}]`), name).toBe(false);
+  });
+});
+
+// Bug 1 (evaluator round 3) and SA-022: names 1.1.0 let through.
+const SECRET_FIELDS_111 = [
+  // abbreviations
+  "psw", "pswd", "pword", "passw", "passwrd", "user_psw", "loginPswd",
+  // PINs
+  "userpin", "atmpin", "securepin", "cardPin", "newPin", "Your PIN", "pin",
+  // cards and identity numbers
+  "creditcard", "credit_card", "creditCardNumber", "cardno", "card_no", "ccn", "pan", "socialSecurityNumber", "social_security",
+  // one-time codes
+  "authenticator_code", "emailCode", "loginCode", "twoStepCode", "2-step-code", "magic_code", "accessCode", "signInCode",
+  // tokens, keys and recovery
+  "seed_phrase", "mnemonic", "recovery_key", "recoveryPhrase", "accesstoken", "csrftoken", "refresh_token", "token", "routing", "bankiban",
+  // placeholders and labels
+  "Enter the 6-digit code", "Code from your authenticator app", "Enter the code we texted you", "We sent you a code", "4-digit PIN",
+  // other languages (SA-022)
+  "contraseña", "Contraseña", "kennwort", "Kennwort", "senha", "wachtwoord", "lösenord", "salasana", "hasło", "heslo", "passord", "şifre",
+  "jelszó", "lozinka", "mot de passe", "Mot de passe", "mật khẩu", "пароль", "Пароль", "パスワード", "비밀번호", "密码", "密碼",
+  // leet (SA-022)
+  "p@ssword", "pa55word", "passw0rd", "P@$$w0rd", "s3cret",
+];
+
+describe("1.1.1: secret names 1.1.0 missed (Bug 1, SA-022)", SPAWN, () => {
+  it.each(SECRET_FIELDS_111)("refuses %s by name, as an id or attribute, and in a plan before launch", (name) => {
+    const id = name.replace(/\s+/g, "_");
+    for (const text of [name, `#${id}`, `input[name=${id}]`, `[aria-label='${name}']`]) expect(secretName(text), text).toBe(true);
+    const plan = basePlan();
+    plan.steps[2].selector = `[aria-label='${name}']`;
+    let err = null;
+    try {
+      readPlan(plan);
+    } catch (e) {
+      err = e;
+    }
+    expect(err?.extra?.reason, name).toBe("secret-field");
+  });
+
+  it.each([
+    ["placeholder", "Enter the 6-digit code"],
+    ["placeholder", "Contraseña"],
+    ["aria-label", "Пароль"],
+    ["name", "seed_phrase"],
+    ["name", "p@ssword"],
+    ["id", "authenticator_code"],
+  ])("refuses at run time a field whose %s is %s; nothing typed", (attr, value) => {
+    const pages = { ...PAGES, [`${UAT}/orders/new`]: { selectors: { "#f1": { attrs: ["id", "f1", attr, value, "type", "text"] } } } };
+    const plan = basePlan();
+    plan.steps[2].selector = "#f1";
+    const t = setup({ plan, browser: { pages } });
+    const r = t.run([]);
+    expect(r.status, value).toBe(4);
+    expect(r.json).toMatchObject({ reason: "secret-field", step: "S-03" });
+    expect(t.entries().some((c) => c.method === "Input.insertText")).toBe(false);
+  });
+
+  it("each layer on its own: weak words count alone or paired, short stems only at a word's edge, long stems across words", () => {
+    // weak words
+    for (const n of ["#pin", "Your PIN", "input[name=pass]", "#token", "#routing", "#pan", "new_pin"]) expect(secretName(n), n).toBe(true);
+    for (const n of ["pinLocation", "passType", "tokenCount", "routing_table", "pan_x"]) expect(secretName(n), n).toBe(false);
+    // edge stems
+    for (const n of ["smsotp", "otpvalue", "loginpwd", "mfatoken", "cardcvc"]) expect(secretName(n), n).toBe(true);
+    for (const n of ["hotpot", "camfactor", "potpourri", "footprint"]) expect(secretName(n), n).toBe(false);
+    // end-only stems
+    expect(secretName("bankiban")).toBe(true);
+    expect(secretName("ibanez")).toBe(false);
+    expect(secretName("csrftoken")).toBe(true);
+    // across words: long stems only
+    for (const n of ["mot_de_passe", "credit_card_no", "pass_word"]) expect(secretName(n), n).toBe(true);
+    for (const n of ["apiBanner", "taxiBank", "photo-kent", "the_slot"]) expect(secretName(n), n).toBe(false);
+    // phrases
+    expect(secretName("Enter your 5-digit ZIP code")).toBe(false);
+    expect(secretName("Enter the 6-digit code")).toBe(true);
+    // scripts are matched as written, before accents are folded
+    expect(secretName("パスワードを入力")).toBe(true);
+  });
+});
+
+describe("1.1.1: SIGQUIT and an uncaught exception wipe in the run too (Bug 3)", SPAWN, () => {
+  const production = () => ({ ...basePlan(), environment: "production", decision: { role: "client ops lead", date: "2026-10-17" } });
+  const SESSION = [["Default", "Cookies"], ["Default", "Network", "Cookies"], ["Default", "Local Storage"]];
+  const left = (profile) => SESSION.filter((p) => existsSync(join(profile, ...p))).map((p) => p.join("/"));
+  const until = async (fn, ms = 20000) => {
+    const end = Date.now() + ms;
+    while (Date.now() < end) {
+      if (fn()) return true;
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    return false;
+  };
+  const navigating = (t) => t.entries().some((c) => c.method === "Page.navigate");
+
+  it("SIGQUIT: closes the browser, wipes the session, removes the marker and the lock, exits 131", async () => {
+    const t = setup({ plan: production(), browser: { hang: true, writeSession: true } });
+    const child = spawn(BIN, ["capture", "--plan", t.planFile, "--out", t.out, "--json"], { env: { ...process.env, ...t.env }, stdio: "ignore" });
+    const done = new Promise((r) => child.on("exit", (code, signal) => r({ code, signal })));
+    expect(await until(() => navigating(t) && existsSync(join(t.profile, "Default", "Cookies")))).toBe(true);
+    child.kill("SIGQUIT");
+    expect(await done).toEqual({ code: 131, signal: null });
+    expect(left(t.profile)).toEqual([]);
+    expect(existsSync(join(t.profile, PRODUCTION_PENDING))).toBe(false);
+    expect(existsSync(join(t.profile, RUN_LOCK))).toBe(false);
+    const pid = t.entries()[0].pid;
+    expect(await until(() => !alive(pid), 5000)).toBe(true);
+  });
+
+  it("an uncaught exception mid-run: the browser is closed and the production session wiped before exit 1", async () => {
+    const t = setup({ plan: production(), browser: { hang: true, writeSession: true } });
+    const script = `
+      const { capture } = await import(${JSON.stringify(join(ROOT, "plugins", "ow-tools", "lib", "capture.mjs"))});
+      const { readFileSync } = await import("node:fs");
+      capture({ plan: ${JSON.stringify(t.planFile)}, out: ${JSON.stringify(t.out)} }, () => {}, {
+        env: process.env, browsers: { path: [], files: [${JSON.stringify(join(t.d, "bin", "google-chrome"))}] }, resolver: async () => ["203.0.113.10"],
+      }).catch(() => {});
+      const log = ${JSON.stringify(join(t.d, "browser.log"))};
+      const wait = () => readFileSync(log, "utf8").includes("Page.navigate") ? setTimeout(() => { throw new Error("injected crash for the test"); }, 200) : setTimeout(wait, 50);
+      wait();`;
+    const child = spawn(process.execPath, ["--input-type=module", "-e", script], { env: { ...process.env, ...t.env }, stdio: ["ignore", "ignore", "pipe"] });
+    let stderr = "";
+    child.stderr.on("data", (b) => (stderr += b));
+    const done = new Promise((r) => child.on("exit", (code, signal) => r({ code, signal })));
+    expect(await done).toEqual({ code: 1, signal: null });
+    expect(stderr).toMatch(/internal error; capture stopped and the production session was wiped: injected crash for the test/);
+    expect(left(t.profile)).toEqual([]);
+    expect(existsSync(join(t.profile, PRODUCTION_PENDING))).toBe(false);
+    expect(existsSync(join(t.profile, RUN_LOCK))).toBe(false);
+    const pid = t.entries()[0].pid;
+    expect(await until(() => !alive(pid), 5000)).toBe(true);
+  });
+
+  it("a malformed request or target event neither crashes the run nor lets anything through", () => {
+    const t = setup({ browser: { malformed: true } });
+    const r = t.run([]);
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.stderr).not.toMatch(/TypeError|internal error/);
+    expect(t.entries().find((c) => c.method === "Fetch.failRequest" && c.params.requestId === "bad1")).toBeTruthy();
+    expect(t.entries().some((c) => c.method === "Fetch.continueRequest" && c.params.requestId === "bad1")).toBe(false);
+  });
+});
+
+describe("1.1.1: metadata addresses outside link-local (Bug 5)", SPAWN, () => {
+  const answers = (map) => async (host) => {
+    if (!(host in map)) throw Object.assign(new Error("not found"), { code: "ENOTFOUND" });
+    return map[host];
+  };
+  it.each([["fd00:ec2::254"], ["100.100.100.200"], ["192.0.0.192"], ["::ffff:100.100.100.200"]])("refuses a name that resolves to %s", async (a) => {
+    await expect(pinOrigins({ origins: ["https://meta.example.test"] }, { resolver: answers({ "meta.example.test": [a] }) })).rejects.toMatchObject({ extra: { reason: "origin-address-not-allowed" } });
+  });
+  it.each(["https://100.100.100.200", "https://192.0.0.192", "https://[fd00:ec2::254]"])("refuses the origin %s before launch", (o) => {
+    const plan = { ...basePlan(), allowed_origins: [o], steps: [{ id: "S-01", do: "navigate", url: `${o}/` }] };
+    delete plan.sign_in;
+    const r = setup({ plan }).run([]);
+    expect(r.status).toBe(4);
+    expect(r.json.reason).toBe("plan-invalid");
+  });
+});
+
+describe("1.1.1: origins are host names or IP addresses (SA-020)", SPAWN, () => {
+  it.each(["https://a.example.test,exclude", "https://*.example.test", "https://a!b.example.test", "https://a;b.example.test", "https://a=b.example.test", "https://a'b.example.test", "https://a~b.example.test", "https://intranet", "https://-a.example.test"])(
+    "refuses %s before launch, with no lookup",
+    (o) => {
+      const plan = { ...basePlan(), allowed_origins: [o, "https://uat.example.test"] };
+      const t = setup({ plan });
+      const r = t.run([]);
+      expect(r.status, o).toBe(4);
+      expect(r.json.reason).toBe("plan-invalid");
+      expect(r.json.message).toMatch(/must name a host|not a URL|must be an origin only/);
+      expect(t.entries()).toEqual([]);
+      expect(t.fence()).toEqual([]);
+    },
+  );
+  it("the host-resolver rules can only ever carry host names and addresses", async () => {
+    const pins = await pinOrigins(readPlan({ ...basePlan(), allowed_origins: ["https://uat.example.test", "https://cdn.example.test:8443", "https://203.0.113.10"] }), {
+      resolver: async () => ["203.0.113.11"],
+    });
+    expect(hostRules(pins)).toMatch(/^--host-resolver-rules=(?:(?:MAP [a-z0-9.-]+ [0-9.:[\]a-f]+|EXCLUDE [0-9a-f.:]+) , )+MAP \* ~NOTFOUND$/);
+  });
+});
+
+describe("1.1.1: one run per profile (SA-021)", SPAWN, () => {
+  const production = () => ({ ...basePlan(), environment: "production", decision: { role: "client ops lead", date: "2026-10-17" } });
+  const until = async (fn, ms = 20000) => {
+    const end = Date.now() + ms;
+    while (Date.now() < end) {
+      if (fn()) return true;
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    return false;
+  };
+  it("a second run on a profile in use is refused (profile-in-use) and touches nothing; --delete-profile is refused too", async () => {
+    const t = setup({ plan: production(), browser: { hang: true, writeSession: true } });
+    const child = spawn(BIN, ["capture", "--plan", t.planFile, "--out", t.out, "--json"], { env: { ...process.env, ...t.env }, stdio: "ignore" });
+    const done = new Promise((r) => child.on("exit", (code) => r(code)));
+    try {
+      expect(await until(() => t.entries().some((c) => c.method === "Page.navigate") && existsSync(join(t.profile, "Default", "Cookies")))).toBe(true);
+      expect(readFileSync(join(t.profile, RUN_LOCK), "utf8").trim()).toBe(String(child.pid));
+      const prefs = join(t.profile, "Default", "Preferences");
+      const prefsAt = statSync(prefs).mtimeMs;
+      const second = write(join(t.d, "uat.json"), JSON.stringify(basePlan()));
+      const r = cli(["capture", "--plan", second, "--out", t.out, "--json"], { env: t.env });
+      expect(r.status).toBe(4);
+      expect(r.json).toMatchObject({ reason: "profile-in-use", profile: "harbor-cafe" });
+      expect(existsSync(join(t.profile, PRODUCTION_PENDING))).toBe(true); // the running production run's marker stays
+      expect(existsSync(join(t.profile, "Default", "Cookies"))).toBe(true); // nothing wiped under it
+      expect(t.entries().filter((e) => e.argv)).toHaveLength(1); // no second browser
+      expect(statSync(prefs).mtimeMs).toBe(prefsAt); // not even its preferences rewritten
+      const del = cli(["capture", "--delete-profile", "harbor-cafe", "--json"], { env: t.env });
+      expect(del.status).toBe(4);
+      expect(del.json.reason).toBe("profile-in-use");
+      expect(existsSync(t.profile)).toBe(true);
+    } finally {
+      child.kill("SIGTERM");
+      await done;
+    }
+    expect(existsSync(join(t.profile, RUN_LOCK))).toBe(false);
+  });
+
+  it("a lock left by a run that has gone is taken over; a finished run leaves no lock", () => {
+    const t = setup();
+    mkdirSync(t.profile, { recursive: true });
+    const dead = spawnSync(process.execPath, ["-e", "process.stdout.write(String(process.pid))"], { encoding: "utf8" }).stdout;
+    writeFileSync(join(t.profile, RUN_LOCK), `${dead}\n`);
+    const r = t.run([]);
+    expect(r.status, r.stdout).toBe(0);
+    expect(existsSync(join(t.profile, RUN_LOCK))).toBe(false);
+  });
+
+  it("takeRunLock refuses a live holder and releases only its own lock", () => {
+    const d = tempDir();
+    writeFileSync(join(d, RUN_LOCK), `${process.ppid}\n`); // a live process that isn't us
+    let err = null;
+    try {
+      takeRunLock(d, "p");
+    } catch (e) {
+      err = e;
+    }
+    expect(err?.extra).toMatchObject({ reason: "profile-in-use", profile: "p" });
+    releaseRunLock(join(d, RUN_LOCK)); // not ours: kept
+    expect(existsSync(join(d, RUN_LOCK))).toBe(true);
+  });
 });

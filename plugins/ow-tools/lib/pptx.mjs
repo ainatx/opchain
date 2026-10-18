@@ -9,7 +9,7 @@ import { join } from "node:path";
 import { failed, oneLine, run } from "./core.mjs";
 import { xmlEscape } from "./docx.mjs";
 
-export const PANDOC_DECK_FROM = "gfm-autolink_bare_uris+fenced_divs-yaml_metadata_block";
+export const PANDOC_DECK_FROM = "gfm-autolink_bare_uris+fenced_divs-yaml_metadata_block-tex_math_dollars-tex_math_gfm";
 const NOTES_OPEN = /^\s{0,3}:::\s*notes\s*$/;
 const DIV_CLOSE = /^\s{0,3}:::\s*$/;
 const DIV_ANY = /^\s{0,3}:{3,}/;

@@ -321,10 +321,10 @@ describe("manifest and version (C28, C30, C31)", SPAWN, () => {
     for (const f of libFiles) expect(lib(f), f).not.toMatch(/chrome-for-testing|storage\.googleapis\.com|download.*chromium/i);
   });
 
-  it("C30: the manifest is current for 1.1.0 and its Network, Programs and Files sections say what C25 and C28 test", () => {
+  it("C30: the manifest is current for 1.1.1 and its Network, Programs and Files sections say what C25 and C28 test", () => {
     const r = spawnSync(process.execPath, [join(ROOT, "scripts", "gen-ow-tools-manifest.mjs"), "--check"], { encoding: "utf8" });
     expect(r.status, r.stderr).toBe(0);
-    expect(MANIFEST.split("\n")[0]).toBe("# ow-tools 1.1.0 — security manifest");
+    expect(MANIFEST.split("\n")[0]).toBe("# ow-tools 1.1.1 — security manifest");
     const network = MANIFEST.slice(MANIFEST.indexOf("## Network"), MANIFEST.indexOf("## Files it writes"));
     for (const dest of ["api.osv.dev", "registry.npmjs.org", "data.iana.org", "allowed_origins", "--no-network"]) expect(network).toContain(dest);
     expect(network).toMatch(/\| every other verb \| Nothing \| Nothing\./);
@@ -332,17 +332,17 @@ describe("manifest and version (C28, C30, C31)", SPAWN, () => {
     for (const w of ["<step-id>.png", "$OW_TOOLS_HOME/capture/<workstream>/", "rdap/dns.json", "<name>.export.json", "<name>.pptx", "<name>.xlsx"]) expect(files).toContain(w);
   });
 
-  it("C31: version 1.1.0 everywhere, and version --json lists every capability", () => {
+  it("C31: version 1.1.1 everywhere, and version --json lists every capability", () => {
     const plugin = JSON.parse(readFileSync(join(PLUGIN, ".claude-plugin", "plugin.json"), "utf8"));
     const market = JSON.parse(readFileSync(join(PLUGIN, ".claude-plugin", "marketplace.json"), "utf8"));
-    expect(plugin.version).toBe("1.1.0");
-    expect(market.metadata.version).toBe("1.1.0");
-    expect(market.plugins[0].version).toBe("1.1.0");
+    expect(plugin.version).toBe("1.1.1");
+    expect(market.metadata.version).toBe("1.1.1");
+    expect(market.plugins[0].version).toBe("1.1.1");
     const r = cli(["version", "--json"], { env: { OW_TOOLS_HOME: join(tempDir(), "h") } });
-    expect(r.json.version).toBe("1.1.0");
+    expect(r.json.version).toBe("1.1.1");
     expect(Object.keys(r.json.capabilities).sort()).toEqual(["calc", "capture", "digest", "export", "health", "pptx", "transcribe", "xlsx"]);
     for (const c of ["calc", "digest", "xlsx", "health"]) expect(r.json.capabilities[c].ready, c).toBe(true);
-    expect(cli(["help"]).stdout).toMatch(/ow-tools 1\.1\.0/);
+    expect(cli(["help"]).stdout).toMatch(/ow-tools 1\.1\.1/);
   });
 
   it("README and /ow-tools say what health and capture send", () => {

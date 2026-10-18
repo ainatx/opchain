@@ -2,6 +2,12 @@
 // net.mjs (health) and capture.mjs can use them without capture pulling a
 // network module into the no-network verbs' import graph (C25 a).
 
+// A public host name: dot-separated labels of letters, digits and hyphens,
+// ending in an alphabetic top-level label. health's hosts and (1.1.1,
+// SA-020) capture's origins are held to it, so nothing else (`,`, `*`, `!`)
+// can reach a request or Chrome's --host-resolver-rules.
+export const HOST = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$/;
+
 export function ipv4(a) {
   if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(a)) return null;
   const p = a.split(".").map(Number);
@@ -51,6 +57,7 @@ const embedded = (hi, lo) => [hi >> 8, hi & 255, lo >> 8, lo & 255];
 // only global unicast (2000::/3) passes, minus the special ranges inside it;
 // forms that embed an IPv4 address are judged by that address.
 export function blockedAddress(address) {
+  if (isMetadataAddress(address)) return true;
   const four = ipv4(address);
   if (four) return v4Blocked(four);
   const w = ipv6Words(address);
@@ -104,6 +111,7 @@ export function isLoopbackHost(hostname) {
 // ::ffff:169.254.x.x, 64:ff9b::a9fe:a9fe, 2002:a9fe:…). Never a capture origin.
 export function isLinkLocalHost(hostname) {
   const h = String(hostname).toLowerCase().replace(/\.$/, "");
+  if (isMetadataAddress(h)) return true; // 1.1.1 (Bug 5): metadata outside 169.254/16 too
   const four = ipv4(h);
   if (four) return four[0] === 169 && four[1] === 254;
   const w = ipv6Words(h);
@@ -111,4 +119,31 @@ export function isLinkLocalHost(hostname) {
   const v4 = embeddedIpv4(w);
   if (v4) return v4[0] === 169 && v4[1] === 254;
   return (w[0] & 0xffc0) === 0xfe80;
+}
+
+// Cloud metadata services, in one place (1.1.1, Bug 5): capture refuses them
+// as origins and as answers for an allowed name, and health refuses them as
+// destinations. Link-local 169.254/16 is refused as a range besides; these
+// are the ones outside it, and the common link-local ones by name.
+export const METADATA_ADDRESSES = Object.freeze([
+  "169.254.169.254", // AWS, Azure, Google Cloud, Oracle, DigitalOcean and others
+  "169.254.170.2", // AWS ECS task metadata
+  "fd00:ec2::254", // AWS IPv6
+  "100.100.100.200", // Alibaba Cloud
+  "192.0.0.192", // Oracle Cloud Classic
+]);
+const canonical = (a) => {
+  const s = String(a).toLowerCase().replace(/^\[|\]$/g, "").replace(/\.$/, "");
+  const four = ipv4(s);
+  if (four) return `4:${four.join(".")}`;
+  const w = ipv6Words(s);
+  if (!w) return null;
+  const v4 = embeddedIpv4(w);
+  return v4 ? `4:${v4.join(".")}` : `6:${w.join(":")}`;
+};
+const METADATA = new Set(METADATA_ADDRESSES.map(canonical));
+// True for a metadata address in any spelling (IPv4-mapped, NAT64, 6to4 included).
+export function isMetadataAddress(address) {
+  const c = canonical(address);
+  return c !== null && METADATA.has(c);
 }
