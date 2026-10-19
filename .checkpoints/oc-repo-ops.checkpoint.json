@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": ".",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a147d4d6f52f711e3",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-19T18:03:29.087Z",
+  "updated_at": "2026-10-19T18:54:31.607Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-scope-2-1-ten-skills",
-  "progress_summary": "2.1 scope PR readiness PASS at ac125d0d: docs-only diff (two files under sprints/release-2.1/); check-skill-contracts and checkpoint:validate pass; candidate verifier PASS on tree 4c10cb47; no untracked files.",
+  "step": "OW-04 (Sprint 3): ow-uat 1.0.0 + ow-tools 1.2.0 calendar",
+  "progress_summary": "OW-04 PR readiness at the landing tree: main (#624, #625, #626) merged in, not rebased; build leaves no tracked change; generated outputs current; oc- sources equal origin/main.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -23,22 +23,27 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [],
+    "warnings": [
+      "Round-3 minors R3-1 to R3-7 and owner decisions R3-4 and R3-6 are open by design: the OW-04 follow-up PR builds them",
+      "The ow- catalog is in no build output yet (Sprint 5)"
+    ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "ac125d0dd597ffc02e1a9f5e0628b211b99d004e",
+    "verified_for_sha": "eaa5965d2992e368232759ca364b3eabd1c203d7",
     "last_verify": {
-      "at": "2026-10-19T18:03:29.087Z",
-      "branch": "claude/scope-2-1-ten-skills",
-      "base": "origin/main@754be8c5",
+      "at": "2026-10-19T18:54:31.607Z",
+      "branch": "claude/ow-uat-sprint-3",
+      "base": "origin/main @ 63a7df74 (#633)",
       "verdict": "PASS",
       "blocking_findings": []
     }
   },
-  "next_actions": [],
+  "next_actions": [
+    "After this PR merges: the OW-04 follow-up PR"
+  ],
   "handoffs": [
     {
       "id": "oc-repo-ops-release-f6b167fcbd3a",
@@ -2059,8 +2064,44 @@
           "sprints/release-2.1/track-s-site-surfaces.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-ow-04-landing-2026-10-19-d67f6387f0dc",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-19T18:54:31.607Z",
+      "verified_at": "2026-10-19T18:54:31.607Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "ow-04-landing-2026-10-19"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:d67f6387f0dc7cbe5f76949005ba9bbb39d910e48cdd88b82b36a229ba04c711"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "OW-04 at the landing tree, after 3 evaluation rounds (7.8 PASS): npm test (6,186 passed, 14 skipped) and the build pass with no tracked change; the ow-tools manifest --check, sync-bundles, sync-plugin-skills, gen-route-spec, check-skill-flags, checkpoint:validate, catalog, contracts and lint-internal-refs pass; the four ow- acceptance checkers pass (ow-uat 140, ow-build 55); no Evaluator fixture copies remain; oc- sources (skills/, plugins/opchain/, src/, site/, mcp/, package*.json, build.mjs) equal origin/main. Follow-ups R3-1 to R3-7, R3-4 and R3-6 are listed, not built.",
+        "evidence": [
+          "docs/plans/2026-10-09-ow-uat-design.md",
+          "docs/plans/2026-10-09-ow-tools-design.md",
+          "plugins/ow-tools/README.md",
+          "plugins/ow-tools/SECURITY-MANIFEST.md",
+          "plugins/ow-tools/skills/ow-tools/SKILL.md",
+          "skills-work/README.md",
+          "skills-work/ow-start/CHANGELOG.md",
+          "skills-work/ow-uat/SKILL.md",
+          "tests/fixtures/ow-uat/README.md",
+          "tests/fixtures/ow-build/README.md",
+          "sprints/release-2.1/ow-sprint-3/contract.md",
+          "sprints/release-2.1/ow-sprint-3/eval-round-1.md",
+          "sprints/release-2.1/ow-sprint-3/eval-round-2.md",
+          "sprints/release-2.1/ow-sprint-3/eval-round-3.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-19T18:03:29.087Z",
+  "record_updated_at": "2026-10-19T18:54:31.607Z",
   "blockers": []
 }
