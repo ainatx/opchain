@@ -10,5 +10,7 @@ writes_nothing: true
 checks: [writes, write_once, status, route, private_names, handling]
 route:
   verb: /ow-start-log-decision
+  says: ["Nothing was written"]
   tokens: [["logs/larkspur-ceramics/meetings/MTG-03/notes.md"]]
+  never: ["^\\s*(?:[-*\u2022]\\s*|\\d+[.)]\\s*)?D\\d+\\s*[:\u2014\u2013-]"]
 status: { lines: [] }

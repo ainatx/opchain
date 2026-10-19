@@ -23,6 +23,6 @@ index:
   absent: ["uat/larkspur-ceramics/signoff.md", "care/larkspur-ceramics/"]
 screen:
   must: ["Index copies nothing"]
-  tokens: [["MTG-01", "2026-10-13", "logged"], ["A-01", "client ops lead", "2026-10-16", "reported overdue"], ["A-02", "you", "2026-10-19", "reported overdue"], ["DEC-01", "2026-10-13", "2026-10-19"]]
+  tokens: [["MTG-01", "2026-10-13"], ["A-01", "client ops lead", "2026-10-16", "reported overdue"], ["A-02", "you", "2026-10-19", "reported overdue"], ["DEC-01", "2026-10-13", "2026-10-19"], ["Self-checks", "Index copies nothing", "People by role", "No private names"]]
   must_not: ["^(?!Step 0\\.).*\\bA-03\\b", "Ledgerly"]
 status: { lines: [] }

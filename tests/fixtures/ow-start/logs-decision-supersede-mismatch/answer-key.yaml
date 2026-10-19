@@ -10,5 +10,6 @@ writes_nothing: true
 checks: [writes, write_once, status, route, private_names, handling]
 route:
   verb: /ow-start-log-decision
+  says: ["Nothing is written until you answer\\."]
   tokens: [["DEC-01.md"]]
 status: { lines: [] }

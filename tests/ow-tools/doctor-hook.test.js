@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fetchCommand, tokenExpression, tokenFileState } from "../../plugins/ow-tools/lib/doctor.mjs";
+import { openWorkstreams, parseStatus } from "../../plugins/ow-tools/lib/status.mjs";
 import { cleanup, cli, gitRepo, stub, tempDir, write } from "./helpers.js";
 
 // Each case spawns bin/ow-tools (and git/stubs): ~0.2-0.6 s idle, several
@@ -165,5 +166,46 @@ describe("SessionStart hook", SPAWN, () => {
     const r = cli(["hook", "session-start"], { input: "not json" });
     expect(r.status).toBe(0);
     expect(r.stdout).toBe("");
+  });
+});
+
+// OW-08 owner decision O4 (ow-tools 1.1.2): ow-start's logs write one STATUS line per item under
+// logs/<workstream>/ (a meeting, an action, a decision review). The newest line per item counts, so closing
+// one action leaves the workstream's other open actions and reviews on the list.
+const MIXED = `# Status
+
+2026-10-07 (clock: user-stated) | ow-build-plan 1.0.0 | plans/larkspur-ceramics/build-plan-offer.md | next: ow-build-plan /ow-build-plan-start plans/larkspur-ceramics/ | awaiting: offer reply by 2026-10-21
+2026-10-09 (clock: user-stated) | ow-start 1.1.0 | logs/larkspur-ceramics/meetings/MTG-01/agenda.md | next: ow-start /ow-start-log-meeting logs/larkspur-ceramics/ | awaiting: meeting on 2026-10-13
+2026-10-13 (clock: user-stated) | ow-start 1.1.0 | logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-01 | next: ow-start /ow-start-action logs/larkspur-ceramics/ | awaiting: A-01 (client ops lead) by 2026-10-16
+2026-10-13 (clock: user-stated) | ow-start 1.1.0 | logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-02 | next: ow-start /ow-start-action logs/larkspur-ceramics/ | awaiting: A-02 (you) by 2026-10-19
+2026-10-13 (clock: user-stated) | ow-start 1.1.0 | logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-03 | next: ow-start /ow-start-action logs/larkspur-ceramics/ | awaiting: A-03 (client owner) by 2026-10-15
+2026-10-13 (clock: user-stated) | ow-start 1.1.0 | logs/larkspur-ceramics/meetings/MTG-01/notes.md | next: none (closed: held 2026-10-13) | awaiting: none
+2026-10-14 (clock: user-stated) | ow-start 1.1.0 | logs/larkspur-ceramics/decisions/DEC-01.md | next: ow-start /ow-start-action logs/larkspur-ceramics/ | awaiting: DEC-01 review by 2026-10-19
+2026-10-15 (clock: user-stated) | ow-start 1.1.0 | logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-03 | next: none (closed: done) | awaiting: none (done 2026-10-15)
+2026-10-15 (clock: user-stated) | ow-start 1.1.0 | logs/business/meetings/MTG-01/notes.md#A-02 | next: ow-start /ow-start-action logs/business/ | awaiting: A-02 (you), no date
+`;
+
+describe("SessionStart hook: ow-start's logs, the newest line per item (O4, 1.1.2)", () => {
+  it("keeps every open action and review after another action closes", () => {
+    const open = openWorkstreams(parseStatus(MIXED).entries, "2026-10-17");
+    const shown = open.map((e) => `${e.workstream}${e.item ? ` ${e.item}` : ""}`);
+    expect(shown.sort()).toEqual(["logs/business A-02", "logs/larkspur-ceramics A-01", "logs/larkspur-ceramics A-02", "logs/larkspur-ceramics DEC-01", "plans/larkspur-ceramics"]);
+    // A-03 closed (its newest line), MTG-01 held: neither is shown, and neither hides the rest.
+    expect(shown.join("\n")).not.toMatch(/A-03|MTG-01/);
+    expect(open.find((e) => e.item === "A-01")).toMatchObject({ due: "2026-10-16", overdue: true });
+  });
+  it("still groups other skills' lines by workstream, unchanged", () => {
+    const e = parseStatus(MIXED).entries.find((x) => x.path.startsWith("plans/"));
+    expect(e).toMatchObject({ workstream: "plans/larkspur-ceramics", item: null, group: "plans/larkspur-ceramics" });
+  });
+  it("the hook prints one line per open logs item, after the newest line closes another", SPAWN, () => {
+    const d = tempDir();
+    write(join(d, "opchain-work", "STATUS.md"), MIXED);
+    const out = hook(d, { OW_TOOLS_NOW: "2026-10-17T12:00:00Z" }).stdout;
+    expect(out).toContain("logs/larkspur-ceramics A-01 (2026-10-13) · next: ow-start /ow-start-action logs/larkspur-ceramics/ · awaiting: A-01 (client ops lead) by 2026-10-16 (OVERDUE)");
+    expect(out).toContain("logs/larkspur-ceramics A-02 (2026-10-13)");
+    expect(out).toContain("logs/larkspur-ceramics DEC-01 (2026-10-14)");
+    expect(out).toContain("logs/business A-02 (2026-10-15)");
+    expect(out).not.toMatch(/A-03|MTG-01/);
   });
 });

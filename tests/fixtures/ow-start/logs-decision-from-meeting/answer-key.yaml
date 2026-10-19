@@ -10,7 +10,7 @@ verbs: [/ow-start-log-decision]
 checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names, gitignore, handling]
 route:
   verb: /ow-start-log-decision
-  tokens: [["D1"], ["D2"], ["DONE:", "logs/larkspur-ceramics/decisions/DEC-01.md"], ["NEXT: none"]]
+  tokens: [["D1"], ["D2"], ["DONE:", "logs/larkspur-ceramics/decisions/DEC-01.md"], ["Self-checks", "Trace", "People by role", "No client text in STATUS", "Never edited", "No private names"], ["NEXT: none", "/ow-status"]]
 decision:
   files:
     - { id: DEC-01, review: 2026-10-19, supersedes: none, subject: "logs/larkspur-ceramics/meetings/MTG-01/notes.md#D1", confirmed: client }

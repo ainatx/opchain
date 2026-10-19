@@ -9,7 +9,7 @@ checks: [writes, write_once, status, status_grammar, route, private_names, handl
 route:
   verb: /ow-start-action
   says: ["Appended:", "Open in larkspur-ceramics:"]
-  tokens: [["Appended:", "notes.md#A-02", "none (closed: dropped)"], ["A-01", "client ops lead", "2026-10-16"]]
+  tokens: [["Appended:", "notes.md#A-02", "none (closed: dropped)"], ["A-01", "client ops lead", "2026-10-16"], ["Self-checks", "No client text in STATUS", "No private names"]]
 status:
   lines:
     - { path: "logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-02", next: "none (closed: dropped)", awaiting: "none (dropped 2026-10-18)" }

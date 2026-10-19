@@ -12,8 +12,7 @@ route:
   says: ["Appended:", "Open in larkspur-ceramics:"]
   tokens: [["Appended:", "notes.md#A-03", "none (closed: done)"]]
 screen:
-  must: ["No client text in STATUS", "No private names"]
-  tokens: [["A-01", "client ops lead", "2026-10-16"], ["A-02", "you", "2026-10-19"], ["DEC-01", "2026-10-19"]]
+  tokens: [["A-01", "client ops lead", "2026-10-16"], ["A-02", "you", "2026-10-19"], ["DEC-01", "2026-10-19"], ["Self-checks", "No client text in STATUS", "No private names"]]
   must_not: ["\\bA-03\\b[^\\n|]*client owner"]
 status:
   lines:

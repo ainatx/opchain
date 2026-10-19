@@ -9,7 +9,8 @@ writes_nothing: true
 checks: [writes, write_once, status, route, screen, private_names, handling]
 route:
   verb: /ow-start-action
-  tokens: [["A-03"]]
+  says: ["Refused:", "Nothing was written", "Open in larkspur-ceramics:"]
+  tokens: [["Refused:", "A-03"]]
 screen:
-  tokens: [["A-01", "client ops lead", "2026-10-16"], ["A-02", "you", "2026-10-19"], ["DEC-01", "2026-10-19"]]
+  tokens: [["A-01", "client ops lead", "2026-10-16"], ["A-02", "you", "2026-10-19"], ["DEC-01", "2026-10-19"], ["Self-checks", "No client text in STATUS", "No private names"]]
 status: { lines: [] }

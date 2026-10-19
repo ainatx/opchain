@@ -1,6 +1,6 @@
 # The logs' self-checks
 
-Each is a **same-session self-check: the same assistant that wrote the file, applying a checklist; a discipline, not an independent review** (protocol §8). Each is agent-checked and reports OK, FINDING or NOT-CHECKED (reason). `-log-meeting` writes the table into `notes.md`, `-log-decision` into `DEC-nn.md`; `-prep-meeting`, `-action` and `-log` print theirs on their screen. A verb prints its NEXT block only when none is FINDING.
+Each is a **same-session self-check: the same assistant that wrote the file, applying a checklist; a discipline, not an independent review** (protocol §8). Each is agent-checked and reports OK, FINDING or NOT-CHECKED (reason). `-log-meeting` writes the table into `notes.md`, `-log-decision` into `DEC-nn.md`; every verb that writes, `-action` and `-log` also print one line of results on their screen (`references/logs-status-and-index.md` §5). A verb prints its NEXT block only when none is FINDING.
 
 **Three can never be waived: People by role, No client text in STATUS, No private names.** A request to skip one, or to write a name anyway, is refused, and the check runs; the screen says `refused` and `<check> can never be waived`.
 

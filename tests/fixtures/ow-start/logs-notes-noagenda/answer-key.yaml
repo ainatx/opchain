@@ -10,7 +10,7 @@ verbs: [/ow-start-log-meeting]
 checks: [headers, writes, write_once, status, status_grammar, route, notes, trace, owner_date, embedded, follow_up, people, private_names, gitignore, handling]
 route:
   verb: /ow-start-log-meeting
-  tokens: [["DONE:", "logs/larkspur-ceramics/meetings/MTG-02/notes.md"], ["NEXT: none"]]
+  tokens: [["DONE:", "logs/larkspur-ceramics/meetings/MTG-02/notes.md"], ["Self-checks", "Trace", "Owner and date", "People by role", "No client text in STATUS", "No private names"], ["NEXT: none", "/ow-status"]]
 notes:
   id: MTG-02
   input: notes

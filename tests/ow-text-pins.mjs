@@ -114,7 +114,7 @@ export const PINS = [
   { id: "logs: the redo question (R1-4)", file: PPM, must: "whether to redo that agenda or start a new meeting" },
   { id: "logs: the role question (R1-4)", file: LM, must: "ask who is who by role" },
   // Round 3: /ow-status's 1.0.0 column list, moved word for word with the 1.1.0 logs table, and its pointer.
-  { id: "moved: /ow-status columns", file: LI, must: "Run step 0. One screen: a table of open intakes (client · last step · next · awaiting, with its date) and one of open logs items (workstream · item · owner role · due), each from the newest line per item. Mark an item \"reported overdue\" only when today's date is known from the protocol's ladder and is past the due date. Write nothing." },
+  { id: "moved: /ow-status columns", file: LI, must: "Run step 0. One screen: open intakes (client · last step · next · awaiting, with its date) and open logs items (workstream · item · owner role · due), by the same rule. Mark an item \"reported overdue\" only when today's date is known from the protocol's ladder and is past the due date. Write nothing." },
   { id: "body: /ow-status points to its columns", file: SB, must: "`/ow-status` shows them as two tables, with the columns in `references/logs-status-and-index.md` §3." },
   // Round 3 (the Evaluator's T05): the body's pointer to the transcription absent-case.
   { id: "body: transcription points to phase-setup §3", file: SB, must: "Transcription is the ow-tools add-on's; without it, `references/phase-setup.md` §3. Never transcribe audio yourself." },

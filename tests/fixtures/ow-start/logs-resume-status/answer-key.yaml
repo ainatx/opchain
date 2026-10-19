@@ -9,7 +9,7 @@ verbs: [/ow-start-log-meeting]
 checks: [writes, write_once, status, status_grammar, route, private_names, handling]
 route:
   verb: /ow-start-log-meeting
-  tokens: [["DONE:", "logs/larkspur-ceramics/meetings/MTG-01/notes.md"], ["NEXT:", "use ow-start to log the decisions in logs/larkspur-ceramics/meetings/MTG-01/notes.md"]]
+  tokens: [["DONE:", "logs/larkspur-ceramics/meetings/MTG-01/notes.md"], ["Self-checks", "No client text in STATUS"], ["NEXT:", "use ow-start to log the decisions in logs/larkspur-ceramics/meetings/MTG-01/notes.md", "where slash commands exist:", "/ow-start-log-decision"], ["It will read:", "notes.md"], ["no folder attached", "notes.md"], ["IF IT IS NOT AVAILABLE:"]]
 status:
   lines:
     - { path: logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-02, next: "ow-start /ow-start-action logs/larkspur-ceramics/", awaiting: A-02 (you) by 2026-10-19 }

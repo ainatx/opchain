@@ -4,6 +4,7 @@ Decisions in logs/larkspur-ceramics/meetings/MTG-01/notes.md with no DEC-nn yet:
 - D1: Purchase orders that arrive by email come first; phone orders stay on the order sheet for now.
 D2 does not parse (it has no "what:" line), so it is not offered; fix it by hand or log it in your own words.
 You picked D1.
+Self-checks (same-session self-check): Trace OK · People by role OK · No client text in STATUS OK · Never edited OK · No private names OK.
 
 DONE: decision logged -> logs/larkspur-ceramics/decisions/DEC-01.md
 NEXT: none. Open actions and reviews show on /ow-start and /ow-status.

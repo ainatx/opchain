@@ -9,7 +9,7 @@ verbs: [/ow-start-log-decision]
 checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names, business, gitignore, handling]
 route:
   verb: /ow-start-log-decision
-  tokens: [["D1"], ["DONE:", "logs/business/decisions/DEC-01.md"], ["NEXT: none"]]
+  tokens: [["D1"], ["DONE:", "logs/business/decisions/DEC-01.md"], ["Self-checks", "Trace", "People by role", "No client text in STATUS", "Never edited", "No private names"], ["NEXT: none", "/ow-status"]]
 decision:
   files:
     - { id: DEC-01, review: 2027-09-01, supersedes: none, subject: "logs/business/meetings/MTG-01/notes.md#D1", confirmed: internal }

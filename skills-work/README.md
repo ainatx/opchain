@@ -4,7 +4,7 @@ The ow- skills are opchain's planning family for client work: the fit call and i
 
 | Skill | Status |
 |---|---|
-| `ow-start` | 1.1.0: the 20-minute fit call, prep and recap; meeting and decision logs (`CHANGELOG.md`) |
+| `ow-start` | 1.1.1: the 20-minute fit call, prep and recap; meeting and decision logs (`CHANGELOG.md`) |
 | `ow-build-plan` | 1.0.0: the Build Plan offer, plan and fixed quote, with contract inputs and the build request |
 | `ow-build` | 1.0.0: the client side of a signed build: the builder driven one sprint at a time (named only in `handoffs.yaml`), weekly updates, demos, change orders, invoice requests and readiness for UAT |
 | `ow-uat`, `ow-handoff`, `ow-documentation` | designed, not built |

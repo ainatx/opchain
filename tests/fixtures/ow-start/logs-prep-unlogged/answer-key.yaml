@@ -10,6 +10,7 @@ writes_nothing: true
 checks: [writes, write_once, status, route, private_names, handling]
 route:
   verb: /ow-start-prep-meeting
+  says: ["Nothing is written until you answer\\."]
   ask: "redo that agenda or start a new meeting"
   tokens: [["MTG-02"]]
 status: { lines: [] }

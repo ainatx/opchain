@@ -10,7 +10,7 @@ verbs: [/ow-start-prep-meeting]
 checks: [headers, writes, write_once, status, status_grammar, route, agenda, people, private_names, gitignore, handling]
 route:
   verb: /ow-start-prep-meeting
-  tokens: [["DONE:", "logs/larkspur-ceramics/meetings/MTG-01/agenda.md", "2026-10-13"], ["NEXT:", "use ow-start to log the meeting logs/larkspur-ceramics/meetings/MTG-01/"], ["where slash commands exist:", "/ow-start-log-meeting"], ["no folder attached"]]
+  tokens: [["DONE:", "logs/larkspur-ceramics/meetings/MTG-01/agenda.md", "2026-10-13"], ["Self-checks", "People by role", "No private names"], ["NEXT:", "use ow-start to log the meeting logs/larkspur-ceramics/meetings/MTG-01/", "where slash commands exist:", "/ow-start-log-meeting"], ["It will read:", "agenda.md"], ["no folder attached", "agenda.md"], ["IF IT IS NOT AVAILABLE:"]]
 agenda:
   id: MTG-01
   date: 2026-10-13

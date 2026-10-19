@@ -12,7 +12,7 @@ route:
   verb: /ow-start-log
 screen:
   must: ["Index copies nothing"]
-  tokens: [["MTG-01", "2026-10-15", "logged"], ["A-01", "vendor account manager", "2026-10-22"], ["A-02", "you", "no date"]]
+  tokens: [["MTG-01", "2026-10-15"], ["A-01", "vendor account manager", "2026-10-22"], ["A-02", "you", "no date"], ["Self-checks", "Index copies nothing", "People by role", "No private names"]]
   must_not: ["^(?!Step 0\\.).*larkspur", "^(?!Step 0\\.).*\\bDEC-\\d{2}\\b", "^(?!Step 0\\.).*\\bintake/", "^(?!Step 0\\.).*\\bbuilds/"]
 business:
   client_canaries: [contractor chain, purchase orders, Larkspur, order view]

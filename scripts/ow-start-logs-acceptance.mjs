@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// ow-start 1.1.0 logs acceptance checks (docs/plans/2026-10-16-ow-start-logs-amendment.md §9,
+// ow-start 1.1 logs acceptance checks (docs/plans/2026-10-16-ow-start-logs-amendment.md §9,
 // and the OW-08 contract, sprints/release-2.1/ow-08/contract.md, C4 to C17).
 //
 // ow-start is a text-only skill: a model runs it, so these checks cannot run the
@@ -283,18 +283,45 @@ const CLIENT_SIDE = /\b(?:your|the client'?s?|their)\s+(?:[\w-]+\s+){0,3}?(?:tea
  */
 export function followUpFindings(s, { user = null } = {}) {
   const out = [];
-  const t = String(s);
-  if (/ow:(?:internal|end-internal)|<!--/i.test(t)) out.push(["an internal marker or comment", t.match(/ow:(?:internal|end-internal)|<!--/i)[0]]);
-  if (/^\s*#*\s*internal\b|\b(?:internal notes?|not for the client)\b/i.test(t)) out.push(["internal notes", t.match(/internal notes?|not for the client|internal/i)[0]]);
+  const raw = String(s);
+  if (/ow:(?:internal|end-internal)|<!--/i.test(raw)) out.push(["an internal marker or comment", raw.match(/ow:(?:internal|end-internal)|<!--/i)[0]]);
+  if (/^\s*#*\s*internal\b|\b(?:internal notes?|not for the client)\b/i.test(raw)) out.push(["internal notes", raw.match(/internal notes?|not for the client|internal/i)[0]]);
+  const t = calendarNeutral(raw);
   const ours = OURS.test(t) || (user ? new RegExp(`\\b${esc(user)}\\b`).test(t) : false);
+  const isOurs = (c) => OURS.test(c) || (user ? new RegExp(`\\b${esc(user)}\\b`).test(c) : false);
   for (const [what, hit] of categoryFindings("", t, new Set(), { user })) {
-    if (/time or effort/.test(what) && !ours && CLIENT_SIDE.test(t)) continue;
+    // A quantity of time in a clause whose only people are the client's is their effort, though "we" acts in another
+    // clause ("Your team used up the spare boxes in two days, so we ordered more"; follow-up m2).
+    if (/time or effort/.test(what)) { const c = clauseAt(t, hit); if (!isOurs(c) && CLIENT_SIDE.test(c)) continue; }
     // A ratio of the client's own price is theirs (D1: "your price list goes up by about 5%").
     if (/ratio/.test(what) && !ours && /\b(?:your|their|the client'?s)\s+(?:[\w-]+\s+){0,2}?(?:price|prices|price list|rates?|fees?|charges?|costs?|margin)\b/i.test(t)) continue;
     out.push([what, hit]);
   }
-  for (const [re, what] of OUR_SIDE_WORDING) { const m = t.match(re); if (m) out.push([what, m[0]]); }
+  for (const [re, what, scope] of OUR_SIDE_WORDING) {
+    // A clause-scoped rule needs our side in the same clause as the words it matches.
+    const texts = scope === "clause" ? clausesOf(t).filter((c) => isOurs(c) && !(CLIENT_SIDE.test(c) && !/^\W*(?:I|we|my|our)\b/i.test(c))) : [t];
+    for (const x of texts) { const m = x.match(re); if (m) { out.push([what, m[0]]); break; } }
+  }
   return out;
+}
+
+/** The clauses of a sentence: split at a semicolon, or a comma before so, and, but, which, while, because or as. */
+const CLAUSE_SPLIT = /;\s*|,\s*(?=(?:so|and|but|which|while|because|as|then)\b)/i;
+const clausesOf = (t) => String(t).split(CLAUSE_SPLIT).map((c) => c.trim()).filter(Boolean);
+const clauseAt = (t, hit) => clausesOf(t).find((c) => c.includes(hit)) ?? t;
+
+/**
+ * Calendar words are not our time or money (follow-up m2, from the Evaluator's round-3 probes): "our time zone",
+ * "our time together", "our hours of support", "our days in the studio", "at our usual time", a time-zone offset
+ * ("an hour ahead of yours") and a meeting's length ("the check-in is fifteen minutes") are rewritten to neutral
+ * words before the rules run. Each rewrite needs the calendar noun next to it, so "our time on the export" stays ours.
+ */
+function calendarNeutral(s) {
+  return String(s)
+    .replace(/\b(?:my|our)\s+(?:time|hours?|days?)(?=\s+(?:zones?|slots?|difference|together|on the call|of (?:support|business|operation)|overlap|line up|in (?:town|the studio|the office|person)|on[- ]site|off)\b)/gi, "the calendar")
+    .replace(/\bat\s+(?:my|our)\s+(?:usual|normal|regular|weekly|standard)\s+(?=(?:time|times|slot|day|hour|place|spot|call|check-in|meeting)\b)/gi, "at the usual ")
+    .replace(/\b(?:an?|one|two|three|four|five|six|seven|eight|nine|ten|\d+)\s+hours?\s+(?=(?:ahead of|behind)\s+(?:yours|you|your time|us|ours)\b)/gi, "an offset ")
+    .replace(/\b((?:check-in|call|meeting|catch-up|stand-up|session|demo|workshop)s?\s+(?:is|was|are|were|runs?|ran|lasts?|lasted)\s+)(?:about\s+|around\s+)?(?:an?|one|two|three|four|five|ten|fifteen|twenty|thirty|forty|forty-five|sixty|ninety|\d+)\s+(?:minutes?|mins?|hours?)\b/gi, "$1short");
 }
 
 /**
@@ -315,16 +342,18 @@ const OUR_SIDE_WORDING = [
   [new RegExp(`${NOT_THEIRS}\\b(?:over|under)\\s+(?:the\\s+|our\\s+|my\\s+)?budget\\b`, "i"), "over or under our budget"],
   [/\bbudget(?:ed)?\s+(?:effort|hours|time|days)\b|\bdiscounted\s+(?:rate|price|fee)\b|\b(?:blended|day|hourly|standard|usual|normal)\s+rate\b(?<!\byour\s+\w+\s+rate)/i, "our rate or budgeted effort"],
   // Round 2 m1: the plain wording that still slipped, by category.
-  [/\b(?:I|we)\b[^.]{0,20}\b(?:bill|charge|invoic)\w*\b[^.]{0,30}\b(?:by the (?:half[\s-])?(?:day|hour|week|month)|per (?:hour|day|half[\s-]day)|hourly|at (?:my|our)\b|at cost|separately|on top)/i, "the basis we bill or charge on"],
+  [/\b(?:I|we)(?:'ll|'d|'ve|'re| will| would| can| could| just| also| usually| always| normally)*(?:\s+(?:need|needs|have|has|going|plan|plans)\s+to)?\s+(?:bill|charge|invoice)(?:s|d|ed|ing)?\b[^.]{0,30}\b(?:by the (?:half[\s-])?(?:day|hour|week|month)|per (?:hour|day|half[\s-]day)|hourly|at (?:my|our)\b|at cost|separately|on top)/i, "the basis we bill or charge on"],
   [/\bat\s+(?:my|our)\s+(?:usual|normal|standard|regular|full|discounted|hourly|daily)\b/i, "our usual basis for a price"],
-  [/\b(?:I|we)(?:'ve|'d| have| had)?\s+(?:\w+ly\s+)?(?:spent|spend|put in|sank|sunk|lost)\b(?![^.]*\bwith (?:you|your)\b)[^.]{0,25}?\b(?:(?:most|all|half|part) of\s+)?(?:the\s+)?(?:whole\s+)?(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|day|days|week|weekend|evening|evenings|morning|afternoon|night|nights)\b/i, "a span of our effort"],
-  [/\b(?:used up|burned through|burnt through|burned|burnt|blown through|eaten (?:up|into)|ran through|run through|gone through)\b[^.]{0,30}\b(?:hours|days|budget|time|contingency|allowance|buffer|estimate)\b(?<=^(?=.*\b(?:I|we|our|my|us)\b).*)/i, "an allowance of ours used up"],
+  [/(?:\b(?:I|we)(?:'ve|'d| have| had)?|\b(?:my|our)\s+(?:[\w-]+\s+){0,2}?(?:team|developers?|designers?|engineers?|contractors?|freelancers?|staff|people)(?:'ve| have| had)?|\bthe\s+(?:developers?|designers?|engineers?|contractors?|freelancers?)\b(?=[^.]*\b(?:on|from)\s+(?:our|my)\s+(?:side|end)\b))\s+(?:\w+ly\s+)?(?:spent|spend|put in|sank|sunk|lost)\b(?![^.]*\b(?:with|at|in|visiting)\s+(?:you|your)\b)[^.]{0,25}?\b(?:(?:most|all|half|part) of\s+)?(?:the\s+)?(?:whole\s+)?(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|day|days|week|weekend|evening|evenings|morning|afternoon|night|nights)\b/i, "a span of our effort"],
+  // Follow-up m2: an overrun said as a comparison with our own plan ("took us twice as long as we planned").
+  [/\btook\s+(?:us|me)\b[^.]{0,40}\b(?:longer|as long|more)\b[^.]{0,30}\b(?:than|as)\s+(?:we|I)(?:'d| had)?\s+(?:planned|estimated|expected|budgeted|quoted|thought|allowed)\b/i, "an overrun against our own plan"],
+  [/\b(?:used up|burned through|burnt through|burned|burnt|blown through|eaten (?:up|into)|ran through|run through|gone through)\b[^.]{0,30}\b(?:hours|days|budget|time|contingency|allowance|buffer|estimate)\b/i, "an allowance of ours used up", "clause"],
   [/\b(?:hours|days|time|budget)\s+(?:that\s+)?(?:we|I)\s+(?:had\s+)?(?:set aside|budgeted|planned|allowed|allocated)\b/i, "an allowance of ours"],
-  [/\b(?:I|we)(?:'ll| will| would)?\s+(?:\w+ly\s+)?(?:add|put|apply|charge)\b[^.]{0,20}(?:\d+(?:\.\d+)?\s?%|\bper ?cent\b|\bpercent\b)/i, "a percentage we add to a price"],
-  [/\b(?:my|our)\s+(?:time|hours|effort|days)\b(?!\s+(?:on the call|together|today|with you|this morning|this afternoon))/i, "our time or effort (without a number)"],
+  [/\b(?:I|we)(?:'ll| will| would)?\s+(?:\w+ly\s+)?(?:add|put|apply|charge)\b[^.]{0,20}(?:\d+(?:\.\d+)?\s?%|\bper ?cent\b|\bpercent\b)(?!\s+(?:more|extra|additional|fewer)\s+(?!(?:fees?|charges?|costs?|on top)\b)[a-z])/i, "a percentage we add to a price"],
+  [/\b(?:my|our)\s+(?:[\w-]+(?:'s)?\s+)?(?:time|hours|effort|days)\b(?!\s+(?:on the call|together|today|with you|this morning|this afternoon))(?<!\b(?:my|our)\s+(?:usual|weekly|next|last|first)\s+(?:time|hours|days))/i, "our time or effort (without a number)"],
   [/\b(?:I|we)(?:'ve| have| had)?\s+(?:\w+ly\s+)?(?:priced|quoted|charged|billed|estimated|underestimated|overestimated)\b[^.]{0,30}\b(?:below|under|above|over|at a loss|at cost|too|low|high)\b/i, "how we priced or quoted it"],
-  [/\b(?:quote|quoted|price|priced|estimate|estimated)\b[^.]{0,40}\btoo\s+(?:low|high|tight|thin)\b(?<=^(?=.*\b(?:I|we|our|my|us)\b).*)/i, "an under- or over-quote of ours"],
-  [/(?<!\b(?:your|their)\s+(?:\w+\s+)?)\bbillable\b/i, "billable time of ours"],
+  [/(?<!\b(?:your|their|the client'?s)\s+(?:[\w-]+\s+){0,2})\b(?:quote|quoted|price|priced|estimate|estimated)\b[^.]{0,40}\btoo\s+(?:low|high|tight|thin)\b/i, "an under- or over-quote of ours", "clause"],
+  [/(?<!\b(?:your|their|the client'?s)\s+(?:[\w'’-]+\s+){0,2})\bbillable\b/i, "billable time of ours"],
 ];
 
 const HONORIFIC = /\b(?:Mr|Mrs|Ms|Mx|Miss|Dr|Prof)\.?\s+[A-Z][a-z]+/;
@@ -333,7 +362,20 @@ const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/;
 // 7-digit local number ("555-0142", "555 0123"); an ISO date (4-2-2) is never one.
 // An international number with a country code ("+44 20 7946 0958"), or 10 or 11 digits unformatted
 // ("5125550199") count too (round 2 m6).
-const PHONE = /(?:\+?\d{1,3}[\s.-]?)?(?:\(\d{3}\)\s?|\b\d{3}[\s.-])\d{3}[\s.-]\d{4}\b|(?<![\d.-])\b\d{3}[\s.-]\d{4}\b(?![.-]\d)|(?<![\w+])\+\d{1,3}(?:[\s.-]?\(?\d\)?){7,12}(?!\d)|(?<![\w.,-])\d{10,11}(?![\w.,-])/;
+const PHONE = /(?:\+?\d{1,3}[\s.-]?)?(?:\(\d{3}\)\s?|\b\d{3}[\s.-])\d{3}[\s.-]\d{4}\b|(?<![\d.-])\b\d{3}[\s.-]\d{4}\b(?![.-]\d)|(?<![\w+])\+\d{1,3}(?:[\s.-]?\(?\d\)?){7,12}(?!\d)/;
+// Ten or eleven digits run together are a phone number only next to a phone word ("Text 5125550199"), never an id
+// with its label ("order 1000234567", "the export batch 20261013001"; follow-up m5).
+const DIGITS_10_11 = /(?<![\w.,-])\d{10,11}(?![\w.,-])/g;
+const PHONE_WORD = /\b(?:call|calls|calling|ring|text|texts|phone|phones|tel|telephone|mobile|cell|whatsapp|sms|fax|dial|reach (?:me|us|him|her|them)|number)\b/i;
+const ID_WORD = /\b(?:orders?|batch(?:es)?|invoices?|ids?|ref|reference|refs|sku|po|tracking|exports?|accounts?|items?|tickets?|cases?|serial|codes?|runs?|lots?|parcels?|shipments?)\s*(?:no\.?|number|#|id|:)?\s*$/i;
+function unformattedPhone(l) {
+  for (const m of String(l).matchAll(DIGITS_10_11)) {
+    const before = l.slice(Math.max(0, m.index - 30), m.index);
+    if (ID_WORD.test(before) || /#\s*$/.test(before)) continue;
+    if (PHONE_WORD.test(before) || PHONE_WORD.test(l.slice(m.index + m[0].length, m.index + m[0].length + 20))) return m[0];
+  }
+  return null;
+}
 // `<Name> from <Organisation>`. Mid-sentence, a capitalised word before "from <Capitalised>" is a
 // name. At the start of a sentence it may be a noun ("Stoneware from Laguna arrives"), so there it
 // counts only when a person's verb follows the organisation ("Jordan from Larkspur will send").
@@ -352,6 +394,7 @@ export function peopleFindings(line, names = []) {
   const l = String(line);
   if (EMAIL.test(l)) out.push(["an email address", l.match(EMAIL)[0]]);
   if (PHONE.test(l)) out.push(["a phone number", l.match(PHONE)[0]]);
+  else { const u = unformattedPhone(l); if (u) out.push(["a phone number", u]); }
   for (const n of names) if (new RegExp(`(?<![\\w-])${esc(n)}(?![\\w-])`).test(l)) out.push(["a person's name", n]);
   if (HONORIFIC.test(l)) out.push(["an honorific with a name", l.match(HONORIFIC)[0]]);
   for (const m of l.matchAll(NAME_FROM_ORG)) {
@@ -384,6 +427,8 @@ const WS = "[a-z0-9]+(?:-[a-z0-9]+)*";
 const ROLE_WORD = "(?:[a-z]+(?:['’]s)?|[A-Z]{2,5}(?:['’]s)?)";
 const ROLE = `(?=(?:[A-Z]{2,5}(?:['’]s)?[ -])*[a-z])${ROLE_WORD}(?:[ -]${ROLE_WORD}){0,4}`;
 const LINE_RE = new RegExp(`^(${DATE}) \\(clock: (?:tool|host-supplied|user-stated|assumed)\\) \\| ow-start \\d+\\.\\d+\\.\\d+ \\| (logs/(${WS})/(?:meetings/(MTG-\\d{2,})/(?:agenda\\.md|notes\\.md(?:#(A-\\d{2,}))?)|decisions/(DEC-\\d{2,})\\.md)) \\| next: (.+) \\| awaiting: (.+)$`);
+/** The logs exist since ow-start 1.1.0: a logs file or line names 1.1.0 or any later version (1.1.1 is the follow-up release; the goldens keep the 1.1.0 they were written with). */
+const logsVersion = (s) => { const m = String(s).match(/^ow-start (\d+)\.(\d+)\.(\d+)$/); return !!m && (Number(m[1]) > 1 || (Number(m[1]) === 1 && Number(m[2]) >= 1)); };
 
 /** Problems with one logs STATUS line against the closed grammar; `roles(mtg)` gives that meeting's attendee roles. */
 export function statusLineProblems(line, roles = () => null) {
@@ -431,7 +476,7 @@ function checkHeaders(key, run) {
     if (!want) { p.push(`${at}: not a logs file this skill writes`); continue; }
     if (data.ow_artefact !== want) p.push(`${at}: ow_artefact is ${data.ow_artefact}, expected ${want}`);
     if (String(data.schema) !== "1") p.push(`${at}: schema is ${data.schema}, expected 1`);
-    if (data.written_by !== "ow-start 1.1.0 (protocol 1)") p.push(`${at}: written_by is "${data.written_by}", expected "ow-start 1.1.0 (protocol 1)"`);
+    if (!logsVersion(String(data.written_by ?? "").replace(/ \(protocol 1\)$/, "")) || !/ \(protocol 1\)$/.test(String(data.written_by ?? ""))) p.push(`${at}: written_by is "${data.written_by}", expected "ow-start <1.1.0 or later> (protocol 1)"`);
     if (data.workstream !== key.workstream) p.push(`${at}: workstream is ${data.workstream}, expected ${key.workstream}`);
     if (!data.subject) p.push(`${at}: subject is missing`);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(iso(data.created) ?? "")) p.push(`${at}: created "${iso(data.created)}" is not a date`);
@@ -508,7 +553,7 @@ function checkStatus(key, run) {
     const f = fields5(l);
     if (f.length !== 5) { p.push(`appended line ${i + 1} has ${f.length} fields, expected 5: ${l}`); return; }
     if (!/^\d{4}-\d{2}-\d{2} \(clock: (tool|host-supplied|user-stated|assumed)\)$/.test(f[0])) p.push(`appended line ${i + 1}: "${f[0]}" lacks a date with its clock source`);
-    if (f[1] !== "ow-start 1.1.0") p.push(`appended line ${i + 1}: skill field is "${f[1]}"`);
+    if (!logsVersion(f[1])) p.push(`appended line ${i + 1}: skill field is "${f[1]}", expected ow-start 1.1.0 or later`);
     if (f[2] !== w.path) p.push(`appended line ${i + 1}: path ${f[2]}, expected ${w.path}`);
     if (f[3] !== `next: ${w.next}`) p.push(`appended line ${i + 1}: "${f[3]}", expected "next: ${w.next}"`);
     if (f[4] !== `awaiting: ${w.awaiting}`) p.push(`appended line ${i + 1}: "${f[4]}", expected "awaiting: ${w.awaiting}"`);
@@ -533,6 +578,11 @@ function checkStatusGrammar(key, run) {
   return p;
 }
 
+/** The verbs whose whole job is a screen; every other route that writes nothing is a refusal, a no-op or a question. */
+const SCREEN_VERBS = new Set(["/ow-start-log", "/ow-start", "/ow-status"]);
+/** A claim that an item changed state: "A-01 is closed", "marked done", "(done 2026-10-17)". */
+const STATE_CLAIM = /(?<!\b(?:nothing|not|never)\s)\b(?:is|was|are|were|has been|have been|now|marked|got)\s+(?:now\s+)?(?:closed|done|dropped|moved|reviewed|logged|superseded)\b|\((?:done|dropped|reviewed|moved|superseded) \d{4}-\d{2}-\d{2}\)/i;
+
 function checkRoute(key, run) {
   const p = [];
   const r = key.route ?? {};
@@ -548,9 +598,17 @@ function checkRoute(key, run) {
   for (const s of r.says ?? []) if (!new RegExp(s, "im").test(screen)) p.push(`${want} does not say /${s}/`);
   p.push(...tokenProblems(want, screen, r.tokens));
   for (const s of r.never ?? []) if (new RegExp(s, "m").test(screen)) p.push(`${want} says /${s}/, which this route never prints`);
-  // A route that writes nothing never reports a result: no DONE line, no appended STATUS line (round 2 D1′b).
+  // One NEXT block per screen (references/logs-status-and-index.md §5; follow-up, the Evaluator's V09).
+  const nexts = screen.split("\n").filter((l) => /^\s*NEXT:/.test(l)).length;
+  if (nexts > 1) p.push(`${want} prints ${nexts} NEXT lines; a screen has exactly one NEXT block`);
+  // A route that writes nothing never reports a result: no DONE line, no appended STATUS line, no NEXT block (round 2
+  // D1′b; follow-up V14). A refusal, a no-op or a question also never says an item changed state (§5; V13).
   if (key.writes_nothing) {
-    for (const [re, what] of [[/^\s*DONE:/m, "a DONE: line"], [/^\s*Appended:/m, "an Appended: line"]]) if (re.test(screen)) p.push(`${want} prints ${what}, but this route writes nothing`);
+    for (const [re, what] of [[/^\s*DONE:/m, "a DONE: line"], [/^\s*Appended:/m, "an Appended: line"], [/^\s*NEXT:/m, "a NEXT block"]]) if (re.test(screen)) p.push(`${want} prints ${what}, but this route writes nothing`);
+    if (!SCREEN_VERBS.has(r.verb ?? key.verbs?.[0])) {
+      const claim = screen.split("\n").find((l) => !/^\s*(?:Step 0\b|Refused:)/.test(l) && STATE_CLAIM.test(l));
+      if (claim) p.push(`${want} says an item changed state ("${claim.trim().slice(0, 80)}"), but this route writes nothing`);
+    }
   }
   if (r.ask && run.written().some((f) => f !== ".gitignore")) p.push(`the route asks first (${r.ask}), but the run wrote ${run.written().join(", ")}`);
   if (r.ask && !new RegExp(r.ask, "im").test(screen)) p.push(`${want} does not ask /${r.ask}/`);
@@ -868,14 +926,23 @@ function checkIndex(key, run) {
     const s = words5.slice(i, i + 5).join(" ");
     if (shingles.has(s)) { p.push(`${screenRel} copies the words of a header value the index row does not name ("${s}")`); break; }
   }
-  const MONEY_LINE = /\b(?:price[ds]?|fees?|costs?|amounts?|payments?|totals?|charges?|rates?|invoiced?|paid|USD|EUR|GBP)\b|[$€£]/i;
+  // A money word next to the number ("a fee of 2000", "USD 2,000", "2,600 paid"), not anywhere on the line:
+  // "your price list covers about 450 products" is a count of the client's (follow-up m3).
+  const MONEY_WORD = "(?:price[ds]?|fees?|costs?|amounts?|payments?|totals?|charges?|rates?|invoiced?|paid|USD|EUR|GBP|dollars?|euros?|pounds?)";
+  const MONEY_BEFORE = new RegExp(`(?:\\b${MONEY_WORD}\\b|[$€£])\\s*(?:[\\w,.:()-]+\\s+){0,2}$`, "i");
+  const MONEY_AFTER = new RegExp(`^\\s*(?:[\\w,.:()-]+\\s+){0,1}\\b${MONEY_WORD}\\b`, "i");
   const all = new Set([...amountsOf.values()].flatMap((s) => [...s]));
+  let carried = [];
   screen.split("\n").forEach((l, i) => {
     const m = l.match(MONEY_QTY);
     if (m) p.push(`${screenRel}:${i + 1}: an amount of money ("${m[0]}"); the index never shows one`);
-    // By attribution, not by value alone: a number counts on the line that lists its file, or on a line about money.
-    const own = [...amountsOf.entries()].filter(([rel]) => l.includes(rel)).flatMap(([, s]) => [...s]);
-    for (const x of numbersIn(l)) if (!x.year && (own.includes(x.n) || (MONEY_LINE.test(l) && all.has(x.n)))) p.push(`${screenRel}:${i + 1}: copies an amount from an indexed file's header (${x.n}), in whatever form it is written`);
+    // By attribution, not by value alone: a number counts on the line that lists its file, on a line that continues
+    // it (indented, or not a new item: "  2,600 agreed"), or next to a money word.
+    const listed = [...amountsOf.keys()].filter((rel) => l.includes(rel));
+    const continues = !listed.length && l.trim() && (/^\s+\S/.test(l) || !/^\s*(?:[-*|#]|\d+[.)]\s)/.test(l)) && !/^[A-Z][\w ]*$/.test(l.trim());
+    if (listed.length) carried = listed; else if (!continues) carried = [];
+    const own = (listed.length ? listed : carried).flatMap((rel) => [...amountsOf.get(rel)]);
+    for (const x of numbersIn(l)) if (!x.year && (own.includes(x.n) || ((MONEY_BEFORE.test(x.before) || MONEY_AFTER.test(x.after)) && all.has(x.n)))) p.push(`${screenRel}:${i + 1}: copies an amount from an indexed file's header (${x.n}), in whatever form it is written`);
   });
   const names = knownNames(key, run);
   screen.split("\n").forEach((l, i) => { for (const [what, hit] of peopleFindings(l, names)) p.push(`${screenRel}:${i + 1}: ${what} ("${hit}"); the index never shows a person`); });
@@ -886,17 +953,20 @@ function checkIndex(key, run) {
 
 /**
  * Numbers in a text by value, dates and ids left out: "USD 2,600.00" and "2,600" are both 2600.
- * A bare four-digit 1900-2100 is a year only in a date-like context ("in 2026", "December 2026");
- * a figure with a comma or decimals ("(2,000)", "2000.00") is never one (round 2 m4).
+ * A bare four-digit 1900-2100 is a year only in a date-like context: after a month or a day ("December 2026",
+ * "3 March 2026"), after "in", "since", "until", "during", "before", "after", "early", "late" or "mid", or after
+ * another year ("2025 to 2026"). "Of", "to", "from" and "by" alone are not ("a fee of 2000", "up to 2000";
+ * follow-up m3). A figure with a comma or decimals ("(2,000)", "2000.00") is never one (round 2 m4).
  */
 const MONTHS_RE = "(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)";
-const YEAR_BEFORE = new RegExp(`(?:\\b${MONTHS_RE}\\.?|\\b(?:in|since|until|by|of|from|to|year|years|early|late|mid)|\\b\\d{1,2})\\s+$`, "i");
+const YEAR_BEFORE = new RegExp(`(?:\\b${MONTHS_RE}\\.?,?|\\b(?:in|since|until|till|during|before|after|year|years|early|late|mid|mid-)|\\b\\d{1,2}(?:st|nd|rd|th)?|\\b(?:19|20)\\d{2}\\s*(?:to|through|and|-|–))\\s*$`, "i");
 function numbersIn(text) {
   const t = String(text).replace(/\b\d{4}-\d{2}-\d{2}\b/g, " ").replace(/\b[A-Z]{1,4}-?\d+(?:\.\d+)*\b/g, " ").replace(/\b\d{1,2}:\d{2}\b/g, " ");
   return [...t.matchAll(/(?<![\w.])\d{1,3}(?:,\d{3})+(?:\.\d+)?|(?<![\w.,])\d+(?:\.\d+)?/g)].map((m) => {
     const n = Number(m[0].replace(/,/g, ""));
-    const year = /^\d{4}$/.test(m[0]) && n >= 1900 && n <= 2100 && YEAR_BEFORE.test(t.slice(Math.max(0, m.index - 14), m.index));
-    return { n, year };
+    const before = t.slice(Math.max(0, m.index - 40), m.index);
+    const year = /^\d{4}$/.test(m[0]) && n >= 1900 && n <= 2100 && YEAR_BEFORE.test(before.slice(-16));
+    return { n, year, before, after: t.slice(m.index + m[0].length, m.index + m[0].length + 30) };
   }).filter((x) => Number.isFinite(x.n));
 }
 
@@ -971,8 +1041,15 @@ function checkGitignore(key, run) {
  * is stored, it fails (round 2 m5).
  */
 const HANDLING_QUESTION = "Does any of this material carry a sensitivity marking";
-// The question in other words: a question line about sensitivity, a marking, restrictions or where it may be processed.
-const HANDLING_ASKED = /^(?=[^\n]*\?)[^\n]*\b(?:sensitiv\w*|marking|restricted|restriction|confidential|classified|handling (?:rule|level|requirement)s?|where (?:it|this|they|the material) (?:may|can|is allowed to) be (?:processed|used|stored)|allowed to process)\b/im;
+// The question in other words (follow-up m4): a line that asks, with or without a question mark ("tell me whether",
+// "let me know if"), about sensitivity, a marking or a restriction of the material being processed. An open question
+// echoed from the notes ("Still open (Q1): are any glazes restricted for export?") is about the client's business,
+// not the material, and is never the handling question.
+const HANDLING_WORDS = /\b(?:sensitiv\w*|marking|markings|restricted|restriction|restrictions|confidential|classified|handling (?:rule|level|requirement)s?|where (?:it|this|they|the material) (?:may|can|is allowed to) be (?:processed|used|stored)|allowed to process)\b/i;
+const MATERIAL = /\b(?:th(?:is|ese|e) (?:material|materials|files?|documents?|transcripts?|notes|recordings?|data|information)|any of (?:this|it|these|the material|the files)|anything (?:you|I) (?:share|send|give|paste))\b/i;
+const ASKING = /\?|\b(?:tell me|let me know|confirm|say|answer|check)\b[^.]*\b(?:whether|if)\b|\bplease (?:tell|confirm|say)\b/i;
+const ECHOED = /^\s*(?:[-*]\s*)?(?:Still open|Open questions?|Q\d+\b)/i;
+const handlingAsked = (screens) => String(screens).split("\n").some((l) => !ECHOED.test(l) && HANDLING_WORDS.test(l) && MATERIAL.test(l) && ASKING.test(l));
 function storedHandling(key, run) {
   const sources = [];
   const read = (rel, yamlFile) => { try { const t = run.priorRead(rel); if (t == null) return; const d = yamlFile ? yaml.load(t) : matter(t).data; if (d && d.handling != null && String(d.handling) !== "") sources.push(rel.replace(OW, "")); } catch { /* unreadable: not a stored value */ } };
@@ -985,7 +1062,7 @@ function checkHandling(key, run) {
   const p = [];
   const h = key.handling ?? {};
   const screens = run.printed().map((s) => run.screen(s) ?? "").join("\n");
-  const asked = screens.includes(HANDLING_QUESTION) || HANDLING_ASKED.test(screens);
+  const asked = screens.includes(HANDLING_QUESTION) || handlingAsked(screens);
   const stored = storedHandling(key, run);
   if (run.written().includes(`${OW}profile.md`)) p.push("profile.md was written by a logs verb; the handling answer goes in the logs file's header");
   const file = logsWritten(run).find((x) => x.endsWith(".md"));

@@ -11,6 +11,7 @@ writes_nothing: true
 checks: [writes, status, route, private_names, handling]
 route:
   verb: /ow-start-action
+  says: ["Nothing is written until you answer\\."]
   ask: "which workstream"
   tokens: [["larkspur-ceramics"], ["business"]]
 status: { lines: [] }

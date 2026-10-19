@@ -12,7 +12,7 @@ checks: [writes, write_once, status, status_grammar, route, screen, private_name
 route:
   verb: /ow-start-action
   says: ["Appended:", "Open in larkspur-ceramics:"]
-  tokens: [["Appended:", "notes.md#A-01", "2026-10-16"]]
+  tokens: [["Appended:", "notes.md#A-01", "2026-10-16"], ["Self-checks", "No client text in STATUS", "No private names"]]
 screen:
   tokens: [["A-01", "client ops lead", "2026-10-16"], ["A-02", "you", "2026-10-19"], ["DEC-01", "2026-10-19"]]
   must_not: ["^(?!Step 0\\.)(?!\\s*Appended:).*\\bA-01\\b[^\\n|]*2026-10-23"]

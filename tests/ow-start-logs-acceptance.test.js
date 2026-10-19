@@ -15,6 +15,9 @@ import { HELDOUT_LEGIT, HELDOUT_NAMES, HELDOUT_OURS, HELDOUT_PEOPLE, HELDOUT_PRI
 import * as R1 from "./ow-start-logs-eval-r1-sentences.mjs";
 import * as R2 from "./ow-start-logs-eval-r2-sentences.mjs";
 import { HELDOUT3_LEGIT, HELDOUT3_OURS } from "./ow-start-logs-heldout-r3.mjs";
+import { HELDOUT4_LEGIT, HELDOUT4_OURS } from "./ow-start-logs-heldout-r4.mjs";
+import * as R3 from "./ow-start-logs-eval-r3-sentences.mjs";
+import { FOLLOWUP_R3_PLANTS, FOLLOWUP_SCHEDULING_CONTROLS } from "./ow-start-logs-sentences.mjs";
 import { readdirSync, rmSync } from "node:fs";
 import { listCases } from "../scripts/ow-start-acceptance.mjs";
 import {
@@ -206,10 +209,12 @@ describe("round 3: a new held-out set written before any round-3 rule changed (r
   // by this set; the rule now leaves a ratio alone when the price is the client's ("your price"), which is
   // the one change this set informed, and is disclosed as such. The two misses ("Our team spent the whole
   // of Wednesday rebuilding the import.", "This phase is not paying for itself on our side.") are left
-  // unfixed on purpose for the next Evaluator, as round 2's four were.
+  // unfixed on purpose for the next Evaluator, as round 2's four were. Round 3's Evaluator ruled the first plain
+  // (m2) and the second an idiom (accepted); the follow-up's named-subject rule catches the first, so this set is
+  // no longer unseen: 14/15. The follow-up's own unseen set is tests/ow-start-logs-heldout-r4.mjs (below).
   const ff = (s) => followUpFindings(s, { user: "Robin" });
-  it("our side: 13 of 15 caught (9 before round 3's rules)", () => {
-    expect(HELDOUT3_OURS.filter((s) => !ff(s).length)).toEqual(["Our team spent the whole of Wednesday rebuilding the import.", "This phase is not paying for itself on our side."]);
+  it("our side: 14 of 15 caught (9 before round 3's rules, 13 after; the idiom is the accepted miss)", () => {
+    expect(HELDOUT3_OURS.filter((s) => !ff(s).length)).toEqual(["This phase is not paying for itself on our side."]);
   });
   it("legitimate client sentences: 0 of 15 flagged (1 before)", () => expect(HELDOUT3_LEGIT.filter((s) => ff(s).length)).toEqual([]));
 });
@@ -230,6 +235,46 @@ describe("round 2: the Evaluator's sentence sets, permanent (written before the 
   for (const [id, s] of R2.PRIVATE_CONTROLS2) it(`${id} (private-name control) passes`, () => expect(privateNameFindings(s)).toEqual([]));
 });
 
+describe("follow-up: a held-out set written before any follow-up rule changed (reported, never tuned)", () => {
+  // Measured on main's rules (fd437ac8, ow-start 1.1.0), before any follow-up change: our side 11/15 caught, 3/15
+  // scheduling sentences flagged ("Our time zone is an hour ahead of yours…", "Our usual check-in is fifteen
+  // minutes…", "Our days on site are…"). After the follow-up's rules: 13/15 caught, 0/15 flagged. The rules were
+  // written from the Evaluator's round-3 misses and probes and from the scheduling controls, never from this set.
+  // The two misses ("We ate the cost of the second test round ourselves.", "We spent far more hours on the export
+  // than we budgeted.") are left unfixed on purpose for the next Evaluator.
+  const ff = (s) => followUpFindings(s, { user: "Robin" });
+  it("our side: 13 of 15 caught (11 before)", () => {
+    expect(HELDOUT4_OURS.filter((s) => !ff(s).length)).toEqual(["We ate the cost of the second test round ourselves.", "We spent far more hours on the export than we budgeted."]);
+  });
+  it("legitimate scheduling sentences: 0 of 15 flagged (3 before)", () => expect(HELDOUT4_LEGIT.filter((s) => ff(s).length)).toEqual([]));
+});
+
+describe("follow-up: the scheduling controls, written before the rules (owner decision O8)", () => {
+  // Before the follow-up's rules, 18 of these 30 were flagged (11 of the Evaluator's 18 probes); now none is.
+  const ff = (s) => followUpFindings(s, { user: "Robin" });
+  it(`all ${FOLLOWUP_SCHEDULING_CONTROLS.length} must-pass scheduling and client-side sentences pass`, () => {
+    expect(FOLLOWUP_SCHEDULING_CONTROLS.length).toBe(30);
+    expect(FOLLOWUP_SCHEDULING_CONTROLS.filter((s) => ff(s).length)).toEqual([]);
+  });
+  for (const s of FOLLOWUP_R3_PLANTS) it(`our side, round 3's plain miss, is caught: "${s.slice(0, 50)}"`, () => expect(ff(s).length).toBeGreaterThan(0));
+});
+
+describe("round 3: the Evaluator's sentence sets, permanent (written before the Evaluator read the round-3 checker)", () => {
+  const ff = (s) => followUpFindings(s, { user: "Robin" });
+  const names = ["Dana", "Jess", "Marcus", "Robin"];
+  // G13 ("I worked through the weekend on the order view.") is the class of round 1's accepted U30; the Evaluator
+  // did not count it as a defect. G07 and G17 were round 3's plain misses (m2) and are caught now.
+  for (const [id, , s] of R3.OURS3.filter(([id, k]) => k === "plain" && id !== "G13")) it(`${id} (plain, our side) is caught: "${s.slice(0, 50)}"`, () => expect(ff(s).length).toBeGreaterThan(0));
+  it("G13 and the implied ones: G19 caught; G13, G18 and G20 the accepted misses", () => {
+    expect(R3.OURS3.filter(([id, k, s]) => (k === "implied" || id === "G13") && !ff(s).length).map(([id]) => id)).toEqual(["G13", "G18", "G20"]);
+  });
+  for (const [id, s] of R3.LEGIT3) it(`${id} (legitimate) passes the follow-up and people checks`, () => expect([...ff(s), ...peopleFindings(s, names)]).toEqual([]));
+  for (const [id, cat, s] of R3.NAMES3) it(`${id} (${cat}) is caught`, () => expect(peopleFindings(s, names).length).toBeGreaterThan(0));
+  for (const [id, s] of R3.NAME_CONTROLS3) it(`${id} (people control) passes`, () => expect(peopleFindings(s, names)).toEqual([]));
+  for (const [id, s] of R3.PRIVATE3) it(`${id} (private name) is caught: "${s}"`, () => expect(privateNameFindings(s).length).toBeGreaterThan(0));
+  for (const [id, s] of R3.PRIVATE_CONTROLS3) it(`${id} (private-name control) passes`, () => expect(privateNameFindings(s)).toEqual([]));
+});
+
 describe("R1-4: screens are graded on prescribed text and structure only (round 2 D1′)", () => {
   // Owner decision R1-4: a screen is graded only on the text the references prescribe for it, and on
   // structure. Structure is a single unit: an id, a date, a path or verb, a file name, a workstream, or
@@ -245,9 +290,15 @@ describe("R1-4: screens are graded on prescribed text and structure only (round 
   const PRESCRIBED = [
     ["Appended:", LI], ["Open in <workstream>:", LI], ["Nothing logged yet for <workstream>", LI], ["reported overdue", LI],
     ["no date in its header", LI], ["which workstream", LI], ["confirm it", LI], ["Index copies nothing", LI],
-    // the /ow-status tables' columns, and a meeting's state on the -log screen
-    ["client", LI], ["last step", LI], ["next", LI], ["awaiting", LI], ["workstream", LI], ["item", LI], ["owner role", LI], ["due", LI], ["logged", LI],
-    ["People by role", SC], ["No private names", SC], ["No client text in STATUS", SC], ["refused", SC], ["can never be waived", SC],
+    // the /ow-status tables' columns: the family's own terms only; single generic words ("client", "next", "due",
+    // "item", "logged") add nothing as graded text (follow-up nit)
+    ["last step", LI], ["awaiting", LI], ["workstream", LI], ["owner role", LI],
+    // the screen words of §5 (follow-up: prescribed refusal, no-op and question words)
+    ["Refused:", LI], ["Nothing was written", LI], ["Nothing is written until you answer.", LI], ["Nothing is shown until you answer.", LI],
+    ["records no decisions", LI], ["Self-checks", LI], ["It will read:", LI], ["IF IT IS NOT AVAILABLE:", LI],
+    // the checks, by name
+    ["People by role", SC], ["No private names", SC], ["No client text in STATUS", SC], ["Trace", SC], ["Owner and date", SC],
+    ["Follow-up clean", SC], ["Never edited", SC], ["refused", SC], ["can never be waived", SC],
     ["who is who by role", PLM], ["fully logged", PLM], ["your notes", PLM], ["use ow-tools to transcribe", PLM],
     ["redo that agenda or start a new meeting", "references/phase-prep-meeting.md"], ["not a fit call", "references/phase-extract.md"],
     ["not installed here", "references/phase-setup.md"],
