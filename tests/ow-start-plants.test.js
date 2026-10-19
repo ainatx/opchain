@@ -2,8 +2,9 @@
 // permanent case (contract C18). Each plant edits a copy of the real tree or of
 // a golden run and expects the named check to fail; the unedited copy passes.
 // A skip is allowed only when it names an owner decision, with an honest label.
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, onTestFinished } from "vitest";
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { loadCatalogs } from "../scripts/lib/catalogs.mjs";
@@ -14,9 +15,17 @@ import { FIXTURES, listLogsCases, loadKey, runCase, runView } from "../scripts/o
 import * as logs from "./ow-start-logs-helpers.mjs";
 
 const ROOT = join(import.meta.dirname, "..");
+// A scratch folder made inside a test is removed in the background once that test finishes; the rest wait for afterAll.
 const scratch = [];
-afterAll(() => { scratch.forEach((d) => rmSync(d, { recursive: true, force: true })); logs.cleanup(); });
-const temp = (prefix) => { const d = realpathSync(mkdtempSync(join(tmpdir(), prefix))); scratch.push(d); return d; };
+const pending = new Set();
+const remove = (d) => rmSync(d, { recursive: true, force: true });
+const removeLater = (d) => { const job = rm(d, { recursive: true, force: true }).catch(() => {}).finally(() => pending.delete(job)); pending.add(job); };
+afterAll(async () => { scratch.splice(0).forEach(remove); await Promise.all(pending); await logs.cleanup(); }, 120_000);
+const temp = (prefix) => {
+  const d = realpathSync(mkdtempSync(join(tmpdir(), prefix)));
+  try { onTestFinished(() => removeLater(d)); } catch { scratch.push(d); }
+  return d;
+};
 const rep = (a, b) => (t) => { if (!t.includes(a)) throw new Error(`no match: ${a.slice(0, 70)}`); return t.split(a).join(b); };
 
 /** A copy of skills-work/ with `edit` applied, loaded as the catalogs. */

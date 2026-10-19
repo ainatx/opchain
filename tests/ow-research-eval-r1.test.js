@@ -4,8 +4,9 @@
 // plants aimed at the ow-currency THEN block the owner removed on 2026-10-19 (J04, J05, J10) are restated against the
 // watch line that replaced it; S07, which the Evaluator withdrew (its approval was already in question.md), is a pass.
 // Generated from the Evaluator's files; every input is invented, and nothing touches the network.
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, onTestFinished } from "vitest";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, statSync, unlinkSync, writeFileSync } from "node:fs";
+import { rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import * as R from "../scripts/ow-research-acceptance.mjs";
@@ -17,9 +18,17 @@ import { pinProblems } from "./ow-text-pins.mjs";
 import { LEAKY, SHAPE, BEYOND, LEGIT, RLEGIT, RSLIP, CONF } from "./ow-research-eval-r1-sets.mjs";
 
 const ROOT = join(import.meta.dirname, "..");
+// A scratch folder made inside a test is removed in the background once that test finishes; the rest wait for afterAll.
 const scratch = [];
-afterAll(() => scratch.splice(0).forEach((d) => rmSync(d, { recursive: true, force: true })));
-const temp = (p) => { const d = mkdtempSync(join(tmpdir(), p)); scratch.push(d); return d; };
+const pending = new Set();
+const remove = (d) => rmSync(d, { recursive: true, force: true });
+const removeLater = (d) => { const job = rm(d, { recursive: true, force: true }).catch(() => {}).finally(() => pending.delete(job)); pending.add(job); };
+afterAll(async () => { scratch.splice(0).forEach(remove); await Promise.all(pending); }, 120_000);
+const temp = (p) => {
+  const d = mkdtempSync(join(tmpdir(), p));
+  try { onTestFinished(() => removeLater(d)); } catch { scratch.push(d); }
+  return d;
+};
 const rep = (a, b) => (t) => { if (t == null || !t.includes(a)) throw new Error(`no match: ${String(a).slice(0, 80)}`); return t.split(a).join(b); };
 const add = (s) => (t) => `${t ?? ""}${s}`;
 const rx = (re, b) => (t) => { if (!re.test(t)) throw new Error(`no match: ${re}`); return t.replace(re, b); };

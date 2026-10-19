@@ -26,7 +26,7 @@ import {
 } from "./ow-start-logs-sentences.mjs";
 import { L, cleanup, failures, mutated, temp, walkFiles } from "./ow-start-logs-helpers.mjs";
 
-afterAll(cleanup);
+afterAll(cleanup, 120_000);
 
 describe("golden runs", () => {
   const cases = listLogsCases();

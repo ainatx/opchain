@@ -1,16 +1,28 @@
 // Helpers for the ow-start 1.1.0 logs tests (OW-08). Not a test file itself.
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { onTestFinished } from "vitest";
 import { FIXTURES, runCase, runView } from "../scripts/ow-start-logs-acceptance.mjs";
 
 export const L = "opchain-work/logs/larkspur-ceramics";
 export const B = "opchain-work/logs/business";
 
-/** Scratch folders made by these helpers; call cleanup() in afterAll. */
+/** Scratch folders. One made inside a test is removed in the background once that test finishes, so a file's folders
+ *  never pile up for one long afterAll (CI: ~1,500 at once outlived the 20s hook timeout) and the removal overlaps the
+ *  next test instead of blocking it. One made outside a test (while collecting, or in beforeAll) waits for cleanup(),
+ *  which the test files await in afterAll; it also waits for any removal still running. */
 const scratch = [];
-export const cleanup = () => scratch.forEach((d) => rmSync(d, { recursive: true, force: true }));
-export const temp = (prefix) => { const d = mkdtempSync(join(tmpdir(), prefix)); scratch.push(d); return d; };
+const pending = new Set();
+const remove = (d) => rmSync(d, { recursive: true, force: true });
+const removeLater = (d) => { const job = rm(d, { recursive: true, force: true }).catch(() => {}).finally(() => pending.delete(job)); pending.add(job); };
+export const cleanup = async () => { scratch.splice(0).forEach(remove); await Promise.all(pending); };
+export const temp = (prefix) => {
+  const d = mkdtempSync(join(tmpdir(), prefix));
+  try { onTestFinished(() => removeLater(d)); } catch { scratch.push(d); } // outside a test: kept for cleanup()
+  return d;
+};
 
 /** A copy of a case's golden run as a real run folder, with `edits` applied (null deletes; a function gets the current text). */
 export function mutated(caseName, edits = {}) {

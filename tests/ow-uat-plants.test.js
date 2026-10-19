@@ -18,7 +18,7 @@ import * as S from "./ow-uat-sentences.mjs";
 import { cleanup, failures, golden, mutated, rep, temp } from "./ow-uat-helpers.mjs";
 
 const ROOT = join(import.meta.dirname, "..");
-afterAll(cleanup);
+afterAll(cleanup, 120_000);
 const L = "opchain-work/uat/larkspur-ceramics";
 const M = "opchain-work/uat/mossgate-books";
 const append = (s) => (t) => `${t}${s}`;

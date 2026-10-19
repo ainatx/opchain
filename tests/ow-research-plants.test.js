@@ -17,7 +17,7 @@ import { CTX } from "./ow-research-controls.mjs";
 import { cleanup, failures, mutated, plant, rep, temp } from "./ow-research-helpers.mjs";
 
 const ROOT = join(import.meta.dirname, "..");
-afterAll(cleanup);
+afterAll(cleanup, 120_000);
 const T = "opchain-work/research/larkspur-ceramics/RS-01-pos-sales-api";
 const Q = `${T}/queries.md`, S = `${T}/sources.md`, F = `${T}/findings.md`;
 const FW = "opchain-work/research/frameworks/nist-800-53/2026-10-16/manifest.yaml";

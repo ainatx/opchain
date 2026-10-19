@@ -29,7 +29,7 @@ const ROOT = join(import.meta.dirname, "..");
 const SKILL = join(ROOT, "skills-work", "ow-research");
 const CLI = join(ROOT, "scripts", "ow-research-acceptance.mjs");
 const FENCE = join(ROOT, "tests", "ow-tools", "fence.mjs");
-afterAll(cleanup);
+afterAll(cleanup, 120_000);
 
 const CASES = [
   "framework-exists", "framework-files-no-tools", "framework-files-tools", "framework-handling", "framework-licensed", "framework-no-files", "framework-symlink", "framework-unknown",
