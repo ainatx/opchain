@@ -1,0 +1,17 @@
+# Answer key: pack-terms-nocode-schedule-removed (INVENTED). R3-1 (the Evaluator's zz3 case; planted state: the schedule line removed
+# from contract-inputs.md after a no-code freeze). A part removed upstream
+# is a difference too: -pack refuses.
+case: pack-terms-nocode-schedule-removed
+section: "Basis mismatch (the terms block as text: the schedule removed)"
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-plan-nocode
+build_case: invoice-booking-small
+verbs: [/ow-uat-pack]
+today: 2026-11-11
+checks: [refused, next, basis]
+refused: { reason: basis mismatch, names: [agreed/contract-terms.md] }
+next: ["use ow-uat-plan to keep contract-terms.md frozen in uat/mossgate-books/", "use ow-uat-plan to refreeze contract-terms.md in uat/mossgate-books/"]

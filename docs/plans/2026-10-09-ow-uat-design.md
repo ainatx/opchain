@@ -400,12 +400,12 @@ Where the build filled in what this design leaves open, or departed from its wor
 | OD-7 | **A table is judged by its content**: flagged only when its rows carry personal or ID-like values (emails, phone numbers, card-like numbers, ID tokens, names); count and schedule tables pass at any length. It replaces OD-3's long-table rule | `scripts/ow-uat-acceptance.mjs` (`dataFindings`); `references/self-checks.md` |
 | R2-1 | **Confirmed: with no code, every part of the terms block is compared as text** (the clauses in `uat.yaml`, the schedule, the payment terms, the UAT line, the definitions, the SKU, the ownership terms), labelled not machine-checked; the checker never skips it | `references/uat-yaml-schema.md` §6; `references/routing-and-resume.md` §1; `scripts/ow-uat-acceptance.mjs` (`checkPlan`, `checkBasis`) |
 
-**After evaluation round 3** (`sprints/release-2.1/ow-sprint-3/eval-round-3.md`, PASS at 7.8; the owner's answers, 2026-10-19). Both are built in the OW-04 follow-up PR, with the minors R3-1 to R3-7; until then the text and checker on this branch are unchanged:
+**After evaluation round 3** (`sprints/release-2.1/ow-sprint-3/eval-round-3.md`, PASS at 7.8; the owner's answers, 2026-10-19). Both are built in ow-uat 1.0.1, the OW-04 follow-up PR, with the minors R3-1 to R3-7 (`skills-work/ow-uat/CHANGELOG.md`):
 
-| # | Ruling | Where it will live |
+| # | Ruling | Where it lives |
 |---|---|---|
-| R3-6 | **`--refreeze agreed/acceptance.md` refuses when the upstream check list has changed** and points to `--add-co`: a new check gets its scenario, test and price through the change-order path. `--refreeze` never re-derives `checks` or writes a scenario | `references/phase-plan.md`; `scripts/ow-uat-acceptance.mjs` (`checkPlanMode`) |
-| R3-4 | **A provider's published test cards, and ids marked sandbox or test, are allowed in client text and scenarios**; a real card shape or an unmarked id is still refused | `references/self-checks.md`; `scripts/ow-uat-acceptance.mjs` (`dataFindings`) |
+| R3-6 | **`--refreeze agreed/acceptance.md` refuses when the upstream check list has changed** and points to `--add-co`: a new check gets its scenario, test and price through the change-order path. `--refreeze` never re-derives `checks` or writes a scenario | `references/phase-plan.md`; `scripts/ow-uat-acceptance.mjs` (`checkRefreezeChecks`; `exitCriteria` counts every check in `agreed/`); golden `plan-refreeze-checks-changed` |
+| R3-4 | **A provider's published test cards, and ids marked sandbox or test, are allowed in client text and scenarios**; a real card shape or an unmarked id is still refused | `references/self-checks.md`; `scripts/ow-uat-acceptance.mjs` (`PUBLISHED_TEST_CARDS`, Stripe's published numbers; `TEST_MARK`; `dataFindings`) |
 
 ### 15.2 Departures and run-time answers
 
@@ -448,3 +448,6 @@ Where the build filled in what this design leaves open, or departed from its wor
 | 35 | §6 (R2-10) | The basis check holds `-defect` runs too: over a mismatch a problem is logged but not triaged (no `triaged` history line), and the printed block names the mismatch | §1.3 of the routing reference said so; no check held a run to it |
 | 36 | §11 (C4, RC04) | A route cell that grades another case's run also applies that run's own checks | A route cell is a second way into the same run |
 | 37 | §8.1 (R1-17, YC13) | The checker's table oracle refuses a count that leaves 2026 to 2031, as the skill asks the user there; `ow-tools calc --calendar us-federal` answers 2022 to 2099 | The oracle must not grade a date the skill would not compute |
+| 38 | §3.1 (R3-1, R3-5) | With no code, the UAT line's price and test mix are compared with the line `contract-terms.md` quotes, and a part removed upstream (a key, the UAT line, the Ownership section) is a difference; a byte-order mark before the front matter is ignored on both paths | The skill text listed every part; the regression net now does too |
+| 39 | §8.2 (R3-2) | A clause sentence that negates the date ("does not apply on", "never falls due on") or moves it later never counts as applying on the backstop date | OD-4's "explicitly" |
+| 40 | §9 (R3-3) | Under OD-7, a bare number of five digits or more is an id even under a column that counts; a client, customer, company or store column holds names (the client's own name excepted) | The Evaluator's plural-header plants |
