@@ -1,0 +1,20 @@
+# Answer key: pack-terms-mismatch (INVENTED). OD-5 and R1-2 (planted state:
+# the ownership terms in contract-inputs.md were edited after the freeze):
+# the terms block's digest no longer matches the one uat.yaml recorded for
+# agreed/contract-terms.md, a basis mismatch. -pack refuses until -plan
+# --keep-frozen or --refreeze resolves it; nothing written. (Without the
+# change, contract-terms.md, an extract, matches by digest: every other golden.)
+case: pack-terms-mismatch
+section: Basis mismatch (the terms block, by digest)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: plan
+build_case: ready-passing
+verbs: [/ow-uat-pack]
+today: 2027-01-05
+checks: [refused, next, basis]
+refused: { reason: basis mismatch, names: [agreed/contract-terms.md] }
+next: ["use ow-uat-plan to keep contract-terms.md frozen in uat/larkspur-ceramics/", "use ow-uat-plan to refreeze contract-terms.md in uat/larkspur-ceramics/"]

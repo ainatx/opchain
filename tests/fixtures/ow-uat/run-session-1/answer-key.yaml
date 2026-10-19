@@ -1,0 +1,25 @@
+# Answer key: run-session-1 (INVENTED). Design §4.3, §5 and §11 "Names" and
+# "Credentials": the order coordinator, operations manager and bookkeeper's
+# results file carries a Name column, a name in a note and a labelled
+# password. -run imports it without them, says what was dropped, appends
+# kind, role, source and session to secrets-seen.log (never the value) and
+# prints the reset NEXT. Three fails and two blocks; one cleared screenshot,
+# one video NOT-CHECKED.
+case: run-session-1
+section: Names; Credentials; a run
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: pack
+build_case: ready-passing
+verbs: [/ow-uat-run]
+today: 2027-01-08
+checks: [headers, writes, write_once, status, private_names, rec, run, secrets, people, credentials, data, internal_numbers, false_pass, next]
+run: { id: RUN-01, session_date: 2027-01-07, build: larkspur-uat-2, results: uat/larkspur-ceramics/evidence/results-session-1.csv }
+secrets: { values: ["Glaze#44"], entries: 1, reset: "ask the operations manager to reset the bookkeeper tester's login" }
+next: ["use ow-uat-defect on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/runs/RUN-01.md, next: ow-uat /ow-uat-defect uat/larkspur-ceramics/, awaiting: none }

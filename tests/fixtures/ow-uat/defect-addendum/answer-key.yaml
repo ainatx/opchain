@@ -1,0 +1,23 @@
+# Answer key: defect-addendum (INVENTED). Design §6 and §8.3: after sign-off,
+# -defect still logs a problem from an --addendum scenario and judges it
+# against that change order (CO-04). It supersedes nothing: the main
+# acceptance is signed.
+case: defect-addendum
+section: Addendum (a problem from an addendum scenario, after sign-off)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: run-addendum
+build_case: change-declined
+verbs: [/ow-uat-defect]
+today: 2027-02-04
+checks: [headers, writes, write_once, status, private_names, rec, defect, internal_numbers, next]
+defect:
+  classes: { UAT-11: Defect }
+  addendum: { UAT-11: CO-04 }
+next: ["handoffs.yaml `build`"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/defects/UAT-11.md, next: ow-uat /ow-uat-run uat/larkspur-ceramics/, awaiting: fix of UAT-11 by 2027-02-11 }

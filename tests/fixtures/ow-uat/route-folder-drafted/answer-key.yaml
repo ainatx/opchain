@@ -1,0 +1,12 @@
+# Answer key: route-folder-drafted (INVENTED). C4 (the folder route, owner decision O4),
+# stage "drafted, the user says it was sent: --sent". Graded on the signoff-sent-1 run.
+case: route-folder-drafted
+section: "Inbound route (the folder: drafted, the user says it was sent)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+run: signoff-sent-1
+checks: [route]
+route: { from: uat/larkspur-ceramics/, expect: signoff --sent }

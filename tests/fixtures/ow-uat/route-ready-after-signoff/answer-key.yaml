@@ -1,0 +1,17 @@
+# Answer key: route-ready-after-signoff (INVENTED). C4, ow-build ready, stage
+# "after sign-off": nothing runs; the handoff NEXT prints again.
+case: route-ready-after-signoff
+section: "Inbound route (ow-build ready: after sign-off)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-punch-step0
+build_case: change-declined
+verbs: [/ow-uat]
+today: 2027-01-28
+checks: [route, refused, next]
+route: { from: builds/larkspur-ceramics/ready-for-uat.md, expect: nothing }
+refused: { reason: signed off }
+next: ["use ow-handoff-start on uat/larkspur-ceramics/"]

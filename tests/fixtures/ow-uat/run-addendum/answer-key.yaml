@@ -1,0 +1,19 @@
+# Answer key: run-addendum (INVENTED). Design §8.3: -run records the CO-04
+# session on build larkspur-uat-5; SC-13 fails, 2 of 3.
+case: run-addendum
+section: Addendum (a session)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: plan-addendum-delivered
+build_case: change-declined
+verbs: [/ow-uat-run]
+today: 2027-02-04
+checks: [headers, writes, write_once, status, private_names, rec, run, people, credentials, false_pass, next]
+run: { id: RUN-05, session_date: 2027-02-04, build: larkspur-uat-5, results: uat/larkspur-ceramics/evidence/results-session-5.csv }
+next: ["use ow-uat-defect on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/runs/RUN-05.md, next: ow-uat /ow-uat-defect uat/larkspur-ceramics/, awaiting: none }

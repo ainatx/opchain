@@ -1,0 +1,22 @@
+# Answer key: defect-fixed (INVENTED). Design §7 and §11 "Rapid fix": the
+# builder reports UAT-03, UAT-04 and UAT-05 fixed in build larkspur-uat-3,
+# within the 5 business days quoted; the client set up the bookkeeper's
+# login. Recorded with the build label the user gives; the retest is a new run.
+case: defect-fixed
+section: Rapid fix and bounds (fixed with a build label)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-change-text
+build_case: change-uat-too-big
+verbs: [/ow-uat-defect]
+today: 2027-01-15
+checks: [headers, writes, write_once, status, private_names, rec, defect, internal_numbers, false_pass, next]
+defect:
+  fixed: { UAT-03: larkspur-uat-3, UAT-04: larkspur-uat-3, UAT-05: larkspur-uat-3 }
+next: ["use ow-uat-run on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/defects/UAT-05.md, next: ow-uat /ow-uat-run uat/larkspur-ceramics/, awaiting: session 3 on 2027-01-21 }

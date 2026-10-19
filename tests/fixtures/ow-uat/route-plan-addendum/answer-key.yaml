@@ -1,0 +1,13 @@
+# Answer key: route-plan-addendum (INVENTED). C4, the handoff's -fix wording
+# "use ow-uat-plan --addendum CO-nn": runs -plan --addendum. Graded on the
+# plan-addendum run.
+case: route-plan-addendum
+section: "Inbound route (the handoff's -fix: --addendum)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+run: plan-addendum
+checks: [route]
+route: { say: "use ow-uat-plan --addendum CO-04", expect: plan --addendum }

@@ -1,0 +1,12 @@
+# Answer key: route-folder-fixed (INVENTED). C4 (the folder route, owner decision O4),
+# stage "fixed, awaiting the confirmation run: the run". Graded on the run-confirmation run.
+case: route-folder-fixed
+section: "Inbound route (the folder: fixed, awaiting the confirmation run)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+run: run-confirmation
+checks: [route]
+route: { from: uat/larkspur-ceramics/, expect: run }

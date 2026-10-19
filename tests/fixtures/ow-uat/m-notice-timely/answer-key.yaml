@@ -1,0 +1,25 @@
+# Answer key: m-notice-timely (INVENTED). Design §8.1: a qualifying report
+# arrived on 2026-12-01; the builder could not reproduce it; the notice went
+# on 2026-12-04, within 3 business days of arrival on the contract calendar.
+# The request stays sent and its deemed date moves to notice + 5 business
+# days = 2026-12-11. The shop manager withdrew the report after the notice.
+case: m-notice-timely
+section: Deemed (a timely cannot-reproduce notice)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-sent
+build_case: invoice-booking-small
+verbs: [/ow-uat-defect]
+today: 2026-12-04
+checks: [headers, writes, write_once, status, private_names, rec, defect, calendar, next]
+defect:
+  supersedes: {}
+  notice: { UAT-01: { arrived: 2026-12-01, sent: 2026-12-04, timely: true } }
+calendar: { from: 2026-12-01, days: 3, want: 2026-12-04, source: table }
+next: ["use ow-uat-signoff to apply deemed acceptance on uat/mossgate-books/"]
+status:
+  lines:
+    - { path: uat/mossgate-books/defects/UAT-01.md, next: ow-uat /ow-uat-signoff uat/mossgate-books/, awaiting: sign-off by shop manager on request 1 by 2026-12-11 }

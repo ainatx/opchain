@@ -1,0 +1,18 @@
+# Answer key: pack-payment-terms-changed (INVENTED). OD-6 (the Evaluator's
+# DG8; planted state: payment_terms_days changed from 14 to 30 after the
+# freeze). The terms block now covers schedule and payment_terms_days, so
+# the digest no longer matches the one uat.yaml recorded: -pack refuses.
+case: pack-payment-terms-changed
+section: "Basis mismatch (the terms block, by digest: the payment terms)"
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-plan
+build_case: invoice-booking-small
+verbs: [/ow-uat-pack]
+today: 2026-11-11
+checks: [refused, next, basis]
+refused: { reason: basis mismatch, names: [agreed/contract-terms.md] }
+next: ["use ow-uat-plan to keep contract-terms.md frozen in uat/mossgate-books/", "use ow-uat-plan to refreeze contract-terms.md in uat/mossgate-books/"]

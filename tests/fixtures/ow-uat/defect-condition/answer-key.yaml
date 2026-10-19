@@ -1,0 +1,22 @@
+# Answer key: defect-condition (INVENTED). Design §6.1: the operations manager
+# makes UAT-07 (the weekly text message, priced as CO-03 by ow-build) a
+# condition of sign-off. Recorded on UAT-07; it blocks sign-off until CO-03
+# is signed and added (--add-co) and its checks pass, or lapses if declined.
+case: defect-condition
+section: Condition
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-fixed
+build_case: change-sent
+verbs: [/ow-uat-defect]
+today: 2027-01-19
+checks: [headers, writes, write_once, status, private_names, rec, defect, internal_numbers, next]
+defect:
+  condition: { UAT-07: CO-03 }
+next: ["use ow-uat-plan to add CO-03 to uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/defects/UAT-07.md, next: ow-uat /ow-uat-run uat/larkspur-ceramics/, awaiting: "the client's answer on CO-03, a condition of sign-off, by 2027-01-25" }

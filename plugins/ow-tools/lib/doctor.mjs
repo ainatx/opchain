@@ -4,6 +4,7 @@
 import { statSync } from "node:fs";
 import { homedir, platform } from "node:os";
 import { join } from "node:path";
+import { CALENDARS } from "./calc.mjs";
 import {
   DIARIZATION_MODEL,
   KEYCHAIN_SERVICE,
@@ -158,6 +159,8 @@ export function capabilities(list) {
   }
   // Node only: never absent where ow-tools runs.
   for (const cap of ["xlsx", "health", "calc", "digest"]) caps[cap] = { ready: true };
+  // The contract calendars calc counts business days on (ow-uat detects them here, never by version number).
+  caps.calc.calendars = [...CALENDARS];
   const pa = list.find((c) => c.id === "pip-audit");
   if (pa && !pa.ok) caps.health.note = "Python advisories need pip-audit (optional)";
   return caps;

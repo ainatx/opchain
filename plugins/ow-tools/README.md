@@ -6,7 +6,7 @@
 |---|---|
 | **Transcription** | A recorded call → `transcript.json` + `transcript.md`, with speakers separated and then confirmed by you. ffmpeg → whisper.cpp (`large-v3-turbo`) → pyannote (`speaker-diarization-community-1`) → merge. **Local only.** |
 | **Export** | Markdown → branded, accessible **PDF, Word and PowerPoint** (one slide per `##`, speaker notes), styled from your `opchain-work/brand.yaml`. pandoc + Typst (tagged PDF/UA-1). A sheet folder (CSV files + a formula map) → **Excel** with its formulas kept. Every export leaves a record of what was exported (`export/<name>.export.json`). |
-| **calc** | Today's date, business days with your holidays, totals and payment splits, and care-plan hours with rollover, checked by a tool so skills don't have to mark them "not machine-checked". |
+| **calc** | Today's date, business days with your holidays or on the contract calendar (`--calendar us-federal`, weekdays except US federal holidays as observed, 2022 to 2099), totals and payment splits, and care-plan hours with rollover, checked by a tool so skills don't have to mark them "not machine-checked". |
 | **digest** | The SHA-256 of a file, or of a folder in a form a shell one-liner reproduces. It detects accidental change only; it is not tamper-evidence. |
 | **health** | Read-only monthly checks of what a `health.yaml` lists: dependency advisories and outdated packages, TLS certificate and domain expiry, HTTP status, a backup file's age. **Uses the network** (see Privacy). |
 | **capture** | Screenshots of a running test environment from a plan (navigate, click, fill test data, wait, shot), in your installed Chrome or Chromium on a separate profile per workstream. You sign in yourself. **Uses the network** (see Privacy). |
@@ -63,6 +63,7 @@ Built and tested on macOS (Apple Silicon). Linux gets the same checks with gener
 
 ## Changes
 
+- **1.2.0:** `calc date --calendar us-federal`, the contract calendar ow-uat counts clause dates on (`version --json` lists it under `capabilities.calc.calendars`; the design's §15). A call without `--calendar` behaves as in 1.1.2.
 - **1.1.2:** the session-start list shows each open item of ow-start's logs on its own line (a meeting, an action or a decision review, by the newest line per item), so closing one action no longer hides the other open actions and reviews of that workstream.
 - **1.1.1:** capture's secret-field check reads more names (abbreviations such as `psw`, card, PIN, recovery and one-time-code names, "Enter the 6-digit code", other languages, leet spellings) and no longer refuses ordinary fields such as `lead_routing`, `passType`, `pinLocation` or `tokenCount`. SIGQUIT and an internal error wipe a production session like Ctrl-C does. Two runs can't share a profile (`profile-in-use`). Origins must be host names or IP addresses, and cloud metadata addresses are refused in one list. health asks OSV about each package on its own when a batch answer doesn't line up. A `$…$` in a document is text, so it no longer stops a PDF.
 - **1.1.0:** capture, health, PowerPoint and Excel export, digest and calc hours.

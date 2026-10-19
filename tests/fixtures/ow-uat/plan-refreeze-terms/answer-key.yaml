@@ -1,0 +1,22 @@
+# Answer key: plan-refreeze-terms (INVENTED). OD-5: --refreeze on
+# agreed/contract-terms.md quotes only the terms block again (the changed
+# ownership terms), never the whole contract-inputs.md, and records the new
+# digest and date in its basis row. Every other agreed/ file and every
+# scenario stays as written.
+case: plan-refreeze-terms
+section: Basis mismatch (the terms block refrozen)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: plan
+build_case: ready-passing
+verbs: [/ow-uat-plan --refreeze]
+today: 2027-01-05
+checks: [headers, writes, write_once, status, private_names, rec, plan_mode, next]
+plan_mode: { mode: --refreeze, file: agreed/contract-terms.md }
+next: ["use ow-uat-pack on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/uat.yaml, next: ow-uat /ow-uat-pack uat/larkspur-ceramics/, awaiting: none }

@@ -1,0 +1,24 @@
+# Answer key: invoice-delivery-governing (INVENTED). phase-invoice.md §1 "The
+# governing definition" and the ow-uat Sprint 3 contract C5 (OW-04 round 1,
+# R1-18): uat/mossgate-books/uat.yaml (a copy of ow-uat's m-plan-no-uat-line
+# golden) records Robin's dated statement of which definition governs an
+# older quote. The Handoff notes are delivered (handoffs/mossgate-books/
+# dates.yaml), so the delivery half is met; the request applies the governing
+# statement and quotes it.
+case: invoice-delivery-governing
+section: Payment triggers (50/50, delivery under a governing definition)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+repo: mossgate-repo
+base: invoice-booking-small
+verbs: [/ow-build-invoice]
+checks: [headers, invoice, internal_numbers, builder_name, status, private_names, writes]
+outputs:
+  - builds/mossgate-books/ledger.md
+  - builds/mossgate-books/invoices/INV-request-delivery.md
+invoice: { triggers: [delivery] }
+status:
+  lines:
+    - { path: builds/mossgate-books/invoices/INV-request-delivery.md, next: ow-build on builds/mossgate-books/, awaiting: payment of delivery by 2027-02-03 }
+private_names: [llc-ops, Deftwright, Priya]

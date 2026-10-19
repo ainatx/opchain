@@ -1,0 +1,22 @@
+# Answer key: signoff-addendum (INVENTED). Design §8.3 and §11 "Addendum":
+# --addendum CO-04 applies criteria 1 to 3 and 5 to CO-04's check and the
+# UAT-nn from its scenario only: AC-CO-04.1 passes on larkspur-uat-6 (the
+# latest of the delivery and UAT-11's fix). It records the client's
+# confirmation and writes acceptance-addendum-CO-04.md once; no payment.
+case: signoff-addendum
+section: Addendum (confirmed)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-addendum-retest
+build_case: change-declined
+verbs: [/ow-uat-signoff --addendum]
+today: 2027-02-09
+checks: [headers, writes, write_once, status, private_names, rec, addendum, handoff_fields, people, credentials, internal_numbers, false_pass, next]
+addendum: { co: CO-04, date: 2027-02-09, role: operations manager, build: larkspur-uat-6, checks: [AC-CO-04.1] }
+next: ["use ow-handoff-fix on handoffs/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/acceptance-addendum-CO-04.md, next: ow-handoff /ow-handoff-fix handoffs/larkspur-ceramics/, awaiting: none (CO-04 confirmed; signed on request 2) }

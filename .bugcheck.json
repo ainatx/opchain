@@ -132,6 +132,10 @@
         {
           "path": "tests/route-hook.test.js",
           "digest": "sha256:7f7e3141640b9612e6c7d063922d4f55fee2b74ae494e53e532ecc8914cc0dec"
+        },
+        {
+          "path": "tests/ow-uat-sentences.mjs",
+          "digest": "sha256:49255169eb8bf19b81c8931662d60d90d679c39b3edb0e3ab7ba81ac98104cb5"
         }
       ]
     }

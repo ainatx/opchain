@@ -1,0 +1,10 @@
+ow_artefact: ow-uat/uat
+schema: 1
+written_by: ow-uat 1.0.0 (protocol 1)
+workstream: mossgate-books
+subject: builds/mossgate-books/ready-for-uat.md
+created: 2026-11-10
+clock: user-stated
+origin: skill
+client: Mossgate Books
+plan_steps: []

@@ -22,7 +22,7 @@ const HELP = `ow-tools ${VERSION} — the code add-on for the ow- skills (Claude
   ow-tools export <sheet-folder> --formats xlsx [--out DIR]
   ow-tools digest <file|folder>
   ow-tools calc today [--tz ZONE]
-  ow-tools calc date --from YYYY-MM-DD (--days N | --business-days N [--holidays D1,D2,…])
+  ow-tools calc date --from YYYY-MM-DD (--days N | --business-days N [--holidays D1,D2,… | --calendar us-federal])
   ow-tools calc total --items items.json [--currency USD]
   ow-tools calc split --total 12000.00 --schedule 40/40/20
   ow-tools calc hours --ledger ledger.json --rollover 0.25,unused,1
@@ -49,7 +49,7 @@ export const FLAGS = {
   json: "bool", quick: "bool", force: "bool",
   out: "str", speakers: "int", language: "str", model: "str", device: "str", banner: "str",
   set: "list", brand: "str", formats: "csv",
-  tz: "str", from: "str", days: "int", "business-days": "int", holidays: "csv",
+  tz: "str", from: "str", days: "int", "business-days": "int", holidays: "csv", calendar: "str",
   items: "str", currency: "str", total: "str", schedule: "str",
   ledger: "str", rollover: "str",
   config: "str", "no-network": "bool",
@@ -176,6 +176,7 @@ export async function main(argv, { stdin } = {}) {
         days: opts.days,
         businessDays: opts["business-days"],
         holidays: opts.holidays,
+        calendar: opts.calendar,
         ledger: opts.ledger,
         rollover: opts.rollover,
         items: opts.items,

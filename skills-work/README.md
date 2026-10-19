@@ -7,7 +7,8 @@ The ow- skills are opchain's planning family for client work: the fit call and i
 | `ow-start` | 1.1.1: the 20-minute fit call, prep and recap; meeting and decision logs (`CHANGELOG.md`) |
 | `ow-build-plan` | 1.0.0: the Build Plan offer, plan and fixed quote, with contract inputs and the build request |
 | `ow-build` | 1.0.0: the client side of a signed build: the builder driven one sprint at a time (named only in `handoffs.yaml`), weekly updates, demos, change orders, invoice requests and readiness for UAT |
-| `ow-uat`, `ow-handoff`, `ow-documentation` | designed, not built |
+| `ow-uat` | 1.0.0: the client's user acceptance test: the frozen basis, a scenario per check, tester packs by role, sessions, triage and the rapid fix phase, numbered sign-off requests, deemed acceptance and the delivery backstop on the contract calendar, and the addendum flow |
+| `ow-handoff`, `ow-documentation` | designed, not built |
 
 ## What is in this folder
 
@@ -33,6 +34,8 @@ writes:                    # every file this skill writes, with the one verb tha
   - { path: profile.md, verb: /ow-example-setup, seeded_by: /ow-example-extract }     # created by another of its own verbs, first run only
   - { path: offers.md, verb: /ow-example-setup, once: true }                          # created once from the example; then the user's
   - { path: STATUS.md, verb: /ow-example-scope, append: true }                        # only for append-only logs the protocol names
+append_logs:               # optional: logs only this skill writes, from several of its verbs (owner decision O2)
+  - uat/<client>/secrets-seen.log
 reads:
   - from: ow-start         # a family skill, a planned skill, an add-on, "user" (files the user owns) or "any"
     path: intake/<client>/recap.md
@@ -40,6 +43,11 @@ reads:
     if_absent: what the skill does without it (never "proceed as if passed")
     if_mismatch: what it does when the fields are not as expected
     shared: true           # optional: a workspace file at the top of opchain-work/ (profile.md), not a handoff
+  - from: ow-example-plan
+    path: plans/<client>/scope.md
+    in_place: true         # optional: read where an earlier skill left it, carried by every hop (owner decisions O1, OD-1)
+    if_absent: what the skill does without it
+    if_mismatch: what it does when it does not parse
   - from: ow-build         # an index row (owner decision O1): another skill's file listed by path and header keys only
     index: true
     reference: references/logs-status-and-index.md   # must cite the path
@@ -54,6 +62,7 @@ hands_off:
     say: use ow-example to record the acceptance on plans/<client>/
     files:
       - { path: plans/<client>/quote.md, fields: [valid_until] }
+      - { path: plans/<client>/scope.md, in_place: true }   # optional: handed on for a reader further down the chain (OD-1)
     if_unavailable: what the written files already give, and how to do the next step by hand
 ```
 
@@ -63,9 +72,9 @@ hands_off:
 - **Routes.** A say of the form "use <id> on <path>" lands on <id>'s `routes:` verb, for a path its `routes.paths` cover. The receiver's routing reference exists, cites every routed path, and is named beside `<verb> on <path>` in the body's "## Verbs" table.
 - **Protocol lines.** Every NEXT template line that says "use <id>" is followed by its `It will read:` and `[no folder attached: …]` lines (protocol §9); a slash hint's mode is one its owner documents.
 - **NEXT templates match.** Every hands-off to a family skill has a NEXT template in the body that says exactly its `say:`, and every NEXT template's say is an edges row (contract R15); a `destination:` row has a NEXT or IF IT IS NOT AVAILABLE line naming its handoffs.yaml key. An add-on's handoff is printed by its own absent-case text.
-- **Reciprocal.** Every file a skill hands to another family skill has a reads row for it in the receiver (with the fields it needs among those handed off), and every reads row naming a family skill has a hands-off row in that producer, unless it is `shared:` (allowed only for top-level workspace files; the producer must write it). A planned skill or an add-on has no edges file yet; its rows are checked once it does.
+- **Reciprocal.** Every file a skill hands to another family skill has a reads row for it in the receiver (with the fields it needs among those handed off), and every reads row naming a family skill has a hands-off row in that producer, unless it is `shared:` (allowed only for top-level workspace files; the producer must write it) or `in_place: true` (owner decisions O1 and OD-1, 2026-10-17: a file read where an earlier stage left it, such as the plan's scope read during acceptance testing; the producer must write it, and a chain of hand-offs from the producer to the reader must list the file, or a field of it, at **every** hop). A hop that hands on a file for a reader further down the chain marks the entry `in_place: true`: it need not write the file itself (some family skill does), and its receiver reads it or hands it on in place again. A planned skill or an add-on has no edges file yet; its rows are checked once it does.
 - **Index rows** (owner decision O1, OW-08). A reads row with `index: true` lists a file another skill writes, copying nothing: it reads from a family skill, a planned skill or an add-on; its `fields` are header keys only (identifier-shaped, and documented as header keys in a built producer's text), and never a key that holds money, a note or a person (`price`, `fixed_price`, `acceptance_note`, a key documented with an amount or a user's name); the reference it names cites its path; and a producer with an edges file writes the path. It needs no hand-off row, no chain and no body row; the reference is where it is described.
-- **One writer.** No file has two writer verbs across the family. Paths compare as one file whatever their spelling: a leading `opchain-work/`, `./` and `..` segments, letter case, and a follow-on folder's `<client>-<n>` placeholder are all normalised. The exception is an append-only log the protocol names (`STATUS.md`, protocol §4), which every writer declares with `append: true`.
+- **One writer.** No file has two writer verbs across the family. Paths compare as one file whatever their spelling: a leading `opchain-work/`, `./` and `..` segments, letter case, and a follow-on folder's `<client>-<n>` placeholder are all normalised. The exceptions are an append-only log the protocol names (`STATUS.md`, protocol §4), which every writer declares with `append: true`, and a skill-local append log (owner decision O2, 2026-10-17): a path in one skill's `append_logs`, which several of that skill's verbs append to (`append: true`) and no other skill writes.
 - **NEXT targets resolve.** A NEXT block says "use <family id>", and its slash verb belongs to that skill (a planned skill's verbs are declared in `catalogs.json` `plannedVerbs`); or it names a handoffs.yaml destination (`` handoffs.yaml `contract` ``) that a family `examples/handoffs.yaml` declares.
 
 ## Logs-only STATUS forms
@@ -80,7 +89,7 @@ Protocol v1 §5 gives `awaiting: none, or <what> by <YYYY-MM-DD>`. ow-start's lo
 - **Packaging**: text files only, no hidden or executable files, no network text in a `network: none` skill, and a SKILL.md body under 5,000 tokens.
 - **Contracts**: every `/ow-` verb cited is declared (one merged verb index with the oc- catalog); every NEXT block leads with `use <skill id>` and carries its `IF IT IS NOT AVAILABLE` line; Reads-from rows have absent and mismatch cases; Hands-off rows have an unavailable branch; each skill's `skill.edges.yaml` is reciprocal with the others, with one writer per file (Edges, above).
 - **Family names** (design §8.1): no ow- skill file names an oc- skill, a private skill (`privateNames` in `catalogs.json`, today `llc-ops`) or a business (`brandNames`), however it is spaced, hyphenated, underscored, joined or cased. The ow- acceptance checkers read the same rule (`familyNameRules` in `scripts/check-skill-contracts.mjs`). Handoffs that leave the family go through the user's own `opchain-work/handoffs.yaml`.
-- **Acceptance**: `node scripts/ow-start-acceptance.mjs` (the intake cases, and the logs cases through `scripts/ow-start-logs-acceptance.mjs`), `node scripts/ow-build-plan-acceptance.mjs` and `node scripts/ow-build-acceptance.mjs` check the golden runs in `tests/fixtures/ow-start/`, `tests/fixtures/ow-build-plan/` and `tests/fixtures/ow-build/`; each folder's README says how to check a real run.
+- **Acceptance**: `node scripts/ow-start-acceptance.mjs` (the intake cases, and the logs cases through `scripts/ow-start-logs-acceptance.mjs`), `node scripts/ow-build-plan-acceptance.mjs`, `node scripts/ow-build-acceptance.mjs` and `node scripts/ow-uat-acceptance.mjs` check the golden runs in `tests/fixtures/ow-start/`, `tests/fixtures/ow-build-plan/`, `tests/fixtures/ow-build/` and `tests/fixtures/ow-uat/`; each folder's README says how to check a real run.
 
 ## Not wired in yet, on purpose
 

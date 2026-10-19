@@ -1,0 +1,21 @@
+# Answer key: pack (INVENTED). Design §4.4, §5 and contract C15: one pack per
+# tester role (Markdown source, the Sprint 3 departure) and, with no ow-tools
+# here, its HTML export; the results template with exactly the six columns.
+case: pack
+section: The pack and its exports
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: plan
+build_case: ready-passing
+verbs: [/ow-uat-pack]
+today: 2027-01-05
+ow_tools: absent
+checks: [headers, writes, write_once, status, private_names, pack, people, credentials, data, internal_numbers, next]
+pack: { roles: 3 }
+next: ["use ow-uat-run on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/pack.yaml, next: ow-uat /ow-uat-run uat/larkspur-ceramics/, awaiting: session 1 on 2027-01-07 }

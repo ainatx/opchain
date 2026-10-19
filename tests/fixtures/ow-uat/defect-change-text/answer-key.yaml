@@ -1,0 +1,21 @@
+# Answer key: defect-change-text (INVENTED). Design §6 and §11 "Triage": a
+# Change the client typed as major never blocks sign-off. ow-build's
+# change-uat-unpriced case reads this file (deliverable 6).
+case: defect-change-text
+section: Triage (a Change typed major)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-change-portal
+build_case: change-uat-too-big
+verbs: [/ow-uat-defect]
+today: 2027-01-15
+checks: [headers, writes, write_once, status, private_names, rec, defect, internal_numbers, next]
+defect:
+  classes: { UAT-07: Change }
+next: ["use ow-build to price the change from uat/larkspur-ceramics/defects/UAT-07.md"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/defects/UAT-07.md, next: ow-build /ow-build-change uat/larkspur-ceramics/defects/UAT-07.md, awaiting: none }

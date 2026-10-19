@@ -1,0 +1,16 @@
+# Answer key: signoff-signed-cut-accounts (INVENTED). C13 and R1-3: the --signed session ended
+# after the accounts step. The row's signing_steps hold [record, accounts];
+# the test accounts are in the row; signoff.md, the marker written last, does not exist.
+case: signoff-signed-cut-accounts
+section: Write-once and per-step resume (a --signed cut off after accounts)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-late-minor
+build_case: change-declined
+verbs: [/ow-uat-signoff --signed]
+today: 2027-01-27
+checks: [headers, writes, write_once, rec, signing_steps]
+signing_steps: { request: 2, steps: [record, accounts], signoff: absent }

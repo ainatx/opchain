@@ -1,0 +1,19 @@
+# Answer key: backstop-incidental (INVENTED). OD-4 and R2-6 (the Evaluator's
+# zz2-backstop-incidental; the frozen backstop clause also says "The readiness notice counts from the same day it is sent."):
+# on the backstop date itself (2027-01-15) --backstop still refuses. Only a
+# clause that says in so many words that the backstop applies on that date
+# moves it; wording that counts something from the same day does not.
+case: backstop-incidental
+section: Backstop (refused on its date; incidental wording)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-builder-delay
+build_case: invoice-booking-small
+verbs: [/ow-uat-signoff --backstop]
+today: 2027-01-15
+checks: [refused, backstop_refused]
+refused: { reason: "the backstop date has not passed" }
+backstop_refused: { reason: "the backstop date has not passed" }

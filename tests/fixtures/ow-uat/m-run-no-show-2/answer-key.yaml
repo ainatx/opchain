@@ -1,0 +1,19 @@
+# Answer key: m-run-no-show-2 (INVENTED). §11 "No-show": a second missed
+# session, a second no-show run; the awaiting line stands from 2026-11-12.
+case: m-run-no-show-2
+section: No-show (second)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-run-no-show-1
+build_case: invoice-booking-small
+verbs: [/ow-uat-run]
+today: 2026-11-17
+checks: [headers, writes, write_once, status, private_names, rec, run, false_pass, next]
+run: { id: RUN-02, session_date: 2026-11-17, build: mossgate-uat-1, no_show: true }
+next: ["use ow-uat-run on uat/mossgate-books/"]
+status:
+  lines:
+    - { path: uat/mossgate-books/runs/RUN-02.md, next: ow-uat /ow-uat-run uat/mossgate-books/, awaiting: client testers for shop manager since 2026-11-12 }

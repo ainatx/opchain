@@ -1708,6 +1708,14 @@ function checkInvoice(key, run) {
     if (data.currency !== q.currency) p.push(`${f}: currency ${data.currency}`);
     if (m && !String(data.basis ?? "").includes(m.basis.split("/").pop())) p.push(`${f}: basis "${data.basis}" does not name ${m.basis}`);
     if (!/This is a request for your invoicing tool, not an invoice\. The ledger is not an accounting record\./.test(content)) p.push(`${f}: does not say it is a request, not an invoice, and that the ledger is not an accounting record`);
+    // The governing definition (phase-invoice.md §1; the ow-uat Sprint 3 contract C5, OW-04 R1-18): when
+    // uat/<client>/uat.yaml records the user's dated statement of which definition governs, the acceptance
+    // or delivery request applies it and quotes it.
+    if (/^(?:acceptance|delivery)$/.test(trig)) {
+      let gov = null;
+      try { gov = yaml.load(run.read(`${OW}uat/${key.slug}/uat.yaml`) ?? "")?.terms?.governing ?? null; } catch { gov = null; }
+      if (gov && typeof gov === "object" && gov.statement && !content.replace(/\s+/g, " ").includes(String(gov.statement).replace(/\s+/g, " "))) p.push(`${f}: uat/${key.slug}/uat.yaml records the definition that governs this job (${gov.stated_by}, ${iso(gov.date)}); the ${trig} request applies it and quotes it ("${String(gov.statement).slice(0, 60)}…")`);
+    }
     if (!amountRe(cents(data.amount)).test(content) || !termsDays(content).includes(Number(q.payment_terms_days))) p.push(`${f}: the text does not state the amount and the payment terms (${q.payment_terms_days} days, however worded: "due within ${q.payment_terms_days} days", "payable within two weeks")`);
     p.push(...arithmeticProblems(f, data.arithmetic, row ? { total: q.fixed_price, schedule: q.schedule } : null));
     const say = sayOf(run, "invoice");

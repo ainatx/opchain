@@ -1,0 +1,17 @@
+# Answer key: pack-real-data-refused (INVENTED). Design §11 "Real data" and
+# C7 (planted state): a real-case scenario pastes three real order rows. The
+# Data check fails, so -pack refuses until they are replaced by a pointer.
+case: pack-real-data-refused
+section: Real data
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: plan
+build_case: ready-passing
+verbs: [/ow-uat-pack]
+today: 2027-01-05
+checks: [refused, next]
+refused: { reason: data check, names: [SC-13] }
+next: []

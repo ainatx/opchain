@@ -1,0 +1,22 @@
+# Answer key: m-deemed-moved (INVENTED). Design §8.1 and C12: with the timely
+# notice, the deemed date is the latest of 2026-12-07 (sent + 10), 2026-12-07
+# (stated) and 2026-12-11 (notice + 5): --deemed on 2026-12-14 writes the
+# sign-off files as of 2026-12-11.
+case: m-deemed-moved
+section: Deemed (applied on the moved date)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-notice-timely
+build_case: invoice-booking-small
+verbs: [/ow-uat-signoff --deemed]
+today: 2026-12-14
+checks: [headers, writes, write_once, status, private_names, rec, signed, deemed, internal_numbers, false_pass, next]
+signed: { request: 1, date: 2026-12-11, signer: none (deemed), build: mossgate-uat-1, accounts: 1, punch: [], late: [], post_acceptance: [], project: smaller, documentation: declined, acceptance: deemed }
+deemed: { sent: 2026-11-20, stated: 2026-12-07, notices: [2026-12-04], want: 2026-12-11 }
+next: ["use ow-handoff-start on uat/mossgate-books/"]
+status:
+  lines:
+    - { path: uat/mossgate-books/signoff.md, next: ow-handoff /ow-handoff-start uat/mossgate-books/, awaiting: handoff delivery (deemed on request 1) }

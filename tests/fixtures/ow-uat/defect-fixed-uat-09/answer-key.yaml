@@ -1,0 +1,21 @@
+# Answer key: defect-fixed-uat-09 (INVENTED). Design §7: the builder reports
+# UAT-09 fixed in build larkspur-uat-4, inside its bounds. Every required
+# scenario now needs a pass on larkspur-uat-4 (criterion 1).
+case: defect-fixed-uat-09
+section: Rapid fix (a new latest build label)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-supersedes
+build_case: change-declined
+verbs: [/ow-uat-defect]
+today: 2027-01-26
+checks: [headers, writes, write_once, status, private_names, rec, defect, internal_numbers, false_pass, next]
+defect:
+  fixed: { UAT-09: larkspur-uat-4 }
+next: ["use ow-uat-run on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/defects/UAT-09.md, next: ow-uat /ow-uat-run uat/larkspur-ceramics/, awaiting: a confirmation run on build larkspur-uat-4 by 2027-01-26 }

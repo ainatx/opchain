@@ -1,0 +1,21 @@
+# Answer key: backstop-clause-on-date (INVENTED). OD-4 (the Evaluator's
+# zz2-backstop-clause-on-date; the frozen backstop clause says "The delivery half falls due on the backstop date itself."):
+# the clause says the backstop applies on its date, so --backstop on
+# 2027-01-15 writes backstop.md once.
+case: backstop-clause-on-date
+section: Backstop (applied on its date, as the clause says)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-builder-delay
+build_case: invoice-booking-small
+verbs: [/ow-uat-signoff --backstop]
+today: 2027-01-15
+checks: [headers, writes, write_once, status, private_names, rec, backstop, internal_numbers, next]
+backstop: { readiness: 2027-01-07, delay: 1, want: 2027-01-15, written: true }
+next: ["use ow-build to invoice the delivery payment (backstop)"]
+status:
+  lines:
+    - { path: uat/mossgate-books/backstop.md, next: ow-build /ow-build-invoice uat/mossgate-books/backstop.md, awaiting: none (backstop applied; deemed on request 1) }

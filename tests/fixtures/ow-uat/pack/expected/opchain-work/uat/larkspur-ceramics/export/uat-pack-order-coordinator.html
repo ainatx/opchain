@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<title>User acceptance testing: order coordinator pack, Larkspur Ceramics</title>
+</head>
+<body style="background:#ffffff;color:#1a1a1a;font-family:Arial,sans-serif">
+<h1 style="color:#1a1a1a">User acceptance testing: order coordinator pack, Larkspur Ceramics</h1>
+<h2 style="color:#1a1a1a">What this test is</h2>
+<p>You try the finished build against what was agreed, using the scenarios below. A problem inside the agreed scope is fixed quickly and at no charge; anything new is written down and priced before any work starts.</p>
+<h2 style="color:#1a1a1a">Dates</h2>
+<ul>
+<li>Session 1: Thursday 7 January 2027</li>
+<li>Session 2: Tuesday 12 January 2027</li>
+<li>Session 3: Thursday 21 January 2027 (the final confirmation run)</li>
+</ul>
+<h2 style="color:#1a1a1a">Signing in</h2>
+<p>Your login comes from the operations manager. Your tester id is oc-T1; write it in the results template instead of your name.</p>
+<h2 style="color:#1a1a1a">Your scenarios</h2>
+<table>
+<thead><tr><th>Scenario</th><th>What to do</th><th>What you should see</th></tr></thead>
+<tbody>
+<tr><td>SC-01</td><td>Ten September purchase orders reach the order sheet</td><td>Each order's lines appear in the order sheet within 15 minutes, with the product codes in the LC-nnnn form, and nobody retypes them. All 10 arrive with every line correct (10 cases).</td></tr>
+<tr><td>SC-02</td><td>An email with no readable purchase order goes to the exceptions list</td><td>Both emails are on the exceptions list with the reason, and nothing is written to the order sheet (2 cases).</td></tr>
+<tr><td>SC-03</td><td>A line with an unknown code stops on the exceptions list</td><td>Each altered line is on the exceptions list with the code and the customer, and not in the order sheet (3 cases).</td></tr>
+<tr><td>SC-05</td><td>Every product code is in the LC-nnnn form after the clean-up</td><td>All 60 sampled codes are in the LC-nnnn form (60 cases).</td></tr>
+<tr><td>SC-10</td><td>Settle the morning's exceptions list</td><td>Every line on the list is settled and moves to the order sheet or is marked for the customer (1 case).</td></tr>
+</tbody>
+</table>
+<h2 style="color:#1a1a1a">Reporting a problem</h2>
+<p>Write down what you did, what you expected and what happened. Add a screenshot only if it shows no real customer data. Send it to the operations manager.</p>
+<h2 style="color:#1a1a1a">The results template</h2>
+<p>Fill one row per scenario in results-template.csv: tester id, scenario, result (pass, fail, blocked or not run), cases passed, note, records created. There is no name column.</p>
+</body>
+</html>

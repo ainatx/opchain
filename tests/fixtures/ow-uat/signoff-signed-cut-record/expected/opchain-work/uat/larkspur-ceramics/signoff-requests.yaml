@@ -1,0 +1,44 @@
+ow_artefact: ow-uat/signoff-requests
+schema: 1
+written_by: ow-uat 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: uat/larkspur-ceramics/uat.yaml
+created: 2027-01-22
+clock: user-stated
+origin: skill
+requests:
+  - n: 1
+    written: 2027-01-22
+    written_rec: 51
+    build_label: larkspur-uat-3
+    stated_deemed_date: "none (clauses: none)"
+    sent: 2027-01-22
+    notices: []
+    deemed_date: none
+    status: superseded
+    status_history:
+      - { status: drafted, rec: 51, date: 2027-01-22 }
+      - { status: sent, rec: 52, date: 2027-01-22 }
+      - { status: superseded, rec: 62, date: 2027-01-26, why: "UAT-09, a reproduced major Defect, rec 55, recorded after request 1 was written (rec 51)" }
+    post_acceptance_cos: { listed: [], confirmed: "Robin 2027-01-22: none to list" }
+    read_through: "Robin 2027-01-22"
+    signing_steps: []
+    test_accounts: []
+  - n: 2
+    written: 2027-01-26
+    written_rec: 63
+    build_label: larkspur-uat-4
+    stated_deemed_date: "none (clauses: none)"
+    sent: 2027-01-26
+    notices: []
+    deemed_date: none
+    status: signed
+    status_history:
+      - { status: drafted, rec: 63, date: 2027-01-26 }
+      - { status: sent, rec: 64, date: 2027-01-26 }
+      - { status: signed, rec: 67, date: 2027-01-27 }
+    post_acceptance_cos: { listed: [CO-04], confirmed: "Robin 2027-01-26: list it as post-acceptance" }
+    read_through: "Robin 2027-01-26"
+    signing_steps:
+      - { step: record, rec: 67, date: 2027-01-27 }
+    test_accounts: []

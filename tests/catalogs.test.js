@@ -47,7 +47,7 @@ describe("catalogs.json", () => {
 
   it("validates both real catalogs", () => {
     expect(validateCatalog(byId.oc).length).toBeGreaterThanOrEqual(36);
-    expect(validateCatalog(byId.ow)).toEqual(["ow-build", "ow-build-plan", "ow-start"]);
+    expect(validateCatalog(byId.ow)).toEqual(["ow-build", "ow-build-plan", "ow-start", "ow-uat"]);
   });
 
   it("the real tree passes the protocol, verb and family checks", () => {
@@ -282,7 +282,7 @@ describe("oc- output scripts refuse a tree holding ow- skills", () => {
     cpSync(SKILLS_WORK, join(root, "skills-work"), { recursive: true });
     const r = run(process.execPath, [join(root, "scripts", "sync-plugin-skills.mjs")], { OPCHAIN_SKILLS_DIR: join(root, "skills-work") }, root);
     expect(r.status).toBe(1);
-    expect(r.stderr).toMatch(/refusing to build plugins\/opchain\/skills from .*ow-start not in the oc- catalog/);
+    expect(r.stderr).toMatch(/refusing to build plugins\/opchain\/skills from .*ow-start(?:, ow-[a-z-]+)* not in the oc- catalog/);
     expect(readFileSync(join(root, "plugins", "opchain", "skills", "oc-x", "SKILL.md"), "utf8")).toBe("keep");
   });
 
@@ -291,7 +291,7 @@ describe("oc- output scripts refuse a tree holding ow- skills", () => {
     cpSync(SKILLS_WORK, copy, { recursive: true });
     const r = run(process.execPath, [join(ROOT, "scripts", "sync-skill-bundles.mjs")], { OPCHAIN_SKILLS_DIR: copy });
     expect(r.status).toBe(1);
-    expect(r.stderr).toMatch(/refusing to bundle the oc- protocol into .*ow-start not in the oc- catalog/);
+    expect(r.stderr).toMatch(/refusing to bundle the oc- protocol into .*ow-start(?:, ow-[a-z-]+)* not in the oc- catalog/);
     expect(readdirSync(join(copy, "ow-start", "references"))).not.toContain("orchestrator.md");
   });
 
@@ -334,7 +334,7 @@ describe("oc- output scripts refuse a tree holding ow- skills", () => {
     symlinkSync(join(skills, "oc-dummy"), join(skills, "ow-start"), "dir");
     const r = bundle(skills);
     expect(r.status).toBe(1);
-    expect(r.stderr).toMatch(/ow-start not in the oc- catalog/);
+    expect(r.stderr).toMatch(/ow-start(?:, ow-[a-z-]+)* not in the oc- catalog/);
     expect(existsSync(join(skills, "oc-dummy", "references"))).toBe(false);
   });
 
@@ -392,7 +392,7 @@ describe("oc- output scripts refuse a tree holding ow- skills", () => {
     symlinkSync(dirname(dirname(require.resolve("js-yaml/package.json"))), join(root, "node_modules"), "dir");
     const r = run(process.execPath, [join(root, "scripts", "gen-mcp-catalog.mjs")], { OPCHAIN_SKILLS_DIR: SKILLS_WORK }, root);
     expect(r.status).toBe(1);
-    expect(r.stderr).toMatch(/refusing to build the hosted catalog from .*ow-start not in the oc- catalog/);
+    expect(r.stderr).toMatch(/refusing to build the hosted catalog from .*ow-start(?:, ow-[a-z-]+)* not in the oc- catalog/);
     expect(existsSync(join(root, "src", "generated", "mcp-catalog.json"))).toBe(false);
   });
 });

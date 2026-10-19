@@ -1,0 +1,21 @@
+# Answer key: signoff-request-3 (INVENTED). Design §8 and §11 "Request
+# lifecycle": Robin asks for a fresh request because request 2's clean-up
+# list missed the test customer. Writing request 3 marks request 2, still
+# sent, superseded (a higher-numbered request).
+case: signoff-request-3
+section: Request lifecycle (request 3 supersedes request 2)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: signoff-sent-2
+build_case: change-declined
+verbs: [/ow-uat-signoff]
+today: 2027-01-26
+checks: [headers, writes, write_once, status, private_names, rec, signoff, people, credentials, internal_numbers, false_pass, next]
+signoff: { request: 3, build: larkspur-uat-4, first: none, superseded: [2] }
+next: ["handoffs.yaml `sign`", "use ow-uat-signoff to record the sending on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/signoff-request-3.md, next: ow-uat /ow-uat-signoff uat/larkspur-ceramics/, awaiting: sending request 3 by 2027-01-27 }

@@ -1,0 +1,16 @@
+# Answer key: signoff-signed-cut-acceptance-record (INVENTED). C13 and R1-3: the --signed session ended
+# after the acceptance-record step. The row's signing_steps hold [record, accounts, acceptance-record];
+# the test accounts are in the row; signoff.md, the marker written last, does not exist.
+case: signoff-signed-cut-acceptance-record
+section: Write-once and per-step resume (a --signed cut off after acceptance-record)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-late-minor
+build_case: change-declined
+verbs: [/ow-uat-signoff --signed]
+today: 2027-01-27
+checks: [headers, writes, write_once, rec, signing_steps]
+signing_steps: { request: 2, steps: [record, accounts, acceptance-record], signoff: absent }

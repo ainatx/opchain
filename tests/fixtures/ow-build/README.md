@@ -53,7 +53,7 @@ These are the acceptance tests from `docs/plans/2026-10-08-ow-build-design.md` Â
 
 Mossgate Books declined the documentation line and Fernhill Florists has no `contract-inputs.md`: their ledgers carry `documentation: none` and there is no such trigger.
 
-**Mossgate Books** (quick quote, 50/50, one milestone): `start-quick` (every `spec/` file from a quick-quote job's sources), `invoice-booking-small`, `invoice-delivery-backstop` (the backstop comes first), `invoice-delivery-refused` (the handoff date later: the delivery half is invoiced once), `invoice-delivery-handoff` (the handoff date first).
+**Mossgate Books** (quick quote, 50/50, one milestone): `start-quick` (every `spec/` file from a quick-quote job's sources), `invoice-booking-small`, `invoice-delivery-backstop` (the backstop comes first), `invoice-delivery-governing` (an older quote: the request applies and quotes the governing definition ow-uat recorded in `uat.yaml`, a copy of its `m-plan-no-uat-line` golden), `invoice-delivery-refused` (the handoff date later: the delivery half is invoiced once), `invoice-delivery-handoff` (the handoff date first).
 
 **Fernhill Florists** (delivery mode, nine checks): `start-nine-checks` (all nine reach `spec/06-testing.md`), `start-uncovered` (the sprint plan cites no sprint for AC-3.3: `-start` stops at the map).
 

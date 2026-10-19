@@ -1,0 +1,20 @@
+# Answer key: defect-addendum-retest (INVENTED). UAT-11 passed its retest;
+# CO-04's addendum criteria hold, so NEXT is the addendum confirmation.
+case: defect-addendum-retest
+section: Addendum (retested)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: run-addendum-retest
+build_case: change-declined
+verbs: [/ow-uat-defect]
+today: 2027-02-08
+checks: [headers, writes, write_once, status, private_names, rec, defect, false_pass, next]
+defect:
+  terminal: { UAT-11: retested-pass }
+next: ["use ow-uat-signoff to confirm the addendum for CO-04 on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/defects/UAT-11.md, next: ow-uat /ow-uat-signoff uat/larkspur-ceramics/, awaiting: the client's confirmation of CO-04 }

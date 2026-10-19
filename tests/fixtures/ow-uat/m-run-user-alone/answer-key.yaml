@@ -1,0 +1,21 @@
+# Answer key: m-run-user-alone (INVENTED). Design §4.3 and C8: after the
+# recorded no-shows, Robin runs the required scenarios alone. Each pass is
+# run_by "user alone", source user-stated: never under the shop manager's
+# role.
+case: m-run-user-alone
+section: No false pass (the user alone)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-run-no-show-2
+build_case: invoice-booking-small
+verbs: [/ow-uat-run]
+today: 2026-11-18
+checks: [headers, writes, write_once, status, private_names, rec, run, false_pass, next]
+run: { id: RUN-03, session_date: 2026-11-18, build: mossgate-uat-1, user_alone: true }
+next: ["use ow-uat-signoff on uat/mossgate-books/"]
+status:
+  lines:
+    - { path: uat/mossgate-books/runs/RUN-03.md, next: ow-uat /ow-uat-signoff uat/mossgate-books/, awaiting: none }

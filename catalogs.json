@@ -3,7 +3,7 @@
     "One entry per skill catalog. scripts/gen-skills-catalog.mjs (frontmatter, packaging) and scripts/check-skill-contracts.mjs (verbs, cross-catalog names, protocol copies) iterate every entry, each with its own prefix and verb regex.",
     "outputs names the build outputs a catalog feeds. null means the catalog is kept out of that output on purpose: the ow- catalog is in no dev plugin, zip, docs tree, flag registry, hosted MCP catalog or public mirror until a PR of its own wires it in.",
     "The scripts that write those outputs (sync-plugin-skills, sync-skill-bundles, make-skills-zip, sync-docs, gen-mcp-catalog) refuse a source tree holding any skill outside the oc- prefix, so pointing OPCHAIN_SKILLS_DIR at skills-work/ fails before anything is deleted or written.",
-    "edges names the per-skill edges file (ow- contract R15). planned lists family skills not built yet; plannedVerbs declares the verbs a NEXT block may already name for one of them (ow-build's ready NEXT names ow-uat's /ow-uat-plan by name, owner decision 2026-10-16; ow-build reads ow-documentation's delivered.md, which /ow-documentation-delivered writes, for amendment B4). bodyTokenBudgets caps one skill's body below the catalog's bodyTokenBudget. ow-care is planned because ow-start's /ow-start-log indexes its files (an index: true reads row, owner decision O1 of OW-08). statusNames names what a verb's STATUS lines must carry (every `next: … | awaiting: …` template in its phase file). Both resolve names only: reciprocity is checked once the planned skill has its own edges file."
+    "edges names the per-skill edges file (ow- contract R15). planned lists family skills not built yet; plannedVerbs declares the verbs a NEXT block may already name for one of them (ow-uat's sign-off NEXTs name /ow-handoff-start and /ow-documentation-start, owner decision O5, and its after-sign-off NEXT names /ow-handoff-fix; ow-build reads ow-documentation's delivered.md, which /ow-documentation-delivered writes, for amendment B4). bodyTokenBudgets caps one skill's body below the catalog's bodyTokenBudget. ow-care is planned because ow-start's /ow-start-log indexes its files (an index: true reads row, owner decision O1 of OW-08). statusNames names what a verb's STATUS lines must carry (every `next: … | awaiting: …` template in its phase file). Both resolve names only: reciprocity is checked once the planned skill has its own edges file."
   ],
   "catalogs": [
     {
@@ -45,10 +45,10 @@
       "versionPolicy": "per-skill",
       "bodyTokenBudget": 5000,
       "edges": "skill.edges.yaml",
-      "planned": ["ow-uat", "ow-handoff", "ow-documentation", "ow-care"],
-      "plannedVerbs": { "ow-uat": ["/ow-uat-plan"], "ow-documentation": ["/ow-documentation-delivered"] },
-      "bodyTokenBudgets": { "ow-build": 4500, "ow-start": 4500 },
-      "statusNames": { "/ow-build-run": "M<n>", "/ow-start-log-meeting": "A-", "/ow-start-log-decision": "DEC-" },
+      "planned": ["ow-handoff", "ow-documentation", "ow-care"],
+      "plannedVerbs": { "ow-handoff": ["/ow-handoff-start", "/ow-handoff-fix"], "ow-documentation": ["/ow-documentation-start", "/ow-documentation-delivered"] },
+      "bodyTokenBudgets": { "ow-build": 4500, "ow-uat": 4500, "ow-start": 4500 },
+      "statusNames": { "/ow-build-run": "M<n>", "/ow-uat-signoff": "request <n>", "/ow-start-log-meeting": "A-", "/ow-start-log-decision": "DEC-" },
       "addons": { "ow-tools": ["/ow-start-transcribe"] },
       "privateNames": ["llc-ops"],
       "brandNames": ["Deftwright"],

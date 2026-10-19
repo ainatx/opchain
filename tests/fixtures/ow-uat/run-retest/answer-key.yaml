@@ -1,0 +1,21 @@
+# Answer key: run-retest (INVENTED). Design §7 and §8 criterion 1: after the
+# last fix, one confirmation run of every required scenario on the latest
+# build label, by the client's testers (a retest of a builder-side failure is
+# builder cause: no extension and no charge).
+case: run-retest
+section: Rapid fix (the confirmation run after the last fix)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-fixed-uat-09
+build_case: change-declined
+verbs: [/ow-uat-run]
+today: 2027-01-26
+checks: [headers, writes, write_once, status, private_names, rec, run, people, credentials, false_pass, next]
+run: { id: RUN-04, session_date: 2027-01-26, build: larkspur-uat-4, results: uat/larkspur-ceramics/evidence/results-session-4.csv }
+next: ["use ow-uat-defect on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/runs/RUN-04.md, next: ow-uat /ow-uat-defect uat/larkspur-ceramics/, awaiting: none }

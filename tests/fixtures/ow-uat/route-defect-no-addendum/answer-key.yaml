@@ -1,0 +1,18 @@
+# Answer key: route-defect-no-addendum (INVENTED). C4, the handoff's -fix,
+# stage "none yet": a report against CO-04, which has no addendum scenarios
+# yet. Nothing is logged; NEXT is -plan --addendum.
+case: route-defect-no-addendum
+section: "Inbound route (the handoff's -fix: no addendum scenarios yet)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-punch-step0
+build_case: change-declined
+verbs: [/ow-uat-defect]
+today: 2027-01-29
+checks: [route, refused, next]
+route: { say: "use ow-uat-defect on uat/larkspur-ceramics/", expect: nothing }
+refused: { reason: no addendum scenarios for CO-04 }
+next: ["use ow-uat-plan to write the addendum for CO-04 in uat/larkspur-ceramics/"]

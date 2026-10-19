@@ -1,0 +1,12 @@
+# Answer key: route-ready-cut (INVENTED). C4, ow-build ready, stage "-plan cut
+# off": the ready file handed over again resumes -plan. Graded on plan-resume.
+case: route-ready-cut
+section: "Inbound route (ow-build ready: -plan cut off)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+run: plan-resume
+checks: [route]
+route: { from: builds/larkspur-ceramics/ready-for-uat.md, expect: plan }

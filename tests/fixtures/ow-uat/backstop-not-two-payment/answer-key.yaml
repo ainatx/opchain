@@ -1,0 +1,16 @@
+# Answer key: backstop-not-two-payment (INVENTED). Design §8.2 and C12: --backstop refuses
+# when the project is not on the two-payment schedule. Nothing is written (backstop.md is written once, if ever).
+case: backstop-not-two-payment
+section: "Backstop (refused: the project is not on the two-payment schedule)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-punch-step0
+build_case: change-declined
+verbs: [/ow-uat-signoff --backstop]
+today: 2027-01-18
+checks: [refused, backstop_refused]
+refused: { reason: "the project is not on the two-payment schedule" }
+backstop_refused: { reason: "the project is not on the two-payment schedule" }

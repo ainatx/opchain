@@ -1,0 +1,13 @@
+# Answer key: route-defect-addendum (INVENTED). C4, the handoff's -fix, stage
+# "addendum scenarios exist": -defect logs the problem against CO-04. Graded
+# on the defect-addendum run.
+case: route-defect-addendum
+section: "Inbound route (the handoff's -fix: addendum scenarios exist)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+run: defect-addendum
+checks: [route]
+route: { say: "use ow-uat-defect on uat/larkspur-ceramics/", expect: defect }

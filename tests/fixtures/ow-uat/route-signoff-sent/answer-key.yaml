@@ -1,0 +1,17 @@
+# Answer key: route-signoff-sent (INVENTED). C4, the handoff's -start, stage
+# "sent": nothing runs; the --signed NEXT prints (no deemed date: clauses none).
+case: route-signoff-sent
+section: "Inbound route (the handoff's -start: sent)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: signoff-sent-1
+build_case: change-declined
+verbs: [/ow-uat-signoff]
+today: 2027-01-25
+checks: [route, refused, next]
+route: { say: "use ow-uat-signoff on uat/larkspur-ceramics/", expect: nothing }
+refused: { reason: request 1 is sent }
+next: ["use ow-uat-signoff to record the signature on uat/larkspur-ceramics/"]

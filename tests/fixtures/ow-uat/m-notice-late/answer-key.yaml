@@ -1,0 +1,26 @@
+# Answer key: m-notice-late (INVENTED). Design §8.1 and §11 "Deemed" (a
+# report received on day 2 with a notice sent on day 6): the report arrived
+# 2026-11-24; the cannot-reproduce notice went on 2026-12-01, 4 business days
+# later on the contract calendar (Thanksgiving skipped), past the 3 allowed.
+# -defect warns; the report supersedes request 1 like a reproduced one, and
+# the deemed date does not move.
+case: m-notice-late
+section: Deemed (a late notice)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-sent
+build_case: invoice-booking-small
+verbs: [/ow-uat-defect]
+today: 2026-12-01
+checks: [headers, writes, write_once, status, private_names, rec, defect, calendar, next]
+defect:
+  supersedes: { UAT-01: 1 }
+  notice: { UAT-01: { arrived: 2026-11-24, sent: 2026-12-01, timely: false } }
+calendar: { from: 2026-11-24, days: 3, want: 2026-11-30, source: table }
+next: []
+status:
+  lines:
+    - { path: uat/mossgate-books/defects/UAT-01.md, next: ow-uat /ow-uat-run uat/mossgate-books/, awaiting: the builder's look at UAT-01 by 2026-12-04 (request 1 will be superseded) }

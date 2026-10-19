@@ -1,0 +1,18 @@
+# Answer key: pack-basis-mismatch (INVENTED). Design §3 and the resume step
+# (planted state: acceptance.md edited upstream after the freeze): the
+# frozen copy and its upstream differ, a basis mismatch. -pack refuses until
+# -plan --keep-frozen or --refreeze resolves it; nothing written.
+case: pack-basis-mismatch
+section: Basis mismatch (blocks -pack)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: plan
+build_case: ready-passing
+verbs: [/ow-uat-pack]
+today: 2027-01-05
+checks: [refused, next]
+refused: { reason: basis mismatch, names: [agreed/acceptance.md] }
+next: ["use ow-uat-plan to keep acceptance.md frozen in uat/larkspur-ceramics/", "use ow-uat-plan to refreeze acceptance.md in uat/larkspur-ceramics/"]

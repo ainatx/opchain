@@ -1,0 +1,69 @@
+ow_artefact: ow-uat/uat
+schema: 1
+written_by: ow-uat 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: builds/larkspur-ceramics/ready-for-uat.md
+created: 2027-01-04
+clock: user-stated
+origin: skill
+client: Larkspur Ceramics
+handling: "no"
+plan_steps:
+  - { step: basis, rec: 1, date: 2027-01-04 }
+  - { step: terms, rec: 2, date: 2027-01-04 }
+  - { step: mix, rec: 3, date: 2027-01-04 }
+  - { step: people, rec: 4, date: 2027-01-04 }
+  - { step: environment, rec: 5, date: 2027-01-04 }
+  - { step: data, rec: 6, date: 2027-01-04 }
+  - { step: schedule, rec: 7, date: 2027-01-04 }
+  - { step: side_effects, rec: 8, date: 2027-01-04 }
+  - { step: gitignore, rec: 9, date: 2027-01-04 }
+  - { step: scenarios, rec: 10, date: 2027-01-04 }
+ready: { file: builds/larkspur-ceramics/ready-for-uat.md, build_label: larkspur-uat-2, checks: 9 }
+basis:
+  - { file: agreed/scope.md, from: plans/larkspur-ceramics/scope.md, frozen: 2027-01-04, rec: 1 }
+  - { file: agreed/acceptance.md, from: plans/larkspur-ceramics/acceptance.md, frozen: 2027-01-04, rec: 1 }
+  - { file: agreed/CO-01.md, from: builds/larkspur-ceramics/changes/CO-01.md, frozen: 2027-01-04, rec: 1 }
+  - { file: agreed/contract-terms.md, from: plans/larkspur-ceramics/contract-inputs.md, block: terms, digest: "sha256:eb78a5c46a94aea94972758789e62eec4e622fe46a022d44281d74bc5306ed27", frozen: 2027-01-04, rec: 1 }
+checks: [AC-1.1, AC-1.2, AC-2.1, AC-3.1, AC-4.1, AC-5.1, AC-5.2, AC-CO-01.1, AC-CO-01.2]
+cos:
+  - { id: CO-01, status: in the acceptance, how: signed before -plan (2026-12-07) }
+terms:
+  bounds: quoted (contract-inputs.md)
+  size: M
+  tester_roles: [order coordinator, operations manager, bookkeeper]
+  sessions: 3
+  fix_rounds: 2
+  fix_business_days: 5
+  schedule: 40/40/20
+  payment_terms_days: 14
+  acceptance_definition: The build is accepted when you sign off user acceptance testing with every acceptance check passing, or as the contract's deemed-acceptance clause provides.
+  delivery_definition: none
+  governing: none
+  documentation_sku: bought
+clauses: none
+calendars: { contract: none (clauses none), fix_and_schedule: "profile.md: weekends and 2026-11-26, 2026-12-25" }
+mix: { coverage: always, testers_by_role: yes, real_cases: no, exploratory: no, defect_log: always }
+client_contact: operations manager
+testers:
+  - { role: order coordinator, id: oc-T1 }
+  - { role: operations manager, id: ops-T1 }
+  - { role: bookkeeper, id: bk-T1 }
+environment: { name: "the live order mailbox, order sheet and QuickBooks Online", production: "client decision: operations manager 2027-01-04" }
+test_data:
+  default: synthetic or anonymised
+  real:
+    - { check: AC-1.1, decision: "client decision: operations manager 2027-01-04" }
+    - { check: AC-2.1, decision: "client decision: operations manager 2027-01-04" }
+    - { check: AC-3.1, decision: "client decision: operations manager 2027-01-04" }
+    - { check: AC-4.1, decision: "client decision: operations manager 2027-01-04" }
+    - { check: AC-5.1, decision: "client decision: operations manager 2027-01-04" }
+    - { check: AC-CO-01.1, decision: "client decision: operations manager 2027-01-04" }
+side_effects:
+  - { scenario: SC-06, effect: writes invoices to QuickBooks Online }
+schedule:
+  - { session: 1, date: 2027-01-07, roles: [order coordinator, operations manager, bookkeeper] }
+  - { session: 2, date: 2027-01-12, roles: [order coordinator, operations manager, bookkeeper] }
+  - { session: 3, date: 2027-01-21, roles: [order coordinator, operations manager, bookkeeper], final: confirmation run }
+gitignore: { asked: 2027-01-04, answer: not a git repo }
+events: []

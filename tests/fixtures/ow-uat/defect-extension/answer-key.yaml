@@ -1,0 +1,24 @@
+# Answer key: defect-extension (INVENTED). Design §7 and §11 "Rapid fix and
+# bounds" (testers absent with open Defects): one client-side event (the
+# session-2 no-show) affects three open Defects. Each records "extension
+# requested, client cause: <event>", and one NEXT hands all three to ow-build
+# to price one extension change order. These three files are the ones
+# ow-build's change-uat-extension case reads (deliverable 6).
+case: defect-extension
+section: Rapid fix and bounds (one client-side event, one extension request)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: run-no-show
+build_case: ready-passing
+verbs: [/ow-uat-defect]
+today: 2027-01-13
+checks: [headers, writes, write_once, status, private_names, rec, defect, internal_numbers, next]
+defect:
+  extension: { event: "testers absent from session 2 on 2027-01-12", ids: [UAT-03, UAT-04, UAT-05] }
+next: ["use ow-build to price the change from uat/larkspur-ceramics/defects/UAT-03.md"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/defects/UAT-05.md, next: ow-build /ow-build-change uat/larkspur-ceramics/defects/UAT-03.md, awaiting: none }

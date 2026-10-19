@@ -1,0 +1,20 @@
+# Answer key: pack-terms-nocode-changed (INVENTED). R2-1, the major of round
+# 2 (the Evaluator's zz2-nocode-pack-changed; planted state: TEST-1 changed
+# from 10 to 15 business days in contract-inputs.md after the freeze). With
+# no code, the frozen clauses in uat.yaml are compared as text with
+# contract_clauses: they differ, a basis mismatch. -pack refuses until -plan
+# --keep-frozen or --refreeze; nothing is written.
+case: pack-terms-nocode-changed
+section: "Basis mismatch (the terms block as text: a changed clause)"
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-plan-nocode
+build_case: invoice-booking-small
+verbs: [/ow-uat-pack]
+today: 2026-11-11
+checks: [refused, next, basis]
+refused: { reason: basis mismatch, names: [agreed/contract-terms.md] }
+next: ["use ow-uat-plan to keep contract-terms.md frozen in uat/mossgate-books/", "use ow-uat-plan to refreeze contract-terms.md in uat/mossgate-books/"]

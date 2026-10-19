@@ -1,0 +1,23 @@
+# Answer key: plan (INVENTED). Design §3, §3.1, §4, §5 and §11 "Coverage":
+# ow-build's ready-passing run hands over a ready build with nine checks
+# (seven plan checks and CO-01's two). -plan freezes the basis (byte-for-byte
+# copies plus contract-terms.md), the quoted UAT line (bounds quoted), clauses
+# none, testers by role and id, the real-data decision, the schedule; then
+# nine required scenarios (N checks, N scenarios) and three role scenarios.
+case: plan
+section: Coverage; the entry; the frozen basis
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+build_case: ready-passing
+verbs: [/ow-uat-plan]
+today: 2027-01-04
+checks: [headers, writes, write_once, status, private_names, rec, plan, scenarios, people, credentials, data, internal_numbers, next]
+plan: { checks: 9, required: 9, scenarios: 12, bounds: quoted (contract-inputs.md), clauses: none, testers: 3 }
+next: ["use ow-uat-pack on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/uat.yaml, next: ow-uat /ow-uat-plan uat/larkspur-ceramics/, awaiting: none }
+    - { path: uat/larkspur-ceramics/uat.yaml, next: ow-uat /ow-uat-pack uat/larkspur-ceramics/, awaiting: none }

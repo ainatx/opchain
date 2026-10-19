@@ -1,0 +1,18 @@
+# Answer key: signoff-condition-unmet (INVENTED). Design §11 "Condition": the
+# condition CO-03 is in agreed/, but its scenarios have not passed, so
+# -signoff refuses (criterion 1 names AC-CO-03.1 and AC-CO-03.2 among the
+# rest of this early stage).
+case: signoff-condition-unmet
+section: Condition (blocks until its scenarios pass)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-condition-met
+build_case: change-sent
+verbs: [/ow-uat-signoff]
+today: 2027-01-20
+checks: [refused, criteria]
+refused: { reason: exit criteria }
+criteria: { "1": [AC-1.1, AC-1.2, AC-2.1, AC-3.1, AC-4.1, AC-5.1, AC-5.2, AC-CO-01.1, AC-CO-01.2, AC-CO-03.1, AC-CO-03.2], "3": [UAT-03, UAT-04, UAT-05], "5": [UAT-02] }

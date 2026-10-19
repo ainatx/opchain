@@ -1,0 +1,26 @@
+ow_artefact: ow-uat/signoff-requests
+schema: 1
+written_by: ow-uat 1.0.0 (protocol 1)
+workstream: mossgate-books
+subject: uat/mossgate-books/uat.yaml
+created: 2026-11-19
+clock: user-stated
+origin: skill
+requests:
+  - n: 1
+    written: 2026-11-19
+    written_rec: 14
+    build_label: mossgate-uat-1
+    stated_deemed_date: 2026-12-07
+    sent: 2026-11-20
+    notices: []
+    deemed_date: 2026-12-07
+    status: superseded
+    status_history:
+      - { status: drafted, rec: 14, date: 2026-11-19 }
+      - { status: sent, rec: 15, date: 2026-11-20 }
+      - { status: superseded, rec: 22, date: 2026-12-08, why: "UAT-01, a reproduced major Defect, rec 18, recorded after request 1 was written (rec 14)" }
+    post_acceptance_cos: { listed: [], confirmed: "Robin 2026-11-19: none to list" }
+    read_through: "Robin 2026-11-19"
+    signing_steps: []
+    test_accounts: []

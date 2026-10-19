@@ -1,0 +1,23 @@
+# Answer key: signoff-signed-resume-acceptance-record (INVENTED). C13 and R1-3: the next session resumes
+# --signed at its first missing step (punch-list). The accounts in the row stand; it writes the punch list and signoff.md for the first time, rewrites nothing written, and redoes no recorded step.
+case: signoff-signed-resume-acceptance-record
+section: Write-once and per-step resume (--signed resumed at punch-list)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: signoff-signed-cut-acceptance-record
+build_case: change-declined
+verbs: [/ow-uat-signoff --signed]
+today: 2027-01-28
+checks: [headers, writes, write_once, status, private_names, rec, signing_steps, next]
+signing_steps: { request: 2, steps: [record, accounts, acceptance-record, punch-list, signoff], signoff: written, resumed_from: punch-list }
+next:
+  - "use ow-uat-defect on uat/larkspur-ceramics/"
+  - "use ow-build to invoice the acceptance payment from uat/larkspur-ceramics/signoff.md"
+  - "use ow-handoff-start on uat/larkspur-ceramics/"
+  - "use ow-documentation-start on uat/larkspur-ceramics/"
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/signoff.md, next: ow-build /ow-build-invoice uat/larkspur-ceramics/signoff.md, awaiting: none (signed on request 2) }

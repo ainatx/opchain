@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<title>User acceptance testing: operations manager pack, Larkspur Ceramics</title>
+</head>
+<body style="background:#ffffff;color:#1a1a1a;font-family:Arial,sans-serif">
+<h1 style="color:#1a1a1a">User acceptance testing: operations manager pack, Larkspur Ceramics</h1>
+<h2 style="color:#1a1a1a">What this test is</h2>
+<p>You try the finished build against what was agreed, using the scenarios below. A problem inside the agreed scope is fixed quickly and at no charge; anything new is written down and priced before any work starts.</p>
+<h2 style="color:#1a1a1a">Dates</h2>
+<ul>
+<li>Session 1: Thursday 7 January 2027</li>
+<li>Session 2: Tuesday 12 January 2027</li>
+<li>Session 3: Thursday 21 January 2027 (the final confirmation run)</li>
+</ul>
+<h2 style="color:#1a1a1a">Signing in</h2>
+<p>Your login comes from the operations manager. Your tester id is ops-T1; write it in the results template instead of your name.</p>
+<h2 style="color:#1a1a1a">Your scenarios</h2>
+<table>
+<thead><tr><th>Scenario</th><th>What to do</th><th>What you should see</th></tr></thead>
+<tbody>
+<tr><td>SC-04</td><td>Orders show as confirmed the same day</td><td>All 10 orders show as confirmed on the day they were sent, with their lines (10 cases).</td></tr>
+<tr><td>SC-08</td><td>Stock on hand shows beside each line</td><td>Each line shows the stock on hand for its product code, as of the last evening update (5 cases).</td></tr>
+<tr><td>SC-09</td><td>A code missing from the stock sheet shows stock not known</td><td>The line shows &quot;stock not known&quot; instead of a number (1 case).</td></tr>
+<tr><td>SC-11</td><td>Read the confirmation view at the start of the day</td><td>Each order shows its lines and whether it was confirmed, the day it arrived (1 case).</td></tr>
+</tbody>
+</table>
+<h2 style="color:#1a1a1a">Reporting a problem</h2>
+<p>Write down what you did, what you expected and what happened. Add a screenshot only if it shows no real customer data. Send it to the operations manager.</p>
+<h2 style="color:#1a1a1a">The results template</h2>
+<p>Fill one row per scenario in results-template.csv: tester id, scenario, result (pass, fail, blocked or not run), cases passed, note, records created. There is no name column.</p>
+</body>
+</html>

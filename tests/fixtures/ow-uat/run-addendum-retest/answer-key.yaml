@@ -1,0 +1,19 @@
+# Answer key: run-addendum-retest (INVENTED). SC-13 passes on build
+# larkspur-uat-6, the latest of CO-04's delivery and UAT-11's fix.
+case: run-addendum-retest
+section: Addendum (the retest)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-addendum-fixed
+build_case: change-declined
+verbs: [/ow-uat-run]
+today: 2027-02-08
+checks: [headers, writes, write_once, status, private_names, rec, run, false_pass, next]
+run: { id: RUN-06, session_date: 2027-02-08, build: larkspur-uat-6, results: uat/larkspur-ceramics/evidence/results-session-6.csv }
+next: ["use ow-uat-defect on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/runs/RUN-06.md, next: ow-uat /ow-uat-defect uat/larkspur-ceramics/, awaiting: none }

@@ -1,0 +1,10 @@
+ow_artefact: ow-uat/backstop-log
+schema: 1
+written_by: ow-uat 1.0.0 (protocol 1)
+workstream: mossgate-books
+subject: uat/mossgate-books/signoff.md
+created: 2027-01-07
+clock: user-stated
+origin: skill
+readiness: { date: 2027-01-07, dependency: "the weekly till export in the shared folder by 7:00 each Monday, from the shop manager", rec: 25, recorded: "recorded by Robin; not verified by this skill" }
+builder_delay: []

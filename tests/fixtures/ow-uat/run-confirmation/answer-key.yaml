@@ -1,0 +1,21 @@
+# Answer key: run-confirmation (INVENTED). Design §5 and §8 criterion 1: the
+# final confirmation run, every scenario on build larkspur-uat-3 (the latest
+# fixed label), each pass with run_by the tester's role and its results
+# file. A cosmetic noted on a passing scenario is logged by -defect next.
+case: run-confirmation
+section: Required scenario (the confirmation run)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-condition
+build_case: change-sent
+verbs: [/ow-uat-run]
+today: 2027-01-21
+checks: [headers, writes, write_once, status, private_names, rec, run, people, credentials, data, false_pass, next]
+run: { id: RUN-03, session_date: 2027-01-21, build: larkspur-uat-3, results: uat/larkspur-ceramics/evidence/results-session-3.csv }
+next: ["use ow-uat-defect on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/runs/RUN-03.md, next: ow-uat /ow-uat-defect uat/larkspur-ceramics/, awaiting: none }

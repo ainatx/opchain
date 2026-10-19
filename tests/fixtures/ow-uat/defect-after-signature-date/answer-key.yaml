@@ -1,0 +1,25 @@
+# Answer key: defect-after-signature-date (INVENTED). Design §8 and §11 "After
+# the signature date": the client signed request 2 on 2027-01-27; a major
+# Defect logged on 2027-01-28, before --signed is run, is marked "after
+# sign-off" and goes to the handoff as a covered fix. It does not supersede
+# request 2.
+case: defect-after-signature-date
+section: After the signature date (logged)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-late-minor
+build_case: change-declined
+verbs: [/ow-uat-defect]
+today: 2027-01-28
+checks: [headers, writes, write_once, status, private_names, rec, defect, internal_numbers, next]
+defect:
+  classes: { UAT-11: Defect }
+  supersedes: {}
+  after_signoff: [UAT-11]
+next: ["use ow-uat-signoff to record the signature on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/defects/UAT-11.md, next: ow-uat /ow-uat-signoff uat/larkspur-ceramics/, awaiting: recording the signature on request 2 }

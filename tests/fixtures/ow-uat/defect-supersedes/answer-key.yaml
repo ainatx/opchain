@@ -1,0 +1,25 @@
+# Answer key: defect-supersedes (INVENTED). Design §8 supersession and §8.1
+# reports after sending: the bookkeeper's report names a failing check with
+# steps (qualifying); the builder reproduces it, so it is a major Defect
+# logged after request 1 was written. -defect cannot write
+# signoff-requests.yaml: it records "request 1 will be superseded" on the
+# UAT-nn and in STATUS.md, and the next -signoff marks it.
+case: defect-supersedes
+section: Request lifecycle (a reproduced major supersedes a sent request)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: signoff-sent-1
+build_case: change-declined
+verbs: [/ow-uat-defect]
+today: 2027-01-25
+checks: [headers, writes, write_once, status, private_names, rec, defect, internal_numbers, next]
+defect:
+  classes: { UAT-09: Defect }
+  supersedes: { UAT-09: 1 }
+next: ["handoffs.yaml `build`"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/defects/UAT-09.md, next: ow-uat /ow-uat-run uat/larkspur-ceramics/, awaiting: fix of UAT-09 by 2027-02-01 (request 1 will be superseded) }

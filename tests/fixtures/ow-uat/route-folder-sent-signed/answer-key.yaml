@@ -1,0 +1,12 @@
+# Answer key: route-folder-sent-signed (INVENTED). C4 (the folder route, owner decision O4),
+# stage "sent, the user says it is signed: --signed". Graded on the signoff-signed run.
+case: route-folder-sent-signed
+section: "Inbound route (the folder: sent, the user says it is signed)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+run: signoff-signed
+checks: [route]
+route: { from: uat/larkspur-ceramics/, expect: signoff --signed }

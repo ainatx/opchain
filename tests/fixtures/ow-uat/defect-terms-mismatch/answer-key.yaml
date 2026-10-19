@@ -1,0 +1,21 @@
+# Answer key: defect-terms-mismatch (INVENTED). R2-10 and OD-6 (planted
+# state: TEST-1 changed upstream after the freeze; no code here, so the
+# terms are compared as text). A basis mismatch blocks -defect triage, not
+# logging: UAT-01 is logged (not qualifying: no failing check, no steps) and
+# left untriaged; NEXT asks for --keep-frozen or --refreeze first.
+case: defect-terms-mismatch
+section: Basis mismatch (-defect logs; triage waits)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-sent
+build_case: invoice-booking-small
+verbs: [/ow-uat-defect]
+today: 2026-11-24
+checks: [headers, writes, write_once, status, private_names, rec, internal_numbers, next]
+next: ["use ow-uat-plan to keep contract-terms.md frozen in uat/mossgate-books/", "use ow-uat-plan to refreeze contract-terms.md in uat/mossgate-books/"]
+status:
+  lines:
+    - { path: uat/mossgate-books/defects/UAT-01.md, next: ow-uat /ow-uat-plan uat/mossgate-books/, awaiting: a decision on the basis mismatch (agreed/contract-terms.md) }

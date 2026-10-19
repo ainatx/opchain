@@ -1,0 +1,20 @@
+# Answer key: run-no-show (INVENTED). Design §4.3 and §11 "No-show": the
+# client's testers did not attend session 2. -run records a no-show run:
+# every scenario not run, the invitation dates, and the awaiting line.
+case: run-no-show
+section: No-show
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-triage
+build_case: ready-passing
+verbs: [/ow-uat-run]
+today: 2027-01-12
+checks: [headers, writes, write_once, status, private_names, rec, run, people, credentials, false_pass, next]
+run: { id: RUN-02, session_date: 2027-01-12, build: larkspur-uat-2, no_show: true }
+next: ["use ow-uat-defect on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/runs/RUN-02.md, next: ow-uat /ow-uat-defect uat/larkspur-ceramics/, awaiting: "client testers for order coordinator, operations manager and bookkeeper since 2027-01-12" }

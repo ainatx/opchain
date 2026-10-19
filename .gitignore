@@ -107,6 +107,8 @@ site/.playwright/
 # Logs
 *.log
 npm-debug.log*
+# ow-uat's secrets-seen.log in its invented golden runs is a fixture, not a log.
+!tests/fixtures/ow-uat/**/secrets-seen.log
 
 # Editor
 .vscode/

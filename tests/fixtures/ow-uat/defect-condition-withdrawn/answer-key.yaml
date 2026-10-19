@@ -1,0 +1,21 @@
+# Answer key: defect-condition-withdrawn (INVENTED). O6: the operations
+# manager withdraws the condition; UAT-06 is a change request again and no
+# longer blocks sign-off.
+case: defect-condition-withdrawn
+section: Condition (withdrawn)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-condition-too-big
+build_case: change-uat-too-big
+verbs: [/ow-uat-defect]
+today: 2027-01-18
+checks: [headers, writes, write_once, status, private_names, rec, defect, next]
+defect:
+  terminal: { UAT-06: raised as change request }
+next: ["use ow-uat-run on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/defects/UAT-06.md, next: ow-uat /ow-uat-run uat/larkspur-ceramics/, awaiting: session 3 on 2027-01-21 }

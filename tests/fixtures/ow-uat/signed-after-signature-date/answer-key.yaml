@@ -1,0 +1,25 @@
+# Answer key: signed-after-signature-date (INVENTED). Design §8: --signed on
+# 2027-01-29 judges supersession and the exit criteria as of the signature
+# date, 2027-01-27. UAT-11 (2027-01-28) does not supersede request 2 and is
+# not on the punch list; the sign-off files are written as of 2027-01-27.
+case: signed-after-signature-date
+section: After the signature date (signed)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-after-signature-date
+build_case: change-declined
+verbs: [/ow-uat-signoff --signed]
+today: 2027-01-29
+checks: [headers, writes, write_once, status, private_names, rec, signed, handoff_fields, internal_numbers, false_pass, next]
+signed: { request: 2, date: 2027-01-27, signer: operations manager, build: larkspur-uat-4, accounts: 2, punch: [UAT-08, UAT-10], late: [UAT-10], post_acceptance: [CO-04], project: larger, documentation: bought }
+next:
+  - "use ow-uat-defect on uat/larkspur-ceramics/"
+  - "use ow-build to invoice the acceptance payment from uat/larkspur-ceramics/signoff.md"
+  - "use ow-handoff-start on uat/larkspur-ceramics/"
+  - "use ow-documentation-start on uat/larkspur-ceramics/"
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/signoff.md, next: ow-build /ow-build-invoice uat/larkspur-ceramics/signoff.md, awaiting: none (signed on request 2) }

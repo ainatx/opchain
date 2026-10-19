@@ -1,0 +1,21 @@
+# Answer key: m-deemed-bought (INVENTED). C14 and owner decision O5 (planted
+# state: the shop bought the documentation line): on a smaller project there
+# is no acceptance invoice; the NEXT blocks are the handoff, then
+# documentation.
+case: m-deemed-bought
+section: NEXT order (a smaller project, documentation bought)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-defect-no-steps
+build_case: invoice-booking-small
+verbs: [/ow-uat-signoff --deemed]
+today: 2026-12-08
+checks: [headers, writes, write_once, status, rec, signed, next]
+signed: { request: 1, date: 2026-12-07, signer: none (deemed), build: mossgate-uat-1, accounts: 1, punch: [], late: [], post_acceptance: [], project: smaller, documentation: bought, acceptance: deemed }
+next: ["use ow-handoff-start on uat/mossgate-books/", "use ow-documentation-start on uat/mossgate-books/"]
+status:
+  lines:
+    - { path: uat/mossgate-books/signoff.md, next: ow-handoff /ow-handoff-start uat/mossgate-books/, awaiting: handoff delivery (deemed on request 1) }

@@ -1,0 +1,22 @@
+# Answer key: plan-add-co-after-sent (INVENTED). Design §8 supersession and
+# §11 "Request lifecycle" (a CO added with --add-co after sending supersedes
+# the request): Robin chooses to include CO-04 in this acceptance. -plan
+# --add-co adds it; it cannot write signoff-requests.yaml, so STATUS says
+# request 1 will be superseded.
+case: plan-add-co-after-sent
+section: Request lifecycle (--add-co after sending)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: signoff-sent-1
+build_case: change-declined
+verbs: [/ow-uat-plan --add-co]
+today: 2027-01-25
+checks: [headers, writes, write_once, status, private_names, rec, plan_mode, scenarios, data, next]
+plan_mode: { mode: --add-co, co: CO-04, scenarios: [SC-13], checks: [AC-CO-04.1] }
+next: ["use ow-uat-run on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/uat.yaml, next: ow-uat /ow-uat-run uat/larkspur-ceramics/, awaiting: a session for SC-13 by 2027-01-29 (request 1 will be superseded) }

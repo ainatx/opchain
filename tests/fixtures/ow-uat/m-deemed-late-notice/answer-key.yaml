@@ -1,0 +1,17 @@
+# Answer key: m-deemed-late-notice (INVENTED). --deemed marks request 1
+# superseded (the late notice, by rec) and refuses; the late notice is not
+# added to the row's notices and moves no date.
+case: m-deemed-late-notice
+section: Deemed (refused after a late notice)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-notice-late
+build_case: invoice-booking-small
+verbs: [/ow-uat-signoff --deemed]
+today: 2026-12-08
+checks: [headers, writes, write_once, rec, signoff, refused_writes]
+signoff: { superseded: [1], refused: true }
+refused_writes: { reason: superseded, only: [uat/mossgate-books/signoff-requests.yaml] }

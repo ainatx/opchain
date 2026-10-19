@@ -1,0 +1,17 @@
+# Answer key: route-folder-signed (INVENTED). C4, the folder route, stage
+# "signed": nothing runs; the handoff NEXT prints again.
+case: route-folder-signed
+section: "Inbound route (the folder: signed)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-punch-step0
+build_case: change-declined
+verbs: [/ow-uat]
+today: 2027-01-28
+checks: [route, refused, next]
+route: { from: uat/larkspur-ceramics/, expect: nothing }
+refused: { reason: signed off }
+next: ["use ow-handoff-start on uat/larkspur-ceramics/"]

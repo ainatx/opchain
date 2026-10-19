@@ -1,0 +1,17 @@
+# Answer key: route-ready-missing (INVENTED). C4 and design §3.1: with no
+# ready-for-uat.md (ow-build's invoice-co run: the build is not marked ready),
+# -plan stops and prints "use ow-build to mark the build ready for UAT".
+case: route-ready-missing
+section: "Entry gate (no ready-for-uat.md)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+build_case: invoice-co
+verbs: [/ow-uat-plan]
+today: 2026-12-10
+checks: [route, refused, next]
+route: { from: builds/larkspur-ceramics/ready-for-uat.md, expect: nothing }
+refused: { reason: "no ready-for-uat.md" }
+next: ["use ow-build to mark the build ready for UAT"]

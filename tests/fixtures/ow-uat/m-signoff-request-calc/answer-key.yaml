@@ -1,0 +1,23 @@
+# Answer key: m-signoff-request-calc (INVENTED). C11, capability detection:
+# with an ow-tools whose version --json lists the us-federal calendar, the
+# deemed date comes from calc, and the command and its raw output are
+# recorded. Same date as the table.
+case: m-signoff-request-calc
+section: Deemed (the stated date, machine-checked)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-run-user-alone
+build_case: invoice-booking-small
+verbs: [/ow-uat-signoff]
+today: 2026-11-19
+ow_tools: { version: 1.2.0, calendars: [us-federal] }
+checks: [headers, writes, write_once, status, private_names, rec, signoff, calendar, internal_numbers, false_pass, next]
+signoff: { request: 1, build: mossgate-uat-1, first: 2026-12-07, builder_only: [AC-1.1, AC-1.2, AC-2.1] }
+calendar: { from: 2026-11-20, days: 10, want: 2026-12-07, source: calc }
+next: ["handoffs.yaml `sign`", "use ow-uat-signoff to record the sending on uat/mossgate-books/"]
+status:
+  lines:
+    - { path: uat/mossgate-books/signoff-request-1.md, next: ow-uat /ow-uat-signoff uat/mossgate-books/, awaiting: sending request 1 by 2026-11-20 }

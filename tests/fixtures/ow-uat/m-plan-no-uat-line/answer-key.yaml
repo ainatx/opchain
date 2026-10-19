@@ -1,0 +1,24 @@
+# Answer key: m-plan-no-uat-line (INVENTED). Design §3.1 and §11 "Quick-quote
+# job" (a quote with no UAT line uses offers defaults and never charges for
+# extra roles), and the mismatch row "acceptance or delivery defined
+# differently": an older quick quote with no UAT line and other acceptance
+# wording (planted). -plan takes the bounds from offers.md (not quoted, offers
+# default), quotes both definitions and records Robin's dated statement of
+# which governs; clauses none (the contract inputs say not set).
+case: m-plan-no-uat-line
+section: Quick-quote job (no UAT line); a governing definition
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+build_case: invoice-booking-small
+verbs: [/ow-uat-plan]
+today: 2026-11-10
+checks: [headers, writes, write_once, status, private_names, rec, plan, scenarios, internal_numbers, next]
+plan: { checks: 3, required: 3, scenarios: 3, bounds: not quoted (offers default), clauses: none, testers: 1, governing: true }
+next: ["use ow-uat-pack on uat/mossgate-books/"]
+status:
+  lines:
+    - { path: uat/mossgate-books/uat.yaml, next: ow-uat /ow-uat-plan uat/mossgate-books/, awaiting: none }
+    - { path: uat/mossgate-books/uat.yaml, next: ow-uat /ow-uat-pack uat/mossgate-books/, awaiting: none }

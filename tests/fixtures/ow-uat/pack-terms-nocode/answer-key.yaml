@@ -1,0 +1,22 @@
+# Answer key: pack-terms-nocode (INVENTED). R2-1 (the Evaluator's round-2
+# zz2-nocode-pack-same): the terms were frozen with no code, and nothing in
+# the terms block has changed upstream, so the text comparison finds no
+# mismatch and -pack writes the pack as m-pack does.
+case: pack-terms-nocode
+section: The pack (the terms block compared as text, unchanged)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-plan-nocode
+build_case: invoice-booking-small
+verbs: [/ow-uat-pack]
+today: 2026-11-11
+ow_tools: absent
+checks: [headers, writes, write_once, status, private_names, pack, people, credentials, data, internal_numbers, next]
+pack: { roles: 1 }
+next: ["use ow-uat-run on uat/mossgate-books/"]
+status:
+  lines:
+    - { path: uat/mossgate-books/pack.yaml, next: ow-uat /ow-uat-run uat/mossgate-books/, awaiting: session 1 on 2026-11-12 }

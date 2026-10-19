@@ -1,0 +1,19 @@
+# Answer key: signoff-superseded-by-add-co (INVENTED). Design §8: every
+# -signoff mode first updates request statuses. Request 1 is marked
+# superseded (CO-04 added after it was written, by rec), and then the exit
+# criteria refuse: AC-CO-04.1 has no pass. The one file written is the
+# request rows.
+case: signoff-superseded-by-add-co
+section: Request lifecycle (marked superseded by the next -signoff)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: plan-add-co-after-sent
+build_case: change-declined
+verbs: [/ow-uat-signoff]
+today: 2027-01-26
+checks: [headers, writes, write_once, rec, signoff, criteria]
+signoff: { superseded: [1], refused: true }
+criteria: { "1": [AC-CO-04.1] }

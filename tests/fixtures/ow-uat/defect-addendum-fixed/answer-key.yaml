@@ -1,0 +1,21 @@
+# Answer key: defect-addendum-fixed (INVENTED). Design §8.3: UAT-11's fix in
+# build larkspur-uat-6 makes only the addendum's checks need a new pass; the
+# signed main checks never go stale.
+case: defect-addendum-fixed
+section: Addendum (a fix to an addendum problem)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-addendum
+build_case: change-declined
+verbs: [/ow-uat-defect]
+today: 2027-02-05
+checks: [headers, writes, write_once, status, private_names, rec, defect, false_pass, next]
+defect:
+  fixed: { UAT-11: larkspur-uat-6 }
+next: ["use ow-uat-run on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/defects/UAT-11.md, next: ow-uat /ow-uat-run uat/larkspur-ceramics/, awaiting: a retest of SC-13 by 2027-02-11 }

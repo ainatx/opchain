@@ -1,0 +1,17 @@
+ow_artefact: ow-uat/pack
+schema: 1
+written_by: ow-uat 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: uat/larkspur-ceramics/uat.yaml
+created: 2027-01-05
+clock: user-stated
+origin: skill
+packs:
+  - { role: order coordinator, source: uat-pack-order-coordinator.md, exports: [export/uat-pack-order-coordinator.html], scenarios: [SC-01, SC-02, SC-03, SC-05, SC-10] }
+  - { role: operations manager, source: uat-pack-operations-manager.md, exports: [export/uat-pack-operations-manager.html], scenarios: [SC-04, SC-08, SC-09, SC-11] }
+  - { role: bookkeeper, source: uat-pack-bookkeeper.md, exports: [export/uat-pack-bookkeeper.html], scenarios: [SC-06, SC-07, SC-12] }
+results_template: export/results-template.csv
+export_tool: "not available here: HTML packs only"
+preflight: "HTML checks by this skill: lang, title, one h1, no skipped headings, table headers, contrast"
+credentials_check: "NOT-CHECKED (pattern match only); read-through confirmed by Robin 2027-01-05"
+self_checks: { Data check: OK, People by role or id: OK, No credentials: NOT-CHECKED (read-through confirmed), No internal numbers: OK, No private names: OK }

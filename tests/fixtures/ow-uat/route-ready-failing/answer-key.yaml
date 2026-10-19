@@ -1,0 +1,17 @@
+# Answer key: route-ready-failing (INVENTED). C4 and design §3.1 and §11
+# "Entry gate": ow-build's ready-failing run (ready: no, AC-5.2 failing) is
+# handed over. -plan stops, writes nothing, and lists the failure.
+case: route-ready-failing
+section: "Entry gate (ready: no)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+build_case: ready-failing
+verbs: [/ow-uat-plan]
+today: 2026-12-18
+checks: [route, refused, next]
+route: { from: builds/larkspur-ceramics/ready-for-uat.md, expect: nothing }
+refused: { reason: "ready: no", names: [AC-5.2] }
+next: ["handoffs.yaml `build`"]

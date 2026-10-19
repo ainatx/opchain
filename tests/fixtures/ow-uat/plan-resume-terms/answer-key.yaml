@@ -1,0 +1,22 @@
+# Answer key: plan-resume-terms (INVENTED). C13 and R1-5: the next session
+# resumes -plan at its first missing step (mix) and runs every later step,
+# each dated the day it finished. The recorded basis and terms stand: agreed/
+# is not copied again and the terms are not asked again.
+case: plan-resume-terms
+section: Write-once and per-step resume (resumed after the terms)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: plan-cut-terms
+build_case: ready-passing
+verbs: [/ow-uat-plan]
+today: 2027-01-05
+checks: [headers, writes, write_once, status, private_names, rec, plan, plan_resume, scenarios, next]
+plan: { checks: 9, required: 9, scenarios: 12, steps: 10, bounds: quoted (contract-inputs.md), clauses: none, testers: 3 }
+plan_resume: { from_step: mix }
+next: ["use ow-uat-pack on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/uat.yaml, next: ow-uat /ow-uat-pack uat/larkspur-ceramics/, awaiting: none }
