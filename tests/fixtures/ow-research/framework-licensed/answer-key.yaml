@@ -1,0 +1,42 @@
+# INVENTED. C4 -framework: a licensed id (design §9 Framework: soc2 refused with the licensed-text reason).
+case: framework-licensed
+section: 'C4 -framework: a licensed id (soc2)'
+verbs:
+  - /ow-research-framework
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+plan_case: tier2-plan
+framework:
+  id: soc2
+  date: '2026-10-18'
+  expect: refused
+screen:
+  file: framework.md
+  says:
+    - SOC 2 (the AICPA Trust Services Criteria) is licensed text, so nothing was requested or written.
+    - You can describe its requirements in your own words in a controls register you keep; ow-controls is not in this release.
+  never:
+    - 'DONE:'
+    - https://
+    - ow-controls can
+  only:
+    - SOC 2 \(the AICPA Trust Services Criteria\) is licensed text, so nothing was requested or written\.
+    - You can describe its requirements in your own words in a controls register you keep; ow-controls is not in this release\.
+status:
+  lines: []
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - framework
+  - credentials
+  - private_names
+  - people
+  - self_checks
+  - handling
+writes_nothing: true

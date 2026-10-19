@@ -1,0 +1,34 @@
+# INVENTED. C4 /ow-research on <path>: a framework folder with its manifest is a no-op; it never says which revision applies.
+case: on-framework
+section: 'C4 /ow-research on <path>: a framework folder'
+verbs:
+  - /ow-research
+base: framework-files-tools
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+route:
+  from: research/frameworks/nist-800-53/2026-10-16/
+  expect: nothing
+screen:
+  file: on.md
+  says:
+    - 'nist-800-53 2026-10-16: unpinned — fetched, not a pack (research/frameworks/nist-800-53/2026-10-16/manifest.yaml); nothing was run.'
+  never:
+    - 'DONE:'
+    - in force
+    - applies
+  only:
+    - 'nist-800-53 2026-10-16: unpinned — fetched, not a pack \(research/frameworks/nist-800-53/2026-10-16/manifest\.yaml\); nothing was run\.'
+status:
+  lines: []
+checks:
+  - writes
+  - status
+  - route
+  - screen
+  - private_names
+  - people
+writes_nothing: true

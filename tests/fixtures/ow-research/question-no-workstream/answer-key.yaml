@@ -1,0 +1,30 @@
+# INVENTED. C4 -question: no workstream given (ask). Never guessed; nothing is written until the user answers.
+case: question-no-workstream
+section: 'C4 -question: no workstream given (ask)'
+verbs:
+  - /ow-research-question
+base: run-approved
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+screen:
+  file: question.md
+  says:
+    - 'Which workstream is this for: a client''s slug, or business?'
+  never:
+    - 'DONE:'
+    - RS-02
+  only:
+    - 'Which workstream is this for: a client''s slug, or business\?'
+status:
+  lines: []
+checks:
+  - headers
+  - writes
+  - status
+  - screen
+  - private_names
+  - people
+writes_nothing: true

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- INVENTED TEST FIXTURE: an eCFR-shaped stand-in for the file the user downloaded; no real regulation text. -->
+<ecfr-part title="45" part="164">
+  <amendment-date>2026-09-30</amendment-date>
+  <heading>PART 164 (invented excerpt)</heading>
+  <section id="164.000"><p>INVENTED: a stand-in paragraph.</p></section>
+</ecfr-part>

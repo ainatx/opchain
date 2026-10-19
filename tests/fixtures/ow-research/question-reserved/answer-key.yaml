@@ -1,0 +1,32 @@
+# INVENTED. C4 -question: a workstream named frameworks is refused; the name is reserved under research/.
+case: question-reserved
+section: 'C4 -question: a workstream named frameworks (refused)'
+verbs:
+  - /ow-research-question
+base: run-approved
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+screen:
+  file: question.md
+  says:
+    - '"frameworks" is reserved for framework texts; nothing was written.'
+  offers:
+    - use ow-research-framework <id>
+  never:
+    - 'DONE:'
+  only:
+    - '"frameworks" is reserved for framework texts; nothing was written\.'
+    - Name the client's slug or business; for a whole framework text, say "use ow-research-framework <id>"\.
+status:
+  lines: []
+checks:
+  - headers
+  - writes
+  - status
+  - screen
+  - private_names
+  - people
+writes_nothing: true

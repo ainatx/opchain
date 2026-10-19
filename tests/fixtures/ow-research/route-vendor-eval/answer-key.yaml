@@ -1,0 +1,36 @@
+# INVENTED. C4 ow-vendor-eval's absent-case NEXT (planned; its §4.1): "use ow-research" lands on the list screen,
+# which offers -question. Nothing is written.
+case: route-vendor-eval
+section: 'C4 ow-vendor-eval''s NEXT: use ow-research (list screen; offers -question)'
+verbs:
+  - /ow-research
+base: run-approved
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+route:
+  from: use ow-research
+  expect: list
+screen:
+  file: list.md
+  says:
+    - topic · state · last step · age
+    - (not machine-checked)
+    - To frame a new question, say "use ow-research-question <workstream>" (a client's slug, or business).
+  offers:
+    - use ow-research-question <workstream>
+  never:
+    - 'DONE:'
+status:
+  lines: []
+checks:
+  - writes
+  - status
+  - route
+  - screen
+  - list
+  - private_names
+  - people
+writes_nothing: true

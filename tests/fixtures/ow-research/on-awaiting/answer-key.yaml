@@ -1,0 +1,9 @@
+# INVENTED. C4 /ow-research on <path>: queries await approval -> -run. Grades the route of run-approved's run.
+case: on-awaiting
+section: 'C4 /ow-research on <path>: queries await approval -> -run'
+run: run-approved
+route:
+  from: research/larkspur-ceramics/RS-01-pos-sales-api/
+  expect: run
+checks:
+  - route

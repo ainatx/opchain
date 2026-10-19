@@ -1,0 +1,50 @@
+# INVENTED TEST FIXTURE: the recorded web for the ow-research acceptance tests.
+# Every host is a subdomain of example.com, example.org or example.net (one IP
+# literal from the documentation range, 192.0.2.0/24, is a search result the URL
+# rule refuses). Every page is invented and copies no real site's text; the
+# prices on the market pages are invented. A case may swap one page for an
+# injected variant (answer key `web_overrides`); everything else is shared.
+schema: 1
+
+# A search query, word for word, and the result URLs the host returned, in order.
+searches:
+  "Quillfeather POS API sales line items product code":
+    - https://developer.quillfeather.example.com/api/reference/sales
+    - https://forum.pos-users.example.net/t/quillfeather-sales-totals/4412
+    - https://partners.quillfeather.example.com/apps/sales-sync
+  "Quillfeather POS API rate limit requests per minute":
+    - https://developer.quillfeather.example.com/api/limits
+    - https://blog.retail-tools.example.org/pos-api-limits-compared
+  "Quillfeather POS API changelog sales endpoint":
+    - https://developer.quillfeather.example.com/changelog
+  "automation studio monthly support plan pricing small business":
+    - https://northpine.example.com/services/support
+    - https://brightloop.example.org/pricing
+    - https://cobaltworks.example.net/pricing
+    - https://directory.example.net/automation-studios
+  "State of Example order record retention retail sales":
+    - https://statutes.example.org/title-12/chapter-4/section-12-4-110
+    - https://compliance-digest.example.net/records-retention-small-business
+    - https://192.0.2.44/statutes/12-4-110.pdf
+  "Larkspur Ceramics studio shop opening hours":
+    - https://larkspurceramics.example.com/visit
+    - https://maps-directory.example.net/listing/ceramics-studio-4471
+
+# A URL: the page it opens (file; `versions` gives the page as it read from a later date), where it
+# redirects (redirect), or why it is not opened (status).
+pages:
+  https://developer.quillfeather.example.com/api/reference/sales: { redirect: https://developer.quillfeather.example.com/api/v2/reference/sales }
+  https://developer.quillfeather.example.com/api/v2/reference/sales: { file: pages/quillfeather-sales-reference.html }
+  https://developer.quillfeather.example.com/api/limits: { file: pages/quillfeather-limits.html, versions: [{ since: 2026-10-21, file: pages/quillfeather-limits-changed.html }] }
+  https://developer.quillfeather.example.com/changelog: { file: pages/quillfeather-changelog.html }
+  https://forum.pos-users.example.net/t/quillfeather-sales-totals/4412: { file: pages/pos-users-forum-sales-totals.html }
+  https://partners.quillfeather.example.com/apps/sales-sync: { status: login }
+  https://blog.retail-tools.example.org/pos-api-limits-compared: { file: pages/retail-tools-limits-compared.html }
+  https://northpine.example.com/services/support: { file: pages/northpine-support.html }
+  https://brightloop.example.org/pricing: { file: pages/brightloop-pricing.html }
+  https://cobaltworks.example.net/pricing: { redirect: http://cobaltworks.example.net/pricing }
+  https://directory.example.net/automation-studios: { file: pages/studio-directory.html }
+  https://statutes.example.org/title-12/chapter-4/section-12-4-110: { file: pages/statutes-12-4-110.html }
+  https://compliance-digest.example.net/records-retention-small-business: { file: pages/compliance-digest-retention.html }
+  https://larkspurceramics.example.com/visit: { file: pages/larkspur-visit.html }
+  https://maps-directory.example.net/listing/ceramics-studio-4471: { file: pages/maps-directory-listing.html }

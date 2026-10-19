@@ -1,0 +1,35 @@
+# INVENTED (Mossgate Books, continued from ow-build-plan's quick-quote run). -question: a regulations topic serving
+# a draft; the owner of the facts is the (invented) state's official publisher.
+case: question-regulations
+section: '-question: a regulations topic (serves a draft)'
+verbs:
+  - /ow-research-question
+plan_case: quick-quote
+workstream: mossgate-books
+topic: RS-01-order-record-retention
+canaries:
+  - Priya
+question:
+  topic: RS-01-order-record-retention
+  kind: regulations
+  serves: draft
+screen:
+  file: question.md
+  self_checks: true
+  next: use ow-research-run on research/mossgate-books/RS-01-order-record-retention/
+  slash: /ow-research-run
+  reads: question.md, inbox/
+status:
+  lines:
+    - path: research/mossgate-books/RS-01-order-record-retention/question.md
+      next: ow-research /ow-research-run research/mossgate-books/RS-01-order-record-retention/
+      awaiting: none
+checks:
+  - headers
+  - writes
+  - status
+  - question
+  - screen
+  - credentials
+  - private_names
+  - people

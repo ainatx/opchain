@@ -1,0 +1,20 @@
+# Answer key: research-no-plan (INVENTED). Amendment P5: ow-research's run NEXT received with no plan.yaml (the offer
+# is out, the plan not started). -collect says the schedule is missing, offers /ow-build-plan-start, and writes nothing.
+case: research-no-plan
+section: 'P5: no plan.yaml (offer -start)'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+base: offer
+research_refused: 'no plan.yaml: the schedule is missing'
+checks:
+  - research_refused
+  - research_screen
+screen:
+  file: collect.md
+  says:
+    - 'No plan.yaml in plans/larkspur-ceramics/: the schedule is missing, so nothing was collected.'
+    - To start the plan, say "use ow-build-plan to start plans/larkspur-ceramics/".
+private_names:
+  - llc-ops
+  - Deftwright

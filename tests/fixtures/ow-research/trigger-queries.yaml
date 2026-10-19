@@ -1,0 +1,22 @@
+# Trigger queries for ow-research (authoring standard: "TRIGGER EVALUATION").
+# Run by hand, with the other ow- skills, Anthropic's product-management and legal
+# plugins and the oc- catalog installed beside ow-research; a judge grades the
+# ambiguous ones. No harness runs these yet (REL-01). INVENTED TEST FIXTURE.
+skill: ow-research
+should_trigger:
+  - "Research whether their point-of-sale system's API can export sales by product code."
+  - "Can Quillfeather POS send each day's sales to a spreadsheet? Look it up and cite your sources."
+  - "What do small automation studios publish as monthly support plans? Find their pricing pages."
+  - "How long does our state require a bookshop to keep customer order records? Use the official text."
+  - "I downloaded the NIST 800-53 catalog; record it with its revision and digest."
+  - "Where did I leave off with my research topics?"
+should_not_trigger:
+  - "Draft the client update email from these findings."                    # a draft: ow-draft
+  - "Score these three vendors on our shortlist and recommend one."         # a vendor shortlist score: ow-vendor-eval
+  - "Is our control register current with the latest framework revisions?"  # a currency check: ow-currency
+  - "Write the Build Plan scope for Acme."                                  # ow-build-plan
+  - "Summarise this PDF I attached."                                        # a plain summary, no research trail
+ambiguous:
+  - "Find out what Acme's website says about their opening hours."          # by-name research of the client: needs the user's approval of the exact query
+  - "Check whether that vendor's rate limit has changed."                   # ow-currency's watch, or an ow-research re-run
+  - "Get me the SOC 2 criteria."                                            # licensed text: -framework refuses (ow-controls is not in this release)

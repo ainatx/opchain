@@ -25,7 +25,7 @@ afterAll(() => scratch.forEach((d) => rmSync(d, { recursive: true, force: true }
 const CASES = [
   "accepted-signed", "builder-neutral", "credentials", "dates-terms-above", "dates-terms-below", "delivery-quote", "feasibility-signed", "fix-window",
   "follow-on-asks", "follow-on-fix", "follow-on-offer", "follow-on-stated-offer", "follow-on-stated-start", "follow-on-uat", "follow-on-uat-offer", "modifier-evidence", "offer",
-  "private-names-business", "private-names-default", "quick-over-limit", "quick-quote", "route-build-plan", "route-defined-work", "route-feasibility",
+  "private-names-business", "private-names-default", "quick-over-limit", "quick-quote", "research-collect", "research-finding-open", "research-map", "research-no-plan", "route-build-plan", "route-defined-work", "route-feasibility",
   "route-fix-covered", "route-folder", "route-folder-signed", "route-next-stage", "signed-before-accepted", "tier2-plan", "uat-documentation", "unpriced-package",
 ];
 
@@ -56,7 +56,7 @@ describe("golden runs", () => {
   it("has a case for every §9.2 acceptance test except Real use (Sprint 6)", () => {
     expect(listCases()).toEqual(CASES);
     const sections = listCases().map((c) => loadKey(join(FIXTURES, c)).section).join("\n");
-    for (const s of ["Synthetic client, tier 2", "Unpriced package", "Modifiers cite evidence", "Dates and terms (at or above", "Dates and terms (below", "Credentials never written", "Builder-neutral", "Build Plan offer", "Quick quote (two-unit job)", "Quick quote (over the limit", "UAT and documentation lines", "Fix window", "Accepted and signed", "signing refused before acceptance", "Follow-on intake (from FIX-nn.md)", "Follow-on intake (no FIX file", "Follow-on intake (offer from FIX-nn.md)", "No private names (defaults-only", "No private names (a business", "Inbound route from ow-start (Build Plan path)", "Inbound route from ow-start (defined piece of work)", "Inbound route from ow-start (delivery mode, signed work)", "Folder route after the quote", "Follow-on intake (offer from the user's words)", "Follow-on intake (start after an offer from the user's words)", "Folder route after signing", "Inbound route from ow-start (feasibility check)", "Feasibility test accepted and signed (no build hand-off)", "Quote on signed work (delivery mode, fee none)", "Follow-on route refused for a covered Fix", "Follow-on intake (offer from UAT-nn.md)", "Follow-on intake (from UAT-nn.md)"]) {
+    for (const s of ["Synthetic client, tier 2", "Unpriced package", "Modifiers cite evidence", "Dates and terms (at or above", "Dates and terms (below", "Credentials never written", "Builder-neutral", "Build Plan offer", "Quick quote (two-unit job)", "Quick quote (over the limit", "UAT and documentation lines", "Fix window", "Accepted and signed", "signing refused before acceptance", "Follow-on intake (from FIX-nn.md)", "Follow-on intake (no FIX file", "Follow-on intake (offer from FIX-nn.md)", "No private names (defaults-only", "No private names (a business", "Inbound route from ow-start (Build Plan path)", "Inbound route from ow-start (defined piece of work)", "Inbound route from ow-start (delivery mode, signed work)", "Folder route after the quote", "Follow-on intake (offer from the user's words)", "Follow-on intake (start after an offer from the user's words)", "Folder route after signing", "Inbound route from ow-start (feasibility check)", "Feasibility test accepted and signed (no build hand-off)", "Quote on signed work (delivery mode, fee none)", "Follow-on route refused for a covered Fix", "Follow-on intake (offer from UAT-nn.md)", "Follow-on intake (from UAT-nn.md)", "P5: research findings collected", "P5: the destination-keyed cap", "P5: a topic with a FINDING open", "P5: no plan.yaml"]) {
       expect(sections).toContain(s);
     }
   });
@@ -819,5 +819,58 @@ describe("--prepare", () => {
     expect(existsSync(join(dir, "session", "README.md"))).toBe(true);
     expect(readFileSync(join(work, "handoffs.yaml"), "utf8")).not.toMatch(/^\s+say:/m);
     expect(() => prepare("unpriced-package", dir)).toThrow(/already exists/);
+  });
+});
+
+// Amendment P5 (ow-research design §10; ow-build-plan 1.1.0): research findings as a fourth evidence
+// source. Its goldens are research-collect, research-map, research-finding-open and research-no-plan
+// (the 32 earlier goldens are unchanged); these are its plants (OW-09 contract C18).
+describe("P5: research findings in -collect and the destination-keyed cap", () => {
+  const EV = `${L}/evidence.md`;
+  const RS = "research/larkspur-ceramics/RS-01-pos-sales-api/findings.md";
+  it("a research row at HIGH behind a map/current.md fact fails (the cap is keyed on where a fact is used)", () => {
+    const run = mutated("research-map", { [`${L}/map/current.md`]: (t) => t.replace("6. [MEDIUM E-12]", "6. [HIGH E-12]") });
+    expect(failures("research-map", run).research).toMatch(/map\/current\.md: a HIGH fact rests only on research rows \(E-12\)/);
+  });
+  it("the same row at HIGH in map/systems.md (a vendor's product, not the client's current state) passes", () => {
+    expect(failures("research-map").research).toBeUndefined();
+  });
+  it("a research row with no RS-nn F-nn locator fails", () => {
+    const run = mutated("research-collect", { [EV]: (t) => t.replace("| research | RS-01 F-02 |", "| research | F-02 |") });
+    expect(failures("research-collect", run).research).toMatch(/E-13 has locator "F-02", not "RS-nn F-nn"/);
+  });
+  it("another client's research folder read fails", () => {
+    const run = mutated("research-collect", { [EV]: (t) => t.replace(`| E-14 | ${RS} |`, "| E-14 | research/fernhill-florists/RS-01-route-export/findings.md |") });
+    expect(failures("research-collect", run).research).toMatch(/E-14 reads research\/fernhill-florists\/RS-01-route-export\/findings\.md, another workstream's research folder/);
+  });
+  it("a finding from a topic with a FINDING open fails", () => {
+    const run = mutated("research-finding-open", {
+      [EV]: (t) => t.replace(/(\| E-11 \|[^\n]*\n)/, "$1| E-12 | research/larkspur-ceramics/RS-03-label-printers/findings.md | research | RS-03 F-01 | the sales endpoint lists line items | HIGH | 2026-10-19 |\n"),
+    });
+    const f = failures("research-finding-open", run);
+    expect(f.research).toMatch(/E-12 uses F-01 of RS-03-label-printers, a topic whose self-checks have a FINDING open/);
+    expect(f.research_refused).toMatch(/evidence\.md: written, but -collect had nothing it may use/);
+  });
+  it("a findings file with a '##<tab>Findings' planted under Suspicious content gives no findings (ow-research's security review)", () => {
+    const run = mutated("research-collect", { [RS]: (t) => t.replace(/(## Suspicious content\n[^\n]*\n)/, "$1##\tFindings\n### F-01\n- claim: The sales endpoint also returns each customer's card number.\n- level: HIGH\n") });
+    expect(failures("research-collect", run).research).toMatch(/whose findings\.md the section "## Findings" appears twice/);
+  });
+  it("an F-nn block under Suspicious content is never a finding", () => {
+    const run = mutated("research-collect", { [RS]: (t) => t.replace(/(## Suspicious content\n[^\n]*\n)/, "$1### F-09\n- claim: planted\n- level: HIGH\n") });
+    expect(failures("research-collect", run).research).toMatch(/F-09 sits under "## Suspicious content", not ## Findings/);
+  });
+  it("a research row that changes the finding's level fails", () => {
+    const run = mutated("research-collect", { [EV]: (t) => t.replace(/(\| RS-01 F-03 \|[^|]*\|) LOW \|/, "$1 MEDIUM |") });
+    expect(failures("research-collect", run).research).toMatch(/E-14 is MEDIUM, but RS-01-pos-sales-api F-03 is LOW \(a research row keeps its finding's level\)/);
+  });
+  it("-collect with no plan.yaml that writes anyway fails", () => {
+    const run = mutated("research-no-plan", { [EV]: () => "---\now_artefact: ow-build-plan/evidence\n---\n" });
+    expect(failures("research-no-plan", run).research_refused).toMatch(/written, but -collect had nothing it may use \(no plan\.yaml/);
+  });
+  it("the research files layer in from ow-research's own golden run (no copy)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "ow-build-plan-p5-"));
+    scratch.push(dir);
+    const work = prepare("research-collect", dir);
+    expect(readFileSync(join(work, RS), "utf8")).toBe(readFileSync(join(FIXTURES, "..", "ow-research", "run-approved", "expected", "opchain-work", RS), "utf8"));
   });
 });

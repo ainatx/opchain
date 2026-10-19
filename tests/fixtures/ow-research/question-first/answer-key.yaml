@@ -1,0 +1,41 @@
+# INVENTED: the family's invented client, Larkspur Ceramics, continued from ow-build-plan's tier2-plan run.
+# C4 /ow-research-question <workstream>: the first topic (no research/ yet, so RS-01).
+case: question-first
+section: 'C4 -question: first topic (no research/, so RS-01)'
+verbs:
+  - /ow-research-question
+plan_case: tier2-plan
+workstream: larkspur-ceramics
+topic: RS-01-pos-sales-api
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+question:
+  topic: RS-01-pos-sales-api
+  kind: technical-feasibility
+  depth: quick
+  serves: build-plan plans/larkspur-ceramics/
+  confirmed: yes (2026-10-17
+  handling: 'no'
+screen:
+  file: question.md
+  self_checks: true
+  next: use ow-research-run on research/larkspur-ceramics/RS-01-pos-sales-api/
+  slash: /ow-research-run
+  reads: question.md, inbox/
+status:
+  lines:
+    - path: research/larkspur-ceramics/RS-01-pos-sales-api/question.md
+      next: ow-research /ow-research-run research/larkspur-ceramics/RS-01-pos-sales-api/
+      awaiting: none
+checks:
+  - headers
+  - writes
+  - status
+  - question
+  - screen
+  - credentials
+  - private_names
+  - people

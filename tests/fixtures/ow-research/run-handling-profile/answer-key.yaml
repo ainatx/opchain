@@ -1,0 +1,42 @@
+# INVENTED. C6: a profile default. The level comes from profile.md; nothing is sent; every file carries the banner.
+# The question serves the user's own decision, so NEXT is none.
+case: run-handling-profile
+section: C6 a profile default (user files only); the decision NEXT
+verbs:
+  - /ow-research-run
+base: question-profile-default
+workstream: kestrel-bindery
+topic: RS-01-supplier-portal-export
+canaries: []
+banner: 'RESTRICTED: handle under the client agreement'
+screen:
+  file: run.md
+  says:
+    - 'A handling level is set for this work, so nothing will be sent from this machine: no searches and no pages.'
+  self_checks: true
+  next: none
+status:
+  lines:
+    - path: research/kestrel-bindery/RS-01-supplier-portal-export/findings.md
+      next: 'none (closed: answered, RS-01)'
+      awaiting: none
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - ledger
+  - reconcile
+  - handling
+  - opened
+  - confidence
+  - cited
+  - quotes
+  - credentials
+  - handoff_fields
+  - self_checks
+  - ids
+  - private_names
+  - people
+  - no_web

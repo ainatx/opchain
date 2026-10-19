@@ -1,0 +1,9 @@
+{
+  "status": "ok",
+  "kind": "file",
+  "algorithm": "sha256",
+  "form": "file-bytes",
+  "sha256": "9355d83bee55357a24490675e78c82bde599c23c6825dcc2472e407572a555aa",
+  "bytes": 845,
+  "note": "detects accidental change only; not tamper-evidence"
+}

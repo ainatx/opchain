@@ -1,0 +1,42 @@
+# INVENTED. C4 -framework: an open id, files not yet there: it prints the official sources and writes nothing.
+case: framework-no-files
+section: 'C4 -framework: open id, files not yet there (prints the official URLs; writes nothing)'
+verbs:
+  - /ow-research-framework
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+plan_case: tier2-plan
+framework:
+  id: nist-csf-2
+  date: '2026-10-18'
+  expect: nothing
+screen:
+  file: framework.md
+  says:
+    - Nothing written yet. Download the files from the official sources below into research/frameworks/nist-csf-2/2026-10-18/, then say "use ow-research-framework nist-csf-2" again.
+  offers:
+    - use ow-research-framework nist-csf-2
+  never:
+    - 'DONE:'
+  only:
+    - Nothing written yet\. Download the files from the official sources below into research/frameworks/nist-csf-2/2026-10-18/, then say "use ow-research-framework nist-csf-2" again\.
+    - 'Official sources for [a-z0-9-]+ \(.+\):'
+    - https://\S+
+status:
+  lines: []
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - framework
+  - credentials
+  - private_names
+  - people
+  - self_checks
+  - handling
+writes_nothing: true

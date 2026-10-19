@@ -1,0 +1,39 @@
+# INVENTED. C4 -framework: an unknown id is refused as not on the open list (O11 fails closed).
+case: framework-unknown
+section: 'C4 -framework: an unknown id (not on the open list)'
+verbs:
+  - /ow-research-framework
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+plan_case: tier2-plan
+framework:
+  id: pci-dss
+  date: '2026-10-18'
+  expect: refused
+screen:
+  file: framework.md
+  says:
+    - pci-dss is not on the open list, so nothing was requested or written.
+  never:
+    - 'DONE:'
+  only:
+    - pci-dss is not on the open list, so nothing was requested or written\.
+    - 'The open list: [a-z0-9-]+(?:, [a-z0-9-]+)*\.'
+status:
+  lines: []
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - framework
+  - credentials
+  - private_names
+  - people
+  - self_checks
+  - handling
+writes_nothing: true

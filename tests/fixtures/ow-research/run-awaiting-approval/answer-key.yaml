@@ -1,0 +1,46 @@
+# INVENTED. C4 question NEXT ("use ow-research-run on research/<ws>/RS-nn-<slug>/"): queries awaiting approval (O3).
+# The run plans its queries, writes them to the ledger and stops: nothing is sent before the user's one go.
+case: run-awaiting-approval
+section: 'C4 question NEXT: queries awaiting approval (O3)'
+verbs:
+  - /ow-research-run
+base: question-first
+workstream: larkspur-ceramics
+topic: RS-01-pos-sales-api
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+route:
+  from: research/larkspur-ceramics/RS-01-pos-sales-api/
+  expect: run
+screen:
+  file: run.md
+  says:
+    - These queries wait for your approval; nothing has been sent yet.
+  never:
+    - 'DONE:'
+    - 'Self-checks (same-session self-check):'
+  only:
+    - 'Planned queries for RS-\d+ \S+ \(\w+: up to \d+ searches and \d+ page requests\):'
+    - Q-\d+ "[^"]+"
+    - 'Query privacy \(same-session self-check, agent-checked\): OK, .+'
+    - These queries wait for your approval; nothing has been sent yet\.
+status:
+  lines:
+    - path: research/larkspur-ceramics/RS-01-pos-sales-api/queries.md
+      next: ow-research /ow-research-run research/larkspur-ceramics/RS-01-pos-sales-api/
+      awaiting: query approval
+checks:
+  - headers
+  - writes
+  - status
+  - route
+  - screen
+  - ledger
+  - caps
+  - privacy
+  - credentials
+  - private_names
+  - people

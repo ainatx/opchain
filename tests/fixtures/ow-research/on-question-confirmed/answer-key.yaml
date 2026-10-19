@@ -1,0 +1,9 @@
+# INVENTED. C4 /ow-research on <path>: question confirmed, not run -> -run. Grades the route of run-awaiting-approval's run.
+case: on-question-confirmed
+section: 'C4 /ow-research on <path>: question confirmed, not run -> -run'
+run: run-awaiting-approval
+route:
+  from: research/larkspur-ceramics/RS-01-pos-sales-api/
+  expect: run
+checks:
+  - route

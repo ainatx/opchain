@@ -1,0 +1,9 @@
+# INVENTED. C4 /ow-research on <path>: cut off -> -run (resume). Grades the route of run-cut-after-requests's run.
+case: on-cutoff
+section: 'C4 /ow-research on <path>: cut off -> -run (resume)'
+run: run-cut-after-requests
+route:
+  from: research/larkspur-ceramics/RS-01-pos-sales-api/
+  expect: run
+checks:
+  - route

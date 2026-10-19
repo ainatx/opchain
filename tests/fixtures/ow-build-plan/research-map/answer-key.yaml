@@ -1,0 +1,29 @@
+# Answer key: research-map (INVENTED). Amendment P5: the cap is keyed on where a fact is used. In map/current.md the
+# shop's sales API rests only on a research row, so it is MEDIUM although the finding is HIGH; in map/systems.md, a
+# description of the vendor's product, the same row may carry HIGH.
+case: research-map
+section: 'P5: the destination-keyed cap (map/current.md at most MEDIUM)'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+base: research-collect
+checks:
+  - headers
+  - plan_checks
+  - research
+  - status
+  - private_names
+outputs:
+  - plans/larkspur-ceramics/map/current.md
+  - plans/larkspur-ceramics/map/future.md
+  - plans/larkspur-ceramics/map/roles.md
+  - plans/larkspur-ceramics/map/systems.md
+  - plans/larkspur-ceramics/map/data.md
+status:
+  lines:
+    - path: plans/larkspur-ceramics/map/current.md
+      next: ow-build-plan /ow-build-plan-scope plans/larkspur-ceramics/
+      awaiting: none
+private_names:
+  - llc-ops
+  - Deftwright

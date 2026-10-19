@@ -1,0 +1,38 @@
+# INVENTED. C4 -question: business. A market topic in the user's own workstream: keep_out holds the user's own business
+# name and domain (from the invented profile), and the owners are the competitors whose published plans are the facts.
+case: question-business
+section: 'C4 -question: business (a market topic)'
+verbs:
+  - /ow-research-question
+base: run-approved
+workstream: business
+topic: RS-01-support-plan-offers
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+question:
+  topic: RS-01-support-plan-offers
+  kind: market
+  serves: decision
+screen:
+  file: question.md
+  self_checks: true
+  next: use ow-research-run on research/business/RS-01-support-plan-offers/
+  slash: /ow-research-run
+  reads: question.md, inbox/
+status:
+  lines:
+    - path: research/business/RS-01-support-plan-offers/question.md
+      next: ow-research /ow-research-run research/business/RS-01-support-plan-offers/
+      awaiting: none
+checks:
+  - headers
+  - writes
+  - status
+  - question
+  - screen
+  - credentials
+  - private_names
+  - people

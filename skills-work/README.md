@@ -5,15 +5,17 @@ The ow- skills are opchain's planning family for client work: the fit call and i
 | Skill | Status |
 |---|---|
 | `ow-start` | 1.1.1: the 20-minute fit call, prep and recap; meeting and decision logs (`CHANGELOG.md`) |
-| `ow-build-plan` | 1.0.0: the Build Plan offer, plan and fixed quote, with contract inputs and the build request |
+| `ow-build-plan` | 1.1.0: the Build Plan offer, plan and fixed quote, with contract inputs and the build request; research findings as evidence (`CHANGELOG.md`) |
 | `ow-build` | 1.0.0: the client side of a signed build: the builder driven one sprint at a time (named only in `handoffs.yaml`), weekly updates, demos, change orders, invoice requests and readiness for UAT |
 | `ow-uat` | 1.0.1: the client's user acceptance test: the frozen basis, a scenario per check, tester packs by role, sessions, triage and the rapid fix phase, numbered sign-off requests, deemed acceptance and the delivery backstop on the contract calendar, and the addendum flow (`CHANGELOG.md`) |
 | `ow-handoff`, `ow-documentation` | designed, not built |
+| `ow-research` | 1.0.0: research from sources it opened, through the host's own web tools (or your files): queries approved before the first search, every request logged before it is sent, findings with levels and quoted sources; open framework texts you downloaded, recorded unpinned (`network: declared`, Connected bundle; `CHANGELOG.md`) |
 
 ## What is in this folder
 
 - `ow-protocol.md`: the shared protocol (version 1). Every ow- skill carries a byte-identical copy at `references/ow-protocol.md`. Edit this source, then run `node scripts/check-skill-contracts.mjs --write` to refresh the copies; the check fails while any copy differs.
 - `<id>/SKILL.md` plus `references/` and `examples/`: text only. No scripts, no hooks, no network text; only `.md .txt .json .yaml .yml .csv` files. Code the family needs (transcription, document export) lives in the separate `ow-tools` add-on, which is not in this folder.
+- The one exception to "no network text": a skill whose frontmatter says `network: declared` (today `ow-research`) may name the host's own web tools and real official sources. It still ships no code and declares no `allowed-tools`: every request goes through the host's tools with the host's permission prompts on (unless the user has set the host to allow web requests without asking), and the skill's own rules (`ow-research/references/web-rules.md`) say what may leave the machine.
 - `<id>/skill.edges.yaml`: the skill's edges as data (ow- cross-talk contract R15), described below.
 
 ## Edges (`skill.edges.yaml`)
@@ -90,6 +92,7 @@ Protocol v1 §5 gives `awaiting: none, or <what> by <YYYY-MM-DD>`. ow-start's lo
 - **Contracts**: every `/ow-` verb cited is declared (one merged verb index with the oc- catalog); every NEXT block leads with `use <skill id>` and carries its `IF IT IS NOT AVAILABLE` line; Reads-from rows have absent and mismatch cases; Hands-off rows have an unavailable branch; each skill's `skill.edges.yaml` is reciprocal with the others, with one writer per file (Edges, above).
 - **Family names** (design §8.1): no ow- skill file names an oc- skill, a private skill (`privateNames` in `catalogs.json`, today `llc-ops`) or a business (`brandNames`), however it is spaced, hyphenated, underscored, joined or cased. The ow- acceptance checkers read the same rule (`familyNameRules` in `scripts/check-skill-contracts.mjs`). Handoffs that leave the family go through the user's own `opchain-work/handoffs.yaml`.
 - **Acceptance**: `node scripts/ow-start-acceptance.mjs` (the intake cases, and the logs cases through `scripts/ow-start-logs-acceptance.mjs`), `node scripts/ow-build-plan-acceptance.mjs`, `node scripts/ow-build-acceptance.mjs` and `node scripts/ow-uat-acceptance.mjs` check the golden runs in `tests/fixtures/ow-start/`, `tests/fixtures/ow-build-plan/`, `tests/fixtures/ow-build/` and `tests/fixtures/ow-uat/`; each folder's README says how to check a real run.
+- **Acceptance (ow-research)**: `node scripts/ow-research-acceptance.mjs` checks the golden runs in `tests/fixtures/ow-research/` against a recorded, invented web (`web/pages.yaml`); its test runs it under the ow-tools network fence, so it opens no socket.
 
 ## Not wired in yet, on purpose
 
