@@ -3,7 +3,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a147d4d6f52f711e3",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-19T21:06:43.901Z",
+  "updated_at": "2026-10-19T22:40:35.448Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
@@ -31,7 +31,7 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "d7d46364c62e653d5e59769a09fd02003d0d16c9",
+    "verified_for_sha": "6830078424eca3543789fe3c59a4605bd02ef249",
     "last_verify": {
       "at": "2026-10-19T21:06:43.901Z",
       "branch": "claude/ow-04-followups",
@@ -2128,8 +2128,31 @@
           "tests/fixtures/ow-uat/README.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-6220df682a6c",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-19T22:40:35.447Z",
+      "verified_at": "2026-10-19T22:40:35.447Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-19T22:40:35.447Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:6220df682a6c1dfa6353c8732deddb7a353614b2c12f62a321cffc5162d48c93"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": ".claude/hooks/checkpoint-hygiene.sh, tests/checkpoint-hygiene.test.js",
+        "evidence": [
+          "Two tracked source files changed; no generated files or catalogs affected; no orphaned artifacts; .gitignore policy unchanged (.claude/worktrees/ stays ignored); candidate verifier PASS on tree 91f8f0f9"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-19T21:06:43.901Z",
+  "record_updated_at": "2026-10-19T22:40:35.448Z",
   "blockers": []
 }
