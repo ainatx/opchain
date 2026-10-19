@@ -36,7 +36,7 @@ Every pass has a run with `run_by` and `source`. A result the user ran or read o
 
 No scenario, pack export or evidence reused forward shows real customer data, a credential, or a person's name, email or photo.
 
-- **Data**: a scenario, pack or record cites data **by pointer** (source, record ids or locator, count, fields) and passed cases **as a count**. A table of record values, a pasted order line, or a field value copied from the client's system is a FINDING. A table is judged by what its rows hold, never by its length: rows with emails, phone numbers, card-like numbers, ID-like values or names are record values; a schedule or a table of counts is not (owner decision OD-7).
+- **Data**: a scenario, pack or record cites data **by pointer** (source, record ids or locator, count, fields) and passed cases **as a count**. A table of record values, a pasted order line, or a field value copied from the client's system is a FINDING. A table is judged by what its rows hold, never by its length: rows with emails, phone numbers, card-like numbers, ID-like values or names (a customer, client or store column) are record values; a schedule or a table of counts is not (owner decision OD-7). Test data is not a record value (owner decision R3-4): a payment provider's published test card (Stripe's `4242 4242 4242 4242` set) in a test-mode scenario, and a record id marked as made for the test (in the sandbox, a test order, created by SC-nn) in a scenario or the clean-up list. A real card shape, or an id with no such mark, still is.
 - **Evidence**: only items `cleared` in `evidence/index.md` are cited forward. A video is `NOT-CHECKED`, so pointer only.
 
 ## People by role or id

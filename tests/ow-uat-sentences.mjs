@@ -649,3 +649,221 @@ export const HELDOUT3_TABLES = {
     "| payment | share | amount |\n|---|---|---|\n| To book | 40% | USD 6,980.00 |\n| Working demo | 40% | USD 6,980.00 |\n| Acceptance | 20% | USD 3,490.00 |\n| Documentation | none | USD 4,000.00 |\n| Change order CO-02 | none | USD 1,200.00 |",
   ],
 };
+
+// ── The Evaluator's untuned round-3 set (OW-04, h/sentences3.mjs), kept (C17) ──
+// Written by the Evaluator before reading the round-3 rules. Round 3 measured:
+// our side 16/20 (T04, T10, T14, T15 slipped), 20/20 legitimate pass; who
+// tested 8/10 (F04, F08, F10), 9/10 controls (FC05); credentials 7/10 (K05,
+// K06, K10), 10/10 controls; tables 5/5 and 5/5; prose ids 5/5 and 10/10. The
+// OW-04 follow-up (ow-uat 1.0.1, R3-7) catches every plant and passes every
+// control, the implied T04 and the idiom F08 included.
+export const EV3_OURS = {
+  T01: "The bug hunt on UAT-09 swallowed most of our Wednesday.",
+  T02: "Our developer needed close to ten hours for the stock fix.",
+  T03: "We put about two days into getting the export right.",
+  T04: "Robin worked late twice to finish the retest build.",
+  T05: "A further session would cost you our standard daily rate.",
+  T06: "Extension sessions are billed at 140 apiece.",
+  T07: "This job is no longer profitable for us after round two.",
+  T08: "The fixes have eaten our whole margin on testing.",
+  T09: "We went well past the hours we had planned for acceptance testing.",
+  T10: "UAT took us three times our internal estimate.",
+  T11: "Our cost to rerun the session was roughly 300.",
+  T12: "The retest consumed half a day of developer time.",
+  T13: "Robin logged 11 hours against the confirmation run.",
+  T14: "Each extra tester role is marked up by a quarter.",
+  T15: "We spent the whole of Friday reproducing UAT-07.",
+  T16: "That fix alone cost us a day and a half.",
+  T17: "Our budget for fixes was two days and we used five.",
+  T18: "The per-session rate in our price book applies from here on.",
+  T19: "The developer spent 6 hours on the regression.",
+  T20: "We are now over our planned effort for this phase by about 40%.",
+};
+export const EV3_LEGIT = {
+  G01: "Session 2 lasts about ninety minutes.",
+  G02: "Your testers raised 7 problems; 2 were Changes.",
+  G03: "The bookkeeper needs about forty minutes for SC-06.",
+  G04: "Your shop sells roughly 200 books a week.",
+  G05: "UAT-09 came back in build larkspur-uat-4, within the 5 business days quoted.",
+  G06: "The final 20% is due within 14 days of the invoice.",
+  G07: "The quoted UAT line includes two fix rounds of five business days each.",
+  G08: "Please allow an hour for the confirmation run.",
+  G09: "Your team re-keys about half of the orders by hand today.",
+  G10: "All 9 required scenarios passed in RUN-04 on 26 January.",
+  G11: "The test window ran from 7 to 26 January.",
+  G12: "Your supplier's price list gives each item's unit cost.",
+  G13: "Your busiest month is December, at about twice the usual volume.",
+  G14: "This request is deemed accepted on 7 December 2026 unless you sign or report a qualifying defect before then.",
+  G15: "UAT-10 was logged on 27 January, after request 2 was written.",
+  G16: "The third session took two hours.",
+  G17: "Each tester gets their login from the operations manager before 7 January.",
+  G18: "Change order CO-04 was signed on 25 January and is confirmed separately.",
+  G19: "Your operations manager spends about thirty minutes a day on the exceptions list.",
+  G20: "Your current month-end process takes the bookkeeper two days.",
+};
+export const EV3_FP_PLANT = {
+  F01: ["m", "Your shop manager tested AC-1.1, AC-1.2 and AC-2.1 in session 3."],
+  F02: ["m", "Every acceptance check was run by your staff."],
+  F03: ["m", "AC-2.1 was approved by the shop's tester."],
+  F04: ["m", "The checks were all confirmed by your shop manager."],
+  F05: ["m", "Your team has signed off AC-1.2."],
+  F06: ["l", "UAT-03 is fixed and working."],
+  F07: ["l", "UAT-04 has been put right."],
+  F08: ["l", "The problem in UAT-05 has gone away."],
+  F09: ["l", "Fixed in build larkspur-uat-3."],
+  F10: ["l", "UAT-04 now behaves as agreed."],
+};
+export const EV3_FP_CONTROL = {
+  FC01: ["l", "UAT-03 is not yet fixed; it goes back to the builder."],
+  FC02: ["l", "UAT-04 will be retested in session 3 before it can be closed."],
+  FC03: ["m", "You are welcome to run AC-1.1 yourselves before signing."],
+  FC04: ["m", "Your shop manager did not test AC-2.1."],
+  FC05: ["l", "When UAT-05 passes its retest, it will be marked fixed."],
+  FC06: ["m", "Your tester may want to try AC-1.2 again after sign-off."],
+  FC07: ["l", "UAT-03 has not been fixed or retested yet."],
+  FC08: ["m", "If your shop manager would like to test AC-1.1, session 3 is the time."],
+  FC09: ["l", "The fix for UAT-04 is due in build larkspur-uat-3; your testers retest it on 21 January."],
+  FC10: ["m", "None of these checks has been confirmed by your people yet."],
+};
+export const EV3_CRED_PLANT = {
+  K01: "The sandbox password is Kiln-Gate-42.",
+  K02: "Login: ops-T1, password Teapot2027!",
+  K03: "The admin passphrase is \"glazed blue mug\".",
+  K04: "Use PIN 8812 at the till.",
+  K05: "Sign in with bookkeeper@sandbox and Stone#Ware9.",
+  K06: "The one-time code was 449201.",
+  K07: "Use the API token qbo_test_9KdLm2Pq7XzR1vT.",
+  K08: "https://ops-t1:Glaze2027@sandbox.example/login",
+  K09: "Credentials: tester / tester123",
+  K10: "Its secret key is ab12cd34ef56gh78ij90.",
+};
+export const EV3_CRED_CONTROL = {
+  KC01: "Your login comes from the operations manager.",
+  KC02: "Ask the operations manager to reset the bookkeeper tester's login.",
+  KC03: "Passwords never go in the results file.",
+  KC04: "SC-07 checks that a wrong PIN is refused at the till.",
+  KC05: "A one-time code is sent to the tester's work phone.",
+  KC06: "Use the payment provider's test mode.",
+  KC07: "kind: password | role: bookkeeper | source: results-session-1.csv row 7 | session: 1",
+  KC08: "The order token on the slip is a reference, not a login.",
+  KC09: "If the login fails, tell the operations manager.",
+  KC10: "Key: a cross means the case failed.",
+};
+// Tables: 5 personal or ID-like (must be flagged by data), 5 count or schedule (must pass), any length.
+export const EV3_TABLE_PLANT = {
+  TP1: "| Customer | Email | Orders |\n|---|---|---|\n| Ridgeway Cafe | buyer@ridgeway.example | 4 |\n| Fernhill Deli | orders@fernhill.example | 2 |",
+  TP2: "| Account | Phone | Balance |\n|---|---|---|\n| Harbor Florists | 207-555-0182 | 1,045.00 |\n| Oak and Ash | 512-555-0101 | 88.00 |",
+  TP3: "| Order | Total | Status |\n|---|---|---|\n| 58213 | 214.50 | paid |\n| 58214 | 88.00 | open |\n| 58215 | 1,020.00 | paid |",
+  TP4: "| Card | Expiry | Amount |\n|---|---|---|\n| 4111 1111 1111 1111 | 12/28 | 54.00 |",
+  TP5: "| Name | Role | Phone |\n|---|---|---|\n| Dana Whitfield | bookkeeper | 555-0147 |\n| Sam Ortiz | order coordinator | 555-0148 |",
+};
+export const EV3_TABLE_CONTROL = {
+  TC1: "| Session | Date | Start | Roles |\n|---|---|---|---|\n| 1 | 2027-01-07 | 10:00 | 3 |\n| 2 | 2027-01-12 | 14:00 | 3 |\n| 3 | 2027-01-21 | 09:30 | 3 |\n| 4 | 2027-01-26 | 10:00 | 2 |\n| 5 | 2027-02-04 | 10:00 | 1 |\n| 6 | 2027-02-08 | 10:00 | 1 |",
+  TC2: "| Class | Session 1 | Session 3 | Retest |\n|---|---|---|---|\n| Defect | 3 | 1 | 1 |\n| Change | 0 | 1 | 0 |\n| Training gap | 1 | 0 | 0 |\n| Environment or data | 1 | 0 | 0 |\n| Duplicate | 0 | 0 | 0 |",
+  TC3: "| Week | Orders tested | Passed | Failed |\n|---|---|---|---|\n| 1 | 40 | 38 | 2 |\n| 2 | 42 | 42 | 0 |\n| 3 | 39 | 39 | 0 |\n| 4 | 41 | 41 | 0 |\n| 5 | 40 | 40 | 0 |\n| 6 | 44 | 44 | 0 |",
+  TC4: "| Step | Expected | Cases | Minutes |\n|---|---|---|---|\n| 1 | 10 | 10 | 15 |\n| 2 | 2 | 2 | 5 |\n| 3 | 3 | 3 | 5 |\n| 4 | 10 | 10 | 20 |\n| 5 | 60 | 60 | 30 |",
+  TC5: "| Fix round | Sent | Back | Business days |\n|---|---|---|---|\n| 1 | 2027-01-08 | 2027-01-15 | 5 |\n| 2 | 2027-01-18 | 2027-01-22 | 4 |\n| 3 | 2027-01-23 | 2027-01-26 | 1 |\n| 4 | 2027-02-01 | 2027-02-03 | 2 |\n| 5 | 2027-02-04 | 2027-02-08 | 2 |",
+};
+// Prose record ids: 5 plants (a client record's id in prose) and 10 controls (this skill's own ids and harmless numbers).
+export const EV3_PROSE_PLANT = {
+  PR1: "Order 58213 from Ridgeway Cafe failed to import.",
+  PR2: "Use invoice INV-58213 for the bookkeeper's check.",
+  PR3: "Customer account 99120345 shows the wrong balance.",
+  PR4: "The test used purchase order PO-77120 from Fernhill Deli.",
+  PR5: "Reorder ticket #48211 for Harbor Florists was skipped.",
+};
+export const EV3_PROSE_CONTROL = {
+  PC01: "UAT-03, UAT-04 and UAT-05 were fixed in build larkspur-uat-3.",
+  PC02: "AC-1.1 passed 10 of 10 cases in RUN-04.",
+  PC03: "RUN-02 recorded the no-show on 12 January 2027.",
+  PC04: "CO-04 adds two checks, AC-CO-04.1 and AC-CO-04.2.",
+  PC05: "The testers were oc-T1, ops-T1 and bk-T1.",
+  PC06: "SC-06 creates 10 invoices in the sandbox.",
+  PC07: "Request 2 was written with rec 63.",
+  PC08: "The export ran on version 2.4.1 of the sandbox.",
+  PC09: "Session 3 runs from 09:30 to 11:00 on 21 January.",
+  PC10: "WP-2 and WP-5 have role scenarios SC-10 and SC-12.",
+};
+
+// ── OW-04 FOLLOW-UP HELD-OUT sets (ow-uat 1.0.1) ─────────────────────────────
+// Written on 2026-10-19 BEFORE any follow-up rule change, from the category
+// definitions only, and measured against the 1.0.0 rules ("before") and the
+// follow-up rules built from the Evaluator's round-3 slips ("after", before any
+// of these misses were grown into the net). The same author wrote the rules and
+// these sets, so "after" is not an untuned rate.
+//   our side     before 9/15 caught, after 10/15
+//   legitimate   15/15 pass by every meaning rule, before and after
+//   false pass   caught before 4/6, after 5/6; legitimate (negation, future,
+//                invitation) before 3/4 pass ("it will be marked closed"
+//                flagged), after 4/4
+//   credentials  caught before 4/7, after 5/7; legitimate 3/3 both times
+// The remaining misses were then grown into the net (rules marked "added after
+// the OW-04 follow-up held-out measurement"), so these are regression cases too.
+export const HELDOUT4_OURS = [
+  "The retest cycle took us about twice our own estimate.",
+  "We sank most of Wednesday into the label fix.",
+  "Our people put in a long evening getting build 4 ready.",
+  "Each extra session is priced at our standard session fee.",
+  "That fix cost us more than the whole UAT line.",
+  "We are carrying the cost of the extra round ourselves.",
+  "The address problem ate a full day of developer time.",
+  "Our internal plan had one fix round; we needed three.",
+  "We billed nothing for it, but it took Robin six hours.",
+  "The extension is charged at our hourly rate.",
+  "Our margin on this phase is thin after the regression.",
+  "We overran our testing budget by roughly a third.",
+  "The confirmation build took our team the better part of two days.",
+  "Adding a fourth tester role raises our UAT price by a fifth.",
+  "Behind the scenes we lost a day to the sandbox outage.",
+];
+export const HELDOUT4_LEGIT = [
+  "Session 3 runs from 09:30 to 11:00 on Thursday 21 January.",
+  "Your shop sends about 50 reorders in a busy week.",
+  "The quoted UAT line includes two fix rounds of five business days.",
+  "Your price list sets the price of each line on the reorder form.",
+  "The acceptance payment is 20% of the fixed price and is due within 14 days.",
+  "Your operations manager takes about an hour to check the exceptions list.",
+  "Fix round 2 closed on 22 January, inside the quoted bounds.",
+  "Change order CO-02 adds two checks at the price on the signed change order.",
+  "Your bookkeeper will need about 40 minutes for SC-06.",
+  "Each tester's login comes from your operations manager.",
+  "UAT-08 was moved to the punch list on 22 January.",
+  "Testing ran over three weeks, from 7 to 26 January 2027.",
+  "Your month-end close currently takes four days.",
+  "Records created during testing: 4 test orders in the staging mailbox.",
+  "The order coordinator ran SC-01 to SC-04 in session 1.",
+];
+/** Who tested: AC-3.3 and AC-8.2 passed only "user alone"; UAT-17 and UAT-22 are fixed, not retested; UAT-16 passed its retest. */
+export const HELDOUT4_FP_CONTEXT = { userAlone: ["AC-3.3", "AC-8.2"], notRetested: ["UAT-17", "UAT-22"], retested: ["UAT-16"] };
+export const HELDOUT4_FALSE_PASS = {
+  caught: [
+    "AC-3.3 and AC-8.2 were both confirmed by your bookkeeper.",
+    "UAT-17 behaves as agreed now.",
+    "The checks were each signed off by your team in session 2.",
+    "UAT-22 has been put right in build larkspur-uat-5.",
+    "Your operations manager has checked AC-8.2.",
+    "UAT-17 is now resolved.",
+  ],
+  legit: [
+    "UAT-22 has not been retested, so it is not closed yet.",
+    "When UAT-17 passes its retest, it will be marked closed.",
+    "Your operations manager may want to run AC-3.3 before signing.",
+    "AC-8.2 was run by Robin alone; your people have not tested it.",
+  ],
+};
+export const HELDOUT4_CREDENTIALS = {
+  caught: [
+    "Sign in with ops@sandbox.example and Kiln#Fire7.",
+    "The verification code we received was 552190.",
+    "Its API secret is 7f3a9c2e1b8d4f60.",
+    "The bookkeeper's password for the sandbox: Ledger-Moss-31",
+    "Use PIN 2718 on the till.",
+    "Credentials: tester / tester",
+    "The webhook signing secret is Larkspur-Hook-2027.",
+  ],
+  legit: [
+    "The sign-in page asks for a one-time code sent to the tester's phone.",
+    "Ask your operations manager to reset any password that fails.",
+    "No password, PIN or key is written in this pack.",
+  ],
+};

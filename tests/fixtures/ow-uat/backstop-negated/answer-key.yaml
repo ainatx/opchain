@@ -1,0 +1,18 @@
+# Answer key: backstop-negated (INVENTED). OD-4 and R3-2 (the Evaluator's
+# zz3-backstop-negated; the frozen backstop clause also says "The delivery half does not apply on the backstop date itself."):
+# a negated sentence never moves the backstop to its own date, so on
+# 2027-01-15 --backstop refuses.
+case: backstop-negated
+section: Backstop (refused on its date; negated wording)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-builder-delay
+build_case: invoice-booking-small
+verbs: [/ow-uat-signoff --backstop]
+today: 2027-01-15
+checks: [refused, backstop_refused]
+refused: { reason: "the backstop date has not passed" }
+backstop_refused: { reason: "the backstop date has not passed" }

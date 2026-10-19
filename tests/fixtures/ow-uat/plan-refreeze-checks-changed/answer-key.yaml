@@ -1,0 +1,21 @@
+# Answer key: plan-refreeze-checks-changed (INVENTED). Owner decision R3-6
+# (planted state: the plan's acceptance checks gained AC-6.1 after the
+# freeze): --refreeze agreed/acceptance.md refuses when the check list
+# upstream differs from the frozen one. Nothing is written; the printed
+# block names AC-6.1 and the change-order path (its scenario, test and
+# price), then --add-co once it is signed, or --keep-frozen meanwhile.
+case: plan-refreeze-checks-changed
+section: Basis mismatch (a changed check list is not refrozen)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: plan
+build_case: ready-passing
+verbs: [/ow-uat-plan --refreeze]
+today: 2027-01-05
+checks: [refused, next, refreeze_checks]
+plan_mode: { mode: --refreeze, file: agreed/acceptance.md }
+refused: { reason: "the check list changed", names: [AC-6.1, agreed/acceptance.md], says: [change order, --add-co] }
+next: ["use ow-uat-plan to add CO-nn to uat/larkspur-ceramics/", "use ow-uat-plan to keep acceptance.md frozen in uat/larkspur-ceramics/"]

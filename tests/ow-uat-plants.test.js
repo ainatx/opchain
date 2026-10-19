@@ -8,7 +8,7 @@ import { spawnSync } from "node:child_process";
 import { cpSync, existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import * as yaml from "js-yaml";
-import { FIXTURES, addBusinessDays, appliesOnTheDate, blockDigest, credentialFindings, dataFindings, edgesWriterDrift, exitCriteria, expectedRoute, falsePassFindings, handoffFieldDrift, internalFindings, internalReads, listCases, loadKey, peopleFindings, runCase, runView, sentences, tableHolidays, termsBlock, termsTextMismatches } from "../scripts/ow-uat-acceptance.mjs";
+import { FIXTURES, PUBLISHED_TEST_CARDS, addBusinessDays, appliesOnTheDate, blockDigest, credentialFindings, dataFindings, edgesWriterDrift, exitCriteria, expectedRoute, falsePassFindings, handoffFieldDrift, internalFindings, internalReads, listCases, loadKey, peopleFindings, runCase, runView, sentences, tableHolidays, termsBlock, termsTextMismatches } from "../scripts/ow-uat-acceptance.mjs";
 import { addDate } from "../plugins/ow-tools/lib/calc.mjs";
 import { FIXTURES as BUILD_FX, expectedRoute as buildRoute, prepare as buildPrepare, runCase as buildCaseRun } from "../scripts/ow-build-acceptance.mjs";
 import { checkEdges, checkFamily, checkProtocolCopies, checkVerbs } from "../scripts/check-skill-contracts.mjs";
@@ -820,7 +820,7 @@ describe("OW-04 R2: the terms block's digest and the calendar a year at a time (
       const v = runView(c);
       const ytext = v.read(`opchain-work/uat/${key.slug}/uat.yaml`);
       const up = v.read(`opchain-work/plans/${key.slug}/contract-inputs.md`);
-      if (!ytext || !up || /--refreeze|--keep-frozen/.test(String(key.verbs)) || /mismatch|changed|schedule|incidental|clause-on-date/.test(c)) continue;
+      if (!ytext || !up || /--refreeze|--keep-frozen/.test(String(key.verbs)) || /mismatch|changed|schedule|incidental|clause-on-date|nocode-price|nocode-testmix|negated/.test(c)) continue;
       let u; try { u = yaml.load(ytext); } catch { continue; }
       if (!u?.terms) continue;
       expect(termsTextMismatches(up, u, v.read(`opchain-work/uat/${key.slug}/agreed/contract-terms.md`)), c).toEqual([]);
@@ -942,4 +942,194 @@ describe("OW-04 round 3: the held-out set written before any round-3 rule change
   for (const s of S.HELDOUT3_CREDENTIALS.legit) it(`credential CONTROL: ${s}`, () => expect(credentialFindings(s)).toEqual([]));
   for (const s of S.HELDOUT3_TABLES.caught) it(`OD-7: a table of personal or ID-like rows is caught by the data rule: ${s.split("\n")[0]}`, () => expect(dataFindings(s, {}).length).toBeGreaterThan(0));
   for (const s of S.HELDOUT3_TABLES.legit) it(`OD-7: a count or schedule table passes at any length: ${s.split("\n")[0]}`, () => expect(dataFindings(s, {})).toEqual([]));
+});
+
+// ── OW-04 follow-up (ow-uat 1.0.1): the round-3 plants and owner decisions R3-4 and R3-6, kept (C17) ──
+describe("OW-04 R3: owner decision R3-6 (a changed check list is not refrozen; sign-off counts agreed/)", () => {
+  const ACC = `${L}/agreed/acceptance.md`;
+  const upstream = () => runView("plan-refreeze-checks-changed").priorRead("opchain-work/plans/larkspur-ceramics/acceptance.md");
+  control("R6-0", "CONTROL: the refusal golden (nothing written; AC-6.1, the change order and --add-co named)", "plan-refreeze-checks-changed", {});
+  plant("R6-1", "the refreeze done anyway: acceptance.md copied, AC-6.1 added to uat.yaml checks (the Evaluator's zz3-refreeze-adds-check)", "plan-refreeze-checks-changed", {
+    [ACC]: () => upstream(),
+    [`${L}/uat.yaml`]: () => golden("plan", `${L}/uat.yaml`).replace("checks: [AC-1.1, AC-1.2, AC-2.1, AC-3.1, AC-4.1, AC-5.1, AC-5.2, AC-CO-01.1, AC-CO-01.2]", "checks: [AC-1.1, AC-1.2, AC-2.1, AC-3.1, AC-4.1, AC-5.1, AC-5.2, AC-6.1, AC-CO-01.1, AC-CO-01.2]"),
+  }, "refreeze_checks", /over a changed check list \(AC-6\.1\)/);
+  plant("R6-2", "the refusal names no change order and no --add-co", "plan-refreeze-checks-changed", { "printed.md": (t) => t.replace(/[^\n]*--add-co[^\n]*\n/g, "").replace(/change order/g, "update") }, "refreeze_checks", /change order and --add-co/);
+  plant("R6-3", "the refusal does not name the changed check", "plan-refreeze-checks-changed", { "printed.md": (t) => t.replace(/AC-6\.1/g, "the new check") }, "refreeze_checks", /does not name AC-6\.1/);
+  it("R6-4: a check in agreed/ that uat.yaml does not list still counts for exit criterion 1 (sign-off never passes an untested check)", () => {
+    const key = loadKey(join(FIXTURES, "signoff-request-2"));
+    const v = runView("signoff-request-2");
+    const extra = `${v.read(ACC)}\n### AC-6.1\n- when: the bookkeeper exports the month's invoices\n- then: the export lists every invoice once\n- cases: 1\n- kind: normal\n`;
+    const view = { ...v, read: (f) => (f.endsWith("agreed/acceptance.md") ? extra : v.read(f)) };
+    expect(exitCriteria(v, key)[1] ?? []).not.toContain("AC-6.1");
+    expect(exitCriteria(view, key)[1]).toContain("AC-6.1");
+  });
+});
+
+describe("OW-04 R3: owner decision R3-4 (published test cards and test-marked ids are test data)", () => {
+  const sc06 = (s) => ({ [`${L}/scenarios/SC-06.md`]: rep("fields: lines, quantities.\n", `fields: lines, quantities.\n\n${s}\n`) });
+  const records = (s) => ({ [`${L}/signoff-request-2.md`]: rep("## Records created during testing\n", `## Records created during testing\n${s}\n\n`) });
+  for (const [id, s] of [
+    ["R4-C1", "Pay with the provider's test card 4242 4242 4242 4242 in test mode."],
+    ["R4-C2", "A declined payment uses the provider's test card 4000000000000002."],
+    ["R4-C3", "| Card | Expect |\n|---|---|\n| 5555 5555 5555 4444 | approved in test mode |\n| 4000 0000 0000 9995 | declined: insufficient funds |"],
+  ]) control(`${id}@scenario`, `CONTROL: ${s.split("\n")[0]}`, "plan", sc06(s));
+  for (const [id, s] of [
+    ["R4-C4", "- Invoice 100001 in the sandbox, created by SC-06: delete after sign-off."],
+    ["R4-C5", "| Record | Where | Created by |\n|---|---|---|\n| Invoice 100001 | QuickBooks Online sandbox | SC-06 |\n| Invoice 100002 | QuickBooks Online sandbox | SC-06 |"],
+    ["R4-C6", "- Test order 58219 in the staging mailbox: delete after sign-off."],
+  ]) control(`${id}@request`, `CONTROL: ${s.split("\n")[0]}`, "signoff-request-2", records(s));
+  for (const [id, s, place] of [
+    ["R4-P1", "Charge card 4111 1111 1111 1110 for the order.", "scenario"],
+    ["R4-P2", "Invoice 100001 for Ridgeway Cafe was paid on 2 December.", "request"],
+    ["R4-P3", "| Card | Amount |\n|---|---|\n| 4242 4242 4242 4241 | 54.00 |", "scenario"],
+    ["R4-P4", "| Sandbox buyer | buyer@ridgeway.example |", "scenario"],
+  ]) plant(`${id}@${place}`, s.split("\n")[0], place === "scenario" ? "plan" : "signoff-request-2", place === "scenario" ? sc06(s) : records(s), "data");
+  it("R4-5: the allowlist is Stripe's published numbers only, digits only, and every one passes the Luhn check", () => {
+    const luhn = (n) => [...n].reverse().reduce((a, d, i) => a + (i % 2 ? ((2 * d) % 10) + Math.floor((2 * d) / 10) : Number(d)), 0) % 10 === 0;
+    expect(PUBLISHED_TEST_CARDS.size).toBeLessThanOrEqual(30);
+    for (const n of PUBLISHED_TEST_CARDS) { expect(n).toMatch(/^\d{14,19}$/); expect(luhn(n), n).toBe(true); }
+    expect(PUBLISHED_TEST_CARDS.has("4111111111111111")).toBe(false);
+  });
+});
+
+describe("OW-04 R3: the Evaluator's round-3 functions (h/fn3.mjs)", () => {
+  const ci = readFileSync(join(FIXTURES, "m-plan", "input", "opchain-work", "plans", "mossgate-books", "contract-inputs.md"), "utf8");
+  const chg = (t) => t.replace('delivery_backstop: { ref: "TEST-2", business_days: 10,', 'delivery_backstop: { ref: "TEST-2", business_days: 20,');
+  const BOM = "﻿";
+  it("DG-BOM: R3-5: a BOM-prefixed contract-inputs.md: a changed clause changes the digest, and the BOM alone does not", () => {
+    expect(blockDigest(BOM + ci)).not.toBe(blockDigest(chg(BOM + ci)));
+    expect(blockDigest(BOM + ci)).toBe(blockDigest(ci));
+  });
+  it("DG-CRLF, DG-TRAIL, DG-BLANK, DG-CMT, DG-SCHED, DG-TERMS, DG-SCHED-DEL", () => {
+    expect(blockDigest(ci.replace(/\n/g, "\r\n"))).not.toBe(blockDigest(chg(ci).replace(/\n/g, "\r\n")));
+    expect(blockDigest(ci.replace(/\n/g, "\r\n"))).toBe(blockDigest(ci));
+    expect(blockDigest(ci)).not.toBe(blockDigest(ci.replace(/(deemed_acceptance: [^\n]*)\n/, "$1 \n")));
+    const blank = ci.replace(/(\n {2}deemed_acceptance: [^\n]*\n)( {2}delivery_backstop:)/, "$1\n$2");
+    const cmt = ci.replace(/(\n {2}deemed_acceptance: [^\n]*\n)( {2}delivery_backstop:)/, "$1# approved\n$2");
+    expect(blockDigest(blank)).not.toBe(blockDigest(chg(blank)));
+    expect(blockDigest(cmt)).not.toBe(blockDigest(chg(cmt)));
+    for (const t of [ci.replace("schedule: 50/50", "schedule: 40/40/20"), ci.replace("payment_terms_days: 14", "payment_terms_days: 30"), ci.replace("schedule: 50/50\n", "")]) expect(blockDigest(t)).not.toBe(blockDigest(ci));
+  });
+  it("NC-*: R3-1: the no-code comparison sees a removed schedule, a removed clause, a removed Ownership section, and a BOM file's changed clause; a BOM alone is no change", () => {
+    const u = yaml.load(golden("m-plan", `${M}/uat.yaml`));
+    const terms = golden("m-plan", `${M}/agreed/contract-terms.md`);
+    expect(termsTextMismatches(ci, u, terms)).toEqual([]);
+    expect(termsTextMismatches(chg(ci), u, terms).length).toBeGreaterThan(0);
+    expect(termsTextMismatches(ci.replace("schedule: 50/50\n", ""), u, terms)).toEqual(["schedule (removed upstream)"]);
+    expect(termsTextMismatches(ci.replace(/\n {2}delivery_backstop: [^\n]*/, ""), u, terms).length).toBeGreaterThan(0);
+    expect(termsTextMismatches(BOM + ci, u, terms)).toEqual([]);
+    expect(termsTextMismatches(chg(BOM + ci), u, terms).length).toBeGreaterThan(0);
+    const t2 = terms.replace("Not stated in the contract inputs or the quick scope.", "The client owns the code on final payment.");
+    expect(termsTextMismatches(ci, u, t2)).toEqual(["Ownership (removed upstream)"]);
+  });
+  it("NC-L: R3-1: Larkspur's UAT line, price and test mix, against the line contract-terms.md quotes", () => {
+    const v = runView("plan");
+    const lci = v.priorRead("opchain-work/plans/larkspur-ceramics/contract-inputs.md");
+    const u = yaml.load(v.read(`${L}/uat.yaml`));
+    const terms = v.read(`${L}/agreed/contract-terms.md`);
+    expect(termsTextMismatches(lci, u, terms)).toEqual([]);
+    expect(termsTextMismatches(lci.replace("price: 2250.00 }", "price: 2400.00 }"), u, terms)).toEqual(["uat.price"]);
+    expect(termsTextMismatches(lci.replace('bookkeeper: WP-5"', 'bookkeeper: WP-4, WP-5"'), u, terms)).toEqual(["uat.test_mix"]);
+    expect(termsTextMismatches(lci.replace(/^uat: [^\n]*\n/m, ""), u, terms)).toEqual(["uat (removed upstream)"]);
+  });
+  const on = (w) => appliesOnTheDate({ wording: w });
+  for (const [id, w, want] of [
+    ["BS-on", "The delivery half falls due on the backstop date.", true], ["BS-after", "The delivery half falls due after the backstop date.", false],
+    ["BS-neg", "The delivery half does not apply on the backstop date itself.", false], ["BS-never", "The delivery half never falls due on the backstop date; it falls due the day after.", false],
+    ["BS-incid", "The readiness notice counts from the same day it is sent.", false], ["BS-incl", "It becomes payable from and including the backstop date.", true],
+    ["BS-neg2", "It doesn't fall due on the backstop date.", false], ["BS-later", "It falls due later than, never on, the backstop date.", false],
+  ]) it(`${id}: R3-2: "${w}" ${want ? "applies" : "does not apply"} on the date`, () => expect(on(w)).toBe(want));
+  const df = (t) => dataFindings(t, {});
+  for (const [id, t, want] of [
+    ["TB-orders", "| Orders | Total | Status |\n|---|---|---|\n| 58213 | 214.50 | paid |\n| 58214 | 88.00 | open |", true],
+    ["TB-accounts", "| Accounts | Balance | Due |\n|---|---|---|\n| 99120345 | 1,045.00 | 2026-12-01 |", true],
+    ["TB-client", "| Client | Total | Paid |\n|---|---|---|\n| Ridgeway Cafe | 214.50 | yes |\n| Fernhill Deli | 88.00 | no |", true],
+    ["TB-store", "| Store | Contact | Orders |\n|---|---|---|\n| Ridgeway Cafe | buyer@ridgeway.example | 4 |", true],
+    ["TB-counts", "| Orders | Passed | Failed |\n|---|---|---|\n| 40 | 38 | 2 |\n| 42 | 42 | 0 |\n| 39 | 39 | 0 |\n| 41 | 41 | 0 |\n| 40 | 40 | 0 |", false],
+    ["TB-testcard", "Pay with the provider's test card 4242 4242 4242 4242 in test mode.", false],
+    ["TB-sandbox-inv", "Invoice 100001 in the sandbox was created by SC-06 and can be deleted.", false],
+  ]) it(`${id}: R3-3 and R3-4: ${want ? "caught" : "passes"}: ${t.split("\n")[0]}`, () => expect(df(t).length > 0).toBe(want));
+  it("TB-client-own: the client's own name under a Client column is not a record value", () => expect(dataFindings("| Client | Sessions |\n|---|---|\n| Larkspur Ceramics | 3 |", { client: "Larkspur Ceramics" })).toEqual([]));
+  const edges = () => readFileSync(join(ROOT, "skills-work", "ow-uat", "skill.edges.yaml"), "utf8");
+  const hd = (fn) => handoffFieldDrift(fn(edges()));
+  it("HP-0: CONTROL: the real edges", () => expect(hd((t) => t)).toEqual([]));
+  it("HP-fix, HP-dated, HP-pointers, HP-verb: each drift is caught", () => {
+    expect(hd((t) => t.replace(/( {4}verb: \/ow-handoff-fix\n {4}say: [^\n]*\n {4}files: )\[uat\/<client>\/punch-list\.md\]/, "$1[]")).length).toBeGreaterThan(0);
+    expect(hd((t) => t.replace(/( {4}verb: \/ow-handoff-start[\s\S]*?uat\/<client>\/uat\.yaml, fields: \[the governing acceptance or delivery definition), dated\]/, "$1]")).length).toBeGreaterThan(0);
+    expect(hd((t) => t.replace("fields: [role, steps, expected result, data pointers]", "fields: [role, steps, expected result]")).length).toBeGreaterThan(0);
+    expect(hd((t) => t.replace("verb: /ow-handoff-start", "verb: /ow-handoff-begin")).length).toBeGreaterThan(0);
+  });
+  const owTools = (args) => { const r = spawnSync(join(ROOT, "plugins", "ow-tools", "bin", "ow-tools"), args, { encoding: "utf8" }); let j = null; try { j = JSON.parse(r.stdout); } catch { /* not JSON */ } return { status: r.status, j }; };
+  it("OT-1 to OT-8: ow-tools 1.2.0's calendar under 1.1.x's CLI", () => {
+    const d = (from, flag, n, ...rest) => owTools(["calc", "date", "--from", from, flag, String(n), ...rest, "--json"]);
+    let r = d("2026-11-20", "--business-days", 10, "--calendar", "us-federal"); expect([r.status, r.j?.date]).toEqual([0, "2026-12-07"]);
+    r = d("2099-12-30", "--business-days", 2, "--calendar", "us-federal"); expect([r.status, r.j?.reason]).toEqual([4, "calendar-out-of-range"]);
+    expect(d("2026-11-20", "--days", 10, "--calendar", "us-federal").status).toBe(2);
+    r = d("2026-11-20", "--days", 10); expect([r.status, r.j?.calendar, r.j?.date]).toEqual([0, "every day", "2026-11-30"]);
+    r = owTools(["version", "--json"]); expect(r.j?.capabilities?.calc?.calendars).toEqual(["us-federal"]);
+    expect(d("2026-11-20", "--business-days", 10, "--calendar", "US-Federal").status).toBe(2);
+    r = d("2026-11-20", "--business-days", 10, "--holidays", "2026-11-26"); expect([r.status, r.j?.date, r.j?.calendar]).toEqual([0, "2026-12-07", "Mon-Fri"]);
+    expect(d("2021-12-30", "--business-days", 1, "--calendar", "us-federal").status).toBe(4);
+  });
+});
+
+describe("OW-04 R3: the Evaluator's round-3 run-level cases, now goldens (zz3)", () => {
+  const MS = `${M}/`;
+  const packM = Object.fromEntries([`${M}/pack.yaml`, `${M}/uat-pack-shop-manager.md`].map((f) => [f, add(golden("m-pack", f))]));
+  const packL = Object.fromEntries([`${L}/pack.yaml`, `${L}/uat-pack-order-coordinator.md`].map((f) => [f, add(golden("pack", f))]));
+  for (const c of ["pack-terms-nocode-price", "pack-terms-nocode-testmix", "pack-terms-nocode-schedule-removed", "backstop-negated"]) control(`ZZ3-${c}`, `CONTROL: the ${c} golden refuses as it should`, c, {});
+  plant("ZZ3-1", "R3-1: no code, the UAT price changed, the pack written anyway", "pack-terms-nocode-price", packL, "basis", /basis mismatch/);
+  plant("ZZ3-2", "R3-1: no code, the test mix changed, the pack written anyway", "pack-terms-nocode-testmix", packL, "basis", /basis mismatch/);
+  plant("ZZ3-3", "R3-1: no code, the schedule removed upstream, the pack written anyway", "pack-terms-nocode-schedule-removed", packM, "basis", /basis mismatch/);
+  plant("ZZ3-4", "R3-2: a negated clause sentence, backstop.md written on the date", "backstop-negated", { [`${MS}backstop.md`]: add(golden("backstop-clause-on-date", `${M}/backstop.md`)) }, "refused");
+});
+
+describe("OW-04 R3: the Evaluator's untuned round-3 set through the file pipeline (h/fresh3.mjs, h/sentences3.mjs)", () => {
+  const R2 = `${L}/signoff-request-2.md`, MR = `${M}/signoff-request-1.md`;
+  const reqStart = (s) => ({ [R2]: rep("## The build tested\n", `## The build tested\n${s} `) });
+  const reqRecords = (s) => ({ [R2]: rep("## Records created during testing\n", `## Records created during testing\n${s}\n\n`) });
+  const uat05 = (s) => ({ [`${L}/defects/UAT-05.md`]: rep("The fix is at no charge.\n", `The fix is at no charge. ${s}\n`) });
+  const punch = (s) => ({ [`${L}/punch-list.md`]: rep("Each is fixed after handoff at no charge.\n", `Each is fixed after handoff at no charge. ${s}\n`) });
+  const packLine = (s) => ({
+    [`${L}/uat-pack-order-coordinator.md`]: rep("write it in the results template instead of your name.\n", `write it in the results template instead of your name. ${s}\n`),
+    [`${L}/export/uat-pack-order-coordinator.html`]: rep("write it in the results template instead of your name.</p>", `write it in the results template instead of your name. ${s.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</p>`),
+  });
+  const packBlock = (s) => ({ [`${L}/uat-pack-order-coordinator.md`]: rep("\n## Reporting a problem\n", `\n${s}\n\n## Reporting a problem\n`) });
+  const sc06 = (s) => ({ [`${L}/scenarios/SC-06.md`]: rep("fields: lines, quantities.\n", `fields: lines, quantities.\n\n${s}\n`) });
+  const run1 = (s) => ({ [`${L}/runs/RUN-01.md`]: rep("- a password in the note of SC-07: not copied; logged in secrets-seen.log", `- a password in the note of SC-07: not copied; logged in secrets-seen.log\n- ${s}`) });
+  const mStart = (s) => ({ [MR]: rep("## The build tested\n", `## The build tested\n${s} `) });
+  const mEnd = (s) => ({ [MR]: rep("\n\n## Every acceptance check", `\n\n${s}\n\n## Every acceptance check`) });
+  for (const [id, s] of Object.entries(S.EV3_OURS)) { plant(`${id}@start`, s, "signoff-request-2", reqStart(s), "internal_numbers"); plant(`${id}@reason`, s, "defect-fixed", uat05(s), "internal_numbers"); }
+  for (const [id, s] of Object.entries(S.EV3_LEGIT)) { control(`${id}@start`, s, "signoff-request-2", reqStart(s)); control(`${id}@punch`, s, "signoff-signed", punch(s)); }
+  for (const [id, [w, s]] of Object.entries(S.EV3_FP_PLANT)) {
+    if (w === "m") { plant(`${id}@start`, s, "m-signoff-request", mStart(s), "false_pass"); plant(`${id}@end`, s, "m-signoff-request", mEnd(s), "false_pass"); }
+    else plant(`${id}@reason`, s, "defect-fixed", uat05(s), "false_pass");
+  }
+  for (const [id, [w, s]] of Object.entries(S.EV3_FP_CONTROL)) {
+    if (w === "m") { control(`${id}@start`, s, "m-signoff-request", mStart(s)); control(`${id}@end`, s, "m-signoff-request", mEnd(s)); }
+    else control(`${id}@reason`, s, "defect-fixed", uat05(s));
+  }
+  for (const [id, s] of Object.entries(S.EV3_CRED_PLANT)) { plant(`${id}@pack`, s, "pack", packLine(s), "credentials"); plant(`${id}@run`, s, "run-session-1", run1(s), "credentials"); }
+  for (const [id, s] of Object.entries(S.EV3_CRED_CONTROL)) { control(`${id}@pack`, s, "pack", packLine(s)); control(`${id}@run`, s, "run-session-1", run1(s)); }
+  for (const [id, s] of Object.entries(S.EV3_TABLE_PLANT)) { plant(`${id}@scenario`, s.split("\n")[0], "plan", sc06(s), "data"); plant(`${id}@pack`, s.split("\n")[0], "pack", packBlock(s), "data"); plant(`${id}@request`, s.split("\n")[0], "signoff-request-2", reqRecords(s), "data"); }
+  for (const [id, s] of Object.entries(S.EV3_TABLE_CONTROL)) { control(`${id}@scenario`, s.split("\n")[0], "plan", sc06(s)); control(`${id}@pack`, s.split("\n")[0], "pack", packBlock(s)); control(`${id}@request`, s.split("\n")[0], "signoff-request-2", reqRecords(s)); }
+  for (const [id, s] of Object.entries(S.EV3_PROSE_PLANT)) { plant(`${id}@scenario`, s, "plan", sc06(s), "data"); plant(`${id}@request`, s, "signoff-request-2", reqRecords(s), "data"); }
+  for (const [id, s] of Object.entries(S.EV3_PROSE_CONTROL)) { control(`${id}@scenario`, s, "plan", sc06(s)); control(`${id}@request`, s, "signoff-request-2", reqRecords(s)); control(`${id}@pack`, s, "pack", packBlock(s)); }
+});
+
+describe("OW-04 follow-up: the held-out set written before any follow-up rule changed", () => {
+  const legitCtx = { user: "Robin", legit: new Set([120000, 698000, 349000, 400000]) };
+  const people = { user: "Robin", people: [], client: "Larkspur Ceramics" };
+  for (const s of S.HELDOUT4_OURS) it(`our side caught: ${s}`, () => expect(internalFindings(s, { user: "Robin" }).length).toBeGreaterThan(0));
+  for (const s of S.HELDOUT4_LEGIT) it(`legitimate passes every meaning rule: ${s}`, () => {
+    expect(internalFindings(s, legitCtx)).toEqual([]);
+    expect(falsePassFindings(s, S.HELDOUT4_FP_CONTEXT)).toEqual([]);
+    expect(dataFindings(s, {})).toEqual([]);
+    expect(peopleFindings(s, people)).toEqual([]);
+    expect(credentialFindings(s)).toEqual([]);
+  });
+  for (const s of S.HELDOUT4_FALSE_PASS.caught) it(`who tested caught: ${s}`, () => expect(falsePassFindings(s, S.HELDOUT4_FP_CONTEXT).length).toBeGreaterThan(0));
+  for (const s of S.HELDOUT4_FALSE_PASS.legit) it(`a negation, future or invitation passes: ${s}`, () => expect(falsePassFindings(s, S.HELDOUT4_FP_CONTEXT)).toEqual([]));
+  for (const s of S.HELDOUT4_CREDENTIALS.caught) it(`credential caught: ${s}`, () => expect(credentialFindings(s).length).toBeGreaterThan(0));
+  for (const s of S.HELDOUT4_CREDENTIALS.legit) it(`credential CONTROL: ${s}`, () => expect(credentialFindings(s)).toEqual([]));
 });

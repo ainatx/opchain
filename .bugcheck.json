@@ -135,7 +135,7 @@
         },
         {
           "path": "tests/ow-uat-sentences.mjs",
-          "digest": "sha256:49255169eb8bf19b81c8931662d60d90d679c39b3edb0e3ab7ba81ac98104cb5"
+          "digest": "sha256:1c3b2e89cdb3f84b784b44b4ab8e0fbe2d0384878abeee7263e843121bbf2ac0"
         }
       ]
     }

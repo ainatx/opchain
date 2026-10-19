@@ -246,7 +246,8 @@ const TOP_KEY = /^[A-Za-z_][\w-]*\s*:/;
  * comment line inside a key's lines is skipped, so the clauses after it still count (R2-4).
  */
 export function termsBlock(text) {
-  const t = String(text ?? "").replace(/\r\n?/g, "\n");
+  // R3-5: a byte-order mark before the front matter is not a term; it is dropped before anything is read.
+  const t = String(text ?? "").replace(/^﻿/, "").replace(/\r\n?/g, "\n");
   const m = /^---\n([\s\S]*?)\n---(?:\n|$)/.exec(t);
   const head = m ? m[1].split("\n") : [];
   const body = m ? t.slice(m[0].length) : t;
@@ -279,25 +280,61 @@ export function termsTextMismatches(upstream, u, termsMd) {
   const out = [];
   if (!u || (u.terms === undefined && u.clauses === undefined)) return out;
   let ci;
-  try { ci = matter(String(upstream ?? "").replace(/\r\n?/g, "\n")); } catch { return ["contract-inputs.md (does not parse)"]; }
+  try { ci = matter(String(upstream ?? "").replace(/^﻿/, "").replace(/\r\n?/g, "\n")); } catch { return ["contract-inputs.md (does not parse)"]; }
   const d = ci.data ?? {};
   const t = u.terms ?? {};
+  let frozenMd = { content: "" };
+  try { frozenMd = matter(String(termsMd ?? "")); } catch { /* an unreadable frozen copy differs below */ }
   const cc = d.contract_clauses;
   const frozen = u.clauses;
   if (cc && typeof cc === "object") {
     if (!frozen || typeof frozen !== "object") out.push("contract_clauses (frozen as none)");
     else for (const k of new Set([...Object.keys(cc), ...Object.keys(frozen).filter((x) => x !== "status")])) if (canon(cc[k]) !== canon(frozen[k])) out.push(`contract_clauses.${k}`);
   } else if (frozen && typeof frozen === "object") out.push("contract_clauses (not set upstream)");
+  // R3-1: a part removed upstream is a difference too. The schedule, payment terms and SKU always come from
+  // contract-inputs.md; the UAT line and the definitions do when the terms say they were quoted from it.
+  const fromInputs = /contract-inputs/.test(String(t.bounds ?? ""));
   for (const k of ["schedule", "payment_terms_days", "documentation_sku", "acceptance_definition", "delivery_definition"]) {
-    if (d[k] === undefined) continue;
+    if (d[k] === undefined) {
+      const always = ["schedule", "payment_terms_days", "documentation_sku"].includes(k);
+      if ((always || fromInputs) && t[k] !== undefined && !/^none\b/i.test(String(t[k]))) out.push(`${k} (removed upstream)`);
+      continue;
+    }
     if (canon(d[k]) !== canon(t[k])) out.push(k);
   }
-  if (d.uat && typeof d.uat === "object") for (const k of ["size", "tester_roles", "sessions", "fix_rounds", "fix_business_days"]) if (d.uat[k] !== undefined && canon(d.uat[k]) !== canon(t[k])) out.push(`uat.${k}`);
+  if (d.uat && typeof d.uat === "object") {
+    for (const k of ["size", "tester_roles", "sessions", "fix_rounds", "fix_business_days"]) if (d.uat[k] !== undefined && canon(d.uat[k]) !== canon(t[k])) out.push(`uat.${k}`);
+    // R3-1: the UAT line's price and test mix, against the line contract-terms.md quotes.
+    const line = sectionOf(frozenMd.content ?? "", "User acceptance testing") ?? "";
+    if (d.uat.price !== undefined && ![...line.matchAll(/(?:USD|EUR|GBP|[$€£])\s?(\d[\d,]*(?:\.\d+)?)/gi)].some((m) => cents(m[1]) === cents(d.uat.price))) out.push("uat.price");
+    if (d.uat.test_mix !== undefined && !same(mixOf(String(d.uat.test_mix)), mixInLine(line, asList(d.uat.tester_roles).map(String)))) out.push("uat.test_mix");
+  } else if (fromInputs && t.size !== undefined) out.push("uat (removed upstream)");
   const own = (sectionOf(ci.content ?? "", "Ownership") ?? "").trim();
-  let frozenOwn = "";
-  try { frozenOwn = (sectionOf(matter(String(termsMd ?? "")).content ?? "", "Ownership") ?? "").trim(); } catch { /* an unreadable frozen copy differs */ }
+  const frozenOwn = (sectionOf(frozenMd.content ?? "", "Ownership") ?? "").trim();
   if (own && own !== frozenOwn) out.push("Ownership");
+  else if (!own && frozenOwn && !/^Not stated\b/i.test(frozenOwn)) out.push("Ownership (removed upstream)");
   return out;
+}
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+/** A test mix ("order coordinator: WP-1, WP-2; bookkeeper: WP-5") as role -> sorted work packages. */
+function mixOf(text) {
+  const out = {};
+  for (const part of text.split(";")) {
+    const m = /^\s*([^:]+?)\s*:\s*(.*)$/.exec(part);
+    if (m) out[m[1].trim().toLowerCase()] = [...new Set(m[2].match(/\bWP-\d+\b/g) ?? [])].sort();
+  }
+  return Object.fromEntries(Object.entries(out).sort());
+}
+/** The same map read from a quoted UAT line: each role's work packages, up to the next role named or a ";". */
+function mixInLine(line, roles) {
+  const out = {};
+  const low = line.toLowerCase();
+  const at = roles.flatMap((r) => [...low.matchAll(new RegExp(esc(r.toLowerCase()), "g"))].map((m) => ({ r: r.toLowerCase(), i: m.index, end: m.index + m[0].length }))).sort((a, b) => a.i - b.i);
+  at.forEach((x, n) => {
+    const stop = Math.min(n + 1 < at.length ? at[n + 1].i : line.length, ...[line.indexOf(";", x.end)].filter((k) => k >= 0));
+    for (const wp of line.slice(x.end, stop).match(/\bWP-\d+\b/g) ?? []) (out[x.r] ??= new Set()).add(wp);
+  });
+  return Object.fromEntries(Object.entries(out).map(([r, s]) => [r, [...s].sort()]).sort());
 }
 
 /**
@@ -446,7 +483,10 @@ export function buildOnDate(view, key, date) {
 export function exitCriteria(view, key, { asOfDate = null, request = null } = {}) {
   const dir = U(key);
   const uat = uatOf(view, dir);
-  const checks = asList(uat.checks).map(String);
+  // Owner decision R3-6: every check in agreed/ counts, whatever uat.yaml lists, so sign-off never passes a check
+  // that nobody tested (a check that reached agreed/ without its scenario stays a gap under criterion 1).
+  const agreedChecks = asList(uat.basis).filter((b) => /(?:acceptance|quick-scope|CO-\d+)\.md$/.test(String(b.file))).flatMap((b) => checkIdsIn(view.read(`${dir}/${b.file}`)));
+  const checks = [...new Set([...asList(uat.checks).map(String), ...agreedChecks])];
   const scen = scenariosOf(view, dir);
   const runs = runsOf(view, dir).filter((r) => !asOfDate || r.session_date <= asOfDate);
   const defects = defectsOf(view, dir).filter((d) => !asOfDate || (d.history[0]?.date ?? "0") <= asOfDate);
@@ -527,14 +567,15 @@ export function sentences(text) {
 const OUR_AGENT = (user) => new RegExp(`\\b(?:we|we've|we're|I|I've|I'm|us|our|ours|me|my|the builder|our builder|our developer|the developer|developers?|engineers?${user ? `|${esc(user)}` : ""})\\b`, "i");
 const CLIENT_AGENT = /\b(?:your (?:[\w-]+ ){0,2}?(?:team|testers?|staff|people|coordinator|manager|bookkeeper|owner|lead)|the (?:order coordinator|operations manager|bookkeeper|shop manager|owner|tester|testers|client)|(?:order coordinator|operations manager|bookkeeper|shop manager)|each tester|testers)\b/i;
 /** Effort words: the time went into our work. */
-const EFFORT_WORD = /\b(?:took|takes|taking|spent|spend(?:s|ing)?|went into|go(?:es)? into|ate up|eats? up|used up|put in|put into|sunk|logged|billable|consumed|effort|of work|of (?:development|developer|building|coding|fixing) ?(?:time)?|developer[- ](?:time|hours?|days?)|rework|man[- ]?days?|person[- ]?days?)\b/i;
+const EFFORT_WORD = /\b(?:took|takes|taking|spent|spend(?:s|ing)?|went into|go(?:es)? into|ate up|eats? up|used up|put in|put into|sunk|sank|sinks?|sinking|logged|billable|consumed|effort|of work|of (?:development|developer|building|coding|fixing) ?(?:time)?|developer[- ](?:time|hours?|days?)|rework|man[- ]?days?|person[- ]?days?)\b/i;
 /** A quantity of data, not of time: "a week of your October orders". */
 const DATA_SPAN = /\b(?:a|one|two|three|four|\d+|half a) (?:days?|weeks?|months?) of (?:your|the client's|the shop's|their|the) ?(?:[A-Z][a-z]+ )?(?:orders|data|sales|exports|records|invoices|purchase orders)\b/i;
 /** The test's own duration: a session's length, the time a client person needs, a scenario's length (R1-9). */
 const TEST_DURATION = /\b(?:session|sessions|lasted|lasts|runs? from|allow|testers? (?:needs?|will have)|to run their scenarios|break at)\b|\b(?:each|every|a|the|this|that) (?:scenario|check|test|run)s? (?:takes?|lasts?|needs?)\b/i;
 /** Ours when we, our people or the user named are the subject: a pricing modifier, our plan or estimate, our time (R1-9). */
+// "raises our UAT price by": added after the OW-04 follow-up held-out measurement.
 // A fraction as the modifier ("adds a quarter to our UAT price"): added after the round-3 held-out measurement.
-const PRICE_MODIFIER = /\badds?\s+(?:about\s+|roughly\s+)?\d+(?:\.\d+)?\s?%\s+to\b|\badds?\s+(?:about\s+|roughly\s+)?(?:a (?:quarter|third|half|fifth|tenth)|half|one[- ](?:quarter|third|fifth))\s+(?:to|on)\b|\b\d+(?:\.\d+)?\s?%\s+(?:on top|extra|uplift|surcharge|premium|more for)\b|\b(?:uplift|surcharge|premium|mark-?up) of \d+(?:\.\d+)?\s?%/i;
+const PRICE_MODIFIER = /\badds?\s+(?:about\s+|roughly\s+)?\d+(?:\.\d+)?\s?%\s+to\b|\badds?\s+(?:about\s+|roughly\s+)?(?:a (?:quarter|third|half|fifth|tenth)|half|one[- ](?:quarter|third|fifth))\s+(?:to|on)\b|\b\d+(?:\.\d+)?\s?%\s+(?:on top|extra|uplift|surcharge|premium|more for)\b|\b(?:uplift|surcharge|premium|mark-?up) of \d+(?:\.\d+)?\s?%|\bmark(?:s|ed|ing)?[- ]?up\s+by\b|\b(?:raises?|increases?|lifts?|bumps? up)\s+(?:our|the)\s+(?:[\w-]+\s+){0,2}(?:price|rate|fee|line)\s+by\b/i;
 // "contingency" and "blew through": added after the round-2 held-out measurement.
 const OUR_PLAN = /\b(?:effort|time|hours?|days?|budget|estimate|allowance|contingency|buffer)\s+(?:that\s+)?(?:we|I)\s+(?:had\s+)?(?:budgeted|planned(?: for)?|estimated|allowed|set aside|allocated|scoped|set(?: ourselves)?)\b|\bas (?:long|much) as (?:we|I) (?:had )?(?:estimated|planned|expected|budgeted|quoted ourselves)\b|\b(?:estimated|sized|scoped|budgeted|planned|priced) internally\b|\binternally\b[^.]{0,40}\b(?:sized|estimated|scoped|budgeted|planned|priced|took|cost)\b|\b(?:budget|estimate)s? (?:we|I) set (?:ourselves|myself)\b/i;
 const OUR_PLAN_OVER = /\b(?:past|over|beyond|exceed\w*|more than|longer than|twice|double|half|a third|a quarter|used up|used|ran through|went through|blew through|blown through|burned through|ate into|exhausted)\b/i;
@@ -545,9 +586,11 @@ const INTERNAL_PRICE = /\b(?:our (?:[\w-]+ )?(?:rates?|prices?|pricing|charges?|
 // held-out measurement.
 const OUR_COST = /\bcost(?:s|ing)? (?:us|me|our (?:developers?|builders?|team|people|engineers?))\b|\bmoney pit\b|\b(?:running |run |runs |ran )?at a loss\b|\bour (?:cost|costs|margin|profit)\b|\bmargins?\b|\bprofit(?:s|able)?\b|\blos(?:e|es|ing|t) money\b|\bunderwater\b|\bin the red\b|\bout of pocket\b|\bpushes our cost\b|\b(?:spent|spend|spending|cost|costs|costing)(?: us)? (?:far |much |a lot |rather |a little )?more\b[^.;]{0,40}\bthan\b|\bthan (?:the|our|this|that) [\w\s-]{0,30}\b(?:brings in|pays|earns|covers)\b/i;
 // R2-9: carrying a cost ourselves, as an idiom ("we are eating the cost of the third round", O11).
-const OUR_COST_IDIOM = /\b(?:eat|eats|eating|ate|absorb|absorbs|absorbing|absorbed|swallow|swallows|swallowing|swallowed)\s+(?:the|that|this|those|these)\s+(?:extra\s+|additional\s+|whole\s+)?costs?\b/i;
+// "carrying the cost" and "bearing the cost": added after the OW-04 follow-up held-out measurement.
+const OUR_COST_IDIOM = /\b(?:eat|eats|eating|ate|absorb|absorbs|absorbing|absorbed|swallow|swallows|swallowing|swallowed|carry|carries|carrying|carried|bear|bears|bearing|bore)\s+(?:the|that|this|those|these)\s+(?:extra\s+|additional\s+|whole\s+)?costs?\b/i;
 // R2-9: "roughly 20% more effort than we allowed for testing" (O16).
-const OVERRUN = /\b(?:over|above|beyond|past|exceed\w*) (?:our |the |what we )?(?:budget|estimate[ds]?|plan(?:ned)?)\b|\bran past what (?:we|I)\b|\bover budget\b|\bunder-?estimat\w*\b|\bunder-?quot\w*\b|\bwe had allowed\b[^.]*\bneeded\b|\babove the budget we\b|\b(?:went|ran|came in) well (?:over|above)\b|\bover (?:our |my )?estimate\b|\b(?:more|longer)\s+(?:[\w-]+\s+)?(?:effort|time|work|hours|days|cost|money|fix(?:es|ing)?|rework)\s+than (?:we|I)\b|\b(?:more|longer) than (?:we|I) (?:had )?(?:budgeted|planned|estimated|allowed|allocated|set aside)\b/i;
+// "our internal plan had … we needed" and "overran our … budget": added after the OW-04 follow-up held-out measurement.
+const OVERRUN = /\b(?:over|above|beyond|past|exceed\w*) (?:our |the |what we )?(?:budget|estimate[ds]?|plan(?:ned)?)\b|\bran past what (?:we|I)\b|\bover budget\b|\bunder-?estimat\w*\b|\bunder-?quot\w*\b|\bwe had allowed\b[^.]*\bneeded\b|\babove the budget we\b|\b(?:went|ran|came in) well (?:over|above)\b|\bover (?:our |my )?estimate\b|\b(?:more|longer)\s+(?:[\w-]+\s+)?(?:effort|time|work|hours|days|cost|money|fix(?:es|ing)?|rework)\s+than (?:we|I)\b|\b(?:more|longer) than (?:we|I) (?:had )?(?:budgeted|planned|estimated|allowed|allocated|set aside)\b|\b(?:our|my) (?:own |internal )?(?:plan|estimate|budget)\b[^.]{0,40}\b(?:we|I) (?:needed|took|used|spent)\b|\bover-?r(?:an|un|uns|unning) (?:our|my|the) (?:[\w-]+ )?(?:budget|estimate|plan|allowance)\b|\b(?:twice|double|triple|(?:two|three|four|five|\d+) times)\s+(?:our|my|the)\s+(?:own\s+|internal\s+|original\s+)?(?:estimate|plan|budget|allowance)\b/i;
 // R2-9: our time named as such ("Robin's time on the sandbox setup was most of Monday", O10).
 const OUR_TIME = (user) => new RegExp(`\\b(?:our|my|the developer's|our developer's|the builder's${user ? `|${esc(user)}'s` : ""})\\s+(?:[\\w-]+\\s+)?(?:time|hours|effort|work)\\b`, "i");
 const HOURS_OURS = /\b\d+(?:[.,]\d+)?\s*(?:billable |developer )?(?:h|hrs?|hours?)\b/i;
@@ -581,8 +624,11 @@ export function internalFindings(s, ctx = {}) {
   const ourDay = t.match(/\b(?:most|all|half|much) of (?:our|my) (?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|morning|afternoon|evening|day|week)\b|\b(?:our|my) (?:whole|entire) (?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|morning|afternoon|evening|day|week)\b/i)
     ?? (ours && !client && (EFFORT_WORD.test(t) || OUR_TIME(ctx.user).test(t)) ? t.match(/\b(?:most|all|half|much|the (?:best|better|greater) part|the bulk) of (?:the |a |an )?(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|morning|afternoon|evening|day|week|weekend)\b/i)
       // "spent the morning chasing …": added after the round-2 held-out measurement.
-      ?? t.match(/\b(?:spent|spend|took|lost|gave up) (?:the|a|an|our|my) (?:whole |entire )?(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|morning|afternoon|evening|day|week|weekend)\b/i) : null);
+      ?? t.match(/\b(?:spent|spend|took|lost|gave up) (?:the|a|an|our|my) (?:(?:whole|entire|best|better|greater) (?:part )?of (?:the |a |an |our |my )?|whole |entire )?(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|morning|afternoon|evening|day|week|weekend)\b/i) : null);
   if (ourDay && !out.some(([w]) => /hours|effort/.test(w))) out.push(["our hours or effort", ourDay[0]]);
+  // Our extra hours named without a number ("Robin worked late twice to finish the retest build", the Evaluator's T04).
+  const late = ours && !client && t.match(/\b(?:work(?:s|ed|ing)?|stay(?:s|ed|ing)?) (?:late|overtime|into the night|(?:through|over) the weekend)\b|\blate nights?\b|\ball-nighters?\b/i);
+  if (late && !out.some(([w]) => /hours|effort/.test(w))) out.push(["our hours or effort", late[0]]);
   // Our own plan or estimate measured against what happened (R1-9): "past the effort we had budgeted", "as long as we estimated internally".
   const plan = t.match(OUR_PLAN);
   if (plan && (OUR_PLAN_OVER.test(t) || /\binternally\b/i.test(t))) out.push(["an overrun against our own plan", plan[0]]);
@@ -617,7 +663,7 @@ export function internalFindings(s, ctx = {}) {
   return out;
 }
 
-const CRED_LABEL = /\b(?:password|passwd|pwd|pass(?:word)?|passcode|secret(?: word)?|api[_ -]?key|access[_ -]?key|private[_ -]?key|token)\b(?:\s*[:=]\s*|\s+(?:is|was|with|as)\s+|\s+)["']?([^\s"',;|]+)/gi;
+const CRED_LABEL = /\b(?:password|passwd|pwd|pass(?:word)?|passcode|secret(?: word| key)?|api[_ -]?key|access[_ -]?key|private[_ -]?key|token)\b(?:\s*[:=]\s*|\s+(?:is|was|with|as)\s+|\s+)["']?([^\s"',;|]+)/gi;
 const CRED_SHAPE = /\b(?:sk|pk|rk)_(?:live|test)_[A-Za-z0-9]{8,}|\bgh[pousr]_[A-Za-z0-9]{20,}|\bAKIA[0-9A-Z]{16}\b|\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}|\bxox[bpas]-[A-Za-z0-9-]{10,}|\bBearer\s+[A-Za-z0-9._-]{16,}/;
 const URL_USERINFO = /\b[a-z][a-z0-9+.-]*:\/\/[^\s/:@]+:[^\s/@]+@/i;
 const SECRETISH = (v) => /\d/.test(v) || /[#!$%&*@^~+=]/.test(v) || (/[a-z]/.test(v) && /[A-Z]/.test(v) && v.length >= 8);
@@ -632,8 +678,11 @@ export function credentialFindings(text) {
     for (const m of line.matchAll(/(?<![\w-])(\S*[\d#!$%&*@^~+=]\S*)\s+as (?:the |our |their |a )?(?:pass|password|passcode|secret)\b/gi)) if (SECRETISH(m[1]) && !/^(?:\d+|rec)$/i.test(m[1])) out.push(["a labelled secret value", m[0]]);
     // A login written as user / password ("the login for oc-T1 is oc-t1 / Spring2026!"), and a PIN (R1-10).
     for (const m of line.matchAll(/\b(?:login|log-in|sign[- ]in|credentials?|user(?: ?name)?|account)\b[^.\n]{0,40}?\b(?:is|:|=)\s*\S+\s*[/|:]\s*(\S+)/gi)) if (SECRETISH(m[1].replace(/[.,;]$/, "")) && /[\d#!$%&*@^~+=]/.test(m[1])) out.push(["a login and its password", m[0]]);
+    // R3-7: "sign in with <user> and <password>" (the Evaluator's K05).
+    for (const m of line.matchAll(/\b(?:sign|log)[- ]?(?:in|on)\s+(?:with|as|using)\s+\S+\s+(?:and|with|plus|,)\s+(?:(?:the\s+)?(?:password|passcode)\s+)?([^\s"',;]+)/gi)) if (SECRETISH(m[1].replace(/[.,;:!?]+$/, "")) && /[\d#!$%&*@^~+=]/.test(m[1])) out.push(["a login and its password", m[0]]);
     // R2-9: a PIN or code with its digits ("PIN 4471 opens the till"), with or without a colon or "is".
-    const pin = line.match(/\b(?:pin|pin code|passcode|one-time code|otp|access code|door code|alarm code|security code)\b\s*(?:[:=]|is|of)?\s*\d{4,8}\b/i);
+    // A verification code, and a few words between the label and its digits: added after the OW-04 follow-up held-out measurement.
+    const pin = line.match(/\b(?:pin|pin code|passcode|one-time code|otp|access code|door code|alarm code|security code|verification code)\b(?:\s+(?!is\b|was\b|of\b)[a-z]+){0,3}?\s*(?:[:=]|is|was|of)?\s*\d{4,8}\b/i);
     if (pin) out.push(["a labelled secret value", pin[0]]);
     // R2-9: "the password for the test sender is Morning-Glory-81": the label, what it is for, then the value.
     for (const m of line.matchAll(/\b(?:password|passwd|passcode|pass ?phrase|secret|access code)\s+(?:for|of|to|on)\b[^.:\n]{0,50}?\b(?:is|was|:|=)\s*["']?([^\s"',;|]+)/gi)) if (SECRETISH(m[1].replace(/[.,;:!?]+$/, "")) && !/^(?:rec|row|\d{1,3})$/i.test(m[1])) out.push(["a labelled secret value", m[0]]);
@@ -642,7 +691,8 @@ export function credentialFindings(text) {
     if (phrase) out.push(["a labelled secret value", phrase[0]]);
     // R2-9: a login written user/password, however plain ("the creds are admin/admin", "log in with ops / ops").
     const pair = line.match(/\b(?:creds|credentials|log ?in with|sign ?in with|login|log-in|user(?:name)? and password)\b(?:\s+(?:are|is|with))?\s*[:=]?\s*([A-Za-z0-9._@-]+)\s*\/\s*([A-Za-z0-9._@!#$%^&*+=-]+)/i);
-    if (pair && !/^(?:the|a|an|your|their|our|role|tester|testers)$/i.test(pair[1])) out.push(["a login and its password", pair[0]]);
+    // The same word as user and password ("tester / tester"): added after the OW-04 follow-up held-out measurement.
+    if (pair && (!/^(?:the|a|an|your|their|our|role|tester|testers)$/i.test(pair[1]) || pair[1].toLowerCase() === pair[2].replace(/[.,;:!?]+$/, "").toLowerCase())) out.push(["a login and its password", pair[0]]);
     const u = line.match(URL_USERINFO);
     if (u) out.push(["a login in an address", u[0]]);
   }
@@ -720,8 +770,24 @@ function rowFields(line) {
 const ID_HEADER = /\b(?:ids?|#|refs?|reference|numbers?|no\.?|order|invoice|account|acct|card|customer|member|tracking|sku|code|ticket|case|record)\b/i;
 const COUNT_HEADER = /\b(?:counts?|qty|quantity|totals?|volume|expected|amount|share|price|passed|failed|logged|fixed|retested|minutes|hours|days|testers|sessions|week|month|session|step|run|round)\b|\b[a-z]+[^\Wsu]s\b/i;
 const isCountColumn = (h) => /\b(?:number|no\.?) of\b/i.test(h) || (!ID_HEADER.test(h) && COUNT_HEADER.test(h));
-// A column of people or customers by its header: any capitalised name in it is a record value (OD-7: names).
-const NAME_COLUMN = /^(?:customer(?: name)?|client name|name|names|full name|contact(?: name)?|recipient|ship to|buyer|payee|bill to)$/i;
+// A column of people or customers by its header: any capitalised name in it is a record value (OD-7: names;
+// R3-3: "Client", "Customers", "Company", "Store" too).
+const NAME_COLUMN = /^(?:customers?(?: name)?|clients?(?: name)?|name|names|full name|contacts?(?: name)?|recipients?|ship to|buyers?|payees?|bill to|compan(?:y|ies)|business(?:es)?|stores?|shops?|vendors?|suppliers?)$/i;
+// Owner decision R3-4: a payment provider's published test card is test data, never a record value. A small list:
+// Stripe's published test numbers (brands, debit and prepaid, and the documented declines). A number not listed,
+// or a real card shape, is still refused.
+export const PUBLISHED_TEST_CARDS = new Set([
+  "4242424242424242", "4000056655665556", "5555555555554444", "2223003122003222", "5200828282828210", "5105105105105100",
+  "378282246310005", "371449635398431", "6011111111111117", "6011000990139424", "3056930009020004", "36227206271667",
+  "3566002020360505", "6200000000000005", "4000000000000002", "4000000000009995", "4000000000009987", "4000000000009979",
+  "4000000000000069", "4000000000000127", "4000000000000119", "4000002500003155", "4000002760003184", "4000003800000446",
+]);
+/** The text with every published test card number taken out (R3-4), whatever its spacing. */
+const withoutTestCards = (s) => String(s).replace(/\b(?:\d{4}[ -]){3}\d{1,4}\b|\b\d{14,19}\b/g, (m) => (PUBLISHED_TEST_CARDS.has(m.replace(/[ -]/g, "")) ? " " : m));
+// R3-4: a record id marked as made for the test (in the sandbox, a test order, created by a scenario) is a clean-up
+// pointer, not a client record. The mark must be on the row, its header or the sentence; an email, phone, card or
+// name beside it is still a record value.
+const TEST_MARK = /\bsandbox\b|\btest[- ](?:mode|orders?|invoices?|records?|accounts?|customers?|data|environment|copy|system|tenant|store|payments?|transactions?)\b|\b(?:created|made|entered) (?:during|in|for|by) (?:the )?(?:test|testing|session \d+|SC-\d+)\b|\bcreated by SC-\d+/i;
 const NOT_A_RECORD_NAME = /^(?:Test|Synthetic|Sample|Anonymi[sz]ed|Example|None|Not|N\/A|Any|Each|Every)\b/;
 const SEPARATOR = /^\s*\|[\s:|-]+\|\s*$/;
 /** A table row's cells, by its pipes, keeping empty cells inside the row so they line up with the header. */
@@ -730,20 +796,25 @@ const cellsOf = (line) => { const c = line.split("|").map((x) => x.trim()); retu
 export function dataFindings(text, ctx = {}) {
   const out = [];
   const lines = String(text ?? "").split("\n");
-  let header = null;
-  lines.forEach((line, i) => {
-    for (const v of ctx.records ?? []) if (line.includes(v)) { out.push(["a value copied from a client record", v]); break; }
+  let header = null, headerLine = "";
+  lines.forEach((raw, i) => {
+    for (const v of ctx.records ?? []) if (raw.includes(v)) { out.push(["a value copied from a client record", v]); break; }
+    const line = withoutTestCards(raw);
     const pipe = /^\s*\|/.test(line);
-    if (!pipe) header = null;
-    else if (SEPARATOR.test(line)) { header = i > 0 && /^\s*\|/.test(lines[i - 1]) ? cellsOf(lines[i - 1]) : null; return; }
+    if (!pipe) { header = null; headerLine = ""; }
+    else if (SEPARATOR.test(line)) { header = i > 0 && /^\s*\|/.test(lines[i - 1]) ? cellsOf(lines[i - 1]) : null; headerLine = header ? lines[i - 1] : ""; return; }
     else if (i + 1 < lines.length && SEPARATOR.test(lines[i + 1])) return; // a header row
+    const marked = TEST_MARK.test(line) || TEST_MARK.test(headerLine);
     const fields = pipe ? cellsOf(line) : rowFields(line);
     if (fields.filter(Boolean).length >= (pipe ? 2 : 3)) {
       const shape = fields.map((c, k) => {
-        if (header && isCountColumn(String(header[k] ?? "")) && /^#?\d[\d,]*(?:\.\d+)?$/.test(c)) return EMAIL.test(c) || CARD.test(c) ? valueShape(c) : null;
-        return valueShape(c);
+        // A bare number under a column that counts is a count, unless it is five digits or more with no separator
+        // (R3-3: "Orders" over order numbers).
+        if (header && isCountColumn(String(header[k] ?? "")) && /^#?\d[\d,]*(?:\.\d+)?$/.test(c) && !/^#?\d{5,}$/.test(c)) return EMAIL.test(c) || CARD.test(c) ? valueShape(c) : null;
+        const s = valueShape(c);
+        return s === "an ID-like token" && marked ? null : s;
       }).find(Boolean);
-      const named = header && fields.some((c, k) => NAME_COLUMN.test(String(header[k] ?? "")) && /\b[A-Z][a-z'’]+/.test(c) && !NOT_A_RECORD_NAME.test(c));
+      const named = header && fields.some((c, k) => NAME_COLUMN.test(String(header[k] ?? "")) && /\b[A-Z][a-z'’]+/.test(c) && !NOT_A_RECORD_NAME.test(c) && !(ctx.client && c.includes(ctx.client)));
       if (shape) out.push([`a pasted record row (${shape})`, line.trim().slice(0, 60)]);
       else if (named) out.push(["a pasted record row (a name)", line.trim().slice(0, 60)]);
       else if (pipe && fields.filter(Boolean).length >= 3 && fields.some((c) => CODEISH.test(c) && !OUR_ID.test(c) && !/^LC-nnnn/.test(c)) && fields.some((c) => /^\d+$/.test(c))) out.push(["a pasted record row", line.trim().slice(0, 60)]);
@@ -754,7 +825,7 @@ export function dataFindings(text, ctx = {}) {
     if (lab) out.push(["a labelled record field", lab[0]]);
     // A record id named in prose ("Account 99120345 for Harbor Florists …", the Evaluator's DP09). Prose naming a
     // record with no id-like token stays with the self-check (OD-3).
-    const idProse = !pipe && line.replace(RANGE, " ").match(/\b(?:order|account|acct|invoice|customer|member|card|ticket|booking|policy|tracking)\s+(?:no\.?\s*|number\s+|#\s?)?(#?[A-Z]{2,5}-\d{3,}(?:-\d+)*|#?\d{5,})(?![\w/-])/i);
+    const idProse = !pipe && !marked && line.replace(RANGE, " ").match(/\b(?:order|account|acct|invoice|customer|member|card|ticket|booking|policy|tracking)\s+(?:no\.?\s*|number\s+|#\s?)?(#?[A-Z]{2,5}-\d{3,}(?:-\d+)*|#?\d{5,})(?![\w/-])/i);
     if (idProse && !OUR_ID.test(idProse[1])) out.push(["a record id in prose", idProse[0]]);
   });
   return out;
@@ -765,10 +836,11 @@ const CREDIT_VERB = /\b(?:confirmed|verified|tested|checked|signed off|approved|
 // R2-9: "confirmed by the shop", "by the client", "by you": the client as the agent.
 const CLIENT_PEOPLE = /\b(?:your (?:[\w-]+ ){0,2}?(?:team|people|testers?|staff|coordinator|manager|bookkeeper)|the (?:client|shop|store|company|business)'s (?:own )?(?:team|people|testers?|staff)|(?:order coordinator|operations manager|bookkeeper|shop manager)|by (?:the )?(?:shop|client|store|company|business)|by you(?:rselves)?)\b/i;
 // R1-8: "corrected", "no longer occurs", "now works" call it fixed too.
-const DONE = /\b(?:fixed|resolved|sorted|done|working|works|closed|cleared|repaired|squashed|dealt with|corrected|put right|taken care of|no longer (?:occurs|happens|appears|fails|shows))\b/i;
+const DONE = /\b(?:fixed|resolved|sorted|done|working|works|closed|cleared|repaired|squashed|dealt with|corrected|put right|taken care of|no longer (?:occurs|happens|appears|fails|shows)|behav(?:es|ing) (?:as agreed|correctly|as expected)|gone away|went away|disappeared)\b/i;
 const RETEST_PENDING = /\bretest\b[^.]*\b(?:due|pending|next|to come|awaited|in session)\b|\bnot yet retested\b|\bawaiting (?:its |the )?retest\b|\breported\b[^.]*\bfixed\b|\bpassed its retest\b|\bretested-pass\b|\b(?:will|to) (?:be )?retest(?:ed)?\b/i;
+// "the checks were each …": added after the OW-04 follow-up held-out measurement.
 // A claim about every check, with no check named ("Your people ran all three checks").
-const ALL_CHECKS = /\b(?:all|every|each|both)\b(?: (?:of )?(?:the|your|our|three|four|five|six|seven|eight|nine|ten))*\s+(?:acceptance\s+)?checks?\b|\ball\s+(?:three|four|five|six|seven|eight|nine|ten)\s+checks\b/i;
+const ALL_CHECKS = /\b(?:all|every|each|both)\b(?: (?:of )?(?:the|your|our|three|four|five|six|seven|eight|nine|ten))*\s+(?:acceptance\s+)?checks?\b|\ball\s+(?:three|four|five|six|seven|eight|nine|ten)\s+checks\b|\b(?:the|your)\s+(?:acceptance\s+)?checks\s+(?:were|have been|are)\s+(?:all|both|each|every one)\b/i;
 // R2-2: an invitation ("is welcome to run AC-1.1") is not a claim that it was run.
 const NOT_A_CLAIM = /\b(?:please|if you (?:would like|want|wish)|you (?:may|can|could)|would like your|will (?:test|run|retest)|to test it|(?:is|are) (?:welcome|free|invited) to|feel free to|may (?:want|wish) to|(?:can|could|may) (?:try|run|rerun|test))\b/i;
 /**
@@ -778,7 +850,7 @@ const NOT_A_CLAIM = /\b(?:please|if you (?:would like|want|wish)|you (?:may|can|
 const doneClaims = (s) => [...s.matchAll(new RegExp(DONE.source, "gi"))].filter((m) => {
   const before = s.slice(Math.max(0, m.index - 40), m.index);
   if (/\b(?:not|n't|never|nor|neither|nothing|no one)\b(?:\s+(?:yet|been|be|is|are|was|were|being|fully|quite|completely|properly|still|really))*\s*$/i.test(before)) return false;
-  if (/(?:\b(?:will|would|shall|going to|should|must|can|could|may|might)|'ll)(?:\s+(?:then|also|only|soon|now|still))?(?:\s+(?:be|get|have been|become))?\s*$|\bto (?:be|get|become)\s*$/i.test(before)) return false;
+  if (/(?:\b(?:will|would|shall|going to|should|must|can|could|may|might)|'ll)(?:\s+(?:then|also|only|soon|now|still))?(?:\s+(?:be|get|have been|become))?(?:\s+(?:marked|recorded|shown|listed|called|set)(?:\s+as)?)?\s*$|\bto (?:be|get|become)\s*$/i.test(before)) return false;
   if (/\b(?:once|when|if|after|until|unless|before)\b[^.,;]{0,30}$/i.test(before)) return false;
   return true;
 });
@@ -2035,9 +2107,16 @@ function checkBackstop(key, run) {
  * day it is sent", never moves it (R2-6).
  */
 export const appliesOnTheDate = (clause) => {
-  const w = String(clause?.wording ?? "");
-  return /\b(?:appl(?:y|ies)|falls? due|(?:is|are|becomes?) (?:due|payable)|takes? effect)\b[^.;]{0,40}?\b(?:on|from(?: and including)?) (?:the backstop date|that date|the date itself|the backstop day)\b/i.test(w)
-    || /\b(?:on|from(?: and including)?) the backstop date itself\b/i.test(w);
+  // R3-2: each sentence of the clause on its own; a negated one ("does not apply on the backstop date", "never
+  // falls due on it") or one that moves it later ("after", "later than") never counts as "on the date".
+  const NEG = /\b(?:not|never|no longer|cannot)\b|n't\b/i;
+  return String(clause?.wording ?? "").split(/(?<=[.;])\s+/).some((s) => {
+    const m = /\b(?:appl(?:y|ies)|falls? due|(?:is|are|becomes?) (?:due|payable)|takes? effect)\b([^.;]{0,40}?)\b(?:on|from(?: and including)?) (?:the backstop date|that date|the date itself|the backstop day)\b/i.exec(s)
+      ?? /\b()(?:on|from(?: and including)?) the backstop date itself\b/i.exec(s);
+    if (!m) return false;
+    if (NEG.test(s.slice(Math.max(0, m.index - 25), m.index)) || NEG.test(m[1] ?? "")) return false;
+    return !/\b(?:after|later than|following|other than)\b/i.test(m[1] ?? "");
+  });
 };
 /** The one refusal the files call for (design §8.2), in the design's order. */
 export function backstopRefusal(view, key, today, answers = "") {
@@ -2326,6 +2405,34 @@ function checkBasis(key, run) {
 }
 const basisApplies = (key) => asList(key.verbs).some((v) => /^\/ow-uat-(?:pack|signoff|defect)\b/.test(String(v)));
 
+/**
+ * Owner decision R3-6: `--refreeze` of agreed/acceptance.md (or quick-scope.md) refuses when the check list upstream
+ * differs from the frozen one. A new check reaches the test through a change order (its scenario, test and price),
+ * then `--add-co`. Run for every --refreeze case: over a changed check list the run writes nothing, and its printed
+ * block names the changed checks and the change-order path.
+ */
+function checkRefreezeChecks(key, run) {
+  const dir = U(key);
+  let u;
+  try { u = uatOf(priorView(run), dir); } catch (e) { return [reason(e)]; }
+  const named = String(key.plan_mode?.file ?? "");
+  const p = [];
+  for (const b of asList(u.basis).filter((x) => /(?:^|\/)(?:acceptance|quick-scope)\.md$/.test(String(x.file)))) {
+    if (named && named !== b.file) continue;
+    const frozen = run.priorRead(`${dir}/${b.file}`), up = run.priorRead(`${OW}${b.from}`);
+    if (frozen == null || up == null) continue;
+    const was = new Set(checkIdsIn(frozen)), now = new Set(checkIdsIn(up));
+    const changed = [...[...now].filter((c) => !was.has(c)), ...[...was].filter((c) => !now.has(c))];
+    if (!changed.length) continue;
+    for (const f of run.written()) if (f !== `${OW}STATUS.md`) p.push(`${f} was written by --refreeze ${b.file} over a changed check list (${changed.join(", ")}): it refuses; a new check comes in through a change order and --add-co (owner decision R3-6)`);
+    const printed = run.printed() ?? "";
+    for (const c of changed) if (!printed.includes(c)) p.push(`printed.md does not name ${c}, the changed check`);
+    if (!/--add-co|to add CO-/.test(printed) || !/change order/i.test(printed)) p.push("printed.md does not point to the change order and --add-co (owner decision R3-6)");
+  }
+  return p;
+}
+const refreezeApplies = (key) => asList(key.verbs).some((v) => /^\/ow-uat-plan --refreeze\b/.test(String(v)));
+
 const CHECKS = {
   headers: checkHeaders, writes: checkWrites, write_once: checkWriteOnce, status: checkStatus, rec: checkRec,
   route: checkRoute, refused: checkRefused, refused_writes: checkRefusedWrites, criteria: checkCriteria, next: checkNext,
@@ -2333,7 +2440,7 @@ const CHECKS = {
   run: checkRun, secrets: checkSecrets, defect: checkDefect, signoff: checkSignoff, signed: checkSigned, deemed: checkDeemed,
   backstop: checkBackstop, backstop_refused: checkBackstopRefused, signing_steps: checkSigningSteps, addendum: checkAddendum, calendar: checkCalendar,
   handoff_fields: checkHandoffFields, internal_numbers: checkInternalNumbers, people: checkPeople, credentials: checkCredentials,
-  data: checkData, false_pass: checkFalsePass, private_names: checkPrivateNames, basis: checkBasis,
+  data: checkData, false_pass: checkFalsePass, private_names: checkPrivateNames, basis: checkBasis, refreeze_checks: checkRefreezeChecks,
 };
 
 /** Run a case's checks against its golden run, or a real run folder. Returns [{ check, problems }]. */
@@ -2356,7 +2463,7 @@ export function runCase(caseName, runDir = null, { caseDir = join(FIXTURES, case
   } catch (e) {
     return key.checks.map((check) => ({ check, problems: [`run could not be read: ${reason(e)}`] }));
   }
-  const checks = [...key.checks, ...(basisApplies(key) && !key.checks.includes("basis") ? ["basis"] : [])];
+  const checks = [...key.checks, ...(basisApplies(key) && !key.checks.includes("basis") ? ["basis"] : []), ...(refreezeApplies(key) && !key.checks.includes("refreeze_checks") ? ["refreeze_checks"] : [])];
   return checks.map((check) => {
     if (!CHECKS[check]) return { check, problems: [`unknown check "${check}" in answer-key.yaml`] };
     try {

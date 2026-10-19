@@ -1,0 +1,18 @@
+# Answer key: pack-terms-nocode-price (INVENTED). R3-1 (the Evaluator's zz3 case; planted state: the terms were frozen with no
+# code, then the UAT line's price changed in contract-inputs.md). The text comparison
+# reads it against the UAT line contract-terms.md quotes: a basis mismatch,
+# so -pack refuses and writes nothing.
+case: pack-terms-nocode-price
+section: "Basis mismatch (the terms block as text: the UAT line's price)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: plan
+build_case: ready-passing
+verbs: [/ow-uat-pack]
+today: 2027-01-05
+checks: [refused, next, basis]
+refused: { reason: basis mismatch, names: [agreed/contract-terms.md] }
+next: ["use ow-uat-plan to keep contract-terms.md frozen in uat/larkspur-ceramics/", "use ow-uat-plan to refreeze contract-terms.md in uat/larkspur-ceramics/"]
