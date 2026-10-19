@@ -1,0 +1,21 @@
+# Answer key: plan-production-refused (INVENTED). Design §4.4 and §11
+# "Production": the client wants the test in production with a synthetic
+# data source. -plan has frozen the basis and recorded the first steps; at
+# the environment step it refuses production with synthetic data, records no
+# environment step, and stops (the next -plan resumes there).
+case: plan-production-refused
+section: Production (synthetic data refused)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+build_case: ready-passing
+verbs: [/ow-uat-plan]
+today: 2027-01-04
+checks: [headers, writes, status, private_names, rec, plan]
+plan: { checks: 9, required: 0, scenarios: 0, steps: 4, refused_at: environment }
+next: []
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/uat.yaml, next: ow-uat /ow-uat-plan uat/larkspur-ceramics/, awaiting: none }

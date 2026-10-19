@@ -1,0 +1,19 @@
+# Answer key: pack-production-refused (INVENTED). Design §4.4, §11
+# "Production" and C15 (planted state: the client decided on a production
+# test): SC-06 writes invoices to QuickBooks Online and has neither a
+# test-mode line nor the client's approval to run it live. -pack refuses,
+# names SC-06, and writes nothing.
+case: pack-production-refused
+section: Production (a side effect with no line)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: plan
+build_case: ready-passing
+verbs: [/ow-uat-pack]
+today: 2027-01-05
+checks: [refused, next]
+refused: { reason: production side effect, names: [SC-06] }
+next: []

@@ -1,0 +1,60 @@
+ow_artefact: ow-uat/uat
+schema: 1
+written_by: ow-uat 1.0.0 (protocol 1)
+workstream: mossgate-books
+subject: builds/mossgate-books/ready-for-uat.md
+created: 2026-11-10
+clock: user-stated
+origin: skill
+client: Mossgate Books
+handling: "no"
+plan_steps:
+  - { step: basis, rec: 1, date: 2026-11-10 }
+  - { step: terms, rec: 2, date: 2026-11-10 }
+  - { step: mix, rec: 3, date: 2026-11-10 }
+  - { step: people, rec: 4, date: 2026-11-10 }
+  - { step: environment, rec: 5, date: 2026-11-10 }
+  - { step: data, rec: 6, date: 2026-11-10 }
+  - { step: schedule, rec: 7, date: 2026-11-10 }
+  - { step: side_effects, rec: 8, date: 2026-11-10 }
+  - { step: gitignore, rec: 9, date: 2026-11-10 }
+  - { step: scenarios, rec: 10, date: 2026-11-10 }
+ready: { file: builds/mossgate-books/ready-for-uat.md, build_label: mossgate-uat-1, checks: 3 }
+basis:
+  - { file: agreed/quick-scope.md, from: plans/mossgate-books/quick-scope.md, frozen: 2026-11-10, rec: 1 }
+  - { file: agreed/contract-terms.md, from: plans/mossgate-books/contract-inputs.md, block: terms, digest: "sha256:5cd59adb40218580c9453e02bb44abc10d49e9eed60d64b3bda4f5c22948376f", frozen: 2026-11-10, rec: 1 }
+checks: [AC-1.1, AC-1.2, AC-2.1]
+cos: []
+terms:
+  bounds: quoted (quote.md)
+  size: S
+  tester_roles: [shop manager]
+  sessions: 2
+  fix_rounds: 1
+  fix_business_days: 3
+  schedule: 50/50
+  payment_terms_days: 14
+  acceptance_definition: The build is accepted when you sign off user acceptance testing with every acceptance check passing, or as the contract's deemed-acceptance clause provides.
+  delivery_definition: "Delivery: the day the Handoff notes are delivered, or as the contract's delivery-backstop clause provides."
+  governing: none
+  documentation_sku: declined
+clauses:
+  status: as signed, confirmed by Robin 2026-11-10
+  deemed_acceptance: { ref: "TEST-1", business_days: 10, calendar: "us-federal", wording: "INVENTED TEST CLAUSE, not contract wording: a sign-off request is deemed accepted ten business days after it is sent unless the client signs it or reports a failing acceptance check with steps to reproduce it; checks the provider ran when the client's testers did not attend count." }
+  delivery_backstop: { ref: "TEST-2", business_days: 10, calendar: "us-federal", wording: "INVENTED TEST CLAUSE, not contract wording: on the two-payment schedule the delivery half falls due once the provider has finished all it can alone and a listed client dependency is still outstanding, no sooner than the later of ten business days after acceptance and five business days after a readiness notice, plus one day per business day of delay the provider caused." }
+calendars: { contract: us-federal, fix_and_schedule: "profile.md: weekends and 2026-11-26, 2026-12-25" }
+mix: { coverage: always, testers_by_role: yes, real_cases: no, exploratory: no, defect_log: always }
+client_contact: shop manager
+testers:
+  - { role: shop manager, id: sm-T1 }
+environment: { name: "a copy of the shop's shared folder and the reorder spreadsheet", production: no }
+test_data:
+  default: synthetic or anonymised
+  real:
+    - { check: AC-1.1, decision: "client decision: shop manager 2026-11-10" }
+side_effects: []
+schedule:
+  - { session: 1, date: 2026-11-12, roles: [shop manager] }
+  - { session: 2, date: 2026-11-17, roles: [shop manager], final: confirmation run }
+gitignore: { asked: 2026-11-10, answer: not a git repo }
+events: []

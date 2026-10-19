@@ -1,0 +1,21 @@
+# Answer key: route-signoff-clauses-none (INVENTED). C4, the handoff's -start,
+# stage "deemed date passed, with none" (R1-19): request 1 was sent on
+# 2027-01-22 and 2027-02-08 is past any ten business days, but the contract
+# has no deemed-acceptance clause. Nothing runs and nothing is written;
+# STATUS.md keeps its awaiting line; NEXT suggests a follow-up (counted on
+# profile.md's calendar) and the --signed NEXT.
+case: route-signoff-clauses-none
+section: "Inbound route (the handoff's -start: deemed date passed, clauses none)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: signoff-sent-1
+build_case: change-declined
+verbs: [/ow-uat-signoff]
+today: 2027-02-08
+checks: [route, refused, next]
+route: { say: "use ow-uat-signoff on uat/larkspur-ceramics/", expect: nothing }
+refused: { reason: "clauses: none", says: ["no deemed-acceptance clause", "follow up", "5 business days"] }
+next: ["use ow-uat-signoff to record the signature on uat/larkspur-ceramics/"]

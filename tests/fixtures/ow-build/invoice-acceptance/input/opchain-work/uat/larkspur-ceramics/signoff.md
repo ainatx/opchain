@@ -8,13 +8,18 @@ created: 2027-01-27
 clock: user-stated
 origin: skill
 request: 2
+acceptance: signed
 signed: 2027-01-27
 signer_role: operations manager
-build_label: larkspur-uat-3
-post_acceptance_cos: []
+build_label: larkspur-uat-4
+post_acceptance_cos: [CO-04]
+test_accounts:
+  - { role: bookkeeper tester, environment: the QuickBooks Online sandbox, created_by: client operations manager }
+  - { role: test sender, environment: the Larkspur staging mailbox, created_by: builder }
+delivery_backstop_date: not applicable (larger project)
 ---
 # Sign-off: Larkspur Ceramics
 
-INVENTED TEST FIXTURE: a sign-off file in the shape the ow-uat design describes (ow-uat is not built yet).
-
 signed 2027-01-27 by operations manager on request 2; signature not verified by this skill
+
+Post-acceptance change orders (not covered by this sign-off): CO-04.

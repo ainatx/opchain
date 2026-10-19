@@ -1,0 +1,25 @@
+ow_artefact: ow-uat/signoff-requests
+schema: 1
+written_by: ow-uat 1.0.0 (protocol 1)
+workstream: mossgate-books
+subject: uat/mossgate-books/uat.yaml
+created: 2026-11-19
+clock: user-stated
+origin: skill
+requests:
+  - n: 1
+    written: 2026-11-19
+    written_rec: 14
+    build_label: mossgate-uat-1
+    stated_deemed_date: 2026-12-07
+    sent: none
+    notices: []
+    deemed_date: none
+    status: drafted
+    status_history:
+      - { status: drafted, rec: 14, date: 2026-11-19 }
+    post_acceptance_cos: { listed: [], confirmed: "Robin 2026-11-19: none to list" }
+    read_through: "Robin 2026-11-19"
+    signing_steps: []
+    test_accounts: []
+    calc: "ow-tools version --json lists no calendar under capabilities.calc (no us-federal calendar); deemed date: contract-calendar.md table; not machine-checked"

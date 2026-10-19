@@ -22,7 +22,7 @@ ow-tools **runs code on this machine**. The ow- skills are text only; every piec
 | `ow-tools speakers <transcript.json> [--set SPEAKER_00=<role>]` | Show sample lines; record who each speaker is |
 | `ow-tools export <file.md> [--formats pdf,docx,pptx]` | Branded PDF, Word and PowerPoint from Markdown and `opchain-work/brand.yaml`, with an accessibility pre-check; a record in `export/<name>.export.json` |
 | `ow-tools export <sheet-folder> --formats xlsx` | An Excel workbook from CSV files and a formula map (`model.md`), formulas kept |
-| `ow-tools calc today \| date \| total \| split \| hours` | Today's date, business days, totals, payment splits and care-plan hours, checked by a tool |
+| `ow-tools calc today \| date \| total \| split \| hours` | Today's date, business days (your holidays, or `--calendar us-federal`), totals, payment splits and care-plan hours, checked by a tool |
 | `ow-tools digest <file\|folder>` | A SHA-256 that detects accidental change only; not tamper-evidence |
 | `ow-tools health --config health.yaml [--no-network]` | Read-only checks of what `health.yaml` lists. **Sends** package names and versions to OSV and npm, domains to RDAP, and requests to the listed hosts and URLs; `--no-network` sends nothing (`ow-tools help network`) |
 | `ow-tools capture --plan plan.json --out <…>/shots/ [--sign-in] [--timeout S]` | Screenshots of the test environment the plan lists, in the user's Chrome or Chromium. The user signs in; ow-tools never types a password. It stops after 110 s by default: for a `--sign-in` that may take longer, pass `--timeout` (up to 590) and start it with `run_in_background`, then wait for it. `--profiles` lists the browser profiles, `--delete-profile <id>` removes one |

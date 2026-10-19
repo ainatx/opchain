@@ -1,0 +1,23 @@
+# Answer key: m-backstop (INVENTED). Design §8.2 and §11 "Backstop": on the
+# two-payment schedule with the frozen backstop clause, a readiness notice
+# and the dependency still outstanding, the notes not delivered and the
+# delivery half not invoiced, --backstop on 2027-01-18, after the backstop
+# date (2027-01-15) has passed (owner decision OD-4), writes backstop.md once. ow-build's invoice-delivery-backstop case reads this file
+# (deliverable 6).
+case: m-backstop
+section: Backstop (applied)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-builder-delay
+build_case: invoice-booking-small
+verbs: [/ow-uat-signoff --backstop]
+today: 2027-01-18
+checks: [headers, writes, write_once, status, private_names, rec, backstop, internal_numbers, next]
+backstop: { readiness: 2027-01-07, delay: 1, want: 2027-01-15, written: true }
+next: ["use ow-build to invoice the delivery payment (backstop)"]
+status:
+  lines:
+    - { path: uat/mossgate-books/backstop.md, next: ow-build /ow-build-invoice uat/mossgate-books/backstop.md, awaiting: none (backstop applied; deemed on request 1) }

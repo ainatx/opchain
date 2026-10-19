@@ -1,0 +1,18 @@
+# Answer key: route-documentation-several (INVENTED). C4, documentation's
+# -start with no path: two clients have unsigned acceptance tests in STATUS
+# (the Mossgate line is planted here). -signoff asks which; nothing written.
+case: route-documentation-several
+section: "Inbound route (documentation: several clients)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-retest
+build_case: change-declined
+verbs: [/ow-uat-signoff]
+today: 2027-01-22
+checks: [route, refused, next]
+route: { say: "use ow-uat-signoff", expect: ask }
+refused: { reason: which client, names: [larkspur-ceramics, mossgate-books] }
+next: []

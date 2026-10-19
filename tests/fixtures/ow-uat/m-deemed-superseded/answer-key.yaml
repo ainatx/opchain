@@ -1,0 +1,17 @@
+# Answer key: m-deemed-superseded (INVENTED). Design §8.1: --deemed first
+# updates request statuses: request 1 is superseded by UAT-01 (by rec), so it
+# cannot be deemed accepted. The row is marked; nothing else is written.
+case: m-deemed-superseded
+section: "Deemed (refused: superseded)"
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-defect-reproduced
+build_case: invoice-booking-small
+verbs: [/ow-uat-signoff --deemed]
+today: 2026-12-08
+checks: [headers, writes, write_once, rec, signoff, refused_writes]
+signoff: { superseded: [1], refused: true }
+refused_writes: { reason: superseded, only: [uat/mossgate-books/signoff-requests.yaml] }

@@ -1,0 +1,13 @@
+tester id,scenario,result,cases passed,note,records created
+oc-T1,SC-01,pass,10,,0
+oc-T1,SC-02,pass,2,,0
+oc-T1,SC-03,pass,3,,0
+ops-T1,SC-04,pass,10,,0
+oc-T1,SC-05,pass,60,,0
+bk-T1,SC-06,pass,10,,10
+bk-T1,SC-07,pass,1,,0
+ops-T1,SC-08,pass,5,,0
+ops-T1,SC-09,pass,1,,0
+oc-T1,SC-10,pass,1,,0
+ops-T1,SC-11,pass,1,the date column on the confirmation view is cut off on a narrow screen,0
+bk-T1,SC-12,pass,1,,0

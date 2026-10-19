@@ -1,0 +1,18 @@
+# Answer key: route-ready-complete (INVENTED). C4, ow-build ready, stage "plan
+# complete": no re-plan. Nothing is written; the folder route's verb (the
+# pack) is named.
+case: route-ready-complete
+section: "Inbound route (ow-build ready: plan complete)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: plan
+build_case: ready-passing
+verbs: [/ow-uat]
+today: 2027-01-05
+checks: [route, refused, next]
+route: { from: builds/larkspur-ceramics/ready-for-uat.md, expect: nothing }
+refused: { reason: the plan is complete }
+next: ["use ow-uat-pack on uat/larkspur-ceramics/"]

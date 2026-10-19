@@ -1,0 +1,25 @@
+# Answer key: m-defect-reproduced (INVENTED). Design §8.1 and §11 "Deemed" (a
+# reproduced major on day 9 supersedes it): the shop manager's report on
+# 2026-12-04, business day 9 after sending, names AC-1.1 with steps; the
+# builder reproduces it. A major Defect logged after request 1 was written:
+# request 1 will be superseded, and the next complete request starts a new
+# count.
+case: m-defect-reproduced
+section: Deemed (a reproduced major supersedes the request)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-sent
+build_case: invoice-booking-small
+verbs: [/ow-uat-defect]
+today: 2026-12-04
+checks: [headers, writes, write_once, status, private_names, rec, defect, internal_numbers, next]
+defect:
+  classes: { UAT-01: Defect }
+  supersedes: { UAT-01: 1 }
+next: ["handoffs.yaml `build`"]
+status:
+  lines:
+    - { path: uat/mossgate-books/defects/UAT-01.md, next: ow-uat /ow-uat-run uat/mossgate-books/, awaiting: fix of UAT-01 by 2026-12-09 (request 1 will be superseded) }

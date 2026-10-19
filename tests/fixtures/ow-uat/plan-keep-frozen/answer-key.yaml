@@ -1,0 +1,20 @@
+# Answer key: plan-keep-frozen (INVENTED). Design §3: --keep-frozen records a
+# dated kept_frozen event in uat.yaml and copies nothing; agreed/ stays as
+# frozen.
+case: plan-keep-frozen
+section: Basis mismatch (kept frozen)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: plan
+build_case: ready-passing
+verbs: [/ow-uat-plan --keep-frozen]
+today: 2027-01-05
+checks: [headers, writes, write_once, status, private_names, rec, plan_mode, next]
+plan_mode: { mode: --keep-frozen, file: agreed/acceptance.md, agreed_unchanged: true }
+next: ["use ow-uat-pack on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/uat.yaml, next: ow-uat /ow-uat-pack uat/larkspur-ceramics/, awaiting: none }

@@ -1,0 +1,13 @@
+# Answer key: route-ready-plan (INVENTED). C4, ow-build ready, stage "no uat/
+# folder": "use ow-uat-plan on builds/larkspur-ceramics/ready-for-uat.md" runs -plan.
+# Graded on the plan run.
+case: route-ready-plan
+section: "Inbound route (ow-build ready: no uat/ folder)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+run: plan
+checks: [route]
+route: { from: builds/larkspur-ceramics/ready-for-uat.md, expect: plan }

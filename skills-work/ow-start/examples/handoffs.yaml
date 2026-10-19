@@ -11,8 +11,10 @@
 # build-request.md). ow-build reads build (who builds it, and how),
 # change_order (a change agreed in principle; file:
 # changes/change-inputs-CO-nn.md) and invoice (a payment that has fallen due;
-# file: invoices/INV-request-<trigger>.md). {files} is replaced with the
-# handoff file's path, as in:
+# file: invoices/INV-request-<trigger>.md). ow-uat reads build (a problem
+# for the builder; file: defects/UAT-nn.md) and sign (a sign-off request for
+# the client to sign; file: signoff-request-<n>.md). {files} is replaced with
+# the handoff file's path, as in:
 #
 #   contract:
 #     say: "send {files} to whoever drafts our contracts"
@@ -47,3 +49,4 @@ contract:       # after the client accepts a quote (file: contract-inputs.md)
 build:          # once the work is signed (file: build-request.md); see the two modes above
 change_order:   # a change agreed in principle during the build
 invoice:        # a payment that has fallen due during the build
+sign:           # a sign-off request ready for the client's signature

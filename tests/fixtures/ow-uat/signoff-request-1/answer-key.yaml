@@ -1,0 +1,24 @@
+# Answer key: signoff-request-1 (INVENTED). Design §8: every exit criterion
+# holds (each required scenario passed in RUN-03 on build larkspur-uat-3, the
+# latest fixed label; no open blocker or major Defect; the condition lapsed;
+# the cosmetic on the punch list; the environment problem closed). Request 1
+# lists every check with its run, run_by and source, the punch list, the
+# change requests and the records created; with clauses none, its first
+# sentence says the contract has no deemed-acceptance clause.
+case: signoff-request-1
+section: Request lifecycle (request 1)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-retest
+build_case: change-declined
+verbs: [/ow-uat-signoff]
+today: 2027-01-22
+checks: [headers, writes, write_once, status, private_names, rec, signoff, people, credentials, data, internal_numbers, false_pass, next]
+signoff: { request: 1, build: larkspur-uat-3, first: none }
+next: ["handoffs.yaml `sign`", "use ow-uat-signoff to record the sending on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/signoff-request-1.md, next: ow-uat /ow-uat-signoff uat/larkspur-ceramics/, awaiting: sending request 1 by 2027-01-22 }

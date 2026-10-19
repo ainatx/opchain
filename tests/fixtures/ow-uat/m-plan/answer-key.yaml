@@ -1,0 +1,23 @@
+# Answer key: m-plan (INVENTED). Design §3.1 and §11 "Quick-quote job" and
+# §8.1 (C12): Mossgate Books' quick quote. Roles come from quick-scope.md's
+# UAT approach; the UAT line from quote.md's client part (contract-inputs.md
+# has none); the contract inputs carry INVENTED TEST CLAUSES, which -plan
+# freezes unchanged after Robin confirms them (byte-equal to
+# contract-inputs.md's); no map, so required scenarios only, and it says so.
+case: m-plan
+section: Quick-quote job; Deemed (the frozen clause)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+build_case: invoice-booking-small
+verbs: [/ow-uat-plan]
+today: 2026-11-10
+checks: [headers, writes, write_once, status, private_names, rec, plan, scenarios, people, credentials, data, internal_numbers, next]
+plan: { checks: 3, required: 3, scenarios: 3, bounds: quoted (quote.md), clauses: frozen, testers: 1 }
+next: ["use ow-uat-pack on uat/mossgate-books/"]
+status:
+  lines:
+    - { path: uat/mossgate-books/uat.yaml, next: ow-uat /ow-uat-plan uat/mossgate-books/, awaiting: none }
+    - { path: uat/mossgate-books/uat.yaml, next: ow-uat /ow-uat-pack uat/mossgate-books/, awaiting: none }

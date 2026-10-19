@@ -1,0 +1,22 @@
+# Answer key: signoff-request-2 (INVENTED). Design §8 supersession by rec:
+# UAT-09 (reproduced major, rec after request 1's written_rec) and its fix
+# supersede request 1, which -signoff now marks. Request 2 cites the RUN-04
+# passes on larkspur-uat-4 and lists CO-04 (signed after the freeze, not
+# added, not an extension) as post-acceptance, as Robin confirmed.
+case: signoff-request-2
+section: Request lifecycle (superseded; request 2; a post-acceptance change order)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-retest-uat-09
+build_case: change-declined
+verbs: [/ow-uat-signoff]
+today: 2027-01-26
+checks: [headers, writes, write_once, status, private_names, rec, signoff, people, credentials, data, internal_numbers, false_pass, next]
+signoff: { request: 2, build: larkspur-uat-4, first: none, superseded: [1], post_acceptance: [CO-04] }
+next: ["handoffs.yaml `sign`", "use ow-uat-signoff to record the sending on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/signoff-request-2.md, next: ow-uat /ow-uat-signoff uat/larkspur-ceramics/, awaiting: sending request 2 by 2027-01-26 }

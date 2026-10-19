@@ -1,0 +1,22 @@
+# Answer key: m-readiness (INVENTED). Design §8.2: the builder has done all it
+# can alone and sent the shop a readiness notice on 2027-01-07, naming the
+# listed client dependency still outstanding. Recorded as reported. The
+# backstop date so far: the later of acceptance + 10 (2026-12-21) and notice
+# + 5 (2027-01-14).
+case: m-readiness
+section: Backstop (the readiness notice)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-deemed
+build_case: invoice-booking-small
+verbs: [/ow-uat-signoff --readiness]
+today: 2027-01-07
+checks: [headers, writes, write_once, status, private_names, rec, backstop, next]
+backstop: { readiness: 2027-01-07, delay: 0, want: 2027-01-14 }
+next: ["use ow-uat-signoff to apply the backstop on uat/mossgate-books/"]
+status:
+  lines:
+    - { path: uat/mossgate-books/backstop-log.yaml, next: ow-uat /ow-uat-signoff uat/mossgate-books/, awaiting: the backstop on 2027-01-14 (deemed on request 1) }

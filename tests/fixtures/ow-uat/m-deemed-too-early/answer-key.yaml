@@ -1,0 +1,19 @@
+# Answer key: m-deemed-too-early (INVENTED). Design §8.1: --deemed on
+# 2026-12-08 first adds the timely notice to request 1's row and moves its
+# deemed date to 2026-12-11 (the latest of 2026-12-07, the stated 2026-12-07
+# and notice + 5). That date has not come: it refuses; the row is the only
+# file written.
+case: m-deemed-too-early
+section: "Deemed (refused: the moved date has not come)"
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-notice-timely
+build_case: invoice-booking-small
+verbs: [/ow-uat-signoff --deemed]
+today: 2026-12-08
+checks: [headers, writes, write_once, rec, deemed, refused_writes]
+deemed: { sent: 2026-11-20, stated: 2026-12-07, notices: [2026-12-04], want: 2026-12-11, refused: true }
+refused_writes: { reason: the deemed date has not come, only: [uat/mossgate-books/signoff-requests.yaml] }

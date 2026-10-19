@@ -1,0 +1,26 @@
+# Answer key: m-deemed (INVENTED). Design §8.1 and §11 "Deemed" and C12:
+# request 1 was sent and not superseded; the deemed date is the latest of
+# sent + 10 business days (2026-12-07), the stated date (2026-12-07) and no
+# cannot-reproduce notice. On 2026-12-08 Robin confirms after seeing the
+# frozen clause, the three dates and the builder-run list (the clause covers
+# provider-run checks). Smaller project, documentation declined: NEXT is the
+# handoff only; STATUS awaits handoff delivery.
+case: m-deemed
+section: Deemed (applied)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-defect-no-steps
+build_case: invoice-booking-small
+verbs: [/ow-uat-signoff --deemed]
+today: 2026-12-08
+checks: [headers, writes, write_once, status, private_names, rec, signed, deemed, calendar, handoff_fields, people, credentials, internal_numbers, false_pass, next]
+signed: { request: 1, date: 2026-12-07, signer: none (deemed), build: mossgate-uat-1, accounts: 1, punch: [], late: [], post_acceptance: [], project: smaller, documentation: declined, acceptance: deemed }
+deemed: { sent: 2026-11-20, stated: 2026-12-07, notices: [], want: 2026-12-07 }
+calendar: { from: 2026-11-20, days: 10, want: 2026-12-07, source: table }
+next: ["use ow-handoff-start on uat/mossgate-books/"]
+status:
+  lines:
+    - { path: uat/mossgate-books/signoff.md, next: ow-handoff /ow-handoff-start uat/mossgate-books/, awaiting: handoff delivery (deemed on request 1) }

@@ -1,0 +1,20 @@
+# Answer key: plan-refreeze (INVENTED). Design §3: --refreeze copies that one
+# file again, byte for byte, with a dated event; every other agreed/ file and
+# every scenario stays as written.
+case: plan-refreeze
+section: Basis mismatch (refrozen)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: plan
+build_case: ready-passing
+verbs: [/ow-uat-plan --refreeze]
+today: 2027-01-05
+checks: [headers, writes, write_once, status, private_names, rec, plan_mode, next]
+plan_mode: { mode: --refreeze, file: agreed/acceptance.md }
+next: ["use ow-uat-pack on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/uat.yaml, next: ow-uat /ow-uat-pack uat/larkspur-ceramics/, awaiting: none }

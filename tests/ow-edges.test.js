@@ -204,6 +204,81 @@ describe("edges: the scratch family", () => {
   });
 });
 
+// Owner decisions O1, OD-1 and O2 (Sprint 3, 2026-10-17): a file read in place where an
+// earlier stage left it, carried by a chain whose every hop lists it, and a log only its
+// own skill appends to. Each rule passes as built and fails on its planted slip.
+describe("edges: in-place reads (O1, OD-1) and skill-local append logs (O2)", () => {
+  // ow-beta reads alpha's terms.md where alpha left it; alpha's hand-off to beta lists it (OD-1).
+  const inPlace = (path, from = "ow-alpha") => `  - { from: ${from}, path: ${path}, in_place: true, if_absent: Ask, if_mismatch: Use what parses }\n`;
+  const carried = (path = "terms.md") => ALPHA_EDGES.replace("files: [{ path: report.md, fields: [title, date] }]", `files: [{ path: report.md, fields: [title, date] }, { path: ${path}, in_place: true }]`);
+  const betaReadsTerms = (extra = "terms.md", alphaEdges = carried(extra)) => ({
+    alphaEdges,
+    betaEdges: BETA_EDGES.replace("reads:\n", `reads:\n${inPlace(extra)}`),
+    betaBody: BETA_BODY.replace("| ow-alpha | report.md: `title` |", `| ow-alpha | ${extra}: in place | Ask | Use what parses |\n| ow-alpha | report.md: \`title\` |`),
+  });
+  const LOG = "append_logs: [notes.log]\n";
+  const alphaLog = ALPHA_EDGES.replace("writes:\n", `${LOG}writes:\n  - { path: notes.log, verb: /ow-alpha, append: true }\n  - { path: notes.log, verb: /ow-alpha-accept, append: true }\n`);
+
+  it("an in-place read the producer writes, carried by every hop of a chain of hand-offs, passes", () => {
+    expect(edges(betaReadsTerms())).toBe("");
+  });
+
+  it("OD-1 plant: a chain that reaches the reader but does not list the file fails", () => {
+    // Alpha hands report.md to beta, so a chain exists; it never lists terms.md (the O1 rule accepted this).
+    expect(edges(betaReadsTerms("terms.md", ALPHA_EDGES))).toMatch(/ow-beta\/skill\.edges\.yaml: reads terms\.md in place from ow-alpha, but no chain of hand-offs from ow-alpha to ow-beta lists it at every hop \(owner decision OD-1\)/);
+  });
+
+  it("OD-1 plants: an in-place hand-off entry for a file no skill writes, to a receiver that neither reads it nor hands it on, or not true", () => {
+    expect(edges({ alphaEdges: carried("ghost.md") })).toMatch(/ow-alpha\/skill\.edges\.yaml: hands on ghost\.md in place, but no family skill writes it/);
+    expect(edges({ alphaEdges: carried("terms.md") })).toMatch(/ow-alpha\/skill\.edges\.yaml: hands on terms\.md in place to ow-beta, which neither reads it nor hands it on in place/);
+    expect(edges({ alphaEdges: carried("terms.md").replace("in_place: true }", "in_place: yes }") })).toMatch(/hands off terms\.md: in_place must be true or left out/);
+  });
+
+  it("O1 plant: an in-place read whose producer does not write the file fails", () => {
+    expect(edges(betaReadsTerms("ledger.md", ALPHA_EDGES))).toMatch(/ow-beta\/skill\.edges\.yaml: reads ledger\.md in place from ow-alpha, which skills-work\/ow-alpha\/skill\.edges\.yaml does not write/);
+  });
+
+  it("O1 plant: an in-place read no chain of hand-offs reaches fails", () => {
+    // ow-alpha reads beta's summary.md in place, but beta hands nothing on: no chain leads from beta to alpha.
+    const out = edges({
+      alphaEdges: ALPHA_EDGES.replace("reads:\n", `reads:\n${inPlace("summary.md", "ow-beta")}`),
+      alphaBody: ALPHA_BODY.replace("| the user | notes.md |", "| ow-beta | summary.md: in place | Ask | Use what parses |\n| the user | notes.md |"),
+    });
+    expect(out).toMatch(/ow-alpha\/skill\.edges\.yaml: reads summary\.md in place from ow-beta, but no chain of hand-offs from ow-beta to ow-alpha lists it at every hop \(owner decision OD-1\)/);
+  });
+
+  it("O1 plant: in_place on a user file, or as a non-boolean, fails", () => {
+    expect(edges({ alphaEdges: ALPHA_EDGES.replace("{ from: user, path: notes.md,", "{ from: user, path: notes.md, in_place: true,") })).toMatch(/reads notes\.md in place from user; in_place is for a file a family skill writes/);
+    expect(edges({ alphaEdges: ALPHA_EDGES.replace("{ from: user, path: notes.md,", "{ from: user, path: notes.md, in_place: yes please,") })).toMatch(/in_place must be true or left out/);
+  });
+
+  it("without in_place, the same read is still one-sided", () => {
+    const plain = betaReadsTerms("terms.md", ALPHA_EDGES);
+    plain.betaEdges = plain.betaEdges.replace(", in_place: true", "");
+    expect(edges(plain)).toMatch(/ow-beta\/skill\.edges\.yaml: reads terms\.md from ow-alpha, but skills-work\/ow-alpha\/skill\.edges\.yaml has no hands_off row to ow-beta carrying it/);
+  });
+
+  it("a skill-local append log written by several of its own verbs passes", () => {
+    expect(edges({ alphaEdges: alphaLog })).toBe("");
+  });
+
+  it("O2 plant: a skill-local append log written by a second skill fails", () => {
+    const out = edges({ alphaEdges: alphaLog, betaEdges: BETA_EDGES.replace("writes:\n", "writes:\n  - { path: notes.log, verb: /ow-beta, append: true }\n") });
+    expect(out).toMatch(/ow-beta\/skill\.edges\.yaml: notes\.log is a skill-local append log of ow-alpha \(its append_logs\); ow-beta \/ow-beta cannot write it/);
+  });
+
+  it("O2 plant: the log without append: true, declared by two skills, or declared with no writer, fails", () => {
+    expect(edges({ alphaEdges: alphaLog.replace("{ path: notes.log, verb: /ow-alpha-accept, append: true }", "{ path: notes.log, verb: /ow-alpha-accept }") })).toMatch(/notes\.log is a skill-local append log; \/ow-alpha-accept must declare append: true/);
+    expect(edges({ alphaEdges: alphaLog, betaEdges: `${LOG}${BETA_EDGES.replace("writes:\n", "writes:\n  - { path: notes.log, verb: /ow-beta, append: true }\n")}` })).toMatch(/notes\.log is already a skill-local append log of ow-alpha; a log has one owning skill/);
+    expect(edges({ alphaEdges: ALPHA_EDGES.replace("writes:\n", `${LOG}writes:\n`) })).toMatch(/append_logs names notes\.log, but no writes row of ow-alpha appends to it/);
+    expect(edges({ alphaEdges: ALPHA_EDGES.replace("writes:\n", "append_logs: notes.log\nwrites:\n") })).toMatch(/`append_logs` must be a list of paths/);
+  });
+
+  it("an append log the protocol does not name and no skill declares is still refused", () => {
+    expect(edges({ alphaEdges: alphaLog.replace(LOG, "") })).toMatch(/notes\.log is not an append-only file in the protocol/);
+  });
+});
+
 describe("NEXT targets resolve", () => {
   it("a dangling NEXT: a verb nobody declares, a verb another skill owns, an unknown destination, an unknown skill", () => {
     expect(next({ alphaBody: ALPHA_BODY.replace("(where slash commands exist: /ow-beta)", "(where slash commands exist: /ow-beta-run)") }))

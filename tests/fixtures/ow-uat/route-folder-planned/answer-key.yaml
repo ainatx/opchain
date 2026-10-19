@@ -1,0 +1,12 @@
+# Answer key: route-folder-planned (INVENTED). C4 (the folder route, owner decision O4),
+# stage "planned: the pack". Graded on the pack run.
+case: route-folder-planned
+section: "Inbound route (the folder: planned)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+run: pack
+checks: [route]
+route: { from: uat/larkspur-ceramics/, expect: pack }

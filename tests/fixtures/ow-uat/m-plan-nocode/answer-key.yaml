@@ -1,0 +1,22 @@
+# Answer key: m-plan-nocode (INVENTED). OD-5 and R2-1: m-plan in a session
+# where no code can run. The contract-terms.md basis row records
+# digest: "none (no code here)", and the terms block is compared as text,
+# every part of it: the frozen clauses in uat.yaml, the schedule, the payment
+# terms, the definitions and the SKU in its terms, and the ownership section.
+case: m-plan-nocode
+section: "Quick-quote job (no code here: the terms block as text)"
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+build_case: invoice-booking-small
+verbs: [/ow-uat-plan]
+today: 2026-11-10
+checks: [headers, writes, write_once, status, private_names, rec, plan, scenarios, people, credentials, data, internal_numbers, next]
+plan: { checks: 3, required: 3, scenarios: 3, bounds: quoted (quote.md), clauses: frozen, testers: 1 }
+next: ["use ow-uat-pack on uat/mossgate-books/"]
+status:
+  lines:
+    - { path: uat/mossgate-books/uat.yaml, next: ow-uat /ow-uat-plan uat/mossgate-books/, awaiting: none }
+    - { path: uat/mossgate-books/uat.yaml, next: ow-uat /ow-uat-pack uat/mossgate-books/, awaiting: none }

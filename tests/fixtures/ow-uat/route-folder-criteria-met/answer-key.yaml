@@ -1,0 +1,12 @@
+# Answer key: route-folder-criteria-met (INVENTED). C4 (the folder route, owner decision O4),
+# stage "criteria met: -signoff". Graded on the signoff-request-1 run.
+case: route-folder-criteria-met
+section: "Inbound route (the folder: criteria met)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+run: signoff-request-1
+checks: [route]
+route: { from: uat/larkspur-ceramics/, expect: signoff }

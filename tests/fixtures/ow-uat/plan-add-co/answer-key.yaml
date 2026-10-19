@@ -1,0 +1,22 @@
+# Answer key: plan-add-co (INVENTED). Design §6.1 and §11 "Condition" (a
+# branch: CO-03 signed on 2027-01-20 instead of declined): -plan --add-co
+# copies CO-03 into agreed/, adds its two checks and a required scenario for
+# each, and records the event. The condition is met once CO-03 is in agreed/;
+# its checks then gate through criterion 1.
+case: plan-add-co
+section: Condition (signed, added with --add-co)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-condition
+build_case: change-sent
+verbs: [/ow-uat-plan --add-co]
+today: 2027-01-20
+checks: [headers, writes, write_once, status, private_names, rec, plan_mode, scenarios, data, next]
+plan_mode: { mode: --add-co, co: CO-03, scenarios: [SC-13, SC-14], checks: [AC-CO-03.1, AC-CO-03.2] }
+next: ["use ow-uat-run on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/uat.yaml, next: ow-uat /ow-uat-run uat/larkspur-ceramics/, awaiting: a session for SC-13 and SC-14 by 2027-01-21 }

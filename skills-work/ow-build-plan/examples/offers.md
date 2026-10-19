@@ -10,7 +10,7 @@ origin: user
 ---
 # Offers and fit: INVENTED EXAMPLE
 
-This is an invented example, shipped the same in every ow- skill that reads it. Replace every line with your own paths and the clients you serve. ow-start reads the `fit` and `path:` sections to propose one path after each call; ow-build-plan reads `ownership`, `after_handoff` and `contract_clauses` for the plan, the quote and the contract inputs. No skill edits this file. It names paths and terms; build prices live in `price-book.yaml`. The one price below, `hourly_help`, is an invented placeholder like every number there: put your own in.
+This is an invented example, shipped the same in every ow- skill that reads it. Replace every line with your own paths and the clients you serve. ow-start reads the `fit` and `path:` sections to propose one path after each call; ow-build-plan reads `ownership`, `after_handoff` and `contract_clauses` for the plan, the quote and the contract inputs; ow-uat reads `uat` for acceptance testing. No skill edits this file. It names paths and terms; build prices live in `price-book.yaml`. The one price below, `hourly_help`, is an invented placeholder like every number there: put your own in.
 
 Each path is a `## path: <id>` section. `kind` is one of `defined-work`, `build-plan`, `feasibility` or `not-a-fit`; `systems` is `1`, `2`, `3+` or `none`. `propose when` is what the call has to show; `after yes` is what the recap says happens next.
 
@@ -82,6 +82,17 @@ fix_window_days: 30                    # the quote prints "30 days of fixes"; th
 access_removal_lead_business_days: 3
 excluded: [out-of-hours on-call, new builds]
 hourly_help: { price: 1000 }          # placeholder: your own hourly price
+```
+
+## uat
+
+What acceptance testing reads. `defaults` are used only when a signed quote has no UAT line (a quote from before the line existed); the test then records its bounds as "not quoted (offers default)", and more tester roles than expected are never a change. Every value here is an invented placeholder.
+
+```yaml
+uat:
+  defaults: { sessions: 2, fix_rounds: 1, fix_business_days: 3 }   # only when the quote has no UAT line
+  min_testers_per_role: 1          # testers asked for per role, by id
+  follow_up_business_days: 5       # an unanswered request with no deemed-acceptance clause: suggest taking it up after this
 ```
 
 ## contract_clauses

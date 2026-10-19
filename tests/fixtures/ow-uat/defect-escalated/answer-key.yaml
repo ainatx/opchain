@@ -1,0 +1,25 @@
+# Answer key: defect-escalated (INVENTED). Design §7 and §11 "Rapid fix and
+# bounds": UAT-04 failed its retest in RUN-03 (round 2) and again in RUN-04
+# after a second fix (planted starting state). Past the 2 fix rounds quoted,
+# the major Defect is escalated to Robin and extended, builder cause, at no
+# charge; it goes back to the builder (round 3). The client reason may give
+# rounds against the quoted bounds (owner decision O7), never our effort.
+case: defect-escalated
+section: Rapid fix and bounds (escalated; builder cause, no charge)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-retest
+build_case: change-declined
+verbs: [/ow-uat-defect]
+today: 2027-01-27
+checks: [headers, writes, write_once, status, private_names, rec, defect, internal_numbers, next]
+defect:
+  escalated: { UAT-04: rounds }
+  builder_cause: [UAT-04]
+next: ["handoffs.yaml `build`"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/defects/UAT-04.md, next: ow-uat /ow-uat-run uat/larkspur-ceramics/, awaiting: fix of UAT-04 by the builder (round 3; escalated to Robin) }

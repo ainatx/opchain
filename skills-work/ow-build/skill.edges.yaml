@@ -294,11 +294,24 @@ hands_off:
     to: ow-build-plan
     verb: /ow-build-plan
     say: use ow-build-plan on uat/<client>/defects/UAT-nn.md
-    files: []
+    files:
+      - { path: uat/<client>/defects/UAT-nn.md, in_place: true }   # owner decision OD-1: ow-uat's file, handed on
     if_unavailable: Offer a follow-on Build Plan by hand, from the UAT file
   - when: Ready for UAT, every check passing
     to: ow-uat
     verb: /ow-uat-plan
     say: use ow-uat-plan on builds/<client>/ready-for-uat.md   # owner decision 2026-10-16: the verb's name, as the ow-uat design gives it
-    files: [builds/<client>/ready-for-uat.md, builds/<client>/changes/CO-nn.md]
+    files:
+      - { path: builds/<client>/ready-for-uat.md, fields: [ready, build_label, environment, the builder's run of each check, known issues, test data, milestones demoed] }
+      - { path: builds/<client>/changes/CO-nn.md, fields: [id, kind, status, signed, adds_checks, requests, history] }
+      # Read by ow-uat where they lie (owner decisions O1, O6 and OD-1): ow-build's own two files, and the signed plan handed on.
+      - { path: builds/<client>/changes/requests.md, fields: [the row for a UAT-nn and its result] }
+      - { path: builds/<client>/ledger.md, fields: [the delivery payment's state] }
+      - { path: plans/<client>/scope.md, in_place: true }
+      - { path: plans/<client>/acceptance.md, in_place: true }
+      - { path: plans/<client>/quick-scope.md, in_place: true }
+      - { path: plans/<client>/contract-inputs.md, in_place: true }
+      - { path: plans/<client>/quote.md, in_place: true }
+      - { path: plans/<client>/map/roles.md, in_place: true }
+      - { path: plans/<client>/map/future.md, in_place: true }
     if_unavailable: ready-for-uat.md lists every check, the environment and the test data; plan the client's test by hand from it

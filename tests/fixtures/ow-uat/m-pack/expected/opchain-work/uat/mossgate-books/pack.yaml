@@ -1,0 +1,15 @@
+ow_artefact: ow-uat/pack
+schema: 1
+written_by: ow-uat 1.0.0 (protocol 1)
+workstream: mossgate-books
+subject: uat/mossgate-books/uat.yaml
+created: 2026-11-11
+clock: user-stated
+origin: skill
+packs:
+  - { role: shop manager, source: uat-pack-shop-manager.md, exports: [export/uat-pack-shop-manager.html], scenarios: [SC-01, SC-02, SC-03] }
+results_template: export/results-template.csv
+export_tool: "not available here: HTML packs only"
+preflight: "HTML checks by this skill: lang, title, one h1, no skipped headings, table headers, contrast"
+credentials_check: "NOT-CHECKED (pattern match only); read-through confirmed by Robin 2026-11-11"
+self_checks: { Data check: OK, People by role or id: OK, No credentials: NOT-CHECKED (read-through confirmed), No internal numbers: OK, No private names: OK }

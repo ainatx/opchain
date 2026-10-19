@@ -1,0 +1,12 @@
+# Answer key: route-folder-addendum (INVENTED). C4 (the folder route, owner decision O4),
+# stage "signed, a later change order delivered: --addendum". Graded on the plan-addendum run.
+case: route-folder-addendum
+section: "Inbound route (the folder: signed, a later change order delivered)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+run: plan-addendum
+checks: [route]
+route: { from: uat/larkspur-ceramics/, expect: plan --addendum }

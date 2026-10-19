@@ -1,0 +1,22 @@
+# Answer key: defect-change-portal (INVENTED). Design §6 (class Change): a
+# client report asks for behaviour the basis did not include. Raised as a
+# change request; NEXT hands it to ow-build to price. ow-build's
+# change-uat-too-big case reads this file (deliverable 6).
+case: defect-change-portal
+section: Triage (a Change from a report)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-extension
+build_case: change-uat-extension
+verbs: [/ow-uat-defect]
+today: 2027-01-14
+checks: [headers, writes, write_once, status, private_names, rec, defect, internal_numbers, next]
+defect:
+  classes: { UAT-06: Change }
+next: ["use ow-build to price the change from uat/larkspur-ceramics/defects/UAT-06.md"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/defects/UAT-06.md, next: ow-build /ow-build-change uat/larkspur-ceramics/defects/UAT-06.md, awaiting: none }

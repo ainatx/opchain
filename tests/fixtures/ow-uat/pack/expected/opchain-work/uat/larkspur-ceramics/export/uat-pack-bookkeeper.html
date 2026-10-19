@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<title>User acceptance testing: bookkeeper pack, Larkspur Ceramics</title>
+</head>
+<body style="background:#ffffff;color:#1a1a1a;font-family:Arial,sans-serif">
+<h1 style="color:#1a1a1a">User acceptance testing: bookkeeper pack, Larkspur Ceramics</h1>
+<h2 style="color:#1a1a1a">What this test is</h2>
+<p>You try the finished build against what was agreed, using the scenarios below. A problem inside the agreed scope is fixed quickly and at no charge; anything new is written down and priced before any work starts.</p>
+<h2 style="color:#1a1a1a">Dates</h2>
+<ul>
+<li>Session 1: Thursday 7 January 2027</li>
+<li>Session 2: Tuesday 12 January 2027</li>
+<li>Session 3: Thursday 21 January 2027 (the final confirmation run)</li>
+</ul>
+<h2 style="color:#1a1a1a">Signing in</h2>
+<p>Your login comes from the operations manager. Your tester id is bk-T1; write it in the results template instead of your name.</p>
+<h2 style="color:#1a1a1a">Your scenarios</h2>
+<table>
+<thead><tr><th>Scenario</th><th>What to do</th><th>What you should see</th></tr></thead>
+<tbody>
+<tr><td>SC-06</td><td>The day's confirmed orders become invoices</td><td>Each confirmed order is an invoice with the same lines and quantities, and nothing is retyped (10 cases).</td></tr>
+<tr><td>SC-07</td><td>An order from an unknown customer makes no invoice</td><td>No invoice is made and the order is on the exceptions list (1 case).</td></tr>
+<tr><td>SC-12</td><td>Check the invoices the day's orders produced</td><td>Every confirmed order has its invoice, and none was retyped (1 case).</td></tr>
+</tbody>
+</table>
+<h2 style="color:#1a1a1a">Reporting a problem</h2>
+<p>Write down what you did, what you expected and what happened. Add a screenshot only if it shows no real customer data. Send it to the operations manager.</p>
+<h2 style="color:#1a1a1a">The results template</h2>
+<p>Fill one row per scenario in results-template.csv: tester id, scenario, result (pass, fail, blocked or not run), cases passed, note, records created. There is no name column.</p>
+</body>
+</html>

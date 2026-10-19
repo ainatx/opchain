@@ -2,6 +2,13 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`; owner decision O7 of OW-08). The family's v2.1.0 release entry cites each skill's version. Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump (OW-04 ruling O9) and are listed here as data edits.
 
+## Unreleased: data edits from OW-04 (ow-uat 1.0.0)
+
+No version bump (OW-04 ruling O9); the shared examples stay byte-identical in every skill that ships them:
+
+- `examples/offers.md` gains a `## uat` section (`defaults`, `min_testers_per_role`, `follow_up_business_days`, invented placeholders), and its opening paragraph says ow-uat reads it.
+- `examples/handoffs.yaml` gains the `sign` key, and its comment says ow-uat reads `build` (a problem for the builder) and `sign` (a sign-off request).
+
 ## 1.1.1 (2026-10-18): prescribed screen words (OW-08 follow-ups)
 
 From evaluation round 3 (`sprints/release-2.1/ow-08/eval-round-3.md`, PASS at 7.6) and the owner's decision to take its minors in one follow-up PR.

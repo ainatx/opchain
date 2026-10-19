@@ -3,22 +3,30 @@ ow_artefact: ow-uat/defect
 schema: 1
 written_by: ow-uat 1.0.0 (protocol 1)
 workstream: larkspur-ceramics
-subject: uat/larkspur-ceramics/scenarios/SC-02.md
+subject: uat/larkspur-ceramics/runs/RUN-01.md
 created: 2027-01-08
 clock: user-stated
 origin: skill
 id: UAT-05
 ---
-# UAT-05: The exceptions list did not show the customer for one line
+# UAT-05: Stock on hand showed the day before's figure
 
-INVENTED TEST FIXTURE: a defect file in the shape the ow-uat design describes (ow-uat is not built yet).
-
+from: RUN-01, SC-08 (operations manager ops-T1)
 class: Defect
-severity: minor
+severity: major
 status: sent
-basis: acceptance check, as frozen in uat/larkspur-ceramics/agreed/
+basis: AC-CO-01.1 (CO-01.md), as frozen in uat/larkspur-ceramics/agreed/
+triaged: 2027-01-08
+round: 1
+
+## What happened
+SC-08 failed, 4 of 5: one line showed the stock on hand from the day before, not the last evening update.
+
+## Reason (for the client)
+Defect: AC-CO-01.1 says stock on hand is as of the last evening update, and one line was a day old. The fix is at no charge.
 
 ## History
-- 2027-01-08 logged from session 1 (order coordinator)
-- 2027-01-09 sent to the builder
-- 2027-01-13 extension requested, client cause: testers absent from session 2 on 2027-01-12
+- 2027-01-08 rec 23: logged from RUN-01 SC-08 (fail, 4 of 5)
+- 2027-01-08 rec 24: triaged Defect, major, against AC-CO-01.1
+- 2027-01-08 rec 25: sent to the builder (round 1)
+- 2027-01-13 rec 29: extension requested, client cause: testers absent from session 2 on 2027-01-12

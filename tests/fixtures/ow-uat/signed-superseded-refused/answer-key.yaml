@@ -1,0 +1,17 @@
+# Answer key: signed-superseded-refused (INVENTED). Design §8 and §11 "Request
+# lifecycle": a signature recorded against a superseded request (request 1,
+# superseded by UAT-09) is refused. Nothing written.
+case: signed-superseded-refused
+section: Request lifecycle (a signature on a superseded request)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: signoff-request-2
+build_case: change-declined
+verbs: [/ow-uat-signoff --signed]
+today: 2027-01-27
+checks: [refused, next]
+refused: { reason: request 1 is superseded, names: ["request 1", "request 2"] }
+next: ["use ow-uat-signoff to record the sending on uat/larkspur-ceramics/"]

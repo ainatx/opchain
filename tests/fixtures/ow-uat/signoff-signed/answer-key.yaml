@@ -1,0 +1,29 @@
+# Answer key: signoff-signed (INVENTED). Design §8 --signed and §11 "Test
+# accounts" (ow-uat's half): request 2, sent and not superseded as of
+# 2027-01-27, is signed by the operations manager. -signoff records each
+# signing step, asks for every test account (role, environment, created-by;
+# never a login), writes the acceptance record (evidence by cleared pointer
+# only) and the punch list (UAT-10 reported after request 2), then
+# signoff.md last. NEXT order: step 0 for UAT-10, the acceptance invoice
+# (larger project), the handoff, then documentation (bought).
+case: signoff-signed
+section: The signature; Test accounts; NEXT order
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-late-minor
+build_case: change-declined
+verbs: [/ow-uat-signoff --signed]
+today: 2027-01-27
+checks: [headers, writes, write_once, status, private_names, rec, signed, handoff_fields, people, credentials, data, internal_numbers, false_pass, next]
+signed: { request: 2, date: 2027-01-27, signer: operations manager, build: larkspur-uat-4, accounts: 2, punch: [UAT-08, UAT-10], late: [UAT-10], post_acceptance: [CO-04], project: larger, documentation: bought }
+next:
+  - "use ow-uat-defect on uat/larkspur-ceramics/"
+  - "use ow-build to invoice the acceptance payment from uat/larkspur-ceramics/signoff.md"
+  - "use ow-handoff-start on uat/larkspur-ceramics/"
+  - "use ow-documentation-start on uat/larkspur-ceramics/"
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/signoff.md, next: ow-build /ow-build-invoice uat/larkspur-ceramics/signoff.md, awaiting: none (signed on request 2) }

@@ -1,0 +1,21 @@
+# Answer key: defect-punch-step0 (INVENTED). Design §8 step 0: after sign-off
+# -defect marks each UAT-nn on punch-list.md "moved to punch list"; UAT-10
+# was reported after request 2. Nothing else is logged.
+case: defect-punch-step0
+section: Punch list (step 0 after sign-off)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: signoff-signed
+build_case: change-declined
+verbs: [/ow-uat-defect]
+today: 2027-01-28
+checks: [headers, writes, write_once, status, private_names, rec, defect, next]
+defect:
+  terminal: { UAT-10: moved to punch list }
+next: ["use ow-handoff-start on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/defects/UAT-10.md, next: ow-handoff /ow-handoff-start uat/larkspur-ceramics/, awaiting: none }

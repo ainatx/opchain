@@ -29,17 +29,73 @@ export function today({ tz } = {}) {
   return { date: tz ? date : localDate(now), tz: zone, clock: "tool" };
 }
 
-// N calendar days, or N business days (Mon-Fri minus the given holidays).
-// The start date itself is never counted; N may be negative. Both modes
-// return the same keys (F-008), and holidays only apply to business days.
-export function addDate({ from, days, businessDays, holidays }) {
+// The contract calendar (ow-uat design §8.1, ow-tools 1.2.0): weekdays except the US federal
+// holidays of 5 U.S.C. 6103, on the day they are observed. A holiday on a Saturday is observed
+// the Friday before (New Year's Day then falls on 31 December of the year before); on a Sunday,
+// the Monday after. Computed for 2022 to 2099: a count that reaches a weekday in any other year refuses
+// (calendar-out-of-range); the start date, never counted, may lie outside.
+export const CALENDARS = ["us-federal"];
+export const FEDERAL_YEARS = [2022, 2099];
+const nthWeekday = (y, m, wd, n) => {
+  const first = new Date(Date.UTC(y, m - 1, 1));
+  return new Date(Date.UTC(y, m - 1, 1 + ((wd - first.getUTCDay() + 7) % 7) + 7 * (n - 1)));
+};
+const lastWeekday = (y, m, wd) => {
+  const last = new Date(Date.UTC(y, m, 0));
+  return new Date(Date.UTC(y, m - 1, last.getUTCDate() - ((last.getUTCDay() - wd + 7) % 7)));
+};
+const observed = (d) => (d.getUTCDay() === 6 ? addUTC(d, -1) : d.getUTCDay() === 0 ? addUTC(d, 1) : d);
+/** The observed federal holidays that fall in calendar year `y` (YYYY-MM-DD, sorted). */
+export function usFederalHolidays(y) {
+  const out = [];
+  for (const year of [y, y + 1]) {
+    const days = [
+      new Date(Date.UTC(year, 0, 1)), nthWeekday(year, 1, 1, 3), nthWeekday(year, 2, 1, 3), lastWeekday(year, 5, 1),
+      new Date(Date.UTC(year, 5, 19)), new Date(Date.UTC(year, 6, 4)), nthWeekday(year, 9, 1, 1), nthWeekday(year, 10, 1, 2),
+      new Date(Date.UTC(year, 10, 11)), nthWeekday(year, 11, 4, 4), new Date(Date.UTC(year, 11, 25)),
+    ];
+    // Juneteenth is a federal holiday from 2021 on; every year in range has it.
+    for (const d of year === y ? days : days.slice(0, 1)) {
+      const o = fmt(observed(d));
+      if (o.startsWith(String(y))) out.push(o);
+    }
+  }
+  return [...new Set(out)].sort();
+}
+/**
+ * Whether a weekday is a contract-calendar holiday, a year at a time, as the count reaches it. Only a
+ * weekday the count actually classifies has to lie in 2022 to 2099, so an answer near either end is given
+ * (OW-04 round 1, R1-17: 2099-12-29 + 1 and 2022-01-20 - 5 refused on an estimated span).
+ */
+function federalHoliday() {
+  const years = new Map();
+  return (d) => {
+    const y = d.getUTCFullYear();
+    if (y < FEDERAL_YEARS[0] || y > FEDERAL_YEARS[1]) {
+      throw refused("calendar-out-of-range", `the us-federal calendar covers ${FEDERAL_YEARS[0]} to ${FEDERAL_YEARS[1]}; ${y} is outside it`);
+    }
+    if (!years.has(y)) years.set(y, new Set(usFederalHolidays(y)));
+    return years.get(y).has(fmt(d));
+  };
+}
+
+// N calendar days, or N business days (Mon-Fri minus the given holidays, or the
+// contract calendar). The start date itself is never counted; N may be negative.
+// Both modes return the same keys (F-008), and holidays only apply to business days.
+export function addDate({ from, days, businessDays, holidays, calendar }) {
   const start = parseDate(from, "--from");
   if ((days === undefined) === (businessDays === undefined)) throw usage("give exactly one of --days N or --business-days N");
+  if (calendar !== undefined) {
+    if (!CALENDARS.includes(calendar)) throw usage(`unknown calendar "${calendar}"; ow-tools knows ${CALENDARS.join(", ")}`);
+    if (days !== undefined) throw usage("--calendar counts business days: use it with --business-days, not --days");
+    if (holidays?.length) throw usage("--calendar brings its own holidays: give --calendar or --holidays, not both");
+  }
   if (days !== undefined && holidays?.length) throw usage("--holidays only applies to --business-days");
   const hol = new Set((holidays || []).map((h) => fmt(parseDate(h, "holiday"))));
   const n = days ?? businessDays;
   if (!Number.isInteger(n) || Math.abs(n) > 3650) throw usage("the count must be a whole number of at most 3650");
   if (days !== undefined) return { date: fmt(addUTC(start, n)), from: fmt(start), days: n, calendar: "every day", holidays_skipped: [] };
+  const isHoliday = calendar ? federalHoliday() : (d) => hol.has(fmt(d));
   const step = n < 0 ? -1 : 1;
   const skipped = [];
   let d = start;
@@ -47,13 +103,13 @@ export function addDate({ from, days, businessDays, holidays }) {
   while (left > 0) {
     d = addUTC(d, step);
     if (isWeekend(d)) continue;
-    if (hol.has(fmt(d))) {
+    if (isHoliday(d)) {
       skipped.push(fmt(d));
       continue;
     }
     left--;
   }
-  return { date: fmt(d), from: fmt(start), business_days: n, calendar: "Mon-Fri", holidays_skipped: skipped };
+  return { date: fmt(d), from: fmt(start), business_days: n, calendar: calendar ?? "Mon-Fri", holidays_skipped: skipped };
 }
 
 // Decimal strings → integer minor units, without floating point.

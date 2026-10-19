@@ -1,6 +1,6 @@
 # ow-tools — design
 
-**Date:** 2026-10-09 · **Status:** APPROVED 2026-10-09 (decisions in §1.1). Build in progress; the speed spike result goes in §10. **Amended 2026-10-16 for 1.1.0** (amendments T1–T7, approved with their designs; Sprint T contract `sprints/release-2.1/ow-sprint-t/contract.md`): the sections marked 1.1.0 below, and §14.
+**Date:** 2026-10-09 · **Status:** APPROVED 2026-10-09 (decisions in §1.1). Build in progress; the speed spike result goes in §10. **Amended 2026-10-16 for 1.1.0** (amendments T1–T7, approved with their designs; Sprint T contract `sprints/release-2.1/ow-sprint-t/contract.md`): the sections marked 1.1.0 below, and §14. **Amended 2026-10-17 for 1.2.0** (ow-uat Sprint 3, owner decisions O3 and OD-2): `calc date --calendar us-federal`, on top of 1.1.2 (merged onto 1.1.0, then 1.1.2, keeping both sides); §15.
 **Release:** the one Claude Code-only add-on of the ow- family that ships together as v2.1.0. Starts at 1.0.0 (ow-start decision 19).
 **Sources** (on branch `claude/planning-family-skills-82032d`): ow-start (`2026-10-06-ow-start-intake-redesign.md` §6, §7, §8, §10, decisions 9, 22–23, open questions 1–2) · ow-build-plan (`2026-10-06-ow-build-plan-design.md` §4.1, §6.2, §7, decision 7) · ow-build (`2026-10-08-ow-build-design.md` §5, §9) · ow-handoff, draft (`2026-10-08-ow-handoff-design.md` §4, §6) · ow-uat, draft (`2026-10-09-ow-uat-design.md` §5, §9) · the authoring standard in `docs/audits/2026-09-18-ow-pack-design-audit.md` (R1–R16 and the bullets under it).
 **Family rules that apply:** ow- skills stay text-only and every piece of code the family needs lives here (ow-start decision 9, ow-build-plan decision 7); no `ow-review`, so checks are labelled same-session self-checks (decision 22); no public ow- file names a private skill, blocklist `llc-ops` (decision 23, §8.1).
@@ -57,9 +57,9 @@
 | 15 | HTML email is plain text the skill writes | ow-build §9 | — | **No code needed** |
 | 16 | Repository secrets scan, redacted only; a scanner that can't redact is not run (NOT-CHECKED) | ow-handoff §4 | ow-handoff (draft) | **Waits** |
 | 17 | Handoff notes as branded PDF and Word | ow-handoff §6 | ow-handoff (draft) | Engine ready with #11; its fixtures and tests **wait** |
-| 18 | Tester pack per role as PDF/Word (HTML and the results CSV are skill-written text) | ow-uat §5 | ow-uat (draft) | Engine ready with #11; its fixtures and tests **wait** |
+| 18 | Tester pack per role as PDF/Word (HTML and the results CSV are skill-written text) | ow-uat §5 | ow-uat 1.0.0 | **Fixtures and tests built** in Sprint 3: every golden pack and sign-off request passes the preflight, and exports with pandoc and Typst where installed (`tests/ow-tools/uat-pack-export.test.js`) |
 | 19 | Credentials never in files; logins never in any file | ow-uat §9, ow-handoff §4 | drafts | Applies to ow-tools now (§8); nothing extra to build |
-| 20 | Business days on the contract's calendar (weekdays except US federal holidays) | ow-uat §8.1 | ow-uat (draft) | **Waits** (a `calc` calendar) |
+| 20 | Business days on the contract's calendar (weekdays except US federal holidays) | ow-uat §8.1 | ow-uat 1.0.0 | **Built** in 1.2.0 (Sprint 3): `calc date --calendar us-federal` (§5.4) |
 | 21 | Screenshots of the UAT environment for every task step; the user signs in; never a credential; production only with the client's recorded decision; a data check on every image (not by ow-tools) | ow-documentation §5.5, decision 8, T1 | ow-documentation | **Yes, 1.1.0** (§5.6) |
 | 22 | Branded PPTX: one slide per H2, speaker notes, the same preflight | ow-documentation §6.1, §7.1, decision 10, T2; ow-draft §4.2, §11 | ow-documentation, ow-draft | **Yes, 1.1.0** (§5.7) |
 | 23 | Read-only health checks of what `health.yaml` lists; no credential; Python only through pip-audit | ow-care §5.4, §9, §11, decision 4, T3 | ow-care | **Yes, 1.1.0** (§5.8) |
@@ -142,7 +142,9 @@ No `package.json` at the plugin root: Claude Code installs npm dependencies auto
 | ow-build `-demo` (record, from a recording) | `ow-tools transcribe builds/<client>/audio/<file> --out builds/<client>/demos/M<n>/` | the recording | same | Records from the user's notes |
 | ow-build-plan `-offer`, `-export` | `ow-tools export <file.md> [--out <dir>]` | the Markdown, the workspace `brand.yaml` | `export/<name>.pdf`, `export/<name>.docx` | Prints the finished Markdown and says the documents could not be generated here |
 | ow-handoff `-package` (draft) | `ow-tools export handoffs/<client>/handoff-notes.md` | same | `export/handoff-notes.{pdf,docx}` | Same |
-| ow-uat `-pack` (draft) | `ow-tools export uat/<client>/uat-pack-<role>.md` | same | `export/uat-pack-<role>.{pdf,docx}` | HTML pack only (skill-written) |
+| ow-uat `-pack` | `ow-tools export uat/<client>/uat-pack-<role>.md` | the pack's Markdown source, the workspace `brand.yaml` | `export/uat-pack-<role>.{pdf,docx}` | HTML pack only (skill-written), and it says so |
+| ow-uat `-signoff` (plain mode) | `ow-tools export uat/<client>/signoff-request-<n>.md` | same | `export/signoff-request-<n>.{pdf,docx}` | The Markdown is the request |
+| ow-uat `-signoff` (clause dates), `-defect` (the cannot-reproduce window) | `ow-tools calc date --from D --business-days N --calendar us-federal`, after `ow-tools version --json` lists `us-federal` | arguments only | nothing | `contract-calendar.md`'s table, labelled not machine-checked |
 | ow-handoff `-accounts` (draft; **not built**: `scan-secrets` waits for Sprint 4) | `ow-tools scan-secrets <repo>` | committed history only | nothing; prints rows | NOT-CHECKED: "this repository has not been scanned for committed secrets" |
 | Any verb needing a date or a total | `ow-tools calc …` (§5.4) | arguments only | nothing | Time-source ladder (host date, else ask); "arithmetic NOT machine-checked" |
 | Any session (resume) | SessionStart hook | `opchain-work/STATUS.md` | nothing | Step 0 inside each skill (ow-protocol v1 §3a); `/ow-status` |
@@ -244,7 +246,7 @@ The reader accepts only this shape (no anchors, tags or multi-line strings) and 
 | Verb | Output |
 |---|---|
 | `ow-tools calc today [--tz Z]` | Local date and zone, `clock: tool` |
-| `ow-tools calc date --from D (--days N \| --business-days N) [--holidays D1,D2,…] [--calendar us-federal]` | The date, the calendar used, the holidays skipped |
+| `ow-tools calc date --from D (--days N \| --business-days N) [--holidays D1,D2,… \| --calendar us-federal]` | The date, the calendar used, the holidays skipped. `--calendar us-federal` (1.2.0) counts weekdays except the US federal holidays of 5 U.S.C. 6103 as observed (Saturday to the Friday before, so New Year's Day on a Saturday is 31 December of the year before; Sunday to the Monday after), for 2022 to 2099: a count that reaches a weekday in another year refuses (exit 4, reason `calendar-out-of-range`), and the start date, never counted, may lie outside; `--calendar` with `--days` or with `--holidays` is a usage error (exit 2); `version --json` lists the calendars under `capabilities.calc.calendars`, which is how ow-uat detects it |
 | `ow-tools calc total --items <file.json>` | Sum in integer minor units, per-line products, currency |
 | `ow-tools calc split --total T --schedule 40/40/20` | Amounts that add up exactly (remainder to the last) |
 | `ow-tools calc hours --ledger <file.json> --rollover <share>,<of>,<months>` (1.1.0) | Per care month, in integer minutes: available, used by kind, extra, rolled over, lapsed, credit, and the identity line |
@@ -277,7 +279,7 @@ The rule. **Oldest hours first:** each month uses rolled-in batches (oldest mont
 
 Refusals: an entry (or month field) that is not a quarter-hour is exit 4 `not-quarter-hour`, naming the entry id only; minutes past available + approved extra is exit 4 `over-available`, naming the month and the entry where it crossed. A negative value, a value that isn't a safe integer or is over 100,000 minutes (F-022), an unknown kind or key, or a gap in the month ids is exit 2.
 
-The skill passes holidays it read from `profile.md`; ow-tools never reads `profile.md` or `price-book.yaml` itself. Callers: ow-start's recap due date; ow-build-plan's offer and quote validity, credit deadline and totals; ow-build's ledger; later ow-handoff's window dates and ow-uat's contract calendar (`us-federal` waits for ow-uat).
+The skill passes holidays it read from `profile.md`; ow-tools never reads `profile.md` or `price-book.yaml` itself. Callers: ow-start's recap due date; ow-build-plan's offer and quote validity, credit deadline and totals; ow-build's ledger; ow-uat's clause dates on the contract calendar (`us-federal`, built with ow-uat 1.0.0 in Sprint 3 as ow-tools 1.2.0); later ow-handoff's window dates.
 
 ### 5.5 scan-secrets (draft, ow-handoff §4)
 
@@ -681,6 +683,7 @@ Every exit-4 refusal carries a stable `reason` in its JSON, so a calling skill c
 | `not-a-file` | 4 | digest, export (xlsx) | Not a regular file or folder (a socket, a device, a symlinked CSV) | Use a regular file |
 | `not-quarter-hour` | 4 | calc hours | A minute count that isn't a multiple of 15 | Record the entry in quarter-hours |
 | `over-available` | 4 | calc hours | Minutes past available without an approved extra | Record the client's go-ahead as `extra_approved`, or move the work to next month |
+| `calendar-out-of-range` | 4 | calc date (`--calendar us-federal`, 1.2.0) | A business day the count reaches falls outside 2022 to 2099 | Count that span by hand from the calendar's rules (§5.4), and label it not machine-checked |
 | `config-invalid` | 4 | health | `health.yaml` outside its shape, or a URL with a user name, password or query, or a non-https URL | Fix the named line and key |
 | `plan-invalid` | 4 | capture | The plan is outside its shape (§5.6) | Fix the named key or step |
 | `origin-address-not-allowed` | 4 | capture | An allowed host name resolves to a loopback, unspecified or link-local (cloud-metadata) address; checked before launch | Use the test environment's real host name |
@@ -745,3 +748,19 @@ The evaluator's round-3 minor defects 1–5 and 7 and the round-3 security re-ch
 - **SA-020, SA-021, SA-022:** closed (§8): host-name syntax for capture origins, a per-profile run lock (`profile-in-use`, §14.3), and the multilingual name rule.
 
 For callers: one new refusal reason, `profile-in-use`; a field name 1.1.0 refused may now be filled (and the reverse), as listed above; nothing else changes.
+
+## 15. 1.2.0 (2026-10-17, ow-uat Sprint 3)
+
+The release record for 1.2.0, on top of 1.1.2 (owner decision O3: a new capability is a minor version; OD-2: built on 1.0.0 in Sprint 3, merged onto 1.1.0 once OW-03 landed, then onto 1.1.2 when OW-04 landed, keeping both sides each time).
+
+| Change | Where | Notes |
+|---|---|---|
+| `calc date --calendar us-federal`: business days on the contract calendar, weekdays except the US federal holidays of 5 U.S.C. 6103 as observed | §5.4; `lib/calc.mjs` | Decided a year at a time as the count reaches it: only a weekday the count reaches must lie in 2022 to 2099 |
+| `calendar-out-of-range` (exit 4) | §14.3 | The 1.1.0 rule holds: every refusal has a stable reason in the table |
+| `--calendar` with `--days`, with `--holidays`, or naming another calendar | §5.4 | Usage errors (exit 2), beside 1.1.0's F-008 rule that `--holidays` needs `--business-days` |
+| `version --json`: `capabilities.calc.calendars: ["us-federal"]` | `lib/doctor.mjs` | How ow-uat detects the calendar, never by version number; 1.1.0's `calc` and `digest` rows unchanged |
+| Tests | `tests/ow-tools/calc-calendar.test.js`, `tests/ow-tools/uat-pack-export.test.js` | The 2026 to 2030 table by hand, the skill's no-tool table to 2031, both range ends, and the calendar call under 1.1.0's network fence (no socket, DNS or fetch attempt) |
+
+### 15.1 What changed for 1.1.2 callers
+
+Nothing: a call without `--calendar` behaves exactly as in 1.1.2, and `version --json` only adds `calendars` to `capabilities.calc`.

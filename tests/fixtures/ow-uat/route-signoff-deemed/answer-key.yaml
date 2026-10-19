@@ -1,0 +1,13 @@
+# Answer key: route-signoff-deemed (INVENTED). C4, the handoff's -start, stage
+# "deemed date passed, with clauses": the route runs --deemed (it asks Robin
+# to confirm). Graded on the m-deemed run.
+case: route-signoff-deemed
+section: "Inbound route (the handoff's -start: deemed date passed, clause frozen)"
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+run: m-deemed
+checks: [route]
+route: { say: "use ow-uat-signoff on uat/mossgate-books/", expect: signoff --deemed }

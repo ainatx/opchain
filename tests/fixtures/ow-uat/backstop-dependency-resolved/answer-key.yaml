@@ -1,0 +1,16 @@
+# Answer key: backstop-dependency-resolved (INVENTED). Design §8.2 and C12: --backstop refuses
+# when the dependency is no longer outstanding. Nothing is written (backstop.md is written once, if ever).
+case: backstop-dependency-resolved
+section: "Backstop (refused: the dependency is no longer outstanding)"
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-builder-delay
+build_case: invoice-booking-small
+verbs: [/ow-uat-signoff --backstop]
+today: 2027-01-18
+checks: [refused, backstop_refused]
+refused: { reason: "the dependency is no longer outstanding" }
+backstop_refused: { reason: "the dependency is no longer outstanding" }

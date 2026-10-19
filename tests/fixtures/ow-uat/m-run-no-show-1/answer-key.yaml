@@ -1,0 +1,19 @@
+# Answer key: m-run-no-show-1 (INVENTED). Design §4.3 and §11 "No-show": the
+# shop manager did not attend session 1; a no-show run and an awaiting line.
+case: m-run-no-show-1
+section: No-show (first)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-pack
+build_case: invoice-booking-small
+verbs: [/ow-uat-run]
+today: 2026-11-12
+checks: [headers, writes, write_once, status, private_names, rec, run, false_pass, next]
+run: { id: RUN-01, session_date: 2026-11-12, build: mossgate-uat-1, no_show: true }
+next: ["use ow-uat-run on uat/mossgate-books/"]
+status:
+  lines:
+    - { path: uat/mossgate-books/runs/RUN-01.md, next: ow-uat /ow-uat-run uat/mossgate-books/, awaiting: client testers for shop manager since 2026-11-12 }

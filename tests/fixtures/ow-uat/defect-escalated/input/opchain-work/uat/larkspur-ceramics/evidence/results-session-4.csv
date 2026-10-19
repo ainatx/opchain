@@ -1,0 +1,2 @@
+tester id,scenario,result,cases passed,note,records created
+bk-T1,SC-06,fail,9,the second billing address was still used for one customer,10

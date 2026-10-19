@@ -1,0 +1,24 @@
+# Answer key: signoff-signed-declined (INVENTED). C14 and owner decision O5
+# (planted state: the client declined the documentation line): on a larger
+# project the NEXT blocks are step 0, the acceptance invoice and the handoff;
+# no documentation NEXT.
+case: signoff-signed-declined
+section: NEXT order (a larger project, documentation declined)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-late-minor
+build_case: change-declined
+verbs: [/ow-uat-signoff --signed]
+today: 2027-01-27
+checks: [headers, writes, write_once, status, rec, signed, next]
+signed: { request: 2, date: 2027-01-27, signer: operations manager, build: larkspur-uat-4, accounts: 2, punch: [UAT-08, UAT-10], late: [UAT-10], post_acceptance: [CO-04], project: larger, documentation: declined }
+next:
+  - "use ow-uat-defect on uat/larkspur-ceramics/"
+  - "use ow-build to invoice the acceptance payment from uat/larkspur-ceramics/signoff.md"
+  - "use ow-handoff-start on uat/larkspur-ceramics/"
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/signoff.md, next: ow-build /ow-build-invoice uat/larkspur-ceramics/signoff.md, awaiting: none (signed on request 2) }

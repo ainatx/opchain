@@ -1,0 +1,18 @@
+# Answer key: plan-cut (INVENTED). C13 and design §3: the -plan session ended
+# after the gitignore step and before the scenarios. uat.yaml's plan_steps
+# hold nine steps; agreed/ is frozen; no scenario exists.
+case: plan-cut
+section: Write-once and per-step resume (a -plan cut off)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+build_case: ready-passing
+verbs: [/ow-uat-plan]
+today: 2027-01-04
+checks: [headers, writes, status, private_names, rec, plan]
+plan: { checks: 9, required: 0, scenarios: 0, steps: 9, bounds: quoted (contract-inputs.md), clauses: none, testers: 3 }
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/uat.yaml, next: ow-uat /ow-uat-plan uat/larkspur-ceramics/, awaiting: none }

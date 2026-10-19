@@ -1,0 +1,20 @@
+# Answer key: m-pack (INVENTED). C15: one tester role, one pack (Markdown
+# source and HTML; no ow-tools here), the six-column results template.
+case: m-pack
+section: The pack (one role)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-plan
+build_case: invoice-booking-small
+verbs: [/ow-uat-pack]
+today: 2026-11-11
+ow_tools: absent
+checks: [headers, writes, write_once, status, private_names, pack, people, credentials, data, internal_numbers, next]
+pack: { roles: 1 }
+next: ["use ow-uat-run on uat/mossgate-books/"]
+status:
+  lines:
+    - { path: uat/mossgate-books/pack.yaml, next: ow-uat /ow-uat-run uat/mossgate-books/, awaiting: session 1 on 2026-11-12 }

@@ -1,0 +1,24 @@
+# Answer key: defect-retest (INVENTED). Design §6, §6.1, §7 and §11 "Punch
+# list" and "Condition": each fixed Defect passed its retest in RUN-03; the
+# missing login is closed when its scenario's re-run passed; the training gap
+# goes to documentation; a cosmetic from a passing scenario is logged and
+# moved to the punch list; ow-build declined CO-03 (read in place), so the
+# condition lapses. Every exit criterion now holds.
+case: defect-retest
+section: Punch list; Condition (declined, so it lapses)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: run-confirmation
+build_case: change-declined
+verbs: [/ow-uat-defect]
+today: 2027-01-22
+checks: [headers, writes, write_once, status, private_names, rec, defect, internal_numbers, false_pass, next]
+defect:
+  terminal: { UAT-01: passed to documentation, UAT-02: closed, UAT-03: retested-pass, UAT-04: retested-pass, UAT-05: retested-pass, UAT-07: condition lapsed, UAT-08: moved to punch list }
+next: ["use ow-uat-signoff on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/defects/UAT-08.md, next: ow-uat /ow-uat-signoff uat/larkspur-ceramics/, awaiting: none }

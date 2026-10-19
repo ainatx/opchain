@@ -1,0 +1,13 @@
+Name,tester id,scenario,result,cases passed,note,records created
+Jess Arden,oc-T1,SC-01,fail,9,an order with a discount line lost the discount in the sheet,0
+Jess Arden,oc-T1,SC-02,pass,2,,0
+Jess Arden,oc-T1,SC-03,pass,3,,0
+Tomas Vey,ops-T1,SC-04,pass,10,,0
+Jess Arden,oc-T1,SC-05,pass,60,,0
+Lena Okafor,bk-T1,SC-06,fail,9,a customer with two billing addresses got the wrong one on the invoice,9
+Lena Okafor,bk-T1,SC-07,blocked,0,no sandbox login yet - tried password: Glaze#44 from Tomas but it was refused,0
+Tomas Vey,ops-T1,SC-08,fail,4,stock on hand showed the day before's figure on one line,0
+Tomas Vey,ops-T1,SC-09,pass,1,,0
+Jess Arden,oc-T1,SC-10,pass,1,took a while to find where to settle a line - asked Tomas,0
+Tomas Vey,ops-T1,SC-11,pass,1,,0
+Lena Okafor,bk-T1,SC-12,blocked,0,no sandbox login,0

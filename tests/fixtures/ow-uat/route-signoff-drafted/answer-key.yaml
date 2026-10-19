@@ -1,0 +1,17 @@
+# Answer key: route-signoff-drafted (INVENTED). C4, the handoff's -start,
+# stage "request drafted": no new request; the --sent NEXT prints.
+case: route-signoff-drafted
+section: "Inbound route (the handoff's -start: drafted)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: signoff-request-1
+build_case: change-declined
+verbs: [/ow-uat-signoff]
+today: 2027-01-22
+checks: [route, refused, next]
+route: { say: "use ow-uat-signoff on uat/larkspur-ceramics/", expect: nothing }
+refused: { reason: request 1 is drafted }
+next: ["use ow-uat-signoff to record the sending on uat/larkspur-ceramics/"]

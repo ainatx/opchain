@@ -1,0 +1,18 @@
+# Answer key: route-folder-sent-waiting (INVENTED). C4, the folder route,
+# stage "sent", with nothing new from the client: nothing runs; it says what
+# it awaits and since when.
+case: route-folder-sent-waiting
+section: "Inbound route (the folder: sent, waiting)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: signoff-sent-1
+build_case: change-declined
+verbs: [/ow-uat]
+today: 2027-01-25
+checks: [route, refused, next]
+route: { from: uat/larkspur-ceramics/, expect: nothing }
+refused: { reason: awaiting the signature }
+next: ["use ow-uat-signoff to record the signature on uat/larkspur-ceramics/"]

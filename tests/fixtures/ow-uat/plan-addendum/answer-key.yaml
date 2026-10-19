@@ -1,0 +1,21 @@
+# Answer key: plan-addendum (INVENTED). Design §8.3 and §11 "Post-acceptance
+# CO" (ow-uat's half): CO-04, signed after the freeze and not added, is listed
+# post-acceptance in signoff.md. -plan --addendum writes its scenario without
+# adding it to the basis: agreed/ and the checks list are untouched.
+case: plan-addendum
+section: Addendum (scenarios for a post-acceptance change order)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-punch-step0
+build_case: change-declined
+verbs: [/ow-uat-plan --addendum]
+today: 2027-02-01
+checks: [headers, writes, write_once, status, private_names, rec, plan_mode, scenarios, data, next]
+plan_mode: { mode: --addendum, co: CO-04, scenarios: [SC-13], agreed_unchanged: true }
+next: ["use ow-uat-run on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/uat.yaml, next: ow-uat /ow-uat-run uat/larkspur-ceramics/, awaiting: CO-04 delivered by the builder }

@@ -1,0 +1,13 @@
+# Answer key: route-folder-addendum-open (INVENTED). C4, the folder route,
+# stage "addendum open": SC-13 failed in RUN-05 and no UAT-nn names it yet, so
+# the folder route runs -defect. Graded on the defect-addendum run.
+case: route-folder-addendum-open
+section: "Inbound route (the folder: addendum open)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+run: defect-addendum
+checks: [route]
+route: { from: uat/larkspur-ceramics/, expect: defect }

@@ -1,0 +1,22 @@
+# Answer key: defect-late-minor (INVENTED). Design §8 criterion 4 and §11
+# "Late minor": a minor logged after request 2 was written never supersedes
+# it; at the signature it goes to punch-list.md as reported after request 2.
+case: defect-late-minor
+section: Late minor
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: signoff-sent-2
+build_case: change-declined
+verbs: [/ow-uat-defect]
+today: 2027-01-27
+checks: [headers, writes, write_once, status, private_names, rec, defect, internal_numbers, next]
+defect:
+  classes: { UAT-10: Defect }
+  supersedes: {}
+next: ["use ow-uat-signoff to record the signature on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/defects/UAT-10.md, next: ow-uat /ow-uat-signoff uat/larkspur-ceramics/, awaiting: sign-off by operations manager on request 2 by 2027-02-02 }

@@ -27,7 +27,7 @@ const temp = (p) => { const d = mkdtempSync(join(tmpdir(), p)); scratch.push(d);
 
 const CASES = [
   "change-declined", "change-fix-too-big", "change-in-scope", "change-not-a-defect", "change-priced", "change-sent", "change-signed", "change-uat-extension", "change-uat-repriced", "change-uat-too-big", "change-uat-unpriced", "change-unpriced",
-  "demo-record", "demo-script", "invoice-acceptance", "invoice-booking", "invoice-booking-small", "invoice-co", "invoice-delivery-backstop",
+  "demo-record", "demo-script", "invoice-acceptance", "invoice-booking", "invoice-booking-small", "invoice-co", "invoice-delivery-backstop", "invoice-delivery-governing",
   "invoice-delivery-handoff", "invoice-delivery-refused", "invoice-demo", "invoice-documentation", "invoice-documentation-refused",
   "margin-internal", "ready-failing", "ready-passing",
   "route-fix", "route-fix-not-a-defect", "route-folder", "route-folder-demo", "route-folder-ready", "route-folder-run", "route-folder-signed", "route-folder-signoff",
@@ -511,7 +511,8 @@ describe("routing (contract C4): every inbound edge lands on exactly one verb", 
 
   it("a UAT-nn of class Defect, Training gap or Duplicate is not a change: the route writes nothing", () => {
     const run = mutated("route-uat", {
-      "opchain-work/uat/larkspur-ceramics/defects/UAT-03.md": (t) => t.replace("- 2027-01-13 extension requested, client cause: testers absent from session 2 on 2027-01-12\n", ""),
+      // Sprint 3: UAT-03 is now ow-uat's own golden, whose history lines carry their rec.
+      "opchain-work/uat/larkspur-ceramics/defects/UAT-03.md": (t) => t.replace(/- 2027-01-13 (?:rec \d+: )?extension requested, client cause: testers absent from session 2 on 2027-01-12\n/, ""),
     });
     expect(failures("route-uat", run).route).toMatch(/this case expects the route "change", but uat\/larkspur-ceramics\/defects\/UAT-03\.md routes to "nothing"/);
   });

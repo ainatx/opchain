@@ -1,0 +1,12 @@
+# Answer key: route-folder-open-defects (INVENTED). C4 (the folder route, owner decision O4),
+# stage "a run with failures no UAT-nn names: -defect". Graded on the defect-triage run.
+case: route-folder-open-defects
+section: "Inbound route (the folder: a run with failures no UAT-nn names)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+run: defect-triage
+checks: [route]
+route: { from: uat/larkspur-ceramics/, expect: defect }

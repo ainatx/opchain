@@ -1,0 +1,20 @@
+# Answer key: m-builder-delay (INVENTED). Design §8.2: one business day of
+# delay the builder caused after the notice moves the backstop date one day
+# later, to 2027-01-15.
+case: m-builder-delay
+section: Backstop (builder-caused delay)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-readiness
+build_case: invoice-booking-small
+verbs: [/ow-uat-signoff --builder-delay]
+today: 2027-01-11
+checks: [headers, writes, write_once, status, private_names, rec, backstop, next]
+backstop: { readiness: 2027-01-07, delay: 1, want: 2027-01-15 }
+next: ["use ow-uat-signoff to apply the backstop on uat/mossgate-books/"]
+status:
+  lines:
+    - { path: uat/mossgate-books/backstop-log.yaml, next: ow-uat /ow-uat-signoff uat/mossgate-books/, awaiting: the backstop on 2027-01-15 (deemed on request 1) }

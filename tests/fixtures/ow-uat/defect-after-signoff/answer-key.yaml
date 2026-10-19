@@ -1,0 +1,18 @@
+# Answer key: defect-after-signoff (INVENTED). Design §6 and §11 "After
+# sign-off" (ow-uat's half) and C4 (a main-basis report after sign-off):
+# -defect refuses a new UAT-nn and prints the handoff's fix log.
+case: defect-after-signoff
+section: After sign-off (refused)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-punch-step0
+build_case: change-declined
+verbs: [/ow-uat-defect]
+today: 2027-01-29
+checks: [route, refused, next]
+route: { say: "use ow-uat-defect on uat/larkspur-ceramics/", expect: nothing }
+refused: { reason: signed off }
+next: ["use ow-handoff-fix on handoffs/larkspur-ceramics/"]

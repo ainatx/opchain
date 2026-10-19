@@ -1,0 +1,18 @@
+# Answer key: m-deemed-calendar-unsupported (INVENTED). Owner decision O8 and
+# C12 (planted state: the frozen clause names another calendar): --deemed
+# refuses with the reason calendar-not-supported, computes no date, and writes
+# nothing.
+case: m-deemed-calendar-unsupported
+section: Deemed (an unknown clause calendar, refused)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-defect-no-steps
+build_case: invoice-booking-small
+verbs: [/ow-uat-signoff --deemed]
+today: 2026-12-08
+checks: [refused, next]
+refused: { reason: calendar-not-supported, says: ["calendar-not-supported"] }
+next: []

@@ -1,0 +1,24 @@
+ow_artefact: ow-uat/signoff-requests
+schema: 1
+written_by: ow-uat 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: uat/larkspur-ceramics/uat.yaml
+created: 2027-01-22
+clock: user-stated
+origin: skill
+requests:
+  - n: 1
+    written: 2027-01-22
+    written_rec: 51
+    build_label: larkspur-uat-3
+    stated_deemed_date: "none (clauses: none)"
+    sent: none
+    notices: []
+    deemed_date: none
+    status: drafted
+    status_history:
+      - { status: drafted, rec: 51, date: 2027-01-22 }
+    post_acceptance_cos: { listed: [], confirmed: "Robin 2027-01-22: none to list" }
+    read_through: "Robin 2027-01-22"
+    signing_steps: []
+    test_accounts: []

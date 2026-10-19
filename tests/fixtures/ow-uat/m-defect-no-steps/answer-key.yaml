@@ -1,0 +1,24 @@
+# Answer key: m-defect-no-steps (INVENTED). Design §8.1 and §11 "Deemed" (a
+# report without steps does not stop the clock): the report names no failing
+# check and gives no steps, so it is not qualifying; it is recorded, it
+# supersedes nothing, and the deemed date stands. Triaged after a call as a
+# Training gap.
+case: m-defect-no-steps
+section: Deemed (a report without steps)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-sent
+build_case: invoice-booking-small
+verbs: [/ow-uat-defect]
+today: 2026-11-24
+checks: [headers, writes, write_once, status, private_names, rec, defect, internal_numbers, next]
+defect:
+  classes: { UAT-01: Training gap }
+  supersedes: {}
+next: ["use ow-uat-signoff to apply deemed acceptance on uat/mossgate-books/"]
+status:
+  lines:
+    - { path: uat/mossgate-books/defects/UAT-01.md, next: ow-uat /ow-uat-signoff uat/mossgate-books/, awaiting: sign-off by shop manager on request 1 by 2026-12-07 }

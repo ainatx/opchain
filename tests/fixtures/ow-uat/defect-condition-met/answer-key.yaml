@@ -1,0 +1,21 @@
+# Answer key: defect-condition-met (INVENTED). Design §6 and §6.1: -defect
+# records the condition met on UAT-07 once CO-03 is in agreed/; it still
+# blocks sign-off through criterion 1 until SC-13 and SC-14 pass.
+case: defect-condition-met
+section: Condition (met)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: plan-add-co
+build_case: change-sent
+verbs: [/ow-uat-defect]
+today: 2027-01-20
+checks: [headers, writes, write_once, status, private_names, rec, defect, next]
+defect:
+  terminal: { UAT-07: condition met }
+next: ["use ow-uat-run on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/defects/UAT-07.md, next: ow-uat /ow-uat-run uat/larkspur-ceramics/, awaiting: a session for SC-13 and SC-14 by 2027-01-21 }

@@ -1,0 +1,18 @@
+# Answer key: signoff-required-not-run (INVENTED). Design §11 "Required
+# scenario" (planted state): SC-07, AC-5.2's required scenario, was not run in
+# session 3, while SC-12, a bookkeeper role scenario, passed. A role scenario
+# never stands in for a required one: -signoff refuses and names AC-5.2.
+case: signoff-required-not-run
+section: Required scenario
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-retest
+build_case: change-declined
+verbs: [/ow-uat-signoff]
+today: 2027-01-22
+checks: [refused, criteria]
+refused: { reason: exit criteria }
+criteria: { "1": [AC-5.2] }

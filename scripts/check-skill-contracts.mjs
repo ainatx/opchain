@@ -38,7 +38,14 @@
 //          every hands-off file has a reads-from row in the receiver, and every
 //          reads-from row has a hands-off row in the producer (or the producer
 //          writes it as a shared workspace file). No file has two writer verbs
-//          across the family, except the append-only logs the protocol declares.
+//          across the family, except the append-only logs the protocol declares
+//          and a skill's own append log (`append_logs`, owner decision O2),
+//          which only that skill's verbs append to. A reads row marked
+//          `in_place: true` (owner decisions O1 and OD-1) reads the file where
+//          its producer left it: the producer must write it, and a chain of
+//          hand-offs from the producer to the reader must list it at every hop.
+//          A hop that hands on another skill's file marks the entry
+//          `in_place: true`; its receiver reads it or hands it on in place.
 //          A reads row marked `index: true` (owner decision O1, OW-08) lists
 //          another skill's file by path and header keys only: it reads from a
 //          family, planned or add-on skill, its fields are header keys, the
@@ -514,7 +521,8 @@ export function checkFamily(catalogs) {
     const others = catalogs.filter((o) => o !== c).map((o) => o.prefix);
     // Another catalog's skill named without its prefix ("app-architect") is still that skill.
     const stems = catalogs.filter((o) => o !== c).flatMap((o) => (existsSync(o.dir) ? listSkillIds(o.dir) : []).map((id) => id.slice(o.prefix.length)).filter((s) => s.includes("-")));
-    const stemRe = stems.length ? new RegExp(`(?<![\\w/-])(?:${stems.map(escapeRegExp).join("|")})(?![\\w-])`, "i") : null;
+    // ... and however it is spaced ("code auditor", "oc code auditor": OW-04 round 1, NM3).
+    const stemRe = stems.length ? new RegExp(`(?<![\\w/-])(?:${stems.map((s) => s.split("-").map(escapeRegExp).join("[\\s_-]")).join("|")})(?![\\w-])`, "i") : null;
     const foreign = others.length ? new RegExp(`(?<![\\w-])(?:${others.map(escapeRegExp).join("|")})[a-z0-9]+(?:-[a-z0-9]+)*`, "g") : null;
     const own = new RegExp(`(?<![\\w/-])${escapeRegExp(c.prefix)}[a-z0-9]+(?:-[a-z0-9]+)*`, "g");
     const named = [
@@ -526,6 +534,25 @@ export function checkFamily(catalogs) {
       { re: /[$€£]\s?\d|\b\d[\d,]*(?:\.\d+)?\s?(?:dollars?|euros?|pounds? sterling|USD|EUR|GBP)\b|\b(?:USD|EUR|GBP)\s?\d/i, what: "a price (a currency amount)" },
       // ... or in words ("fifteen hundred dollars").
       { re: new RegExp(`\\b${NUMWORDS}(?:[\\s-]+(?:and[\\s-]+)?${NUMWORDS})*\\s+(?:dollars?|euros?|pounds?|bucks|quid|grand)\\b`, "i"), what: "a price (an amount in words)" },
+      // ... or with no currency at all: "about 1.5k", "95 an hour", "billed at 120" (OW-04 round 1, PR1 and PR2).
+      { re: /\b\d+(?:\.\d+)?k\b(?!\s*(?:rows?|records?|orders?|lines?|items?|words?|tokens?|files?|users?|customers?|products?))|\b\d[\d,]*(?:\.\d+)?\s+(?:an|per|a)\s+(?:hour|hr|day)\b|\b(?:billed|charged|priced|invoiced)\s+(?:at|as)\s+\d/i, what: "a price (an amount with no currency)",
+        // A self-check's quoted example of what never to write ("2k for the integration") is not a price.
+        skip: (line, m) => (line.slice(0, m.index).match(/["“”]/g) ?? []).length % 2 === 1 },
+      // No contract clause wording (ow-uat contract C3, owner decision D4): clauses reach a skill only
+      // through the user's contract-inputs.md; skill text never drafts or pastes one. Category rules, not
+      // one phrasing (OW-04 round 1, CL1 to CL3): an obligation verb with "deemed"; a deemed outcome with a
+      // count of days; "taken (treated, considered) to have accepted"; the legal "ten (10) days" numeral;
+      // a payment that "becomes due" a count of days after an event; "whether or not the client has".
+      { re: new RegExp([
+        "\\bshall\\b[^.\\n]{0,80}\\bdeemed\\b",
+        "\\bdeemed\\b[^.\\n]{0,80}\\bbusiness days\\b[^.\\n]{0,80}\\bunless\\b",
+        "\\bINVENTED TEST CLAUSE\\b",
+        `\\bdeemed (?:given|made|received|delivered|to (?:have|occur)|accepted)\\b[^.\\n]{0,60}\\b(?:${NUMWORDS}|\\d+)\\s+(?:\\(\\d+\\)\\s+)?(?:business|working|calendar)?\\s?days\\b`,
+        "\\b(?:will|shall|is|are)\\s+(?:be\\s+)?(?:taken|treated|considered|deemed)\\s+to\\s+have\\s+(?:accepted|approved|been\\s+accepted|received)\\b",
+        `\\b${NUMWORDS}\\s+\\(\\d+\\)\\s+(?:business |working |calendar )?days\\b`,
+        `\\b(?:becomes?|fall(?:s)?|shall\\s+(?:become|fall)|is)\\s+(?:due|payable)\\b[^.\\n]{0,60}\\b(?:${NUMWORDS}|\\d+)\\s+(?:business|working|calendar)\\s+days\\s+(?:after|from|of)\\b`,
+        "\\bwhether or not the (?:client|customer|buyer|purchaser) has\\b",
+      ].join("|"), "i"), what: "contract clause wording (clauses reach a skill only through the user's contract inputs)" },
     ];
     const files = ids.flatMap((id) => textFiles(join(c.dir, id)).map((r) => ({ rel: `${c.relDir}/${id}/${r}`, abs: join(c.dir, id, r) })));
     // A missing source is reported by checkProtocolCopies.
@@ -538,8 +565,8 @@ export function checkFamily(catalogs) {
         for (const m of foreign ? line.matchAll(foreign) : []) {
           problems.push(`${where}: names \`${m[0]}\`, a skill outside the ${c.prefix} family (handoffs leaving the family go through the workspace's handoffs.yaml)`);
         }
-        for (const { re, what } of named) {
-          const m = line.match(re);
+        for (const { re, what, skip } of named) {
+          const m = skip ? [...line.matchAll(new RegExp(re.source, `${re.flags.replace("g", "")}g`))].find((x) => !skip(line, x)) : line.match(re);
           if (m) problems.push(`${where}: names \`${m[0]}\`, ${what}${what.startsWith("a ") ? `; public ${c.prefix} text never does (business wording lives in the user's own files)` : ""}`);
         }
         for (const m of line.matchAll(own)) {
@@ -632,7 +659,12 @@ function readEdges(c, s, problems) {
   if (!e || typeof e !== "object") { problems.push(`${rel}: empty`); return null; }
   if (e.schema !== 1) problems.push(`${rel}: schema is ${e.schema}, expected 1`);
   if (e.skill !== s.id) problems.push(`${rel}: skill is ${e.skill}, expected ${s.id}`);
-  const out = { id: s.id, rel, writes: [], reads: [], hands_off: [], routes: e.routes ?? null };
+  const out = { id: s.id, rel, writes: [], reads: [], hands_off: [], routes: e.routes ?? null, append_logs: [] };
+  // A skill-local append log (owner decision O2, 2026-10-17): a log only this skill writes, from several verbs.
+  if (e.append_logs !== undefined) {
+    if (!Array.isArray(e.append_logs) || e.append_logs.some((x) => typeof x !== "string" || !x.trim())) problems.push(`${rel}: \`append_logs\` must be a list of paths`);
+    else out.append_logs = e.append_logs;
+  }
   for (const key of ["writes", "reads", "hands_off"]) {
     if (!Array.isArray(e[key])) { problems.push(`${rel}: \`${key}\` must be a list`); continue; }
     out[key] = e[key].filter((row, n) => {
@@ -931,6 +963,17 @@ export function checkEdges(catalogs) {
       const edgeSays = new Set(e.hands_off.filter((h) => filled(h.say) && !addons.has(h.to)).map((h) => String(h.say)));
       for (const say of edgeSays) if (!templateSays.has(say)) problems.push(`${e.rel}: the handoff "${say}" has no NEXT template in ${s.id}'s body (ow- contract R15)`);
       for (const say of templateSays) if (!edgeSays.has(say)) problems.push(`${c.relDir}/${s.id}/SKILL.md: the NEXT template "${say}" matches no hands_off say: in ${e.rel}`);
+      // A NEXT template that drifted into a reference file (a phase file printing a block the body never
+      // carries) is held to the same rule: its say: is one of the skill's edges rows (Sprint 3, so the
+      // Sprint 2 plant C07 stays caught now that the planned verbs it named are declared).
+      for (const r of existsSync(refDir) ? readdirSync(refDir).filter((n) => n.endsWith(".md") && n !== basename(c.protocol?.copy ?? "")).sort() : []) {
+        readFileSync(join(refDir, r), "utf8").split("\n").forEach((line, i) => {
+          if (!/^ {4,}\S/.test(line)) return;
+          for (const m of line.matchAll(/say "(use [^"<]+(?:<[^>"]+>[^"<]*)*)"/g)) {
+            if (!edgeSays.has(m[1])) problems.push(`${c.relDir}/${s.id}/references/${r}:${i + 1}: the NEXT template "${m[1]}" matches no hands_off say: in ${e.rel} (NEXT templates live in the body, contract R15)`);
+          }
+        });
+      }
       for (const h of e.hands_off) {
         if (h.destination !== undefined && !new RegExp(`^\\s+(?:NEXT|IF IT IS NOT AVAILABLE):\\s*handoffs\\.yaml \`${escapeRegExp(String(h.destination))}\``, "m").test(s.body)) {
           problems.push(`${e.rel}: the handoff to handoffs.yaml \`${h.destination}\` has no NEXT template in ${s.id}'s body (ow- contract R15)`);
@@ -950,6 +993,16 @@ export function checkEdges(catalogs) {
       }
     }
 
+    // Skill-local append logs (O2): declared under one skill's append_logs, appended to only by that skill's verbs.
+    const localLogs = new Map();
+    for (const e of edges.values()) {
+      for (const log of e.append_logs) {
+        const k = normPath(log);
+        if (localLogs.has(k) && localLogs.get(k).skill !== e.id) problems.push(`${e.rel}: ${log} is already a skill-local append log of ${localLogs.get(k).skill}; a log has one owning skill`);
+        else localLogs.set(k, { skill: e.id, rel: e.rel, path: log });
+        if (!e.writes.some((w) => normPath(w.path) === k && w.append === true)) problems.push(`${e.rel}: append_logs names ${log}, but no writes row of ${e.id} appends to it`);
+      }
+    }
     // One writer verb per file across the family; append-only logs excepted.
     const writers = new Map();
     for (const e of edges.values()) {
@@ -962,6 +1015,14 @@ export function checkEdges(catalogs) {
     }
     for (const [k, list] of writers) {
       const name = list[0].path;
+      const local = localLogs.get(k);
+      if (local) {
+        for (const w of list) {
+          if (w.skill !== local.skill) problems.push(`${w.rel}: ${name} is a skill-local append log of ${local.skill} (its append_logs); ${w.skill} ${w.verb} cannot write it (owner decision O2: only its own skill writes it)`);
+          else if (!w.append) problems.push(`${w.rel}: ${name} is a skill-local append log; ${w.verb} must declare append: true`);
+        }
+        continue;
+      }
       const declaredAppend = appendOnly.has(name);
       if (declaredAppend) {
         for (const w of list) if (!w.append) problems.push(`${w.rel}: ${name} is append-only (protocol); ${w.verb} must declare append: true`);
@@ -974,12 +1035,26 @@ export function checkEdges(catalogs) {
 
     // Reciprocity inside the family. A planned skill or add-on has no edges file yet.
     const writes = (id, path) => (edges.get(id)?.writes ?? []).some((w) => normPath(w.path) === normPath(path));
+    const entryPath = (f) => (typeof f === "string" ? f : f?.path);
+    const lists = (h, path) => (Array.isArray(h.files) ? h.files : []).some((f) => filled(entryPath(f)) && normPath(entryPath(f)) === normPath(path));
     for (const p of edges.values()) {
       for (const h of p.hands_off) {
         const files = Array.isArray(h.files) ? h.files : [];
         for (const f of files) {
-          const path = typeof f === "string" ? f : f?.path;
+          const path = entryPath(f);
           if (!filled(path)) { problems.push(`${p.rel}: a hands_off file to ${h.to ?? h.destination} has no path`); continue; }
+          // A file handed on for a reader further down the chain that reads it in place (owner decision OD-1,
+          // 2026-10-17). The hop need not write it (some family skill does); its receiver reads it or hands it
+          // on in place again.
+          if (typeof f === "object" && f.in_place !== undefined) {
+            if (f.in_place !== true) { problems.push(`${p.rel}: hands off ${path}: in_place must be true or left out`); continue; }
+            if (![...edges.values()].some((e) => writes(e.id, path))) problems.push(`${p.rel}: hands on ${path} in place, but no family skill writes it`);
+            const r = edges.get(h.to);
+            if (r && !r.reads.some((x) => normPath(x.path) === normPath(path)) && !r.hands_off.some((x) => (x.files ?? []).some((g) => typeof g === "object" && g?.in_place === true && normPath(g.path) === normPath(path)))) {
+              problems.push(`${p.rel}: hands on ${path} in place to ${h.to}, which neither reads it nor hands it on in place (${r.rel})`);
+            }
+            continue;
+          }
           if (!writes(p.id, path)) problems.push(`${p.rel}: hands off ${path}, which ${p.id} does not write`);
           const r = edges.get(h.to);
           if (!r) continue;
@@ -994,8 +1069,27 @@ export function checkEdges(catalogs) {
         }
       }
     }
+    // A chain of hand-offs from one family skill to another (any length, through skills with edges files)
+    // in which EVERY hop lists the file, or a field of it, in its hand-off (owner decision OD-1, 2026-10-17:
+    // a chain that merely exists is not enough in a family whose hand-offs loop back).
+    const carries = (from, to, path) => {
+      const seen = new Set([from]);
+      const queue = [from];
+      while (queue.length) {
+        const cur = queue.shift();
+        for (const h of edges.get(cur)?.hands_off ?? []) {
+          if (typeof h.to !== "string" || h.to === "none" || !lists(h, path)) continue;
+          if (h.to === to) return true;
+          if (!seen.has(h.to) && edges.has(h.to)) { seen.add(h.to); queue.push(h.to); }
+        }
+      }
+      return false;
+    };
     for (const r of edges.values()) {
       for (const row of r.reads) {
+        const inPlace = row.in_place === true;
+        if (row.in_place !== undefined && typeof row.in_place !== "boolean") problems.push(`${r.rel}: reads ${row.path}: in_place must be true or left out`);
+        if (inPlace && !(ids.includes(row.from) || planned.has(row.from))) problems.push(`${r.rel}: reads ${row.path} in place from ${row.from}; in_place is for a file a family skill writes`);
         if (!filled(row.path) || !ids.includes(row.from)) continue;
         const p = edges.get(row.from);
         if (!p) continue;
@@ -1004,10 +1098,17 @@ export function checkEdges(catalogs) {
           if (!writes(p.id, row.path)) problems.push(`${r.rel}: indexes ${row.path} from ${p.id}, which ${p.rel} does not write (an index lists only files their producer writes, owner decision O1)`);
           continue;
         }
-        if (!writes(p.id, row.path)) { problems.push(`${r.rel}: reads ${row.path} from ${p.id}, which ${p.rel} does not write`); continue; }
+        if (!writes(p.id, row.path)) { problems.push(`${r.rel}: reads ${row.path}${inPlace ? " in place" : ""} from ${p.id}, which ${p.rel} does not write`); continue; }
         if (p.id === r.id || row.shared === true) continue; // its own file, or a workspace file the producer keeps for the family
         const matched = p.hands_off.some((h) => h.to === r.id && (h.files ?? []).some((f) => normPath(typeof f === "string" ? f : f?.path) === normPath(row.path)));
-        if (!matched) problems.push(`${r.rel}: reads ${row.path} from ${p.id}, but ${p.rel} has no hands_off row to ${r.id} carrying it`);
+        if (matched) continue;
+        // Read in place (owner decisions O1 and OD-1, 2026-10-17): the file stays where its producer wrote it,
+        // and a chain of hand-offs from the producer to the reader lists it at every hop.
+        if (inPlace) {
+          if (!carries(p.id, r.id, row.path)) problems.push(`${r.rel}: reads ${row.path} in place from ${p.id}, but no chain of hand-offs from ${p.id} to ${r.id} lists it at every hop (owner decision OD-1)`);
+          continue;
+        }
+        problems.push(`${r.rel}: reads ${row.path} from ${p.id}, but ${p.rel} has no hands_off row to ${r.id} carrying it`);
       }
     }
   }

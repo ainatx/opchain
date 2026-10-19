@@ -1,0 +1,16 @@
+# Answer key: backstop-no-clause (INVENTED). Design §8.2 and C12: --backstop refuses
+# when no backstop clause. Nothing is written (backstop.md is written once, if ever).
+case: backstop-no-clause
+section: "Backstop (refused: no backstop clause)"
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people: [Priya, Priya Natarajan]
+private_names: [llc-ops, Deftwright, Priya]
+base: m-deemed
+build_case: invoice-booking-small
+verbs: [/ow-uat-signoff --backstop]
+today: 2027-01-18
+checks: [refused, backstop_refused]
+refused: { reason: "no backstop clause" }
+backstop_refused: { reason: "no backstop clause" }

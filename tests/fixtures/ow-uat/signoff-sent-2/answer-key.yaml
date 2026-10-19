@@ -1,0 +1,18 @@
+# Answer key: signoff-sent-2 (INVENTED). Design §8 --sent on request 2.
+case: signoff-sent-2
+section: Request lifecycle (sent)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: signoff-request-2
+build_case: change-declined
+verbs: [/ow-uat-signoff --sent]
+today: 2027-01-26
+checks: [headers, writes, write_once, status, private_names, rec, signoff, next]
+signoff: { request: 2, sent: 2027-01-26 }
+next: ["use ow-uat-signoff to record the signature on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/signoff-requests.yaml, next: ow-uat /ow-uat-signoff uat/larkspur-ceramics/, awaiting: sign-off by operations manager on request 2 by 2027-02-02 }

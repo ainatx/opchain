@@ -1,0 +1,20 @@
+# Answer key: plan-addendum-delivered (INVENTED). Design §3: -plan --addendum,
+# re-run when the builder reports the change order delivered, records
+# "delivered <date>, build <label>" in uat.yaml.
+case: plan-addendum-delivered
+section: Addendum (delivered)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: plan-addendum
+build_case: change-declined
+verbs: [/ow-uat-plan --addendum]
+today: 2027-02-03
+checks: [headers, writes, write_once, status, private_names, rec, plan_mode, next]
+plan_mode: { mode: --addendum, co: CO-04, delivered: larkspur-uat-5, agreed_unchanged: true }
+next: ["use ow-uat-run on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/uat.yaml, next: ow-uat /ow-uat-run uat/larkspur-ceramics/, awaiting: a session for SC-13 by 2027-02-04 }

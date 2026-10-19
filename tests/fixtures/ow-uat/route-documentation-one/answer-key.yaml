@@ -1,0 +1,13 @@
+# Answer key: route-documentation-one (INVENTED). C4, documentation's -start:
+# "use ow-uat-signoff" with no path and one unsigned client in STATUS runs
+# -signoff for it. Graded on signoff-request-1.
+case: route-documentation-one
+section: "Inbound route (documentation: one client)"
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+run: signoff-request-1
+checks: [route]
+route: { say: "use ow-uat-signoff", expect: signoff }
