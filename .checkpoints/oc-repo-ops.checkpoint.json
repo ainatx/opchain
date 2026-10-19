@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a147d4d6f52f711e3",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a14d6e3771986110e",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-19T21:06:43.901Z",
+  "updated_at": "2026-10-19T22:09:55.545Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "OW-04 follow-up: ow-uat 1.0.1 (R3-6, R3-4, R3-1 to R3-7)",
-  "progress_summary": "OW-04 follow-up PR readiness: one content commit on origin/main @ 64cddc1d; build leaves no tracked change; generated outputs current; oc- sources equal origin/main.",
+  "step": "OW-09 (Sprint R): ow-research 1.0.0 + ow-build-plan 1.1.0 (P5)",
+  "progress_summary": "OW-09 PR readiness: one content commit (5b64824b) on origin/main @ c9c16c48, made through the gate after the 13:04 re-enrollment (earlier branch commits read PASS_UNMATCHED, none FAIL or bypassed); build leaves no tracked change; generated outputs current; oc- sources equal origin/main.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -24,18 +24,19 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "The ow- catalog is in no build output yet (Sprint 5)"
+      "The ow- catalog is in no build output yet (Sprint 5)",
+      "Evaluation round 2 passed under the owner's cap with M3 (checker-only) open; M3, m1-m10, the nits and the security closure's R3-01 are the follow-up PR's"
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "d7d46364c62e653d5e59769a09fd02003d0d16c9",
+    "verified_for_sha": "5b64824bba09956b0ff5e7f5a7474ea1375c23e4",
     "last_verify": {
-      "at": "2026-10-19T21:06:43.901Z",
-      "branch": "claude/ow-04-followups",
-      "base": "origin/main @ 64cddc1d (#634)",
+      "at": "2026-10-19T22:09:55.545Z",
+      "branch": "claude/ow-09-ow-research",
+      "base": "origin/main @ c9c16c48",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -2128,8 +2129,46 @@
           "tests/fixtures/ow-uat/README.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-ow-09-landing-2026-10-19-2cf5984031ab",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-19T22:09:55.545Z",
+      "verified_at": "2026-10-19T22:09:55.545Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "ow-09-landing-2026-10-19"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:2cf5984031abd2b7ebf25ec194eddbe4e33a7b57e10e6ae5793124a0222a2e5b"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "OW-09 (Sprint R), ow-research 1.0.0 + ow-build-plan 1.1.0 (P5), after two evaluation rounds (7.4, PASS under the owner's 2026-10-19 cap; M3 checker-only to the follow-up) and three security rounds (A-; R3-01 to the follow-up), residuals owner-accepted and the licence table owner-reviewed: npm test (142 files, 7,052 passed, 14 skipped) and the build pass with no tracked change; sync-bundles, sync-plugin-skills, gen-route-spec, check-skill-flags, catalog (36 + 5 ow-), contracts and lint-internal-refs pass; the six ow- acceptance checkers pass (ow-start 54, ow-start-logs 50, ow-build-plan 36, ow-build 55, ow-uat 145, ow-research 73); ow-research and ow-build-plan acceptance under the network fence log 0 bytes; oc- sources (skills/, plugins/, src/, site/, mcp/, package*.json, build.mjs) equal origin/main; the ow-research body is about 3,339 of 4,500 tokens.",
+        "evidence": [
+          "skills-work/ow-research/SKILL.md",
+          "skills-work/ow-research/CHANGELOG.md",
+          "skills-work/ow-research/references/framework-sources.md",
+          "skills-work/ow-research/references/web-rules.md",
+          "skills-work/ow-research/references/phase-run.md",
+          "skills-work/ow-build-plan/SKILL.md",
+          "skills-work/ow-build-plan/CHANGELOG.md",
+          "skills-work/ow-build-plan/references/phase-collect.md",
+          "skills-work/README.md",
+          "docs/plans/2026-10-16-ow-research-design.md",
+          "docs/plans/2026-10-09-ow-tools-design.md",
+          "sprints/release-2.1/ow-09/contract.md",
+          "sprints/release-2.1/ow-09/eval-round-1.md",
+          "sprints/release-2.1/ow-09/eval-round-2.md",
+          "docs/audits/2026-10-17-ow-research-1.0-security-review.md",
+          "tests/fixtures/ow-research/README.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-19T21:06:43.901Z",
+  "record_updated_at": "2026-10-19T22:09:55.545Z",
   "blockers": []
 }
