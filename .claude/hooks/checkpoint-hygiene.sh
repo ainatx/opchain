@@ -24,6 +24,13 @@
 #     AFTER its invocation — a Write/Edit/MultiEdit/NotebookEdit file_path, or a Bash
 #     `git -C <dir>` / `cd <dir>` target, resolving under PROJECT_DIR. 36 of 62
 #     blocks were Deftwright work done from an opchain worktree.
+#   - Nested checkouts: a path under PROJECT_DIR whose git toplevel is a checkout
+#     nested inside it belongs to that checkout, as does anything under
+#     PROJECT_DIR/.claude/worktrees/ (the desktop app's worktrees), even once
+#     removed. A session whose cwd is a worktree of this repo nested inside
+#     PROJECT_DIR is policed against that worktree instead ($CLAUDE_PROJECT_DIR
+#     names the outer checkout there; 2026-10-19 a worktree session was blocked
+#     twice on the main checkout with its checkpoint current).
 #   - One-shot decline: the same missing skill set is blocked at most twice per
 #     session; the third Stop logs one stderr note and exits 0 (one session was
 #     blocked 30 times).
@@ -67,7 +74,8 @@ fi
 HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 HOOK_REPO="$(cd "$HOOK_DIR/../.." && pwd -P)"
 
-real_dir() { (cd "$1" 2>/dev/null && pwd -P) || true; }
+real_dir() { [[ -n "$1" ]] || return 0; (cd "$1" 2>/dev/null && pwd -P) || true; }
+git_common_dir() { [[ -n "$1" ]] || return 0; (cd "$1" 2>/dev/null && real_dir "$(git rev-parse --git-common-dir 2>/dev/null)") || true; }
 
 # ── Which checkout is "this repo"? ───────────────────────────────────────────
 if [[ -n "${CLAUDE_PROJECT_DIR:-}" && -d "$CLAUDE_PROJECT_DIR" ]]; then
@@ -83,6 +91,22 @@ else
 fi
 PROJECT_REAL="$(real_dir "$PROJECT_DIR")"
 [[ -n "$PROJECT_REAL" ]] || exit 0
+
+# A session in a worktree of this repo nested inside PROJECT_DIR (the desktop app's
+# <checkout>/.claude/worktrees/<name>) still gets $CLAUDE_PROJECT_DIR = the outer
+# checkout. The worktree is the session's own checkout, so it is "this repo": its
+# .checkpoints/ satisfies the hook and the outer checkout is another checkout. The
+# worktree keeps PROJECT_DIR's spelling so unresolved transcript paths still match.
+if [[ -n "$EVENT_CWD" && -d "$EVENT_CWD" ]]; then
+  CWD_TOP="$(real_dir "$(git -C "$EVENT_CWD" rev-parse --show-toplevel 2>/dev/null || true)")"
+  if [[ -n "$CWD_TOP" && "$CWD_TOP" == "$PROJECT_REAL"/* ]]; then
+    CWD_COMMON="$(git_common_dir "$CWD_TOP")"
+    if [[ -n "$CWD_COMMON" && "$CWD_COMMON" == "$(git_common_dir "$PROJECT_REAL")" ]]; then
+      PROJECT_DIR="$PROJECT_DIR${CWD_TOP#"$PROJECT_REAL"}"
+      PROJECT_REAL="$CWD_TOP"
+    fi
+  fi
+fi
 CHECKPOINT_DIR="$PROJECT_DIR/.checkpoints"
 
 # ── Enforced inventory ───────────────────────────────────────────────────────
@@ -127,8 +151,10 @@ fi
 OFFSET="$(jq -r '.offset // 0' <<<"$STATE")"
 case "$OFFSET" in ''|*[!0-9]*) OFFSET=0 ;; esac
 SIZE="$(wc -c <"$TRANSCRIPT_PATH" | tr -d '[:space:]')"
-if (( OFFSET > SIZE )); then
-  # Transcript was truncated or rotated — start over, forgetting stale invocations.
+if (( OFFSET > SIZE )) || [[ "$(jq -r '.root // empty' <<<"$STATE")" != "$PROJECT_REAL" ]]; then
+  # Transcript was truncated or rotated, or the session's cwd moved to another
+  # checkout so the cached touched flags were judged against a different root —
+  # start over, forgetting stale invocations.
   OFFSET=0
   STATE="$(jq -c '.skills = {}' <<<"$STATE")"
 fi
@@ -149,16 +175,21 @@ NEW_OFFSET=$((OFFSET + CHUNK_SIZE - PARTIAL))
 # or non-JSON line is dropped by fromjson?).
 EVENTS="$( { grep -F '"tool_use"' "$CHUNK" || true; } | jq -c -R 'fromjson? // empty' | jq -s -c '.')"
 
-# Fold the new events into the session state. Host/plugin namespaces such as
-# `opchain:oc-code-auditor` normalize to their trailing catalog id. A skill's
-# `touched` flag flips when any later tool call resolves a path under PROJECT_DIR;
-# re-invoking the skill resets it, so the LAST invocation governs.
-read -r -d '' JQ_FOLD <<'EOF' || true
+# Shared jq: the paths each tool call targets, absolutized against the event cwd
+# with . and .. folded, and `under` = inside PROJECT_DIR by prefix but not in
+# PROJECT_DIR/.claude/worktrees/ (matched by name so a removed worktree stays out).
+read -r -d '' JQ_DEFS <<'EOF' || true
+def inside($base): . == $base or startswith($base + "/");
 def under:
-  . as $p
-  | ($p == $root) or ($p == $real)
-    or ($p | startswith($root + "/")) or ($p | startswith($real + "/"));
-def absolutize($cwd): if startswith("/") then . else ($cwd + "/" + .) end;
+  (inside($root) or inside($real))
+  and ((inside($root + "/.claude/worktrees") or inside($real + "/.claude/worktrees")) | not);
+def normpath:
+  if startswith("/") then
+    split("/")
+    | reduce .[] as $s ([]; if $s == "" or $s == "." then . elif $s == ".." then .[:-1] else . + [$s] end)
+    | "/" + join("/")
+  else . end;
+def absolutize($cwd): (if startswith("/") then . else ($cwd + "/" + .) end) | normpath;
 def unquote: sub("^[\"']"; "") | sub("[\"']$"; "");
 def paths_of($tu):
   [ (if (($tu.name // "") | test("^(Write|Edit|MultiEdit|NotebookEdit)$"))
@@ -170,23 +201,60 @@ def paths_of($tu):
         | .[] | unquote)
      else empty end)
   ] | map(select(type == "string" and length > 0));
-reduce (
+def tool_events:
   .[] | select((.type // "assistant") != "user")
-  | {ts: (.timestamp // ""), cwd: (.cwd // ""), tu: (.message.content[]? | select(.type == "tool_use"))}
-) as $e (
+  | {ts: (.timestamp // ""), cwd: (.cwd // ""), tu: (.message.content[]? | select(.type == "tool_use"))};
+def event_paths($e): paths_of($e.tu)[] | absolutize($e.cwd);
+EOF
+
+# A path under PROJECT_DIR by prefix still belongs to another checkout when its git
+# toplevel is a checkout nested inside PROJECT_DIR (a worktree outside
+# .claude/worktrees/, a nested clone). Resolve each candidate's nearest existing
+# directory, once per directory; the fold skips the foreign paths. With no git
+# toplevel, or one at or above PROJECT_DIR, the prefix decides.
+CANDIDATES="$(jq -r --arg root "$PROJECT_DIR" --arg real "$PROJECT_REAL" "$JQ_DEFS"'
+  [tool_events as $e | event_paths($e) | select(under)] | unique | .[]' <<<"$EVENTS" 2>/dev/null)" || exit 0
+FOREIGN_LIST=""
+DIR_TOPS=$'\n' # resolved "<dir><TAB><real toplevel>" lines
+while IFS= read -r path; do
+  [[ -n "$path" ]] || continue
+  dir="$path"
+  while [[ -n "$dir" && ! -d "$dir" ]]; do dir="${dir%/*}"; done
+  [[ -n "$dir" ]] || continue
+  case "$DIR_TOPS" in
+    *$'\n'"$dir"$'\t'*)
+      top="${DIR_TOPS#*$'\n'"$dir"$'\t'}"
+      top="${top%%$'\n'*}" ;;
+    *)
+      top="$(real_dir "$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null || true)")"
+      DIR_TOPS="$DIR_TOPS$dir"$'\t'"$top"$'\n' ;;
+  esac
+  if [[ "$top" == "$PROJECT_REAL"/* ]]; then
+    FOREIGN_LIST="$FOREIGN_LIST$path"$'\n'
+  fi
+done <<<"$CANDIDATES"
+FOREIGN="$(printf '%s' "$FOREIGN_LIST" | jq -R -s -c 'split("\n") | map(select(length > 0) | {(.): true}) | add // {}')"
+
+# Fold the new events into the session state. Host/plugin namespaces such as
+# `opchain:oc-code-auditor` normalize to their trailing catalog id. A skill's
+# `touched` flag flips when any later tool call resolves a path in this checkout;
+# re-invoking the skill resets it, so the LAST invocation governs.
+read -r -d '' JQ_FOLD <<'EOF' || true
+reduce tool_events as $e (
   ($state | .skills //= {} | .blocks //= {});
   ($e.tu.name // "") as $name
   | if ($name | test("(^|[:/.])skill$"; "i")) then
       ((($e.tu.input.skill // "") | try (capture("(?<s>oc-[a-z0-9-]+)$").s) catch null) // null) as $s
       | if $s then .skills[$s] = {at: $e.ts, touched: false} else . end
-    elif ([paths_of($e.tu)[] | absolutize($e.cwd) | under] | any) then
+    elif ([event_paths($e) | under and ($foreign[.] != true)] | any) then
       .skills |= with_entries(.value.touched = true)
     else . end
 )
 | .offset = $offset
+| .root = $real
 EOF
 
-NEW_STATE="$(jq -c --argjson state "$STATE" --arg root "$PROJECT_DIR" --arg real "$PROJECT_REAL" --argjson offset "$NEW_OFFSET" "$JQ_FOLD" <<<"$EVENTS" 2>/dev/null)" || exit 0
+NEW_STATE="$(jq -c --argjson state "$STATE" --arg root "$PROJECT_DIR" --arg real "$PROJECT_REAL" --argjson foreign "$FOREIGN" --argjson offset "$NEW_OFFSET" "$JQ_DEFS"$'\n'"$JQ_FOLD" <<<"$EVENTS" 2>/dev/null)" || exit 0
 
 write_marker() {
   local tmp="$MARKER.$$"
