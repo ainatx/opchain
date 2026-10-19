@@ -3,7 +3,7 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a147d4d6f52f711e3",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-19T21:06:43.901Z",
+  "updated_at": "2026-10-19T22:40:35.249Z",
   "skill": "oc-docs-forge",
   "phase": "pr-docs",
   "status": "complete",
@@ -47,7 +47,7 @@
     ],
     "docs_not_changed_reason": null,
     "follow_up_docs": [],
-    "verified_for_sha": "d7d46364c62e653d5e59769a09fd02003d0d16c9",
+    "verified_for_sha": "6830078424eca3543789fe3c59a4605bd02ef249",
     "pr_body_fragment": "## Documentation\n\n- `skills-work/ow-uat/CHANGELOG.md` (new): 1.0.1, and the 1.0.0 entry.\n- `skills-work/ow-uat/SKILL.md` (version 1.0.1) and `references/`: `phase-plan.md` (R3-6), `self-checks.md` (R3-4, R3-3), `uat-yaml-schema.md` §6 (R3-1, R3-5), `phase-signoff.md` (R3-2).\n- `skills-work/README.md`: ow-uat 1.0.1, pointing to its changelog.\n- `docs/plans/2026-10-09-ow-uat-design.md` §15: R3-4 and R3-6 marked built and where; departures 38–40.\n- `tests/fixtures/ow-uat/README.md`: the five new goldens."
   },
   "next_actions": [],
@@ -2144,8 +2144,31 @@
           "tests/fixtures/ow-uat/README.md"
         ]
       }
+    },
+    {
+      "id": "oc-docs-forge-pr-docs-v1-6220df682a6c",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-19T22:40:35.248Z",
+      "verified_at": "2026-10-19T22:40:35.248Z",
+      "producer": {
+        "skill": "oc-docs-forge",
+        "run_id": "pr-docs-v1-2026-10-19T22:40:35.248Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:6220df682a6c1dfa6353c8732deddb7a353614b2c12f62a321cffc5162d48c93"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-docs-v1",
+        "scope": ".claude/hooks/checkpoint-hygiene.sh, tests/checkpoint-hygiene.test.js",
+        "evidence": [
+          "Hook-scoping fix plus its regression tests; no README, CHANGELOG, docs/, runbook or SKILL.md describes the changed attribution rule, and the hook header comment documents it"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-19T21:06:43.901Z",
+  "record_updated_at": "2026-10-19T22:40:35.249Z",
   "blockers": []
 }
