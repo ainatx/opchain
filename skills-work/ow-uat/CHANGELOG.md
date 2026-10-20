@@ -2,6 +2,11 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump (OW-04 ruling O9) and are listed here as data edits.
 
+## 1.0.2 (2026-10-19): Visa's published test card is test data
+
+- **Visa's published test card** (owner decision 2026-10-19, `references/self-checks.md`): `4111 1111 1111 1111` in a test-mode scenario is test data, like Stripe's published cards; a number one digit off, or any other card shape, is still a finding.
+- Data edits in the same PR: the acceptance checker's published test card list carries it; a new golden (`plan-addendum-test-card`) writes an addendum scenario that pays in test mode with it, and a plant with a number one digit off is caught. The goldens keep the 1.0.0 they were written with.
+
 ## 1.0.1 (2026-10-19): refreeze through a change order, test data, and the evaluation round 3 minors
 
 From the OW-04 round 3 report (`sprints/release-2.1/ow-sprint-3/eval-round-3.md`, PASS at 7.8) and the owner's decisions of 2026-10-19, taken in one follow-up PR.

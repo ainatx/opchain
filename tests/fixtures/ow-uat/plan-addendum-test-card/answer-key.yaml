@@ -1,0 +1,21 @@
+# Answer key: plan-addendum-test-card (INVENTED). ow-uat 1.0.2, owner decision 2026-10-19: Visa's
+# published test card (4111 1111 1111 1111) in a test-mode step is test data, like Stripe's published cards,
+# so the Data check passes. Otherwise plan-addendum: -plan --addendum writes SC-13 for CO-04 without adding
+# it to the basis.
+case: plan-addendum-test-card
+section: Test data (Visa's published test card in a test-mode scenario)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people: [Jess Arden, Tomas Vey, Lena Okafor, Jess]
+private_names: [llc-ops, Deftwright]
+base: defect-punch-step0
+build_case: change-declined
+verbs: [/ow-uat-plan --addendum]
+today: 2027-02-01
+checks: [headers, writes, write_once, status, private_names, rec, plan_mode, scenarios, data, next]
+plan_mode: { mode: --addendum, co: CO-04, scenarios: [SC-13], agreed_unchanged: true }
+next: ["use ow-uat-run on uat/larkspur-ceramics/"]
+status:
+  lines:
+    - { path: uat/larkspur-ceramics/uat.yaml, next: ow-uat /ow-uat-run uat/larkspur-ceramics/, awaiting: CO-04 delivered by the builder }

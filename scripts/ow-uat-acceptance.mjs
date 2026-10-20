@@ -774,9 +774,11 @@ const isCountColumn = (h) => /\b(?:number|no\.?) of\b/i.test(h) || (!ID_HEADER.t
 // R3-3: "Client", "Customers", "Company", "Store" too).
 const NAME_COLUMN = /^(?:customers?(?: name)?|clients?(?: name)?|name|names|full name|contacts?(?: name)?|recipients?|ship to|buyers?|payees?|bill to|compan(?:y|ies)|business(?:es)?|stores?|shops?|vendors?|suppliers?)$/i;
 // Owner decision R3-4: a payment provider's published test card is test data, never a record value. A small list:
-// Stripe's published test numbers (brands, debit and prepaid, and the documented declines). A number not listed,
-// or a real card shape, is still refused.
+// Stripe's published test numbers (brands, debit and prepaid, and the documented declines), and Visa's published
+// test card 4111 1111 1111 1111 (owner decision 2026-10-19, ow-uat 1.0.2). A number not listed, or a real card
+// shape, is still refused.
 export const PUBLISHED_TEST_CARDS = new Set([
+  "4111111111111111",
   "4242424242424242", "4000056655665556", "5555555555554444", "2223003122003222", "5200828282828210", "5105105105105100",
   "378282246310005", "371449635398431", "6011111111111117", "6011000990139424", "3056930009020004", "36227206271667",
   "3566002020360505", "6200000000000005", "4000000000000002", "4000000000009995", "4000000000009987", "4000000000009979",

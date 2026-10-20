@@ -3,9 +3,10 @@
 // the round-2 plants for bugs 1-17 and the owner decisions of 2026-10-16. Each
 // plant edits a golden run (or a copy of skills-work/) and must fail the check
 // named; the evaluator's controls (P07, P11, P17, P21, T08, T11) stay caught.
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, onTestFinished } from "vitest";
 import { spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import * as yaml from "js-yaml";
@@ -15,9 +16,16 @@ import { checkEdges, checkFamily, checkProtocolCopies, checkVerbs } from "../scr
 import { loadCatalogs } from "../scripts/lib/catalogs.mjs";
 
 const ROOT = join(import.meta.dirname, "..");
+// A scratch folder made inside a test is removed in the background once that test finishes, so a file's folders never
+// pile up for one long afterAll; one made outside a test waits for afterAll, which also waits for removals still running.
 const scratch = [];
-afterAll(() => scratch.forEach((d) => rmSync(d, { recursive: true, force: true })));
-const temp = (p) => { const d = mkdtempSync(join(tmpdir(), p)); scratch.push(d); return d; };
+const pending = new Set();
+const keep = (d) => {
+  try { onTestFinished(() => { const job = rm(d, { recursive: true, force: true }).catch(() => {}).finally(() => pending.delete(job)); pending.add(job); }); } catch { scratch.push(d); }
+  return d;
+};
+afterAll(async () => { scratch.splice(0).forEach((d) => rmSync(d, { recursive: true, force: true })); await Promise.all(pending); }, 120_000);
+const temp = (p) => keep(mkdtempSync(join(tmpdir(), p)));
 const B = "opchain-work/builds/larkspur-ceramics";
 const both = (rel, fn) => ({ [`${rel}.html`]: fn, [`${rel}.txt`]: fn });
 

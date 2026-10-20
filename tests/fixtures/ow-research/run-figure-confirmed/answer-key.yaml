@@ -1,0 +1,56 @@
+# INVENTED. The business market topic of run-business, with a round figure in its query that equals one of ours (2,000)
+# only by coincidence. The plan shows the figure prompt; the user confirms in the session that it is a market figure;
+# the run records "figure confirmed" after the plan and before the go (references/phase-run.md §2), then completes
+# as run-business does. The recorded search returns the same results for the reworded query.
+case: run-figure-confirmed
+section: 'C10: a round figure confirmed by the user, then searched (O8 as narrowed)'
+verbs:
+  - /ow-research-run
+base: question-business
+workstream: business
+topic: RS-01-support-plan-offers
+search_overrides:
+  "automation studio monthly support plan pricing small business $2,000 project":
+    - https://northpine.example.com/services/support
+    - https://brightloop.example.org/pricing
+    - https://cobaltworks.example.net/pricing
+    - https://directory.example.net/automation-studios
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+screen:
+  file: run.md
+  says:
+    - Refused by the URL rule (not https); not opened.
+  self_checks: true
+  next: none
+status:
+  lines:
+    - path: research/business/RS-01-support-plan-offers/findings.md
+      next: 'none (closed: answered, RS-01)'
+      awaiting: none
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - ledger
+  - reconcile
+  - caps
+  - url_rule
+  - provenance
+  - privacy
+  - handling
+  - opened
+  - confidence
+  - cited
+  - quotes
+  - credentials
+  - handoff_fields
+  - self_checks
+  - ids
+  - private_names
+  - people

@@ -7,9 +7,10 @@
 // own when a file is malformed (C11); and the skill text keeps the rules the
 // checker cannot see. To check a real run:
 // node scripts/ow-build-acceptance.mjs --prepare <case> <dir>.
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, onTestFinished } from "vitest";
 import { spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import * as yaml from "js-yaml";
@@ -21,9 +22,16 @@ import { matter } from "../scripts/lib/frontmatter.mjs";
 const ROOT = join(import.meta.dirname, "..");
 const SKILL = join(ROOT, "skills-work", "ow-build");
 const CLI = join(ROOT, "scripts", "ow-build-acceptance.mjs");
+// A scratch folder made inside a test is removed in the background once that test finishes, so a file's folders never
+// pile up for one long afterAll; one made outside a test waits for afterAll, which also waits for removals still running.
 const scratch = [];
-afterAll(() => scratch.forEach((d) => rmSync(d, { recursive: true, force: true })));
-const temp = (p) => { const d = mkdtempSync(join(tmpdir(), p)); scratch.push(d); return d; };
+const pending = new Set();
+const keep = (d) => {
+  try { onTestFinished(() => { const job = rm(d, { recursive: true, force: true }).catch(() => {}).finally(() => pending.delete(job)); pending.add(job); }); } catch { scratch.push(d); }
+  return d;
+};
+afterAll(async () => { scratch.splice(0).forEach((d) => rmSync(d, { recursive: true, force: true })); await Promise.all(pending); }, 120_000);
+const temp = (p) => keep(mkdtempSync(join(tmpdir(), p)));
 
 const CASES = [
   "change-declined", "change-fix-too-big", "change-in-scope", "change-not-a-defect", "change-priced", "change-sent", "change-signed", "change-uat-extension", "change-uat-repriced", "change-uat-too-big", "change-uat-unpriced", "change-unpriced",

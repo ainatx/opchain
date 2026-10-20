@@ -39,7 +39,7 @@ One line per event, in order, never changed or removed:
 |---|---|---|
 | `marker: plan` | `Q-nn "<query>" · Q-nn "<query>"` | the planned queries, before the first search |
 | `marker: plan approved` | `human-decided: the user approved Q-nn, Q-nn`, naming only what the user approved; a declined query after them in brackets, `(Q-nn declined)` | the user's one go; a line without `human-decided:` approves nothing |
-| `marker: figure confirmed` | `Q-nn \| human-decided: the user confirmed <figure> is a market figure` | a round figure in Q-nn equals one of ours; before the plan's approval |
+| `marker: figure confirmed` | `Q-nn \| human-decided: the user confirmed <figure> is a market figure` | a round figure in Q-nn equals one of ours; after the plan (or batch) that showed Q-nn and before its approval, in the user's own words |
 | `marker: batch` / `marker: batch approved` / `marker: batch withdrawn` | as for the plan; past the cap, `human-decided: past the cap: +<n>` after a `marker: batch` that showed the extra requests | queries or requests added mid-run, or past the cap; a withdrawn batch is never sent |
 | `marker: by-name approved` | `Q-nn "<exact query>"` or `P-nn <exact URL>` | before that one request |
 | `marker: handling` | `level "<words>" (<source>); environment approved: <answer>; assistant internet access and connected apps: off, confirmed by user, not verified` | a level is set |

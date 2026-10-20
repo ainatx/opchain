@@ -2,6 +2,8 @@
 
 Run step 0 of `references/ow-protocol.md` first, without the handling question: these two verbs read `STATUS.md`, folder names, file headers and ledger markers only, never a page, a finding's text or a client file. Neither writes anything. Neither sends any request.
 
+**Step 0's lines come first on every screen** of this skill, a refusal or a no-op included, in these forms: `Step 0. Newest STATUS line: <the line>`; one `Step 0. Awaiting: <the line>` for each line still marked `awaiting:`; for a stored "no", `Handling: no (stored in <file>).`; and step 0c's notice in the protocol's words. Where a phase file says a screen prints a line "and nothing else", or "these lines and no others", it means nothing else after these.
+
 ## 1. Where work arrives from
 
 Every inbound route lands on exactly one verb:

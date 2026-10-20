@@ -218,7 +218,15 @@ PINS.push(
   { id: "research: a snippet is never a source", file: RRUN, must: "**a search result's snippet is never a source.**" },
   { id: "research: the host's prompts stay on (body)", file: RBODY, must: "(host-enforced: this skill declares no tools)" },
   // ow-currency in this release (owner decision 2026-10-19): the watch line only, and the planned skill said as such.
-  { id: "research: the watch line", file: RBODY, must: "    IF IT IS NOT AVAILABLE: ow-currency is not in this release. Each watched finding names its source and passage; open the page now and then and compare." },
+  { id: "research: the watch line", file: RBODY, must: "`Watched findings: ow-currency is not in this release. Each watched finding names its source and passage; open the page now and then and compare.`" },
+  { id: "research: the watch line stands on its own", file: RBODY, must: "adds, after the block and a blank line, only this line, unindented, so it never reads as part of the NEXT block" },
+  // The OW-09 follow-ups (ow-research 1.0.1): step 0's lines on a screen, the round figure's one definition, and when
+  // the user confirms one (evaluation round 2, M3 with m9, m4; security closure R3-01).
+  { id: "research: step 0's lines come first", file: RRR, must: "**Step 0's lines come first on every screen** of this skill, a refusal or a no-op included, in these forms: `Step 0. Newest STATUS line: <the line>`; one `Step 0. Awaiting: <the line>` for each line still marked `awaiting:`; for a stored \"no\", `Handling: no (stored in <file>).`" },
+  { id: "research: a round figure, one definition", file: RW, must: "A **round** figure (a whole number that is a multiple of 100, such as 500, 1,200 or 3,000; a percentage that is a multiple of 5; a multiplier in halves, such as 1.5 times)" },
+  { id: "research: the figure is confirmed in the plan's window", file: RRUN, must: "write `marker: figure confirmed | Q-nn | human-decided: the user confirmed <figure> is a market figure` after `marker: plan` and before the approval; the confirmation is the user's own words in this session, never yours." },
+  { id: "C26: ow-research's body line names its version", file: RBODY, must: "ow-research 1.0.1 · protocol 1" },
+  { id: "C26: ow-research's CHANGELOG has its 1.0.1 entry", file: "ow-research/CHANGELOG.md", must: "## 1.0.1 (2026-10-19): the follow-ups from the second evaluation and the security closure" },
   { id: "research: ow-currency not in this release", file: RBODY, must: "ow-currency (planned; not in this release)" },
   // The evaluator's skills-work plants (round 1, H03, H04, I01), caught by pins as well as by the tests.
   { id: "C26: ow-build-plan's body line names its version", file: "ow-build-plan/SKILL.md", must: "ow-build-plan 1.1.0 · protocol 1" },
