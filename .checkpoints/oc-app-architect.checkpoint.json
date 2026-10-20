@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-10-16T17:05:57.000Z",
+  "updated_at": "2026-10-20T04:13:44.237Z",
   "phase": "build",
-  "step": "v2.1-ow-sprint-1-ow-build-plan-pass",
+  "step": "release-2.1-orchestration",
   "status": "in_progress",
-  "progress_summary": "v2.1.0 = one release, two themes (owner 2026-10-16): the ow- planning family (ow-start, ow-build-plan, ow-build, ow-uat, ow-handoff + ow-tools) and Track E (enforcement at chokepoints + the Jev router as an experimental preview, run by the JEV implementation status session). Merged: ow-start 1.0.0 (#596), ow-tools (#597), all designs + sprint plan (#603), ow-start audit follow-ups (#604). Sprint 1 ow-build-plan 1.0.0: Evaluator FAIL r1 6.3, r2 6.5, r3 6.7 (escalated), owner-authorized r4 PASS 7.3; feasibility quote = just the test (owner 2026-10-16) added after. PR open. Nothing deployed.",
+  "progress_summary": "v2.1 ow- family orchestration (Generator/Evaluator loop). Merged: OW-02 ow-build 1.0.0, OW-03 ow-tools 1.1.x, OW-08 ow-start 1.1.x, OW-04 ow-uat 1.0.0/1.0.1 + ow-tools 1.2.0 (#634,#635), scope change to ten skills (#633), OW-09 ow-research 1.0.0 + ow-build-plan 1.1.0 P5 (#636, PASS r2 7.4 under the eval cap). In flight: OW-05 ow-documentation 1.0.0 + P3 as ow-build-plan 1.2.0 (built, security review B- with 5 MEDIUM being fixed before evaluation round 1); OW-09 follow-up PR (M3, m1-m10, R3-01, permanent plants, ow-uat 1.0.2 4111 test card). Owner 2026-10-19: commit lane (one agent tests during a gate run); gate budget 600s and vitest maxWorkers 3 after the suite outgrew 300s. EN-01/EN-02 go/no-go 2026-10-27; WEB-01 held on #620.",
   "progress_table": [
     {
       "id": "v20-spec",
@@ -228,10 +228,10 @@
   },
   "blockers": [],
   "next_actions": [
-    "Merge the Sprint 1 PR (ow-build-plan 1.0.0) or Track E's E0 PR, whichever is green first; rebase + re-evidence the other.",
-    "Sprint 2 (ow-build 1.0.0): contract first, per sprints/release-2.1/ow-family-sprint-plan.md.",
-    "Follow-up PR: the 15 minor items in sprints/release-2.1/ow-sprint-1/eval-round-4.md.",
-    "Track E milestones come from the JEV implementation status session (E0 PR, E1 measurement week, E2 day-8 go/no-go)."
+    "Land the gate-budget PR (timeout_ms 600000, maxWorkers 3), then the OW-09 follow-up PR",
+    "OW-05: security fixes and re-check, then evaluation rounds and landing",
+    "After OW-05 lands: OW-06 (ow-handoff) build; draft OW-10 (ow-draft) and OW-11 (ow-vendor-eval) contracts",
+    "v2.2 note: trim ow-build-plan body toward 4,100 tokens (4,353 with P5+P3)"
   ],
   "skill_state": {
     "feature": {
@@ -668,5 +668,5 @@
       "action": "Quick-feature: v2.0 asset hotfix (favicon, fallback OG card, architecture shade) on claude/v2-asset-hotfix after v2.0.0 shipped without it"
     }
   ],
-  "record_updated_at": "2026-10-08T07:22:46.000Z"
+  "record_updated_at": "2026-10-20T04:13:44.237Z"
 }
