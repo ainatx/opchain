@@ -95,6 +95,14 @@ function runHook(p, { sessionId = "sess-1", cwd = p.root, projectDir = p.root, s
   return { code: r.status, stdout: r.stdout, stderr: r.stderr, decision, marker: join(p.tmp, `opchain-hygiene-${sessionId}.json`) };
 }
 
+/** A linked worktree of `p` where the desktop app puts them: <root>/.claude/worktrees/<name>. */
+function nestedWorktree(p, name) {
+  const dir = join(p.root, ".claude", "worktrees", name);
+  git(["worktree", "add", "-q", "-b", `wt-${name}`, dir], p.root);
+  mkdirSync(join(dir, ".checkpoints"));
+  return dir;
+}
+
 function candidateOf(root) {
   const r = spawnSync("node", [RELEASE_EVIDENCE, "--repo", root, "--print-candidate", "--json"], { encoding: "utf8" });
   if (r.status !== 0) throw new Error(r.stderr);
@@ -236,6 +244,84 @@ describe.skipIf(!hasJq)("checkpoint-hygiene Stop hook", () => {
     const second = runHook(p, { sessionId: "incr" });
     expect(second.decision?.decision).toBe("block");
     expect(JSON.parse(readFileSync(second.marker, "utf8")).offset).toBe(statSync(p.transcript).size);
+  });
+
+  it("a Bash `cd` into a nested .claude/worktrees/<name> checkout is not work in the outer checkout", () => {
+    const p = project();
+    const wt = nestedWorktree(p, "x");
+    transcript(p, [
+      skillCall(T0, p.root, "oc-app-architect"),
+      bashCall(T1, p.root, `cd ${wt} && git status --short`),
+      writeCall(T1, wt, join(wt, "docs", "spec.md")),
+    ]);
+    const r = runHook(p, { sessionId: "nested-cd" });
+    expect(r.code).toBe(0);
+    expect(r.stdout).toBe("");
+    // The outer checkout is still policed for its own work.
+    appendFileSync(p.transcript, `${writeCall(T2, p.root, join(p.root, "docs", "outer.md"))}\n`);
+    const outer = runHook(p, { sessionId: "nested-cd" });
+    expect(outer.decision?.decision).toBe("block");
+    expect(outer.decision.reason).toContain(`worked in ${p.root}, `);
+  });
+
+  it("a session whose cwd is the nested worktree is held to the worktree's checkpoint, not the outer checkout's (2026-10-19)", () => {
+    const p = project();
+    const wt = nestedWorktree(p, "blissful");
+    transcript(p, [
+      skillCall(T0, wt, "oc-app-architect"),
+      bashCall(T1, wt, `cd ${wt} && npm test`),
+      writeCall(T1, wt, join(wt, "docs", "plan.md")),
+    ]);
+    const missing = runHook(p, { sessionId: "wt-missing", cwd: wt });
+    expect(missing.decision?.decision).toBe("block");
+    expect(missing.decision.reason).toContain(`worked in ${wt}, `);
+
+    writeFileSync(join(wt, ".checkpoints", "oc-app-architect.checkpoint.json"),
+      JSON.stringify(checkpoint("oc-app-architect", { updated_at: T2, record_updated_at: T2 })));
+    const current = runHook(p, { sessionId: "wt-current", cwd: wt });
+    expect(current.code).toBe(0);
+    expect(current.stdout).toBe("");
+    expect(existsSync(join(p.root, ".checkpoints", "oc-app-architect.checkpoint.json"))).toBe(false);
+  });
+
+  it("a nested checkout outside .claude/worktrees/ is attributed by its git toplevel", () => {
+    const p = project();
+    const nested = join(p.root, "vendor", "other");
+    mkdirSync(nested, { recursive: true });
+    git(["init", "-q"], nested);
+    transcript(p, [
+      skillCall(T0, p.root, "oc-code-auditor"),
+      writeCall(T1, p.root, join(nested, "src", "new-dir", "a.js")),
+      bashCall(T1, p.root, `git -C ${nested} status`),
+    ]);
+    const r = runHook(p);
+    expect(r.code).toBe(0);
+    expect(r.stdout).toBe("");
+  });
+
+  it("a removed nested worktree still counts as another checkout", () => {
+    const p = project();
+    const gone = join(p.root, ".claude", "worktrees", "gone");
+    transcript(p, [
+      skillCall(T0, p.root, "oc-code-auditor"),
+      bashCall(T1, p.root, `cd "${gone}" && npm test`),
+      writeCall(T1, gone, "notes.md"),
+      bashCall(T1, p.root, `cd ${join(p.root, "docs")}/../.claude/worktrees/gone`),
+    ]);
+    const r = runHook(p);
+    expect(r.code).toBe(0);
+    expect(r.stdout).toBe("");
+  });
+
+  it("re-reads the transcript when the session's cwd moves to another checkout", () => {
+    const p = project();
+    const wt = nestedWorktree(p, "moved");
+    transcript(p, [skillCall(T0, wt, "oc-code-auditor"), writeCall(T1, wt, join(wt, "x.md"))]);
+    expect(runHook(p, { sessionId: "moved", cwd: wt }).decision?.decision).toBe("block");
+    // Judged against the outer checkout, the same transcript holds no work there.
+    const outer = runHook(p, { sessionId: "moved", cwd: p.root });
+    expect(outer.code).toBe(0);
+    expect(outer.stdout).toBe("");
   });
 
   it("exempt skills are never demanded", () => {
