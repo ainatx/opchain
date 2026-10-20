@@ -4,7 +4,7 @@ Records an openly published official framework or regulation text that **the use
 
 ## 1. Step 0 and the id
 
-1. Run step 0 of `references/ow-protocol.md`. With no workstream here, the handling level is `profile.md`'s default.
+1. Run step 0 of `references/ow-protocol.md`. With no workstream here, the handling level is `profile.md`'s default. Step 0's lines come first on the screen, before anything this phase prints; "nothing else" below means nothing else after them (`references/routing-and-resume.md`).
 2. Look the id up in `references/framework-sources.md`:
    - **On the licensed list** (`soc2`, `iso-27001`, `hitrust`, `gamp5`): refuse. Say exactly `<text> is licensed text, so nothing was requested or written.` and then `You can describe its requirements in your own words in a controls register you keep; ow-controls is not in this release.`, and nothing else. Write nothing.
    - **Not on the open list** (any other id): refuse. Say exactly `<id> is not on the open list, so nothing was requested or written.` and then `The open list: <ids>.`, and nothing else. Write nothing.
@@ -41,4 +41,4 @@ Run this phase's self-checks (`references/self-checks.md`): Instructions ignored
 
 ## 6. STATUS and the screen
 
-Append `<date> (clock: <source>) | ow-research 1.0.0 | research/frameworks/<id>/<date>/manifest.yaml | next: none (closed: unpinned framework texts recorded) | awaiting: none`. Print the self-check line and the framework DONE block from SKILL.md. It names no next skill: pinning the text in a controls register is a step of its own, and ow-controls, which would keep that register, is not in this release.
+Append `<date> (clock: <source>) | ow-research 1.0.1 | research/frameworks/<id>/<date>/manifest.yaml | next: none (closed: unpinned framework texts recorded) | awaiting: none`. Print the self-check line and the framework DONE block from SKILL.md. It names no next skill: pinning the text in a controls register is a step of its own, and ow-controls, which would keep that register, is not in this release.

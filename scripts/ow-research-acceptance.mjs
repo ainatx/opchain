@@ -93,12 +93,17 @@ const PLAN_WORKSPACE = join(ROOT, "tests", "fixtures", "ow-build-plan", "workspa
 const OW = "opchain-work/";
 const CLOCKS = /^(tool|host-supplied|user-stated|assumed)$/;
 const TEXT = /\.(md|ya?ml|txt|json|csv|html?)$/i;
-const VERSION = "ow-research 1.0.0 (protocol 1)";
+/** The released versions a run may have been written by: 1.0.0 (its goldens keep it) and 1.0.1 (the OW-09 follow-ups). */
+const VERSIONS = ["ow-research 1.0.0", "ow-research 1.0.1"];
+const VERSION = `${VERSIONS.at(-1)} (protocol 1)`;
 const SAME_SESSION = "same-session self-check: the same assistant that wrote these files, applying a checklist; a discipline, not an independent review";
 export const CAPS = { quick: 5, standard: 15, deep: 40 };
 const WORDS_MAX = 25;
-/** The watch block in this release (owner decision 2026-10-19): the absent-case line only. */
-export const WATCH_LINE = "IF IT IS NOT AVAILABLE: ow-currency is not in this release. Each watched finding names its source and passage; open the page now and then and compare.";
+/**
+ * The watch line in this release (owner decision 2026-10-19): the absent case only. It stands on its own after a
+ * blank line, with its own label, so it never reads as the NEXT block's absent case (evaluation round 2, nit).
+ */
+export const WATCH_LINE = "Watched findings: ow-currency is not in this release. Each watched finding names its source and passage; open the page now and then and compare.";
 /** How a page's quotes are labelled in sources.md (references/research-files-schema.md §3; security review SR-05). */
 export const PAGE_TOOL_LABEL = "as returned by the host's page tool";
 export const KINDS = ["background", "technical-feasibility", "market", "regulations"];
@@ -384,16 +389,29 @@ export function headingsOf(content) {
   const outOfOrder = order.some((v, i) => i > 0 && v < order[i - 1]);
   return { names, duplicates, stray, dupIds, unknown, outOfOrder };
 }
-/** A written file cut into the spans the 26-word rule reads: each quoted line on its own (its quote only), the rest together. */
+/**
+ * A written file cut into the spans the 26-word rule reads: the quoted lines (their quotes only), the rest together.
+ * Quote lines next to each other from one source are one span (evaluation round 2, m7): two adjacent quotes that copy
+ * 40 words in a row of a page are 40 words of that page. A Suspicious content line's source is the one it names; a
+ * run of `  - "…"` lines sits in one source's block.
+ */
 export function overlapSegments(text) {
   const rest = [], quotes = [];
+  let open = null; // { source, words } of the quote span being built
   for (const line of String(text).split("\n")) {
     const s = line.match(SUSPICIOUS_LINE);
     const q = !s && line.match(/^\s*-\s+(?:watched passage:\s*)?"([^"]*)"/);
-    if (s) quotes.push(s[1]);
-    else if (q) quotes.push(q[1]);
-    else rest.push(line);
+    if (s || q) {
+      const source = s ? `suspicious ${s[2]}` : "block";
+      const quote = s ? s[1] : q[1];
+      if (open && open.source === source) open.text += ` ${quote}`;
+      else { if (open) quotes.push(open.text); open = { source, text: quote }; }
+    } else {
+      if (open) { quotes.push(open.text); open = null; }
+      rest.push(line);
+    }
   }
+  if (open) quotes.push(open.text);
   return [rest.join("\n"), ...quotes];
 }
 /** A findings file with the body of *Suspicious content* left out (headings kept): what the twin comparison compares. */
@@ -552,6 +570,14 @@ export const SHARED_PLATFORMS = [
 ];
 /** A shared platform's host, or any subdomain of one (`gist.github.com`, `<bucket>.s3.amazonaws.com`). */
 const sharedPlatform = (host) => SHARED_PLATFORMS.some((h) => host === h || host.endsWith(`.${h}`));
+/** A platform's own service hosts, which serve every tenant at once: roots too, never one owner's. */
+const PLATFORM_SERVICE_HOSTS = ["raw.githubusercontent.com", "objects.githubusercontent.com", "gist.githubusercontent.com", "s3.amazonaws.com", "storage.googleapis.com", "storage.cloud.google.com"];
+/**
+ * A shared platform's root: the platform's own host, its www. or a service host that serves every tenant
+ * (`s3.<region>.amazonaws.com` too). A tenant's own subdomain (`<vendor>.readthedocs.io`, `<vendor>.github.io`)
+ * is that tenant's, so it is not a root (evaluation round 2, m5).
+ */
+const platformRoot = (host) => SHARED_PLATFORMS.some((h) => host === h || host === `www.${h}`) || PLATFORM_SERVICE_HOSTS.includes(host) || /^s3[.-](?:[a-z0-9-]+\.)?amazonaws\.com$/.test(host);
 /** A label that holds what users write, matched on every label of the host and on each part split at "-" ("en.community.", "community-eu.", "developer-forum."): never on owners, never primary. */
 const USER_CONTENT_WORD = /^(?:community|communities|forum|forums|discuss|discussion|discussions|partner|partners|marketplace|answers|ideas|groups|feedback)$/;
 const userContentHost = (host) => host.split(".").slice(0, -1).some((label) => label.split("-").some((w) => USER_CONTENT_WORD.test(w)));
@@ -595,7 +621,7 @@ export function userContent(target) {
 export function ownerProblem(o) {
   const e = ownerEntry(o);
   if (!e.ok || !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(e.host) || e.path === null) return `owner "${o}" is not a host, a host with a path, or *.<host>`;
-  if (sharedPlatform(e.host) && (e.wild || !e.path)) return `owner "${o}" is a shared platform's root; name the owner's own path (${e.host}/<owner>/)`;
+  if (platformRoot(e.host) && (e.wild || !e.path)) return `owner "${o}" is a shared platform's root; name the owner's own path (${e.host}/<owner>/)`;
   if (userContentHost(e.host)) return `owner "${o}" is a host where users write (community, forum, partners, discuss); its pages are never primary`;
   if (SUPPORT_LABEL.test(e.host.split(".")[0]) && !e.path) return `owner "${o}" is a support site, which often holds user posts; name the path of its reference pages`;
   return null;
@@ -688,7 +714,7 @@ export function peopleFindings(text, names = []) {
   if (h && !out.some(([what]) => /honorific/.test(what))) out.push(["an honorific with a name", h[0]]);
   return out;
 }
-const RATE_SHAPE = /\b\d[\d,.]*\s*k?\s*(?:an|a|per|\/)\s*(?:hour|hr|day|week|month)\b|\b\d[\d,.]*\s*(?:\/h|\/hr|ph|pd)\b|\b(?:hourly|day|daily|weekly) rate (?:of |at |is )?[$€£]?\d/i;
+const RATE_SHAPE = /\b\d[\d,.]*\s*k?\s*(?:an|a|per|\/)\s*(?:hour|hr|day|week|month)\b|\b\d[\d,.]*\s*(?:\/h|\/hr|ph|pd)\b|\b(?:hourly|day|daily|weekly) rate (?:of |at |is )?[$€£]?\d[\d,.]*\d|\b(?:hourly|day|daily|weekly) rate (?:of |at |is )?[$€£]?\d/i;
 const PRICE_WORD = /\b(?:price[ds]?|pricing|cost[s]?|charge[ds]?|charging|fees?|rates?|quote[ds]?|quoting|budget|margin|markup|billed|billing|invoice[ds]?|paid|fixed price)\b|[$€£]/i;
 /**
  * Our own numbers in a query (O8, as the owner narrowed it on 2026-10-19). Three rules, and nothing else:
@@ -744,6 +770,11 @@ const NUMBER_WORDS = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six:
 const NW = `(?:${Object.keys(NUMBER_WORDS).join("|")}|hundred|thousand)`;
 /** An amount in words before a currency word: "two thousand dollars", "seventeen thousand four hundred fifty dollars". */
 const WORD_MONEY = new RegExp(`\\b(${NW}(?:[\\s-]+(?:and[\\s-]+)?${NW})*)[\\s-]+(?:dollars?|usd|euros?|pounds?|bucks)\\b`, "gi");
+/** A decimal in words, a multiplier when "times" or "x" follows: "one point two five times" (evaluation round 2, m3). */
+const DIGIT_WORD = "(?:zero|one|two|three|four|five|six|seven|eight|nine)";
+const WORD_POINT = new RegExp(`\\b(${NW}(?:[\\s-]+${NW})*)\\s+point\\s+(${DIGIT_WORD}(?:\\s+${DIGIT_WORD})*)(\\s*(?:times|x)\\b)?`, "gi");
+/** A number in words of a hundred or more with no currency word: "a hundred and seventy five per session" (m3). */
+const WORD_LARGE = new RegExp(`\\b(${NW}(?:[\\s-]+(?:and[\\s-]+)?${NW})*)\\b`, "gi");
 function wordsValue(s) {
   let total = 0, cur = 0;
   for (const w of s.toLowerCase().split(/[\s-]+/).filter((x) => x && x !== "and")) {
@@ -753,11 +784,15 @@ function wordsValue(s) {
   }
   return total + cur;
 }
-/** Is a figure a round one: a whole number of at most two significant digits, a percentage in fives, a multiplier in halves? */
+/**
+ * Is a figure a round one, as references/web-rules.md §4 defines it (evaluation round 2, m4: one definition, the
+ * text's): a whole number that is a multiple of 100 (500, 1,200, 3,000), a percentage that is a multiple of 5, or a
+ * multiplier in halves (1.5x, 2x)? So 95, 175, 180 and 250 are not round.
+ */
 export function isRound(f) {
   if (f.kind === "percent") return f.value % 5 === 0;
   if (f.kind === "multiplier") return Number.isInteger(f.value * 2);
-  return Number.isInteger(f.value) && String(f.value).replace(/0+$/, "").length <= 2;
+  return Number.isInteger(f.value) && f.value % 100 === 0;
 }
 /**
  * The figures in a text: percentages, multipliers, durations and other values (amounts), each with its value.
@@ -771,6 +806,16 @@ export function figuresIn(text) {
     const add = (kind, value, m, money = false) => { if (Number.isFinite(value) && value > 0) { out.push({ kind, value, text: m[0].trim(), money }); taken.push([m.index, m.index + m[0].length]); } };
     const free = (m) => !taken.some(([a, b]) => m.index < b && m.index + m[0].length > a);
     for (const m of line.matchAll(WORD_MONEY)) { const v = wordsValue(m[1]); if (v >= 10) add("value", v, m, true); }
+    for (const m of line.matchAll(WORD_POINT)) {
+      if (!free(m)) continue;
+      const v = Number(`${wordsValue(m[1])}.${m[2].toLowerCase().split(/\s+/).map((w) => NUMBER_WORDS[w]).join("")}`);
+      add(m[3] ? "multiplier" : "value", v, m);
+    }
+    for (const m of line.matchAll(WORD_LARGE)) {
+      if (!free(m) || !/\b(?:hundred|thousand)\b/i.test(m[1])) continue;
+      if (COUNT_AFTER.test(line.slice(m.index + m[0].length))) continue;
+      add("value", wordsValue(m[1]), m);
+    }
     for (const m of line.matchAll(new RegExp(`${NB}(${NUM})\\s?(?:%|per ?cent\\b|percent\\b)`, "gi"))) if (free(m)) add("percent", numValue(m[1]), m);
     for (const m of line.matchAll(new RegExp(`(?<![\\w.,/-])(?:x|×)\\s?(${NUM})${NA}|${NB}(${NUM})\\s?(?:x|×)(?![\\w])|\\bmultipl(?:y|ier)\\s*(?:of\\s+|[:=]\\s*)(${NUM})${NA}`, "gi"))) if (free(m)) add("multiplier", numValue(m[1] ?? m[2] ?? m[3]), m);
     for (const m of line.matchAll(new RegExp(`${NB}(${NUM})\\s?-?(?:hours?|hrs?|h|days?|weeks?)\\b`, "gi"))) if (free(m)) add("duration", numValue(m[1]), m);
@@ -934,7 +979,7 @@ function checkHeaders(key, run) {
     } catch (e) { p.push(reason(e)); continue; }
     if (data.ow_artefact !== `ow-research/${want}`) p.push(`${f}: ow_artefact is ${data.ow_artefact}, expected ow-research/${want}`);
     if (String(data.schema) !== "1") p.push(`${f}: schema is ${data.schema}, expected 1`);
-    if (data.written_by !== VERSION) p.push(`${f}: written_by is "${data.written_by}", expected "${VERSION}"`);
+    if (!VERSIONS.some((v) => data.written_by === `${v} (protocol 1)`)) p.push(`${f}: written_by is "${data.written_by}", expected "${VERSION}"`);
     const ws = f.match(/^opchain-work\/research\/([^/]+)\//)?.[1];
     if (data.workstream !== ws) p.push(`${f}: workstream is ${data.workstream}, expected ${ws}`);
     if (!data.subject) p.push(`${f}: subject is missing`);
@@ -1011,7 +1056,7 @@ function checkStatus(key, run) {
   const got = lines.map((l) => ({ l, m: l.match(STATUS_LINE) }));
   for (const { l, m } of got) {
     if (!m) { p.push(`STATUS.md: "${l.slice(0, 60)}" is not in the protocol's form`); continue; }
-    if (m[3] !== "ow-research 1.0.0") p.push(`STATUS.md: "${l.slice(0, 60)}" names ${m[3]}, expected ow-research 1.0.0`);
+    if (!VERSIONS.includes(m[3])) p.push(`STATUS.md: "${l.slice(0, 60)}" names ${m[3]}, expected ${VERSIONS.at(-1)}`);
     if (!CLOCKS.test(m[2])) p.push(`STATUS.md: clock "${m[2]}"`);
     if (/\/[a-z0-9-]+ --[a-z]/.test(m[5])) p.push(`STATUS.md: next: "${m[5]}" carries a mode (protocol §5)`);
     for (const t of topicsOf(run, key)) {
@@ -1151,6 +1196,25 @@ function selfCheckCounts(run, key) {
 }
 const count = (results) => ({ ok: results.filter((r) => /^OK\b/.test(r)).length, finding: results.filter((r) => /^FINDING\b/.test(r)).length, notChecked: results.filter((r) => /^NOT-CHECKED\b/.test(r)).length });
 
+/**
+ * The protocol's step-0 lines in the forms the top of references/routing-and-resume.md prescribes (evaluation round 2, M3):
+ * the echo of STATUS.md's newest line, one line per line still awaiting, the stored-"no" notice, and step 0c's
+ * already-shared notice. They come first on a screen, before the route's own lines.
+ */
+export const STEP0_LINES = [
+  /^Step 0\. Newest STATUS line: \S.*$/,
+  /^Step 0\. Awaiting: \S.*$/,
+  /^Handling: no \(stored in [^()]+\)\.$/,
+  /^This material is already in this environment; I cannot undo that\. If this environment is not approved for it, stop here and tell whoever manages your tools\.$/,
+];
+/** A screen's own lines: the non-empty lines after its leading step-0 lines. */
+export function routeLines(lines) {
+  const ne = lines.filter((x) => x.trim());
+  let i = 0;
+  while (i < ne.length && STEP0_LINES.some((re) => re.test(ne[i].trim()))) i++;
+  return ne.slice(i);
+}
+
 function checkScreen(key, run) {
   const p = [];
   const s = key.screen;
@@ -1198,10 +1262,17 @@ function checkScreen(key, run) {
   // Every THEN block carries its IF IT IS NOT AVAILABLE line (evaluation round 1, m9).
   for (const { l, i } of nextLines.filter(({ l }) => /^\s*THEN:/.test(l))) if (!blockAt(i).some((x) => /^\s*IF IT IS NOT AVAILABLE:\s*\S/.test(x))) p.push(`printed/${s.file}: the THEN block "${l.trim().slice(0, 50)}" has no "IF IT IS NOT AVAILABLE:" line`);
   // The watch block in this release: only its absent-case line, never a verb ow-currency would answer (owner decision 2026-10-19).
-  if (s.watch) { if (!lines.some((l) => norm(l) === norm(WATCH_LINE))) p.push(`printed/${s.file}: a finding is watched, but the screen does not print "${WATCH_LINE}"`); }
+  if (s.watch) {
+    const at = lines.findIndex((l) => l === WATCH_LINE);
+    if (at < 0) p.push(`printed/${s.file}: a finding is watched, but the screen does not print "${WATCH_LINE}" on a line of its own, unindented`);
+    else if (at > 0 && lines[at - 1].trim()) p.push(`printed/${s.file}: the watch line follows "${lines[at - 1].trim().slice(0, 50)}" with no blank line, so it reads as part of that block`);
+  }
   if (/ow-currency-watch/.test(text)) p.push(`printed/${s.file}: names ow-currency-watch, which is not in this release; the watch line is "${WATCH_LINE}"`);
-  // Refusals and no-ops print only their prescribed lines, so a success claim on one fails (evaluation round 1, m1).
-  if (s.only) for (const l of lines.filter((x) => x.trim())) if (!listOf(s.only).some((re) => new RegExp(`^(?:${re})$`).test(l.trim()))) p.push(`printed/${s.file}: prints "${l.trim().slice(0, 70)}", which is not one of this route's prescribed lines`);
+  // ow-currency is named only by the watch line: a promise of it in other words fails (evaluation round 2, m10).
+  for (const l of lines.filter((x) => /\bow[- ]currency\b/i.test(x) && x !== WATCH_LINE)) p.push(`printed/${s.file}: mentions ow-currency in "${l.trim().slice(0, 70)}"; in this release only the watch line names it`);
+  // Refusals and no-ops print only their prescribed lines, so a success claim on one fails (evaluation round 1, m1). The
+  // protocol's step-0 lines come first on any screen and are the protocol's, not the route's (evaluation round 2, M3).
+  if (s.only) for (const l of routeLines(lines)) if (!listOf(s.only).some((re) => new RegExp(`^(?:${re})$`).test(l.trim()))) p.push(`printed/${s.file}: prints "${l.trim().slice(0, 70)}", which is not one of this route's prescribed lines`);
   // Every age on a list screen says it is not machine-checked (evaluation round 1, S06).
   for (const l of lines.filter((x) => /\b\d+ days? ago\b/.test(x))) if (!/\(not machine-checked\)/.test(l)) p.push(`printed/${s.file}: an age without "(not machine-checked)" ("${l.trim().slice(0, 60)}")`);
   const offers = new Set(listOf(s.offers).map(norm));
@@ -1308,7 +1379,19 @@ function ledgerOf(run, t) {
  */
 export function approvalIds(detail) {
   const m = String(detail ?? "").match(/^human-decided:\s*([^(;]*)/i);
-  return m ? new Set([...m[1].matchAll(/\b[QP]-\d+\b/g)].map((x) => x[0])) : null;
+  if (!m) return null;
+  // A decline word before an id declines it, and every id after it until "approved" again (evaluation round 2, m1):
+  // "approved Q-01, declined Q-02" and "approved Q-01 but not Q-02" approve Q-01 only.
+  const ids = new Set();
+  let approving = true, at = 0;
+  for (const x of m[1].matchAll(/\b[QP]-\d+\b/g)) {
+    const between = m[1].slice(at, x.index);
+    if (/\b(?:declin\w*|not|except|excluding|without|drop\w*|minus|refus\w*|reject\w*)\b/i.test(between)) approving = false;
+    else if (/\bapprov\w*\b/i.test(between)) approving = true;
+    if (approving) ids.add(x[0]);
+    at = x.index + x[0].length;
+  }
+  return ids;
 }
 /** The queries the user approved in this run, before line `upTo`, by the ids each approval names (O3 is per run: an R-1 approval is not R-2's; SR-10). */
 function approvedQueries(lines, upTo, run) {
@@ -1497,11 +1580,19 @@ function checkCaps(key, run) {
       const rl = L.lines.filter((l) => l.run === r);
       // An approval past the cap counts only when the user saw the batch it approves (a `marker: batch` before
       // it, since the last approval) and it is the user's own decision (human-decided; evaluation round 1, M1).
-      let extra = 0, shown = false;
+      // It raises the cap by no more than the requests that batch showed (evaluation round 2, m2): "+5" after a batch of
+      // one page raises it by one.
+      let extra = 0, shown = 0;
       for (const l of rl.filter((x) => x.type === "marker")) {
-        if (l.name === "batch") shown = true;
-        else if (l.name === "batch approved") { const n = Number(l.detail.match(/past the cap: \+(\d+)/)?.[1] ?? 0); if (n && shown && approvalIds(l.detail)) extra += n; shown = false; }
-        else if (l.name === "plan approved" || l.name === "batch withdrawn") shown = false;
+        if (l.name === "batch") shown = new Set(String(l.detail).match(/\b[QP]-\d+\b/g) ?? []).size;
+        else if (l.name === "batch approved") {
+          const n = Number(l.detail.match(/past the cap: \+(\d+)/)?.[1] ?? 0);
+          if (n && shown && approvalIds(l.detail)) {
+            if (n > shown) p.push(`${L.rel}: ${r}'s batch approval says past the cap: +${n}, but the batch it approves showed ${shown} request(s)`);
+            extra += Math.min(n, shown);
+          }
+          shown = 0;
+        } else if (l.name === "plan approved" || l.name === "batch withdrawn") shown = 0;
       }
       const pages = rl.filter((l) => l.type === "open").length;
       const searches = rl.filter((l) => l.type === "search").length;
@@ -1592,9 +1683,22 @@ function checkProvenance(key, run) {
   return p;
 }
 
-/** A round figure the user confirmed as a market figure, before the search, in the same run: `marker: figure confirmed | Q-nn … human-decided: …`. */
-function figureConfirmed(lines, l) {
-  return lines.some((x) => x.n < l.n && x.run === l.run && x.type === "marker" && x.name === "figure confirmed" && new RegExp(`^${l.id}\\b`).test(x.detail) && /\bhuman-decided:/.test(x.detail));
+/**
+ * Why a round figure in search `l` is not settled, or null: the user must confirm it as a market figure in a
+ * `marker: figure confirmed | Q-nn | human-decided: …` line of the same run, written after the plan (or batch) marker
+ * that showed Q-nn and before the approval of it (references/phase-run.md §2), and the session must hold the user's
+ * confirmation naming the figure, so a confirmation the run wrote itself does not count (security closure R3-01).
+ */
+function figureNotConfirmed(lines, l, hit, sessionText) {
+  const mine = lines.filter((x) => x.n < l.n && x.run === l.run && x.type === "marker" && x.name === "figure confirmed" && new RegExp(`^${l.id}\\b`).test(x.detail) && /\bhuman-decided:/.test(x.detail));
+  if (!mine.length) return `with no "figure confirmed" line for ${l.id} (human-decided) before it`;
+  const shown = lines.filter((x) => x.n < l.n && x.run === l.run && x.type === "marker" && (x.name === "plan" || x.name === "batch") && new RegExp(`\\b${l.id} "`).test(x.detail)).at(-1);
+  const approval = shown && lines.find((x) => x.n > shown.n && x.run === l.run && x.type === "marker" && (x.name === "plan approved" || x.name === "batch approved"));
+  if (!shown || !approval || !mine.some((x) => x.n > shown.n && x.n < approval.n)) return `and its "figure confirmed" line is not between the ${shown?.name ?? "plan"} that showed ${l.id} and the approval of it (the user confirms the figure when the query is shown, before the go)`;
+  const value = figuresIn(hit)[0]?.value;
+  const said = String(sessionText ?? "");
+  if (!said.includes(hit) && !figuresIn(said.replace(/[“”]/g, '"')).some((f) => f.value === value)) return `and the session holds no confirmation of ${hit} by the user (a confirmation the run wrote itself is not the user's)`;
+  return null;
 }
 /** Our side in findings.md (owner decision 2026-10-19): the Answer, the claims, Conflicts, Gaps and Superseded, never a quoted passage. */
 export function findingsOurSide(text, figures) {
@@ -1604,8 +1708,10 @@ export function findingsOurSide(text, figures) {
     if (/^(?:suspicious content|self-checks)/i.test(name)) continue;
     for (const line of body.split("\n")) {
       if (/^\s{2,}-\s+"/.test(line) || /^-\s+(?:watched passage|sources):/i.test(line)) continue;
-      const s = line.replace(/"[^"]*"/g, " ");
-      for (const [what, hit] of ourSideFindings(s, [], figures)) if (what !== ROUND_MATCH) out.push([what, hit, line.trim()]);
+      // A quote is the page's, and an id ([F-03], S-01, P-04, Q-02, R-1) is no figure (evaluation round 2, m3). Each
+      // sentence is read on its own, so "our" in one sentence never claims a figure of the sentence before it.
+      const s = line.replace(/"[^"]*"/g, " ").replace(/\[?\b(?:[FSPQ]-\d+|R-\d+)\b\]?/g, " ");
+      for (const one of s.split(/(?<=[.!?])\s+(?=[A-Z(])/)) for (const [what, hit] of ourSideFindings(one, [], figures)) if (what !== ROUND_MATCH) out.push([what, hit, line.trim()]);
     }
   }
   return out;
@@ -1618,14 +1724,15 @@ function checkPrivacy(key, run) {
     const ctx = privacyContext(run, key, t);
     if (L) {
       const outcomes = new Map(L.lines.filter((l) => l.type === "outcome").map((l) => [l.id, l.outcome]));
+      const sessionText = run.all().filter((f) => f.startsWith("session/")).map((f) => run.read(f) ?? "").join("\n");
       for (const l of L.lines.filter((x) => x.type === "search")) {
         if (/^refused/.test(outcomes.get(l.id) ?? "")) continue;
         const f = queryPrivacyFindings(l.query, ctx);
         const approved = byNameCovered(L.lines, l, l.query, q, outcomes);
         for (const [what, hit] of f) {
           if (what === "a keep-out term" && approved) continue;
-          // A round figure equal to one of ours asks; the user's confirmation, recorded before the search, settles it.
-          if (what === ROUND_MATCH) { if (!figureConfirmed(L.lines, l)) p.push(`${L.rel}: ${l.id} "${l.query}" carries ${what} ("${hit}"), with no "figure confirmed" line for ${l.id} (human-decided) before it`); continue; }
+          // A round figure equal to one of ours asks; the user's confirmation, recorded when the query is shown, settles it.
+          if (what === ROUND_MATCH) { const why = figureNotConfirmed(L.lines, l, hit, sessionText); if (why) p.push(`${L.rel}: ${l.id} "${l.query}" carries ${what} ("${hit}"), ${why}`); continue; }
           p.push(`${L.rel}: ${l.id} "${l.query}" carries ${what} ("${hit}")${what === "a keep-out term" ? "; only an exact query approved by name, before it, may" : ""}`);
         }
       }
@@ -1657,9 +1764,21 @@ export function handlingLevels(run, t) {
   try { const l = level(parsedMd(run.read(`${OW}profile.md`), "profile.md").data.handling); if (l) out.push({ level: l, from: "profile.md" }); } catch { /* no profile: no default */ }
   // The level the rest of the family records for a client (security re-check R2-01): ow-start's intake.yaml and
   // ow-build-plan's plan.yaml, the handling key only.
+  // Evaluation round 2, m6: a follow-on plan's plans/<client>-<n>/plan.yaml counts too; the key is read in any case
+  // ("Handling:"); and a file that does not parse is treated as a level set (its edges row: send nothing, and ask).
   if (t.ws && t.ws !== "business") {
-    for (const rel of [`${OW}intake/${t.ws}/intake.yaml`, `${OW}plans/${t.ws}/plan.yaml`]) {
-      try { const text = run.read(rel); if (text == null) continue; const l = level((yaml.load(text) ?? {}).handling); if (l) out.push({ level: l, from: rel.slice(OW.length) }); } catch { /* unreadable: no level read */ }
+    const follow = new RegExp(`^${esc(OW)}plans/${esc(t.ws)}-\\d+/plan\\.yaml$`);
+    const rels = [`${OW}intake/${t.ws}/intake.yaml`, `${OW}plans/${t.ws}/plan.yaml`, ...run.all().filter((f) => follow.test(f)).sort()];
+    for (const rel of rels) {
+      let text;
+      try { text = run.read(rel); } catch { continue; /* a folder: no level read */ }
+      if (text == null) continue;
+      let doc;
+      try { doc = yaml.load(text) ?? {}; } catch { out.push({ level: "unreadable (treated as a level set)", from: rel.slice(OW.length) }); continue; }
+      if (!doc || typeof doc !== "object" || Array.isArray(doc)) continue;
+      const k = Object.keys(doc).find((x) => x.toLowerCase() === "handling");
+      const l = k ? level(doc[k]) : null;
+      if (l) out.push({ level: l, from: rel.slice(OW.length) });
     }
   }
   return out;

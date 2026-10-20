@@ -25,6 +25,7 @@ screen:
   only:
     - 'Planned queries for RS-\d+ \S+ \(\w+: up to \d+ searches and \d+ page requests\):'
     - Q-\d+ "[^"]+"
+    - 'Q-\d+: \S+ matches a figure in your price book or your own files; confirm it is a market figure, or reword the query\.'
     - 'Query privacy \(same-session self-check, agent-checked\): OK, .+'
     - These queries wait for your approval; nothing has been sent yet\.
 status:

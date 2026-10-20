@@ -207,8 +207,8 @@ plant("P", "I04", "C16 label", "manifest says the revision is the current, autho
 plant("P", "J01", "C20 refusal", "reserved-workstream refusal also claims the question was saved", "question-reserved", { "printed/question.md": add("Question saved for frameworks as RS-01.\n") });
 plant("P", "J02", "C20 refusal", "manifest-exists refusal also says it was updated", "framework-exists", { "printed/framework.md": add("Manifest updated with today's digests.\n") });
 plant("P", "J03", "C20 no-op", "awaiting-approval screen prints a self-check line", "run-awaiting-approval", { "printed/run.md": add("Self-checks (same-session self-check): 9 OK · 0 FINDING · 0 NOT-CHECKED\n") });
-plant("P", "J04", "C20 watch", "the watch line names ow-currency's verb again (a THEN line saying use ow-currency-watch)", "run-approved", { "printed/run.md": rep("    IF IT IS NOT AVAILABLE: ow-currency is not in this release. Each watched finding names its source and passage; open the page now and then and compare.\n", "    THEN: say \"use ow-currency-watch on research/larkspur-ceramics/RS-01-pos-sales-api/findings.md\"   (where slash commands exist: /ow-currency-watch)\n    IF IT IS NOT AVAILABLE: ow-currency is not in this release. Each watched finding names its source and passage; open the page now and then and compare.\n") });
-plant("P", "J05", "C20 watch", "the watch line dropped though F-02 is watched", "run-approved", { "printed/run.md": rep("    IF IT IS NOT AVAILABLE: ow-currency is not in this release. Each watched finding names its source and passage; open the page now and then and compare.\n", "") });
+plant("P", "J04", "C20 watch", "the watch line names ow-currency's verb again (a THEN line saying use ow-currency-watch)", "run-approved", { "printed/run.md": rep("Watched findings: ow-currency is not in this release. Each watched finding names its source and passage; open the page now and then and compare.\n", "    THEN: say \"use ow-currency-watch on research/larkspur-ceramics/RS-01-pos-sales-api/findings.md\"   (where slash commands exist: /ow-currency-watch)\nWatched findings: ow-currency is not in this release. Each watched finding names its source and passage; open the page now and then and compare.\n") });
+plant("P", "J05", "C20 watch", "the watch line dropped though F-02 is watched", "run-approved", { "printed/run.md": rep("Watched findings: ow-currency is not in this release. Each watched finding names its source and passage; open the page now and then and compare.\n", "") });
 plant("P", "J06", "C20 NEXT none", "decision topic prints a NEXT to ow-build-plan", "run-business", { "printed/run.md": add('    NEXT: say "use ow-build-plan to collect for plans/business/"   (where slash commands exist: /ow-build-plan-collect)\n') });
 plant("P", "J07", "C20 NEXT", "draft NEXT's It will read line names question.md", "run-regulations", { "printed/run.md": rep("          It will read: findings.md\n", "          It will read: question.md\n") });
 plant("P", "J08", "C20 self-check line", "question screen self-check counts disagree with the file", "question-first", { "printed/question.md": rep("3 OK · 0 FINDING", "4 OK · 0 FINDING") });
@@ -280,8 +280,13 @@ describe("evaluation round 1: probe-cap, probe-a03, probe-s03", () => {
   it("a past-the-cap approval with no batch shown raises nothing: 6 page requests at quick depth fail caps", () => {
     expect(newFails("run-approved", capRun(Lp("14:26", "marker: batch approved", "human-decided: past the cap: +2"))).join("\n")).toMatch(/caps: .*R-1 made 6 page requests; the quick cap is 5/);
   });
-  it("with the batch shown first, the same approval raises the cap", () => {
-    expect(newFails("run-approved", capRun(Lp("14:26", "marker: batch", "P-06 past the cap") + Lp("14:26", "marker: batch approved", "human-decided: past the cap: +2")), /^caps:/)).toEqual([]);
+  // Restated for evaluation round 2, m2: an approval raises the cap by no more than the requests its batch showed, so
+  // the batch of one page is approved "+1" here; "+2" after that batch is the round-2 plant V07's slip, caught.
+  it("with the batch shown first, an approval of what it showed raises the cap", () => {
+    expect(newFails("run-approved", capRun(Lp("14:26", "marker: batch", "P-06 past the cap") + Lp("14:26", "marker: batch approved", "human-decided: past the cap: +1")), /^caps:/)).toEqual([]);
+  });
+  it("an approval of more than its batch showed is refused (evaluation round 2, m2)", () => {
+    expect(newFails("run-approved", capRun(Lp("14:26", "marker: batch", "P-06 past the cap") + Lp("14:26", "marker: batch approved", "human-decided: past the cap: +2"))).join("\n")).toMatch(/caps: .*says past the cap: \+2, but the batch it approves showed 1 request/);
   });
   const qd = (ws, topic) => `---\now_artefact: ow-research/question\nschema: 1\nwritten_by: ow-research 1.0.0 (protocol 1)\nworkstream: ${ws}\nsubject: none\ncreated: 2026-10-19\nclock: tool\norigin: skill\ntopic: ${topic}\nkind: background\ndepth: quick\nserves: decision\nhandling: "no"\nhandling_source: profile.md\nenvironment_approved: not asked\nconnections_off: not asked\nconfirmed: no\nkeep_out: ["Larkspur Ceramics"]\nowners: []\nby_name: []\n---\n# Q\n`;
   for (const c of ["question-no-workstream", "question-framework"]) {

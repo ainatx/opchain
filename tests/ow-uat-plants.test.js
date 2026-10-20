@@ -22,6 +22,8 @@ afterAll(cleanup, 120_000);
 const L = "opchain-work/uat/larkspur-ceramics";
 const M = "opchain-work/uat/mossgate-books";
 const append = (s) => (t) => `${t}${s}`;
+/** Visa's published test card: test data since the owner's decision of 2026-10-19 (ow-uat 1.0.2). */
+const VISA_TEST_CARD = /\b4111[ -]?1111[ -]?1111[ -]?1111\b/;
 /** A planted run fails `check` (and, if given, with a message matching `re`). */
 const plant = (id, desc, caseName, edits, check, re) => it(`${id}: ${desc}`, () => {
   const out = failures(caseName, mutated(caseName, edits));
@@ -677,7 +679,10 @@ describe("OW-04 round 2: the held-out set written before any round-2 rule change
     expect(peopleFindings(s, { user: "Robin", people: [], client: "Larkspur Ceramics" })).toEqual([]);
     expect(credentialFindings(s)).toEqual([]);
   });
-  for (const s of S.HELDOUT2_DATA) it(`data caught by the data rule: ${s.split("\n")[0]}`, () => expect(dataFindings(s, {}).length).toBeGreaterThan(0));
+  for (const s of S.HELDOUT2_DATA) {
+    if (VISA_TEST_CARD.test(s)) it(`data passes, Visa's published test card is test data (owner decision 2026-10-19, ow-uat 1.0.2): ${s.split("\n")[0]}`, () => expect(dataFindings(s, {})).toEqual([]));
+    else it(`data caught by the data rule: ${s.split("\n")[0]}`, () => expect(dataFindings(s, {}).length).toBeGreaterThan(0));
+  }
   for (const s of S.HELDOUT2_FALSE_PASS) it(`who tested caught: ${s}`, () => expect(falsePassFindings(s, S.HELDOUT2_FALSE_PASS_CONTEXT).length).toBeGreaterThan(0));
 });
 
@@ -887,6 +892,7 @@ describe("OW-04 R2: the Evaluator's untuned set through the file pipeline (h/fre
     control(`${id}@punch`, s, "signoff-signed", punch(s));
   }
   for (const [id, s] of Object.entries(S.EV2_DATA_PLANT)) {
+    if (VISA_TEST_CARD.test(s)) { for (const [where, c, e] of [["scenario", "plan", sc06(s)], ["pack", "pack", packBlock(s)], ["request", "signoff-request-2", reqRecords(s)]]) control(`${id}@${where}`, `passes, Visa's published test card is test data (owner decision 2026-10-19, ow-uat 1.0.2): ${s.split("\n")[0]}`, c, e); continue; }
     plant(`${id}@scenario`, s.split("\n")[0], "plan", sc06(s), "data");
     plant(`${id}@pack`, s.split("\n")[0], "pack", packBlock(s), "data");
     plant(`${id}@request`, s.split("\n")[0], "signoff-request-2", reqRecords(s), "data");
@@ -984,11 +990,33 @@ describe("OW-04 R3: owner decision R3-4 (published test cards and test-marked id
     ["R4-P3", "| Card | Amount |\n|---|---|\n| 4242 4242 4242 4241 | 54.00 |", "scenario"],
     ["R4-P4", "| Sandbox buyer | buyer@ridgeway.example |", "scenario"],
   ]) plant(`${id}@${place}`, s.split("\n")[0], place === "scenario" ? "plan" : "signoff-request-2", place === "scenario" ? sc06(s) : records(s), "data");
-  it("R4-5: the allowlist is Stripe's published numbers only, digits only, and every one passes the Luhn check", () => {
+  it("R4-5: the allowlist is Stripe's published numbers and Visa's published test card (1.0.2), digits only, and every one passes the Luhn check", () => {
     const luhn = (n) => [...n].reverse().reduce((a, d, i) => a + (i % 2 ? ((2 * d) % 10) + Math.floor((2 * d) / 10) : Number(d)), 0) % 10 === 0;
     expect(PUBLISHED_TEST_CARDS.size).toBeLessThanOrEqual(30);
     for (const n of PUBLISHED_TEST_CARDS) { expect(n).toMatch(/^\d{14,19}$/); expect(luhn(n), n).toBe(true); }
-    expect(PUBLISHED_TEST_CARDS.has("4111111111111111")).toBe(false);
+    // Owner decision 2026-10-19 (ow-uat 1.0.2): Visa's published test card joins Stripe's; nothing else changed.
+    expect(PUBLISHED_TEST_CARDS.has("4111111111111111")).toBe(true);
+    expect(PUBLISHED_TEST_CARDS.size).toBe(25);
+  });
+});
+
+describe("ow-uat 1.0.2: owner decision 2026-10-19 (Visa's published test card is test data)", () => {
+  const sc13 = (from, to) => ({ [`${L}/scenarios/SC-13.md`]: rep(from, to) });
+  const sc06 = (s) => ({ [`${L}/scenarios/SC-06.md`]: rep("fields: lines, quantities.\n", `fields: lines, quantities.\n\n${s}\n`) });
+  const STEP = "pay each order's deposit in test mode with Visa's published test card 4111 1111 1111 1111.";
+  it("V-G1: the golden plan-addendum-test-card passes every check (the Data check included)", () => {
+    expect(failures("plan-addendum-test-card", mutated("plan-addendum-test-card", {}))).toEqual({});
+  });
+  for (const [id, s] of [
+    ["V-C1", "Pay with Visa's published test card 4111 1111 1111 1111 in test mode."],
+    ["V-C2", "Pay with the test card 4111111111111111 in the sandbox."],
+    ["V-C3", "| Card | Expect |\n|---|---|\n| 4111 1111 1111 1111 | approved in test mode |"],
+  ]) control(`${id}@scenario`, `CONTROL: ${s.split("\n")[0]}`, "plan", sc06(s));
+  plant("V-P1", "the golden's Visa card one digit off (4111 1111 1111 1112) is a card-like number", "plan-addendum-test-card", sc13("4111 1111 1111 1111.", "4111 1111 1111 1112."), "data", /card-like number/);
+  plant("V-P2", "a card number that is not on the list in place of the test card", "plan-addendum-test-card", sc13(STEP, "pay each order's deposit with the card 4000 1234 5678 9010."), "data", /card-like number/);
+  it("V-T1: the text names Visa's card beside Stripe's, and the changelog records 1.0.2", () => {
+    expect(readFileSync(join(ROOT, "skills-work", "ow-uat", "references", "self-checks.md"), "utf8")).toContain("(Stripe's `4242 4242 4242 4242` set, and Visa's `4111 1111 1111 1111`)");
+    expect(readFileSync(join(ROOT, "skills-work", "ow-uat", "CHANGELOG.md"), "utf8")).toMatch(/^## 1\.0\.2 \(2026-10-19\): Visa's published test card is test data$/m);
   });
 });
 
@@ -1111,7 +1139,7 @@ describe("OW-04 R3: the Evaluator's untuned round-3 set through the file pipelin
   }
   for (const [id, s] of Object.entries(S.EV3_CRED_PLANT)) { plant(`${id}@pack`, s, "pack", packLine(s), "credentials"); plant(`${id}@run`, s, "run-session-1", run1(s), "credentials"); }
   for (const [id, s] of Object.entries(S.EV3_CRED_CONTROL)) { control(`${id}@pack`, s, "pack", packLine(s)); control(`${id}@run`, s, "run-session-1", run1(s)); }
-  for (const [id, s] of Object.entries(S.EV3_TABLE_PLANT)) { plant(`${id}@scenario`, s.split("\n")[0], "plan", sc06(s), "data"); plant(`${id}@pack`, s.split("\n")[0], "pack", packBlock(s), "data"); plant(`${id}@request`, s.split("\n")[0], "signoff-request-2", reqRecords(s), "data"); }
+  for (const [id, s] of Object.entries(S.EV3_TABLE_PLANT)) { if (VISA_TEST_CARD.test(s)) { for (const [where, c, e] of [["scenario", "plan", sc06(s)], ["pack", "pack", packBlock(s)], ["request", "signoff-request-2", reqRecords(s)]]) control(`${id}@${where}`, `passes, Visa's published test card is test data (owner decision 2026-10-19, ow-uat 1.0.2): ${s.split("\n")[0]}`, c, e); continue; } plant(`${id}@scenario`, s.split("\n")[0], "plan", sc06(s), "data"); plant(`${id}@pack`, s.split("\n")[0], "pack", packBlock(s), "data"); plant(`${id}@request`, s.split("\n")[0], "signoff-request-2", reqRecords(s), "data"); }
   for (const [id, s] of Object.entries(S.EV3_TABLE_CONTROL)) { control(`${id}@scenario`, s.split("\n")[0], "plan", sc06(s)); control(`${id}@pack`, s.split("\n")[0], "pack", packBlock(s)); control(`${id}@request`, s.split("\n")[0], "signoff-request-2", reqRecords(s)); }
   for (const [id, s] of Object.entries(S.EV3_PROSE_PLANT)) { plant(`${id}@scenario`, s, "plan", sc06(s), "data"); plant(`${id}@request`, s, "signoff-request-2", reqRecords(s), "data"); }
   for (const [id, s] of Object.entries(S.EV3_PROSE_CONTROL)) { control(`${id}@scenario`, s, "plan", sc06(s)); control(`${id}@request`, s, "signoff-request-2", reqRecords(s)); control(`${id}@pack`, s, "pack", packBlock(s)); }

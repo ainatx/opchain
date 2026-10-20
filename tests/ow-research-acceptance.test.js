@@ -41,7 +41,7 @@ const CASES = [
   "question-profile-default", "question-regulations", "question-reserved",
   "route-currency-changed", "route-vendor-eval",
   "run-approved", "run-awaiting-approval", "run-business", "run-by-name", "run-cut-after-approval", "run-cut-after-checks", "run-cut-after-findings", "run-cut-after-requests", "run-cut-after-sources",
-  "run-cut-mid-requests", "run-finding-open",
+  "run-cut-mid-requests", "run-figure-ask", "run-figure-confirmed", "run-finding-open",
   "run-handling-client", "run-handling-profile", "run-no-web-tools", "run-regulations", "run-rerun", "run-resume-stopped", "run-unconfirmed",
   "sec-inj-next-target", "sec-inj-primary-hidden", "sec-inj-title", "sec-r2-inj-link-lure", "sec-r2-inj-quote-mimic",
 ];
@@ -263,28 +263,33 @@ describe("held-out sets, measured and pinned as measured", () => {
   // SR-07 (tests/ow-research-heldout-sr07.mjs, written before its rule): before it, 1 of 18 flagged and 20 of 20 passed;
   // with the by-value rule and the review's shape rule (e6d041d4), 14 of 18 and 20 of 20. The owner narrowed O8 on
   // 2026-10-19 (evaluation round 1, m3; security re-check R2-05): the shape rules no longer touch a market query that is
-  // not said as ours, and a round figure equal to one of ours is asked about, not refused. Now: 5 of 18 refused, 5 asked
-  // about (round figures equal to ours, or said as ours with a round figure), 8 passed; 0 of 20 must-pass touched.
-  it("our own numbers (SR-07 set, after the narrowing): 5 refused and 5 asked of 18, 0 of 20 must-pass touched", () => {
+  // not said as ours, and a round figure equal to one of ours is asked about, not refused. Then: 5 of 18 refused, 5 asked
+  // about, 8 passed. ow-research 1.0.1 gives "round" the text's one definition (evaluation round 2, m4: a whole number
+  // that is a multiple of 100, a percentage in fives, a multiplier in halves), so 180 and 31 hours are refused, not
+  // asked about. Now: 7 of 18 refused, 3 asked about, 8 passed; 0 of 20 must-pass touched.
+  it("our own numbers (SR-07 set, round as the text defines it): 7 refused and 3 asked of 18, 0 of 20 must-pass touched", () => {
     const ctx = { ...CTX, ourFigures: internalFigures(SR07_INTERNAL_FILES.map((rel) => ({ rel, text: readFileSync(join(ROOT, rel), "utf8") }))) };
     const asks = (q) => { const f = queryPrivacyFindings(q, ctx); return f.length > 0 && f.every(([w]) => w === ROUND_MATCH); };
     const refuses = (q) => queryPrivacyFindings(q, ctx).some(([w]) => w !== ROUND_MATCH);
-    expect(rate(SR07_HELDOUT_FLAG, refuses)).toBe(5);
-    expect(rate(SR07_HELDOUT_FLAG, asks)).toBe(5);
+    expect(rate(SR07_HELDOUT_FLAG, refuses)).toBe(7);
+    expect(rate(SR07_HELDOUT_FLAG, asks)).toBe(3);
     expect(rate(SR07_HELDOUT_PASS, (q) => queryPrivacyFindings(q, ctx).length > 0)).toBe(0);
     for (const q of [...QUERY_PASS, ...OUR_SIDE_PASS, ...QUERY_HELDOUT_PASS, ...SR07_HELDOUT_PASS]) expect(queryPrivacyFindings(q, ctx), q).toEqual([]);
   });
   // The owner's narrowed rule (2026-10-19), measured on a new held-out set written before it
   // (tests/ow-research-heldout-our-figures.mjs). Before: the block set 17 of 20 refused, 3 passed (prices in words
   // and "175-dollar"); the market set 10 of 20 refused, 10 passed, none asked. After: the block set 20 of 20 refused;
-  // the market set 0 refused, 7 asked (round figures equal to ours by coincidence), 13 passed.
-  it("our figures (new held-out set, after the narrowing): 20 of 20 refused; market 0 refused, 7 asked, 13 passed", () => {
+  // the market set 0 refused, 7 asked (round figures equal to ours by coincidence), 13 passed. With round as the text
+  // defines it (ow-research 1.0.1; evaluation round 2, m4), "label printer under 250 dollars small shop" is refused, not
+  // asked about: 250 is in the price book and is not a multiple of 100. Now: market 1 refused, 6 asked, 13 passed.
+  it("our figures (new held-out set, round as the text defines it): 20 of 20 refused; market 1 refused, 6 asked, 13 passed", () => {
     const ctx = { ...CTX, ourFigures: internalFigures(SR07_INTERNAL_FILES.map((rel) => ({ rel, text: readFileSync(join(ROOT, rel), "utf8") }))) };
     const asks = (q) => { const f = queryPrivacyFindings(q, ctx); return f.length > 0 && f.every(([w]) => w === ROUND_MATCH); };
     const refuses = (q) => queryPrivacyFindings(q, ctx).some(([w]) => w !== ROUND_MATCH);
     expect(rate(OUR_FIGURES_HELDOUT_BLOCK, refuses)).toBe(20);
-    expect(rate(OUR_FIGURES_HELDOUT_MARKET, refuses)).toBe(0);
-    expect(rate(OUR_FIGURES_HELDOUT_MARKET, asks)).toBe(7);
+    expect(rate(OUR_FIGURES_HELDOUT_MARKET, refuses)).toBe(1);
+    expect(rate(OUR_FIGURES_HELDOUT_MARKET, asks)).toBe(6);
+    expect(OUR_FIGURES_HELDOUT_MARKET.filter(refuses)).toEqual(["label printer under 250 dollars small shop"]);
   });
   it("our figures are read by value from the internal files, in whatever form they are written", () => {
     const f = internalFigures(SR07_INTERNAL_FILES.map((rel) => ({ rel, text: readFileSync(join(ROOT, rel), "utf8") })));
@@ -338,7 +343,7 @@ describe("C2, C17, C26: the skill text and its hand-off fields", () => {
     expect(data.description.length).toBeLessThanOrEqual(900);
     expect(data.description.slice(0, 200)).toContain("ow-research");
     expect(data["allowed-tools"]).toBeUndefined();
-    expect(data.metadata).toEqual({ version: "1.0.0", catalog: "ow", protocol: "1", bundle: "connected", network: "declared", commands: "/ow-research /ow-research-question /ow-research-run /ow-research-framework" });
+    expect(data.metadata).toEqual({ version: "1.0.1", catalog: "ow", protocol: "1", bundle: "connected", network: "declared", commands: "/ow-research /ow-research-question /ow-research-run /ow-research-framework" });
     expect(data.compatibility).toMatch(/host's own web search and page opening/);
     expect(data.compatibility).toMatch(/files you supply/);
     expect(data.compatibility).toMatch(/ow-tools add-on/);
@@ -379,9 +384,10 @@ describe("C2, C17, C26: the skill text and its hand-off fields", () => {
     expect(golden).not.toMatch(/fetch/i);
   });
 
-  it("C26: versions and records: ow-research 1.0.0 with its changelog; ow-build-plan 1.1.0 with its changelog and the in-place edits", () => {
-    expect(content).toMatch(/^ow-research 1\.0\.0 · protocol 1/m);
-    expect(readFileSync(join(SKILL, "CHANGELOG.md"), "utf8")).toMatch(/^## 1\.0\.0 \(2026-10-17\)/m);
+  it("C26: versions and records: ow-research 1.0.1 with its changelog (1.0.0 kept); ow-build-plan 1.1.0 with its changelog and the in-place edits", () => {
+    expect(content).toMatch(/^ow-research 1\.0\.1 · protocol 1/m);
+    expect(matter(readFileSync(join(SKILL, "SKILL.md"), "utf8")).data.metadata.version).toBe("1.0.1");
+    expect(readFileSync(join(SKILL, "CHANGELOG.md"), "utf8")).toMatch(/^## 1\.0\.1 \(2026-10-19\)[\s\S]*^## 1\.0\.0 \(2026-10-17\)/m);
     const bp = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "SKILL.md"), "utf8");
     expect(matter(bp).data.metadata.version).toBe("1.1.0");
     expect(bp).toMatch(/^ow-build-plan 1\.1\.0 · protocol 1/m);

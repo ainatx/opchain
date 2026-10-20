@@ -7,9 +7,9 @@ The ow- skills are opchain's planning family for client work: the fit call and i
 | `ow-start` | 1.1.1: the 20-minute fit call, prep and recap; meeting and decision logs (`CHANGELOG.md`) |
 | `ow-build-plan` | 1.1.0: the Build Plan offer, plan and fixed quote, with contract inputs and the build request; research findings as evidence (`CHANGELOG.md`) |
 | `ow-build` | 1.0.0: the client side of a signed build: the builder driven one sprint at a time (named only in `handoffs.yaml`), weekly updates, demos, change orders, invoice requests and readiness for UAT |
-| `ow-uat` | 1.0.1: the client's user acceptance test: the frozen basis, a scenario per check, tester packs by role, sessions, triage and the rapid fix phase, numbered sign-off requests, deemed acceptance and the delivery backstop on the contract calendar, and the addendum flow (`CHANGELOG.md`) |
+| `ow-uat` | 1.0.2: the client's user acceptance test: the frozen basis, a scenario per check, tester packs by role, sessions, triage and the rapid fix phase, numbered sign-off requests, deemed acceptance and the delivery backstop on the contract calendar, and the addendum flow (`CHANGELOG.md`) |
 | `ow-handoff`, `ow-documentation` | designed, not built |
-| `ow-research` | 1.0.0: research from sources it opened, through the host's own web tools (or your files): queries approved before the first search, every request logged before it is sent, findings with levels and quoted sources; open framework texts you downloaded, recorded unpinned (`network: declared`, Connected bundle; `CHANGELOG.md`) |
+| `ow-research` | 1.0.1: research from sources it opened, through the host's own web tools (or your files): queries approved before the first search, every request logged before it is sent, findings with levels and quoted sources; open framework texts you downloaded, recorded unpinned (`network: declared`, Connected bundle; `CHANGELOG.md`) |
 
 ## What is in this folder
 

@@ -6,4 +6,5 @@ Self-checks (same-session self-check): 9 OK · 0 FINDING · 0 NOT-CHECKED
           It will read: findings.md, plan.yaml, evidence.md
           [no folder attached: attach findings.md, plan.yaml and evidence.md when you say it]
     IF IT IS NOT AVAILABLE: findings.md stands alone; copy each finding you use into the evidence by hand, with its level and sources.
-    IF IT IS NOT AVAILABLE: ow-currency is not in this release. Each watched finding names its source and passage; open the page now and then and compare.
+
+Watched findings: ow-currency is not in this release. Each watched finding names its source and passage; open the page now and then and compare.

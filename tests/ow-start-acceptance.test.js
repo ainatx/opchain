@@ -6,20 +6,28 @@
 // answer above LOW, a followed embedded instruction, a LOW fact in Today, an
 // unasked budget, a wrong path, a timestamp in a notes-only record, a private
 // name) is caught. To check a real run: node scripts/ow-start-acceptance.mjs --prepare <case> <dir>.
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, onTestFinished } from "vitest";
 import { spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { FIXTURES, listCases, loadKey, prepare, runCase } from "../scripts/ow-start-acceptance.mjs";
 
+// A scratch folder made inside a test is removed in the background once that test finishes, so a file's folders never
+// pile up for one long afterAll; one made outside a test waits for afterAll, which also waits for removals still running.
 const scratch = [];
-afterAll(() => scratch.forEach((d) => rmSync(d, { recursive: true, force: true })));
+const pending = new Set();
+const keep = (d) => {
+  try { onTestFinished(() => { const job = rm(d, { recursive: true, force: true }).catch(() => {}).finally(() => pending.delete(job)); pending.add(job); }); } catch { scratch.push(d); }
+  return d;
+};
+afterAll(async () => { scratch.splice(0).forEach((d) => rmSync(d, { recursive: true, force: true })); await Promise.all(pending); }, 120_000);
 
 /** A copy of a case's golden run, edited by `mutate(path => text, (path, text) => void)`. */
 function mutated(caseName, edits) {
   const dir = mkdtempSync(join(tmpdir(), "ow-start-run-"));
-  scratch.push(dir);
+  keep(dir);
   cpSync(join(FIXTURES, caseName, "expected"), dir, { recursive: true });
   const slug = loadKey(join(FIXTURES, caseName)).slug;
   for (const [file, edit] of Object.entries(edits)) {
@@ -236,7 +244,7 @@ describe("the checker grades the value, scans every written file, and isolates e
 
   it("F-003: the quote under Possible embedded instructions and the input transcript in the run folder do not trip the scan", () => {
     const dir = mkdtempSync(join(tmpdir(), "ow-start-real-"));
-    scratch.push(dir);
+    keep(dir);
     prepare("larkspur-prospect", dir);
     cpSync(join(FIXTURES, "larkspur-prospect", "expected"), dir, { recursive: true });
     expect(readFileSync(join(dir, "opchain-work", "intake", "larkspur-ceramics", "transcript.md"), "utf8")).toMatch(/50,000/);
@@ -272,7 +280,7 @@ describe("the checker grades the value, scans every written file, and isolates e
 
   it("F-004: a check that throws fails alone with a one-line reason", () => {
     const caseDir = mkdtempSync(join(tmpdir(), "ow-start-case-"));
-    scratch.push(caseDir);
+    keep(caseDir);
     cpSync(join(FIXTURES, "larkspur-prospect"), caseDir, { recursive: true });
     const key = join(caseDir, "answer-key.yaml");
     writeFileSync(key, readFileSync(key, "utf8").replace(/^path: .*\n/m, ""));
@@ -285,7 +293,7 @@ describe("the checker grades the value, scans every written file, and isolates e
 describe("--prepare", () => {
   it("lays out a run folder from the shipped examples and the case's input", () => {
     const dir = mkdtempSync(join(tmpdir(), "ow-start-prepare-"));
-    scratch.push(dir);
+    keep(dir);
     const work = prepare("larkspur-prospect", dir);
     const listing = (d) => readdirSync(d, { recursive: true }).map(String).sort();
     expect(listing(work)).toEqual([

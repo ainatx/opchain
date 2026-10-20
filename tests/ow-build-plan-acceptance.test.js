@@ -6,9 +6,10 @@
 // file is malformed (C11); and the shipped examples have the shapes the skill
 // and the ow-tools add-on read. To check a real run:
 // node scripts/ow-build-plan-acceptance.mjs --prepare <case> <dir>.
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, onTestFinished } from "vitest";
 import { spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import * as yaml from "js-yaml";
@@ -19,8 +20,15 @@ import { preflight } from "../plugins/ow-tools/lib/preflight.mjs";
 const ROOT = join(import.meta.dirname, "..");
 const SKILL = join(ROOT, "skills-work", "ow-build-plan");
 const CLI = join(ROOT, "scripts", "ow-build-plan-acceptance.mjs");
+// A scratch folder made inside a test is removed in the background once that test finishes, so a file's folders never
+// pile up for one long afterAll; one made outside a test waits for afterAll, which also waits for removals still running.
 const scratch = [];
-afterAll(() => scratch.forEach((d) => rmSync(d, { recursive: true, force: true })));
+const pending = new Set();
+const keep = (d) => {
+  try { onTestFinished(() => { const job = rm(d, { recursive: true, force: true }).catch(() => {}).finally(() => pending.delete(job)); pending.add(job); }); } catch { scratch.push(d); }
+  return d;
+};
+afterAll(async () => { scratch.splice(0).forEach((d) => rmSync(d, { recursive: true, force: true })); await Promise.all(pending); }, 120_000);
 
 const CASES = [
   "accepted-signed", "builder-neutral", "credentials", "dates-terms-above", "dates-terms-below", "delivery-quote", "feasibility-signed", "fix-window",
@@ -32,7 +40,7 @@ const CASES = [
 /** The case's run as a real folder (starting state + its golden output), edited by `edits` (path under opchain-work -> fn). */
 function mutated(caseName, edits = {}) {
   const dir = mkdtempSync(join(tmpdir(), "ow-build-plan-run-"));
-  scratch.push(dir);
+  keep(dir);
   prepare(caseName, dir);
   let home = caseName;
   while (loadKey(join(FIXTURES, home)).run) home = loadKey(join(FIXTURES, home)).run;
@@ -611,7 +619,7 @@ describe("eval round 4 follow-ups: the checker catches what rounds 3 and 4 let t
   /** A scratch answer key (a copy of `from`'s, edited) for grading a run with other checks. */
   const keyFrom = (from, edit) => {
     const caseDir = mkdtempSync(join(tmpdir(), "ow-build-plan-key-"));
-    scratch.push(caseDir);
+    keep(caseDir);
     writeFileSync(join(caseDir, "answer-key.yaml"), edit(readFileSync(join(FIXTURES, from, "answer-key.yaml"), "utf8")));
     return caseDir;
   };
@@ -729,7 +737,7 @@ describe("each check fails on its own, never the whole run", () => {
 
   it("bug 11: a malformed answer key fails its own case; the CLI goes on to every other case", () => {
     const caseDir = mkdtempSync(join(tmpdir(), "ow-build-plan-badkey-"));
-    scratch.push(caseDir);
+    keep(caseDir);
     cpSync(join(FIXTURES, "offer"), caseDir, { recursive: true });
     writeFileSync(join(caseDir, "answer-key.yaml"), "case: offer\nchecks: offer\n");
     expect(runCase("offer", null, { caseDir })).toEqual([{ check: "answer-key", problems: ["answer-key.yaml could not be used: `checks` must be a list of check names"] }]);
@@ -748,7 +756,7 @@ describe("each check fails on its own, never the whole run", () => {
 
   it("a check that throws on a broken answer key fails alone with a one-line reason", () => {
     const caseDir = mkdtempSync(join(tmpdir(), "ow-build-plan-case-"));
-    scratch.push(caseDir);
+    keep(caseDir);
     cpSync(join(FIXTURES, "offer"), caseDir, { recursive: true });
     const key = join(caseDir, "answer-key.yaml");
     writeFileSync(key, readFileSync(key, "utf8").replace(/^offer: .*\n/m, ""));
@@ -810,7 +818,7 @@ describe("the shipped examples", () => {
 describe("--prepare", () => {
   it("lays out a run folder from the workspace, the ow-start run, the base chain and the case's input", () => {
     const dir = mkdtempSync(join(tmpdir(), "ow-build-plan-prepare-"));
-    scratch.push(dir);
+    keep(dir);
     const work = prepare("unpriced-package", dir);
     for (const f of ["price-book.yaml", "profile.md", "offers.md", "handoffs.yaml", "STATUS.md", "intake/larkspur-ceramics/recap.md", `${L}/build-plan-offer.md`, `${L}/scope.md`, `${L}/inbox/order-sheet-september.csv`]) {
       expect(existsSync(join(work, f)), f).toBe(true);
@@ -869,7 +877,7 @@ describe("P5: research findings in -collect and the destination-keyed cap", () =
   });
   it("the research files layer in from ow-research's own golden run (no copy)", () => {
     const dir = mkdtempSync(join(tmpdir(), "ow-build-plan-p5-"));
-    scratch.push(dir);
+    keep(dir);
     const work = prepare("research-collect", dir);
     expect(readFileSync(join(work, RS), "utf8")).toBe(readFileSync(join(FIXTURES, "..", "ow-research", "run-approved", "expected", "opchain-work", RS), "utf8"));
   });

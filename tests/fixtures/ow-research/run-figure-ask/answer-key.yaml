@@ -1,0 +1,49 @@
+# INVENTED. C4 question NEXT ("use ow-research-run on research/<ws>/RS-nn-<slug>/"): queries awaiting approval, one of them
+# with a round figure that equals one of ours (2,000 is in the price book) only by coincidence. The plan screen asks
+# about it in its prescribed line (references/phase-run.md §2); nothing is sent before the user answers.
+case: run-figure-ask
+section: 'C4 question NEXT: a round figure asked about on the plan screen (O8 as narrowed)'
+verbs:
+  - /ow-research-run
+base: question-business
+workstream: business
+topic: RS-01-support-plan-offers
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+route:
+  from: research/business/RS-01-support-plan-offers/
+  expect: run
+screen:
+  file: run.md
+  says:
+    - 'Q-01: $2,000 matches a figure in your price book or your own files; confirm it is a market figure, or reword the query.'
+    - These queries wait for your approval; nothing has been sent yet.
+  never:
+    - 'DONE:'
+    - 'Self-checks (same-session self-check):'
+  only:
+    - 'Planned queries for RS-\d+ \S+ \(\w+: up to \d+ searches and \d+ page requests\):'
+    - Q-\d+ "[^"]+"
+    - 'Q-\d+: \S+ matches a figure in your price book or your own files; confirm it is a market figure, or reword the query\.'
+    - 'Query privacy \(same-session self-check, agent-checked\): OK, .+'
+    - These queries wait for your approval; nothing has been sent yet\.
+status:
+  lines:
+    - path: research/business/RS-01-support-plan-offers/queries.md
+      next: ow-research /ow-research-run research/business/RS-01-support-plan-offers/
+      awaiting: query approval
+checks:
+  - headers
+  - writes
+  - status
+  - route
+  - screen
+  - ledger
+  - caps
+  - privacy
+  - credentials
+  - private_names
+  - people

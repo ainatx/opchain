@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": ".",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a14d6e3771986110e",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-20T04:25:31.052Z",
+  "updated_at": "2026-10-20T04:49:34.104Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-gate-budget-600s",
-  "progress_summary": "Gate-budget PR readiness PASS at 684c8404: two config lines plus one checkpoint; the commit's own gate run passed under the new policy (tests 226 s with 3 workers); checkpoint:validate passes; no untracked files.",
+  "step": "OW-09 follow-ups: ow-research 1.0.1 + ow-uat 1.0.2",
+  "progress_summary": "OW-09 follow-ups PR readiness: one content commit (c3cb935b) on origin/main @ 2f47143c (#638's gate budget), PASS receipt (tests 210s at load 5.5 under the 600s budget); build leaves no tracked change; oc- sources equal origin/main; skills-work/ow-build-plan untouched.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -23,17 +23,21 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [],
+    "warnings": [
+      "The ow- catalog is in no build output yet (Sprint 5)",
+      "Recorded limits for the owner: Z04 (findings.md flags a vendor's figure equal to one of our exact figures) and Q09 (\"250 user\" reads as a count of users)",
+      "The text's round definition refuses 180, 250 and 31 hours equal to ours instead of asking: SR-07 set 7 refused, 3 asked (was 5, 5); our-figures market set 1 refused, 6 asked (was 0, 7)"
+    ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "684c8404e4ca2a355fbe6488b6ecba7e66c51c57",
+    "verified_for_sha": "c3cb935ba18dc4abb834d31e2a66b982e95d6635",
     "last_verify": {
-      "at": "2026-10-20T04:25:31.052Z",
-      "branch": "claude/gate-budget-600s",
-      "base": "origin/main@11091f94",
+      "at": "2026-10-20T04:49:34.104Z",
+      "branch": "claude/ow-09-followups",
+      "base": "origin/main @ 2f47143c",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -2208,8 +2212,47 @@
         "scope": "claude/gate-budget-600s at 684c8404 on origin/main 11091f94 (#636). Files: .bugcheck.json, vitest.config.js, .checkpoints/oc-app-architect.checkpoint.json. Nothing under skills/, skills-work/, plugins/, site/, src/ or package.json, so no catalog, bundle, plugin or release-surface output changes. No test pins timeout_ms 300000 or maxWorkers 2 (git grep). Candidate verifier PASS on tree e0961f0e.",
         "evidence": []
       }
+    },
+    {
+      "id": "oc-repo-ops-ow-09-followups-2026-10-19-61174cacbc85",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-20T04:49:34.104Z",
+      "verified_at": "2026-10-20T04:49:34.104Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "ow-09-followups-2026-10-19"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:61174cacbc8544b9b92e670468f3d26ec7fc53bd535f2d6809de0aecaffa6cb3"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "OW-09 follow-ups (ow-research 1.0.1, ow-uat 1.0.2) after evaluation round 2 (PASS at 7.4 under the cap) and the security closure (A-): npm test (143 files, 7,202 passed, 14 skipped; 226s at load 7.6 with 3 workers) and the build pass with no tracked change; the pretest chain, catalog (36 + 5 ow-), contracts and lint-internal-refs pass; the six ow- acceptance checkers pass (ow-start 54, ow-start-logs 50, ow-build-plan 36, ow-build 55, ow-uat 146, ow-research 75); ow-research and ow-build-plan acceptance under the network fence log 0 bytes; oc- sources (skills/, plugins/, src/, site/, mcp/, package*.json, build.mjs) equal origin/main; skills-work/ow-build-plan untouched.",
+        "evidence": [
+          "skills-work/ow-research/SKILL.md",
+          "skills-work/ow-research/CHANGELOG.md",
+          "skills-work/ow-research/references/routing-and-resume.md",
+          "skills-work/ow-research/references/phase-question.md",
+          "skills-work/ow-research/references/phase-run.md",
+          "skills-work/ow-research/references/phase-framework.md",
+          "skills-work/ow-research/references/web-rules.md",
+          "skills-work/ow-research/references/self-checks.md",
+          "skills-work/ow-research/references/research-files-schema.md",
+          "skills-work/ow-uat/SKILL.md",
+          "skills-work/ow-uat/CHANGELOG.md",
+          "skills-work/ow-uat/references/self-checks.md",
+          "skills-work/ow-uat/references/uat-yaml-schema.md",
+          "skills-work/README.md",
+          "docs/plans/2026-10-16-ow-research-design.md",
+          "tests/fixtures/ow-research/README.md",
+          "tests/fixtures/ow-uat/README.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-20T04:25:31.052Z",
+  "record_updated_at": "2026-10-20T04:49:34.104Z",
   "blockers": []
 }

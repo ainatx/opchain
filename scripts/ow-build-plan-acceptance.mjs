@@ -1397,9 +1397,12 @@ function checkResearchScreen(key, run) {
   for (const l of lines) if (!(s.says ?? []).includes(l)) p.push(`printed/${s.file}: prints "${l.slice(0, 70)}", which is not one of this refusal's prescribed lines`);
   return p;
 }
-/** P5: -collect with nothing it may use (no plan.yaml, or only a topic with a FINDING open) writes nothing. */
+/**
+ * P5: -collect with nothing it may use (no plan.yaml, or only a topic with a FINDING open) writes nothing, not even a
+ * STATUS line: phase-collect.md §5 says "write nothing" (ow-research evaluation round 2, m8).
+ */
 function checkResearchRefused(key, run) {
-  return run.written().filter((f) => f !== "STATUS.md").map((f) => `${f}: written, but -collect had nothing it may use (${key.research_refused}); it writes nothing`);
+  return run.written().map((f) => `${f}: written, but -collect had nothing it may use (${key.research_refused}); it writes nothing`);
 }
 
 const CHECKS = {

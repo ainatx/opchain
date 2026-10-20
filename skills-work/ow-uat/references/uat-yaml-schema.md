@@ -10,7 +10,7 @@ Every timestamped entry this skill writes carries `rec: <n>`: one more than the 
 
     ow_artefact: ow-uat/uat
     schema: 1
-    written_by: ow-uat 1.0.1 (protocol 1)
+    written_by: ow-uat 1.0.2 (protocol 1)
     workstream: <slug>
     subject: builds/<slug>/ready-for-uat.md
     created: <YYYY-MM-DD>

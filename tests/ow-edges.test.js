@@ -3,8 +3,9 @@
 // verb per file, and NEXT targets that resolve. A scratch two-skill family
 // proves each rule catches what it claims; then the real skills-work/ tree is
 // copied and the same failures are planted in it.
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, onTestFinished } from "vitest";
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { loadCatalogs } from "../scripts/lib/catalogs.mjs";
@@ -12,9 +13,16 @@ import { appendOnlyFiles, checkEdges, checkFamily, checkVerbs } from "../scripts
 import { BANS, PINS, pinProblems } from "./ow-text-pins.mjs";
 
 const ROOT = join(import.meta.dirname, "..");
+// A scratch folder made inside a test is removed in the background once that test finishes, so a file's folders never
+// pile up for one long afterAll; one made outside a test waits for afterAll, which also waits for removals still running.
 const scratch = [];
-afterAll(() => scratch.forEach((d) => rmSync(d, { recursive: true, force: true })));
-const temp = (prefix) => { const d = realpathSync(mkdtempSync(join(tmpdir(), prefix))); scratch.push(d); return d; };
+const pending = new Set();
+const keep = (d) => {
+  try { onTestFinished(() => { const job = rm(d, { recursive: true, force: true }).catch(() => {}).finally(() => pending.delete(job)); pending.add(job); }); } catch { scratch.push(d); }
+  return d;
+};
+afterAll(async () => { scratch.splice(0).forEach((d) => rmSync(d, { recursive: true, force: true })); await Promise.all(pending); }, 120_000);
+const temp = (prefix) => keep(realpathSync(mkdtempSync(join(tmpdir(), prefix))));
 
 // ── a scratch family: ow-alpha hands report.md to ow-beta ────────────────────
 
