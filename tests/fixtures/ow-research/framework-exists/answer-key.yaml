@@ -1,0 +1,38 @@
+# INVENTED. C4 -framework: the same id and date exist; the manifest is never overwritten and nothing is written.
+case: framework-exists
+section: 'C4 -framework: same id and date exists (refuses an overwrite)'
+verbs:
+  - /ow-research-framework
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+base: framework-files-tools
+framework:
+  id: nist-800-53
+  date: '2026-10-16'
+  expect: unchanged
+screen:
+  file: framework.md
+  says:
+    - research/frameworks/nist-800-53/2026-10-16/manifest.yaml already exists; it is never overwritten. Nothing was written.
+  never:
+    - 'DONE:'
+  only:
+    - research/frameworks/nist-800-53/2026-10-16/manifest\.yaml already exists; it is never overwritten\. Nothing was written\.
+status:
+  lines: []
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - framework
+  - credentials
+  - private_names
+  - people
+  - self_checks
+  - handling
+writes_nothing: true

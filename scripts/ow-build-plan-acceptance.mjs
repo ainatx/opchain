@@ -47,6 +47,7 @@ import { fileURLToPath } from "node:url";
 import * as yaml from "js-yaml";
 import { matter } from "./lib/frontmatter.mjs";
 import { preflight } from "../plugins/ow-tools/lib/preflight.mjs";
+import { parseFindings, researchRunLayers } from "./ow-research-acceptance.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const FIXTURES = join(ROOT, "tests", "fixtures", "ow-build-plan");
@@ -201,6 +202,8 @@ function priorLayers(caseName, seen = new Set()) {
   const key = loadKey(dir);
   if (key.run) return priorLayers(key.run, seen);
   const layers = [join(dir, "input", "opchain-work")];
+  // Amendment P5: an ow-research golden run's files (research/<client>/RS-nn-<slug>/…) layer under this case's input.
+  if (key.research_case) layers.push(...researchRunLayers(key.research_case));
   if (key.base) layers.push(...runLayers(key.base, seen));
   if (key.ow_start) layers.push(join(OW_START_FIXTURES, key.ow_start, "expected", "opchain-work"), join(OW_START_FIXTURES, key.ow_start, "input", "opchain-work"));
   return layers;
@@ -258,7 +261,9 @@ export function runView(caseName, runDir = null) {
     cache.set(rel, v);
     return v;
   };
-  return { home, read, exists: (rel) => find(rel) != null, all, written: writtenFiles, path: find, priorRead: (rel) => { const p = priorFind(rel); return p ? readFileSync(p, "utf8") : null; } };
+  /** A screen the run printed, saved outside opchain-work/ (printed/<name>), as ow-research's cases keep them. */
+  const screen = (name) => { const p = runDir ? join(runDir, "printed", name) : join(FIXTURES, home, "expected", "printed", name); return existsSync(p) && statSync(p).isFile() ? readFileSync(p, "utf8") : null; };
+  return { home, read, exists: (rel) => find(rel) != null, all, written: writtenFiles, path: find, screen, priorRead: (rel) => { const p = priorFind(rel); return p ? readFileSync(p, "utf8") : null; } };
 }
 
 /** Parse a file once; throws a one-line reason the calling check reports. */
@@ -1305,7 +1310,102 @@ function checkFeasibility(key, run) {
   return p;
 }
 
+// ── amendment P5: research findings as a fourth evidence source (1.1.0) ──────
+
+/** A research topic's findings and whether its self-checks are clear: { findings, superseded, open }. */
+function researchTopic(run, rel) {
+  const text = run.read(rel);
+  if (text == null) return null;
+  const f = parseFindings(text, rel);
+  const open = !f.hasSelfChecks || f.selfChecks.some((r) => /^FINDING\b/.test(r.result));
+  // A findings file a reader could misread is not used (ow-research security review SR-02): a section twice
+  // (a "##<tab>Findings" planted under Suspicious content), or an F-nn block outside ## Findings.
+  const malformed = [
+    ...f.duplicates.map((d) => `the section "## ${d}" appears twice`),
+    ...f.stray.map((s) => `${s.id} sits under "## ${s.section ?? "(no section)"}", not ## Findings`),
+    // ow-research's security re-check R2-04: a repeated F-nn id, and a section the schema does not name.
+    ...f.dupIds.map((id) => `${id} is the id of two finding blocks`),
+    ...f.unknown.map((u) => `"## ${u}" is not a section of a findings file`),
+  ];
+  return { ...f, open, malformed };
+}
+/**
+ * P5 (references/phase-collect.md §5): every `research` row names `RS-nn F-nn` of a findings file in this
+ * client's own research folder, keeps that finding's level, comes from a topic with no self-check FINDING
+ * open, and is never a superseded finding. A fact about the client's current state (map/current.md,
+ * systems/<system>.md) that rests only on research rows is at most MEDIUM: the cap is keyed on where a
+ * fact is used, which a checker can see, never on what it means.
+ */
+function checkResearch(key, run) {
+  const p = [];
+  const dir = plansDir(key);
+  let ev;
+  try { ev = evidenceIds(run, dir); } catch (e) { return [reason(e)]; }
+  const research = [...ev.values()].filter((r) => r.kind === "research");
+  for (const r of research) {
+    const src = String(r.source ?? "").replace(/^opchain-work\//, "");
+    const m = src.match(/^research\/([^/]+)\/(RS-(\d+)-[^/]+)\/findings\.md$/);
+    if (!m) { p.push(`evidence.md: ${r.id} is a research row whose source "${src}" is not research/<client>/RS-nn-<slug>/findings.md`); continue; }
+    if (m[1] !== key.slug) p.push(`evidence.md: ${r.id} reads ${src}, another workstream's research folder; only research/${key.slug}/ is read`);
+    const loc = String(r.locator ?? "").match(/^RS-(\d+) (F-\d+)$/);
+    if (!loc) { p.push(`evidence.md: ${r.id} has locator "${r.locator}", not "RS-nn F-nn"`); continue; }
+    if (loc[1] !== m[3]) p.push(`evidence.md: ${r.id}'s locator RS-${loc[1]} is not its topic ${m[2]}`);
+    let t;
+    try { t = researchTopic(run, src); } catch (e) { p.push(reason(e)); continue; }
+    if (!t) { p.push(`evidence.md: ${r.id} cites ${src}, which is not there`); continue; }
+    if (t.open) p.push(`evidence.md: ${r.id} uses ${loc[2]} of ${m[2]}, a topic whose self-checks have a FINDING open (or none recorded); none of its findings is used`);
+    if (t.malformed.length) p.push(`evidence.md: ${r.id} uses ${loc[2]} of ${m[2]}, whose findings.md ${t.malformed.join("; ")}; only ### F-nn blocks under ## Findings are findings, so none of its findings is used`);
+    const f = t.findings.get(loc[2]);
+    if (!f) { p.push(`evidence.md: ${r.id} cites ${loc[2]}, which is not a current finding of ${m[2]}${t.superseded.some((s) => s.old === loc[2]) ? " (it is superseded; use the finding that replaces it)" : ""}`); continue; }
+    if (String(r.confidence).trim() !== String(f.fields.level).trim()) p.push(`evidence.md: ${r.id} is ${r.confidence}, but ${m[2]} ${loc[2]} is ${f.fields.level} (a research row keeps its finding's level)`);
+  }
+  for (const w of key.research?.rows ?? []) {
+    const r = ev.get(w.id);
+    if (!r) { p.push(`evidence.md: no row ${w.id} (${w.locator})`); continue; }
+    if (r.kind !== "research" || r.locator !== w.locator) p.push(`evidence.md: ${w.id} is ${r.kind} ${r.locator}, expected research ${w.locator}`);
+  }
+  if (key.research?.none_from) for (const r of research) if (String(r.source).includes(key.research.none_from)) p.push(`evidence.md: ${r.id} uses ${key.research.none_from}, whose self-checks have a FINDING open`);
+  // The cap, by where a fact is used.
+  const researchIds = new Set(research.map((r) => r.id));
+  const capped = [`${dir}/map/current.md`, ...run.all().filter((f) => f.startsWith(`${dir}/systems/`) && f.endsWith(".md"))];
+  for (const rel of capped) {
+    const text = run.read(rel);
+    if (text == null) continue;
+    // A fact written as a table row (a level cell and E-nn ids) is capped the same way (ow-research evaluation round 1, G04).
+    const tableFacts = matter(text).content.split("\n").map((line, i) => {
+      const lvl = line.match(/^\|.*\|\s*(HIGH|MEDIUM|LOW|UNKNOWN)\s*\|/);
+      return lvl ? { line: i + 1, confidence: lvl[1], cites: [...line.matchAll(/E-\d+/g)].map((x) => x[0]), text: line.replace(/^\|\s*/, "") } : null;
+    }).filter(Boolean);
+    for (const fl of [...factLines(matter(text).content), ...tableFacts]) {
+      if (fl.confidence === "HIGH" && fl.cites.length && fl.cites.every((c) => researchIds.has(c))) p.push(`${rel}: a HIGH fact rests only on research rows (${fl.cites.join(", ")}); a fact about the client's current state from research alone is at most MEDIUM ("${fl.text.slice(0, 50)}")`);
+    }
+  }
+  return p;
+}
+/**
+ * P5's refusal screens (references/phase-collect.md §5; ow-research's evaluation round 1, m11): the prescribed lines
+ * and nothing else, so a success claim on a refusal fails.
+ */
+function checkResearchScreen(key, run) {
+  const s = key.screen ?? {};
+  if (!s.file) return ["answer key: screen names no printed file"];
+  const text = run.screen(s.file);
+  if (text == null) return [`printed/${s.file} was not saved`];
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  const p = [];
+  for (const say of s.says ?? []) if (!lines.includes(say)) p.push(`printed/${s.file}: does not say the prescribed "${say.slice(0, 80)}"`);
+  for (const l of lines) if (!(s.says ?? []).includes(l)) p.push(`printed/${s.file}: prints "${l.slice(0, 70)}", which is not one of this refusal's prescribed lines`);
+  return p;
+}
+/** P5: -collect with nothing it may use (no plan.yaml, or only a topic with a FINDING open) writes nothing. */
+function checkResearchRefused(key, run) {
+  return run.written().filter((f) => f !== "STATUS.md").map((f) => `${f}: written, but -collect had nothing it may use (${key.research_refused}); it writes nothing`);
+}
+
 const CHECKS = {
+  research: checkResearch,
+  research_refused: checkResearchRefused,
+  research_screen: checkResearchScreen,
   feasibility: checkFeasibility,
   route: checkRoute,
   quote_frozen: checkQuoteFrozen,

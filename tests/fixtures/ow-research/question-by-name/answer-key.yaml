@@ -1,0 +1,39 @@
+# INVENTED. C4 -question: a by-name search asked for (approval recorded per query). The user asks to search the
+# client's own website by name: the exact query and the exact page are each approved and recorded in by_name.
+case: question-by-name
+section: 'C4 -question: a by-name search asked for (approval recorded per query)'
+verbs:
+  - /ow-research-question
+base: run-approved
+workstream: larkspur-ceramics
+topic: RS-02-shop-hours
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+question:
+  topic: RS-02-shop-hours
+  by_name:
+    - Larkspur Ceramics studio shop opening hours (approved by the user 2026-10-18)
+    - https://larkspurceramics.example.com/visit (approved by the user 2026-10-18)
+screen:
+  file: question.md
+  self_checks: true
+  next: use ow-research-run on research/larkspur-ceramics/RS-02-shop-hours/
+  slash: /ow-research-run
+  reads: question.md, inbox/
+status:
+  lines:
+    - path: research/larkspur-ceramics/RS-02-shop-hours/question.md
+      next: ow-research /ow-research-run research/larkspur-ceramics/RS-02-shop-hours/
+      awaiting: none
+checks:
+  - headers
+  - writes
+  - status
+  - question
+  - screen
+  - credentials
+  - private_names
+  - people

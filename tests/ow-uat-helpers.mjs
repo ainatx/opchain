@@ -1,13 +1,26 @@
 // Shared helpers for the ow-uat tests: a golden run copied into a real folder and
 // edited (a planted failure), and the checks that fail on it. Not a test file.
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { onTestFinished } from "vitest";
 import { FIXTURES, loadKey, prepare, runCase } from "../scripts/ow-uat-acceptance.mjs";
 
+/** Scratch folders. One made inside a test is removed in the background once that test finishes, so a file's folders
+ *  never pile up for one long afterAll (CI: ~1,500 at once outlived the 20s hook timeout) and the removal overlaps the
+ *  next test instead of blocking it. One made outside a test (while collecting, or in beforeAll) waits for cleanup(),
+ *  which the test files await in afterAll; it also waits for any removal still running. */
 const scratch = [];
-export const cleanup = () => scratch.splice(0).forEach((d) => rmSync(d, { recursive: true, force: true }));
-export const temp = (p) => { const d = mkdtempSync(join(tmpdir(), p)); scratch.push(d); return d; };
+const pending = new Set();
+const remove = (d) => rmSync(d, { recursive: true, force: true });
+const removeLater = (d) => { const job = rm(d, { recursive: true, force: true }).catch(() => {}).finally(() => pending.delete(job)); pending.add(job); };
+export const cleanup = async () => { scratch.splice(0).forEach(remove); await Promise.all(pending); };
+export const temp = (p) => {
+  const d = mkdtempSync(join(tmpdir(), p));
+  try { onTestFinished(() => removeLater(d)); } catch { scratch.push(d); } // outside a test: kept for cleanup()
+  return d;
+};
 
 /** The case's run as a real folder (its starting state and golden output), edited by `edits` (root-relative path -> fn; null deletes). */
 export function mutated(caseName, edits = {}) {

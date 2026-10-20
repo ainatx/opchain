@@ -1,0 +1,43 @@
+# INVENTED. C4 -framework: a handling level (the profile's default, C6). -framework sends nothing: it reads only the
+# files the user saved; requests: none (handling level set); the banner heads the manifest.
+case: framework-handling
+section: 'C4 -framework: a handling level (a profile default; nothing requested)'
+verbs:
+  - /ow-research-framework
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+plan_case: tier2-plan
+banner: 'RESTRICTED: handle under the client agreement'
+framework:
+  id: hipaa-ecfr
+  date: '2026-10-18'
+  expect: manifest
+  tools: true
+screen:
+  file: framework.md
+  says:
+    - A handling level is set, so nothing will be sent from this machine. I will read only the files you saved in research/frameworks/hipaa-ecfr/2026-10-18/.
+    - unpinned — fetched, not a pack
+    - 'DONE: hipaa-ecfr recorded, unpinned — fetched, not a pack -> research/frameworks/hipaa-ecfr/2026-10-18/manifest.yaml (revision as the publisher states it: amended through 2026-09-30)'
+  self_checks: true
+  next: none
+status:
+  lines:
+    - path: research/frameworks/hipaa-ecfr/2026-10-18/manifest.yaml
+      next: 'none (closed: unpinned framework texts recorded)'
+      awaiting: none
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - framework
+  - credentials
+  - private_names
+  - people
+  - self_checks
+  - handling

@@ -1,0 +1,9 @@
+# INVENTED. C4 /ow-research on <path>: a framework folder with files and no manifest lands on -framework. Grades the route of framework-files-tools's run.
+case: on-framework-files
+section: 'C4 /ow-research on <path>: framework files, no manifest -> -framework'
+run: framework-files-tools
+route:
+  from: research/frameworks/nist-800-53/2026-10-16/
+  expect: framework
+checks:
+  - route

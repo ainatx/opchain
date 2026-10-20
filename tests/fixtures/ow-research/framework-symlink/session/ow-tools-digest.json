@@ -1,0 +1,6 @@
+{
+  "status": "refused",
+  "reason": "symlink-in-tree",
+  "message": "a symlink is not digested; replace it with the file it points to: linked-copy.json",
+  "path": "linked-copy.json"
+}

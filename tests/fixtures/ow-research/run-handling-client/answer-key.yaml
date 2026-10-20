@@ -1,0 +1,45 @@
+# INVENTED. C4 question NEXT: handling level (user files only); C6 (a client level, in question.md). Nothing is sent:
+# the ledger records the step 0b answer and "no requests: handling level set", and the findings come from the files
+# the user saved in inbox/.
+case: run-handling-client
+section: 'C4 question NEXT: a handling level (user files only); C6 a client level'
+verbs:
+  - /ow-research-run
+base: question-handling
+workstream: fernhill-florists
+topic: RS-01-route-export
+canaries: []
+screen:
+  file: run.md
+  says:
+    - 'A handling level is set for this work, so nothing will be sent from this machine: no searches and no pages.'
+    - I will work only from the files you supply in research/fernhill-florists/RS-01-route-export/inbox/.
+  self_checks: true
+  next: use ow-build-plan to collect for plans/fernhill-florists/
+  slash: /ow-build-plan-collect
+  reads: findings.md, plan.yaml, evidence.md
+status:
+  lines:
+    - path: research/fernhill-florists/RS-01-route-export/findings.md
+      next: ow-build-plan /ow-build-plan-collect plans/fernhill-florists/
+      awaiting: none
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - ledger
+  - reconcile
+  - handling
+  - opened
+  - confidence
+  - cited
+  - quotes
+  - credentials
+  - handoff_fields
+  - self_checks
+  - ids
+  - private_names
+  - people
+  - no_web

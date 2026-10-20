@@ -1,0 +1,36 @@
+# INVENTED (Kestrel Bindery, continued from ow-build-plan's route-feasibility run). -question under the profile's
+# handling default: the level comes from profile.md, and the profile's banner_text is the first line after the header.
+case: question-profile-default
+section: '-question: a handling level from the profile''s default; the banner'
+verbs:
+  - /ow-research-question
+plan_case: route-feasibility
+workstream: kestrel-bindery
+topic: RS-01-supplier-portal-export
+canaries: []
+question:
+  topic: RS-01-supplier-portal-export
+  handling: 'restricted: no outside services'
+screen:
+  file: question.md
+  self_checks: true
+  next: use ow-research-run on research/kestrel-bindery/RS-01-supplier-portal-export/
+  slash: /ow-research-run
+  reads: question.md, inbox/
+  says:
+    - 'Handling level recorded: no request will be sent for this topic; the run will use the files you supply.'
+status:
+  lines:
+    - path: research/kestrel-bindery/RS-01-supplier-portal-export/question.md
+      next: ow-research /ow-research-run research/kestrel-bindery/RS-01-supplier-portal-export/
+      awaiting: none
+banner: 'RESTRICTED: handle under the client agreement'
+checks:
+  - headers
+  - writes
+  - status
+  - question
+  - screen
+  - credentials
+  - private_names
+  - people

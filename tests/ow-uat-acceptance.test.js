@@ -21,7 +21,7 @@ import { cleanup, mutated, temp } from "./ow-uat-helpers.mjs";
 const ROOT = join(import.meta.dirname, "..");
 const SKILL = join(ROOT, "skills-work", "ow-uat");
 const CLI = join(ROOT, "scripts", "ow-uat-acceptance.mjs");
-afterAll(cleanup);
+afterAll(cleanup, 120_000);
 
 const CASES = listCases();
 const body = () => { const t = readFileSync(join(SKILL, "SKILL.md"), "utf8"); return t.slice(t.indexOf("\n---", 3) + 4); };

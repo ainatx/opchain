@@ -1,0 +1,42 @@
+# INVENTED. -question: the session ends before the user confirms. The draft is written with confirmed: no and
+# STATUS awaits the confirmation; a draft prints no NEXT (the phase did not finish).
+case: question-draft
+section: '-question: a draft, not confirmed (no NEXT)'
+verbs:
+  - /ow-research-question
+base: run-approved
+workstream: larkspur-ceramics
+topic: RS-02-glaze-lead-times
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+question:
+  topic: RS-02-glaze-lead-times
+  confirmed: 'no'
+screen:
+  file: question.md
+  says:
+    - Confirm this question? Nothing is searched until you do.
+  self_checks: true
+  never:
+    - 'DONE:'
+  only:
+    - 'Draft for [a-z0-9-]+: RS-\d+ \S+ \(\S+, \S+\)\.'
+    - 'Self-checks \(same-session self-check\): \d+ OK · \d+ FINDING · \d+ NOT-CHECKED'
+    - Confirm this question\? Nothing is searched until you do\.
+status:
+  lines:
+    - path: research/larkspur-ceramics/RS-02-glaze-lead-times/question.md
+      next: ow-research /ow-research-run research/larkspur-ceramics/RS-02-glaze-lead-times/
+      awaiting: question confirmation
+checks:
+  - headers
+  - writes
+  - status
+  - question
+  - screen
+  - credentials
+  - private_names
+  - people

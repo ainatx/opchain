@@ -1,0 +1,3 @@
+INVENTED TEST FIXTURE: a user group thread the user copied into a text file.
+
+Florist software user group, 2026-09-14: Exported routes drop the delivery notes, so we paste them back in by hand every morning.

@@ -1,0 +1,36 @@
+# INVENTED (Fernhill Florists, continued from ow-build-plan's route-next-stage run). C4 -question: a handling level
+# set. The question is still written, with the level in the user's words, the environment answer and the user's
+# confirmation that internet access is off (not verified); the run will use the files the user supplies.
+case: question-handling
+section: 'C4 -question: a handling level set (recorded; the question is still written)'
+verbs:
+  - /ow-research-question
+plan_case: route-next-stage
+workstream: fernhill-florists
+topic: RS-01-route-export
+canaries: []
+question:
+  topic: RS-01-route-export
+  handling: 'client confidential: client systems only'
+screen:
+  file: question.md
+  self_checks: true
+  next: use ow-research-run on research/fernhill-florists/RS-01-route-export/
+  slash: /ow-research-run
+  reads: question.md, inbox/
+  says:
+    - 'Handling level recorded: no request will be sent for this topic; the run will use the files you supply.'
+status:
+  lines:
+    - path: research/fernhill-florists/RS-01-route-export/question.md
+      next: ow-research /ow-research-run research/fernhill-florists/RS-01-route-export/
+      awaiting: none
+checks:
+  - headers
+  - writes
+  - status
+  - question
+  - screen
+  - credentials
+  - private_names
+  - people

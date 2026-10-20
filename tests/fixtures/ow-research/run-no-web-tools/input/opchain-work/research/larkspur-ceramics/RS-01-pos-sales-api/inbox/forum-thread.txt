@@ -1,0 +1,5 @@
+INVENTED TEST FIXTURE: a forum thread the user copied into a text file.
+
+Quillfeather sales export: totals only? (POS Users Forum, posted 2025-11-03)
+
+As far as I can tell the sales endpoint only gives daily totals, not each product. Support never answered my ticket about it.

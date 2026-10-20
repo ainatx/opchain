@@ -1,0 +1,49 @@
+# INVENTED. A market topic in the business workstream (contract deliverable 6): competitors' published plans with invented
+# prices, recorded as published on the day; a redirect to http refused (C7); a directory of unclear standing LOW.
+# It serves the user's own decision, so NEXT is none.
+case: run-business
+section: A business market topic; an http downgrade refused (C7)
+verbs:
+  - /ow-research-run
+base: question-business
+workstream: business
+topic: RS-01-support-plan-offers
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+screen:
+  file: run.md
+  says:
+    - Refused by the URL rule (not https); not opened.
+  self_checks: true
+  next: none
+status:
+  lines:
+    - path: research/business/RS-01-support-plan-offers/findings.md
+      next: 'none (closed: answered, RS-01)'
+      awaiting: none
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - ledger
+  - reconcile
+  - caps
+  - url_rule
+  - provenance
+  - privacy
+  - handling
+  - opened
+  - confidence
+  - cited
+  - quotes
+  - credentials
+  - handoff_fields
+  - self_checks
+  - ids
+  - private_names
+  - people

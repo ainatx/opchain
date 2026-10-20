@@ -1,0 +1,37 @@
+# INVENTED. C4 -question: a further topic. RS-01 exists (answered), so this topic is RS-02.
+case: question-further
+section: 'C4 -question: a further topic (RS-02)'
+verbs:
+  - /ow-research-question
+base: run-approved
+workstream: larkspur-ceramics
+topic: RS-02-po-pdf-parsing
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+question:
+  topic: RS-02-po-pdf-parsing
+  depth: standard
+  confirmed: yes (2026-10-18
+screen:
+  file: question.md
+  self_checks: true
+  next: use ow-research-run on research/larkspur-ceramics/RS-02-po-pdf-parsing/
+  slash: /ow-research-run
+  reads: question.md, inbox/
+status:
+  lines:
+    - path: research/larkspur-ceramics/RS-02-po-pdf-parsing/question.md
+      next: ow-research /ow-research-run research/larkspur-ceramics/RS-02-po-pdf-parsing/
+      awaiting: none
+checks:
+  - headers
+  - writes
+  - status
+  - question
+  - screen
+  - credentials
+  - private_names
+  - people

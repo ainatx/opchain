@@ -1,0 +1,41 @@
+# INVENTED. C4 /ow-research: a topic at each state, with its age, and a framework folder. The states come from the
+# files (headers and ledger markers only): answered, question (not confirmed), queries await approval, cut off,
+# needs fixing, answered from your files only; a framework with its manifest and one with files only.
+case: list-states
+section: 'C4 /ow-research: a topic at each state, with its age; a framework folder'
+verbs:
+  - /ow-research
+base: run-approved
+extra:
+  - run-handling-client
+  - framework-files-tools
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+route:
+  from: /ow-research
+  expect: list
+screen:
+  file: list.md
+  says:
+    - topic · state · last step · age
+    - framework · date · state
+    - (not machine-checked)
+    - To frame a new question, say "use ow-research-question <workstream>" (a client's slug, or business).
+  offers:
+    - use ow-research-question <workstream>
+  never:
+    - 'DONE:'
+status:
+  lines: []
+checks:
+  - writes
+  - status
+  - route
+  - screen
+  - list
+  - private_names
+  - people
+writes_nothing: true

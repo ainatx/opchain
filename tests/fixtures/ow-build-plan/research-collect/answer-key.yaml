@@ -1,0 +1,34 @@
+# Answer key: research-collect (INVENTED: fictional client and consultant).
+# Amendment P5 (ow-research design §10; ow-build-plan 1.1.0): ow-research's run NEXT, "use ow-build-plan to collect
+# for plans/larkspur-ceramics/", received with findings present. -collect adds one research row per finding used, located
+# RS-nn F-nn, each keeping its level. The research files layer in from ow-research's run-approved golden.
+case: research-collect
+section: 'P5: research findings collected (findings present)'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+base: tier2-plan
+research_case: run-approved
+checks:
+  - headers
+  - research
+  - status
+  - private_names
+outputs:
+  - plans/larkspur-ceramics/evidence.md
+research:
+  rows:
+    - id: E-12
+      locator: RS-01 F-01
+    - id: E-13
+      locator: RS-01 F-02
+    - id: E-14
+      locator: RS-01 F-03
+status:
+  lines:
+    - path: plans/larkspur-ceramics/evidence.md
+      next: ow-build-plan /ow-build-plan-map plans/larkspur-ceramics/
+      awaiting: none
+private_names:
+  - llc-ops
+  - Deftwright

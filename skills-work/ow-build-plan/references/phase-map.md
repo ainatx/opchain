@@ -13,6 +13,7 @@ Every statement in the map is a fact line:
 
 - **HIGH** cites an evidence row that shows it (artefact, access, screen). **MEDIUM** cites a row where a person stated it. **LOW** says `inferred from <rows>` or carries the speaker rule. **UNKNOWN** names who can answer; it becomes an open question in the plan.
 - Every HIGH and MEDIUM fact cites at least one `E-nn` that exists in `evidence.md`.
+- A fact in `map/current.md` that rests only on `research` rows is at most MEDIUM, whatever the finding's level (the collect phase, §5): research cannot show what the client actually runs.
 - Two rows that disagree: keep both, as one line `[MEDIUM E-03, E-07] CONTRADICTED — <first> vs <second>`, and an open question. Never pick a side.
 - Facts carry no credential and no personal value (§1 of the collect phase).
 

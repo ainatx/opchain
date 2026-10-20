@@ -1,0 +1,40 @@
+# INVENTED. C4 -framework: a symlink in the folder. ow-tools refuses to digest it (exit 4, symlink-in-tree); the reason
+# is relayed in the skill's words and no manifest is written. (Fixtures carry no symlinks: the session records the
+# tool's refusal, and tests/ow-research-acceptance.test.js makes a real symlink for the checker's real-folder rule.)
+case: framework-symlink
+section: 'C4 -framework: a symlink in the folder (exit 4 relayed; no manifest)'
+verbs:
+  - /ow-research-framework
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+plan_case: tier2-plan
+framework:
+  id: nist-800-53
+  date: '2026-10-19'
+  expect: nothing
+screen:
+  file: framework.md
+  says:
+    - 'ow-tools refused to digest research/frameworks/nist-800-53/2026-10-19/: a symlink is in the folder. Replace it with the file it points to, then run again. No manifest was written.'
+  never:
+    - 'DONE:'
+  only:
+    - 'ow-tools refused to digest research/frameworks/nist-800-53/2026-10-19/: a symlink is in the folder\. Replace it with the file it points to, then run again\. No manifest was written\.'
+status:
+  lines: []
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - framework
+  - credentials
+  - private_names
+  - people
+  - self_checks
+  - handling
+writes_nothing: true

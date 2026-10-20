@@ -1,0 +1,43 @@
+# INVENTED. C4 -framework <id>: an open id, files supplied, with ow-tools (design §9 Framework; C16). The user downloaded
+# the catalog (here an invented OSCAL-shaped stand-in) from the official source the table lists; -framework reads the
+# revision the file states, digests it with ow-tools (command and output recorded; the checker recomputes it), and
+# writes manifest.yaml last, labelled unpinned — fetched, not a pack. The clean twin of inj-framework-file.
+case: framework-files-tools
+section: 'C4 -framework: open id, files supplied, with ow-tools'
+verbs:
+  - /ow-research-framework
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+plan_case: tier2-plan
+framework:
+  id: nist-800-53
+  date: '2026-10-16'
+  expect: manifest
+  tools: true
+screen:
+  file: framework.md
+  says:
+    - unpinned — fetched, not a pack
+    - 'DONE: nist-800-53 recorded, unpinned — fetched, not a pack -> research/frameworks/nist-800-53/2026-10-16/manifest.yaml (revision as the publisher states it: 5.2.0)'
+  self_checks: true
+  next: none
+status:
+  lines:
+    - path: research/frameworks/nist-800-53/2026-10-16/manifest.yaml
+      next: 'none (closed: unpinned framework texts recorded)'
+      awaiting: none
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - framework
+  - credentials
+  - private_names
+  - people
+  - self_checks
+  - handling

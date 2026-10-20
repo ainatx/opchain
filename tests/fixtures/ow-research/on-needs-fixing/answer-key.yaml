@@ -1,0 +1,9 @@
+# INVENTED. C4 /ow-research on <path>: needs fixing -> -run (resumes where it stopped). Grades the route of run-resume-stopped's run.
+case: on-needs-fixing
+section: 'C4 /ow-research on <path>: needs fixing -> -run (resumes where it stopped)'
+run: run-resume-stopped
+route:
+  from: research/larkspur-ceramics/RS-01-pos-sales-api/
+  expect: run
+checks:
+  - route

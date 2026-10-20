@@ -1,0 +1,40 @@
+# INVENTED. C4 /ow-research on <path>: a topic at the question (not confirmed) state lands on -question, which shows
+# the draft and records the confirmation. A draft is rewritten only until it is confirmed (no queries.md exists).
+case: on-draft
+section: 'C4 /ow-research on <path>: question (not confirmed) -> -question'
+verbs:
+  - /ow-research-question
+base: question-draft
+workstream: larkspur-ceramics
+topic: RS-02-glaze-lead-times
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+route:
+  from: research/larkspur-ceramics/RS-02-glaze-lead-times/
+  expect: question
+question:
+  confirmed: yes (2026-10-18
+screen:
+  file: question.md
+  self_checks: true
+  next: use ow-research-run on research/larkspur-ceramics/RS-02-glaze-lead-times/
+  slash: /ow-research-run
+  reads: question.md, inbox/
+status:
+  lines:
+    - path: research/larkspur-ceramics/RS-02-glaze-lead-times/question.md
+      next: ow-research /ow-research-run research/larkspur-ceramics/RS-02-glaze-lead-times/
+      awaiting: none
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - route
+  - question
+  - screen
+  - private_names
+  - people

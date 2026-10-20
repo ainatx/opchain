@@ -1,0 +1,35 @@
+ow_artefact: ow-research/framework-manifest
+schema: 1
+written_by: ow-research 1.0.0 (protocol 1)
+workstream: frameworks
+subject: none
+created: 2026-10-18
+clock: tool
+origin: skill
+banner: "RESTRICTED: handle under the client agreement"
+label: unpinned — fetched, not a pack
+framework: hipaa-ecfr
+text: The HIPAA rules, 45 CFR Parts 160, 162 and 164, as eCFR shows them
+publisher: Office of the Federal Register (eCFR)
+retrieved: 2026-10-18
+retrieved_clock: tool
+downloaded_by: the user, from the official sources below (user-stated, not verified)
+sources:
+  - { url: https://www.ecfr.gov/current/title-45/subtitle-A/subchapter-C/part-164, file: title-45-part-164-excerpt.xml }
+stated_revision: "amended through 2026-09-30 (amendment-date in the file)"
+revision_note: The manifest records the revision the publisher states; it never says which revision applies.
+notes:
+  - "Current is not binding: a newer revision being published does not make it the one that applies."
+  - "An eCFR snapshot is not the law in force: eCFR is an editorial compilation, updated daily."
+files:
+  - file: title-45-part-164-excerpt.xml
+    digest: { command: "ow-tools digest research/frameworks/hipaa-ecfr/2026-10-18/title-45-part-164-excerpt.xml --json", sha256: 46f3d2f2300a95badf22df9395205507465de1d3423e9ab715c35fad0f0490ac, form: file-bytes, note: "detects accidental change only; not tamper-evidence" }
+requests: none (handling level set)
+handling: "restricted: no outside services"
+suspicious_content: none found
+self_checks:
+  Instructions ignored: OK
+  Licensed text: OK
+  No credentials: OK
+  No private names: OK
+  No requests under a handling level: "OK: nothing was requested; the level is set"

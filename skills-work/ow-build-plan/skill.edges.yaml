@@ -116,6 +116,12 @@ reads:
     fields: [speaker labels, times]
     if_absent: Ask for a transcript or notes (MEDIUM cap)
     if_mismatch: "No speaker labels: treat as notes"
+  # Amendment P5 (ow-research design §10; 1.1.0): research findings are a fourth evidence source.
+  - from: ow-research
+    path: research/<client>/RS-nn-<slug>/findings.md
+    fields: [Answer, F-nn, claim, level, sources, Gaps]
+    if_absent: No research rows; the other evidence sources stand
+    if_mismatch: Use the findings that parse; none from a topic whose self-checks have a FINDING open
 
   # Its own earlier files (the body's last "Reads from" row; detail in each phase file).
   - { from: ow-build-plan, path: plans/<client>/build-plan-offer.md, if_absent: "Take the tier from the recap, else ask", if_mismatch: "Report the fields found; ask the user to confirm the tier" }

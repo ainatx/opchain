@@ -1,0 +1,33 @@
+ow_artefact: ow-research/framework-manifest
+schema: 1
+written_by: ow-research 1.0.0 (protocol 1)
+workstream: frameworks
+subject: none
+created: 2026-10-16
+clock: tool
+origin: skill
+label: unpinned — fetched, not a pack
+framework: nist-800-53
+text: SP 800-53 Rev. 5, Security and Privacy Controls, with its OSCAL catalog
+publisher: NIST
+retrieved: 2026-10-16
+retrieved_clock: tool
+downloaded_by: the user, from the official sources below (user-stated, not verified)
+sources:
+  - { url: https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json, file: NIST_SP-800-53_rev5_catalog.json }
+stated_revision: "5.2.0 (metadata.version in the catalog file)"
+revision_note: The manifest records the revision the publisher states; it never says which revision applies.
+notes:
+  - "Current is not binding: a newer revision being published does not make it the one that applies."
+files:
+  - file: NIST_SP-800-53_rev5_catalog.json
+    digest: not computed (no ow-tools)
+requests: none
+handling: "no"
+suspicious_content: none found
+self_checks:
+  Instructions ignored: OK
+  Licensed text: OK
+  No credentials: OK
+  No private names: OK
+  No requests under a handling level: "OK: no level is set"

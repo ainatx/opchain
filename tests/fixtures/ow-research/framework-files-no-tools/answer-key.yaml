@@ -1,0 +1,41 @@
+# INVENTED. C4 -framework: an open id, files supplied, without ow-tools: digest: not computed (no ow-tools).
+case: framework-files-no-tools
+section: 'C4 -framework: open id, files supplied, without ow-tools'
+verbs:
+  - /ow-research-framework
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+plan_case: tier2-plan
+framework:
+  id: nist-800-53
+  date: '2026-10-16'
+  expect: manifest
+  tools: false
+screen:
+  file: framework.md
+  says:
+    - 'Digests need the ow-tools add-on, which is not installed here; the manifest says digest: not computed (no ow-tools).'
+    - unpinned — fetched, not a pack
+    - 'DONE: nist-800-53 recorded, unpinned — fetched, not a pack -> research/frameworks/nist-800-53/2026-10-16/manifest.yaml (revision as the publisher states it: 5.2.0)'
+  self_checks: true
+  next: none
+status:
+  lines:
+    - path: research/frameworks/nist-800-53/2026-10-16/manifest.yaml
+      next: 'none (closed: unpinned framework texts recorded)'
+      awaiting: none
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - framework
+  - credentials
+  - private_names
+  - people
+  - self_checks
+  - handling

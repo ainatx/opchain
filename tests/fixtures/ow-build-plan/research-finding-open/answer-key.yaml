@@ -1,0 +1,24 @@
+# Answer key: research-finding-open (INVENTED). Amendment P5: a FINDING open, so not used. The only research topic for
+# the client has a self-check FINDING open (Cited); -collect uses none of its findings, says which topic and check,
+# and writes nothing.
+case: research-finding-open
+section: 'P5: a topic with a FINDING open (not used)'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+base: tier2-plan
+research_refused: the only research topic has a self-check FINDING open
+checks:
+  - research_refused
+  - research
+  - research_screen
+research:
+  none_from: RS-03-label-printers
+screen:
+  file: collect.md
+  says:
+    - RS-03-label-printers has a self-check FINDING open (Cited), so none of its findings was used and nothing was collected.
+    - To fix it, say "use ow-research-run on research/larkspur-ceramics/RS-03-label-printers/".
+private_names:
+  - llc-ops
+  - Deftwright

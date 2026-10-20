@@ -1,0 +1,5 @@
+INVENTED TEST FIXTURE: a help article the user saved as text, from https://help.leafbinder.example.org/orders/export on 2026-11-11.
+
+Exporting your orders
+
+Open Orders, then choose Download. You get a spreadsheet of every open order with its status and expected ship date.

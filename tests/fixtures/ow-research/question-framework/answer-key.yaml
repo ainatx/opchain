@@ -1,0 +1,32 @@
+# INVENTED. C4 -question: a frameworks question points to -framework; nothing is written.
+case: question-framework
+section: 'C4 -question: a frameworks question (points to -framework)'
+verbs:
+  - /ow-research-question
+base: run-approved
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+screen:
+  file: question.md
+  says:
+    - Whole framework or regulation texts come through /ow-research-framework; nothing was written.
+  offers:
+    - use ow-research-framework nist-800-53
+  never:
+    - 'DONE:'
+  only:
+    - Whole framework or regulation texts come through /ow-research-framework; nothing was written\.
+    - 'The open list: [a-z0-9-]+(?:, [a-z0-9-]+)*\. For this one, say "use ow-research-framework [a-z0-9-]+"\.'
+status:
+  lines: []
+checks:
+  - headers
+  - writes
+  - status
+  - screen
+  - private_names
+  - people
+writes_nothing: true

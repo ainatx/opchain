@@ -1,0 +1,38 @@
+# INVENTED. C4 question NEXT: the question is not confirmed (refuse). -run on a draft sends nothing and writes nothing.
+case: run-unconfirmed
+section: 'C4 question NEXT: question unconfirmed (refuse)'
+verbs:
+  - /ow-research-run
+base: question-draft
+workstream: larkspur-ceramics
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+route:
+  from: use ow-research-run on research/larkspur-ceramics/RS-02-glaze-lead-times/
+  expect: nothing
+screen:
+  file: run.md
+  says:
+    - This question is not confirmed yet, so nothing was sent.
+  offers:
+    - use ow-research-question larkspur-ceramics
+  never:
+    - 'DONE:'
+    - 'Approved:'
+    - search Q-
+  only:
+    - This question is not confirmed yet, so nothing was sent\.
+    - To confirm it, say "use ow-research-question [a-z0-9-]+" and confirm the draft research/\S+/question\.md\.
+status:
+  lines: []
+checks:
+  - writes
+  - status
+  - route
+  - screen
+  - private_names
+  - people
+writes_nothing: true

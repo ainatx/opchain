@@ -1,0 +1,35 @@
+# INVENTED. C4 /ow-research: no topics. The prescribed words and the one offer; nothing is written.
+case: list-empty
+section: 'C4 /ow-research: no topics'
+verbs:
+  - /ow-research
+plan_case: tier2-plan
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+route:
+  from: /ow-research
+  expect: list
+screen:
+  file: list.md
+  says:
+    - No research topics yet in opchain-work/research/.
+    - To frame a new question, say "use ow-research-question <workstream>" (a client's slug, or business).
+  offers:
+    - use ow-research-question <workstream>
+  never:
+    - 'DONE:'
+    - '| RS-'
+status:
+  lines: []
+checks:
+  - writes
+  - status
+  - route
+  - screen
+  - list
+  - private_names
+  - people
+writes_nothing: true
