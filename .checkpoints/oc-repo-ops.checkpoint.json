@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a14d6e3771986110e",
+  "project_dir": ".",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-20T00:07:18.787Z",
+  "updated_at": "2026-10-20T04:25:31.052Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "OW-09 (Sprint R): ow-research 1.0.0 + ow-build-plan 1.1.0 (P5), CI cleanup fix + merge of main (#637)",
-  "progress_summary": "OW-09 PR readiness, re-bound for the merge of main @ a2e1478e (#637) into the branch: content commit 5b64824b, the test-only CI fix 0ae5c9a5 (per-test background removal of scratch folders in the ow- test helpers, 120s afterAll backstop) and the merge; every branch commit carries a PASS receipt and none is bypassed. Build leaves no tracked change; oc- sources equal origin/main.",
+  "step": "pr-gate-budget-600s",
+  "progress_summary": "Gate-budget PR readiness PASS at 684c8404: two config lines plus one checkpoint; the commit's own gate run passed under the new policy (tests 226 s with 3 workers); checkpoint:validate passes; no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -23,21 +23,17 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [
-      "The ow- catalog is in no build output yet (Sprint 5)",
-      "Evaluation round 2 passed under the owner's cap with M3 (checker-only) open; M3, m1-m10, the nits and the security closure's R3-01 are the follow-up PR's",
-      "The full vitest run takes 271-302s on this machine against the commit gate's 300s test budget; under other agents' load the gate times out (INCONCLUSIVE) until load drops"
-    ],
+    "warnings": [],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "0ae5c9a538af68e40385d1605a6b395589a5c36f",
+    "verified_for_sha": "684c8404e4ca2a355fbe6488b6ecba7e66c51c57",
     "last_verify": {
-      "at": "2026-10-20T00:07:18.787Z",
-      "branch": "claude/ow-09-ow-research",
-      "base": "origin/main @ a2e1478e",
+      "at": "2026-10-20T04:25:31.052Z",
+      "branch": "claude/gate-budget-600s",
+      "base": "origin/main@11091f94",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -2191,8 +2187,29 @@
           "tests/fixtures/ow-research/README.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-gate-budget-600s-e30c831e36f3",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-20T04:25:31.052Z",
+      "verified_at": "2026-10-20T04:25:31.052Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-gate-budget-600s"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:e30c831e36f3a0ca3d7628ce2b65598b857616d74121802964ee9f8cdb542ec1"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/gate-budget-600s at 684c8404 on origin/main 11091f94 (#636). Files: .bugcheck.json, vitest.config.js, .checkpoints/oc-app-architect.checkpoint.json. Nothing under skills/, skills-work/, plugins/, site/, src/ or package.json, so no catalog, bundle, plugin or release-surface output changes. No test pins timeout_ms 300000 or maxWorkers 2 (git grep). Candidate verifier PASS on tree e0961f0e.",
+        "evidence": []
+      }
     }
   ],
-  "record_updated_at": "2026-10-20T00:07:18.787Z",
+  "record_updated_at": "2026-10-20T04:25:31.052Z",
   "blockers": []
 }
