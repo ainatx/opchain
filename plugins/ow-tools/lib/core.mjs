@@ -104,6 +104,15 @@ export function run(cmd, args, opts = {}) {
   return { status: r.status, stdout: r.stdout || "", stderr: r.stderr || "", error: r.error };
 }
 
+// Full major.minor.patch compare (F-010); a pre-release suffix is ignored.
+export function semverAtLeast(found, min) {
+  const parse = (v) => String(v).replace(/^v/, "").split(/[.+-]/).slice(0, 3).map((n) => Number.parseInt(n, 10) || 0);
+  const a = parse(found);
+  const b = parse(min);
+  for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] > b[i];
+  return true;
+}
+
 // Last non-empty line of a tool's stderr, for an exit-5 message. Never the whole log:
 // a tool's log can echo file contents.
 export function oneLine(text, n = 200) {

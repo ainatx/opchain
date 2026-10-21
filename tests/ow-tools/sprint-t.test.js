@@ -137,7 +137,8 @@ describe("T5: the ow-start meeting row needs no code change (C24)", SPAWN, () =>
 
 describe("reason codes and the calls table (C22, C23)", () => {
   const thrown = new Set();
-  for (const f of libFiles) for (const m of lib(f).matchAll(/(?:refused|stepFail)\(\s*"([a-z-]+)"/g)) thrown.add(m[1]);
+  // scan-secrets (1.3.0) throws through refusal() (exit 4) and scanFail() (exit 5).
+  for (const f of libFiles) for (const m of lib(f).matchAll(/(?:refused|stepFail|refusal|scanFail)\(\s*"([a-z-]+)"/g)) thrown.add(m[1]);
   const table = section("### 14.3", "### 14.4");
   const listed = new Set([...table.matchAll(/^\| `([a-z-]+)` \|/gm)].map((m) => m[1]));
 
@@ -156,17 +157,14 @@ describe("reason codes and the calls table (C22, C23)", () => {
     const calls = section("### 4.2", "**Partial installs.**");
     const found = [...calls.matchAll(/`ow-tools ([a-z-]+)([^`]*)`/g)];
     expect(found.length).toBeGreaterThan(15);
-    const notBuilt = new Set(["scan-secrets"]);
+    // 1.3.0: scan-secrets is built (OW-06), so every verb in the table is real.
+    expect(calls).not.toMatch(/\*\*not built\*\*/);
     for (const [, verb, rest] of found) {
-      if (notBuilt.has(verb)) {
-        expect(calls).toMatch(/\*\*not built\*\*: `scan-secrets`/);
-        continue;
-      }
       expect(VERBS, verb).toContain(verb);
       for (const [, flag] of rest.matchAll(/--([a-z][a-z-]*)/g)) expect(Object.keys(FLAGS), `${verb} --${flag}`).toContain(flag);
     }
     const verbsUsed = new Set(found.map((f) => f[1]));
-    for (const v of ["transcribe", "speakers", "export", "calc", "capture", "health", "digest"]) expect(verbsUsed.has(v), v).toBe(true);
+    for (const v of ["transcribe", "speakers", "export", "calc", "capture", "health", "digest", "scan-secrets"]) expect(verbsUsed.has(v), v).toBe(true);
   });
 
   it("C22: every caller row has an absent-case; unstated ones are flagged for the caller's sprint", () => {
@@ -314,17 +312,18 @@ describe("manifest and version (C28, C30, C31)", SPAWN, () => {
       for (const [, cmd] of lib(f).matchAll(/versionOf\("([^"]+)"/g)) targets.add(cmd);
       for (const [, cmd] of lib(f).matchAll(/spawn(?:Sync)?\("([^"]+)"/g)) targets.add(cmd);
     }
-    expect([...targets].sort()).toEqual(["ffmpeg", "git", "pandoc", "pip-audit", "security", "typst", "unzip", "uv", "whisper-cli", "zip"]);
+    // gitleaks (1.3.0): doctor's version probe; scan-secrets runs it and git by the absolute path found on PATH.
+    expect([...targets].sort()).toEqual(["ffmpeg", "git", "gitleaks", "pandoc", "pip-audit", "security", "typst", "unzip", "uv", "whisper-cli", "zip"]);
     for (const t of targets) expect(programs, t).toContain(`\`${t}`);
     expect(lib("cdp.mjs")).toMatch(/spawn\(binary, args/); // the browser: a found binary, never a fetched one
     expect(programs).toMatch(/Chrome or Chromium \(1\.1\.0\): `--remote-debugging-pipe`/);
     for (const f of libFiles) expect(lib(f), f).not.toMatch(/chrome-for-testing|storage\.googleapis\.com|download.*chromium/i);
   });
 
-  it("C30: the manifest is current for the release (1.2.0, on 1.1.2) and its Network, Programs and Files sections say what C25 and C28 test", () => {
+  it("C30: the manifest is current for the release (1.3.0, on 1.2.0) and its Network, Programs and Files sections say what C25 and C28 test", () => {
     const r = spawnSync(process.execPath, [join(ROOT, "scripts", "gen-ow-tools-manifest.mjs"), "--check"], { encoding: "utf8" });
     expect(r.status, r.stderr).toBe(0);
-    expect(MANIFEST.split("\n")[0]).toBe("# ow-tools 1.2.0 — security manifest");
+    expect(MANIFEST.split("\n")[0]).toBe("# ow-tools 1.3.0 — security manifest");
     const network = MANIFEST.slice(MANIFEST.indexOf("## Network"), MANIFEST.indexOf("## Files it writes"));
     for (const dest of ["api.osv.dev", "registry.npmjs.org", "data.iana.org", "allowed_origins", "--no-network"]) expect(network).toContain(dest);
     expect(network).toMatch(/\| every other verb \| Nothing \| Nothing\./);
@@ -332,18 +331,18 @@ describe("manifest and version (C28, C30, C31)", SPAWN, () => {
     for (const w of ["<step-id>.png", "$OW_TOOLS_HOME/capture/<workstream>/", "rdap/dns.json", "<name>.export.json", "<name>.pptx", "<name>.xlsx"]) expect(files).toContain(w);
   });
 
-  it("C31: the release version everywhere (1.2.0: 1.1.2 plus the contract calendar, OW-04 OD-2), and version --json lists every capability", () => {
+  it("C31: the release version everywhere (1.3.0: 1.2.0 plus scan-secrets, OW-06 O10), and version --json lists every capability", () => {
     const plugin = JSON.parse(readFileSync(join(PLUGIN, ".claude-plugin", "plugin.json"), "utf8"));
     const market = JSON.parse(readFileSync(join(PLUGIN, ".claude-plugin", "marketplace.json"), "utf8"));
-    expect(plugin.version).toBe("1.2.0");
-    expect(market.metadata.version).toBe("1.2.0");
-    expect(market.plugins[0].version).toBe("1.2.0");
+    expect(plugin.version).toBe("1.3.0");
+    expect(market.metadata.version).toBe("1.3.0");
+    expect(market.plugins[0].version).toBe("1.3.0");
     const r = cli(["version", "--json"], { env: { OW_TOOLS_HOME: join(tempDir(), "h") } });
-    expect(r.json.version).toBe("1.2.0");
+    expect(r.json.version).toBe("1.3.0");
     expect(r.json.capabilities.calc.calendars).toEqual(["us-federal"]);
-    expect(Object.keys(r.json.capabilities).sort()).toEqual(["calc", "capture", "digest", "export", "health", "pptx", "transcribe", "xlsx"]);
+    expect(Object.keys(r.json.capabilities).sort()).toEqual(["calc", "capture", "digest", "export", "health", "pptx", "scan-secrets", "transcribe", "xlsx"]);
     for (const c of ["calc", "digest", "xlsx", "health"]) expect(r.json.capabilities[c].ready, c).toBe(true);
-    expect(cli(["help"]).stdout).toMatch(/ow-tools 1\.2\.0/);
+    expect(cli(["help"]).stdout).toMatch(/ow-tools 1\.3\.0/);
   });
 
   it("README and /ow-tools say what health and capture send", () => {

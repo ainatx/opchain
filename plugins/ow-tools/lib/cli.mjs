@@ -8,6 +8,7 @@ import { capture, captureText } from "./capture.mjs";
 import { digest, digestText } from "./digest.mjs";
 import { capabilities, checks, doctor, doctorText } from "./doctor.mjs";
 import { exportDoc } from "./export.mjs";
+import { scanSecrets, scanSecretsText } from "./scan-secrets.mjs";
 import { sessionStart } from "./status.mjs";
 import { speakers, transcribe } from "./transcribe.mjs";
 
@@ -29,8 +30,10 @@ const HELP = `ow-tools ${VERSION} — the code add-on for the ow- skills (Claude
   ow-tools health --config health.yaml [--no-network]
   ow-tools capture --plan plan.json --out <…>/shots/ [--sign-in] [--timeout SECONDS]
   ow-tools capture --profiles | --delete-profile <id>
+  ow-tools scan-secrets <repo> [--timeout SECONDS]
 
 Every verb takes --json. Exit codes: 0 done · 2 usage · 3 a requirement is missing · 4 refused by a rule · 5 a tool failed.
+scan-secrets: CLEAN and HITS are both exit 0 (status says which); any other exit means NOT-CHECKED.
 ow-tools never installs anything and never prints a credential. Only health and capture use the
 network, and only for what their config or plan lists (ow-tools help network).`;
 
@@ -43,6 +46,8 @@ const NETWORK = `What leaves this machine, by verb (design §8, Network):
             pip-audit, when it runs on a pinned requirements file, sends those Python
             package names and versions to api.osv.dev itself (--vulnerability-service osv).
             --no-network sends nothing.
+  scan-secrets  nothing: the git it runs (and gitleaks' git) refuses every transport
+            (protocol.allow=never) and never fetches a missing object (GIT_NO_LAZY_FETCH=1)
   all other verbs, and the session hook: nothing.`;
 
 export const FLAGS = {
@@ -55,7 +60,7 @@ export const FLAGS = {
   config: "str", "no-network": "bool",
   plan: "str", "sign-in": "bool", timeout: "int", profiles: "bool", "delete-profile": "str",
 };
-export const VERBS = ["help", "version", "doctor", "transcribe", "speakers", "export", "digest", "calc", "health", "capture", "hook"];
+export const VERBS = ["help", "version", "doctor", "transcribe", "speakers", "export", "digest", "calc", "health", "capture", "scan-secrets", "hook"];
 
 export function parseArgs(argv) {
   const pos = [];
@@ -198,6 +203,12 @@ export async function main(argv, { stdin } = {}) {
       const { health, healthText } = await import("./health.mjs");
       const r = await health({ config: opts.config, noNetwork: Boolean(opts["no-network"]) });
       print(r, json, healthText(r));
+      return EXIT.OK;
+    }
+    case "scan-secrets": {
+      // CLEAN and HITS are both exit 0; every other outcome throws (NOT-CHECKED).
+      const r = await scanSecrets({ repo: pos[0], timeout: opts.timeout });
+      print(r, json, scanSecretsText(r));
       return EXIT.OK;
     }
     case "capture": {

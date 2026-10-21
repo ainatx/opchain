@@ -18,24 +18,19 @@ import {
   isFile,
   modelPath,
   run,
+  semverAtLeast,
   sha256File,
   venvDir,
   which,
 } from "./core.mjs";
 import { browserCandidates, findBrowser } from "./capture.mjs";
+import { GITLEAKS_MIN, GIT_MIN } from "./scan-secrets.mjs";
+
+export { semverAtLeast };
 
 const mac = () => platform() === "darwin";
 const pkg = (formula) => (mac() ? `brew install ${formula}` : `install ${formula} with your package manager`);
 const q = (s) => `"${s}"`;
-
-// Full major.minor.patch compare (F-010); a pre-release suffix is ignored.
-export function semverAtLeast(found, min) {
-  const parse = (v) => String(v).replace(/^v/, "").split(/[.+-]/).slice(0, 3).map((n) => Number.parseInt(n, 10) || 0);
-  const a = parse(found);
-  const b = parse(min);
-  for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] > b[i];
-  return true;
-}
 
 function versionOf(cmd, args, re) {
   const r = run(cmd, args);
@@ -147,13 +142,23 @@ export function checks({ verifyModel = true, env = process.env } = {}) {
   const pa = which("pip-audit", env);
   add("pip-audit", ["health"], Boolean(pa), pa ? "present (used only with a pinned requirements file, in its no-install mode)" : "not found (optional: Python advisories are reported not checked)",
     mac() ? "brew install pip-audit" : "pipx install pip-audit", true);
+  // scan-secrets (1.3.0): gitleaks with template reports, and a git that keeps
+  // lazy fetch off. Version probes only.
+  const gl = which("gitleaks", env) && versionOf("gitleaks", ["version"], /(\d+\.\d+\.\d+)/);
+  const glOk = Boolean(gl) && semverAtLeast(gl, GITLEAKS_MIN);
+  add("gitleaks", ["scan-secrets"], glOk, gl ? `gitleaks ${gl}${glOk ? "" : ` (needs ${GITLEAKS_MIN} or newer)`}` : "not found",
+    mac() ? `brew ${gl ? "upgrade" : "install"} gitleaks` : `install gitleaks ${GITLEAKS_MIN} or newer with your package manager`);
+  const gv = which("git", env) && versionOf("git", ["--version"], /git version (\d+\.\d+\.\d+)/);
+  const gvOk = Boolean(gv) && semverAtLeast(gv, GIT_MIN);
+  add("git", ["scan-secrets"], gvOk, gv ? `git ${gv}${gvOk ? "" : ` (needs ${GIT_MIN} or newer)`}` : "not found",
+    mac() ? "brew install git" : `install git ${GIT_MIN} or newer with your package manager`);
   return out;
 }
 
 // Optional rows (pip-audit) never make a capability "missing".
 export function capabilities(list) {
   const caps = {};
-  for (const cap of ["transcribe", "export", "pptx", "capture"]) {
+  for (const cap of ["transcribe", "export", "pptx", "capture", "scan-secrets"]) {
     const miss = list.filter((c) => (c.for.includes(cap) || c.for.includes("all")) && !c.ok && !c.optional).map((c) => c.id);
     caps[cap] = miss.length ? { ready: false, missing: miss } : { ready: true };
   }
