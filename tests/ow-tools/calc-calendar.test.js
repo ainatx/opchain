@@ -6,6 +6,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { addDate, usFederalHolidays, CALENDARS, FEDERAL_YEARS } from "../../plugins/ow-tools/lib/calc.mjs";
+import { semverAtLeast } from "../../plugins/ow-tools/lib/core.mjs";
 import { tableHolidays } from "../../scripts/ow-uat-acceptance.mjs";
 import { PLUGIN, ROOT, cleanup, cli, tempDir } from "./helpers.js";
 
@@ -91,13 +92,15 @@ describe("calc --calendar us-federal", SPAWN, () => {
     expect(imports.every((s) => s === "node:fs" || s.startsWith("./"))).toBe(true);
     expect(src).not.toMatch(/node:(?:net|http|https|dgram|tls|dns)|fetch\(|WebSocket/);
   });
-  it("C19: the version line and both marketplace fields say 1.2.0; the manifest is current", () => {
+  // The calendar shipped in 1.2.0; the exact release is pinned in sprint-t.test.js C31
+  // (1.3.0 since OW-06), so this checks the calendar's floor and that every field agrees.
+  it("C19: the version line and both marketplace fields agree, at 1.2.0 or later; the manifest is current", () => {
     const plugin = JSON.parse(readFileSync(join(PLUGIN, ".claude-plugin", "plugin.json"), "utf8"));
     const market = JSON.parse(readFileSync(join(PLUGIN, ".claude-plugin", "marketplace.json"), "utf8"));
-    expect(plugin.version).toBe("1.2.0");
-    expect(market.metadata.version).toBe("1.2.0");
-    expect(market.plugins[0].version).toBe("1.2.0");
-    expect(readFileSync(join(PLUGIN, "SECURITY-MANIFEST.md"), "utf8")).toMatch(/^# ow-tools 1\.2\.0 — security manifest/);
+    expect(semverAtLeast(plugin.version, "1.2.0")).toBe(true);
+    expect(market.metadata.version).toBe(plugin.version);
+    expect(market.plugins[0].version).toBe(plugin.version);
+    expect(readFileSync(join(PLUGIN, "SECURITY-MANIFEST.md"), "utf8").split("\n")[0]).toBe(`# ow-tools ${plugin.version} — security manifest`);
     expect(cli(["help"]).stdout).toMatch(/--calendar us-federal/);
   });
 });
