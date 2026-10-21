@@ -17,6 +17,7 @@ import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
+import { inflateSync } from "node:zlib";
 import { dirname, join } from "node:path";
 import { semverAtLeast } from "../../plugins/ow-tools/lib/core.mjs";
 import {
@@ -97,8 +98,21 @@ function filesUnder(dir) {
   if (existsSync(dir)) walk(dir);
   return out;
 }
+// A file's bytes as they are, and inflated where they are a zlib stream (a git
+// loose object, SS-07): raw bytes alone can't see committed text git stores
+// compressed.
+function readable(f) {
+  const raw = readFileSync(f);
+  let inflated = "";
+  try {
+    inflated = inflateSync(raw).toString("latin1");
+  } catch {
+    /* not a zlib stream */
+  }
+  return `${raw.toString("latin1")}\n${inflated}`;
+}
 function leaksInFiles(dir) {
-  return filesUnder(dir).filter((f) => leaks(readFileSync(f, "latin1")).length > 0);
+  return filesUnder(dir).filter((f) => leaks(readable(f)).length > 0);
 }
 
 // ---- repositories, built at layout time ---------------------------------------------
@@ -219,28 +233,33 @@ function stubGitleaks(o = {}) {
   chmodSync(join(bin, "gitleaks"), 0o755);
   return { bin, rec, path: `${bin}:${tools()}:/usr/bin:/bin` };
 }
-// The real gitleaks behind a wrapper that keeps a copy of ow-tools' private
-// folder (report included) as it was when gitleaks finished, for the
-// redaction proofs.
+// The real gitleaks behind a wrapper that keeps copies of ow-tools' private
+// folder for the redaction proofs: snapshots taken while gitleaks runs (so
+// git's temporary remerge objects are caught before git removes them, SS-07)
+// and one as it was when gitleaks finished (the report included).
 function realWrapper() {
   const dir = tempDir("owt-real-");
   const bin = join(dir, "bin");
   mkdirSync(bin);
   const capture = join(dir, "capture");
+  const during = join(dir, "during");
+  mkdirSync(during);
   writeFileSync(
     join(bin, "gitleaks"),
     [
       "#!/bin/sh",
       'report=""; prev=""; for a in "$@"; do [ "$prev" = --report-path ] && report="$a"; prev="$a"; done',
-      `${q(REAL_GL)} "$@"`,
-      "rc=$?",
+      `${q(REAL_GL)} "$@" &`,
+      "pid=$!; n=0",
+      `while kill -0 $pid 2>/dev/null; do n=$((n+1)); [ -n "$report" ] && cp -R "$(dirname "$report")" ${q(during)}/$n 2>/dev/null; done`,
+      "wait $pid; rc=$?",
       `[ -n "$report" ] && cp -R "$(dirname "$report")" ${q(capture)}`,
       "exit $rc",
       "",
     ].join("\n"),
   );
   chmodSync(join(bin, "gitleaks"), 0o755);
-  return { path: `${bin}:${tools()}:/usr/bin:/bin`, capture };
+  return { path: `${bin}:${tools()}:/usr/bin:/bin`, capture, during };
 }
 const row = (path, commit, line, rule) => `${JSON.stringify(path)}\t${commit}\t${line}\t"${rule}"\n`;
 const SHA = "a".repeat(40);
@@ -407,6 +426,30 @@ describe("scan-secrets with a stub gitleaks (always run)", SLOW, () => {
     expect(existsSync(marker)).toBe(false);
   });
 
+  gitIt("a gitleaks or git that is a link into the repository is refused before it runs (scanner-untrusted); a PATH folder inside it is passed over (SS-05)", () => {
+    const { dir } = layout(AWS_FILE());
+    const marker = join(tempDir(), "planted");
+    mkdirSync(join(dir, "tools"));
+    for (const n of ["gitleaks", "git"]) {
+      writeFileSync(join(dir, "tools", n), `#!/bin/sh\necho ${n} >> ${q(marker)}\necho 'gitleaks 8.30.1 git version 2.55.0'\nexit 0\n`);
+      chmodSync(join(dir, "tools", n), 0o755);
+    }
+    // A folder outside the repository whose gitleaks links into it.
+    const links = join(tempDir(), "bin");
+    mkdirSync(links);
+    symlinkSync(join(dir, "tools", "gitleaks"), join(links, "gitleaks"));
+    const s = stubGitleaks();
+    let r = scan(dir, { path: `${links}:${s.path}` });
+    expect(r.status).toBe(4);
+    expect(r.json).toMatchObject({ reason: "scanner-untrusted", result: "NOT-CHECKED" });
+    expect(existsSync(marker)).toBe(false);
+    // The repository's own folder first on PATH: passed over; the installed programs run.
+    r = scan(dir, { path: `${join(dir, "tools")}:${s.path}` });
+    expect(r.status, r.stdout).toBe(0);
+    expect(r.json.scanner.gitleaks).toBe("8.30.1");
+    expect(existsSync(marker)).toBe(false);
+  });
+
   gitIt("CLEAN and HITS are both exit 0; the JSON status says which", () => {
     const clean = scan(repo.dir, { path: stubGitleaks().path });
     expect(clean.status).toBe(0);
@@ -457,7 +500,8 @@ describe("scan-secrets with a stub gitleaks (always run)", SLOW, () => {
     expect(after("--config")).toBe(join(priv, "gitleaks.toml"));
     expect(after("--gitleaks-ignore-path")).toBe(join(priv, "empty"));
     expect(after("--log-opts")).toBe(LOG_OPTS.join(" "));
-    expect(LOG_OPTS).toEqual(expect.arrayContaining(["--full-history", "--all", "--no-ext-diff", "--no-textconv", "--diff-merges=remerge"]));
+    expect(LOG_OPTS).toEqual(expect.arrayContaining(["--full-history", "--all", "--no-ext-diff", "--no-textconv", "--diff-merges=remerge", "--diff-filter=uxdb"]));
+    expect(LOG_OPTS.join(" ")).not.toMatch(/--diff-filter=\S*t/); // type changes kept (SS-01)
     expect(argv.at(-1)).toBe(join(priv, "history.git")); // never the repository itself
     expect(readFileSync(join(s.rec, "config"), "utf8")).toBe(GITLEAKS_CONFIG);
     expect(GITLEAKS_CONFIG).toMatch(/\[extend\]\nuseDefault = true\n$/);
@@ -466,7 +510,7 @@ describe("scan-secrets with a stub gitleaks (always run)", SLOW, () => {
     const env = Object.fromEntries(readFileSync(join(s.rec, "env"), "utf8").trim().split("\n").map((l) => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1)]));
     expect(Object.keys(env).filter((k) => /^GITLEAKS/.test(k))).toEqual([]);
     for (const k of ["GIT_DIR", "GIT_CONFIG_PARAMETERS", "GIT_EXTERNAL_DIFF", "GIT_TRACE"]) expect(env[k], k).toBeUndefined();
-    expect(env).toMatchObject({ GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null", GIT_NO_LAZY_FETCH: "1", GIT_TERMINAL_PROMPT: "0", GIT_NO_REPLACE_OBJECTS: "1", GIT_ATTR_NOSYSTEM: "1" });
+    expect(env).toMatchObject({ GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null", GIT_NO_LAZY_FETCH: "1", GIT_TERMINAL_PROMPT: "0", GIT_NO_REPLACE_OBJECTS: "1", GIT_ATTR_NOSYSTEM: "1", GOTRACEBACK: "none" });
     expect(env.PATH.split(":")[0]).toBe(join(priv, "bin")); // the status wrapper first
     expect(env.HOME).toBe(join(priv, "home"));
     const cfg = Object.fromEntries(Array.from({ length: Number(env.GIT_CONFIG_COUNT) }, (_, i) => [env[`GIT_CONFIG_KEY_${i}`], env[`GIT_CONFIG_VALUE_${i}`]]));
@@ -490,6 +534,17 @@ describe("scan-secrets with a stub gitleaks (always run)", SLOW, () => {
     const pid = Number(readFileSync(join(s.rec, "pid"), "utf8"));
     expect(alive(pid)).toBe(false);
     for (const bad of ["0", "591", "x"]) expect(scan(repo.dir, { path: s.path, args: ["--timeout", bad] }).status, bad).toBe(2);
+  });
+
+  gitIt("a version check that doesn't answer is a busy machine (exit 5, timeout), never 'gitleaks missing'", () => {
+    const s = stubGitleaks({ version: "8.30.1" });
+    const script = readFileSync(join(s.bin, "gitleaks"), "utf8").replace(/^case "\$1" in version\)/m, 'case "$1" in version) sleep 5;');
+    writeFileSync(join(s.bin, "gitleaks"), script);
+    const r = scan(repo.dir, { path: s.path, env: { OW_TOOLS_PROBE_TIMEOUT_MS: "500" } });
+    expect(r.status).toBe(5);
+    expect(r.json).toMatchObject({ reason: "timeout", result: "NOT-CHECKED" });
+    expect(r.json.message).toMatch(/did not answer its version check within 1 s \(the machine may be busy\)/);
+    expect(r.json.missing).toBeUndefined();
   });
 
   for (const [sig, code] of [["SIGTERM", 143], ["SIGINT", 130]]) {
@@ -629,7 +684,7 @@ describe("scan-secrets: the repository (contained, its own, its full history)", 
     const e = scan(empty, { path: s.path });
     expect(e.status).toBe(0);
     expect(e.json).toMatchObject({ status: "CLEAN", refs: 0, hits: 0 });
-    expect(e.json.note).toMatch(/no commits/);
+    expect(e.json.note).toMatch(/has no refs, so nothing in its history is reachable to scan/);
   });
 
   gitIt("a repository git refuses as another user's (dubious ownership) is refused, never read with a widened safe.directory", () => {
@@ -758,8 +813,9 @@ describe("scan-secrets: a hostile repository runs nothing (Part 1, item 4)", SLO
       writeFileSync(cfgPath, readFileSync(cfgPath, "utf8").replace(/^\s*(promisor|partialclone)\s*=.*$/gim, ""));
       const r2 = scan(partial, { path: stubGitleaks().path });
       await sleep(300);
-      expect(r2.status).toBe(5);
-      expect(r2.json).toMatchObject({ reason: "scan-failed", result: "NOT-CHECKED" });
+      // git's own failure inside gitleaks names the missing object: history-incomplete (SS-10).
+      expect(r2.status).toBe(4);
+      expect(r2.json).toMatchObject({ reason: "history-incomplete", result: "NOT-CHECKED" });
       expect(hits).toEqual([]);
     } finally {
       server.close();
@@ -827,10 +883,26 @@ describe("scan-secrets with real gitleaks", SLOW, () => {
     expect(leaks(t.stdout + t.stderr)).toEqual([]);
     const files = filesUnder(w.capture).map((f) => f.slice(w.capture.length + 1)).sort();
     expect(files).toEqual(expect.arrayContaining(["report.txt", "report.tmpl", "gitleaks.toml", "git-status", "history.git/objects/info/alternates"]));
+    // Raw and inflated (SS-07), at the end and in every snapshot taken while
+    // gitleaks ran. (A merge's remerge objects can hold committed text,
+    // compressed, while git runs: a §16.3 residual, PoC SS-07b. This history
+    // has no merge.)
     expect(leaksInFiles(w.capture)).toEqual([]);
+    expect(readdirSync(w.during).length).toBeGreaterThan(0);
+    expect(leaksInFiles(w.during)).toEqual([]);
     expect(filesUnder(join(w.capture, "history.git", "objects")).map((f) => f.slice(w.capture.length + 1))).toEqual(["history.git/objects/info/alternates"]); // no object copied
+    // Refs are copied under names of ow-tools' own (SS-09): no branch name reaches the folder.
+    expect(filesUnder(join(w.capture, "history.git", "refs")).map((f) => f.slice(w.capture.length + 1)).sort()).toEqual(["history.git/refs/ow/1"]);
     expect(r.left).toEqual([]);
     expect(t.left).toEqual([]);
+  });
+
+  realIt("the proof can see what it looks for: a key in a git loose object (zlib) is caught once inflated", () => {
+    const { dir } = layout(AWS_FILE());
+    const loose = filesUnder(join(dir, ".git", "objects")).filter((f) => /[0-9a-f]{38,62}$/.test(f));
+    expect(loose.length).toBeGreaterThan(0);
+    expect(loose.some((f) => leaks(readFileSync(f, "latin1")).length > 0)).toBe(false); // raw bytes: blind
+    expect(loose.some((f) => leaks(readable(f)).length > 0)).toBe(true); // inflated: caught
   });
 
   realIt("CLEAN is exit 0 and says what was and wasn't scanned", () => {
@@ -992,9 +1064,11 @@ describe("scan-secrets with real gitleaks", SLOW, () => {
     const plain = spawnSync(REAL_GL, ["git", "--no-banner", "--exit-code", "42", dir], { encoding: "utf8", env: { PATH: process.env.PATH, HOME: process.env.HOME } });
     expect(plain.status).toBe(0);
     const r = scan(dir, { path: realWrapper().path });
-    expect(r.status).toBe(5);
-    expect(r.json).toMatchObject({ reason: "scan-failed", result: "NOT-CHECKED" });
-    expect(r.json.message).toMatch(/git stopped part-way through the history/);
+    // The status wrapper catches git's failure; its error output (kept in the
+    // private folder, never shown) names a missing object: history-incomplete (SS-10).
+    expect(r.status).toBe(4);
+    expect(r.json).toMatchObject({ reason: "history-incomplete", result: "NOT-CHECKED" });
+    expect(r.json.message).toMatch(/could not read every object/);
   });
 
   realIt("file names: spaces and accents are reported as they are; a name gitleaks can only print with an escape stops the scan, and nothing from it is shown", () => {
@@ -1056,7 +1130,7 @@ describe("scan-secrets: doctor, version and what the plugin says", SLOW, () => {
     expect(programs).toMatch(/`gitleaks git --redact --report-format template/);
     expect(programs).toMatch(/`git show-ref --head` in the repository/);
     expect(network).toMatch(/\| `scan-secrets` \(1\.3\.0\) \| Nothing\..*protocol\.allow=never.*GIT_NO_LAZY_FETCH=1.*\| Nothing \|/);
-    expect(files).toMatch(/`ow-tools-scan-\*`.*0700.*Nothing is written in the scanned repository/);
+    expect(files).toMatch(/`ow-tools-scan-\*`.*0700.*temporary merge objects there can hold committed text, compressed.*No file in the scanned repository is created or changed; git may refresh the timestamps/);
     expect(manifest).toMatch(/\| `templates\/scan-secrets\.tmpl` \| `[0-9a-f]{64}` \|/);
     const readme = readFileSync(join(PLUGIN, "README.md"), "utf8");
     expect(readme).toMatch(/\*\*scan-secrets\*\*.*redacted form only.*`CLEAN` and `HITS` both exit 0/);

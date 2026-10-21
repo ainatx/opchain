@@ -312,8 +312,10 @@ describe("manifest and version (C28, C30, C31)", SPAWN, () => {
       for (const [, cmd] of lib(f).matchAll(/versionOf\("([^"]+)"/g)) targets.add(cmd);
       for (const [, cmd] of lib(f).matchAll(/spawn(?:Sync)?\("([^"]+)"/g)) targets.add(cmd);
     }
-    // gitleaks (1.3.0): doctor's version probe; scan-secrets runs it and git by the absolute path found on PATH.
-    expect([...targets].sort()).toEqual(["ffmpeg", "git", "gitleaks", "pandoc", "pip-audit", "security", "typst", "unzip", "uv", "whisper-cli", "zip"]);
+    // gitleaks (1.3.0) is run only by the absolute path findOnPath returns (doctor's probe too, SS-05b), so it
+    // has no literal here; its manifest row is pinned in scan-secrets.test.js.
+    expect([...targets].sort()).toEqual(["ffmpeg", "git", "pandoc", "pip-audit", "security", "typst", "unzip", "uv", "whisper-cli", "zip"]);
+    expect(programs).toMatch(/`gitleaks git --redact/);
     for (const t of targets) expect(programs, t).toContain(`\`${t}`);
     expect(lib("cdp.mjs")).toMatch(/spawn\(binary, args/); // the browser: a found binary, never a fetched one
     expect(programs).toMatch(/Chrome or Chromium \(1\.1\.0\): `--remote-debugging-pipe`/);

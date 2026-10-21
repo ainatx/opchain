@@ -24,7 +24,7 @@ import {
   which,
 } from "./core.mjs";
 import { browserCandidates, findBrowser } from "./capture.mjs";
-import { GITLEAKS_MIN, GIT_MIN } from "./scan-secrets.mjs";
+import { GITLEAKS_MIN, GIT_MIN, cwdRepo, findOnPath } from "./scan-secrets.mjs";
 
 export { semverAtLeast };
 
@@ -143,12 +143,18 @@ export function checks({ verifyModel = true, env = process.env } = {}) {
   add("pip-audit", ["health"], Boolean(pa), pa ? "present (used only with a pinned requirements file, in its no-install mode)" : "not found (optional: Python advisories are reported not checked)",
     mac() ? "brew install pip-audit" : "pipx install pip-audit", true);
   // scan-secrets (1.3.0): gitleaks with template reports, and a git that keeps
-  // lazy fetch off. Version probes only.
-  const gl = which("gitleaks", env) && versionOf("gitleaks", ["version"], /(\d+\.\d+\.\d+)/);
+  // lazy fetch off. Version probes only, of the program scan-secrets itself
+  // would find (PATH's absolute folders), run by that absolute path: never a
+  // ./gitleaks from the current folder (SS-05b), nor one from inside the
+  // repository the current folder is in (RC-03).
+  const skip = [cwdRepo()].filter(Boolean);
+  const glPath = findOnPath("gitleaks", env, skip);
+  const gl = glPath && versionOf(glPath, ["version"], /(\d+\.\d+\.\d+)/);
   const glOk = Boolean(gl) && semverAtLeast(gl, GITLEAKS_MIN);
   add("gitleaks", ["scan-secrets"], glOk, gl ? `gitleaks ${gl}${glOk ? "" : ` (needs ${GITLEAKS_MIN} or newer)`}` : "not found",
     mac() ? `brew ${gl ? "upgrade" : "install"} gitleaks` : `install gitleaks ${GITLEAKS_MIN} or newer with your package manager`);
-  const gv = which("git", env) && versionOf("git", ["--version"], /git version (\d+\.\d+\.\d+)/);
+  const gitPath = findOnPath("git", env, skip);
+  const gv = gitPath && versionOf(gitPath, ["--version"], /git version (\d+\.\d+\.\d+)/);
   const gvOk = Boolean(gv) && semverAtLeast(gv, GIT_MIN);
   add("git", ["scan-secrets"], gvOk, gv ? `git ${gv}${gvOk ? "" : ` (needs ${GIT_MIN} or newer)`}` : "not found",
     mac() ? "brew install git" : `install git ${GIT_MIN} or newer with your package manager`);

@@ -33,9 +33,12 @@ const HELP = `ow-tools ${VERSION} — the code add-on for the ow- skills (Claude
   ow-tools scan-secrets <repo> [--timeout SECONDS]
 
 Every verb takes --json. Exit codes: 0 done · 2 usage · 3 a requirement is missing · 4 refused by a rule · 5 a tool failed.
-scan-secrets: CLEAN and HITS are both exit 0 (status says which); any other exit means NOT-CHECKED.
-ow-tools never installs anything and never prints a credential. Only health and capture use the
-network, and only for what their config or plan lists (ow-tools help network).`;
+scan-secrets: CLEAN and HITS are both exit 0 (status says which); any other exit means NOT-CHECKED. It reads
+the text files of the committed history and never prints the matched text, but each hit's path is shown as it
+is, so a secret in a file or folder name is shown. Binary and UTF-16 files, commit and tag messages, and paths
+gitleaks' built-in allowlist skips are not read.
+ow-tools never installs anything, and never prints a credential except a path scan-secrets reports as it is.
+Only health and capture use the network, and only for what their config or plan lists (ow-tools help network).`;
 
 const NETWORK = `What leaves this machine, by verb (design §8, Network):
   capture   one name lookup per host in allowed_origins (before the browser starts), then
