@@ -1,0 +1,45 @@
+# Answer key: capture-recapture-resume-run (INVENTED). A re-capture cut after its plan step (capture-plan-02.json
+# written, its run not recorded), resumed at run: the plan is run once and never written again, and no third plan
+# is made (ow-documentation 1.0.1; the second evaluation's nit)
+case: capture-recapture-resume-run
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'A re-capture resumed at run: capture-plan-02.json is run once, never written again, and no capture-plan-03.json is made'
+verbs:
+  - /ow-documentation-capture
+today: '2027-02-03'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - capture
+  - approvals
+  - data
+test_values:
+  - LC-1001
+screen:
+  says: [docs/larkspur-ceramics/shots/index.md, capture-plan-02.json]
+  never: ['Refused:']
+next:
+  - use ow-documentation-write on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/shots/index.md, next: ow-documentation /ow-documentation-write docs/larkspur-ceramics/, awaiting: none}]
+base: capture-resume-check

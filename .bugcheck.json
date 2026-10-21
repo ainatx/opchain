@@ -148,6 +148,10 @@
         {
           "path": "tests/ow-documentation-heldout-r1.mjs",
           "digest": "sha256:ce74c1061b592ca13f57d292eb68df2b516c46c546c3b43437e6bfff449df2c9"
+        },
+        {
+          "path": "tests/ow-documentation-eval-r2-heldout.mjs",
+          "digest": "sha256:d3c7f4fd31896f49d167a7395b15b773e6b5f8b58323962b7b6ed6d28d1541d7"
         }
       ]
     }

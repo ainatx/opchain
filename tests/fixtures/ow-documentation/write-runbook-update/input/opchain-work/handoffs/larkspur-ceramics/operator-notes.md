@@ -4,7 +4,7 @@ schema: 1
 written_by: ow-handoff 1.0.0 (protocol 1)
 workstream: larkspur-ceramics
 subject: docs/larkspur-ceramics/runbook.md
-created: 2027-02-16
+created: 2027-02-05
 clock: user-stated
 origin: skill
 ops: [OP-08, OP-09]

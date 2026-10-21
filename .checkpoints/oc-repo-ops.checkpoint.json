@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-af10a6b0279e6c856",
+  "project_dir": ".",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-21T21:16:55.210Z",
+  "updated_at": "2026-10-21T22:27:07.650Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-ow-06-scan-secrets",
-  "progress_summary": "OW-06 PR 1 readiness PASS: builder commits 54755b50 and 42925785 plus the merge of origin/main dcb2eb75 (#642), each through the commit gate; full npm test (146 files, 7273 passed) before the round-1 commit and again in each gate; the build leaves no tracked changes; the manifest is current; no untracked files.",
+  "step": "pr-ow-05-followups",
+  "progress_summary": "PR readiness for ow-documentation 1.0.1: full npm test (8,825 passed, 15 skipped), npm run build with no tracked changes, all seven ow- acceptance checkers, gen-catalog, check-skill-contracts, lint-internal-refs green; one digest-pinned .bugcheck.json secrets exception for the Evaluator's set copy.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -23,24 +23,24 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [
-      "CI has no gitleaks: the real-binary halves of the three scan-secrets suites skip there and say so in each test title; they ran locally against gitleaks 8.30.1 and git 2.55.0 with nothing skipped."
-    ],
+    "warnings": [],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "f27136a7f24d438e14f69ef981731612d4c7cc7c",
+    "verified_for_sha": "b501c6a0bc579e1c18a857012cf0047376ee3a03",
     "last_verify": {
-      "at": "2026-10-21T21:16:55.210Z",
-      "branch": "claude/ow-06-scan-secrets",
-      "base": "origin/main@dcb2eb75",
+      "at": "2026-10-21T22:27:07.650Z",
+      "branch": "claude/ow-05-followups",
+      "base": "origin/main (merged after #643)",
       "verdict": "PASS",
       "blocking_findings": []
     }
   },
-  "next_actions": [],
+  "next_actions": [
+    "Run npm run evidence:pr after the evidence commit."
+  ],
   "handoffs": [
     {
       "id": "oc-repo-ops-release-f6b167fcbd3a",
@@ -2319,8 +2319,37 @@
           "docs/audits/2026-10-21-ow-tools-1.3-scan-secrets-security-review.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-ow-05-followups-28be00b1f8d9",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-21T22:27:07.650Z",
+      "verified_at": "2026-10-21T22:27:07.650Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-ow-05-followups"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:28be00b1f8d912d4a93692626e788ed2ab8dcc8a41817b4a9af6eefc2300a34e"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "ow-documentation 1.0.1 follow-up PR",
+        "evidence": [
+          "skills-work/ow-documentation/references/self-checks.md",
+          "skills-work/ow-documentation/SKILL.md",
+          "skills-work/ow-documentation/references/docs-yaml-schema.md",
+          "skills-work/ow-documentation/CHANGELOG.md",
+          "skills-work/README.md",
+          "docs/plans/2026-10-16-ow-documentation-design.md",
+          "tests/fixtures/ow-documentation/README.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-21T21:16:55.210Z",
+  "record_updated_at": "2026-10-21T22:27:07.650Z",
   "blockers": []
 }

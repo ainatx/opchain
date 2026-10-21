@@ -1,5 +1,6 @@
 # Answer key: write-runbook-update (INVENTED). OW-06 O6 edit 1: a runbook update takes the next id
-# after the highest in the runbook's and ow-handoff's operator notes' ops (never a rotate entry's id)
+# after the highest in the runbook's and ow-handoff's operator notes' ops (never a rotate entry's id). Based before
+# the delivery (1.0.1, round 2 m6): after delivered.md, -write writes only a new training gap's guide (phase-write.md §1)
 case: write-runbook-update
 client: Larkspur Ceramics
 slug: larkspur-ceramics
@@ -17,7 +18,7 @@ private_names:
 section: 'OW-06 O6 edit 1: a runbook update takes the next id after the highest in the runbook''s and ow-handoff''s operator notes'' ops (never a rotate entry''s id)'
 verbs:
   - /ow-documentation-write runbook
-today: '2027-02-16'
+today: '2027-02-06'
 checks:
   - headers
   - writes
@@ -44,4 +45,4 @@ next:
   - use ow-documentation-train on docs/larkspur-ceramics/
 status:
   lines: [{path: docs/larkspur-ceramics/runbook.md, next: ow-documentation /ow-documentation-train docs/larkspur-ceramics/, awaiting: none}]
-base: delivered
+base: write-handover

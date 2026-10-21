@@ -66,11 +66,4 @@
 2027-02-03 (clock: user-stated) | ow-documentation 1.0.0 | docs/larkspur-ceramics/sops/SOP-05.md | next: ow-documentation /ow-documentation-write docs/larkspur-ceramics/ | awaiting: none
 2027-02-04 (clock: user-stated) | ow-documentation 1.0.0 | docs/larkspur-ceramics/runbook.md | next: ow-documentation /ow-documentation-write docs/larkspur-ceramics/ | awaiting: none
 2027-02-05 (clock: user-stated) | ow-documentation 1.0.0 | docs/larkspur-ceramics/handover/decisions.md | next: ow-documentation /ow-documentation-train docs/larkspur-ceramics/ | awaiting: none
-2027-02-08 (clock: user-stated) | ow-documentation 1.0.0 | docs/larkspur-ceramics/training/deck.md | next: ow-documentation /ow-documentation-train docs/larkspur-ceramics/ | awaiting: none
-2027-02-09 (clock: user-stated) | ow-documentation 1.0.0 | docs/larkspur-ceramics/training/facilitator.md | next: ow-documentation /ow-documentation-train docs/larkspur-ceramics/ | awaiting: none
-2027-02-09 (clock: user-stated) | ow-documentation 1.0.0 | docs/larkspur-ceramics/training/modules/M-12.md | next: ow-documentation /ow-documentation-train docs/larkspur-ceramics/ | awaiting: none
-2027-02-10 (clock: user-stated) | ow-documentation 1.0.0 | docs/larkspur-ceramics/training/cards/bookkeeper.md | next: ow-documentation /ow-documentation-train docs/larkspur-ceramics/ | awaiting: none
-2027-02-10 (clock: user-stated) | ow-documentation 1.0.0 | docs/larkspur-ceramics/training/videos/V-03.md | next: ow-documentation /ow-documentation-export docs/larkspur-ceramics/ | awaiting: none
-2027-02-12 (clock: user-stated) | ow-documentation 1.0.0 | docs/larkspur-ceramics/deliveries.yaml | next: ow-documentation /ow-documentation-delivered docs/larkspur-ceramics/ | awaiting: documents delivered by 2027-02-15
-2027-02-15 (clock: user-stated) | ow-documentation 1.0.0 | docs/larkspur-ceramics/delivered.md | next: ow-build /ow-build-invoice docs/larkspur-ceramics/delivered.md | awaiting: none
-2027-02-16 (clock: user-stated) | ow-documentation 1.0.0 | docs/larkspur-ceramics/runbook.md | next: ow-documentation /ow-documentation-train docs/larkspur-ceramics/ | awaiting: none
+2027-02-06 (clock: user-stated) | ow-documentation 1.0.0 | docs/larkspur-ceramics/runbook.md | next: ow-documentation /ow-documentation-train docs/larkspur-ceramics/ | awaiting: none

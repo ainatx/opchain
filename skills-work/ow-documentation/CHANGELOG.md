@@ -2,6 +2,14 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
+## 1.0.1 (2026-10-21): the other-client rule's exceptions, and the second evaluation's minors
+
+From the second evaluation's report (`sprints/release-2.1/ow-05/eval-round-2.md`, PASS at 7.8) and the owner's decision of 2026-10-21, taken in one follow-up PR.
+
+- **No private names** (`references/self-checks.md` §1): a one-word other client counts only as its `client:` line writes it (so also its possessive and "the <name> team"), and a one-word folder slug only as a folder, so "glazes bloom" no longer stops `-export` when a workstream is called Bloom (owner decision 2026-10-21). The row now names what is not another workstream: this client's follow-on folder, the business's own `business/` folders and ow-research's `research/frameworks/`, the exceptions the checker already applied.
+- **`SKILL.md`**: with no type, `-write` and `-train` take the first in `plan.md`'s order not yet written, as the phase files say.
+- Data edits in the same PR: the acceptance checker grades a refusal or no-op screen's claims that something was done in any wording and on any line but the prescribed ones; fails a document written after `delivered.md` other than a new training gap's guide or card (`references/phase-write.md` §1, `phase-train.md` §1), so the golden `write-runbook-update` now runs before the delivery; grades the Delivered screen's `It will read:` line for `/ow-handoff-notes`; reads a price only beside the documentation, the training, the line, a price or a quote, and any `docs.yaml` key holding it; adds service-token prefixes, Authorization headers, webhook URLs and secrets in a URL's query; a full name by what is said of it; account numbers, real records and a named party's debt; and names written with dots; and holds every `capture-plan*.json` to written once, with a new golden for a re-capture cut after its plan (`capture-recapture-resume-run`). The other-client rule is exported for ow-draft. The goldens keep the 1.0.0 they were written with.
+
 ## 1.0.0 (2026-10-19): documents, training and a tracked rollout
 
 Design: `docs/plans/2026-10-16-ow-documentation-design.md` (decisions D1 to D6 and 7 to 16; its build notes record every departure). Contract: `sprints/release-2.1/ow-05/contract.md`.

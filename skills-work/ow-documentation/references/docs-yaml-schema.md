@@ -10,7 +10,7 @@ Every timestamped entry this skill writes carries `rec: <n>`: one more than the 
 
     ow_artefact: ow-documentation/docs
     schema: 1
-    written_by: ow-documentation 1.0.0 (protocol 1)
+    written_by: ow-documentation 1.0.1 (protocol 1)
     workstream: <slug>
     subject: uat/<client>/signoff.md
     created: <YYYY-MM-DD>
