@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a681b9efb93a25a69",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-af10a6b0279e6c856",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-21T18:31:58.419Z",
+  "updated_at": "2026-10-21T21:16:55.210Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-ow-05-ow-documentation",
-  "progress_summary": "OW-05 PR readiness PASS at aabba9d3: one content commit through the gate (verified staged candidate 58130a21); catalog validates 36 skills plus 6 ow- skills (ow-documentation built and out of planned; ow-build-plan's body budget enforced at 4,500 in catalogs.json); check-skill-contracts and lint-internal-refs green; npm run build changes no tracked file; oc- outputs byte-identical against origin/main 6fcdebdf; no untracked files.",
+  "step": "pr-ow-06-scan-secrets",
+  "progress_summary": "OW-06 PR 1 readiness PASS: builder commits 54755b50 and 42925785 plus the merge of origin/main dcb2eb75 (#642), each through the commit gate; full npm test (146 files, 7273 passed) before the round-1 commit and again in each gate; the build leaves no tracked changes; the manifest is current; no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -24,18 +24,18 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Three digest-pinned secrets-scan exceptions added to .bugcheck.json for files holding invented credential shapes as test data (sprints/release-2.1/ow-05/eval-round-1.md, tests/ow-documentation-eval-r1-heldout.mjs, tests/ow-documentation-heldout-r1.mjs), as tests/ow-uat-sentences.mjs has; reviewed by the orchestrator. GitHub push protection refused three invented vendor-token literals whole, so they are written as two joined strings; the held-out tests pin the sets' exported values, which are unchanged."
+      "CI has no gitleaks: the real-binary halves of the three scan-secrets suites skip there and say so in each test title; they ran locally against gitleaks 8.30.1 and git 2.55.0 with nothing skipped."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "aabba9d37b05e79885bba84554c6549a0473faee",
+    "verified_for_sha": "f27136a7f24d438e14f69ef981731612d4c7cc7c",
     "last_verify": {
-      "at": "2026-10-21T18:31:58.419Z",
-      "branch": "claude/ow-05-ow-documentation",
-      "base": "origin/main@6fcdebdf",
+      "at": "2026-10-21T21:16:55.210Z",
+      "branch": "claude/ow-06-scan-secrets",
+      "base": "origin/main@dcb2eb75",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -2292,8 +2292,35 @@
           "tests/fixtures/ow-documentation/README.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-ow-06-scan-secrets-639d0907b5cc",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-21T21:16:55.210Z",
+      "verified_at": "2026-10-21T21:16:55.210Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-ow-06-scan-secrets"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:639d0907b5ccaf0e3b53692d65e1d7d25408594c915d23da2a35ac0a2e048c6a"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/ow-06-scan-secrets on origin/main dcb2eb75. Files: plugins/ow-tools/**, scripts/gen-ow-tools-manifest.mjs, docs/plans/2026-10-09-ow-tools-design.md, docs/audits/2026-10-21-ow-tools-1.3-scan-secrets-security-review.md, tests/ow-tools/** (and the merge of main). No skills/, skills-work/, catalogs.json, site/, src/ or package.json change, so no catalog, bundle, plugin-skill or release-surface output changes; ow-tools is not in the dev marketplace. gen-ow-tools-manifest --check, check-skill-contracts and lint-internal-refs pass. No key-shaped literal in any changed file (fake keys are generated at run time).",
+        "evidence": [
+          "plugins/ow-tools/README.md",
+          "plugins/ow-tools/skills/ow-tools/SKILL.md",
+          "plugins/ow-tools/SECURITY-MANIFEST.md",
+          "docs/plans/2026-10-09-ow-tools-design.md",
+          "docs/audits/2026-10-21-ow-tools-1.3-scan-secrets-security-review.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-21T18:31:58.419Z",
+  "record_updated_at": "2026-10-21T21:16:55.210Z",
   "blockers": []
 }
