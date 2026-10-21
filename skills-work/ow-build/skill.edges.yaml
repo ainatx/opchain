@@ -314,4 +314,10 @@ hands_off:
       - { path: plans/<client>/quote.md, in_place: true }
       - { path: plans/<client>/map/roles.md, in_place: true }
       - { path: plans/<client>/map/future.md, in_place: true }
+      # Carried on for the documentation after sign-off (ruling O2 of the documentation build, a data edit): ow-documentation reads
+      # them where ow-build left them, through ow-uat's hand-off.
+      - { path: builds/<client>/build.yaml, in_place: true }
+      - { path: <repo>/spec/02-architecture.md, in_place: true }
+      - { path: <repo>/spec/04-integrations.md, in_place: true }
+      - { path: <repo>/spec/scope-and-milestones.md, in_place: true }
     if_unavailable: ready-for-uat.md lists every check, the environment and the test data; plan the client's test by hand from it

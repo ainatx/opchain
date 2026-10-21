@@ -1,0 +1,22 @@
+# Answer key: route-folder-started (INVENTED). C4 folder route: started: -capture
+case: route-folder-started
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C4 folder route: started: -capture'
+run: capture
+route:
+  from: docs/larkspur-ceramics/
+  expect: capture
+checks:
+  - route

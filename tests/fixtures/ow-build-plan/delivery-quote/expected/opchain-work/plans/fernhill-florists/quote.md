@@ -1,7 +1,7 @@
 ---
 ow_artefact: ow-build-plan/quote
 schema: 1
-written_by: ow-build-plan 1.0.0 (protocol 1)
+written_by: ow-build-plan 1.2.0 (protocol 1)
 workstream: fernhill-florists
 subject: plans/fernhill-florists/scope.md
 created: 2026-11-09
@@ -59,7 +59,7 @@ You get a written update each week.
 | To book | 50% | USD 1,175.00 |
 | At delivery | 50% | USD 1,175.00 |
 
-Invoices are due within 14 days.
+Invoices are due within 14 days. Documentation & training, if you take it, is invoiced when the documents are delivered.
 
 ## Vendor subscriptions
 Billed directly to you by each vendor, without a markup: none needed.

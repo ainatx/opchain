@@ -1,0 +1,48 @@
+# Answer key: start-12-people (INVENTED). §10 Scope freeze: 12 people quoted on an M build: 1
+# group(s), room for 15; C5
+case: start-12-people
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: '§10 Scope freeze: 12 people quoted on an M build: 1 group(s), room for 15; C5'
+uat_case: signoff-signed
+world: larkspur
+verbs:
+  - /ow-documentation-start
+today: '2027-01-28'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - start
+  - approvals
+  - handoff_fields
+  - internal_numbers
+start:
+  people: 12
+  groups: 1
+  trainer: user
+screen:
+  says: ['DONE: plan -> docs/larkspur-ceramics/plan.md', Planned delivery of the documents]
+  never: ['Refused:', Nothing was written.]
+next:
+  - use ow-documentation-capture on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/docs.yaml, next: ow-documentation /ow-documentation-start docs/larkspur-ceramics/, awaiting: none}, {path: docs/larkspur-ceramics/plan.md, next: ow-documentation /ow-documentation-capture docs/larkspur-ceramics/, awaiting: documents delivered by 2027-02-15}]

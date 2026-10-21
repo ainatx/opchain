@@ -1,0 +1,45 @@
+# Answer key: train-gap-card (INVENTED). §6.2 A new gap at day 14 updates the card; C14
+case: train-gap-card
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: §6.2 A new gap at day 14 updates the card; C14
+verbs:
+  - /ow-documentation-train cards
+today: '2027-03-04'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - documents
+  - trace
+  - coverage
+  - images
+  - self_checks
+  - internal_numbers
+  - data
+screen:
+  says: ['DONE: cards -> docs/larkspur-ceramics/training/']
+  never: ['Refused:']
+next:
+  - use ow-documentation-export on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/training/cards/bookkeeper.md, next: ow-documentation /ow-documentation-export docs/larkspur-ceramics/, awaiting: none}]
+base: write-gap

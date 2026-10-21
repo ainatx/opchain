@@ -857,6 +857,9 @@ function checkUat(key, run) {
   else if (!/decline/i.test(dsec)) p.push(`${q.rel}: the documentation & training line does not say it can be declined`);
   if (dt.optional !== true) p.push(`${q.rel}: documentation_training is not marked optional`);
   if (fixedIncludesDoc(q)) p.push(`${q.rel}: documentation & training is inside the fixed price`);
+  // Amendment P3 (ow-build-plan 1.2.0): the payment terms say when the line is invoiced.
+  if (!/invoiced when the documents are delivered/i.test(sectionText(q.client, "Payment schedule") ?? "")) p.push(`${q.rel}: the payment terms do not say documentation & training is "invoiced when the documents are delivered" (amendment P3)`);
+  if (/documentation[^.]*\binvoiced (?:at|on|when (?!the documents are delivered))/i.test(q.client)) p.push(`${q.rel}: the documentation line is invoiced at another event; it is invoiced when the documents are delivered (amendment P3)`);
   const people = Number(dt.people);
   const book_ = b.documentation_training ?? {};
   if (people > Number(book_.quote_separately_above)) {
@@ -934,7 +937,7 @@ function windowMentions(rel, text, n) {
 const CI_KEYS = ["client", "accepted", "acceptance_note", "parties", "quote", "scope", "acceptance_checks", "currency", "fixed_price", "schedule", "payments", "payment_terms_days", "valid_until", "fix_window_days", "fix_window_wording", "uat", "documentation_sku", "acceptance_definition", "delivery_definition", "contract_clauses", "vendor_subscriptions"];
 // A feasibility test (owner decision 2026-10-16): just the test.
 const FEAS_CI_KEYS = ["client", "mode", "accepted", "acceptance_note", "parties", "quote", "scope", "currency", "fixed_price", "schedule", "payments", "payment_terms_days", "valid_until", "deliverables", "contract_clauses"];
-const BUILD_ONLY_CI_KEYS = ["fix_window_days", "fix_window_wording", "uat", "documentation_sku", "documentation_price", "acceptance_definition", "delivery_definition", "vendor_subscriptions", "credit_deadline", "build_plan_fee"];
+const BUILD_ONLY_CI_KEYS = ["fix_window_days", "fix_window_wording", "uat", "documentation_sku", "documentation_price", "documentation_people", "acceptance_definition", "delivery_definition", "vendor_subscriptions", "credit_deadline", "build_plan_fee"];
 const FEAS_CI_SECTIONS = ["Parties", "What is tested", "What you get", "Price and payment", "Dates", "Contract clauses", "Next"];
 const CI_SECTIONS = ["Parties", "What is agreed", "Price and payment", "Change rule", "Dates", "Ownership", "Vendor subscriptions", "After delivery", "User acceptance testing", "Documentation & training", "Acceptance and delivery", "Contract clauses", "Next"];
 
@@ -964,6 +967,14 @@ function checkAccepted(key, run) {
   for (const k of feas ? ["fixed_price", "schedule", "payment_terms_days", "valid_until"] : ["fixed_price", "schedule", "payment_terms_days", "valid_until", "fix_window_days"]) if (String(iso(data[k])) !== String(iso(q.data[k]))) p.push(`${rel}: ${k} ${iso(data[k])} differs from quote.md's ${iso(q.data[k])}`);
   if (!feas) {
   if (data.documentation_sku !== key.accepted.documentation_sku) p.push(`${rel}: documentation_sku is ${data.documentation_sku}, expected ${key.accepted.documentation_sku}`);
+  // Amendment P3 (1.2.0): the people quoted for the documentation line, bought or declined, as a top-level key of
+  // its own (never nested under documentation_sku: acceptance testing digests that line with its indented lines).
+  const raw = run.read(rel) ?? "";
+  const people = q.data.documentation_training?.people;
+  if (!/^documentation_people: \d+\s*$/m.test(raw)) p.push(`${rel}: no top-level documentation_people line (amendment P3: the people quoted, bought or declined)`);
+  else if (Number(data.documentation_people) !== Number(people)) p.push(`${rel}: documentation_people is ${data.documentation_people}; quote.md's documentation_training.people is ${people}`);
+  if (/^documentation_sku:.*\n(?:[ \t]+.*\n)*?[ \t]+documentation_people:/m.test(raw) || (data.documentation_sku && typeof data.documentation_sku === "object")) p.push(`${rel}: documentation_people is nested under documentation_sku; it is a top-level key (amendment P3)`);
+  if (!/invoiced when the documents are delivered/i.test(sectionText(content, "Price and payment") ?? "")) p.push(`${rel}: "## Price and payment" does not say documentation & training is invoiced when the documents are delivered (amendment P3)`);
   const u = data.uat ?? {};
   for (const k of ["size", "sessions", "fix_rounds", "fix_business_days"]) if (String(u[k]) !== String(q.data.uat?.[k])) p.push(`${rel}: uat ${k} ${u[k]} differs from the quote's ${q.data.uat?.[k]}`);
   if (cents(u.price) !== cents(q.data.uat?.price)) p.push(`${rel}: uat price ${u.price} differs from the quote's ${q.data.uat?.price}`);

@@ -1,0 +1,48 @@
+# Answer key: write-guides-two-roles (INVENTED). §10 Coverage: two roles give two guides, every gap
+# marked in its role's guide; C6
+case: write-guides-two-roles
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: '§10 Coverage: two roles give two guides, every gap marked in its role''s guide; C6'
+verbs:
+  - /ow-documentation-write guides
+today: '2027-02-02'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - documents
+  - trace
+  - coverage
+  - images
+  - self_checks
+  - internal_numbers
+coverage:
+  roles: 2
+  gaps: 3
+screen:
+  says: ['DONE: guides -> docs/larkspur-ceramics/guides/']
+  never: ['Refused:']
+next:
+  - use ow-documentation-write on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/guides/bookkeeper.md, next: ow-documentation /ow-documentation-write docs/larkspur-ceramics/, awaiting: none}]
+base: start-two-roles

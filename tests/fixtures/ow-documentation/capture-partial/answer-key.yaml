@@ -1,0 +1,38 @@
+# Answer key: capture-partial (INVENTED). C9: a run cut off after some images: pending (the tool's
+# written list); C20 cut after run
+case: capture-partial
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C9: a run cut off after some images: pending (the tool''s written list); C20 cut after run'
+verbs:
+  - /ow-documentation-capture
+today: '2027-02-01'
+checks:
+  - headers
+  - writes
+  - write_once
+  - rec
+  - capture
+  - people
+  - credentials
+  - private_names
+test_values:
+  - LC-1001
+screen:
+  says: [docs/larkspur-ceramics/shots/index.md]
+  never: ['Refused:']
+next: []
+status:
+  lines: []
+base: start

@@ -1,0 +1,52 @@
+# Answer key: start-resume-confirm (INVENTED). C20: -start cut after gitignore, resumed at confirm
+# (the confirmation asked again)
+case: start-resume-confirm
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C20: -start cut after gitignore, resumed at confirm (the confirmation asked again)'
+uat_case: signoff-signed
+world: larkspur
+verbs:
+  - /ow-documentation-start
+today: '2027-01-28'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - start
+  - approvals
+  - resume
+  - internal_numbers
+resume:
+  verb: /ow-documentation-start
+  from: confirm
+  through: plan
+start:
+  people: 6
+  groups: 1
+  trainer: user
+screen:
+  says: [Resuming -start at confirm]
+  never: ['Refused:']
+next:
+  - use ow-documentation-capture on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/plan.md, next: ow-documentation /ow-documentation-capture docs/larkspur-ceramics/, awaiting: documents delivered by 2027-02-15}]

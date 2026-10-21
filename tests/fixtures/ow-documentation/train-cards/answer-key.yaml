@@ -1,0 +1,45 @@
+# Answer key: train-cards (INVENTED). §6.1 The training kit (cards); C13
+case: train-cards
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: §6.1 The training kit (cards); C13
+verbs:
+  - /ow-documentation-train cards
+today: '2027-02-10'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - documents
+  - trace
+  - coverage
+  - images
+  - self_checks
+  - internal_numbers
+  - data
+screen:
+  says: ['DONE: cards -> docs/larkspur-ceramics/training/']
+  never: ['Refused:']
+next:
+  - use ow-documentation-train on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/training/cards/bookkeeper.md, next: ow-documentation /ow-documentation-train docs/larkspur-ceramics/, awaiting: none}]
+base: train-modules

@@ -1,0 +1,41 @@
+# Answer key: q-write-guides (INVENTED). C12: a quick-quote job's guide, from the scenarios
+case: q-write-guides
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people:
+  - Priya
+  - Priya Natarajan
+private_names:
+  - llc-ops
+  - Deftwright
+  - Priya
+section: 'C12: a quick-quote job''s guide, from the scenarios'
+verbs:
+  - /ow-documentation-write guides
+today: '2026-12-11'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - documents
+  - trace
+  - coverage
+  - images
+  - self_checks
+  - internal_numbers
+screen:
+  says: ['DONE: guides -> docs/mossgate-books/guides/']
+  never: ['Refused:']
+next:
+  - use ow-documentation-write on docs/mossgate-books/
+status:
+  lines: [{path: docs/mossgate-books/guides/shop-manager.md, next: ow-documentation /ow-documentation-write docs/mossgate-books/, awaiting: none}]
+base: q-capture-no-tools

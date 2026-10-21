@@ -1,0 +1,14 @@
+# INVENTED TEST FIXTURE: the client repository's alert configuration.
+alerts:
+  - id: order_email_unreadable
+    when: 5 unreadable order emails in an hour
+    notify: the operations manager
+  - id: import_stalled
+    when: no order imported for 2 hours on a weekday between 07:00 and 19:00
+    notify: the operations manager
+  - id: invoice_push_failed
+    when: the invoice push fails 3 times in a row
+    notify: the bookkeeper
+  - id: label_print_failed
+    when: a shipping label fails to print twice for one order
+    notify: the operations manager

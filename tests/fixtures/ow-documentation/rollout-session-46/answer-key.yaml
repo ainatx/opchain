@@ -1,0 +1,44 @@
+# Answer key: rollout-session-46 (INVENTED). §10 Scope freeze: a 46th person makes a fourth group, a
+# change order; C5
+case: rollout-session-46
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: '§10 Scope freeze: a 46th person makes a fourth group, a change order; C5'
+verbs:
+  - /ow-documentation-rollout --session
+today: '2027-03-03'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - rollout
+  - record
+  - data
+  - internal_numbers
+screen:
+  says: ['DONE: G-03 session -> docs/larkspur-ceramics/training-record.md']
+  never: ['Refused:', Kiln2027]
+next:
+  - use ow-documentation-rollout on docs/larkspur-ceramics/
+  - use ow-build to price a change for builds/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/training-record.md, next: ow-documentation /ow-documentation-rollout docs/larkspur-ceramics/, awaiting: day 14 check-in by 2027-03-03 (G-01 to G-03 trained)}]
+base: rollout-plan

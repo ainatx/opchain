@@ -1,0 +1,32 @@
+# Answer key: export-finding-refused (INVENTED). C11, C22: a FINDING blocks -export; C4 -export
+case: export-finding-refused
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C11, C22: a FINDING blocks -export; C4 -export'
+verbs:
+  - /ow-documentation-export
+today: '2027-02-12'
+checks:
+  - refused
+  - screen
+  - next
+refused:
+  reason: finding
+  names: [facilitator.md]
+screen:
+  says: ['Refused: No internal numbers is FINDING.']
+  never: ['DONE:']
+  self_check: {No internal numbers: FINDING}
+next: []
+base: train-videos

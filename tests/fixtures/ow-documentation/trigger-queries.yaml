@@ -1,0 +1,30 @@
+# Trigger queries for ow-documentation (authoring standard: "TRIGGER EVALUATION").
+# Run by hand, with the other ow- skills and the oc- catalog installed beside ow-documentation;
+# a judge grades the ambiguous ones. No harness runs these yet (REL-02 runs them in real use).
+# Every client, person and figure is invented.
+skill: ow-documentation
+should_trigger:
+  - "Larkspur signed off acceptance testing and bought the documentation line; start the guides and training."
+  - "Write the user guides for each role from the UAT scenarios."
+  - "Capture the screenshots for the order coordinator guide in the staging environment."
+  - "Make the training deck and the facilitator guide for Larkspur's three roles."
+  - "Write the runbook and the developer handover for the order intake build."
+  - "Export the documents to PDF and Word and copy them into their repo's docs folder."
+  - "Record today's training session for group G-01 from this attendance sheet."
+  - "It's two weeks since the first session: record the day 14 check-in."
+  - "The documents reached the client today; record the delivery."
+should_not_trigger:
+  - prompt: "The client declined the documentation line; write the operator notes for their handover."
+    goes_to: ow-handoff (the floor every build carries; ow-handoff-package)
+  - prompt: "Write an SOP for how my own business onboards a new client."
+    goes_to: ow-draft (the user's own business documents, not a client's delivered build)
+  - prompt: "Fix this bug in the order import before the training session."
+    goes_to: "none: fixing code (ow-build or ow-handoff-fix handles a fix)"
+  - prompt: "Draft the acceptance test plan and the tester packs for Larkspur."
+    goes_to: ow-uat
+  - prompt: "Price a third training group for Larkspur as a change order."
+    goes_to: ow-build (a change order; ow-documentation prints the NEXT, never a price)
+ambiguous:
+  - "Write the docs for Larkspur."                               # the client's guides (this skill) or the developer handover only? Ask which; both are -write types
+  - "Train the new hire on the order sheet."                     # a rollout session (this skill) only when the line was bought and the hire is in a quoted role
+  - "Update the bookkeeper guide."                               # a training gap before day 30 (this skill) or care or hourly help after it

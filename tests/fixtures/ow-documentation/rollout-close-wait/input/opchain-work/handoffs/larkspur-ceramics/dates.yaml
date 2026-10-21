@@ -1,0 +1,12 @@
+ow_artefact: ow-handoff/dates
+schema: 1
+written_by: ow-handoff 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: handoffs/larkspur-ceramics/package.yaml
+created: 2027-02-24
+clock: user-stated
+origin: skill
+handoff_date: 2027-02-24
+window_end: 2027-03-26
+access_removal_date: 2027-03-22
+# INVENTED TEST FIXTURE: ow-handoff's dates.yaml as its design gives it (ow-handoff is planned).

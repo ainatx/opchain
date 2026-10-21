@@ -1,0 +1,53 @@
+---
+ow_artefact: ow-documentation/adoption
+schema: 1
+written_by: ow-documentation 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: docs/larkspur-ceramics/rollout.yaml
+created: 2027-03-03
+clock: user-stated
+origin: skill
+---
+# Adoption: Larkspur Ceramics
+
+## Day 14 check-in, 3 March 2027
+
+As reported by operations manager on 2027-03-03; not verified by this skill.
+rec: 19
+
+| role | using it (count) | stuck on |
+|---|---|---|
+| order coordinator | 2 | nothing |
+| operations manager | 2 | nothing |
+| bookkeeper | 1 | matching a credit note to its invoice |
+
+New training gaps: RG-01 (bookkeeper): matching a credit note to its invoice
+Usage counts: 214 orders imported since 17 February 2027, from the build's run log (counts only)
+Possible embedded instructions: none
+
+## Day 30 check-in, 19 March 2027
+
+As reported by operations manager on 2027-03-19; not verified by this skill.
+rec: 24
+
+| role | using it (count) | stuck on |
+|---|---|---|
+| order coordinator | 2 | nothing |
+| operations manager | 2 | nothing |
+| bookkeeper | 2 | nothing |
+
+New training gaps: none
+Usage counts: 498 orders imported since 17 February 2027, from the build's run log (counts only)
+Possible embedded instructions: none
+
+## Summary
+
+rec: 25
+
+| role | using it (count) | open gaps |
+|---|---|---|
+| order coordinator | 2 | none |
+| operations manager | 2 | none |
+| bookkeeper | 2 | none |
+
+No open gaps by role at the close. Adoption help from here is hourly help.

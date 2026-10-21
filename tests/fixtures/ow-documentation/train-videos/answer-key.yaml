@@ -1,0 +1,45 @@
+# Answer key: train-videos (INVENTED). §6.1 The training kit (videos); C13
+case: train-videos
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: §6.1 The training kit (videos); C13
+verbs:
+  - /ow-documentation-train videos
+today: '2027-02-10'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - documents
+  - trace
+  - coverage
+  - images
+  - self_checks
+  - internal_numbers
+  - data
+screen:
+  says: ['DONE: videos -> docs/larkspur-ceramics/training/']
+  never: ['Refused:']
+next:
+  - use ow-documentation-export on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/training/videos/V-03.md, next: ow-documentation /ow-documentation-export docs/larkspur-ceramics/, awaiting: none}]
+base: train-cards

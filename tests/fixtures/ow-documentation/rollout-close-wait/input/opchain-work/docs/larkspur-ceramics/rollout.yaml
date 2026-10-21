@@ -1,0 +1,22 @@
+ow_artefact: ow-documentation/rollout
+schema: 1
+written_by: ow-documentation 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: docs/larkspur-ceramics/plan.md
+created: 2027-02-15
+clock: user-stated
+origin: skill
+trainer: user
+first_session: '2027-02-17'
+trainer_session: none
+groups:
+  - {id: G-01, roles: [order coordinator, operations manager, bookkeeper], people: 6, date: '2027-02-17', runs_it: user, modules: before, state: planned, rec: 15}
+sessions:
+  - {id: G-01, date: '2027-02-17', record: training-record.md, run_by: user, rec: 18}
+checkins:
+  - {day: 14, due: '2027-03-03', calc: 'ow-tools calc date --from 2027-02-17 --days 14 --json: {"status":"ok","date":"2027-03-03","from":"2027-02-17","days":14,"calendar":"every day","holidays_skipped":[]}'}
+  - {day: 30, due: '2027-03-19', calc: 'ow-tools calc date --from 2027-02-17 --days 30 --json: {"status":"ok","date":"2027-03-19","from":"2027-02-17","days":30,"calendar":"every day","holidays_skipped":[]}'}
+window_end: '2027-03-26'
+close_on: '2027-03-26'
+added_groups: []
+closed: none
