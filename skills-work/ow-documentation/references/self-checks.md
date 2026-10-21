@@ -20,7 +20,7 @@ Each document keeps the same results in its internal self-check table; `-capture
 | No internal numbers | `-write`, `-train`, `-export`, `-rollout` | Below |
 | Placeholders | `-export` | No `[screenshot: …]` placeholder is left in a document being exported |
 | Accessible by construction | `-export` | The ow-tools preflight passes on every document (and the deck rules on the deck); the export report's "not a conformance test" sentence is kept. Without ow-tools: NOT-CHECKED (no ow-tools here) |
-| No private names | every verb | No private skill or business name (the catalog's blocklist) and no skill outside the family in any file; a destination's own say: line printed exactly is the user's. In a client output (a document, its export copy, the repository copy), no other workstream's client name or folder slug under `opchain-work/`, in any spelling; never waived |
+| No private names | every verb | No private skill or business name (the catalog's blocklist) and no skill outside the family in any file; a destination's own say: line printed exactly is the user's. In a client output (a document, its export copy, the repository copy), no other workstream's client name or folder slug under `opchain-work/`, in any spelling; never waived. A one-word name counts only as its `client:` line writes it (so also "Bloom's" and "the Bloom team"), and a one-word slug only as a folder (`docs/bloom/`). Not another workstream: this client's follow-on folder (`<slug>-2`), the business's own `business/` folders (`logs/business/`, `research/business/`) and ow-research's `research/frameworks/` |
 
 ## 2. No internal numbers (owner decision D1)
 

@@ -96,12 +96,12 @@ describe("the Generator's held-out sets hold the values hashed before the rules 
 });
 const SCREENS = ["export-finding-refused", "delivered-refused", "delivered-again", "rollout-add-group-refused", "rollout-checkin-early", "rollout-close-wait", "route-uat-declined", "write-all-written", "start-sku-asked", "route-uat-closed"];
 describe("m1: a success claim on a refusal, no-op or question screen", () => {
+  // "The waiver is noted and the export went ahead." was round 1's reported miss; the 1.0.1 guard (round 2 m1) catches it.
   S.SCREEN_CLAIMS.forEach((s, i) => {
-    const miss = s === "The waiver is noted and the export went ahead.";
-    it(`${miss ? "known miss (reported, not tuned): " : ""}${s}`, () => {
+    it(`${s === "The waiver is noted and the export went ahead." ? "round 1's known miss, caught since 1.0.1: " : ""}${s}`, () => {
       const c = SCREENS[i % SCREENS.length];
       const out = failuresOf(c, { "printed.md": H.append(`${s}\n`) });
-      expect(Boolean(out.screen), `${c}: ${JSON.stringify(out).slice(0, 300)}`).toBe(!miss);
+      expect(Boolean(out.screen), `${c}: ${JSON.stringify(out).slice(0, 300)}`).toBe(true);
     });
   });
   S.SCREEN_CONTROLS.forEach((s, i) => it(`control passes: ${s}`, () => {

@@ -136,7 +136,7 @@ describe("C2: body, frontmatter, the shared files", () => {
     expect(data.description.length).toBeLessThanOrEqual(900);
     expect(data.description.slice(0, 200)).toContain("ow-documentation");
     expect(data.metadata.network).toBe("declared");
-    expect(data.metadata.version).toBe("1.0.0");
+    expect(data.metadata.version).toBe("1.0.1");
     expect(loadCatalogs({ root: ROOT }).find((c) => c.prefix === "ow-").bodyTokenBudgets["ow-documentation"]).toBe(4500);
   });
   it("a planted 4,600-token body fails the catalog itself", () => {

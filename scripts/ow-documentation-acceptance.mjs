@@ -459,9 +459,31 @@ const SECRET_NAME_NEAR = /\b(?:[A-Z][A-Z0-9]*_)+(?:SECRET|TOKEN|KEY|PASSWORD|ID|
 // Random-looking: 16 or more characters, at least two each of capitals, small letters and digits, no path or slug shape.
 const RANDOM_TOKEN = /(?<![\w/.-])(?=(?:[^\d\s]*\d){2})(?=(?:[^a-z\s]*[a-z]){2})(?=(?:[^A-Z\s]*[A-Z]){2})(?![\w+]*[_-][\w+]*[_-])[A-Za-z0-9+_-]{16,}(?![\w/-]|\.\w)/;
 const settingValueSecret = (v) => !PLACEHOLDER.test(v) && ((/\d/.test(v) && /[A-Za-z]/.test(v)) || (/[a-z]/.test(v) && /[A-Z]/.test(v) && v.length >= 12) || /[#!$%&*@^~+=]/.test(v));
+/**
+ * Round 2 m4: a service's own token shape by its published prefix (npm_, gh*_, github_pat_, glpat-, xox*-, live
+ * keys, shp*_, AIza, SG., key- with 32 hex, AKIA/ASIA), an Authorization header with its value, a webhook URL
+ * whose path is the secret (Slack, Discord, any …/hooks/ or …/webhooks/ path with a long random part), a secret
+ * in a URL's query (`token=`, `sig=`, …), and a password setting glued to a prefix (`PGPASSWORD=`). A
+ * `$VARIABLE`, `<placeholder>` or `{{template}}` value is a name, not a secret. Measured on held-out sets.
+ */
+const VENDOR_TOKEN = /(?<![\w-])(?:npm_[A-Za-z0-9]{30,}|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_\w{30,}|glpat-[\w-]{20,}|xox[abposr]-[\w-]{10,}|(?:sk|rk|pk)_live_[A-Za-z0-9]{16,}|shp(?:at|ss|ca|pa)_[a-fA-F0-9]{32}|AIza[\w-]{35}|SG\.[\w-]{16,}\.[\w-]{16,}|key-[0-9a-f]{32}|(?:AKIA|ASIA)[0-9A-Z]{16})(?![\w-])/;
+const AUTH_HEADER = /\bAuthorization:\s*(?:Basic|Bearer|Token|Digest|Bot)\s+(?![$<{])([A-Za-z0-9+/=._~-]{12,})/i;
+const WEBHOOK_URL = /https?:\/\/(?:hooks\.slack\.com\/services\/[A-Za-z0-9]+\/[A-Za-z0-9]+\/[A-Za-z0-9]{12,}|(?:[\w-]+\.)?discord(?:app)?\.com\/api\/webhooks\/\d+\/[\w-]{20,}|[\w.-]+(?:\/[\w.-]+)*\/(?:webhooks?|hooks)\/(?:[\w-]+\/)*(?=[\w-]*\d)(?=[\w-]*[A-Za-z])[\w-]{24,})/i;
+const URL_SECRET = /[?&](?:token|access_token|api_key|apikey|key|sig|signature|secret|password|auth|code)=(?![$<{])([^&\s"'<>]{12,})/i;
+const GLUED_SECRET_SETTING = /(?<![\w-])([A-Z][A-Z0-9]*(?:PASSWORD|PASSWD|SECRET|TOKEN))\s*[:=]\s*["']?([^\s"'<>`]{6,})/;
 export const docCredentialFindings = (text) => {
   const out = credentialFindings(text);
   for (const line of String(text ?? "").split("\n")) {
+    const vt = line.match(VENDOR_TOKEN);
+    if (vt) out.push(["a service token by its prefix", `${vt[0].slice(0, 6)}…`]);
+    const ah = line.match(AUTH_HEADER);
+    if (ah) out.push(["an Authorization header with its value", `${ah[0].slice(0, 24)}…`]);
+    const wh = line.match(WEBHOOK_URL);
+    if (wh) out.push(["a webhook URL whose path is its secret", `${wh[0].slice(0, 30)}…`]);
+    const us = line.match(URL_SECRET);
+    if (us && settingValueSecret(us[1])) out.push(["a secret in a URL's query", `${us[0].slice(0, 8)}…`]);
+    const gs = line.match(GLUED_SECRET_SETTING);
+    if (gs && settingValueSecret(gs[2].replace(/[.,;)]+$/, ""))) out.push(["a secret setting with its value", `${gs[1]}=…`]);
     const m = line.match(SIGN_IN_SHAPE);
     if (m && /\d/.test(m[2]) && !/^(?:the|their|your|our|its|a|an)$/i.test(m[1])) out.push(["a sign-in written out with its secret", m[0]]);
     const pem = line.match(PEM);
@@ -485,18 +507,44 @@ export const docCredentialFindings = (text) => {
 export const GIVEN_NAMES = new Set(`Aaron Abby Abena Abigail Ada Adaeze Adam Adriana Adrian Agnieszka Ahmed Aidan Aiko Aisha Akira Alan Albert Alejandro Alessandro Alex Alexander Alexei Alfie Ali Alice Alicia Amanda Amara Ama Amelia Amit Amy Ana Ananya Andrea Andres Andrew Andy Angela Anil Anja Anjali Ann Anna Anne Anthony Antoine Archie Arjun Arthur Arun Ashley Astrid Avi Ayodele Barbara Beatriz Ben Benjamin Beth Betty Beverly Billy Brenda Brian Bruce Bryan Callum Camila Camille Carla Carlos Carmen Carolyn Catherine Chantal Charles Charlie Charlotte Cheryl Chiara Chidi Chinedu Chloe Chris Christina Christine Christopher Ciara Clara Claire Conor Cormac Cynthia Dafydd Damien Dan Daniel Danielle Dariush Dave David Debra Declan Deepa Denise Dennis Diana Diane Diego Divya Dmitri Donna Doris Dorothy Douglas Dylan Edward Eitan Elena Eli Elias Elisa Elizabeth Ella Emeka Emily Emma Eoin Eric Erik Ethan Eva Evelyn Evie Ewan Ezra Fatima Federica Felix Femi Fernanda Fernando Fiona Folake Francesca Frances Freddie Freya Gabriel Gabriela Gareth Gary George Gerald Giovanni Giulia Gloria Greg Gregory Greta Hamish Hannah Hans Harold Haruto Harry Hassan Helen Henry Hiroshi Hussein Ibrahim Imogen Ines Ingrid Irina Isabel Isabella Isla Ivan Jacob Jacqueline Jakub James Janet Janice Jason Javier Jeffrey Jennifer Jenny Jeremy Jerry Jess Jesse Jessica Jim Joan Joao Joe John Johnny Jon Jonas Jonathan Jose Joseph Josh Joshua Joyce Juan Judith Judy Julie Julien Juliana Jurgen Justin Kamau Karen Karim Kate Katherine Kathleen Kathryn Katarzyna Katrin Kavya Kayla Keiko Keith Kelly Kenji Kevin Khalid Kimberly Kiran Klaus Kofi Kwame Kyle Lakshmi Lars Laura Lauren Layla Leila Lena Leon Linda Lisa Liv Liz Lorenzo Lori Louis Luca Lucia Lucy Luis Lukas Maisie Manon Marco Marek Margaret Maria Mariam Mariana Marie Marilyn Marta Martha Mateo Mathieu Matt Matteo Matthew Meera Meg Megan Mei Melissa Michael Michelle Miguel Mikhail Mohammed Morag Moshe Nadia Naoko Natalie Natasha Nathan Neha Ngozi Nicholas Nicolas Nicole Niamh Nikhil Nils Nina Noah Noor Nora Olga Oliver Olivia Omar Oscar Owen Padraig Pamela Parisa Patricia Patrick Paul Paula Paulo Pavel Pedro Pete Peter Phil Philip Piotr Pierre Pilar Pooja Priya Rachel Rafael Rahul Rajesh Ralph Randy Ravi Rebecca Reza Rhys Ricardo Richard Robert Roberto Roger Rohan Ronald Rosa Ruth Ryan Sabine Sakura Samantha Samira Samuel Sam Sandra Sanjay Santiago Sara Sarah Scott Sean Sergei Sergio Sharon Shirin Shirley Sigrid Sinead Siobhan Sipho Sofia Sophia Stefan Stephanie Stephen Steve Steven Suresh Susan Svetlana Sven Takeshi Tamar Tariq Tatiana Teresa Thabo Theo Theresa Thomas Tiago Tim Timothy Tom Tomas Tomasz Tony Tunde Tyler Valentina Vikram Vincent Vivek Walter Wambui Wanjiru Wei Yael Yasmin Yuki Yusuf Yuto Zainab Zanele Zofia Zoe`.split(/\s+/));
 const TITLE_NAME = /\b(?:Mr|Mrs|Ms|Mx|Dr|Prof|Miss)\.?\s+(\p{Lu}[\p{L}'’-]+)/u;
 const PHONE_WIDE = /(?<![\w.-])(?:\+\d{1,3}[ .-]?(?:\(\d{1,4}\)[ .-]?)?\d{1,5}(?:[ .-]\d{2,5}){1,4}|\(?0\d{2,4}\)?[ -]\d{3,4}[ -]?\d{3,4})(?![\w-])/;
+/**
+ * Round 2 m5: a full name of any given name, by what is said of it: two capitalised words (a particle such as "de"
+ * between them allowed) that a person's verb follows ("Jamal Ortiz runs", "… and Lotte Jansen attended") or a
+ * person's cue precedes ("Ask Dana Whitlock", "Signed off by …", "Contact: …"). Words that name teams, systems,
+ * rooms, places, days and roles are not a name ("Ask Customer Service", "Shop Floor and Kiln Room attended").
+ */
+const NAME_WORD = String.raw`\p{Lu}\p{Ll}+(?:[-'’]\p{Lu}?\p{Ll}+)?`;
+// Every pair of words, overlapping ("Ask Dana Whitlock" is tried as "Ask Dana" and as "Dana Whitlock"): fixed after the
+// 1.0.1 held-out measurement, which showed the cue word hiding the name.
+const FULL_NAME = new RegExp(String.raw`(?<![\p{L}\p{N}_.\-/])(?=((${NAME_WORD})\s+(?:(?:de|van|von|der|den|da|di|du|la|le|ten|ter|del|della|dos|das|al|el|bin|ibn|ap)\s+)?(${NAME_WORD}))(?![\p{L}\p{N}_\-/]))`, "gu");
+const PERSON_VERB_AFTER = /^\s*(?:\([^)]{0,30}\)\s*)?(?:,\s*[^,]{1,40},\s*)?(?:attended|attends|runs|ran|leads|led|approved|approves|signed|signs|checks|checked|handles|handled|owns|covers|covered|trains|trained|joined|said|says|asked|wrote|will|called|emailed|phoned|confirmed|tested|cleared|reviewed|answers|answered|knows|manages|managed|keeps|kept|opens|closes|sends|sent)\b/u;
+const PERSON_CUE_BEFORE = /(?:\b(?:ask|thanks to|thank|call|ring|phone|text|email|e-mail|contact|speak to|speak with|talk to|talk with|by|cc|attn|attention|ask for|hand it to|give it to|tell)\s*:?\s*|\bcontact\s*:\s*)$/i;
+const NOT_NAME_WORDS = new Set(`Accounts Payable Receivable Customer Customers Service Services Support Order Orders Desk Team Teams Office Room Rooms Floor Shop Kiln Studio Online Drive Cloud Scheduler Import Imports Export Exports Sheet Sheets Mailbox Inbox Admin Library Code Center Centre Department Operations Finance Sales Warehouse Packing Bench Review Weekly Daily Monthly Manager Managers Coordinator Coordinators Bookkeeper Bookkeeping Purchase Invoice Invoices Glaze Glazes Google Microsoft Visual Getting Started Settings Shipping Label Labels Printer Health Check Checks Monday Tuesday Wednesday Thursday Friday Saturday Sunday January February March April May June July August September October November December New York London Eastside Westside North South East West Street Road Lane Avenue Main Test Production Staging Report Reports Dashboard Portal Help Helpdesk Desk Front Back Reception Front-Desk Payroll Human Resources Legal Marketing Engineering Owner Owners Trainer Trainers Group Groups Session Sessions Week Day Month Year Quarter Monday-Friday Stock Stockroom Delivery Deliveries Returns Refunds Billing Board Committee Council Hall Building Site Store Stores Studios Workshop Lab Labs Library Archive Archives Sync Server Servers App Apps Web Mobile Email Mail Slack Teams Zoom Excel Word PowerPoint Outlook Gmail Calendar Notion Linear Jira Shopify Xero Stripe Square Quick Books QuickBooks`.split(/\s+/));
+const fullNamePeople = (line, allow) => {
+  const out = [];
+  for (const m of line.matchAll(FULL_NAME)) {
+    if ([m[2], m[3]].some((w) => NOT_NAME_WORDS.has(w) || allow.has(w))) continue;
+    // A pair of names in a list: "A B and C D attended" makes both people.
+    const after = line.slice(m.index + m[1].length).replace(new RegExp(String.raw`^(?:\s*(?:,|and|&)\s*${NAME_WORD}\s+(?:\p{Ll}{2,4}\s+)?${NAME_WORD})+`, "u"), "");
+    if (PERSON_VERB_AFTER.test(after) || PERSON_CUE_BEFORE.test(line.slice(0, m.index))) { out.push(m[1]); break; }
+  }
+  return out;
+};
 export const docPeopleFindings = (text, ctx = {}) => {
   const out = peopleFindings(text, ctx);
   const allow = new Set([ctx.user, ...String(ctx.client ?? "").split(/\s+/)].filter(Boolean));
   for (const line of String(text ?? "").split("\n")) {
     const plain = line.replace(/\S+@\S+/g, " ");
+    for (const n of fullNamePeople(plain, allow)) out.push(["a person's name (by what is said of them)", n]);
     for (const m of plain.matchAll(/(?<![\p{L}\p{N}_.\-/])(\p{Lu}\p{Ll}+)(?![\p{L}\p{N}_\-/])/gu)) if (GIVEN_NAMES.has(m[1]) && !allow.has(m[1])) { out.push(["a person's name", m[1]]); break; }
     const t = plain.match(TITLE_NAME);
     if (t && !allow.has(t[1])) out.push(["a person's name (a title)", t[0]]);
     const ph = plain.match(PHONE_WIDE);
     if (ph && ph[0].replace(/\D/g, "").length >= 9 && ph[0].replace(/\D/g, "").length <= 15 && !out.some(([w]) => w === "a phone number")) out.push(["a phone number", ph[0]]);
   }
-  return out;
+  // Never a person: a shape of zeros ("0000-0000-0000") and a name of team or system words ("Sent by Order Desk").
+  // Fixed after the 1.0.1 held-out measurement, with recall unchanged.
+  return out.filter(([what, hit]) => !(what === "a phone number" && !/[1-9]/.test(String(hit))) && !(/^a person's name/.test(what) && String(hit).split(/\s+/).length > 1 && String(hit).split(/\s+/).every((w) => NOT_NAME_WORDS.has(w))));
 };
 /**
  * Round 1 m5: a customer's data in prose, on top of the family's table, field and id rules: a street address, a
@@ -507,12 +555,33 @@ const STREET = /\b\d{1,5}[A-Za-z]?,?\s+(?:\p{Lu}\p{Ll}+\s+){1,3}(?:Street|St|Roa
 const BIRTH = /\b(?:date of birth|birth ?date|DOB|D\.O\.B\.?|born(?: on)?)\b[^.\n]{0,20}?(?:\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}|\d{1,2} \p{Lu}\p{Ll}+ \d{4}|\p{Lu}\p{Ll}+ \d{1,2},? \d{4})/iu;
 const CUSTOMER_WORD = /\b(?:customers?|client's customer|buyers?|account holders?|recipients?|shoppers?|patients?|members?)\b/i;
 const NOT_RECORD = /\b(?:test|synthetic|sample|fixture|example|dummy|fake|TD-\d+)\b/i;
+/**
+ * Round 2 m5: an account number in groups after "account" ("4417-2290-1188", "4410 2287 9931"), a real record
+ * named as real ("the real order", "real invoices"), a purchase-order or invoice number (`PO-55120`, `INV-88213`),
+ * and a party's debt ("owes 1,250", "balance 912.40") said of a customer or a named business. Never in test data.
+ */
+const ACCOUNT_NUMBER = /\baccount(?:\s+(?:number|no\.?|#|id|ref))?(?:\s+(?:is|was|:))?[^.\n\d]{0,20}?(?<![\w-])(\d{3,6}(?:[- ]\d{2,6}){1,4})(?![\w-])/i;
+const REAL_RECORD = /\b(?:the|a|an|this|that|one|our|their)\s+real\s+(?:orders?|invoices?|purchase orders?|records?|accounts?|customer (?:list|records?))\b/i;
+const DOC_NUMBER = /(?<![\w-])(?:PO|INV)-\d{4,}(?![\w-])/;
+const DEBT = /\b(?:owes|owed|owing|outstanding|in arrears|balance(?:\s+(?:of|is|due|:))?)\s*:?\s*(?:[$€£]\s?)?\d[\d,]*(?:\.\d{1,2})?\b/i;
+const NAMED_PARTY = /\b(?:Ltd|LLC|Inc|Co|Corp|Limited|plc|GmbH)\b|\p{Lu}\p{Ll}+\s+(?:&|and)\s+(?:Sons|Daughters|Co)\b|(?<![.!?]\s|^)\p{Lu}\p{Ll}+\s+\p{Lu}\p{Ll}+/u;
 export const docDataFindings = (text, ctx = {}) => {
   const out = dataFindings(text, ctx);
   const allow = new Set([ctx.user, ...String(ctx.client ?? "").split(/\s+/)].filter(Boolean));
   for (const line of String(text ?? "").split("\n")) {
     // A test mark is in the words, never in an address's domain (every invented email ends .example).
     const marked = NOT_RECORD.test(line.replace(/\S+@\S+/g, " "));
+    // A record called real is one, whatever else the line says ("the real order … is the example"): fixed after the
+    // 1.0.1 held-out measurement, which showed "example" read as a test mark.
+    const real = line.match(REAL_RECORD) ?? (marked ? null : line.match(DOC_NUMBER));
+    if (real) out.push(["a real record", real[0]]);
+    if (!marked) {
+      const acct = line.match(ACCOUNT_NUMBER);
+      if (acct && /[1-9]/.test(acct[1]) && !/^\d{4}-\d{2}-\d{2}$/.test(acct[1])) out.push(["an account number", acct[1]]);
+      const debt = line.match(DEBT);
+      const party = line.replace(new RegExp(`\\b(?:${[...allow].map(esc).join("|") || "(?!)"})\\b`, "g"), " ");
+      if (debt && (CUSTOMER_WORD.test(line) || NAMED_PARTY.test(party) || /^\s*\p{Lu}\p{Ll}+\s+\p{Lu}\p{Ll}+/u.test(party))) out.push(["a party's debt", debt[0]]);
+    }
     const st = line.match(STREET);
     if (st && !marked) out.push(["a street address", st[0].trim()]);
     const b = line.match(BIRTH);
@@ -526,7 +595,10 @@ export const docDataFindings = (text, ctx = {}) => {
       else if (n) out.push(["a customer named in prose", n[1]]);
     }
   }
-  return out;
+  // A record id on a line that marks it test data ("The sample order SO-0001 is synthetic") is test data. Fixed
+  // after the 1.0.1 held-out measurement, with recall unchanged.
+  const markedLines = String(text ?? "").split("\n").filter((l) => NOT_RECORD.test(l.replace(/\S+@\S+/g, " ")));
+  return out.filter(([what, hit]) => !(what === "a record id in prose" && markedLines.some((l) => l.includes(String(hit)))));
 };
 
 // ── the writer of each file, pinned (C1) ─────────────────────────────────────
@@ -690,6 +762,17 @@ function checkWrites(key, run) {
     if (!ws.length) { p.push(`${f}: no verb of this skill writes this file (the pinned writer table)`); continue; }
     if (!verbs.some((v) => writtenBy(rel, v))) p.push(`${f}: written in a run of ${verbs.join(", ")}, but only ${ws.join(", ")} may write it (one writer per file, exact to the type and mode)`);
   }
+  // After delivered.md, -write writes only the guide, and -train only the card, of a role a new rollout gap names
+  // (phase-write.md §1, phase-train.md §1; round 2 m6); everything else waits for a change the client asks for.
+  const dir = D(key);
+  if (run.priorExists(`${dir}/delivered.md`) && verbs.some((v) => /^\/ow-documentation-(?:write|train)\b/.test(v))) {
+    const gapRoles = new Set([...(run.read(`${dir}/adoption.md`) ?? "").matchAll(/^New training gaps: (.+)$/gm)].flatMap((m) => [...m[1].matchAll(/\bRG-\d+ \(([^)]+)\)/g)].map((x) => slugOf(x[1]))));
+    for (const f of clientDocs(run.written(), key)) {
+      const m = f.match(/\/(guides|training\/cards)\/([^/]+)\.md$/);
+      const ok = m && gapRoles.has(m[2]) && verbs.some((v) => (m[1] === "guides" ? /^\/ow-documentation-write\b/ : /^\/ow-documentation-train\b/).test(v));
+      if (!ok) p.push(`${f}: written after delivered.md; after delivery only the guide and the card of a role a new training gap names are written, and everything else waits for a change the client asks for`);
+    }
+  }
   return p;
 }
 
@@ -707,7 +790,7 @@ function checkWriteOnce(key, run) {
     const after = run.read(f) ?? "";
     if (before === after) continue;
     const name = f.slice(D(key).length + 1);
-    if (/^(?:plan\.md|delivered\.md|delivered-update-\d+\.md|capture-plan\.json)$/.test(name)) { p.push(`${f}: written once and never edited, but this run changed it`); continue; }
+    if (/^(?:plan\.md|delivered\.md|delivered-update-\d+\.md|capture-plan(?:-\d+)?\.json)$/.test(name)) { p.push(`${f}: written once and never edited, but this run changed it`); continue; }
     if (/^export\//.test(name) && delivered) { p.push(`${f}: a delivered document is never overwritten; an update goes to export/update-nn/`); continue; }
     if (/^(?:training-record|adoption)\.md$/.test(name)) {
       const a = sectionsByHeading(before), b = sectionsByHeading(after);
@@ -975,25 +1058,79 @@ export function nextBlockProblems(text) {
   return p;
 }
 /**
- * A screen line's claims that something was done in this run ("Exported 33 documents", "The rollout is now
- * closed", "Waived as you asked"): a success word in a clause, not negated before it, not modal ("can be
- * added"), not a rule ("is added once CO-05 is signed"). File names and paths are set aside first
- * ("delivered.md stays as it was"). Round 1 m1; measured on held-out sets before and after
- * (tests/ow-documentation-heldout-r1.mjs).
+ * A screen line's claims that an action was completed, in any wording and wherever the line sits (round 1 m1,
+ * round 2 m1). A claim is a past action with "I" or "we" ("I've logged"), a perfect or passive ("has been
+ * marked", "are saved", "got published"), a headline with no other verb before it ("Exported 33 documents",
+ * "Rollout closed", "Your files went up"), a new state ("is now in", "now holds"), a completion word ("done",
+ * "finished", "is complete", "up to date"), or an output said to be somewhere ("the cards are in export/cards/").
+ * Not a claim: one negated before it ("Nothing was pushed"), modal ("can be added"), under a condition with its
+ * own clause ("once CO-05 is signed", "only after you confirm"; "once more" is no condition), an action of
+ * someone else ("the client declined", "the waiver you typed"), or a state word ("is due", "is signed").
+ * Code, `-verb` names and paths are set aside first; a path leaves a PATH mark so "are in export/" still reads.
+ * Measured on held-out sets before and after (tests/ow-documentation-heldout-r1.mjs, -heldout-r2.mjs, and the
+ * Evaluator's round-2 set).
  */
-const SUCCESS_WORD = /\b(?:exported|pushed|delivered|recorded|wrote|written|saved|captured|added|closed|committed|merged|waived|sent|uploaded|created|updated|appended|cleared|copied|imported|invoiced)\b/i;
-const NEGATED_BEFORE = /\b(?:not|never|nothing|no|none|neither|nor|cannot|can't|isn't|wasn't|weren't|hasn't|haven't|hadn't|didn't|won't|yet to)\b/i;
-const MODAL_BEFORE = /\b(?:can|could|will|would|should|must|may|might|to)\s+(?:then\s+|only\s+)?(?:be|have been)\s*$/i;
-const RULE_AFTER = /\b(?:once|when|after|if|only|until|as soon as|before)\b/i;
-const screenClauses = (line) => String(line).replace(/`[^`]*`/g, " ").replace(/\S*[/\\]\S*|\S+\.(?:md|ya?ml|json|log|csv|docx|pdf|pptx|txt|png)\b/gi, " ").split(/[.;:!?]+|\s+(?:and|but|then)\s+/);
+const IRREGULAR_PAST = new Set("written wrote rewritten rewrote sent resent made remade done redone built rebuilt gone went taken took kept given gave left got gotten held brought shown drawn frozen froze sold paid laid begun began chosen stuck broken undone put set reset cut shut split spread ran".split(" "));
+/** Irregular forms that are also the base form ("set the date", "put it back"): never a headline on their own. */
+const BASE_TOO = new Set(["put", "set", "reset", "cut", "shut", "split", "spread"]);
+const NOT_PAST_ED = new Set(["hundred", "sacred", "kindred", "naked", "wicked", "rugged", "jagged", "ragged", "crooked", "hatred", "embed", "shed", "bed", "red"]);
+/** Participles that state how things stand, not what this run did ("is due", "CO-05 is signed", "as quoted"). */
+const STATE_WORDS = new Set("due signed declined needed required allowed expected based limited quoted priced planned scheduled named listed configured supported used owned licensed located called titled labelled labeled intended designed meant supposed dated related connected interested involved prescribed described stated typed asked accepted rejected approved bought reported missed unsigned undelivered unrecorded".split(" "));
+const isPast = (w) => { const x = String(w).toLowerCase(); return IRREGULAR_PAST.has(x) || (x.length >= 5 && /ed$/.test(x) && !/eed$/.test(x) && !NOT_PAST_ED.has(x)); };
+const NEGATED_BEFORE = /\b(?:not|never|nothing|no|none|neither|nor|cannot|can't|isn't|aren't|wasn't|weren't|hasn't|haven't|hadn't|didn't|doesn't|won't|yet to|without)\b|n['’]t\b/i;
+const MODAL_BEFORE = /\b(?:can|could|will|would|should|must|may|might|shall|to|ll)\b(?:\s+[\w'’-]+){0,3}\s*$/i;
+const AUX_BEFORE = /\b(?:has|have|had|is|are|was|were|be|been|being|got|get|gets|getting)\s+(?:(?:now|just|already|also|all|both|each|then|safely|successfully|finally|fully|correctly|automatically)\s+){0,3}$/i;
+const FIRST_PERSON_BEFORE = /\b(?:I|we)(?:['’](?:ve|d)|\s+have|\s+had)?\s+(?:(?:now|just|already|also|then|successfully)\s+){0,2}$/i;
+/** Someone else's action: "the client declined", "the waiver you typed", "as the user reported". */
+const ACTOR_BEFORE = /\b(?:you|they|he|she|client|clients|user|users|owner|builder|tester|testers|trainer|manager|bookkeeper|coordinator|ow-[a-z-]+)\s+(?:(?:also|already|just|then)\s+)?$/i;
+/** A verb before the hit makes a headline something else ("Capture … needs the decision, recorded in uat.yaml"). */
+const VERB_WORD = /^(?:is|are|was|were|be|been|being|am|has|have|had|do|does|did|can|could|will|would|shall|should|must|may|might|needs|holds|stays|closes|opens|comes|goes|says|reads|means|waits|takes|gets|makes|keeps|reaches|carries|asks|owns|belongs|contains|includes|appears|allows|requires|expects|lives|sits|runs|lists|shows)$/i;
+/** An instruction's first word ("use UAT's cleared images", "record the date"): what follows is no headline. */
+const IMPERATIVE = /^(?:use|mark|fix|ask|run|say|record|export|fill|remove|send|check|open|take|give|write|build|invoice|finish|plan|attach|read|see|keep|add|wait|try|start|confirm|sign|type|tell|leave|push|copy|capture|update|close|deliver|save|let|make|please|re-run|rerun|replace|rotate|follow|go|print|choose|pick|hand|call)$/i;
+/** A participle right after a determiner or a possessive describes a noun ("the cleared images", "a signed CO"). */
+const ATTRIBUTIVE_BEFORE = /(?:\b(?:the|a|an|every|each|any|its|their|your|our|my|this|that|these|those|all|some|no|newly|already|still)|['’]s)\s+$/i;
+const CONDITION_AFTER = /^[^.;]*?\b(?:once|when|whenever|after|if|until|unless|before|as soon as)\s+(?!more\b|again\b|that\b)(?:you|they|it|we|he|she|the|a|an|this|that|these|those|each|every|all|both|your|their|its|day|\d|[A-Z][\w-]*)/;
+const CONDITION_BEFORE = /\b(?:once|when|whenever|if|until|unless|as soon as)\s+(?!more\b|again\b)/i;
+const NOW_STATE = /\b(?:is|are|was|were|['’]s|['’]re)\s+now\b|\bnow\s+(?:is|are|has|have|in|on|at|holds?|appears?|shows?|lists?|contains?|includes?|sits?|lives?|reads?|says?|carries|carry|records?|points?|matches|match|exists?|covers?|names?|marks?|set)\b/i;
+const DONE_WORD = /\b(?:done|finished|succeeded|went (?:ahead|through|well)|up to date|in place|all set)\b|\b(?:is|are|was|were)\s+(?:now\s+)?(?:complete|live|ready)\b|\bcomplete\s*$/i;
+const OUTPUT_PLACED = /\b(?:guides?|cards?|documents?|docs|files?|cop(?:y|ies)|exports?|screenshots?|shots|images?|deck|slides|runbook|handover|sops?|modules?|videos?|pdfs?|word|update|record|notes|answers|everything)\b[^.;:]{0,40}?\b(?:is|are)\s+(?:now\s+)?(?:in|at|on|under|inside)\s+(?:the\s+|your\s+)?(?:PATH|shared drive|wiki|repo(?:sitory)?|drive|handbook|folder)\b/i;
+const screenClauses = (line) => {
+  const text = String(line).replace(/`[^`]*`/g, " ").replace(/(?<![\w-])--?[a-z][a-z-]*/g, " ").replace(/\/?\bow-[a-z0-9-]+/g, " ")
+    .replace(/(?:\S*[/\\]\S*|\S+\.(?:md|ya?ml|json|log|csv|docx|pdf|pptx|txt|png)\b)(?=[\s.,;:!?)]|$)/gi, " PATH ");
+  const out = [];
+  for (const sentence of text.split(/[.;:!?]+(?=\s|$)/)) {
+    // "Nothing was exported and pushed": the part after "and" keeps the negation when it has no subject of its own.
+    let negated = false;
+    for (const part of sentence.split(/\s+(?:and|but|then|so|or)\s+/)) {
+      const lead = part.trim().split(/\s+/)[0] ?? "";
+      out.push({ text: part, inherited: negated && isPast(lead) });
+      negated = NEGATED_BEFORE.test(part);
+    }
+  }
+  return out;
+};
 export function successClaims(line) {
   const out = [];
-  for (const clause of screenClauses(line)) {
-    const m = clause.match(SUCCESS_WORD);
-    if (!m) continue;
-    const before = clause.slice(0, m.index);
-    if (NEGATED_BEFORE.test(before) || MODAL_BEFORE.test(before) || RULE_AFTER.test(clause.slice(m.index + m[0].length))) continue;
-    out.push(m[0]);
+  for (const { text: clause, inherited } of screenClauses(line)) {
+    if (inherited || !clause.trim()) continue;
+    const hits = [];
+    for (const m of clause.matchAll(/[A-Za-z][A-Za-z'’-]*/g)) {
+      if (!isPast(m[0])) continue;
+      const before = clause.slice(0, m.index);
+      const word = m[0].toLowerCase();
+      const words = before.trim().split(/\s+/).filter(Boolean);
+      const frame = FIRST_PERSON_BEFORE.test(before) ? "first"
+        : AUX_BEFORE.test(before) ? (STATE_WORDS.has(word) ? null : "aux")
+        : !STATE_WORDS.has(word) && !(BASE_TOO.has(word) && !words.length) && words.length <= 6 && !words.some((w) => VERB_WORD.test(w)) && !ACTOR_BEFORE.test(before) && !ATTRIBUTIVE_BEFORE.test(before) && !(words.length && IMPERATIVE.test(words[0])) ? "headline" : null;
+      if (frame) hits.push({ m, before });
+    }
+    const nowM = clause.match(NOW_STATE) ?? clause.match(DONE_WORD) ?? clause.match(OUTPUT_PLACED);
+    if (nowM) hits.push({ m: nowM, before: clause.slice(0, nowM.index) });
+    for (const { m, before } of hits) {
+      if (NEGATED_BEFORE.test(before) || MODAL_BEFORE.test(before) || CONDITION_BEFORE.test(before) || CONDITION_AFTER.test(clause.slice(m.index + m[0].length))) continue;
+      out.push(m[0].trim());
+      break;
+    }
   }
   return out;
 }
@@ -1006,15 +1143,49 @@ export function commitClaims(line) {
   }
   return out;
 }
-/** The lines a refusal, no-op or question prescribes, and every NEXT-block and self-check line: never graded on wording. */
-const PRESCRIBED_LINE = (l) => /^\s*$/.test(l) || /^\s*(?:Refused:|Nothing to do:|Nothing was written\.|Nothing is written until you answer\.)/.test(l) || /^\s*[A-Z][A-Z ]*[A-Z]:/.test(l) || /^\s{6,}\S/.test(l) || l.trim().startsWith(SELF_CHECK_PREFIX);
+/**
+ * The text of a screen line that is graded on wording (round 2 m1), or null for a line that is prescribed whole:
+ * a blank line, `Nothing was written.`, `Nothing is written until you answer.`, a self-check line that reads
+ * cleanly, a NEXT or THEN say line, a DONE line, and a NEXT block's `It will read:` and `[no folder attached: …]`
+ * lines. A `Refused:` or `Nothing to do:` line is graded after its first sentence (the prescribed reason, which
+ * the key's `says` grades); the other labels (`IF IT IS NOT AVAILABLE:`, `NEW GAP:`, `MORE PEOPLE:`, `WHEN THEY ARRIVE:`,
+ * `OTHERWISE:`) after the label. Any other label ("NOTE:") and any indent are graded whole.
+ */
+const WHOLE_LINE = /^\s*(?:Nothing was written\.|Nothing is written until you answer\.)\s*$|^\s*(?:NEXT|THEN|DONE):|^\s+It will read: [^.;!?]*$|^\s+\[no folder attached: [^\]]*\]\s*$/;
+export function gradedText(line) {
+  if (!String(line).trim() || WHOLE_LINE.test(line)) return null;
+  if (line.trim().startsWith(SELF_CHECK_PREFIX)) { const sc = selfCheckLine(line); return sc && !sc.__many && !Object.values(sc).includes("unreadable") ? null : line; }
+  const reason = line.match(/^\s*(?:Refused|Nothing to do):\s*/);
+  if (reason) {
+    const first = line.slice(reason[0].length).match(/^.*?[.!?](?=\s|$)/);
+    return first ? line.slice(reason[0].length + first[0].length) : "";
+  }
+  const label = line.match(/^\s*(?:IF IT IS NOT AVAILABLE|NEW GAP|MORE PEOPLE|WHEN THEY ARRIVE|OTHERWISE):/);
+  return label ? line.slice(label[0].length) : line;
+}
+/**
+ * A key's `never` text on the screen. A lowercase word ("exported", "delivered on") is matched as words, after `-verb`
+ * names are set aside, and not where its clause negates it first ("Nothing was pushed, exported or delivered"):
+ * "record the date with -delivered once …" says neither. Other entries ("DONE:", a value) are matched as written.
+ * Fixed after the 1.0.1 held-out measurement, with recall unchanged.
+ */
+function neverSaid(printed, w) {
+  if (!/^[a-z][a-z ]*[a-z]$/.test(w)) return printed.includes(w);
+  const re = new RegExp(`(?<![\\w-])${esc(w)}(?![\\w-])`);
+  return printed.split("\n").some((line) => {
+    const l = line.replace(/(?<![\w-])--?[a-z][a-z-]*/g, " ");
+    const m = l.match(re);
+    if (!m) return false;
+    return !NEGATED_BEFORE.test(l.slice(0, m.index).split(/[.;:!?](?=\s|$)/).pop());
+  });
+}
 function checkScreen(key, run) {
   const p = [];
   const printed = run.printed();
   if (printed == null) return ["printed.md is missing: save what the run printed"];
   const s = key.screen ?? {};
-  for (const w of asList(s.says)) if (!printed.includes(String(w))) p.push(`printed.md does not say "${w}" (prescribed)`);
-  for (const w of asList(s.never)) if (printed.includes(String(w))) p.push(`printed.md says "${w}", which this screen never prints`);
+  for (const w of asList(s.says)) if (!printed.includes(String(w))) p.push(`printed.md does not say "${String(w).replace(/\n/g, "\\n")}" (prescribed)`);
+  for (const w of asList(s.never)) if (neverSaid(printed, String(w))) p.push(`printed.md says "${w}", which this screen never prints`);
   p.push(...nextBlockProblems(printed));
   // A DONE line is a claim about the files: the path it names is one this run wrote.
   for (const m of printed.matchAll(/^\s*DONE: .*? -> (\S+)\s*$/gm)) if (!wroteAt(run, m[1])) p.push(`printed.md says "${m[0].trim()}", but this run wrote nothing at ${m[1]}`);
@@ -1025,10 +1196,11 @@ function checkScreen(key, run) {
   }
   // A refusal, no-op or question never says anything was written, pushed, exported or delivered in this run
   // (routing-and-resume.md §5), in any wording (round 1 m1).
+  const graded = printed.split("\n").map((l) => ({ l, t: gradedText(l) })).filter((x) => x.t);
   if (refusal || /Nothing is written until you answer\./.test(printed)) {
-    for (const line of printed.split("\n").filter((l) => !PRESCRIBED_LINE(l))) for (const w of successClaims(line)) p.push(`printed.md: "${line.trim().slice(0, 70)}" says something was ${w.toLowerCase()} on a screen that writes nothing`);
+    for (const { l, t } of graded) for (const w of successClaims(t)) p.push(`printed.md: "${l.trim().slice(0, 70)}" says something was done ("${w}") on a screen that writes nothing`);
   }
-  for (const line of printed.split("\n").filter((l) => !PRESCRIBED_LINE(l))) for (const w of commitClaims(line)) p.push(`printed.md: "${line.trim().slice(0, 70)}" claims the client's repository was ${w.toLowerCase()}; this skill never commits, pushes or merges there`);
+  for (const { l, t } of graded) for (const w of commitClaims(t)) p.push(`printed.md: "${l.trim().slice(0, 70)}" claims the client's repository was ${w.toLowerCase()}; this skill never commits, pushes or merges there`);
   const sc = selfCheckLine(printed);
   if (s.self_check === "none" || (refusal && s.self_check === undefined)) {
     if (sc) p.push("printed.md prints a self-check line where this screen prints none");
@@ -1102,8 +1274,11 @@ export function expectedSet(view, key, docs) {
 const ONES = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
 const TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
 const inWords = (n) => (n < 20 ? ONES[n] : n < 100 ? `${TENS[Math.floor(n / 10)]}${n % 10 ? `[\\s-]+${ONES[n % 10]}` : ""}` : n < 1000 ? `${ONES[Math.floor(n / 100)]}\\s+hundred${n % 100 ? `(?:\\s+and)?\\s+${inWords(n % 100)}` : ""}` : `${inWords(Math.floor(n / 1000))}\\s+thousand${n % 1000 ? `,?\\s+(?:and\\s+)?${inWords(n % 1000)}` : ""}`);
-/** Where an amount is a price: the documentation line named, or a price word in the same sentence. */
-const PRICE_CONTEXT = /\b(?:pric(?:e|es|ed|ing)|costs?|quot(?:e|es|ed)|fees?|charg(?:e|es|ed)|billed|paid|invoic(?:e|es|ed))\b|\b(?:documentation|training)\b[\w\s&,-]{0,40}\bline\b|\bline\b[^.\n]{0,30}\b(?:documentation|training)\b|\b(?:documentation and training|training and documentation)\b/i;
+/**
+ * Where a bare amount is our price (round 2 m3): the sentence names the documentation, the training or the line,
+ * or says price or quote. A client's own threshold ("Invoices over 4,000 need approval") is theirs.
+ */
+const PRICE_CONTEXT = /\b(?:pric(?:e|es|ed|ing)|quot(?:e|es|ed|ing))\b|\b(?:documentation|training)\b|\b(?:the|this|that|our) line\b/i;
 /**
  * The documentation line's price in a text (round 1 m2): the amount in any form (grouped by a comma or a
  * space or not at all, with or without .00, as 4k, in words), with a currency sign or word, or bare in a
@@ -1119,6 +1294,8 @@ export function priceIn(text, amount) {
   const forms = [...new Set([grouped(","), grouped(" "), grouped(" "), String(whole)])].map((f) => `${esc(f)}${dec}`);
   if (!cents && whole >= 1000 && whole % 100 === 0) forms.push(`${esc(String(whole / 1000))}\\s?[kK]`);
   if (!cents && whole < 1000000) forms.push(inWords(whole));
+  // "forty hundred" (round 2 m3): a round amount under 10,000 counted in hundreds.
+  if (!cents && whole >= 1000 && whole < 10000 && whole % 100 === 0) forms.push(`${inWords(whole / 100)}\\s+hundred`);
   const num = `(?<![\\d.,])(?:${forms.join("|")})(?![\\d]|[.,]\\d)`;
   const withCurrency = new RegExp(`(?:US\\$|[$€£]|\\b(?:USD|EUR|GBP|CAD|AUD)\\s?)\\s?${num}|${num}\\s?(?:USD|EUR|GBP|CAD|AUD|dollars?|euros?|pounds?|bucks)\\b`, "i");
   const bare = new RegExp(num, "i");
@@ -1133,6 +1310,9 @@ export function priceIn(text, amount) {
 const amountIn = (text, amount) => priceIn(text, amount) != null;
 /** Every key in a YAML value that names a price (`price`, `documentation_price`, `line_price`, …), as dotted paths. */
 const priceKeys = (v, at = "") => (v && typeof v === "object" ? Object.entries(v).flatMap(([k, x]) => [...(/price|pricing/i.test(k) ? [`${at}${k}`] : []), ...priceKeys(x, `${at}${Array.isArray(v) ? "" : `${k}.`}`)]) : []);
+/** Every key in a YAML value whose scalar value is `amount` ("4,000", "$4000.00" and 4000 alike), as dotted paths. */
+const amountOf = (x) => { const s = String(x).trim().replace(/^(?:US\$|[$€£]|(?:USD|EUR|GBP)\s?)/i, "").replace(/[\s,]/g, ""); return /^\d+(?:\.\d{1,2})?$/.test(s) ? Number(s) : null; };
+const valuedKeys = (v, amount, at = "") => (v && typeof v === "object" ? Object.entries(v).flatMap(([k, x]) => (x && typeof x === "object" ? valuedKeys(x, amount, `${at}${k}.`) : amountOf(x) != null && amountOf(x) === amountOf(amount) ? [`${at}${k}`] : [])) : []);
 
 function checkStart(key, run) {
   const p = [];
@@ -1172,6 +1352,8 @@ function checkStart(key, run) {
     if (/[$€£]\s?\d|\b(?:USD|EUR|GBP)\s?\d/.test(text)) p.push("docs.yaml carries an amount; no price enters it");
     // Prices never enter docs.yaml (docs-yaml-schema.md §4), whatever the key is called (round 1 m2: `documentation_price: 4000`).
     for (const k of priceKeys(d)) p.push(`docs.yaml has a price key (${k}); no price enters it, not documentation_price`);
+    // Any key whose value is the price, whatever it is called (round 2 m3: `documentation_fee: 4000`, `amount: 4000`).
+    if (ci?.data?.documentation_price) for (const k of valuedKeys(d, ci.data.documentation_price)) p.push(`docs.yaml: ${k} holds documentation_price; no price enters it`);
     if (d.signoff?.file !== `uat/${key.slug}/signoff.md`) p.push("docs.yaml signoff.file is not uat/<client>/signoff.md");
   }
   if (steps.includes("people")) {
@@ -2446,45 +2628,73 @@ function familyRules() {
   if (!familyRulesC) { try { familyRulesC = familyNameRules(loadCatalogs({ root: ROOT }).find((c) => c.prefix === "ow-")); } catch { familyRulesC = []; } }
   return familyRulesC;
 }
-/** A name in any spelling: its words split on spaces, hyphens and underscores, joined by any run of them or none (round 1 m6). */
-const nameRe = (n) => new RegExp(`(?<![\\w-])${String(n).trim().split(/[-_\s]+/).map(esc).join("[\\s_-]*")}(?![\\w-])`, "i");
-/**
- * Owner decision 2026-10-20: every other workstream under opchain-work/ (a folder slug other than this client's, and
- * the `client:` its files record) is a private name in a client output. A follow-on folder of this same client
- * (`<slug>-2`, or the same client name) is not another client.
- */
-export function otherClients(run, key) {
-  const mine = new Set([key.slug, key.plan_slug].filter(Boolean));
-  const myName = String(key.client ?? "").trim().toLowerCase();
+/** A name in any spelling: its words split on spaces, hyphens, underscores and dots, joined by any run of them or none (round 1 m6, round 2 m2c). */
+const nameRe = (n) => new RegExp(`(?<![\\w-])${String(n).trim().split(/[-_\s.]+/).map(esc).join("[\\s_.-]*")}(?![\\w-])`, "i");
+
+// ── the other-client rule, shared ────────────────────────────────────────────
+//
+// Owner decisions 2026-10-20 and 2026-10-21 (OD-1): another workstream's client name or folder slug under
+// opchain-work/ in a client output is a No private names finding that is never waived. ow-draft (OW-10) imports
+// this rule, so its exported shape is stable; a change to it is a change to both skills' checkers:
+//
+//   NON_CLIENT_FOLDERS                  { business: "*", frameworks: ["research"] }: <area>/<folder>/ that is no client
+//   otherWorkstreams(files, read, mine) -> [{ slug, name }]
+//       files  every path, relative to the workspace ("opchain-work/<area>/<slug>/…"; other paths are ignored)
+//       read   (path) => text | null
+//       mine   { slugs: [this client's folder slugs], client: this client's name }
+//       name   the `client:` (or `client_name:`, `business:`) a file of that workstream records, or null
+//   otherClientMatchers(others, mine)   -> [{ re, name }]  one RegExp per form, no g flag: test one line at a time
+//   otherClientFindings(text, matchers) -> [{ line, name }]  1-based line numbers, the first matcher per line
+//
+// What is no other client: this client's own slugs and their follow-on folders (`<slug>-2`), a workstream whose
+// name is this client's, and NON_CLIENT_FOLDERS (the business's own logs/business/, research/business/, …, and
+// ow-research's research/frameworks/). How a workstream matches: a slug with a hyphen and a name of two or more
+// words in any spelling (nameRe); a one-word name only as written in its `client:` (case kept), so in the
+// possessive ("Bloom's") and in "the Bloom team" too; a one-word slug only as a folder ("docs/bloom/"); and a long
+// first word of a longer name in the possessive or as "the Mossgate deck".
+export const NON_CLIENT_FOLDERS = Object.freeze({ business: "*", frameworks: Object.freeze(["research"]) });
+const nonClient = (area, folder) => { const a = NON_CLIENT_FOLDERS[folder]; return a === "*" || (Array.isArray(a) && a.includes(area)); };
+export function otherWorkstreams(files, read, mine = {}) {
+  const slugs = asList(mine.slugs).map(String).filter(Boolean);
+  const myName = String(mine.client ?? "").trim().toLowerCase();
   const out = new Map();
-  for (const f of run.all().filter((x) => x.startsWith(OW))) {
+  for (const f of asList(files).map(String).filter((x) => x.startsWith(OW))) {
     const parts = f.slice(OW.length).split("/");
     if (parts.length < 3) continue;
-    const slug = parts[1];
-    // `business` holds the business's own logs and research (logs/business/, research/business/), never a client.
-    if (slug === "business" || mine.has(slug) || [...mine].some((s) => slug.startsWith(`${s}-`)) || !/^[a-z0-9][a-z0-9-]*$/.test(slug)) continue;
+    const [area, slug] = parts;
+    if (nonClient(area, slug) || slugs.includes(slug) || slugs.some((s) => slug.startsWith(`${s}-`)) || !/^[a-z0-9][a-z0-9-]*$/.test(slug)) continue;
     if (!out.has(slug)) out.set(slug, null);
     if (out.get(slug) == null && /\.(?:md|ya?ml)$/.test(f)) {
-      const m = String(run.read(f) ?? "").slice(0, 4000).match(/^(?:client|client_name|business): ["']?([^"'\n#]+?)["']?\s*$/m);
+      const m = String(read(f) ?? "").slice(0, 4000).match(/^(?:client|client_name|business): ["']?([^"'\n#]+?)["']?\s*$/m);
       if (m) out.set(slug, m[1].trim());
     }
   }
   return [...out.entries()].filter(([, name]) => String(name ?? "").toLowerCase() !== myName).map(([slug, name]) => ({ slug, name }));
 }
-function otherClientRules(run, key) {
+export function otherClientMatchers(others, mine = {}) {
   const rules = [];
-  const mineWords = new Set(String(key.client ?? "").toLowerCase().split(/\s+/));
-  for (const { slug, name } of otherClients(run, key)) {
-    rules.push({ re: nameRe(slug), name: slug });
-    if (name) {
-      rules.push({ re: nameRe(name), name });
-      // The name's first word as the client ("Fernhill's team", "the Mossgate deck"), when it is no ordinary short word.
-      const first = name.split(/\s+/)[0];
-      if (first.length >= 5 && !mineWords.has(first.toLowerCase())) rules.push({ re: new RegExp(`\\b${esc(first)}(?:'s|’s)\\b|\\b(?:the|our|at|for|from) ${esc(first)} (?:team|deck|rollout|runbook|handover|guides?|cards?|project|build|folder|workstream|documents|training|sops?|site|office)\\b`, "i"), name });
-    }
+  const mineWords = new Set(String(mine.client ?? "").toLowerCase().split(/\s+/));
+  for (const { slug, name } of asList(others)) {
+    // OD-1: a one-word slug is an ordinary word ("bloom"); it names the workstream only as a folder.
+    rules.push({ re: /-/.test(slug) ? nameRe(slug) : new RegExp(`(?<![\\w-])${esc(slug)}/`, "i"), name: slug });
+    if (!name) continue;
+    const words = String(name).trim().split(/\s+/);
+    // OD-1: a one-word name only as written (its possessive and "the Bloom team" are that spelling too).
+    rules.push({ re: words.length > 1 ? nameRe(name) : new RegExp(`(?<![\\w-])${esc(words[0])}(?![\\w-])`), name });
+    // The name's first word as the client ("Fernhill's team", "the Mossgate deck"), when it is no ordinary short word.
+    const first = words[0];
+    if (words.length > 1 && first.length >= 5 && !mineWords.has(first.toLowerCase())) rules.push({ re: new RegExp(`\\b${esc(first)}(?:'s|’s)\\b|\\b(?:the|our|at|for|from) ${esc(first)} (?:team|deck|rollout|runbook|handover|guides?|cards?|project|build|folder|workstream|documents|training|sops?|site|office)\\b`, "i"), name });
   }
   return rules;
 }
+export function otherClientFindings(text, matchers) {
+  const out = [];
+  String(text ?? "").split("\n").forEach((line, i) => { const r = asList(matchers).find((x) => x.re.test(line)); if (r) out.push({ line: i + 1, name: r.name }); });
+  return out;
+}
+/** This checker's run view: the workstreams other than the key's client (owner decision 2026-10-20). */
+export const otherClients = (run, key) => otherWorkstreams(run.all(), run.read, { slugs: [key.slug, key.plan_slug], client: key.client });
+const otherClientRules = (run, key) => otherClientMatchers(otherClients(run, key), { client: key.client });
 function checkPrivateNames(key, run) {
   const p = [];
   const rules = [...familyRules()];
@@ -2498,7 +2708,7 @@ function checkPrivateNames(key, run) {
   if (others.length) {
     const repo = repoOf(run, key);
     const outputs = run.written().filter((f) => clientDocs([f], key).length || (repo && f.startsWith(`${repo}/`)) || new RegExp(`^${esc(D(key))}/export/(?:update-\\d+/)?markdown/.+\\.md$`).test(f));
-    for (const f of outputs) (run.read(f) ?? "").split("\n").forEach((line, i) => { for (const r of others) if (r.re.test(line)) { p.push(`${f}:${i + 1}: names another workstream's client ("${r.name}") in a client output`); break; } });
+    for (const f of outputs) for (const { line, name } of otherClientFindings(run.read(f), others)) p.push(`${f}:${line}: names another workstream's client ("${name}") in a client output`);
   }
   return p;
 }

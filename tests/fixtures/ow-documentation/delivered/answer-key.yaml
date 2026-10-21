@@ -33,7 +33,7 @@ checks:
 delivered:
   date: '2027-02-15'
 screen:
-  says: ['DONE: delivered 2027-02-15 -> docs/larkspur-ceramics/delivered.md']
+  says: ['DONE: delivered 2027-02-15 -> docs/larkspur-ceramics/delivered.md', "It will read: runbook.md, delivered.md, docs.yaml, deliveries.yaml, secrets-seen.log\n"]
   never: ['Refused:']
 next:
   - use ow-build to invoice the documentation line

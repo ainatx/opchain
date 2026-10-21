@@ -172,6 +172,11 @@ export const PINS = [
   { id: "documentation: the operator notes are read for their ids (OW-06 O6 edit 1)", file: DB, must: "| ow-handoff | `handoffs/<client>/operator-notes.md` (its `ops:` ids) | The runbook's ids only | Next after the highest that parses |" },
   { id: "documentation: the training log reaches access removal (OW-06 O6 edit 2)", file: DB, must: "It will read: runbook.md, delivered.md, docs.yaml, deliveries.yaml, secrets-seen.log" },
   { id: "documentation: the capture profile on ow-handoff's list (OW-06 O6 edit 3)", file: DDR, must: "ow-handoff's access-removal list carries it with the local copies to remove; either way, the user removes it when the work ends:" },
+  // ow-documentation 1.0.1 (the OW-05 follow-ups: evaluation round 2 and owner decision OD-1 of 2026-10-21).
+  { id: "documentation: a one-word other client only in its exact forms (OD-1)", file: "ow-documentation/references/self-checks.md", must: "A one-word name counts only as its `client:` line writes it (so also \"Bloom's\" and \"the Bloom team\"), and a one-word slug only as a folder (`docs/bloom/`)." },
+  { id: "documentation: what is not another workstream (round 2 m2b)", file: "ow-documentation/references/self-checks.md", must: "Not another workstream: this client's follow-on folder (`<slug>-2`), the business's own `business/` folders (`logs/business/`, `research/business/`) and ow-research's `research/frameworks/`" },
+  { id: "documentation: after delivery, only a new gap's guide (round 2 m6)", file: DPW, must: "- **After `delivered.md`**: only a new training gap found before day 30 (`adoption.md`) is written, into the role's guide; everything else waits for a change the client asks for." },
+  { id: "documentation: body, the first type not yet written (round 2 nit)", file: DB, must: "With no type, `-write` and `-train` take the first in `plan.md`'s order not yet written and say which." },
 ];
 
 /**
