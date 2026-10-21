@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a681b9efb93a25a69",
+  "project_dir": ".",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-21T18:31:58.419Z",
+  "updated_at": "2026-10-21T22:04:02.548Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-ow-05-ow-documentation",
-  "progress_summary": "OW-05 PR readiness PASS at aabba9d3: one content commit through the gate (verified staged candidate 58130a21); catalog validates 36 skills plus 6 ow- skills (ow-documentation built and out of planned; ow-build-plan's body budget enforced at 4,500 in catalogs.json); check-skill-contracts and lint-internal-refs green; npm run build changes no tracked file; oc- outputs byte-identical against origin/main 6fcdebdf; no untracked files.",
+  "step": "pr-ow-05-followups",
+  "progress_summary": "PR readiness for ow-documentation 1.0.1: full npm test (8,825 passed, 15 skipped), npm run build with no tracked changes, all seven ow- acceptance checkers, gen-catalog, check-skill-contracts, lint-internal-refs green; one digest-pinned .bugcheck.json secrets exception for the Evaluator's set copy.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -23,24 +23,24 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [
-      "Three digest-pinned secrets-scan exceptions added to .bugcheck.json for files holding invented credential shapes as test data (sprints/release-2.1/ow-05/eval-round-1.md, tests/ow-documentation-eval-r1-heldout.mjs, tests/ow-documentation-heldout-r1.mjs), as tests/ow-uat-sentences.mjs has; reviewed by the orchestrator. GitHub push protection refused three invented vendor-token literals whole, so they are written as two joined strings; the held-out tests pin the sets' exported values, which are unchanged."
-    ],
+    "warnings": [],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "aabba9d37b05e79885bba84554c6549a0473faee",
+    "verified_for_sha": "1f5710ac95bf8fd09af45355522b463ca76e97f6",
     "last_verify": {
-      "at": "2026-10-21T18:31:58.419Z",
-      "branch": "claude/ow-05-ow-documentation",
-      "base": "origin/main@6fcdebdf",
+      "at": "2026-10-21T22:04:02.548Z",
+      "branch": "claude/ow-05-followups",
+      "base": "origin/main@dcb2eb75",
       "verdict": "PASS",
       "blocking_findings": []
     }
   },
-  "next_actions": [],
+  "next_actions": [
+    "Run npm run evidence:pr after the evidence commit."
+  ],
   "handoffs": [
     {
       "id": "oc-repo-ops-release-f6b167fcbd3a",
@@ -2292,8 +2292,37 @@
           "tests/fixtures/ow-documentation/README.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-ow-05-followups-87a3fc6d3806",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-21T22:04:02.548Z",
+      "verified_at": "2026-10-21T22:04:02.548Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-ow-05-followups"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:87a3fc6d3806ec2697510267f772dcbcae306c6b57130d1a1248d6bb0fdd3704"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "ow-documentation 1.0.1 follow-up PR",
+        "evidence": [
+          "skills-work/ow-documentation/references/self-checks.md",
+          "skills-work/ow-documentation/SKILL.md",
+          "skills-work/ow-documentation/references/docs-yaml-schema.md",
+          "skills-work/ow-documentation/CHANGELOG.md",
+          "skills-work/README.md",
+          "docs/plans/2026-10-16-ow-documentation-design.md",
+          "tests/fixtures/ow-documentation/README.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-21T18:31:58.419Z",
+  "record_updated_at": "2026-10-21T22:04:02.548Z",
   "blockers": []
 }
