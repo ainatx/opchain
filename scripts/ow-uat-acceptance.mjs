@@ -2230,8 +2230,22 @@ export const HANDOFF_PIN = {
     "uat/<client>/scenarios/SC-nn.md": ["role", "steps", "expected result", "data pointers"],
     "uat/<client>/defects/UAT-nn.md": ["class", "Training gap topic"],
     "uat/<client>/evidence/index.md": ["cleared items"],
+    // OW-05 ruling O2 (a data edit): the files ow-documentation reads in place, carried on at this hop.
+    "plans/<client>/contract-inputs.md": [],
+    "plans/<client>/scope.md": [],
+    "plans/<client>/quick-scope.md": [],
+    "plans/<client>/map/roles.md": [],
+    "plans/<client>/map/future.md": [],
+    "builds/<client>/build.yaml": [],
+    "builds/<client>/ledger.md": [],
+    "builds/<client>/changes/CO-nn.md": [],
+    "<repo>/spec/02-architecture.md": [],
+    "<repo>/spec/04-integrations.md": [],
+    "<repo>/spec/scope-and-milestones.md": [],
   },
 };
+/** OW-05 ruling O2: every in-place entry of a hand-off stays marked in place (a hop that hands on another skill's file). */
+export const IN_PLACE_PIN = { "/ow-documentation-start": ["plans/<client>/contract-inputs.md", "plans/<client>/scope.md", "plans/<client>/quick-scope.md", "plans/<client>/map/roles.md", "plans/<client>/map/future.md", "builds/<client>/build.yaml", "builds/<client>/ledger.md", "builds/<client>/changes/CO-nn.md", "<repo>/spec/02-architecture.md", "<repo>/spec/04-integrations.md", "<repo>/spec/scope-and-milestones.md"] };
 export function handoffFieldDrift(edgesText = readFileSync(EDGES, "utf8")) {
   const e = yaml.load(edgesText);
   const p = [];
@@ -2243,6 +2257,7 @@ export function handoffFieldDrift(edgesText = readFileSync(EDGES, "utf8")) {
       if (!f) { p.push(`${verb}: the hand-off drops ${path}`); continue; }
       const got = new Set(asList(f.fields).map(String));
       for (const k of fields) if (!got.has(k)) p.push(`${verb}: ${path} no longer hands off "${k}" (the next stage reads it)`);
+      if ((IN_PLACE_PIN[verb] ?? []).includes(path) && f.in_place !== true) p.push(`${verb}: ${path} is handed on in place (ow-build's or ow-build-plan's file); mark it in_place: true`);
     }
   }
   return p;

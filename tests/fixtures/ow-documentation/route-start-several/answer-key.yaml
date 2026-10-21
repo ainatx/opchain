@@ -1,0 +1,37 @@
+# Answer key: route-start-several (INVENTED). C4 row 2: several signed clients: ask which
+case: route-start-several
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C4 row 2: several signed clients: ask which'
+uat_case: signoff-signed
+world: larkspur
+verbs:
+  - /ow-documentation-start
+today: '2027-01-28'
+route:
+  say: use ow-documentation-start
+  expect: ask
+checks:
+  - route
+  - refused
+  - screen
+  - next
+refused:
+  reason: ask which client
+  names: [Which client?]
+screen:
+  says: [Which client?, Nothing is written until you answer.]
+  never: ['DONE:']
+  self_check: none
+next: []

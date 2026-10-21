@@ -1,0 +1,44 @@
+# Answer key: capture-signed-out (INVENTED). C9: signed out (selector-not-found): run again with
+# --sign-in; C4 -capture
+case: capture-signed-out
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C9: signed out (selector-not-found): run again with --sign-in; C4 -capture'
+verbs:
+  - /ow-documentation-capture
+today: '2027-02-01'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - capture
+  - approvals
+  - data
+test_values:
+  - LC-1001
+screen:
+  says: [docs/larkspur-ceramics/shots/index.md]
+  never: ['Refused:']
+next:
+  - use ow-documentation-write on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/shots/index.md, next: ow-documentation /ow-documentation-write docs/larkspur-ceramics/, awaiting: none}]
+base: start

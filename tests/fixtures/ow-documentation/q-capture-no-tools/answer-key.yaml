@@ -1,0 +1,37 @@
+# Answer key: q-capture-no-tools (INVENTED). C9, C12: a quick-quote job with no https origin:
+# placeholders
+case: q-capture-no-tools
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people:
+  - Priya
+  - Priya Natarajan
+private_names:
+  - llc-ops
+  - Deftwright
+  - Priya
+section: 'C9, C12: a quick-quote job with no https origin: placeholders'
+verbs:
+  - /ow-documentation-capture
+today: '2026-12-10'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - capture
+screen:
+  says: [placeholder]
+  never: ['Refused:']
+next:
+  - use ow-documentation-write on docs/mossgate-books/
+status:
+  lines: [{path: docs/mossgate-books/shots/index.md, next: ow-documentation /ow-documentation-write docs/mossgate-books/, awaiting: none}]
+base: q-start

@@ -1,0 +1,52 @@
+# Answer key: start-two-roles (INVENTED). §10 Coverage: N roles and K Training-gap topics (a planted
+# variant: two roles, three gaps); C6
+case: start-two-roles
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: '§10 Coverage: N roles and K Training-gap topics (a planted variant: two roles, three gaps); C6'
+uat_case: signoff-signed
+world: larkspur
+verbs:
+  - /ow-documentation-start
+today: '2027-01-28'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - start
+  - approvals
+  - handoff_fields
+  - internal_numbers
+start:
+  people: 6
+  groups: 1
+  trainer: user
+  roles: [order coordinator, bookkeeper]
+screen:
+  says: ['DONE: plan -> docs/larkspur-ceramics/plan.md', Planned delivery of the documents]
+  never: ['Refused:', Nothing was written.]
+next:
+  - use ow-documentation-capture on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/docs.yaml, next: ow-documentation /ow-documentation-start docs/larkspur-ceramics/, awaiting: none}, {path: docs/larkspur-ceramics/plan.md, next: ow-documentation /ow-documentation-capture docs/larkspur-ceramics/, awaiting: documents delivered by 2027-02-15}]
+coverage:
+  roles: 2
+  gaps: 3

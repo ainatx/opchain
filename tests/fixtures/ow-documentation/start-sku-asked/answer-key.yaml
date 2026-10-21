@@ -1,0 +1,38 @@
+# Answer key: start-sku-asked (INVENTED). C5: the SKU key absent (a quote from before the line
+# existed): asked once
+case: start-sku-asked
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C5: the SKU key absent (a quote from before the line existed): asked once'
+uat_case: signoff-signed
+world: larkspur
+verbs:
+  - /ow-documentation-start
+today: '2027-01-28'
+route:
+  say: use ow-documentation-start on uat/larkspur-ceramics/
+  expect: ask
+checks:
+  - route
+  - refused
+  - screen
+  - next
+refused:
+  reason: a question
+  names: [Did the client buy documentation and training? (bought / declined)]
+screen:
+  says: [Did the client buy documentation and training? (bought / declined), Nothing is written until you answer.]
+  never: ['DONE:', 'NEXT:']
+  self_check: none
+next: []

@@ -1,0 +1,53 @@
+ow_artefact: ow-documentation/docs
+schema: 1
+written_by: ow-documentation 1.0.0 (protocol 1)
+workstream: mossgate-books
+subject: uat/mossgate-books/signoff.md
+created: 2026-12-09
+clock: user-stated
+origin: skill
+trainer: user
+client: Mossgate Books
+handling: "no"
+start_steps:
+  - { step: scope, rec: 1, date: 2026-12-09 }
+  - { step: people, rec: 2, date: 2026-12-09 }
+  - { step: environment, rec: 3, date: 2026-12-09 }
+  - { step: gitignore, rec: 4, date: 2026-12-09 }
+  - { step: confirm, rec: 5, date: 2026-12-09 }
+signoff: { file: uat/mossgate-books/signoff.md, acceptance: deemed, date: 2026-12-07 }
+scope:
+  sku: bought (contract-inputs.md)
+  size: S
+  size_source: user-stated 2026-12-09
+  people: 4
+  people_source: user-stated 2026-12-09
+  groups: 1
+  room_for: 15
+  roles: [shop manager]
+sources:
+  - uat/mossgate-books/signoff.md
+  - uat/mossgate-books/uat.yaml
+  - uat/mossgate-books/scenarios/
+  - plans/mossgate-books/contract-inputs.md
+  - plans/mossgate-books/quick-scope.md
+  - builds/mossgate-books/build.yaml
+  - handoffs.yaml
+capture_profile: mossgate-books
+repo: ../mossgate-repo
+destinations: none
+embedded: []
+trainer_role: none
+roles:
+  - { role: shop manager, ids: [sm-T1], tasks: [SC-01, SC-02, SC-03], gaps: [UAT-01] }
+training_gaps:
+  - { id: UAT-01, role: shop manager, topic: "reading a week that looks short in the sales report" }
+environment:
+  name: "a copy of the shop's shared folder and the reorder spreadsheet"
+  label: uat
+  decision: none
+  origins: []
+  origins_confirmed: none
+gitignore: { asked: 2026-12-09, answer: not a git repo, added: [] }
+planned_delivery: 2026-12-22
+confirmed: "Robin 2026-12-09: guides x1, sops x1, runbook, handover x4, deck, facilitator, modules x3, cards x1, videos x1; roles shop manager; groups 1; trainer user"

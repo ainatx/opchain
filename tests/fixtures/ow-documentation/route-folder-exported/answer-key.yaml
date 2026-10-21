@@ -1,0 +1,36 @@
+# Answer key: route-folder-exported (INVENTED). C4 folder route: exported, no delivery reported:
+# nothing yet
+case: route-folder-exported
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C4 folder route: exported, no delivery reported: nothing yet'
+verbs:
+  - /ow-documentation
+today: '2027-02-13'
+route:
+  from: docs/larkspur-ceramics/
+  expect: nothing
+checks:
+  - route
+  - refused
+  - screen
+  - next
+refused:
+  reason: awaits delivery
+screen:
+  says: ['Nothing to do:', await delivery]
+  never: ['DONE:']
+  self_check: none
+next: []
+base: export

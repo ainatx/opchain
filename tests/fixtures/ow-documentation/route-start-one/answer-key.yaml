@@ -1,0 +1,23 @@
+# Answer key: route-start-one (INVENTED). C4 row 2: one signed client with the line bought and no
+# docs/ folder: that one
+case: route-start-one
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C4 row 2: one signed client with the line bought and no docs/ folder: that one'
+run: start
+route:
+  say: use ow-documentation-start
+  expect: start
+checks:
+  - route

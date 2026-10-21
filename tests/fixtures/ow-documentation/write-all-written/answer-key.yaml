@@ -1,0 +1,33 @@
+# Answer key: write-all-written (INVENTED). C4 own NEXTs: everything written, a no-op naming the next
+# verb (O12)
+case: write-all-written
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C4 own NEXTs: everything written, a no-op naming the next verb (O12)'
+verbs:
+  - /ow-documentation-write
+today: '2027-02-06'
+checks:
+  - refused
+  - screen
+  - next
+refused:
+  reason: nothing to do
+screen:
+  says: ['Nothing to do: every document type in plan.md is written.']
+  never: ['DONE:']
+  self_check: none
+next:
+  - use ow-documentation-train on docs/larkspur-ceramics/
+base: write-handover

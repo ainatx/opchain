@@ -1,0 +1,35 @@
+# Answer key: route-folder-closed (INVENTED). C4 folder route: closed: nothing
+case: route-folder-closed
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C4 folder route: closed: nothing'
+verbs:
+  - /ow-documentation
+today: '2027-03-22'
+route:
+  from: docs/larkspur-ceramics/
+  expect: nothing
+checks:
+  - route
+  - refused
+  - screen
+  - next
+refused:
+  reason: closed
+screen:
+  says: ['Nothing to do: the rollout closed on 19 March 2027.']
+  never: ['DONE:']
+  self_check: none
+next: []
+base: rollout-close

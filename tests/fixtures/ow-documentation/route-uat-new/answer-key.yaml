@@ -1,0 +1,22 @@
+# Answer key: route-uat-new (INVENTED). C4 row 1: no docs/<client>/ folder: -start
+case: route-uat-new
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C4 row 1: no docs/<client>/ folder: -start'
+run: start
+route:
+  say: use ow-documentation-start on uat/larkspur-ceramics/
+  expect: start
+checks:
+  - route

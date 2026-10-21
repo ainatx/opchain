@@ -1,0 +1,45 @@
+# Answer key: export-connector (INVENTED). C15, C19: a connector present: list, confirm each file,
+# push; C4 -export
+case: export-connector
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C15, C19: a connector present: list, confirm each file, push; C4 -export'
+verbs:
+  - /ow-documentation-export
+today: '2027-02-12'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - export
+  - approvals
+  - handoff_fields
+  - self_checks
+  - internal_numbers
+  - data
+screen:
+  says: [docs/larkspur-ceramics/deliveries.yaml]
+  never: ['Refused:', git commit, pushed to main]
+next:
+  - use ow-documentation-delivered on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/deliveries.yaml, next: ow-documentation /ow-documentation-delivered docs/larkspur-ceramics/, awaiting: documents delivered by 2027-02-15}]
+base: train-videos

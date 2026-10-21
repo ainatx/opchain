@@ -1,0 +1,35 @@
+# Answer key: route-uat-declined (INVENTED). §10 Declined; C5 (declined stops); C4 row 1
+case: route-uat-declined
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people:
+  - Priya
+  - Priya Natarajan
+private_names:
+  - llc-ops
+  - Deftwright
+  - Priya
+section: §10 Declined; C5 (declined stops); C4 row 1
+uat_case: m-deemed
+verbs:
+  - /ow-documentation-start
+today: '2026-12-09'
+route:
+  say: use ow-documentation-start on uat/mossgate-books/
+  expect: refused
+checks:
+  - route
+  - refused
+  - screen
+  - next
+  - private_names
+refused:
+  reason: declined
+  names: [declined]
+screen:
+  says: ['Refused: the client declined documentation and training; the floor comes from ow-handoff.']
+  never: ['DONE:']
+  self_check: none
+next:
+  - use ow-handoff-package on handoffs/mossgate-books/

@@ -1,0 +1,44 @@
+# Answer key: delivered-ledger-requested (INVENTED). C16, B4: the line already requested in ledger.md:
+# no invoice NEXT; C4 -delivered
+case: delivered-ledger-requested
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C16, B4: the line already requested in ledger.md: no invoice NEXT; C4 -delivered'
+verbs:
+  - /ow-documentation-delivered
+today: '2027-02-15'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - delivered
+  - handoff_fields
+delivered:
+  date: '2027-02-15'
+screen:
+  says: ['DONE: delivered 2027-02-15 -> docs/larkspur-ceramics/delivered.md']
+  never: ['Refused:']
+next:
+  - use ow-handoff-notes on handoffs/larkspur-ceramics/
+  - use ow-documentation-rollout on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/delivered.md, next: ow-documentation /ow-documentation-rollout docs/larkspur-ceramics/, awaiting: none}]
+base: export

@@ -1647,7 +1647,7 @@ function checkSigned(key, run) {
 }
 
 /** Which triggers the run's files meet, per phase-invoice.md §1 (and the uat.yaml governing statement). */
-function metTriggers(run, key, ledger) {
+export function metTriggers(run, key, ledger) {
   const met = [];
   const ok = (rel) => run.exists(`${OW}${rel}`);
   for (const x of ledger.payments ?? []) {

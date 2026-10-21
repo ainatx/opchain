@@ -1,0 +1,39 @@
+# Answer key: route-uat-no-signoff (INVENTED). C4 row 1: no signoff.md: stop; use ow-uat-signoff
+# (§4.1)
+case: route-uat-no-signoff
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C4 row 1: no signoff.md: stop; use ow-uat-signoff (§4.1)'
+uat_case: signoff-sent-2
+world: larkspur
+verbs:
+  - /ow-documentation-start
+today: '2027-01-26'
+route:
+  say: use ow-documentation-start on uat/larkspur-ceramics/
+  expect: refused
+checks:
+  - route
+  - refused
+  - screen
+  - next
+refused:
+  reason: not signed off
+  names: [not signed off]
+screen:
+  says: ['Refused: acceptance testing is not signed off.']
+  never: ['DONE:']
+  self_check: none
+next:
+  - use ow-uat-signoff

@@ -1,0 +1,42 @@
+# Answer key: rollout-session (INVENTED). §6.2 Training record; §10 Training record; C14
+case: rollout-session
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: §6.2 Training record; §10 Training record; C14
+verbs:
+  - /ow-documentation-rollout --session
+today: '2027-02-17'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - rollout
+  - record
+  - data
+  - internal_numbers
+screen:
+  says: ['DONE: G-01 session -> docs/larkspur-ceramics/training-record.md']
+  never: ['Refused:', Kiln2027]
+next:
+  - use ow-documentation-rollout on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/training-record.md, next: ow-documentation /ow-documentation-rollout docs/larkspur-ceramics/, awaiting: day 14 check-in by 2027-03-03 (G-01 trained)}]
+base: rollout-plan

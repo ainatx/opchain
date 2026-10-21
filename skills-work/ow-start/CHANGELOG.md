@@ -2,6 +2,10 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`; owner decision O7 of OW-08). The family's v2.1.0 release entry cites each skill's version. Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump (OW-04 ruling O9) and are listed here as data edits.
 
+## Unreleased: data edits from OW-05 (ow-documentation 1.0.0)
+
+No version bump (OW-04 ruling O9): `examples/handoffs.yaml` gains the `docs` key (where the documents go: the client's repository folders, and a say: line and an optional `location:` per other destination) and its commented shape, byte-identical in every ow- skill that ships it. ow-start's index row for `docs/<client>/docs.yaml` (`created`, `trainer`) needed no edit.
+
 ## Unreleased: data edits from OW-04 (ow-uat 1.0.0)
 
 No version bump (OW-04 ruling O9); the shared examples stay byte-identical in every skill that ships them:

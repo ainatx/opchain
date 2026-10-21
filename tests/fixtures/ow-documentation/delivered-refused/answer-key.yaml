@@ -1,0 +1,32 @@
+# Answer key: delivered-refused (INVENTED). C16: nothing exported: -delivered refuses; C4 -delivered
+case: delivered-refused
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C16: nothing exported: -delivered refuses; C4 -delivered'
+verbs:
+  - /ow-documentation-delivered
+today: '2027-02-12'
+checks:
+  - refused
+  - screen
+  - next
+refused:
+  reason: nothing exported
+screen:
+  says: ['Refused: nothing has been exported yet.']
+  never: ['DONE:', delivered on]
+  self_check: none
+next:
+  - use ow-documentation-export on docs/larkspur-ceramics/
+base: train-videos

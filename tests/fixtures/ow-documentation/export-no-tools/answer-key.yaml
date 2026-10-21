@@ -1,0 +1,44 @@
+# Answer key: export-no-tools (INVENTED). C15: without ow-tools: Markdown only, and say so; C4 -export
+case: export-no-tools
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C15: without ow-tools: Markdown only, and say so; C4 -export'
+verbs:
+  - /ow-documentation-export
+today: '2027-02-12'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - export
+  - approvals
+  - handoff_fields
+  - self_checks
+  - internal_numbers
+  - data
+screen:
+  says: [could not be generated here]
+  never: ['Refused:']
+next:
+  - use ow-documentation-delivered on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/deliveries.yaml, next: ow-documentation /ow-documentation-delivered docs/larkspur-ceramics/, awaiting: documents delivered by 2027-02-15}]
+base: train-videos

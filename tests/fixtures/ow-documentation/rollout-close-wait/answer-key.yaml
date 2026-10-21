@@ -1,0 +1,31 @@
+# Answer key: rollout-close-wait (INVENTED). C14: day 30 due before the window end: wait; C4 -rollout
+case: rollout-close-wait
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C14: day 30 due before the window end: wait; C4 -rollout'
+verbs:
+  - /ow-documentation-rollout --close
+today: '2027-03-19'
+checks:
+  - refused
+  - screen
+  - next
+refused:
+  reason: before the window end
+screen:
+  says: ['Refused: the rollout closes on 26 March 2027']
+  never: ['DONE:']
+  self_check: none
+next: []
+base: rollout-checkin-30

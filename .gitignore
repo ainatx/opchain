@@ -109,6 +109,7 @@ site/.playwright/
 npm-debug.log*
 # ow-uat's secrets-seen.log in its invented golden runs is a fixture, not a log.
 !tests/fixtures/ow-uat/**/secrets-seen.log
+!tests/fixtures/ow-documentation/**/secrets-seen.log
 
 # Editor
 .vscode/
@@ -146,3 +147,5 @@ design-previews/color-2.0-tooling/shots/
 # ow-tools: its Python environment lives in ~/.local/share/ow-tools, never here.
 plugins/ow-tools/python/.venv/
 plugins/ow-tools/python/__pycache__/
+# ow-documentation: images are never committed (owner decision O4); the index stays tracked.
+tests/fixtures/ow-documentation/**/shots/*.png

@@ -1,0 +1,29 @@
+# INVENTED TEST FIXTURE: a business's own handoffs.yaml for the ow-build
+# acceptance tests. "example-builder" is a made-up builder in the opchain
+# project format; the contract and change-order steps are a private skill, as
+# a real business's file might name. ow-build may print these lines but never
+# writes the builder's name or its lines into a file.
+ow_artefact: ow-start/handoffs
+schema: 1
+written_by: user (created from the ow- example)
+workstream: none
+subject: none
+created: 2026-11-01
+clock: user-stated
+origin: user
+
+contract:
+  say: "use llc-ops to draft the SOW from {files}"
+build:
+  mode: opchain
+  checkpoint: example-builder
+  plan: "use example-builder /plan-sprints"
+  sprint: "use example-builder /build-sprint {n}"
+  fix: "use example-builder /build-fix {description}"
+change_order:
+  say: "use llc-ops to draft the amendment from {files}"
+invoice:
+docs:
+  repo: { path: docs/client-handbook/, handover_path: docs/handover/ }
+  google_docs: { say: "upload {files} to Larkspur's shared drive, folder Ops handbook", location: "Ops handbook" }
+  wiki: { say: "paste {files} into the Larkspur ops wiki" }

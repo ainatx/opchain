@@ -1,0 +1,47 @@
+# Answer key: write-runbook-update (INVENTED). OW-06 O6 edit 1: a runbook update takes the next id
+# after the highest in the runbook's and ow-handoff's operator notes' ops (never a rotate entry's id)
+case: write-runbook-update
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'OW-06 O6 edit 1: a runbook update takes the next id after the highest in the runbook''s and ow-handoff''s operator notes'' ops (never a rotate entry''s id)'
+verbs:
+  - /ow-documentation-write runbook
+today: '2027-02-16'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - documents
+  - trace
+  - coverage
+  - images
+  - self_checks
+  - internal_numbers
+  - data
+  - handoff_fields
+screen:
+  says: ['DONE: runbook -> docs/larkspur-ceramics/runbook.md']
+  never: ['Refused:']
+next:
+  - use ow-documentation-train on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/runbook.md, next: ow-documentation /ow-documentation-train docs/larkspur-ceramics/, awaiting: none}]
+base: delivered

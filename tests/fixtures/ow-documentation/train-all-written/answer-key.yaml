@@ -1,0 +1,33 @@
+# Answer key: train-all-written (INVENTED). C4 own NEXTs: every format written, a no-op naming -export
+# (O12)
+case: train-all-written
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C4 own NEXTs: every format written, a no-op naming -export (O12)'
+verbs:
+  - /ow-documentation-train
+today: '2027-02-11'
+checks:
+  - refused
+  - screen
+  - next
+refused:
+  reason: nothing to do
+screen:
+  says: ['Nothing to do: every training format in plan.md is written.']
+  never: ['DONE:']
+  self_check: none
+next:
+  - use ow-documentation-export on docs/larkspur-ceramics/
+base: train-videos

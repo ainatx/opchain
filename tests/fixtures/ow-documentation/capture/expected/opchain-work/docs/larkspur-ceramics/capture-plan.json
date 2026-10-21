@@ -1,0 +1,145 @@
+{
+  "schema": 1,
+  "profile": "larkspur-ceramics",
+  "environment": "uat",
+  "allowed_origins": [
+    "https://orders-staging.larkspur.example",
+    "https://sandbox.accounting.example"
+  ],
+  "viewport": {
+    "width": 1280,
+    "height": 800
+  },
+  "sign_in": {
+    "url": "https://orders-staging.larkspur.example/login",
+    "done_selector": "#account-menu"
+  },
+  "steps": [
+    {
+      "id": "SC-01-1",
+      "do": "navigate",
+      "url": "https://orders-staging.larkspur.example/mailbox"
+    },
+    {
+      "id": "SC-01-2",
+      "do": "navigate",
+      "url": "https://orders-staging.larkspur.example/sheet"
+    },
+    {
+      "id": "SC-01-3",
+      "do": "click",
+      "selector": "#order-row-1"
+    },
+    {
+      "id": "SC-02-1",
+      "do": "navigate",
+      "url": "https://orders-staging.larkspur.example/mailbox"
+    },
+    {
+      "id": "SC-02-2",
+      "do": "navigate",
+      "url": "https://orders-staging.larkspur.example/exceptions"
+    },
+    {
+      "id": "SC-03-1",
+      "do": "navigate",
+      "url": "https://orders-staging.larkspur.example/mailbox"
+    },
+    {
+      "id": "SC-03-2",
+      "do": "navigate",
+      "url": "https://orders-staging.larkspur.example/exceptions"
+    },
+    {
+      "id": "SC-04-1",
+      "do": "navigate",
+      "url": "https://orders-staging.larkspur.example/confirmations"
+    },
+    {
+      "id": "SC-04-2",
+      "do": "click",
+      "selector": "#today"
+    },
+    {
+      "id": "SC-05-1",
+      "do": "navigate",
+      "url": "https://sandbox.accounting.example/sheet"
+    },
+    {
+      "id": "SC-05-2",
+      "do": "fill",
+      "selector": "#code-search",
+      "value": "LC-1001"
+    },
+    {
+      "id": "SC-06-1",
+      "do": "navigate",
+      "url": "https://sandbox.accounting.example/push"
+    },
+    {
+      "id": "SC-06-2",
+      "do": "click",
+      "selector": "#send-to-accounting"
+    },
+    {
+      "id": "SC-07-1",
+      "do": "navigate",
+      "url": "https://sandbox.accounting.example/exceptions"
+    },
+    {
+      "id": "SC-07-2",
+      "do": "navigate",
+      "url": "https://sandbox.accounting.example/invoices"
+    },
+    {
+      "id": "SC-08-1",
+      "do": "navigate",
+      "url": "https://orders-staging.larkspur.example/confirmations"
+    },
+    {
+      "id": "SC-08-2",
+      "do": "click",
+      "selector": "#order-row-1"
+    },
+    {
+      "id": "SC-09-1",
+      "do": "navigate",
+      "url": "https://orders-staging.larkspur.example/confirmations"
+    },
+    {
+      "id": "SC-09-2",
+      "do": "click",
+      "selector": "#order-row-2"
+    },
+    {
+      "id": "SC-10-1",
+      "do": "navigate",
+      "url": "https://orders-staging.larkspur.example/exceptions"
+    },
+    {
+      "id": "SC-10-2",
+      "do": "click",
+      "selector": "#line-1"
+    },
+    {
+      "id": "SC-11-1",
+      "do": "navigate",
+      "url": "https://orders-staging.larkspur.example/confirmations"
+    },
+    {
+      "id": "SC-11-2",
+      "do": "click",
+      "selector": "#yesterday"
+    },
+    {
+      "id": "SC-12-1",
+      "do": "navigate",
+      "url": "https://sandbox.accounting.example/invoices"
+    },
+    {
+      "id": "SC-12-2",
+      "do": "click",
+      "selector": "#today"
+    }
+  ]
+}

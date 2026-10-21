@@ -2,8 +2,8 @@
 # design §11, owner-approved scope addition 2026-10-16): Larkspur bought the
 # documentation & training line (contract-inputs.md: documentation_sku:
 # bought, 4000.00), so -start copied it into the ledger. When
-# docs/larkspur-ceramics/delivered.md exists (input/, in the ow-documentation
-# design's shape), -invoice writes one request for the line's price, outside
+# docs/larkspur-ceramics/delivered.md exists (input/, a byte copy of
+# ow-documentation's delivered golden), -invoice writes one request for the line's price, outside
 # the fixed price, and marks it requested.
 case: invoice-documentation
 section: Payment triggers (documentation & training delivered, B4)

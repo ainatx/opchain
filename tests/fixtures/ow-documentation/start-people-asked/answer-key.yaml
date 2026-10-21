@@ -1,0 +1,38 @@
+# Answer key: start-people-asked (INVENTED). C5: documentation_people absent (a quote from before P3):
+# asked once
+case: start-people-asked
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C5: documentation_people absent (a quote from before P3): asked once'
+uat_case: signoff-signed
+world: larkspur
+verbs:
+  - /ow-documentation-start
+today: '2027-01-28'
+route:
+  say: use ow-documentation-start on uat/larkspur-ceramics/
+  expect: ask
+checks:
+  - route
+  - refused
+  - screen
+  - next
+refused:
+  reason: a question
+  names: [How many people did the quote cover?]
+screen:
+  says: [How many people did the quote cover?, Nothing is written until you answer.]
+  never: ['DONE:', 'NEXT:']
+  self_check: none
+next: []

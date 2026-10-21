@@ -1,0 +1,8 @@
+Resuming --session G-01 at rollout: record is recorded.
+DONE: G-01 session -> docs/larkspur-ceramics/rollout.yaml
+Self-checks (same-session self-check, not an independent review): People by role or id OK · No credentials OK · No internal numbers OK · No private names OK
+A credential was seen in the attendance sheet and was not copied: ask the operations manager to have the bookkeeper's sandbox password changed.
+    NEXT: say "use ow-documentation-rollout on docs/larkspur-ceramics/"   (where slash commands exist: /ow-documentation-rollout)
+          It will read: rollout.yaml, training-record.md, adoption.md
+          [no folder attached: attach them when you say it]
+    IF IT IS NOT AVAILABLE: record each session and check-in by role and id by hand.
