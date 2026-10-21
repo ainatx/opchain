@@ -44,7 +44,7 @@ Every intake fact whose confidence is **LOW** or **UNKNOWN** (except `promised_b
 
     ow_artefact: ow-build-plan/plan
     schema: 1
-    written_by: ow-build-plan 1.0.0 (protocol 1)
+    written_by: ow-build-plan 1.2.0 (protocol 1)
     workstream: <slug>
     subject: <the intake file, or none>
     created: <YYYY-MM-DD>
@@ -106,4 +106,4 @@ The last two keep workshop transcripts out of commits; the ow-tools add-on refus
 
 ## 6. STATUS and NEXT
 
-Append: `… | ow-build-plan 1.0.0 | plans/<client>/collection.md | next: ow-build-plan /ow-build-plan-collect plans/<client>/ | awaiting: material from <client> by <collection_deadline>`. Print the start NEXT block from SKILL.md, and suggest a calendar reminder for the collection deadline (nothing reminds anyone later; protocol §6).
+Append: `… | ow-build-plan 1.2.0 | plans/<client>/collection.md | next: ow-build-plan /ow-build-plan-collect plans/<client>/ | awaiting: material from <client> by <collection_deadline>`. Print the start NEXT block from SKILL.md, and suggest a calendar reminder for the collection deadline (nothing reminds anyone later; protocol §6).

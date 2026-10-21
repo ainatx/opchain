@@ -1,0 +1,32 @@
+# Answer key: rollout-checkin-early (INVENTED). C14: a check-in before its due date is refused (a
+# day-10 check-in is never day 14)
+case: rollout-checkin-early
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C14: a check-in before its due date is refused (a day-10 check-in is never day 14)'
+verbs:
+  - /ow-documentation-rollout --checkin
+today: '2027-02-27'
+checks:
+  - refused
+  - screen
+  - next
+refused:
+  reason: early
+screen:
+  says: ['Refused: the day 14 check-in is due on 3 March 2027.']
+  never: ['DONE:']
+  self_check: none
+next: []
+base: rollout-session

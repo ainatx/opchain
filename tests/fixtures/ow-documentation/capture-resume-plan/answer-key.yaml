@@ -1,0 +1,47 @@
+# Answer key: capture-resume-plan (INVENTED). C20: -capture cut after decision, resumed at plan
+case: capture-resume-plan
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C20: -capture cut after decision, resumed at plan'
+verbs:
+  - /ow-documentation-capture
+today: '2027-02-01'
+test_values:
+  - LC-1001
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - capture
+  - approvals
+  - resume
+resume:
+  verb: /ow-documentation-capture
+  from: plan
+  through: check
+screen:
+  says: [Resuming -capture at plan]
+  never: ['Refused:']
+next:
+  - use ow-documentation-write on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/shots/index.md, next: ow-documentation /ow-documentation-write docs/larkspur-ceramics/, awaiting: none}]
+base: start

@@ -1,0 +1,35 @@
+# Answer key: waiver-data-refused (INVENTED). C10: a typed waiver of Data check is refused; the verb
+# stays stopped
+case: waiver-data-refused
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C10: a typed waiver of Data check is refused; the verb stays stopped'
+verbs:
+  - /ow-documentation-export
+today: '2027-02-12'
+waiver: Data check
+checks:
+  - refused
+  - screen
+  - next
+  - self_checks
+refused:
+  reason: never waived
+  names: [Data check]
+screen:
+  says: ['Refused: Data check can never be waived.', Nothing was written.]
+  never: ['DONE:', (waived]
+  self_check: {Data check: FINDING}
+next: []
+base: train-videos

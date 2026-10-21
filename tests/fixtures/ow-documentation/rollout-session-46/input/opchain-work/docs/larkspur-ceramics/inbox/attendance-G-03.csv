@@ -1,0 +1,17 @@
+role,id,attended,competency check
+order coordinator,C-01,yes,passed
+operations manager,C-02,yes,passed
+bookkeeper,C-03,yes,passed
+order coordinator,C-04,yes,passed
+operations manager,C-05,yes,passed
+bookkeeper,C-06,yes,passed
+order coordinator,C-07,yes,passed
+operations manager,C-08,yes,passed
+bookkeeper,C-09,yes,passed
+order coordinator,C-10,yes,passed
+operations manager,C-11,yes,passed
+bookkeeper,C-12,yes,passed
+order coordinator,C-13,yes,passed
+operations manager,C-14,yes,passed
+bookkeeper,C-15,yes,passed
+order coordinator,C-16,yes,passed

@@ -1,0 +1,49 @@
+# Answer key: start-sku-user-stated (INVENTED). C5: the SKU and people answered, recorded user-stated
+case: start-sku-user-stated
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C5: the SKU and people answered, recorded user-stated'
+uat_case: signoff-signed
+world: larkspur
+verbs:
+  - /ow-documentation-start
+today: '2027-01-28'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - start
+  - approvals
+  - handoff_fields
+  - internal_numbers
+start:
+  people: 6
+  groups: 1
+  trainer: user
+  origins: [https://orders-staging.larkspur.example, https://sandbox.accounting.example]
+  planned_delivery: '2027-02-15'
+screen:
+  says: ['DONE: plan -> docs/larkspur-ceramics/plan.md', Planned delivery of the documents]
+  never: ['Refused:', Nothing was written.]
+next:
+  - use ow-documentation-capture on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/docs.yaml, next: ow-documentation /ow-documentation-start docs/larkspur-ceramics/, awaiting: none}, {path: docs/larkspur-ceramics/plan.md, next: ow-documentation /ow-documentation-capture docs/larkspur-ceramics/, awaiting: documents delivered by 2027-02-15}]

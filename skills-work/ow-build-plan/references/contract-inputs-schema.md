@@ -7,7 +7,7 @@ The header carries the machine-readable keys; the body says the same in plain wo
     ---
     ow_artefact: ow-build-plan/contract-inputs
     schema: 1
-    written_by: ow-build-plan 1.0.0 (protocol 1)
+    written_by: ow-build-plan 1.2.0 (protocol 1)
     workstream: <slug>
     subject: plans/<client>/quote.md
     created: <YYYY-MM-DD>
@@ -33,11 +33,14 @@ The header carries the machine-readable keys; the body says the same in plain wo
     uat: { size: M, tester_roles: [<role>, …], test_mix: <text>, sessions: <n>, fix_rounds: <n>, fix_business_days: <n>, price: <amount> }
     documentation_sku: bought | declined
     documentation_price: <amount, "quoted separately", or none>
+    documentation_people: <n>                      # quote.md documentation_training.people, bought or declined
     acceptance_definition: <the quote's acceptance sentence>
     delivery_definition: <the quote's delivery sentence, or none above size_threshold>
     contract_clauses: not set                      # or the block below, copied unchanged from offers.md
     vendor_subscriptions: [<names>]
     ---
+
+**`documentation_people`** is the people count the documentation line was quoted for, copied from `quote.md` `documentation_training.people` whether the line was bought or declined. It is a top-level key of its own, **never nested under `documentation_sku`**: acceptance testing digests the `documentation_sku` line with its indented lines, so a key nested there would change that digest.
 
 **The Build Plan credit** is copied from the quote, never worked out here. Only a Build Plan quote on a plan with a fee has one. A quick quote, or a plan on signed work (`plan.yaml` `fee: none`, delivery mode), has none: write `credit_deadline: none` and `build_plan_fee: none`, and say nothing about a credit in the body. (A feasibility test leaves both keys out; see the last section.)
 
@@ -58,14 +61,14 @@ Copy it unchanged; never draft, shorten or reword a clause. With no block, write
 
     ## Parties
     ## What is agreed          (the scope and acceptance checks, by file and id; not copied)
-    ## Price and payment       (fixed price, milestones each ending in a working demo, schedule, due days)
+    ## Price and payment       (fixed price, milestones each ending in a working demo, schedule, due days; documentation & training, when taken, invoiced when the documents are delivered)
     ## Change rule             (the quote's sentence, unchanged)
     ## Dates                   (valid until; the Build Plan credit deadline only when the quote has one)
     ## Ownership               (offers.md `ownership` text, or the plan's Ownership section)
     ## Vendor subscriptions    (billed directly to the client, without a markup)
     ## After delivery          (<n> days of fixes, and what that covers)
     ## User acceptance testing (size, tester roles by role, test mix, sessions, fix rounds and days)
-    ## Documentation & training (bought or declined, as the user recorded the client's choice)
+    ## Documentation & training (bought or declined, as the user recorded the client's choice; the people quoted; invoiced when the documents are delivered)
     ## Acceptance and delivery (the two definitions, word for word)
     ## Contract clauses        (the block, or "not set")
     ## Next
@@ -73,7 +76,7 @@ Copy it unchanged; never draft, shorten or reword a clause. With no block, write
 
 ## A feasibility quote (`mode: feasibility`)
 
-`contract-inputs.md` for a feasibility test holds just the test (owner decision 2026-10-16). Header keys: the protocol header, then `client`, `mode: feasibility`, `accepted`, `acceptance_note`, `parties`, `quote`, `scope` (`plans/<client>/quick-scope.md`), `currency`, `fixed_price`, `schedule`, `payments`, `payment_terms_days`, `valid_until`, `deliverables: [findings note, go or no-go]` and `contract_clauses`. **None of** `fix_window_days`, `fix_window_wording`, `uat`, `documentation_sku`, `documentation_price`, `acceptance_definition`, `delivery_definition`, `vendor_subscriptions`, `credit_deadline` or `build_plan_fee`.
+`contract-inputs.md` for a feasibility test holds just the test (owner decision 2026-10-16). Header keys: the protocol header, then `client`, `mode: feasibility`, `accepted`, `acceptance_note`, `parties`, `quote`, `scope` (`plans/<client>/quick-scope.md`), `currency`, `fixed_price`, `schedule`, `payments`, `payment_terms_days`, `valid_until`, `deliverables: [findings note, go or no-go]` and `contract_clauses`. **None of** `fix_window_days`, `fix_window_wording`, `uat`, `documentation_sku`, `documentation_price`, `documentation_people`, `acceptance_definition`, `delivery_definition`, `vendor_subscriptions`, `credit_deadline` or `build_plan_fee`.
 
 Body sections: `## Parties`, `## What is tested` (by reference to `quick-scope.md`), `## What you get` (the findings note and the go or no-go), `## Price and payment`, `## Dates` (valid until), `## Contract clauses`, `## Next` (the accepted NEXT block, as for any quote).
 

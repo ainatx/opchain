@@ -1,0 +1,41 @@
+# Answer key: rollout-close (INVENTED). §6.2 Close; §10 Adoption (--close at day 30); C14
+case: rollout-close
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: §6.2 Close; §10 Adoption (--close at day 30); C14
+verbs:
+  - /ow-documentation-rollout --close
+today: '2027-03-19'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - rollout
+  - adoption
+  - internal_numbers
+screen:
+  says: ['DONE: rollout closed']
+  never: ['Refused:']
+next:
+  - use ow-handoff-fix on handoffs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/rollout.yaml, next: 'none (closed: rollout G-01)', awaiting: none}]
+base: rollout-checkin-30

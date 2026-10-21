@@ -1,0 +1,40 @@
+# Answer key: q-write-sops (INVENTED). C12 (§5.2): a quick-quote job's SOP, from quick-scope.md and
+# the user, user-stated
+case: q-write-sops
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people:
+  - Priya
+  - Priya Natarajan
+private_names:
+  - llc-ops
+  - Deftwright
+  - Priya
+section: 'C12 (§5.2): a quick-quote job''s SOP, from quick-scope.md and the user, user-stated'
+verbs:
+  - /ow-documentation-write sops
+today: '2026-12-14'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - documents
+  - trace
+  - self_checks
+  - internal_numbers
+screen:
+  says: ['DONE: sops -> docs/mossgate-books/sops/']
+  never: ['Refused:']
+next:
+  - use ow-documentation-write on docs/mossgate-books/
+status:
+  lines: [{path: docs/mossgate-books/sops/SOP-01.md, next: ow-documentation /ow-documentation-write docs/mossgate-books/, awaiting: none}]
+base: q-write-guides

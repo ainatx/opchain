@@ -1,0 +1,22 @@
+# Answer key: route-folder-planned (INVENTED). C4 folder route: rollout planned, a session due
+case: route-folder-planned
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C4 folder route: rollout planned, a session due'
+run: rollout-session
+route:
+  from: docs/larkspur-ceramics/
+  expect: rollout --session
+checks:
+  - route

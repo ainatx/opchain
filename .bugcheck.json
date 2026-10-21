@@ -136,6 +136,18 @@
         {
           "path": "tests/ow-uat-sentences.mjs",
           "digest": "sha256:1c3b2e89cdb3f84b784b44b4ab8e0fbe2d0384878abeee7263e843121bbf2ac0"
+        },
+        {
+          "path": "sprints/release-2.1/ow-05/eval-round-1.md",
+          "digest": "sha256:b12f1214a9b4bdda7672159b8d5cb8cf01b74d5a11e1bae6e7a02aa233f75d6e"
+        },
+        {
+          "path": "tests/ow-documentation-eval-r1-heldout.mjs",
+          "digest": "sha256:3c0c049e6d3fe548bbf65541c0d038b8d63e75ab8db1a5f1e25cfefcd8cd1e0c"
+        },
+        {
+          "path": "tests/ow-documentation-heldout-r1.mjs",
+          "digest": "sha256:ce74c1061b592ca13f57d292eb68df2b516c46c546c3b43437e6bfff449df2c9"
         }
       ]
     }

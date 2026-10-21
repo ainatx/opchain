@@ -1,0 +1,33 @@
+# Answer key: capture-decision-asked (INVENTED). C9: test_data.real covers a captured check: ask; C4
+# -capture
+case: capture-decision-asked
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C9: test_data.real covers a captured check: ask; C4 -capture'
+verbs:
+  - /ow-documentation-capture
+today: '2027-02-01'
+checks:
+  - refused
+  - screen
+  - next
+refused:
+  reason: a question
+  names: [AC-1.1, AC-2.1, AC-3.1, AC-4.1, AC-5.1, AC-CO-01.1]
+screen:
+  says: [Nothing is written until you answer., A testing decision does not cover screenshots.]
+  never: ['DONE:']
+  self_check: none
+next: []
+base: start

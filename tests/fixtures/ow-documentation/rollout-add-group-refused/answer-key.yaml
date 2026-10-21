@@ -1,0 +1,33 @@
+# Answer key: rollout-add-group-refused (INVENTED). C5: a group added with no signed change order is
+# refused
+case: rollout-add-group-refused
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C5: a group added with no signed change order is refused'
+verbs:
+  - /ow-documentation-rollout --add-group
+today: '2027-03-05'
+checks:
+  - refused
+  - screen
+  - next
+refused:
+  reason: not signed
+  names: [CO-05]
+screen:
+  says: ['Refused: CO-05 is not signed.']
+  never: ['DONE:']
+  self_check: none
+next: []
+base: rollout-session-46

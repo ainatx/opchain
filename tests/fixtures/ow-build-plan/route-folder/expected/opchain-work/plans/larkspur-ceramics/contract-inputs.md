@@ -1,7 +1,7 @@
 ---
 ow_artefact: ow-build-plan/contract-inputs
 schema: 1
-written_by: ow-build-plan 1.0.0 (protocol 1)
+written_by: ow-build-plan 1.2.0 (protocol 1)
 workstream: larkspur-ceramics
 subject: plans/larkspur-ceramics/quote.md
 created: 2026-11-02
@@ -27,6 +27,7 @@ fix_window_wording: 30 days of fixes
 uat: { size: M, tester_roles: [order coordinator, operations manager, bookkeeper], test_mix: "order coordinator: WP-1, WP-2, WP-4; operations manager: WP-3; bookkeeper: WP-5", sessions: 3, fix_rounds: 2, fix_business_days: 5, price: 2250.00 }
 documentation_sku: bought
 documentation_price: 4000.00
+documentation_people: 6
 acceptance_definition: The build is accepted when you sign off user acceptance testing with every acceptance check passing, or as the contract's deemed-acceptance clause provides.
 delivery_definition: none
 contract_clauses: not set
@@ -46,7 +47,7 @@ Client accepted 2026-11-02, recorded by Robin; not verified by this skill. This 
 The five work packages in `plans/larkspur-ceramics/scope.md` (WP-1 to WP-5) and the acceptance checks in `plans/larkspur-ceramics/acceptance.md` (AC-1.1 to AC-5.2), by reference.
 
 ## Price and payment
-A fixed price of USD 17,450.00 for the work packages and user acceptance testing, in two milestones that each end in a working demo. Payments: 40% to book (USD 6,980.00), 40% at the working demo (USD 6,980.00), 20% at acceptance (USD 3,490.00). Invoices are due within 14 days.
+A fixed price of USD 17,450.00 for the work packages and user acceptance testing, in two milestones that each end in a working demo. Payments: 40% to book (USD 6,980.00), 40% at the working demo (USD 6,980.00), 20% at acceptance (USD 3,490.00). Invoices are due within 14 days. The documentation & training line, when taken, is outside the fixed price and invoiced when the documents are delivered.
 
 ## Change rule
 If I underestimate the agreed scope, that's on me. Additional work is written down and priced before it starts.
@@ -67,7 +68,7 @@ None needed. Any that become needed are billed directly to the client by the ven
 Size M: 3 tester roles (order coordinator, operations manager, bookkeeper); the order coordinator checks WP-1, WP-2 and WP-4, the operations manager WP-3 and the bookkeeper WP-5; 3 sessions including the final confirmation run; up to 2 fix rounds within 5 business days each. USD 2,250.00, inside the fixed price.
 
 ## Documentation & training
-Bought, as Robin recorded the client's choice: written guides and training for up to 15 people (6 planned), USD 4,000.00, outside the fixed price; the contract says when it is invoiced.
+Bought, as Robin recorded the client's choice: written guides and training for up to 15 people (6 planned), USD 4,000.00, outside the fixed price; invoiced when the documents are delivered.
 
 ## Acceptance and delivery
 The build is accepted when you sign off user acceptance testing with every acceptance check passing, or as the contract's deemed-acceptance clause provides.

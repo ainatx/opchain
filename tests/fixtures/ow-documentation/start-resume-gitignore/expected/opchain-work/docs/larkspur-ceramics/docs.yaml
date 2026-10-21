@@ -1,0 +1,61 @@
+ow_artefact: ow-documentation/docs
+schema: 1
+written_by: ow-documentation 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: uat/larkspur-ceramics/signoff.md
+created: 2027-01-28
+clock: user-stated
+origin: skill
+trainer: user
+client: Larkspur Ceramics
+handling: "no"
+start_steps:
+  - { step: scope, rec: 1, date: 2027-01-28 }
+  - { step: people, rec: 2, date: 2027-01-28 }
+  - { step: environment, rec: 3, date: 2027-01-28 }
+  - { step: gitignore, rec: 4, date: 2027-01-28 }
+  - { step: confirm, rec: 5, date: 2027-01-28 }
+signoff: { file: uat/larkspur-ceramics/signoff.md, acceptance: signed, date: 2027-01-27 }
+scope:
+  sku: bought (contract-inputs.md)
+  size: M
+  size_source: contract-inputs.md uat.size
+  people: 6
+  people_source: contract-inputs.md documentation_people
+  groups: 1
+  room_for: 15
+  roles: [order coordinator, operations manager, bookkeeper]
+sources:
+  - uat/larkspur-ceramics/signoff.md
+  - uat/larkspur-ceramics/uat.yaml
+  - uat/larkspur-ceramics/scenarios/
+  - uat/larkspur-ceramics/defects/
+  - uat/larkspur-ceramics/evidence/index.md
+  - plans/larkspur-ceramics/contract-inputs.md
+  - plans/larkspur-ceramics/scope.md
+  - plans/larkspur-ceramics/map/roles.md
+  - plans/larkspur-ceramics/map/future.md
+  - builds/larkspur-ceramics/build.yaml
+  - handoffs.yaml
+capture_profile: larkspur-ceramics
+repo: ../larkspur-repo
+destinations:
+  repo: { path: docs/client-handbook/, handover_path: docs/handover/ }
+  say: [google_docs, wiki]
+embedded: []
+trainer_role: none
+roles:
+  - { role: order coordinator, ids: [oc-T1], tasks: [SC-01, SC-02, SC-03, SC-05, SC-10], gaps: [UAT-01] }
+  - { role: operations manager, ids: [ops-T1], tasks: [SC-04, SC-08, SC-09, SC-11], gaps: [] }
+  - { role: bookkeeper, ids: [bk-T1], tasks: [SC-06, SC-07, SC-12], gaps: [] }
+training_gaps:
+  - { id: UAT-01, role: order coordinator, topic: "where to settle an exceptions-list line" }
+environment:
+  name: "the Larkspur staging mailbox, a copy of the order sheet and the QuickBooks Online sandbox"
+  label: uat
+  decision: none
+  origins: [https://orders-staging.larkspur.example, https://sandbox.accounting.example]
+  origins_confirmed: "Robin 2027-01-28"
+gitignore: { asked: 2027-01-28, answer: not a git repo, added: [] }
+planned_delivery: 2027-02-15
+confirmed: "Robin 2027-01-28: guides x3, sops x5, runbook, handover x4, deck, facilitator, modules x12, cards x3, videos x3; roles order coordinator, operations manager, bookkeeper; groups 1; trainer user"

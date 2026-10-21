@@ -2,6 +2,13 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump (OW-04 ruling O9) and are listed here as data edits.
 
+## Unreleased: data edits from OW-05 (ow-documentation 1.0.0)
+
+No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed:
+
+- `skill.edges.yaml`: the hand-off to ow-documentation (`use ow-documentation-start on uat/<client>/`) lists every file ow-documentation reads where an earlier stage left it, each `in_place: true`: the signed plan's `contract-inputs.md`, `scope.md`, `quick-scope.md`, `map/roles.md` and `map/future.md`; ow-build's `build.yaml`, `ledger.md` and `changes/CO-nn.md`; and the builder's `spec/02-architecture.md`, `spec/04-integrations.md` and `spec/scope-and-milestones.md` (OW-05 ruling O2). The acceptance checker's hand-off pin follows.
+- `examples/handoffs.yaml` gains the `docs` key and its commented shape (with an optional `location:` for a connector push), byte-identical in every ow- skill that ships it.
+
 ## 1.0.2 (2026-10-19): Visa's published test card is test data
 
 - **Visa's published test card** (owner decision 2026-10-19, `references/self-checks.md`): `4111 1111 1111 1111` in a test-mode scenario is test data, like Stripe's published cards; a number one digit off, or any other card shape, is still a finding.

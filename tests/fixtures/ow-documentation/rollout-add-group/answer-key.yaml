@@ -1,0 +1,41 @@
+# Answer key: rollout-add-group (INVENTED). C5: --add-group CO-nn once the change order is signed:
+# sessions, never checks, nothing re-priced
+case: rollout-add-group
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C5: --add-group CO-nn once the change order is signed: sessions, never checks, nothing re-priced'
+verbs:
+  - /ow-documentation-rollout --add-group
+today: '2027-03-09'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - rollout
+  - internal_numbers
+screen:
+  says: [G-04 added on CO-05]
+  never: ['Refused:']
+next:
+  - use ow-documentation-rollout on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/rollout.yaml, next: ow-documentation /ow-documentation-rollout docs/larkspur-ceramics/, awaiting: G-04 session on 2027-03-17}]
+base: rollout-session-46

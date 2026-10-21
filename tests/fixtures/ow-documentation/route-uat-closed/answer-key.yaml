@@ -1,0 +1,36 @@
+# Answer key: route-uat-closed (INVENTED). C4 row 1: closed: say so, write nothing
+case: route-uat-closed
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C4 row 1: closed: say so, write nothing'
+verbs:
+  - /ow-documentation-start
+today: '2027-03-22'
+route:
+  say: use ow-documentation-start on uat/larkspur-ceramics/
+  expect: nothing
+checks:
+  - route
+  - refused
+  - screen
+  - next
+refused:
+  reason: no re-freeze
+  names: []
+screen:
+  says: ['Nothing to do:', Nothing was written.]
+  never: ['DONE:', 'Appended:']
+  self_check: none
+next: []
+base: rollout-close

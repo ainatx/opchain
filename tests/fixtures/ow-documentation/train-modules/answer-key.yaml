@@ -1,0 +1,45 @@
+# Answer key: train-modules (INVENTED). §6.1 The training kit (modules); C13
+case: train-modules
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: §6.1 The training kit (modules); C13
+verbs:
+  - /ow-documentation-train modules
+today: '2027-02-09'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - documents
+  - trace
+  - coverage
+  - images
+  - self_checks
+  - internal_numbers
+  - data
+screen:
+  says: ['DONE: modules -> docs/larkspur-ceramics/training/']
+  never: ['Refused:']
+next:
+  - use ow-documentation-train on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/training/modules/M-12.md, next: ow-documentation /ow-documentation-train docs/larkspur-ceramics/, awaiting: none}]
+base: train-facilitator

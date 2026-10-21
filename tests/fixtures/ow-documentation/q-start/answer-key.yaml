@@ -1,0 +1,45 @@
+# Answer key: q-start (INVENTED). C12 (§4.1): a quick-quote job: quick-scope.md only; size and people
+# asked (no uat line, before P3)
+case: q-start
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+people:
+  - Priya
+  - Priya Natarajan
+private_names:
+  - llc-ops
+  - Deftwright
+  - Priya
+section: 'C12 (§4.1): a quick-quote job: quick-scope.md only; size and people asked (no uat line, before P3)'
+uat_case: m-deemed-bought
+verbs:
+  - /ow-documentation-start
+today: '2026-12-09'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - start
+  - approvals
+  - internal_numbers
+start:
+  people: 4
+  groups: 1
+  trainer: user
+  sops: 1
+  origins: []
+screen:
+  says: ['DONE: plan -> docs/mossgate-books/plan.md']
+  never: ['Refused:']
+next:
+  - use ow-documentation-capture on docs/mossgate-books/
+status:
+  lines: [{path: docs/mossgate-books/docs.yaml, next: ow-documentation /ow-documentation-start docs/mossgate-books/, awaiting: none}, {path: docs/mossgate-books/plan.md, next: ow-documentation /ow-documentation-capture docs/mossgate-books/, awaiting: documents delivered by 2026-12-22}]

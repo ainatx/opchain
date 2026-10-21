@@ -1,0 +1,46 @@
+# Answer key: write-gap (INVENTED). §6.2 A new gap at day 14 updates the guide; C14
+case: write-gap
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: §6.2 A new gap at day 14 updates the guide; C14
+verbs:
+  - /ow-documentation-write guides
+today: '2027-03-04'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - documents
+  - trace
+  - coverage
+  - images
+  - self_checks
+  - internal_numbers
+  - data
+screen:
+  says: ['DONE: guides -> docs/larkspur-ceramics/']
+  never: ['Refused:']
+next:
+  - use ow-documentation-train on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/guides/bookkeeper.md, next: ow-documentation /ow-documentation-train docs/larkspur-ceramics/, awaiting: none}]
+coverage: {}
+base: rollout-checkin-14

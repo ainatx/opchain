@@ -1,7 +1,7 @@
 ---
 ow_artefact: ow-build-plan/quote
 schema: 1
-written_by: ow-build-plan 1.0.0 (protocol 1)
+written_by: ow-build-plan 1.2.0 (protocol 1)
 workstream: larkspur-ceramics
 subject: plans/larkspur-ceramics/scope.md
 created: 2026-10-26
@@ -66,7 +66,7 @@ You get a written update each week.
 | At the working demo | 40% | USD 6,980.00 |
 | At acceptance | 20% | USD 3,490.00 |
 
-Invoices are due within 14 days.
+Invoices are due within 14 days. Documentation & training, if you take it, is invoiced when the documents are delivered.
 
 ## Vendor subscriptions
 Billed directly to you by each vendor, without a markup: none needed.

@@ -49,7 +49,7 @@ These are the acceptance tests from `docs/plans/2026-10-08-ow-build-design.md` �
 | `change-uat-too-big`, `route-uat-too-big` | §6.1, owner decision 2026-10-16 | `-change` | UAT-06 (class Change, a repeat-order portal) is 3 units against a limit of 3: no change order, a hand-off to ow-build-plan exactly as for a FIX-nn |
 | `change-fix-too-big`, `route-fix` | §6.1, §10, C4 | `-change` | FIX-07 (a customer portal) is 3 units against a limit of 3: no change order, a hand-off to ow-build-plan |
 | `change-not-a-defect`, `route-fix-not-a-defect` | §6.1, round 1 bug 4 | `-change` | FIX-08 (class Not a defect: phone orders were never in scope): a row at no charge, answered from Robin's notes; nothing priced |
-| `invoice-documentation`, `invoice-documentation-refused` | §7, amendment B4 | `-invoice`, twice | The documentation & training line was bought (`contract-inputs.md`); `docs/larkspur-ceramics/delivered.md` (in the ow-documentation design's shape) meets it: one request, and a second run writes nothing |
+| `invoice-documentation`, `invoice-documentation-refused` | §7, amendment B4 | `-invoice`, twice | The documentation & training line was bought (`contract-inputs.md`); `docs/larkspur-ceramics/delivered.md` (a byte copy of ow-documentation's `delivered` golden, kept identical by `tests/ow-documentation-plants.test.js`) meets it: one request, and a second run writes nothing |
 
 Mossgate Books declined the documentation line and Fernhill Florists has no `contract-inputs.md`: their ledgers carry `documentation: none` and there is no such trigger.
 

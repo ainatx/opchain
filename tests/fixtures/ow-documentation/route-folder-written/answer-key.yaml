@@ -1,0 +1,23 @@
+# Answer key: route-folder-written (INVENTED). C4 folder route: some documents written: the next type
+# (O12)
+case: route-folder-written
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C4 folder route: some documents written: the next type (O12)'
+run: write-runbook
+route:
+  from: docs/larkspur-ceramics/
+  expect: write runbook
+checks:
+  - route

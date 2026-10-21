@@ -29,7 +29,7 @@ A missing input: say which file and offer the verb that writes it. Never continu
 6. **Documentation & training · <size>** (optional, recommended). Ask how many people will be trained. Up to 15: the size price; each further group of up to 15: `per_extra_group_of_15`; above `quote_separately_above`: "quoted separately", no price.
 7. **Arithmetic.** Write `plans/<client>/quote-items.json` (the build lines and the testing line, as `[{ "label", "quantity", "unit_price" } | { "label", "amount" }]`). If you can run code here and `ow-tools version` answers, run `ow-tools calc total --items plans/<client>/quote-items.json --currency <currency>` and `ow-tools calc split --total <fixed price> --schedule <40/40/20 or 50/50>`, and record each command and its raw output in the internal appendix. Otherwise write `arithmetic not machine-checked` in the header and the appendix, and ask the user to check the sums.
 8. **Fixed price** = build lines + the testing line. Documentation & training is not in it: it is its own line.
-9. **Payment schedule.** Fixed price at or above `size_threshold`: 40% to book · 40% at the working demo · 20% at acceptance. Below it: 50% to book · 50% at delivery. Shares that do not divide evenly put the remainder on the last payment. Invoices due in `payment_terms_days`. The schedule covers the fixed price; when documentation & training is taken, the contract says when it is invoiced.
+9. **Payment schedule.** Fixed price at or above `size_threshold`: 40% to book · 40% at the working demo · 20% at acceptance. Below it: 50% to book · 50% at delivery. Shares that do not divide evenly put the remainder on the last payment. Invoices due in `payment_terms_days`. The schedule covers the fixed price. Documentation & training is outside it: when taken, it is **invoiced when the documents are delivered**, and the payment terms say so.
 10. **Dates.** `issued` from the protocol's ladder; `valid_until` = issued + `quote_validity_days`. Build Plan mode only: `credit_deadline` = `plan.yaml` `plan_delivery` + `build_plan_credit_days`, and the credit line names the fee from `plan.yaml`. A plan on signed work (`fee: none`) has no credit line and no `credit_deadline`. Through `ow-tools calc date` when it answers, recorded; otherwise marked not machine-checked.
 11. **Fix window.** `fix_window_days` from `offers.md` → `after_handoff`; rendered "<N> days of fixes". No value: ask the user and record `fix_window_source: user-stated`.
 12. **Milestones**, each ending in a **working demo**, by work package; plus a written update each week.
@@ -159,7 +159,7 @@ Then the client's part. Amounts are written with the currency and two decimals; 
     | When | Share | Amount |
     |---|---|---|
     | To book | 40% | <amount> |
-    Invoices are due within <payment_terms_days> days.
+    Invoices are due within <payment_terms_days> days. Documentation & training, if you take it, is invoiced when the documents are delivered.
 
     ## Vendor subscriptions
     Billed directly to you by each vendor, without a markup: <names>, or "None needed".
@@ -218,7 +218,7 @@ Then the **internal appendix**, wholly between the two markers, each on a line o
 ## 5. Record the acceptance (`--accepted <date>`)
 
 1. Read `quote.md`. An acceptance date after `valid_until`: say the quote expired on that date, and continue only if the user confirms the client accepted this quote as it stands; record that. There is no new quote in this folder: if the price has to change, that is a new Build Plan or a follow-on (section 1), and you stop.
-2. Ask: did the client take Documentation & training? (`bought` / `declined`; never for a feasibility quote). Ask the parties' names as the user wants them in the contract.
+2. Ask: did the client take Documentation & training? (`bought` / `declined`; never for a feasibility quote). Either way, copy the people the line was quoted for (`quote.md` `documentation_training.people`) into `contract-inputs.md` as the top-level key `documentation_people`. Ask the parties' names as the user wants them in the contract.
 3. Record, word for word: `client accepted <date>, recorded by <user name>; not verified by this skill`. Add the protocol §8 approval sentence.
 4. Write `contract-inputs.md` exactly as `references/contract-inputs-schema.md` says, ending with its `## Next` section.
 5. Read `handoffs.yaml`. Print the accepted NEXT block from SKILL.md. Its `NEXT:` line is, after `NEXT: `, exactly one of two things and nothing else: the `contract:` entry's `say:` line with `{files}` = `plans/<client>/contract-inputs.md`, or, with no say: line, the public default `send contract-inputs.md to whoever drafts your contracts, or fill your own SOW template from it`. Never print the words `handoffs.yaml`, never explain which one was used, and never check or name what the destination is.
@@ -251,7 +251,7 @@ The `## Next` sections of `contract-inputs.md` and `build-request.md` hold the s
 
 ## 8. STATUS
 
-Append one line per run (protocol §5), with these fields after the date and `ow-build-plan 1.0.0`:
+Append one line per run (protocol §5), with these fields after the date and `ow-build-plan 1.2.0`:
 
 - `-quote`: path `plans/<client>/quote.md`; `next: ow-build-plan /ow-build-plan-export plans/<client>/`; `awaiting: client's answer by <valid_until>; Build Plan credit by <credit_deadline>` (quick mode, or a plan with `fee: none`: the first part only, `awaiting: client's answer by <valid_until>`).
 - `--quick` refused: path `intake/<client>/intake-record.md`; `next: ow-build-plan /ow-build-plan-offer intake/<client>/intake-record.md`; `awaiting: none`.

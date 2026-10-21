@@ -1,0 +1,31 @@
+# Answer key: delivered-again (INVENTED). C16: already delivered: say so; write nothing; C4 -delivered
+case: delivered-again
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C16: already delivered: say so; write nothing; C4 -delivered'
+verbs:
+  - /ow-documentation-delivered
+today: '2027-02-16'
+checks:
+  - refused
+  - screen
+  - next
+refused:
+  reason: already delivered
+screen:
+  says: ['Nothing to do: the documents were recorded as delivered on 15 February 2027.']
+  never: ['DONE:']
+  self_check: none
+next: []
+base: delivered

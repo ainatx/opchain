@@ -1,0 +1,47 @@
+# Answer key: capture-resume-check (INVENTED). C20: -capture resumed at check after a cut-off run
+case: capture-resume-check
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C20: -capture resumed at check after a cut-off run'
+verbs:
+  - /ow-documentation-capture
+today: '2027-02-02'
+test_values:
+  - LC-1001
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - capture
+  - approvals
+  - resume
+resume:
+  verb: /ow-documentation-capture
+  from: check
+  through: check
+screen:
+  says: [Resuming -capture at check]
+  never: ['Refused:']
+next:
+  - use ow-documentation-write on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/shots/index.md, next: ow-documentation /ow-documentation-write docs/larkspur-ceramics/, awaiting: none}]
+base: capture-partial

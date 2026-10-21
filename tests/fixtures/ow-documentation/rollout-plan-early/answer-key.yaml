@@ -1,0 +1,41 @@
+# Answer key: rollout-plan-early (INVENTED). C14: planning before the kit exists: the plan only;
+# sessions wait for the kit; C4 -rollout
+case: rollout-plan-early
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+people:
+  - Jess Arden
+  - Tomas Vey
+  - Lena Okafor
+  - Marta Quill
+  - Owen Pike
+  - Ines Rowe
+private_names:
+  - llc-ops
+  - Deftwright
+section: 'C14: planning before the kit exists: the plan only; sessions wait for the kit; C4 -rollout'
+verbs:
+  - /ow-documentation-rollout
+today: '2027-02-06'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - rec
+  - screen
+  - next
+  - people
+  - credentials
+  - private_names
+  - rollout
+  - internal_numbers
+screen:
+  says: [docs/larkspur-ceramics/rollout.yaml]
+  never: ['Refused:']
+next:
+  - use ow-documentation-rollout on docs/larkspur-ceramics/
+status:
+  lines: [{path: docs/larkspur-ceramics/rollout.yaml, next: ow-documentation /ow-documentation-rollout docs/larkspur-ceramics/, awaiting: G-01 session on 2027-02-17}]
+base: write-handover

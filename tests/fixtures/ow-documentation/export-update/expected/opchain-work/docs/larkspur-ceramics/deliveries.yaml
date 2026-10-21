@@ -1,0 +1,238 @@
+ow_artefact: ow-documentation/deliveries
+schema: 1
+written_by: ow-documentation 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: docs/larkspur-ceramics/plan.md
+created: 2027-02-12
+clock: user-stated
+origin: skill
+export_steps:
+  - step: files
+    rec: 11
+    date: '2027-02-12'
+  - step: repo
+    rec: 12
+    date: '2027-02-12'
+  - step: confirm
+    rec: 13
+    date: '2027-02-12'
+  - step: push
+    rec: 14
+    date: '2027-02-12'
+export_tool:
+  version: ow-tools 1.2.0
+exports:
+  - source: guides/bookkeeper.md
+    files: [export/guides/bookkeeper.pdf, export/guides/bookkeeper.docx]
+    command: ow-tools export docs/larkspur-ceramics/guides/bookkeeper.md --out docs/larkspur-ceramics/export/guides/
+    exit: 0
+    output: '{"status":"done","files":["export/guides/bookkeeper.pdf","export/guides/bookkeeper.docx"],"record":"export/guides/bookkeeper.export.json"}'
+  - source: guides/operations-manager.md
+    files: [export/guides/operations-manager.pdf, export/guides/operations-manager.docx]
+    command: ow-tools export docs/larkspur-ceramics/guides/operations-manager.md --out docs/larkspur-ceramics/export/guides/
+    exit: 0
+    output: '{"status":"done","files":["export/guides/operations-manager.pdf","export/guides/operations-manager.docx"],"record":"export/guides/operations-manager.export.json"}'
+  - source: guides/order-coordinator.md
+    files: [export/guides/order-coordinator.pdf, export/guides/order-coordinator.docx]
+    command: ow-tools export docs/larkspur-ceramics/guides/order-coordinator.md --out docs/larkspur-ceramics/export/guides/
+    exit: 0
+    output: '{"status":"done","files":["export/guides/order-coordinator.pdf","export/guides/order-coordinator.docx"],"record":"export/guides/order-coordinator.export.json"}'
+  - source: handover/README.md
+    files: [export/handover/README.pdf, export/handover/README.docx]
+    command: ow-tools export docs/larkspur-ceramics/handover/README.md --out docs/larkspur-ceramics/export/handover/
+    exit: 0
+    output: '{"status":"done","files":["export/handover/README.pdf","export/handover/README.docx"],"record":"export/handover/README.export.json"}'
+  - source: handover/configuration.md
+    files: [export/handover/configuration.pdf, export/handover/configuration.docx]
+    command: ow-tools export docs/larkspur-ceramics/handover/configuration.md --out docs/larkspur-ceramics/export/handover/
+    exit: 0
+    output: '{"status":"done","files":["export/handover/configuration.pdf","export/handover/configuration.docx"],"record":"export/handover/configuration.export.json"}'
+  - source: handover/decisions.md
+    files: [export/handover/decisions.pdf, export/handover/decisions.docx]
+    command: ow-tools export docs/larkspur-ceramics/handover/decisions.md --out docs/larkspur-ceramics/export/handover/
+    exit: 0
+    output: '{"status":"done","files":["export/handover/decisions.pdf","export/handover/decisions.docx"],"record":"export/handover/decisions.export.json"}'
+  - source: handover/run-and-deploy.md
+    files: [export/handover/run-and-deploy.pdf, export/handover/run-and-deploy.docx]
+    command: ow-tools export docs/larkspur-ceramics/handover/run-and-deploy.md --out docs/larkspur-ceramics/export/handover/
+    exit: 0
+    output: '{"status":"done","files":["export/handover/run-and-deploy.pdf","export/handover/run-and-deploy.docx"],"record":"export/handover/run-and-deploy.export.json"}'
+  - source: runbook.md
+    files: [export/runbook/runbook.pdf, export/runbook/runbook.docx]
+    command: ow-tools export docs/larkspur-ceramics/runbook.md --out docs/larkspur-ceramics/export/runbook/
+    exit: 0
+    output: '{"status":"done","files":["export/runbook/runbook.pdf","export/runbook/runbook.docx"],"record":"export/runbook/runbook.export.json"}'
+  - source: sops/SOP-01.md
+    files: [export/sops/SOP-01.pdf, export/sops/SOP-01.docx]
+    command: ow-tools export docs/larkspur-ceramics/sops/SOP-01.md --out docs/larkspur-ceramics/export/sops/
+    exit: 0
+    output: '{"status":"done","files":["export/sops/SOP-01.pdf","export/sops/SOP-01.docx"],"record":"export/sops/SOP-01.export.json"}'
+  - source: sops/SOP-02.md
+    files: [export/sops/SOP-02.pdf, export/sops/SOP-02.docx]
+    command: ow-tools export docs/larkspur-ceramics/sops/SOP-02.md --out docs/larkspur-ceramics/export/sops/
+    exit: 0
+    output: '{"status":"done","files":["export/sops/SOP-02.pdf","export/sops/SOP-02.docx"],"record":"export/sops/SOP-02.export.json"}'
+  - source: sops/SOP-03.md
+    files: [export/sops/SOP-03.pdf, export/sops/SOP-03.docx]
+    command: ow-tools export docs/larkspur-ceramics/sops/SOP-03.md --out docs/larkspur-ceramics/export/sops/
+    exit: 0
+    output: '{"status":"done","files":["export/sops/SOP-03.pdf","export/sops/SOP-03.docx"],"record":"export/sops/SOP-03.export.json"}'
+  - source: sops/SOP-04.md
+    files: [export/sops/SOP-04.pdf, export/sops/SOP-04.docx]
+    command: ow-tools export docs/larkspur-ceramics/sops/SOP-04.md --out docs/larkspur-ceramics/export/sops/
+    exit: 0
+    output: '{"status":"done","files":["export/sops/SOP-04.pdf","export/sops/SOP-04.docx"],"record":"export/sops/SOP-04.export.json"}'
+  - source: sops/SOP-05.md
+    files: [export/sops/SOP-05.pdf, export/sops/SOP-05.docx]
+    command: ow-tools export docs/larkspur-ceramics/sops/SOP-05.md --out docs/larkspur-ceramics/export/sops/
+    exit: 0
+    output: '{"status":"done","files":["export/sops/SOP-05.pdf","export/sops/SOP-05.docx"],"record":"export/sops/SOP-05.export.json"}'
+  - source: training/cards/bookkeeper.md
+    files: [export/cards/bookkeeper.pdf, export/cards/bookkeeper.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/cards/bookkeeper.md --out docs/larkspur-ceramics/export/cards/
+    exit: 0
+    output: '{"status":"done","files":["export/cards/bookkeeper.pdf","export/cards/bookkeeper.docx"],"record":"export/cards/bookkeeper.export.json"}'
+  - source: training/cards/operations-manager.md
+    files: [export/cards/operations-manager.pdf, export/cards/operations-manager.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/cards/operations-manager.md --out docs/larkspur-ceramics/export/cards/
+    exit: 0
+    output: '{"status":"done","files":["export/cards/operations-manager.pdf","export/cards/operations-manager.docx"],"record":"export/cards/operations-manager.export.json"}'
+  - source: training/cards/order-coordinator.md
+    files: [export/cards/order-coordinator.pdf, export/cards/order-coordinator.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/cards/order-coordinator.md --out docs/larkspur-ceramics/export/cards/
+    exit: 0
+    output: '{"status":"done","files":["export/cards/order-coordinator.pdf","export/cards/order-coordinator.docx"],"record":"export/cards/order-coordinator.export.json"}'
+  - source: training/deck.md
+    files: [export/training/deck.pptx]
+    command: ow-tools export docs/larkspur-ceramics/training/deck.md --formats pptx --out docs/larkspur-ceramics/export/training/
+    exit: 0
+    output: '{"status":"done","files":["export/training/deck.pptx"],"record":"export/training/deck.export.json"}'
+  - source: training/facilitator.md
+    files: [export/training/facilitator.pdf, export/training/facilitator.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/facilitator.md --out docs/larkspur-ceramics/export/training/
+    exit: 0
+    output: '{"status":"done","files":["export/training/facilitator.pdf","export/training/facilitator.docx"],"record":"export/training/facilitator.export.json"}'
+  - source: training/modules/M-01.md
+    files: [export/modules/M-01.pdf, export/modules/M-01.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/modules/M-01.md --out docs/larkspur-ceramics/export/modules/
+    exit: 0
+    output: '{"status":"done","files":["export/modules/M-01.pdf","export/modules/M-01.docx"],"record":"export/modules/M-01.export.json"}'
+  - source: training/modules/M-02.md
+    files: [export/modules/M-02.pdf, export/modules/M-02.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/modules/M-02.md --out docs/larkspur-ceramics/export/modules/
+    exit: 0
+    output: '{"status":"done","files":["export/modules/M-02.pdf","export/modules/M-02.docx"],"record":"export/modules/M-02.export.json"}'
+  - source: training/modules/M-03.md
+    files: [export/modules/M-03.pdf, export/modules/M-03.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/modules/M-03.md --out docs/larkspur-ceramics/export/modules/
+    exit: 0
+    output: '{"status":"done","files":["export/modules/M-03.pdf","export/modules/M-03.docx"],"record":"export/modules/M-03.export.json"}'
+  - source: training/modules/M-04.md
+    files: [export/modules/M-04.pdf, export/modules/M-04.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/modules/M-04.md --out docs/larkspur-ceramics/export/modules/
+    exit: 0
+    output: '{"status":"done","files":["export/modules/M-04.pdf","export/modules/M-04.docx"],"record":"export/modules/M-04.export.json"}'
+  - source: training/modules/M-05.md
+    files: [export/modules/M-05.pdf, export/modules/M-05.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/modules/M-05.md --out docs/larkspur-ceramics/export/modules/
+    exit: 0
+    output: '{"status":"done","files":["export/modules/M-05.pdf","export/modules/M-05.docx"],"record":"export/modules/M-05.export.json"}'
+  - source: training/modules/M-06.md
+    files: [export/modules/M-06.pdf, export/modules/M-06.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/modules/M-06.md --out docs/larkspur-ceramics/export/modules/
+    exit: 0
+    output: '{"status":"done","files":["export/modules/M-06.pdf","export/modules/M-06.docx"],"record":"export/modules/M-06.export.json"}'
+  - source: training/modules/M-07.md
+    files: [export/modules/M-07.pdf, export/modules/M-07.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/modules/M-07.md --out docs/larkspur-ceramics/export/modules/
+    exit: 0
+    output: '{"status":"done","files":["export/modules/M-07.pdf","export/modules/M-07.docx"],"record":"export/modules/M-07.export.json"}'
+  - source: training/modules/M-08.md
+    files: [export/modules/M-08.pdf, export/modules/M-08.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/modules/M-08.md --out docs/larkspur-ceramics/export/modules/
+    exit: 0
+    output: '{"status":"done","files":["export/modules/M-08.pdf","export/modules/M-08.docx"],"record":"export/modules/M-08.export.json"}'
+  - source: training/modules/M-09.md
+    files: [export/modules/M-09.pdf, export/modules/M-09.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/modules/M-09.md --out docs/larkspur-ceramics/export/modules/
+    exit: 0
+    output: '{"status":"done","files":["export/modules/M-09.pdf","export/modules/M-09.docx"],"record":"export/modules/M-09.export.json"}'
+  - source: training/modules/M-10.md
+    files: [export/modules/M-10.pdf, export/modules/M-10.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/modules/M-10.md --out docs/larkspur-ceramics/export/modules/
+    exit: 0
+    output: '{"status":"done","files":["export/modules/M-10.pdf","export/modules/M-10.docx"],"record":"export/modules/M-10.export.json"}'
+  - source: training/modules/M-11.md
+    files: [export/modules/M-11.pdf, export/modules/M-11.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/modules/M-11.md --out docs/larkspur-ceramics/export/modules/
+    exit: 0
+    output: '{"status":"done","files":["export/modules/M-11.pdf","export/modules/M-11.docx"],"record":"export/modules/M-11.export.json"}'
+  - source: training/modules/M-12.md
+    files: [export/modules/M-12.pdf, export/modules/M-12.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/modules/M-12.md --out docs/larkspur-ceramics/export/modules/
+    exit: 0
+    output: '{"status":"done","files":["export/modules/M-12.pdf","export/modules/M-12.docx"],"record":"export/modules/M-12.export.json"}'
+  - source: training/videos/V-01.md
+    files: [export/videos/V-01.pdf, export/videos/V-01.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/videos/V-01.md --out docs/larkspur-ceramics/export/videos/
+    exit: 0
+    output: '{"status":"done","files":["export/videos/V-01.pdf","export/videos/V-01.docx"],"record":"export/videos/V-01.export.json"}'
+  - source: training/videos/V-02.md
+    files: [export/videos/V-02.pdf, export/videos/V-02.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/videos/V-02.md --out docs/larkspur-ceramics/export/videos/
+    exit: 0
+    output: '{"status":"done","files":["export/videos/V-02.pdf","export/videos/V-02.docx"],"record":"export/videos/V-02.export.json"}'
+  - source: training/videos/V-03.md
+    files: [export/videos/V-03.pdf, export/videos/V-03.docx]
+    command: ow-tools export docs/larkspur-ceramics/training/videos/V-03.md --out docs/larkspur-ceramics/export/videos/
+    exit: 0
+    output: '{"status":"done","files":["export/videos/V-03.pdf","export/videos/V-03.docx"],"record":"export/videos/V-03.export.json"}'
+repo:
+  repository: ../larkspur-repo
+  branch: docs/client-handbook
+  current_branch: 'git branch --show-current: docs/client-handbook'
+  confirmed: 'Robin 2027-02-12: branch docs/client-handbook; docs/client-handbook/bookkeeper-guide.md, docs/client-handbook/operations-manager-guide.md, docs/client-handbook/order-coordinator-guide.md, docs/handover/README.md, docs/handover/configuration.md, docs/handover/decisions.md, docs/handover/run-and-deploy.md, docs/client-handbook/runbook.md, docs/client-handbook/SOP-01.md, docs/client-handbook/SOP-02.md, docs/client-handbook/SOP-03.md, docs/client-handbook/SOP-04.md, docs/client-handbook/SOP-05.md, docs/client-handbook/bookkeeper-card.md, docs/client-handbook/operations-manager-card.md, docs/client-handbook/order-coordinator-card.md'
+  handover_path: docs/handover/
+  files:
+    - {path: docs/client-handbook/bookkeeper-guide.md, source: guides/bookkeeper.md, digest: sha256:cc9f23f8cc3fa552d823331595b30351ef3d23a1bb816f7c9f596f2ca5e7eaef}
+    - {path: docs/client-handbook/operations-manager-guide.md, source: guides/operations-manager.md, digest: sha256:fdb1d72666cafd6185907b5fbbb5dd63db875faa4cdd9878d74864bc591d71f0}
+    - {path: docs/client-handbook/order-coordinator-guide.md, source: guides/order-coordinator.md, digest: sha256:f36e62b0dc318d761e75d4d00e2c406e4b20877aed998e327917f83f3cb860ea}
+    - {path: docs/handover/README.md, source: handover/README.md, digest: sha256:defc599106315ffb9e9d24229152bf40561d70196bd1980306f94ccceec0ae66}
+    - {path: docs/handover/configuration.md, source: handover/configuration.md, digest: sha256:a031843dc5fe8e8eed05e00fb15c34d0e8253165d86ee1fc3ad7d77ca6351627}
+    - {path: docs/handover/decisions.md, source: handover/decisions.md, digest: sha256:d91149cf7dcc12a3cf52f53d3efb247fa6c664a1af725956843acbb956638e0b}
+    - {path: docs/handover/run-and-deploy.md, source: handover/run-and-deploy.md, digest: sha256:e6d053250fe7b80755fe45f6e1e0447de31674118edf45dc43353daaf551aa88}
+    - {path: docs/client-handbook/runbook.md, source: runbook.md, digest: sha256:6c0a4e4f7cfdf2f717f65cbdbea1ced768aa1f2ec48139cbd2e4983657e8abcc}
+    - {path: docs/client-handbook/SOP-01.md, source: sops/SOP-01.md, digest: sha256:6a4fc5d608028bc49a37015cab3086dbaab89923fd203b2b895ad6bc753fdbdd}
+    - {path: docs/client-handbook/SOP-02.md, source: sops/SOP-02.md, digest: sha256:0bbf3e876c6588996f2de724805c20a0da1fb61e87b2a5493fc3de5ee84426ad}
+    - {path: docs/client-handbook/SOP-03.md, source: sops/SOP-03.md, digest: sha256:a1b6f67ee330c4d3dfcef5e35d38ed9ce32898fda4ebaf55ac300a429eb019a7}
+    - {path: docs/client-handbook/SOP-04.md, source: sops/SOP-04.md, digest: sha256:682280c327062eabd60e8dea302893af8e7413e02e273243629092f2a6d50ba3}
+    - {path: docs/client-handbook/SOP-05.md, source: sops/SOP-05.md, digest: sha256:d2bf8b2535b3cfd9f931965a27bcdc837087d022c22dc9316dffa128f4820e1e}
+    - {path: docs/client-handbook/bookkeeper-card.md, source: training/cards/bookkeeper.md, digest: sha256:f7811c1646a443b2e79d9cd0ac30d2c37314e44675eeb90a77f96bc07a1ecabb}
+    - {path: docs/client-handbook/operations-manager-card.md, source: training/cards/operations-manager.md, digest: sha256:04421685d5f2ac2b1e37edca121ce0a2ab8725cd3c7def6b5da1376bfb8435cb}
+    - {path: docs/client-handbook/order-coordinator-card.md, source: training/cards/order-coordinator.md, digest: sha256:78a259075dedf2ec13203892ede31f2275129b23de863f51cdfc12c52304ba00}
+  refused: []
+push_confirmation: none
+pushes: []
+says:
+  - google_docs
+  - wiki
+embedded: []
+updates:
+  - 'n': 1
+    export_steps: [{step: files, rec: 20, date: '2027-03-05'}, {step: repo, rec: 21, date: '2027-03-05'}, {step: confirm, rec: 22, date: '2027-03-05'}, {step: push, rec: 23, date: '2027-03-05'}]
+    exports: [{source: guides/bookkeeper.md, files: [export/update-01/guides/bookkeeper.pdf, export/update-01/guides/bookkeeper.docx], command: ow-tools export docs/larkspur-ceramics/guides/bookkeeper.md --out docs/larkspur-ceramics/export/update-01/guides/, exit: 0, output: '{"status":"done","files":["export/update-01/guides/bookkeeper.pdf","export/update-01/guides/bookkeeper.docx"],"record":"export/update-01/guides/bookkeeper.export.json"}'}, {source: training/cards/bookkeeper.md, files: [export/update-01/cards/bookkeeper.pdf, export/update-01/cards/bookkeeper.docx], command: ow-tools export docs/larkspur-ceramics/training/cards/bookkeeper.md --out docs/larkspur-ceramics/export/update-01/cards/, exit: 0, output: '{"status":"done","files":["export/update-01/cards/bookkeeper.pdf","export/update-01/cards/bookkeeper.docx"],"record":"export/update-01/cards/bookkeeper.export.json"}'}]
+    repo: {repository: ../larkspur-repo, branch: docs/client-handbook-update-1, current_branch: 'git branch --show-current: docs/client-handbook-update-1', confirmed: 'Robin 2027-03-05: branch docs/client-handbook-update-1; docs/client-handbook/bookkeeper-guide.md, docs/client-handbook/bookkeeper-card.md', handover_path: docs/handover/, files: [{path: docs/client-handbook/bookkeeper-guide.md, source: guides/bookkeeper.md, digest: sha256:a9fd171dc961f9568c24a37743d59b705c4a82c44e1b8eeb2a0c3807d98c0a07}, {path: docs/client-handbook/bookkeeper-card.md, source: training/cards/bookkeeper.md, digest: sha256:3559286862c03cb7927ea7ac5497616ee9f0769f67ad87fee6b469c4fed73844}], refused: []}
+    push_confirmation: none
+    pushes: []
+    says: [google_docs, wiki]
+    embedded: []
+self_checks:
+  Coverage: OK
+  Data check: OK
+  People by role or id: OK
+  No credentials: OK
+  No internal numbers: OK
+  Placeholders: OK
+  Accessible by construction: OK
+  No private names: OK
+note: This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.

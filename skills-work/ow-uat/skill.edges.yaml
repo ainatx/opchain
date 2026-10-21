@@ -340,4 +340,17 @@ hands_off:
       - { path: uat/<client>/scenarios/SC-nn.md, fields: [role, steps, expected result, data pointers] }
       - { path: uat/<client>/defects/UAT-nn.md, fields: [class, Training gap topic] }
       - { path: uat/<client>/evidence/index.md, fields: [cleared items] }
+      # Read by ow-documentation where they lie (ruling O2 of the documentation build, a data edit): the signed plan and the build,
+      # carried at every hop from their producers.
+      - { path: plans/<client>/contract-inputs.md, in_place: true }
+      - { path: plans/<client>/scope.md, in_place: true }
+      - { path: plans/<client>/quick-scope.md, in_place: true }
+      - { path: plans/<client>/map/roles.md, in_place: true }
+      - { path: plans/<client>/map/future.md, in_place: true }
+      - { path: builds/<client>/build.yaml, in_place: true }
+      - { path: builds/<client>/ledger.md, in_place: true }
+      - { path: builds/<client>/changes/CO-nn.md, in_place: true }
+      - { path: <repo>/spec/02-architecture.md, in_place: true }
+      - { path: <repo>/spec/04-integrations.md, in_place: true }
+      - { path: <repo>/spec/scope-and-milestones.md, in_place: true }
     if_unavailable: The scenarios, training gaps and cleared evidence stay in uat/<client>/ for later
