@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": ".",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-22T08:17:16.429Z",
+  "updated_at": "2026-10-22T17:07:51.983Z",
   "skill": "oc-repo-ops",
-  "phase": "pr-readiness",
+  "phase": "pr-verify",
   "status": "complete",
-  "step": "pr-descope-ow-11",
-  "progress_summary": "Catalog, contracts, internal refs and generated outputs verified for the OW-11 de-scope.",
+  "step": "pr-checkpoint-hygiene-cross-repo",
+  "progress_summary": "PR readiness PASS for the checkpoint-hygiene cross-repo attribution fix (#645) after merging main @ddc3738b (HEAD f6a21b748d1b6423082cf755a0fd8f5b3025522c). Docs Forge packet current to HEAD; this PR's diff touches only the Stop hook, its vitest suite and .checkpoints/README.md, so no catalog, generated or plugin surface is affected. No untracked files. Merge commit's candidate tree 017859df verified PASS by the commit gate.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -29,17 +29,17 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "4cfd6693fa8fa724840eb5df5fed369fa29e8ed5",
+    "verified_for_sha": "f6a21b748d1b6423082cf755a0fd8f5b3025522c",
     "last_verify": {
-      "at": "2026-10-22T08:17:16.429Z",
-      "branch": "claude/descope-ow-11",
-      "base": "origin/main",
+      "at": "2026-10-22T17:07:51Z",
+      "branch": "claude/competent-raman-864dee",
+      "base": "origin/main@ddc3738b",
       "verdict": "PASS",
       "blocking_findings": []
     }
   },
   "next_actions": [
-    "Merge after review"
+    "#645 auto-merges once checks pass."
   ],
   "handoffs": [
     {
@@ -2376,8 +2376,32 @@
           "tests/fixtures/ow-research/README.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-4e6fa8bf6737",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-22T17:07:51.982Z",
+      "verified_at": "2026-10-22T17:07:51.982Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-22T17:07:51.982Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:4e6fa8bf6737c559128eb040aad01bceb7b32b16dcd314224596fbe4d682fb5d"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "checkpoint-hygiene cross-repo attribution (#645) after main merge: docs packet current, no catalog/generated/plugin drift, no untracked files, merge tree gate PASS",
+        "evidence": [
+          ".checkpoints/oc-docs-forge.checkpoint.json",
+          ".claude/hooks/checkpoint-hygiene.sh"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-22T08:17:16.429Z",
+  "record_updated_at": "2026-10-22T17:07:51.983Z",
   "blockers": []
 }
