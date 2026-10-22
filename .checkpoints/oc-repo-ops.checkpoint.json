@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": ".",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-22T17:07:51.983Z",
+  "updated_at": "2026-10-22T18:52:16.099Z",
   "skill": "oc-repo-ops",
-  "phase": "pr-verify",
+  "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-checkpoint-hygiene-cross-repo",
-  "progress_summary": "PR readiness PASS for the checkpoint-hygiene cross-repo attribution fix (#645) after merging main @ddc3738b (HEAD f6a21b748d1b6423082cf755a0fd8f5b3025522c). Docs Forge packet current to HEAD; this PR's diff touches only the Stop hook, its vitest suite and .checkpoints/README.md, so no catalog, generated or plugin surface is affected. No untracked files. Merge commit's candidate tree 017859df verified PASS by the commit gate.",
+  "step": "site-audit-fix",
+  "progress_summary": "Single lockfile change; no generated or catalog drift.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -29,18 +29,16 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "f6a21b748d1b6423082cf755a0fd8f5b3025522c",
+    "verified_for_sha": "be1692dd1a7aea7e82103ed309ebb80bec4239d8",
     "last_verify": {
-      "at": "2026-10-22T17:07:51Z",
-      "branch": "claude/competent-raman-864dee",
-      "base": "origin/main@ddc3738b",
+      "at": "2026-10-22T18:52:16.099Z",
+      "branch": "claude/site-audit-fix",
+      "base": "main",
       "verdict": "PASS",
       "blocking_findings": []
     }
   },
-  "next_actions": [
-    "#645 auto-merges once checks pass."
-  ],
+  "next_actions": [],
   "handoffs": [
     {
       "id": "oc-repo-ops-release-f6b167fcbd3a",
@@ -2400,8 +2398,29 @@
           ".claude/hooks/checkpoint-hygiene.sh"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-site-audit-fix-9ba99f7fc864",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-22T18:52:16.099Z",
+      "verified_at": "2026-10-22T18:52:16.099Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "site-audit-fix"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:9ba99f7fc86440881b9b83200b8af625ed5a8918528aa4ecbc3e333129521cb3"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "site/package-lock.json",
+        "evidence": []
+      }
     }
   ],
-  "record_updated_at": "2026-10-22T17:07:51.983Z",
+  "record_updated_at": "2026-10-22T18:52:16.099Z",
   "blockers": []
 }
