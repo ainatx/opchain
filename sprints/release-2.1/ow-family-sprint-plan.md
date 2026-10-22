@@ -1,6 +1,6 @@
 # v2.1.0 sprint plan — the ow- family
 
-**Date:** 2026-10-14 · **Skill:** oc-app-architect `/oc-roadmap`, coordinated by oc-orchestrator · **Status:** APPROVED by the owner 2026-10-14. Amendment 2026-10-16 (Track E, enforcement and the skill router) APPROVED by the owner 2026-10-16. **Scope change 2026-10-16 (owner): every skill is released in v2.1.0. The release covers the full client lifecycle (adding `ow-documentation` and `ow-care`) plus `ow-draft`, `ow-research`, `ow-vendor-eval`, `ow-controls` with framework packs, `ow-currency`, and ow-start's meeting and decision logs. Order: design all the remaining skills first, then build them** (§ Scope change below). **Every design approved 2026-10-16; build re-plan approved the same day (§ Build re-plan): two lanes, Sprint T and Sprint 2 start in parallel.** Sprints renamed 2026-10-17 (§ Sprint names); old names stay in parentheses. **Scope change 2026-10-19 (owner): OW-12 (ow-controls, framework packs, `ow-packs`) and OW-13 (ow-currency) move to v2.2; 2.1.0 ships ten ow- skills** (§ Scope and process change, 2026-10-19).
+**Date:** 2026-10-14 · **Skill:** oc-app-architect `/oc-roadmap`, coordinated by oc-orchestrator · **Status:** APPROVED by the owner 2026-10-14. Amendment 2026-10-16 (Track E, enforcement and the skill router) APPROVED by the owner 2026-10-16. **Scope change 2026-10-16 (owner): every skill is released in v2.1.0. The release covers the full client lifecycle (adding `ow-documentation` and `ow-care`) plus `ow-draft`, `ow-research`, `ow-vendor-eval`, `ow-controls` with framework packs, `ow-currency`, and ow-start's meeting and decision logs. Order: design all the remaining skills first, then build them** (§ Scope change below). **Every design approved 2026-10-16; build re-plan approved the same day (§ Build re-plan): two lanes, Sprint T and Sprint 2 start in parallel.** Sprints renamed 2026-10-17 (§ Sprint names); old names stay in parentheses. **Scope change 2026-10-19 (owner): OW-12 (ow-controls, framework packs, `ow-packs`) and OW-13 (ow-currency) move to v2.2; 2.1.0 ships ten ow- skills** (§ Scope and process change, 2026-10-19). **Scope change 2026-10-22 (owner): OW-11 (ow-vendor-eval) moves to v2.2 as well; 2.1.0 ships nine ow- skills** (§ Scope and process change, 2026-10-22).
 **Replaces:** `sprints/release-2.1/sprint-plan.md` ("Installs anywhere"), superseded 2026-10-06; its work moves to v2.2.
 **Designs (all approved):** ow-start (2026-10-06), ow-build-plan (2026-10-08, amendments 2026-10-14), ow-build (2026-10-08, §12 builder integration and amendments 2026-10-14), ow-uat (2026-10-14), ow-handoff (2026-10-14), ow-tools (2026-10-09). All under `docs/plans/`.
 **Audits that feed this plan:** `docs/audits/2026-09-18-ow-pack-design-audit.md` (cross-talk contract R1–R16, authoring standard), and the 2026-10-14 diff audits of #596 and #597 plus the ow-tools security posture report.
@@ -18,7 +18,7 @@ Every sprint is named **workstream prefix + two-digit number**, and the number i
 | `EN` | Track E: enforcement at chokepoints and the skill router |
 | `WEB` | Track S: the 2.1 site surfaces (`track-s-site-surfaces.md`) |
 
-| Name | Old name | Lane | Builds | State 2026-10-19 |
+| Name | Old name | Lane | Builds | State 2026-10-22 |
 |---|---|---|---|---|
 | OW-00 | Sprint 0 | — | Land what was built: ow-start 1.0.0, ow-tools 1.0.0, designs | done |
 | OW-01 | Sprint 1 | A | ow-build-plan 1.0.0 | done (#605, #609) |
@@ -31,7 +31,7 @@ Every sprint is named **workstream prefix + two-digit number**, and the number i
 | OW-08 | Sprint L | B | ow-start 1.1.0 logs | done (#624, follow-up #626 → 1.1.1; ow-tools 1.1.2 hook) |
 | OW-09 | Sprint R | B | ow-research 1.0.0 | built; security fixes before evaluation |
 | OW-10 | Sprint D | B | ow-draft 1.0.0 | not started |
-| OW-11 | Sprint V | B | ow-vendor-eval 1.0.0 | not started |
+| OW-11 | Sprint V | B | ow-vendor-eval 1.0.0 | **moved to v2.2** (owner, 2026-10-22) |
 | OW-12 | Sprint C | B | ow-controls 1.0.0, four packs, `ow-packs` plugin | **moved to v2.2** (owner, 2026-10-19) |
 | OW-13 | Sprint Cu | B | ow-currency 1.0.0 | **moved to v2.2** (owner, 2026-10-19) |
 | REL-01 | Sprint 5 | — | Distribution and integrity | not started |
@@ -56,6 +56,10 @@ Every sprint is named **workstream prefix + two-digit number**, and the number i
 
 **Effect.** Measured so far: OW-03 about 12h with its follow-up (three evaluation rounds and three security rounds), OW-04 about 8h, OW-08 about 5h, all slowed by running up to four builders on one machine. Without OW-12 and OW-13, what remains is about 65h of Claude time; with three lanes the longest chain to ready-to-tag is about 24h (it was about 35h).
 
+## Scope and process change (owner, 2026-10-22)
+
+**Scope.** OW-11 (ow-vendor-eval 1.0.0) moves to v2.2, with the amendments that were to land with it: P6 (ow-build-plan's vendor selection) and S2 (ow-start's `quote: vendor-eval`). Its design stays approved and waits for 2.2. The release now ships nine ow- skills: ow-start, ow-build-plan, ow-build, ow-uat, ow-documentation, ow-handoff, ow-research, ow-care and ow-draft, plus the ow-tools add-on. ow-research 1.0.2 handles its hand-off as ow-currency's was handled on 2026-10-19: the screen prints only the absent-case line (`NEXT: none`), with no NEXT line, no `say:` hand-off row and no declared verb until ow-vendor-eval ships. Track S's `/work` section covers the nine 2.1 skills. OW-11's finished build is kept as a patch outside the repository for v2.2.
+
 ## Where we start (2026-10-14)
 
 | Piece | State |
@@ -77,7 +81,7 @@ Every sprint is named **workstream prefix + two-digit number**, and the number i
 | `ow-care` | Monthly care plans after handoff, and for systems taken over | **Design APPROVED 2026-10-16** (`docs/plans/2026-10-16-ow-care-design.md`, decisions 1–11, amendments T3, T4, H4, S1, P4) |
 | `ow-draft` | Brief → evidence → draft → deliver: client deliverables, marketing, internal documents, client comms; documents, decks, sheets, emails and posts | **Design APPROVED 2026-10-16** (`docs/plans/2026-10-16-ow-draft-design.md`, decisions 1–8, amendments T6, T7) |
 | `ow-research` | Web-sourced evidence (network): background, technical feasibility, market, regulations and frameworks | **Design APPROVED 2026-10-16** (`docs/plans/2026-10-16-ow-research-design.md`, decisions 1–4, amendments P5, D1) |
-| `ow-vendor-eval` | Vendor evaluation; commercial vs formal public procurement mode | **Design APPROVED 2026-10-16** (`docs/plans/2026-10-16-ow-vendor-eval-design.md`, decisions 1–4, amendments P6, S2, D2) |
+| `ow-vendor-eval` | Vendor evaluation; commercial vs formal public procurement mode | **Moved to v2.2 (owner, 2026-10-22).** Design APPROVED 2026-10-16 (`docs/plans/2026-10-16-ow-vendor-eval-design.md`, decisions 1–4, amendments P6, S2, D2) |
 | `ow-controls` + framework packs | Standing control register; packs: NIST 800-53, HIPAA (mapping only), US state privacy + GDPR, SOC 2 own words; open-licence loader | **Design APPROVED 2026-10-16** (`docs/plans/2026-10-16-ow-controls-design.md`, decisions 1–8, amendments P7, P8, H6, C1, S3, R2); licensed-text path waits for counsel |
 | `ow-currency` | Watches framework revisions, watched research findings, clients' vendor prices and published claims (network) | **Design APPROVED 2026-10-16** (`docs/plans/2026-10-16-ow-currency-design.md`, decisions 1–4, amendments K1, P9, C2) |
 | ow-start meeting and decision logs | `/ow-start-prep-meeting`, `-log-meeting`, `-action`, `-log-decision`, `-log` (ow-start 1.1.0) | **Amendment APPROVED 2026-10-16** (`docs/plans/2026-10-16-ow-start-logs-amendment.md`, decisions L1–L5, amendments H5, T5) |
@@ -110,7 +114,7 @@ Design order: `ow-documentation`, `ow-care`, the ow-start logs amendment, `ow-dr
 | OW-08 (L) | B | **ow-start 1.1.0 logs** | H5 if ow-handoff is merged, else with OW-06 | OW-00 | 8–12h | 3–3.5h | 1h |
 | OW-09 (R) | B | **ow-research 1.0.0** | P5 | OW-03 (digest) | 10–14h | 3.5–4.5h | 1h |
 | OW-10 (D) | B | **ow-draft 1.0.0** | D1, D2 (already in its design) | OW-09, OW-03 | 16–22h | 5–6h | 1–2h |
-| OW-11 (V) | B | **ow-vendor-eval 1.0.0** | P6, S2 | OW-09, OW-03 (xlsx) | 12–16h | 4–4.5h | 1h |
+| OW-11 (V) | B | **Moved to v2.2 (owner, 2026-10-22).** ow-vendor-eval 1.0.0 | P6, S2 | OW-09, OW-03 (xlsx) | 12–16h | 4–4.5h | 1h |
 | OW-12 (C) | B | **Moved to v2.2 (owner, 2026-10-19).** ow-controls 1.0.0 + four packs + `ow-packs` plugin | K1, P7, P8, S3, R2; H6 and C1 if ow-handoff / ow-care are merged, else with them | OW-09, OW-03 | 30–42h | 9–12h | 3–5h |
 | OW-13 (Cu) | B | **Moved to v2.2 (owner, 2026-10-19).** ow-currency 1.0.0 | P9, C2 (or with OW-07 if ow-care is later) | OW-12, OW-09 | 10–14h | 3.5–4h | 1h |
 | REL-01 (5) | — | Distribution and integrity for 12 skills, ow-tools and ow-packs (mirror, zips, clean-folder install, SA-001, SA-004, trigger harness) | — | all builds | 12–16h | 4–5h | 2h |
@@ -125,8 +129,8 @@ Design order: `ow-documentation`, `ow-care`, the ow-start logs amendment, `ow-dr
 | Skill | Amendments | Lands in |
 |---|---|---|
 | ow-start → 1.1.0 | logs (L1–L5) | L |
-| ow-start → 1.2.0 and later (one minor per sprint; owner decision 2026-10-17, OW-08 round 1) | S1 care-takeover kind, S2 `quote: vendor-eval`, S3 `quote: controls-readiness` | 4b, V, C |
-| ow-build-plan → 1.1.0 | P3 people quoted, P4 care onboarding quote, P5 research evidence, P6 vendor selection, P7 controls as acceptance checks, P8 readiness quote, P9 pricing page URL | 3b, 4b, R, V, C, Cu |
+| ow-start → 1.2.0 and later (one minor per sprint; owner decision 2026-10-17, OW-08 round 1) | S1 care-takeover kind, S2 `quote: vendor-eval`, S3 `quote: controls-readiness` | 4b, C (V moved to v2.2 on 2026-10-22) |
+| ow-build-plan → 1.1.0 | P3 people quoted, P4 care onboarding quote, P5 research evidence, P6 vendor selection, P7 controls as acceptance checks, P8 readiness quote, P9 pricing page URL | 3b, 4b, R, (V, C, Cu moved to v2.2) |
 | ow-tools → 1.1.0 | T1 capture, T2 pptx, T3 health, T4 calc hours, T5 calls row, T6 xlsx, T7 digest | T |
 | ow-build 1.0.0 | B4 | 2 |
 | ow-handoff 1.0.0 | H3 (documentation), H4 (structured rollover), H5 (logs audio), H6 (control tests) | 4, or L / C when those come later |
@@ -136,6 +140,8 @@ Design order: `ow-documentation`, `ow-care`, the ow-start logs amendment, `ow-dr
 | ow-controls / ow-packs | K1 (free delta files) | C |
 
 **2026-10-19:** every amendment that lands in C or Cu (S3, P7, P8, P9, H6, C1, C2, R2, K1) moves to v2.2 with OW-12 and OW-13.
+
+**2026-10-22:** the amendments that land in V (P6, ow-build-plan's vendor selection, and S2, ow-start's `quote: vendor-eval`) move to v2.2 with OW-11.
 
 ### Risks added by the scope change
 
@@ -389,6 +395,7 @@ E0–E2 and Sprint 6. **Effort:** CLAUDE 2–3h | USER 0–1h.
 
 - ~~`ow-care` and `ow-documentation`~~: moved into v2.1.0 on 2026-10-16 (Sprints 3b and 4b). Their absent-case branches in ow-handoff and ow-uat stay, for installs without them.
 - ~~Meeting and decision logs, ow-research, ow-controls, framework packs~~: back in v2.1.0 on 2026-10-16 (owner scope change), with ow-draft, ow-vendor-eval and ow-currency.
+- **Moved to v2.2 on 2026-10-22 (owner):** `ow-vendor-eval` (OW-11), with the amendments P6 and S2. ow-research prints no hand-off to it (1.0.2): an answered topic that serves a vendor evaluation ends in `NEXT: none`. Its design stays approved (`docs/plans/2026-10-16-ow-vendor-eval-design.md`) and waits for 2.2.
 - **Moved to v2.2 on 2026-10-19 (owner):** `ow-controls`, the four framework packs and the `ow-packs` plugin (OW-12), and `ow-currency` (OW-13), with the amendments S3, P7, P8, P9, H6, C1, C2, R2 and K1. Absent-case branches cover installs without them.
 - Still out: `ow-program`; the paid framework feed (waits for did.json, key custody and a reachable hostname); licensed framework text (waits for counsel); 800-171/CMMC and GxP packs.
 - The OSS split and the old "Installs anywhere" scope: v2.2.

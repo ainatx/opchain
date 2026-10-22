@@ -343,7 +343,7 @@ describe("C2, C17, C26: the skill text and its hand-off fields", () => {
     expect(data.description.length).toBeLessThanOrEqual(900);
     expect(data.description.slice(0, 200)).toContain("ow-research");
     expect(data["allowed-tools"]).toBeUndefined();
-    expect(data.metadata).toEqual({ version: "1.0.1", catalog: "ow", protocol: "1", bundle: "connected", network: "declared", commands: "/ow-research /ow-research-question /ow-research-run /ow-research-framework" });
+    expect(data.metadata).toEqual({ version: "1.0.2", catalog: "ow", protocol: "1", bundle: "connected", network: "declared", commands: "/ow-research /ow-research-question /ow-research-run /ow-research-framework" });
     expect(data.compatibility).toMatch(/host's own web search and page opening/);
     expect(data.compatibility).toMatch(/files you supply/);
     expect(data.compatibility).toMatch(/ow-tools add-on/);
@@ -369,8 +369,9 @@ describe("C2, C17, C26: the skill text and its hand-off fields", () => {
     expect(fieldsTo("ow-build-plan")).toEqual(["Answer", "F-nn", "claim", "level", "sources", "Gaps"]);
     // ow-draft §3.1 and §6: evidence items with their sources and dates, and the conflicts and gaps behind them.
     expect(fieldsTo("ow-draft")).toEqual(expect.arrayContaining(["F-nn", "claim", "level", "sources", "Conflicts", "Gaps"]));
-    // ow-vendor-eval §4.1: vendor facts with sources.
-    expect(fieldsTo("ow-vendor-eval")).toEqual(expect.arrayContaining(["F-nn", "claim", "level", "sources"]));
+    // ow-vendor-eval is not in this release (owner decision 2026-10-22; it moves to v2.2): like ow-currency, no
+    // hand-off row and no say: line names it until it ships.
+    expect(e.hands_off.some((h) => h.to === "ow-vendor-eval")).toBe(false);
     // ow-currency §4 is not in this release (owner decision 2026-10-19): no hand-off row and no say: line names it;
     // findings.md still carries what it will read (each watched finding, its source and its quoted passage).
     expect(e.hands_off.some((h) => h.to === "ow-currency")).toBe(false);
@@ -384,10 +385,10 @@ describe("C2, C17, C26: the skill text and its hand-off fields", () => {
     expect(golden).not.toMatch(/fetch/i);
   });
 
-  it("C26: versions and records: ow-research 1.0.1 with its changelog (1.0.0 kept); ow-build-plan 1.2.0 (P5 in 1.1.0, P3 in 1.2.0) with its changelog and the in-place edits", () => {
-    expect(content).toMatch(/^ow-research 1\.0\.1 · protocol 1/m);
-    expect(matter(readFileSync(join(SKILL, "SKILL.md"), "utf8")).data.metadata.version).toBe("1.0.1");
-    expect(readFileSync(join(SKILL, "CHANGELOG.md"), "utf8")).toMatch(/^## 1\.0\.1 \(2026-10-19\)[\s\S]*^## 1\.0\.0 \(2026-10-17\)/m);
+  it("C26: versions and records: ow-research 1.0.2 with its changelog (1.0.1 and 1.0.0 kept); ow-build-plan 1.2.0 (P5 in 1.1.0, P3 in 1.2.0) with its changelog and the in-place edits", () => {
+    expect(content).toMatch(/^ow-research 1\.0\.2 · protocol 1/m);
+    expect(matter(readFileSync(join(SKILL, "SKILL.md"), "utf8")).data.metadata.version).toBe("1.0.2");
+    expect(readFileSync(join(SKILL, "CHANGELOG.md"), "utf8")).toMatch(/^## 1\.0\.2 \(2026-10-22\)[\s\S]*^## 1\.0\.1 \(2026-10-19\)[\s\S]*^## 1\.0\.0 \(2026-10-17\)/m);
     const bp = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "SKILL.md"), "utf8");
     expect(matter(bp).data.metadata.version).toBe("1.2.0");
     expect(bp).toMatch(/^ow-build-plan 1\.2\.0 · protocol 1/m);
