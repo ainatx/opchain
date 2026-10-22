@@ -1,0 +1,28 @@
+# INVENTED. C22: /ow-draft-write cut after draft, resumed
+case: m-write-cut-draft
+base: m-route-evidence
+verbs: /ow-draft-write
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-24'
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/draft.md
+      next: ow-draft /ow-draft-freeze drafts/mossgate-books/DR-01-order-record-retention/
+      awaiting: none
+next:
+  - use ow-draft-freeze on drafts/mossgate-books/DR-01-order-record-retention/
+resume:
+  key: /ow-draft-write
+  cut_after: draft
+  next_step: status
+  recorded:
+    - opchain-work/drafts/mossgate-books/DR-01-order-record-retention/draft.md
+client: Mossgate Books
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - resume
+section: 'C22: /ow-draft-write cut after draft, resumed'

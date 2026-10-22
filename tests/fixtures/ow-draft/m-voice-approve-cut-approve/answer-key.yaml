@@ -1,0 +1,26 @@
+# INVENTED. C22: /ow-draft-voice --approve <id> cut after approve, resumed
+case: m-voice-approve-cut-approve
+base: m-voice
+verbs: /ow-draft-voice --approve
+today: '2026-10-23'
+status:
+  lines:
+    - path: voices/client.md
+      next: ow-draft on drafts/
+      awaiting: none
+next:
+  - use ow-draft
+resume:
+  key: /ow-draft-voice --approve <id>
+  cut_after: approve
+  next_step: status
+  recorded:
+    - opchain-work/voices/client.md
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - resume
+section: 'C22: /ow-draft-voice --approve <id> cut after approve, resumed'

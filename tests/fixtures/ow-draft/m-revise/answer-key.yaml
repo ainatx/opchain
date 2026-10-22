@@ -1,0 +1,25 @@
+# INVENTED. C6: --revise appends a dated revision
+case: m-revise
+base: m-freeze
+verbs: /ow-draft-brief --revise
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-25'
+expect:
+  revised: true
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - brief
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/brief.md
+      next: ow-draft /ow-draft-write drafts/mossgate-books/DR-01-order-record-retention/
+      awaiting: none
+next:
+  - use ow-draft-write on drafts/mossgate-books/DR-01-order-record-retention/
+client: Mossgate Books
+section: 'C6: --revise appends a dated revision'

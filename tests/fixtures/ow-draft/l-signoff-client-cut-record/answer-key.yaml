@@ -1,0 +1,28 @@
+# INVENTED. C22: /ow-draft-signoff --client <C-n> cut after record, resumed
+case: l-signoff-client-cut-record
+base: l-signoff-comms
+verbs: /ow-draft-signoff --client
+draft: drafts/larkspur-ceramics/DR-03-email-orders-announcement
+today: '2026-10-31'
+status:
+  lines:
+    - path: drafts/larkspur-ceramics/DR-03-email-orders-announcement/signoff.md
+      next: ow-draft /ow-draft-deliver drafts/larkspur-ceramics/DR-03-email-orders-announcement/
+      awaiting: delivery of C-1 by 2026-11-06
+next:
+  - use ow-draft-deliver on drafts/larkspur-ceramics/DR-03-email-orders-announcement/
+resume:
+  key: /ow-draft-signoff --client <C-n>
+  cut_after: record
+  next_step: status
+  recorded:
+    - opchain-work/drafts/larkspur-ceramics/DR-03-email-orders-announcement/signoff.md
+client: Larkspur Ceramics
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - resume
+section: 'C22: /ow-draft-signoff --client <C-n> cut after record, resumed'

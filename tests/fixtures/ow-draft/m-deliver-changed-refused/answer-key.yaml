@@ -1,0 +1,20 @@
+# INVENTED. C14, design §11 Candidate: an edit after sign-off: -deliver refuses
+case: m-deliver-changed-refused
+base: m-write-2
+verbs: /ow-draft-deliver
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-27'
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+status:
+  lines: []
+next:
+  - use ow-draft-freeze on drafts/mossgate-books/DR-01-order-record-retention/
+refused:
+  reason: refuses
+client: Mossgate Books
+section: 'C14, design §11 Candidate: an edit after sign-off: -deliver refuses'

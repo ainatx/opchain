@@ -1,0 +1,27 @@
+# INVENTED. C22: /ow-draft-brief <ws> cut after ask, resumed
+case: m-brief-cut-ask
+base: m-voice-approve
+verbs: /ow-draft-brief
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-23'
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/brief.md
+      next: ow-draft /ow-draft-evidence drafts/mossgate-books/DR-01-order-record-retention/
+      awaiting: none
+next:
+  - use ow-draft-evidence on drafts/mossgate-books/DR-01-order-record-retention/
+resume:
+  key: /ow-draft-brief <ws>
+  cut_after: ask
+  next_step: confirm
+  recorded: []
+client: Mossgate Books
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - resume
+section: 'C22: /ow-draft-brief <ws> cut after ask, resumed'

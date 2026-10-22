@@ -1,0 +1,32 @@
+# INVENTED. C22: /ow-draft-voice <id> cut after status, resumed
+case: m-voice-cut-status
+world:
+  - studio
+upstream:
+  research:
+    - run-regulations
+    - run-business
+  logs:
+    - logs-decision-from-meeting
+    - logs-larkspur-checkin
+    - logs-decision-business-review
+  plan:
+    - accepted-signed
+verbs: /ow-draft-voice
+today: '2026-10-23'
+status:
+  lines: []
+next: []
+resume:
+  key: /ow-draft-voice <id>
+  cut_after: status
+  recorded: []
+refused:
+  reason: finished already
+checks:
+  - writes
+  - status
+  - screen
+  - resume
+  - refused
+section: 'C22: /ow-draft-voice <id> cut after status, resumed'

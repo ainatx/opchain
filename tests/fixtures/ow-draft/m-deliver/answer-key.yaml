@@ -1,0 +1,22 @@
+# INVENTED. C15, C17: the client form exported into export/C-1/; the say: line with client files only
+case: m-deliver
+base: m-signoff
+verbs: /ow-draft-deliver
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-26'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - deliver
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/deliveries.yaml
+      next: 'none (closed: delivered C-1)'
+      awaiting: none
+next: []
+client: Mossgate Books
+section: 'C15, C17: the client form exported into export/C-1/; the say: line with client files only'

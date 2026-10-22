@@ -1,0 +1,28 @@
+# INVENTED. C22: /ow-draft-evidence cut after checks, resumed
+case: m-route-evidence-cut-checks
+base: m-brief
+verbs: /ow-draft-evidence
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-23'
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/evidence.md
+      next: ow-draft /ow-draft-write drafts/mossgate-books/DR-01-order-record-retention/
+      awaiting: none
+next:
+  - use ow-draft-write on drafts/mossgate-books/DR-01-order-record-retention/
+resume:
+  key: /ow-draft-evidence
+  cut_after: checks
+  next_step: status
+  recorded:
+    - opchain-work/drafts/mossgate-books/DR-01-order-record-retention/evidence.md
+client: Mossgate Books
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - resume
+section: 'C22: /ow-draft-evidence cut after checks, resumed'

@@ -1,0 +1,19 @@
+# INVENTED. C14: a candidate already delivered is a no-op naming the date
+case: m-deliver-again
+base: m-deliver
+verbs: /ow-draft-deliver
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-27'
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+status:
+  lines: []
+next: []
+refused:
+  reason: refuses
+client: Mossgate Books
+section: 'C14: a candidate already delivered is a no-op naming the date'

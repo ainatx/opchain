@@ -1,0 +1,27 @@
+# INVENTED. C22: /ow-draft-brief <ws> cut after write, resumed
+case: b-brief-case-cut-write
+base: b-voice-marketing-approve
+verbs: /ow-draft-brief
+draft: drafts/business/DR-01-case-study
+today: '2026-10-27'
+status:
+  lines:
+    - path: drafts/business/DR-01-case-study/brief.md
+      next: ow-draft /ow-draft-evidence drafts/business/DR-01-case-study/
+      awaiting: none
+next:
+  - use ow-draft-evidence on drafts/business/DR-01-case-study/
+resume:
+  key: /ow-draft-brief <ws>
+  cut_after: write
+  next_step: status
+  recorded:
+    - opchain-work/drafts/business/DR-01-case-study/brief.md
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - resume
+section: 'C22: /ow-draft-brief <ws> cut after write, resumed'

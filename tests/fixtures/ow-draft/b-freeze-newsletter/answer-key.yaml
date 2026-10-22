@@ -1,0 +1,25 @@
+# INVENTED. C11: the newsletter's client form with notes and Sources
+case: b-freeze-newsletter
+base: b-write-newsletter
+verbs: /ow-draft-freeze
+draft: drafts/business/DR-04-autumn-newsletter
+today: '2026-11-02'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - candidate
+  - checks_file
+  - self_checks
+  - draft
+status:
+  lines:
+    - path: drafts/business/DR-04-autumn-newsletter/checks/C-1.md
+      next: ow-draft /ow-draft-signoff drafts/business/DR-04-autumn-newsletter/
+      awaiting: your sign-off of C-1 by 2026-11-30
+next:
+  - use ow-draft-signoff C-1 on drafts/business/DR-04-autumn-newsletter/
+section: 'C11: the newsletter''s client form with notes and Sources'

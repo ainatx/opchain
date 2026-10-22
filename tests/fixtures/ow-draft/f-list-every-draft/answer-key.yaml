@@ -1,0 +1,15 @@
+# INVENTED. C4: /ow-draft lists every draft folder, several in one workstream, never only the newest
+case: f-list-every-draft
+base: b-brief-newsletter
+verbs: /ow-draft
+today: '2026-11-02'
+status:
+  lines: []
+next: []
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - folder
+section: 'C4: /ow-draft lists every draft folder, several in one workstream, never only the newest'

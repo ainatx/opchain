@@ -1,0 +1,17 @@
+# INVENTED. C4: an approved voice approved again is a no-op
+case: m-voice-approve-again
+base: m-voice-approve
+verbs: /ow-draft-voice --approve
+today: '2026-10-24'
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+status:
+  lines: []
+next: []
+refused:
+  reason: refuses
+section: 'C4: an approved voice approved again is a no-op'

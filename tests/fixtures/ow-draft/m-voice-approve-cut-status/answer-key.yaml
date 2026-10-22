@@ -1,0 +1,21 @@
+# INVENTED. C22: /ow-draft-voice --approve <id> cut after status, resumed
+case: m-voice-approve-cut-status
+base: m-voice
+verbs: /ow-draft-voice --approve
+today: '2026-10-23'
+status:
+  lines: []
+next: []
+resume:
+  key: /ow-draft-voice --approve <id>
+  cut_after: status
+  recorded: []
+refused:
+  reason: finished already
+checks:
+  - writes
+  - status
+  - screen
+  - resume
+  - refused
+section: 'C22: /ow-draft-voice --approve <id> cut after status, resumed'

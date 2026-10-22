@@ -1,0 +1,20 @@
+# INVENTED. C22: /ow-draft run again prints the same screen and writes nothing
+case: f-list-again
+base: b-brief-newsletter
+verbs: /ow-draft
+today: '2026-11-02'
+status:
+  lines: []
+next: []
+resume:
+  key: /ow-draft
+  cut_after: screen
+  recorded: []
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - folder
+  - resume
+section: 'C22: /ow-draft run again prints the same screen and writes nothing'

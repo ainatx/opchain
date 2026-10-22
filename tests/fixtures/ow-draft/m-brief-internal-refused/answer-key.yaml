@@ -1,0 +1,29 @@
+# INVENTED. C6: an Internal brief in a client workstream is refused
+case: m-brief-internal-refused
+world:
+  - studio
+upstream:
+  research:
+    - run-regulations
+    - run-business
+  logs:
+    - logs-decision-from-meeting
+    - logs-larkspur-checkin
+    - logs-decision-business-review
+  plan:
+    - accepted-signed
+verbs: /ow-draft-brief
+today: '2026-10-23'
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+status:
+  lines: []
+next: []
+refused:
+  reason: refuses
+client: Mossgate Books
+section: 'C6: an Internal brief in a client workstream is refused'

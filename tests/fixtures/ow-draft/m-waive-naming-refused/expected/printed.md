@@ -1,0 +1,5 @@
+Step 0. Newest STATUS line: 2026-10-26 (clock: tool) | ow-draft 1.0.0 | drafts/mossgate-books/DR-01-order-record-retention/checks/C-1.md | next: ow-draft /ow-draft-write drafts/mossgate-books/DR-01-order-record-retention/ | awaiting: a fix for C-1 by 2026-11-06
+Handling: no (stored in profile.md).
+Refused: Naming can never be waived.
+Nothing was written.
+Fix: change the draft, then freeze it again.

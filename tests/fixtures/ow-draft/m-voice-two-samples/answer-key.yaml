@@ -1,0 +1,28 @@
+# INVENTED. C5: two samples named: ask for more
+case: m-voice-two-samples
+world:
+  - studio
+upstream:
+  research:
+    - run-regulations
+    - run-business
+  logs:
+    - logs-decision-from-meeting
+    - logs-larkspur-checkin
+    - logs-decision-business-review
+  plan:
+    - accepted-signed
+verbs: /ow-draft-voice
+today: '2026-10-23'
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+status:
+  lines: []
+next: []
+refused:
+  reason: refuses
+section: 'C5: two samples named: ask for more'

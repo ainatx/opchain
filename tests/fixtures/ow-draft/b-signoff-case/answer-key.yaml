@@ -1,0 +1,22 @@
+# INVENTED. C13: C-3 signed off
+case: b-signoff-case
+base: b-freeze-case-3
+verbs: /ow-draft-signoff
+draft: drafts/business/DR-01-case-study
+today: '2026-10-29'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - signoff
+status:
+  lines:
+    - path: drafts/business/DR-01-case-study/signoff.md
+      next: ow-draft /ow-draft-deliver drafts/business/DR-01-case-study/
+      awaiting: delivery of C-3 by 2026-11-20
+next:
+  - use ow-draft-deliver on drafts/business/DR-01-case-study/
+section: 'C13: C-3 signed off'

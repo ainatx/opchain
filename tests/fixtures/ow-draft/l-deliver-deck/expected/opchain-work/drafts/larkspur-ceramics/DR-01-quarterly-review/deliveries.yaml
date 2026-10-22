@@ -1,0 +1,41 @@
+ow_artefact: ow-draft/deliveries
+schema: 1
+written_by: ow-draft 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: drafts/larkspur-ceramics/DR-01-quarterly-review/signoff.md
+created: '2026-10-29'
+clock: tool
+origin: skill
+deliveries:
+  - candidate: C-1
+    steps:
+      - match
+      - export
+      - repo
+      - confirm
+      - push
+    date: '2026-10-29'
+    match:
+      command: ow-tools digest drafts/larkspur-ceramics/DR-01-quarterly-review/candidates/C-1.md
+      output: equal
+      equal: 'yes'
+    handling:
+      level: 'no'
+      from:
+        - 'profile.md: no'
+        - 'intake/larkspur-ceramics/intake.yaml: no'
+    export_tool: ow-tools 1.2.0
+    exports:
+      - source: candidates/C-1/quarterly-review.md
+        files:
+          - export/C-1/quarterly-review.pptx
+        command: ow-tools export drafts/larkspur-ceramics/DR-01-quarterly-review/candidates/C-1/quarterly-review.md --formats pptx --out drafts/larkspur-ceramics/DR-01-quarterly-review/export/C-1/
+        exit: 0
+        output: '{"status":"done","files":["export/C-1/quarterly-review.pptx"],"slides":6,"record":"export/C-1/quarterly-review.export.json"}'
+    export_ignored: not a repository
+    repo: none
+    push_confirmation: none
+    pushes: []
+    says: []
+    embedded: []
+    note: This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.

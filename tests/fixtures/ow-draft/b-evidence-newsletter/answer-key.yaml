@@ -1,0 +1,22 @@
+# INVENTED. C8
+case: b-evidence-newsletter
+base: b-brief-newsletter
+verbs: /ow-draft-evidence
+draft: drafts/business/DR-04-autumn-newsletter
+today: '2026-11-02'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - evidence
+status:
+  lines:
+    - path: drafts/business/DR-04-autumn-newsletter/evidence.md
+      next: ow-draft /ow-draft-write drafts/business/DR-04-autumn-newsletter/
+      awaiting: none
+next:
+  - use ow-draft-write on drafts/business/DR-04-autumn-newsletter/
+section: C8

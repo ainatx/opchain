@@ -1,0 +1,8 @@
+Step 0. Newest STATUS line: 2026-10-25 (clock: tool) | ow-draft 1.0.0 | drafts/mossgate-books/DR-01-order-record-retention/signoff.md | next: ow-draft /ow-draft-deliver drafts/mossgate-books/DR-01-order-record-retention/ | awaiting: delivery of C-1 by 2026-11-06
+Handling: no (stored in profile.md).
+Nothing to do: C-1 is signed off on 2026-10-25.
+Nothing was written.
+    NEXT: say "use ow-draft-deliver on drafts/mossgate-books/DR-01-order-record-retention/"   (where slash commands exist: /ow-draft-deliver)
+          It will read: signoff.md, checks/C-1.md, candidates/, handoffs.yaml
+          [no folder attached: attach them when you say it]
+    IF IT IS NOT AVAILABLE: export the signed-off client form by hand and deliver it yourself.

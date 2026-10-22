@@ -1,0 +1,17 @@
+# INVENTED. C4: /ow-draft on a workstream with one open draft takes that draft's stage
+case: f-on-ws-one
+base: m-write
+verbs: /ow-draft on
+today: '2026-10-24'
+'on': drafts/mossgate-books/
+status:
+  lines: []
+next: []
+client: Mossgate Books
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - folder
+section: 'C4: /ow-draft on a workstream with one open draft takes that draft''s stage'

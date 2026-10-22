@@ -1,0 +1,22 @@
+# INVENTED. C17: a level in the client's intake.yaml under a profile "no": no push, no repository copy; files and the say line
+case: l-deliver-handling
+base: l-signoff-client
+verbs: /ow-draft-deliver
+draft: drafts/larkspur-ceramics/DR-03-email-orders-announcement
+today: '2026-10-31'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - deliver
+status:
+  lines:
+    - path: drafts/larkspur-ceramics/DR-03-email-orders-announcement/deliveries.yaml
+      next: 'none (closed: delivered C-1)'
+      awaiting: none
+next: []
+client: Larkspur Ceramics
+section: 'C17: a level in the client''s intake.yaml under a profile "no": no push, no repository copy; files and the say line'

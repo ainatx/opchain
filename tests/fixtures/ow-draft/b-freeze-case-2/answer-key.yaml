@@ -1,0 +1,28 @@
+# INVENTED. Design §11 Naming: with a name permission only, a quote still fails until its exact words are approved
+case: b-freeze-case-2
+base: b-write-case-named
+verbs: /ow-draft-freeze
+draft: drafts/business/DR-01-case-study
+today: '2026-10-28'
+expect:
+  findings:
+    - Naming
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - candidate
+  - checks_file
+  - self_checks
+  - draft
+status:
+  lines:
+    - path: drafts/business/DR-01-case-study/checks/C-2.md
+      next: ow-draft /ow-draft-write drafts/business/DR-01-case-study/
+      awaiting: a fix for C-2 by 2026-11-20
+next:
+  - use ow-draft-write on drafts/business/DR-01-case-study/
+section: 'Design §11 Naming: with a name permission only, a quote still fails until its exact words are approved'

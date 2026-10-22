@@ -1,0 +1,23 @@
+# INVENTED. C13: a sign-off with a FINDING open is refused
+case: m-signoff-finding-refused
+base: m-freeze-stale
+verbs: /ow-draft-signoff
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-26'
+screen:
+  self_check:
+    Sources: FINDING
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+status:
+  lines: []
+next:
+  - use ow-draft-write on drafts/mossgate-books/DR-01-order-record-retention/
+refused:
+  reason: refuses
+client: Mossgate Books
+section: 'C13: a sign-off with a FINDING open is refused'

@@ -1,0 +1,26 @@
+# INVENTED. C11: client comms frozen
+case: l-freeze-comms
+base: l-write-comms
+verbs: /ow-draft-freeze
+draft: drafts/larkspur-ceramics/DR-03-email-orders-announcement
+today: '2026-10-30'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - candidate
+  - checks_file
+  - self_checks
+  - draft
+status:
+  lines:
+    - path: drafts/larkspur-ceramics/DR-03-email-orders-announcement/checks/C-1.md
+      next: ow-draft /ow-draft-signoff drafts/larkspur-ceramics/DR-03-email-orders-announcement/
+      awaiting: your sign-off of C-1 by 2026-11-06
+next:
+  - use ow-draft-signoff C-1 on drafts/larkspur-ceramics/DR-03-email-orders-announcement/
+client: Larkspur Ceramics
+section: 'C11: client comms frozen'

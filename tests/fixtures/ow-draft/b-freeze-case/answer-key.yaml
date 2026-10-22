@@ -1,0 +1,27 @@
+# INVENTED. C18, C19: anonymised; the answered round figure passes
+case: b-freeze-case
+base: b-write-case
+verbs: /ow-draft-freeze
+draft: drafts/business/DR-01-case-study
+today: '2026-10-28'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - candidate
+  - checks_file
+  - self_checks
+  - draft
+  - internal_numbers
+  - naming
+status:
+  lines:
+    - path: drafts/business/DR-01-case-study/checks/C-1.md
+      next: ow-draft /ow-draft-signoff drafts/business/DR-01-case-study/
+      awaiting: your sign-off of C-1 by 2026-11-20
+next:
+  - use ow-draft-signoff C-1 on drafts/business/DR-01-case-study/
+section: 'C18, C19: anonymised; the answered round figure passes'

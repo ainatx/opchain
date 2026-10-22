@@ -1,0 +1,17 @@
+# INVENTED. C4: /ow-draft on a delivered draft folder runs nothing
+case: f-on-delivered
+base: m-deliver
+verbs: /ow-draft on
+today: '2026-10-27'
+'on': drafts/mossgate-books/DR-01-order-record-retention/
+status:
+  lines: []
+next: []
+client: Mossgate Books
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - folder
+section: 'C4: /ow-draft on a delivered draft folder runs nothing'

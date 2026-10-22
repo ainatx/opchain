@@ -1,0 +1,23 @@
+# INVENTED. C9, C10: the memo by the document module; every claim and number cited
+case: m-write
+base: m-route-evidence
+verbs: /ow-draft-write
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-24'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - draft
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/draft.md
+      next: ow-draft /ow-draft-freeze drafts/mossgate-books/DR-01-order-record-retention/
+      awaiting: none
+next:
+  - use ow-draft-freeze on drafts/mossgate-books/DR-01-order-record-retention/
+client: Mossgate Books
+section: 'C9, C10: the memo by the document module; every claim and number cited'

@@ -1,0 +1,27 @@
+# INVENTED. C19: the round-figure ask on 600, answered and recorded under its item
+case: b-evidence-case
+base: b-brief-case
+verbs: /ow-draft-evidence
+draft: drafts/business/DR-01-case-study
+today: '2026-10-27'
+expect:
+  round:
+    - item: E-02
+      figure: '600'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - evidence
+  - approvals
+status:
+  lines:
+    - path: drafts/business/DR-01-case-study/evidence.md
+      next: ow-draft /ow-draft-write drafts/business/DR-01-case-study/
+      awaiting: none
+next:
+  - use ow-draft-write on drafts/business/DR-01-case-study/
+section: 'C19: the round-figure ask on 600, answered and recorded under its item'

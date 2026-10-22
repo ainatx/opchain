@@ -1,0 +1,22 @@
+# INVENTED. O6: a named decision as evidence
+case: b-evidence-policy
+base: b-brief-policy
+verbs: /ow-draft-evidence
+draft: drafts/business/DR-03-tool-renewal-policy
+today: '2026-10-31'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - evidence
+status:
+  lines:
+    - path: drafts/business/DR-03-tool-renewal-policy/evidence.md
+      next: ow-draft /ow-draft-write drafts/business/DR-03-tool-renewal-policy/
+      awaiting: none
+next:
+  - use ow-draft-write on drafts/business/DR-03-tool-renewal-policy/
+section: 'O6: a named decision as evidence'

@@ -1,0 +1,23 @@
+# INVENTED. C19: the fixed price in an offer: yes proposal
+case: l-offer-write
+base: l-offer-evidence
+verbs: /ow-draft-write
+draft: drafts/larkspur-ceramics/DR-04-build-proposal
+today: '2026-11-03'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - draft
+status:
+  lines:
+    - path: drafts/larkspur-ceramics/DR-04-build-proposal/draft.md
+      next: ow-draft /ow-draft-freeze drafts/larkspur-ceramics/DR-04-build-proposal/
+      awaiting: none
+next:
+  - use ow-draft-freeze on drafts/larkspur-ceramics/DR-04-build-proposal/
+client: Larkspur Ceramics
+section: 'C19: the fixed price in an offer: yes proposal'

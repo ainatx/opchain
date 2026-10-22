@@ -187,7 +187,7 @@ function validateSkillFlags(rel, id, data) {
 const AGENT_SKILLS_KEYS = new Set(["name", "description", "license", "allowed-tools", "metadata", "compatibility"]);
 const TEXT_FILE = /\.(md|txt|json|ya?ml|csv)$/;
 const SAFE_NAME = /^[A-Za-z0-9._-]+$/;
-const NETWORK_TEXT = [
+export const NETWORK_TEXT = [
   /https?:\/\//i,
   /\bwww\./i,
   /\bMCP\b/,

@@ -1,0 +1,23 @@
+# INVENTED. C6, O5: an offer: yes brief with no quote yet
+case: m-offer-brief
+base: m-deliver
+verbs: /ow-draft-brief
+draft: drafts/mossgate-books/DR-02-support-proposal
+today: '2026-11-03'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - brief
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-02-support-proposal/brief.md
+      next: ow-draft /ow-draft-evidence drafts/mossgate-books/DR-02-support-proposal/
+      awaiting: none
+next:
+  - use ow-draft-evidence on drafts/mossgate-books/DR-02-support-proposal/
+client: Mossgate Books
+section: 'C6, O5: an offer: yes brief with no quote yet'

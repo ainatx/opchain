@@ -51,6 +51,12 @@
 //          family, planned or add-on skill, its fields are header keys, the
 //          reference it names cites its path, and the producer writes it; it
 //          needs no hand-off row and no chain.
+//          A reads row marked `named: true` (owner decision O6, OW-10) reads a
+//          family skill's file only when the user names it: it reads from a
+//          family or planned skill (never "user" or "any"), it is never also an
+//          index, in-place or shared row, the reference it names cites its path,
+//          and the producer writes it; no hand-off is claimed for it (a
+//          producer that hands the file to the reader makes it a plain row).
 //          Every NEXT target resolves: `use <id>` with a slash verb that <id>
 //          owns, or a handoffs.yaml destination a family example declares, and a
 //          template's slash hint is its edges row's verb, mode and all. Every
@@ -804,6 +810,33 @@ function indexRowProblems(c, s, e, r, at, { ids, planned, addons }) {
 }
 
 /**
+ * A `named: true` reads row (owner decision O6, OW-10) reads a file a family skill
+ * writes, only when the user names it at the reading verb: decisions, meeting
+ * notes, a plan's map. It is accepted only from a family or planned skill (the
+ * producer check is the point, so never `user` or `any`), never together with
+ * `index`, `in_place` or `shared`, and with a reference that exists and cites its
+ * path. The producer must write the path, and no hand-off may carry it to the
+ * reader (both checked with the reciprocity rules).
+ */
+function namedRowProblems(c, s, r, at, { ids, planned }) {
+  const out = [];
+  if (r.named !== true) return [`${at}: named must be true or left out`];
+  if (r.from === "user" || r.from === "any") out.push(`${at}: a named row reads from \`${r.from}\`; named is for a family skill's file, whose producer is checked (owner decision O6); a file the user owns is a plain from: user row, and any other file the existing from: any row`);
+  else if (!(ids.includes(r.from) || planned.has(r.from))) out.push(`${at}: a named row reads from \`${r.from}\`, which is not a family skill or planned skill (owner decision O6)`);
+  for (const k of ["index", "in_place", "shared"]) if (r[k] !== undefined) out.push(`${at}: named: true cannot be combined with ${k} (owner decision O6: a named row is its own kind)`);
+  if (!filled(r.reference)) out.push(`${at}: a named row names the reference that cites it (reference:)`);
+  else {
+    const ref = join(c.dir, s.id, String(r.reference));
+    if (!existsSync(ref)) out.push(`${at}: reference ${r.reference} does not exist`);
+    else if (filled(r.path)) {
+      const cited = new Set([...readFileSync(ref, "utf8").matchAll(/`([^`\s]+)`/g)].map((m) => normPath(m[1])));
+      if (!cited.has(normPath(r.path))) out.push(`${at}: ${r.reference} does not cite ${r.path} (a named row is cited in its reference, owner decision O6)`);
+    }
+  }
+  return out;
+}
+
+/**
  * Edge rules for every catalog with an edges file (ow-): each skill's
  * skill.edges.yaml is complete and matches its body tables; edges are
  * reciprocal; one writer verb per file across the family.
@@ -871,6 +904,7 @@ export function checkEdges(catalogs) {
         }
         if (r.shared === true && normPath(r.path).includes("/")) problems.push(`${at}: shared: true is for workspace files at the top of opchain-work/ (profile.md, STATUS.md); ${r.path} is a client file, so it needs a hands-off row`);
         // An index row (O1) is cited in the reference it names, not the body table.
+        if (r.named !== undefined) namedRowProblems(c, s, r, at, { ids, planned }).forEach((x) => problems.push(x));
         if (r.index !== undefined) { indexRowProblems(c, s, e, r, at, { ids, planned, addons }).forEach((x) => problems.push(x)); if (r.index === true) return; }
         // A skill's reads of its own earlier files are detailed in its phase files, not the body table.
         if (filled(r.path) && r.from !== s.id && !readsTable.includes(String(r.path))) problems.push(`${at}: the body's "## Reads from" table does not name ${r.path}`);
@@ -1096,6 +1130,12 @@ export function checkEdges(catalogs) {
         if (row.index === true) {
           // An index row (O1): the producer writes the path; no hand-off and no chain is needed.
           if (!writes(p.id, row.path)) problems.push(`${r.rel}: indexes ${row.path} from ${p.id}, which ${p.rel} does not write (an index lists only files their producer writes, owner decision O1)`);
+          continue;
+        }
+        if (row.named === true) {
+          // A named row (O6): the producer writes the path; no hand-off carries it to the reader.
+          if (!writes(p.id, row.path)) problems.push(`${r.rel}: reads ${row.path} when named, from ${p.id}, which ${p.rel} does not write (a named row reads only a file its producer writes, owner decision O6)`);
+          if (p.hands_off.some((h) => h.to === r.id && (h.files ?? []).some((f) => normPath(typeof f === "string" ? f : f?.path) === normPath(row.path)))) problems.push(`${r.rel}: reads ${row.path} as named, but ${p.rel} hands it off to ${r.id}; a handed-off file is a plain reads row, not a named one (owner decision O6)`);
           continue;
         }
         if (!writes(p.id, row.path)) { problems.push(`${r.rel}: reads ${row.path}${inPlace ? " in place" : ""} from ${p.id}, which ${p.rel} does not write`); continue; }

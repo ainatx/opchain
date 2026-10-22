@@ -1,0 +1,23 @@
+# INVENTED. C22: /ow-draft-signoff --client <C-n> cut after status, resumed
+case: l-signoff-client-cut-status
+base: l-signoff-comms
+verbs: /ow-draft-signoff --client
+draft: drafts/larkspur-ceramics/DR-03-email-orders-announcement
+today: '2026-10-31'
+status:
+  lines: []
+next: []
+resume:
+  key: /ow-draft-signoff --client <C-n>
+  cut_after: status
+  recorded: []
+client: Larkspur Ceramics
+refused:
+  reason: finished already
+checks:
+  - writes
+  - status
+  - screen
+  - resume
+  - refused
+section: 'C22: /ow-draft-signoff --client <C-n> cut after status, resumed'

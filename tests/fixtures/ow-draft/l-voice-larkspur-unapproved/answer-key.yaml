@@ -1,0 +1,17 @@
+# INVENTED. C5: a client voice approved by the user alone stays unapproved
+case: l-voice-larkspur-unapproved
+base: l-voice-larkspur
+verbs: /ow-draft-voice --approve
+today: '2026-10-29'
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+status:
+  lines: []
+next: []
+refused:
+  reason: refuses
+section: 'C5: a client voice approved by the user alone stays unapproved'

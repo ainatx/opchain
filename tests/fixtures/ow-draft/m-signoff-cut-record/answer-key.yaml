@@ -1,0 +1,28 @@
+# INVENTED. C22: /ow-draft-signoff <C-n> cut after record, resumed
+case: m-signoff-cut-record
+base: m-freeze
+verbs: /ow-draft-signoff
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-25'
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/signoff.md
+      next: ow-draft /ow-draft-deliver drafts/mossgate-books/DR-01-order-record-retention/
+      awaiting: delivery of C-1 by 2026-11-06
+next:
+  - use ow-draft-deliver on drafts/mossgate-books/DR-01-order-record-retention/
+resume:
+  key: /ow-draft-signoff <C-n>
+  cut_after: record
+  next_step: status
+  recorded:
+    - opchain-work/drafts/mossgate-books/DR-01-order-record-retention/signoff.md
+client: Mossgate Books
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - resume
+section: 'C22: /ow-draft-signoff <C-n> cut after record, resumed'

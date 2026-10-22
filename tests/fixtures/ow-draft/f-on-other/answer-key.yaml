@@ -1,0 +1,16 @@
+# INVENTED. C4: /ow-draft on anything else is refused
+case: f-on-other
+base: m-brief
+verbs: /ow-draft on
+today: '2026-10-23'
+'on': profile.md
+status:
+  lines: []
+next: []
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - folder
+section: 'C4: /ow-draft on anything else is refused'

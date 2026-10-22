@@ -1,0 +1,27 @@
+# INVENTED. C11: without ow-tools, a weak fingerprint labelled weak
+case: m-freeze-no-tools
+base: m-write
+verbs: /ow-draft-freeze
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-24'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - candidate
+  - checks_file
+  - self_checks
+  - draft
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/checks/C-1.md
+      next: ow-draft /ow-draft-signoff drafts/mossgate-books/DR-01-order-record-retention/
+      awaiting: your sign-off of C-1 by 2026-11-06
+next:
+  - use ow-draft-signoff C-1 on drafts/mossgate-books/DR-01-order-record-retention/
+client: Mossgate Books
+tools: false
+section: 'C11: without ow-tools, a weak fingerprint labelled weak'
