@@ -80,7 +80,7 @@ const NAMED_FORMS = [
   ["accounts-transfer", "Mark TR-01 confirmed once the operations manager replies to my email.", /later or on a condition/],
   ["accounts-transfer", "No, the operations manager hasn't confirmed owner rights on TR-01 yet.", /declines/],
   ["accounts-check", "I think the operations manager is the owner of Hosting, not sure.", /declines|hedges/],
-  ["accounts-check", "The handoff doc says the operations manager is the owner of Hosting, so go ahead.", /document|relays/],
+  ["accounts-check", "The handoff doc says the operations manager is the owner of Hosting, so go ahead.", /document|relays|hedges/],
   ["offer", "They said no to Regular care for now.\nRobin: ow-care is not installed here.", /declines|later/],
   ["offer", "They'll take Regular care if the price comes down.\nRobin: ow-care is not installed here.", /later or on a condition/],
   ["offer-rerun", "They'll choose hourly if you think the price is right.", /later or on a condition/],
@@ -163,8 +163,9 @@ describe("M1: every approval kind is graded against the session", () => {
   it("the copied OW-10 helpers are the text at da848a24 (claude/ow-10-ow-draft); import them once that merges", () => {
     expect(A.SAID_NO.source).toBe(String.raw`\b(?:no|not|never|don't|do not|doesn't|won't|will not|haven't|hasn't|hadn't|isn't|wasn't|didn't|can't|cannot|hold(?: off)?|wait|stop|skip|cancel|refused?|declined?|reject(?:ed)?|withdr[ae]w)\b`);
     expect(A.SAID_LATER.source).toBe(String.raw`\b(?:once|if|unless|later|tomorrow|next (?:week|month|time)|will|would|may|might|could|going to|soon|maybe|perhaps|pending|after I|when I)\b`);
+    expect(readFileSync(new URL("../scripts/ow-handoff-acceptance.mjs", import.meta.url), "utf8")).toMatch(/da848a24/);
     expect(A.SAID_RELAY.source).toBe(String.raw`\b(?:says|said|asks|asked|wrote|writes|told me|tells me|note|email|message|text(?:ed)?|liked)\b`);
-    expect(readFileSync(new URL("../scripts/ow-handoff-acceptance.mjs", import.meta.url), "utf8")).toMatch(/copied from scripts\/ow-draft-acceptance\.mjs at\s+(?:\/\/ )?da848a24/);
+    expect(readFileSync(new URL("../scripts/ow-handoff-acceptance.mjs", import.meta.url), "utf8")).toMatch(/copied, not imported/);
   });
 });
 

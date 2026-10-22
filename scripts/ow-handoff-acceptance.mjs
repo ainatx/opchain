@@ -1250,35 +1250,49 @@ function checkApprovals(key, run) {
   return p;
 }
 
-// ── the session (C20, evaluation round 1 M1): every approval is graded on what the user said ─────────────────
+// ── the session (C20, evaluation round 1 M1, round 2 M1b): every approval is graded on what the user said ─────────
 // The owner's standard (2026-10-21): a record counts only if the user said it in this session, in their own words
-// (protocol §3e). session/answers.md holds the session: the user's lines ("Robin: …") and, where the skill printed a
-// question the user answered, the question ("Asked: …"). A bare "yes" confirms exactly what was asked, no more.
+// (protocol §3e). session/answers.md holds the session: the user's lines ("Robin: …", or a line with no speaker) and,
+// where the skill printed a question the user answered, the question ("Asked: …"). A bare "yes" confirms exactly what
+// was asked, no more.
 //
-// SAID_NO, SAID_LATER, SAID_RELAY, DOC_RELAY and clauses() are copied from scripts/ow-draft-acceptance.mjs at
-// da848a24 (OW-10 round 1 M1, branch claude/ow-10-ow-draft), not imported: that branch is not on main. When it
-// merges, import them from there instead; tests/ow-handoff-r1.test.js pins the copy to the text at da848a24.
+// The decline, condition and relay patterns and the clause logic are copied from scripts/ow-draft-acceptance.mjs
+// (OW-10): SAID_NO, SAID_LATER, SAID_RELAY and DOC_RELAY at da848a24 (round 1), and SAID_SCOPE, HEDGE, COND_START,
+// NEG_NEXT, sentencesOf, clausesOf and approvedClause as read from the uncommitted working tree of
+// claude/ow-10-ow-draft on 2026-10-22 (round 2 and 3 of that sprint). They are copied, not imported: that branch is
+// not on main. tests/ow-handoff-r1.test.js pins the round-1 sources and tests/ow-handoff-r2.test.js the rest; when
+// OW-10 lands, import them from there instead. ow-handoff's own layer on the copy: a decline is tested only in the
+// clause that holds the approval verb, the care choice leaves the ow-care clause out, and a waiver is read as a whole
+// (who waives, what, and what is excluded).
 export const SAID_NO = /\b(?:no|not|never|don't|do not|doesn't|won't|will not|haven't|hasn't|hadn't|isn't|wasn't|didn't|can't|cannot|hold(?: off)?|wait|stop|skip|cancel|refused?|declined?|reject(?:ed)?|withdr[ae]w)\b/i;
 export const SAID_LATER = /\b(?:once|if|unless|later|tomorrow|next (?:week|month|time)|will|would|may|might|could|going to|soon|maybe|perhaps|pending|after I|when I)\b/i;
 export const SAID_RELAY = /\b(?:says|said|asks|asked|wrote|writes|told me|tells me|note|email|message|text(?:ed)?|liked)\b/i;
 export const DOC_RELAY = /\b(?:email|note|message|inbox|file|letter|text)\b[^.;]*\b(?:says|said|states?|shows?|claims?)\b/i;
-const clauses = (t) => String(t).split(/[.;!?]+\s*|,\s+|\s+(?:and|but|then)\s+/).map((x) => x.trim()).filter(Boolean);
-// ow-handoff's own layer on the copy: said for later in other words, a hedge, a document or a third party relayed,
-// a partial list. A client's own word reported by the user is what "as reported" records (decision 8: an email
-// go-ahead is enough for hourly help), so a relay from the client or a client role is allowed where the record is
-// the client's; a waiver, a freeze, hours and the ow-care answer are the user's own and take no relay at all.
+/** What is scope, not a decline: "no changes", "no strings attached", "nothing else to change", "no need". A negation outside the approval verb's clause never declines it. */
+export const SAID_SCOPE = /\bno (?:changes?|edits?|more|other|further|issues?|problems?|objections?|worries|doubts?|logo|quote|matter|strings|conditions|catches|caveats|steps|extras?|additional)\b(?: attached| left| needed)?|\bnothing (?:else|to (?:change|add|fix|do with)|more)\b|\bno need(?: (?:to|for) \w+)?\b|\bnot later\b/gi;
+/** A hedge, a condition or a relay over the whole sentence: the approval is not given, or not first-hand. */
+export const HEDGE = /\b(?:provided|assuming|as long as|depending on|subject to|supposedly|apparently|allegedly|reportedly|I heard|heard that|I think|I guess|I suppose|I assume|thinks?|believes?|thought|I'm (?:not )?sure|I am (?:not )?sure|not sure|unsure|probably|presumably|likely|reckons?|seems?|looks like|should be|must have|leaning|hopefully|maybe|perhaps|haven't decided|undecided|no,? wait|hold on|according to)\b|\bstill (?:my|mine|ours|our|the builder's)\b|\?\s*(?:no|nope|not)\b|\b(?:readme|sample|note|email|file|document|doc|page|message|memo|text|drive)(?:'s)?\s+(?:\w+\s+)?(?:says?|said|states?|reads?)\b|\bsays:/i;
+const COND_START = /^(?:once|if|unless|when|after|pending|as soon as|provided|not yet|later)\b/i;
+/** A clause that makes what came before conditional. "after the re-check passed" is a past reference, "after the call" is a condition. */
+const condStart = (x) => COND_START.test(x) && !(/^after\b/i.test(x) && /\b(?:passed|was|were|had|did|ran|finished|completed|checked|went|came|confirmed|ended|closed)\b/i.test(x));
+/** A sentence that takes back the one before it: a bare "No." or "No, …" (not "no care plan after all"). */
+const NEG_NEXT = /^(?:not really|nope|never mind|on second thought|actually,? no|no(?=[,.!]|$))/i;
+export const sentencesOf = (t) => String(t).split(/(?<=[.;!?])\s+/).map((x) => x.trim()).filter(Boolean);
+export const clausesOf = (s) => String(s).replace(/[.;!?]+$/, "").split(/,\s+|\s+(?:and|but|then)\s+/).map((x) => x.trim()).filter(Boolean);
 const LATER_HO = /\b(?:I'll|we'll|they'll|it'll|she'll|he'll|should|gets?|getting|when|booked|scheduled|planned|planning|for now|this (?:afternoon|evening|week)|by (?:Monday|Tuesday|Wednesday|Thursday|Friday|the end)|on (?:Monday|Tuesday|Wednesday|Thursday|Friday))\b|\b(?:is|are|am) (?!\w+ed\b)\w+ing\b|\bgoes out\b/i;
-const HEDGE = /\b(?:I think|I believe|I guess|I suppose|I'm sure|I am sure|I assume|probably|presumably|supposedly|apparently|reckons?|seems?|looks like|likely|not sure|unsure|should be|must have|leaning|hopefully)\b/i;
-const DOC_HO = /\b(?:doc|document|readme|log|sheet|ticket|notes?|wiki|onboarding|handoff doc|according to)\b[^.;]*\b(?:says|said|states?|shows?|claims?|owns?)\b|\baccording to\b|\b(?:the|a) (?:\w+ )?(?:doc|readme|log|ticket|wiki) (?:says|shows|states)\b/i;
+const DOC_HO = /\b(?:doc|document|readme|log|sheet|ticket|notes?|wiki|onboarding|handoff doc)\b[^.;]*\b(?:says|said|states?|shows?|claims?|owns?)\b|\baccording to\b|\b(?:the|a) (?:\w+ )?(?:doc|readme|log|ticket|wiki) (?:says|shows|states)\b/i;
 const RELAY_VERB = /\b(?:says|said|told me|tells me|wrote|writes|reckons|thinks|reports?|mentioned)\b/i;
-const PARTIAL = /\b(?:only|so far|except|apart from|but not|not yet|some of|most of|partly|partially)\b/i;
+const PARTIAL = /\b(?:only|so far|except|apart from|but not|not yet|some of|most of|partly|partially|mostly)\b/i;
 const ROLES = /\b(?:operations manager|order coordinator|bookkeeper|shop manager|office manager|accountant|director)\b/gi;
 const IDS = /\b(?:TR|AX|FIX|HELP)-\d{2,}\b/g;
 const BARE = /^(?:yes|yeah|yep|correct|confirmed|that's right|right|ok(?:ay)?|go ahead|please do)[.!]?$/i;
 const RETRACT = /^(?:actually|wait|no\b|hold on|scratch that|cancel|on second thought|don't)/i;
 const norm = (t) => String(t ?? "").replace(/[‘’]/g, "'");
+const idsIn = (t) => norm(t).match(IDS) ?? [];
+/** A line's speaker, when it is not the user: the printed question, the skill, or a named other party. Any other "text:" is part of the user's line. */
+const OTHER_SPEAKER = /^(?:Asked|Assistant|Claude|Skill|System|Client|The client|Email|From|To|Subject)(?: \([^)]*\))?:\s/i;
 
-/** The session as entries: [{ who: "user" | "asked", text }], in order. "<user>: …" and lines with no speaker are the user's; "Asked: …" is the question the skill printed; another speaker's line is not the user's. */
+/** The session as entries: [{ who: "user" | "asked", text }], in order. "<user>: …" and a line with no speaker are the user's; "Asked: …" is the question the skill printed; a line spoken by another party is not the user's. */
 export function sessionEntries(said, user) {
   const out = [];
   for (const l of norm(said).split("\n")) {
@@ -1286,8 +1300,7 @@ export function sessionEntries(said, user) {
     if (u) { out.push({ who: "user", text: u[2].trim() }); continue; }
     const a = l.match(/^Asked:\s*(.*)$/);
     if (a) { out.push({ who: "asked", text: a[1].trim() }); continue; }
-    // A line with no speaker is the user's (a plain answers file); another speaker's line is not.
-    if (l.trim() && !/^[A-Z][\w' -]{0,30}(?: \([^)]*\))?:\s/.test(l)) out.push({ who: "user", text: l.trim() });
+    if (l.trim() && !OTHER_SPEAKER.test(l) && !new RegExp(`^(?:${ROLES.source}):\\s`, "i").test(l)) out.push({ who: "user", text: l.trim() });
   }
   return out;
 }
@@ -1302,7 +1315,6 @@ function utterances(entries) {
   });
   return out;
 }
-const sentences = (t) => String(t).split(/(?<=[.;!?])\s+|;\s*/).map((s) => s.trim()).filter(Boolean);
 /** The text with the parts that exclude something ("but not TR-01", "not scope.md", "except AX-04") taken out. */
 const EXCLUDE = /\b(?:but not|not|except(?: for)?|apart from)\s+(?:the\s+)?((?:(?:TR|AX|FIX|HELP)-\d{2,}|[\w-]+\.md)(?:(?:,\s*|\s+(?:and|or)\s+)(?:(?:TR|AX|FIX|HELP)-\d{2,}|[\w-]+\.md))*)/gi;
 const excludedIn = (t) => [...norm(t).matchAll(EXCLUDE)].flatMap((m) => m[1].split(/,\s*|\s+(?:and|or)\s+/).map((x) => x.trim()));
@@ -1316,27 +1328,49 @@ function namesItem(t, want) {
   if (want.id && new RegExp(`\\b${want.id}\\b`).test(kept)) return true;
   return asList(want.names).some((n) => n && nameRx(n).test(kept) && !(want.id && ids.some((x) => x.startsWith(want.id.slice(0, 3)) && x !== want.id)));
 }
-/** The gates every approval passes: no decline, no "later", no hedge, no document read out as the approval. */
-function gate(s, { allowNo = null, relay = "client", clientWords = null } = {}) {
-  const t = withoutExcluded(s);
-  const noText = allowNo ? t.replace(allowNo, " ") : t;
-  if (SAID_NO.test(noText)) return "declines or says no";
-  if (SAID_LATER.test(t) || LATER_HO.test(t)) return "says it for later or on a condition";
-  if (HEDGE.test(t)) return "hedges";
-  if (relay === "go-ahead-email") { if (DOC_HO.test(t) || (DOC_RELAY.test(t) && !/\b(?:client|their|they|the [a-z ]+?)'?s? email\b/i.test(t))) return "reads a document out as the approval"; }
-  else if (DOC_RELAY.test(t) || DOC_HO.test(t)) return "reads a document out as the approval";
-  for (const c of clauses(t)) {
-    const m = c.match(RELAY_VERB);
-    if (!m) continue;
-    const who = c.slice(0, m.index);
-    if (relay === "none") return "relays someone else's words";
-    if (!clientWords.test(who)) return "relays a third party's words";
+const scopeOut = (s, drop = []) => {
+  let t = norm(s).replace(SAID_SCOPE, " ");
+  if (drop.length) t = t.replace(new RegExp(`\\(?\\bnot (?:the )?(?:${drop.map(esc).join("|")})\\b(?: tier| care| help| plan)?\\)?`, "gi"), " ");
+  return t;
+};
+const hedged = (s) => HEDGE.test(scopeOut(s));
+const laterIn = (s) => SAID_LATER.test(s) || LATER_HO.test(s);
+const docRelay = (s, mode) => DOC_HO.test(s) || (DOC_RELAY.test(s) && !(mode === "go-ahead-email" && /\b(?:client|their|they|operations manager|order coordinator|bookkeeper|shop manager)'?s?\s+email\b/i.test(s)));
+
+/**
+ * Does any clause of the text hold the approval? `isVerb(clause)` says it carries the approval verb; the clause itself
+ * has no decline (scope aside, `allowNo` when a "no" is the content), no condition or "later", the sentence does not
+ * hedge or read a document out, nothing before or after makes it conditional, the next sentence does not take it
+ * back, no relay breaks the rule of `opt.relay`, and `accept(clause, sentence, clauses, index)` holds. `why` hears
+ * every reason a clause was turned down.
+ */
+function approved(text, isVerb, accept, why, { allowNo = false, drop = [], relay = "client", clientWords = /\bclient\b/i } = {}) {
+  const ss = sentencesOf(text);
+  for (let i = 0; i < ss.length; i++) {
+    const cl = clausesOf(ss[i]);
+    for (let j = 0; j < cl.length; j++) {
+      const c = cl[j];
+      if (!isVerb(c)) continue;
+      if (!allowNo && SAID_NO.test(scopeOut(c, drop))) { why("declines or says no"); continue; }
+      if (laterIn(scopeOut(c, drop))) { why("says it for later or on a condition"); continue; }
+      if (cl.slice(j + 1).some(condStart) || cl.slice(0, j).some((x) => /^(?:if|unless|provided|assuming|once|when|whenever|after)\b/i.test(x) && condStart(x))) { why("says it for later or on a condition"); continue; }
+      if (cl.slice(0, j).some((x) => /^(?:wait|hold on|hold off|stop)$/i.test(x)) || (!allowNo && j > 0 && /^(?:no|nope)$/i.test(cl[0]))) { why("declines or says no"); continue; }
+      if (hedged(allowNo ? ss[i].replace(/\b(?:haven't|hasn't|has not|have not) (?:yet )?decided\b|\bundecided\b/gi, " ") : ss[i])) { why("hedges"); continue; }
+      const next = ss[i + 1] ? scopeOut(ss[i + 1]).trim() : "";
+      // (a "No, ow-care is not installed." answers the ow-care question; it takes nothing back)
+      if (next && NEG_NEXT.test(next) && !/\bow-care\b/i.test(next)) { why("declines or says no"); continue; }
+      if (docRelay(ss[i], relay)) { why("reads a document out as the approval"); continue; }
+      let bad = null;
+      for (const x of cl) { const m = x.match(RELAY_VERB); if (!m) continue; if (relay === "none") bad = "relays someone else's words"; else if (!clientWords.test(x.slice(0, m.index))) bad = "relays a third party's words"; }
+      if (bad) { why(bad); continue; }
+      if (accept(c, ss[i], cl, j)) return true;
+    }
   }
-  return null;
+  return false;
 }
 const CONTENT = {
-  transfer: (w) => (w.state === "done" ? /\b(?:done|transferred|moved|completed|accepted|in (?:their|the client's) name)\b/i : /\bowner\b|\badmin\b/i),
-  check: () => /\bowner\b/i,
+  transfer: (w) => (w.state === "done" ? /\b(?:done|transferred|moved|completed|accepted|in (?:their|the client's) name)\b/i : /\bown(?:er|s|ed|ership)\b|\badmin\b|\b(?:done|transferred)\b/i),
+  check: () => /\bown(?:er|s|ed)\b/i,
   removal: (w) => ({ removed: /\b(?:removed|revoked|took away|taken away|deleted|gone)\b/i, rotated: /\b(?:rotated|regenerated|replaced|changed)\b/i, deleted: /\b(?:deleted|removed|cleared|wiped)\b/i }[w.verb]),
   regrant: () => /\bre-?grant(?:ed)?\b|\bgranted?\b[^.]*\bback\b|\bgave\b[^.]*\bback\b/i,
   status: (w) => ({ sent: /\b(?:sent|deployed|shipped|released|went out)\b/i, fixed: /\bfixed\b/i, verified: /\b(?:confirmed|verified|works|working|checked)\b/i }[w.state]),
@@ -1345,109 +1379,94 @@ const CONTENT = {
   walkthrough: () => /\b(?:did|held|ran|had|done|finished|completed|went through|walked)\b/i,
 };
 const OWN_KINDS = new Set(["waiver", "keep", "refreeze", "hours", "owcare", "complete"]);
+const TIERS = ["Light", "Regular", "Full"];
+const CHOICE_WORD = { care: /(?<![\w-])care\b/i, hourly: /\bhourly\b/i, none: /\bnone\b|\bno ongoing\b|\bneither\b|\bno (?:care|arrangement)\b|\bdeclined (?:both|everything)\b/i, undecided: /\bundecided\b|\b(?:hasn't|haven't|has not|have not|not) (?:yet )?(?:decided|chosen)\b|\bno decision\b|\bdon't know yet\b/i };
+const CHOSE = /\b(?:chose|chosen|choose|picked|took|take|went with|decided|opted|accepted|agreed|wants|selected|signed up|changed|switched|go(?:es|ing)? with)\b/i;
+const OWN_BEFORE = /^(?:(?:yes|ok(?:ay)?|so|then|please|and|fine|I|I'm|I am|I hereby|hereby|we|just)\s*,?\s*)*$/i;
+const PRONOUN = /^\s*(?:it|this|that|them|their|its|(?:the )?(?:client's )?(?:confirmation|check))\b/i;
 
 /**
- * Grade one approval record against the session (M1). `kind` names the record, `want` what it must name; returns
- * the problems (an empty list accepts it). The user's line must name what the record names (an id, or the item's
- * name), say it in the past or present, with no decline, condition, hedge or relay the kind does not allow.
+ * Grade one approval record against the session (M1, M1b). `kind` names the record, `want` what it must name; returns
+ * the problems (an empty list accepts it). The user's line must name what the record names (an id, or the item's name,
+ * and the client role when the record has one) and say it is so in the clause that holds the verb: a decline, a
+ * condition, a hedge or someone else's words relayed counts for nothing.
  */
 export function sessionApproval(kind, entries, want = {}, { client = "" } = {}) {
   const us = utterances(entries);
   if (!us.length) return [`no answer from the user in this session for the ${kind} it records`];
   const clientWords = new RegExp(`\\b(?:client|they|he|she|the owner|${(want.role ? [esc(want.role)] : []).concat(["operations manager", "order coordinator", "bookkeeper", "shop manager"]).join("|")}${client ? `|${esc(client)}` : ""})\\b`, "i");
   const what = want.id ?? want.file ?? want.choice ?? asList(want.names)[0] ?? { complete: "the prompt list", walkthrough: "the walk-through" }[kind] ?? kind;
-  const roleOk = (t) => { if (!want.role) return true; const named = (norm(t).match(ROLES) ?? []).map((x) => x.toLowerCase()); return !named.length || named.includes(want.role.toLowerCase()); };
-  const reasons = [];
   const label = { check: "account check", complete: "completeness confirmation", removal: "removal record", regrant: "re-grant", status: "status move", withdrawn: "withdrawal", walkthrough: "walk-through record", keep: "--keep-frozen", refreeze: "--refreeze" }[kind] ?? kind;
-  const verdict = (ok) => (ok ? [] : [`the ${label} for ${what} is not what the user said in this session (${reasons.length ? [...new Set(reasons)].join("; ") : "nothing the user said names it"})`]);
-  const relayMode = OWN_KINDS.has(kind) ? "none" : kind === "go-ahead" ? "go-ahead-email" : "client";
+  const reasons = [];
+  const why = (r) => reasons.push(r);
+  const verdict = (ok) => {
+    if (ok) return [];
+    // A decline, a "later" or a hedge in what the user said leads the reasons, whatever else the line also lacks.
+    const t = us.map((u) => u.about).join(" ");
+    const lead = SAID_NO.test(scopeOut(t)) ? ["declines or says no"] : laterIn(t) ? ["says it for later or on a condition"] : hedged(t) ? ["hedges"] : [];
+    const all = [...new Set([...lead, ...reasons])];
+    return [`the ${label} for ${what} is not what the user said in this session (${all.length ? all.join("; ") : "nothing the user said names it"})`];
+  };
+  const relay = OWN_KINDS.has(kind) ? "none" : kind === "go-ahead" ? "go-ahead-email" : "client";
+  const roleNamed = (t) => (norm(t).match(ROLES) ?? []).map((x) => x.toLowerCase());
+  // The client's role the record names must be the one the user named; "the client" will do for a record kind that is not about who was there (the walk-through is).
+  const roleOk = (t) => { if (!want.role) return true; const named = roleNamed(t); return named.length === 0 ? kind !== "walkthrough" && /\bclient\b/i.test(t) : named.includes(want.role.toLowerCase()); };
   // A later line that takes it back (or a later decline naming it) cancels it.
   const retracted = (u) => us.some((v) => v.i > u.i && (RETRACT.test(v.said) || SAID_NO.test(withoutExcluded(v.said))) && (namesItem(v.about, want) || !(v.about.match(IDS) ?? []).length) && !(kind === "choice" || kind === "owcare"));
-  const consider = (test) => us.some((u) => { const r = test(u); if (r === true && retracted(u)) { reasons.push("a later line takes it back"); return false; } return r === true; });
+  const consider = (test) => us.some((u) => { const r = test(u); if (r === true && retracted(u)) { why("a later line takes it back"); return false; } return r === true; });
+  const opt = { relay, clientWords };
 
-  if (kind === "waiver") {
-    const ok = consider((u) => {
-      for (const s of sentences(u.bare ? u.about : u.said)) {
-        const m = s.match(/^(?:(?:yes|ok(?:ay)?|so|then|please|and|fine)[,\s]+)*(?:I\s+(?:hereby\s+)?)?(waive[sd]?\b[\s\S]*)$/i);
-        if (!m) { if (/\bwaive/i.test(s)) reasons.push("the waiver is not the user's own"); continue; }
-        const g = gate(s, { relay: "none", clientWords });
-        if (g) { reasons.push(g); continue; }
-        const waived = (withoutExcluded(m[1]).match(IDS) ?? []);
-        const excl = excludedIn(m[1]).filter((x) => /^(?:TR|AX|FIX|HELP)-/.test(x));
-        if (!want.ids.every((id) => waived.includes(id) || (asList(want.names).some((n) => nameRx(n).test(withoutExcluded(m[1]))) && want.ids.length === 1))) { reasons.push("the user waived something else"); continue; }
-        if (waived.some((id) => !want.ids.includes(id))) { reasons.push(`the user also waived ${waived.filter((id) => !want.ids.includes(id)).join(", ")}, which the record does not`); continue; }
-        if (JSON.stringify([...excl].sort()) !== JSON.stringify([...asList(want.excluded)].sort())) { reasons.push(`the record's "but not" (${asList(want.excluded).join(", ") || "none"}) is not what the user excluded (${excl.join(", ") || "none"})`); continue; }
-        return true;
-      }
-      return false;
-    });
-    return verdict(ok);
-  }
+  if (kind === "waiver") return verdict(consider((u) => waiverHolds(u.bare ? u.about : u.said, want, why)));
   if (kind === "keep" || kind === "refreeze") {
     const KEEP = /\b(?:keep|kept|leave)\b/i, REF = /\b(?:refreeze|re-freeze|refrozen|re-copy|recopy|take the new)\b/i;
-    const ok = consider((u) => sentences(u.about).some((s) => {
-      if (!new RegExp(`(?<![\\w-])(?:agreed/)?${esc(want.file.replace(/^agreed\//, ""))}(?![\\w-])`).test(withoutExcluded(s))) return false;
-      const g = gate(u.bare ? u.said : s, { relay: "none", clientWords });
-      if (g) { reasons.push(g); return false; }
-      const isRef = REF.test(s), isKeep = KEEP.test(s) && !isRef;
-      if (kind === "keep" ? !isKeep : !isRef) { reasons.push(`the user asked to ${isRef ? "refreeze" : isKeep ? "keep" : "do something else with"} ${want.file}`); return false; }
-      return true;
-    }));
-    return verdict(ok);
+    const fileRx = new RegExp(`(?<![\\w-])(?:agreed/)?${esc(want.file.replace(/^agreed\//, ""))}(?![\\w-])`);
+    return verdict(consider((u) => approved(u.about, (c) => (kind === "keep" ? KEEP.test(c) && !REF.test(c) : REF.test(c)), (c, s) => { if (fileRx.test(withoutExcluded(s))) return true; why(`the user did not name ${want.file}`); return false; }, why, { ...opt, relay: "none" })));
   }
   if (kind === "complete") {
-    const ok = consider((u) => {
-      const t = u.about;
-      const g = gate(u.said, { relay: "none", clientWords });
-      if (g) { reasons.push(g); return false; }
-      if (PARTIAL.test(t)) { reasons.push("the user confirmed part of the list"); return false; }
-      const all = ["repository", "hosting", "domain", "email", "vendor", "integration"].every((w) => new RegExp(`\\b${w}`, "i").test(t));
-      if (!all) { reasons.push("the user did not confirm the whole prompt list"); return false; }
-      return roleOk(t) || (reasons.push(`the user named another role than ${want.role}`), false);
-    });
-    return verdict(ok);
+    return verdict(consider((u) => {
+      if (PARTIAL.test(u.about)) { why("the user confirmed part of the list"); return false; }
+      const all = ["repository", "hosting", "domain", "email", "vendor", "integration"].every((w) => new RegExp(`\\b${w}`, "i").test(u.about));
+      if (!all) { why("the user did not confirm the whole prompt list"); return false; }
+      if (!roleOk(u.about)) { why(`the user did not name ${want.role}`); return false; }
+      return approved(u.about, (c) => /\b(?:went through|covered|checked|confirmed|complete[d]?|done|reviewed|all of them)\b/i.test(c), () => true, why, { ...opt, relay: "none" });
+    }));
   }
   if (kind === "hours") {
-    const ok = consider((u) => {
-      if (!namesItem(u.about, want) && !(us.length === 1 && !(u.about.match(IDS) ?? []).length)) return false;
-      const g = gate(u.said, { relay: "none", clientWords }) ?? (/\b(?:about|around|roughly|approximately|or so)\b/i.test(u.said) ? "hedges" : null);
-      if (g) { reasons.push(g); return false; }
-      if (!new RegExp(`(?<![\\d.])${esc(String(want.hours))}(?:\\.0)?\\s*(?:h\\b|hours?\\b)`, "i").test(u.about)) { reasons.push(`the user did not say ${want.hours} hours`); return false; }
-      return true;
-    });
-    return verdict(ok);
+    return verdict(consider((u) => {
+      const sole = us.length === 1 && !(u.about.match(IDS) ?? []).length;
+      if (!namesItem(u.about, want) && !sole) return false;
+      return approved(u.about, (c) => new RegExp(`(?<![\\d.])${esc(String(want.hours))}(?:\\.0)?\\s*(?:h\\b|hours?\\b)`, "i").test(c), () => true, why, { ...opt, relay: "none" }) && !/\b(?:about|around|roughly|approximately|or so)\b/i.test(u.about);
+    }));
   }
   if (kind === "choice" || kind === "owcare") {
     const p = [];
     if (kind === "choice") {
-      const W = { care: /\bcare\b/i, hourly: /\bhourly\b/i, none: /\bnone\b|\bno ongoing\b|\bneither\b|\bno (?:care|arrangement)\b|\bdeclined (?:both|everything)\b/i, undecided: /\bundecided\b|\b(?:hasn't|haven't|has not|have not|not) (?:yet )?(?:decided|chosen)\b|\bno decision\b|\bdon't know yet\b/i }[want.choice];
+      const W = CHOICE_WORD[want.choice];
       const NEG_IS_CONTENT = want.choice === "none" || want.choice === "undecided";
-      const ok = consider((u) => sentences(u.about).some((s) => {
-        if (/\bow-care\b/i.test(s)) return false;
-        if (!W.test(s)) return false;
-        const other = ["care", "hourly", "none", "undecided"].filter((c) => c !== want.choice);
-        if (want.choice === "care" && /\bhourly\b/i.test(s) && !/\bcare\b[^.]*\binstead\b/i.test(s)) { reasons.push("the user named another choice"); return false; }
-        const g = gate(u.bare ? u.said : s, { relay: "client", clientWords, allowNo: NEG_IS_CONTENT ? /\b(?:no|not|hasn't|haven't|has not|have not|don't|declined)\b/gi : null });
-        if (g) { reasons.push(g); return false; }
-        if (!NEG_IS_CONTENT && !/\b(?:chose|chosen|choose|picked|took|went with|decided|opted|accepted|agreed|wants|selected|signed up|changed)\b/i.test(s) && !u.bare) { reasons.push("the user did not say the client chose it"); return false; }
-        if (want.tier && !new RegExp(`\\b${esc(want.tier)}\\b`, "i").test(s)) { reasons.push(`the user did not name the tier ${want.tier}`); return false; }
-        void other;
+      const dropWords = [...TIERS.filter((t) => t !== want.tier), ...Object.keys(CHOICE_WORD).filter((w) => w !== want.choice), "hourly help"];
+      const ok = consider((u) => approved(u.about, (c) => !/\bow-care\b/i.test(c) && W.test(c) && !(want.choice === "care" && /\bhourly\b/i.test(c.replace(/\bnot (?:the )?hourly\b/gi, ""))), (c, s) => {
+        if (!NEG_IS_CONTENT && !CHOSE.test(s) && !u.bare && !/^(?:the )?(?:[A-Z][a-z]+ )?(?:care|hourly)\b/i.test(s.trim())) { why("the user did not say the client chose it"); return false; }
+        if (want.tier) {
+          const named = TIERS.filter((t) => new RegExp(`\\b${t}\\b`, "i").test(scopeOut(u.about, TIERS.filter((x) => x !== want.tier))));
+          if (!named.includes(want.tier)) { why(`the user did not name the tier ${want.tier}`); return false; }
+          if (named.some((t) => t !== want.tier)) { why("the user named another tier"); return false; }
+        }
         return true;
-      }));
+      }, why, { ...opt, allowNo: NEG_IS_CONTENT, drop: dropWords }));
       p.push(...verdict(ok));
     }
     if (want.owCare) {
       const reasons2 = [];
       const inst = want.owCare === "installed";
-      const ok2 = us.some((u) => sentences(u.about).some((s) => {
-        if (!/\bow-care\b/i.test(s)) return false;
-        const neg = /\b(?:isn't|is not|not|no|without|hasn't been|has not been)\b/i.test(s);
-        const g = gate(u.bare ? u.said : s, { relay: "none", clientWords, allowNo: /\b(?:isn't|is not|not|no|without|hasn't been|has not been)\b/gi });
-        if (g) { reasons2.push(g); return false; }
-        if (!/\b(?:installed|set up|here|available)\b/i.test(s)) return false;
-        if (neg === inst) { reasons2.push(`the user said ow-care is ${inst ? "not installed" : "installed"}`); return false; }
+      const NEG = /\b(?:isn't|is not|not|no|without|don't have|hasn't been|has not been|never)\b/i;
+      const ok2 = us.some((u) => sentencesOf(u.about).some((s) => clausesOf(s).some((c) => {
+        if (!/\bow-care\b/i.test(c)) return false;
+        if (hedged(s) || laterIn(c)) { reasons2.push(hedged(s) ? "hedges" : "says it for later or on a condition"); return false; }
+        if (docRelay(s, "none") || RELAY_VERB.test(c)) { reasons2.push("reads a document out as the approval"); return false; }
+        if (!/\b(?:installed|set up|here|available)\b/i.test(c)) return false;
+        if (NEG.test(c) === inst) { reasons2.push(`the user said ow-care is ${inst ? "not installed" : "installed"}`); return false; }
         return true;
-      }));
+      })));
       if (!ok2) p.push(`the ow-care answer (${want.owCare}) is not what the user said in this session (${reasons2.length ? [...new Set(reasons2)].join("; ") : "the user did not say"})`);
     }
     return p;
@@ -1455,16 +1474,60 @@ export function sessionApproval(kind, entries, want = {}, { client = "" } = {}) 
   // The client's word, reported by the user: transfer, check, removal, regrant, status, withdrawn, go-ahead, walkthrough.
   const content = CONTENT[kind]?.(want);
   if (!content) return [`unknown session approval kind ${kind}`];
-  const ok = consider((u) => sentences(u.about).some((s) => {
-    if (kind !== "walkthrough" && !namesItem(s, want)) return false;
-    if (kind === "walkthrough" && !/\bwalk-?through\b|\bwalked\b/i.test(s)) return false;
-    const g = gate(u.bare ? u.said : s, { relay: relayMode, clientWords, allowNo: kind === "withdrawn" ? /\bwithdr[ae]w\b/gi : null });
-    if (g) { reasons.push(g); return false; }
-    if (!content.test(s)) { reasons.push(`the user did not say it was ${kind === "status" ? want.state : kind === "removal" ? want.verb : kind}`); return false; }
-    if (!roleOk(s)) { reasons.push(`the user named another role than ${want.role}`); return false; }
-    return true;
+  return verdict(consider((u) => {
+    if (kind !== "walkthrough" && !namesItem(u.about, want)) return false;
+    if (kind === "walkthrough" && !/\bwalk-?through\b|\bwalked\b/i.test(u.about)) return false;
+    if (want.role && !roleOk(u.about)) { why(roleNamed(u.about).length ? `the user named another role than ${want.role}` : `the user did not name ${want.role}`); return false; }
+    return approved(u.about, (c) => content.test(c), () => true, why, { ...opt, allowNo: kind === "withdrawn" });
   }));
-  return verdict(ok);
+}
+
+/**
+ * A waiver is the user's own act. Read as a whole: some sentence holds "waive", "waives", "waived" or "waiving" (not
+ * negated, with the user, "I" or no one as its subject, not conditional, not a hedge, not read from a document),
+ * naming the item by id, by name or by a pronoun for the item just named; the ids it waives are exactly the record's;
+ * the record's "but not" ids are excluded in the same sentence or the next ("Not TR-01.").
+ */
+function waiverHolds(text, want, why) {
+  const pos = new Set(), excl = new Set();
+  const ss = sentencesOf(text);
+  let found = false;
+  for (let i = 0; i < ss.length; i++) {
+    const s = norm(ss[i]);
+    const before0 = ss.slice(0, i).join(" ");
+    const m = s.match(/\bwaiv(?:e[sd]?|ing)\b/i);
+    if (!m) {
+      if (/^(?:but |and )?(?:not|except(?: for)?|apart from)\b/i.test(s)) idsIn(s).forEach((x) => excl.add(x));
+      continue;
+    }
+    const before = s.slice(0, m.index).replace(/^(?:[\w-]+:\s*)+/, "");
+    const rest = s.slice(m.index + m[0].length);
+    const k = rest.search(/\b(?:but not|and not|not|except(?: for)?|apart from)\b/i);
+    const posPart = k < 0 ? rest : rest.slice(0, k), exPart = k < 0 ? "" : rest.slice(k);
+    const negated = /\b(?:not|never|won't|don't|do not|can't|cannot|am not|isn't)\b/i.test(before);
+    let target = idsIn(posPart);
+    if (!target.length && asList(want.names).some((n) => n && nameRx(n).test(posPart))) target = [want.id];
+    if (!target.length && PRONOUN.test(posPart)) { const prior = idsIn(`${before0} ${s.slice(0, m.index)}`); if (prior.length) target = [prior.at(-1)]; }
+    if (negated) { target.concat(idsIn(exPart)).forEach((x) => excl.add(x)); why("declines or says no"); continue; }
+    if (!OWN_BEFORE.test(before)) { why("the waiver is not the user's own"); continue; }
+    if (laterIn(rest) || condStart(s) || /,\s+(?:if|once|when|unless|provided|assuming)\b/i.test(s) || clausesOf(s.slice(0, m.index)).some((x) => /^(?:if|unless|provided|assuming|once|when|whenever|after)\b/i.test(x))) { why("says it for later or on a condition"); continue; }
+    if (hedged(s)) { why("hedges"); continue; }
+    if (docRelay(s, "none")) { why("reads a document out as the approval"); continue; }
+    const nxt = ss[i + 1] ? scopeOut(ss[i + 1]).trim() : "";
+    if (nxt && NEG_NEXT.test(nxt)) { why("declines or says no"); continue; }
+    target.forEach((x) => pos.add(x));
+    idsIn(exPart).forEach((x) => excl.add(x));
+    found = true;
+  }
+  if (!found) return false;
+  const ids = asList(want.ids);
+  if (!ids.every((id) => pos.has(id))) { why("the user waived something else"); return false; }
+  const extra = [...pos].filter((id) => !ids.includes(id));
+  if (extra.length) { why(`the user also waived ${extra.join(", ")}, which the record does not`); return false; }
+  if (ids.some((id) => excl.has(id))) { why("the user excluded it"); return false; }
+  const missing = asList(want.excluded).filter((x) => !excl.has(x));
+  if (missing.length) { why(`the record's "but not" (${asList(want.excluded).join(", ")}) is not what the user excluded (${[...excl].join(", ") || "none"})`); return false; }
+  return true;
 }
 
 /** Every approval record this run appended or wrote, with what it must name (the session check grades each). */
@@ -1614,6 +1677,7 @@ function checkPeople(key, run) {
     const body = bodyOf(run.read(f) ?? "");
     for (const [what, m] of docPeopleFindings(body, { names: asList(key.people), user: key.user, client: key.client })) p.push(`${f}: ${what} ("${String(m).slice(0, 30)}")`);
     for (const m of peopleBeside(body, key.user)) p.push(`${f}: a person's name beside a role ("${m}")`);
+    for (const m of peopleIrish(body, key.user)) p.push(`${f}: a person's name (a given name and an O'/Mc surname) ("${m}")`);
   }
   return p;
 }
@@ -1622,6 +1686,17 @@ function checkPeople(key, run) {
  * ("The intern, Benji Carver, still has an account") or introduced by "named" or "called".
  */
 const ROLE_WORD = String.raw`(?:intern|contractor|developer|designer|manager|bookkeeper|owner|assistant|colleague|engineer|admin(?:istrator)?|coordinator|accountant|freelancer|consultant|tester|director|founder|partner)`;
+/**
+ * A given name and an O' or Mc surname ("Brendan McGrath", "Cormac O'Brien"): a person whom the imported rule's
+ * recall misses (round 2 m3). A lone surname, a hyphenated word ("McGraw-style") and a product or place name after a
+ * lowercase word are not a person; a sentence-initial verb or article before the surname is not a given name.
+ */
+const NOT_GIVEN = /^(?:The|This|That|These|Open|Call|Ask|See|Use|Visit|Check|Read|Our|Your|Their|And|But|For|With|From|Run|Set|Add|Edit|Show|Click|Install|Update|Find|Get|Go|Try)$/;
+export function peopleIrish(text, user = null) {
+  const out = [];
+  for (const m of String(text).matchAll(/\b([A-Z][a-z]{2,})[ \t]+((?:Mc|Mac|O')[A-Z][a-z]+)(?![\w-])/g)) if (!NOT_GIVEN.test(m[1]) && m[1] !== user) out.push(`${m[1]} ${m[2]}`);
+  return out;
+}
 export function peopleBeside(text, user = null) {
   const out = [];
   const NAME = String.raw`([A-Z][a-z]+(?:[ -][A-Z][a-z'-]+)+)`;
