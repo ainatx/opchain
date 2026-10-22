@@ -7,9 +7,9 @@
 // The hook runs under whatever `bash` is on PATH — bash 3.2 on macOS — so this
 // suite is also the bash-3.2 compatibility check.
 import { describe, it, expect, afterAll } from "vitest";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync, appendFileSync, statSync, existsSync } from "node:fs";
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync, appendFileSync, statSync, existsSync, readdirSync, realpathSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";
 
 const REPO = join(import.meta.dirname, "..");
@@ -84,8 +84,8 @@ function checkpoint(skill, extra = {}) {
   };
 }
 
-function runHook(p, { sessionId = "sess-1", cwd = p.root, projectDir = p.root, stopHookActive = false } = {}) {
-  const env = { ...process.env, OPCHAIN_SKILLS_DIR: join(REPO, "skills"), TMPDIR: p.tmp };
+function runHook(p, { sessionId = "sess-1", cwd = p.root, projectDir = p.root, stopHookActive = false, home = process.env.HOME } = {}) {
+  const env = { ...process.env, OPCHAIN_SKILLS_DIR: join(REPO, "skills"), TMPDIR: p.tmp, HOME: home };
   if (projectDir === null) delete env.CLAUDE_PROJECT_DIR;
   else env.CLAUDE_PROJECT_DIR = projectDir;
   const input = JSON.stringify({ session_id: sessionId, transcript_path: p.transcript, cwd, hook_event_name: "Stop", stop_hook_active: stopHookActive });
@@ -101,6 +101,23 @@ function nestedWorktree(p, name) {
   git(["worktree", "add", "-q", "-b", `wt-${name}`, dir], p.root);
   mkdirSync(join(dir, ".checkpoints"));
   return dir;
+}
+
+/** A scratch $HOME holding another project's checkout at <home>/<rel> (one commit,
+ *  an empty .checkpoints/), like ~/deftwright-site-worktrees/<wt>. */
+function otherRepo(rel) {
+  const home = mkdtempSync(join(tmpdir(), "oc-hygiene-home-"));
+  scratch.push(home);
+  const root = join(home, rel);
+  mkdirSync(root, { recursive: true });
+  git(["init", "-q", "-b", "main"], root);
+  git(["config", "user.email", "t@t"], root);
+  git(["config", "user.name", "t"], root);
+  writeFileSync(join(root, "README.md"), "other\n");
+  git(["add", "-A"], root);
+  git(["-c", "core.hooksPath=/dev/null", "commit", "-qm", "init"], root);
+  mkdirSync(join(root, ".checkpoints"));
+  return { home, root };
 }
 
 function candidateOf(root) {
@@ -330,5 +347,112 @@ describe.skipIf(!hasJq)("checkpoint-hygiene Stop hook", () => {
     const r = runHook(p);
     expect(r.code).toBe(0);
     expect(r.stdout).toBe("");
+  });
+
+  // 2026-10-22: a session in an opchain worktree ran five skills against a Deftwright
+  // worktree with `cd ~/deftwright-site-worktrees/<wt> && …`, and their checkpoints
+  // landed in that repo's .checkpoints/. `~` was absolutized against the session cwd,
+  // so the hook blocked twice demanding opchain checkpoints for all five.
+  it("skills that worked in another repo via `cd ~/…` are never asked for a checkpoint here (2026-10-22)", () => {
+    const p = project();
+    const other = otherRepo("deftwright-site-worktrees/wt");
+    const skills = ["oc-app-architect", "oc-bug-check", "oc-code-auditor", "oc-git-ops", "oc-ux-engineer"];
+    transcript(p, [
+      ...skills.map((s) => skillCall(T0, p.root, `opchain:${s}`)),
+      bashCall(T1, p.root, "cd ~/deftwright-site-worktrees/wt && npm test"),
+      bashCall(T1, p.root, "cd ~/deftwright-site-worktrees/wt && git add -A && git commit -m wip"),
+      bashCall(T1, p.root, `cd ~/deftwright-site-worktrees/wt && OPCHAIN_ROOT=$PWD node ${REPO}/scripts/checkpoint.mjs update oc-git-ops --status=complete`),
+    ]);
+    const r = runHook(p, { sessionId: "cross-repo", home: other.home });
+    expect(r.code).toBe(0);
+    expect(r.stdout).toBe("");
+    expect(r.stderr).toBe("");
+    const marker = JSON.parse(readFileSync(r.marker, "utf8"));
+    for (const s of skills) expect(marker.skills[s].repos).toEqual([realpathSync(other.root)]);
+    expect(readdirSync(join(p.root, ".checkpoints"))).toEqual([]);
+  });
+
+  it("a skill that worked here and elsewhere is satisfied by a current-run checkpoint in the other repo", () => {
+    const p = project();
+    const other = otherRepo("deftwright-site-worktrees/wt");
+    transcript(p, [
+      skillCall(T0, p.root, "oc-code-auditor"),
+      bashCall(T1, p.root, "cd ~/deftwright-site-worktrees/wt && npm run lint"),
+      // Unrelated work in this repo later in the same session.
+      writeCall(T1, p.root, join(p.root, "docs", "notes.md")),
+    ]);
+    const missing = runHook(p, { sessionId: "both-missing", home: other.home });
+    expect(missing.decision?.decision).toBe("block");
+    expect(missing.decision.reason).toContain(`  - oc-code-auditor (it also worked in ${realpathSync(other.root)}; a current-run checkpoint there satisfies this too)`);
+    expect(missing.decision.reason).toContain("Never copy another project's state into these checkpoints");
+
+    writeFileSync(join(other.root, ".checkpoints", "oc-code-auditor.checkpoint.json"),
+      JSON.stringify(checkpoint("oc-code-auditor", { updated_at: T2, record_updated_at: T2 })));
+    const satisfied = runHook(p, { sessionId: "both-satisfied", home: other.home });
+    expect(satisfied.code).toBe(0);
+    expect(satisfied.stdout).toBe("");
+    expect(existsSync(join(p.root, ".checkpoints", "oc-code-auditor.checkpoint.json"))).toBe(false);
+  });
+
+  it("a gate skill's PASS handoff bound to the other repo's candidate satisfies it; OPCHAIN_ROOT names that repo", () => {
+    const p = project();
+    const other = otherRepo("dw");
+    transcript(p, [
+      skillCall(T0, p.root, "oc-docs-forge"),
+      writeCall(T1, p.root, join(p.root, "README.md")),
+      // The checkpoint CLI run from this repo's cwd, writing the other repo's state.
+      bashCall(T1, p.root, "OPCHAIN_ROOT=~/dw node scripts/checkpoint.mjs handoff oc-docs-forge --policy pr-docs-v1 --verdict PASS"),
+    ]);
+    const handoff = (id) => ({
+      id: `oc-docs-forge-pr-docs-v1-${id.slice(7, 19)}`,
+      contract_version: "1.0",
+      type: "verification.verdict",
+      created_at: BEFORE,
+      verified_at: BEFORE,
+      producer: { skill: "oc-docs-forge", run_id: "fixture" },
+      candidate: { kind: "git_tree_projection", id },
+      payload: { verdict: "PASS", policy: "pr-docs-v1", scope: "fixture" },
+    });
+    const file = join(other.root, ".checkpoints", "oc-docs-forge.checkpoint.json");
+    // record_updated_at predates the invocation, so only the handoff can satisfy it.
+    writeFileSync(file, JSON.stringify(checkpoint("oc-docs-forge", { handoffs: [handoff(candidateOf(p.root).candidate_identity.id)] })));
+    const wrongRepo = runHook(p, { sessionId: "gate-other-wrong", home: other.home });
+    expect(wrongRepo.decision?.decision).toBe("block");
+
+    writeFileSync(file, JSON.stringify(checkpoint("oc-docs-forge", { handoffs: [handoff(candidateOf(other.root).candidate_identity.id)] })));
+    const bound = runHook(p, { sessionId: "gate-other-bound", home: other.home });
+    expect(bound.code).toBe(0);
+    expect(bound.stdout).toBe("");
+  });
+
+  it("relative targets follow the command's own `cd`; unresolvable ones are dropped, never pinned on the session cwd", () => {
+    const p = project();
+    const other = otherRepo("dw");
+    transcript(p, [
+      skillCall(T0, p.root, "oc-git-ops"),
+      bashCall(T1, p.root, "cd ~/dw && git -C . status && cd docs && git -C .. log -1"),
+      bashCall(T1, p.root, 'WT=~/dw; cd "$WT" && git -C . status'),
+      bashCall(T1, p.root, "cd $(git -C ~/dw rev-parse --show-toplevel) && cd -P sub"),
+      bashCall(T1, p.root, "if [ -d ~/dw ]; then cd ~/dw; git -C . status; fi"),
+      bashCall(T1, p.root, "cd -"),
+    ]);
+    const r = runHook(p, { sessionId: "relative", home: other.home });
+    expect(r.code).toBe(0);
+    expect(r.stdout).toBe("");
+    expect(JSON.parse(readFileSync(r.marker, "utf8")).skills["oc-git-ops"].repos).toEqual([realpathSync(other.root)]);
+  });
+
+  it("a Write/Edit path is literal: a `$` in a file name is not a shell variable", () => {
+    const p = project();
+    transcript(p, [skillCall(T0, p.root, "oc-code-auditor"), writeCall(T1, p.root, join(p.root, "app", "routes", "posts.$slug.tsx"))]);
+    expect(runHook(p).decision?.decision).toBe("block");
+  });
+
+  it("`~` expands to $HOME, so `cd ~/<this repo>` is still work here", () => {
+    const p = project();
+    transcript(p, [skillCall(T0, p.root, "oc-code-auditor"), bashCall(T1, "/elsewhere", `cd ~/${basename(p.root)} && npm test`)]);
+    const r = runHook(p, { home: dirname(p.root) });
+    expect(r.decision?.decision).toBe("block");
+    expect(r.decision.reason).toContain("  - oc-code-auditor\n");
   });
 });

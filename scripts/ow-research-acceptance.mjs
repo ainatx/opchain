@@ -93,8 +93,8 @@ const PLAN_WORKSPACE = join(ROOT, "tests", "fixtures", "ow-build-plan", "workspa
 const OW = "opchain-work/";
 const CLOCKS = /^(tool|host-supplied|user-stated|assumed)$/;
 const TEXT = /\.(md|ya?ml|txt|json|csv|html?)$/i;
-/** The released versions a run may have been written by: 1.0.0 (its goldens keep it) and 1.0.1 (the OW-09 follow-ups). */
-const VERSIONS = ["ow-research 1.0.0", "ow-research 1.0.1"];
+/** The released versions a run may have been written by: 1.0.0 (its goldens keep it), 1.0.1 (the OW-09 follow-ups) and 1.0.2 (OW-11 de-scoped). */
+const VERSIONS = ["ow-research 1.0.0", "ow-research 1.0.1", "ow-research 1.0.2"];
 const VERSION = `${VERSIONS.at(-1)} (protocol 1)`;
 const SAME_SESSION = "same-session self-check: the same assistant that wrote these files, applying a checklist; a discipline, not an independent review";
 export const CAPS = { quick: 5, standard: 15, deep: 40 };

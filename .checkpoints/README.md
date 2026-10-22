@@ -167,15 +167,24 @@ exists. After the 2026-10-08 effectiveness audit (I-06) it is scoped:
 - **Repo resolution.** `PROJECT_DIR` is `$CLAUDE_PROJECT_DIR`; without it, the git
   toplevel of the Stop event's cwd, enforced only when that is the checkout the hook
   ships in. A drifted shell cwd never pulls in another checkout.
-- **Work-in-this-repo scoping.** A skill is enforced only if, after its invocation,
-  the transcript shows a Write/Edit/MultiEdit/NotebookEdit `file_path` or a Bash
-  `git -C <dir>` / `cd <dir>` target under `PROJECT_DIR`. Deftwright work done from
-  an opchain worktree no longer blocks.
-- **Current-run evidence.** `record_updated_at`/`updated_at` at or after the
-  invocation. Gate skills (`oc-bug-check`, `oc-docs-forge`, `oc-repo-ops`) are also
-  satisfied by a `handoffs[]` `verification.verdict` PASS bound to the current
+- **Per-repository attribution.** Every tool call after a skill's invocation is
+  attributed to the git repositories it touched: a Write/Edit/MultiEdit/NotebookEdit
+  `file_path`, or a Bash `cd`/`pushd <dir>`, `git -C <dir>` or `OPCHAIN_ROOT=<dir>`
+  target. Bash commands are walked with a running cwd (`cd ~/x && git -C . status`
+  targets `~/x`); `~`, `$HOME` and `$PWD` expand, and any other variable or
+  substitution is dropped rather than resolved against the session cwd. A skill is
+  enforced only when one of its repositories is `PROJECT_DIR`, so Deftwright work
+  done from an opchain worktree never blocks (including `cd ~/deftwright-…`, which
+  blocked until 2026-10-22 because `~` resolved against the cwd).
+- **Current-run evidence, in any repository the skill worked in.**
+  `record_updated_at`/`updated_at` at or after the invocation. Gate skills
+  (`oc-bug-check`, `oc-docs-forge`, `oc-repo-ops`) are also satisfied by a
+  `handoffs[]` `verification.verdict` PASS bound to that repository's current
   candidate (what `checkpoint handoff` writes), or — when the candidate cannot be
-  computed — by a checkpoint mtime newer than the invocation.
+  computed — by a checkpoint mtime newer than the invocation. Evidence in another
+  repository the skill touched satisfies the hook here, and the block reason names
+  those repositories; the hook never asks for a checkpoint in a repository the
+  skill did not touch.
 - **One-shot decline.** The same missing skill set blocks at most twice per session;
   the third Stop prints one stderr note and exits 0. Counts live in
   `$TMPDIR/opchain-hygiene-<session_id>.json`.
