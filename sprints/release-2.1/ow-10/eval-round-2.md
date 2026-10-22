@@ -185,3 +185,31 @@ The misses:
 
 1. **What a negation inside an approval means.** "I approve C-1, not C-2", "Yes, no changes" and "permits its name; no logo": are these approvals of their object, or a decline the checker must refuse? **Recommend: approvals of their object.** The decline guard is scoped to the clause holding the approval verb (M1's fix).
 2. **The O'/Mc surname rule in a never-waived check.** Should a lone `Mc`/`O'` capitalised word count as a person? **Recommend no.** It should count only with a given name, a title or a person slot, so a supplier like "McAllister Pottery Supply" never blocks a client deliverable with no waiver available (m2).
+
+---
+
+## Generator response (fix round for the 8.5 bar, 2026-10-22)
+
+Owner decisions applied: a negation approves its object and the decline guard applies to the clause holding the approval verb ("I approve C-1, not C-2" approves C-1 and declines C-2); a lone O'/Mc word is not a person (a given name, a title or a person slot is needed). The skill text did not change; every edit is in the checker and its tests. This report is kept whole above; the Evaluator's own sets were not read, so the re-score is untuned against them.
+
+**Held-out first.** `tests/ow-draft-heldout-r2.mjs` was written from this report's descriptions and hashed (`5f7a5ce1…`, pinned in `tests/ow-draft-eval-r2.test.js`) before any round-2 rule changed.
+
+| Set | Before (catch · legit) | After |
+|---|---|---|
+| Session approvals, M1 and m1 (36 forms) | 15/19 · 5/17 | 19/19 · 17/17 |
+| People (m2, m3) | 4/5 · 2/6 | 5/5 · 6/6 |
+| Client data (m4) | 3/5 · 5/5 | 5/5 · 5/5 |
+| Our figures, third-party rates (m5) | 5/5 · 0/5 | 5/5 · 5/5 |
+| Free-word guard (m6) | 0/6 · 5/6 | 6/6 · 6/6 |
+| Active content (m7) | 5/5 · 2/5 | 5/5 · 5/5 |
+| Shipped text (m8) | 1/5 · 4/5 | 5/5 · 5/5 |
+| Addressed, RC-03 (capital "Now") | 4/5 · 5/5 | 5/5 · 5/5 |
+
+Round-1 sets re-run: session 17/17 · 14/14, people 5/5 · 5/5 (the person-slot rule was restored after "Ask McAllister" slipped in the first rewrite), the rest unchanged. The Evaluator's `regr.mjs` and round-1 approval scripts (the harness part of the report): every form graded as expected, but the bare "Yes." (decision 2).
+
+**Defects.**
+- **M1:** `sessionApproval` is rewritten around `approvedClause`: scope phrases are stripped, the verb clause is the unit, later clauses that make it conditional and a next sentence that takes it back count, and a clause naming another candidate, file or permission approves nothing for this record. The brief is graded on its yes clause. The waiver is graded per sentence. All 12 legitimate forms and the 5 must-fail forms are plants, plus the three false positives from `appr2.mjs` (the user's own "happy to sign it off" and "approved by me"; the client's "said yes to C-1").
+- **m1:** a `repo` kind against the session.
+- **m2:** the lone O'/Mc word; **m3:** titles no longer end a sentence, `Ó`/`Ní`/`Nic`, a role stoplist; **m4:** passport numbers; **m5:** a named third party's rate; **m6:** the claim words and "recorded by -signoff"; **m7:** prose braces; **m8:** the paraphrases, "Face book", "in Outlook", "keep an eye on" only as a promise; **m9:** a client approval dated before the candidate's freeze.
+- **Nit:** the PowerPoint real-binary test now calls `ctx.skip()`, as the PDF and Word tests do.
+- **RC-03's "use the rate card…":** held; the capital "Now" form is now caught.

@@ -166,8 +166,8 @@ describe("C9, C15: the deck and the sheet through ow-tools' own code", () => {
     writeFileSync(join(dir, "quarterly-review.md"), cf);
     expect(preflight(cf, join(dir, "quarterly-review.md")).problems ?? []).toEqual([]);
   });
-  it("design §11 Deck, real binary: a six-H2 client form exports to a six-slide PPTX (skips honestly without pandoc)", () => {
-    if (spawnSync("pandoc", ["--version"]).status !== 0) { console.log("skipped: no pandoc on this machine; the Node-only deck rules above carry it"); return; }
+  it("design §11 Deck, real binary: a six-H2 client form exports to a six-slide PPTX (skips honestly without pandoc)", (ctx) => {
+    if (spawnSync("pandoc", ["--version"]).status !== 0) { ctx.skip(); return; }
     const run = runView("l-freeze-deck");
     const dir = temp("ow-draft-pptx-");
     writeFileSync(join(dir, "quarterly-review.md"), run.read("opchain-work/drafts/larkspur-ceramics/DR-01-quarterly-review/candidates/C-1/quarterly-review.md"));
