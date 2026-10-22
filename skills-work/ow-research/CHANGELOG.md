@@ -2,6 +2,15 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). The family's v2.1.0 release entry cites each skill's version. Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
+## 1.0.2 (2026-10-22): ow-vendor-eval moves to v2.2
+
+Owner decision of 2026-10-22: ow-vendor-eval leaves v2.1.0 for v2.2, handled the way ow-currency was on 2026-10-19.
+
+- **The vendor-evaluation hand-off is gone for now.** An answered topic that serves a vendor evaluation prints the same `NEXT: none` block as the user's own decision: no NEXT line promises `/ow-vendor-eval-evidence`, and `skill.edges.yaml` has no `ow-vendor-eval` hand-off row or `say:` line. The STATUS line for it reads `next: none (closed: answered, RS-nn) | awaiting: none`. `serves: vendor-eval` stays a valid `question.md` value.
+- The inbound line in `references/routing-and-resume.md` no longer lists ow-vendor-eval as a source of `use ow-research`.
+- **The hand-off returns with ow-vendor-eval in v2.2**, with its NEXT template and edges row, as ow-currency's will.
+- Data edits in the same PR: the acceptance checker accepts `ow-research 1.0.2` in STATUS lines and `written_by` (the goldens keep 1.0.1), the tests and text pins carry the new version and the absent hand-off, and the `route-vendor-eval` fixture's comment says the skill is planned.
+
 ## 1.0.1 (2026-10-19): the follow-ups from the second evaluation and the security closure
 
 From the second evaluation report (`sprints/release-2.1/ow-09/eval-round-2.md`, passed at 7.4 under the owner's evaluation cap) and the security closure (`docs/audits/2026-10-17-ow-research-1.0-security-review.md`), taken in one follow-up PR.

@@ -12,7 +12,7 @@ should_trigger:
   - "Where did I leave off with my research topics?"
 should_not_trigger:
   - "Draft the client update email from these findings."                    # a draft: ow-draft
-  - "Score these three vendors on our shortlist and recommend one."         # a vendor shortlist score: ow-vendor-eval
+  - "Score these three vendors on our shortlist and recommend one."         # a vendor shortlist score: ow-vendor-eval (v2.2)
   - "Is our control register current with the latest framework revisions?"  # a currency check: ow-currency
   - "Write the Build Plan scope for Acme."                                  # ow-build-plan
   - "Summarise this PDF I attached."                                        # a plain summary, no research trail
