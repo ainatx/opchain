@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": ".",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-ac31c154410b8a429",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-22T17:07:51.983Z",
+  "updated_at": "2026-10-22T18:29:59.800Z",
   "skill": "oc-repo-ops",
-  "phase": "pr-verify",
+  "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-checkpoint-hygiene-cross-repo",
-  "progress_summary": "PR readiness PASS for the checkpoint-hygiene cross-repo attribution fix (#645) after merging main @ddc3738b (HEAD f6a21b748d1b6423082cf755a0fd8f5b3025522c). Docs Forge packet current to HEAD; this PR's diff touches only the Stop hook, its vitest suite and .checkpoints/README.md, so no catalog, generated or plugin surface is affected. No untracked files. Merge commit's candidate tree 017859df verified PASS by the commit gate.",
+  "step": "pr-ow06-ow-handoff",
+  "progress_summary": "OW-06 PR 2 readiness PASS at 74ff5ef8: catalog, contracts and internal-ref checks green, every ow- acceptance script green, full suite (160 files, 9,420 tests) and build green, merge of origin/main 08aef891 resolved keeping both sides.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -23,24 +23,25 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [],
+    "warnings": [
+      "ow-handoff is in no build output yet, by the ow- catalog's design (no plugin, zip, docs tree, flag registry, hosted MCP catalog or mirror)",
+      "O12 sibling stand-in swaps, the shared approval module and the name-recall gaps are stated open in the PR body"
+    ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "f6a21b748d1b6423082cf755a0fd8f5b3025522c",
+    "verified_for_sha": "74ff5ef82d224b201bc082bded1bbcc3c8d8fe99",
     "last_verify": {
-      "at": "2026-10-22T17:07:51Z",
-      "branch": "claude/competent-raman-864dee",
-      "base": "origin/main@ddc3738b",
+      "at": "2026-10-22T18:29:59.800Z",
+      "branch": "claude/ow-06-ow-handoff",
+      "base": "origin/main@08aef891",
       "verdict": "PASS",
       "blocking_findings": []
     }
   },
-  "next_actions": [
-    "#645 auto-merges once checks pass."
-  ],
+  "next_actions": [],
   "handoffs": [
     {
       "id": "oc-repo-ops-release-f6b167fcbd3a",
@@ -2400,8 +2401,40 @@
           ".claude/hooks/checkpoint-hygiene.sh"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-ow06-ow-handoff-8cb73d14ad9b",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-22T18:29:59.800Z",
+      "verified_at": "2026-10-22T18:29:59.800Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-ow06-ow-handoff"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:8cb73d14ad9bfbba0f05d27b7c19133b9335ac86f9e7a510029c8c711bfb1636"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/ow-06-ow-handoff at 74ff5ef8 on origin/main 08aef891. Nothing under skills/, plugins/ (outside the ow-tools test), site/ or src/ changes, so no oc- catalog, bundle, plugin or release-surface output changes (byte-identity of the oc- build outputs checked in evaluation round 1). catalogs.json and skills-work/README.md conflicts resolved keeping both intents: ow-handoff built, ow-research 1.0.2, ow-vendor-eval planned with no declared verb, ow-draft and ow-care planned. Candidate verifier PASS on the merge commit's tree.",
+        "evidence": [
+          "skills-work/ow-handoff/SKILL.md",
+          "skills-work/ow-handoff/references/",
+          "skills-work/ow-handoff/CHANGELOG.md",
+          "skills-work/README.md",
+          "tests/fixtures/ow-handoff/README.md",
+          "docs/plans/2026-10-08-ow-handoff-design.md",
+          "docs/audits/2026-10-21-ow-handoff-1.0-security-review.md",
+          "sprints/release-2.1/ow-06/eval-round-1.md",
+          "sprints/release-2.1/ow-06/eval-round-2.md",
+          "CLAUDE.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-22T17:07:51.983Z",
+  "record_updated_at": "2026-10-22T18:29:59.800Z",
   "blockers": []
 }
