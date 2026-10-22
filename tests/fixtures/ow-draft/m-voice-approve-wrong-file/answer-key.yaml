@@ -1,0 +1,17 @@
+# INVENTED. C21: an approval that names no file is refused
+case: m-voice-approve-wrong-file
+base: m-voice
+verbs: /ow-draft-voice --approve
+today: '2026-10-23'
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+status:
+  lines: []
+next: []
+refused:
+  reason: refuses
+section: 'C21: an approval that names no file is refused'

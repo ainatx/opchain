@@ -1,0 +1,22 @@
+# INVENTED. C22: /ow-draft-brief --permission <client> cut after status, resumed
+case: b-permission-name-cut-status
+base: b-freeze-case
+verbs: /ow-draft-brief --permission
+draft: drafts/business/DR-01-case-study
+today: '2026-10-28'
+status:
+  lines: []
+next: []
+resume:
+  key: /ow-draft-brief --permission <client>
+  cut_after: status
+  recorded: []
+refused:
+  reason: finished already
+checks:
+  - writes
+  - status
+  - screen
+  - resume
+  - refused
+section: 'C22: /ow-draft-brief --permission <client> cut after status, resumed'

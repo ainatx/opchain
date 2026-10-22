@@ -1,0 +1,22 @@
+# INVENTED. C22: /ow-draft-brief <ws> cut after status, resumed
+case: b-brief-case-cut-status
+base: b-voice-marketing-approve
+verbs: /ow-draft-brief
+draft: drafts/business/DR-01-case-study
+today: '2026-10-27'
+status:
+  lines: []
+next: []
+resume:
+  key: /ow-draft-brief <ws>
+  cut_after: status
+  recorded: []
+refused:
+  reason: finished already
+checks:
+  - writes
+  - status
+  - screen
+  - resume
+  - refused
+section: 'C22: /ow-draft-brief <ws> cut after status, resumed'

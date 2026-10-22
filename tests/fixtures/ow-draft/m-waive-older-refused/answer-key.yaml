@@ -1,0 +1,19 @@
+# INVENTED. C12: a waiver for C-1 is not used on C-2
+case: m-waive-older-refused
+base: m-freeze-2
+verbs: /ow-draft-freeze --waive
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-27'
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+status:
+  lines: []
+next: []
+refused:
+  reason: refuses
+client: Mossgate Books
+section: 'C12: a waiver for C-1 is not used on C-2'

@@ -1,0 +1,17 @@
+# INVENTED. C4: /ow-draft on ow-research's findings with one open draft routes to -evidence
+case: f-on-findings
+base: m-brief
+verbs: /ow-draft on
+today: '2026-10-23'
+'on': research/mossgate-books/RS-01-order-record-retention/findings.md
+status:
+  lines: []
+next: []
+client: Mossgate Books
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - folder
+section: 'C4: /ow-draft on ow-research''s findings with one open draft routes to -evidence'

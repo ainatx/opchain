@@ -1,0 +1,23 @@
+# INVENTED. C6: client comms, in the client's own voice
+case: l-brief-comms
+base: l-voice-larkspur-approve
+verbs: /ow-draft-brief
+draft: drafts/larkspur-ceramics/DR-03-email-orders-announcement
+today: '2026-10-30'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - brief
+status:
+  lines:
+    - path: drafts/larkspur-ceramics/DR-03-email-orders-announcement/brief.md
+      next: ow-draft /ow-draft-evidence drafts/larkspur-ceramics/DR-03-email-orders-announcement/
+      awaiting: none
+next:
+  - use ow-draft-evidence on drafts/larkspur-ceramics/DR-03-email-orders-announcement/
+client: Larkspur Ceramics
+section: 'C6: client comms, in the client''s own voice'

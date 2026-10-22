@@ -1,0 +1,23 @@
+# INVENTED. C6: a sheet brief
+case: l-brief-sheet
+base: l-deliver-deck
+verbs: /ow-draft-brief
+draft: drafts/larkspur-ceramics/DR-02-cost-comparison
+today: '2026-10-29'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - brief
+status:
+  lines:
+    - path: drafts/larkspur-ceramics/DR-02-cost-comparison/brief.md
+      next: ow-draft /ow-draft-evidence drafts/larkspur-ceramics/DR-02-cost-comparison/
+      awaiting: none
+next:
+  - use ow-draft-evidence on drafts/larkspur-ceramics/DR-02-cost-comparison/
+client: Larkspur Ceramics
+section: 'C6: a sheet brief'

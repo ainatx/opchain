@@ -1,0 +1,22 @@
+# INVENTED. C5: a client's voice from the client's own published writing
+case: l-voice-larkspur
+base: l-deliver-deck
+verbs: /ow-draft-voice
+today: '2026-10-29'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - voice
+  - approvals
+status:
+  lines:
+    - path: voices/client-larkspur.md
+      next: ow-draft /ow-draft-voice voices/client-larkspur.md
+      awaiting: none
+next:
+  - use ow-draft-voice --approve client-larkspur
+section: 'C5: a client''s voice from the client''s own published writing'

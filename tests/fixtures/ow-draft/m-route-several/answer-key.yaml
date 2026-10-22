@@ -1,0 +1,23 @@
+# INVENTED. C4: several open drafts: ask which
+case: m-route-several
+base: m-write
+verbs: /ow-draft-evidence
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-26'
+route:
+  say: use ow-draft-evidence on research/mossgate-books/RS-02-approval-records/findings.md
+  expect: ask
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+  - route
+status:
+  lines: []
+next: []
+refused:
+  reason: refuses
+client: Mossgate Books
+section: 'C4: several open drafts: ask which'

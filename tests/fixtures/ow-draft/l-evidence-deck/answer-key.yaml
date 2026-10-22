@@ -1,0 +1,23 @@
+# INVENTED. C8, O6: named family files (a decision, meeting notes, the plan's map) cited by path with their ow_artefact
+case: l-evidence-deck
+base: l-brief-deck
+verbs: /ow-draft-evidence
+draft: drafts/larkspur-ceramics/DR-01-quarterly-review
+today: '2026-10-27'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - evidence
+status:
+  lines:
+    - path: drafts/larkspur-ceramics/DR-01-quarterly-review/evidence.md
+      next: ow-draft /ow-draft-write drafts/larkspur-ceramics/DR-01-quarterly-review/
+      awaiting: none
+next:
+  - use ow-draft-write on drafts/larkspur-ceramics/DR-01-quarterly-review/
+client: Larkspur Ceramics
+section: 'C8, O6: named family files (a decision, meeting notes, the plan''s map) cited by path with their ow_artefact'

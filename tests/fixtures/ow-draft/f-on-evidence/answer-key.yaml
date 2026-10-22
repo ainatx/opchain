@@ -1,0 +1,17 @@
+# INVENTED. C4: /ow-draft on a draft folder at the evidence stage routes to -write
+case: f-on-evidence
+base: m-route-evidence
+verbs: /ow-draft on
+today: '2026-10-24'
+'on': drafts/mossgate-books/DR-01-order-record-retention/
+status:
+  lines: []
+next: []
+client: Mossgate Books
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - folder
+section: 'C4: /ow-draft on a draft folder at the evidence stage routes to -write'

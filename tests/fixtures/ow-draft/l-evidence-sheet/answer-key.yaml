@@ -1,0 +1,23 @@
+# INVENTED. C10, O10: a sum through ow-tools calc total, its items file written by -evidence
+case: l-evidence-sheet
+base: l-brief-sheet
+verbs: /ow-draft-evidence
+draft: drafts/larkspur-ceramics/DR-02-cost-comparison
+today: '2026-10-29'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - evidence
+status:
+  lines:
+    - path: drafts/larkspur-ceramics/DR-02-cost-comparison/evidence.md
+      next: ow-draft /ow-draft-write drafts/larkspur-ceramics/DR-02-cost-comparison/
+      awaiting: none
+next:
+  - use ow-draft-write on drafts/larkspur-ceramics/DR-02-cost-comparison/
+client: Larkspur Ceramics
+section: 'C10, O10: a sum through ow-tools calc total, its items file written by -evidence'

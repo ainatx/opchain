@@ -1,0 +1,27 @@
+# INVENTED. C12: a waiver of a check that may be waived, appended, naming check, candidate and reason
+case: m-waive-sources
+base: m-freeze-stale
+verbs: /ow-draft-freeze --waive
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-26'
+expect:
+  waived:
+    - Sources
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - checks_file
+  - approvals
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/checks/C-1.md
+      next: ow-draft /ow-draft-signoff drafts/mossgate-books/DR-01-order-record-retention/
+      awaiting: your sign-off of C-1 by 2026-11-06
+next:
+  - use ow-draft-signoff C-1 on drafts/mossgate-books/DR-01-order-record-retention/
+client: Mossgate Books
+section: 'C12: a waiver of a check that may be waived, appended, naming check, candidate and reason'

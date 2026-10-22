@@ -1,0 +1,27 @@
+# INVENTED. C11, C12: the candidate, its client form, digests and the ten checks; design §11 Candidate
+case: m-freeze
+base: m-write
+verbs: /ow-draft-freeze
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-24'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - candidate
+  - checks_file
+  - self_checks
+  - draft
+  - internal_numbers
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/checks/C-1.md
+      next: ow-draft /ow-draft-signoff drafts/mossgate-books/DR-01-order-record-retention/
+      awaiting: your sign-off of C-1 by 2026-11-06
+next:
+  - use ow-draft-signoff C-1 on drafts/mossgate-books/DR-01-order-record-retention/
+client: Mossgate Books
+section: 'C11, C12: the candidate, its client form, digests and the ten checks; design §11 Candidate'

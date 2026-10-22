@@ -1,0 +1,23 @@
+# INVENTED. C22: /ow-draft-write cut after status, resumed
+case: m-write-cut-status
+base: m-route-evidence
+verbs: /ow-draft-write
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-24'
+status:
+  lines: []
+next: []
+resume:
+  key: /ow-draft-write
+  cut_after: status
+  recorded: []
+client: Mossgate Books
+refused:
+  reason: finished already
+checks:
+  - writes
+  - status
+  - screen
+  - resume
+  - refused
+section: 'C22: /ow-draft-write cut after status, resumed'

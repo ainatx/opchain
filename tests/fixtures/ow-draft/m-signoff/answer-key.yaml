@@ -1,0 +1,23 @@
+# INVENTED. C13: your sign-off of C-1, naming its digests
+case: m-signoff
+base: m-freeze
+verbs: /ow-draft-signoff
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-25'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - signoff
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/signoff.md
+      next: ow-draft /ow-draft-deliver drafts/mossgate-books/DR-01-order-record-retention/
+      awaiting: delivery of C-1 by 2026-11-06
+next:
+  - use ow-draft-deliver on drafts/mossgate-books/DR-01-order-record-retention/
+client: Mossgate Books
+section: 'C13: your sign-off of C-1, naming its digests'

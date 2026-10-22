@@ -1,0 +1,40 @@
+ow_artefact: ow-draft/deliveries
+schema: 1
+written_by: ow-draft 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: drafts/larkspur-ceramics/DR-03-email-orders-announcement/signoff.md
+created: '2026-10-31'
+clock: tool
+origin: skill
+deliveries:
+  - candidate: C-1
+    steps:
+      - match
+      - export
+      - repo
+      - confirm
+      - push
+    date: '2026-10-31'
+    match:
+      command: ow-tools digest drafts/larkspur-ceramics/DR-03-email-orders-announcement/candidates/C-1.md
+      output: equal
+      equal: 'yes'
+    handling:
+      level: client confidential
+      from:
+        - 'intake/larkspur-ceramics/intake.yaml: client confidential'
+        - 'profile.md: no'
+    export_tool: ow-tools 1.2.0
+    exports:
+      - source: candidates/C-1/email-orders-announcement.md
+        files:
+          - export/C-1/email-orders-announcement.html
+          - export/C-1/email-orders-announcement.txt
+        command: none (written by this skill)
+    export_ignored: not a repository
+    repo: none
+    push_confirmation: none
+    pushes: []
+    says: []
+    embedded: []
+    note: This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.

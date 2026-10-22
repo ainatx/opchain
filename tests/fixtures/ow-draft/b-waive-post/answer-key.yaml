@@ -1,0 +1,26 @@
+# INVENTED. O5 (b): a No internal numbers waiver names each figure as written and the reason; that candidate only
+case: b-waive-post
+base: b-freeze-post
+verbs: /ow-draft-freeze --waive
+draft: drafts/business/DR-02-care-plans-post
+today: '2026-10-30'
+expect:
+  waived:
+    - No internal numbers
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - checks_file
+  - approvals
+status:
+  lines:
+    - path: drafts/business/DR-02-care-plans-post/checks/C-1.md
+      next: ow-draft /ow-draft-signoff drafts/business/DR-02-care-plans-post/
+      awaiting: your sign-off of C-1 by 2026-11-20
+next:
+  - use ow-draft-signoff C-1 on drafts/business/DR-02-care-plans-post/
+section: 'O5 (b): a No internal numbers waiver names each figure as written and the reason; that candidate only'

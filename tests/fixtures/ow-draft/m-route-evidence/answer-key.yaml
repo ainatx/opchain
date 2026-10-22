@@ -1,0 +1,39 @@
+# INVENTED. D1 Downstream test: -evidence reads findings.md and cites F-nn with their source URLs and retrieved dates; C8; the round-figure ask
+case: m-route-evidence
+base: m-brief
+verbs: /ow-draft-evidence
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-23'
+expect:
+  open_questions:
+    - 'Whether a later amendment changed the period: the official page says it is current through the 2026 regular session — would settle it: the official text checked again after the next session.'
+  items:
+    - E-01
+    - E-02
+    - E-03
+  round:
+    - item: E-03
+      figure: '4000'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - evidence
+  - route
+  - approvals
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/evidence.md
+      next: ow-draft /ow-draft-write drafts/mossgate-books/DR-01-order-record-retention/
+      awaiting: none
+next:
+  - use ow-draft-write on drafts/mossgate-books/DR-01-order-record-retention/
+client: Mossgate Books
+route:
+  say: use ow-draft-evidence on research/mossgate-books/RS-01-order-record-retention/findings.md
+  expect: /ow-draft-evidence
+  path: research/mossgate-books/RS-01-order-record-retention/findings.md
+section: 'D1 Downstream test: -evidence reads findings.md and cites F-nn with their source URLs and retrieved dates; C8; the round-figure ask'

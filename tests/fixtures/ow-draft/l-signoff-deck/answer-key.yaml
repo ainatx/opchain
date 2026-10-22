@@ -1,0 +1,23 @@
+# INVENTED. C13: the deck signed off
+case: l-signoff-deck
+base: l-freeze-deck
+verbs: /ow-draft-signoff
+draft: drafts/larkspur-ceramics/DR-01-quarterly-review
+today: '2026-10-28'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - signoff
+status:
+  lines:
+    - path: drafts/larkspur-ceramics/DR-01-quarterly-review/signoff.md
+      next: ow-draft /ow-draft-deliver drafts/larkspur-ceramics/DR-01-quarterly-review/
+      awaiting: delivery of C-1 by 2026-11-13
+next:
+  - use ow-draft-deliver on drafts/larkspur-ceramics/DR-01-quarterly-review/
+client: Larkspur Ceramics
+section: 'C13: the deck signed off'

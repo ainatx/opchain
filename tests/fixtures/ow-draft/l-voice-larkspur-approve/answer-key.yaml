@@ -1,0 +1,22 @@
+# INVENTED. C5: the client's voice approved with the client's approval as reported
+case: l-voice-larkspur-approve
+base: l-voice-larkspur
+verbs: /ow-draft-voice --approve
+today: '2026-10-29'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - voice
+  - approvals
+status:
+  lines:
+    - path: voices/client-larkspur.md
+      next: ow-draft on drafts/
+      awaiting: none
+next:
+  - use ow-draft
+section: 'C5: the client''s voice approved with the client''s approval as reported'

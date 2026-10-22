@@ -1,0 +1,23 @@
+# INVENTED. C8: named files
+case: l-evidence-comms
+base: l-brief-comms
+verbs: /ow-draft-evidence
+draft: drafts/larkspur-ceramics/DR-03-email-orders-announcement
+today: '2026-10-30'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - evidence
+status:
+  lines:
+    - path: drafts/larkspur-ceramics/DR-03-email-orders-announcement/evidence.md
+      next: ow-draft /ow-draft-write drafts/larkspur-ceramics/DR-03-email-orders-announcement/
+      awaiting: none
+next:
+  - use ow-draft-write on drafts/larkspur-ceramics/DR-03-email-orders-announcement/
+client: Larkspur Ceramics
+section: 'C8: named files'

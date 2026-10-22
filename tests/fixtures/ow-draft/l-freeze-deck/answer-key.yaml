@@ -1,0 +1,26 @@
+# INVENTED. Design §11 Deck: five content slides plus the Sources slide in the client form
+case: l-freeze-deck
+base: l-write-deck
+verbs: /ow-draft-freeze
+draft: drafts/larkspur-ceramics/DR-01-quarterly-review
+today: '2026-10-28'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - candidate
+  - checks_file
+  - self_checks
+  - draft
+status:
+  lines:
+    - path: drafts/larkspur-ceramics/DR-01-quarterly-review/checks/C-1.md
+      next: ow-draft /ow-draft-signoff drafts/larkspur-ceramics/DR-01-quarterly-review/
+      awaiting: your sign-off of C-1 by 2026-11-13
+next:
+  - use ow-draft-signoff C-1 on drafts/larkspur-ceramics/DR-01-quarterly-review/
+client: Larkspur Ceramics
+section: 'Design §11 Deck: five content slides plus the Sources slide in the client form'

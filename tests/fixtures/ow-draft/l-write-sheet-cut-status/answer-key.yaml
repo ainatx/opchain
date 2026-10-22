@@ -1,0 +1,23 @@
+# INVENTED. C22: /ow-draft-write cut after status, resumed
+case: l-write-sheet-cut-status
+base: l-evidence-sheet
+verbs: /ow-draft-write
+draft: drafts/larkspur-ceramics/DR-02-cost-comparison
+today: '2026-10-29'
+status:
+  lines: []
+next: []
+resume:
+  key: /ow-draft-write
+  cut_after: status
+  recorded: []
+client: Larkspur Ceramics
+refused:
+  reason: finished already
+checks:
+  - writes
+  - status
+  - screen
+  - resume
+  - refused
+section: 'C22: /ow-draft-write cut after status, resumed'

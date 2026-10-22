@@ -1,0 +1,23 @@
+# INVENTED. C6: a deck brief, files only
+case: l-brief-deck
+base: m-voice-approve
+verbs: /ow-draft-brief
+draft: drafts/larkspur-ceramics/DR-01-quarterly-review
+today: '2026-10-27'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - brief
+status:
+  lines:
+    - path: drafts/larkspur-ceramics/DR-01-quarterly-review/brief.md
+      next: ow-draft /ow-draft-evidence drafts/larkspur-ceramics/DR-01-quarterly-review/
+      awaiting: none
+next:
+  - use ow-draft-evidence on drafts/larkspur-ceramics/DR-01-quarterly-review/
+client: Larkspur Ceramics
+section: 'C6: a deck brief, files only'

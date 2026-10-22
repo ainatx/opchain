@@ -1,0 +1,21 @@
+# INVENTED. C15, C17: a post as text and Markdown; the say: line with client files only
+case: b-deliver-post
+base: b-signoff-post
+verbs: /ow-draft-deliver
+draft: drafts/business/DR-02-care-plans-post
+today: '2026-10-31'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - deliver
+status:
+  lines:
+    - path: drafts/business/DR-02-care-plans-post/deliveries.yaml
+      next: 'none (closed: delivered C-1)'
+      awaiting: none
+next: []
+section: 'C15, C17: a post as text and Markdown; the say: line with client files only'

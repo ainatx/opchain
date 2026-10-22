@@ -1,0 +1,23 @@
+# INVENTED. C22: /ow-draft-freeze --waive <check> <C-n> cut after status, resumed
+case: m-waive-sources-cut-status
+base: m-freeze-stale
+verbs: /ow-draft-freeze --waive
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-26'
+status:
+  lines: []
+next: []
+resume:
+  key: /ow-draft-freeze --waive <check> <C-n>
+  cut_after: status
+  recorded: []
+client: Mossgate Books
+refused:
+  reason: finished already
+checks:
+  - writes
+  - status
+  - screen
+  - resume
+  - refused
+section: 'C22: /ow-draft-freeze --waive <check> <C-n> cut after status, resumed'

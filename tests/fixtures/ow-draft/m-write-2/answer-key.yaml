@@ -1,0 +1,23 @@
+# INVENTED. C9: a write after a freeze changes only the draft; candidates stay
+case: m-write-2
+base: m-signoff
+verbs: /ow-draft-write
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-27'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - draft
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/draft.md
+      next: ow-draft /ow-draft-freeze drafts/mossgate-books/DR-01-order-record-retention/
+      awaiting: none
+next:
+  - use ow-draft-freeze on drafts/mossgate-books/DR-01-order-record-retention/
+client: Mossgate Books
+section: 'C9: a write after a freeze changes only the draft; candidates stay'

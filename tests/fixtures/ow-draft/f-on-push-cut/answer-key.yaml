@@ -1,0 +1,17 @@
+# INVENTED. C4: /ow-draft on a draft folder with a push cut off routes to -deliver, which asks about it
+case: f-on-push-cut
+base: m-deliver-push-cut
+verbs: /ow-draft on
+today: '2026-10-27'
+'on': drafts/mossgate-books/DR-01-order-record-retention/
+status:
+  lines: []
+next: []
+client: Mossgate Books
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - folder
+section: 'C4: /ow-draft on a draft folder with a push cut off routes to -deliver, which asks about it'

@@ -1,0 +1,36 @@
+# INVENTED. C22: /ow-draft-voice <id> cut after samples, resumed
+case: m-voice-cut-samples
+world:
+  - studio
+upstream:
+  research:
+    - run-regulations
+    - run-business
+  logs:
+    - logs-decision-from-meeting
+    - logs-larkspur-checkin
+    - logs-decision-business-review
+  plan:
+    - accepted-signed
+verbs: /ow-draft-voice
+today: '2026-10-23'
+status:
+  lines:
+    - path: voices/client.md
+      next: ow-draft /ow-draft-voice voices/client.md
+      awaiting: none
+next:
+  - use ow-draft-voice --approve client
+resume:
+  key: /ow-draft-voice <id>
+  cut_after: samples
+  next_step: draft
+  recorded: []
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - resume
+section: 'C22: /ow-draft-voice <id> cut after samples, resumed'

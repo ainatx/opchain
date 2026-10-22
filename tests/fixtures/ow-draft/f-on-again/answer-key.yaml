@@ -1,0 +1,22 @@
+# INVENTED. C22: /ow-draft on a path run again prints the same screen and writes nothing
+case: f-on-again
+base: m-signoff
+verbs: /ow-draft on
+today: '2026-10-25'
+'on': drafts/mossgate-books/DR-01-order-record-retention/
+status:
+  lines: []
+next: []
+resume:
+  key: /ow-draft on <path>
+  cut_after: screen
+  recorded: []
+client: Mossgate Books
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - folder
+  - resume
+section: 'C22: /ow-draft on a path run again prints the same screen and writes nothing'

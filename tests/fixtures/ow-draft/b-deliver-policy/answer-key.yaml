@@ -1,0 +1,21 @@
+# INVENTED. C15, design §11 Private names: files only, the public default
+case: b-deliver-policy
+base: b-signoff-policy
+verbs: /ow-draft-deliver
+draft: drafts/business/DR-03-tool-renewal-policy
+today: '2026-11-02'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - deliver
+status:
+  lines:
+    - path: drafts/business/DR-03-tool-renewal-policy/deliveries.yaml
+      next: 'none (closed: delivered C-1)'
+      awaiting: none
+next: []
+section: 'C15, design §11 Private names: files only, the public default'

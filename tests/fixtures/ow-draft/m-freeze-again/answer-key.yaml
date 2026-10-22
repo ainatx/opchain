@@ -1,0 +1,20 @@
+# INVENTED. C11: a draft equal to the newest candidate is a no-op
+case: m-freeze-again
+base: m-freeze
+verbs: /ow-draft-freeze
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-25'
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+status:
+  lines: []
+next:
+  - use ow-draft-signoff C-1 on drafts/mossgate-books/DR-01-order-record-retention/
+refused:
+  reason: refuses
+client: Mossgate Books
+section: 'C11: a draft equal to the newest candidate is a no-op'

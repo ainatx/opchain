@@ -1,0 +1,26 @@
+# INVENTED. C22: /ow-draft-deliver cut after confirm, resumed
+case: m-deliver-connector-cut-confirm
+base: m-signoff
+verbs: /ow-draft-deliver
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-26'
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/deliveries.yaml
+      next: 'none (closed: delivered C-1)'
+      awaiting: none
+next: []
+resume:
+  key: /ow-draft-deliver
+  cut_after: confirm
+  next_step: push
+  recorded: []
+client: Mossgate Books
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - resume
+section: 'C22: /ow-draft-deliver cut after confirm, resumed'

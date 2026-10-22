@@ -1,0 +1,28 @@
+# INVENTED. C22: /ow-draft-freeze --waive <check> <C-n> cut after waive, resumed
+case: m-waive-sources-cut-waive
+base: m-freeze-stale
+verbs: /ow-draft-freeze --waive
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-26'
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/checks/C-1.md
+      next: ow-draft /ow-draft-signoff drafts/mossgate-books/DR-01-order-record-retention/
+      awaiting: your sign-off of C-1 by 2026-11-06
+next:
+  - use ow-draft-signoff C-1 on drafts/mossgate-books/DR-01-order-record-retention/
+resume:
+  key: /ow-draft-freeze --waive <check> <C-n>
+  cut_after: waive
+  next_step: status
+  recorded:
+    - opchain-work/drafts/mossgate-books/DR-01-order-record-retention/checks/C-1.md
+client: Mossgate Books
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - resume
+section: 'C22: /ow-draft-freeze --waive <check> <C-n> cut after waive, resumed'

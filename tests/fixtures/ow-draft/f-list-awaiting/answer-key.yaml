@@ -1,0 +1,15 @@
+# INVENTED. C4: /ow-draft shows a draft's awaiting field from its newest STATUS line
+case: f-list-awaiting
+base: l-signoff-comms
+verbs: /ow-draft
+today: '2026-10-31'
+status:
+  lines: []
+next: []
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - folder
+section: 'C4: /ow-draft shows a draft''s awaiting field from its newest STATUS line'

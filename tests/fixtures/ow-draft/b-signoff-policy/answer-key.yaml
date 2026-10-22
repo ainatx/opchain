@@ -1,0 +1,22 @@
+# INVENTED. C13
+case: b-signoff-policy
+base: b-freeze-policy
+verbs: /ow-draft-signoff
+draft: drafts/business/DR-03-tool-renewal-policy
+today: '2026-10-31'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - signoff
+status:
+  lines:
+    - path: drafts/business/DR-03-tool-renewal-policy/signoff.md
+      next: ow-draft /ow-draft-deliver drafts/business/DR-03-tool-renewal-policy/
+      awaiting: delivery of C-1 by 2026-11-30
+next:
+  - use ow-draft-deliver on drafts/business/DR-03-tool-renewal-policy/
+section: C13

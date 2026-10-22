@@ -1,0 +1,36 @@
+# INVENTED. C4: ow-research's findings with no open draft (refuse; the brief NEXT names the findings)
+case: m-route-no-brief
+world:
+  - studio
+upstream:
+  research:
+    - run-regulations
+    - run-business
+  logs:
+    - logs-decision-from-meeting
+    - logs-larkspur-checkin
+    - logs-decision-business-review
+  plan:
+    - accepted-signed
+verbs: /ow-draft-evidence
+today: '2026-10-23'
+route:
+  say: use ow-draft-evidence on research/mossgate-books/RS-01-order-record-retention/findings.md
+  expect: refused
+  names:
+    - research/mossgate-books/RS-01-order-record-retention/findings.md
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+  - route
+status:
+  lines: []
+next:
+  - use ow-draft-brief on drafts/mossgate-books/
+refused:
+  reason: refuses
+client: Mossgate Books
+section: 'C4: ow-research''s findings with no open draft (refuse; the brief NEXT names the findings)'
