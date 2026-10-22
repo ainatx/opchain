@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": ".",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-aa6492c3b261c63e8",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-22T17:07:51.983Z",
+  "updated_at": "2026-10-22T17:54:03.711Z",
   "skill": "oc-repo-ops",
-  "phase": "pr-verify",
+  "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-checkpoint-hygiene-cross-repo",
-  "progress_summary": "PR readiness PASS for the checkpoint-hygiene cross-repo attribution fix (#645) after merging main @ddc3738b (HEAD f6a21b748d1b6423082cf755a0fd8f5b3025522c). Docs Forge packet current to HEAD; this PR's diff touches only the Stop hook, its vitest suite and .checkpoints/README.md, so no catalog, generated or plugin surface is affected. No untracked files. Merge commit's candidate tree 017859df verified PASS by the commit gate.",
+  "step": "pr-ow-10-ow-draft",
+  "progress_summary": "OW-10 PR readiness PASS at 41f18da8: catalog ow-draft added (catalogs.json: planned, plannedVerbs, bodyTokenBudgets, statusNames), the named reads-row kind in check-skill-contracts, NETWORK_TEXT exported from gen-skills-catalog; full npm test and build green; candidate verifier PASS; no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -23,24 +23,24 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [],
+    "warnings": [
+      "ow-draft keeps a reading row for ow-vendor-eval's recommendation; ow-vendor-eval is planned for v2.2 (OW-11), so the row waits for it (reciprocity is checked once it has an edges file)."
+    ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "f6a21b748d1b6423082cf755a0fd8f5b3025522c",
+    "verified_for_sha": "41f18da8a5fa37250aeedd1334297a5b95da4f2b",
     "last_verify": {
-      "at": "2026-10-22T17:07:51Z",
-      "branch": "claude/competent-raman-864dee",
-      "base": "origin/main@ddc3738b",
+      "at": "2026-10-22T17:54:03.711Z",
+      "branch": "claude/ow-10-ow-draft",
+      "base": "origin/main@08aef891",
       "verdict": "PASS",
       "blocking_findings": []
     }
   },
-  "next_actions": [
-    "#645 auto-merges once checks pass."
-  ],
+  "next_actions": [],
   "handoffs": [
     {
       "id": "oc-repo-ops-release-f6b167fcbd3a",
@@ -2400,8 +2400,63 @@
           ".claude/hooks/checkpoint-hygiene.sh"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-ow-10-ow-draft-4c74e70b7af1",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-22T17:54:03.711Z",
+      "verified_at": "2026-10-22T17:54:03.711Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-ow-10-ow-draft"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:4c74e70b7af1696b053236209cc1d76a199ed39d76f02002386e9aa1839fb36b"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/ow-10-ow-draft at 41f18da8 on origin/main 08aef891 (#645). Catalog: the ow catalog validates 7 skills with ow-draft added (check-skill-contracts and gen-skills-catalog green). Generated outputs and the oc- byte-identity: no file under skills/, plugins/, package.json, scripts/make-skills-zip.sh, site/ or src/ changed against origin/main; the ow catalog is in no build output, so public/docs, the zip, the plugin bundles, the hosted MCP catalog and the flag registry are unchanged (the Evaluator compared the oc- outputs with the base at round 2; no oc- source changed since). Full suite 162 files passing; build exit 0.",
+        "evidence": [
+          "skills-work/ow-draft/SKILL.md",
+          "skills-work/ow-draft/CHANGELOG.md",
+          "skills-work/ow-draft/references/routing-and-resume.md",
+          "skills-work/ow-draft/references/delivery-rules.md",
+          "skills-work/ow-draft/references/draft-files-schema.md",
+          "skills-work/ow-draft/references/ow-protocol.md",
+          "skills-work/ow-draft/references/permissions-format.md",
+          "skills-work/ow-draft/references/phase-brief.md",
+          "skills-work/ow-draft/references/phase-deliver.md",
+          "skills-work/ow-draft/references/phase-evidence.md",
+          "skills-work/ow-draft/references/phase-freeze.md",
+          "skills-work/ow-draft/references/phase-signoff.md",
+          "skills-work/ow-draft/references/phase-voice.md",
+          "skills-work/ow-draft/references/phase-write.md",
+          "skills-work/ow-draft/references/self-checks.md",
+          "skills-work/ow-draft/references/type-comms.md",
+          "skills-work/ow-draft/references/type-deck.md",
+          "skills-work/ow-draft/references/type-document.md",
+          "skills-work/ow-draft/references/type-sheet.md",
+          "skills-work/ow-draft/references/voice-format.md",
+          "skills-work/README.md",
+          "skills-work/ow-build/CHANGELOG.md",
+          "skills-work/ow-build-plan/CHANGELOG.md",
+          "skills-work/ow-documentation/CHANGELOG.md",
+          "skills-work/ow-start/CHANGELOG.md",
+          "skills-work/ow-uat/CHANGELOG.md",
+          "docs/plans/2026-10-16-ow-draft-design.md",
+          "docs/plans/2026-10-09-ow-tools-design.md",
+          "docs/audits/2026-10-21-ow-draft-1.0-security-review.md",
+          "sprints/release-2.1/ow-10/contract.md",
+          "sprints/release-2.1/ow-10/eval-round-1.md",
+          "sprints/release-2.1/ow-10/eval-round-2.md",
+          "sprints/release-2.1/ow-10/eval-round-3.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-22T17:07:51.983Z",
+  "record_updated_at": "2026-10-22T17:54:03.711Z",
   "blockers": []
 }
