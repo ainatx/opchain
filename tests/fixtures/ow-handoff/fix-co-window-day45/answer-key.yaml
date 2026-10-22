@@ -21,6 +21,8 @@ checks:
   - screen
   - fix
   - handoff_fields
+  - embedded
+  - next
 next:
   - handoffs.yaml build
 fix:

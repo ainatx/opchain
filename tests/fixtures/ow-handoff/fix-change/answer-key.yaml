@@ -22,6 +22,7 @@ checks:
   - next
   - fix
   - handoff_fields
+  - embedded
 fix:
   log:
     FIX-04:

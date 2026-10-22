@@ -19,6 +19,7 @@ checks:
   - screen
   - route
   - next
+  - embedded
 question: true
 route:
   say: use ow-handoff on handoffs/mossgate-books/

@@ -18,4 +18,5 @@ checks:
   - writes
   - refused
   - screen
+  - embedded
 refused: 'Refused: a waiver at close covers only the items the owning verbs record.'

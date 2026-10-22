@@ -22,5 +22,6 @@ checks:
   - screen
   - next
   - help
+  - embedded
 next:
   - use ow-handoff-fix on handoffs/larkspur-ceramics/

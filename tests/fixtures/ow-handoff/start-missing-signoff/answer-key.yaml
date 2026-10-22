@@ -17,6 +17,7 @@ checks:
   - refused
   - screen
   - next
+  - embedded
 refused: 'Refused: acceptance testing is not signed off.'
 next:
   - use ow-uat-signoff on uat/larkspur-ceramics/

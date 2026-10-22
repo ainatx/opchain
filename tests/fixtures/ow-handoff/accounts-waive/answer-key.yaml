@@ -20,6 +20,8 @@ checks:
   - status
   - screen
   - approvals
+  - embedded
+  - next
 next:
   - use ow-handoff-notes on handoffs/larkspur-ceramics/
 approvals:

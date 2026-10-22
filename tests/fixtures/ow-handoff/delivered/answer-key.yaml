@@ -24,6 +24,7 @@ checks:
   - dates
   - handoff_fields
   - self_checks
+  - embedded
 dates:
   handoff_date: '2027-02-24'
   window_end: '2027-03-26'

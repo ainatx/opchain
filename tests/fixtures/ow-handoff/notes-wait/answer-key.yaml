@@ -19,6 +19,7 @@ checks:
   - refused
   - screen
   - next
+  - embedded
 refused: 'Refused: the documents are not delivered yet.'
 next:
   - use ow-documentation-delivered on docs/larkspur-ceramics/

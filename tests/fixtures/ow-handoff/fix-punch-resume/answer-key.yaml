@@ -21,6 +21,7 @@ checks:
   - screen
   - fix
   - resume
+  - embedded
 fix:
   punch:
     FIX-01: UAT-08

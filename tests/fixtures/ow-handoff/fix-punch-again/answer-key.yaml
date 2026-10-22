@@ -18,4 +18,5 @@ checks:
   - writes
   - refused
   - screen
+  - embedded
 noop: 'Nothing to do: every punch-list item is logged.'

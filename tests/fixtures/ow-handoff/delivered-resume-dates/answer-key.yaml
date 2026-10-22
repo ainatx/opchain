@@ -21,6 +21,7 @@ checks:
   - screen
   - dates
   - resume
+  - embedded
 dates:
   handoff_date: '2027-03-01'
   window_end: '2027-03-31'

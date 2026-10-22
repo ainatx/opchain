@@ -19,6 +19,7 @@ checks:
   - status
   - screen
   - approvals
+  - embedded
 approvals:
   - file: opchain-work/handoffs/mossgate-books/accounts.md
     line: >-

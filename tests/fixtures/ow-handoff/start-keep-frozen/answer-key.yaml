@@ -22,6 +22,7 @@ checks:
   - next
   - freeze
   - start
+  - embedded
 next:
   - use ow-handoff-notes on handoffs/larkspur-ceramics/
 start:

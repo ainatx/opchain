@@ -23,6 +23,7 @@ checks:
   - close
   - credentials
   - internal_numbers
+  - embedded
 close:
   branch: care-not-installed
   reopened: true

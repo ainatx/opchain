@@ -18,6 +18,7 @@ checks:
   - refused
   - screen
   - route
+  - embedded
 question: true
 route:
   say: use ow-handoff on handoffs/larkspur-ceramics/

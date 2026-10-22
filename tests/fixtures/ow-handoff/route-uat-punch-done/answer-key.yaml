@@ -19,6 +19,7 @@ checks:
   - refused
   - screen
   - route
+  - embedded
 noop: 'Nothing to do: every punch-list item is logged.'
 route:
   say: use ow-handoff on uat/larkspur-ceramics/punch-list.md

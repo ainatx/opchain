@@ -25,6 +25,7 @@ checks:
   - credentials
   - private_names
   - resume
+  - embedded
 accounts:
   transfers:
     TR-01: ownership

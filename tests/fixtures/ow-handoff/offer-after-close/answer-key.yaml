@@ -18,4 +18,5 @@ checks:
   - writes
   - refused
   - screen
+  - embedded
 refused: 'Refused: the offer is closed; the workstream closed on 2027-03-27.'

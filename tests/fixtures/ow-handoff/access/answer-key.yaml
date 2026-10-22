@@ -26,6 +26,7 @@ checks:
   - self_checks
   - credentials
   - private_names
+  - embedded
 access:
   must:
     - capture profile larkspur-ceramics

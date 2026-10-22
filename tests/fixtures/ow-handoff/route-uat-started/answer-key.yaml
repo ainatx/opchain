@@ -20,6 +20,7 @@ checks:
   - screen
   - route
   - next
+  - embedded
 noop: 'Nothing to do: the handoff is started; the next step is /ow-handoff-notes.'
 route:
   say: use ow-handoff-start on uat/larkspur-ceramics/

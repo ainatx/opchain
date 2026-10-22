@@ -21,6 +21,7 @@ checks:
   - screen
   - next
   - fix
+  - embedded
 next:
   - handoffs.yaml build
 fix:

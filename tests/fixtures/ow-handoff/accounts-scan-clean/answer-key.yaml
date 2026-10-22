@@ -23,6 +23,7 @@ checks:
   - next
   - accounts
   - credentials
+  - embedded
 next:
   - use ow-handoff-notes on handoffs/larkspur-ceramics/
 accounts:

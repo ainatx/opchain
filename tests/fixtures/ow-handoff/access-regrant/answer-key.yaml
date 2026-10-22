@@ -21,5 +21,11 @@ checks:
   - status
   - screen
   - next
+  - embedded
+  - approvals
 next:
   - use ow-handoff-close on handoffs/larkspur-ceramics/
+approvals:
+  - file: opchain-work/handoffs/larkspur-ceramics/access.md
+    line: 2027-03-24 AX-01 re-granted, held for FIX-03; confirmed by operations manager; not verified by this skill
+    kind: record

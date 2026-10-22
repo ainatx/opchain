@@ -22,6 +22,7 @@ checks:
   - next
   - help
   - resume
+  - embedded
 next:
   - handoffs.yaml invoice
 resume:

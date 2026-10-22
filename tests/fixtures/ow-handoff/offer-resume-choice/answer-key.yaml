@@ -26,6 +26,8 @@ checks:
   - internal_numbers
   - private_names
   - resume
+  - embedded
+  - approvals
 offer:
   choice: care
   ow_care: not installed

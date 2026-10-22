@@ -24,6 +24,7 @@ checks:
   - self_checks
   - credentials
   - private_names
+  - embedded
 start:
   kind: signed
   accepted: '2027-01-27'

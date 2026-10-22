@@ -21,6 +21,8 @@ checks:
   - screen
   - next
   - fix
+  - embedded
+  - approvals
 next:
   - use ow-handoff-offer on handoffs/larkspur-ceramics/
 fix:
@@ -29,3 +31,7 @@ fix:
       class: Not a defect
       window: main
       route: answered
+approvals:
+  - file: opchain-work/handoffs/larkspur-ceramics/fixes/FIX-05.md
+    line: 2027-03-04 withdrawn by client 2027-03-04, order coordinator (answered from OP-04)
+    kind: record

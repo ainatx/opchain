@@ -19,6 +19,7 @@ checks:
   - refused
   - screen
   - next
+  - embedded
 refused: 'Refused: the agreed basis does not match uat/larkspur-ceramics/agreed/scope.md.'
 next:
   - use ow-handoff-start --keep-frozen on handoffs/larkspur-ceramics/

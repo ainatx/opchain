@@ -19,6 +19,7 @@ checks:
   - screen
   - next
   - route
+  - embedded
 refused: 'Refused: the handoff is not started.'
 next:
   - use ow-handoff-start on uat/larkspur-ceramics/

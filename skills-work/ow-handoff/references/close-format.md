@@ -15,6 +15,7 @@ Written by `/ow-handoff-close` only. `close.md` and `care-start.md` are written 
     - transfer TR-nn is <open | client has owner rights>
     - <What> is below HIGH and not confirmed
     - access item AX-nn is <open | held for X>
+    - access item AX-nn is kept for care, but the choice is <hourly | none | undecided>
 
 - Today must be **after** `window_end` and after the latest `window_end` in `co-windows.yaml`; between `access_removal_date` and `window_end` is still before.
 - A covered FIX-nn not terminal blocks, unless the choice is care **and** the newest ow-care answer is `installed`: then it carries into care, free, its held access converted to kept for care ending "remove when FIX-nn is verified".
@@ -74,7 +75,7 @@ Written by `/ow-handoff-close` only. `close.md` and `care-start.md` are written 
 
 ## 5. The close email (`export/close-email.{html,txt}`)
 
-The client copy of `close.md`: fixes, transfers, access, hourly help, payments by state, the arrangement and its frozen terms, every waived or unconfirmed item **shown as open or unconfirmed**. No internal number: HELP-nn hours and ledger amounts stay out. The user sends it.
+The client copy of `close.md`: fixes, transfers, access, hourly help, payments by state, the arrangement and its frozen terms, every waived or unconfirmed item **shown as open or unconfirmed**, by name: a waived transfer or account row, an access item removed unconfirmed (waived), a fix closed unconfirmed, and an access item removed while its transfer is waived. No internal number: HELP-nn hours and ledger amounts stay out. The user sends it.
 
 ## 6. Reopening
 

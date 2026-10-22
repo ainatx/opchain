@@ -6,7 +6,8 @@ Writes `access.md` (`access-format.md`). It records; it removes, rotates and del
 
 - No `handoff.yaml` `frozen:`: `Refused: the handoff is not started.`
 - A record mode whose exact line is already recorded: `Nothing to do: already recorded on <date>.`
-- `--record` of a removal for an item whose transfer in `accounts.md` is not at `client has owner rights` or `done`: `Refused: the transfer of <item> is not confirmed; the client confirms owner rights first.`
+- `--record` (a removal, a rotation or a deletion) or `--waive` for an item whose account's transfer in `accounts.md` is not at `client has owner rights` or `done`, and not waived there: `Refused: the transfer of <item> is not confirmed; the client confirms owner rights first.` The item's account is its row in `access.md`'s Account column; that row's transfer item is the one that gates it.
+- **A transfer waived** in `accounts.md` (the client never replied): removal and rotation may go ahead, each record saying `while transfer TR-nn is waived (client not confirmed)`, and the close email says so beside the open transfer.
 
 ## 2. Steps
 

@@ -24,6 +24,7 @@ checks:
   - credentials
   - internal_numbers
   - resume
+  - embedded
 next:
   - use ow-handoff-offer on handoffs/larkspur-ceramics/
 resume:

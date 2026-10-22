@@ -19,6 +19,7 @@ checks:
   - screen
   - next
   - gate
+  - embedded
 refused: 'Refused: Takeover is FINDING.'
 next:
   - use ow-handoff-fix on handoffs/mossgate-books/

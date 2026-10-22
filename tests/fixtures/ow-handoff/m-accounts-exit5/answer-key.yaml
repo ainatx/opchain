@@ -20,6 +20,7 @@ checks:
   - screen
   - next
   - accounts
+  - embedded
 next:
   - use ow-handoff-notes on handoffs/mossgate-books/
 accounts:

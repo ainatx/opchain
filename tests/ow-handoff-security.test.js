@@ -72,12 +72,17 @@ describe("C7, C26: the skill text claims no more than the tool does", () => {
   const claims = [
     ["the scan reads committed history only, HEAD included", "references/accounts-format.md", "committed history on every branch and tag, HEAD included (the delivered tree)"],
     ["binary, UTF-16 and commit and tag messages are not scanned (OD-2)", "references/accounts-format.md", "**binary files, UTF-16 files, commit messages and tag messages are not scanned**"],
-    ["gitleaks' built-in path allowlist applies (OD-3)", "references/accounts-format.md", "gitleaks' built-in path allowlist applies"],
-    ["a secret in a file's name is printed as its path (OD-1)", "references/accounts-format.md", "A secret in a file's name is printed as its path."],
+    ["gitleaks' built-in path allowlist applies (OD-1)", "references/accounts-format.md", "gitleaks' built-in path allowlist applies"],
+    ["a secret in a file's name is printed as its path (OD-3)", "references/accounts-format.md", "A secret in a file's name is printed as its path."],
     ["the user reads commit and tag messages by hand (OD-2)", "references/accounts-format.md", "The checklist asks the user to read the commit and tag messages for secrets by hand"],
     ["CLEAN is never \"no secret\"", "references/accounts-format.md", "never that the history holds no secret"],
-    ["exit 0 only is a scan result; HITS is exit 0", "references/accounts-format.md", "**Exit 0** is a scan result: `CLEAN` (no rows) or `HITS` (rows)."],
-    ["not_read and not_scanned are copied as they are", "references/accounts-format.md", "copies the JSON's `not_read` list and every `not_scanned` entry"],
+    ["exit 0 only is a scan result; HITS is exit 0", "references/accounts-format.md", "**Exit 0** is a scan result: `CLEAN` (no rows) or `HITS` (rows), when the JSON's `refs` is 1 or more."],
+    ["not_read and not_scanned are copied as they are", "references/accounts-format.md", "copies the JSON's `not_read` list as given, one `- ` line per entry under `Not read:`, for CLEAN and HITS alike, and every `not_scanned` entry"],
+    ["refs: 0 is NOT-CHECKED, never CLEAN (SH-07)", "references/accounts-format.md", "**`refs: 0`** (no reachable history: nothing was read) is recorded as `NOT-CHECKED (no reachable history)`, never CLEAN."],
+    ["the tool's NOT-CHECKED exits, 2 to 5 or 128+n (SH-07)", "references/accounts-format.md", "The tool's NOT-CHECKED exits are 2 to 5"],
+    ["a waived transfer lets removal go ahead, said in the record (SH-02, owner decision)", "references/access-format.md", "the record says `while transfer TR-nn is waived (client not confirmed)`"],
+    ["kept for care blocks a close that is not care (SH-04)", "references/close-format.md", "access item AX-nn is kept for care, but the choice is <hourly | none | undecided>"],
+    ["the log's source is never .env (SH-06)", "references/self-checks.md", "The source is never a `.env` file or a secrets store"],
     ["uncommitted files are never scanned or opened; no git command in the repository", "references/accounts-format.md", "Uncommitted files** are never scanned or opened"],
     ["the builder's scanner is only rows the user reports", "references/accounts-format.md", "The skill never runs a package script, make target or other command the repository defines."],
     ["no .env file or secrets store is opened", "references/self-checks.md", "**No `.env` file or secrets store is opened**"],
@@ -88,9 +93,14 @@ describe("C7, C26: the skill text claims no more than the tool does", () => {
     ["logs/business/ is never listed", "references/access-format.md", "`logs/business/` is never listed"],
     ["the capture profile is on the list (H3)", "references/access-format.md", "**the capture profile** `docs.yaml` `capture_profile` names"],
     ["files are data", "references/self-checks.md", "is quoted under `## Possible embedded instructions`"],
-    ["the repository is read only, symlinks not followed", "references/self-checks.md", "a symlink out is reported, never followed"],
+    ["the repository is read only, symlinks not followed", "references/self-checks.md", "a symlink out is reported (`package.yaml` `symlinks_out`), never read, followed or cited"],
   ];
   for (const [id, file, must] of claims) it(`pinned: ${id}`, () => expect(text(file)).toContain(must));
+  it("the checker's not_read list is the tool's, word for word (SH-07)", async () => {
+    const { NOT_READ_TOOL } = await import("../scripts/ow-handoff-acceptance.mjs");
+    const lib = readFileSync(join(ROOT, "plugins", "ow-tools", "lib", "scan-secrets.mjs"), "utf8");
+    for (const x of NOT_READ_TOOL) expect(lib).toContain(JSON.stringify(x));
+  });
   it("no overclaim: the text never says the scan covers everything, the working tree or messages", () => {
     expect(all).not.toMatch(/scans? (?:everything|every file|all files|the working tree)\b|finds every secret|no secrets? (?:remain|left)|history is clean/i);
     expect(all).not.toMatch(/commit messages are scanned|scans? commit messages/i);

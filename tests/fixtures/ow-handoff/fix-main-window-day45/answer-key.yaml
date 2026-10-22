@@ -21,6 +21,7 @@ checks:
   - screen
   - next
   - fix
+  - embedded
 next:
   - use ow-build to price the change from handoffs/larkspur-ceramics/fixes/FIX-05.md
 fix:

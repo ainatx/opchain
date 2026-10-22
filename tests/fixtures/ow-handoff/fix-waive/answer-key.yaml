@@ -21,5 +21,13 @@ checks:
   - screen
   - next
   - fix
+  - embedded
+  - approvals
 next:
   - use ow-handoff-offer on handoffs/larkspur-ceramics/
+approvals:
+  - file: opchain-work/handoffs/larkspur-ceramics/fixes/FIX-03.md
+    line: >-
+      2027-03-12 closed unconfirmed; re-check AC-1.1 passed; confirmation requested 2027-03-09, 2027-03-11; waived by Robin. This is a working note made by an AI assistant at your instruction. It is
+      not a signature or an official record.
+    kind: record

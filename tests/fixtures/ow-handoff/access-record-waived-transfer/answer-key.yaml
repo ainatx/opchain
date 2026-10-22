@@ -1,0 +1,45 @@
+# Answer key: access-record-waived-transfer (INVENTED). Removal timing: a rotation while the transfer is waived (owner decision 2026-10-21, option a).
+case: access-record-waived-transfer
+section: 'Removal timing: a rotation while the transfer is waived (owner decision 2026-10-21, option a)'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: access
+uat_case: signoff-addendum
+docs_case: delivered
+logs_case: logs-larkspur-checkin
+world: larkspur
+verbs:
+  - /ow-handoff-access --record
+today: '2027-03-23'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - access
+  - embedded
+  - approvals
+next:
+  - use ow-handoff-close on handoffs/larkspur-ceramics/
+access:
+  must:
+    - capture profile larkspur-ceramics
+    - logs/larkspur-ceramics/meetings/MTG-01/audio/
+    - uat/larkspur-ceramics/secrets-seen.log
+    - bookkeeper tester
+    - test sender
+    - evidence.md
+    - SHOP_API_TOKEN
+  never:
+    - logs/business/
+  held:
+    AX-02: FIX-03
+approvals:
+  - file: opchain-work/handoffs/larkspur-ceramics/access.md
+    line: 2027-03-23 AX-05 rotated 2027-03-23, places updated, check OP-09 passed; confirmed by operations manager while transfer TR-02 is waived (client not confirmed); not verified by this skill
+    kind: record

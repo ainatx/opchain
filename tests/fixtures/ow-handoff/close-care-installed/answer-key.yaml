@@ -25,6 +25,7 @@ checks:
   - handoff_fields
   - credentials
   - internal_numbers
+  - embedded
 next:
   - use ow-care on handoffs/larkspur-ceramics/care-start.md
 close:

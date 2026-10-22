@@ -21,6 +21,7 @@
     export: { command: "ow-tools export handoffs/<client>/handoff-notes.md --out handoffs/<client>/export/", exit: <n>, output: "<as printed>" } | not available (no ow-tools here)
     read_through: none | "<user> <YYYY-MM-DD>: handoff-notes.md and the email read for secrets"
     gitignore_warning: none | "export/ and secrets-seen.log are not git-ignored here"
+    symlinks_out: []             # repository paths that resolve outside the repository: reported, never read or cited
     revisions: []
     embedded: []
     self_checks: { … }

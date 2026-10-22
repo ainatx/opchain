@@ -163,7 +163,7 @@ These words are prescribed; the acceptance checker grades screens on them and on
 | `Refused: CO-nn has no acceptance addendum yet.` | `-fix` |
 | `Refused: work on HELP-nn waits for the client's go-ahead.` | `-fix --hours` |
 | `Refused: new hourly help after close needs the choice hourly.` | `-fix --help` |
-| `Refused: the transfer of <item> is not confirmed; the client confirms owner rights first.` | `-access --record` |
+| `Refused: the transfer of <item> is not confirmed; the client confirms owner rights first.` | `-access --record`, `-access --waive` |
 | `Refused: the offer is closed; the workstream closed on <date>.` | `-offer` after close |
 | `Refused: a waiver at close covers only the items the owning verbs record.` | `-close` |
 | `Refused: close is blocked.` | `-close` |

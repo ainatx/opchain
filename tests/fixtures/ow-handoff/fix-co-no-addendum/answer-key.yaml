@@ -19,6 +19,7 @@ checks:
   - refused
   - screen
   - next
+  - embedded
 refused: 'Refused: CO-05 has no acceptance addendum yet.'
 next:
   - use ow-uat-plan to write the addendum for CO-05 in uat/larkspur-ceramics/

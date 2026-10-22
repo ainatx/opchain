@@ -27,6 +27,7 @@ checks:
   - internal_numbers
   - people
   - private_names
+  - embedded
 package:
   send: '2027-02-24'
   end: '2027-03-26'

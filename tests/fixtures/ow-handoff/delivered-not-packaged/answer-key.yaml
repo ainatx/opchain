@@ -19,6 +19,7 @@ checks:
   - refused
   - screen
   - next
+  - embedded
 refused: 'Refused: the Handoff notes are not packaged.'
 next:
   - use ow-handoff-package on handoffs/larkspur-ceramics/

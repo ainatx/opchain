@@ -19,6 +19,7 @@ checks:
   - refused
   - screen
   - close
+  - embedded
 refused: 'Refused: close is blocked.'
 close:
   blockers:

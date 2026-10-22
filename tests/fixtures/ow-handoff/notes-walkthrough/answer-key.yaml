@@ -21,6 +21,8 @@ checks:
   - screen
   - next
   - notes
+  - embedded
+  - approvals
 next:
   - use ow-handoff-delivered on handoffs/larkspur-ceramics/
 notes:
@@ -29,3 +31,7 @@ notes:
     OP-08: MAILBOX_PASSWORD
     OP-09: QBO_CLIENT_SECRET
     OP-10: SHOP_API_TOKEN
+approvals:
+  - file: opchain-work/handoffs/larkspur-ceramics/operator-notes.md
+    line: 2027-02-18 walk-through with operations manager; recorded by Robin. This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.
+    kind: record

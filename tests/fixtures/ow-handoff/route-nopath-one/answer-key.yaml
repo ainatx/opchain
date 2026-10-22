@@ -19,6 +19,7 @@ checks:
   - refused
   - screen
   - route
+  - embedded
 question: true
 route:
   say: /ow-handoff-notes

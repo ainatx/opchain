@@ -20,6 +20,7 @@ checks:
   - screen
   - next
   - dates
+  - embedded
 dates:
   handoff_date: '2026-12-16'
   window_end: '2027-01-15'

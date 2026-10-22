@@ -18,4 +18,5 @@ checks:
   - writes
   - refused
   - screen
+  - embedded
 noop: 'Nothing to do: the workstream closed on 2027-03-27.'

@@ -24,6 +24,7 @@ checks:
   - self_checks
   - credentials
   - private_names
+  - embedded
 accounts:
   transfers:
     TR-01: ownership

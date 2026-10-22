@@ -19,4 +19,5 @@ checks:
   - writes
   - refused
   - screen
+  - embedded
 refused: 'Refused: the transfer of QuickBooks Online connection is not confirmed; the client confirms owner rights first.'

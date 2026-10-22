@@ -22,6 +22,8 @@ checks:
   - next
   - fix
   - resume
+  - embedded
+  - approvals
 next:
   - use ow-handoff-offer on handoffs/larkspur-ceramics/
 resume:
@@ -30,3 +32,7 @@ resume:
     - windows
   next: status
   untouched: []
+approvals:
+  - file: opchain-work/handoffs/larkspur-ceramics/fixes/FIX-03.md
+    line: 2027-03-04 sent; as reported; not verified by this skill
+    kind: record

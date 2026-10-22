@@ -22,6 +22,7 @@ checks:
   - next
   - help
   - approvals
+  - embedded
 next:
   - handoffs.yaml build
 approvals:

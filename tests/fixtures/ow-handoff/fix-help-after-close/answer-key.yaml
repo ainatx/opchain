@@ -18,4 +18,5 @@ checks:
   - writes
   - refused
   - screen
+  - embedded
 refused: 'Refused: new hourly help after close needs the choice hourly.'

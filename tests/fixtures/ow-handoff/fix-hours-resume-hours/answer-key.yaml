@@ -22,6 +22,8 @@ checks:
   - next
   - help
   - resume
+  - embedded
+  - approvals
 next:
   - handoffs.yaml invoice
 resume:
@@ -30,3 +32,7 @@ resume:
     - windows
   next: hours
   untouched: []
+approvals:
+  - file: opchain-work/handoffs/larkspur-ceramics/help/HELP-01.md
+    line: '2027-03-15 hours recorded: 3 (Robin)'
+    kind: record

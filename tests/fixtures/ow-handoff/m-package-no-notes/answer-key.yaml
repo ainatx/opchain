@@ -19,6 +19,7 @@ checks:
   - screen
   - next
   - route
+  - embedded
 refused: 'Refused: operator-notes.md is missing.'
 next:
   - use ow-handoff-notes on handoffs/mossgate-books/

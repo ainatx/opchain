@@ -23,6 +23,7 @@ checks:
   - self_checks
   - credentials
   - private_names
+  - embedded
 start:
   kind: deemed
   accepted: '2026-12-07'

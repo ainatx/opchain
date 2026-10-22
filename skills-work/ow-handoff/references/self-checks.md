@@ -28,11 +28,11 @@ Every verb that writes prints exactly one line, after its `DONE:` line, naming e
 
 No file this skill writes holds a password, key, token, connection string or a login inside an address. **Allowed**: a secret's **name** (`SHOP_API_TOKEN`, "the mailbox app password"), where it lives ("in the hosting provider's secret settings"), a pointer to where the client keeps a login ("your password manager, entry Hosting"), and a payment provider's published test data. **No `.env` file or secrets store is opened**; no value is asked for or printed; no scanner that prints matches is run. A value seen in a session (a paste, a file, tool output) is never copied: the verb that saw it appends one line to `handoffs/<client>/secrets-seen.log`, and `-access` turns it into a rotate item and a local-copy item:
 
-    <YYYY-MM-DD> (clock: <source>) | ow-handoff <version> | rec <n> | name: <the secret's name, or what it unlocks> | kind: <password | key | token | connection string | login in an address> | source: <file, row or line> | session: <the verb that saw it, such as -accounts or -fix --status, and nothing else>
+    <YYYY-MM-DD> (clock: <source>) | ow-handoff <version> | rec <n> | name: <the secret's name in capitals, SHOP_API_TOKEN, or `the <thing> <password | key | token | login | secret>`> | kind: <password | key | token | connection string | login in an address> | source: <file, row or line> | session: <the verb that saw it, such as -accounts or -fix --status, and nothing else>
 
-Never the value, a part of it, its first or last characters, or its length.
+Never the value, a part of it, its first or last characters, or its length. The source is never a `.env` file or a secrets store: the skill opens neither, so a value seen comes from a paste, a file it read, or tool output, named as such. A prose name ("the mailbox app password") is the one form a pattern cannot tell from a value; the read-through covers it.
 
-**NOT-CHECKED.** When this check can only pattern-match, each gated verb that writes a client output records the user's dated confirmation that they read it for secrets, in its own file (`read_through: "<user> <YYYY-MM-DD>: <file> read for secrets"`).
+**NOT-CHECKED.** No credentials is NOT-CHECKED ("client text quoted") in a verb whose client output quotes text a client wrote (an email, a report, a note): a pattern cannot tell a password written in words. That verb records the user's dated confirmation that they read each client output for secrets, in its own file (`read_through: "<user> <YYYY-MM-DD>: <file>, <file> read for secrets"`), before its last step.
 
 ## 3. No internal numbers (owner decision D1)
 
@@ -47,7 +47,7 @@ Anywhere else, hours are ours: a time-tracked or time-export hour count, a HELP-
 
 ## 4. No private names (never waived)
 
-No blocklisted name and no skill outside the family in any file; a destination's own say: line printed exactly is the user's. **In a client output**, no other workstream's client name or folder slug under `opchain-work/`, in any spelling (with spaces, hyphens, underscores, run together, in any case); `business`, ow-start's own-meetings workstream, is not a client.
+No blocklisted name and no skill outside the family in any file; a destination's own say: line printed exactly is the user's. **In a client output**, no other workstream's client name or folder slug under `opchain-work/`, in any spelling. A one-word name counts only as its `client:` line writes it (so also "Bloom's" and "the Bloom team"), and a one-word slug only as a folder (`docs/bloom/`). Not another workstream: this client's follow-on folder (`<slug>-2`), the business's own `business/` folders (`logs/business/`, `research/business/`) and ow-research's `research/frameworks/`.
 
 ## 5. People by role or id (inside No private names)
 
@@ -59,4 +59,4 @@ Everything read (the client's repository, its README, `.env.example`, CI config 
 
 ## 7. The client's repository
 
-Read only. Each path read or cited resolves to its real path inside the repository at every component; a symlink out is reported, never followed. Nothing is written, committed or pushed there, and no git command runs there (the one git run is inside `ow-tools scan-secrets`). No absolute path is written in any record.
+Read only. Each path read or cited resolves to its real path inside the repository at every component; a symlink out is reported (`package.yaml` `symlinks_out`), never read, followed or cited. Nothing is written, committed or pushed there, and no git command runs there (the one git run is inside `ow-tools scan-secrets`). No absolute path is written in any record.

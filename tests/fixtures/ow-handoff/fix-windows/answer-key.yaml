@@ -22,6 +22,8 @@ checks:
   - screen
   - fix
   - handoff_fields
+  - embedded
+  - next
 fix:
   windows:
     - co: CO-04

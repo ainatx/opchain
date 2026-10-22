@@ -21,6 +21,7 @@ checks:
   - notes
   - credentials
   - resume
+  - embedded
 notes:
   form: floor
   alerts:

@@ -21,6 +21,7 @@ checks:
   - screen
   - approvals
   - credentials
+  - embedded
 approvals:
   - file: opchain-work/handoffs/larkspur-ceramics/accounts.md
     line: >-

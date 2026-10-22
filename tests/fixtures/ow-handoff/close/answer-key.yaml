@@ -28,6 +28,7 @@ checks:
   - people
   - private_names
   - handoff_fields
+  - embedded
 close:
   branch: care-not-installed
   review: '2027-04-27'

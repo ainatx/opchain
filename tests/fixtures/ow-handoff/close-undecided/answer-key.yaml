@@ -24,5 +24,6 @@ checks:
   - credentials
   - internal_numbers
   - people
+  - embedded
 close:
   branch: undecided

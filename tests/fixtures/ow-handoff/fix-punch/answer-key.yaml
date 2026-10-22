@@ -26,6 +26,7 @@ checks:
   - credentials
   - internal_numbers
   - private_names
+  - embedded
 fix:
   punch:
     FIX-01: UAT-08

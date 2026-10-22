@@ -18,6 +18,7 @@ checks:
   - refused
   - screen
   - next
+  - embedded
 refused: 'Refused: accounts.md is missing.'
 next:
   - use ow-handoff-accounts on handoffs/mossgate-books/

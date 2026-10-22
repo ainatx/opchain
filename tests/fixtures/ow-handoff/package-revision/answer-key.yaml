@@ -23,5 +23,6 @@ checks:
   - revision
   - credentials
   - internal_numbers
+  - embedded
 next:
   - use ow-handoff-offer on handoffs/larkspur-ceramics/

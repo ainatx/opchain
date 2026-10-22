@@ -21,6 +21,7 @@ checks:
   - next
   - start
   - resume
+  - embedded
 start:
   kind: signed
   accepted: '2027-01-27'

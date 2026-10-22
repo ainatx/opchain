@@ -18,4 +18,5 @@ checks:
   - writes
   - refused
   - screen
+  - embedded
 refused: 'Refused: work on HELP-01 waits for the client''s go-ahead.'

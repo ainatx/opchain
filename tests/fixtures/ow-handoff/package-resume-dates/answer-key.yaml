@@ -27,6 +27,7 @@ checks:
   - people
   - private_names
   - resume
+  - embedded
 package:
   send: '2027-02-24'
   end: '2027-03-26'

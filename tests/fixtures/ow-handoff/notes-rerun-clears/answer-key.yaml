@@ -23,6 +23,7 @@ checks:
   - next
   - notes
   - credentials
+  - embedded
 notes:
   form: index
   rotate:

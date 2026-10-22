@@ -21,6 +21,7 @@ checks:
   - refused
   - screen
   - gate
+  - embedded
 gate:
   check: No credentials
   file: opchain-work/handoffs/larkspur-ceramics/operator-notes.md

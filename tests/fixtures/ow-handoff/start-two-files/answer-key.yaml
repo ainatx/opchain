@@ -18,4 +18,5 @@ checks:
   - writes
   - refused
   - screen
+  - embedded
 refused: 'Refused: --keep-frozen and --refreeze name one file.'

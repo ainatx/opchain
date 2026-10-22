@@ -21,7 +21,13 @@ checks:
   - screen
   - next
   - offer
+  - embedded
+  - approvals
 next:
   - use ow-handoff-access on handoffs/mossgate-books/
 offer:
   choice: undecided
+approvals:
+  - file: opchain-work/handoffs/mossgate-books/after-offer.md
+    line: '2026-12-17 choice: undecided; decided_on 2026-12-17; recorded_by Robin. This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.'
+    kind: record

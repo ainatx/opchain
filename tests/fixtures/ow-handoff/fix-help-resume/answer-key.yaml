@@ -22,6 +22,7 @@ checks:
   - next
   - help
   - resume
+  - embedded
 next:
   - use ow-handoff-fix on handoffs/larkspur-ceramics/
 resume:

@@ -21,6 +21,7 @@ checks:
   - screen
   - offer
   - approvals
+  - embedded
 offer:
   choice: hourly
   choices: 2

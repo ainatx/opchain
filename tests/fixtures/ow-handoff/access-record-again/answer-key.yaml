@@ -19,4 +19,5 @@ checks:
   - writes
   - refused
   - screen
+  - embedded
 noop: 'Nothing to do: already recorded on 2027-03-23.'

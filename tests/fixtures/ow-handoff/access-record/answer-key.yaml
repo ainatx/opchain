@@ -22,6 +22,8 @@ checks:
   - screen
   - next
   - access
+  - embedded
+  - approvals
 next:
   - use ow-handoff-close on handoffs/larkspur-ceramics/
 access:
@@ -37,3 +39,7 @@ access:
     - logs/business/
   held:
     AX-02: FIX-03
+approvals:
+  - file: opchain-work/handoffs/larkspur-ceramics/access.md
+    line: 2027-03-23 AX-01 removed 2027-03-23, confirmed by operations manager; not verified by this skill
+    kind: record

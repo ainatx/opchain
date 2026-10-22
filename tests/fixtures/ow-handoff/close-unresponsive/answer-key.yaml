@@ -23,6 +23,7 @@ checks:
   - next
   - close
   - credentials
+  - embedded
 next:
   - use ow-care on handoffs/larkspur-ceramics/care-start.md
 close:

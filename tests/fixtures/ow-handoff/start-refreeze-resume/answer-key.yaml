@@ -22,6 +22,7 @@ checks:
   - next
   - freeze
   - resume
+  - embedded
 next:
   - use ow-handoff-notes on handoffs/larkspur-ceramics/
 resume:
