@@ -152,13 +152,22 @@ describe("ow-tools export --formats xlsx (T6)", SPAWN, () => {
     }
     const src = sheetCopy();
     const r = cli(["export", src, "--formats", "xlsx", "--json"]);
+    expect(r.status, r.stdout + r.stderr).toBe(0);
     const out = join(src, "..", "csv");
     mkdirSync(out);
-    spawnSync("soffice", ["--headless", "--convert-to", "csv", "--outdir", out, r.json.outputs.xlsx], { encoding: "utf8", timeout: 60000 });
+    const conversion = spawnSync("soffice", ["--headless", "--convert-to", "csv", "--outdir", out, r.json.outputs.xlsx], { encoding: "utf8", timeout: 60000 });
+    expect(conversion.error).toBeUndefined();
+    expect(conversion.status, conversion.stdout + conversion.stderr).toBe(0);
     const csv = readFileSync(join(out, "sheet.csv"), "utf8");
+    const rows = csv.trim().split(/\r?\n/).map((line) => line.split(","));
     const items = [{ label: "Intake form", quantity: 2, unit_price: "1500.00" }, { label: "Dashboard", quantity: 1, unit_price: "2500.50" }, { label: "Training session", quantity: 3, unit_price: "400.00" }];
     const calc = cli(["calc", "total", "--items", write(join(src, "..", "items.json"), JSON.stringify(items)), "--json"]);
-    expect(csv.replace(/[^0-9.\n,]/g, "")).toContain(calc.json.total.replace(/\.00$/, ""));
+    expect(calc.status, calc.stdout + calc.stderr).toBe(0);
+    expect(rows[4], "Costs row 5").toHaveLength(4);
+    expect(rows[4][0].replace(/"/g, ""), "Costs!A5").toBe("Total");
+    const totalCell = rows[4][3].replace(/"/g, "");
+    expect(totalCell, "Costs!D5 is a numeric value").toMatch(/^-?\d+(?:\.\d+)?$/);
+    expect(Number(totalCell), "Costs!D5").toBe(Number(calc.json.total));
   });
 
   it("writes the export record beside the output and says when it replaced a file (SA-007 b)", () => {

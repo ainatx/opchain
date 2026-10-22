@@ -33,7 +33,12 @@ export function mutated(caseName, edits = {}, { branch } = {}) {
   if (!laidOut.has(caseName) || !existsSync(laidOut.get(caseName))) laidOut.set(caseName, layOut(caseName));
   const dir = temp("ow-draft-run-");
   cpSync(laidOut.get(caseName), dir, { recursive: true });
-  if (branch) writeHead(join(dir, "site"), branch);
+  let recordedBranch = null;
+  try { recordedBranch = yaml.load(readFileSync(join(dir, "session", "repo-state.yaml"), "utf8"))?.current_branch ?? null; } catch { recordedBranch = null; }
+  // The cache holds fixture content only. Create Git metadata in its final
+  // location: recursive fs copies of .git/objects failed repeatedly in Linux
+  // CI, while the same cases passed on macOS. Each run still has a real repo.
+  buildSiteGit(dir, branch ?? recordedBranch);
   for (const [rel, edit] of Object.entries(edits)) {
     const path = join(dir, rel);
     const before = existsSync(path) ? readFileSync(path, "utf8") : null;
@@ -52,9 +57,6 @@ function layOut(caseName) {
   while (typeof loadKey(join(FIXTURES, home)).run === "string") home = loadKey(join(FIXTURES, home)).run;
   if (existsSync(join(FIXTURES, home, "expected"))) cpSync(join(FIXTURES, home, "expected"), dir, { recursive: true });
   for (const sub of ["session"]) if (existsSync(join(FIXTURES, home, sub))) cpSync(join(FIXTURES, home, sub), join(dir, sub), { recursive: true });
-  let branch = null;
-  try { branch = yaml.load(readFileSync(join(dir, "session", "repo-state.yaml"), "utf8"))?.current_branch ?? null; } catch { branch = null; }
-  buildSiteGit(dir, branch);
   // Binary exports are never committed: a stub stands in for each one a deliveries.yaml lists (as ow-tools would write it).
   const walkY = (d) => (existsSync(d) ? readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walkY(join(d, e.name)) : e.name === "deliveries.yaml" ? [join(d, e.name)] : [])) : []);
   for (const f of walkY(join(FIXTURES, home, "expected", "opchain-work", "drafts")).map((x) => join(dir, x.slice(join(FIXTURES, home, "expected").length + 1)))) {
