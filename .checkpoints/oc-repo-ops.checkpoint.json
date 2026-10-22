@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": ".",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-22T05:49:58.113Z",
+  "updated_at": "2026-10-22T08:17:16.429Z",
   "skill": "oc-repo-ops",
-  "phase": "pr-verify",
+  "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-checkpoint-hygiene-cross-repo",
-  "progress_summary": "PR readiness PASS for the checkpoint-hygiene cross-repo attribution fix (HEAD ba6fd3cf8ebb524ff9aee7627f7ba6ef65c6a74c, base origin/main@62fe72a9). Docs Forge packet current to HEAD with a Documentation section; diff touches only the Stop hook, its vitest suite and .checkpoints/README.md, so no catalog, generated or plugin surface is affected (sync-plugin-skills:check clean; the gate build ran gen-catalog/gen-mcp-catalog/sync-bundles:check). No untracked files; touched-doc references resolve. Bug-check receipt PASS 8/8 on tree 90f38afd.",
+  "step": "pr-descope-ow-11",
+  "progress_summary": "Catalog, contracts, internal refs and generated outputs verified for the OW-11 de-scope.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -29,17 +29,17 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "ba6fd3cf8ebb524ff9aee7627f7ba6ef65c6a74c",
+    "verified_for_sha": "4cfd6693fa8fa724840eb5df5fed369fa29e8ed5",
     "last_verify": {
-      "at": "2026-10-22T05:49:57Z",
-      "branch": "claude/competent-raman-864dee",
-      "base": "origin/main@62fe72a9",
+      "at": "2026-10-22T08:17:16.429Z",
+      "branch": "claude/descope-ow-11",
+      "base": "origin/main",
       "verdict": "PASS",
       "blocking_findings": []
     }
   },
   "next_actions": [
-    "Open the PR for claude/competent-raman-864dee."
+    "Merge after review"
   ],
   "handoffs": [
     {
@@ -2350,30 +2350,34 @@
       }
     },
     {
-      "id": "oc-repo-ops-pr-readiness-v1-55843827a7e3",
+      "id": "oc-repo-ops-pr-descope-ow-11-7beb63175d11",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-10-22T05:49:58.112Z",
-      "verified_at": "2026-10-22T05:49:58.112Z",
+      "created_at": "2026-10-22T08:17:16.429Z",
+      "verified_at": "2026-10-22T08:17:16.429Z",
       "producer": {
         "skill": "oc-repo-ops",
-        "run_id": "pr-readiness-v1-2026-10-22T05:49:58.112Z"
+        "run_id": "pr-descope-ow-11"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:55843827a7e35d02a4bf149f4939cd13afd9f732b5723f6b9b9f7a4c5601469f"
+        "id": "sha256:7beb63175d112686282549c74baeb98db37da54d319241e66f1a4c2f32e6f263"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "checkpoint-hygiene cross-repo attribution: docs packet current, no catalog/generated/plugin drift, no untracked files, bug-check receipt PASS",
+        "scope": "ow-research 1.0.2, catalogs.json and plan documents; no generated artifact changed",
         "evidence": [
-          ".checkpoints/oc-docs-forge.checkpoint.json",
-          ".claude/hooks/checkpoint-hygiene.sh"
+          "skills-work/ow-research/CHANGELOG.md",
+          "skills-work/ow-research/SKILL.md",
+          "skills-work/README.md",
+          "sprints/release-2.1/ow-family-sprint-plan.md",
+          "sprints/release-2.1/track-s-site-surfaces.md",
+          "tests/fixtures/ow-research/README.md"
         ]
       }
     }
   ],
-  "record_updated_at": "2026-10-22T05:49:58.113Z",
+  "record_updated_at": "2026-10-22T08:17:16.429Z",
   "blockers": []
 }
