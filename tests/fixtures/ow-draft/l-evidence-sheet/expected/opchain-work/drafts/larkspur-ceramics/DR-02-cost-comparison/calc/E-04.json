@@ -1,0 +1,12 @@
+[
+  {
+    "label": "Retyping orders",
+    "quantity": 40,
+    "unit_price": "30.00"
+  },
+  {
+    "label": "Monday clean-up",
+    "quantity": 8,
+    "unit_price": "30.00"
+  }
+]

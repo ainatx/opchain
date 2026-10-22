@@ -1,0 +1,20 @@
+# INVENTED. C4: the same findings again add no item
+case: m-evidence-again
+base: m-route-evidence
+verbs: /ow-draft-evidence
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-24'
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+status:
+  lines: []
+next:
+  - use ow-draft-write on drafts/mossgate-books/DR-01-order-record-retention/
+refused:
+  reason: refuses
+client: Mossgate Books
+section: 'C4: the same findings again add no item'

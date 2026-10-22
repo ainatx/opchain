@@ -1,0 +1,42 @@
+ow_artefact: ow-draft/deliveries
+schema: 1
+written_by: ow-draft 1.0.0 (protocol 1)
+workstream: business
+subject: drafts/business/DR-03-tool-renewal-policy/signoff.md
+created: '2026-11-02'
+clock: tool
+origin: skill
+deliveries:
+  - candidate: C-1
+    steps:
+      - match
+      - export
+      - repo
+      - confirm
+      - push
+    date: '2026-11-02'
+    match:
+      command: ow-tools digest drafts/business/DR-03-tool-renewal-policy/candidates/C-1.md
+      output: equal
+      equal: 'yes'
+    handling:
+      level: 'no'
+      from:
+        - 'profile.md: no'
+        - 'intake/business/intake.yaml: no'
+    export_tool: ow-tools 1.2.0
+    exports:
+      - source: candidates/C-1/tool-renewal-policy.md
+        files:
+          - export/C-1/tool-renewal-policy.pdf
+          - export/C-1/tool-renewal-policy.docx
+        command: ow-tools export drafts/business/DR-03-tool-renewal-policy/candidates/C-1/tool-renewal-policy.md --out drafts/business/DR-03-tool-renewal-policy/export/C-1/
+        exit: 0
+        output: '{"status":"done","files":["export/C-1/tool-renewal-policy.pdf","export/C-1/tool-renewal-policy.docx"],"record":"export/C-1/tool-renewal-policy.export.json"}'
+    export_ignored: not a repository
+    repo: none
+    push_confirmation: none
+    pushes: []
+    says: []
+    embedded: []
+    note: This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.

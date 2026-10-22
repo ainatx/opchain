@@ -1,0 +1,16 @@
+# INVENTED. C4: /ow-draft on a workstream whose drafts are all delivered routes to -brief
+case: f-on-ws-none
+base: b-deliver-post
+verbs: /ow-draft on
+today: '2026-10-31'
+'on': drafts/business/
+status:
+  lines: []
+next: []
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - folder
+section: 'C4: /ow-draft on a workstream whose drafts are all delivered routes to -brief'

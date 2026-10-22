@@ -1,0 +1,23 @@
+# INVENTED. C13: the sheet signed off
+case: l-signoff-sheet
+base: l-freeze-sheet
+verbs: /ow-draft-signoff
+draft: drafts/larkspur-ceramics/DR-02-cost-comparison
+today: '2026-10-30'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - signoff
+status:
+  lines:
+    - path: drafts/larkspur-ceramics/DR-02-cost-comparison/signoff.md
+      next: ow-draft /ow-draft-deliver drafts/larkspur-ceramics/DR-02-cost-comparison/
+      awaiting: delivery of C-1 by 2026-11-13
+next:
+  - use ow-draft-deliver on drafts/larkspur-ceramics/DR-02-cost-comparison/
+client: Larkspur Ceramics
+section: 'C13: the sheet signed off'

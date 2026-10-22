@@ -1,0 +1,22 @@
+# INVENTED. C10: a quote is the client's words as reported, an item of its own
+case: b-evidence-case-quote
+base: b-permission-name
+verbs: /ow-draft-evidence
+draft: drafts/business/DR-01-case-study
+today: '2026-10-28'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - evidence
+status:
+  lines:
+    - path: drafts/business/DR-01-case-study/evidence.md
+      next: ow-draft /ow-draft-write drafts/business/DR-01-case-study/
+      awaiting: none
+next:
+  - use ow-draft-write on drafts/business/DR-01-case-study/
+section: 'C10: a quote is the client''s words as reported, an item of its own'

@@ -1,0 +1,19 @@
+# INVENTED. C6, C13: a candidate frozen before a revision can't be signed off
+case: m-signoff-revised-refused
+base: m-revise
+verbs: /ow-draft-signoff
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-25'
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+status:
+  lines: []
+next: []
+refused:
+  reason: refuses
+client: Mossgate Books
+section: 'C6, C13: a candidate frozen before a revision can''t be signed off'

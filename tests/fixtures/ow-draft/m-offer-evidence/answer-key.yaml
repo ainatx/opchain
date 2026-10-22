@@ -1,0 +1,23 @@
+# INVENTED. C19, O5, SD10-10: an offer figure stated by the user, recorded user-stated
+case: m-offer-evidence
+base: m-offer-brief
+verbs: /ow-draft-evidence
+draft: drafts/mossgate-books/DR-02-support-proposal
+today: '2026-11-03'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - evidence
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-02-support-proposal/evidence.md
+      next: ow-draft /ow-draft-write drafts/mossgate-books/DR-02-support-proposal/
+      awaiting: none
+next:
+  - use ow-draft-write on drafts/mossgate-books/DR-02-support-proposal/
+client: Mossgate Books
+section: 'C19, O5, SD10-10: an offer figure stated by the user, recorded user-stated'

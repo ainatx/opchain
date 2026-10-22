@@ -1,0 +1,26 @@
+# INVENTED. C11: a sheet freezes as one folder, digested as a tree
+case: l-freeze-sheet
+base: l-write-sheet
+verbs: /ow-draft-freeze
+draft: drafts/larkspur-ceramics/DR-02-cost-comparison
+today: '2026-10-29'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - candidate
+  - checks_file
+  - self_checks
+  - draft
+status:
+  lines:
+    - path: drafts/larkspur-ceramics/DR-02-cost-comparison/checks/C-1.md
+      next: ow-draft /ow-draft-signoff drafts/larkspur-ceramics/DR-02-cost-comparison/
+      awaiting: your sign-off of C-1 by 2026-11-13
+next:
+  - use ow-draft-signoff C-1 on drafts/larkspur-ceramics/DR-02-cost-comparison/
+client: Larkspur Ceramics
+section: 'C11: a sheet freezes as one folder, digested as a tree'

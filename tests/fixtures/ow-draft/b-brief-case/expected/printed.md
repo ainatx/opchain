@@ -1,0 +1,8 @@
+Step 0. Newest STATUS line: 2026-10-27 (clock: tool) | ow-draft 1.0.0 | voices/marketing.md | next: ow-draft on drafts/ | awaiting: none
+Handling: no (stored in profile.md).
+DONE: brief DR-01 confirmed -> drafts/business/DR-01-case-study/brief.md
+Self-checks (same-session self-check, not an independent review): No credentials OK · No private names OK
+    NEXT: say "use ow-draft-evidence on drafts/business/DR-01-case-study/"   (where slash commands exist: /ow-draft-evidence)
+          It will read: brief.md, your sources, the files you name
+          [no folder attached: attach them when you say it]
+    IF IT IS NOT AVAILABLE: list each fact with its source and date by hand.

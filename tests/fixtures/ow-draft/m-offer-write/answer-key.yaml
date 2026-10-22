@@ -1,0 +1,23 @@
+# INVENTED. C19: a user-stated offer price
+case: m-offer-write
+base: m-offer-evidence
+verbs: /ow-draft-write
+draft: drafts/mossgate-books/DR-02-support-proposal
+today: '2026-11-03'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - draft
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-02-support-proposal/draft.md
+      next: ow-draft /ow-draft-freeze drafts/mossgate-books/DR-02-support-proposal/
+      awaiting: none
+next:
+  - use ow-draft-freeze on drafts/mossgate-books/DR-02-support-proposal/
+client: Mossgate Books
+section: 'C19: a user-stated offer price'

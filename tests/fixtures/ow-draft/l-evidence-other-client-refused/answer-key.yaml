@@ -1,0 +1,19 @@
+# INVENTED. C8, O13: a Larkspur draft never takes evidence from Mossgate's workstream
+case: l-evidence-other-client-refused
+base: l-brief-deck
+verbs: /ow-draft-evidence
+draft: drafts/larkspur-ceramics/DR-01-quarterly-review
+today: '2026-10-27'
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+status:
+  lines: []
+next: []
+refused:
+  reason: refuses
+client: Larkspur Ceramics
+section: 'C8, O13: a Larkspur draft never takes evidence from Mossgate''s workstream'

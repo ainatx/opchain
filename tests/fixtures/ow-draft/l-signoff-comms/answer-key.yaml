@@ -1,0 +1,23 @@
+# INVENTED. C13: client comms signed off; awaiting the client's approval
+case: l-signoff-comms
+base: l-freeze-comms
+verbs: /ow-draft-signoff
+draft: drafts/larkspur-ceramics/DR-03-email-orders-announcement
+today: '2026-10-30'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - signoff
+status:
+  lines:
+    - path: drafts/larkspur-ceramics/DR-03-email-orders-announcement/signoff.md
+      next: ow-draft /ow-draft-signoff drafts/larkspur-ceramics/DR-03-email-orders-announcement/
+      awaiting: the client's approval of C-1 by 2026-11-06
+next:
+  - use ow-draft-signoff --client C-1 on drafts/larkspur-ceramics/DR-03-email-orders-announcement/
+client: Larkspur Ceramics
+section: 'C13: client comms signed off; awaiting the client''s approval'

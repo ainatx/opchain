@@ -8,6 +8,10 @@ No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed:
 
 - `examples/handoffs.yaml` and `examples/offers.md`: as ow-uat's. Its index row on `handoffs/<client>/after-offer.md` (`created`, `choice`) now checks live against ow-handoff's text; it needed no edit.
 
+## Unreleased: data edits from OW-10 (ow-draft 1.0.0)
+
+No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed: `examples/handoffs.yaml` gains the `drafts` key (where a finished draft goes: a repository folder by `repo` and `path`, and a say: line, an optional `location:` and a post's `limit` per other destination) and its commented shape with invented, neutral keys, byte-identical in every ow- skill that ships it.
+
 ## Unreleased: data edits from OW-05 (ow-documentation 1.0.0)
 
 No version bump (OW-04 ruling O9): `examples/handoffs.yaml` gains the `docs` key (where the documents go: the client's repository folders, and a say: line and an optional `location:` per other destination) and its commented shape, byte-identical in every ow- skill that ships it. ow-start's index row for `docs/<client>/docs.yaml` (`created`, `trainer`) needed no edit.

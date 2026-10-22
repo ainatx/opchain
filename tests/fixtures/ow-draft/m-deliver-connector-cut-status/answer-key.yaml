@@ -1,0 +1,23 @@
+# INVENTED. C22: /ow-draft-deliver cut after status, resumed
+case: m-deliver-connector-cut-status
+base: m-signoff
+verbs: /ow-draft-deliver
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-26'
+status:
+  lines: []
+next: []
+resume:
+  key: /ow-draft-deliver
+  cut_after: status
+  recorded: []
+client: Mossgate Books
+refused:
+  reason: finished already
+checks:
+  - writes
+  - status
+  - screen
+  - resume
+  - refused
+section: 'C22: /ow-draft-deliver cut after status, resumed'

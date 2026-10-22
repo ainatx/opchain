@@ -1,0 +1,11 @@
+Step 0. Newest STATUS line: 2026-10-25 (clock: tool) | ow-draft 1.0.0 | drafts/mossgate-books/DR-01-order-record-retention/signoff.md | next: ow-draft /ow-draft-deliver drafts/mossgate-books/DR-01-order-record-retention/ | awaiting: delivery of C-1 by 2026-11-06
+Handling: no (stored in profile.md).
+Resumed at export (/ow-draft-deliver).
+DONE: delivered C-1 -> drafts/mossgate-books/DR-01-order-record-retention/deliveries.yaml
+Self-checks (same-session self-check, not an independent review): No credentials OK · No private names OK · Accessible by construction OK
+To push through the connector, the list you confirmed:
+  export/C-1/order-record-retention.pdf -> shared_drive (Mossgate / Memos)
+  export/C-1/order-record-retention.docx -> shared_drive (Mossgate / Memos)
+Pushed, as you confirmed: export/C-1/order-record-retention.pdf, export/C-1/order-record-retention.docx.
+    NEXT: upload export/C-1/order-record-retention.pdf, export/C-1/order-record-retention.docx to the client's shared folder
+    IF IT IS NOT AVAILABLE: deliver the files in export/C-1/ yourself.

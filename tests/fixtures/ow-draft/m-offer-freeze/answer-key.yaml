@@ -1,0 +1,26 @@
+# INVENTED. C19 control, SD10-10: a user-stated offer price in an offer: yes proposal passes
+case: m-offer-freeze
+base: m-offer-write
+verbs: /ow-draft-freeze
+draft: drafts/mossgate-books/DR-02-support-proposal
+today: '2026-11-03'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - candidate
+  - checks_file
+  - self_checks
+  - draft
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-02-support-proposal/checks/C-1.md
+      next: ow-draft /ow-draft-signoff drafts/mossgate-books/DR-02-support-proposal/
+      awaiting: your sign-off of C-1 by 2026-11-20
+next:
+  - use ow-draft-signoff C-1 on drafts/mossgate-books/DR-02-support-proposal/
+client: Mossgate Books
+section: 'C19 control, SD10-10: a user-stated offer price in an offer: yes proposal passes'

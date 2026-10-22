@@ -1,0 +1,23 @@
+# INVENTED. C9: an email: subject, preview line, body, call to action
+case: l-write-comms
+base: l-evidence-comms
+verbs: /ow-draft-write
+draft: drafts/larkspur-ceramics/DR-03-email-orders-announcement
+today: '2026-10-30'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - draft
+status:
+  lines:
+    - path: drafts/larkspur-ceramics/DR-03-email-orders-announcement/comms.md
+      next: ow-draft /ow-draft-freeze drafts/larkspur-ceramics/DR-03-email-orders-announcement/
+      awaiting: none
+next:
+  - use ow-draft-freeze on drafts/larkspur-ceramics/DR-03-email-orders-announcement/
+client: Larkspur Ceramics
+section: 'C9: an email: subject, preview line, body, call to action'

@@ -1,0 +1,29 @@
+# INVENTED. C4: findings handed in at the stage "a candidate": items added
+case: m-route-candidate
+base: m-freeze
+verbs: /ow-draft-evidence
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-26'
+embedded: []
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - evidence
+  - route
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/evidence.md
+      next: ow-draft /ow-draft-write drafts/mossgate-books/DR-01-order-record-retention/
+      awaiting: none
+next:
+  - use ow-draft-write on drafts/mossgate-books/DR-01-order-record-retention/
+client: Mossgate Books
+route:
+  say: use ow-draft-evidence on research/mossgate-books/RS-02-approval-records/findings.md
+  expect: /ow-draft-evidence
+  path: research/mossgate-books/RS-02-approval-records/findings.md
+section: 'C4: findings handed in at the stage "a candidate": items added'

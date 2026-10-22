@@ -1,0 +1,30 @@
+# INVENTED. C22: /ow-draft-write cut after sources, resumed
+case: l-write-sheet-cut-sources
+base: l-evidence-sheet
+verbs: /ow-draft-write
+draft: drafts/larkspur-ceramics/DR-02-cost-comparison
+today: '2026-10-29'
+status:
+  lines:
+    - path: drafts/larkspur-ceramics/DR-02-cost-comparison/sheet/model.md
+      next: ow-draft /ow-draft-freeze drafts/larkspur-ceramics/DR-02-cost-comparison/
+      awaiting: none
+next:
+  - use ow-draft-freeze on drafts/larkspur-ceramics/DR-02-cost-comparison/
+resume:
+  key: /ow-draft-write
+  cut_after: sources
+  next_step: status
+  recorded:
+    - opchain-work/drafts/larkspur-ceramics/DR-02-cost-comparison/sheet/Costs.csv
+    - opchain-work/drafts/larkspur-ceramics/DR-02-cost-comparison/sheet/model.md
+    - opchain-work/drafts/larkspur-ceramics/DR-02-cost-comparison/sheet/sources.csv
+client: Larkspur Ceramics
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - resume
+section: 'C22: /ow-draft-write cut after sources, resumed'

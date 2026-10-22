@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-ac31c154410b8a429",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-aa6492c3b261c63e8",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-22T18:29:59.800Z",
+  "updated_at": "2026-10-22T20:05:55.601Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-ow06-ow-handoff",
-  "progress_summary": "OW-06 PR 2 readiness PASS at 74ff5ef8: catalog, contracts and internal-ref checks green, every ow- acceptance script green, full suite (160 files, 9,420 tests) and build green, merge of origin/main 08aef891 resolved keeping both sides.",
+  "step": "pr-ow-10-ow-draft",
+  "progress_summary": "OW-10 PR readiness PASS at f45b2352: catalog ow-draft added (catalogs.json: planned, plannedVerbs, bodyTokenBudgets, statusNames), the named reads-row kind in check-skill-contracts, NETWORK_TEXT exported from gen-skills-catalog; full npm test and build green; candidate verifier PASS; no untracked files.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -24,19 +24,18 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "ow-handoff is in no build output yet, by the ow- catalog's design (no plugin, zip, docs tree, flag registry, hosted MCP catalog or mirror)",
-      "O12 sibling stand-in swaps, the shared approval module and the name-recall gaps are stated open in the PR body"
+      "ow-draft keeps a reading row for ow-vendor-eval's recommendation; ow-vendor-eval is planned for v2.2 (OW-11), so the row waits for it (reciprocity is checked once it has an edges file)."
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "74ff5ef82d224b201bc082bded1bbcc3c8d8fe99",
+    "verified_for_sha": "f45b23522bdd7727ac756f0d88deeb4b103d9aaa",
     "last_verify": {
-      "at": "2026-10-22T18:29:59.800Z",
-      "branch": "claude/ow-06-ow-handoff",
-      "base": "origin/main@08aef891",
+      "at": "2026-10-22T20:05:55.601Z",
+      "branch": "claude/ow-10-ow-draft",
+      "base": "origin/main@318076cc",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -2403,38 +2402,82 @@
       }
     },
     {
-      "id": "oc-repo-ops-pr-ow06-ow-handoff-8cb73d14ad9b",
+      "id": "oc-repo-ops-site-audit-fix-9ba99f7fc864",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-10-22T18:29:59.800Z",
-      "verified_at": "2026-10-22T18:29:59.800Z",
+      "created_at": "2026-10-22T18:52:16.099Z",
+      "verified_at": "2026-10-22T18:52:16.099Z",
       "producer": {
         "skill": "oc-repo-ops",
-        "run_id": "pr-ow06-ow-handoff"
+        "run_id": "site-audit-fix"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:8cb73d14ad9bfbba0f05d27b7c19133b9335ac86f9e7a510029c8c711bfb1636"
+        "id": "sha256:9ba99f7fc86440881b9b83200b8af625ed5a8918528aa4ecbc3e333129521cb3"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "claude/ow-06-ow-handoff at 74ff5ef8 on origin/main 08aef891. Nothing under skills/, plugins/ (outside the ow-tools test), site/ or src/ changes, so no oc- catalog, bundle, plugin or release-surface output changes (byte-identity of the oc- build outputs checked in evaluation round 1). catalogs.json and skills-work/README.md conflicts resolved keeping both intents: ow-handoff built, ow-research 1.0.2, ow-vendor-eval planned with no declared verb, ow-draft and ow-care planned. Candidate verifier PASS on the merge commit's tree.",
+        "scope": "site/package-lock.json",
+        "evidence": []
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr-ow-10-ow-draft-1a5ead97bfb1",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-22T20:05:55.601Z",
+      "verified_at": "2026-10-22T20:05:55.601Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-ow-10-ow-draft"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:1a5ead97bfb147b480b5a476016af4ba8911a039023df067343e1d0b78b3dbf5"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/ow-10-ow-draft at f45b2352 on origin/main 318076cc (#649). Catalog: the ow catalog validates 7 skills with ow-draft added (check-skill-contracts and gen-skills-catalog green). Generated outputs and the oc- byte-identity: no file under skills/, plugins/, package.json, scripts/make-skills-zip.sh, site/ or src/ changed against origin/main; the ow catalog is in no build output, so public/docs, the zip, the plugin bundles, the hosted MCP catalog and the flag registry are unchanged (the Evaluator compared the oc- outputs with the base at round 2; no oc- source changed since). Full suite 162 files passing; build exit 0.",
         "evidence": [
-          "skills-work/ow-handoff/SKILL.md",
-          "skills-work/ow-handoff/references/",
-          "skills-work/ow-handoff/CHANGELOG.md",
+          "skills-work/ow-draft/SKILL.md",
+          "skills-work/ow-draft/CHANGELOG.md",
+          "skills-work/ow-draft/references/routing-and-resume.md",
+          "skills-work/ow-draft/references/delivery-rules.md",
+          "skills-work/ow-draft/references/draft-files-schema.md",
+          "skills-work/ow-draft/references/ow-protocol.md",
+          "skills-work/ow-draft/references/permissions-format.md",
+          "skills-work/ow-draft/references/phase-brief.md",
+          "skills-work/ow-draft/references/phase-deliver.md",
+          "skills-work/ow-draft/references/phase-evidence.md",
+          "skills-work/ow-draft/references/phase-freeze.md",
+          "skills-work/ow-draft/references/phase-signoff.md",
+          "skills-work/ow-draft/references/phase-voice.md",
+          "skills-work/ow-draft/references/phase-write.md",
+          "skills-work/ow-draft/references/self-checks.md",
+          "skills-work/ow-draft/references/type-comms.md",
+          "skills-work/ow-draft/references/type-deck.md",
+          "skills-work/ow-draft/references/type-document.md",
+          "skills-work/ow-draft/references/type-sheet.md",
+          "skills-work/ow-draft/references/voice-format.md",
           "skills-work/README.md",
-          "tests/fixtures/ow-handoff/README.md",
-          "docs/plans/2026-10-08-ow-handoff-design.md",
-          "docs/audits/2026-10-21-ow-handoff-1.0-security-review.md",
-          "sprints/release-2.1/ow-06/eval-round-1.md",
-          "sprints/release-2.1/ow-06/eval-round-2.md",
-          "CLAUDE.md"
+          "skills-work/ow-build/CHANGELOG.md",
+          "skills-work/ow-build-plan/CHANGELOG.md",
+          "skills-work/ow-documentation/CHANGELOG.md",
+          "skills-work/ow-start/CHANGELOG.md",
+          "skills-work/ow-uat/CHANGELOG.md",
+          "docs/plans/2026-10-16-ow-draft-design.md",
+          "docs/plans/2026-10-09-ow-tools-design.md",
+          "docs/audits/2026-10-21-ow-draft-1.0-security-review.md",
+          "sprints/release-2.1/ow-10/contract.md",
+          "sprints/release-2.1/ow-10/eval-round-1.md",
+          "sprints/release-2.1/ow-10/eval-round-2.md",
+          "sprints/release-2.1/ow-10/eval-round-3.md"
         ]
       }
     }
   ],
-  "record_updated_at": "2026-10-22T18:29:59.800Z",
+  "record_updated_at": "2026-10-22T20:05:55.601Z",
   "blockers": []
 }

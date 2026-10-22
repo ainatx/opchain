@@ -1,0 +1,40 @@
+ow_artefact: ow-draft/deliveries
+schema: 1
+written_by: ow-draft 1.0.0 (protocol 1)
+workstream: mossgate-books
+subject: drafts/mossgate-books/DR-01-order-record-retention/signoff.md
+created: '2026-10-26'
+clock: tool
+origin: skill
+deliveries:
+  - candidate: C-1
+    steps:
+      - match
+      - export
+      - repo
+      - confirm
+      - push
+    date: '2026-10-26'
+    match:
+      command: 'none (no ow-tools here): compared in full, text against text'
+      output: equal
+      equal: 'yes'
+    handling:
+      level: 'no'
+      from:
+        - 'profile.md: no'
+        - 'intake/mossgate-books/intake.yaml: no'
+    export_tool: 'not available here: client form only'
+    exports:
+      - source: candidates/C-1/order-record-retention.md
+        files:
+          - export/C-1/markdown/order-record-retention.md
+        command: none (no ow-tools here)
+    export_ignored: not a repository
+    repo: none
+    push_confirmation: none
+    pushes: []
+    says:
+      - shared_drive
+    embedded: []
+    note: This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.

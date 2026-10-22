@@ -1,0 +1,43 @@
+ow_artefact: ow-draft/deliveries
+schema: 1
+written_by: ow-draft 1.0.0 (protocol 1)
+workstream: mossgate-books
+subject: drafts/mossgate-books/DR-01-order-record-retention/signoff.md
+created: '2026-10-28'
+clock: tool
+origin: skill
+deliveries:
+  - candidate: C-2
+    steps:
+      - match
+      - export
+      - repo
+      - confirm
+      - push
+    date: '2026-10-28'
+    match:
+      command: ow-tools digest drafts/mossgate-books/DR-01-order-record-retention/candidates/C-2.md
+      output: equal
+      equal: 'yes'
+    handling:
+      level: 'no'
+      from:
+        - 'profile.md: no'
+        - 'intake/mossgate-books/intake.yaml: no'
+    export_tool: ow-tools 1.2.0
+    exports:
+      - source: candidates/C-2/order-record-retention.md
+        files:
+          - export/C-2/order-record-retention.pdf
+          - export/C-2/order-record-retention.docx
+        command: ow-tools export drafts/mossgate-books/DR-01-order-record-retention/candidates/C-2/order-record-retention.md --out drafts/mossgate-books/DR-01-order-record-retention/export/C-2/
+        exit: 0
+        output: '{"status":"done","files":["export/C-2/order-record-retention.pdf","export/C-2/order-record-retention.docx"],"record":"export/C-2/order-record-retention.export.json"}'
+    export_ignored: not a repository
+    repo: none
+    push_confirmation: none
+    pushes: []
+    says:
+      - shared_drive
+    embedded: []
+    note: This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.

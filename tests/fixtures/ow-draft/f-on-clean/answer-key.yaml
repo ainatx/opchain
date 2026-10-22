@@ -1,0 +1,17 @@
+# INVENTED. C4: /ow-draft on a draft folder with a clean candidate routes to -signoff
+case: f-on-clean
+base: m-freeze
+verbs: /ow-draft on
+today: '2026-10-25'
+'on': drafts/mossgate-books/DR-01-order-record-retention/
+status:
+  lines: []
+next: []
+client: Mossgate Books
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - folder
+section: 'C4: /ow-draft on a draft folder with a clean candidate routes to -signoff'

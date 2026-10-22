@@ -9,6 +9,10 @@ No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed:
 - `skill.edges.yaml`: the sign-off hand-off to ow-handoff carries the files ow-handoff reads in place (`plans/<client>/contract-inputs.md`, `quote.md`, `map/systems.md`, `evidence.md`; `builds/<client>/build.yaml`, `ledger.md`, `changes/CO-nn.md`), and the after-sign-off hand-off gives `punch-list.md` its fields (OW-06 ruling O2).
 - `examples/handoffs.yaml` and `examples/offers.md`: ow-handoff's `build` and `invoice` files, and the invented `after_handoff` care terms (H4), byte-identical in every copy.
 
+## Unreleased: data edits from OW-10 (ow-draft 1.0.0)
+
+No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed: `examples/handoffs.yaml` gains the `drafts` key (where a finished draft goes: a repository folder by `repo` and `path`, and a say: line, an optional `location:` and a post's `limit` per other destination) and its commented shape with invented, neutral keys, byte-identical in every ow- skill that ships it.
+
 ## Unreleased: data edits from OW-05 (ow-documentation 1.0.0)
 
 No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed:

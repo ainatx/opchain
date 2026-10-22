@@ -1,0 +1,19 @@
+# INVENTED. C4: a confirmed brief is a no-op; --revise changes it
+case: m-brief-again
+base: m-brief
+verbs: /ow-draft-brief
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-24'
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+status:
+  lines: []
+next: []
+refused:
+  reason: refuses
+client: Mossgate Books
+section: 'C4: a confirmed brief is a no-op; --revise changes it'

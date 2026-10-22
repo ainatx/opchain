@@ -1,0 +1,26 @@
+# INVENTED. C11: any change makes C-2; sign-offs never carry over
+case: m-freeze-2
+base: m-write-2
+verbs: /ow-draft-freeze
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-27'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - candidate
+  - checks_file
+  - self_checks
+  - draft
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/checks/C-2.md
+      next: ow-draft /ow-draft-signoff drafts/mossgate-books/DR-01-order-record-retention/
+      awaiting: your sign-off of C-2 by 2026-11-06
+next:
+  - use ow-draft-signoff C-2 on drafts/mossgate-books/DR-01-order-record-retention/
+client: Mossgate Books
+section: 'C11: any change makes C-2; sign-offs never carry over'

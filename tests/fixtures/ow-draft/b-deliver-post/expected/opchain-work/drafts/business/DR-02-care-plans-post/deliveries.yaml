@@ -1,0 +1,41 @@
+ow_artefact: ow-draft/deliveries
+schema: 1
+written_by: ow-draft 1.0.0 (protocol 1)
+workstream: business
+subject: drafts/business/DR-02-care-plans-post/signoff.md
+created: '2026-10-31'
+clock: tool
+origin: skill
+deliveries:
+  - candidate: C-1
+    steps:
+      - match
+      - export
+      - repo
+      - confirm
+      - push
+    date: '2026-10-31'
+    match:
+      command: ow-tools digest drafts/business/DR-02-care-plans-post/candidates/C-1.md
+      output: equal
+      equal: 'yes'
+    handling:
+      level: 'no'
+      from:
+        - 'profile.md: no'
+        - 'intake/business/intake.yaml: no'
+    export_tool: ow-tools 1.2.0
+    exports:
+      - source: candidates/C-1/care-plans-post.md
+        files:
+          - export/C-1/care-plans-post.txt
+          - export/C-1/care-plans-post.md
+        command: none (written by this skill)
+    export_ignored: not a repository
+    repo: none
+    push_confirmation: none
+    pushes: []
+    says:
+      - social
+    embedded: []
+    note: This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.

@@ -1,0 +1,24 @@
+# INVENTED. C13: signed off over a weak fingerprint
+case: m-signoff-no-tools
+base: m-freeze-no-tools
+verbs: /ow-draft-signoff
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-25'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - signoff
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/signoff.md
+      next: ow-draft /ow-draft-deliver drafts/mossgate-books/DR-01-order-record-retention/
+      awaiting: delivery of C-1 by 2026-11-06
+next:
+  - use ow-draft-deliver on drafts/mossgate-books/DR-01-order-record-retention/
+client: Mossgate Books
+tools: false
+section: 'C13: signed off over a weak fingerprint'

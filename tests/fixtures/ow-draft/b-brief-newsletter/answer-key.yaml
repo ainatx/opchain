@@ -1,0 +1,22 @@
+# INVENTED. C6: a newsletter brief
+case: b-brief-newsletter
+base: b-deliver-policy
+verbs: /ow-draft-brief
+draft: drafts/business/DR-04-autumn-newsletter
+today: '2026-11-02'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - brief
+status:
+  lines:
+    - path: drafts/business/DR-04-autumn-newsletter/brief.md
+      next: ow-draft /ow-draft-evidence drafts/business/DR-04-autumn-newsletter/
+      awaiting: none
+next:
+  - use ow-draft-evidence on drafts/business/DR-04-autumn-newsletter/
+section: 'C6: a newsletter brief'

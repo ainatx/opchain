@@ -1,0 +1,18 @@
+# INVENTED. C6: client comms with another voice is refused
+case: l-brief-comms-wrong-voice
+base: l-voice-larkspur-approve
+verbs: /ow-draft-brief
+today: '2026-10-29'
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+status:
+  lines: []
+next: []
+refused:
+  reason: refuses
+client: Larkspur Ceramics
+section: 'C6: client comms with another voice is refused'

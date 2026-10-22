@@ -1,0 +1,16 @@
+# INVENTED. The should-trigger and should-not-trigger prompts the authoring standard asks for (OW-10 deliverable 5).
+# No harness runs them yet.
+should_trigger:
+  - turn these research findings into a memo for the client
+  - write a case study about a finished project
+  - draft the announcement the client sends their staff
+  - make a deck for the quarterly review
+  - build a cost comparison sheet with formulas
+  - write a voice file from these samples
+  - draft our own policy on renewing the invoicing tool
+should_not_trigger:
+  - { prompt: "write the user guides for the client's team", belongs_to: ow-documentation }
+  - { prompt: "find out what bookkeeping firms charge", belongs_to: ow-research }
+  - { prompt: "draft the fixed quote for the build", belongs_to: ow-build-plan }
+  - { prompt: "write the operator notes", belongs_to: ow-handoff }
+  - { prompt: "score these three vendors", belongs_to: ow-vendor-eval }

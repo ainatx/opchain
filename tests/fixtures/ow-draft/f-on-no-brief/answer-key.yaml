@@ -1,0 +1,17 @@
+# INVENTED. C4: /ow-draft on a draft folder with no brief routes to -brief
+case: f-on-no-brief
+base: m-voice-approve
+verbs: /ow-draft on
+today: '2026-10-23'
+'on': drafts/mossgate-books/DR-01-order-record-retention/
+status:
+  lines: []
+next: []
+client: Mossgate Books
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - folder
+section: 'C4: /ow-draft on a draft folder with no brief routes to -brief'

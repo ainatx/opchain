@@ -1,0 +1,20 @@
+# INVENTED. Design §11 Client comms: -deliver refuses until the client's approval is recorded
+case: l-deliver-comms-refused
+base: l-signoff-comms
+verbs: /ow-draft-deliver
+draft: drafts/larkspur-ceramics/DR-03-email-orders-announcement
+today: '2026-10-31'
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+status:
+  lines: []
+next:
+  - use ow-draft-signoff --client C-1 on drafts/larkspur-ceramics/DR-03-email-orders-announcement/
+refused:
+  reason: refuses
+client: Larkspur Ceramics
+section: 'Design §11 Client comms: -deliver refuses until the client''s approval is recorded'

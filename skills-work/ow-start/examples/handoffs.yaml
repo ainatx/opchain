@@ -51,6 +51,21 @@
 #     repo: { path: docs/client-handbook/, handover_path: docs/handover/ }
 #     google_docs: { say: "upload {files} to the client's shared drive", location: "<the folder in that drive>" }
 #     wiki: { say: "paste {files} into the client's wiki space" }
+#
+# ow-draft reads drafts (where a finished draft goes; files: the client files
+# in export/C-n/ and the repository copy). Each key is one destination: repo
+# and path for a repository folder the Markdown goes into (repo is relative
+# to the folder that holds opchain-work/, path to the repository; written
+# only on a branch you made), say for a line printed when no connector for it
+# is in the session, location for where a connector puts the files
+# (otherwise you type it when you confirm the push), and limit for a post's
+# length in characters. ow-draft never names what a destination is:
+#
+#   drafts:
+#     blog: { repo: ../site, path: src/content/blog/ }
+#     social: { say: "post the text in {files} on your social page", limit: 280 }
+#     newsletter: { say: "paste {files} into your newsletter tool" }
+#     shared_drive: { say: "upload {files} to the client's shared folder", location: "<the folder in that drive>" }
 ow_artefact: ow-start/handoffs
 schema: 1
 written_by: user (created from the ow- example)
@@ -66,3 +81,4 @@ change_order:   # a change agreed in principle during the build
 invoice:        # a payment that has fallen due during the build
 sign:           # a sign-off request ready for the client's signature
 docs:           # finished client documents and training (see the shape above)
+drafts:         # finished drafts, by destination (see the shape above)

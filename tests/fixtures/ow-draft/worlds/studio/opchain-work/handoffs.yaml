@@ -1,0 +1,21 @@
+# INVENTED TEST FIXTURE: the user's own handoffs.yaml for the ow-draft acceptance tests.
+ow_artefact: ow-start/handoffs
+schema: 1
+written_by: user (created from the ow- example)
+workstream: none
+subject: none
+created: 2026-10-20
+clock: user-stated
+origin: user
+
+contract:
+build:
+change_order:
+invoice:
+sign:
+docs:
+drafts:
+  blog: { repo: ../site, path: src/content/blog/ }
+  social: { say: "post the text in {files} on your social page", limit: 280 }
+  newsletter: { say: "paste {files} into your newsletter tool" }
+  shared_drive: { say: "upload {files} to the client's shared folder", location: "Mossgate / Memos" }

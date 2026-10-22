@@ -1,0 +1,17 @@
+# INVENTED. C4: /ow-draft on a signed-off draft folder routes to -deliver
+case: f-on-signed
+base: m-signoff
+verbs: /ow-draft on
+today: '2026-10-25'
+'on': drafts/mossgate-books/DR-01-order-record-retention/
+status:
+  lines: []
+next: []
+client: Mossgate Books
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - folder
+section: 'C4: /ow-draft on a signed-off draft folder routes to -deliver'

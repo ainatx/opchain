@@ -1,0 +1,19 @@
+# INVENTED. C17, C22: a push cut off between intended and done is asked about again, never pushed again
+case: m-deliver-push-cut
+base: m-signoff
+verbs: /ow-draft-deliver
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-27'
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+status:
+  lines: []
+next: []
+refused:
+  reason: refuses
+client: Mossgate Books
+section: 'C17, C22: a push cut off between intended and done is asked about again, never pushed again'

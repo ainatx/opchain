@@ -1,0 +1,28 @@
+# INVENTED. C8: a superseded F-nn still cited is stale; the freeze's Sources check is FINDING
+case: m-freeze-stale
+base: m-write
+verbs: /ow-draft-freeze
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-26'
+expect:
+  findings:
+    - Sources
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - candidate
+  - checks_file
+  - self_checks
+status:
+  lines:
+    - path: drafts/mossgate-books/DR-01-order-record-retention/checks/C-1.md
+      next: ow-draft /ow-draft-write drafts/mossgate-books/DR-01-order-record-retention/
+      awaiting: a fix for C-1 by 2026-11-06
+next:
+  - use ow-draft-write on drafts/mossgate-books/DR-01-order-record-retention/
+client: Mossgate Books
+section: 'C8: a superseded F-nn still cited is stale; the freeze''s Sources check is FINDING'

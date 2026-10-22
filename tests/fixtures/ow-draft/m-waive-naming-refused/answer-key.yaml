@@ -1,0 +1,19 @@
+# INVENTED. C12: a waiver of Naming (never waived) is refused and changes nothing
+case: m-waive-naming-refused
+base: m-freeze-stale
+verbs: /ow-draft-freeze --waive
+draft: drafts/mossgate-books/DR-01-order-record-retention
+today: '2026-10-26'
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - refused
+status:
+  lines: []
+next: []
+refused:
+  reason: refuses
+client: Mossgate Books
+section: 'C12: a waiver of Naming (never waived) is refused and changes nothing'

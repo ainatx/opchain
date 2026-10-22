@@ -1,0 +1,17 @@
+# INVENTED. C4: /ow-draft on client comms signed off and awaiting the client routes to -signoff --client
+case: f-on-awaiting-client
+base: l-signoff-comms
+verbs: /ow-draft on
+today: '2026-10-31'
+'on': drafts/larkspur-ceramics/DR-03-email-orders-announcement/
+status:
+  lines: []
+next: []
+client: Larkspur Ceramics
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - folder
+section: 'C4: /ow-draft on client comms signed off and awaiting the client routes to -signoff --client'
