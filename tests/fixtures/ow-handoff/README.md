@@ -9,7 +9,7 @@ These are the acceptance tests from `docs/plans/2026-10-08-ow-handoff-design.md`
 | Folder or file | Holds |
 |---|---|
 | `input/` | Files the case adds to its starting state: a planted file, a newer upstream copy, a ledger that shows the delivery half invoiced |
-| `session/` | What the user says or brings: a client's email, a waiver asked for |
+| `session/` | What the user says or brings: a client's email, a receipt, and `answers.md`, the user's own words in the session (below) |
 | `expected/` | The golden run (written with a generator kept outside the repository, then graded by the checker): what ow-handoff writes under `opchain-work/handoffs/<client>/`, the appended `STATUS.md`, and `printed.md`, the screen |
 | `answer-key.yaml` | The case: `base:` (the ow-handoff case it continues), `uat_case:` (the ow-uat golden it starts from), `docs_case:` (ow-documentation's, H3), `logs_case:` (ow-start's, H5), `world:`, `verbs`, `today`, the checks and what each expects |
 
@@ -36,5 +36,7 @@ Attach the folder in a session where ow-handoff is installed and run the verb th
 ```bash
 node scripts/ow-handoff-acceptance.mjs package /path/to/empty-folder
 ```
+
+**The session.** Every approval a run records (a transfer confirmation, an account check, completeness, a waiver, a removal or re-grant, a fix status move or withdrawal, a go-ahead, hours, the walk-through, the care choice and the ow-care answer, `--keep-frozen` and `--refreeze`) is graded against `session/answers.md`, never against the answer key (the `session` check runs on every case; evaluation round 1 M1). Its lines are the user's (`Robin: …`, or a line with no speaker) and, where the skill printed a question the user answered, the question (`Asked: …`). The user's line must name what the record names (the item's id or name, the file, the choice word, the tier) and say it is so: a decline, a condition or "later", a hedge, or someone else's words relayed counts for nothing. A client's word reported by the user is what "as reported" records, and for hourly help a client's email go-ahead is enough (decision 8); a waiver, a freeze, hours and the ow-care answer are the user's own. A bare "yes" confirms exactly the question it answers. In a real run, save the session's turns there in the same form.
 
 A real run is read by difference: a file counts as written when it is new or differs from the starting state. With no arguments, the script checks every golden run (what `tests/ow-handoff-acceptance.test.js` does in `npm test`).

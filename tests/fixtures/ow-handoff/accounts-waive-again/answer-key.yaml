@@ -1,0 +1,21 @@
+# Answer key: accounts-waive-again (INVENTED). A one-step mode run again (no-op).
+case: accounts-waive-again
+section: A one-step mode run again (no-op)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: accounts-waive
+uat_case: defect-punch-step0
+docs_case: write-runbook
+world: larkspur
+verbs:
+  - /ow-handoff-accounts --waive
+today: '2027-02-21'
+checks:
+  - writes
+  - refused
+  - screen
+noop: 'Nothing to do: already recorded on 2027-02-20.'

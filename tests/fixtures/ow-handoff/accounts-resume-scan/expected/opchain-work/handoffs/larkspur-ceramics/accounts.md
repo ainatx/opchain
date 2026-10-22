@@ -51,7 +51,9 @@ The hit is a rotate item (SHOP_API_TOKEN). Removing it from the history is the c
 Not read:
 - binary-looking files (a NUL byte, UTF-16 text) and commit and tag messages
 - paths gitleaks' built-in allowlist skips (dependency folders such as node_modules/, lock files, binary and office formats, any path containing gitleaks.toml)
-- octopus merges' own changes, older stash entries, refs that point at a blob or tree, ORIG_HEAD and FETCH_HEAD, reflogs and submodule histories Not scanned: none. CLEAN would mean only that nothing read matched the scanner's rules.
+- octopus merges' own changes, older stash entries, refs that point at a blob or tree, ORIG_HEAD and FETCH_HEAD, reflogs and submodule histories
+
+Not scanned: none. CLEAN would mean only that nothing read matched the scanner's rules.
 
 Commit and tag messages: not read.
 

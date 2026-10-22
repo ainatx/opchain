@@ -45,7 +45,9 @@ scan: { status: CLEAN, reason: "none", command: "ow-tools scan-secrets ../larksp
 Not read:
 - binary-looking files (a NUL byte, UTF-16 text) and commit and tag messages
 - paths gitleaks' built-in allowlist skips (dependency folders such as node_modules/, lock files, binary and office formats, any path containing gitleaks.toml)
-- octopus merges' own changes, older stash entries, refs that point at a blob or tree, ORIG_HEAD and FETCH_HEAD, reflogs and submodule histories Not scanned: none.
+- octopus merges' own changes, older stash entries, refs that point at a blob or tree, ORIG_HEAD and FETCH_HEAD, reflogs and submodule histories
+
+Not scanned: none.
 
 Commit and tag messages: read by Robin 2027-02-01; no secret found.
 

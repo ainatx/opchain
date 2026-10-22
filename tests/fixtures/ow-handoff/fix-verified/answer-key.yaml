@@ -1,0 +1,31 @@
+# Answer key: fix-verified (INVENTED). Following a fix: verified after the re-check and the client's confirmation (--status).
+case: fix-verified
+section: 'Following a fix: verified after the re-check and the client''s confirmation (--status)'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-report
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-fix --status
+today: '2027-03-12'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - fix
+  - embedded
+  - approvals
+next:
+  - use ow-handoff-offer on handoffs/larkspur-ceramics/
+approvals:
+  - file: opchain-work/handoffs/larkspur-ceramics/fixes/FIX-03.md
+    line: 2027-03-12 verified; re-check AC-1.1 passed; confirmed by order coordinator (as reported)
+    kind: record

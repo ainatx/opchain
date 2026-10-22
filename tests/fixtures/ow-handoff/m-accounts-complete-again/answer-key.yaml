@@ -1,0 +1,20 @@
+# Answer key: m-accounts-complete-again (INVENTED). A one-step mode run again (no-op).
+case: m-accounts-complete-again
+section: A one-step mode run again (no-op)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: m-accounts-complete
+uat_case: m-deemed
+world: mossgate
+verbs:
+  - /ow-handoff-accounts --complete
+today: '2026-12-12'
+checks:
+  - writes
+  - refused
+  - screen
+noop: 'Nothing to do: already recorded on 2026-12-11.'
