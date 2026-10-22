@@ -2,6 +2,12 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
+## Unreleased: data edits with ow-handoff 1.0.0
+
+No version bump (data edits ride without one); no `SKILL.md` or reference text changed:
+
+- `examples/handoffs.yaml`: ow-handoff's `build` and `invoice` files, byte-identical in every copy. Its `/ow-handoff-*` NEXTs now resolve to ow-handoff's declared verbs.
+
 ## Unreleased: data edits from the ow-draft 1.0.0 build
 
 No version bump (data, example and test edits ride without one); no `SKILL.md` or reference text changed: `examples/handoffs.yaml` gains the `drafts` key (where a finished draft goes: a repository folder by `repo` and `path`, and a say: line, an optional `location:` and a post's `limit` per other destination) and its commented shape with invented, neutral keys, byte-identical in every ow- skill that ships it.

@@ -1,0 +1,28 @@
+# Answer key: route-notes-not-started (INVENTED). Routes (C4): ow-documentation's delivered say, no handoff.yaml.
+case: route-notes-not-started
+section: 'Routes (C4): ow-documentation''s delivered say, no handoff.yaml'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+uat_case: signoff-signed
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-notes
+today: '2027-02-16'
+checks:
+  - writes
+  - refused
+  - screen
+  - next
+  - route
+  - embedded
+refused: 'Refused: the handoff is not started.'
+next:
+  - use ow-handoff-start on uat/larkspur-ceramics/
+route:
+  say: use ow-handoff-notes on handoffs/larkspur-ceramics/
+  expect: nothing

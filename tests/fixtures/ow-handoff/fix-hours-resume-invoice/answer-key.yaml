@@ -1,0 +1,35 @@
+# Answer key: fix-hours-resume-invoice (INVENTED). Resume (/ow-handoff-fix --hours, cut after hours).
+case: fix-hours-resume-invoice
+section: Resume (/ow-handoff-fix --hours, cut after hours)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-go-ahead
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-fix --hours
+today: '2027-03-15'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - help
+  - resume
+  - embedded
+next:
+  - handoffs.yaml invoice
+resume:
+  verb: /ow-handoff-fix --hours
+  done:
+    - windows
+    - hours
+  next: invoice
+  untouched:
+    - opchain-work/handoffs/larkspur-ceramics/help/HELP-01.md

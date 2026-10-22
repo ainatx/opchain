@@ -88,6 +88,7 @@ reads:
     if_mismatch: Quote what was found; ask the user to state the request
   - from: ow-handoff
     path: handoffs/<client>/fixes/FIX-nn.md
+    in_place: true   # OW-06 ruling O2: ow-handoff hands it to ow-build, which hands it on here in place
     fields: [the request]
     if_absent: Ask for the request in the user's words
     if_mismatch: Quote what was found; ask the user to state the request
@@ -226,4 +227,5 @@ hands_off:
       - { path: plans/<client>/map/data.md, fields: [data] }
       - { path: plans/<client>/map/future.md, fields: [future process] }
       - { path: plans/<client>/map/roles.md, in_place: true }   # owner decision OD-1: handed on for ow-uat, which reads it in place
+      - { path: plans/<client>/evidence.md, in_place: true }   # OW-06 ruling O2: handed on for ow-handoff's access list (stage-02 grants), read in place
     if_unavailable: "handoffs.yaml build: its say: line; with none, give build-request.md to whoever builds it"

@@ -1,0 +1,22 @@
+# Answer key: fix-hours-before-go-ahead (INVENTED). Hourly help: hours before the go-ahead (refused).
+case: fix-hours-before-go-ahead
+section: 'Hourly help: hours before the go-ahead (refused)'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-help
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-fix --hours
+today: '2027-03-10'
+checks:
+  - writes
+  - refused
+  - screen
+  - embedded
+refused: 'Refused: work on HELP-01 waits for the client''s go-ahead.'

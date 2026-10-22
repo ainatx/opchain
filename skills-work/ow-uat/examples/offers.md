@@ -10,7 +10,7 @@ origin: user
 ---
 # Offers and fit: INVENTED EXAMPLE
 
-This is an invented example, shipped the same in every ow- skill that reads it. Replace every line with your own paths and the clients you serve. ow-start reads the `fit` and `path:` sections to propose one path after each call; ow-build-plan reads `ownership`, `after_handoff` and `contract_clauses` for the plan, the quote and the contract inputs; ow-uat reads `uat` for acceptance testing. No skill edits this file. It names paths and terms; build prices live in `price-book.yaml`. The one price below, `hourly_help`, is an invented placeholder like every number there: put your own in.
+This is an invented example, shipped the same in every ow- skill that reads it. Replace every line with your own paths and the clients you serve. ow-start reads the `fit` and `path:` sections to propose one path after each call; ow-build-plan reads `ownership`, `after_handoff` and `contract_clauses` for the plan, the quote and the contract inputs; ow-uat reads `uat` for acceptance testing; ow-handoff reads `after_handoff` for the offer after delivery. No skill edits this file. It names paths and terms; build prices live in `price-book.yaml`. The prices below, in `after_handoff`, are invented placeholders like every number there: put your own in.
 
 Each path is a `## path: <id>` section. `kind` is one of `defined-work`, `build-plan`, `feasibility` or `not-a-fit`; `systems` is `1`, `2`, `3+` or `none`. `propose when` is what the call has to show; `after yes` is what the recap says happens next.
 
@@ -75,13 +75,22 @@ The work is yours: it lives in your own repository and accounts, under your name
 
 ## after_handoff
 
-What follows delivery. ow-build-plan reads `fix_window_days` for the quote's fix window; the stage after the build reads the rest. Every value here is an invented placeholder.
+What follows delivery. ow-build-plan reads `fix_window_days` for the quote's fix window; ow-handoff reads the whole section, and freezes every term below in the client's `after-offer.md` when it makes the offer, so a later edit here changes no client's terms. Every tier name, hour count and price here is an invented placeholder: put your own in.
 
 ```yaml
 fix_window_days: 30                    # the quote prints "30 days of fixes"; the signed terms win later
 access_removal_lead_business_days: 3
+care_tiers:                            # placeholders: your own names, hours, reply times and prices
+  - { name: Light, hours: 3, reply_business_days: 3, price: 1500 }
+  - { name: Regular, hours: 6, reply_business_days: 2, price: 3000 }
+  - { name: Full, hours: 15, reply_business_days: 1, price: 6000 }
+billing: prepaid monthly
+rollover: { share: 0.5, of: unused, months: 1 }
+rollover_wording: half of the unused hours roll over for one month
+notice_days: 30
 excluded: [out-of-hours on-call, new builds]
 hourly_help: { price: 1000 }          # placeholder: your own hourly price
+urgent_price: 1200                     # optional; placeholder
 ```
 
 ## uat

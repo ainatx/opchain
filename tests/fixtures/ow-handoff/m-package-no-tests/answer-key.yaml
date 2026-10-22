@@ -1,0 +1,28 @@
+# Answer key: m-package-no-tests (INVENTED). No test suite: a takeover FINDING refuses -package.
+case: m-package-no-tests
+section: 'No test suite: a takeover FINDING refuses -package'
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: m-notes-na
+uat_case: m-deemed
+world: mossgate
+verbs:
+  - /ow-handoff-package
+today: '2026-12-14'
+checks:
+  - writes
+  - refused
+  - screen
+  - next
+  - gate
+  - embedded
+refused: 'Refused: Takeover is FINDING.'
+next:
+  - use ow-handoff-fix on handoffs/mossgate-books/
+gate:
+  check: Takeover
+  file: mossgate-repo/package.json

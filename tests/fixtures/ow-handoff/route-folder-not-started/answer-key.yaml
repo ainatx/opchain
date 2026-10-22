@@ -1,0 +1,25 @@
+# Answer key: route-folder-not-started (INVENTED). Routes (C4): the folder route, not started.
+case: route-folder-not-started
+section: 'Routes (C4): the folder route, not started'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+uat_case: signoff-signed
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff
+today: '2027-01-28'
+checks:
+  - writes
+  - refused
+  - screen
+  - route
+  - embedded
+question: true
+route:
+  say: use ow-handoff on handoffs/larkspur-ceramics/
+  expect: /ow-handoff-start

@@ -1,0 +1,22 @@
+# Answer key: offer-after-close (INVENTED). A choice after the first close is refused (O13).
+case: offer-after-close
+section: A choice after the first close is refused (O13)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: close
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-offer
+today: '2027-03-30'
+checks:
+  - writes
+  - refused
+  - screen
+  - embedded
+refused: 'Refused: the offer is closed; the workstream closed on 2027-03-27.'

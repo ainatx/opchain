@@ -1,0 +1,32 @@
+# Answer key: close-care-installed (INVENTED). Carry into care: care with ow-care installed (stays open under ow-care).
+case: close-care-installed
+section: 'Carry into care: care with ow-care installed (stays open under ow-care)'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: access
+uat_case: signoff-addendum
+docs_case: delivered
+logs_case: logs-larkspur-checkin
+world: larkspur
+verbs:
+  - /ow-handoff-close
+today: '2027-03-27'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - close
+  - handoff_fields
+  - credentials
+  - internal_numbers
+  - embedded
+next:
+  - use ow-care on handoffs/larkspur-ceramics/care-start.md
+close:
+  branch: care-installed

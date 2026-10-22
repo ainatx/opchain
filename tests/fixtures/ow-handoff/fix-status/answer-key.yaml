@@ -1,0 +1,31 @@
+# Answer key: fix-status (INVENTED). Following a fix: a state (--status).
+case: fix-status
+section: 'Following a fix: a state (--status)'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-report
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-fix --status
+today: '2027-03-04'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - fix
+  - embedded
+  - approvals
+next:
+  - use ow-handoff-offer on handoffs/larkspur-ceramics/
+approvals:
+  - file: opchain-work/handoffs/larkspur-ceramics/fixes/FIX-03.md
+    line: 2027-03-04 sent; as reported; not verified by this skill
+    kind: record

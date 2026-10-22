@@ -1,0 +1,25 @@
+# Answer key: delivered-not-packaged (INVENTED). Window dates: -delivered before -package (refused).
+case: delivered-not-packaged
+section: 'Window dates: -delivered before -package (refused)'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: notes-index
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-delivered
+today: '2027-02-17'
+checks:
+  - writes
+  - refused
+  - screen
+  - next
+  - embedded
+refused: 'Refused: the Handoff notes are not packaged.'
+next:
+  - use ow-handoff-package on handoffs/larkspur-ceramics/

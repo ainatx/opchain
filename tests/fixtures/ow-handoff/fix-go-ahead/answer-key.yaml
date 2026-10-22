@@ -1,0 +1,31 @@
+# Answer key: fix-go-ahead (INVENTED). Hourly help: an email go-ahead, recorded as reported.
+case: fix-go-ahead
+section: 'Hourly help: an email go-ahead, recorded as reported'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-help
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-fix --go-ahead
+today: '2027-03-10'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - help
+  - approvals
+  - embedded
+next:
+  - handoffs.yaml build
+approvals:
+  - file: opchain-work/handoffs/larkspur-ceramics/help/HELP-01.md
+    line: 2027-03-10 go-ahead 2027-03-10 by operations manager, as reported. This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.
+    kind: go-ahead

@@ -1,0 +1,47 @@
+# Answer key: offer-resume-choice (INVENTED). Resume (/ow-handoff-offer, cut after terms).
+case: offer-resume-choice
+section: Resume (/ow-handoff-offer, cut after terms)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-change
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-offer
+today: '2027-03-05'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - offer
+  - handoff_fields
+  - self_checks
+  - internal_numbers
+  - private_names
+  - resume
+  - embedded
+  - approvals
+offer:
+  choice: care
+  ow_care: not installed
+approvals:
+  - file: opchain-work/handoffs/larkspur-ceramics/after-offer.md
+    line: >-
+      2027-03-05 choice: care, tier Regular; decided_on 2027-03-05; recorded_by Robin; care start: the day after window_end (2027-03-27); ow-care: not installed (the user, 2027-03-05). This is a
+      working note made by an AI assistant at your instruction. It is not a signature or an official record.
+    kind: choice
+next:
+  - use ow-handoff-access on handoffs/larkspur-ceramics/
+resume:
+  verb: /ow-handoff-offer
+  done:
+    - terms
+  next: choice
+  untouched: []

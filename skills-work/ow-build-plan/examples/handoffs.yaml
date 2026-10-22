@@ -15,7 +15,10 @@
 # for the builder; file: defects/UAT-nn.md) and sign (a sign-off request for
 # the client to sign; file: signoff-request-<n>.md). ow-documentation reads
 # docs (where the finished documents go; files: export/ and the repository
-# copy). {files} is replaced with the handoff file's path, as in:
+# copy). ow-handoff reads build (a covered fix or approved hourly help; files:
+# fixes/FIX-nn.md, help/HELP-nn.md) and invoice (hourly help and vendor
+# charges; files: invoices/INV-request-*.md). {files} is replaced with the
+# handoff file's path, as in:
 #
 #   contract:
 #     say: "send {files} to whoever drafts our contracts"

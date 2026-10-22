@@ -2,6 +2,10 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
+## Unreleased: data edits with ow-handoff 1.0.0
+
+No version bump (data and example edits ride without one); no `SKILL.md` or reference text changed: `examples/handoffs.yaml` gains the lines ow-handoff reads for `build` and `invoice` (a covered fix or approved hourly help; hourly help and vendor charges), byte-identical in every ow- skill that ships it.
+
 ## 1.0.0 (2026-10-21): brief, evidence, draft, candidate, sign-off and delivery
 
 Design: `docs/plans/2026-10-16-ow-draft-design.md` (decisions 1 to 8; its build notes record every departure). Contract: `sprints/release-2.1/ow-10/contract.md`.

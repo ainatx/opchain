@@ -1,0 +1,36 @@
+# Answer key: close (INVENTED). Care without ow-care (closed; kept items; the awaiting after the closed line); Close timing (after the window end).
+case: close
+section: Care without ow-care (closed; kept items; the awaiting after the closed line); Close timing (after the window end)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: access
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-close
+today: '2027-03-27'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - close
+  - self_checks
+  - credentials
+  - internal_numbers
+  - people
+  - private_names
+  - handoff_fields
+  - embedded
+close:
+  branch: care-not-installed
+  review: '2027-04-27'
+next:
+  - use ow-care on handoffs/larkspur-ceramics/care-start.md

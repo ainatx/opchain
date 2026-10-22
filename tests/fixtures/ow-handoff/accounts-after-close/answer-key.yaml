@@ -1,0 +1,22 @@
+# Answer key: accounts-after-close (INVENTED). Accounts after close (no-op).
+case: accounts-after-close
+section: Accounts after close (no-op)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: close
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-accounts
+today: '2027-03-30'
+checks:
+  - writes
+  - refused
+  - screen
+  - embedded
+noop: 'Nothing to do: the workstream closed on 2027-03-27.'

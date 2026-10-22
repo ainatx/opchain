@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-aa6492c3b261c63e8",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-ac31c154410b8a429",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-22T20:05:55.601Z",
+  "updated_at": "2026-10-22T22:33:55.947Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-ow-10-ow-draft",
-  "progress_summary": "OW-10 PR readiness PASS at f45b2352: catalog ow-draft added (catalogs.json: planned, plannedVerbs, bodyTokenBudgets, statusNames), the named reads-row kind in check-skill-contracts, NETWORK_TEXT exported from gen-skills-catalog; full npm test and build green; candidate verifier PASS; no untracked files.",
+  "step": "ow06-ci-fixture-fix",
+  "progress_summary": "OW-06 current candidate passed all eight strict commit gates: site type check, lint, tests, pattern/secret scans, build and both dependency audits. Existing skill reviews and owner acceptance remain scoped; fresh remote CI is next.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -24,18 +24,19 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "ow-draft keeps a reading row for ow-vendor-eval's recommendation; ow-vendor-eval is planned for v2.2 (OW-11), so the row waits for it (reciprocity is checked once it has an edges file)."
+      "ow-handoff is in no build output yet, by the ow- catalog's design (no plugin, zip, docs tree, flag registry, hosted MCP catalog or mirror)",
+      "O12 sibling stand-in swaps, the shared approval module and the name-recall gaps are stated open in the PR body"
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "f45b23522bdd7727ac756f0d88deeb4b103d9aaa",
+    "verified_for_sha": "08be63b8cb1fd01beba343859176a74cdb057c1f",
     "last_verify": {
-      "at": "2026-10-22T20:05:55.601Z",
-      "branch": "claude/ow-10-ow-draft",
-      "base": "origin/main@318076cc",
+      "at": "2026-10-22T21:10:21.303Z",
+      "branch": "claude/ow-06-ow-handoff",
+      "base": "origin/main@73f775a3",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -2476,8 +2477,63 @@
           "sprints/release-2.1/ow-10/eval-round-3.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-ow06-ow-handoff-4a4ec0a03415",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-22T21:10:21.303Z",
+      "verified_at": "2026-10-22T21:10:21.303Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-ow06-ow-handoff"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:4a4ec0a03415bce50159b760b5695e102a79134e4286ed630301eff9fdeac922"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/ow-06-ow-handoff at dd2ba845 on origin/main 73f775a3. Nothing under skills/, plugins/ (outside the ow-tools test), site/ or src/ changes, so no oc- catalog, bundle, plugin or release-surface output changes (byte-identity of the oc- build outputs checked in evaluation round 1). catalogs.json and skills-work/README.md conflicts resolved keeping both intents: ow-handoff built, ow-research 1.0.2, ow-vendor-eval planned with no declared verb, ow-draft and ow-care planned. Candidate verifier PASS on the merge commit's tree. The merge brought in ow-draft (#647), so ow-draft and ow-handoff are both built; ow-care, ow-vendor-eval, ow-currency and ow-controls stay planned.",
+        "evidence": [
+          "skills-work/ow-handoff/SKILL.md",
+          "skills-work/ow-handoff/references/",
+          "skills-work/ow-handoff/CHANGELOG.md",
+          "skills-work/README.md",
+          "tests/fixtures/ow-handoff/README.md",
+          "docs/plans/2026-10-08-ow-handoff-design.md",
+          "docs/audits/2026-10-21-ow-handoff-1.0-security-review.md",
+          "sprints/release-2.1/ow-06/eval-round-1.md",
+          "sprints/release-2.1/ow-06/eval-round-2.md",
+          "CLAUDE.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-1816dfc43356",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-22T22:33:55.946Z",
+      "verified_at": "2026-10-22T22:33:55.946Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-22T22:33:55.946Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:1816dfc43356dcb282af733a57261cd98d10e74f9ac3b418ad18d9ab11e369b1"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "OW-06 PR648 with destination Git initialization and exact numeric LibreOffice validation; eight current commit gates pass; release-level model/real-use/deployment gates remain separate.",
+        "evidence": [
+          "sprints/release-2.1/ow-06/ci-fixture-copy.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-22T20:05:55.601Z",
+  "record_updated_at": "2026-10-22T22:33:55.947Z",
   "blockers": []
 }

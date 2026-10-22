@@ -1,0 +1,26 @@
+# Answer key: fix-mismatch (INVENTED). Fix classification waits for a basis mismatch.
+case: fix-mismatch
+section: Fix classification waits for a basis mismatch
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-windows
+uat_case: signoff-addendum
+docs_case: write-runbook
+world: larkspur
+verbs:
+  - /ow-handoff-fix
+today: '2027-02-13'
+checks:
+  - writes
+  - refused
+  - screen
+  - next
+  - embedded
+refused: 'Refused: the agreed basis does not match uat/larkspur-ceramics/agreed/scope.md.'
+next:
+  - use ow-handoff-start --keep-frozen on handoffs/larkspur-ceramics/
+  - use ow-handoff-start --refreeze on handoffs/larkspur-ceramics/

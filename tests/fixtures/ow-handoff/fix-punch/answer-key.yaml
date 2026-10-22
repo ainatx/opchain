@@ -1,0 +1,36 @@
+# Answer key: fix-punch (INVENTED). Punch list (each item once).
+case: fix-punch
+section: Punch list (each item once)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: start
+uat_case: defect-punch-step0
+docs_case: write-runbook
+world: larkspur
+verbs:
+  - /ow-handoff-fix --punch
+today: '2027-01-29'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - fix
+  - self_checks
+  - credentials
+  - internal_numbers
+  - private_names
+  - embedded
+fix:
+  punch:
+    FIX-01: UAT-08
+    FIX-02: UAT-10
+next:
+  - use ow-handoff-accounts on handoffs/larkspur-ceramics/
+  - handoffs.yaml build

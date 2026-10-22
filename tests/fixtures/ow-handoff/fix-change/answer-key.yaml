@@ -1,0 +1,34 @@
+# Answer key: fix-change (INVENTED). Fix classification (a new feature: a Change, to ow-build).
+case: fix-change
+section: 'Fix classification (a new feature: a Change, to ow-build)'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-report
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-fix
+today: '2027-03-03'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - fix
+  - handoff_fields
+  - embedded
+fix:
+  log:
+    FIX-04:
+      class: Change
+      against: WP-3
+      window: main
+      route: change
+next:
+  - use ow-build to price the change from handoffs/larkspur-ceramics/fixes/FIX-04.md

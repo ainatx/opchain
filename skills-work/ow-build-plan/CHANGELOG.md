@@ -2,6 +2,13 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). The family's v2.1.0 release entry cites each skill's version. Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
+## Unreleased: data edits from OW-06 (ow-handoff 1.0.0)
+
+No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed:
+
+- `skill.edges.yaml`: the hand-off to ow-build carries `plans/<client>/evidence.md` in place, and the reads row for `handoffs/<client>/fixes/FIX-nn.md` is `in_place: true` (ow-handoff hands it to ow-build, which hands it on here; OW-06 ruling O2).
+- `examples/handoffs.yaml` and `examples/offers.md`: as ow-uat's.
+
 ## Unreleased: data edits from OW-10 (ow-draft 1.0.0)
 
 No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed: `examples/handoffs.yaml` gains the `drafts` key (where a finished draft goes: a repository folder by `repo` and `path`, and a say: line, an optional `location:` and a post's `limit` per other destination) and its commented shape with invented, neutral keys, byte-identical in every ow- skill that ships it.

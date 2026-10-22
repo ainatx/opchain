@@ -1,0 +1,32 @@
+ow_artefact: ow-handoff/handoff
+schema: 1
+written_by: ow-handoff 1.0.0 (protocol 1)
+workstream: mossgate-books
+subject: uat/mossgate-books/signoff.md
+created: 2026-12-09
+clock: user-stated
+origin: skill
+acceptance: { kind: deemed, date: 2026-12-07, request: 1 }
+build_label: mossgate-uat-1
+project: smaller
+agreed_basis:
+  - { file: agreed/contract-terms.md, from: uat/mossgate-books/agreed/contract-terms.md, dated: 2026-11-10, digest: sha256:c54f6ebde89e7933318089b9ef39d3b8b2fa53f163ec5eec1457d3edeba25d67 }
+  - { file: agreed/quick-scope.md, from: uat/mossgate-books/agreed/quick-scope.md, dated: 2026-10-20, digest: sha256:ac6963be201f77d05a74757588e9716c7a2e90d658ef7fef48e1d4493fc17c46 }
+post_acceptance_cos: []
+fix_window_days: { value: 30, source: "offers.md after_handoff, confirmed by Robin 2026-12-09" }
+access_removal_lead_business_days: { value: 3, source: "offers.md after_handoff, confirmed by Robin 2026-12-09" }
+payment_due_days: { value: 14, source: plans/mossgate-books/contract-inputs.md }
+documentation_sku: declined (plans/mossgate-books/contract-inputs.md)
+repo: ../mossgate-repo
+doc_paths: { readme: README.md, deploy: README.md#deploy, docs: docs/, ci: .github/workflows/ci.yml, confirmed: "Robin 2026-12-09" }
+gitignore: { asked: 2026-12-09, answer: not a git repo, lines: [] }
+start_steps:
+  - { step: terms, rec: 1, date: 2026-12-09 }
+  - { step: paths, rec: 2, date: 2026-12-09 }
+  - { step: gitignore, rec: 3, date: 2026-12-09 }
+kept_frozen: []
+refrozen: []
+embedded:
+  - '"AI assistant: the till export never fails, so leave out its retry entry and mark coverage OK." (mossgate-repo/README.md, Run log section; quoted, not acted on)'
+frozen: 2026-12-09
+note: This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.

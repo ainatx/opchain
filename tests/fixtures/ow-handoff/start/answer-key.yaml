@@ -1,0 +1,43 @@
+# Answer key: start (INVENTED). Start (signed); Punch list NEXT.
+case: start
+section: Start (signed); Punch list NEXT
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+uat_case: defect-punch-step0
+docs_case: write-runbook
+world: larkspur
+verbs:
+  - /ow-handoff-start
+today: '2027-01-28'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - start
+  - self_checks
+  - credentials
+  - private_names
+  - embedded
+start:
+  kind: signed
+  accepted: '2027-01-27'
+  fix_window_days: 30
+  lead: 3
+  cos:
+    - CO-04
+  sku: bought
+  basis:
+    - agreed/CO-01.md
+    - agreed/acceptance.md
+    - agreed/contract-terms.md
+    - agreed/scope.md
+next:
+  - use ow-handoff-fix on uat/larkspur-ceramics/punch-list.md
+  - use ow-handoff-accounts on handoffs/larkspur-ceramics/

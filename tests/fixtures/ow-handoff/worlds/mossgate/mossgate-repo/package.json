@@ -1,0 +1,5 @@
+{
+  "name": "mossgate-reports",
+  "private": true,
+  "scripts": { "test": "node --test", "deploy": "node scripts/deploy.js" }
+}

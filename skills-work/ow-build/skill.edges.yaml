@@ -146,7 +146,7 @@ reads:
     if_mismatch: Apply the quote's triggers and ask the user which definition governs
   - from: ow-handoff
     path: handoffs/<client>/fixes/FIX-nn.md
-    fields: [class, reported, the request]
+    fields: [class, reported, the request, route]
     if_absent: Ask for the request directly
     if_mismatch: Quote what was found; ask the user to state the request
   - from: ow-handoff
@@ -288,7 +288,8 @@ hands_off:
     to: ow-build-plan
     verb: /ow-build-plan
     say: use ow-build-plan on handoffs/<client>/fixes/FIX-nn.md
-    files: []
+    files:
+      - { path: handoffs/<client>/fixes/FIX-nn.md, in_place: true }   # OW-06 ruling O2: ow-handoff's file, handed on
     if_unavailable: Offer a follow-on Build Plan by hand, from the FIX file
   - when: A UAT-nn too big for a change order (owner decision 2026-10-16)
     to: ow-build-plan
@@ -320,4 +321,7 @@ hands_off:
       - { path: <repo>/spec/02-architecture.md, in_place: true }
       - { path: <repo>/spec/04-integrations.md, in_place: true }
       - { path: <repo>/spec/scope-and-milestones.md, in_place: true }
+      # Carried on for the handoff after sign-off (OW-06 ruling O2, a data edit): ow-handoff reads them in place.
+      - { path: plans/<client>/map/systems.md, in_place: true }
+      - { path: plans/<client>/evidence.md, in_place: true }
     if_unavailable: ready-for-uat.md lists every check, the environment and the test data; plan the client's test by hand from it

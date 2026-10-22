@@ -346,6 +346,36 @@ BANS.push(
   { id: "the date key is retrieved, never a fetch date", re: /\bfetch(?:ed)? dates?\b/i },
 );
 
+// ── ow-handoff 1.0.0 (OW-06 deliverable 5): the prose rules goldens cannot see ──
+const HB = "ow-handoff/SKILL.md";
+const HRR = "ow-handoff/references/routing-and-resume.md";
+const HSC = "ow-handoff/references/self-checks.md";
+const HAC = "ow-handoff/references/accounts-format.md";
+const HAX = "ow-handoff/references/access-format.md";
+const HCL = "ow-handoff/references/close-format.md";
+const HOF = "ow-handoff/references/offer-format.md";
+PINS.push(
+  { id: "handoff: nothing is deleted; deletion is the user's, recorded", file: HAX, must: "**This skill deletes nothing, removes nothing and rotates nothing**: each removal, rotation and deletion is the user's or the client's, recorded as reported" },
+  { id: "handoff: no .env or secrets store opened, no value asked for or printed", file: HB, must: "No `.env` file or secrets store is opened; no secret value is asked for or printed." },
+  { id: "handoff: no scanner that prints matches", file: HB, must: "Runs a scanner that prints matches, or a command the repository defines; removes a secret from git history." },
+  { id: "handoff: nothing sent, committed or pushed; nothing written in the client's repository", file: HB, must: "Nothing is deleted, sent, committed or pushed; nothing is written in the client's repository." },
+  { id: "handoff: dates.yaml, close.md, care-start.md never rewritten", file: HB, must: "`dates.yaml`, `close.md` and `care-start.md` are written once; frozen terms are never recomputed from `offers.md`." },
+  { id: "handoff: frozen terms never recomputed", file: HOF, must: "Later edits to `offers.md` change none of it" },
+  { id: "handoff: the two never-waived checks", file: HB, must: "**No credentials and No private names are never waived.**" },
+  { id: "handoff: never-waived in the self-checks", file: HSC, must: "**No credentials and No private names can never be waived**, in any verb or file" },
+  { id: "handoff: ow-uat's files and the ledger are never edited", file: HB, must: "Edits ow-uat's files, `ledger.md` or a file another verb owns; promises ow-care when the recorded answer says it is not installed." },
+  { id: "handoff: nothing promised of ow-care when it is not installed", file: HCL, must: "**Nothing promises care will act**" },
+  { id: "handoff: the success-claim guard on refusal and no-op screens", file: HRR, must: "**On a refusal or no-op screen, nothing outside these lines claims an action.**" },
+  { id: "handoff: the step table is keyed on verb and mode", file: HRR, must: "The step table is keyed on the verb **and** its mode" },
+  { id: "handoff: messages are read by hand (OD-2)", file: HAC, must: "The checklist asks the user to read the commit and tag messages for secrets by hand" },
+);
+BANS.push(
+  // ow-controls, ow-currency and ow-packs are not in 2.1; ow-handoff names none of them (D7).
+  { id: "handoff: no skill outside 2.1", re: /\bow-(?:currency|controls|packs)\b/, only: "ow-handoff/" },
+  { id: "handoff: no evaluation ids in shipped text", re: /\b(?:R\d+-\d+|OW-\d{1,2}|SA-\d{3}|SD-\d{2})\b|\(round \d/, only: "ow-handoff/" },
+  { id: "handoff: no git command in the client's repository", re: /\bgit (?:ls-files|log|status|show|grep)\b/, only: "ow-handoff/" },
+);
+
 // ── ow-draft 1.0.0 (OW-10, deliverable 5): the prose rules goldens cannot see ──
 // Kept in a block of its own at the end of the file, so pins other sprints add merge cleanly.
 const XB = "ow-draft/SKILL.md";

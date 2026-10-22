@@ -1,0 +1,39 @@
+# Answer key: m-start (INVENTED). Start (deemed; quick-quote basis; window from offers.md, confirmed).
+case: m-start
+section: Start (deemed; quick-quote basis; window from offers.md, confirmed)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+uat_case: m-deemed
+world: mossgate
+verbs:
+  - /ow-handoff-start
+today: '2026-12-09'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - start
+  - self_checks
+  - credentials
+  - private_names
+  - embedded
+start:
+  kind: deemed
+  accepted: '2026-12-07'
+  fix_window_days: 30
+  lead: 3
+  cos: []
+  sku: declined
+  basis:
+    - agreed/contract-terms.md
+    - agreed/quick-scope.md
+  quick: true
+next:
+  - use ow-handoff-accounts on handoffs/mossgate-books/

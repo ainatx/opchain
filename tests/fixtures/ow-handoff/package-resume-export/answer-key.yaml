@@ -1,0 +1,46 @@
+# Answer key: package-resume-export (INVENTED). Resume (/ow-handoff-package, cut after dates).
+case: package-resume-export
+section: Resume (/ow-handoff-package, cut after dates)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: notes-index
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-package
+today: '2027-02-17'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - package
+  - self_checks
+  - credentials
+  - internal_numbers
+  - people
+  - private_names
+  - resume
+  - embedded
+package:
+  send: '2027-02-24'
+  end: '2027-03-26'
+  removal: '2027-03-23'
+  handover_path: docs/handover/
+  tools: true
+next:
+  - use ow-handoff-delivered on handoffs/larkspur-ceramics/
+resume:
+  verb: /ow-handoff-package
+  done:
+    - notes
+    - dates
+  next: export
+  untouched:
+    - opchain-work/handoffs/larkspur-ceramics/handoff-notes.md

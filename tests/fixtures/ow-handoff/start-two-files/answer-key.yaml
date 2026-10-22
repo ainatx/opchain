@@ -1,0 +1,22 @@
+# Answer key: start-two-files (INVENTED). --keep-frozen and --refreeze name one file.
+case: start-two-files
+section: --keep-frozen and --refreeze name one file
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-windows
+uat_case: signoff-addendum
+docs_case: write-runbook
+world: larkspur
+verbs:
+  - /ow-handoff-start --refreeze
+today: '2027-02-13'
+checks:
+  - writes
+  - refused
+  - screen
+  - embedded
+refused: 'Refused: --keep-frozen and --refreeze name one file.'

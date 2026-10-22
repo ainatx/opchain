@@ -1,0 +1,2 @@
+From: the operations manager, 2027-02-13
+The confirmation view shows the wrong pickup day.

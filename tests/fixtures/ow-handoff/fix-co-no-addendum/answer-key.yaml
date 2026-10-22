@@ -1,0 +1,25 @@
+# Answer key: fix-co-no-addendum (INVENTED). A report against a CO with no addendum (not logged; to ow-uat).
+case: fix-co-no-addendum
+section: A report against a CO with no addendum (not logged; to ow-uat)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-report
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-fix
+today: '2027-03-04'
+checks:
+  - writes
+  - refused
+  - screen
+  - next
+  - embedded
+refused: 'Refused: CO-05 has no acceptance addendum yet.'
+next:
+  - use ow-uat-plan to write the addendum for CO-05 in uat/larkspur-ceramics/

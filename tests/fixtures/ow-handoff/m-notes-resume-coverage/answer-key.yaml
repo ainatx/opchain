@@ -1,0 +1,44 @@
+# Answer key: m-notes-resume-coverage (INVENTED). Resume (/ow-handoff-notes, cut after rotate).
+case: m-notes-resume-coverage
+section: Resume (/ow-handoff-notes, cut after rotate)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: m-notes
+uat_case: m-deemed
+world: mossgate
+verbs:
+  - /ow-handoff-notes
+today: '2026-12-13'
+checks:
+  - writes
+  - status
+  - screen
+  - next
+  - notes
+  - credentials
+  - resume
+  - embedded
+notes:
+  form: floor
+  alerts:
+    - report_missing
+    - reorder_failed
+    - hosting dashboard
+  coverage: OK
+  rotate:
+    OP-07: TILL_API_TOKEN
+    OP-08: REORDER_SHEET_KEY
+next:
+  - use ow-handoff-package on handoffs/mossgate-books/
+resume:
+  verb: /ow-handoff-notes
+  done:
+    - sources
+    - entries
+    - rotate
+  next: coverage
+  untouched: []

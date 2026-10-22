@@ -179,8 +179,11 @@ describe("C3, C20, C1: the skill's own text and its pins", () => {
     expect(checkEdges(loadCatalogs({ root: ROOT }))).toEqual([]);
     const cats = loadCatalogs({ root: ROOT }).find((c) => c.prefix === "ow-");
     expect(cats.planned).not.toContain("ow-documentation");
-    expect(cats.plannedVerbs["ow-handoff"]).toEqual(expect.arrayContaining(["/ow-handoff-notes", "/ow-handoff-package"]));
-    expect(cats.plannedVerbs["ow-care"]).toEqual(["/ow-care-request"]);
+    // ow-handoff is built (OW-06): its verbs are declared in its own frontmatter, no longer planned.
+    expect(cats.planned).not.toContain("ow-handoff");
+    expect(cats.plannedVerbs["ow-handoff"]).toBeUndefined();
+    expect(readFileSync(join(ROOT, "skills-work", "ow-handoff", "SKILL.md"), "utf8")).toMatch(/commands: .*\/ow-handoff-notes .*\/ow-handoff-package/);
+    expect(cats.plannedVerbs["ow-care"]).toEqual(expect.arrayContaining(["/ow-care-request"]));
     expect(cats.statusNames["/ow-documentation-rollout"]).toBe("G-");
   });
 });

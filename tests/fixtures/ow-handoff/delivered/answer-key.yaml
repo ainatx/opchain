@@ -1,0 +1,35 @@
+# Answer key: delivered (INVENTED). Window dates (delivered once; rollout NEXT, O3).
+case: delivered
+section: Window dates (delivered once; rollout NEXT, O3)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: package
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-delivered
+today: '2027-02-24'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - dates
+  - handoff_fields
+  - self_checks
+  - embedded
+dates:
+  handoff_date: '2027-02-24'
+  window_end: '2027-03-26'
+  access_removal_date: '2027-03-23'
+  correction: false
+next:
+  - use ow-documentation-rollout on docs/larkspur-ceramics/
+  - use ow-handoff-offer on handoffs/larkspur-ceramics/

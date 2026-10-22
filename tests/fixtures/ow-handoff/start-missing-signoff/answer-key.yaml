@@ -1,0 +1,23 @@
+# Answer key: start-missing-signoff (INVENTED). Missing sign-off.
+case: start-missing-signoff
+section: Missing sign-off
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+uat_case: plan
+world: larkspur
+verbs:
+  - /ow-handoff-start
+today: '2027-01-05'
+checks:
+  - writes
+  - refused
+  - screen
+  - next
+  - embedded
+refused: 'Refused: acceptance testing is not signed off.'
+next:
+  - use ow-uat-signoff on uat/larkspur-ceramics/

@@ -1,0 +1,50 @@
+# Answer key: accounts-resume-rotate (INVENTED). Resume (/ow-handoff-accounts, cut after scan).
+case: accounts-resume-rotate
+section: Resume (/ow-handoff-accounts, cut after scan)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-punch
+uat_case: defect-punch-step0
+docs_case: write-runbook
+world: larkspur
+verbs:
+  - /ow-handoff-accounts
+today: '2027-02-01'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - accounts
+  - self_checks
+  - credentials
+  - private_names
+  - resume
+  - embedded
+accounts:
+  transfers:
+    TR-01: ownership
+    TR-02: re-authorise
+  below_high:
+    - The orders mailbox
+  scan: HITS
+  rotate:
+    - MAILBOX_PASSWORD
+    - QBO_CLIENT_SECRET
+    - SHOP_API_TOKEN
+  hits:
+    - config/settings.js
+next:
+  - use ow-handoff-notes on handoffs/larkspur-ceramics/
+resume:
+  verb: /ow-handoff-accounts
+  done:
+    - inventory
+    - scan
+  next: rotate
+  untouched: []

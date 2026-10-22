@@ -1,0 +1,18 @@
+ow_artefact: ow-handoff/dates
+schema: 1
+written_by: ow-handoff 1.0.0 (protocol 1)
+workstream: mossgate-books
+subject: handoffs/mossgate-books/package.yaml
+created: 2026-12-16
+clock: user-stated
+origin: skill
+delivered: Handoff notes delivered 2026-12-16, recorded by Robin; delivery not verified by this skill
+handoff_date: 2026-12-16
+window_end: 2027-01-15
+access_removal_date: 2027-01-12
+holidays: profile.md
+calc:
+  - { command: "ow-tools calc date --from 2026-12-16 --days 30", output: "2027-01-15" }
+  - { command: "ow-tools calc date --from 2027-01-15 --business-days -3 --holidays 2026-11-26,2026-12-25", output: "2027-01-12" }
+moved: []
+note: This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.

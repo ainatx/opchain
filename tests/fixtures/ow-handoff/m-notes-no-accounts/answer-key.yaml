@@ -1,0 +1,24 @@
+# Answer key: m-notes-no-accounts (INVENTED). Notes need the accounts first (declined line).
+case: m-notes-no-accounts
+section: Notes need the accounts first (declined line)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: m-start
+uat_case: m-deemed
+world: mossgate
+verbs:
+  - /ow-handoff-notes
+today: '2026-12-10'
+checks:
+  - writes
+  - refused
+  - screen
+  - next
+  - embedded
+refused: 'Refused: accounts.md is missing.'
+next:
+  - use ow-handoff-accounts on handoffs/mossgate-books/

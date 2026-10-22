@@ -1,0 +1,34 @@
+# Answer key: m-package-quoted (INVENTED). No credentials NOT-CHECKED: the notes quote a client's text, so the read-through is recorded.
+case: m-package-quoted
+section: 'No credentials NOT-CHECKED: the notes quote a client''s text, so the read-through is recorded'
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: m-notes-na
+uat_case: m-deemed
+world: mossgate
+verbs:
+  - /ow-handoff-package
+today: '2026-12-14'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - package
+  - credentials
+  - internal_numbers
+  - embedded
+next:
+  - use ow-handoff-delivered on handoffs/mossgate-books/
+package:
+  send: '2026-12-16'
+  end: '2027-01-15'
+  removal: '2027-01-12'
+  tools: false
+  to_confirm:
+    - The till export connection

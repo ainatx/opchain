@@ -1,0 +1,40 @@
+# Answer key: fix-waive-resume (INVENTED). Resume (/ow-handoff-fix --waive, cut after windows).
+case: fix-waive-resume
+section: Resume (/ow-handoff-fix --waive, cut after windows)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-report
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-fix --waive
+today: '2027-03-12'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - fix
+  - resume
+  - embedded
+  - approvals
+next:
+  - use ow-handoff-offer on handoffs/larkspur-ceramics/
+resume:
+  verb: /ow-handoff-fix --waive
+  done:
+    - windows
+  next: waive
+  untouched: []
+approvals:
+  - file: opchain-work/handoffs/larkspur-ceramics/fixes/FIX-03.md
+    line: >-
+      2027-03-12 closed unconfirmed; re-check AC-1.1 passed; confirmation requested 2027-03-09, 2027-03-11; waived by Robin. This is a working note made by an AI assistant at your instruction. It is
+      not a signature or an official record.
+    kind: record

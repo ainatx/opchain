@@ -1,0 +1,29 @@
+# Answer key: close-reopened (INVENTED). Close timing: the second close writes addenda only.
+case: close-reopened
+section: 'Close timing: the second close writes addenda only'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-reopen
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-close --reopened
+today: '2027-04-02'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - close
+  - credentials
+  - internal_numbers
+  - embedded
+close:
+  branch: care-not-installed
+  reopened: true

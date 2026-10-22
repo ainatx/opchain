@@ -1,0 +1,30 @@
+# Answer key: fix-reopen (INVENTED). Close timing: a report sent on day 30 and logged on day 32, after close, reopens.
+case: fix-reopen
+section: 'Close timing: a report sent on day 30 and logged on day 32, after close, reopens'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: close
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-fix
+today: '2027-03-28'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - fix
+  - embedded
+fix:
+  log:
+    FIX-05:
+      class: Fix
+      against: AC-2.1
+      window: main
+      route: build

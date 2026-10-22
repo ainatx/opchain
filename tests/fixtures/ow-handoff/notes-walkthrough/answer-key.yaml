@@ -1,0 +1,37 @@
+# Answer key: notes-walkthrough (INVENTED). The operator walk-through, human-decided, recorded with its date.
+case: notes-walkthrough
+section: The operator walk-through, human-decided, recorded with its date
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: package
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-notes --walkthrough
+today: '2027-02-18'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - notes
+  - embedded
+  - approvals
+next:
+  - use ow-handoff-delivered on handoffs/larkspur-ceramics/
+notes:
+  form: index
+  rotate:
+    OP-08: MAILBOX_PASSWORD
+    OP-09: QBO_CLIENT_SECRET
+    OP-10: SHOP_API_TOKEN
+approvals:
+  - file: opchain-work/handoffs/larkspur-ceramics/operator-notes.md
+    line: 2027-02-18 walk-through with operations manager; recorded by Robin. This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.
+    kind: record

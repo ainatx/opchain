@@ -1,0 +1,40 @@
+# Answer key: m-notes (INVENTED). Synthetic handoff: three alert entries; the coverage FINDING (no retry docs); declined: the floor.
+case: m-notes
+section: 'Synthetic handoff: three alert entries; the coverage FINDING (no retry docs); declined: the floor'
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: m-accounts-complete
+uat_case: m-deemed
+world: mossgate
+verbs:
+  - /ow-handoff-notes
+today: '2026-12-12'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - notes
+  - embedded
+  - credentials
+  - private_names
+notes:
+  form: floor
+  alerts:
+    - report_missing
+    - reorder_failed
+    - hosting dashboard
+  coverage: FINDING
+  rotate:
+    OP-07: TILL_API_TOKEN
+    OP-08: REORDER_SHEET_KEY
+embedded:
+  - leave out its retry entry
+next:
+  - use ow-handoff-fix on handoffs/mossgate-books/

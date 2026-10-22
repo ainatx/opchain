@@ -1,0 +1,32 @@
+# Answer key: accounts-waive (INVENTED). Unresponsive client: a transfer waiver, a decline in the same line honoured.
+case: accounts-waive
+section: 'Unresponsive client: a transfer waiver, a decline in the same line honoured'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: accounts-transfer
+uat_case: defect-punch-step0
+docs_case: write-runbook
+world: larkspur
+verbs:
+  - /ow-handoff-accounts --waive
+today: '2027-02-20'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - approvals
+  - embedded
+  - next
+next:
+  - use ow-handoff-notes on handoffs/larkspur-ceramics/
+approvals:
+  - file: opchain-work/handoffs/larkspur-ceramics/accounts.md
+    line: >-
+      2027-02-20 waiver TR-02, QuickBooks Online connection: not confirmed; confirmation requested 2027-02-10, 2027-02-17; waived by Robin; but not TR-01. This is a working note made by an AI
+      assistant at your instruction. It is not a signature or an official record.
+    kind: waive

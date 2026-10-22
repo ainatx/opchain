@@ -1,0 +1,18 @@
+ow_artefact: ow-handoff/dates
+schema: 1
+written_by: ow-handoff 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: handoffs/larkspur-ceramics/package.yaml
+created: 2027-03-01
+clock: user-stated
+origin: skill
+delivered: Handoff notes delivered 2027-03-01, recorded by Robin; delivery not verified by this skill
+handoff_date: 2027-03-01
+window_end: 2027-03-31
+access_removal_date: 2027-03-26
+holidays: profile.md
+calc:
+  - { command: "ow-tools calc date --from 2027-03-01 --days 30", output: "2027-03-31" }
+  - { command: "ow-tools calc date --from 2027-03-31 --business-days -3 --holidays 2026-11-26,2026-12-25", output: "2027-03-26" }
+moved: [planned_end, planned_removal]
+note: This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.

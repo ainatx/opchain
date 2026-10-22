@@ -1,0 +1,36 @@
+# Answer key: package-revision-resume-export (INVENTED). Resume (/ow-handoff-package --revision, cut after notes).
+case: package-revision-resume-export
+section: Resume (/ow-handoff-package --revision, cut after notes)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-report
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-package --revision
+today: '2027-03-03'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - revision
+  - credentials
+  - internal_numbers
+  - resume
+  - embedded
+next:
+  - use ow-handoff-offer on handoffs/larkspur-ceramics/
+resume:
+  verb: /ow-handoff-package --revision
+  done:
+    - notes
+  next: export
+  untouched:
+    - opchain-work/handoffs/larkspur-ceramics/handoff-notes.md

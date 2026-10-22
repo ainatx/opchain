@@ -1,0 +1,38 @@
+# Answer key: close-reopened-resume-care (INVENTED). Resume (/ow-handoff-close --reopened, cut after email).
+case: close-reopened-resume-care
+section: Resume (/ow-handoff-close --reopened, cut after email)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-reopen
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-close --reopened
+today: '2027-04-02'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - close
+  - credentials
+  - internal_numbers
+  - resume
+  - embedded
+close:
+  branch: care-not-installed
+  reopened: true
+resume:
+  verb: /ow-handoff-close --reopened
+  done:
+    - blockers
+    - email
+  next: care-start-addendum
+  untouched:
+    - opchain-work/handoffs/larkspur-ceramics/export/close-email-2027-04-02.txt
+    - opchain-work/handoffs/larkspur-ceramics/export/close-email-2027-04-02.html

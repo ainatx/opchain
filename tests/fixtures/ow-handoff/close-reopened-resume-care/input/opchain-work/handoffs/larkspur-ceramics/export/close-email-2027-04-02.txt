@@ -1,0 +1,3 @@
+Larkspur Ceramics: the handoff is closed again
+
+FIX-05, reported on 26 March 2027, is fixed and re-checked. Nothing else changed.

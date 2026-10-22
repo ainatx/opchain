@@ -1,0 +1,2 @@
+From: the order coordinator, 2027-03-01
+One purchase order line arrived in the order sheet as 1204LC instead of LC-1204.

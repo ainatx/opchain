@@ -1,0 +1,31 @@
+# Answer key: offer-rerun (INVENTED). Frozen terms (a re-run appends; offers.md edited after the offer changes nothing).
+case: offer-rerun
+section: Frozen terms (a re-run appends; offers.md edited after the offer changes nothing)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: offer
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-offer --rerun
+today: '2027-03-08'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - offer
+  - approvals
+  - embedded
+offer:
+  choice: hourly
+  choices: 2
+approvals:
+  - file: opchain-work/handoffs/larkspur-ceramics/after-offer.md
+    line: '2027-03-08 choice: hourly; decided_on 2027-03-08; recorded_by Robin. This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.'
+    kind: choice

@@ -1,0 +1,33 @@
+# Answer key: fix-help-resume (INVENTED). Resume (/ow-handoff-fix --help, cut after windows).
+case: fix-help-resume
+section: Resume (/ow-handoff-fix --help, cut after windows)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: offer-rerun
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-fix --help
+today: '2027-03-09'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - help
+  - resume
+  - embedded
+next:
+  - use ow-handoff-fix on handoffs/larkspur-ceramics/
+resume:
+  verb: /ow-handoff-fix --help
+  done:
+    - windows
+  next: help
+  untouched: []

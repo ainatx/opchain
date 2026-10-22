@@ -2220,9 +2220,18 @@ export const HANDOFF_PIN = {
     "uat/<client>/secrets-seen.log": ["kind", "role", "source", "session"],
     "uat/<client>/evidence/index.md": ["item", "state", "cleared"],
     "uat/<client>/uat.yaml": ["the governing acceptance or delivery definition", "dated"],
+    // OW-06 ruling O2 (a data edit): the files ow-handoff reads in place, carried on at this hop.
+    "plans/<client>/contract-inputs.md": [],
+    "plans/<client>/quote.md": [],
+    "plans/<client>/map/systems.md": [],
+    "plans/<client>/evidence.md": [],
+    "builds/<client>/build.yaml": [],
+    "builds/<client>/ledger.md": [],
+    "builds/<client>/changes/CO-nn.md": [],
   },
   "/ow-handoff-fix": {
-    "uat/<client>/punch-list.md": [],
+    // OW-06 ruling O2: the punch list with the fields ow-handoff -fix reads.
+    "uat/<client>/punch-list.md": ["each item", "its UAT-nn", "logged date"],
   },
   "/ow-documentation-start": {
     "uat/<client>/signoff.md": ["signed or deemed date"],
@@ -2245,7 +2254,7 @@ export const HANDOFF_PIN = {
   },
 };
 /** OW-05 ruling O2: every in-place entry of a hand-off stays marked in place (a hop that hands on another skill's file). */
-export const IN_PLACE_PIN = { "/ow-documentation-start": ["plans/<client>/contract-inputs.md", "plans/<client>/scope.md", "plans/<client>/quick-scope.md", "plans/<client>/map/roles.md", "plans/<client>/map/future.md", "builds/<client>/build.yaml", "builds/<client>/ledger.md", "builds/<client>/changes/CO-nn.md", "<repo>/spec/02-architecture.md", "<repo>/spec/04-integrations.md", "<repo>/spec/scope-and-milestones.md"] };
+export const IN_PLACE_PIN = { "/ow-handoff-start": ["plans/<client>/contract-inputs.md", "plans/<client>/quote.md", "plans/<client>/map/systems.md", "plans/<client>/evidence.md", "builds/<client>/build.yaml", "builds/<client>/ledger.md", "builds/<client>/changes/CO-nn.md"], "/ow-documentation-start": ["plans/<client>/contract-inputs.md", "plans/<client>/scope.md", "plans/<client>/quick-scope.md", "plans/<client>/map/roles.md", "plans/<client>/map/future.md", "builds/<client>/build.yaml", "builds/<client>/ledger.md", "builds/<client>/changes/CO-nn.md", "<repo>/spec/02-architecture.md", "<repo>/spec/04-integrations.md", "<repo>/spec/scope-and-milestones.md"] };
 export function handoffFieldDrift(edgesText = readFileSync(EDGES, "utf8")) {
   const e = yaml.load(edgesText);
   const p = [];

@@ -1,0 +1,29 @@
+# Answer key: route-folder-nothing-left (INVENTED). Routes (C4).
+case: route-folder-nothing-left
+section: Routes (C4)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: offer
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff
+today: '2027-03-06'
+checks:
+  - writes
+  - refused
+  - screen
+  - next
+  - route
+  - embedded
+noop: 'Nothing to do: nothing is left before the window end on 2027-03-26.'
+next:
+  - use ow-handoff-close on handoffs/larkspur-ceramics/
+route:
+  say: use ow-handoff on handoffs/larkspur-ceramics/
+  expect: nothing

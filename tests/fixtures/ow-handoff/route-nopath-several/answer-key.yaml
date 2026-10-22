@@ -1,0 +1,26 @@
+# Answer key: route-nopath-several (INVENTED). Routes (C4): a verb with no path, several clients at that stage.
+case: route-nopath-several
+section: 'Routes (C4): a verb with no path, several clients at that stage'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: accounts-transfer
+uat_case: defect-punch-step0
+docs_case: write-runbook
+world: larkspur
+verbs:
+  - /ow-handoff-notes
+today: '2027-02-04'
+checks:
+  - writes
+  - refused
+  - screen
+  - route
+  - embedded
+question: true
+route:
+  say: /ow-handoff-notes
+  expect: ask

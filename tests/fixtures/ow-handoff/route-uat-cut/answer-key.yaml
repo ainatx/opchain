@@ -1,0 +1,25 @@
+# Answer key: route-uat-cut (INVENTED). Routes (C4): ow-uat's sign-off say, -start cut (resume).
+case: route-uat-cut
+section: 'Routes (C4): ow-uat''s sign-off say, -start cut (resume)'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+uat_case: defect-punch-step0
+docs_case: write-runbook
+world: larkspur
+verbs:
+  - /ow-handoff
+today: '2027-01-28'
+checks:
+  - writes
+  - refused
+  - screen
+  - route
+  - embedded
+question: true
+route:
+  say: use ow-handoff-start on uat/larkspur-ceramics/
+  expect: /ow-handoff-start
