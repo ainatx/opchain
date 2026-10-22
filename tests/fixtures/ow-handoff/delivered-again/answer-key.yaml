@@ -1,0 +1,21 @@
+# Answer key: delivered-again (INVENTED). Window dates (again: nothing rewritten).
+case: delivered-again
+section: 'Window dates (again: nothing rewritten)'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: delivered
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-delivered
+today: '2027-02-25'
+checks:
+  - writes
+  - refused
+  - screen
+noop: 'Nothing to do: the window dates were recorded on 2027-02-24.'

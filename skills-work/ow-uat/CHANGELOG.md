@@ -2,6 +2,13 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump (OW-04 ruling O9) and are listed here as data edits.
 
+## Unreleased: data edits from OW-06 (ow-handoff 1.0.0)
+
+No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed:
+
+- `skill.edges.yaml`: the sign-off hand-off to ow-handoff carries the files ow-handoff reads in place (`plans/<client>/contract-inputs.md`, `quote.md`, `map/systems.md`, `evidence.md`; `builds/<client>/build.yaml`, `ledger.md`, `changes/CO-nn.md`), and the after-sign-off hand-off gives `punch-list.md` its fields (OW-06 ruling O2).
+- `examples/handoffs.yaml` and `examples/offers.md`: ow-handoff's `build` and `invoice` files, and the invented `after_handoff` care terms (H4), byte-identical in every copy.
+
 ## Unreleased: data edits from OW-05 (ow-documentation 1.0.0)
 
 No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed:

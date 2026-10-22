@@ -1,0 +1,21 @@
+# Answer key: start-keep-frozen-again (INVENTED). Basis mismatch kept (run again: no-op).
+case: start-keep-frozen-again
+section: 'Basis mismatch kept (run again: no-op)'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: start-keep-frozen
+uat_case: signoff-addendum
+docs_case: write-runbook
+world: larkspur
+verbs:
+  - /ow-handoff-start --keep-frozen
+today: '2027-02-14'
+checks:
+  - writes
+  - refused
+  - screen
+noop: 'Nothing to do: already recorded on 2027-02-13.'

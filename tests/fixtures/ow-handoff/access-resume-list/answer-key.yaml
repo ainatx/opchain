@@ -1,0 +1,49 @@
+# Answer key: access-resume-list (INVENTED). Resume (/ow-handoff-access, cut after sources).
+case: access-resume-list
+section: Resume (/ow-handoff-access, cut after sources)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: offer
+uat_case: signoff-addendum
+docs_case: delivered
+logs_case: logs-larkspur-checkin
+world: larkspur
+verbs:
+  - /ow-handoff-access
+today: '2027-03-23'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - access
+  - self_checks
+  - credentials
+  - private_names
+  - resume
+access:
+  must:
+    - capture profile larkspur-ceramics
+    - logs/larkspur-ceramics/meetings/MTG-01/audio/
+    - uat/larkspur-ceramics/secrets-seen.log
+    - bookkeeper tester
+    - test sender
+    - evidence.md
+    - SHOP_API_TOKEN
+  never:
+    - logs/business/
+  held:
+    AX-02: FIX-03
+next:
+  - use ow-handoff-close on handoffs/larkspur-ceramics/
+resume:
+  verb: /ow-handoff-access
+  done:
+    - sources
+  next: list
+  untouched: []

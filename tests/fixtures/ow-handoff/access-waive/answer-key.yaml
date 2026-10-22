@@ -1,0 +1,25 @@
+# Answer key: access-waive (INVENTED). Waiver deadlock: an unconfirmed removal waived (--waive), shown open at close.
+case: access-waive
+section: 'Waiver deadlock: an unconfirmed removal waived (--waive), shown open at close'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: access-record
+uat_case: signoff-addendum
+docs_case: delivered
+logs_case: logs-larkspur-checkin
+world: larkspur
+verbs:
+  - /ow-handoff-access --waive
+today: '2027-03-25'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+next:
+  - use ow-handoff-close on handoffs/larkspur-ceramics/

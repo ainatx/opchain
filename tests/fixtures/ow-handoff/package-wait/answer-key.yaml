@@ -1,0 +1,24 @@
+# Answer key: package-wait (INVENTED). Package waits for delivered.md when the line was bought (H3).
+case: package-wait
+section: Package waits for delivered.md when the line was bought (H3)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: notes-index
+uat_case: signoff-addendum
+docs_case: export
+world: larkspur
+verbs:
+  - /ow-handoff-package
+today: '2027-02-14'
+checks:
+  - writes
+  - refused
+  - screen
+  - next
+refused: 'Refused: the documents are not delivered yet.'
+next:
+  - use ow-documentation-delivered on docs/larkspur-ceramics/

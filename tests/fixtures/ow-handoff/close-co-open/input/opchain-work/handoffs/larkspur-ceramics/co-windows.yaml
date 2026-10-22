@@ -1,0 +1,11 @@
+ow_artefact: ow-handoff/co-windows
+schema: 1
+written_by: ow-handoff 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: uat/larkspur-ceramics/acceptance-addendum-CO-04.md
+created: 2027-02-10
+clock: user-stated
+origin: skill
+rows:
+  - { co: CO-04, accepted: 2027-02-09, window_end: 2027-03-11, recorded: 2027-02-10, rec: 9 }
+  - { co: CO-05, accepted: 2027-03-16, window_end: 2027-04-15, recorded: 2027-03-17, rec: 25 }

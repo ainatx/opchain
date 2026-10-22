@@ -2,6 +2,12 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
+## Unreleased: data edits with ow-handoff 1.0.0
+
+No version bump (data edits ride without one); no `SKILL.md` or reference text changed:
+
+- `examples/handoffs.yaml`: ow-handoff's `build` and `invoice` files, byte-identical in every copy. Its `/ow-handoff-*` NEXTs now resolve to ow-handoff's declared verbs.
+
 ## 1.0.1 (2026-10-21): the other-client rule's exceptions, and the second evaluation's minors
 
 From the second evaluation's report (`sprints/release-2.1/ow-05/eval-round-2.md`, PASS at 7.8) and the owner's decision of 2026-10-21, taken in one follow-up PR.

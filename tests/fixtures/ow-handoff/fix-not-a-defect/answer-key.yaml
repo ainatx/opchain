@@ -1,0 +1,31 @@
+# Answer key: fix-not-a-defect (INVENTED). Fix classification (a how-to: Not a defect, answered from the notes).
+case: fix-not-a-defect
+section: 'Fix classification (a how-to: Not a defect, answered from the notes)'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-report
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-fix
+today: '2027-03-04'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - fix
+next:
+  - use ow-handoff-offer on handoffs/larkspur-ceramics/
+fix:
+  log:
+    FIX-05:
+      class: Not a defect
+      window: main
+      route: answered

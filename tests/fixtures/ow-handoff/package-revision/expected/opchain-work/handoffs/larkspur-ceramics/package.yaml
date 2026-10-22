@@ -1,0 +1,28 @@
+ow_artefact: ow-handoff/package
+schema: 1
+written_by: ow-handoff 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: handoffs/larkspur-ceramics/handoff-notes.md
+created: 2027-02-17
+clock: user-stated
+origin: skill
+package_steps:
+  - { step: notes, rec: 14, date: 2027-02-17 }
+  - { step: dates, rec: 15, date: 2027-02-17 }
+  - { step: export, rec: 16, date: 2027-02-17 }
+  - { step: email, rec: 17, date: 2027-02-17 }
+planned_send: { date: 2027-02-24, provisional: true, source: "Robin 2027-02-17" }
+planned_end: { date: 2027-03-26, provisional: true }
+planned_removal: { date: 2027-03-23, provisional: true }
+planned_care_start: none
+calc:
+  - { command: "ow-tools calc date --from 2027-02-24 --days 30", output: "2027-03-26" }
+  - { command: "ow-tools calc date --from 2027-03-26 --business-days -3 --holidays 2026-11-26,2026-12-25", output: "2027-03-23" }
+export: { command: "ow-tools export handoffs/larkspur-ceramics/handoff-notes.md --out handoffs/larkspur-ceramics/export/", exit: 0, output: '{"status":"done","files":["export/handoff-notes.pdf","export/handoff-notes.docx"],"record":"export/handoff-notes.export.json"}' }
+read_through: none
+gitignore_warning: none
+revisions:
+  - { date: 2027-03-03, rec: 22, why: the recorded dates after delivery }
+embedded: []
+self_checks: { No credentials: OK, Repository secrets: OK, All in the client's name: OK, Operator-task coverage: OK, Trace: OK, Takeover: OK, No internal numbers: OK, No private names: OK }
+note: This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.

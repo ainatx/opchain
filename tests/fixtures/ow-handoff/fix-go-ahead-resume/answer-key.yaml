@@ -1,0 +1,36 @@
+# Answer key: fix-go-ahead-resume (INVENTED). Resume (/ow-handoff-fix --go-ahead, cut after windows).
+case: fix-go-ahead-resume
+section: Resume (/ow-handoff-fix --go-ahead, cut after windows)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-help
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-fix --go-ahead
+today: '2027-03-10'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - help
+  - resume
+next:
+  - handoffs.yaml build
+approvals:
+  - file: opchain-work/handoffs/larkspur-ceramics/help/HELP-01.md
+    line: 2027-03-10 go-ahead 2027-03-10 by operations manager, as reported. This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.
+    kind: go-ahead
+resume:
+  verb: /ow-handoff-fix --go-ahead
+  done:
+    - windows
+  next: go-ahead
+  untouched: []

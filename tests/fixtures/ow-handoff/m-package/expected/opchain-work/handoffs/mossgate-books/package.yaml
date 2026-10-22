@@ -1,0 +1,25 @@
+ow_artefact: ow-handoff/package
+schema: 1
+written_by: ow-handoff 1.0.0 (protocol 1)
+workstream: mossgate-books
+subject: handoffs/mossgate-books/handoff-notes.md
+created: 2026-12-14
+clock: user-stated
+origin: skill
+package_steps:
+  - { step: notes, rec: 17, date: 2026-12-14 }
+  - { step: dates, rec: 18, date: 2026-12-14 }
+  - { step: export, rec: 19, date: 2026-12-14 }
+  - { step: email, rec: 20, date: 2026-12-14 }
+planned_send: { date: 2026-12-16, provisional: true, source: "Robin 2026-12-14" }
+planned_end: { date: 2027-01-15, provisional: true }
+planned_removal: { date: 2027-01-12, provisional: true }
+planned_care_start: none
+calc: not machine-checked
+export: not available (no ow-tools here)
+read_through: none
+gitignore_warning: none
+revisions: []
+embedded: []
+self_checks: { No credentials: OK, Repository secrets: OK, All in the client's name: OK, Operator-task coverage: OK, Trace: OK, Takeover: OK, No internal numbers: OK, No private names: OK }
+note: This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.

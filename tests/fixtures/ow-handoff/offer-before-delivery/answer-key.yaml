@@ -1,0 +1,29 @@
+# Answer key: offer-before-delivery (INVENTED). Frozen terms: an offer before delivery (provisional decide-by).
+case: offer-before-delivery
+section: 'Frozen terms: an offer before delivery (provisional decide-by)'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: package
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-offer
+today: '2027-02-18'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - offer
+  - internal_numbers
+next:
+  - use ow-handoff-access on handoffs/larkspur-ceramics/
+offer:
+  choice: undecided

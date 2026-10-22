@@ -1,0 +1,32 @@
+# Answer key: m-delivered (INVENTED). Delivery payment once (smaller project, not yet invoiced: NEXT).
+case: m-delivered
+section: 'Delivery payment once (smaller project, not yet invoiced: NEXT)'
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: m-package
+uat_case: m-deemed
+world: mossgate
+verbs:
+  - /ow-handoff-delivered
+today: '2026-12-16'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - dates
+  - handoff_fields
+dates:
+  handoff_date: '2026-12-16'
+  window_end: '2027-01-15'
+  access_removal_date: '2027-01-12'
+  correction: false
+next:
+  - use ow-build to invoice the delivery payment
+  - use ow-handoff-offer on handoffs/mossgate-books/

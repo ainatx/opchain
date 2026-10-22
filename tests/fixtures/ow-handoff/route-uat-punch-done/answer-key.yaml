@@ -1,0 +1,25 @@
+# Answer key: route-uat-punch-done (INVENTED). Routes (C4).
+case: route-uat-punch-done
+section: Routes (C4)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-punch
+uat_case: defect-punch-step0
+docs_case: write-runbook
+world: larkspur
+verbs:
+  - /ow-handoff
+today: '2027-01-30'
+checks:
+  - writes
+  - refused
+  - screen
+  - route
+noop: 'Nothing to do: every punch-list item is logged.'
+route:
+  say: use ow-handoff on uat/larkspur-ceramics/punch-list.md
+  expect: nothing

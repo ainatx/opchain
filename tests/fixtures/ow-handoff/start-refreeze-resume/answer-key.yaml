@@ -1,0 +1,33 @@
+# Answer key: start-refreeze-resume (INVENTED). Resume (/ow-handoff-start --refreeze, cut after copy).
+case: start-refreeze-resume
+section: Resume (/ow-handoff-start --refreeze, cut after copy)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-windows
+uat_case: signoff-addendum
+docs_case: write-runbook
+world: larkspur
+verbs:
+  - /ow-handoff-start --refreeze
+today: '2027-02-13'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - freeze
+  - resume
+next:
+  - use ow-handoff-notes on handoffs/larkspur-ceramics/
+resume:
+  verb: /ow-handoff-start --refreeze
+  done:
+    - copy
+  next: note
+  untouched:
+    - opchain-work/handoffs/larkspur-ceramics/agreed/scope.md

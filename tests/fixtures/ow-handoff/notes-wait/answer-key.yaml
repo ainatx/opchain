@@ -1,0 +1,24 @@
+# Answer key: notes-wait (INVENTED). Notes wait (line bought, not delivered; H3).
+case: notes-wait
+section: Notes wait (line bought, not delivered; H3)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-windows
+uat_case: signoff-addendum
+docs_case: export
+world: larkspur
+verbs:
+  - /ow-handoff-notes
+today: '2027-02-13'
+checks:
+  - writes
+  - refused
+  - screen
+  - next
+refused: 'Refused: the documents are not delivered yet.'
+next:
+  - use ow-documentation-delivered on docs/larkspur-ceramics/

@@ -1,0 +1,27 @@
+# Answer key: m-package-no-accounts (INVENTED). Routes (C4): ow-documentation's declined say, no accounts.md.
+case: m-package-no-accounts
+section: 'Routes (C4): ow-documentation''s declined say, no accounts.md'
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: m-start
+uat_case: m-deemed
+world: mossgate
+verbs:
+  - /ow-handoff-package
+today: '2026-12-10'
+checks:
+  - writes
+  - refused
+  - screen
+  - next
+  - route
+refused: 'Refused: accounts.md is missing.'
+next:
+  - use ow-handoff-accounts on handoffs/mossgate-books/
+route:
+  say: use ow-handoff-package on handoffs/mossgate-books/
+  expect: nothing

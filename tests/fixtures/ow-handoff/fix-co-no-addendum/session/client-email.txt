@@ -1,0 +1,2 @@
+From: the operations manager, 2027-03-04
+The second pickup slot does not show for orders confirmed after 15:00.

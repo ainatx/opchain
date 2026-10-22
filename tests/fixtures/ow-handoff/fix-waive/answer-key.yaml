@@ -1,0 +1,25 @@
+# Answer key: fix-waive (INVENTED). Unresponsive client: a fixed fix closed unconfirmed (--waive).
+case: fix-waive
+section: 'Unresponsive client: a fixed fix closed unconfirmed (--waive)'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-report
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-fix --waive
+today: '2027-03-12'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - fix
+next:
+  - use ow-handoff-offer on handoffs/larkspur-ceramics/

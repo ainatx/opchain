@@ -1,0 +1,36 @@
+# Answer key: delivered-resume-dates (INVENTED). Resume (/ow-handoff-delivered, cut after correction).
+case: delivered-resume-dates
+section: Resume (/ow-handoff-delivered, cut after correction)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: package
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-delivered
+today: '2027-03-01'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - dates
+  - resume
+dates:
+  handoff_date: '2027-03-01'
+  window_end: '2027-03-31'
+  access_removal_date: '2027-03-26'
+  correction: true
+resume:
+  verb: /ow-handoff-delivered
+  done:
+    - correction
+  next: dates
+  untouched:
+    - opchain-work/handoffs/larkspur-ceramics/export/window-correction-email.txt
+    - opchain-work/handoffs/larkspur-ceramics/export/window-correction-email.html

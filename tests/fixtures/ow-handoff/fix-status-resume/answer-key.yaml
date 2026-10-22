@@ -1,0 +1,32 @@
+# Answer key: fix-status-resume (INVENTED). Resume (/ow-handoff-fix --status, cut after windows).
+case: fix-status-resume
+section: Resume (/ow-handoff-fix --status, cut after windows)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-report
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-fix --status
+today: '2027-03-04'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - fix
+  - resume
+next:
+  - use ow-handoff-offer on handoffs/larkspur-ceramics/
+resume:
+  verb: /ow-handoff-fix --status
+  done:
+    - windows
+  next: status
+  untouched: []

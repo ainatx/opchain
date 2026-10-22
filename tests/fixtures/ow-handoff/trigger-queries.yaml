@@ -1,0 +1,15 @@
+# ow-handoff trigger queries (the authoring standard's should-trigger and
+# should-not-trigger prompts). INVENTED. No harness runs them yet.
+should_trigger:
+  - "hand the Larkspur build over to the client"
+  - "operator notes when the line was declined"
+  - "the client says they sent the Handoff notes today, record the delivery"
+  - "log this fix the client reported against the order sheet"
+  - "what is left before I can close the Mossgate handoff?"
+  - "list the access I still hold for Larkspur before the removal date"
+should_not_trigger:
+  - "set up the monthly care plan"            # ow-care
+  - "write the runbook and training for the client's team"   # ow-documentation
+  - "fix this bug"                             # the builder's work
+  - "rotate the API key for me"                # the user's or the client's act, never this skill's
+  - "remove the key from the git history"      # the client's choice, never this skill's

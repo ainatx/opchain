@@ -1,0 +1,27 @@
+# Answer key: m-package-finding (INVENTED). Routes (C4): a FINDING refuses -package (coverage).
+case: m-package-finding
+section: 'Routes (C4): a FINDING refuses -package (coverage)'
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: m-notes
+uat_case: m-deemed
+world: mossgate
+verbs:
+  - /ow-handoff-package
+today: '2026-12-12'
+checks:
+  - writes
+  - refused
+  - screen
+  - next
+  - gate
+refused: 'Refused: Operator-task coverage is FINDING.'
+next:
+  - use ow-handoff-fix on handoffs/mossgate-books/
+gate:
+  check: Operator-task coverage
+  file: opchain-work/handoffs/mossgate-books/operator-notes.md

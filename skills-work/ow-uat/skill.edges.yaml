@@ -323,12 +323,21 @@ hands_off:
       - { path: uat/<client>/secrets-seen.log, fields: [kind, role, source, session] }
       - { path: uat/<client>/evidence/index.md, fields: [item, state, cleared] }
       - { path: uat/<client>/uat.yaml, fields: [the governing acceptance or delivery definition, dated] }
+      # Read by ow-handoff where they lie (OW-06 ruling O2, a data edit): the signed plan and the build, carried at every hop.
+      - { path: plans/<client>/contract-inputs.md, in_place: true }
+      - { path: plans/<client>/quote.md, in_place: true }
+      - { path: plans/<client>/map/systems.md, in_place: true }
+      - { path: plans/<client>/evidence.md, in_place: true }
+      - { path: builds/<client>/build.yaml, in_place: true }
+      - { path: builds/<client>/ledger.md, in_place: true }
+      - { path: builds/<client>/changes/CO-nn.md, in_place: true }
     if_unavailable: signoff.md, acceptance-record.md, punch-list.md and agreed/ hold what the handoff needs
   - when: A report after sign-off
     to: ow-handoff
     verb: /ow-handoff-fix
     say: use ow-handoff-fix on handoffs/<client>/
-    files: [uat/<client>/punch-list.md]
+    files:
+      - { path: uat/<client>/punch-list.md, fields: [each item, its UAT-nn, logged date, reported after request] }
     if_unavailable: Log it as a covered fix by hand, against the agreed checks
   - when: Signed or deemed, with the documentation line bought (owner decision O5)
     to: ow-documentation

@@ -1,0 +1,23 @@
+# Answer key: accounts-not-started (INVENTED). Accounts before -start (refused).
+case: accounts-not-started
+section: Accounts before -start (refused)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+uat_case: defect-punch-step0
+docs_case: write-runbook
+world: larkspur
+verbs:
+  - /ow-handoff-accounts
+today: '2027-01-28'
+checks:
+  - writes
+  - refused
+  - screen
+  - next
+refused: 'Refused: the handoff is not started.'
+next:
+  - use ow-handoff-start on uat/larkspur-ceramics/

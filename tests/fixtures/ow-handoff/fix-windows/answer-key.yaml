@@ -1,0 +1,31 @@
+# Answer key: fix-windows (INVENTED). Post-acceptance CO window (bare -fix).
+case: fix-windows
+section: Post-acceptance CO window (bare -fix)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: accounts-transfer
+uat_case: signoff-addendum
+docs_case: write-runbook
+world: larkspur
+verbs:
+  - /ow-handoff-fix --windows
+today: '2027-02-10'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - fix
+  - handoff_fields
+fix:
+  windows:
+    - co: CO-04
+      accepted: '2027-02-09'
+      window_end: '2027-03-11'
+next:
+  - use ow-handoff-notes on handoffs/larkspur-ceramics/

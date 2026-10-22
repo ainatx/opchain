@@ -1,0 +1,7 @@
+> 2027-03-05 (clock: user-stated) | ow-handoff 1.0.0 | handoffs/larkspur-ceramics/after-offer.md | next: ow-handoff /ow-handoff-access handoffs/larkspur-ceramics/ | awaiting: access removal on 2027-03-23
+Nothing to do: nothing is left before the window end on 2027-03-26.
+Nothing was written.
+NEXT: say "use ow-handoff-close on handoffs/larkspur-ceramics/"   (where slash commands exist: /ow-handoff-close)
+      It will read: dates.yaml, access.md
+      [no folder attached: attach them when you say it]
+IF IT IS NOT AVAILABLE: check each blocker by hand.

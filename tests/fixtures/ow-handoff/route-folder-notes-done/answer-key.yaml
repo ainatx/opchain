@@ -1,0 +1,25 @@
+# Answer key: route-folder-notes-done (INVENTED). Routes (C4).
+case: route-folder-notes-done
+section: Routes (C4)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: notes-index
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff
+today: '2027-02-16'
+checks:
+  - writes
+  - refused
+  - screen
+  - route
+question: true
+route:
+  say: use ow-handoff on handoffs/larkspur-ceramics/
+  expect: /ow-handoff-package

@@ -1,0 +1,26 @@
+# Answer key: m-route-folder-accounts (INVENTED). Routes (C4).
+case: m-route-folder-accounts
+section: Routes (C4)
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: m-start
+uat_case: m-deemed
+world: mossgate
+verbs:
+  - /ow-handoff
+today: '2026-12-09'
+checks:
+  - writes
+  - refused
+  - screen
+  - route
+  - next
+question: true
+route:
+  say: use ow-handoff on handoffs/mossgate-books/
+  expect: /ow-handoff-accounts
+next: []

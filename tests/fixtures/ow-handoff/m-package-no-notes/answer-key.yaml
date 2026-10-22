@@ -1,0 +1,27 @@
+# Answer key: m-package-no-notes (INVENTED). Routes (C4): ow-documentation's declined say, no operator-notes.md.
+case: m-package-no-notes
+section: 'Routes (C4): ow-documentation''s declined say, no operator-notes.md'
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: m-accounts-complete
+uat_case: m-deemed
+world: mossgate
+verbs:
+  - /ow-handoff-package
+today: '2026-12-12'
+checks:
+  - writes
+  - refused
+  - screen
+  - next
+  - route
+refused: 'Refused: operator-notes.md is missing.'
+next:
+  - use ow-handoff-notes on handoffs/mossgate-books/
+route:
+  say: use ow-handoff-package on handoffs/mossgate-books/
+  expect: nothing

@@ -379,3 +379,29 @@ The same design is published as a Claude Docs page for line-by-line comments: ht
 3. ~~Post-acceptance change orders.~~ **Decided 2026-10-14:** each gets its own fix period from its acceptance date in ow-uat's `acceptance-addendum-CO-nn.md` (§2 decision 9).
 4. **Prices.** The care-tier prices and the hourly-help price in `offers.md` are yours.
 5. **`ow-care`** is the natural next design: monthly hours, rollover, reply targets, monthly report, renewal and notice, re-granting access, and what it inherits from `care-start.md`.
+
+## 17. Build notes (ow-handoff 1.0.0, OW-06)
+
+Built 2026-10-21 under `sprints/release-2.1/ow-06/contract.md` (approved 2026-10-20 under the standing contract approval; every O-item at its recommendation). Nothing here changes an approved sentence; each item extends the design or records how it was read.
+
+| # | Ruling or departure | As built |
+|---|---|---|
+| O1 | A bare `/ow-handoff` and `on <path>` | The resume screen and the folder route (`references/routing-and-resume.md` §3, §4); a route names the verb in a prescribed `Route:` line and writes nothing until the user confirms |
+| O2 | Sibling edges for the in-place reads | Data edits, no bumps: ow-build-plan → ow-build carries `evidence.md`; ow-build's ready hand-off carries `map/systems.md` and `evidence.md`, its too-big-FIX hand-off carries `FIX-nn.md` in place, and its `FIX-nn.md` reads row gains `route`; ow-build-plan's `FIX-nn.md` row is `in_place: true`; ow-uat's sign-off hand-off carries every in-place file and its `-fix` hand-off gives `punch-list.md` fields |
+| O3 | `dates.yaml` to its two in-place readers | ow-handoff's own hand-offs carry it: the addendum NEXTs to ow-uat [handoff_date] (mechanical: ow-uat's `--backstop` reads it, the addendum flow does not), and `-delivered`'s rollout NEXT to ow-documentation [window_end], with `operator-notes.md` [ops] |
+| O4 | `-notes` with the line bought, not delivered | Waits: writes nothing, prints the `ow-documentation-delivered` NEXT |
+| O5 | The `OP-nn` form | The runbook's form as built; the index form points by id and title only; rotate entries continue after the runbook's highest id |
+| O6 | ow-documentation's three edits | Shipped in ow-documentation 1.0.0 (#642) and consumed here; not redone |
+| O7 | "ow-care is installed" | Asked and recorded with its source and date at `-offer` (care) and again at `-close`; `-fix` uses the newer |
+| O8 | Network and a push | `network: none`; no push; the user sends every email and the notes |
+| O9 | H4's shape | `rollover` is the structured map, `rollover_wording` beside it, `urgent_price` optional; the §8 example's `rollover:` wording key is read as `rollover_wording` |
+| O10 | `scan-secrets` as its own PR | PR 1 (#643, ow-tools 1.3.0); this PR carries the skill and the handoff-notes export test |
+| O11 | Security review | Part 1 done in PR 1; Part 2 (text) follows this build, before evaluation round 1 |
+| O12 | The siblings' stand-ins | **Deferred to the siblings' next pin round** (accepted by the orchestrator 2026-10-21): the stand-in `dates.yaml` and `FIX-nn.md` files in ow-build, ow-build-plan and ow-uat (and ow-documentation's stand-in `operator-notes.md`) use other ids, dates and keys than these goldens (FIX-03/-04/-07/-08 on Larkspur dated before sign-off; Mossgate handoff dates in January). A byte swap moves those siblings' cases; it lands with their checkers' pins in that round. `FIX-nn.md` now carries `class:` (title case) and `route:` in its header, which ow-build already reads; ow-build-plan's checker reads `classification:` and needs the one-line read in that commit |
+| O13 | A choice after the first close | `-offer` refuses with prescribed words; carried to OW-07 as a residual |
+
+**Other readings.** The `quote.md` client part is read in place for the included block and vendors only; no `*price*` key is copied anywhere. The repository scan's "delivered tree" is the committed history, HEAD included; uncommitted files are listed by name as not scanned, from a directory listing, and the skill runs no git command in the client's repository. Without ow-tools, the client gets `export/handoff-notes.md` (no ow- header, no internal text), never the source Markdown. `-start` asks once for the `export/` and `secrets-seen.log` ignore lines in a git repository and records the answer. The HTML offer lives at `export/after-offer.html`. A reopened close writes `export/close-email-<date>.{html,txt}` beside its addenda. H5's folder is `logs/<workstream>/meetings/MTG-nn/audio/` for the client's workstream; `logs/business/` is never listed. ow-documentation's `docs/<client>/inbox/` joins source 4 (names only). `docs/<client>/shots/` images not cleared are local copies to remove; cleared ones are kept with the delivered documents.
+
+**What the scan can and cannot say** (PR 1's owner decisions OD-1 to OD-3): the skill records `not_read` and `not_scanned` as given, says `CLEAN` means only that nothing read matched, asks the user to read commit and tag messages by hand (recorded, dated), and states that gitleaks' built-in path allowlist applies and that a secret in a file name is printed as its path.
+
+**What OW-07 must read:** `care-start.md` (`care_start`, `tier`, `reply_business_days`, `terms`, `window_end`; Frozen terms, Kept access, Carried fixes, Waiting requests, Operator notes, Accounts) and its addenda, `after-offer.md` (every frozen term and the choice), `operator-notes.md`, `accounts.md` and `dates.yaml`; `FIX-nn.md` with `route: care`. The hand-off rows list these fields (`HANDOFF_PIN` in the checker), so OW-07's reads rows reciprocate on its first commit.

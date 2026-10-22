@@ -1,0 +1,32 @@
+# Answer key: fix-co-window-day45 (INVENTED). Post-acceptance CO window: day 45 against CO-05 is a covered Fix.
+case: fix-co-window-day45
+section: 'Post-acceptance CO window: day 45 against CO-05 is a covered Fix'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-report
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-fix
+today: '2027-04-10'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - fix
+  - handoff_fields
+next:
+  - handoffs.yaml build
+fix:
+  windows: true
+  log:
+    FIX-05:
+      class: Fix
+      window: CO-05
+      route: build

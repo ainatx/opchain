@@ -1,0 +1,28 @@
+# Answer key: notes-no-accounts (INVENTED). Routes (C4): ow-documentation's delivered say, no accounts.md.
+case: notes-no-accounts
+section: 'Routes (C4): ow-documentation''s delivered say, no accounts.md'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: start
+uat_case: defect-punch-step0
+docs_case: write-runbook
+world: larkspur
+verbs:
+  - /ow-handoff-notes
+today: '2027-01-29'
+checks:
+  - writes
+  - refused
+  - screen
+  - next
+  - route
+refused: 'Refused: accounts.md is missing.'
+next:
+  - use ow-handoff-accounts on handoffs/larkspur-ceramics/
+route:
+  say: use ow-handoff-notes on handoffs/larkspur-ceramics/
+  expect: nothing

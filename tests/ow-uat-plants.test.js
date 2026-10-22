@@ -778,7 +778,9 @@ describe("OW-04 R2: OD-1 chains and the pinned tables (h/family2.mjs, h/wp6.mjs)
   drift("HP4", "R2-7: the handoff hand-off drops agreed/acceptance.md (H1: -start copies agreed/)", rep("      - { path: uat/<client>/agreed/acceptance.md, fields: [the agreed checks] }\n", ""), "h", /drops uat\/<client>\/agreed\/acceptance\.md/);
   drift("HP4b", "R2-7: the handoff hand-off drops agreed/CO-nn.md", rep("      - { path: uat/<client>/agreed/CO-nn.md, fields: [the change orders in the acceptance] }\n", ""), "h", /drops uat\/<client>\/agreed\/CO-nn\.md/);
   drift("HP5", "R2-7: the documentation hand-off drops signoff.md (§4.1 reads it)", rep("      - { path: uat/<client>/signoff.md, fields: [signed or deemed date] }\n      - { path: uat/<client>/uat.yaml, fields: [roles, tester ids, environment, test data] }", "      - { path: uat/<client>/uat.yaml, fields: [roles, tester ids, environment, test data] }"), "h", /\/ow-documentation-start: the hand-off drops uat\/<client>\/signoff\.md/);
-  drift("HP6", "R2-7: the fix hand-off loses the punch list", rep("    files: [uat/<client>/punch-list.md]", "    files: []"), "h", /\/ow-handoff-fix: the hand-off drops uat\/<client>\/punch-list\.md/);
+  drift("HP6", "R2-7: the fix hand-off loses the punch list", rep("    files:\n      - { path: uat/<client>/punch-list.md, fields: [each item, its UAT-nn, logged date, reported after request] }\n    if_unavailable: Log it as a covered fix by hand", "    files: []\n    if_unavailable: Log it as a covered fix by hand"), "h", /\/ow-handoff-fix: the hand-off drops uat\/<client>\/punch-list\.md/);
+  drift("HP6b", "OW-06 O2: the fix hand-off drops a punch-list field ow-handoff reads", rep("      - { path: uat/<client>/punch-list.md, fields: [each item, its UAT-nn, logged date, reported after request] }\n    if_unavailable: Log it as a covered fix by hand", "      - { path: uat/<client>/punch-list.md, fields: [each item] }\n    if_unavailable: Log it as a covered fix by hand"), "h", /logged date/);
+  drift("HP6c", "OW-06 O2: the sign-off hand-off stops marking evidence.md in place", rep("      - { path: plans/<client>/evidence.md, in_place: true }\n      - { path: builds/<client>/build.yaml, in_place: true }\n      - { path: builds/<client>/ledger.md, in_place: true }\n      - { path: builds/<client>/changes/CO-nn.md, in_place: true }\n    if_unavailable: signoff.md", "      - { path: plans/<client>/evidence.md }\n      - { path: builds/<client>/build.yaml, in_place: true }\n      - { path: builds/<client>/ledger.md, in_place: true }\n      - { path: builds/<client>/changes/CO-nn.md, in_place: true }\n    if_unavailable: signoff.md"), "h", /evidence\.md is handed on in place/);
 });
 
 describe("OW-04 R2: the terms block's digest and the calendar a year at a time (h/fn2.mjs)", () => {
@@ -1082,7 +1084,7 @@ describe("OW-04 R3: the Evaluator's round-3 functions (h/fn3.mjs)", () => {
   const hd = (fn) => handoffFieldDrift(fn(edges()));
   it("HP-0: CONTROL: the real edges", () => expect(hd((t) => t)).toEqual([]));
   it("HP-fix, HP-dated, HP-pointers, HP-verb: each drift is caught", () => {
-    expect(hd((t) => t.replace(/( {4}verb: \/ow-handoff-fix\n {4}say: [^\n]*\n {4}files: )\[uat\/<client>\/punch-list\.md\]/, "$1[]")).length).toBeGreaterThan(0);
+    expect(hd((t) => t.replace(/( {4}verb: \/ow-handoff-fix\n {4}say: [^\n]*\n {4}files:)\n {6}- \{ path: uat\/<client>\/punch-list\.md[^\n]*/, "$1 []")).length).toBeGreaterThan(0);
     expect(hd((t) => t.replace(/( {4}verb: \/ow-handoff-start[\s\S]*?uat\/<client>\/uat\.yaml, fields: \[the governing acceptance or delivery definition), dated\]/, "$1]")).length).toBeGreaterThan(0);
     expect(hd((t) => t.replace("fields: [role, steps, expected result, data pointers]", "fields: [role, steps, expected result]")).length).toBeGreaterThan(0);
     expect(hd((t) => t.replace("verb: /ow-handoff-start", "verb: /ow-handoff-begin")).length).toBeGreaterThan(0);

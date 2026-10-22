@@ -1,0 +1,7 @@
+Larkspur Ceramics: the handoff is closed
+
+Every fix reported in the window is fixed and re-checked: FIX-01, FIX-02 and FIX-03. FIX-04 was withdrawn.
+
+The repository and the QuickBooks Online connection are in your name. The builder's access is removed, except read access to the run logs, kept for care; it is removed when care ends.
+
+Monthly care, tier Regular: 6 hours a month, a reply within 2 business days, from 27 March 2027.

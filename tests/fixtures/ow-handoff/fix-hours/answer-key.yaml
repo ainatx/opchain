@@ -1,0 +1,25 @@
+# Answer key: fix-hours (INVENTED). Hourly help: hours to an invoice request at the frozen price.
+case: fix-hours
+section: 'Hourly help: hours to an invoice request at the frozen price'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-go-ahead
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-fix --hours
+today: '2027-03-15'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - help
+next:
+  - handoffs.yaml invoice

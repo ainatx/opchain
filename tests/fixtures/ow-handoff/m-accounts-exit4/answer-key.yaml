@@ -1,0 +1,38 @@
+# Answer key: m-accounts-exit4 (INVENTED). Credentials: the scan NOT-CHECKED (exit 4, not-a-git-repo).
+case: m-accounts-exit4
+section: 'Credentials: the scan NOT-CHECKED (exit 4, not-a-git-repo)'
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: m-start
+uat_case: m-deemed
+world: mossgate
+verbs:
+  - /ow-handoff-accounts
+today: '2026-12-10'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - accounts
+next:
+  - use ow-handoff-notes on handoffs/mossgate-books/
+accounts:
+  transfers:
+    TR-01: ownership
+    TR-02: billing
+    TR-03: re-authorise
+    TR-04: recovery
+  below_high:
+    - The till export connection
+  scan: NOT-CHECKED
+  scan_reason: not-a-git-repo
+  rotate:
+    - TILL_API_TOKEN
+    - REORDER_SHEET_KEY
+  no_map: true

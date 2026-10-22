@@ -1,0 +1,8 @@
+# INVENTED TEST FIXTURE: the client repository's alert configuration.
+alerts:
+  - id: report_missing
+    when: no report by Monday 09:00
+    notify: the shop manager
+  - id: reorder_failed
+    when: 3 failed saves in an hour
+    notify: the shop manager

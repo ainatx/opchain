@@ -1,0 +1,22 @@
+# Answer key: close-no-dates (INVENTED). Close timing: no dates.yaml (refused).
+case: close-no-dates
+section: 'Close timing: no dates.yaml (refused)'
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: fix-windows
+uat_case: signoff-addendum
+docs_case: write-runbook
+world: larkspur
+verbs:
+  - /ow-handoff-close
+today: '2027-02-11'
+checks:
+  - writes
+  - refused
+  - screen
+  - close
+refused: 'Refused: close is blocked.'

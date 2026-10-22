@@ -1,0 +1,27 @@
+# Answer key: m-accounts-complete (INVENTED). Quick-quote job: completeness confirmed against the full prompt list.
+case: m-accounts-complete
+section: 'Quick-quote job: completeness confirmed against the full prompt list'
+client: Mossgate Books
+slug: mossgate-books
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: m-accounts
+uat_case: m-deemed
+world: mossgate
+verbs:
+  - /ow-handoff-accounts --complete
+today: '2026-12-11'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - approvals
+approvals:
+  - file: opchain-work/handoffs/mossgate-books/accounts.md
+    line: >-
+      2026-12-11 completeness: confirmed against repository host, hosting, domain and DNS, email sender, every vendor in quote.md, every integration in scope; by Robin and shop manager. This is a
+      working note made by an AI assistant at your instruction. It is not a signature or an official record.
+    kind: complete

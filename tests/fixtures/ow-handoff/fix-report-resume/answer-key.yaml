@@ -1,0 +1,41 @@
+# Answer key: fix-report-resume (INVENTED). Resume (/ow-handoff-fix, cut after windows).
+case: fix-report-resume
+section: Resume (/ow-handoff-fix, cut after windows)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+private_names:
+  - llc-ops
+  - Deftwright
+base: delivered
+uat_case: signoff-addendum
+docs_case: delivered
+world: larkspur
+verbs:
+  - /ow-handoff-fix
+today: '2027-03-02'
+checks:
+  - writes
+  - write_once
+  - status
+  - screen
+  - fix
+  - self_checks
+  - credentials
+  - internal_numbers
+  - resume
+fix:
+  log:
+    FIX-03:
+      class: Fix
+      against: AC-1.1
+      window: main
+      route: build
+next:
+  - handoffs.yaml build
+resume:
+  verb: /ow-handoff-fix
+  done:
+    - windows
+  next: log
+  untouched: []
