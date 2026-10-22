@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-ac31c154410b8a429",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-22T21:10:21.303Z",
+  "updated_at": "2026-10-22T22:33:55.947Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-ow06-ow-handoff",
-  "progress_summary": "OW-06 PR 2 readiness PASS at dd2ba845: catalog, contracts and internal-ref checks green, every ow- acceptance script green, full suite green via the commit gate, every ow- acceptance script green, merge of origin/main 73f775a3 (ow-draft #647, site audit fix #649) resolved keeping both sides.",
+  "step": "ow06-ci-fixture-fix",
+  "progress_summary": "OW-06 current candidate passed all eight strict commit gates: site type check, lint, tests, pattern/secret scans, build and both dependency audits. Existing skill reviews and owner acceptance remain scoped; fresh remote CI is next.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -32,7 +32,7 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "dd2ba845a873881e7621937e50205a2e3b7df0f2",
+    "verified_for_sha": "08be63b8cb1fd01beba343859176a74cdb057c1f",
     "last_verify": {
       "at": "2026-10-22T21:10:21.303Z",
       "branch": "claude/ow-06-ow-handoff",
@@ -2509,8 +2509,31 @@
           "CLAUDE.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-1816dfc43356",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-22T22:33:55.946Z",
+      "verified_at": "2026-10-22T22:33:55.946Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-22T22:33:55.946Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:1816dfc43356dcb282af733a57261cd98d10e74f9ac3b418ad18d9ab11e369b1"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "OW-06 PR648 with destination Git initialization and exact numeric LibreOffice validation; eight current commit gates pass; release-level model/real-use/deployment gates remain separate.",
+        "evidence": [
+          "sprints/release-2.1/ow-06/ci-fixture-copy.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-22T21:10:21.303Z",
+  "record_updated_at": "2026-10-22T22:33:55.947Z",
   "blockers": []
 }
