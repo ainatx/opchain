@@ -10,7 +10,7 @@ The ow- skills are opchain's planning family for client work: the fit call and i
 | `ow-uat` | 1.0.2: the client's user acceptance test: the frozen basis, a scenario per check, tester packs by role, sessions, triage and the rapid fix phase, numbered sign-off requests, deemed acceptance and the delivery backstop on the contract calendar, and the addendum flow (`CHANGELOG.md`) |
 | `ow-documentation` | 1.0.1: the bought documentation and training line after sign-off: the frozen scope, screenshots through ow-tools, guides, SOPs, the runbook and the developer handover, the training kit, export and the repository copy, delivery, and the rollout through the 30-day close (`network: declared`, Connected bundle; `CHANGELOG.md`) |
 | `ow-handoff` | designed, not built |
-| `ow-research` | 1.0.1: research from sources it opened, through the host's own web tools (or your files): queries approved before the first search, every request logged before it is sent, findings with levels and quoted sources; open framework texts you downloaded, recorded unpinned (`network: declared`, Connected bundle; `CHANGELOG.md`) |
+| `ow-research` | 1.0.2: research from sources it opened, through the host's own web tools (or your files): queries approved before the first search, every request logged before it is sent, findings with levels and quoted sources; open framework texts you downloaded, recorded unpinned (`network: declared`, Connected bundle; `CHANGELOG.md`) |
 
 ## What is in this folder
 

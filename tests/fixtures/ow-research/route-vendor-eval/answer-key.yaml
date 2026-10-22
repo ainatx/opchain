@@ -1,5 +1,5 @@
-# INVENTED. C4 ow-vendor-eval's absent-case NEXT (planned; its §4.1): "use ow-research" lands on the list screen,
-# which offers -question. Nothing is written.
+# INVENTED. C4 ow-vendor-eval's inbound route (planned for v2.2, owner decision 2026-10-22; no screen of this release
+# names it): "use ow-research" lands on the list screen, which offers -question. Nothing is written.
 case: route-vendor-eval
 section: 'C4 ow-vendor-eval''s NEXT: use ow-research (list screen; offers -question)'
 verbs:
