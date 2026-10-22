@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-10-19T22:40:54.688Z",
+  "updated_at": "2026-10-22T05:50:13.049Z",
   "phase": "pr-open",
-  "step": "checkpoint-hygiene-nested-worktrees",
+  "step": "checkpoint-hygiene-cross-repo",
   "status": "in_progress",
-  "progress_summary": "Committed 6830078 on claude/blissful-bartik-d0969d: the checkpoint-hygiene Stop hook now attributes paths in nested checkouts (PROJECT_DIR/.claude/worktrees/* by name, any other nested checkout by git toplevel) to that checkout, and a session whose cwd is a nested worktree of this repo is held to that worktree's checkpoints. Candidate verifier PASS 8/8 on tree 91f8f0f9 (receipt reused at commit); docs-forge pr-docs-v1 and repo-ops pr-readiness-v1 handoffs bound to projection 6220df68. PR #584 (GATE-12, the previous next action) merged 2026-10-07.",
+  "progress_summary": "claude/competent-raman-864dee: commit ba6fd3cf makes the checkpoint-hygiene Stop hook attribute skill work to the git repository it touched (Write/Edit paths; Bash cd/pushd, git -C, OPCHAIN_ROOT= targets walked with a running cwd; ~/$HOME/$PWD expanded). Current-run evidence in any repo the skill worked in satisfies it; it never asks for a checkpoint where the skill did not work. Fixes the 2026-10-22 block where cd ~/deftwright-site-worktrees/... resolved inside opchain. Bug-check receipt PASS 8/8; docs-forge and repo-ops handoffs bound to projection 55843827.",
   "progress_table": [
     {
       "id": "v1.9-release-pr",
@@ -162,10 +162,10 @@
   },
   "blockers": [],
   "next_actions": [
-    "Once the checkpoint-hygiene nested-worktree PR is up to date and evidence:pr passes, hand the owner gh pr merge --squash --auto --match-head-commit <full sha> with the Signed-off-by body; after merge, pull main into /Users/aidanelsesser/repos/opchain so worktree sessions run the fixed hook"
+    "Once the checkpoint-hygiene cross-repo PR is up to date and evidence:pr passes, hand the owner gh pr merge --squash --auto --match-head-commit <full sha> with the Signed-off-by body; after merge, pull main into /Users/aidanelsesser/repos/opchain so worktree sessions run the fixed hook"
   ],
   "skill_state": {
-    "current_branch": "claude/wonderful-ellis-4d4a56",
+    "current_branch": "claude/competent-raman-864dee",
     "open_prs": [
       {
         "number": 498,
@@ -726,5 +726,5 @@
     },
     "dependabot_note": "Comment commands (`@dependabot rebase`, `@dependabot ignore ...`) are not processed on the Dependabot PRs opened on 2026-08-31 during the repository transfer (#471, and by extension #472); Dependabot's scheduled runs still manage them (auto-rebase on conflict works). Use GitHub update-branch for those PRs, as with #473."
   },
-  "record_updated_at": "2026-10-19T22:40:54.688Z"
+  "record_updated_at": "2026-10-22T05:50:13.049Z"
 }
