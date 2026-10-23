@@ -237,63 +237,104 @@ or the outcomes report below), add it to `suggest.allow`, update
 
 The hook ships in **shadow mode by default**: `OPCHAIN_ROUTE_MODE` unset routes
 and logs but injects nothing; `OPCHAIN_ROUTE_MODE=live` must be set explicitly.
-While it runs, it labels its own decisions. On each prompt it finds the
-session's previous routing record in the route log, reads the transcript
-between that prompt and this one, and appends an outcome record:
-
-```json
-{ "type": "outcome", "session_id": "…", "for_prompt_hash": "…", "at": "…",
-  "suggested": "oc-git-ops", "mode": "shadow",
-  "skill_calls": ["oc-git-ops"],
-  "raw": { "git_commit": false, "git_push": false, "gh_pr_create": false, "gh_pr_merge": true, "deploy": false },
-  "followed": true }
-```
-
-`suggested` is what the hook suggested (live) or would have suggested
-(shadow); `skill_calls` are `Skill` tool_use ids with the `opchain:` prefix
-stripped; `raw` flags come from Bash tool_use commands. The step is bounded
-(log tail ~200 lines, transcript tail 256 KB) and skipped if it takes more than
-300 ms.
+Every routed prompt leaves a routing record in the route log, and that record is
+what `outcomes` scores.
 
 ```bash
 npm run route:eval -- outcomes [--log $TMPDIR/opchain-route-log.jsonl] [--since 2026-10-09] [--report scratch/route-outcomes.md]
+  [--labels <log dir>/route-labels.jsonl] [--window-minutes 30] [--projects-root ~/.claude/projects] [--rows <file>] [--no-rescore]
 ```
 
 `--log` defaults to `$OPCHAIN_ROUTE_LOG`, else the hook's default path. Note
 that the hook's `$TMPDIR` is Claude Code's, which may differ from your shell's;
 set `OPCHAIN_ROUTE_LOG` in both if in doubt. Without `--report` the markdown
-is printed.
+is printed. `--rows` writes the scored rows as JSONL.
 
-The report gives a per-skill table (suggestions, followed, follow rate,
-related raw activity, proxy TP/FP, proxy precision, FN), the overall and
-per-mode follow rate, and "what happened after each suggestion" (in shadow:
-would have suggested X; the agent then called skill Y / ran raw git|deploy /
-did nothing). Proxy labels, free from production:
+### How a prompt is scored
+
+The 2026-10-23 analysis (`docs/audits/2026-10-23-jev-router-shadow-performance.md`)
+found the original self-labels measured the scorer more than the router: core
+precision 0.31 by the proxy against 0.71 by hand. So:
+
+1. **Rescored from transcripts.** For each routing record, `outcomes` finds the
+   session's transcript under `--projects-root` and its subagent transcripts
+   (`<sid>/subagents/*.jsonl`), anchors on the prompt copy that was routed, and
+   reads what happened next. The hook still appends its own outcome record on
+   the session's next prompt (tail-bounded, no subagents); `outcomes` uses that
+   record only when the transcript is gone. `--no-rescore` scores the stored
+   records alone.
+2. **The window is the reply turn.** It closes at the first of:
+   - the main thread's first `end_turn` after the prompt;
+   - the next human turn (typed prompt, slash command, or a desktop prompt behind
+     `<system-reminder>` blocks);
+   - `--window-minutes` (default 30) after the prompt.
+
+   Task notifications never fire the hook, so before this rule one prompt's
+   window in an autonomous session stayed open for 36 h and collected every
+   later commit.
+3. **Related activity.** A suggestion S is a proxy TP when S's work shows up in
+   the window:
+   - S was called.
+   - One of S's own steps was called:
+     - oc-git-ops: oc-bug-check, oc-docs-forge, oc-repo-ops
+     - oc-deploy-ops: the oc-code-auditor + oc-security-auditor audit gate
+     - oc-release-ops: oc-docs-forge, oc-git-ops, oc-deploy-ops
+   - S's raw class ran, or its tool equivalent was used:
+     - oc-git-ops: `git commit`/`push`/`merge`/`rebase`, `gh pr create`/`merge`, `mcp__ccd_pr__set_auto_merge`, `sync_with_base_branch`, or a `gh pr merge …` command handed to the user in backticks (the opchain repos squash-merge by hand)
+     - oc-deploy-ops: `npm run deploy*`, `wrangler deploy`, `node scripts/deploy.mjs`
+
+   Raw classes match only in command position, so `grep "git commit"` does not
+   count. User `!` commands (`<bash-input>`) count.
 
 | Proxy | Rule |
 |---|---|
-| TP | suggestion S, and the session then called S **or** ran S's raw command class (git commit/push, `gh pr create`/`merge` → oc-git-ops; `npm run deploy`, `wrangler deploy` → oc-deploy-ops) |
+| TP | suggestion S and S's work in the window (above) |
 | FP | suggestion S with no activity related to S |
-| FN | no suggestion, but an `oc-*` Skill call or a raw git/deploy command followed |
+| FN | no suggestion, but an `oc-*` Skill call or a raw git/deploy class followed |
 | silent | no suggestion on a non-pipeline prompt (no Skill call, no raw class) |
+
+4. **Hand labels override the proxy.** The proxy still can't tell a deferred
+   merge ("merge" → "#643 auto-merges when CI passes") from a wrong suggestion.
+   On 2026-10-23 it agreed with hand labels on 12 of 14 suggestions and 46 of 63
+   labelled rows. Labels live beside the log in `route-labels.jsonl`, one JSON
+   object per line:
+
+   ```json
+   { "session_id": "…", "prompt_hash": "…", "label": "oc-git-ops", "note": "optional" }
+   ```
+
+   `label` is a skill id, `none` or `ambiguous`. Judge the prompt text
+   alone, because that is all the router sees. On a labelled row:
+   - suggestion = label → TP
+   - suggestion ≠ label → FP, plus an FN for the labelled skill
+   - no suggestion on a skill label → FN
+   - no suggestion on `none` → silent
+
+   `ambiguous` rows count as suggestions but are left out of every rate. The
+   report's **Rows to review** section lists every unlabelled suggestion first,
+   then the proxy's misses, each with its session id and prompt hash, ready to
+   label.
 
 Outcomes of an explicit `/oc-*` mention (`explicit: true`: the user typed the
 command and it routed at p=1 without a model call) measure the user, not the
 router. They are excluded from the suggestion count and every metric below and
-reported on their own row.
+reported on their own row. "Follow rate" is reported for live mode only: in
+shadow nobody saw the suggestion, so the shadow figure (suggested skill called
+anyway) is the unprompted baseline.
 
 **Day-8 go/no-go** (the report prints the verdict). Switch to
-`OPCHAIN_ROUTE_MODE=live` only when all three hold over the shadow period:
+`OPCHAIN_ROUTE_MODE=live` only when all four hold over the shadow period:
 
 1. **≥ 30 suggestions** (would-have-suggested) — fewer is anecdote.
-2. **Proxy precision ≥ 0.8 on the core skills.**
+2. **Precision ≥ 0.8 on the core skills.**
 3. **Silent rate ≥ 0.95 on non-pipeline prompts** — at most one ordinary
    prompt in twenty gets a nudge.
+4. **Every suggestion hand-labelled.** Proxy numbers alone never switch live
+   mode on. At about four suggestions a day this is a few minutes of labelling.
 
-A NO-GO keeps shadow on. Read the FP transitions and FN rows first: they are
-either spec copy to fix, a skill to drop from the allowlist, or a raw class the
-proxy does not know about yet (the proxy undercounts skills with no raw command
-class, so a non-core FP is a prompt to look at, not proof).
+A NO-GO keeps shadow on. Read the FP rows and the labelled misses first. Each is
+spec copy to fix, a skill to drop from the allowlist, or a raw class the proxy
+doesn't know about yet.
 
 ## Tests
 
@@ -306,6 +347,6 @@ slash-command, notification, envelope, sidechain and subagent cases), check the
 captured `conversation` per row, pin the precision/recall arithmetic on a
 seven-row set and the allowlist-suppression arithmetic, drive `run --fixture`
 with a fake route module through the CLI (including the no-re-query re-run),
-and pin the outcomes report arithmetic and verdict on a fixture log. They need
+pin the outcomes report arithmetic, the label rules and the verdict on a fixture log, and rescore a fixture transcript tree (subagent activity inside the window, a commit after the reply turn, a merge handoff, the stored-record fallback, labels beside the log) through the CLI. Window and activity rules are covered in `tests/route-dispatch.test.js`. They need
 neither the real router nor an API key. The hook's outcome records and shadow
 default are covered in `tests/route-hook.test.js`.

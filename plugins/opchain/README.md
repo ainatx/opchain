@@ -182,9 +182,10 @@ TypeSafe account and its terms);
 without one the hook exits before any network, git or log work. **Shadow mode
 is the default**: with `OPCHAIN_ROUTE_MODE` unset it routes and logs but injects
 nothing, from a detached background process, so the prompt never waits on it.
-Its only evaluation so far is offline; whether it changes skill use is not yet
-measured. `OPCHAIN_ROUTE_MODE=live` is **unsupported** until the shadow-period
-go/no-go records a GO. Live mode injects the one line the 2026-10-08 audit
+It has an offline eval and a first shadow-period read (2026-10-23: hand-labelled
+precision 0.71 against the 0.8 bar for live mode). Whether it changes skill use
+can only be measured once suggestions are shown. `OPCHAIN_ROUTE_MODE=live` is
+**unsupported** until the shadow-period go/no-go records a GO. Live mode injects the one line the 2026-10-08 audit
 measured at 72/72 compliance:
 
 ```
@@ -204,10 +205,14 @@ or deploy turn became suggestions. It suggests only skills on the evidence
 allowlist (`suggestAllow` in `hooks/route-spec.json`) unless you name the skill
 yourself; a typed `/oc-*` command routes without a model call, unless it is
 negated ("don't run /oc-deploy"), asked about, or part of a path.
-On each prompt it also writes an outcome record for the previous one (what was
-suggested, which skills and git/deploy commands followed) to
-`$TMPDIR/opchain-route-log.jsonl`. `npm run route:eval -- outcomes` turns that
-log into the day-8 go/no-go for switching to live
+Every routed prompt is logged to `$TMPDIR/opchain-route-log.jsonl`, and on the
+next prompt the hook adds a bounded outcome record for the previous one (what
+was suggested, which skills and git/deploy commands followed in the reply turn).
+`npm run route:eval -- outcomes` turns that log into the day-8 go/no-go for
+switching to live. It rescores each routed prompt from the session transcripts,
+subagents included, and falls back to the hook's record only when a transcript
+is gone. Hand labels in `route-labels.jsonl` beside the log override its proxy,
+and live mode needs every suggestion labelled
 (`docs/runbooks/skill-router-eval.md` §6 in the source repo). Needs
 `TYPESAFE_API_KEY`; silent without it, outside opchain projects, on slash
 commands, and on any failure. `OPCHAIN_ROUTE=0` disables it.
