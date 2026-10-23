@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-10-23T05:53:35.185Z",
+  "updated_at": "2026-10-23T07:08:35.420Z",
   "phase": "pr-open",
-  "step": "pr-652-contract-corrections",
+  "step": "pr-652-corrections-verified",
   "status": "in_progress",
-  "progress_summary": "PR #652 remains open, draft and unmerged at b29e3731, whose three CI jobs and Lighthouse all passed. New REL-02 preparation edits are underway and require their own strict candidate receipt, Docs/Repo handoffs and remote CI before completion.",
+  "progress_summary": "Preparation source committed through enrolled hooks with all eight strict checks. Docs/Repo evidence is bound to its source projection. Draft PR #652 will be updated and exact-head CI verified; auto-merge remains disabled.",
   "progress_table": [
     {
       "id": "v1.9-release-pr",
@@ -162,8 +162,7 @@
   },
   "blockers": [],
   "next_actions": [
-    "Finish scoped review and candidate checks for the new preparation changes",
-    "Rebind Docs/Repo handoffs, commit through enrolled hooks, push and verify exact-head CI"
+    "Push checkpoint evidence and verify exact-head PR #652 CI; retain draft/open/unmerged state"
   ],
   "skill_state": {
     "current_branch": "claude/competent-raman-864dee",
@@ -751,7 +750,35 @@
         "seconds": 52.2
       },
       "review": "docs/audits/2026-10-22-accessible-name-remediation.md"
+    },
+    "rel02_contract_corrections": {
+      "source_commit": "8d428bd1281b8ef108f355dedd272ecccabb8fd7",
+      "strict_gate": "8/8 PASS",
+      "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/384c0f54f33f981ab0d5e42bea692194ce902256/da3682a429fad819876832dec8a08d78675bfcec79aa15d64d3c8eff4168663d/0f3eec87-b7c4-40aa-8205-082cbcac7ee6.json",
+      "scoped_review": {
+        "scores": [
+          8,
+          7,
+          8,
+          8
+        ],
+        "weighted": 7.7,
+        "verdict": "PASS for product-output correction contract",
+        "raw_handoff": "11/14, retained failure",
+        "diagnostic_handoff": "14/14, 26 hashed auxiliary evidence files excluded"
+      },
+      "report": "docs/audits/2026-10-23-contract-model-independent-review.md",
+      "assembly": {
+        "build_pages": 95,
+        "browser_passed": 150,
+        "browser_skipped": 1,
+        "browser_failed": 0,
+        "report": ".checkpoints/release-2.1-assembly-verification.md"
+      },
+      "scope": "eight-skill baseline; owner restored vendor-eval and care to planned ten-skill release, not covered by baseline validation",
+      "ci": "pending exact pushed head",
+      "release": "held; no tag or deployment"
     }
   },
-  "record_updated_at": "2026-10-23T05:53:35.185Z"
+  "record_updated_at": "2026-10-23T07:08:35.420Z"
 }

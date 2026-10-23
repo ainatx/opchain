@@ -3,16 +3,16 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-23T05:53:48.714Z",
+  "updated_at": "2026-10-23T07:08:35.502Z",
   "skill": "oc-release-ops",
   "phase": "plan",
-  "step": "rel-02-contract-corrections",
+  "step": "eight-skill-baseline-verified-ten-skill-expansion",
   "status": "in_progress",
-  "progress_summary": "OW-06 #648 is merged and preparation PR #652 remains draft. All four remote jobs passed at b29e3731. October 23 contract and executable-fixture corrections are in progress with per-skill patch versions; their fresh review and CI are pending. Owner real jobs, public pin/install, transcription setup/timing and October 27 observation verdicts still hold the final cut. No tag or deployment.",
+  "progress_summary": "Eight-skill baseline only; owner restored vendor-eval and care to ten-skill release, implementation pending. REL-02 correction scope independently passes at 7.7/10 (8/7/8/8); handoff raw 11/14 and diagnostic product view 14/14 remain distinct. All eight strict checks pass. Held assembly: 95 pages, 150 browser passes and one skip. Owner use, host/model setup, public pins/install and October 27 verdicts remain open; no release or deployment.",
   "progress_table": [
     {
       "id": "implementation",
-      "label": "Eight-skill implementation and integration",
+      "label": "Eight-skill baseline corrected; approved vendor-eval/care expansion to ten skills pending",
       "status": "in_progress"
     },
     {
@@ -22,13 +22,13 @@
     },
     {
       "id": "website",
-      "label": "Held work-family site candidate",
-      "status": "in_progress"
+      "label": "Held assembly refreshed; 95-page build, 150 browser passes, one skip; publication held",
+      "status": "complete"
     },
     {
       "id": "model-acceptance",
-      "label": "Actual isolated model runs",
-      "status": "failed"
+      "label": "Synthetic scoped product-output review passes; raw handoff limitation and host/real-use evidence retained",
+      "status": "in_progress"
     },
     {
       "id": "real-use",
@@ -71,20 +71,20 @@
   "blockers": [],
   "next_actions": [
     {
-      "text": "Complete verified preparation PRs and preserve the failed model-run evidence",
-      "done_when": "reviewed preparation changes have passing candidate and CI evidence"
+      "text": "Verify exact-head draft PR #652 CI",
+      "done_when": "All required checks pass for the pushed head; no merge/release"
     },
     {
-      "text": "Complete model acceptance corrections and owner real-use checks for all eight skills",
-      "done_when": "actual model and real-job outcomes recorded without client material"
+      "text": "Complete approved OW-11 vendor evaluation and OW-07 care, then ten-skill integration",
+      "done_when": "Separate bounded implementation, reviews and expanded-candidate verification pass"
     },
     {
-      "text": "Collect EN-01/EN-02 verdicts after their observation windows and finish the public ow-tools pin/install proof",
-      "done_when": "release readiness evidence satisfies the approved plan"
+      "text": "Complete owner real-use, host/model prerequisites and actual immutable public pin/install evidence",
+      "done_when": "Approved plan evidence recorded without client material"
     },
     {
-      "text": "Cut, sign, deploy and verify v2.1.0 after readiness",
-      "done_when": "signed immutable tag, verified staging and production, refreshed baseline"
+      "text": "Collect EN-01/EN-02 observation verdicts October 27, then perform eligible release cut",
+      "done_when": "All readiness conditions, signed tag, staging/production verification and monitoring baseline complete"
     }
   ],
   "pm_refs": [
@@ -335,9 +335,37 @@
       "number": 652,
       "url": "https://github.com/ainatx/opchain/pull/652",
       "draft": true
+    },
+    "rel02_contract_corrections": {
+      "source_commit": "8d428bd1281b8ef108f355dedd272ecccabb8fd7",
+      "strict_gate": "8/8 PASS",
+      "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/384c0f54f33f981ab0d5e42bea692194ce902256/da3682a429fad819876832dec8a08d78675bfcec79aa15d64d3c8eff4168663d/0f3eec87-b7c4-40aa-8205-082cbcac7ee6.json",
+      "scoped_review": {
+        "scores": [
+          8,
+          7,
+          8,
+          8
+        ],
+        "weighted": 7.7,
+        "verdict": "PASS for product-output correction contract",
+        "raw_handoff": "11/14, retained failure",
+        "diagnostic_handoff": "14/14, 26 hashed auxiliary evidence files excluded"
+      },
+      "report": "docs/audits/2026-10-23-contract-model-independent-review.md",
+      "assembly": {
+        "build_pages": 95,
+        "browser_passed": 150,
+        "browser_skipped": 1,
+        "browser_failed": 0,
+        "report": ".checkpoints/release-2.1-assembly-verification.md"
+      },
+      "scope": "eight-skill baseline; owner restored vendor-eval and care to planned ten-skill release, not covered by baseline validation",
+      "ci": "pending exact pushed head",
+      "release": "held; no tag or deployment"
     }
   },
-  "record_updated_at": "2026-10-23T05:53:48.714Z",
+  "record_updated_at": "2026-10-23T07:08:35.502Z",
   "pm_deferred_actions": [
     {
       "id": "deferred-2026-09-21T19:53:16Z-7f2f",

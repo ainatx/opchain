@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-10-23T05:53:35.089Z",
+  "updated_at": "2026-10-23T07:08:34.738Z",
   "phase": "build",
-  "step": "rel-02-contract-corrections",
+  "step": "rel-02-corrections-verified",
   "status": "in_progress",
-  "progress_summary": "Continuing draft PR #652 from clean b29e3731; all four remote jobs passed for that base. Current JEV Codex install verified: 36 skill definitions match the prepared checkout. Intake, build, research and executable handoff-fixture corrections are in progress under the October 23 contract; no frozen captures are rewritten. Final release conditions remain open.",
+  "progress_summary": "Eight-skill baseline only; owner restored vendor-eval and care to ten-skill release, implementation pending. REL-02 correction scope independently passes at 7.7/10 (8/7/8/8); handoff raw 11/14 and diagnostic product view 14/14 remain distinct. All eight strict checks pass. Held assembly: 95 pages, 150 browser passes and one skip. Owner use, host/model setup, public pins/install and October 27 verdicts remain open; no release or deployment.",
   "progress_table": [
     {
       "id": "v20-spec",
@@ -228,9 +228,9 @@
   },
   "blockers": [],
   "next_actions": [
-    "Complete and independently review the REL-02 contract and fixture corrections",
-    "Run fresh blind model exercises and preserve raw failures before grading",
-    "Complete real-use, public installation/model setup and October 27 evidence before release"
+    "Verify exact-head PR #652 CI and retain draft state",
+    "Implement approved OW-11 and OW-07 in separate workstreams, then integrate/verify ten-skill candidate",
+    "Complete owner real use, host/model prerequisites, public installation/pin and October 27 observation verdicts before release"
   ],
   "skill_state": {
     "feature": {
@@ -579,6 +579,34 @@
       "research": "sprints/compare-refresh/research-2.0.md",
       "palette": "Slate and Emerald",
       "deployment": "not requested"
+    },
+    "rel02_contract_corrections": {
+      "source_commit": "8d428bd1281b8ef108f355dedd272ecccabb8fd7",
+      "strict_gate": "8/8 PASS",
+      "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/384c0f54f33f981ab0d5e42bea692194ce902256/da3682a429fad819876832dec8a08d78675bfcec79aa15d64d3c8eff4168663d/0f3eec87-b7c4-40aa-8205-082cbcac7ee6.json",
+      "scoped_review": {
+        "scores": [
+          8,
+          7,
+          8,
+          8
+        ],
+        "weighted": 7.7,
+        "verdict": "PASS for product-output correction contract",
+        "raw_handoff": "11/14, retained failure",
+        "diagnostic_handoff": "14/14, 26 hashed auxiliary evidence files excluded"
+      },
+      "report": "docs/audits/2026-10-23-contract-model-independent-review.md",
+      "assembly": {
+        "build_pages": 95,
+        "browser_passed": 150,
+        "browser_skipped": 1,
+        "browser_failed": 0,
+        "report": ".checkpoints/release-2.1-assembly-verification.md"
+      },
+      "scope": "eight-skill baseline; owner restored vendor-eval and care to planned ten-skill release, not covered by baseline validation",
+      "ci": "pending exact pushed head",
+      "release": "held; no tag or deployment"
     }
   },
   "eval_scores": [
@@ -667,5 +695,5 @@
       "action": "Quick-feature: v2.0 asset hotfix (favicon, fallback OG card, architecture shade) on claude/v2-asset-hotfix after v2.0.0 shipped without it"
     }
   ],
-  "record_updated_at": "2026-10-23T05:53:35.089Z"
+  "record_updated_at": "2026-10-23T07:08:34.738Z"
 }
