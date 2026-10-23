@@ -12,9 +12,11 @@
 // internalFigures, parseFindings and credentialFindings; ow-documentation 1.0.1's otherWorkstreams,
 // otherClientMatchers, NON_CLIENT_FOLDERS, docPeopleFindings, docCredentialFindings, docDataFindings and
 // successClaims; ow-uat's PUBLISHED_TEST_CARDS; ow-tools' parseModel, checkFormula, FUNCTIONS, preflight and calc
-// total. ow-draft 1.0.0 (approvalProblem, closedScreenProblems, ADDRESSED, decodeEntities) is not on main yet, so
-// nothing is copied from it: the closed-screen, approval and addressed-text rules below are this skill's own, built
-// on the imports above, in one pinned place (Blockers 1 of the contract).
+// total. The clause rules of an approval (declines, conditions, hedges, relays, retractions) and the person-name rules
+// are the family's shared modules (scripts/lib/approval-grammar.mjs and scripts/lib/people-rules.mjs, also used by
+// ow-draft and ow-handoff); nothing is copied from them. The closed-screen and addressed-text rules below, and the
+// closed questions' exact answer shapes, are this skill's own (Blockers 1 of the contract); ow-draft's own
+// approvalProblem and closedScreenProblems are not imported because the question formats differ.
 //
 //   node scripts/ow-vendor-eval-acceptance.mjs                        # every case against its golden run
 //   node scripts/ow-vendor-eval-acceptance.mjs <case> <run-dir>       # one case against a real run
@@ -28,8 +30,10 @@ import * as yaml from "js-yaml";
 import { matter } from "./lib/frontmatter.mjs";
 import { familyNameRules } from "./check-skill-contracts.mjs";
 import { loadCatalogs } from "./lib/catalogs.mjs";
+import { approvedClause, hedged, laterIn } from "./lib/approval-grammar.mjs";
+import { makePeopleFindings } from "./lib/people-rules.mjs";
 import { ourSideFindings, figuresIn, isRound, ROUND_MATCH, internalFigures, parseFindings, credentialFindings, runView as researchRunView } from "./ow-research-acceptance.mjs";
-import { otherWorkstreams, otherClientMatchers, otherClientFindings, NON_CLIENT_FOLDERS, docPeopleFindings, docCredentialFindings, docDataFindings, successClaims, shippedTextProblems as docShippedText } from "./ow-documentation-acceptance.mjs";
+import { otherWorkstreams, otherClientMatchers, otherClientFindings, NON_CLIENT_FOLDERS, docPeopleFindings, GIVEN_NAMES, docCredentialFindings, docDataFindings, successClaims, shippedTextProblems as docShippedText } from "./ow-documentation-acceptance.mjs";
 import { PUBLISHED_TEST_CARDS } from "./ow-uat-acceptance.mjs";
 import { runView as planRunView } from "./ow-build-plan-acceptance.mjs";
 import { parseModel, checkFormula, FUNCTIONS } from "../plugins/ow-tools/lib/xlsx.mjs";
@@ -445,9 +449,22 @@ export function approvalAnswer(answer, kind, want = {}) {
     return { ok: false, decision: null, problems: [`"${a.slice(0, 50)}" is not the user's own relationship answer (none / yes: <kind>)`] };
   }
   if (kind === "bidder") {
-    const m = a.match(/^I(?: am|'m|’m) not a bidder (?:on|in|for) (.+?)(?:\s+and\b.*)?\.?$/);
-    if (!m || RELAY.test(a)) return { ok: false, decision: null, problems: [`"${a.slice(0, 60)}" is not a first-person not-a-bidder statement in this session`] };
-    if (want.procurement && !a.includes(want.procurement)) return { ok: false, decision: null, problems: [`the statement does not name the procurement (${want.procurement})`] };
+    // The statement is the whole answer: "I am not a bidder on <the procurement>", then at most one first-person clause
+    // ("and I advise the town only"). A tail that keeps the door open ("and I may bid later", "unless the deadline moves",
+    // "if the panel agrees", "but Pat is") or takes it back ("but wait") is not the statement; this check is never waived.
+    const notIt = { ok: false, decision: null, problems: [`"${a.slice(0, 60)}" is not a first-person not-a-bidder statement in this session`] };
+    const head = String.raw`^I(?: am|'m|’m) not a bidder (?:on|in|for) `;
+    const m = want.procurement
+      ? a.match(new RegExp(`${head}${want.procurement.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\w-])(.*)$`, "s"))
+      : a.match(new RegExp(`${head}(.+?)(?=[,.;]|\\s+(?:and|but|unless|if|when|once|until|till|while|although|though|as|so|or)\\b|$)(.*)$`, "s"));
+    if (!m && want.procurement && new RegExp(head).test(a)) return { ok: false, decision: null, problems: [`the statement does not name the procurement (${want.procurement})`] };
+    if (!m || RELAY.test(a)) return notIt;
+    const tail = m[m.length - 1].replace(/^\s*[,;]?\s*/, "").replace(/[.\s]+$/, "");
+    if (tail) {
+      if (!/^and\s+(?:I|I'm|I’m|I am|I have|I've|have|am|do not|don't)\b/i.test(tail)) return notIt;
+      if (laterIn(tail, "handoff") || hedged(tail, "handoff") || (/\bbid(?:s|ding)?\b/i.test(tail) && !/\b(?:not|never|no)\b/i.test(tail))) return notIt;
+    }
+    if (!approvedClause(a, { profile: "handoff", verb: (c) => /\bnot a bidder\b/i.test(c), allowNo: true, relay: "none" })) return notIt;
     return { ok: true, decision: "yes", problems: [] };
   }
   if (kind === "waiver") {
@@ -1815,8 +1832,14 @@ function checkCredentials(key, run) {
 /** People (C20): ow-documentation's rules, and a capitalised name after a contact cue ("Ask Marcus …"), never a team or role word. */
 const CUE_NAME = /\b(?:Ask|Call|Phone|Ring|Email|E-mail|Text|Contact|Message)\s+(\p{Lu}\p{Ll}{2,})\b/u;
 const NOT_A_PERSON = /^(?:Support|Sales|Billing|Accounts|Operations|Finance|Onboarding|Customer|Customers|Service|The|Our|Your|Their|Them|Us|Everyone|Anyone|Someone|Each|Every|Both|Vendor|Vendors|Agency|Panel|Owner|Client|Robin)$/;
+const sharedPeopleFindings = makePeopleFindings({
+  base: (text, ctx) => docPeopleFindings(text, ctx),
+  givenNames: GIVEN_NAMES,
+  genericCues: false,
+  months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+});
 export const vePeopleFindings = (text, ctx = {}) => {
-  const out = [...docPeopleFindings(text, ctx)];
+  const out = [...sharedPeopleFindings(text, ctx)];
   for (const line of String(text ?? "").split("\n")) { const m = line.match(CUE_NAME); if (m && !NOT_A_PERSON.test(m[1]) && m[1] !== ctx.user && !out.some(([, h]) => h === m[1])) out.push(["a person's name (after a contact cue)", m[1]]); }
   return out;
 };

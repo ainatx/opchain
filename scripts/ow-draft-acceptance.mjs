@@ -24,7 +24,8 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as yaml from "js-yaml";
 import { matter } from "./lib/frontmatter.mjs";
-import { SAID_LATER, SAID_RELAY, DOC_RELAY, DRAFT_SCOPE as SAID_SCOPE, sentencesOf, clausesOf, approvedClause as gradeApprovalClause, hedged as grammarHedged, declined as grammarDeclined } from "./lib/approval-grammar.mjs";
+import { SAID_LATER, SAID_RELAY, DOC_RELAY, DRAFT_SCOPE as SAID_SCOPE, sentencesOf, clausesOf, approvedClause as gradeApprovalClause, hedged as grammarHedged, declined as grammarDeclined, relayedIn, retractedIn } from "./lib/approval-grammar.mjs";
+import { makePeopleFindings } from "./lib/people-rules.mjs";
 import { loadCatalogs } from "./lib/catalogs.mjs";
 import { familyNameRules } from "./check-skill-contracts.mjs";
 import { PUBLISHED_TEST_CARDS } from "./ow-uat-acceptance.mjs";
@@ -702,41 +703,14 @@ export function credentialFindings(text) {
   return out;
 }
 
-const PARTICLE = "(?:de|van|der|den|von|da|di|le|la|du|del|ten|ter|bin|al|el|Ó|Ní|Nic)";
-const FULL_NAME = new RegExp(`(?<![\\p{L}\\p{N}'’-])(\\p{Lu}\\p{Ll}+)\\s+((?:${PARTICLE}\\s+)*(?:O['’]|(?:al|el)-)?\\p{Lu}\\p{Ll}[\\p{L}'’-]*)`, "gu");
-const PERSON_VERB = new RegExp(`^\\s*(?:,\\s*)?(?:runs|ran|attended|said|says|owns|manages|managed|approved|wrote|writes|leads|led|joined|signs|signed|checks|checked|chose|asked|agreed|decided|works|worked|handles|sends|sent|called|emailed|phoned|answered)\\b|^\\s+and\\s+\\p{Lu}\\p{Ll}+\\s+(?:${PARTICLE}\\s+)*\\p{Lu}\\p{Ll}+\\s+(?:attended|joined|agreed|met)\\b`, "u");
-const ORG_SECOND = /^(?:Service|Services|Entry|Payable|Receivable|Control|Room|Support|Desk|Department|Team|Operations|Accounts|Sales|Shipping|Returns|Office|Hall|Studio|Shop|Store|Ceramics|Books|Florists|Bindery|Manager|Lead|Director|Coordinator|Supervisor|Officer|Assistant|Administrator|Clerk|Owner|Staff|Gallery|Supply)$/;
-// A title and a surname. A lone O'/Mc word is a person only with a given name, a title or a person slot (FULL_NAME
-// reads the first and the third; a supplier such as "McAllister Pottery Supply" never blocks a client deliverable).
-const TITLE_BRANDS = /^(?:Martens|Pepper|Scholl|Oetker|Dre|Seuss|Strangelove|Who|Pepper's|Martens's)$/;
-const TITLE_SURNAME = /\b(?:Mr|Mrs|Ms|Mx|Dr|Prof|Miss)\.?\s+((?:O['’]|Mc|Mac)?\p{Lu}[\p{L}'’-]+)/u;
-// A lone O'/Mc surname in a person slot ("ask McAllister"), unless it is a possessive ("ask McDonald's") or the start of a name.
-const SLOT_SURNAME = /\b(?:ask|contact|call|email|ring|from|talk to|speak to|thanks to|thank|cc)\s+((?:O['’]|Mc|Mac)\p{Lu}\p{Ll}+)(?![\p{L}])(?!['’]s)(?!\s+\p{Lu})/u;
-const PERSON_BEFORE = /(?:\b(?:ask|contact|call|email|e-mail|ring|thanks to|thank|write to|speak to|talk to|with|by|from|cc|to)\s+|\b(?:Mr|Mrs|Ms|Mx|Dr)\.?\s+)$/i;
+// The person-name rules (a lone O'/Mc word is a person only with a given name, a title or a person slot; "Dr. Martens" is a
+// brand) live in scripts/lib/people-rules.mjs, shared with ow-handoff and ow-vendor-eval.
 /** Personal data (C18): the family's people rules, plus a full name in a person's slot (the shapes OW-05 missed). */
-export function peopleFindings(text, ctx = {}) {
-  const out = docPeopleFindings(text, { user: ctx.user, client: ctx.client, people: ctx.people ?? [] }).filter(([, hit]) => !String(hit).split(/\s+/).slice(1).some((w) => ORG_SECOND.test(w)));
-  const known = new Set([ctx.user, ctx.business, ctx.client, ...(ctx.names ?? []), ...(ctx.allow ?? [])].filter(Boolean).map((x) => String(x).toLowerCase()));
-  for (const raw of String(text ?? "").split("\n")) {
-    // An imperative opening a sentence ("Ask Jamal Ortiz …") is not the first half of a name.
-    const line = raw.replace(/(^|[.!?:;]\s+|\(\s*)(Ask|Contact|Call|Email|Ring|Thanks|Thank|Write|Send|Speak|Talk|Cc|Message|Text)\b/g, (m, a, b) => a + b.toLowerCase());
-    for (const m of line.matchAll(FULL_NAME)) {
-      const name = `${m[1]} ${m[2]}`;
-      if (ORG_SECOND.test(m[2])) continue;
-      if ([...known].some((k) => k.includes(name.toLowerCase()) || name.toLowerCase().includes(k))) continue;
-      if (MONTHS.includes(m[1]) || /^(?:The|This|That|Each|Every|Our|Your|Their|One|State|Version|Order|Orders|Sources|Spring|Summer|Autumn|Winter|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|North|South|East|West|New|Old)$/.test(m[1])) continue;
-      const after = line.slice(m.index + m[0].length);
-      const before = line.slice(0, m.index);
-      if (PERSON_VERB.test(after) || PERSON_BEFORE.test(before) || GIVEN_NAMES.has(m[1])) { if (!out.some(([, h]) => h === name || h === m[1])) out.push(["a person's name", name]); }
-    }
-    for (let i = out.length - 1; i >= 0; i--) if (/^(?:Mr|Mrs|Ms|Mx|Dr|Prof|Miss)\.?\s+(?:Martens|Pepper|Scholl|Oetker|Dre|Seuss|Strangelove|Who)\b/.test(String(out[i][1]))) out.splice(i, 1);
-    const sl = line.match(SLOT_SURNAME);
-    if (sl) out.push(["a person's surname", sl[1]]);
-    const ts = line.match(TITLE_SURNAME);
-    if (ts && !TITLE_BRANDS.test(ts[1].replace(/['’]s$/, "")) && !out.some(([w]) => /title/.test(w))) out.push(["a person's name (a title)", ts[0]]);
-  }
-  return out;
-}
+export const peopleFindings = makePeopleFindings({
+  base: (text, ctx) => docPeopleFindings(text, { user: ctx.user, client: ctx.client, people: ctx.people ?? [] }),
+  givenNames: GIVEN_NAMES,
+  months: MONTHS,
+});
 const RECORD_ID = /\b(?:PO|INV|SO|ACC|ORD|CUST|AC)-\d{3,}\b/;
 const CARD = /\b(?:\d{4}[ -]){3}\d{1,4}\b|\b\d{15,16}\b/;
 const TEST_MARK = /\btest(?:[- ]mode| card| cards| order| data)?\b|\bsandbox\b|\bpublished\b/i;
@@ -926,7 +900,7 @@ const CAND_RE = (c) => new RegExp(`\\b${esc(c)}\\b`);
 // The shared grammar preserves OW-10's full-answer hedge and clause-scope rules.
 const hedged = (text) => grammarHedged(text, "draft");
 const declined = (text) => grammarDeclined(text, "draft");
-const approvedClause = (text, verb, accept) => gradeApprovalClause(text, { profile: "draft", verb, accept });
+const approvedClause = (text, verb, accept, extra = {}) => gradeApprovalClause(text, { profile: "draft", verb, accept, ...extra });
 const candNames = (s) => String(s).match(/\bC-\d+\b/g) ?? [];
 
 /**
@@ -963,7 +937,7 @@ export function sessionApproval(kind, lines, want = {}) {
     // The client's: the role as the subject (or the agent of a passive), the candidate named, already given.
     const role = String(want.role ?? "").replace(/^the /, "");
     const RE = new RegExp(`\\b(?:the )?${esc(role)}\\s+(?:has\\s+)?(?:approved|signed(?: it| ${esc(cand)})? off|okayed|accepted|said yes to|gave (?:the |their )?(?:go-ahead|ok|okay|approval) (?:for|to|on))\\b|\\b(?:approved|signed off|accepted) by (?:the )?${esc(role)}\\b`, "i");
-    const ok = own.some(({ text }) => approvedClause(text, (c) => RE.test(c), names(text)));
+    const ok = own.some(({ text }) => approvedClause(text, (c) => RE.test(c), names(text), { relay: "client", clientWords: new RegExp(`\\b${esc(role)}\\b`, "i") }));
     if (!ok) p.push(`the client's approval of ${cand} by ${want.role} is not what the user reported in this session`);
   } else if (kind === "voice") {
     // The clause names the file, or names no other voice file and the line names this one ("voices/client.md looks right; approve it").
@@ -972,7 +946,7 @@ export function sessionApproval(kind, lines, want = {}) {
     if (want.role) {
       const role = String(want.role).replace(/^the /, "");
       const RE = new RegExp(`\\b(?:the )?${esc(role)}\\s+(?:has\\s+)?(?:approved|signed off|okayed|accepted)\\b`, "i");
-      const cl = own.some(({ text }) => text.includes(want.file) && approvedClause(text, (c) => RE.test(c)));
+      const cl = own.some(({ text }) => text.includes(want.file) && approvedClause(text, (c) => RE.test(c), undefined, { relay: "client", clientWords: new RegExp(`\\b${esc(role)}\\b`, "i") }));
       if (!cl) p.push(`the client's approval of ${want.file} by ${want.role} is not what the user reported in this session`);
     }
   } else if (kind === "permission") {
@@ -986,7 +960,7 @@ export function sessionApproval(kind, lines, want = {}) {
         const ctx = NOUN.test(c) ? c : `${cl[j - 1] ?? ""} ${c}`;
         return what.test(ctx) && !(DOC_RELAY.test(s) && !want.inbox) && (!want.client || want.inbox || text.includes(want.client))
           && (!want.inbox || new RegExp(`${esc(want.inbox)}\\b[^.;]*\\b(?:is real|is genuine|confirmed?)\\b|\\bconfirm(?:ed)?\\b[^.;]*${esc(want.inbox)}`, "i").test(text));
-      }));
+      }, { relay: "client", clientWords: want.inbox ? /./ : /\b(?:client|owner|manager|director|coordinator|bookkeeper|accountant|founder|proprietor)\b/i }));
     if (!ok) p.push(`the ${want.what} permission is not one the user stated in this session${want.inbox ? `, confirming ${want.inbox}` : ""}`);
   } else if (kind === "round") {
     const digits = (s) => String(s).replace(/[^\d.]/g, "").replace(/\.$/, "");
@@ -1002,13 +976,13 @@ export function sessionApproval(kind, lines, want = {}) {
     const flat = own.flatMap((x) => sentencesOf(x.text).flatMap((s) => clausesOf(s)));
     const YES = /\b(?:yes|yeah|confirm(?:ed)?|correct|right|go ahead|looks good)\b/i;
     const k = flat.findIndex((c) => YES.test(c));
-    if (k >= 0 && flat.slice(k).some((c) => hedged(c))) p.push("the user's confirmation of the brief is hedged");
+    if (k >= 0 && (flat.slice(k).some((c) => hedged(c)) || relayedIn(own.map((x) => x.text).join(" ")) || retractedIn(own.map((x) => x.text).join(" ")))) p.push("the user's confirmation of the brief is hedged, relayed or taken back");
     else if (k < 0) p.push("the brief was written with no yes from the user in this session");
     else if (flat.slice(k).some((c, i) => { const t = c.replace(SAID_SCOPE, " ").trim(); return t && (i > 0 ? /^(?:but|no|nope|wait|hold|change|actually|instead|wrong|not)\b/i.test(t) : /\b(?:wait|hold|wrong|instead|actually)\b/i.test(t)); })) p.push("the user's confirmation of the brief carries a change or a doubt");
   } else if (kind === "push") {
     const l = own.find((x) => /\b(?:yes|yeah|ok(?:ay)?|go ahead|confirm(?:ed)?|push (?:them|it|all|both)|send (?:them|it))\b/i.test(x.text) || / -> /.test(x.text) || declined(x.text));
     if (!l) p.push("the push has no confirmation from the user in this session");
-    else if (declined(l.text.replace(/^[^.]*\bconnector is here\.\s*/i, "")) || SAID_LATER.test(l.text.replace(SAID_SCOPE, " ")) || hedged(l.text.replace(/^[^.]*\bconnector is here\.\s*/i, ""))) p.push("the user's reply to the push list declines or puts it off");
+    else if (relayedIn(l.text.replace(/^[^.]*\bconnector is here\.\s*/i, "")) || retractedIn(l.text.replace(/^[^.]*\bconnector is here\.\s*/i, "")) ||declined(l.text.replace(/^[^.]*\bconnector is here\.\s*/i, "")) ||SAID_LATER.test(l.text.replace(SAID_SCOPE, " ")) || hedged(l.text.replace(/^[^.]*\bconnector is here\.\s*/i, ""))) p.push("the user's reply to the push list declines or puts it off");
     else if (!/\b(?:yes|yeah|ok(?:ay)?|go ahead|confirm(?:ed)?|push (?:them|it|all|both)|send (?:them|it))\b/i.test(l.text)) p.push("the push has no yes from the user in this session");
     else {
       const named = l.text.match(/\S+\.(?:pdf|docx|pptx|xlsx|md|html|txt|csv)\b/g) ?? [];
@@ -1019,13 +993,19 @@ export function sessionApproval(kind, lines, want = {}) {
     const ok = own.some(({ text }) => approvedClause(text, (c) => c.includes(want.branch) && /\b(?:made|created|checked out|switched to|am on|is checked out|are on|on branch)\b/i.test(c) && !/\b(?:did not|didn't|not yet|haven't|have not)\b/i.test(c)));
     if (!ok) p.push(`the branch ${want.branch} is not one the user said they made and checked out in this session`);
   } else if (kind === "waiver") {
-    // Anchored at the start of a sentence: "I won't waive Sources" is not a waiver, and a decline of another check is not this one's.
+    // Anchored at the start of a sentence ("Waive …", "Please waive …", "Yes, waive …", "I waive …", "Waiving …"): "I won't waive Sources" is not
+    // a waiver, and a decline of another check is not this one's. The clause grammar holds the sentence to the same decline,
+    // hedge, condition, relay and retraction rules as every other approval.
     let found = null;
     for (const { text } of own) {
       for (const s of sentencesOf(text)) {
-        const m = s.match(/^(?:please\s+)?(waive\b[^\n]*)$/i);
+        const m = s.match(/^(?:please\s+)?(?:(?:yes|ok|okay|sure),?\s+)?(?:I\s+)?(?:waive|waiving)\b([^\n]*)$/i);
         if (!m || hedged(text) || /\b(?:unless|if|once|provided)\b/i.test(s)) continue;
-        const t = `waive${m[1].slice(5)}`.replace(/^waive the (.+?) check\b/i, "waive $1").replace(/[.;!?]+$/, "");
+        // The reason after "because" or a colon may quote someone ("the client says it is fine"); it is not the waiver's own words.
+        // The checks' own names begin with "No" ("No internal numbers"); that is the check, not a refusal.
+        const head = s.replace(/(?::|,? because\b).*$/i, "").replace(/\bNo (?=internal numbers|credentials|private names)/g, "");
+        if (!approvedClause(text.replace(s, head), (c) => /^(?:please\s+)?(?:(?:yes|ok|okay|sure),?\s+)?(?:I\s+)?(?:waive|waiving)\b/i.test(c), (c, sent) => sent.startsWith(head))) continue;
+        const t = `waive${m[1]}`.replace(/^waive the (.+?) check\b/i, "waive $1").replace(/[.;!?]+$/, "");
         const problems = approvalProblem("waiver", t, want);
         if (found == null || !problems.length) found = { t, problems };
         if (!problems.length) break;
