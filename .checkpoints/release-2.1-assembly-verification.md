@@ -39,3 +39,5 @@ The restored care/vendor source and current shared routing were copied into the 
 - The earlier 150-pass/one-skip suite and Lighthouse run remain baseline evidence; they are not claimed as reruns on the added routes.
 
 This is an unpublished assembly; the release-surface guard and version stamp remain unchanged.
+
+Final source wording/test integration refresh: 920 source paths match the held assembly; manifest SHA-256 `485e6c1496c56fd23f0f5b1fb64c9520703cb5ee0eb3516a69244dd2d23b033b`. Regenerated combined download SHA-256 `f93a01a4de556229f43903ce68f0ddc0948f69559235a62b4c86daa20b4f17ba` matches the source rehearsal. Final Astro build remains97pages and affected browser run passes4/4 with zero skips/failures (`held-work-browser-final.json`). An initial browser invocation used the wrong working directory and had no base URL; its failed command record is retained separately, then the intended site-configured command passed.

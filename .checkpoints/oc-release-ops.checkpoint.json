@@ -3,17 +3,17 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-23T07:08:35.502Z",
+  "updated_at": "2026-10-23T08:24:45.703Z",
   "skill": "oc-release-ops",
   "phase": "plan",
-  "step": "eight-skill-baseline-verified-ten-skill-expansion",
+  "step": "ten-skill-preparation-verified",
   "status": "in_progress",
-  "progress_summary": "Eight-skill baseline only; owner restored vendor-eval and care to ten-skill release, implementation pending. REL-02 correction scope independently passes at 7.7/10 (8/7/8/8); handoff raw 11/14 and diagnostic product view 14/14 remain distinct. All eight strict checks pass. Held assembly: 95 pages, 150 browser passes and one skip. Owner use, host/model setup, public pins/install and October 27 verdicts remain open; no release or deployment.",
+  "progress_summary": "Ten-skill preparation integrated and independently reviewed; all eight strict checks pass. Care main exercise passes 6/6 and manual review; vendor evidence and limitations are preserved in the model record. Eleven clean archive extractions match source. Held website builds 97 pages; 7 surface and 4 affected browser checks pass. Owner real use, host/model setup, immutable public pins/install and October 27 observation verdicts remain open.",
   "progress_table": [
     {
       "id": "implementation",
-      "label": "Eight-skill baseline corrected; approved vendor-eval/care expansion to ten skills pending",
-      "status": "in_progress"
+      "label": "Ten-skill source integrated; scoped independent reviews and eight strict checks pass",
+      "status": "complete"
     },
     {
       "id": "distribution",
@@ -22,12 +22,12 @@
     },
     {
       "id": "website",
-      "label": "Held assembly refreshed; 95-page build, 150 browser passes, one skip; publication held",
+      "label": "Held 97-page assembly; 7 surface and 4 affected browser checks pass; publication held",
       "status": "complete"
     },
     {
       "id": "model-acceptance",
-      "label": "Synthetic scoped product-output review passes; raw handoff limitation and host/real-use evidence retained",
+      "label": "Synthetic scoped exercises/reviews recorded with raw limitations; actual host/owner use still required",
       "status": "in_progress"
     },
     {
@@ -72,19 +72,15 @@
   "next_actions": [
     {
       "text": "Verify exact-head draft PR #652 CI",
-      "done_when": "All required checks pass for the pushed head; no merge/release"
+      "done_when": "All required checks pass at pushed head; draft remains unmerged"
     },
     {
-      "text": "Complete approved OW-11 vendor evaluation and OW-07 care, then ten-skill integration",
-      "done_when": "Separate bounded implementation, reviews and expanded-candidate verification pass"
+      "text": "Complete owner use, host/model and immutable public pin/install evidence",
+      "done_when": "Required actual outcomes recorded without client material"
     },
     {
-      "text": "Complete owner real-use, host/model prerequisites and actual immutable public pin/install evidence",
-      "done_when": "Approved plan evidence recorded without client material"
-    },
-    {
-      "text": "Collect EN-01/EN-02 observation verdicts October 27, then perform eligible release cut",
-      "done_when": "All readiness conditions, signed tag, staging/production verification and monitoring baseline complete"
+      "text": "Collect October 27 EN-01/EN-02 verdicts before eligible release cut",
+      "done_when": "All readiness conditions, reviewed merge, signed tag, staging/production and monitoring complete"
     }
   ],
   "pm_refs": [
@@ -363,9 +359,54 @@
       "scope": "eight-skill baseline; owner restored vendor-eval and care to planned ten-skill release, not covered by baseline validation",
       "ci": "pending exact pushed head",
       "release": "held; no tag or deployment"
+    },
+    "ten_skill_preparation": {
+      "source_commit": "a85822679ea88e9ee29a473880fcc736bceb3180",
+      "strict_gate": "8/8 PASS",
+      "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/67d880eeaae506d7d5fbff05dc342cee2babe132/da3682a429fad819876832dec8a08d78675bfcec79aa15d64d3c8eff4168663d/94a0557c-edbd-4752-ac82-c55e2d993c17.json",
+      "report": "sprints/release-2.1/rel-02/ten-skill-integration-2026-10-23.md",
+      "models": {
+        "care": {
+          "raw": "6/6 after numeric-format comparator correction",
+          "manual": "PASS for start only",
+          "frozen_files": 44
+        },
+        "vendor": {
+          "raw": "12/16 remains failed automated acceptance",
+          "independent": "semantic/native artifact accepted for minimum preparation",
+          "scores": [
+            8,
+            8,
+            8,
+            8
+          ],
+          "frozen_files": 130,
+          "pdf_pages": 1,
+          "earlier_raw": [
+            "10/16",
+            "12/16"
+          ]
+        },
+        "owner_real_use": false
+      },
+      "assembly": {
+        "pages": 97,
+        "affected_browser_passed": 4,
+        "affected_browser_skipped": 0,
+        "surfaces_passed": 7,
+        "baseline_full_suite": "150 passed / 1 skipped; before added routes"
+      },
+      "distribution": {
+        "skills": 10,
+        "archives": 11,
+        "combined_files": 205
+      },
+      "scope": "ten OW skills plus ow-tools, preparation only",
+      "ci": "pending exact pushed head",
+      "release": "held; no tag or deployment"
     }
   },
-  "record_updated_at": "2026-10-23T07:08:35.502Z",
+  "record_updated_at": "2026-10-23T08:24:45.703Z",
   "pm_deferred_actions": [
     {
       "id": "deferred-2026-09-21T19:53:16Z-7f2f",

@@ -17,7 +17,7 @@ Updated 2026-10-23. This live execution ledger is checkpoint metadata; status up
 |---|---|---|---|---|
 | OW-11 — vendor evaluation | [x] Approved design and restored scope | [x] Recovered preserved build; [x] Adapted core and P6/S2/D2/research; [x] 1,011 focused tests and contract/edge checks; [x] Frozen staged candidate; [x] independent review; [x] 2 lifecycle fixes and 788-test recheck; [x] first fresh model capture; [x] Bounded corrections and third capture independently accepted semantically (raw 12/16 retained) | Sol / medium | Scoped preparation done; combined gate remains |
 | OW-07 — care | [x] Approved design and restored scope | [x] Recovered assets/contract; [x] Drafted handoff/takeover and care lifecycle; [x] Drafted S1/P4 with T3/T4/H4 reuse; [x] Focused contract/tool/integration checks (165 + 208 + 196 tests); [x] Frozen staged candidate; [x] independent review; [x] fixes and 36 prospective cases; [x] independent recheck; [x] main model start 6/6 and manual PASS | No active worker | Scoped technical work done; combined gate remains |
-| Ten-skill release integration | [x] Scope amendment received | [x] Drafted ten-skill website introductions and routing queries; [x] Merged initial skills/catalog/edges; [x] Source integration and 11 clean archive extractions (205 combined files); [x] Affected website (97 pages, 7 surface tests, 4 browser tests); [ ] final expanded-candidate gate; [ ] added real-use evidence | Luna / low mechanical work; Sol / medium for defects | 1–2 hours plus owner real use |
+| Ten-skill release integration | [x] Scope amendment received | [x] Drafted ten-skill website introductions and routing queries; [x] Merged initial skills/catalog/edges; [x] Source integration and 11 clean archive extractions (205 combined files); [x] Affected website (97 pages, 7 surface tests, 4 browser tests); [x] All eight expanded-candidate gate checks; [ ] added real-use evidence | Luna / low mechanical work; Sol / medium for defects | 1–2 hours plus owner real use |
 | REL-01 — distribution | [x] Eight archives, manifest, source integrity, clean-folder extraction and pin machinery | [ ] Actual immutable public ow-tools pin and clean-host recognition after reviewed source landing | Luna / low | 30–60 min once eligible; currently held |
 | REL-02 — model acceptance | [x] Intake, build and research corrections verified; [x] handoff checker and PDF defects repaired | [x] Fresh handoff frozen; [x] Independent review: product view 14/14, 7.7/10; raw 11/14 limitation retained | No active worker | Done for scoped preparation |
 | WEB-02 — Work pages | [x] Eight-skill baseline assembled; [x] care/vendor introductions drafted | [x] Carry final source versions into held assembly | No active worker | Done |
@@ -29,7 +29,7 @@ Updated 2026-10-23. This live execution ledger is checkpoint metadata; status up
 | REL-02 — source integration | [x] Draft PR #652 and historical evidence preserved | [x] Required strict gate; [x] source-bound Docs/Repo evidence; [x] draft updated and pushed; [x] exact-head CI (all 4 jobs passed) | No active worker | Done for eight-skill baseline |
 | REL-02 + WEB-05 — release and deploy | [x] Release procedure and blocking conditions documented | [ ] Atomic version/site cut, current audits, signed tag, staging, production and monitoring | Sol / medium for cut; Luna / low for checks | 45–90 min after every release condition is satisfied; not before October 27 |
 
-Care and vendor preparation are independently reviewed. Vendor's third capture resolves the major output defects; its raw 12/16 checker failure remains recorded alongside scoped semantic/native acceptance. Ten-skill catalog/edge checks, eleven clean archive extractions and affected website checks pass. Remaining preparation is approximately **30–60 minutes** for the combined strict gate, source-bound evidence, draft PR update and exact-head CI, allowing for a bounded fix if a gate finds one. Public-release timing still depends on owner real use, installation evidence and October 27 verdicts.
+Care and vendor preparation are independently reviewed. Vendor's third capture resolves the major output defects; its raw 12/16 checker failure remains recorded alongside scoped semantic/native acceptance. Ten-skill catalog/edge checks, eleven clean archive extractions and affected website checks pass. All eight strict checks passed after the bounded integration fixes. Source commit is `a85822679ea88e9ee29a473880fcc736bceb3180`; Docs/Repo evidence is bound to that source. Remaining preparation is approximately **10–20 minutes** for the draft PR push and exact-head CI. Public-release timing still depends on owner real use, installation evidence and October 27 verdicts.
 
 ## Current checklist
 
@@ -39,7 +39,9 @@ Care and vendor preparation are independently reviewed. Vendor's third capture r
 - [x] Complete care independent review and main model exercise (6/6, manual PASS).
 - [x] Close vendor source review findings (8/10 each criterion; 788 tests).
 - [x] Resolve major vendor model output defects; third capture independently accepted for semantic/native output (8/8/8/8), raw 12/16 retained.
-- [ ] Integrate and verify the ten-skill candidate.
+- [x] Integrate and verify the ten-skill candidate: all eight strict checks pass.
+- [x] Commit ten-skill source and bind current-source Docs/Repo evidence.
+- [ ] Push draft PR update and verify all four exact-head CI jobs.
 
 - [x] Preserve primary checkout and original held website worktree.
 - [x] Repair and independently verify the known intake/build/research/handoff checker defects.

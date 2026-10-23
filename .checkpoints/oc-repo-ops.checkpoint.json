@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-23T07:08:35.339Z",
+  "updated_at": "2026-10-23T08:24:45.624Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-652-contract-corrections",
-  "progress_summary": "Current preparation source passes all eight strict checks. Source-bound Docs packet and scoped independent review are present; generated catalogs/bundles and references pass; all related source files are committed and metadata staged for the evidence commit. Public release stays held.",
+  "step": "pr-652-ten-skill-preparation",
+  "progress_summary": "Ten-skill source passes all eight strict checks; scoped reviews, matching archives, catalog/edge contracts and current source-bound docs are present. Draft preparation only; public release remains held.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -24,20 +24,20 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "Raw handoff grade remains 11/14; explicitly manifest-backed product-output view is 14/14",
-      "Public release remains held for owner/host/model/public-install/October 27 evidence",
-      "Held website assembly is separate and unpublished"
+      "Model raw failures and scope limitations retained in evidence report",
+      "Held website assembly is separate and unpublished",
+      "Owner/public-install/host/model/October 27 requirements remain open"
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "8d428bd1281b8ef108f355dedd272ecccabb8fd7",
+    "verified_for_sha": "a85822679ea88e9ee29a473880fcc736bceb3180",
     "last_verify": {
-      "at": "2026-10-23T07:08:34.659794+00:00",
+      "at": "2026-10-23T08:24:44.905603+00:00",
       "branch": "codex/ow-handoff-completion",
-      "base": "b29e37312a58fa55367d04e397cb4edbfd727fb3",
+      "base": "fc9521dbcc9d48bcb033e5bffeeb3a32baeff170",
       "verdict": "PASS",
       "blocking_findings": []
     },
@@ -66,6 +66,51 @@
         "report": ".checkpoints/release-2.1-assembly-verification.md"
       },
       "scope": "eight-skill baseline; owner restored vendor-eval and care to planned ten-skill release, not covered by baseline validation",
+      "ci": "pending exact pushed head",
+      "release": "held; no tag or deployment"
+    },
+    "ten_skill_preparation": {
+      "source_commit": "a85822679ea88e9ee29a473880fcc736bceb3180",
+      "strict_gate": "8/8 PASS",
+      "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/67d880eeaae506d7d5fbff05dc342cee2babe132/da3682a429fad819876832dec8a08d78675bfcec79aa15d64d3c8eff4168663d/94a0557c-edbd-4752-ac82-c55e2d993c17.json",
+      "report": "sprints/release-2.1/rel-02/ten-skill-integration-2026-10-23.md",
+      "models": {
+        "care": {
+          "raw": "6/6 after numeric-format comparator correction",
+          "manual": "PASS for start only",
+          "frozen_files": 44
+        },
+        "vendor": {
+          "raw": "12/16 remains failed automated acceptance",
+          "independent": "semantic/native artifact accepted for minimum preparation",
+          "scores": [
+            8,
+            8,
+            8,
+            8
+          ],
+          "frozen_files": 130,
+          "pdf_pages": 1,
+          "earlier_raw": [
+            "10/16",
+            "12/16"
+          ]
+        },
+        "owner_real_use": false
+      },
+      "assembly": {
+        "pages": 97,
+        "affected_browser_passed": 4,
+        "affected_browser_skipped": 0,
+        "surfaces_passed": 7,
+        "baseline_full_suite": "150 passed / 1 skipped; before added routes"
+      },
+      "distribution": {
+        "skills": 10,
+        "archives": 11,
+        "combined_files": 205
+      },
+      "scope": "ten OW skills plus ow-tools, preparation only",
       "ci": "pending exact pushed head",
       "release": "held; no tag or deployment"
     }
@@ -2633,8 +2678,33 @@
           ".checkpoints/release-2.1-plan.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-c65297035c90",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-23T08:24:45.624Z",
+      "verified_at": "2026-10-23T08:24:45.624Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-23T08:24:45.624Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c65297035c903c87a515b03817ffe0b7d9eddd16421639aaf31a658b3ae19a1f"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Draft PR #652 preparation: eight strict checks, current docs, catalog/edge/archive integrity and independent scoped reviews verified; public release conditions remain open.",
+        "evidence": [
+          "sprints/release-2.1/rel-02/ten-skill-integration-2026-10-23.md",
+          "sprints/release-2.1/rel-02/care-vendor-model-evidence-2026-10-23.md",
+          ".checkpoints/release-2.1-assembly-verification.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-23T07:08:35.339Z",
+  "record_updated_at": "2026-10-23T08:24:45.624Z",
   "blockers": []
 }
