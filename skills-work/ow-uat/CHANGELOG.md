@@ -2,6 +2,13 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump (OW-04 ruling O9) and are listed here as data edits.
 
+## Unreleased: signing-step and punch-list schema clarification
+
+Reference change; the per-skill version must be bumped before release.
+
+- Publish the required `{ step, rec, date }` mappings for all five signing steps, their exact order, and how a status or file cites the same event's `rec`. Scalar step lists and invented suffixed record keys are not supported; resume and signoff-last behavior are unchanged.
+- Show the literal `UAT-nn` punch-list table header and reject header aliases. Item identifiers, statuses and signed-list membership rules are unchanged.
+
 ## Unreleased: data edits from OW-06 (ow-handoff 1.0.0)
 
 No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed:

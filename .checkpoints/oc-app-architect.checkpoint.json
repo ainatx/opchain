@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-10-20T04:13:44.237Z",
+  "updated_at": "2026-10-22T21:56:35.422Z",
   "phase": "build",
-  "step": "release-2.1-orchestration",
+  "step": "release-2.1-codex-completion",
   "status": "in_progress",
-  "progress_summary": "v2.1 ow- family orchestration (Generator/Evaluator loop). Merged: OW-02 ow-build 1.0.0, OW-03 ow-tools 1.1.x, OW-08 ow-start 1.1.x, OW-04 ow-uat 1.0.0/1.0.1 + ow-tools 1.2.0 (#634,#635), scope change to ten skills (#633), OW-09 ow-research 1.0.0 + ow-build-plan 1.1.0 P5 (#636, PASS r2 7.4 under the eval cap). In flight: OW-05 ow-documentation 1.0.0 + P3 as ow-build-plan 1.2.0 (built, security review B- with 5 MEDIUM being fixed before evaluation round 1); OW-09 follow-up PR (M3, m1-m10, R3-01, permanent plants, ow-uat 1.0.2 4111 test card). Owner 2026-10-19: commit lane (one agent tests during a gate run); gate budget 600s and vitest maxWorkers 3 after the suite outgrew 300s. EN-01/EN-02 go/no-go 2026-10-27; WEB-01 held on #620.",
+  "progress_summary": "Owner transferred the active Claude workstream and confirmed real-use checks are not yet done. Eight work skills in scope; care/vendor-eval/controls/currency deferred. Distribution, dependency and grader corrections prepared, held website candidate reviewed. Model captures preserved with failures. Complete verified preparation PRs, then real-job and observation gates before final release.",
   "progress_table": [
     {
       "id": "v20-spec",
@@ -228,10 +228,9 @@
   },
   "blockers": [],
   "next_actions": [
-    "Land the gate-budget PR (timeout_ms 600000, maxWorkers 3), then the OW-09 follow-up PR",
-    "OW-05: security fixes and re-check, then evaluation rounds and landing",
-    "After OW-05 lands: OW-06 (ow-handoff) build; draft OW-10 (ow-draft) and OW-11 (ow-vendor-eval) contracts",
-    "v2.2 note: trim ow-build-plan body toward 4,100 tokens (4,353 with P5+P3)"
+    "Land reviewed OW-06 after required CI; verify shared approval grammar and close-check fixes.",
+    "Complete eight-skill distribution and work-site pages with independent validation.",
+    "Complete actual model/owner acceptance and record EN-01/EN-02 verdicts before the release cut."
   ],
   "skill_state": {
     "feature": {
@@ -668,5 +667,5 @@
       "action": "Quick-feature: v2.0 asset hotfix (favicon, fallback OG card, architecture shade) on claude/v2-asset-hotfix after v2.0.0 shipped without it"
     }
   ],
-  "record_updated_at": "2026-10-20T04:13:44.237Z"
+  "record_updated_at": "2026-10-22T21:56:35.422Z"
 }

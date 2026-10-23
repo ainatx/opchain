@@ -738,7 +738,7 @@ function checkUnpriced(key, run) {
   }
   if (cents(q.data.build_total) !== sum) p.push(`${q.rel}: build_total ${money(cents(q.data.build_total))}, but the build lines add up to ${money(sum)}`);
   if (/priced by/i.test(q.client)) p.push(`${q.rel}: a manual-price record sits outside the internal appendix`);
-  const machine = /ow-tools calc total/.test(q.internal) && /- output:/.test(q.internal);
+  const machine = /ow-tools calc total/.test(q.internal) && /^- (?:raw )?output:/m.test(q.internal);
   if (!machine && !/arithmetic not machine-checked/.test(q.text)) p.push(`${q.rel}: the total is neither tool output (command and output recorded) nor marked "arithmetic not machine-checked"`);
   return p;
 }

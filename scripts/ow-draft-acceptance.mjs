@@ -24,6 +24,7 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as yaml from "js-yaml";
 import { matter } from "./lib/frontmatter.mjs";
+import { SAID_LATER, SAID_RELAY, DOC_RELAY, DRAFT_SCOPE as SAID_SCOPE, sentencesOf, clausesOf, approvedClause as gradeApprovalClause, hedged as grammarHedged, declined as grammarDeclined } from "./lib/approval-grammar.mjs";
 import { loadCatalogs } from "./lib/catalogs.mjs";
 import { familyNameRules } from "./check-skill-contracts.mjs";
 import { PUBLISHED_TEST_CARDS } from "./ow-uat-acceptance.mjs";
@@ -916,59 +917,14 @@ export function sessionLines(said, user) {
   }
   return out;
 }
-/** A decline anywhere in what the user said: a no, a not, a wait, a refusal. */
-const SAID_NO = /\b(?:no|not|never|don't|do not|doesn't|won't|will not|haven't|hasn't|hadn't|isn't|wasn't|didn't|can't|cannot|hold(?: off)?|wait|stop|skip|cancel|refused?|declined?|reject(?:ed)?|withdr[ae]w)\b/i;
-/** Said for later, or on a condition. "until" and "from" are a permission's dates, not a condition. */
-const SAID_LATER = /\b(?:once|if|unless|later|tomorrow|next (?:week|month|time)|will|would|may|might|could|going to|soon|maybe|perhaps|pending|after I|when I)\b/i;
-/** A relay: someone else's words carried in (a note, an email, someone said). */
-const SAID_RELAY = /\b(?:says|said|asks|asked|wrote|writes|told me|tells me|note|email|message|text(?:ed)?|liked)\b/i;
 /** What may stand before the verb of the user's own approval: I, and the small words of a reply. */
 const OWN_SUBJECT = /^(?:(?:I|I'm|I've|I have|I am|have|am|also|now|please|yes|yeah|ok|okay|so|then|and|just|hereby|sure|good|fine|done reading|reading done|it|(?:happy|glad|ready|content|fine|ok|okay) to)\s*,?\s*)*$/i;
-const clauses = (t) => String(t).split(/[.;!?]+\s*|,\s+|\s+(?:and|but|then)\s+/).map((x) => x.trim()).filter(Boolean);
 const CAND_RE = (c) => new RegExp(`\\b${esc(c)}\\b`);
 
-/**
- * What is scope, not a decline (round 2 M1): "no changes", "no edits needed", "nothing to change", "no logo",
- * "no matter what". A negation outside the clause that holds the approval verb never declines it.
- */
-const SAID_SCOPE = /\bno (?:changes?|edits?|more|other|further|issues?|problems?|objections?|worries|doubts?|logo|quote|matter)\b|\bnothing (?:else|to (?:change|add|fix|do with)|more)\b|\bno need(?: (?:to|for) \w+)?\b|\bno further(?: \w+)?\b|\bnot later\b/gi;
-/**
- * A hedge, a condition or a relay over the whole line (round 3): the approval is not given, or not first-hand.
- * Separate from scope negation: "no changes" never hedges; "I approve C-1 provided …" and "I heard the owner approved"
- * always do.
- */
-const HEDGE = /\b(?:provided|assuming|as long as|depending on|subject to|supposedly|apparently|allegedly|reportedly|I heard|heard that|I think|I guess|I suppose|I'm not sure|not sure|unsure|probably|maybe|perhaps|haven't decided|undecided|no,? wait|hold on|according to)\b|\?\s*(?:no|nope|not)\b|\b(?:readme|sample|note|email|file|document|doc|page|message|memo|text|drive)(?:'s)?\s+(?:\w+\s+)?(?:says?|said|states?|reads?)\b|\bsays:/i;
-const hedged = (s) => HEDGE.test(String(s).replace(SAID_SCOPE, " "));
-const declined = (s) => SAID_NO.test(String(s).replace(SAID_SCOPE, " "));
-const sentencesOf = (t) => String(t).split(/(?<=[.;!?])\s+/).map((x) => x.trim()).filter(Boolean);
-const clausesOf = (s) => String(s).replace(/[.;!?]+$/, "").split(/,\s+|\s+(?:and|but|then)\s+/).map((x) => x.trim()).filter(Boolean);
-/** A clause that makes the approval conditional, or takes it back, when it follows the approval in the same sentence. */
-const COND_START = /^(?:once|if|unless|when|after|pending|as soon as|provided|not yet|later)\b/i;
-/** A sentence that takes back the one before it. */
-const NEG_NEXT = /^(?:not really|no|nope|never mind|on second thought|actually,? no)\b/i;
-/**
- * Does any clause of the text hold the approval: `isVerb(clause)` says it carries the approval verb, the clause itself
- * has no decline (scope aside) and no condition, no later clause of its sentence makes it conditional, the next sentence
- * does not take it back, and `accept(clause, sentence, clauses, index)` holds.
- */
-function approvedClause(text, isVerb, accept = () => true) {
-  const ss = sentencesOf(text);
-  for (let i = 0; i < ss.length; i++) {
-    const cl = clausesOf(ss[i]);
-    for (let j = 0; j < cl.length; j++) {
-      const c = cl[j];
-      if (!isVerb(c) || declined(c) || SAID_LATER.test(c)) continue;
-      if (cl.slice(j + 1).some((x) => COND_START.test(x))) continue;
-      if (cl.slice(0, j).some((x) => /^(?:if|unless|provided|assuming|once|when|whenever)\b/i.test(x))) continue;
-      if (hedged(text)) continue;
-      if (cl.slice(0, j).some((x) => /^(?:wait|hold on|hold off|stop)$/i.test(x))) continue;
-      const next = ss[i + 1] ? ss[i + 1].replace(SAID_SCOPE, " ").trim() : "";
-      if (next && NEG_NEXT.test(next)) continue;
-      if (accept(c, ss[i], cl, j)) return true;
-    }
-  }
-  return false;
-}
+// The shared grammar preserves OW-10's full-answer hedge and clause-scope rules.
+const hedged = (text) => grammarHedged(text, "draft");
+const declined = (text) => grammarDeclined(text, "draft");
+const approvedClause = (text, verb, accept) => gradeApprovalClause(text, { profile: "draft", verb, accept });
 const candNames = (s) => String(s).match(/\bC-\d+\b/g) ?? [];
 
 /**
@@ -1021,7 +977,6 @@ export function sessionApproval(kind, lines, want = {}) {
     const NOUN = /\b(?:name|logo|quote|results?|person)\b/i;
     const what = { name: /\bname\b/i, quote: /\bquote\b/i, logo: /\blogo\b/i, results: /\bresults?\b/i, person: /\bperson\b|\bname (?:of|for) \w+/i }[want.what] ?? /./;
     // A document's word relayed ("the inbox email says …") is not the user's statement; a confirmed inbox file is.
-    const DOC_RELAY = /\b(?:email|note|message|inbox|file|letter|text)\b[^.;]*\b(?:says|said|states?|shows?|claims?)\b/i;
     const PERMIT = /\b(?:permits?|permitted|lets us|let us|allows?|allowed|approved|agreed|okayed|is fine with|gave (?:us )?permission)\b/i;
     const ok = own.some(({ text }) => !hedged(text) && approvedClause(text, (c) => PERMIT.test(c),
       (c, s, cl, j) => {
@@ -1254,7 +1209,8 @@ export function routeScreen(view, path) {
 function checkFolder(key, run) {
   const p = [];
   for (const f of run.written()) if (f !== "printed.md") p.push(`${f}: written by ${key.verbs}, which writes nothing`);
-  const printed = (run.printed() ?? "").split("\n").filter((l) => l.trim());
+  const screen = nextLayout(run.printed()).text;
+  const printed = screen.split("\n").filter((l) => l.trim());
   const body = printed.filter((l) => !/^Step 0\. |^Handling: /.test(l));
   const on = key.on ?? null;
   const prior = priorView(run);
@@ -1262,7 +1218,7 @@ function checkFolder(key, run) {
   if (JSON.stringify(body) !== JSON.stringify(want)) p.push(`printed.md: the ${on == null ? "/ow-draft" : "/ow-draft on"} screen is not the one the files give:\n    want: ${want.join(" / ")}\n    got:  ${body.join(" / ")}`);
   const handling = printed.some((l) => /^Handling: /.test(l));
   if (on == null && handling) p.push("printed.md: /ow-draft asks no handling question (it reads headers only)");
-  if (/^ {4}NEXT: /m.test(run.printed() ?? "") && on == null) p.push("printed.md: /ow-draft prints no NEXT block");
+  if (/^ {4}NEXT: /m.test(screen) && on == null) p.push("printed.md: /ow-draft prints no NEXT block");
   return p;
 }
 
@@ -1327,11 +1283,36 @@ export function nextTemplates(skillDir = SKILL) {
 let NEXT_T = null;
 const nextT = () => (NEXT_T ??= nextTemplates());
 export const STEP0 = /^(?:Step 0\. (?:Newest STATUS line|Awaiting): .+|Handling: .+ \(stored in [^)]+\)\.|This material is already in this environment; .+)$/;
+/** SKILL.md's indented Markdown examples render without their four-space code-block prefix.
+ * Accept exactly those two layouts: NEXT-family headings at 4/0, with their sublines at 10/6.
+ * Nothing else is stripped, and a mixed layout remains a screen error rather than being repaired. */
+function nextLayout(text) {
+  const problems = [];
+  let indent = null;
+  const lines = String(text ?? "").split("\n").map((line, i) => {
+    const heading = line.match(/^( {4})?(?:NEXT|IF IT IS NOT AVAILABLE|THEN|VOICE|QUESTIONS): /);
+    if (heading) {
+      indent = heading[1] ? 4 : 0;
+      return indent === 0 ? `    ${line}` : line;
+    }
+    const subline = line.match(/^([ \t]+)\S/);
+    if (indent !== null && subline) {
+      if (subline[1] !== " ".repeat(indent + 6)) {
+        problems.push(`printed.md:${i + 1}: a NEXT subline must have ${indent + 6} spaces after a heading at column ${indent}`);
+        return line;
+      }
+      return indent === 0 ? `    ${line}` : line;
+    }
+    indent = null;
+    return line;
+  });
+  return { text: lines.join("\n"), problems };
+}
 const isNextLine = (l) => /^ {4}[A-Z][A-Z ]*[A-Z]: /.test(l) || /^ {10}(?:It will read:|\[no folder attached:)/.test(l);
 /** The say lines a printed NEXT block names, in order. */
 export function printedSays(text) {
   const out = [];
-  for (const line of String(text ?? "").split("\n")) {
+  for (const line of nextLayout(text).text.split("\n")) {
     const say = line.match(/^ {4}[A-Z][A-Z ]*: say "(use [^"]+)"/);
     if (say) out.push(say[1]);
   }
@@ -1350,8 +1331,9 @@ export function selfCheckLine(text) {
 }
 /** Each printed NEXT-block line is a body template line, with its own It will read and no-folder lines (C23). */
 export function nextBlockProblems(text, { deliver = false } = {}) {
-  const p = [];
-  const lines = String(text ?? "").split("\n");
+  const layout = nextLayout(text);
+  const p = [...layout.problems];
+  const lines = layout.text.split("\n");
   const T = nextT();
   let current = null;
   lines.forEach((l, i) => {
@@ -1366,7 +1348,7 @@ export function nextBlockProblems(text, { deliver = false } = {}) {
       const fits = (x) => after.length === x.sub.length && after.every((a, k) => x.sub[k].test(a.trimEnd()));
       const t = all.find(fits) ?? all[0];
       current = { t, seen: 0, at: i };
-      if (/say "use /.test(l) && !fits(t)) {
+      if (!fits(t)) {
         if (after.length !== t.sub.length) p.push(`printed.md:${i + 1}: "${l.trim().slice(0, 60)}" is followed by ${after.length} line(s); its template has ${t.sub.length} (It will read and the no-folder line)`);
         after.forEach((a, k) => { if (t.sub[k] && !t.sub[k].test(a.trimEnd())) p.push(`printed.md:${i + 2 + k}: "${a.trim().slice(0, 70)}" is not its template's line ("It will read:" content is graded)`); });
       }
@@ -1377,7 +1359,7 @@ export function nextBlockProblems(text, { deliver = false } = {}) {
       }
       return;
     }
-    if (/^ {10}\S/.test(l) && !current) p.push(`printed.md:${i + 1}: an indented line outside a NEXT block ("${l.trim().slice(0, 60)}")`);
+    if (/^(?: {6}| {10})\S/.test(l) && !current) p.push(`printed.md:${i + 1}: an indented line outside a NEXT block ("${l.trim().slice(0, 60)}")`);
     if (!/^ {10}\S/.test(l)) current = null;
   });
   return p;
@@ -1386,7 +1368,7 @@ export function nextBlockProblems(text, { deliver = false } = {}) {
 export function closedScreenProblems(text) {
   const p = [];
   const T = templates();
-  String(text ?? "").split("\n").forEach((l, i) => {
+  nextLayout(text).text.split("\n").forEach((l, i) => {
     if (!l.trim() || STEP0.test(l) || l.startsWith(SELF_CHECK_PREFIX) || isNextLine(l)) return;
     const t = T.find((x) => x.re.test(l));
     if (!t) {
@@ -2348,7 +2330,7 @@ function checkDeliver(key, run) {
     if (dest?.key && pushes.some((x) => x.destination !== dest.key)) p.push("a push to a destination other than the brief's");
   }
   // The say line (no connector): {files} filled with client files only.
-  const printed = run.printed() ?? "";
+  const printed = nextLayout(run.printed()).text;
   const nextLine = printed.split("\n").find((l) => /^ {4}NEXT: /.test(l) && !/say "use /.test(l));
   if (asList(entry.steps).includes("push") && nextLine) {
     const said = nextLine.replace(/^ {4}NEXT: /, "");

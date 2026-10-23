@@ -7,6 +7,7 @@ import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { DIARIZATION_MODEL, DIARIZATION_REVISION, WHISPER_MODELS } from "../plugins/ow-tools/lib/core.mjs";
 
 const ROOT = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 const PLUGIN = join(ROOT, "plugins", "ow-tools");
@@ -70,6 +71,16 @@ By verb. Every other verb, \`ow-tools doctor\` and the SessionStart hook open no
 | every other verb | Nothing | Nothing. ffmpeg is limited to the \`file\` protocol, so a recording that is really a playlist can't open a network address |
 
 The user-run setup steps that \`ow-tools doctor\` prints reach: Homebrew (packages, and the Chrome cask), huggingface.co (the Whisper model; the pyannote model with the user's token), PyPI and python-build-standalone via uv (the Python environment).
+
+## Model provenance
+
+Speaker separation uses \`${DIARIZATION_MODEL}\` at publisher revision \`${DIARIZATION_REVISION}\` for both the one-time fetch and every offline run. The readiness check looks for this revision's cached configuration; a different snapshot does not count. The transcript records the revision. The revision selects publisher content; it is not a separate local hash audit of every cached pyannote weight.
+
+Whisper weights are SHA-256 checked before every transcription (the quick readiness hook checks only availability). A mismatch returns exit 3 before ffmpeg, whisper-cli or Python starts. No mutable success-marker file can skip this check.
+
+| Whisper model | SHA-256 |
+|---|---|
+${Object.entries(WHISPER_MODELS).map(([name, model]) => `| \`${name}\` | \`${model.sha256}\` |`).join("\n")}
 
 ## Files it writes
 

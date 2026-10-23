@@ -41,8 +41,8 @@ export function sparseFile(path, bytes) {
   closeSync(fd);
 }
 
-export function cli(args, { env = {}, input, cwd } = {}) {
-  const r = spawnSync(BIN, args, {
+export function cli(args, { env = {}, input, cwd, bin = BIN } = {}) {
+  const r = spawnSync(bin, args, {
     encoding: "utf8",
     cwd,
     input,

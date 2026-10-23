@@ -3,57 +3,47 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-16T17:02:22.056Z",
+  "updated_at": "2026-10-22T23:03:37.204Z",
   "skill": "oc-release-ops",
   "phase": "plan",
-  "step": "v2.1.0-planning",
+  "step": "v2.1.0-preparation",
   "status": "in_progress",
-  "progress_summary": "v2.0.4 'Bug fixes' shipped 2026-09-27 (signed tag v2.0.4 on 91a2124; production serves 0f3410c; baseline #573/#574). v2.1.0 is in planning: one release with two themes, the ow- family and Track E (enforcement + the Jev router as an experimental preview), per sprints/release-2.1/ow-family-sprint-plan.md. The cut is ow- Sprint 6 with Track E E3 folded in.",
+  "progress_summary": "OW-06 #648 merged as 809ed373 after all four CI jobs passed. Integrated gate v4 passed seven checks and 11,102 tests but found two further fixture dependency omissions; all three fixture setups now share the correction and 45 focused tests pass. Full v5 rerun pending. Real jobs, remaining model cases, actual public installation/model setup and October 27 verdicts still hold the final release.",
   "progress_table": [
     {
-      "id": "scope",
-      "label": "v1.9 scope and compatibility",
-      "status": "complete"
+      "id": "implementation",
+      "label": "Eight-skill implementation and integration",
+      "status": "in_progress"
     },
     {
-      "id": "assurance",
-      "label": "QA, compliance, and hardening gates",
-      "status": "complete"
+      "id": "distribution",
+      "label": "Distribution, model integrity and immutable pin",
+      "status": "in_progress"
     },
     {
-      "id": "pre-merge",
-      "label": "Complete local pre-merge workflow ledger",
-      "status": "complete"
+      "id": "website",
+      "label": "Held work-family site candidate",
+      "status": "in_progress"
     },
     {
-      "id": "release-pr",
-      "label": "Release PR merged to main",
-      "status": "complete"
+      "id": "model-acceptance",
+      "label": "Actual isolated model runs",
+      "status": "failed"
     },
     {
-      "id": "signed-tag",
-      "label": "Signed immutable v1.9.0 tag",
-      "status": "complete"
+      "id": "real-use",
+      "label": "Owner real-job acceptance",
+      "status": "not_started"
     },
     {
-      "id": "registry",
-      "label": "MCP Registry v1.9.0 active and latest",
-      "status": "complete"
+      "id": "observation",
+      "label": "EN-01 and EN-02 verdicts due October 27",
+      "status": "in_progress"
     },
     {
-      "id": "staging",
-      "label": "Exact-main staging deploy and live review",
-      "status": "complete"
-    },
-    {
-      "id": "production",
-      "label": "Exact-tag production deploy and verification",
-      "status": "complete"
-    },
-    {
-      "id": "closeout",
-      "label": "Retention purge, roadmap, monitoring baseline, and release sign-off",
-      "status": "complete"
+      "id": "cut",
+      "label": "Signed release and production verification",
+      "status": "not_started"
     }
   ],
   "context_primer": {
@@ -81,12 +71,20 @@
   "blockers": [],
   "next_actions": [
     {
-      "text": "At the cut (ow- Sprint 6 + Track E E3): /oc-release plan for 2.1.0 with the owner naming the combined theme; one changelog entry covering both themes, the router under its own Experimental heading.",
-      "done_when": "plan-approved checkpoint written for 2.1.0"
+      "text": "Complete verified preparation PRs and preserve the failed model-run evidence",
+      "done_when": "reviewed preparation changes have passing candidate and CI evidence"
     },
     {
-      "text": "Flush the deferred Linear release tickets with /oc-release announce --retry-pm once the Linear connector is authorized.",
-      "done_when": "pm_deferred_actions[] empty"
+      "text": "Complete model acceptance corrections and owner real-use checks for all eight skills",
+      "done_when": "actual model and real-job outcomes recorded without client material"
+    },
+    {
+      "text": "Collect EN-01/EN-02 verdicts after their observation windows and finish the public ow-tools pin/install proof",
+      "done_when": "release readiness evidence satisfies the approved plan"
+    },
+    {
+      "text": "Cut, sign, deploy and verify v2.1.0 after readiness",
+      "done_when": "signed immutable tag, verified staging and production, refreshed baseline"
     }
   ],
   "pm_refs": [
@@ -285,9 +283,18 @@
         "check-release-tag": "PASS 2.0.2 tagged"
       },
       "prod_health": "d4f926b"
+    },
+    "fresh_retry3": {
+      "archive": "scratch/rel02-retry-3-2026-10-22.zip",
+      "sha256": "0ccea3c69f639bb4204b37a89998ff622b9137f60a535ba20bd3f458a768f846",
+      "intake": "7/11",
+      "build": "7/9",
+      "research": "19/22",
+      "handoff": "Refused: missing executable suite; package acceptance unmet",
+      "real_use": false
     }
   },
-  "record_updated_at": "2026-09-21T19:53:16.550Z",
+  "record_updated_at": "2026-10-22T23:03:37.204Z",
   "pm_deferred_actions": [
     {
       "id": "deferred-2026-09-21T19:53:16Z-7f2f",

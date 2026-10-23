@@ -38,9 +38,19 @@ describe("ow-tools plugin shape", SPAWN, () => {
     expect(m.plugins[0]).toMatchObject({
       name: "ow-tools",
       version: plugin.version,
-      source: { source: "git-subdir", url: "https://github.com/asfbay-bit/opchain-skills.git", path: "plugins/ow-tools", ref: "main" },
+      source: { source: "git-subdir", url: "https://github.com/asfbay-bit/opchain-skills.git", path: "plugins/ow-tools" },
     });
-    expect(m.plugins[0].source.sha).toBeUndefined(); // the mirror force-pushes each sync
+    const record = join(ROOT, "ow-tools-release.json");
+    if (existsSync(record)) {
+      expect(m.plugins[0].source.ref).toBe(`ow-tools-v${plugin.version}`);
+      expect(m.plugins[0].source.sha).toMatch(/^[0-9a-f]{40}$/);
+      expect(m.plugins[0].source).toEqual(JSON.parse(readFileSync(record, "utf8")).source);
+    } else {
+      // The source may land before the immutable mirror snapshot exists. The
+      // 2.1 release-surface gate refuses this unpinned state at the cut.
+      expect(m.plugins[0].source.ref).toBe("main");
+      expect(m.plugins[0].source.sha).toBeUndefined();
+    }
   });
 
   it("is never listed in the dev marketplace", () => {

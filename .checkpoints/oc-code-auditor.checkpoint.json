@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-10-16T19:35:38.382Z",
-  "phase": "audit",
-  "step": "pre-deploy-main-e00f9623",
-  "status": "complete",
-  "progress_summary": "Pre-deploy audit 2026-10-16 for main e00f9623 (#610 merged), staging deploy: PASS, 0 CRITICAL / 0 HIGH / 1 MEDIUM / 3 LOW, carried from the full delta audit of 97cba5d (pre-deploy-staging-preview-97cba5d); the only non-checkpoint change since is sprints/release-2.1/ow-family-sprint-plan.md (#606, not built or deployed). M-1 (unreleased skills/ content still labelled 2.0.4) blocks a production promotion without a version bump.",
+  "updated_at": "2026-10-22T23:03:37.293Z",
+  "phase": "build",
+  "step": "release-2.1-preparation-review",
+  "status": "in_progress",
+  "progress_summary": "Scoped source reviews are complete. Candidate v4 passed seven strict checks and 11,102 tests; two isolated release-fixture imports failed. The complete fixture correction passes 45 tests across the release group plus plugin version suite with security assertions unchanged. Full candidate v5 rerun follows; no final release or deployment acceptance is claimed.",
   "blockers": [],
   "next_actions": [
     "Add CODEOWNERS (or required review) on .github/workflows/ and .opchain/ before relying on the evidence:pr template in consumer repos"
@@ -662,7 +662,7 @@
     "blocking_findings": 0,
     "target": "staging from main"
   },
-  "record_updated_at": "2026-10-16T19:35:38.382Z",
+  "record_updated_at": "2026-10-22T23:03:37.293Z",
   "recently_done": [
     {
       "at": "2026-09-21T13:40:12.755Z",

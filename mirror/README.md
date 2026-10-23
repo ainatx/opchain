@@ -84,6 +84,27 @@ nothing itself. See [plugins/ow-tools/README.md](./plugins/ow-tools/README.md).
 
 ---
 
+## Client-work skills (ow-)
+
+The ow- family installs separately from the development plugin. Each skill is
+text only and includes its references and a shared protocol. Start with
+[skills-work/README.md](./skills-work/README.md), which documents and checks
+copy/link installation in Claude Code, archive installation, and individual
+skill upload in claude.ai.
+
+Public download URLs below become available with the v2.1.0 site release.
+Until then, use the reviewed folders in this mirror.
+
+- Complete archive: [opchain-work-skills.zip](https://opchain.dev/opchain-work-skills.zip)
+- Individual archive: [ow-start.zip](https://opchain.dev/work/ow-start.zip)
+- Versions and download hashes: [work manifest](https://opchain.dev/work/manifest.json)
+
+The optional ow-tools add-on above runs code and has separate prerequisites.
+The text-only skills do not install it. Review its security manifest again
+before updating; keep marketplace auto-update off unless that is intentional.
+
+---
+
 ## skills
 
 | skill | what it does |

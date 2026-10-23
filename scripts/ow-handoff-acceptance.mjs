@@ -38,7 +38,9 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as yaml from "js-yaml";
 import { matter } from "./lib/frontmatter.mjs";
-import { runView as uatRunView, iso } from "./ow-uat-acceptance.mjs";
+import { SAID_NO, SAID_LATER, SAID_RELAY, DOC_RELAY, HANDOFF_SCOPE as SAID_SCOPE, HANDOFF_HEDGE as HEDGE, HANDOFF_NEG_NEXT as NEG_NEXT, RELAY_VERB, sentencesOf, clausesOf, approvedClause, normalizeApproval as norm, scopeOut as grammarScopeOut, hedged as grammarHedged, laterIn as grammarLaterIn, conditionalStart, documentRelay as docRelay } from "./lib/approval-grammar.mjs";
+export { SAID_NO, SAID_LATER, SAID_RELAY, DOC_RELAY, SAID_SCOPE, HEDGE, sentencesOf, clausesOf };
+import { runView as uatRunView, iso, punchLoggedDate } from "./ow-uat-acceptance.mjs";
 import { runView as docRunView, sectionOf, sectionsOf, tableRows, docCredentialFindings, docPeopleFindings, docInternalFindings, priceIn, EVAL_IDS, SCRIPT_NAMES, NOT_IN_21 } from "./ow-documentation-acceptance.mjs";
 import { familyNameRules } from "./check-skill-contracts.mjs";
 import { OURS } from "./ow-build-acceptance.mjs";
@@ -736,10 +738,14 @@ function checkFix(key, run) {
   }
   if (want.punch) {
     const punch = run.read(`${OW}uat/${key.slug}/punch-list.md`) ?? "";
-    const items = tableRows(matter(punch).content).map((r) => ({ id: r["uat-nn"], logged: r.logged }));
+    const items = tableRows(matter(punch).content).map((r) => ({
+      id: r["uat-nn"],
+      logged: r["logged date"] !== undefined && r.logged !== undefined ? null : punchLoggedDate(r["logged date"] ?? r.logged),
+    }));
     const all = fixesOf(run, key).map((f) => { try { return md(run, f).data; } catch { return {}; } });
     for (const it of items) {
       const hits = all.filter((d) => String(d.punch) === it.id);
+      if (!it.logged) p.push(`${it.id}: punch-list logged date is missing or invalid`);
       if (hits.length !== 1) p.push(`${it.id}: logged ${hits.length} times; each punch-list item once`);
       else if (iso(hits[0].reported) !== it.logged) p.push(`${it.id}: reported is ${iso(hits[0].reported)}; the UAT-nn's logged date is ${it.logged}`);
       else if (hits[0].class !== "Fix") p.push(`${it.id}: a punch item is a covered Fix`);
@@ -1085,10 +1091,34 @@ function checkGate(key, run) {
 
 // ── close (C16) ──────────────────────────────────────────────────────────────
 const TERMINAL = /^\d{4}-\d{2}-\d{2} (?:verified|withdrawn by client|waived|reclassified|closed unconfirmed)\b/;
+const lastHistory = (text) => (sectionOf(matter(text ?? "").content, "History") ?? "").trim().split("\n").filter(Boolean).at(-1)?.replace(/^- /, "") ?? "";
+/** The recorded choice and newest installation answer; an old installed answer never overrides a newer no. */
+function closeCareState(view, key) {
+  const offer = matter(view.read(`${Hd(key)}/after-offer.md`) ?? "");
+  const answers = [];
+  for (const line of (sectionOf(offer.content, "Choices") ?? "").split("\n")) {
+    const m = line.match(/^- (\d{4}-\d{2}-\d{2}) choice: (care|hourly|none|undecided)\b.*?ow-care: (installed|not installed)\b/);
+    if (m) answers.push({ date: m[1], installed: m[3] === "installed" });
+  }
+  for (const file of view.all().filter((f) => new RegExp(`^${esc(Hd(key))}/close(?:-addendum-\\d{4}-\\d{2}-\\d{2})?\\.md$`).test(f))) {
+    const data = matter(view.read(file) ?? "").data;
+    const answer = String(data.ow_care ?? "").match(/^(installed|not installed)\b/);
+    if (answer) answers.push({ date: iso(data.closed), installed: answer[1] === "installed" });
+  }
+  answers.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  const choice = String(offer.data.choice ?? "undecided");
+  return { choice, carries: choice === "care" && answers.at(-1)?.installed === true };
+}
+/** Only covered nonterminal fixes carry; hourly work and unrelated held access still block. */
+function carriedFixes(view, key) {
+  if (!closeCareState(view, key).carries) return [];
+  return fixesOf(view, key).filter((f) => /^class: Fix$/m.test(view.read(f) ?? "") && !TERMINAL.test(lastHistory(view.read(f)))).map((f) => f.match(/FIX-\d{2,}/)[0]);
+}
 /** Every blocker close-format.md §1 names, from the files (the checker's own reading of the run's starting state). */
 export function closeBlockers(run, key, today = iso(key.today)) {
   const out = [];
   const v = { read: run.priorRead, all: run.priorAll };
+  const carried = new Set(carriedFixes(v, key));
   let d = null;
   try { d = parsed(v.read(`${Hd(key)}/dates.yaml`), "dates.yaml", "yaml"); } catch { d = null; }
   if (!d) out.push("the window dates are not recorded");
@@ -1097,12 +1127,16 @@ export function closeBlockers(run, key, today = iso(key.today)) {
   try { rows = asList(parsed(v.read(`${Hd(key)}/co-windows.yaml`), "co-windows.yaml", "yaml").rows); } catch { rows = []; }
   for (const r of rows) if (today <= iso(r.window_end)) out.push(`${r.co}'s fix period ends on ${iso(r.window_end)}`);
   for (const f of v.all().filter((x) => new RegExp(`^${esc(OW)}uat/${esc(key.slug)}/acceptance-addendum-CO-\\d{2}\\.md$`).test(x))) { const co = f.match(/CO-\d{2}/)[0]; if (!rows.some((r) => r.co === co)) out.push(`${co}'s addendum has no row in co-windows.yaml`); }
-  for (const f of v.all().filter((x) => new RegExp(`^${esc(Hd(key))}/fixes/FIX-\\d{2}\\.md$`).test(x)).sort()) {
+  for (const f of fixesOf(v, key).sort()) {
     const t = v.read(f) ?? "";
     const cls = (t.match(/^class: (.+)$/m) ?? [])[1];
     if (cls !== "Fix") continue;
-    const last = ((t.split("\n## History\n")[1] ?? "").split("\n## ")[0].trim().split("\n").filter(Boolean).at(-1) ?? "").replace(/^- /, "");
-    if (!TERMINAL.test(last)) out.push(`${f.match(/FIX-\d{2}/)[0]} is ${(last.match(/^\d{4}-\d{2}-\d{2} (open|sent|fixed)/) ?? [])[1] ?? "open"}`);
+    const last = lastHistory(t), id = f.match(/FIX-\d{2,}/)[0];
+    if (!TERMINAL.test(last) && !carried.has(id)) out.push(`${id} is ${(last.match(/^\d{4}-\d{2}-\d{2} (open|sent|fixed)/) ?? [])[1] ?? "open"}`);
+  }
+  for (const f of v.all().filter((x) => new RegExp(`^${esc(Hd(key))}/help/HELP-\\d{2,}\\.md$`).test(x)).sort()) {
+    const state = lastHistory(v.read(f)).match(/^\d{4}-\d{2}-\d{2} (go-ahead|hours recorded)\b/)?.[1];
+    if (state) out.push(`${f.match(/HELP-\d{2,}/)[0]} is at ${state}`);
   }
   const acc = v.read(`${Hd(key)}/accounts.md`);
   if (acc) {
@@ -1123,6 +1157,7 @@ export function closeBlockers(run, key, today = iso(key.today)) {
     for (const r of tableRows(sectionOf(c, "Items"))) {
       if (new RegExp(`${r.id} (?:removed|rotated|deleted)`).test(recs)) continue;
       if (r.state === "kept for care") { if (choice !== "care") out.push(`access item ${r.id} is kept for care, but the choice is ${choice || "undecided"}`); continue; }
+      if (/^held for FIX-\d{2,}$/.test(r.state) && carried.has(r.state.slice("held for ".length))) continue;
       out.push(`access item ${r.id} is ${r.state}`);
     }
   }
@@ -1156,6 +1191,21 @@ function checkClose(key, run) {
     for (const s of ["Frozen terms", "Kept access", "Carried fixes", "Waiting requests", "Operator notes", "Accounts"]) if (sectionOf(cs.content, s) == null) p.push(`care-start.md: no "${s}" section (ow-care §5.1)`);
   }
   if (!reopened && !/care/.test(String(c.data.branch)) && run.written().includes(`${Hd(key)}/care-start.md`)) p.push(`care-start.md written for the ${c.data.branch} branch`);
+  const carried = carriedFixes({ read: run.priorRead, all: run.priorAll }, key);
+  if (carried.length) {
+    if (c.data.branch !== "care-installed") p.push("covered fixes can carry only in the care-installed branch");
+    const startFile = reopened ? `${Hd(key)}/care-start-addendum-${iso(c.data.closed)}.md` : `${Hd(key)}/care-start.md`;
+    const carriedText = sectionOf(matter(run.read(startFile) ?? "").content, "Carried fixes") ?? "";
+    const accounts = matter(run.priorRead(`${Hd(key)}/access.md`) ?? "").content;
+    const records = dated(sectionOf(accounts, "Records"));
+    for (const id of carried) {
+      const lines = carriedText.split("\n").filter((line) => new RegExp(`\\b${id}\\b`).test(line));
+      if (!lines.some((line) => /\bfree\b|no (?:extra )?charge|at no (?:extra )?cost/i.test(line))) p.push(`${startFile}: ${id} is not carried free`);
+      for (const item of tableRows(sectionOf(accounts, "Items")).filter((r) => r.state === `held for ${id}` && !new RegExp(`${r.id} (?:removed|rotated|deleted)`).test(records))) {
+        if (!lines.some((line) => new RegExp(`\\b${item.id}\\b`).test(line) && line.includes(`remove when ${id} is verified`))) p.push(`${startFile}: ${item.id} held for ${id} is not carried with its removal step`);
+      }
+    }
+  }
   // A waived or unconfirmed item is shown open in the close email (design §10, unresponsive client).
   const isEmail = (f) => f.startsWith(`${Hd(key)}/export/close-email`) && f.endsWith(".txt");
   const ef = run.written().find(isEmail) ?? run.all().filter(isEmail).sort().at(-1);
@@ -1256,38 +1306,13 @@ function checkApprovals(key, run) {
 // where the skill printed a question the user answered, the question ("Asked: …"). A bare "yes" confirms exactly what
 // was asked, no more.
 //
-// The decline, condition and relay patterns and the clause logic are copied from scripts/ow-draft-acceptance.mjs
-// (OW-10): SAID_NO, SAID_LATER, SAID_RELAY and DOC_RELAY at da848a24 (round 1), and SAID_SCOPE, HEDGE, COND_START,
-// NEG_NEXT, sentencesOf, clausesOf and approvedClause as read from the uncommitted working tree of
-// claude/ow-10-ow-draft on 2026-10-22 (round 2 and 3 of that sprint). They are copied, not imported: that branch is
-// not on main. tests/ow-handoff-r1.test.js pins the round-1 sources and tests/ow-handoff-r2.test.js the rest; when
-// OW-10 lands, import them from there instead. ow-handoff's own layer on the copy: a decline is tested only in the
-// clause that holds the approval verb, the care choice leaves the ow-care clause out, and a waiver is read as a whole
-// (who waives, what, and what is excluded).
-export const SAID_NO = /\b(?:no|not|never|don't|do not|doesn't|won't|will not|haven't|hasn't|hadn't|isn't|wasn't|didn't|can't|cannot|hold(?: off)?|wait|stop|skip|cancel|refused?|declined?|reject(?:ed)?|withdr[ae]w)\b/i;
-export const SAID_LATER = /\b(?:once|if|unless|later|tomorrow|next (?:week|month|time)|will|would|may|might|could|going to|soon|maybe|perhaps|pending|after I|when I)\b/i;
-export const SAID_RELAY = /\b(?:says|said|asks|asked|wrote|writes|told me|tells me|note|email|message|text(?:ed)?|liked)\b/i;
-export const DOC_RELAY = /\b(?:email|note|message|inbox|file|letter|text)\b[^.;]*\b(?:says|said|states?|shows?|claims?)\b/i;
-/** What is scope, not a decline: "no changes", "no strings attached", "nothing else to change", "no need". A negation outside the approval verb's clause never declines it. */
-export const SAID_SCOPE = /\bno (?:changes?|edits?|more|other|further|issues?|problems?|objections?|worries|doubts?|logo|quote|matter|strings|conditions|catches|caveats|steps|extras?|additional)\b(?: attached| left| needed)?|\bnothing (?:else|to (?:change|add|fix|do with)|more)\b|\bno need(?: (?:to|for) \w+)?\b|\bnot later\b/gi;
-/** A hedge, a condition or a relay over the whole sentence: the approval is not given, or not first-hand. */
-export const HEDGE = /\b(?:provided|assuming|as long as|depending on|subject to|supposedly|apparently|allegedly|reportedly|I heard|heard that|I think|I guess|I suppose|I assume|thinks?|believes?|thought|I'm (?:not )?sure|I am (?:not )?sure|not sure|unsure|probably|presumably|likely|reckons?|seems?|looks like|should be|must have|leaning|hopefully|maybe|perhaps|haven't decided|undecided|no,? wait|hold on|according to)\b|\bstill (?:my|mine|ours|our|the builder's)\b|\?\s*(?:no|nope|not)\b|\b(?:readme|sample|note|email|file|document|doc|page|message|memo|text|drive)(?:'s)?\s+(?:\w+\s+)?(?:says?|said|states?|reads?)\b|\bsays:/i;
-const COND_START = /^(?:once|if|unless|when|after|pending|as soon as|provided|not yet|later)\b/i;
-/** A clause that makes what came before conditional. "after the re-check passed" is a past reference, "after the call" is a condition. */
-const condStart = (x) => COND_START.test(x) && !(/^after\b/i.test(x) && /\b(?:passed|was|were|had|did|ran|finished|completed|checked|went|came|confirmed|ended|closed)\b/i.test(x));
-/** A sentence that takes back the one before it: a bare "No." or "No, …" (not "no care plan after all"). */
-const NEG_NEXT = /^(?:not really|nope|never mind|on second thought|actually,? no|no(?=[,.!]|$))/i;
-export const sentencesOf = (t) => String(t).split(/(?<=[.;!?])\s+/).map((x) => x.trim()).filter(Boolean);
-export const clausesOf = (s) => String(s).replace(/[.;!?]+$/, "").split(/,\s+|\s+(?:and|but|then)\s+/).map((x) => x.trim()).filter(Boolean);
-const LATER_HO = /\b(?:I'll|we'll|they'll|it'll|she'll|he'll|should|gets?|getting|when|booked|scheduled|planned|planning|for now|this (?:afternoon|evening|week)|by (?:Monday|Tuesday|Wednesday|Thursday|Friday|the end)|on (?:Monday|Tuesday|Wednesday|Thursday|Friday))\b|\b(?:is|are|am) (?!\w+ed\b)\w+ing\b|\bgoes out\b/i;
-const DOC_HO = /\b(?:doc|document|readme|log|sheet|ticket|notes?|wiki|onboarding|handoff doc)\b[^.;]*\b(?:says|said|states?|shows?|claims?|owns?)\b|\baccording to\b|\b(?:the|a) (?:\w+ )?(?:doc|readme|log|ticket|wiki) (?:says|shows|states)\b/i;
-const RELAY_VERB = /\b(?:says|said|told me|tells me|wrote|writes|reckons|thinks|reports?|mentioned)\b/i;
+// The shared typed grammar owns clause parsing and approval guards for both OW-10 and OW-06.
+const condStart = (text) => conditionalStart(text, "handoff");
 const PARTIAL = /\b(?:only|so far|except|apart from|but not|not yet|some of|most of|partly|partially|mostly)\b/i;
 const ROLES = /\b(?:operations manager|order coordinator|bookkeeper|shop manager|office manager|accountant|director)\b/gi;
 const IDS = /\b(?:TR|AX|FIX|HELP)-\d{2,}\b/g;
 const BARE = /^(?:yes|yeah|yep|correct|confirmed|that's right|right|ok(?:ay)?|go ahead|please do)[.!]?$/i;
 const RETRACT = /^(?:actually|wait|no\b|hold on|scratch that|cancel|on second thought|don't)/i;
-const norm = (t) => String(t ?? "").replace(/[‘’]/g, "'");
 const idsIn = (t) => norm(t).match(IDS) ?? [];
 /** A line's speaker, when it is not the user: the printed question, the skill, or a named other party. Any other "text:" is part of the user's line. */
 const OTHER_SPEAKER = /^(?:Asked|Assistant|Claude|Skill|System|Client|The client|Email|From|To|Subject)(?: \([^)]*\))?:\s/i;
@@ -1328,46 +1353,10 @@ function namesItem(t, want) {
   if (want.id && new RegExp(`\\b${want.id}\\b`).test(kept)) return true;
   return asList(want.names).some((n) => n && nameRx(n).test(kept) && !(want.id && ids.some((x) => x.startsWith(want.id.slice(0, 3)) && x !== want.id)));
 }
-const scopeOut = (s, drop = []) => {
-  let t = norm(s).replace(SAID_SCOPE, " ");
-  if (drop.length) t = t.replace(new RegExp(`\\(?\\bnot (?:the )?(?:${drop.map(esc).join("|")})\\b(?: tier| care| help| plan)?\\)?`, "gi"), " ");
-  return t;
-};
-const hedged = (s) => HEDGE.test(scopeOut(s));
-const laterIn = (s) => SAID_LATER.test(s) || LATER_HO.test(s);
-const docRelay = (s, mode) => DOC_HO.test(s) || (DOC_RELAY.test(s) && !(mode === "go-ahead-email" && /\b(?:client|their|they|operations manager|order coordinator|bookkeeper|shop manager)'?s?\s+email\b/i.test(s)));
-
-/**
- * Does any clause of the text hold the approval? `isVerb(clause)` says it carries the approval verb; the clause itself
- * has no decline (scope aside, `allowNo` when a "no" is the content), no condition or "later", the sentence does not
- * hedge or read a document out, nothing before or after makes it conditional, the next sentence does not take it
- * back, no relay breaks the rule of `opt.relay`, and `accept(clause, sentence, clauses, index)` holds. `why` hears
- * every reason a clause was turned down.
- */
-function approved(text, isVerb, accept, why, { allowNo = false, drop = [], relay = "client", clientWords = /\bclient\b/i } = {}) {
-  const ss = sentencesOf(text);
-  for (let i = 0; i < ss.length; i++) {
-    const cl = clausesOf(ss[i]);
-    for (let j = 0; j < cl.length; j++) {
-      const c = cl[j];
-      if (!isVerb(c)) continue;
-      if (!allowNo && SAID_NO.test(scopeOut(c, drop))) { why("declines or says no"); continue; }
-      if (laterIn(scopeOut(c, drop))) { why("says it for later or on a condition"); continue; }
-      if (cl.slice(j + 1).some(condStart) || cl.slice(0, j).some((x) => /^(?:if|unless|provided|assuming|once|when|whenever|after)\b/i.test(x) && condStart(x))) { why("says it for later or on a condition"); continue; }
-      if (cl.slice(0, j).some((x) => /^(?:wait|hold on|hold off|stop)$/i.test(x)) || (!allowNo && j > 0 && /^(?:no|nope)$/i.test(cl[0]))) { why("declines or says no"); continue; }
-      if (hedged(allowNo ? ss[i].replace(/\b(?:haven't|hasn't|has not|have not) (?:yet )?decided\b|\bundecided\b/gi, " ") : ss[i])) { why("hedges"); continue; }
-      const next = ss[i + 1] ? scopeOut(ss[i + 1]).trim() : "";
-      // (a "No, ow-care is not installed." answers the ow-care question; it takes nothing back)
-      if (next && NEG_NEXT.test(next) && !/\bow-care\b/i.test(next)) { why("declines or says no"); continue; }
-      if (docRelay(ss[i], relay)) { why("reads a document out as the approval"); continue; }
-      let bad = null;
-      for (const x of cl) { const m = x.match(RELAY_VERB); if (!m) continue; if (relay === "none") bad = "relays someone else's words"; else if (!clientWords.test(x.slice(0, m.index))) bad = "relays a third party's words"; }
-      if (bad) { why(bad); continue; }
-      if (accept(c, ss[i], cl, j)) return true;
-    }
-  }
-  return false;
-}
+const scopeOut = (text, drop = []) => grammarScopeOut(text, "handoff", drop);
+const hedged = (text) => grammarHedged(text, "handoff");
+const laterIn = (text) => grammarLaterIn(text, "handoff");
+const approved = (text, verb, accept, report, options = {}) => approvedClause(text, { profile: "handoff", verb, accept, report, ...options });
 const CONTENT = {
   transfer: (w) => (w.state === "done" ? /\b(?:done|transferred|moved|completed|accepted|in (?:their|the client's) name)\b/i : /\bown(?:er|s|ed|ership)\b|\badmin\b|\b(?:done|transferred)\b/i),
   check: () => /\bown(?:er|s|ed)\b/i,

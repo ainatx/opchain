@@ -1699,7 +1699,7 @@ function checkDocuments(key, run) {
       if (sectionOf(c, "Open items") == null) p.push(`${f}: no "## Open items"`);
       const tasks = sectionsOf(c).filter((s) => !/^(?:What changed for you|Open items)$/.test(s.title));
       for (const s of tasks) {
-        if (!/^When you'd do it: .+\[.+\]\s*$/m.test(s.body)) p.push(`${f}: "${s.title}" has no "When you'd do it:" line with its source`);
+        if (!/^When you['’]d do it: .+\[.+\]\s*$/m.test(s.body)) p.push(`${f}: "${s.title}" has no "When you'd do it:" line with its source`);
         if (!/^What you should see: .+\[.+\]\s*$/m.test(s.body)) p.push(`${f}: "${s.title}" has no "What you should see:" line with its source`);
         if (!/^If it goes wrong: .+\[.+\]\s*$/m.test(s.body)) p.push(`${f}: "${s.title}" has no "If it goes wrong:" line with its source`);
         const st = numberedSteps(s.body);
@@ -1809,6 +1809,20 @@ export function citationProblem(cite, ctx) {
   if ((m = c.match(/^map\/roles\.md (.+)$/))) return ctx.mapRoles.includes(m[1]) || ctx.roles.includes(m[1]) ? null : `map/roles.md has no row for ${m[1]}`;
   if ((m = c.match(/^(?:user-stated|user-confirmed) (\d{4}-\d{2}-\d{2})$/))) return null;
   if ((m = c.match(/^(quick-scope\.md|scope\.md)(?: .+)?$/))) return ctx.view.exists(`${P(ctx.key)}/${m[1]}`) ? null : `${m[1]} was not read`;
+  // phase-write §2 reads this workstream's frozen docs.yaml, not a namesake in the repository.
+  if (/^docs\.yaml(?:$|[: ])/.test(c)) {
+    const file = `${D(ctx.key)}/docs.yaml`;
+    if (!ctx.view.exists(file)) return "docs.yaml was not read for this workstream";
+    m = c.match(/^docs\.yaml(?:[: ]+([A-Za-z_][\w-]*(?:\.[A-Za-z_][\w-]*)*))?$/);
+    if (!m) return `"${c}" is not a docs.yaml field citation`;
+    let value;
+    try { value = yml(ctx.view, file); } catch (e) { return reason(e); }
+    for (const field of m[1]?.split(".") ?? []) {
+      if (!value || typeof value !== "object" || !Object.hasOwn(value, field)) return `docs.yaml has no field ${m[1]}`;
+      value = value[field];
+    }
+    return null;
+  }
   if ((m = c.match(/^([\w./-]+)(?:[: ].*)?$/)) && /[./]/.test(m[1])) return ctx.repoFiles.includes(m[1]) || ctx.repoFiles.some((x) => x.startsWith(`${m[1].replace(/\/$/, "")}/`)) ? null : `${m[1]} is not in the client's repository`;
   return `"${c}" is not a source this skill cites`;
 }
@@ -2533,6 +2547,20 @@ function clientTexts(run, key) {
   }
   return out;
 }
+// self-checks §2 forbids disclosures, not a value-free checklist of the categories absent.
+// Only a complete No internal numbers result is exempt: no figures, exceptions or extra clauses.
+const INTERNAL_ABSENCE_CATEGORY = "(?:internal\\s+)?(?:hours|effort|rates?|unit\\s+prices?|costs?|margins?|documentation\\s+price|price-book\\s+internals|overruns?)";
+const INTERNAL_ABSENCE_LIST = new RegExp(`^OK:\\s+no\\s+${INTERNAL_ABSENCE_CATEGORY}(?:\\s*(?:,\\s*(?:(?:and|or)\\s+)?|\\s+(?:and|or)\\s+)${INTERNAL_ABSENCE_CATEGORY})+\\.?$`, "i");
+function internalCheckRowFindings(line, ctx) {
+  const cells = line.trim().split("|").slice(1, -1).map((x) => x.trim());
+  const checkResult = cells.length === 2 && cells[0] === "No internal numbers" ? cells[1] : null;
+  if (checkResult && INTERNAL_ABSENCE_LIST.test(checkResult)) return [];
+  const findings = docInternalFindings(line.replace(/\|/g, ". "), ctx);
+  // An exception with a cost amount is still a disclosure, even without an explicit "our".
+  const exception = checkResult?.match(/^OK:\s+no\s+(?:internal\s+)?costs?\s+except\s+(?:(?:USD|EUR|GBP|[$€£])\s?\d[\d,.]*|\d[\d,.]*\s+(?:dollars?|euros?|pounds?))/i);
+  if (exception && !findings.some(([what]) => what === "our cost or margin")) findings.push(["our cost or margin", exception[0]]);
+  return findings;
+}
 function checkInternalNumbers(key, run) {
   const p = [];
   const ctx = meaningCtx(run, key);
@@ -2548,7 +2576,7 @@ function checkInternalNumbers(key, run) {
     let internalPart = "";
     try { internalPart = internalSplit(md(run, f).content).internal ?? ""; } catch { internalPart = ""; }
     for (const s of sentences(proseOf(internalPart.replace(/^\|.*\|\s*$/gm, "")))) for (const [what, hit] of docInternalFindings(s, ctx)) p.push(`${f}: its internal section carries ${what} ("${hit}" in "${s.slice(0, 70)}")`);
-    for (const line of internalPart.split("\n").filter((l) => /^\s*\|/.test(l))) for (const [what, hit] of docInternalFindings(line.replace(/\|/g, ". "), ctx)) p.push(`${f}: a row of its internal section carries ${what} ("${hit}")`);
+    for (const line of internalPart.split("\n").filter((l) => /^\s*\|/.test(l))) for (const [what, hit] of internalCheckRowFindings(line, ctx)) p.push(`${f}: a row of its internal section carries ${what} ("${hit}")`);
   }
   // The rollout plan's client part (rollout.yaml's text values) and plan.md's Groups and Delivery, which the client
   // sees as the schedule (round 1 m7). The calc records are ow-tools' output, not prose.

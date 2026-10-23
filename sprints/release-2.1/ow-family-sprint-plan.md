@@ -1,6 +1,6 @@
 # v2.1.0 sprint plan — the ow- family
 
-**Date:** 2026-10-14 · **Skill:** oc-app-architect `/oc-roadmap`, coordinated by oc-orchestrator · **Status:** APPROVED by the owner 2026-10-14. Amendment 2026-10-16 (Track E, enforcement and the skill router) APPROVED by the owner 2026-10-16. **Scope change 2026-10-16 (owner): every skill is released in v2.1.0. The release covers the full client lifecycle (adding `ow-documentation` and `ow-care`) plus `ow-draft`, `ow-research`, `ow-vendor-eval`, `ow-controls` with framework packs, `ow-currency`, and ow-start's meeting and decision logs. Order: design all the remaining skills first, then build them** (§ Scope change below). **Every design approved 2026-10-16; build re-plan approved the same day (§ Build re-plan): two lanes, Sprint T and Sprint 2 start in parallel.** Sprints renamed 2026-10-17 (§ Sprint names); old names stay in parentheses. **Scope change 2026-10-19 (owner): OW-12 (ow-controls, framework packs, `ow-packs`) and OW-13 (ow-currency) move to v2.2; 2.1.0 ships ten ow- skills** (§ Scope and process change, 2026-10-19). **Scope change 2026-10-22 (owner): OW-11 (ow-vendor-eval) moves to v2.2 as well; 2.1.0 ships nine ow- skills** (§ Scope and process change, 2026-10-22).
+**Date:** 2026-10-14 · **Skill:** oc-app-architect `/oc-roadmap`, coordinated by oc-orchestrator · **Status:** APPROVED by the owner 2026-10-14. Amendment 2026-10-16 (Track E, enforcement and the skill router) APPROVED by the owner 2026-10-16. **Scope change 2026-10-16 (owner): every skill is released in v2.1.0. The release covers the full client lifecycle (adding `ow-documentation` and `ow-care`) plus `ow-draft`, `ow-research`, `ow-vendor-eval`, `ow-controls` with framework packs, `ow-currency`, and ow-start's meeting and decision logs. Order: design all the remaining skills first, then build them** (§ Scope change below). **Every design approved 2026-10-16; build re-plan approved the same day (§ Build re-plan): two lanes, Sprint T and Sprint 2 start in parallel.** Sprints renamed 2026-10-17 (§ Sprint names); old names stay in parentheses. **Scope change 2026-10-19 (owner): OW-12 (ow-controls, framework packs, `ow-packs`) and OW-13 (ow-currency) move to v2.2; 2.1.0 ships ten ow- skills** (§ Scope and process change, 2026-10-19). **Scope change 2026-10-22 (owner): OW-11 (ow-vendor-eval) and OW-07 (ow-care) move to v2.2 as well; 2.1.0 ships eight ow- skills** (§ Scope and process change, 2026-10-22).
 **Replaces:** `sprints/release-2.1/sprint-plan.md` ("Installs anywhere"), superseded 2026-10-06; its work moves to v2.2.
 **Designs (all approved):** ow-start (2026-10-06), ow-build-plan (2026-10-08, amendments 2026-10-14), ow-build (2026-10-08, §12 builder integration and amendments 2026-10-14), ow-uat (2026-10-14), ow-handoff (2026-10-14), ow-tools (2026-10-09). All under `docs/plans/`.
 **Audits that feed this plan:** `docs/audits/2026-09-18-ow-pack-design-audit.md` (cross-talk contract R1–R16, authoring standard), and the 2026-10-14 diff audits of #596 and #597 plus the ow-tools security posture report.
@@ -24,13 +24,13 @@ Every sprint is named **workstream prefix + two-digit number**, and the number i
 | OW-01 | Sprint 1 | A | ow-build-plan 1.0.0 | done (#605, #609) |
 | OW-02 | Sprint 2 | A | ow-build 1.0.0 | done (#616, #618) |
 | OW-03 | Sprint T | — | ow-tools 1.1.0 | done (#623, follow-up #625 → 1.1.1) |
-| OW-04 | Sprint 3 | A | ow-uat 1.0.0 | passed round 3 (7.8); landing |
-| OW-05 | Sprint 3b | A | ow-documentation 1.0.0 | not started |
-| OW-06 | Sprint 4 | A | ow-handoff 1.0.0 | not started |
-| OW-07 | Sprint 4b | A | ow-care 1.0.0 | not started |
+| OW-04 | Sprint 3 | A | ow-uat 1.0.0 | done (#634, #635, #639) |
+| OW-05 | Sprint 3b | A | ow-documentation 1.0.0 | done (#642, #644 → 1.0.1) |
+| OW-06 | Sprint 4 | A | ow-handoff 1.0.0 | scanner done (#643); skill #648 in final CI |
+| OW-07 | Sprint 4b | A | ow-care 1.0.0 | **moved to v2.2** (owner, 2026-10-22) |
 | OW-08 | Sprint L | B | ow-start 1.1.0 logs | done (#624, follow-up #626 → 1.1.1; ow-tools 1.1.2 hook) |
-| OW-09 | Sprint R | B | ow-research 1.0.0 | built; security fixes before evaluation |
-| OW-10 | Sprint D | B | ow-draft 1.0.0 | not started |
+| OW-09 | Sprint R | B | ow-research 1.0.0 | done (#636, #639, #646 → 1.0.2) |
+| OW-10 | Sprint D | B | ow-draft 1.0.0 | done (#647) |
 | OW-11 | Sprint V | B | ow-vendor-eval 1.0.0 | **moved to v2.2** (owner, 2026-10-22) |
 | OW-12 | Sprint C | B | ow-controls 1.0.0, four packs, `ow-packs` plugin | **moved to v2.2** (owner, 2026-10-19) |
 | OW-13 | Sprint Cu | B | ow-currency 1.0.0 | **moved to v2.2** (owner, 2026-10-19) |
@@ -58,7 +58,9 @@ Every sprint is named **workstream prefix + two-digit number**, and the number i
 
 ## Scope and process change (owner, 2026-10-22)
 
-**Scope.** OW-11 (ow-vendor-eval 1.0.0) moves to v2.2, with the amendments that were to land with it: P6 (ow-build-plan's vendor selection) and S2 (ow-start's `quote: vendor-eval`). Its design stays approved and waits for 2.2. The release now ships nine ow- skills: ow-start, ow-build-plan, ow-build, ow-uat, ow-documentation, ow-handoff, ow-research, ow-care and ow-draft, plus the ow-tools add-on. ow-research 1.0.2 handles its hand-off as ow-currency's was handled on 2026-10-19: the screen prints only the absent-case line (`NEXT: none`), with no NEXT line, no `say:` hand-off row and no declared verb until ow-vendor-eval ships. Track S's `/work` section covers the nine 2.1 skills. OW-11's finished build is kept as a patch outside the repository for v2.2.
+**Scope.** OW-11 (ow-vendor-eval 1.0.0) moves to v2.2, with the amendments that were to land with it: P6 (ow-build-plan's vendor selection) and S2 (ow-start's `quote: vendor-eval`). Its design stays approved and waits for 2.2. The release now ships eight ow- skills: ow-start, ow-build-plan, ow-build, ow-uat, ow-documentation, ow-handoff, ow-research and ow-draft, plus the ow-tools add-on. ow-research 1.0.2 handles its hand-off as ow-currency's was handled on 2026-10-19: the screen prints only the absent-case line (`NEXT: none`), with no NEXT line, no `say:` hand-off row and no declared verb until ow-vendor-eval ships. Track S's `/work` section covers the eight 2.1 skills. OW-11's finished build is kept as a patch outside the repository for v2.2.
+
+**Later owner decision, 2026-10-22:** OW-07 (ow-care) also moves to v2.2, including S1 (care-takeover intake) and P4 (care onboarding quote). The existing H4 handoff record and not-installed branch stay: no care skill is offered as installed, and no future care commitment is inferred. Its approved design remains for v2.2. After OW-06 lands, complete the shared typed approval grammar used by ow-draft and ow-handoff, re-evaluate it, and run REL-01 alongside the eight-skill documentation correction. REL-02 real-job evidence and EN-01/EN-02 measurement verdicts remain release conditions. The observation windows started October 19; their recorded verdicts are due October 27.
 
 ## Where we start (2026-10-14)
 
@@ -110,7 +112,7 @@ Design order: `ow-documentation`, `ow-care`, the ow-start logs amendment, `ow-dr
 | OW-04 (3) | A | **ow-uat 1.0.0** (+ `calc --calendar us-federal`) | — | OW-02 | 17–22h | 5.5–7h | 1–2h |
 | OW-05 (3b) | A | **ow-documentation 1.0.0** | P3 (ow-build-plan 1.1.0) | OW-04, OW-03 | 16–22h | 5–6h | 1–2h |
 | OW-06 (4) | A | **ow-handoff 1.0.0** (+ `scan-secrets` redacted) | H3, H4 | OW-05 | 16–22h | 5.5–6.5h | 1h |
-| OW-07 (4b) | A | **ow-care 1.0.0** (both ways in) | S1 (ow-start 1.2.0 or later), P4 (ow-build-plan 1.1.0) | OW-06, OW-03 | 18–24h | 5.5–6.5h | 1–2h |
+| OW-07 (4b) | A | **Moved to v2.2 (owner, 2026-10-22).** ow-care 1.0.0 (both ways in) | S1 (ow-start 1.2.0 or later), P4 (ow-build-plan 1.1.0) | OW-06, OW-03 | 18–24h | 5.5–6.5h | 1–2h |
 | OW-08 (L) | B | **ow-start 1.1.0 logs** | H5 if ow-handoff is merged, else with OW-06 | OW-00 | 8–12h | 3–3.5h | 1h |
 | OW-09 (R) | B | **ow-research 1.0.0** | P5 | OW-03 (digest) | 10–14h | 3.5–4.5h | 1h |
 | OW-10 (D) | B | **ow-draft 1.0.0** | D1, D2 (already in its design) | OW-09, OW-03 | 16–22h | 5–6h | 1–2h |
@@ -247,7 +249,7 @@ A synthetic handoff runs from a UAT sign-off to close, including a reopened clos
 ### Dependencies
 Sprint 3. **Effort:** CLAUDE 12–16h | USER 1h.
 
-## OW-07 (Sprint 4b): ow-care 1.0.0 (added 2026-10-16)
+## OW-07 (Sprint 4b): ow-care 1.0.0 (moved to v2.2, 2026-10-22)
 
 Design APPROVED 2026-10-16 (`docs/plans/2026-10-16-ow-care-design.md`). Two ways in: `care-start.md` from ow-handoff, or a takeover through a fixed-fee onboarding review (ow-start S1, ow-build-plan P4). Runs months from the start date, hours recorded per request with the site's rollover rule, extra hours only on a go-ahead, reply targets, a monthly health check (`ow-tools health`, T3) and report, tier and terms changes, notice and end with access removal.
 
@@ -266,7 +268,7 @@ Sprint 4; ow-tools T3 and T4 land with it; the S1, P4 and H4 amendments land in 
 - Install from a clean folder; the zip refuses a planted catalog failure; the marketplace manifest test asserts a pinned commit.
 
 ### Definition of done
-A fresh user can install the five ow- skills and ow-tools from the public repo by following the README only, and every documented verify step works.
+A fresh user can install the eight included ow- skills and ow-tools from the public repo by following the README only, and every documented verify step works.
 
 ### Dependencies
 Sprints 1–4 for content; the #596 audit follow-ups from Sprint 0. **Effort:** CLAUDE 8–10h | USER 2h (public repo settings, signed tag).
@@ -275,7 +277,7 @@ Sprints 1–4 for content; the #596 audit follow-ups from Sprint 0. **Effort:** 
 
 ### Deliverables
 - A real-model acceptance run of each skill's main fixture, checked by its script, recorded in `docs/audits/`.
-- Owner's real use: three intake calls (ow-start), one Build Plan, one build, one UAT, one handoff. Client material never enters the repo; only a one-line outcome per run is recorded.
+- Owner's real use: three intake calls (ow-start), and at least one real job for each of ow-build-plan, ow-build, ow-uat, ow-documentation, ow-handoff, ow-research and ow-draft. Client material never enters the repo; only a one-line outcome per run is recorded.
 - The transcription speed spike completed (pyannote measured), result in ow-tools design §10.
 - Release: changelog entry listing each skill's version, site surfaces, signed tag `v2.1.0`, staging, owner review, production.
 
@@ -395,6 +397,7 @@ E0–E2 and Sprint 6. **Effort:** CLAUDE 2–3h | USER 0–1h.
 
 - ~~`ow-care` and `ow-documentation`~~: moved into v2.1.0 on 2026-10-16 (Sprints 3b and 4b). Their absent-case branches in ow-handoff and ow-uat stay, for installs without them.
 - ~~Meeting and decision logs, ow-research, ow-controls, framework packs~~: back in v2.1.0 on 2026-10-16 (owner scope change), with ow-draft, ow-vendor-eval and ow-currency.
+- **Moved to v2.2 on 2026-10-22 (owner):** `ow-care` (OW-07), with S1 and P4. The H4 record and the absent-case path already implemented by ow-handoff remain; no care skill ships in 2.1.
 - **Moved to v2.2 on 2026-10-22 (owner):** `ow-vendor-eval` (OW-11), with the amendments P6 and S2. ow-research prints no hand-off to it (1.0.2): an answered topic that serves a vendor evaluation ends in `NEXT: none`. Its design stays approved (`docs/plans/2026-10-16-ow-vendor-eval-design.md`) and waits for 2.2.
 - **Moved to v2.2 on 2026-10-19 (owner):** `ow-controls`, the four framework packs and the `ow-packs` plugin (OW-12), and `ow-currency` (OW-13), with the amendments S3, P7, P8, P9, H6, C1, C2, R2 and K1. Absent-case branches cover installs without them.
 - Still out: `ow-program`; the paid framework feed (waits for did.json, key custody and a reachable hostname); licensed framework text (waits for counsel); 800-171/CMMC and GxP packs.

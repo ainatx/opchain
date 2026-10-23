@@ -56,6 +56,8 @@ export const WHISPER_MODELS = {
 };
 export const WHISPER_MODEL_URL = (file) => `https://huggingface.co/ggerganov/whisper.cpp/resolve/main/${file}`;
 export const DIARIZATION_MODEL = "pyannote/speaker-diarization-community-1";
+// Verified from the model publisher's public Hugging Face metadata, 2026-10-22.
+export const DIARIZATION_REVISION = "3533c8cf8e369892e6b79ff1bf80f7b0286a54ee";
 export const KEYCHAIN_SERVICE = "ow-tools-huggingface";
 
 export const modelPath = (name, env) => join(dataHome(env), "models", WHISPER_MODELS[name].file);
@@ -63,7 +65,7 @@ export const hfHome = (env) => join(dataHome(env), "hf");
 export const lockHash = () => sha256File(join(PY_PROJECT, "uv.lock")).slice(0, 12);
 export const venvDir = (env) => join(dataHome(env), `venv-${lockHash()}`);
 export const diarizationCached = (env) =>
-  isDir(join(hfHome(env), "hub", `models--${DIARIZATION_MODEL.replace("/", "--")}`, "snapshots"));
+  isFile(join(hfHome(env), "hub", `models--${DIARIZATION_MODEL.replace("/", "--")}`, "snapshots", DIARIZATION_REVISION, "config.yaml"));
 
 export function isFile(p) {
   try {

@@ -92,15 +92,16 @@ opchain/
 │   ├── orchestrator.md     # Shared orchestration rules
 │   ├── CHANGELOG.md        # Lockstep skill-catalog release log
 │   └── README.md           # Installation instructions + full skill/phase table
-├── skills-work/            # The ow- catalog (v2.1.0 planning family: ow-start, ow-build-plan, ow-build, ow-uat, ow-documentation, ow-handoff, ow-research).
+├── skills-work/            # The eight-skill ow- family planned for v2.1.0: ow-start, ow-build-plan, ow-build, ow-uat, ow-documentation, ow-handoff, ow-research, ow-draft.
 │   │                       # Text-only, own protocol (ow-protocol.md), per-skill versions.
-│   │                       # Validated by the catalog checks but in NO build output yet
-│   │                       # (plugin, zips, docs, flags, MCP catalog, mirror). skills-work/README.md.
+│   │                       # Separate ZIP and public-mirror distribution is prepared; public 2.1 downloads remain held.
+│   │                       # Never mixed into the oc plugin, ZIP, docs, flags or MCP catalog. skills-work/README.md.
 ├── catalogs.json           # The skill catalogs (oc- in skills/, ow- in skills-work/) that
 │                           # gen-skills-catalog and check-skill-contracts iterate
 ├── scripts/                # ~20 scripts; a few examples (full list: `ls scripts/`)
 │   ├── sync-docs.sh                # skills/ → public/docs/ sync
 │   ├── make-skills-zip.sh          # skills/ → public/opchain-skills.zip
+│   ├── make-work-skills-zip.mjs    # separate Work archives and checksum manifest
 │   └── gen-skills-catalog.mjs      # validates skills/<id>/SKILL.md frontmatter at build time
 ├── mcp/                    # Local stdio MCP server (mcp/local-server.mjs) — the
 │   │                       # offline/air-gapped alternative to the hosted POST /mcp
@@ -314,15 +315,15 @@ Env-var override naming: `site.ops.api-feedback.kill` → `FLAG_SITE_OPS_API_FEE
 
 ## Public skill mirror
 
-Skill source (`skills/`) is mirrored to a public GitHub repo at `asfbay-bit/opchain-skills` for community visibility, issues, and external PRs. The site and build tooling stay private here.
+Skill source is mirrored to the public GitHub repo at `asfbay-bit/opchain-skills` for community visibility, issues, and external PRs. The site and build tooling stay private here. The development catalog remains in `skills/`; the prepared Work distribution has its own `skills-work/` tree. This preparation does not establish a published v2.1 release, durable ow-tools pin or verified host installation.
 
-- **Workflow:** `.github/workflows/mirror-public.yml`. Triggers on every push to `main` that touches `skills/`, `mirror/`, `plugins/`, `.claude-plugin/`, `LICENSE`, or the workflow itself. Manual `workflow_dispatch` is also supported.
-- **What gets mirrored:** `skills/` + `LICENSE` + `plugins/` (with `cp -RL`, so the `plugins/opchain/skills` symlink becomes a real directory in the snapshot) + `.claude-plugin/` + `mirror/README.md` → `README.md` + `mirror/CONTRIBUTING.md` → `CONTRIBUTING.md` + `mirror/SECURITY.md` → `SECURITY.md` + `mirror/.github/ISSUE_TEMPLATE/` → `.github/ISSUE_TEMPLATE/`. Nothing else — no site source, no `.checkpoints/`, no scripts, no internal docs. The plugin + marketplace files are what make `/plugin marketplace add asfbay-bit/opchain-skills` → `/plugin install opchain` work; without them the public repo is skills-only.
+- **Workflow:** `.github/workflows/mirror-public.yml`. Triggers on every push to `main` that touches `skills/`, `skills-work/`, `mirror/`, `plugins/`, `.claude-plugin/`, `LICENSE`, `NOTICE`, or the workflow itself. Manual `workflow_dispatch` is also supported. Jobs serialize and recheck mirrored source inputs before pushing; the cross-repository check and push are not atomic.
+- **What gets mirrored:** `skills/` + `skills-work/` + `LICENSE` + `NOTICE` + `plugins/` (with `cp -RL`) + `.claude-plugin/` + `mirror/README.md` → `README.md` + `mirror/CONTRIBUTING.md` → `CONTRIBUTING.md` + `mirror/SECURITY.md` → `SECURITY.md` + `mirror/.github/ISSUE_TEMPLATE/` → `.github/ISSUE_TEMPLATE/`. Nothing else — no site source, no `.checkpoints/`, no scripts, no internal docs. The plugin + marketplace files are what make `/plugin marketplace add asfbay-bit/opchain-skills` → `/plugin install opchain` work. Work skill archives stay separate, and ow-tools has its own marketplace.
 - **Mode:** force-push snapshot. The public repo's history is reset on every sync to a single commit (`Mirror from ainatx/opchain@<sha>`). External PRs against the public repo can't merge directly; maintainers cherry-pick them here, and they propagate back on the next sync. Documented in `mirror/CONTRIBUTING.md`.
 - **Required secret:** `MIRROR_TOKEN` — a fine-grained GitHub PAT with `contents:write` on `asfbay-bit/opchain-skills`. Set via repo Settings → Secrets and variables → Actions. The workflow fails loud if it's missing.
 - **Editing the public face:** all public-facing copy (README, contributing guide, issue forms) lives under `mirror/` so it's easy to find. The `LICENSE` at repo root is shared between private and public.
 
-Before the first run, create the empty public repo at `asfbay-bit/opchain-skills` on GitHub and add the `MIRROR_TOKEN` secret. The next push to `main` (or a manual `workflow_dispatch`) will populate it.
+The public mirror already exists. After an intentional sync, verify its actual commit and contents. For the durable ow-tools snapshot, marketplace pointer and clean-host verification required by v2.1, follow `docs/runbooks/ow-release-distribution.md`; a prepared helper or successful snapshot push alone is not release evidence.
 
 ## Relationship to aidops
 

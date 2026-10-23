@@ -18,6 +18,8 @@ import { readFileSync, existsSync, realpathSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { readCatalogVersion } from "./check-release-tag.mjs";
+import { listSkillIds } from "./lib/catalogs.mjs";
+import { checkOwToolsPin } from "./prepare-ow-tools-pin.mjs";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 
@@ -225,7 +227,53 @@ export function checkReleaseSurfaces({ root = ROOT } = {}) {
     }
   }
 
+  const work = checkWorkSurfaces({ root, releaseVersion });
+  results.push(...work.results);
+  errors.push(...work.errors);
+
   return { ok: errors.length === 0, expected, releaseVersion, results, errors };
+}
+
+// A planned v2.2 skill is not a missing v2.1 page. Only built skills feed
+// the dynamic route; site copy may start claiming them with the family release.
+export function checkWorkSurfaces({ root = ROOT, releaseVersion } = {}) {
+  const results = [];
+  const errors = [];
+  const p = (file) => join(root, file);
+  const present = existsSync(p("site/src/pages/work/index.astro"));
+  const [major = 0, minor = 0] = (releaseVersion ?? "0.0").split(".").map(Number);
+  const released = major > 2 || (major === 2 && minor >= 1);
+  if (!present && !released) return { results, errors };
+  if (present && !released) errors.push("/work claims the ow- family before the 2.1 release version; keep it behind the release cut");
+  const required = [
+    ["work catalog output", "catalogs.json", (text) => JSON.parse(text).catalogs.find((c) => c.id === "ow")?.outputs?.site === "site/src/pages/work"],
+    ["work collection", "site/src/content.config.ts", (text) => /skills-work/.test(text) && /work/.test(text)],
+    ["work loader", "site/src/lib/work.ts", (text) => /getCollection\(["']work["']\)/.test(text)],
+    ["work dynamic page", "site/src/pages/work/[id].astro", (text) => /getStaticPaths/.test(text) && /getWorkSkills/.test(text)],
+    ["work index", "site/src/pages/work/index.astro", (text) => /getWorkSkills/.test(text)],
+    ["work install", "site/src/pages/work/install.astro", (text) => /opchain-work-skills\.zip/.test(text)],
+  ];
+  for (const [label, file, validate] of required) {
+    try {
+      const pass = validate(readFileSync(p(file), "utf8"));
+      results.push({ label, file, pass });
+      if (!pass) errors.push(`${label} (${file}): missing ow- source or distribution binding`);
+    } catch (error) {
+      results.push({ label, file, error: "unreadable" });
+      errors.push(`${label} (${file}): unreadable (${error.message})`);
+    }
+  }
+  try {
+    const ids = listSkillIds(p("skills-work"));
+    if (!ids.length) errors.push("/work has no built skills to publish");
+    for (const id of ids) results.push({ label: `work source ${id}`, file: `skills-work/${id}/SKILL.md`, pass: true });
+  } catch (error) { errors.push(`work source catalog: unreadable (${error.message})`); }
+  if (released) {
+    const pinError = checkOwToolsPin(root);
+    for (const file of ["ow-tools-release.json", "plugins/ow-tools/.claude-plugin/plugin.json", "plugins/ow-tools/.claude-plugin/marketplace.json"]) results.push({ label: `work tools integrity ${file}`, file, pass: !pinError });
+    if (pinError) errors.push(pinError);
+  }
+  return { results, errors };
 }
 
 function semverAt(re) {

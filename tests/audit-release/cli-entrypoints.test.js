@@ -1,15 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { copyFileSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { copyReleaseGateFixture } from "./release-fixture.js";
 
 const ROOT = resolve(import.meta.dirname, "../..");
-const ENTRYPOINTS = [
-  "scripts/check-release-tag.mjs",
-  "scripts/check-release-surfaces.mjs",
-  "scripts/lib/release-evidence.mjs",
-];
 const ENV = {
   ...process.env,
   GIT_CONFIG_GLOBAL: "/dev/null",
@@ -46,9 +42,14 @@ describe.each(["checkout", "release candidate #1%"])("release CLI in %s", (name)
     const target = join(scratch, name);
     git("clone", "--quiet", "--no-local", "--no-tags", ROOT, target);
     repo = target;
-    for (const file of ENTRYPOINTS) copyFileSync(join(ROOT, file), join(repo, file));
-    // Include the current uncommitted fix without carrying unrelated edits.
-    git("add", ...ENTRYPOINTS);
+    const sources = copyReleaseGateFixture(repo, [
+      "scripts/release-sequence.mjs",
+      "scripts/check-release-surfaces.mjs",
+      "scripts/lib/release-evidence.mjs",
+      "scripts/lib/verification-receipt.cjs",
+      "src/lib/mcp/checkpoint-contract.js",
+    ]);
+    git("add", ...sources);
     git("commit", "--allow-empty", "-qm", "fixture: current release CLI gates");
     git("remote", "set-url", "origin", join(scratch, "absent-local-remote"));
     version = JSON.parse(readFileSync(join(repo, "release-seal.json"), "utf8")).catalogVersion;

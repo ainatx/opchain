@@ -105,8 +105,90 @@ Protocol v1 §5 gives `awaiting: none, or <what> by <YYYY-MM-DD>`. ow-start's lo
 - **Acceptance**: `node scripts/ow-start-acceptance.mjs` (the intake cases, and the logs cases through `scripts/ow-start-logs-acceptance.mjs`), `node scripts/ow-build-plan-acceptance.mjs`, `node scripts/ow-build-acceptance.mjs`, `node scripts/ow-uat-acceptance.mjs`, `node scripts/ow-documentation-acceptance.mjs`, `node scripts/ow-draft-acceptance.mjs` and `node scripts/ow-handoff-acceptance.mjs` check the golden runs in `tests/fixtures/ow-start/`, `tests/fixtures/ow-build-plan/`, `tests/fixtures/ow-build/`, `tests/fixtures/ow-uat/`, `tests/fixtures/ow-documentation/` and `tests/fixtures/ow-draft/`; each folder's README says how to check a real run.
 - **Acceptance (ow-research)**: `node scripts/ow-research-acceptance.mjs` checks the golden runs in `tests/fixtures/ow-research/` against a recorded, invented web (`web/pages.yaml`); its test runs it under the ow-tools network fence, so it opens no socket.
 
-## Not wired in yet, on purpose
+## Install the ow- skills
 
-The ow- catalog is in none of the oc- build outputs. `catalogs.json` gives it `outputs: null` for the dev plugin (`plugins/opchain/skills`), the public zips, `public/docs`, the flag registry, the hosted MCP catalog and the public mirror. The scripts that write those outputs (`sync-plugin-skills`, `sync-skill-bundles`, `make-skills-zip`, `sync-docs`, `gen-mcp-catalog`) refuse a source tree holding any non-oc- skill, so `OPCHAIN_SKILLS_DIR=skills-work` fails before anything is deleted or written. There is also no `.claude/skills/` link for ow- skills in this repo (CI requires every link there to point into `skills/`). Each of these is wired in by a PR of its own.
+The ow- skills are distributed separately from the oc- development plugin.
+The public archive URLs below become available with the v2.1.0 site release;
+until then, use a reviewed source checkout or the verified public mirror.
+Every per-skill zip includes its complete folder, references, protocol copy,
+LICENSE and NOTICE. Download just the skills you need; the optional ow-tools
+add-on runs code and is installed separately.
 
-To try an ow- skill locally until then, copy or link its folder under `skills-work/` into the `.claude/skills/` folder of the project you work in (for example a client workspace), never into this repo's.
+### Claude Code: copy or link from the public mirror
+
+Run these commands in a new working folder. Keep the clone outside
+`.claude/skills/`, then copy only the ow- folders into the project's skills:
+
+```bash
+git clone https://github.com/asfbay-bit/opchain-skills.git opchain-source
+mkdir -p .claude/skills
+for ow_skill in opchain-source/skills-work/ow-*/SKILL.md; do
+  cp -R "${ow_skill%/SKILL.md}" .claude/skills/
+done
+test -f .claude/skills/ow-start/SKILL.md
+cmp opchain-source/skills-work/ow-protocol.md .claude/skills/ow-start/references/ow-protocol.md
+```
+
+To link one skill instead, use the clone's absolute path:
+
+```bash
+ln -s "$PWD/opchain-source/skills-work/ow-start" .claude/skills/ow-start
+```
+
+Use either copy or link for a given skill. Start a new Claude Code session in
+this folder, type `use ow-start to set up my client workspace`, and check that
+it reads `ow-start/SKILL.md` and `references/ow-protocol.md`. Folder and protocol
+checks establish that files were installed; the host reading them establishes
+that the host found the skill.
+
+### Claude Code: download an archive
+
+```bash
+curl --fail --location https://opchain.dev/opchain-work-skills.zip -o opchain-work-skills.zip
+mkdir -p .claude/skills
+unzip opchain-work-skills.zip -d .claude/skills/
+test -f .claude/skills/ow-start/SKILL.md
+```
+
+Individual downloads use `https://opchain.dev/work/ow-start.zip` (replace the
+id for another skill). `/work/manifest.json` lists each skill version and its
+archive SHA-256. Compare `shasum -a 256 ow-start.zip` with that manifest after
+downloading. This checks the downloaded bytes; the manifest shares the download
+origin and is not an independent signature.
+
+### claude.ai: upload one skill
+
+Download an individual skill zip, then upload it through the host's custom
+skills settings. Keep the zip intact: `ow-start/SKILL.md` and its `references/`
+folder must travel together. Enable the uploaded skill and use the same plain
+language prompt above. The combined archive is for folder installation, not a
+single-skill upload. Each host's plan and administration settings determine
+whether custom-skill upload is available.
+
+### Optional ow-tools
+
+See [ow-tools installation](../plugins/ow-tools/README.md). It has its own
+marketplace and runs local code; installing the text-only ow- folders does not
+install it. Follow `/ow-tools` for missing prerequisites. Re-review its
+`SECURITY-MANIFEST.md` before an update and leave marketplace auto-update off
+unless you accept newly published code without that review.
+
+## Distribution and release policy
+
+`npm run make-work-zip` validates the ow- catalog and all cross-skill contracts
+before replacing any download. It writes `/opchain-work-skills.zip`,
+`/work/<id>.zip`, and `/work/manifest.json`. `mirror-public.yml` copies
+`skills-work/` into the public repository separately from `skills/`.
+
+Each ow- skill retains its own `metadata.version`. The opchain release tag
+records a family release, not a lockstep version forced onto each skill.
+The release cut seals the exact per-skill inventory and content hashes before
+signing the opchain tag; a changed skill needs a new skill version and a new
+family release. The same-count addition or replacement of a skill cannot be
+hidden by a family version alone.
+
+The catalog stays out of the oc- plugin (`plugins/opchain/skills`),
+`public/docs`, the flag registry, and the hosted MCP catalog. Their scripts
+still refuse any non-oc- source tree before deleting or writing. There is no
+ow- `.claude/skills/` link in this source repository; install the skills in the
+client workspace where you use them.

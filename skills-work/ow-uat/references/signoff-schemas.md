@@ -61,8 +61,21 @@ Client-facing. `n` is one more than the highest request number.
         status_history: [{ status: drafted, rec: <n>, date: <date> }, { status: superseded, rec: <n>, date: <date>, why: "<the event and its rec>" }]
         post_acceptance_cos: { listed: [CO-nn], confirmed: "<user> <date>: list them | run --add-co first" }
         read_through: none | "<user> <date>"     # when No credentials was NOT-CHECKED
-        signing_steps: []            # --signed and --deemed: record, accounts, acceptance-record, punch-list, signoff
+        signing_steps: []            # append completed { step, rec, date } mappings in the order below
         test_accounts: []            # the answers, kept so a cut-off --signed resumes without asking again
+
+For `--signed` and `--deemed`, append one mapping as each step finishes. Every mapping requires the literal keys `step`, `rec` and `date`; a list of step-name strings or separate keys such as `accounts_rec` and `accounts_date` is not this schema. A completed sequence with no intervening events has this shape:
+
+```yaml
+signing_steps:
+  - { step: record, rec: <n>, date: <YYYY-MM-DD> }
+  - { step: accounts, rec: <n+1>, date: <YYYY-MM-DD> }
+  - { step: acceptance-record, rec: <n+2>, date: <YYYY-MM-DD> }
+  - { step: punch-list, rec: <n+3>, date: <YYYY-MM-DD> }
+  - { step: signoff, rec: <n+4>, date: <YYYY-MM-DD> }
+```
+
+The step names and order are exact; `signoff.md` is written last. Allocate each step's `rec` by `uat-yaml-schema.md` §1. Its status-history entry or output file may cite that same event's `rec`; the citation does not allocate another event. On resume, keep completed mappings unchanged and continue at the first missing step.
 
 **Supersession**, at the start of every mode: a `drafted` or `sent` request is marked `superseded` (one `status_history` entry naming the event and its `rec`) if a higher-numbered request exists, or if after its `written_rec` any of these was recorded: a reproduced blocker or major Defect, or a late cannot-reproduce notice; a new condition; a `fixed` on any UAT-nn from the main scenarios; `--add-co`; a delivery of a change order in `agreed/`; a `--refreeze`. Order by `rec`, never by date. A minor or cosmetic never supersedes. `--signed` and `--deemed` judge all of this **as of the signature or deemed date**: an entry dated after it does not count.
 
@@ -96,6 +109,15 @@ One row per check in `agreed/`: check · final result · cases passed · run and
 ## 7. `punch-list.md` (write-once)
 
 One row per item: UAT-nn · what · severity · logged date · on the signed list (`yes`, or `no: reported after request <n>; not on the signed list`). The handoff turns each into a covered fix.
+
+Use this exact table header. `UAT-nn` is the literal column name, not a placeholder to rename to `UAT`, `id` or another alias; each row contains the item's actual identifier. This does not change the item's identifier or status.
+
+```markdown
+| UAT-nn | what | severity | logged date | on the signed list |
+| --- | --- | --- | --- | --- |
+| UAT-01 | <problem> | minor | <date written out> | yes |
+| UAT-02 | <later problem> | cosmetic | <date written out> | no: reported after request <n>; not on the signed list |
+```
 
 ## 8. `backstop-log.yaml` (`--readiness`, `--builder-delay`)
 

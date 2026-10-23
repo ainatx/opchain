@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import * as A from "../scripts/ow-handoff-acceptance.mjs";
+import * as Grammar from "../scripts/lib/approval-grammar.mjs";
 import { docPeopleFindings } from "../scripts/ow-documentation-acceptance.mjs";
 import { cleanup, failures, mutated, put } from "./ow-handoff-helpers.mjs";
 import { EVAL_R2_FORMS } from "./ow-handoff-eval-r2-forms.mjs";
@@ -101,10 +102,16 @@ describe("M1b: the fixes, one by one", () => {
       if (Array.isArray(key.approvals) && key.approvals.length) expect(A.runView(c).session(), `${c} has approvals: and no session`).not.toBeNull();
     }
   });
-  it("6. the clause logic is the copy, pinned: OW-10's SAID_SCOPE, HEDGE, COND_START and NEG_NEXT are in the checker's source", () => {
-    const src = readFileSync(new URL("../scripts/ow-handoff-acceptance.mjs", import.meta.url), "utf8");
-    expect(src).toMatch(/uncommitted working tree of\s+\/\/ claude\/ow-10-ow-draft/);
-    for (const w of ["SAID_SCOPE", "HEDGE", "COND_START", "NEG_NEXT", "sentencesOf", "clausesOf"]) expect(src, w).toContain(`${w} =`);
+  it("6. both graders import the shared grammar; handoff re-exports its actual shared rules", () => {
+    for (const skill of ["draft", "handoff"]) {
+      const src = readFileSync(new URL(`../scripts/ow-${skill}-acceptance.mjs`, import.meta.url), "utf8");
+      expect(src).toContain('from "./lib/approval-grammar.mjs"');
+      expect(src).not.toMatch(/(?:const|function) (?:SAID_NO|SAID_LATER|SAID_SCOPE|HEDGE|COND_START|NEG_NEXT|sentencesOf|clausesOf)\s*[=(]/);
+    }
+    expect(A.SAID_SCOPE).toBe(Grammar.HANDOFF_SCOPE);
+    expect(A.HEDGE).toBe(Grammar.HANDOFF_HEDGE);
+    expect(A.sentencesOf).toBe(Grammar.sentencesOf);
+    expect(A.clausesOf).toBe(Grammar.clausesOf);
     expect(A.sentencesOf("One. Two; three")).toEqual(["One.", "Two;", "three"]);
     expect(A.clausesOf("Waive TR-02, but not TR-01 and go.")).toEqual(["Waive TR-02", "but not TR-01", "go"]);
   });
