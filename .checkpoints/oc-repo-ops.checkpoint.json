@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a8477357f762f97b9",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a983b9e1ed41976d5",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-23T19:58:17.886Z",
+  "updated_at": "2026-10-23T21:23:56.433Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr652-shared-module-fixes",
-  "progress_summary": "PR #652 readiness PASS at 18c3196d: full npm test 12,484 passed with one pinned measurement improving (9/10 -> 10/10, updated and re-run), build passed, commit gate passed; acceptance goldens draft 182, handoff 161, vendor 135 and the seven other ow- acceptance scripts exit 0.",
+  "step": "pr652-care-checker",
+  "progress_summary": "PR 652 care builder readiness PASS at 22978e5c: the commit's own gate passed (full npm test, build, secrets, anti-patterns); every ow- acceptance script passes (care 80, handoff 161, draft, vendor-eval and the other seven); check-skill-contracts, gen-catalog and lint-internal-refs pass.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -23,17 +23,19 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [],
+    "warnings": [
+      "Under load the full npm test once timed out tests/audit-release/cli-entrypoints.test.js (status null; passed alone) and one gate run aborted in gen-api-dev-adapters (Abort trap: 6); the retried gate passed. Key-shaped test literals are built from parts so neither the repository scan nor GitHub push protection reads one."
+    ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "18c3196dc336dc8d878df4939fde86efeb69de56",
+    "verified_for_sha": "22978e5ccc317313a9802e8fd6cda8b6ee26d902",
     "last_verify": {
-      "at": "2026-10-23T19:58:17.886Z",
-      "branch": "codex/ow-handoff-completion",
-      "base": "origin/main@809ed373",
+      "at": "2026-10-23T21:23:56.433Z",
+      "branch": "claude/pr652-care",
+      "base": "origin/codex/ow-handoff-completion@06d64709",
       "verdict": "PASS",
       "blocking_findings": []
     },
@@ -2747,8 +2749,37 @@
         "scope": "codex/ow-handoff-completion at 18c3196d over 7121bc0f. Nothing under skills/, skills-work/, plugins/, site/ or src/, so no catalog, bundle, plugin or release-surface output changes. Candidate verifier PASS on tree 648500b5.",
         "evidence": []
       }
+    },
+    {
+      "id": "oc-repo-ops-pr652-care-checker-8fd90ff061cd",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-23T21:23:56.433Z",
+      "verified_at": "2026-10-23T21:23:56.433Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr652-care-checker"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:8fd90ff061cd8e64aa1810ae127dbf1eac3917f02f0d146126af28a912eba485"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/pr652-care at 22978e5c. New: scripts/ow-care-acceptance.mjs, tests/fixtures/ow-care/{cases,worlds}/, tests/ow-care-*.{mjs,js}, tests/ow-shared-planted-line.test.js. Changed: scripts/ow-handoff-acceptance.mjs (plantedLine: an AI spoken to while it reads), skills-work/ow-care/ text, skills-work/README.md, tests/fixtures/ow-care/README.md, .gitignore. The earlier prospective pack (casebook.json, seed/, prepare.mjs, grade.mjs) is untouched. No release surface, plugin, site or package.json change.",
+        "evidence": [
+          "skills-work/ow-care/SKILL.md",
+          "skills-work/ow-care/references/entry-and-requests.md",
+          "skills-work/ow-care/references/health-and-access.md",
+          "skills-work/ow-care/references/month-and-end.md",
+          "skills-work/ow-care/CHANGELOG.md",
+          "tests/fixtures/ow-care/README.md",
+          "skills-work/README.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-23T19:58:17.886Z",
+  "record_updated_at": "2026-10-23T21:23:56.433Z",
   "blockers": []
 }
