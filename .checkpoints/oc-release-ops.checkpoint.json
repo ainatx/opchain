@@ -3,10 +3,10 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-23T08:24:45.703Z",
+  "updated_at": "2026-10-23T08:46:52.403Z",
   "skill": "oc-release-ops",
   "phase": "plan",
-  "step": "ten-skill-preparation-verified",
+  "step": "ten-skill-preparation-complete-public-release-held",
   "status": "in_progress",
   "progress_summary": "Ten-skill preparation integrated and independently reviewed; all eight strict checks pass. Care main exercise passes 6/6 and manual review; vendor evidence and limitations are preserved in the model record. Eleven clean archive extractions match source. Held website builds 97 pages; 7 surface and 4 affected browser checks pass. Owner real use, host/model setup, immutable public pins/install and October 27 observation verdicts remain open.",
   "progress_table": [
@@ -71,16 +71,12 @@
   "blockers": [],
   "next_actions": [
     {
-      "text": "Verify exact-head draft PR #652 CI",
-      "done_when": "All required checks pass at pushed head; draft remains unmerged"
-    },
-    {
       "text": "Complete owner use, host/model and immutable public pin/install evidence",
-      "done_when": "Required actual outcomes recorded without client material"
+      "done_when": "Required actual outcomes are recorded without client material"
     },
     {
-      "text": "Collect October 27 EN-01/EN-02 verdicts before eligible release cut",
-      "done_when": "All readiness conditions, reviewed merge, signed tag, staging/production and monitoring complete"
+      "text": "Collect October 27 EN-01/EN-02 verdicts before an eligible release cut",
+      "done_when": "All readiness conditions, reviewed merge, signed tag, staging/production verification and monitoring are complete"
     }
   ],
   "pm_refs": [
@@ -402,11 +398,41 @@
         "combined_files": 205
       },
       "scope": "ten OW skills plus ow-tools, preparation only",
-      "ci": "pending exact pushed head",
+      "ci": {
+        "head": "485eef357094fe4164c942cceda77cbad04cb0be",
+        "verified_at": "2026-10-23T08:45:20Z",
+        "verdict": "PASS",
+        "checks": [
+          {
+            "name": "Worker — build, test, catalog verify",
+            "url": "https://github.com/ainatx/opchain/actions/runs/39924749686/job/120318274490",
+            "conclusion": "SUCCESS",
+            "completed_at": "2026-10-23T08:45:20Z"
+          },
+          {
+            "name": "LHCI — perf, a11y, best-practices, SEO",
+            "url": "https://github.com/ainatx/opchain/actions/runs/39924749701/job/120318274185",
+            "conclusion": "SUCCESS",
+            "completed_at": "2026-10-23T08:32:55Z"
+          },
+          {
+            "name": "Site — install, type-check, build",
+            "url": "https://github.com/ainatx/opchain/actions/runs/39924749686/job/120318274264",
+            "conclusion": "SUCCESS",
+            "completed_at": "2026-10-23T08:27:59Z"
+          },
+          {
+            "name": "Site — Playwright e2e",
+            "url": "https://github.com/ainatx/opchain/actions/runs/39924749686/job/120318526383",
+            "conclusion": "SUCCESS",
+            "completed_at": "2026-10-23T08:38:32Z"
+          }
+        ]
+      },
       "release": "held; no tag or deployment"
     }
   },
-  "record_updated_at": "2026-10-23T08:24:45.703Z",
+  "record_updated_at": "2026-10-23T08:46:52.403Z",
   "pm_deferred_actions": [
     {
       "id": "deferred-2026-09-21T19:53:16Z-7f2f",
