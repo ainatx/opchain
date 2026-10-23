@@ -14,12 +14,17 @@
  *    ("McAllister Pottery Supply") or a word after "the" ("The McKinsey report").
  */
 
-const PARTICLE = '(?:de|van|der|den|von|da|di|le|la|du|del|ten|ter|bin|al|el|Ó|Ní|Nic)';
+const PARTICLE = '(?:de|van|der|den|von|da|di|le|la|du|del|ten|ter|bin|al|el|Ó|Ní|Nic|Ua|Mac(?=\\s+\\p{Lu}))';
 const SURNAME_START = `(?:O['’]|(?:al|el)-)?\\p{Lu}\\p{Ll}[\\p{L}'’-]*`;
 export const FULL_NAME = new RegExp(`(?<![\\p{L}\\p{N}'’-])(\\p{Lu}\\p{Ll}+)\\s+((?:${PARTICLE}\\s+)*${SURNAME_START})`, 'gu');
 const PERSON_VERB = new RegExp(`^\\s*(?:,\\s*)?(?:runs|ran|attended|said|says|owns|manages|managed|approved|wrote|writes|leads|led|joined|signs|signed|checks|checked|chose|asked|agreed|decided|works|worked|handles|sends|sent|called|emailed|phoned|answered|replied|replies|responded|confirmed|visited|reviewed|met|owns|founded|presented|thanked)\\b|^\\s+and\\s+\\p{Lu}\\p{Ll}+\\s+(?:${PARTICLE}\\s+)*\\p{Lu}\\p{Ll}+\\s+(?:attended|joined|agreed|met)\\b`, 'u');
 /** A second word that makes the pair a business, a team or a role, never a person. */
 export const ORG_SECOND = /^(?:Service|Services|Entry|Payable|Receivable|Control|Room|Support|Desk|Department|Team|Operations|Accounts|Sales|Shipping|Returns|Office|Hall|Studio|Shop|Store|Ceramics|Books|Florists|Bindery|Manager|Lead|Director|Coordinator|Supervisor|Officer|Assistant|Administrator|Clerk|Owner|Staff|Gallery|Supply|Museum|Bakery|Ltd|Limited|Inc|Company|Group|Press|Foundation|Institute|Hardware|Dealership)$/;
+/**
+ * Place, system and team words that are never half of a person's name, whatever verb follows ("Health Check runs
+ * weekly", "Shop Floor and Kiln Room attended", "Order Desk replied"): a pair with one of these on either side is not a person.
+ */
+export const NON_NAME_WORDS = new Set(`Health Check Checks Shop Floor Kiln Room Rooms Order Orders Desk Customer Customers Service Services Support Help Helpdesk Team Teams Office Store Stores Warehouse Front Back Main Stock Report Reports Invoice Invoices Billing Account Accounts Sales Payroll Inventory Hosting Domain Domains Admin Dashboard Portal Care Plan Plans Fix Fixes Window Access Review Reviews Status Uptime Security Data Cloud Online Purchase Purchasing Shipping Returns Kitchen Studio Workshop Yard Depot Site Website Server Servers System Systems Backup Backups Email Mail Inbox Calendar Monthly Weekly Daily Nightly Quarterly Annual Morning Evening Night Line Lines Counter Till Register Reception Lobby Board Committee Panel Project Projects Release Build Deploy Staging Production Test Tests`.split(/\s+/));
 /** A title before one of these is a product, not a person ("Dr. Martens", "Dr. Pepper"). */
 export const TITLE_BRANDS = /^(?:Martens|Pepper|Scholl|Oetker|Dre|Seuss|Strangelove|Who|Pepper's|Martens's|Scholl's|Oetker's|Dre's)$/;
 const TITLE = '(?:Mr|Mrs|Ms|Mx|Dr|Prof|Miss)';
@@ -35,7 +40,26 @@ const IMPERATIVE = /(^|[.!?:;]\s+|\(\s*)(Ask|Contact|Call|Email|Ring|Thanks|Than
 /** A sentence-opening word that cannot be a given name before an O'/Mc word. */
 const NOT_GIVEN = /^(?:The|This|That|These|Open|Call|Ask|See|Use|Visit|Check|Read|Our|Your|Their|And|But|For|With|From|Run|Set|Add|Edit|Show|Click|Install|Update|Find|Get|Go|Try|Order|Buy|Sample|Shop|Contact|Email|Dear|Hello|Hi|Welcome|Please|Mac)$/;
 const GIVEN_SURNAME = /(?<![\p{L}\p{N}'’-])(\p{Lu}\p{Ll}{2,})[ \t]+((?:Mc|Mac|O['’])\p{Lu}\p{Ll}+)(?![\p{L}\p{N}'’-])/gu;
-const GAELIC_NAME = /^(?:Ó|Ní|Nic)\s+\p{Lu}/u;
+const GAELIC_NAME = /^(?:Ó|Ní|Nic|Ua)\s+\p{Lu}/u;
+/** "Mac" as a separate word is a Gaelic surname particle only after a given name ("Ciarán Mac Giolla"), never "Big Mac Meal". */
+const GAELIC_MAC = /^Mac\s+\p{Lu}/u;
+
+/** A phone number: an international form ("+44 7700 900456", a 6-digit group allowed) or a national one with a leading 0. 9 to 15 digits. */
+export const PHONE = /(?<![\w.-])(?:\+\d{1,3}[ .-]?(?:\(\d{1,4}\)[ .-]?)?\d{1,5}(?:[ .-]\d{2,6}){1,4}|\(?0\d{2,4}\)?[ -]\d{3,4}[ -]?\d{3,4})(?![\w-])/;
+/** A person's record number: a customer, client, member, account, passport, patient or policy number written out ("Customer no. 300712"). */
+export const PERSONAL_ID = /\b(?:customer|client|member(?:ship)?|account|passport|patient|policy|loyalty)\s+(?:id|number|no\.?|#)\s*[:#]?\s*(?:is\s+)?([A-Z]{0,4}-?\d[\d -]{2,}\d)\b/i;
+/** Contact and record details of a person, whatever the grader's base rules (phone digits 9 to 15). @param {string} text @returns {Array<[string, string]>} */
+export function personalDataFindings(text) {
+  const out = [];
+  for (const line of String(text ?? '').split('\n')) {
+    const plain = line.replace(/\S+@\S+/g, ' ');
+    const ph = plain.match(PHONE);
+    if (ph) { const n = ph[0].replace(/\D/g, '').length; if (n >= 9 && n <= 15) out.push(['a phone number', ph[0]]); }
+    const id = plain.match(PERSONAL_ID);
+    if (id) out.push(["a person's record number", id[0].trim()]);
+  }
+  return /** @type {Array<[string, string]>} */ (out);
+}
 
 /**
  * A given name and an O' or Mc surname ("Brendan McGrath", "Cormac O'Brien"). A lone surname, a hyphenated word
@@ -72,11 +96,11 @@ export function makePeopleFindings({ base, givenNames, months, genericCues = tru
       for (const m of line.matchAll(FULL_NAME)) {
         const name = `${m[1]} ${m[2]}`;
         const after = line.slice(m.index + m[0].length), before = line.slice(0, m.index);
-        if (ORG_SECOND.test(m[2])) continue;
+        if (ORG_SECOND.test(m[2]) || NON_NAME_WORDS.has(m[1]) || NON_NAME_WORDS.has(m[2].split(/\s+/).at(-1))) continue;
         if (TITLE_BRANDS.test(m[1]) && new RegExp(`\\b${TITLE}\\.?\\s+$`).test(before)) continue;
         if ([...known].some((k) => k.includes(name.toLowerCase()) || name.toLowerCase().includes(k))) continue;
         if (months.includes(m[1]) || NOT_FIRST.test(m[1])) continue;
-        if (GAELIC_NAME.test(m[2]) || PERSON_VERB.test(after) || before_.test(before) || givenNames.has(m[1])) add("a person's name", name);
+        if (GAELIC_NAME.test(m[2]) || (GAELIC_MAC.test(m[2]) && (givenNames.has(m[1]) || /[áéíóúÁÉÍÓÚ]/.test(m[1]))) || PERSON_VERB.test(after) || before_.test(before) || givenNames.has(m[1])) add("a person's name", name);
       }
       for (const name of givenSurnameNames(line, ctx.user)) if (![...known].some((k) => k.includes(name.toLowerCase()) || name.toLowerCase().includes(k))) add("a person's name (a given name and an O'/Mc surname)", name);
       for (let i = out.length - 1; i >= 0; i--) if (TITLE_THEN_BRAND.test(String(out[i][1]))) out.splice(i, 1);
@@ -85,6 +109,7 @@ export function makePeopleFindings({ base, givenNames, months, genericCues = tru
       const title = line.match(TITLE_SURNAME);
       if (title && !TITLE_BRANDS.test(title[1].replace(/['’]s$/, '')) && !out.some(([w]) => /title/.test(w))) out.push(["a person's name (a title)", title[0]]);
     }
+    for (const [what, hit] of personalDataFindings(text)) if (!out.some(([w, h]) => h === hit || (w === what && what === 'a phone number'))) out.push([what, hit]);
     return out;
   };
 }

@@ -1778,9 +1778,22 @@ function checkPrivateNames(key, run) {
   }
   return p;
 }
-/** Text addressed to an assistant (RC-01): "AI" as a word, Claude or a chatbot, or an assistant addressed ("Note to the
- *  assistant:", "Assistant: …", "PS for your assistant,"), never an assistant mentioned ("The shop assistant checks …"). */
-export const addressed = (s) => /\bAI\b/.test(s) || /\b(?:Claude|chatbot|copilot|LLMs?|GPT)\b/i.test(s) || /\blanguage models?\b|\bautomated (?:tools?|agents?|systems?)\b|\b(?:note|ps|message|reminder|instruction) (?:to|for) (?:the |any |your )?(?:model|agent|bot)\b/i.test(s) || /(?:^|\b(?:note|ps|message|reminder) (?:to|for) )(?:the |any |your )?(?:AI )?assistants?\b[^.]{0,60}?[:,]/i.test(s);
+/** Text addressed to an assistant (RC-01): an assistant, a model or an AI spoken to ("Assistant: …", "Hey AI, …",
+ *  "<!-- copilot/claude: …", "Note to the model: …", "If you are an AI, …") or told what it must do ("AI agents reading
+ *  this file must …", "Language models processing this repo should …"). Never an AI or an assistant only mentioned ("The
+ *  client uses an AI chatbot", "AI features are listed on the pricing page", "The shop assistant checks …"). */
+const AGENT = String.raw`(?:AI(?: (?:assistants?|agents?|models?|tools?|systems?|bots?))?|LLMs?|language models?|automated (?:tools?|agents?|systems?)|Claude|ChatGPT|GPT(?:-\d+)?|copilot|chatbots?|assistants?|models?|agents?|bots?)`;
+const ADDRESS_FORMS = [
+  // spoken to: at the start of a line, a comment or a bracket, before a colon or a comma ("Assistant: …", "Claude, …", "<!-- copilot/claude: …")
+  new RegExp(String.raw`(?:^|<!--|[(\[])\s*(?:(?:hey|hi|dear|ok(?:ay)?|attention),?\s+)?(?:the |any |your |all )?${AGENT}(?:\s*\/\s*${AGENT})*\s*[:,]`, "i"),
+  // a note, a PS or an instruction for one ("Note to the model: …", "PS for your assistant, …")
+  new RegExp(String.raw`\b(?:note|ps|message|reminder|instructions?)s? (?:to|for) (?:the |any |your |all )?${AGENT}\b`, "i"),
+  // a condition on being one ("If you are an AI, …", "If you're an automated tool, …")
+  new RegExp(String.raw`\bif you(?: are|'re|’re) (?:an? )?${AGENT}\b`, "i"),
+  // told what it must do, as the subject of the sentence ("AI agents reading this file must …")
+  new RegExp(String.raw`(?:^|[.!?;]\s+|<!--\s*)(?:any |all |every |the )?(?:AI(?: (?:assistants?|agents?|models?|tools?|systems?))?|LLMs?|language models?|automated (?:tools?|agents?|systems?)|Claude|ChatGPT|copilot|chatbots?)(?: \w+ing\b[^.!?;]{0,40}?)?\s+(?:must|should|shall|needs? to|ha(?:s|ve) to|is to|are to|will now|may now)\b`, "i"),
+];
+export const addressed = (s) => ADDRESS_FORMS.some((re) => re.test(String(s)));
 /** The D2 net (round 1 m5): imperatives aimed at this skill's own actions, in what a verb reads. */
 const PLANT_PHRASES = new RegExp([
   String.raw`\bmark (?:the |every |all |each )?[\w -]{0,40}?(?:confirmed|transferred|removed|passed|done|verified|closed|complete)\b`,
