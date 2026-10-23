@@ -37,6 +37,7 @@ Never call anything done, working, finished or ready unless its acceptance check
     ow_artefact: ow-build/update-checks
     (the rest of the header; subject: builds/<client>/build.yaml; origin: skill)
     update: builds/<client>/updates/<date>.html
+    text_twin: builds/<client>/updates/<date>.txt
     period: <first day> to <date>
     next_demo: { M1: <YYYY-MM-DD> (user-stated <date>) }
     ---
@@ -53,6 +54,10 @@ Never call anything done, working, finished or ready unless its acceptance check
     ## Self-checks (same-session self-check)
 
 A source is `commit <id>` (in the week's git history), `report <path of a sprint report>`, `checkpoint <progress_table id>`, `demo <demos/M<n>-record.md>` or `note <user> <date>`. Every *This week* sentence has one row, word for word. A sentence that claims something is done (a done word, "now <does>", "no longer", "has been <done>", "has run") traces to a demo record or to a passing report that marks PASS the acceptance check the sentence is about, never to a note or a commit alone, and never to a report about other checks.
+
+The `source` cell contains only one of those forms: for example, `report sprints/sprint-1/eval-round-2.md`. Put explanations in a separate `detail` column or prose below the table, not after the path or identifier. List results as `OK`, `FINDING` or `NOT-CHECKED (reason)`; explanations belong in a separate column.
+
+Record each known demo date as `<YYYY-MM-DD> (user-stated <YYYY-MM-DD>)`, or exactly `<YYYY-MM-DD> (quote)` / `<YYYY-MM-DD> (build.yaml)` as its actual source. Dates must be real calendar dates; a user-stated confirmation date cannot be later than the update. Keep qualifiers such as "tentative" in a separate `next_demo_notes` mapping and in the client sentence, outside the date/source value. If asking produces no date, record `UNKNOWN (asked <YYYY-MM-DD>)`, say the date is not yet agreed in the client draft, and report the missing date as NOT-CHECKED. Do not invent a date or call that draft Ready; finish the update only after the user supplies it.
 
 The self-checks, each OK, FINDING or NOT-CHECKED (reason), agent-checked, with the same-session label: **No internal numbers** (the `.html` and `.txt`), **Trace**, **No false done**, **Priced and signed before work** (every unsigned change order is in *Changes* marked not started, and no sentence reports it started), **No private names** (no private skill, business or the builder's name). Fix and re-run while any is FINDING.
 

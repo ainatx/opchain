@@ -37,4 +37,4 @@ As `references/research-files-schema.md` §1 says. Then run this phase's self-ch
 
 ## 5. STATUS and NEXT
 
-Append one STATUS line: `<date> (clock: <source>) | ow-research 1.0.2 | research/<ws>/RS-nn-<slug>/question.md | next: ow-research /ow-research-run research/<ws>/RS-nn-<slug>/ | awaiting: none` (a draft: `awaiting: question confirmation`). Print the screen's self-check line, then the question NEXT block from SKILL.md (a draft prints no NEXT: it is not finished).
+Append one STATUS line: `<date> (clock: <source>) | ow-research 1.0.3 | research/<ws>/RS-nn-<slug>/question.md | next: ow-research /ow-research-run research/<ws>/RS-nn-<slug>/ | awaiting: none` (a draft: `awaiting: question confirmation`). Print the screen's self-check line, then the question NEXT block from SKILL.md (a draft prints no NEXT: it is not finished).

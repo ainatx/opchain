@@ -53,8 +53,8 @@ describe("C1, C2, C3: the real tree passes as built (the control)", () => {
     const edges = readFileSync(join(ROOT, "skills-work", E), "utf8");
     expect(edges.match(/index: true/g)).toHaveLength(12);
     const body = readFileSync(join(ROOT, "skills-work", B), "utf8");
-    expect(body).toMatch(/^ {2}version: "1\.1\.1"$/m);
-    expect(body).toMatch(/^ow-start 1\.1\.1 · protocol 1/m);
+    expect(body).toMatch(/^ {2}version: "1\.1\.2"$/m);
+    expect(body).toMatch(/^ow-start 1\.1\.2 · protocol 1/m);
     expect(body.match(/^ {2}commands: (.*)$/m)[1].split(" ")).toHaveLength(10);
   });
 });

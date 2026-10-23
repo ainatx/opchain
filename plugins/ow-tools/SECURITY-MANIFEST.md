@@ -105,8 +105,8 @@ Whisper weights are SHA-256 checked before every transcription (the quick readin
 | `python/diarize.py` | `4af8ce269fb681da3f12e25156bd47de13a0420ab696f2f38530fdf65db9466d` |
 | `python/pyproject.toml` | `d8b1d31918f34a8f36684c4af8a8d4658a21fb8be9a5c8d1fac33ec23b2b255f` |
 | `python/uv.lock` | `360393190d7b102cfab6ff12ed5a473415688ce2db7efa1e21ebc7fbdbd1c365` |
-| `README.md` | `0628457238248978137157ccc2bdada4a7d8bd382efeee025e0932ffe1f7eab9` |
+| `README.md` | `1800f2a17ff49fb9a82b85e1e1b026859ccbf5cf727b1d552b8a784597498b0f` |
 | `skills/ow-start-transcribe/SKILL.md` | `f9956022e0247672ecdc53049c9915c9c89cf051deed173077edc63aa2375771` |
 | `skills/ow-tools/SKILL.md` | `bb76b6be9ca0f11d3933097d8d44c16354aa83dccc73a12d4fd91fbfa6bdf883` |
-| `templates/ow.typ` | `1c6d111c871443bb904f0ff7424d2267ec3d94b6aed5533056f34f7fb7f29a04` |
+| `templates/ow.typ` | `37c0727aa7531bcec719df0a89450b0225708cf44c21a8941f522c733acafaf7` |
 | `templates/scan-secrets.tmpl` | `f20f98b19c680b657ec6958e31634cc172992869f3f2025e8b1a9cc888583549` |

@@ -129,12 +129,12 @@ describe("C2, C3: the body, the frontmatter, the shipped text", () => {
     expect(fm).not.toMatch(/[<>]/);
     for (const n of ["fixing code", "sending anything", "deleting anything", "removing a secret from git history", "ow-care"]) expect(fm).toContain(n);
   });
-  it("network none, core bundle, version 1.0.0", () => {
+  it("network none, core bundle, version 1.0.1", () => {
     const t = readFileSync(join(SKILL, "SKILL.md"), "utf8");
     expect(t).toMatch(/^ {2}network: none$/m);
     expect(t).toMatch(/^ {2}bundle: core$/m);
-    expect(t).toMatch(/^ {2}version: "1\.0\.0"$/m);
-    expect(t).toMatch(/^ow-handoff 1\.0\.0 · protocol 1/m);
+    expect(t).toMatch(/^ {2}version: "1\.0\.1"$/m);
+    expect(t).toMatch(/^ow-handoff 1\.0\.1 · protocol 1/m);
   });
   it("the shipped text is clean (C3)", () => expect(shippedTextProblems()).toEqual([]));
   it("the protocol copy and the shared examples are byte-identical everywhere", () => {

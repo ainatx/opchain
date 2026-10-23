@@ -18,7 +18,7 @@ Every sprint is named **workstream prefix + two-digit number**, and the number i
 | `EN` | Track E: enforcement at chokepoints and the skill router |
 | `WEB` | Track S: the 2.1 site surfaces (`track-s-site-surfaces.md`) |
 
-| Name | Old name | Lane | Builds | State 2026-10-22 |
+| Name | Old name | Lane | Builds | State 2026-10-23 |
 |---|---|---|---|---|
 | OW-00 | Sprint 0 | — | Land what was built: ow-start 1.0.0, ow-tools 1.0.0, designs | done |
 | OW-01 | Sprint 1 | A | ow-build-plan 1.0.0 | done (#605, #609) |
@@ -26,7 +26,7 @@ Every sprint is named **workstream prefix + two-digit number**, and the number i
 | OW-03 | Sprint T | — | ow-tools 1.1.0 | done (#623, follow-up #625 → 1.1.1) |
 | OW-04 | Sprint 3 | A | ow-uat 1.0.0 | done (#634, #635, #639) |
 | OW-05 | Sprint 3b | A | ow-documentation 1.0.0 | done (#642, #644 → 1.0.1) |
-| OW-06 | Sprint 4 | A | ow-handoff 1.0.0 | scanner done (#643); skill #648 in final CI |
+| OW-06 | Sprint 4 | A | ow-handoff 1.0.0 | done (#648 merged at `809ed373`) |
 | OW-07 | Sprint 4b | A | ow-care 1.0.0 | **moved to v2.2** (owner, 2026-10-22) |
 | OW-08 | Sprint L | B | ow-start 1.1.0 logs | done (#624, follow-up #626 → 1.1.1; ow-tools 1.1.2 hook) |
 | OW-09 | Sprint R | B | ow-research 1.0.0 | done (#636, #639, #646 → 1.0.2) |
@@ -34,8 +34,8 @@ Every sprint is named **workstream prefix + two-digit number**, and the number i
 | OW-11 | Sprint V | B | ow-vendor-eval 1.0.0 | **moved to v2.2** (owner, 2026-10-22) |
 | OW-12 | Sprint C | B | ow-controls 1.0.0, four packs, `ow-packs` plugin | **moved to v2.2** (owner, 2026-10-19) |
 | OW-13 | Sprint Cu | B | ow-currency 1.0.0 | **moved to v2.2** (owner, 2026-10-19) |
-| REL-01 | Sprint 5 | — | Distribution and integrity | not started |
-| REL-02 | Sprint 6 | — | Real use and the cut | not started |
+| REL-01 | Sprint 5 | — | Distribution and integrity | preparation in draft #652; public pin/install evidence pending |
+| REL-02 | Sprint 6 | — | Real use and the cut | model exercises and contract corrections in progress; real use and final cut pending |
 | EN-00 – EN-03 | Sprints E0 – E3 | — | Track E (§ Track E) | EN-00 done (#608) |
 | WEB-00 – WEB-05 | S0 – S5 | — | Track S (`track-s-site-surfaces.md`) | WEB-00 done (#610) |
 

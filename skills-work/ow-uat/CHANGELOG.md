@@ -2,6 +2,12 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump (OW-04 ruling O9) and are listed here as data edits.
 
+## 1.0.3 (unreleased)
+
+Clarify the shared protocol: client-ready HTML/TXT email twins carry no internal artefact header; their companion record holds provenance. Preserve visible handling banners and print the complete NEXT guidance, including attachment fallback.
+
+Include the previously prepared signoff identifier and step-record schema clarification.
+
 ## Unreleased: signing-step and punch-list schema clarification
 
 Reference change; the per-skill version must be bumped before release.

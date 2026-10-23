@@ -2,6 +2,14 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`; owner decision O7 of OW-08). The family's v2.1.0 release entry cites each skill's version. Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump (OW-04 ruling O9) and are listed here as data edits.
 
+## 1.1.2 (2026-10-23): intake coverage and scope clarifications
+
+- Coverage is scored per field: an early substantive answer remains unprompted when a later compound question asks for more details; contradictions remain unresolved but count as answers. Explicit uncertainty or a missing needed part is partly.
+- The shared protocol retains HTML/TXT email-pair headers in source metadata and requires the complete NEXT fallback guidance even when a folder is attached.
+- Fact references enumerate exact ids, separated by commas; ranges are invalid. Sample/access requests can cite the known fact that needs the material; this does not waive trace requirements for ordinary confirmation questions.
+- System counts follow confirmed integration scope, including email when it is actually integrated. The user keeps the final path choice; an ambiguous count must be clarified.
+- Fixture/checker corrections accept the supported “largest customer” paraphrase and grounded sample/access questions. The baseline synthetic prospect session now explicitly keeps email manual. Historical captures and golden outputs are unchanged.
+
 ## Unreleased: data edits from OW-06 (ow-handoff 1.0.0)
 
 No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed:

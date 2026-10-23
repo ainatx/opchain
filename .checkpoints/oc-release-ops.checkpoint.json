@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-23T02:06:19.418Z",
+  "updated_at": "2026-10-23T05:53:48.714Z",
   "skill": "oc-release-ops",
   "phase": "plan",
-  "step": "v2.1.0-preparation",
+  "step": "rel-02-contract-corrections",
   "status": "in_progress",
-  "progress_summary": "OW-06 #648 is merged. Draft preparation PR #652 now includes the source fix for 13 CI accessibility failures: 14 link names and keyboard behavior independently reviewed; all 123 local browser tests and all eight strict checks pass. Latest remote CI follows the next push. Owner real jobs, remaining model cases, public installation/model setup and October 27 verdicts still hold the release. No final cut or deployment.",
+  "progress_summary": "OW-06 #648 is merged and preparation PR #652 remains draft. All four remote jobs passed at b29e3731. October 23 contract and executable-fixture corrections are in progress with per-skill patch versions; their fresh review and CI are pending. Owner real jobs, public pin/install, transcription setup/timing and October 27 observation verdicts still hold the final cut. No tag or deployment.",
   "progress_table": [
     {
       "id": "implementation",
@@ -337,7 +337,7 @@
       "draft": true
     }
   },
-  "record_updated_at": "2026-10-23T02:06:19.418Z",
+  "record_updated_at": "2026-10-23T05:53:48.714Z",
   "pm_deferred_actions": [
     {
       "id": "deferred-2026-09-21T19:53:16Z-7f2f",

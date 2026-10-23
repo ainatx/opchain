@@ -245,6 +245,82 @@ describe("§12.7 builder integration: planted failures", () => {
 });
 
 describe("§10: planted failures", () => {
+  it("weekly update: the self-check disclosure accepts ordinary wording, not missing or independent-only claims", () => {
+    const checks = `${B}/updates/2026-11-13-checks.md`;
+    const line = /Same-session self-check: the same assistant[^\n]+/;
+    for (const wording of [
+      "The same assistant that wrote the output applied this checklist; a discipline, not an independent review.",
+      "SAME-SESSION SELF-CHECK: the same assistant that wrote these files used a checklist. This is not an independent review.",
+    ]) {
+      expect(failures("update", mutated("update", { [checks]: (t) => t.replace(line, wording) })).update).toBeUndefined();
+    }
+    for (const wording of [
+      "", "A checklist was applied; this is not an independent review.",
+      "The same assistant that wrote the update applied a checklist.",
+      "An independent reviewer applied a checklist.",
+      "Not the same assistant that wrote the output applied this checklist; not an independent review.",
+    ]) {
+      expect(failures("update", mutated("update", { [checks]: (t) => t.replace(line, wording) })).update).toMatch(/must disclose/);
+    }
+  });
+
+  it("weekly update: dates and their source have a closed grammar", () => {
+    const checks = `${B}/updates/2026-11-13-checks.md`;
+    for (const source of ["quote", "build.yaml", "user-stated 2026-11-13"]) {
+      if (source === "user-stated 2026-11-13") continue; // covered by the untouched golden
+      expect(failures("update", mutated("update", { [checks]: (t) => t.replace("2026-11-25 (user-stated 2026-11-13)", `2026-11-25 (${source})`) })).update).toBeUndefined();
+    }
+    for (const bad of [
+      "2026-11-25 (user-stated invented)", "2026-11-25 (user-stated 2026-11-13; tentative)",
+      "2026-11-25 (quote fabricated)", "2026-11-25 (build.yaml tentative)",
+      "2026-11-25 (user-stated 2026-11-14)", "2026-11-25 (user-stated 2026-02-30)",
+      "2026-02-30 (user-stated 2026-11-13)",
+    ]) {
+      expect(failures("update", mutated("update", { [checks]: (t) => t.replace("2026-11-25 (user-stated 2026-11-13)", bad) })).update).toMatch(/canonical date/);
+    }
+  });
+
+  it("weekly update: canonical source cells allow detail separately but reject appended explanations", () => {
+    const checks = `${B}/updates/2026-11-13-checks.md`;
+    const detailed = mutated("update", { [checks]: (t) => t.replace("| # | sentence | source |", "| # | sentence | source | detail |").replaceAll("| report sprints/sprint-1/eval-round-2.md |", "| report sprints/sprint-1/eval-round-2.md | Reported passing acceptance evidence |") });
+    expect(failures("update", detailed).update).toBeUndefined();
+    const appended = mutated("update", { [checks]: (t) => t.replaceAll("| report sprints/sprint-1/eval-round-2.md |", "| report sprints/sprint-1/eval-round-2.md (AC-1.1 PASS) |") });
+    expect(failures("update", appended).update).toMatch(/not a canonical/);
+  });
+
+  it("weekly update: demo sources must exist and support the claimed passing checks", () => {
+    const checks = `${B}/updates/2026-11-13-checks.md`;
+    const replaceSource = (t) => t.replaceAll("| report sprints/sprint-1/eval-round-2.md |", "| demo demos/M1-record.md |");
+    const record = readFileSync(join(FIXTURES, "demo-record/expected", B, "demos/M1-record.md"), "utf8").replaceAll("2026-11-25", "2026-11-12");
+    const valid = mutated("update", { [checks]: replaceSource, [`${B}/demos/M1-record.md`]: () => record });
+    expect(failures("update", valid).update).toBeUndefined();
+    expect(failures("update", valid).no_false_done).toBeUndefined();
+    const missing = mutated("update", { [checks]: replaceSource });
+    expect(failures("update", missing).update).toMatch(/cites demo .*which the build does not hold/);
+    expect(failures("update", missing).no_false_done).toMatch(/does not record works/);
+    const failing = mutated("update", { [checks]: replaceSource, [`${B}/demos/M1-record.md`]: () => record.replace("| AC-1.1 | works |", "| AC-1.1 | does not work |") });
+    expect(failures("update", failing).no_false_done).toMatch(/does not record works/);
+    const future = mutated("update", { [checks]: replaceSource, [`${B}/demos/M1-record.md`]: () => record.replaceAll("2026-11-12", "2026-11-25") });
+    expect(failures("update", future).update).toMatch(/dated on or before the update/);
+  });
+
+  it("weekly update: qualifiers stay separate and an unanswered demo date remains incomplete", () => {
+    const checks = `${B}/updates/2026-11-13-checks.md`;
+    const qualified = mutated("update", { [checks]: (t) => t.replace("next_demo:", "next_demo_notes: { M1: tentative }\nnext_demo:") });
+    expect(failures("update", qualified).update).toBeUndefined();
+    const malformed = mutated("update", { [checks]: (t) => t.replace("(user-stated 2026-11-13)", "(tentative; user-stated 2026-11-13)") });
+    expect(failures("update", malformed).update).toMatch(/not a canonical date\/source value/);
+    const unknown = mutated("update", { [checks]: (t) => t.replace("2026-11-25 (user-stated 2026-11-13)", "UNKNOWN (asked 2026-11-13)") });
+    expect(failures("update", unknown).update).toMatch(/remains incomplete until the user supplies a date/);
+  });
+
+  it("weekly update: full email twins reject internal front matter and metadata comments", () => {
+    const html = mutated("update", { [`${B}/updates/2026-11-13.html`]: (t) => `<!-- ow_artefact: ow-build/update -->\n${t}` });
+    expect(failures("update", html).email).toBeDefined();
+    const txt = mutated("update", { [`${B}/updates/2026-11-13.txt`]: (t) => `---\now_artefact: ow-build/update\n---\n${t}` });
+    expect(failures("update", txt).email).toBeDefined();
+  });
+
   it("weekly update: a sentence with no trace row, a commit from outside the week, a note that does not exist", () => {
     const run = mutated("update", {
       ...both(`${B}/updates/2026-11-13`, (t) => t.replace("as the plan says.", "as the plan says. The warehouse loved it.")),
@@ -643,10 +719,10 @@ describe("the skill text keeps the rules the checker cannot see", () => {
     expect(checkProtocolCopies(loadCatalogs({ root: ROOT }))).toEqual([]);
   });
 
-  it("frontmatter: Agent Skills keys only, version 1.0.0, protocol 1, every verb declared", () => {
+  it("frontmatter: Agent Skills keys only, version 1.0.1, protocol 1, every verb declared", () => {
     const { data } = matter(readFileSync(join(SKILL, "SKILL.md"), "utf8"));
     expect(Object.keys(data).sort()).toEqual(["compatibility", "description", "license", "metadata", "name"]);
-    expect(data.metadata.version).toBe("1.0.0");
+    expect(data.metadata.version).toBe("1.0.1");
     expect(data.metadata.protocol).toBe("1");
     expect(data.metadata.commands.split(" ")).toEqual(["/ow-build", "/ow-build-start", "/ow-build-run", "/ow-build-update", "/ow-build-demo", "/ow-build-change", "/ow-build-invoice", "/ow-build-ready"]);
   });

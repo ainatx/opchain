@@ -135,7 +135,7 @@ Any other path: say it is not a file this skill takes over, list the kinds above
 
 ## 5. Screens: the words every verb uses
 
-These words are prescribed; the acceptance checker grades screens on them and on structure (ids, paths, dates, NEXT lines), never on free wording. The step-0 echo (the quoted `STATUS.md` lines, each starting `> `) comes first and is exempt.
+These words are prescribed; the acceptance checker grades screens on them and on structure (ids, paths, dates, NEXT lines), never on free wording. The step-0 echo (the quoted `STATUS.md` lines, each starting `> `) comes first and is exempt. When step 0 reads a stored `handling: "no"`, print exactly `Handling: no sensitivity marking or processing rule is recorded.` on its own line after that echo, before the verb screen. Do not append extra commentary to that notice. Status/resume-only routes that read no client material skip it as the protocol specifies. Keep scenario, tool-verification and pending-action details in the working records; they are not extra screen paragraphs.
 
 - **A verb that writes** prints `DONE: <what> -> handoffs/<client>/<file>`, then exactly one self-check line (`references/self-checks.md` §1), then its NEXT block, every line of it: the slash hint, `It will read:`, the `[no folder attached: …]` line and `IF IT IS NOT AVAILABLE:`.
 - **A resumed run** prints `Resuming: <verb and mode> at step <step>; recorded: <steps>.` before its first step, then the screen of a verb that writes.

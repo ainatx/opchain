@@ -51,3 +51,19 @@ node scripts/ow-research-acceptance.mjs run-approved /path/to/empty-folder
 ```
 
 With no arguments, the script checks every golden run (the same thing `tests/ow-research-acceptance.test.js` does in `npm test`, under the ow-tools network fence). `tests/ow-research-plants.test.js` holds the planted failures; every plant from every evaluation round stays there.
+
+## Blind recorded-source exercises
+
+Give a fresh writer the scenario date, actual available commands and the recorded
+adapter's query/result/URL mapping before generation, without answer keys, expected
+outputs or prior captures. For a recorded web exercise the adapter returns these
+invented pages locally. Keep the protocol's `opened: page` and host-page quote label
+when emulating that interface, and disclose in the outside capture notes that no
+network request occurred and no real web freshness was established. This disclaimer
+is part of the evidence; the canonical field shape is not a live-web claim.
+
+Event clocks stay truthful: a simulated as-of date supplies no time of day; use
+`--:--` unless a complete event timestamp is supplied or actually measured. Freeze
+the run before grading, preserve initial errors and outside notes, and never edit a
+capture after a key is revealed. A fixture/model pass is not a real customer job
+or installed-host activation proof.

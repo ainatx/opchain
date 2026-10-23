@@ -45,7 +45,9 @@ const EDGES = join(SKILL, "skill.edges.yaml");
 const OW = "opchain-work/";
 const CLOCKS = /^(tool|host-supplied|user-stated|assumed)$/;
 const TEXT = /\.(md|ya?ml|txt|json|csv|log|html)$/;
-export const VERSION = "1.0.0";
+// Preserve historical captures while accepting the current protocol clarification.
+const VERSIONS = ["1.0.0", "1.0.1"];
+export const VERSION = VERSIONS.at(-1);
 export const PROTOCOL_NOTE = "This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.";
 export const SELF_CHECK_PREFIX = "Self-checks (same-session self-check, not an independent review):";
 export const DIGEST_NOTE = "detects accidental change only; not tamper-evidence";
@@ -1465,7 +1467,7 @@ function checkHeaders(key, run) {
     let data;
     try { data = f.endsWith(".yaml") ? yml(run, f) : md(run, f).data; } catch (e) { p.push(reason(e)); continue; }
     if (!/^ow-draft\/[a-z-]+$/.test(String(data.ow_artefact ?? ""))) p.push(`${f}: ow_artefact is ${data.ow_artefact ?? "missing"}, not ow-draft/<name>`);
-    if (String(data.written_by ?? "") !== `ow-draft ${VERSION} (protocol 1)`) p.push(`${f}: written_by is "${data.written_by ?? ""}", not "ow-draft ${VERSION} (protocol 1)"`);
+    if (!VERSIONS.some((v) => data.written_by === `ow-draft ${v} (protocol 1)`)) p.push(`${f}: written_by is "${data.written_by ?? ""}", not a supported ow-draft version (${VERSIONS.join(", ")}) with protocol 1`);
     if (data.schema !== 1) p.push(`${f}: schema is ${data.schema}`);
     if (!CLOCKS.test(String(data.clock ?? ""))) p.push(`${f}: clock is "${data.clock ?? ""}"`);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(iso(data.created) ?? "")) p.push(`${f}: created is not a date`);
@@ -1551,7 +1553,7 @@ function checkStatus(key, run) {
     const m = l.match(STATUS_LINE);
     if (!m) { p.push(`STATUS.md: "${l.slice(0, 80)}" is not the protocol's form`); return; }
     if (m[1] !== iso(key.today)) p.push(`STATUS.md: dated ${m[1]}, not ${iso(key.today)}`);
-    if (m[3] !== VERSION) p.push(`STATUS.md: ow-draft ${m[3]}`);
+    if (!VERSIONS.includes(m[3])) p.push(`STATUS.md: unsupported ow-draft ${m[3]}`);
     if (/ --[a-z]/.test(m[5])) p.push(`STATUS.md: next: carries a mode (protocol §5)`);
     const w = want[i];
     if (!w) return;

@@ -2,6 +2,12 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
+## 1.0.1 (unreleased)
+
+Clarify the shared protocol: client-ready HTML/TXT email twins carry no internal artefact header; their companion record holds provenance. Preserve visible handling banners and print the complete NEXT guidance, including attachment fallback.
+
+Clarify the exact stored-no handling notice, same-line command citations, written-out date alternatives and the bounded source-cited generated-output directory rule. Distinguish structural text checks from native PDF/DOCX content and visual review. Data/checker fixes accept valid JSON-as-YAML embedded arrays and inspect email prose without mistaking CSS for financial text; credential checks still inspect raw HTML. The executable fixture documents the actual preparer test invocation. Frozen earlier captures remain unchanged.
+
 ## 1.0.0 (2026-10-21): the handoff, the fix window and access removal
 
 Design: `docs/plans/2026-10-08-ow-handoff-design.md` (decisions 1 to 9; its build notes record every ruling and departure). Contract: `sprints/release-2.1/ow-06/contract.md`.

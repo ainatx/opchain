@@ -93,8 +93,8 @@ const PLAN_WORKSPACE = join(ROOT, "tests", "fixtures", "ow-build-plan", "workspa
 const OW = "opchain-work/";
 const CLOCKS = /^(tool|host-supplied|user-stated|assumed)$/;
 const TEXT = /\.(md|ya?ml|txt|json|csv|html?)$/i;
-/** The released versions a run may have been written by: 1.0.0 (its goldens keep it), 1.0.1 (the OW-09 follow-ups) and 1.0.2 (OW-11 de-scoped). */
-const VERSIONS = ["ow-research 1.0.0", "ow-research 1.0.1", "ow-research 1.0.2"];
+/** Preserve historical captures while accepting the current 1.0.3 contract clarification. */
+const VERSIONS = ["ow-research 1.0.0", "ow-research 1.0.1", "ow-research 1.0.2", "ow-research 1.0.3"];
 const VERSION = `${VERSIONS.at(-1)} (protocol 1)`;
 const SAME_SESSION = "same-session self-check: the same assistant that wrote these files, applying a checklist; a discipline, not an independent review";
 export const CAPS = { quick: 5, standard: 15, deep: 40 };
@@ -395,24 +395,78 @@ export function headingsOf(content) {
  * 40 words in a row of a page are 40 words of that page. A Suspicious content line's source is the one it names; a
  * run of `  - "…"` lines sits in one source's block.
  */
-export function overlapSegments(text) {
+function overlapParts(text) {
   const rest = [], quotes = [];
-  let open = null; // { source, words } of the quote span being built
+  let open = null, at = 0;
   for (const line of String(text).split("\n")) {
+    const start = at;
+    at += line.length + 1;
     const s = line.match(SUSPICIOUS_LINE);
     const q = !s && line.match(/^\s*-\s+(?:watched passage:\s*)?"([^"]*)"/);
     if (s || q) {
       const source = s ? `suspicious ${s[2]}` : "block";
       const quote = s ? s[1] : q[1];
-      if (open && open.source === source) open.text += ` ${quote}`;
-      else { if (open) quotes.push(open.text); open = { source, text: quote }; }
+      const part = { text: quote, start: start + line.indexOf('"') + 1 };
+      if (open && open.source === source) open.parts.push(part);
+      else { if (open) quotes.push(open.parts); open = { source, parts: [part] }; }
     } else {
-      if (open) { quotes.push(open.text); open = null; }
-      rest.push(line);
+      // Blank lines and Markdown separators do not break consecutive quoted source words.
+      if (open && (!line.trim() || /^\s*(?:---+|\*\*\*+)\s*$/.test(line))) continue;
+      if (open) { quotes.push(open.parts); open = null; }
+      rest.push({ text: line, start });
     }
   }
-  if (open) quotes.push(open.text);
-  return [rest.join("\n"), ...quotes];
+  if (open) quotes.push(open.parts);
+  return [rest, ...quotes];
+}
+export function overlapSegments(text) {
+  return overlapParts(text).map((parts, i) => parts.map((part) => part.text).join(i ? " " : "\n"));
+}
+
+/** Exact, ordered, non-reused predecessor spans. A second copy of a retained passage is new output. */
+function retainedRanges(before, after) {
+  const lines = (text) => [...text.matchAll(/[^\n]*\n|[^\n]+$/g)].map((m) => ({ text: m[0], start: m.index, end: m.index + m[0].length }));
+  const a = lines(before), b = lines(after), width = b.length + 1;
+  // Files outside ordinary research-note sizes get the conservative exact-prefix exemption only.
+  if (a.length * b.length > 1_000_000) {
+    let i = 0;
+    while (i < a.length && i < b.length && a[i].text === b[i].text) i++;
+    return i ? [[0, b[i - 1].end]] : [];
+  }
+  const lengths = new Uint32Array((a.length + 1) * width);
+  for (let i = a.length - 1; i >= 0; i--) for (let j = b.length - 1; j >= 0; j--)
+    lengths[i * width + j] = a[i].text === b[j].text ? 1 + lengths[(i + 1) * width + j + 1] : Math.max(lengths[(i + 1) * width + j], lengths[i * width + j + 1]);
+  const anchors = [];
+  let i = 0, j = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i].text === b[j].text) {
+      anchors.push({ old: a[i].start, now: b[j].start, length: a[i].text.length });
+      i++; j++;
+    } else if (lengths[(i + 1) * width + j] > lengths[i * width + j + 1]) i++;
+    else j++;
+  }
+  // Within edited lines, retain only the exact common prefix/suffix; whole-line matching must
+  // not call the unchanged start of `runs: [R-1, R-2]` new merely because R-2 was appended.
+  const spans = [];
+  const add = (old, now, length) => {
+    if (!length) return;
+    const last = spans.at(-1);
+    if (last && last.old + last.length === old && last.now + last.length === now) last.length += length;
+    else spans.push({ old, now, length });
+  };
+  let oldAt = 0, nowAt = 0;
+  for (const anchor of [...anchors, { old: before.length, now: after.length, length: 0 }]) {
+    const oldGap = before.slice(oldAt, anchor.old), nowGap = after.slice(nowAt, anchor.now);
+    let prefix = 0, suffix = 0;
+    while (prefix < oldGap.length && prefix < nowGap.length && oldGap[prefix] === nowGap[prefix]) prefix++;
+    while (suffix < oldGap.length - prefix && suffix < nowGap.length - prefix && oldGap.at(-1 - suffix) === nowGap.at(-1 - suffix)) suffix++;
+    add(oldAt, nowAt, prefix);
+    add(anchor.old - suffix, anchor.now - suffix, suffix);
+    add(anchor.old, anchor.now, anchor.length);
+    oldAt = anchor.old + anchor.length;
+    nowAt = anchor.now + anchor.length;
+  }
+  return spans.map(({ now, length }) => [now, now + length]);
 }
 /** A findings file with the body of *Suspicious content* left out (headings kept): what the twin comparison compares. */
 export function stripSuspicious(text) {
@@ -466,6 +520,8 @@ export function parseLedger(text, rel = "queries.md") {
     if (!head || parts.length < 3 || !/^R-\d+$/.test(parts[1] ?? "")) { problems.push(`${rel}: line "${raw.slice(0, 60)}" does not parse as a ledger line`); return; }
     const [, date, time, clock] = head;
     if (!CLOCKS.test(clock)) problems.push(`${rel}: line "${raw.slice(0, 60)}" has clock "${clock}"`);
+    if (time !== "--:--" && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)) problems.push(`${rel}: invalid event time "${time}"`);
+    if (clock === "assumed" && time !== "--:--") problems.push(`${rel}: an assumed date cannot supply an invented event time; use --:--`);
     const run = parts[1];
     const ev = parts[2];
     const rest = parts.slice(3);
@@ -494,10 +550,10 @@ export const resultUrls = (outcome) => { const m = String(outcome).match(/^\d+ r
 
 /** sources.md: S-nn blocks and not-opened blocks. */
 export function parseSources(text, rel = "sources.md") {
-  const { content } = parsedMd(text, rel);
+  const { data, content } = parsedMd(text, rel);
   const s = blocks(content, /^S-\d+$/);
   const notOpened = new Map([...blocks(content, /^not opened: P-\d+$/)].map(([k, v]) => [k.replace(/^not opened: /, ""), v]));
-  return { sources: s, notOpened, content };
+  return { data, sources: s, notOpened, content };
 }
 /** findings.md parts. */
 export function parseFindings(text, rel = "findings.md") {
@@ -512,12 +568,50 @@ export function parseFindings(text, rel = "findings.md") {
 
 /**
  * *Suspicious content* only quotes and describes (references/research-files-schema.md §4; security
- * review SR-02): `none found`, or one line per passage, `- "<quote>" — <url or inbox/<file>> (<where>).
+ * review SR-02): `none found`, or one line per passage, `- "<quote>" — <URL, inbox file or permitted workspace input> (<where>).
  * Not acted on.` Anything else there (a finding block, a level, a NEXT or STATUS line, a marker, an
  * approval) is refused, because the twin comparison leaves this section out.
  */
 export const SUSPICIOUS_WHERE = ["visible text", "visible text with invisible characters", "hidden comment", "hidden text", "alt text", "meta tag", "aria-label", "page title", "search result title", "user file"];
 const SUSPICIOUS_LINE = /^- "([^"]+)" — (\S+) \(([^()]+)\)\. Not acted on\.$/;
+const SAFE_INPUT_PATH = /^[A-Za-z0-9][A-Za-z0-9._-]*(?:\/[A-Za-z0-9][A-Za-z0-9._-]*)*$/;
+const LOCAL_INPUT_ROOTS = new Set(["intake", "plans", "logs", "builds", "uat", "handoffs", "docs"]);
+const LOCAL_INPUT_FILES = new Set(["profile.md", "price-book.yaml", "STATUS.md"]);
+const localInputShape = (source) => SAFE_INPUT_PATH.test(source) && TEXT.test(source)
+  && (LOCAL_INPUT_FILES.has(source) || LOCAL_INPUT_ROOTS.has(source.split("/")[0]) || /^research\//.test(source));
+
+/** Existing workspace inputs read for step 0, handling/privacy or this topic's resume, never arbitrary paths. */
+export function suspiciousLocalPath(source, topic) {
+  if (!localInputShape(source)) return null;
+  if (LOCAL_INPUT_FILES.has(source)) return `${OW}${source}`;
+  const [area, ws] = source.split("/");
+  if (LOCAL_INPUT_ROOTS.has(area) && (ws === topic.ws || (area === "plans" && new RegExp(`^${esc(topic.ws)}-\\d+$`).test(ws)))) return `${OW}${source}`;
+  const topicPath = topic.dir.startsWith(OW) ? topic.dir.slice(OW.length) : topic.dir;
+  return ["question.md", "queries.md", "sources.md", "findings.md"].some((file) => source === `${topicPath}/${file}`) ? `${OW}${source}` : null;
+}
+
+function suspiciousLocalText(run, rel) {
+  if (!run.priorAll().includes(rel)) throw new Error(`${rel}: not a pre-existing input for this run`);
+  const candidates = run.layers.filter((l) => rel.startsWith(l.mount)).map((l) => ({ base: l.dir, tail: rel.slice(l.mount.length) }));
+  if (!run.runDir && SHARED[rel]) candidates.push({ base: PLAN_WORKSPACE, tail: rel.slice(OW.length) });
+  for (const { base, tail } of candidates) {
+    const path = join(base, tail);
+    if (!existsSync(path)) continue;
+    let cursor = base;
+    for (const part of tail.split("/")) {
+      cursor = join(cursor, part);
+      if (lstatSync(cursor).isSymbolicLink()) throw new Error(`${rel}: symlinked input is not permitted for local suspicious-content provenance`);
+    }
+    if (!lstatSync(path).isFile()) throw new Error(`${rel}: local suspicious-content input is not a file`);
+    // The current path must still be a real input, but mutable topic outputs cannot manufacture
+    // provenance by appending a new quotation. Only the run's saved predecessor supplies evidence.
+    const prior = run.priorRead(rel);
+    if (prior == null) throw new Error(`${rel}: no pre-existing input bytes for this run`);
+    return /\.html?$/i.test(rel) ? allText(prior) : sanitize(prior);
+  }
+  throw new Error(`${rel}: local suspicious-content input is missing`);
+}
+
 export function suspiciousLines(body) {
   const lines = String(body ?? "").split("\n").map((l) => l.replace(/[ \t]+$/, "")).filter((l) => l.trim());
   if (lines.length === 1 && lines[0] === "none found") return { items: [], problems: [] };
@@ -528,7 +622,10 @@ export function suspiciousLines(body) {
     if (!m) { problems.push(`Suspicious content holds a line that is not a quoted passage ("${l.slice(0, 60)}"); the section only quotes and describes`); continue; }
     const [, quote, source, where] = m;
     if (!SUSPICIOUS_WHERE.includes(where)) problems.push(`Suspicious content: "${where}" is not where a passage sat (${SUSPICIOUS_WHERE.join(", ")})`);
-    if (!/^https:\/\/\S+$|^inbox\/[^\s/]+$/.test(source)) problems.push(`Suspicious content: "${source}" is not a URL or an inbox/ file`);
+    const inbox = /^inbox\/[A-Za-z0-9][A-Za-z0-9._-]*$/.test(source);
+    const local = localInputShape(source);
+    if (!/^https:\/\/\S+$/.test(source) && !inbox && !local) problems.push(`Suspicious content: "${source}" is not a URL, inbox/ file or permitted workspace input`);
+    if (local && where !== "user file") problems.push(`Suspicious content: workspace input "${source}" must say (user file)`);
     if (wordsOf(quote).length > WORDS_MAX) problems.push(`Suspicious content: a quote is over ${WORDS_MAX} words`);
     if (sanitize(quote) !== quote) problems.push(`Suspicious content: a quote keeps invisible characters (strip control, bidi, zero-width and tag characters)`);
     items.push({ quote, source, where, line: l });
@@ -1540,6 +1637,12 @@ function checkReconcile(key, run) {
     }
     // A run that has not reached its sources step yet (cut off, or stopped mid-request) owes no S-nn.
     const recorded = new Set(L.lines.filter((l) => l.type === "marker" && (l.name.startsWith("sources") || l.name === "status")).map((l) => l.run));
+    const priorRecorded = new Set(parseLedger(run.priorRead(L.rel) ?? "").lines.filter((l) => l.type === "marker" && (l.name.startsWith("sources") || l.name === "status")).map((l) => l.run));
+    const writers = [S.data.written_by, findingsOf(run, t)?.data.written_by].filter(Boolean);
+    const legacy = (values) => values.length > 0 && values.every((writer) => /^ow-research 1\.0\.[012] \(protocol 1\)$/.test(writer));
+    const legacyRedirects = legacy(writers);
+    const priorWriters = [S.rel, `${t.dir}/findings.md`].map((rel) => run.priorRead(rel)).filter(Boolean).map((text) => parsedMd(text).data.written_by).filter(Boolean);
+    const priorLegacyRedirects = legacy(priorWriters);
     for (const l of opened) {
       if (covered.has(l.id) || !recorded.has(l.run)) continue;
       const re = reopenOf.get(l.id);
@@ -1549,10 +1652,22 @@ function checkReconcile(key, run) {
     }
     for (const l of pages) {
       const o = outcomes.get(l.id) ?? "";
-      if (o === "opened" || /^redirected to /.test(o) || !recorded.has(l.run)) continue;
       const block = S.notOpened.get(l.id);
-      if (!block) { p.push(`${S.rel}: ${l.id} (${o || "no outcome"}) is not listed as not opened`); continue; }
+      if (o === "opened") {
+        if (block) p.push(`${S.rel}: not opened ${l.id} names an opened request`);
+        continue;
+      }
+      if (!block) {
+        if (!recorded.has(l.run)) continue;
+        // Older writers omitted redirect blocks under the ambiguous template. Do not retroactively
+        // require an append-only historical run to change; all present blocks still reconcile below.
+        if (/^redirected to /.test(o) && (legacyRedirects || (priorLegacyRedirects && priorRecorded.has(l.run)))) continue;
+        p.push(`${S.rel}: ${l.id} (${o || "no outcome"}) is not listed as not opened`);
+        continue;
+      }
       if (String(block.fields.outcome ?? "") !== o) p.push(`${S.rel}: not opened ${l.id} says "${block.fields.outcome}", the ledger "${o}"`);
+      if (block.fields.url !== l.url) p.push(`${S.rel}: not opened ${l.id}'s url ${block.fields.url} is not the ledger's ${l.url}`);
+      if (block.fields.run !== l.run) p.push(`${S.rel}: not opened ${l.id}'s run ${block.fields.run} is not the ledger's ${l.run}`);
     }
     for (const [pid] of S.notOpened) if (!pages.some((l) => l.id === pid)) p.push(`${S.rel}: not opened ${pid} is not in the ledger`);
     // The sources marker names the S ids this run appended.
@@ -1948,6 +2063,7 @@ function checkQuotes(key, run) {
   const p = [];
   const web = loadWeb(key);
   const docs = [];
+  const localDocs = new Map();
   for (const t of topicsOf(run, key)) {
     let S, F;
     try { S = sourcesOf(run, t); F = findingsOf(run, t); } catch (e) { p.push(reason(e)); continue; }
@@ -1976,8 +2092,15 @@ function checkQuotes(key, run) {
     // search result's title, or the user's file. A line the page never said is not a quote.
     for (const it of suspiciousLines(F?.suspicious).items) {
       let texts = null;
-      if (it.source.startsWith("inbox/")) { const r = run.read(`${t.dir}/${it.source}`); texts = r == null ? [] : [/\.html?$/i.test(it.source) ? allText(r) : sanitize(r)]; }
-      else if (it.where === "search result title") texts = web.titlesOf(it.source).map(sanitize);
+      if (it.source.startsWith("inbox/")) {
+        if (!/^inbox\/[A-Za-z0-9][A-Za-z0-9._-]*$/.test(it.source)) { p.push(`${F.rel}: invalid inbox provenance path`); continue; }
+        const r = run.read(`${t.dir}/${it.source}`); texts = r == null ? [] : [/\.html?$/i.test(it.source) ? allText(r) : sanitize(r)];
+      } else if (!it.source.startsWith("https://")) {
+        const rel = suspiciousLocalPath(it.source, t);
+        if (!rel) { p.push(`${F.rel}: ${it.source} is outside this topic's permitted workspace inputs`); continue; }
+        try { texts = [suspiciousLocalText(run, rel)]; localDocs.set(rel, texts[0]); }
+        catch (e) { p.push(reason(e)); continue; }
+      } else if (it.where === "search result title") texts = web.titlesOf(it.source).map(sanitize);
       else texts = web.everything(it.source);
       if (texts == null) continue; // a page outside the recorded web (a real run): the self-check's to judge
       const w = wordsOf(it.quote).join(" ");
@@ -1989,14 +2112,45 @@ function checkQuotes(key, run) {
   for (const f of run.priorAll().filter((x) => /\/inbox\/|^opchain-work\/research\/frameworks\/[^/]+\/[^/]+\//.test(x) && TEXT.test(x))) { try { const r = run.read(f); if (r) docs.push(/\.html?$/i.test(f) ? visibleText(r) : sanitize(r)); } catch { /* unreadable */ } }
   const grams = new Set();
   for (const d of docs.filter(Boolean)) { const w = wordsOf(d); for (let i = 0; i + WORDS_MAX + 1 <= w.length; i++) grams.add(w.slice(i, i + WORDS_MAX + 1).join(" ")); }
+  const localGrams = new Map();
+  for (const [rel, doc] of localDocs) {
+    const w = wordsOf(doc);
+    for (let i = 0; i + WORDS_MAX + 1 <= w.length; i++) {
+      const gram = w.slice(i, i + WORDS_MAX + 1).join(" ");
+      if (!localGrams.has(gram)) localGrams.set(gram, new Set());
+      localGrams.get(gram).add(rel);
+    }
+  }
   for (const f of run.written()) {
-    // Each quoted line is its own span, already held to 25 words, and a Suspicious content line's own scaffolding
-    // ("— <source> (<where>). Not acted on.") is not the page's: so a page written in that line form cannot make a
-    // faithful run look like a stored page (security re-check R2-07).
-    for (const seg of overlapSegments(run.read(f) ?? "")) {
-      const w = wordsOf(seg);
+    const text = run.read(f) ?? "";
+    const retained = localDocs.has(f) ? retainedRanges(run.priorRead(f) ?? "", text) : [];
+    // Adjacent source quotations share a span, including across blank lines and Markdown separators.
+    // Suspicious-content attribution ("— <source> (<where>). Not acted on.") is not source text;
+    // exclude that scaffolding so faithful warnings do not look like stored pages (security re-check R2-07).
+    for (const parts of overlapParts(text)) {
+      const tokens = parts.flatMap((part) => [...part.text.matchAll(/[\p{L}\p{N}]+/gu)].map((m) => ({ word: m[0].toLowerCase(), start: part.start + m.index, end: part.start + m.index + m[0].length })));
+      const w = tokens.map((token) => token.word);
       let hit = false;
-      for (let i = 0; i + WORDS_MAX + 1 <= w.length; i++) if (grams.has(w.slice(i, i + WORDS_MAX + 1).join(" "))) { p.push(`${f}: holds more than 25 words in a row from a page or user file ("${w.slice(i, i + 8).join(" ")} …"); no page is stored whole`); hit = true; break; }
+      for (let i = 0; i + WORDS_MAX + 1 <= w.length; i++) {
+        const gram = w.slice(i, i + WORDS_MAX + 1).join(" ");
+        const locals = localGrams.get(gram);
+        if (!grams.has(gram) && ![...locals ?? []].some((rel) => rel !== f)) continue;
+        p.push(`${f}: holds more than 25 words in a row from a page or user file ("${w.slice(i, i + 8).join(" ")} …"); no page is stored whole`);
+        hit = true;
+        break;
+      }
+      // Retained bytes are not new copying from this same file. Check all fresh words together:
+      // duplicates still fail, as do copies split around inherited spans. Keeping source identity
+      // above ensures this exemption never applies to a web page or a different local source.
+      if (!hit && localDocs.has(f)) {
+        const fresh = tokens.filter((token) => !retained.some(([start, end]) => start <= token.start && end >= token.end)).map((token) => token.word);
+        for (let i = 0; i + WORDS_MAX + 1 <= fresh.length; i++) {
+          if (!localGrams.get(fresh.slice(i, i + WORDS_MAX + 1).join(" "))?.has(f)) continue;
+          p.push(`${f}: holds more than 25 words in a row from a page or user file ("${fresh.slice(i, i + 8).join(" ")} …"); no page is stored whole`);
+          hit = true;
+          break;
+        }
+      }
       if (hit) break;
     }
   }

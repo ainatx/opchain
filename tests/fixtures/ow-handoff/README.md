@@ -27,8 +27,46 @@ A case's starting state is layered, newest first: its own `input/` and `session/
 
 ## Checking a real run
 
+For a **fresh successful-package exercise**, use the executable preparer:
+
 ```bash
-node scripts/ow-handoff-acceptance.mjs --prepare package /path/to/empty-folder
+node scripts/prepare-ow-handoff-package.mjs prepare /path/to/new-workspace
+```
+
+The destination must not exist. This layers the `package/input/` executable
+repository over the historical documentary fixtures, creates isolated synthetic
+Git history, runs its six dependency-free tests, and writes an external
+`/path/to/new-workspace.preparation.json` receipt with actual outputs and hashes.
+No `.git` directory or credential-shaped string is committed in these fixtures.
+The two synthetic commits change an unset configuration name to an environment
+lookup without planting a credential; a fresh scanner must return its own result.
+The source-checkout ow-tools probe is not installed-host or public distribution
+proof. Separate planted-credential refusal fixtures remain intact.
+
+Give a blind writer `package/scenario.md`, the prepared workspace and the
+published skill. The user-stated scenario date is **2027-02-17** and the planned
+send date is **2027-02-24**, separately; the receipt's execution time is actual.
+Do not expose keys or expected outputs. Keep harness notes outside the workspace.
+The fixture's local deployment commands are an offline demonstration, not an
+implementation or acceptance of the full fictional customer's system.
+
+After freezing the raw capture, grade a disposable projection:
+
+```bash
+node scripts/prepare-ow-handoff-package.mjs grade /path/to/new-workspace /path/to/new-workspace.preparation.json /path/to/new-projection
+```
+
+The helper verifies every repository input is unchanged and excludes only its
+unchanged `.git` bytes, which the text grader otherwise counts as model writes.
+It records raw/projected hashes and every exclusion in an external manifest;
+all other model output remains subject to the existing grader. The raw capture
+is never edited. These preparer tests and goldens remain harness controls, not
+fresh model acceptance or a real customer job. Refusal cases are unchanged.
+
+For the other documentary cases, the original layout command remains:
+
+```bash
+node scripts/ow-handoff-acceptance.mjs --prepare <case> /path/to/empty-folder
 ```
 
 Attach the folder in a session where ow-handoff is installed and run the verb the answer key's `verbs` name, saying what the case's `session/` files say. Save the screen as `printed.md` at the top of the folder. Then:

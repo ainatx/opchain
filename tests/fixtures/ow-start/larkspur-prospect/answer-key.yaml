@@ -12,7 +12,7 @@ checks: [headers, facts, contradictions, speaker_rule, embedded_instructions, co
 
 # Planted facts: each must be extracted with this confidence, speaker and time.
 facts:
-  - { field: trigger, value: "contractor chain|biggest customer", confidence: MEDIUM, by: client, at: "00:33" }
+  - { field: trigger, value: "contractor chain|(?:biggest|largest) customer", confidence: MEDIUM, by: client, at: "00:33" }
   - { field: timeline, value: "march", confidence: MEDIUM, by: client, at: "01:09" }
   - { field: current_process, value: "quickbooks", confidence: MEDIUM, by: client, at: "02:49" }
   - { field: pain, value: "1,800|eighteen hundred|three pallets", confidence: MEDIUM, by: client, at: "03:46" }
@@ -20,7 +20,7 @@ facts:
   - { field: data_condition, value: "lc-1204|formats|several|ways", confidence: HIGH, by: file }
   - { field: data_condition, value: "monday", confidence: MEDIUM, by: client, at: "04:15" }
   - { field: regime, value: "sales tax|no rule", confidence: MEDIUM, by: client, at: "10:25" }
-  - { field: success, value: "same day", confidence: MEDIUM, by: client, at: "13:58" }
+  - { field: success, value: "same day|on the day (?:it|the order) arrives", confidence: MEDIUM, by: client, at: "13:58" }
   - { field: decision, value: "owner", confidence: MEDIUM, by: client, at: "14:47" }
   - { field: budget, value: "unknown", confidence: UNKNOWN }
   - { field: next_step, value: "copy|copied", confidence: MEDIUM, by: client, at: "18:51" }
@@ -55,6 +55,18 @@ coverage:
 recap:
   # pain.2 is LOW (interviewer-led); it must not reach Today.
   not_in_today: ["morning"]
+  # Artifact/access topics for the reusable request grammar; every requested
+  # object must match a topic and a cited known fact. These are not sentences
+  # copied from a model run. Support entries are alternatives for that object.
+  known_request_topics:
+    - object: "(?:product[- ]codes?|SKUs?)(?: (?:references?|examples?|samples?|lists?))?|(?:examples?|samples?|references?|lists?) (?:of|for) (?:product[- ]codes?|SKUs?|corrected codes?)|corrected codes?"
+      support: [{ field: data_condition, value: "SKU|codes?" }]
+    - object: "(?:(?:examples?|samples?) of )?(?:(?:incoming|recent) )?(?:purchase )?orders(?: as they arrived)?"
+      support: [{ fields: [current_process, data_condition], value: "order|PDF|SKU|codes?" }]
+    - object: "QuickBooks(?: Online)? (?:examples?|samples?|exports?|records?)"
+      support: [{ fields: [systems, current_process, promised_by_user], value: "QuickBooks" }]
+    - object: "access to QuickBooks(?: Online)?"
+      support: [{ field: systems, value: "QuickBooks" }]
 
 path: { id: build-plan-2, kind: build-plan, systems: "2" }
 due: { call_date: 2026-10-06, send_by: 2026-10-07 }

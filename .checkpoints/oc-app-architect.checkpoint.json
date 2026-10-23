@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-10-23T01:42:21.314Z",
+  "updated_at": "2026-10-23T05:53:35.089Z",
   "phase": "build",
-  "step": "release-2.1-codex-completion",
+  "step": "rel-02-contract-corrections",
   "status": "in_progress",
-  "progress_summary": "OW-06 landed through #648 after accepted evaluation and green exact-head CI. The consolidated release-preparation candidate passes all strict code gates and is being preserved in a draft PR; eight-skill scope and held website candidate remain intact. Model acceptance, owner real jobs, public pin/install, model setup and October 27 observation verdicts still prevent the final release cut. No synthetic exercise is counted as real use.",
+  "progress_summary": "Continuing draft PR #652 from clean b29e3731; all four remote jobs passed for that base. Current JEV Codex install verified: 36 skill definitions match the prepared checkout. Intake, build, research and executable handoff-fixture corrections are in progress under the October 23 contract; no frozen captures are rewritten. Final release conditions remain open.",
   "progress_table": [
     {
       "id": "v20-spec",
@@ -228,9 +228,9 @@
   },
   "blockers": [],
   "next_actions": [
-    "Land reviewed OW-06 after required CI; verify shared approval grammar and close-check fixes.",
-    "Complete eight-skill distribution and work-site pages with independent validation.",
-    "Complete actual model/owner acceptance and record EN-01/EN-02 verdicts before the release cut."
+    "Complete and independently review the REL-02 contract and fixture corrections",
+    "Run fresh blind model exercises and preserve raw failures before grading",
+    "Complete real-use, public installation/model setup and October 27 evidence before release"
   ],
   "skill_state": {
     "feature": {
@@ -667,5 +667,5 @@
       "action": "Quick-feature: v2.0 asset hotfix (favicon, fallback OG card, architecture shade) on claude/v2-asset-hotfix after v2.0.0 shipped without it"
     }
   ],
-  "record_updated_at": "2026-10-23T01:42:21.314Z"
+  "record_updated_at": "2026-10-23T05:53:35.089Z"
 }

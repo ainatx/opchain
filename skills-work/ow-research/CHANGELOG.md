@@ -2,6 +2,14 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). The family's v2.1.0 release entry cites each skill's version. Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
+## 1.0.3 (2026-10-23): truthful provenance and complete output contracts
+
+- Suspicious instructions from required local inputs retain their actual workspace path within the existing seven-section findings schema. Provenance is scoped to pre-existing relevant inputs; traversal, unrelated workstreams, symlinks, fabricated files and relabeling as inbox content are refused.
+- The per-quote and three-quote limits now state the consecutive-source-span rule alongside them: adjacent quotations cannot recreate more than 25 consecutive source words. Separate noncontiguous passages may total more than 25 words.
+- Ledger dates and times name their actual evidence; a date-only input uses `--:--`, never an invented event time. Recorded-source exercises remain disclosed simulations, with no claim of live web access. Prior ledger/source entries stay append-only.
+- NEXT blocks explicitly retain their attachment guidance and unavailable-skill fallback. The shared protocol also clarifies that client HTML/TXT emails use their template's headerless format while working records retain artefact metadata; this research skill writes no client email.
+- Regression checks retain historical skill versions and frozen captures. These corrections require fresh independent acceptance; they do not turn an earlier failed run into a pass.
+
 ## 1.0.2 (2026-10-22): ow-vendor-eval moves to v2.2
 
 Owner decision of 2026-10-22: ow-vendor-eval leaves v2.1.0 for v2.2, handled the way ow-currency was on 2026-10-19.
