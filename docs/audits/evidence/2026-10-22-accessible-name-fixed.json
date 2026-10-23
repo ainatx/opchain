@@ -1,0 +1,161 @@
+[
+  {
+    "path": "/",
+    "rows": [
+      {
+        "role": "link",
+        "name": "opchain 2.0 home",
+        "visible": "opchain 2.0",
+        "href": "/",
+        "tabIndex": 0,
+        "tag": "A",
+        "includesVisible": true
+      },
+      {
+        "role": "link",
+        "name": "V2.0 · SHIPPED Update once · remember lessons · test better ways to work V2.1 · NEXT client-work planning + enforcement",
+        "visible": "V2.0 · SHIPPED Update once · remember lessons · test better ways to work V2.1 · NEXT client-work planning + enforcement ›",
+        "href": "/changelog#v2-0",
+        "tabIndex": 0,
+        "tag": "A",
+        "includesVisible": false
+      }
+    ],
+    "focus": {
+      "focused": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "2px",
+      "outlineColor": "rgb(43, 225, 121)"
+    }
+  },
+  {
+    "path": "/skills",
+    "rows": [
+      {
+        "role": "link",
+        "name": "V2.0 · SHIPPED Update, remember and improve · oc-update · oc-hindsight · oc-evolve SEE WHAT CHANGED →",
+        "visible": "V2.0 · SHIPPED Update, remember and improve · oc-update · oc-hindsight · oc-evolve SEE WHAT CHANGED →",
+        "href": "/changelog#v2-0",
+        "tabIndex": 0,
+        "tag": "A",
+        "includesVisible": true
+      }
+    ],
+    "focus": {
+      "focused": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "2px",
+      "outlineColor": "rgb(43, 225, 121)"
+    }
+  },
+  {
+    "path": "/architecture",
+    "rows": [
+      {
+        "role": "link",
+        "name": "v1.5 · 36 packs →",
+        "visible": "v1.5 · 36 packs →",
+        "href": "/coverage",
+        "tabIndex": 0,
+        "tag": "A",
+        "includesVisible": true
+      },
+      {
+        "role": "link",
+        "name": "oc-cost-ops Specialist · /oc-cost $ attribution · budget gates · tier routing CP ORC NEW v1.6 · gated",
+        "visible": "oc-cost-ops Specialist · /oc-cost $ attribution · budget gates · tier routing CP ORC NEW v1.6 · gated",
+        "href": "/skills/oc-cost-ops",
+        "tabIndex": 0,
+        "tag": "A",
+        "includesVisible": true
+      },
+      {
+        "role": "link",
+        "name": "oc-telemetry-ops Specialist · /oc-telemetry · default OFF opt-in local usage metering · anonymized CP ORC NEW v1.6 · gated",
+        "visible": "oc-telemetry-ops Specialist · /oc-telemetry · default OFF opt-in local usage metering · anonymized CP ORC NEW v1.6 · gated",
+        "href": "/skills/oc-telemetry-ops",
+        "tabIndex": 0,
+        "tag": "A",
+        "includesVisible": true
+      },
+      {
+        "role": "link",
+        "name": "oc-docs-forge Specialist · /oc-docs · pre-PR & release docs packet · README · changelog · ADR · PR body CP ORC NEW v1.8",
+        "visible": "oc-docs-forge Specialist · /oc-docs · pre-PR & release docs packet · README · changelog · ADR · PR body CP ORC NEW v1.8",
+        "href": "/skills/oc-docs-forge",
+        "tabIndex": 0,
+        "tag": "A",
+        "includesVisible": true
+      },
+      {
+        "role": "link",
+        "name": "oc-repo-ops Specialist · /oc-repo · PR-readiness gate repo hygiene · generated-file & catalog drift · .gitignore CP ORC NEW v1.8",
+        "visible": "oc-repo-ops Specialist · /oc-repo · PR-readiness gate repo hygiene · generated-file & catalog drift · .gitignore CP ORC NEW v1.8",
+        "href": "/skills/oc-repo-ops",
+        "tabIndex": 0,
+        "tag": "A",
+        "includesVisible": true
+      },
+      {
+        "role": "link",
+        "name": "oc-qa-ops Specialist · /oc-qa · plan + build test pyramid · coverage budgets · contract matrix · load plans → .opchain/qa.yaml CP ORC NEW v1.9",
+        "visible": "oc-qa-ops Specialist · /oc-qa · plan + build test pyramid · coverage budgets · contract matrix · load plans → .opchain/qa.yaml CP ORC NEW v1.9",
+        "href": "/skills/oc-qa-ops",
+        "tabIndex": 0,
+        "tag": "A",
+        "includesVisible": true
+      },
+      {
+        "role": "link",
+        "name": "oc-data-ops Tri-agent · /oc-data-ops · Designer / Builder / Contract-Verifier ingestion · transform layers · dbt · data contracts (freshness · volume · schema) CP ORC NEW v1.9",
+        "visible": "oc-data-ops Tri-agent · /oc-data-ops · Designer / Builder / Contract-Verifier ingestion · transform layers · dbt · data contracts (freshness · volume · schema) CP ORC NEW v1.9",
+        "href": "/skills/oc-data-ops",
+        "tabIndex": 0,
+        "tag": "A",
+        "includesVisible": true
+      },
+      {
+        "role": "link",
+        "name": "oc-compliance-ops Standing operator · /oc-comply · inert without .opchain/compliance.yaml control register · evidence bundles · policy scaffolds · readiness, not certification CP ORC NEW v1.9",
+        "visible": "oc-compliance-ops Standing operator · /oc-comply · inert without .opchain/compliance.yaml control register · evidence bundles · policy scaffolds · readiness, not certification CP ORC NEW v1.9",
+        "href": "/skills/oc-compliance-ops",
+        "tabIndex": 0,
+        "tag": "A",
+        "includesVisible": true
+      },
+      {
+        "role": "link",
+        "name": "oc-security-hardening Remediation operator · /oc-harden · executes what oc-security-auditor assesses headers · staged CSP · TLS/WAF/rate limits · .opchain/hardening.yaml + per-deploy verify CP ORC NEW v1.9",
+        "visible": "oc-security-hardening Remediation operator · /oc-harden · executes what oc-security-auditor assesses headers · staged CSP · TLS/WAF/rate limits · .opchain/hardening.yaml + per-deploy verify CP ORC NEW v1.9",
+        "href": "/skills/oc-security-hardening",
+        "tabIndex": 0,
+        "tag": "A",
+        "includesVisible": true
+      },
+      {
+        "role": "link",
+        "name": "oc-hindsight Tri-agent · /oc-hindsight · in the v2.0 review recorded outcomes → source cited lessons → external approval → retrieval NEW v2.0",
+        "visible": "oc-hindsight Tri-agent · /oc-hindsight · in the v2.0 review recorded outcomes → source cited lessons → external approval → retrieval NEW v2.0",
+        "href": "/changelog#v2-0",
+        "tabIndex": 0,
+        "tag": "A",
+        "includesVisible": true
+      },
+      {
+        "role": "link",
+        "name": "oc-evolve Tri-agent · /oc-evolve · in the v2.0 reflect on recurring failures → candidate rules → held-out + full-suite regress → ★ human adopt NEW v2.0",
+        "visible": "oc-evolve Tri-agent · /oc-evolve · in the v2.0 reflect on recurring failures → candidate rules → held-out + full-suite regress → ★ human adopt NEW v2.0",
+        "href": "/changelog#v2-0",
+        "tabIndex": 0,
+        "tag": "A",
+        "includesVisible": true
+      }
+    ],
+    "focus": {
+      "focused": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "1px",
+      "outlineColor": "rgb(43, 225, 121)"
+    }
+  }
+]

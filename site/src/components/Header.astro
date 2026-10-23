@@ -5,6 +5,7 @@ import ThemeToggle from "./ThemeToggle.astro";
 import SearchPalette from "./SearchPalette.astro";
 import Icon from "./Icon.astro";
 import { defaultFor } from "../lib/flags/build-defaults";
+import { LOCKUP_GENERATION } from "../lib/lockup";
 
 interface Props {
   /** Route of the current page (e.g. "/architecture"). Underlines the matching nav group. */
@@ -84,7 +85,7 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
 
 <header class="site-header">
   <div class="site-header-inner">
-    <a class="site-header-brand" href="/" aria-label="opchain home">
+    <a class="site-header-brand" href="/" aria-label={`opchain ${LOCKUP_GENERATION} home`}>
       <Logo size={28} />
       <span class="logo">opchain</span>
       <VersionBadge size="xs" class="brand-badge" />

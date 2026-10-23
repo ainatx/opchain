@@ -1,0 +1,135 @@
+[
+  {
+    "width": 375,
+    "checks": [
+      {
+        "path": "/architecture",
+        "selector": ".site-header-brand",
+        "visible": true,
+        "focus": {
+          "focused": true,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "2px"
+        },
+        "tabLeaves": true,
+        "url": "http://127.0.0.1:28865/",
+        "destination": "/"
+      },
+      {
+        "path": "/skills",
+        "selector": ".release-callout",
+        "visible": true,
+        "focus": {
+          "focused": true,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "2px"
+        },
+        "tabLeaves": true,
+        "url": "http://127.0.0.1:28865/changelog#v2-0",
+        "destination": "/changelog#v2-0"
+      },
+      {
+        "path": "/architecture",
+        "selector": ".pf-badge",
+        "visible": false,
+        "skipped": "responsive desktop-only element"
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "checks": [
+      {
+        "path": "/architecture",
+        "selector": ".site-header-brand",
+        "visible": true,
+        "focus": {
+          "focused": true,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "2px"
+        },
+        "tabLeaves": true,
+        "url": "http://127.0.0.1:28865/",
+        "destination": "/"
+      },
+      {
+        "path": "/skills",
+        "selector": ".release-callout",
+        "visible": true,
+        "focus": {
+          "focused": true,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "2px"
+        },
+        "tabLeaves": true,
+        "url": "http://127.0.0.1:28865/changelog#v2-0",
+        "destination": "/changelog#v2-0"
+      },
+      {
+        "path": "/architecture",
+        "selector": ".pf-badge",
+        "visible": true,
+        "focus": {
+          "focused": true,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "1px"
+        },
+        "tabLeaves": true,
+        "url": "http://127.0.0.1:28865/coverage",
+        "destination": "/coverage"
+      }
+    ]
+  },
+  {
+    "width": 1280,
+    "checks": [
+      {
+        "path": "/architecture",
+        "selector": ".site-header-brand",
+        "visible": true,
+        "focus": {
+          "focused": true,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "2px"
+        },
+        "tabLeaves": true,
+        "url": "http://127.0.0.1:28865/",
+        "destination": "/"
+      },
+      {
+        "path": "/skills",
+        "selector": ".release-callout",
+        "visible": true,
+        "focus": {
+          "focused": true,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "2px"
+        },
+        "tabLeaves": true,
+        "url": "http://127.0.0.1:28865/changelog#v2-0",
+        "destination": "/changelog#v2-0"
+      },
+      {
+        "path": "/architecture",
+        "selector": ".pf-badge",
+        "visible": true,
+        "focus": {
+          "focused": true,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "1px"
+        },
+        "tabLeaves": true,
+        "url": "http://127.0.0.1:28865/coverage",
+        "destination": "/coverage"
+      }
+    ]
+  }
+]
