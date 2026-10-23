@@ -1,0 +1,37 @@
+# INVENTED. C22: scope-formal's run cut off after mode; the resumed run starts at bidder, never repeats a
+# recorded step and asks only the questions of the steps not recorded.
+case: scope-formal--cut-mode
+ws: town-of-elmridge
+eval: VE-01-permit-system
+client: Town of Elmridge
+user: Robin
+tools: true
+section: 'C22 resume: /ow-vendor-eval-scope (formal) cut after mode'
+key: /ow-vendor-eval-scope (formal)
+world:
+  - workspace
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - mode
+  - formal
+  - conflicts
+  - self_checks
+status:
+  lines:
+    - path: vendor-eval/town-of-elmridge/VE-01-permit-system/scope.md
+      next: ow-vendor-eval /ow-vendor-eval-formal vendor-eval/town-of-elmridge/VE-01-permit-system/
+      awaiting: none
+next:
+  - use ow-vendor-eval-formal on vendor-eval/town-of-elmridge/VE-01-permit-system/
+resume:
+  from: bidder

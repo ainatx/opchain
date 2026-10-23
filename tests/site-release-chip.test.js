@@ -22,12 +22,16 @@ describe("site release chip", () => {
   });
 
   it("keeps the Skill Library release callout on the current release", () => {
-    expect(skillsPage).toContain('href="/changelog#v2-0"');
-    expect(skillsPage).toContain('aria-label="See what shipped in opchain v2.0"');
-    expect(skillsPage).toContain('<span class="release-callout-tag">v2.0 · SHIPPED</span>');
-    expect(skillsPage).toContain("Update, remember and improve");
-    expect(skillsPage).toContain("<code>oc-update</code>");
-    expect(skillsPage).toContain("<code>oc-evolve</code>");
+    const callout = skillsPage.match(/<a\b(?=[^>]*class="release-callout")([^>]*)>([\s\S]*?)<\/a>/);
+    expect(callout).not.toBeNull();
+    expect(callout[1]).toContain('href="/changelog#v2-0"');
+    // The link's visible release text supplies its accessible name. A shorter
+    // override breaks voice-control matching (covered by the browser Axe suite).
+    expect(callout[1]).not.toMatch(/aria-(?:label|labelledby)\s*=/);
+    expect(callout[2]).toContain('<span class="release-callout-tag">v2.0 · SHIPPED</span>');
+    expect(callout[2]).toContain("Update, remember and improve");
+    expect(callout[2]).toContain("<code>oc-update</code>");
+    expect(callout[2]).toContain("<code>oc-evolve</code>");
   });
 
   // The release-version location map lives in a shipped skill doc

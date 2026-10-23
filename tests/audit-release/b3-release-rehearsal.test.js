@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { copyFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { collectDeployDiff } from "../../.github/scripts/cloudflare-monitor.mjs";
+import { copyReleaseGateFixture } from "./release-fixture.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const RELEASE = "a".repeat(40);
@@ -20,17 +21,14 @@ function disposableUntaggedClone() {
   const repo = join(fixture, "repo");
   const clone = command("git", ["clone", "--no-local", "--no-tags", ROOT, repo], fixture);
   if (clone.status !== 0) throw new Error(clone.stderr || "could not create release rehearsal clone");
-  // B1 is deliberately still uncommitted in this audit worktree. Carry only
-  // its owned release scripts into the disposable clone; no source checkout or
-  // release ref is changed by the rehearsal.
-  for (const file of ["scripts/release-sequence.mjs", "scripts/check-release-surfaces.mjs"]) {
-    copyFileSync(join(ROOT, file), join(repo, file));
-  }
+  // Carry the current release scripts and their dependencies into the clone;
+  // the rehearsal does not change the source checkout or its release refs.
+  const sources = copyReleaseGateFixture(repo, ["scripts/release-sequence.mjs", "scripts/check-release-surfaces.mjs"]);
   writeFileSync(join(repo, ".b3-fixture"), "disposable release rehearsal only\n");
   for (const args of [
     ["config", "user.email", "b3-fixture@example.invalid"],
     ["config", "user.name", "B3 fixture"],
-    ["add", "scripts/release-sequence.mjs", "scripts/check-release-surfaces.mjs", ".b3-fixture"],
+    ["add", ...sources, ".b3-fixture"],
     ["commit", "-m", "fixture: release rehearsal"],
   ]) {
     const result = command("git", args, repo);

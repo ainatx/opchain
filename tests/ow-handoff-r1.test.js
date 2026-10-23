@@ -160,12 +160,12 @@ describe("M1: every approval kind is graded against the session", () => {
     expect(graded("fix-hours", "I spent 3 hours on HELP-01.\n")).toEqual([]);
     expect(graded("fix-hours", "Client: Robin spent 3 hours on HELP-01.\n")).not.toEqual([]);
   });
-  it("the copied OW-10 helpers are the text at da848a24 (claude/ow-10-ow-draft); import them once that merges", () => {
+  it("the shared OW-10 helpers retain the approved decline, condition and relay rules", () => {
     expect(A.SAID_NO.source).toBe(String.raw`\b(?:no|not|never|don't|do not|doesn't|won't|will not|haven't|hasn't|hadn't|isn't|wasn't|didn't|can't|cannot|hold(?: off)?|wait|stop|skip|cancel|refused?|declined?|reject(?:ed)?|withdr[ae]w)\b`);
     expect(A.SAID_LATER.source).toBe(String.raw`\b(?:once|if|unless|later|tomorrow|next (?:week|month|time)|will|would|may|might|could|going to|soon|maybe|perhaps|pending|after I|when I)\b`);
-    expect(readFileSync(new URL("../scripts/ow-handoff-acceptance.mjs", import.meta.url), "utf8")).toMatch(/da848a24/);
+    expect(readFileSync(new URL("../scripts/ow-handoff-acceptance.mjs", import.meta.url), "utf8")).toContain('from "./lib/approval-grammar.mjs"');
     expect(A.SAID_RELAY.source).toBe(String.raw`\b(?:says|said|asks|asked|wrote|writes|told me|tells me|note|email|message|text(?:ed)?|liked)\b`);
-    expect(readFileSync(new URL("../scripts/ow-handoff-acceptance.mjs", import.meta.url), "utf8")).toMatch(/copied, not imported/);
+    expect(readFileSync(new URL("../scripts/ow-draft-acceptance.mjs", import.meta.url), "utf8")).toContain('from "./lib/approval-grammar.mjs"');
   });
 });
 

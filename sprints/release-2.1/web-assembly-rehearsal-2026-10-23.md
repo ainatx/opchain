@@ -1,0 +1,11 @@
+# Held website assembly rehearsal
+
+The active source at `b29e3731` and the held Track S website were combined in a new attached worktree, `ow-v21-assembly`. The original held tree and primary checkout were left untouched. The three-way application preserved the accessible-name repairs in Header and architecture; the work-page YAML dependency was added to the current dependency lock rather than replacing it with the older held lock.
+
+The combined website passed clean root/site installation, Astro checking (108 files, zero errors or warnings), a 95-page build, and all seven work-surface checks after the root download build. The first full browser run had 149 passes, one failure and one skip. The new checkout lacked its generated roadmap; generating it from the actual public source made the focused roadmap check pass. The consent check passed with the explicit test PostHog build settings. These are two subsequent focused passes, not a claim of 151 passes in one run.
+
+Lighthouse collected three measurements on each of nine routes; every configured budget passed. Median performance was 1.00 except `/demo` at 0.98. Median accessibility and SEO were 1.00 on all routes. Median best practices was 1.00 except `/changelog` at 0.96. Routes: `/`, `/skills`, `/skills/oc-app-architect`, `/skills/oc-release-ops`, `/architecture`, `/demo`, `/changelog`, `/work`, and `/work/ow-start`. Reports remain local under the assembly worktree's `site/.lighthouseci/`; nothing was uploaded.
+
+The release-surface check deliberately still fails: the held `/work` pages cannot be published under the current 2.0 release stamp. That guard was neither bypassed nor weakened, and no version was changed to make the rehearsal appear released. Launch posts remain drafts and the router has no live-support claim. This worktree is a prepared release assembly, not a deployable release or a replacement for the final atomic version/site cut.
+
+The contract and exporter corrections made after this base need to be copied into the assembly and its generated bundles rebuilt before the final cut. The final release still requires owner real use, public install and immutable pins, October 27 observation verdicts, current release-bound audit/hardening checks, a signed tag, staging and production verification, and a refreshed monitoring baseline.

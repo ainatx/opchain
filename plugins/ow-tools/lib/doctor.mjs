@@ -7,6 +7,7 @@ import { join } from "node:path";
 import { CALENDARS } from "./calc.mjs";
 import {
   DIARIZATION_MODEL,
+  DIARIZATION_REVISION,
   KEYCHAIN_SERVICE,
   PY_PROJECT,
   VERSION,
@@ -75,7 +76,7 @@ export function fetchCommand(env = process.env, os = platform()) {
     `HF_HOME=${q(hfHome(env))}`,
     "HF_HUB_DISABLE_TELEMETRY=1",
     `UV_PROJECT_ENVIRONMENT=${q(venvDir(env))}`,
-    `uv run --frozen --project ${q(PY_PROJECT)} python ${q(join(PY_PROJECT, "diarize.py"))} --fetch`,
+    `uv run --frozen --project ${q(PY_PROJECT)} python ${q(join(PY_PROJECT, "diarize.py"))} --fetch --model ${DIARIZATION_MODEL} --revision ${DIARIZATION_REVISION}`,
   ].join(" ");
 }
 
@@ -121,7 +122,7 @@ export function checks({ verifyModel = true, env = process.env } = {}) {
           : "3. mkdir -p ~/.config/ow-tools && (umask 077; cat > ~/.config/ow-tools/hf-token)   # paste, then Ctrl-D",
       ].join("\n"));
   }
-  add("speaker-model", ["transcribe"], cached, cached ? `${DIARIZATION_MODEL} cached; runs offline` : "not fetched",
+  add("speaker-model", ["transcribe"], cached, cached ? `${DIARIZATION_MODEL}@${DIARIZATION_REVISION} cached; runs offline` : `${DIARIZATION_MODEL}@${DIARIZATION_REVISION} not fetched`,
     `${fetchCommand(env)}   # one time; afterwards the token can be deleted`);
 
   const pd = which("pandoc", env) && versionOf("pandoc", ["--version"], /pandoc (\S+)/);

@@ -40,7 +40,7 @@
     "sync-plugin-skills": "node scripts/sync-plugin-skills.mjs",
     "sync-plugin-skills:check": "node scripts/sync-plugin-skills.mjs --check",
     "build-site": "bash scripts/build-site.sh",
-    "prebuild": "npm run gen-stack-packs && npm run gen-api-dev-adapters && npm run gen-packs-catalog && npm run gen-flags && npm run gen-catalog && npm run lint-internal-refs && npm run check-skill-flags && npm run check-skill-contracts && npm run gen-route-spec:check && npm run gen-mcp-catalog && npm run validate-pm-mcp && npm run sync-bundles:check && npm run sync-plugin-skills:check && npm run sync-docs && npm run make-zip && npm run build-update-bundle && npm run gen-og && npm run build-site",
+    "prebuild": "npm run gen-stack-packs && npm run gen-api-dev-adapters && npm run gen-packs-catalog && npm run gen-flags && npm run gen-catalog && npm run lint-internal-refs && npm run check-skill-flags && npm run check-skill-contracts && npm run gen-route-spec:check && npm run gen-mcp-catalog && npm run validate-pm-mcp && npm run sync-bundles:check && npm run sync-plugin-skills:check && npm run sync-docs && npm run make-zip && npm run make-work-zip && npm run build-update-bundle && npm run gen-og && npm run build-site",
     "pretest": "npm run gen-stack-packs && npm run gen-api-dev-adapters && npm run gen-packs-catalog && npm run gen-flags && npm run gen-catalog && npm run lint-internal-refs && npm run check-skill-flags && npm run check-skill-contracts && npm run gen-route-spec:check && npm run gen-mcp-catalog && npm run validate-pm-mcp && npm run sync-bundles:check && npm run sync-plugin-skills:check && npm run sync-docs",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -64,16 +64,17 @@
     "evidence:pr": "node scripts/lib/release-evidence.mjs --stage pr",
     "evidence:deploy": "node scripts/lib/release-evidence.mjs --stage deploy",
     "build-update-bundle": "node scripts/build-update-bundle.mjs",
-    "timesheet": "node scripts/timesheet.mjs"
+    "timesheet": "node scripts/timesheet.mjs",
+    "make-work-zip": "node scripts/make-work-skills-zip.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",
-    "js-yaml": "^5.4.2",
-    "vitest": "^5.0.3",
-    "wrangler": "^4.141.0"
+    "js-yaml": "^5.5.0",
+    "vitest": "^5.0.5",
+    "wrangler": "^4.151.0"
   },
   "dependencies": {
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "overrides": {
     "sharp": "^0.35.5"

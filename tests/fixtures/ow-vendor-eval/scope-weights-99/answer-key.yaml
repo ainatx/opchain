@@ -1,0 +1,39 @@
+# INVENTED. C6: weights that sum to 99 (ow-tools calc total says so) are asked again; the frozen scope sums to 100.
+case: scope-weights-99
+ws: business
+eval: VE-01-proposal-tool
+client: Example Studio
+user: Robin
+tools: true
+vendors:
+  - name: Harrowgate Docs
+    host: harrowgate.example
+  - name: Linnet Proposals
+    host: linnet.example
+section: C6 weights not summing to 100 (ask again)
+key: /ow-vendor-eval-scope (commercial)
+world:
+  - workspace
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - mode
+  - scope
+  - conflicts
+  - self_checks
+status:
+  lines:
+    - path: vendor-eval/business/VE-01-proposal-tool/scope.md
+      next: ow-vendor-eval /ow-vendor-eval-longlist vendor-eval/business/VE-01-proposal-tool/
+      awaiting: none
+next:
+  - use ow-vendor-eval-longlist on vendor-eval/business/VE-01-proposal-tool/

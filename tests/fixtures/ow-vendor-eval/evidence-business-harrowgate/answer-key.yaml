@@ -1,0 +1,38 @@
+# INVENTED. -evidence for Harrowgate Docs, from a vendor email.
+case: evidence-business-harrowgate
+ws: business
+eval: VE-01-proposal-tool
+client: Example Studio
+user: Robin
+tools: true
+vendors:
+  - name: Harrowgate Docs
+    host: harrowgate.example
+  - name: Linnet Proposals
+    host: linnet.example
+section: C10
+key: /ow-vendor-eval-evidence <vendor>
+vendor: harrowgate
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - evidence
+  - self_checks
+  - internal_numbers
+status:
+  lines:
+    - path: vendor-eval/business/VE-01-proposal-tool/vendors/harrowgate.md
+      next: ow-vendor-eval /ow-vendor-eval-evidence vendor-eval/business/VE-01-proposal-tool/
+      awaiting: none
+next:
+  - use ow-vendor-eval-evidence linnet on vendor-eval/business/VE-01-proposal-tool/
+base: longlist-business

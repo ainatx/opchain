@@ -34,8 +34,8 @@ describe("catalogs.json", () => {
   });
 
   it("keeps the ow- catalog out of every oc- build output, by name", () => {
-    expect(Object.keys(byId.ow.outputs).sort()).toEqual(["docs", "flagRegistry", "mcpCatalog", "mirror", "plugin", "zip"]);
-    expect(Object.values(byId.ow.outputs).every((v) => v === null)).toBe(true);
+    expect(Object.keys(byId.ow.outputs).sort()).toEqual(["docs", "flagRegistry", "mcpCatalog", "mirror", "plugin", "site", "zip"]);
+    expect(byId.ow.outputs).toMatchObject({ plugin: null, docs: null, flagRegistry: null, mcpCatalog: null, zip: "public/opchain-work-skills.zip", mirror: ".github/workflows/mirror-public.yml" });
     expect(Object.values(byId.oc.outputs).every((v) => typeof v === "string")).toBe(true);
   });
 
@@ -47,7 +47,7 @@ describe("catalogs.json", () => {
 
   it("validates both real catalogs", () => {
     expect(validateCatalog(byId.oc).length).toBeGreaterThanOrEqual(36);
-    expect(validateCatalog(byId.ow)).toEqual(["ow-build", "ow-build-plan", "ow-documentation", "ow-draft", "ow-handoff", "ow-research", "ow-start", "ow-uat"]);
+    expect(validateCatalog(byId.ow)).toEqual(["ow-build", "ow-build-plan", "ow-care", "ow-documentation", "ow-draft", "ow-handoff", "ow-research", "ow-start", "ow-uat", "ow-vendor-eval"]);
   });
 
   it("the real tree passes the protocol, verb and family checks", () => {
@@ -63,7 +63,7 @@ describe("catalogs.json", () => {
       expect(existsSync(join(ROOT, "plugins", "opchain", "skills", id))).toBe(false);
       expect(existsSync(join(ROOT, ".claude", "skills", id))).toBe(false);
     }
-    expect(readFileSync(join(ROOT, ".github", "workflows", "mirror-public.yml"), "utf8")).not.toMatch(/skills-work/);
+    expect(readFileSync(join(ROOT, ".github", "workflows", "mirror-public.yml"), "utf8")).toMatch(/cp -R skills-work/);
   });
 });
 

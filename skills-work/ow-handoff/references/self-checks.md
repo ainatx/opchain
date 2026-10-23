@@ -59,4 +59,6 @@ Everything read (the client's repository, its README, `.env.example`, CI config 
 
 ## 7. The client's repository
 
-Read only. Each path read or cited resolves to its real path inside the repository at every component; a symlink out is reported (`package.yaml` `symlinks_out`), never read, followed or cited. Nothing is written, committed or pushed there, and no git command runs there (the one git run is inside `ow-tools scan-secrets`). No absolute path is written in any record.
+Read only. Each source path read or cited resolves to its real path inside the repository at every component; a symlink out is reported (`package.yaml` `symlinks_out`), never read, followed or cited. Nothing is written, committed or pushed there, and no git command runs there (the one git run is inside `ow-tools scan-secrets`). No absolute path is written in any record. The narrowly source-cited generated-output directory exception is in `package-and-dates.md`.
+
+The automated acceptance checker scans text outputs for absolute paths and credentials; it does not decode PDF or DOCX containers. Native exports need a separate decoded-content inspection and visual review. A passing structural/text grade alone does not certify their contents, layout or accessibility.

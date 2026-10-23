@@ -73,7 +73,8 @@ Header, then one `## <start>–<end> <block name>` section per block. Under each
 
 Rules:
 - One `## <field>` section per field of the mode's bank, in bank order, even when its only fact is UNKNOWN.
-- Fact ids are `<field>.<n>`, numbered from 1. Other files cite facts by these ids.
+- In prospect mode, `systems` holds the applications and their observed structure, including sheet/export column names and system identifiers. Keep file-backed structure as its own HIGH fact with exact source cells. `data_condition` describes quality, inconsistency or cleanup; `data_records` describes retention (what is kept, how long and who requests it). A column list does not answer retention. Preserve an unanswered retention question as UNKNOWN.
+- Fact ids are `<field>.<n>`, numbered from 1. Other files cite the exact individual ids, separated by commas: `decision.1, decision.2`. Ranges (`decision.1–2`), abbreviated ids (`decision.1, 2`) and invented ids are invalid; do not compress them.
 - A quote's attribution is `client` (or `client (<role>)` when several client people spoke), the user's name, a file name with a locator, or `per <user name>'s notes`. Times are MM:SS from the start of the recording.
 - Every fact below HIGH has an open question. HIGH needs a quote from a file.
 - From notes: no times anywhere, and no confidence above MEDIUM.
@@ -116,6 +117,8 @@ Rules:
 
     overall: PASS (Ready)
 
+Coverage is per field; apply `phase-extract.md` §4 to compound questions, early answers and contradictions. A contradiction can count as an answered field while remaining unresolved and requiring a recap question.
+
 Rules: `status` is one of `answered`, `partly`, `not asked`, `answered unprompted`. A must-ask counts as answered in the score when its status is `answered` or `answered unprompted`. The recap trace has one row per recap sentence (each bullet is one sentence), in recap order; `sentence starts` quotes the sentence's first words exactly; `traces to` lists fact ids, or `offers:<path id>` for the path itself.
 
 ## `intake/<slug>/recap.md` (written by `/ow-start-extract`; the main output)
@@ -134,8 +137,9 @@ Rules: `status` is one of `answered`, `partly`, `not asked`, `answered unprompte
     send_by: <YYYY-MM-DD>
     path_id: <path id from offers.md>
     path_label: <label from offers.md>
-    path_kind: defined-work | build-plan | feasibility | not-a-fit | next-session | next-stage
+    path_kind: defined-work | build-plan | feasibility | care-takeover | not-a-fit | next-session | next-stage
     path_systems: "1" | "2" | "3+" | none
+    path_quote: <quote from offers.md> | none
     ---
     # Recap: our call on <date written out>
 
@@ -156,7 +160,7 @@ Rules: `status` is one of `answered`, `partly`, `not asked`, `answered unprompte
 
     <user name>
 
-The `path_*` keys are what the next stage reads to set its scope; copy them from the confirmed path's section in `offers.md`. Leave out `## Promised by me` when there is nothing to list.
+The `path_*` keys are what the next stage reads to set its scope; copy them from the confirmed path's section in `offers.md`. `path_quote` is that section's `quote:` line (ow-build-plan reads `vendor-eval` as a vendor-selection quick quote), or `none` when the section has no `quote:` line. Leave out `## Promised by me` when there is nothing to list.
 
 ## `STATUS.md` (append one line per run)
 

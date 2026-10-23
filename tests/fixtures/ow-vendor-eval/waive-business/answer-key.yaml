@@ -1,0 +1,42 @@
+# INVENTED. -recommend --waive No internal numbers 15%, typed in this session: the waiver names the check, the
+# figure as written, the client form's digest and the reason ("disclosure"). Only the waiver table changes;
+# then checks and export run, so the waived recommendation is exported (the --waive steps, Evaluator item 4).
+case: waive-business
+ws: business
+eval: VE-01-proposal-tool
+client: Example Studio
+user: Robin
+tools: true
+vendors:
+  - name: Harrowgate Docs
+    host: harrowgate.example
+  - name: Linnet Proposals
+    host: linnet.example
+section: C18 a per-figure waiver, then export; C19
+key: /ow-vendor-eval-recommend --waive
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - recommendation
+  - conflicts
+  - self_checks
+  - internal_numbers
+  - handoff_fields
+status:
+  lines:
+    - path: vendor-eval/business/VE-01-proposal-tool/recommendation.md
+      next: ow-vendor-eval /ow-vendor-eval-decide vendor-eval/business/VE-01-proposal-tool/
+      awaiting: none
+next:
+  - use ow-vendor-eval-decide linnet on vendor-eval/business/VE-01-proposal-tool/
+  - use ow-draft-evidence on vendor-eval/business/VE-01-proposal-tool/recommendation.md
+base: recommend-business-finding

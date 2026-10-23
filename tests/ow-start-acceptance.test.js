@@ -48,10 +48,10 @@ const seconds = (t) => t.split(":").map(Number).reduce((a, n) => a * 60 + n, 0);
 
 describe("golden runs", () => {
   it("has the four cases §10 asks for", () => {
-    expect(listCases()).toEqual(["calloway-not-a-fit", "larkspur-notes", "larkspur-prospect", "tidewell-defined-work"]);
+    expect(listCases()).toEqual(["calloway-not-a-fit", "hollowbrook-vendor-selection", "larkspur-notes", "larkspur-prospect", "tidewell-defined-work"]);
   });
 
-  for (const c of ["calloway-not-a-fit", "larkspur-notes", "larkspur-prospect", "tidewell-defined-work"]) {
+  for (const c of ["calloway-not-a-fit", "hollowbrook-vendor-selection", "larkspur-notes", "larkspur-prospect", "tidewell-defined-work"]) {
     it(`${c}: every check passes on the hand-written golden run`, () => {
       expect(failures(c)).toEqual({});
     });
@@ -113,6 +113,30 @@ describe("fixtures plant what their keys claim", () => {
 });
 
 describe("the checker catches each failure §10 names", () => {
+  it("accepts equivalent same-day wording but rejects a next-day target", () => {
+    const change = (words) => mutated("larkspur-prospect", { "intake-record.md": (t) => t.replace(
+      "- value: Every order confirmed the same day it arrives,", `- value: Every order confirmed ${words},`
+    ) });
+    expect(failures("larkspur-prospect", change("on the day it arrives")).facts).toBeUndefined();
+    for (const words of ["the next day", "on the day after it arrives", "on the following day"]) {
+      expect(failures("larkspur-prospect", change(words)).facts, words).toMatch(/success\.1: quotes .*but its value .*does not say it/);
+    }
+  });
+
+  it("system structure cannot be replaced by retention or moved into data_records", () => {
+    const misplaced = mutated("larkspur-prospect", { "intake-record.md": (t) => {
+      const block = t.match(/### systems\.1\n[\s\S]*?(?=### systems\.2)/)[0];
+      return t.replace(block, "").replace("## data_records\n", `## data_records\n${block.replace("### systems.1", "### data_records.9")}`);
+    }});
+    expect(failures("larkspur-prospect", misplaced).facts).toMatch(/systems: no fact/);
+    const retention = mutated("larkspur-prospect", { "intake-record.md": (t) => t.replace(
+      "A shared order sheet with columns for PO number, customer, SKU, quantity and ship date.",
+      "The order sheet is kept for seven years for the bookkeeper."
+    ) });
+    expect(failures("larkspur-prospect", retention).facts).toMatch(/systems: no fact/);
+    expect(failures("larkspur-prospect")).toEqual({});
+  });
+
   it("an interviewer-led answer recorded above LOW", () => {
     const run = mutated("larkspur-prospect", {
       "intake-record.md": (t) => t.replace(/(### pain\.2\n- value: [^\n]+\n)- confidence: LOW/, "$1- confidence: MEDIUM"),
@@ -305,5 +329,76 @@ describe("--prepare", () => {
     expect(readFileSync(join(work, "handoffs.yaml"), "utf8")).not.toMatch(/^\s+say:/m);
     expect(() => prepare("larkspur-prospect", dir)).toThrow(/already exists/);
     expect(existsSync(join(work, "intake", "larkspur-ceramics", "recap.md"))).toBe(false);
+    expect(readFileSync(join(dir, "session", "answers.md"), "utf8")).toMatch(/Email remains a manual receiving/);
+    expect(existsSync(join(dir, "answer-key.yaml"))).toBe(false);
+    expect(existsSync(join(dir, "expected"))).toBe(false);
+  });
+});
+
+describe("intake contract corrections after the frozen retry-3 review", () => {
+  it("accepts the supported largest-customer paraphrase without substituting quotes for the value", () => {
+    const rewrite = (value) => mutated("larkspur-prospect", {
+      "intake-record.md": (t) => t.replace(/- value: Their biggest customer, a contractor chain,[^\n]+/, `- value: ${value}`),
+    });
+    expect(failures("larkspur-prospect", rewrite("Their largest customer requires order confirmation within one business day.")).facts).toBeUndefined();
+    expect(failures("larkspur-prospect", rewrite("Their largest supplier requires order confirmation within one business day.")).facts).toMatch(/but its value/);
+  });
+
+  it.each([
+    ["data_condition", "answered", /data_condition is "answered", expected "answered unprompted"/],
+    ["volume", "partly", /volume is "partly", expected "answered"/],
+    ["decision", "answered", /decision is "answered", expected "partly"/],
+  ])("enforces the published field-level coverage policy for %s", (field, status, diagnostic) => {
+    const run = mutated("larkspur-prospect", {
+      "coverage.md": (t) => t.replace(new RegExp(`(\\| ${field} \\| [^|]+ \\| )[^|]+`), `$1${status} `),
+    });
+    expect(failures("larkspur-prospect", run).coverage).toMatch(diagnostic);
+  });
+
+  const sampleSentence = "Two or three recent purchase orders as they arrived, so I can see how the product codes come in.";
+  const sampleRow = '| What I need from you | "Two or three recent purchase orders" | current_process.1, data_condition.1 | OK |';
+  const requestRun = (sentence, ids, recordEdit) => mutated("larkspur-prospect", {
+    "recap.md": (t) => t.replace(sampleSentence, sentence),
+    "coverage.md": (t) => t.replace(sampleRow, `| What I need from you | "${sentence}" | ${ids} | OK |`),
+    ...(recordEdit ? { "intake-record.md": recordEdit } : {}),
+  });
+
+  it.each([
+    ["Could you share product-code examples?", "data_condition.1"],
+    ["Can you send some SKU samples?", "data_condition.2"],
+    ["Would you provide two or three recent purchase orders as they arrived?", "current_process.1"],
+    ["Could you give me access to QuickBooks Online?", "systems.2"],
+    ["Will you please attach some examples of product codes?", "data_condition.2"],
+    ["Can you provide us a few samples for SKUs and QuickBooks exports?", "data_condition.1, systems.2"],
+    ["Would you share recent orders, corrected codes, and QuickBooks records?", "current_process.1, data_condition.1, systems.2"],
+    ["Please grant us access to QuickBooks?", "systems.2"],
+    ["Could you share the product-code reference and examples of incoming orders and corrected codes, alongside the QuickBooks examples on the list I'll send?", "data_condition.1, promised_by_user.1"],
+  ])("allows a grounded sample/access question: %s", (sentence, ids) => {
+    expect(failures("larkspur-prospect", requestRun(sentence, ids))).toEqual({});
+  });
+
+  it.each([
+    ["Could you share product-code examples?", "trigger.1"],
+    ["Could you give me access to QuickBooks Online?", "systems.1"],
+    ["Could you share product-code examples and confirm the budget is approved?", "data_condition.1"],
+    ["Can you confirm the product codes are clean?", "data_condition.1"],
+    ["Could you send some product-code examples, and tell me the budget?", "data_condition.1"],
+    ["Would you share product-code examples because the budget is approved?", "data_condition.1"],
+    ["Can you provide product-code examples and payroll exports?", "data_condition.1"],
+    ["Can you provide QuickBooks exports and product-code examples?", "systems.2"],
+    ["Could you share the product-code reference and examples of incoming orders and corrected codes, alongside the QuickBooks examples on the list I'll send?", "data_condition.1"],
+  ])("does not waive unknown evidence for an unsupported question: %s / %s", (sentence, ids) => {
+    expect(failures("larkspur-prospect", requestRun(sentence, ids)).recap_trace).toMatch(/not a supported sample\/access request/);
+  });
+
+  it("does not ground a sample request in a LOW fact", () => {
+    const run = requestRun("Could you share product-code examples?", "data_condition.1", (t) =>
+      t.replace(/(### data_condition\.1\n- value: [^\n]+\n)- confidence: HIGH/, "$1- confidence: LOW"));
+    expect(failures("larkspur-prospect", run).recap_trace).toMatch(/not a supported sample\/access request/);
+  });
+
+  it.each(["data_condition.1–2", "data_condition.1-2", "data_condition.1, 2", "data_condition.99"])("rejects non-exact fact serialization %s", (ids) => {
+    const run = requestRun("Could you share product-code examples?", ids);
+    expect(failures("larkspur-prospect", run).recap_trace).toMatch(/is not a fact in the intake record/);
   });
 });

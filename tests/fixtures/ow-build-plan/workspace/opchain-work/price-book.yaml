@@ -45,3 +45,6 @@ payment_terms_days: 14
 quote_validity_days: 14
 build_plan_credit_days: 60
 quick_quote_max_units: 3
+vendor_selection:
+  sizes: { S: { price: 1500 }, M: { price: 2400 }, L: { price: 3600 } }
+  size_by_vendors: { S: 3, M: 5, L: 8 }

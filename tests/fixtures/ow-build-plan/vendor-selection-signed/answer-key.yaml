@@ -1,0 +1,33 @@
+# Answer key: vendor-selection-signed (INVENTED). Amendment P6: after route-vendor-selection,
+# --accepted writes the mode: vendor-eval form of contract-inputs.md (just the selection), and --signed
+# writes no build-request.md and prints "use ow-vendor-eval-scope on plans/hollowbrook-bakery/quick-scope.md".
+case: vendor-selection-signed
+section: Vendor selection accepted and signed (the ow-vendor-eval hand-off, P6)
+client: Hollowbrook Bakery
+slug: hollowbrook-bakery
+user: Robin
+base: route-vendor-selection
+checks:
+  - headers
+  - vendor_selection
+  - accepted
+  - status
+  - private_names
+outputs:
+  - plans/hollowbrook-bakery/contract-inputs.md
+accepted:
+  date: '2026-11-02'
+vendor_selection:
+  vendors: 4
+  signed: true
+status:
+  lines:
+    - path: plans/hollowbrook-bakery/contract-inputs.md
+      next: ow-build-plan /ow-build-plan-quote plans/hollowbrook-bakery/
+      awaiting: none
+    - path: plans/hollowbrook-bakery/contract-inputs.md
+      next: ow-vendor-eval /ow-vendor-eval-scope plans/hollowbrook-bakery/quick-scope.md
+      awaiting: none
+private_names:
+  - llc-ops
+  - Deftwright

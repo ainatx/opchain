@@ -2,16 +2,17 @@
   "protocol_version": "1.1",
   "skill": "oc-code-auditor",
   "project": "opchain.dev",
-  "project_dir": "/private/tmp/opchain-prod-2.0.1",
+  "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-10-16T19:35:38.382Z",
-  "phase": "audit",
-  "step": "pre-deploy-main-e00f9623",
-  "status": "complete",
-  "progress_summary": "Pre-deploy audit 2026-10-16 for main e00f9623 (#610 merged), staging deploy: PASS, 0 CRITICAL / 0 HIGH / 1 MEDIUM / 3 LOW, carried from the full delta audit of 97cba5d (pre-deploy-staging-preview-97cba5d); the only non-checkpoint change since is sprints/release-2.1/ow-family-sprint-plan.md (#606, not built or deployed). M-1 (unreleased skills/ content still labelled 2.0.4) blocks a production promotion without a version bump.",
+  "updated_at": "2026-10-23T08:24:45.061Z",
+  "phase": "build",
+  "step": "ten-skill-scoped-reviews",
+  "status": "in_progress",
+  "progress_summary": "Ten-skill preparation integrated and independently reviewed; all eight strict checks pass. Care main exercise passes 6/6 and manual review; vendor evidence and limitations are preserved in the model record. Eleven clean archive extractions match source. Held website builds 97 pages; 7 surface and 4 affected browser checks pass. Owner real use, host/model setup, immutable public pins/install and October 27 observation verdicts remain open.",
   "blockers": [],
   "next_actions": [
-    "Add CODEOWNERS (or required review) on .github/workflows/ and .opchain/ before relying on the evidence:pr template in consumer repos"
+    "Verify exact-head draft PR #652 CI",
+    "Retain release hold pending owner use, host/model/public-install and October 27 evidence"
   ],
   "eval_scores": [
     {
@@ -182,7 +183,94 @@
         "verdict": "no findings"
       }
     ],
-    "verified_for_sha": "e00f962357353e91b54e6874f6b2ac51508bcc45"
+    "verified_for_sha": "e00f962357353e91b54e6874f6b2ac51508bcc45",
+    "preparation_verification": {
+      "content_head": "1cb50e73533fa9df456cc9306479fd5a68ce343d",
+      "verdict": "PASS",
+      "candidate_tree": "dc32d6a015167dfe85b535101b8a9fdae723582e",
+      "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/dc32d6a015167dfe85b535101b8a9fdae723582e/da3682a429fad819876832dec8a08d78675bfcec79aa15d64d3c8eff4168663d/55fa7107-4377-418f-86fa-c8a4a8e09381.json",
+      "log": "/tmp/opchain-integrated-candidate-v7.log",
+      "browser_tests": {
+        "passed": 123,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 52.2
+      },
+      "review": "docs/audits/2026-10-22-accessible-name-remediation.md"
+    },
+    "rel02_contract_corrections": {
+      "source_commit": "8d428bd1281b8ef108f355dedd272ecccabb8fd7",
+      "strict_gate": "8/8 PASS",
+      "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/384c0f54f33f981ab0d5e42bea692194ce902256/da3682a429fad819876832dec8a08d78675bfcec79aa15d64d3c8eff4168663d/0f3eec87-b7c4-40aa-8205-082cbcac7ee6.json",
+      "scoped_review": {
+        "scores": [
+          8,
+          7,
+          8,
+          8
+        ],
+        "weighted": 7.7,
+        "verdict": "PASS for product-output correction contract",
+        "raw_handoff": "11/14, retained failure",
+        "diagnostic_handoff": "14/14, 26 hashed auxiliary evidence files excluded"
+      },
+      "report": "docs/audits/2026-10-23-contract-model-independent-review.md",
+      "assembly": {
+        "build_pages": 95,
+        "browser_passed": 150,
+        "browser_skipped": 1,
+        "browser_failed": 0,
+        "report": ".checkpoints/release-2.1-assembly-verification.md"
+      },
+      "scope": "eight-skill baseline; owner restored vendor-eval and care to planned ten-skill release, not covered by baseline validation",
+      "ci": "pending exact pushed head",
+      "release": "held; no tag or deployment"
+    },
+    "ten_skill_preparation": {
+      "source_commit": "a85822679ea88e9ee29a473880fcc736bceb3180",
+      "strict_gate": "8/8 PASS",
+      "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/67d880eeaae506d7d5fbff05dc342cee2babe132/da3682a429fad819876832dec8a08d78675bfcec79aa15d64d3c8eff4168663d/94a0557c-edbd-4752-ac82-c55e2d993c17.json",
+      "report": "sprints/release-2.1/rel-02/ten-skill-integration-2026-10-23.md",
+      "models": {
+        "care": {
+          "raw": "6/6 after numeric-format comparator correction",
+          "manual": "PASS for start only",
+          "frozen_files": 44
+        },
+        "vendor": {
+          "raw": "12/16 remains failed automated acceptance",
+          "independent": "semantic/native artifact accepted for minimum preparation",
+          "scores": [
+            8,
+            8,
+            8,
+            8
+          ],
+          "frozen_files": 130,
+          "pdf_pages": 1,
+          "earlier_raw": [
+            "10/16",
+            "12/16"
+          ]
+        },
+        "owner_real_use": false
+      },
+      "assembly": {
+        "pages": 97,
+        "affected_browser_passed": 4,
+        "affected_browser_skipped": 0,
+        "surfaces_passed": 7,
+        "baseline_full_suite": "150 passed / 1 skipped; before added routes"
+      },
+      "distribution": {
+        "skills": 10,
+        "archives": 11,
+        "combined_files": 205
+      },
+      "scope": "ten OW skills plus ow-tools, preparation only",
+      "ci": "pending exact pushed head",
+      "release": "held; no tag or deployment"
+    }
   },
   "handoffs": [
     {
@@ -662,7 +750,7 @@
     "blocking_findings": 0,
     "target": "staging from main"
   },
-  "record_updated_at": "2026-10-16T19:35:38.382Z",
+  "record_updated_at": "2026-10-23T08:24:45.061Z",
   "recently_done": [
     {
       "at": "2026-09-21T13:40:12.755Z",

@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import {
   DIARIZATION_MODEL,
+  DIARIZATION_REVISION,
   PY_PROJECT,
   VERSION,
   WHISPER_MODELS,
@@ -92,6 +93,12 @@ export async function transcribe(opts, log = () => {}) {
   const need = transcribeRequirements(model);
   if (need.length) throw missing(`transcription needs: ${need.join(", ")}. Run ow-tools doctor for the exact steps.`, { missing: need });
 
+  // Hash on every transcription, before any audio/model process starts. A
+  // readiness hook stays cheap, but file size alone never authorizes a run.
+  if (sha256File(modelPath(model)) !== WHISPER_MODELS[model].sha256) {
+    throw missing(`Whisper model ${model}: SHA-256 does not match; download it again using ow-tools doctor.`);
+  }
+
   const timings = {};
   const t = () => performance.now() / 1000;
   return withTempDir(async (tmp) => {
@@ -133,13 +140,14 @@ export async function transcribe(opts, log = () => {}) {
       PYTHONDONTWRITEBYTECODE: "1",
     });
     // --no-sync: run in the environment the user built; never install into it.
-    const args = ["run", "--frozen", "--no-sync", "--project", PY_PROJECT, "python", join(PY_PROJECT, "diarize.py"), wav, join(tmp, "turns.json"), "--device", device];
+    const args = ["run", "--frozen", "--no-sync", "--project", PY_PROJECT, "python", join(PY_PROJECT, "diarize.py"), wav, join(tmp, "turns.json"), "--device", device, "--model", DIARIZATION_MODEL, "--revision", DIARIZATION_REVISION];
     if (speakers) args.push("--speakers", String(speakers));
     r = run("uv", args, { env });
     if (r.status !== 0 || !isFile(join(tmp, "turns.json"))) {
       throw (r.status === 3 ? missing : failed)(`speaker separation failed: ${oneLine(r.stderr)}`);
     }
     const turns = JSON.parse(readFileSync(join(tmp, "turns.json"), "utf8"));
+    if (turns.model !== DIARIZATION_MODEL || turns.revision !== DIARIZATION_REVISION) throw failed("speaker separation returned a different model revision");
     timings.diarize_s = t() - t0;
 
     t0 = t();
@@ -165,7 +173,7 @@ export async function transcribe(opts, log = () => {}) {
       pipeline: {
         normalise: `ffmpeg ${toolVersion("ffmpeg", ["-version"], /ffmpeg version (\S+)/)}`,
         transcribe: `whisper.cpp ${toolVersion("whisper-cli", ["--version"], /version:?\s*(\S+)/)} ${model}`,
-        diarize: `pyannote.audio ${turns.pyannote_audio} ${turns.model.split("/").pop()} (${turns.device})`,
+        diarize: `pyannote.audio ${turns.pyannote_audio} ${turns.model.split("/").pop()}@${turns.revision} (${turns.device})`,
         merge: `ow-tools ${VERSION}`,
       },
       speakers: merged.speakers,

@@ -1,0 +1,43 @@
+# INVENTED. C22: waive-business's run cut off after checks; the resumed run starts at export, never repeats a
+# recorded step and asks only the questions of the steps not recorded.
+case: waive-business--cut-checks
+ws: business
+eval: VE-01-proposal-tool
+client: Example Studio
+user: Robin
+tools: true
+vendors:
+  - name: Harrowgate Docs
+    host: harrowgate.example
+  - name: Linnet Proposals
+    host: linnet.example
+section: 'C22 resume: /ow-vendor-eval-recommend --waive cut after checks'
+key: /ow-vendor-eval-recommend --waive
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - recommendation
+  - conflicts
+  - self_checks
+  - internal_numbers
+  - handoff_fields
+status:
+  lines:
+    - path: vendor-eval/business/VE-01-proposal-tool/recommendation.md
+      next: ow-vendor-eval /ow-vendor-eval-decide vendor-eval/business/VE-01-proposal-tool/
+      awaiting: none
+next:
+  - use ow-vendor-eval-decide linnet on vendor-eval/business/VE-01-proposal-tool/
+  - use ow-draft-evidence on vendor-eval/business/VE-01-proposal-tool/recommendation.md
+resume:
+  from: export
+base: recommend-business-finding

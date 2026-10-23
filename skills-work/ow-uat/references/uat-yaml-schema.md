@@ -6,6 +6,8 @@
 
 Every timestamped entry this skill writes carries `rec: <n>`: one more than the highest `rec` anywhere under `uat/<client>/` (plan steps, events, run headers, UAT-nn history lines, request rows and their status changes). Supersession and same-day ordering use `rec`, never the calendar date. Never reuse or renumber a `rec`.
 
+A `rec` identifies one event. Allocate it once, without gaps; a status-history entry or output file that records the same completed step cites that event's `rec` rather than allocating another. This is a reference to the same event, not reuse for a different event. Signing-step mappings and status-history entries use the exact key `rec`, with `date`; do not invent keys such as `accounts_rec` or `accounts_date`. The documented request `written_rec` and notice `notice_rec` retain their existing meanings.
+
 ## 2. Keys
 
     ow_artefact: ow-uat/uat

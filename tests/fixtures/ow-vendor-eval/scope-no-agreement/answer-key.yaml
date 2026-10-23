@@ -1,0 +1,33 @@
+# INVENTED. C6, C21: the client agreed the criteria but not the weights; that decline is an answer, the scope
+# stays unfrozen (no frozen:, no agreement line), and nothing after the agree step runs.
+case: scope-no-agreement
+ws: business
+eval: VE-01-proposal-tool
+client: Example Studio
+user: Robin
+tools: true
+vendors:
+  - name: Harrowgate Docs
+    host: harrowgate.example
+  - name: Linnet Proposals
+    host: linnet.example
+section: C6 no client agreement (stays unfrozen); C21 a decline
+key: /ow-vendor-eval-scope (commercial)
+world:
+  - workspace
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - resume
+  - scope
+  - approvals
+  - credentials
+  - private_names
+status:
+  lines: []
+next: []
+resume:
+  until: criteria

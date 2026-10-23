@@ -1,0 +1,37 @@
+# INVENTED. C4: the same findings handed in again after both vendors' evidence: nothing to do (no duplicate VF-nn).
+case: route-research-again
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-evidence <vendor>
+research_case:
+  - run-vendor-eval
+section: 'C4 ow-research route: the same findings again (no duplicate VF-nn)'
+route:
+  say: use ow-vendor-eval-evidence on research/larkspur-ceramics/RS-02-inventory-tools/findings.md
+  expect: 'nothing: already imported'
+refused:
+  says:
+    - 'Nothing to do: these findings are already in vendors/tallowmere.md.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+  - route
+status:
+  lines: []
+next: []
+base: evidence-larkspur-brackenfold

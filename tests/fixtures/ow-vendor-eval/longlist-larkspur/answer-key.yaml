@@ -1,0 +1,44 @@
+# INVENTED. -longlist from ow-research's run-vendor-eval findings: three candidates, each with its
+# source and the user's own relationship answer, asked as it is added (O3). Marrowby Goods fails the
+# must-have on a HIGH finding and is out (kept, with its reason); Brackenfold Inventory's only export
+# evidence is LOW, so it stays, flagged, for a vendor question (design §10 Knock-outs).
+case: longlist-larkspur
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+section: C9 longlist and knock-outs (HIGH out, LOW flagged); C8 relationship per vendor
+key: /ow-vendor-eval-longlist
+research_case:
+  - run-vendor-eval
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - longlist
+  - conflicts
+  - self_checks
+status:
+  lines:
+    - path: vendor-eval/larkspur-ceramics/VE-01-inventory-tool/longlist.md
+      next: ow-vendor-eval /ow-vendor-eval-evidence vendor-eval/larkspur-ceramics/VE-01-inventory-tool/
+      awaiting: none
+next:
+  - use ow-vendor-eval-evidence tallowmere on vendor-eval/larkspur-ceramics/VE-01-inventory-tool/
+base: scope-larkspur

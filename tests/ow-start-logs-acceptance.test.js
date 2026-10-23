@@ -34,8 +34,8 @@ describe("golden runs", () => {
     expect(cases.length).toBeGreaterThanOrEqual(49);
     for (const c of cases) expect(loadKey(join(FIXTURES, c)).kind, c).toBe("logs");
   });
-  it("keeps the four intake cases separate (their tests pass unchanged)", () => {
-    expect(listCases()).toEqual(["calloway-not-a-fit", "larkspur-notes", "larkspur-prospect", "tidewell-defined-work"]);
+  it("keeps the five intake cases separate (their tests pass unchanged)", () => {
+    expect(listCases()).toEqual(["calloway-not-a-fit", "hollowbrook-vendor-selection", "larkspur-notes", "larkspur-prospect", "tidewell-defined-work"]);
   });
   for (const c of cases) {
     it(`${c}: every check passes on the hand-written golden run`, () => expect(failures(c)).toEqual({}));

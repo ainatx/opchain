@@ -8,7 +8,7 @@ Each is a **same-session self-check: the same assistant that wrote the document,
 
 | Check | Runs in | Passes when |
 |---|---|---|
-| Evidence trace | `-map`, `-scope` | Every HIGH or MEDIUM fact cites an `evidence.md` line that exists |
+| Evidence trace | `-map`, `-scope` | Every HIGH or MEDIUM fact cites an `evidence.md` line that exists; in `map/systems.md` only, a MEDIUM fact may cite a `vendor-eval/<client>/VE-nn-<slug>/decision.md` that exists (phase-map §5) |
 | Acceptance coverage | `-scope`, `-quote --quick` | Every package has a check with test data and a case count; error cases too |
 | Out of scope present | `-scope`, `-quote --quick` | The out-of-scope list is not empty |
 | Risk owners | `-scope` | Every risk has an owner and a mitigation |

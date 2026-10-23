@@ -1,0 +1,17 @@
+[
+  {
+    "label": "CR-01 Fit to the future process",
+    "quantity": 3,
+    "unit_price": 40
+  },
+  {
+    "label": "CR-02 Data export and exit",
+    "quantity": 2,
+    "unit_price": 30
+  },
+  {
+    "label": "CR-03 Cost over the horizon",
+    "quantity": 2,
+    "unit_price": 30
+  }
+]

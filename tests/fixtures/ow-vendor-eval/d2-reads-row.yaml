@@ -1,0 +1,22 @@
+# INVENTED-FREE PIN: ow-draft's reads row for ow-vendor-eval's recommendation (D2), copied from OW-10's branch
+# claude/ow-10-ow-draft at b58439b8 (ow-draft 1.0.0, not on main yet). tests/ow-vendor-eval-acceptance.test.js reads
+# ow-draft's own skill.edges.yaml once it is on main, else this copy, and fails on any difference from
+# ow-vendor-eval's hand-off fields; row_sha256 is SHA-256 of JSON.stringify(row), so a changed copy is caught too.
+source: claude/ow-10-ow-draft@b58439b8:skills-work/ow-draft/skill.edges.yaml
+route_path: vendor-eval/<ws>/VE-nn-<slug>/recommendation.md
+row:
+  from: ow-vendor-eval
+  path: vendor-eval/<ws>/VE-nn-<slug>/recommendation.md
+  fields:
+    - decision
+    - vendor
+    - runner-up
+    - knock-outs
+    - score table
+    - cost
+    - risks
+    - what to confirm
+    - conflicts statement
+  if_absent: 'No recommendation: evidence from the user''s sources only'
+  if_mismatch: Use the fields that parse; a draft that uses it carries its conflicts statement word for word; a formal-mode evaluation hands nothing on
+row_sha256: sha256:bf7d10aeafebbd327235116f4b782fb88d33f59d0ebf94ffbf368e71b5bce5ec

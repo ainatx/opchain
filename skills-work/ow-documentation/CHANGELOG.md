@@ -2,6 +2,10 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
+## 1.0.2 (unreleased)
+
+Clarify the shared protocol: client-ready HTML/TXT email twins carry no internal artefact header; their companion record holds provenance. Preserve visible handling banners and print the complete NEXT guidance, including attachment fallback.
+
 ## Unreleased: data edits with ow-handoff 1.0.0
 
 No version bump (data edits ride without one); no `SKILL.md` or reference text changed:

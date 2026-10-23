@@ -1,0 +1,32 @@
+# INVENTED. C4: -scope on a frozen scope: nothing to do, naming it; the longlist NEXT.
+case: scope-again
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-scope (commercial)
+section: 'C4 -scope: frozen (no-op)'
+refused:
+  says:
+    - 'Nothing to do: the scope of VE-01 is frozen on 2026-10-20.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+status:
+  lines: []
+next:
+  - use ow-vendor-eval-longlist on vendor-eval/larkspur-ceramics/VE-01-inventory-tool/
+base: scope-larkspur

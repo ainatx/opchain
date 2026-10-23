@@ -175,7 +175,7 @@ function factLines(content) {
   const out = [];
   content.split("\n").forEach((line, i) => {
     const m = line.match(/^\s*(?:-|\d+\.)\s+\[(HIGH|MEDIUM|LOW|UNKNOWN)([^\]]*)\]\s*(.*)$/);
-    if (m) out.push({ line: i + 1, confidence: m[1], cites: [...m[2].matchAll(/E-\d+/g)].map((x) => x[0]), text: m[3] });
+    if (m) out.push({ line: i + 1, confidence: m[1], cites: [...m[2].matchAll(/E-\d+/g)].map((x) => x[0]), decision: (m[2].match(/\bvendor-eval\/[a-z0-9-]+\/VE-\d+-[a-z0-9-]+\/decision\.md\b/) ?? [])[0] ?? null, text: m[3] });
   });
   return out;
 }
@@ -527,6 +527,21 @@ function evidenceIds(run, dir) {
   return new Map(rows.map((r) => [r.id, r]));
 }
 
+/** P6: a decision.md citation is accepted in map/systems.md only, at MEDIUM, to a decision.md that exists and names the vendor. */
+function decisionCiteProblems(run, rel, fl) {
+  const p = [];
+  if (!/\/map\/systems\.md$/.test(rel)) p.push(`${rel}: cites ${fl.decision}; a vendor decision is cited in map/systems.md only`);
+  if (fl.confidence !== "MEDIUM") p.push(`${rel}: cites ${fl.decision} at ${fl.confidence}; a client's choice as reported is a person's statement, MEDIUM`);
+  const d = run.read(fl.decision);
+  if (d == null) p.push(`${rel}: cites ${fl.decision}, which does not exist`);
+  else {
+    let vendor = null;
+    try { vendor = String(matter(d).data.vendor ?? ""); } catch { vendor = null; }
+    if (!vendor || !fl.text.includes(vendor)) p.push(`${rel}: the line citing ${fl.decision} does not name its vendor (${vendor ?? "unreadable"})`);
+  }
+  return p;
+}
+
 function checkPlan(key, run) {
   const p = [];
   const dir = plansDir(key);
@@ -537,6 +552,11 @@ function checkPlan(key, run) {
     const text = run.read(rel);
     if (text == null) { p.push(`${rel} was not written`); continue; }
     for (const fl of factLines(matter(text).content)) {
+      // Amendment P6 (1.3.0): a client's vendor choice, as reported, cites its decision.md: MEDIUM, in map/systems.md only.
+      if (fl.decision) {
+        p.push(...decisionCiteProblems(run, rel, fl));
+        if (!fl.cites.length) continue;
+      }
       if ((fl.confidence === "HIGH" || fl.confidence === "MEDIUM") && !fl.cites.length) p.push(`${rel}: a ${fl.confidence} fact cites no evidence ("${fl.text.slice(0, 50)}")`);
       for (const c of fl.cites) if (!ev.has(c)) p.push(`${rel}: cites ${c}, which is not in evidence.md`);
     }
@@ -696,7 +716,7 @@ function quote(run, key) {
 }
 
 function workPackages(run, key, q) {
-  const quick = q.data.mode === "quick" || q.data.mode === "feasibility";
+  const quick = q.data.mode === "quick" || q.data.mode === "feasibility" || q.data.mode === "vendor-eval";
   const file = quick ? "quick-scope.md" : "scope.md";
   const { content } = parsed(run, `${plansDir(key)}/${file}`, "md");
   const sec = sectionText(content, quick ? "In scope" : "Work packages") ?? "";
@@ -715,7 +735,15 @@ function checkUnpriced(key, run) {
   let sum = 0;
   for (const r of build) {
     const at = `${q.rel}: ${r.line} (${r.package})`;
-    if (units.has(r.unit)) {
+    const vs = /^vendor_selection\.([SML])$/.exec(r.unit);
+    if (vs && q.data.mode === "vendor-eval") {
+      const price = b.vendor_selection?.sizes?.[vs[1]]?.price;
+      if (price == null) p.push(`${at}: the price book has no vendor_selection.sizes.${vs[1]}`);
+      else {
+        if (cents(r["unit price"]) !== cents(price)) p.push(`${at}: unit price ${r["unit price"]} is not the price book's vendor_selection ${vs[1]} price ${price}`);
+        if (r.amountC !== cents(price) * Number(r.qty)) p.push(`${at}: amount ${r.amount}, expected ${money(cents(price) * Number(r.qty))}`);
+      }
+    } else if (units.has(r.unit)) {
       const u = units.get(r.unit);
       if (cents(r["unit price"]) !== cents(u.price)) p.push(`${at}: unit price ${r["unit price"]} is not the price book's ${u.price} for ${r.unit}`);
       let want = cents(u.price) * Number(r.qty);
@@ -738,7 +766,7 @@ function checkUnpriced(key, run) {
   }
   if (cents(q.data.build_total) !== sum) p.push(`${q.rel}: build_total ${money(cents(q.data.build_total))}, but the build lines add up to ${money(sum)}`);
   if (/priced by/i.test(q.client)) p.push(`${q.rel}: a manual-price record sits outside the internal appendix`);
-  const machine = /ow-tools calc total/.test(q.internal) && /- output:/.test(q.internal);
+  const machine = /ow-tools calc total/.test(q.internal) && /^- (?:raw )?output:/m.test(q.internal);
   if (!machine && !/arithmetic not machine-checked/.test(q.text)) p.push(`${q.rel}: the total is neither tool output (command and output recorded) nor marked "arithmetic not machine-checked"`);
   return p;
 }
@@ -783,8 +811,8 @@ function checkDates(key, run) {
   if (!validMentions.length) p.push(`${q.rel}: the quote does not say "valid until ${written(valid)}"`);
   for (const m of validMentions) if (m !== written(valid)) p.push(`${q.rel}: the quote says "valid until ${m}", expected ${written(valid)}`);
   const fixed = cents(d.fixed_price);
-  const feas = d.mode === "feasibility";
-  if (feas) { if (fixed !== cents(d.build_total)) p.push(`${q.rel}: fixed_price ${money(fixed)} is not the test's lines (${money(cents(d.build_total))})`); }
+  const feas = d.mode === "feasibility" || d.mode === "vendor-eval";
+  if (feas) { if (fixed !== cents(d.build_total)) p.push(`${q.rel}: fixed_price ${money(fixed)} is not the ${d.mode === "vendor-eval" ? "selection's" : "test's"} lines (${money(cents(d.build_total))})`); }
   else if (fixed !== cents(d.build_total) + cents(d.uat?.price)) p.push(`${q.rel}: fixed_price ${money(fixed)} is not build_total + the testing line (${money(cents(d.build_total) + cents(d.uat?.price))})`);
   const above = fixed >= cents(b.size_threshold);
   const schedule = above ? "40/40/20" : "50/50";
@@ -892,7 +920,7 @@ function checkInternal(key, run) {
   if (starts !== 1 || q.end < q.start) p.push(`${q.rel}: expected exactly one ow:internal section`);
   if (q.lines.slice(q.end + 1).some((l) => l.trim())) p.push(`${q.rel}: text follows the internal appendix; it must be the last thing in the file`);
   // A feasibility quote has no modifiers and no UAT extension rate to keep internal.
-  const heads = q.data.mode === "feasibility" ? ["Internal appendix", "Pricing lines", "Arithmetic", "Quote integrity"] : ["Internal appendix", "Pricing lines", "Modifiers", "Rates kept internal", "Arithmetic", "Quote integrity"];
+  const heads = q.data.mode === "feasibility" || q.data.mode === "vendor-eval" ? ["Internal appendix", "Pricing lines", "Arithmetic", "Quote integrity"] : ["Internal appendix", "Pricing lines", "Modifiers", "Rates kept internal", "Arithmetic", "Quote integrity"];
   for (const h of heads) {
     if (!new RegExp(`^#{2,3} ${esc(h)}`, "m").test(q.internal)) p.push(`${q.rel}: "${h}" is not inside the internal markers`);
     if (new RegExp(`^#{2,3} ${esc(h)}`, "m").test(q.client)) p.push(`${q.rel}: "${h}" sits outside the internal markers`);
@@ -939,6 +967,7 @@ const CI_KEYS = ["client", "accepted", "acceptance_note", "parties", "quote", "s
 const FEAS_CI_KEYS = ["client", "mode", "accepted", "acceptance_note", "parties", "quote", "scope", "currency", "fixed_price", "schedule", "payments", "payment_terms_days", "valid_until", "deliverables", "contract_clauses"];
 const BUILD_ONLY_CI_KEYS = ["fix_window_days", "fix_window_wording", "uat", "documentation_sku", "documentation_price", "documentation_people", "acceptance_definition", "delivery_definition", "vendor_subscriptions", "credit_deadline", "build_plan_fee"];
 const FEAS_CI_SECTIONS = ["Parties", "What is tested", "What you get", "Price and payment", "Dates", "Contract clauses", "Next"];
+const VENDOR_CI_SECTIONS = ["Parties", "What is compared", "What you get", "Price and payment", "Dates", "Contract clauses", "Next"];
 const CI_SECTIONS = ["Parties", "What is agreed", "Price and payment", "Change rule", "Dates", "Ownership", "Vendor subscriptions", "After delivery", "User acceptance testing", "Documentation & training", "Acceptance and delivery", "Contract clauses", "Next"];
 
 function checkAccepted(key, run) {
@@ -946,9 +975,16 @@ function checkAccepted(key, run) {
   const rel = `${plansDir(key)}/contract-inputs.md`;
   const { data, content } = parsed(run, rel, "md");
   const q = quote(run, key);
-  const feas = q.data.mode === "feasibility";
+  const vendor = q.data.mode === "vendor-eval";
+  const feas = q.data.mode === "feasibility" || vendor;
   for (const k of feas ? FEAS_CI_KEYS : CI_KEYS) if (!(k in data)) p.push(`${rel}: header has no ${k}`);
-  if (feas) {
+  if (vendor) {
+    // Amendment P6 (1.3.0): the feasibility form's sibling, just the selection.
+    for (const k of BUILD_ONLY_CI_KEYS) if (k in data) p.push(`${rel}: a vendor selection's contract inputs hold just the selection; ${k} belongs to a build`);
+    if (data.mode !== "vendor-eval") p.push(`${rel}: mode is ${data.mode}; the quote is a vendor-selection quote`);
+    const deliv = (data.deliverables ?? []).map(String).join(" | ");
+    if (!/recommendation/i.test(deliv) || !/decision record/i.test(deliv)) p.push(`${rel}: deliverables must name the recommendation and the decision record`);
+  } else if (feas) {
     // Owner decision 2026-10-16: a feasibility test's contract inputs hold just the test.
     for (const k of BUILD_ONLY_CI_KEYS) if (k in data) p.push(`${rel}: a feasibility test's contract inputs hold just the test; ${k} belongs to a build`);
     if (data.mode !== "feasibility") p.push(`${rel}: mode is ${data.mode}; the quote is a feasibility quote`);
@@ -1003,7 +1039,7 @@ function checkAccepted(key, run) {
     if (data.contract_clauses !== "not set") p.push(`${rel}: offers.md has no contract_clauses block, so contract_clauses is "not set"`);
     if (!/Contract clauses: not set\./.test(content)) p.push(`${rel}: the body does not say "Contract clauses: not set."`);
   }
-  for (const s of feas ? FEAS_CI_SECTIONS : CI_SECTIONS) if (sectionText(content, s) == null) p.push(`${rel}: no "## ${s}" section`);
+  for (const s of vendor ? VENDOR_CI_SECTIONS : feas ? FEAS_CI_SECTIONS : CI_SECTIONS) if (sectionText(content, s) == null) p.push(`${rel}: no "## ${s}" section`);
   if (feas) for (const s of ["After delivery", "User acceptance testing", "Documentation & training", "Acceptance and delivery"]) if (sectionText(content, s) != null) p.push(`${rel}: a feasibility test's contract inputs have no "## ${s}" section`);
   // No internal number: unit prices, line amounts, manual prices and the extension rate stay in quote.md.
   const b = book(run);
@@ -1069,11 +1105,12 @@ function checkQuick(key, run) {
   const p = [];
   const dir = plansDir(key);
   const q = quote(run, key);
-  if (!["quick", "feasibility"].includes(q.data.mode)) p.push(`${q.rel}: mode is ${q.data.mode}, expected quick (or feasibility)`);
+  if (!["quick", "feasibility", "vendor-eval"].includes(q.data.mode)) p.push(`${q.rel}: mode is ${q.data.mode}, expected quick (or feasibility, or vendor-eval)`);
+  const sel = q.data.mode === "vendor-eval";
   for (const f of ["map/current.md", "collection.md", "plan.yaml", "build-plan-offer.md", "scope.md"]) if (run.exists(`${dir}/${f}`)) p.push(`${dir}/${f} exists; a quick quote skips the offer, the collection, the map and the full scope`);
   const b = book(run);
   const units = q.pricing.filter((r) => /^WP-/.test(r.package)).reduce((a, r) => a + (Number(r.qty) || 0), 0);
-  if (units > Number(b.quick_quote_max_units)) p.push(`${q.rel}: ${units} units is over quick_quote_max_units (${b.quick_quote_max_units}); the quote should have been refused`);
+  if (!sel && units > Number(b.quick_quote_max_units)) p.push(`${q.rel}: ${units} units is over quick_quote_max_units (${b.quick_quote_max_units}); the quote should have been refused`);
   if (key.quick?.units != null && units !== key.quick.units) p.push(`${q.rel}: ${units} units, expected ${key.quick.units}`);
   const { content } = parsed(run, `${dir}/quick-scope.md`, "md");
   const wps = keyedBlocks(`## x\n${sectionText(content, "In scope") ?? ""}`, /^WP-\d+$/);
@@ -1085,13 +1122,14 @@ function checkQuick(key, run) {
     for (const k of ["when", "then", "how we check", "test data", "cases", "kind"]) if (!c.keys[k]) p.push(`quick-scope.md: ${c.id} has no "${k}"`);
     if (c.keys.cases && !/^[1-9]\d*$/.test(c.keys.cases)) p.push(`quick-scope.md: ${c.id} cases "${c.keys.cases}" is not a whole number of at least 1`);
   }
-  if (checks.size && ![...checks.values()].some((c) => c.keys.kind === "error")) p.push("quick-scope.md: no check is kind: error (error cases get checks too)");
+  // A vendor-selection scope's checks are the recommendation and the decision record: the kind: error rule is waived (P6), as for a feasibility scope.
+  if (!sel && checks.size && ![...checks.values()].some((c) => c.keys.kind === "error")) p.push("quick-scope.md: no check is kind: error (error cases get checks too)");
   // Before a plan exists, the quick quote keeps the step 0 handling answer in its own headers.
   if (!("handling" in parsed(run, `${dir}/quick-scope.md`, "md").data)) p.push("quick-scope.md: the header has no handling (the step 0 answer; there is no plan.yaml)");
   if (!("handling" in q.data)) p.push(`${q.rel}: the header has no handling (the step 0 answer; there is no plan.yaml)`);
   const uat = sectionText(content, "UAT approach") ?? "";
   const roles = (uat.match(/^-\s+tester roles:\s*(.+)$/m)?.[1] ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-  if (q.data.mode === "feasibility") { /* no testers: the feasibility check rules out a UAT approach */ }
+  if (q.data.mode === "feasibility" || sel) { /* no testers: the feasibility and vendor-selection checks rule out a UAT approach */ }
   else if (!roles.length) p.push("quick-scope.md: the UAT approach lists no tester roles");
   else if (roles.length !== Number(q.data.uat?.tester_roles)) p.push(`quick-scope.md lists ${roles.length} tester roles, the quote prices ${q.data.uat?.tester_roles}`);
   for (const person of key.people ?? []) if (new RegExp(`\\b${esc(person)}\\b`).test(uat)) p.push(`quick-scope.md: the UAT approach names a person (${person}); roles only`);
@@ -1194,7 +1232,13 @@ function checkRoute(key, run) {
   else if (/^intake\/[^/]+\/intake-record\.md$/.test(from)) {
     const recap = run.read(from.replace(/intake-record\.md$/, "recap.md"));
     const kind = recap ? matter(recap).data.path_kind : null;
+    const pathQuote = recap ? String(matter(recap).data.path_quote ?? "none") : "none";
     expect = { "build-plan": "offer", "defined-work": "quick quote", "feasibility": "quick quote", "next-stage": "start" }[kind] ?? "ask";
+    // Amendment P6 (1.3.0): a recap with path_quote: vendor-eval is a vendor-selection quick quote.
+    if (kind === "defined-work" && pathQuote === "vendor-eval" && run.written().includes(`${dir}/quote.md`)) {
+      const mode = quote(run, key).data.mode;
+      if (mode !== "vendor-eval") p.push(`${from}'s recap carries path_quote: vendor-eval, so the quick quote is a vendor selection (mode: vendor-eval), not mode: ${mode}`);
+    }
     // Never twice (eval round 4, new 10): a folder that already holds what the verb writes is routed as a folder.
     const already = { offer: "build-plan-offer.md", "quick quote": "quote.md", start: "plan.yaml" }[expect];
     if (already && prior(already)) {
@@ -1321,6 +1365,125 @@ function checkFeasibility(key, run) {
   return p;
 }
 
+// ── amendment P6: the vendor selection (1.3.0) ───────────────────────────────
+
+/**
+ * A vendor-selection quote carries just the selection (P6, after §3.1's feasibility form): one line priced only
+ * from the price book's vendor_selection block at the size its vendor count takes, no testing, fix-window,
+ * documentation & training, milestone or vendor-subscription line, a quick scope with the decision and the
+ * vendors to compare, and no build hand-off: --signed hands over to ow-vendor-eval.
+ */
+function checkVendorSelection(key, run) {
+  const p = [];
+  const dir = plansDir(key);
+  const q = quote(run, key);
+  const b = book(run);
+  if (q.data.mode !== "vendor-eval") p.push(`${q.rel}: mode is ${q.data.mode}, expected vendor-eval`);
+  for (const k of ["uat", "documentation_training", "fix_window_days", "build_size", "build_size_source", "vendor_subscriptions", "credit_deadline", "build_plan_fee"]) if (k in q.data) p.push(`${q.rel}: header key ${k}; a vendor-selection quote carries just the selection`);
+  const scope = run.read(`${dir}/quick-scope.md`);
+  const sc = scope == null ? "" : matter(scope).content;
+  const countLine = (sectionText(sc, "Vendors to compare") ?? "").match(/^-\s+count:\s*(\d+)\s*$/m);
+  const count = countLine ? Number(countLine[1]) : NaN;
+  if (!countLine) p.push(`${dir}/quick-scope.md: "## Vendors to compare" has no "- count: <n>" line`);
+  if (Number(q.data.vendors) !== count) p.push(`${q.rel}: vendors ${q.data.vendors}; quick-scope.md's count is ${countLine ? count : "missing"} (the count is never typed over the scope's)`);
+  if (key.vendor_selection?.vendors != null && count !== Number(key.vendor_selection.vendors)) p.push(`${dir}/quick-scope.md: count ${count}, expected ${key.vendor_selection.vendors}`);
+  const sizes = b.vendor_selection?.size_by_vendors ?? {};
+  const size = ["S", "M", "L"].find((s) => Number.isFinite(count) && count <= Number(sizes[s]));
+  const lines = q.pricing.filter((r) => /^WP-\d+$/.test(r.package));
+  if (!size) { if (lines.some((r) => /^vendor_selection\./.test(r.unit))) p.push(`${q.rel}: ${count} vendors is above vendor_selection L's ${sizes.L}; the line is unpriced and asked`); }
+  else if (lines.length !== 1 || lines[0].unit !== `vendor_selection.${size}`) p.push(`${q.rel}: a vendor selection of ${count} vendors is one line priced as vendor_selection.${size}; the lines are ${lines.map((r) => r.unit).join(", ") || "none"}`);
+  const scan = (rel, text) => String(text).split("\n").forEach((l) => {
+    for (const [re, what] of FEASIBILITY_FORBIDDEN) if (re.test(l)) p.push(`${rel}: carries ${what} ("${l.trim().slice(0, 60)}"); a vendor selection offers none`);
+    if (/\bvendor subscriptions?\b/i.test(l)) p.push(`${rel}: carries a vendor-subscription line ("${l.trim().slice(0, 60)}"); a vendor selection names none`);
+  });
+  scan(`${q.rel} (client part)`, q.client);
+  for (const s of ["What is compared", "What you get", "Price", "Payment schedule", "Valid until"]) if (sectionText(q.client, s) == null) p.push(`${q.rel}: no "## ${s}" section`);
+  for (const s of ["The decision", "In scope", "Vendors to compare", "Out of scope", "Acceptance checks"]) if (sectionText(sc, s) == null) p.push(`${dir}/quick-scope.md: no "## ${s}" section`);
+  if (sectionText(sc, "UAT approach") != null) p.push(`${dir}/quick-scope.md: a vendor selection has no testers, so no "## UAT approach"`);
+  const names = (sectionText(sc, "Vendors to compare") ?? "").match(/^-\s+client-suggested:\s*(.+)$/m)?.[1] ?? "";
+  if (names && !/^none$/i.test(names.trim()) && names.split(/,\s*/).some((n) => !/\(client-suggested\)$/.test(n.trim()))) p.push(`${dir}/quick-scope.md: every name the client gave is marked (client-suggested)`);
+  const ciRel = `${dir}/contract-inputs.md`;
+  if (run.exists(ciRel)) scan(ciRel, parsed(run, ciRel, "md").content);
+  for (const f of run.written()) {
+    if (/\/build-request\.md$/.test(f)) p.push(`${f}: a vendor selection hands over no build; --signed writes no build request`);
+    if (/use ow-build to start|\/ow-build-start/.test(run.read(f) ?? "")) p.push(`${f}: names the ow-build hand-off; after a vendor selection ow-vendor-eval's scope follows`);
+  }
+  if (key.vendor_selection?.signed) {
+    const signedNext = `use ow-vendor-eval-scope on ${dir}/quick-scope.md`;
+    const screen = run.screen("signed.md") ?? "";
+    if (!screen.includes(`say "${signedNext}"`) || !screen.includes("(where slash commands exist: /ow-vendor-eval-scope)")) p.push(`printed/signed.md: the signed NEXT must say "${signedNext}" with /ow-vendor-eval-scope`);
+  }
+  return p;
+}
+
+/** The selection work packages in scope.md: every WP with kind: selection. */
+function selectionPackages(run, dir) {
+  const text = run.read(`${dir}/scope.md`);
+  if (text == null) return [];
+  const { content } = matter(text);
+  const wps = keyedBlocks(`## x\n${sectionText(content, "Work packages") ?? ""}`, /^WP-\d+$/);
+  return [...wps.values()].filter((w) => String(w.keys.kind ?? "").trim() === "selection");
+}
+const SELECTION_NEXT = (dir) => `use ow-vendor-eval-scope on ${dir}/`;
+
+/** P6 in a plan (O8 (b)): -scope writes a selection work package for a system the map marks [UNKNOWN], with no price and the decision record as its check, and prints the selection NEXT. */
+function checkSelectionScope(key, run) {
+  const p = [];
+  const dir = plansDir(key);
+  const sel = selectionPackages(run, dir);
+  if (!sel.length) return [`${dir}/scope.md: no work package with "- kind: selection"`];
+  const systems = run.read(`${dir}/map/systems.md`) ?? "";
+  if (!/^\s*-\s+\[UNKNOWN\][^\n]*\bto choose\b/im.test(systems)) p.push(`${dir}/map/systems.md: no [UNKNOWN] line for a system the client has yet to choose`);
+  const acc = run.read(`${dir}/acceptance.md`) ?? "";
+  for (const w of sel) {
+    if (Object.keys(w.keys).some((k) => /price|fee|cost|unit/i.test(k)) || /\b(?:USD|\$)\s?\d/.test(JSON.stringify(w.keys))) p.push(`${dir}/scope.md: ${w.id} carries a price; a selection package inside a plan has no price line`);
+    const n = w.id.split("-")[1];
+    const mine = [...keyedBlocks(matter(acc).content, /^AC-\d+\.\d+$/).values()].filter((c) => c.id.startsWith(`AC-${n}.`));
+    if (!mine.length) p.push(`${dir}/acceptance.md: ${w.id} has no acceptance check`);
+    else if (!mine.some((c) => /decision\.md/.test(Object.values(c.keys).join(" ")))) p.push(`${dir}/acceptance.md: ${w.id}'s check is not the decision record (decision.md)`);
+  }
+  const screen = run.screen("scope.md") ?? "";
+  if (!screen.includes(`say "${SELECTION_NEXT(dir)}"`) || !screen.includes("(where slash commands exist: /ow-vendor-eval-scope)")) p.push(`printed/scope.md: the selection NEXT ("${SELECTION_NEXT(dir)}") is not printed`);
+  for (const f of run.written()) if (/\/(?:quote\.md|quote-items\.json)$/.test(f)) p.push(`${f}: -scope prices nothing`);
+  return p;
+}
+
+/** P6: -quote refuses while a selection package has no decision.md, prints the same NEXT, and writes nothing. */
+function checkSelectionWait(key, run) {
+  const p = [];
+  const dir = plansDir(key);
+  const sel = selectionPackages(run, dir);
+  if (!sel.length) return [`${dir}/scope.md: no selection package; this case starts with one`];
+  if (run.all().some((f) => f.startsWith(`vendor-eval/${key.slug}/`) && /\/decision\.md$/.test(f))) return [`a decision.md exists for ${key.slug}; this case starts with none`];
+  for (const f of run.written()) p.push(`${f} was written; -quote refuses while ${sel[0].id} has no decision, and writes nothing`);
+  const screen = run.screen("quote.md") ?? "";
+  if (!screen.includes(`Refused: ${sel[0].id} is a vendor selection with no decision recorded.`)) p.push(`printed/quote.md: no "Refused: ${sel[0].id} is a vendor selection with no decision recorded." line`);
+  if (!screen.includes(`say "${SELECTION_NEXT(dir)}"`)) p.push(`printed/quote.md: the selection NEXT ("${SELECTION_NEXT(dir)}") is not printed`);
+  if (!/^Nothing was written\.$/m.test(screen)) p.push("printed/quote.md: no \"Nothing was written.\" line");
+  return p;
+}
+
+/** P6: the -map re-run after the decision rewrites only map/systems.md's to-be-chosen line, at MEDIUM, citing decision.md. */
+function checkSelectionMap(key, run) {
+  const p = [];
+  const dir = plansDir(key);
+  const rel = `${dir}/map/systems.md`;
+  for (const f of run.written()) if (f !== rel && f !== "STATUS.md") p.push(`${f}: a -map re-run after a vendor decision rewrites only map/systems.md`);
+  const before = (run.priorRead(rel) ?? "").split("\n");
+  const after = (run.read(rel) ?? "").split("\n");
+  if (before.length !== after.length) p.push(`${rel}: ${after.length} lines, was ${before.length}; only the to-be-chosen line is rewritten`);
+  const changed = after.map((l, i) => [l, before[i]]).filter(([a, b]) => a !== b);
+  if (changed.length !== 1) p.push(`${rel}: ${changed.length} lines changed; exactly the one [UNKNOWN] line is rewritten`);
+  for (const [a, b] of changed) {
+    if (!/^\s*-\s+\[UNKNOWN\]/.test(b ?? "")) p.push(`${rel}: a line that was not the [UNKNOWN] to-be-chosen line changed ("${String(b).slice(0, 50)}")`);
+    const fl = factLines(a)[0];
+    if (!fl || !fl.decision) p.push(`${rel}: the rewritten line cites no vendor-eval decision.md ("${a.slice(0, 60)}")`);
+    else p.push(...decisionCiteProblems(run, rel, fl));
+  }
+  for (const f of ["current", "future", "roles", "data"]) for (const fl of factLines(run.read(`${dir}/map/${f}.md`) ?? "")) if (fl.decision) p.push(...decisionCiteProblems(run, `${dir}/map/${f}.md`, fl));
+  return p;
+}
+
 // ── amendment P5: research findings as a fourth evidence source (1.1.0) ──────
 
 /** A research topic's findings and whether its self-checks are clear: { findings, superseded, open }. */
@@ -1421,6 +1584,10 @@ const CHECKS = {
   research_refused: checkResearchRefused,
   research_screen: checkResearchScreen,
   feasibility: checkFeasibility,
+  vendor_selection: checkVendorSelection,
+  selection_scope: checkSelectionScope,
+  selection_wait: checkSelectionWait,
+  selection_map: checkSelectionMap,
   route: checkRoute,
   quote_frozen: checkQuoteFrozen,
   headers: checkHeaders,

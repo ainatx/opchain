@@ -1,0 +1,31 @@
+# INVENTED. C5: -formal on a commercial evaluation: refused.
+case: formal-commercial-refused
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-formal
+section: C5 -formal in commercial mode (refuse)
+refused:
+  says:
+    - 'Refused: this is a commercial evaluation; -formal is for public procurement.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+status:
+  lines: []
+next: []
+base: scope-larkspur

@@ -1,0 +1,10 @@
+{
+  "tool": "ow-tools",
+  "command": "ow-tools export vendor-eval/hollowbrook-bakery/VE-01-booking-tool/export/client/recommendation.md --formats pdf,docx --out vendor-eval/hollowbrook-bakery/VE-01-booking-tool/export/",
+  "source": "vendor-eval/hollowbrook-bakery/VE-01-booking-tool/export/client/recommendation.md",
+  "outputs": [
+    "recommendation.pdf",
+    "recommendation.docx"
+  ],
+  "preflight": "ok"
+}

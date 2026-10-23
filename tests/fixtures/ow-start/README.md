@@ -72,10 +72,16 @@ Each case has `input/` (the `opchain-work/` folder the run starts from), `expect
 node scripts/ow-start-acceptance.mjs --prepare larkspur-prospect /path/to/empty-folder
 ```
 
-Then, in a session where ow-start is installed and that folder is attached, say "use ow-start to extract intake/larkspur-ceramics/". When it asks who is who, answer that SPEAKER_00 is you and SPEAKER_01 is the client's operations manager; accept the path it proposes. Then:
+Then, in a session where ow-start is installed and that folder is attached, give the scenario and user answers in the prepared `session/answers.md`. The baseline Larkspur case explicitly integrates Google Sheets and QuickBooks Online while keeping email manual. This clarification is user input, outside the answer key; the model must still extract and grade the call independently. Do not reveal `answer-key.yaml` or `expected/` to the writer. An independently confirmed email-integration scenario is a different case, not a reason to rewrite this baseline or a frozen capture. Then:
 
 ```bash
 node scripts/ow-start-acceptance.mjs larkspur-prospect /path/to/empty-folder
 ```
 
 With no arguments, the script checks every golden run (the same thing `tests/ow-start-acceptance.test.js` does in `npm test`).
+
+## Intake contract corrections (2026-10-23)
+
+The prospect key accepts “largest customer” as the supported paraphrase of “biggest customer”; matching quotes alone still cannot rescue a wrong value. Coverage follows the published field-level semantics: the volunteered data cleanup answer is unprompted, conflicting order-volume answers remain answered and unresolved, and the uncertain approval limit is partly. Fact ids must still be exact individual ids.
+
+`recap.known_request_topics` declares artifact/access vocabulary and alternative fact support for each topic. A reusable grammar recognizes direct requests, splits object lists and fully matches every requested object; each object needs a cited HIGH/MEDIUM, noncontradicted fact matching one of its support alternatives. A reference to a list the writer will send also needs the matching promised_by_user fact. This is the fixture's mechanical allowance for the published sample/access exception, not a general semantic oracle: new request intents or artifact vocabulary need reviewed grammar/topic rules and negative controls; combinations of the declared vocabulary do not need one rule per sentence. Ordinary confirmation questions, mixed approval assertions, irrelevant facts and missing supporting promises remain failures. The original golden outputs and frozen model runs have not been changed.

@@ -1,0 +1,36 @@
+# INVENTED. C4, C20: findings from another client's research handed to Larkspur's evaluation: refused (no evidence from another client's workstream).
+case: route-research-other-client
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-evidence <vendor>
+research_case:
+  - run-vendor-eval
+section: 'C4 ow-research route: another client''s topic (refuse)'
+route:
+  say: use ow-vendor-eval-evidence on research/fernhill-florists/RS-01-pos-tools/findings.md
+  expect: 'refused: another client'
+refused:
+  says:
+    - 'Refused: research/fernhill-florists/RS-01-pos-tools/findings.md belongs to another client''s workstream.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - route
+status:
+  lines: []
+next: []
+base: longlist-larkspur

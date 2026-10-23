@@ -1,0 +1,42 @@
+# INVENTED. C4, C9, C22: -longlist run again with a vendor you add: appended as K-04 with its own relationship
+# question; the earlier rows never rewritten.
+case: longlist-add
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+  - name: Quernby Stock
+    host: quernby.example
+key: /ow-vendor-eval-longlist
+section: C4 -longlist run again with a new vendor (appended, asked)
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - longlist
+  - conflicts
+  - self_checks
+status:
+  lines:
+    - path: vendor-eval/larkspur-ceramics/VE-01-inventory-tool/longlist.md
+      next: ow-vendor-eval /ow-vendor-eval-evidence vendor-eval/larkspur-ceramics/VE-01-inventory-tool/
+      awaiting: none
+next:
+  - use ow-vendor-eval-evidence quernby on vendor-eval/larkspur-ceramics/VE-01-inventory-tool/
+base: evidence-larkspur-brackenfold

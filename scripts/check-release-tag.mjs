@@ -50,16 +50,20 @@ import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { checkWorkRelease } from "./lib/work-release.mjs";
+import { checkOwToolsPin } from "./prepare-ow-tools-pin.mjs";
+
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const RELEASE_SEAL_PATH = "release-seal.json";
 const PUBLISHER_WORKFLOW_PATH = ".github/workflows/publish-mcp-registry.yml";
 const MCP_SERVER_PATH = "server.json";
 
-/** Run git, returning trimmed stdout, or null on any failure. Never throws. */
-function realGit(args, cwd) {
+/** Run git, preserving requested blob bytes; return null on any failure. Never throws. */
+function realGit(args, cwd, { binary = false } = {}) {
   try {
-    const r = spawnSync("git", args, { cwd, encoding: "utf8" });
+    const r = spawnSync("git", args, { cwd, encoding: binary ? undefined : "utf8" });
     if (r.status !== 0) return null;
+    if (binary) return r.stdout ?? Buffer.alloc(0);
     // Workflow digests seal exact blob bytes; do not discard their trailing
     // newline. Other git probes are scalar/list values and remain trimmed.
     return args[0] === "show" ? (r.stdout || "") : (r.stdout || "").trim();
@@ -74,7 +78,9 @@ function parseReleaseSeal(text, version) {
   try {
     const seal = JSON.parse(text);
     const keys = Object.keys(seal).sort().join(",");
-    if (keys !== "catalogVersion,generation,publisherWorkflowSha256,schemaVersion,serverJsonSha256") return null;
+    if (keys !== "catalogVersion,generation,publisherWorkflowSha256,schemaVersion,serverJsonSha256" &&
+        keys !== "catalogVersion,generation,publisherWorkflowSha256,schemaVersion,serverJsonSha256,workCatalogSha256") return null;
+    if (seal.workCatalogSha256 !== undefined && !/^[0-9a-f]{64}$/.test(seal.workCatalogSha256)) return null;
     if (seal.schemaVersion !== 1 || seal.catalogVersion !== version) return null;
     if (!Number.isSafeInteger(seal.generation) || seal.generation < 1 || seal.generation > 9999) return null;
     if (!/^[0-9a-f]{64}$/.test(seal.publisherWorkflowSha256)) return null;
@@ -85,6 +91,7 @@ function parseReleaseSeal(text, version) {
       generation: seal.generation,
       publisherWorkflowSha256: seal.publisherWorkflowSha256,
       serverJsonSha256: seal.serverJsonSha256,
+      ...(seal.workCatalogSha256 ? { workCatalogSha256: seal.workCatalogSha256 } : {}),
     };
   } catch {
     return null;
@@ -218,6 +225,13 @@ export function checkReleaseTag({
     };
   }
 
+  if (headSeal.workCatalogSha256) {
+    const pinError = checkOwToolsPin(cwd);
+    if (pinError) return { ok: false, version, tag, reason: "work-tools-pin-invalid", errors: [pinError] };
+  }
+  const workError = checkWorkRelease({ cwd, version, seal: headSeal, git });
+  if (workError) return { ok: false, version, tag, reason: "work-catalog-mismatch", errors: [workError] };
+
   const localTag = git(["rev-parse", "-q", "--verify", `refs/tags/${tag}`], cwd);
   if (!localTag) {
     const headWorkflow = git(["show", `HEAD:${PUBLISHER_WORKFLOW_PATH}`], cwd);
@@ -308,6 +322,9 @@ export function checkReleaseTag({
       errors: [`${tag} does not contain the release seal committed for the ${version} baseline.`],
     };
   }
+
+  const taggedWorkError = checkWorkRelease({ cwd, version, seal: tagSeal, ref: tag, git });
+  if (taggedWorkError) return { ok: false, version, tag, reason: "tag-work-catalog-mismatch", errors: [taggedWorkError] };
 
   const taggedWorkflow = git(["show", `${tag}:${PUBLISHER_WORKFLOW_PATH}`], cwd);
   if (taggedWorkflow === null || sha256(taggedWorkflow) !== tagSeal.publisherWorkflowSha256) {

@@ -20,6 +20,7 @@ import time
 import wave
 
 DEFAULT_MODEL = "pyannote/speaker-diarization-community-1"
+DEFAULT_REVISION = "3533c8cf8e369892e6b79ff1bf80f7b0286a54ee"
 
 
 def fail(msg, code=5):
@@ -48,7 +49,7 @@ def turns(annotation):
     return out
 
 
-def fetch(model):
+def fetch(model, revision):
     token = os.environ.get("HF_TOKEN")
     if not token:
         fail(
@@ -58,8 +59,9 @@ def fetch(model):
         )
     from pyannote.audio import Pipeline
 
-    Pipeline.from_pretrained(model, token=token)
-    print(f"fetched {model} into {os.environ.get('HF_HOME', 'the default Hugging Face cache')}")
+    if Pipeline.from_pretrained(model, revision=revision, token=token) is None:
+        fail("pinned model was not fetched; check access and run the setup command again", 3)
+    print(f"fetched {model}@{revision} into {os.environ.get('HF_HOME', 'the default Hugging Face cache')}")
 
 
 def run(args):
@@ -73,7 +75,7 @@ def run(args):
 
     started = time.monotonic()
     try:
-        pipeline = Pipeline.from_pretrained(args.model)
+        pipeline = Pipeline.from_pretrained(args.model, revision=args.revision)
     except Exception as exc:  # noqa: BLE001 - surface one line, never a traceback with paths
         fail(f"model not available offline ({type(exc).__name__}); run the one-time fetch from ow-tools doctor", 3)
     if pipeline is None:
@@ -93,6 +95,7 @@ def run(args):
     exclusive = getattr(output, "exclusive_speaker_diarization", None)
     result = {
         "model": args.model,
+        "revision": args.revision,
         "pyannote_audio": __import__("pyannote.audio").audio.__version__,
         "device": args.device,
         "seconds": round(time.monotonic() - started, 2),
@@ -108,12 +111,13 @@ def main():
     p.add_argument("wav", nargs="?")
     p.add_argument("out", nargs="?")
     p.add_argument("--fetch", action="store_true")
-    p.add_argument("--model", default=DEFAULT_MODEL)
+    p.add_argument("--model", choices=[DEFAULT_MODEL], default=DEFAULT_MODEL)
+    p.add_argument("--revision", choices=[DEFAULT_REVISION], default=DEFAULT_REVISION)
     p.add_argument("--speakers", type=int)
     p.add_argument("--device", choices=["cpu", "mps"], default="cpu")
     args = p.parse_args()
     if args.fetch:
-        fetch(args.model)
+        fetch(args.model, args.revision)
     elif args.wav and args.out:
         run(args)
     else:

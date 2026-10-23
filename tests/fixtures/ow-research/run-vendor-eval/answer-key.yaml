@@ -1,0 +1,48 @@
+# INVENTED. OW-11 (ow-vendor-eval 1.0.0): a run whose question serves a vendor evaluation (serves:
+# vendor-eval), from files the user saved: three invented inventory tools' own pages, owned by the hosts
+# the question names, and a forum thread. Its answered NEXT hands findings.md to ow-vendor-eval; a test-data
+# edit with no bump, graded here by ow-research's own checker before ow-vendor-eval reads it.
+case: run-vendor-eval
+section: 'A file-only run that serves a vendor evaluation (OW-11: ow-vendor-eval reads its findings)'
+verbs:
+  - /ow-research-run
+base: run-no-web-tools
+web: false
+workstream: larkspur-ceramics
+topic: RS-02-inventory-tools
+canaries:
+  - Jess
+  - Dana
+  - Priya
+  - Marcus
+screen:
+  file: run.md
+  says:
+    - Web search and page opening are not available here, so nothing was sent.
+    - I will work only from the files you supply in research/larkspur-ceramics/RS-02-inventory-tools/inbox/.
+  self_checks: true
+  next: use ow-vendor-eval-evidence on research/larkspur-ceramics/RS-02-inventory-tools/findings.md
+  slash: /ow-vendor-eval-evidence
+  reads: findings.md
+status:
+  lines:
+    - path: research/larkspur-ceramics/RS-02-inventory-tools/findings.md
+      next: ow-vendor-eval /ow-vendor-eval-evidence research/larkspur-ceramics/RS-02-inventory-tools/findings.md
+      awaiting: none
+checks:
+  - headers
+  - writes
+  - status
+  - screen
+  - ledger
+  - reconcile
+  - no_web
+  - opened
+  - confidence
+  - cited
+  - quotes
+  - credentials
+  - handoff_fields
+  - self_checks
+  - private_names
+  - people

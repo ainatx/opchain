@@ -1,0 +1,38 @@
+# INVENTED. C4: the signed quick-scope NEXT again after the scope is frozen: nothing to do, the longlist NEXT.
+case: route-quick-scope-frozen
+ws: hollowbrook-bakery
+eval: VE-01-booking-tool
+client: Hollowbrook Bakery
+user: Robin
+tools: true
+vendors:
+  - name: Pennyroyal Book
+    host: pennyroyal.example
+  - name: Sallowmere Bookings
+    host: sallowmere.example
+  - name: Thistledown Slots
+    host: thistledown.example
+  - name: Wrenfold Reserve
+    host: wrenfold.example
+key: /ow-vendor-eval-scope (commercial)
+section: 'C4 quick-scope route: a scope already frozen (no-op naming it)'
+route:
+  say: use ow-vendor-eval-scope on plans/hollowbrook-bakery/quick-scope.md
+  expect: 'nothing: frozen'
+refused:
+  says:
+    - 'Nothing to do: the scope of VE-01 is frozen on 2026-11-05.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+  - route
+status:
+  lines: []
+next:
+  - use ow-vendor-eval-longlist on vendor-eval/hollowbrook-bakery/VE-01-booking-tool/
+base: scope-hollowbrook

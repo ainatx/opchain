@@ -1,0 +1,32 @@
+# INVENTED. C15 -decide: another vendor after a decision: refused (write-once).
+case: decide-other-refused
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-decide <vendor>
+vendor: brackenfold
+section: 'C4 -decide: a different vendor after a decision (refuse)'
+refused:
+  says:
+    - 'Refused: a decision is recorded for Tallowmere Stock; a change of mind is a new evaluation or your own record.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+status:
+  lines: []
+next: []
+base: decide-larkspur

@@ -1,0 +1,13 @@
+# INVENTED TEST FIXTURE: another client's workstream.
+ow_artefact: ow-start/intake
+schema: 1
+written_by: ow-start 1.1.0 (protocol 1)
+workstream: mossgate-books
+subject: none
+created: 2026-09-02
+clock: user-stated
+origin: skill
+mode: prospect
+client: Mossgate Books
+client_slug: mossgate-books
+handling: "no"

@@ -13,7 +13,7 @@ Every inbound route lands on exactly one verb:
 | `use ow-research` (or `/ow-research`) | the user | the list screen (section 2), which offers `-question` |
 | `use ow-research on <path>` (or `/ow-research on <path>`) | the user | section 3, by what the path holds |
 | `use ow-research-question <workstream>` | the user | `references/phase-question.md` |
-| `use ow-research-run on research/<ws>/RS-nn-<slug>/` | this skill's question NEXT; the user when a watched passage has changed (ow-currency, which would print it, is not in this release) | `references/phase-run.md`, which resumes or re-runs by the ledger (section 4) |
+| `use ow-research-run on research/<ws>/RS-nn-<slug>/` | this skill's question NEXT; the user when a watched passage has changed (ow-currency is not in this release); ow-vendor-eval when an open criterion needs research | `references/phase-run.md`, which resumes or re-runs by the ledger (section 4) |
 | `use ow-research-framework <id>` | the user | `references/phase-framework.md` |
 
 **This skill never runs another skill's verb.** A handed-over file that belongs to another skill is named, with that skill's NEXT, and nothing else happens.

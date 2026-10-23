@@ -1,6 +1,16 @@
 # ow-handoff changelog
 
+## 1.0.2 (unreleased)
+
+Care handoff routing: the two care NEXT blocks name their owning verbs directly (`ow-care-start` and `ow-care-request`). The frozen handoff records are unchanged.
+
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
+
+## 1.0.1 (unreleased)
+
+Clarify the shared protocol: client-ready HTML/TXT email twins carry no internal artefact header; their companion record holds provenance. Preserve visible handling banners and print the complete NEXT guidance, including attachment fallback.
+
+Clarify the exact stored-no handling notice, same-line command citations, written-out date alternatives and the bounded source-cited generated-output directory rule. Distinguish structural text checks from native PDF/DOCX content and visual review. Data/checker fixes accept valid JSON-as-YAML embedded arrays and inspect email prose without mistaking CSS for financial text; credential checks still inspect raw HTML. The executable fixture documents the actual preparer test invocation. Frozen earlier captures remain unchanged.
 
 ## 1.0.0 (2026-10-21): the handoff, the fix window and access removal
 

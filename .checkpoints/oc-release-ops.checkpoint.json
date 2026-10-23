@@ -1,59 +1,49 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-16T17:02:22.056Z",
+  "updated_at": "2026-10-23T08:46:52.403Z",
   "skill": "oc-release-ops",
   "phase": "plan",
-  "step": "v2.1.0-planning",
+  "step": "ten-skill-preparation-complete-public-release-held",
   "status": "in_progress",
-  "progress_summary": "v2.0.4 'Bug fixes' shipped 2026-09-27 (signed tag v2.0.4 on 91a2124; production serves 0f3410c; baseline #573/#574). v2.1.0 is in planning: one release with two themes, the ow- family and Track E (enforcement + the Jev router as an experimental preview), per sprints/release-2.1/ow-family-sprint-plan.md. The cut is ow- Sprint 6 with Track E E3 folded in.",
+  "progress_summary": "Ten-skill preparation integrated and independently reviewed; all eight strict checks pass. Care main exercise passes 6/6 and manual review; vendor evidence and limitations are preserved in the model record. Eleven clean archive extractions match source. Held website builds 97 pages; 7 surface and 4 affected browser checks pass. Owner real use, host/model setup, immutable public pins/install and October 27 observation verdicts remain open.",
   "progress_table": [
     {
-      "id": "scope",
-      "label": "v1.9 scope and compatibility",
+      "id": "implementation",
+      "label": "Ten-skill source integrated; scoped independent reviews and eight strict checks pass",
       "status": "complete"
     },
     {
-      "id": "assurance",
-      "label": "QA, compliance, and hardening gates",
+      "id": "distribution",
+      "label": "Distribution, model integrity and immutable pin",
+      "status": "in_progress"
+    },
+    {
+      "id": "website",
+      "label": "Held 97-page assembly; 7 surface and 4 affected browser checks pass; publication held",
       "status": "complete"
     },
     {
-      "id": "pre-merge",
-      "label": "Complete local pre-merge workflow ledger",
-      "status": "complete"
+      "id": "model-acceptance",
+      "label": "Synthetic scoped exercises/reviews recorded with raw limitations; actual host/owner use still required",
+      "status": "in_progress"
     },
     {
-      "id": "release-pr",
-      "label": "Release PR merged to main",
-      "status": "complete"
+      "id": "real-use",
+      "label": "Owner real-job acceptance",
+      "status": "not_started"
     },
     {
-      "id": "signed-tag",
-      "label": "Signed immutable v1.9.0 tag",
-      "status": "complete"
+      "id": "observation",
+      "label": "EN-01 and EN-02 verdicts due October 27",
+      "status": "in_progress"
     },
     {
-      "id": "registry",
-      "label": "MCP Registry v1.9.0 active and latest",
-      "status": "complete"
-    },
-    {
-      "id": "staging",
-      "label": "Exact-main staging deploy and live review",
-      "status": "complete"
-    },
-    {
-      "id": "production",
-      "label": "Exact-tag production deploy and verification",
-      "status": "complete"
-    },
-    {
-      "id": "closeout",
-      "label": "Retention purge, roadmap, monitoring baseline, and release sign-off",
-      "status": "complete"
+      "id": "cut",
+      "label": "Signed release and production verification",
+      "status": "not_started"
     }
   ],
   "context_primer": {
@@ -81,12 +71,12 @@
   "blockers": [],
   "next_actions": [
     {
-      "text": "At the cut (ow- Sprint 6 + Track E E3): /oc-release plan for 2.1.0 with the owner naming the combined theme; one changelog entry covering both themes, the router under its own Experimental heading.",
-      "done_when": "plan-approved checkpoint written for 2.1.0"
+      "text": "Complete owner use, host/model and immutable public pin/install evidence",
+      "done_when": "Required actual outcomes are recorded without client material"
     },
     {
-      "text": "Flush the deferred Linear release tickets with /oc-release announce --retry-pm once the Linear connector is authorized.",
-      "done_when": "pm_deferred_actions[] empty"
+      "text": "Collect October 27 EN-01/EN-02 verdicts before an eligible release cut",
+      "done_when": "All readiness conditions, reviewed merge, signed tag, staging/production verification and monitoring are complete"
     }
   ],
   "pm_refs": [
@@ -285,9 +275,164 @@
         "check-release-tag": "PASS 2.0.2 tagged"
       },
       "prod_health": "d4f926b"
+    },
+    "fresh_retry3": {
+      "archive": "scratch/rel02-retry-3-2026-10-22.zip",
+      "sha256": "0ccea3c69f639bb4204b37a89998ff622b9137f60a535ba20bd3f458a768f846",
+      "intake": "7/11",
+      "build": "7/9",
+      "research": "19/22",
+      "handoff": "Refused: missing executable suite; package acceptance unmet",
+      "real_use": false
+    },
+    "preparation_gate": {
+      "content_head": "1cb50e73533fa9df456cc9306479fd5a68ce343d",
+      "verdict": "PASS",
+      "candidate_tree": "dc32d6a015167dfe85b535101b8a9fdae723582e",
+      "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/dc32d6a015167dfe85b535101b8a9fdae723582e/da3682a429fad819876832dec8a08d78675bfcec79aa15d64d3c8eff4168663d/55fa7107-4377-418f-86fa-c8a4a8e09381.json",
+      "log": "/tmp/opchain-integrated-candidate-v7.log",
+      "browser_tests": {
+        "passed": 123,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 52.2
+      },
+      "review": "docs/audits/2026-10-22-accessible-name-remediation.md"
+    },
+    "ow06_landing": {
+      "pr": 648,
+      "merge_sha": "809ed373847f36d2252f0a11fedec689bc0467bb",
+      "merged_at": "2026-10-22T22:53:32Z",
+      "checks": "all four successful at 4f939f4eee43c1fa012fde23b7de7c081ed9f97d"
+    },
+    "live_preflight": {
+      "checked_at": "2026-10-22T23:07:51.347Z",
+      "production": {
+        "http_status": 200,
+        "healthy": true,
+        "version": "0f3410c",
+        "header_version": "0f3410c"
+      },
+      "staging": {
+        "http_status": 200,
+        "healthy": true,
+        "version": "1fbd48fa",
+        "header_version": "1fbd48fa",
+        "context": "Existing October 16 forward-surfaces staging commit; baseline PR #614 records its environment IDs"
+      },
+      "control_plane": "Not rerun: monitor credentials absent from this shell; HTTP evidence only",
+      "mutations": "None"
+    },
+    "preparation_pr": {
+      "number": 652,
+      "url": "https://github.com/ainatx/opchain/pull/652",
+      "draft": true
+    },
+    "rel02_contract_corrections": {
+      "source_commit": "8d428bd1281b8ef108f355dedd272ecccabb8fd7",
+      "strict_gate": "8/8 PASS",
+      "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/384c0f54f33f981ab0d5e42bea692194ce902256/da3682a429fad819876832dec8a08d78675bfcec79aa15d64d3c8eff4168663d/0f3eec87-b7c4-40aa-8205-082cbcac7ee6.json",
+      "scoped_review": {
+        "scores": [
+          8,
+          7,
+          8,
+          8
+        ],
+        "weighted": 7.7,
+        "verdict": "PASS for product-output correction contract",
+        "raw_handoff": "11/14, retained failure",
+        "diagnostic_handoff": "14/14, 26 hashed auxiliary evidence files excluded"
+      },
+      "report": "docs/audits/2026-10-23-contract-model-independent-review.md",
+      "assembly": {
+        "build_pages": 95,
+        "browser_passed": 150,
+        "browser_skipped": 1,
+        "browser_failed": 0,
+        "report": ".checkpoints/release-2.1-assembly-verification.md"
+      },
+      "scope": "eight-skill baseline; owner restored vendor-eval and care to planned ten-skill release, not covered by baseline validation",
+      "ci": "pending exact pushed head",
+      "release": "held; no tag or deployment"
+    },
+    "ten_skill_preparation": {
+      "source_commit": "a85822679ea88e9ee29a473880fcc736bceb3180",
+      "strict_gate": "8/8 PASS",
+      "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/67d880eeaae506d7d5fbff05dc342cee2babe132/da3682a429fad819876832dec8a08d78675bfcec79aa15d64d3c8eff4168663d/94a0557c-edbd-4752-ac82-c55e2d993c17.json",
+      "report": "sprints/release-2.1/rel-02/ten-skill-integration-2026-10-23.md",
+      "models": {
+        "care": {
+          "raw": "6/6 after numeric-format comparator correction",
+          "manual": "PASS for start only",
+          "frozen_files": 44
+        },
+        "vendor": {
+          "raw": "12/16 remains failed automated acceptance",
+          "independent": "semantic/native artifact accepted for minimum preparation",
+          "scores": [
+            8,
+            8,
+            8,
+            8
+          ],
+          "frozen_files": 130,
+          "pdf_pages": 1,
+          "earlier_raw": [
+            "10/16",
+            "12/16"
+          ]
+        },
+        "owner_real_use": false
+      },
+      "assembly": {
+        "pages": 97,
+        "affected_browser_passed": 4,
+        "affected_browser_skipped": 0,
+        "surfaces_passed": 7,
+        "baseline_full_suite": "150 passed / 1 skipped; before added routes"
+      },
+      "distribution": {
+        "skills": 10,
+        "archives": 11,
+        "combined_files": 205
+      },
+      "scope": "ten OW skills plus ow-tools, preparation only",
+      "ci": {
+        "head": "485eef357094fe4164c942cceda77cbad04cb0be",
+        "verified_at": "2026-10-23T08:45:20Z",
+        "verdict": "PASS",
+        "checks": [
+          {
+            "name": "Worker — build, test, catalog verify",
+            "url": "https://github.com/ainatx/opchain/actions/runs/39924749686/job/120318274490",
+            "conclusion": "SUCCESS",
+            "completed_at": "2026-10-23T08:45:20Z"
+          },
+          {
+            "name": "LHCI — perf, a11y, best-practices, SEO",
+            "url": "https://github.com/ainatx/opchain/actions/runs/39924749701/job/120318274185",
+            "conclusion": "SUCCESS",
+            "completed_at": "2026-10-23T08:32:55Z"
+          },
+          {
+            "name": "Site — install, type-check, build",
+            "url": "https://github.com/ainatx/opchain/actions/runs/39924749686/job/120318274264",
+            "conclusion": "SUCCESS",
+            "completed_at": "2026-10-23T08:27:59Z"
+          },
+          {
+            "name": "Site — Playwright e2e",
+            "url": "https://github.com/ainatx/opchain/actions/runs/39924749686/job/120318526383",
+            "conclusion": "SUCCESS",
+            "completed_at": "2026-10-23T08:38:32Z"
+          }
+        ]
+      },
+      "release": "held; no tag or deployment"
     }
   },
-  "record_updated_at": "2026-09-21T19:53:16.550Z",
+  "record_updated_at": "2026-10-23T08:46:52.403Z",
   "pm_deferred_actions": [
     {
       "id": "deferred-2026-09-21T19:53:16Z-7f2f",

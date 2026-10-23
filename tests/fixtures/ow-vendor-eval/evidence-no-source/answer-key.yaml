@@ -1,0 +1,43 @@
+# INVENTED. C4 -evidence: no research and no file from you for Thistledown Slots: no fact is invented; every
+# criterion becomes a vendor question, and the NEXT is ow-research for the open criteria.
+case: evidence-no-source
+ws: hollowbrook-bakery
+eval: VE-01-booking-tool
+client: Hollowbrook Bakery
+user: Robin
+tools: true
+vendors:
+  - name: Pennyroyal Book
+    host: pennyroyal.example
+  - name: Sallowmere Bookings
+    host: sallowmere.example
+  - name: Thistledown Slots
+    host: thistledown.example
+  - name: Wrenfold Reserve
+    host: wrenfold.example
+key: /ow-vendor-eval-evidence <vendor>
+vendor: thistledown
+section: 'C4 -evidence: no research and no user source (use ow-research)'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - evidence
+  - self_checks
+  - internal_numbers
+status:
+  lines:
+    - path: vendor-eval/hollowbrook-bakery/VE-01-booking-tool/vendors/thistledown.md
+      next: ow-research /ow-research-question hollowbrook-bakery
+      awaiting: none
+next:
+  - use ow-research
+base: longlist-hollowbrook

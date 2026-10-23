@@ -1,0 +1,19 @@
+# Answer key: selection-map-rerun (INVENTED). Amendment P6, O8 (b): after ow-vendor-eval's -decide,
+# "use ow-build-plan-map on plans/larkspur-ceramics/" re-runs the map, which rewrites only the [UNKNOWN]
+# to-be-chosen line of map/systems.md, citing the decision record at MEDIUM (a choice as reported is a
+# person's statement). decision.md in input/ is a byte copy of ow-vendor-eval's decide-larkspur golden.
+case: selection-map-rerun
+section: The -map re-run after a vendor decision (P6)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+base: selection-scope
+checks:
+  - selection_map
+  - plan_checks
+  - status
+status:
+  lines:
+    - path: plans/larkspur-ceramics/map/systems.md
+      next: ow-build-plan /ow-build-plan-quote plans/larkspur-ceramics/
+      awaiting: none

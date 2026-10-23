@@ -1,0 +1,32 @@
+# INVENTED. C4: ow-research's NEXT with two open evaluations in the workstream: ask which.
+case: route-research-several
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-evidence <vendor>
+research_case:
+  - run-vendor-eval
+section: 'C4 ow-research route: several open evaluations (ask which VE-nn)'
+route:
+  say: use ow-vendor-eval-evidence on research/larkspur-ceramics/RS-02-inventory-tools/findings.md
+  expect: 'ask: which evaluation'
+closed: true
+checks:
+  - refused
+  - screen
+  - writes
+  - status
+  - route
+status:
+  lines: []
+next: []
+base: scope-larkspur

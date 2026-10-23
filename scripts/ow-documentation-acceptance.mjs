@@ -48,6 +48,7 @@ import { fileURLToPath } from "node:url";
 import * as yaml from "js-yaml";
 import { matter } from "./lib/frontmatter.mjs";
 import { loadCatalogs } from "./lib/catalogs.mjs";
+import { PHONE, TITLE_BRANDS } from "./lib/people-rules.mjs";
 import { familyNameRules } from "./check-skill-contracts.mjs";
 import { runView as uatRunView, internalFindings, credentialFindings, peopleFindings, dataFindings, sentences, iso, written as writtenOut } from "./ow-uat-acceptance.mjs";
 import { OURS } from "./ow-build-acceptance.mjs";
@@ -506,7 +507,8 @@ export const docCredentialFindings = (text) => {
  */
 export const GIVEN_NAMES = new Set(`Aaron Abby Abena Abigail Ada Adaeze Adam Adriana Adrian Agnieszka Ahmed Aidan Aiko Aisha Akira Alan Albert Alejandro Alessandro Alex Alexander Alexei Alfie Ali Alice Alicia Amanda Amara Ama Amelia Amit Amy Ana Ananya Andrea Andres Andrew Andy Angela Anil Anja Anjali Ann Anna Anne Anthony Antoine Archie Arjun Arthur Arun Ashley Astrid Avi Ayodele Barbara Beatriz Ben Benjamin Beth Betty Beverly Billy Brenda Brian Bruce Bryan Callum Camila Camille Carla Carlos Carmen Carolyn Catherine Chantal Charles Charlie Charlotte Cheryl Chiara Chidi Chinedu Chloe Chris Christina Christine Christopher Ciara Clara Claire Conor Cormac Cynthia Dafydd Damien Dan Daniel Danielle Dariush Dave David Debra Declan Deepa Denise Dennis Diana Diane Diego Divya Dmitri Donna Doris Dorothy Douglas Dylan Edward Eitan Elena Eli Elias Elisa Elizabeth Ella Emeka Emily Emma Eoin Eric Erik Ethan Eva Evelyn Evie Ewan Ezra Fatima Federica Felix Femi Fernanda Fernando Fiona Folake Francesca Frances Freddie Freya Gabriel Gabriela Gareth Gary George Gerald Giovanni Giulia Gloria Greg Gregory Greta Hamish Hannah Hans Harold Haruto Harry Hassan Helen Henry Hiroshi Hussein Ibrahim Imogen Ines Ingrid Irina Isabel Isabella Isla Ivan Jacob Jacqueline Jakub James Janet Janice Jason Javier Jeffrey Jennifer Jenny Jeremy Jerry Jess Jesse Jessica Jim Joan Joao Joe John Johnny Jon Jonas Jonathan Jose Joseph Josh Joshua Joyce Juan Judith Judy Julie Julien Juliana Jurgen Justin Kamau Karen Karim Kate Katherine Kathleen Kathryn Katarzyna Katrin Kavya Kayla Keiko Keith Kelly Kenji Kevin Khalid Kimberly Kiran Klaus Kofi Kwame Kyle Lakshmi Lars Laura Lauren Layla Leila Lena Leon Linda Lisa Liv Liz Lorenzo Lori Louis Luca Lucia Lucy Luis Lukas Maisie Manon Marco Marek Margaret Maria Mariam Mariana Marie Marilyn Marta Martha Mateo Mathieu Matt Matteo Matthew Meera Meg Megan Mei Melissa Michael Michelle Miguel Mikhail Mohammed Morag Moshe Nadia Naoko Natalie Natasha Nathan Neha Ngozi Nicholas Nicolas Nicole Niamh Nikhil Nils Nina Noah Noor Nora Olga Oliver Olivia Omar Oscar Owen Padraig Pamela Parisa Patricia Patrick Paul Paula Paulo Pavel Pedro Pete Peter Phil Philip Piotr Pierre Pilar Pooja Priya Rachel Rafael Rahul Rajesh Ralph Randy Ravi Rebecca Reza Rhys Ricardo Richard Robert Roberto Roger Rohan Ronald Rosa Ruth Ryan Sabine Sakura Samantha Samira Samuel Sam Sandra Sanjay Santiago Sara Sarah Scott Sean Sergei Sergio Sharon Shirin Shirley Sigrid Sinead Siobhan Sipho Sofia Sophia Stefan Stephanie Stephen Steve Steven Suresh Susan Svetlana Sven Takeshi Tamar Tariq Tatiana Teresa Thabo Theo Theresa Thomas Tiago Tim Timothy Tom Tomas Tomasz Tony Tunde Tyler Valentina Vikram Vincent Vivek Walter Wambui Wanjiru Wei Yael Yasmin Yuki Yusuf Yuto Zainab Zanele Zofia Zoe`.split(/\s+/));
 const TITLE_NAME = /\b(?:Mr|Mrs|Ms|Mx|Dr|Prof|Miss)\.?\s+(\p{Lu}[\p{L}'’-]+)/u;
-const PHONE_WIDE = /(?<![\w.-])(?:\+\d{1,3}[ .-]?(?:\(\d{1,4}\)[ .-]?)?\d{1,5}(?:[ .-]\d{2,5}){1,4}|\(?0\d{2,4}\)?[ -]\d{3,4}[ -]?\d{3,4})(?![\w-])/;
+// The phone shape is the family's (scripts/lib/people-rules.mjs): an international number may carry a 6-digit group ("+44 7700 900456").
+const PHONE_WIDE = PHONE;
 /**
  * Round 2 m5: a full name of any given name, by what is said of it: two capitalised words (a particle such as "de"
  * between them allowed) that a person's verb follows ("Jamal Ortiz runs", "… and Lotte Jansen attended") or a
@@ -538,13 +540,14 @@ export const docPeopleFindings = (text, ctx = {}) => {
     for (const n of fullNamePeople(plain, allow)) out.push(["a person's name (by what is said of them)", n]);
     for (const m of plain.matchAll(/(?<![\p{L}\p{N}_.\-/])(\p{Lu}\p{Ll}+)(?![\p{L}\p{N}_\-/])/gu)) if (GIVEN_NAMES.has(m[1]) && !allow.has(m[1])) { out.push(["a person's name", m[1]]); break; }
     const t = plain.match(TITLE_NAME);
-    if (t && !allow.has(t[1])) out.push(["a person's name (a title)", t[0]]);
+    if (t && !allow.has(t[1]) && !TITLE_BRANDS.test(t[1])) out.push(["a person's name (a title)", t[0]]);
     const ph = plain.match(PHONE_WIDE);
     if (ph && ph[0].replace(/\D/g, "").length >= 9 && ph[0].replace(/\D/g, "").length <= 15 && !out.some(([w]) => w === "a phone number")) out.push(["a phone number", ph[0]]);
   }
   // Never a person: a shape of zeros ("0000-0000-0000") and a name of team or system words ("Sent by Order Desk").
   // Fixed after the 1.0.1 held-out measurement, with recall unchanged.
-  return out.filter(([what, hit]) => !(what === "a phone number" && !/[1-9]/.test(String(hit))) && !(/^a person's name/.test(what) && String(hit).split(/\s+/).length > 1 && String(hit).split(/\s+/).every((w) => NOT_NAME_WORDS.has(w))));
+  // A title before a brand ("Dr. Martens", "Dr. Pepper") is a product, not a person (the family's TITLE_BRANDS).
+  return out.filter(([, hit]) => !(/^(?:Mr|Mrs|Ms|Mx|Dr|Prof|Miss)\.?\s+/.test(String(hit)) && TITLE_BRANDS.test(String(hit).split(/\s+/)[1] ?? ""))).filter(([what, hit]) => !(what === "a phone number" && !/[1-9]/.test(String(hit))) && !(/^a person's name/.test(what) && String(hit).split(/\s+/).length > 1 && String(hit).split(/\s+/).every((w) => NOT_NAME_WORDS.has(w))));
 };
 /**
  * Round 1 m5: a customer's data in prose, on top of the family's table, field and id rules: a street address, a
@@ -1109,6 +1112,8 @@ const screenClauses = (line) => {
   }
   return out;
 };
+const HABITUAL_BEFORE = /\b(?:is|are)\s+(?:(?:also|automatically|always|usually|normally)\s+)?$/i;
+const HABITUAL_AFTER = /^\s+(?:in(?!\s+(?:the\s+)?(?:PATH\b|\S*[./]\S*))(?!\s+(?:the\s+)?(?:folder|file|repo|repository|drive|sheet|inbox|export|docs?)\b)|as|by|each|every|per|once (?:a|per|every)|monthly|weekly|daily|nightly|hourly|quarterly|yearly|annually|when|whenever|for \d+|until|on (?:request|demand|the (?:first|last))|at the (?:end|start))\b/i;
 export function successClaims(line) {
   const out = [];
   for (const { text: clause, inherited } of screenClauses(line)) {
@@ -1122,12 +1127,15 @@ export function successClaims(line) {
       const frame = FIRST_PERSON_BEFORE.test(before) ? "first"
         : AUX_BEFORE.test(before) ? (STATE_WORDS.has(word) ? null : "aux")
         : !STATE_WORDS.has(word) && !(BASE_TOO.has(word) && !words.length) && words.length <= 6 && !words.some((w) => VERB_WORD.test(w)) && !ACTOR_BEFORE.test(before) && !ATTRIBUTIVE_BEFORE.test(before) && !(words.length && IMPERATIVE.test(words[0])) ? "headline" : null;
-      if (frame) hits.push({ m, before });
+      if (frame) hits.push({ m, before, participle: frame === "aux" });
     }
     const nowM = clause.match(NOW_STATE) ?? clause.match(DONE_WORD) ?? clause.match(OUTPUT_PLACED);
     if (nowM) hits.push({ m: nowM, before: clause.slice(0, nowM.index) });
-    for (const { m, before } of hits) {
+    for (const { m, before, participle } of hits) {
       if (NEGATED_BEFORE.test(before) || MODAL_BEFORE.test(before) || CONDITION_BEFORE.test(before) || CONDITION_AFTER.test(clause.slice(m.index + m[0].length))) continue;
+      // An explanation, not a claim: a present-tense passive with how or how often it happens ("Hours are recorded in
+      // quarter-hours", "Reports are sent each month"). "Were recorded", "have been sent" and "are now in" stay claims.
+      if (participle && HABITUAL_BEFORE.test(before) && HABITUAL_AFTER.test(clause.slice(m.index + m[0].length))) continue;
       out.push(m[0].trim());
       break;
     }
@@ -1699,7 +1707,7 @@ function checkDocuments(key, run) {
       if (sectionOf(c, "Open items") == null) p.push(`${f}: no "## Open items"`);
       const tasks = sectionsOf(c).filter((s) => !/^(?:What changed for you|Open items)$/.test(s.title));
       for (const s of tasks) {
-        if (!/^When you'd do it: .+\[.+\]\s*$/m.test(s.body)) p.push(`${f}: "${s.title}" has no "When you'd do it:" line with its source`);
+        if (!/^When you['’]d do it: .+\[.+\]\s*$/m.test(s.body)) p.push(`${f}: "${s.title}" has no "When you'd do it:" line with its source`);
         if (!/^What you should see: .+\[.+\]\s*$/m.test(s.body)) p.push(`${f}: "${s.title}" has no "What you should see:" line with its source`);
         if (!/^If it goes wrong: .+\[.+\]\s*$/m.test(s.body)) p.push(`${f}: "${s.title}" has no "If it goes wrong:" line with its source`);
         const st = numberedSteps(s.body);
@@ -1809,6 +1817,20 @@ export function citationProblem(cite, ctx) {
   if ((m = c.match(/^map\/roles\.md (.+)$/))) return ctx.mapRoles.includes(m[1]) || ctx.roles.includes(m[1]) ? null : `map/roles.md has no row for ${m[1]}`;
   if ((m = c.match(/^(?:user-stated|user-confirmed) (\d{4}-\d{2}-\d{2})$/))) return null;
   if ((m = c.match(/^(quick-scope\.md|scope\.md)(?: .+)?$/))) return ctx.view.exists(`${P(ctx.key)}/${m[1]}`) ? null : `${m[1]} was not read`;
+  // phase-write §2 reads this workstream's frozen docs.yaml, not a namesake in the repository.
+  if (/^docs\.yaml(?:$|[: ])/.test(c)) {
+    const file = `${D(ctx.key)}/docs.yaml`;
+    if (!ctx.view.exists(file)) return "docs.yaml was not read for this workstream";
+    m = c.match(/^docs\.yaml(?:[: ]+([A-Za-z_][\w-]*(?:\.[A-Za-z_][\w-]*)*))?$/);
+    if (!m) return `"${c}" is not a docs.yaml field citation`;
+    let value;
+    try { value = yml(ctx.view, file); } catch (e) { return reason(e); }
+    for (const field of m[1]?.split(".") ?? []) {
+      if (!value || typeof value !== "object" || !Object.hasOwn(value, field)) return `docs.yaml has no field ${m[1]}`;
+      value = value[field];
+    }
+    return null;
+  }
   if ((m = c.match(/^([\w./-]+)(?:[: ].*)?$/)) && /[./]/.test(m[1])) return ctx.repoFiles.includes(m[1]) || ctx.repoFiles.some((x) => x.startsWith(`${m[1].replace(/\/$/, "")}/`)) ? null : `${m[1]} is not in the client's repository`;
   return `"${c}" is not a source this skill cites`;
 }
@@ -2533,6 +2555,20 @@ function clientTexts(run, key) {
   }
   return out;
 }
+// self-checks §2 forbids disclosures, not a value-free checklist of the categories absent.
+// Only a complete No internal numbers result is exempt: no figures, exceptions or extra clauses.
+const INTERNAL_ABSENCE_CATEGORY = "(?:internal\\s+)?(?:hours|effort|rates?|unit\\s+prices?|costs?|margins?|documentation\\s+price|price-book\\s+internals|overruns?)";
+const INTERNAL_ABSENCE_LIST = new RegExp(`^OK:\\s+no\\s+${INTERNAL_ABSENCE_CATEGORY}(?:\\s*(?:,\\s*(?:(?:and|or)\\s+)?|\\s+(?:and|or)\\s+)${INTERNAL_ABSENCE_CATEGORY})+\\.?$`, "i");
+function internalCheckRowFindings(line, ctx) {
+  const cells = line.trim().split("|").slice(1, -1).map((x) => x.trim());
+  const checkResult = cells.length === 2 && cells[0] === "No internal numbers" ? cells[1] : null;
+  if (checkResult && INTERNAL_ABSENCE_LIST.test(checkResult)) return [];
+  const findings = docInternalFindings(line.replace(/\|/g, ". "), ctx);
+  // An exception with a cost amount is still a disclosure, even without an explicit "our".
+  const exception = checkResult?.match(/^OK:\s+no\s+(?:internal\s+)?costs?\s+except\s+(?:(?:USD|EUR|GBP|[$€£])\s?\d[\d,.]*|\d[\d,.]*\s+(?:dollars?|euros?|pounds?))/i);
+  if (exception && !findings.some(([what]) => what === "our cost or margin")) findings.push(["our cost or margin", exception[0]]);
+  return findings;
+}
 function checkInternalNumbers(key, run) {
   const p = [];
   const ctx = meaningCtx(run, key);
@@ -2548,7 +2584,7 @@ function checkInternalNumbers(key, run) {
     let internalPart = "";
     try { internalPart = internalSplit(md(run, f).content).internal ?? ""; } catch { internalPart = ""; }
     for (const s of sentences(proseOf(internalPart.replace(/^\|.*\|\s*$/gm, "")))) for (const [what, hit] of docInternalFindings(s, ctx)) p.push(`${f}: its internal section carries ${what} ("${hit}" in "${s.slice(0, 70)}")`);
-    for (const line of internalPart.split("\n").filter((l) => /^\s*\|/.test(l))) for (const [what, hit] of docInternalFindings(line.replace(/\|/g, ". "), ctx)) p.push(`${f}: a row of its internal section carries ${what} ("${hit}")`);
+    for (const line of internalPart.split("\n").filter((l) => /^\s*\|/.test(l))) for (const [what, hit] of internalCheckRowFindings(line, ctx)) p.push(`${f}: a row of its internal section carries ${what} ("${hit}")`);
   }
   // The rollout plan's client part (rollout.yaml's text values) and plan.md's Groups and Delivery, which the client
   // sees as the schedule (round 1 m7). The calc records are ow-tools' output, not prose.

@@ -5,10 +5,12 @@ on:
     branches: [main]
     paths:
       - 'skills/**'
+      - 'skills-work/**'
       - 'mirror/**'
       - 'plugins/**'
       - '.claude-plugin/**'
       - 'LICENSE'
+      - 'NOTICE'
       - '.github/workflows/mirror-public.yml'
   workflow_dispatch:
 
@@ -33,7 +35,7 @@ jobs:
         run: |
           set -euo pipefail
           missing=()
-          for f in skills LICENSE NOTICE mirror/README.md mirror/CONTRIBUTING.md mirror/SECURITY.md mirror/.github/ISSUE_TEMPLATE \
+          for f in skills skills-work/ow-protocol.md skills-work/README.md LICENSE NOTICE mirror/README.md mirror/CONTRIBUTING.md mirror/SECURITY.md mirror/.github/ISSUE_TEMPLATE \
                    plugins/opchain/.claude-plugin/plugin.json plugins/opchain/hooks/hooks.json \
                    plugins/opchain/hooks/pre-commit-gate.cjs plugins/opchain/hooks/session-state.cjs \
                    plugins/opchain/hooks/next-suggestion.cjs plugins/opchain/commands .claude-plugin/marketplace.json \
@@ -56,6 +58,7 @@ jobs:
           echo "STAGE=$STAGE" >> "$GITHUB_ENV"
           mkdir -p "$STAGE/.github"
           cp -R skills "$STAGE/skills"
+          cp -R skills-work "$STAGE/skills-work"
           cp LICENSE "$STAGE/LICENSE"
           cp NOTICE "$STAGE/NOTICE"
           cp mirror/README.md "$STAGE/README.md"
@@ -92,5 +95,23 @@ jobs:
           git add -A
           git commit -q -m "Mirror from ainatx/opchain@${SOURCE_SHA:0:7}"
           git remote add origin "https://x-access-token:${MIRROR_TOKEN}@github.com/asfbay-bit/opchain-skills.git"
+          # A delayed or re-run job must not restore an older marketplace
+          # pointer after a newer source commit has pinned the release.
+          git -C "$GITHUB_WORKSPACE" fetch --depth=1 origin main
+          LATEST_SOURCE_SHA="$(git -C "$GITHUB_WORKSPACE" rev-parse FETCH_HEAD)"
+          if [[ "$LATEST_SOURCE_SHA" != "$SOURCE_SHA" ]]; then
+            if git -C "$GITHUB_WORKSPACE" diff --quiet "$SOURCE_SHA" "$LATEST_SOURCE_SHA" -- \
+                skills skills-work mirror plugins .claude-plugin LICENSE NOTICE .github/workflows/mirror-public.yml; then
+              echo "source main advanced only outside mirror inputs; this snapshot remains current"
+            else
+              DIFF_STATUS=$?
+              if [[ "$DIFF_STATUS" -ne 1 ]]; then
+                echo "::error::cannot compare current mirror inputs; refusing push"
+                exit 1
+              fi
+              echo "::notice::mirror inputs advanced; their newer workflow owns the refresh"
+              exit 0
+            fi
+          fi
           git push --force origin main
           echo "mirror push complete"

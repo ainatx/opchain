@@ -22,6 +22,14 @@ Without ow-tools the ow- skills still work: paste a transcript or notes, and kee
 /plugin install ow-tools@opchain-work-tools
 ```
 
+The marketplace itself follows the public mirror’s `main`. At the opchain 2.1
+release cut its plugin source is pinned to the ow-tools version tag and full
+commit. Compare your installed cache’s `SECURITY-MANIFEST.md` SHA-256 with the
+independent value published on [the ow-tools page](https://opchain.dev/work/ow-tools)
+and the signed source release. Until that pin and value are published, do not
+treat a `main` install as the sealed 2.1 release. Review changes before updating;
+leave auto-update off unless accepting newly published code is intentional.
+
 This marketplace lists **ow-tools only**, so an administrator can approve it (for example in `strictKnownMarketplaces`) without approving anything else. Then run `/ow-tools` to see what's missing on your machine.
 
 ## What it needs
@@ -68,6 +76,7 @@ Built and tested on macOS (Apple Silicon). Linux gets the same checks with gener
 
 ## Changes
 
+- **1.3.1:** transcription verifies the Whisper SHA-256 before running any audio tool. Speaker separation fetches and loads only publisher revision `3533c8cf8e369892e6b79ff1bf80f7b0286a54ee`; an older or different cached snapshot is reported as not fetched. `doctor` prints the revision and the one-time fetch command. PDF tables wrap configuration names and inline code within their cells without adding hidden Unicode characters to copied identifiers; ordinary table prose uses language-aware hyphenation.
 - **1.3.0:** `scan-secrets`, the redacted secrets scan ow-handoff runs when it takes stock of a client's repository (the design's §5.5 and §16). `doctor` checks gitleaks and git (the copies on PATH's absolute folders, run by their full path), and `version --json` lists `scan-secrets` under `capabilities`. Nothing else changes.
 - **1.2.0:** `calc date --calendar us-federal`, the contract calendar ow-uat counts clause dates on (`version --json` lists it under `capabilities.calc.calendars`; the design's §15). A call without `--calendar` behaves as in 1.1.2.
 - **1.1.2:** the session-start list shows each open item of ow-start's logs on its own line (a meeting, an action or a decision review, by the newest line per item), so closing one action no longer hides the other open actions and reviews of that workstream.

@@ -1285,8 +1285,8 @@ export function printedSays(text) {
   const out = [];
   for (const line of String(text ?? "").split("\n")) {
     const say = line.match(/say "(use [^"]+)"/);
-    if (say && /^\s+[A-Z][A-Z ]*:/.test(line)) out.push(say[1]);
-    const dest = line.match(/^\s+NEXT: (handoffs\.yaml `[a-z_]+`)/);
+    if (say && /^\s*[A-Z][A-Z ]*:/.test(line)) out.push(say[1]);
+    const dest = line.match(/^\s*NEXT: (handoffs\.yaml `[a-z_]+`)/);
     if (dest) out.push(dest[1]);
   }
   return out;
@@ -1299,7 +1299,7 @@ function checkNext(key, run) {
   const want = asList(key.next).map(String);
   if (got.join(" | ") !== want.join(" | ")) p.push(`the NEXT blocks printed say [${got.join(" | ")}]; expected, in this order, [${want.join(" | ")}]`);
   for (const line of printed.split("\n")) {
-    if (!/say "use (?!<)/.test(line) || !/^\s+[A-Z][A-Z ]*:/.test(line)) continue;
+    if (!/say "use (?!<)/.test(line) || !/^\s*[A-Z][A-Z ]*:/.test(line)) continue;
     if (!/\(where slash commands exist: \/ow-[a-z0-9-]+/.test(line)) p.push(`printed.md: "${line.trim().slice(0, 70)}" has no slash hint`);
   }
   return p;
@@ -1936,6 +1936,28 @@ function checkSignoff(key, run) {
 }
 
 export const PUNCH_COLUMNS = ["uat-nn", "what", "severity", "logged", "on the signed list"];
+// signoff-schemas.md calls this column "logged date"; protocol §12 permits
+// written-out dates in client text (the punch list is a client document).
+export function punchLoggedDate(value) {
+  const text = String(value ?? "").trim();
+  const isoParts = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoParts) {
+    const [, y, m, d] = isoParts.map(Number);
+    const parsed = new Date(Date.UTC(y, m - 1, d));
+    return parsed.getUTCFullYear() === y && parsed.getUTCMonth() === m - 1 && parsed.getUTCDate() === d ? text : null;
+  }
+  const months = "January February March April May June July August September October November December".split(" ");
+  const month = `(${months.join("|")})`;
+  const dayFirst = text.match(new RegExp(`^(\\d{1,2}) ${month} (\\d{4})$`, "i"));
+  const monthFirst = text.match(new RegExp(`^${month} (\\d{1,2}),? (\\d{4})$`, "i"));
+  if (!dayFirst && !monthFirst) return null;
+  const [, a, b, y] = dayFirst ?? monthFirst;
+  const d = Number(dayFirst ? a : b);
+  const m = months.findIndex((name) => name.toLowerCase() === (dayFirst ? b : a).toLowerCase());
+  const year = Number(y);
+  const parsed = new Date(Date.UTC(year, m, d));
+  return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === m && parsed.getUTCDate() === d ? parsed.toISOString().slice(0, 10) : null;
+}
 function checkSigned(key, run) {
   const p = [];
   const dir = U(key);
@@ -1988,7 +2010,9 @@ function checkSigned(key, run) {
     const cleared = new Set(tableRows(run.read(`${dir}/evidence/index.md`) ?? "").filter((x) => x.state === "cleared").map((x) => x.item));
     for (const c of asList(uat.checks).map(String)) if (!tbl.some((x) => x.check === c)) p.push(`acceptance-record.md: ${c} is missing; it covers every check in agreed/`);
     for (const x of tbl) {
-      if (x.build !== String(want.build)) p.push(`acceptance-record.md: ${x.check} build ${x.build}`);
+      const build = x.build ?? x["build label"]; // the exact label in signoff-schemas.md §6
+      if (x.build !== undefined && x["build label"] !== undefined && x.build !== x["build label"]) p.push(`acceptance-record.md: ${x.check} has conflicting build columns`);
+      if (build !== String(want.build)) p.push(`acceptance-record.md: ${x.check} build ${build}`);
       const ev = String(x.evidence ?? "");
       if (ev !== "none cited") for (const item of ev.split(/,\s*/)) { const name = item.replace(/ \(cleared\)$/, ""); if (!cleared.has(name)) p.push(`acceptance-record.md: ${x.check} cites ${name}, which evidence/index.md does not mark cleared`); }
     }
@@ -1996,12 +2020,12 @@ function checkSigned(key, run) {
   // The punch list: the signed minors and cosmetics, and those reported after the request.
   const pl = (() => { try { return md(run, `${dir}/punch-list.md`); } catch (e) { p.push(reason(e)); return null; } })();
   if (pl) {
-    const tbl = tableRows(pl.content);
+    const tbl = tableRows(pl.content).map((row) => ({ ...row, logged: row.logged ?? row["logged date"] }));
     // R1-18: the columns the handoff reads, the logged date among them (ow-handoff -fix takes it as "reported").
-    const head = (String(pl.content).split("\n").find((l) => /^\s*\|/.test(l)) ?? "").trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim().toLowerCase());
+    const head = (String(pl.content).split("\n").find((l) => /^\s*\|/.test(l)) ?? "").trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim().toLowerCase()).map((c) => c === "logged date" ? "logged" : c);
     const empty = !head.join("") && /^No items\.?$/m.test(pl.content);
     if (!empty && head.join("|") !== PUNCH_COLUMNS.join("|")) p.push(`punch-list.md columns are [${head.join(", ")}]; exactly [${PUNCH_COLUMNS.join(", ")}] (the handoff reads each)`);
-    for (const x of tbl) if (!/^\d{4}-\d{2}-\d{2}$/.test(x.logged ?? "")) p.push(`punch-list.md: ${x["uat-nn"]} has no logged date ("${x.logged ?? ""}")`);
+    for (const x of tbl) if (!punchLoggedDate(x.logged)) p.push(`punch-list.md: ${x["uat-nn"]} has no logged date ("${x.logged ?? ""}")`);
     const ids = tbl.map((x) => x["uat-nn"]);
     if (ids.sort().join() !== asList(want.punch).sort().join()) p.push(`punch-list.md lists [${ids.join(", ")}]; expected [${asList(want.punch).join(", ")}]`);
     for (const x of tbl) {

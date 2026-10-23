@@ -441,6 +441,29 @@ function checkCoverage(key, run) {
   return p;
 }
 
+// A bounded request grammar, separate from the fixture's domain vocabulary.
+// Every requested object must be grounded; a trailing assertion or confirmation
+// cannot hide behind an earlier "sample" word or a shared topic token.
+function isKnownFactRequest(sentence, facts, topics) {
+  const request = sentence.trim().match(/^(?:(?:can|could|would|will) you (?:please )?|please )?(?:send|share|provide|attach|show|give|grant|allow)\s+(?:(?:me|us)\s+)?(.+)\?$/i);
+  if (!request) return false;
+  const objects = request[1].split(/,\s*(?:(?:and|alongside)\s+)?|\s+(?:and|alongside)\s+/i);
+  return objects.length > 0 && objects.every((part) => {
+    // A reference to a list the writer will send is a separate promise claim.
+    const promisedList = part.match(/^(.*?)\s+(?:on|from) (?:the|a) list (?:I|we)(?:['’]ll| will) send$/i);
+    const object = (promisedList?.[1] ?? part).replace(/^(?:the|some|a few|two or three|a|an)\s+/i, "").trim();
+    return (topics ?? []).some((topic) =>
+      new RegExp(`^(?:${topic.object})$`, "i").test(object)
+      && topic.support?.length > 0
+      && topic.support.some((support) => facts.some((f) =>
+        (support.fields ?? [support.field]).includes(f.field) && valueMatches(f, support.value)
+        && ["HIGH", "MEDIUM"].includes(f.confidence) && !f.unknown && !f.contradiction))
+      && (!promisedList || facts.some((f) => f.field === "promised_by_user"
+        && ["HIGH", "MEDIUM"].includes(f.confidence) && !f.unknown && !f.contradiction
+        && topic.support.some((support) => valueMatches(f, support.value)))));
+  });
+}
+
 function checkRecapTrace(key, run) {
   const p = [];
   if (!need(run, "recap.md", p) || !need(run, "coverage.md", p) || !need(run, "intake-record.md", p)) return p;
@@ -480,8 +503,10 @@ function checkRecapTrace(key, run) {
           }
         }
       }
-      if (name === "What I need from you" && /\?\s*$/.test(sentence) && !facts.some((f) => f.unknown || f.contradiction)) {
-        p.push(`recap What I need from you: the question "${row.starts}" cites no UNKNOWN or contradicted fact`);
+      // phase-extract §6 permits samples/access grounded in known facts.
+      const knownRequest = isKnownFactRequest(sentence, facts, key.recap?.known_request_topics);
+      if (name === "What I need from you" && /\?\s*$/.test(sentence) && !facts.some((f) => f.unknown || f.contradiction) && !knownRequest) {
+        p.push(`recap What I need from you: the question "${row.starts}" cites no UNKNOWN or contradicted fact and is not a supported sample/access request`);
       }
       if (name === "Promised by me" && !facts.some((f) => f.field === "promised_by_user")) {
         p.push(`recap Promised by me: "${row.starts}" does not cite a promised_by_user fact`);
@@ -497,6 +522,12 @@ function checkRecapTrace(key, run) {
   return p;
 }
 
+/** The `quote:` line of an offers.md path section (amendment S2), or null. */
+export function offersQuote(pathId, text = readFileSync(join(EXAMPLES, "offers.md"), "utf8")) {
+  const sec = String(text).split(/^## /m).find((s) => s.startsWith(`path: ${pathId}\n`));
+  return sec ? (sec.match(/^- quote: (\S+)\s*$/m) ?? [])[1] ?? null : null;
+}
+
 function checkPath(key, run) {
   const p = [];
   if (!need(run, "recap.md", p)) return p;
@@ -504,6 +535,11 @@ function checkPath(key, run) {
   if (d.path_id !== key.path.id) p.push(`path_id is ${d.path_id}, expected ${key.path.id}`);
   if (key.path.kind && d.path_kind !== key.path.kind) p.push(`path_kind is ${d.path_kind}, expected ${key.path.kind}`);
   if (key.path.systems && String(d.path_systems) !== String(key.path.systems)) p.push(`path_systems is ${d.path_systems}, expected ${key.path.systems}`);
+  // Amendment S2 (1.2.0): the confirmed path's `quote:` line is copied as path_quote (none when it has none).
+  const quote = offersQuote(d.path_id);
+  if (quote && String(d.path_quote ?? "") !== quote) p.push(`path_quote is ${d.path_quote ?? "missing"}; offers.md's ${d.path_id} path carries quote: ${quote}`);
+  if (key.path.quote && String(d.path_quote ?? "") !== String(key.path.quote)) p.push(`path_quote is ${d.path_quote ?? "missing"}, expected ${key.path.quote}`);
+  if (!quote && d.path_quote != null && String(d.path_quote) !== "none") p.push(`path_quote is ${d.path_quote}; offers.md's ${d.path_id} path has no quote: line, so path_quote is none`);
   if (/\$\s?\d|\bprice\b|\bcosts? (?:you )?\$/i.test(run.recap.sections.get("Next step")?.text ?? "")) p.push("the Next step names a price");
   return p;
 }
@@ -623,6 +659,7 @@ export function prepare(caseName, dir) {
   cpSync(join(EXAMPLES, "offers.md"), join(work, "offers.md"));
   cpSync(join(EXAMPLES, "handoffs.yaml"), join(work, "handoffs.yaml"));
   cpSync(join(caseDir, "input", "opchain-work"), work, { recursive: true });
+  if (existsSync(join(caseDir, "session"))) cpSync(join(caseDir, "session"), join(dir, "session"), { recursive: true });
   return work;
 }
 
@@ -648,6 +685,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   } else if (args[0] === "--prepare") {
     const work = prepare(args[1], resolve(args[2]));
     console.log(`Prepared ${work}. Attach ${resolve(args[2])} to a session with ow-start installed and say "use ow-start to extract intake/${loadKey(join(FIXTURES, args[1])).slug}/".`);
+    if (existsSync(join(resolve(args[2]), "session", "answers.md"))) console.log(`Supply the scenario and user answers in ${join(resolve(args[2]), "session", "answers.md")}; do not reveal the answer key or expected outputs.`);
     console.log("Then: node scripts/ow-start-acceptance.mjs " + `${args[1]} ${resolve(args[2])}`);
   } else if (args.length === 2) {
     const logs = loadKey(join(FIXTURES, args[0]))?.kind === "logs";

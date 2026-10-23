@@ -1,0 +1,40 @@
+# INVENTED. -recommend, written then checked (Evaluator item 4): the conflicts statement states the referral
+# fee by vendor and kind, and you chose to state its amount, 15%, which is one of your own figures (No
+# internal numbers, FINDING). The recommendation and its client form are written; nothing is exported and no
+# NEXT is printed. The statement itself is never waived; only the amount can be, per figure (O4, O5).
+case: recommend-business-finding
+ws: business
+eval: VE-01-proposal-tool
+client: Example Studio
+user: Robin
+tools: true
+vendors:
+  - name: Harrowgate Docs
+    host: harrowgate.example
+  - name: Linnet Proposals
+    host: linnet.example
+section: 'C18 a FINDING: no export, no NEXT; C8 the relationship stated by vendor and kind; C19 our referral fee by value'
+key: /ow-vendor-eval-recommend
+resume:
+  until: checks
+expect:
+  exported: false
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - recommendation
+  - conflicts
+  - self_checks
+status:
+  lines: []
+next: []
+base: score-business

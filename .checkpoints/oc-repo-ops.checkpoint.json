@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-ac31c154410b8a429",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a8477357f762f97b9",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-22T22:33:55.947Z",
+  "updated_at": "2026-10-23T19:58:17.886Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "ow06-ci-fixture-fix",
-  "progress_summary": "OW-06 current candidate passed all eight strict commit gates: site type check, lint, tests, pattern/secret scans, build and both dependency audits. Existing skill reviews and owner acceptance remain scoped; fresh remote CI is next.",
+  "step": "pr652-shared-module-fixes",
+  "progress_summary": "PR #652 readiness PASS at 18c3196d: full npm test 12,484 passed with one pinned measurement improving (9/10 -> 10/10, updated and re-run), build passed, commit gate passed; acceptance goldens draft 182, handoff 161, vendor 135 and the seven other ow- acceptance scripts exit 0.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -23,22 +23,92 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [
-      "ow-handoff is in no build output yet, by the ow- catalog's design (no plugin, zip, docs tree, flag registry, hosted MCP catalog or mirror)",
-      "O12 sibling stand-in swaps, the shared approval module and the name-recall gaps are stated open in the PR body"
-    ],
+    "warnings": [],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "08be63b8cb1fd01beba343859176a74cdb057c1f",
+    "verified_for_sha": "18c3196dc336dc8d878df4939fde86efeb69de56",
     "last_verify": {
-      "at": "2026-10-22T21:10:21.303Z",
-      "branch": "claude/ow-06-ow-handoff",
-      "base": "origin/main@73f775a3",
+      "at": "2026-10-23T19:58:17.886Z",
+      "branch": "codex/ow-handoff-completion",
+      "base": "origin/main@809ed373",
       "verdict": "PASS",
       "blocking_findings": []
+    },
+    "rel02_contract_corrections": {
+      "source_commit": "8d428bd1281b8ef108f355dedd272ecccabb8fd7",
+      "strict_gate": "8/8 PASS",
+      "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/384c0f54f33f981ab0d5e42bea692194ce902256/da3682a429fad819876832dec8a08d78675bfcec79aa15d64d3c8eff4168663d/0f3eec87-b7c4-40aa-8205-082cbcac7ee6.json",
+      "scoped_review": {
+        "scores": [
+          8,
+          7,
+          8,
+          8
+        ],
+        "weighted": 7.7,
+        "verdict": "PASS for product-output correction contract",
+        "raw_handoff": "11/14, retained failure",
+        "diagnostic_handoff": "14/14, 26 hashed auxiliary evidence files excluded"
+      },
+      "report": "docs/audits/2026-10-23-contract-model-independent-review.md",
+      "assembly": {
+        "build_pages": 95,
+        "browser_passed": 150,
+        "browser_skipped": 1,
+        "browser_failed": 0,
+        "report": ".checkpoints/release-2.1-assembly-verification.md"
+      },
+      "scope": "eight-skill baseline; owner restored vendor-eval and care to planned ten-skill release, not covered by baseline validation",
+      "ci": "pending exact pushed head",
+      "release": "held; no tag or deployment"
+    },
+    "ten_skill_preparation": {
+      "source_commit": "a85822679ea88e9ee29a473880fcc736bceb3180",
+      "strict_gate": "8/8 PASS",
+      "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/67d880eeaae506d7d5fbff05dc342cee2babe132/da3682a429fad819876832dec8a08d78675bfcec79aa15d64d3c8eff4168663d/94a0557c-edbd-4752-ac82-c55e2d993c17.json",
+      "report": "sprints/release-2.1/rel-02/ten-skill-integration-2026-10-23.md",
+      "models": {
+        "care": {
+          "raw": "6/6 after numeric-format comparator correction",
+          "manual": "PASS for start only",
+          "frozen_files": 44
+        },
+        "vendor": {
+          "raw": "12/16 remains failed automated acceptance",
+          "independent": "semantic/native artifact accepted for minimum preparation",
+          "scores": [
+            8,
+            8,
+            8,
+            8
+          ],
+          "frozen_files": 130,
+          "pdf_pages": 1,
+          "earlier_raw": [
+            "10/16",
+            "12/16"
+          ]
+        },
+        "owner_real_use": false
+      },
+      "assembly": {
+        "pages": 97,
+        "affected_browser_passed": 4,
+        "affected_browser_skipped": 0,
+        "surfaces_passed": 7,
+        "baseline_full_suite": "150 passed / 1 skipped; before added routes"
+      },
+      "distribution": {
+        "skills": 10,
+        "archives": 11,
+        "combined_files": 205
+      },
+      "scope": "ten OW skills plus ow-tools, preparation only",
+      "ci": "pending exact pushed head",
+      "release": "held; no tag or deployment"
     }
   },
   "next_actions": [],
@@ -2532,8 +2602,153 @@
           "sprints/release-2.1/ow-06/ci-fixture-copy.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-4554f6609f7e",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-23T01:42:20.926Z",
+      "verified_at": "2026-10-23T01:42:20.926Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-23T01:42:20.926Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:4554f6609f7eab36649d904291af7c079f7401c96454014211156a77b326d170"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Full strict candidate gate PASS, synchronized generated runtimes/plugin bundles, declared cross-skill contracts, current documentation packet and no unrelated untracked changes. Preparation only; final release held.",
+        "evidence": [
+          "docs/audits/2026-10-22-release-gate-test-repair.md",
+          "docs/audits/2026-10-22-release-supply-chain-review.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-01ff2853b257",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-23T02:06:19.324Z",
+      "verified_at": "2026-10-23T02:06:19.324Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-23T02:06:19.324Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:01ff2853b2578c6128f2b71d7a2b82b0e4e813802f5301b1f722abed761c5591"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Updated PR #652 source passes full strict gate and CI-parity local browser suite; independent scoped review and docs complete; final release held",
+        "evidence": [
+          "docs/audits/2026-10-22-accessible-name-remediation.md",
+          "docs/audits/2026-10-22-release-supply-chain-review.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-caef0e3d3574",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-23T07:08:35.338Z",
+      "verified_at": "2026-10-23T07:08:35.338Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-23T07:08:35.338Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:caef0e3d357479f24318d760ba43a6ee85601cc266a454ca7a0375b7c31bf184"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Draft PR #652 preparation only: strict eight-check receipt, current docs, catalog/build integrity and scoped independent review verified; final public release conditions remain open.",
+        "evidence": [
+          "docs/audits/2026-10-23-contract-model-independent-review.md",
+          ".checkpoints/release-2.1-plan.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-c65297035c90",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-23T08:24:45.624Z",
+      "verified_at": "2026-10-23T08:24:45.624Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-23T08:24:45.624Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c65297035c903c87a515b03817ffe0b7d9eddd16421639aaf31a658b3ae19a1f"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Draft PR #652 preparation: eight strict checks, current docs, catalog/edge/archive integrity and independent scoped reviews verified; public release conditions remain open.",
+        "evidence": [
+          "sprints/release-2.1/rel-02/ten-skill-integration-2026-10-23.md",
+          "sprints/release-2.1/rel-02/care-vendor-model-evidence-2026-10-23.md",
+          ".checkpoints/release-2.1-assembly-verification.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr652-approval-grammar-0f7fc3e28913",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-23T19:20:38.424Z",
+      "verified_at": "2026-10-23T19:20:38.424Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr652-approval-grammar"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:0f7fc3e2891350d3c1d98901a11d7d9163dccc3871f8c83d48b7d57764604b28"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "codex/ow-handoff-completion at f938d902 over 485eef35. No skills/, skills-work/<id>/, plugins/, site/ or src/ change, so no catalog, bundle, plugin or release-surface output changes; skills-work/README.md is outside every skill folder. Candidate verifier PASS on each commit's tree.",
+        "evidence": [
+          "CLAUDE.md",
+          "sprints/release-2.1/cleanup-issue-draft.md",
+          "sprints/release-2.1/track-s-site-surfaces.md",
+          "skills-work/README.md",
+          "sprints/release-2.1/rel-02/real-use-runbook.md"
+        ]
+      }
+    },
+    {
+      "id": "oc-repo-ops-pr652-shared-module-fixes-18f627cdd2c7",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-23T19:58:17.886Z",
+      "verified_at": "2026-10-23T19:58:17.886Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr652-shared-module-fixes"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:18f627cdd2c7bdc75134d5a9cb32bfb65bf8883e3ddf26d8b1b571dda78a01e4"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "codex/ow-handoff-completion at 18c3196d over 7121bc0f. Nothing under skills/, skills-work/, plugins/, site/ or src/, so no catalog, bundle, plugin or release-surface output changes. Candidate verifier PASS on tree 648500b5.",
+        "evidence": []
+      }
     }
   ],
-  "record_updated_at": "2026-10-22T22:33:55.947Z",
+  "record_updated_at": "2026-10-23T19:58:17.886Z",
   "blockers": []
 }

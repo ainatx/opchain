@@ -2,6 +2,31 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`; owner decision O7 of OW-08). The family's v2.1.0 release entry cites each skill's version. Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump (OW-04 ruling O9) and are listed here as data edits.
 
+
+## 1.3.0 (unreleased): S2, a quick quote's form passed on (OW-11, ow-vendor-eval 1.0.0)
+
+Amendment S2 of `docs/plans/2026-10-16-ow-vendor-eval-design.md` §11 (contract `sprints/release-2.1/ow-11/contract.md`, O9).
+
+- **`path_quote`.** An `offers.md` path may carry `quote:`; the recap header copies it as `path_quote` (`none` when the section has none), beside the other `path_*` keys (`references/intake-record-schema.md`, `references/phase-extract.md` §5). ow-build-plan reads `path_quote: vendor-eval` as a vendor-selection quick quote. The hand-off to ow-build-plan offers `path_quote` with the recap's other path keys.
+- **The index** (`references/logs-status-and-index.md` §4) gains the row `Decision (vendor chosen) | ow-vendor-eval | vendor-eval/<ws>/VE-nn-<slug>/decision.md | created, decided_on`. The vendor's name is never read: the row reads the date only, like every other row.
+- The body's Reads-from row for `offers.md` names the optional `quote`, and its Hands-off row names `path_quote`. The repeated workspace tree is condensed without changing paths or ownership, preserving the 400-token headroom.
+
+## Unreleased: data edits from OW-11 (ow-vendor-eval 1.0.0)
+
+No version bump (OW-04 ruling O9): `examples/offers.md` gains an invented `## path: vendor-selection` (`kind: defined-work`, `quote: vendor-eval`, `systems: none`), and its opening paragraphs say ow-build-plan reads a path's `quote:` line. The copy is byte-identical in every ow- skill that ships it. The goldens gain `hollowbrook-vendor-selection` (a recap with `path_quote: vendor-eval`).
+
+## 1.2.0 (unreleased): care takeover (S1)
+
+A confirmed `care-takeover` path for a running system with no build in scope routes to a fixed-fee onboarding review quote. The user chooses the path; the intake infers no tier or price. The shared invented offers example adds this path.
+
+## 1.1.2 (2026-10-23): intake coverage and scope clarifications
+
+- Coverage is scored per field: an early substantive answer remains unprompted when a later compound question asks for more details; contradictions remain unresolved but count as answers. Explicit uncertainty or a missing needed part is partly.
+- The shared protocol retains HTML/TXT email-pair headers in source metadata and requires the complete NEXT fallback guidance even when a folder is attached.
+- Fact references enumerate exact ids, separated by commas; ranges are invalid. Sample/access requests can cite the known fact that needs the material; this does not waive trace requirements for ordinary confirmation questions.
+- System counts follow confirmed integration scope, including email when it is actually integrated. The user keeps the final path choice; an ambiguous count must be clarified.
+- Fixture/checker corrections accept the supported “largest customer” paraphrase and grounded sample/access questions. The baseline synthetic prospect session now explicitly keeps email manual. Historical captures and golden outputs are unchanged.
+
 ## Unreleased: data edits from OW-06 (ow-handoff 1.0.0)
 
 No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed:
@@ -11,6 +36,7 @@ No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed:
 ## Unreleased: data edits from OW-10 (ow-draft 1.0.0)
 
 No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed: `examples/handoffs.yaml` gains the `drafts` key (where a finished draft goes: a repository folder by `repo` and `path`, and a say: line, an optional `location:` and a post's `limit` per other destination) and its commented shape with invented, neutral keys, byte-identical in every ow- skill that ships it.
+
 
 ## Unreleased: data edits from OW-05 (ow-documentation 1.0.0)
 

@@ -16,6 +16,12 @@ origin: user
 
 currency: USD
 
+# INVENTED placeholders. Replace in the user's own workspace before quoting.
+care_onboarding:
+  sizes: { S: 1000, M: 2000, L: 3000 }
+  size_by_systems: { S: "1 system, no integrations", M: "2 systems or 1 integration", L: "3+ systems or 2+ integrations" }
+  payment: on_signature
+
 build_plan_fees:            # the Build Plan itself, per tier
   one_system: 1000
   two_systems: 2000
@@ -97,3 +103,7 @@ payment_terms_days: 14
 quote_validity_days: 14
 build_plan_credit_days: 60  # counted from plan delivery
 quick_quote_max_units: 3
+
+vendor_selection:           # a vendor selection sold on its own (quote --quick --vendor-eval)
+  sizes: { S: { price: 1000 }, M: { price: 2000 }, L: { price: 3000 } }
+  size_by_vendors: { S: 3, M: 5, L: 8 }        # the most vendors each size compares

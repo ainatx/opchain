@@ -2,6 +2,14 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
+## 1.1.0 (unreleased): reciprocal vendor-evaluation evidence
+
+Read only a commercial `recommendation.md` whose sibling scope and own header agree on the mode. Refuse formal or contradictory modes, including a user-named formal file; carry its conflicts statement word for word into the draft. The read edge now has a live reciprocal producer.
+
+## 1.0.1 (unreleased)
+
+Clarify the shared protocol: client-ready HTML/TXT email twins carry no internal artefact header; their companion record holds provenance. Preserve visible handling banners and print the complete NEXT guidance, including attachment fallback.
+
 ## Unreleased: data edits with ow-handoff 1.0.0
 
 No version bump (data and example edits ride without one); no `SKILL.md` or reference text changed: `examples/handoffs.yaml` gains the lines ow-handoff reads for `build` and `invoice` (a covered fix or approved hourly help; hourly help and vendor charges), byte-identical in every ow- skill that ships it.

@@ -34,7 +34,7 @@ const CASES = [
   "accepted-signed", "builder-neutral", "credentials", "dates-terms-above", "dates-terms-below", "delivery-quote", "feasibility-signed", "fix-window",
   "follow-on-asks", "follow-on-fix", "follow-on-offer", "follow-on-stated-offer", "follow-on-stated-start", "follow-on-uat", "follow-on-uat-offer", "modifier-evidence", "offer",
   "private-names-business", "private-names-default", "quick-over-limit", "quick-quote", "research-collect", "research-finding-open", "research-map", "research-no-plan", "route-build-plan", "route-defined-work", "route-feasibility",
-  "route-fix-covered", "route-folder", "route-folder-signed", "route-next-stage", "signed-before-accepted", "tier2-plan", "uat-documentation", "unpriced-package",
+  "route-fix-covered", "route-folder", "route-folder-signed", "route-next-stage", "route-vendor-selection", "selection-map-rerun", "selection-quote-refused", "selection-scope", "signed-before-accepted", "tier2-plan", "uat-documentation", "unpriced-package", "vendor-selection-signed",
 ];
 
 /** The case's run as a real folder (starting state + its golden output), edited by `edits` (path under opchain-work -> fn). */
@@ -150,6 +150,24 @@ describe("the checker catches a planted failure in each §9.2 case", () => {
     expect(out).toMatch(/L4 \(WP-4\): no price-book unit and no recorded manual price/);
     expect(out).toMatch(/WP-4 matches no price-book unit, so its line must read "priced by Robin/);
     expect(out).toMatch(/L2 \(WP-2\): unit price 900\.00 is not the price book's 800/);
+  });
+
+  it.each(["output", "raw output"])("accepts the recorded calculator %s label", (label) => {
+    const run = mutated("unpriced-package", {
+      [`${L}/quote.md`]: (t) => t.replace(/- arithmetic not machine-checked:[^\n]+/, `- command: ow-tools calc total --items quote-items.json --currency USD --json\n- ${label}: {"status":"ok","total":"17450.00"}`),
+    });
+    expect(failures("unpriced-package", run).unpriced).toBeUndefined();
+  });
+
+  it.each([
+    "- raw output: recorded without a command",
+    "- command: ow-tools calc total --items quote-items.json --currency USD --json",
+    "- command: ow-tools calc total --items quote-items.json --currency USD --json\n- expected output: 10450.00",
+  ])("does not treat incomplete or expected calculator evidence as machine checked: %s", (evidence) => {
+    const run = mutated("unpriced-package", {
+      [`${L}/quote.md`]: (t) => t.replace(/- arithmetic not machine-checked:[^\n]+/, evidence),
+    });
+    expect(failures("unpriced-package", run).unpriced).toMatch(/neither tool output/);
   });
 
   it("modifiers: a messy-data modifier citing a row that does not show it, or no row", () => {

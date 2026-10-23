@@ -1,0 +1,45 @@
+# INVENTED. C22: recommend-larkspur's run cut off after write; the resumed run starts at checks, never repeats a
+# recorded step and asks only the questions of the steps not recorded.
+case: recommend-larkspur--cut-write
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+section: 'C22 resume: /ow-vendor-eval-recommend cut after write'
+key: /ow-vendor-eval-recommend
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - recommendation
+  - conflicts
+  - self_checks
+  - internal_numbers
+  - handoff_fields
+status:
+  lines:
+    - path: vendor-eval/larkspur-ceramics/VE-01-inventory-tool/recommendation.md
+      next: ow-vendor-eval /ow-vendor-eval-decide vendor-eval/larkspur-ceramics/VE-01-inventory-tool/
+      awaiting: none
+next:
+  - use ow-vendor-eval-decide tallowmere on vendor-eval/larkspur-ceramics/VE-01-inventory-tool/
+  - use ow-draft-evidence on vendor-eval/larkspur-ceramics/VE-01-inventory-tool/recommendation.md
+resume:
+  from: checks
+base: score-larkspur

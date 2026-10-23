@@ -1,0 +1,38 @@
+# INVENTED. -longlist for your own tools: two candidates you name; Linnet Proposals' relationship is the
+# referral fee you earn (asked when it is added, O3).
+case: longlist-business
+ws: business
+eval: VE-01-proposal-tool
+client: Example Studio
+user: Robin
+tools: true
+vendors:
+  - name: Harrowgate Docs
+    host: harrowgate.example
+  - name: Linnet Proposals
+    host: linnet.example
+section: C8 a vendor with a relationship (referral fee); C9
+key: /ow-vendor-eval-longlist
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - longlist
+  - conflicts
+  - self_checks
+status:
+  lines:
+    - path: vendor-eval/business/VE-01-proposal-tool/longlist.md
+      next: ow-vendor-eval /ow-vendor-eval-evidence vendor-eval/business/VE-01-proposal-tool/
+      awaiting: none
+next:
+  - use ow-vendor-eval-evidence harrowgate on vendor-eval/business/VE-01-proposal-tool/
+base: scope-business

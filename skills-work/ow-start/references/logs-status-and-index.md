@@ -50,6 +50,7 @@ One screen. **It writes nothing.** **No workstream given**: never guess. If only
 | Decision (acceptance) | ow-uat | `uat/<client>/signoff.md` | `created`, `acceptance` |
 | Decision (what follows the handoff) | ow-handoff | `handoffs/<client>/after-offer.md` | `created`, `choice` |
 | Decision (who trains) | ow-documentation | `docs/<client>/docs.yaml` | `created`, `trainer` |
+| Decision (vendor chosen) | ow-vendor-eval | `vendor-eval/<ws>/VE-nn-<slug>/decision.md` | `created`, `decided_on` |
 | Decision (care terms changed) | ow-care | `care/<client>/terms-addendum-<date>.md` | `created` |
 
 The decision log never repeats one of these. A `DEC-nn` may link to one by path ("follows `builds/<client>/changes/CO-02.md`").

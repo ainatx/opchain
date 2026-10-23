@@ -1,0 +1,14 @@
+# INVENTED. C4 folder route: a formal scope routes to -formal; grades formal-elmridge's run.
+case: route-folder-formal
+run: formal-elmridge
+ws: town-of-elmridge
+eval: VE-01-permit-system
+client: Town of Elmridge
+user: Robin
+key: /ow-vendor-eval-formal
+section: 'C4 folder route: formal → -formal'
+route:
+  say: use ow-vendor-eval on vendor-eval/town-of-elmridge/VE-01-permit-system/
+  expect: formal
+checks:
+  - route

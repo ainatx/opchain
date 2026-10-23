@@ -1,0 +1,22 @@
+# INVENTED. C4 folder route (O1): an evaluation scoped routes to longlist; this case grades longlist-larkspur's run.
+case: route-folder-scoped
+run: longlist-larkspur
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-longlist
+section: 'C4 folder route: scoped → longlist'
+route:
+  say: use ow-vendor-eval on vendor-eval/larkspur-ceramics/VE-01-inventory-tool/
+  expect: longlist
+checks:
+  - route

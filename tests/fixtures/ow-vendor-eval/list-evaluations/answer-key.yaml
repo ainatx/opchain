@@ -1,0 +1,31 @@
+# INVENTED. /ow-vendor-eval with evaluations: one table by stage, writes nothing; run again, the same screen.
+case: list-evaluations
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval
+section: C4 /ow-vendor-eval list (re-run golden for a one-step key)
+writes_nothing: true
+list_screen: true
+route:
+  say: /ow-vendor-eval
+  expect: list
+checks:
+  - refused
+  - screen
+  - writes
+  - status
+  - route
+status:
+  lines: []
+next: []
+base: recommend-larkspur

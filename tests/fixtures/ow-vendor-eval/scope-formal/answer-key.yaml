@@ -1,0 +1,36 @@
+# INVENTED. Formal public procurement for the invented Town of Elmridge: the mode first, then the user's own
+# first-person not-a-bidder statement naming the procurement, the conflicts declaration, and the agency's
+# rules as the client states them (design §7). No criteria, weights or vendors: the panel decides.
+case: scope-formal
+ws: town-of-elmridge
+eval: VE-01-permit-system
+client: Town of Elmridge
+user: Robin
+tools: true
+section: C5 the mode first; C16 not a bidder, conflicts, agency rules
+key: /ow-vendor-eval-scope (formal)
+world:
+  - workspace
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - mode
+  - formal
+  - conflicts
+  - self_checks
+status:
+  lines:
+    - path: vendor-eval/town-of-elmridge/VE-01-permit-system/scope.md
+      next: ow-vendor-eval /ow-vendor-eval-formal vendor-eval/town-of-elmridge/VE-01-permit-system/
+      awaiting: none
+next:
+  - use ow-vendor-eval-formal on vendor-eval/town-of-elmridge/VE-01-permit-system/

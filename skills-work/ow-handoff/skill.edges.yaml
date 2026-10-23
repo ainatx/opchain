@@ -266,7 +266,7 @@ hands_off:
   - when: Closed, care chosen
     to: ow-care
     verb: /ow-care-start
-    say: use ow-care on handoffs/<client>/care-start.md
+    say: use ow-care-start on handoffs/<client>/care-start.md
     files:
       - { path: handoffs/<client>/care-start.md, fields: [care_start, kept access with removal steps, carried fixes, waiting route care requests] }
       - { path: handoffs/<client>/care-start-addendum-<date>.md, fields: [care_start, kept access with removal steps, carried fixes, waiting route care requests] }
@@ -278,7 +278,7 @@ hands_off:
   - when: A Change after close, route care
     to: ow-care
     verb: /ow-care-request
-    say: use ow-care on handoffs/<client>/fixes/FIX-nn.md
+    say: use ow-care-request on handoffs/<client>/fixes/FIX-nn.md
     files:
       - { path: handoffs/<client>/fixes/FIX-nn.md, fields: [class, reported, route, the request] }
     if_unavailable: Price it as a change instead

@@ -1,0 +1,14 @@
+# INVENTED. C4 folder route: formal materials written route to --responses; grades responses-elmridge's run.
+case: route-folder-formal-materials
+run: responses-elmridge
+ws: town-of-elmridge
+eval: VE-01-permit-system
+client: Town of Elmridge
+user: Robin
+key: /ow-vendor-eval-formal --responses
+section: 'C4 folder route: formal materials → --responses'
+route:
+  say: use ow-vendor-eval on vendor-eval/town-of-elmridge/VE-01-permit-system/
+  expect: formal --responses
+checks:
+  - route

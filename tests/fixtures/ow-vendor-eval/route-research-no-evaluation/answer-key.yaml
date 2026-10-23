@@ -1,0 +1,40 @@
+# INVENTED. C4: ow-research's NEXT before any evaluation in the workstream: refused, with the scope NEXT.
+case: route-research-no-evaluation
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-evidence <vendor>
+research_case:
+  - run-vendor-eval
+section: 'C4 ow-research route: no evaluation (refuse; -scope NEXT)'
+plan_case: selection-scope
+world:
+  - workspace
+route:
+  say: use ow-vendor-eval-evidence on research/larkspur-ceramics/RS-02-inventory-tools/findings.md
+  expect: 'refused: no evaluation'
+refused:
+  says:
+    - 'Refused: there is no evaluation in larkspur-ceramics; start with -scope.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+  - route
+status:
+  lines: []
+next:
+  - use ow-vendor-eval-scope larkspur-ceramics

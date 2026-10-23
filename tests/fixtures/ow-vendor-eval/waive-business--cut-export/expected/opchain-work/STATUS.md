@@ -1,0 +1,6 @@
+2026-11-02 (clock: user-stated) | ow-vendor-eval 1.0.0 | vendor-eval/business/VE-01-proposal-tool/scope.md | next: ow-vendor-eval /ow-vendor-eval-longlist vendor-eval/business/VE-01-proposal-tool/ | awaiting: none
+2026-11-03 (clock: user-stated) | ow-vendor-eval 1.0.0 | vendor-eval/business/VE-01-proposal-tool/longlist.md | next: ow-vendor-eval /ow-vendor-eval-evidence vendor-eval/business/VE-01-proposal-tool/ | awaiting: none
+2026-11-04 (clock: user-stated) | ow-vendor-eval 1.0.0 | vendor-eval/business/VE-01-proposal-tool/vendors/harrowgate.md | next: ow-vendor-eval /ow-vendor-eval-evidence vendor-eval/business/VE-01-proposal-tool/ | awaiting: none
+2026-11-05 (clock: user-stated) | ow-vendor-eval 1.0.0 | vendor-eval/business/VE-01-proposal-tool/vendors/linnet.md | next: ow-vendor-eval /ow-vendor-eval-score vendor-eval/business/VE-01-proposal-tool/ | awaiting: none
+2026-11-06 (clock: user-stated) | ow-vendor-eval 1.0.0 | vendor-eval/business/VE-01-proposal-tool/scores.md | next: ow-vendor-eval /ow-vendor-eval-recommend vendor-eval/business/VE-01-proposal-tool/ | awaiting: none
+2026-11-10 (clock: user-stated) | ow-vendor-eval 1.0.0 | vendor-eval/business/VE-01-proposal-tool/recommendation.md | next: ow-vendor-eval /ow-vendor-eval-decide vendor-eval/business/VE-01-proposal-tool/ | awaiting: none

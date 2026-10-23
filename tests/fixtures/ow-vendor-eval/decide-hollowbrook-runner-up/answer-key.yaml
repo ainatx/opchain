@@ -1,0 +1,43 @@
+# INVENTED. Design §10 "Decision differs": the client picks the runner-up, Pennyroyal Book. decision.md
+# records it as reported, with the recommended vendor and the user's reason; recommendation.md is
+# unchanged. Not inside a Build Plan: NEXT none.
+case: decide-hollowbrook-runner-up
+ws: hollowbrook-bakery
+eval: VE-01-booking-tool
+client: Hollowbrook Bakery
+user: Robin
+tools: true
+vendors:
+  - name: Pennyroyal Book
+    host: pennyroyal.example
+  - name: Sallowmere Bookings
+    host: sallowmere.example
+  - name: Thistledown Slots
+    host: thistledown.example
+  - name: Wrenfold Reserve
+    host: wrenfold.example
+section: Design §10 Decision differs; C15
+key: /ow-vendor-eval-decide <vendor>
+vendor: pennyroyal
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - decision
+  - self_checks
+  - handoff_fields
+status:
+  lines:
+    - path: vendor-eval/hollowbrook-bakery/VE-01-booking-tool/decision.md
+      next: 'none (closed: decided)'
+      awaiting: none
+next: []
+base: recommend-hollowbrook

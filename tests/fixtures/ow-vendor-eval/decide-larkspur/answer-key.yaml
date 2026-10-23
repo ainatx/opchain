@@ -1,0 +1,42 @@
+# INVENTED. -decide: the client chose the recommended vendor, recorded as reported from the user's answer
+# to the closed question; recommendation.md untouched. Inside a Build Plan, the NEXT is ow-build-plan's
+# map re-run (P6); ow-build-plan's selection-map-rerun carries this decision.md byte for byte.
+case: decide-larkspur
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+section: C15 decision (the recommended vendor); P6 map NEXT
+key: /ow-vendor-eval-decide <vendor>
+vendor: tallowmere
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - decision
+  - self_checks
+  - handoff_fields
+status:
+  lines:
+    - path: vendor-eval/larkspur-ceramics/VE-01-inventory-tool/decision.md
+      next: ow-build-plan /ow-build-plan-map plans/larkspur-ceramics/
+      awaiting: none
+next:
+  - use ow-build-plan-map on plans/larkspur-ceramics/
+base: recommend-larkspur

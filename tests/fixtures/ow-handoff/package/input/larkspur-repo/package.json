@@ -1,0 +1,10 @@
+{
+  "name": "larkspur-handoff-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/orders.test.cjs",
+    "deploy:staging": "node scripts/deploy.mjs staging",
+    "deploy": "node scripts/deploy.mjs production"
+  }
+}

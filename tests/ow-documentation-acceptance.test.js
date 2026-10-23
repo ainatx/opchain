@@ -136,7 +136,7 @@ describe("C2: body, frontmatter, the shared files", () => {
     expect(data.description.length).toBeLessThanOrEqual(900);
     expect(data.description.slice(0, 200)).toContain("ow-documentation");
     expect(data.metadata.network).toBe("declared");
-    expect(data.metadata.version).toBe("1.0.1");
+    expect(data.metadata.version).toBe("1.0.2");
     expect(loadCatalogs({ root: ROOT }).find((c) => c.prefix === "ow-").bodyTokenBudgets["ow-documentation"]).toBe(4500);
   });
   it("a planted 4,600-token body fails the catalog itself", () => {
@@ -183,7 +183,9 @@ describe("C3, C20, C1: the skill's own text and its pins", () => {
     expect(cats.planned).not.toContain("ow-handoff");
     expect(cats.plannedVerbs["ow-handoff"]).toBeUndefined();
     expect(readFileSync(join(ROOT, "skills-work", "ow-handoff", "SKILL.md"), "utf8")).toMatch(/commands: .*\/ow-handoff-notes .*\/ow-handoff-package/);
-    expect(cats.plannedVerbs["ow-care"]).toEqual(expect.arrayContaining(["/ow-care-request"]));
+    expect(cats.planned).not.toContain("ow-care");
+    expect(cats.plannedVerbs["ow-care"]).toBeUndefined();
+    expect(matter(readFileSync(join(ROOT, "skills-work/ow-care/SKILL.md"), "utf8")).data.metadata.commands.split(" ")).toContain("/ow-care-request");
     expect(cats.statusNames["/ow-documentation-rollout"]).toBe("G-");
   });
 });
@@ -260,7 +262,7 @@ describe("C18: P3 in ow-build-plan (1.2.0)", () => {
     expect(ci()).toMatch(/^documentation_people: 6$/m);
     expect(ci()).toMatch(/invoiced when the documents are delivered/);
     const bp = readFileSync(join(ROOT, "skills-work/ow-build-plan/SKILL.md"), "utf8");
-    expect(bp).toMatch(/version: "1\.2\.0"/);
+    expect(bp).toMatch(/version: "1\.4\.0"/);
     // P3 on top of P5: the body stays under the catalog's enforced 4,500-token cap.
     expect(loadCatalogs({ root: ROOT }).find((c) => c.prefix === "ow-").bodyTokenBudgets["ow-build-plan"]).toBe(4500);
     expect(estimateTokens(bp.slice(bp.indexOf("\n---", 3) + 4))).toBeLessThanOrEqual(4500);

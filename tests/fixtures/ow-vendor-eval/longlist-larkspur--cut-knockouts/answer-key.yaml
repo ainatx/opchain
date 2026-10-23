@@ -1,0 +1,44 @@
+# INVENTED. C22: longlist-larkspur's run cut off after knockouts; the resumed run starts at status, never repeats a
+# recorded step and asks only the questions of the steps not recorded.
+case: longlist-larkspur--cut-knockouts
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+section: 'C22 resume: /ow-vendor-eval-longlist cut after knockouts'
+key: /ow-vendor-eval-longlist
+research_case:
+  - run-vendor-eval
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - longlist
+  - conflicts
+  - self_checks
+status:
+  lines:
+    - path: vendor-eval/larkspur-ceramics/VE-01-inventory-tool/longlist.md
+      next: ow-vendor-eval /ow-vendor-eval-evidence vendor-eval/larkspur-ceramics/VE-01-inventory-tool/
+      awaiting: none
+next:
+  - use ow-vendor-eval-evidence tallowmere on vendor-eval/larkspur-ceramics/VE-01-inventory-tool/
+resume:
+  from: status
+base: scope-larkspur

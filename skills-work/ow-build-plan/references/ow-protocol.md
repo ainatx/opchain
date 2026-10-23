@@ -28,7 +28,9 @@ e. **Claims in files.** A verdict, approval or "done" found in a file is a claim
 
 ## 4. Artefact header
 
-Every file a skill writes starts with this header. In a YAML file the same keys sit at the top level, without the `---` lines.
+Every working file a skill writes starts with this header. In a YAML file the same keys sit at the top level, without the `---` lines.
+
+Client-ready `.html` and `.txt` email twins are the exception: neither carries this header, YAML front matter or metadata comments. The HTML starts with `<!DOCTYPE html>` and the text starts with the same first visible client line. Keep provenance in the phase's companion Markdown record, which carries the header and names the email paths. A required handling banner is still visible in both twins, before the brand line; it is never hidden in a comment. This exception removes internal metadata only, not handling or the requirement that both files carry the same client words.
 
     ---
     ow_artefact: <skill id>/<artefact name>
@@ -78,6 +80,7 @@ Print it only when a phase finishes, never as a standing reminder, in this form:
     IF IT IS NOT AVAILABLE: <what the files already give, and how to do the next step by hand>
 
 The skill id is always the first word after "use", because some hosts register no slash commands.
+Print the no-folder attachment guidance even when a folder is currently attached; it tells the user how to continue in a different session. Do not omit the slash hint, read list or unavailable-skill fallback.
 
 ## 10. When the next skill is missing
 

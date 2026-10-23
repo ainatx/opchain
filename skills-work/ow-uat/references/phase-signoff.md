@@ -30,7 +30,7 @@ Only on a `drafted` request: record `sent`. STATUS: `next: ow-uat /ow-uat-signof
 
 ## 5. `--signed <n> <date> <client role>` and `--deemed <n>`
 
-Only on a request that was `drafted` or `sent` and not superseded **as of the signature (or deemed) date**. Each step goes into the row's `signing_steps` as it finishes; a cut-off run resumes at the first missing one:
+Only on a request that was `drafted` or `sent` and not superseded **as of the signature (or deemed) date**. Each step goes into the row's `signing_steps` as a `{ step, rec, date }` mapping as it finishes (`signoff-schemas.md` §3); a cut-off run resumes at the first missing one:
 
 1. **record**: `signed <date> by <client role> on request <n>; signature not verified by this skill`. For `--deemed`: only after the deemed date (`signoff-schemas.md` §4), only with the frozen clause and a supported calendar, and only when the user confirms after seeing the frozen clause, the three dates and the builder-run list (a request resting on builder-run checks counts as complete only if the clause covers that). Then `deemed accepted under <clause ref> on <date>; applied by <user>; client response not received`.
 2. **accounts**: ask for **every test account the builder created, set or knows a password for, or signed in with**, and any tester account in production: role, environment, created-by. Never a login. Kept in the row.

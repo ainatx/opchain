@@ -161,10 +161,10 @@ describe("the skill text keeps the rules the checker cannot see", () => {
     }
     expect(readFileSync(join(ROOT, "skills-work", "ow-build", "examples", "handoffs.yaml"), "utf8")).toBe(readFileSync(join(ROOT, "skills-work", "ow-uat", "examples", "handoffs.yaml"), "utf8"));
   });
-  it("frontmatter: Agent Skills keys only, version 1.0.2, protocol 1, six verbs", () => {
+  it("frontmatter: Agent Skills keys only, version 1.0.3, protocol 1, six verbs", () => {
     const { data } = matter(readFileSync(join(SKILL, "SKILL.md"), "utf8"));
     expect(Object.keys(data).sort()).toEqual(["compatibility", "description", "license", "metadata", "name"]);
-    expect(data.metadata.version).toBe("1.0.2");
+    expect(data.metadata.version).toBe("1.0.3");
     expect(data.metadata.protocol).toBe("1");
     expect(data.metadata.commands.split(" ")).toEqual(["/ow-uat", "/ow-uat-plan", "/ow-uat-pack", "/ow-uat-run", "/ow-uat-defect", "/ow-uat-signoff"]);
   });
@@ -225,8 +225,8 @@ describe("the skill text keeps the rules the checker cannot see", () => {
     expect(ref("phase-signoff.md")).toMatch(/or says it does not apply or never falls due on that date, does not/);
     // 1.0.2 (owner decision 2026-10-19, Visa's published test card) follows 1.0.1 in the same changelog.
     const body = readFileSync(join(SKILL, "SKILL.md"), "utf8");
-    expect(body).toMatch(/^  version: "1\.0\.2"$/m);
-    expect(body).toMatch(/^ow-uat 1\.0\.2 · protocol 1/m);
+    expect(body).toMatch(/^  version: "1\.0\.3"$/m);
+    expect(body).toMatch(/^ow-uat 1\.0\.3 · protocol 1/m);
     const log = readFileSync(join(SKILL, "CHANGELOG.md"), "utf8");
     expect(log).toMatch(/^## 1\.0\.1 \(2026-10-19\)/m);
     expect(log.indexOf("## 1.0.2 (2026-10-19)")).toBeGreaterThan(-1);

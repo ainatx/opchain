@@ -1,0 +1,17 @@
+# Trigger queries for ow-vendor-eval (the authoring standard's should-trigger and should-not-trigger
+# prompts; no harness runs them yet). INVENTED.
+should_trigger:
+  - help the client choose an inventory tool
+  - compare these three booking systems for us
+  - score the vendors against our criteria
+  - prepare the evaluation workbook for the town's RFP
+  - record that the client picked the runner-up
+  - write the vendor questions and a demo script
+  - which of these four tools should the bakery pick, and why
+should_not_trigger:
+  - { prompt: "find out what inventory tools cost", belongs_to: ow-research }
+  - { prompt: "write the client a report on the recommendation", belongs_to: ow-draft }
+  - { prompt: "quote the selection job", belongs_to: ow-build-plan }
+  - { prompt: "sign me up for a trial of this tool", belongs_to: "none: the user does it" }
+  - { prompt: "which bidder should the agency award", belongs_to: "none: the panel decides" }
+  - { prompt: "draft the contract with the chosen vendor", belongs_to: "none: legal advice" }

@@ -47,6 +47,17 @@
 )
 #show table.cell.where(y: 0): set text(fill: brand.header-text, weight: "bold")
 
+// A narrow table must wrap identifiers and paths instead of painting over
+// the next cell. Zero-width layout spacing adds break opportunities without
+// inserting hidden Unicode characters into copied identifiers. Keep the
+// rule inside cells; ordinary prose uses language-aware hyphenation.
+#show table.cell: it => {
+  set text(size: 10pt, hyphenate: true)
+  show regex("[A-Z][A-Z0-9]*(_[A-Z0-9]+)+"): token => text(hyphenate: false, token.text.codepoints().map(c => box(c)).join(h(0pt, weak: true)))
+  show raw.where(block: false): token => text(font: "DejaVu Sans Mono", size: 0.8em, hyphenate: false, token.text.clusters().map(c => box(c)).join(h(0pt, weak: true)))
+  it
+}
+
 // Links are underlined as well as coloured: colour is never the only signal.
 #show link: it => underline(text(fill: brand.link, it))
 

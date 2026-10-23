@@ -64,12 +64,12 @@ reads:
     fields: [Answer, F-nn, claim, level, sources, Conflicts, Gaps]
     if_absent: "No research: evidence from the user's sources only; nothing is opened or searched"
     if_mismatch: "A topic whose self-check table holds a FINDING is not imported; a cited F-nn no longer under ## Findings is stale and named"
-  # The vendor recommendation (ow-vendor-eval is planned; reciprocity is checked once it has an edges file).
+  # The commercial vendor recommendation; ow-vendor-eval supplies the reciprocal hand-off.
   - from: ow-vendor-eval
     path: vendor-eval/<ws>/VE-nn-<slug>/recommendation.md
     fields: [decision, vendor, runner-up, knock-outs, score table, cost, risks, what to confirm, conflicts statement]
     if_absent: "No recommendation: evidence from the user's sources only"
-    if_mismatch: "Use the fields that parse; a draft that uses it carries its conflicts statement word for word; a formal-mode evaluation hands nothing on"
+    if_mismatch: "Check sibling scope.md and recommendation mode are commercial; deny formal or contradictory modes; carry conflicts statement word for word"
   # Family files read only when the user names one (named: true): the producer writes the path; no hand-off is claimed.
   - { from: ow-start, named: true, reference: references/phase-evidence.md, path: logs/<ws>/decisions/DEC-nn.md, fields: [Decision, Decided by, decided_on], if_absent: "Not named: not read", if_mismatch: "Use the sections that parse; cite it by path with its ow_artefact" }
   - { from: ow-start, named: true, reference: references/phase-evidence.md, path: logs/<ws>/meetings/MTG-nn/notes.md, fields: [Decisions, meeting_date], if_absent: "Not named: not read", if_mismatch: "Use the sections that parse; cite it by path with its ow_artefact" }
