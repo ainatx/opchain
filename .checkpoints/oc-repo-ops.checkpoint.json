@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
+  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a8477357f762f97b9",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-23T08:24:45.624Z",
+  "updated_at": "2026-10-23T19:20:38.424Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr-652-ten-skill-preparation",
-  "progress_summary": "Ten-skill source passes all eight strict checks; scoped reviews, matching archives, catalog/edge contracts and current source-bound docs are present. Draft preparation only; public release remains held.",
+  "step": "pr652-approval-grammar",
+  "progress_summary": "PR #652 readiness PASS at f938d902: full npm test 189 files / 12,395 tests passed and the build passed at 11282e4f; the three commits passed the commit gate; acceptance goldens draft 182, handoff 161, vendor 135 pass; checkpoint:validate passes.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -23,21 +23,17 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [
-      "Model raw failures and scope limitations retained in evidence report",
-      "Held website assembly is separate and unpublished",
-      "Owner/public-install/host/model/October 27 requirements remain open"
-    ],
+    "warnings": [],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "a85822679ea88e9ee29a473880fcc736bceb3180",
+    "verified_for_sha": "f938d90250557225d9a6500b68ae90d00bcac615",
     "last_verify": {
-      "at": "2026-10-23T08:24:44.905603+00:00",
+      "at": "2026-10-23T19:20:38.424Z",
       "branch": "codex/ow-handoff-completion",
-      "base": "fc9521dbcc9d48bcb033e5bffeeb3a32baeff170",
+      "base": "origin/main@809ed373",
       "verdict": "PASS",
       "blocking_findings": []
     },
@@ -2703,8 +2699,35 @@
           ".checkpoints/release-2.1-assembly-verification.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr652-approval-grammar-0f7fc3e28913",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-23T19:20:38.424Z",
+      "verified_at": "2026-10-23T19:20:38.424Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr652-approval-grammar"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:0f7fc3e2891350d3c1d98901a11d7d9163dccc3871f8c83d48b7d57764604b28"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "codex/ow-handoff-completion at f938d902 over 485eef35. No skills/, skills-work/<id>/, plugins/, site/ or src/ change, so no catalog, bundle, plugin or release-surface output changes; skills-work/README.md is outside every skill folder. Candidate verifier PASS on each commit's tree.",
+        "evidence": [
+          "CLAUDE.md",
+          "sprints/release-2.1/cleanup-issue-draft.md",
+          "sprints/release-2.1/track-s-site-surfaces.md",
+          "skills-work/README.md",
+          "sprints/release-2.1/rel-02/real-use-runbook.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-23T08:24:45.624Z",
+  "record_updated_at": "2026-10-23T19:20:38.424Z",
   "blockers": []
 }

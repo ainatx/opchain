@@ -3,8 +3,8 @@
 **Draft for owner review; not filed.** This follows the owner's request to see
 one consolidated cleanup issue before it is created.
 
-The eight-skill implementation, distribution and held site candidate are being
-assembled for v2.1. The first isolated model exercises found both checker
+The implementation of the ten work skills (plus ow-tools), their distribution and
+the held site candidate are being assembled for v2.1. The first isolated model exercises found both checker
 mismatches and real model deviations. Track their resolution without treating
 goldens or same-session checks as real use.
 

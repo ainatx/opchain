@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { approvedClause, clausesOf, sentencesOf } from "../scripts/lib/approval-grammar.mjs";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { approvedClause, clausesOf, relayedIn, retractedIn, sentencesOf } from "../scripts/lib/approval-grammar.mjs";
+import { givenSurnameNames, makePeopleFindings } from "../scripts/lib/people-rules.mjs";
+import * as draft from "../scripts/ow-draft-acceptance.mjs";
+import * as handoff from "../scripts/ow-handoff-acceptance.mjs";
+import * as vendor from "../scripts/ow-vendor-eval-acceptance.mjs";
+import * as EVAL from "./ow-pr652-evaluator-forms.mjs";
+import * as MINE from "./ow-pr652-builder-forms.mjs";
+import { EVALUATOR_VENDOR } from "./ow-pr652-vendor-forms.mjs";
 
 const verb = (text) => /\bapprove\b/i.test(text);
 const names = (text, sentence) => /\bC-1\b/.test(sentence);
@@ -48,5 +57,133 @@ describe("shared approval clause grammar", () => {
   it("keeps clauses and sentence retractions distinct", () => {
     expect(sentencesOf("One. Two; three")).toEqual(["One.", "Two;", "three"]);
     expect(clausesOf("Waive TR-02, but not TR-01 and go.")).toEqual(["Waive TR-02", "but not TR-01", "go"]);
+  });
+});
+
+// ── PR #652: the approval grammar, the person-name rules and the not-a-bidder statement, held to two form sets ──────────
+// tests/ow-pr652-evaluator-forms.mjs is the PR's independent evaluator's untuned set (sha256 286373f9…ea17, hashed before
+// the evaluator read any test). tests/ow-pr652-builder-forms.mjs is the builder's own set, written and hashed (f50fdb6e…bf0b)
+// before any rule was changed; its rules were then written after the first run showed what it missed, so the builder's
+// "after" numbers are tuned and only the evaluator's set is untuned. Both are permanent plants. A form marked "?" in the
+// evaluator's set was uncertain to its author and is not asserted.
+const sha = (file) => createHash("sha256").update(readFileSync(new URL(file, import.meta.url))).digest("hex");
+const wantD = { signoff: { candidate: "C-1" }, client: { candidate: "C-1", role: "the operations manager" }, permission: { what: "name" }, brief: {}, push: { files: ["a.pdf"] }, waiver: { check: "Sources", candidate: "C-1" } };
+const wantH = {
+  waiver: { id: "TR-01", ids: ["TR-01"], names: ["the trace"], excluded: [] },
+  "go-ahead": { id: "HELP-01", names: ["the help request"], role: "operations manager" },
+  hours: { id: "HELP-01", names: ["the help request"], hours: 2 },
+  keep: { file: "agreed/scope.md", names: ["scope.md"] },
+};
+const draftAccepts = (kind, text) => draft.sessionApproval(kind, draft.sessionLines(`Robin: ${text}`, "Robin"), wantD[kind]).length === 0;
+const handoffAccepts = (kind, text) => handoff.sessionApproval(kind, handoff.sessionEntries(`Robin: ${text}`, "Robin"), wantH[kind], { client: "Larkspur" }).length === 0;
+
+describe("PR #652 form sets are the ones hashed", () => {
+  it("the files are byte-identical to the hashed sets", () => {
+    expect(sha("./ow-pr652-evaluator-forms.mjs")).toBe("286373f9d57a1c3ca562c9e2648e4b1062711cd7c7a82b805c667ec8ea1eea17");
+    expect(sha("./ow-pr652-builder-forms.mjs")).toBe("f50fdb6eb5c9dfa6e5980cefd66d4ebe938db07f3d220704668bfd411b8abf0b");
+  });
+  it("the sets are large enough to mean something", () => {
+    expect(EVAL.DRAFT.length + EVAL.HANDOFF.length).toBeGreaterThanOrEqual(119);
+    expect(MINE.DRAFT.length + MINE.HANDOFF.length).toBeGreaterThanOrEqual(80);
+    expect(MINE.PEOPLE.length).toBeGreaterThanOrEqual(20);
+    expect(MINE.BIDDER.length).toBeGreaterThanOrEqual(10);
+  });
+});
+
+for (const [label, set] of [["evaluator", EVAL], ["builder", MINE]]) {
+  describe(`PR #652 session approvals (${label} set)`, () => {
+    for (const [id, kind, text, expected] of set.DRAFT) {
+      if (expected.endsWith("?")) continue;
+      it(`draft ${id} ${kind}: ${expected === "A" ? "accepts" : "declines"} ${JSON.stringify(text)}`, () => expect(draftAccepts(kind, text)).toBe(expected === "A"));
+    }
+    for (const [id, kind, text, expected] of set.HANDOFF) {
+      if (expected.endsWith("?")) continue;
+      it(`handoff ${id} ${kind}: ${expected === "A" ? "accepts" : "declines"} ${JSON.stringify(text)}`, () => expect(handoffAccepts(kind, text)).toBe(expected === "A"));
+    }
+  });
+  describe(`PR #652 people (${label} set): ow-draft, ow-handoff and ow-vendor-eval read the same rules`, () => {
+    const ctx = { user: "Robin", client: "Larkspur", names: [] };
+    for (const [id, text, person] of set.PEOPLE) {
+      it(`${id}: ${person ? "flags" : "passes"} ${JSON.stringify(text)}`, () => {
+        expect(draft.peopleFindings(text, ctx).length > 0, "ow-draft").toBe(person);
+        expect(handoff.peopleFindings(text, ctx).length > 0 || handoff.peopleBeside(text, "Robin").length > 0, "ow-handoff").toBe(person);
+        expect(vendor.vePeopleFindings(text, ctx).length > 0, "ow-vendor-eval").toBe(person);
+      });
+    }
+  });
+}
+
+describe("PR #652 decisions the sets rest on", () => {
+  it('"C-1 is approved" with no actor is the user\'s own where the record is the user\'s own, in ow-draft and ow-handoff alike', () => {
+    expect(draftAccepts("signoff", "C-1 is approved.")).toBe(true);
+    expect(handoffAccepts("waiver", "TR-01 is waived.")).toBe(true);
+    // ...but never when someone else is the agent, or when the sentence is a relayed report.
+    for (const text of ["C-1 is approved by the owner.", "The owner says C-1 is approved.", "Per the ticket, C-1 is approved.", "C-1 is approved, the owner says."]) expect(draftAccepts("signoff", text), text).toBe(false);
+    for (const text of ["TR-01 is waived by Pat.", "Per the ticket, TR-01 is waived.", "The client says TR-01 is waived."]) expect(handoffAccepts("waiver", text), text).toBe(false);
+    // A reported client act needs the client named, in both skills.
+    expect(draftAccepts("client", "C-1 is approved.")).toBe(false);
+    expect(handoffAccepts("go-ahead", "HELP-01 is approved.")).toBe(false);
+  });
+  it("a no or not inside an approval approves its object; scope phrases are not refusals; a bare yes confirms the printed list", () => {
+    for (const text of ["I approve C-1, not C-2.", "I approve C-1, no further edits.", "I approve C-1 now, not later.", "I approve C-1, no need to change anything."]) expect(draftAccepts("signoff", text), text).toBe(true);
+    expect(draftAccepts("push", "Yes.")).toBe(true);
+    expect(draftAccepts("push", "Yes, but wait.")).toBe(false);
+  });
+  it("a retraction in the same utterance withdraws the approval, however it is worded; 'wait for' is not a retraction", () => {
+    for (const text of ["I approve C-1, but wait.", "I approve C-1. Hold on.", "I approve C-1. Fine. Actually, no.", "I approve C-1, on second thought, never mind.", "I approve C-1. Scratch that.", "I approve C-1. Hmm, actually no."]) expect(draftAccepts("signoff", text), text).toBe(false);
+    for (const text of ["I approve C-1, but wait.", "I approve C-1. Scratch that.", "I approve C-1. Fine. Actually, no."]) expect(retractedIn(text), text).toBe(true);
+    expect(retractedIn("I approve C-1, and wait for the client's reply.")).toBe(false);
+    expect(retractedIn("I approve C-1, hold on to the logo file.")).toBe(false);
+  });
+  it("a relay verb in any clause, or 'per …', makes the sentence someone else's record", () => {
+    for (const text of ["Pat told me to approve C-1, so approved.", "Per the ticket, I approve C-1.", "Yes, per Pat.", "I approve C-1 as per the doc."]) expect(relayedIn(text), text).toBe(true);
+    expect(relayedIn("I approve C-1, no changes.")).toBe(false);
+    expect(relayedIn("The operations manager approved C-1, says the operations manager.", "client", /\boperations manager\b/i)).toBe(false);
+  });
+  it("draft's waiver passes 'I waive …' and 'Waiving …' and declines a waiver that is taken back", () => {
+    for (const text of ["I waive Sources on C-1.", "Waiving Sources on C-1.", "Yes, waive Sources on C-1.", "Please waive Sources on C-1."]) expect(draftAccepts("waiver", text), text).toBe(true);
+    for (const text of ["Waive Sources on C-1. Actually, no.", "Waive Sources on C-1, but wait.", "I won't waive Sources on C-1."]) expect(draftAccepts("waiver", text), text).toBe(false);
+  });
+});
+
+describe("PR #652 shared person-name rules (scripts/lib/people-rules.mjs)", () => {
+  const ctx = { user: "Robin", client: "Larkspur" };
+  it("a lone O'/Mc word is a person only with a given name, a title or a person slot", () => {
+    for (const t of ["Brendan McGrath fixed it.", "Ask McAllister about it.", "Contact Mr. O'Donnell.", "Seán Ó Briain joined the call.", "Hamid al-Rashid approved the quote."]) expect(draft.peopleFindings(t, ctx).length, t).toBeGreaterThan(0);
+    for (const t of ["McAllister Pottery Supply ships the clay.", "The McKinsey report says it is common.", "Visit McDonald's on the corner.", "The O'Hare terminal was crowded.", "Our McCormick order arrived."]) expect(draft.peopleFindings(t, ctx), t).toEqual([]);
+  });
+  it('"Dr. Martens" and "Dr. Pepper" are brands, not people', () => {
+    for (const t of ["Dr. Martens boots are in the photo.", "Dr. Pepper is a soft drink.", "We stock Dr. Martens and Dr. Scholl's insoles."]) expect(draft.peopleFindings(t, ctx), t).toEqual([]);
+    expect(draft.peopleFindings("Dr. Okafor signed off.", ctx).length).toBeGreaterThan(0);
+  });
+  it("the three graders import one implementation (ow-handoff's O'/Mc finder is the shared one; no copies remain)", () => {
+    expect(handoff.peopleIrish).toBe(givenSurnameNames);
+    expect(handoff.peopleIrish("Call Brendan McGrath on the kiln line.", "Robin")).toEqual(["Brendan McGrath"]);
+    for (const file of ["ow-draft", "ow-handoff", "ow-vendor-eval"]) {
+      const source = readFileSync(new URL(`../scripts/${file}-acceptance.mjs`, import.meta.url), "utf8");
+      expect(source, file).toContain('from "./lib/people-rules.mjs"');
+      expect(source, file).not.toMatch(/const (?:PARTICLE|TITLE_BRANDS|SLOT_SURNAME|NOT_GIVEN|FULL_NAME) =/);
+    }
+    expect(typeof makePeopleFindings).toBe("function");
+  });
+  it("ow-vendor-eval does not read 'with <two words>' as a person (vendors are named all day)", () => {
+    expect(vendor.vePeopleFindings("Do you have any relationship with Tallowmere Stock?", ctx)).toEqual([]);
+  });
+});
+
+describe("PR #652 ow-vendor-eval: the never-waived not-a-bidder statement is the whole statement", () => {
+  for (const [answer, expected, want] of MINE.BIDDER) {
+    it(`${expected === "A" ? "accepts" : "declines"} ${JSON.stringify(answer)}`, () => expect(vendor.approvalAnswer(answer, "bidder", want).ok).toBe(expected === "A"));
+  }
+  for (const [kind, answer, expected] of EVALUATOR_VENDOR) {
+    it(`evaluator form ${kind}: ${JSON.stringify(answer)} is ${expected}`, () => {
+      const r = vendor.approvalAnswer(answer, kind, {});
+      expect(r.ok ? (r.decision === "no" ? "N" : "A") : "D").toBe(expected);
+    });
+  }
+  it("the vendor checker uses the shared grammar and says so", () => {
+    const source = readFileSync(new URL("../scripts/ow-vendor-eval-acceptance.mjs", import.meta.url), "utf8");
+    expect(source).toContain('from "./lib/approval-grammar.mjs"');
+    expect(source).not.toMatch(/is not on main yet/);
   });
 });
