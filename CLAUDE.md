@@ -92,7 +92,7 @@ opchain/
 │   ├── orchestrator.md     # Shared orchestration rules
 │   ├── CHANGELOG.md        # Lockstep skill-catalog release log
 │   └── README.md           # Installation instructions + full skill/phase table
-├── skills-work/            # The eight-skill ow- family planned for v2.1.0: ow-start, ow-build-plan, ow-build, ow-uat, ow-documentation, ow-handoff, ow-research, ow-draft.
+├── skills-work/            # The ten work skills planned for v2.1.0: ow-start, ow-build-plan, ow-build, ow-uat, ow-documentation, ow-handoff, ow-research, ow-draft, ow-vendor-eval, ow-care (plus the ow-tools add-on in plugins/).
 │   │                       # Text-only, own protocol (ow-protocol.md), per-skill versions.
 │   │                       # Separate ZIP and public-mirror distribution is prepared; public 2.1 downloads remain held.
 │   │                       # Never mixed into the oc plugin, ZIP, docs, flags or MCP catalog. skills-work/README.md.
@@ -155,6 +155,8 @@ node scripts/ow-start-acceptance.mjs # ow-start acceptance checks against tests/
 node scripts/ow-build-plan-acceptance.mjs # ow-build-plan acceptance checks against tests/fixtures/ow-build-plan (golden runs, or a real run)
 node scripts/ow-build-acceptance.mjs # ow-build acceptance checks against tests/fixtures/ow-build (golden runs, or a real run)
 node scripts/ow-handoff-acceptance.mjs # ow-handoff acceptance checks against tests/fixtures/ow-handoff (golden runs, or a real run)
+# The same pattern for ow-uat, ow-documentation, ow-research, ow-draft and ow-vendor-eval: scripts/ow-<skill>-acceptance.mjs against tests/fixtures/ow-<skill>.
+# ow-draft, ow-handoff and ow-vendor-eval grade approvals and people through scripts/lib/approval-grammar.mjs and scripts/lib/people-rules.mjs (one owner, no copies).
 npm run check-release-tag # is the lockstep catalog version actually tagged in git?
 npm run sync-docs        # skills/ → public/docs/ (runs in prebuild)
 npm run make-zip         # skills/ → public/opchain-skills.zip (runs in prebuild)
