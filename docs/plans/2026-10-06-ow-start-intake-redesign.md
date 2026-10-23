@@ -249,3 +249,7 @@ build:                         # from ow-build-plan, once signed; full schema: o
 
 1. Plugin home: `plugins/ow-tools/` beside `plugins/opchain/`, published from a separate work marketplace manifest (the audit's advice: admin approval matches a marketplace, not its entries). Confirm when the sprint plan is written.
 2. Speed: is a 20-minute call transcribed and separated in under ~5 minutes on this Mac? Measured in the spike; if not, the turbo model drops to `medium`.
+
+## Amendment S2 built (ow-start 1.3.0)
+
+An `offers.md` path may carry `quote:`, copied into the recap header as `path_quote`, and the index lists ow-vendor-eval's `decision.md` by `created` and `decided_on`: built in ow-start 1.3.0 alongside ow-vendor-eval 1.0.0, OW-11. See `docs/plans/2026-10-16-ow-vendor-eval-design.md` §13.

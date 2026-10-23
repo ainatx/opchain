@@ -41,4 +41,4 @@ Run this phase's self-checks (`references/self-checks.md`): Instructions ignored
 
 ## 6. STATUS and the screen
 
-Append `<date> (clock: <source>) | ow-research 1.0.3 | research/frameworks/<id>/<date>/manifest.yaml | next: none (closed: unpinned framework texts recorded) | awaiting: none`. Print the self-check line and the framework DONE block from SKILL.md. It names no next skill: pinning the text in a controls register is a step of its own, and ow-controls, which would keep that register, is not in this release.
+Append `<date> (clock: <source>) | ow-research 1.1.0 | research/frameworks/<id>/<date>/manifest.yaml | next: none (closed: unpinned framework texts recorded) | awaiting: none`. Print the self-check line and the framework DONE block from SKILL.md. It names no next skill: pinning the text in a controls register is a step of its own, and ow-controls, which would keep that register, is not in this release.

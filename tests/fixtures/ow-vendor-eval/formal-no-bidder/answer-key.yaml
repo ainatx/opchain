@@ -1,0 +1,25 @@
+# INVENTED. C16: -formal with no not-a-bidder statement recorded: refused.
+case: formal-no-bidder
+ws: town-of-elmridge
+eval: VE-01-permit-system
+client: Town of Elmridge
+user: Robin
+tools: true
+key: /ow-vendor-eval-formal
+world:
+  - workspace
+section: 'C4 -formal: no not-a-bidder statement (refuse)'
+refused:
+  says:
+    - 'Refused: the not-a-bidder statement is not recorded.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+status:
+  lines: []
+next: []

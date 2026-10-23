@@ -1,0 +1,48 @@
+# INVENTED. -evidence for Wrenfold Reserve, from the files the user saved in inbox/ (each fact quoted word for word,
+# at the level its source gives). The trial login
+# in the vendor's email is never copied.
+case: evidence-hollowbrook-wrenfold
+ws: hollowbrook-bakery
+eval: VE-01-booking-tool
+client: Hollowbrook Bakery
+user: Robin
+tools: true
+vendors:
+  - name: Pennyroyal Book
+    host: pennyroyal.example
+  - name: Sallowmere Bookings
+    host: sallowmere.example
+  - name: Thistledown Slots
+    host: thistledown.example
+  - name: Wrenfold Reserve
+    host: wrenfold.example
+section: C10 evidence for Wrenfold Reserve; C20 a trial login never stored
+key: /ow-vendor-eval-evidence <vendor>
+vendor: wrenfold
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - evidence
+  - self_checks
+  - internal_numbers
+  - embedded
+status:
+  lines:
+    - path: vendor-eval/hollowbrook-bakery/VE-01-booking-tool/vendors/wrenfold.md
+      next: ow-vendor-eval /ow-vendor-eval-score vendor-eval/hollowbrook-bakery/VE-01-booking-tool/
+      awaiting: none
+next:
+  - use ow-vendor-eval-score on vendor-eval/hollowbrook-bakery/VE-01-booking-tool/
+embedded: []
+sources_read:
+  - inbox/wrenfold-email.md
+base: evidence-hollowbrook-thistledown

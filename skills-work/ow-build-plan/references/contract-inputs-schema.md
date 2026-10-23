@@ -7,7 +7,7 @@ The header carries the machine-readable keys; the body says the same in plain wo
     ---
     ow_artefact: ow-build-plan/contract-inputs
     schema: 1
-    written_by: ow-build-plan 1.2.0 (protocol 1)
+    written_by: ow-build-plan 1.4.0 (protocol 1)
     workstream: <slug>
     subject: plans/<client>/quote.md
     created: <YYYY-MM-DD>
@@ -76,8 +76,14 @@ Copy it unchanged; never draft, shorten or reword a clause. With no block, write
 
 ## A feasibility quote (`mode: feasibility`)
 
+For `mode: onboarding`, use the same limited contract-input shape as a feasibility test, replacing `deliverables` with `[onboarding review, findings note, health baseline, initial operator notes]` and recording `onboarding_size` and `payment: on_signature | on_delivery` from the quote. `scope` is `quick-scope.md`; never copy build UAT, fix-window, documentation/training, acceptance/delivery definition or Build Plan credit fields. `## Next` points to `ow-care-onboard` after signing. This is input for a contract, not a contract or evidence of a signed one.
+
 `contract-inputs.md` for a feasibility test holds just the test (owner decision 2026-10-16). Header keys: the protocol header, then `client`, `mode: feasibility`, `accepted`, `acceptance_note`, `parties`, `quote`, `scope` (`plans/<client>/quick-scope.md`), `currency`, `fixed_price`, `schedule`, `payments`, `payment_terms_days`, `valid_until`, `deliverables: [findings note, go or no-go]` and `contract_clauses`. **None of** `fix_window_days`, `fix_window_wording`, `uat`, `documentation_sku`, `documentation_price`, `documentation_people`, `acceptance_definition`, `delivery_definition`, `vendor_subscriptions`, `credit_deadline` or `build_plan_fee`.
 
 Body sections: `## Parties`, `## What is tested` (by reference to `quick-scope.md`), `## What you get` (the findings note and the go or no-go), `## Price and payment`, `## Dates` (valid until), `## Contract clauses`, `## Next` (the accepted NEXT block, as for any quote).
 
 Rules: no unit price, modifier or internal rate (they stay in `quote.md`'s internal appendix); people by role, never by name, apart from the parties; dates written out in the body.
+
+## A vendor-selection quote (`mode: vendor-eval`)
+
+The feasibility form's sibling: just the selection. Header keys as the feasibility form, with `mode: vendor-eval` and `deliverables: [recommendation, decision record]`; the same keys are left out. Body sections: `## Parties`, `## What is compared` (by reference to `quick-scope.md`), `## What you get`, `## Price and payment`, `## Dates`, `## Contract clauses`, `## Next`. The same rules apply.

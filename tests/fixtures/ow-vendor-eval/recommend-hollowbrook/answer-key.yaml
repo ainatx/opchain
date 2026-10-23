@@ -1,0 +1,44 @@
+# INVENTED. -recommend for Hollowbrook: Sallowmere Bookings has the top total; the runner-up is Pennyroyal Book.
+case: recommend-hollowbrook
+ws: hollowbrook-bakery
+eval: VE-01-booking-tool
+client: Hollowbrook Bakery
+user: Robin
+tools: true
+vendors:
+  - name: Pennyroyal Book
+    host: pennyroyal.example
+  - name: Sallowmere Bookings
+    host: sallowmere.example
+  - name: Thistledown Slots
+    host: thistledown.example
+  - name: Wrenfold Reserve
+    host: wrenfold.example
+section: C14 recommendation; C8 the none line
+key: /ow-vendor-eval-recommend
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - recommendation
+  - conflicts
+  - self_checks
+  - internal_numbers
+  - handoff_fields
+status:
+  lines:
+    - path: vendor-eval/hollowbrook-bakery/VE-01-booking-tool/recommendation.md
+      next: ow-vendor-eval /ow-vendor-eval-decide vendor-eval/hollowbrook-bakery/VE-01-booking-tool/
+      awaiting: none
+next:
+  - use ow-vendor-eval-decide sallowmere on vendor-eval/hollowbrook-bakery/VE-01-booking-tool/
+  - use ow-draft-evidence on vendor-eval/hollowbrook-bakery/VE-01-booking-tool/recommendation.md
+base: score-hollowbrook

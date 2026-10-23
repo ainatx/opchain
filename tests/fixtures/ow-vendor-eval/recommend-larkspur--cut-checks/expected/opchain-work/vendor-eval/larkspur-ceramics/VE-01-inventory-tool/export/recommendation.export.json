@@ -1,0 +1,10 @@
+{
+  "tool": "ow-tools",
+  "command": "ow-tools export vendor-eval/larkspur-ceramics/VE-01-inventory-tool/export/client/recommendation.md --formats pdf,docx --out vendor-eval/larkspur-ceramics/VE-01-inventory-tool/export/",
+  "source": "vendor-eval/larkspur-ceramics/VE-01-inventory-tool/export/client/recommendation.md",
+  "outputs": [
+    "recommendation.pdf",
+    "recommendation.docx"
+  ],
+  "preflight": "ok"
+}

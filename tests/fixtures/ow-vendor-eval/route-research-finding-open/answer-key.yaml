@@ -1,0 +1,37 @@
+# INVENTED. C4: a topic whose self-check table holds a FINDING: refused, its findings not imported.
+case: route-research-finding-open
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-evidence <vendor>
+research_case:
+  - run-vendor-eval
+section: 'C4 ow-research route: a self-check FINDING in the topic (refuse)'
+route:
+  say: use ow-vendor-eval-evidence on research/larkspur-ceramics/RS-03-open-topic/findings.md
+  expect: 'refused: finding open'
+refused:
+  says:
+    - 'Refused: research/larkspur-ceramics/RS-03-open-topic/findings.md has a self-check FINDING; its findings are not imported.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+  - route
+status:
+  lines: []
+next: []
+base: longlist-larkspur

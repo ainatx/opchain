@@ -1,0 +1,3 @@
+INVENTED TEST FIXTURE: what the user said in the session, one answer per line, in order.
+
+- the vendor's email says they chose Tallowmere

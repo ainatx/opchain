@@ -1,0 +1,26 @@
+---
+ow_artefact: ow-vendor-eval/cost
+schema: 1
+written_by: ow-vendor-eval 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: vendor-eval/larkspur-ceramics/VE-01-inventory-tool/scope.md
+created: 2026-10-26
+clock: user-stated
+origin: skill
+evaluation: VE-01
+---
+# Cost over the horizon: an inventory tool for finished stock counts
+
+Horizon: 36 months, 4 seats, as scope.md records them. Prices carry their own dates. A price rise is a risk, in words, never computed.
+
+## Tallowmere Stock
+- price: 18.00 USD per seat per month, as published on 2026-10-18 (research/larkspur-ceramics/RS-02-inventory-tools/findings.md F-04)
+- horizon: 36 months × 4 seats
+- Computed without ow-tools; check it.
+- cost over the horizon: 2592.00 USD
+
+## Brackenfold Inventory
+- price: 22.00 USD per seat per month, as published on 2026-10-18 (research/larkspur-ceramics/RS-02-inventory-tools/findings.md F-05)
+- horizon: 36 months × 4 seats
+- Computed without ow-tools; check it.
+- cost over the horizon: 3168.00 USD

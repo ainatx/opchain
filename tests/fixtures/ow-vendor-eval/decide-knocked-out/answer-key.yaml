@@ -1,0 +1,40 @@
+# INVENTED. C4, C15: the client chose Marrowby Goods, knocked out on MH-01: the reason is asked and recorded in your
+# words, beside the recommended vendor.
+case: decide-knocked-out
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-decide <vendor>
+vendor: marrowby
+section: 'C4 -decide: a knocked-out vendor (ask the reason; recorded)'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - decision
+  - self_checks
+status:
+  lines:
+    - path: vendor-eval/larkspur-ceramics/VE-01-inventory-tool/decision.md
+      next: ow-build-plan /ow-build-plan-map plans/larkspur-ceramics/
+      awaiting: none
+next:
+  - use ow-build-plan-map on plans/larkspur-ceramics/
+base: recommend-larkspur

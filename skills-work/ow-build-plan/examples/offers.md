@@ -10,9 +10,9 @@ origin: user
 ---
 # Offers and fit: INVENTED EXAMPLE
 
-This is an invented example, shipped the same in every ow- skill that reads it. Replace every line with your own paths and the clients you serve. ow-start reads the `fit` and `path:` sections to propose one path after each call; ow-build-plan reads `ownership`, `after_handoff` and `contract_clauses` for the plan, the quote and the contract inputs; ow-uat reads `uat` for acceptance testing; ow-handoff reads `after_handoff` for the offer after delivery. No skill edits this file. It names paths and terms; build prices live in `price-book.yaml`. The prices below, in `after_handoff`, are invented placeholders like every number there: put your own in.
+This is an invented example, shipped the same in every ow- skill that reads it. Replace every line with your own paths and the clients you serve. ow-start reads the `fit` and `path:` sections to propose one path after each call; ow-build-plan reads `ownership`, `after_handoff` and `contract_clauses` for the plan, the quote and the contract inputs, and a path’s `quote:` line to choose the quick quote’s form; ow-uat reads `uat` for acceptance testing; ow-handoff reads `after_handoff` for the offer after delivery. No skill edits this file. It names paths and terms; build prices live in `price-book.yaml`. The prices below, in `after_handoff`, are invented placeholders like every number there: put your own in.
 
-Each path is a `## path: <id>` section. `kind` is one of `defined-work`, `build-plan`, `feasibility` or `not-a-fit`; `systems` is `1`, `2`, `3+` or `none`. `propose when` is what the call has to show; `after yes` is what the recap says happens next.
+Each path is a `## path: <id>` section. `kind` is one of `defined-work`, `build-plan`, `feasibility`, `care-takeover` or `not-a-fit`; `systems` is `1`, `2`, `3+` or `none`. `propose when` is what the call has to show; `after yes` is what the recap says happens next. An optional `quote` names a quick quote's special form: `vendor-eval` is a vendor selection, priced from the price book's `vendor_selection` block.
 
 ## fit
 
@@ -60,6 +60,23 @@ Each path is a `## path: <id>` section. `kind` is one of `defined-work`, `build-
 - systems: none
 - propose when: the client's real question is whether software, or AI, could do this at all
 - after yes: I send a short quote for a time-boxed test on your own examples: its price, what it tests, and what you get, a findings note with a go or no-go.
+
+## path: care-takeover
+
+- label: Care for an existing system
+- kind: care-takeover
+- systems: none
+- propose when: the client wants care for a running system someone else built, with no new build in scope
+- after yes: I send a fixed-fee quote for an onboarding review of the systems and access; after that review, you choose whether and when to start a care plan.
+
+## path: vendor-selection
+
+- label: Help choosing a tool
+- kind: defined-work
+- quote: vendor-eval
+- systems: none
+- propose when: the client has to choose one tool or service from several and wants a choice they can defend; nothing is built yet
+- after yes: I send a short scope with a fixed quote for the selection: criteria agreed with you first, the vendors compared on evidence, and a written recommendation. You make the choice.
 
 ## path: not-a-fit
 

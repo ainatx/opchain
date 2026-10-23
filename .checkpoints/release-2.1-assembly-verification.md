@@ -27,3 +27,15 @@
 After browser verification, two source-only version assertions in `tests/ow-uat-acceptance.test.js` and `tests/ow-documentation-acceptance.test.js` were updated to current published source versions and copied into assembly. Their two suites passed 319 tests; no product or browser surface changed. The copied-tree manifest includes those final test bytes.
 
 Copied-tree manifest SHA-256: `a08520f639094829cde8118697fd2322229fe80972920b50166b9c5545f035a7`. This is held-assembly execution evidence, not publication authorization.
+
+## Ten-skill refresh — October 23
+
+The restored care/vendor source and current shared routing were copied into the separate assembly, preserving its website patch. The initial copy manifest is `/tmp/opchain-ten-skill-integration/held-assembly-initial-source-copy.json`; the four-file vendor follow-up is in `held-refresh-2.json` beside it. Current website copy presents care and vendor evaluation, retains the draft launch post and leaves release claims held.
+
+- Ten-skill catalog and distribution generation: PASS.
+- Astro build: **97 pages**, including `/work/ow-care` and `/work/ow-vendor-eval`.
+- Work surface tests: **7 passed, 0 failed**.
+- Affected Playwright suite: **4 passed, 0 skipped, 0 failed**; six routes at 375/768/1280px plus keyboard/light-mode checks. Browser report: `/tmp/opchain-ten-skill-integration/held-work-browser.json`.
+- The earlier 150-pass/one-skip suite and Lighthouse run remain baseline evidence; they are not claimed as reruns on the added routes.
+
+This is an unpublished assembly; the release-surface guard and version stamp remain unchanged.

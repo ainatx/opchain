@@ -2,6 +2,10 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump (OW-04 ruling O9) and are listed here as data edits.
 
+## Unreleased: data edits from OW-11 (ow-vendor-eval 1.0.0)
+
+The shared invented `examples/offers.md` gains the vendor-selection path and its `quote: vendor-eval` marker, byte-identical in each copy.
+
 ## 1.0.3 (unreleased)
 
 Clarify the shared protocol: client-ready HTML/TXT email twins carry no internal artefact header; their companion record holds provenance. Preserve visible handling banners and print the complete NEXT guidance, including attachment fallback.

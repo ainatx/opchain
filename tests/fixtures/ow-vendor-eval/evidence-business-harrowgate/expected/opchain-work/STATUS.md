@@ -1,0 +1,3 @@
+2026-11-02 (clock: user-stated) | ow-vendor-eval 1.0.0 | vendor-eval/business/VE-01-proposal-tool/scope.md | next: ow-vendor-eval /ow-vendor-eval-longlist vendor-eval/business/VE-01-proposal-tool/ | awaiting: none
+2026-11-03 (clock: user-stated) | ow-vendor-eval 1.0.0 | vendor-eval/business/VE-01-proposal-tool/longlist.md | next: ow-vendor-eval /ow-vendor-eval-evidence vendor-eval/business/VE-01-proposal-tool/ | awaiting: none
+2026-11-04 (clock: user-stated) | ow-vendor-eval 1.0.0 | vendor-eval/business/VE-01-proposal-tool/vendors/harrowgate.md | next: ow-vendor-eval /ow-vendor-eval-evidence vendor-eval/business/VE-01-proposal-tool/ | awaiting: none

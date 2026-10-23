@@ -1,0 +1,18 @@
+# Answer key: hollowbrook-vendor-selection (INVENTED: fictional client, synthetic call).
+# Amendment S2 (ow-start 1.2.0, OW-11): the client has to choose a booking tool from
+# several and wants a choice it can defend, so the recap proposes offers.md's
+# vendor-selection path, and its header copies that path's `quote:` line as
+# path_quote: vendor-eval, which ow-build-plan reads as a vendor-selection quick quote.
+# The call is on a Thursday, so the recap is due on Friday.
+case: hollowbrook-vendor-selection
+input: transcript
+slug: hollowbrook-bakery
+client: Hollowbrook Bakery
+user: Robin
+checks: [headers, path, due_date, status, private_names]
+outputs: [recap]
+path: { id: vendor-selection, kind: defined-work, systems: none, quote: vendor-eval }
+due: { call_date: 2026-10-22, send_by: 2026-10-23 }
+status:
+  next: "ow-build-plan on intake/hollowbrook-bakery/intake-record.md"
+private_names: [llc-ops, Deftwright]

@@ -1,0 +1,32 @@
+# INVENTED. C4: a plan scope with two selection work packages: ask which.
+case: route-plan-two-packages
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-scope (commercial)
+plan_case: selection-scope
+world:
+  - workspace
+section: 'C4 plan route: two selection packages (ask which)'
+route:
+  say: use ow-vendor-eval-scope on plans/larkspur-ceramics/
+  expect: 'ask: which package'
+closed: true
+checks:
+  - refused
+  - screen
+  - writes
+  - status
+  - route
+status:
+  lines: []
+next: []

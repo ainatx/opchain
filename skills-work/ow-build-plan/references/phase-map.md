@@ -46,3 +46,11 @@ FINDING names each fact line whose citation is missing or points to no row; fix 
 ## 4. STATUS and NEXT
 
 Append: `… | plans/<client>/map/current.md | next: ow-build-plan /ow-build-plan-scope plans/<client>/ | awaiting: none`. Print the map NEXT block from SKILL.md.
+
+## 5. A re-run after a vendor decision
+
+ow-vendor-eval's `-decide` prints `use ow-build-plan-map on plans/<client>/` when a selection work package (phase-scope §1) has its decision. That re-run **rewrites only one line**: the `[UNKNOWN]` line in `map/systems.md` for the system to be chosen. Read `vendor-eval/<client>/VE-nn-<slug>/decision.md` (header `vendor`, `decided_on`, `decided_by`) and write, in its place:
+
+    - [MEDIUM vendor-eval/<client>/VE-nn-<slug>/decision.md] <vendor> chosen for <what it is for>, decided by <role> on <date>, as reported.
+
+A client's choice "as reported" is a person's statement: MEDIUM, never HIGH. No other map file and no other line changes; the self-check table in `map/current.md` stays as it was. Evidence trace accepts this one citation form, in `map/systems.md` only, to a `decision.md` that exists. Append `… | plans/<client>/map/systems.md | next: ow-build-plan /ow-build-plan-quote plans/<client>/ | awaiting: none` and print the scope NEXT block from SKILL.md, filled in for this folder: the quote comes next.

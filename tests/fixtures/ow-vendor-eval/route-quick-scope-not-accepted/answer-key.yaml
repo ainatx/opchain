@@ -1,0 +1,39 @@
+# INVENTED. C4: the quick scope handed in before the quote was accepted (no contract-inputs.md with mode: vendor-eval): refused.
+case: route-quick-scope-not-accepted
+ws: hollowbrook-bakery
+eval: VE-01-booking-tool
+client: Hollowbrook Bakery
+user: Robin
+tools: true
+vendors:
+  - name: Pennyroyal Book
+    host: pennyroyal.example
+  - name: Sallowmere Bookings
+    host: sallowmere.example
+  - name: Thistledown Slots
+    host: thistledown.example
+  - name: Wrenfold Reserve
+    host: wrenfold.example
+key: /ow-vendor-eval-scope (commercial)
+plan_case: route-vendor-selection
+world:
+  - workspace
+section: 'C4 quick-scope route: a quote not yet accepted (refuse)'
+route:
+  say: use ow-vendor-eval-scope on plans/hollowbrook-bakery/quick-scope.md
+  expect: 'refused: not accepted'
+refused:
+  says:
+    - 'Refused: the quote is not accepted yet.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+  - route
+status:
+  lines: []
+next: []

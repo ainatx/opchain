@@ -191,7 +191,9 @@ bpPlant("P", "G09", "P5 row", "a research row at LOW for a HIGH finding (level c
 // ── H. P5 text and edges (catalog, contracts, pins) ─────────────────────────
 tplant("P", "H01", "C17/P5 edges", "ow-build-plan reads Conflicts, which ow-research does not hand it", { "ow-build-plan/skill.edges.yaml": rep("fields: [Answer, F-nn, claim, level, sources, Gaps]", "fields: [Answer, F-nn, claim, level, sources, Gaps, Conflicts]") });
 tplant("P", "H02", "P5 network: none", "ow-build-plan's collect phase says the findings were fetched from the web", { "ow-build-plan/references/phase-collect.md": rep("A research topic answered for this plan is a fourth evidence source", "A research topic fetched from the web for this plan is a fourth evidence source") });
-tplant("P", "H03", "C26 version", "ow-build-plan body line left at 1.0.0 while the frontmatter says 1.2.1", { "ow-build-plan/SKILL.md": rep("ow-build-plan 1.2.1 · protocol 1", "ow-build-plan 1.0.0 · protocol 1") });
+
+tplant("P", "H03", "C26 version", "ow-build-plan body line left at 1.0.0 while the frontmatter says 1.4.0", { "ow-build-plan/SKILL.md": rep("ow-build-plan 1.4.0 · protocol 1", "ow-build-plan 1.0.0 · protocol 1") });
+
 tplant("P", "H04", "C26 changelog", "ow-research CHANGELOG missing its 1.0.0 entry", { "ow-research/CHANGELOG.md": (t) => t.replace(/## 1\.0\.0[\s\S]*/, "") });
 tplant("P", "H05", "C5 ow-tools verbs", "an ow-tools call outside version/calc/digest (a new verb name)", { "ow-research/references/phase-run.md": add("\nIf the host has no page tool, run `ow-tools download <url>` instead.\n") });
 tplant("P", "H06", "C2 allowed-tools", "allowed-tools declared in a different case", { "ow-research/SKILL.md": rep("license: Apache-2.0\n", "license: Apache-2.0\nAllowed-Tools: WebFetch WebSearch\n") });

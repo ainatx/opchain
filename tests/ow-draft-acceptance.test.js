@@ -126,8 +126,8 @@ describe("C2, C29: the catalog, the body budget, the shared files and the versio
   });
   it("C29: current frontmatter and body version retain the initial release and sibling data-edit history", () => {
     const t = readFileSync(join(SKILL, "SKILL.md"), "utf8");
-    expect(t).toMatch(/version: "1\.0\.1"/);
-    expect(body()).toMatch(/ow-draft 1\.0\.1 · protocol 1/);
+    expect(t).toMatch(/version: "1\.1\.0"/);
+    expect(body()).toMatch(/ow-draft 1\.1\.0 · protocol 1/);
     expect(readFileSync(join(SKILL, "CHANGELOG.md"), "utf8")).toMatch(/^## 1\.0\.0 \(2026-10-21\)/m);
     for (const s of ["ow-start", "ow-build-plan", "ow-build", "ow-uat"]) expect(readFileSync(join(ROOT, "skills-work", s, "CHANGELOG.md"), "utf8"), s).toMatch(/^## Unreleased: data edits from OW-10 \(ow-draft 1\.0\.0\)$/m);
     // Round 1 m7: ow-documentation's own shipped-text scan refuses an evaluation id in its changelog, so its heading names the build instead.

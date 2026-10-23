@@ -522,6 +522,12 @@ function checkRecapTrace(key, run) {
   return p;
 }
 
+/** The `quote:` line of an offers.md path section (amendment S2), or null. */
+export function offersQuote(pathId, text = readFileSync(join(EXAMPLES, "offers.md"), "utf8")) {
+  const sec = String(text).split(/^## /m).find((s) => s.startsWith(`path: ${pathId}\n`));
+  return sec ? (sec.match(/^- quote: (\S+)\s*$/m) ?? [])[1] ?? null : null;
+}
+
 function checkPath(key, run) {
   const p = [];
   if (!need(run, "recap.md", p)) return p;
@@ -529,6 +535,11 @@ function checkPath(key, run) {
   if (d.path_id !== key.path.id) p.push(`path_id is ${d.path_id}, expected ${key.path.id}`);
   if (key.path.kind && d.path_kind !== key.path.kind) p.push(`path_kind is ${d.path_kind}, expected ${key.path.kind}`);
   if (key.path.systems && String(d.path_systems) !== String(key.path.systems)) p.push(`path_systems is ${d.path_systems}, expected ${key.path.systems}`);
+  // Amendment S2 (1.2.0): the confirmed path's `quote:` line is copied as path_quote (none when it has none).
+  const quote = offersQuote(d.path_id);
+  if (quote && String(d.path_quote ?? "") !== quote) p.push(`path_quote is ${d.path_quote ?? "missing"}; offers.md's ${d.path_id} path carries quote: ${quote}`);
+  if (key.path.quote && String(d.path_quote ?? "") !== String(key.path.quote)) p.push(`path_quote is ${d.path_quote ?? "missing"}, expected ${key.path.quote}`);
+  if (!quote && d.path_quote != null && String(d.path_quote) !== "none") p.push(`path_quote is ${d.path_quote}; offers.md's ${d.path_id} path has no quote: line, so path_quote is none`);
   if (/\$\s?\d|\bprice\b|\bcosts? (?:you )?\$/i.test(run.recap.sections.get("Next step")?.text ?? "")) p.push("the Next step names a price");
   return p;
 }

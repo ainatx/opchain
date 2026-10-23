@@ -34,7 +34,7 @@ const CASES = [
   "accepted-signed", "builder-neutral", "credentials", "dates-terms-above", "dates-terms-below", "delivery-quote", "feasibility-signed", "fix-window",
   "follow-on-asks", "follow-on-fix", "follow-on-offer", "follow-on-stated-offer", "follow-on-stated-start", "follow-on-uat", "follow-on-uat-offer", "modifier-evidence", "offer",
   "private-names-business", "private-names-default", "quick-over-limit", "quick-quote", "research-collect", "research-finding-open", "research-map", "research-no-plan", "route-build-plan", "route-defined-work", "route-feasibility",
-  "route-fix-covered", "route-folder", "route-folder-signed", "route-next-stage", "signed-before-accepted", "tier2-plan", "uat-documentation", "unpriced-package",
+  "route-fix-covered", "route-folder", "route-folder-signed", "route-next-stage", "route-vendor-selection", "selection-map-rerun", "selection-quote-refused", "selection-scope", "signed-before-accepted", "tier2-plan", "uat-documentation", "unpriced-package", "vendor-selection-signed",
 ];
 
 /** The case's run as a real folder (starting state + its golden output), edited by `edits` (path under opchain-work -> fn). */

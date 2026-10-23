@@ -270,3 +270,7 @@ Each check reports OK / FINDING / NOT-CHECKED(reason) and is labelled *same-sess
 
 1. **The price book's numbers.** The structure is designed; the units and prices are yours, including the UAT and documentation & training sizes, and they live only in your own `price-book.yaml`, never in this repo (ow-uat decision 13). A first draft can be built from your last few real quotes.
 2. **Delivery-mode plans.** For signed work, is a Build Plan ever re-run (e.g. phase 2 of a client), and does that change the quote rules?
+
+## Amendment P6 built (ow-build-plan 1.4.0)
+
+The vendor selection (sold on its own as `-quote --quick --vendor-eval`, and inside a plan as a selection work package) is built in ow-build-plan 1.4.0 alongside ow-vendor-eval 1.0.0, OW-11. Its rulings and departures are in `docs/plans/2026-10-16-ow-vendor-eval-design.md` §13.

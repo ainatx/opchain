@@ -1,0 +1,32 @@
+# INVENTED. O6: -decide on an evaluation another supersedes is refused.
+case: decide-superseded-refused
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-decide <vendor>
+vendor: tallowmere
+section: O6 -decide on the superseded evaluation (refuse)
+refused:
+  says:
+    - 'Refused: VE-01 is superseded by VE-02.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+status:
+  lines: []
+next: []
+base: scope-supersedes

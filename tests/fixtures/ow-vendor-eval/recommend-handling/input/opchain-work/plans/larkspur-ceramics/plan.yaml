@@ -1,0 +1,11 @@
+# INVENTED TEST FIXTURE: Larkspur's plan header with a handling level set after the scope (a variant of tier2-plan's).
+ow_artefact: ow-build-plan/plan
+schema: 1
+written_by: ow-build-plan 1.3.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: plans/larkspur-ceramics/build-plan-offer.md
+created: 2026-10-12
+clock: user-stated
+origin: skill
+client: Larkspur Ceramics
+handling: "client confidential, as the client's agreement says"

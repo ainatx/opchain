@@ -1,0 +1,38 @@
+# INVENTED. -score for your own tools: two vendors, a 24-month cost for one seat.
+case: score-business
+ws: business
+eval: VE-01-proposal-tool
+client: Example Studio
+user: Robin
+tools: true
+vendors:
+  - name: Harrowgate Docs
+    host: harrowgate.example
+  - name: Linnet Proposals
+    host: linnet.example
+section: C11–C13; C8 every vendor has its answer at -score
+key: /ow-vendor-eval-score
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - scores
+  - cost
+  - conflicts
+  - self_checks
+status:
+  lines:
+    - path: vendor-eval/business/VE-01-proposal-tool/scores.md
+      next: ow-vendor-eval /ow-vendor-eval-recommend vendor-eval/business/VE-01-proposal-tool/
+      awaiting: none
+next:
+  - use ow-vendor-eval-recommend on vendor-eval/business/VE-01-proposal-tool/
+base: evidence-business-linnet

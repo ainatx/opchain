@@ -1,0 +1,19 @@
+# INVENTED TEST FIXTURE: what /ow-start-prep would have written for a fictional client.
+ow_artefact: ow-start/intake
+schema: 1
+written_by: ow-start 1.2.0 (protocol 1)
+workstream: hollowbrook-bakery
+subject: none
+created: 2026-10-22
+clock: user-stated
+origin: skill
+mode: prospect
+client: Hollowbrook Bakery
+client_slug: hollowbrook-bakery
+call_date: 2026-10-22
+call_time: "10:00"
+time_zone: America/Chicago
+attendees:
+  - you
+  - client (owner)
+handling: "no"

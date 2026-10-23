@@ -1,0 +1,13 @@
+# INVENTED TEST FIXTURE: another client's workstream (the other-client rule).
+ow_artefact: ow-start/intake
+schema: 1
+written_by: ow-start 1.1.0 (protocol 1)
+workstream: fernhill-florists
+subject: none
+created: 2026-09-14
+clock: user-stated
+origin: skill
+mode: delivery
+client: Fernhill Florists
+client_slug: fernhill-florists
+handling: "no"

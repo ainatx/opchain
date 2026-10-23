@@ -1,0 +1,10 @@
+# Answer key: selection-quote-refused (INVENTED). Amendment P6, O8 (b): -quote refuses while WP-6, a
+# selection package, has no decision.md, prints the selection NEXT, and writes nothing (no STATUS line).
+case: selection-quote-refused
+section: The quote waits for a selection package's decision (P6)
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+base: selection-scope
+checks:
+  - selection_wait

@@ -1,0 +1,31 @@
+# INVENTED. C4 -recommend: already written and exported: nothing to do.
+case: recommend-again
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-recommend
+section: 'C4 -recommend: already written (no-op)'
+refused:
+  says:
+    - 'Nothing to do: the recommendation for VE-01 is written.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+status:
+  lines: []
+next: []
+base: recommend-larkspur

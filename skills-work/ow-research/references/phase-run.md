@@ -67,13 +67,13 @@ Run the checks that run in `-run` (`references/self-checks.md`): Query privacy, 
 
 ## 8. STATUS and NEXT
 
-Append one STATUS line in the protocol's form (`<date> (clock: <source>) | ow-research 1.0.3 | <path> | next: … | awaiting: …`), then `marker: status`. Every line names the topic (`RS-nn`) in its path or its `next:`. The path, then the last two parts:
+Append one STATUS line in the protocol's form (`<date> (clock: <source>) | ow-research 1.1.0 | <path> | next: … | awaiting: …`), then `marker: status`. Every line names the topic (`RS-nn`) in its path or its `next:`. The path, then the last two parts:
 
 - Queries waiting (the run is not finished, so no `marker: status`): `research/<ws>/RS-nn-<slug>/queries.md`, then `next: ow-research /ow-research-run research/<ws>/RS-nn-<slug>/ | awaiting: query approval`.
 - A FINDING open (then `marker: stopped`, not `marker: status`): the newest file the run wrote (`research/<ws>/RS-nn-<slug>/queries.md` or `research/<ws>/RS-nn-<slug>/findings.md`), then `next: ow-research /ow-research-run research/<ws>/RS-nn-<slug>/ | awaiting: a self-check to fix`.
 - Answered, for a Build Plan: `research/<client>/RS-nn-<slug>/findings.md | next: ow-build-plan /ow-build-plan-collect plans/<client>/ | awaiting: none`.
 - Answered, for a draft: `research/<ws>/RS-nn-<slug>/findings.md`, then `next: ow-draft /ow-draft-evidence research/<ws>/RS-nn-<slug>/findings.md | awaiting: none`.
-- Answered, for a vendor evaluation: the same as the user's own decision below (ow-vendor-eval is not in this release, so no line names it).
+- Answered, for a vendor evaluation: `research/<ws>/RS-nn-<slug>/findings.md`, then `next: ow-vendor-eval /ow-vendor-eval-evidence research/<ws>/RS-nn-<slug>/findings.md | awaiting: none`.
 - Answered, for the user's own decision: `research/<ws>/RS-nn-<slug>/findings.md`, then `next: none (closed: answered, RS-nn) | awaiting: none`.
 
 Print the screen's self-check line, then the complete NEXT block from SKILL.md, including its bracketed no-folder attachment guidance even with a folder attached, slash hint, read list and unavailable-skill fallback, for what the question serves: a Build Plan, a draft, a vendor evaluation or the user's own decision. Any finding with `watch: yes` adds, after it and a blank line, only the watch line SKILL.md gives, unindented (`Watched findings: ow-currency is not in this release. …`); no other line names ow-currency or promises what it would do. Never a NEXT while a check is FINDING.

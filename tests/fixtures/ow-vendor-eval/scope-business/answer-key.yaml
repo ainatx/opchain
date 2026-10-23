@@ -1,0 +1,42 @@
+# INVENTED. Your own tool selection (the business workstream): no plan and no quote, so the requirements are
+# asked and recorded user-stated. The general conflicts question names a partner programme that pays you a
+# referral fee; its amount (15%) goes inside conflicts.md's ow:internal markers (O4), where it joins your
+# figures.
+case: scope-business
+ws: business
+eval: VE-01-proposal-tool
+client: Example Studio
+user: Robin
+tools: true
+vendors:
+  - name: Harrowgate Docs
+    host: harrowgate.example
+  - name: Linnet Proposals
+    host: linnet.example
+section: C6 the business path; C8 the general declaration with an amount kept internal
+key: /ow-vendor-eval-scope (commercial)
+world:
+  - workspace
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - mode
+  - scope
+  - conflicts
+  - self_checks
+status:
+  lines:
+    - path: vendor-eval/business/VE-01-proposal-tool/scope.md
+      next: ow-vendor-eval /ow-vendor-eval-longlist vendor-eval/business/VE-01-proposal-tool/
+      awaiting: none
+next:
+  - use ow-vendor-eval-longlist on vendor-eval/business/VE-01-proposal-tool/

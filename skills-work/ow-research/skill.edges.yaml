@@ -83,9 +83,13 @@ hands_off:
     files:
       - { path: research/<ws>/RS-nn-<slug>/findings.md, fields: [Answer, F-nn, claim, level, sources, Conflicts, Gaps] }
     if_unavailable: findings.md stands alone; cite each finding by its F-nn with its source URL and retrieved date
-  # An answered topic that serves a vendor evaluation would hand off to ow-vendor-eval (/ow-vendor-eval-evidence, a
-  # planned verb). ow-vendor-eval is not in this release (owner decision 2026-10-22; it moves to v2.2): the screen
-  # prints only the absent-case line ("NEXT: none"), so there is no hand-off row and no say: line until it ships.
+  - when: Answered, serves a vendor evaluation
+    to: ow-vendor-eval
+    verb: /ow-vendor-eval-evidence
+    say: use ow-vendor-eval-evidence on research/<ws>/RS-nn-<slug>/findings.md
+    files:
+      - { path: research/<ws>/RS-nn-<slug>/findings.md, fields: [F-nn, claim, level, sources] }
+    if_unavailable: findings.md stands alone; score from the findings by hand, citing each fact and source
   # A finding marked watch yes would hand off to ow-currency (/ow-currency-watch, a planned verb). ow-currency is not in
   # this release (owner decision 2026-10-19): the screen prints only the absent-case line, so there is no hand-off
   # row until it ships (contract R15 needs a say: line and its NEXT template for one).

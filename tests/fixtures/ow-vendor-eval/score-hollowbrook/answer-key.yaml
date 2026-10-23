@@ -1,0 +1,43 @@
+# INVENTED. -score for four vendors; the cost over 36 months for 12 seats from each vendor's dated, quoted
+# price, through ow-tools calc total (design §10 Cost: a 3-year cost for 12 seats, computed and dated).
+case: score-hollowbrook
+ws: hollowbrook-bakery
+eval: VE-01-booking-tool
+client: Hollowbrook Bakery
+user: Robin
+tools: true
+vendors:
+  - name: Pennyroyal Book
+    host: pennyroyal.example
+  - name: Sallowmere Bookings
+    host: sallowmere.example
+  - name: Thistledown Slots
+    host: thistledown.example
+  - name: Wrenfold Reserve
+    host: wrenfold.example
+section: C11; C12; C13 a 3-year cost for 12 seats from dated prices
+key: /ow-vendor-eval-score
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - scores
+  - cost
+  - conflicts
+  - self_checks
+status:
+  lines:
+    - path: vendor-eval/hollowbrook-bakery/VE-01-booking-tool/scores.md
+      next: ow-vendor-eval /ow-vendor-eval-recommend vendor-eval/hollowbrook-bakery/VE-01-booking-tool/
+      awaiting: none
+next:
+  - use ow-vendor-eval-recommend on vendor-eval/hollowbrook-bakery/VE-01-booking-tool/
+base: evidence-hollowbrook-wrenfold

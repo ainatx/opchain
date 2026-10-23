@@ -1,0 +1,33 @@
+# INVENTED. C17: no ow-tools: the evaluator CSVs and model.md are the workbook, and the screen says so; no xlsx.
+case: formal-no-tools
+ws: town-of-elmridge
+eval: VE-01-permit-system
+client: Town of Elmridge
+user: Robin
+tools: false
+key: /ow-vendor-eval-formal
+section: 'C4 -formal: no ow-tools (CSVs only); C17'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - formal
+  - workbook
+  - self_checks
+  - internal_numbers
+status:
+  lines:
+    - path: vendor-eval/town-of-elmridge/VE-01-permit-system/formal/requirements.md
+      next: ow-vendor-eval /ow-vendor-eval-formal vendor-eval/town-of-elmridge/VE-01-permit-system/
+      awaiting: none
+next:
+  - use ow-vendor-eval-formal --responses on vendor-eval/town-of-elmridge/VE-01-permit-system/
+base: scope-formal

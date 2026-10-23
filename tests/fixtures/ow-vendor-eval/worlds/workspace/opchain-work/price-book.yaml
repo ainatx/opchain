@@ -1,0 +1,52 @@
+# INVENTED TEST FIXTURE (ow-vendor-eval's workspace, a copy of ow-build-plan's with two units of the business's own): a fictional price book for the ow-build-plan acceptance
+# tests. Every number is made up for the arithmetic in the golden runs.
+ow_artefact: ow-build-plan/price-book
+schema: 1
+written_by: user (created from the ow-build-plan example)
+workstream: none
+subject: none
+created: 2026-10-01
+clock: user-stated
+origin: user
+
+currency: USD
+build_plan_fees: { one_system: 1500, two_systems: 3000, three_plus_or_mvp: 4500 }
+build_plan_weeks: { one_system: 1, two_systems: 2, three_plus_or_mvp: 2 }
+build_plan_schedule:
+  one_system: { collection_business_days: 2, delivery_business_days: 5 }
+  two_systems: { collection_business_days: 4, delivery_business_days: 10 }
+  three_plus_or_mvp: { collection_business_days: 4, delivery_business_days: 10 }
+units:
+  - { id: proposal-template, label: A proposal template set up for a client, price: 480 }
+  - { id: half-day-workshop, label: A half-day workshop, price: 300 }
+  - { id: integration, label: Connect two systems for one workflow, price: 2000, includes: [error handling and alerts, run logs, acceptance tests, operator notes] }
+  - { id: workflow-step-exceptions, label: An exception path that needs a person, price: 800 }
+  - { id: report, label: A report or dashboard view, price: 600 }
+  - { id: screen, label: One screen or form, price: 500 }
+  - { id: tool-s, label: Internal tool or portal (small), price: 4000, size: S, includes: [error handling and alerts, run logs, acceptance tests, operator notes] }
+  - { id: tool-m, label: Internal tool or portal (medium), price: 8000, size: M, includes: [error handling and alerts, run logs, acceptance tests, operator notes] }
+  - { id: tool-l, label: Internal tool or portal (large), price: 14000, size: L, includes: [error handling and alerts, run logs, acceptance tests, operator notes] }
+  - { id: data-protection-review, label: Extra handling for sensitive data, price: 1200 }
+  - { id: feasibility-test, label: A time-boxed feasibility test on your own examples, price: 900, feasibility: true }
+modifiers:
+  - { id: data-messy, when: data_condition is messy, multiply: 1.25 }
+  - { id: data-sensitive, when: regulated or sensitive data, add_unit: data-protection-review }
+uat:
+  sizes:
+    S: { price: 1000, tester_roles: 1, sessions: 2, fix_rounds: 1, fix_business_days: 3 }
+    M: { price: 2000, tester_roles: 2, sessions: 3, fix_rounds: 2, fix_business_days: 5 }
+    L: { price: 3000, tester_roles: 3, sessions: 3, fix_rounds: 2, fix_business_days: 7 }
+  per_extra_role: 250
+  extension: { per_session_or_round: 175 }
+documentation_training:
+  sizes: { S: 2000, M: 4000, L: 6000 }
+  per_extra_group_of_15: 1000
+  quote_separately_above: 100
+size_threshold: 10000
+payment_terms_days: 14
+quote_validity_days: 14
+build_plan_credit_days: 60
+quick_quote_max_units: 3
+vendor_selection:
+  sizes: { S: { price: 1500 }, M: { price: 2400 }, L: { price: 3600 } }
+  size_by_vendors: { S: 3, M: 5, L: 8 }

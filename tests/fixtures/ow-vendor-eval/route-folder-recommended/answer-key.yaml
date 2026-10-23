@@ -1,0 +1,36 @@
+# INVENTED. C4 folder route: recommended, the client has not chosen yet: nothing to do.
+case: route-folder-recommended
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval
+section: 'C4 folder route: recommended, awaiting the client''s choice'
+writes_nothing: true
+route:
+  say: use ow-vendor-eval on vendor-eval/larkspur-ceramics/VE-01-inventory-tool/
+  expect: 'nothing: awaits the choice'
+refused:
+  says:
+    - 'Nothing to do: VE-01 awaits the client''s choice.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+  - route
+status:
+  lines: []
+next: []
+base: recommend-larkspur

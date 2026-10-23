@@ -1,5 +1,9 @@
 # ow-handoff changelog
 
+## 1.0.2 (unreleased)
+
+Care handoff routing: the two care NEXT blocks name their owning verbs directly (`ow-care-start` and `ow-care-request`). The frozen handoff records are unchanged.
+
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
 ## 1.0.1 (unreleased)

@@ -1,0 +1,32 @@
+# INVENTED. C4: ow-research's NEXT, longlist written (ask which vendors the findings cover).
+case: route-research-longlist
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-evidence <vendor>
+research_case:
+  - run-vendor-eval
+section: 'C4 ow-research route: longlist written (ask which vendors the findings cover)'
+route:
+  say: use ow-vendor-eval-evidence on research/larkspur-ceramics/RS-02-inventory-tools/findings.md
+  expect: evidence
+closed: true
+checks:
+  - refused
+  - screen
+  - writes
+  - status
+  - route
+status:
+  lines: []
+next: []
+base: longlist-larkspur

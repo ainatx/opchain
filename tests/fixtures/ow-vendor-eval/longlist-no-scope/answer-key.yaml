@@ -1,0 +1,34 @@
+# INVENTED. C4: -longlist with no scope: refused, the scope NEXT.
+case: longlist-no-scope
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-longlist
+plan_case: selection-scope
+world:
+  - workspace
+section: 'C4 -longlist: no scope (refuse)'
+refused:
+  says:
+    - 'Refused: there is no evaluation in larkspur-ceramics; start with -scope.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+status:
+  lines: []
+next:
+  - use ow-vendor-eval-scope larkspur-ceramics

@@ -7,7 +7,7 @@ The preparation base `b29e3731` passed all eight strict local checks, 123 browse
 
 ## Scope
 
-The owner transferred the active Claude workstream to Codex and authorized completion of the work and release. The latest scope is eight independently versioned work skills: ow-start, ow-build-plan, ow-build, ow-uat, ow-documentation, ow-handoff, ow-research and ow-draft, plus ow-tools. Care, vendor evaluation, controls and currency remain planned for v2.2. The oc- catalog remains lockstep at 2.0.4; the planned release is 2.1.0. The router remains an experimental preview, opt-in and shadow by default.
+The owner transferred the active Claude workstream to Codex and authorized completion of the work and release. The October 23 owner amendment restores care and vendor evaluation: the planned scope is ten independently versioned work skills (ow-start, ow-build-plan, ow-build, ow-uat, ow-documentation, ow-handoff, ow-research, ow-draft, ow-vendor-eval and ow-care) plus ow-tools. Controls, framework packs/ow-packs and currency remain 2.2. The verified eight-skill preparation baseline does not validate those additions. The oc- catalog remains lockstep at 2.0.4; the planned release is 2.1.0. The router remains an experimental preview, opt-in and shadow by default.
 
 ## Reconciled starting state
 
@@ -22,10 +22,10 @@ The owner transferred the active Claude workstream to Codex and authorized compl
 |---|---|---|
 | OW-06 landing | Review and all required CI checks at the current head | Complete: all eight strict local gates and all four remote CI jobs passed; merged as `809ed373` |
 | Shared approval grammar | Both graders import one typed module; held-out cases remain intact; independent review | Implemented and independently reviewed; full candidate gate passed at `b29e3731` |
-| Eight-skill scope correction | Current scope and absent-care behavior agree | Prepared |
+| Ten-skill scope restoration | Approved OW-07/OW-11 designs, recovered vendor build and existing care tools/handoff records | Implementations and shared routing integrated; care passes6/6/manual review, vendor third semantic/native artifact accepted8/8/8/8 with raw12/16 retained; combined strict gate pending |
 | REL-01 distribution | Separate combined/per-skill archives, validation before write, clean-folder installation, mirror, integrity manifest | Implemented and independently reviewed; candidate verification passed at `b29e3731`; actual public install remains open |
 | Supply-chain pins | Durable public ow-tools ref and exact commit; model provenance and verification procedure | To verify; no fabricated pin or hash |
-| WEB-02–04 | Dynamic work pages, install/version table, privacy/security copy, navigation, accessibility and discovery-isolation checks | Held candidate assembled with `b29e3731`; Astro/build and nine-route Lighthouse budgets passed. Final source refresh/browser pass pending; public cut remains held |
+| WEB-02–04 | Dynamic work pages, install/version table, privacy/security copy, navigation, accessibility and discovery-isolation checks | Ten-skill held assembly builds 97 pages; 7 work-surface tests and 4 affected browser tests pass. Eight-skill 150-pass/one-skip suite and nine-route Lighthouse results remain baseline evidence; public cut held |
 | Dependency consolidation | Nine pending dependency PRs triaged together, compatible updates and full checks | Clean installs and both npm audits pass; all 116 Python registry dependencies audited clean after Pillow/certifi fixes. The two release-fixture dependency failures were corrected, and the complete strict gate passed at `b29e3731`; superseded PRs stay open until consolidation merges |
 | REL-02 model acceptance | Actual model-produced runs checked independently, distinguished from synthetic goldens | Prior failures preserved. Selected quote 5/5, draft 13/13, UAT 15/15 and documentation view 17/17 retain their limits. Corrected frozen build 9/9, fresh intake 11/11, recorded-web research projection 22/22; fresh handoff raw 11/14 and explicitly scoped product-output view 14/14 (independent score 7.7/10). The raw limitation remains recorded. Actual host/real-use checks remain open |
 | REL-02 real use | Owner's real-job outcomes, without client material in Git | Owner confirmed not yet done |
@@ -52,6 +52,6 @@ At 2026-10-22 21:38 UTC, the private route log contained 60 outcomes since Octob
   not been filed.
 - EN-01's original Oct 8 audit scripts and hashes are preserved. Event-time adapters and separate Claude/Codex procedures passed nine synthetic tests and 15 syntax checks; no final corpus scan or verdict was performed. `en-observation-preparation-2026-10-23.md` records the exact window, actual installed Codex bridge and its separate log paths.
 - `../../.checkpoints/release-2.1-plan.md` is the current sprint checklist, with model/effort policy, completed work, dependencies and remaining time estimates. `rel-02/model-capture-2026-10-23.md` preserves the new raw/projection distinctions and clean-folder download rehearsal.
-- The held site candidate has all eight dynamic work pages, installation and
+- The held site candidate has all ten dynamic work pages, installation and
   download surfaces, with no premature release/version or real-client claims.
   Its review record lives in the separate held site tree until release assembly.

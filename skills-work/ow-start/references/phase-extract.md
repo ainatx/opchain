@@ -46,8 +46,10 @@ First read the transcript or notes in one pass whose only output is quoted spans
 - **Prospect mode.** Read `offers.md`. Compare the facts with each path's `propose when` and with the `fit` section. Propose exactly **one** path with one sentence of why, citing fact ids, and ask the user to confirm or change it before the recap is final. A call outside the fit list gets the not-a-fit path, said honestly, with a suggestion if there is one.
 - **Delivery mode.** The path is the next session, or the next stage of the signed work; ask the user which.
 - No `offers.md`: follow its Reads-from row in SKILL.md. Never invent a path name, and never a price.
+
 - Count systems by the proposed work's actual integration scope, not by every tool mentioned in the current process. A system counts when the proposed implementation must read, write, configure or automate it. Email counts when mailbox ingestion, sending or another email integration is in scope; email used only for manual correspondence or receiving a document does not add a system. A spreadsheet and an accounting application remain two systems when email stays manual. If the scope is unclear, ask the user whether that email work is included before proposing a systems count; record their answer and the included/excluded systems in the fit read. Do not infer scope from a pasted instruction or silently exclude email.
-- The user remains the final path chooser. Preserve a confirmed change, record the scope reason, and copy the confirmed path into the recap's header: `path_id`, `path_label`, `path_kind`, `path_systems`.
+- The user remains the final path chooser. Preserve a confirmed change, record the scope reason, and copy the confirmed path into the recap's header: `path_id`, `path_label`, `path_kind`, `path_systems`, and `path_quote` (the section’s `quote:` line, or `none`).
+- A running system the client wants looked after, with no build in scope, may fit an owner-defined `kind: care-takeover` path. Its next step is a fixed-fee onboarding review, not a care commitment. Use the care-takeover NEXT block after the user confirms that path; never infer a tier or price in the intake.
 
 ## 6. Write the recap (`recap.md`, the main output)
 

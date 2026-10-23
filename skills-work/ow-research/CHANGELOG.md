@@ -2,6 +2,10 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). The family's v2.1.0 release entry cites each skill's version. Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
+## 1.1.0 (unreleased): Vendor-evaluation hand-off restored
+
+An answered `serves: vendor-eval` topic now prints `/ow-vendor-eval-evidence` with findings only; STATUS, route, and reciprocal edge name the same path and four fields. This restores the approved 2.1 scope.
+
 ## 1.0.3 (2026-10-23): truthful provenance and complete output contracts
 
 - Suspicious instructions from required local inputs retain their actual workspace path within the existing seven-section findings schema. Provenance is scoped to pre-existing relevant inputs; traversal, unrelated workstreams, symlinks, fabricated files and relabeling as inbox content are refused.

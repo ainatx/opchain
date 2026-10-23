@@ -1,0 +1,26 @@
+# INVENTED. C18: a waiver with no figure (refuse); nothing changes.
+case: waive-refused-no-figure
+ws: business
+eval: VE-01-proposal-tool
+client: Example Studio
+user: Robin
+tools: true
+vendors: []
+key: /ow-vendor-eval-recommend --waive
+section: C18 a waiver with no figure (refuse)
+refused:
+  says:
+    - 'Refused: a waiver names each figure and its reason.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+  - self_checks
+status:
+  lines: []
+next: []
+base: recommend-business-finding

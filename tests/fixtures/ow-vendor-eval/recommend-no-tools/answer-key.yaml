@@ -1,0 +1,43 @@
+# INVENTED. C14: no ow-tools: the client form in export/client/ and copied to export/markdown/, never the source
+# with its header; its digest "not computed (no ow-tools)".
+case: recommend-no-tools
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: false
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-recommend
+section: 'C4 -recommend: no ow-tools (client form in export/markdown/)'
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - recommendation
+  - conflicts
+  - self_checks
+  - internal_numbers
+  - handoff_fields
+status:
+  lines:
+    - path: vendor-eval/larkspur-ceramics/VE-01-inventory-tool/recommendation.md
+      next: ow-vendor-eval /ow-vendor-eval-decide vendor-eval/larkspur-ceramics/VE-01-inventory-tool/
+      awaiting: none
+next:
+  - use ow-vendor-eval-decide tallowmere on vendor-eval/larkspur-ceramics/VE-01-inventory-tool/
+  - use ow-draft-evidence on vendor-eval/larkspur-ceramics/VE-01-inventory-tool/recommendation.md
+base: score-no-tools

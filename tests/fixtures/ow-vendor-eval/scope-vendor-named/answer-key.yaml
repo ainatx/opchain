@@ -1,0 +1,40 @@
+# INVENTED. C7 criteria first: you name a vendor while the criteria are being set; the line is refused, the
+# name is never written, and the scope carries on (the same scope as scope-business).
+case: scope-vendor-named
+ws: business
+eval: VE-01-proposal-tool
+client: Example Studio
+user: Robin
+tools: true
+vendors:
+  - name: Harrowgate Docs
+    host: harrowgate.example
+  - name: Linnet Proposals
+    host: linnet.example
+section: C7 a vendor named before the freeze (refuse that line; name not written)
+key: /ow-vendor-eval-scope (commercial)
+world:
+  - workspace
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - mode
+  - scope
+  - conflicts
+  - self_checks
+status:
+  lines:
+    - path: vendor-eval/business/VE-01-proposal-tool/scope.md
+      next: ow-vendor-eval /ow-vendor-eval-longlist vendor-eval/business/VE-01-proposal-tool/
+      awaiting: none
+next:
+  - use ow-vendor-eval-longlist on vendor-eval/business/VE-01-proposal-tool/

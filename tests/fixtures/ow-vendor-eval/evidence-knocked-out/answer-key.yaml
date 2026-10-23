@@ -1,0 +1,32 @@
+# INVENTED. C4 -evidence: a knocked-out vendor (refuse).
+case: evidence-knocked-out
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-evidence <vendor>
+vendor: marrowby
+section: 'C4 -evidence: a knocked-out vendor (refuse)'
+refused:
+  says:
+    - 'Refused: Marrowby Goods was knocked out at MH-01.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+status:
+  lines: []
+next: []
+base: longlist-larkspur

@@ -1,0 +1,32 @@
+# INVENTED. C4 -evidence: a vendor not on the longlist (refuse).
+case: evidence-not-on-longlist
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-evidence <vendor>
+vendor: quernby
+section: 'C4 -evidence: a vendor not on the longlist (refuse)'
+refused:
+  says:
+    - 'Refused: Quernby Stock is not on the longlist.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+status:
+  lines: []
+next: []
+base: longlist-larkspur

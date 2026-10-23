@@ -45,14 +45,16 @@ Two rules hold for every route:
 
 ### 2.1 An intake record: `intake/<slug>/intake-record.md`
 
-Read `intake/<slug>/recap.md` beside it, header only, and go by `path_kind`:
+Read `intake/<slug>/recap.md` beside it, header only, and go by `path_kind` (and `path_quote`):
 
 | `path_kind` | Runs | Why |
 |---|---|---|
 | `build-plan` | `/ow-build-plan-offer` for this intake | A prospect: the client needs a written price for the Build Plan first |
 | `defined-work` | `/ow-build-plan-quote --quick` for this intake | A small, defined job: a quick scope and a fixed quote, no Build Plan |
+| `defined-work` with `path_quote: vendor-eval` | `/ow-build-plan-quote --quick --vendor-eval` for this intake | A vendor selection sold on its own: priced only from the price book's `vendor_selection` block, sized by the number of vendors, with no build lines. The quote phase's §3.2 has the rules |
 | `next-stage` | `/ow-build-plan-start` for this intake | Delivery mode: the work is already signed and the next stage is the Build Plan. **Never an offer**: the client has agreed it already. `plan.yaml` records `fee: none` |
 | `feasibility` | `/ow-build-plan-quote --quick` for this intake, priced as the feasibility-test unit | A time-boxed test on the client's own examples. The quote carries just the test (price, what is tested, a findings note with a go or no-go, payment, validity), priced from the price book's unit marked `feasibility: true` (`feasibility-test` in the example); with no such unit, the quote stops and asks. The quote phase's §3.1 has the rules |
+| `care-takeover` | `/ow-build-plan-quote --quick --onboarding` for this intake | A fixed-fee S/M/L onboarding review from the user's `care_onboarding` price-book entry; no build scope or care subscription is sold by this quote |
 | `not-a-fit` or `next-session` | nothing | Nothing for this skill: the recap closed the workstream, or the next step is another ow-start session. Say so |
 | missing, or no `recap.md` | ask | Ask the user which one they want: an offer, a quick quote, a start on signed work, or nothing |
 
@@ -75,7 +77,7 @@ A UAT request handed over the same way, `uat/<slug>/defects/UAT-nn.md` (ow-build
 Decide from the files the folder holds first, in this order, and take the first that applies:
 
 1. `build-request.md` exists: **the plan is signed; nothing is left for this skill.** Print the signed NEXT block from SKILL.md (`use ow-build to start plans/<slug>/`, with its IF IT IS NOT AVAILABLE line) and stop. Run nothing.
-2. A feasibility quote (`quote.md` has `mode: feasibility`) never gets a `build-request.md`. If the folder's newest STATUS line names `/ow-build-plan-offer` (written by `--signed`), the test is signed: print the feasibility signed NEXT block from SKILL.md and stop. Run nothing.
+2. A feasibility or onboarding quote (`quote.md` has `mode: feasibility` or `mode: onboarding`) never gets a `build-request.md`. If the newest STATUS line names `/ow-build-plan-offer`, the feasibility test is signed: print its signed NEXT block and stop. If that line names `ow-care /ow-care-onboard`, the onboarding review is signed: print its signed NEXT block and stop. Run nothing. A vendor-selection quote (`mode: vendor-eval`) never gets one either: once its newest STATUS line names `/ow-vendor-eval-scope` (written by `--signed`), print the vendor-eval signed NEXT block from SKILL.md and stop.
 3. `contract-inputs.md` exists (no `build-request.md`): `/ow-build-plan-quote --signed <date>`. Ask the signing date.
 4. `quote.md` exists and has been exported (`export/quote.*`, or an export line for this folder in `STATUS.md`): `/ow-build-plan-quote --accepted <date>`. Ask the date the client accepted. **Never run `-quote` again over it.**
 5. Otherwise, take the newest STATUS line whose path is in the folder:

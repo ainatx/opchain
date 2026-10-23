@@ -1,0 +1,31 @@
+# INVENTED. C4, C8 -score: a longlisted vendor with no relationship answer stops the score.
+case: score-no-relationship
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-score
+section: 'C4 -score: a relationship answer missing (refuse)'
+refused:
+  says:
+    - 'Refused: Brackenfold Inventory has no relationship answer.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+status:
+  lines: []
+next: []
+base: evidence-larkspur-brackenfold

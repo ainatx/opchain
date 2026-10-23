@@ -120,7 +120,7 @@ describe("C2, C3: the body, the frontmatter, the shipped text", () => {
     const ow = loadCatalogs({ root: ROOT }).find((c) => c.prefix === "ow-");
     expect(ow.bodyTokenBudgets["ow-handoff"]).toBe(4500);
     expect(ow.planned).not.toContain("ow-handoff");
-    expect(ow.plannedVerbs["ow-care"]).toEqual(expect.arrayContaining(["/ow-care-request", "/ow-care-start"]));
+    expect(ow.planned).not.toContain("ow-care");
   });
   it("the description is at most 1,024 characters, names ow-handoff in its first 200, no angle brackets", () => {
     const fm = readFileSync(join(SKILL, "SKILL.md"), "utf8").match(/description: >\n([\s\S]*?)\nlicense/)[1].replace(/\s+/g, " ").trim();
@@ -133,8 +133,8 @@ describe("C2, C3: the body, the frontmatter, the shipped text", () => {
     const t = readFileSync(join(SKILL, "SKILL.md"), "utf8");
     expect(t).toMatch(/^ {2}network: none$/m);
     expect(t).toMatch(/^ {2}bundle: core$/m);
-    expect(t).toMatch(/^ {2}version: "1\.0\.1"$/m);
-    expect(t).toMatch(/^ow-handoff 1\.0\.1 · protocol 1/m);
+    expect(t).toMatch(/^ {2}version: "1\.0\.2"$/m);
+    expect(t).toMatch(/^ow-handoff 1\.0\.2 · protocol 1/m);
   });
   it("the shipped text is clean (C3)", () => expect(shippedTextProblems()).toEqual([]));
   it("the protocol copy and the shared examples are byte-identical everywhere", () => {

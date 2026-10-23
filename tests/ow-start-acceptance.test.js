@@ -48,10 +48,10 @@ const seconds = (t) => t.split(":").map(Number).reduce((a, n) => a * 60 + n, 0);
 
 describe("golden runs", () => {
   it("has the four cases §10 asks for", () => {
-    expect(listCases()).toEqual(["calloway-not-a-fit", "larkspur-notes", "larkspur-prospect", "tidewell-defined-work"]);
+    expect(listCases()).toEqual(["calloway-not-a-fit", "hollowbrook-vendor-selection", "larkspur-notes", "larkspur-prospect", "tidewell-defined-work"]);
   });
 
-  for (const c of ["calloway-not-a-fit", "larkspur-notes", "larkspur-prospect", "tidewell-defined-work"]) {
+  for (const c of ["calloway-not-a-fit", "hollowbrook-vendor-selection", "larkspur-notes", "larkspur-prospect", "tidewell-defined-work"]) {
     it(`${c}: every check passes on the hand-written golden run`, () => {
       expect(failures(c)).toEqual({});
     });

@@ -367,7 +367,7 @@ describe("edges: the real family", () => {
     expect(checkEdges(noRead).join("\n")).toMatch(/ow-start\/skill\.edges\.yaml: hands off intake\/<client>\/recap\.md to ow-build-plan, but skills-work\/ow-build-plan\/skill\.edges\.yaml has no reads row for it from ow-start/);
     const noHand = realTree({ "ow-start/skill.edges.yaml": (t) => t.replace("      - { path: intake/<client>/coverage.md, fields: [must-ask statuses] }\n", "") });
     expect(checkEdges(noHand).join("\n")).toMatch(/ow-build-plan\/skill\.edges\.yaml: reads intake\/<client>\/coverage\.md from ow-start, but skills-work\/ow-start\/skill\.edges\.yaml has no hands_off row to ow-build-plan carrying it/);
-    const field = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("fields: [path_id, path_label, path_kind, path_systems]", "fields: [path_id, path_label, path_kind, path_systems, path_price]") });
+    const field = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("fields: [path_id, path_label, path_kind, path_systems, path_quote]", "fields: [path_id, path_label, path_kind, path_systems, path_quote, path_price]") });
     expect(checkEdges(field).join("\n")).toMatch(/reads field `path_price` of intake\/<client>\/recap\.md/);
   });
 
@@ -385,17 +385,17 @@ describe("edges: the real family", () => {
     const block = body.slice(body.indexOf("DONE: client signed"), body.indexOf("A quick quote over the limit"));
     expect(block).toMatch(/NEXT: say "use ow-build to start plans\/<client>\/" {3}\(where slash commands exist: \/ow-build-start\)/);
     expect(block).toMatch(/IF IT IS NOT AVAILABLE: handoffs\.yaml `build`\n/);
-    expect(body).toMatch(/A `handoffs\.yaml` line below is never printed as written: print that key's say: line exactly, `\{files\}` filled in, or the public default/);
+    expect(readFileSync(join(ROOT, "skills-work", "ow-build-plan", "references", "phase-quote.md"), "utf8")).toMatch(/A `handoffs\.yaml` line is never printed as written: print that key's say: line exactly, `\{files\}` filled in, or the public default/);
     expect(readFileSync(join(ROOT, "skills-work", "ow-build-plan", "references", "phase-quote.md"), "utf8")).toMatch(/or, with none, `give build-request\.md to whoever builds it`\. Nothing else goes on that line\./);
   });
 
   // Round 2 (eval-round-1 bugs 2 and 10): the slips the Evaluator planted.
   it("bug 2: --quick declared honestly as a mode of the quote's writer passes; as a second writer it fails", () => {
     const edges = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "skill.edges.yaml"), "utf8");
-    expect(edges).toMatch(/path: plans\/<client>\/quote\.md, verb: \/ow-build-plan-quote, modes: \[--quick\]/);
+    expect(edges).toMatch(/path: plans\/<client>\/quote\.md, verb: \/ow-build-plan-quote, modes: \[--quick, --vendor-eval\]/);
     const second = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("writes:\n", "writes:\n  - { path: plans/<client>/quote.md, verb: /ow-build-plan-quote --quick }\n") });
     expect(checkEdges(second).join("\n")).toMatch(/plans\/<\*>\/quote\.md: 2 writers/);
-    const bogus = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("verb: /ow-build-plan-quote, modes: [--quick] }\n  - { path: plans/<client>/quote-items.json", "verb: /ow-build-plan-quote, modes: [--quick, --bogus] }\n  - { path: plans/<client>/quote-items.json") });
+    const bogus = realTree({ "ow-build-plan/skill.edges.yaml": (t) => t.replace("verb: /ow-build-plan-quote, modes: [--quick, --vendor-eval] }\n  - { path: plans/<client>/quote-items.json", "verb: /ow-build-plan-quote, modes: [--quick, --vendor-eval, --bogus] }\n  - { path: plans/<client>/quote-items.json") });
     expect(checkEdges(bogus).join("\n")).toMatch(/mode `\/ow-build-plan-quote --bogus` is not a mode ow-build-plan's body documents/);
   });
 

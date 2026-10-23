@@ -1,0 +1,27 @@
+# INVENTED. C4, C5: ow-research's NEXT into a formal evaluation: refused (the panel decides).
+case: route-research-formal
+ws: town-of-elmridge
+eval: VE-01-permit-system
+client: Town of Elmridge
+user: Robin
+key: /ow-vendor-eval-evidence <vendor>
+section: 'C4 ow-research route: formal (refuse)'
+route:
+  say: use ow-vendor-eval-evidence on research/town-of-elmridge/RS-01-permit-systems/findings.md
+  expect: 'refused: formal'
+refused:
+  says:
+    - 'Refused: this is a formal evaluation; the panel decides.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+  - route
+status:
+  lines: []
+next: []
+base: scope-formal

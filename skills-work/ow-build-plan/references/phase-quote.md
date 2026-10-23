@@ -1,4 +1,4 @@
-# Phase: quote (`/ow-build-plan-quote`, `--quick`, `--accepted <date>`, `--signed <date>`)
+# Phase: quote (`/ow-build-plan-quote`, `--quick`, `--quick --onboarding`, `--accepted <date>`, `--signed <date>`)
 
 Run step 0 of `references/ow-protocol.md` first. Every price comes from the user's `price-book.yaml` (`references/price-book-schema.md`) or from the user, recorded as theirs. **This skill never estimates a price.**
 
@@ -8,10 +8,13 @@ Run step 0 of `references/ow-protocol.md` first. Every price comes from the user
 |---|---|---|
 | `/ow-build-plan-quote` | `plan.yaml`, `scope.md`, `acceptance.md`, `risks.md`, `evidence.md` | `quote.md`, `quote-items.json` |
 | `/ow-build-plan-quote --quick` | `intake/<client>/intake-record.md` (or a written request) | `quick-scope.md`, `quote.md`, `quote-items.json` |
+| `/ow-build-plan-quote --quick --vendor-eval` | the same, or a recap with `path_quote: vendor-eval` | `quick-scope.md`, `quote.md`, `quote-items.json` (§3.2) |
 | `/ow-build-plan-quote --accepted <date>` | `quote.md` | `contract-inputs.md` |
 | `/ow-build-plan-quote --signed <date>` | `quote.md` and `contract-inputs.md` | `build-request.md` |
 
 A missing input: say which file and offer the verb that writes it. Never continue as if it existed.
+
+**A selection work package waits for its decision.** When `scope.md` holds a package with `kind: selection` (phase-scope §1) and no `vendor-eval/<client>/VE-nn-<slug>/decision.md` exists for it, `-quote` refuses: `Refused: WP-<n> is a vendor selection with no decision recorded.`, `Nothing was written.`, then the selection NEXT block from SKILL.md (`use ow-vendor-eval-scope on plans/<client>/`). §2 step 13 names the vendor subscriptions from the map's systems, which the decision fills in (phase-map §5).
 
 **A quote is written once.** Before `-quote` or `--quick` writes anything, look in the folder:
 
@@ -100,13 +103,50 @@ A feasibility quote carries **just the test** (owner decision 2026-10-16): its p
   then the internal appendix inside the markers: pricing lines, arithmetic, and Quote integrity with rows for the feasibility unit, dates and terms, and the markers.
 - `--accepted` writes the feasibility form of `contract-inputs.md` (`references/contract-inputs-schema.md`) and asks nothing about documentation & training. `--signed` writes **no** `build-request.md` and prints **no** ow-build NEXT: see §6.
 
+### 3.2 A care takeover onboarding review (`--quick --onboarding`)
+
+`/ow-build-plan-quote --quick` with `/ow-build-plan-quote --onboarding` is the combined `/ow-build-plan-quote --quick --onboarding` mode; neither flag alone starts a takeover quote.
+
+Require `recap.md` with `path_kind: care-takeover` and its cited intake facts. Read only the user's `price-book.yaml` `care_onboarding`; if it or the applicable size/price/payment rule is missing, stop with no quote. Count the distinct systems and integrations named in intake, apply `size_by_systems`, and record the count, size and exact rule. If the rule does not unambiguously select S/M/L, ask the user to settle the size; never infer a price. The example's prices are placeholders, never authoritative for a client.
+
+Write `quick-scope.md` with these eight review parts: systems/integrations and owners/deployment; least access needed; alerts/run logs/backups/restore/jobs; health baseline; repository/setup/tests/deploy/rollback takeover check; evidenced risks/unknowns; recommended care tier with reasons but no commitment; fix-first items routed to later care hours or a separate quote. State that this is a review of a running system, not a build. Its acceptance check is delivery of a findings note covering all eight parts. `quote-items.json` contains the single fixed-fee onboarding size line; `quote.md` uses `mode: onboarding`, `onboarding_size`, `fixed_price`, payment `on_signature` or `on_delivery`, validity and payment terms. Leave out UAT, fix window, documentation/training, milestones, build handoff and Build Plan credit. No care tier subscription price is charged by this quote.
+
+`--accepted` writes the onboarding form in `contract-inputs.md` and does not ask about documentation/training. `--signed` requires that file, records signing as reported, writes no `build-request.md`, appends `next: ow-care /ow-care-onboard plans/<client>/`, and prints the onboarding NEXT block in SKILL.md. A signed onboarding quote cannot be routed to ow-build or re-quoted in the same folder.
+
+### 3.3 A vendor selection (`--quick --vendor-eval`, or a recap with `path_quote: vendor-eval`)
+
+A vendor selection sold on its own (design decision 4) follows §3.1's pattern: **just the selection**.
+
+- **Size and price** only from the price book's `vendor_selection` block: count the vendors to compare (the intake record, or ask; record the count), take the smallest size whose `size_by_vendors` count holds them, and price one line at that size's price. Above `L`'s count, the line is unpriced and §2.2 applies. §3 step 2's unit count does not apply (the vendor count sizes it); §3 step 3 is skipped (no testers).
+- **No** user acceptance testing line, fix window, documentation & training line, milestones, vendor subscriptions, acceptance or delivery sentence, Build Plan credit or build hand-off.
+- `quick-scope.md`, in this shape (no `## UAT approach`; Acceptance coverage's `kind: error` rule is waived for this form, as for a feasibility scope):
+
+        # Scope: <client>
+        ## The decision
+        <one sentence: the tool or service the client has to choose, and for what>
+        ## In scope
+        ### WP-1 Vendor selection
+        - what changes: criteria and weights agreed first; the vendors compared on evidence; a written recommendation
+        - the steps: scope · longlist · evidence · scores and cost · recommendation · the client's decision recorded
+        ## Vendors to compare
+        - count: <n>
+        - client-suggested: <names the client gave, each marked client-suggested>, or none
+        ## Out of scope
+        - … (at least one line; contacting vendors and signing the contract are the client's)
+        ## Acceptance checks
+        ### AC-1.1
+        (how the client knows it is done: the recommendation, and the decision record)
+
+- `quote.md`: §3.1's reduced header with `mode: vendor-eval` and `vendors: <n>`; `fixed_price` = the selection line. The client part is §3.1's, with `## What is compared` (the decision and the number of vendors) and `## What you get` (a one-page recommendation with the runner-up, the scores and cost, and the record of your decision) in place of its two middle sections.
+- `--accepted` writes the `mode: vendor-eval` form of `contract-inputs.md` (`references/contract-inputs-schema.md`) and asks nothing about documentation & training. `--signed` writes **no** `build-request.md`: see §6.
+
 ## 4. `quote.md`
 
 The header (protocol §4, `ow_artefact: ow-build-plan/quote`, `subject:` `scope.md` or `quick-scope.md`), then these keys:
 
     client: <client>
     handling: "no"                      # quick mode only: the step 0 answer (a plan keeps it in plan.yaml)
-    mode: build-plan | quick
+    mode: build-plan | quick | feasibility | vendor-eval
     currency: USD
     issued: <YYYY-MM-DD>
     valid_until: <YYYY-MM-DD>
@@ -221,12 +261,15 @@ Then the **internal appendix**, wholly between the two markers, each on a line o
 2. Ask: did the client take Documentation & training? (`bought` / `declined`; never for a feasibility quote). Either way, copy the people the line was quoted for (`quote.md` `documentation_training.people`) into `contract-inputs.md` as the top-level key `documentation_people`. Ask the parties' names as the user wants them in the contract.
 3. Record, word for word: `client accepted <date>, recorded by <user name>; not verified by this skill`. Add the protocol §8 approval sentence.
 4. Write `contract-inputs.md` exactly as `references/contract-inputs-schema.md` says, ending with its `## Next` section.
-5. Read `handoffs.yaml`. Print the accepted NEXT block from SKILL.md. Its `NEXT:` line is, after `NEXT: `, exactly one of two things and nothing else: the `contract:` entry's `say:` line with `{files}` = `plans/<client>/contract-inputs.md`, or, with no say: line, the public default `send contract-inputs.md to whoever drafts your contracts, or fill your own SOW template from it`. Never print the words `handoffs.yaml`, never explain which one was used, and never check or name what the destination is.
+5. Read `handoffs.yaml`. Print the accepted NEXT block from SKILL.md. A `handoffs.yaml` line is never printed as written: print that key's say: line exactly, `{files}` filled in, or the public default this phase gives; nothing else. (Moved here from SKILL.md in 1.4.0.) Its `NEXT:` line is, after `NEXT: `, exactly one of two things and nothing else: the `contract:` entry's `say:` line with `{files}` = `plans/<client>/contract-inputs.md`, or, with no say: line, the public default `send contract-inputs.md to whoever drafts your contracts, or fill your own SOW template from it`. Never print the words `handoffs.yaml`, never explain which one was used, and never check or name what the destination is.
 
 ## 6. Record the signing (`--signed <date>`)
 
 1. **No `contract-inputs.md`: refuse.** Say "The acceptance is not recorded yet; run `/ow-build-plan-quote --accepted <date>` first." Write nothing and append no STATUS line.
 2. Record, word for word: `client signed <date>, recorded by <user name>; not verified by this skill`, with the protocol §8 approval sentence.
+   **An onboarding quote** (`mode: onboarding`): write no `build-request.md`. Append its `ow-care /ow-care-onboard` STATUS line and print the onboarding signed NEXT block in SKILL.md. The signature does not start recurring care.
+
+   **A vendor-selection quote** (`mode: vendor-eval`): write nothing. Append the vendor-eval STATUS line (§8) and print the vendor-eval signed NEXT block from SKILL.md (`use ow-vendor-eval-scope on plans/<client>/quick-scope.md`). Steps 3 and 4 do not apply.
    **A feasibility quote** (`mode: feasibility`): write nothing. There is no build to hand over: the next thing the client receives is the findings note. Append the feasibility STATUS line (§8) and print the feasibility signed NEXT block from SKILL.md (on a go, a Build Plan offer: "use ow-build-plan to write the offer for plans/<client>/"). Steps 3 and 4 do not apply.
 3. Write `build-request.md` **from the plan, not the quote**: no price, fee or rate anywhere in it. Header (`ow_artefact: ow-build-plan/build-request`, `subject: plans/<client>/scope.md` or `quick-scope.md`, keys `client`, `signed`, `signing_note`), then:
 
@@ -251,11 +294,15 @@ The `## Next` sections of `contract-inputs.md` and `build-request.md` hold the s
 
 ## 8. STATUS
 
-Append one line per run (protocol §5), with these fields after the date and `ow-build-plan 1.2.0`:
+Append one line per run (protocol §5), with these fields after the date and `ow-build-plan 1.4.0`:
 
 - `-quote`: path `plans/<client>/quote.md`; `next: ow-build-plan /ow-build-plan-export plans/<client>/`; `awaiting: client's answer by <valid_until>; Build Plan credit by <credit_deadline>` (quick mode, or a plan with `fee: none`: the first part only, `awaiting: client's answer by <valid_until>`).
 - `--quick` refused: path `intake/<client>/intake-record.md`; `next: ow-build-plan /ow-build-plan-offer intake/<client>/intake-record.md`; `awaiting: none`.
 - `--accepted`: path `plans/<client>/contract-inputs.md`; `next: ow-build-plan /ow-build-plan-quote plans/<client>/`; `awaiting: signing for the Build Plan credit by <credit_deadline>` (quick mode, or a plan with `fee: none`: `awaiting: none`).
 - `--signed`: path `plans/<client>/build-request.md`; `next: ow-build /ow-build-start plans/<client>/`; `awaiting: none`.
 - `--signed` on a feasibility quote: path `plans/<client>/contract-inputs.md`; `next: ow-build-plan /ow-build-plan-offer plans/<client>/`; `awaiting: none`.
+- `--signed` on an onboarding quote: path `plans/<client>/contract-inputs.md`; `next: ow-care /ow-care-onboard plans/<client>/`; `awaiting: none`.
+
+- `--signed` on a vendor-selection quote: path `plans/<client>/contract-inputs.md`; `next: ow-vendor-eval /ow-vendor-eval-scope plans/<client>/quick-scope.md`; `awaiting: none`.
+- `-quote` refused for a selection package with no decision: no line.
 - `--signed` refused: no line.

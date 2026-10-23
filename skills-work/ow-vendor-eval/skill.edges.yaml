@@ -1,0 +1,199 @@
+# ow-vendor-eval edges (ow- cross-talk contract R15), schema 1.
+# What this skill writes, reads and hands off, as data. The body's "Reads from"
+# and "Hands off to" tables say the same in words; the family's contract check
+# reads this file to hold the family to one writer per file and to edges that
+# match on both ends. Paths are relative to opchain-work/. Format: skills-work/README.md.
+schema: 1
+skill: ow-vendor-eval
+
+# The verb other skills hand files to ("use ow-vendor-eval on <path>", owner decision O1).
+routes:
+  verb: /ow-vendor-eval
+  reference: references/routing-and-resume.md
+  paths: [vendor-eval/<ws>/, vendor-eval/<ws>/VE-nn-<slug>/, research/<ws>/RS-nn-<slug>/findings.md, plans/<client>/quick-scope.md, plans/<client>/]
+
+writes:
+  # Writer modes are exact: each file has one writer verb, and /ow-vendor-eval writes nothing.
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/scope.md, verb: /ow-vendor-eval-scope, modes: [--revise] }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/calc/criteria-set.json, verb: /ow-vendor-eval-scope }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/calc/criteria-set-REV-n.json, verb: /ow-vendor-eval-scope --revise }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/conflicts.md, verb: /ow-vendor-eval-scope }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/longlist.md, verb: /ow-vendor-eval-longlist }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/vendors/<vendor>.md, verb: /ow-vendor-eval-evidence }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/questions.md, verb: /ow-vendor-eval-evidence }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/scores.md, verb: /ow-vendor-eval-score }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/cost.md, verb: /ow-vendor-eval-score }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/calc/totals-<vendor>.json, verb: /ow-vendor-eval-score }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/calc/totals-<vendor>-REV-n.json, verb: /ow-vendor-eval-score }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/calc/totals-<vendor>-S-<n>.json, verb: /ow-vendor-eval-score }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/calc/cost-<vendor>.json, verb: /ow-vendor-eval-score }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/calc/cost-<vendor>-S-<n>.json, verb: /ow-vendor-eval-score }
+  # The waiver table only, in --waive mode.
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/recommendation.md, verb: /ow-vendor-eval-recommend, modes: [--waive] }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/export/client/recommendation.md, verb: /ow-vendor-eval-recommend, modes: [--waive] }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/export/recommendation.pdf, verb: /ow-vendor-eval-recommend, modes: [--waive] }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/export/recommendation.docx, verb: /ow-vendor-eval-recommend, modes: [--waive] }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/export/recommendation.export.json, verb: /ow-vendor-eval-recommend, modes: [--waive] }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/export/markdown/recommendation.md, verb: /ow-vendor-eval-recommend, modes: [--waive] }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/decision.md, verb: /ow-vendor-eval-decide }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/formal/requirements.md, verb: /ow-vendor-eval-formal }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/formal/evaluation-workbook/evaluator-n.csv, verb: /ow-vendor-eval-formal }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/formal/evaluation-workbook/model.md, verb: /ow-vendor-eval-formal }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/formal/evaluation-workbook.xlsx, verb: /ow-vendor-eval-formal }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/formal/evaluation-workbook.export.json, verb: /ow-vendor-eval-formal }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/formal/clarifications.md, verb: /ow-vendor-eval-formal --clarification }
+  - { path: vendor-eval/<ws>/VE-nn-<slug>/formal/response-map.md, verb: /ow-vendor-eval-formal --responses }
+  - { path: STATUS.md, verb: /ow-vendor-eval-scope, append: true }
+  - { path: STATUS.md, verb: /ow-vendor-eval-longlist, append: true }
+  - { path: STATUS.md, verb: /ow-vendor-eval-evidence, append: true }
+  - { path: STATUS.md, verb: /ow-vendor-eval-score, append: true }
+  - { path: STATUS.md, verb: /ow-vendor-eval-recommend, append: true }
+  - { path: STATUS.md, verb: /ow-vendor-eval-decide, append: true }
+  - { path: STATUS.md, verb: /ow-vendor-eval-formal, append: true }
+
+reads:
+  - from: any
+    path: STATUS.md
+    fields: [the protocol's STATUS form]
+    if_absent: "First run: the welcome"
+    if_mismatch: Quote the lines as found; use only the dates and paths you can read
+  - from: ow-start
+    path: profile.md
+    shared: true
+    fields: [name, time_zone, handling, banner_text]
+    if_absent: Ask the handling question once; record it in scope.md
+    if_mismatch: Report the fields found; ask only for the missing ones
+  # The handling union: the client's level, read as a header only.
+  - { from: ow-start, index: true, reference: references/evaluation-files-schema.md, path: intake/<client>/intake.yaml, fields: [handling], if_absent: "No level from the intake", if_mismatch: "A file that does not parse counts as a level" }
+  - { from: ow-build-plan, index: true, reference: references/evaluation-files-schema.md, path: plans/<client>/plan.yaml, fields: [handling], if_absent: "No level from the plan", if_mismatch: "A file that does not parse counts as a level" }
+  # ow-research's answered hand-off: exactly the fields it offers. Never sources.md, queries.md or Suspicious content.
+  - from: ow-research
+    path: research/<ws>/RS-nn-<slug>/findings.md
+    fields: [F-nn, claim, level, sources]
+    if_absent: "No research: the use ow-research NEXT for the open criteria, or the user's own sources"
+    if_mismatch: "A topic whose self-check table has a FINDING is not imported; a cited F-nn no longer under ## Findings is stale"
+  # Amendment P6: a vendor selection sold on its own, and a selection work package inside a Build Plan.
+  - from: ow-build-plan
+    path: plans/<client>/quick-scope.md
+    fields: [decision, vendors to compare, the steps]
+    if_absent: "Inside a plan, the plan's scope; for your own tools, nothing"
+    if_mismatch: "Use the sections that parse; the vendor names are read only at -longlist"
+  - from: ow-build-plan
+    path: plans/<client>/contract-inputs.md
+    fields: [mode, accepted]
+    if_absent: "Refused: the quote is not accepted yet"
+    if_mismatch: "Never fixed_price or any amount; ask the user to confirm the acceptance"
+  - from: ow-build-plan
+    path: plans/<client>/map/future.md
+    fields: [the new process, item by item]
+    if_absent: "Requirements asked; recorded user-stated"
+    if_mismatch: "Use the items that parse; cite each by item"
+  - from: ow-build-plan
+    path: plans/<client>/systems/<system>.md
+    fields: [requirements, integrations]
+    if_absent: "Integrations asked; recorded user-stated"
+    if_mismatch: Use the sections that parse
+  - from: ow-build-plan
+    path: plans/<client>/scope.md
+    fields: [the selection work package]
+    if_absent: "No selection package: a quick quote or your own tools"
+    if_mismatch: "Two packages: ask which"
+  # The user's files.
+  - from: user
+    path: vendor-eval/<ws>/VE-nn-<slug>/inbox/
+    fields: [demo notes, vendor emails, vendor quotes, security questionnaires, reference notes, the agency's documents, bidders' responses]
+    if_absent: "No user sources: findings only, and the questions for the rest"
+    if_mismatch: "Unreadable files by name and size only; never copied"
+  - from: user
+    path: brand.yaml
+    fields: [name, colors, footer, logo, logo_alt]
+    if_absent: Neutral styling, and say so
+    if_mismatch: Use the keys that parse; neutral styling for the rest
+  - from: user
+    path: <our own files, as values>
+    fields: [price-book.yaml, quote-items.json, ledger.md, margin.md, ow:internal sections]
+    if_absent: "No figures of ours to compare: say so"
+    if_mismatch: "Read as values only; never quoted, cited or copied"
+
+  # Its own earlier files (detail in each phase file).
+  - { from: ow-vendor-eval, path: vendor-eval/<ws>/VE-nn-<slug>/scope.md, if_absent: "Every verb but -scope refuses: NEXT use ow-vendor-eval-scope <ws>", if_mismatch: "Report the keys found; resume at the first scope step not recorded" }
+  - { from: ow-vendor-eval, path: vendor-eval/<ws>/VE-nn-<slug>/conflicts.md, if_absent: "-score, -recommend and -formal refuse: the conflicts answer is not recorded", if_mismatch: "Report what parses; record nothing new until the user answers" }
+  - { from: ow-vendor-eval, path: vendor-eval/<ws>/VE-nn-<slug>/longlist.md, if_absent: "-evidence refuses: no longlist yet", if_mismatch: "Use the rows that parse; never renumber a K-nn" }
+  - { from: ow-vendor-eval, path: vendor-eval/<ws>/VE-nn-<slug>/vendors/<vendor>.md, if_absent: "-score refuses: that vendor has no evidence yet", if_mismatch: "Use the facts that parse; never renumber a VF-nn" }
+  - { from: ow-vendor-eval, path: vendor-eval/<ws>/VE-nn-<slug>/scores.md, if_absent: "-recommend refuses: the score NEXT", if_mismatch: "Report the sections found; re-score nothing unasked" }
+  - { from: ow-vendor-eval, path: vendor-eval/<ws>/VE-nn-<slug>/cost.md, if_absent: "-recommend refuses: the score NEXT", if_mismatch: "Report what parses" }
+  - { from: ow-vendor-eval, path: vendor-eval/<ws>/VE-nn-<slug>/recommendation.md, if_absent: "-decide refuses: no recommendation yet", if_mismatch: "Report the sections found; write nothing" }
+  - { from: ow-vendor-eval, path: vendor-eval/<ws>/VE-nn-<slug>/decision.md, if_absent: "Not decided yet", if_mismatch: "Report the header found; write nothing" }
+  - { from: ow-vendor-eval, path: vendor-eval/<ws>/VE-nn-<slug>/formal/requirements.md, if_absent: "--responses refuses: run -formal first", if_mismatch: "Use the requirements that parse; never renumber one" }
+
+hands_off:
+  - when: No scope.md (every verb but -scope and /ow-vendor-eval)
+    to: ow-vendor-eval
+    verb: /ow-vendor-eval-scope
+    say: use ow-vendor-eval-scope <ws>
+    files: []
+    if_unavailable: Agree the criteria and weights with the client before looking at any vendor
+  - when: Scope frozen (commercial)
+    to: ow-vendor-eval
+    verb: /ow-vendor-eval-longlist
+    say: use ow-vendor-eval-longlist on vendor-eval/<ws>/VE-nn-<slug>/
+    files: [vendor-eval/<ws>/VE-nn-<slug>/scope.md]
+    if_unavailable: scope.md holds the frozen criteria; list the candidates by hand, each with its source
+  - when: Scope written (formal)
+    to: ow-vendor-eval
+    verb: /ow-vendor-eval-formal
+    say: use ow-vendor-eval-formal on vendor-eval/<ws>/VE-nn-<slug>/
+    files: [vendor-eval/<ws>/VE-nn-<slug>/scope.md]
+    if_unavailable: Copy the agency's requirements and method word for word; score nothing
+  - when: Longlist written; a vendor without evidence
+    to: ow-vendor-eval
+    verb: /ow-vendor-eval-evidence
+    say: use ow-vendor-eval-evidence <vendor> on vendor-eval/<ws>/VE-nn-<slug>/
+    files: [vendor-eval/<ws>/VE-nn-<slug>/longlist.md]
+    if_unavailable: Record each vendor's facts by hand, each with its source and date
+  - when: A criterion with no research yet
+    to: ow-research
+    verb: /ow-research
+    say: use ow-research
+    files: []
+    if_unavailable: Ask the vendor the question in questions.md, or find a dated public source yourself
+  - when: Evidence for every remaining vendor
+    to: ow-vendor-eval
+    verb: /ow-vendor-eval-score
+    say: use ow-vendor-eval-score on vendor-eval/<ws>/VE-nn-<slug>/
+    files: [vendor-eval/<ws>/VE-nn-<slug>/vendors/<vendor>.md]
+    if_unavailable: Score each criterion 0 to 3 by hand, citing a fact for each score
+  - when: Scored, no FINDING
+    to: ow-vendor-eval
+    verb: /ow-vendor-eval-recommend
+    say: use ow-vendor-eval-recommend on vendor-eval/<ws>/VE-nn-<slug>/
+    files: [vendor-eval/<ws>/VE-nn-<slug>/scores.md, vendor-eval/<ws>/VE-nn-<slug>/cost.md]
+    if_unavailable: Write the recommendation by hand from scores.md and cost.md, with the conflicts statement
+  - when: Recommended, no FINDING
+    to: ow-vendor-eval
+    verb: /ow-vendor-eval-decide
+    say: use ow-vendor-eval-decide <vendor> on vendor-eval/<ws>/VE-nn-<slug>/
+    files: [vendor-eval/<ws>/VE-nn-<slug>/recommendation.md]
+    if_unavailable: Keep a dated note of the client's choice beside the recommendation
+  # D2 (design §11): exactly the fields ow-draft's reads row takes.
+  - when: Recommended, a longer report wanted
+    to: ow-draft
+    verb: /ow-draft-evidence
+    say: use ow-draft-evidence on vendor-eval/<ws>/VE-nn-<slug>/recommendation.md
+    files:
+      - { path: vendor-eval/<ws>/VE-nn-<slug>/recommendation.md, fields: [decision, vendor, runner-up, knock-outs, score table, cost, risks, what to confirm, conflicts statement] }
+    if_unavailable: The recommendation stands alone; a longer report carries its conflicts statement word for word
+  # P6: the decision joins the plan's systems inventory (the -map re-run).
+  - when: Decided, inside a Build Plan
+    to: ow-build-plan
+    verb: /ow-build-plan-map
+    say: use ow-build-plan-map on plans/<client>/
+    files:
+      - { path: vendor-eval/<ws>/VE-nn-<slug>/decision.md, fields: [vendor, decided_on, decided_by, the decision] }
+    if_unavailable: Add the chosen tool to map/systems.md by hand, as the client's choice reported
+  - when: Formal materials written
+    to: ow-vendor-eval
+    verb: /ow-vendor-eval-formal --responses
+    say: use ow-vendor-eval-formal --responses on vendor-eval/<ws>/VE-nn-<slug>/
+    files: [vendor-eval/<ws>/VE-nn-<slug>/formal/requirements.md]
+    if_unavailable: Map each response by page reference only, by hand; the panel decides

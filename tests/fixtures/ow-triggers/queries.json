@@ -30,5 +30,13 @@
   {"id":"draft-report","skill":"ow-draft","shouldTrigger":true,"query":"Draft a client report from these approved evidence items and this brief."},
   {"id":"draft-voice","skill":"ow-draft","shouldTrigger":true,"query":"Build a writing voice from these permitted samples for future client announcements."},
   {"id":"draft-research","skill":"ow-draft","shouldTrigger":false,"query":"Search the web for current vendor documentation and record sourced feasibility findings."},
-  {"id":"draft-handoff","skill":"ow-draft","shouldTrigger":false,"query":"Close the contractual fix window and verify project access removal."}
+  {"id":"draft-handoff","skill":"ow-draft","shouldTrigger":false,"query":"Close the contractual fix window and verify project access removal."},
+  {"id":"care-month","skill":"ow-care","shouldTrigger":true,"query":"Close this care month, reconcile the recorded hours and prepare the client report and next invoice request."},
+  {"id":"care-onboard","skill":"ow-care","shouldTrigger":true,"query":"Review this existing client system for takeover under the signed onboarding scope and prepare its care baseline."},
+  {"id":"care-fix-window","skill":"ow-care","shouldTrigger":false,"query":"Close the original build fix window and package the final project handoff before any care choice."},
+  {"id":"care-build-quote","skill":"ow-care","shouldTrigger":false,"query":"Prepare a fixed Build Plan quote for a new custom system from this first fit-call recap."},
+  {"id":"vendor-commercial","skill":"ow-vendor-eval","shouldTrigger":true,"query":"Compare these vendors against the frozen criteria, supplied evidence and total costs, then prepare a recommendation."},
+  {"id":"vendor-formal","skill":"ow-vendor-eval","shouldTrigger":true,"query":"Prepare the bidder pack and logged assessment for a formal procurement using the supplied rules."},
+  {"id":"vendor-research","skill":"ow-vendor-eval","shouldTrigger":false,"query":"Research official technical sources for this feasibility question and record cited findings."},
+  {"id":"vendor-build","skill":"ow-vendor-eval","shouldTrigger":false,"query":"Implement the already selected vendor integration in this application repository."}
 ]

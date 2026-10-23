@@ -1,0 +1,28 @@
+# INVENTED. C4, C8: a candidate with no relationship answer yet: the question, and nothing is written until you answer.
+case: longlist-ask
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-longlist
+research_case:
+  - run-vendor-eval
+section: 'C4 -longlist: a vendor with no relationship answer (ask)'
+closed: true
+checks:
+  - refused
+  - screen
+  - writes
+  - status
+status:
+  lines: []
+next: []
+base: scope-larkspur

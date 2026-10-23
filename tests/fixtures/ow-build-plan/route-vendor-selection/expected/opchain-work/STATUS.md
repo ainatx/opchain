@@ -1,0 +1,2 @@
+2026-10-22 (clock: user-stated) | ow-start 1.2.0 | intake/hollowbrook-bakery/recap.md | next: ow-build-plan on intake/hollowbrook-bakery/intake-record.md | awaiting: recap to Hollowbrook Bakery by 2026-10-23
+2026-10-26 (clock: user-stated) | ow-build-plan 1.3.0 | plans/hollowbrook-bakery/quote.md | next: ow-build-plan /ow-build-plan-export plans/hollowbrook-bakery/ | awaiting: client's answer by 2026-11-09

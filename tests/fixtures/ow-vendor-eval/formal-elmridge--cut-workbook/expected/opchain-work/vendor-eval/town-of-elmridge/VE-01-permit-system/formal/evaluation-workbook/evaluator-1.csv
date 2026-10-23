@@ -1,0 +1,9 @@
+Ref,Requirement or criterion,Weight (as given),Score,Notes
+M-1,The system must keep every permit record for seven years.,,,
+M-2,The system must let applicants apply and pay online.,,,
+M-3,The system must export every record in an open format.,,,
+D-1,Inspectors can record visits from a phone.,,,
+D-2,Applicants receive status updates by email.,,,
+C-1,Fit to the desirable requirements,50,,
+C-2,Implementation approach,30,,
+C-3,Price,20,,

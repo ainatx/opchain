@@ -2,6 +2,19 @@
 
 Run step 0 of `references/ow-protocol.md` first. Record the handling answer in `plan.yaml` as `handling` (copy it from `build-plan-offer.md` when the offer already holds one, and say so).
 
+## 0. Where files live (moved from SKILL.md in 1.4.0, word for word)
+
+    opchain-work/
+      price-book.yaml  brand.yaml        yours: prices and branding (copy them from examples/)
+      offers.md  handoffs.yaml  profile.md  STATUS.md
+      plans/<client>/
+        build-plan-offer.md  plan.yaml  collection.md  evidence.md  systems/  map/
+        scope.md  acceptance.md  risks.md  quick-scope.md  quote.md
+        contract-inputs.md  build-request.md  build-plan.md  export/
+        inbox/  audio/  workshops/        client material; never committed
+
+Also moved from SKILL.md in 1.4.0: the handling answer goes in `plan.yaml` (`handling`), or, before a plan exists, in the offer's or quick quote's own header. In a git repository, `-start` asks once to add the client material folders to `.gitignore` (the gitignore step below). A follow-on Build Plan goes in `plans/<client>-<n>/`. For the ow-tools add-on: "Record each call's command and raw output where its phase file says; nothing is machine-checked without them."
+
 ## 1. The intake
 
 **Never over an existing plan.** Once you know the folder this run writes (below), check it: if it already holds `plan.yaml`, write nothing. Say the plan was started on its `created` date and give the folder's next step instead (`references/routing-and-resume.md` section 2.3). This holds however `-start` was reached, the offer NEXT said again included. A second plan for the same client is a follow-on in a new folder.
@@ -44,7 +57,7 @@ Every intake fact whose confidence is **LOW** or **UNKNOWN** (except `promised_b
 
     ow_artefact: ow-build-plan/plan
     schema: 1
-    written_by: ow-build-plan 1.2.0 (protocol 1)
+    written_by: ow-build-plan 1.4.0 (protocol 1)
     workstream: <slug>
     subject: <the intake file, or none>
     created: <YYYY-MM-DD>
@@ -106,4 +119,4 @@ The last two keep workshop transcripts out of commits; the ow-tools add-on refus
 
 ## 6. STATUS and NEXT
 
-Append: `… | ow-build-plan 1.2.0 | plans/<client>/collection.md | next: ow-build-plan /ow-build-plan-collect plans/<client>/ | awaiting: material from <client> by <collection_deadline>`. Print the start NEXT block from SKILL.md, and suggest a calendar reminder for the collection deadline (nothing reminds anyone later; protocol §6).
+Append: `… | ow-build-plan 1.4.0 | plans/<client>/collection.md | next: ow-build-plan /ow-build-plan-collect plans/<client>/ | awaiting: material from <client> by <collection_deadline>`. Print the start NEXT block from SKILL.md, and suggest a calendar reminder for the collection deadline (nothing reminds anyone later; protocol §6).

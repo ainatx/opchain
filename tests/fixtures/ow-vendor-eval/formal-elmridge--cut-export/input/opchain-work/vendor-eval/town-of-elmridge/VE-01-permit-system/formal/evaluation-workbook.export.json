@@ -1,0 +1,12 @@
+{
+  "tool": "ow-tools",
+  "command": "ow-tools export vendor-eval/town-of-elmridge/VE-01-permit-system/formal/evaluation-workbook/ --formats xlsx --out vendor-eval/town-of-elmridge/VE-01-permit-system/formal/",
+  "outputs": [
+    "evaluation-workbook.xlsx"
+  ],
+  "sheets": [
+    "evaluator-1",
+    "evaluator-2"
+  ],
+  "preflight": "ok"
+}

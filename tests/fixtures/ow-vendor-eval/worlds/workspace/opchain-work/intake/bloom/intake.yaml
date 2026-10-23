@@ -1,0 +1,13 @@
+# INVENTED TEST FIXTURE: a client with a one-word name; "bloom" is also an ordinary word.
+ow_artefact: ow-start/intake
+schema: 1
+written_by: ow-start 1.1.0 (protocol 1)
+workstream: bloom
+subject: none
+created: 2026-08-20
+clock: user-stated
+origin: skill
+mode: prospect
+client: Bloom
+client_slug: bloom
+handling: "no"

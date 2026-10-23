@@ -1,0 +1,8 @@
+2026-10-22 (clock: user-stated) | ow-start 1.2.0 | intake/hollowbrook-bakery/recap.md | next: ow-build-plan on intake/hollowbrook-bakery/intake-record.md | awaiting: recap to Hollowbrook Bakery by 2026-10-23
+2026-10-26 (clock: user-stated) | ow-build-plan 1.3.0 | plans/hollowbrook-bakery/quote.md | next: ow-build-plan /ow-build-plan-export plans/hollowbrook-bakery/ | awaiting: client's answer by 2026-11-09
+2026-11-02 (clock: user-stated) | ow-build-plan 1.3.0 | plans/hollowbrook-bakery/contract-inputs.md | next: ow-build-plan /ow-build-plan-quote plans/hollowbrook-bakery/ | awaiting: none
+2026-11-04 (clock: user-stated) | ow-build-plan 1.3.0 | plans/hollowbrook-bakery/contract-inputs.md | next: ow-vendor-eval /ow-vendor-eval-scope plans/hollowbrook-bakery/quick-scope.md | awaiting: none
+2026-11-05 (clock: user-stated) | ow-vendor-eval 1.0.0 | vendor-eval/hollowbrook-bakery/VE-01-booking-tool/scope.md | next: ow-vendor-eval /ow-vendor-eval-longlist vendor-eval/hollowbrook-bakery/VE-01-booking-tool/ | awaiting: none
+2026-11-06 (clock: user-stated) | ow-vendor-eval 1.0.0 | vendor-eval/hollowbrook-bakery/VE-01-booking-tool/longlist.md | next: ow-vendor-eval /ow-vendor-eval-evidence vendor-eval/hollowbrook-bakery/VE-01-booking-tool/ | awaiting: none
+2026-11-09 (clock: user-stated) | ow-vendor-eval 1.0.0 | vendor-eval/hollowbrook-bakery/VE-01-booking-tool/vendors/pennyroyal.md | next: ow-vendor-eval /ow-vendor-eval-evidence vendor-eval/hollowbrook-bakery/VE-01-booking-tool/ | awaiting: none
+2026-11-10 (clock: user-stated) | ow-vendor-eval 1.0.0 | vendor-eval/hollowbrook-bakery/VE-01-booking-tool/vendors/sallowmere.md | next: ow-vendor-eval /ow-vendor-eval-evidence vendor-eval/hollowbrook-bakery/VE-01-booking-tool/ | awaiting: none

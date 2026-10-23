@@ -1,0 +1,1 @@
+2026-10-22 (clock: user-stated) | ow-start 1.2.0 | intake/hollowbrook-bakery/recap.md | next: ow-build-plan on intake/hollowbrook-bakery/intake-record.md | awaiting: recap to Hollowbrook Bakery by 2026-10-23

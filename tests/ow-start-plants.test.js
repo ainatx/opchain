@@ -7,8 +7,9 @@ import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync
 import { rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { loadCatalogs } from "../scripts/lib/catalogs.mjs";
+import { declaredCommands, loadCatalogs } from "../scripts/lib/catalogs.mjs";
 import { checkEdges, checkFamily, checkVerbs } from "../scripts/check-skill-contracts.mjs";
+import { matter } from "../scripts/lib/frontmatter.mjs";
 import { validateCatalog } from "../scripts/gen-skills-catalog.mjs";
 import { pinProblems } from "./ow-text-pins.mjs";
 import { FIXTURES, listLogsCases, loadKey, runCase, runView } from "../scripts/ow-start-logs-acceptance.mjs";
@@ -29,7 +30,19 @@ const temp = (prefix) => {
 const rep = (a, b) => (t) => { if (!t.includes(a)) throw new Error(`no match: ${a.slice(0, 70)}`); return t.split(a).join(b); };
 
 /** A copy of skills-work/ with `edit` applied, loaded as the catalogs. */
-function realTree(edit = {}) {
+// Exercise the pre-install contract explicitly even when the producer ships in the current family.
+function withUnbuiltProducers(cats, ids) {
+  const c = cats.find((c) => c.prefix === "ow-");
+  for (const id of ids) {
+    const skill = join(c.dir, id, "SKILL.md");
+    const verbs = declaredCommands(matter(readFileSync(skill, "utf8")).data, c);
+    rmSync(skill);
+    c.planned = [...(c.planned ?? []), id];
+    c.plannedVerbs = { ...c.plannedVerbs, [id]: verbs };
+  }
+  return cats;
+}
+function realTree(edit = {}, unbuilt = []) {
   const dir = temp("ow08-real-");
   cpSync(join(ROOT, "skills-work"), dir, { recursive: true });
   for (const [rel, fn] of Object.entries(edit)) {
@@ -40,21 +53,21 @@ function realTree(edit = {}) {
     mkdirSync(dirname(p), { recursive: true });
     writeFileSync(p, after);
   }
-  return loadCatalogs({ env: { OPCHAIN_WORK_SKILLS_DIR: dir } });
+  return withUnbuiltProducers(loadCatalogs({ env: { OPCHAIN_WORK_SKILLS_DIR: dir } }), unbuilt);
 }
 const contracts = (cats) => [...checkVerbs(null, { catalogs: cats }), ...checkFamily(cats), ...checkEdges(cats)].join("\n");
 const E = "ow-start/skill.edges.yaml", B = "ow-start/SKILL.md", IDX = "ow-start/references/logs-status-and-index.md";
 
 describe("C1, C2, C3: the real tree passes as built (the control)", () => {
-  it("catalog, contracts and edges are clean, with ten verbs and twelve index rows", () => {
+  it("catalog, contracts and edges are clean, with ten verbs and thirteen index rows", () => {
     const cats = loadCatalogs({ env: {} });
     expect(contracts(cats)).toBe("");
     expect(validateCatalog(cats.find((c) => c.prefix === "ow-"))).toContain("ow-start");
     const edges = readFileSync(join(ROOT, "skills-work", E), "utf8");
-    expect(edges.match(/index: true/g)).toHaveLength(12);
+    expect(edges.match(/index: true/g)).toHaveLength(13);
     const body = readFileSync(join(ROOT, "skills-work", B), "utf8");
-    expect(body).toMatch(/^ {2}version: "1\.1\.2"$/m);
-    expect(body).toMatch(/^ow-start 1\.1\.2 · protocol 1/m);
+    expect(body).toMatch(/^ {2}version: "1\.3\.0"$/m);
+    expect(body).toMatch(/^ow-start 1\.3\.0 · protocol 1/m);
     expect(body.match(/^ {2}commands: (.*)$/m)[1].split(" ")).toHaveLength(10);
   });
 });
@@ -834,7 +847,7 @@ describe("round 2 evaluator plants (h/plants2.mjs: 42 P, 13 FP, and S05, which t
     });
   }
   /** A copy of skills-work/ with `edit` applied (null deletes a file): its folder and its catalogs. */
-  function realDir(edit) {
+  function realDir(edit, unbuilt = []) {
     const dir = temp("ow08-r2-real-");
     cpSync(join(ROOT, "skills-work"), dir, { recursive: true });
     for (const [rel, fn] of Object.entries(edit)) {
@@ -845,14 +858,14 @@ describe("round 2 evaluator plants (h/plants2.mjs: 42 P, 13 FP, and S05, which t
       if (after === before) throw new Error(`edit of ${rel} changed nothing`);
       writeFileSync(p, after);
     }
-    return { dir, cats: loadCatalogs({ env: { OPCHAIN_WORK_SKILLS_DIR: dir } }) };
+    return { dir, cats: withUnbuiltProducers(loadCatalogs({ env: { OPCHAIN_WORK_SKILLS_DIR: dir } }), unbuilt) };
   }
   const contractList = (cats) => [...checkVerbs(null, { catalogs: cats }), ...checkFamily(cats), ...checkEdges(cats)];
   const contractBase = new Set(contractList(loadCatalogs({ env: {} })));
   const pinBase = new Set(pinProblems(join(ROOT, "skills-work")).map(String));
-  function tplant(kind, id, area, desc, edit, want = null) {
+  function tplant(kind, id, area, desc, edit, want = null, unbuilt = []) {
     it(`${id} [${area}] ${desc}: ${kind === "FP" ? "passes" : "is caught"}`, () => {
-      const { dir, cats } = realDir(edit);
+      const { dir, cats } = realDir(edit, unbuilt);
       const found = contractList(cats).filter((f) => !contractBase.has(f));
       try { validateCatalog(cats.find((c) => c.prefix === "ow-")); } catch (e) { found.push(`catalog: ${e.message.split("\n")[0]}`); }
       found.push(...pinProblems(dir).map(String).filter((f) => !pinBase.has(f)).map((f) => `pin: ${f}`));
@@ -1066,7 +1079,7 @@ describe("round 3 evaluator plants (h/plants3.mjs: 29 P, 7 FP), caught by the fo
     });
   }
   /** A copy of skills-work/ with `edit` applied (null deletes a file): its folder and its catalogs. */
-  function realDir(edit) {
+  function realDir(edit, unbuilt = []) {
     const dir = temp("ow08-r2-real-");
     cpSync(join(ROOT, "skills-work"), dir, { recursive: true });
     for (const [rel, fn] of Object.entries(edit)) {
@@ -1077,14 +1090,14 @@ describe("round 3 evaluator plants (h/plants3.mjs: 29 P, 7 FP), caught by the fo
       if (after === before) throw new Error(`edit of ${rel} changed nothing`);
       writeFileSync(p, after);
     }
-    return { dir, cats: loadCatalogs({ env: { OPCHAIN_WORK_SKILLS_DIR: dir } }) };
+    return { dir, cats: withUnbuiltProducers(loadCatalogs({ env: { OPCHAIN_WORK_SKILLS_DIR: dir } }), unbuilt) };
   }
   const contractList = (cats) => [...checkVerbs(null, { catalogs: cats }), ...checkFamily(cats), ...checkEdges(cats)];
   const contractBase = new Set(contractList(loadCatalogs({ env: {} })));
   const pinBase = new Set(pinProblems(join(ROOT, "skills-work")).map(String));
-  function tplant(kind, id, area, desc, edit, want = null) {
+  function tplant(kind, id, area, desc, edit, want = null, unbuilt = []) {
     it(`${id} [${area}] ${desc}: ${kind === "FP" ? "passes" : "is caught"}`, () => {
-      const { dir, cats } = realDir(edit);
+      const { dir, cats } = realDir(edit, unbuilt);
       const found = contractList(cats).filter((f) => !contractBase.has(f));
       try { validateCatalog(cats.find((c) => c.prefix === "ow-")); } catch (e) { found.push(`catalog: ${e.message.split("\n")[0]}`); }
       found.push(...pinProblems(dir).map(String).filter((f) => !pinBase.has(f)).map((f) => `pin: ${f}`));
@@ -1138,7 +1151,7 @@ describe("round 3 evaluator plants (h/plants3.mjs: 29 P, 7 FP), caught by the fo
   tplant("P", "K04", "effort key, planned", "ow-care row reads `minutes_used`", { [E]: rep(CARE, CARE.replace("[created]", "[created, minutes_used]")) });
   tplant("P", "K05", "person key, planned", "ow-uat signoff row reads `signatory`", { [E]: rep(SIGN, SIGN.replace("acceptance]", "signatory]")) });
   tplant("P", "K06", "money key, planned", "ow-care row reads `overage`", { [E]: rep(CARE, CARE.replace("[created]", "[created, overage]")) });
-  tplant("FP", "K07", "date key, planned", "ow-care row reads `review_by` (a date)", { [E]: rep(CARE, CARE.replace("[created]", "[created, review_by]")) });
+  tplant("FP", "K07", "date key, planned", "unbuilt ow-care row reads `review_by` (a date)", { [E]: rep(CARE, CARE.replace("[created]", "[created, review_by]")) }, null, ["ow-care"]);
 
   // ═════ Handling (m5) ═════
   plant("FP", "HD1", "handling false positive", "checkin screen lists an open question mentioning 'restricted'", "logs-larkspur-checkin", { "printed/log-meeting.md": (t) => t.replace("DONE: meeting logged", "Still open (Q1): are any glazes restricted for export?\n\nDONE: meeting logged") });
@@ -1262,9 +1275,9 @@ describe("follow-up: the meaning checks (m2 to m6) and the nits", () => {
   });
   it("m6: a deadline key from a producer not built yet passes; a participle `_by` key fails", () => {
     const care = "path: care/<client>/reports/M-nn.md, fields: [created]";
-    for (const k of ["reply_by", "due_by", "send_by"]) expect(contracts(realTree({ [E]: rep(care, care.replace("[created]", `[created, ${k}]`)) })), k).toBe("");
-    for (const k of ["approved_by", "signed_by", "written_by", "sent_by"]) expect(contracts(realTree({ [E]: rep(care, care.replace("[created]", `[created, ${k}]`)) })), k).toMatch(/names who did something/);
-    for (const k of ["billed", "invoiced_total", "effort", "approver"]) expect(contracts(realTree({ [E]: rep(care, care.replace("[created]", `[created, ${k}]`)) })), k).toMatch(/holds money, a note or a person/);
+    for (const k of ["reply_by", "due_by", "send_by"]) expect(contracts(realTree({ [E]: rep(care, care.replace("[created]", `[created, ${k}]`)) }, ["ow-care"])), k).toBe("");
+    for (const k of ["approved_by", "signed_by", "written_by", "sent_by"]) expect(contracts(realTree({ [E]: rep(care, care.replace("[created]", `[created, ${k}]`)) }, ["ow-care"])), k).toMatch(/names who did something/);
+    for (const k of ["billed", "invoiced_total", "effort", "approver"]) expect(contracts(realTree({ [E]: rep(care, care.replace("[created]", `[created, ${k}]`)) }, ["ow-care"])), k).toMatch(/holds money, a note or a person/);
   });
   it("nit: the description keeps \"due within one business day\" and \"it names a path, never a price\" under 900 characters", () => {
     const fm = readFileSync(join(ROOT, "skills-work", B), "utf8").split("\n---")[0];

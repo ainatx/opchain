@@ -2,6 +2,25 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). The family's v2.1.0 release entry cites each skill's version. Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
+
+## 1.4.0 (unreleased): P6, the vendor selection (OW-11, ow-vendor-eval 1.0.0)
+
+Amendment P6 of `docs/plans/2026-10-16-ow-vendor-eval-design.md` §11 (contract `sprints/release-2.1/ow-11/contract.md`, O7 and O8 (b)).
+
+- **Sold on its own.** `price-book-schema.md` gains `vendor_selection` (`sizes` S, M, L with a `price` each; `size_by_vendors`: the most vendors each size compares). `/ow-build-plan-quote --quick --vendor-eval`, or a recap with `path_quote: vendor-eval` (`routing-and-resume.md` §2.1), writes a quick scope and a fixed-fee quote sized by the number of vendors (`phase-quote.md` §3.3): `quick-scope.md` has `## The decision`, `## In scope` (`WP-1 Vendor selection`), `## Vendors to compare` (the count, and any names the client gave, marked client-suggested), `## Out of scope` and `## Acceptance checks`; the quote has `mode: vendor-eval` and §3.1's reduced header, with no testing, fix-window, documentation & training, milestone or vendor-subscription line. `--accepted` writes the `mode: vendor-eval` form of `contract-inputs.md`; `--signed` writes no `build-request.md` and prints `use ow-vendor-eval-scope on plans/<client>/quick-scope.md`. A folder whose selection is signed routes to that NEXT (§2.3).
+- **Inside a Build Plan** (O8 (b)). `-scope` writes a selection work package (`kind: selection`, no price line, its acceptance check the decision record) for a system the map marks `[UNKNOWN]` and prints `use ow-vendor-eval-scope on plans/<client>/`; `-quote` refuses while a selection package has no `decision.md` and prints the same NEXT; a `-map` re-run after the decision rewrites only `map/systems.md`'s to-be-chosen line, as `[MEDIUM vendor-eval/<client>/VE-nn-<slug>/decision.md]`, and Evidence trace accepts that one citation form there.
+- **Body.** Two NEXT templates, a Verbs row, a Reads-from row and two Hands-off rows. To keep the body under its 4,500-token cap (4,471 after P6; 4,353 before), phase detail moved to references: the file tree word for word, and the handling sentence, the `.gitignore` and follow-on sentences and the ow-tools record sentence (lightly reworded to stand alone) to `phase-start.md` §0; the `handoffs.yaml` print rule (reworded to read as a step) to `phase-quote.md` §5; the waiver sentence already in `self-checks.md`. P6's own wording was cut to fit: the Verbs row says only "a vendor selection", the Reads-from row's absent and mismatch cases are two words each, and the signed NEXT shares the feasibility test's preface. No P5 or P3 text was cut.
+
+The combined care/vendor integration moves the add-on table and file-location guidance unchanged into `references/tools-and-files.md`, required before each phase, to keep the body under its existing token cap. NEXT templates stay in the body.
+
+## Unreleased: data edits from OW-11 (ow-vendor-eval 1.0.0)
+
+No version bump (OW-04 ruling O9): `examples/price-book.yaml` gains the invented `vendor_selection` block; `examples/offers.md` gains an invented `## path: vendor-selection` (`quote: vendor-eval`), byte-identical in every skill that ships it; `skill.edges.yaml` gains the writer mode, the `decision.md` reads row, the recap's `path_quote` and the two hand-offs to ow-vendor-eval. The goldens gain the vendor-selection quick quote, its acceptance and signing, the recap route, the in-plan selection package, the quote's wait and the map re-run.
+
+## 1.3.0 (unreleased): care onboarding quote (P4)
+
+`--quick --onboarding` quotes an S/M/L fixed-fee review from the user's `care_onboarding` price-book entry, with no UAT, fix window, documentation/training or build handoff. Acceptance records limited contract inputs; signing routes to `ow-care-onboard` and starts no recurring plan. Example prices are invented placeholders.
+
 ## 1.2.1 (unreleased)
 
 Clarify the shared protocol: client-ready HTML/TXT email twins carry no internal artefact header; their companion record holds provenance. Preserve visible handling banners and print the complete NEXT guidance, including attachment fallback.
@@ -16,6 +35,7 @@ No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed:
 ## Unreleased: data edits from OW-10 (ow-draft 1.0.0)
 
 No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed: `examples/handoffs.yaml` gains the `drafts` key (where a finished draft goes: a repository folder by `repo` and `path`, and a say: line, an optional `location:` and a post's `limit` per other destination) and its commented shape with invented, neutral keys, byte-identical in every ow- skill that ships it.
+
 
 ## 1.2.0 (2026-10-19): amendment P3, the documentation line's people and invoicing
 

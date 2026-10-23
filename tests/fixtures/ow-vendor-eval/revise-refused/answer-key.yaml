@@ -1,0 +1,31 @@
+# INVENTED. O6 (owner decision (a)): --revise after the recommendation is exported is refused; a change is a new evaluation.
+case: revise-refused
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+key: /ow-vendor-eval-scope --revise
+section: C7 --revise after the recommendation (refuse; O6)
+refused:
+  says:
+    - 'Refused: the recommendation is exported; a change starts a new evaluation that supersedes VE-01.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+status:
+  lines: []
+next: []
+base: recommend-larkspur

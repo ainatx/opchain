@@ -71,7 +71,7 @@ An open draft is one with `brief.md`; `-brief` records an inbound findings path 
 
 ### 4.2 From ow-vendor-eval: `vendor-eval/<ws>/VE-nn-<slug>/recommendation.md`
 
-The same table as 4.1, for a vendor recommendation (`references/phase-evidence.md` §3). A formal-mode evaluation hands nothing on.
+The same table as 4.1, for a commercial vendor recommendation (`references/phase-evidence.md` §3). Check the sibling `scope.md` and recommendation header before routing. A formal-mode evaluation, a missing or conflicting mode, or a `formal/` path routes nowhere: refuse and write nothing.
 
 ### 4.3 The draft folder: `drafts/<ws>/DR-nn-<slug>/`
 

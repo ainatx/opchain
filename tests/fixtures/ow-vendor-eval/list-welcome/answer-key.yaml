@@ -1,0 +1,22 @@
+# INVENTED. /ow-vendor-eval with no vendor-eval/ folder: the welcome (one step, writes nothing).
+case: list-welcome
+ws: none
+eval: none
+client: ''
+user: Robin
+key: /ow-vendor-eval
+section: 'C4 /ow-vendor-eval: no evaluations (welcome)'
+writes_nothing: true
+list_screen: true
+route:
+  say: /ow-vendor-eval
+  expect: welcome
+checks:
+  - refused
+  - screen
+  - writes
+  - status
+  - route
+status:
+  lines: []
+next: []

@@ -14,7 +14,8 @@ Store a run outside this fixture directory using this shape:
 
 Then run `node scripts/ow-trigger-queries.mjs --results <run.json>`. Missing,
 duplicate and unknown query IDs fail, as do incorrect activation decisions.
-The ow-handoff queries become active when that skill lands; deferred v2.2
-skills have no active queries. New shipped skills require positive and negative
+Queries activate only when their owning skill is built. The care and vendor
+evaluation rows accompany the October 23 scope restoration; controls and
+currency remain deferred and have no active queries. New shipped skills require positive and negative
 coverage. Unit tests use `source: synthetic` only to validate this checker; they
 are not evidence that a model or host selected the right skill.

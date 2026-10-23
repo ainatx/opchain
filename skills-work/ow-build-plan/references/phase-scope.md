@@ -31,6 +31,16 @@ Header (`ow_artefact: ow-build-plan/scope`, `subject: plans/<client>/map/current
     - tester roles: <role names only, as the user states them; never a person's name>
     - test mix: <what each role checks, by work package>
 
+**A tool still to be chosen.** When `map/systems.md` marks a system `[UNKNOWN]` because the client has yet to choose it, and the user says the choice is part of this work, write a **selection work package** for it:
+
+    ### WP-<n> Vendor selection: <what the tool is for>
+    - kind: selection
+    - what changes: the client chooses the tool, on criteria agreed first (ow-vendor-eval)
+    - from the map: map/systems.md, the [UNKNOWN] line for it
+    - systems: to be chosen
+
+It carries no price line (design decision 4: inside a Build Plan the selection is part of the plan), and its acceptance check is the decision record (`vendor-eval/<client>/VE-nn-<slug>/decision.md` exists). Print the selection NEXT block from SKILL.md after the scope NEXT block, so the user can run the selection before the quote: `-quote` waits for the decision (phase-quote §1).
+
 Work packages are numbered `WP-1`, `WP-2`, … in the order the client would see them working. Anything the client asked for that is not in a package goes under Out of scope with one plain reason. Ask the user which roles will test; never default the number of roles.
 
 ## 2. Write `acceptance.md`

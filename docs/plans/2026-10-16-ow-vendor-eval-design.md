@@ -1,6 +1,6 @@
 # ow-vendor-eval — design (choosing a vendor, honestly)
 
-**Date:** 2026-10-16 · **Status:** APPROVED 2026-10-16 with amendments P6, S2 and D2. Nothing is built.
+**Date:** 2026-10-16 · **Status:** APPROVED 2026-10-16 with amendments P6, S2 and D2. Built as ow-vendor-eval 1.0.0 (OW-11): build notes in §13. §5.1's revision sentence carries the owner's O6 ruling of 2026-10-21.
 **Release:** a skill in the ow- family that ships together as v2.1.0 (owner scope change 2026-10-16). Starts at 1.0.0.
 **Origin:** the 2026-09-21 strategy's *Program* bundle: "first question selects commercial vs formal public procurement; formal mode scores nothing and recommends no awardee".
 **Family rules that apply:** ow-protocol v1; labelled same-session self-checks; code only in `ow-tools`; no network text (vendor facts come from `ow-research`); no public ow- skill names a private skill; one writer per file.
@@ -72,7 +72,7 @@ Every file has one writer verb. Every verb starts with the ow-protocol resume st
 
 ### 5.1 Criteria and weights, frozen first
 
-`-scope` freezes criteria, weights and must-haves before any vendor is named. A starter list the user edits: fit to the future process · integrations and API access · **data export and exit** · security basics (SSO, MFA, whether the vendor publishes an audit report) · support and service levels · cost over the horizon · vendor stability. A change after any score exists writes a dated revision in `scope.md` with its reason and the client's agreement, and every vendor is re-scored; the recommendation shows the revision.
+`-scope` freezes criteria, weights and must-haves before any vendor is named. A starter list the user edits: fit to the future process · integrations and API access · **data export and exit** · security basics (SSO, MFA, whether the vendor publishes an audit report) · support and service levels · cost over the horizon · vendor stability. A change after any score exists, **and before the recommendation is exported**, writes a dated revision in `scope.md` with its reason and the client's agreement, and every vendor is re-scored; the recommendation shows the revision. **After that, a change starts a new evaluation that names the one it supersedes (`supersedes: VE-nn`), and `-decide` on the superseded one is refused.** *(Owner decision O6 (a), 2026-10-21; the sentence before it read: "A change after any score exists writes a dated revision in `scope.md` with its reason and the client's agreement, and every vendor is re-scored; the recommendation shows the revision.")*
 
 ### 5.2 Scores
 
@@ -135,3 +135,37 @@ Names a vendor before the criteria are frozen · scores without evidence · comp
 ## 12. Open questions
 
 None at drafting; every question was decided as 1–4.
+
+## 13. Build notes (ow-vendor-eval 1.0.0, OW-11)
+
+Contract: `sprints/release-2.1/ow-11/contract.md`, APPROVED 2026-10-21 (O6 = (a), O8 = (b), O14 = (a); every other O-item at its recommendation). The skill is `skills-work/ow-vendor-eval/`; the checker `scripts/ow-vendor-eval-acceptance.mjs`; the goldens `tests/fixtures/ow-vendor-eval/`.
+
+**Rulings carried into the text.**
+- **O1** `/ow-vendor-eval on <path>` routes `vendor-eval/<ws>/`, an evaluation folder, ow-research's `findings.md`, ow-build-plan's `quick-scope.md` and `plans/<client>/` (routing-and-resume §4). ow-research's NEXT, with no vendor, finds the workstream's open evaluation and asks which longlisted vendors the findings cover. **[extends the design]**
+- **O2** `-scope --revise`, `-recommend --waive <check> <figure>…`, `-formal --clarification` and `-formal --responses` are writer modes of their own. **[extends the design]**
+- **O3** `conflicts.md` holds the general declaration, asked after `frozen:`; each vendor's answer is in its `longlist.md` row, asked when it is added. **[extends the design]**
+- **O4** the conflicts statement always names each relationship by vendor and kind and is never waived; an amount of ours, stated by choice, is a No internal numbers FINDING that only the per-figure waiver clears. `conflicts.md`'s amounts sit inside `ow:internal` markers and join our figures.
+- **O5** a waiver covers the recommendation whose client form has the digest it names (`client_form_sha256`).
+- **O6 (owner, changes §5.1 as above)** before the first export or hand-off, a change revises in place and re-scores; after it, a change is `VE-(n+1)` with `supersedes: VE-nn`, and `-decide` on the superseded one is refused.
+- **O7** `vendor_selection: { sizes: { S, M, L each { price } }, size_by_vendors }`; the quick scope's `## Vendors to compare` names are read only at `-longlist`. **[extends the design]**
+- **O8 (b)** a selection work package in ow-build-plan's `-scope` (no price line), `-quote` refusing until `decision.md` exists, and the `-map` re-run rewriting only `map/systems.md`'s to-be-chosen line at MEDIUM. **[extends the design]**
+- **O9** the recap key is `path_quote` (`none` when absent); ow-start 1.3.0 also indexes `decision.md` by `created` and `decided_on`. **[extends the design]**
+- **O10** the recommendation's sections are named exactly as ow-draft's D2 fields: `## Decision` (first line `Recommended vendor: <vendor>`), `## Runner-up`, `## Knock-outs`, `## Score table`, `## Cost`, `## Risks`, `## What to confirm`, `## Conflicts statement`. ow-draft 1.1.0 carries the reciprocal D2 read row and explicit formal-mode denial; the D2 field strings are pinned in `tests/fixtures/ow-vendor-eval/d2-reads-row.yaml`.
+- **O11** the workbook is blank: weights as given, score and notes cells empty, no formula; `-decide` refuses in formal mode. **[extends the design]**
+- **O12** `stated by reference` is MEDIUM; references by role and kind of organisation; another client of ours is "another client of ours (a <kind>)". Putting a reference's contact details under No private names makes them never waived too: a widening of a never-waived check's scope without a new name, for the owner to see.
+- **O13** the focused text-only security review runs before evaluation round 1.
+- **O14 (owner)** `--responses` asks each bidder's relationship before mapping its response, records it in `response-map.md`'s `## Bidders`, and a yes prints that the agency's conflict rules come first. **[extends the design]**
+
+**The step table** (routing-and-resume §2) is the one vocabulary: commercial `-scope` `mode, decision, requirements, criteria, agree, write, conflicts, status`; formal `-scope` `mode, bidder, conflicts, rules, write, status`; `--revise` `revise, agree, write, status`; `-longlist` `sources, candidates, relationships, knockouts, status`; `-evidence <vendor>` `sources, facts, questions, checks, status`; `-score` `gate, scores, totals, cost, checks, status`; `-recommend` `gate, write, checks, export, status`; `--waive` `waive, checks, export, status`; `-decide <vendor>` `record, status`; `-formal` `gate, requirements, workbook, export, status`; `--clarification` `record, status`; `--responses` `relationships, map, checks, status`. Steps are recorded in a `## Runs` section of the file each key writes (inside the `ow:internal` markers in `recommendation.md`).
+
+**Ids.** `VE-nn` per workstream; `RQ-nn`, `MH-nn`, `CR-nn`, `K-nn`, `VF-nn`, `VQ-nn`, `CL-nn` per evaluation; `REV-n` per revision; the agency's own numbers kept in formal mode.
+
+**Calc.** Weighted totals: `calc/totals-<vendor>.json`, one item per criterion, score as `quantity`, weight as `unit_price`, Σ out of 300, "points, not money". Cost: `calc/cost-<vendor>.json`, seats × months at the dated price. The weights' sum and the criteria set's digest come from `calc/criteria-set.json`, written by `-scope` (must-haves at weight 0, so the digest covers them).
+
+**Departures from the design's file list, all [extends the design].** `calc/criteria-set.json` (and `-REV-n`) written by `-scope`; `calc/totals-<vendor>-REV-n.json` for a re-score (each run's calc files are write-once); `export/client/recommendation.md` written at `-recommend`'s `write` step so a waiver can name its digest before any export; `export/*.export.json`; `inbox/`; `formal/evaluation-workbook/` (CSVs and `model.md`) and its `.export.json`; vendor files named by the first word of the vendor's name; the no-op `Nothing to do: VE-nn awaits the client's choice.`; Conflicts disclosed also at `-score` and `--responses`; a quick scope refused until its quote is accepted.
+
+**Design wording.** Design §4's "fetch dates" is ow-research's `retrieved`. Design §10's "with an empty `handoffs.yaml`" is kept literally in the worlds' shipped example; this skill reads no key of it.
+
+**P6 and S2.** ow-build-plan 1.4.0 and ow-start 1.3.0 (their CHANGELOGs). ow-build-plan's body was at 4,353 tokens of its 4,500; P6 brought it to 4,471 by moving phase detail to references word for word (the file tree, the handling sentence, the `.gitignore` and follow-on sentences and the ow-tools record sentence to `phase-start.md` §0; the `handoffs.yaml` print rule to `phase-quote.md` §5; a waiver sentence already in `self-checks.md`) and by trimming P6's own wording. No P5 or P3 text was cut.
+
+**Residuals.** ow-draft 1.1.0 has the D2 reciprocal read row and formal-mode denial. The security review's FIXED set is empty until it reports. Real use (one real tool selection) is REL-02's. The real-binary exports (PDF, Word, xlsx) are checked by presence in a real run and by their `.export.json` in the goldens.

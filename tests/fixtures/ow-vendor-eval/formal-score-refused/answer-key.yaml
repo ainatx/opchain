@@ -1,0 +1,24 @@
+# INVENTED. C5, O11: /ow-vendor-eval-score in formal mode: refused, the panel decides; nothing written.
+case: formal-score-refused
+ws: town-of-elmridge
+eval: VE-01-permit-system
+client: Town of Elmridge
+user: Robin
+tools: true
+key: /ow-vendor-eval-score
+section: 'C5 /ow-vendor-eval-score in formal mode (refuse: the panel decides)'
+refused:
+  says:
+    - 'Refused: this is a formal evaluation; the panel decides.'
+checks:
+  - refused
+  - screen
+  - next
+  - writes
+  - status
+  - credentials
+  - private_names
+status:
+  lines: []
+next: []
+base: scope-formal

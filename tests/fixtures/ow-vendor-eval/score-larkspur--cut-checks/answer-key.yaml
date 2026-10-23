@@ -1,0 +1,43 @@
+# INVENTED. C22: score-larkspur's run cut off after checks; the resumed run starts at status, never repeats a
+# recorded step and asks only the questions of the steps not recorded.
+case: score-larkspur--cut-checks
+ws: larkspur-ceramics
+eval: VE-01-inventory-tool
+client: Larkspur Ceramics
+user: Robin
+tools: true
+vendors:
+  - name: Tallowmere Stock
+    host: tallowmere.example
+  - name: Brackenfold Inventory
+    host: brackenfold.example
+  - name: Marrowby Goods
+    host: marrowby.example
+section: 'C22 resume: /ow-vendor-eval-score cut after checks'
+key: /ow-vendor-eval-score
+checks:
+  - headers
+  - writes
+  - write_once
+  - status
+  - screen
+  - next
+  - resume
+  - credentials
+  - private_names
+  - approvals
+  - handling
+  - scores
+  - cost
+  - conflicts
+  - self_checks
+status:
+  lines:
+    - path: vendor-eval/larkspur-ceramics/VE-01-inventory-tool/scores.md
+      next: ow-vendor-eval /ow-vendor-eval-recommend vendor-eval/larkspur-ceramics/VE-01-inventory-tool/
+      awaiting: none
+next:
+  - use ow-vendor-eval-recommend on vendor-eval/larkspur-ceramics/VE-01-inventory-tool/
+resume:
+  from: status
+base: evidence-larkspur-brackenfold

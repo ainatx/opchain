@@ -26,12 +26,14 @@ Screen: `DONE: evidence <E-nn> to <E-nn> -> drafts/<ws>/DR-nn-<slug>/evidence.md
 
 ## 3. From a vendor recommendation: `vendor-eval/<ws>/VE-nn-<slug>/recommendation.md`
 
-Its fields: the decision and the vendor, the runner-up, the knock-outs, the score table and its cost, the risks, what to confirm, and **the conflicts statement, which a draft that uses the recommendation carries word for word**. A formal-mode evaluation hands nothing on: never put its recommendation in any file or draft.
+Before importing, read the sibling `scope.md` and the recommendation header. Both must say `mode: commercial`, and the workstream must match the draft. If either mode is formal, a mode is missing or contradictory, or the path is under `formal/`, refuse: `Refused: a formal-mode evaluation hands ow-draft nothing.` Write nothing and ask for a commercial recommendation or the user's own sources. Do not treat a user-named formal file as an alternative route.
+
+Its fields: the decision and the vendor, the runner-up, the knock-outs, the score table and its cost, the risks, what to confirm, and **the conflicts statement, which a draft that uses the recommendation carries word for word**. The conflict statement is copied into the draft's client form exactly; do not summarize or waive it.
 
 ## 4. Files the user names
 
 - **Named family files** are read only when the user names one, and cited by path with its `ow_artefact`: a decision (`logs/<ws>/decisions/DEC-nn.md`), meeting notes (`logs/<ws>/meetings/MTG-nn/notes.md`), the plan's `plans/<client>/map/future.md`, and, **for an `offer: yes` brief only**, the client part of `plans/<client>/quote.md` (its `fixed_price` and the sections above the `<!-- ow:internal -->` marker; never the appendix) and `plans/<client>/build-plan-offer.md` (the fee).
-- **Any other workspace file** the user names, cited by path with its `ow_artefact`, **except this deny-list, which is never read, whoever names it**: `price-book.yaml`, `margin.md`, a time export, `quote-items.json`, `ledger.md`, any `ow:internal` section, a research `sources.md` or `queries.md`, a `secrets-seen.log`, a `.env`-style file, and, for a client's draft, a file in another client's workstream. A named file on it: `Refused: <path> is never read by this skill.`, `Nothing was written.`, `Fix: state the fact yourself, and it is recorded user-stated.`
+- **Any other workspace file** the user names, cited by path with its `ow_artefact`, **except this deny-list, which is never read, whoever names it**: `price-book.yaml`, `margin.md`, a time export, `quote-items.json`, `ledger.md`, any `ow:internal` section, a formal-mode vendor evaluation file (including `formal/` and a forged recommendation), a research `sources.md` or `queries.md`, a `secrets-seen.log`, a `.env`-style file, and, for a client's draft, a file in another client's workstream. A named file on it: `Refused: <path> is never read by this skill.`, `Nothing was written.`, `Fix: state the fact yourself, and it is recorded user-stated.`
 - **User files** in `inbox/` (the draft folder's own) are cited by their `inbox/` name; a quote from one is its exact words, there in the file. **What the user states** is cited user-stated with the date. **Voice samples are never evidence.**
 
 ## 5. Figures
