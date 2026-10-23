@@ -2,13 +2,13 @@
   "protocol_version": "1.1",
   "skill": "oc-git-ops",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-10-22T05:50:13.049Z",
+  "updated_at": "2026-10-23T01:44:07.668Z",
   "phase": "pr-open",
-  "step": "checkpoint-hygiene-cross-repo",
+  "step": "v2.1-preparation-pr-652",
   "status": "in_progress",
-  "progress_summary": "claude/competent-raman-864dee: commit ba6fd3cf makes the checkpoint-hygiene Stop hook attribute skill work to the git repository it touched (Write/Edit paths; Bash cd/pushd, git -C, OPCHAIN_ROOT= targets walked with a running cwd; ~/$HOME/$PWD expanded). Current-run evidence in any repo the skill worked in satisfies it; it never asks for a checkpoint where the skill did not work. Fixes the 2026-10-22 block where cd ~/deftwright-site-worktrees/... resolved inside opchain. Bug-check receipt PASS 8/8; docs-forge and repo-ops handoffs bound to projection 55843827.",
+  "progress_summary": "OW-06 merged through #648 at 809ed373 after all four exact-head CI jobs passed. Draft preparation PR #652 is open with full strict gate PASS and source-bound Docs/Repo evidence. Rebase of the verified source was accounted for by the original receipt; no manual bypass. PR #652 stays draft while model, owner real-use, public install/setup and October 27 conditions hold the final release.",
   "progress_table": [
     {
       "id": "v1.9-release-pr",
@@ -162,7 +162,8 @@
   },
   "blockers": [],
   "next_actions": [
-    "Once the checkpoint-hygiene cross-repo PR is up to date and evidence:pr passes, hand the owner gh pr merge --squash --auto --match-head-commit <full sha> with the Signed-off-by body; after merge, pull main into /Users/aidanelsesser/repos/opchain so worktree sessions run the fixed hook"
+    "Check all CI jobs for the latest PR #652 head and repair actual failures",
+    "Complete the remaining release readiness conditions before assembling the held site and final release"
   ],
   "skill_state": {
     "current_branch": "claude/competent-raman-864dee",
@@ -724,7 +725,19 @@
       "completed_at": "2026-09-11T07:21:36Z",
       "rerun_used": "#473 Worker job, once, after a standing-down comment"
     },
-    "dependabot_note": "Comment commands (`@dependabot rebase`, `@dependabot ignore ...`) are not processed on the Dependabot PRs opened on 2026-08-31 during the repository transfer (#471, and by extension #472); Dependabot's scheduled runs still manage them (auto-rebase on conflict works). Use GitHub update-branch for those PRs, as with #473."
+    "dependabot_note": "Comment commands (`@dependabot rebase`, `@dependabot ignore ...`) are not processed on the Dependabot PRs opened on 2026-08-31 during the repository transfer (#471, and by extension #472); Dependabot's scheduled runs still manage them (auto-rebase on conflict works). Use GitHub update-branch for those PRs, as with #473.",
+    "preparation_pr": {
+      "number": 652,
+      "url": "https://github.com/ainatx/opchain/pull/652",
+      "draft": true,
+      "branch": "codex/ow-handoff-completion",
+      "base": "main",
+      "initial_head": "0dcbd16dfb1ecb03953b6e2019e3063a18ea9fc4"
+    },
+    "ow06_merged": {
+      "number": 648,
+      "merge_sha": "809ed373847f36d2252f0a11fedec689bc0467bb"
+    }
   },
-  "record_updated_at": "2026-10-22T05:50:13.049Z"
+  "record_updated_at": "2026-10-23T01:44:07.668Z"
 }

@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-23T01:42:21.209Z",
+  "updated_at": "2026-10-23T01:44:07.755Z",
   "skill": "oc-release-ops",
   "phase": "plan",
   "step": "v2.1.0-preparation",
   "status": "in_progress",
-  "progress_summary": "OW-06 #648 merged at 809ed373 after all four exact-head CI jobs passed. All eight strict gates now pass for the consolidated preparation; Python audit checks all 116 registry entries without vulnerabilities. Draft preparation PR follows. Fresh intake 7/11, build 7/9, research 19/22 and refused handoff package remain open alongside real jobs, public install/model setup and October 27 verdicts. No final cut or deployment.",
+  "progress_summary": "OW-06 #648 merged at 809ed373 with all four exact-head checks green. Draft preparation PR #652 preserves consolidated distribution, dependency remediation and model evidence; all eight strict gates and PR evidence pass. CI for the latest PR head is pending. Intake 7/11, build 7/9, research 19/22 and the refused handoff package remain open alongside owner real jobs, public installation/model setup and October 27 verdicts. No final release or deployment.",
   "progress_table": [
     {
       "id": "implementation",
@@ -323,9 +323,14 @@
       },
       "control_plane": "Not rerun: monitor credentials absent from this shell; HTTP evidence only",
       "mutations": "None"
+    },
+    "preparation_pr": {
+      "number": 652,
+      "url": "https://github.com/ainatx/opchain/pull/652",
+      "draft": true
     }
   },
-  "record_updated_at": "2026-10-23T01:42:21.209Z",
+  "record_updated_at": "2026-10-23T01:44:07.755Z",
   "pm_deferred_actions": [
     {
       "id": "deferred-2026-09-21T19:53:16Z-7f2f",
