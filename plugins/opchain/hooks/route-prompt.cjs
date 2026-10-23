@@ -49,9 +49,13 @@
 // ── Outcome records (self-labelling) ────────────────────────────────────────
 // Before routing, the hook finds this session's previous routing record in
 // the log (last ~200 lines), reads the transcript records after that record's
-// prompt, and appends { type: "outcome", for_prompt_hash, suggested, mode,
-// skill_calls, raw: { git_commit, git_push, gh_pr_create, gh_pr_merge,
-// deploy }, followed }. Bounded reads; skipped if it takes > 300 ms.
+// prompt up to the end of its reply turn, the next human turn or 30 min
+// (dispatch.outcomeWindow), and appends { type: "outcome", for_prompt_hash,
+// suggested, mode, skill_calls, raw: { git_commit, git_push, git_sync,
+// gh_pr_create, gh_pr_merge, deploy, merge_handoff }, followed, window_end }.
+// Bounded reads; skipped if it takes > 300 ms. These records are the
+// fallback: `route-eval outcomes` rescores every routed prompt from the full
+// transcripts (subagents included) when it can find them.
 //
 // ── Silence rules (exit 0, no stdout) ───────────────────────────────────────
 //   no TYPESAFE_API_KEY · OPCHAIN_ROUTE=0 · prompt starts with "/" (slash
@@ -269,6 +273,7 @@ function recordPreviousOutcome() {
     raw: found.raw,
     followed: suggested ? found.skill_calls.includes(suggested) : null,
     anchor: found.anchor,
+    window_end: found.window_end,
   });
 }
 try {

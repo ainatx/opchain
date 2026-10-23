@@ -379,11 +379,95 @@ describe("route(): conversation context", () => {
     expect(d.outcomeFromRecords(recs, { forPromptHash: d.promptHash(first) })).toEqual({
       anchor: "prompt",
       skill_calls: ["oc-git-ops"],
-      raw: { git_commit: false, git_push: false, gh_pr_create: false, gh_pr_merge: true, deploy: false },
+      raw: { git_commit: false, git_push: false, git_sync: false, gh_pr_create: false, gh_pr_merge: true, deploy: false, merge_handoff: false },
+      window_end: "open",
     });
     expect(d.outcomeFromRecords(recs, { forPromptHash: "0000000000000000" })).toBeNull();
     expect(d.rawCommandClasses("git -C repo commit -m x && git push origin HEAD")).toMatchObject({ git_commit: true, git_push: true });
     expect(d.rawCommandClasses("git log --grep commit")).toMatchObject({ git_commit: false });
+  });
+});
+
+// The outcome scoring the day-8 go/no-go rests on (2026-10-23 rework): which
+// records close a prompt's window, and what counts as a skill's work inside it.
+describe("outcome windows and activity", () => {
+  const T = (min) => new Date(Date.UTC(2026, 9, 21, 12, min)).toISOString();
+  const human = (text, min) => ({ type: "user", timestamp: T(min), message: { role: "user", content: text } });
+  const bash = (command, min, extra = {}) => ({ type: "assistant", timestamp: T(min), ...extra, message: { content: [{ type: "tool_use", name: "Bash", input: { command } }] } });
+  const reply = (text, min, stop = "end_turn") => ({ type: "assistant", timestamp: T(min), message: { stop_reason: stop, content: [{ type: "text", text }] } });
+
+  it("rawCommandClasses counts commands that run, not commands that are mentioned", () => {
+    const yes = {
+      git_commit: ["git add . && git commit -m x", "git commit -q -F - <<'EOF'\nmsg\nEOF", "cd repo; git -C sub commit -m y"],
+      git_push: ["timeout 60 git push -u origin HEAD"],
+      git_sync: ["git fetch -q origin && git merge origin/main", "git rebase origin/main"],
+      gh_pr_merge: ["cd ~/d && gh pr merge 245 --squash 2>&1 | tail -2", "for i in 1 2; do gh pr merge $i --auto; done"],
+      deploy: ["DEFTWRIGHT_PROD_GO=yes npm run deploy", "npm run deploy:staging", "npx wrangler deploy --env staging", "node scripts/deploy.mjs --staging"],
+    };
+    const no = {
+      git_commit: ["git log --grep commit", 'grep -n "git commit" file'],
+      git_sync: ["git merge-base HEAD origin/main", "sed -i 's|(git commit/push/merge/rebase|x|' f"],
+      gh_pr_merge: ["h=$(gh pr view 1); echo gh pr merge later"],
+      deploy: ["sed -n 1,60p scripts/deploy.mjs | grep main"],
+    };
+    for (const [k, cmds] of Object.entries(yes)) for (const c of cmds) expect(d.rawCommandClasses(c)[k], `${k}: ${c}`).toBe(true);
+    for (const [k, cmds] of Object.entries(no)) for (const c of cmds) expect(d.rawCommandClasses(c)[k], `${k}: ${c}`).toBe(false);
+  });
+
+  it("isHumanTurn: typed prompts, slash commands and reminder-prefixed desktop prompts; not envelopes or tool results", () => {
+    expect(d.isHumanTurn(human("merge 252", 0))).toBe(true);
+    expect(d.isHumanTurn(human("<command-name>/oc-deploy</command-name>", 0))).toBe(true);
+    const desktop = { type: "user", message: { content: [{ type: "text", text: "<system-reminder>\nworktree\n</system-reminder>" }, { type: "text", text: "Merge the release record PR #254." }] } };
+    expect(d.isHumanTurn(desktop)).toBe(true);
+    expect(d.isHumanTurn(human("<task-notification>\n<task-id>x</task-id>", 0))).toBe(false);
+    expect(d.isHumanTurn(human("<bash-input>gh pr merge 244 --auto</bash-input>", 0))).toBe(false);
+    expect(d.isHumanTurn({ type: "user", message: { content: [{ type: "text", text: "<system-reminder>only</system-reminder>" }] } })).toBe(false);
+    expect(d.isHumanTurn({ type: "user", message: { content: [{ type: "tool_result", tool_use_id: "t", content: "Yes, merge it" }] } })).toBe(false);
+  });
+
+  it("a window closes at the end of the reply turn, the next human turn, or the horizon", () => {
+    const p = "merge 252";
+    const hash = d.promptHash(p);
+    // Reply turn ends at 1; the agent works again after a task notification at 5.
+    const turn = [human(p, 0), bash("gh pr view 252", 0), reply("Armed auto-merge.", 1), human("<task-notification>done</task-notification>", 5), bash("git commit -m later", 6)];
+    expect(d.outcomeWindow(turn, { forPromptHash: hash })).toMatchObject({ start: 1, end: 3, endReason: "turn_end", anchor: "prompt" });
+    expect(d.outcomeFromRecords(turn, { forPromptHash: hash }).raw.git_commit).toBe(false);
+    // Without the turn boundary the later commit would count.
+    expect(d.outcomeWindow(turn, { forPromptHash: hash, endAtTurn: false })).toMatchObject({ endReason: "open", end: 5 });
+    // A queued follow-up closes it mid-turn.
+    const queued = [human(p, 0), bash("git fetch", 0, { message: { stop_reason: "tool_use", content: [{ type: "tool_use", name: "Bash", input: { command: "git fetch" } }] } }), human("Run the staging command too", 1), bash("npm run deploy:staging", 2)];
+    expect(d.outcomeWindow(queued, { forPromptHash: hash })).toMatchObject({ end: 2, endReason: "next_prompt" });
+    expect(d.outcomeFromRecords(queued, { forPromptHash: hash }).raw.deploy).toBe(false);
+    // An autonomous stretch with no turn end is cut at the horizon.
+    const long = [human(p, 0), bash("git status", 10), bash("git commit -m x", 45)];
+    expect(d.outcomeWindow(long, { forPromptHash: hash })).toMatchObject({ end: 2, endReason: "horizon" });
+    expect(d.outcomeWindow(long, { forPromptHash: hash, windowMs: 0 })).toMatchObject({ endReason: "open" });
+  });
+
+  it("`before` anchors a repeated prompt on the copy that was routed", () => {
+    const p = "ask me questions using AskUserQuestion tool";
+    const recs = [human(p, 0), reply("Asked.", 1), human("ok", 10), reply("Done.", 11), human(p, 20), reply("Asked again.", 21)];
+    expect(d.outcomeWindow(recs, { forPromptHash: d.promptHash(p) })).toMatchObject({ start: 5 });
+    expect(d.outcomeWindow(recs, { forPromptHash: d.promptHash(p), before: T(1) })).toMatchObject({ start: 1, startAt: T(0) });
+  });
+
+  it("addRecordActivity: MCP auto-merge, a handed-over merge command, `!` bash input; sidechains only on request", () => {
+    const acc = { skill_calls: [], raw: d.emptyRaw() };
+    d.addRecordActivity(acc, { type: "assistant", message: { content: [{ type: "tool_use", name: "mcp__ccd_pr__set_auto_merge", input: {} }] } });
+    expect(acc.raw.gh_pr_merge).toBe(true);
+    d.addRecordActivity(acc, { type: "assistant", message: { content: [{ type: "text", text: "Run `gh pr merge 643 --squash --auto` when CI is green." }] } });
+    expect(acc.raw.merge_handoff).toBe(true);
+    d.addRecordActivity(acc, { type: "user", message: { content: "<bash-input>DEFTWRIGHT_PROD_GO=yes npm run deploy</bash-input><bash-stdout>ok</bash-stdout>" } });
+    expect(acc.raw.deploy).toBe(true);
+    const side = { type: "assistant", isSidechain: true, message: { content: [{ type: "tool_use", name: "Skill", input: { skill: "opchain:oc-code-auditor" } }] } };
+    d.addRecordActivity(acc, side);
+    expect(acc.skill_calls).toEqual([]);
+    d.addRecordActivity(acc, side, { includeSidechain: true });
+    expect(acc.skill_calls).toEqual(["oc-code-auditor"]);
+    // Prose that names a merge without a command in backticks is not a handoff.
+    const prose = { skill_calls: [], raw: d.emptyRaw() };
+    d.addRecordActivity(prose, { type: "assistant", message: { content: [{ type: "text", text: "I'll gh pr merge it once CI passes." }] } });
+    expect(prose.raw.merge_handoff).toBe(false);
   });
 });
 

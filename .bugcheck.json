@@ -123,11 +123,11 @@
         },
         {
           "path": "tests/route-dispatch.test.js",
-          "digest": "sha256:7ea0a8db0eed0d4732901fced7d3368d7101fb198698d6124e176f019db81214"
+          "digest": "sha256:ed8ef9871cc4ea5011e9c7cfb2f5aae9ec69ffb53d456ce233e9ec8d0a35f491"
         },
         {
           "path": "tests/route-eval.test.js",
-          "digest": "sha256:b6f2b211d800c4cd050832af1dd0a397a616a676249aa95e27703c8bc817d151"
+          "digest": "sha256:d3aa3b33928b5c92c2b0a917c45c52844564335a6a529ee394434dfbef568bc7"
         },
         {
           "path": "tests/route-hook.test.js",

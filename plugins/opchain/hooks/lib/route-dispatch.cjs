@@ -651,14 +651,40 @@ function conversationFromRecords(records, currentPrompt) {
   return normalizeConversation({ previous_request: previous, assistant_last: assistantLast });
 }
 
-// Raw command classes an outcome record tracks (Bash tool_use commands).
+// Raw command classes an outcome record tracks: Bash commands run by the
+// agent, a subagent, or the user in `!` bash mode (`<bash-input>`).
+// Each class matches only in command position (start of the command, or after
+// `;` `&&` `||` `|` `(` `$(` `{` a newline, `then`/`do`/`else`, past env
+// assignments and wrappers), so `grep "git commit"` or a quoted heredoc that
+// mentions `git merge` does not count as running it.
+const CMD_START = String.raw`(?:^|[;&|({\n]|\$\(|\bthen\b|\bdo\b|\belse\b)\s*(?:(?:[A-Za-z_][A-Za-z0-9_]*=\S*|env|command|time|nohup|timeout\s+\S+)\s+)*`;
+const atCommand = (body) => new RegExp(CMD_START + body);
 const RAW_COMMANDS = Object.freeze({
-  git_commit: /\bgit\s+(?:-[cC]\s+\S+\s+)*commit\b/,
-  git_push: /\bgit\s+(?:-[cC]\s+\S+\s+)*push\b/,
-  gh_pr_create: /\bgh\s+pr\s+create\b/,
-  gh_pr_merge: /\bgh\s+pr\s+merge\b/,
-  deploy: /\bnpm\s+run\s+deploy\b|\bwrangler\s+(?:versions\s+)?deploy\b/,
+  git_commit: atCommand(String.raw`git\s+(?:-[cC]\s+\S+\s+)*commit\b`),
+  git_push: atCommand(String.raw`git\s+(?:-[cC]\s+\S+\s+)*push\b`),
+  // Branch sync (/oc-git-sync): `git merge origin/main`, `git rebase`; never `git merge-base`.
+  git_sync: atCommand(String.raw`git\s+(?:-[cC]\s+\S+\s+)*(?:merge|rebase)(?![\w-])`),
+  gh_pr_create: atCommand(String.raw`gh\s+pr\s+create\b`),
+  gh_pr_merge: atCommand(String.raw`gh\s+pr\s+merge\b`),
+  deploy: atCommand(String.raw`(?:npm\s+run\s+deploy\b|(?:npx\s+)?wrangler\s+(?:versions\s+)?deploy\b|node\s+(?:\S+\/)?scripts\/deploy\.mjs\b)`),
 });
+// Tool calls that do a raw class's work without a Bash command.
+const RAW_TOOLS = Object.freeze({
+  mcp__ccd_pr__set_auto_merge: "gh_pr_merge",
+  mcp__ccd_host__sync_with_base_branch: "git_sync",
+});
+// A merge handed to the human as a command: the opchain repos squash-merge by
+// hand (DCO), so a correct merge turn often ends in `gh pr merge …` in the
+// assistant's text and runs nothing (2026-10-23 shadow analysis).
+const MERGE_HANDOFF_RE = /`[^`\n]*\bgh\s+pr\s+merge\b[^`\n]*`/;
+const RAW_CLASSES = Object.freeze([...Object.keys(RAW_COMMANDS), "merge_handoff"]);
+const BASH_INPUT_RE = /^<bash-input>([\s\S]*?)<\/bash-input>/;
+const LEADING_REMINDERS_RE = /^(?:\s*<system-reminder>[\s\S]*?<\/system-reminder>)+\s*/;
+// An outcome window closes at the end of the reply turn, at the next human turn,
+// or this long after the prompt, whichever comes first. Task notifications do not
+// fire UserPromptSubmit, so with none of these an autonomous session kept one
+// prompt's window open for 36 h (2026-10-23 shadow analysis).
+const OUTCOME_WINDOW_MS = 30 * 60 * 1000;
 
 function rawCommandClasses(command) {
   const out = {};
@@ -671,23 +697,88 @@ function stripPluginPrefix(name) {
   return s.startsWith("opchain:") ? s.slice("opchain:".length) : s;
 }
 
+function emptyRaw() {
+  return Object.fromEntries(RAW_CLASSES.map((k) => [k, false]));
+}
+
 /**
- * What the session did after a routed prompt: { anchor, skill_calls, raw }.
- * The window opens after the human record whose redacted text hashes to
- * `forPromptHash` (the log record's prompt_hash); when that record has
- * scrolled out of the tail, after `afterAt` (assistant records cannot predate
- * the hook that ran for their prompt). Null when neither anchor is found or
- * `deadline` (epoch ms) passes.
+ * Does this record start a new human turn (which closes an outcome window)? A
+ * typed prompt, a slash command, or a desktop-app prompt whose text follows
+ * leading `<system-reminder>` blocks. Task notifications, other envelopes,
+ * `!` bash-mode input and tool results (AskUserQuestion answers included) do not.
  */
-function outcomeFromRecords(records, { forPromptHash, afterAt, deadline } = {}) {
+function isHumanTurn(record) {
+  if (humanText(record) !== null) return true;
+  if (!record || record.type !== "user" || record.isMeta || record.isSidechain || !record.message) return false;
+  const c = record.message.content;
+  if (Array.isArray(c) && c.some((b) => b && b.type === "tool_result")) return false;
+  const parts = typeof c === "string" ? [c] : Array.isArray(c) ? c.filter((b) => b && b.type === "text" && typeof b.text === "string").map((b) => b.text) : [];
+  const text = parts.join("\n").trim();
+  if (text.includes("<command-name>")) return true;
+  const rest = text.replace(LEADING_REMINDERS_RE, "");
+  return rest !== text && Boolean(rest) && !rest.startsWith("<") && !HARNESS_ENVELOPE_RE.test(rest);
+}
+
+/**
+ * Fold one transcript record's activity into `acc` ({ skill_calls, raw }):
+ * Skill tool calls (plugin prefix stripped), raw command classes from Bash
+ * commands and `<bash-input>`, the tool equivalents in RAW_TOOLS, and a
+ * `gh pr merge` handed over in the assistant's text. Sidechain records count
+ * only with `includeSidechain` (the offline rescorer reads subagent transcripts).
+ */
+function addRecordActivity(acc, rec, { includeSidechain = false } = {}) {
+  if (!rec || !rec.message || (rec.isSidechain && !includeSidechain)) return acc;
+  const c = rec.message.content;
+  if (rec.type === "user") {
+    const text = typeof c === "string" ? c : "";
+    const m = BASH_INPUT_RE.exec(text.trim());
+    if (m) for (const [k, on] of Object.entries(rawCommandClasses(m[1]))) if (on) acc.raw[k] = true;
+    return acc;
+  }
+  if (rec.type !== "assistant" || !Array.isArray(c)) return acc;
+  for (const part of c) {
+    if (!part) continue;
+    if (part.type === "text" && typeof part.text === "string") {
+      if (MERGE_HANDOFF_RE.test(part.text)) acc.raw.merge_handoff = true;
+    } else if (part.type === "tool_use") {
+      if (part.name === "Skill" && part.input && part.input.skill) {
+        const id = stripPluginPrefix(part.input.skill);
+        if (id && !acc.skill_calls.includes(id)) acc.skill_calls.push(id);
+      } else if (part.name === "Bash" && part.input && typeof part.input.command === "string") {
+        for (const [k, on] of Object.entries(rawCommandClasses(part.input.command))) if (on) acc.raw[k] = true;
+      } else if (RAW_TOOLS[part.name]) acc.raw[RAW_TOOLS[part.name]] = true;
+    }
+  }
+  return acc;
+}
+
+/**
+ * The window after a routed prompt in transcript records (file order):
+ * { start, startAt, anchor, end, endAt, endReason }. It opens after the human record
+ * whose redacted text hashes to `forPromptHash` (the log record's
+ * prompt_hash), else at the first record at or after `afterAt` (assistant
+ * records cannot predate the hook that ran for their prompt). It closes at the
+ * end of the reply turn (the first main-thread `end_turn`: `turn_end`), the
+ * next human turn (`next_prompt`), `windowMs` after it opened (`horizon`),
+ * or at the end of the records (`open`). `before` (ISO) skips prompt records
+ * stamped after it, so a prompt repeated later in the session anchors on the
+ * copy that was routed. Null when neither anchor is found or `deadline`
+ * (epoch ms) passes.
+ */
+function outcomeWindow(records, { forPromptHash, afterAt, before, windowMs = OUTCOME_WINDOW_MS, endAtTurn = true, deadline } = {}) {
   let start = -1;
   let anchor = null;
+  let startAt = null;
+  const beforeMs = before ? Date.parse(before) : Infinity;
   for (let i = records.length - 1; i >= 0; i--) {
     if (deadline && Date.now() > deadline) return null;
+    const ts = records[i] && typeof records[i].timestamp === "string" ? Date.parse(records[i].timestamp) : NaN;
+    if (ts > beforeMs) continue;
     const text = humanText(records[i]);
     if (text !== null && promptHash(redactSecrets(text)) === forPromptHash) {
       start = i + 1;
       anchor = "prompt";
+      startAt = records[i].timestamp || null;
       break;
     }
   }
@@ -696,27 +787,40 @@ function outcomeFromRecords(records, { forPromptHash, afterAt, deadline } = {}) 
     if (idx !== -1) {
       start = idx;
       anchor = "time";
+      startAt = afterAt;
     }
   }
   if (start === -1) return null;
-  const skillCalls = [];
-  const raw = Object.fromEntries(Object.keys(RAW_COMMANDS).map((k) => [k, false]));
+  const horizon = startAt && windowMs ? Date.parse(startAt) + windowMs : Infinity;
+  // endAt: when the window closed (ISO), for activity recorded elsewhere
+  // (subagent transcripts); null while it is still open.
+  const stamp = (rec) => (rec && typeof rec.timestamp === "string" ? rec.timestamp : null);
   for (let i = start; i < records.length; i++) {
     if (deadline && Date.now() > deadline) return null;
     const rec = records[i];
-    if (!rec || rec.type !== "assistant" || rec.isSidechain || !rec.message || !Array.isArray(rec.message.content)) continue;
-    for (const part of rec.message.content) {
-      if (!part || part.type !== "tool_use") continue;
-      if (part.name === "Skill" && part.input && part.input.skill) {
-        const id = stripPluginPrefix(part.input.skill);
-        if (id && !skillCalls.includes(id)) skillCalls.push(id);
-      } else if (part.name === "Bash" && part.input && typeof part.input.command === "string") {
-        const classes = rawCommandClasses(part.input.command);
-        for (const k of Object.keys(classes)) if (classes[k]) raw[k] = true;
-      }
-    }
+    if (isHumanTurn(rec)) return { start, startAt, anchor, end: i, endAt: stamp(rec), endReason: "next_prompt" };
+    if (stamp(rec) && Date.parse(rec.timestamp) > horizon) return { start, startAt, anchor, end: i, endAt: new Date(horizon).toISOString(), endReason: "horizon" };
+    // The reply turn ended: what follows answers a task notification or another
+    // session's message, not this prompt.
+    if (endAtTurn && rec && rec.type === "assistant" && !rec.isSidechain && rec.message && rec.message.stop_reason === "end_turn") return { start, startAt, anchor, end: i + 1, endAt: stamp(rec), endReason: "turn_end" };
   }
-  return { anchor, skill_calls: skillCalls, raw };
+  return { start, startAt, anchor, end: records.length, endAt: null, endReason: "open" };
+}
+
+/**
+ * What the session did after a routed prompt: { anchor, skill_calls, raw,
+ * window_end }, over the outcomeWindow() of the main-session records. Null
+ * when the window has no anchor or `deadline` (epoch ms) passes.
+ */
+function outcomeFromRecords(records, { forPromptHash, afterAt, windowMs = OUTCOME_WINDOW_MS, deadline } = {}) {
+  const w = outcomeWindow(records, { forPromptHash, afterAt, windowMs, deadline });
+  if (!w) return null;
+  const acc = { skill_calls: [], raw: emptyRaw() };
+  for (let i = w.start; i < w.end; i++) {
+    if (deadline && Date.now() > deadline) return null;
+    addRecordActivity(acc, records[i]);
+  }
+  return { anchor: w.anchor, skill_calls: acc.skill_calls, raw: acc.raw, window_end: w.endReason };
 }
 
 function defaultCacheDir() {
@@ -968,6 +1072,12 @@ module.exports = {
   promptHash,
   conversationFromRecords,
   rawCommandClasses,
+  RAW_CLASSES,
+  OUTCOME_WINDOW_MS,
+  isHumanTurn,
+  emptyRaw,
+  addRecordActivity,
+  outcomeWindow,
   outcomeFromRecords,
   DEFAULT_CACHE_TTL_MS,
   MAX_OPTIONS,

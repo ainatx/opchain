@@ -1004,18 +1004,43 @@ export function renderReport({ results, stats, thresholds = DEFAULTS.thresholds,
 // ---------------------------------------------------------------------------
 // outcomes — production self-labels from the hook's route log
 // ---------------------------------------------------------------------------
+//
+// Scoring (docs/audits/2026-10-23-jev-router-shadow-performance.md): every
+// routed prompt is rescored from its session's full transcript plus subagent
+// transcripts, over a window that closes at the end of the reply turn, the
+// next human turn, or --window-minutes after the prompt. The hook's stored
+// outcome records are the fallback when a transcript is gone: they read a
+// 256 KB tail, skip subagents, and until this rework had no horizon (one
+// window ran 36 h in an autonomous session). Hand labels (--labels) override
+// the proxy per row.
 
 // Raw command classes (outcome.raw) and the skill whose work they are.
 export const RAW_CLASS_SKILL = Object.freeze({
   git_commit: "oc-git-ops",
   git_push: "oc-git-ops",
+  git_sync: "oc-git-ops",
   gh_pr_create: "oc-git-ops",
   gh_pr_merge: "oc-git-ops",
+  merge_handoff: "oc-git-ops",
   deploy: "oc-deploy-ops",
 });
-const RAW_CLASS_LABEL = Object.freeze({ git_commit: "git", git_push: "git", gh_pr_create: "git", gh_pr_merge: "git", deploy: "deploy" });
+const RAW_CLASS_LABEL = Object.freeze({
+  git_commit: "git", git_push: "git", git_sync: "git", gh_pr_create: "git", gh_pr_merge: "git", merge_handoff: "merge handoff", deploy: "deploy",
+});
+// Skills a skill runs as its own steps (its SKILL.md; orchestrator.md §3): after
+// S was suggested, a call to one of these is S's work under way, not a miss.
+// oc-git-ops gates commits on oc-bug-check and PRs on oc-docs-forge → oc-repo-ops;
+// oc-deploy-ops opens with the oc-code-auditor + oc-security-auditor audit gate;
+// oc-release-ops hands its PR to oc-docs-forge → oc-git-ops and ships via oc-deploy-ops.
+export const SKILL_STEPS = Object.freeze({
+  "oc-git-ops": Object.freeze(["oc-bug-check", "oc-docs-forge", "oc-repo-ops"]),
+  "oc-deploy-ops": Object.freeze(["oc-code-auditor", "oc-security-auditor"]),
+  "oc-release-ops": Object.freeze(["oc-docs-forge", "oc-git-ops", "oc-deploy-ops"]),
+});
+export const LABEL_NONE = "none";
+export const LABEL_AMBIGUOUS = "ambiguous";
 
-export function readOutcomeRecords(file, { since } = {}) {
+function readLogRecords(file, { since } = {}) {
   if (!fs.existsSync(file)) return [];
   const sinceIso = since ? new Date(since).toISOString() : null;
   const out = [];
@@ -1028,11 +1053,178 @@ export function readOutcomeRecords(file, { since } = {}) {
     } catch {
       continue;
     }
-    if (!rec || rec.type !== "outcome") continue;
+    if (!rec || typeof rec !== "object") continue;
     if (sinceIso && typeof rec.at === "string" && rec.at < sinceIso) continue;
     out.push(rec);
   }
   return out;
+}
+
+export function readOutcomeRecords(file, { since } = {}) {
+  return readLogRecords(file, { since }).filter((r) => r.type === "outcome");
+}
+
+/** Routing records (one per routed prompt) from the route log. */
+export function readRouteRecords(file, { since } = {}) {
+  return readLogRecords(file, { since }).filter((r) => !r.type && r.session_id && r.prompt_hash && typeof r.at === "string");
+}
+
+/**
+ * Hand labels, JSONL: { session_id, prompt_hash, label, note? } where label is
+ * a skill id, "none" or "ambiguous". Judge the prompt text alone (the router
+ * sends no conversation by default), so one label fits every copy of a
+ * prompt repeated in a session. Lines starting with `//` are comments.
+ */
+export function readLabels(file) {
+  const map = new Map();
+  if (!file || !fs.existsSync(file)) return map;
+  for (const line of fs.readFileSync(file, "utf8").split("\n")) {
+    const t = line.trim();
+    if (!t || t.startsWith("//")) continue;
+    let rec;
+    try {
+      rec = JSON.parse(t);
+    } catch {
+      continue;
+    }
+    if (rec && rec.session_id && rec.prompt_hash && typeof rec.label === "string" && rec.label) map.set(`${rec.session_id}|${rec.prompt_hash}`, rec.label);
+  }
+  return map;
+}
+
+/** session id → main-session transcript path, across every project dir under `projectsRoot`. */
+export function transcriptIndex(projectsRoot) {
+  const map = new Map();
+  let dirs = [];
+  try {
+    dirs = fs.readdirSync(projectsRoot);
+  } catch {
+    return map;
+  }
+  for (const d of dirs) {
+    let files = [];
+    try {
+      files = fs.readdirSync(path.join(projectsRoot, d));
+    } catch {
+      continue;
+    }
+    for (const f of files) {
+      if (!f.endsWith(".jsonl")) continue;
+      const file = path.join(projectsRoot, d, f);
+      const sid = f.slice(0, -".jsonl".length);
+      // A resumed session can be copied into a second project dir; keep the newest copy.
+      const prev = map.get(sid);
+      if (!prev || fs.statSync(file).mtimeMs > fs.statSync(prev).mtimeMs) map.set(sid, file);
+    }
+  }
+  return map;
+}
+
+function readJsonlRecords(file) {
+  const out = [];
+  let text = "";
+  try {
+    text = fs.readFileSync(file, "utf8");
+  } catch {
+    return out;
+  }
+  for (const line of text.split("\n")) {
+    if (!line.trim()) continue;
+    try {
+      out.push(JSON.parse(line));
+    } catch {
+      /* torn line */
+    }
+  }
+  return out;
+}
+
+/** Records of every subagent transcript of a session (`<project>/<sid>/subagents/*.jsonl`). */
+function readSubagentRecords(transcriptFile) {
+  const dir = path.join(path.dirname(transcriptFile), path.basename(transcriptFile, ".jsonl"), "subagents");
+  let files = [];
+  try {
+    files = fs.readdirSync(dir).filter((f) => f.endsWith(".jsonl"));
+  } catch {
+    return [];
+  }
+  return files.flatMap((f) => readJsonlRecords(path.join(dir, f)));
+}
+
+/**
+ * Rescore one routing record from its session's records: ROUTER.outcomeWindow
+ * anchored on the prompt copy at or before the routing time, then the activity
+ * of the main records inside the window plus subagent records stamped inside
+ * it. Null when the prompt cannot be anchored.
+ */
+export function rescoreRoute(route, { mainRecords, subRecords = [], windowMs = ROUTER.OUTCOME_WINDOW_MS }) {
+  const before = new Date(Date.parse(route.at) + 5000).toISOString();
+  const w = ROUTER.outcomeWindow(mainRecords, { forPromptHash: route.prompt_hash, afterAt: route.at, before, windowMs });
+  if (!w) return null;
+  const acc = { skill_calls: [], raw: ROUTER.emptyRaw() };
+  for (let i = w.start; i < w.end; i++) ROUTER.addRecordActivity(acc, mainRecords[i]);
+  const startMs = Date.parse(w.startAt);
+  const endMs = w.endAt ? Date.parse(w.endAt) : windowMs ? startMs + windowMs : Infinity;
+  for (const rec of subRecords) {
+    const t = rec && typeof rec.timestamp === "string" ? Date.parse(rec.timestamp) : NaN;
+    if (t >= startMs && t <= endMs) ROUTER.addRecordActivity(acc, rec, { includeSidechain: true });
+  }
+  return { anchor: w.anchor, window_end: w.endReason, skill_calls: acc.skill_calls, raw: acc.raw };
+}
+
+/**
+ * One scored row per routing record: rescored from the transcript when
+ * `index` has the session (source "transcript"), else the hook's stored
+ * outcome record for that prompt (source "log"), else dropped and counted in
+ * `unscored`. Labels from `labels` are attached as `label`.
+ */
+export function scoreRoutes(routes, { index = new Map(), outcomes = [], labels = new Map(), windowMs = ROUTER.OUTCOME_WINDOW_MS } = {}) {
+  const sessions = new Map();
+  const load = (sid) => {
+    if (!sessions.has(sid)) {
+      const file = index.get(sid);
+      sessions.set(sid, file ? { mainRecords: readJsonlRecords(file), subRecords: readSubagentRecords(file) } : null);
+    }
+    return sessions.get(sid);
+  };
+  const stored = new Map();
+  for (const o of outcomes) {
+    const key = `${o.session_id}|${o.for_prompt_hash}`;
+    (stored.get(key) ?? stored.set(key, []).get(key)).push(o);
+  }
+  const rows = [];
+  let unscored = 0;
+  for (const r of routes) {
+    const suggested = r.decision && r.decision.skill ? r.decision.skill : null;
+    const base = {
+      session_id: r.session_id,
+      for_prompt_hash: r.prompt_hash,
+      at: r.at,
+      prompt_head: r.prompt_head ?? null,
+      suggested,
+      explicit: Boolean(r.decision && r.decision.explicit),
+      mode: r.mode ?? null,
+    };
+    const key = `${r.session_id}|${r.prompt_hash}`;
+    let scored = null;
+    const session = load(r.session_id);
+    if (session) {
+      const s = rescoreRoute(r, { ...session, windowMs });
+      if (s) scored = { ...s, source: "transcript" };
+    }
+    if (!scored) {
+      const o = (stored.get(key) ?? []).find((x) => !x.at || x.at >= r.at);
+      if (o) scored = { anchor: o.anchor ?? null, window_end: o.window_end ?? null, skill_calls: o.skill_calls ?? [], raw: o.raw ?? {}, source: "log" };
+    }
+    if (!scored) {
+      unscored++;
+      continue;
+    }
+    const row = { ...base, ...scored, followed: suggested ? scored.skill_calls.includes(suggested) : null };
+    if (labels.has(key)) row.label = labels.get(key);
+    rows.push(row);
+  }
+  return { rows, unscored };
 }
 
 /** Skills the session's activity points at: oc-* Skill calls ∪ raw command classes. */
@@ -1040,6 +1232,13 @@ function activitySkills(o) {
   const set = new Set((o.skill_calls ?? []).filter((s) => String(s).startsWith("oc-")));
   for (const [k, on] of Object.entries(o.raw ?? {})) if (on && RAW_CLASS_SKILL[k]) set.add(RAW_CLASS_SKILL[k]);
   return set;
+}
+
+/** Did the session do S's work: call S or one of its steps, or run S's raw command class? */
+function relatedTo(S, o, steps = SKILL_STEPS) {
+  const calls = o.skill_calls ?? [];
+  if (calls.includes(S) || (steps[S] ?? []).some((s) => calls.includes(s))) return true;
+  return Object.entries(o.raw ?? {}).some(([k, on]) => on && RAW_CLASS_SKILL[k] === S);
 }
 
 /** "Skill oc-x + raw git" — what happened after the prompt. */
@@ -1051,18 +1250,25 @@ function describeActivity(o) {
 }
 
 /**
- * Proxy labels from what happened next:
- *   TP  suggestion S and the session then called S or ran S's raw command class
+ * TP / FP / FN / TN per row. A labelled row is judged against its label:
+ * suggestion S on label L is TP when S = L, else FP (and an FN for L); no
+ * suggestion is FN on a skill label and TN on "none"; "ambiguous" is left out
+ * of every rate. An unlabelled row falls back to the proxy:
+ *   TP  suggestion S and the session then did S's work (relatedTo)
  *   FP  suggestion S with no activity related to S
- *   FN  no suggestion, but an oc-* Skill call or a raw git/deploy command followed
+ *   FN  no suggestion, but an oc-* Skill call or a raw git/deploy class followed
  *   TN  no suggestion and no pipeline activity ("silent" on a non-pipeline prompt)
  *
  * Outcomes of an explicit mention (`explicit: true`, the user typed the
  * `/oc-*` command, routed at p=1 with no model call) measure the user, not
  * the router, so they are left out of every go/no-go metric and suggestion
  * count and reported on their own as `explicit` (2026-10-09 audit B-04).
+ *
+ * `followed` (the suggested skill was then called) means something only in
+ * live mode, where the suggestion was injected; in shadow nobody saw it, so
+ * the shadow figure is reported as unprompted calls, the audit baseline.
  */
-export function summarizeOutcomes(allRecords, { coreSkills = DEFAULTS.coreSkills, goNoGo = DEFAULTS.goNoGo } = {}) {
+export function summarizeOutcomes(allRecords, { coreSkills = DEFAULTS.coreSkills, goNoGo = DEFAULTS.goNoGo, steps = SKILL_STEPS } = {}) {
   const isExplicit = (o) => o.explicit === true && Boolean(o.suggested);
   const explicitRecords = allRecords.filter(isExplicit);
   const records = allRecords.filter((o) => !isExplicit(o));
@@ -1071,14 +1277,27 @@ export function summarizeOutcomes(allRecords, { coreSkills = DEFAULTS.coreSkills
   const touch = (s) => (perSkill[s] ??= { skill: s, suggestions: 0, followed: 0, relatedRaw: 0, tp: 0, fp: 0, fn: 0 });
   const transitions = {};
   const byMode = {};
+  const sources = {};
+  const windowEnds = {};
+  const review = [];
   let suggestions = 0;
-  let followed = 0;
+  let labelled = 0;
+  let ambiguous = 0;
+  let unlabelledSuggestions = 0;
+  let nonPipeline = 0;
   const proxy = { tp: 0, fp: 0, fn: 0, tn: 0 };
   const core = { tp: 0, fp: 0 };
+  const hit = (kind, S) => {
+    proxy[kind]++;
+    if (S) touch(S)[kind]++;
+    if (S && coreSkills.includes(S) && (kind === "tp" || kind === "fp")) core[kind]++;
+  };
   for (const o of records) {
     const S = o.suggested ?? null;
-    const act = activitySkills(o);
     const mode = o.mode ?? "unknown";
+    const label = o.label ?? null;
+    if (o.source) sources[o.source] = (sources[o.source] ?? 0) + 1;
+    if (o.window_end) windowEnds[o.window_end] = (windowEnds[o.window_end] ?? 0) + 1;
     const bm = (byMode[mode] ??= { mode, outcomes: 0, suggestions: 0, followed: 0 });
     bm.outcomes++;
     if (S) {
@@ -1086,45 +1305,67 @@ export function summarizeOutcomes(allRecords, { coreSkills = DEFAULTS.coreSkills
       bm.suggestions++;
       const row = touch(S);
       row.suggestions++;
-      const didFollow = (o.skill_calls ?? []).includes(S);
-      if (didFollow) {
-        followed++;
+      if ((o.skill_calls ?? []).includes(S)) {
         bm.followed++;
         row.followed++;
       }
-      const rawRelated = Object.entries(o.raw ?? {}).some(([k, on]) => on && RAW_CLASS_SKILL[k] === S);
-      if (rawRelated) row.relatedRaw++;
-      if (act.has(S)) {
-        proxy.tp++;
-        row.tp++;
-        if (coreSkills.includes(S)) core.tp++;
-      } else {
-        proxy.fp++;
-        row.fp++;
-        if (coreSkills.includes(S)) core.fp++;
-      }
+      if (Object.entries(o.raw ?? {}).some(([k, on]) => on && RAW_CLASS_SKILL[k] === S)) row.relatedRaw++;
       const key = `${mode}\u0000${S}\u0000${describeActivity(o)}`;
       transitions[key] = (transitions[key] ?? 0) + 1;
+    }
+    if (label === LABEL_AMBIGUOUS) {
+      ambiguous++;
+      continue;
+    }
+    if (label) {
+      labelled++;
+      if (label === LABEL_NONE) nonPipeline++;
+      if (S && S === label) hit("tp", S);
+      else if (S) {
+        hit("fp", S);
+        if (label !== LABEL_NONE) hit("fn", label);
+      } else if (label !== LABEL_NONE) hit("fn", label);
+      else hit("tn", null);
+      continue;
+    }
+    const act = activitySkills(o);
+    if (!act.size) nonPipeline++;
+    if (S) {
+      const ok = relatedTo(S, o, steps);
+      hit(ok ? "tp" : "fp", S);
+      unlabelledSuggestions++;
+      review.push({ ...o, verdict: ok ? "TP" : "FP", then: describeActivity(o) });
     } else if (act.size) {
       proxy.fn++;
       for (const s of act) touch(s).fn++;
+      review.push({ ...o, verdict: "FN", then: describeActivity(o) });
     } else proxy.tn++;
   }
-  const nonPipeline = records.filter((o) => activitySkills(o).size === 0).length;
   const silentRate = nonPipeline ? proxy.tn / nonPipeline : NaN;
   const corePrecision = core.tp + core.fp ? core.tp / (core.tp + core.fp) : NaN;
+  const live = byMode.live ?? { suggestions: 0, followed: 0 };
+  const shadow = byMode.shadow ?? { suggestions: 0, followed: 0 };
   const checks = [
     { name: `suggestions ≥ ${goNoGo.minSuggestions}`, value: suggestions, pass: suggestions >= goNoGo.minSuggestions },
-    { name: `proxy precision on core skills ≥ ${goNoGo.minCorePrecision}`, value: corePrecision, pass: Number.isFinite(corePrecision) && corePrecision >= goNoGo.minCorePrecision },
+    { name: `precision on core skills ≥ ${goNoGo.minCorePrecision}`, value: corePrecision, pass: Number.isFinite(corePrecision) && corePrecision >= goNoGo.minCorePrecision },
     { name: `silent rate on non-pipeline prompts ≥ ${goNoGo.minSilentRate}`, value: silentRate, pass: Number.isFinite(silentRate) && silentRate >= goNoGo.minSilentRate },
+    // The proxy cannot tell a deferred merge from a wrong suggestion (it agreed with
+    // hand labels on 12 of 14 suggestions on 2026-10-23), so live mode waits on labels.
+    { name: "every suggestion hand-labelled", value: `${suggestions - unlabelledSuggestions}/${suggestions}`, pass: unlabelledSuggestions === 0 },
   ];
   return {
     total: allRecords.length,
     routed: records.length,
     explicit: { total: explicitRecords.length, followed: explicitFollowed, followRate: explicitRecords.length ? explicitFollowed / explicitRecords.length : NaN },
     suggestions,
-    followed,
-    followRate: suggestions ? followed / suggestions : NaN,
+    followed: live.followed,
+    followRate: live.suggestions ? live.followed / live.suggestions : NaN,
+    unprompted: { calls: shadow.followed, suggestions: shadow.suggestions, rate: shadow.suggestions ? shadow.followed / shadow.suggestions : NaN },
+    sources,
+    windowEnds,
+    labelled,
+    ambiguous,
+    unlabelledSuggestions,
     proxy: {
       ...proxy,
       precision: proxy.tp + proxy.fp ? proxy.tp / (proxy.tp + proxy.fp) : NaN,
@@ -1145,41 +1386,53 @@ export function summarizeOutcomes(allRecords, { coreSkills = DEFAULTS.coreSkills
         return { mode, suggested, then, count: n };
       })
       .sort((a, b) => b.count - a.count || a.suggested.localeCompare(b.suggested) || a.then.localeCompare(b.then)),
+    review: review.sort((a, b) => String(a.at ?? "").localeCompare(String(b.at ?? ""))),
     goNoGo: { checks, go: checks.every((c) => c.pass) },
   };
 }
 
-export function renderOutcomesReport(summary, { logPath, since, generatedAt = new Date().toISOString() } = {}) {
+export function renderOutcomesReport(summary, { logPath, since, labelsPath, windowMinutes, generatedAt = new Date().toISOString() } = {}) {
   const S = summary;
   const L = [];
+  const src = S.sources ?? {};
+  const scored = Object.keys(src).length > 0;
   L.push("# Skill router outcomes (production self-labels)", "");
-  L.push(`Generated ${generatedAt}${logPath ? ` from \`${logPath}\`` : ""}${since ? ` since ${since}` : ""}. One outcome record per routed prompt: what the hook suggested (or, in shadow mode, would have suggested) and what the session did before the next prompt.`, "");
+  L.push(`Generated ${generatedAt}${logPath ? ` from \`${logPath}\`` : ""}${since ? ` since ${since}` : ""}. One row per routed prompt: what the hook suggested (or, in shadow mode, would have suggested) and what the session did next.`, "");
+  if (scored) {
+    L.push(`Rows are rescored from the session transcripts (subagents included) over a window that closes at the end of the reply turn, at the next human turn, or ${windowMinutes ?? ROUTER.OUTCOME_WINDOW_MS / 60000} min after the prompt; the hook's stored outcome record is used only when a transcript is gone. Hand labels${labelsPath ? ` from \`${labelsPath}\`` : ""} override the proxy.`, "");
+  }
   L.push("## Go / no-go (day 8)", "");
   L.push("| Check | Value | Pass |", "|---|---:|---|");
-  for (const c of S.goNoGo.checks) L.push(`| ${c.name} | ${Number.isInteger(c.value) ? c.value : f3(c.value)} | ${c.pass ? "yes" : "**no**"} |`);
+  for (const c of S.goNoGo.checks) L.push(`| ${c.name} | ${typeof c.value === "string" || Number.isInteger(c.value) ? c.value : f3(c.value)} | ${c.pass ? "yes" : "**no**"} |`);
   L.push("", `**Verdict: ${S.goNoGo.go ? "GO — live mode is justified" : "NO-GO — stay in shadow"}.**`, "");
   L.push("## Overall", "");
   L.push("| Metric | Value |", "|---|---|");
-  L.push(`| Outcome records | ${S.total} |`);
+  L.push(`| Routed prompts scored | ${S.total} |`);
+  if (scored) {
+    L.push(`| Scored from transcripts / stored outcome records | ${src.transcript ?? 0} / ${src.log ?? 0} |`);
+    const we = S.windowEnds ?? {};
+    L.push(`| Window closed by end of reply turn / next human turn / horizon / still open | ${we.turn_end ?? 0} / ${we.next_prompt ?? 0} / ${we.horizon ?? 0} / ${we.open ?? 0} |`);
+  }
+  L.push(`| Hand-labelled (ambiguous, left out of every rate) | ${S.labelled + S.ambiguous} (${S.ambiguous}) |`);
   L.push(`| Explicit \`/oc-*\` mentions (excluded from every metric here; ${S.explicit.followed} followed) | ${S.explicit.total} |`);
   L.push(`| Suggestions (incl. shadow would-have) | ${S.suggestions} |`);
-  L.push(`| Followed (suggested skill then called) | ${S.followed} |`);
-  L.push(`| Overall follow rate | ${f3(S.followRate)} |`);
-  L.push(`| Proxy TP / FP / FN / TN | ${S.proxy.tp} / ${S.proxy.fp} / ${S.proxy.fn} / ${S.proxy.tn} |`);
-  L.push(`| Proxy precision (all skills) | ${f3(S.proxy.precision)} |`);
-  L.push(`| Proxy recall | ${f3(S.proxy.recall)} |`);
-  L.push(`| Proxy precision (core skills: ${S.proxy.coreTp} TP / ${S.proxy.coreFp} FP) | ${f3(S.proxy.corePrecision)} |`);
+  L.push(`| Follow rate, live mode (suggested skill then called) | ${f3(S.followRate)} |`);
+  L.push(`| Shadow: suggested skill called unprompted (baseline, nobody saw the suggestion) | ${S.unprompted.calls} / ${S.unprompted.suggestions} |`);
+  L.push(`| TP / FP / FN / TN | ${S.proxy.tp} / ${S.proxy.fp} / ${S.proxy.fn} / ${S.proxy.tn} |`);
+  L.push(`| Precision (all skills) | ${f3(S.proxy.precision)} |`);
+  L.push(`| Recall | ${f3(S.proxy.recall)} |`);
+  L.push(`| Precision (core skills: ${S.proxy.coreTp} TP / ${S.proxy.coreFp} FP) | ${f3(S.proxy.corePrecision)} |`);
   L.push(`| Silent rate on non-pipeline prompts (${S.proxy.nonPipeline}) | ${f3(S.proxy.silentRate)} |`);
   L.push("");
-  L.push("| Mode | Outcomes | Suggestions | Followed | Follow rate |", "|---|---:|---:|---:|---:|");
+  L.push("| Mode | Outcomes | Suggestions | Suggested skill called | Rate |", "|---|---:|---:|---:|---:|");
   for (const m of S.byMode) L.push(`| ${m.mode} | ${m.outcomes} | ${m.suggestions} | ${m.followed} | ${f3(m.followRate)} |`);
   if (!S.byMode.length) L.push("| (no outcome records) | | | | |");
   L.push("");
   L.push("## Per skill", "");
-  L.push("Proxy TP: the session then called the skill or ran its raw command class (git → oc-git-ops, deploy → oc-deploy-ops). Proxy FP: no related activity. FN: related activity with no suggestion.", "");
-  L.push("| Skill | Suggestions | Followed | Follow rate | Related raw | Proxy TP | Proxy FP | Proxy precision | FN |", "|---|---:|---:|---:|---:|---:|---:|---:|---:|");
-  for (const r of S.perSkill) L.push(`| ${r.skill} | ${r.suggestions} | ${r.followed} | ${f3(r.followRate)} | ${r.relatedRaw} | ${r.tp} | ${r.fp} | ${f3(r.proxyPrecision)} | ${r.fn} |`);
-  if (!S.perSkill.length) L.push("| (none) | | | | | | | | |");
+  L.push("Unlabelled rows use the proxy. TP: the session then called the skill or one of its own steps (oc-git-ops: bug-check, docs-forge, repo-ops; oc-deploy-ops: the code + security audit gate; oc-release-ops: docs-forge, git-ops, deploy-ops), or ran its raw command class (git commit/push/merge/rebase, `gh pr create`/`merge`, auto-merge, a `gh pr merge` handed to the user → oc-git-ops; `npm run deploy`, `wrangler deploy`, `scripts/deploy.mjs` → oc-deploy-ops). FP: no related activity. FN: related activity with no suggestion.", "");
+  L.push("| Skill | Suggestions | Called | Related raw | TP | FP | Precision | FN |", "|---|---:|---:|---:|---:|---:|---:|---:|");
+  for (const r of S.perSkill) L.push(`| ${r.skill} | ${r.suggestions} | ${r.followed} | ${r.relatedRaw} | ${r.tp} | ${r.fp} | ${f3(r.proxyPrecision)} | ${r.fn} |`);
+  if (!S.perSkill.length) L.push("| (none) | | | | | | | |");
   L.push("");
   L.push("## What happened after each suggestion", "");
   L.push("In shadow mode read a row as \"would have suggested X; the agent then called skill Y / ran raw git|deploy\".", "");
@@ -1187,6 +1440,24 @@ export function renderOutcomesReport(summary, { logPath, since, generatedAt = ne
     L.push("| Mode | Suggested | Then | Count |", "|---|---|---|---:|");
     for (const t of S.transitions) L.push(`| ${t.mode} | ${t.suggested} | ${mdEscape(t.then)} | ${t.count} |`);
   } else L.push("No suggestions.");
+  L.push("");
+  L.push("## Rows to review", "");
+  const rv = S.review ?? [];
+  const labelHow = `Label a row by appending \`{"session_id":"…","prompt_hash":"…","label":"<skill>|none|ambiguous"}\` to the labels file${labelsPath ? ` (\`${labelsPath}\`)` : ""}. Judge the prompt text alone; the router sees nothing else.`;
+  const table = (rows) => {
+    L.push("| When (UTC) | Session | Prompt hash | Prompt | Suggested | Then | Proxy |", "|---|---|---|---|---|---|---|");
+    for (const r of rows) L.push(`| ${String(r.at ?? "").slice(5, 16)} | ${r.session_id ?? ""} | ${r.for_prompt_hash ?? ""} | ${mdEscape(head(r.prompt_head ?? "", 60))} | ${r.suggested ?? "—"} | ${mdEscape(r.then)} | ${r.verdict} |`);
+  };
+  const sugRows = rv.filter((r) => r.suggested);
+  const fnRows = rv.filter((r) => !r.suggested);
+  L.push(labelHow, "");
+  L.push(`### Unlabelled suggestions (${sugRows.length}): the gate waits on these`, "");
+  if (sugRows.length) table(sugRows);
+  else L.push("None.");
+  L.push("", `### Unlabelled proxy misses (${fnRows.length})`, "");
+  L.push("Pipeline activity after a prompt the router left alone. Most are work the prompt did not ask for (the agent committing on its own); label the ones whose text did ask.", "");
+  if (fnRows.length) table(fnRows);
+  else L.push("None.");
   L.push("");
   return L.join("\n");
 }
@@ -1200,6 +1471,7 @@ function usage() {
     "usage:",
     "  node scripts/route-eval.mjs build-dataset [--since 2026-09-14] [--out scratch/route-dataset.jsonl] [--projects <glob[,glob]>] [--projects-root ~/.claude/projects]",
     "  node scripts/route-eval.mjs outcomes [--log $TMPDIR/opchain-route-log.jsonl] [--since <date>] [--report <file>]",
+    "        [--labels <log dir>/route-labels.jsonl] [--window-minutes 30] [--projects-root ~/.claude/projects] [--rows <file>] [--no-rescore]",
     "  node scripts/route-eval.mjs run --dataset <file> [--limit N] [--sample stratified] [--out scratch/route-eval.jsonl] [--report scratch/route-eval.md]",
     "        [--fixture <answers.json>] [--route-module <path>] [--spec <file>] [--cache scratch/route-cache.json] [--model <id>]",
     "        [--thresholds gate=0.5,coreFits=0.6,otherFits=0.9 | fits=0.5] [--query-thresholds fits=0,gate=0] [--concurrency 4] [--seed 42] [--context]",
@@ -1228,13 +1500,46 @@ export async function main(argv = process.argv.slice(2), { env = process.env, st
       stderr.write(`outcomes: no route log at ${logPath} (pass --log <file>; the hook writes $TMPDIR/opchain-route-log.jsonl by default)\n`);
       return 2;
     }
-    const summary = summarizeOutcomes(readOutcomeRecords(logPath, { since }));
-    const report = renderOutcomesReport(summary, { logPath, since });
+    const windowMinutes = args["window-minutes"] !== undefined && args["window-minutes"] !== true ? Number(args["window-minutes"]) : ROUTER.OUTCOME_WINDOW_MS / 60000;
+    if (!Number.isFinite(windowMinutes) || windowMinutes < 0) {
+      stderr.write(`outcomes: --window-minutes must be a number ≥ 0 (0 = no horizon)\n`);
+      return 2;
+    }
+    // Labels default to route-labels.jsonl beside the log they label.
+    const labelsArg = args.labels && args.labels !== true ? resolve(String(args.labels)) : path.join(path.dirname(logPath), "route-labels.jsonl");
+    const labelsPath = fs.existsSync(labelsArg) ? labelsArg : null;
+    if (args.labels && args.labels !== true && !labelsPath) {
+      stderr.write(`outcomes: no labels file at ${labelsArg}\n`);
+      return 2;
+    }
+    const labels = readLabels(labelsPath);
+    let rows;
+    let unscored = 0;
+    if (args["no-rescore"]) {
+      // The hook's stored outcome records as written (pre-2026-10-23 scoring input).
+      rows = readOutcomeRecords(logPath, { since }).map((o) => {
+        const key = `${o.session_id}|${o.for_prompt_hash}`;
+        return labels.has(key) ? { ...o, label: labels.get(key) } : o;
+      });
+    } else {
+      const projectsRoot = args["projects-root"] && args["projects-root"] !== true ? resolve(String(args["projects-root"])) : DEFAULTS.projectsRoot;
+      ({ rows, unscored } = scoreRoutes(readRouteRecords(logPath, { since }), {
+        index: transcriptIndex(projectsRoot),
+        outcomes: readOutcomeRecords(logPath),
+        labels,
+        windowMs: windowMinutes * 60000,
+      }));
+    }
+    if (args.rows && args.rows !== true) writeJsonl(resolve(String(args.rows)), rows);
+    const summary = summarizeOutcomes(rows);
+    const report = renderOutcomesReport(summary, { logPath, since, labelsPath: labelsPath ?? labelsArg, windowMinutes });
+    const src = summary.sources;
+    const sourceNote = args["no-rescore"] ? "stored outcome records" : `${src.transcript ?? 0} rescored from transcripts, ${src.log ?? 0} from stored records, ${unscored} unscored`;
     if (args.report && args.report !== true) {
       const reportPath = resolve(String(args.report));
       ensureDir(reportPath);
       fs.writeFileSync(reportPath, report);
-      stdout.write(`${summary.total} outcome(s) · ${summary.suggestions} suggestion(s) · ${summary.explicit.total} explicit (excluded) · follow rate ${f3(summary.followRate)} · core proxy precision ${f3(summary.proxy.corePrecision)} · silent rate ${f3(summary.proxy.silentRate)} → ${summary.goNoGo.go ? "GO" : "NO-GO"}\nreport → ${reportPath}\n`);
+      stdout.write(`${summary.total} outcome(s) (${sourceNote}; ${summary.labelled + summary.ambiguous} labelled) · ${summary.suggestions} suggestion(s) · ${summary.explicit.total} explicit (excluded) · core precision ${f3(summary.proxy.corePrecision)} · recall ${f3(summary.proxy.recall)} · silent rate ${f3(summary.proxy.silentRate)} → ${summary.goNoGo.go ? "GO" : "NO-GO"}\nreport → ${reportPath}\n`);
     } else stdout.write(`${report}\n`);
     return 0;
   }

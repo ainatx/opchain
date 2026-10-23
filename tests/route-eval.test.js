@@ -11,6 +11,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,7 +23,11 @@ import {
   DEFAULTS,
   describeThresholds,
   readOutcomeRecords,
+  readLabels,
+  readRouteRecords,
   renderOutcomesReport,
+  scoreRoutes,
+  transcriptIndex,
   rowHash,
   summarizeOutcomes,
   deriveLabel,
@@ -709,7 +714,7 @@ module.exports.route = async ({ prompt, transport, thresholds }) => {
 // outcomes — production self-labels
 // ---------------------------------------------------------------------------
 
-const RAW0 = { git_commit: false, git_push: false, gh_pr_create: false, gh_pr_merge: false, deploy: false };
+const RAW0 = { git_commit: false, git_push: false, git_sync: false, gh_pr_create: false, gh_pr_merge: false, deploy: false, merge_handoff: false };
 const oc = (n, { mode = "shadow", suggested = null, skill_calls = [], raw = {}, at = "2026-10-09T12:00:00.000Z" } = {}) => ({
   type: "outcome", session_id: "s", for_prompt_hash: `h${n}`, at, suggested, mode, skill_calls, raw: { ...RAW0, ...raw },
   followed: suggested ? skill_calls.includes(suggested) : null,
@@ -729,8 +734,8 @@ const OUTCOMES = [
 describe("route-eval outcomes", () => {
   it("computes follow rate, proxy TP/FP/FN, core precision, silent rate and the verdict", () => {
     const s = summarizeOutcomes(OUTCOMES);
-    expect(s).toMatchObject({ total: 9, suggestions: 6, followed: 3 });
-    expect(s.followRate).toBeCloseTo(0.5);
+    // followed / followRate are live-mode only: in shadow nobody saw the suggestion.
+    expect(s).toMatchObject({ total: 9, suggestions: 6, followed: 1, followRate: 1, unprompted: { calls: 2, suggestions: 5 }, unlabelledSuggestions: 6 });
     expect(s.proxy).toMatchObject({ tp: 4, fp: 2, fn: 1, tn: 2, coreTp: 3, coreFp: 1, nonPipeline: 4 });
     expect(s.proxy.precision).toBeCloseTo(4 / 6);
     expect(s.proxy.recall).toBeCloseTo(4 / 5);
@@ -747,24 +752,63 @@ describe("route-eval outcomes", () => {
     expect(s.transitions).toContainEqual({ mode: "shadow", suggested: "oc-git-ops", then: "raw git", count: 1 });
     expect(s.transitions).toContainEqual({ mode: "shadow", suggested: "oc-deploy-ops", then: "nothing", count: 1 });
     expect(s.goNoGo.go).toBe(false);
-    expect(s.goNoGo.checks.map((c) => c.pass)).toEqual([false, false, false]);
+    expect(s.goNoGo.checks.map((c) => c.pass)).toEqual([false, false, false, false]);
+    expect(s.goNoGo.checks[3]).toMatchObject({ name: "every suggestion hand-labelled", value: "0/6" });
+    // Every unlabelled suggestion is listed for labelling, plus the proxy misses.
+    expect(s.review.map((r) => `${r.for_prompt_hash}:${r.verdict}`).sort()).toEqual(["h1:TP", "h2:TP", "h3:FP", "h4:TP", "h5:FN", "h7:TP", "h9:FP"]);
 
     const md = renderOutcomesReport(s, { logPath: "log.jsonl", generatedAt: "x" });
-    for (const h of ["## Go / no-go (day 8)", "## Overall", "## Per skill", "## What happened after each suggestion"]) expect(md).toContain(h);
-    expect(md).toMatch(/\| Overall follow rate \| 0\.500 \|/);
-    expect(md).toMatch(/\| Proxy TP \/ FP \/ FN \/ TN \| 4 \/ 2 \/ 1 \/ 2 \|/);
-    expect(md).toMatch(/\| oc-git-ops \| 3 \| 2 \| 0\.667 \| 2 \| 3 \| 0 \| 1\.000 \| 0 \|/);
+    for (const h of ["## Go / no-go (day 8)", "## Overall", "## Per skill", "## What happened after each suggestion", "## Rows to review"]) expect(md).toContain(h);
+    expect(md).toMatch(/\| Follow rate, live mode \(suggested skill then called\) \| 1\.000 \|/);
+    expect(md).toMatch(/\| Shadow: suggested skill called unprompted \(baseline, nobody saw the suggestion\) \| 2 \/ 5 \|/);
+    expect(md).toMatch(/\| TP \/ FP \/ FN \/ TN \| 4 \/ 2 \/ 1 \/ 2 \|/);
+    expect(md).toMatch(/\| oc-git-ops \| 3 \| 2 \| 2 \| 3 \| 0 \| 1\.000 \| 0 \|/);
     expect(md).toMatch(/\| shadow \| oc-git-ops \| raw git \| 1 \|/);
+    expect(md).toMatch(/\| every suggestion hand-labelled \| 0\/6 \| \*\*no\*\* \|/);
+    expect(md).toMatch(/### Unlabelled suggestions \(6\): the gate waits on these/);
+    expect(md).toMatch(/### Unlabelled proxy misses \(1\)/);
     expect(md).toMatch(/NO-GO — stay in shadow/);
   });
 
-  it("says GO when ≥30 suggestions, core proxy precision ≥0.8 and silent rate ≥0.95", () => {
+  it("hand labels override the proxy; ambiguous rows leave every rate", () => {
+    const L = (o, label) => ({ ...o, label });
+    const s = summarizeOutcomes([
+      L(oc(1, { suggested: "oc-git-ops" }), "oc-git-ops"), // TP although nothing ran (merge handed off later)
+      L(oc(2, { suggested: "oc-git-ops", raw: { git_commit: true } }), "none"), // FP although a commit followed
+      L(oc(3, { suggested: "oc-git-ops" }), "oc-deploy-ops"), // FP for git-ops and FN for deploy-ops
+      L(oc(4, { raw: { git_commit: true } }), "none"), // TN: the commit was not what the prompt asked for
+      L(oc(5), "oc-release-ops"), // FN
+      L(oc(6, { suggested: "oc-bug-check" }), "ambiguous"), // counted as a suggestion, left out of the rates
+    ]);
+    expect(s).toMatchObject({ suggestions: 4, labelled: 5, ambiguous: 1, unlabelledSuggestions: 0 });
+    expect(s.proxy).toMatchObject({ tp: 1, fp: 2, fn: 2, tn: 1, nonPipeline: 2, coreTp: 1, coreFp: 2 });
+    expect(s.proxy.silentRate).toBeCloseTo(0.5);
+    expect(s.perSkill.find((r) => r.skill === "oc-deploy-ops")).toMatchObject({ fn: 1 });
+    expect(s.review).toEqual([]);
+    expect(s.goNoGo.checks[3]).toMatchObject({ value: "4/4", pass: true });
+  });
+
+  it("the proxy credits a skill's own steps and a handed-over merge", () => {
+    const s = summarizeOutcomes([
+      oc(1, { suggested: "oc-deploy-ops", skill_calls: ["oc-code-auditor", "oc-security-auditor"] }), // the audit gate opens a deploy
+      oc(2, { suggested: "oc-git-ops", skill_calls: ["oc-docs-forge", "oc-repo-ops"] }), // the pre-PR gate
+      oc(3, { suggested: "oc-git-ops", raw: { merge_handoff: true } }),
+      oc(4, { suggested: "oc-git-ops", raw: { git_sync: true } }),
+      oc(5, { suggested: "oc-code-auditor", skill_calls: ["oc-security-auditor"] }), // not a step of the auditor
+    ]);
+    expect(s.proxy).toMatchObject({ tp: 4, fp: 1 });
+  });
+
+  it("says GO when ≥30 suggestions, core precision ≥0.8, silent rate ≥0.95 and every suggestion is labelled", () => {
     const recs = [];
     for (let i = 0; i < 30; i++) recs.push(oc(i, { suggested: "oc-git-ops", raw: { git_push: true } }));
     for (let i = 0; i < 40; i++) recs.push(oc(100 + i));
-    const s = summarizeOutcomes(recs);
-    expect(s.proxy.corePrecision).toBe(1);
-    expect(s.proxy.silentRate).toBe(1);
+    const proxyOnly = summarizeOutcomes(recs);
+    expect(proxyOnly.proxy.corePrecision).toBe(1);
+    expect(proxyOnly.proxy.silentRate).toBe(1);
+    // Proxy numbers alone never switch live mode on.
+    expect(proxyOnly.goNoGo.go).toBe(false);
+    const s = summarizeOutcomes(recs.map((o) => (o.suggested ? { ...o, label: "oc-git-ops" } : o)));
     expect(s.goNoGo.go).toBe(true);
   });
 
@@ -796,16 +840,91 @@ describe("route-eval outcomes", () => {
       expect(readOutcomeRecords(log, { since: "2026-10-05" })).toHaveLength(9);
       expect(readOutcomeRecords(log)).toHaveLength(10);
       const report = join(dir, "outcomes.md");
-      const res = spawnSync(process.execPath, [SCRIPT, "outcomes", "--log", log, "--since", "2026-10-05", "--report", report], { encoding: "utf8" });
+      const res = spawnSync(process.execPath, [SCRIPT, "outcomes", "--log", log, "--since", "2026-10-05", "--report", report, "--no-rescore"], { encoding: "utf8" });
       expect(res.status, res.stderr).toBe(0);
-      expect(res.stdout).toMatch(/9 outcome\(s\) · 6 suggestion\(s\) · 0 explicit \(excluded\) · follow rate 0\.500 · core proxy precision 0\.750 · silent rate 0\.500 → NO-GO/);
+      expect(res.stdout).toMatch(/9 outcome\(s\) \(stored outcome records; 0 labelled\) · 6 suggestion\(s\) · 0 explicit \(excluded\) · core precision 0\.750 · recall 0\.800 · silent rate 0\.500 → NO-GO/);
       expect(readFileSync(report, "utf8")).toContain("# Skill router outcomes");
-      const printed = spawnSync(process.execPath, [SCRIPT, "outcomes", "--log", log], { encoding: "utf8" });
+      const printed = spawnSync(process.execPath, [SCRIPT, "outcomes", "--log", log, "--no-rescore"], { encoding: "utf8" });
       expect(printed.status).toBe(0);
-      expect(printed.stdout).toMatch(/\| Outcome records \| 10 \|/);
-      const missing = spawnSync(process.execPath, [SCRIPT, "outcomes", "--log", join(dir, "nope.jsonl")], { encoding: "utf8" });
+      expect(printed.stdout).toMatch(/\| Routed prompts scored \| 10 \|/);
+      const missing = spawnSync(process.execPath, [SCRIPT, "outcomes", "--log", join(dir, "nope.jsonl"), "--no-rescore"], { encoding: "utf8" });
       expect(missing.status).toBe(2);
       expect(missing.stderr).toMatch(/no route log/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("rescores routed prompts from the transcripts (subagents in, later turns out), falls back to stored outcomes, reads labels beside the log", () => {
+    const dir = mkdtempSync(join(tmpdir(), "route-eval-rescore-"));
+    try {
+      const at = (min, sec = 0) => new Date(Date.UTC(2026, 9, 21, 12, min, sec)).toISOString();
+      const hash = (t) => createHash("sha256").update(t).digest("hex").slice(0, 16);
+      const human = (text, min) => ({ type: "user", timestamp: at(min), message: { role: "user", content: text } });
+      const tool = (name, input, min, sec = 0) => ({ type: "assistant", timestamp: at(min, sec), message: { stop_reason: "tool_use", content: [{ type: "tool_use", name, input }] } });
+      const reply = (text, min) => ({ type: "assistant", timestamp: at(min), message: { stop_reason: "end_turn", content: [{ type: "text", text }] } });
+      const projects = join(dir, "projects");
+      const proj = join(projects, "-Users-me-repo");
+      mkdirSync(join(proj, "sess-a", "subagents"), { recursive: true });
+      const [p1, p2, p3] = ["merge 590", "how is CI looking", "deploy to staging"];
+      const main = [
+        human(p1, 0),
+        tool("Bash", { command: "gh pr view 590" }, 0, 20),
+        reply("Green. Run `gh pr merge 590 --squash` when you're ready.", 1),
+        human("<task-notification>\n<task-id>x</task-id>\n</task-notification>", 5),
+        tool("Bash", { command: "git commit -m later" }, 6), // after the reply turn: not p1's
+        reply("Committed.", 6),
+        human(p2, 10),
+        tool("Agent", { description: "check CI", run_in_background: true }, 10, 5),
+        reply("Checking in the background.", 11),
+        human(p3, 20),
+        reply("Which commit?", 21),
+      ];
+      writeFileSync(join(proj, "sess-a.jsonl"), main.map((r) => JSON.stringify(r)).join("\n") + "\n");
+      const sub = [
+        { ...tool("Bash", { command: "git push origin HEAD" }, 10, 30), isSidechain: true }, // inside p2's window
+        { ...tool("Bash", { command: "npm run deploy" }, 15), isSidechain: true }, // after it closed
+      ];
+      writeFileSync(join(proj, "sess-a", "subagents", "agent-1.jsonl"), sub.map((r) => JSON.stringify(r)).join("\n") + "\n");
+      const logDir = join(dir, "log");
+      mkdirSync(logDir);
+      const log = join(logDir, "route-log.jsonl");
+      const route = (sid, text, min, skill) => ({ at: at(min, 1), session_id: sid, prompt_hash: hash(text), prompt_head: text, decision: skill ? { skill } : null, mode: "shadow" });
+      writeFileSync(log, [
+        route("sess-a", p1, 0, "oc-git-ops"),
+        route("sess-a", p2, 10, null),
+        route("sess-a", p3, 20, "oc-deploy-ops"),
+        route("sess-b", "merge 7", 0, "oc-git-ops"), // transcript gone: the stored outcome scores it
+        { type: "outcome", session_id: "sess-b", for_prompt_hash: hash("merge 7"), at: at(2), suggested: "oc-git-ops", mode: "shadow", skill_calls: [], raw: { ...RAW0, gh_pr_merge: true } },
+        route("sess-c", "anything", 0, null), // neither: unscored
+      ].map((r) => JSON.stringify(r)).join("\n") + "\n");
+      writeFileSync(join(logDir, "route-labels.jsonl"), "// labels\n" + JSON.stringify({ session_id: "sess-a", prompt_hash: hash(p3), label: "oc-deploy-ops" }) + "\n");
+
+      expect(readRouteRecords(log)).toHaveLength(5);
+      expect(transcriptIndex(projects).get("sess-a")).toBe(join(proj, "sess-a.jsonl"));
+      expect(readLabels(join(logDir, "route-labels.jsonl")).get(`sess-a|${hash(p3)}`)).toBe("oc-deploy-ops");
+
+      const rowsOut = join(dir, "rows.jsonl");
+      const res = spawnSync(process.execPath, [SCRIPT, "outcomes", "--log", log, "--projects-root", projects, "--rows", rowsOut, "--report", join(dir, "o.md")], { encoding: "utf8" });
+      expect(res.status, res.stderr).toBe(0);
+      expect(res.stdout).toMatch(/4 outcome\(s\) \(3 rescored from transcripts, 1 from stored records, 1 unscored; 1 labelled\) · 3 suggestion\(s\) · 0 explicit \(excluded\) · core precision 1\.000 · recall 0\.750 · silent rate n\/a → NO-GO/);
+      const rows = readFileSync(rowsOut, "utf8").trim().split("\n").map((l) => JSON.parse(l));
+      const byHash = Object.fromEntries(rows.map((r) => [r.for_prompt_hash, r]));
+      expect(byHash[hash(p1)]).toMatchObject({ source: "transcript", anchor: "prompt", window_end: "turn_end", raw: { merge_handoff: true, git_commit: false } });
+      expect(byHash[hash(p2)]).toMatchObject({ source: "transcript", window_end: "turn_end", raw: { git_push: true, deploy: false } });
+      expect(byHash[hash(p3)]).toMatchObject({ label: "oc-deploy-ops", skill_calls: [], raw: { deploy: false } });
+      expect(byHash[hash("merge 7")]).toMatchObject({ source: "log", raw: { gh_pr_merge: true } });
+      const md = readFileSync(join(dir, "o.md"), "utf8");
+      expect(md).toMatch(/\| Scored from transcripts \/ stored outcome records \| 3 \/ 1 \|/);
+      expect(md).toMatch(/\| Window closed by end of reply turn \/ next human turn \/ horizon \/ still open \| 3 \/ 0 \/ 0 \/ 0 \|/);
+      expect(md).toMatch(/### Unlabelled suggestions \(2\)/);
+      expect(md).toContain(`| sess-a | ${hash(p2)} | how is CI looking | — | raw git | FN |`);
+
+      const badWindow = spawnSync(process.execPath, [SCRIPT, "outcomes", "--log", log, "--window-minutes", "-1"], { encoding: "utf8" });
+      expect(badWindow.status).toBe(2);
+      const badLabels = spawnSync(process.execPath, [SCRIPT, "outcomes", "--log", log, "--labels", join(dir, "nope.jsonl")], { encoding: "utf8" });
+      expect(badLabels.status).toBe(2);
+      expect(badLabels.stderr).toMatch(/no labels file/);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
