@@ -1,0 +1,1 @@
+Robin: Run /ow-care-notes. The deploy is now known: the hosting console deploys from the main branch when a pull request merges. That replaces OP-03 from the handoff notes. I checked it with the operations manager today.

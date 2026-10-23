@@ -1,0 +1,28 @@
+ow_artefact: ow-care/care
+schema: 1
+written_by: ow-care 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: onboarding.md
+created: 2026-11-10
+clock: user-stated
+origin: skill
+source: takeover
+tier: Tune
+tiers_offered:
+  - { name: Keep, hours: 2, reply_business_days: 2, price: 900 }
+  - { name: Tune, hours: 8, reply_business_days: 2, price: 3200 }
+  - { name: Steward, hours: 20, reply_business_days: 1, price: 7600 }
+billing: prepaid monthly
+rollover: { share: 0.25, of: unused, months: 1 }
+rollover_wording: a quarter of the unused hours roll over for one month
+notice_days: 30
+excluded: [out-of-hours on-call, new builds]
+hourly_price: 250
+urgent_price: 350
+start: 2026-11-17
+month_boundary: start-day
+monthly_call: no
+reply_calendar: { timezone: America/Chicago, hours: '09:00-17:00', days: weekdays, holidays: ['2026-11-23'] }
+handling: no
+choice_reported: { tier: Tune, start: 2026-11-17, role: operations manager, reported_by: Robin, date: 2026-11-10 }
+terms_confirmed: ['the terms as printed']

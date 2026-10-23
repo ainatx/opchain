@@ -1,0 +1,11 @@
+ow_artefact: ow-handoff/dates
+schema: 1
+written_by: ow-handoff 1.0.2 (protocol 1)
+workstream: larkspur-ceramics
+subject: dates.yaml
+created: 2026-12-31
+clock: user-stated
+origin: skill
+handoff_date: 2026-12-31
+window_end: 2027-01-30
+access_removal_date: 2027-01-23

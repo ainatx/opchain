@@ -1,0 +1,24 @@
+# health-resume
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: health-tool
+today: '2026-12-01'
+clock: user-stated
+verbs:
+  - /ow-care-health
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+noop:
+  - already recorded
+  - nothing to do
+resume:
+  untouched:
+    - opchain-work/care/larkspur-ceramics/health/M-01.md
+    - opchain-work/care/larkspur-ceramics/health.yaml
+next:
+  - use ow-care-request on care/larkspur-ceramics/

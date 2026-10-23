@@ -1,0 +1,20 @@
+# request-before-start-refusal
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - build
+today: '2027-04-15'
+clock: user-stated
+verbs:
+  - /ow-care-request
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+refused:
+  - care has not started
+  - no care.yaml
+  - use ow-care-start
+next:
+  - use ow-care-start on handoffs/larkspur-ceramics/care-start.md

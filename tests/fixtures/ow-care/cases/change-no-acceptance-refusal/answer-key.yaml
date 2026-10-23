@@ -1,0 +1,18 @@
+# change-no-acceptance-refusal
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: start-takeover
+today: '2026-11-13'
+clock: user-stated
+verbs:
+  - /ow-care-change
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+refused:
+  - acceptance
+  - accepted

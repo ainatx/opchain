@@ -1,0 +1,17 @@
+# health-no-tool
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: start-takeover
+today: '2026-11-30'
+clock: user-stated
+verbs:
+  - /ow-care-health
+tool: absent
+private_names:
+  - Deftwright
+  - llc-ops
+next:
+  - use ow-care-month on care/larkspur-ceramics/

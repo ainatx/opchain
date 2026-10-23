@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "months": [
+    {
+      "id": "M-01",
+      "included": 480,
+      "entries": [
+        {
+          "id": "CARE-01",
+          "kind": "care",
+          "minutes": 210
+        },
+        {
+          "id": "HEALTH-M-01",
+          "kind": "health",
+          "minutes": 45
+        },
+        {
+          "id": "REPORT-M-01",
+          "kind": "report",
+          "minutes": 45
+        }
+      ]
+    },
+    {
+      "id": "M-02",
+      "included": 480,
+      "entries": [
+        {
+          "id": "CARE-04",
+          "kind": "care",
+          "minutes": 510
+        },
+        {
+          "id": "HEALTH-M-02",
+          "kind": "health",
+          "minutes": 45
+        },
+        {
+          "id": "REPORT-M-02",
+          "kind": "report",
+          "minutes": 45
+        }
+      ],
+      "extra_approved": 75
+    }
+  ]
+}

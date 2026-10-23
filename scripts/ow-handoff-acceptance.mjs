@@ -1792,6 +1792,8 @@ const ADDRESS_FORMS = [
   new RegExp(String.raw`\bif you(?: are|'re|’re) (?:an? )?${AGENT}\b`, "i"),
   // told what it must do, as the subject of the sentence ("AI agents reading this file must …")
   new RegExp(String.raw`(?:^|[.!?;]\s+|<!--\s*)(?:any |all |every |the )?(?:AI(?: (?:assistants?|agents?|models?|tools?|systems?))?|LLMs?|language models?|automated (?:tools?|agents?|systems?)|Claude|ChatGPT|copilot|chatbots?)(?: \w+ing\b[^.!?;]{0,40}?)?\s+(?:must|should|shall|needs? to|ha(?:s|ve) to|is to|are to|will now|may now)\b`, "i"),
+  // spoken to while it reads ("AI agents reading this: …", "Language models processing this file, …"): an AI as the subject, an -ing verb, then a colon or a comma
+  new RegExp(String.raw`(?:^|[.!?;]\s+|<!--\s*)(?:any |all |every |the )?(?:AI(?: (?:assistants?|agents?|models?|tools?|systems?))?|LLMs?|language models?|automated (?:tools?|agents?|systems?)|Claude|ChatGPT|copilot|chatbots?) \w+ing\b[^.!?;:,]{0,40}[:,]`, "i"),
 ];
 export const addressed = (s) => ADDRESS_FORMS.some((re) => re.test(String(s)));
 /** The D2 net (round 1 m5): imperatives aimed at this skill's own actions, in what a verb reads. */

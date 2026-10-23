@@ -1,0 +1,26 @@
+# route-on-fix-not-care
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - build
+base: start-after-build
+today: '2027-04-22'
+clock: user-stated
+verbs:
+  - /ow-care
+tool: absent
+private_names:
+  - Deftwright
+  - llc-ops
+kind: route
+refused:
+  - not care
+  - route
+route:
+  expect: none
+  words:
+    - not care
+checks:
+  - next
+next: []

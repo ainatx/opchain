@@ -1,0 +1,17 @@
+# start-takeover
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: onboard-takeover
+today: '2026-11-10'
+clock: user-stated
+verbs:
+  - /ow-care-start --takeover
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+next:
+  - use ow-care-request on care/larkspur-ceramics/

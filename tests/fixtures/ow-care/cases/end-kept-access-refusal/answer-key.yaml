@@ -1,0 +1,21 @@
+# end-kept-access-refusal
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: month-final-settlement
+today: '2027-04-17'
+clock: user-stated
+verbs:
+  - /ow-care-end
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+refused:
+  - AX-01
+  - AX-02
+  - access
+next:
+  - use ow-care-access on care/larkspur-ceramics/

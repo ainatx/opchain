@@ -1,0 +1,19 @@
+# onboard-unsigned-refusal
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+today: '2026-11-04'
+clock: user-stated
+verbs:
+  - /ow-care-onboard
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+refused:
+  - unsigned
+  - not signed
+next:
+  - use ow-build-plan-quote on plans/larkspur-ceramics/
