@@ -2,15 +2,19 @@
   "protocol_version": "1.1",
   "skill": "oc-deploy-ops",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-08-27T23:49:17.485Z",
-  "updated_at": "2026-09-27T18:32:45.966Z",
-  "phase": "production",
-  "step": "v2.0.4-shipped",
-  "status": "complete",
-  "progress_summary": "v2.0.4 shipped 2026-09-27. Signed tag v2.0.4 on 91a2124; deployed origin/main 0f3410c (six reviewed post-tag PRs, covered by the #572 pre-deploy verdicts) to staging (deployment 34d77863, version 2d2a67ac) and production. Production was deployed twice from the same commit; the live one is deployment 8222ee28, version 3a9ffe6f (18:31Z), same script fingerprint 82898295. Hardening checks and smoke:staging / smoke:prod all passed; /api/health = 0f3410c and /skills.json catalogVersion = 2.0.4 on both hosts. Baseline refreshed in #573 and re-pointed at the redeploy in this follow-up. Rollback target: production version 2fd39191 (same code) or 9454e2ce (v2.0.3 runtime 8bad1a0).",
+  "updated_at": "2026-10-23T01:42:21.413Z",
+  "phase": "audit",
+  "step": "v2.1-preparation-http-preflight",
+  "status": "in_progress",
+  "progress_summary": "No v2.1 deployment performed. Read-only October 22 HTTP preflight found production healthy at 0f3410c and staging healthy at existing preview 1fbd48fa, matching its merged baseline PR #614 context. The credentialed control-plane monitor was not rerun because this shell has no monitor token. Final candidate audits, tag, staging review, production verification and baseline refresh remain pending release readiness.",
   "blockers": [],
-  "next_actions": [],
+  "next_actions": [
+    "Wait for the approved model, real-use, observation and public-install release conditions",
+    "Audit and stage the exact reviewed release candidate, then verify visible behavior and health",
+    "Complete signed release, production checks and monitoring baseline refresh at the authorized final cut"
+  ],
   "skill_state": {
     "current_env": "production",
     "staging_version": "0f3410c",
@@ -143,6 +147,13 @@
         34359976498,
         34363685054
       ]
+    },
+    "preparation_http_preflight": {
+      "checked_at": "2026-10-22T23:07:51.347Z",
+      "production": "200 / healthy / version and header 0f3410c",
+      "staging": "200 / healthy / version and header 1fbd48fa; prior preview documented in #614",
+      "control_plane": "Not rerun; credentials absent",
+      "deployed": false
     }
   },
   "progress_table": [
@@ -167,7 +178,7 @@
       "status": "blocked"
     }
   ],
-  "record_updated_at": "2026-09-27T18:32:45.966Z",
+  "record_updated_at": "2026-10-23T01:42:21.413Z",
   "recently_done": [
     {
       "text": "Laptop: npx wrangler deployments list --json and versions view for deployment 8da6c19d-a89a-4214-8e58-4606c7ce2f72 (version id + script etag), then record them in .github/monitoring/release-baseline.json with sourceSha 78567c2d70e6f00836000e4bd6bbad842ba04a42.",

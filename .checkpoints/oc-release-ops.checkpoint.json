@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-22T23:03:37.204Z",
+  "updated_at": "2026-10-23T01:42:21.209Z",
   "skill": "oc-release-ops",
   "phase": "plan",
   "step": "v2.1.0-preparation",
   "status": "in_progress",
-  "progress_summary": "OW-06 #648 merged as 809ed373 after all four CI jobs passed. Integrated gate v4 passed seven checks and 11,102 tests but found two further fixture dependency omissions; all three fixture setups now share the correction and 45 focused tests pass. Full v5 rerun pending. Real jobs, remaining model cases, actual public installation/model setup and October 27 verdicts still hold the final release.",
+  "progress_summary": "OW-06 #648 merged at 809ed373 after all four exact-head CI jobs passed. All eight strict gates now pass for the consolidated preparation; Python audit checks all 116 registry entries without vulnerabilities. Draft preparation PR follows. Fresh intake 7/11, build 7/9, research 19/22 and refused handoff package remain open alongside real jobs, public install/model setup and October 27 verdicts. No final cut or deployment.",
   "progress_table": [
     {
       "id": "implementation",
@@ -292,9 +292,40 @@
       "research": "19/22",
       "handoff": "Refused: missing executable suite; package acceptance unmet",
       "real_use": false
+    },
+    "preparation_gate": {
+      "verdict": "PASS",
+      "content_head": "9f52df193c02cec0718126f7634c3087454d9a81",
+      "candidate_tree": "8b896e5fb81c70db0ed9b07f1525f5f9a12abff7",
+      "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/8b896e5fb81c70db0ed9b07f1525f5f9a12abff7/da3682a429fad819876832dec8a08d78675bfcec79aa15d64d3c8eff4168663d/5c77baa0-9d04-4d94-bd32-33c3bc1fd1d6.json",
+      "log": "/tmp/opchain-integrated-candidate-v6.log"
+    },
+    "ow06_landing": {
+      "pr": 648,
+      "merge_sha": "809ed373847f36d2252f0a11fedec689bc0467bb",
+      "merged_at": "2026-10-22T22:53:32Z",
+      "checks": "all four successful at 4f939f4eee43c1fa012fde23b7de7c081ed9f97d"
+    },
+    "live_preflight": {
+      "checked_at": "2026-10-22T23:07:51.347Z",
+      "production": {
+        "http_status": 200,
+        "healthy": true,
+        "version": "0f3410c",
+        "header_version": "0f3410c"
+      },
+      "staging": {
+        "http_status": 200,
+        "healthy": true,
+        "version": "1fbd48fa",
+        "header_version": "1fbd48fa",
+        "context": "Existing October 16 forward-surfaces staging commit; baseline PR #614 records its environment IDs"
+      },
+      "control_plane": "Not rerun: monitor credentials absent from this shell; HTTP evidence only",
+      "mutations": "None"
     }
   },
-  "record_updated_at": "2026-10-22T23:03:37.204Z",
+  "record_updated_at": "2026-10-23T01:42:21.209Z",
   "pm_deferred_actions": [
     {
       "id": "deferred-2026-09-21T19:53:16Z-7f2f",

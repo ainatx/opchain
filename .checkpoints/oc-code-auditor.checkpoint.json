@@ -2,13 +2,13 @@
   "protocol_version": "1.1",
   "skill": "oc-code-auditor",
   "project": "opchain.dev",
-  "project_dir": "/private/tmp/opchain-prod-2.0.1",
+  "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-10-22T23:03:37.293Z",
+  "updated_at": "2026-10-23T01:42:21.114Z",
   "phase": "build",
   "step": "release-2.1-preparation-review",
   "status": "in_progress",
-  "progress_summary": "Scoped source reviews are complete. Candidate v4 passed seven strict checks and 11,102 tests; two isolated release-fixture imports failed. The complete fixture correction passes 45 tests across the release group plus plugin version suite with security assertions unchanged. Full candidate v5 rerun follows; no final release or deployment acceptance is claimed.",
+  "progress_summary": "Scoped source reviews and all eight strict preparation gates pass, including the corrected isolated CLI fixtures and plugin version assertions. Independent model review preserves remaining intake/build/research defects and correct handoff refusal. This is preparation evidence, not model/real-use/release/deployment acceptance.",
   "blockers": [],
   "next_actions": [
     "Add CODEOWNERS (or required review) on .github/workflows/ and .opchain/ before relying on the evidence:pr template in consumer repos"
@@ -182,7 +182,13 @@
         "verdict": "no findings"
       }
     ],
-    "verified_for_sha": "e00f962357353e91b54e6874f6b2ac51508bcc45"
+    "verified_for_sha": "e00f962357353e91b54e6874f6b2ac51508bcc45",
+    "preparation_verification": {
+      "content_head": "9f52df193c02cec0718126f7634c3087454d9a81",
+      "gate": "PASS",
+      "log": "/tmp/opchain-integrated-candidate-v6.log",
+      "test_repair_review": "docs/audits/2026-10-22-release-gate-test-repair.md"
+    }
   },
   "handoffs": [
     {
@@ -662,7 +668,7 @@
     "blocking_findings": 0,
     "target": "staging from main"
   },
-  "record_updated_at": "2026-10-22T23:03:37.293Z",
+  "record_updated_at": "2026-10-23T01:42:21.114Z",
   "recently_done": [
     {
       "at": "2026-09-21T13:40:12.755Z",

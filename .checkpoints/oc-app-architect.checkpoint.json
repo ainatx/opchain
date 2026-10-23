@@ -2,13 +2,13 @@
   "protocol_version": "1.1",
   "skill": "oc-app-architect",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain",
+  "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-05-07T00:00:00Z",
-  "updated_at": "2026-10-22T21:56:35.422Z",
+  "updated_at": "2026-10-23T01:42:21.314Z",
   "phase": "build",
   "step": "release-2.1-codex-completion",
   "status": "in_progress",
-  "progress_summary": "Owner transferred the active Claude workstream and confirmed real-use checks are not yet done. Eight work skills in scope; care/vendor-eval/controls/currency deferred. Distribution, dependency and grader corrections prepared, held website candidate reviewed. Model captures preserved with failures. Complete verified preparation PRs, then real-job and observation gates before final release.",
+  "progress_summary": "OW-06 landed through #648 after accepted evaluation and green exact-head CI. The consolidated release-preparation candidate passes all strict code gates and is being preserved in a draft PR; eight-skill scope and held website candidate remain intact. Model acceptance, owner real jobs, public pin/install, model setup and October 27 observation verdicts still prevent the final release cut. No synthetic exercise is counted as real use.",
   "progress_table": [
     {
       "id": "v20-spec",
@@ -667,5 +667,5 @@
       "action": "Quick-feature: v2.0 asset hotfix (favicon, fallback OG card, architecture shade) on claude/v2-asset-hotfix after v2.0.0 shipped without it"
     }
   ],
-  "record_updated_at": "2026-10-22T21:56:35.422Z"
+  "record_updated_at": "2026-10-23T01:42:21.314Z"
 }

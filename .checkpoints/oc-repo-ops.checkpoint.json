@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-ac31c154410b8a429",
+  "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-22T22:33:55.947Z",
+  "updated_at": "2026-10-23T01:42:20.927Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "ow06-ci-fixture-fix",
-  "progress_summary": "OW-06 current candidate passed all eight strict commit gates: site type check, lint, tests, pattern/secret scans, build and both dependency audits. Existing skill reviews and owner acceptance remain scoped; fresh remote CI is next.",
+  "step": "v2.1-release-preparation",
+  "progress_summary": "Preparation candidate is PR-ready: all eight strict gates passed; source/plugin bundles and cross-skill contracts match; docs packet covers changed behavior. Final release remains held.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -24,15 +24,15 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "ow-handoff is in no build output yet, by the ow- catalog's design (no plugin, zip, docs tree, flag registry, hosted MCP catalog or mirror)",
-      "O12 sibling stand-in swaps, the shared approval module and the name-recall gaps are stated open in the PR body"
+      "Final v2.1 release held for model/real-use/observation/public-install evidence",
+      "Held site candidate remains separate until atomic release assembly"
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "08be63b8cb1fd01beba343859176a74cdb057c1f",
+    "verified_for_sha": "9f52df193c02cec0718126f7634c3087454d9a81",
     "last_verify": {
       "at": "2026-10-22T21:10:21.303Z",
       "branch": "claude/ow-06-ow-handoff",
@@ -2532,8 +2532,32 @@
           "sprints/release-2.1/ow-06/ci-fixture-copy.md"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-4554f6609f7e",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-23T01:42:20.926Z",
+      "verified_at": "2026-10-23T01:42:20.926Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-23T01:42:20.926Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:4554f6609f7eab36649d904291af7c079f7401c96454014211156a77b326d170"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Full strict candidate gate PASS, synchronized generated runtimes/plugin bundles, declared cross-skill contracts, current documentation packet and no unrelated untracked changes. Preparation only; final release held.",
+        "evidence": [
+          "docs/audits/2026-10-22-release-gate-test-repair.md",
+          "docs/audits/2026-10-22-release-supply-chain-review.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-22T22:33:55.947Z",
+  "record_updated_at": "2026-10-23T01:42:20.927Z",
   "blockers": []
 }
