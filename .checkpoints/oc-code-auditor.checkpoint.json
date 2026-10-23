@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-10-23T01:42:21.114Z",
+  "updated_at": "2026-10-23T02:06:19.517Z",
   "phase": "build",
   "step": "release-2.1-preparation-review",
   "status": "in_progress",
-  "progress_summary": "Scoped source reviews and all eight strict preparation gates pass, including the corrected isolated CLI fixtures and plugin version assertions. Independent model review preserves remaining intake/build/research defects and correct handoff refusal. This is preparation evidence, not model/real-use/release/deployment acceptance.",
+  "progress_summary": "Consolidated preparation and accessible-name correction pass all eight strict checks. Scoped independent review found no actionable name/focus/keyboard regression across 14 affected links; 123 local browser tests pass. Model acceptance and final release conditions remain separate and open.",
   "blockers": [],
   "next_actions": [
     "Add CODEOWNERS (or required review) on .github/workflows/ and .opchain/ before relying on the evidence:pr template in consumer repos"
@@ -184,10 +184,18 @@
     ],
     "verified_for_sha": "e00f962357353e91b54e6874f6b2ac51508bcc45",
     "preparation_verification": {
-      "content_head": "9f52df193c02cec0718126f7634c3087454d9a81",
-      "gate": "PASS",
-      "log": "/tmp/opchain-integrated-candidate-v6.log",
-      "test_repair_review": "docs/audits/2026-10-22-release-gate-test-repair.md"
+      "content_head": "1cb50e73533fa9df456cc9306479fd5a68ce343d",
+      "verdict": "PASS",
+      "candidate_tree": "dc32d6a015167dfe85b535101b8a9fdae723582e",
+      "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/dc32d6a015167dfe85b535101b8a9fdae723582e/da3682a429fad819876832dec8a08d78675bfcec79aa15d64d3c8eff4168663d/55fa7107-4377-418f-86fa-c8a4a8e09381.json",
+      "log": "/tmp/opchain-integrated-candidate-v7.log",
+      "browser_tests": {
+        "passed": 123,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 52.2
+      },
+      "review": "docs/audits/2026-10-22-accessible-name-remediation.md"
     }
   },
   "handoffs": [
@@ -668,7 +676,7 @@
     "blocking_findings": 0,
     "target": "staging from main"
   },
-  "record_updated_at": "2026-10-23T01:42:21.114Z",
+  "record_updated_at": "2026-10-23T02:06:19.517Z",
   "recently_done": [
     {
       "at": "2026-09-21T13:40:12.755Z",

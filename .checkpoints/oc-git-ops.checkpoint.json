@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-10-23T01:44:07.668Z",
+  "updated_at": "2026-10-23T02:06:19.736Z",
   "phase": "pr-open",
-  "step": "v2.1-preparation-pr-652",
+  "step": "pr-652-accessibility-repair",
   "status": "in_progress",
-  "progress_summary": "OW-06 merged through #648 at 809ed373 after all four exact-head CI jobs passed. Draft preparation PR #652 is open with full strict gate PASS and source-bound Docs/Repo evidence. Rebase of the verified source was accounted for by the original receipt; no manual bypass. PR #652 stays draft while model, owner real-use, public install/setup and October 27 conditions hold the final release.",
+  "progress_summary": "PR #652 remains draft. Its initial site build and Lighthouse jobs passed; browser CI exposed 13 accessible-name failures, now repaired in source with independent review and 123/123 local browser tests. All eight strict checks pass for the updated candidate; source-bound Docs and Repo handoffs are rebound. Push and verify the latest CI before closing this preparation step. OW-06 #648 remains merged; final release is held.",
   "progress_table": [
     {
       "id": "v1.9-release-pr",
@@ -737,7 +737,21 @@
     "ow06_merged": {
       "number": 648,
       "merge_sha": "809ed373847f36d2252f0a11fedec689bc0467bb"
+    },
+    "accessibility_repair": {
+      "content_head": "1cb50e73533fa9df456cc9306479fd5a68ce343d",
+      "verdict": "PASS",
+      "candidate_tree": "dc32d6a015167dfe85b535101b8a9fdae723582e",
+      "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/dc32d6a015167dfe85b535101b8a9fdae723582e/da3682a429fad819876832dec8a08d78675bfcec79aa15d64d3c8eff4168663d/55fa7107-4377-418f-86fa-c8a4a8e09381.json",
+      "log": "/tmp/opchain-integrated-candidate-v7.log",
+      "browser_tests": {
+        "passed": 123,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 52.2
+      },
+      "review": "docs/audits/2026-10-22-accessible-name-remediation.md"
     }
   },
-  "record_updated_at": "2026-10-23T01:44:07.668Z"
+  "record_updated_at": "2026-10-23T02:06:19.736Z"
 }

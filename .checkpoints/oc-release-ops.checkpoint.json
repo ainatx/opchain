@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/.codex/worktrees/ow-handoff-completion/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-23T01:44:07.755Z",
+  "updated_at": "2026-10-23T02:06:19.418Z",
   "skill": "oc-release-ops",
   "phase": "plan",
   "step": "v2.1.0-preparation",
   "status": "in_progress",
-  "progress_summary": "OW-06 #648 merged at 809ed373 with all four exact-head checks green. Draft preparation PR #652 preserves consolidated distribution, dependency remediation and model evidence; all eight strict gates and PR evidence pass. CI for the latest PR head is pending. Intake 7/11, build 7/9, research 19/22 and the refused handoff package remain open alongside owner real jobs, public installation/model setup and October 27 verdicts. No final release or deployment.",
+  "progress_summary": "OW-06 #648 is merged. Draft preparation PR #652 now includes the source fix for 13 CI accessibility failures: 14 link names and keyboard behavior independently reviewed; all 123 local browser tests and all eight strict checks pass. Latest remote CI follows the next push. Owner real jobs, remaining model cases, public installation/model setup and October 27 verdicts still hold the release. No final cut or deployment.",
   "progress_table": [
     {
       "id": "implementation",
@@ -294,11 +294,18 @@
       "real_use": false
     },
     "preparation_gate": {
+      "content_head": "1cb50e73533fa9df456cc9306479fd5a68ce343d",
       "verdict": "PASS",
-      "content_head": "9f52df193c02cec0718126f7634c3087454d9a81",
-      "candidate_tree": "8b896e5fb81c70db0ed9b07f1525f5f9a12abff7",
-      "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/8b896e5fb81c70db0ed9b07f1525f5f9a12abff7/da3682a429fad819876832dec8a08d78675bfcec79aa15d64d3c8eff4168663d/5c77baa0-9d04-4d94-bd32-33c3bc1fd1d6.json",
-      "log": "/tmp/opchain-integrated-candidate-v6.log"
+      "candidate_tree": "dc32d6a015167dfe85b535101b8a9fdae723582e",
+      "receipt_path": "/Users/aidanelsesser/repos/opchain/.git/opchain/verification-receipts/v1/dc32d6a015167dfe85b535101b8a9fdae723582e/da3682a429fad819876832dec8a08d78675bfcec79aa15d64d3c8eff4168663d/55fa7107-4377-418f-86fa-c8a4a8e09381.json",
+      "log": "/tmp/opchain-integrated-candidate-v7.log",
+      "browser_tests": {
+        "passed": 123,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 52.2
+      },
+      "review": "docs/audits/2026-10-22-accessible-name-remediation.md"
     },
     "ow06_landing": {
       "pr": 648,
@@ -330,7 +337,7 @@
       "draft": true
     }
   },
-  "record_updated_at": "2026-10-23T01:44:07.755Z",
+  "record_updated_at": "2026-10-23T02:06:19.418Z",
   "pm_deferred_actions": [
     {
       "id": "deferred-2026-09-21T19:53:16Z-7f2f",
