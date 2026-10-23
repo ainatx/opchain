@@ -73,6 +73,19 @@ checkpoint `protocol_version` is tracked separately (see
   screen, recorded in `skill_state.nav_exceptions[]`. A project that ships a
   sidebar today fails `/oc-release verify` until that screen moves to a top bar
   or is recorded as an exception.
+- **`/oc-merge <pr>` (oc-git-ops).** Merges a reviewed pull request: reads it
+  from GitHub, refuses a draft or a failing required check, pins the merge with
+  `--match-head-commit <headRefOid>`, follows the repository's merge method
+  (squash, merge commit, DCO sign-off, or handing the command to the human who
+  merges), and fast-forwards the main checkout afterwards. "Merge" was the
+  commonest git request in the router's shadow log and had no verb: 7 of 11
+  oc-git-ops routes landed on the `/oc-git` menu. New flag
+  `skills.command.oc-merge.enabled`; the consumer CLAUDE.md template lists the
+  verb.
+- **A skill invoked with a step skips the welcome.** `orchestrator.md` §1: when
+  the args already name the step (by the user, another skill or the router's
+  line), skip the announcement, the menu and the clarifying question, and run
+  it.
 
 ### Experimental
 
@@ -83,18 +96,25 @@ checkpoint `protocol_version` is tracked separately (see
   one the hook exits before any network, git or log work. With a key it runs in shadow mode, logging what it would have
   suggested to `$TMPDIR/opchain-route-log.jsonl` and injecting nothing. It sends
   the redacted prompt and a small repo summary (branch name, ahead/behind, dirty
-  count, open PR, enrollment, and the active checkpoint's skill, phase and first
-  next action, up to 200 characters) to the third-party TypeSafe API
+  count, open PR, enrollment, and, when a core pipeline skill wrote an
+  in-progress checkpoint in the last 24 hours, its skill, phase and first next
+  action, up to 200 characters) to the third-party TypeSafe API
   (`api.typesafe.ai`); credential-shaped text is redacted, but names in the
   branch or that next action are sent as written. It makes up to two requests
   per prompt, with decisions cached for 24 hours; conversation context is sent only with `OPCHAIN_ROUTE_CONTEXT=1`.
   Nothing is sent for slash commands, outside opchain projects, or for a typed
   `/oc-*` instruction, which routes locally; negated or questioned mentions do
-  not route. Unset the key or set `OPCHAIN_ROUTE=0` to turn it off. Its only
-  evaluation so far is offline (574 labelled past prompts); whether it changes
-  skill use is not yet measured. `OPCHAIN_ROUTE_MODE=live`, which injects the
+  not route. A desktop prompt that opens with reminder blocks is routed on the
+  text after them, and a brief from another session on its `Task:` paragraph
+  (the first shadow window left 13 of 14 such prompts unrouted). It never
+  suggests a verb that only prints a skill's menu, and the line it injects
+  carries the chosen step's description. Unset the key or set `OPCHAIN_ROUTE=0` to turn it off. It has an offline
+  eval (574 labelled past prompts) and a first shadow-period read (2026-10-23:
+  hand-labelled precision 0.71 against a 0.8 bar); whether it changes skill use
+  is not yet measured. `OPCHAIN_ROUTE_MODE=live`, which injects the
   suggestion, is **unsupported** until the shadow-period go/no-go
-  (`docs/runbooks/skill-router-eval.md` §6) records a GO.
+  (`docs/runbooks/skill-router-eval.md` §6) records a GO; `OPCHAIN_ROUTE_AB=1`
+  then shows it to half the sessions so the effect can be measured.
 
 ### Fixed
 

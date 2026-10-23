@@ -10,6 +10,7 @@ behind them are the gate, the verbs are how you go through it.
 | `/oc-bugcheck` | run the checks on the staged candidate before committing; `/oc-bugcheck bypass` records a deliberate bypass and writes its trailer |
 | `/oc-commit` | the commit, through the enrolled gate |
 | `/oc-pr` or `/oc-git-sync` | the pull request, carrying the docs packet (`pr-docs-v1`) and readiness verdict (`pr-readiness-v1`) CI requires |
+| `/oc-merge <pr>` | merging a reviewed pull request: checks green, head pinned with `--match-head-commit`, this repository's merge method |
 | `/oc-deploy` | audit gate, staging, production |
 
 Rules:

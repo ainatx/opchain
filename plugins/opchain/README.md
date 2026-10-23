@@ -186,17 +186,27 @@ It has an offline eval and a first shadow-period read (2026-10-23: hand-labelled
 precision 0.71 against the 0.8 bar for live mode). Whether it changes skill use
 can only be measured once suggestions are shown. `OPCHAIN_ROUTE_MODE=live` is
 **unsupported** until the shadow-period go/no-go records a GO. Live mode injects the one line the 2026-10-08 audit
-measured at 72/72 compliance:
+measured at 72/72 compliance, with the chosen step's description after the
+verb:
 
 ```
-opchain route (p=0.91): invoke the Skill tool with skill "oc-git-ops" and args "/oc-git-sync". Skip this if the request means something else.
+opchain route (p=0.91): invoke the Skill tool with skill "oc-git-ops" and args "/oc-git-sync" (Full workflow: branch (from convention) → commit → push → PR). Skip this if the request means something else.
 ```
+
+It never suggests a verb that only prints a skill's command menu (`/oc-git`,
+`/oc-deploy` with no step); it stays silent instead. With
+`OPCHAIN_ROUTE_AB=1` alongside live mode, only half your sessions (fixed per
+session id) get the line; the rest log what they would have got, so
+`route:eval -- outcomes` can compare the two.
 
 By default the router sees the prompt and the repository state (branch name,
-ahead/behind, dirty count, open PR, enrollment, and the active checkpoint's
-skill, phase and first next action, up to 200 characters), redacted for
-credentials before they are sent to TypeSafe (`api.typesafe.ai`). Names in the
-branch or that next action are sent as written. It makes up to two requests
+ahead/behind, dirty count, open PR, enrollment, and, when a core pipeline skill
+such as oc-git-ops wrote an in-progress checkpoint in the last 24 hours, that
+checkpoint's skill, phase and first next action, up to 200 characters), redacted
+for credentials before they are sent to TypeSafe (`api.typesafe.ai`). Names in
+the branch or that next action are sent as written. Desktop-app reminder blocks
+at the start of a prompt are stripped and not sent; a brief from another
+session is reduced to its `Task:` paragraph. It makes up to two requests
 per prompt, with decisions cached locally for 24 hours. Conversation context (the previous prompt and
 the end of the assistant's last message, ≤400 chars, also redacted) is
 **opt-in** with `OPCHAIN_ROUTE_CONTEXT=1` and experimental: on the 2026-10-09
@@ -211,7 +221,8 @@ was suggested, which skills and git/deploy commands followed in the reply turn).
 `npm run route:eval -- outcomes` turns that log into the day-8 go/no-go for
 switching to live. It rescores each routed prompt from the session transcripts,
 subagents included, and falls back to the hook's record only when a transcript
-is gone. Hand labels in `route-labels.jsonl` beside the log override its proxy,
+is gone. Hand labels in `route-labels.jsonl` beside the log override its proxy
+(`route:eval -- label --list`, then `label <session> <hash> <skill|none|ambiguous>`),
 and live mode needs every suggestion labelled
 (`docs/runbooks/skill-router-eval.md` §6 in the source repo). Needs
 `TYPESAFE_API_KEY`; silent without it, outside opchain projects, on slash

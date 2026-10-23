@@ -21,6 +21,12 @@ before executing any skill-specific logic.
 When ANY skill in the ecosystem activates (user triggers it by keyword, command, or
 task description), follow this sequence:
 
+**Invoked with a verb? Skip Steps 1 and 3.** When the skill was invoked with a step
+in its args (`/oc-git-sync …`, `/oc-deploy staging`, `/oc-merge 252`), whether by
+the user, another skill, or an `opchain route` line from the router hook, the step
+has been chosen: do Step 2, then run it. No announcement, no menu, no clarifying
+question. The menu is for a bare skill name or a verb that only shows the menu.
+
 ### Step 1: Announce the skill
 
 ```
@@ -220,6 +226,7 @@ RIGHT (active invocation):
 | PR creation starts (/oc-pr, or /oc-git-sync reaches the PR step) | oc-git-ops | oc-docs-forge | Invoke `/oc-docs pr` to generate the PR documentation packet (`## Documentation` body fragment + optional marker comment) |
 | Docs packet written or verified | oc-docs-forge | oc-repo-ops | Invoke `/oc-repo verify`; PASS → return control to oc-git-ops to open the PR; FAIL → block PR creation, surface blocking findings, offer `/oc-repo clean` |
 | git-sync completes | oc-git-ops | oc-deploy-ops | Confirm with the user (a deploy is their call), then invoke oc-deploy-ops, run /oc-deploy audit then /oc-deploy staging |
+| PR merged to main (`/oc-merge`) | oc-git-ops | oc-deploy-ops | Same confirmation as above: the merge is the deploy trigger, the deploy is the user's call |
 | Launch phase starts | oc-app-architect | oc-code-auditor → oc-deploy-ops | Run /oc-audit pre-deploy first, then /oc-deploy staging |
 | Existing codebase analyzed | oc-reverse-spec | oc-app-architect | Invoke oc-app-architect, copy oc-reverse-spec's specs to `spec/` and run `/oc-roadmap` (Phase 4 baseline) |
 | Integration needed | oc-app-architect (Phase 2) | oc-integrations-engineer | Invoke oc-integrations-engineer for the specific service |
@@ -555,12 +562,13 @@ description: >
 
 # oc-git-ops
 description: >
-  Git workflow: branch, commit, PR, sync, release tag. Chains to (when you invoke it):
-  oc-bug-check before every commit and the oc-docs-forge → oc-repo-ops pre-PR gate before
-  every PR. Owns the release tag that oc-release-ops hands off. Use for /oc-git, /oc-commit,
-  /oc-pr, /oc-push, /oc-git-sync, /oc-git-release, "commit this", "push to git", "create a PR",
-  "tag the release", "sync to repo", or any git operation. "Commit and open a PR" is
-  /oc-git-sync (branch → commit → push → PR); /oc-pr only drafts the PR description.
+  Git workflow: branch, commit, PR, merge, sync, release tag. Chains to (when you invoke
+  it): oc-bug-check before every commit and the oc-docs-forge → oc-repo-ops pre-PR gate
+  before every PR. Owns the release tag that oc-release-ops hands off. Use for /oc-git,
+  /oc-commit, /oc-pr, /oc-push, /oc-git-sync, /oc-merge, /oc-git-release, "commit this",
+  "push to git", "create a PR", "merge PR 123", "tag the release", "sync to repo".
+  "Commit and open a PR" is /oc-git-sync (branch → commit → push → PR); /oc-pr only
+  drafts the PR description. Not the desktop app's Auto-fix or CI-monitoring settings.
 
 # oc-hindsight
 description: >

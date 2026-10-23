@@ -18,7 +18,7 @@
     },
     "oc-bug-check": {
       "index": "Fast checks on what is about to be committed: lint, types, tests, secrets, build; 'is this safe to commit?'. Also enrolling the commit gate.",
-      "notFor": "Not a deliberate audit with a findings report and a fix loop (oc-code-auditor), not threat modelling or infrastructure security (oc-security-auditor), and not test strategy (oc-qa-ops).",
+      "notFor": "Not a deliberate audit with a findings report and a fix loop (oc-code-auditor), not threat modelling or infrastructure security (oc-security-auditor), not test strategy (oc-qa-ops), and not a question about whether the checks ran or belong in a plan.",
       "verbQuestion": "Does the request want the checks run, something auto-fixed, the gate configured, a report or history shown, the gate bypassed once, or the repo enrolled in the commit gate? Choose \"unspecified\" when it names none.",
       "verbs": {
         "/oc-enroll": "Install the opchain commit gate in this repository so every commit is checked (enrollment, not a check run).",
@@ -100,11 +100,12 @@
       "verbQuestion": "Which fleet action does the request ask for: declaring topology, provisioning infra, deploying, verifying, scaling, draining, rollback, or status? Choose \"unspecified\" when it names none."
     },
     "oc-git-ops": {
-      "index": "Git operations: branch, commit, push, open a PR, the whole commit→push→PR sync, tag a merged release.",
-      "notFor": "Not planning or drafting a versioned release (oc-release-ops) and not deploying anything to an environment (oc-deploy-ops). Tagging an already-merged release IS this skill.",
-      "verbQuestion": "What does the request want done with git: just a commit, a PR description, a push, the full commit→push→PR sync, or tagging a merged release? Choose \"unspecified\" when it names none.",
+      "index": "Git operations: branch, commit, push, open or merge a PR, the whole commit→push→PR sync, tag a merged release.",
+      "notFor": "Not planning or drafting a versioned release (oc-release-ops), not deploying anything to an environment (oc-deploy-ops), not turning the coding assistant's Auto-fix or CI monitoring on or off, and not a question about whether a git step happened. Opening a PR is this skill whatever the PR is about; tagging an already-merged release IS this skill.",
+      "verbQuestion": "What does the request want done with git: just a commit, a PR description, a push, the full commit→push→PR sync, merging a reviewed PR (or arming auto-merge), or tagging a merged release? Choose \"unspecified\" when it names none.",
       "verbs": {
-        "/oc-git": "A git task with no specific step named: status, conventions, repo setup."
+        "/oc-git": "A git task with no specific step named: status, conventions, repo setup.",
+        "/oc-merge": "Merge a reviewed pull request, or arm auto-merge, under the repo's merge policy once its checks pass."
       }
     },
     "oc-hindsight": {
@@ -164,7 +165,7 @@
       "verbQuestion": "Which RAG step does the request ask for: design, build, chunking, embeddings, hybrid search, a golden set, eval, benchmark, regression, or inspecting retrievals? Choose \"unspecified\" when it names none."
     },
     "oc-release-ops": {
-      "index": "Cutting a versioned release: propose the next semver, draft the changelog, bump every version, announce, verify, ship or roll back the bump.",
+      "index": "Planning or cutting a release: what ships to staging then production, the next semver, changelog, version bumps, announcement, verify, ship.",
       "notFor": "Not the git mechanics of committing, pushing or tagging (oc-git-ops) and not deploying the built artifact to an environment (oc-deploy-ops).",
       "verbQuestion": "Where in the release is the request: planning the semver, drafting the changelog, bumping versions, the announcement, the pre-ship verify, shipping the whole pipeline, rollback of the bump, or status? Choose \"unspecified\" when it names none."
     },

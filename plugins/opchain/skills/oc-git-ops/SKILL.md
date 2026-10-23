@@ -13,14 +13,16 @@ commands:
   - /oc-pr
   - /oc-push
   - /oc-git-sync
+  - /oc-merge
   - /oc-git-release
 description: >
-  Git workflow: branch, commit, PR, sync, release tag. Chains to (when you invoke it):
-  oc-bug-check before every commit and the oc-docs-forge → oc-repo-ops pre-PR gate before
-  every PR. Owns the release tag that oc-release-ops hands off. Use for /oc-git, /oc-commit,
-  /oc-pr, /oc-push, /oc-git-sync, /oc-git-release, "commit this", "push to git", "create a PR",
-  "tag the release", "sync to repo", or any git operation. "Commit and open a PR" is
-  /oc-git-sync (branch → commit → push → PR); /oc-pr only drafts the PR description.
+  Git workflow: branch, commit, PR, merge, sync, release tag. Chains to (when you invoke
+  it): oc-bug-check before every commit and the oc-docs-forge → oc-repo-ops pre-PR gate
+  before every PR. Owns the release tag that oc-release-ops hands off. Use for /oc-git,
+  /oc-commit, /oc-pr, /oc-push, /oc-git-sync, /oc-merge, /oc-git-release, "commit this",
+  "push to git", "create a PR", "merge PR 123", "tag the release", "sync to repo".
+  "Commit and open a PR" is /oc-git-sync (branch → commit → push → PR); /oc-pr only
+  drafts the PR description. Not the desktop app's Auto-fix or CI-monitoring settings.
 ---
 
 # Git Ops
@@ -44,6 +46,7 @@ GIT OPS COMMANDS
   /oc-pr               Generate PR description from commits/checkpoint
   /oc-push             Push branch to remote
   /oc-git-sync         Full workflow: branch (from convention) → commit → push → PR
+  /oc-merge <pr>       Merge a reviewed PR: checks green, head pinned, the repo's merge method
   /oc-git-release      Tag a merged release + push the tag (closes the ledger)
 
   UTILITIES
@@ -452,6 +455,55 @@ After `/oc-git-sync` completes successfully, hand off per orchestrator §3
   `Skill(skill="oc-deploy-ops", args="/oc-deploy staging")`.
 - If no oc-deploy-ops config exists, offer `/oc-deploy init` to set up
   deployment, or `/oc-audit pre-deploy` for a quality check.
+
+---
+
+## Merging a PR (/oc-merge)
+
+```
+/oc-merge <pr>
+```
+
+The step after `/oc-git-sync`, and the git request people make most often in plain
+words: "merge", "merge 252", "squash-merge PR 247 pinned to head …", "auto-merge 644
+when it's ready". Until 2.1 this skill had no verb for it, so a merge request that
+reached the skill landed on the `/oc-git` menu (7 of 11 git-ops routes in the
+2026-10-19 → 10-23 router shadow log).
+
+1. **Read the PR from GitHub, not from the conversation.**
+   `gh pr view <pr> --json number,state,isDraft,mergeStateStatus,headRefOid,baseRefName,statusCheckRollup`.
+   A SHA quoted in a message or a checkpoint can be stale; pin the merge to
+   `headRefOid` exactly as gh returns it, all 40 characters.
+2. **Refuse what is not ready.**
+   - Draft, closed or already merged: say so and stop.
+   - A failing required check (`evidence:pr` included in an enrolled repo): name the
+     check and stop. Do not merge around it.
+   - Checks still running: arm auto-merge (step 3 with `--auto`) instead of waiting in
+     the session.
+3. **Merge with the repository's policy.** Read it from the repo's `CLAUDE.md` or
+   contributing guide; ask once if neither says. The default is:
+
+   ```bash
+   gh pr merge <pr> --squash --auto --match-head-commit <headRefOid>
+   ```
+
+   `--match-head-commit` makes GitHub refuse the merge if anyone pushed after you read
+   the PR.
+   - **Sign-off (DCO) repositories:** the squash commit needs the trailer. Pass
+     `--body "<subject>"$'\n\n'"Signed-off-by: <git config user.name> <git config user.email>"`.
+   - **A human performs the merge** (required human review, or a human DCO squash, as
+     in ainatx/opchain): hand the user the exact command in a fenced block and stop.
+     Do not run it.
+   - **Merge-commit repositories** (for example, a staging preview whose deploy checks
+     ancestry): use `--merge`, not `--squash`.
+   - `--admin` only when the user says so for this PR, and say in the reply that it
+     bypassed protection.
+4. **After it merges.** `git fetch origin`, then fast-forward the main checkout
+   (`git -C <main checkout> pull --ff-only origin main`) so hooks and new worktrees run
+   the merged code. Record the merge per *Post-Merge Update* below, at an inflection
+   point, not per merge.
+5. **Hand off.** A merge to `main` is the deploy trigger (orchestrator §3, "git-sync
+   completes"). Ask before invoking oc-deploy-ops; deploying is the user's call.
 
 ---
 
