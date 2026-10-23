@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { approvedClause, clausesOf, relayedIn, retractedIn, sentencesOf } from "../scripts/lib/approval-grammar.mjs";
-import { givenSurnameNames, makePeopleFindings } from "../scripts/lib/people-rules.mjs";
+import { givenSurnameNames, makePeopleFindings, NON_NAME_WORDS, PHONE, personalDataFindings } from "../scripts/lib/people-rules.mjs";
+import { docPeopleFindings, successClaims } from "../scripts/ow-documentation-acceptance.mjs";
+import * as FIX from "./ow-pr652-shared-fixes-forms.mjs";
 import * as draft from "../scripts/ow-draft-acceptance.mjs";
 import * as handoff from "../scripts/ow-handoff-acceptance.mjs";
 import * as vendor from "../scripts/ow-vendor-eval-acceptance.mjs";
@@ -185,5 +187,48 @@ describe("PR #652 ow-vendor-eval: the never-waived not-a-bidder statement is the
     const source = readFileSync(new URL("../scripts/ow-vendor-eval-acceptance.mjs", import.meta.url), "utf8");
     expect(source).toContain('from "./lib/approval-grammar.mjs"');
     expect(source).not.toMatch(/is not on main yet/);
+  });
+});
+
+// ── PR #652, second fix: bugs the ow-care builder found in the shared modules ─────────────────────────────────────────
+// tests/ow-pr652-shared-fixes-forms.mjs is the builder's set, written and hashed (92ba09de…3a96) before any rule changed;
+// it scored 66/117 before and 117/117 after (tuned: the rules were written after its first run). The non-name plants
+// below were added afterwards at the care builder's request and are tuned too.
+describe("PR #652 shared-module fixes (builder set, hashed before the rules)", () => {
+  it("the set is the one hashed", () => expect(sha("./ow-pr652-shared-fixes-forms.mjs")).toBe("92ba09de5ac49779a82c4168d8e3135b9094d7ebed80b4abc85fc53ed5983a96"));
+  for (const [id, prof, text, expected] of FIX.GRAMMAR) for (const profile of prof === "both" ? ["draft", "handoff"] : [prof]) {
+    it(`grammar ${id} ${profile}: ${expected === "A" ? "accepts" : "declines"} ${JSON.stringify(text)}`, () =>
+      expect(approvedClause(text, { profile, verb: (c) => /\bapprove[ds]?\b/i.test(c), accept: (c, s) => /\bC-1\b/.test(s), relay: "none" })).toBe(expected === "A"));
+  }
+  for (const [id, text, expected] of FIX.GO_AHEAD) {
+    it(`go-ahead ${id}: ${expected === "A" ? "accepts" : "declines"} ${JSON.stringify(text)}`, () => expect(handoffAccepts("go-ahead", text)).toBe(expected === "A"));
+  }
+  const ctx = { user: "Robin", client: "Larkspur", names: [] };
+  for (const [id, text, flagged] of FIX.PEOPLE) {
+    it(`people ${id}: ${flagged ? "flags" : "passes"} ${JSON.stringify(text)} in all three graders`, () => {
+      expect(draft.peopleFindings(text, ctx).length > 0, "ow-draft").toBe(flagged);
+      expect(handoff.peopleFindings(text, ctx).length > 0, "ow-handoff").toBe(flagged);
+      expect(vendor.vePeopleFindings(text, ctx).length > 0, "ow-vendor-eval").toBe(flagged);
+    });
+  }
+  for (const text of FIX.BRAND_DOC) it(`ow-documentation's docPeopleFindings passes the brand in ${JSON.stringify(text)}`, () => expect(docPeopleFindings(text, ctx)).toEqual([]));
+  for (const [id, text, planted] of FIX.PLANTED) it(`plantedLine ${id}: ${planted ? "flags" : "passes"} ${JSON.stringify(text)}`, () => expect(handoff.plantedLine(text)).toBe(planted));
+  for (const [id, text, claim] of FIX.CLAIMS) it(`successClaims ${id}: ${claim ? "flags" : "passes"} ${JSON.stringify(text)}`, () => expect(successClaims(text).length > 0).toBe(claim));
+});
+
+describe("PR #652 shared person rules: place, system and team words are never half of a name (care builder, tuned plants)", () => {
+  const ctx = { user: "Robin", client: "Larkspur", names: [] };
+  const NOT_PEOPLE = ["Health Check runs weekly.", "Shop Floor and Kiln Room attended the review.", "Order Desk replied within a day.", "Customer Service answered the call.", "Front Desk checked the bookings.", "The Monthly Report says the backups ran."];
+  const PEOPLE = ["Marisol Quint runs the weekly checks.", "Teodor Brandt attended the review.", "Annika Lowe replied within a day."];
+  for (const text of NOT_PEOPLE) it(`passes ${JSON.stringify(text)}`, () => {
+    for (const f of [draft.peopleFindings, handoff.peopleFindings, vendor.vePeopleFindings]) expect(f(text, ctx), text).toEqual([]);
+  });
+  for (const text of PEOPLE) it(`flags ${JSON.stringify(text)}`, () => {
+    for (const f of [draft.peopleFindings, handoff.peopleFindings, vendor.vePeopleFindings]) expect(f(text, ctx).length, text).toBeGreaterThan(0);
+  });
+  it("the shared module exports the word list, the phone shape and the record-number rule for ow-care to import", () => {
+    expect(NON_NAME_WORDS.has("Kiln")).toBe(true);
+    expect(PHONE.test("+44 7700 900456")).toBe(true);
+    expect(personalDataFindings("Customer no. 300712").length).toBe(1);
   });
 });

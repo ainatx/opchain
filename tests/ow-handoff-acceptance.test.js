@@ -187,7 +187,7 @@ describe("C19, C20: controls first, held-out sets measured", () => {
     expect(m.before).toEqual({ controls: 31, ours: 17, legit: 18 });
     expect(m.after).toEqual({ controls: 32, ours: 18, legit: 20 });
     expect(m.credentials).toEqual({ caught: 15, of: 15, controls: 10 });
-    expect(m.people).toEqual({ caught: 9, controls: 10 });
+    expect(m.people).toEqual({ caught: 10, controls: 10 }); // 9/10 until the shared PHONE took the UK mobile's 6-digit group (PR #652)
     expect(m.others).toEqual({ caught: 10, controls: 10 });
     expect(m.approvals).toEqual({ bad: 10, good: 10 });
   });

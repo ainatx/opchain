@@ -25,21 +25,21 @@ export const LATER_WHEN = /\b(?:when|whenever|until|till|as soon as|as long as)\
 export const SAID_RELAY = /\b(?:says|said|asks|asked|wrote|writes|told me|tells me|note|email|message|text(?:ed)?|liked)\b/i;
 export const DOC_RELAY = /\b(?:email|note|message|inbox|file|letter|text)\b[^.;]*\b(?:says|said|states?|shows?|claims?)\b/i;
 
-const SCOPE_NOUNS = String.raw`changes?|edits?|more|other|further|issues?|problems?|objections?|worries|doubts?|logo|quote|matter`;
+const SCOPE_NOUNS = String.raw`changes?|edits?|more|other|further|issues?|problems?|objections?|worries|doubts?|logo|quote|matter|(?:care )?hours?`;
 const SCOPE_END = String.raw`\bnothing (?:else|to (?:change|add|fix|do with)|more)\b|\bno need(?: (?:to|for) \w+)?\b`;
 export const DRAFT_SCOPE = new RegExp(String.raw`\bno (?:${SCOPE_NOUNS})\b|${SCOPE_END}|\bno further(?: \w+)?\b|\bnot later\b`, 'gi');
 export const HANDOFF_SCOPE = new RegExp(String.raw`\bno (?:${SCOPE_NOUNS}|strings|conditions|catches|caveats|steps|extras?|additional)\b(?: attached| left| needed)?|${SCOPE_END}|\bnot later\b`, 'gi');
 
 const HEDGE_START = String.raw`provided|assuming|as long as|depending on|subject to|supposedly|apparently|allegedly|reportedly|I heard|heard that|I think|I guess|I suppose`;
-const HEDGE_END = String.raw`\?\s*(?:no|nope|not)\b|\b(?:readme|sample|note|email|file|document|doc|page|message|memo|text|drive)(?:'s)?\s+(?:\w+\s+)?(?:says?|said|states?|reads?)\b|\bsays:`;
+const HEDGE_END = String.raw`\?\s*(?:no|nope|not)\b|\b(?:readme|sample|note|email|file|document|doc|page|message|memo|text|drive)s?(?:'s)?\s+(?:\w+\s+)?(?:says?|said|states?|reads?)\b|\bsays:`;
 export const DRAFT_HEDGE = new RegExp(String.raw`\b(?:${HEDGE_START}|I'm not sure|not sure|unsure|probably|maybe|perhaps|haven't decided|undecided|no,? wait|hold on|according to)\b|${HEDGE_END}`, 'i');
 export const HANDOFF_HEDGE = new RegExp(String.raw`\b(?:${HEDGE_START}|I assume|thinks?|believes?|thought|I'm (?:not )?sure|I am (?:not )?sure|not sure|unsure|probably|presumably|likely|reckons?|seems?|looks like|should be|must have|leaning|hopefully|maybe|perhaps|haven't decided|undecided|no,? wait|hold on|according to)\b|\bstill (?:my|mine|ours|our|the builder's)\b|${HEDGE_END}`, 'i');
 const COND_START = /^(?:once|if|unless|when|after|pending|as soon as|provided|not yet|later)\b/i;
 const DRAFT_NEG_NEXT = /^(?:not really|no|nope|never mind|on second thought|actually,? no)\b/i;
 export const HANDOFF_NEG_NEXT = /^(?:not really|nope|never mind|on second thought|actually,? no|no(?=[,.!]|$))/i;
 const HANDOFF_LATER = /\b(?:I'll|we'll|they'll|it'll|she'll|he'll|should|gets?|getting|when|booked|scheduled|planned|planning|for now|this (?:afternoon|evening|week)|by (?:Monday|Tuesday|Wednesday|Thursday|Friday|the end)|on (?:Monday|Tuesday|Wednesday|Thursday|Friday))\b|\b(?:is|are|am) (?!\w+ed\b)\w+ing\b|\bgoes out\b/i;
-const HANDOFF_DOC = /\b(?:doc|document|readme|log|sheet|ticket|notes?|wiki|onboarding|handoff doc)\b[^.;]*\b(?:says|said|states?|shows?|claims?|owns?)\b|\baccording to\b|\b(?:the|a) (?:\w+ )?(?:doc|readme|log|ticket|wiki) (?:says|shows|states)\b/i;
-export const RELAY_VERB = /\b(?:says|said|told me|tells me|wrote|writes|reckons|thinks|reports?|mentioned|relayed|relays|forwarded|passed (?:on|along)|conveyed)\b/i;
+const HANDOFF_DOC = /\b(?:doc|document|readme|log|sheet|ticket|notes?|wiki|onboarding|handoff doc)\b[^.;]*\b(?:says?|said|states?|shows?|claims?|owns?)\b|\baccording to\b|\b(?:the|a) (?:\w+ )?(?:doc|readme|log|ticket|wiki) (?:says|shows|states)\b/i;
+export const RELAY_VERB = /\b(?:says|said|told me|tells me|wrote|writes|reckons|thinks|reported|reports (?:that|it|back|to)|mentioned|relayed|relays|forwarded|passed (?:on|along)|conveyed)\b/i;
 /** "Per the ticket", "as per the doc": someone else's record read out, never the user's own act. */
 export const PER_RELAY = /^(?:as )?per\b|\bas per\b/i;
 /**
@@ -121,7 +121,8 @@ export function approvedClause(text, rule) {
       if (clauses.slice(j + 1).some((x) => RETRACT_CLAUSE.test(x)) || sentences.slice(i + 1).some((x) => RETRACT_SENTENCE.test(scopeOut(x, rule.profile).trim()))) { why('declines or says no'); continue; }
       if (clauses.slice(0, j).some((x) => /^(?:wait|hold on|hold off|stop)$/i.test(x)) || (handoff && !allowNo && j > 0 && /^(?:no|nope)$/i.test(clauses[0]))) { why('declines or says no'); continue; }
       const hedgeText = handoff ? (allowNo ? sentence.replace(/\b(?:haven't|hasn't|has not|have not) (?:yet )?decided\b|\bundecided\b/gi, ' ') : sentence) : text;
-      if (hedged(hedgeText, rule.profile)) { why('hedges'); continue; }
+      // The client's own email is the client speaking (the go-ahead-email policy), not a document read out as a hedge.
+      if (hedged(relay === 'go-ahead-email' ? hedgeText.replace(CLIENT_EMAIL, ' ') : hedgeText, rule.profile)) { why('hedges'); continue; }
       const next = sentences[i + 1] ? scopeOut(sentences[i + 1], rule.profile).trim() : '';
       if (next && (handoff ? HANDOFF_NEG_NEXT : DRAFT_NEG_NEXT).test(next) && !(handoff && /\bow-care\b/i.test(next))) { why('declines or says no'); continue; }
       if (handoff && documentRelay(sentence, relay)) { why('reads a document out as the approval'); continue; }
@@ -141,6 +142,7 @@ export function approvedClause(text, rule) {
   return false;
 }
 
+const CLIENT_EMAIL = /\b(?:the client|their|the operations manager|the order coordinator|the bookkeeper|the shop manager|the client's [\w ]{1,30}?)'?s?\s+email\s+(?:says?|said|shows?|states?)\b/gi;
 /** A relay verb is the client's own: the client is its subject ("the client says …") or the attribution that follows a leading verb ("…, says the client owner"). */
 const clientAttribution = (item, at, clientWords) => {
   const before = item.slice(0, at);

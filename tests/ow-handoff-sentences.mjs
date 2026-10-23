@@ -12,6 +12,7 @@
 //   credentials       values caught   15/15 ; controls passed 10/10   (imported rules; no layering)
 //   people            names caught    9/10  ; controls passed 10/10   (imported rules; the miss is a UK mobile in
 //                     "+44 7700 900123" form, ow-documentation's PHONE_WIDE: reported, not patched here)
+//                     10/10 since PR #652's second fix: the family's PHONE (scripts/lib/people-rules.mjs) takes a 6-digit group
 //   other workstreams caught          10/10 ; controls passed 10/10   (the pinned #644 rule)
 //   approvals         bad caught      10/10 ; good passed     10/10   (approvalProblem)
 // Internal numbers, before: a tier price that did not match the frozen copy was missed, and the frozen hourly and
