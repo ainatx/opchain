@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-ac31c154410b8a429",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-23T19:49:41.966Z",
+  "updated_at": "2026-10-23T20:30:06.852Z",
   "skill": "oc-repo-ops",
   "phase": "pr-verify",
   "status": "complete",
-  "step": "pr-verify-jev-scoring",
-  "progress_summary": "Repo readiness gate PASS for the router outcome-scoring rework PR (claude/jev-performance-analysis-d4ed70); one non-blocking warning.",
+  "step": "pr-verify-jev-week0",
+  "progress_summary": "Readiness PASS for the Jev Week-0 build PR (claude/jev-week0 @ ce9ecb29 on main 392853b5): tree clean apart from checkpoints; catalogs, flags, route spec, bundles, plugin copy and MCP catalog in sync; checkpoints valid; docs packet current at HEAD.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -24,18 +24,18 @@
     "verdict": "PASS",
     "blocking_findings": [],
     "warnings": [
-      "docs/audits/2026-10-23-jev-router-shadow-performance.md header cites lib/route-dispatch.cjs as shorthand for plugins/opchain/hooks/lib/route-dispatch.cjs"
+      "held site PR #620 security.astro:222 router disclosure is broader than the new behaviour (docs-forge follow-up)"
     ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "9dd4069f3a951f6015fe9c07992d7cd67b6e01fd",
+    "verified_for_sha": "ce9ecb29c614ed6fa61f90ec0f8d6754fc262434",
     "last_verify": {
-      "at": "2026-10-23T19:49:41Z",
-      "branch": "claude/jev-performance-analysis-d4ed70",
-      "base": "origin/main@809ed373",
+      "at": "2026-10-23T20:30:06.474Z",
+      "branch": "claude/jev-week0",
+      "base": "origin/main@392853b5",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -2554,8 +2554,33 @@
           ".checkpoints/oc-docs-forge.checkpoint.json"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-26448560a75e",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-23T20:30:06.852Z",
+      "verified_at": "2026-10-23T20:30:06.852Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-23T20:30:06.852Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:26448560a75ef03797a2cf7cdcc676eae9f4ed11019cbb61a8c6f0763428d05f"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Jev Week-0 build PR @ ce9ecb29: clean tree, catalog/flags/route-spec/bundle/plugin/MCP catalog in sync, checkpoints valid, docs packet current",
+        "evidence": [
+          "src/generated/mcp-catalog.json",
+          "plugins/opchain/hooks/route-spec.json",
+          "src/lib/flags/registry.js"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-23T19:49:41.966Z",
+  "record_updated_at": "2026-10-23T20:30:06.852Z",
   "blockers": []
 }
