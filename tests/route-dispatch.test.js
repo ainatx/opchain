@@ -124,8 +124,9 @@ describe("route(): decisions", () => {
   });
 
   it("an explicit fits threshold overrides both tiers (eval open query, OPCHAIN_ROUTE_FITS)", async () => {
+    // The eval's open query also opens the p floor (minP 0); the floor is tested on its own below.
     const open = await d.route({
-      prompt: PROMPT, repoState: REPO, spec, cache: false, thresholds: { fits: 0 },
+      prompt: PROMPT, repoState: REPO, spec, cache: false, thresholds: { fits: 0, minP: 0 },
       transport: fakeTransport(answers1({ top: "oc-ux-engineer" }), answers2({ skill: "oc-ux-engineer", fits: 0.2, verb: "unspecified" })),
     });
     expect(open.decision).toMatchObject({ skill: "oc-ux-engineer", fits: 0.2 });
@@ -284,13 +285,13 @@ describe("route(): decisions", () => {
     expect(shipped.decision).toBeNull();
   });
 
-  it("thresholds: env overrides and eval-style {fits:0, gate:0} both work", async () => {
+  it("thresholds: env overrides and eval-style {fits:0, gate:0, minP:0} both work", async () => {
     expect(d.thresholdsFromEnv({ OPCHAIN_ROUTE_GATE: "0.2", OPCHAIN_ROUTE_FITS: "0.9" })).toMatchObject({ gate: 0.2, fits: 0.9, minTopProb: 0.35 });
     expect(d.thresholdsFromEnv({ OPCHAIN_ROUTE_GATE: "nope" }).gate).toBe(0.5);
     expect(d.thresholdsFromEnv({})).toEqual(d.DEFAULT_THRESHOLDS);
     const strict = await d.route({ prompt: PROMPT, repoState: REPO, spec, transport: fakeTransport(answers1(), answers2()), thresholds: { fits: 0.9 }, cache: false });
     expect(strict.decision).toBeNull();
-    const loose = await d.route({ prompt: PROMPT, repoState: REPO, spec, transport: fakeTransport(answers1({ acts: 0.2, procedure: 0.2, prose: 0.9 }), answers2({ fits: 0.1 })), thresholds: { fits: 0, gate: 0 }, cache: false });
+    const loose = await d.route({ prompt: PROMPT, repoState: REPO, spec, transport: fakeTransport(answers1({ acts: 0.2, procedure: 0.2, prose: 0.9 }), answers2({ fits: 0.1 })), thresholds: { fits: 0, gate: 0, minP: 0 }, cache: false });
     expect(loose.decision).toMatchObject({ skill: "oc-git-ops", fits: 0.1 });
     expect(loose.decision.gate).toBeCloseTo(0.1667, 3);
   });
@@ -592,13 +593,32 @@ describe("route(): cache", () => {
     expect(d.cacheKey("p", { x: 1 }, { version: "v1" }, null, { thresholds: { fits: 0.3 } })).not.toBe(a);
     expect(d.cacheKey("p", { x: 1 }, { version: "v1" }, null, { thresholds: { gate: 0.7 } })).not.toBe(a);
     expect(d.cacheKey("p", { x: 1 }, { version: "v1" }, null, { thresholds: { coreFits: 0.4 } })).not.toBe(a);
+    expect(d.cacheKey("p", { x: 1 }, { version: "v1" }, null, { thresholds: { minP: 0 } })).not.toBe(a);
+  });
+
+  it("p floor: each bar cleared but p = min(top, fits, gate) < 0.6 → no suggestion; OPCHAIN_ROUTE_MIN_P overrides", async () => {
+    // The 2026-10-21 "Turn on Auto-fix for PR 247" shape: rerank top 0.43 over none, fits exactly 0.60.
+    const autofix = () => fakeTransport(answers1(), answers2({ top: 0.43, fits: 0.6 }));
+    const held = await d.route({ prompt: PROMPT, repoState: REPO, spec, transport: autofix(), cache: false });
+    expect(held.decision).toBeNull();
+    expect(held.trace.reason).toMatch(/^p 0\.43 = min\(top, fits, gate\) < 0\.6 for oc-git-ops$/);
+    const open = await d.route({ prompt: PROMPT, repoState: REPO, spec, transport: autofix(), cache: false, thresholds: { minP: 0 } });
+    expect(open.decision).toMatchObject({ skill: "oc-git-ops", p: 0.43 });
+    const env = await d.route({ prompt: PROMPT, repoState: REPO, spec, transport: autofix(), cache: false, thresholds: d.thresholdsFromEnv({ OPCHAIN_ROUTE_MIN_P: "0.4" }) });
+    expect(env.decision).toMatchObject({ skill: "oc-git-ops" });
+    // The shipped default and the env parse.
+    expect(d.DEFAULT_THRESHOLDS.minP).toBe(0.6);
+    expect(d.thresholdsFromEnv({ OPCHAIN_ROUTE_MIN_P: "nope" }).minP).toBe(0.6);
+    // A strong suggestion clears it.
+    const strong = await d.route({ prompt: PROMPT, repoState: REPO, spec, transport: fakeTransport(answers1(), answers2()), cache: false });
+    expect(strong.decision.p).toBeGreaterThanOrEqual(0.6);
   });
 
   it("a decision cached under one fits override is not served under another (B-08)", async () => {
     const dir = mkdtempSync(join(tmpdir(), "oc-route-cache-thr-"));
     try {
       const t1 = fakeTransport(answers1(), answers2({ fits: 0.5 }));
-      const loose = await d.route({ prompt: PROMPT, repoState: REPO, spec, transport: t1, cache: { dir }, thresholds: { fits: 0.3 } });
+      const loose = await d.route({ prompt: PROMPT, repoState: REPO, spec, transport: t1, cache: { dir }, thresholds: { fits: 0.3, minP: 0 } });
       expect(loose.decision).not.toBeNull();
       const t2 = fakeTransport(answers1(), answers2({ fits: 0.5 }));
       const shipped = await d.route({ prompt: PROMPT, repoState: REPO, spec, transport: t2, cache: { dir } });

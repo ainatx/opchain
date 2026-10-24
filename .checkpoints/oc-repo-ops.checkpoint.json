@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-ac31c154410b8a429",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-23T20:30:06.852Z",
+  "updated_at": "2026-10-24T01:03:51.335Z",
   "skill": "oc-repo-ops",
   "phase": "pr-verify",
   "status": "complete",
-  "step": "pr-verify-jev-week0",
-  "progress_summary": "Readiness PASS for the Jev Week-0 build PR (claude/jev-week0 @ ce9ecb29 on main 392853b5): tree clean apart from checkpoints; catalogs, flags, route spec, bundles, plugin copy and MCP catalog in sync; checkpoints valid; docs packet current at HEAD.",
+  "step": "pr-verify-jev-floor-baseline",
+  "progress_summary": "Repo readiness gate PASS for the router p floor / baseline-lift gate PR (claude/jev-router-floor-baseline).",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -23,19 +23,17 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [
-      "held site PR #620 security.astro:222 router disclosure is broader than the new behaviour (docs-forge follow-up)"
-    ],
+    "warnings": [],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "ce9ecb29c614ed6fa61f90ec0f8d6754fc262434",
+    "verified_for_sha": "f27686058f3d07dd0b2a6cc14ec9642d544784ea",
     "last_verify": {
-      "at": "2026-10-23T20:30:06.474Z",
-      "branch": "claude/jev-week0",
-      "base": "origin/main@392853b5",
+      "at": "2026-10-24T01:03:51Z",
+      "branch": "claude/jev-router-floor-baseline",
+      "base": "origin/main@681abc04",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -2579,8 +2577,31 @@
           "src/lib/flags/registry.js"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-d1ce371a57e2",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-24T01:03:51.334Z",
+      "verified_at": "2026-10-24T01:03:51.334Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-24T01:03:51.334Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:d1ce371a57e2a4bcf9ea5abd4478645e0663c78d521a96cce17731aa536b717f"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Router p floor + baseline-lift gate PR at f2768605: docs packet current at HEAD; route-spec, plugin skills, skill contracts and bundles in sync; no untracked files; cited paths exist",
+        "evidence": [
+          ".checkpoints/oc-docs-forge.checkpoint.json"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-23T20:30:06.852Z",
+  "record_updated_at": "2026-10-24T01:03:51.335Z",
   "blockers": []
 }

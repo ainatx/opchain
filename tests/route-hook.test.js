@@ -246,6 +246,36 @@ describe("route-prompt hook: speaking", () => {
     expect(one.logLines).toHaveLength(0);
   });
 
+  it("envelopes (task notification, CI event, `!` command, another session's message) never close the previous prompt's window", () => {
+    const sessionId = "sess-envelope";
+    const log = join(scratch, "envelope-log.jsonl");
+    const file = join(scratch, "envelope-transcript.jsonl");
+    const first = "commit this and open a PR against main";
+    writeFileSync(file, JSON.stringify({ type: "user", message: { role: "user", content: "earlier context prompt" } }) + "\n");
+    const a = run({ prompt: first, transcript_path: file, logFile: log, sessionId });
+    expect(a.logLines).toHaveLength(1);
+    appendFileSync(file, JSON.stringify({ type: "user", timestamp: "2026-01-01T00:00:00.000Z", message: { role: "user", content: first } }) + "\n");
+    // 2026-10-23: 22 of 60 shadow windows were closed by one of these, often seconds after the prompt.
+    const envelopes = [
+      "<task-notification>\n<task-id>b1</task-id>\n<status>completed</status>\n</task-notification>",
+      "<ci-monitor-event>PR #1 has 1 new review comment</ci-monitor-event>",
+      "<bash-input>git status</bash-input>",
+      "Another Claude session sent a message:\n<cross-session-message from=\"x\">done</cross-session-message>",
+    ];
+    for (const prompt of envelopes) {
+      const r = run({ prompt, transcript_path: file, logFile: log, sessionId });
+      expect(r.status, r.stderr).toBe(0);
+      expect(r.stdout).toBe("");
+      expect(r.logLines.filter((l) => l.type === "outcome"), prompt.slice(0, 20)).toHaveLength(0);
+    }
+    // The person's next turn closes it.
+    appendFileSync(file, JSON.stringify({ type: "assistant", message: { id: "a1", content: [{ type: "tool_use", id: "t1", name: "Bash", input: { command: "gh pr create --fill" } }] } }) + "\n");
+    const b = run({ prompt: "thanks, now deploy to staging", transcript_path: file, logFile: log, sessionId });
+    const outcomes = b.logLines.filter((l) => l.type === "outcome");
+    expect(outcomes).toHaveLength(1);
+    expect(outcomes[0]).toMatchObject({ for_prompt_hash: a.logLines[0].prompt_hash, raw: { gh_pr_create: true } });
+  });
+
   it("writes an outcome record for the previous prompt on the session's next prompt", () => {
     const sessionId = "sess-outcome";
     const log = join(scratch, "outcome-log.jsonl");
