@@ -30,10 +30,12 @@ const SCOPE_END = String.raw`\bnothing (?:else|to (?:change|add|fix|do with)|mor
 export const DRAFT_SCOPE = new RegExp(String.raw`\bno (?:${SCOPE_NOUNS})\b|${SCOPE_END}|\bno further(?: \w+)?\b|\bnot later\b`, 'gi');
 export const HANDOFF_SCOPE = new RegExp(String.raw`\bno (?:${SCOPE_NOUNS}|strings|conditions|catches|caveats|steps|extras?|additional)\b(?: attached| left| needed)?|${SCOPE_END}|\bnot later\b`, 'gi');
 
+/** Trailing or concessive uncertainty ("…, though I'm not certain", "honestly not sure", "although I have doubts", "not 100% sure"). */
+const UNCERTAIN = String.raw`not (?:entirely |completely |totally |quite |fully |100% |a hundred percent )?(?:certain|sure|convinced|confident)|uncertain|(?:have|having|with) (?:some |a few |my )?(?:doubts|reservations)|second thoughts`;
 const HEDGE_START = String.raw`provided|assuming|as long as|depending on|subject to|supposedly|apparently|allegedly|reportedly|I heard|heard that|I think|I guess|I suppose`;
 const HEDGE_END = String.raw`\?\s*(?:no|nope|not)\b|\b(?:readme|sample|note|email|file|document|doc|page|message|memo|text|drive)s?(?:'s)?\s+(?:\w+\s+)?(?:says?|said|states?|reads?)\b|\bsays:`;
-export const DRAFT_HEDGE = new RegExp(String.raw`\b(?:${HEDGE_START}|I'm not sure|not sure|unsure|probably|maybe|perhaps|haven't decided|undecided|no,? wait|hold on|according to)\b|${HEDGE_END}`, 'i');
-export const HANDOFF_HEDGE = new RegExp(String.raw`\b(?:${HEDGE_START}|I assume|thinks?|believes?|thought|I'm (?:not )?sure|I am (?:not )?sure|not sure|unsure|probably|presumably|likely|reckons?|seems?|looks like|should be|must have|leaning|hopefully|maybe|perhaps|haven't decided|undecided|no,? wait|hold on|according to)\b|\bstill (?:my|mine|ours|our|the builder's)\b|${HEDGE_END}`, 'i');
+export const DRAFT_HEDGE = new RegExp(String.raw`\b(?:${HEDGE_START}|I'm not sure|not sure|unsure|probably|maybe|perhaps|haven't decided|undecided|no,? wait|hold on|according to|${UNCERTAIN})\b|${HEDGE_END}`, 'i');
+export const HANDOFF_HEDGE = new RegExp(String.raw`\b(?:${HEDGE_START}|I assume|thinks?|believes?|thought|I'm (?:not )?sure|I am (?:not )?sure|not sure|unsure|probably|presumably|likely|reckons?|seems?|looks like|should be|must have|leaning|hopefully|maybe|perhaps|haven't decided|undecided|no,? wait|hold on|according to|${UNCERTAIN})\b|\bstill (?:my|mine|ours|our|the builder's)\b|${HEDGE_END}`, 'i');
 const COND_START = /^(?:once|if|unless|when|after|pending|as soon as|provided|not yet|later)\b/i;
 const DRAFT_NEG_NEXT = /^(?:not really|no|nope|never mind|on second thought|actually,? no)\b/i;
 export const HANDOFF_NEG_NEXT = /^(?:not really|nope|never mind|on second thought|actually,? no|no(?=[,.!]|$))/i;

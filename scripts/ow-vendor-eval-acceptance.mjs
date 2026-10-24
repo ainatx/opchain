@@ -31,7 +31,7 @@ import { matter } from "./lib/frontmatter.mjs";
 import { familyNameRules } from "./check-skill-contracts.mjs";
 import { loadCatalogs } from "./lib/catalogs.mjs";
 import { approvedClause, hedged, laterIn } from "./lib/approval-grammar.mjs";
-import { makePeopleFindings } from "./lib/people-rules.mjs";
+import { makePeopleFindings, NON_NAME_WORDS, recordWords } from "./lib/people-rules.mjs";
 import { ourSideFindings, figuresIn, isRound, ROUND_MATCH, internalFigures, parseFindings, credentialFindings, runView as researchRunView } from "./ow-research-acceptance.mjs";
 import { otherWorkstreams, otherClientMatchers, otherClientFindings, NON_CLIENT_FOLDERS, docPeopleFindings, GIVEN_NAMES, docCredentialFindings, docDataFindings, successClaims, shippedTextProblems as docShippedText } from "./ow-documentation-acceptance.mjs";
 import { PUBLISHED_TEST_CARDS } from "./ow-uat-acceptance.mjs";
@@ -436,7 +436,8 @@ export function approvalAnswer(answer, kind, want = {}) {
   if (!a) return { ok: false, decision: null, problems: ["no answer in this session"] };
   if (/^no(?::\s*.+)?$/i.test(a) && ["agree", "choose", "demo"].includes(kind)) return { ok: true, decision: "no", problems: [] };
   if (kind === "agree" || kind === "choose") {
-    const m = a.match(/^yes (\d{4}-\d{2}-\d{2})$/);
+    // "yes <date>": the case and a final full stop are free; anything else after the date declines.
+    const m = a.match(/^yes (\d{4}-\d{2}-\d{2})\.?$/i);
     if (!m) p.push(`"${a.slice(0, 50)}" is not the answer the closed question asks for (yes <date> / no)`);
     else if (want.date && m[1] !== want.date) p.push(`the answer's date ${m[1]} is not the recorded ${want.date}`);
     return { ok: !p.length, decision: p.length ? null : "yes", date: m?.[1], problems: p };
@@ -1840,7 +1841,7 @@ const sharedPeopleFindings = makePeopleFindings({
 });
 export const vePeopleFindings = (text, ctx = {}) => {
   const out = [...sharedPeopleFindings(text, ctx)];
-  for (const line of String(text ?? "").split("\n")) { const m = line.match(CUE_NAME); if (m && !NOT_A_PERSON.test(m[1]) && m[1] !== ctx.user && !out.some(([, h]) => h === m[1])) out.push(["a person's name (after a contact cue)", m[1]]); }
+  for (const line of String(text ?? "").split("\n")) { const m = line.match(CUE_NAME); if (m && !NOT_A_PERSON.test(m[1]) && !NON_NAME_WORDS.has(m[1]) && !(ctx.records instanceof Set && ctx.records.has(m[1])) && m[1] !== ctx.user && !out.some(([, h]) => h === m[1])) out.push(["a person's name (after a contact cue)", m[1]]); }
   return out;
 };
 /** A customer's data in a client output's prose: ow-documentation's rules on every line that is not a table row. */
@@ -1859,7 +1860,7 @@ function checkPrivateNames(key, run) {
   }
   for (const { rel, text } of clientOutputs(run, key)) {
     const known = new Set((() => { try { return longlistOf(run, key).flatMap((r) => [r.vendor, r.vendor.split(" ")[0]]); } catch { return []; } })());
-    for (const [what, hit] of vePeopleFindings(text, { user: key.user, client: key.client })) if (!known.has(hit)) p.push(`${short(rel)}: ${what} ("${hit}"); people by role, never a contact detail`);
+    for (const [what, hit] of vePeopleFindings(text, { user: key.user, client: key.client, records: new Set([...recordWords(run), ...known]) })) if (!known.has(hit)) p.push(`${short(rel)}: ${what} ("${hit}"); people by role, never a contact detail`);
     // A customer's data in prose (the family's data rules); a comparison table's vendor rows are not records.
     for (const [what, hit] of veDataFindings(text, { user: key.user, client: key.client })) p.push(`${short(rel)}: ${what} ("${hit}")`);
   }

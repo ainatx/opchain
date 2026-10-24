@@ -25,7 +25,7 @@ import { fileURLToPath } from "node:url";
 import * as yaml from "js-yaml";
 import { matter } from "./lib/frontmatter.mjs";
 import { SAID_LATER, SAID_RELAY, DOC_RELAY, DRAFT_SCOPE as SAID_SCOPE, sentencesOf, clausesOf, approvedClause as gradeApprovalClause, hedged as grammarHedged, declined as grammarDeclined, relayedIn, retractedIn } from "./lib/approval-grammar.mjs";
-import { makePeopleFindings } from "./lib/people-rules.mjs";
+import { makePeopleFindings, recordWords } from "./lib/people-rules.mjs";
 import { loadCatalogs } from "./lib/catalogs.mjs";
 import { familyNameRules } from "./check-skill-contracts.mjs";
 import { PUBLISHED_TEST_CARDS } from "./ow-uat-acceptance.mjs";
@@ -993,18 +993,18 @@ export function sessionApproval(kind, lines, want = {}) {
     const ok = own.some(({ text }) => approvedClause(text, (c) => c.includes(want.branch) && /\b(?:made|created|checked out|switched to|am on|is checked out|are on|on branch)\b/i.test(c) && !/\b(?:did not|didn't|not yet|haven't|have not)\b/i.test(c)));
     if (!ok) p.push(`the branch ${want.branch} is not one the user said they made and checked out in this session`);
   } else if (kind === "waiver") {
-    // Anchored at the start of a sentence ("Waive …", "Please waive …", "Yes, waive …", "I waive …", "Waiving …"): "I won't waive Sources" is not
+    // Anchored at the start of a sentence ("Waive …", "Please waive …", "Yes, waive …", "I waive …", "I'm waiving …", "Waiving …"): "I won't waive Sources" is not
     // a waiver, and a decline of another check is not this one's. The clause grammar holds the sentence to the same decline,
     // hedge, condition, relay and retraction rules as every other approval.
     let found = null;
     for (const { text } of own) {
       for (const s of sentencesOf(text)) {
-        const m = s.match(/^(?:please\s+)?(?:(?:yes|ok|okay|sure),?\s+)?(?:I\s+)?(?:waive|waiving)\b([^\n]*)$/i);
+        const m = s.match(/^(?:please\s+)?(?:(?:yes|ok|okay|sure),?\s+)?(?:I(?:'m|’m| am)?\s+)?(?:waive|waiving)\b([^\n]*)$/i);
         if (!m || hedged(text) || /\b(?:unless|if|once|provided)\b/i.test(s)) continue;
         // The reason after "because" or a colon may quote someone ("the client says it is fine"); it is not the waiver's own words.
         // The checks' own names begin with "No" ("No internal numbers"); that is the check, not a refusal.
         const head = s.replace(/(?::|,? because\b).*$/i, "").replace(/\bNo (?=internal numbers|credentials|private names)/g, "");
-        if (!approvedClause(text.replace(s, head), (c) => /^(?:please\s+)?(?:(?:yes|ok|okay|sure),?\s+)?(?:I\s+)?(?:waive|waiving)\b/i.test(c), (c, sent) => sent.startsWith(head))) continue;
+        if (!approvedClause(text.replace(s, head), (c) => /^(?:please\s+)?(?:(?:yes|ok|okay|sure),?\s+)?(?:I(?:'m|’m| am)?\s+)?(?:waive|waiving)\b/i.test(c), (c, sent) => sent.startsWith(head))) continue;
         const t = `waive${m[1]}`.replace(/^waive the (.+?) check\b/i, "waive $1").replace(/[.;!?]+$/, "");
         const problems = approvalProblem("waiver", t, want);
         if (found == null || !problems.length) found = { t, problems };
@@ -2392,7 +2392,7 @@ export function meaningFindings(run, key, { all = false } = {}) {
   if (!c.brief) return out;
   const files = all && c.newest ? run.all().filter((f) => f === `${d}/candidates/C-${c.newest}.md` || f.startsWith(`${d}/candidates/C-${c.newest}/`)) : clientOutputs(run, key);
   const ctx = { user: c.user, figures: c.figures, items: c.items, offer: c.offer, waived: c.waived, offerFigures: c.offerFigures };
-  const peopleCtx = { user: c.user, business: c.business, client: c.client, names: [...c.clients.map((x) => x.name).filter(Boolean)], people: asList(key.people) };
+  const peopleCtx = { user: c.user, business: c.business, client: c.client, names: [...c.clients.map((x) => x.name).filter(Boolean)], people: asList(key.people), records: recordWords(run) };
   for (const f of files.filter((x) => TEXT.test(x))) {
     const text = /\.html$/.test(f) ? (run.read(f) ?? "").replace(/<[^>]+>/g, " ") : run.read(f) ?? "";
     const order = orderFor(run, f, c.newest ? `${d}/candidates/C-${c.newest}` : null);

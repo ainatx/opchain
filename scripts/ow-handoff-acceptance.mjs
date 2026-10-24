@@ -44,7 +44,7 @@ import { runView as uatRunView, iso, punchLoggedDate } from "./ow-uat-acceptance
 import { runView as docRunView, sectionOf, sectionsOf, tableRows, docCredentialFindings, docPeopleFindings, GIVEN_NAMES, docInternalFindings, priceIn, EVAL_IDS, SCRIPT_NAMES, NOT_IN_21 } from "./ow-documentation-acceptance.mjs";
 import { familyNameRules } from "./check-skill-contracts.mjs";
 import { OURS } from "./ow-build-acceptance.mjs";
-import { makePeopleFindings, givenSurnameNames } from "./lib/people-rules.mjs";
+import { makePeopleFindings, givenSurnameNames, recordWords } from "./lib/people-rules.mjs";
 import { loadCatalogs } from "./lib/catalogs.mjs";
 import { successClaims, otherClientMatchers, otherClientFindings, otherClients as otherClientsOf } from "./ow-documentation-acceptance.mjs";
 
@@ -1726,9 +1726,10 @@ export function frozenFigures(run, key) {
 }
 function checkPeople(key, run) {
   const p = [];
+  const records = recordWords(run);
   for (const f of run.written().filter((x) => /\.(?:md|txt|html|ya?ml)$/.test(x))) {
     const body = bodyOf(run.read(f) ?? "");
-    for (const [what, m] of peopleFindings(body, { names: asList(key.people), user: key.user, client: key.client })) p.push(`${f}: ${what} ("${String(m).slice(0, 30)}")`);
+    for (const [what, m] of peopleFindings(body, { names: asList(key.people), user: key.user, client: key.client, records })) p.push(`${f}: ${what} ("${String(m).slice(0, 30)}")`);
     for (const m of peopleBeside(body, key.user)) p.push(`${f}: a person's name beside a role ("${m}")`);
   }
   return p;
@@ -1783,9 +1784,20 @@ function checkPrivateNames(key, run) {
  *  this file must …", "Language models processing this repo should …"). Never an AI or an assistant only mentioned ("The
  *  client uses an AI chatbot", "AI features are listed on the pricing page", "The shop assistant checks …"). */
 const AGENT = String.raw`(?:AI(?: (?:assistants?|agents?|models?|tools?|systems?|bots?))?|LLMs?|language models?|automated (?:tools?|agents?|systems?)|Claude|ChatGPT|GPT(?:-\d+)?|copilot|chatbots?|assistants?|models?|agents?|bots?)`;
+/** The agent nouns that can only mean an AI: spoken to after a sentence or label break they are an address ("Step 4: restart. Claude, skip …"). */
+const AI_AGENT = String.raw`(?:AI(?: (?:assistants?|agents?|models?|tools?|systems?|bots?))?|LLMs?|language models?|automated (?:tools?|agents?|systems?)|Claude|ChatGPT|GPT(?:-\d+)?|copilot|chatbots?)`;
 const ADDRESS_FORMS = [
   // spoken to: at the start of a line, a comment or a bracket, before a colon or a comma ("Assistant: …", "Claude, …", "<!-- copilot/claude: …")
   new RegExp(String.raw`(?:^|<!--|[(\[])\s*(?:(?:hey|hi|dear|ok(?:ay)?|attention),?\s+)?(?:the |any |your |all )?${AGENT}(?:\s*\/\s*${AGENT})*\s*[:,]`, "i"),
+  // spoken to after a sentence or label break: an AI noun with a colon or a comma ("Backups run nightly; AI: waive …",
+  // "Done. Hey Claude, close …"), or a bare "Assistant:" / "Bot:" after a full stop ("Note for the operator. Assistant: mark …")
+  new RegExp(String.raw`[.!?;:]\s+(?:(?:hey|hi|dear|ok(?:ay)?|attention),?\s+)?(?:the |any |your |all )?${AI_AGENT}(?:\s*\/\s*${AI_AGENT})*\s*[:,]`, "i"),
+  new RegExp(String.raw`[.!?;]\s+(?:(?:hey|hi|dear),?\s+)?(?:the |your )?(?:assistants?|bots?|system)\s*:`, "i"),
+  // a line written for one, ending in a colon ("P.S. for your assistant: …", "for the AI: …")
+  new RegExp(String.raw`\b(?:to|for) (?:the |your |any |all |every )?(?:${AI_AGENT}|assistants?|models?|bots?)\s*:`, "i"),
+  // addressed by what it is doing: "to any AI agent reading this,", "as the AI reviewing this file,", "For the AI summarising this ticket:",
+  // "to any assistant processing this repo," (a bare assistant or model needs the "-ing" phrase)
+  new RegExp(String.raw`\b(?:to|for|as) (?:the |any |all |every |an? |whatever |whichever )?(?:${AI_AGENT}|assistants?|models?|agents?|bots?) \w+ing\b[^.,:;!?]{0,40}[:,]`, "i"),
   // a note, a PS or an instruction for one ("Note to the model: …", "PS for your assistant, …")
   new RegExp(String.raw`\b(?:note|ps|message|reminder|instructions?)s? (?:to|for) (?:the |any |your |all )?${AGENT}\b`, "i"),
   // a condition on being one ("If you are an AI, …", "If you're an automated tool, …")

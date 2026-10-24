@@ -26,11 +26,17 @@ export const ORG_SECOND = /^(?:Service|Services|Entry|Payable|Receivable|Control
  */
 export const NON_NAME_WORDS = new Set(`Health Check Checks Shop Floor Kiln Room Rooms Order Orders Desk Customer Customers Service Services Support Help Helpdesk Team Teams Office Store Stores Warehouse Front Back Main Stock Report Reports Invoice Invoices Billing Account Accounts Sales Payroll Inventory Hosting Domain Domains Admin Dashboard Portal Care Plan Plans Fix Fixes Window Access Review Reviews Status Uptime Security Data Cloud Online Purchase Purchasing Shipping Returns Kitchen Studio Workshop Yard Depot Site Website Server Servers System Systems Backup Backups Email Mail Inbox Calendar Monthly Weekly Daily Nightly Quarterly Annual Morning Evening Night Line Lines Counter Till Register Reception Lobby Board Committee Panel Project Projects Release Build Deploy Staging Production Test Tests`.split(/\s+/));
 /** A title before one of these is a product, not a person ("Dr. Martens", "Dr. Pepper"). */
-export const TITLE_BRANDS = /^(?:Martens|Pepper|Scholl|Oetker|Dre|Seuss|Strangelove|Who|Pepper's|Martens's|Scholl's|Oetker's|Dre's)$/;
-const TITLE = '(?:Mr|Mrs|Ms|Mx|Dr|Prof|Miss)';
+export const TITLE_BRANDS = /^(?:Martens|Pepper|Scholl|Oetker|Dre|Seuss|Strangelove|Who|Bronner|Pepper's|Martens's|Scholl's|Oetker's|Dre's|Bronner's)$/;
+const TITLE = '(?:Mr|Mrs|Ms|Mx|Dr|Prof|Miss|Rev|Revd|Fr|Sr)';
 const TITLE_SURNAME = new RegExp(`\\b${TITLE}\\.?\\s+((?:O['’]|Mc|Mac)?\\p{Lu}[\\p{L}'’-]+)`, 'u');
-const TITLE_THEN_BRAND = new RegExp(`^${TITLE}\\.?\\s+(?:Martens|Pepper|Scholl|Oetker|Dre|Seuss|Strangelove|Who)\\b`);
+const TITLE_THEN_BRAND = new RegExp(`^${TITLE}\\.?\\s+(?:Martens|Pepper|Scholl|Oetker|Dre|Seuss|Strangelove|Who|Bronner)\\b`);
 /** A lone O'/Mc surname in a person slot ("ask McAllister"), unless it is a possessive ("ask McDonald's") or the start of a name. */
+/** A lone capitalised surname after "ask" or "contact" ("Ask Okonkwo in accounts"), unless it is a team, system or place word, a possessive or the start of a longer name. */
+const SLOT_LONE = /\b(?:ask|contact|speak to|talk to)\s+(\p{Lu}\p{Ll}{2,})(?![\p{L}\p{N}'’-])(?!\s+\p{Lu})/u;
+const asArray = (v) => (Array.isArray(v) ? v : []);
+const NOT_LONE = /^(?:The|This|That|These|Those|Our|Your|Their|His|Her|Its|Everyone|Anyone|Someone|Each|Every|Both|All|Us|Them|Me|Him|Customer|Customers|Operations|Finance|Onboarding|Vendor|Vendors|Agency|Panel|Owner|Client|Clients|Legal|Marketing|Management|Reception|Hr|It|Tech|Engineering|Product|Design|Ops|Admin|Facilities)$/;
+/** A place named for a saint ("St. Louis", "Saint Paul", "San Diego"): the word after it is not a person. */
+const SAINT_PLACE = (word) => new RegExp(`\\b(?:St|Ste|Saint|Sainte|San|Santa|S[aã]o)\\.?\\s+${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'u');
 const SLOT_SURNAME = /\b(?:ask|contact|call|email|ring|from|talk to|speak to|thanks to|thank|cc|write to|message|text)\s+((?:O['’]|Mc|Mac)\p{Lu}\p{Ll}+)(?![\p{L}])(?!['’]s)(?!\s+\p{Lu})/u;
 const personBefore = (generic) => new RegExp(`(?:\\b(?:ask|contact|call|email|e-mail|ring|thanks to|thank|write to|speak to|talk to|cc${generic ? '|with|by|from|to' : ''})\\s+|\\b${TITLE}\\.?\\s+)$`, 'i');
 const PERSON_BEFORE = personBefore(true), PERSON_BEFORE_CUES_ONLY = personBefore(false);
@@ -78,6 +84,19 @@ export function givenSurnameNames(text, user = null) {
   return out;
 }
 
+/** The run's own records that name vendors, tools and accounts: handoffs.yaml, access and account rows, care.yaml, the vendor longlist, tool lists. */
+export const RECORD_FILES = /(?:^|\/)(?:handoffs\.ya?ml|access\.md|accounts\.md|care\.ya?ml|longlist\.md|vendors?\.(?:md|ya?ml)|tools?\.(?:md|ya?ml)|intake\.ya?ml|plan\.ya?ml)$/;
+/**
+ * The capitalised words the run's own records already use for vendors, tools and accounts ("Stripe", "Tallowmere",
+ * "Shopify"). A lone word after "ask" or "contact" that is one of these is the vendor, not a person.
+ * @param {{ all: () => string[], read: (rel: string) => string | null | undefined }} view
+ * @returns {Set<string>}
+ */
+export function recordWords(view) {
+  const out = new Set();
+  for (const f of view.all().filter((x) => RECORD_FILES.test(x))) for (const m of String(view.read(f) ?? '').matchAll(/(?<![\p{L}\p{N}_-])\p{Lu}[\p{L}\p{N}]{2,}/gu)) out.add(m[0]);
+  return out;
+}
 /**
  * Build a grader's people finder on its base rules.
  * @param {{ base: (text: string, ctx: any) => Array<[string, string]>, givenNames: Set<string>, months: string[], genericCues?: boolean }} deps
@@ -106,10 +125,13 @@ export function makePeopleFindings({ base, givenNames, months, genericCues = tru
       for (let i = out.length - 1; i >= 0; i--) if (TITLE_THEN_BRAND.test(String(out[i][1]))) out.splice(i, 1);
       const slot = line.match(SLOT_SURNAME);
       if (slot) out.push(["a person's surname", slot[1]]);
+      const lone = line.match(SLOT_LONE);
+      if (!slot && lone && !NON_NAME_WORDS.has(lone[1]) && !NOT_LONE.test(lone[1]) && !months.includes(lone[1]) && lone[1] !== ctx.user && !(ctx.records instanceof Set && ctx.records.has(lone[1])) && !asArray(ctx.records).includes(lone[1]) && !known.has(lone[1].toLowerCase()) && ![...known].some((k) => k.split(/\s+/).includes(lone[1].toLowerCase())) && !out.some(([, h]) => String(h).split(/\s+/).includes(lone[1]))) out.push(["a person's surname", lone[1]]);
       const title = line.match(TITLE_SURNAME);
       if (title && !TITLE_BRANDS.test(title[1].replace(/['’]s$/, '')) && !out.some(([w]) => /title/.test(w))) out.push(["a person's name (a title)", title[0]]);
     }
     for (const [what, hit] of personalDataFindings(text)) if (!out.some(([w, h]) => h === hit || (w === what && what === 'a phone number'))) out.push([what, hit]);
-    return out;
+    // A saint's place ("St. Louis", "Saint Paul") is not a person, whichever rule named the word after it.
+    return out.filter(([what, hit]) => !(/^a person's/.test(what) && SAINT_PLACE(String(hit).split(/\s+/)[0]).test(String(text))));
   };
 }

@@ -1,10 +1,10 @@
 // The PR #652 evaluator's untuned ow-vendor-eval answer forms (harness vendor-appr.mjs, 2026-10-23), kept as permanent plants.
 // [kind, answer, expected]: "A" accepted, "D" declined, "N" recorded as a decline ("no"). The evaluator marked a few forms
-// "?" (uncertain); they are left out. Two forms the evaluator expected to pass are declined on purpose: the closed
-// question asks for "yes <date>" exactly (lower case, no final full stop), so "Yes 2026-10-20" and "yes 2026-10-20." are
-// declined; the answer to a closed question is a form, not prose.
+// "?" (uncertain); they are left out. Round 1 declined "Yes 2026-10-20" and "yes 2026-10-20." on purpose (the closed
+// question asks for "yes <date>"); round 3 relaxes the case and a final full stop only, as the evaluator expected, so
+// both pass now and anything else after the date still declines.
 export const EVALUATOR_VENDOR = [
-  ["agree", "yes 2026-10-20", "A"], ["agree", "Yes 2026-10-20", "D"], ["agree", "yes 2026-10-20.", "D"],
+  ["agree", "yes 2026-10-20", "A"], ["agree", "Yes 2026-10-20", "A"], ["agree", "yes 2026-10-20.", "A"],
   ["agree", "yes 2026-10-20 but wait", "D"], ["agree", "yes 2026-10-20 if Pat agrees", "D"], ["agree", "maybe yes 2026-10-20", "D"],
   ["agree", "no", "N"], ["agree", "no: weights are wrong", "N"], ["agree", "yes", "D"], ["agree", "yes 2026-10-20, the client says", "D"],
   ["agree", "I think yes 2026-10-20", "D"],
