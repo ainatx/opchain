@@ -35,7 +35,8 @@
 // assents ("yes", "go", "done") after a PR or deploy turn became suggestions.
 //
 // Decision: null unless gate ≥ T.gate, rerank top ≠ none with probability
-// ≥ T.minTopProb, and fits ≥ T.fits. p = min(top probability, fits, gate).
+// ≥ T.minTopProb, fits ≥ T.fits, and p = min(top probability, fits, gate)
+// ≥ T.minP.
 // Evidence gate: every skill stays a Choice OPTION (so it absorbs probability
 // instead of misrouting to oc-git-ops), but only skills in spec.suggestAllow
 // (scripts/route-spec.overrides.json `suggest.allow`) may be SUGGESTED. A
@@ -81,11 +82,17 @@ const DEFAULT_MODEL = "jev-1.13.0";
 // router's 0.830 / 0.951 / 0.982 at 0.4. At 0.4 this shape lets 5 more ordinary prompts
 // through in both runs (precision 0.745/0.750), so 0.4 is not kept. An explicit `fits`
 // (OPCHAIN_ROUTE_FITS, or the eval harness's open query `fits: 0`) overrides both tiers.
+//
+// minP floors the combined p = min(top, fits, gate): each part clearing its own bar is not
+// enough. In the 2026-10-19→22 shadow log the suggestions with p < 0.6 were two "Turn on
+// Auto-fix for PR N" prompts (a rerank top of 0.43 / 0.52 over `none` passed minTopProb
+// 0.35) and a "close to merge?" question; every hand-checked right one had p ≥ 0.66.
+// OPCHAIN_ROUTE_MIN_P overrides it.
 const CORE_SKILLS = Object.freeze([
   "oc-git-ops", "oc-deploy-ops", "oc-code-auditor", "oc-bug-check", "oc-release-ops", "oc-docs-forge", "oc-repo-ops",
 ]);
 const DEFAULT_THRESHOLDS = Object.freeze({
-  gate: 0.5, fits: null, coreFits: 0.6, otherFits: 0.9, core: CORE_SKILLS, minTopProb: 0.35, verb: 0.5, suggestAll: false,
+  gate: 0.5, fits: null, coreFits: 0.6, otherFits: 0.9, core: CORE_SKILLS, minTopProb: 0.35, minP: 0.6, verb: 0.5, suggestAll: false,
   context: false, allowMenus: false,
 });
 function fitsThreshold(T, skill) {
@@ -143,8 +150,10 @@ function thresholdsFromEnv(env = process.env, base = DEFAULT_THRESHOLDS) {
   const out = { ...DEFAULT_THRESHOLDS, ...base };
   const gate = clamp01(env.OPCHAIN_ROUTE_GATE);
   const fits = clamp01(env.OPCHAIN_ROUTE_FITS);
+  const minP = clamp01(env.OPCHAIN_ROUTE_MIN_P);
   if (gate !== null && env.OPCHAIN_ROUTE_GATE !== undefined && env.OPCHAIN_ROUTE_GATE !== "") out.gate = gate;
   if (fits !== null && env.OPCHAIN_ROUTE_FITS !== undefined && env.OPCHAIN_ROUTE_FITS !== "") out.fits = fits;
+  if (minP !== null && env.OPCHAIN_ROUTE_MIN_P !== undefined && env.OPCHAIN_ROUTE_MIN_P !== "") out.minP = minP;
   if (env.OPCHAIN_ROUTE_SUGGEST_ALL === "1" || env.OPCHAIN_ROUTE_SUGGEST_ALL === "true") out.suggestAll = true;
   if (env.OPCHAIN_ROUTE_CONTEXT === "1" || env.OPCHAIN_ROUTE_CONTEXT === "true") out.context = true;
   return out;
@@ -430,6 +439,9 @@ function evaluate(spec, answers1, answers2, thresholds) {
   if (fits === null) return { ...base, reason: `no fits answer for ${skill}` };
   const fitsBar = fitsThreshold(T, skill);
   if (fits < fitsBar) return { ...base, reason: `fits ${fits.toFixed(2)} < ${fitsBar} for ${skill}` };
+  const p = Math.min(top, fits, gate);
+  const minP = Number.isFinite(T.minP) ? T.minP : 0;
+  if (p < minP) return { ...base, reason: `p ${p.toFixed(2)} = min(top, fits, gate) < ${minP} for ${skill}` };
 
   const entry = spec.skills[skill];
   const verbAnswer = answers2[`verb::${skill}`];
@@ -460,7 +472,6 @@ function evaluate(spec, answers1, answers2, thresholds) {
   const menu = isMenuVerb(entry, verb);
   if (menu && !T.allowMenus) return { ...base, reason: `verb ${verb} is ${skill}'s menu (no step named)` };
   const confidence = Number.isFinite(Number(rerank.confidence)) ? Number(rerank.confidence) : computeConfidence(probabilities);
-  const p = Math.min(top, fits, gate);
   const decision = {
     skill,
     verb,
@@ -572,7 +583,7 @@ function redactDeep(value) {
  */
 function thresholdKey(thresholds) {
   const T = { ...DEFAULT_THRESHOLDS, ...(thresholds || {}) };
-  return JSON.stringify([T.gate, T.fits ?? null, T.coreFits, T.otherFits, [...(T.core || CORE_SKILLS)].sort(), T.minTopProb, T.verb, Boolean(T.allowMenus)]);
+  return JSON.stringify([T.gate, T.fits ?? null, T.coreFits, T.otherFits, [...(T.core || CORE_SKILLS)].sort(), T.minTopProb, T.minP ?? 0, T.verb, Boolean(T.allowMenus)]);
 }
 
 /**
@@ -775,10 +786,26 @@ const RAW_TOOLS = Object.freeze({
 const MERGE_HANDOFF_RE = /`[^`\n]*\bgh\s+pr\s+merge\b[^`\n]*`/;
 const RAW_CLASSES = Object.freeze([...Object.keys(RAW_COMMANDS), "merge_handoff"]);
 const BASH_INPUT_RE = /^<bash-input>([\s\S]*?)<\/bash-input>/;
+// A message relayed from another Claude session, as the transcript shows it.
+const AGENT_MESSAGE_RE = /^Another Claude session sent a message:/;
+
+/**
+ * Is a prompt (already past leading `<system-reminder>` blocks) an envelope
+ * rather than a person's turn? Task notifications, CI monitor events, `!`
+ * bash input and other `<…>` blocks, an empty prompt, and a message relayed
+ * from another session. They all fire UserPromptSubmit, but none is what the
+ * person asked for, so none routes or closes an outcome window.
+ */
+function isEnvelopeBody(body) {
+  const t = String(body ?? "").trim();
+  return !t || t.startsWith("<") || AGENT_MESSAGE_RE.test(t);
+}
 // An outcome window closes at the end of the reply turn, at the next human turn,
-// or this long after the prompt, whichever comes first. Task notifications do not
-// fire UserPromptSubmit, so with none of these an autonomous session kept one
-// prompt's window open for 36 h (2026-10-23 shadow analysis).
+// or this long after the prompt, whichever comes first. Before 2026-10-23 the hook
+// closed it at the session's next UserPromptSubmit of any kind: of 60 shadow
+// outcomes, 22 were closed by a task notification, CI event, `!` command or another
+// session's message (often seconds after the prompt), and one window stayed open
+// 69 h across an idle session.
 const OUTCOME_WINDOW_MS = 30 * 60 * 1000;
 
 function rawCommandClasses(command) {
@@ -800,11 +827,13 @@ function emptyRaw() {
  * Does this record start a new human turn (which closes an outcome window)? A
  * typed prompt, a slash command, or a desktop-app prompt whose text follows
  * leading `<system-reminder>` blocks. Task notifications, other envelopes,
- * `!` bash-mode input and tool results (AskUserQuestion answers included) do not.
+ * `!` bash-mode input, messages relayed from another session and tool results
+ * (AskUserQuestion answers included) do not.
  */
 function isHumanTurn(record) {
   // humanText already accepts a prompt behind leading reminder blocks.
-  if (humanText(record) !== null) return true;
+  const text = humanText(record);
+  if (text !== null) return !AGENT_MESSAGE_RE.test(text);
   if (!record || record.type !== "user" || record.isMeta || record.isSidechain || !record.message) return false;
   const c = record.message.content;
   if (Array.isArray(c) && c.some((b) => b && b.type === "tool_result")) return false;
@@ -1205,6 +1234,7 @@ module.exports = {
   RAW_CLASSES,
   OUTCOME_WINDOW_MS,
   isHumanTurn,
+  isEnvelopeBody,
   emptyRaw,
   addRecordActivity,
   outcomeWindow,
