@@ -306,6 +306,41 @@ function skillMd(root, skill, frontmatter, body = "") {
   writeFileSync(join(root, "skills", skill, "SKILL.md"), `---\nname: ${skill}\n${frontmatter}\n---\n# ${skill}\n${body}`);
 }
 
+// 2026-10-24 skill-to-skill investigation: a sprint's acceptance checks as a typed
+// handoff, so a reader outside the build loop stops parsing eval-round-M.md.
+describe("acceptance", () => {
+  it("publishes one acceptance.checks handoff per sprint, replacing an earlier round", () => {
+    const root = repo();
+    write(root, "oc-app-architect.checkpoint.json", cp("oc-app-architect", { phase: "build", step: "sprint-2" }));
+    const miss = run(root, "acceptance", "oc-app-architect", "--sprint", "sprint-2", "--verdict", "PASS", "--source", "sprints/sprint-2/eval-round-1.md", "--check", "AC-2.1=PASS", "--check", "AC-2.2=FAIL");
+    expect(miss.code).toBe(1);
+    expect(miss.out).toContain("PASS needs every check PASS");
+    const r1 = runSplit(root, "acceptance", "oc-app-architect", "--sprint", "sprint-2", "--verdict", "FAIL", "--source", "sprints/sprint-2/eval-round-1.md", "--check", "AC-2.1=PASS", "--check", "AC-2.2=fail", "--json");
+    expect(r1.code, r1.stderr).toBe(0);
+    const out = JSON.parse(r1.stdout);
+    expect(out.handoff).toMatchObject({
+      type: "acceptance.checks",
+      producer: { skill: "oc-app-architect" },
+      artifact: { kind: "file", id: "sprints/sprint-2/eval-round-1.md" },
+      payload: { sprint: "sprint-2", verdict: "FAIL", checks: [{ id: "AC-2.1", status: "PASS" }, { id: "AC-2.2", status: "FAIL" }] },
+    });
+    expect(out.handoff.artifact.digest).toBeUndefined(); // the report is not in this scratch repo
+    const r2 = run(root, "acceptance", "oc-app-architect", "--sprint", "sprint-2", "--verdict", "PASS", "--source", "sprints/sprint-2/eval-round-2.md", "--check", "AC-2.1=PASS", "--check", "AC-2.2=PASS");
+    expect(r2.code, r2.out).toBe(0);
+    expect(r2.out).toContain("2 of 2 checks PASS");
+    expect(r2.out).toContain("replaced 1 earlier result(s) for this sprint");
+    const data = readCp(root, "oc-app-architect");
+    expect(data.handoffs).toHaveLength(1);
+    expect(data.handoffs[0].payload.verdict).toBe("PASS");
+    expect(run(root, "validate").code).toBe(0);
+    // Needs a checkpoint, a sprint, a source and at least one check.
+    expect(run(root, "acceptance", "oc-qa-ops", "--sprint", "sprint-1", "--verdict", "FAIL", "--source", "x.md", "--check", "A=FAIL").code).toBe(1);
+    expect(run(root, "acceptance", "oc-app-architect", "--verdict", "FAIL", "--source", "x.md", "--check", "A=FAIL").out).toContain("--sprint");
+    expect(run(root, "acceptance", "oc-app-architect", "--sprint", "sprint-3", "--verdict", "FAIL", "--source", "x.md").out).toContain("at least one --check");
+    expect(run(root, "acceptance", "oc-app-architect", "--sprint", "sprint-3", "--verdict", "FAIL", "--source", "x.md", "--check", "A=MAYBE").out).toContain("status must be");
+  });
+});
+
 // 2026-10-08 effectiveness audit, I-06: the scaffold sentence validated and shipped.
 describe("scaffold placeholder", () => {
   const path = "/x/oc-a.checkpoint.json";

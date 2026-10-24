@@ -86,6 +86,21 @@ checkpoint `protocol_version` is tracked separately (see
   the args already name the step (by the user, another skill or the router's
   line), skip the announcement, the menu and the clarifying question, and run
   it.
+- **Every skill-to-skill handoff is written in the tool-named form.** A
+  2026-10-24 reading of five days of sessions found 18 of 18 chained skill
+  calls came from the two skills whose text said `Skill(skill="…", args="…")`
+  and none from the 33 that said "chain to" or "invoke oc-X" in prose. Twelve
+  skills (oc-agent-forge, oc-api-dev, oc-app-architect, oc-data-ops,
+  oc-fleet-ops, oc-integrations-engineer, oc-migration-ops, oc-modularize-ops,
+  oc-release-ops, oc-reverse-spec, oc-security-auditor, oc-signal-forge) now
+  write their handoffs that way. `orchestrator.md` §3 *Context Passing* says to
+  put ids, paths and verdicts in `args` (no skill read a sibling checkpoint in
+  that window) and keeps checkpoints for resume and typed handoffs. New typed
+  handoff `acceptance.checks` (`checkpoint acceptance`): a build sprint's
+  acceptance-check ids and statuses, one per sprint, published by
+  oc-app-architect Phase 6 so a reader outside the loop stops parsing
+  `eval-round-M.md`. The router stays silent on `/ow-*` and "use ow-…"
+  prompts (logged as `envelope: "ow"`): its spec holds oc- skills only.
 
 ### Experimental
 

@@ -225,7 +225,7 @@ Hand the **validated** signal to its consumer. This chains to `oc-dash-forge` fo
 rendering, or `oc-api-dev` if the metric is exposed as a first-party endpoint. Wiring
 an *unverified* signal is forbidden — `verify` PASS is the precondition. The wire phase
 also hands the signal's `freshness_sla` (recorded in `signals/catalog.md`) to
-`oc-monitoring-ops`: invoke `/oc-monitor alerts` with it so staleness gets a prod alarm.
+`oc-monitoring-ops`: Invoke the Skill tool with skill "oc-monitoring-ops" and args "/oc-monitor alerts — <signal freshness_sla from signals/catalog.md>" so staleness gets a prod alarm.
 This is a hand-off, not an intake monitoring-ops runs on its own — it has no
 signal-forge reader, so the alert exists only once that command sets it up (Signal
 Forge owns the *contract*; monitoring-ops owns the *alert*).
@@ -278,10 +278,10 @@ stable read contract*. The moment that number is being **drawn** (dash-forge),
 
 | Chains to | Why |
 |---|---|
-| `oc-dash-forge` | render the validated signal |
+| `oc-dash-forge` | Invoke the Skill tool with skill "oc-dash-forge" and args "/oc-data-forge — <validated signal>" |
 | `oc-monitoring-ops` | hand off each signal's `freshness_sla` (from `signals/catalog.md`) via `/oc-monitor alerts` so staleness gets a prod alert (signal-forge owns the *contract*, monitoring-ops owns the *alert*) |
-| `oc-api-dev` | publish the metric as an endpoint |
-| `oc-data-ops` | the metric needs an estate-level pipeline that doesn't exist → `/oc-data-ops design` |
+| `oc-api-dev` | Invoke the Skill tool with skill "oc-api-dev" and args "/oc-api — <metric to publish as an endpoint>" |
+| `oc-data-ops` | the metric needs an estate-level pipeline that doesn't exist → Invoke the Skill tool with skill "oc-data-ops" and args "/oc-data-ops design — <metric pipeline>" |
 
 > **Open seam:** `oc-app-architect`'s Phase-2 spec set contains `08-analytics.md`, but
 > app-architect does not chain to `oc-signal-forge` — nothing invokes this skill

@@ -202,12 +202,12 @@ never existed; the stubs make the missing artifact visible.
 
 ### Stack Selection (chains to oc-stack-forge)
 
-Before generating spec files, chain to oc-stack-forge per orchestrator.md §3 (Active Invocation):
+Before generating spec files, hand off to oc-stack-forge per orchestrator.md §3 (Active Invocation):
 
 1. State the chain: "Discovery is approved. Now using oc-stack-forge to choose the stack."
 2. Read `oc-stack-forge/SKILL.md` and `oc-stack-forge/references/orchestrator.md`.
 3. Check for `.checkpoints/oc-stack-forge.checkpoint.json` (resume if present).
-4. Execute `/oc-stack-decide` with the discovery context (platform → backend → database → auth → frontend). Stack-forge web-searches for current framework status before recommending.
+4. Invoke the Skill tool with skill "oc-stack-forge" and args "/oc-stack-decide — <discovery context>" (platform → backend → database → auth → frontend). Stack-forge web-searches for current framework status before recommending.
 5. Stack-forge returns the recommendation; if the user already stated preferences during discovery, oc-stack-forge validates the choice rather than re-interviewing.
 6. Present recommendation → user confirms → stack informs all remaining spec files in this phase.
 
@@ -236,7 +236,7 @@ Rules:
    on top of a chosen platform (e.g. rag-forge's vector-DB pack must be
    compatible with the deploy target).
 2. oc-claude-api is the hub: oc-rag-forge and oc-agent-forge both pull model
-   routing from it rather than re-deciding. Invoke oc-claude-api first when more
+   routing from it rather than re-deciding. Invoke the Skill tool with skill "oc-claude-api" and args "/oc-claude-api — <AI-app discovery context>" first when more
    than one AI skill applies.
 3. Each invoked skill writes its own checkpoint; app-architect reads them back
    to assemble the AI sections of the spec. Add an `11-ai-architecture.md` spec
@@ -255,7 +255,7 @@ the AI-app branch:
 
 1. Run it **after** oc-stack-forge (warehouse/queue choice is a stack-forge
    input oc-data-ops consumes, never re-decides).
-2. Execute `/oc-data-ops design` with the discovery context; its layer map +
+2. Invoke the Skill tool with skill "oc-data-ops" and args "/oc-data-ops design — <discovery context>"; its layer map +
    data contracts fold into `02-architecture.md` (data model section) and the
    contract rows feed oc-qa-ops' matrix in `06-testing.md`.
 3. Detect it from discovery signals: "pipeline", "warehouse", "dbt", "ETL/ELT",
@@ -337,7 +337,7 @@ navigation paths.
 **Data-heavy surfaces chain to oc-dash-forge.** When a screen is data-heavy (≥3 charts/tables, real-time updates, BI/monitoring/analyst archetype, or rendering oc-data-ops' contracted marts), invoke oc-dash-forge per orchestrator.md §3:
 
 1. Read `oc-dash-forge/SKILL.md` for the canonical archetype scoping table.
-2. Execute `/oc-data-forge` with the design tokens + spec context, **and the Navigation
+2. Invoke the Skill tool with skill "oc-dash-forge" and args "/oc-data-forge — <design tokens + spec context>", **and the Navigation
    rule**: dashboards keep the top bar too, so reject a handoff whose shell is a sidebar.
 3. Mark the screen `source: oc-dash-forge` and skip inline wireframes — oc-dash-forge's handoff bundle plugs into the Phase 3d punch list directly.
 
@@ -611,9 +611,22 @@ standalone ITERATE verdict counts as FAIL here.
 - **FAIL + iterations remaining**: Feed eval report to Generator, fix, re-evaluate.
 - **FAIL + max iterations**: Escalate to user with all eval reports.
 
-After each outcome: update checkpoint, suggest oc-git-ops commit if appropriate. Record
-the round with its per-criterion scores, not just the aggregate, so a later session can
-tell whether the ≥ 6 gate was met: append to `eval_scores[]` an entry with
+After each outcome: update the checkpoint, then publish the round's acceptance-check
+results as data, one line per sprint (a later round replaces the earlier one):
+
+```bash
+node scripts/checkpoint.mjs acceptance oc-app-architect --sprint sprint-N --verdict PASS|FAIL \
+  --source sprints/sprint-N/eval-round-M.md --check AC-n.m=PASS --check AC-n.k=FAIL …
+```
+
+The check ids are the `### AC-n.m` blocks of `spec/06-testing.md` that the sprint
+contract cites; `--verdict` is the report's verdict (PASS needs every check PASS). This
+is the `acceptance.checks` handoff a reader outside the loop (a client-side skill
+mapping sprints to milestones, a gate) validates with `getCheckpointHandoff()` instead
+of parsing the report. On PASS, when the sprint produced code, hand off to oc-git-ops:
+`Skill(skill="oc-git-ops", args="/oc-commit — sprint-N passed its evaluator (sprints/sprint-N/eval-round-M.md)")`.
+Record the round with its per-criterion scores, not just the aggregate, so a later
+session can tell whether the ≥ 6 gate was met: append to `eval_scores[]` an entry with
 `rubric: "oc-app-architect"`, `score` (the weighted Code Score), `max: 10`, `dimensions`
 (`functionality`, `completeness`, `quality`, `ux`), and `ref` pointing at the eval report
 (see `references/checkpoint-protocol.md` → *Wire 1.1 extensions*).

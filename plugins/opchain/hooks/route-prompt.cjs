@@ -68,7 +68,8 @@
 //   blocks) starts with "/" (slash command) or is an envelope
 //   (dispatch.isEnvelopeBody: "<…" task notifications, CI events, `!` input;
 //   another session's relayed message) · a session brief with no `Task:`
-//   paragraph · prompt < 2 chars · p = min(top, fits, gate) under the floor
+//   paragraph · an ow- family request (`/ow-*`, "use ow-…"; logged as envelope
+//   "ow") · prompt < 2 chars · p = min(top, fits, gate) under the floor
 //   · with OPCHAIN_ROUTE_CONTEXT=1 only: prompt < 12 chars UNLESS the
 //   transcript has an assistant message for it to follow up on · the repo is
 //   not an opchain project (.checkpoints/ dir, .bugcheck.json, or
@@ -394,6 +395,26 @@ function isOpchainProject(dir) {
 }
 
 if (!isOpchainProject(root)) silent();
+
+// An ow- request ("use ow-uat-plan on …", "/ow-build-run M2") is for the other
+// family, which the spec does not hold. Log it so the two families' prompt mix is
+// visible, send nothing.
+if (dispatch.isOwPrompt(prompt)) {
+  appendLog({
+    prompt_head: prompt.slice(0, 80),
+    repo: path.basename(root),
+    cwd,
+    envelope: "ow",
+    brief,
+    decision: null,
+    mode,
+    arm,
+    injected: false,
+    trace: { reason: "ow- family prompt; the router covers oc- skills only", ms: 0, cached: false, error: null },
+    total_ms: Date.now() - started,
+  });
+  silent();
+}
 
 // ── Watchdog: the whole hook must finish inside BUDGET_MS of process start ──
 const watchdog = setTimeout(() => {

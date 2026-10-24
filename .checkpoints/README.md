@@ -60,7 +60,7 @@ first commit on a fresh clone.
 | `cost` |   | object | `{ total_usd?, budget_usd?, by_phase?, by_model?, currency? }` — LLM spend attribution + budget ceiling (oc-cost-ops, wire 1.1+). |
 | `eval_scores` |   | array | `{ rubric, score, max?, at?, dimensions? }[]` — eval scores vs a stable rubric (oc-bug-check / oc-code-auditor / oc-prompt-ops, wire 1.1+). |
 | `telemetry_handle` |   | string \| object | Opt-in local-metering link `{ enabled, id?, sink?, since? }` — default OFF (oc-telemetry-ops, wire 1.1+). |
-| `handoffs` |   | array | C-contract typed handoffs (`src/lib/mcp/checkpoint-contract.js`). The `verification.verdict` entries are what `scripts/lib/release-evidence.mjs` reads at the PR/deploy gates — write them with `checkpoint handoff`, never by hand. |
+| `handoffs` |   | array | C-contract typed handoffs (`src/lib/mcp/checkpoint-contract.js`). The `verification.verdict` entries are what `scripts/lib/release-evidence.mjs` reads at the PR/deploy gates — write them with `checkpoint handoff`, never by hand. `acceptance.checks` entries carry a build sprint's acceptance-check ids and statuses (`checkpoint acceptance`), one per sprint, for readers outside the build loop. |
 | `skill_state` |   | object | Freeform — private to the owning skill. |
 
 Validation runs in CI via `npm run checkpoint:validate`. The validator is

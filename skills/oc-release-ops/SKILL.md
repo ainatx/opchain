@@ -297,21 +297,18 @@ End-of-pipeline handoff.
    bump (`references/site-release-surfaces.md`: the Minor column, L1–L10, for a
    minor; the Patch column for a patch). Then run `/oc-release verify` — the pre-tag rows of the gate. Hard-blocks on any
    failure. (The tag row cannot pass yet: the tag is created in step 3.)
-2. Invoke `oc-docs-forge` for the release docs packet:
-   - Run `/oc-docs pr` so the release PR carries its `## Documentation` section,
+2. Invoke the Skill tool with skill "oc-docs-forge" and args "/oc-docs pr — <release v<semver> docs packet>" for the release docs packet, so the release PR carries its `## Documentation` section,
      the changelog entry, and any README/product-doc upkeep the release requires.
    - (oc-git-ops then runs its own pre-PR gate — `/oc-docs pr` + oc-repo-ops
      `/oc-repo verify` — before the PR opens; a stale packet or dirty repo blocks it.)
 3. Hand off to `oc-git-ops`:
-   - Invoke the oc-git-ops skill (read its SKILL.md per oc-orchestrator §3 active
-     chaining).
-   - Run `/oc-git-sync v<semver>` with the bump commit. oc-git-ops opens / merges
+   - Invoke the Skill tool with skill "oc-git-ops" and args "/oc-git-sync v<semver> — <bump commit>". oc-git-ops opens / merges
      the release PR.
    - After the merge, from an `origin/main` checkout, run
      `npm run release-sequence -- --stage pre-tag --version <semver>` (opchain.dev
      repo): it expects the tag gate to report the new version's missing tag, and
      checks the release surfaces and a clean tree.
-   - **After the PR merges, run `/oc-git-release <semver>`.** This is the step
+   - **After the PR merges, invoke the Skill tool with skill "oc-git-ops" and args "/oc-git-release <semver> — <merged release PR>".** This is the step
      that was missing until v1.8.3: the tag, and the push that fires
      `publish-mcp-registry.yml`. Ten releases (v1.0–v1.7) shipped without it
      because this handoff named no verb and oc-git-ops had none to name.
@@ -320,9 +317,8 @@ End-of-pipeline handoff.
    - Then run the post-tag phase: `npm run release-sequence -- --stage post-tag`.
      It runs `node scripts/check-release-tag.mjs`; it must exit 0.
 4. Hand off to `oc-deploy-ops` — always after the tag:
-   - Invoke oc-deploy-ops.
-   - Run `/oc-deploy staging` first; user eyeballs.
-   - Run `/oc-deploy prod` on user confirmation.
+   - Invoke the Skill tool with skill "oc-deploy-ops" and args "/oc-deploy staging — <release v<semver>, tagged>" first; user eyeballs.
+   - Invoke the Skill tool with skill "oc-deploy-ops" and args "/oc-deploy prod — <release v<semver>, staging confirmed>" on user confirmation.
 5. After `/oc-deploy prod`, close the release ticket via PM-MCP with the
    **Production shipped** marker
    `<!-- opchain:oc-release-ops:shipped:v<semver> -->` from the per-event table

@@ -370,6 +370,19 @@ describe("route-prompt hook: speaking", () => {
     expect(none.logLines).toHaveLength(0);
   });
 
+  it("an ow- family request is logged as envelope \"ow\" and never routed (the spec holds oc- skills only)", () => {
+    const capture = join(scratch, `capture-ow-${seq}.jsonl`);
+    const r = run({ prompt: `${REMINDER}\nuse ow-uat-plan on uat/acme/ready-for-uat.md`, env: { OPCHAIN_ROUTE_MODE: "live", OPCHAIN_ROUTE_TRANSPORT_CAPTURE: capture } });
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.stdout).toBe("");
+    expect(existsSync(capture)).toBe(false); // no request left the machine
+    expect(r.logLines).toHaveLength(1);
+    expect(r.logLines[0]).toMatchObject({ envelope: "ow", decision: null, injected: false, prompt_head: "use ow-uat-plan on uat/acme/ready-for-uat.md" });
+    expect(r.logLines[0].trace.reason).toMatch(/ow- family prompt/);
+    const verb = run({ prompt: "/ow-build-run M2" });
+    expect(verb.logLines).toHaveLength(0); // a slash-led prompt is silent before the ow check, like any slash command
+  });
+
   it("OPCHAIN_ROUTE_AB=1: the live arm injects, the control arm routes and logs the line it withheld", () => {
     const live = run({ prompt: "commit this and open a PR against main", sessionId: "1a000000-live", env: { OPCHAIN_ROUTE_MODE: "live", OPCHAIN_ROUTE_AB: "1" } });
     expect(JSON.parse(live.stdout).hookSpecificOutput.additionalContext).toMatch(LINE_RE);

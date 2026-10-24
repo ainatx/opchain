@@ -347,10 +347,8 @@ curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $TOKEN" \
 ### Step 4: Iterate or Advance
 
 - **PASS**: Integration is production-ready. Record it under `skill_state.integrations`
-  (that list is what `/oc-integrate health` checks), then chain to oc-code-auditor
-  (`/oc-audit full`) to verify the new client + webhook handler, per the orchestrator's
-  map. For uptime and alerting on the integration, hand its health endpoint to
-  oc-monitoring-ops when you run it.
+  (that list is what `/oc-integrate health` checks), then invoke the Skill tool with skill "oc-code-auditor" and args "/oc-audit full — <new client + webhook handler>" to verify them, per the orchestrator's
+  map. For uptime and alerting on the integration, invoke the Skill tool with skill "oc-monitoring-ops" and args "/oc-monitor — <integration health endpoint>".
 - **FAIL + rounds remaining**: Feed test report to Builder, fix, re-test.
 - **FAIL + max rounds**: Escalate to user.
 
@@ -710,7 +708,8 @@ what is specific to oc-integrations-engineer.
 
 | Chains to | Why |
 |---|---|
-| oc-code-auditor | `/oc-audit full` on a PASSed integration (Step 4) |
+| oc-code-auditor | Invoke the Skill tool with skill "oc-code-auditor" and args "/oc-audit full — <PASSed integration>" (Step 4) |
+| oc-monitoring-ops | Invoke the Skill tool with skill "oc-monitoring-ops" and args "/oc-monitor — <integration health endpoint>" (Step 4) |
 
 oc-qa-ops (recorded fixtures for consumed APIs) and oc-data-ops (the connector behind a
 warehouse-bound pipeline) hand connector builds to this skill.
