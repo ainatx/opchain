@@ -1,0 +1,132 @@
+{
+  "j2-01": {
+    "answers": {
+      "J2": {
+        "type": "noul",
+        "noul": 0.78
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j2-02": {
+    "answers": {
+      "J2": {
+        "type": "noul",
+        "noul": 0.86
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j2-03": {
+    "answers": {
+      "J2": {
+        "type": "noul",
+        "noul": 0.38
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j2-04": {
+    "answers": {
+      "J2": {
+        "type": "noul",
+        "noul": 0.91
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j2-05": {
+    "answers": {
+      "J2": {
+        "type": "noul",
+        "noul": 0.98
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j2-06": {
+    "answers": {
+      "J2": {
+        "type": "noul",
+        "noul": 0.12
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j2-07": {
+    "answers": {
+      "J2": {
+        "type": "noul",
+        "noul": 0.08
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j2-08": {
+    "answers": {
+      "J2": {
+        "type": "noul",
+        "noul": 0.31
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j2-09": {
+    "answers": {
+      "J2": {
+        "type": "noul",
+        "noul": 0.44
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j2-10": {
+    "answers": {
+      "J2": {
+        "type": "noul",
+        "noul": 0.05
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  }
+}

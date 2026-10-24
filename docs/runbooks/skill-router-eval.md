@@ -388,6 +388,53 @@ rate on core skills is at least 0.6 and at least twice the control arm's, with
 verb fidelity at or above 0.9. About four suggestions a day split two ways is
 enough to see a 2× difference in two weeks, not a 20% one.
 
+## 7. Other Jev uses: `route-eval jev <use>`
+
+The router is use **J1** of a small registry of Jev uses,
+`scripts/jev-uses.json` (ids, status, the question wording). `gen-route-spec.mjs`
+expands it into `plugins/opchain/hooks/jev-questions.json` beside the route
+spec, filling J1 from the router's own constants (gates, request rules, the
+`none` text, thresholds) and J2's skill options from the spec; `--check` holds
+both files in sync. One wording per use, shared by every caller and by the
+eval. The plan and the full table are
+`docs/plans/2026-10-24-jev-integration-plan.md` §2–§3; every transport call
+goes through `plugins/opchain/hooks/lib/jev-client.cjs`, which the router
+re-exports.
+
+```bash
+npm run route:eval -- jev --list                                   # the registry: id, status, kind, gold set
+npm run route:eval -- jev J9 --fixture tests/fixtures/jev/J9/answers.json   # offline, canned answers
+TYPESAFE_API_KEY=… npm run route:eval -- jev J9                    # live, against the pinned model
+  [--gold <file>] [--out scratch/jev-J9.jsonl] [--report scratch/jev-J9.md]
+  [--threshold 0.5] [--min-accuracy 0.9] [--model <id>] [--timeout-ms 20000]
+```
+
+- A **router** use (J1) sends each gold prompt through `route()` with the
+  shipped thresholds and the suggest allowlist, so the result is what the hook
+  would have done. Its gold set is the unambiguous prompts of the 2026-10-23
+  hand-labelled window; the canned answers reproduce that window's three misses
+  and three false suggestions, which makes it the regression check for the §4
+  spec-copy fixes.
+- A **Noul** use (J2 outcome judgement, J9 embedded instructions in a client
+  file) builds its question from `jev-questions.json`, sends the row's `state`
+  fields, and thresholds the probability (the use's `threshold`, or
+  `--threshold`). J2 adds the suggested skill's description and its own steps
+  to the instructions.
+- Gold rows are JSONL: `{ id, prompt, expected: <skill>|"none" }` for J1,
+  `{ id, <state fields>, expected: true|false }` otherwise. Canned answers are
+  keyed by row id; a row with no entry is an **error row**, never a guess, and
+  is left out of accuracy. An explicit `/oc-*` mention routes at p=1 without a
+  model call, so it needs no entry.
+- The report has accuracy, precision and recall on the positive class, the
+  silent (J1) or hold (Noul) rate on negatives, confusions, the wrong rows with
+  the router's own reason, the correct rows nearest the threshold, and tokens.
+  `--min-accuracy` exits 3 when the bar is not met, for a CI step later.
+- Without `--fixture` the command needs `TYPESAFE_API_KEY` and exits 2 without
+  it. Nothing in the tests or the shipped fixtures reaches the network.
+
+A use moves from **eval** to **shadow** only when its gold set passes at the
+threshold its caller will use, and to live only through a go/no-go like §6.
+
 ## Tests
 
 ```bash
@@ -402,4 +449,7 @@ with a fake route module through the CLI (including the no-re-query re-run),
 pin the outcomes report arithmetic, the label rules and the verdict on a fixture log, and rescore a fixture transcript tree (subagent activity inside the window, a commit after the reply turn, a merge handoff, the stored-record fallback, labels beside the log) through the CLI. They also cover the A/B arm and verb-fidelity tables, the `label` command, the menu-verb drop in the sweep, and the reminder-prefixed and brief rows of the dataset. Window, activity, prompt-shaping and cache rules are covered in `tests/route-dispatch.test.js`. They need
 neither the real router nor an API key. The hook's outcome records, shadow
 default, reminder and brief handling, the core-and-fresh checkpoint rule and the
-A/B arms are covered in `tests/route-hook.test.js`.
+A/B arms are covered in `tests/route-hook.test.js`. The shared client, the
+generated `jev-questions.json` and the `jev` command are covered in
+`tests/jev-client.test.js`, `tests/jev-questions.test.js` and
+`tests/jev-eval.test.js`, on the shipped gold sets and canned answers.

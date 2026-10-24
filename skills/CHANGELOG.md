@@ -15,6 +15,18 @@ checkpoint `protocol_version` is tracked separately (see
 
 ### Added
 
+- **Shared Jev client and use registry (plan §2, 2026-10-24).** The TypeSafe/Jev
+  transport, redaction and answer readers the prompt router used privately now
+  live in `plugins/opchain/hooks/lib/jev-client.cjs` and are re-exported by
+  `route-dispatch.cjs` unchanged (no router behaviour or threshold moves). A
+  registry of Jev uses, `scripts/jev-uses.json` (J1 prompt routing in shadow;
+  J2 outcome judgement and J9 embedded-instruction detection with gold sets;
+  J3–J8 planned or rejected with the reason), is expanded by
+  `gen-route-spec.mjs` into `plugins/opchain/hooks/jev-questions.json`, which
+  ships beside `route-spec.json` and is drift-checked with it. `route-eval jev
+  <use>` scores a use against its gold set, offline on canned answers or live
+  with `TYPESAFE_API_KEY`. J9 quotes `ow-protocol.md` §3d and changes no ow-
+  text. Plan: `docs/plans/2026-10-24-jev-integration-plan.md`.
 - **Enforcement at chokepoints (audit 2026-10-08).** The effectiveness audit of
   two repositories found that every skill-to-skill edge held only where something
   outside the catalog checked it. The skill text now says where each edge is held

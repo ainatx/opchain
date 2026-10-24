@@ -70,9 +70,11 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const crypto = require("crypto");
+// The shared Jev client (transport, redaction, answer readers). Everything it
+// exports that this module used to define is re-exported below unchanged.
+const client = require("./jev-client.cjs");
 
-const DEFAULT_ENDPOINT = "https://api.typesafe.ai/v1/systemone";
-const DEFAULT_MODEL = "jev-1.13.0";
+const { DEFAULT_ENDPOINT, DEFAULT_MODEL, MAX_OPTIONS, httpTransport, fixtureTransport, redactSecrets, redactDeep, clamp01, computeConfidence, assertOptionCount, addUsage } = client;
 // Tiered `fits` bar, tuned on the 2026-10-09 blind-labelled eval (574 prompts, 41 positives
 // after dropping ambiguous rows): every non-core skill produced ~12% precision at 0.5, so
 // they need 0.9 to stay quiet on ordinary conversation. Core 0.6, measured on this request
@@ -93,7 +95,6 @@ function fitsThreshold(T, skill) {
   return (T.core || CORE_SKILLS).includes(skill) ? T.coreFits : T.otherFits;
 }
 const DEFAULT_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-const MAX_OPTIONS = 255;
 const SHORTLIST_SIZE = 3;
 const NONE = "none";
 const UNSPECIFIED = "unspecified";
@@ -130,14 +131,6 @@ const NONE_DESCRIPTION =
 const UNSPECIFIED_DESCRIPTION =
   "The request names no particular step of this skill; it should start at the skill's default entry point.";
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-function clamp01(x) {
-  const n = Number(x);
-  if (!Number.isFinite(n)) return null;
-  return Math.min(1, Math.max(0, n));
-}
-
 /** Env overrides: OPCHAIN_ROUTE_GATE / OPCHAIN_ROUTE_FITS (0..1), OPCHAIN_ROUTE_SUGGEST_ALL=1, OPCHAIN_ROUTE_CONTEXT=1. */
 function thresholdsFromEnv(env = process.env, base = DEFAULT_THRESHOLDS) {
   const out = { ...DEFAULT_THRESHOLDS, ...base };
@@ -151,90 +144,8 @@ function thresholdsFromEnv(env = process.env, base = DEFAULT_THRESHOLDS) {
 }
 
 // ── Transports ──────────────────────────────────────────────────────────────
-
-async function safeText(res) {
-  try {
-    return await res.text();
-  } catch {
-    return "";
-  }
-}
-
-/**
- * HTTP transport: async (body) → response JSON. One retry on 429/529 after
- * `retryDelayMs`; every other non-2xx throws. The api key is never placed in
- * an error message (the message is built from status + the server's body).
- */
-function httpTransport({
-  apiKey,
-  model = DEFAULT_MODEL,
-  timeoutMs = 3000,
-  fetchImpl = globalThis.fetch,
-  endpoint = DEFAULT_ENDPOINT,
-  retryDelayMs = 500,
-} = {}) {
-  if (!apiKey) throw new Error("httpTransport: apiKey is required");
-  if (typeof fetchImpl !== "function") throw new Error("httpTransport: no fetch implementation");
-  return async function transport(body) {
-    const payload = JSON.stringify({ ...body, model: body.model ?? model });
-    for (let attempt = 1; ; attempt++) {
-      const ctl = new AbortController();
-      const timer = setTimeout(() => ctl.abort(), timeoutMs);
-      let res;
-      try {
-        res = await fetchImpl(endpoint, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-          body: payload,
-          signal: ctl.signal,
-        });
-      } catch (err) {
-        clearTimeout(timer);
-        const e = new Error(`typesafe request failed: ${err && err.name === "AbortError" ? `timeout after ${timeoutMs}ms` : err.message || err}`);
-        e.cause = err;
-        throw e;
-      }
-      clearTimeout(timer);
-      if (res.ok) return res.json();
-      if ((res.status === 429 || res.status === 529) && attempt === 1) {
-        await sleep(retryDelayMs);
-        continue;
-      }
-      const text = await safeText(res);
-      const e = new Error(`typesafe ${res.status}: ${text.slice(0, 200)}`);
-      e.status = res.status;
-      throw e;
-    }
-  };
-}
-
-/**
- * Canned transport for tests and the hook's OPCHAIN_ROUTE_TRANSPORT_FIXTURE
- * seam (OPCHAIN_ROUTE_TRANSPORT_CAPTURE adds a body capture file). File shape:
- * { request1: <response>, request2: <response> } chosen by
- * whether the outgoing body carries the `which` question; or { error: "msg" }
- * to simulate a transport failure. A flat { answers: {...} } is returned for
- * both requests.
- */
-function fixtureTransport(fixture, { captureFile } = {}) {
-  const data = typeof fixture === "string" ? JSON.parse(fs.readFileSync(fixture, "utf8")) : fixture;
-  return async function transport(body) {
-    // captureFile (hook: OPCHAIN_ROUTE_TRANSPORT_CAPTURE) records every outgoing
-    // body as JSONL so tests can see exactly what would have been sent.
-    if (captureFile) {
-      try {
-        fs.appendFileSync(captureFile, JSON.stringify(body) + "\n");
-      } catch {
-        /* capture is a test aid */
-      }
-    }
-    if (data.error) throw new Error(String(data.error));
-    const isFirst = body && body.questions && Object.prototype.hasOwnProperty.call(body.questions, "which");
-    const picked = isFirst ? data.request1 : data.request2;
-    const res = picked ?? data;
-    return structuredClone(res);
-  };
-}
+// httpTransport / fixtureTransport live in ./jev-client.cjs (shared with every
+// Jev use) and are re-exported here under the same names.
 
 // ── Request builders ────────────────────────────────────────────────────────
 
@@ -267,12 +178,6 @@ function noulQuestion(criterion, state) {
     instructions: { criterion, ...followUpRule(state) },
     criteria: { true: "Yes, this is true of the request.", false: "No, this is not true of the request." },
   };
-}
-
-function assertOptionCount(criteria, label) {
-  const n = Object.keys(criteria).length;
-  if (n > MAX_OPTIONS) throw new Error(`${label}: ${n} options exceeds the ${MAX_OPTIONS}-option limit`);
-  if (n < 2) throw new Error(`${label}: a choice needs at least two options`);
 }
 
 function buildRequest1(spec, state) {
@@ -379,15 +284,6 @@ function gateScore(answers1) {
   if (prose !== null) parts.push(1 - prose);
   if (!parts.length) return null;
   return parts.reduce((a, b) => a + b, 0) / parts.length;
-}
-
-/** (pmax − 1/n) / (1 − 1/n), the API's confidence for a Choice. */
-function computeConfidence(probabilities) {
-  const vals = Object.values(probabilities || {}).map(Number).filter(Number.isFinite);
-  const n = vals.length;
-  if (n < 2) return n === 1 ? 1 : 0;
-  const pmax = Math.max(...vals);
-  return Math.max(0, (pmax - 1 / n) / (1 - 1 / n));
 }
 
 function round(x, d = 4) {
@@ -504,63 +400,9 @@ function decisionText(decision) {
 
 // ── Cache ───────────────────────────────────────────────────────────────────
 
-// Nothing that looks like a credential may leave the machine inside a routing request,
-// land in the decision cache, or be written to the route log. A pasted key is the
-// common case (this hook's own first eval run routed a prompt containing one).
-const SECRET_PATTERNS = [
-  /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)/g,
-  /\bapikey_[A-Za-z0-9_-]{16,}/g,
-  /\bsk-(?:ant-|proj-|live-|test-)?[A-Za-z0-9_-]{20,}/g,
-  /\bgithub_pat_[A-Za-z0-9_]{30,}/g,
-  /\bgh[pousr]_[A-Za-z0-9]{30,}/g,
-  /\bxox[abprs]-[A-Za-z0-9-]{10,}/g,
-  /\bAKIA[0-9A-Z]{16}\b/g,
-  /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g,
-  /\bBearer\s+[A-Za-z0-9._~+\/=-]{20,}/gi,
-  /\b[a-f0-9]{48,}\b/gi,
-];
-// Linear time on any input (2026-10-09 audit B-07): unbounded `*` on BOTH sides
-// of the keyword backtracked quadratically on a long word run ("KEYKEY…"), so a
-// 240 KB prompt could outlast the hook timeout. Now the name is ONE greedy
-// identifier run (a run that is not followed by `=`/`:` fails in O(run) at its
-// only word-boundary start), and the keyword test happens in the replacer, so
-// names of any length still redact.
-// The value is only looked ahead at, so a non-secret assignment does not consume
-// a secret one glued to it ("a=12345678;API_KEY=…").
-const SECRET_ASSIGNMENT = /\b([A-Za-z0-9_]+)(\s*[=:]\s*)(["']?)(?=[^\s"']{8})/g;
-const SECRET_NAME = /KEY|TOKEN|SECRET|PASSWORD|PASSWD/i;
-const SECRET_VALUE = /[^\s"']+/y;
-
-function redactAssignments(text) {
-  let out = "";
-  let last = 0;
-  SECRET_ASSIGNMENT.lastIndex = 0;
-  let m;
-  while ((m = SECRET_ASSIGNMENT.exec(text))) {
-    if (!SECRET_NAME.test(m[1])) continue;
-    SECRET_VALUE.lastIndex = SECRET_ASSIGNMENT.lastIndex;
-    const v = SECRET_VALUE.exec(text);
-    out += text.slice(last, SECRET_ASSIGNMENT.lastIndex) + REDACTED;
-    last = SECRET_VALUE.lastIndex;
-    SECRET_ASSIGNMENT.lastIndex = last;
-    if (!v) break; // unreachable: the lookahead guaranteed a value
-  }
-  return out + text.slice(last);
-}
-const REDACTED = "[REDACTED]";
-
-function redactSecrets(text) {
-  let out = String(text ?? "");
-  for (const re of SECRET_PATTERNS) out = out.replace(re, REDACTED);
-  return redactAssignments(out);
-}
-
-function redactDeep(value) {
-  if (typeof value === "string") return redactSecrets(value);
-  if (Array.isArray(value)) return value.map(redactDeep);
-  if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, redactDeep(v)]));
-  return value;
-}
+// Redaction (redactSecrets / redactDeep) lives in ./jev-client.cjs: nothing that
+// looks like a credential may leave the machine inside a routing request, land in
+// the decision cache, or be written to the route log.
 
 /**
  * Key over everything that changes the request or the gated decision: prompt,
@@ -981,13 +823,6 @@ function cacheStore(cache) {
       }
     },
   };
-}
-
-function addUsage(total, res) {
-  const u = res && res.usage;
-  if (!u) return;
-  total.input_tokens += Number(u.input_tokens) || 0;
-  total.output_tokens += Number(u.output_tokens) || 0;
 }
 
 function top3(answer) {

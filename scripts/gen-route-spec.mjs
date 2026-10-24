@@ -8,9 +8,17 @@
 // ships it) and gated by `--check` in pretest/prebuild, same pattern as
 // sync-plugin-skills.mjs. Deterministic: sorted keys, stable formatting.
 //
-//   node scripts/gen-route-spec.mjs            # write
-//   node scripts/gen-route-spec.mjs --check    # exit 1 on drift / contract errors
-//   node scripts/gen-route-spec.mjs --out <p>  # write elsewhere (tests)
+//   node scripts/gen-route-spec.mjs            # write both outputs
+//   node scripts/gen-route-spec.mjs --check    # exit 1 on drift / contract errors in either
+//   node scripts/gen-route-spec.mjs --out <p>  # write the spec elsewhere (tests)
+//   node scripts/gen-route-spec.mjs --questions-out <p> --uses <p>   # the second output (tests)
+//
+// Second output, plugins/opchain/hooks/jev-questions.json: the registry of Jev
+// uses (scripts/jev-uses.json, hand-written: id, status, wording) expanded with
+// what only the generator knows — J1's gates, request rules and `none` text
+// from the router's own constants, J2's skill options from the spec. One
+// wording per use, shared by every caller and by `route-eval jev <use>`
+// (docs/plans/2026-10-24-jev-integration-plan.md §2).
 //
 // Per skill: { phases, index, full, notFor?, verbs, baseVerb, verbQuestion, menuVerbs? }.
 //   index   ≤160 chars, written about the idea the user has, not the flag name
@@ -28,13 +36,20 @@
 // duplicate or verb-less ids and a missing `suggest.reason` are problems.
 
 import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 import * as yaml from "js-yaml"; // namespace import: js-yaml 5 dropped the default export
 
+const require = createRequire(import.meta.url);
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const DEFAULT_OUT = join(ROOT, "plugins", "opchain", "hooks", "route-spec.json");
 export const DEFAULT_OVERRIDES = join(ROOT, "scripts", "route-spec.overrides.json");
+export const DEFAULT_USES = join(ROOT, "scripts", "jev-uses.json");
+export const DEFAULT_QUESTIONS_OUT = join(ROOT, "plugins", "opchain", "hooks", "jev-questions.json");
+const ROUTER_MODULE = join(ROOT, "plugins", "opchain", "hooks", "lib", "route-dispatch.cjs");
+export const USE_STATUSES = Object.freeze(["shadow", "eval", "planned", "no"]);
+export const USE_KINDS = Object.freeze(["router", "noul", "choice", "none"]);
 // The `+route<N>` suffix of spec.version. Bump it whenever the generated spec's
 // content changes without a catalog version bump (an overrides edit, a new
 // verb): spec.version keys the hook's decision cache and the eval's row hash,
@@ -217,11 +232,125 @@ export function renderSpec(spec) {
   return JSON.stringify(spec, null, 2) + "\n";
 }
 
+/** Sorted keys at every object level; arrays keep their order. */
+function sortDeep(value) {
+  if (Array.isArray(value)) return value.map(sortDeep);
+  if (value && typeof value === "object") return Object.fromEntries(Object.keys(value).sort().map((k) => [k, sortDeep(value[k])]));
+  return value;
+}
+
+const USE_ID_RE = /^J[1-9][0-9]*$/;
+
+/**
+ * jev-uses.json + the spec → { questions, problems }. Every use keeps its
+ * registry fields; a `router` use gains the router's gates, rules, `none` and
+ * `unspecified` texts, thresholds and core list; a use with a `question` gains
+ * the API-shaped Noul (or Choice) question; J2-style `steps` become per-skill
+ * `skills` entries (displayName, index, steps) over every routable skill.
+ */
+export function buildJevQuestions({ spec, usesPath = DEFAULT_USES, routerPath = ROUTER_MODULE, root = ROOT } = {}) {
+  const problems = [];
+  if (!existsSync(usesPath)) return { questions: null, problems: [`uses file not found: ${usesPath}`] };
+  let registry;
+  try {
+    registry = JSON.parse(readFileSync(usesPath, "utf8"));
+  } catch (err) {
+    return { questions: null, problems: [`${usesPath}: ${err.message}`] };
+  }
+  const router = require(routerPath);
+  const uses = {};
+  const entries = registry && registry.uses && typeof registry.uses === "object" ? registry.uses : null;
+  if (!entries) problems.push("jev-uses: `uses` object is required");
+  for (const [id, use] of Object.entries(entries ?? {})) {
+    if (!USE_ID_RE.test(id)) problems.push(`jev-uses: id ${id} is not J<n>`);
+    if (!use || typeof use !== "object") {
+      problems.push(`jev-uses: ${id} is not an object`);
+      continue;
+    }
+    const name = String(use.name ?? "").trim();
+    if (!name) problems.push(`jev-uses: ${id} has no name`);
+    if (!USE_STATUSES.includes(use.status)) problems.push(`jev-uses: ${id} status ${JSON.stringify(use.status)} is not one of ${USE_STATUSES.join("/")}`);
+    if (!USE_KINDS.includes(use.kind)) problems.push(`jev-uses: ${id} kind ${JSON.stringify(use.kind)} is not one of ${USE_KINDS.join("/")}`);
+    if (!String(use.summary ?? "").trim()) problems.push(`jev-uses: ${id} has no summary`);
+    const active = use.status === "shadow" || use.status === "eval";
+    if (active) {
+      if (!Array.isArray(use.state) || !use.state.length || use.state.some((f) => typeof f !== "string" || !f)) problems.push(`jev-uses: ${id} (${use.status}) needs a non-empty \`state\` field list`);
+      if (typeof use.gold !== "string" || !use.gold) problems.push(`jev-uses: ${id} (${use.status}) needs a \`gold\` path`);
+      else if (!existsSync(isAbsolute(use.gold) ? use.gold : join(root, use.gold))) problems.push(`jev-uses: ${id} gold set missing: ${use.gold}`);
+      if (!String(use.caller ?? "").trim()) problems.push(`jev-uses: ${id} (${use.status}) needs a \`caller\``);
+    } else if (!String(use.reason ?? "").trim()) problems.push(`jev-uses: ${id} (${use.status}) needs a \`reason\``);
+    if (use.kind === "none" && active) problems.push(`jev-uses: ${id} is kind none but status ${use.status}`);
+
+    const out = { id, ...use };
+    delete out.question;
+    delete out.steps;
+    if (use.kind === "router") {
+      out.spec = "route-spec.json";
+      out.gates = spec.gates;
+      out.rules = router.REQUEST_RULES;
+      out.none = router.NONE_DESCRIPTION;
+      out.unspecified = router.UNSPECIFIED_DESCRIPTION;
+      const T = router.DEFAULT_THRESHOLDS;
+      out.thresholds = { gate: T.gate, coreFits: T.coreFits, otherFits: T.otherFits, minTopProb: T.minTopProb, verb: T.verb };
+      out.core = [...router.CORE_SKILLS].sort();
+      if (use.question) problems.push(`jev-uses: ${id} is kind router; its questions come from route-dispatch, not a \`question\``);
+    } else if (use.kind === "noul" || use.kind === "choice") {
+      const q = use.question;
+      if (active) {
+        if (!q || typeof q !== "object" || !String(q.criterion ?? "").trim()) problems.push(`jev-uses: ${id} (${use.status}) needs question.criterion`);
+        if (use.kind === "noul" && (!q || !String(q.true ?? "").trim() || !String(q.false ?? "").trim())) problems.push(`jev-uses: ${id} needs question.true and question.false`);
+        if (use.kind === "choice" && (!q || !q.options || typeof q.options !== "object" || Object.keys(q.options).length < 2)) problems.push(`jev-uses: ${id} needs question.options with at least two entries`);
+        if (typeof use.threshold !== "number" || !(use.threshold > 0 && use.threshold < 1)) problems.push(`jev-uses: ${id} (${use.status}) needs a threshold in (0, 1)`);
+      }
+      if (q && typeof q === "object") {
+        const clean = (v) => String(v ?? "").replace(/\s+/g, " ").trim();
+        out.question =
+          use.kind === "noul"
+            ? { type: "noul", instructions: { criterion: clean(q.criterion) }, criteria: { true: clean(q.true), false: clean(q.false) } }
+            : { type: "choice", instructions: { task: clean(q.criterion) }, criteria: sortObject(Object.fromEntries(Object.entries(q.options ?? {}).map(([k, v]) => [k, clean(v)]))) };
+      }
+    } else if (use.question) problems.push(`jev-uses: ${id} is kind none and carries a question`);
+
+    if (use.steps !== undefined) {
+      if (!use.steps || typeof use.steps !== "object" || Array.isArray(use.steps)) problems.push(`jev-uses: ${id} steps must be an object of skill → [skills]`);
+      else {
+        const routable = Object.keys(spec.skills).filter((s) => spec.skills[s].baseVerb && Object.keys(spec.skills[s].verbs || {}).length);
+        for (const [skill, steps] of Object.entries(use.steps)) {
+          if (!spec.skills[skill]) problems.push(`jev-uses: ${id} steps names unknown skill ${skill}`);
+          if (!Array.isArray(steps) || steps.some((x) => !spec.skills[x])) problems.push(`jev-uses: ${id} steps for ${skill} must list known skills`);
+        }
+        const skills = {};
+        for (const skill of routable) {
+          skills[skill] = { displayName: spec.skills[skill].displayName, index: spec.skills[skill].index, steps: [...(use.steps[skill] ?? [])].sort() };
+        }
+        out.skills = sortObject(skills);
+      }
+    }
+    uses[id] = sortDeep(out);
+  }
+  const questions = {
+    generatedFrom: spec.generatedFrom ?? null,
+    schema: Number(registry?.schema) || 1,
+    uses: sortObject(uses),
+    version: spec.version,
+  };
+  return { questions, problems };
+}
+
+export function renderQuestions(questions) {
+  return JSON.stringify(questions, null, 2) + "\n";
+}
+
 function main() {
   const argv = process.argv.slice(2);
   const check = argv.includes("--check");
-  const outIdx = argv.indexOf("--out");
-  const out = outIdx >= 0 ? argv[outIdx + 1] : DEFAULT_OUT;
+  const flag = (name, fallback) => {
+    const i = argv.indexOf(name);
+    return i >= 0 && argv[i + 1] ? argv[i + 1] : fallback;
+  };
+  const out = flag("--out", DEFAULT_OUT);
+  const questionsOut = flag("--questions-out", out === DEFAULT_OUT ? DEFAULT_QUESTIONS_OUT : join(dirname(out), "jev-questions.json"));
+  const usesPath = flag("--uses", DEFAULT_USES);
   const skillsDir = process.env.OPCHAIN_SKILLS_DIR ?? join(ROOT, "skills");
 
   const { spec, problems } = buildSpec({ skillsDir });
@@ -229,19 +358,33 @@ function main() {
     console.error("gen-route-spec: contract problems:\n  " + problems.join("\n  "));
     process.exit(1);
   }
+  const { questions, problems: useProblems } = buildJevQuestions({ spec, usesPath });
+  if (useProblems.length) {
+    console.error("gen-route-spec: jev-uses problems:\n  " + useProblems.join("\n  "));
+    process.exit(1);
+  }
   const rendered = renderSpec(spec);
+  const renderedQuestions = renderQuestions(questions);
+  const nUses = Object.keys(questions.uses).length;
   if (check) {
     const current = existsSync(out) ? readFileSync(out, "utf8") : null;
     if (current !== rendered) {
       console.error(`gen-route-spec --check: ${out} is stale — run \`npm run gen-route-spec\``);
       process.exit(1);
     }
-    console.log(`gen-route-spec --check: ${Object.keys(spec.skills).length} skills, in sync`);
+    const currentQuestions = existsSync(questionsOut) ? readFileSync(questionsOut, "utf8") : null;
+    if (currentQuestions !== renderedQuestions) {
+      console.error(`gen-route-spec --check: ${questionsOut} is stale — run \`npm run gen-route-spec\``);
+      process.exit(1);
+    }
+    console.log(`gen-route-spec --check: ${Object.keys(spec.skills).length} skills, ${nUses} jev uses, in sync`);
     return;
   }
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, rendered);
-  console.log(`gen-route-spec: wrote ${out} (${Object.keys(spec.skills).length} skills, catalog ${spec.generatedFrom})`);
+  mkdirSync(dirname(questionsOut), { recursive: true });
+  writeFileSync(questionsOut, renderedQuestions);
+  console.log(`gen-route-spec: wrote ${out} (${Object.keys(spec.skills).length} skills, catalog ${spec.generatedFrom}) and ${questionsOut} (${nUses} jev uses)`);
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) main();
