@@ -123,15 +123,15 @@
         },
         {
           "path": "tests/route-dispatch.test.js",
-          "digest": "sha256:ed8ef9871cc4ea5011e9c7cfb2f5aae9ec69ffb53d456ce233e9ec8d0a35f491"
+          "digest": "sha256:4cbf4b0207b9a0716193a113a7ac368b253374c36ed204b2a2aa80e65dae42b6"
         },
         {
           "path": "tests/route-eval.test.js",
-          "digest": "sha256:d3aa3b33928b5c92c2b0a917c45c52844564335a6a529ee394434dfbef568bc7"
+          "digest": "sha256:ec5e4c7556549c1fbf061d4344dab6f8e32ae4f708710bc64d269819514b2d30"
         },
         {
           "path": "tests/route-hook.test.js",
-          "digest": "sha256:7f7e3141640b9612e6c7d063922d4f55fee2b74ae494e53e532ecc8914cc0dec"
+          "digest": "sha256:a04bc07099d3968ee4e8f9f8cdf9e86414d4753bd1d87bcf3ba1a4c9216596a1"
         },
         {
           "path": "tests/ow-uat-sentences.mjs",

@@ -65,7 +65,7 @@ function fakeTransport(r1, r2) {
 }
 
 const HAPPY_LINE =
-  'opchain route (p=0.85): invoke the Skill tool with skill "oc-git-ops" and args "/oc-git-sync". Skip this if the request means something else.';
+  'opchain route (p=0.85): invoke the Skill tool with skill "oc-git-ops" and args "/oc-git-sync" (Full workflow: branch (from convention) → commit → push → PR). Skip this if the request means something else.';
 
 describe("route(): decisions", () => {
   it("happy path yields exactly one Skill-tool line, p = min(top, fits, gate)", async () => {
@@ -250,19 +250,38 @@ describe("route(): decisions", () => {
   });
 
   it("verb unspecified → the skill's base verb", async () => {
-    const transport = fakeTransport(answers1(), answers2({ verb: "unspecified", verbP: 0.9 }));
-    const { decision } = await d.route({ prompt: PROMPT, repoState: REPO, spec, transport, cache: false });
-    expect(decision.args).toBe(spec.skills["oc-git-ops"].baseVerb);
-    expect(decision.args).toBe("/oc-git");
+    // oc-bug-check's base verb runs the checks; it is not a menu.
+    expect(spec.skills["oc-bug-check"].menuVerbs).toBeUndefined();
+    const transport = fakeTransport(answers1({ top: "oc-bug-check" }), answers2({ skill: "oc-bug-check", verb: "unspecified", verbP: 0.9 }));
+    const { decision } = await d.route({ prompt: "is this safe to commit", repoState: REPO, spec, transport, cache: false });
+    expect(decision.args).toBe(spec.skills["oc-bug-check"].baseVerb);
+    expect(decision.args).toBe("/oc-bugcheck");
     expect(decision.reason).toMatch(/unspecified → base verb/);
   });
 
-  it("verb probability below 0.5 → base verb; undeclared verb → base verb", async () => {
-    const weak = await d.route({ prompt: PROMPT, repoState: REPO, spec, transport: fakeTransport(answers1(), answers2({ verbP: 0.4 })), cache: false });
+  it("a base verb that is the skill's menu → no decision (7 of 11 git-ops shadow routes were /oc-git)", async () => {
+    expect(spec.skills["oc-git-ops"].menuVerbs).toEqual(["/oc-git"]);
+    const unspecified = await d.route({ prompt: "merge", repoState: REPO, spec, transport: fakeTransport(answers1(), answers2({ verb: "unspecified", verbP: 0.9 })), cache: false });
+    expect(unspecified.decision).toBeNull();
+    expect(unspecified.trace.reason).toBe("verb /oc-git is oc-git-ops's menu (no step named)");
+    // The eval's open query keeps it, marked, so the offline sweep can drop it.
+    const kept = await d.route({ prompt: "merge", repoState: REPO, spec, transport: fakeTransport(answers1(), answers2({ verb: "unspecified", verbP: 0.9 })), thresholds: { allowMenus: true }, cache: false });
+    expect(kept.decision).toMatchObject({ skill: "oc-git-ops", args: "/oc-git", menu: true });
+    // The merge verb itself is a real step.
+    const merge = await d.route({ prompt: "merge 252", repoState: REPO, spec, transport: fakeTransport(answers1(), answers2({ verb: "/oc-merge", verbP: 0.8 })), cache: false });
+    expect(merge.decision).toMatchObject({ skill: "oc-git-ops", args: "/oc-merge" });
+    expect(merge.decision.menu).toBeUndefined();
+    expect(d.decisionText(merge.decision)).toContain('args "/oc-merge" (Merge a reviewed pull request');
+  });
+
+  it("verb probability below 0.5 → base verb; undeclared verb → base verb (and a menu base is silent)", async () => {
+    const weak = await d.route({ prompt: PROMPT, repoState: REPO, spec, transport: fakeTransport(answers1(), answers2({ verbP: 0.4 })), thresholds: { allowMenus: true }, cache: false });
     expect(weak.decision.args).toBe("/oc-git");
     expect(weak.decision.verbProbability).toBe(0.4);
-    const bogus = await d.route({ prompt: PROMPT, repoState: REPO, spec, transport: fakeTransport(answers1(), answers2({ verb: "/oc-made-up", verbP: 0.99 })), cache: false });
+    const bogus = await d.route({ prompt: PROMPT, repoState: REPO, spec, transport: fakeTransport(answers1(), answers2({ verb: "/oc-made-up", verbP: 0.99 })), thresholds: { allowMenus: true }, cache: false });
     expect(bogus.decision.args).toBe("/oc-git");
+    const shipped = await d.route({ prompt: PROMPT, repoState: REPO, spec, transport: fakeTransport(answers1(), answers2({ verbP: 0.4 })), cache: false });
+    expect(shipped.decision).toBeNull();
   });
 
   it("thresholds: env overrides and eval-style {fits:0, gate:0} both work", async () => {
@@ -379,6 +398,7 @@ describe("route(): conversation context", () => {
     expect(d.outcomeFromRecords(recs, { forPromptHash: d.promptHash(first) })).toEqual({
       anchor: "prompt",
       skill_calls: ["oc-git-ops"],
+      skill_args: { "oc-git-ops": "/oc-pr" },
       raw: { git_commit: false, git_push: false, git_sync: false, gh_pr_create: false, gh_pr_merge: true, deploy: false, merge_handoff: false },
       window_end: "open",
     });
@@ -472,7 +492,10 @@ describe("outcome windows and activity", () => {
 });
 
 describe("route(): evidence-gated suggestions (spec.suggestAllow)", () => {
-  const tail = (skill, fits = 0.95) => fakeTransport(answers1({ top: skill }), answers2({ skill, fits, verb: "unspecified" }));
+  // A named step: oc-compliance-ops' base verb `/oc-comply` is its menu, which the
+  // router never suggests whatever the allowlist says.
+  const STEP = { "oc-compliance-ops": "/oc-comply gaps" };
+  const tail = (skill, fits = 0.95) => fakeTransport(answers1({ top: skill }), answers2({ skill, fits, verb: STEP[skill] ?? "unspecified" }));
 
   it("the tracked spec carries an allowlist that includes the seven core skills", () => {
     expect(Array.isArray(spec.suggestAllow)).toBe(true);
@@ -618,17 +641,30 @@ describe("request bodies", () => {
   // Context-on shape (OPCHAIN_ROUTE_CONTEXT=1); the default shape is tested below.
   const state = { request: PROMPT, conversation: { previous_request: null, assistant_last: null }, repo: REPO };
 
-  it("without `conversation` in the state (the default), only the repo rule is sent", () => {
+  it("without `conversation` in the state (the default), only the request rules and the repo rule are sent", () => {
     const plain = { request: PROMPT, repo: REPO };
     const r1 = d.buildRequest1(spec, plain);
-    expect(Object.keys(r1.questions.which.instructions)).toEqual(["task", "repo"]);
+    expect(Object.keys(r1.questions.which.instructions)).toEqual(["task", "request_vs_question", "verb_not_content", "repo"]);
     expect(r1.questions.which.instructions.task).not.toContain("`conversation`");
     for (const g of ["acts", "procedure", "prose"]) expect(Object.keys(r1.questions[g].instructions)).toEqual(["criterion"]);
     const r2 = d.buildRequest2(spec, plain, ["oc-git-ops"]);
-    expect(Object.keys(r2.questions.rerank.instructions)).toEqual(["task", "repo"]);
+    expect(Object.keys(r2.questions.rerank.instructions)).toEqual(["task", "request_vs_question", "verb_not_content", "repo"]);
     expect(r2.questions.rerank.instructions.task).not.toContain("`conversation`");
-    expect(Object.keys(r2.questions["fits::oc-git-ops"].instructions)).toEqual(["question", "skill", "repo"]);
+    expect(Object.keys(r2.questions["fits::oc-git-ops"].instructions)).toEqual(["question", "skill", "request_vs_question", "verb_not_content", "repo"]);
     expect(Object.keys(r2.questions["verb::oc-git-ops"].instructions)).toEqual(["question", "options"]);
+  });
+
+  it("the request rules and `none` text target the 2026-10-23 error patterns", () => {
+    const r2 = d.buildRequest2(spec, { request: "and bug check", repo: REPO }, ["oc-bug-check"]);
+    const fits = r2.questions["fits::oc-bug-check"].instructions;
+    expect(fits.request_vs_question).toBe(d.REQUEST_RULES.request_vs_question);
+    expect(fits.request_vs_question).toMatch(/question about the skill, not a request to run it/);
+    expect(fits.verb_not_content).toMatch(/"open a PR that records the release" is a pull-request action/);
+    expect(r2.questions.rerank.criteria.none).toBe(d.NONE_DESCRIPTION);
+    expect(d.NONE_DESCRIPTION).toMatch(/desktop app \(Auto-fix, CI monitoring/);
+    expect(d.NONE_DESCRIPTION).not.toMatch(/auto-merge/); // "auto-merge 644 when it's ready" is git-ops work
+    expect(spec.skills["oc-git-ops"].notFor).toMatch(/Auto-fix or CI monitoring/);
+    expect(spec.skills["oc-git-ops"].notFor).toMatch(/Opening a PR is this skill whatever the PR is about/);
   });
 
   it("request 1: one Choice over every routable skill (≤255, with none) plus the three Noul gates", () => {
@@ -648,7 +684,7 @@ describe("request bodies", () => {
     expect(Object.keys(req.questions)).toEqual(["which", "acts", "procedure", "prose"]);
     // Instructions are named-field objects that teach the model to read the context.
     const which = req.questions.which.instructions;
-    expect(Object.keys(which)).toEqual(["task", "follow_ups", "conversation", "repo"]);
+    expect(Object.keys(which)).toEqual(["task", "request_vs_question", "verb_not_content", "follow_ups", "conversation", "repo"]);
     expect(which.follow_ups).toMatch(/"merge", "yes", "go", "do it" or "ship it"/);
     expect(which.follow_ups).toContain("`conversation.assistant_last`");
     expect(which.repo).toMatch(/`repo\.open_pr` set .* a bare "merge" is a PR merge/);
@@ -781,5 +817,80 @@ describe("fixtureTransport", () => {
     expect((await t({ questions: { rerank: {} } })).answers.rerank).toBeDefined();
     const bad = d.fixtureTransport({ error: "boom" });
     await expect(bad({ questions: {} })).rejects.toThrow("boom");
+  });
+});
+
+describe("prompt shaping (2026-10-23 coverage fix)", () => {
+  const REMINDER = "<system-reminder>\nAttribution for git commits…\n</system-reminder>";
+
+  it("routablePrompt strips leading reminder blocks; a pure envelope stays an envelope", () => {
+    expect(d.routablePrompt(`${REMINDER}\n${REMINDER}\nMerge the release record PR #254.`)).toEqual({
+      body: "Merge the release record PR #254.", request: "Merge the release record PR #254.", envelope: "reminder", brief: false,
+    });
+    expect(d.routablePrompt("merge 252")).toEqual({ body: "merge 252", request: "merge 252", envelope: null, brief: false });
+    expect(d.routablePrompt("<task-notification>done</task-notification>").body).toBe("<task-notification>done</task-notification>");
+    expect(d.routablePrompt(REMINDER).body).toBe("");
+  });
+
+  it("a brief from another session routes its Task paragraph only; no Task paragraph → nothing", () => {
+    const brief = [
+      "Background (from the session that started this one):",
+      "opchain is a set of Claude Code skills. A long paragraph of context.",
+      "",
+      "Task:",
+      "Run /oc-audit pre-deploy on 66f8f55 in the release checkout.",
+      "Then report.",
+      "",
+      "Read first:",
+      "- docs/audits/x.md",
+      "",
+      "Done = one report.",
+    ].join("\n");
+    const shaped = d.routablePrompt(`${REMINDER}\n${brief}`);
+    expect(shaped).toMatchObject({ brief: true, envelope: "reminder", request: "Run /oc-audit pre-deploy on 66f8f55 in the release checkout.\nThen report." });
+    expect(shaped.body.startsWith("Background (from the session")).toBe(true);
+    expect(d.explicitMention(shaped.request, spec)).toMatchObject({ skill: "oc-code-auditor", verb: "/oc-audit pre-deploy" });
+    expect(d.routablePrompt("Background (from the session that started this one):\nno task here").request).toBeNull();
+    // A Task paragraph that runs to the end of the brief.
+    expect(d.routablePrompt("Background (from the session that started this one):\nctx\n\nTask:\nMerge PR 255.").request).toBe("Merge PR 255.");
+  });
+
+  it("humanText and isHumanTurn read a desktop prompt behind reminder blocks; the hash matches the hook's", () => {
+    const rec = { type: "user", message: { content: [{ type: "text", text: REMINDER }, { type: "text", text: "Turn on Auto-fix for PR #244." }] } };
+    expect(d.humanText(rec)).toBe("Turn on Auto-fix for PR #244.");
+    expect(d.isHumanTurn(rec)).toBe(true);
+    const onlyReminder = { type: "user", message: { content: [{ type: "text", text: REMINDER }] } };
+    expect(d.humanText(onlyReminder)).toBeNull();
+    expect(d.isHumanTurn(onlyReminder)).toBe(false);
+    // The hook hashes the stripped body; the scorer hashes humanText: same prompt, same hash.
+    const hookBody = d.routablePrompt(`${REMINDER}\nTurn on Auto-fix for PR #244.`).body;
+    expect(d.promptHash(d.redactSecrets(hookBody))).toBe(d.promptHash(d.redactSecrets(d.humanText(rec))));
+  });
+
+  it("followedWithVerb: the skill called with the suggested verb, not just the skill", () => {
+    expect(d.followedWithVerb("oc-git-ops", "/oc-git-sync", { "oc-git-ops": "/oc-git-sync fix(hooks): x" })).toBe(true);
+    expect(d.followedWithVerb("oc-git-ops", "/oc-git-sync", { "oc-git-ops": "/oc-git-sync" })).toBe(true);
+    expect(d.followedWithVerb("oc-git-ops", "/oc-git-sync", { "oc-git-ops": "/oc-pr" })).toBe(false);
+    expect(d.followedWithVerb("oc-git-ops", "/oc-pr", { "oc-git-ops": "/oc-prx" })).toBe(false);
+    expect(d.followedWithVerb("oc-git-ops", "/oc-merge", {})).toBe(false);
+    expect(d.followedWithVerb(null, null, {})).toBeNull();
+  });
+
+  it("abArm is fixed per session and splits sessions between the arms", () => {
+    expect(d.abArm("0fe57c9e-c98d-4057")).toBe("control"); // 0x0f is odd
+    expect(d.abArm("1ade0000")).toBe("live"); // 0x1a is even
+    expect(d.abArm("s-1")).toBe(d.abArm("s-1"));
+    const arms = new Set(Array.from({ length: 40 }, (_, i) => d.abArm(`session-${i}`)));
+    expect(arms).toEqual(new Set(["live", "control"]));
+  });
+
+  it("the decision cache ignores exact counts in repo state (0 hits in 80 shadow routes)", () => {
+    const a = d.cacheKey("merge", { branch: "x", dirty: 3, ahead: 2, behind: 0, open_pr: false }, spec);
+    const b = d.cacheKey("merge", { branch: "x", dirty: 7, ahead: 5, behind: 0, open_pr: false }, spec);
+    const clean = d.cacheKey("merge", { branch: "x", dirty: 0, ahead: 2, behind: 0, open_pr: false }, spec);
+    expect(a).toBe(b);
+    expect(a).not.toBe(clean);
+    expect(d.cacheRepoState({ dirty: null, ahead: 1 })).toEqual({ dirty: null, ahead: true, behind: null });
+    expect(d.cacheKey("merge", {}, spec, null, { thresholds: { allowMenus: true } })).not.toBe(d.cacheKey("merge", {}, spec));
   });
 });

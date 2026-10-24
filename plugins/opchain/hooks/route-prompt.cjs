@@ -44,32 +44,41 @@
 //                 next steps, so "merge" / "yes" / "go" can be resolved.
 //                 Both pass through redactSecrets before anything else.
 //   repo          branch, ahead/behind origin/main, dirty count, open_pr,
-//                 enrolled, the newest in-progress checkpoint.
+//                 enrolled, and the newest in-progress checkpoint of a core
+//                 skill written in the last 24 h (else none).
+// `request` is the prompt after any leading desktop `<system-reminder>` blocks;
+// for a brief from another session ("Background (from the session that started
+// this one): … Task: …") it is the Task paragraph alone.
 //
 // ── Outcome records (self-labelling) ────────────────────────────────────────
 // Before routing, the hook finds this session's previous routing record in
 // the log (last ~200 lines), reads the transcript records after that record's
 // prompt up to the end of its reply turn, the next human turn or 30 min
 // (dispatch.outcomeWindow), and appends { type: "outcome", for_prompt_hash,
-// suggested, mode, skill_calls, raw: { git_commit, git_push, git_sync,
-// gh_pr_create, gh_pr_merge, deploy, merge_handoff }, followed, window_end }.
-// Bounded reads; skipped if it takes > 300 ms. These records are the
-// fallback: `route-eval outcomes` rescores every routed prompt from the full
-// transcripts (subagents included) when it can find them.
+// suggested, mode, arm, injected, skill_calls, skill_args, raw: { git_commit,
+// git_push, git_sync, gh_pr_create, gh_pr_merge, deploy, merge_handoff },
+// followed, followed_with_verb, window_end }. Bounded reads; skipped if it
+// takes > 300 ms. These records are the fallback: `route-eval outcomes`
+// rescores every routed prompt from the full transcripts (subagents included)
+// when it can find them.
 //
 // ── Silence rules (exit 0, no stdout) ───────────────────────────────────────
-//   no TYPESAFE_API_KEY · OPCHAIN_ROUTE=0 · prompt starts with "/" (slash
-//   command) or "<" (task-notification / system envelopes) · prompt < 2 chars
+//   no TYPESAFE_API_KEY · OPCHAIN_ROUTE=0 · prompt (after leading reminder
+//   blocks) starts with "/" (slash command) or "<" (task-notification / system
+//   envelopes) · a session brief with no `Task:` paragraph · prompt < 2 chars
 //   · with OPCHAIN_ROUTE_CONTEXT=1 only: prompt < 12 chars UNLESS the
 //   transcript has an assistant message for it to follow up on · the repo is
 //   not an opchain project (.checkpoints/ dir, .bugcheck.json, or
-//   .claude/skills/oc-*) · shadow mode (routes and logs, injects nothing) ·
-//   any failure anywhere (logged, never surfaced)
+//   .claude/skills/oc-*) · shadow mode or the A/B control arm (routes and logs,
+//   injects nothing) · a suggestion whose verb is the skill's menu (logged
+//   with decision null) · any failure anywhere (logged, never surfaced)
 //
 // ── Env ─────────────────────────────────────────────────────────────────────
 //   TYPESAFE_API_KEY                 required; never logged
 //   OPCHAIN_ROUTE=0                  disable
 //   OPCHAIN_ROUTE_MODE=live          inject the suggestion (default: shadow — log only)
+//   OPCHAIN_ROUTE_AB=1               with live: inject only in the "live" arm (half the
+//                                    sessions, by session id); the "control" arm logs only
 //   OPCHAIN_ROUTE_GATE / _FITS       threshold overrides (0..1); _FITS replaces the tiered
 //                                    bar (core skills 0.6, all others 0.9)
 //   OPCHAIN_ROUTE_SUGGEST_ALL=1      ignore the suggest allowlist (diagnostics only)
@@ -81,10 +90,13 @@
 //   OPCHAIN_ROUTE_TRANSPORT_CAPTURE  test seam: with the fixture, append each request body here
 //
 // Every routing attempt appends one JSONL record: { at, session_id,
-// prompt_hash, prompt_head, repoState, conversation (heads), decision, mode,
-// injected, trace: { top3, gate, fits, usage, ms, cached, error, reason,
-// suppressed } }. Pre-flight silences are not logged (they would fire on
-// every slash command in every repo); outcome records are.
+// prompt_hash, prompt_head, repo, cwd, envelope, brief, prompt_raw_head,
+// repoState, conversation (heads), decision, mode, arm, injected, line, trace:
+// { top3, gate, fits, usage, ms, cached, error, reason, suppressed } }. `repo`,
+// `cwd` and `prompt_raw_head` (40 redacted chars, only when reminder blocks were
+// stripped) stay in the local log; none is sent. Pre-flight silences are not
+// logged (they would fire on every slash command in every repo); outcome
+// records are.
 
 "use strict";
 const fs = require("fs");
@@ -102,6 +114,7 @@ const GH_TIMEOUT_MS = 2000;
 // watchdog (BUDGET_MS) cannot fire while spawnSync blocks (audit B-05).
 const SYNC_BUDGET_MS = 4000;
 const OPEN_PR_TTL_MS = 60 * 1000;
+const CHECKPOINT_FRESH_MS = 24 * 60 * 60 * 1000;
 const MIN_PROMPT_CHARS = 12;
 const MIN_FOLLOWUP_CHARS = 2;
 const TRANSCRIPT_TAIL_BYTES = 256 * 1024;
@@ -119,20 +132,43 @@ try {
   input = {};
 }
 
-// Redact credentials at the source: the prompt is hashed, logged and sent to a third-party
-// API below, and none of those may ever see a pasted key. If the redactor cannot load,
-// treat the prompt as empty (silent) rather than risk sending it raw.
+// Leading desktop `<system-reminder>` blocks are stripped first (they are not the
+// human's words), and a brief from another session is reduced to its `Task:`
+// paragraph (dispatch.routablePrompt). Then credentials are redacted at the
+// source: the prompt is hashed, logged and sent to a third-party API below, and
+// none of those may ever see a pasted key. If the redactor cannot load, treat
+// the prompt as empty (silent) rather than risk sending it raw.
+//   body     the prompt after the reminder blocks; prompt_hash is taken over it,
+//            the same text the outcome scorer reads back from the transcript
+//   prompt   what is routed: the body, or the brief's Task paragraph
 let prompt = "";
+let body = "";
+let envelope = null;
+let brief = false;
+let rawHead = null;
 try {
   const raw = typeof input.prompt === "string" ? input.prompt.trim() : "";
-  prompt = raw ? dispatch.redactSecrets(raw) : "";
+  const shaped = dispatch.routablePrompt(raw);
+  body = shaped.body ? dispatch.redactSecrets(shaped.body) : "";
+  prompt = shaped.request ? dispatch.redactSecrets(shaped.request) : "";
+  envelope = shaped.envelope;
+  brief = shaped.brief;
+  // Whether the desktop app puts its reminder blocks in `prompt` is not
+  // documented; keep 40 redacted chars of what arrived when blocks were stripped.
+  if (envelope) rawHead = dispatch.redactSecrets(raw).slice(0, 40);
 } catch {
   prompt = "";
+  body = "";
 }
 const sessionId = input.session_id ? String(input.session_id) : null;
-const promptHash = dispatch.promptHash(prompt);
+const promptHash = dispatch.promptHash(body);
 const logFile = env.OPCHAIN_ROUTE_LOG || path.join(os.tmpdir(), "opchain-route-log.jsonl");
 const mode = env.OPCHAIN_ROUTE_MODE === "live" ? "live" : "shadow";
+// OPCHAIN_ROUTE_AB=1 splits live mode by session: the "control" arm routes and
+// logs exactly like live but injects nothing, so a follow rate can be compared
+// with what the same person's sessions do unprompted.
+const arm = env.OPCHAIN_ROUTE_AB === "1" ? dispatch.abArm(sessionId) : null;
+const injecting = mode === "live" && arm !== "control";
 
 function appendRaw(record) {
   try {
@@ -207,11 +243,12 @@ if (env.OPCHAIN_ROUTE === "0") silent();
 // Shadow output is never injected, so the prompt must not wait for git, gh or
 // the HTTPS requests. The hook hands its stdin to a detached copy of itself
 // (OPCHAIN_ROUTE_DETACHED=1, stdout/stderr ignored) that does all the work and
-// logging, and exits at once. Live mode stays inline: it needs the answer.
+// logging, and exits at once. Live mode stays inline: it needs the answer. The
+// A/B control arm injects nothing either, so it detaches like shadow.
 // The stdin payload goes over a pipe, never a temp file (it is not redacted
 // yet). OPCHAIN_ROUTE_SYNC=1 keeps shadow inline (tests, debugging). If the
 // spawn fails, the hook just carries on inline.
-if (mode === "shadow" && env.OPCHAIN_ROUTE_DETACHED !== "1" && env.OPCHAIN_ROUTE_SYNC !== "1") {
+if (!injecting && env.OPCHAIN_ROUTE_DETACHED !== "1" && env.OPCHAIN_ROUTE_SYNC !== "1") {
   try {
     const child = spawn(process.execPath, [__filename], {
       detached: true,
@@ -269,9 +306,13 @@ function recordPreviousOutcome() {
     suggested,
     explicit: Boolean(prev.decision && prev.decision.explicit),
     mode: prev.mode || null,
+    arm: prev.arm || null,
+    injected: Boolean(prev.injected),
     skill_calls: found.skill_calls,
+    skill_args: found.skill_args,
     raw: found.raw,
     followed: suggested ? found.skill_calls.includes(suggested) : null,
+    followed_with_verb: dispatch.followedWithVerb(suggested, prev.decision && prev.decision.args, found.skill_args),
     anchor: found.anchor,
     window_end: found.window_end,
   });
@@ -282,8 +323,11 @@ try {
   /* outcome recording is best effort */
 }
 
+// Pure envelopes (`<task-notification>`, `<bash-input>`, a reminder with no
+// prompt after it) and slash commands stay silent; so does a session brief
+// with no `Task:` paragraph (prompt is empty).
+if (!body || body.startsWith("/") || body.startsWith("<")) silent();
 if (!prompt) silent();
-if (prompt.startsWith("/") || prompt.startsWith("<")) silent();
 
 // Conversation context, opt-in. With context on, a prompt under
 // MIN_PROMPT_CHARS routes only as a follow-up (an assistant message precedes
@@ -294,7 +338,7 @@ const thresholds = dispatch.thresholdsFromEnv(env);
 let conversation = { previous_request: null, assistant_last: null };
 if (thresholds.context) {
   try {
-    conversation = dispatch.conversationFromRecords(transcriptRecords(), prompt);
+    conversation = dispatch.conversationFromRecords(transcriptRecords(), body);
   } catch {
     /* context is best effort */
   }
@@ -425,6 +469,11 @@ function enrolled() {
   return fs.existsSync(path.join(dir, "opchain", "commit-gate", "v1", "verify-candidate.mjs"));
 }
 
+// The newest in_progress checkpoint of a CORE skill written in the last day, or
+// null. Any in_progress checkpoint was sent before, and in the 2026-10-19 →
+// 10-23 shadow window the field was present on 80/80 routes and named
+// oc-app-architect on 45 of them whatever the prompt said: a standing
+// condition, not context.
 function activeCheckpoint() {
   const dir = path.join(root, ".checkpoints");
   let best = null;
@@ -434,11 +483,14 @@ function activeCheckpoint() {
   } catch {
     return null;
   }
+  const freshSince = Date.now() - CHECKPOINT_FRESH_MS;
   for (const f of files) {
     try {
       const d = JSON.parse(fs.readFileSync(path.join(dir, f), "utf8"));
       if (!d || d.status !== "in_progress") continue;
+      if (!dispatch.CORE_SKILLS.includes(d.skill || f.replace(/\.checkpoint\.json$/, ""))) continue;
       const at = Date.parse(d.record_updated_at || d.updated_at || "") || 0;
+      if (at < freshSince) continue;
       if (!best || at > best.at) {
         const next = Array.isArray(d.next_actions) && d.next_actions.length ? String(d.next_actions[0]) : null;
         best = { at, skill: d.skill || f.replace(/\.checkpoint\.json$/, ""), phase: d.phase || null, next_action: next ? next.slice(0, 200) : null };
@@ -510,7 +562,7 @@ function traceSummary(trace) {
   }
   const { decision, trace } = result;
   const line = dispatch.decisionText(decision);
-  const inject = Boolean(line && mode === "live");
+  const inject = Boolean(line && injecting);
   if (inject) {
     process.stdout.write(
       JSON.stringify({ hookSpecificOutput: { hookEventName: "UserPromptSubmit", additionalContext: line } }) + "\n",
@@ -518,6 +570,13 @@ function traceSummary(trace) {
   }
   appendLog({
     prompt_head: prompt.slice(0, 80),
+    // Local log only (never sent): which repository and checkout, how the prompt
+    // arrived, and the exact line injected or (shadow, control arm) withheld.
+    repo: path.basename(root),
+    cwd,
+    envelope,
+    brief,
+    prompt_raw_head: rawHead,
     repoState,
     conversation: {
       previous_request: conversation.previous_request ? conversation.previous_request.slice(0, 80) : null,
@@ -527,7 +586,9 @@ function traceSummary(trace) {
       ? { skill: decision.skill, args: decision.args, p: decision.p, confidence: decision.confidence, gate: decision.gate, fits: decision.fits, explicit: decision.explicit === true }
       : null,
     mode,
+    arm,
     injected: inject,
+    line,
     trace: traceSummary(trace),
     total_ms: Date.now() - started,
   });

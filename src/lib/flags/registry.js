@@ -307,6 +307,9 @@ const DEFINITIONS = [
     // tag" to oc-git-ops, which had no tag verb to catch it — ten releases shipped
     // untagged as a result. See docs/plans/2026-08-26-git-ops-per-release.md.
     "/oc-git-release",
+    // v2.1: the merge verb. "merge" was the commonest git-ops request in the router's
+    // shadow log and had no verb, so it routed to the /oc-git menu.
+    "/oc-merge",
     // v1.9 "Assurance and governed delivery ops" verbs. Subcommands inherit
     // the parent verb. /oc-harden (execute) is deliberately distinct from the
     // existing /oc-hardening (oc-security-auditor: assess).

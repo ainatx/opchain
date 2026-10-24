@@ -252,6 +252,16 @@ describe("route-eval labelling primitives", () => {
     expect(humanPromptText({ type: "user", isMeta: true, message: { content: "x" } })).toBeNull();
     expect(humanPromptText({ type: "assistant", message: { content: "x" } })).toBeNull();
     expect(humanPromptText({ type: "user", message: { content: "<system-reminder>x</system-reminder>" } })).toBeNull();
+    // A desktop prompt behind reminder blocks is the human's text (the hook routes it too).
+    expect(humanPromptText({ type: "user", message: { content: [{ type: "text", text: "<system-reminder>x</system-reminder>" }, { type: "text", text: "Merge PR #254." }] } })).toBe("Merge PR #254.");
+    expect(humanPromptText({ type: "user", message: { content: "<system-reminder>x</system-reminder>\n<task-notification>y</task-notification>" } })).toBeNull();
+  });
+
+  it("rowsFromRecords routes a brief's Task paragraph and drops a brief without one", () => {
+    const brief = "Background (from the session that started this one):\nlots of context\n\nTask:\nOpen a PR for the fix.\n\nRead first:\n- x";
+    const rows = rowsFromRecords([user(brief, DW, "main"), user("Background (from the session that started this one):\nno task", DW, "main")], { projectDir: "p", session: "s" });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ prompt: "Open a PR for the fix.", brief: true });
   });
 
   it("deriveLabel prefers a Skill call over an earlier implied command", () => {
@@ -353,6 +363,11 @@ describe("route-eval metrics", () => {
     expect(suggestedAt({ skill: "oc-git-ops", fits: 0.9 }, { fits: 0.5, gate: 0.5 })).toBe("oc-git-ops");
     expect(suggestedAt({ skill: "oc-git-ops", fits: 0.9, gate: false }, { fits: 0.5, gate: 0.5 })).toBeNull();
     expect(suggestedAt(null, { fits: 0, gate: 0 })).toBeNull();
+    // A menu-verb decision (kept by the open query) is dropped unless the report allows menus.
+    const menu = { ...d("oc-git-ops", 0.9, 0.9), args: "/oc-git", menu: true };
+    expect(suggestedAt(menu, { fits: 0.5, gate: 0.5 })).toBeNull();
+    expect(suggestedAt(menu, { fits: 0.5, gate: 0.5, allowMenus: true })).toBe("oc-git-ops");
+    expect(suggestedAt({ ...menu, explicit: true }, { fits: 0.5, gate: 0.5 })).toBe("oc-git-ops");
   });
 
   it("default report thresholds are the shipped tiered bar: core 0.6, others 0.9, gate 0.5 (B-03)", async () => {
@@ -742,9 +757,12 @@ describe("route-eval outcomes", () => {
     expect(s.proxy.corePrecision).toBeCloseTo(0.75);
     expect(s.proxy.silentRate).toBeCloseTo(0.5);
     expect(s.byMode).toEqual([
-      { mode: "live", outcomes: 1, suggestions: 1, followed: 1, followRate: 1 },
-      { mode: "shadow", outcomes: 8, suggestions: 5, followed: 2, followRate: 0.4 },
+      { mode: "live", outcomes: 1, suggestions: 1, followed: 1, followedWithVerb: 0, followRate: 1 },
+      { mode: "shadow", outcomes: 8, suggestions: 5, followed: 2, followedWithVerb: 0, followRate: 0.4 },
     ]);
+    // These fixtures predate skill_args, so no follow can be credited with its verb.
+    expect(s.verbFidelity).toBe(0);
+    expect(s.byArm).toEqual([]);
     const git = s.perSkill.find((r) => r.skill === "oc-git-ops");
     expect(git).toMatchObject({ suggestions: 3, followed: 2, relatedRaw: 2, tp: 3, fp: 0, fn: 0 });
     expect(s.perSkill.find((r) => r.skill === "oc-deploy-ops")).toMatchObject({ suggestions: 1, followed: 0, tp: 0, fp: 1, fn: 1 });
@@ -768,6 +786,25 @@ describe("route-eval outcomes", () => {
     expect(md).toMatch(/### Unlabelled suggestions \(6\): the gate waits on these/);
     expect(md).toMatch(/### Unlabelled proxy misses \(1\)/);
     expect(md).toMatch(/NO-GO — stay in shadow/);
+  });
+
+  it("splits A/B arms and counts follows that used the suggested verb", () => {
+    const rows = [
+      { session_id: "a", suggested: "oc-git-ops", suggested_args: "/oc-merge", mode: "live", arm: "live", skill_calls: ["oc-git-ops"], skill_args: { "oc-git-ops": "/oc-merge 252" }, followed_with_verb: true, raw: {} },
+      { session_id: "b", suggested: "oc-git-ops", suggested_args: "/oc-git-sync", mode: "live", arm: "live", skill_calls: ["oc-git-ops"], skill_args: { "oc-git-ops": "/oc-pr" }, followed_with_verb: false, raw: {} },
+      { session_id: "c", suggested: "oc-deploy-ops", suggested_args: "/oc-deploy staging", mode: "live", arm: "control", skill_calls: [], skill_args: {}, followed_with_verb: false, raw: { deploy: true } },
+      { session_id: "d", suggested: null, mode: "live", arm: "control", skill_calls: [], skill_args: {}, followed_with_verb: null, raw: {} },
+    ];
+    const s = summarizeOutcomes(rows);
+    expect(s.byArm).toEqual([
+      { arm: "control", outcomes: 2, suggestions: 1, followed: 0, followedWithVerb: 0, followRate: 0 },
+      { arm: "live", outcomes: 2, suggestions: 2, followed: 2, followedWithVerb: 1, followRate: 1 },
+    ]);
+    expect(s.verbFidelity).toBeCloseTo(0.5);
+    const md = renderOutcomesReport(s, { logPath: "/x/route-log.jsonl" });
+    expect(md).toContain("### A/B arms (OPCHAIN_ROUTE_AB=1)");
+    expect(md).toContain("| live | 2 | 2 | 2 | 1 | 1.000 |");
+    expect(md).toContain("node scripts/route-eval.mjs label <session> <prompt hash>");
   });
 
   it("hand labels override the proxy; ambiguous rows leave every rate", () => {
@@ -850,6 +887,37 @@ describe("route-eval outcomes", () => {
       const missing = spawnSync(process.execPath, [SCRIPT, "outcomes", "--log", join(dir, "nope.jsonl"), "--no-rescore"], { encoding: "utf8" });
       expect(missing.status).toBe(2);
       expect(missing.stderr).toMatch(/no route log/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("label: --list shows unlabelled suggestions; a label is validated and appended beside the log", () => {
+    const dir = mkdtempSync(join(tmpdir(), "route-eval-label-"));
+    try {
+      const log = join(dir, "route-log.jsonl");
+      const recs = [
+        { at: "2026-10-21T21:27:00.000Z", session_id: "s1", prompt_hash: "aaaa000000000001", prompt_head: "merge", decision: { skill: "oc-git-ops", args: "/oc-merge" }, mode: "shadow" },
+        { at: "2026-10-21T21:28:00.000Z", session_id: "s1", prompt_hash: "aaaa000000000002", prompt_head: "good luck!", decision: null, mode: "shadow" },
+      ];
+      writeFileSync(log, recs.map((l) => JSON.stringify(l)).join("\n") + "\n");
+      const list = spawnSync(process.execPath, [SCRIPT, "label", "--list", "--log", log], { encoding: "utf8" });
+      expect(list.status, list.stderr).toBe(0);
+      expect(list.stdout.trim().split("\n")).toEqual([expect.stringMatching(/^s1 aaaa000000000001 10-21T21:27 oc-git-ops \/oc-merge \| merge$/)]);
+      expect(spawnSync(process.execPath, [SCRIPT, "label", "--list", "--all", "--log", log], { encoding: "utf8" }).stdout.trim().split("\n")).toHaveLength(2);
+      const bad = spawnSync(process.execPath, [SCRIPT, "label", "s1", "aaaa000000000001", "oc-made-up", "--log", log], { encoding: "utf8" });
+      expect(bad.status).toBe(2);
+      expect(bad.stderr).toMatch(/not a skill id/);
+      const unknown = spawnSync(process.execPath, [SCRIPT, "label", "s1", "ffff000000000000", "none", "--log", log], { encoding: "utf8" });
+      expect(unknown.status).toBe(2);
+      const ok = spawnSync(process.execPath, [SCRIPT, "label", "s1", "aaaa000000000001", "oc-git-ops", "--note", "merge prompt", "--log", log], { encoding: "utf8" });
+      expect(ok.status, ok.stderr).toBe(0);
+      expect(ok.stdout).toMatch(/^labelled aaaa000000000001 → oc-git-ops: merge/);
+      expect(JSON.parse(readFileSync(join(dir, "route-labels.jsonl"), "utf8").trim())).toEqual({ session_id: "s1", prompt_hash: "aaaa000000000001", label: "oc-git-ops", note: "merge prompt" });
+      const again = spawnSync(process.execPath, [SCRIPT, "label", "s1", "aaaa000000000001", "ambiguous", "--log", log], { encoding: "utf8" });
+      expect(again.stdout).toMatch(/^relabelled \(was oc-git-ops\)/);
+      expect(readLabels(join(dir, "route-labels.jsonl")).get("s1|aaaa000000000001")).toBe("ambiguous");
+      expect(spawnSync(process.execPath, [SCRIPT, "label", "--list", "--log", log], { encoding: "utf8" }).stdout).toBe("nothing to label\n");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

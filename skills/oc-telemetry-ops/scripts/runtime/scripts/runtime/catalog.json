@@ -84,6 +84,7 @@
     "/oc-hindsight",
     "/oc-integrate",
     "/oc-launch",
+    "/oc-merge",
     "/oc-migrate",
     "/oc-modularize",
     "/oc-monitor",

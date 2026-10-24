@@ -25,7 +25,9 @@
 //   { request, repo }
 // With T.context (OPCHAIN_ROUTE_CONTEXT=1), opt-in and experimental:
 //   { request, conversation: { previous_request, assistant_last }, repo }
-// plus the follow-up/conversation instruction rules. assistant_last is the END
+// plus the follow-up/conversation instruction rules. Every request, context on
+// or off, carries REQUEST_RULES (a question about a skill is not a request to
+// run it; judge the action, not the content it describes). assistant_last is the END
 // of the assistant's previous message (≤400 chars); previous_request is the
 // developer's previous prompt (≤200 chars); both are redacted here as well as
 // at the source. Context is off by default because on the 2026-10-09 blind-
@@ -42,11 +44,14 @@
 // mention (the user named the skill) is exempt; T.suggestAll
 // (OPCHAIN_ROUTE_SUGGEST_ALL=1) turns the gate off for eval and diagnostics.
 // Verb = the Choice answer when it is a declared verb with probability ≥ T.verb,
-// else the skill's baseVerb. Output text is the ONE line the audit measured at
-// 72/72 compliance (docs/audits/2026-10-08 §3.1, I-08):
+// else the skill's baseVerb. A verb in the spec entry's `menuVerbs` (it only
+// prints the skill's command menu) yields no decision unless T.allowMenus.
+// Output text is the ONE line the audit measured at 72/72 compliance
+// (docs/audits/2026-10-08 §3.1, I-08), with the verb's description appended:
 //
 //   opchain route (p=0.91): invoke the Skill tool with skill "oc-git-ops" and
-//   args "/oc-git-sync". Skip this if the request means something else.
+//   args "/oc-git-sync" (Full workflow: branch (from convention) → commit →
+//   push → PR). Skip this if the request means something else.
 //
 // ── TypeSafe API (docs.typesafe.ai, verified 2026-10-08) ────────────────────
 //   POST https://api.typesafe.ai/v1/systemone
@@ -81,7 +86,7 @@ const CORE_SKILLS = Object.freeze([
 ]);
 const DEFAULT_THRESHOLDS = Object.freeze({
   gate: 0.5, fits: null, coreFits: 0.6, otherFits: 0.9, core: CORE_SKILLS, minTopProb: 0.35, verb: 0.5, suggestAll: false,
-  context: false,
+  context: false, allowMenus: false,
 });
 function fitsThreshold(T, skill) {
   if (T.fits !== null && T.fits !== undefined) return T.fits;
@@ -105,11 +110,23 @@ const CONTEXT_RULES = Object.freeze({
   conversation:
     "`conversation.previous_request` is the developer's previous message; use it to resolve references such as \"that\", \"it\" or a bare PR or issue number. Either conversation field may be null.",
   repo:
-    "`repo.open_pr` set (not false or null) means a pull request already exists for this branch, so a bare \"merge\" is a PR merge. `repo.dirty` counts uncommitted files and `repo.ahead` counts commits on this branch not yet on origin/main (unpushed or unmerged work). Fields may be absent or null when unknown.",
+    "`repo.open_pr` set (not false or null) means a pull request already exists for this branch, so a bare \"merge\" is a PR merge. `repo.dirty` counts uncommitted files and `repo.ahead` counts commits on this branch not yet on origin/main (unpushed or unmerged work). `repo.checkpoint`, when present, is a pipeline skill that was working in this repository within the last day; it is background, never a reason to pick that skill for an unrelated request. Fields may be absent or null when unknown.",
 });
 
+// Sent with every request, context on or off. The 2026-10-23 shadow analysis
+// (docs/audits/2026-10-23-jev-router-shadow-performance.md §2) traced two of
+// the four false suggestions to a question that named a skill, and two of the
+// three misses to `fits` judging the content a PR described, not "open a PR".
+const REQUEST_RULES = Object.freeze({
+  request_vs_question:
+    "A request asks the assistant to DO a skill's work now. A message that asks whether, where or why that work happened, or whether a skill should be part of a plan, is a question about the skill, not a request to run it.",
+  verb_not_content:
+    "Judge the action the request asks for, not the subject matter it describes: \"open a PR that records the release\" is a pull-request action, and the release is only its content.",
+});
+
+// The other two false suggestions were "Turn on Auto-fix for PR N" → oc-git-ops.
 const NONE_DESCRIPTION =
-  "No opchain skill applies: a plain question, general coding or writing help, a one-off command, or work no listed skill owns.";
+  "No opchain skill applies: a plain question, general coding or writing help, a one-off command, a setting of the coding assistant or its desktop app (Auto-fix, CI monitoring, model, permissions), or work no listed skill owns.";
 const UNSPECIFIED_DESCRIPTION =
   "The request names no particular step of this skill; it should start at the skill's default entry point.";
 
@@ -237,7 +254,7 @@ function hasContext(state) {
 }
 
 function rulesFor(state) {
-  return hasContext(state) ? CONTEXT_RULES : { repo: CONTEXT_RULES.repo };
+  return hasContext(state) ? { ...REQUEST_RULES, ...CONTEXT_RULES } : { ...REQUEST_RULES, repo: CONTEXT_RULES.repo };
 }
 
 function followUpRule(state) {
@@ -436,12 +453,20 @@ function evaluate(spec, answers1, answers2, thresholds) {
   if (!T.suggestAll && !isSuggestable(spec, skill)) {
     return { ...base, suppressed: skill, reason: `skill ${skill} not in suggest allowlist (no labelled evidence)` };
   }
+  // A verb that only prints the skill's command menu is not a step the agent can
+  // take. 7 of 11 oc-git-ops shadow suggestions resolved to `/oc-git` (the menu),
+  // every "merge" prompt among them (2026-10-23 integration analysis). Say
+  // nothing instead; T.allowMenus keeps them for the eval's offline sweep.
+  const menu = isMenuVerb(entry, verb);
+  if (menu && !T.allowMenus) return { ...base, reason: `verb ${verb} is ${skill}'s menu (no step named)` };
   const confidence = Number.isFinite(Number(rerank.confidence)) ? Number(rerank.confidence) : computeConfidence(probabilities);
   const p = Math.min(top, fits, gate);
   const decision = {
     skill,
     verb,
     args: verb,
+    verbDescription: entry.verbs[verb] || null,
+    ...(menu ? { menu: true } : {}),
     p: round(p),
     confidence: round(confidence),
     probabilities,
@@ -454,13 +479,27 @@ function evaluate(spec, answers1, answers2, thresholds) {
   return { ...base, decision, reason: decision.reason };
 }
 
+/** True when `verb` is one of the spec entry's `menuVerbs` (gen-route-spec marks them). */
+function isMenuVerb(entry, verb) {
+  return Boolean(entry && Array.isArray(entry.menuVerbs) && entry.menuVerbs.includes(verb));
+}
+
 function decide(spec, answers1, answers2, thresholds) {
   return evaluate(spec, answers1, answers2, thresholds).decision;
 }
 
+const VERB_DESCRIPTION_MAX = 120;
+
+/**
+ * The one line live mode injects. The tool-named form leads (72/72 in the
+ * 2026-10-08 audit); the verb's own description follows so the agent knows
+ * which step it is agreeing to before it loads the skill.
+ */
 function decisionText(decision) {
   if (!decision) return null;
-  return `opchain route (p=${Number(decision.p).toFixed(2)}): invoke the Skill tool with skill "${decision.skill}" and args "${decision.args}". Skip this if the request means something else.`;
+  const desc = typeof decision.verbDescription === "string" ? decision.verbDescription.replace(/\s+/g, " ").trim().replace(/\.$/, "") : "";
+  const what = desc ? ` (${desc.length > VERB_DESCRIPTION_MAX ? `${desc.slice(0, VERB_DESCRIPTION_MAX - 1)}…` : desc})` : "";
+  return `opchain route (p=${Number(decision.p).toFixed(2)}): invoke the Skill tool with skill "${decision.skill}" and args "${decision.args}"${what}. Skip this if the request means something else.`;
 }
 
 // ── Cache ───────────────────────────────────────────────────────────────────
@@ -533,7 +572,18 @@ function redactDeep(value) {
  */
 function thresholdKey(thresholds) {
   const T = { ...DEFAULT_THRESHOLDS, ...(thresholds || {}) };
-  return JSON.stringify([T.gate, T.fits ?? null, T.coreFits, T.otherFits, [...(T.core || CORE_SKILLS)].sort(), T.minTopProb, T.verb]);
+  return JSON.stringify([T.gate, T.fits ?? null, T.coreFits, T.otherFits, [...(T.core || CORE_SKILLS)].sort(), T.minTopProb, T.verb, Boolean(T.allowMenus)]);
+}
+
+/**
+ * Repo state as the cache sees it: the counts collapse to "any / none". With
+ * exact counts in the key the cache never hit in 80 shadow routes (2026-10-19
+ * → 10-23), because `dirty` changes with every edit; the decision does not.
+ */
+function cacheRepoState(repoState) {
+  if (!repoState || typeof repoState !== "object") return repoState ?? null;
+  const some = (n) => (typeof n === "number" ? n > 0 : n ?? null);
+  return { ...repoState, dirty: some(repoState.dirty), ahead: some(repoState.ahead), behind: some(repoState.behind) };
 }
 
 function cacheKey(prompt, repoState, spec, conversation = null, { suggestAll = false, context = false, thresholds = null } = {}) {
@@ -541,7 +591,7 @@ function cacheKey(prompt, repoState, spec, conversation = null, { suggestAll = f
     .createHash("sha256")
     .update(String(prompt))
     .update("\u0000")
-    .update(JSON.stringify(repoState ?? null))
+    .update(JSON.stringify(cacheRepoState(repoState)))
     .update("\u0000")
     .update(JSON.stringify(conversation ?? null))
     .update("\u0000")
@@ -580,11 +630,46 @@ function normalizeConversation(raw) {
 }
 
 const HARNESS_ENVELOPE_RE = /^(\[Request interrupted by user[^\]]*\]|Request directory (approved|denied)\b)/;
+// The desktop app delivers some prompts as one or more `<system-reminder>` blocks
+// followed by the human's text. Treating the whole message as an envelope left
+// 13 of 14 such prompts unrouted in the 2026-10-19 → 10-23 shadow window, among
+// them every `run /oc-*` prompt and every brief from another session.
+const LEADING_REMINDERS_RE = /^(?:\s*<system-reminder>[\s\S]*?<\/system-reminder>)+\s*/;
+// A task another session hands this one opens with this line; its `Task:`
+// paragraph is the request, the rest is background and reading lists.
+const SESSION_BRIEF_RE = /^Background \(from the session that started this one\):/;
+const BRIEF_TASK_RE = /^Task:[ \t]*\n?([\s\S]*?)(?=\n[ \t]*\n(?:[A-Z][^\n]{0,80}:[ \t]*(?:\n|$)|Done =|Shared notes)|$(?![\s\S]))/m;
+const BRIEF_TASK_MAX = 1500;
+
+/** `text` with any leading `<system-reminder>…</system-reminder>` blocks removed, trimmed. */
+function stripLeadingReminders(text) {
+  return String(text ?? "").trim().replace(LEADING_REMINDERS_RE, "").trim();
+}
+
+/**
+ * What the router should route for a prompt as Claude Code delivered it:
+ * { body, request, envelope, brief }. `body` is the text after any leading
+ * reminder blocks (the prompt hash is taken over it, so the outcome scorer can
+ * find the same prompt in the transcript); `request` is what is sent to Jev:
+ * the body, or a session brief's `Task:` paragraph, or null for a brief with
+ * no `Task:` paragraph (not one request, so not routed). `envelope` is
+ * "reminder" when blocks were stripped.
+ */
+function routablePrompt(text) {
+  const raw = String(text ?? "").trim();
+  const body = stripLeadingReminders(raw);
+  const envelope = body !== raw ? "reminder" : null;
+  if (!SESSION_BRIEF_RE.test(body)) return { body, request: body, envelope, brief: false };
+  const m = BRIEF_TASK_RE.exec(body);
+  const task = m ? m[1].trim() : "";
+  return { body, request: task ? task.slice(0, BRIEF_TASK_MAX) : null, envelope, brief: true };
+}
 
 /**
  * The human-typed prompt in a transcript record, or null (tool results, meta,
- * sidechain, `<…>` envelopes, slash commands, interruption markers). Same
- * rules as scripts/route-eval.mjs humanPromptText.
+ * sidechain, `<…>` envelopes, slash commands, interruption markers). Leading
+ * `<system-reminder>` blocks are stripped first, so a desktop prompt behind
+ * them counts. Same rules as scripts/route-eval.mjs humanPromptText.
  */
 function humanText(record) {
   if (!record || record.type !== "user" || record.isMeta || record.isSidechain || !record.message) return null;
@@ -597,7 +682,7 @@ function humanText(record) {
     if (!parts.length) return null;
     text = parts.join("\n");
   } else return null;
-  text = text.trim();
+  text = stripLeadingReminders(text);
   if (!text || text.startsWith("<") || text.includes("<command-name>") || HARNESS_ENVELOPE_RE.test(text)) return null;
   return text;
 }
@@ -679,7 +764,6 @@ const RAW_TOOLS = Object.freeze({
 const MERGE_HANDOFF_RE = /`[^`\n]*\bgh\s+pr\s+merge\b[^`\n]*`/;
 const RAW_CLASSES = Object.freeze([...Object.keys(RAW_COMMANDS), "merge_handoff"]);
 const BASH_INPUT_RE = /^<bash-input>([\s\S]*?)<\/bash-input>/;
-const LEADING_REMINDERS_RE = /^(?:\s*<system-reminder>[\s\S]*?<\/system-reminder>)+\s*/;
 // An outcome window closes at the end of the reply turn, at the next human turn,
 // or this long after the prompt, whichever comes first. Task notifications do not
 // fire UserPromptSubmit, so with none of these an autonomous session kept one
@@ -708,20 +792,19 @@ function emptyRaw() {
  * `!` bash-mode input and tool results (AskUserQuestion answers included) do not.
  */
 function isHumanTurn(record) {
+  // humanText already accepts a prompt behind leading reminder blocks.
   if (humanText(record) !== null) return true;
   if (!record || record.type !== "user" || record.isMeta || record.isSidechain || !record.message) return false;
   const c = record.message.content;
   if (Array.isArray(c) && c.some((b) => b && b.type === "tool_result")) return false;
   const parts = typeof c === "string" ? [c] : Array.isArray(c) ? c.filter((b) => b && b.type === "text" && typeof b.text === "string").map((b) => b.text) : [];
-  const text = parts.join("\n").trim();
-  if (text.includes("<command-name>")) return true;
-  const rest = text.replace(LEADING_REMINDERS_RE, "");
-  return rest !== text && Boolean(rest) && !rest.startsWith("<") && !HARNESS_ENVELOPE_RE.test(rest);
+  return parts.join("\n").includes("<command-name>");
 }
 
 /**
- * Fold one transcript record's activity into `acc` ({ skill_calls, raw }):
- * Skill tool calls (plugin prefix stripped), raw command classes from Bash
+ * Fold one transcript record's activity into `acc` ({ skill_calls, skill_args?, raw }):
+ * Skill tool calls (plugin prefix stripped; `skill_args`, when the caller passes
+ * it, keeps each skill's first `args`), raw command classes from Bash
  * commands and `<bash-input>`, the tool equivalents in RAW_TOOLS, and a
  * `gh pr merge` handed over in the assistant's text. Sidechain records count
  * only with `includeSidechain` (the offline rescorer reads subagent transcripts).
@@ -744,6 +827,9 @@ function addRecordActivity(acc, rec, { includeSidechain = false } = {}) {
       if (part.name === "Skill" && part.input && part.input.skill) {
         const id = stripPluginPrefix(part.input.skill);
         if (id && !acc.skill_calls.includes(id)) acc.skill_calls.push(id);
+        if (id && acc.skill_args && !Object.prototype.hasOwnProperty.call(acc.skill_args, id)) {
+          acc.skill_args[id] = typeof part.input.args === "string" ? part.input.args.slice(0, 120) : "";
+        }
       } else if (part.name === "Bash" && part.input && typeof part.input.command === "string") {
         for (const [k, on] of Object.entries(rawCommandClasses(part.input.command))) if (on) acc.raw[k] = true;
       } else if (RAW_TOOLS[part.name]) acc.raw[RAW_TOOLS[part.name]] = true;
@@ -808,19 +894,44 @@ function outcomeWindow(records, { forPromptHash, afterAt, before, windowMs = OUT
 }
 
 /**
- * What the session did after a routed prompt: { anchor, skill_calls, raw,
- * window_end }, over the outcomeWindow() of the main-session records. Null
- * when the window has no anchor or `deadline` (epoch ms) passes.
+ * What the session did after a routed prompt: { anchor, skill_calls,
+ * skill_args, raw, window_end }, over the outcomeWindow() of the main-session
+ * records. Null when the window has no anchor or `deadline` (epoch ms) passes.
  */
 function outcomeFromRecords(records, { forPromptHash, afterAt, windowMs = OUTCOME_WINDOW_MS, deadline } = {}) {
   const w = outcomeWindow(records, { forPromptHash, afterAt, windowMs, deadline });
   if (!w) return null;
-  const acc = { skill_calls: [], raw: emptyRaw() };
+  const acc = { skill_calls: [], skill_args: {}, raw: emptyRaw() };
   for (let i = w.start; i < w.end; i++) {
     if (deadline && Date.now() > deadline) return null;
     addRecordActivity(acc, records[i]);
   }
-  return { anchor: w.anchor, skill_calls: acc.skill_calls, raw: acc.raw, window_end: w.endReason };
+  return { anchor: w.anchor, skill_calls: acc.skill_calls, skill_args: acc.skill_args, raw: acc.raw, window_end: w.endReason };
+}
+
+/**
+ * Did the session call the suggested skill WITH the suggested verb? `args` of
+ * "/oc-git-sync fix(hooks): …" follows "/oc-git-sync"; "/oc-pr" does not. Null
+ * when nothing was suggested.
+ */
+function followedWithVerb(suggestedSkill, suggestedArgs, skillArgs) {
+  if (!suggestedSkill) return null;
+  if (!skillArgs || !Object.prototype.hasOwnProperty.call(skillArgs, suggestedSkill)) return false;
+  const want = String(suggestedArgs ?? "").trim();
+  if (!want) return true;
+  const got = String(skillArgs[suggestedSkill] ?? "").trim();
+  return got === want || got.startsWith(`${want} `) || got.startsWith(`${want}\n`);
+}
+
+/**
+ * The live-mode A/B arm for a session (OPCHAIN_ROUTE_AB=1): "live" or
+ * "control", fixed per session. Parity of the session id's first byte, or of a
+ * hash of it when it is not hex, so both arms fill evenly across sessions.
+ */
+function abArm(sessionId) {
+  const s = String(sessionId ?? "");
+  const hex = /^[0-9a-f]{2}/i.test(s) ? s.slice(0, 2) : crypto.createHash("sha256").update(s).digest("hex").slice(0, 2);
+  return parseInt(hex, 16) % 2 === 0 ? "live" : "control";
 }
 
 function defaultCacheDir() {
@@ -971,7 +1082,7 @@ function explicitMention(prompt, spec) {
   if (hits.size !== 1) return null;
   const [[skill, verb]] = hits;
   return {
-    skill, verb, args: verb, p: 1, confidence: 1, probabilities: { [skill]: 1 }, gate: 1, fits: 1,
+    skill, verb, args: verb, verbDescription: spec.skills[skill].verbs[verb] || null, p: 1, confidence: 1, probabilities: { [skill]: 1 }, gate: 1, fits: 1,
     topProbability: 1, verbProbability: null, explicit: true, reason: `explicit mention of ${verb}`,
   };
 }
@@ -1059,14 +1170,20 @@ module.exports = {
   PREVIOUS_REQUEST_MAX,
   ASSISTANT_LAST_MAX,
   CONTEXT_RULES,
+  REQUEST_RULES,
+  NONE_DESCRIPTION,
   RAW_COMMANDS,
   redactSecrets,
   redactDeep,
   explicitMention,
   fitsThreshold,
   isSuggestable,
+  isMenuVerb,
   normalizeConversation,
   tailText,
+  LEADING_REMINDERS_RE,
+  stripLeadingReminders,
+  routablePrompt,
   humanText,
   assistantTexts,
   promptHash,
@@ -1079,6 +1196,9 @@ module.exports = {
   addRecordActivity,
   outcomeWindow,
   outcomeFromRecords,
+  followedWithVerb,
+  abArm,
+  cacheRepoState,
   DEFAULT_CACHE_TTL_MS,
   MAX_OPTIONS,
   NONE,

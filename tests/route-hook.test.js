@@ -14,7 +14,8 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const HOOK = join(ROOT, "plugins", "opchain", "hooks", "route-prompt.cjs");
-const LINE_RE = /^opchain route \(p=0\.\d\d\): invoke the Skill tool with skill "oc-git-ops" and args "\/oc-git-sync"\. Skip this if the request means something else\.$/;
+const LINE_RE = /^opchain route \(p=0\.\d\d\): invoke the Skill tool with skill "oc-git-ops" and args "\/oc-git-sync" \(Full workflow: branch \(from convention\) → commit → push → PR\)\. Skip this if the request means something else\.$/;
+const REMINDER = "<system-reminder>\nThe user can follow this conversation from another device.\n</system-reminder>";
 
 let scratch;
 let fixture;
@@ -162,7 +163,10 @@ describe("route-prompt hook: speaking", () => {
     expect(rec.repoState.branch).toBe("main");
     expect(rec.repoState.dirty).toBeGreaterThanOrEqual(1); // untracked .checkpoints/ + transcript
     expect(rec.repoState.enrolled).toBe(false);
-    expect(rec.repoState.checkpoint).toEqual({ skill: "oc-app-architect", phase: "build", next_action: "Finish sprint 3 then commit" });
+    // A non-core checkpoint from weeks ago is a standing condition, not context.
+    expect(rec.repoState.checkpoint).toBeNull();
+    expect(rec).toMatchObject({ repo: expect.any(String), cwd: repo, envelope: null, brief: false, prompt_raw_head: null, arm: null });
+    expect(rec.line).toBe(out.hookSpecificOutput.additionalContext);
     // The previous prompt moved from repoState.last_prompt to conversation.
     expect(rec.repoState.last_prompt).toBeUndefined();
     expect(rec.conversation).toEqual({ previous_request: "earlier: please refactor the auth module", assistant_last: "ok" });
@@ -273,8 +277,13 @@ describe("route-prompt hook: speaking", () => {
       suggested: "oc-git-ops",
       mode: "shadow",
       skill_calls: ["oc-git-ops"],
+      skill_args: { "oc-git-ops": "/oc-pr" },
       raw: { git_commit: false, git_push: false, gh_pr_create: false, gh_pr_merge: true, deploy: false },
       followed: true,
+      // Suggested /oc-git-sync; the session ran /oc-pr.
+      followed_with_verb: false,
+      arm: null,
+      injected: false,
       anchor: "prompt",
     });
     expect(route1.prompt_hash).toBe(createHash("sha256").update(first).digest("hex").slice(0, 16));
@@ -289,6 +298,57 @@ describe("route-prompt hook: speaking", () => {
     expect(outcomes[1]).toMatchObject({ for_prompt_hash: route2.prompt_hash, anchor: "prompt", skill_calls: [], followed: false });
     const d = run({ prompt: "/oc-deploy staging", transcript_path: file, logFile: log, sessionId });
     expect(d.logLines.filter((l) => l.type === "outcome")).toHaveLength(2);
+  });
+
+  it("sends a core checkpoint written in the last day, and only that", () => {
+    const dir = mkRepo();
+    writeFileSync(
+      join(dir, ".checkpoints", "oc-git-ops.checkpoint.json"),
+      JSON.stringify({ skill: "oc-git-ops", status: "in_progress", phase: "pr-open", updated_at: new Date().toISOString(), next_actions: ["Merge #650 once evidence:pr passes"] }),
+    );
+    const r = run({ prompt: "commit this and open a PR against main", cwd: dir });
+    expect(r.logLines[0].repoState.checkpoint).toEqual({ skill: "oc-git-ops", phase: "pr-open", next_action: "Merge #650 once evidence:pr passes" });
+  });
+
+  it("a desktop prompt behind <system-reminder> blocks is routed on the human's text, hashed so the scorer finds it", () => {
+    const capture = join(scratch, `capture-reminder-${seq}.jsonl`);
+    const body = "commit this and open a PR against main";
+    const r = run({ prompt: `${REMINDER}\n${REMINDER}\n${body}`, env: { OPCHAIN_ROUTE_TRANSPORT_CAPTURE: capture } });
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.logLines).toHaveLength(1);
+    const rec = r.logLines[0];
+    expect(rec).toMatchObject({ prompt_head: body, envelope: "reminder", brief: false, decision: { skill: "oc-git-ops" } });
+    expect(rec.prompt_raw_head).toBe(`${REMINDER}\n${REMINDER}`.slice(0, 40));
+    expect(rec.prompt_hash).toBe(createHash("sha256").update(body).digest("hex").slice(0, 16));
+    for (const b of readFileSync(capture, "utf8").trim().split("\n").map((l) => JSON.parse(l))) expect(b.state.request).toBe(body);
+    // An explicit mention behind a reminder routes without a model call.
+    const named = run({ prompt: `${REMINDER}\nrun /oc-audit pre-deploy on the release checkout` });
+    expect(named.logLines[0].decision).toMatchObject({ skill: "oc-code-auditor", args: "/oc-audit pre-deploy", explicit: true });
+  });
+
+  it("a brief from another session routes its Task paragraph; a brief with none is silent", () => {
+    const capture = join(scratch, `capture-brief-${seq}.jsonl`);
+    const brief = "Background (from the session that started this one):\nopchain context, several paragraphs.\n\nTask:\ncommit this and open a PR against main\n\nRead first:\n- docs/x.md";
+    const r = run({ prompt: `${REMINDER}\n${brief}`, env: { OPCHAIN_ROUTE_TRANSPORT_CAPTURE: capture } });
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.logLines[0]).toMatchObject({ brief: true, envelope: "reminder", prompt_head: "commit this and open a PR against main" });
+    expect(r.logLines[0].prompt_hash).toBe(createHash("sha256").update(brief).digest("hex").slice(0, 16));
+    for (const b of readFileSync(capture, "utf8").trim().split("\n").map((l) => JSON.parse(l))) expect(b.state.request).toBe("commit this and open a PR against main");
+    const none = run({ prompt: "Background (from the session that started this one):\njust context, no task" });
+    expect(none.status).toBe(0);
+    expect(none.stdout).toBe("");
+    expect(none.logLines).toHaveLength(0);
+  });
+
+  it("OPCHAIN_ROUTE_AB=1: the live arm injects, the control arm routes and logs the line it withheld", () => {
+    const live = run({ prompt: "commit this and open a PR against main", sessionId: "1a000000-live", env: { OPCHAIN_ROUTE_MODE: "live", OPCHAIN_ROUTE_AB: "1" } });
+    expect(JSON.parse(live.stdout).hookSpecificOutput.additionalContext).toMatch(LINE_RE);
+    expect(live.logLines[0]).toMatchObject({ mode: "live", arm: "live", injected: true });
+    const control = run({ prompt: "commit this and open a PR against main", sessionId: "0f000000-control", env: { OPCHAIN_ROUTE_MODE: "live", OPCHAIN_ROUTE_AB: "1" } });
+    expect(control.status, control.stderr).toBe(0);
+    expect(control.stdout).toBe("");
+    expect(control.logLines[0]).toMatchObject({ mode: "live", arm: "control", injected: false, decision: { skill: "oc-git-ops" } });
+    expect(control.logLines[0].line).toMatch(LINE_RE);
   });
 
   it("threshold env overrides reach the decision", () => {

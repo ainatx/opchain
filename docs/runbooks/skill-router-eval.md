@@ -48,7 +48,13 @@ Options: `--since <date>`, `--out <file>`, `--projects <glob[,glob]>`,
 What is excluded as "not a human prompt": tool results, `isMeta` records,
 sidechain records, anything starting with `<` (task notifications, system
 envelopes), slash commands (`<command-name>`), `[Request interrupted …]` and
-`Request directory approved`. Identical prompts within one session are deduped,
+`Request directory approved`. Leading desktop `<system-reminder>` blocks are
+stripped first, so a prompt behind them is a row (before 2026-10-23 they were
+all dropped, and they included every `run /oc-*` prompt). A brief from another
+session ("Background (from the session that started this one): … Task: …") is
+the row's prompt only through its `Task:` paragraph, flagged `brief: true`; a
+brief with no `Task:` paragraph is not a row. Both rules are the hook's
+(`routablePrompt` in `route-dispatch.cjs`). Identical prompts within one session are deduped,
 and a row id seen twice (a resumed session whose transcript was copied into a
 second worktree's project dir) is kept once; the summary line says how many
 were dropped.
@@ -116,6 +122,10 @@ Behaviour worth knowing:
   query thresholds — the same switch as `OPCHAIN_ROUTE_SUGGEST_ALL=1`), so the
   stored decisions keep every skill and the report can show what the
   allowlist removes. Each row's `conversation` is passed to `route()`.
+- They are also routed with `allowMenus: true`: a decision whose verb only
+  prints the skill's menu (`menuVerbs` in the spec, e.g. `/oc-git`) is kept and
+  marked `menu: true`. The report drops it, as the hook does, unless the
+  reporting thresholds set `allowMenus=1`.
 - At most 4 concurrent requests; HTTP 429 is retried with exponential backoff
   (or the server's `Retry-After`), up to 6 attempts. A row whose route() throws
   is recorded with `error` and counted, not fatal.
@@ -190,7 +200,16 @@ that wires the router into the hook.
 
 `DEFAULT_THRESHOLDS` in `route-dispatch.cjs`: `fits` ≥ **0.6** for the seven
 core skills, ≥ **0.9** for every other skill, `gate` ≥ 0.5, rerank top ≥ 0.35.
-An explicit `/oc-*` mention routes without a model call.
+An explicit `/oc-*` mention routes without a model call. A decision whose verb
+is one of the skill's `menuVerbs` (`gen-route-spec` marks a verb whose command
+reference says "Show this menu" or whose body says "When the user types X,
+display this menu") is not suggested: in the first shadow window 7 of 11
+oc-git-ops routes resolved to the `/oc-git` menu, all the "merge" prompts among
+them. Spec `+route3` added `/oc-merge`, the two request rules (`REQUEST_RULES`:
+a question about a skill is not a request; judge the action, not its subject
+matter) and the 2026-10-23 copy for oc-git-ops, oc-bug-check and
+oc-release-ops. The thresholds were not changed; re-run the 574-row set on
+`+route3` before reading the table below as current.
 
 | Eval (blind labels, lenient, ambiguous dropped, allowlist on) | All P / R / silent | Holdout P / R / silent |
 |---|---:|---:|
@@ -303,6 +322,15 @@ precision 0.31 by the proxy against 0.71 by hand. So:
    { "session_id": "…", "prompt_hash": "…", "label": "oc-git-ops", "note": "optional" }
    ```
 
+   Write them with the `label` command rather than by hand; it checks the label
+   is a skill id, `none` or `ambiguous`, that the routing record exists, and
+   appends (a later line relabels):
+
+   ```bash
+   npm run route:eval -- label --list [--all] [--log <file>]      # unlabelled suggestions (--all: every row)
+   npm run route:eval -- label <session_id> <prompt_hash> <label> [--note "…"] [--log <file>]
+   ```
+
    `label` is a skill id, `none` or `ambiguous`. Judge the prompt text
    alone, because that is all the router sees. On a labelled row:
    - suggestion = label → TP
@@ -336,6 +364,30 @@ A NO-GO keeps shadow on. Read the FP rows and the labelled misses first. Each is
 spec copy to fix, a skill to drop from the allowlist, or a raw class the proxy
 doesn't know about yet.
 
+### Live mode as an A/B
+
+A GO switches the router on, but a follow rate measured afterwards is not the
+router's effect on its own: in the 2026-10-19 → 10-23 window, 12 of 31 main-thread
+`oc-*` Skill calls came from briefs that already named the verb. So run live mode
+as an A/B on the same person's sessions:
+
+```bash
+OPCHAIN_ROUTE_MODE=live OPCHAIN_ROUTE_AB=1   # in the hook's environment
+```
+
+Each session lands in one arm by its id (`abArm` in `route-dispatch.cjs`): the
+`live` arm gets the line, the `control` arm routes, logs the line it would have
+shown (`line` in the routing record) and injects nothing. Routing records carry
+`arm`, `injected` and `line`; outcome records carry `skill_args` (each skill's
+first `args`) and `followed_with_verb`. The outcomes report adds an **A/B arms**
+table and a **verb fidelity** figure (of the live follows, how many used the
+suggested verb rather than another of the skill's steps).
+
+Read it after two weeks. The router has an effect when the live arm's follow
+rate on core skills is at least 0.6 and at least twice the control arm's, with
+verb fidelity at or above 0.9. About four suggestions a day split two ways is
+enough to see a 2× difference in two weeks, not a 20% one.
+
 ## Tests
 
 ```bash
@@ -347,6 +399,7 @@ slash-command, notification, envelope, sidechain and subagent cases), check the
 captured `conversation` per row, pin the precision/recall arithmetic on a
 seven-row set and the allowlist-suppression arithmetic, drive `run --fixture`
 with a fake route module through the CLI (including the no-re-query re-run),
-pin the outcomes report arithmetic, the label rules and the verdict on a fixture log, and rescore a fixture transcript tree (subagent activity inside the window, a commit after the reply turn, a merge handoff, the stored-record fallback, labels beside the log) through the CLI. Window and activity rules are covered in `tests/route-dispatch.test.js`. They need
-neither the real router nor an API key. The hook's outcome records and shadow
-default are covered in `tests/route-hook.test.js`.
+pin the outcomes report arithmetic, the label rules and the verdict on a fixture log, and rescore a fixture transcript tree (subagent activity inside the window, a commit after the reply turn, a merge handoff, the stored-record fallback, labels beside the log) through the CLI. They also cover the A/B arm and verb-fidelity tables, the `label` command, the menu-verb drop in the sweep, and the reminder-prefixed and brief rows of the dataset. Window, activity, prompt-shaping and cache rules are covered in `tests/route-dispatch.test.js`. They need
+neither the real router nor an API key. The hook's outcome records, shadow
+default, reminder and brief handling, the core-and-fresh checkpoint rule and the
+A/B arms are covered in `tests/route-hook.test.js`.

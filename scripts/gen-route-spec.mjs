@@ -12,13 +12,15 @@
 //   node scripts/gen-route-spec.mjs --check    # exit 1 on drift / contract errors
 //   node scripts/gen-route-spec.mjs --out <p>  # write elsewhere (tests)
 //
-// Per skill: { phases, index, full, notFor?, verbs, baseVerb, verbQuestion }.
+// Per skill: { phases, index, full, notFor?, verbs, baseVerb, verbQuestion, menuVerbs? }.
 //   index   ≤160 chars, written about the idea the user has, not the flag name
 //           (TypeSafe cookbook rule) — from overrides, else shortDesc.
 //   full    the frontmatter description, used only in the rerank request.
 //   verbs   { "/oc-x sub": description } from frontmatter `commands:`;
 //           description from overrides, else the SKILL.md command-reference line.
 //   baseVerb the verb used when the request names no sub-task.
+//   menuVerbs verbs that only print the skill's command menu (isMenuVerb); the
+//           router does not suggest them (route-dispatch evaluate()).
 // Gates: the three Noul questions of the cookbook recipe (acts / procedure /
 // prose), kept here so the hook and the eval share one wording.
 // suggestAllow: overrides `suggest.allow`, sorted — the skills the router may
@@ -38,7 +40,8 @@ export const DEFAULT_OVERRIDES = join(ROOT, "scripts", "route-spec.overrides.jso
 // verb): spec.version keys the hook's decision cache and the eval's row hash,
 // so an unbumped change would serve decisions made against the old spec.
 // 2: `/oc-update doctor` verb (2026-10-09).
-export const SPEC_SCHEMA_VERSION = 2;
+// 3: `menuVerbs`, `/oc-merge`, request rules and the 2026-10-23 routing copy.
+export const SPEC_SCHEMA_VERSION = 3;
 export const INDEX_MAX = 160;
 
 export const GATES = Object.freeze({
@@ -89,6 +92,20 @@ function menuish(text) {
   return /show (this|the) menu|command reference|this menu/i.test(text);
 }
 
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * Does invoking `verb` with nothing after it print the skill's command menu?
+ * Its command-reference line says so ("/oc-repo  Show this menu"), the body
+ * says "When the user types `/oc-git`, display this menu", or the overrides
+ * list it in `menuVerbs`. The router never suggests such a verb.
+ */
+function isMenuVerb(verb, { line, body, listed }) {
+  if (listed) return true;
+  if (line && menuish(line)) return true;
+  return new RegExp(`types\\s+\`?${escapeRe(verb)}\`?,?\\s+(?:display|show)\\s+(?:this|the)\\s+(?:command\\s+)?menu`, "i").test(body);
+}
+
 export function buildSpec({ skillsDir = join(ROOT, "skills"), overridesPath = DEFAULT_OVERRIDES } = {}) {
   const overrides = existsSync(overridesPath) ? JSON.parse(readFileSync(overridesPath, "utf8")) : { skills: {} };
   const ids = readdirSync(skillsDir, { withFileTypes: true })
@@ -108,11 +125,18 @@ export function buildSpec({ skillsDir = join(ROOT, "skills"), overridesPath = DE
     catalogVersion ??= fm.version ?? null;
     const ov = overrides.skills?.[id] ?? {};
     const commands = Array.isArray(fm.commands) ? fm.commands.map(String) : [];
-    const ref = commandReferenceLines(text.slice(text.indexOf("\n---", 3) + 4));
+    const body = text.slice(text.indexOf("\n---", 3) + 4);
+    const ref = commandReferenceLines(body);
     const displayName = String(fm.displayName ?? id);
 
     const verbs = {};
+    const menuVerbs = [];
+    const listedMenus = Array.isArray(ov.menuVerbs) ? ov.menuVerbs.map(String) : [];
+    for (const verb of listedMenus) {
+      if (!commands.includes(verb)) problems.push(`${id}: menuVerbs entry ${verb} is not in frontmatter commands`);
+    }
     for (const verb of commands) {
+      if (isMenuVerb(verb, { line: ref.get(verb), body, listed: listedMenus.includes(verb) })) menuVerbs.push(verb);
       let desc = ov.verbs?.[verb];
       if (!desc) {
         const line = ref.get(verb);
@@ -151,6 +175,7 @@ export function buildSpec({ skillsDir = join(ROOT, "skills"), overridesPath = DE
       verbs: sortObject(verbs),
     };
     if (ov.notFor) entry.notFor = String(ov.notFor).replace(/\s+/g, " ").trim();
+    if (menuVerbs.length) entry.menuVerbs = [...menuVerbs].sort();
     skills[id] = sortObject(entry);
   }
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Offline evaluation harness for the opchain skill router.
 //
-// Three commands:
+// Four commands:
 //
 //   build-dataset  — scan Claude Code transcripts (main sessions only) and label
 //                    every human prompt with what the session actually did next:
@@ -22,8 +22,12 @@
 //
 //   outcomes       — read the hook's route log and summarise the production
 //                    outcome records (self-labelling): per-skill suggestions,
-//                    follow rate, what the agent did instead, proxy TP/FP/FN,
-//                    and the day-8 go/no-go verdict.
+//                    follow rate and verb fidelity (per A/B arm when
+//                    OPCHAIN_ROUTE_AB=1 ran), what the agent did instead,
+//                    proxy TP/FP/FN, and the day-8 go/no-go verdict.
+//
+//   label          — list unlabelled suggestions in the route log, or append
+//                    one hand label (validated) to route-labels.jsonl beside it.
 //
 // The baseline this measures against is the audit's 0/229 PR gates entered
 // (docs/audits/2026-10-08-opchain-effectiveness-audit.md §1, §3.1): a router
@@ -71,8 +75,10 @@ export const DEFAULTS = Object.freeze({
   // Query-time thresholds: ask the router for everything so the sweep can be
   // computed offline from the stored fits/gate without a second round trip.
   // suggestAll = OPCHAIN_ROUTE_SUGGEST_ALL=1: store every skill's decision so
-  // the report can show what the suggest allowlist removes.
-  queryThresholds: { fits: 0, gate: 0, suggestAll: true },
+  // the report can show what the suggest allowlist removes. allowMenus keeps a
+  // decision whose verb is the skill's menu (marked `menu: true`); the report
+  // drops it as the hook does unless the reporting thresholds allow menus.
+  queryThresholds: { fits: 0, gate: 0, suggestAll: true, allowMenus: true },
   sweep: { fits: [0.3, 0.4, 0.5, 0.6, 0.7], gate: [0.3, 0.5] },
   concurrency: 4,
   maxAttempts: 6,
@@ -208,12 +214,15 @@ function userTexts(record) {
 }
 
 /** Is this transcript record a human-typed prompt (not a tool result, meta
- *  envelope, task notification or slash command)? Returns the text or null. */
+ *  envelope, task notification or slash command)? Returns the text or null.
+ *  Leading desktop `<system-reminder>` blocks are stripped first, as the hook
+ *  does (route-dispatch stripLeadingReminders): the 2026-10-09 corpus left out
+ *  every prompt delivered behind them. */
 export function humanPromptText(record) {
   if (!record || record.type !== "user" || record.isMeta || record.isSidechain) return null;
   const { texts, toolResult } = userTexts(record);
   if (toolResult || texts.length === 0) return null;
-  const text = texts.join("\n").trim();
+  const text = ROUTER.stripLeadingReminders(texts.join("\n"));
   if (!text || text.startsWith("<") || text.includes("<command-name>")) return null;
   if (HARNESS_ENVELOPE_RE.test(text)) return null;
   return text;
@@ -359,8 +368,15 @@ export function rowsFromRecords(records, { projectDir, session, since, promptMax
 
   const flush = () => {
     if (!current) return;
+    // What the hook routes: a session brief becomes its Task paragraph, and a
+    // brief without one is not routed at all (route-dispatch routablePrompt).
+    const shaped = ROUTER.routablePrompt(current.text);
+    if (!shaped.request) {
+      current = null;
+      return;
+    }
     const label = deriveLabel(current.assistant);
-    const prompt = redactText(current.text);
+    const prompt = redactText(shaped.request);
     const row = {
       id: `${session}:${current.record.uuid ?? sha1(current.text).slice(0, 12)}`,
       project_dir: projectDir,
@@ -373,6 +389,7 @@ export function rowsFromRecords(records, { projectDir, session, since, promptMax
       turnsUntilNextPrompt: current.assistant.length,
       repoState: repoStateFromRecord(current.record),
       conversation: current.conversation,
+      ...(shaped.brief ? { brief: true } : {}),
     };
     rows.push(row);
     current = null;
@@ -780,10 +797,13 @@ export function describeThresholds(thresholds) {
 /**
  * The skill the router would surface at these thresholds, or null. With an
  * `allow` list (spec.suggestAllow) a non-listed skill is suppressed unless the
- * decision came from an explicit mention — the hook's evidence gate.
+ * decision came from an explicit mention — the hook's evidence gate. A
+ * decision whose verb is the skill's menu is dropped unless
+ * `thresholds.allowMenus`, as the hook drops it.
  */
 export function suggestedAt(decision, thresholds, allow = null) {
   if (!decision || !decision.skill) return null;
+  if (decision.menu && !decision.explicit && !thresholds.allowMenus) return null;
   const fits = Number(decision.fits ?? decision.confidence ?? 0);
   const gate = decision.gate === undefined || decision.gate === null ? 1 : typeof decision.gate === "boolean" ? (decision.gate ? 1 : 0) : Number(decision.gate);
   if (!(fits >= fitsBarFor(thresholds, decision.skill)) || !(gate >= thresholds.gate)) return null;
@@ -1161,7 +1181,7 @@ export function rescoreRoute(route, { mainRecords, subRecords = [], windowMs = R
   const before = new Date(Date.parse(route.at) + 5000).toISOString();
   const w = ROUTER.outcomeWindow(mainRecords, { forPromptHash: route.prompt_hash, afterAt: route.at, before, windowMs });
   if (!w) return null;
-  const acc = { skill_calls: [], raw: ROUTER.emptyRaw() };
+  const acc = { skill_calls: [], skill_args: {}, raw: ROUTER.emptyRaw() };
   for (let i = w.start; i < w.end; i++) ROUTER.addRecordActivity(acc, mainRecords[i]);
   const startMs = Date.parse(w.startAt);
   const endMs = w.endAt ? Date.parse(w.endAt) : windowMs ? startMs + windowMs : Infinity;
@@ -1169,7 +1189,7 @@ export function rescoreRoute(route, { mainRecords, subRecords = [], windowMs = R
     const t = rec && typeof rec.timestamp === "string" ? Date.parse(rec.timestamp) : NaN;
     if (t >= startMs && t <= endMs) ROUTER.addRecordActivity(acc, rec, { includeSidechain: true });
   }
-  return { anchor: w.anchor, window_end: w.endReason, skill_calls: acc.skill_calls, raw: acc.raw };
+  return { anchor: w.anchor, window_end: w.endReason, skill_calls: acc.skill_calls, skill_args: acc.skill_args, raw: acc.raw };
 }
 
 /**
@@ -1202,8 +1222,11 @@ export function scoreRoutes(routes, { index = new Map(), outcomes = [], labels =
       at: r.at,
       prompt_head: r.prompt_head ?? null,
       suggested,
+      suggested_args: (r.decision && r.decision.args) ?? null,
       explicit: Boolean(r.decision && r.decision.explicit),
       mode: r.mode ?? null,
+      arm: r.arm ?? null,
+      injected: Boolean(r.injected),
     };
     const key = `${r.session_id}|${r.prompt_hash}`;
     let scored = null;
@@ -1214,13 +1237,18 @@ export function scoreRoutes(routes, { index = new Map(), outcomes = [], labels =
     }
     if (!scored) {
       const o = (stored.get(key) ?? []).find((x) => !x.at || x.at >= r.at);
-      if (o) scored = { anchor: o.anchor ?? null, window_end: o.window_end ?? null, skill_calls: o.skill_calls ?? [], raw: o.raw ?? {}, source: "log" };
+      if (o) scored = { anchor: o.anchor ?? null, window_end: o.window_end ?? null, skill_calls: o.skill_calls ?? [], skill_args: o.skill_args ?? {}, raw: o.raw ?? {}, source: "log" };
     }
     if (!scored) {
       unscored++;
       continue;
     }
-    const row = { ...base, ...scored, followed: suggested ? scored.skill_calls.includes(suggested) : null };
+    const row = {
+      ...base,
+      ...scored,
+      followed: suggested ? scored.skill_calls.includes(suggested) : null,
+      followed_with_verb: ROUTER.followedWithVerb(suggested, base.suggested_args, scored.skill_args),
+    };
     if (labels.has(key)) row.label = labels.get(key);
     rows.push(row);
   }
@@ -1277,6 +1305,9 @@ export function summarizeOutcomes(allRecords, { coreSkills = DEFAULTS.coreSkills
   const touch = (s) => (perSkill[s] ??= { skill: s, suggestions: 0, followed: 0, relatedRaw: 0, tp: 0, fp: 0, fn: 0 });
   const transitions = {};
   const byMode = {};
+  // OPCHAIN_ROUTE_AB=1 records: the live arm saw the line, the control arm did
+  // not. Their follow rates compared are the router's effect.
+  const byArm = {};
   const sources = {};
   const windowEnds = {};
   const review = [];
@@ -1298,16 +1329,24 @@ export function summarizeOutcomes(allRecords, { coreSkills = DEFAULTS.coreSkills
     const label = o.label ?? null;
     if (o.source) sources[o.source] = (sources[o.source] ?? 0) + 1;
     if (o.window_end) windowEnds[o.window_end] = (windowEnds[o.window_end] ?? 0) + 1;
-    const bm = (byMode[mode] ??= { mode, outcomes: 0, suggestions: 0, followed: 0 });
+    const bm = (byMode[mode] ??= { mode, outcomes: 0, suggestions: 0, followed: 0, followedWithVerb: 0 });
     bm.outcomes++;
+    const ba = o.arm ? (byArm[o.arm] ??= { arm: o.arm, outcomes: 0, suggestions: 0, followed: 0, followedWithVerb: 0 }) : null;
+    if (ba) ba.outcomes++;
     if (S) {
       suggestions++;
       bm.suggestions++;
+      if (ba) ba.suggestions++;
       const row = touch(S);
       row.suggestions++;
       if ((o.skill_calls ?? []).includes(S)) {
         bm.followed++;
         row.followed++;
+        if (ba) ba.followed++;
+      }
+      if (o.followed_with_verb === true) {
+        bm.followedWithVerb++;
+        if (ba) ba.followedWithVerb++;
       }
       if (Object.entries(o.raw ?? {}).some(([k, on]) => on && RAW_CLASS_SKILL[k] === S)) row.relatedRaw++;
       const key = `${mode}\u0000${S}\u0000${describeActivity(o)}`;
@@ -1360,6 +1399,11 @@ export function summarizeOutcomes(allRecords, { coreSkills = DEFAULTS.coreSkills
     suggestions,
     followed: live.followed,
     followRate: live.suggestions ? live.followed / live.suggestions : NaN,
+    // Of the live follows, how many used the suggested verb (not just the skill).
+    verbFidelity: live.followed ? (live.followedWithVerb ?? 0) / live.followed : NaN,
+    byArm: Object.values(byArm)
+      .map((a) => ({ ...a, followRate: a.suggestions ? a.followed / a.suggestions : NaN }))
+      .sort((a, b) => a.arm.localeCompare(b.arm)),
     unprompted: { calls: shadow.followed, suggestions: shadow.suggestions, rate: shadow.suggestions ? shadow.followed / shadow.suggestions : NaN },
     sources,
     windowEnds,
@@ -1417,6 +1461,7 @@ export function renderOutcomesReport(summary, { logPath, since, labelsPath, wind
   L.push(`| Explicit \`/oc-*\` mentions (excluded from every metric here; ${S.explicit.followed} followed) | ${S.explicit.total} |`);
   L.push(`| Suggestions (incl. shadow would-have) | ${S.suggestions} |`);
   L.push(`| Follow rate, live mode (suggested skill then called) | ${f3(S.followRate)} |`);
+  L.push(`| Verb fidelity, live mode (of those, called with the suggested verb) | ${f3(S.verbFidelity)} |`);
   L.push(`| Shadow: suggested skill called unprompted (baseline, nobody saw the suggestion) | ${S.unprompted.calls} / ${S.unprompted.suggestions} |`);
   L.push(`| TP / FP / FN / TN | ${S.proxy.tp} / ${S.proxy.fp} / ${S.proxy.fn} / ${S.proxy.tn} |`);
   L.push(`| Precision (all skills) | ${f3(S.proxy.precision)} |`);
@@ -1424,10 +1469,17 @@ export function renderOutcomesReport(summary, { logPath, since, labelsPath, wind
   L.push(`| Precision (core skills: ${S.proxy.coreTp} TP / ${S.proxy.coreFp} FP) | ${f3(S.proxy.corePrecision)} |`);
   L.push(`| Silent rate on non-pipeline prompts (${S.proxy.nonPipeline}) | ${f3(S.proxy.silentRate)} |`);
   L.push("");
-  L.push("| Mode | Outcomes | Suggestions | Suggested skill called | Rate |", "|---|---:|---:|---:|---:|");
-  for (const m of S.byMode) L.push(`| ${m.mode} | ${m.outcomes} | ${m.suggestions} | ${m.followed} | ${f3(m.followRate)} |`);
-  if (!S.byMode.length) L.push("| (no outcome records) | | | | |");
+  L.push("| Mode | Outcomes | Suggestions | Suggested skill called | With the suggested verb | Rate |", "|---|---:|---:|---:|---:|---:|");
+  for (const m of S.byMode) L.push(`| ${m.mode} | ${m.outcomes} | ${m.suggestions} | ${m.followed} | ${m.followedWithVerb ?? 0} | ${f3(m.followRate)} |`);
+  if (!S.byMode.length) L.push("| (no outcome records) | | | | | |");
   L.push("");
+  if ((S.byArm ?? []).length) {
+    L.push("### A/B arms (OPCHAIN_ROUTE_AB=1)", "");
+    L.push("The live arm was shown the suggestion; the control arm routed the same way and was shown nothing. The difference in rate is the router's effect.", "");
+    L.push("| Arm | Outcomes | Suggestions | Suggested skill called | With the suggested verb | Rate |", "|---|---:|---:|---:|---:|---:|");
+    for (const a of S.byArm) L.push(`| ${a.arm} | ${a.outcomes} | ${a.suggestions} | ${a.followed} | ${a.followedWithVerb} | ${f3(a.followRate)} |`);
+    L.push("");
+  }
   L.push("## Per skill", "");
   L.push("Unlabelled rows use the proxy. TP: the session then called the skill or one of its own steps (oc-git-ops: bug-check, docs-forge, repo-ops; oc-deploy-ops: the code + security audit gate; oc-release-ops: docs-forge, git-ops, deploy-ops), or ran its raw command class (git commit/push/merge/rebase, `gh pr create`/`merge`, auto-merge, a `gh pr merge` handed to the user → oc-git-ops; `npm run deploy`, `wrangler deploy`, `scripts/deploy.mjs` → oc-deploy-ops). FP: no related activity. FN: related activity with no suggestion.", "");
   L.push("| Skill | Suggestions | Called | Related raw | TP | FP | Precision | FN |", "|---|---:|---:|---:|---:|---:|---:|---:|");
@@ -1443,7 +1495,7 @@ export function renderOutcomesReport(summary, { logPath, since, labelsPath, wind
   L.push("");
   L.push("## Rows to review", "");
   const rv = S.review ?? [];
-  const labelHow = `Label a row by appending \`{"session_id":"…","prompt_hash":"…","label":"<skill>|none|ambiguous"}\` to the labels file${labelsPath ? ` (\`${labelsPath}\`)` : ""}. Judge the prompt text alone; the router sees nothing else.`;
+  const labelHow = `Label a row with \`node scripts/route-eval.mjs label <session> <prompt hash> <skill|none|ambiguous>\`${logPath ? ` --log ${logPath}` : ""}, which appends to the labels file${labelsPath ? ` (\`${labelsPath}\`)` : ""}; \`label --list\` prints every unlabelled suggestion. Judge the prompt text alone; the router sees nothing else.`;
   const table = (rows) => {
     L.push("| When (UTC) | Session | Prompt hash | Prompt | Suggested | Then | Proxy |", "|---|---|---|---|---|---|---|");
     for (const r of rows) L.push(`| ${String(r.at ?? "").slice(5, 16)} | ${r.session_id ?? ""} | ${r.for_prompt_hash ?? ""} | ${mdEscape(head(r.prompt_head ?? "", 60))} | ${r.suggested ?? "—"} | ${mdEscape(r.then)} | ${r.verdict} |`);
@@ -1472,6 +1524,8 @@ function usage() {
     "  node scripts/route-eval.mjs build-dataset [--since 2026-09-14] [--out scratch/route-dataset.jsonl] [--projects <glob[,glob]>] [--projects-root ~/.claude/projects]",
     "  node scripts/route-eval.mjs outcomes [--log $TMPDIR/opchain-route-log.jsonl] [--since <date>] [--report <file>]",
     "        [--labels <log dir>/route-labels.jsonl] [--window-minutes 30] [--projects-root ~/.claude/projects] [--rows <file>] [--no-rescore]",
+    "  node scripts/route-eval.mjs label <session_id> <prompt_hash> <skill|none|ambiguous> [--note <text>] [--log <file>] [--labels <file>]",
+    "  node scripts/route-eval.mjs label --list [--all] [--log <file>] [--labels <file>]",
     "  node scripts/route-eval.mjs run --dataset <file> [--limit N] [--sample stratified] [--out scratch/route-eval.jsonl] [--report scratch/route-eval.md]",
     "        [--fixture <answers.json>] [--route-module <path>] [--spec <file>] [--cache scratch/route-cache.json] [--model <id>]",
     "        [--thresholds gate=0.5,coreFits=0.6,otherFits=0.9 | fits=0.5] [--query-thresholds fits=0,gate=0] [--concurrency 4] [--seed 42] [--context]",
@@ -1541,6 +1595,52 @@ export async function main(argv = process.argv.slice(2), { env = process.env, st
       fs.writeFileSync(reportPath, report);
       stdout.write(`${summary.total} outcome(s) (${sourceNote}; ${summary.labelled + summary.ambiguous} labelled) · ${summary.suggestions} suggestion(s) · ${summary.explicit.total} explicit (excluded) · core precision ${f3(summary.proxy.corePrecision)} · recall ${f3(summary.proxy.recall)} · silent rate ${f3(summary.proxy.silentRate)} → ${summary.goNoGo.go ? "GO" : "NO-GO"}\nreport → ${reportPath}\n`);
     } else stdout.write(`${report}\n`);
+    return 0;
+  }
+
+  if (command === "label") {
+    const logPath = resolve(String(args.log && args.log !== true ? args.log : env.OPCHAIN_ROUTE_LOG || DEFAULTS.routeLog));
+    const labelsPath = args.labels && args.labels !== true ? resolve(String(args.labels)) : path.join(path.dirname(logPath), "route-labels.jsonl");
+    const routes = readRouteRecords(logPath);
+    const labels = readLabels(labelsPath);
+    if (args.list) {
+      // Suggestions first (the go/no-go waits on them); --all adds silent rows.
+      const rows = routes.filter((r) => !labels.has(`${r.session_id}|${r.prompt_hash}`) && (args.all || (r.decision && r.decision.skill && !r.decision.explicit)));
+      if (!rows.length) {
+        stdout.write("nothing to label\n");
+        return 0;
+      }
+      for (const r of rows) {
+        stdout.write(`${r.session_id} ${r.prompt_hash} ${String(r.at).slice(5, 16)} ${r.decision && r.decision.skill ? `${r.decision.skill} ${r.decision.args}` : "—"} | ${head(String(r.prompt_head ?? "").replace(/\s+/g, " "), 90)}\n`);
+      }
+      return 0;
+    }
+    const [, sessionId, promptHash, label] = args._;
+    if (!sessionId || !promptHash || !label) {
+      stderr.write(`label: need <session_id> <prompt_hash> <label>\n${usage()}\n`);
+      return 2;
+    }
+    let skills = [];
+    try {
+      skills = Object.keys(loadSpec(DEFAULTS.specFile).skills);
+    } catch {
+      /* without the spec, accept any oc-* id */
+    }
+    const valid = label === LABEL_NONE || label === LABEL_AMBIGUOUS || (skills.length ? skills.includes(label) : /^oc-[a-z0-9-]+$/.test(label));
+    if (!valid) {
+      stderr.write(`label: "${label}" is not a skill id, "${LABEL_NONE}" or "${LABEL_AMBIGUOUS}"\n`);
+      return 2;
+    }
+    const route = routes.find((r) => r.session_id === sessionId && r.prompt_hash === promptHash);
+    if (!route) {
+      stderr.write(`label: no routing record for ${sessionId} ${promptHash} in ${logPath}\n`);
+      return 2;
+    }
+    const rec = { session_id: sessionId, prompt_hash: promptHash, label, ...(args.note && args.note !== true ? { note: String(args.note) } : {}) };
+    ensureDir(labelsPath);
+    fs.appendFileSync(labelsPath, `${JSON.stringify(rec)}\n`);
+    const was = labels.get(`${sessionId}|${promptHash}`);
+    stdout.write(`${was ? `relabelled (was ${was})` : "labelled"} ${promptHash} → ${label}: ${head(String(route.prompt_head ?? "").replace(/\s+/g, " "), 70)}\n`);
     return 0;
   }
 
