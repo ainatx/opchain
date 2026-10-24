@@ -1,14 +1,14 @@
 {
   "protocol_version": "1.1",
   "project": "opchain.dev",
-  "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-a8477357f762f97b9",
+  "project_dir": ".",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-24T00:54:52.892Z",
+  "updated_at": "2026-10-24T01:53:00.591Z",
   "skill": "oc-repo-ops",
   "phase": "pr-readiness",
   "status": "complete",
-  "step": "pr652-round3-shared-checks",
-  "progress_summary": "PR #652 readiness PASS at 9ff7960e: full npm test 13,033 passed with one load timeout in tests/audit-release/cli-entrypoints.test.js (unrelated; passes alone, 10/10); build passed; commit gate passed; goldens draft 182, handoff 161, vendor 135, care 80 and the other ow- acceptance scripts pass.",
+  "step": "pr652-model-runs",
+  "progress_summary": "PR #652 model-runs evidence doc at 65ba8587: docs-only, no generated surface affected; candidate verifier PASS at commit.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -23,17 +23,15 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [
-      "tests/audit-release/cli-entrypoints.test.js timed out once under full-suite load (spawned CLI status null); it passes when run alone"
-    ],
+    "warnings": [],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "9ff7960e9b6686269a9a3088015f27f73d13d043",
+    "verified_for_sha": "65ba85873151b6e31584c2414e4d44fbb04de99a",
     "last_verify": {
-      "at": "2026-10-24T00:54:52.892Z",
+      "at": "2026-10-24T01:53:00.591Z",
       "branch": "codex/ow-handoff-completion",
       "base": "origin/main@809ed373",
       "verdict": "PASS",
@@ -2799,8 +2797,31 @@
         "scope": "codex/ow-handoff-completion at 9ff7960e over edb40b45. Nothing under skills/, skills-work/, plugins/, site/ or src/, so no catalog, bundle, plugin or release-surface output changes. Candidate verifier PASS at commit.",
         "evidence": []
       }
+    },
+    {
+      "id": "oc-repo-ops-pr652-model-runs-b5231cfab854",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-24T01:53:00.591Z",
+      "verified_at": "2026-10-24T01:53:00.591Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr652-model-runs"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:b5231cfab8548f0d8fc9134505b25f79749defbc03b3666432a6e53da34ccad9"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "codex/ow-handoff-completion at 65ba8587 over c16e2b04: one new sprint evidence doc. Nothing under skills/, skills-work/, plugins/, site/ or src/, so no catalog, bundle, plugin or release-surface output changes. Candidate verifier PASS at commit.",
+        "evidence": [
+          "sprints/release-2.1/rel-02/care-vendor-model-runs-2026-10-23.md"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-24T00:54:52.892Z",
+  "record_updated_at": "2026-10-24T01:53:00.591Z",
   "blockers": []
 }
