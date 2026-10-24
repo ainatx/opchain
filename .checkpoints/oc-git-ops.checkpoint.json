@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-10-22T05:50:13.049Z",
+  "updated_at": "2026-10-24T02:03:52.149Z",
   "phase": "pr-open",
-  "step": "checkpoint-hygiene-cross-repo",
+  "step": "jev-section-2-pr",
   "status": "in_progress",
-  "progress_summary": "claude/competent-raman-864dee: commit ba6fd3cf makes the checkpoint-hygiene Stop hook attribute skill work to the git repository it touched (Write/Edit paths; Bash cd/pushd, git -C, OPCHAIN_ROOT= targets walked with a running cwd; ~/$HOME/$PWD expanded). Current-run evidence in any repo the skill worked in satisfies it; it never asks for a checkpoint where the skill did not work. Fixes the 2026-10-22 block where cd ~/deftwright-site-worktrees/... resolved inside opchain. Bug-check receipt PASS 8/8; docs-forge and repo-ops handoffs bound to projection 55843827.",
+  "progress_summary": "Jev plan §2 on claude/jev-integration-section-2-10561b off main 681abc04: feature commit d323ebb8 through the enrolled gate (receipt 018a811f, 8/8 PASS on tree 2d7573c8), pushed; docs-forge pr-docs-v1 and repo-ops pr-readiness-v1 bound to projection 43a1d193; evidence:pr PASS. Committing the bound checkpoints, then opening the PR.",
   "progress_table": [
     {
       "id": "v1.9-release-pr",
@@ -162,7 +162,7 @@
   },
   "blockers": [],
   "next_actions": [
-    "Once the checkpoint-hygiene cross-repo PR is up to date and evidence:pr passes, hand the owner gh pr merge --squash --auto --match-head-commit <full sha> with the Signed-off-by body; after merge, pull main into /Users/aidanelsesser/repos/opchain so worktree sessions run the fixed hook"
+    "Open the Jev §2 PR once the evidence commit is pushed; after CI and review, hand the owner gh pr merge --squash --auto --match-head-commit <full sha> with the Signed-off-by body"
   ],
   "skill_state": {
     "current_branch": "claude/competent-raman-864dee",
@@ -726,5 +726,5 @@
     },
     "dependabot_note": "Comment commands (`@dependabot rebase`, `@dependabot ignore ...`) are not processed on the Dependabot PRs opened on 2026-08-31 during the repository transfer (#471, and by extension #472); Dependabot's scheduled runs still manage them (auto-rebase on conflict works). Use GitHub update-branch for those PRs, as with #473."
   },
-  "record_updated_at": "2026-10-22T05:50:13.049Z"
+  "record_updated_at": "2026-10-24T02:03:52.149Z"
 }
