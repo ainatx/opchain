@@ -107,8 +107,11 @@ checkpoint `protocol_version` is tracked separately (see
   not route. A desktop prompt that opens with reminder blocks is routed on the
   text after them, and a brief from another session on its `Task:` paragraph
   (the first shadow window left 13 of 14 such prompts unrouted). It never
-  suggests a verb that only prints a skill's menu, and the line it injects
-  carries the chosen step's description. Unset the key or set `OPCHAIN_ROUTE=0` to turn it off. It has an offline
+  suggests a verb that only prints a skill's menu, nor anything below a
+  combined confidence of 0.6 (the first shadow window's two false
+  suggestions sat at 0.43 and 0.52), and the line it injects carries the
+  chosen step's description. Task notifications, CI events and other sessions'
+  messages neither route nor end the measured window of the prompt before them. Unset the key or set `OPCHAIN_ROUTE=0` to turn it off. It has an offline
   eval (574 labelled past prompts) and a first shadow-period read (2026-10-23:
   hand-labelled precision 0.71 against a 0.8 bar); whether it changes skill use
   is not yet measured. `OPCHAIN_ROUTE_MODE=live`, which injects the

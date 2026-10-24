@@ -51,8 +51,9 @@
 // this one): … Task: …") it is the Task paragraph alone.
 //
 // ── Outcome records (self-labelling) ────────────────────────────────────────
-// Before routing, the hook finds this session's previous routing record in
-// the log (last ~200 lines), reads the transcript records after that record's
+// On a person's turn (never an envelope: task notification, CI event, `!`
+// command, another session's message), before routing, the hook finds this
+// session's previous routing record in the log (last ~200 lines), reads the transcript records after that record's
 // prompt up to the end of its reply turn, the next human turn or 30 min
 // (dispatch.outcomeWindow), and appends { type: "outcome", for_prompt_hash,
 // suggested, mode, arm, injected, skill_calls, skill_args, raw: { git_commit,
@@ -64,8 +65,10 @@
 //
 // ── Silence rules (exit 0, no stdout) ───────────────────────────────────────
 //   no TYPESAFE_API_KEY · OPCHAIN_ROUTE=0 · prompt (after leading reminder
-//   blocks) starts with "/" (slash command) or "<" (task-notification / system
-//   envelopes) · a session brief with no `Task:` paragraph · prompt < 2 chars
+//   blocks) starts with "/" (slash command) or is an envelope
+//   (dispatch.isEnvelopeBody: "<…" task notifications, CI events, `!` input;
+//   another session's relayed message) · a session brief with no `Task:`
+//   paragraph · prompt < 2 chars · p = min(top, fits, gate) under the floor
 //   · with OPCHAIN_ROUTE_CONTEXT=1 only: prompt < 12 chars UNLESS the
 //   transcript has an assistant message for it to follow up on · the repo is
 //   not an opchain project (.checkpoints/ dir, .bugcheck.json, or
@@ -81,6 +84,7 @@
 //                                    sessions, by session id); the "control" arm logs only
 //   OPCHAIN_ROUTE_GATE / _FITS       threshold overrides (0..1); _FITS replaces the tiered
 //                                    bar (core skills 0.6, all others 0.9)
+//   OPCHAIN_ROUTE_MIN_P              floor on p = min(top, fits, gate) (default 0.6)
 //   OPCHAIN_ROUTE_SUGGEST_ALL=1      ignore the suggest allowlist (diagnostics only)
 //   OPCHAIN_ROUTE_CONTEXT=1          send conversation context (experimental, off by default)
 //   OPCHAIN_ROUTE_LOG                JSONL path (default $TMPDIR/opchain-route-log.jsonl)
@@ -269,7 +273,7 @@ if (!injecting && env.OPCHAIN_ROUTE_DETACHED !== "1" && env.OPCHAIN_ROUTE_SYNC !
 
 // ── Outcome of this session's previous routed prompt ────────────────────────
 // Runs before the prompt-based silences so a slash command or short prompt
-// still closes the previous prompt's window. Only a session that already has a
+// still closes the previous prompt's window (an envelope never does). Only a session that already has a
 // routing record (so: an opchain project with routing on) gets an outcome.
 function recordPreviousOutcome() {
   if (!sessionId || !input.transcript_path) return;
@@ -317,16 +321,22 @@ function recordPreviousOutcome() {
     window_end: found.window_end,
   });
 }
-try {
-  recordPreviousOutcome();
-} catch {
-  /* outcome recording is best effort */
+// Task notifications, CI monitor events, `!` commands and other sessions' messages
+// fire UserPromptSubmit too, often seconds after a prompt while the agent is still
+// working on it. They are not the person's next turn, so they never close its
+// outcome window (2026-10-23: 22 of 60 windows had been closed by one).
+if (!dispatch.isEnvelopeBody(body)) {
+  try {
+    recordPreviousOutcome();
+  } catch {
+    /* outcome recording is best effort */
+  }
 }
 
 // Pure envelopes (`<task-notification>`, `<bash-input>`, a reminder with no
-// prompt after it) and slash commands stay silent; so does a session brief
-// with no `Task:` paragraph (prompt is empty).
-if (!body || body.startsWith("/") || body.startsWith("<")) silent();
+// prompt after it, another session's relayed message) and slash commands stay
+// silent; so does a session brief with no `Task:` paragraph (prompt is empty).
+if (dispatch.isEnvelopeBody(body) || body.startsWith("/")) silent();
 if (!prompt) silent();
 
 // Conversation context, opt-in. With context on, a prompt under
