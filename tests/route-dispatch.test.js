@@ -855,6 +855,11 @@ describe("prompt shaping (2026-10-23 coverage fix)", () => {
     expect(d.routablePrompt("Background (from the session that started this one):\nctx\n\nTask:\nMerge PR 255.").request).toBe("Merge PR 255.");
   });
 
+  it("isOwPrompt: an ow- verb or the family's NEXT-block form, not an oc- prompt that mentions ow", () => {
+    for (const p of ["/ow-build-run M2", "use ow-uat-plan on uat/acme/ready-for-uat.md", 'say "use ow-handoff on handoffs/acme/"', "ok, use ow-start to prep acme", "Use OW-draft on drafts/x"]) expect(d.isOwPrompt(p)).toBe(true);
+    for (const p of ["merge 252", "the ow- family never calls oc- skills", "commit this and open a PR", "/oc-git-sync", "use oc-git-ops to merge"]) expect(d.isOwPrompt(p)).toBe(false);
+  });
+
   it("humanText and isHumanTurn read a desktop prompt behind reminder blocks; the hash matches the hook's", () => {
     const rec = { type: "user", message: { content: [{ type: "text", text: REMINDER }, { type: "text", text: "Turn on Auto-fix for PR #244." }] } };
     expect(d.humanText(rec)).toBe("Turn on Auto-fix for PR #244.");

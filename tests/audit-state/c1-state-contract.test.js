@@ -7,6 +7,8 @@ import {
   CHECKPOINT_WIRE_VERSION,
   HANDOFF_CONTRACT_VERSION,
   HANDOFF_TYPES,
+  ACCEPTANCE_CHECK_STATUSES,
+  validateCheckpointHandoff,
   checkpointRecordUpdatedAt,
   getCheckpointHandoff,
   validateCheckpointEnvelope,
@@ -99,6 +101,39 @@ describe("C1 typed handoffs", () => {
     const ambiguous = checkpoint({ handoffs: [verdict(), verdict({ id: "audit-def456-policy-v1" })] });
     expect(() => getCheckpointHandoff(ambiguous, { type: HANDOFF_TYPES.VERIFICATION_VERDICT }))
       .toThrow(/multiple verification\.verdict handoffs matched/);
+  });
+
+  // 2026-10-24 skill-to-skill investigation: a sprint's acceptance checks as data,
+  // so a reader outside the build loop stops parsing eval-round-M.md.
+  function acceptance(extra = {}) {
+    return {
+      id: "oc-app-architect-acceptance-sprint-2",
+      contract_version: HANDOFF_CONTRACT_VERSION,
+      type: HANDOFF_TYPES.ACCEPTANCE_CHECKS,
+      created_at: verified,
+      producer: { skill: "oc-app-architect", run_id: "acceptance-sprint-2" },
+      artifact: { kind: "file", id: "sprints/sprint-2/eval-round-1.md", path: "sprints/sprint-2/eval-round-1.md" },
+      payload: { sprint: "sprint-2", verdict: "FAIL", checks: [{ id: "AC-2.1", status: "PASS" }, { id: "AC-2.2", status: "FAIL" }] },
+      ...extra,
+    };
+  }
+
+  it("acceptance.checks carries check ids and statuses bound to the report they came from", () => {
+    const data = checkpoint({ skill: "oc-app-architect", handoffs: [acceptance()] });
+    expect(validateCheckpointEnvelope(data).ok).toBe(true);
+    const h = getCheckpointHandoff(data, { type: HANDOFF_TYPES.ACCEPTANCE_CHECKS, artifactId: "sprints/sprint-2/eval-round-1.md" });
+    expect(h.payload.checks.map((c) => `${c.id}:${c.status}`)).toEqual(["AC-2.1:PASS", "AC-2.2:FAIL"]);
+    expect(ACCEPTANCE_CHECK_STATUSES).toEqual(["PASS", "FAIL", "NOT-CHECKED"]);
+  });
+
+  it("acceptance.checks refuses a PASS with a failing check, a repeated id, an unknown status, or no artifact", () => {
+    const bad = (extra) => validateCheckpointHandoff(acceptance(extra), { checkpointSkill: "oc-app-architect" }).errors.join("\n");
+    expect(bad({ payload: { sprint: "sprint-2", verdict: "PASS", checks: [{ id: "AC-2.1", status: "PASS" }, { id: "AC-2.2", status: "FAIL" }] } })).toContain("PASS requires every check PASS");
+    expect(bad({ payload: { sprint: "sprint-2", verdict: "FAIL", checks: [{ id: "AC-2.1", status: "PASS" }, { id: "AC-2.1", status: "FAIL" }] } })).toContain("repeats an earlier check");
+    expect(bad({ payload: { sprint: "sprint-2", verdict: "FAIL", checks: [{ id: "AC-2.1", status: "MAYBE" }] } })).toContain("status must be PASS|FAIL|NOT-CHECKED");
+    expect(bad({ payload: { sprint: "sprint-2", verdict: "FAIL", checks: [] } })).toContain("non-empty array");
+    expect(bad({ artifact: undefined })).toContain("handoff.artifact");
+    expect(bad({ payload: { verdict: "FAIL", checks: [{ id: "AC-2.1", status: "FAIL" }] } })).toContain("payload.sprint required");
   });
 });
 

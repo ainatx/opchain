@@ -184,7 +184,7 @@ behaviors:
   prompt-caching strategy are oc-claude-api's call. The Planner consumes that
   routing and designs the topology and loop on top of it. If there is no
   oc-claude-api routing yet, or it does not say which tier the orchestrator and
-  workers run on, invoke `/oc-claude-api` first — do not pick models here.
+  workers run on, invoke the Skill tool with skill "oc-claude-api" and args "/oc-claude-api — <agent intent; which tier orchestrator and workers run on>" first — do not pick models here.
 - **Declare the metric targets up front.** "task-success ≥ 0.90 on the fixture
   suite, trajectory-valid ≥ 0.85, ≤ 25 tool calls per task at p95, ≤ $0.40 per
   task" before building. A target the Planner can't justify from the product's
@@ -197,7 +197,7 @@ behaviors:
    oc-claude-api: the routing decision in its checkpoint's
    `context_primer.key_decisions` (per-phase model + effort) or the routing
    section of `11-ai-architecture.md`. Its `skill_state` is private — don't read
-   it. No routing there → invoke `/oc-claude-api` before planning.
+   it. No routing there → Invoke the Skill tool with skill "oc-claude-api" and args "/oc-claude-api — <agent intent; model routing needed>" before planning.
 2. Confirm this needs an agent (vs a single call / workflow). If not, hand back.
 3. Walk the **topology decision tree** → `references/agent-topology.md`.
 4. Design the **tool budget** (allowlist, call ceilings, deferred-load) →

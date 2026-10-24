@@ -641,6 +641,17 @@ const SESSION_BRIEF_RE = /^Background \(from the session that started this one\)
 const BRIEF_TASK_RE = /^Task:[ \t]*\n?([\s\S]*?)(?=\n[ \t]*\n(?:[A-Z][^\n]{0,80}:[ \t]*(?:\n|$)|Done =|Shared notes)|$(?![\s\S]))/m;
 const BRIEF_TASK_MAX = 1500;
 
+// A request for the ow- family (opchain.work): an `/ow-*` verb, or the family's own
+// NEXT-block form, "use ow-<skill> …". The spec holds oc- skills only (catalogs.json
+// keeps ow- out of every plugin output), so routing such a prompt could only
+// misroute it to an oc- skill. The hook logs it as `envelope: "ow"` and stays silent.
+const OW_PROMPT_RE = /^(?:(?:ok(?:ay)?|so|now|then|please|pls)[\s,]*)*(?:say\s+)?["“'`]?(?:\/ow-[a-z]|use\s+ow-[a-z])/i;
+
+/** True when the prompt asks for an ow- skill (see OW_PROMPT_RE). */
+function isOwPrompt(text) {
+  return OW_PROMPT_RE.test(String(text ?? "").trim());
+}
+
 /** `text` with any leading `<system-reminder>…</system-reminder>` blocks removed, trimmed. */
 function stripLeadingReminders(text) {
   return String(text ?? "").trim().replace(LEADING_REMINDERS_RE, "").trim();
@@ -1182,6 +1193,8 @@ module.exports = {
   normalizeConversation,
   tailText,
   LEADING_REMINDERS_RE,
+  OW_PROMPT_RE,
+  isOwPrompt,
   stripLeadingReminders,
   routablePrompt,
   humanText,

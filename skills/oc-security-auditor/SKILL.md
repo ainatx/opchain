@@ -106,12 +106,11 @@ SECURITY AUDITOR COMMANDS
 | **Infra/runtime-level** | oc-security-auditor | CSP headers, TLS config, DNS security, WAF rules |
 
 **Chaining rules:**
-- After `/oc-audit security` (oc-code-auditor) → invoke oc-security-auditor for architecture + infra layers
+- After `/oc-audit security` (oc-code-auditor) → oc-security-auditor takes the architecture + infra layers
 - During `/oc-security posture` step 2 → check if oc-code-auditor checkpoint exists. If not,
-  invoke `/oc-audit security` before proceeding. Threat modeling without code-level findings
+  Invoke the Skill tool with skill "oc-code-auditor" and args "/oc-audit security — <app code, for the threat model>" before proceeding. Threat modeling without code-level findings
   is incomplete.
-- If threat model reveals code-level risks not in oc-code-auditor's findings → invoke
-  `/oc-audit security` targeted at the specific area
+- If threat model reveals code-level risks not in oc-code-auditor's findings → Invoke the Skill tool with skill "oc-code-auditor" and args "/oc-audit security — <the specific area the threat model flagged>"
 
 ---
 
@@ -507,8 +506,8 @@ what is specific to oc-security-auditor.
 | oc-compliance-ops | `/oc-security readiness` gaps seed the standing control register (v1.9) |
 
 **Remediation handoff (v1.9):** when an assessment produces actionable
-findings, chain to oc-security-hardening — `/oc-harden fix` per finding, or
-`/oc-harden baseline` for a fresh project — then re-assess the touched pillar
+findings, invoke the Skill tool with skill "oc-security-hardening" and args "/oc-harden fix — <finding>" per finding, or
+Invoke the Skill tool with skill "oc-security-hardening" and args "/oc-harden baseline — <fresh project>" — then re-assess the touched pillar
 (`/oc-security posture`) and run `/oc-security compare` to confirm the score
 moved (compare diffs snapshots; it never re-assesses on its own). This skill
 assesses; it does not apply fixes.
