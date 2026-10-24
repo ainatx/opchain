@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-ac31c154410b8a429",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-23T20:30:06.852Z",
+  "updated_at": "2026-10-24T01:13:34.655Z",
   "skill": "oc-repo-ops",
   "phase": "pr-verify",
   "status": "complete",
-  "step": "pr-verify-jev-week0",
-  "progress_summary": "Readiness PASS for the Jev Week-0 build PR (claude/jev-week0 @ ce9ecb29 on main 392853b5): tree clean apart from checkpoints; catalogs, flags, route spec, bundles, plugin copy and MCP catalog in sync; checkpoints valid; docs packet current at HEAD.",
+  "step": "pr-verify-skill-handoffs",
+  "progress_summary": "Readiness PASS for the skill-handoffs PR (claude/skill-handoffs-tool-form @ 8c082edf on main 681abc04): clean tree, catalogs/bundles/plugin copies/route spec/MCP catalog in sync, checkpoints valid, docs packet current.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -23,19 +23,17 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [
-      "held site PR #620 security.astro:222 router disclosure is broader than the new behaviour (docs-forge follow-up)"
-    ],
+    "warnings": [],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "ce9ecb29c614ed6fa61f90ec0f8d6754fc262434",
+    "verified_for_sha": "8c082edf4cfc4673f08e77f1600adfaad3c9b78b",
     "last_verify": {
-      "at": "2026-10-23T20:30:06.474Z",
-      "branch": "claude/jev-week0",
-      "base": "origin/main@392853b5",
+      "at": "2026-10-24T01:13:33.862Z",
+      "branch": "claude/skill-handoffs-tool-form",
+      "base": "origin/main@681abc04",
       "verdict": "PASS",
       "blocking_findings": []
     }
@@ -2579,8 +2577,32 @@
           "src/lib/flags/registry.js"
         ]
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-faedd117f8e3",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-24T01:13:34.654Z",
+      "verified_at": "2026-10-24T01:13:34.654Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-24T01:13:34.654Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:faedd117f8e3585061a894c7aae05987f1c7c2c678922f4ff739dfc623b2db2f"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Skill-handoffs PR @ 8c082edf: clean tree, catalogs, bundles, plugin copies, route spec and MCP catalog in sync, checkpoints valid, docs packet current",
+        "evidence": [
+          "src/generated/mcp-catalog.json",
+          "plugins/opchain/hooks/route-spec.json"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-23T20:30:06.852Z",
+  "record_updated_at": "2026-10-24T01:13:34.655Z",
   "blockers": []
 }
