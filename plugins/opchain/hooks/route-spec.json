@@ -87,7 +87,7 @@
       "displayName": "OC · Bug Check",
       "full": "Pre-commit QA gate that runs on every commit. Fast, opinionated checks: type safety, lint, tests, anti-pattern scan, secret detection, build verification, and dependency vulnerability scan. Blocks commits on failures, warns on cautions, passes silently on clean code. Invoked by oc-git-ops before every /oc-commit and /oc-git-sync. Use for /oc-bugcheck, \"check this before I commit\", \"run the checks\", \"is this safe to commit\", \"pre-commit\", \"quick audit\", \"lint and test\", \"any bugs in this?\", \"sanity check\".",
       "index": "Fast checks on what is about to be committed: lint, types, tests, secrets, build; 'is this safe to commit?'. Also enrolling the commit gate.",
-      "notFor": "Not a deliberate audit with a findings report and a fix loop (oc-code-auditor), not threat modelling or infrastructure security (oc-security-auditor), not test strategy (oc-qa-ops), and not a question about whether the checks ran or belong in a plan.",
+      "notFor": "Not a deliberate audit with a findings report and a fix loop (oc-code-auditor), not threat modelling or infrastructure security (oc-security-auditor), not test strategy (oc-qa-ops), not a question about whether the checks ran or belong in a plan, and not a message that only names the checks (\"and bug check\") without asking for a run.",
       "phases": [
         "build"
       ],
@@ -261,7 +261,7 @@
       "menuVerbs": [
         "/oc-deploy"
       ],
-      "notFor": "Not commits, pushes, PRs or tags (oc-git-ops), not planning or cutting the release itself (oc-release-ops), not multi-container or IaC infrastructure (oc-fleet-ops), and not post-deploy monitoring (oc-monitoring-ops).",
+      "notFor": "Not commits, pushes, PRs or tags (oc-git-ops), not planning or cutting the release itself (oc-release-ops), not multi-container or IaC infrastructure (oc-fleet-ops), and not post-deploy monitoring (oc-monitoring-ops). A request to plan a release (what ships, in what order, to staging then production) is oc-release-ops even when it names staging or production; this skill runs a deploy the release plan already decided.",
       "phases": [
         "build"
       ],
@@ -356,14 +356,14 @@
       "phases": [
         "build"
       ],
-      "verbQuestion": "What does the request want done with git: just a commit, a PR description, a push, the full commit→push→PR sync, merging a reviewed PR (or arming auto-merge), or tagging a merged release? Choose \"unspecified\" when it names none.",
+      "verbQuestion": "What does the request want done with git: just a commit, a PR description, a push, the full commit→push→PR sync (which is what opening or raising a PR means), merging a reviewed PR (or arming auto-merge), or tagging a merged release? Choose \"unspecified\" when it names none.",
       "verbs": {
         "/oc-commit": "Stage + commit with structured message",
         "/oc-git": "A git task with no specific step named: status, conventions, repo setup.",
         "/oc-git-release": "Tag a merged release + push the tag (closes the ledger)",
-        "/oc-git-sync": "Full workflow: branch (from convention) → commit → push → PR",
+        "/oc-git-sync": "Open or raise a PR: branch, commit, push and create it in one run, whatever the PR is about.",
         "/oc-merge": "Merge a reviewed pull request, or arm auto-merge, under the repo's merge policy once its checks pass.",
-        "/oc-pr": "Generate PR description from commits/checkpoint",
+        "/oc-pr": "Draft the PR description only, from the commits and checkpoints; it does not open the PR.",
         "/oc-push": "Push branch to remote"
       }
     },
@@ -600,7 +600,7 @@
       "menuVerbs": [
         "/oc-release"
       ],
-      "notFor": "Not the git mechanics of committing, pushing or tagging (oc-git-ops) and not deploying the built artifact to an environment (oc-deploy-ops).",
+      "notFor": "Not the git mechanics of committing, pushing or tagging (oc-git-ops) and not deploying the built artifact to an environment (oc-deploy-ops). Planning which commits ship, and in what order to staging then production, IS this skill, even when the request names the environments.",
       "phases": [
         "build"
       ],
@@ -610,7 +610,7 @@
         "/oc-release announce": "Check the homepage release bar + release ticket + announcement copy",
         "/oc-release bump": "Bump every skill version + styleguide badge atomically",
         "/oc-release draft": "Draft the /changelog entry from sprint checkpoints + merged PRs",
-        "/oc-release plan": "Propose the next semver from changelog gaps + sprint outputs",
+        "/oc-release plan": "Plan a release: decide what ships and the order it goes to staging then production; proposes the next semver.",
         "/oc-release rollback": "Revert the last bump if not yet shipped",
         "/oc-release ship": "Run the full pipeline: plan → draft → bump → announce → hand off",
         "/oc-release status": "Where in the pipeline am I?",
@@ -867,5 +867,5 @@
     "oc-update",
     "oc-ux-engineer"
   ],
-  "version": "2.0.4+route3"
+  "version": "2.0.4+route4"
 }

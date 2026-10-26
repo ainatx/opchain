@@ -123,7 +123,7 @@
         },
         {
           "path": "tests/route-dispatch.test.js",
-          "digest": "sha256:738a47be5975319d58dfe925e25e2bda0e5b765fe9465969ff8bb5af7013a1dd"
+          "digest": "sha256:722194cf53e61366095af32424d6f4489ca94fefcd69696ee8598338a1d90586"
         },
         {
           "path": "tests/route-eval.test.js",
@@ -131,7 +131,7 @@
         },
         {
           "path": "tests/route-hook.test.js",
-          "digest": "sha256:6b3c6399569b7a12a9ca730db3aae75a8388f88cee84bf8a00cf90b8e341ddcb"
+          "digest": "sha256:13d22605ee5cd71db69e099e971f99e45faca99151ab3c25421222dea90aec13"
         },
         {
           "path": "tests/ow-uat-sentences.mjs",

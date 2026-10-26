@@ -65,7 +65,7 @@ function fakeTransport(r1, r2) {
 }
 
 const HAPPY_LINE =
-  'opchain route (p=0.85): invoke the Skill tool with skill "oc-git-ops" and args "/oc-git-sync" (Full workflow: branch (from convention) → commit → push → PR). Skip this if the request means something else.';
+  'opchain route (p=0.85): invoke the Skill tool with skill "oc-git-ops" and args "/oc-git-sync" (Open or raise a PR: branch, commit, push and create it in one run, whatever the PR is about). Skip this if the request means something else.';
 
 describe("route(): decisions", () => {
   it("happy path yields exactly one Skill-tool line, p = min(top, fits, gate)", async () => {

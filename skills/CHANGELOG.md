@@ -15,6 +15,15 @@ checkpoint `protocol_version` is tracked separately (see
 
 ### Added
 
+- **Router spec `+route4` (plan §3, 2026-10-26).** Opening or raising a PR is
+  `/oc-git-sync` and `/oc-pr` only drafts the description; planning what ships to
+  staging then production is oc-release-ops even when the request names the
+  environments; a message that only names the checks ("and bug check") is not an
+  oc-bug-check run. On the J1 gold set, live: 24/27 on `+route3`, 27/27 in five
+  runs on `+route4`; the 574-row blind-labelled set is unchanged (P 1.000 / R 0.805
+  / silent 1.000); the 60 hand-labelled production prompts go from recall 0.917
+  to 1.000. The day-8 shadow re-run stays NO-GO on volume and unlabelled
+  suggestions. Write-up: `docs/audits/2026-10-26-jev-day8-and-route4.md`.
 - **Shared Jev client and use registry (plan §2, 2026-10-24).** The TypeSafe/Jev
   transport, redaction and answer readers the prompt router used privately now
   live in `plugins/opchain/hooks/lib/jev-client.cjs` and are re-exported by

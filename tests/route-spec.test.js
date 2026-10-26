@@ -52,7 +52,7 @@ describe("gen-route-spec: contract", () => {
   it("includes every oc-* skill, stamped with the lockstep catalog version", () => {
     expect(Object.keys(spec.skills)).toEqual(skillIds);
     expect(spec.generatedFrom).toBe(frontmatter(skillIds[0]).version);
-    expect(spec.version).toBe(`${spec.generatedFrom}+route3`);
+    expect(spec.version).toBe(`${spec.generatedFrom}+route4`);
     expect(Object.keys(spec.gates)).toEqual(["acts", "procedure", "prose"]);
   });
 
