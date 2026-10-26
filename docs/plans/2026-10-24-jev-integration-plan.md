@@ -54,8 +54,8 @@ Two rules fall out of the investigation and hold for every row:
 
 | § | Work | PR | Depends on |
 |---|---|---|---|
-| 2 | Shared client, registry, generated questions, `route-eval jev`, gold sets for J1, J9, J2 | this one | #654 |
-| 3 | J1 spec-copy fixes from audit §4, re-run the 574-row offline set; the day-8 shadow re-run (2026-10-27) | next router PR | §2 (the J1 gold set is the regression check) |
+| 2 | Shared client, registry, generated questions, `route-eval jev`, gold sets for J1, J9, J2 | #658, merged 2026-10-26 | #654 |
+| 3 | J1 spec-copy fixes from audit §4, re-run the 574-row offline set; the day-8 shadow re-run | 2026-10-26: spec `+route4`, J1 27/27 live ×5, offline unchanged, day 8 NO-GO on volume and labels (`docs/audits/2026-10-26-jev-day8-and-route4.md`) | §2 (the J1 gold set is the regression check) |
 | 4 | J2 as a third scorer in `route-eval outcomes` (`--judge jev`): agreement with the hand labels on the 63 labelled rows before it is trusted on unlabelled ones | eval PR | §2, a live run with the owner's key |
 | 5 | J9 in ow-tools: a `--jev` option on the transcript step that lists spans, nothing else; protocol text untouched | ow-tools PR, after S6 (one real workstream) | §2, owner decision |
 | 6 | J5, J6, J8 designs | separate design docs | evidence from §3–§5 |

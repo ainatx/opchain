@@ -14,7 +14,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const HOOK = join(ROOT, "plugins", "opchain", "hooks", "route-prompt.cjs");
-const LINE_RE = /^opchain route \(p=0\.\d\d\): invoke the Skill tool with skill "oc-git-ops" and args "\/oc-git-sync" \(Full workflow: branch \(from convention\) → commit → push → PR\)\. Skip this if the request means something else\.$/;
+const LINE_RE = /^opchain route \(p=0\.\d\d\): invoke the Skill tool with skill "oc-git-ops" and args "\/oc-git-sync" \(Open or raise a PR: branch, commit, push and create it in one run, whatever the PR is about\)\. Skip this if the request means something else\.$/;
 const REMINDER = "<system-reminder>\nThe user can follow this conversation from another device.\n</system-reminder>";
 
 let scratch;

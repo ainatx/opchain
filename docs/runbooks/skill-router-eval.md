@@ -210,7 +210,15 @@ oc-git-ops routes resolved to the `/oc-git` menu, all the "merge" prompts among
 them. Spec `+route3` added `/oc-merge`, the two request rules (`REQUEST_RULES`:
 a question about a skill is not a request; judge the action, not its subject
 matter) and the 2026-10-23 copy for oc-git-ops, oc-bug-check and
-oc-release-ops.
+oc-release-ops. Spec `+route4` (2026-10-26, plan §3) says opening or raising a PR is
+`/oc-git-sync` and `/oc-pr` only drafts, that planning what ships to staging then
+production is oc-release-ops (and its `/oc-release plan` step) even when it names
+the environments, and, in oc-bug-check's own `notFor`, that a message only naming
+the checks is not a run. Two broader wordings were rejected: a global request rule
+silenced "MERGE?" or made "check" a bug-check request, and a release verb question
+naming the semver made "so we can version it" a suggestion
+(`docs/audits/2026-10-26-jev-day8-and-route4.md` §3). Copy changes are verified
+with repeated live runs of the rows they touch, not one run.
 
 | Eval (blind labels, lenient, ambiguous dropped, allowlist on) | All P / R / silent | Holdout P / R / silent |
 |---|---:|---:|
@@ -222,8 +230,10 @@ oc-release-ops.
 | Re-run 2026-10-24, `+route2` (main at #653), no floor | 0.872 / 0.829 / 0.989 | 0.920 / 0.920 / 0.991 |
 | Same, p ≥ 0.65 | 0.944 / 0.829 / 0.996 | 0.920 / 0.920 / 0.991 |
 | `+route3` (#654), no floor | 0.971 / 0.805 / 0.998 | 1.000 / 0.880 / 1.000 |
-| **`+route3`, p ≥ 0.6 (shipped)** | **0.971 / 0.805 / 0.998** | **1.000 / 0.880 / 1.000** |
+| `+route3`, p ≥ 0.6 | 0.971 / 0.805 / 0.998 | 1.000 / 0.880 / 1.000 |
 | Same, p ≥ 0.7 | 1.000 / 0.780 / 1.000 | 1.000 / 0.840 / 1.000 |
+| Re-run 2026-10-26, `+route3`, p ≥ 0.6 | 1.000 / 0.805 / 1.000 | 1.000 / 0.880 / 1.000 |
+| **`+route4` (plan §3), p ≥ 0.6 (shipped)** | **1.000 / 0.805 / 1.000** | **1.000 / 0.880 / 1.000** |
 
 **The p floor.** On the blind-labelled set a 0.6 floor changes nothing in
 either run: every suggestion it drops is on an ambiguous row. A 0.7 floor loses

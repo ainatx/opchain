@@ -18,7 +18,7 @@
     },
     "oc-bug-check": {
       "index": "Fast checks on what is about to be committed: lint, types, tests, secrets, build; 'is this safe to commit?'. Also enrolling the commit gate.",
-      "notFor": "Not a deliberate audit with a findings report and a fix loop (oc-code-auditor), not threat modelling or infrastructure security (oc-security-auditor), not test strategy (oc-qa-ops), and not a question about whether the checks ran or belong in a plan.",
+      "notFor": "Not a deliberate audit with a findings report and a fix loop (oc-code-auditor), not threat modelling or infrastructure security (oc-security-auditor), not test strategy (oc-qa-ops), not a question about whether the checks ran or belong in a plan, and not a message that only names the checks (\"and bug check\") without asking for a run.",
       "verbQuestion": "Does the request want the checks run, something auto-fixed, the gate configured, a report or history shown, the gate bypassed once, or the repo enrolled in the commit gate? Choose \"unspecified\" when it names none.",
       "verbs": {
         "/oc-enroll": "Install the opchain commit gate in this repository so every commit is checked (enrollment, not a check run).",
@@ -76,7 +76,7 @@
     },
     "oc-deploy-ops": {
       "index": "Shipping a single managed app: deploy to staging or production, roll back, smoke tests, health check, environment config, deploy status.",
-      "notFor": "Not commits, pushes, PRs or tags (oc-git-ops), not planning or cutting the release itself (oc-release-ops), not multi-container or IaC infrastructure (oc-fleet-ops), and not post-deploy monitoring (oc-monitoring-ops).",
+      "notFor": "Not commits, pushes, PRs or tags (oc-git-ops), not planning or cutting the release itself (oc-release-ops), not multi-container or IaC infrastructure (oc-fleet-ops), and not post-deploy monitoring (oc-monitoring-ops). A request to plan a release (what ships, in what order, to staging then production) is oc-release-ops even when it names staging or production; this skill runs a deploy the release plan already decided.",
       "verbQuestion": "Which deployment action does the request ask for: staging, production, rollback, the pre-deploy audit, smoke tests, a health check, environment variables, initial setup, or status? Choose \"unspecified\" when it names none."
     },
     "oc-docs-forge": {
@@ -102,10 +102,12 @@
     "oc-git-ops": {
       "index": "Git operations: branch, commit, push, open or merge a PR, the whole commit→push→PR sync, tag a merged release.",
       "notFor": "Not planning or drafting a versioned release (oc-release-ops), not deploying anything to an environment (oc-deploy-ops), not turning the coding assistant's Auto-fix or CI monitoring on or off, and not a question about whether a git step happened. Opening a PR is this skill whatever the PR is about; tagging an already-merged release IS this skill.",
-      "verbQuestion": "What does the request want done with git: just a commit, a PR description, a push, the full commit→push→PR sync, merging a reviewed PR (or arming auto-merge), or tagging a merged release? Choose \"unspecified\" when it names none.",
+      "verbQuestion": "What does the request want done with git: just a commit, a PR description, a push, the full commit→push→PR sync (which is what opening or raising a PR means), merging a reviewed PR (or arming auto-merge), or tagging a merged release? Choose \"unspecified\" when it names none.",
       "verbs": {
         "/oc-git": "A git task with no specific step named: status, conventions, repo setup.",
-        "/oc-merge": "Merge a reviewed pull request, or arm auto-merge, under the repo's merge policy once its checks pass."
+        "/oc-merge": "Merge a reviewed pull request, or arm auto-merge, under the repo's merge policy once its checks pass.",
+        "/oc-git-sync": "Open or raise a PR: branch, commit, push and create it in one run, whatever the PR is about.",
+        "/oc-pr": "Draft the PR description only, from the commits and checkpoints; it does not open the PR."
       }
     },
     "oc-hindsight": {
@@ -166,8 +168,11 @@
     },
     "oc-release-ops": {
       "index": "Planning or cutting a release: what ships to staging then production, the next semver, changelog, version bumps, announcement, verify, ship.",
-      "notFor": "Not the git mechanics of committing, pushing or tagging (oc-git-ops) and not deploying the built artifact to an environment (oc-deploy-ops).",
-      "verbQuestion": "Where in the release is the request: planning the semver, drafting the changelog, bumping versions, the announcement, the pre-ship verify, shipping the whole pipeline, rollback of the bump, or status? Choose \"unspecified\" when it names none."
+      "notFor": "Not the git mechanics of committing, pushing or tagging (oc-git-ops) and not deploying the built artifact to an environment (oc-deploy-ops). Planning which commits ship, and in what order to staging then production, IS this skill, even when the request names the environments.",
+      "verbQuestion": "Where in the release is the request: planning the semver, drafting the changelog, bumping versions, the announcement, the pre-ship verify, shipping the whole pipeline, rollback of the bump, or status? Choose \"unspecified\" when it names none.",
+      "verbs": {
+        "/oc-release plan": "Plan a release: decide what ships and the order it goes to staging then production; proposes the next semver."
+      }
     },
     "oc-repo-ops": {
       "index": "Repository hygiene before a PR: generated-file and catalog drift, stale artifacts, orphaned docs, .gitignore policy, 'is this PR ready'.",

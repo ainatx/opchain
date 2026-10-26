@@ -56,7 +56,12 @@ export const USE_KINDS = Object.freeze(["router", "noul", "choice", "none"]);
 // so an unbumped change would serve decisions made against the old spec.
 // 2: `/oc-update doctor` verb (2026-10-09).
 // 3: `menuVerbs`, `/oc-merge`, request rules and the 2026-10-23 routing copy.
-export const SPEC_SCHEMA_VERSION = 3;
+// 4: plan §3 copy (2026-10-26): opening a PR is /oc-git-sync, /oc-pr only drafts,
+//    release planning that names staging/production is oc-release-ops (and its
+//    /oc-release plan step), and a message that only names the checks is not a
+//    bug-check run (in that skill's notFor: a global request rule for it
+//    silenced "MERGE?" and primed "check").
+export const SPEC_SCHEMA_VERSION = 4;
 export const INDEX_MAX = 160;
 
 export const GATES = Object.freeze({
