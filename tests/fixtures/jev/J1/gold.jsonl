@@ -1,0 +1,27 @@
+{"id":"j1-01","prompt":"merge","expected":"oc-git-ops","note":"2026-10-23 hand label; shadow window"}
+{"id":"j1-02","prompt":"Merge 252","expected":"oc-git-ops","note":"2026-10-23 hand label"}
+{"id":"j1-03","prompt":"Merge 249 and rebate 251","expected":"oc-git-ops","note":"2026-10-23 hand label; typo is the real prompt (rebase)"}
+{"id":"j1-04","prompt":"Squash-merge PR 247 now, pinned to head 025a9740.","expected":"oc-git-ops","note":"2026-10-23 hand label"}
+{"id":"j1-05","prompt":"Auto Merge 644 when it’s ready","expected":"oc-git-ops","note":"2026-10-23 hand label; arm auto-merge is /oc-merge"}
+{"id":"j1-06","prompt":"Open a deftwright-site fix PR for A-001 (purge deletes or detaches lead investigations)","expected":"oc-git-ops","note":"audit §2 #13, head only; the shipped router missed it (fits 0.55): opening a PR is git-ops whatever the PR is about"}
+{"id":"j1-07","prompt":"Open a deftwright-site PR that records the 2026-10-20 production release","expected":"oc-git-ops","note":"audit §2 #18, head only; missed (fits 0.47): content described the release, the verb is open a PR"}
+{"id":"j1-08","prompt":"Plan a deftwright-site release of origin/main to staging, then production","expected":"oc-release-ops","note":"audit §2 #9, head only; missed (rerank 0.80, fits 0.25)"}
+{"id":"j1-09","prompt":"it looks good deploy to prod","expected":"oc-deploy-ops","note":"2026-10-23 hand label; the lowest true positive (fits 0.66)"}
+{"id":"j1-10","prompt":"Run the staging command too I’m On my Phone not my machine","expected":"oc-deploy-ops","note":"2026-10-23 hand label"}
+{"id":"j1-11","prompt":"Deploy #251 to staging as a branch preview now.","expected":"oc-deploy-ops","note":"2026-10-23 hand label, head only"}
+{"id":"j1-12","prompt":"Deploy cd0d94f0 to staging from the release checkout (npm run deploy:staging) and verify the health version","expected":"oc-deploy-ops","note":"2026-10-23 hand label, head completed"}
+{"id":"j1-13","prompt":"run /oc-audit diff on the staged changes","expected":"oc-code-auditor","note":"explicit mention: routed at p=1 with no model call, so no canned answers exist for this row"}
+{"id":"j1-14","prompt":"Turn on Auto-fix for PR 247.","expected":"none","note":"audit §2 #24: an app setting, not a git operation; false suggestion at fits 0.60 under #654, silenced by the #655 p floor (p 0.55 < 0.6)"}
+{"id":"j1-15","prompt":"Turn on Auto-fix for PR #250.","expected":"none","note":"2026-10-23 hand label; silenced by the #655 p floor (p 0.55 < 0.6); with the verb left unspecified the #654 menu rule would also silence it"}
+{"id":"j1-16","prompt":"and bug check","expected":"none","note":"audit §2 #11: a question naming a skill (follow-up to “where is code auditor”); false suggestion at fits 0.90"}
+{"id":"j1-17","prompt":"Bug check should be in there shouldn’t it","expected":"none","note":"audit §2 #45: a question about a plan, not a request to run the checks; false suggestion at fits 0.79"}
+{"id":"j1-18","prompt":"where is code auditor","expected":"none","note":"2026-10-23 hand label; request 1 chose none"}
+{"id":"j1-19","prompt":"is jev working?","expected":"none","note":"2026-10-23 hand label; the gates hold it (prose question)"}
+{"id":"j1-20","prompt":"im back on my machine","expected":"none","note":"2026-10-23 hand label; oc-git-ops ranked first, request 1 chose none"}
+{"id":"j1-21","prompt":"Try again","expected":"none","note":"2026-10-23 hand label; context-dependent assent, gate under 0.5"}
+{"id":"j1-22","prompt":"Why aren’t we comparing to a baseline","expected":"none","note":"2026-10-23 hand label"}
+{"id":"j1-23","prompt":"Is opchain also enrolled?","expected":"none","note":"2026-10-23 hand label; a question about the gate, rerank chose none"}
+{"id":"j1-24","prompt":"Next?","expected":"none","note":"2026-10-23 hand label"}
+{"id":"j1-25","prompt":"ask me questions using AskUserQuestion tool","expected":"none","note":"2026-10-23 hand label; repeated template, always none"}
+{"id":"j1-26","prompt":"Unblock the commits: tests/planner-plan-api.test.ts is date-dependent and fails after midnight.","expected":"none","note":"2026-10-23 hand label, head completed; a code fix, not a git operation"}
+{"id":"j1-27","prompt":"what does /oc-deploy do?","expected":"none","note":"2026-10-09 audit B-02 shape: a question about a command is not an explicit mention; request 1 chose none"}

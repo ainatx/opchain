@@ -1,0 +1,171 @@
+{
+  "j9-01": {
+    "answers": {
+      "J9": {
+        "type": "noul",
+        "noul": 0.97
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j9-02": {
+    "answers": {
+      "J9": {
+        "type": "noul",
+        "noul": 0.93
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j9-03": {
+    "answers": {
+      "J9": {
+        "type": "noul",
+        "noul": 0.9
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j9-04": {
+    "answers": {
+      "J9": {
+        "type": "noul",
+        "noul": 0.96
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j9-05": {
+    "answers": {
+      "J9": {
+        "type": "noul",
+        "noul": 0.84
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j9-06": {
+    "answers": {
+      "J9": {
+        "type": "noul",
+        "noul": 0.95
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j9-07": {
+    "answers": {
+      "J9": {
+        "type": "noul",
+        "noul": 0.12
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j9-08": {
+    "answers": {
+      "J9": {
+        "type": "noul",
+        "noul": 0.03
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j9-09": {
+    "answers": {
+      "J9": {
+        "type": "noul",
+        "noul": 0.2
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j9-10": {
+    "answers": {
+      "J9": {
+        "type": "noul",
+        "noul": 0.02
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j9-11": {
+    "answers": {
+      "J9": {
+        "type": "noul",
+        "noul": 0.09
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j9-12": {
+    "answers": {
+      "J9": {
+        "type": "noul",
+        "noul": 0.61
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  },
+  "j9-13": {
+    "answers": {
+      "J9": {
+        "type": "noul",
+        "noul": 0.27
+      }
+    },
+    "usage": {
+      "input_tokens": 900,
+      "output_tokens": 12
+    },
+    "model": "jev-1.13.0"
+  }
+}

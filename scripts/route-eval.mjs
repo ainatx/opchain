@@ -29,6 +29,15 @@
 //   label          — list unlabelled suggestions in the route log, or append
 //                    one hand label (validated) to route-labels.jsonl beside it.
 //
+//   jev            — score one registered Jev use (plugins/opchain/hooks/
+//                    jev-questions.json, generated from scripts/jev-uses.json)
+//                    against its gold set: `jev --list` prints the registry;
+//                    `jev J9 --fixture tests/fixtures/jev/J9/answers.json`
+//                    runs offline on canned answers. A router use (J1) goes
+//                    through route() with the shipped thresholds; a Noul use
+//                    builds its question from the registry and thresholds the
+//                    probability. docs/plans/2026-10-24-jev-integration-plan.md §2.
+//
 // The baseline this measures against is the audit's 0/229 PR gates entered
 // (docs/audits/2026-10-08-opchain-effectiveness-audit.md §1, §3.1): a router
 // that suggests nothing matches the baseline exactly, so the interesting
@@ -94,6 +103,9 @@ export const DEFAULTS = Object.freeze({
   evidenceMaxChars: 120,
   usdPerMillionInput: 0.042,
   apiKeyEnv: "TYPESAFE_API_KEY",
+  questionsFile: "plugins/opchain/hooks/jev-questions.json",
+  jevThreshold: 0.5,
+  jevOutDir: "scratch",
 });
 
 // ---------------------------------------------------------------------------
@@ -1605,6 +1617,266 @@ export function renderOutcomesReport(summary, { logPath, since, labelsPath, wind
   return L.join("\n");
 }
 
+
+// ---------------------------------------------------------------------------
+// jev — one registered use against its gold set
+// ---------------------------------------------------------------------------
+//
+// Gold rows, one JSON object per line:
+//   router use (J1)  { id, prompt, repoState?, expected: <skill id>|"none", note? }
+//   noul use         { id, <every field the use's `state` names>, expected: true|false, note? }
+// Canned answers (--fixture), keyed by row id: a router row carries
+// { request1, request2 } (route-dispatch fixtureTransport's shape); a Noul row
+// carries { answers: { <use id>: { noul } } }. A row with no entry becomes an
+// error row, never a guess.
+
+export function loadJevQuestions(file = path.join(REPO_ROOT, DEFAULTS.questionsFile)) {
+  const abs = path.isAbsolute(file) ? file : path.join(REPO_ROOT, file);
+  if (!fs.existsSync(abs)) {
+    const err = new Error(`jev questions not found at ${abs} — run scripts/gen-route-spec.mjs or pass --questions <file>`);
+    err.code = "QUESTIONS_MISSING";
+    throw err;
+  }
+  const q = JSON.parse(fs.readFileSync(abs, "utf8"));
+  if (!q || !q.uses || typeof q.uses !== "object") throw new Error(`${abs}: no \`uses\``);
+  return q;
+}
+
+/** The gold set for `use`: { rows, problems }. Problems name the row and the field. */
+export function readGold(file, use, { spec = null } = {}) {
+  const problems = [];
+  if (!fs.existsSync(file)) return { rows: [], problems: [`gold set not found: ${file}`] };
+  const rows = [];
+  const ids = new Set();
+  const lines = fs.readFileSync(file, "utf8").split("\n");
+  lines.forEach((line, i) => {
+    const t = line.trim();
+    if (!t || t.startsWith("//")) return;
+    let row;
+    try {
+      row = JSON.parse(t);
+    } catch (err) {
+      problems.push(`line ${i + 1}: ${err.message}`);
+      return;
+    }
+    const id = typeof row.id === "string" && row.id ? row.id : null;
+    if (!id) problems.push(`line ${i + 1}: no id`);
+    else if (ids.has(id)) problems.push(`line ${i + 1}: duplicate id ${id}`);
+    ids.add(id);
+    const where = id ?? `line ${i + 1}`;
+    if (use.kind === "router") {
+      if (typeof row.prompt !== "string" || !row.prompt.trim()) problems.push(`${where}: router row needs a prompt`);
+      if (typeof row.expected !== "string" || !row.expected) problems.push(`${where}: expected must be a skill id or "none"`);
+      else if (row.expected !== "none" && spec && spec.skills && !spec.skills[row.expected]) problems.push(`${where}: expected ${row.expected} is not a skill in the spec`);
+    } else {
+      for (const f of use.state ?? []) if (row[f] === undefined || row[f] === null || row[f] === "") problems.push(`${where}: missing state field ${f}`);
+      if (typeof row.expected !== "boolean") problems.push(`${where}: expected must be true or false`);
+    }
+    rows.push(row);
+  });
+  return { rows, problems };
+}
+
+/** The state a Noul use sends: the row's `state` fields only (redaction happens in the client). */
+export function jevStateFor(use, row) {
+  const state = {};
+  for (const f of use.state ?? []) state[f] = row[f];
+  return state;
+}
+
+/**
+ * The request a Noul use sends for one gold row: { state, questions }. The
+ * question is the registry's, with the use's own context added — for a use
+ * with per-skill `skills` (J2), what the suggested skill owns and its own
+ * steps, so the model knows which work counts.
+ */
+export function buildJevRequest(use, row) {
+  if (use.kind !== "noul" && use.kind !== "choice") throw new Error(`buildJevRequest: ${use.id} is kind ${use.kind}`);
+  if (!use.question) throw new Error(`buildJevRequest: ${use.id} has no question`);
+  const question = structuredClone(use.question);
+  if (use.skills && typeof row.suggested === "string") {
+    const sk = use.skills[row.suggested];
+    if (sk) {
+      question.instructions.skill = `${sk.displayName} (${row.suggested}): ${sk.index}`;
+      if (sk.steps && sk.steps.length) question.instructions.steps = `Steps ${sk.displayName} runs as its own work, which count as doing it: ${sk.steps.join(", ")}.`;
+    } else question.instructions.skill = `${row.suggested} (not in the catalog)`;
+  }
+  return { state: jevStateFor(use, row), questions: { [use.id]: question } };
+}
+
+/** Threshold a Noul probability against the row's expected boolean. */
+export function judgeNoul(p, expected, threshold) {
+  if (p === null || p === undefined || !Number.isFinite(Number(p))) return { predicted: null, correct: false, margin: null };
+  const predicted = Number(p) >= threshold;
+  return { predicted, correct: predicted === Boolean(expected), margin: Math.abs(Number(p) - threshold) };
+}
+
+/**
+ * Score every gold row of `use`. `transportFor(row)` returns the transport for
+ * that row (a per-row fixture, or one shared http transport); `routeFn` and
+ * `spec` serve router uses. Never throws per row: failures become error rows.
+ */
+export async function runJev({ use, rows, transportFor, routeFn, spec, threshold = DEFAULTS.jevThreshold, thresholds, concurrency = DEFAULTS.concurrency, model, log = () => {} }) {
+  const started = Date.now();
+  const results = await mapPool(rows, concurrency, async (row) => {
+    const base = { id: row.id, use: use.id, expected: row.expected, note: row.note ?? null };
+    const t0 = Date.now();
+    try {
+      const transport = await transportFor(row);
+      if (use.kind === "router") {
+        if (typeof routeFn !== "function") throw new Error("router use needs a route module");
+        const res = await routeFn({ prompt: row.prompt, repoState: row.repoState ?? {}, spec, transport, thresholds: thresholds ?? ROUTER.DEFAULT_THRESHOLDS, cache: false });
+        if (res?.trace?.error) throw new Error(String(res.trace.error));
+        const d = res?.decision ?? null;
+        const predicted = d ? d.skill : "none";
+        return {
+          ...base,
+          prompt: head(row.prompt, 120),
+          predicted,
+          verb: d ? d.args : null,
+          explicit: Boolean(d && d.explicit),
+          p: d ? d.p : null,
+          fits: d ? d.fits : (res?.trace?.request2?.fits ?? null),
+          reason: res?.trace?.reason ?? (d ? d.reason : null),
+          correct: predicted === row.expected,
+          margin: d ? Number(d.p) : null,
+          usage: res?.trace?.usage ?? null,
+          elapsedMs: Date.now() - t0,
+        };
+      }
+      const req = buildJevRequest(use, row);
+      const out = await ROUTER_CLIENT.ask({ transport, state: req.state, questions: req.questions, model });
+      const p = ROUTER_CLIENT.noul(out.answers, use.id);
+      const j = judgeNoul(p, row.expected, threshold);
+      return { ...base, p, ...j, usage: out.usage, elapsedMs: Date.now() - t0 };
+    } catch (err) {
+      log(`${row.id}: ${err?.message ?? err}`);
+      return { ...base, predicted: null, correct: false, margin: null, usage: null, elapsedMs: Date.now() - t0, error: String(err?.message ?? err) };
+    }
+  });
+  return { results, stats: { wallMs: Date.now() - started, model: model ?? null, threshold } };
+}
+
+function f3n(x) {
+  return Number.isFinite(x) ? x : NaN;
+}
+
+/**
+ * Accuracy over scored rows, precision/recall on the positive class (a Noul
+ * `true`, or a router row whose expected is a skill), the silent rate on
+ * router `none` rows, confusions and the rows to look at first.
+ */
+export function summarizeJev(use, results) {
+  const errors = results.filter((r) => r.error);
+  const scored = results.filter((r) => !r.error);
+  const correct = scored.filter((r) => r.correct).length;
+  let tp = 0, fp = 0, fn = 0, tn = 0;
+  const confusions = {};
+  for (const r of scored) {
+    const isPos = use.kind === "router" ? r.expected !== "none" : r.expected === true;
+    const predPos = use.kind === "router" ? r.predicted !== "none" : r.predicted === true;
+    if (isPos && predPos && r.correct) tp++;
+    else if (predPos) {
+      fp++;
+      if (isPos) fn++; // the right class, the wrong skill
+    } else if (isPos) fn++;
+    else tn++;
+    if (!r.correct) {
+      const key = `${String(r.expected)} → ${String(r.predicted)}`;
+      confusions[key] = (confusions[key] ?? 0) + 1;
+    }
+  }
+  const negatives = scored.filter((r) => (use.kind === "router" ? r.expected === "none" : r.expected === false)).length;
+  const usage = { input: 0, output: 0 };
+  for (const r of results) {
+    usage.input += Number(r.usage?.input_tokens) || 0;
+    usage.output += Number(r.usage?.output_tokens) || 0;
+  }
+  const wrong = scored.filter((r) => !r.correct).sort((a, b) => (f3n(b.margin) || 0) - (f3n(a.margin) || 0) || a.id.localeCompare(b.id));
+  const closest = scored.filter((r) => r.correct && Number.isFinite(r.margin)).sort((a, b) => a.margin - b.margin || a.id.localeCompare(b.id)).slice(0, 5);
+  return {
+    use: use.id,
+    total: results.length,
+    errors: errors.length,
+    scored: scored.length,
+    correct,
+    accuracy: scored.length ? correct / scored.length : NaN,
+    tp, fp, fn, tn,
+    precision: tp + fp ? tp / (tp + fp) : NaN,
+    recall: tp + fn ? tp / (tp + fn) : NaN,
+    silentRate: negatives ? tn / negatives : NaN,
+    negatives,
+    confusions: Object.entries(confusions).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])),
+    wrong,
+    closest,
+    errorRows: errors,
+    usage,
+  };
+}
+
+export function renderJevReport(use, summary, { goldPath, fixturePath, threshold, usdPerMillionInput = DEFAULTS.usdPerMillionInput, generatedAt = new Date().toISOString() } = {}) {
+  const S = summary;
+  const L = [];
+  L.push(`# Jev use ${use.id}: ${use.name}`, "");
+  L.push(`Generated ${generatedAt}${goldPath ? ` from \`${goldPath}\`` : ""}${fixturePath ? ` with canned answers \`${fixturePath}\` (no model was called)` : " against the live model"}. Status: **${use.status}**, kind ${use.kind}.${use.kind === "router" ? " Router rows go through route() with the shipped thresholds and the suggest allowlist." : ` Noul threshold ${threshold}.`}`, "");
+  L.push(use.summary, "");
+  L.push("## Overall", "");
+  L.push("| Metric | Value |", "|---|---|");
+  L.push(`| Rows | ${S.total} |`);
+  L.push(`| Rows with errors (no answer) | ${S.errors} |`);
+  L.push(`| Correct | ${S.correct} / ${S.scored} |`);
+  L.push(`| Accuracy | ${f3(S.accuracy)} |`);
+  L.push(`| TP / FP / FN / TN | ${S.tp} / ${S.fp} / ${S.fn} / ${S.tn} |`);
+  L.push(`| Precision (positive class) | ${f3(S.precision)} |`);
+  L.push(`| Recall (positive class) | ${f3(S.recall)} |`);
+  L.push(`| ${use.kind === "router" ? "Silent rate on `none` rows" : "Hold rate on `false` rows"} (${S.negatives}) | ${f3(S.silentRate)} |`);
+  L.push(`| Input / output tokens | ${S.usage.input} / ${S.usage.output} |`);
+  L.push(`| Estimated cost at $${usdPerMillionInput}/M input tokens | $${((S.usage.input / 1e6) * usdPerMillionInput).toFixed(4)} |`);
+  L.push("");
+  L.push("## Confusions (expected → predicted)", "");
+  if (S.confusions.length) {
+    L.push("| Expected → Predicted | Count |", "|---|---:|");
+    for (const [k, n] of S.confusions) L.push(`| ${mdEscape(k)} | ${n} |`);
+  } else L.push("None.");
+  L.push("");
+  L.push("## Wrong rows", "");
+  if (S.wrong.length) {
+    if (use.kind === "router") {
+      L.push("| Row | Prompt | Expected | Predicted | Verb | p | Reason | Note |", "|---|---|---|---|---|---:|---|---|");
+      for (const r of S.wrong) L.push(`| ${r.id} | ${mdEscape(head(r.prompt, 60))} | ${r.expected} | ${r.predicted} | ${r.verb ?? "—"} | ${r.p === null ? "—" : f3(r.p)} | ${mdEscape(r.reason ?? "")} | ${mdEscape(r.note ?? "")} |`);
+    } else {
+      L.push("| Row | Expected | p | Note |", "|---|---|---:|---|");
+      for (const r of S.wrong) L.push(`| ${r.id} | ${r.expected} | ${f3(r.p)} | ${mdEscape(r.note ?? "")} |`);
+    }
+  } else L.push("None.");
+  L.push("");
+  L.push("## Closest correct rows", "");
+  L.push(use.kind === "router" ? "Correct suggestions with the lowest p; a threshold change reaches these first." : `Correct rows nearest the ${threshold} threshold; a wording change moves these first.`, "");
+  if (S.closest.length) {
+    L.push("| Row | Expected | p | Note |", "|---|---|---:|---|");
+    for (const r of S.closest) L.push(`| ${r.id} | ${r.expected} | ${f3(r.p)} | ${mdEscape(r.note ?? "")} |`);
+  } else L.push("None.");
+  L.push("");
+  if (S.errorRows.length) {
+    L.push("## Errors", "");
+    L.push("| Row | Error |", "|---|---|");
+    for (const r of S.errorRows) L.push(`| ${r.id} | ${mdEscape(r.error)} |`);
+    L.push("");
+  }
+  return L.join("\n");
+}
+
+export function formatJevList(questions) {
+  const L = [`jev uses (${questions.version ?? "?"})`, ""];
+  L.push("id   status   kind    name                                      gold");
+  for (const [id, u] of Object.entries(questions.uses)) {
+    L.push(`${id.padEnd(4)} ${String(u.status).padEnd(8)} ${String(u.kind).padEnd(7)} ${String(u.name).padEnd(41)} ${u.gold ?? "—"}`);
+  }
+  return L.join("\n");
+}
+
+const ROUTER_CLIENT = require(path.join(REPO_ROOT, "plugins/opchain/hooks/lib/jev-client.cjs"));
+
 // ---------------------------------------------------------------------------
 // CLI
 // ---------------------------------------------------------------------------
@@ -1617,10 +1889,13 @@ function usage() {
     "        [--labels <log dir>/route-labels.jsonl] [--window-minutes 30] [--projects-root ~/.claude/projects] [--rows <file>] [--no-rescore]",
     "  node scripts/route-eval.mjs label <session_id> <prompt_hash> <skill|none|ambiguous> [--note <text>] [--log <file>] [--labels <file>]",
     "  node scripts/route-eval.mjs label --list [--all] [--log <file>] [--labels <file>]",
+    "  node scripts/route-eval.mjs jev --list [--questions plugins/opchain/hooks/jev-questions.json]",
+    "  node scripts/route-eval.mjs jev <use> [--gold <file>] [--fixture <answers.json>] [--out scratch/jev-<use>.jsonl] [--report scratch/jev-<use>.md]",
+    "        [--threshold 0.5] [--min-accuracy <0..1>] [--model <id>] [--timeout-ms 20000] [--concurrency 4]",
     "  node scripts/route-eval.mjs run --dataset <file> [--limit N] [--sample stratified] [--out scratch/route-eval.jsonl] [--report scratch/route-eval.md]",
     "        [--fixture <answers.json>] [--route-module <path>] [--spec <file>] [--cache scratch/route-cache.json] [--model <id>]",
     "        [--thresholds gate=0.5,coreFits=0.6,otherFits=0.9 | fits=0.5] [--query-thresholds fits=0,gate=0] [--concurrency 4] [--seed 42] [--context]",
-    `  ${DEFAULTS.apiKeyEnv} is required for run unless --fixture is given.`,
+    `  ${DEFAULTS.apiKeyEnv} is required for run and jev <use> unless --fixture is given.`,
   ].join("\n");
 }
 
@@ -1732,6 +2007,102 @@ export async function main(argv = process.argv.slice(2), { env = process.env, st
     fs.appendFileSync(labelsPath, `${JSON.stringify(rec)}\n`);
     const was = labels.get(`${sessionId}|${promptHash}`);
     stdout.write(`${was ? `relabelled (was ${was})` : "labelled"} ${promptHash} → ${label}: ${head(String(route.prompt_head ?? "").replace(/\s+/g, " "), 70)}\n`);
+    return 0;
+  }
+
+  if (command === "jev") {
+    let questions;
+    try {
+      questions = loadJevQuestions(args.questions && args.questions !== true ? resolve(String(args.questions)) : undefined);
+    } catch (err) {
+      stderr.write(`jev: ${err.message}\n`);
+      return 2;
+    }
+    if (args.list || !args._[1]) {
+      stdout.write(`${formatJevList(questions)}\n`);
+      return args.list ? 0 : 2;
+    }
+    const useId = String(args._[1]);
+    const use = questions.uses[useId];
+    if (!use) {
+      stderr.write(`jev: unknown use ${useId}; one of ${Object.keys(questions.uses).join(", ")}\n`);
+      return 2;
+    }
+    if (use.kind === "none" || (use.kind !== "router" && !use.question)) {
+      stderr.write(`jev: ${useId} (${use.status}, kind ${use.kind}) has nothing to score — ${use.reason ?? use.summary}\n`);
+      return 2;
+    }
+    const goldPath = resolve(String(args.gold && args.gold !== true ? args.gold : use.gold ?? ""));
+    if (!use.gold && !(args.gold && args.gold !== true)) {
+      stderr.write(`jev: ${useId} has no gold set; pass --gold <file>\n`);
+      return 2;
+    }
+    const fixture = args.fixture && args.fixture !== true ? resolve(String(args.fixture)) : null;
+    const apiKey = env[DEFAULTS.apiKeyEnv];
+    if (!fixture && !apiKey) {
+      stderr.write(`jev: ${DEFAULTS.apiKeyEnv} is not set. Export it or pass --fixture <answers.json> (canned answers keyed by row id) to score offline.\n`);
+      return 2;
+    }
+    let spec = { skills: {} };
+    let mod = null;
+    if (use.kind === "router") {
+      try {
+        mod = loadRouteModule();
+        spec = loadSpec(args.spec ? resolve(String(args.spec)) : DEFAULTS.specFile);
+      } catch (err) {
+        stderr.write(`jev: ${err.message}\n`);
+        return 2;
+      }
+    }
+    const { rows, problems } = readGold(goldPath, use, { spec });
+    if (problems.length) {
+      stderr.write(`jev: gold set ${goldPath} has problems:\n  ${problems.join("\n  ")}\n`);
+      return 2;
+    }
+    if (!rows.length) {
+      stderr.write(`jev: gold set ${goldPath} is empty\n`);
+      return 2;
+    }
+    const threshold = args.threshold !== undefined && args.threshold !== true ? Number(args.threshold) : (typeof use.threshold === "number" ? use.threshold : DEFAULTS.jevThreshold);
+    if (!(threshold > 0 && threshold < 1)) {
+      stderr.write("jev: --threshold must be in (0, 1)\n");
+      return 2;
+    }
+    const model = args.model ?? env.TYPESAFE_MODEL ?? undefined;
+    let transportFor;
+    if (fixture) {
+      const byId = JSON.parse(fs.readFileSync(fixture, "utf8"));
+      transportFor = (row) => {
+        if (!Object.prototype.hasOwnProperty.call(byId, row.id)) {
+          // An explicit mention never reaches the transport; anything else must have an entry.
+          return async () => {
+            throw new Error(`fixture has no answers for row ${row.id}`);
+          };
+        }
+        return ROUTER_CLIENT.fixtureTransport(byId[row.id]);
+      };
+    } else {
+      const shared = ROUTER_CLIENT.httpTransport({ apiKey, model, timeoutMs: Number(args["timeout-ms"] ?? 20_000) });
+      transportFor = () => shared;
+    }
+    const concurrency = Math.max(1, Math.min(DEFAULTS.concurrency, Number(args.concurrency ?? DEFAULTS.concurrency) || DEFAULTS.concurrency));
+    const { results } = await runJev({ use, rows, transportFor, routeFn: mod ? mod.route : null, spec, threshold, concurrency, model, log: (msg) => stderr.write(`${msg}\n`) });
+    const summary = summarizeJev(use, results);
+    const out = resolve(args.out && args.out !== true ? String(args.out) : path.join(DEFAULTS.jevOutDir, `jev-${useId}.jsonl`));
+    writeJsonl(out, results);
+    const reportPath = resolve(args.report && args.report !== true ? String(args.report) : path.join(DEFAULTS.jevOutDir, `jev-${useId}.md`));
+    const report = renderJevReport(use, summary, { goldPath: path.relative(process.cwd(), goldPath), fixturePath: fixture ? path.relative(process.cwd(), fixture) : null, threshold });
+    ensureDir(reportPath);
+    fs.writeFileSync(reportPath, report);
+    stdout.write(`${useId} ${use.name}: ${summary.scored} row(s) scored, ${summary.errors} error(s) · accuracy ${f3(summary.accuracy)} (${summary.correct}/${summary.scored}) · precision ${f3(summary.precision)} · recall ${f3(summary.recall)} · ${use.kind === "router" ? "silent on none" : "hold on false"} ${f3(summary.silentRate)}${fixture ? " · canned answers, no model called" : ""}\n`);
+    stdout.write(`results → ${out}\nreport  → ${reportPath}\n`);
+    if (args["min-accuracy"] !== undefined && args["min-accuracy"] !== true) {
+      const min = Number(args["min-accuracy"]);
+      if (Number.isFinite(min) && !(summary.accuracy >= min)) {
+        stderr.write(`jev: accuracy ${f3(summary.accuracy)} is under --min-accuracy ${min}\n`);
+        return 3;
+      }
+    }
     return 0;
   }
 
