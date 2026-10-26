@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-10-26T22:32:46.483Z",
+  "updated_at": "2026-10-26T23:18:20.444Z",
   "phase": "pr-open",
-  "step": "jev-section-2-pr",
+  "step": "jev-section-3-pr",
   "status": "in_progress",
-  "progress_summary": "PR #658 (Jev plan §2): merged origin/main (#655, #656) into the branch at 27a7797a to clear GitHub's conflict, J1 fixture numbers refit for the #655 p floor, gate 8/8 PASS on d7f07821; docs and readiness handoffs rebound.",
+  "progress_summary": "Jev plan §3 on claude/jev-section-3-j1-spec-copy off main 30c13338: commit 6936a241 through the gate (8/8 PASS on 7ba5d35e), docs and readiness handoffs bound; opening the PR.",
   "progress_table": [
     {
       "id": "v1.9-release-pr",
@@ -162,7 +162,7 @@
   },
   "blockers": [],
   "next_actions": [
-    "After CI is green on #658, hand the owner gh pr merge 658 --squash --auto --match-head-commit <full head sha from gh> with the Signed-off-by body"
+    "After CI is green on the §3 PR, hand the owner gh pr merge --squash --auto --match-head-commit <full head sha from gh>"
   ],
   "skill_state": {
     "current_branch": "claude/competent-raman-864dee",
@@ -726,5 +726,5 @@
     },
     "dependabot_note": "Comment commands (`@dependabot rebase`, `@dependabot ignore ...`) are not processed on the Dependabot PRs opened on 2026-08-31 during the repository transfer (#471, and by extension #472); Dependabot's scheduled runs still manage them (auto-rebase on conflict works). Use GitHub update-branch for those PRs, as with #473."
   },
-  "record_updated_at": "2026-10-26T22:32:46.483Z"
+  "record_updated_at": "2026-10-26T23:18:20.444Z"
 }
