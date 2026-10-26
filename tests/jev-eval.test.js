@@ -149,27 +149,30 @@ describe("jev: runJev + summarizeJev on the shipped fixtures", () => {
     expect(S.wrong[0].note).toMatch(/deferred/);
   });
 
-  it("J1: route() with the shipped thresholds reproduces the audit's three misses and three false suggestions; the explicit mention needs no answers", async () => {
+  it("J1: route() with the shipped thresholds reproduces the audit's three misses and two of its false suggestions; the #655 p floor silences the third; the explicit mention needs no answers", async () => {
     const use = questions.uses.J1;
     const { rows } = readGold(join(REPO_ROOT, use.gold), use, { spec });
     const mod = await import("../plugins/opchain/hooks/lib/route-dispatch.cjs");
     const { results } = await runJev({ use, rows, transportFor: fixtureFor("J1"), routeFn: mod.default.route, spec });
     const S = summarizeJev(use, results);
-    expect(S).toMatchObject({ total: 27, errors: 0, correct: 21, tp: 10, fp: 3, fn: 3, tn: 11, negatives: 14 });
-    expect(S.accuracy).toBeCloseTo(21 / 27, 6);
-    expect(S.precision).toBeCloseTo(10 / 13, 6);
+    expect(S).toMatchObject({ total: 27, errors: 0, correct: 22, tp: 10, fp: 2, fn: 3, tn: 12, negatives: 14 });
+    expect(S.accuracy).toBeCloseTo(22 / 27, 6);
+    expect(S.precision).toBeCloseTo(10 / 12, 6);
     expect(S.recall).toBeCloseTo(10 / 13, 6);
-    expect(S.silentRate).toBeCloseTo(11 / 14, 6);
+    expect(S.silentRate).toBeCloseTo(12 / 14, 6);
     const byId = Object.fromEntries(results.map((r) => [r.id, r]));
     expect(byId["j1-13"]).toMatchObject({ predicted: "oc-code-auditor", verb: "/oc-audit diff", explicit: true, correct: true });
     expect(byId["j1-01"]).toMatchObject({ predicted: "oc-git-ops", verb: "/oc-merge", correct: true });
     expect(byId["j1-08"]).toMatchObject({ predicted: "none", correct: false });
     expect(byId["j1-08"].reason).toMatch(/fits 0\.25 < 0\.6/);
-    expect(byId["j1-14"]).toMatchObject({ predicted: "oc-git-ops", verb: "/oc-merge", correct: false });
-    // The #654 menu rule: an unspecified verb falls to /oc-git, a menu, so no suggestion.
+    // The #655 p floor: p = min(top 0.55, fits 0.60, gate 0.70) = 0.55 < 0.6, so the Auto-fix toggle is silent.
+    expect(byId["j1-14"]).toMatchObject({ predicted: "none", correct: true });
+    expect(byId["j1-14"].reason).toMatch(/p 0\.55 = min\(top, fits, gate\) < 0\.6/);
+    // Two rules would each silence this row: the #655 p floor (checked first) and the #654
+    // menu rule (an unspecified verb falls to /oc-git, a menu).
     expect(byId["j1-15"]).toMatchObject({ predicted: "none", correct: true });
-    expect(byId["j1-15"].reason).toMatch(/menu/);
-    expect(S.confusions).toEqual([["none → oc-bug-check", 2], ["oc-git-ops → none", 2], ["none → oc-git-ops", 1], ["oc-release-ops → none", 1]]);
+    expect(byId["j1-15"].reason).toMatch(/< 0\.6 for oc-git-ops/);
+    expect(S.confusions).toEqual([["none → oc-bug-check", 2], ["oc-git-ops → none", 2], ["oc-release-ops → none", 1]]);
     expect(S.wrong[0].id).toBe("j1-16"); // the highest-p wrong suggestion comes first
     // 26 rows called request 1 (2300 input tokens each); the 18 that passed its
     // gates and did not choose none went on to request 2 (1800 each). The
@@ -256,14 +259,14 @@ describe("jev: CLI", () => {
     const j1 = spawnSync(process.execPath, [SCRIPT, "jev", "J1", "--fixture", join(FIX, "J1", "answers.json"), "--out", join(dir, "j1.jsonl"), "--report", join(dir, "j1.md")], { encoding: "utf8", env: cleanEnv() });
     expect(j1.stderr).toBe("");
     expect(j1.status).toBe(0);
-    expect(j1.stdout).toMatch(/J1 Prompt routing: 27 row\(s\) scored, 0 error\(s\) · accuracy 0\.778 \(21\/27\) · precision 0\.769 · recall 0\.769 · silent on none 0\.786/);
+    expect(j1.stdout).toMatch(/J1 Prompt routing: 27 row\(s\) scored, 0 error\(s\) · accuracy 0\.815 \(22\/27\) · precision 0\.833 · recall 0\.769 · silent on none 0\.857/);
     const j1md = readFileSync(join(dir, "j1.md"), "utf8");
     expect(j1md).toMatch(/\| j1-08 \| Plan a deftwright-site release[^|]*\| oc-release-ops \| none \| — \| — \| fits 0\.25 < 0\.6 for oc-release-ops \|/);
     expect(j1md).toMatch(/Router rows go through route\(\) with the shipped thresholds/);
 
     const gated = spawnSync(process.execPath, [SCRIPT, "jev", "J1", "--fixture", join(FIX, "J1", "answers.json"), "--out", join(dir, "j1b.jsonl"), "--report", join(dir, "j1b.md"), "--min-accuracy", "0.9"], { encoding: "utf8", env: cleanEnv() });
     expect(gated.status).toBe(3);
-    expect(gated.stderr).toMatch(/accuracy 0\.778 is under --min-accuracy 0\.9/);
+    expect(gated.stderr).toMatch(/accuracy 0\.815 is under --min-accuracy 0\.9/);
     expect(existsSync(join(dir, "j1b.md"))).toBe(true);
     const passes = spawnSync(process.execPath, [SCRIPT, "jev", "J2", "--fixture", join(FIX, "J2", "answers.json"), "--out", join(dir, "j2.jsonl"), "--report", join(dir, "j2.md"), "--min-accuracy", "0.9"], { encoding: "utf8", env: cleanEnv() });
     expect(passes.status, passes.stderr).toBe(0);

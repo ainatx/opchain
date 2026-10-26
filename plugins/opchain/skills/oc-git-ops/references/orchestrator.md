@@ -271,12 +271,31 @@ RIGHT (active invocation):
 
 ### Context Passing
 
-When chaining, pass context through checkpoints — don't rely on conversation history:
+Pass what the next skill needs **in the Skill call's `args`**, after the verb: the ids,
+paths, verdicts and the reason for the handoff. Measured 2026-10-19 → 10-24: in 37
+main-thread skill invocations, no skill read a sibling's checkpoint file; the context
+that reached the next skill was the invoking turn and its `args`. A checkpoint is for a
+later session to resume from, and for a gate to read a typed handoff; it is not the bus
+between two skills in one session.
 
-1. Write your current skill's checkpoint with all relevant state
-2. The next skill reads it from `.checkpoints/[skill-name].checkpoint.json`
-3. Key context to pass: project name, project directory, current phase, key decisions,
-   files generated, and the specific reason for the handoff
+```
+Skill(skill="oc-code-auditor", args="/oc-audit diff --read-only main..HEAD — sprint-3 of the CRM build passed its evaluator (sprints/sprint-3/eval-round-2.md); audit before the commit")
+Skill(skill="oc-deploy-ops",  args="/oc-deploy staging — PR #654 merged to main as 681abc04; opchain-dev worker; smoke after")
+```
+
+1. Put in `args`: the verb first; then the artifact paths the next skill reads
+   (`spec/06-testing.md`, `sprints/sprint-N/eval-round-M.md`, `audit/findings-<sha>.json`),
+   the ids it acts on (PR number, sprint id, finding ids), the verdict or score that
+   triggered the handoff, and one clause saying why. Keep it under ~300 characters;
+   point at files for anything longer.
+2. Before invoking, write your own checkpoint (phase, step, status, `next_actions`) so
+   the handoff survives the session. Do not expect the next skill to read it; it may.
+3. Typed data crosses in `handoffs[]`, never in prose: `verification.verdict` for a
+   gate's PASS/FAIL (`checkpoint handoff`), `acceptance.checks` for a sprint's
+   acceptance-check results (`checkpoint acceptance`). A reader validates the handoff
+   with `getCheckpointHandoff()` and treats a missing or ambiguous one as absent.
+4. `skill_state` is private to its skill. Read another skill's `progress_summary`,
+   `progress_table`, `eval_scores`, `blockers`, `pm_refs` and `handoffs[]`; nothing else.
 
 ---
 

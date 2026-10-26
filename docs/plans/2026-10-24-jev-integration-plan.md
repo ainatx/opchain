@@ -66,7 +66,7 @@ Checked on 2026-10-24 in the worktree off `681abc04`:
 
 - [x] `node scripts/gen-route-spec.mjs --check` passes (36 skills, 9 jev uses) and fails on drift in either output (`tests/jev-questions.test.js`).
 - [x] `node scripts/route-eval.mjs jev --list` names J1–J9 with status.
-- [x] `jev J1|J2|J9 --fixture tests/fixtures/jev/<use>/answers.json` reports without a key. On the canned answers: J1 accuracy 0.778 (21/27; the audit's 3 misses and 3 false suggestions, the #654 menu rule silencing one Auto-fix row), J2 0.900 (9/10; the deferral is the miss), J9 0.923 (12/13; a human review note is the false positive, fixed at threshold 0.7). These are fixture numbers that pin the arithmetic, not model results.
+- [x] `jev J1|J2|J9 --fixture tests/fixtures/jev/<use>/answers.json` reports without a key. On the canned answers: J1 accuracy 0.815 (22/27, after merging #655; the audit's 3 misses and 2 of its false suggestions remain, the #654 menu rule silences one Auto-fix row and the #655 p floor the other), J2 0.900 (9/10; the deferral is the miss), J9 0.923 (12/13; a human review note is the false positive, fixed at threshold 0.7). These are fixture numbers that pin the arithmetic, not model results.
 - [x] Without `--fixture` and without `TYPESAFE_API_KEY`, `jev <use>` exits 2 and names both. No live call was made while building this.
 - [x] `tests/route-dispatch.test.js`, `tests/route-hook.test.js` and `tests/route-eval.test.js` pass unchanged (126 tests); the three new suites add 30.
 - [x] `skills-work/` has no diff.

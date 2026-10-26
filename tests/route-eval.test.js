@@ -23,6 +23,8 @@ import {
   DEFAULTS,
   describeThresholds,
   readOutcomeRecords,
+  floorSweep,
+  pOf,
   readLabels,
   readRouteRecords,
   renderOutcomesReport,
@@ -375,15 +377,33 @@ describe("route-eval metrics", () => {
     const T = DEFAULTS.thresholds;
     expect(T).toMatchObject({ gate: router.DEFAULT_THRESHOLDS.gate, fits: null, coreFits: router.DEFAULT_THRESHOLDS.coreFits, otherFits: router.DEFAULT_THRESHOLDS.otherFits });
     expect(DEFAULTS.coreSkills).toEqual([...router.CORE_SKILLS]);
-    expect(suggestedAt(d("oc-git-ops", 0.6, 0.5), T)).toBe("oc-git-ops");
-    expect(suggestedAt(d("oc-git-ops", 0.59, 0.5), T)).toBeNull();
+    expect(suggestedAt(d("oc-git-ops", 0.6, 0.6), T)).toBe("oc-git-ops");
+    expect(suggestedAt(d("oc-git-ops", 0.59, 0.6), T)).toBeNull();
+    // The p floor: gate 0.55 clears the 0.5 gate bar but p = min(top, fits, gate) = 0.55 < 0.6.
+    expect(suggestedAt(d("oc-git-ops", 0.65, 0.55), T)).toBeNull();
+    expect(suggestedAt(d("oc-git-ops", 0.65, 0.55), { ...T, minP: 0 })).toBe("oc-git-ops");
+    expect(suggestedAt({ ...d("oc-git-ops", 0.65, 0.55), p: 0.62 }, T)).toBe("oc-git-ops");
+    expect(suggestedAt({ ...d("oc-git-ops", 0.3, 0.3), explicit: true }, { ...T, fits: 0, gate: 0 })).toBe("oc-git-ops");
     expect(suggestedAt(d("oc-ux-engineer", 0.85, 0.9), T)).toBeNull();
     expect(suggestedAt(d("oc-ux-engineer", 0.9, 0.9), T)).toBe("oc-ux-engineer");
     // An explicit fits (CLI --thresholds fits=X, hook OPCHAIN_ROUTE_FITS) is a flat bar for every skill.
     expect(suggestedAt(d("oc-ux-engineer", 0.5, 0.5), { fits: 0.5, gate: 0.5 })).toBe("oc-ux-engineer");
-    expect(describeThresholds(T)).toBe("fits ≥ 0.6 (core) / 0.9 (other), gate ≥ 0.5");
+    expect(describeThresholds(T)).toBe("fits ≥ 0.6 (core) / 0.9 (other), gate ≥ 0.5, p ≥ 0.6");
     expect(describeThresholds({ fits: 0.5, gate: 0.5 })).toBe("fits ≥ 0.5, gate ≥ 0.5");
-    expect(renderReport({ results: TINY, stats: {}, generatedAt: "x" })).toContain("Default thresholds: fits ≥ 0.6 (core) / 0.9 (other), gate ≥ 0.5.");
+    // p = min(top, fits, gate): stored decision.p wins; otherwise the parts the decision carries.
+    expect(pOf({ p: 0.71, fits: 0.9, gate: 0.9 })).toBe(0.71);
+    expect(pOf({ topProbability: 0.43, fits: 0.6, gate: 0.84 })).toBe(0.43);
+    expect(Number.isNaN(pOf({}))).toBe(true);
+    expect(renderReport({ results: TINY, stats: {}, generatedAt: "x" })).toContain("Default thresholds: fits ≥ 0.6 (core) / 0.9 (other), gate ≥ 0.5, p ≥ 0.6.");
+    expect(renderReport({ results: TINY, stats: {}, generatedAt: "x" })).toMatch(/## p floor sweep/);
+  });
+
+  it("floorSweep: the p floor drops c and e (p 0.6) at 0.65 — one true, one false suggestion", () => {
+    // Flat fits 0.5 / gate 0.5. Suggested: a git (p 0.9, TP), b deploy (0.8, FP on a git row), c deploy (0.6, TP), e git (0.6, FP on none).
+    const [open, floored] = floorSweep(TINY, { fits: 0.5, gate: 0.5 }, { floors: [0, 0.65] });
+    expect(open).toMatchObject({ minP: 0, precision: 0.5, recall: 0.5 });
+    expect(open.noneHoldRate).toBeCloseTo(2 / 3);
+    expect(floored).toMatchObject({ minP: 0.65, precision: 0.5, recall: 0.25, noneHoldRate: 1 });
   });
 
   it("computes top-1, precision, recall, F1 and the false-suggestion rate at fits 0.5 / gate 0.5", () => {
@@ -770,8 +790,13 @@ describe("route-eval outcomes", () => {
     expect(s.transitions).toContainEqual({ mode: "shadow", suggested: "oc-git-ops", then: "raw git", count: 1 });
     expect(s.transitions).toContainEqual({ mode: "shadow", suggested: "oc-deploy-ops", then: "nothing", count: 1 });
     expect(s.goNoGo.go).toBe(false);
-    expect(s.goNoGo.checks.map((c) => c.pass)).toEqual([false, false, false, false]);
-    expect(s.goNoGo.checks[3]).toMatchObject({ name: "every suggestion hand-labelled", value: "0/6" });
+    // suggestions, pipeline prompts, lift, core precision, silent rate, labelled.
+    expect(s.goNoGo.checks.map((c) => c.pass)).toEqual([false, false, true, false, false, false]);
+    expect(s.goNoGo.checks[5]).toMatchObject({ name: "every suggestion hand-labelled", value: "0/6" });
+    // Baseline over shadow rows with pipeline work: h1 (git-ops, skill called), h2 (raw commit, router named
+    // git-ops: a gap closed), h4 (ux-engineer called), h5 (raw deploy, no suggestion). h7 is live.
+    expect(s.baseline).toMatchObject({ pipeline: 4, agentUsed: 2, routerRight: 3, gapsClosed: 1, projected: 3, lift: 1.5 });
+    expect(s.liveUse).toMatchObject({ pipeline: 1, used: 1 });
     // Every unlabelled suggestion is listed for labelling, plus the proxy misses.
     expect(s.review.map((r) => `${r.for_prompt_hash}:${r.verdict}`).sort()).toEqual(["h1:TP", "h2:TP", "h3:FP", "h4:TP", "h5:FN", "h7:TP", "h9:FP"]);
 
@@ -822,7 +847,10 @@ describe("route-eval outcomes", () => {
     expect(s.proxy.silentRate).toBeCloseTo(0.5);
     expect(s.perSkill.find((r) => r.skill === "oc-deploy-ops")).toMatchObject({ fn: 1 });
     expect(s.review).toEqual([]);
-    expect(s.goNoGo.checks[3]).toMatchObject({ value: "4/4", pass: true });
+    expect(s.goNoGo.checks.find((c) => c.name === "every suggestion hand-labelled")).toMatchObject({ value: "4/4", pass: true });
+    // Labels decide which skill a prompt needed: h3 (deploy-ops) and h5 (release-ops) are pipeline prompts the
+    // agent went around; h1's suggestion matched its label but nothing ran, so it closes a gap.
+    expect(s.baseline).toMatchObject({ pipeline: 3, agentUsed: 0, routerRight: 1, gapsClosed: 1 });
   });
 
   it("the proxy credits a skill's own steps and a handed-over merge", () => {
@@ -834,6 +862,30 @@ describe("route-eval outcomes", () => {
       oc(5, { suggested: "oc-code-auditor", skill_calls: ["oc-security-auditor"] }), // not a step of the auditor
     ]);
     expect(s.proxy).toMatchObject({ tp: 4, fp: 1 });
+  });
+
+  it("re-applies the p floor to logged suggestions that carry p, scoring them as no suggestion", () => {
+    const s = summarizeOutcomes([
+      { ...oc(1, { suggested: "oc-git-ops" }), p: 0.43, label: "none" }, // the Auto-fix shape: floored → silent
+      { ...oc(2, { suggested: "oc-git-ops", raw: { gh_pr_merge: true } }), p: 0.9 }, // kept
+      { ...oc(3, { suggested: "oc-deploy-ops" }), p: 0.55, label: "oc-deploy-ops" }, // floored → a miss
+      oc(4, { suggested: "oc-git-ops", raw: { git_push: true } }), // no p (older log): kept
+    ]);
+    expect(s.floored.map((o) => o.for_prompt_hash)).toEqual(["h1", "h3"]);
+    expect(s.suggestions).toBe(2);
+    expect(s.proxy).toMatchObject({ tp: 2, fp: 0, fn: 1, tn: 1 });
+    expect(summarizeOutcomes([{ ...oc(1, { suggested: "oc-git-ops" }), p: 0.43 }], { minP: 0 }).floored).toEqual([]);
+    expect(renderOutcomesReport(s, { generatedAt: "x" })).toMatch(/\| Logged suggestions under the p ≥ 0\.6 floor \(scored as no suggestion\) \| 2 \|/);
+  });
+
+  it("lift: ∞ when nothing was used unprompted but the router closes a gap; n/a with no pipeline prompts", () => {
+    const gap = summarizeOutcomes([oc(1, { suggested: "oc-git-ops", raw: { git_push: true } })]);
+    expect(gap.baseline).toMatchObject({ pipeline: 1, agentUsed: 0, gapsClosed: 1, projected: 1, lift: Infinity });
+    expect(gap.goNoGo.checks.find((c) => c.name.startsWith("projected skill use")).pass).toBe(true);
+    expect(renderOutcomesReport(gap, { generatedAt: "x" })).toMatch(/Lift: \*\*∞ \(baseline 0\)×\*\*/);
+    const none = summarizeOutcomes([oc(1)]);
+    expect(Number.isNaN(none.baseline.lift)).toBe(true);
+    expect(none.goNoGo.checks.find((c) => c.name.startsWith("projected skill use")).pass).toBe(false);
   });
 
   it("says GO when ≥30 suggestions, core precision ≥0.8, silent rate ≥0.95 and every suggestion is labelled", () => {
@@ -879,7 +931,7 @@ describe("route-eval outcomes", () => {
       const report = join(dir, "outcomes.md");
       const res = spawnSync(process.execPath, [SCRIPT, "outcomes", "--log", log, "--since", "2026-10-05", "--report", report, "--no-rescore"], { encoding: "utf8" });
       expect(res.status, res.stderr).toBe(0);
-      expect(res.stdout).toMatch(/9 outcome\(s\) \(stored outcome records; 0 labelled\) · 6 suggestion\(s\) · 0 explicit \(excluded\) · core precision 0\.750 · recall 0\.800 · silent rate 0\.500 → NO-GO/);
+      expect(res.stdout).toMatch(/9 outcome\(s\) \(stored outcome records; 0 labelled\) · 6 suggestion\(s\) · 0 explicit \(excluded\) · 0 under the p floor · pipeline prompts 4: baseline skill use 2, projected 3 \(lift 1\.500×\) · core precision 0\.750 · recall 0\.800 · silent rate 0\.500 → NO-GO/);
       expect(readFileSync(report, "utf8")).toContain("# Skill router outcomes");
       const printed = spawnSync(process.execPath, [SCRIPT, "outcomes", "--log", log, "--no-rescore"], { encoding: "utf8" });
       expect(printed.status).toBe(0);
@@ -975,7 +1027,7 @@ describe("route-eval outcomes", () => {
       const rowsOut = join(dir, "rows.jsonl");
       const res = spawnSync(process.execPath, [SCRIPT, "outcomes", "--log", log, "--projects-root", projects, "--rows", rowsOut, "--report", join(dir, "o.md")], { encoding: "utf8" });
       expect(res.status, res.stderr).toBe(0);
-      expect(res.stdout).toMatch(/4 outcome\(s\) \(3 rescored from transcripts, 1 from stored records, 1 unscored; 1 labelled\) · 3 suggestion\(s\) · 0 explicit \(excluded\) · core precision 1\.000 · recall 0\.750 · silent rate n\/a → NO-GO/);
+      expect(res.stdout).toMatch(/4 outcome\(s\) \(3 rescored from transcripts, 1 from stored records, 1 unscored; 1 labelled\) · 3 suggestion\(s\) · 0 explicit \(excluded\) · 0 under the p floor · pipeline prompts 4: baseline skill use 0, projected 3 \(lift ∞×\) · core precision 1\.000 · recall 0\.750 · silent rate n\/a → NO-GO/);
       const rows = readFileSync(rowsOut, "utf8").trim().split("\n").map((l) => JSON.parse(l));
       const byHash = Object.fromEntries(rows.map((r) => [r.for_prompt_hash, r]));
       expect(byHash[hash(p1)]).toMatchObject({ source: "transcript", anchor: "prompt", window_end: "turn_end", raw: { merge_handoff: true, git_commit: false } });

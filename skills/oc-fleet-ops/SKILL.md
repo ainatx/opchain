@@ -276,8 +276,8 @@ scope for deploy-ops. Route by "managed app vs self-managed fleet" — see the n
 
 | Chains to | Why |
 |---|---|
-| `oc-monitoring-ops` | post-deploy observability across the fleet |
-| `oc-git-ops` | commit the IaC |
+| `oc-monitoring-ops` | Invoke the Skill tool with skill "oc-monitoring-ops" and args "/oc-monitor — <fleet services>" — post-deploy observability across the fleet |
+| `oc-git-ops` | Invoke the Skill tool with skill "oc-git-ops" and args "/oc-commit — <IaC changes>" |
 
 > **Seam with deploy-ops:** deploy-ops's Platform Matrix routes bare-metal, VPS,
 > multi-container and IaC deploys here (moving a live system onto one is oc-migration-ops).

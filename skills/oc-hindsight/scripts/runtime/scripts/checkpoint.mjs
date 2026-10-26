@@ -65,7 +65,7 @@
 import { accessSync, constants, readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, statSync, realpathSync, unlinkSync } from "node:fs";
 import { dirname, join, basename, resolve, delimiter } from "node:path";
 import { fileURLToPath } from "node:url";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { execSync, spawnSync } from "node:child_process";
 
 const ROOT = process.env.OPCHAIN_ROOT ?? dirname(dirname(fileURLToPath(import.meta.url)));
@@ -1394,9 +1394,120 @@ function cmdReset(skill) {
   return 0;
 }
 
+// ───────────────────────── acceptance (skill-to-skill data) ──────────────────
+//
+// The build loop's per-sprint acceptance-check results, published as an
+// `acceptance.checks` handoff so a reader outside the loop gets check ids and
+// statuses as data. Until 2026-10-24 the only way to learn which checks a sprint
+// passed was to parse `sprints/sprint-N/eval-round-M.md`, which is what ow-build's
+// builder integration does (its §5 table reads the verdict line and the check ids
+// marked PASS/FAIL by hand) and what the 2026-10-23 skill-to-skill investigation
+// found no skill doing from a checkpoint: zero sibling-checkpoint reads in 37 calls.
+
+const ACCEPTANCE_STATUSES = ["PASS", "FAIL", "NOT-CHECKED"];
+const CHECK_ID = /^[A-Za-z][A-Za-z0-9._-]*$/;
+const ACCEPTANCE_USAGE = [
+  "usage: checkpoint acceptance <skill> --sprint <id> --verdict PASS|FAIL|INCOMPLETE --source <eval report path>",
+  "                             --check <id>=<PASS|FAIL|NOT-CHECKED> [--check …]... [--run-id <id>] [--json]",
+  "  e.g. npm run checkpoint -- acceptance oc-app-architect --sprint sprint-2 --verdict FAIL \\",
+  "         --source sprints/sprint-2/eval-round-1.md --check AC-2.1=PASS --check AC-2.2=FAIL",
+  "  The verdict is the evaluation report's; PASS needs every check PASS. One handoff per sprint; a re-run replaces it.",
+].join("\n");
+
+function parseAcceptanceArgs(rest) {
+  const opts = { checks: [], json: false };
+  const scalar = { sprint: "sprint", verdict: "verdict", source: "source", "run-id": "run_id" };
+  for (let i = 0; i < rest.length; i++) {
+    const arg = rest[i];
+    if (!arg.startsWith("--")) throw new Error(`unexpected argument "${arg}"`);
+    let key = arg.slice(2);
+    let value;
+    const eq = key.indexOf("=");
+    if (eq >= 0) { value = key.slice(eq + 1); key = key.slice(0, eq); }
+    if (key === "json") { opts.json = value === undefined ? true : value !== "false"; continue; }
+    if (value === undefined) {
+      value = rest[++i];
+      if (value === undefined || value.startsWith("--")) throw new Error(`--${key} needs a value`);
+    }
+    if (key === "check") {
+      const m = /^([^=]+)=([^=]+)$/.exec(value);
+      if (!m || !CHECK_ID.test(m[1].trim())) throw new Error(`--check must be <id>=<status> (got ${JSON.stringify(value)})`);
+      const status = m[2].trim().toUpperCase();
+      if (!ACCEPTANCE_STATUSES.includes(status)) throw new Error(`--check ${m[1]}: status must be ${ACCEPTANCE_STATUSES.join("|")} (got ${JSON.stringify(m[2])})`);
+      opts.checks.push({ id: m[1].trim(), status });
+    } else if (scalar[key]) opts[scalar[key]] = value;
+    else throw new Error(`unknown option --${key}`);
+  }
+  if (!opts.sprint || !/^[a-z0-9][a-z0-9.-]*$/i.test(opts.sprint)) throw new Error("--sprint <id> is required (e.g. sprint-2)");
+  if (!VERDICTS.includes(opts.verdict)) throw new Error(`--verdict must be one of ${VERDICTS.join("|")} (got ${JSON.stringify(opts.verdict ?? "")})`);
+  if (!opts.source || !opts.source.trim()) throw new Error("--source is required: the evaluation report the checks were read from");
+  if (!opts.checks.length) throw new Error("at least one --check <id>=<status> is required");
+  const ids = new Set();
+  for (const c of opts.checks) {
+    if (ids.has(c.id)) throw new Error(`--check ${c.id} repeats`);
+    ids.add(c.id);
+  }
+  if (opts.verdict === "PASS" && opts.checks.some((c) => c.status !== "PASS")) throw new Error("--verdict PASS needs every check PASS; a sprint with a failing or unchecked check is FAIL or INCOMPLETE");
+  return opts;
+}
+
+/** sha256 of a file under ROOT, or null when it is not there (the report may live in another checkout). */
+function fileDigest(relPath) {
+  try {
+    const bytes = readFileSync(join(ROOT, relPath));
+    return `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
+  } catch {
+    return null;
+  }
+}
+
+/** The acceptance.checks handoff checkpoint-contract.js validates. */
+function buildAcceptanceHandoff({ skill, sprint, verdict, source, checks, runId, now = new Date().toISOString() }) {
+  const digest = fileDigest(source);
+  const handoff = {
+    id: `${skill}-acceptance-${sprint}`,
+    contract_version: "1.0",
+    type: "acceptance.checks",
+    created_at: now,
+    producer: { skill, run_id: runId || `acceptance-${sprint}-${now}` },
+    artifact: { kind: "file", id: source, path: source, ...(digest ? { digest } : {}) },
+    payload: { sprint, verdict, checks: checks.map((c) => ({ id: c.id, status: c.status })) },
+  };
+  return handoff;
+}
+
+function cmdAcceptance(skill, rest) {
+  if (!skill) { console.error(ACCEPTANCE_USAGE); return 1; }
+  let opts;
+  try { opts = parseAcceptanceArgs(rest); }
+  catch (e) { console.error(`✗ ${e.message}\n${ACCEPTANCE_USAGE}`); return 1; }
+  const path = join(DIR, `${skill}.checkpoint.json`);
+  if (!existsSync(path)) {
+    console.error(`✗ no checkpoint for "${skill}" at ${path}; the build loop writes its checkpoint before publishing acceptance results`);
+    return 1;
+  }
+  const data = readCheckpoint(path).data;
+  const handoff = buildAcceptanceHandoff({ skill, sprint: opts.sprint, verdict: opts.verdict, source: opts.source.trim(), checks: opts.checks, runId: opts.run_id });
+  // One handoff per sprint: a later round replaces the earlier one (getCheckpointHandoff
+  // refuses an ambiguous read).
+  const prior = Array.isArray(data.handoffs) ? data.handoffs : [];
+  const kept = prior.filter((h) => !(h?.type === handoff.type && h?.payload?.sprint === opts.sprint));
+  const replaced = prior.length - kept.length;
+  data.handoffs = [...kept, handoff];
+  if (!writeValidated(path, data)) return 1;
+  const passing = opts.checks.filter((c) => c.status === "PASS").length;
+  if (opts.json) {
+    console.log(JSON.stringify({ ok: true, file: basename(path), handoff, replaced }));
+  } else {
+    console.log(`✓ ${basename(path)}: acceptance ${handoff.id}`);
+    console.log(`  ${opts.sprint} ${opts.verdict}: ${passing} of ${opts.checks.length} checks PASS, from ${opts.source}${handoff.artifact.digest ? "" : " (file not found here; no digest)"}${replaced ? ` — replaced ${replaced} earlier result(s) for this sprint` : ""}`);
+  }
+  return 0;
+}
+
 // Exported for tests. The CLI dispatch below only runs when invoked directly,
 // so importing this module (e.g. from vitest) is side-effect-free.
-export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, harvestTokens, actionIsStale, firstFreshAction, budgetExceeded, readApprovedReleaseBaseline, applyUpdates, repoPathCandidate, projectName, resolveCheckpointLock, atomicWriteFile, frontmatterList, skillPhaseDeclaration, parseHandoffArgs, buildHandoff, printCandidate, SCHEMA_VERSION, ACCEPTED_SCHEMA_VERSIONS, SCAFFOLD_NEXT_ACTION };
+export { validate, rankCheckpoint, pickNext, recommendedAction, actionText, harvestTokens, actionIsStale, firstFreshAction, budgetExceeded, readApprovedReleaseBaseline, applyUpdates, repoPathCandidate, projectName, resolveCheckpointLock, atomicWriteFile, frontmatterList, skillPhaseDeclaration, parseHandoffArgs, buildHandoff, printCandidate, parseAcceptanceArgs, buildAcceptanceHandoff, SCHEMA_VERSION, ACCEPTED_SCHEMA_VERSIONS, SCAFFOLD_NEXT_ACTION };
 
 // ───────────────────────────── arg parsing ──────────────────────────────────
 
@@ -1427,6 +1538,7 @@ function run() {
     case "update":   return named(rest[0], (s) => cmdUpdate(s, rest.slice(1)));
     case "done":     return named(rest[0], cmdDone);
     case "handoff":  return named(rest[0], (s) => cmdHandoff(s, rest.slice(1)));
+    case "acceptance": return named(rest[0], (s) => cmdAcceptance(s, rest.slice(1)));
     case "init":     return cmdInit();
     default:
       console.error("usage: checkpoint <status|next|doctor|list|show|reset|validate|update|handoff|done|init>");
@@ -1441,6 +1553,8 @@ function run() {
       console.error("  update <skill> [--field=value ...]  — apply field updates, stamp updated_at (a new file needs --next_actions:json='[\"…\"]')");
       console.error("  handoff <skill> --policy <id> --verdict PASS|FAIL|INCOMPLETE --scope \"…\" [--evidence <path>]...");
       console.error("                                      — bind a verification.verdict handoff to the current candidate (what the PR/deploy evidence gates read)");
+      console.error("  acceptance <skill> --sprint <id> --verdict PASS|FAIL|INCOMPLETE --source <eval report> --check <id>=<PASS|FAIL|NOT-CHECKED>...");
+      console.error("                                      — publish a sprint's acceptance-check results as an acceptance.checks handoff (read as data by anything outside the build loop)");
       console.error("  done <skill>                        — complete next_actions[0] → recently_done");
       console.error("  init                                — scaffold .checkpoints/ on a fresh project");
       return 1;
@@ -1448,7 +1562,7 @@ function run() {
 }
 
 function mutationSkill() {
-  if (!["update", "done", "reset", "handoff"].includes(cmd)) return null;
+  if (!["update", "done", "reset", "handoff", "acceptance"].includes(cmd)) return null;
   return rest[0] && SKILL_NAME.test(rest[0]) ? rest[0] : null;
 }
 

@@ -294,11 +294,11 @@ delegated to a skill built for that act.
 
 | Chains to | Why |
 |---|---|
-| `oc-security-auditor` | vet the fixture capture / PII redaction (`/oc-security data-flow`) before Phase 1 writes fixtures |
-| `oc-migration-ops` | Structural plan for the move + live cutover, built from `modularization/module-map.json` |
-| `oc-fleet-ops` | deploy the carved-out modules |
-| `oc-code-auditor` | audit each extracted module |
-| `oc-git-ops` | commit per extraction |
+| `oc-security-auditor` | vet the fixture capture / PII redaction (`/oc-security data-flow`) before Phase 1 writes fixtures: Invoke the Skill tool with skill "oc-security-auditor" and args "/oc-security data-flow — <fixture capture / PII redaction>" |
+| `oc-migration-ops` | Invoke the Skill tool with skill "oc-migration-ops" and args "/oc-migrate plan — <modularization/module-map.json>" — Structural plan for the move + live cutover |
+| `oc-fleet-ops` | Invoke the Skill tool with skill "oc-fleet-ops" and args "/oc-fleet topology — <carved-out modules>" |
+| `oc-code-auditor` | Invoke the Skill tool with skill "oc-code-auditor" and args "/oc-audit full — <extracted module>" |
+| `oc-git-ops` | Invoke the Skill tool with skill "oc-git-ops" and args "/oc-commit — <extraction>" |
 
 > **Resolves an existing seam.** `oc-migration-ops`'s **Structural** type carries a note
 > pointing live, real-traffic decompositions at `oc-modularize-ops` and stating the

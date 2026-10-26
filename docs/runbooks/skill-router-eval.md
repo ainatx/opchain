@@ -199,7 +199,9 @@ that wires the router into the hook.
 ### Shipped thresholds
 
 `DEFAULT_THRESHOLDS` in `route-dispatch.cjs`: `fits` ≥ **0.6** for the seven
-core skills, ≥ **0.9** for every other skill, `gate` ≥ 0.5, rerank top ≥ 0.35.
+core skills, ≥ **0.9** for every other skill, `gate` ≥ 0.5, rerank top ≥ 0.35,
+and **p = min(top, fits, gate) ≥ 0.6** (`minP`, `OPCHAIN_ROUTE_MIN_P`). The
+floor makes 0.6 the effective `gate` bar too.
 An explicit `/oc-*` mention routes without a model call. A decision whose verb
 is one of the skill's `menuVerbs` (`gen-route-spec` marks a verb whose command
 reference says "Show this menu" or whose body says "When the user types X,
@@ -208,8 +210,7 @@ oc-git-ops routes resolved to the `/oc-git` menu, all the "merge" prompts among
 them. Spec `+route3` added `/oc-merge`, the two request rules (`REQUEST_RULES`:
 a question about a skill is not a request; judge the action, not its subject
 matter) and the 2026-10-23 copy for oc-git-ops, oc-bug-check and
-oc-release-ops. The thresholds were not changed; re-run the 574-row set on
-`+route3` before reading the table below as current.
+oc-release-ops.
 
 | Eval (blind labels, lenient, ambiguous dropped, allowlist on) | All P / R / silent | Holdout P / R / silent |
 |---|---:|---:|
@@ -218,6 +219,20 @@ oc-release-ops. The thresholds were not changed; re-run the 574-row set on
 | Context off (current shape), core 0.4 | 0.745 / 0.927 / 0.971 | 0.774 / 0.960 / 0.968 |
 | **Context off (current shape), core 0.6** | **0.860 / 0.902 / 0.987** | **0.923 / 0.960 / 0.991** |
 | Same, repeat run | 0.864 / 0.927 / 0.987 | — |
+| Re-run 2026-10-24, `+route2` (main at #653), no floor | 0.872 / 0.829 / 0.989 | 0.920 / 0.920 / 0.991 |
+| Same, p ≥ 0.65 | 0.944 / 0.829 / 0.996 | 0.920 / 0.920 / 0.991 |
+| `+route3` (#654), no floor | 0.971 / 0.805 / 0.998 | 1.000 / 0.880 / 1.000 |
+| **`+route3`, p ≥ 0.6 (shipped)** | **0.971 / 0.805 / 0.998** | **1.000 / 0.880 / 1.000** |
+| Same, p ≥ 0.7 | 1.000 / 0.780 / 1.000 | 1.000 / 0.840 / 1.000 |
+
+**The p floor.** On the blind-labelled set a 0.6 floor changes nothing in
+either run: every suggestion it drops is on an ambiguous row. A 0.7 floor loses
+"production can go" (p 0.65). On the first shadow window it does the work the
+offline set cannot show. Over the 75 hand-labelled routes it drops the two "Turn
+on Auto-fix for PR N" suggestions (p 0.43, 0.52) and the "close to merge?"
+question (p 0.55, ambiguous): precision 0.714 → 0.833, silent 0.920 → 0.960,
+recall unchanged at 0.769. The `+route3` copy is the larger offline change
+(precision 0.872 → 0.971 for one fewer true positive, within run-to-run noise).
 
 Jev is not fully deterministic: two identical runs with fresh caches agree on
 the top skill for 561 of 574 rows (mean |Δfits| 0.018, max 0.08) and differ on
@@ -288,9 +303,13 @@ precision 0.31 by the proxy against 0.71 by hand. So:
      `<system-reminder>` blocks);
    - `--window-minutes` (default 30) after the prompt.
 
-   Task notifications never fire the hook, so before this rule one prompt's
-   window in an autonomous session stayed open for 36 h and collected every
-   later commit.
+   Before this rule the hook closed a window at the session's next
+   UserPromptSubmit of any kind. Of 60 shadow outcomes, 22 were closed by a
+   task notification, CI monitor event, `!` command or another session's
+   message, often seconds after the prompt, and one stayed open 69 h across an
+   idle session. Since 2026-10-24 the hook records an outcome only on a
+   person's turn (`isEnvelopeBody`), and `outcomes` rescores from the
+   transcript either way.
 3. **Related activity.** A suggestion S is a proxy TP when S's work shows up in
    the window:
    - S was called.
@@ -350,15 +369,36 @@ reported on their own row. "Follow rate" is reported for live mode only: in
 shadow nobody saw the suggestion, so the shadow figure (suggested skill called
 anyway) is the unprompted baseline.
 
+**Against the baseline.** The owner's bar (2026-10-23): "The baseline is what
+actually happened in the transcripts as is". A *pipeline prompt* is one whose
+work needed a skill: its hand label or, unlabelled, the skills its activity
+points at. On shadow rows the report counts:
+- the **baseline**: the agent used the needed skill (or one of its own steps)
+  with no suggestion shown;
+- the **gaps closed**: the router named the needed skill where the agent went
+  around it;
+- **projected use** = baseline + gaps closed, assuming a shown suggestion is
+  followed (the audit measured 72/72 for this one-line format), and **lift** =
+  projected ÷ baseline.
+
+Live rows are reported as measured use instead. Logged suggestions with
+`p` below the shipped floor are scored as no suggestion and counted, so an
+older log reads as the current router would have behaved.
+
 **Day-8 go/no-go** (the report prints the verdict). Switch to
-`OPCHAIN_ROUTE_MODE=live` only when all four hold over the shadow period:
+`OPCHAIN_ROUTE_MODE=live` only when all six hold over the shadow period:
 
 1. **≥ 30 suggestions** (would-have-suggested) — fewer is anecdote.
-2. **Precision ≥ 0.8 on the core skills.**
-3. **Silent rate ≥ 0.95 on non-pipeline prompts** — at most one ordinary
+2. **≥ 30 pipeline prompts observed** — the lift below needs that many.
+3. **Projected skill use ≥ 1.5× the baseline.**
+4. **Precision ≥ 0.8 on the core skills.**
+5. **Silent rate ≥ 0.95 on non-pipeline prompts** — at most one ordinary
    prompt in twenty gets a nudge.
-4. **Every suggestion hand-labelled.** Proxy numbers alone never switch live
+6. **Every suggestion hand-labelled.** Proxy numbers alone never switch live
    mode on. At about four suggestions a day this is a few minutes of labelling.
+
+Bars 2 and 3 are the 2026-10-23 proposal from the parallel analysis session;
+the owner has not set them yet. Change them in `DEFAULTS.goNoGo`.
 
 A NO-GO keeps shadow on. Read the FP rows and the labelled misses first. Each is
 spec copy to fix, a skill to drop from the allowlist, or a raw class the proxy
@@ -413,7 +453,7 @@ TYPESAFE_API_KEY=… npm run route:eval -- jev J9                    # live, aga
   shipped thresholds and the suggest allowlist, so the result is what the hook
   would have done. Its gold set is the unambiguous prompts of the 2026-10-23
   hand-labelled window; the canned answers reproduce that window's three misses
-  and three false suggestions, which makes it the regression check for the §4
+  and three false suggestions (the #655 p floor silences the Auto-fix one; the two bug-check questions remain), which makes it the regression check for the §4
   spec-copy fixes.
 - A **Noul** use (J2 outcome judgement, J9 embedded instructions in a client
   file) builds its question from `jev-questions.json`, sends the row's `state`

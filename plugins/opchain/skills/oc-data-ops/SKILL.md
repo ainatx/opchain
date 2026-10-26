@@ -91,7 +91,7 @@ Platform choices (warehouse, queue, transform tool) are **inputs from
 oc-stack-forge**, not decisions made here — read
 `skill_state.decisions.warehouse` / `decisions.queue` /
 `decisions.transform_tool` from its checkpoint. If those keys are absent,
-invoke oc-stack-forge's Question 3b (its data-platform branch) rather than
+invoke the Skill tool with skill "oc-stack-forge" and args "/oc-stack-decide — <data-platform question 3b: warehouse, queue, transform tool>" (its data-platform branch) rather than
 defaulting; its base decision tree stops at the app database and will not ask
 the warehouse question unprompted.
 
@@ -253,9 +253,9 @@ Loop position lives in `skill_state.loop` (not `progress_table`).
 
 | Chains to | Why |
 |---|---|
-| oc-monitoring-ops | Receives the monitor inventory from `/oc-data-ops observe` |
-| oc-migration-ops | Live-pipeline schema evolution beyond additive changes |
-| oc-dash-forge | Marts + contracts feed dashboard data specs |
+| oc-monitoring-ops | Invoke the Skill tool with skill "oc-monitoring-ops" and args "/oc-monitor — <monitor inventory from /oc-data-ops observe>" |
+| oc-migration-ops | Invoke the Skill tool with skill "oc-migration-ops" and args "/oc-migrate plan — <pipeline schema change>" — live-pipeline schema evolution beyond additive changes |
+| oc-dash-forge | Invoke the Skill tool with skill "oc-dash-forge" and args "/oc-data-forge — <marts + contracts>" — marts + contracts feed dashboard data specs |
 
 | Read by | Why |
 |---|---|

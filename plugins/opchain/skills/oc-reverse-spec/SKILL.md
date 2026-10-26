@@ -584,7 +584,7 @@ doesn't want PM mirroring). When set:
 
 ### Hand-off to oc-app-architect
 
-After `/oc-rev-full` completes, actively chain to oc-app-architect per orchestrator.md §3
+After `/oc-rev-full` completes, hand off to oc-app-architect per orchestrator.md §3
 (Active Invocation):
 
 1. State the chain: "Reverse-spec analysis complete. Now using oc-app-architect to extend
@@ -594,7 +594,7 @@ After `/oc-rev-full` completes, actively chain to oc-app-architect per orchestra
    paths in `context_primer.generated_files`.
 3. Read `oc-app-architect/SKILL.md` and `oc-app-architect/references/orchestrator.md`.
 4. Check for `.checkpoints/oc-app-architect.checkpoint.json` (resume if present).
-5. Execute `/oc-roadmap` — oc-app-architect's documented entry point for existing specs
+5. Invoke the Skill tool with skill "oc-app-architect" and args "/oc-roadmap — <reverse-spec baseline in spec/>" — oc-app-architect's documented entry point for existing specs
    (*Quick Start Modes → From existing specs*). If `--pm-mirror` filed a parent ticket,
    tell the user its id (it is also in this checkpoint's `pm_refs[]`).
 

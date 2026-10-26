@@ -211,7 +211,7 @@ per prompt, with decisions cached locally for 24 hours. Conversation context (th
 the end of the assistant's last message, ≤400 chars, also redacted) is
 **opt-in** with `OPCHAIN_ROUTE_CONTEXT=1` and experimental: on the 2026-10-09
 eval it cut precision from 0.81 to 0.51, because bare "yes" / "go" after a PR
-or deploy turn became suggestions. It suggests only skills on the evidence
+or deploy turn became suggestions. It suggests nothing below p = min(top, fits, gate) 0.6, and only skills on the evidence
 allowlist (`suggestAllow` in `hooks/route-spec.json`) unless you name the skill
 yourself; a typed `/oc-*` command routes without a model call, unless it is
 negated ("don't run /oc-deploy"), asked about, or part of a path.

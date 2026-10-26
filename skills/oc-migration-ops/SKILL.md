@@ -560,16 +560,16 @@ affected.
 | Skill | Relationship |
 |---|---|
 | **oc-reverse-spec** | Upstream. Reads oc-reverse-spec output for current state documentation. If no oc-reverse-spec exists, runs a targeted scan of the migration-relevant layers only. |
-| **oc-stack-forge** | Upstream. Reads stack decisions. For platform moves, invokes oc-stack-forge to validate the target stack before planning. |
-| **oc-app-architect** | Peer. If migration reveals spec updates needed (new architecture after database change), chains to oc-app-architect to update spec files. |
-| **oc-code-auditor** | Downstream. After migration completes, invokes `/oc-audit full` on the migrated code to catch quality regressions. |
-| **oc-deploy-ops** | Downstream. For platform moves and cutover deploys, chains to oc-deploy-ops for the deployment steps. |
-| **oc-security-auditor** | Downstream. Auth migrations always trigger a security posture check afterward. |
+| **oc-stack-forge** | Upstream. Reads stack decisions. For platform moves, invoke the Skill tool with skill "oc-stack-forge" and args "/oc-stack-decide — <validate target stack>" before planning. |
+| **oc-app-architect** | Peer. If migration reveals spec updates needed (new architecture after database change), invoke the Skill tool with skill "oc-app-architect" and args "/oc-spec — <architecture change from migration>" to update spec files. |
+| **oc-code-auditor** | Downstream. After migration completes, invoke the Skill tool with skill "oc-code-auditor" and args "/oc-audit full — <migrated code>" to catch quality regressions. |
+| **oc-deploy-ops** | Downstream. For platform moves and cutover deploys, invoke the Skill tool with skill "oc-deploy-ops" and args "/oc-deploy staging — <cutover deploy>" for the deployment steps. |
+| **oc-security-auditor** | Downstream. Auth migrations always trigger a security posture check afterward: Invoke the Skill tool with skill "oc-security-auditor" and args "/oc-security posture — <migrated auth>". |
 | **oc-scale-ops** | Peer. Platform moves may change scaling characteristics. Reads oc-scale-ops for performance baselines. |
-| **oc-git-ops** | Downstream. After migration steps that produce code changes, suggests oc-git-ops commit. |
-| **oc-monitoring-ops** | Downstream. Platform moves and database migrations change health check URLs, connection targets, and alert thresholds. Invoke `/oc-monitor setup` to update monitoring config after cutover. |
+| **oc-git-ops** | Downstream. After migration steps that produce code changes, suggests a commit: Invoke the Skill tool with skill "oc-git-ops" and args "/oc-git-sync — <migration step changes>". |
+| **oc-monitoring-ops** | Downstream. Platform moves and database migrations change health check URLs, connection targets, and alert thresholds. Invoke the Skill tool with skill "oc-monitoring-ops" and args "/oc-monitor setup — <new health URLs, connection targets, alert thresholds>" to update monitoring config after cutover. |
 | **oc-modularize-ops** | Upstream. For a live-monolith decomposition it hands over `modularization/module-map.json`; `/oc-migrate plan` builds the Structural plan (code-move + live cutover) from that file. |
-| **oc-data-ops** | Upstream and downstream. It chains here for live-pipeline schema evolution beyond additive changes; warehouse/pipeline migrations chain back to `/oc-data-ops verify`. |
+| **oc-data-ops** | Upstream and downstream. It chains here for live-pipeline schema evolution beyond additive changes; warehouse/pipeline migrations invoke the Skill tool with skill "oc-data-ops" and args "/oc-data-ops verify — <migrated pipeline>". |
 
 ### Active Chaining
 
@@ -577,13 +577,13 @@ affected.
 |---|---|
 | Assessment needs current state docs | Check oc-reverse-spec checkpoint → if missing, run targeted scan |
 | `modularization/module-map.json` present | Plan the Structural code-move from it for every module in the map; hold each module's live-cutover steps until its `equivalence_verified` is `true` |
-| Platform move planned | Invoke oc-stack-forge to validate target stack |
-| Migration complete | Invoke oc-code-auditor `/oc-audit full` |
-| Auth migration complete | Invoke oc-security-auditor `/oc-security posture` |
-| Code changes from migration steps | Suggest oc-git-ops `/oc-git-sync` |
-| Cutover deployment needed | Invoke oc-deploy-ops `/oc-deploy staging` then `/oc-deploy prod` |
-| Platform or database migration complete | Invoke oc-monitoring-ops `/oc-monitor setup` to update health checks and alert targets |
-| Warehouse or pipeline schema migration complete | Invoke oc-data-ops `/oc-data-ops verify` — the contracts + `.verified/` baselines are the equivalence oracle (v1.9) |
+| Platform move planned | Invoke the Skill tool with skill "oc-stack-forge" and args "/oc-stack-decide — <validate target stack>" |
+| Migration complete | Invoke the Skill tool with skill "oc-code-auditor" and args "/oc-audit full — <migrated code>" |
+| Auth migration complete | Invoke the Skill tool with skill "oc-security-auditor" and args "/oc-security posture — <migrated auth>" |
+| Code changes from migration steps | Invoke the Skill tool with skill "oc-git-ops" and args "/oc-git-sync — <migration step changes>" |
+| Cutover deployment needed | Invoke the Skill tool with skill "oc-deploy-ops" and args "/oc-deploy staging — <cutover>", then invoke the Skill tool with skill "oc-deploy-ops" and args "/oc-deploy prod — <cutover, after staging confirmed>" |
+| Platform or database migration complete | Invoke the Skill tool with skill "oc-monitoring-ops" and args "/oc-monitor setup — <updated health checks and alert targets>" |
+| Warehouse or pipeline schema migration complete | Invoke the Skill tool with skill "oc-data-ops" and args "/oc-data-ops verify — <migrated pipeline>" — the contracts + `.verified/` baselines are the equivalence oracle (v1.9) |
 
 ---
 

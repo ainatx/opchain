@@ -374,8 +374,8 @@ Key behaviors:
 
 ### Step 4: Iterate or Advance
 
-- **PASS**: API is shippable. Publish docs and hand off to oc-deploy-ops. Pass the SLO
-  targets declared in the spec to oc-monitoring-ops when you run it — it does not pick
+- **PASS**: API is shippable. Publish docs, then invoke the Skill tool with skill "oc-deploy-ops" and args "/oc-deploy staging — <API name, conformance PASS>". Pass the SLO
+  targets declared in the spec to oc-monitoring-ops: invoke the Skill tool with skill "oc-monitoring-ops" and args "/oc-monitor — <API health endpoint + SLO targets from the spec>" — it does not pick
   them up from this skill on its own.
 - **FAIL + rounds remaining**: Feed report to Builder, fix, re-run Conformance.
 - **FAIL + max rounds**: Escalate to user.

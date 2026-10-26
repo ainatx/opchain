@@ -80,15 +80,15 @@ export const DEFAULTS = Object.freeze({
   // Reporting thresholds: the shipped router's. `fits: null` means the tiered bar
   // (coreFits for `core`, otherFits for the rest); `--thresholds fits=X` sets a
   // flat bar instead, as OPCHAIN_ROUTE_FITS does in the hook.
-  thresholds: { gate: SHIPPED.gate, fits: null, coreFits: SHIPPED.coreFits, otherFits: SHIPPED.otherFits, core: [...SHIPPED.core] },
+  thresholds: { gate: SHIPPED.gate, fits: null, coreFits: SHIPPED.coreFits, otherFits: SHIPPED.otherFits, core: [...SHIPPED.core], minP: SHIPPED.minP },
   // Query-time thresholds: ask the router for everything so the sweep can be
   // computed offline from the stored fits/gate without a second round trip.
   // suggestAll = OPCHAIN_ROUTE_SUGGEST_ALL=1: store every skill's decision so
   // the report can show what the suggest allowlist removes. allowMenus keeps a
   // decision whose verb is the skill's menu (marked `menu: true`); the report
   // drops it as the hook does unless the reporting thresholds allow menus.
-  queryThresholds: { fits: 0, gate: 0, suggestAll: true, allowMenus: true },
-  sweep: { fits: [0.3, 0.4, 0.5, 0.6, 0.7], gate: [0.3, 0.5] },
+  queryThresholds: { fits: 0, gate: 0, minP: 0, suggestAll: true, allowMenus: true },
+  sweep: { fits: [0.3, 0.4, 0.5, 0.6, 0.7], gate: [0.3, 0.5], minP: [0, 0.5, 0.6, 0.65, 0.7] },
   concurrency: 4,
   maxAttempts: 6,
   promptMaxChars: 2000,
@@ -96,7 +96,9 @@ export const DEFAULTS = Object.freeze({
   assistantLastMaxChars: 400,
   routeLog: path.join(os.tmpdir(), "opchain-route-log.jsonl"),
   // Day-8 go/no-go (docs/runbooks/skill-router-eval.md).
-  goNoGo: { minSuggestions: 30, minCorePrecision: 0.8, minSilentRate: 0.95 },
+  // minPipelinePrompts / minLift: the owner's 2026-10-23 ask to judge the router
+  // against "what actually happened in the transcripts" (summarizeOutcomes).
+  goNoGo: { minSuggestions: 30, minPipelinePrompts: 30, minLift: 1.5, minCorePrecision: 0.8, minSilentRate: 0.95 },
   coreSkills: [...ROUTER.CORE_SKILLS],
   evidenceMaxChars: 120,
   usdPerMillionInput: 0.042,
@@ -803,7 +805,9 @@ export function fitsBarFor(thresholds, skill) {
 export function describeThresholds(thresholds) {
   const T = { ...SHIPPED, ...thresholds };
   const fits = T.fits !== null && T.fits !== undefined ? `fits ≥ ${T.fits}` : `fits ≥ ${T.coreFits} (core) / ${T.otherFits} (other)`;
-  return `${fits}, gate ≥ ${T.gate}`;
+  // The floor applies only when the thresholds carry one (suggestedAt reads it the same way).
+  const minP = Number(thresholds?.minP ?? 0);
+  return `${fits}, gate ≥ ${T.gate}${minP > 0 ? `, p ≥ ${minP}` : ""}`;
 }
 
 /**
@@ -819,8 +823,26 @@ export function suggestedAt(decision, thresholds, allow = null) {
   const fits = Number(decision.fits ?? decision.confidence ?? 0);
   const gate = decision.gate === undefined || decision.gate === null ? 1 : typeof decision.gate === "boolean" ? (decision.gate ? 1 : 0) : Number(decision.gate);
   if (!(fits >= fitsBarFor(thresholds, decision.skill)) || !(gate >= thresholds.gate)) return null;
+  // The shipped floor on p = min(top, fits, gate); an explicit mention routes at p = 1.
+  const minP = Number(thresholds.minP ?? 0);
+  if (minP > 0 && !decision.explicit && !(pOf(decision) >= minP)) return null;
   if (Array.isArray(allow) && !decision.explicit && !allow.includes(decision.skill)) return null;
   return decision.skill;
+}
+
+/** p = min(top probability, fits, gate) as the router computes it (stored as decision.p). */
+export function pOf(decision) {
+  if (Number.isFinite(Number(decision?.p))) return Number(decision.p);
+  const parts = [decision?.topProbability, decision?.fits, decision?.gate].map(Number).filter(Number.isFinite);
+  return parts.length ? Math.min(...parts) : NaN;
+}
+
+/** Precision / recall / none-hold at the reporting thresholds for each p floor in `floors`. */
+export function floorSweep(results, thresholds = DEFAULTS.thresholds, { allow = null, floors = DEFAULTS.sweep.minP } = {}) {
+  return floors.map((minP) => {
+    const m = computeMetrics(results, { ...thresholds, minP }, { allow });
+    return { minP, suggestionRate: m.suggestionRate, precision: m.precision, recall: m.recall, falseSuggestionRate: m.falseSuggestionRate, noneHoldRate: m.noneHoldRate };
+  });
 }
 
 function confidenceOf(decision) {
@@ -981,6 +1003,11 @@ export function renderReport({ results, stats, thresholds = DEFAULTS.thresholds,
   L.push("Computed from the stored `fits` / `gate` values — no re-querying. `none hold` is the share of `none` rows the router left alone (the runbook asks for ≥ 0.95 before lowering a threshold).", "");
   L.push("| fits ≥ | gate ≥ | Suggestion rate | Precision | Recall | False-suggestion (none) | none hold |", "|---:|---:|---:|---:|---:|---:|---:|");
   for (const r of sw) L.push(`| ${r.fits} | ${r.gate} | ${f3(r.suggestionRate)} | ${f3(r.precision)} | ${f3(r.recall)} | ${f3(r.falseSuggestionRate)} | ${f3(r.noneHoldRate)} |`);
+  L.push("");
+  L.push("## p floor sweep", "");
+  L.push(`The reporting thresholds above, with the suggest allowlist applied and the floor on p = min(top, fits, gate) varied. The router ships p ≥ ${SHIPPED.minP}.`, "");
+  L.push("| p ≥ | Suggestion rate | Precision | Recall | False-suggestion (none) | none hold |", "|---:|---:|---:|---:|---:|---:|");
+  for (const r of floorSweep(results, thresholds, { allow, floors: sweep.minP ?? DEFAULTS.sweep.minP })) L.push(`| ${r.minP} | ${f3(r.suggestionRate)} | ${f3(r.precision)} | ${f3(r.recall)} | ${f3(r.falseSuggestionRate)} | ${f3(r.noneHoldRate)} |`);
   L.push("");
   L.push("## Confusions (label → suggested)", "");
   if (m.confusions.length) {
@@ -1233,6 +1260,7 @@ export function scoreRoutes(routes, { index = new Map(), outcomes = [], labels =
       for_prompt_hash: r.prompt_hash,
       at: r.at,
       prompt_head: r.prompt_head ?? null,
+      p: r.decision && Number.isFinite(Number(r.decision.p)) ? Number(r.decision.p) : null,
       suggested,
       suggested_args: (r.decision && r.decision.args) ?? null,
       explicit: Boolean(r.decision && r.decision.explicit),
@@ -1307,11 +1335,31 @@ function describeActivity(o) {
  * `followed` (the suggested skill was then called) means something only in
  * live mode, where the suggestion was injected; in shadow nobody saw it, so
  * the shadow figure is reported as unprompted calls, the audit baseline.
+ *
+ * `minP` re-applies the shipped floor on p = min(top, fits, gate) to rows that
+ * carry `p` (a log written before the floor existed): such a suggestion is
+ * scored as no suggestion and listed in `floored`.
+ *
+ * Baseline (shadow rows): a pipeline prompt is one whose work needed a skill —
+ * its hand label, or, unlabelled, the skills its activity points at. The
+ * baseline is the share where the agent used that skill (or one of its own
+ * steps) unprompted. The router closes a gap when it named the needed skill on
+ * a prompt the agent went around. Projected use with live suggestions followed
+ * (the audit measured 72/72 for this one-line instruction) is baseline + gaps
+ * closed; lift = projected / baseline. Live rows are reported as measured use.
  */
-export function summarizeOutcomes(allRecords, { coreSkills = DEFAULTS.coreSkills, goNoGo = DEFAULTS.goNoGo, steps = SKILL_STEPS } = {}) {
+export function summarizeOutcomes(allRecords, { coreSkills = DEFAULTS.coreSkills, goNoGo = DEFAULTS.goNoGo, steps = SKILL_STEPS, minP = SHIPPED.minP } = {}) {
   const isExplicit = (o) => o.explicit === true && Boolean(o.suggested);
   const explicitRecords = allRecords.filter(isExplicit);
-  const records = allRecords.filter((o) => !isExplicit(o));
+  const floored = [];
+  const records = allRecords.filter((o) => !isExplicit(o)).map((o) => {
+    if (!o.suggested || !(minP > 0) || !Number.isFinite(o.p) || o.p >= minP) return o;
+    floored.push(o);
+    return { ...o, suggested: null, floored_from: o.suggested };
+  });
+  const usedSkill = (n, o) => (o.skill_calls ?? []).includes(n) || (steps[n] ?? []).some((x) => (o.skill_calls ?? []).includes(x));
+  const baseline = { pipeline: 0, agentUsed: 0, routerRight: 0, gapsClosed: 0 };
+  const liveUse = { pipeline: 0, used: 0 };
   const explicitFollowed = explicitRecords.filter((o) => (o.skill_calls ?? []).includes(o.suggested)).length;
   const perSkill = {};
   const touch = (s) => (perSkill[s] ??= { skill: s, suggestions: 0, followed: 0, relatedRaw: 0, tp: 0, fp: 0, fn: 0 });
@@ -1368,6 +1416,21 @@ export function summarizeOutcomes(allRecords, { coreSkills = DEFAULTS.coreSkills
       ambiguous++;
       continue;
     }
+    const needed = label ? (label === LABEL_NONE ? [] : [label]) : [...activitySkills(o)];
+    if (needed.length) {
+      const used = needed.some((n) => usedSkill(n, o));
+      if (mode === "live") {
+        liveUse.pipeline++;
+        if (used) liveUse.used++;
+      } else {
+        baseline.pipeline++;
+        if (used) baseline.agentUsed++;
+        if (S && needed.includes(S)) {
+          baseline.routerRight++;
+          if (!used) baseline.gapsClosed++;
+        }
+      }
+    }
     if (label) {
       labelled++;
       if (label === LABEL_NONE) nonPipeline++;
@@ -1396,8 +1459,12 @@ export function summarizeOutcomes(allRecords, { coreSkills = DEFAULTS.coreSkills
   const corePrecision = core.tp + core.fp ? core.tp / (core.tp + core.fp) : NaN;
   const live = byMode.live ?? { suggestions: 0, followed: 0 };
   const shadow = byMode.shadow ?? { suggestions: 0, followed: 0 };
+  const projected = baseline.agentUsed + baseline.gapsClosed;
+  const lift = baseline.agentUsed ? projected / baseline.agentUsed : projected ? Infinity : NaN;
   const checks = [
     { name: `suggestions ≥ ${goNoGo.minSuggestions}`, value: suggestions, pass: suggestions >= goNoGo.minSuggestions },
+    { name: `pipeline prompts observed ≥ ${goNoGo.minPipelinePrompts}`, value: baseline.pipeline, pass: baseline.pipeline >= goNoGo.minPipelinePrompts },
+    { name: `projected skill use ≥ ${goNoGo.minLift}× the baseline`, value: lift, pass: lift === Infinity || (Number.isFinite(lift) && lift >= goNoGo.minLift) },
     { name: `precision on core skills ≥ ${goNoGo.minCorePrecision}`, value: corePrecision, pass: Number.isFinite(corePrecision) && corePrecision >= goNoGo.minCorePrecision },
     { name: `silent rate on non-pipeline prompts ≥ ${goNoGo.minSilentRate}`, value: silentRate, pass: Number.isFinite(silentRate) && silentRate >= goNoGo.minSilentRate },
     // The proxy cannot tell a deferred merge from a wrong suggestion (it agreed with
@@ -1422,6 +1489,16 @@ export function summarizeOutcomes(allRecords, { coreSkills = DEFAULTS.coreSkills
     labelled,
     ambiguous,
     unlabelledSuggestions,
+    minP,
+    floored,
+    baseline: {
+      ...baseline,
+      baselineRate: baseline.pipeline ? baseline.agentUsed / baseline.pipeline : NaN,
+      projected,
+      projectedRate: baseline.pipeline ? projected / baseline.pipeline : NaN,
+      lift,
+    },
+    liveUse: { ...liveUse, rate: liveUse.pipeline ? liveUse.used / liveUse.pipeline : NaN },
     proxy: {
       ...proxy,
       precision: proxy.tp + proxy.fp ? proxy.tp / (proxy.tp + proxy.fp) : NaN,
@@ -1459,8 +1536,21 @@ export function renderOutcomesReport(summary, { logPath, since, labelsPath, wind
   }
   L.push("## Go / no-go (day 8)", "");
   L.push("| Check | Value | Pass |", "|---|---:|---|");
-  for (const c of S.goNoGo.checks) L.push(`| ${c.name} | ${typeof c.value === "string" || Number.isInteger(c.value) ? c.value : f3(c.value)} | ${c.pass ? "yes" : "**no**"} |`);
+  for (const c of S.goNoGo.checks) L.push(`| ${c.name} | ${typeof c.value === "string" || Number.isInteger(c.value) ? c.value : c.value === Infinity ? "∞ (baseline 0)" : f3(c.value)} | ${c.pass ? "yes" : "**no**"} |`);
   L.push("", `**Verdict: ${S.goNoGo.go ? "GO — live mode is justified" : "NO-GO — stay in shadow"}.**`, "");
+  const B = S.baseline;
+  if (B) {
+    L.push("## Against the baseline (what the transcripts show)", "");
+    L.push("A pipeline prompt is one whose work needed a skill: its hand label, or, unlabelled, the skills its activity points at (an oc-* Skill call, or a raw git/deploy class). The baseline is what agents did on those prompts in shadow mode, where nobody saw a suggestion.", "");
+    L.push("| | Prompts | Share of pipeline prompts |", "|---|---:|---:|");
+    L.push(`| Pipeline prompts (shadow) | ${B.pipeline} | |`);
+    L.push(`| Baseline: agent used the needed skill on its own | ${B.agentUsed} | ${pct(B.agentUsed, B.pipeline)} |`);
+    L.push(`| Router named the needed skill | ${B.routerRight} | ${pct(B.routerRight, B.pipeline)} |`);
+    L.push(`| … where the agent went around it (gap closed) | ${B.gapsClosed} | ${pct(B.gapsClosed, B.pipeline)} |`);
+    L.push(`| Projected skill use with live suggestions followed | ${B.projected} | ${pct(B.projected, B.pipeline)} |`);
+    if (S.liveUse && S.liveUse.pipeline) L.push(`| Live mode, measured: agent used the needed skill | ${S.liveUse.used} of ${S.liveUse.pipeline} | ${pct(S.liveUse.used, S.liveUse.pipeline)} |`);
+    L.push("", `Lift: **${B.lift === Infinity ? "∞ (baseline 0)" : f3(B.lift)}×** the baseline. The projection assumes a shown suggestion is followed. Pipeline work after a prompt that names none of it ("do it", "good luck") is out of a prompt router's reach.`, "");
+  }
   L.push("## Overall", "");
   L.push("| Metric | Value |", "|---|---|");
   L.push(`| Routed prompts scored | ${S.total} |`);
@@ -1472,6 +1562,7 @@ export function renderOutcomesReport(summary, { logPath, since, labelsPath, wind
   L.push(`| Hand-labelled (ambiguous, left out of every rate) | ${S.labelled + S.ambiguous} (${S.ambiguous}) |`);
   L.push(`| Explicit \`/oc-*\` mentions (excluded from every metric here; ${S.explicit.followed} followed) | ${S.explicit.total} |`);
   L.push(`| Suggestions (incl. shadow would-have) | ${S.suggestions} |`);
+  if (Number.isFinite(S.minP) && S.minP > 0) L.push(`| Logged suggestions under the p ≥ ${S.minP} floor (scored as no suggestion) | ${(S.floored ?? []).length} |`);
   L.push(`| Follow rate, live mode (suggested skill then called) | ${f3(S.followRate)} |`);
   L.push(`| Verb fidelity, live mode (of those, called with the suggested verb) | ${f3(S.verbFidelity)} |`);
   L.push(`| Shadow: suggested skill called unprompted (baseline, nobody saw the suggestion) | ${S.unprompted.calls} / ${S.unprompted.suggestions} |`);
@@ -1868,7 +1959,7 @@ export async function main(argv = process.argv.slice(2), { env = process.env, st
       const reportPath = resolve(String(args.report));
       ensureDir(reportPath);
       fs.writeFileSync(reportPath, report);
-      stdout.write(`${summary.total} outcome(s) (${sourceNote}; ${summary.labelled + summary.ambiguous} labelled) · ${summary.suggestions} suggestion(s) · ${summary.explicit.total} explicit (excluded) · core precision ${f3(summary.proxy.corePrecision)} · recall ${f3(summary.proxy.recall)} · silent rate ${f3(summary.proxy.silentRate)} → ${summary.goNoGo.go ? "GO" : "NO-GO"}\nreport → ${reportPath}\n`);
+      stdout.write(`${summary.total} outcome(s) (${sourceNote}; ${summary.labelled + summary.ambiguous} labelled) · ${summary.suggestions} suggestion(s) · ${summary.explicit.total} explicit (excluded) · ${summary.floored.length} under the p floor · pipeline prompts ${summary.baseline.pipeline}: baseline skill use ${summary.baseline.agentUsed}, projected ${summary.baseline.projected} (lift ${summary.baseline.lift === Infinity ? "∞" : f3(summary.baseline.lift)}×) · core precision ${f3(summary.proxy.corePrecision)} · recall ${f3(summary.proxy.recall)} · silent rate ${f3(summary.proxy.silentRate)} → ${summary.goNoGo.go ? "GO" : "NO-GO"}\nreport → ${reportPath}\n`);
     } else stdout.write(`${report}\n`);
     return 0;
   }

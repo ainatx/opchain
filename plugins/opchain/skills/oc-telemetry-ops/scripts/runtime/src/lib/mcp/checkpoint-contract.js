@@ -13,7 +13,14 @@ export const HANDOFF_TYPES = Object.freeze({
   VERIFICATION_VERDICT: "verification.verdict",
   ARCHITECTURE_MODULE_MAP: "architecture.module-map",
   EVIDENCE_REFERENCE: "evidence.reference",
+  // Per-sprint acceptance-check results a build loop publishes (oc-app-architect
+  // Phase 6) so a reader outside the loop (a client-side skill mapping sprints to
+  // milestones, a gate) gets check ids and statuses as data instead of parsing
+  // sprints/sprint-N/eval-round-M.md. artifact = the evaluation report it was read
+  // from; payload = { sprint, verdict, checks: [{ id, status }] }.
+  ACCEPTANCE_CHECKS: "acceptance.checks",
 });
+export const ACCEPTANCE_CHECK_STATUSES = Object.freeze(["PASS", "FAIL", "NOT-CHECKED"]);
 
 const REQUIRED = Object.freeze([
   "protocol_version",
@@ -108,6 +115,26 @@ export function validateCheckpointHandoff(handoff, { checkpointSkill } = {}) {
 
   if ([HANDOFF_TYPES.ARCHITECTURE_MODULE_MAP, HANDOFF_TYPES.EVIDENCE_REFERENCE].includes(handoff.type)) {
     validateIdentity(handoff.artifact, "handoff.artifact", errors);
+  }
+
+  if (handoff.type === HANDOFF_TYPES.ACCEPTANCE_CHECKS) {
+    validateIdentity(handoff.artifact, "handoff.artifact", errors);
+    const p = isRecord(handoff.payload) ? handoff.payload : {};
+    if (typeof p.sprint !== "string" || p.sprint.trim() === "") errors.push("handoff.payload.sprint required (e.g. sprint-2)");
+    if (!VERDICTS.has(p.verdict)) errors.push("handoff.payload.verdict must be PASS|FAIL|INCOMPLETE");
+    if (!Array.isArray(p.checks) || p.checks.length === 0) errors.push("handoff.payload.checks must be a non-empty array of { id, status }");
+    else {
+      const seen = new Set();
+      p.checks.forEach((c, i) => {
+        if (!isRecord(c) || typeof c.id !== "string" || c.id.trim() === "") errors.push(`handoff.payload.checks[${i}].id required`);
+        else if (seen.has(c.id)) errors.push(`handoff.payload.checks[${i}].id "${c.id}" repeats an earlier check`);
+        else seen.add(c.id);
+        if (!ACCEPTANCE_CHECK_STATUSES.includes(c?.status)) errors.push(`handoff.payload.checks[${i}].status must be ${ACCEPTANCE_CHECK_STATUSES.join("|")}`);
+      });
+      // A PASS verdict with a failing or unchecked check is the "mostly works" the
+      // build loop's Evaluator is told never to approve.
+      if (p.verdict === "PASS" && p.checks.some((c) => c?.status !== "PASS")) errors.push("handoff.payload.verdict PASS requires every check PASS");
+    }
   }
 
   return { ok: errors.length === 0, errors };

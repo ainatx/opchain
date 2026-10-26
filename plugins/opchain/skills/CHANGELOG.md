@@ -98,6 +98,21 @@ checkpoint `protocol_version` is tracked separately (see
   the args already name the step (by the user, another skill or the router's
   line), skip the announcement, the menu and the clarifying question, and run
   it.
+- **Every skill-to-skill handoff is written in the tool-named form.** A
+  2026-10-24 reading of five days of sessions found 18 of 18 chained skill
+  calls came from the two skills whose text said `Skill(skill="…", args="…")`
+  and none from the 33 that said "chain to" or "invoke oc-X" in prose. Twelve
+  skills (oc-agent-forge, oc-api-dev, oc-app-architect, oc-data-ops,
+  oc-fleet-ops, oc-integrations-engineer, oc-migration-ops, oc-modularize-ops,
+  oc-release-ops, oc-reverse-spec, oc-security-auditor, oc-signal-forge) now
+  write their handoffs that way. `orchestrator.md` §3 *Context Passing* says to
+  put ids, paths and verdicts in `args` (no skill read a sibling checkpoint in
+  that window) and keeps checkpoints for resume and typed handoffs. New typed
+  handoff `acceptance.checks` (`checkpoint acceptance`): a build sprint's
+  acceptance-check ids and statuses, one per sprint, published by
+  oc-app-architect Phase 6 so a reader outside the loop stops parsing
+  `eval-round-M.md`. The router stays silent on `/ow-*` and "use ow-…"
+  prompts (logged as `envelope: "ow"`): its spec holds oc- skills only.
 
 ### Experimental
 
@@ -119,8 +134,11 @@ checkpoint `protocol_version` is tracked separately (see
   not route. A desktop prompt that opens with reminder blocks is routed on the
   text after them, and a brief from another session on its `Task:` paragraph
   (the first shadow window left 13 of 14 such prompts unrouted). It never
-  suggests a verb that only prints a skill's menu, and the line it injects
-  carries the chosen step's description. Unset the key or set `OPCHAIN_ROUTE=0` to turn it off. It has an offline
+  suggests a verb that only prints a skill's menu, nor anything below a
+  combined confidence of 0.6 (the first shadow window's two false
+  suggestions sat at 0.43 and 0.52), and the line it injects carries the
+  chosen step's description. Task notifications, CI events and other sessions'
+  messages neither route nor end the measured window of the prompt before them. Unset the key or set `OPCHAIN_ROUTE=0` to turn it off. It has an offline
   eval (574 labelled past prompts) and a first shadow-period read (2026-10-23:
   hand-labelled precision 0.71 against a 0.8 bar); whether it changes skill use
   is not yet measured. `OPCHAIN_ROUTE_MODE=live`, which injects the

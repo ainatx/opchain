@@ -11,8 +11,8 @@
 {"id":"j1-11","prompt":"Deploy #251 to staging as a branch preview now.","expected":"oc-deploy-ops","note":"2026-10-23 hand label, head only"}
 {"id":"j1-12","prompt":"Deploy cd0d94f0 to staging from the release checkout (npm run deploy:staging) and verify the health version","expected":"oc-deploy-ops","note":"2026-10-23 hand label, head completed"}
 {"id":"j1-13","prompt":"run /oc-audit diff on the staged changes","expected":"oc-code-auditor","note":"explicit mention: routed at p=1 with no model call, so no canned answers exist for this row"}
-{"id":"j1-14","prompt":"Turn on Auto-fix for PR 247.","expected":"none","note":"audit §2 #24: an app setting, not a git operation; false suggestion at fits 0.60"}
-{"id":"j1-15","prompt":"Turn on Auto-fix for PR #250.","expected":"none","note":"2026-10-23 hand label; the canned answers leave the verb unspecified, so the base verb /oc-git (a menu) yields no decision (#654 menu rule)"}
+{"id":"j1-14","prompt":"Turn on Auto-fix for PR 247.","expected":"none","note":"audit §2 #24: an app setting, not a git operation; false suggestion at fits 0.60 under #654, silenced by the #655 p floor (p 0.55 < 0.6)"}
+{"id":"j1-15","prompt":"Turn on Auto-fix for PR #250.","expected":"none","note":"2026-10-23 hand label; silenced by the #655 p floor (p 0.55 < 0.6); with the verb left unspecified the #654 menu rule would also silence it"}
 {"id":"j1-16","prompt":"and bug check","expected":"none","note":"audit §2 #11: a question naming a skill (follow-up to “where is code auditor”); false suggestion at fits 0.90"}
 {"id":"j1-17","prompt":"Bug check should be in there shouldn’t it","expected":"none","note":"audit §2 #45: a question about a plan, not a request to run the checks; false suggestion at fits 0.79"}
 {"id":"j1-18","prompt":"where is code auditor","expected":"none","note":"2026-10-23 hand label; request 1 chose none"}
