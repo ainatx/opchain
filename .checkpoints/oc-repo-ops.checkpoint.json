@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-ac31c154410b8a429",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-24T02:03:26.462Z",
+  "updated_at": "2026-10-26T22:32:46.395Z",
   "skill": "oc-repo-ops",
   "phase": "pr-verify",
   "status": "complete",
   "step": "pr-verify-jev-section-2",
-  "progress_summary": "PR readiness PASS for the Jev plan §2 PR at d323ebb8: tree clean apart from the docs-forge checkpoint; docs packet bound to HEAD with a ## Documentation fragment; gen-route-spec (36 skills, 9 jev uses), plugin skill copy, skill bundles, gen-catalog, check-skill-contracts and the MCP catalog all in sync; no binary files; internal links in the touched docs resolve; all 18 checkpoints valid. Warning, not blocking: 19 pre-existing checkpoint staleness warnings unrelated to this diff.",
+  "progress_summary": "PR readiness PASS for the Jev plan §2 PR after merging main at 27a7797a: merge conflicts were only in two checkpoint files (kept this branch, then rebound); gen-route-spec (36 skills, 9 jev uses), plugin skill copy, check-skill-contracts and lint-internal-refs in sync; gate 8/8 PASS on tree d7f07821. Warning, not blocking: pre-existing checkpoint staleness in other skills.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -31,7 +31,7 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "d323ebb865b3f664b6461f46c74de19b05606194",
+    "verified_for_sha": "27a7797a4c3868fcc82cc46bcab13ff25da1f6dd",
     "last_verify": {
       "at": "2026-10-23T20:30:06.474Z",
       "branch": "claude/jev-week0",
@@ -2601,8 +2601,28 @@
         "policy": "pr-readiness-v1",
         "scope": "Jev plan §2 PR at d323ebb8: tree clean, docs packet bound to HEAD, route-spec + jev-questions, plugin skills, bundles, catalogs and contracts in sync, links resolve, checkpoints valid"
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-1cb4706ece33",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-26T22:32:46.394Z",
+      "verified_at": "2026-10-26T22:32:46.394Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-26T22:32:46.394Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:1cb4706ece33f86ff9dea289229f7fa5287a974158d784634bb0734185bc9748"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "Jev plan §2 PR after merging main at 27a7797a: clean merge, generated surfaces and contracts in sync, gate 8/8 PASS"
+      }
     }
   ],
-  "record_updated_at": "2026-10-24T02:03:26.462Z",
+  "record_updated_at": "2026-10-26T22:32:46.395Z",
   "blockers": []
 }
