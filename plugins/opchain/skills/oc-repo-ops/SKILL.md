@@ -67,7 +67,8 @@ REPO OPS COMMANDS
 
 Repo Ops publishes a C-contract `verification.verdict` handoff for the evaluator's
 HEAD `git_tree_projection` (excluding `.checkpoints/`) under policy
-`pr-readiness-v1`. Opchain's Git Ops flow and requested CI
+`pr-readiness-v1`, in the branch's own file
+`.checkpoints/handoffs/pr-readiness-v1/<branch>.json`. Opchain's Git Ops flow and requested CI
 wiring consume it through `scripts/lib/release-evidence.mjs`; missing, stale,
 ambiguous, FAIL, or INCOMPLETE evidence blocks. CI separately reruns A's
 candidate verifier on the received commit, so a copied local receipt is not
@@ -97,10 +98,12 @@ Checks:
 
 PR readiness gate. Fail closed on:
 
-- Missing or stale `.checkpoints/oc-docs-forge.checkpoint.json`. Stale means its
-  `skill_state.verified_for_sha` is not the HEAD of the branch being verified —
-  the same binding oc-release-ops' verify gate uses for the docs row — or its
-  checkpoint `status` is `blocked` (a failed `/oc-docs verify`).
+- Missing or stale Docs Forge evidence: no `pr-docs-v1` PASS handoff is bound to
+  the HEAD tree projection of the branch being verified (the `oc-docs-forge` row of
+  `npm run evidence:pr`, which reads `.checkpoints/handoffs/pr-docs-v1/` and then
+  the docs-forge checkpoint's `handoffs`) — the same binding oc-release-ops'
+  verify gate uses for the docs row — or the docs-forge checkpoint `status` is
+  `blocked` (a failed `/oc-docs verify`).
 - Missing `## Documentation` PR body fragment.
 - Required docs update absent from the diff and no explicit follow-up.
 - Catalog/source drift for surfaces affected by the PR.
@@ -115,9 +118,12 @@ Warnings never block, but they must appear in the PR body or Repo Ops checkpoint
 Every run publishes a `verification.verdict` handoff with candidate kind
 `git_tree_projection`, the evaluator-produced SHA-256 identity, policy
 `pr-readiness-v1`, and PASS, FAIL, or INCOMPLETE. Excluding `.checkpoints/`
-avoids self-reference. Read the identity with
-`node scripts/lib/release-evidence.mjs --print-candidate --json`;
-`skill_state.verified_for_sha` remains compatibility output.
+avoids self-reference. Bind it with
+`node scripts/checkpoint.mjs handoff oc-repo-ops --policy pr-readiness-v1 --verdict <verdict> --scope "<what was checked>"`,
+never by hand: it computes the identity and writes
+`.checkpoints/handoffs/pr-readiness-v1/<branch>.json` (when the base branch's gate
+predates that store, it appends to this skill's checkpoint `handoffs` instead).
+`skill_state.verified_for_sha` is display data and gates nothing.
 
 ## `/oc-repo clean`
 
@@ -187,19 +193,15 @@ Location: `{project-dir}/.checkpoints/oc-repo-ops.checkpoint.json`
       "verdict": "PASS",
       "blocking_findings": []
     }
-  },
-  "handoffs": [{
-    "id": "pr-readiness-<candidate-id>",
-    "contract_version": "1.0",
-    "type": "verification.verdict",
-    "created_at": "2026-09-13T20:00:00Z",
-    "verified_at": "2026-09-13T20:00:00Z",
-    "producer": { "skill": "oc-repo-ops", "run_id": "<run-id>" },
-    "candidate": { "kind": "git_tree_projection", "id": "sha256:<digest>" },
-    "payload": { "verdict": "PASS", "policy": "pr-readiness-v1" }
-  }]
+  }
 }
 ```
+
+The `pr-readiness-v1` verdict is not in this file: it is
+`.checkpoints/handoffs/pr-readiness-v1/<branch>.json`, one `verification.verdict`
+object (`producer.skill: "oc-repo-ops"`, the `git_tree_projection` candidate,
+`payload: { "verdict", "policy": "pr-readiness-v1", "scope" }`), which concurrent
+PRs never share.
 
 ## Cross-Skill Reads
 

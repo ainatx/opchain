@@ -4,12 +4,12 @@
 // how `status <skill>` ignoring its argument and `doctor` validating a rebuilt
 // path both shipped (2026-09-11 skill-chain audit, v1.9.1 Sprint 2).
 import { describe, it, expect, afterAll } from "vitest";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync, existsSync, copyFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync, existsSync, copyFileSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, basename } from "node:path";
 import { spawnSync } from "node:child_process";
 import { validate, applyUpdates, repoPathCandidate, projectName, frontmatterList, SCAFFOLD_NEXT_ACTION } from "../scripts/checkpoint.mjs";
-import { evaluateReleaseEvidence } from "../scripts/lib/release-evidence.mjs";
+import { evaluateReleaseEvidence, readHandoffStore } from "../scripts/lib/release-evidence.mjs";
 import { vendorRuntime } from "../scripts/install-git-drivers.mjs";
 
 const CLI = join(import.meta.dirname, "..", "scripts", "checkpoint.mjs");
@@ -301,6 +301,10 @@ function readCp(root, skill) {
   return JSON.parse(readFileSync(join(root, ".checkpoints", `${skill}.checkpoint.json`), "utf8"));
 }
 
+function readStored(root, policy, branch) {
+  return JSON.parse(readFileSync(join(root, ".checkpoints", "handoffs", policy, `${branch}.json`), "utf8"));
+}
+
 function skillMd(root, skill, frontmatter, body = "") {
   mkdirSync(join(root, "skills", skill), { recursive: true });
   writeFileSync(join(root, "skills", skill, "SKILL.md"), `---\nname: ${skill}\n${frontmatter}\n---\n# ${skill}\n${body}`);
@@ -447,19 +451,20 @@ describe("handoff", () => {
     return JSON.parse(r.stdout);
   }
 
-  it("appends a verification.verdict the release-evidence matcher accepts", () => {
+  // The PR-stage policies go to the per-branch store, never the shared checkpoint:
+  // that shared file is what made every sibling PR conflict after a merge.
+  it("writes a PR-stage verdict to .checkpoints/handoffs/<policy>/<branch>.json the matcher accepts, leaving the checkpoint alone", () => {
     const root = repo();
-    write(root, "oc-docs-forge.checkpoint.json", cp("oc-docs-forge", { phase: "pr-docs", skill_state: { docs_changed: ["README.md"] } }));
+    const before = cp("oc-docs-forge", { phase: "pr-docs", skill_state: { docs_changed: ["README.md"] } });
+    write(root, "oc-docs-forge.checkpoint.json", before);
     const r = runSplit(root, "handoff", "oc-docs-forge", "--policy", "pr-docs-v1", "--verdict", "PASS", "--scope", "README only", "--evidence", "README.md", "--evidence", "CHANGELOG.md", "--json");
     expect(r.code).toBe(0);
     const out = JSON.parse(r.stdout);
     const cand = candidateOf(root);
-    expect(out.candidate).toBe(cand.candidate);
-    expect(out.replaced).toBe(0);
+    expect(out).toMatchObject({ store: "handoffs", file: ".checkpoints/handoffs/pr-docs-v1/main.json", candidate: cand.candidate, replaced: 0 });
 
-    const data = readCp(root, "oc-docs-forge");
-    expect(data.handoffs).toHaveLength(1);
-    expect(data.handoffs[0]).toMatchObject({
+    const stored = readStored(root, "pr-docs-v1", "main");
+    expect(stored).toMatchObject({
       id: `oc-docs-forge-pr-docs-v1-${cand.candidate_identity.id.slice(7, 19)}`,
       contract_version: "1.0",
       type: "verification.verdict",
@@ -467,9 +472,8 @@ describe("handoff", () => {
       candidate: cand.candidate_identity,
       payload: { verdict: "PASS", policy: "pr-docs-v1", scope: "README only", evidence: ["README.md", "CHANGELOG.md"] },
     });
-    expect(data.handoffs[0].verified_at).toBe(data.handoffs[0].created_at);
-    expect(data.skill_state).toEqual({ docs_changed: ["README.md"], verified_for_sha: cand.candidate });
-    expect(data.record_updated_at).toBe(data.updated_at);
+    expect(stored.verified_at).toBe(stored.created_at);
+    expect(readCp(root, "oc-docs-forge")).toEqual(before); // no handoffs[], no verified_for_sha
 
     const result = evaluateReleaseEvidence({
       stage: "pr",
@@ -478,25 +482,88 @@ describe("handoff", () => {
       tree: cand.tree,
       repositoryId: "fixture",
       receipt: null,
-      checkpoints: { "oc-docs-forge": data },
+      checkpoints: { "oc-docs-forge": readCp(root, "oc-docs-forge") },
+      handoffStore: { "pr-docs-v1": readHandoffStore(join(root, ".checkpoints"), "pr-docs-v1") },
     });
-    expect(result.checks.find((c) => c.id === "oc-docs-forge")).toMatchObject({ status: "PASS", detail: `pr-docs-v1 covers ${cand.candidate_identity.id}` });
+    expect(result.checks.find((c) => c.id === "oc-docs-forge")).toMatchObject({ status: "PASS", detail: `pr-docs-v1 covers ${cand.candidate_identity.id} (.checkpoints/handoffs/pr-docs-v1/main.json)` });
     expect(result.checks.find((c) => c.id === "oc-repo-ops").status).toBe("FAIL"); // not bound here
   });
 
-  it("re-binding the same candidate replaces the earlier entry so the matcher stays unambiguous", () => {
+  it("names the file after the branch, so two branches never write the same one", () => {
     const root = repo();
-    write(root, "oc-repo-ops.checkpoint.json", cp("oc-repo-ops"));
+    git(["checkout", "-qb", "claude/feature-a"], root);
+    const a = JSON.parse(runSplit(root, "handoff", "oc-repo-ops", "pr-readiness-v1", "--verdict", "PASS", "--scope", "a", "--json").stdout);
+    git(["checkout", "-qb", "feature-a"], root); // "/" is a directory, not a character that collides with "-"
+    const b = JSON.parse(runSplit(root, "handoff", "oc-repo-ops", "pr-readiness-v1", "--verdict", "PASS", "--scope", "b", "--json").stdout);
+    git(["checkout", "-q", "--detach"], root);
+    const detached = JSON.parse(runSplit(root, "handoff", "oc-repo-ops", "pr-readiness-v1", "--verdict", "PASS", "--scope", "c", "--json").stdout);
+    expect([a.file, b.file, detached.file]).toEqual([
+      ".checkpoints/handoffs/pr-readiness-v1/claude/feature-a.json",
+      ".checkpoints/handoffs/pr-readiness-v1/feature-a.json",
+      `.checkpoints/handoffs/pr-readiness-v1/detached/${git(["rev-parse", "HEAD"], root).slice(0, 12)}.json`,
+    ]);
+    expect(existsSync(join(root, ".checkpoints", "oc-repo-ops.checkpoint.json"))).toBe(false);
+  });
+
+  it("binds into the shared checkpoint when the reader predates the store (back-compat)", () => {
+    const root = repo();
+    write(root, "oc-docs-forge.checkpoint.json", cp("oc-docs-forge", { phase: "pr-docs", skill_state: { docs_changed: ["README.md"] } }));
+    // First in the binder's lookup order: a reader that prints no handoff_store.
+    mkdirSync(join(root, "scripts", "lib"), { recursive: true });
+    writeFileSync(join(root, "scripts", "lib", "release-evidence.mjs"), [
+      'import { spawnSync } from "node:child_process";',
+      `const r = spawnSync(process.execPath, [${JSON.stringify(RELEASE_EVIDENCE)}, ...process.argv.slice(2)], { encoding: "utf8" });`,
+      "const report = JSON.parse(r.stdout); delete report.handoff_store;",
+      "process.stdout.write(JSON.stringify(report)); process.exitCode = r.status;",
+    ].join("\n"));
+    const r = runSplit(root, "handoff", "oc-docs-forge", "pr-docs-v1", "--verdict", "PASS", "--scope", "README only", "--json");
+    expect(r.code).toBe(0);
+    expect(JSON.parse(r.stdout)).toMatchObject({ store: "checkpoint", file: "oc-docs-forge.checkpoint.json" });
+    expect(existsSync(join(root, ".checkpoints", "handoffs"))).toBe(false);
+    const cand = candidateOf(root);
+    const data = readCp(root, "oc-docs-forge");
+    expect(data.handoffs).toHaveLength(1);
+    expect(data.handoffs[0]).toMatchObject({ producer: { skill: "oc-docs-forge" }, candidate: cand.candidate_identity, payload: { verdict: "PASS", policy: "pr-docs-v1" } });
+    expect(data.skill_state).toEqual({ docs_changed: ["README.md"], verified_for_sha: cand.candidate });
+    expect(data.record_updated_at).toBe(data.updated_at);
+    const result = evaluateReleaseEvidence({ stage: "pr", candidate: cand.candidate, candidateIdentity: cand.candidate_identity, tree: cand.tree, repositoryId: "fixture", receipt: null, checkpoints: { "oc-docs-forge": data } });
+    expect(result.checks.find((c) => c.id === "oc-docs-forge")).toMatchObject({ status: "PASS", detail: `pr-docs-v1 covers ${cand.candidate_identity.id}` });
+  });
+
+  it("re-binding on the branch overwrites its own file so the matcher stays unambiguous", () => {
+    const root = repo();
     expect(run(root, "handoff", "oc-repo-ops", "--policy=pr-readiness-v1", "--verdict=PASS", "--scope=first").code).toBe(0);
     const r = run(root, "handoff", "oc-repo-ops", "--policy=pr-readiness-v1", "--verdict=FAIL", "--scope=second");
     expect(r.code).toBe(0);
-    expect(r.out).toContain("replaced 1 earlier handoff(s)");
-    const data = readCp(root, "oc-repo-ops");
-    expect(data.handoffs).toHaveLength(1);
-    expect(data.handoffs[0].payload).toMatchObject({ verdict: "FAIL", policy: "pr-readiness-v1", scope: "second" });
+    expect(r.out).toContain("replaced this branch's earlier handoff for the same candidate");
+    expect(readdirSync(join(root, ".checkpoints", "handoffs", "pr-readiness-v1"))).toEqual(["main.json"]);
+    expect(readStored(root, "pr-readiness-v1", "main").payload).toMatchObject({ verdict: "FAIL", policy: "pr-readiness-v1", scope: "second" });
     const cand = candidateOf(root);
-    const result = evaluateReleaseEvidence({ stage: "pr", candidate: cand.candidate, candidateIdentity: cand.candidate_identity, tree: cand.tree, repositoryId: "fixture", receipt: null, checkpoints: { "oc-repo-ops": data } });
+    const handoffStore = { "pr-readiness-v1": readHandoffStore(join(root, ".checkpoints"), "pr-readiness-v1") };
+    const result = evaluateReleaseEvidence({ stage: "pr", candidate: cand.candidate, candidateIdentity: cand.candidate_identity, tree: cand.tree, repositoryId: "fixture", receipt: null, handoffStore });
     expect(result.checks.find((c) => c.id === "oc-repo-ops")).toMatchObject({ status: "FAIL", detail: expect.stringContaining("verdict is FAIL") });
+
+    // A code change is a new candidate: the same file is rebound, never a second one.
+    writeFileSync(join(root, "README.md"), "y\n");
+    git(["-c", "core.hooksPath=/dev/null", "commit", "-qam", "change"], root);
+    const rebound = run(root, "handoff", "oc-repo-ops", "--policy=pr-readiness-v1", "--verdict=PASS", "--scope=third");
+    expect(rebound.out).toContain(`replaced this branch's earlier handoff for ${cand.candidate_identity.id}`);
+    expect(readdirSync(join(root, ".checkpoints", "handoffs", "pr-readiness-v1"))).toEqual(["main.json"]);
+  });
+
+  it("re-binding the same candidate in the shared checkpoint replaces the earlier entry", () => {
+    const root = repo();
+    write(root, "oc-code-auditor.checkpoint.json", cp("oc-code-auditor"));
+    expect(run(root, "handoff", "oc-code-auditor", "--policy=pre-deploy-code-audit-v1", "--verdict=PASS", "--scope=first").code).toBe(0);
+    const r = run(root, "handoff", "oc-code-auditor", "--policy=pre-deploy-code-audit-v1", "--verdict=FAIL", "--scope=second");
+    expect(r.code).toBe(0);
+    expect(r.out).toContain("replaced 1 earlier handoff(s)");
+    const data = readCp(root, "oc-code-auditor");
+    expect(data.handoffs).toHaveLength(1);
+    expect(data.handoffs[0].payload).toMatchObject({ verdict: "FAIL", policy: "pre-deploy-code-audit-v1", scope: "second" });
+    const cand = candidateOf(root);
+    const result = evaluateReleaseEvidence({ stage: "deploy", candidate: cand.candidate, candidateIdentity: cand.candidate_identity, tree: cand.tree, repositoryId: "fixture", receipt: null, checkpoints: { "oc-code-auditor": data } });
+    expect(result.checks.find((c) => c.id === "oc-code-auditor")).toMatchObject({ status: "FAIL", detail: expect.stringContaining("verdict is FAIL") });
   });
 
   it("accepts the policy positionally, as release-evidence's FAIL detail spells it", () => {
@@ -504,7 +571,7 @@ describe("handoff", () => {
     write(root, "oc-repo-ops.checkpoint.json", cp("oc-repo-ops"));
     const r = run(root, "handoff", "oc-repo-ops", "pr-readiness-v1", "--verdict", "PASS", "--scope", "hygiene clean");
     expect(r.code).toBe(0);
-    expect(readCp(root, "oc-repo-ops").handoffs[0].payload).toMatchObject({ policy: "pr-readiness-v1", verdict: "PASS" });
+    expect(readStored(root, "pr-readiness-v1", "main").payload).toMatchObject({ policy: "pr-readiness-v1", verdict: "PASS" });
     const twice = run(root, "handoff", "oc-repo-ops", "pr-readiness-v1", "other-v1", "--verdict", "PASS", "--scope", "x");
     expect(twice.code).toBe(1);
     expect(twice.out).toContain('unexpected argument "other-v1"');
@@ -524,7 +591,7 @@ describe("handoff", () => {
     const root = repo();
     skillMd(root, "oc-repo-ops", "phases: [build]", '```json\n{ "phase": "pr-verify" }\n```\n');
     skillMd(root, "oc-strict", "phases: [build]\ncheckpoint_phases: [audit, verify, report]");
-    expect(run(root, "handoff", "oc-repo-ops", "pr-readiness-v1", "--verdict", "PASS", "--scope", "x").code).toBe(0);
+    expect(run(root, "handoff", "oc-repo-ops", "repo-audit-v1", "--verdict", "PASS", "--scope", "x").code).toBe(0);
     expect(run(root, "handoff", "oc-strict", "x-v1", "--verdict", "PASS", "--scope", "x").code).toBe(0);
     expect(readCp(root, "oc-repo-ops").phase).toBe("pr-verify");
     expect(readCp(root, "oc-strict").phase).toBe("verify");
@@ -565,7 +632,8 @@ describe("handoff", () => {
     expect(viaVendored.stderr).toBe("");
     expect(viaVendored.status).toBe(0);
     const out = JSON.parse(viaVendored.stdout);
-    expect(readCp(root, "oc-docs-forge").handoffs.at(-1).candidate.id).toBe(out.handoff.candidate.id);
+    expect(out.store).toBe("handoffs");
+    expect(readStored(root, "pr-docs-v1", "main").candidate.id).toBe(out.handoff.candidate.id);
   });
 
   it("refuses bad options and a path for a skill name", () => {
@@ -588,5 +656,29 @@ describe("handoff", () => {
     const escape = run(root, "handoff", "../escape", "--policy", "x-v1", "--verdict", "PASS", "--scope", "x");
     expect(escape.code).toBe(1);
     expect(escape.out).toContain('"../escape" is not a skill name');
+  });
+});
+
+// The store grows one file per merged branch; the release PR (one at a time) prunes it.
+describe("prune-handoffs", () => {
+  it("deletes every store file not bound to the current candidate, and nothing on --dry-run", () => {
+    const root = repo();
+    const stale = (id) => JSON.stringify({ type: "verification.verdict", candidate: { kind: "git_tree_projection", id: `sha256:${id.repeat(64)}` } });
+    mkdirSync(join(root, ".checkpoints", "handoffs", "pr-docs-v1", "claude"), { recursive: true });
+    writeFileSync(join(root, ".checkpoints", "handoffs", "pr-docs-v1", "claude", "merged-a.json"), stale("a"));
+    writeFileSync(join(root, ".checkpoints", "handoffs", "pr-docs-v1", "claude", "merged-b.json"), "{ not json");
+    expect(run(root, "handoff", "oc-docs-forge", "pr-docs-v1", "--verdict", "PASS", "--scope", "release").code).toBe(0);
+    write(root, "oc-docs-forge.checkpoint.json", cp("oc-docs-forge"));
+
+    const dry = JSON.parse(runSplit(root, "prune-handoffs", "--dry-run", "--json").stdout);
+    expect(dry).toMatchObject({ ok: true, dry_run: true, kept: [".checkpoints/handoffs/pr-docs-v1/main.json"] });
+    expect(dry.removed.sort()).toEqual([".checkpoints/handoffs/pr-docs-v1/claude/merged-a.json", ".checkpoints/handoffs/pr-docs-v1/claude/merged-b.json"]);
+    expect(existsSync(join(root, ".checkpoints", "handoffs", "pr-docs-v1", "claude", "merged-a.json"))).toBe(true);
+
+    const r = run(root, "prune-handoffs");
+    expect(r.code).toBe(0);
+    expect(r.out).toContain("pruned 2 handoff file(s)");
+    expect(readdirSync(join(root, ".checkpoints", "handoffs", "pr-docs-v1"))).toEqual(["main.json"]); // the emptied claude/ directory goes too
+    expect(existsSync(join(root, ".checkpoints", "oc-docs-forge.checkpoint.json"))).toBe(true); // never touches checkpoints
   });
 });

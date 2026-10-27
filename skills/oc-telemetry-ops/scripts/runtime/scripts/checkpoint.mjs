@@ -34,7 +34,13 @@
  *                                     Bind a C-contract verification.verdict handoff
  *                                     to the current git_tree_projection candidate —
  *                                     the entry scripts/lib/release-evidence.mjs
- *                                     (pre-PR / pre-deploy gates) looks up.
+ *                                     (pre-PR / pre-deploy gates) looks up. The PR-stage
+ *                                     policies (pr-docs-v1, pr-readiness-v1) go to their
+ *                                     own file, .checkpoints/handoffs/<policy>/<branch>.json,
+ *                                     so concurrent PRs never conflict on a shared checkpoint.
+ *   prune-handoffs [--dry-run] [--json]
+ *                                     Delete every .checkpoints/handoffs/ file not bound to
+ *                                     the current candidate. Run from the release PR only.
  *   done <skill>                      Pop next_actions[0] into recently_done + restamp.
  *   init                              Scaffold .checkpoints/ on a fresh project.
  *
@@ -62,8 +68,8 @@
  *   frontmatter and moves independently as the docs/tooling evolve).
  */
 
-import { accessSync, constants, readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, statSync, realpathSync, unlinkSync } from "node:fs";
-import { dirname, join, basename, resolve, delimiter } from "node:path";
+import { accessSync, constants, readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, rmdirSync, statSync, realpathSync, unlinkSync } from "node:fs";
+import { dirname, join, basename, resolve, delimiter, relative, isAbsolute, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash, randomUUID } from "node:crypto";
 import { execSync, spawnSync } from "node:child_process";
@@ -1156,6 +1162,7 @@ function cmdUpdate(skill, rest) {
 // candidate = the git_tree_projection identity of HEAD minus .checkpoints/,
 // payload.policy + payload.verdict. Sixteen PRs since 2026-09-14 hand-wrote this
 // with four different ad-hoc node/python snippets (audit Q5-F1); this is the writer.
+// Where it writes depends on the policy: see "the handoff store" below.
 
 const VERDICTS = ["PASS", "FAIL", "INCOMPLETE"];
 const POLICY_ID = /^[a-z0-9][a-z0-9.-]*$/;
@@ -1167,6 +1174,8 @@ const HANDOFF_USAGE = [
   "         --scope \"README + CHANGELOG refreshed for #601\" --evidence skills/README.md",
   "  policies the gates read: pr-docs-v1 (oc-docs-forge) · pr-readiness-v1 (oc-repo-ops) ·",
   "    pre-deploy-code-audit-v1 (oc-code-auditor) · pre-deploy-security-posture-v1 (oc-security-auditor)",
+  "  pr-docs-v1 and pr-readiness-v1 go to .checkpoints/handoffs/<policy>/<branch>.json (one file per",
+  "    branch, so sibling PRs never conflict); the others into .checkpoints/<skill>.checkpoint.json",
 ].join("\n");
 
 /** scripts/lib/release-evidence.mjs, first hit wins: the checkout's own copy (the
@@ -1195,10 +1204,9 @@ function defaultHandoffPhase(skill) {
   return decl.allowed.includes("verify") ? "verify" : decl.allowed.at(-1);
 }
 
-/** { candidate, tree, candidate_identity: { kind, id } } for HEAD of `root` — the
- *  same identity `release-evidence --print-candidate --json` prints. */
-function printCandidate(root = ROOT) {
-  const script = releaseEvidenceScript();
+/** { candidate, tree, candidate_identity: { kind, id }, handoff_store? } for HEAD of
+ *  `root` — what `release-evidence --print-candidate --json` prints. */
+function printCandidate(root = ROOT, script = releaseEvidenceScript()) {
   if (!script) throw new Error("scripts/lib/release-evidence.mjs is not available (looked in scripts/lib/, .opchain/runtime/scripts/lib/, beside this CLI, and $CLAUDE_PLUGIN_ROOT/scripts/lib/) — run /oc-enroll --ci to vendor it; cannot compute the candidate identity")
   const r = spawnSync(process.execPath, [script, "--repo", root, "--print-candidate", "--json"], { encoding: "utf8" });
   let report = null;
@@ -1207,6 +1215,58 @@ function printCandidate(root = ROOT) {
     throw new Error(report?.error || (r.stderr || "release-evidence --print-candidate failed").trim());
   }
   return report;
+}
+
+// ── the handoff store (opchain.handoff-store.v1) ─────────────────────────────
+//
+// PR-stage verdicts go to .checkpoints/handoffs/<policy>/<branch>.json instead of
+// the skill's shared checkpoint, so concurrent pull requests never write the same
+// file and merge in either order (scripts/lib/release-evidence.mjs says why). The
+// binder uses the store only when the gate will read it: the reader it resolved
+// advertises the layout for the policy, and — because a consumer's evidence
+// workflow runs the BASE branch's copy of that reader — the base copy names it too.
+// The pull request that vendors a store-reading runtime therefore still binds into
+// the checkpoint; the next one uses the store.
+
+const HANDOFF_STORE_LAYOUT = "opchain.handoff-store.v1";
+const BASE_REFS = ["origin/main", "origin/HEAD", "main"];
+
+function gitOut(root, args) {
+  const r = spawnSync("git", ["-C", root, ...args], { encoding: "utf8" });
+  return r.status === 0 ? r.stdout.trim() : null;
+}
+
+/** True unless the base branch tracks `script` and its copy predates the store. */
+function baseReaderReadsStore(script, root = ROOT) {
+  const rel = relative(root, script).split(sep).join("/");
+  if (!rel || rel.startsWith("../") || isAbsolute(rel)) return true; // not this repository's file: no base copy judges it
+  const ref = BASE_REFS.find((candidate) => gitOut(root, ["rev-parse", "--verify", "-q", `${candidate}^{commit}`]));
+  if (!ref) return true;
+  const base = gitOut(root, ["show", `${ref}:${rel}`]);
+  return base === null || base.includes(HANDOFF_STORE_LAYOUT); // null: the base does not track it yet (bootstrap)
+}
+
+/** The store file's name under <policy>/: the branch, so a re-bind on the branch
+ *  overwrites its own file and no two open branches share one. A ref name is
+ *  already a safe relative path ("claude/x" nests one directory); characters some
+ *  filesystems refuse become "_". Detached HEAD: detached/<commit>. */
+function handoffStoreKey(root = ROOT) {
+  const branch = gitOut(root, ["symbolic-ref", "-q", "--short", "HEAD"]);
+  const parts = (branch || "").split("/").map((part) => part.replace(/[<>:"|?*\\\x00-\x1f]/g, "_"));
+  if (branch && parts.every((part) => part && part !== "." && part !== "..")) return parts.join("/");
+  return `detached/${(gitOut(root, ["rev-parse", "HEAD"]) || "unknown").slice(0, 12)}`;
+}
+
+/** Absolute store path for this binding, or null to bind into the checkpoint. */
+function handoffStorePath(report, script, policy) {
+  const store = report.handoff_store;
+  if (store?.layout !== HANDOFF_STORE_LAYOUT || !Array.isArray(store.policies) || !store.policies.includes(policy)) return null;
+  if (!baseReaderReadsStore(script)) return null;
+  return join(DIR, "handoffs", policy, `${handoffStoreKey()}.json`);
+}
+
+function displayPath(path) {
+  return relative(dirname(DIR), path).split(sep).join("/");
 }
 
 /** `--key value` and `--key=value`, --evidence repeatable, --json a bare flag. The
@@ -1263,9 +1323,14 @@ function cmdHandoff(skill, rest) {
   let opts;
   try { opts = parseHandoffArgs(rest); }
   catch (e) { console.error(`✗ ${e.message}\n${HANDOFF_USAGE}`); return 1; }
+  const script = releaseEvidenceScript();
   let candidate;
-  try { candidate = printCandidate(); }
+  try { candidate = printCandidate(ROOT, script); }
   catch (e) { console.error(`✗ ${e.message}`); return 1; }
+
+  const handoff = buildHandoff({ skill, policy: opts.policy, verdict: opts.verdict, scope: opts.scope.trim(), evidence: opts.evidence, runId: opts.run_id, candidate });
+  const storePath = handoffStorePath(candidate, script, opts.policy);
+  if (storePath) return writeStoredHandoff(storePath, handoff, candidate, opts);
 
   if (!existsSync(DIR)) mkdirSync(DIR, { recursive: true });
   const path = join(DIR, `${skill}.checkpoint.json`);
@@ -1286,7 +1351,6 @@ function cmdHandoff(skill, rest) {
     if (opts.summary) data.progress_summary = opts.summary;
   }
 
-  const handoff = buildHandoff({ skill, policy: opts.policy, verdict: opts.verdict, scope: opts.scope.trim(), evidence: opts.evidence, runId: opts.run_id, candidate });
   // getCheckpointHandoff() refuses "multiple handoffs matched", so re-binding the same
   // candidate replaces the earlier entry instead of stacking a second one.
   const prior = Array.isArray(data.handoffs) ? data.handoffs : [];
@@ -1299,11 +1363,78 @@ function cmdHandoff(skill, rest) {
 
   if (!writeValidated(path, data)) return 1;
   if (opts.json) {
-    console.log(JSON.stringify({ ok: true, file: basename(path), handoff, candidate: candidate.candidate, tree: candidate.tree, replaced }));
+    console.log(JSON.stringify({ ok: true, store: "checkpoint", file: basename(path), handoff, candidate: candidate.candidate, tree: candidate.tree, replaced }));
   } else {
     console.log(`✓ ${basename(path)}: handoff ${handoff.id}`);
     console.log(`  ${opts.verdict} under ${opts.policy}, bound to ${handoff.candidate.kind} ${handoff.candidate.id}`);
     console.log(`  HEAD ${candidate.candidate}${replaced ? ` — replaced ${replaced} earlier handoff(s) bound to the same candidate` : ""}`);
+  }
+  return 0;
+}
+
+/** Store-mode binding: one file, this branch's, holding the one handoff. The skill's
+ *  checkpoint is not touched — that shared file is what made siblings conflict. */
+function writeStoredHandoff(path, handoff, candidate, opts) {
+  let prior = null;
+  try { prior = JSON.parse(readFileSync(path, "utf8")); } catch { /* none yet, or unreadable: replaced */ }
+  const replaced = existsSync(path) ? 1 : 0;
+  mkdirSync(dirname(path), { recursive: true });
+  atomicWriteFile(path, `${JSON.stringify(handoff, null, 2)}\n`);
+  const file = displayPath(path);
+  const ignored = ["phase", "step", "summary"].filter((key) => opts[key] !== undefined);
+  if (ignored.length) {
+    console.error(`note: --${ignored.join(", --")} ${ignored.length === 1 ? "is a field" : "are fields"} of the skill's checkpoint, which a ${opts.policy} binding no longer writes; set ${ignored.length === 1 ? "it" : "them"} with \`checkpoint update ${handoff.producer.skill}\` if you need ${ignored.length === 1 ? "it" : "them"}`);
+  }
+  if (opts.json) {
+    console.log(JSON.stringify({ ok: true, store: "handoffs", file, handoff, candidate: candidate.candidate, tree: candidate.tree, replaced }));
+  } else {
+    const earlier = !replaced ? ""
+      : prior?.candidate?.id === handoff.candidate.id ? " — replaced this branch's earlier handoff for the same candidate"
+        : ` — replaced this branch's earlier handoff${prior?.candidate?.id ? ` for ${prior.candidate.id}` : ""}`;
+    console.log(`✓ ${file}: handoff ${handoff.id}`);
+    console.log(`  ${opts.verdict} under ${opts.policy}, bound to ${handoff.candidate.kind} ${handoff.candidate.id}`);
+    console.log(`  HEAD ${candidate.candidate}${earlier}`);
+  }
+  return 0;
+}
+
+// Store files are never pruned by `handoff`: on a branch, deleting files other
+// branches merged would put the same deletions in every open pull request, which
+// git can pair with each one's added file as competing renames. The release pull
+// request (one at a time) prunes instead: every store file not bound to its own
+// candidate goes, and the merged history keeps them.
+function cmdPruneHandoffs({ dryRun = false, json = false } = {}) {
+  const store = join(DIR, "handoffs");
+  let candidate;
+  try { candidate = printCandidate(); }
+  catch (e) { console.error(`✗ ${e.message}`); return 1; }
+  const keep = candidate.candidate_identity.id;
+  const removed = [];
+  const kept = [];
+  const walk = (dir) => {
+    let entries;
+    try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    for (const entry of entries) {
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(path);
+        if (!dryRun && readdirSync(path).length === 0) rmdirSync(path);
+        continue;
+      }
+      if (!entry.name.endsWith(".json")) continue;
+      let handoff = null;
+      try { handoff = JSON.parse(readFileSync(path, "utf8")); } catch { /* unreadable: pruned */ }
+      if (handoff?.candidate?.id === keep) { kept.push(displayPath(path)); continue; }
+      removed.push(displayPath(path));
+      if (!dryRun) unlinkSync(path);
+    }
+  };
+  walk(store);
+  if (json) {
+    console.log(JSON.stringify({ ok: true, dry_run: dryRun, candidate: keep, removed, kept }));
+  } else {
+    console.log(`${dryRun ? "would prune" : "pruned"} ${removed.length} handoff file(s) under ${displayPath(store)}/; kept ${kept.length} bound to ${keep}`);
+    for (const file of removed) console.log(`  - ${file}`);
   }
   return 0;
 }
@@ -1539,9 +1670,10 @@ function run() {
     case "done":     return named(rest[0], cmdDone);
     case "handoff":  return named(rest[0], (s) => cmdHandoff(s, rest.slice(1)));
     case "acceptance": return named(rest[0], (s) => cmdAcceptance(s, rest.slice(1)));
+    case "prune-handoffs": return cmdPruneHandoffs({ dryRun: flags.has("--dry-run"), json: flags.has("--json") });
     case "init":     return cmdInit();
     default:
-      console.error("usage: checkpoint <status|next|doctor|list|show|reset|validate|update|handoff|done|init>");
+      console.error("usage: checkpoint <status|next|doctor|list|show|reset|validate|update|handoff|prune-handoffs|done|init>");
       console.error("       (via npm: `npm run checkpoint -- <command> ...`; shortcuts: checkpoint:status, :next, :doctor, :validate)");
       console.error("  status [skill] [--brief] [--since=ISO] — session-resume summary; one skill exits 1 if absent");
       console.error("  next                                — the single highest-priority non-stale action");
@@ -1552,7 +1684,9 @@ function run() {
       console.error("  validate [--strict]                 — schema gate (CI); --strict fails on warnings");
       console.error("  update <skill> [--field=value ...]  — apply field updates, stamp updated_at (a new file needs --next_actions:json='[\"…\"]')");
       console.error("  handoff <skill> --policy <id> --verdict PASS|FAIL|INCOMPLETE --scope \"…\" [--evidence <path>]...");
-      console.error("                                      — bind a verification.verdict handoff to the current candidate (what the PR/deploy evidence gates read)");
+      console.error("                                      — bind a verification.verdict handoff to the current candidate (what the PR/deploy evidence gates read);");
+      console.error("                                        pr-docs-v1 / pr-readiness-v1 go to .checkpoints/handoffs/<policy>/<branch>.json");
+      console.error("  prune-handoffs [--dry-run] [--json] — delete .checkpoints/handoffs/ files not bound to the current candidate (the release PR runs it)");
       console.error("  acceptance <skill> --sprint <id> --verdict PASS|FAIL|INCOMPLETE --source <eval report> --check <id>=<PASS|FAIL|NOT-CHECKED>...");
       console.error("                                      — publish a sprint's acceptance-check results as an acceptance.checks handoff (read as data by anything outside the build loop)");
       console.error("  done <skill>                        — complete next_actions[0] → recently_done");

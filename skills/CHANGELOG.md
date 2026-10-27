@@ -163,6 +163,19 @@ checkpoint `protocol_version` is tracked separately (see
 
 ### Fixed
 
+- **Pre-PR evidence no longer makes sibling PRs conflict (2026-10-27).** The
+  `pr-docs-v1` and `pr-readiness-v1` verdicts `checkpoint handoff` binds now go
+  to a file of the branch's own, `.checkpoints/handoffs/<policy>/<branch>.json`,
+  instead of being appended to the shared `oc-docs-forge` and `oc-repo-ops`
+  checkpoints. Every merge used to make every other open PR conflict on those two
+  files with no code overlap; deftwright-site #260 and #261 broke three times in
+  an hour, each repair a commit-gate run and a CI round. Concurrent PRs now only
+  add different paths and merge in either order. `release-evidence --stage pr`
+  reads the store first and the checkpoints' `handoffs` second, so evidence an
+  older binder wrote still passes; the checkpoint-hygiene hook accepts a store
+  file too. The binder keeps writing the checkpoint while the gate that will judge
+  the PR cannot read the store (the base branch's reader predates it). The release
+  PR prunes the store with the new `checkpoint prune-handoffs`.
 - **The legacy commit gate checks the repository the commit lands in.**
   `plugins/opchain/hooks/pre-commit-gate.cjs` read the bug-check checkpoint of
   the session's working directory, whatever the command said. A session rooted
@@ -178,6 +191,11 @@ checkpoint `protocol_version` is tracked separately (see
 
 ### Compatibility
 
+- **Handoff store (consumers).** Enrolled repositories pick up the per-branch
+  handoff store on their next `.opchain/runtime/` update (`/oc-enroll --ci
+  --force`). Their evidence workflow runs the base branch's runtime, so the PR
+  that carries the update still binds into the checkpoints; the PR after it
+  uses the store. No migration: evidence already in the checkpoints stays valid.
 - **BREAKING (deploy template): production now requires `--prod`.** The
   consumer deploy wrapper (`plugins/opchain/templates/deploy.mjs`) has no
   default target and accepts no environment variable as the production

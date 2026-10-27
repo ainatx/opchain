@@ -60,7 +60,7 @@ first commit on a fresh clone.
 | `cost` |   | object | `{ total_usd?, budget_usd?, by_phase?, by_model?, currency? }` — LLM spend attribution + budget ceiling (oc-cost-ops, wire 1.1+). |
 | `eval_scores` |   | array | `{ rubric, score, max?, at?, dimensions? }[]` — eval scores vs a stable rubric (oc-bug-check / oc-code-auditor / oc-prompt-ops, wire 1.1+). |
 | `telemetry_handle` |   | string \| object | Opt-in local-metering link `{ enabled, id?, sink?, since? }` — default OFF (oc-telemetry-ops, wire 1.1+). |
-| `handoffs` |   | array | C-contract typed handoffs (`src/lib/mcp/checkpoint-contract.js`). The `verification.verdict` entries are what `scripts/lib/release-evidence.mjs` reads at the PR/deploy gates — write them with `checkpoint handoff`, never by hand. `acceptance.checks` entries carry a build sprint's acceptance-check ids and statuses (`checkpoint acceptance`), one per sprint, for readers outside the build loop. |
+| `handoffs` |   | array | C-contract typed handoffs (`src/lib/mcp/checkpoint-contract.js`). The `verification.verdict` entries are what `scripts/lib/release-evidence.mjs` reads at the deploy gate — write them with `checkpoint handoff`, never by hand. The PR-stage verdicts (`pr-docs-v1`, `pr-readiness-v1`) live in the [handoff store](#handoff-store-checkpointshandoffs) instead; entries an older binder appended here are still accepted. `acceptance.checks` entries carry a build sprint's acceptance-check ids and statuses (`checkpoint acceptance`), one per sprint, for readers outside the build loop. |
 | `skill_state` |   | object | Freeform — private to the owning skill. |
 
 Validation runs in CI via `npm run checkpoint:validate`. The validator is
@@ -98,8 +98,13 @@ node scripts/checkpoint.mjs handoff oc-docs-forge --policy pr-docs-v1 --verdict 
 #   policies: pr-docs-v1 (oc-docs-forge) · pr-readiness-v1 (oc-repo-ops) ·
 #             pre-deploy-code-audit-v1 (oc-code-auditor) · pre-deploy-security-posture-v1 (oc-security-auditor)
 #   The candidate is HEAD's git_tree_projection (tree minus .checkpoints/), exactly what
-#   `node scripts/lib/release-evidence.mjs --print-candidate --json` prints. Re-binding the
-#   same candidate replaces the earlier entry; --json prints the handoff + candidate.
+#   `node scripts/lib/release-evidence.mjs --print-candidate --json` prints. pr-docs-v1 and
+#   pr-readiness-v1 go to .checkpoints/handoffs/<policy>/<branch>.json (re-binding on the
+#   branch overwrites that file); the others into the skill's checkpoint, where re-binding
+#   the same candidate replaces the earlier entry. --json prints the handoff, candidate and file.
+
+# The release PR prunes the store: every handoff file not bound to its own candidate goes.
+node scripts/checkpoint.mjs prune-handoffs [--dry-run] [--json]
 ```
 
 Every subcommand is also reachable as `npm run checkpoint -- <command> ...`.
@@ -137,6 +142,49 @@ One vocabulary, used by `checkpoint` output and the oc-orchestrator alike:
 | 🚫 | blocked (has an open blocker) |
 | ⛔ | a decision is waiting on **you** (`blockers[].needs: user_decision`) |
 | ⚠ | stale / drift (untouched >7 days while in_progress, >14 while complete, >3 while blocked) |
+
+## Handoff store (`.checkpoints/handoffs/`)
+
+The PR-stage verdicts — `pr-docs-v1` (oc-docs-forge) and `pr-readiness-v1`
+(oc-repo-ops) — are one file per branch, not entries in a shared checkpoint:
+
+```
+.checkpoints/handoffs/<policy>/<branch>.json     # e.g. handoffs/pr-docs-v1/claude/fix-x.json
+```
+
+Each file is one `verification.verdict` object, the same shape `handoffs[]` holds.
+Until 2026-10-27 every pull request appended its two verdicts to
+`oc-docs-forge.checkpoint.json` and `oc-repo-ops.checkpoint.json`, so merging any PR
+made every open sibling conflict with no code overlap (deftwright-site #260/#261,
+three times in an hour). Branches never share a file name, so concurrent PRs only
+ever add different paths and merge in either order, through GitHub's buttons too
+(the merge driver below never runs there). A rebase or a merge from `main` changes
+the tree projection, so the branch rebinds; that rewrites its own two files.
+
+- **Writer.** `checkpoint handoff` (above). A ref name is used as the path as is
+  (`claude/x` nests a directory); a detached HEAD binds `detached/<commit>.json`. A
+  store binding never touches the skill's checkpoint — no `handoffs[]` entry, no
+  `skill_state.verified_for_sha`; `--phase`/`--step`/`--summary` are ignored with a
+  note.
+- **Reader.** `release-evidence --stage pr` reads the store first. Two files bound to
+  the same candidate (two checkpoint-only PRs) are decided by the later
+  `verified_at`. When the store has nothing for the candidate, the skill's
+  checkpoint `handoffs[]` is read as before, so evidence an older binder wrote still
+  passes. The checkpoint-hygiene Stop hook accepts a store file the same way.
+- **When the binder still writes the checkpoint.** Only when the gate that will
+  judge the PR cannot read the store: the reader the binder resolved does not
+  advertise `handoff_store` in `--print-candidate --json`, or the base branch's copy
+  of that reader (`origin/main`, else `origin/HEAD`, else `main`) predates the
+  layout. A consumer's `opchain-evidence.yml` runs the base branch's
+  `.opchain/runtime/`, so the PR that vendors a store-reading runtime binds into the
+  checkpoints and the PR after it uses the store. Consumers pick this up on their
+  next `.opchain/runtime/` update (`/oc-enroll --ci --force`).
+- **Pruning.** The binder never deletes another branch's file: the same deletions in
+  every open PR can pair with each one's added file as competing renames. Instead
+  the release PR runs `checkpoint prune-handoffs`, which deletes every store file not
+  bound to its own candidate (merged PRs' evidence stays in git history). One PR
+  prunes at a time; between releases the store grows by one file per policy per
+  merged PR.
 
 ## Merge driver
 
@@ -179,8 +227,9 @@ exists. After the 2026-10-08 effectiveness audit (I-06) it is scoped:
 - **Current-run evidence, in any repository the skill worked in.**
   `record_updated_at`/`updated_at` at or after the invocation. Gate skills
   (`oc-bug-check`, `oc-docs-forge`, `oc-repo-ops`) are also satisfied by a
-  `handoffs[]` `verification.verdict` PASS bound to that repository's current
-  candidate (what `checkpoint handoff` writes), or — when the candidate cannot be
+  `verification.verdict` PASS bound to that repository's current candidate (what
+  `checkpoint handoff` writes: a [handoff store](#handoff-store-checkpointshandoffs)
+  file, or a `handoffs[]` entry), or — when the candidate cannot be
   computed — by a checkpoint mtime newer than the invocation. Evidence in another
   repository the skill touched satisfies the hook here, and the block reason names
   those repositories; the hook never asks for a checkpoint in a repository the
