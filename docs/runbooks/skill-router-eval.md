@@ -485,6 +485,30 @@ TYPESAFE_API_KEY=… npm run route:eval -- jev J9                    # live, aga
 A use moves from **eval** to **shadow** only when its gold set passes at the
 threshold its caller will use, and to live only through a go/no-go like §6.
 
+### J2 on the shadow log: `outcomes --judge jev`
+
+```bash
+TYPESAFE_API_KEY=… npm run route:eval -- outcomes --log ~/.claude/opchain-route/route-log.jsonl \
+  --judge jev [--threshold 0.5] [--judge-fixture <answers.json>] --report scratch/outcomes.md
+```
+
+For every suggestion rescored from a transcript, J2 reads the prompt, the
+suggested skill and the reply turn (skills invoked, command classes, the first
+12 tool calls, the tail of the last text) and answers whether the reply did that
+skill's work. The report gains a **J2 judge** section: agreement with the hand
+labels for J2 and for the command proxy on the same suggestions, every row
+where either disagrees, and J2's verdict on unlabelled suggestions. It decides
+nothing; the go/no-go still uses the labels and the proxy.
+
+First live run (2026-10-27, 27 suggestions, 21 labelled): J2 agrees with
+14/21 labels, the proxy with 18/21. J2 catches the two right suggestions the
+proxy misses (a confirmation, "merge" → "#643 already auto-merges"; a
+`gh pr merge` handed over), but says yes on six suggestions labelled `none`
+where the reply did git or check work the prompt text did not ask for
+(moving a checkout to main, "Try again"). The labels judge the prompt text;
+J2 judges what the reply did. A wording that told it to count only requested
+work moved no row across 0.5. So J2 stays report-only.
+
 ## Tests
 
 ```bash

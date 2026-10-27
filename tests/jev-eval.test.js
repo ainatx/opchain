@@ -12,7 +12,7 @@ import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadJevQuestions, readGold, buildJevRequest, jevStateFor, judgeNoul, runJev, summarizeJev, renderJevReport, formatJevList, loadSpec, DEFAULTS } from "../scripts/route-eval.mjs";
+import { loadJevQuestions, readGold, buildJevRequest, jevStateFor, judgeNoul, runJev, summarizeJev, renderJevReport, formatJevList, loadSpec, DEFAULTS, replyActivity, judgeOutcomes, summarizeJudge, renderJudgeSection } from "../scripts/route-eval.mjs";
 
 const REPO_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const SCRIPT = join(REPO_ROOT, "scripts", "route-eval.mjs");
@@ -282,5 +282,82 @@ describe("jev: CLI", () => {
     expect(res.status).toBe(0);
     expect(res.stderr).toMatch(/j9-05: fixture has no answers for row j9-05/);
     expect(res.stdout).toMatch(/12 row\(s\) scored, 1 error\(s\) · accuracy 0\.917 \(11\/12\)/);
+  });
+});
+
+// ── outcomes --judge jev: J2 as a third scorer ─────────────────────────────
+
+describe("outcomes --judge jev", () => {
+  const J2 = loadJevQuestions().uses.J2;
+  const noulTransport = (p) => async () => ({ answers: { J2: { type: "noul", noul: p } }, usage: { input_tokens: 900, output_tokens: 12 }, model: "jev-1.13.0" });
+  const row = (over = {}) => ({
+    session_id: "s1",
+    for_prompt_hash: "h1",
+    prompt_head: "merge",
+    request: "merge",
+    suggested: "oc-git-ops",
+    explicit: false,
+    skill_calls: [],
+    raw: {},
+    activity: { skill_calls: [], raw: [], tools: ["Bash: gh pr view 643"], assistant_tail: "#643 already auto-merges." },
+    ...over,
+  });
+
+  it("replyActivity reads the reply turn's tools and how it ended, main thread only", () => {
+    const recs = [
+      { type: "user", message: { content: "merge" } },
+      { type: "assistant", message: { content: [{ type: "tool_use", name: "Bash", input: { command: "gh pr view 643" } }] } },
+      { type: "assistant", isSidechain: true, message: { content: [{ type: "text", text: "subagent chatter" }] } },
+      { type: "assistant", message: { content: [{ type: "text", text: "#643 already auto-merges." }] } },
+    ];
+    const a = replyActivity(recs, { start: 1, end: 4 }, { skill_calls: ["oc-git-ops"], raw: { git_sync: true, deploy: false } });
+    expect(a).toEqual({ skill_calls: ["oc-git-ops"], raw: ["git_sync"], tools: ["Bash: gh pr view 643"], assistant_tail: "#643 already auto-merges." });
+  });
+
+  it("judges suggestions only, skips rows without reply text, and thresholds p", async () => {
+    const rows = [row(), row({ for_prompt_hash: "h2", suggested: null }), row({ for_prompt_hash: "h3", explicit: true }), row({ for_prompt_hash: "h4", activity: undefined })];
+    const run = await judgeOutcomes(rows, { use: J2, transport: noulTransport(0.86), threshold: 0.5 });
+    expect(run).toMatchObject({ judged: 1, skipped: 1, threshold: 0.5, usage: { input_tokens: 900, output_tokens: 12 } });
+    expect(rows[0].judge).toEqual({ p: 0.86, did: true });
+    expect(rows.slice(1).every((r) => r.judge === undefined)).toBe(true);
+  });
+
+  it("a transport failure is an error row, never a verdict", async () => {
+    const rows = [row()];
+    await judgeOutcomes(rows, { use: J2, transport: async () => { throw new Error("boom"); } });
+    expect(rows[0].judge).toEqual({ error: "boom" });
+    expect(summarizeJudge(rows).errors).toBe(1);
+  });
+
+  it("compares J2 and the proxy with the labels; ambiguous rows are left out", () => {
+    const rows = [
+      // Right suggestion the proxy misses (a confirmation): J2 agrees, the proxy does not.
+      row({ label: "oc-git-ops", judge: { p: 0.86, did: true } }),
+      // Wrong suggestion with git work the prompt never asked for: J2 says yes.
+      row({ for_prompt_hash: "h2", label: "none", judge: { p: 0.7, did: true } }),
+      row({ for_prompt_hash: "h3", label: "ambiguous", judge: { p: 0.9, did: true } }),
+      row({ for_prompt_hash: "h4", judge: { p: 0.84, did: true }, raw: { git_sync: true } }),
+    ];
+    const J = summarizeJudge(rows);
+    expect(J.labelled).toMatchObject({ n: 2, judge: 1, proxy: 1 });
+    expect(J.labelled.disagreements).toHaveLength(2);
+    expect(J.unlabelled).toHaveLength(1);
+    const md = renderJudgeSection(J, { judged: 4, skipped: 0, threshold: 0.5 });
+    expect(md).toMatch(/\| J2 \| 1\/2 \(0\.500\) \|/);
+    expect(md).toMatch(/\| Command proxy \| 1\/2 \(0\.500\) \|/);
+    expect(md).toMatch(/### Unlabelled suggestions \(1\)/);
+  });
+
+  it("the CLI refuses --judge jev without a key or a fixture", () => {
+    const dir = mkdtempSync(join(tmpdir(), "judge-"));
+    try {
+      const log = join(dir, "route-log.jsonl");
+      writeFileSync(log, `${JSON.stringify({ at: "2026-10-26T00:00:00Z", session_id: "s1", prompt_hash: "h1", prompt_head: "merge", decision: { skill: "oc-git-ops", p: 0.9 }, mode: "shadow" })}\n`);
+      const res = spawnSync(process.execPath, [SCRIPT, "outcomes", "--log", log, "--projects-root", dir, "--judge", "jev", "--report", join(dir, "o.md")], { encoding: "utf8", env: cleanEnv() });
+      expect(res.status).toBe(2);
+      expect(res.stderr).toMatch(/--judge jev needs TYPESAFE_API_KEY \(or --judge-fixture/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

@@ -15,6 +15,12 @@ checkpoint `protocol_version` is tracked separately (see
 
 ### Added
 
+- **`route-eval outcomes --judge jev` (plan §4, 2026-10-27).** Jev's J2
+  outcome judgement runs over every suggestion rescored from a transcript and
+  reports its agreement with the hand labels beside the command proxy's. First
+  live run: J2 14/21, proxy 18/21. J2 catches confirmations and handed-over
+  merges the proxy misses but counts work the prompt did not ask for, so it
+  stays report-only and the go/no-go is unchanged.
 - **Router spec `+route4` (plan §3, 2026-10-26).** Opening or raising a PR is
   `/oc-git-sync` and `/oc-pr` only drafts the description; planning what ships to
   staging then production is oc-release-ops even when the request names the

@@ -1228,7 +1228,39 @@ export function rescoreRoute(route, { mainRecords, subRecords = [], windowMs = R
     const t = rec && typeof rec.timestamp === "string" ? Date.parse(rec.timestamp) : NaN;
     if (t >= startMs && t <= endMs) ROUTER.addRecordActivity(acc, rec, { includeSidechain: true });
   }
-  return { anchor: w.anchor, window_end: w.endReason, skill_calls: acc.skill_calls, skill_args: acc.skill_args, raw: acc.raw };
+  const request = w.anchor === "prompt" && w.start > 0 ? ROUTER.humanText(mainRecords[w.start - 1]) : null;
+  return { anchor: w.anchor, window_end: w.endReason, skill_calls: acc.skill_calls, skill_args: acc.skill_args, raw: acc.raw, request, activity: replyActivity(mainRecords, w, acc) };
+}
+
+/** "Bash: git push origin x" — one tool call as J2 reads it. */
+function toolLine(part) {
+  const i = part.input ?? {};
+  const what = i.command ?? i.file_path ?? i.skill ?? i.pattern ?? i.url ?? i.description ?? "";
+  return head(`${part.name}${what ? `: ${String(what)}` : ""}`, 120);
+}
+
+/**
+ * What J2 reads about the reply turn (the `activity` its gold rows carry): the
+ * skills it invoked, the raw command classes it ran, its first 12 main-thread
+ * tool calls, and the tail of its last text, which is how the reply ended.
+ */
+export function replyActivity(records, { start, end }, acc) {
+  const tools = [];
+  let last = "";
+  for (let i = start; i < end; i++) {
+    const rec = records[i];
+    if (!rec || rec.type !== "assistant" || rec.isSidechain || !Array.isArray(rec.message?.content)) continue;
+    for (const part of rec.message.content) {
+      if (part?.type === "text" && typeof part.text === "string" && part.text.trim()) last = part.text;
+      else if (part?.type === "tool_use" && tools.length < 12) tools.push(toolLine(part));
+    }
+  }
+  return {
+    skill_calls: [...acc.skill_calls],
+    raw: Object.entries(acc.raw).filter(([, on]) => on).map(([k]) => k),
+    tools,
+    assistant_tail: last ? ROUTER.tailText(last, 400) : "",
+  };
 }
 
 /**
@@ -1522,6 +1554,84 @@ export function summarizeOutcomes(allRecords, { coreSkills = DEFAULTS.coreSkills
     review: review.sort((a, b) => String(a.at ?? "").localeCompare(String(b.at ?? ""))),
     goNoGo: { checks, go: checks.every((c) => c.pass) },
   };
+}
+
+/**
+ * J2 as a third outcomes scorer (`outcomes --judge jev`): for every suggestion
+ * rescored from a transcript, ask Jev whether the reply turn did the suggested
+ * skill's work, reading the same { request, suggested, activity } its gold set
+ * pins. Sets `row.judge = { p, did }` (or `{ error }`); rows from stored log
+ * records carry no reply text and are skipped. Never decides the go/no-go.
+ */
+export async function judgeOutcomes(rows, { use, transport, threshold = use?.threshold ?? DEFAULTS.jevThreshold, concurrency = DEFAULTS.concurrency, model, log = () => {} } = {}) {
+  const targets = rows.filter((r) => r.suggested && !r.explicit && r.activity);
+  const usage = { input_tokens: 0, output_tokens: 0 };
+  await mapPool(targets, concurrency, async (r) => {
+    try {
+      const req = buildJevRequest(use, { request: r.request ?? r.prompt_head ?? "", suggested: r.suggested, activity: r.activity });
+      const out = await ROUTER_CLIENT.ask({ transport, state: req.state, questions: req.questions, model });
+      const p = ROUTER_CLIENT.noul(out.answers, use.id);
+      if (p === null || !Number.isFinite(Number(p))) throw new Error(`no ${use.id} answer`);
+      r.judge = { p: Number(p), did: Number(p) >= threshold };
+      usage.input_tokens += Number(out.usage?.input_tokens ?? 0);
+      usage.output_tokens += Number(out.usage?.output_tokens ?? 0);
+    } catch (err) {
+      log(`${r.session_id} ${r.for_prompt_hash}: ${err?.message ?? err}`);
+      r.judge = { error: String(err?.message ?? err) };
+    }
+  });
+  return { judged: targets.length, skipped: rows.filter((r) => r.suggested && !r.explicit && !r.activity).length, threshold, usage };
+}
+
+/**
+ * How J2 and the command proxy compare with the hand labels on the same
+ * suggestions. A labelled suggestion S was right when its label is S, so a
+ * scorer agrees when it says the reply did S's work exactly on those rows.
+ * Ambiguous labels are left out. Unlabelled rows list both verdicts.
+ */
+export function summarizeJudge(rows, { steps = SKILL_STEPS } = {}) {
+  const labelled = { n: 0, judge: 0, proxy: 0, disagreements: [] };
+  const unlabelled = [];
+  let errors = 0;
+  for (const r of rows) {
+    if (!r.judge) continue;
+    if (r.judge.error) {
+      errors++;
+      continue;
+    }
+    const proxy = relatedTo(r.suggested, r, steps);
+    if (r.label === LABEL_AMBIGUOUS) continue;
+    if (r.label) {
+      const expected = r.label === r.suggested;
+      labelled.n++;
+      if (r.judge.did === expected) labelled.judge++;
+      if (proxy === expected) labelled.proxy++;
+      if (r.judge.did !== expected || proxy !== expected) labelled.disagreements.push({ ...r, expected, proxy });
+    } else unlabelled.push({ ...r, proxy });
+  }
+  return { labelled, unlabelled, errors };
+}
+
+/** The "J2 judge" report section. */
+export function renderJudgeSection(J, run) {
+  const L = [];
+  const pct = (a, n) => (n ? `${a}/${n} (${f3(a / n)})` : "n/a");
+  const yn = (b) => (b ? "did" : "did not");
+  L.push("## J2 judge", "");
+  L.push(`Jev's outcome judgement (\`jev-questions.json\` J2, threshold ${run.threshold}) on ${run.judged} suggestion(s) rescored from transcripts; ${run.skipped} without transcript text skipped, ${J.errors} error(s). It reports beside the proxy and decides nothing.`, "");
+  L.push("| On labelled suggestions | Agrees with the label |", "|---|---:|");
+  L.push(`| J2 | ${pct(J.labelled.judge, J.labelled.n)} |`, `| Command proxy | ${pct(J.labelled.proxy, J.labelled.n)} |`, "");
+  if (J.labelled.disagreements.length) {
+    L.push("| Prompt | Suggested | Label | J2 p | Proxy |", "|---|---|---|---:|---|");
+    for (const r of J.labelled.disagreements) L.push(`| ${mdEscape(head(r.request ?? r.prompt_head ?? "", 70))} | ${r.suggested} | ${r.label} | ${f3(r.judge.p)} | ${yn(r.proxy)} |`);
+    L.push("");
+  }
+  if (J.unlabelled.length) {
+    L.push(`### Unlabelled suggestions (${J.unlabelled.length})`, "", "| Prompt | Suggested | J2 p | Proxy |", "|---|---|---:|---|");
+    for (const r of J.unlabelled) L.push(`| ${mdEscape(head(r.request ?? r.prompt_head ?? "", 70))} | ${r.suggested} | ${f3(r.judge.p)} | ${yn(r.proxy)} |`);
+    L.push("");
+  }
+  return L.join("\n");
 }
 
 export function renderOutcomesReport(summary, { logPath, since, labelsPath, windowMinutes, generatedAt = new Date().toISOString() } = {}) {
@@ -1885,7 +1995,7 @@ function usage() {
   return [
     "usage:",
     "  node scripts/route-eval.mjs build-dataset [--since 2026-09-14] [--out scratch/route-dataset.jsonl] [--projects <glob[,glob]>] [--projects-root ~/.claude/projects]",
-    "  node scripts/route-eval.mjs outcomes [--log $TMPDIR/opchain-route-log.jsonl] [--since <date>] [--report <file>]",
+    "  node scripts/route-eval.mjs outcomes [--log $TMPDIR/opchain-route-log.jsonl] [--since <date>] [--report <file>] [--judge jev [--judge-fixture <answers.json>] [--threshold 0.5]]",
     "        [--labels <log dir>/route-labels.jsonl] [--window-minutes 30] [--projects-root ~/.claude/projects] [--rows <file>] [--no-rescore]",
     "  node scripts/route-eval.mjs label <session_id> <prompt_hash> <skill|none|ambiguous> [--note <text>] [--log <file>] [--labels <file>]",
     "  node scripts/route-eval.mjs label --list [--all] [--log <file>] [--labels <file>]",
@@ -1950,16 +2060,40 @@ export async function main(argv = process.argv.slice(2), { env = process.env, st
         windowMs: windowMinutes * 60000,
       }));
     }
+    let judged = null;
+    if (args.judge && args.judge !== true) {
+      // J2 reads the reply turn, so it needs rows rescored from transcripts.
+      if (String(args.judge) !== "jev") {
+        stderr.write(`outcomes: --judge takes "jev" (got ${args.judge})\n`);
+        return 2;
+      }
+      const use = loadJevQuestions().uses?.J2;
+      const fixture = args["judge-fixture"] && args["judge-fixture"] !== true ? resolve(String(args["judge-fixture"])) : null;
+      const apiKey = ROUTER_CLIENT.apiKeyFrom(env);
+      if (!use) {
+        stderr.write("outcomes: jev-questions.json has no J2 use\n");
+        return 2;
+      }
+      if (!fixture && !apiKey) {
+        stderr.write("outcomes: --judge jev needs TYPESAFE_API_KEY (or --judge-fixture <answers.json>)\n");
+        return 2;
+      }
+      const transport = fixture ? ROUTER_CLIENT.fixtureTransport(JSON.parse(fs.readFileSync(fixture, "utf8"))) : ROUTER_CLIENT.httpTransport({ apiKey, timeoutMs: 20_000 });
+      const threshold = args.threshold !== undefined && args.threshold !== true ? Number(args.threshold) : (use.threshold ?? DEFAULTS.jevThreshold);
+      const run = await judgeOutcomes(rows, { use, transport, threshold, log: (m) => stderr.write(`judge: ${m}\n`) });
+      judged = { run, summary: summarizeJudge(rows) };
+    }
     if (args.rows && args.rows !== true) writeJsonl(resolve(String(args.rows)), rows);
     const summary = summarizeOutcomes(rows);
-    const report = renderOutcomesReport(summary, { logPath, since, labelsPath: labelsPath ?? labelsArg, windowMinutes });
+    let report = renderOutcomesReport(summary, { logPath, since, labelsPath: labelsPath ?? labelsArg, windowMinutes });
+    if (judged) report = `${report.trimEnd()}\n\n${renderJudgeSection(judged.summary, judged.run)}`;
     const src = summary.sources;
     const sourceNote = args["no-rescore"] ? "stored outcome records" : `${src.transcript ?? 0} rescored from transcripts, ${src.log ?? 0} from stored records, ${unscored} unscored`;
     if (args.report && args.report !== true) {
       const reportPath = resolve(String(args.report));
       ensureDir(reportPath);
       fs.writeFileSync(reportPath, report);
-      stdout.write(`${summary.total} outcome(s) (${sourceNote}; ${summary.labelled + summary.ambiguous} labelled) · ${summary.suggestions} suggestion(s) · ${summary.explicit.total} explicit (excluded) · ${summary.floored.length} under the p floor · pipeline prompts ${summary.baseline.pipeline}: baseline skill use ${summary.baseline.agentUsed}, projected ${summary.baseline.projected} (lift ${summary.baseline.lift === Infinity ? "∞" : f3(summary.baseline.lift)}×) · core precision ${f3(summary.proxy.corePrecision)} · recall ${f3(summary.proxy.recall)} · silent rate ${f3(summary.proxy.silentRate)} → ${summary.goNoGo.go ? "GO" : "NO-GO"}\nreport → ${reportPath}\n`);
+      stdout.write(`${summary.total} outcome(s) (${sourceNote}; ${summary.labelled + summary.ambiguous} labelled) · ${summary.suggestions} suggestion(s) · ${summary.explicit.total} explicit (excluded) · ${summary.floored.length} under the p floor · pipeline prompts ${summary.baseline.pipeline}: baseline skill use ${summary.baseline.agentUsed}, projected ${summary.baseline.projected} (lift ${summary.baseline.lift === Infinity ? "∞" : f3(summary.baseline.lift)}×) · core precision ${f3(summary.proxy.corePrecision)} · recall ${f3(summary.proxy.recall)} · silent rate ${f3(summary.proxy.silentRate)} → ${summary.goNoGo.go ? "GO" : "NO-GO"}${judged ? ` · J2 agrees with ${judged.summary.labelled.judge}/${judged.summary.labelled.n} labelled suggestions (proxy ${judged.summary.labelled.proxy}/${judged.summary.labelled.n})` : ""}\nreport → ${reportPath}\n`);
     } else stdout.write(`${report}\n`);
     return 0;
   }
