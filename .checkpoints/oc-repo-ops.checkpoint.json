@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain/.claude/worktrees/agent-ac31c154410b8a429",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-27T05:36:29.831Z",
+  "updated_at": "2026-10-27T18:56:09.921Z",
   "skill": "oc-repo-ops",
   "phase": "pr-verify",
   "status": "complete",
-  "step": "pr-verify-jev-section-4",
-  "progress_summary": "PR readiness PASS for the Jev plan §4 PR at a33db319: tree clean, docs packet bound to HEAD, route-spec and jev-questions in sync, plugin skills, contracts and internal refs clean; gate 8/8 PASS.",
+  "step": "pr-verify-handoff-store",
+  "progress_summary": "Repo readiness gate passed for the per-branch handoff store PR at 958e7400 on origin/main 79d41e2d.",
   "context_primer": {
     "key_decisions": [
       "Docs Forge packet required before every PR; this PR carries it inline.",
@@ -23,23 +23,25 @@
   "skill_state": {
     "verdict": "PASS",
     "blocking_findings": [],
-    "warnings": [],
+    "warnings": [
+      "checkpoint doctor: 29 pre-existing staleness warnings, none from this change"
+    ],
     "docs_packet_verified": true,
     "catalog_verified": true,
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "a33db319a76579cccd99cc83f19191a084cd9602",
+    "verified_for_sha": "958e7400db42ae5d813df6131271f80c395589a0",
     "last_verify": {
-      "at": "2026-10-23T20:30:06.474Z",
-      "branch": "claude/jev-week0",
-      "base": "origin/main@392853b5",
+      "at": "2026-10-27T18:56:09Z",
+      "branch": "claude/awesome-murdock-7a33cc",
+      "base": "origin/main@79d41e2d",
       "verdict": "PASS",
       "blocking_findings": []
     }
   },
   "next_actions": [
-    "oc-git-ops: commit the bound checkpoints, push, run evidence:pr and open the Jev §2 PR"
+    "oc-git-ops: push claude/awesome-murdock-7a33cc and open the handoff-store PR"
   ],
   "handoffs": [
     {
@@ -2659,8 +2661,32 @@
         "policy": "pr-readiness-v1",
         "scope": "Jev plan §4 PR at a33db319: generated surfaces and contracts in sync, gate 8/8 PASS"
       }
+    },
+    {
+      "id": "oc-repo-ops-pr-readiness-v1-326c1161a970",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-27T18:56:09.901Z",
+      "verified_at": "2026-10-27T18:56:09.901Z",
+      "producer": {
+        "skill": "oc-repo-ops",
+        "run_id": "pr-readiness-v1-2026-10-27T18:56:09.901Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:326c1161a9705297365e76f66674bd22471d8327f952ce5f62ff7f694f322f02"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pr-readiness-v1",
+        "scope": "claude/awesome-murdock-7a33cc at 958e7400 on origin/main 79d41e2d: sync-bundles:check, sync-plugin-skills:check, gen-catalog + gen-mcp-catalog leave the tree unchanged, lint-internal-refs, check-skill-contracts, checkpoint:validate pass; doctor 0 errors (29 pre-existing warnings); full vitest suite green; candidate verifier PASS covers tree 4807f668; no untracked files. Docs Forge pr-docs-v1 PASS bound to the same candidate.",
+        "evidence": [
+          "npm run sync-bundles:check",
+          "npm run sync-plugin-skills:check"
+        ]
+      }
     }
   ],
-  "record_updated_at": "2026-10-27T05:36:29.831Z",
+  "record_updated_at": "2026-10-27T18:56:09.921Z",
   "blockers": []
 }
