@@ -23,7 +23,7 @@
       "status": "eval",
       "kind": "noul",
       "summary": "After a routed prompt, did the assistant's reply turn do the suggested skill's work? A third scorer for `route-eval outcomes` beside the command-position proxy and the hand labels. The 2026-10-23 analysis found the proxy blind to confirmations (\"#643 already auto-merges\"), to deferrals with a reason, and to a skill's own first steps; this question is written to see those.",
-      "caller": "scripts/route-eval.mjs outcomes (planned `--judge jev`); never the hook",
+      "caller": "scripts/route-eval.mjs outcomes --judge jev (report only; the proxy and hand labels keep the gate); never the hook",
       "state": ["request", "suggested", "activity"],
       "gold": "tests/fixtures/jev/J2/gold.jsonl",
       "threshold": 0.5,

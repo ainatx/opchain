@@ -44,7 +44,7 @@
       }
     },
     "J2": {
-      "caller": "scripts/route-eval.mjs outcomes (planned `--judge jev`); never the hook",
+      "caller": "scripts/route-eval.mjs outcomes --judge jev (report only; the proxy and hand labels keep the gate); never the hook",
       "gold": "tests/fixtures/jev/J2/gold.jsonl",
       "id": "J2",
       "kind": "noul",
