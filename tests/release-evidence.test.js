@@ -11,6 +11,7 @@ import {
   bypassAccountabilityCheck,
   collectBypassedCommits,
   evaluateReleaseEvidence,
+  readHandoffStore,
 } from "../scripts/lib/release-evidence.mjs";
 
 const GIT_ENV = {
@@ -266,5 +267,102 @@ process.stdout.write(JSON.stringify(out));
     const result = collectBypassedCommits(context());
     expect(result.mode).toBe("skipped");
     expect(result.commits).toEqual([]);
+  });
+});
+
+// The per-branch handoff store (.checkpoints/handoffs/<policy>/<branch>.json), read
+// before the shared checkpoint for the PR-stage policies.
+describe("handoff store", () => {
+  const identity = { kind: "git_tree_projection", id: `sha256:${"e".repeat(64)}` };
+  const other = { kind: "git_tree_projection", id: `sha256:${"c".repeat(64)}` };
+  const handoff = (skill, policy, { candidate = identity, verdict = "PASS", at = "2026-10-27T18:00:00.000Z", ...extra } = {}) => ({
+    id: `${skill}-${policy}-fixture`,
+    contract_version: "1.0",
+    type: "verification.verdict",
+    created_at: at,
+    verified_at: at,
+    producer: { skill, run_id: "fixture" },
+    candidate,
+    payload: { verdict, policy, scope: "fixture" },
+    ...extra,
+  });
+  const entry = (path, value) => ({ path: `.checkpoints/handoffs/${path}`, handoff: value });
+  const legacy = (skill, policy, options) => ({
+    protocol_version: "1.1", skill, project: "t", project_dir: "/t",
+    created_at: "2026-10-27T17:00:00Z", updated_at: "2026-10-27T17:00:00Z",
+    phase: "verify", step: "x", status: "complete", progress_summary: "fixture",
+    handoffs: [handoff(skill, policy, options)],
+  });
+  const run = ({ store = {}, checkpoints = {}, stage = "pr" } = {}) => evaluateReleaseEvidence({
+    stage, candidate, candidateIdentity: identity, tree, repositoryId: "fixture", receipt: null, checkpoints, handoffStore: store,
+  });
+  const docs = (report) => report.checks.find((entry) => entry.id === "oc-docs-forge");
+
+  it("passes on a store file bound to the candidate and names the file", () => {
+    const report = run({ store: { "pr-docs-v1": [entry("pr-docs-v1/claude/a.json", handoff("oc-docs-forge", "pr-docs-v1"))] } });
+    expect(docs(report)).toEqual({ id: "oc-docs-forge", status: "PASS", detail: `pr-docs-v1 covers ${identity.id} (.checkpoints/handoffs/pr-docs-v1/claude/a.json)` });
+  });
+
+  it("still accepts the shared checkpoint when the store holds nothing for the candidate", () => {
+    const report = run({
+      store: { "pr-docs-v1": [entry("pr-docs-v1/claude/merged.json", handoff("oc-docs-forge", "pr-docs-v1", { candidate: other }))] },
+      checkpoints: { "oc-docs-forge": legacy("oc-docs-forge", "pr-docs-v1") },
+    });
+    expect(docs(report)).toMatchObject({ status: "PASS", detail: `pr-docs-v1 covers ${identity.id}` });
+  });
+
+  it("prefers the store to the checkpoint, and the later of two store bindings for one candidate", () => {
+    const pass = handoff("oc-docs-forge", "pr-docs-v1", { at: "2026-10-27T18:00:00.000Z" });
+    const failLater = handoff("oc-docs-forge", "pr-docs-v1", { verdict: "FAIL", at: "2026-10-27T19:00:00.000Z" });
+    const failed = run({
+      store: { "pr-docs-v1": [entry("pr-docs-v1/a.json", failLater), entry("pr-docs-v1/b.json", pass)] },
+      checkpoints: { "oc-docs-forge": legacy("oc-docs-forge", "pr-docs-v1") },
+    });
+    expect(docs(failed)).toMatchObject({ status: "FAIL", detail: expect.stringContaining("verdict is FAIL (.checkpoints/handoffs/pr-docs-v1/a.json)") });
+    const passLater = handoff("oc-docs-forge", "pr-docs-v1", { at: "2026-10-27T20:00:00.000Z" });
+    expect(docs(run({ store: { "pr-docs-v1": [entry("pr-docs-v1/a.json", failLater), entry("pr-docs-v1/c.json", passLater)] } })).status).toBe("PASS");
+  });
+
+  it("fails a store file that is invalid, from the wrong producer, or under the wrong policy", () => {
+    const { verified_at, ...unverified } = handoff("oc-docs-forge", "pr-docs-v1");
+    expect(verified_at).toBeTruthy();
+    const invalid = docs(run({ store: { "pr-docs-v1": [entry("pr-docs-v1/x.json", { ...unverified, verified_at: "yesterday" })] } }));
+    expect(invalid).toMatchObject({ status: "FAIL", detail: expect.stringMatching(/invalid verification\.verdict handoff: .*verified_at.*\(\.checkpoints\/handoffs\/pr-docs-v1\/x\.json\)/) });
+    const wrongSkill = docs(run({ store: { "pr-docs-v1": [entry("pr-docs-v1/x.json", handoff("oc-repo-ops", "pr-docs-v1"))] } }));
+    expect(wrongSkill).toMatchObject({ status: "FAIL", detail: expect.stringContaining("producer must be oc-docs-forge") });
+    const wrongPolicy = docs(run({ store: { "pr-docs-v1": [entry("pr-docs-v1/x.json", handoff("oc-docs-forge", "pr-readiness-v1"))] } }));
+    expect(wrongPolicy).toMatchObject({ status: "FAIL", detail: expect.stringContaining("policy must be pr-docs-v1") });
+  });
+
+  it("names both places when neither holds the candidate's evidence", () => {
+    const none = docs(run());
+    expect(none.status).toBe("FAIL");
+    expect(none.detail).toContain(`no handoff under .checkpoints/handoffs/pr-docs-v1/ or in .checkpoints/oc-docs-forge.checkpoint.json is bound to ${identity.id}`);
+    expect(none.detail).toContain("npm run checkpoint -- handoff oc-docs-forge pr-docs-v1");
+    const staleOnly = docs(run({ checkpoints: { "oc-docs-forge": legacy("oc-docs-forge", "pr-docs-v1", { candidate: other }) } }));
+    expect(staleOnly.detail).toContain(`no verification.verdict handoff matched; nothing under .checkpoints/handoffs/pr-docs-v1/ is bound to ${identity.id} either`);
+  });
+
+  it("is not read for the deploy-stage audits", () => {
+    const report = run({ stage: "deploy", store: { "pre-deploy-code-audit-v1": [entry("pre-deploy-code-audit-v1/x.json", handoff("oc-code-auditor", "pre-deploy-code-audit-v1"))] } });
+    expect(report.checks.find((entry) => entry.id === "oc-code-auditor")).toMatchObject({ status: "FAIL", detail: expect.stringContaining("required checkpoint evidence is missing") });
+  });
+
+  it("reads nested branch files, keeps unreadable ones as null, and skips everything else", () => {
+    const dir = mkdtempSync(join(tmpdir(), "opchain-store-"));
+    try {
+      const store = join(dir, ".checkpoints", "handoffs", "pr-docs-v1");
+      mkdirSync(join(store, "claude"), { recursive: true });
+      writeFileSync(join(store, "claude", "a.json"), JSON.stringify(handoff("oc-docs-forge", "pr-docs-v1")));
+      writeFileSync(join(store, "main.json"), "{ not json");
+      writeFileSync(join(store, "notes.md"), "ignored");
+      const entries = readHandoffStore(join(dir, ".checkpoints"), "pr-docs-v1");
+      expect(entries.map((e) => e.path)).toEqual([".checkpoints/handoffs/pr-docs-v1/claude/a.json", ".checkpoints/handoffs/pr-docs-v1/main.json"]);
+      expect(entries[0].handoff.producer.skill).toBe("oc-docs-forge");
+      expect(entries[1].handoff).toBeNull();
+      expect(readHandoffStore(join(dir, ".checkpoints"), "pr-readiness-v1")).toEqual([]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

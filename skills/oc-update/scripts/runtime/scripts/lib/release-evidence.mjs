@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, realpathSync } from "node:fs";
 import { createRequire } from "node:module";
-import { dirname, isAbsolute, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { getCheckpointHandoff, HANDOFF_TYPES } from "../../src/lib/mcp/checkpoint-contract.js";
+import { CheckpointContractError, getCheckpointHandoff, HANDOFF_TYPES, validateCheckpointHandoff } from "../../src/lib/mcp/checkpoint-contract.js";
 
 const require = createRequire(import.meta.url);
 const { createRepositoryIdentity, sha256Bytes, validateReceipt } = require("./verification-receipt.cjs");
@@ -32,6 +32,22 @@ const REQUIRED = Object.freeze({
 });
 
 const COMPLIANCE = Object.freeze({ skill: "oc-compliance-ops", policy: "deploy-compliance-evidence-v1" });
+
+// The handoff store. Every pull request used to append its PR-stage verdicts to the
+// same two files (.checkpoints/oc-docs-forge.checkpoint.json, oc-repo-ops's), so a
+// merge made every open sibling conflict with no code overlap (deftwright-site
+// #260/#261, 2026-10-27). Each binding now gets a file of its own, keyed by branch:
+// .checkpoints/handoffs/<policy>/<branch>.json, one verification.verdict per file.
+// Concurrent branches only ever add different paths, so they merge in either order.
+// The shared checkpoint's handoffs[] is still read when the store holds nothing for
+// the candidate: older binders wrote there, and so does any binder whose evidence
+// workflow still runs a base-branch reader older than this layout.
+//
+// `checkpoint handoff` writes the store only for STORE_POLICIES, and only when this
+// reader advertises the layout (`--print-candidate --json` → handoff_store).
+export const HANDOFF_STORE_LAYOUT = "opchain.handoff-store.v1";
+const HANDOFF_STORE_DIR = "handoffs";
+const STORE_POLICIES = Object.freeze(REQUIRED.pr.map((spec) => spec.policy));
 
 function git(root, ...args) {
   const result = spawnSync("git", ["-c", "core.hooksPath=/dev/null", "-C", root, ...args], { encoding: "utf8" });
@@ -78,23 +94,66 @@ function remedy(spec) {
   return `bind it from the branch: npm run checkpoint -- handoff ${spec.skill} ${spec.policy} --verdict PASS --scope "<what changed>" (or /oc-pr), commit .checkpoints/, push`;
 }
 
-function checkpointResult(checkpoint, spec, candidateIdentity) {
+function verdictResult(spec, candidateIdentity, select, { source = "", missing = "" } = {}) {
   try {
-    const handoff = getCheckpointHandoff(checkpoint, {
-      type: HANDOFF_TYPES.VERIFICATION_VERDICT,
-      artifactId: candidateIdentity.id,
-    });
+    const handoff = select();
     if (handoff.producer.skill !== spec.skill) throw new Error(`producer must be ${spec.skill}`);
     if (handoff.candidate.kind !== candidateIdentity.kind || handoff.candidate.id !== candidateIdentity.id) {
       throw new Error(`candidate must be ${candidateIdentity.kind} ${candidateIdentity.id}`);
     }
     if (handoff.payload.policy !== spec.policy) throw new Error(`policy must be ${spec.policy}`);
     if (handoff.payload.verdict !== "PASS") throw new Error(`verdict is ${handoff.payload.verdict}`);
-    return { id: spec.skill, status: "PASS", detail: `${spec.policy} covers ${candidateIdentity.id}` };
+    return { id: spec.skill, status: "PASS", detail: `${spec.policy} covers ${candidateIdentity.id}${source}` };
   } catch (error) {
     const detail = error.errors?.length ? `${error.message}: ${error.errors.join("; ")}` : error.message;
-    return { id: spec.skill, status: "FAIL", detail: `${detail} — ${remedy(spec)}` };
+    return { id: spec.skill, status: "FAIL", detail: `${detail}${source}${missing} — ${remedy(spec)}` };
   }
+}
+
+function checkpointResult(checkpoint, spec, candidateIdentity, options) {
+  return verdictResult(spec, candidateIdentity, () => getCheckpointHandoff(checkpoint, {
+    type: HANDOFF_TYPES.VERIFICATION_VERDICT,
+    artifactId: candidateIdentity.id,
+  }), options);
+}
+
+function storeResult(entry, spec, candidateIdentity) {
+  return verdictResult(spec, candidateIdentity, () => {
+    const result = validateCheckpointHandoff(entry.handoff);
+    if (!result.ok) throw new CheckpointContractError(`invalid ${HANDOFF_TYPES.VERIFICATION_VERDICT} handoff`, result.errors);
+    return entry.handoff;
+  }, { source: ` (${entry.path})` });
+}
+
+/** Every `.json` file under <checkpointDir>/handoffs/<policy>/, as { path, handoff };
+ *  `handoff` is null for a file that does not parse. Paths are relative to the
+ *  checkpoint directory's parent (`.checkpoints/handoffs/...`). Symlinks are skipped. */
+export function readHandoffStore(checkpointDir, policy) {
+  const entries = [];
+  const walk = (dir) => {
+    let names;
+    try { names = readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    for (const entry of names.sort((a, b) => a.name.localeCompare(b.name))) {
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) walk(path);
+      else if (entry.isFile() && entry.name.endsWith(".json")) {
+        let handoff = null;
+        try { handoff = JSON.parse(readFileSync(path, "utf8")); } catch {}
+        entries.push({ path: relative(dirname(checkpointDir), path).split(sep).join("/"), handoff });
+      }
+    }
+  };
+  walk(join(checkpointDir, HANDOFF_STORE_DIR, policy));
+  return entries;
+}
+
+/** The store entry that decides `candidateIdentity`. Two branches can bind the same
+ *  projection (two checkpoint-only pull requests); the later binding decides, the way
+ *  a re-bind on one branch replaces its earlier file. */
+function storedHandoff(entries = [], candidateIdentity) {
+  const at = (entry) => Date.parse(entry.handoff.verified_at) || 0;
+  const bound = entries.filter((entry) => entry.handoff?.type === HANDOFF_TYPES.VERIFICATION_VERDICT && entry.handoff.candidate?.id === candidateIdentity.id);
+  return bound.sort((a, b) => at(a) - at(b) || a.path.localeCompare(b.path)).at(-1) ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -256,6 +315,7 @@ export function evaluateReleaseEvidence({
   repositoryId,
   receipt,
   checkpoints = {},
+  handoffStore = {},
   complianceProfilePresent = false,
   bypasses = null,
 } = {}) {
@@ -271,10 +331,19 @@ export function evaluateReleaseEvidence({
     : { id: "executable-verification", status: "FAIL", detail: receiptResult.errors.join("; ") });
 
   for (const spec of REQUIRED[stage]) {
+    const inStore = STORE_POLICIES.includes(spec.policy);
+    const stored = inStore ? storedHandoff(handoffStore[spec.policy], candidateIdentity) : null;
     const checkpoint = checkpoints[spec.skill];
-    checks.push(checkpoint
-      ? checkpointResult(checkpoint, spec, candidateIdentity)
-      : { id: spec.skill, status: "FAIL", detail: `required checkpoint evidence is missing — ${remedy(spec)}` });
+    // A FAIL names both places that were read.
+    const storeDir = `.checkpoints/${HANDOFF_STORE_DIR}/${spec.policy}/`;
+    const absent = inStore
+      ? `required evidence is missing: no handoff under ${storeDir} or in .checkpoints/${spec.skill}.checkpoint.json is bound to ${candidateIdentity.id}`
+      : "required checkpoint evidence is missing";
+    checks.push(stored
+      ? storeResult(stored, spec, candidateIdentity)
+      : checkpoint
+        ? checkpointResult(checkpoint, spec, candidateIdentity, { missing: inStore ? `; nothing under ${storeDir} is bound to ${candidateIdentity.id} either` : "" })
+        : { id: spec.skill, status: "FAIL", detail: `${absent} — ${remedy(spec)}` });
   }
 
   if (stage === "deploy" && complianceProfilePresent) {
@@ -358,7 +427,13 @@ async function main(argv = process.argv.slice(2)) {
     args = parseArgs(argv);
     const context = repositoryContext(args.root);
     if (args.printCandidate) {
-      const report = { ok: true, candidate: context.candidate, tree: context.tree, candidate_identity: context.candidateIdentity };
+      const report = {
+        ok: true,
+        candidate: context.candidate,
+        tree: context.tree,
+        candidate_identity: context.candidateIdentity,
+        handoff_store: { layout: HANDOFF_STORE_LAYOUT, policies: [...STORE_POLICIES] },
+      };
       process.stdout.write(`${args.json ? JSON.stringify(report) : `${report.candidate_identity.kind} ${report.candidate_identity.id}`}\n`);
       return 0;
     }
@@ -366,6 +441,9 @@ async function main(argv = process.argv.slice(2)) {
     if (args.stage === "deploy" && existsSync(join(context.root, ".opchain/compliance.yaml"))) specs.push(COMPLIANCE);
     const checkpointDir = args.checkpointDir || join(context.root, ".checkpoints");
     const checkpoints = Object.fromEntries(specs.map((spec) => [spec.skill, readCheckpoint(checkpointDir, spec.skill)]));
+    const handoffStore = Object.fromEntries(specs
+      .filter((spec) => STORE_POLICIES.includes(spec.policy))
+      .map((spec) => [spec.policy, readHandoffStore(checkpointDir, spec.policy)]));
     const report = evaluateReleaseEvidence({
       stage: args.stage,
       candidate: context.candidate,
@@ -374,6 +452,7 @@ async function main(argv = process.argv.slice(2)) {
       repositoryId: context.repositoryId,
       receipt: enforcedReceipt(context),
       checkpoints,
+      handoffStore,
       complianceProfilePresent: existsSync(join(context.root, ".opchain/compliance.yaml")),
       bypasses: args.stage === "pr" ? collectBypassedCommits(context, { source: args.bypassSource || "auto" }) : null,
     });
@@ -389,4 +468,4 @@ async function main(argv = process.argv.slice(2)) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) process.exitCode = await main();
 
-export { main, REQUIRED };
+export { main, REQUIRED, STORE_POLICIES };

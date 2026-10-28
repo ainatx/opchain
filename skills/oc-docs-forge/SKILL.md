@@ -157,24 +157,30 @@ Pass only when:
 - The packet reflects the current diff, not an older commit.
 - Links and referenced files exist.
 
-On failure, set `skill_state.verified_for_sha` to `null` (an earlier `/oc-docs pr`
-may already have stamped HEAD), set the checkpoint `status` to `blocked`, and list
-the failed criteria in `blockers`. A later successful `/oc-docs pr` or
-`/oc-docs verify` clears that: it restamps `verified_for_sha` to HEAD, resets
-`status` from `blocked`, and empties the resolved `blockers`. That is how a failure reaches the gate:
-`oc-repo-ops verify` fails closed on a docs-forge checkpoint whose
-`verified_for_sha` is not HEAD or whose `status` is `blocked`, and a failed repo-ops
-verdict stops `oc-git-ops` from opening the PR. `oc-release-ops verify` also runs
+On failure, bind `pr-docs-v1` FAIL (below; it overwrites the branch's earlier PASS,
+which an earlier `/oc-docs pr` may have bound for HEAD), set
+`skill_state.verified_for_sha` to `null`, set the checkpoint `status` to `blocked`,
+and list the failed criteria in `blockers`. A later successful `/oc-docs pr` or
+`/oc-docs verify` clears that: it binds PASS, restamps `verified_for_sha` to HEAD,
+resets `status` from `blocked`, and empties the resolved `blockers`. That is how a failure reaches the gate:
+`oc-repo-ops verify` fails closed when no `pr-docs-v1` PASS handoff covers HEAD's
+tree projection or the docs-forge checkpoint's `status` is `blocked`, and a failed
+repo-ops verdict stops `oc-git-ops` from opening the PR. `oc-release-ops verify` also runs
 this verb directly for release PRs. The everyday pre-PR gate in oc-git-ops runs
 `/oc-docs pr`, not `/oc-docs verify`.
 
 On success, also publish one C-contract `verification.verdict` handoff under
 policy `pr-docs-v1`, bound to the evaluator's `git_tree_projection` identity
 (the HEAD tree excluding `.checkpoints/`). This projection lets the tracked
-checkpoint carry its own evidence without a self-referential commit hash.
-Read it with `node scripts/lib/release-evidence.mjs --print-candidate --json`.
-FAIL/INCOMPLETE runs publish the corresponding verdict. Consumers use this
-typed handoff; `skill_state.verified_for_sha` remains display/compatibility data.
+evidence travel with the commit without a self-referential commit hash.
+Bind it with the binder, never by hand:
+`node scripts/checkpoint.mjs handoff oc-docs-forge --policy pr-docs-v1 --verdict PASS --scope "<what the packet covered>"`.
+It writes `.checkpoints/handoffs/pr-docs-v1/<branch>.json`, a file of the branch's
+own, so another PR merging first never conflicts with it, and it does not touch
+this skill's checkpoint. (When the gate's reader on the base branch predates that
+store, the binder appends to the checkpoint's `handoffs` instead; the gate reads
+both.) FAIL/INCOMPLETE runs bind the corresponding verdict. Consumers use this
+typed handoff; `skill_state.verified_for_sha` is display data and gates nothing.
 
 ## Checkpoint Integration
 
@@ -210,17 +216,23 @@ Write on every `/oc-docs pr`, `/oc-docs readme`, `/oc-docs standardize`,
     "docs_not_changed_reason": null,
     "follow_up_docs": [],
     "verified_for_sha": "abc123"
-  },
-  "handoffs": [{
-    "id": "pr-docs-<candidate-id>",
-    "contract_version": "1.0",
-    "type": "verification.verdict",
-    "created_at": "2026-09-13T20:00:00Z",
-    "verified_at": "2026-09-13T20:00:00Z",
-    "producer": { "skill": "oc-docs-forge", "run_id": "<run-id>" },
-    "candidate": { "kind": "git_tree_projection", "id": "sha256:<digest>" },
-    "payload": { "verdict": "PASS", "policy": "pr-docs-v1" }
-  }]
+  }
+}
+```
+
+The `pr-docs-v1` verdict is not in this file. The binder writes it to
+`.checkpoints/handoffs/pr-docs-v1/<branch>.json`, one handoff object:
+
+```json
+{
+  "id": "oc-docs-forge-pr-docs-v1-<digest12>",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-09-13T20:00:00Z",
+  "verified_at": "2026-09-13T20:00:00Z",
+  "producer": { "skill": "oc-docs-forge", "run_id": "<run-id>" },
+  "candidate": { "kind": "git_tree_projection", "id": "sha256:<digest>" },
+  "payload": { "verdict": "PASS", "policy": "pr-docs-v1", "scope": "<what the packet covered>" }
 }
 ```
 

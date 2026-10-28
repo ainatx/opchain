@@ -368,7 +368,14 @@ node scripts/checkpoint.mjs handoff oc-repo-ops --policy pr-readiness-v1 --verdi
 npm run evidence:pr
 ```
 
-Commit the checkpoint edits (`chore(evidence): bind pre-PR handoffs`), then push.
+Commit the two files the binder wrote, `.checkpoints/handoffs/pr-docs-v1/<branch>.json`
+and `.checkpoints/handoffs/pr-readiness-v1/<branch>.json`
+(`chore(evidence): bind pre-PR handoffs`), then push. They belong to this branch
+alone, so a sibling PR merging first never conflicts with them. (While the base
+branch's gate predates that store, the binder says `oc-docs-forge.checkpoint.json` /
+`oc-repo-ops.checkpoint.json` instead; commit those.) A rebase or a merge
+from main changes the tree projection: re-run the two binder lines, which rewrite the
+same two files.
 
 **Docs path — the PR changes README, CHANGELOG, `docs/`, runbooks or a SKILL.md.**
 Keep the two Skill invocations; each writes its own handoff and the packet is real work:
@@ -388,7 +395,8 @@ Skill(skill="oc-repo-ops", args="/oc-repo verify")
 Either path ends with `npm run evidence:pr` (`node scripts/lib/release-evidence.mjs
 --stage pr`). It requires A's canonical PASS receipt for the exact candidate tree plus
 C-contract Docs Forge (`pr-docs-v1`) and Repo Ops (`pr-readiness-v1`) PASS handoffs
-bound to the HEAD tree projection excluding `.checkpoints/`. A squash merge whose
+bound to the HEAD tree projection excluding `.checkpoints/`, read from
+`.checkpoints/handoffs/<policy>/` and then from each skill's checkpoint `handoffs`. A squash merge whose
 source content changes produces a different projection and cannot reuse the prior
 evidence.
 
@@ -437,8 +445,8 @@ One command that runs the entire flow:
 5. **Run oc-bug-check gate** — invoke `Skill(skill="oc-bug-check", args="/oc-bugcheck run")` after the last edit and before any commit. **FAIL aborts the sync** — surface the failing checks and stop. The user can `/oc-bugcheck fix`, address the failures and re-run `/oc-git-sync`, or bypass explicitly as described in the Pre-Commit Gate table.
 6. **Structure commits** — group by logical unit. For each distinct staged group, rerun step 5 before committing; the enrolled Git hook verifies that group's exact candidate and matching receipt. A PASS for one index tree does not cover other groups or later edits.
 7. **Bind pre-PR evidence** (before the push, so the PR never opens red). Code-only change → run the two `node scripts/checkpoint.mjs handoff …` binder lines from the Pre-PR Gate. Reader-facing docs changed → invoke `Skill(skill="oc-docs-forge", args="/oc-docs pr")` to produce the `## Documentation` body fragment (and any README/product-doc edits that must travel with the change)
-8. **Commit the docs edits** — if step 7 changed files, stage them, re-run the oc-bug-check gate (step 5), commit (`docs: …`), and re-run `/oc-docs pr` at most once more so the packet's `verified_for_sha` is the new HEAD (if that run edits files again, stop and surface it rather than looping). Skip when step 7 changed no files.
-9. **Run the readiness gate** — docs path: invoke `Skill(skill="oc-repo-ops", args="/oc-repo verify")`; binder path: the `pr-readiness-v1` handoff from step 7 stands. Either way, `npm run evidence:pr`. **FAIL aborts the sync before anything is pushed** — surface the blocking findings; the user can `/oc-repo clean` or fix and re-run. Commit the checkpoint edits (`chore(evidence): bind pre-PR handoffs`).
+8. **Commit the docs edits** — if step 7 changed files, stage them, re-run the oc-bug-check gate (step 5), commit (`docs: …`), and re-run `/oc-docs pr` at most once more so the packet's `pr-docs-v1` handoff covers the new HEAD (if that run edits files again, stop and surface it rather than looping). Skip when step 7 changed no files.
+9. **Run the readiness gate** — docs path: invoke `Skill(skill="oc-repo-ops", args="/oc-repo verify")`; binder path: the `pr-readiness-v1` handoff from step 7 stands. Either way, `npm run evidence:pr`. **FAIL aborts the sync before anything is pushed** — surface the blocking findings; the user can `/oc-repo clean` or fix and re-run. Commit the evidence (`.checkpoints/`; `chore(evidence): bind pre-PR handoffs`).
 10. **Push** — `git push -u origin <branch>` (bind → push → PR; in a consumer repo the `evidence:pr` CI job from `install-git-drivers --ci` re-checks the pushed head)
 11. **Generate PR description** — from all available context, inserting the docs packet's `## Documentation` fragment
 12. **Create PR** — via gh CLI or output for manual creation

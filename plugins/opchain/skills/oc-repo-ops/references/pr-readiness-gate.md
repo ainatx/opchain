@@ -18,9 +18,11 @@ only while the running session honours it.
 
 Block PR creation when any of these are true:
 
-- `.checkpoints/oc-docs-forge.checkpoint.json` is missing or stale — stale meaning
-  its `skill_state.verified_for_sha` is not the HEAD of the branch being verified —
-  or its checkpoint `status` is `blocked` (a failed `/oc-docs verify`).
+- Docs Forge evidence is missing or stale: no `pr-docs-v1` PASS handoff is bound to
+  the HEAD tree projection of the branch being verified (in
+  `.checkpoints/handoffs/pr-docs-v1/`, or from an older binder in the docs-forge
+  checkpoint's `handoffs`) — or the docs-forge checkpoint `status` is `blocked`
+  (a failed `/oc-docs verify`).
 - The PR draft lacks a `## Documentation` section.
 - README/product docs should change but do not, and no explicit follow-up exists.
 - Generated files are stale or missing relative to source.

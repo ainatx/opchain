@@ -241,8 +241,8 @@
         },
         {
           "path": "references/state-contract-v1.md",
-          "bytes": 6394,
-          "sha256": "031e9549fb4dd5f4de0c277e6473fa3b38657411f873131af3dea80386d923b3"
+          "bytes": 7472,
+          "sha256": "50ef27996e44c67ff0a52c92a311135eb2414211521f3ddde7678878b4967faa"
         },
         {
           "path": "references/WALKTHROUGH.md",
@@ -1247,8 +1247,8 @@
         },
         {
           "path": "references/pr-readiness-gate.md",
-          "bytes": 1868,
-          "sha256": "eaf33cb4495dde2124de01287e0cfb143d185e610113a6b5397cd6e46a7b354a"
+          "bytes": 1964,
+          "sha256": "7df4f679e9093186885f00a727e753f642e29a35ce1af0183aac9f055ef7842e"
         }
       ]
     },

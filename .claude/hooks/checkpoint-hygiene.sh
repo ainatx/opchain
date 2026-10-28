@@ -44,11 +44,13 @@
 #     session; the third Stop logs one stderr note and exits 0 (one session was
 #     blocked 30 times).
 #   - Gate skills (oc-bug-check, oc-docs-forge, oc-repo-ops) are also satisfied by a
-#     handoffs[] verification.verdict PASS bound to that repository's current
+#     verification.verdict PASS bound to that repository's current
 #     git_tree_projection candidate — what `node scripts/lib/release-evidence.mjs
 #     --repo <dir> --print-candidate --json` prints and what `node
-#     scripts/checkpoint.mjs handoff` writes. If the candidate
-#     cannot be computed, a checkpoint file mtime newer than the invocation counts.
+#     scripts/checkpoint.mjs handoff` writes: a file under .checkpoints/handoffs/
+#     (the PR-stage policies, one file per branch) or the checkpoint's handoffs[].
+#     If the candidate cannot be computed, a checkpoint file mtime newer than the
+#     invocation counts.
 #   - Incremental: the transcript is read from the byte offset cached in the
 #     per-session marker ($TMPDIR/opchain-hygiene-<session_id>.json) — never re-parsed
 #     whole (jq -rs over a 12MB transcript hit the 10s timeout 30 times).
@@ -383,18 +385,45 @@ mtime_at_or_after() {
 # both files.
 has_evidence() {
   local skill="$1" invoked_at="$2" checkpoint="$3/.checkpoints/$1.checkpoint.json" checkpoint_at
-  [[ -f "$checkpoint" ]] || return 1
-  checkpoint_at="$(jq -r '.record_updated_at // .updated_at // empty' "$checkpoint" 2>/dev/null || true)"
-  if [[ -n "$invoked_at" && -n "$checkpoint_at" ]] && at_or_after "$invoked_at" "$checkpoint_at"; then
-    return 0
+  if [[ -f "$checkpoint" ]]; then
+    checkpoint_at="$(jq -r '.record_updated_at // .updated_at // empty' "$checkpoint" 2>/dev/null || true)"
+    if [[ -n "$invoked_at" && -n "$checkpoint_at" ]] && at_or_after "$invoked_at" "$checkpoint_at"; then
+      return 0
+    fi
   fi
   [[ "$GATE_SKILLS" == *" $skill "* ]] || return 1
   resolve_candidate "$3"
   if [[ -n "$CAND" ]]; then
+    store_has_pass "$skill" "$3" && return 0
+    [[ -f "$checkpoint" ]] || return 1
     jq -e --arg c "$CAND" '[.handoffs[]? | select(.type == "verification.verdict" and .candidate.id == $c and .payload.verdict == "PASS")] | length > 0' "$checkpoint" >/dev/null 2>&1
     return
   fi
-  [[ -n "$invoked_at" ]] && mtime_at_or_after "$checkpoint" "$invoked_at"
+  [[ -f "$checkpoint" && -n "$invoked_at" ]] && mtime_at_or_after "$checkpoint" "$invoked_at"
+}
+
+# store_has_pass <skill> <repo dir>: a PASS verification.verdict from <skill> bound to
+# CAND in the handoff store, .checkpoints/handoffs/<policy>/<branch>.json — where
+# `checkpoint handoff` binds the PR-stage policies, so a gate skill's run leaves its
+# evidence without touching the shared checkpoint.
+store_has_pass() {
+  [[ -d "$2/.checkpoints/handoffs" ]] || return 1
+  node -e '
+    const fs = require("fs"), path = require("path");
+    const [store, skill, cand] = process.argv.slice(1);
+    const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).some((entry) => {
+      const file = path.join(dir, entry.name);
+      if (entry.isDirectory()) return walk(file);
+      if (!entry.isFile() || !entry.name.endsWith(".json")) return false;
+      try {
+        const h = JSON.parse(fs.readFileSync(file, "utf8"));
+        return h.type === "verification.verdict" && h.producer?.skill === skill && h.candidate?.id === cand && h.payload?.verdict === "PASS";
+      } catch { return false; }
+    });
+    let found = false;
+    try { found = walk(store); } catch {}
+    process.exit(found ? 0 : 1);
+  ' "$2/.checkpoints/handoffs" "$1" "$CAND"
 }
 
 # A skill is satisfied by current-run evidence in ANY repository it worked in: the
@@ -484,7 +513,7 @@ GATE_SECTION=""
 if [[ -n "$GATE_HINT" ]]; then
   GATE_SECTION="
 
-Gate skills are also satisfied by a verification.verdict handoff bound to the current candidate (the same evidence the PR/deploy gates read):${GATE_HINT}"
+Gate skills are also satisfied by a verification.verdict handoff bound to the current candidate (the same evidence the PR/deploy gates read; the binder writes .checkpoints/handoffs/<policy>/<branch>.json, not the shared checkpoint):${GATE_HINT}"
 fi
 
 # Built with `read -d ''` on a plain heredoc, not `$(cat <<EOF)`: macOS bash 3.2

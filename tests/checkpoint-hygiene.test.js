@@ -231,6 +231,39 @@ describe.skipIf(!hasJq)("checkpoint-hygiene Stop hook", () => {
     expect(bound.stdout).toBe("");
   });
 
+  it("(iv-b) a PASS in the per-branch handoff store satisfies a gate skill with no shared checkpoint at all", () => {
+    const p = project();
+    transcript(p, [skillCall(T0, p.root, "oc-docs-forge"), writeCall(T1, p.root, join(p.root, "README.md"))]);
+    const cand = candidateOf(p.root);
+    const stored = (skill, id) => ({
+      id: `${skill}-pr-docs-v1-${id.slice(7, 19)}`,
+      contract_version: "1.0",
+      type: "verification.verdict",
+      created_at: BEFORE,
+      verified_at: BEFORE,
+      producer: { skill, run_id: "fixture" },
+      candidate: { kind: "git_tree_projection", id },
+      payload: { verdict: "PASS", policy: "pr-docs-v1", scope: "fixture" },
+    });
+    const dir = join(p.root, ".checkpoints", "handoffs", "pr-docs-v1", "claude");
+    mkdirSync(dir, { recursive: true });
+    const file = join(dir, "feature.json");
+    expect(existsSync(join(p.root, ".checkpoints", "oc-docs-forge.checkpoint.json"))).toBe(false);
+
+    // Another skill's verdict, or one bound to another candidate, is not this skill's evidence.
+    writeFileSync(file, JSON.stringify(stored("oc-repo-ops", cand.candidate_identity.id)));
+    expect(runHook(p, { sessionId: "store-other-skill" }).decision?.decision).toBe("block");
+    writeFileSync(file, JSON.stringify(stored("oc-docs-forge", `sha256:${"0".repeat(64)}`)));
+    const stale = runHook(p, { sessionId: "store-stale" });
+    expect(stale.decision?.decision).toBe("block");
+    expect(stale.decision.reason).toContain(".checkpoints/handoffs/<policy>/<branch>.json");
+
+    writeFileSync(file, JSON.stringify(stored("oc-docs-forge", cand.candidate_identity.id)));
+    const bound = runHook(p, { sessionId: "store-bound" });
+    expect(bound.code).toBe(0);
+    expect(bound.stdout).toBe("");
+  });
+
   it("without $CLAUDE_PROJECT_DIR, a cwd in some other checkout is not policed", () => {
     const p = project();
     transcript(p, [skillCall(T0, p.root, "oc-code-auditor"), writeCall(T1, p.root, join(p.root, "x.md"))]);

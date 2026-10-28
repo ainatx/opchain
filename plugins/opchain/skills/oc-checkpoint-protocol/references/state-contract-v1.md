@@ -88,6 +88,22 @@ Consumers call `getCheckpointHandoff(checkpoint, { type, id?, artifactId? })`.
 The reader validates the full envelope and selected handoff, rejects unknown
 types, and rejects ambiguous matches. It does not read private `skill_state`.
 
+### Handoff store for PR-stage verdicts
+
+The `verification.verdict` handoffs the pre-PR gate reads — policy `pr-docs-v1`
+(oc-docs-forge) and `pr-readiness-v1` (oc-repo-ops) — are stored one per file,
+outside the checkpoint: `.checkpoints/handoffs/<policy>/<branch>.json`, each file
+one handoff object of the shape above (layout `opchain.handoff-store.v1`). A
+checkpoint is shared by every branch, so verdicts appended to its `handoffs` made
+every open pull request conflict once another merged; per-branch files only ever
+add different paths. `checkpoint handoff` writes the store when the gate's reader
+advertises the layout (`release-evidence --print-candidate --json` →
+`handoff_store`) and the base branch's copy of that reader does too; otherwise it
+appends to the checkpoint as before. `release-evidence --stage pr` reads the store
+first (the later `verified_at` decides two files bound to one candidate) and then
+the checkpoint's `handoffs`. The release pull request prunes the store with
+`checkpoint prune-handoffs`. Deploy-stage verdicts stay in the checkpoint.
+
 ## Atomic store API
 
 The store API is version `"1.0"`. Providers declare:

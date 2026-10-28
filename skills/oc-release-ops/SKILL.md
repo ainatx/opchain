@@ -241,6 +241,14 @@ styleguide disagree on version — confusing to readers. A patch is the same: on
 PR, and `check-release-surfaces.mjs` fails any surface left behind. Always run
 `/oc-release bump` end-to-end; if it fails midway, revert and retry.
 
+### Pruned in the bump
+
+The handoff store: in the release PR, after binding its own pre-PR evidence, run
+`checkpoint prune-handoffs` (in opchain.dev: `npm run checkpoint -- prune-handoffs`). Every pull request leaves `.checkpoints/handoffs/<policy>/<branch>.json`
+files behind on main; the prune deletes each one not bound to the release PR's own
+candidate, and git history keeps them. Only the release PR prunes, one at a time:
+the same deletions in concurrent PRs can merge as competing renames.
+
 ### What is NOT bumped
 
 - `package.json` `"version"` — the worker version is git-SHA-stamped at build
@@ -341,7 +349,7 @@ aborts on the first failure (rows marked warn-class report and continue).
 | Tests pass | pre-tag | `npm test` |
 | Site builds | pre-tag | `npm run site:build` |
 | Live-claim site surfaces (changelog Just-Released hero, header chip, release bar, stat chip, Skill Library callout, styleguide badge, architecture labels) agree on one release line, at minor level (`v1.9`), with the newest `skills/CHANGELOG.md` entry; the full-semver claims (hero-ver, README, mirror README, plugin README, styleguide badge) equal it exactly; the skill-page loop tag never calls a shipped release `next` | pre-tag | `node scripts/check-release-surfaces.mjs` |
-| Release-PR docs packet current | pre-tag | oc-docs-forge `/oc-docs verify` — checkpoint `verified_for_sha` matches HEAD, PR body fragment has `## Documentation` |
+| Release-PR docs packet current | pre-tag | oc-docs-forge `/oc-docs verify` — a `pr-docs-v1` PASS handoff covers HEAD's tree projection (the `oc-docs-forge` row of `npm run evidence:pr`), PR body fragment has `## Documentation` |
 | Repo is PR-ready | pre-tag | oc-repo-ops `/oc-repo verify` — verdict PASS |
 | All skill versions match the release version | pre-tag | `node scripts/check-release-tag.mjs --json` — `version` must equal `<semver>` and `reason` must be exactly `missing-tag` (any other reason means the bump or seal is incomplete) |
 | Compliance delta bundle exists (conditional, v1.9) | pre-tag | only when `.opchain/compliance.yaml` exists: oc-compliance-ops `/oc-comply evidence` ran for this release with the delta section; absent profile, row skipped. **Warn-class:** a missing delta bundle is reported in the verify output and the chain continues — matching the deploy gate's presence-checked row (compliance is reported, never enforced) |
@@ -462,7 +470,7 @@ announce paths in `context_primer.generated_files`; ship results in `release_pr`
 | every skill's `*.checkpoint.json` | What shipped per skill since last release |
 | `oc-app-architect.checkpoint.json` | Sprint outputs feed the changelog draft |
 | `oc-git-ops.checkpoint.json` | Merged-PR list feeds "What's new" bullets |
-| `oc-docs-forge.checkpoint.json` | Release-PR docs packet verified before ship |
+| `oc-docs-forge.checkpoint.json` + `.checkpoints/handoffs/pr-docs-v1/` | Release-PR docs packet verified before ship |
 | `oc-deploy-ops.checkpoint.json` | Last-shipped commit SHA |
 | `oc-compliance-ops.checkpoint.json` | Compliance delta bundle for the verify gate's conditional row |
 
