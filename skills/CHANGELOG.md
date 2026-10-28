@@ -15,6 +15,11 @@ checkpoint `protocol_version` is tracked separately (see
 
 ### Added
 
+- **Jev use J8, PR docs completeness (plan §6, 2026-10-28).** `route-eval jev
+  J8` asks, per PR body, whether it covers what the change does, why, and how
+  it was checked. A 38-row gold set from nine merged PR bodies scores 36/38
+  live (recall 1.000); both misses are cut bodies near the line. Eval only: not
+  wired into `/oc-docs pr` yet.
 - **`route-eval outcomes --judge jev` (plan §4, 2026-10-27).** Jev's J2
   outcome judgement runs over every suggestion rescored from a transcript and
   reports its agreement with the hand labels beside the command proxy's. First

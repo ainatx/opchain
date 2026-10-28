@@ -1781,6 +1781,7 @@ export function readGold(file, use, { spec = null } = {}) {
     } else {
       for (const f of use.state ?? []) if (row[f] === undefined || row[f] === null || row[f] === "") problems.push(`${where}: missing state field ${f}`);
       if (typeof row.expected !== "boolean") problems.push(`${where}: expected must be true or false`);
+      if (use.sections && !Object.prototype.hasOwnProperty.call(use.sections, row.section)) problems.push(`${where}: section ${JSON.stringify(row.section)} is not one of ${Object.keys(use.sections).join(", ")}`);
     }
     rows.push(row);
   });
@@ -1798,7 +1799,8 @@ export function jevStateFor(use, row) {
  * The request a Noul use sends for one gold row: { state, questions }. The
  * question is the registry's, with the use's own context added — for a use
  * with per-skill `skills` (J2), what the suggested skill owns and its own
- * steps, so the model knows which work counts.
+ * steps, so the model knows which work counts; for a use with `sections` (J8),
+ * the definition of the row's section.
  */
 export function buildJevRequest(use, row) {
   if (use.kind !== "noul" && use.kind !== "choice") throw new Error(`buildJevRequest: ${use.id} is kind ${use.kind}`);
@@ -1810,6 +1812,11 @@ export function buildJevRequest(use, row) {
       question.instructions.skill = `${sk.displayName} (${row.suggested}): ${sk.index}`;
       if (sk.steps && sk.steps.length) question.instructions.steps = `Steps ${sk.displayName} runs as its own work, which count as doing it: ${sk.steps.join(", ")}.`;
     } else question.instructions.skill = `${row.suggested} (not in the catalog)`;
+  }
+  if (use.sections && typeof row.section === "string") {
+    const def = use.sections[row.section];
+    if (!def) throw new Error(`buildJevRequest: ${use.id} has no section ${row.section}`);
+    question.instructions.section_definition = def;
   }
   return { state: jevStateFor(use, row), questions: { [use.id]: question } };
 }

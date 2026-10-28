@@ -28,7 +28,7 @@ const cleanEnv = () => {
 
 describe("jev: gold sets and requests", () => {
   it("every shipped gold set reads without problems and every row has canned answers (except explicit mentions)", () => {
-    for (const id of ["J1", "J2", "J9"]) {
+    for (const id of ["J1", "J2", "J8", "J9"]) {
       const use = questions.uses[id];
       const { rows, problems } = readGold(join(REPO_ROOT, use.gold), use, { spec });
       expect(problems, id).toEqual([]);
@@ -68,6 +68,8 @@ describe("jev: gold sets and requests", () => {
       const n = readGold(f, questions.uses.J9);
       expect(n.problems).toEqual(["x: expected must be true or false", "y: missing state field text"]);
       expect(readGold(join(dir, "none.jsonl"), questions.uses.J9).problems[0]).toMatch(/gold set not found/);
+      writeFileSync(f, '{"id":"z","section":"left","change":"c","body":"b","expected":true}\n');
+      expect(readGold(f, questions.uses.J8).problems).toEqual(["z: section \"left\" is not one of verify, what, why"]);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -94,6 +96,12 @@ describe("jev: gold sets and requests", () => {
     const j9 = buildJevRequest(questions.uses.J9, { id: "t", text: "hello", expected: false });
     expect(j9.state).toEqual({ text: "hello" });
     expect(j9.questions.J9.instructions).toEqual({ criterion: questions.uses.J9.question.instructions.criterion });
+    const j8 = questions.uses.J8;
+    const r8 = buildJevRequest(j8, { id: "s", section: "verify", change: "fix(x)\nFiles: a.js (+1/-1)", body: "Fixes x.", expected: false });
+    expect(r8.state).toEqual({ section: "verify", change: "fix(x)\nFiles: a.js (+1/-1)", body: "Fixes x." });
+    expect(r8.questions.J8.instructions.section_definition).toBe(j8.sections.verify);
+    expect(j8.question.instructions.section_definition).toBeUndefined();
+    expect(() => buildJevRequest(j8, { id: "s", section: "left", change: "c", body: "b" })).toThrow(/no section left/);
     expect(() => buildJevRequest(questions.uses.J1, row)).toThrow(/kind router/);
     expect(() => buildJevRequest(questions.uses.J3, row)).toThrow(/kind none/);
   });
@@ -135,6 +143,17 @@ describe("jev: runJev + summarizeJev on the shipped fixtures", () => {
     // Raising the threshold past the hard case fixes it without losing a true row.
     const strict = summarizeJev(use, (await runJev({ use, rows, transportFor: fixtureFor("J9"), threshold: 0.7 })).results);
     expect(strict.correct).toBe(13);
+  });
+
+  it("J8: 36 of 38 live, both misses are cut bodies a reviewer would fail", async () => {
+    const use = questions.uses.J8;
+    const { rows } = readGold(join(REPO_ROOT, use.gold), use);
+    const { results } = await runJev({ use, rows, transportFor: fixtureFor("J8") });
+    const S = summarizeJev(use, results);
+    expect(S).toMatchObject({ total: 38, errors: 0, correct: 36, tp: 26, fp: 2, fn: 0, tn: 10, negatives: 12 });
+    expect(S.wrong.map((r) => r.id).sort()).toEqual(["j8-589-nowhy", "j8-660-notest"]);
+    // Every one-line or test-only body fails the parts it leaves out.
+    for (const r of results.filter((x) => /^j8-(thin|testonly)-/.test(x.id))) expect(r.correct, r.id).toBe(true);
   });
 
   it("J2: 9 of 10, the deferral is the miss", async () => {

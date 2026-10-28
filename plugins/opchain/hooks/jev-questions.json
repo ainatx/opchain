@@ -297,12 +297,34 @@
       "summary": "In the commit gate, does the message describe the staged change?"
     },
     "J8": {
+      "caller": "candidate: oc-docs-forge /oc-docs pr, before oc-repo-ops verify (hint only); today only `route-eval jev J8`",
+      "gold": "tests/fixtures/jev/J8/gold.jsonl",
       "id": "J8",
       "kind": "noul",
       "name": "PR docs packet completeness",
-      "reason": "Eval first: a gold set of past PR bodies with the sections a reviewer asked for.",
-      "status": "planned",
-      "summary": "Does the PR body cover each part of the change (what, why, how to verify, what is left)? One Noul per section, run by oc-docs-forge before oc-repo-ops verify."
+      "question": {
+        "criteria": {
+          "false": "No: the body leaves this part out, or covers it too vaguely to use.",
+          "true": "Yes: the body covers this part of the change specifically enough for a reviewer."
+        },
+        "instructions": {
+          "criterion": "`change` is a pull request's title and the files it touches, with lines added and removed. `body` is the pull request description a reviewer reads. `section` names one part a reviewer needs, defined in `section_definition`. The body covers that part for this change: a reviewer could answer it from the body alone, without opening the diff. A heading with nothing specific under it, or a claim too vague to check, does not count."
+        },
+        "type": "noul"
+      },
+      "sections": {
+        "verify": "How the change was checked: tests, commands or manual checks that were run and what they showed, or steps a reviewer can follow to check it. Adding tests without saying they were run does not count.",
+        "what": "What the change does: which files, commands, behaviour or values change, specifically enough to check against the diff.",
+        "why": "Why the change is made: the problem, failure, decision or request it answers. Restating what changed is not a reason."
+      },
+      "state": [
+        "section",
+        "change",
+        "body"
+      ],
+      "status": "eval",
+      "summary": "Does the PR body cover one part of the change: what it changes, why, or how it was checked? One Noul per part, asked with that part's definition. Eval first; the candidate caller is oc-docs-forge before oc-repo-ops verify, as a hint listing the parts a body is missing, never a block.",
+      "threshold": 0.5
     },
     "J9": {
       "caller": "candidate: plugins/ow-tools transcript step, listing spans only; no ow- skill text changes",

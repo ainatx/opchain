@@ -42,7 +42,7 @@ Status: **shadow** runs in production and logs; **eval** has a gold set and a co
 | J5 | Feedback triage on `POST /api/feedback`: bug / improvement / security / general / roadmap | Choice | planned | the Worker; needs the key as a Worker secret and its own design | — |
 | J6 | Hindsight relevance: does lesson L apply to situation X | Noul per lesson | planned | `oc-hindsight` retrieval, as a reranker over the lexical hits | — |
 | J7 | Commit gate: does the commit message describe the diff | Noul | no | the gate is offline and deterministic by design; a network call in `pre-commit` is a new failure mode, not a check | — |
-| J8 | PR docs packet completeness: does the body cover the change | Noul per section | planned | `oc-docs-forge` → `oc-repo-ops verify`, eval first | — |
+| J8 | PR docs packet completeness: does the body cover the change | Noul per section (what, why, verify) | eval | `oc-docs-forge` → `oc-repo-ops verify`, eval first; 2026-10-28 live 36/38 (runbook §7) | `tests/fixtures/jev/J8` from nine merged PR bodies |
 | J9 | Embedded instructions in a client file: is this span addressed to an AI, a reviewer or a scorer, or asking for an action | Noul over `{ text }` | eval | a candidate for the ow-tools add-on's transcript step, listing spans under the "Possible embedded instructions" heading the protocol already requires; the skill text stays the authority | `tests/fixtures/jev/J9`, synthetic |
 
 Two rules fall out of the investigation and hold for every row:
@@ -58,7 +58,7 @@ Two rules fall out of the investigation and hold for every row:
 | 3 | J1 spec-copy fixes from audit §4, re-run the 574-row offline set; the day-8 shadow re-run | 2026-10-26: spec `+route4`, J1 27/27 live ×5, offline unchanged, day 8 NO-GO on volume and labels (`docs/audits/2026-10-26-jev-day8-and-route4.md`) | §2 (the J1 gold set is the regression check) |
 | 4 | J2 as a third scorer in `route-eval outcomes` (`--judge jev`): agreement with the hand labels on the 63 labelled rows before it is trusted on unlabelled ones | 2026-10-27: built, report-only; live 14/21 labelled suggestions vs the proxy's 18/21, so not trusted on unlabelled rows (runbook §7) | §2, a live run with the owner's key |
 | 5 | J9 in ow-tools: a `--jev` option on the transcript step that lists spans, nothing else; protocol text untouched | ow-tools PR, after S6 (one real workstream) | §2, owner decision |
-| 6 | J5, J6, J8 designs | separate design docs | evidence from §3–§5 |
+| 6 | J5, J6, J8 designs | 2026-10-28: J8 built as an eval use (`route-eval jev J8`, 38-row gold set, live 36/38); J5 and J6 still design-only | evidence from §3–§5 |
 
 ## 5. Acceptance for §2
 

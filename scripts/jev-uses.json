@@ -75,10 +75,23 @@
     },
     "J8": {
       "name": "PR docs packet completeness",
-      "status": "planned",
+      "status": "eval",
       "kind": "noul",
-      "summary": "Does the PR body cover each part of the change (what, why, how to verify, what is left)? One Noul per section, run by oc-docs-forge before oc-repo-ops verify.",
-      "reason": "Eval first: a gold set of past PR bodies with the sections a reviewer asked for."
+      "summary": "Does the PR body cover one part of the change: what it changes, why, or how it was checked? One Noul per part, asked with that part's definition. Eval first; the candidate caller is oc-docs-forge before oc-repo-ops verify, as a hint listing the parts a body is missing, never a block.",
+      "caller": "candidate: oc-docs-forge /oc-docs pr, before oc-repo-ops verify (hint only); today only `route-eval jev J8`",
+      "state": ["section", "change", "body"],
+      "gold": "tests/fixtures/jev/J8/gold.jsonl",
+      "threshold": 0.5,
+      "question": {
+        "criterion": "`change` is a pull request's title and the files it touches, with lines added and removed. `body` is the pull request description a reviewer reads. `section` names one part a reviewer needs, defined in `section_definition`. The body covers that part for this change: a reviewer could answer it from the body alone, without opening the diff. A heading with nothing specific under it, or a claim too vague to check, does not count.",
+        "true": "Yes: the body covers this part of the change specifically enough for a reviewer.",
+        "false": "No: the body leaves this part out, or covers it too vaguely to use."
+      },
+      "sections": {
+        "what": "What the change does: which files, commands, behaviour or values change, specifically enough to check against the diff.",
+        "why": "Why the change is made: the problem, failure, decision or request it answers. Restating what changed is not a reason.",
+        "verify": "How the change was checked: tests, commands or manual checks that were run and what they showed, or steps a reviewer can follow to check it. Adding tests without saying they were run does not count."
+      }
     },
     "J9": {
       "name": "Embedded instructions in a client file",

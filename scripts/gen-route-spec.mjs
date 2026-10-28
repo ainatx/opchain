@@ -251,7 +251,8 @@ const USE_ID_RE = /^J[1-9][0-9]*$/;
  * registry fields; a `router` use gains the router's gates, rules, `none` and
  * `unspecified` texts, thresholds and core list; a use with a `question` gains
  * the API-shaped Noul (or Choice) question; J2-style `steps` become per-skill
- * `skills` entries (displayName, index, steps) over every routable skill.
+ * `skills` entries (displayName, index, steps) over every routable skill;
+ * J8-style `sections` (name → definition) pass through whitespace-collapsed.
  */
 export function buildJevQuestions({ spec, usesPath = DEFAULT_USES, routerPath = ROUTER_MODULE, root = ROOT } = {}) {
   const problems = [];
@@ -316,6 +317,11 @@ export function buildJevQuestions({ spec, usesPath = DEFAULT_USES, routerPath = 
       }
     } else if (use.question) problems.push(`jev-uses: ${id} is kind none and carries a question`);
 
+    if (use.sections !== undefined) {
+      const bad = !use.sections || typeof use.sections !== "object" || Array.isArray(use.sections) || !Object.keys(use.sections).length;
+      if (bad || Object.values(use.sections).some((v) => typeof v !== "string" || !v.trim())) problems.push(`jev-uses: ${id} sections must be an object of name → definition`);
+      else out.sections = Object.fromEntries(Object.entries(use.sections).map(([k, v]) => [k, v.replace(/\s+/g, " ").trim()]));
+    }
     if (use.steps !== undefined) {
       if (!use.steps || typeof use.steps !== "object" || Array.isArray(use.steps)) problems.push(`jev-uses: ${id} steps must be an object of skill → [skills]`);
       else {
