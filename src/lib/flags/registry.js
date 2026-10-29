@@ -381,6 +381,15 @@ const DEFINITIONS = [
       "Emit Content-Security-Policy in enforce mode. Disabling falls back to Report-Only for CSP-tuning windows.",
   },
   {
+    name: "platform.security.feedback-triage",
+    type: "boolean",
+    default: false,
+    category: "permission",
+    owner: "platform",
+    description:
+      "Jev J5 on /api/feedback's public roadmap path: when on and TYPESAFE_API_KEY is set, the title and description go to TypeSafe first and a likely security report is filed privately in Linear instead of as a public GitHub issue. Any failure keeps the form's path.",
+  },
+  {
     name: "platform.security.rate-limit-feedback",
     type: "boolean",
     default: false,

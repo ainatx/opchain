@@ -28,7 +28,10 @@
 //   · A transport is `async (body) → response JSON`. fixtureTransport is the
 //     test seam; nothing in tests reaches the network.
 
-const fs = require("fs");
+// Only the fixture transport reads files, so fs loads on first use: the Worker
+// bundles this client for J5 (src/lib/feedback-triage.js) and never calls it.
+let fsModule = null;
+const fs = () => (fsModule ??= require("node:fs"));
 
 const DEFAULT_ENDPOINT = "https://api.typesafe.ai/v1/systemone";
 const DEFAULT_MODEL = "jev-1.13.0";
@@ -170,13 +173,13 @@ function httpTransport({
  * both requests.
  */
 function fixtureTransport(fixture, { captureFile } = {}) {
-  const data = typeof fixture === "string" ? JSON.parse(fs.readFileSync(fixture, "utf8")) : fixture;
+  const data = typeof fixture === "string" ? JSON.parse(fs().readFileSync(fixture, "utf8")) : fixture;
   return async function transport(body) {
     // captureFile (hook: OPCHAIN_ROUTE_TRANSPORT_CAPTURE) records every outgoing
     // body as JSONL so tests can see exactly what would have been sent.
     if (captureFile) {
       try {
-        fs.appendFileSync(captureFile, JSON.stringify(body) + "\n");
+        fs().appendFileSync(captureFile, JSON.stringify(body) + "\n");
       } catch {
         /* capture is a test aid */
       }

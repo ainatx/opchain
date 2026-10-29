@@ -19,6 +19,7 @@ import { FeedbackSchema, NotifySchema, parseBody } from "./lib/schemas.js";
 import { capture, hashDistinctId } from "./lib/analytics.js";
 import { bindLogger, newRequestId, EVENTS } from "./lib/request-id.js";
 import { evalFlag, evalFlags } from "./lib/flags/eval.js";
+import { TRIAGE_FLAG, triageFeedback } from "./lib/feedback-triage.js";
 import { ensureOcId } from "./lib/flags/identity.js";
 import { FLAG_NAMES, FLAGS, PUBLIC_FLAG_NAMES } from "./lib/flags/registry.js";
 import { createMcpServer, MAX_CHECKPOINT_BYTES } from "./lib/mcp/server.js";
@@ -210,8 +211,10 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
     // Roadmap community-submission field. Presence → community mode.
     category,
   } = parsed.data;
-  const isSecurity = type === "security";
+  let isSecurity = type === "security";
   const isCommunity = !!category && !isSecurity;
+  // Set when J5 diverts a roadmap request to the private security path.
+  let triage = null;
 
   // Staging (and any env with the api-feedback kill flag on) accepts the
   // submission, logs it, and returns a synthetic 201 without calling
@@ -240,7 +243,10 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
   if (isCommunity) {
     // Roadmap requests become public GitHub issues, so never forward contact
     // information from the shared feedback payload to that write path.
-    return handleRoadmapRequest(request, env, ctx, log, origin, requestId, { type, title, description, category });
+    const res = await handleRoadmapRequest(request, env, ctx, log, origin, requestId, { type, title, description, category });
+    if (!res.divert) return res;
+    triage = res.divert;
+    isSecurity = true;
   }
 
   if (!env.LINEAR_API_KEY) {
@@ -255,7 +261,8 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
   // Label resolution. Security disclosures prefer a dedicated label
   // (configurable via env.LINEAR_SECURITY_LABEL_ID); regular feedback
   // uses the static LABEL_MAP entry. Empty → no label, never blocks.
-  let labelIds = LABEL_MAP[type] ? [LABEL_MAP[type]] : [];
+  const filedType = isSecurity ? "security" : type;
+  let labelIds = LABEL_MAP[filedType] ? [LABEL_MAP[filedType]] : [];
   if (isSecurity && env.LINEAR_SECURITY_LABEL_ID) {
     labelIds = [env.LINEAR_SECURITY_LABEL_ID];
   }
@@ -281,6 +288,7 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
     descParts.push(`## Affected component\n\n${component || "_Not provided._"}`);
     descParts.push(`## Reproduction\n\n${reproduction || "_Not provided._"}`);
     descParts.push(`## Impact\n\n${impact || "_Not provided._"}`);
+    if (triage) descParts.push(`## Triage\n\nSent through the public roadmap form as \`${type}\` (category \`${category}\`) and filed here instead of as a public GitHub issue: Jev J5 read it as a likely security report (p(security) ${triage.pSecurity}, top option \`${triage.choice}\`). The reporter did not choose "security"; check before treating it as a disclosure.`);
     if (description) descParts.push(`## Additional notes\n\n${description}`);
   } else if (description) {
     descParts.push(description);
@@ -327,7 +335,7 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
 
   if (linearData.data?.issueCreate?.success) {
     const issue = linearData.data.issueCreate.issue;
-    log.event(EVENTS.FEEDBACK_SUBMITTED, { type, priority: linearPriority, skill: skill || null, issue: issue.identifier });
+    log.event(EVENTS.FEEDBACK_SUBMITTED, { type: filedType, priority: linearPriority, skill: skill || null, issue: issue.identifier, ...(triage ? { diverted_from: type } : {}) });
     if (email) {
       try {
         const distinctId = await hashDistinctId(email);
@@ -340,8 +348,9 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
         log.warn("analytics error:", e.message);
       }
     }
+    // A diverted reporter gets no link: the Linear issue is private.
     return new Response(
-      JSON.stringify({ ok: true, id: issue.identifier, url: issue.url }),
+      JSON.stringify(triage ? { ok: true, id: issue.identifier, url: null, routed: "security" } : { ok: true, id: issue.identifier, url: issue.url }),
       { status: 201, headers: corsHeaders(origin, requestId) },
     );
   }
@@ -382,6 +391,11 @@ async function handleRoadmapRequest(request, env, ctx, log, origin, requestId, {
       expirationTtl: ROADMAP_REQUEST_RATELIMIT_TTL_S,
     });
   }
+
+  // J5 runs after the rate limit, so a flood costs no Jev calls. A likely
+  // security report returns { divert } and handleFeedback files it privately.
+  const triage = await triagePublicFeedback(env, ctx, log, { title, description });
+  if (triage?.security) return { divert: triage };
 
   if (!env.ROADMAP_GITHUB_TOKEN) {
     return new Response(
@@ -434,6 +448,20 @@ async function handleRoadmapRequest(request, env, ctx, log, origin, requestId, {
     JSON.stringify({ error: "Failed to create issue.", code: "upstream_error" }),
     { status: 500, headers: corsHeaders(origin, requestId) },
   );
+}
+
+/** J5 on the public path, or null when it is off, unkeyed or fails (the form's path stands). */
+async function triagePublicFeedback(env, ctx, log, fields) {
+  if (!env.TYPESAFE_API_KEY) return null;
+  if (!(await evalFlag(TRIAGE_FLAG, { env, ctx }))) return null;
+  try {
+    const t = await triageFeedback(fields, { apiKey: env.TYPESAFE_API_KEY });
+    log.event(EVENTS.FEEDBACK_TRIAGED, { use: "J5", security: t.security, choice: t.choice, p_security: t.pSecurity });
+    return t;
+  } catch (e) {
+    log.eventError(EVENTS.UPSTREAM_FAILED, { upstream: "typesafe", reason: "triage_failed", message: e.message });
+    return null;
+  }
 }
 
 // ── Notify (install/download soft-gate capture) ─────────────────────────────

@@ -274,6 +274,7 @@ Template lives in `.env.example`. Copy to `.dev.vars` for local dev; set in the 
 - `LINEAR_API_KEY` — Linear API key for `POST /api/feedback` (bug/improvement/security/general tickets only — roadmap feature requests go to GitHub instead, see below)
 - `LINEAR_TEAM_ID`, `LINEAR_PROJECT_ID` — optional overrides for the default team/project
 - `ROADMAP_GITHUB_TOKEN` — fine-grained PAT scoped to `issues:write` on `asfbay-bit/opchain-skills`. Used by `POST /api/feedback`'s roadmap community-request path (RoadmapForm.astro) to create a GitHub issue instead of a Linear ticket. Unset → that path 503s `not_configured`; everything else on `/api/feedback` (and the read-only `gen-roadmap.mjs` pull) is unaffected. Separate from `MIRROR_TOKEN` (least-privilege — that one only needs `contents:write`).
+- `TYPESAFE_API_KEY` — optional Worker secret for Jev J5 feedback triage. Only read when the `platform.security.feedback-triage` flag (default off) is also on: a roadmap request is then checked before it becomes a public GitHub issue, and a likely security report is filed privately in Linear instead. Any TypeSafe failure keeps the form's path. Setting it mints a new deployment (see the Canary note above).
 - `POSTHOG_PROJECT_API_KEY`, `POSTHOG_HOST` — server-side analytics capture. Env-gated; unset → no-op.
 - `PUBLIC_POSTHOG_KEY`, `PUBLIC_POSTHOG_HOST` — client-side PostHog (consent-gated via `ConsentBanner.astro`).
 

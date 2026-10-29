@@ -588,9 +588,27 @@ First live run (2026-10-29, `jev-1.13.0`, three runs, same predictions):
 off security, about 580 input tokens per call. The two misses: the privacy
 question reaches p(security) 0.37–0.44 (over 0.3, under 0.5), and a typo
 splits bug 0.34 / improvement 0.63. Every security report scored
-p(security) 1.00 and every other decoy 0.00. J5 is **eval**: wiring it into the
-Worker needs the key as a Worker secret, a `/privacy` line saying feedback
-text goes to TypeSafe, and the owner's go.
+p(security) 1.00 and every other decoy 0.00.
+
+**In the Worker (2026-10-29, off by default).** `src/lib/feedback-triage.js`
+asks the registry's J5 question from `handleRoadmapRequest`, after its per-IP
+rate limit, so a flood costs no calls. It runs only when the
+`platform.security.feedback-triage` flag is on **and** the `TYPESAFE_API_KEY`
+Worker secret is set; the private Linear types are never triaged. When
+p(security) ≥ 0.3 the request is filed in Linear as `[SECURITY]` with a
+`## Triage` section naming the form type, category and p, and the reporter
+gets `{ ok, id, url: null, routed: "security" }`, so no link to a private issue.
+A TypeSafe error or timeout (2.5 s) logs `upstream_failed` and keeps the
+public path. Every call logs `feedback_triaged` with the choice and p.
+`/privacy` says what is sent. To turn it on:
+
+```bash
+npx wrangler secret put TYPESAFE_API_KEY --name opchain-staging   # staging first
+# then FLAG_PLATFORM_SECURITY_FEEDBACK_TRIAGE=true (wrangler var) or the PostHog flag
+```
+
+A secret put mints a deployment, so refresh the Canary baseline afterwards
+(`docs/runbooks/cloudflare-challenge.md` → "Secret changes").
 
 ## Tests
 
