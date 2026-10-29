@@ -123,6 +123,22 @@ describe("POST /api/feedback roadmap path with J5", () => {
     }
   });
 
+  it("on a dry run (staging) reports what J5 would have done and files nothing", async () => {
+    fetchMock.mockResolvedValueOnce(jevAnswer(SECURITY));
+    const res = await worker.fetch(post(VOTES_BYPASS), env({ ...ON, FEEDBACK_DRY_RUN: "true" }));
+    expect(res.status).toBe(201);
+    expect(await res.json()).toEqual({ ok: true, id: "STAGING-DRY-RUN", url: null, dryRun: true, triage: { security: true, choice: "security", p_security: 1, would_file: "linear-security" } });
+    expect(urls()).toEqual([TYPESAFE]);
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValueOnce(jevAnswer(FEATURE));
+    expect((await (await worker.fetch(post(VOTES_BYPASS), env({ ...ON, FEEDBACK_DRY_RUN: "true" }))).json()).triage).toMatchObject({ security: false, would_file: "github" });
+    // Flag off: the dry run is unchanged and makes no call.
+    fetchMock.mockReset();
+    const off = await worker.fetch(post(VOTES_BYPASS), env({ FEEDBACK_DRY_RUN: "true" }));
+    expect(await off.json()).toEqual({ ok: true, id: "STAGING-DRY-RUN", url: null, dryRun: true });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("never triages the private Linear types", async () => {
     fetchMock.mockResolvedValueOnce(linearOk());
     const res = await worker.fetch(post({ type: "bug", title: "Install link 404s", description: "The zip link 404s." }), env(ON));

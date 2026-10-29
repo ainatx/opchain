@@ -227,12 +227,19 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
   const dryRun = env.FEEDBACK_DRY_RUN === "true"
     || (await evalFlag("site.ops.api-feedback.kill", { env, ctx }));
   if (dryRun) {
+    // J5 still runs on a dry-run roadmap request, so staging can test it:
+    // the response and the log say what it would have done; nothing is filed.
+    const dryTriage = isCommunity ? await triagePublicFeedback(env, ctx, log, { title, description }) : null;
+    const wouldFile = dryTriage?.security ? "linear-security" : isCommunity ? "github" : "linear";
     log.event(EVENTS.FEEDBACK_SUBMITTED, {
       type, priority: PRIORITY_MAP[priority] ?? 0,
-      skill: skill || null, issue: "STAGING-DRY-RUN", dry_run: true,
+      skill: skill || null, issue: "STAGING-DRY-RUN", dry_run: true, would_file: wouldFile,
     });
     return new Response(
-      JSON.stringify({ ok: true, id: "STAGING-DRY-RUN", url: null, dryRun: true }),
+      JSON.stringify({
+        ok: true, id: "STAGING-DRY-RUN", url: null, dryRun: true,
+        ...(dryTriage ? { triage: { security: dryTriage.security, choice: dryTriage.choice, p_security: dryTriage.pSecurity, would_file: wouldFile } } : {}),
+      }),
       { status: 201, headers: corsHeaders(origin, requestId) },
     );
   }
