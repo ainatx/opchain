@@ -1,23 +1,23 @@
 {
-  "id": "oc-docs-forge-pr-docs-v1-05ba28fae664",
+  "id": "oc-docs-forge-pr-docs-v1-ef6f0cda9f3e",
   "contract_version": "1.0",
   "type": "verification.verdict",
-  "created_at": "2026-10-29T18:01:44.923Z",
-  "verified_at": "2026-10-29T18:01:44.923Z",
+  "created_at": "2026-10-29T19:25:39.291Z",
+  "verified_at": "2026-10-29T19:25:39.291Z",
   "producer": {
     "skill": "oc-docs-forge",
-    "run_id": "pr-docs-v1-2026-10-29T18:01:44.923Z"
+    "run_id": "pr-docs-v1-2026-10-29T19:25:39.291Z"
   },
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:05ba28fae664b62c9ff5c6b42cb514853dc3ed44a7930c5f62456d83901a120a"
+    "id": "sha256:ef6f0cda9f3e4c86d1fb19789499128842057e3f58c59720e1c2b87478e740e3"
   },
   "payload": {
     "verdict": "PASS",
     "policy": "pr-docs-v1",
-    "scope": "J5 Worker + J8 skill hint: /privacy Roadmap requests line, CLAUDE.md + .env.example TYPESAFE_API_KEY, runbook §7 In the Worker, plan J5 row, oc-docs-forge SKILL.md hint step, CHANGELOG [Unreleased] (synced)",
+    "scope": "J5 Worker + J8 hint + staging dry-run triage",
     "evidence": [
-      "site/src/pages/privacy.astro; CLAUDE.md; .env.example; docs/runbooks/skill-router-eval.md; docs/plans/2026-10-24-jev-integration-plan.md; skills/oc-docs-forge/SKILL.md; skills/CHANGELOG.md"
+      "runbook §7 dry-run note; verify-candidate PASS"
     ]
   }
 }
