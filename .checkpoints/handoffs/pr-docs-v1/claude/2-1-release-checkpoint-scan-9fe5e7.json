@@ -1,0 +1,23 @@
+{
+  "id": "oc-docs-forge-pr-docs-v1-821a7e6ad4e8",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-10-29T21:21:23.273Z",
+  "verified_at": "2026-10-29T21:21:23.273Z",
+  "producer": {
+    "skill": "oc-docs-forge",
+    "run_id": "pr-docs-v1-2026-10-29T21:21:23.273Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:821a7e6ad4e8a39e19dc9c80ff40bff533f013f7a7236d8365464a3e5a8434b2"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-docs-v1",
+    "scope": ".checkpoints/oc-release-ops.checkpoint.json, sprints/release-2.1/ow-family-sprint-plan.md",
+    "evidence": [
+      "Docs-only change rebased on main ac2014cc: the oc-release-ops checkpoint (step v2.1.0-coordination) and a dated owner-decision section in the 2.1 sprint plan; no README, CHANGELOG, runbook or SKILL.md needs to change; PR body carries the Documentation section"
+    ]
+  }
+}
