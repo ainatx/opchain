@@ -21,7 +21,9 @@ await build({
   outdir: "dist",
   format: "esm",
   target: "esnext",
-  external: [],
+  // node: builtins stay external; jev-client.cjs requires node:fs lazily for
+  // its fixture transport, which the Worker never calls (nodejs_compat).
+  external: ["node:*"],
   conditions: ["workerd", "worker", "browser"],
   define: {
     __OPCHAIN_VERSION__: JSON.stringify(version),
