@@ -15,6 +15,13 @@ checkpoint `protocol_version` is tracked separately (see
 
 ### Added
 
+- **J5 in the Worker, J8 in `/oc-docs pr` (plan §6, 2026-10-29).** With
+  `platform.security.feedback-triage` on (default off) and the
+  `TYPESAFE_API_KEY` Worker secret set, a roadmap request that J5 reads as a
+  likely security report is filed privately in Linear instead of as a public
+  GitHub issue; any failure keeps the public path, and `/privacy` says what is
+  sent. oc-docs-forge gains an optional, never-blocking `jev J8 --pr` hint
+  after the PR opens.
 - **Jev use J5, feedback triage, and `jev J8 --pr` (plan §6, 2026-10-29).**
   J5 is the first Choice use: it picks bug, improvement, feature, security or
   general from a feedback submission's text, with security winning at

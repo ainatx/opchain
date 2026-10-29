@@ -83,6 +83,14 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
           way to reply.
         </li>
         <li>
+          <strong>Roadmap requests</strong> become public GitHub issues. When
+          security triage is switched on, the title and description of a
+          roadmap request (never your email) are first sent to TypeSafe
+          (<code>api.typesafe.ai</code>), after credential-shaped text is
+          redacted, to check whether it is really a security report. If it
+          is, it is filed privately in Linear instead of being published.
+        </li>
+        <li>
           <strong>Visitor identifier.</strong> The <code>oc_id</code> cookie
           is a random UUID retained for one year so feature-flag rollouts stay
           consistent in the same browser. It is not used for advertising.

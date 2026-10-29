@@ -1,0 +1,23 @@
+{
+  "id": "oc-docs-forge-pr-docs-v1-c08d9448288a",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-10-29T19:55:47.947Z",
+  "verified_at": "2026-10-29T19:55:47.947Z",
+  "producer": {
+    "skill": "oc-docs-forge",
+    "run_id": "pr-docs-v1-2026-10-29T19:55:47.947Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:c08d9448288acde1e33693be52ea09878a6b12004bb867218a3c3458a4af40de"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-docs-v1",
+    "scope": "J5 Worker + J8 hint + staging dry-run triage, merged with main (CLAUDE.md)",
+    "evidence": [
+      "verify-candidate PASS on the merged tree"
+    ]
+  }
+}

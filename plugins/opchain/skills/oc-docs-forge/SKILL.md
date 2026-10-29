@@ -112,6 +112,14 @@ contracts, screenshots, release surfaces, skill catalogs, or user workflows,
 Docs Forge must either update the owning doc file or put a precise follow-up in
 the PR body/comment. "No docs needed" is valid only with evidence.
 
+Optional Jev hint, once the PR is open: where `scripts/route-eval.mjs` exists
+and `TYPESAFE_API_KEY` is set, run
+`node scripts/route-eval.mjs jev J8 --pr <number>`. It sends the PR title, file
+list and body (redacted) to TypeSafe and prints which of what, why and verify
+the body does not cover. For each MISSING part, add it to the body or say in
+the body why it does not apply. It is a hint, never a gate: skip it silently
+when the script or the key is absent, and never fail the packet on it.
+
 ## `/oc-docs readme`
 
 Refresh README and catalog docs from source of truth, not by hand-copying stale
