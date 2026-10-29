@@ -1,20 +1,20 @@
 {
-  "id": "oc-docs-forge-pr-docs-v1-fccd5c010457",
+  "id": "oc-docs-forge-pr-docs-v1-b08c1e1c4b9a",
   "contract_version": "1.0",
   "type": "verification.verdict",
-  "created_at": "2026-10-29T21:47:30.965Z",
-  "verified_at": "2026-10-29T21:47:30.965Z",
+  "created_at": "2026-10-29T23:19:13.582Z",
+  "verified_at": "2026-10-29T23:19:13.582Z",
   "producer": {
     "skill": "oc-docs-forge",
-    "run_id": "pr-docs-v1-2026-10-29T21:47:30.965Z"
+    "run_id": "pr-docs-v1-2026-10-29T23:19:13.582Z"
   },
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:fccd5c0104571e2c8f4285c17e07a8beb1d33b75c3bf097f9aefd9a191875338"
+    "id": "sha256:b08c1e1c4b9a46ef0e2af34ca36bac304483d24e9470fc14c292048a7d72fc17"
   },
   "payload": {
     "verdict": "PASS",
     "policy": "pr-docs-v1",
-    "scope": "docs-only: Track S scope-drift audit (docs/audits/2026-10-29-track-s-scope-drift.md); PR body carries the Documentation section; rebound after merging main (#665)"
+    "scope": "Track S scope-drift audit docs PR (#667): audit document only, no site or skill changes; rebound after merging origin/main 812aea40"
   }
 }
