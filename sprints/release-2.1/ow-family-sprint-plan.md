@@ -27,7 +27,7 @@ Every sprint is named **workstream prefix + two-digit number**, and the number i
 | OW-04 | Sprint 3 | A | ow-uat 1.0.0 | passed round 3 (7.8); landing |
 | OW-05 | Sprint 3b | A | ow-documentation 1.0.0 | not started |
 | OW-06 | Sprint 4 | A | ow-handoff 1.0.0 | not started |
-| OW-07 | Sprint 4b | A | ow-care 1.0.0 | not started |
+| OW-07 | Sprint 4b | A | ow-care 1.0.0 | salvage from #652 (owner, 2026-10-29) |
 | OW-08 | Sprint L | B | ow-start 1.1.0 logs | done (#624, follow-up #626 → 1.1.1; ow-tools 1.1.2 hook) |
 | OW-09 | Sprint R | B | ow-research 1.0.0 | built; security fixes before evaluation |
 | OW-10 | Sprint D | B | ow-draft 1.0.0 | not started |
@@ -59,6 +59,16 @@ Every sprint is named **workstream prefix + two-digit number**, and the number i
 ## Scope and process change (owner, 2026-10-22)
 
 **Scope.** OW-11 (ow-vendor-eval 1.0.0) moves to v2.2, with the amendments that were to land with it: P6 (ow-build-plan's vendor selection) and S2 (ow-start's `quote: vendor-eval`). Its design stays approved and waits for 2.2. The release now ships nine ow- skills: ow-start, ow-build-plan, ow-build, ow-uat, ow-documentation, ow-handoff, ow-research, ow-care and ow-draft, plus the ow-tools add-on. ow-research 1.0.2 handles its hand-off as ow-currency's was handled on 2026-10-19: the screen prints only the absent-case line (`NEXT: none`), with no NEXT line, no `say:` hand-off row and no declared verb until ow-vendor-eval ships. Track S's `/work` section covers the nine 2.1 skills. OW-11's finished build is kept as a patch outside the repository for v2.2.
+
+## Scope and process change (owner, 2026-10-29)
+
+**Coordination.** The "2.1 release checkpoint scan" session is the single master coordinator for the release from 2026-10-29; every other 2.1 session was told to stop. State on that date: eight of the nine ow- skills and ow-tools 1.3.0 are on `main`; Track E's product half and Jev plan §2–§6 are merged; OW-07, REL-01, REL-02, WEB-01 – WEB-05 (the held #620 is 28 commits behind `main`), EN-01's record, EN-02's re-run and EN-03 remain. Measured time since the 2.1 plan (2026-09-27): about 89.5h of active Claude wall-clock on opchain, 68.7h of it since the ow- designs began on 2026-10-06.
+
+**OW-07.** ow-care 1.0.0 is salvaged from the Codex draft PR #652 (which also carries the de-scoped ow-vendor-eval and is not merged as a whole) into a fresh branch off `main`, with the family edge checks and one evaluation round, instead of a rebuild from the OW-07 contract (about 2–3h instead of 5.5–6.5h).
+
+**REL-02.** Real use before the tag is a real-model acceptance run per skill plus real jobs for ow-start, ow-build-plan and ow-draft only (about 6–8h owner instead of 14–22h). The changelog states what was run. The other skills' real jobs follow the tag.
+
+**Effect.** Remaining Claude work is about 70–75h by the plan's realistic figures once the Track S scope-drift audit (`docs/audits/2026-10-29-track-s-scope-drift.md`, 38 items, about 43.5h) replaces the plan's 8h site figure; owner work about 15–20h. Ready-to-tag is estimated for about 2026-11-20 at the recent pace, set by the site work, EN-02's re-run (about 2026-10-30) and the three real jobs.
 
 ## Where we start (2026-10-14)
 
