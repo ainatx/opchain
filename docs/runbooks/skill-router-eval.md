@@ -470,7 +470,12 @@ TYPESAFE_API_KEY=… npm run route:eval -- jev J9                    # live, aga
   fields, and thresholds the probability (the use's `threshold`, or
   `--threshold`). J2 adds the suggested skill's description and its own steps
   to the instructions; J8 adds the definition of the row's `section`.
+- A **Choice** use (J5 feedback triage) takes the top option, except that its
+  `positive` option wins whenever that option's own probability reaches the
+  threshold. Precision and recall are on the positive option; its rows carry
+  every option's probability so canned answers reproduce the run.
 - Gold rows are JSONL: `{ id, prompt, expected: <skill>|"none" }` for J1,
+  `{ id, <state fields>, expected: <option> }` for a Choice use,
   `{ id, <state fields>, expected: true|false }` otherwise. Canned answers are
   keyed by row id; a row with no entry is an **error row**, never a guess, and
   is left out of accuracy. An explicit `/oc-*` mention routes at p=1 without a
@@ -539,6 +544,53 @@ ran (p 0.55), and #589 without its Summary keeps the title's "review … 2.1.286
 leaves out (p ≤ 0.06). J8 is **eval**: the candidate caller is
 `/oc-docs pr`, as a hint naming the parts a body is missing, before
 `oc-repo-ops verify`; it is not wired in yet.
+
+On a live pull request (a hint, never a gate):
+
+```bash
+TYPESAFE_API_KEY=… npm run route:eval -- jev J8 --pr 592 --repo ainatx/opchain
+npm run route:eval -- jev J8 --pr-json tests/fixtures/jev/J8/pr-592.json \
+  --fixture tests/fixtures/jev/J8/pr-592-answers.json            # offline
+```
+
+It reads the PR with `gh pr view --json number,title,body,files`, builds the
+three rows in the gold set's shape and prints each part as covered or MISSING
+with its p. Exit 0, or 1 when a call failed. On 2026-10-29 #662 covered all
+three (why at p 0.56); Dependabot's #592 was missing verify (0.03) and why
+(0.15).
+
+### J5: feedback triage, the first Choice use
+
+```bash
+TYPESAFE_API_KEY=… npm run route:eval -- jev J5
+npm run route:eval -- jev J5 --fixture tests/fixtures/jev/J5/answers.json
+```
+
+J5 reads a `/api/feedback` submission's `title` and `description` and picks
+bug, improvement, feature, security or general from the text, whatever the
+form said. The class that matters is **security**: `handleFeedback` sends a
+roadmap request (`category` set) to a public GitHub issue, so a vulnerability
+report sent through the roadmap form is published. J5's `positive` is
+`security` at threshold 0.3: a privacy question sent to the private queue
+costs little, a published exploit costs a lot.
+
+The gold set is 24 synthetic submissions: 5 bug, 4 improvement, 4 feature, 4
+general and 7 security. The seven security rows are
+security reports written casually (spoofed contact email, a key in the zip,
+a vote-dedup bypass sent as a roadmap idea, stored XSS, code execution from a
+checkpoint, IDOR, path traversal). Five are decoys that name security, secrets
+or privacy without reporting a hole (a crash in `/oc-security`, a security
+feature request, a key-rotation reminder request, a privacy-page typo, a
+privacy question).
+
+First live run (2026-10-29, `jev-1.13.0`, three runs, same predictions):
+22/24, security precision 0.875, recall 1.000, 16/17 non-security rows kept
+off security, about 580 input tokens per call. The two misses: the privacy
+question reaches p(security) 0.37–0.44 (over 0.3, under 0.5), and a typo
+splits bug 0.34 / improvement 0.63. Every security report scored
+p(security) 1.00 and every other decoy 0.00. J5 is **eval**: wiring it into the
+Worker needs the key as a Worker secret, a `/privacy` line saying feedback
+text goes to TypeSafe, and the owner's go.
 
 ## Tests
 

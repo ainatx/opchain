@@ -15,6 +15,12 @@ checkpoint `protocol_version` is tracked separately (see
 
 ### Added
 
+- **Jev use J5, feedback triage, and `jev J8 --pr` (plan §6, 2026-10-29).**
+  J5 is the first Choice use: it picks bug, improvement, feature, security or
+  general from a feedback submission's text, with security winning at
+  p ≥ 0.3 because roadmap requests become public issues. 24 synthetic rows,
+  live 22/24, every security report caught. `route-eval jev J8 --pr <n>`
+  prints which parts of a live PR body are missing. Both are eval only.
 - **Jev use J8, PR docs completeness (plan §6, 2026-10-28).** `route-eval jev
   J8` asks, per PR body, whether it covers what the change does, why, and how
   it was checked. A 38-row gold set from nine merged PR bodies scores 36/38

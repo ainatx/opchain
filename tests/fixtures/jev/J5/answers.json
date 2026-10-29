@@ -1,0 +1,482 @@
+{
+  "j5-01": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "bug",
+        "probabilities": {
+          "bug": 1,
+          "feature": 0,
+          "general": 0,
+          "improvement": 0,
+          "security": 0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 577,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-02": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "bug",
+        "probabilities": {
+          "bug": 1,
+          "feature": 0,
+          "general": 0,
+          "improvement": 0,
+          "security": 0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 582,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-03": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "bug",
+        "probabilities": {
+          "bug": 1,
+          "feature": 0,
+          "general": 0,
+          "improvement": 0,
+          "security": 0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 578,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-04": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "bug",
+        "probabilities": {
+          "bug": 1,
+          "feature": 0,
+          "general": 0,
+          "improvement": 0,
+          "security": 0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 572,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-05": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "improvement",
+        "probabilities": {
+          "bug": 0,
+          "feature": 0,
+          "general": 0,
+          "improvement": 1,
+          "security": 0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 575,
+      "output_tokens": 57
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-06": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "improvement",
+        "probabilities": {
+          "bug": 0,
+          "feature": 0.21,
+          "general": 0,
+          "improvement": 0.79,
+          "security": 0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 578,
+      "output_tokens": 57
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-07": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "improvement",
+        "probabilities": {
+          "bug": 0.11,
+          "feature": 0,
+          "general": 0,
+          "improvement": 0.89,
+          "security": 0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 580,
+      "output_tokens": 57
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-08": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "improvement",
+        "probabilities": {
+          "bug": 0.16,
+          "feature": 0,
+          "general": 0,
+          "improvement": 0.84,
+          "security": 0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 571,
+      "output_tokens": 57
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-09": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "feature",
+        "probabilities": {
+          "bug": 0,
+          "feature": 1,
+          "general": 0,
+          "improvement": 0,
+          "security": 0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 573,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-10": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "feature",
+        "probabilities": {
+          "bug": 0,
+          "feature": 1,
+          "general": 0,
+          "improvement": 0,
+          "security": 0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 572,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-11": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "feature",
+        "probabilities": {
+          "bug": 0,
+          "feature": 0.95,
+          "general": 0.05,
+          "improvement": 0,
+          "security": 0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 571,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-12": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "feature",
+        "probabilities": {
+          "bug": 0,
+          "feature": 1,
+          "general": 0,
+          "improvement": 0,
+          "security": 0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 571,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-13": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "general",
+        "probabilities": {
+          "bug": 0,
+          "feature": 0,
+          "general": 1,
+          "improvement": 0,
+          "security": 0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 566,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-14": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "general",
+        "probabilities": {
+          "bug": 0,
+          "feature": 0,
+          "general": 1,
+          "improvement": 0,
+          "security": 0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 569,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-15": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "general",
+        "probabilities": {
+          "bug": 0,
+          "feature": 0,
+          "general": 1,
+          "improvement": 0,
+          "security": 0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 569,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-16": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "security",
+        "probabilities": {
+          "bug": 0,
+          "feature": 0,
+          "general": 0,
+          "improvement": 0,
+          "security": 1
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 585,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-17": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "security",
+        "probabilities": {
+          "bug": 0,
+          "feature": 0,
+          "general": 0,
+          "improvement": 0,
+          "security": 1
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 576,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-18": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "security",
+        "probabilities": {
+          "bug": 0,
+          "feature": 0,
+          "general": 0,
+          "improvement": 0,
+          "security": 1
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 596,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-19": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "security",
+        "probabilities": {
+          "bug": 0,
+          "feature": 0,
+          "general": 0,
+          "improvement": 0,
+          "security": 1
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 590,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-20": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "security",
+        "probabilities": {
+          "bug": 0,
+          "feature": 0,
+          "general": 0,
+          "improvement": 0,
+          "security": 1
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 592,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-21": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "security",
+        "probabilities": {
+          "bug": 0,
+          "feature": 0,
+          "general": 0,
+          "improvement": 0,
+          "security": 1
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 577,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-22": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "security",
+        "probabilities": {
+          "bug": 0,
+          "feature": 0,
+          "general": 0,
+          "improvement": 0,
+          "security": 1
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 578,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-23": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "improvement",
+        "probabilities": {
+          "bug": 0.34,
+          "feature": 0,
+          "general": 0.03,
+          "improvement": 0.63,
+          "security": 0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 570,
+      "output_tokens": 57
+    },
+    "model": "jev-1.13.0"
+  },
+  "j5-24": {
+    "answers": {
+      "J5": {
+        "type": "choice",
+        "choice": "general",
+        "probabilities": {
+          "bug": 0,
+          "feature": 0,
+          "general": 0.56,
+          "improvement": 0,
+          "security": 0.44
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 570,
+      "output_tokens": 55
+    },
+    "model": "jev-1.13.0"
+  }
+}

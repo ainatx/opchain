@@ -54,10 +54,24 @@
     },
     "J5": {
       "name": "Feedback triage",
-      "status": "planned",
+      "status": "eval",
       "kind": "choice",
-      "summary": "POST /api/feedback: bug, improvement, security, general, or a roadmap community request, chosen from the text instead of the form field.",
-      "reason": "Worker-side; needs the key as a Worker secret and a design of its own (fail-closed to the form's category when the call fails)."
+      "summary": "POST /api/feedback: bug, improvement, feature, security or general, chosen from the submission's text instead of the form field. The class that matters is security: roadmap requests become public GitHub issues, so a vulnerability report sent through that form is published. `positive: security` wins whenever its probability reaches the threshold, which is set low because a missed report costs more than a false alarm.",
+      "caller": "candidate: src/index.js handleFeedback, before the roadmap (public GitHub) path, diverting a likely security report to the private Linear security path; needs the key as a Worker secret, a /privacy disclosure and the owner's go, and falls back to the form's type when the call fails. Today only `route-eval jev J5`",
+      "state": ["title", "description"],
+      "gold": "tests/fixtures/jev/J5/gold.jsonl",
+      "threshold": 0.3,
+      "positive": "security",
+      "question": {
+        "criterion": "`title` and `description` are a submission to an open-source developer tool's feedback form. Choose what the submission is from its text, whatever the reporter called it.",
+        "options": {
+          "bug": "Something in the tool is broken or behaves wrongly: an error, a crash, wrong output, a broken page, link or install step.",
+          "improvement": "Something that exists and works could be better: clearer docs or wording, a faster step, a better default, a nicer page.",
+          "feature": "A request for something that does not exist yet: a new skill, integration, command, platform or capability.",
+          "security": "A possible vulnerability or exposure, even if described casually: a way to read, change or run something the reporter should not, leaked keys, tokens or personal data, injection, an auth or permission bypass, or unsafe handling of untrusted input. A request for a security-related feature is not this.",
+          "general": "A question, praise, a comment, or anything that is not a bug, improvement, feature request or security report."
+        }
+      }
     },
     "J6": {
       "name": "Hindsight relevance",

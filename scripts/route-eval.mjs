@@ -36,7 +36,10 @@
 //                    runs offline on canned answers. A router use (J1) goes
 //                    through route() with the shipped thresholds; a Noul use
 //                    builds its question from the registry and thresholds the
-//                    probability. docs/plans/2026-10-24-jev-integration-plan.md §2.
+//                    probability; a Choice use (J5) takes the top option, except
+//                    that its `positive` option wins whenever its probability
+//                    reaches the threshold. `jev J8 --pr <n>` runs J8 on a live
+//                    PR body (a hint, not a gate). docs/plans/2026-10-24-jev-integration-plan.md §2.
 //
 // The baseline this measures against is the audit's 0/229 PR gates entered
 // (docs/audits/2026-10-08-opchain-effectiveness-audit.md §1, §3.1): a router
@@ -50,6 +53,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import readline from "node:readline";
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -1780,7 +1784,10 @@ export function readGold(file, use, { spec = null } = {}) {
       else if (row.expected !== "none" && spec && spec.skills && !spec.skills[row.expected]) problems.push(`${where}: expected ${row.expected} is not a skill in the spec`);
     } else {
       for (const f of use.state ?? []) if (row[f] === undefined || row[f] === null || row[f] === "") problems.push(`${where}: missing state field ${f}`);
-      if (typeof row.expected !== "boolean") problems.push(`${where}: expected must be true or false`);
+      const options = use.kind === "choice" ? Object.keys(use.question?.criteria ?? {}) : null;
+      if (options) {
+        if (!options.includes(row.expected)) problems.push(`${where}: expected must be one of ${options.join(", ")}`);
+      } else if (typeof row.expected !== "boolean") problems.push(`${where}: expected must be true or false`);
       if (use.sections && !Object.prototype.hasOwnProperty.call(use.sections, row.section)) problems.push(`${where}: section ${JSON.stringify(row.section)} is not one of ${Object.keys(use.sections).join(", ")}`);
     }
     rows.push(row);
@@ -1829,6 +1836,20 @@ export function judgeNoul(p, expected, threshold) {
 }
 
 /**
+ * A Choice answer against the row's expected option. The top option wins,
+ * except that `positive` (J5: security) wins whenever its own probability
+ * reaches `threshold`: the caller acts on that class at a lower bar because
+ * missing it costs more than a false alarm.
+ */
+export function judgeChoice(c, expected, { positive, threshold } = {}) {
+  if (!c || typeof c.choice !== "string") return { predicted: null, p: null, correct: false, margin: null };
+  const pPos = positive ? Number(c.probabilities?.[positive]) : NaN;
+  const predicted = positive && Number.isFinite(pPos) && pPos >= threshold ? positive : c.choice;
+  const p = Number.isFinite(Number(c.probabilities?.[predicted])) ? Number(c.probabilities[predicted]) : c.probability;
+  return { predicted, p, pPositive: Number.isFinite(pPos) ? pPos : null, correct: predicted === expected, margin: Number.isFinite(c.confidence) ? c.confidence : null };
+}
+
+/**
  * Score every gold row of `use`. `transportFor(row)` returns the transport for
  * that row (a per-row fixture, or one shared http transport); `routeFn` and
  * `spec` serve router uses. Never throws per row: failures become error rows.
@@ -1863,6 +1884,11 @@ export async function runJev({ use, rows, transportFor, routeFn, spec, threshold
       }
       const req = buildJevRequest(use, row);
       const out = await ROUTER_CLIENT.ask({ transport, state: req.state, questions: req.questions, model });
+      if (use.kind === "choice") {
+        const c = ROUTER_CLIENT.choice(out.answers, use.id);
+        if (!c) throw new Error(`no ${use.id} choice in the answer`);
+        return { ...base, ...judgeChoice(c, row.expected, { positive: use.positive, threshold }), choice: c.choice, probabilities: c.probabilities, usage: out.usage, elapsedMs: Date.now() - t0 };
+      }
       const p = ROUTER_CLIENT.noul(out.answers, use.id);
       const j = judgeNoul(p, row.expected, threshold);
       return { ...base, p, ...j, usage: out.usage, elapsedMs: Date.now() - t0 };
@@ -1883,6 +1909,13 @@ function f3n(x) {
  * `true`, or a router row whose expected is a skill), the silent rate on
  * router `none` rows, confusions and the rows to look at first.
  */
+/** The positive class: a suggestion (router), true (Noul), the `positive` option (Choice). */
+function isPositive(use, value) {
+  if (use.kind === "router") return value !== "none" && value !== null && value !== undefined;
+  if (use.kind === "choice") return value === use.positive;
+  return value === true;
+}
+
 export function summarizeJev(use, results) {
   const errors = results.filter((r) => r.error);
   const scored = results.filter((r) => !r.error);
@@ -1890,8 +1923,8 @@ export function summarizeJev(use, results) {
   let tp = 0, fp = 0, fn = 0, tn = 0;
   const confusions = {};
   for (const r of scored) {
-    const isPos = use.kind === "router" ? r.expected !== "none" : r.expected === true;
-    const predPos = use.kind === "router" ? r.predicted !== "none" : r.predicted === true;
+    const isPos = isPositive(use, r.expected);
+    const predPos = isPositive(use, r.predicted);
     if (isPos && predPos && r.correct) tp++;
     else if (predPos) {
       fp++;
@@ -1903,7 +1936,7 @@ export function summarizeJev(use, results) {
       confusions[key] = (confusions[key] ?? 0) + 1;
     }
   }
-  const negatives = scored.filter((r) => (use.kind === "router" ? r.expected === "none" : r.expected === false)).length;
+  const negatives = scored.filter((r) => !isPositive(use, r.expected)).length;
   const usage = { input: 0, output: 0 };
   for (const r of results) {
     usage.input += Number(r.usage?.input_tokens) || 0;
@@ -1935,7 +1968,7 @@ export function renderJevReport(use, summary, { goldPath, fixturePath, threshold
   const S = summary;
   const L = [];
   L.push(`# Jev use ${use.id}: ${use.name}`, "");
-  L.push(`Generated ${generatedAt}${goldPath ? ` from \`${goldPath}\`` : ""}${fixturePath ? ` with canned answers \`${fixturePath}\` (no model was called)` : " against the live model"}. Status: **${use.status}**, kind ${use.kind}.${use.kind === "router" ? " Router rows go through route() with the shipped thresholds and the suggest allowlist." : ` Noul threshold ${threshold}.`}`, "");
+  L.push(`Generated ${generatedAt}${goldPath ? ` from \`${goldPath}\`` : ""}${fixturePath ? ` with canned answers \`${fixturePath}\` (no model was called)` : " against the live model"}. Status: **${use.status}**, kind ${use.kind}.${use.kind === "router" ? " Router rows go through route() with the shipped thresholds and the suggest allowlist." : use.kind === "choice" ? ` Choice: the top option, or \`${use.positive}\` whenever its probability is at least ${threshold}.` : ` Noul threshold ${threshold}.`}`, "");
   L.push(use.summary, "");
   L.push("## Overall", "");
   L.push("| Metric | Value |", "|---|---|");
@@ -1946,7 +1979,7 @@ export function renderJevReport(use, summary, { goldPath, fixturePath, threshold
   L.push(`| TP / FP / FN / TN | ${S.tp} / ${S.fp} / ${S.fn} / ${S.tn} |`);
   L.push(`| Precision (positive class) | ${f3(S.precision)} |`);
   L.push(`| Recall (positive class) | ${f3(S.recall)} |`);
-  L.push(`| ${use.kind === "router" ? "Silent rate on `none` rows" : "Hold rate on `false` rows"} (${S.negatives}) | ${f3(S.silentRate)} |`);
+  L.push(`| ${use.kind === "router" ? "Silent rate on `none` rows" : use.kind === "choice" ? `Rows not \`${use.positive}\` kept off it` : "Hold rate on `false` rows"} (${S.negatives}) | ${f3(S.silentRate)} |`);
   L.push(`| Input / output tokens | ${S.usage.input} / ${S.usage.output} |`);
   L.push(`| Estimated cost at $${usdPerMillionInput}/M input tokens | $${((S.usage.input / 1e6) * usdPerMillionInput).toFixed(4)} |`);
   L.push("");
@@ -1961,6 +1994,9 @@ export function renderJevReport(use, summary, { goldPath, fixturePath, threshold
     if (use.kind === "router") {
       L.push("| Row | Prompt | Expected | Predicted | Verb | p | Reason | Note |", "|---|---|---|---|---|---:|---|---|");
       for (const r of S.wrong) L.push(`| ${r.id} | ${mdEscape(head(r.prompt, 60))} | ${r.expected} | ${r.predicted} | ${r.verb ?? "—"} | ${r.p === null ? "—" : f3(r.p)} | ${mdEscape(r.reason ?? "")} | ${mdEscape(r.note ?? "")} |`);
+    } else if (use.kind === "choice") {
+      L.push(`| Row | Expected | Predicted | p | p(${use.positive}) | Note |`, "|---|---|---|---:|---:|---|");
+      for (const r of S.wrong) L.push(`| ${r.id} | ${r.expected} | ${r.predicted ?? "—"} | ${f3(r.p)} | ${f3(r.pPositive)} | ${mdEscape(r.note ?? "")} |`);
     } else {
       L.push("| Row | Expected | p | Note |", "|---|---|---:|---|");
       for (const r of S.wrong) L.push(`| ${r.id} | ${r.expected} | ${f3(r.p)} | ${mdEscape(r.note ?? "")} |`);
@@ -1968,7 +2004,7 @@ export function renderJevReport(use, summary, { goldPath, fixturePath, threshold
   } else L.push("None.");
   L.push("");
   L.push("## Closest correct rows", "");
-  L.push(use.kind === "router" ? "Correct suggestions with the lowest p; a threshold change reaches these first." : `Correct rows nearest the ${threshold} threshold; a wording change moves these first.`, "");
+  L.push(use.kind === "router" ? "Correct suggestions with the lowest p; a threshold change reaches these first." : use.kind === "choice" ? "Correct rows with the lowest Choice confidence; a wording change moves these first." : `Correct rows nearest the ${threshold} threshold; a wording change moves these first.`, "");
   if (S.closest.length) {
     L.push("| Row | Expected | p | Note |", "|---|---|---:|---|");
     for (const r of S.closest) L.push(`| ${r.id} | ${r.expected} | ${f3(r.p)} | ${mdEscape(r.note ?? "")} |`);
@@ -1981,6 +2017,67 @@ export function renderJevReport(use, summary, { goldPath, fixturePath, threshold
     L.push("");
   }
   return L.join("\n");
+}
+
+// J8 on a live pull request: one row per section, in the gold set's shape
+// (title + files with line counts; the body cut at PR_BODY_MAX).
+export const PR_BODY_MAX = 6000;
+export const PR_FILES_MAX = 25;
+
+export function prChange(pr) {
+  const files = (pr.files ?? []).slice(0, PR_FILES_MAX).map((f) => `${f.path} (+${f.additions}/-${f.deletions})`);
+  if ((pr.files ?? []).length > PR_FILES_MAX) files.push(`… ${pr.files.length - PR_FILES_MAX} more files`);
+  return `${pr.title}\nFiles: ${files.join(", ")}`;
+}
+
+export function prDocsRows(use, pr) {
+  if (!use.sections) throw new Error(`${use.id} has no sections`);
+  const body = String(pr.body ?? "");
+  const clipped = body.length > PR_BODY_MAX ? body.slice(0, PR_BODY_MAX) + "\n…[truncated]" : body;
+  return Object.keys(use.sections).map((section) => ({ id: `pr-${pr.number}-${section}`, section, change: prChange(pr), body: clipped || "(empty)" }));
+}
+
+/** The hint `jev J8 --pr` prints: each part covered or missing, with p. */
+export function formatPrDocs(pr, results, threshold) {
+  const L = [`PR #${pr.number}: ${pr.title}`];
+  const missing = [];
+  for (const r of results) {
+    const section = r.id.slice(`pr-${pr.number}-`.length);
+    if (r.error) L.push(`  ${section.padEnd(7)} error: ${r.error}`);
+    else {
+      const ok = r.p >= threshold;
+      if (!ok) missing.push(section);
+      L.push(`  ${section.padEnd(7)} ${ok ? "covered" : "MISSING"}  p ${f3(r.p)}`);
+    }
+  }
+  L.push(missing.length ? `The body does not cover: ${missing.join(", ")}. A hint for the author, not a gate.` : "The body covers every part J8 checks.");
+  return L.join("\n");
+}
+
+function fetchPr(number, repo) {
+  const argv = ["pr", "view", String(number), "--json", "number,title,body,files"];
+  if (repo) argv.push("--repo", repo);
+  const res = spawnSync("gh", argv, { encoding: "utf8" });
+  if (res.status !== 0) throw new Error(`gh pr view ${number} failed: ${(res.stderr || res.error?.message || "").trim()}`);
+  return JSON.parse(res.stdout);
+}
+
+/** A per-row transport: canned answers keyed by row id, or one shared http transport. */
+function jevTransportFor({ fixture, apiKey, model, timeoutMs }) {
+  if (fixture) {
+    const byId = JSON.parse(fs.readFileSync(fixture, "utf8"));
+    return (row) => {
+      if (!Object.prototype.hasOwnProperty.call(byId, row.id)) {
+        // An explicit mention never reaches the transport; anything else must have an entry.
+        return async () => {
+          throw new Error(`fixture has no answers for row ${row.id}`);
+        };
+      }
+      return ROUTER_CLIENT.fixtureTransport(byId[row.id]);
+    };
+  }
+  const shared = ROUTER_CLIENT.httpTransport({ apiKey, model, timeoutMs });
+  return () => shared;
 }
 
 export function formatJevList(questions) {
@@ -2008,6 +2105,7 @@ function usage() {
     "  node scripts/route-eval.mjs label --list [--all] [--log <file>] [--labels <file>]",
     "  node scripts/route-eval.mjs jev --list [--questions plugins/opchain/hooks/jev-questions.json]",
     "  node scripts/route-eval.mjs jev <use> [--gold <file>] [--fixture <answers.json>] [--out scratch/jev-<use>.jsonl] [--report scratch/jev-<use>.md]",
+    "  node scripts/route-eval.mjs jev J8 --pr <number> [--repo owner/name] | --pr-json <gh pr view --json number,title,body,files>",
     "        [--threshold 0.5] [--min-accuracy <0..1>] [--model <id>] [--timeout-ms 20000] [--concurrency 4]",
     "  node scripts/route-eval.mjs run --dataset <file> [--limit N] [--sample stratified] [--out scratch/route-eval.jsonl] [--report scratch/route-eval.md]",
     "        [--fixture <answers.json>] [--route-module <path>] [--spec <file>] [--cache scratch/route-cache.json] [--model <id>]",
@@ -2173,6 +2271,31 @@ export async function main(argv = process.argv.slice(2), { env = process.env, st
       stderr.write(`jev: ${useId} (${use.status}, kind ${use.kind}) has nothing to score — ${use.reason ?? use.summary}\n`);
       return 2;
     }
+    if (args.pr !== undefined || args["pr-json"] !== undefined) {
+      if (!use.sections) {
+        stderr.write(`jev: --pr reads a PR body; ${useId} has no sections\n`);
+        return 2;
+      }
+      const fixture = args.fixture && args.fixture !== true ? resolve(String(args.fixture)) : null;
+      const apiKey = env[DEFAULTS.apiKeyEnv];
+      if (!fixture && !apiKey) {
+        stderr.write(`jev: ${DEFAULTS.apiKeyEnv} is not set. Export it or pass --fixture <answers.json>.\n`);
+        return 2;
+      }
+      let pr;
+      try {
+        pr = args["pr-json"] !== undefined ? JSON.parse(fs.readFileSync(resolve(String(args["pr-json"])), "utf8")) : fetchPr(args.pr, args.repo && args.repo !== true ? String(args.repo) : null);
+      } catch (err) {
+        stderr.write(`jev: ${err.message}\n`);
+        return 2;
+      }
+      const threshold = args.threshold !== undefined && args.threshold !== true ? Number(args.threshold) : use.threshold;
+      const model = args.model ?? env.TYPESAFE_MODEL ?? undefined;
+      const transportFor = jevTransportFor({ fixture, apiKey, model, timeoutMs: Number(args["timeout-ms"] ?? 20_000) });
+      const { results } = await runJev({ use, rows: prDocsRows(use, pr).map((r) => ({ ...r, expected: true })), transportFor, threshold, model, log: (msg) => stderr.write(`${msg}\n`) });
+      stdout.write(`${formatPrDocs(pr, results, threshold)}\n`);
+      return results.some((r) => r.error) ? 1 : 0;
+    }
     const goldPath = resolve(String(args.gold && args.gold !== true ? args.gold : use.gold ?? ""));
     if (!use.gold && !(args.gold && args.gold !== true)) {
       stderr.write(`jev: ${useId} has no gold set; pass --gold <file>\n`);
@@ -2210,22 +2333,7 @@ export async function main(argv = process.argv.slice(2), { env = process.env, st
       return 2;
     }
     const model = args.model ?? env.TYPESAFE_MODEL ?? undefined;
-    let transportFor;
-    if (fixture) {
-      const byId = JSON.parse(fs.readFileSync(fixture, "utf8"));
-      transportFor = (row) => {
-        if (!Object.prototype.hasOwnProperty.call(byId, row.id)) {
-          // An explicit mention never reaches the transport; anything else must have an entry.
-          return async () => {
-            throw new Error(`fixture has no answers for row ${row.id}`);
-          };
-        }
-        return ROUTER_CLIENT.fixtureTransport(byId[row.id]);
-      };
-    } else {
-      const shared = ROUTER_CLIENT.httpTransport({ apiKey, model, timeoutMs: Number(args["timeout-ms"] ?? 20_000) });
-      transportFor = () => shared;
-    }
+    const transportFor = jevTransportFor({ fixture, apiKey, model, timeoutMs: Number(args["timeout-ms"] ?? 20_000) });
     const concurrency = Math.max(1, Math.min(DEFAULTS.concurrency, Number(args.concurrency ?? DEFAULTS.concurrency) || DEFAULTS.concurrency));
     const { results } = await runJev({ use, rows, transportFor, routeFn: mod ? mod.route : null, spec, threshold, concurrency, model, log: (msg) => stderr.write(`${msg}\n`) });
     const summary = summarizeJev(use, results);
@@ -2235,7 +2343,7 @@ export async function main(argv = process.argv.slice(2), { env = process.env, st
     const report = renderJevReport(use, summary, { goldPath: path.relative(process.cwd(), goldPath), fixturePath: fixture ? path.relative(process.cwd(), fixture) : null, threshold });
     ensureDir(reportPath);
     fs.writeFileSync(reportPath, report);
-    stdout.write(`${useId} ${use.name}: ${summary.scored} row(s) scored, ${summary.errors} error(s) · accuracy ${f3(summary.accuracy)} (${summary.correct}/${summary.scored}) · precision ${f3(summary.precision)} · recall ${f3(summary.recall)} · ${use.kind === "router" ? "silent on none" : "hold on false"} ${f3(summary.silentRate)}${fixture ? " · canned answers, no model called" : ""}\n`);
+    stdout.write(`${useId} ${use.name}: ${summary.scored} row(s) scored, ${summary.errors} error(s) · accuracy ${f3(summary.accuracy)} (${summary.correct}/${summary.scored}) · precision ${f3(summary.precision)} · recall ${f3(summary.recall)} · ${use.kind === "router" ? "silent on none" : use.kind === "choice" ? `not-${use.positive} kept off` : "hold on false"} ${f3(summary.silentRate)}${fixture ? " · canned answers, no model called" : ""}\n`);
     stdout.write(`results → ${out}\nreport  → ${reportPath}\n`);
     if (args["min-accuracy"] !== undefined && args["min-accuracy"] !== true) {
       const min = Number(args["min-accuracy"]);

@@ -39,7 +39,7 @@ Status: **shadow** runs in production and logs; **eval** has a gold set and a co
 | J2 | Outcome judgement: did the reply turn do the suggested skill's work | Noul over `{ request, suggested, activity }` | eval | `route-eval outcomes`, as a third scorer beside the proxy and the hand labels | `tests/fixtures/jev/J2` from audit §3 |
 | J3 | ow- prompt detection ("use ow-uat-plan on …", `/ow-*`) | none | no | a regex in `route-prompt.cjs` (S3 of the skill-to-skill investigation, on `claude/jev-week0`); deterministic, no network | — |
 | J4 | Next-skill suggestion at `Stop`: which orchestrator §3 row applies | Choice over handoff rows | no | the row already names the skill; the failure is that prose is not acted on, which a classifier cannot fix (investigation §6) | — |
-| J5 | Feedback triage on `POST /api/feedback`: bug / improvement / security / general / roadmap | Choice | planned | the Worker; needs the key as a Worker secret and its own design | — |
+| J5 | Feedback triage on `POST /api/feedback`: bug / improvement / feature / security / general | Choice, `positive: security` at 0.3 | eval | the Worker, before the public roadmap path; needs the key as a Worker secret, a `/privacy` line and the owner's go; 2026-10-29 live 22/24, security recall 1.000 (runbook §7) | `tests/fixtures/jev/J5`, synthetic |
 | J6 | Hindsight relevance: does lesson L apply to situation X | Noul per lesson | planned | `oc-hindsight` retrieval, as a reranker over the lexical hits | — |
 | J7 | Commit gate: does the commit message describe the diff | Noul | no | the gate is offline and deterministic by design; a network call in `pre-commit` is a new failure mode, not a check | — |
 | J8 | PR docs packet completeness: does the body cover the change | Noul per section (what, why, verify) | eval | `oc-docs-forge` → `oc-repo-ops verify`, eval first; 2026-10-28 live 36/38 (runbook §7) | `tests/fixtures/jev/J8` from nine merged PR bodies |
@@ -58,7 +58,7 @@ Two rules fall out of the investigation and hold for every row:
 | 3 | J1 spec-copy fixes from audit §4, re-run the 574-row offline set; the day-8 shadow re-run | 2026-10-26: spec `+route4`, J1 27/27 live ×5, offline unchanged, day 8 NO-GO on volume and labels (`docs/audits/2026-10-26-jev-day8-and-route4.md`) | §2 (the J1 gold set is the regression check) |
 | 4 | J2 as a third scorer in `route-eval outcomes` (`--judge jev`): agreement with the hand labels on the 63 labelled rows before it is trusted on unlabelled ones | 2026-10-27: built, report-only; live 14/21 labelled suggestions vs the proxy's 18/21, so not trusted on unlabelled rows (runbook §7) | §2, a live run with the owner's key |
 | 5 | J9 in ow-tools: a `--jev` option on the transcript step that lists spans, nothing else; protocol text untouched | ow-tools PR, after S6 (one real workstream) | §2, owner decision |
-| 6 | J5, J6, J8 designs | 2026-10-28: J8 built as an eval use (`route-eval jev J8`, 38-row gold set, live 36/38); J5 and J6 still design-only | evidence from §3–§5 |
+| 6 | J5, J6, J8 designs | 2026-10-28: J8 built as an eval use (`route-eval jev J8`, 38-row gold set, live 36/38). 2026-10-29: `jev J8 --pr <n>` on live PRs; J5 built as the first Choice use (24 rows, live 22/24). J6 waits: no lesson store or lexical retrieval exists to rerank | evidence from §3–§5 |
 
 ## 5. Acceptance for §2
 
