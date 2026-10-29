@@ -7,6 +7,29 @@ that form a software development pipeline (concept → spec → design → build
 The public product mirror and MCP Registry identity remain
 `asfbay-bit/opchain-skills` and `io.github.asfbay-bit/opchain-skills`.
 
+## Asking the owner
+
+**Every choice goes through `AskUserQuestion`.** Whenever there is more than one
+reasonable way forward and the pick changes the outcome, ask with the
+`AskUserQuestion` tool. Don't pick silently, and don't ask in prose ("want me to
+do X or Y?", a numbered list of options, "let me know which you prefer").
+
+- **What counts:** approach or design forks, scope (what's in or out of a PR),
+  names and copy that ship, which of several PRs/fixes goes first, and every
+  go-ahead: commit, push, open a PR, merge, tag, deploy, delete. Go-ahead
+  questions at the end of a turn count too.
+- **What doesn't:** choices with one correct answer you can settle from the code,
+  the tests, or this file. Make those and say what you picked.
+- **Shape:** put your recommendation first with "(Recommended)" in its label, and
+  batch related questions into one call (up to 4 questions, 2–4 options each;
+  "Other" is added automatically). With more than 4 real options, offer the top
+  ones and let "Other" cover the rest.
+- **Skills:** when a skill says "ask the user" or "confirm with the owner", ask
+  through `AskUserQuestion`.
+- **No tool:** subagents, headless `claude -p`, and Codex don't have
+  `AskUserQuestion`. Subagents return the choice to the parent session to ask.
+  Otherwise list the options in chat, recommendation first.
+
 ## Deployment
 
 Deploys are **manual**, run from a developer laptop with `wrangler login` already done. There is no automatic CI/CD path — `deploy.yml` and `promote.yml` were removed because the GitHub Actions Cloudflare token couldn't reliably manage routes/DNS in the `opchain.dev` zone, which left the bindings in a broken state. Deploying as a logged-in human in `wrangler` uses your full account session and avoids that whole class of token-scope issue.
