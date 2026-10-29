@@ -1,0 +1,23 @@
+{
+  "id": "oc-repo-ops-pr-readiness-v1-9cb6ca98a74e",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-10-29T23:58:46.603Z",
+  "verified_at": "2026-10-29T23:58:46.603Z",
+  "producer": {
+    "skill": "oc-repo-ops",
+    "run_id": "pr-readiness-v1-2026-10-29T23:58:46.603Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:9cb6ca98a74e43cdccde48e31b306fef501dc476d794659a6a27742946d584dd"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-readiness-v1",
+    "scope": "OW-07 tree: ow catalog validated (9 skills), check-skill-contracts (ow-care out of planned, edges reciprocal), lint-internal-refs, check-skill-flags, sync-plugin-skills:check, sync-bundles:check, gen-mcp-catalog no drift; only untracked file is the pr-docs handoff; .gitignore gains the ow-care fixture secrets-seen.log exception like ow-uat's and ow-documentation's; links in the new docs resolve; checkpoints valid; verifier receipt PASS for candidate ed5ea92f3f42",
+    "evidence": [
+      "gen-catalog; check-skill-contracts; lint-internal-refs; check-skill-flags; sync-plugin-skills:check; sync-bundles:check; checkpoint:validate; verify-candidate PASS (commit gate)"
+    ]
+  }
+}

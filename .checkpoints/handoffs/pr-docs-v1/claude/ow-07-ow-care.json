@@ -1,0 +1,23 @@
+{
+  "id": "oc-docs-forge-pr-docs-v1-9cb6ca98a74e",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-10-29T23:58:07.240Z",
+  "verified_at": "2026-10-29T23:58:07.240Z",
+  "producer": {
+    "skill": "oc-docs-forge",
+    "run_id": "pr-docs-v1-2026-10-29T23:58:07.240Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:9cb6ca98a74e43cdccde48e31b306fef501dc476d794659a6a27742946d584dd"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-docs-v1",
+    "scope": "OW-07 PR docs: ow-care 1.0.0 and the S1/P4/1.0.1 sibling bumps; skills-work/README.md catalog rows and bullets, four per-skill CHANGELOG entries, ow-build-plan references/tools-and-files.md, tests/fixtures/ow-care/README.md, sprints/release-2.1/ow-07/contract.md (evaluation round recorded), OW-07 row of the sprint plan; PR body Documentation section",
+    "evidence": [
+      "skills-work/README.md; skills-work/ow-care/CHANGELOG.md; skills-work/ow-start/CHANGELOG.md; skills-work/ow-build-plan/CHANGELOG.md; skills-work/ow-handoff/CHANGELOG.md; sprints/release-2.1/ow-07/contract.md"
+    ]
+  }
+}
