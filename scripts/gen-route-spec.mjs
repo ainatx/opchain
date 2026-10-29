@@ -306,6 +306,7 @@ export function buildJevQuestions({ spec, usesPath = DEFAULT_USES, routerPath = 
         if (!q || typeof q !== "object" || !String(q.criterion ?? "").trim()) problems.push(`jev-uses: ${id} (${use.status}) needs question.criterion`);
         if (use.kind === "noul" && (!q || !String(q.true ?? "").trim() || !String(q.false ?? "").trim())) problems.push(`jev-uses: ${id} needs question.true and question.false`);
         if (use.kind === "choice" && (!q || !q.options || typeof q.options !== "object" || Object.keys(q.options).length < 2)) problems.push(`jev-uses: ${id} needs question.options with at least two entries`);
+        if (use.kind === "choice" && use.positive !== undefined && !(q && q.options && Object.prototype.hasOwnProperty.call(q.options, use.positive))) problems.push(`jev-uses: ${id} positive ${JSON.stringify(use.positive)} is not one of its options`);
         if (typeof use.threshold !== "number" || !(use.threshold > 0 && use.threshold < 1)) problems.push(`jev-uses: ${id} (${use.status}) needs a threshold in (0, 1)`);
       }
       if (q && typeof q === "object") {
