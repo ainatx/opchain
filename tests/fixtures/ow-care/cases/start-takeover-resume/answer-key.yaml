@@ -1,0 +1,25 @@
+# start-takeover-resume
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: start-takeover
+today: '2026-11-11'
+clock: user-stated
+verbs:
+  - /ow-care-start --takeover
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+noop:
+  - already started
+  - care.yaml exists
+  - nothing to do
+resume:
+  untouched:
+    - opchain-work/care/larkspur-ceramics/care.yaml
+    - opchain-work/care/larkspur-ceramics/months/M-01.md
+next:
+  - use ow-care-request on care/larkspur-ceramics/

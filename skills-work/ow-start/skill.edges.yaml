@@ -147,6 +147,15 @@ hands_off:
       - { path: intake/<client>/recap.md, fields: [path_id, path_label, path_kind, path_systems, send_by] }
       - { path: intake/<client>/coverage.md, fields: [must-ask statuses] }
     if_unavailable: The recap and the intake record stand on their own; scope the next step by hand from them
+  # Amendment S1 (1.2.0): a care takeover's next step is the onboarding review quote.
+  - when: The confirmed path is care-takeover
+    to: ow-build-plan
+    verb: /ow-build-plan-quote --quick --onboarding
+    say: use ow-build-plan to quote onboarding on intake/<client>/intake-record.md
+    files:
+      - { path: intake/<client>/intake-record.md, fields: [mode, client, call_date, the bank's fields with confidence, open questions] }
+      - { path: intake/<client>/recap.md, fields: [path_id, path_label, path_kind, path_systems, send_by] }
+    if_unavailable: Scope and price the onboarding review by hand from the intake
   # The logs (1.1.0).
   - when: The agenda is ready
     to: ow-start

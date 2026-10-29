@@ -1,0 +1,28 @@
+ow_artefact: ow-care/care
+schema: 1
+written_by: ow-care 1.0.0 (protocol 1)
+workstream: larkspur-ceramics
+subject: handoffs/larkspur-ceramics/after-offer.md
+created: 2027-04-17
+clock: user-stated
+origin: skill
+source: handoff
+tier: Regular
+tiers_offered:
+  - { name: Light, hours: 3, reply_business_days: 3, price: 1500 }
+  - { name: Regular, hours: 6, reply_business_days: 2, price: 3000 }
+  - { name: Full, hours: 15, reply_business_days: 1, price: 6000 }
+billing: prepaid monthly
+rollover: { share: 0.5, of: unused, months: 1 }
+rollover_wording: half of the unused hours roll over for one month
+notice_days: 30
+excluded: [out-of-hours on-call, new builds]
+hourly_price: 1000
+urgent_price: 1200
+start: 2027-04-19
+start_sources: { after_offer: 2027-04-19, care_start: 2027-04-17 }
+month_boundary: start-day
+monthly_call: no
+reply_calendar: { timezone: America/Chicago, hours: '09:00-17:00', days: weekdays, holidays: ['2027-05-31'] }
+handling: no
+terms_confirmed: ['the terms as printed', 'the carried and waiting requests as printed']

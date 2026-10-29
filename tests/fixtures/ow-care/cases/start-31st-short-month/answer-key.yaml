@@ -1,0 +1,16 @@
+# start-31st-short-month
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - build
+today: '2027-01-31'
+clock: user-stated
+verbs:
+  - /ow-care-start
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+next:
+  - use ow-care-request on care/larkspur-ceramics/requests/CARE-02.md

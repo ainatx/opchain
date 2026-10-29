@@ -293,7 +293,7 @@ PINS.push(
   { id: "research: a vendor evaluation prints the none block", file: RBODY, must: "A topic that serves a vendor evaluation prints this same block: ow-vendor-eval is not in this release, so no line names it." },
   { id: "research: ow-currency not in this release", file: RBODY, must: "ow-currency (planned; not in this release)" },
   // The evaluator's skills-work plants (round 1, H03, H04, I01), caught by pins as well as by the tests.
-  { id: "C26: ow-build-plan's body line names its version", file: "ow-build-plan/SKILL.md", must: "ow-build-plan 1.2.0 · protocol 1" },
+  { id: "C26: ow-build-plan's body line names its version", file: "ow-build-plan/SKILL.md", must: "ow-build-plan 1.3.0 · protocol 1" },
   { id: "C26: ow-research's CHANGELOG has its 1.0.0 entry", file: "ow-research/CHANGELOG.md", must: "## 1.0.0 (2026-10-17): research from sources it opened" },
   { id: "O11: soc2 stays on the licensed list", file: RFS, must: "| `soc2` | SOC 2 (the AICPA Trust Services Criteria) | Licensed text of the AICPA |" },
   // One resume rule (evaluation round 1, M2).

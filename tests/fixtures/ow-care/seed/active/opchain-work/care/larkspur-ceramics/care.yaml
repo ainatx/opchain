@@ -1,0 +1,22 @@
+---
+ow_artefact: ow-care/input
+schema: 1
+written_by: fixture (protocol 1)
+workstream: larkspur-ceramics
+subject: fixture
+created: 2027-04-17
+clock: scenario
+origin: user-stated
+---
+source: takeover
+tier: Tune
+tiers_offered: [{ name: Tune, hours: 8, reply_business_days: 2, price: 3200 }]
+billing: prepaid monthly
+rollover: { share: 0.25, of: unused, months: 1 }
+notice_days: 30
+hourly_price: 250
+urgent_price: 350
+start: 2026-11-17
+month_boundary: start-day
+monthly_call: no
+reply_calendar: { timezone: America/Chicago, hours: '09:00-17:00', holidays: ['2026-11-23'] }

@@ -7,7 +7,7 @@ Written by `/ow-handoff-notes` only (`--walkthrough` appends the walk-through re
     ---
     ow_artefact: ow-handoff/operator-notes
     schema: 1
-    written_by: ow-handoff 1.0.0 (protocol 1)
+    written_by: ow-handoff 1.0.1 (protocol 1)
     workstream: <client slug>
     subject: handoffs/<client>/accounts.md | docs/<client>/runbook.md
     created: <YYYY-MM-DD>

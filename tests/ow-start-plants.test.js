@@ -53,8 +53,8 @@ describe("C1, C2, C3: the real tree passes as built (the control)", () => {
     const edges = readFileSync(join(ROOT, "skills-work", E), "utf8");
     expect(edges.match(/index: true/g)).toHaveLength(12);
     const body = readFileSync(join(ROOT, "skills-work", B), "utf8");
-    expect(body).toMatch(/^ {2}version: "1\.1\.1"$/m);
-    expect(body).toMatch(/^ow-start 1\.1\.1 · protocol 1/m);
+    expect(body).toMatch(/^ {2}version: "1\.2\.0"$/m);
+    expect(body).toMatch(/^ow-start 1\.2\.0 · protocol 1/m);
     expect(body.match(/^ {2}commands: (.*)$/m)[1].split(" ")).toHaveLength(10);
   });
 });
@@ -1138,7 +1138,8 @@ describe("round 3 evaluator plants (h/plants3.mjs: 29 P, 7 FP), caught by the fo
   tplant("P", "K04", "effort key, planned", "ow-care row reads `minutes_used`", { [E]: rep(CARE, CARE.replace("[created]", "[created, minutes_used]")) });
   tplant("P", "K05", "person key, planned", "ow-uat signoff row reads `signatory`", { [E]: rep(SIGN, SIGN.replace("acceptance]", "signatory]")) });
   tplant("P", "K06", "money key, planned", "ow-care row reads `overage`", { [E]: rep(CARE, CARE.replace("[created]", "[created, overage]")) });
-  tplant("FP", "K07", "date key, planned", "ow-care row reads `review_by` (a date)", { [E]: rep(CARE, CARE.replace("[created]", "[created, review_by]")) });
+  // K07 was an FP while ow-care was planned (a deadline key passes before its producer is built). ow-care is built (OW-07) and documents no `review_by`, so the same edit is caught now.
+  tplant("P", "K07", "date key, producer built", "ow-care row reads `review_by`, which ow-care does not document as a date", { [E]: rep(CARE, CARE.replace("[created]", "[created, review_by]")) }, /documents it as a date/);
 
   // ═════ Handling (m5) ═════
   plant("FP", "HD1", "handling false positive", "checkin screen lists an open question mentioning 'restricted'", "logs-larkspur-checkin", { "printed/log-meeting.md": (t) => t.replace("DONE: meeting logged", "Still open (Q1): are any glazes restricted for export?\n\nDONE: meeting logged") });
@@ -1260,9 +1261,9 @@ describe("follow-up: the meaning checks (m2 to m6) and the nits", () => {
       expect(failures(c, mutated(c, notCovered(s))).people, s).toMatch(/a phone number/);
     }
   });
-  it("m6: a deadline key from a producer not built yet passes; a participle `_by` key fails", () => {
+  it("m6: a deadline key passes only while its producer is unbuilt (ow-care is built now, so it must document the key); a participle `_by` key fails", () => {
     const care = "path: care/<client>/reports/M-nn.md, fields: [created]";
-    for (const k of ["reply_by", "due_by", "send_by"]) expect(contracts(realTree({ [E]: rep(care, care.replace("[created]", `[created, ${k}]`)) })), k).toBe("");
+    for (const k of ["reply_by", "due_by", "send_by"]) expect(contracts(realTree({ [E]: rep(care, care.replace("[created]", `[created, ${k}]`)) })), k).toMatch(/documents it as a date/);
     for (const k of ["approved_by", "signed_by", "written_by", "sent_by"]) expect(contracts(realTree({ [E]: rep(care, care.replace("[created]", `[created, ${k}]`)) })), k).toMatch(/names who did something/);
     for (const k of ["billed", "invoiced_total", "effort", "approver"]) expect(contracts(realTree({ [E]: rep(care, care.replace("[created]", `[created, ${k}]`)) })), k).toMatch(/holds money, a note or a person/);
   });

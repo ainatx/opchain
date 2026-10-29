@@ -1,0 +1,17 @@
+# access-waive
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: access-removal-record-late
+today: '2027-04-15'
+clock: user-stated
+verbs:
+  - /ow-care-access
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+next:
+  - use ow-care-request on care/larkspur-ceramics/

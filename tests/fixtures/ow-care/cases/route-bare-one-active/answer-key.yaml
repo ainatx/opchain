@@ -1,0 +1,22 @@
+# route-bare-one-active
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: month-rollover
+today: '2026-12-18'
+clock: user-stated
+verbs:
+  - /ow-care
+tool: absent
+private_names:
+  - Deftwright
+  - llc-ops
+kind: route
+route:
+  expect: request
+checks:
+  - next
+next:
+  - use ow-care-request on care/larkspur-ceramics/

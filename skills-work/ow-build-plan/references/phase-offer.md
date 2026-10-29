@@ -58,4 +58,4 @@ If you can run code here and `ow-tools version` answers, run `ow-tools export pl
 
 ## 6. STATUS and NEXT
 
-Append: `<date> (clock: <source>) | ow-build-plan 1.2.0 | plans/<client>/build-plan-offer.md | next: ow-build-plan /ow-build-plan-start plans/<client>/ | awaiting: offer reply from <client> by <valid_until>`. Then print the offer NEXT block from SKILL.md.
+Append: `<date> (clock: <source>) | ow-build-plan 1.3.0 | plans/<client>/build-plan-offer.md | next: ow-build-plan /ow-build-plan-start plans/<client>/ | awaiting: offer reply from <client> by <valid_until>`. Then print the offer NEXT block from SKILL.md.

@@ -45,6 +45,7 @@ First read the transcript or notes in one pass whose only output is quoted spans
 - **Delivery mode.** The path is the next session, or the next stage of the signed work; ask the user which.
 - No `offers.md`: follow its Reads-from row in SKILL.md. Never invent a path name, and never a price.
 - Copy the confirmed path into the recap's header: `path_id`, `path_label`, `path_kind`, `path_systems`.
+- A running system the client wants looked after, with no build in scope, may fit a path of `kind: care-takeover` (amendment S1 of the ow-care design). Its next step is a fixed-fee onboarding review quoted by ow-build-plan, not a care plan: print the care-takeover NEXT block from SKILL.md once the user confirms that path, and infer no tier and no price in the intake or the recap.
 
 ## 6. Write the recap (`recap.md`, the main output)
 

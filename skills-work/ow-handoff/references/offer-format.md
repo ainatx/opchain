@@ -7,7 +7,7 @@ Written by `/ow-handoff-offer` only. ow-start's `/ow-start-log` indexes `after-o
     ---
     ow_artefact: ow-handoff/after-offer
     schema: 1
-    written_by: ow-handoff 1.0.0 (protocol 1)
+    written_by: ow-handoff 1.0.1 (protocol 1)
     workstream: <client slug>
     subject: offers.md
     created: <YYYY-MM-DD>

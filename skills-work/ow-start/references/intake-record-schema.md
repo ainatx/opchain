@@ -134,7 +134,7 @@ Rules: `status` is one of `answered`, `partly`, `not asked`, `answered unprompte
     send_by: <YYYY-MM-DD>
     path_id: <path id from offers.md>
     path_label: <label from offers.md>
-    path_kind: defined-work | build-plan | feasibility | not-a-fit | next-session | next-stage
+    path_kind: defined-work | build-plan | feasibility | care-takeover | not-a-fit | next-session | next-stage
     path_systems: "1" | "2" | "3+" | none
     ---
     # Recap: our call on <date written out>

@@ -1,0 +1,24 @@
+# route-bare-several
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: start-takeover
+today: '2026-11-11'
+clock: user-stated
+verbs:
+  - /ow-care
+tool: absent
+private_names:
+  - Deftwright
+  - llc-ops
+kind: route
+route:
+  expect: list
+  clients:
+    - Larkspur Ceramics
+    - Mossgate Books
+checks:
+  - next
+next: []

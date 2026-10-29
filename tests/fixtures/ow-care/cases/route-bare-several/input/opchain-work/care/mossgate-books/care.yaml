@@ -1,0 +1,13 @@
+---
+ow_artefact: ow-care/care
+schema: 1
+written_by: ow-care 1.0.0 (protocol 1)
+workstream: mossgate-books
+subject: handoffs/mossgate-books/after-offer.md
+created: 2026-09-20
+clock: user-stated
+origin: skill
+---
+source: handoff
+tier: Light
+start: 2026-09-20

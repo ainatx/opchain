@@ -6,7 +6,7 @@ Written by `/ow-handoff-start` only (its `--keep-frozen` and `--refreeze` modes 
 
     ow_artefact: ow-handoff/handoff
     schema: 1
-    written_by: ow-handoff 1.0.0 (protocol 1)
+    written_by: ow-handoff 1.0.1 (protocol 1)
     workstream: <client slug>
     subject: uat/<client>/signoff.md
     created: <YYYY-MM-DD>

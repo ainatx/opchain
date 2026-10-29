@@ -2,6 +2,10 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
+## 1.0.1 (2026-10-29): the care NEXT lines name ow-care's route (with ow-care 1.0.0)
+
+ow-care 1.0.0 ships with a routing verb, `/ow-care on <path>`, that sends `handoffs/<client>/care-start.md` to `/ow-care-start` and a `route: care` `FIX-nn.md` to `/ow-care-request` (its `references/entry-and-requests.md`). The two care NEXT templates keep their says (`use ow-care on handoffs/<client>/care-start.md`, `use ow-care on handoffs/<client>/fixes/FIX-nn.md`); their slash hints now name that route, `/ow-care`, as the contract check requires of a "use <id> on <path>" say, and `skill.edges.yaml` hands both off with it. No file format and no rule changed; records written by 1.0.0 stay valid, and the checker accepts both versions in `written_by`.
+
 ## 1.0.0 (2026-10-21): the handoff, the fix window and access removal
 
 Design: `docs/plans/2026-10-08-ow-handoff-design.md` (decisions 1 to 9; its build notes record every ruling and departure). Contract: `sprints/release-2.1/ow-06/contract.md`.

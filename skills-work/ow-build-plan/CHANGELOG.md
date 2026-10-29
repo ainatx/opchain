@@ -2,6 +2,16 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). The family's v2.1.0 release entry cites each skill's version. Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
+## 1.3.0 (2026-10-29): amendment P4, the care onboarding quote
+
+Amendment P4 of `docs/plans/2026-10-16-ow-care-design.md` §12, built with ow-care 1.0.0 (OW-07; contract `sprints/release-2.1/ow-07/contract.md`).
+
+- **`--quick --onboarding`.** A `care-takeover` recap (ow-start 1.2.0, S1) routes to `/ow-build-plan-quote --quick --onboarding` (`routing-and-resume.md` §2.1): a fixed-fee review of a running system, sized S, M or L by the systems and integrations the intake names, priced only from the user's new `price-book.yaml` `care_onboarding` block (`price-book-schema.md`). `quick-scope.md` holds the review's eight parts (the ow-care design §4); `quote.md` has `mode: onboarding`, `onboarding_size`, `fixed_price` and `payment: on_signature | on_delivery`. Like a feasibility quote it carries no user acceptance testing line, fix window, documentation & training line, milestones, build hand-off or Build Plan credit, and it sells no care tier (`phase-quote.md` §3.2).
+- **Acceptance and signing.** `--accepted` writes the onboarding form of `contract-inputs.md` (`contract-inputs-schema.md`) and asks nothing about documentation & training; `--signed` writes no `build-request.md`, appends `next: ow-care /ow-care-onboard plans/<client>/` and prints the onboarding signed NEXT (`use ow-care to onboard plans/<client>/`). A folder whose onboarding review is signed routes to that NEXT (`routing-and-resume.md` §2.3). The signature starts no care plan.
+- **ow-care's separate quote.** A care request too big for care arrives as `care/<client>/requests/CARE-nn.md` (ow-care's hand-off to `--quick`): a Reads-from row in the body and `skill.edges.yaml`.
+- **Body under its cap.** With P4 the body would pass its 4,500-token cap, so the ow-tools table and the `opchain-work/` file tree moved, word for word, to the new `references/tools-and-files.md`, which every phase opens; the body keeps the rule (run the call when `ow-tools version` answers, never imitate it, record each call) and points there.
+- **Data edits, no bump of their own:** `examples/price-book.yaml` gains an invented `care_onboarding` block; the shared `examples/offers.md` gains `## path: care-takeover`, byte-identical in every ow- skill that ships it.
+
 ## Unreleased: data edits from OW-06 (ow-handoff 1.0.0)
 
 No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed:

@@ -265,7 +265,7 @@ hands_off:
   # ow-care (planned, built later): what its design §5.1 reads.
   - when: Closed, care chosen
     to: ow-care
-    verb: /ow-care-start
+    verb: /ow-care   # the routing verb: "use ow-care on <path>" lands there and routes to /ow-care-start
     say: use ow-care on handoffs/<client>/care-start.md
     files:
       - { path: handoffs/<client>/care-start.md, fields: [care_start, kept access with removal steps, carried fixes, waiting route care requests] }
@@ -277,7 +277,7 @@ hands_off:
     if_unavailable: The kept items stay with you; review them by the date in STATUS
   - when: A Change after close, route care
     to: ow-care
-    verb: /ow-care-request
+    verb: /ow-care   # the routing verb: routes a `route: care` FIX to /ow-care-request
     say: use ow-care on handoffs/<client>/fixes/FIX-nn.md
     files:
       - { path: handoffs/<client>/fixes/FIX-nn.md, fields: [class, reported, route, the request] }

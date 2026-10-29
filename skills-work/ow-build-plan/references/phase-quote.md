@@ -1,4 +1,4 @@
-# Phase: quote (`/ow-build-plan-quote`, `--quick`, `--accepted <date>`, `--signed <date>`)
+# Phase: quote (`/ow-build-plan-quote`, `--quick`, `--quick --onboarding`, `--accepted <date>`, `--signed <date>`)
 
 Run step 0 of `references/ow-protocol.md` first. Every price comes from the user's `price-book.yaml` (`references/price-book-schema.md`) or from the user, recorded as theirs. **This skill never estimates a price.**
 
@@ -8,6 +8,7 @@ Run step 0 of `references/ow-protocol.md` first. Every price comes from the user
 |---|---|---|
 | `/ow-build-plan-quote` | `plan.yaml`, `scope.md`, `acceptance.md`, `risks.md`, `evidence.md` | `quote.md`, `quote-items.json` |
 | `/ow-build-plan-quote --quick` | `intake/<client>/intake-record.md` (or a written request) | `quick-scope.md`, `quote.md`, `quote-items.json` |
+| `/ow-build-plan-quote --quick --onboarding` | the same, with a recap whose `path_kind` is `care-takeover` | `quick-scope.md`, `quote.md`, `quote-items.json` (§3.2) |
 | `/ow-build-plan-quote --accepted <date>` | `quote.md` | `contract-inputs.md` |
 | `/ow-build-plan-quote --signed <date>` | `quote.md` and `contract-inputs.md` | `build-request.md` |
 
@@ -100,13 +101,23 @@ A feasibility quote carries **just the test** (owner decision 2026-10-16): its p
   then the internal appendix inside the markers: pricing lines, arithmetic, and Quote integrity with rows for the feasibility unit, dates and terms, and the markers.
 - `--accepted` writes the feasibility form of `contract-inputs.md` (`references/contract-inputs-schema.md`) and asks nothing about documentation & training. `--signed` writes **no** `build-request.md` and prints **no** ow-build NEXT: see §6.
 
+### 3.2 A care takeover's onboarding review (`--quick --onboarding`)
+
+Amendment P4 of the ow-care design (1.3.0). `--onboarding` is only valid with `--quick`; neither flag alone starts an onboarding quote. A `care-takeover` recap (ow-start 1.2.0) routes here (`routing-and-resume.md` §2.1). It follows §3.1's pattern: **just the review**.
+
+- **Size and price** only from the price book's `care_onboarding` block (`references/price-book-schema.md`): count the distinct systems and integrations the intake record names (ask when the intake leaves it open; record the count), take the size whose `size_by_systems` rule holds them, and price one line at that size's fee. Record the count, the size and the rule as written. When the rule does not settle the size, ask the user to settle it; never infer a price. With no `care_onboarding` block, or a size with no fee, stop with no quote and ask. The example's fees are invented placeholders, never a client's price.
+- **No** user acceptance testing line, fix window, documentation & training line, milestones, vendor subscriptions, acceptance or delivery sentence, Build Plan credit or build hand-off. No care tier subscription price is charged by this quote. The quote says it buys a review of a running system, not a build and not care.
+- `quick-scope.md` holds the review's eight parts (the ow-care design §4), each a `### ` heading under `## In scope`: systems and integrations (each system, what it does, who owns the account by role, how it is deployed); the least access care would need; how it runs (alerts, run logs, backups and restore, scheduled jobs: present, missing or unknown); a health baseline; the takeover check (repository, setup, tests, deploy, rollback: found with its path, or missing); risks and unknowns with their evidence; one recommended care tier with the reasons, a recommendation and no commitment; fix-first items, each routed to care hours once care starts or to a separate quote. Then `## Out of scope` (at least one line: nothing is fixed or built, and no care starts, under this review) and `## Acceptance checks` (`### AC-1.1`: the review delivered as a document with all eight parts). No `## UAT approach`; Acceptance coverage's `kind: error` rule is waived for this form, as for a feasibility scope.
+- `quote.md`: §3.1's reduced header with `mode: onboarding`, `onboarding_size: S | M | L`, `systems: <count>` and `payment: on_signature | on_delivery` (from the block); `fixed_price` = the review line. The client part is §3.1's, with `## What is reviewed` (the systems and integrations counted) and `## What you get` (the review document with its eight parts, including the recommended tier and its reasons) in place of its two middle sections; `## Price and payment` says when the fee is invoiced, as `payment` says. `quote-items.json` holds the one line.
+- `--accepted` writes the onboarding form of `contract-inputs.md` (`references/contract-inputs-schema.md`) and asks nothing about documentation & training. `--signed` writes **no** `build-request.md`: see §6. The signature starts no care plan; care starts only when ow-care's `-start --takeover` records the client's chosen tier and start date after the review.
+
 ## 4. `quote.md`
 
 The header (protocol §4, `ow_artefact: ow-build-plan/quote`, `subject:` `scope.md` or `quick-scope.md`), then these keys:
 
     client: <client>
     handling: "no"                      # quick mode only: the step 0 answer (a plan keeps it in plan.yaml)
-    mode: build-plan | quick
+    mode: build-plan | quick | feasibility | onboarding
     currency: USD
     issued: <YYYY-MM-DD>
     valid_until: <YYYY-MM-DD>
@@ -227,6 +238,8 @@ Then the **internal appendix**, wholly between the two markers, each on a line o
 
 1. **No `contract-inputs.md`: refuse.** Say "The acceptance is not recorded yet; run `/ow-build-plan-quote --accepted <date>` first." Write nothing and append no STATUS line.
 2. Record, word for word: `client signed <date>, recorded by <user name>; not verified by this skill`, with the protocol §8 approval sentence.
+   **An onboarding quote** (`mode: onboarding`): write nothing. There is no build to hand over: the next thing is the review. Append the onboarding STATUS line (§8) and print the onboarding signed NEXT block from SKILL.md (`use ow-care to onboard plans/<client>/`). Steps 3 and 4 do not apply. A signed onboarding quote is never routed to ow-build and never re-quoted in the same folder.
+
    **A feasibility quote** (`mode: feasibility`): write nothing. There is no build to hand over: the next thing the client receives is the findings note. Append the feasibility STATUS line (§8) and print the feasibility signed NEXT block from SKILL.md (on a go, a Build Plan offer: "use ow-build-plan to write the offer for plans/<client>/"). Steps 3 and 4 do not apply.
 3. Write `build-request.md` **from the plan, not the quote**: no price, fee or rate anywhere in it. Header (`ow_artefact: ow-build-plan/build-request`, `subject: plans/<client>/scope.md` or `quick-scope.md`, keys `client`, `signed`, `signing_note`), then:
 
@@ -251,11 +264,12 @@ The `## Next` sections of `contract-inputs.md` and `build-request.md` hold the s
 
 ## 8. STATUS
 
-Append one line per run (protocol §5), with these fields after the date and `ow-build-plan 1.2.0`:
+Append one line per run (protocol §5), with these fields after the date and `ow-build-plan 1.3.0`:
 
 - `-quote`: path `plans/<client>/quote.md`; `next: ow-build-plan /ow-build-plan-export plans/<client>/`; `awaiting: client's answer by <valid_until>; Build Plan credit by <credit_deadline>` (quick mode, or a plan with `fee: none`: the first part only, `awaiting: client's answer by <valid_until>`).
 - `--quick` refused: path `intake/<client>/intake-record.md`; `next: ow-build-plan /ow-build-plan-offer intake/<client>/intake-record.md`; `awaiting: none`.
 - `--accepted`: path `plans/<client>/contract-inputs.md`; `next: ow-build-plan /ow-build-plan-quote plans/<client>/`; `awaiting: signing for the Build Plan credit by <credit_deadline>` (quick mode, or a plan with `fee: none`: `awaiting: none`).
 - `--signed`: path `plans/<client>/build-request.md`; `next: ow-build /ow-build-start plans/<client>/`; `awaiting: none`.
 - `--signed` on a feasibility quote: path `plans/<client>/contract-inputs.md`; `next: ow-build-plan /ow-build-plan-offer plans/<client>/`; `awaiting: none`.
+- `--signed` on an onboarding quote: path `plans/<client>/contract-inputs.md`; `next: ow-care /ow-care-onboard plans/<client>/`; `awaiting: none`.
 - `--signed` refused: no line.

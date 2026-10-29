@@ -1,0 +1,22 @@
+# route-on-plans
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+today: '2026-11-03'
+clock: user-stated
+verbs:
+  - /ow-care
+tool: absent
+private_names:
+  - Deftwright
+  - llc-ops
+kind: route
+route:
+  expect: onboard
+  path: plans/larkspur-ceramics/
+checks:
+  - next
+next:
+  - use ow-care-onboard on plans/larkspur-ceramics/

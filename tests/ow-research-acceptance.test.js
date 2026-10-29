@@ -390,8 +390,8 @@ describe("C2, C17, C26: the skill text and its hand-off fields", () => {
     expect(matter(readFileSync(join(SKILL, "SKILL.md"), "utf8")).data.metadata.version).toBe("1.0.2");
     expect(readFileSync(join(SKILL, "CHANGELOG.md"), "utf8")).toMatch(/^## 1\.0\.2 \(2026-10-22\)[\s\S]*^## 1\.0\.1 \(2026-10-19\)[\s\S]*^## 1\.0\.0 \(2026-10-17\)/m);
     const bp = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "SKILL.md"), "utf8");
-    expect(matter(bp).data.metadata.version).toBe("1.2.0");
-    expect(bp).toMatch(/^ow-build-plan 1\.2\.0 · protocol 1/m);
+    expect(matter(bp).data.metadata.version).toBe("1.3.0");
+    expect(bp).toMatch(/^ow-build-plan 1\.3\.0 · protocol 1/m);
     const cl = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "CHANGELOG.md"), "utf8");
     expect(cl).toMatch(/^## 1\.1\.0 /m);
     expect(cl).toMatch(/^## 1\.0\.0 /m);

@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "closed_month": {
+    "id": "M-01",
+    "included": 480,
+    "entries": [{ "id": "CARE-01", "kind": "care", "minutes": 300 }],
+    "effective_rollover": "0.25,unused,1"
+  },
+  "next_month": {
+    "id": "M-02",
+    "included": 480,
+    "entries": [{ "id": "CARE-02", "kind": "care", "minutes": 300 }],
+    "effective_rollover": "0.5,unused,1"
+  },
+  "expected": { "old_rolled_over": 45, "next_rolled_in": 45, "next_own_unused": 225, "next_rolled_over": 105 }
+}

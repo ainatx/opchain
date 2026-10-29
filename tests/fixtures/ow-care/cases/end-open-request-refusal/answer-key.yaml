@@ -1,0 +1,18 @@
+# end-open-request-refusal
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: month-final-settlement
+today: '2027-04-17'
+clock: user-stated
+verbs:
+  - /ow-care-end
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+refused:
+  - CARE-06
+  - in progress

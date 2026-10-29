@@ -16,6 +16,11 @@ origin: user
 
 currency: USD
 
+care_onboarding:            # a care takeover's onboarding review (quote --quick --onboarding); INVENTED placeholders
+  sizes: { S: 1000, M: 2000, L: 3000 }
+  size_by_systems: { S: "1 system, no integrations", M: "2 systems or 1 integration", L: "3+ systems or 2+ integrations" }
+  payment: on_signature     # or on_delivery
+
 build_plan_fees:            # the Build Plan itself, per tier
   one_system: 1000
   two_systems: 2000

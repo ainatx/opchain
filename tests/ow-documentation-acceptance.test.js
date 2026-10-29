@@ -183,7 +183,9 @@ describe("C3, C20, C1: the skill's own text and its pins", () => {
     expect(cats.planned).not.toContain("ow-handoff");
     expect(cats.plannedVerbs["ow-handoff"]).toBeUndefined();
     expect(readFileSync(join(ROOT, "skills-work", "ow-handoff", "SKILL.md"), "utf8")).toMatch(/commands: .*\/ow-handoff-notes .*\/ow-handoff-package/);
-    expect(cats.plannedVerbs["ow-care"]).toEqual(expect.arrayContaining(["/ow-care-request"]));
+    // ow-care is built (OW-07): its verbs are declared in its own frontmatter, no longer planned.
+    expect(cats.planned).not.toContain("ow-care");
+    expect(cats.plannedVerbs["ow-care"]).toBeUndefined();
     expect(cats.statusNames["/ow-documentation-rollout"]).toBe("G-");
   });
 });
@@ -254,13 +256,13 @@ describe("cross-skill parity: ow-build reads these goldens as its own (B4)", () 
   });
 });
 
-describe("C18: P3 in ow-build-plan (1.2.0)", () => {
+describe("C18: P3 in ow-build-plan (1.2.0; 1.3.0 since P4)", () => {
   const ci = () => readFileSync(join(ROOT, "tests/fixtures/ow-build-plan/accepted-signed/expected/opchain-work/plans/larkspur-ceramics/contract-inputs.md"), "utf8");
   it("documentation_people is top-level (6, the quote's), and the body says when the line is invoiced", () => {
     expect(ci()).toMatch(/^documentation_people: 6$/m);
     expect(ci()).toMatch(/invoiced when the documents are delivered/);
     const bp = readFileSync(join(ROOT, "skills-work/ow-build-plan/SKILL.md"), "utf8");
-    expect(bp).toMatch(/version: "1\.2\.0"/);
+    expect(bp).toMatch(/version: "1\.3\.0"/);
     // P3 on top of P5: the body stays under the catalog's enforced 4,500-token cap.
     expect(loadCatalogs({ root: ROOT }).find((c) => c.prefix === "ow-").bodyTokenBudgets["ow-build-plan"]).toBe(4500);
     expect(estimateTokens(bp.slice(bp.indexOf("\n---", 3) + 4))).toBeLessThanOrEqual(4500);
