@@ -1,0 +1,23 @@
+{
+  "id": "oc-repo-ops-pr-readiness-v1-303afb329e8c",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-10-29T17:49:34.747Z",
+  "verified_at": "2026-10-29T17:49:34.747Z",
+  "producer": {
+    "skill": "oc-repo-ops",
+    "run_id": "pr-readiness-v1-2026-10-29T17:49:34.747Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:303afb329e8ce22e0cff0df852849891a5ff38c3a27281d9d59795c3bef4979a"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-readiness-v1",
+    "scope": "CLAUDE.md",
+    "evidence": [
+      "Markdown-only change; generated files untouched; no orphaned artifacts; gitignore policy holds; gate receipt 71caba7ea3d2"
+    ]
+  }
+}
