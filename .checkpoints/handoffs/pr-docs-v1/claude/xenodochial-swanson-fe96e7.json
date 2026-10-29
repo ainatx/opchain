@@ -1,0 +1,20 @@
+{
+  "id": "oc-docs-forge-pr-docs-v1-b0bb903794ab",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-10-29T21:32:08.564Z",
+  "verified_at": "2026-10-29T21:32:08.564Z",
+  "producer": {
+    "skill": "oc-docs-forge",
+    "run_id": "pr-docs-v1-2026-10-29T21:32:08.564Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:b0bb903794abf4ee6135278d499463efa21c3db46f228407a75aeb983dd6aceb"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-docs-v1",
+    "scope": "docs-only: Track S scope-drift audit (docs/audits/2026-10-29-track-s-scope-drift.md); PR body carries the Documentation section"
+  }
+}

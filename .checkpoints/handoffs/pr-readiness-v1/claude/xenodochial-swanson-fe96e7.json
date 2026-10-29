@@ -1,0 +1,20 @@
+{
+  "id": "oc-repo-ops-pr-readiness-v1-b0bb903794ab",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-10-29T21:32:08.925Z",
+  "verified_at": "2026-10-29T21:32:08.925Z",
+  "producer": {
+    "skill": "oc-repo-ops",
+    "run_id": "pr-readiness-v1-2026-10-29T21:32:08.925Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:b0bb903794abf4ee6135278d499463efa21c3db46f228407a75aeb983dd6aceb"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-readiness-v1",
+    "scope": "docs-only: one new audit file under docs/audits/, no generated or site files touched"
+  }
+}
