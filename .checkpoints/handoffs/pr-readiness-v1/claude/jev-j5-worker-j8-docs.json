@@ -1,0 +1,23 @@
+{
+  "id": "oc-repo-ops-pr-readiness-v1-05ba28fae664",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-10-29T18:01:45.140Z",
+  "verified_at": "2026-10-29T18:01:45.140Z",
+  "producer": {
+    "skill": "oc-repo-ops",
+    "run_id": "pr-readiness-v1-2026-10-29T18:01:45.140Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:05ba28fae664b62c9ff5c6b42cb514853dc3ed44a7930c5f62456d83901a120a"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-readiness-v1",
+    "scope": "J5 Worker + J8 hint tree: generated flags/route spec/plugin skills in sync, contracts and internal refs clean, verifier receipt PASS",
+    "evidence": [
+      "gen-route-spec --check; gen-flags; sync-plugin-skills:check; check-skill-contracts; lint-internal-refs; verify-candidate PASS"
+    ]
+  }
+}
