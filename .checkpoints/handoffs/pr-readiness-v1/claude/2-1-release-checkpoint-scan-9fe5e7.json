@@ -1,0 +1,23 @@
+{
+  "id": "oc-repo-ops-pr-readiness-v1-821a7e6ad4e8",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-10-29T21:21:23.823Z",
+  "verified_at": "2026-10-29T21:21:23.823Z",
+  "producer": {
+    "skill": "oc-repo-ops",
+    "run_id": "pr-readiness-v1-2026-10-29T21:21:23.823Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:821a7e6ad4e8a39e19dc9c80ff40bff533f013f7a7236d8365464a3e5a8434b2"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-readiness-v1",
+    "scope": "branch claude/2-1-release-checkpoint-scan-9fe5e7 rebased on origin/main ac2014cc",
+    "evidence": [
+      "npm run checkpoint:validate: 17 valid; tree clean; no generated files or catalogs touched; rebase replayed two commits with no conflicts"
+    ]
+  }
+}

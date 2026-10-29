@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-16T17:02:22.056Z",
+  "updated_at": "2026-10-29T19:30:48.000Z",
   "skill": "oc-release-ops",
   "phase": "plan",
-  "step": "v2.1.0-planning",
+  "step": "v2.1.0-coordination",
   "status": "in_progress",
-  "progress_summary": "v2.0.4 'Bug fixes' shipped 2026-09-27 (signed tag v2.0.4 on 91a2124; production serves 0f3410c; baseline #573/#574). v2.1.0 is in planning: one release with two themes, the ow- family and Track E (enforcement + the Jev router as an experimental preview), per sprints/release-2.1/ow-family-sprint-plan.md. The cut is ow- Sprint 6 with Track E E3 folded in.",
+  "progress_summary": "v2.1.0 coordination scan 2026-10-29: session local_8959641b is the owner-designated master coordinator; other 2.1 sessions told to stop. On main: eight of nine in-scope ow- skills (ow-start 1.1.1, ow-build-plan 1.2.0, ow-build 1.0.0, ow-uat 1.0.2, ow-documentation 1.0.1, ow-handoff 1.0.0, ow-research 1.0.2, ow-draft 1.0.0), ow-tools 1.3.0, Track E product half (#608), Jev plan §2-§6 (#658-#663); #665 auto-merging. Left: OW-07 ow-care (salvage from #652), REL-01, REL-02 (reduced today), WEB-01 rebase (#620) and WEB-02-05, EN-01 record, EN-02 re-run (day 8 NO-GO 2026-10-26), EN-03, the cut. Time: 89.5h active since 2026-09-27; remaining about 70-75h Claude by plan after the Track S audit (43.5h of it site work), owner 15-20h; ready-to-tag about 2026-11-20 at the recent pace. Detail in skill_state.current_release.",
   "progress_table": [
     {
       "id": "scope",
@@ -81,7 +81,23 @@
   "blockers": [],
   "next_actions": [
     {
-      "text": "At the cut (ow- Sprint 6 + Track E E3): /oc-release plan for 2.1.0 with the owner naming the combined theme; one changelog entry covering both themes, the router under its own Experimental heading.",
+      "text": "Salvage ow-care 1.0.0 from the Codex draft #652 onto a fresh branch off main; family edge checks, one evaluation round, PR (OW-07).",
+      "done_when": "ow-care 1.0.0 merged on main"
+    },
+    {
+      "text": "Track S scope-drift audit (session track-s-scope-review), then rebase #620 and build WEB-02..05 on the held branch.",
+      "done_when": "docs/audits/2026-10-29-track-s-scope-drift.md exists and #620 is rebased green"
+    },
+    {
+      "text": "EN-02: owner labels the 9 unlabelled suggestions; re-run day 8 when suggestions reach 30 (about 2026-10-30); record the verdict for the router changelog line.",
+      "done_when": "go/no-go verdict recorded with its three numbers"
+    },
+    {
+      "text": "REL-01 distribution and integrity for nine skills + ow-tools.",
+      "done_when": "clean-folder install passes; zips refuse on a failed catalog check"
+    },
+    {
+      "text": "REL-02 real use (acceptance run per skill, real jobs for ow-start, ow-build-plan, ow-draft), then /oc-release plan for 2.1.0 with the owner naming the combined theme; one changelog entry, router under Experimental.",
       "done_when": "plan-approved checkpoint written for 2.1.0"
     },
     {
@@ -119,15 +135,89 @@
         "the ow- skill family (planning layer)",
         "enforcement at chokepoints + the Jev skill router (experimental preview)"
       ],
-      "phase": "planning",
+      "phase": "coordination",
       "started_at": "2026-10-16",
       "shipped_at": null,
       "plan": "sprints/release-2.1/ow-family-sprint-plan.md (approved 2026-10-14; Track E amendment approved 2026-10-16)",
       "decisions": [
         "One 2.1.0 release with two themes: one changelog, one tag, one deploy, one release freeze (owner, 2026-10-16). The owner names the combined theme at the cut.",
         "The router gets its own Experimental section in the 2.1.0 changelog under the router release terms (owner, 2026-10-16).",
-        "Track E's product PR merges to main before the tag, reaching the public mirror early; its changelog entries stay [Unreleased], including the BREAKING deploy-template change (--prod required)."
-      ]
+        "Track E's product PR merges to main before the tag, reaching the public mirror early; its changelog entries stay [Unreleased], including the BREAKING deploy-template change (--prod required).",
+        "2026-10-29 (owner): ow-care 1.0.0 is salvaged from the Codex draft PR #652 into a fresh branch off main (family checks + one evaluation round), not rebuilt from the OW-07 contract.",
+        "2026-10-29 (owner): REL-02 real use before the tag = a real-model acceptance run per skill plus real jobs for ow-start, ow-build-plan and ow-draft only; the changelog states what was run.",
+        "2026-10-29 (owner): #665 merges with --auto; the J5 Worker path stays off until the TYPESAFE_API_KEY secret and platform.security.feedback-triage flag are set, which is not a 2.1 requirement."
+      ],
+      "coordinator_session": "local_8959641b-079e-4663-a666-29fe18675011",
+      "scope": {
+        "ow_skills": [
+          "ow-start",
+          "ow-build-plan",
+          "ow-build",
+          "ow-uat",
+          "ow-documentation",
+          "ow-handoff",
+          "ow-research",
+          "ow-draft",
+          "ow-care"
+        ],
+        "moved_to_v2_2": [
+          "ow-vendor-eval",
+          "ow-controls",
+          "ow-packs",
+          "ow-currency"
+        ],
+        "ow_tools": "1.3.0"
+      },
+      "remaining_work": [
+        {
+          "id": "OW-07",
+          "item": "ow-care 1.0.0 salvage from #652",
+          "claude_h": "2-3",
+          "owner_h": "1"
+        },
+        {
+          "id": "REL-01",
+          "item": "distribution and integrity (ow- zips, mirror, clean-folder install, tag policy, SA-001/SA-004)",
+          "claude_h": "4-5",
+          "owner_h": "2"
+        },
+        {
+          "id": "REL-02",
+          "item": "acceptance runs + 3 real jobs, transcription spike, the cut",
+          "claude_h": "3",
+          "owner_h": "6-8"
+        },
+        {
+          "id": "WEB-01..05",
+          "item": "rebase #620, /work section for nine skills, fill-in, blog drafts, release-cut PR (38 items, docs/audits/2026-10-29-track-s-scope-drift.md)",
+          "claude_h": "43.5",
+          "owner_h": "1"
+        },
+        {
+          "id": "EN-01",
+          "item": "record the deftwright measurement week (or state not measured)",
+          "claude_h": "3-5",
+          "owner_h": "2-3"
+        },
+        {
+          "id": "EN-02/03",
+          "item": "day-8 re-run with owner labels; router copy review",
+          "claude_h": "4-7",
+          "owner_h": "1-2"
+        },
+        {
+          "id": "CUT",
+          "item": "/oc-release plan, draft, bump, announce, verify; release PR; signed tag; staging; prod; baseline PR",
+          "claude_h": "3-4",
+          "owner_h": "2-3"
+        }
+      ],
+      "time_so_far": {
+        "measured_at": "2026-10-29",
+        "active_hours_since_2026_09_27": 89.5,
+        "active_hours_since_2026_10_06": 68.7,
+        "source": "Claude Code transcripts under ~/.claude/projects (union of parallel sessions, 10-minute idle split); the oc-time-ops collector stopped 2026-10-08"
+      }
     },
     "prior_release": {
       "semver": "2.0.4",
