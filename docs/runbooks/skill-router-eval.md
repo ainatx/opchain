@@ -465,11 +465,11 @@ TYPESAFE_API_KEY=… npm run route:eval -- jev J9                    # live, aga
   hand-labelled window; the canned answers reproduce that window's three misses
   and three false suggestions (the #655 p floor silences the Auto-fix one; the two bug-check questions remain), which makes it the regression check for the §4
   spec-copy fixes.
-- A **Noul** use (J2 outcome judgement, J9 embedded instructions in a client
-  file) builds its question from `jev-questions.json`, sends the row's `state`
+- A **Noul** use (J2 outcome judgement, J8 PR docs completeness, J9 embedded
+  instructions in a client file) builds its question from `jev-questions.json`, sends the row's `state`
   fields, and thresholds the probability (the use's `threshold`, or
   `--threshold`). J2 adds the suggested skill's description and its own steps
-  to the instructions.
+  to the instructions; J8 adds the definition of the row's `section`.
 - Gold rows are JSONL: `{ id, prompt, expected: <skill>|"none" }` for J1,
   `{ id, <state fields>, expected: true|false }` otherwise. Canned answers are
   keyed by row id; a row with no entry is an **error row**, never a guess, and
@@ -508,6 +508,37 @@ where the reply did git or check work the prompt text did not ask for
 (moving a checkout to main, "Try again"). The labels judge the prompt text;
 J2 judges what the reply did. A wording that told it to count only requested
 work moved no row across 0.5. So J2 stays report-only.
+
+### J8: does a PR body cover what, why and how it was checked
+
+```bash
+TYPESAFE_API_KEY=… npm run route:eval -- jev J8                 # live
+npm run route:eval -- jev J8 --fixture tests/fixtures/jev/J8/answers.json
+```
+
+One Noul per part of a PR description. A gold row is
+`{ id, section: "what"|"why"|"verify", change, body, expected }`: `change` is
+the PR title and its files with line counts, `body` the description (cut at
+6,000 characters), and the registry's `sections` give each part's definition,
+sent as `section_definition`. `readGold` refuses a section the registry does
+not define.
+
+The gold set is 38 rows from nine merged ainatx/opchain PRs (#589, #592, #595,
+#614, #621, #633, #638, #646, #660), labelled as written, plus the same bodies
+with one part cut (#589 without its Summary, #621 and #660 without their test
+sections) and a one-line body and a test-plan-only body on #584's change. Real
+negatives: #595 and #633 state no check; Dependabot's #592 gives no reason and
+no check.
+
+First live run (2026-10-28, `jev-1.13.0`): 36/38, precision 0.929, recall
+1.000, hold 0.833, the same on three runs. Each call took about 1,400 input tokens
+(52k for the set). The two misses are cut bodies, both close calls:
+#660 without its test sections still lists five new tests but never says they
+ran (p 0.55), and #589 without its Summary keeps the title's "review … 2.1.286"
+(p 0.72 on why). Every one-line and test-only body is held on the parts it
+leaves out (p ≤ 0.06). J8 is **eval**: the candidate caller is
+`/oc-docs pr`, as a hint naming the parts a body is missing, before
+`oc-repo-ops verify`; it is not wired in yet.
 
 ## Tests
 

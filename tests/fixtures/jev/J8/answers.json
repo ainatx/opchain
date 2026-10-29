@@ -1,0 +1,496 @@
+{
+  "j8-589-what": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.92
+      }
+    },
+    "usage": {
+      "input_tokens": 1281,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-589-why": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.94
+      }
+    },
+    "usage": {
+      "input_tokens": 1284,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-589-verify": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.92
+      }
+    },
+    "usage": {
+      "input_tokens": 1299,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-592-what": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.66
+      }
+    },
+    "usage": {
+      "input_tokens": 3419,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-592-why": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.14
+      }
+    },
+    "usage": {
+      "input_tokens": 3422,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-592-verify": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.03
+      }
+    },
+    "usage": {
+      "input_tokens": 3437,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-595-what": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.92
+      }
+    },
+    "usage": {
+      "input_tokens": 926,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-595-why": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.89
+      }
+    },
+    "usage": {
+      "input_tokens": 929,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-595-verify": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.08
+      }
+    },
+    "usage": {
+      "input_tokens": 944,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-614-what": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.92
+      }
+    },
+    "usage": {
+      "input_tokens": 1434,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-614-why": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.93
+      }
+    },
+    "usage": {
+      "input_tokens": 1437,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-614-verify": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.95
+      }
+    },
+    "usage": {
+      "input_tokens": 1452,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-621-what": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.89
+      }
+    },
+    "usage": {
+      "input_tokens": 1180,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-621-why": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.94
+      }
+    },
+    "usage": {
+      "input_tokens": 1183,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-621-verify": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.91
+      }
+    },
+    "usage": {
+      "input_tokens": 1198,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-633-what": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.87
+      }
+    },
+    "usage": {
+      "input_tokens": 1416,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-633-why": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.88
+      }
+    },
+    "usage": {
+      "input_tokens": 1419,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-633-verify": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.05
+      }
+    },
+    "usage": {
+      "input_tokens": 1434,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-638-what": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.91
+      }
+    },
+    "usage": {
+      "input_tokens": 1223,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-638-why": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.96
+      }
+    },
+    "usage": {
+      "input_tokens": 1226,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-638-verify": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.93
+      }
+    },
+    "usage": {
+      "input_tokens": 1241,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-646-what": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.88
+      }
+    },
+    "usage": {
+      "input_tokens": 1418,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-646-why": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.82
+      }
+    },
+    "usage": {
+      "input_tokens": 1421,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-646-verify": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.93
+      }
+    },
+    "usage": {
+      "input_tokens": 1436,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-660-what": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.9
+      }
+    },
+    "usage": {
+      "input_tokens": 1772,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-660-why": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.6
+      }
+    },
+    "usage": {
+      "input_tokens": 1775,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-660-verify": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.93
+      }
+    },
+    "usage": {
+      "input_tokens": 1790,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-589-nowhy": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.72
+      }
+    },
+    "usage": {
+      "input_tokens": 1206,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-589-nowhy-what": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.92
+      }
+    },
+    "usage": {
+      "input_tokens": 1203,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-621-notest": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.08
+      }
+    },
+    "usage": {
+      "input_tokens": 1078,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-660-notest": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.55
+      }
+    },
+    "usage": {
+      "input_tokens": 1270,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-660-notest-why": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.52
+      }
+    },
+    "usage": {
+      "input_tokens": 1255,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-thin-what": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.05
+      }
+    },
+    "usage": {
+      "input_tokens": 642,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-thin-why": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.06
+      }
+    },
+    "usage": {
+      "input_tokens": 645,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-thin-verify": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.03
+      }
+    },
+    "usage": {
+      "input_tokens": 660,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-testonly-verify": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.82
+      }
+    },
+    "usage": {
+      "input_tokens": 673,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-testonly-what": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.06
+      }
+    },
+    "usage": {
+      "input_tokens": 655,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  },
+  "j8-testonly-why": {
+    "answers": {
+      "J8": {
+        "type": "noul",
+        "noul": 0.04
+      }
+    },
+    "usage": {
+      "input_tokens": 658,
+      "output_tokens": 21
+    },
+    "model": "jev-1.13.0"
+  }
+}

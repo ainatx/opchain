@@ -1,0 +1,23 @@
+{
+  "id": "oc-repo-ops-pr-readiness-v1-c581e47f4fa4",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-10-28T05:44:28.046Z",
+  "verified_at": "2026-10-28T05:44:28.046Z",
+  "producer": {
+    "skill": "oc-repo-ops",
+    "run_id": "pr-readiness-v1-2026-10-28T05:44:28.046Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:c581e47f4fa439bbd1a1e41c86b031bb1c15248ae819b4b6f868970017870e3b"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-readiness-v1",
+    "scope": "J8 tree: generated jev-questions.json in sync, plugin skills copy in sync, contracts and internal refs clean, verifier receipt PASS",
+    "evidence": [
+      "gen-route-spec --check; sync-plugin-skills:check; check-skill-contracts; lint-internal-refs; verify-candidate PASS"
+    ]
+  }
+}
