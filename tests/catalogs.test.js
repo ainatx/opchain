@@ -33,9 +33,18 @@ describe("catalogs.json", () => {
     ]);
   });
 
-  it("keeps the ow- catalog out of every oc- build output, by name", () => {
+  it("gives the ow- catalog its own zip, docs tree and mirror path, and keeps it out of the plugin, flags and MCP catalog", () => {
     expect(Object.keys(byId.ow.outputs).sort()).toEqual(["docs", "flagRegistry", "mcpCatalog", "mirror", "plugin", "zip"]);
-    expect(Object.values(byId.ow.outputs).every((v) => v === null)).toBe(true);
+    expect(byId.ow.outputs).toEqual({
+      plugin: null,
+      zip: "public/opchain-work-skills.zip",
+      docs: "public/docs/work",
+      flagRegistry: null,
+      mcpCatalog: null,
+      mirror: ".github/workflows/mirror-public.yml",
+    });
+    // Never the oc- paths: the oc- zip, docs tree and plugin stay oc- only.
+    for (const k of ["zip", "docs"]) expect(byId.ow.outputs[k]).not.toBe(byId.oc.outputs[k]);
     expect(Object.values(byId.oc.outputs).every((v) => typeof v === "string")).toBe(true);
   });
 
@@ -56,14 +65,17 @@ describe("catalogs.json", () => {
     expect(checkFamily(catalogs)).toEqual([]);
   });
 
-  it("the ow- catalog appears in no tracked oc- output", () => {
+  it("the ow- catalog appears in no tracked oc- output, and skills-work/ is mirrored whole", () => {
     const mcp = readFileSync(join(ROOT, "src", "generated", "mcp-catalog.json"), "utf8");
     for (const id of ["ow-start", "ow-build-plan"]) {
       expect(mcp).not.toMatch(new RegExp(`"${id}"`));
       expect(existsSync(join(ROOT, "plugins", "opchain", "skills", id))).toBe(false);
       expect(existsSync(join(ROOT, ".claude", "skills", id))).toBe(false);
     }
-    expect(readFileSync(join(ROOT, ".github", "workflows", "mirror-public.yml"), "utf8")).not.toMatch(/skills-work/);
+    const wf = readFileSync(join(ROOT, ".github", "workflows", "mirror-public.yml"), "utf8");
+    expect(wf).toMatch(/^\s+- 'skills-work\/\*\*'$/m);
+    expect(wf).toContain('cp -R skills-work "$STAGE/skills-work"');
+    expect(wf).toMatch(/for f in skills skills-work\/ow-protocol\.md skills-work\/README\.md /);
   });
 });
 

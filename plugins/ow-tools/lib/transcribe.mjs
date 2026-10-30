@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import {
   DIARIZATION_MODEL,
+  DIARIZATION_REVISION,
   PY_PROJECT,
   VERSION,
   WHISPER_MODELS,
@@ -20,6 +21,7 @@ import {
   sha256File,
   usage,
   venvDir,
+  verifyWhisperModel,
   which,
 } from "./core.mjs";
 import { assertAudioInput, assertIgnored, withTempDir, withTmpSiblings, writePrivate } from "./guards.mjs";
@@ -41,8 +43,8 @@ export function transcribeRequirements(model = "large-v3-turbo", env = process.e
   const out = [];
   if (!which("ffmpeg", env)) out.push("ffmpeg");
   if (!which("whisper-cli", env)) out.push("whisper-cli (whisper.cpp)");
-  const mp = modelPath(model, env);
-  if (!isFile(mp) || readSize(mp) !== WHISPER_MODELS[model].bytes) out.push(`Whisper model ${model}`);
+  const whisper = verifyWhisperModel(model, env);
+  if (!whisper.ok) out.push(`Whisper model ${model} (${whisper.detail})`);
   if (!which("uv", env)) out.push("uv");
   if (!isFile(join(venvDir(env), "bin", "python"))) out.push("Python 3.12 environment for pyannote");
   if (!diarizationCached(env)) out.push(`speaker model ${DIARIZATION_MODEL}`);
@@ -133,7 +135,7 @@ export async function transcribe(opts, log = () => {}) {
       PYTHONDONTWRITEBYTECODE: "1",
     });
     // --no-sync: run in the environment the user built; never install into it.
-    const args = ["run", "--frozen", "--no-sync", "--project", PY_PROJECT, "python", join(PY_PROJECT, "diarize.py"), wav, join(tmp, "turns.json"), "--device", device];
+    const args = ["run", "--frozen", "--no-sync", "--project", PY_PROJECT, "python", join(PY_PROJECT, "diarize.py"), wav, join(tmp, "turns.json"), "--device", device, "--revision", DIARIZATION_REVISION];
     if (speakers) args.push("--speakers", String(speakers));
     r = run("uv", args, { env });
     if (r.status !== 0 || !isFile(join(tmp, "turns.json"))) {
