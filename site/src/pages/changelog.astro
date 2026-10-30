@@ -45,6 +45,7 @@ import Base from "../layouts/Base.astro";
 import RoadmapForm from "../components/RoadmapForm.astro";
 import ReleaseTag from "../components/ReleaseTag.astro";
 import type { PreviewTheme } from "../data/release-preview";
+import owTools from "../../../plugins/ow-tools/.claude-plugin/plugin.json";
 import { loadRoadmap, itemsForMilestoneNumber } from "../data/roadmap-types";
 
 const roadmap = loadRoadmap();
@@ -281,7 +282,7 @@ const plannedReleaseGroups: PlannedGroup[] = [
         </button>
         <div class="card-body" id="v2-1-body" data-disclosure-body>
           <div class="card-body-inner hero-body-inner">
-            <div class="tag-row"><span class="tag tag--info">released</span><span class="tag">36 oc- skills</span><span class="tag">9 ow- skills</span><span class="tag">ow-tools 1.3.0</span><span class="tag tag--warn">router: experimental preview</span><ReleaseTag theme="ow" /><ReleaseTag theme="oc" /></div>
+            <div class="tag-row"><span class="tag tag--info">released</span><span class="tag">36 oc- skills</span><span class="tag">9 ow- skills</span><span class="tag">ow-tools {owTools.version}</span><span class="tag tag--warn">router: experimental preview</span><ReleaseTag theme="ow" /><ReleaseTag theme="oc" /></div>
             <p>The oc- catalog moves to 2.1.0 in lockstep. The ow- planning skills carry their own versions (1.0.0 and up) and live at <a href="/work">opchain.work</a>; they are not counted with the 36 oc- skills.</p>
 <h3>The ow- planning family, for client work</h3>
             <p>Nine skills, text only and no code, that follow a client job from the first call to the handoff and the care after it, each at its own version from 1.0.0, plus one optional add-on. Three of them use the host&rsquo;s own web tools or a document connector, with its prompts on. They never invent a price, give legal advice or send anything without your confirmation. <ReleaseTag theme="ow" /></p>

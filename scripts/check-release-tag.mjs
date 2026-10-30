@@ -34,6 +34,17 @@
 // Header.CURRENT_RELEASE cannot serve as the signal: it is major.minor ("v1.8"),
 // so it is blind to a patch release. The catalog version is full semver.
 //
+// ── the ow- catalog (skills-work/) is not a signal, on purpose ──────────────
+// The ow- planning skills carry per-skill versions (catalogs.json
+// `versionPolicy: "per-skill"`) and ow-tools its own plugin version. None is
+// tagged on its own: one tag per release, v<lockstep>, covers both catalogs,
+// and skills/CHANGELOG.md's entry lists the ow- versions shipped under it. An
+// ow- fix between releases ships as a patch of the lockstep version. So this
+// script reads skills/ only; the ow- zips and docs carry their own build gate
+// (scripts/make-work-skills-zip.sh, scripts/sync-work-docs.sh refuse until
+// gen-catalog and check-skill-contracts pass; scripts/check-work-install.mjs
+// proves the install). Policy: docs/governance/RELEASING.md §2a.
+//
 // Run:   node scripts/check-release-tag.mjs
 //        node scripts/check-release-tag.mjs --local     # signed pre-push gate
 //        node scripts/check-release-tag.mjs --json      # machine-readable gate result

@@ -2,7 +2,7 @@
 /**
  * /work/ow-tools — the one code add-on for the ow- planning skills. Version
  * read from plugins/ow-tools/.claude-plugin/plugin.json at build; parts and
- * network facts from plugins/ow-tools/README.md (1.3.0). Release 2.1, WEB-02.
+ * network facts from plugins/ow-tools/README.md. Release 2.1, WEB-02.
  */
 import WorkPage from "../../layouts/WorkPage.astro";
 import Eyebrow from "../../components/ui/Eyebrow.astro";
@@ -97,6 +97,7 @@ const jsonLd = {
       <li><strong>capture</strong> drives your browser to the origins the plan lists and blocks every other request the page makes. It never types into or reads a password or one-time-code field. A production session is wiped after the run.</li>
       <li><strong>scan-secrets</strong> shows where a secret is, never the matched text, and reads the committed history through a private copy that is removed when the scan ends.</li>
       <li>No telemetry, no update check. Exports leave out anything marked internal.</li>
+      <li><strong>Model provenance.</strong> The speaker model is fetched and loaded at one pinned revision, and the Whisper model&rsquo;s SHA-256 is checked before every transcription. The marketplace entry names the release tag from the first release that ships ow-tools, and the security manifest&rsquo;s hash is published apart from the mirror.</li>
     </ul>
     <p>The <a href="/security">security page</a> carries the same facts beside the rest of opchain’s posture; the <a href="/privacy">privacy page</a> says what the planning skills themselves send, which for six of the nine is nothing.</p>
   </section>

@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-29T19:30:48.000Z",
+  "updated_at": "2026-10-30T20:29:16Z",
   "skill": "oc-release-ops",
   "phase": "plan",
   "step": "v2.1.0-coordination",
   "status": "in_progress",
-  "progress_summary": "v2.1.0 coordination scan 2026-10-29: session local_8959641b is the owner-designated master coordinator; other 2.1 sessions told to stop. On main: eight of nine in-scope ow- skills (ow-start 1.1.1, ow-build-plan 1.2.0, ow-build 1.0.0, ow-uat 1.0.2, ow-documentation 1.0.1, ow-handoff 1.0.0, ow-research 1.0.2, ow-draft 1.0.0), ow-tools 1.3.0, Track E product half (#608), Jev plan §2-§6 (#658-#663); #665 auto-merging. Left: OW-07 ow-care (salvage from #652), REL-01, REL-02 (reduced today), WEB-01 rebase (#620) and WEB-02-05, EN-01 record, EN-02 re-run (day 8 NO-GO 2026-10-26), EN-03, the cut. Time: 89.5h active since 2026-09-27; remaining about 70-75h Claude by plan after the Track S audit (43.5h of it site work), owner 15-20h; ready-to-tag about 2026-11-20 at the recent pace. Detail in skill_state.current_release.",
+  "progress_summary": "v2.1.0 coordination scan 2026-10-29: session local_8959641b is the owner-designated master coordinator; other 2.1 sessions told to stop. On main: all nine in-scope ow- skills (ow-start 1.2.0, ow-build-plan 1.3.0, ow-build 1.0.0, ow-uat 1.0.2, ow-documentation 1.0.1, ow-handoff 1.0.1, ow-research 1.0.2, ow-draft 1.0.0, ow-care 1.0.0 via #668 on 2026-10-30), ow-tools 1.3.0 (1.3.1 in the REL-01 PR), Track E product half (#608), Jev plan §2-§6 (#658-#663); #665 auto-merging. Left: REL-01 (PR open 2026-10-30), REL-02 (reduced today), WEB-01 rebase (#620) and WEB-02-05, EN-01 record, EN-02 re-run (day 8 NO-GO 2026-10-26), EN-03, the cut. Time: 89.5h active since 2026-09-27; remaining about 70-75h Claude by plan after the Track S audit (43.5h of it site work), owner 15-20h; ready-to-tag about 2026-11-20 at the recent pace. Detail in skill_state.current_release.",
   "progress_table": [
     {
       "id": "scope",
@@ -81,8 +81,9 @@
   "blockers": [],
   "next_actions": [
     {
-      "text": "Salvage ow-care 1.0.0 from the Codex draft #652 onto a fresh branch off main; family edge checks, one evaluation round, PR (OW-07).",
-      "done_when": "ow-care 1.0.0 merged on main"
+      "text": "DONE 2026-10-30: ow-care 1.0.0 merged as #668 (main 91def274), with ow-start 1.2.0, ow-build-plan 1.3.0, ow-handoff 1.0.1 (OW-07).",
+      "done_when": "ow-care 1.0.0 merged on main",
+      "status": "done"
     },
     {
       "text": "Track S scope-drift audit (session track-s-scope-review), then rebase #620 and build WEB-02..05 on the held branch.",
@@ -93,8 +94,9 @@
       "done_when": "go/no-go verdict recorded with its three numbers"
     },
     {
-      "text": "REL-01 distribution and integrity for nine skills + ow-tools.",
-      "done_when": "clean-folder install passes; zips refuse on a failed catalog check"
+      "text": "REL-01 distribution and integrity for nine skills + ow-tools: PR open (ow- zips + docs + mirror + clean-folder install check + tag policy + SA-001 policy/out-of-band hash + SA-004 pins, ow-tools 1.3.1); merge it, then the cut flips marketplace.json ref to v2.1.0.",
+      "done_when": "clean-folder install passes; zips refuse on a failed catalog check",
+      "status": "in_progress"
     },
     {
       "text": "REL-02 real use (acceptance run per skill, real jobs for ow-start, ow-build-plan, ow-draft), then /oc-release plan for 2.1.0 with the owner naming the combined theme; one changelog entry, router under Experimental.",
@@ -145,7 +147,8 @@
         "Track E's product PR merges to main before the tag, reaching the public mirror early; its changelog entries stay [Unreleased], including the BREAKING deploy-template change (--prod required).",
         "2026-10-29 (owner): ow-care 1.0.0 is salvaged from the Codex draft PR #652 into a fresh branch off main (family checks + one evaluation round), not rebuilt from the OW-07 contract.",
         "2026-10-29 (owner): REL-02 real use before the tag = a real-model acceptance run per skill plus real jobs for ow-start, ow-build-plan and ow-draft only; the changelog states what was run.",
-        "2026-10-29 (owner): #665 merges with --auto; the J5 Worker path stays off until the TYPESAFE_API_KEY secret and platform.security.feedback-triage flag are set, which is not a 2.1 requirement."
+        "2026-10-29 (owner): #665 merges with --auto; the J5 Worker path stays off until the TYPESAFE_API_KEY secret and platform.security.feedback-triage flag are set, which is not a 2.1 requirement.",
+        "2026-10-30 (owner, REL-01): the ow- catalog gets its own zips (public/opchain-work-skills.zip, public/work/<id>.zip) and docs tree (public/docs/work); skills-work/ is mirrored whole; SA-001 = pin ow-tools' marketplace ref to the release tag at the cut (mirror-public.yml pushes v* tags to the mirror), manifest hash published out of band now; SA-004 = pyannote revision pin + Whisper run-time hash, ow-tools 1.3.1."
       ],
       "coordinator_session": "local_8959641b-079e-4663-a666-29fe18675011",
       "scope": {
@@ -166,20 +169,15 @@
           "ow-packs",
           "ow-currency"
         ],
-        "ow_tools": "1.3.0"
+        "ow_tools": "1.3.1"
       },
       "remaining_work": [
         {
-          "id": "OW-07",
-          "item": "ow-care 1.0.0 salvage from #652",
-          "claude_h": "2-3",
-          "owner_h": "1"
-        },
-        {
           "id": "REL-01",
-          "item": "distribution and integrity (ow- zips, mirror, clean-folder install, tag policy, SA-001/SA-004)",
+          "item": "distribution and integrity (ow- zips, docs tree, mirror, clean-folder install, tag policy, SA-001 policy + out-of-band hash, SA-004 pins) — in progress, PR open 2026-10-30",
           "claude_h": "4-5",
-          "owner_h": "2"
+          "owner_h": "2",
+          "status": "in_progress"
         },
         {
           "id": "REL-02",
@@ -217,7 +215,27 @@
         "active_hours_since_2026_09_27": 89.5,
         "active_hours_since_2026_10_06": 68.7,
         "source": "Claude Code transcripts under ~/.claude/projects (union of parallel sessions, 10-minute idle split); the oc-time-ops collector stopped 2026-10-08"
-      }
+      },
+      "merged": [
+        {
+          "pr": 666,
+          "sha": "812aea40",
+          "item": "2.1.0 coordination scan and the 2026-10-29 owner decisions",
+          "merged": "2026-10-30"
+        },
+        {
+          "pr": 667,
+          "sha": "9cd2365e",
+          "item": "Track S scope-drift audit of the release site surfaces",
+          "merged": "2026-10-30"
+        },
+        {
+          "pr": 668,
+          "sha": "91def274",
+          "item": "OW-07: ow-care 1.0.0 (salvaged from #652), ow-start 1.2.0, ow-build-plan 1.3.0, ow-handoff 1.0.1",
+          "merged": "2026-10-30"
+        }
+      ]
     },
     "prior_release": {
       "semver": "2.0.4",
@@ -377,7 +395,7 @@
       "prod_health": "d4f926b"
     }
   },
-  "record_updated_at": "2026-09-21T19:53:16.550Z",
+  "record_updated_at": "2026-10-30T20:29:16Z",
   "pm_deferred_actions": [
     {
       "id": "deferred-2026-09-21T19:53:16Z-7f2f",

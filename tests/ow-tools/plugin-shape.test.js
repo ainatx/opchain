@@ -38,9 +38,34 @@ describe("ow-tools plugin shape", SPAWN, () => {
     expect(m.plugins[0]).toMatchObject({
       name: "ow-tools",
       version: plugin.version,
-      source: { source: "git-subdir", url: "https://github.com/asfbay-bit/opchain-skills.git", path: "plugins/ow-tools", ref: "main" },
+      source: { source: "git-subdir", url: "https://github.com/asfbay-bit/opchain-skills.git", path: "plugins/ow-tools" },
     });
-    expect(m.plugins[0].source.sha).toBeUndefined(); // the mirror force-pushes each sync
+    // No `sha`: the mirror is a force-pushed snapshot whose commit id is not
+    // knowable from inside the tree it holds. The pin is the `ref` below.
+    expect(m.plugins[0].source.sha).toBeUndefined();
+  });
+
+  // SA-001 (REL-01 policy, docs/governance/RELEASING.md § ow- catalog): the
+  // entry follows the mirror's `main` only until the first release that ships
+  // ow-tools (v2.1.0). From then on `ref` names a release tag, which
+  // mirror-public.yml pushes to the mirror on every `v*` tag, and the release
+  // cut moves it to the new tag in the same PR as the catalog bump.
+  it("pins the marketplace source to a release tag once the catalog has shipped ow-tools", () => {
+    const { ref } = json(".claude-plugin/marketplace.json").plugins[0].source;
+    const versions = new Set(readdirSync(join(ROOT, "skills"))
+      .filter((id) => existsSync(join(ROOT, "skills", id, "SKILL.md")))
+      .map((id) => /^version:\s*"?([^"\n]+)"?$/m.exec(readFileSync(join(ROOT, "skills", id, "SKILL.md"), "utf8"))?.[1])
+      .filter(Boolean));
+    expect(versions.size).toBe(1); // lockstep
+    const catalog = [...versions][0];
+    const atLeast210 = catalog.split(".").map(Number).reduce((acc, n, i) => acc || (i === 0 && n > 2) || (i === 1 && n >= 1), false);
+    if (ref === "main") {
+      expect(atLeast210, `catalog ${catalog} has shipped ow-tools; marketplace.json must pin ref: v${catalog}`).toBe(false);
+    } else {
+      expect(ref).toMatch(/^v\d+\.\d+\.\d+$/);
+      const tagged = spawnSync("git", ["tag", "-l", ref], { cwd: ROOT, encoding: "utf8" }).stdout.trim() === ref;
+      expect(ref === `v${catalog}` || tagged, `ref ${ref} is neither the catalog's tag v${catalog} nor an existing tag`).toBe(true);
+    }
   });
 
   it("is never listed in the dev marketplace", () => {

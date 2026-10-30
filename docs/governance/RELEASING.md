@@ -55,6 +55,45 @@ Skills are versioned in **lockstep**: one bump moves the entire catalog (all
 Note the licensing boundary for consumers: **releases ≤ 1.8.2 were MIT;
 ≥ 1.8.3 are Apache-2.0.**
 
+### 2a. The ow- catalog (`skills-work/`): per-skill versions, one release tag
+
+The ow- planning skills are a second catalog (`catalogs.json`, `versionPolicy:
+"per-skill"`). Each `skills-work/<id>/SKILL.md` carries its own
+`metadata.version`, bumped only when that skill changes (`ow-start 1.2.0`,
+`ow-care 1.0.0`), with a `CHANGELOG.md` per skill. `plugins/ow-tools/` has its
+own version too (`plugin.json`). None of them is a release unit:
+
+- **One tag per release, `v<lockstep>`, and it covers both catalogs.** The
+  release tag is the oc- lockstep semver (`skills/*/SKILL.md`), as today. No
+  ow- skill and no ow-tools version gets a tag of its own. The `skills/CHANGELOG.md`
+  entry for the release lists every ow- skill version and the ow-tools version
+  that ship under it (the first such entry is 2.1.0), so a tag resolves to a
+  known set of per-skill versions.
+- **`check-release-tag` reads `skills/` only, on purpose.** An ow- bump is not
+  a release signal; the oc- catalog version is. The ow- scripts
+  (`make-work-skills-zip.sh`, `sync-work-docs.sh`) carry their own gate: they
+  refuse to build until `gen-catalog` and `check-skill-contracts` pass for the
+  tree being shipped, and `check-work-install.mjs` proves the built zips
+  install cleanly. Both run in `prebuild`, so every deploy checks them.
+- **An ow- fix between releases is a patch release of the lockstep version**
+  (the ow- skill bumps its own version; the oc- catalog bumps its patch so a
+  tag follows), never an untagged deploy.
+- **ow-tools' marketplace pin (posture SA-001).** `plugins/ow-tools/.claude-plugin/marketplace.json`
+  follows the mirror's `main` only until the first release that ships
+  ow-tools (v2.1.0). At each cut from then on, the release PR sets `source.ref`
+  to the new tag (`v<lockstep>`); `mirror-public.yml` pushes every `v*` tag
+  to the mirror as a tag of the same name, so the ref resolves there and
+  survives the next force-push of `main`. `tests/ow-tools/plugin-shape.test.js`
+  holds the rule (ref `main` only while the catalog is below 2.1.0; otherwise
+  `v<catalog>` or an existing tag). The manifest's hash is published out of
+  band at `https://opchain.dev/work/ow-tools-security-manifest.sha256`
+  (built by `make-work-skills-zip.sh`), and the mirror's `SECURITY.md` says
+  how to compare it.
+
+Surfaces the cut touches for the ow- catalog: P2 (the changelog's per-skill
+version list), P5/P7 unchanged, plus `marketplace.json` `ref` (above) and the
+`/work` pages' version table on the site (Track S).
+
 ## 3. The surface matrix
 
 This is the exhaustive list. When you cut a release, every applicable row must

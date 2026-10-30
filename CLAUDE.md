@@ -115,10 +115,15 @@ opchain/
 │   ├── orchestrator.md     # Shared orchestration rules
 │   ├── CHANGELOG.md        # Lockstep skill-catalog release log
 │   └── README.md           # Installation instructions + full skill/phase table
-├── skills-work/            # The ow- catalog (v2.1.0 planning family: ow-start, ow-build-plan, ow-build, ow-uat, ow-documentation, ow-handoff, ow-research).
-│   │                       # Text-only, own protocol (ow-protocol.md), per-skill versions.
-│   │                       # Validated by the catalog checks but in NO build output yet
-│   │                       # (plugin, zips, docs, flags, MCP catalog, mirror). skills-work/README.md.
+├── skills-work/            # The ow- catalog (v2.1.0 planning family, nine skills: ow-start, ow-build-plan,
+│   │                       # ow-build, ow-uat, ow-documentation, ow-handoff, ow-draft, ow-research, ow-care).
+│   │                       # Text-only, own protocol (ow-protocol.md), per-skill versions; one release tag
+│   │                       # (v<lockstep>) covers both catalogs (docs/governance/RELEASING.md §2a).
+│   │                       # Ships through its OWN outputs (REL-01): public/opchain-work-skills.zip +
+│   │                       # public/work/<id>.zip (make-work-skills-zip.sh), public/docs/work (sync-work-docs.sh),
+│   │                       # and the public mirror; both scripts (chained from sync-docs/make-zip, no new npm script) refuse until
+│   │                       # gen-catalog + check-skill-contracts pass; build-site.sh runs check-work-install.mjs on public/. Still in NO oc-
+│   │                       # output (dev plugin, opchain-skills.zip, flags, MCP catalog). skills-work/README.md.
 ├── catalogs.json           # The skill catalogs (oc- in skills/, ow- in skills-work/) that
 │                           # gen-skills-catalog and check-skill-contracts iterate
 ├── scripts/                # ~20 scripts; a few examples (full list: `ls scripts/`)

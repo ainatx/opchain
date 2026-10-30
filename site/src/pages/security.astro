@@ -217,9 +217,14 @@ import owTools from "../../../plugins/ow-tools/.claude-plugin/plugin.json";
         <li>No telemetry, no update check. Exports leave out anything marked internal.</li>
       </ul>
       <p>
-        Not claimed: dependency pinning. The add-on runs the tools you install
-        (ffmpeg, whisper.cpp, pandoc, Typst, gitleaks, your browser) at the
-        versions on your machine; <code>/ow-tools</code> reports which it found.
+        Pinned: the speaker model&rsquo;s revision and the Whisper model&rsquo;s
+        SHA-256 (checked before every transcription), and, from the first
+        release that ships it, the marketplace entry&rsquo;s release tag; the
+        manifest&rsquo;s own hash is published apart from the mirror at
+        <code>/work/ow-tools-security-manifest.sha256</code>. Not pinned: the
+        tools you install yourself (ffmpeg, whisper.cpp, pandoc, Typst,
+        gitleaks, your browser) run at the versions on your machine;
+        <code>/ow-tools</code> reports which it found.
       </p>
     </section>
 

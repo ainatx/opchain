@@ -5,11 +5,16 @@ on:
     branches: [main]
     paths:
       - 'skills/**'
+      - 'skills-work/**'
       - 'mirror/**'
       - 'plugins/**'
       - '.claude-plugin/**'
       - 'LICENSE'
       - '.github/workflows/mirror-public.yml'
+    # A release tag (REL-01, ow-tools posture SA-001): the same snapshot is
+    # pushed as a tag of the same name on the mirror, so a marketplace entry
+    # can pin `ref: v<semver>` and survive the next force-push of main.
+    tags: ['v*']
   workflow_dispatch:
 
 permissions:
@@ -33,7 +38,7 @@ jobs:
         run: |
           set -euo pipefail
           missing=()
-          for f in skills LICENSE NOTICE mirror/README.md mirror/CONTRIBUTING.md mirror/SECURITY.md mirror/.github/ISSUE_TEMPLATE \
+          for f in skills skills-work/ow-protocol.md skills-work/README.md LICENSE NOTICE mirror/README.md mirror/CONTRIBUTING.md mirror/SECURITY.md mirror/.github/ISSUE_TEMPLATE \
                    plugins/opchain/.claude-plugin/plugin.json plugins/opchain/hooks/hooks.json \
                    plugins/opchain/hooks/pre-commit-gate.cjs plugins/opchain/hooks/session-state.cjs \
                    plugins/opchain/hooks/next-suggestion.cjs plugins/opchain/commands .claude-plugin/marketplace.json \
@@ -56,6 +61,11 @@ jobs:
           echo "STAGE=$STAGE" >> "$GITHUB_ENV"
           mkdir -p "$STAGE/.github"
           cp -R skills "$STAGE/skills"
+          # The ow- catalog (REL-01): text-only skills, own protocol, per-skill
+          # versions. Mirrored whole so skills-work/<id>/ is a complete skill a
+          # user can copy into .claude/skills/, and the README's version table
+          # travels with it.
+          cp -R skills-work "$STAGE/skills-work"
           cp LICENSE "$STAGE/LICENSE"
           cp NOTICE "$STAGE/NOTICE"
           cp mirror/README.md "$STAGE/README.md"
@@ -79,6 +89,8 @@ jobs:
         env:
           MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
           SOURCE_SHA: ${{ github.sha }}
+          SOURCE_REF_TYPE: ${{ github.ref_type }}
+          SOURCE_REF_NAME: ${{ github.ref_name }}
         run: |
           set -euo pipefail
           if [[ -z "${MIRROR_TOKEN:-}" ]]; then
@@ -92,5 +104,15 @@ jobs:
           git add -A
           git commit -q -m "Mirror from ainatx/opchain@${SOURCE_SHA:0:7}"
           git remote add origin "https://x-access-token:${MIRROR_TOKEN}@github.com/asfbay-bit/opchain-skills.git"
-          git push --force origin main
-          echo "mirror push complete"
+          if [[ "$SOURCE_REF_TYPE" == "tag" ]]; then
+            # A release tag: push the snapshot as that tag only. main is left
+            # where the last branch sync put it (the release freeze keeps the
+            # two identical), and the tag survives every later force-push of
+            # main, so `ref: v<semver>` keeps resolving to this exact tree.
+            git tag -a "$SOURCE_REF_NAME" -m "Mirror of ainatx/opchain ${SOURCE_REF_NAME} (${SOURCE_SHA:0:7})"
+            git push --force origin "refs/tags/${SOURCE_REF_NAME}"
+            echo "mirror tag ${SOURCE_REF_NAME} pushed"
+          else
+            git push --force origin main
+            echo "mirror push complete"
+          fi

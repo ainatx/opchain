@@ -2,10 +2,11 @@
 // stub binaries, plus every privacy refusal. No real model runs here; the
 // speed spike (scripts/ow-tools-spike.mjs) covers the real tools.
 import { afterAll, describe, expect, it } from "vitest";
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { createHash } from "node:crypto";
 import { PLUGIN, cleanup, cli, git, gitRepo, sparseFile, stub, tempDir, write } from "./helpers.js";
+import { DIARIZATION_REVISION, WHISPER_MODELS } from "../../plugins/ow-tools/lib/core.mjs";
 
 // Each case spawns bin/ow-tools (and git/stubs): ~0.2-0.6 s idle, several
 // times that under machine load, so these suites get 30 s, not vitest's 5 s.
@@ -38,7 +39,12 @@ const TURNS_JSON = JSON.stringify({
 });
 
 // A machine with every requirement, all stubbed. Returns paths and env.
-function machine({ ffmpegFails = false, withWhisper = true } = {}) {
+function verifiedSidecar(modelFile) {
+  const st = statSync(modelFile);
+  writeFileSync(`${modelFile}.verified`, JSON.stringify({ size: st.size, mtimeMs: st.mtimeMs, ino: st.ino, sha256: WHISPER_MODELS["large-v3-turbo"].sha256 }));
+}
+
+function machine({ ffmpegFails = false, withWhisper = true, verifiedModel = true } = {}) {
   const d = tempDir();
   const bin = join(d, "bin");
   mkdirSync(bin);
@@ -64,8 +70,11 @@ next=""; for a; do
   case "$a" in *diarize.py) next=wav;; esac
 done`);
   sparseFile(join(home, "models", "ggml-large-v3-turbo.bin"), 1624555275);
+  // A machine whose Whisper model passed the full SHA-256 check once (SA-004):
+  // the sidecar ow-tools writes after that check, for this exact file.
+  if (verifiedModel) verifiedSidecar(join(home, "models", "ggml-large-v3-turbo.bin"));
   write(join(home, `venv-${lockHash}`, "bin", "python"), "");
-  mkdirSync(join(home, "hf", "hub", "models--pyannote--speaker-diarization-community-1", "snapshots"), { recursive: true });
+  mkdirSync(join(home, "hf", "hub", "models--pyannote--speaker-diarization-community-1", "snapshots", DIARIZATION_REVISION), { recursive: true });
   const env = {
     PATH: `${bin}:${NODE_DIR}:/usr/bin:/bin`,
     OW_TOOLS_HOME: home,
@@ -131,6 +140,35 @@ describe("ow-tools transcribe", SPAWN, () => {
     expect(w).toBeLessThan(ff.indexOf("-i"));
     const uv = readFileSync(join(m.d, "uv-argv.txt"), "utf8").trim().split("\n");
     expect(uv.slice(0, 3)).toEqual(["run", "--frozen", "--no-sync"]);
+  });
+
+  // SA-004: the speaker model is loaded at one pinned revision, and the
+  // Whisper model's hash is checked before every run, not only by doctor.
+  it("passes the pinned pyannote revision to diarize.py and treats another cached revision as not fetched", () => {
+    const m = machine();
+    expect(cli(["transcribe", m.audio, "--json"], { env: m.env }).status).toBe(0);
+    const uv = readFileSync(join(m.d, "uv-argv.txt"), "utf8").trim().split("\n");
+    expect(uv[uv.indexOf("--revision") + 1]).toBe(DIARIZATION_REVISION);
+    expect(DIARIZATION_REVISION).toMatch(/^[0-9a-f]{40}$/);
+    const snapshots = join(m.env.OW_TOOLS_HOME, "hf", "hub", "models--pyannote--speaker-diarization-community-1", "snapshots");
+    rmSync(join(snapshots, DIARIZATION_REVISION), { recursive: true });
+    mkdirSync(join(snapshots, "0000000000000000000000000000000000000000"), { recursive: true });
+    const r = cli(["transcribe", m.audio, "--force", "--json"], { env: m.env });
+    expect(r.status).toBe(3);
+    expect(r.json.missing).toContain("speaker model pyannote/speaker-diarization-community-1");
+  });
+
+  it("hashes the Whisper model before a run and refuses one whose SHA-256 does not match (exit 3)", () => {
+    const m = machine({ verifiedModel: false }); // right size, wrong bytes, no earlier verification
+    const r = cli(["transcribe", m.audio, "--json"], { env: m.env });
+    expect(r.status).toBe(3);
+    expect(r.json.missing.join("\n")).toMatch(/Whisper model large-v3-turbo \(present but SHA-256 does not match/);
+    expect(existsSync(join(m.ws, "transcript.json"))).toBe(false);
+    // A sidecar for another file (size, time or inode differ) is not trusted either.
+    const model = join(m.env.OW_TOOLS_HOME, "models", "ggml-large-v3-turbo.bin");
+    const st = statSync(model);
+    writeFileSync(`${model}.verified`, JSON.stringify({ size: st.size, mtimeMs: st.mtimeMs + 1, ino: st.ino, sha256: WHISPER_MODELS["large-v3-turbo"].sha256 }));
+    expect(cli(["transcribe", m.audio, "--json"], { env: m.env }).status).toBe(3);
   });
 
   it("takes the audio/ folder ow-start names when it holds one recording, and asks which when it holds two", () => {

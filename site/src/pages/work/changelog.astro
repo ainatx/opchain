@@ -32,7 +32,7 @@ const description = `Versions of the ${skills.length} ow- planning skills and th
         <tbody>
           {skills.map((k) => (
             <tr>
-              <td><a href={`/work/${k.data.name}`}><code>{k.data.name}</code></a></td>
+              <td><a href={`/work/${k.data.name}`}><code>{k.data.name}</code></a> <a class="fact-note" href={`https://github.com/asfbay-bit/opchain-skills/blob/main/skills-work/${k.data.name}/CHANGELOG.md`} rel="noopener">CHANGELOG</a></td>
               <td>{stageOf(k.data.name).label}</td>
               <td>{k.data.metadata.bundle}</td>
               <td>{k.data.metadata.network === "declared" ? <strong>declared</strong> : k.data.metadata.network}</td>
@@ -49,6 +49,6 @@ const description = `Versions of the ${skills.length} ow- planning skills and th
         </tbody>
       </table>
     </div>
-    <p class="note">Once the family is mirrored to the public repository, each row links its <code>CHANGELOG.md</code>.</p>
+    <p class="note">Each row links the skill&rsquo;s own <code>CHANGELOG.md</code> in the public mirror. The ow-tools history is in its <a href="https://github.com/asfbay-bit/opchain-skills/blob/main/plugins/ow-tools/README.md" rel="noopener">README</a>.</p>
   </section>
 </WorkPage>

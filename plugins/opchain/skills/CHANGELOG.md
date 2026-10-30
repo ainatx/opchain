@@ -27,12 +27,16 @@ sitting.
   ow-draft 1.0.0 (`skills-work/`, per-skill versions, not lockstep). Text only,
   no code; `network: none` for six, `network: declared` for ow-research,
   ow-documentation and ow-draft (they may use the host's own web tools or a
-  document connector under the host's prompts). The catalog is in no oc-
-  output; its one site surface is `/work`. The ow-tools 1.3.0 Claude Code
-  add-on (`plugins/ow-tools/`, own marketplace `opchain-work-tools`) runs
-  code on the user's machine and says so: transcription, export, calc,
-  digest, health, capture, scan-secrets, session start, doctor; only health
-  and capture use the network, for what the user lists.
+  document connector under the host's prompts). The catalog ships apart from
+  the oc- outputs: its own zips (`opchain-work-skills.zip`, `/work/<id>.zip`),
+  its own docs tree (`/docs/work`), the public mirror's `skills-work/`, and
+  the `/work` site section (REL-01). The ow-tools 1.3.1 Claude Code add-on
+  (`plugins/ow-tools/`, own marketplace `opchain-work-tools`, pinned to this
+  release's tag) runs code on the user's machine and says so: transcription,
+  export, calc, digest, health, capture, scan-secrets, session start, doctor;
+  only health and capture use the network, for what the user lists; the
+  speaker model loads at one pinned revision and the Whisper model's SHA-256
+  is checked before every transcription.
 
 - **J5 in the Worker, J8 in `/oc-docs pr` (plan §6, 2026-10-29).** With
   `platform.security.feedback-triage` on (default off) and the

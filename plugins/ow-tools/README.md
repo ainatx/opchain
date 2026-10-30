@@ -22,6 +22,8 @@ Without ow-tools the ow- skills still work: paste a transcript or notes, and kee
 /plugin install ow-tools@opchain-work-tools
 ```
 
+Before a release is tagged the entry follows the mirror's `main`; from the first tagged release on, it names that release's tag (`ref: v<semver>`), which the mirror carries as a tag of its own, so an update is a new release, never a mirror sync. To check the copy you installed against what opchain.dev published, compare `shasum -a 256 SECURITY-MANIFEST.md` in the plugin folder with `https://opchain.dev/work/ow-tools-security-manifest.sha256`.
+
 This marketplace lists **ow-tools only**, so an administrator can approve it (for example in `strictKnownMarketplaces`) without approving anything else. Then run `/ow-tools` to see what's missing on your machine.
 
 ## What it needs
@@ -68,6 +70,7 @@ Built and tested on macOS (Apple Silicon). Linux gets the same checks with gener
 
 ## Changes
 
+- **1.3.1:** model provenance (the design's SA-004): the speaker model is fetched and loaded at one pinned revision of `pyannote/speaker-diarization-community-1` (a commit of the model repository, named in `lib/core.mjs`; `doctor` prints the fetch with it, and a cache of any other revision counts as not fetched), and the Whisper model's SHA-256 is checked before every transcription, not only by `doctor` (the last full check is remembered in a `.verified` file beside the model, keyed on its size, time and inode, so an unchanged file is not re-hashed each run). The marketplace entry's `ref` moves from `main` to the release tag at each release cut (the design's SA-001); the manifest's SHA-256 is published at `https://opchain.dev/work/ow-tools-security-manifest.sha256`, apart from the mirror. Nothing else changes.
 - **1.3.0:** `scan-secrets`, the redacted secrets scan ow-handoff runs when it takes stock of a client's repository (the design's §5.5 and §16). `doctor` checks gitleaks and git (the copies on PATH's absolute folders, run by their full path), and `version --json` lists `scan-secrets` under `capabilities`. Nothing else changes.
 - **1.2.0:** `calc date --calendar us-federal`, the contract calendar ow-uat counts clause dates on (`version --json` lists it under `capabilities.calc.calendars`; the design's §15). A call without `--calendar` behaves as in 1.1.2.
 - **1.1.2:** the session-start list shows each open item of ow-start's logs on its own line (a meeting, an action or a decision review, by the newest line per item), so closing one action no longer hides the other open actions and reviews of that workstream.
