@@ -44,6 +44,7 @@ function emit(level, payload) {
 export const EVENTS = {
   FEEDBACK_SUBMITTED: "feedback_submitted",
   FEEDBACK_FAILED:    "feedback_failed",
+  FEEDBACK_TRIAGED:   "feedback_triaged",
   CHAT_STARTED:       "chat_started",
   CHAT_COMPLETED:     "chat_completed",
   RATE_LIMIT_HIT:     "rate_limit_hit",
