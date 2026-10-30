@@ -110,6 +110,7 @@ npm-debug.log*
 # ow-uat's secrets-seen.log in its invented golden runs is a fixture, not a log.
 !tests/fixtures/ow-uat/**/secrets-seen.log
 !tests/fixtures/ow-documentation/**/secrets-seen.log
+!tests/fixtures/ow-care/**/secrets-seen.log
 
 # Editor
 .vscode/

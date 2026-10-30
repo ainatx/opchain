@@ -1,0 +1,17 @@
+# request-urgent
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: request-first
+today: '2026-11-19'
+clock: user-stated
+verbs:
+  - /ow-care-request
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+next:
+  - give CARE-02.md to whoever does the work

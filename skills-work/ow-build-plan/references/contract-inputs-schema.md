@@ -7,7 +7,7 @@ The header carries the machine-readable keys; the body says the same in plain wo
     ---
     ow_artefact: ow-build-plan/contract-inputs
     schema: 1
-    written_by: ow-build-plan 1.2.0 (protocol 1)
+    written_by: ow-build-plan 1.3.0 (protocol 1)
     workstream: <slug>
     subject: plans/<client>/quote.md
     created: <YYYY-MM-DD>
@@ -81,3 +81,7 @@ Copy it unchanged; never draft, shorten or reword a clause. With no block, write
 Body sections: `## Parties`, `## What is tested` (by reference to `quick-scope.md`), `## What you get` (the findings note and the go or no-go), `## Price and payment`, `## Dates` (valid until), `## Contract clauses`, `## Next` (the accepted NEXT block, as for any quote).
 
 Rules: no unit price, modifier or internal rate (they stay in `quote.md`'s internal appendix); people by role, never by name, apart from the parties; dates written out in the body.
+
+## An onboarding review quote (`mode: onboarding`)
+
+The feasibility form's sibling (amendment P4, 1.3.0): just the review. Header keys as the feasibility form, with `mode: onboarding`, `onboarding_size: S | M | L`, `payment: on_signature | on_delivery` (from the quote) and `deliverables: [onboarding review, health baseline, first operator notes, recommended care tier]`; the same build keys are left out, and `scope` is `plans/<client>/quick-scope.md`. Body sections: `## Parties`, `## What is reviewed` (by reference to `quick-scope.md`), `## What you get` (the review's eight parts, delivered as a document), `## Price and payment`, `## Dates`, `## Contract clauses`, `## Next` (the onboarding signed NEXT block: `use ow-care to onboard plans/<client>/`). The same rules apply. It is input for a contract, never a contract or evidence of a signed one, and no care tier is sold by it.

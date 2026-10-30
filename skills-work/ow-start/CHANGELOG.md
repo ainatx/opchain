@@ -2,6 +2,14 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`; owner decision O7 of OW-08). The family's v2.1.0 release entry cites each skill's version. Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump (OW-04 ruling O9) and are listed here as data edits.
 
+## 1.2.0 (2026-10-29): amendment S1, the care-takeover path
+
+Amendment S1 of `docs/plans/2026-10-16-ow-care-design.md` §12, built with ow-care 1.0.0 (OW-07; contract `sprints/release-2.1/ow-07/contract.md`). The owner's 2026-10-17 ruling (OW-08 round 1) gives ow-start one minor version per sprint: this is the one for OW-07.
+
+- **A new path kind, `care-takeover`.** An `offers.md` path may have `kind: care-takeover`: a running system the client wants looked after, with no build in scope. The recap header's `path_kind` gains the value (`references/intake-record-schema.md`). Extract proposes it like any other path, and infers no tier and no price (`references/phase-extract.md` §5).
+- **Its NEXT** is a fixed-fee onboarding review, quoted by ow-build-plan: `use ow-build-plan to quote onboarding on intake/<client>/intake-record.md` (`/ow-build-plan-quote --quick --onboarding`), with a Hands-off row and a NEXT template in the body and a hands-off row in `skill.edges.yaml`.
+- **Data edit, no bump of its own:** the shared invented `examples/offers.md` gains `## path: care-takeover`, byte-identical in every ow- skill that ships it.
+
 ## Unreleased: data edits from OW-06 (ow-handoff 1.0.0)
 
 No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed:

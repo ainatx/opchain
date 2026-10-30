@@ -1,0 +1,25 @@
+# month-resume
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: month-rollover
+today: '2026-12-18'
+clock: user-stated
+verbs:
+  - /ow-care-month
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+noop:
+  - nothing to do
+  - already closed
+resume:
+  untouched:
+    - opchain-work/care/larkspur-ceramics/reports/M-01.md
+    - opchain-work/care/larkspur-ceramics/ledger.md
+    - opchain-work/care/larkspur-ceramics/months/M-01.md
+next:
+  - use ow-care-request on care/larkspur-ceramics/

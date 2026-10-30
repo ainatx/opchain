@@ -49,6 +49,8 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const FIXTURES = join(ROOT, "tests", "fixtures", "ow-handoff");
 export const SKILL = join(ROOT, "skills-work", "ow-handoff");
 const START_FX = join(ROOT, "tests", "fixtures", "ow-start");
+/** The versions a record may be written by: 1.0.0 (the goldens) and the shipped SKILL.md version (a 1.0.x bump changes no record). */
+const VERSIONS = () => { const v = String(matter(readFileSync(join(SKILL, "SKILL.md"), "utf8")).data?.metadata?.version ?? "1.0.0"); return [...new Set(["1.0.0", v])].map((x) => `ow-handoff ${x}`); };
 const OW = "opchain-work/";
 const CLOCKS = /^(tool|host-supplied|user-stated|assumed)$/;
 export const PROTOCOL_NOTE = "This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.";
@@ -304,21 +306,24 @@ export function edgesWriterDrift(edgesText = readFileSync(EDGES, "utf8")) {
   for (const path of pin.keys()) if (!fromEdges.has(path)) p.push(`${path}: WRITER_PIN names it but the edges declare no writer`);
   return p;
 }
-/** The fields each hand-off offers, pinned (C17): ow-build, ow-uat, ow-documentation and ow-care read these. */
+/** The fields each hand-off offers, pinned (C17): ow-build, ow-uat, ow-documentation and ow-care read these. ow-care's two hand-offs share its routing verb, so their keys name the file too. */
 export const HANDOFF_PIN = {
   "/ow-build-change": { "handoffs/<client>/fixes/FIX-nn.md": ["class", "reported", "the request", "route"] },
   "/ow-build-invoice": { "handoffs/<client>/dates.yaml": ["handoff_date"] },
   "/ow-uat-plan --addendum": { "handoffs/<client>/dates.yaml": ["handoff_date"] },
   "/ow-uat-defect": { "handoffs/<client>/dates.yaml": ["handoff_date"] },
   "/ow-documentation-rollout": { "handoffs/<client>/dates.yaml": ["window_end"], "handoffs/<client>/operator-notes.md": ["ops"] },
-  "/ow-care-start": { "handoffs/<client>/care-start.md": ["care_start", "kept access with removal steps", "carried fixes", "waiting route care requests"], "handoffs/<client>/after-offer.md": ["every frozen term", "choice"], "handoffs/<client>/operator-notes.md": ["OP-nn entries"], "handoffs/<client>/accounts.md": ["account rows by role"], "handoffs/<client>/dates.yaml": ["window_end"] },
-  "/ow-care-request": { "handoffs/<client>/fixes/FIX-nn.md": ["class", "reported", "route", "the request"] },
+  "/ow-care (care-start.md)": { "handoffs/<client>/care-start.md": ["care_start", "kept access with removal steps", "carried fixes", "waiting route care requests"], "handoffs/<client>/after-offer.md": ["every frozen term", "choice"], "handoffs/<client>/operator-notes.md": ["OP-nn entries"], "handoffs/<client>/accounts.md": ["account rows by role"], "handoffs/<client>/dates.yaml": ["window_end"] },
+  "/ow-care (FIX-nn.md)": { "handoffs/<client>/fixes/FIX-nn.md": ["class", "reported", "route", "the request"] },
 };
 export function handoffFieldDrift(edgesText = readFileSync(EDGES, "utf8")) {
   const e = yaml.load(edgesText);
   const p = [];
-  for (const [verb, files] of Object.entries(HANDOFF_PIN)) {
-    const h = asList(e?.hands_off).find((x) => String(x.verb ?? "").trim() === verb);
+  for (const [key, files] of Object.entries(HANDOFF_PIN)) {
+    // A key is the verb, or `<verb> (<file>)` when one verb takes two hand-offs (ow-care's route takes care-start.md and a FIX).
+    const verb = key.replace(/ \(.*\)$/, "");
+    const first = Object.keys(files)[0];
+    const h = asList(e?.hands_off).find((x) => String(x.verb ?? "").trim() === verb && asList(x.files).some((f) => (typeof f === "object" ? f.path : f) === first));
     if (!h) { p.push(`${verb}: no hand-off in the edges`); continue; }
     for (const [path, fields] of Object.entries(files)) {
       const f = asList(h.files).find((x) => (typeof x === "object" ? x.path : x) === path);
@@ -337,7 +342,7 @@ function checkHeaders(key, run) {
     let data;
     try { data = /\.ya?ml$/.test(f) ? yml(run, f) : md(run, f).data; } catch (e) { p.push(reason(e)); continue; }
     if (!/^ow-handoff\/[a-z-]+$/.test(String(data.ow_artefact ?? ""))) p.push(`${f}: ow_artefact is "${data.ow_artefact}", not ow-handoff/<name>`);
-    if (String(data.written_by) !== "ow-handoff 1.0.0 (protocol 1)") p.push(`${f}: written_by is "${data.written_by}"`);
+    if (!VERSIONS().some((v) => String(data.written_by) === `${v} (protocol 1)`)) p.push(`${f}: written_by is "${data.written_by}"`);
     if (String(data.workstream) !== key.slug) p.push(`${f}: workstream is "${data.workstream}", not ${key.slug}`);
     if (!CLOCKS.test(String(data.clock))) p.push(`${f}: clock "${data.clock}" is not a protocol clock`);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(String(iso(data.created)))) p.push(`${f}: created is not a date`);
@@ -415,7 +420,7 @@ function checkStatus(key, run) {
   const added = after.slice(before.length).split("\n").filter(Boolean);
   for (const l of added) {
     if (!STATUS_LINE.test(l)) p.push(`STATUS.md: "${l.slice(0, 80)}" is not in the protocol's STATUS form`);
-    if (!/\| ow-handoff 1\.0\.0 \|/.test(l)) p.push("STATUS.md: a line not from ow-handoff 1.0.0");
+    if (!VERSIONS().some((v) => l.includes(`| ${v} |`))) p.push(`STATUS.md: a line not from ${VERSIONS().join(" or ")}`);
   }
   if (run.written().includes(`${OW}STATUS.md`) && !added.length) p.push("STATUS.md: written with no line appended");
   return p;

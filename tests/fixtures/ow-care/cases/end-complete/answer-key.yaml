@@ -1,0 +1,19 @@
+# end-complete
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: month-final-settlement
+today: '2027-04-17'
+clock: user-stated
+verbs:
+  - /ow-care-end
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+end_date: '2027-04-16'
+local_copies:
+  - export folder
+next: []

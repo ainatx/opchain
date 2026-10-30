@@ -1,0 +1,2 @@
+Robin: Run /ow-care-request on CARE-04. The operations manager emailed on 2026-12-18 at 10:00 asking for the export rework; I replied 2026-12-21 at 09:30 and estimate 10 hours. CARE-04 is covered care, a bounded rework within the tier.
+Robin: CARE-04 took 8 hours so far, 480 minutes, on 2027-01-13. M-02 has 8.75 hours available and the health check used 0.75, so the next piece goes past the hours.

@@ -1,0 +1,19 @@
+# month-rollover
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: request-done
+today: '2026-12-17'
+clock: user-stated
+verbs:
+  - /ow-care-month
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+close: M-01
+end_date: null
+next:
+  - use ow-care-request on care/larkspur-ceramics/

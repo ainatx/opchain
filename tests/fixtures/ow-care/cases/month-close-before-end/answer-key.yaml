@@ -1,0 +1,19 @@
+# month-close-before-end
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: change-notice
+today: '2027-03-17'
+clock: user-stated
+verbs:
+  - /ow-care-month
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+close: M-04
+end_date: '2027-04-16'
+next:
+  - use ow-care-request on care/larkspur-ceramics/

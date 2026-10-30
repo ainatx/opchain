@@ -4,7 +4,7 @@
 
     ow_artefact: ow-handoff/package
     schema: 1
-    written_by: ow-handoff 1.0.0 (protocol 1)
+    written_by: ow-handoff 1.0.1 (protocol 1)
     workstream: <client slug>
     subject: handoffs/<client>/handoff-notes.md
     created: <YYYY-MM-DD>
@@ -60,7 +60,7 @@ Written by `-package`. Header as protocol §4 (`ow_artefact: ow-handoff/handoff-
 
     ow_artefact: ow-handoff/dates
     schema: 1
-    written_by: ow-handoff 1.0.0 (protocol 1)
+    written_by: ow-handoff 1.0.1 (protocol 1)
     workstream: <client slug>
     subject: handoffs/<client>/package.yaml
     created: <YYYY-MM-DD>
@@ -86,7 +86,7 @@ Written by `-package`. Header as protocol §4 (`ow_artefact: ow-handoff/handoff-
 
     ow_artefact: ow-handoff/co-windows
     schema: 1
-    written_by: ow-handoff 1.0.0 (protocol 1)
+    written_by: ow-handoff 1.0.1 (protocol 1)
     workstream: <client slug>
     subject: uat/<client>/acceptance-addendum-CO-nn.md
     created: <YYYY-MM-DD>

@@ -7,7 +7,7 @@ Written by `/ow-handoff-access` only. It reads the transfer states in `accounts.
     ---
     ow_artefact: ow-handoff/access
     schema: 1
-    written_by: ow-handoff 1.0.0 (protocol 1)
+    written_by: ow-handoff 1.0.1 (protocol 1)
     workstream: <client slug>
     subject: handoffs/<client>/accounts.md
     created: <YYYY-MM-DD>

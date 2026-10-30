@@ -1,0 +1,14 @@
+# ow_artefact: ow-care/health-config
+# schema: 1
+# written_by: ow-care 1.0.0 (protocol 1)
+# workstream: larkspur-ceramics
+# subject: onboarding.md
+# created: 2026-11-30
+# clock: user-stated
+# origin: skill
+schema: 1
+repo: ../../../larkspur-repo
+lockfiles: [package-lock.json]
+hosts: [larkspur-ceramics.example]
+domains: [larkspur-ceramics.example]
+urls: [https://larkspur-ceramics.example/health]

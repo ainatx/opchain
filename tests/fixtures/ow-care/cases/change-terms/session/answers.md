@@ -1,0 +1,1 @@
+Robin: Run /ow-care-change --terms. My offers changed: half of the unused hours now roll over for one month. I told the client on 2026-11-12 and the operations manager accepted on 2026-11-13 by email.

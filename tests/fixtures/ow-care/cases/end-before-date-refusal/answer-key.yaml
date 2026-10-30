@@ -1,0 +1,18 @@
+# end-before-date-refusal
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: change-notice
+today: '2027-04-10'
+clock: user-stated
+verbs:
+  - /ow-care-end
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+refused:
+  - end date
+  - has not passed

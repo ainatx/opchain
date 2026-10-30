@@ -120,7 +120,9 @@ describe("C2, C3: the body, the frontmatter, the shipped text", () => {
     const ow = loadCatalogs({ root: ROOT }).find((c) => c.prefix === "ow-");
     expect(ow.bodyTokenBudgets["ow-handoff"]).toBe(4500);
     expect(ow.planned).not.toContain("ow-handoff");
-    expect(ow.plannedVerbs["ow-care"]).toEqual(expect.arrayContaining(["/ow-care-request", "/ow-care-start"]));
+    // ow-care is built (OW-07): no longer planned; its edges file reciprocates the two care hand-offs.
+    expect(ow.planned).not.toContain("ow-care");
+    expect(ow.plannedVerbs["ow-care"]).toBeUndefined();
   });
   it("the description is at most 1,024 characters, names ow-handoff in its first 200, no angle brackets", () => {
     const fm = readFileSync(join(SKILL, "SKILL.md"), "utf8").match(/description: >\n([\s\S]*?)\nlicense/)[1].replace(/\s+/g, " ").trim();
@@ -129,12 +131,12 @@ describe("C2, C3: the body, the frontmatter, the shipped text", () => {
     expect(fm).not.toMatch(/[<>]/);
     for (const n of ["fixing code", "sending anything", "deleting anything", "removing a secret from git history", "ow-care"]) expect(fm).toContain(n);
   });
-  it("network none, core bundle, version 1.0.0", () => {
+  it("network none, core bundle, version 1.0.1 (1.0.0 plus the care route hints)", () => {
     const t = readFileSync(join(SKILL, "SKILL.md"), "utf8");
     expect(t).toMatch(/^ {2}network: none$/m);
     expect(t).toMatch(/^ {2}bundle: core$/m);
-    expect(t).toMatch(/^ {2}version: "1\.0\.0"$/m);
-    expect(t).toMatch(/^ow-handoff 1\.0\.0 · protocol 1/m);
+    expect(t).toMatch(/^ {2}version: "1\.0\.1"$/m);
+    expect(t).toMatch(/^ow-handoff 1\.0\.1 · protocol 1/m);
   });
   it("the shipped text is clean (C3)", () => expect(shippedTextProblems()).toEqual([]));
   it("the protocol copy and the shared examples are byte-identical everywhere", () => {
@@ -153,7 +155,7 @@ describe("C2, C3: the body, the frontmatter, the shipped text", () => {
 
 describe("C1, C17, C21: edges, writer modes, the step table", () => {
   it("the family's edges hold with ow-handoff built", () => expect(checkEdges(loadCatalogs({ root: ROOT }))).toEqual([]));
-  it("WRITER_PIN and HANDOFF_PIN hold the edges", () => { expect(edgesWriterDrift()).toEqual([]); expect(handoffFieldDrift()).toEqual([]); expect(WRITER_PIN.length).toBeGreaterThan(25); expect(Object.keys(HANDOFF_PIN)).toContain("/ow-care-start"); });
+  it("WRITER_PIN and HANDOFF_PIN hold the edges", () => { expect(edgesWriterDrift()).toEqual([]); expect(handoffFieldDrift()).toEqual([]); expect(WRITER_PIN.length).toBeGreaterThan(25); expect(Object.keys(HANDOFF_PIN)).toContain("/ow-care (care-start.md)"); });
   it("the step table is keyed on verb and mode, every mode has a row", () => {
     expect(stepNameProblems()).toEqual([]);
     for (const k of ["/ow-handoff-start --keep-frozen", "/ow-handoff-start --refreeze", "/ow-handoff-fix --punch", "/ow-handoff-fix --windows", "/ow-handoff-fix --hours", "/ow-handoff-offer --rerun", "/ow-handoff-close --reopened", "/ow-handoff-package --revision", "/ow-handoff-access --regrant"]) expect(Object.keys(STEPS), k).toContain(k);

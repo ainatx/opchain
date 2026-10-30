@@ -47,7 +47,7 @@ describe("catalogs.json", () => {
 
   it("validates both real catalogs", () => {
     expect(validateCatalog(byId.oc).length).toBeGreaterThanOrEqual(36);
-    expect(validateCatalog(byId.ow)).toEqual(["ow-build", "ow-build-plan", "ow-documentation", "ow-draft", "ow-handoff", "ow-research", "ow-start", "ow-uat"]);
+    expect(validateCatalog(byId.ow)).toEqual(["ow-build", "ow-build-plan", "ow-care", "ow-documentation", "ow-draft", "ow-handoff", "ow-research", "ow-start", "ow-uat"]);
   });
 
   it("the real tree passes the protocol, verb and family checks", () => {

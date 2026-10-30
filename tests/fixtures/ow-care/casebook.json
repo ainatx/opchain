@@ -1,0 +1,870 @@
+{
+  "schema": 1,
+  "note": "Prospective model-run inputs and semantic answer key; no model outputs or actual client month claimed.",
+  "cases": [
+    {
+      "id": "start-after-build",
+      "verb": "/ow-care-start",
+      "seed": "after-build",
+      "tool": "present",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Latest choice is Regular care. Start 2027-04-17. Carry FIX-01 free and FIX-02 as metered waiting request. Client role confirms kept read access. My name is Robin. Handling: no. America/Chicago, weekdays 09:00\u201317:00, no holidays. Currency USD; full M-01 price prepaid and due at the April 17 start, not marked paid. Monthly call: no. FIX-01 received April 15 10:00 from client operations role; FIX-02 received April 17 09:30 from that role. No care hours yet. AX-14 is removed by the client operations role when care ends. handoffs.yaml absent; public fallback; send nothing.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/care.yaml"
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/care.yaml",
+            "share: 0.5"
+          ]
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/requests/CARE-01.md",
+            "FIX-01"
+          ]
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/requests/CARE-02.md",
+            "FIX-02"
+          ]
+        },
+        {
+          "number": [
+            "care/larkspur-ceramics/invoices/INV-request-care-M-01.md",
+            3000
+          ]
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/requests/CARE-01.md",
+            "hours_minutes: 0"
+          ]
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "start-later-hourly-refusal",
+      "verb": "/ow-care-start",
+      "seed": "after-build",
+      "tool": "present",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "The latest dated choice on 2027-04-12 is hourly help, not care.",
+      "overrides": {
+        "handoffs/larkspur-ceramics/after-offer.md": "APPEND: 2027-04-12 choice: hourly help; care declined."
+      },
+      "checks": [
+        {
+          "absent": "care/larkspur-ceramics/care.yaml"
+        }
+      ],
+      "refusal": true
+    },
+    {
+      "id": "start-resume",
+      "verb": "/ow-care-start",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Care was already started; show current M-01 and do not rewrite terms.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/care.yaml"
+        },
+        {
+          "absent": "care/larkspur-ceramics/invoices/INV-request-care-M-01.md"
+        }
+      ],
+      "refusal": true
+    },
+    {
+      "id": "onboard-takeover",
+      "verb": "/ow-care-onboard",
+      "seed": "takeover",
+      "tool": "present",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Signed quote confirmed. Public endpoint stub says HTTP 200 and certificate expires in 20 days. No credentials. Unknown backups and rollback; account owner is operations role. Recommend Tune, but no client tier choice yet.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/onboarding.md"
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/onboarding.md",
+            "unknown"
+          ]
+        },
+        {
+          "exists": "care/larkspur-ceramics/health/M-00.md"
+        },
+        {
+          "exists": "care/larkspur-ceramics/operator-notes.md"
+        },
+        {
+          "absent": "care/larkspur-ceramics/care.yaml"
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "onboard-unsigned-refusal",
+      "verb": "/ow-care-onboard",
+      "seed": "takeover",
+      "tool": "absent",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Onboarding quote is unsigned; no review authorized.",
+      "overrides": {
+        "plans/larkspur-ceramics/contract-inputs.md": "REPLACE: onboarding signed status: unsigned"
+      },
+      "checks": [
+        {
+          "absent": "care/larkspur-ceramics/onboarding.md"
+        }
+      ],
+      "refusal": true
+    },
+    {
+      "id": "onboard-resume",
+      "verb": "/ow-care-onboard",
+      "seed": "takeover",
+      "tool": "present",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Existing onboarding review was completed. Report next start step, do not duplicate.",
+      "overrides": {
+        "care/larkspur-ceramics/onboarding.md": "CREATE: completed eight-part review; signed quote 2400 USD."
+      },
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/onboarding.md"
+        },
+        {
+          "absent": "care/larkspur-ceramics/care.yaml"
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "request-reply-holiday",
+      "verb": "/ow-care-request",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2026-11-27 11:00 America/Chicago",
+      "session_answers": "Client operations role sent CARE-02 Friday 2026-11-20 18:00. Monday 2026-11-23 is a client-calendar holiday. First reply was Friday 2026-11-27 10:00. Estimate 1 hour, no work yet.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/requests/CARE-02.md"
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/requests/CARE-02.md",
+            "2026-11-26"
+          ]
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/requests/CARE-02.md",
+            "miss"
+          ]
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "request-extra-refusal",
+      "verb": "/ow-care-request",
+      "seed": "active",
+      "tool": "absent",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "CARE-02 needs 10 total hours this month; only 8 included and no client go-ahead for extra. Pause before work.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/requests/CARE-02.md"
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/requests/CARE-02.md",
+            "paused"
+          ]
+        },
+        {
+          "absent": "care/larkspur-ceramics/requests/CARE-03.md"
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "request-resume",
+      "verb": "/ow-care-request",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Update existing CARE-01 with a dated verification event; no new request ID.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/requests/CARE-01.md"
+        },
+        {
+          "absent": "care/larkspur-ceramics/requests/CARE-02.md"
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "request-separate-quote",
+      "verb": "/ow-care-request",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Client requests 12 hours of new work on the 8-hour Tune plan. It needs separate acceptance checks. User agrees separate quote, not care time.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/requests/CARE-02.md"
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/requests/CARE-02.md",
+            "quoted separately"
+          ]
+        },
+        {
+          "contains": [
+            "printed.md",
+            "ow-build-plan-quote --quick"
+          ]
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "health-tool",
+      "verb": "/ow-care-health",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Config confirmed. Stubbed public endpoint HTTP 200; certificate 20 days to expiry; user reports alerts none, scheduled jobs OK, access still needed. Health work 45 minutes. No client-system write.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/health.yaml"
+        },
+        {
+          "exists": "care/larkspur-ceramics/health/M-01.md"
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/health/M-01.md",
+            "attention"
+          ]
+        },
+        {
+          "absent": "care/larkspur-ceramics/requests/CARE-02.md"
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "health-no-tool",
+      "verb": "/ow-care-health",
+      "seed": "active",
+      "tool": "absent",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Tool unavailable; user reports alerts none, scheduled job OK, certificate not independently checked. Health work 45 minutes.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/health/M-01.md"
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/health/M-01.md",
+            "NOT-CHECKED"
+          ]
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "health-resume",
+      "verb": "/ow-care-health",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Reopen existing M-01 health with new dated vendor notice; preserve prior result.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/health/M-01.md"
+        },
+        {
+          "absent": "care/larkspur-ceramics/health/M-02.md"
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "notes-new",
+      "verb": "/ow-care-notes",
+      "seed": "active",
+      "tool": "absent",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "User reports new OP-02: orders app rollback uses a documented repository script, not yet verified. Replaces older OP-01.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/operator-notes.md"
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/operator-notes.md",
+            "OP-02"
+          ]
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/operator-notes.md",
+            "unknown"
+          ]
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "notes-secret-refusal",
+      "verb": "/ow-care-notes",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Pasted note contains password value canary SECRET-NEVER-EXPORT. No safe replacement source is available; refuse to update operator notes until the user supplies a redacted note.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/operator-notes.md"
+        },
+        {
+          "not_contains": [
+            "care/larkspur-ceramics/operator-notes.md",
+            "SECRET-NEVER-EXPORT"
+          ]
+        }
+      ],
+      "refusal": true
+    },
+    {
+      "id": "notes-resume",
+      "verb": "/ow-care-notes",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Append dated verification to existing OP-01. Do not create another OP-01.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/operator-notes.md"
+        },
+        {
+          "absent": "care/larkspur-ceramics/operator-notes-2.md"
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "access-removal",
+      "verb": "/ow-care-access",
+      "seed": "active",
+      "tool": "absent",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Client operations role reports AX-01 removed on 2027-04-16 in hosting console; skill did not verify.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/access.md"
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/access.md",
+            "removed 2027-04-16"
+          ]
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/access.md",
+            "not verified"
+          ]
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "access-no-purpose-refusal",
+      "verb": "/ow-care-access",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Client offers a new broad admin grant with no purpose or removal step. Refuse to keep it.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/access.md"
+        },
+        {
+          "not_contains": [
+            "care/larkspur-ceramics/access.md",
+            "broad admin grant"
+          ]
+        }
+      ],
+      "refusal": true
+    },
+    {
+      "id": "access-resume",
+      "verb": "/ow-care-access",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Re-read AX-01 kept state; do not add duplicate AX row.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/access.md"
+        },
+        {
+          "absent": "care/larkspur-ceramics/access-2.md"
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "month-rollover",
+      "verb": "/ow-care-month",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2026-12-17 10:00 America/Chicago",
+      "session_answers": "Close M-01 at 2026-12-17. User reports report-writing 45 minutes; no meeting; CARE-01 210 minutes and health 45 minutes are final. No credit. Use frozen 0.25 rollover.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/ledger.md"
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/ledger.md",
+            "45"
+          ]
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/ledger.md",
+            "135"
+          ]
+        },
+        {
+          "exists": "care/larkspur-ceramics/reports/M-01.md"
+        },
+        {
+          "exists": "care/larkspur-ceramics/invoices/INV-request-care-M-02.md"
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/reports/M-01.md",
+            "<!-- ow:internal -->"
+          ]
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/reports/M-01.md",
+            "<!-- ow:end-internal -->"
+          ]
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "month-no-approval-refusal",
+      "verb": "/ow-care-month",
+      "seed": "active",
+      "tool": "absent",
+      "clock": "2026-12-17 10:00 America/Chicago",
+      "session_answers": "Close M-01: user reports 600 care minutes without any extra-hour go-ahead. Refuse to close with unapproved work.",
+      "overrides": {},
+      "checks": [
+        {
+          "absent": "care/larkspur-ceramics/reports/M-01.md"
+        }
+      ],
+      "refusal": true
+    },
+    {
+      "id": "month-resume",
+      "verb": "/ow-care-month",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "M-01 already closed. Report existing paths; do not rewrite or duplicate invoice request.",
+      "overrides": {
+        "care/larkspur-ceramics/reports/M-01.md": "CREATE: existing closed report",
+        "care/larkspur-ceramics/ledger.md": "CREATE: M-01 closed included 480 rolled 45",
+        "care/larkspur-ceramics/months/M-01.md": "REPLACE: id M-01 status closed"
+      },
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/reports/M-01.md"
+        },
+        {
+          "absent": "care/larkspur-ceramics/reports/M-01-2.md"
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "month-changed-rule",
+      "verb": "/ow-care-month",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2027-01-17 10:00 America/Chicago",
+      "session_answers": "M-01 closed under 0.25 with 45-minute rollover. Accepted addendum makes 0.5 effective M-02. Close M-02 with 300 minutes used. Do not replay M-01 at 0.5.",
+      "overrides": {
+        "care/larkspur-ceramics/ledger.md": "CREATE: M-01 included 480 used 300 rolled over 45 lapsed 135; effective rule 0.25; closed",
+        "care/larkspur-ceramics/months/M-01.md": "REPLACE: M-01 closed; included 480 used 300 rolled over 45 lapsed 135",
+        "care/larkspur-ceramics/months/M-02.md": "CREATE: M-02 open, 2026-12-17 to 2027-01-16; CARE 210, HEALTH 45, REPORT 45 minutes",
+        "care/larkspur-ceramics/terms-addendum-2026-12-01.md": "CREATE: accepted 2026-12-01; rollover 0.5 effective M-02 2026-12-17"
+      },
+      "checks": [
+        {
+          "contains": [
+            "care/larkspur-ceramics/ledger.md",
+            "M-01"
+          ]
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/ledger.md",
+            "45"
+          ]
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/ledger.md",
+            "105"
+          ]
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/months/M-02.md",
+            "not machine-checked"
+          ]
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "month-final-settlement",
+      "verb": "/ow-care-month",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2026-12-17 10:00 America/Chicago",
+      "session_answers": "Final month M-01 ends 2026-12-16 after valid notice. CARE-01 has 420 owned minutes and health has 45; user reports 15 report-writing minutes. CARE-02 has 75 owned minutes, performed 2026-12-02 after client email approved exactly 75 extra minutes at 250 USD/hour on 2026-12-01. Total owned time is 555 minutes: 480 included plus 75 approved extra. User separately decides a 30-minute capacity credit at 3200/8 USD/hour for committed availability missed on 2026-11-25, with that reason recorded. No renewal.",
+      "overrides": {
+        "care/larkspur-ceramics/terms-addendum-2026-11-01.md": "CREATE: notice accepted 2026-11-01, final care end 2026-12-16",
+        "care/larkspur-ceramics/requests/CARE-02.md": "CREATE: CARE-02 done in M-01, 75 owned minutes worked 2026-12-02; client email go-ahead 2026-12-01 approved exactly 75 extra minutes at frozen 250 USD/hour before work; first reply on time",
+        "care/larkspur-ceramics/health/M-01.md": "REPLACE: HEALTH-M-01 user-reported checklist OK, 45 owned minutes in M-01",
+        "care/larkspur-ceramics/months/M-01.md": "REPLACE: M-01 open 2026-11-17 to 2026-12-16, final; user-reported report writing 15 minutes; user-decided 30-minute credit for missed committed availability 2026-11-25",
+        "care/larkspur-ceramics/requests/CARE-01.md": "REPLACE: CARE-01 done in M-01, 420 owned minutes, first reply 2026-11-19 14:00, due 2026-11-19 17:00"
+      },
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/invoices/INV-request-care-final-settlement.md"
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/invoices/INV-request-care-final-settlement.md",
+            "75"
+          ]
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/invoices/INV-request-care-final-settlement.md",
+            "credit"
+          ]
+        },
+        {
+          "absent": "care/larkspur-ceramics/invoices/INV-request-care-M-02.md"
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/invoices/INV-request-care-final-settlement.md",
+            "112.50"
+          ]
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/reports/M-01.md",
+            "final-settlement"
+          ]
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "change-terms",
+      "verb": "/ow-care-change",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2026-12-01 10:00 America/Chicago",
+      "session_answers": "Client role requested Tune tier change to an already offered tier; acceptance reported 2026-12-01; effective M-02 2026-12-17. Keep care.yaml frozen.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/terms-addendum-2026-12-01.md"
+        },
+        {
+          "exists": "care/larkspur-ceramics/care.yaml"
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "change-no-acceptance-refusal",
+      "verb": "/ow-care-change",
+      "seed": "active",
+      "tool": "absent",
+      "clock": "2026-12-01 10:00 America/Chicago",
+      "session_answers": "Proposed new rollover 0.5 has no client acceptance; do not make it effective.",
+      "overrides": {},
+      "checks": [
+        {
+          "absent": "care/larkspur-ceramics/terms-addendum-2026-12-01.md"
+        }
+      ],
+      "refusal": true
+    },
+    {
+      "id": "change-resume",
+      "verb": "/ow-care-change",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "An addendum already records notice. Read and report its effective date; do not duplicate.",
+      "overrides": {
+        "care/larkspur-ceramics/terms-addendum-2027-03-01.md": "CREATE: notice 2027-03-01 +30 days expires 2027-03-31; care ends 2027-04-16"
+      },
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/terms-addendum-2027-03-01.md"
+        },
+        {
+          "absent": "care/larkspur-ceramics/terms-addendum-2027-03-01-2.md"
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "end-complete",
+      "verb": "/ow-care-end",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Final M-06 report and settlement request are closed. AX-01 removal confirmed by client operations role on 2027-04-16; no in-progress request; client keeps repo/accounts/notes.",
+      "overrides": {
+        "care/larkspur-ceramics/months/M-06.md": "CREATE: closed final month ending 2027-04-16",
+        "care/larkspur-ceramics/reports/M-06.md": "CREATE: final report",
+        "care/larkspur-ceramics/invoices/INV-request-care-final-settlement.md": "CREATE: final settlement request, no renewal",
+        "care/larkspur-ceramics/terms-addendum-2027-03-01.md": "CREATE: notice 2027-03-01; expiry 2027-03-31; end 2027-04-16",
+        "care/larkspur-ceramics/access.md": "REPLACE: AX-01 removed 2027-04-16, confirmed by operations role; not verified by skill",
+        "care/larkspur-ceramics/requests/CARE-01.md": "REPLACE: CARE-01 done 210 minutes, no open requests"
+      },
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/end.md"
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/end.md",
+            "final-settlement"
+          ]
+        },
+        {
+          "exists": "care/larkspur-ceramics/export/end-email.txt"
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "end-kept-access-refusal",
+      "verb": "/ow-care-end",
+      "seed": "active",
+      "tool": "absent",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Notice end date 2027-04-16 and final month closed, but AX-01 remains kept. Refuse end.",
+      "overrides": {
+        "care/larkspur-ceramics/months/M-06.md": "CREATE: closed final month ending 2027-04-16",
+        "care/larkspur-ceramics/terms-addendum-2027-03-01.md": "CREATE: notice 2027-03-01; expiry 2027-03-31; end 2027-04-16"
+      },
+      "checks": [
+        {
+          "absent": "care/larkspur-ceramics/end.md"
+        }
+      ],
+      "refusal": true
+    },
+    {
+      "id": "end-resume",
+      "verb": "/ow-care-end",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Care already ended. Show existing end record and do not send or overwrite email.",
+      "overrides": {
+        "care/larkspur-ceramics/end.md": "CREATE: care ended 2027-04-16; final report and settlement cited"
+      },
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/end.md"
+        },
+        {
+          "absent": "care/larkspur-ceramics/end-2.md"
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "month-internal-export-refusal",
+      "verb": "/ow-care-month",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2026-12-17 10:00 America/Chicago",
+      "session_answers": "User offers only an internal time-tracker export with canary INTERNAL-987 for CARE-01 hours; no owned CARE hours record. Refuse to close or expose the canary.",
+      "overrides": {
+        "care/larkspur-ceramics/requests/CARE-01.md": "REPLACE: CARE-01 has no recorded care hours; internal tracker is the only proposed source"
+      },
+      "checks": [
+        {
+          "absent": "care/larkspur-ceramics/reports/M-01.md"
+        },
+        {
+          "absent": "care/larkspur-ceramics/export/report-M-01.pdf"
+        }
+      ],
+      "refusal": true
+    },
+    {
+      "id": "request-old-rollover-expiry",
+      "verb": "/ow-care-request",
+      "seed": "active",
+      "tool": "absent",
+      "clock": "2027-02-17 10:00 America/Chicago",
+      "session_answers": "M-01 rolled 45 minutes into M-02; M-02 used none of those minutes, so they expired before M-03. A new request cannot spend them in M-03.",
+      "overrides": {
+        "care/larkspur-ceramics/ledger.md": "CREATE: M-01 rolled over 45; M-02 rolled in 45 and lapsed 45; M-03 rolled in 0",
+        "care/larkspur-ceramics/months/M-02.md": "CREATE: M-02 closed; old rolled hours lapsed"
+      },
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/requests/CARE-02.md"
+        },
+        {
+          "not_contains": [
+            "care/larkspur-ceramics/requests/CARE-02.md",
+            "45 rolled minutes available"
+          ]
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "end-notice-short-month",
+      "verb": "/ow-care-change",
+      "seed": "active",
+      "tool": "absent",
+      "clock": "2027-03-01 10:00 America/Chicago",
+      "session_answers": "Either side gives 30-day notice on 2027-03-01. Months run from 17th through 16th; notice expires 2027-03-31 and care ends 2027-04-16. Suppress the 17 April renewal.",
+      "overrides": {},
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/terms-addendum-2027-03-01.md"
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/terms-addendum-2027-03-01.md",
+            "2027-04-16"
+          ]
+        }
+      ],
+      "refusal": false
+    },
+    {
+      "id": "health-private-target-refusal",
+      "verb": "/ow-care-health",
+      "seed": "active",
+      "tool": "present",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "Proposed health config includes a private credential-bearing endpoint. User has not confirmed a safe public target. Refuse tool run and do not write health.yaml.",
+      "overrides": {},
+      "checks": [
+        {
+          "absent": "care/larkspur-ceramics/health.yaml"
+        },
+        {
+          "absent": "care/larkspur-ceramics/health/M-02.md"
+        }
+      ],
+      "refusal": true
+    },
+    {
+      "id": "request-before-start-refusal",
+      "verb": "/ow-care-request",
+      "seed": "after-build",
+      "tool": "absent",
+      "clock": "2027-04-17 10:00 America/Chicago",
+      "session_answers": "A client asks for care work, but no care.yaml exists. Refuse to log CARE and point to ow-care-start.",
+      "overrides": {},
+      "checks": [
+        {
+          "absent": "care/larkspur-ceramics/requests/CARE-01.md"
+        }
+      ],
+      "refusal": true
+    },
+    {
+      "id": "month-short-month",
+      "verb": "/ow-care-month",
+      "seed": "active",
+      "tool": "absent",
+      "clock": "2027-02-28 10:00 America/Chicago",
+      "session_answers": "The frozen start day is 31 January 2027. M-01 is 31 January through 27 February; next anniversary clamps to 28 February. Close M-01 with user-recorded 300 minutes including health and report, no extra and no credit.",
+      "overrides": {
+        "care/larkspur-ceramics/care.yaml": "REPLACE: tier Tune; hours 8; price 3200; start 2027-01-31; month_boundary start-day; rollover {share: 0.25, of: unused, months: 1}",
+        "care/larkspur-ceramics/months/M-01.md": "REPLACE: M-01 open, 2027-01-31 to 2027-02-27",
+        "care/larkspur-ceramics/requests/CARE-01.md": "REPLACE: CARE-01 done, 210 minutes in M-01, first reply on time",
+        "care/larkspur-ceramics/health/M-01.md": "REPLACE: health OK, 45 minutes in M-01"
+      },
+      "checks": [
+        {
+          "exists": "care/larkspur-ceramics/reports/M-01.md"
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/reports/M-01.md",
+            "2027-02-27"
+          ]
+        },
+        {
+          "contains": [
+            "care/larkspur-ceramics/months/M-02.md",
+            "2027-02-28"
+          ]
+        }
+      ],
+      "refusal": false
+    }
+  ]
+}

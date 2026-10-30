@@ -1,0 +1,23 @@
+# access-resume
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: access-removal-record
+today: '2026-12-05'
+clock: user-stated
+verbs:
+  - /ow-care-access
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+noop:
+  - nothing to do
+  - already recorded
+resume:
+  untouched:
+    - opchain-work/care/larkspur-ceramics/access.md
+next:
+  - use ow-care-request on care/larkspur-ceramics/

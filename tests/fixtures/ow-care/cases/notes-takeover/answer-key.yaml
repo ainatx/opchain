@@ -1,0 +1,22 @@
+# notes-takeover
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: request-first
+today: '2026-11-24'
+clock: user-stated
+verbs:
+  - /ow-care-notes
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+notes:
+  replaces:
+    - OP-02
+  touched:
+    - OP-04
+next:
+  - use ow-care-request on care/larkspur-ceramics/

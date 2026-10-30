@@ -1,0 +1,18 @@
+# month-extra-approved
+client: Larkspur Ceramics
+slug: larkspur-ceramics
+user: Robin
+world:
+  - takeover
+base: request-extra-goahead
+today: '2027-01-17'
+clock: user-stated
+verbs:
+  - /ow-care-month
+tool: present
+private_names:
+  - Deftwright
+  - llc-ops
+close: M-02
+next:
+  - use ow-care-request on care/larkspur-ceramics/

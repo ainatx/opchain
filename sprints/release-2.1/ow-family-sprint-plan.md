@@ -27,7 +27,7 @@ Every sprint is named **workstream prefix + two-digit number**, and the number i
 | OW-04 | Sprint 3 | A | ow-uat 1.0.0 | passed round 3 (7.8); landing |
 | OW-05 | Sprint 3b | A | ow-documentation 1.0.0 | not started |
 | OW-06 | Sprint 4 | A | ow-handoff 1.0.0 | not started |
-| OW-07 | Sprint 4b | A | ow-care 1.0.0 | salvage from #652 (owner, 2026-10-29) |
+| OW-07 | Sprint 4b | A | ow-care 1.0.0 | built 2026-10-29, salvaged from the Codex draft #652 (owner, 2026-10-29); S1 (ow-start 1.2.0), P4 (ow-build-plan 1.3.0), ow-handoff 1.0.1; PR #668 (`ow-07/contract.md`) |
 | OW-08 | Sprint L | B | ow-start 1.1.0 logs | done (#624, follow-up #626 → 1.1.1; ow-tools 1.1.2 hook) |
 | OW-09 | Sprint R | B | ow-research 1.0.0 | built; security fixes before evaluation |
 | OW-10 | Sprint D | B | ow-draft 1.0.0 | not started |

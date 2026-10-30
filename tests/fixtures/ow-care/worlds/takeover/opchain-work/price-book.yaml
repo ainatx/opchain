@@ -1,0 +1,13 @@
+---
+ow_artefact: ow-build-plan/price-book
+schema: 1
+written_by: user
+workstream: larkspur-ceramics
+subject: price-book.yaml
+created: 2026-06-01
+clock: user-stated
+origin: user
+---
+internal_cost_rate: 95
+target_margin: 0.31
+contingency: 0.18

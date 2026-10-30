@@ -7,7 +7,7 @@ Written by `/ow-handoff-accounts` only. `-notes`, `-package`, `-access` and `-cl
     ---
     ow_artefact: ow-handoff/accounts
     schema: 1
-    written_by: ow-handoff 1.0.0 (protocol 1)
+    written_by: ow-handoff 1.0.1 (protocol 1)
     workstream: <client slug>
     subject: handoffs/<client>/handoff.yaml
     created: <YYYY-MM-DD>

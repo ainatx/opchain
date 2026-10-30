@@ -1,0 +1,23 @@
+{
+  "id": "oc-repo-ops-pr-readiness-v1-b340c95d7439",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-10-30T00:23:54.689Z",
+  "verified_at": "2026-10-30T00:23:54.689Z",
+  "producer": {
+    "skill": "oc-repo-ops",
+    "run_id": "pr-readiness-v1-2026-10-30T00:23:54.689Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:b340c95d74395964ff1eb58db1697620dc86e3c89aad7908509d0754e0529944"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-readiness-v1",
+    "scope": "OW-07 tree after merging main 9cd2365e: ow catalog validated, check-skill-contracts, lint-internal-refs, check-skill-flags, sync-plugin-skills:check, sync-bundles:check pass; sprint-plan conflict resolved keeping #666's section and one OW-07 row; .gitignore exception for the ow-care fixture secrets-seen.log; verifier receipt PASS for the merged candidate",
+    "evidence": [
+      "gen-catalog; check-skill-contracts; lint-internal-refs; check-skill-flags; sync-plugin-skills:check; sync-bundles:check; verify-candidate PASS (commit gate)"
+    ]
+  }
+}

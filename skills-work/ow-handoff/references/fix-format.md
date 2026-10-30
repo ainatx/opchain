@@ -7,7 +7,7 @@ All written by `/ow-handoff-fix` only. Ids are numbered once and never reused or
     ---
     ow_artefact: ow-handoff/fix
     schema: 1
-    written_by: ow-handoff 1.0.0 (protocol 1)
+    written_by: ow-handoff 1.0.1 (protocol 1)
     workstream: <client slug>
     subject: <the report's source: "the client's email of <date>", uat/<client>/punch-list.md, "raised by the takeover check">
     created: <YYYY-MM-DD>
