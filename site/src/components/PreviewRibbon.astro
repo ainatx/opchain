@@ -8,13 +8,9 @@
 import { IS_RELEASE_PREVIEW, PREVIEW_RELEASE } from "../data/release-preview";
 ---
 {IS_RELEASE_PREVIEW && (
-  <div class="preview-ribbon" role="note" aria-label={`Release ${PREVIEW_RELEASE} preview on staging; nothing here has shipped`} data-preview-ribbon>
+  <div class="preview-ribbon" role="note" aria-label={`Staging preview of the ${PREVIEW_RELEASE} release`} data-preview-ribbon>
     <span class="preview-ribbon-inner">
-      <span class="preview-ribbon-ver">{PREVIEW_RELEASE} preview</span>
-      <span class="preview-ribbon-sep" aria-hidden="true">·</span>
-      <span>staging</span>
-      <span class="preview-ribbon-sep" aria-hidden="true">·</span>
-      <span>nothing here has shipped</span>
+      <span class="preview-ribbon-ver">Staging preview of the {PREVIEW_RELEASE} release</span>
       <span class="preview-ribbon-sep" aria-hidden="true">·</span>
       <span class="preview-ribbon-key">tags <span class="preview-ribbon-tag preview-ribbon-tag--ow">{PREVIEW_RELEASE} · ow</span> and <span class="preview-ribbon-tag preview-ribbon-tag--oc">{PREVIEW_RELEASE} · oc</span> mark each change</span>
     </span>

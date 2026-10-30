@@ -285,12 +285,12 @@ codex`;
 
       <!-- 2.0 content block 4 — what the next major means for an existing install -->
       <div class="upg">
-        <h3 class="upg-h">Already on 1.x? <span class="upg-tag">Upgrade to 2.0</span></h3>
+        <h3 class="upg-h">Already on 2.0? <span class="upg-tag">What 2.1 changes</span> <ReleaseTag theme="oc" /></h3>
         <ul class="upg-list">
-          <li><strong>Three new skills.</strong> The full set now includes 36 skills: oc-update, Hindsight and Evolve join the existing 33.</li>
-          <li><strong>Complete files, one update.</strong> The updater replaces Opchain skill folders and their runtime files, backs up replaced files, and preserves checkpoints, telemetry consent and unrelated skills.</li>
-          <li><strong>Learning starts off.</strong> Enable it separately for this project. Lessons and rules need review before use. Live evaluations send the selected tasks to your configured provider.</li>
-          <li><strong>Plugin installations use the plugin manager.</strong> The repo updater does not change a global plugin installation or install hooks.</li>
+          <li><strong>Re-run <code class="ic">/oc-enroll</code>.</strong> 2.1 adds the post-commit bypass record and the pre-push refusal beside the pre-commit gate; <code class="ic">/oc-enroll --ci --force</code> refreshes the runtime and brings the per-branch evidence store.</li>
+          <li><strong>Breaking: the deploy wrapper needs <code class="ic">--prod</code>.</strong> Point <code class="ic">npm run deploy</code> at <code class="ic">node scripts/deploy.mjs --prod</code> and <code class="ic">deploy:staging</code> at <code class="ic">--staging</code>, drop any <code class="ic">*_PROD_GO</code> variable, and pass <code class="ic">--allow-unknown-live</code> once. No environment variable selects production any more.</li>
+          <li><strong>The skill router is off without a key.</strong> It stays an experimental preview; nothing changes unless you set <code class="ic">TYPESAFE_API_KEY</code>.</li>
+          <li><strong>Same update path.</strong> The updater still replaces the complete skill folders and runtime files, backs up replaced files, and preserves checkpoints, telemetry consent and unrelated skills. Plugin installations use the plugin manager.</li>
         </ul>
         <pre class="codeblock" tabindex="0" role="region" aria-label="Upgrade to 2.0 commands"><code>{upgrade20Cmd}</code></pre>
         <p class="upg-foot">If 1.x does not recognize <code class="ic">/oc-update</code>, use the bootstrap installer below once. Run it from your project root with Node.js 22.13 or newer. For Codex, use <code class="ic">--target=codex</code>.</p>
