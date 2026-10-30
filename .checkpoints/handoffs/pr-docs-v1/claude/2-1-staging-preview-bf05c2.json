@@ -1,20 +1,20 @@
 {
-  "id": "oc-docs-forge-pr-docs-v1-854b5d4008d5",
+  "id": "oc-docs-forge-pr-docs-v1-f3c7036a787f",
   "contract_version": "1.0",
   "type": "verification.verdict",
-  "created_at": "2026-10-30T19:15:06.872Z",
-  "verified_at": "2026-10-30T19:15:06.872Z",
+  "created_at": "2026-10-30T20:38:40.282Z",
+  "verified_at": "2026-10-30T20:38:40.282Z",
   "producer": {
     "skill": "oc-docs-forge",
-    "run_id": "pr-docs-v1-2026-10-30T19:15:06.872Z"
+    "run_id": "pr-docs-v1-2026-10-30T20:38:40.282Z"
   },
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:854b5d4008d56568667e5a5ffd23d6e41a02e1471fb754da0f8829c0bab34121"
+    "id": "sha256:f3c7036a787f4db0e8a4964cf13db7d1ee45bd16e82885cf0cdbe9568f27c798"
   },
   "payload": {
     "verdict": "PASS",
     "policy": "pr-docs-v1",
-    "scope": "2.1 staging preview: /work section (nine ow- skill pages, ow-tools, install stub, changelog), opchain.work architecture diagram, release-preview ribbon and tags, nav and pointers, /security and /privacy ow- sections, /changelog Coming Next card; PR body drafted with surfaces, owner decisions and verification; docs in code comments and docs/audits reference"
+    "scope": "2.1 staging preview, second cut: lockstep catalog 2.1.0 (skills, CHANGELOG [2.1.0] with the ow- family entry, seal, server/marketplace/plugin manifests, READMEs), live-claim surfaces v2.1, /changelog hero promoted with 2.0 collapsed and v2.2 in Coming Next, /install upgrade box, ribbon reworded; PR body addendum drafted"
   }
 }

@@ -1,20 +1,20 @@
 {
-  "id": "oc-repo-ops-pr-readiness-v1-854b5d4008d5",
+  "id": "oc-repo-ops-pr-readiness-v1-f3c7036a787f",
   "contract_version": "1.0",
   "type": "verification.verdict",
-  "created_at": "2026-10-30T19:15:07.185Z",
-  "verified_at": "2026-10-30T19:15:07.185Z",
+  "created_at": "2026-10-30T20:38:40.592Z",
+  "verified_at": "2026-10-30T20:38:40.592Z",
   "producer": {
     "skill": "oc-repo-ops",
-    "run_id": "pr-readiness-v1-2026-10-30T19:15:07.185Z"
+    "run_id": "pr-readiness-v1-2026-10-30T20:38:40.592Z"
   },
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:854b5d4008d56568667e5a5ffd23d6e41a02e1471fb754da0f8829c0bab34121"
+    "id": "sha256:f3c7036a787f4db0e8a4964cf13db7d1ee45bd16e82885cf0cdbe9568f27c798"
   },
   "payload": {
     "verdict": "PASS",
     "policy": "pr-readiness-v1",
-    "scope": "npm test 180 files / 11425 tests green; gen-catalog, check-skill-contracts, check-release-surfaces (v2.0 + /work probes), checkpoint:validate pass; astro check clean; site build and full build via the gate; Playwright e2e green with roadmap data; Lighthouse /work and /work/ow-start >= 0.96 all categories; preview-variable build shows ribbon+tags, plain build shows none; no generated output tracked"
+    "scope": "npm test 180 files / 11425 green after the bump; check-release-surfaces agrees on v2.1 incl. full-semver probes; check-release-tag missing-tag (expected, staging only); astro check clean; Playwright e2e green after re-pins; route-spec and plugin mirror regenerated and synced; bugcheck digests re-pinned; gate PASS on the release commit"
   }
 }
