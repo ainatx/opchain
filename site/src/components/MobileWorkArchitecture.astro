@@ -1,0 +1,34 @@
+---
+/**
+ * opchain.work architecture diagram (≤767px): the MobileArchitecture.astro
+ * idiom (static <details> bands, inline SVG cards, no JS), generated from the
+ * same data as the desktop diagram. Shown by the CSS swap in
+ * styles/work-architecture.css.
+ */
+import "../styles/work-architecture-mobile.css";
+import { buildMobileWorkDiagram, type DiagramInput } from "../lib/work-diagram";
+import { addonIds, commandsOf, familyEdges, getAllWorkSkills, stageOf } from "../lib/work";
+import { TOOLS_BY_SKILL, WORK_SKILLS } from "../data/work";
+import owTools from "../../../plugins/ow-tools/.claude-plugin/plugin.json";
+
+interface Props { release?: string }
+const { release = "v2.1" } = Astro.props;
+const skills = await getAllWorkSkills();
+const ids = skills.map((s) => s.data.name);
+const input: DiagramInput = {
+  skills: skills.map((s) => {
+    const stage = stageOf(s.data.name);
+    return {
+      id: s.data.name, version: s.data.metadata.version, bundle: s.data.metadata.bundle, network: s.data.metadata.network,
+      commands: commandsOf(s), stage: stage.key, stageLabel: stage.label, ordinal: stage.ordinal,
+      short: WORK_SKILLS[s.data.name]?.short ?? stage.short, intro: WORK_SKILLS[s.data.name]?.intro ?? s.data.description,
+    };
+  }),
+  edges: familyEdges(ids),
+  tools: { id: addonIds()[0] ?? "ow-tools", version: owTools.version, byStage: TOOLS_BY_SKILL },
+  release,
+};
+const html = buildMobileWorkDiagram(input);
+---
+
+<Fragment set:html={html} />

@@ -1,0 +1,199 @@
+---
+/**
+ * /work/<id> — one ow- planning skill: what it is for, its verbs, what it
+ * reads, writes and hands off (from skill.edges.yaml), the network and bundle
+ * facts on every page, host notes and the version. Release 2.1, WEB-02.
+ */
+import WorkPage from "../../layouts/WorkPage.astro";
+import Eyebrow from "../../components/ui/Eyebrow.astro";
+import Icon from "../../components/Icon.astro";
+import ReleaseTag from "../../components/ReleaseTag.astro";
+import { commandsOf, getAllWorkSkills, inlineCode, skillEdges, stageOf, verbsTable } from "../../lib/work";
+import { HOSTS, WORK_SKILLS } from "../../data/work";
+
+export async function getStaticPaths() {
+  const skills = await getAllWorkSkills();
+  return skills.map((s) => ({ params: { id: s.data.name }, props: { skill: s } }));
+}
+
+const { skill } = Astro.props;
+const id = skill.data.name;
+const copy = WORK_SKILLS[id];
+const stage = stageOf(id);
+const meta = skill.data.metadata;
+const commands = commandsOf(skill);
+const edges = skillEdges(id);
+const verbs = verbsTable(skill.body ?? "");
+const all = await getAllWorkSkills();
+const i = all.findIndex((s) => s.data.name === id);
+const prev = i > 0 ? all[i - 1] : null;
+const next = i >= 0 && i < all.length - 1 ? all[i + 1] : null;
+const connected = meta.network === "declared";
+
+// The description's trigger list ("Use for /ow-…, …") is for the host's skill
+// picker; the page shows the sentence before it.
+const purpose = skill.data.description.replace(/\s+/g, " ").trim().split(/\s(?=Use for )/)[0];
+
+const title = `${id} · opchain.work`;
+const description = `${copy?.intro ?? purpose} ${connected ? "network: declared" : "network: none"} · ${meta.bundle} bundle · ${meta.version}.`;
+const jsonLd = {
+  "@type": "SoftwareApplication",
+  "@id": new URL(`/work/${id}#software`, Astro.site).toString(),
+  name: id,
+  applicationCategory: "BusinessApplication",
+  description: copy?.intro ?? purpose,
+  softwareVersion: meta.version,
+  url: new URL(`/work/${id}`, Astro.site).toString(),
+  isPartOf: { "@id": new URL("/work#software", Astro.site).toString() },
+  publisher: { "@id": new URL("/#org", Astro.site).toString() },
+  isAccessibleForFree: true,
+};
+const readKind = (k: string) => k === "user" ? "files you own" : k === "any" ? "any workspace file" : k === "addon" ? "the ow-tools add-on" : "";
+---
+
+<WorkPage title={title} description={description} route={`/work/${id}`} jsonLd={jsonLd}>
+  <a href="/work" class="back"><Icon name="arrow-left" size={12} /> all planning skills</a>
+  <div class="page-head">
+    <Eyebrow>opchain.work · {stage.ordinal ? `stage ${stage.ordinal} · ` : ""}{stage.label}</Eyebrow>
+    <h1>{id} <span class="ver">{meta.version}</span> <ReleaseTag theme="ow" /></h1>
+  </div>
+  <p class="lede">{copy?.intro ?? purpose}</p>
+
+  <div class="facts" aria-label="Facts from the skill's frontmatter">
+    <div class:list={["fact", { hot: connected }]}>
+      <span class="fact-k">network</span>
+      <span class="fact-v">{meta.network}</span>
+      <span class="fact-note">{connected ? "may use the host’s own web tools or a connector, under its prompts" : "names no web tool and no connector; sends nothing"}</span>
+    </div>
+    <div class:list={["fact", { hot: meta.bundle === "connected" }]}>
+      <span class="fact-k">bundle</span>
+      <span class="fact-v">{meta.bundle}</span>
+      <span class="fact-note">{meta.bundle === "connected" ? "the connected bundle: text only, with declared network use" : "the core bundle: text only, no network"}</span>
+    </div>
+    <div class="fact">
+      <span class="fact-k">protocol</span>
+      <span class="fact-v">ow-protocol v{meta.protocol}</span>
+      <span class="fact-note">the shared rules every ow- skill carries</span>
+    </div>
+    <div class="fact">
+      <span class="fact-k">hosts</span>
+      <span class="fact-v">Claude Code · claude.ai upload</span>
+      <span class="fact-note">other hosts untested</span>
+    </div>
+  </div>
+
+  <nav class="toc" aria-label="On this page">
+    <a href="#purpose">what it is for</a>
+    <a href="#verbs">verbs</a>
+    <a href="#reads">reads</a>
+    <a href="#writes">writes</a>
+    <a href="#hands-off">hands off</a>
+    <a href="#hosts">hosts</a>
+  </nav>
+
+  <section id="purpose" aria-labelledby="purpose-h">
+    <h2 id="purpose-h">What it is for</h2>
+    <p>{purpose}</p>
+    {connected && copy?.networkNote && (
+      <>
+        <h3>What may leave the machine</h3>
+        <p>{copy.networkNote}</p>
+      </>
+    )}
+  </section>
+
+  <section id="verbs" aria-labelledby="verbs-h">
+    <h2 id="verbs-h">Verbs</h2>
+    <p>Declared in the skill’s frontmatter; what each does is read from its <code>SKILL.md</code>.</p>
+    <div class="cmds">{commands.map((c) => <code>{c}</code>)}</div>
+    {verbs.length > 0 && (
+      <div class="tw">
+        <table>
+          <thead><tr><th scope="col">verb</th><th scope="col">what it does</th></tr></thead>
+          <tbody>
+            {verbs.map((v) => (
+              <tr><td set:html={inlineCode(v.verb)} /><td set:html={inlineCode(v.does)} /></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </section>
+
+  <section id="reads" aria-labelledby="reads-h">
+    <h2 id="reads-h">Reads</h2>
+    <p>From <code>skill.edges.yaml</code>: the files this skill reads from the others, from the add-on and from you. A file read where an earlier stage left it is marked <em>in place</em>; a file listed by path only is an <em>index</em> row; one read only when you name it is <em>named</em>.</p>
+    {edges.routes && (
+      <p>Other skills hand files to <code>{edges.routes.verb} on &lt;path&gt;</code>, which routes {edges.routes.paths.length} kinds of path to the verb each needs.</p>
+    )}
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">from</th><th scope="col">files</th></tr></thead>
+        <tbody>
+          {edges.reads.map((g) => (
+            <tr>
+              <td>{g.kind === "skill" ? <a href={`/work/${g.from}`}><code>{g.from}</code></a> : g.kind === "addon" ? <a href="/work/ow-tools"><code>{g.from}</code></a> : <strong>{readKind(g.kind)}</strong>}</td>
+              <td><div class="paths">{g.rows.map((r) => (
+                <code>{r.path}{r.shared ? " (shared)" : ""}{r.in_place ? " (in place)" : ""}{r.index ? " (index)" : ""}{r.named ? " (named)" : ""}</code>
+              ))}</div></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="writes" aria-labelledby="writes-h">
+    <h2 id="writes-h">Writes</h2>
+    <p>Every file this skill writes, under <code>opchain-work/</code>, with the one verb that writes it. No file in the family has two writers.</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">verb</th><th scope="col">writes</th></tr></thead>
+        <tbody>
+          {edges.writes.map((w) => (
+            <tr><td><code>{w.verb}</code></td><td><div class="paths">{w.paths.map((p) => <code>{p}</code>)}</div></td></tr>
+          ))}
+          {edges.appendLogs.length > 0 && (
+            <tr><td><em>several verbs, append only</em></td><td><div class="paths">{edges.appendLogs.map((p) => <code>{p}</code>)}</div></td></tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="hands-off" aria-labelledby="hands-off-h">
+    <h2 id="hands-off-h">Hands off</h2>
+    <p>Where the work goes next, and when. A <em>destination</em> is a key in your own <code>handoffs.yaml</code>: work that leaves the family (a contract, an invoice, the builder) goes where you said.</p>
+    {edges.handsOff.length === 0 ? (
+      <p>Nothing leaves this skill for another family skill; its results stay in the workstream.</p>
+    ) : (
+      <div class="tw">
+        <table>
+          <thead><tr><th scope="col">to</th><th scope="col">verb</th><th scope="col">when</th></tr></thead>
+          <tbody>
+            {edges.handsOff.map((h) => (
+              <tr>
+                <td>{h.kind === "skill" ? <a href={`/work/${h.to}`}><code>{h.to}</code></a> : h.kind === "addon" ? <a href="/work/ow-tools"><code>{h.to}</code></a> : <span><code>handoffs.yaml</code> <strong>{h.to}</strong></span>}</td>
+                <td>{h.verb ? <code>{h.verb}</code> : <span class="fact-note">your destination</span>}</td>
+                <td>{h.when}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </section>
+
+  <section id="hosts" aria-labelledby="hosts-h">
+    <h2 id="hosts-h">Where it runs</h2>
+    <div class="two">
+      {HOSTS.map((h) => <div class="box"><strong>{h.host}</strong><br />{h.note}</div>)}
+    </div>
+    {skill.data.compatibility && <p><strong>From the skill:</strong> {skill.data.compatibility}</p>}
+  </section>
+
+  <nav class="pager" aria-label="Previous and next skill">
+    <span>{prev && <a href={`/work/${prev.data.name}`}>← {prev.data.name}</a>}</span>
+    <span>{next && <a href={`/work/${next.data.name}`}>{next.data.name} →</a>}</span>
+  </nav>
+</WorkPage>

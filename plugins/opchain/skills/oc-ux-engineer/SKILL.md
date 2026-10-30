@@ -1,7 +1,7 @@
 ---
 name: oc-ux-engineer
 displayName: OC · UX Engineer
-version: 2.0.4
+version: 2.1.0
 license: Apache-2.0
 shortDesc: Design Planner → Generator → Evaluator. Posts eval scores to the PM ticket; a11y as sub-tickets.
 phases: [plan, build]

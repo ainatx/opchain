@@ -1,0 +1,50 @@
+---
+/**
+ * Thin ribbon under the site header on every page of a release-preview build:
+ * "2.1 preview · staging · nothing here has shipped". Rendered only when
+ * PUBLIC_OPCHAIN_RELEASE_PREVIEW is set (data/release-preview.ts); unset,
+ * this component emits nothing.
+ */
+import { IS_RELEASE_PREVIEW, PREVIEW_RELEASE } from "../data/release-preview";
+---
+{IS_RELEASE_PREVIEW && (
+  <div class="preview-ribbon" role="note" aria-label={`Staging preview of the ${PREVIEW_RELEASE} release`} data-preview-ribbon>
+    <span class="preview-ribbon-inner">
+      <span class="preview-ribbon-ver">Staging preview of the {PREVIEW_RELEASE} release</span>
+      <span class="preview-ribbon-sep" aria-hidden="true">·</span>
+      <span class="preview-ribbon-key">tags <span class="preview-ribbon-tag preview-ribbon-tag--ow">{PREVIEW_RELEASE} · ow</span> and <span class="preview-ribbon-tag preview-ribbon-tag--oc">{PREVIEW_RELEASE} · oc</span> mark each change</span>
+    </span>
+  </div>
+)}
+
+<style>
+  .preview-ribbon {
+    background: var(--accent-dim);
+    border-bottom: 0.5px solid var(--accent);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: var(--ls-wide);
+    text-align: center;
+    padding: 4px 16px;
+    line-height: 1.5;
+  }
+  .preview-ribbon-inner { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 0 0.5em; }
+  .preview-ribbon-ver { color: var(--accent); font-weight: 700; }
+  .preview-ribbon-sep { color: var(--muted); }
+  .preview-ribbon-key { color: var(--muted); }
+  .preview-ribbon-tag {
+    display: inline-block;
+    font-size: 9px;
+    padding: 0 5px;
+    border-radius: var(--r-pill);
+    border: 0.5px solid currentColor;
+    line-height: 1.4;
+    vertical-align: 1px;
+  }
+  .preview-ribbon-tag--ow { color: var(--accent); background: var(--accent-dim); }
+  .preview-ribbon-tag--oc { color: var(--secondary); background: var(--secondary-dim); }
+  @media (max-width: 640px) {
+    .preview-ribbon-key { display: none; }
+  }
+</style>

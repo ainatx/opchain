@@ -4,6 +4,7 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
 import Card from "../components/ui/Card.astro";
 import Button from "../components/ui/Button.astro";
 import Badge from "../components/ui/Badge.astro";
+import ReleaseTag from "../components/ReleaseTag.astro";
 
 interface Step {
   cmd: string;
@@ -131,6 +132,12 @@ const deliverables: Deliverable[] = [
         <code>/oc-audit</code> + <code>/oc-security</code> are hard gates —
         <a href="/skills/oc-deploy-ops"><code>oc-deploy-ops</code></a> won't ship
         to the client until both pass (or the override is recorded).
+      </p>
+      <p class="blurb note">
+        Planning the job rather than building it? The nine ow- planning skills at
+        <a href="/work">opchain.work</a> cover the fit call, the Build Plan and
+        quote, acceptance, the handoff and monthly care — text only, in Claude Code
+        or from a claude.ai upload. <ReleaseTag theme="ow" />
       </p>
     </section>
 

@@ -11,9 +11,32 @@ contract another skill depends on → called out as **BREAKING**. The on-disk
 checkpoint `protocol_version` is tracked separately (see
 `oc-checkpoint-protocol/SKILL.md`).
 
-## [Unreleased]
+## [2.1.0] — 2026-10-30 — "The ow- planning family + enforcement at chokepoints"
+
+Two themes in one release: the ow- planning family for client work, and a
+check at each place the dev pipeline's work goes through. The skill router
+stays an experimental preview. Staging preview cut on 2026-10-30 from the
+`claude/2-1-staging-preview-bf05c2` branch; the tag follows the release-cut
+sitting.
 
 ### Added
+
+- **The ow- planning family (opchain.work), nine skills at their own versions.**
+  ow-start 1.2.0, ow-build-plan 1.3.0, ow-build 1.0.0, ow-uat 1.0.2,
+  ow-documentation 1.0.1, ow-handoff 1.0.1, ow-care 1.0.0, ow-research 1.0.2,
+  ow-draft 1.0.0 (`skills-work/`, per-skill versions, not lockstep). Text only,
+  no code; `network: none` for six, `network: declared` for ow-research,
+  ow-documentation and ow-draft (they may use the host's own web tools or a
+  document connector under the host's prompts). The catalog ships apart from
+  the oc- outputs: its own zips (`opchain-work-skills.zip`, `/work/<id>.zip`),
+  its own docs tree (`/docs/work`), the public mirror's `skills-work/`, and
+  the `/work` site section (REL-01). The ow-tools 1.3.1 Claude Code add-on
+  (`plugins/ow-tools/`, own marketplace `opchain-work-tools`, pinned to this
+  release's tag) runs code on the user's machine and says so: transcription,
+  export, calc, digest, health, capture, scan-secrets, session start, doctor;
+  only health and capture use the network, for what the user lists; the
+  speaker model loads at one pinned revision and the Whisper model's SHA-256
+  is checked before every transcription.
 
 - **J5 in the Worker, J8 in `/oc-docs pr` (plan §6, 2026-10-29).** With
   `platform.security.feedback-triage` on (default off) and the

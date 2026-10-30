@@ -1,0 +1,45 @@
+---
+/**
+ * opchain.work architecture diagram (desktop): the Architecture v2 idiom from
+ * /architecture, generated from the `work` collection and each skill's
+ * skill.edges.yaml (lib/work.ts → lib/work-diagram.ts). The styles are the
+ * architecture page's, carried into styles/work-architecture.css. The inline
+ * script is the same canvas line-drawing code; build-site.sh stamps it with
+ * the CSP nonce like every other <script>.
+ */
+import "../styles/work-architecture.css";
+import { buildWorkDiagram, type DiagramInput, type Variant } from "../lib/work-diagram";
+import { addonIds, commandsOf, familyEdges, getAllWorkSkills, stageOf } from "../lib/work";
+import { TOOLS_BY_SKILL, WORK_SKILLS } from "../data/work";
+import owTools from "../../../plugins/ow-tools/.claude-plugin/plugin.json";
+
+interface Props { variant?: Variant; release?: string }
+const { variant = "a", release = "v2.1" } = Astro.props;
+
+const skills = await getAllWorkSkills();
+const ids = skills.map((s) => s.data.name);
+const input: DiagramInput = {
+  skills: skills.map((s) => {
+    const stage = stageOf(s.data.name);
+    return {
+      id: s.data.name,
+      version: s.data.metadata.version,
+      bundle: s.data.metadata.bundle,
+      network: s.data.metadata.network,
+      commands: commandsOf(s),
+      stage: stage.key,
+      stageLabel: stage.label,
+      ordinal: stage.ordinal,
+      short: WORK_SKILLS[s.data.name]?.short ?? stage.short,
+      intro: WORK_SKILLS[s.data.name]?.intro ?? s.data.description,
+    };
+  }),
+  edges: familyEdges(ids),
+  tools: { id: addonIds()[0] ?? "ow-tools", version: owTools.version, byStage: TOOLS_BY_SKILL },
+  release,
+};
+const { html, script } = buildWorkDiagram(input, variant);
+---
+
+<Fragment set:html={html} />
+<script is:inline set:html={script} />

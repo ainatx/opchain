@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { BASELINE_PATH, baselinePrCommands, baselineRefreshRefusal, latestDeployment, refreshBaseline } from '../scripts/deploy.mjs';
+import { BASELINE_PATH, baselinePrCommands, baselineRefreshRefusal, latestDeployment, refreshBaseline, releasePreviewFor } from '../scripts/deploy.mjs';
 import { ancestorVerdict, deploymentRecord, resolveConfig, writeDeployCheckpoint } from '../plugins/opchain/templates/deploy.mjs';
 import { validate } from '../scripts/checkpoint.mjs';
 
@@ -192,5 +192,23 @@ describe('consumer deploy template', () => {
       expect(again.skill_state).toMatchObject({ current_env: 'production', staging_version: NEW_SHORT, production_version: NEW_SHORT });
       expect(validate(result.path, again).errors).toEqual([]);
     } finally { rmSync(root, { recursive: true, force: true }); }
+  });
+});
+
+// Release-preview denotation (owner decision 2026-10-30): the variable that
+// renders the staging ribbon and per-change tags must reach a staging build
+// and must never reach production.
+describe('releasePreviewFor', () => {
+  it('is inert when the variable is unset or blank', () => {
+    expect(releasePreviewFor({}, { staging: true })).toEqual({ value: '', error: null });
+    expect(releasePreviewFor({ PUBLIC_OPCHAIN_RELEASE_PREVIEW: '  ' }, { staging: false })).toEqual({ value: '', error: null });
+  });
+  it('passes the release through for staging', () => {
+    expect(releasePreviewFor({ PUBLIC_OPCHAIN_RELEASE_PREVIEW: '2.1' }, { staging: true })).toEqual({ value: '2.1', error: null });
+  });
+  it('refuses a production deploy while the variable is set', () => {
+    const r = releasePreviewFor({ PUBLIC_OPCHAIN_RELEASE_PREVIEW: '2.1' }, { staging: false });
+    expect(r.value).toBe('2.1');
+    expect(r.error).toMatch(/Unset it before deploying production/);
   });
 });

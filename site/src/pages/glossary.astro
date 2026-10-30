@@ -2,6 +2,8 @@
 import { REPO_NEW_ISSUE } from "../lib/repo";
 import Base from "../layouts/Base.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
+import ReleaseTag from "../components/ReleaseTag.astro";
+import type { PreviewTheme } from "../data/release-preview";
 
 interface Term {
   id: string;
@@ -9,6 +11,8 @@ interface Term {
   short: string;
   long?: string;
   related?: Array<{ label: string; href: string }>;
+  /** Marks an entry that changes in the previewed release (renders only on a preview build). */
+  preview?: PreviewTheme;
 }
 
 const terms: Term[] = [
@@ -114,6 +118,16 @@ const terms: Term[] = [
     short: "List of recommended commands the orchestrator surfaces at the end of every skill invocation.",
     long: "Read from the most recent checkpoint's next_actions array. The orchestrator merges across all open checkpoints so you see one ordered queue, not 18 separate ones.",
   },
+  {
+    // 2.1: the ow- planning family. The name is forward copy until the domain
+    // is registered; the section lives at /work.
+    id: "opchain-work",
+    term: "opchain.work",
+    short: "The planning skills for client work: nine ow- skills from the fit call to monthly care, plus the ow-tools add-on.",
+    long: "Text only, no code. They run in Claude Code and from a claude.ai upload; other hosts are untested. Six of the nine send nothing anywhere; ow-research, ow-documentation and ow-draft may use the host's own web tools or a document connector, under the host's prompts. None invents a price, gives legal advice or sends anything without your confirmation. ow-tools, the optional Claude Code add-on, runs code on your machine and says so. Versioned per skill, not in lockstep with the oc- catalog.",
+    related: [{ label: "opchain.work", href: "/work" }, { label: "ow-tools", href: "/work/ow-tools" }],
+    preview: "ow",
+  },
 ];
 ---
 
@@ -145,7 +159,7 @@ const terms: Term[] = [
     <dl class="glossary">
       {terms.map((t) => (
         <div class="entry" id={t.id}>
-          <dt>{t.term}</dt>
+          <dt>{t.term}{t.preview && <ReleaseTag theme={t.preview} />}</dt>
           <dd>
             <p class="short"><strong>{t.short}</strong></p>
             {t.long && <p class="long">{t.long}</p>}

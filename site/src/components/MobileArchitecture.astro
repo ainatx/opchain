@@ -19,6 +19,7 @@
  */
 
 import packsCatalog from "../../../src/generated/packs-catalog.json";
+import ReleaseTag from "./ReleaseTag.astro";
 
 type PackData = {
   id: string;
@@ -129,9 +130,9 @@ const packCounts = {
 
     <!-- Header -->
     <div class="ma-header">
-      <div class="ma-header-eyebrow">SKILLS · ARCHITECTURE · v2 · MOBILE · v2.0</div>
+      <div class="ma-header-eyebrow">SKILLS · ARCHITECTURE · v2 · MOBILE · v2.1</div>
       <h1>opchain skills ecosystem</h1>
-      <p class="ma-subtitle">Checkpoint-driven pipeline · 36 skills · 6 phases · 11 tri-agent · 3 audit gates · spine ordinals · v1.7 Seams &amp; Signals · <span style="color:var(--ma-docs)">v1.8 quality-gate rail</span> · <span style="color:var(--ma-assure)">v1.9 assurance rail</span> · <span style="color:var(--ma-learn)">v2.0 learning rail</span></p>
+      <p class="ma-subtitle">Checkpoint-driven pipeline · 36 skills · 6 phases · 11 tri-agent · 3 audit gates · spine ordinals · v1.7 Seams &amp; Signals · <span style="color:var(--ma-docs)">v1.8 quality-gate rail</span> · <span style="color:var(--ma-assure)">v1.9 assurance rail</span> · <span style="color:var(--ma-learn)">v2.0 learning rail</span> · client-work planning: <a href="/work" style="color:var(--ma-ember);text-decoration:underline">opchain.work</a> → <ReleaseTag theme="ow" /></p>
     </div>
 
     <!-- Diagram container -->

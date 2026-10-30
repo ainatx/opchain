@@ -4,6 +4,8 @@ import VersionBadge from "./VersionBadge.astro";
 import ThemeToggle from "./ThemeToggle.astro";
 import SearchPalette from "./SearchPalette.astro";
 import Icon from "./Icon.astro";
+import ReleaseTag from "./ReleaseTag.astro";
+import type { PreviewTheme } from "../data/release-preview";
 import { defaultFor } from "../lib/flags/build-defaults";
 
 interface Props {
@@ -14,14 +16,16 @@ interface Props {
 const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
 const dashboardEnabled = defaultFor("site.feature.dashboard") as boolean;
 const { active = "/" } = Astro.props;
-const CURRENT_RELEASE = "v2.0";
-const CURRENT_RELEASE_HREF = "/changelog#v2-0";
+const CURRENT_RELEASE = "v2.1";
+const CURRENT_RELEASE_HREF = "/changelog#v2-1";
 
 interface DropdownItem {
   href: string;
   label: string;
   blurb?: string;
   badge?: "new" | "tool" | string; // string = count chip e.g. "14"
+  /** Marks an entry that changes in the previewed release (renders only on a preview build). */
+  preview?: PreviewTheme;
 }
 interface NavGroup {
   id: "product" | "pipeline" | "resources";
@@ -42,6 +46,9 @@ const groups: NavGroup[] = [
       { href: "/coverage",     label: "Coverage",     blurb: "Every supported language, framework, and deploy target." },
       { href: "/compare",      label: "Compare",      blurb: "opchain vs Codex, Devin, Cursor, Copilot, Zed, and Claude." },
       { href: "/for-agencies", label: "For agencies", blurb: "Run opchain as a per-client delivery pipeline." },
+      // 2.1: opchain.work, the ow- planning skills for client work (forward copy
+      // until the domain is registered; the section lives at /work).
+      { href: "/work",         label: "opchain.work", blurb: "Planning skills for client work.", preview: "ow" },
       { href: "/changelog",    label: "Changelog",    blurb: "Release history.", badge: "new" },
     ],
   },
@@ -115,6 +122,7 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
                   {it.label}
                   {it.badge === "new" && <span class="pillet new">NEW</span>}
                   {it.badge === "tool" && <span class="pillet tool">TOOL</span>}
+                  {it.preview && <ReleaseTag theme={it.preview} />}
                   {typeof it.badge === "string" && it.badge !== "new" && it.badge !== "tool" && (
                     <span class="pillet count">{it.badge}</span>
                   )}
@@ -218,7 +226,7 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
             <a
               href={it.href}
               class:list={["nav-drawer-link", { active: active.startsWith(it.href) }]}
-            >{it.label}</a>
+            >{it.label}{it.preview && <ReleaseTag theme={it.preview} />}</a>
           ))}
         </>
       ))}

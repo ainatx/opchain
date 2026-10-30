@@ -1,0 +1,155 @@
+---
+/**
+ * opchain.work page shell: Base + the section's eyebrow, a horizontal
+ * secondary nav (top navigation only: no sidebar under /work, per the 2.1
+ * design rule) and the shared `.work` styles every /work page uses.
+ */
+import Base from "./Base.astro";
+import ReleaseTag from "../components/ReleaseTag.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  /** The current /work route, for the secondary nav's active state. */
+  route: string;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+}
+const { title, description, route, jsonLd } = Astro.props;
+
+const SECTION_NAV = [
+  { href: "/work", label: "overview" },
+  { href: "/work/ow-tools", label: "ow-tools" },
+  { href: "/work/install", label: "install" },
+  { href: "/work/changelog", label: "changelog" },
+];
+const isActive = (href: string) =>
+  href === "/work" ? route === "/work" || /^\/work\/ow-(?!tools$)/.test(route) : route === href;
+---
+
+<Base title={title} description={description} active="/work" jsonLd={jsonLd}>
+  <main class="work page">
+    <nav class="work-nav" aria-label="opchain.work section">
+      <a class="work-nav-brand" href="/work">opchain<span class="work-nav-dot">.</span>work <ReleaseTag theme="ow" /></a>
+      <div class="work-nav-links">
+        {SECTION_NAV.map((n) => (
+          <a href={n.href} class:list={["work-nav-link", { "is-active": isActive(n.href) }]} aria-current={isActive(n.href) ? "page" : undefined}>{n.label}</a>
+        ))}
+      </div>
+    </nav>
+    <slot />
+  </main>
+</Base>
+
+<style is:global>
+  .work.page { max-width: 880px; margin: 0 auto; padding: 1.5rem 1.5rem 6rem; }
+
+  .work .work-nav {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    padding-bottom: 0.9rem; margin-bottom: 2rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .work .work-nav-brand {
+    font-family: var(--font-display); font-weight: 600; font-size: var(--fs-md);
+    color: var(--text); text-decoration: none; letter-spacing: var(--ls-tight);
+    display: inline-flex; align-items: center; gap: 0.1em;
+  }
+  .work .work-nav-brand:hover { color: var(--accent); }
+  .work .work-nav-dot { color: var(--accent); }
+  .work .work-nav-links { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+  .work .work-nav-link {
+    font-family: var(--font-mono); font-size: var(--fs-xs); letter-spacing: var(--ls-wide);
+    color: var(--muted); text-decoration: none; padding: 0.3rem 0.6rem; border-radius: var(--r-sm);
+    border: 0.5px solid transparent;
+  }
+  .work .work-nav-link:hover { color: var(--text); border-color: var(--border); }
+  .work .work-nav-link.is-active { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+
+  .work .page-head { margin-bottom: 1.25rem; }
+  .work h1 {
+    font-family: var(--font-display); font-size: var(--fs-2xl); font-weight: 600;
+    color: var(--text); letter-spacing: var(--ls-tight); margin: 0.5rem 0 0; text-wrap: balance;
+  }
+  .work h1 .ver { vertical-align: middle; }
+  .work .lede { color: var(--muted); font-size: var(--fs-md); margin: 0.75rem 0 1.5rem; max-width: 46rem; line-height: var(--lh-base); }
+  .work .lede a, .work section p a, .work li a, .work td a { color: var(--accent); }
+  .work section { margin: 0 0 2.5rem; }
+  .work h2 {
+    font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 600; color: var(--text);
+    margin: 0 0 0.85rem; display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;
+  }
+  .work h3 { font-family: var(--font-display); font-size: var(--fs-base); font-weight: 600; color: var(--text); margin: 1rem 0 0.4rem; }
+  .work section > p, .work .note { color: var(--muted); margin: 0 0 0.75rem; line-height: var(--lh-base); max-width: 46rem; }
+  .work ul { color: var(--muted); margin: 0 0 0.75rem 1.25rem; padding: 0; line-height: var(--lh-base); }
+  .work li { margin-bottom: 0.3rem; }
+  .work code, .work .mono {
+    font-family: var(--font-mono); font-size: 0.86em; color: var(--text);
+    background: var(--card); border: 0.5px solid var(--border); padding: 0 5px; border-radius: var(--r-xs);
+  }
+  .work .ver {
+    display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 600; line-height: 1.5;
+    padding: 1px 8px; border-radius: var(--r-sm); background: var(--accent-fill); color: var(--on-accent);
+  }
+
+  /* facts strip */
+  .work .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.5rem; margin: 0 0 2rem; }
+  .work .fact { border: 0.5px solid var(--border); border-radius: var(--r-md); padding: 0.6rem 0.75rem; background: var(--surface); display: grid; gap: 0.2rem; }
+  .work .fact-k { font-family: var(--font-mono); font-size: var(--fs-xs); letter-spacing: var(--ls-widest); text-transform: uppercase; color: var(--subtle); }
+  .work .fact-v { font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text); }
+  .work .fact-note { font-size: var(--fs-xs); color: var(--muted); line-height: 1.45; }
+  .work .fact.hot { border-color: var(--accent); background: var(--accent-dim); }
+
+  /* tables */
+  .work .tw { overflow-x: auto; border: 0.5px solid var(--border); border-radius: var(--r-md); margin: 0 0 1rem; }
+  .work table { border-collapse: collapse; width: 100%; font-size: var(--fs-sm); }
+  .work th, .work td { text-align: left; padding: 0.55rem 0.75rem; border-bottom: 0.5px solid var(--border); vertical-align: top; color: var(--muted); line-height: 1.5; }
+  .work th { font-family: var(--font-mono); font-weight: 500; font-size: var(--fs-xs); letter-spacing: var(--ls-wider); text-transform: uppercase; color: var(--subtle); background: var(--surface); }
+  .work tr:last-child td { border-bottom: none; }
+  .work td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .work td strong { color: var(--text); font-weight: 600; }
+  .work td code { white-space: nowrap; }
+  .work td .paths code { white-space: normal; }
+  .work .paths { display: flex; flex-wrap: wrap; gap: 0.25rem 0.35rem; }
+
+  /* stage rail cards */
+  .work .stage { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.5rem; margin-bottom: 0.5rem; }
+  .work .st {
+    border: 0.5px solid var(--accent); background: var(--accent-dim); border-radius: var(--r-md);
+    padding: 0.65rem 0.75rem; display: grid; gap: 0.2rem; text-decoration: none; color: inherit; min-width: 0;
+  }
+  .work .st:hover { border-color: var(--accent-hover); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+  .work .st-k { font-family: var(--font-mono); font-size: var(--fs-xs); letter-spacing: var(--ls-wider); text-transform: uppercase; color: var(--accent); }
+  .work .st-id { font-family: var(--font-mono); font-size: var(--fs-sm); font-weight: 600; color: var(--text); }
+  .work .st-w { font-size: var(--fs-xs); color: var(--muted); line-height: 1.4; }
+  .work .cross { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .work .cross .st { border-color: var(--border); background: var(--surface); }
+  .work .cross .st:hover { border-color: var(--accent); }
+
+  .work .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.6rem; margin-bottom: 1rem; }
+  .work .box { border: 0.5px solid var(--border); border-radius: var(--r-md); padding: 0.75rem 0.9rem; background: var(--surface); font-size: var(--fs-sm); color: var(--muted); line-height: var(--lh-base); }
+  .work .box strong, .work .box b { color: var(--text); }
+  .work .box ul { margin: 0.35rem 0 0 1.1rem; }
+  .work pre.codeblock {
+    background: var(--card); border: 0.5px solid var(--border); border-radius: var(--r-md); padding: 0.85rem 1rem;
+    overflow-x: auto; font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--text); margin: 0 0 0.75rem; line-height: 1.55;
+  }
+  .work pre.codeblock code { background: none; border: 0; padding: 0; font-size: inherit; }
+  .work .words dt { font-weight: 600; color: var(--text); margin-top: 0.6rem; font-family: var(--font-display); }
+  .work .words dd { margin: 0.1rem 0 0; color: var(--muted); line-height: var(--lh-base); }
+  .work .back {
+    font-family: var(--font-mono); font-size: var(--fs-xs); letter-spacing: var(--ls-wide); color: var(--muted);
+    text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;
+  }
+  .work .back:hover { color: var(--accent); }
+  .work .pager { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: 2rem; padding-top: 1rem; border-top: 0.5px solid var(--border); font-size: var(--fs-sm); }
+  .work .pager a { color: var(--accent); font-family: var(--font-mono); }
+  .work .cmds { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0 0 0.75rem; }
+  .work .toc { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; margin: 0 0 1.75rem; font-family: var(--font-mono); font-size: var(--fs-xs); letter-spacing: var(--ls-wide); }
+  .work .toc a { color: var(--muted); }
+  .work .toc a:hover { color: var(--accent); }
+
+  /* The architecture diagram breaks out of the text column, like /architecture
+     which runs full width: up to 1180px, centred on the column. */
+  .work .work-wide { width: min(1180px, 100vw - 3rem); margin-left: calc(50% - min(590px, 50vw - 1.5rem)); }
+  .work .work-wide > h2, .work .work-wide > p { max-width: 880px; margin-left: auto; margin-right: auto; }
+  .work .work-arch .bands-wrap { min-width: 0; }
+</style>
