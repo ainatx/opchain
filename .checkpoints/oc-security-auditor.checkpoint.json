@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-09-14T00:38:43.799Z",
-  "updated_at": "2026-10-30T20:10:03.920Z",
+  "updated_at": "2026-10-30T20:53:35.113Z",
   "phase": "build",
   "step": "posture-main-e00f9623",
   "status": "complete",
-  "progress_summary": "Pre-deploy security posture 2026-10-30 for the 2.1 staging preview head 86094365 (PR #669, off main 91def274): PASS, tier standard, carried from the 2026-10-16 posture with a delta review. The delta is static site pages and a deploy-wrapper guard: no Worker code, response header, wrangler, dependency, workflow or .opchain/hardening.yaml change (hardening:verify replays 2 controls, 0 failed); no new route, data store, third party or data flow; the one new inline script (the /work diagram) is nonce-stamped by the existing CSP injector and embeds repo-controlled data only; fonts are the same origins. Attack surface unchanged. Residual: production stays refused while PUBLIC_OPCHAIN_RELEASE_PREVIEW is set (deploy.mjs guard, unit-tested); the 2026-10-16 M-1 note (release bump before production) still stands. /privacy and /security gain text describing the ow- skills' and ow-tools' network use; no code behind it ships from opchain.dev.",
+  "progress_summary": "Pre-deploy security posture 2026-10-30 (second cut) for staging preview head db376d8e (PR #669): PASS, tier standard, delta review on the 2026-10-16 posture. The delta is the lockstep 2.1.0 catalog bump and live-claim site copy: no Worker code, response header, wrangler, dependency, workflow or hardening change (hardening:verify 2/2); src/generated/mcp-catalog.json only carries the new version strings; no new route, data flow, third party or inline script; attack surface unchanged. Residuals as before: production refused while PUBLIC_OPCHAIN_RELEASE_PREVIEW is set and until a signed v2.1.0 tag exists.",
   "next_actions": [
     "Before the next release cut, re-run the pre-deploy posture assessment (/oc-security posture) on the release delta from c09a63e (v2.0.4, the last PASS) and bind it with: node scripts/checkpoint.mjs handoff oc-security-auditor --policy pre-deploy-security-posture-v1 --verdict PASS --scope \"<delta reviewed>\" --evidence <audit doc>",
     "While there, re-check the residuals every posture since 2.0.1 has carried forward: dev-only site dependency advisories, tag-pinned (not SHA-pinned) CI action refs, missing COOP/CORP headers, and the live headers/TLS/control-plane check that each assessment skipped because no deployment was performed (OWASP A02 PARTIAL)."
@@ -529,6 +529,26 @@
         "policy": "pre-deploy-security-posture-v1",
         "scope": "Pre-deploy posture of the 2.1 staging preview delta 91def274..86094365: static pages and a deploy guard only; no Worker, header, dependency, workflow or hardening change; hardening:verify 2/2; new inline diagram script nonce-stamped, repo data only; attack surface unchanged."
       }
+    },
+    {
+      "id": "oc-security-auditor-pre-deploy-security-posture-v1-f3c7036a787f",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-30T20:53:35.112Z",
+      "verified_at": "2026-10-30T20:53:35.112Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "pre-deploy-security-posture-v1-2026-10-30T20:53:35.112Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:f3c7036a787f4db0e8a4964cf13db7d1ee45bd16e82885cf0cdbe9568f27c798"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Pre-deploy posture of the 2.1.0 staging cut d10a7188..db376d8e: version bump and site copy only; no Worker, header, dependency, workflow or hardening change; hardening:verify 2/2; attack surface unchanged."
+      }
     }
   ],
   "latest_pre_deploy": {
@@ -538,9 +558,9 @@
     "blocking_findings": 0,
     "target": "staging from main"
   },
-  "record_updated_at": "2026-10-30T20:10:03.920Z",
+  "record_updated_at": "2026-10-30T20:53:35.113Z",
   "skill_state": {
-    "verified_for_sha": "86094365f2d29866587f663a59ca743f636081d6",
+    "verified_for_sha": "db376d8e36316a35cb5e65991ebb861eaa9c6e2f",
     "scope": "pre-deploy-delta",
     "tier": "standard"
   }

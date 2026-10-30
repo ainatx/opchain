@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-10-30T20:09:38.207Z",
+  "updated_at": "2026-10-30T20:53:34.659Z",
   "phase": "audit",
   "step": "pre-deploy-main-e00f9623",
   "status": "complete",
-  "progress_summary": "Pre-deploy audit 2026-10-30 for staging preview head 86094365 (PR #669, branch claude/2-1-staging-preview-bf05c2 off main 91def274): PASS, 0 CRITICAL / 0 HIGH / 0 MEDIUM / 1 LOW. Scope 1a+1b+1d over the branch diff: no secrets; set:html sources are repo-controlled frontmatter and edge files escaped by esc()/inlineCode(); the diagram's inline script is a plain <script> tag that inject-nonce-placeholder stamps like every other (CSP unchanged); JSON embedded in it carries no closing-tag sequence; deploy.mjs refuses production while PUBLIC_OPCHAIN_RELEASE_PREVIEW is set (unit-tested); Lighthouse /work 0.96-1.0 and /work/ow-start 1.0 on all categories; nothing generated is tracked. LOW F-001: lib/work-diagram.ts keeps the unused variant-b layout behind the variant prop (dead code, remove or document). Earlier totals in findings_by_severity are the historical full-sweep counts, not this run's.",
+  "progress_summary": "Pre-deploy audit 2026-10-30 (second cut) for staging preview head db376d8e (PR #669): PASS, 0 CRITICAL / 0 HIGH / 0 MEDIUM / 1 LOW carried (F-001 unused diagram variant-b path). Delta d10a7188..db376d8e is the lockstep 2.1.0 bump (skills frontmatter, CHANGELOG, seal, manifests, READMEs, regenerated route-spec and mcp-catalog, plugin mirror, bugcheck digests) and live-claim site flips plus the promoted changelog hero: no new set:html, no new inline script, no secrets, no Worker code or header change; hardening:verify 2/2; check-release-tag missing-tag as intended for a staging-only cut.",
   "blockers": [],
   "next_actions": [
     "Add CODEOWNERS (or required review) on .github/workflows/ and .opchain/ before relying on the evidence:pr template in consumer repos"
@@ -182,7 +182,7 @@
         "verdict": "no findings"
       }
     ],
-    "verified_for_sha": "86094365f2d29866587f663a59ca743f636081d6",
+    "verified_for_sha": "db376d8e36316a35cb5e65991ebb861eaa9c6e2f",
     "current_finding": "F-001"
   },
   "handoffs": [
@@ -674,6 +674,26 @@
         "policy": "pre-deploy-code-audit-v1",
         "scope": "Pre-deploy audit (1a security, 1b performance, 1d config) of the 2.1 staging preview diff 91def274..86094365: 0 CRITICAL, 0 HIGH, 0 MEDIUM, 1 LOW (unused diagram variant-b code path). set:html sources repo-controlled and escaped; inline diagram script nonce-stamped by the existing injector; deploy wrapper refuses production with the preview variable; Lighthouse /work 0.96-1.0, /work/ow-start 1.0."
       }
+    },
+    {
+      "id": "oc-code-auditor-pre-deploy-code-audit-v1-f3c7036a787f",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-30T20:53:34.658Z",
+      "verified_at": "2026-10-30T20:53:34.658Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-code-audit-v1-2026-10-30T20:53:34.658Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:f3c7036a787f4db0e8a4964cf13db7d1ee45bd16e82885cf0cdbe9568f27c798"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Pre-deploy audit of the 2.1.0 staging cut d10a7188..db376d8e: catalog bump, manifests, live-claim flips, changelog promotion; no new scripts, no secrets, no Worker change; 0 CRITICAL/HIGH/MEDIUM, 1 LOW carried."
+      }
     }
   ],
   "latest_pre_deploy": {
@@ -683,7 +703,7 @@
     "blocking_findings": 0,
     "target": "staging from main"
   },
-  "record_updated_at": "2026-10-30T20:09:38.207Z",
+  "record_updated_at": "2026-10-30T20:53:34.659Z",
   "recently_done": [
     {
       "at": "2026-09-21T13:40:12.755Z",
