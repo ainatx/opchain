@@ -1,0 +1,20 @@
+{
+  "id": "oc-repo-ops-pr-readiness-v1-854b5d4008d5",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-10-30T19:15:07.185Z",
+  "verified_at": "2026-10-30T19:15:07.185Z",
+  "producer": {
+    "skill": "oc-repo-ops",
+    "run_id": "pr-readiness-v1-2026-10-30T19:15:07.185Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:854b5d4008d56568667e5a5ffd23d6e41a02e1471fb754da0f8829c0bab34121"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-readiness-v1",
+    "scope": "npm test 180 files / 11425 tests green; gen-catalog, check-skill-contracts, check-release-surfaces (v2.0 + /work probes), checkpoint:validate pass; astro check clean; site build and full build via the gate; Playwright e2e green with roadmap data; Lighthouse /work and /work/ow-start >= 0.96 all categories; preview-variable build shows ribbon+tags, plain build shows none; no generated output tracked"
+  }
+}
