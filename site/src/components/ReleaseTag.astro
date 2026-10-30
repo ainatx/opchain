@@ -1,0 +1,47 @@
+---
+/**
+ * Inline "2.1 · ow" / "2.1 · oc" pill marking a surface that changes in the
+ * previewed release. Renders nothing unless the build sets
+ * PUBLIC_OPCHAIN_RELEASE_PREVIEW (see data/release-preview.ts), so the same
+ * markup is inert on main. Styling follows the `.tag` pills on /changelog:
+ * emerald (--accent) for the ow- planning family, slate blue (--secondary)
+ * for the oc- enforcement half.
+ */
+import { IS_RELEASE_PREVIEW, PREVIEW_RELEASE, type PreviewTheme } from "../data/release-preview";
+
+interface Props {
+  theme: PreviewTheme;
+  class?: string;
+}
+const { theme, class: className = "" } = Astro.props;
+const label = theme === "ow" ? "the ow- planning family" : "oc- enforcement";
+---
+{IS_RELEASE_PREVIEW && (
+  <span
+    class:list={["release-tag", `release-tag--${theme}`, className]}
+    data-release-tag={theme}
+    title={`Changes in ${PREVIEW_RELEASE}: ${label}. Preview only; nothing here has shipped.`}
+  >{PREVIEW_RELEASE} · {theme}</span>
+)}
+
+<style>
+  .release-tag {
+    display: inline-block;
+    vertical-align: 1px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: var(--ls-wider);
+    text-transform: none;
+    white-space: nowrap;
+    padding: 1px 6px;
+    margin: 0 0.3em;
+    border-radius: var(--r-pill);
+    border: 0.5px solid var(--border);
+    color: var(--muted);
+    background: var(--surface);
+  }
+  .release-tag--ow { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+  .release-tag--oc { color: var(--secondary); border-color: var(--secondary); background: var(--secondary-dim); }
+</style>
