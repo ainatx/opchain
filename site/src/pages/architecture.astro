@@ -1,6 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import MobileArchitecture from "../components/MobileArchitecture.astro";
+import ReleaseTag from "../components/ReleaseTag.astro";
 
 import packsCatalog from "../../../src/generated/packs-catalog.json";
 
@@ -147,7 +148,7 @@ const packCounts = {
       <div class="header">
         <div class="header-eyebrow">SKILLS · ARCHITECTURE · v2 · RELEASE v2.0</div>
         <h1>opchain skills ecosystem</h1>
-        <p class="subtitle">Checkpoint-driven pipeline · 36 skills · 6 phases · 11 tri-agent · 3 audit gates · spine ordinals · <span class="subtitle-packs">v1.5 pack fabric ({packCounts.total})</span> · <span class="subtitle-inst">v1.6 instrument rail</span> · <span style="color:var(--sig)">v1.7 Seams &amp; Signals</span> · <span style="color:var(--docs)">v1.8 quality-gate rail</span> · <span style="color:var(--assure)">v1.9 assurance rail</span> · <span style="color:var(--learn)">v2.0 learning rail</span></p>
+        <p class="subtitle">Checkpoint-driven pipeline · 36 skills · 6 phases · 11 tri-agent · 3 audit gates · spine ordinals · <span class="subtitle-packs">v1.5 pack fabric ({packCounts.total})</span> · <span class="subtitle-inst">v1.6 instrument rail</span> · <span style="color:var(--sig)">v1.7 Seams &amp; Signals</span> · <span style="color:var(--docs)">v1.8 quality-gate rail</span> · <span style="color:var(--assure)">v1.9 assurance rail</span> · <span style="color:var(--learn)">v2.0 learning rail</span> · <span class="subtitle-work">client-work planning: <a href="/work">opchain.work</a> → <ReleaseTag theme="ow" /></span></p>
       </div>
 
       <div class="diagram-container">
@@ -2363,6 +2364,7 @@ const packCounts = {
     letter-spacing: -0.015em; color: var(--linen);
   }
   .arch-v2 .subtitle { color: var(--sand); font-size: .75rem; margin-top: .25em; }
+  .arch-v2 .subtitle-work a { color: var(--ember); text-decoration: underline; text-underline-offset: 2px; }
 
   .arch-v2 .diagram-container {
     background: var(--forge);

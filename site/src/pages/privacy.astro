@@ -1,6 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
+import ReleaseTag from "../components/ReleaseTag.astro";
 ---
 
 <Base
@@ -96,6 +97,31 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
           consistent in the same browser. It is not used for advertising.
         </li>
       </ul>
+    </section>
+
+    <!-- 2.1: the ow- planning skills and the ow-tools add-on run on your
+         machine, not on opchain.dev. network facts from each SKILL.md's
+         frontmatter (network: none | declared); ow-tools facts from its README. -->
+    <section id="planning-skills">
+      <h2>Planning skills on your machine <ReleaseTag theme="ow" /></h2>
+      <p>
+        The <a href="/work">ow- planning skills</a> are text. Six of the nine
+        send nothing anywhere. Three are marked <code>network: declared</code>:
+        <strong>ow-research</strong> uses the host&rsquo;s own web search and
+        page opening, <strong>ow-documentation</strong> may name a test
+        environment&rsquo;s origins and a document connector, and
+        <strong>ow-draft</strong> may push exported files through a document
+        connector. Each runs under the host&rsquo;s permission prompts, and
+        each skill&rsquo;s rules file says what may leave the machine. None of
+        them sends anything to opchain.dev.
+      </p>
+      <p>
+        <strong>ow-tools</strong>, the optional Claude Code add-on, keeps audio
+        and transcripts local. Its <code>health</code> checks and
+        <code>capture</code> screenshots reach only the hosts you list; every
+        other part sends nothing. It has no telemetry and no update check.
+        The <a href="/security#ow-tools">security page</a> has the detail.
+      </p>
     </section>
 
     <section>

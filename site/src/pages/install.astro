@@ -6,6 +6,7 @@ import Button from "../components/ui/Button.astro";
 import Card from "../components/ui/Card.astro";
 import Icon from "../components/Icon.astro";
 import CaptureModal from "../components/CaptureModal.astro";
+import ReleaseTag from "../components/ReleaseTag.astro";
 import { defaultFor } from "../lib/flags/build-defaults";
 
 const installZipEnabled = defaultFor("site.feature.install-zip-download") as boolean;
@@ -431,6 +432,20 @@ git diff --stat`}</code></pre>
       <p style="margin-top: 1.5rem;">
         Want a preview first? The <a href="/demo">demo</a> walks you
         through fifteen end-to-end opchain examples.
+      </p>
+    </section>
+
+    <!-- ───────────── 2.1: client-work planning pointer ───────────── -->
+    <section class="what client-work" aria-labelledby="client-work-h">
+      <h2 id="client-work-h">Planning a client job, not building one? <ReleaseTag theme="ow" /></h2>
+      <p>
+        Nine planning skills for client work live at <a href="/work">opchain.work</a>:
+        the fit call, the Build Plan and quote, the build&rsquo;s client side,
+        acceptance, documentation, the handoff and monthly care. Text only, no
+        code; they run in Claude Code and from a claude.ai upload. The optional
+        <a href="/work/ow-tools">ow-tools</a> add-on runs code on your machine
+        and says so. They are not yet publicly distributed: see
+        <a href="/work/install">how to install them</a>.
       </p>
     </section>
 

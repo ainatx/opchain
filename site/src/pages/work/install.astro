@@ -1,0 +1,45 @@
+---
+/**
+ * /work/install — stub for release 2.1 (WEB-02, audit item 13). The ow-
+ * planning skills are not yet publicly distributed (REL-01 not started):
+ * skills-work/ is not mirrored and there are no ow- download bundles. This
+ * page says so and gives the ow-tools marketplace commands, which are public
+ * (mirror/README.md). No private-repository instruction appears here; the
+ * real page follows REL-01 (WEB-03).
+ */
+import WorkPage from "../../layouts/WorkPage.astro";
+import Eyebrow from "../../components/ui/Eyebrow.astro";
+import ReleaseTag from "../../components/ReleaseTag.astro";
+import owTools from "../../../../plugins/ow-tools/.claude-plugin/plugin.json";
+
+const installCmd = `/plugin marketplace add https://raw.githubusercontent.com/asfbay-bit/opchain-skills/main/plugins/ow-tools/.claude-plugin/marketplace.json
+/plugin install ow-tools@opchain-work-tools`;
+const description = "Installing the ow- planning skills: not yet publicly distributed. The ow-tools add-on installs today from its own Claude Code marketplace.";
+---
+
+<WorkPage title="Install · opchain.work" description={description} route="/work/install">
+  <div class="page-head">
+    <Eyebrow>opchain.work · install</Eyebrow>
+    <h1>Installing the planning skills <ReleaseTag theme="ow" /></h1>
+  </div>
+  <p class="lede">
+    The ow- planning skills are not yet publicly distributed. Their public mirror and download bundles arrive with the 2.1 release; this page is written out in full then, with one command per host.
+  </p>
+
+  <section aria-labelledby="skills-h">
+    <h2 id="skills-h">The nine skills</h2>
+    <p>Text only, no code. Each skill is a folder with a <code>SKILL.md</code>, its references and its examples. When they are published, Claude Code loads a folder dropped into <code>.claude/skills/</code>, and claude.ai takes the same folder as an upload. Until then there is nothing to download here.</p>
+  </section>
+
+  <section aria-labelledby="tools-h">
+    <h2 id="tools-h">ow-tools {owTools.version} (available now)</h2>
+    <p>The optional add-on <strong>runs code on your machine</strong> and says so. It comes from its own Claude Code marketplace, so an administrator can approve it without approving anything else:</p>
+    <pre class="codeblock" tabindex="0" role="region" aria-label="ow-tools install commands"><code>{installCmd}</code></pre>
+    <p>Then run <code>/ow-tools</code> to see what your machine still needs. ow-tools installs nothing itself. What it does, and what leaves the machine, is on the <a href="/work/ow-tools">ow-tools page</a>.</p>
+  </section>
+
+  <section aria-labelledby="oc-h">
+    <h2 id="oc-h">Building software, not planning it?</h2>
+    <p>The oc- development skills install today from the opchain plugin, the skills bundle or the hosted MCP endpoint: see <a href="/install">Install</a>.</p>
+  </section>
+</WorkPage>

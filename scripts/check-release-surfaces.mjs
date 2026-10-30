@@ -14,8 +14,8 @@
 // Run:        node scripts/check-release-surfaces.mjs
 // Exit:       0 if consistent, 1 on any mismatch.
 
-import { readFileSync, existsSync, realpathSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { readFileSync, existsSync, realpathSync, readdirSync, statSync } from "node:fs";
+import { dirname, join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { readCatalogVersion } from "./check-release-tag.mjs";
 
@@ -225,7 +225,81 @@ export function checkReleaseSurfaces({ root = ROOT } = {}) {
     }
   }
 
+  // 2.1 /work (opchain.work, the ow- planning family). The ow- catalog is
+  // versioned per skill and is in no oc- output, so the live-claim line above
+  // says nothing about it. What the section must never do is name a skill the
+  // family has not built: catalogs.json `ow.planned` legitimately holds the
+  // v2.2 skills (their planned verbs still resolve in the contract check), so
+  // the probe is not "planned is empty" but "no /work page exists for a planned
+  // id, and no planned id appears in the built /work HTML". Source is probed
+  // always; the built HTML when site/dist/work exists (CI runs Vitest before
+  // the site build, so the dist half is a local and post-build guard).
+  for (const r of checkWorkSurfaces({ root })) {
+    results.push(r);
+    if (!r.pass) errors.push(`${r.label} (${r.file}): ${r.detail}`);
+  }
+
   return { ok: errors.length === 0, expected, releaseVersion, results, errors };
+}
+
+function walk(dir, out = []) {
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name);
+    if (statSync(p).isDirectory()) walk(p, out);
+    else out.push(p);
+  }
+  return out;
+}
+
+/** The /work probes: planned ids have no page and no mention under /work. */
+export function checkWorkSurfaces({ root = ROOT } = {}) {
+  const pagesDir = join(root, "site/src/pages/work");
+  if (!existsSync(pagesDir)) return [];
+  let planned;
+  try {
+    const catalogs = JSON.parse(readFileSync(join(root, "catalogs.json"), "utf8")).catalogs;
+    planned = catalogs.find((c) => c.id === "ow")?.planned ?? [];
+  } catch (error) {
+    return [{ label: "/work planned ids", file: "catalogs.json", value: null, pass: false, detail: `unreadable (${error.message})` }];
+  }
+  // Every `file` below is a file, not a directory: tests/release-surfaces.test.js
+  // copies each named file into a scratch root to replay the probes there.
+  const out = [{ label: "/work planned ids", file: "catalogs.json", value: planned.join(", ") || "none", pass: true, detail: "" }];
+  const pageHits = planned.filter((id) => existsSync(join(pagesDir, `${id}.astro`)) || existsSync(join(root, "site/dist/work", id, "index.html")));
+  out.push({
+    label: "/work has no page for a planned ow- skill",
+    file: "site/src/pages/work/index.astro",
+    value: pageHits.length ? pageHits.join(", ") : `none of ${planned.length} planned`,
+    pass: pageHits.length === 0,
+    detail: `planned skills with a page: ${pageHits.join(", ")}`,
+  });
+  // The intro-copy map is the one hand-written source of ids under /work.
+  const dataFile = join(root, "site/src/data/work.ts");
+  const dataText = existsSync(dataFile) ? readFileSync(dataFile, "utf8") : "";
+  const dataHits = planned.filter((id) => new RegExp(`["'\`]${id}["'\`]`).test(dataText));
+  out.push({
+    label: "/work intro copy names no planned ow- skill",
+    file: "site/src/data/work.ts",
+    value: dataHits.length ? dataHits.join(", ") : "clean",
+    pass: dataHits.length === 0,
+    detail: `planned skills named: ${dataHits.join(", ")}`,
+  });
+  const dist = join(root, "site/dist/work");
+  if (existsSync(dist)) {
+    const hits = [];
+    for (const file of walk(dist).filter((f) => f.endsWith(".html"))) {
+      const text = readFileSync(file, "utf8");
+      for (const id of planned) if (new RegExp(`\\b${id}\\b`).test(text)) hits.push(`${relative(root, file)}: ${id}`);
+    }
+    out.push({
+      label: "built /work HTML names no planned ow- skill",
+      file: "site/dist/work/index.html",
+      value: hits.length ? `${hits.length} hit(s)` : "clean",
+      pass: hits.length === 0,
+      detail: hits.slice(0, 5).join("; "),
+    });
+  }
+  return out;
 }
 
 function semverAt(re) {

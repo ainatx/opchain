@@ -33,9 +33,12 @@ describe("catalogs.json", () => {
     ]);
   });
 
-  it("keeps the ow- catalog out of every oc- build output, by name", () => {
-    expect(Object.keys(byId.ow.outputs).sort()).toEqual(["docs", "flagRegistry", "mcpCatalog", "mirror", "plugin", "zip"]);
-    expect(Object.values(byId.ow.outputs).every((v) => v === null)).toBe(true);
+  it("keeps the ow- catalog out of every oc- build output, by name; its one output is the /work site section", () => {
+    expect(Object.keys(byId.ow.outputs).sort()).toEqual(["docs", "flagRegistry", "mcpCatalog", "mirror", "plugin", "site", "zip"]);
+    const { site, ...ocOutputs } = byId.ow.outputs;
+    expect(Object.values(ocOutputs).every((v) => v === null)).toBe(true);
+    expect(site).toBe("site/src/pages/work");
+    expect(existsSync(join(ROOT, site, "index.astro"))).toBe(true);
     expect(Object.values(byId.oc.outputs).every((v) => typeof v === "string")).toBe(true);
   });
 

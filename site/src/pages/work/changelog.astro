@@ -1,0 +1,54 @@
+---
+/**
+ * /work/changelog — per-skill versions for the ow- planning family, generated
+ * from each SKILL.md's frontmatter at build time, plus the ow-tools add-on's
+ * version from its plugin manifest. Each skill keeps its own CHANGELOG.md
+ * beside its SKILL.md; those link here once the family is mirrored (REL-01).
+ */
+import WorkPage from "../../layouts/WorkPage.astro";
+import Eyebrow from "../../components/ui/Eyebrow.astro";
+import ReleaseTag from "../../components/ReleaseTag.astro";
+import { getAllWorkSkills, stageOf } from "../../lib/work";
+import owTools from "../../../../plugins/ow-tools/.claude-plugin/plugin.json";
+
+const skills = await getAllWorkSkills();
+const description = `Versions of the ${skills.length} ow- planning skills and the ow-tools add-on, generated from their frontmatter at build time.`;
+---
+
+<WorkPage title="Changelog · opchain.work" description={description} route="/work/changelog">
+  <div class="page-head">
+    <Eyebrow>opchain.work · changelog</Eyebrow>
+    <h1>Versions, per skill <ReleaseTag theme="ow" /></h1>
+  </div>
+  <p class="lede">
+    The ow- skills are not versioned in lockstep: each carries its own version from 1.0.0 and its own CHANGELOG beside its <code>SKILL.md</code>. This table is generated from the skills’ frontmatter at build time. Release-level history is on the main <a href="/changelog">changelog</a>.
+  </p>
+
+  <section aria-labelledby="table-h">
+    <h2 id="table-h">Current versions</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">skill</th><th scope="col">stage</th><th scope="col">bundle</th><th scope="col">network</th><th scope="col" class="num">version</th></tr></thead>
+        <tbody>
+          {skills.map((k) => (
+            <tr>
+              <td><a href={`/work/${k.data.name}`}><code>{k.data.name}</code></a></td>
+              <td>{stageOf(k.data.name).label}</td>
+              <td>{k.data.metadata.bundle}</td>
+              <td>{k.data.metadata.network === "declared" ? <strong>declared</strong> : k.data.metadata.network}</td>
+              <td class="num"><span class="ver">{k.data.metadata.version}</span></td>
+            </tr>
+          ))}
+          <tr>
+            <td><a href="/work/ow-tools"><code>ow-tools</code></a> <span class="fact-note">Claude Code add-on</span></td>
+            <td>any</td>
+            <td>plugin</td>
+            <td>health and capture only</td>
+            <td class="num"><span class="ver">{owTools.version}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Once the family is mirrored to the public repository, each row links its <code>CHANGELOG.md</code>.</p>
+  </section>
+</WorkPage>

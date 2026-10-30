@@ -43,6 +43,8 @@
  */
 import Base from "../layouts/Base.astro";
 import RoadmapForm from "../components/RoadmapForm.astro";
+import ReleaseTag from "../components/ReleaseTag.astro";
+import type { PreviewTheme } from "../data/release-preview";
 import { loadRoadmap, itemsForMilestoneNumber } from "../data/roadmap-types";
 
 const roadmap = loadRoadmap();
@@ -104,7 +106,7 @@ const v18Skills = [
 // renamed "later: …" on GitHub and milestone 4's issues move to v2.2
 // (track-s-site-surfaces.md, decision D2). v2.0 is NOT listed here: it
 // shipped (#v2-0, Just Released).
-type PlannedItem = { id?: string; title: string; blurb: string };
+type PlannedItem = { id?: string; title: string; blurb: string; preview?: PreviewTheme };
 type PlannedGroup = {
   version: string;
   id: string;
@@ -156,6 +158,13 @@ const plannedReleaseGroups: PlannedGroup[] = [
         title: "Focused execution, visible progress",
         blurb:
           "The unshipped session-clock work, scoped against current main: wall-clock actuals and visible checkpoint progress.",
+      },
+      {
+        // Owner decision Q1 (2026-10-29): the deferred ow- skills are named as 2.2.
+        title: "The rest of the ow- planning family",
+        blurb:
+          "Vendor evaluation, a standing control register with framework packs, and a currency watch, each at its own version, following the nine skills that ship in 2.1.",
+        preview: "ow",
       },
     ],
   },
@@ -1223,14 +1232,18 @@ const plannedReleaseGroups: PlannedGroup[] = [
           <div class="card-body-inner">
             <div class="tag-row"><span class="tag tag--info">direction set</span><span class="tag">client-work planning</span><span class="tag">enforcement</span><span class="tag tag--warn">router: experimental preview</span></div>
             <h3>The ow- planning family, for client work</h3>
-            <p>Five text-only skills that follow a client job from the first call to the handoff, each at its own version from 1.0.0, plus one optional add-on. They never invent a price, give legal advice or send anything for you.</p>
+            <p>Nine skills, text only and no code, that follow a client job from the first call to the handoff and the care after it, each at its own version from 1.0.0, plus one optional add-on. Three of them use the host&rsquo;s own web tools or a document connector, with its prompts on. They never invent a price, give legal advice or send anything without your confirmation. <ReleaseTag theme="ow" /></p>
             <ul class="horizon-list">
               <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-start</span><p class="horizon-blurb">The 20-minute fit call: a one-page call guide before it, and a client recap with one recommended path after it, written from the transcript or your notes.</p></div></li>
               <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-build-plan</span><p class="horizon-blurb">The Build Plan and the fixed quote: a one-page offer, a process map, scope with acceptance checks, and a quote added up only from your own price book.</p></div></li>
               <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-build</span><p class="horizon-blurb">The client side of the build: a written update each week, a demo at each milestone, changes priced before they start, and payments.</p></div></li>
               <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-uat</span><p class="horizon-blurb">The acceptance test: the client&rsquo;s people try the build against what was agreed, in-scope problems are fixed, and the client signs off.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-documentation <ReleaseTag theme="ow" /></span><p class="horizon-blurb">The bought documentation and training line after sign-off: manuals, runbooks and sessions, exported through a connector after you confirm each file.</p></div></li>
               <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-handoff</span><p class="horizon-blurb">The handoff: documents, code and accounts in the client&rsquo;s name, the fix window, and the builder&rsquo;s access taken back out.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-tools (Claude Code add-on)</span><p class="horizon-blurb">Optional code that runs on your machine and says so: local transcription, PDF and Word export, a reminder of open work at session start, and a secrets scan that never prints a match. The skills do their job without it.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-care <ReleaseTag theme="ow" /></span><p class="horizon-blurb">Monthly care after a handoff, or after a takeover of someone else&rsquo;s build: what was checked, what changed, what it cost.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-research <span class="tag">cross-stage</span> <ReleaseTag theme="ow" /></span><p class="horizon-blurb">Research from sources it opened itself, through the host&rsquo;s own web tools, with every claim traced to a page it read.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-draft <span class="tag">cross-stage</span> <ReleaseTag theme="ow" /></span><p class="horizon-blurb">Drafts from evidence, exported and delivered after you confirm each file.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-tools (Claude Code add-on) <ReleaseTag theme="ow" /></span><p class="horizon-blurb">Optional code that runs on your machine and says so: local transcription, PDF, Word, PowerPoint and Excel export, screenshots of a test environment, read-only health checks, digests, date and hours arithmetic, a redacted secrets scan, and the open-work list at session start. Health checks and screenshots use the network, only for what you list; audio never leaves the machine. The skills do their job without it.</p></div></li>
             </ul>
             <h3>Enforcement at chokepoints</h3>
             <p>A skill file can describe a handoff; only a check outside it can make the handoff hold. 2.1 puts that check where the work goes through (the commit, the push, the pull request, the deploy) and says which handoffs have none yet.</p>
@@ -1239,14 +1252,16 @@ const plannedReleaseGroups: PlannedGroup[] = [
               <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Bypasses leave a record</span><p class="horizon-blurb">A commit with no PASS receipt, <code>--no-verify</code> included, is recorded, and a push refuses it until the commit carries an <code>Opchain-Bypass:</code> trailer saying who approved it and why.</p></div></li>
               <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Enrollment you can check</span><p class="horizon-blurb"><code>/oc-enroll --doctor</code> reports whether the gate will run in a repository; <code>--ci</code> adds a pull-request workflow that re-runs the checks; <code>--claude-md</code> writes the repository&rsquo;s verbs into <code>CLAUDE.md</code>.</p></div></li>
               <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">An enforcement map</span><p class="horizon-blurb">The shared orchestrator names the chokepoint and the mechanism for each handoff that must hold, and marks the ones nothing holds yet.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Deploy and release guards</span><p class="horizon-blurb">A deploy wrapper template that deploys staging only from the exact <code>main</code> and production only when asked, and a session-start reminder when a release merged without its tag.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Deploy and release guards</span><p class="horizon-blurb">A deploy wrapper template that deploys staging only from the exact <code>main</code> and production only when asked, and a session-start reminder when a release merged without its tag. A breaking change for existing wrapper installs: production now requires <code>--prod</code>, and no environment variable selects it. <ReleaseTag theme="oc" /></p></div></li>
               <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Top navigation only</span><p class="horizon-blurb">The design skills fail a sidebar used as primary navigation unless the owner approved that one screen in writing.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title"><code>/oc-merge &lt;pr&gt;</code> <ReleaseTag theme="oc" /></span><p class="horizon-blurb">Merge a reviewed pull request, pinned to its head commit.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Evidence stored per branch <ReleaseTag theme="oc" /></span><p class="horizon-blurb">Pull-request evidence lives in each branch&rsquo;s own file, so sibling pull requests stop conflicting.</p></div></li>
             </ul>
             <h3>Experimental preview</h3>
             <ul class="horizon-list">
               <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Skill router <span class="tag tag--warn">experimental preview</span></span><p class="horizon-blurb">An opt-in hook that asks TypeSafe&rsquo;s Jev model which opchain skill owns a request. It is off unless you set <code>TYPESAFE_API_KEY</code>; with a key it sends the redacted prompt and a short repository summary to <code>api.typesafe.ai</code> and only logs its answer on your machine. Showing the suggestion in your session (live mode) stays unsupported until a recorded go/no-go says otherwise.</p></div></li>
             </ul>
-            <div class="planned-box">Direction set by the maintainer on 2026-10-16. This card is the plan, not the release notes; the notes will list what the release contains. Installs anywhere and the open-source split moved to 2.2 (see Planned).</div>
+            <div class="planned-box">Direction set by the maintainer on 2026-10-16. This card is the plan, not the release notes; the notes will list what the release contains. Installs anywhere and the open-source split moved to 2.2, and the rest of the ow- family (vendor evaluation, a standing control register with framework packs, a currency watch) follows in 2.2 (see Planned). <ReleaseTag theme="ow" /></div>
           </div>
         </div>
       </article>
@@ -1284,7 +1299,7 @@ const plannedReleaseGroups: PlannedGroup[] = [
                   {group.items.map((h) => (
                     <li class="horizon-item">
                       <div class="horizon-meta">
-                        <span class="horizon-title">{h.title}</span>
+                        <span class="horizon-title">{h.title}{h.preview && <ReleaseTag theme={h.preview} />}</span>
                         <p class="horizon-blurb">{h.blurb}</p>
                       </div>
                       {group.votable && h.id && (
