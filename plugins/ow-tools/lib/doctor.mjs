@@ -7,6 +7,7 @@ import { join } from "node:path";
 import { CALENDARS } from "./calc.mjs";
 import {
   DIARIZATION_MODEL,
+  DIARIZATION_REVISION,
   KEYCHAIN_SERVICE,
   PY_PROJECT,
   VERSION,
@@ -19,8 +20,8 @@ import {
   modelPath,
   run,
   semverAtLeast,
-  sha256File,
   venvDir,
+  verifyWhisperModel,
   which,
 } from "./core.mjs";
 import { browserCandidates, findBrowser } from "./capture.mjs";
@@ -75,7 +76,7 @@ export function fetchCommand(env = process.env, os = platform()) {
     `HF_HOME=${q(hfHome(env))}`,
     "HF_HUB_DISABLE_TELEMETRY=1",
     `UV_PROJECT_ENVIRONMENT=${q(venvDir(env))}`,
-    `uv run --frozen --project ${q(PY_PROJECT)} python ${q(join(PY_PROJECT, "diarize.py"))} --fetch`,
+    `uv run --frozen --project ${q(PY_PROJECT)} python ${q(join(PY_PROJECT, "diarize.py"))} --fetch --revision ${DIARIZATION_REVISION}`,
   ].join(" ");
 }
 
@@ -92,11 +93,15 @@ export function checks({ verifyModel = true, env = process.env } = {}) {
 
   const m = WHISPER_MODELS["large-v3-turbo"];
   const mp = modelPath("large-v3-turbo", env);
-  let modelOk = isFile(mp) && statSync(mp).size === m.bytes;
-  let modelDetail = modelOk ? "present" : "not found";
-  if (modelOk && verifyModel) {
-    modelOk = sha256File(mp) === m.sha256;
-    modelDetail = modelOk ? "present, SHA-256 matches" : "present but SHA-256 does not match; download it again";
+  // --quick skips the hash (size only); a transcription run always verifies
+  // (verifyWhisperModel, SA-004), so --quick never lets a wrong file run.
+  let modelOk;
+  let modelDetail;
+  if (verifyModel) {
+    ({ ok: modelOk, detail: modelDetail } = verifyWhisperModel("large-v3-turbo", env));
+  } else {
+    modelOk = isFile(mp) && statSync(mp).size === m.bytes;
+    modelDetail = modelOk ? "present (size only; --quick)" : "not found";
   }
   add("whisper-model", ["transcribe"], modelOk, `${m.file}: ${modelDetail}`,
     `mkdir -p ${q(join(dataHome(env), "models"))} && curl -fL -o ${q(mp)} ${WHISPER_MODEL_URL(m.file)}   # ~1.6 GB, not gated`);
@@ -121,7 +126,7 @@ export function checks({ verifyModel = true, env = process.env } = {}) {
           : "3. mkdir -p ~/.config/ow-tools && (umask 077; cat > ~/.config/ow-tools/hf-token)   # paste, then Ctrl-D",
       ].join("\n"));
   }
-  add("speaker-model", ["transcribe"], cached, cached ? `${DIARIZATION_MODEL} cached; runs offline` : "not fetched",
+  add("speaker-model", ["transcribe"], cached, cached ? `${DIARIZATION_MODEL} @ ${DIARIZATION_REVISION.slice(0, 12)} cached; runs offline` : `not fetched at the pinned revision ${DIARIZATION_REVISION.slice(0, 12)}`,
     `${fetchCommand(env)}   # one time; afterwards the token can be deleted`);
 
   const pd = which("pandoc", env) && versionOf("pandoc", ["--version"], /pandoc (\S+)/);

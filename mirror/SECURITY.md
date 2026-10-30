@@ -25,3 +25,19 @@ Good-faith research is welcome. Avoid privacy violations, data destruction, and 
 - The plugin hooks (`plugins/opchain/hooks/*.cjs`) — they run with user permissions on contributor machines. They are designed to be zero-dependency, egress-free, and fail-closed; anything that breaks those properties is a serious report.
 - Prompt-injection vectors in skill content that could cause an agent to take unintended actions.
 - The MCP server (`mcp/`, hosted at `opchain.dev/mcp`).
+
+## Checking an ow-tools copy
+
+`plugins/ow-tools/` runs code on your machine. Its `SECURITY-MANIFEST.md` lists
+every shipped file with its SHA-256, but it travels in the same tree it
+describes, so compare it with the copy of its hash that opchain.dev publishes
+(built from the source repository and deployed by hand, never from this mirror):
+
+```bash
+curl -sS https://opchain.dev/work/ow-tools-security-manifest.sha256
+shasum -a 256 plugins/ow-tools/SECURITY-MANIFEST.md
+```
+
+The two hashes match when this mirror holds the manifest opchain.dev was built
+from. Then `shasum -a 256 -c` each row of the manifest against the files in the
+plugin folder you installed. A mismatch is a report, through either channel above.

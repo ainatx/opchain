@@ -34,7 +34,7 @@ describe("ow-tools doctor", SPAWN, () => {
     }
     expect(byId["whisper-cli"].fix).toMatch(/whisper-cpp/);
     expect(byId["python-env"].fix).toMatch(/uv sync --frozen/);
-    expect(byId["speaker-model"].fix).toMatch(/diarize\.py" --fetch/);
+    expect(byId["speaker-model"].fix).toMatch(/diarize\.py" --fetch --revision [0-9a-f]{40}\s+#/); // SA-004: one pinned revision
     expect(existsSync(called)).toBe(false);
   });
 

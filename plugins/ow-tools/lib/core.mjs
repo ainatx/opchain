@@ -2,7 +2,7 @@
 // Node built-ins only: the plugin ships no package.json, so Claude Code never
 // runs an npm install for it.
 import { spawnSync } from "node:child_process";
-import { accessSync, constants, readFileSync, statSync } from "node:fs";
+import { accessSync, constants, readFileSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { delimiter, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -56,14 +56,55 @@ export const WHISPER_MODELS = {
 };
 export const WHISPER_MODEL_URL = (file) => `https://huggingface.co/ggerganov/whisper.cpp/resolve/main/${file}`;
 export const DIARIZATION_MODEL = "pyannote/speaker-diarization-community-1";
+// The exact Hugging Face revision the fetch downloads and the run loads
+// (posture SA-004): a commit of the model repository, not a moving branch.
+// Change it on purpose, with the fetch re-run; `doctor` reports any other
+// cached snapshot as not fetched.
+export const DIARIZATION_REVISION = "3533c8cf8e369892e6b79ff1bf80f7b0286a54ee"; // 2025-09-29
 export const KEYCHAIN_SERVICE = "ow-tools-huggingface";
 
 export const modelPath = (name, env) => join(dataHome(env), "models", WHISPER_MODELS[name].file);
 export const hfHome = (env) => join(dataHome(env), "hf");
 export const lockHash = () => sha256File(join(PY_PROJECT, "uv.lock")).slice(0, 12);
 export const venvDir = (env) => join(dataHome(env), `venv-${lockHash()}`);
-export const diarizationCached = (env) =>
-  isDir(join(hfHome(env), "hub", `models--${DIARIZATION_MODEL.replace("/", "--")}`, "snapshots"));
+export const diarizationSnapshot = (env) =>
+  join(hfHome(env), "hub", `models--${DIARIZATION_MODEL.replace("/", "--")}`, "snapshots", DIARIZATION_REVISION);
+export const diarizationCached = (env) => isDir(diarizationSnapshot(env));
+
+// Whisper model integrity at run time (posture SA-004). The pinned SHA-256 is
+// checked before every transcription, not only by `doctor`. Hashing 1.6 GB on
+// each run is a few seconds, so the last full verification is remembered in a
+// sidecar beside the model (`<file>.verified`: size, mtime, inode and the
+// hash it matched); a model whose size, mtime or inode differs from the
+// sidecar is hashed again in full. Returns { ok, detail }.
+export function verifyWhisperModel(name, env = process.env) {
+  const m = WHISPER_MODELS[name];
+  const mp = modelPath(name, env);
+  let st;
+  try {
+    st = statSync(mp);
+  } catch {
+    return { ok: false, detail: "not found" };
+  }
+  if (!st.isFile() || st.size !== m.bytes) return { ok: false, detail: st.isFile() ? `present but ${st.size} bytes, expected ${m.bytes}; download it again` : "not a file" };
+  const sidecar = `${mp}.verified`;
+  try {
+    const seen = JSON.parse(readFileSync(sidecar, "utf8"));
+    if (seen.size === st.size && seen.mtimeMs === st.mtimeMs && seen.ino === st.ino && seen.sha256 === m.sha256) {
+      return { ok: true, detail: "present, SHA-256 verified" };
+    }
+  } catch {
+    /* no sidecar, or an unreadable one: hash in full */
+  }
+  const sha = sha256File(mp);
+  if (sha !== m.sha256) return { ok: false, detail: "present but SHA-256 does not match; download it again" };
+  try {
+    writeFileSync(sidecar, JSON.stringify({ size: st.size, mtimeMs: st.mtimeMs, ino: st.ino, sha256: sha }), { mode: 0o600 });
+  } catch {
+    /* the check passed; remembering it is a convenience */
+  }
+  return { ok: true, detail: "present, SHA-256 matches" };
+}
 
 export function isFile(p) {
   try {

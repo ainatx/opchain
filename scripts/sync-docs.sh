@@ -28,3 +28,9 @@ for d in "$SRC"/*/; do
 done
 cp "$ROOT/LICENSE" "$ROOT/NOTICE" "$DEST/"
 echo "Synced skill docs to $DEST"
+
+# The ow- catalog's docs tree (REL-01): public/docs/work/, written by its own
+# script with its own catalog gate. Chained here rather than as an npm script,
+# because the root package.json is bundled into five oc- skills' runtime and
+# every new script there changes tracked skill files.
+OPCHAIN_WORK_DOCS_DIR="${OPCHAIN_WORK_DOCS_DIR:-$DEST/work}" bash "$ROOT/scripts/sync-work-docs.sh"

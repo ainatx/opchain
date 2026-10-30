@@ -67,6 +67,50 @@ Open a new agent session afterward and run `/oc-update check` to verify the
 installed package. Learning remains off until explicitly enabled; provider access
 and an external reviewer must be configured separately.
 
+### ow- planning skills (client work: the fit call to the care month)
+
+The nine `ow-` skills under [`skills-work/`](./skills-work/) plan and run client
+work: `ow-start`, `ow-build-plan`, `ow-build`, `ow-uat`, `ow-documentation`,
+`ow-handoff`, `ow-draft`, `ow-research` and `ow-care`. They are text only, work on
+any host, carry their own versions (the table in
+[`skills-work/README.md`](./skills-work/README.md)) and share one protocol,
+[`skills-work/ow-protocol.md`](./skills-work/ow-protocol.md), which every skill
+also carries at `references/ow-protocol.md`. They are not in the `opchain`
+plugin or in `opchain-skills.zip`.
+
+**Claude Code.** From this repository, copy the skills you want into the project
+you work in (a client workspace, never this repository):
+
+```bash
+git clone --depth 1 https://github.com/asfbay-bit/opchain-skills.git
+cp -R opchain-skills/skills-work/ow-start opchain-skills/skills-work/ow-build-plan .claude/skills/
+```
+
+Or take every skill from the zip (per-skill zips are at
+`https://opchain.dev/work/<id>.zip`):
+
+```bash
+curl -L https://opchain.dev/opchain-work-skills.zip -o opchain-work-skills.zip
+unzip opchain-work-skills.zip -d .claude/skills/
+```
+
+**Claude.ai / Claude Desktop.** Upload a per-skill zip (`https://opchain.dev/work/<id>.zip`)
+through your host's skill upload flow. Each zip is the complete skill folder.
+
+**Verify.** Each installed skill is a folder `.claude/skills/<id>/` holding
+`SKILL.md`, `references/ow-protocol.md` (identical to `skills-work/ow-protocol.md`)
+and `skill.edges.yaml`:
+
+```bash
+ls .claude/skills/ow-start/SKILL.md .claude/skills/ow-start/references/ow-protocol.md
+grep -m1 '^  version:' .claude/skills/ow-start/SKILL.md
+```
+
+Then start a new Claude Code session and run `/ow-start`. ow-start's first screen
+asks for the client folder; the skill's version is on its header line. The same
+check runs at every opchain.dev build from an empty folder
+(`scripts/check-work-install.mjs` in the source repository).
+
 ### ow-tools (Claude Code add-on for the ow- planning skills)
 
 `plugins/ow-tools/` **runs code on your machine**: local call transcription with
@@ -81,6 +125,14 @@ an administrator can approve it without approving anything else here:
 
 Then run `/ow-tools` to see what your machine still needs. ow-tools installs
 nothing itself. See [plugins/ow-tools/README.md](./plugins/ow-tools/README.md).
+
+The marketplace entry follows this repository's `main` until the first release
+that ships ow-tools; from then on it names that release's tag (`ref: v<semver>`),
+which this repository carries as a tag of its own, so an ow-tools update is a
+new release, never a mirror sync. [`SECURITY-MANIFEST.md`](./plugins/ow-tools/SECURITY-MANIFEST.md)
+lists every file with its SHA-256; its own hash is published apart from this
+repository at `https://opchain.dev/work/ow-tools-security-manifest.sha256`
+(see [SECURITY.md](./SECURITY.md)).
 
 ---
 

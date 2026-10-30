@@ -1,0 +1,24 @@
+{
+  "id": "oc-repo-ops-pr-readiness-v1-82c41e335836",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-10-30T21:03:57.624Z",
+  "verified_at": "2026-10-30T21:03:57.624Z",
+  "producer": {
+    "skill": "oc-repo-ops",
+    "run_id": "pr-readiness-v1-2026-10-30T21:03:57.624Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:82c41e3358365505ad0b7109551c02141650ee9f0ac33d01421ba3a68758deb6"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-readiness-v1",
+    "scope": "REL-01: catalogs.json outputs match the new scripts; no generated drift (sync-bundles, plugin skills, manifest, mcp catalog clean after full build); public/ stays gitignored; no new npm script; tests cover zips, docs, mirror, install check",
+    "evidence": [
+      "catalogs.json",
+      "tests/work-distribution.test.js"
+    ]
+  }
+}

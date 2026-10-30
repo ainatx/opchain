@@ -92,3 +92,10 @@ for dir in "$SKILLS"/*/; do
   )
   echo "Wrote $out"
 done
+
+# The ow- catalog's zips (REL-01): public/opchain-work-skills.zip and
+# public/work/<id>.zip, built by their own script behind their own catalog
+# gate (gen-catalog + check-skill-contracts must pass for the tree). Chained
+# here rather than as an npm script: the root package.json is bundled into
+# five oc- skills' runtime, so a new script there changes tracked skill files.
+OPCHAIN_PUBLIC_DIR="$PUBLIC" bash "$ROOT/scripts/make-work-skills-zip.sh"

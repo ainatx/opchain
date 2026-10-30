@@ -1,12 +1,13 @@
 """ow-tools speaker separation: a 16 kHz mono WAV in, speaker turns JSON out.
 
 Two modes:
-  diarize.py --fetch                 one-time setup, run by the user: downloads the
-                                     model into HF_HOME using HF_TOKEN from the
-                                     environment. Never prints the token.
-  diarize.py WAV OUT [--speakers N]  a transcription run: offline only. Refuses to
-                                     start unless HF_HUB_OFFLINE=1, and drops any
-                                     token from its own environment first.
+  diarize.py --fetch --revision SHA  one-time setup, run by the user: downloads that
+                                     revision of the model into HF_HOME using HF_TOKEN
+                                     from the environment. Never prints the token.
+  diarize.py WAV OUT --revision SHA  a transcription run: offline only, the pinned
+                                     revision only. Refuses to start unless
+                                     HF_HUB_OFFLINE=1, and drops any token from its
+                                     own environment first.
 
 All the merge logic lives in ow-tools' Node code (lib/merge.mjs), where it is
 tested without the model. This file only loads the pipeline and writes turns.
@@ -48,7 +49,7 @@ def turns(annotation):
     return out
 
 
-def fetch(model):
+def fetch(model, revision):
     token = os.environ.get("HF_TOKEN")
     if not token:
         fail(
@@ -58,8 +59,8 @@ def fetch(model):
         )
     from pyannote.audio import Pipeline
 
-    Pipeline.from_pretrained(model, token=token)
-    print(f"fetched {model} into {os.environ.get('HF_HOME', 'the default Hugging Face cache')}")
+    Pipeline.from_pretrained(model, revision=revision, token=token)
+    print(f"fetched {model} @ {revision} into {os.environ.get('HF_HOME', 'the default Hugging Face cache')}")
 
 
 def run(args):
@@ -73,7 +74,9 @@ def run(args):
 
     started = time.monotonic()
     try:
-        pipeline = Pipeline.from_pretrained(args.model)
+        # The pinned revision only (ow-tools passes it): offline, a snapshot
+        # of any other revision is "not available", never a silent substitute.
+        pipeline = Pipeline.from_pretrained(args.model, revision=args.revision)
     except Exception as exc:  # noqa: BLE001 - surface one line, never a traceback with paths
         fail(f"model not available offline ({type(exc).__name__}); run the one-time fetch from ow-tools doctor", 3)
     if pipeline is None:
@@ -109,11 +112,12 @@ def main():
     p.add_argument("out", nargs="?")
     p.add_argument("--fetch", action="store_true")
     p.add_argument("--model", default=DEFAULT_MODEL)
+    p.add_argument("--revision", required=True, help="the model repository commit to fetch or load (ow-tools pins it)")
     p.add_argument("--speakers", type=int)
     p.add_argument("--device", choices=["cpu", "mps"], default="cpu")
     args = p.parse_args()
     if args.fetch:
-        fetch(args.model)
+        fetch(args.model, args.revision)
     elif args.wav and args.out:
         run(args)
     else:
