@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-10-16T19:35:38.382Z",
+  "updated_at": "2026-10-30T20:09:38.207Z",
   "phase": "audit",
   "step": "pre-deploy-main-e00f9623",
   "status": "complete",
-  "progress_summary": "Pre-deploy audit 2026-10-16 for main e00f9623 (#610 merged), staging deploy: PASS, 0 CRITICAL / 0 HIGH / 1 MEDIUM / 3 LOW, carried from the full delta audit of 97cba5d (pre-deploy-staging-preview-97cba5d); the only non-checkpoint change since is sprints/release-2.1/ow-family-sprint-plan.md (#606, not built or deployed). M-1 (unreleased skills/ content still labelled 2.0.4) blocks a production promotion without a version bump.",
+  "progress_summary": "Pre-deploy audit 2026-10-30 for staging preview head 86094365 (PR #669, branch claude/2-1-staging-preview-bf05c2 off main 91def274): PASS, 0 CRITICAL / 0 HIGH / 0 MEDIUM / 1 LOW. Scope 1a+1b+1d over the branch diff: no secrets; set:html sources are repo-controlled frontmatter and edge files escaped by esc()/inlineCode(); the diagram's inline script is a plain <script> tag that inject-nonce-placeholder stamps like every other (CSP unchanged); JSON embedded in it carries no closing-tag sequence; deploy.mjs refuses production while PUBLIC_OPCHAIN_RELEASE_PREVIEW is set (unit-tested); Lighthouse /work 0.96-1.0 and /work/ow-start 1.0 on all categories; nothing generated is tracked. LOW F-001: lib/work-diagram.ts keeps the unused variant-b layout behind the variant prop (dead code, remove or document). Earlier totals in findings_by_severity are the historical full-sweep counts, not this run's.",
   "blockers": [],
   "next_actions": [
     "Add CODEOWNERS (or required review) on .github/workflows/ and .opchain/ before relying on the evidence:pr template in consumer repos"
@@ -78,7 +78,7 @@
     }
   ],
   "skill_state": {
-    "mode": "diff",
+    "mode": "pre-deploy",
     "scope": "PR 592 diff: site/package.json and site/package-lock.json (isomorphic-dompurify 4.2.0 to 4.4.0, marked 18.0.13 to 18.0.14, restored npm 10 optional-peer lock entries)",
     "loop_state": "closed",
     "findings_total": "39",
@@ -93,7 +93,7 @@
     "fixes_applied": 9,
     "fixes_verified": "37",
     "fixes_rejected": "0",
-    "grade": "C+ (release-surface honesty); repo-wide OSS/portability loop still open",
+    "grade": "A",
     "verified_tree": "7c59d269ca269bc10035b0bbd706697df230b920",
     "note": "loop_state stays 'open': this round fixed the changeset's own defects, but the pre-existing 157-finding portability audit (14 critical / 41 high, 2 fixed) has never been closed. Marking this checkpoint 'complete' would repeat exactly the defect the overhaul's P3 exists to prevent.",
     "last_audit": {
@@ -182,7 +182,8 @@
         "verdict": "no findings"
       }
     ],
-    "verified_for_sha": "e00f962357353e91b54e6874f6b2ac51508bcc45"
+    "verified_for_sha": "86094365f2d29866587f663a59ca743f636081d6",
+    "current_finding": "F-001"
   },
   "handoffs": [
     {
@@ -653,6 +654,26 @@
           "npm audit --omit=dev (root and site): 0 vulnerabilities"
         ]
       }
+    },
+    {
+      "id": "oc-code-auditor-pre-deploy-code-audit-v1-854b5d4008d5",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-30T20:09:38.206Z",
+      "verified_at": "2026-10-30T20:09:38.206Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-code-audit-v1-2026-10-30T20:09:38.206Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:854b5d4008d56568667e5a5ffd23d6e41a02e1471fb754da0f8829c0bab34121"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Pre-deploy audit (1a security, 1b performance, 1d config) of the 2.1 staging preview diff 91def274..86094365: 0 CRITICAL, 0 HIGH, 0 MEDIUM, 1 LOW (unused diagram variant-b code path). set:html sources repo-controlled and escaped; inline diagram script nonce-stamped by the existing injector; deploy wrapper refuses production with the preview variable; Lighthouse /work 0.96-1.0, /work/ow-start 1.0."
+      }
     }
   ],
   "latest_pre_deploy": {
@@ -662,7 +683,7 @@
     "blocking_findings": 0,
     "target": "staging from main"
   },
-  "record_updated_at": "2026-10-16T19:35:38.382Z",
+  "record_updated_at": "2026-10-30T20:09:38.207Z",
   "recently_done": [
     {
       "at": "2026-09-21T13:40:12.755Z",

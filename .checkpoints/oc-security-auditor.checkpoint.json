@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-09-14T00:38:43.799Z",
-  "updated_at": "2026-10-16T19:35:38.491Z",
+  "updated_at": "2026-10-30T20:10:03.920Z",
   "phase": "build",
   "step": "posture-main-e00f9623",
   "status": "complete",
-  "progress_summary": "Pre-deploy security posture 2026-10-16 for main e00f9623 (#610 merged), staging deploy: PASS, carried from posture-staging-preview-97cba5d; the only change since is a planning doc that is not deployed. Before production: resolve the code audit's M-1 (unreleased skills/ content labelled 2.0.4) with a release bump; residuals carried forward unchanged.",
+  "progress_summary": "Pre-deploy security posture 2026-10-30 for the 2.1 staging preview head 86094365 (PR #669, off main 91def274): PASS, tier standard, carried from the 2026-10-16 posture with a delta review. The delta is static site pages and a deploy-wrapper guard: no Worker code, response header, wrangler, dependency, workflow or .opchain/hardening.yaml change (hardening:verify replays 2 controls, 0 failed); no new route, data store, third party or data flow; the one new inline script (the /work diagram) is nonce-stamped by the existing CSP injector and embeds repo-controlled data only; fonts are the same origins. Attack surface unchanged. Residual: production stays refused while PUBLIC_OPCHAIN_RELEASE_PREVIEW is set (deploy.mjs guard, unit-tested); the 2026-10-16 M-1 note (release bump before production) still stands. /privacy and /security gain text describing the ow- skills' and ow-tools' network use; no code behind it ships from opchain.dev.",
   "next_actions": [
     "Before the next release cut, re-run the pre-deploy posture assessment (/oc-security posture) on the release delta from c09a63e (v2.0.4, the last PASS) and bind it with: node scripts/checkpoint.mjs handoff oc-security-auditor --policy pre-deploy-security-posture-v1 --verdict PASS --scope \"<delta reviewed>\" --evidence <audit doc>",
     "While there, re-check the residuals every posture since 2.0.1 has carried forward: dev-only site dependency advisories, tag-pinned (not SHA-pinned) CI action refs, missing COOP/CORP headers, and the live headers/TLS/control-plane check that each assessment skipped because no deployment was performed (OWASP A02 PARTIAL)."
@@ -509,6 +509,26 @@
           "residuals carried forward: dev-only site advisories, tag-pinned CI action refs, missing COOP/CORP"
         ]
       }
+    },
+    {
+      "id": "oc-security-auditor-pre-deploy-security-posture-v1-854b5d4008d5",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-30T20:10:03.919Z",
+      "verified_at": "2026-10-30T20:10:03.919Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "pre-deploy-security-posture-v1-2026-10-30T20:10:03.919Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:854b5d4008d56568667e5a5ffd23d6e41a02e1471fb754da0f8829c0bab34121"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Pre-deploy posture of the 2.1 staging preview delta 91def274..86094365: static pages and a deploy guard only; no Worker, header, dependency, workflow or hardening change; hardening:verify 2/2; new inline diagram script nonce-stamped, repo data only; attack surface unchanged."
+      }
     }
   ],
   "latest_pre_deploy": {
@@ -518,8 +538,10 @@
     "blocking_findings": 0,
     "target": "staging from main"
   },
-  "record_updated_at": "2026-10-16T19:35:38.491Z",
+  "record_updated_at": "2026-10-30T20:10:03.920Z",
   "skill_state": {
-    "verified_for_sha": "e00f962357353e91b54e6874f6b2ac51508bcc45"
+    "verified_for_sha": "86094365f2d29866587f663a59ca743f636081d6",
+    "scope": "pre-deploy-delta",
+    "tier": "standard"
   }
 }
