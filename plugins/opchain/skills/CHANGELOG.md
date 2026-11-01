@@ -11,32 +11,63 @@ contract another skill depends on → called out as **BREAKING**. The on-disk
 checkpoint `protocol_version` is tracked separately (see
 `oc-checkpoint-protocol/SKILL.md`).
 
-## [2.1.0] — 2026-10-30 — "The ow- planning family + enforcement at chokepoints"
+## [2.1.0] — 2026-11-20 — "Client work and enforcement"
 
-Two themes in one release: the ow- planning family for client work, and a
-check at each place the dev pipeline's work goes through. The skill router
-stays an experimental preview. Staging preview cut on 2026-10-30 from the
-`claude/2-1-staging-preview-bf05c2` branch; the tag follows the release-cut
-sitting.
+Two themes, one release, one tag. The ow- planning family for client work
+ships as a second catalog with its own versions, zips and docs, and the oc-
+dev pipeline gains a check at each place its work goes through: the commit,
+the push, the pull request, the deploy and the release. The skill router
+stays an experimental preview in shadow mode. The oc- catalog moves to 2.1.0
+in lockstep; the ow- versions below are what the `v2.1.0` tag resolves to
+(`docs/governance/RELEASING.md` §2a).
+
+_[REL-02 record, owner: the real-model acceptance run per ow- skill and the
+three real jobs (ow-start, ow-build-plan, ow-draft) run before the tag; this
+line states what was run and its result.]_
 
 ### Added
 
-- **The ow- planning family (opchain.work), nine skills at their own versions.**
-  ow-start 1.2.0, ow-build-plan 1.3.0, ow-build 1.0.0, ow-uat 1.0.2,
-  ow-documentation 1.0.1, ow-handoff 1.0.1, ow-care 1.0.0, ow-research 1.0.2,
-  ow-draft 1.0.0 (`skills-work/`, per-skill versions, not lockstep). Text only,
-  no code; `network: none` for six, `network: declared` for ow-research,
-  ow-documentation and ow-draft (they may use the host's own web tools or a
-  document connector under the host's prompts). The catalog ships apart from
-  the oc- outputs: its own zips (`opchain-work-skills.zip`, `/work/<id>.zip`),
-  its own docs tree (`/docs/work`), the public mirror's `skills-work/`, and
-  the `/work` site section (REL-01). The ow-tools 1.3.1 Claude Code add-on
-  (`plugins/ow-tools/`, own marketplace `opchain-work-tools`, pinned to this
-  release's tag) runs code on the user's machine and says so: transcription,
-  export, calc, digest, health, capture, scan-secrets, session start, doctor;
-  only health and capture use the network, for what the user lists; the
-  speaker model loads at one pinned revision and the Whisper model's SHA-256
-  is checked before every transcription.
+- **The ow- planning family (opchain.work): nine text-only skills at their own
+  versions.** ow-start 1.2.0, ow-build-plan 1.3.0, ow-build 1.0.0, ow-uat 1.0.2,
+  ow-documentation 1.0.1, ow-handoff 1.0.1, ow-research 1.0.2, ow-draft 1.0.0,
+  ow-care 1.0.0 (`skills-work/`, Agent Skills frontmatter, per-skill versions,
+  not lockstep, one `CHANGELOG.md` each, protocol `ow-protocol.md` v1,
+  reciprocal `skill.edges.yaml`). Text only, no code: `network: none` for six,
+  `network: declared` for ow-research, ow-documentation and ow-draft, which
+  may use the host's own web tools or a document connector under the host's
+  prompts. None invents a price, gives legal advice or sends anything without
+  the user's confirmation. Validated by `gen-catalog` and
+  `check-skill-contracts` (`catalogs.json`, family edge checks); kept out of
+  the dev plugin, the flag registry, `opchain-skills.zip` and the hosted MCP
+  catalog on purpose. Not in this release (owner, 2026-10-19 and 2026-10-22,
+  moved to v2.2): ow-vendor-eval, ow-controls with its four framework packs
+  and the `ow-packs` plugin, and ow-currency.
+- **ow-tools 1.3.1, the ow- family's Claude Code add-on.** `plugins/ow-tools/`,
+  with its own marketplace manifest (`opchain-work-tools`), never listed in the
+  opchain marketplace. It runs code on the user's machine and says so: local
+  transcription with speaker separation, PDF, Word, PowerPoint and Excel
+  export, test-environment screenshots (`capture`), read-only health checks
+  (`health`), a redacted secrets scan of committed history (`scan-secrets`),
+  digests, date arithmetic with the US federal contract calendar, hours
+  arithmetic, a session-start list of open ow- workstreams, and `doctor`. Only
+  `health` and `capture` use the network, for the hosts the user lists; audio
+  never leaves the machine. Posture SA-004: the speaker model loads at one
+  pinned Hugging Face revision (`diarize.py --revision` is required) and the
+  Whisper model's SHA-256 is checked before every run, with a `.verified`
+  sidecar.
+- **ow- distribution and integrity (REL-01, #670).** The ow- catalog ships
+  through its own outputs: `public/opchain-work-skills.zip` and
+  `public/work/<id>.zip` (`make-work-skills-zip.sh`), the docs tree
+  `public/docs/work` (`sync-work-docs.sh`), and the `/work` site section. Both
+  scripts refuse to write until `gen-catalog` and `check-skill-contracts` pass
+  for the exact tree, and `check-work-install.mjs` installs the built zips
+  into an empty folder at the end of `build-site.sh` and compares every file
+  with `skills-work/`. `skills-work/` is mirrored whole to the public mirror,
+  and `mirror-public.yml` now pushes every `v*` tag there. Posture SA-001:
+  from this release, `plugins/ow-tools/.claude-plugin/marketplace.json`
+  `source.ref` pins the release tag (`v2.1.0`; `tests/ow-tools/plugin-shape.test.js`
+  enforces it), and the manifest's own hash is published out of band at
+  `/work/ow-tools-security-manifest.sha256`. One tag covers both catalogs.
 
 - **J5 in the Worker, J8 in `/oc-docs pr` (plan §6, 2026-10-29).** With
   `platform.security.feedback-triage` on (default off) and the
@@ -195,12 +226,18 @@ sitting.
   suggestions sat at 0.43 and 0.52), and the line it injects carries the
   chosen step's description. Task notifications, CI events and other sessions'
   messages neither route nor end the measured window of the prompt before them. Unset the key or set `OPCHAIN_ROUTE=0` to turn it off. It has an offline
-  eval (574 labelled past prompts) and a first shadow-period read (2026-10-23:
-  hand-labelled precision 0.71 against a 0.8 bar); whether it changes skill use
-  is not yet measured. `OPCHAIN_ROUTE_MODE=live`, which injects the
-  suggestion, is **unsupported** until the shadow-period go/no-go
-  (`docs/runbooks/skill-router-eval.md` §6) records a GO; `OPCHAIN_ROUTE_AB=1`
-  then shows it to half the sessions so the effect can be measured.
+  eval (574 labelled past prompts: precision 1.000, recall 0.805, silent
+  1.000 on `+route4`). The shadow-period go/no-go is **NO-GO so far**: the
+  day-8 re-run of 2026-10-26 (`docs/audits/2026-10-26-jev-day8-and-route4.md`)
+  failed on volume and unlabelled suggestions, not on precision, so the shipped
+  default stays shadow and whether the router changes skill use is not yet
+  measured. _[EN-02 verdict, owner: the re-run with the owner's labels records
+  GO or NO-GO with its three numbers (precision —, recall —, silent rate — on
+  — suggestions) before the tag; until then this line is the recorded
+  verdict.]_ `OPCHAIN_ROUTE_MODE=live`, which injects the suggestion, is
+  **unsupported** until that go/no-go (`docs/runbooks/skill-router-eval.md`
+  §6) records a GO; `OPCHAIN_ROUTE_AB=1` then shows it to half the sessions so
+  the effect can be measured.
 
 ### Fixed
 

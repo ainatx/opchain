@@ -99,7 +99,7 @@ opchain/
 │   ├── (astro dist copied in)
 │   ├── opchain-skills.zip  # Generated from skills/ by scripts/make-skills-zip.sh
 │   └── docs/               # Synced from skills/ by scripts/sync-docs.sh
-├── skills/                 # Skill source definitions (the product) — 33 skills,
+├── skills/                 # Skill source definitions (the product) — 36 skills,
 │   │                       # one subdir per id (each with SKILL.md). Full list +
 │   │                       # phases: skills/README.md. A few examples:
 │   ├── oc-app-architect/
@@ -115,15 +115,19 @@ opchain/
 │   ├── orchestrator.md     # Shared orchestration rules
 │   ├── CHANGELOG.md        # Lockstep skill-catalog release log
 │   └── README.md           # Installation instructions + full skill/phase table
-├── skills-work/            # The ow- catalog (v2.1.0 planning family, nine skills: ow-start, ow-build-plan,
-│   │                       # ow-build, ow-uat, ow-documentation, ow-handoff, ow-draft, ow-research, ow-care).
-│   │                       # Text-only, own protocol (ow-protocol.md), per-skill versions; one release tag
-│   │                       # (v<lockstep>) covers both catalogs (docs/governance/RELEASING.md §2a).
-│   │                       # Ships through its OWN outputs (REL-01): public/opchain-work-skills.zip +
-│   │                       # public/work/<id>.zip (make-work-skills-zip.sh), public/docs/work (sync-work-docs.sh),
-│   │                       # and the public mirror; both scripts (chained from sync-docs/make-zip, no new npm script) refuse until
-│   │                       # gen-catalog + check-skill-contracts pass; build-site.sh runs check-work-install.mjs on public/. Still in NO oc-
-│   │                       # output (dev plugin, opchain-skills.zip, flags, MCP catalog). skills-work/README.md.
+├── skills-work/            # The ow- catalog (shipped in v2.1.0: nine skills, ow-start, ow-build-plan,
+│   │                       # ow-build, ow-uat, ow-documentation, ow-handoff, ow-draft, ow-research, ow-care;
+│   │                       # ow-vendor-eval, ow-controls, ow-currency moved to v2.2). Text-only, own protocol
+│   │                       # (ow-protocol.md), per-skill versions; one release tag (v<lockstep>) covers both
+│   │                       # catalogs and the skills/CHANGELOG.md release entry lists every ow- version
+│   │                       # (docs/governance/RELEASING.md §2a). In the build output through its OWN outputs
+│   │                       # (REL-01): public/opchain-work-skills.zip + public/work/<id>.zip (make-work-skills-zip.sh),
+│   │                       # public/docs/work (sync-work-docs.sh), the /work site section (site/src/pages/work, read
+│   │                       # through the `work` content collection) and the public mirror; both scripts (chained from
+│   │                       # sync-docs/make-zip, no new npm script) refuse until gen-catalog + check-skill-contracts
+│   │                       # pass; build-site.sh runs check-work-install.mjs on public/. Still in NO oc- output (dev
+│   │                       # plugin, opchain-skills.zip, flags, MCP catalog). ow-tools' marketplace ref pins the
+│   │                       # release tag from v2.1.0 on (SA-001). skills-work/README.md.
 ├── catalogs.json           # The skill catalogs (oc- in skills/, ow- in skills-work/) that
 │                           # gen-skills-catalog and check-skill-contracts iterate
 ├── scripts/                # ~20 scripts; a few examples (full list: `ls scripts/`)

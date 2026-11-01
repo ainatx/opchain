@@ -1,6 +1,6 @@
 # opchain
 
-> **Opchain 2.1.0.** Released October 30, 2026. The ow- planning family for client work (nine skills at their own versions, the ow-tools add-on) and enforcement at chokepoints: a commit gate that says why, bypass records, evidence stored per branch, `/oc-merge`, deploy and release guards. See the [changelog](https://opchain.dev/changelog#v2-1) and the [2.0.0 release record](docs/releases/2.0-production-release.md).
+> **Opchain 2.1.0.** Released November 20, 2026: "Client work and enforcement". The ow- planning family for client work (nine skills at their own versions, the ow-tools add-on) and enforcement at chokepoints: a commit gate that says why, bypass records, evidence stored per branch, `/oc-merge`, deploy and release guards. See the [changelog](https://opchain.dev/changelog#v2-1) and the [2.0.0 release record](docs/releases/2.0-production-release.md).
 
 > skills that ship.
 

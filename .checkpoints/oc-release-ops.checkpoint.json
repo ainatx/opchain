@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-10-30T20:29:16Z",
+  "updated_at": "2026-11-01T07:04:32Z",
   "skill": "oc-release-ops",
   "phase": "plan",
-  "step": "v2.1.0-coordination",
+  "step": "v2.1.0-plan-approved",
   "status": "in_progress",
-  "progress_summary": "v2.1.0 coordination scan 2026-10-29: session local_8959641b is the owner-designated master coordinator; other 2.1 sessions told to stop. On main: all nine in-scope ow- skills (ow-start 1.2.0, ow-build-plan 1.3.0, ow-build 1.0.0, ow-uat 1.0.2, ow-documentation 1.0.1, ow-handoff 1.0.1, ow-research 1.0.2, ow-draft 1.0.0, ow-care 1.0.0 via #668 on 2026-10-30), ow-tools 1.3.0 (1.3.1 in the REL-01 PR), Track E product half (#608), Jev plan §2-§6 (#658-#663); #665 auto-merging. Left: REL-01 (PR open 2026-10-30), REL-02 (reduced today), WEB-01 rebase (#620) and WEB-02-05, EN-01 record, EN-02 re-run (day 8 NO-GO 2026-10-26), EN-03, the cut. Time: 89.5h active since 2026-09-27; remaining about 70-75h Claude by plan after the Track S audit (43.5h of it site work), owner 15-20h; ready-to-tag about 2026-11-20 at the recent pace. Detail in skill_state.current_release.",
+  "progress_summary": "v2.1.0 plan approved 2026-11-01 (owner rulings via coordinator local_8959641b): semver 2.1.0 (minor), theme \"Client work and enforcement\", planned date 2026-11-20 (coordinator estimate; owner confirms at the push gate). Release PR prepared as a HELD DRAFT on claude/release-2-1-0-1cd617; stays a draft until REL-02 passes; merge, signed tag, staging and production in one sitting from the owner's laptop. In the PR: #669 (ow- site half, staging-verified at d30a6b97) and #620 (Track E site half, main merged in, never rebased); [Unreleased] -> [2.1.0] with the ow- family entry; lockstep 2.0.4 -> 2.1.0 (36 SKILL.md, seal gen 1, server.json, marketplace x2, plugin.json, ow-tools ref v2.1.0); Minor-column surfaces flipped; router-label e2e narrowed. Owner still owes in skills/CHANGELOG.md: the EN-02 verdict's three numbers (NO-GO so far) and the REL-02 record line. Detail in skill_state.current_release.",
   "progress_table": [
     {
       "id": "scope",
@@ -81,26 +81,20 @@
   "blockers": [],
   "next_actions": [
     {
-      "text": "DONE 2026-10-30: ow-care 1.0.0 merged as #668 (main 91def274), with ow-start 1.2.0, ow-build-plan 1.3.0, ow-handoff 1.0.1 (OW-07).",
-      "done_when": "ow-care 1.0.0 merged on main",
-      "status": "done"
+      "text": "Open the v2.1.0 release PR as a DRAFT (release: v2.1.0 — Client work and enforcement) from claude/release-2-1-0-1cd617 after the owner's go-ahead; hold it until REL-02 passes.",
+      "done_when": "draft PR open with green CI; checkpoint phase bump-applied with its number"
     },
     {
-      "text": "Track S scope-drift audit (session track-s-scope-review), then rebase #620 and build WEB-02..05 on the held branch.",
-      "done_when": "docs/audits/2026-10-29-track-s-scope-drift.md exists and #620 is rebased green"
+      "text": "REL-02 (owner + Claude): real-model acceptance run per ow- skill, real jobs for ow-start, ow-build-plan, ow-draft; record what ran in the [2.1.0] REL-02 line of skills/CHANGELOG.md.",
+      "done_when": "REL-02 line in skills/CHANGELOG.md states what was run and its result"
     },
     {
-      "text": "EN-02: owner labels the 9 unlabelled suggestions; re-run day 8 when suggestions reach 30 (about 2026-10-30); record the verdict for the router changelog line.",
-      "done_when": "go/no-go verdict recorded with its three numbers"
+      "text": "EN-02 (owner): label the suggestions, re-run day 8, replace the EN-02 placeholder in skills/CHANGELOG.md [2.1.0] Experimental with the verdict and its three numbers; ROUTER_LABEL in site/src/data/router-status.ts changes only on a GO.",
+      "done_when": "no _[EN-02 …]_ placeholder left in skills/CHANGELOG.md"
     },
     {
-      "text": "REL-01 distribution and integrity for nine skills + ow-tools: PR open (ow- zips + docs + mirror + clean-folder install check + tag policy + SA-001 policy/out-of-band hash + SA-004 pins, ow-tools 1.3.1); merge it, then the cut flips marketplace.json ref to v2.1.0.",
-      "done_when": "clean-folder install passes; zips refuse on a failed catalog check",
-      "status": "in_progress"
-    },
-    {
-      "text": "REL-02 real use (acceptance run per skill, real jobs for ow-start, ow-build-plan, ow-draft), then /oc-release plan for 2.1.0 with the owner naming the combined theme; one changelog entry, router under Experimental.",
-      "done_when": "plan-approved checkpoint written for 2.1.0"
+      "text": "Owner confirms or moves the planned date (2026-11-20) in the [2.1.0] heading, the #v2-1 hero-ver and the three README leading lines; mark the PR ready; merge; /oc-git-release 2.1.0 (signed tag); npm run gen-roadmap && npm run deploy:staging; eyeball; npm run deploy; baseline PR. One sitting.",
+      "done_when": "check-release-tag exits 0 and /api/health on opchain.dev reports the release SHA"
     },
     {
       "text": "Flush the deferred Linear release tickets with /oc-release announce --retry-pm once the Linear connector is authorized.",
@@ -132,12 +126,12 @@
   "skill_state": {
     "current_release": {
       "semver": "2.1.0",
-      "theme": null,
+      "theme": "Client work and enforcement",
       "themes": [
         "the ow- skill family (planning layer)",
         "enforcement at chokepoints + the Jev skill router (experimental preview)"
       ],
-      "phase": "coordination",
+      "phase": "plan-approved",
       "started_at": "2026-10-16",
       "shipped_at": null,
       "plan": "sprints/release-2.1/ow-family-sprint-plan.md (approved 2026-10-14; Track E amendment approved 2026-10-16)",
@@ -148,7 +142,11 @@
         "2026-10-29 (owner): ow-care 1.0.0 is salvaged from the Codex draft PR #652 into a fresh branch off main (family checks + one evaluation round), not rebuilt from the OW-07 contract.",
         "2026-10-29 (owner): REL-02 real use before the tag = a real-model acceptance run per skill plus real jobs for ow-start, ow-build-plan and ow-draft only; the changelog states what was run.",
         "2026-10-29 (owner): #665 merges with --auto; the J5 Worker path stays off until the TYPESAFE_API_KEY secret and platform.security.feedback-triage flag are set, which is not a 2.1 requirement.",
-        "2026-10-30 (owner, REL-01): the ow- catalog gets its own zips (public/opchain-work-skills.zip, public/work/<id>.zip) and docs tree (public/docs/work); skills-work/ is mirrored whole; SA-001 = pin ow-tools' marketplace ref to the release tag at the cut (mirror-public.yml pushes v* tags to the mirror), manifest hash published out of band now; SA-004 = pyannote revision pin + Whisper run-time hash, ow-tools 1.3.1."
+        "2026-10-30 (owner, REL-01): the ow- catalog gets its own zips (public/opchain-work-skills.zip, public/work/<id>.zip) and docs tree (public/docs/work); skills-work/ is mirrored whole; SA-001 = pin ow-tools' marketplace ref to the release tag at the cut (mirror-public.yml pushes v* tags to the mirror), manifest hash published out of band now; SA-004 = pyannote revision pin + Whisper run-time hash, ow-tools 1.3.1.",
+        "2026-11-01 (owner, via the coordinator): REL-02 (real-model acceptance run per ow- skill + real jobs for ow-start, ow-build-plan, ow-draft) runs in FULL before the tag; the release PR is prepared now and held as a draft.",
+        "2026-11-01 (owner, via the coordinator): site scope for the cut = PR #669 (ow- half, verified on staging at d30a6b97, clean vs main) + PR #620 (Track E half) refreshed onto main by merging main in, never rebased; the remaining Track S audit items go to 2.1.x.",
+        "2026-11-01 (owner, via the coordinator): theme name \"Client work and enforcement\"; semver 2.1.0 (minor, semver-decisions rule 4: new skills + new verbs).",
+        "2026-11-01 (session): planned ship date in the heading, hero-ver and READMEs is 2026-11-20 (the coordinator's ready-to-tag estimate); a one-line sed moves it if the owner picks another day before the tag."
       ],
       "coordinator_session": "local_8959641b-079e-4663-a666-29fe18675011",
       "scope": {
@@ -177,7 +175,7 @@
           "item": "distribution and integrity (ow- zips, docs tree, mirror, clean-folder install, tag policy, SA-001 policy + out-of-band hash, SA-004 pins) — in progress, PR open 2026-10-30",
           "claude_h": "4-5",
           "owner_h": "2",
-          "status": "in_progress"
+          "status": "done (#670, 2026-10-30)"
         },
         {
           "id": "REL-02",
@@ -207,7 +205,8 @@
           "id": "CUT",
           "item": "/oc-release plan, draft, bump, announce, verify; release PR; signed tag; staging; prod; baseline PR",
           "claude_h": "3-4",
-          "owner_h": "2-3"
+          "owner_h": "2-3",
+          "status": "in_progress: release PR prepared as a held draft 2026-11-01; tag/staging/prod after REL-02"
         }
       ],
       "time_so_far": {
@@ -234,7 +233,21 @@
           "sha": "91def274",
           "item": "OW-07: ow-care 1.0.0 (salvaged from #652), ow-start 1.2.0, ow-build-plan 1.3.0, ow-handoff 1.0.1",
           "merged": "2026-10-30"
+        },
+        {
+          "pr": 670,
+          "sha": "98cb8906",
+          "item": "REL-01: ow- catalog distribution and integrity; ow-tools 1.3.1 model pins",
+          "merged": "2026-10-30"
         }
+      ],
+      "planned_date": "2026-11-20",
+      "release_branch": "claude/release-2-1-0-1cd617",
+      "headline_items": [
+        "The ow- planning family (opchain.work): nine text-only skills at their own versions + ow-tools 1.3.1, shipped through their own zips, docs tree, mirror and /work section (REL-01 #670)",
+        "Enforcement at chokepoints: enforcement map, tool-named handoffs, bypass records + pre-push refusal, /oc-merge, per-branch evidence store, consumer deploy wrapper (BREAKING: --prod)",
+        "Experimental: skill router in shadow mode, NO-GO so far; Jev uses J2/J5/J8 eval-only, J5 Worker triage flag-gated off",
+        "Site: /work section (#669) + Track E site half (#620) on opchain.dev"
       ]
     },
     "prior_release": {
@@ -272,9 +285,11 @@
       }
     },
     "catalog": {
-      "version": "2.0.4",
+      "version": "2.1.0",
       "skills": 36,
-      "previous_skills": 36
+      "previous_skills": 36,
+      "ow_skills": 9,
+      "ow_tools": "1.3.1"
     },
     "pre_merge": {
       "verdict": "PASS (10/11)",
@@ -286,16 +301,16 @@
     },
     "release_seal": {
       "schema_version": 1,
-      "catalog_version": "2.0.4",
+      "catalog_version": "2.1.0",
       "generation": 1,
-      "verified_for_sha": "fa03a1e"
+      "verified_for_sha": "pending (release PR head)"
     },
     "release_pr": {
-      "status": "pending"
+      "status": "draft being prepared on claude/release-2-1-0-1cd617 (2026-11-01)"
     },
     "tag": {
-      "name": "v2.0.4",
-      "status": "pending — owner signs after the release PR merges"
+      "name": "v2.1.0",
+      "status": "pending — owner signs after REL-02 passes and the release PR merges, same sitting as staging + production"
     },
     "publisher": {
       "status": "pending"
@@ -395,7 +410,7 @@
       "prod_health": "d4f926b"
     }
   },
-  "record_updated_at": "2026-10-30T20:29:16Z",
+  "record_updated_at": "2026-11-01T07:04:32Z",
   "pm_deferred_actions": [
     {
       "id": "deferred-2026-09-21T19:53:16Z-7f2f",

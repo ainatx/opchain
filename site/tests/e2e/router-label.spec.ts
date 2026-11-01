@@ -60,11 +60,15 @@ test.describe("skill router: experimental-preview label", () => {
       expect(await visibleLabels.count(), `${path}: no visible router label`).toBeGreaterThan(0);
 
       // Router copy outside a labelled block: any text in <main> or the
-      // enforcement map that names the router's key, endpoint or name. A
+      // enforcement map that names the router's key, mode variable or name. A
       // same-page jump link (a table of contents) is navigation, not copy; a
       // text that carries "experimental preview" itself is labelled in place.
+      // The endpoint (api.typesafe.ai) is not a router phrase: /privacy also
+      // names it in the J5 feedback-triage bullet (#665), which is Worker-side
+      // copy and must not carry the router label (Track S audit row 49). The
+      // endpoint is held by the #router presence test below instead.
       const unlabelled = await page.evaluate(() => {
-        const ROUTER_TEXT = /TYPESAFE_API_KEY|api\.typesafe\.ai|skill router|Jev rail/i;
+        const ROUTER_TEXT = /TYPESAFE_API_KEY|OPCHAIN_ROUTE|skill router|Jev rail/i;
         const roots = Array.from(document.querySelectorAll("main, #enforcement-map"));
         const out: string[] = [];
         for (const root of roots) {

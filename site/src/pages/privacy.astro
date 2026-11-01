@@ -25,7 +25,7 @@ import { ROUTER_LIVE_MODE } from "../data/router-status";
         changes this policy, so set this date to the 2.1.0 release day. */}
     <p class="updated">Last updated: September 2, 2026</p>
 
-    <section>
+    <section id="collect">
       <h2>What we collect</h2>
       <ul>
         <li>
@@ -94,6 +94,9 @@ import { ROUTER_LIVE_MODE } from "../data/router-status";
           (<code>api.typesafe.ai</code>), after credential-shaped text is
           redacted, to check whether it is really a security report. If it
           is, it is filed privately in Linear instead of being published.
+          This is the Worker's own check; the optional <a href="#router">skill
+          router</a> below sends to the same service from your machine, and
+          only if you turn it on.
         </li>
         <li>
           <strong>Visitor identifier.</strong> The <code>oc_id</code> cookie
@@ -146,7 +149,9 @@ import { ROUTER_LIVE_MODE } from "../data/router-status";
         commit hooks and session hooks keep their records in your clone; what
         they keep, and the session-start check against GitHub, are listed on
         the <a href="/security#plugin">security page</a>. One optional hook
-        sends data to a third party, and only if you turn it on:
+        sends data to a third party, and only if you turn it on (the same
+        service the <a href="#collect">roadmap-request triage</a> above uses
+        from the Worker, under opchain's key rather than yours):
       </p>
       <div class="router" id="router" data-router-copy>
         <h3>Skill router <RouterLabel /></h3>
