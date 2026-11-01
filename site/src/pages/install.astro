@@ -434,7 +434,7 @@ codex`;
         <ul class="upg-list">
           <li><strong>Re-run <code class="ic">/oc-enroll</code>.</strong> 2.1 adds the post-commit bypass record and the pre-push refusal beside the pre-commit gate; <code class="ic">/oc-enroll --ci --force</code> refreshes the runtime and brings the per-branch evidence store.</li>
           <li><strong>Breaking: the deploy wrapper needs <code class="ic">--prod</code>.</strong> Point <code class="ic">npm run deploy</code> at <code class="ic">node scripts/deploy.mjs --prod</code> and <code class="ic">deploy:staging</code> at <code class="ic">--staging</code>, drop any <code class="ic">*_PROD_GO</code> variable, and pass <code class="ic">--allow-unknown-live</code> once. No environment variable selects production any more.</li>
-          <li><strong>The skill router is off without a key.</strong> It stays an experimental preview; nothing changes unless you set <code class="ic">TYPESAFE_API_KEY</code>.</li>
+          <li data-router-copy><strong>The skill router is off without a key.</strong> It stays an experimental preview <RouterLabel />; nothing changes unless you set <code class="ic">TYPESAFE_API_KEY</code>.</li>
           <li><strong>Same update path.</strong> The updater still replaces the complete skill folders and runtime files, backs up replaced files, and preserves checkpoints, telemetry consent and unrelated skills. Plugin installations use the plugin manager.</li>
         </ul>
         <pre class="codeblock" tabindex="0" role="region" aria-label="Upgrade to 2.0 commands"><code>{upgrade20Cmd}</code></pre>
