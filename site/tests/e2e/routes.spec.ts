@@ -116,6 +116,21 @@ const ROUTES: RouteSpec[] = [
     ],
   },
   { path: "/privacy",    h1: /privacy/i,    disabledRules: [COLOR_CONTRAST_DISABLE] },
+  // WEB-01 (2.1 held branch): the router label and the Track E terms land on
+  // both pages, so they join the Axe pass.
+  {
+    path: "/glossary",
+    h1: /definitions/i,
+    disabledRules: [
+      COLOR_CONTRAST_DISABLE,
+      {
+        id: "link-in-text-block",
+        reason:
+          "the 'see also' links and the footnote link sit inside prose with no underline at rest; same CSS sweep as /changelog and /security",
+      },
+    ],
+  },
+  { path: "/for-agencies", h1: /delivery pipeline you run per client/i, disabledRules: [COLOR_CONTRAST_DISABLE] },
   { path: "/styleguide", h1: /styleguide/i, disabledRules: [COLOR_CONTRAST_DISABLE] },
   { path: "/pipeline-builder", h1: /design your opchain stack/i, disabledRules: [COLOR_CONTRAST_DISABLE] },
   {
