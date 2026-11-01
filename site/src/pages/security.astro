@@ -7,6 +7,8 @@ import Icon from "../components/Icon.astro";
 
 // Single-sourced from the served file — the page can no longer drift from it.
 import securityTxt from "../../public/.well-known/security.txt?raw";
+import ReleaseTag from "../components/ReleaseTag.astro";
+import owTools from "../../../plugins/ow-tools/.claude-plugin/plugin.json";
 ---
 
 <Base
@@ -174,6 +176,56 @@ import securityTxt from "../../public/.well-known/security.txt?raw";
           </div>
         </div>
       </Card>
+    </section>
+
+    <!-- 2.1: the ow-tools add-on (plugins/ow-tools) runs code on the user's
+         machine. Facts from its README and SECURITY-MANIFEST at the version
+         read from its plugin manifest. Dependency pinning is NOT claimed. -->
+    <section class="block" id="ow-tools" aria-labelledby="ow-tools-h">
+      <h2 id="ow-tools-h"><Icon name="terminal" /> ow-tools runs code on your machine <ReleaseTag theme="ow" /></h2>
+      <p>
+        <a href="/work/ow-tools">ow-tools</a> {owTools.version} is the one code
+        add-on for the <a href="/work">ow- planning skills</a>, which are
+        themselves text only. It is a Claude Code plugin from its own
+        marketplace, <code>opchain-work-tools</code>, so an administrator can
+        approve it without approving anything else, and its
+        <code>SECURITY-MANIFEST.md</code> lists every file it ships and every
+        program it runs. It installs nothing itself: <code>/ow-tools</code>
+        prints what your machine still needs.
+      </p>
+      <ul>
+        <li>
+          <strong>Two verbs use the network, only for what you list.</strong>
+          <code>health</code> reaches OSV, the npm registry, each listed
+          domain&rsquo;s RDAP server, a TLS handshake and an HTTP GET against
+          the hosts in your <code>health.yaml</code>; <code>--no-network</code>
+          sends nothing at all. <code>capture</code> drives your own Chrome to
+          the origins a screenshot plan lists and blocks every other request.
+          Every other verb sends nothing.
+        </li>
+        <li>
+          <strong>Audio and transcripts stay on your machine.</strong> The
+          speaker model runs with its offline switches on and no token in its
+          environment.
+        </li>
+        <li>
+          <strong>The secrets scan prints redacted matches only.</strong>
+          <code>scan-secrets</code> reports a path, a commit, a line and a rule
+          id, never the matched text, and reads the committed history through a
+          private copy that is removed when the scan ends.
+        </li>
+        <li>No telemetry, no update check. Exports leave out anything marked internal.</li>
+      </ul>
+      <p>
+        Pinned: the speaker model&rsquo;s revision and the Whisper model&rsquo;s
+        SHA-256 (checked before every transcription), and, from the first
+        release that ships it, the marketplace entry&rsquo;s release tag; the
+        manifest&rsquo;s own hash is published apart from the mirror at
+        <code>/work/ow-tools-security-manifest.sha256</code>. Not pinned: the
+        tools you install yourself (ffmpeg, whisper.cpp, pandoc, Typst,
+        gitleaks, your browser) run at the versions on your machine;
+        <code>/ow-tools</code> reports which it found.
+      </p>
     </section>
 
     <p class="footnote">

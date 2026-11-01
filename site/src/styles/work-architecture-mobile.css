@@ -1,0 +1,288 @@
+/* opchain.work mobile architecture — the MobileArchitecture.astro idiom
+   (collapsible <details> bands with 330-wide SVG cards), carried over rule for
+   rule from that component's scoped <style> and re-scoped to
+   .mobile-work-architecture, since Astro's scoping never reaches this markup.
+   Variables, header, container, bands, captions and the SVG attribute remaps
+   for the light theme; additions at the bottom. */
+.mobile-work-architecture {
+    --ma-bg-page:       #12191f;
+    --ma-bg-card:       #162028;
+    --ma-bg-svg-comp:   #12191f;
+    --ma-bg-card-deep:  rgba(0,0,0,.18);
+    --ma-bg-cp-zone:    rgba(43,225,121,.02);
+    --ma-bg-cp-pill:    rgba(43,225,121,.06);
+    --ma-bg-code:       rgba(43,225,121,.10);
+    --ma-bg-json:       #12191f;
+
+    --ma-text-primary:   #d4e2ef;
+    --ma-text-secondary: #a5bcd1;
+    --ma-text-muted:     #7d91a4;
+    --ma-text-on-svg:    #d4e2ef;
+    --ma-text-on-svg-2:  #a5bcd1;
+
+    --ma-border-subtle:  #445461;
+    --ma-border-divider: rgba(165,188,209,.12);
+
+    --ma-ember:      #2be179;
+    --ma-char:       #13bd62;
+    --ma-ember-dim:  rgba(43,225,121,.10);
+    --ma-specialist: #02fdff;
+    --ma-advisor:    #00bdfd;
+    --ma-triagent:   #ebfe00;
+    --ma-auditor:    #fb5998;
+    --ma-orch:       #2be179;
+    --ma-ai:         #a384fe;   /* v1.5 AI-native phase accent */
+    --ma-vec:        #d79fe9;   /* v1.5 vector-db pack category */
+    --ma-inst:       #1abea5;   /* v1.6 instrumentation accent (lime) */
+    --ma-sig:        #d87fd1;   /* v1.7 "Seams & Signals" accent (magenta) */
+    --ma-docs:       #00bdfd;   /* v1.8 docs/repo quality-gate accent (sky) */
+    /* v1.9 assurance-rail accent (gold). Deliberately the SAME value as
+       --ma-triagent: mobile SVGs already draw tri-agent panels #ebfe00, and
+       the attribute-remap block at the bottom of this file themes that hex to
+       --ma-triagent. A competing remap for #ebfe00 would hijack every existing
+       tri-agent panel, so the rail's SVG chrome rides the tri-agent rule and
+       these two tokens must stay in lockstep if either is ever retuned. */
+    --ma-assure:     #ebfe00;
+    /* v2.0 learning-rail palette — the 2.0 "Slate & Emerald" set (set 34 of
+       design-previews/color-2.0-tooling), used by the learning rail only so
+       the v2.0 surface previews the v2.0 colours. Unlike --ma-assure these
+       hexes are NOT shared with any Forge archetype, so they get their own
+       attribute-remap rules at the bottom of this file without hijacking
+       existing panels. */
+    --ma-learn:      #8cb9fc;   /* 2.0 --secondary  ("coming next") */
+    --ma-v20-bg:     #12191f;   /* 2.0 --bg     */
+    --ma-v20-text:   #d4e2ef;   /* 2.0 --text   */
+    --ma-v20-muted:  #a5bcd1;   /* 2.0 --muted  */
+    --ma-v20-accent: #2be179;   /* 2.0 --accent */
+    --ma-v20-tri:    #ebfe00;   /* 2.0 --tri-agent */
+
+    background: var(--ma-bg-page);
+    color: var(--ma-text-primary);
+    font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    line-height: 1.45;
+    padding: 16px 12px 24px;
+    -webkit-text-size-adjust: 100%;
+  }
+[data-theme="light"] .mobile-work-architecture {
+    /* 2.0 light sheet, candidate L3 "Lifted slate · brand fill" (2026-09-08) —
+       values verbatim from site/src/styles/tokens.css. */
+    --ma-bg-page:       #e9f0f7;
+    --ma-bg-card:       #f7fbfe;
+    --ma-bg-svg-comp:   #f7fbfe;
+    --ma-bg-card-deep:  rgba(0,0,0,.04);
+    --ma-bg-cp-zone:    rgba(2,124,62,.05);
+    --ma-bg-cp-pill:    rgba(2,124,62,.10);
+    --ma-bg-code:       rgba(2,124,62,.10);
+    --ma-bg-json:       #f7fbfe;
+
+    --ma-text-primary:   #092438;
+    --ma-text-secondary: #5d6b77;
+    --ma-text-muted:     #5b6e80;
+    --ma-text-on-svg:    #092438;
+    --ma-text-on-svg-2:  #5d6b77;
+
+    --ma-border-subtle:  #c5d1dc;
+    --ma-border-divider: rgba(9,36,56,.10);
+
+    --ma-ember:      #027c3e;
+    --ma-char:       #0b6834;
+    --ma-ember-dim:  rgba(2,124,62,.12);
+    --ma-specialist: #14797a;
+    --ma-advisor:    #0b6e94;
+    --ma-triagent:   #69710c;
+    --ma-auditor:    #c00765;
+    --ma-orch:       #027c3e;
+    --ma-ai:         #7a2df0;
+    --ma-vec:        #a341be;
+    --ma-inst:       #12a28c;
+    --ma-sig:        #cd63c6;
+    --ma-docs:       #0b6e94;
+    --ma-assure:     #69710c;   /* v1.9 — kept equal to --ma-triagent, see dark block */
+    --ma-learn:      #0067df;   /* 2.0 --secondary */
+    --ma-v20-bg:     #ffffff;        /* 2.0 --card      */
+    --ma-v20-text:   #092438;        /* 2.0 --text      */
+    --ma-v20-muted:  #5d6b77;       /* 2.0 --muted     */
+    --ma-v20-accent: #027c3e;              /* 2.0 --accent    */
+    --ma-v20-tri:    #69710c;   /* 2.0 --tri-agent */
+  }
+.mobile-work-architecture .ma-container { max-width: 390px; margin: 0 auto; }
+.mobile-work-architecture .ma-header { margin-bottom: 18px; padding: 0 4px; }
+.mobile-work-architecture .ma-header-eyebrow {
+    display: flex; align-items: center; gap: .4em;
+    font-size: 11px; font-weight: 600; letter-spacing: .15em;
+    text-transform: uppercase; color: var(--ma-ember);
+    margin-bottom: 8px;
+  }
+.mobile-work-architecture .ma-header-eyebrow::before {
+    content: '—'; font-size: 16px; line-height: 1; color: var(--ma-ember);
+  }
+.mobile-work-architecture .ma-subtitle {
+    color: var(--ma-text-secondary); font-size: 14px; margin: 8px 0 0;
+    line-height: 1.5;
+  }
+.mobile-work-architecture .ma-diagram-container {
+    background: var(--ma-bg-card);
+    border-radius: 10px;
+    border: 1px solid var(--ma-border-subtle);
+    padding: 16px 14px;
+  }
+.mobile-work-architecture .ma-band {
+    margin-bottom: 14px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--ma-border-subtle);
+  }
+.mobile-work-architecture summary.ma-band-header {
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+    padding: 10px 40px 10px 12px;
+    background: var(--ma-bg-card-deep);
+    border-left: 4px solid var(--ma-phase-color, var(--ma-border-subtle));
+  }
+.mobile-work-architecture .ma-band-num {
+    font-family: var(--font-mono, "JetBrains Mono"), monospace;
+    font-size: 13px; font-weight: 700;
+    color: var(--ma-phase-color, var(--ma-text-primary));
+    min-width: 26px;
+  }
+.mobile-work-architecture .ma-band-title {
+    font-family: var(--font-display, "Outfit"), system-ui, sans-serif;
+    font-size: 18px; font-weight: 600;
+    letter-spacing: .04em; text-transform: uppercase;
+    color: var(--ma-text-primary);
+  }
+.mobile-work-architecture .ma-band-heading { display: contents; }
+.mobile-work-architecture .ma-band-of { font-size: 12px; color: var(--ma-text-secondary); margin-left: auto; padding-right: 8px; }
+.mobile-work-architecture .ma-instrail {
+    border: 1px solid var(--ma-inst);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--ma-inst) 8%, transparent);
+    padding: 9px 11px;
+    margin-bottom: 12px;
+  }
+.mobile-work-architecture .ma-instrail-row { display: flex; align-items: center; gap: 7px; }
+.mobile-work-architecture .ma-instrail-tag {
+    font-size: 11px; font-weight: 700; letter-spacing: .08em;
+    padding: 2px 5px; border-radius: 4px;
+    background: color-mix(in srgb, var(--ma-inst) 18%, transparent); color: var(--ma-inst);
+  }
+.mobile-work-architecture .ma-instrail-name {
+    font-family: var(--font-display, "Outfit"), system-ui, sans-serif;
+    font-size: 13px; font-weight: 600; color: var(--ma-text-primary);
+  }
+.mobile-work-architecture .ma-instrail-desc { font-size: 11px; color: var(--ma-text-secondary); margin-top: 5px; }
+.mobile-work-architecture .ma-instrail-desc b { color: var(--ma-inst); font-weight: 600; }
+.mobile-work-architecture .ma-instrail-total {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 12px; padding-top: 10px;
+    border-top: 1px solid var(--ma-border-divider);
+    font-size: 11px; color: var(--ma-text-muted);
+  }
+.mobile-work-architecture .ma-instrail-total b { color: var(--ma-inst); font-variant-numeric: tabular-nums; margin-left: auto; }
+.mobile-work-architecture .ma-instrail-total span { color: var(--ma-text-secondary); }
+.mobile-work-architecture .ma-band-svg-wrap {
+    padding: 14px 8px;
+    background: var(--ma-bg-card);
+  }
+.mobile-work-architecture .ma-band-svg-wrap svg { width: 100%; height: auto; display: block; }
+.mobile-work-architecture .ma-band-caption {
+    padding: 12px 14px;
+    background: var(--ma-bg-card-deep);
+    border-top: 1px solid var(--ma-border-divider);
+  }
+.mobile-work-architecture .ma-band-caption p {
+    font-size: 14px; color: var(--ma-text-secondary); line-height: 1.55;
+    margin-bottom: 10px;
+  }
+.mobile-work-architecture .ma-band-caption p:last-child { margin-bottom: 0; }
+.mobile-work-architecture .ma-band-caption code {
+    font-family: var(--font-mono, "JetBrains Mono"), monospace;
+    font-size: 13px; color: var(--ma-text-primary);
+    background: var(--ma-ember-dim); border: 1px solid rgba(43,225,121,.25);
+    padding: 1px 5px; border-radius: 3px;
+  }
+.mobile-work-architecture .ma-bc-cp {
+    font-size: 12px; color: var(--ma-ember);
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+.mobile-work-architecture .ma-bc-cp span:nth-child(2) { color: var(--ma-text-secondary); }
+.mobile-work-architecture .ma-bc-cp-badge {
+    font-size: 11px; font-weight: 700;
+    padding: 2px 6px; border-radius: 3px;
+    background: var(--ma-ember-dim);
+    border: 1px solid rgba(43,225,121,.55);
+    color: var(--ma-ember);
+  }
+.mobile-work-architecture .ma-band.ma-pack-fabric {
+    border-color: rgba(43,225,121,.55);
+    background: linear-gradient(180deg, rgba(43,225,121,.10) 0%, var(--ma-bg-card) 100%);
+  }
+.mobile-work-architecture .ma-band.ma-qrail {
+    border-color: color-mix(in srgb, var(--ma-docs) 55%, transparent);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--ma-docs) 10%, transparent) 0%, var(--ma-bg-card) 100%);
+  }
+.mobile-work-architecture .ma-band.ma-arail {
+    border-color: color-mix(in srgb, var(--ma-assure) 55%, transparent);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--ma-assure) 10%, transparent) 0%, var(--ma-bg-card) 100%);
+  }
+.mobile-work-architecture .ma-band.ma-lrail {
+    border-color: color-mix(in srgb, var(--ma-learn) 55%, transparent);
+    border-style: dashed;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--ma-learn) 10%, transparent) 0%, var(--ma-bg-card) 100%);
+  }
+.mobile-work-architecture svg rect[fill="#12191f"] { fill: var(--ma-bg-svg-comp); }
+.mobile-work-architecture svg text[fill="#d4e2ef"] { fill: var(--ma-text-on-svg); }
+.mobile-work-architecture svg text[fill="#a5bcd1"] { fill: var(--ma-text-on-svg-2); }
+.mobile-work-architecture svg text[fill="#e7eef5"] { fill: var(--ma-text-on-svg); }
+.mobile-work-architecture svg text[fill="#2be179"] { fill: var(--ma-ember); }
+.mobile-work-architecture svg text[fill="#02fdff"] { fill: var(--ma-specialist); }
+.mobile-work-architecture svg text[fill="#00bdfd"] { fill: var(--ma-advisor); }
+.mobile-work-architecture svg text[fill="#ebfe00"] { fill: var(--ma-triagent); }
+.mobile-work-architecture svg text[fill="#fb5998"] { fill: var(--ma-auditor); }
+.mobile-work-architecture svg circle[fill="#2be179"] { fill: var(--ma-ember); }
+.mobile-work-architecture svg rect[stroke="#2be179"] { stroke: var(--ma-ember); }
+.mobile-work-architecture svg rect[stroke="#02fdff"] { stroke: var(--ma-specialist); }
+.mobile-work-architecture svg rect[stroke="#00bdfd"] { stroke: var(--ma-advisor); }
+.mobile-work-architecture svg rect[stroke="#ebfe00"] { stroke: var(--ma-triagent); }
+.mobile-work-architecture svg rect[stroke="#fb5998"] { stroke: var(--ma-auditor); }
+.mobile-work-architecture svg line[stroke="#2be179"] { stroke: var(--ma-ember); }
+.mobile-work-architecture svg line[stroke="#02fdff"] { stroke: var(--ma-specialist); }
+.mobile-work-architecture svg line[stroke="#fb5998"] { stroke: var(--ma-auditor); }
+.mobile-work-architecture svg line[stroke="#a5bcd1"] { stroke: var(--ma-text-on-svg-2); }
+.mobile-work-architecture svg line[stroke="#445461"] { stroke: var(--ma-border-subtle); }
+.mobile-work-architecture svg marker polygon[fill="#2be179"] { fill: var(--ma-ember); }
+.mobile-work-architecture svg marker polygon[fill="#a5bcd1"] { fill: var(--ma-text-on-svg-2); }
+.mobile-work-architecture svg marker polygon[fill="#02fdff"] { fill: var(--ma-specialist); }
+.mobile-work-architecture svg marker polygon[fill="#fb5998"] { fill: var(--ma-auditor); }
+.mobile-work-architecture svg rect[stroke="#a384fe"] { stroke: var(--ma-ai); }
+.mobile-work-architecture svg text[fill="#a384fe"] { fill: var(--ma-ai); }
+.mobile-work-architecture svg line[stroke="#a384fe"] { stroke: var(--ma-ai); }
+.mobile-work-architecture svg marker polygon[fill="#a384fe"] { fill: var(--ma-ai); }
+.mobile-work-architecture svg rect[stroke="#d87fd1"] { stroke: var(--ma-sig); }
+.mobile-work-architecture svg text[fill="#d87fd1"] { fill: var(--ma-sig); }
+.mobile-work-architecture svg line[stroke="#d87fd1"] { stroke: var(--ma-sig); }
+.mobile-work-architecture svg marker polygon[fill="#d87fd1"] { fill: var(--ma-sig); }
+.mobile-work-architecture svg line[stroke="#00bdfd"] { stroke: var(--ma-advisor); }
+.mobile-work-architecture svg marker polygon[fill="#00bdfd"] { fill: var(--ma-advisor); }
+.mobile-work-architecture svg text[fill="#8cb9fc"] { fill: var(--ma-learn); }
+.mobile-work-architecture svg line[stroke="#8cb9fc"] { stroke: var(--ma-learn); }
+.mobile-work-architecture svg marker polygon[fill="#8cb9fc"] { fill: var(--ma-learn); }
+.mobile-work-architecture svg rect[stroke="#a5bcd1"] { stroke: var(--ma-v20-muted); }
+[data-theme="light"] .mobile-work-architecture svg [filter] { filter: none; }
+/* ── opchain.work additions ── */
+.mobile-work-architecture .ma-title { font-family: var(--font-display, "Outfit"), system-ui, sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.015em; color: var(--ma-text-primary); margin: 0 0 4px; }
+.mobile-work-architecture .ma-band-caption a { color: var(--ma-ember); text-decoration: underline; text-underline-offset: 2px; }
+.mobile-work-architecture .ma-bc-cp code { font-size: 12px; }
+.mobile-work-architecture .ma-bc-cp-badge.ma-bc-tool { color: var(--ma-sig); border-color: color-mix(in srgb, var(--ma-sig) 55%, transparent); background: color-mix(in srgb, var(--ma-sig) 10%, transparent); }
+.mobile-work-architecture .ma-cross { border-style: dashed; }
+.mobile-work-architecture .ma-tools { border-color: var(--ma-sig); background: color-mix(in srgb, var(--ma-sig) 8%, transparent); margin: 4px 0 0; }
+.mobile-work-architecture .ma-tools .ma-instrail-tag { background: color-mix(in srgb, var(--ma-sig) 18%, transparent); color: var(--ma-sig); }
+.mobile-work-architecture .ma-tools .ma-instrail-desc a { color: var(--ma-sig); }
+.mobile-work-architecture .ma-tools .ma-instrail-desc code { font-family: var(--font-mono, "JetBrains Mono"), monospace; font-size: 11px; color: var(--ma-text-primary); }
+.mobile-work-architecture svg text[fill="#d87fd1"] { fill: var(--ma-sig); }
+.mobile-work-architecture svg rect[stroke="#d87fd1"] { stroke: var(--ma-sig); }

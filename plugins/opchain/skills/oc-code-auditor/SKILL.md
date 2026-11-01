@@ -1,7 +1,7 @@
 ---
 name: oc-code-auditor
 displayName: OC · Code Auditor
-version: 2.0.4
+version: 2.1.0
 license: Apache-2.0
 shortDesc: Auditor → Fixer → Verifier quality loop. v1.2 posts findings to the linked PM ticket; HIGH+ filed as sub-tickets.
 phases: [build]

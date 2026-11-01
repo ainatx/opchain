@@ -1,0 +1,77 @@
+---
+/**
+ * /work/install — how to install the ow- planning skills and the ow-tools
+ * add-on. Written from the public mirror's README (mirror/README.md, "ow-
+ * planning skills" and "ow-tools" sections) once REL-01 shipped the ow- zips,
+ * docs tree and mirror path (2026-10-30). Release 2.1, WEB-03.
+ */
+import WorkPage from "../../layouts/WorkPage.astro";
+import Eyebrow from "../../components/ui/Eyebrow.astro";
+import ReleaseTag from "../../components/ReleaseTag.astro";
+import { getAllWorkSkills } from "../../lib/work";
+import owTools from "../../../../plugins/ow-tools/.claude-plugin/plugin.json";
+
+const skills = await getAllWorkSkills();
+const MIRROR = "https://github.com/asfbay-bit/opchain-skills";
+const cloneCmd = `git clone --depth 1 ${MIRROR}.git
+cp -R opchain-skills/skills-work/ow-start opchain-skills/skills-work/ow-build-plan .claude/skills/`;
+const zipCmd = `curl -L https://opchain.dev/opchain-work-skills.zip -o opchain-work-skills.zip
+unzip opchain-work-skills.zip -d .claude/skills/`;
+const verifyCmd = `ls .claude/skills/ow-start/SKILL.md .claude/skills/ow-start/references/ow-protocol.md
+grep -m1 '^  version:' .claude/skills/ow-start/SKILL.md`;
+const toolsCmd = `/plugin marketplace add https://raw.githubusercontent.com/asfbay-bit/opchain-skills/main/plugins/ow-tools/.claude-plugin/marketplace.json
+/plugin install ow-tools@opchain-work-tools`;
+const description = "Install the ow- planning skills in Claude Code (clone or zip into .claude/skills/) or upload a per-skill zip to claude.ai; the ow-tools add-on installs from its own Claude Code marketplace.";
+---
+
+<WorkPage title="Install · opchain.work" description={description} route="/work/install">
+  <div class="page-head">
+    <Eyebrow>opchain.work · install</Eyebrow>
+    <h1>Installing the planning skills <ReleaseTag theme="ow" /></h1>
+  </div>
+  <p class="lede">
+    The {skills.length} ow- skills are text only: each is a folder holding its <code>SKILL.md</code>, its references (including the shared <code>ow-protocol.md</code>) and its <code>skill.edges.yaml</code>. Copy the folders you want into the project you work in (a client workspace), never into a copy of the skills repository. They are not in the opchain plugin or in <code>opchain-skills.zip</code>.
+  </p>
+
+  <nav class="toc" aria-label="On this page">
+    <a href="#claude-code">Claude Code</a>
+    <a href="#claude-ai">claude.ai / Desktop</a>
+    <a href="#verify">verify</a>
+    <a href="#tools">ow-tools</a>
+    <a href="#dev">building software instead</a>
+  </nav>
+
+  <section id="claude-code" aria-labelledby="claude-code-h">
+    <h2 id="claude-code-h">Claude Code</h2>
+    <p>From the public mirror, copy the skills you want into <code>.claude/skills/</code> of the project you work in:</p>
+    <pre class="codeblock" tabindex="0" role="region" aria-label="Clone and copy commands"><code>{cloneCmd}</code></pre>
+    <p>Or take every skill from the bundle zip:</p>
+    <pre class="codeblock" tabindex="0" role="region" aria-label="Bundle zip commands"><code>{zipCmd}</code></pre>
+    <p>Per-skill zips, each the complete skill folder:</p>
+    <div class="cmds">{skills.map((k) => <a href={`https://opchain.dev/work/${k.data.name}.zip`}><code>/work/{k.data.name}.zip</code></a>)}</div>
+  </section>
+
+  <section id="claude-ai" aria-labelledby="claude-ai-h">
+    <h2 id="claude-ai-h">claude.ai / Claude Desktop</h2>
+    <p>Upload a per-skill zip (<code>https://opchain.dev/work/&lt;id&gt;.zip</code>) through your host&rsquo;s skill upload flow. Each zip is the complete skill folder. ow-tools does not apply on these hosts; other hosts are untested.</p>
+  </section>
+
+  <section id="verify" aria-labelledby="verify-h">
+    <h2 id="verify-h">Verify</h2>
+    <p>Each installed skill is a folder <code>.claude/skills/&lt;id&gt;/</code> holding <code>SKILL.md</code>, <code>references/ow-protocol.md</code> and <code>skill.edges.yaml</code>:</p>
+    <pre class="codeblock" tabindex="0" role="region" aria-label="Verify commands"><code>{verifyCmd}</code></pre>
+    <p>Then start a new Claude Code session and run <code>/ow-start</code>: its first screen asks for the client folder, and the skill&rsquo;s version is on its header line. The same check runs at every opchain.dev build from an empty folder, so the zips and the mirror never drift from the source. Versions per skill: <a href="/work/changelog">changelog</a>.</p>
+  </section>
+
+  <section id="tools" aria-labelledby="tools-h">
+    <h2 id="tools-h">ow-tools {owTools.version} (Claude Code add-on)</h2>
+    <p>The optional add-on <strong>runs code on your machine</strong> and says so. It comes from its own Claude Code marketplace, so an administrator can approve it without approving anything else:</p>
+    <pre class="codeblock" tabindex="0" role="region" aria-label="ow-tools install commands"><code>{toolsCmd}</code></pre>
+    <p>Then run <code>/ow-tools</code> to see what your machine still needs; ow-tools installs nothing itself. From the first release that ships it, the marketplace entry names that release&rsquo;s tag rather than <code>main</code>, and its <code>SECURITY-MANIFEST.md</code> hash is published apart from the mirror at <code>https://opchain.dev/work/ow-tools-security-manifest.sha256</code>. What it does, and what leaves the machine, is on the <a href="/work/ow-tools">ow-tools page</a>.</p>
+  </section>
+
+  <section id="dev" aria-labelledby="dev-h">
+    <h2 id="dev-h">Building software, not planning it?</h2>
+    <p>The oc- development skills install from the opchain plugin, the skills bundle or the hosted MCP endpoint: see <a href="/install">Install</a>.</p>
+  </section>
+</WorkPage>

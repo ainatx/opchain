@@ -1,7 +1,7 @@
 ---
 name: oc-release-ops
 displayName: OC · Release Ops
-version: 2.0.4
+version: 2.1.0
 license: Apache-2.0
 shortDesc: Plan, draft, bump, announce, ship a release. Closes the loop from sprints to /changelog to oc-git-ops to oc-deploy-ops.
 phases: [build]

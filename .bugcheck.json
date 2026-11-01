@@ -61,7 +61,7 @@
         },
         {
           "path": "plugins/opchain/skills/oc-bug-check/SKILL.md",
-          "digest": "sha256:0c3bc2a5b02327dbed6f02bbfd45c016c6d38520eca4ad8318c12b47faf30fbb"
+          "digest": "sha256:4b9ed25c6e2d7b2ff18c32432a4c1397b775afb453910b072c73eba0ab69fc29"
         },
         {
           "path": "plugins/opchain/skills/oc-bug-check/TRYIT.md",
@@ -77,7 +77,7 @@
         },
         {
           "path": "skills/oc-bug-check/SKILL.md",
-          "digest": "sha256:0c3bc2a5b02327dbed6f02bbfd45c016c6d38520eca4ad8318c12b47faf30fbb"
+          "digest": "sha256:4b9ed25c6e2d7b2ff18c32432a4c1397b775afb453910b072c73eba0ab69fc29"
         },
         {
           "path": "skills/oc-bug-check/TRYIT.md",
@@ -103,7 +103,7 @@
         },
         {
           "path": "plugins/opchain/skills/oc-bug-check/SKILL.md",
-          "digest": "sha256:0c3bc2a5b02327dbed6f02bbfd45c016c6d38520eca4ad8318c12b47faf30fbb"
+          "digest": "sha256:4b9ed25c6e2d7b2ff18c32432a4c1397b775afb453910b072c73eba0ab69fc29"
         },
         {
           "path": "plugins/opchain/skills/oc-bug-check/references/check-patterns.md",
@@ -111,7 +111,7 @@
         },
         {
           "path": "skills/oc-bug-check/SKILL.md",
-          "digest": "sha256:0c3bc2a5b02327dbed6f02bbfd45c016c6d38520eca4ad8318c12b47faf30fbb"
+          "digest": "sha256:4b9ed25c6e2d7b2ff18c32432a4c1397b775afb453910b072c73eba0ab69fc29"
         },
         {
           "path": "skills/oc-bug-check/references/check-patterns.md",

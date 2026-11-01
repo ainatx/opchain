@@ -23,7 +23,7 @@
         "/oc-agent trace",
         "/oc-agent regress"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/agent-eval.md",
@@ -83,7 +83,7 @@
         "/oc-api list",
         "/oc-api drift"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -133,7 +133,7 @@
         "/oc-build",
         "/oc-launch"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/architecture-patterns.md",
@@ -192,7 +192,7 @@
         "/oc-bugcheck history",
         "/oc-bugcheck bypass"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/check-patterns.md",
@@ -227,7 +227,7 @@
       ],
       "triAgent": false,
       "commands": [],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/INTEGRATION.md",
@@ -269,7 +269,7 @@
         "/oc-claude-api tool-use",
         "/oc-claude-api cost"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -329,7 +329,7 @@
         "/oc-audit test-bootstrap",
         "/oc-audit report"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/ai-safety-rules.md",
@@ -384,7 +384,7 @@
         "/oc-comply status",
         "/oc-compliance"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -422,7 +422,7 @@
         "/oc-cost gate",
         "/oc-cost report"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/budget-gates.md",
@@ -479,7 +479,7 @@
         "/oc-df-audit",
         "/oc-df-variants"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/archetypes.md",
@@ -543,7 +543,7 @@
         "/oc-data-ops observe",
         "/oc-data-ops status"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -584,7 +584,7 @@
         "/oc-deploy smoke",
         "/oc-deploy health"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -622,7 +622,7 @@
         "/oc-docs upkeep",
         "/oc-docs verify"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -657,7 +657,7 @@
         "/oc-evolve reflect",
         "/oc-evolve status"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -697,7 +697,7 @@
         "/oc-fleet rollback",
         "/oc-fleet status"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -730,7 +730,7 @@
         "/oc-merge",
         "/oc-git-release"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -760,7 +760,7 @@
         "/oc-hindsight harvest",
         "/oc-hindsight status"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -802,7 +802,7 @@
         "/oc-integrate retry",
         "/oc-integrate list"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -853,7 +853,7 @@
         "/oc-migrate ecosystem",
         "/oc-migrate abandon"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -894,7 +894,7 @@
         "/oc-modularize status",
         "/oc-modularize abandon"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -939,7 +939,7 @@
         "/oc-monitor compare",
         "/oc-monitor status"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/alerting-patterns.md",
@@ -999,7 +999,7 @@
         "/oc-ops health",
         "/oc-ops skills"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -1034,7 +1034,7 @@
         "/oc-prompt baseline",
         "/oc-prompt drift"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -1083,7 +1083,7 @@
         "/oc-qa audit",
         "/oc-qa status"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -1126,7 +1126,7 @@
         "/oc-rag regress",
         "/oc-rag inspect"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -1181,7 +1181,7 @@
         "/oc-release status",
         "/oc-release rollback"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/changelog-recipe.md",
@@ -1233,7 +1233,7 @@
         "/oc-repo catalog",
         "/oc-repo status"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -1271,7 +1271,7 @@
         "/oc-rev-sprint",
         "/oc-rev-spec"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/analysis-playbook.md",
@@ -1313,7 +1313,7 @@
         "/oc-scale plan",
         "/oc-scale cost"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -1362,7 +1362,7 @@
         "/oc-security infra",
         "/oc-security prioritize"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -1400,7 +1400,7 @@
         "/oc-harden verify",
         "/oc-harden status"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -1440,7 +1440,7 @@
         "/oc-signal catalog",
         "/oc-signal status"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -1470,7 +1470,7 @@
         "/oc-stack-decide",
         "/oc-feature"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/cf-deployment.md",
@@ -1528,7 +1528,7 @@
         "/oc-telemetry aggregate",
         "/oc-telemetry export"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/aggregation.md",
@@ -1572,7 +1572,7 @@
         "/oc-update check",
         "/oc-update doctor"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
@@ -1616,7 +1616,7 @@
         "/oc-uxe status",
         "/oc-uxe export"
       ],
-      "version": "2.0.4",
+      "version": "2.1.0",
       "references": [
         {
           "path": "references/checkpoint-protocol.md",

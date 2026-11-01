@@ -20,6 +20,8 @@
  */
 import { getAllSkills, getSkillRole, type Role } from "../lib/skills";
 import { defaultFor } from "../lib/flags/build-defaults";
+import ReleaseTag from "./ReleaseTag.astro";
+import type { PreviewTheme } from "../data/release-preview";
 
 const skills = await getAllSkills();
 const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
@@ -31,6 +33,8 @@ interface PaletteItem {
   href?: string;
   action?: "copy-install" | "toggle-theme" | "feedback";
   role?: Role;
+  /** Marks a row that changes in the previewed release (renders only on a preview build). */
+  preview?: PreviewTheme;
 }
 
 const pages: PaletteItem[] = [
@@ -53,6 +57,9 @@ const pages: PaletteItem[] = [
   { group: "pages", title: "AI Recipes",       href: "/ai-recipes",       blurb: "Skill chains for AI-native builds." },
   { group: "pages", title: "For agencies",     href: "/for-agencies",     blurb: "Client-work pitch for the pipeline." },
   { group: "pages", title: "Dashboard",        href: "/dashboard",        blurb: "Cost + usage report (sample data)." },
+  // 2.1: the ow- planning skills for client work.
+  { group: "pages", title: "opchain.work",     href: "/work",             blurb: "Planning skills for client work.", preview: "ow" },
+  { group: "pages", title: "ow-tools",         href: "/work/ow-tools",    blurb: "The Claude Code add-on that runs code on your machine.", preview: "ow" },
 ];
 
 const skillItems: PaletteItem[] = skills.map((s) => ({
@@ -117,7 +124,7 @@ const items = [...pages, ...skillItems, ...actions];
                   {it.group === "pages" ? "▸" : it.group === "skills" ? "●" : "⌘"}
                 </span>
                 <span class="palette-meta">
-                  <span class="palette-title">{it.title}</span>
+                  <span class="palette-title">{it.title}{it.preview && <ReleaseTag theme={it.preview} />}</span>
                   {it.blurb && <span class="palette-blurb">{it.blurb}</span>}
                 </span>
                 {it.href && <span class="palette-crumb">{it.href}</span>}

@@ -3,6 +3,7 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import FeedbackWidget from "../components/FeedbackWidget.astro";
 import ConsentBanner from "../components/ConsentBanner.astro";
+import PreviewRibbon from "../components/PreviewRibbon.astro";
 import { publicDefaults } from "../lib/flags/build-defaults";
 import { defaultFor } from "../lib/flags/build-defaults";
 import "../styles/global.css";
@@ -207,6 +208,7 @@ const jsonLdString = JSON.stringify({
   </head>
   <body>
     {!bare && <Header active={active} />}
+    {!bare && <PreviewRibbon />}
     <slot />
     {!bare && <Footer />}
     {!bare && showFeedbackWidget && <FeedbackWidget />}

@@ -7,8 +7,8 @@ const statusPage = readFileSync("site/src/pages/status.astro", "utf8");
 
 describe("site release chip", () => {
   it("keeps the header chip as a hard-coded release label", () => {
-    expect(header).toContain('const CURRENT_RELEASE = "v2.0";');
-    expect(header).toContain('const CURRENT_RELEASE_HREF = "/changelog#v2-0";');
+    expect(header).toContain('const CURRENT_RELEASE = "v2.1";');
+    expect(header).toContain('const CURRENT_RELEASE_HREF = "/changelog#v2-1";');
     expect(header).toContain("data-version-chip");
     expect(header).toContain('data-release-version={CURRENT_RELEASE}');
     expect(header).toContain('<span class="vchip-tag">{CURRENT_RELEASE}</span>');
@@ -22,12 +22,12 @@ describe("site release chip", () => {
   });
 
   it("keeps the Skill Library release callout on the current release", () => {
-    expect(skillsPage).toContain('href="/changelog#v2-0"');
-    expect(skillsPage).toContain('aria-label="See what shipped in opchain v2.0"');
-    expect(skillsPage).toContain('<span class="release-callout-tag">v2.0 · SHIPPED</span>');
-    expect(skillsPage).toContain("Update, remember and improve");
-    expect(skillsPage).toContain("<code>oc-update</code>");
-    expect(skillsPage).toContain("<code>oc-evolve</code>");
+    expect(skillsPage).toContain('href="/changelog#v2-1"');
+    expect(skillsPage).toContain('aria-label="See what shipped in opchain v2.1"');
+    expect(skillsPage).toContain('<span class="release-callout-tag">v2.1 · SHIPPED</span>');
+    expect(skillsPage).toContain("Enforcement at chokepoints");
+    expect(skillsPage).toContain("<code>/oc-merge</code>");
+    expect(skillsPage).toContain('<a href="/work">opchain.work</a>');
   });
 
   // The release-version location map lives in a shipped skill doc

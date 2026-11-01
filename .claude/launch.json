@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "site-dist-preview",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/lhci-preview.mjs", "--dir", "site/dist", "--host", "127.0.0.1", "--port", "4399"],
+      "port": 4399
+    }
+  ]
+}

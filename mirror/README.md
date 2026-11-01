@@ -1,6 +1,6 @@
 # opchain
 
-> Opchain 2.0.4 · 36 skills · released September 14–21, 2026.
+> Opchain 2.1.0 · 36 skills · released October 30, 2026.
 
 A coordinated set of Claude skills covering the full software development
 pipeline — discover, spec, design, build, audit, ship, scale. One skill

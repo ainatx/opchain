@@ -1,7 +1,7 @@
 ---
 name: oc-compliance-ops
 displayName: OC · Compliance Ops
-version: 2.0.4
+version: 2.1.0
 license: Apache-2.0
 shortDesc: "Standing control register + audit-ready evidence bundles at deploy/release time. SOC 2 / HIPAA / GDPR."
 phases: [plan, build]

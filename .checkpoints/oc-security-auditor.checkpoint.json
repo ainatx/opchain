@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-09-14T00:38:43.799Z",
-  "updated_at": "2026-10-16T19:35:38.491Z",
+  "updated_at": "2026-10-30T22:28:08.376Z",
   "phase": "build",
   "step": "posture-main-e00f9623",
   "status": "complete",
-  "progress_summary": "Pre-deploy security posture 2026-10-16 for main e00f9623 (#610 merged), staging deploy: PASS, carried from posture-staging-preview-97cba5d; the only change since is a planning doc that is not deployed. Before production: resolve the code audit's M-1 (unreleased skills/ content labelled 2.0.4) with a release bump; residuals carried forward unchanged.",
+  "progress_summary": "Pre-deploy security posture 2026-10-30 (third cut) for staging preview head ca157fea (PR #669 with REL-01 merged): PASS, tier standard, delta review. New public surfaces are static files the Worker already serves as assets: /opchain-work-skills.zip, /work/<id>.zip, /docs/work, /work/ow-tools-security-manifest.sha256 (built from the exact tree and checked by check-work-install). ow-tools 1.3.1 pins the speaker-model revision and verifies the Whisper model hash; the marketplace ref pins v2.1.0 (RELEASING.md 2a). No Worker code, header, wrangler, dependency or hardening change; hardening:verify 2/2; attack surface unchanged. Residuals unchanged: production refused while PUBLIC_OPCHAIN_RELEASE_PREVIEW is set and until a signed v2.1.0 tag exists.",
   "next_actions": [
     "Before the next release cut, re-run the pre-deploy posture assessment (/oc-security posture) on the release delta from c09a63e (v2.0.4, the last PASS) and bind it with: node scripts/checkpoint.mjs handoff oc-security-auditor --policy pre-deploy-security-posture-v1 --verdict PASS --scope \"<delta reviewed>\" --evidence <audit doc>",
     "While there, re-check the residuals every posture since 2.0.1 has carried forward: dev-only site dependency advisories, tag-pinned (not SHA-pinned) CI action refs, missing COOP/CORP headers, and the live headers/TLS/control-plane check that each assessment skipped because no deployment was performed (OWASP A02 PARTIAL)."
@@ -509,6 +509,66 @@
           "residuals carried forward: dev-only site advisories, tag-pinned CI action refs, missing COOP/CORP"
         ]
       }
+    },
+    {
+      "id": "oc-security-auditor-pre-deploy-security-posture-v1-854b5d4008d5",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-30T20:10:03.919Z",
+      "verified_at": "2026-10-30T20:10:03.919Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "pre-deploy-security-posture-v1-2026-10-30T20:10:03.919Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:854b5d4008d56568667e5a5ffd23d6e41a02e1471fb754da0f8829c0bab34121"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Pre-deploy posture of the 2.1 staging preview delta 91def274..86094365: static pages and a deploy guard only; no Worker, header, dependency, workflow or hardening change; hardening:verify 2/2; new inline diagram script nonce-stamped, repo data only; attack surface unchanged."
+      }
+    },
+    {
+      "id": "oc-security-auditor-pre-deploy-security-posture-v1-f3c7036a787f",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-30T20:53:35.112Z",
+      "verified_at": "2026-10-30T20:53:35.112Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "pre-deploy-security-posture-v1-2026-10-30T20:53:35.112Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:f3c7036a787f4db0e8a4964cf13db7d1ee45bd16e82885cf0cdbe9568f27c798"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Pre-deploy posture of the 2.1.0 staging cut d10a7188..db376d8e: version bump and site copy only; no Worker, header, dependency, workflow or hardening change; hardening:verify 2/2; attack surface unchanged."
+      }
+    },
+    {
+      "id": "oc-security-auditor-pre-deploy-security-posture-v1-dc51d2ddbe30",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-30T22:28:08.375Z",
+      "verified_at": "2026-10-30T22:28:08.375Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "pre-deploy-security-posture-v1-2026-10-30T22:28:08.375Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:dc51d2ddbe30e2622b93fe3e99f64163024fa30c57e69d9b29987d50b3875666"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Pre-deploy posture of the merged 2.1.0 staging cut b7ef4350..ca157fea: static ow- distribution assets, ow-tools 1.3.1 provenance pins, marketplace ref v2.1.0; no Worker, header, dependency or hardening change; hardening:verify 2/2."
+      }
     }
   ],
   "latest_pre_deploy": {
@@ -518,8 +578,10 @@
     "blocking_findings": 0,
     "target": "staging from main"
   },
-  "record_updated_at": "2026-10-16T19:35:38.491Z",
+  "record_updated_at": "2026-10-30T22:28:08.376Z",
   "skill_state": {
-    "verified_for_sha": "e00f962357353e91b54e6874f6b2ac51508bcc45"
+    "verified_for_sha": "ca157feac110c90be1d124429f37974a2c88e02f",
+    "scope": "pre-deploy-delta",
+    "tier": "standard"
   }
 }

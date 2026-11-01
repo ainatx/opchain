@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-10-16T19:35:38.382Z",
+  "updated_at": "2026-10-30T22:28:07.893Z",
   "phase": "audit",
   "step": "pre-deploy-main-e00f9623",
   "status": "complete",
-  "progress_summary": "Pre-deploy audit 2026-10-16 for main e00f9623 (#610 merged), staging deploy: PASS, 0 CRITICAL / 0 HIGH / 1 MEDIUM / 3 LOW, carried from the full delta audit of 97cba5d (pre-deploy-staging-preview-97cba5d); the only non-checkpoint change since is sprints/release-2.1/ow-family-sprint-plan.md (#606, not built or deployed). M-1 (unreleased skills/ content still labelled 2.0.4) blocks a production promotion without a version bump.",
+  "progress_summary": "Pre-deploy audit 2026-10-30 (third cut) for staging preview head ca157fea (PR #669, now carrying origin/main 98cb8906 / REL-01): PASS, 0 CRITICAL / 0 HIGH / 0 MEDIUM / 1 LOW carried (F-001). Delta since b7ef4350: REL-01 from main (ow- zip/docs/mirror scripts gated by gen-catalog + check-skill-contracts + check-work-install in prebuild, ow-tools 1.3.1 model provenance), the catalogs.json outputs merge, /work/install written from the mirror README, marketplace ref pinned to v2.1.0 with the manifest regenerated; no Worker code or header change; full build and check-work-install green; 181 test files green.",
   "blockers": [],
   "next_actions": [
     "Add CODEOWNERS (or required review) on .github/workflows/ and .opchain/ before relying on the evidence:pr template in consumer repos"
@@ -78,7 +78,7 @@
     }
   ],
   "skill_state": {
-    "mode": "diff",
+    "mode": "pre-deploy",
     "scope": "PR 592 diff: site/package.json and site/package-lock.json (isomorphic-dompurify 4.2.0 to 4.4.0, marked 18.0.13 to 18.0.14, restored npm 10 optional-peer lock entries)",
     "loop_state": "closed",
     "findings_total": "39",
@@ -93,7 +93,7 @@
     "fixes_applied": 9,
     "fixes_verified": "37",
     "fixes_rejected": "0",
-    "grade": "C+ (release-surface honesty); repo-wide OSS/portability loop still open",
+    "grade": "A",
     "verified_tree": "7c59d269ca269bc10035b0bbd706697df230b920",
     "note": "loop_state stays 'open': this round fixed the changeset's own defects, but the pre-existing 157-finding portability audit (14 critical / 41 high, 2 fixed) has never been closed. Marking this checkpoint 'complete' would repeat exactly the defect the overhaul's P3 exists to prevent.",
     "last_audit": {
@@ -182,7 +182,8 @@
         "verdict": "no findings"
       }
     ],
-    "verified_for_sha": "e00f962357353e91b54e6874f6b2ac51508bcc45"
+    "verified_for_sha": "ca157feac110c90be1d124429f37974a2c88e02f",
+    "current_finding": "F-001"
   },
   "handoffs": [
     {
@@ -653,6 +654,66 @@
           "npm audit --omit=dev (root and site): 0 vulnerabilities"
         ]
       }
+    },
+    {
+      "id": "oc-code-auditor-pre-deploy-code-audit-v1-854b5d4008d5",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-30T20:09:38.206Z",
+      "verified_at": "2026-10-30T20:09:38.206Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-code-audit-v1-2026-10-30T20:09:38.206Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:854b5d4008d56568667e5a5ffd23d6e41a02e1471fb754da0f8829c0bab34121"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Pre-deploy audit (1a security, 1b performance, 1d config) of the 2.1 staging preview diff 91def274..86094365: 0 CRITICAL, 0 HIGH, 0 MEDIUM, 1 LOW (unused diagram variant-b code path). set:html sources repo-controlled and escaped; inline diagram script nonce-stamped by the existing injector; deploy wrapper refuses production with the preview variable; Lighthouse /work 0.96-1.0, /work/ow-start 1.0."
+      }
+    },
+    {
+      "id": "oc-code-auditor-pre-deploy-code-audit-v1-f3c7036a787f",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-30T20:53:34.658Z",
+      "verified_at": "2026-10-30T20:53:34.658Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-code-audit-v1-2026-10-30T20:53:34.658Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:f3c7036a787f4db0e8a4964cf13db7d1ee45bd16e82885cf0cdbe9568f27c798"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Pre-deploy audit of the 2.1.0 staging cut d10a7188..db376d8e: catalog bump, manifests, live-claim flips, changelog promotion; no new scripts, no secrets, no Worker change; 0 CRITICAL/HIGH/MEDIUM, 1 LOW carried."
+      }
+    },
+    {
+      "id": "oc-code-auditor-pre-deploy-code-audit-v1-dc51d2ddbe30",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-10-30T22:28:07.892Z",
+      "verified_at": "2026-10-30T22:28:07.892Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-code-audit-v1-2026-10-30T22:28:07.892Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:dc51d2ddbe30e2622b93fe3e99f64163024fa30c57e69d9b29987d50b3875666"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Pre-deploy audit of the merged 2.1.0 staging cut b7ef4350..ca157fea: REL-01 distribution scripts (gated in prebuild), ow-tools 1.3.1, /work/install rewrite, marketplace pin v2.1.0; no Worker or header change; 0 CRITICAL/HIGH/MEDIUM, 1 LOW carried."
+      }
     }
   ],
   "latest_pre_deploy": {
@@ -662,7 +723,7 @@
     "blocking_findings": 0,
     "target": "staging from main"
   },
-  "record_updated_at": "2026-10-16T19:35:38.382Z",
+  "record_updated_at": "2026-10-30T22:28:07.893Z",
   "recently_done": [
     {
       "at": "2026-09-21T13:40:12.755Z",

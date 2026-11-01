@@ -146,6 +146,11 @@ const ROUTES: RouteSpec[] = [
   // v1.6 "the instrumented pipeline": /dashboard renders the anonymized usage
   // aggregate + replays. Labeled sample data until a live export ships.
   { path: "/dashboard", h1: /instrumented pipeline/i, disabledRules: [COLOR_CONTRAST_DISABLE] },
+  // 2.1 opchain.work (WEB-02): the planning skills for client work. New pages,
+  // so they gate on the full rule set including colour contrast.
+  { path: "/work",          h1: /skills that follow a client job/i },
+  { path: "/work/ow-start", h1: /ow-start/ },
+  { path: "/work/install",  h1: /installing the planning skills/i },
 ];
 
 test.describe("routes render", () => {

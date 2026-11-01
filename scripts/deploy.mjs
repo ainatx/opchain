@@ -266,6 +266,39 @@ function assertNoHardeningOverrides() {
 }
 
 /**
+ * Release-preview denotation (owner decision 2026-10-30). When
+ * PUBLIC_OPCHAIN_RELEASE_PREVIEW is set in the deploy environment it reaches
+ * `astro build` the same way PUBLIC_POSTHOG_* does: as an inherited
+ * process.env variable that Vite exposes on import.meta.env at build time
+ * (site/src/data/release-preview.ts). The built site then shows the
+ * "<release> preview · staging" ribbon and a "<release> · ow|oc" tag on every
+ * changed surface. That chrome is for staging only, so a production deploy
+ * refuses while the variable is set; unset, the same source renders nothing.
+ */
+export function releasePreviewFor(env, { staging }) {
+  const value = String(env.PUBLIC_OPCHAIN_RELEASE_PREVIEW ?? "").trim();
+  if (!value) return { value: "", error: null };
+  if (!staging) {
+    return {
+      value,
+      error: `PUBLIC_OPCHAIN_RELEASE_PREVIEW=${value} is set: that renders the staging preview ribbon and tags. Unset it before deploying production.`,
+    };
+  }
+  return { value, error: null };
+}
+
+function assertReleasePreviewTarget() {
+  const preview = releasePreviewFor(process.env, { staging: STAGING });
+  if (preview.error) {
+    console.error(`[deploy:${TARGET}] ✗ REFUSING: ${preview.error}`);
+    process.exit(1);
+  }
+  if (preview.value) {
+    console.log(`[deploy:${TARGET}] release preview ${preview.value}: the build marks each changed surface and shows the preview ribbon (PUBLIC_OPCHAIN_RELEASE_PREVIEW reaches astro build through the environment)`);
+  }
+}
+
+/**
  * The newest deployment in a `wrangler deployments list --json` inventory and
  * its 100% version. Pure; throws on an inventory with no fully-active version.
  */
@@ -574,6 +607,7 @@ async function deploy() {
     console.log(`[deploy:${TARGET}] loaded ${loaded} var(s) from ${path.relative(REPO_ROOT, source)}`);
   }
   assertNoHardeningOverrides();
+  assertReleasePreviewTarget();
 
   // Client analytics are opt-in for self-hosters. The public opchain project key
   // is safe to expose in browser code, but must never be silently baked into a

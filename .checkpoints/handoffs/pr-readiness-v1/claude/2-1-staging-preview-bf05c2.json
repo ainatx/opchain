@@ -1,0 +1,20 @@
+{
+  "id": "oc-repo-ops-pr-readiness-v1-dc51d2ddbe30",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-10-30T21:52:11.378Z",
+  "verified_at": "2026-10-30T21:52:11.378Z",
+  "producer": {
+    "skill": "oc-repo-ops",
+    "run_id": "pr-readiness-v1-2026-10-30T21:52:11.378Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:dc51d2ddbe30e2622b93fe3e99f64163024fa30c57e69d9b29987d50b3875666"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-readiness-v1",
+    "scope": "Merged tree: npm test 181 files / 11439 green; full npm run build with the REL-01 prebuild (work zips, docs, check-work-install) green; check-release-surfaces v2.1; astro check clean; Playwright 128 passed; plugin mirror synced; ow-tools manifest regenerated; no untracked generated output"
+  }
+}

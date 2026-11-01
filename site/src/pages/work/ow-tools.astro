@@ -1,0 +1,104 @@
+---
+/**
+ * /work/ow-tools — the one code add-on for the ow- planning skills. Version
+ * read from plugins/ow-tools/.claude-plugin/plugin.json at build; parts and
+ * network facts from plugins/ow-tools/README.md. Release 2.1, WEB-02.
+ */
+import WorkPage from "../../layouts/WorkPage.astro";
+import Eyebrow from "../../components/ui/Eyebrow.astro";
+import Icon from "../../components/Icon.astro";
+import ReleaseTag from "../../components/ReleaseTag.astro";
+import owTools from "../../../../plugins/ow-tools/.claude-plugin/plugin.json";
+
+const version = owTools.version;
+const installCmd = `/plugin marketplace add https://raw.githubusercontent.com/asfbay-bit/opchain-skills/main/plugins/ow-tools/.claude-plugin/marketplace.json
+/plugin install ow-tools@opchain-work-tools`;
+
+const PARTS: Array<{ part: string; does: string; network: string; hot?: boolean }> = [
+  { part: "transcription", does: "A recorded call becomes a transcript with speakers separated, then confirmed by you.", network: "none: audio never leaves the machine" },
+  { part: "export", does: "Markdown to branded, accessible PDF, Word and PowerPoint, styled from your brand file; Excel from CSV with formulas kept.", network: "none" },
+  { part: "calc", does: "Dates, business days (with the US federal contract calendar), totals, payment splits and care hours, checked by a tool.", network: "none" },
+  { part: "digest", does: "The digest of a file or folder, in a form a shell one-liner reproduces.", network: "none" },
+  { part: "health", does: "Read-only monthly checks of what a client’s health.yaml lists: advisories, outdated packages, certificate and domain expiry, HTTP status, a backup’s age.", network: "yes: OSV, the npm registry, RDAP, a TLS handshake and an HTTP GET against the hosts you list; --no-network sends nothing", hot: true },
+  { part: "capture", does: "Screenshots of a running test environment from a plan, in your own Chrome on a separate profile per workstream. You sign in yourself.", network: "yes: the origins you list, and nothing else", hot: true },
+  { part: "scan-secrets", does: "A gitleaks scan of a repository’s committed history, in redacted form only: a path, a commit, a line and a rule id, never the matched text.", network: "none" },
+  { part: "session start", does: "Lists the open workstreams with their next step and anything overdue when a session starts; silent elsewhere.", network: "none" },
+  { part: "doctor", does: "/ow-tools says what your machine still needs and prints the command that fixes it. ow-tools installs nothing itself.", network: "none" },
+];
+
+const description = `ow-tools ${version}: the Claude Code add-on for the ow- planning skills. Runs code on your machine and says so: local transcription, document export, calc, digest, health, capture, a redacted secrets scan, a session-start list and a doctor.`;
+const jsonLd = {
+  "@type": "SoftwareApplication",
+  "@id": new URL("/work/ow-tools#software", Astro.site).toString(),
+  name: "ow-tools",
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "macOS, Linux",
+  description,
+  softwareVersion: version,
+  url: new URL("/work/ow-tools", Astro.site).toString(),
+  isPartOf: { "@id": new URL("/work#software", Astro.site).toString() },
+  publisher: { "@id": new URL("/#org", Astro.site).toString() },
+  isAccessibleForFree: true,
+};
+---
+
+<WorkPage title={`ow-tools ${version} · opchain.work`} description={description} route="/work/ow-tools" jsonLd={jsonLd}>
+  <a href="/work" class="back"><Icon name="arrow-left" size={12} /> all planning skills</a>
+  <div class="page-head">
+    <Eyebrow>opchain.work · Claude Code add-on</Eyebrow>
+    <h1>ow-tools <span class="ver">{version}</span> <ReleaseTag theme="ow" /></h1>
+  </div>
+  <p class="lede">
+    Optional code that runs on your machine and says so. The planning skills do their job without it: paste a transcript or notes, keep the Markdown as the document.
+    Version read from <code>plugins/ow-tools/.claude-plugin/plugin.json</code> at build time.
+  </p>
+
+  <div class="facts">
+    <div class="fact"><span class="fact-k">host</span><span class="fact-v">Claude Code only</span><span class="fact-note">a plugin from its own marketplace</span></div>
+    <div class="fact hot"><span class="fact-k">network</span><span class="fact-v">health, capture</span><span class="fact-note">only for what you list; every other part sends nothing</span></div>
+    <div class="fact"><span class="fact-k">audio</span><span class="fact-v">local</span><span class="fact-note">transcripts and recordings never leave the machine</span></div>
+    <div class="fact"><span class="fact-k">telemetry</span><span class="fact-v">none</span><span class="fact-note">no update check either</span></div>
+  </div>
+
+  <section aria-labelledby="parts-h">
+    <h2 id="parts-h">The nine parts</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">part</th><th scope="col">what it does</th><th scope="col">network</th></tr></thead>
+        <tbody>
+          {PARTS.map((p) => (
+            <tr>
+              <td>{p.hot ? <strong>{p.part}</strong> : p.part}</td>
+              <td>{p.does}</td>
+              <td>{p.hot ? <strong>{p.network}</strong> : p.network}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p>Every file it ships and every program it runs is listed in its <code>SECURITY-MANIFEST.md</code>. It never runs an installer, a package manager, <code>sudo</code> or a download; <code>/ow-tools</code> prints those for you to run.</p>
+  </section>
+
+  <section aria-labelledby="install-h">
+    <h2 id="install-h">Install</h2>
+    <pre class="codeblock" tabindex="0" role="region" aria-label="ow-tools install commands"><code>{installCmd}</code></pre>
+    <p>
+      Its own marketplace, <code>opchain-work-tools</code>, lists ow-tools only, so an administrator can approve it without approving anything else.
+      It ships two skills (<code>/ow-tools</code>, <code>/ow-start-transcribe</code>) and one SessionStart hook. Then run <code>/ow-tools</code>, the doctor, to see what your machine still needs.
+    </p>
+    <p>Built and tested on macOS (Apple Silicon). Linux gets the same checks with generic install hints. Windows is not supported.</p>
+  </section>
+
+  <section aria-labelledby="privacy-h">
+    <h2 id="privacy-h">What leaves the machine</h2>
+    <ul>
+      <li><strong>Audio and transcripts: nothing.</strong> The speaker model runs with its offline switches on and no token in its environment.</li>
+      <li><strong>health</strong> sends package names and versions to OSV and the npm registry, each listed domain to its RDAP server, a TLS handshake to each listed host and a GET to each listed URL. No cookie, no credential, no redirect followed, no private address. <code>--no-network</code> sends nothing at all.</li>
+      <li><strong>capture</strong> drives your browser to the origins the plan lists and blocks every other request the page makes. It never types into or reads a password or one-time-code field. A production session is wiped after the run.</li>
+      <li><strong>scan-secrets</strong> shows where a secret is, never the matched text, and reads the committed history through a private copy that is removed when the scan ends.</li>
+      <li>No telemetry, no update check. Exports leave out anything marked internal.</li>
+      <li><strong>Model provenance.</strong> The speaker model is fetched and loaded at one pinned revision, and the Whisper model&rsquo;s SHA-256 is checked before every transcription. The marketplace entry names the release tag from the first release that ships ow-tools, and the security manifest&rsquo;s hash is published apart from the mirror.</li>
+    </ul>
+    <p>The <a href="/security">security page</a> carries the same facts beside the rest of opchain’s posture; the <a href="/privacy">privacy page</a> says what the planning skills themselves send, which for six of the nine is nothing.</p>
+  </section>
+</WorkPage>

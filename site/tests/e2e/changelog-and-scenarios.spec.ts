@@ -65,11 +65,12 @@ test.describe("/changelog", () => {
     await expect(page.locator("#panel-coming")).toBeHidden();
     await expect(page.locator("#panel-planned")).toBeHidden();
 
-    // The newest release (v2.0) is the accent hero, open on load, tagged
-    // with its version range + a non-empty compatibility note (changelog-recipe rule).
-    const hero = page.locator("#v2-0.hero-card--released");
+    // The newest release (v2.1, staging preview cut 2026-10-30) is the accent
+    // hero, open on load, tagged with its version + a non-empty compatibility
+    // note (changelog-recipe rule).
+    const hero = page.locator("#v2-1.hero-card--released");
     await expect(hero).toBeVisible();
-    await expect(hero.locator(".hero-ver")).toContainText("v2.0.0 → v2.0.4");
+    await expect(hero.locator(".hero-ver")).toContainText("v2.1.0");
 
     // A patch never creates a new hero: v2.0.1/v2.0.2 share a compact rel-card,
     // and v2.0.3 and v2.0.4 get their own.
@@ -81,10 +82,13 @@ test.describe("/changelog", () => {
     await expect(hero.locator(".compat-box")).toBeVisible();
     await expect(hero.locator(".compat-box")).not.toBeEmpty();
 
-    // v1.8 remains in the panel as a collapsed previous-release hero.
-    const prev = page.locator("#v1-8.hero-card--released");
-    await expect(prev).toBeVisible();
-    await expect(prev.locator(".hero-head")).toHaveAttribute("aria-expanded", "false");
+    // v2.0 and v1.8 remain in the panel as collapsed previous-release heroes.
+    for (const id of ["#v2-0", "#v1-8"]) {
+      const prev = page.locator(`${id}.hero-card--released`);
+      await expect(prev).toBeVisible();
+      await expect(prev.locator(".hero-head")).toHaveAttribute("aria-expanded", "false");
+    }
+    await expect(page.locator("#v2-0 .hero-ver")).toContainText("v2.0.0 → v2.0.4");
 
     await expect(page.locator("#skill-install-portability")).toBeVisible();
     await expect(page.locator("#skill-install-portability .rc-title")).toHaveText(
@@ -102,29 +106,26 @@ test.describe("/changelog", () => {
       .toBeVisible();
   });
 
-  test("Coming Next holds v2.1 (direction set) and the 2.0 deep link opens its release", async ({ page }) => {
+  test("Coming Next holds v2.2 (direction set) and the 2.0 deep link opens its release", async ({ page }) => {
     await page.goto("/changelog#v2-0");
     await expect(page.locator("#panel-released #v2-0")).toBeVisible();
+    await expect(page.locator("#v2-0 [data-disclosure-toggle]")).toHaveAttribute("aria-expanded", "true");
     await page.locator("#tab-coming").click();
     await expect(page.locator("#panel-coming")).toBeVisible();
-    await expect(page.locator("#panel-coming #v2-1 .pc-timing")).toHaveText(/direction set/i);
-    // Two themes (owner, 2026-10-16): the ow- planning family and enforcement.
-    await expect(page.locator("#panel-coming #v2-1 .pc-title")).toHaveText(
-      "The ow- planning family + enforcement at chokepoints",
-    );
-    // Router release term 1: every router mention carries the label.
-    await page.locator("#panel-coming #v2-1 [data-disclosure-toggle]").click();
-    await expect(page.locator("#panel-coming #v2-1")).toContainText(/skill router/i);
-    await expect(page.locator("#panel-coming #v2-1")).toContainText(/experimental preview/i);
-    // Forward copy only: nothing on the card claims 2.1 shipped.
-    await expect(page.locator("#panel-coming #v2-1")).not.toContainText(/\bshipped\b/i);
-    await expect(page.locator("#panel-coming #v2-1 [data-vote-target]")).toHaveCount(0);
+    await expect(page.locator("#panel-coming #v2-2 .pc-timing")).toHaveText(/direction set/i);
+    await expect(page.locator("#panel-coming #v2-2 .pc-title")).toHaveText(/installs anywhere/i);
+    await expect(page.locator("#panel-coming #v2-2 [data-vote-target]")).toHaveCount(0);
+    // 2.1 shipped: its card is the released hero, not a Coming Next entry.
+    await expect(page.locator("#panel-coming #v2-1")).toHaveCount(0);
     await expect(page.locator("#panel-coming #v2-0")).toHaveCount(0);
+    // Router release term 1: every router mention on the hero carries the label.
+    await expect(page.locator("#panel-released #v2-1")).toContainText(/skill router/i);
+    await expect(page.locator("#panel-released #v2-1")).toContainText(/experimental preview/i);
   });
 
-  test("deep-link #v2-1 opens Coming Next and the v2.1 card", async ({ page }) => {
+  test("deep-link #v2-1 opens Just Released and the v2.1 hero", async ({ page }) => {
     await page.goto("/changelog#v2-1");
-    await expect(page.locator("#tab-coming")).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#tab-released")).toHaveAttribute("aria-selected", "true");
     await expect(page.locator("#v2-1 [data-disclosure-toggle]")).toHaveAttribute("aria-expanded", "true");
   });
 
@@ -147,9 +148,9 @@ test.describe("/changelog", () => {
     await expect(page.locator("#panel-planned #v2-1")).toHaveCount(0);
     // 2026-10-16: v2.2 is Installs anywhere + the OSS split, direction set and
     // not votable; the vote groups carry no release number ("later").
-    await expect(page.locator("#v2-2 .pc-title")).toHaveText(/installs anywhere/i);
-    await expect(page.locator("#v2-2 .pc-title")).toHaveText(/open-source split/i);
-    await expect(page.locator("#v2-2 .pc-timing")).toHaveText(/direction set/i);
+    // v2.2 is now the Coming Next card (2.1 shipped); Planned holds the later groups.
+    await expect(page.locator("#panel-coming #v2-2 .pc-title")).toHaveText(/open-source split/i);
+    await expect(page.locator("#panel-planned #v2-2")).toHaveCount(0);
     await expect(page.locator("#v2-2 [data-vote-target]")).toHaveCount(0);
     await expect(page.locator("#v2-3")).toHaveCount(0);
     await expect(page.locator("#agency-delivery .pc-title")).toHaveText(/agency and multi-project/i);
@@ -239,10 +240,10 @@ test.describe("/changelog", () => {
     ).toHaveAttribute("aria-expanded", "true");
   });
 
-  test("deep-link #v2-2 opens the Planned tab and the v2.2 card", async ({ page }) => {
+  test("deep-link #v2-2 opens the Coming Next tab and the v2.2 card", async ({ page }) => {
     await page.goto("/changelog#v2-2");
-    await expect(page.locator("#tab-planned")).toHaveAttribute("aria-selected", "true");
-    await expect(page.locator("#panel-planned")).toBeVisible();
+    await expect(page.locator("#tab-coming")).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#panel-coming")).toBeVisible();
     await expect(
       page.locator("#v2-2 [data-disclosure-toggle]"),
     ).toHaveAttribute("aria-expanded", "true");
@@ -250,7 +251,7 @@ test.describe("/changelog", () => {
 
   test("old deep-link #installs-anywhere lands on the v2.2 card", async ({ page }) => {
     await page.goto("/changelog#installs-anywhere");
-    await expect(page.locator("#tab-planned")).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#tab-coming")).toHaveAttribute("aria-selected", "true");
     await expect(
       page.locator("#v2-2 [data-disclosure-toggle]"),
     ).toHaveAttribute("aria-expanded", "true");

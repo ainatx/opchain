@@ -3,9 +3,9 @@
  * /changelog — Option C v2 layout: three full-width ARIA tabs, each with its
  * own colour identity, every section led by a rich card expanded on load.
  *
- *   Just Released → v2.0 open hero + v1.9 / v1.8 / v1.7 / v1.6 collapsed
+ *   Just Released → v2.1 open hero + v2.0 / v1.9 / v1.8 / v1.7 / v1.6 collapsed
  *                   heroes + compact release cards (patches and older).
- *   Coming Next   → v2.1 "The ow- planning family + enforcement at chokepoints"
+ *   Coming Next   → v2.2 "Installs anywhere + the open-source split" (direction set)
  *                   · direction set (#v2-1), not votable. The skill router is its
  *                   own item, labelled "experimental preview".
  *   Planned       → v2.2 "Installs anywhere + the open-source split" (#v2-2,
@@ -43,6 +43,9 @@
  */
 import Base from "../layouts/Base.astro";
 import RoadmapForm from "../components/RoadmapForm.astro";
+import ReleaseTag from "../components/ReleaseTag.astro";
+import type { PreviewTheme } from "../data/release-preview";
+import owTools from "../../../plugins/ow-tools/.claude-plugin/plugin.json";
 import { loadRoadmap, itemsForMilestoneNumber } from "../data/roadmap-types";
 
 const roadmap = loadRoadmap();
@@ -104,7 +107,7 @@ const v18Skills = [
 // renamed "later: …" on GitHub and milestone 4's issues move to v2.2
 // (track-s-site-surfaces.md, decision D2). v2.0 is NOT listed here: it
 // shipped (#v2-0, Just Released).
-type PlannedItem = { id?: string; title: string; blurb: string };
+type PlannedItem = { id?: string; title: string; blurb: string; preview?: PreviewTheme };
 type PlannedGroup = {
   version: string;
   id: string;
@@ -156,6 +159,13 @@ const plannedReleaseGroups: PlannedGroup[] = [
         title: "Focused execution, visible progress",
         blurb:
           "The unshipped session-clock work, scoped against current main: wall-clock actuals and visible checkpoint progress.",
+      },
+      {
+        // Owner decision Q1 (2026-10-29): the deferred ow- skills are named as 2.2.
+        title: "The rest of the ow- planning family",
+        blurb:
+          "Vendor evaluation, a standing control register with framework packs, and a currency watch, each at its own version, following the nine skills that ship in 2.1.",
+        preview: "ow",
       },
     ],
   },
@@ -217,7 +227,7 @@ const plannedReleaseGroups: PlannedGroup[] = [
           aria-selected="true"
           tabindex="0"
         >
-          Just Released <span class="tab-count">24 shipped</span>
+          Just Released <span class="tab-count">25 shipped</span>
         </button>
         <button
           class="tab-btn tab-btn--next"
@@ -227,7 +237,7 @@ const plannedReleaseGroups: PlannedGroup[] = [
           aria-selected="false"
           tabindex="-1"
         >
-          Coming Next <span class="tab-count">v2.1</span>
+          Coming Next <span class="tab-count">v2.2</span>
         </button>
         <button
           class="tab-btn tab-btn--planned"
@@ -237,7 +247,7 @@ const plannedReleaseGroups: PlannedGroup[] = [
           aria-selected="false"
           tabindex="-1"
         >
-          Planned <span class="tab-count">v2.2 → later</span>
+          Planned <span class="tab-count">later</span>
         </button>
       </div>
       <span class="tab-indicator" data-tab-indicator aria-hidden="true"></span>
@@ -256,11 +266,64 @@ const plannedReleaseGroups: PlannedGroup[] = [
         <span class="panel-sub">Latest release is open; patches and earlier releases expand in place.</span>
       </div>
 
-      <article class="hero-card hero-card--released is-open" id="v2-0" data-card>
+      <article class="hero-card hero-card--released is-open" id="v2-1" data-card>
         <button
           class="hero-head"
           type="button"
           aria-expanded="true"
+          aria-controls="v2-1-body"
+          data-disclosure-toggle
+        >
+          <span class="hero-chevron" aria-hidden="true">▶</span>
+          <span class="hero-badge">latest release</span>
+          <span class="hero-ver">v2.1.0 · shipped Oct 30, 2026</span>
+          <span class="hero-title">The ow- planning family + enforcement at chokepoints</span>
+          <span class="hero-desc">Two themes in one release: a family of planning skills for people who build software for clients, and a check at each place the dev pipeline&rsquo;s work goes through, so its handoffs hold. The skill router stays an experimental preview.</span>
+        </button>
+        <div class="card-body" id="v2-1-body" data-disclosure-body>
+          <div class="card-body-inner hero-body-inner">
+            <div class="tag-row"><span class="tag tag--info">released</span><span class="tag">36 oc- skills</span><span class="tag">9 ow- skills</span><span class="tag">ow-tools {owTools.version}</span><span class="tag tag--warn">router: experimental preview</span><ReleaseTag theme="ow" /><ReleaseTag theme="oc" /></div>
+            <p>The oc- catalog moves to 2.1.0 in lockstep. The ow- planning skills carry their own versions (1.0.0 and up) and live at <a href="/work">opchain.work</a>; they are not counted with the 36 oc- skills.</p>
+<h3>The ow- planning family, for client work</h3>
+            <p>Nine skills, text only and no code, that follow a client job from the first call to the handoff and the care after it, each at its own version from 1.0.0, plus one optional add-on. Three of them use the host&rsquo;s own web tools or a document connector, with its prompts on. They never invent a price, give legal advice or send anything without your confirmation. <ReleaseTag theme="ow" /></p>
+            <ul class="horizon-list">
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-start</span><p class="horizon-blurb">The 20-minute fit call: a one-page call guide before it, and a client recap with one recommended path after it, written from the transcript or your notes.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-build-plan</span><p class="horizon-blurb">The Build Plan and the fixed quote: a one-page offer, a process map, scope with acceptance checks, and a quote added up only from your own price book.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-build</span><p class="horizon-blurb">The client side of the build: a written update each week, a demo at each milestone, changes priced before they start, and payments.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-uat</span><p class="horizon-blurb">The acceptance test: the client&rsquo;s people try the build against what was agreed, in-scope problems are fixed, and the client signs off.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-documentation <ReleaseTag theme="ow" /></span><p class="horizon-blurb">The bought documentation and training line after sign-off: manuals, runbooks and sessions, exported through a connector after you confirm each file.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-handoff</span><p class="horizon-blurb">The handoff: documents, code and accounts in the client&rsquo;s name, the fix window, and the builder&rsquo;s access taken back out.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-care <ReleaseTag theme="ow" /></span><p class="horizon-blurb">Monthly care after a handoff, or after a takeover of someone else&rsquo;s build: what was checked, what changed, what it cost.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-research <span class="tag">cross-stage</span> <ReleaseTag theme="ow" /></span><p class="horizon-blurb">Research from sources it opened itself, through the host&rsquo;s own web tools, with every claim traced to a page it read.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-draft <span class="tag">cross-stage</span> <ReleaseTag theme="ow" /></span><p class="horizon-blurb">Drafts from evidence, exported and delivered after you confirm each file.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-tools (Claude Code add-on) <ReleaseTag theme="ow" /></span><p class="horizon-blurb">Optional code that runs on your machine and says so: local transcription, PDF, Word, PowerPoint and Excel export, screenshots of a test environment, read-only health checks, digests, date and hours arithmetic, a redacted secrets scan, and the open-work list at session start. Health checks and screenshots use the network, only for what you list; audio never leaves the machine. The skills do their job without it.</p></div></li>
+            </ul>
+            <h3>Enforcement at chokepoints</h3>
+            <p>A skill file can describe a handoff; only a check outside it can make the handoff hold. 2.1 puts that check where the work goes through (the commit, the push, the pull request, the deploy) and says which handoffs have none yet.</p>
+            <ul class="horizon-list">
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">A commit gate that says why</span><p class="horizon-blurb">A failing check prints its name, exit code and the end of its output. A timeout or a command-not-found exit is INCONCLUSIVE and missing dependencies are BLOCKED; neither counts as a FAIL.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Bypasses leave a record</span><p class="horizon-blurb">A commit with no PASS receipt, <code>--no-verify</code> included, is recorded, and a push refuses it until the commit carries an <code>Opchain-Bypass:</code> trailer saying who approved it and why.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Enrollment you can check</span><p class="horizon-blurb"><code>/oc-enroll --doctor</code> reports whether the gate will run in a repository; <code>--ci</code> adds a pull-request workflow that re-runs the checks; <code>--claude-md</code> writes the repository&rsquo;s verbs into <code>CLAUDE.md</code>.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">An enforcement map</span><p class="horizon-blurb">The shared orchestrator names the chokepoint and the mechanism for each handoff that must hold, and marks the ones nothing holds yet.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Deploy and release guards</span><p class="horizon-blurb">A deploy wrapper template that deploys staging only from the exact <code>main</code> and production only when asked, and a session-start reminder when a release merged without its tag. A breaking change for existing wrapper installs: production now requires <code>--prod</code>, and no environment variable selects it. <ReleaseTag theme="oc" /></p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Top navigation only</span><p class="horizon-blurb">The design skills fail a sidebar used as primary navigation unless the owner approved that one screen in writing.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title"><code>/oc-merge &lt;pr&gt;</code> <ReleaseTag theme="oc" /></span><p class="horizon-blurb">Merge a reviewed pull request, pinned to its head commit.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Evidence stored per branch <ReleaseTag theme="oc" /></span><p class="horizon-blurb">Pull-request evidence lives in each branch&rsquo;s own file, so sibling pull requests stop conflicting.</p></div></li>
+            </ul>
+            <h3>Experimental preview</h3>
+            <ul class="horizon-list">
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Skill router <span class="tag tag--warn">experimental preview</span></span><p class="horizon-blurb">An opt-in hook that asks TypeSafe&rsquo;s Jev model which opchain skill owns a request. It is off unless you set <code>TYPESAFE_API_KEY</code>; with a key it sends the redacted prompt and a short repository summary to <code>api.typesafe.ai</code> and only logs its answer on your machine. Showing the suggestion in your session (live mode) stays unsupported until a recorded go/no-go says otherwise.</p></div></li>
+            </ul>
+                        <div class="compat-box"><strong>Upgrading from 2.0:</strong> re-run <code>/oc-enroll</code> for the post-commit and pre-push hooks (<code>/oc-enroll --ci --force</code> refreshes the runtime and brings the per-branch evidence store). <strong>Breaking:</strong> the deploy wrapper needs <code>--prod</code> for production; no environment variable selects it. The router is off without a key. <a href="/install#update">Upgrade notes</a> · <a href="/work">opchain.work</a> · <a href="/security#ow-tools">ow-tools security</a></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="hero-card hero-card--released" id="v2-0" data-card>
+        <button
+          class="hero-head"
+          type="button"
+          aria-expanded="false"
           aria-controls="v2-0-body"
           data-disclosure-toggle
         >
@@ -270,7 +333,7 @@ const plannedReleaseGroups: PlannedGroup[] = [
           <span class="hero-title">The self-improving pipeline</span>
           <span class="hero-desc">A shared runtime for updates, saved progress, local tracking and reviewed learning.</span>
         </button>
-        <div class="card-body" id="v2-0-body" data-disclosure-body>
+        <div class="card-body" id="v2-0-body" data-disclosure-body inert>
           <div class="card-body-inner hero-body-inner">
             <div class="tag-row"><span class="tag tag--info">released</span><span class="tag">36 skills</span><span class="tag">16 plugin commands</span><span class="tag">shared runtime</span></div>
             <p>2.0 adds an updater, Hindsight and Evolve to the current skills. The release combines the recent reliability fixes with the Slate and Emerald design.</p>
@@ -1203,53 +1266,32 @@ const plannedReleaseGroups: PlannedGroup[] = [
         <span class="panel-sub">The next release's direction is set.</span>
       </div>
 
-      <!-- v2.1 direction set (owner decisions 2026-10-16): one release, two themes — the ow-
-           planning family for client work, and enforcement at chokepoints. Hand-written, not
-           votable, forward copy only: it says what 2.1 is planned to contain and claims nothing
-           shipped. The skill router is its own item under "Experimental preview" and follows the
-           router release terms (label; no effectiveness claim; live mode unsupported until a GO).
-           Rewrite against the merged release diff when 2.1 is promoted to the open hero at the
-           cut (RELEASING.md §4 rule 5). Plan: sprints/release-2.1/track-s-site-surfaces.md.
-           v2.0 shipped; deep-link #v2-0. -->
-      <article class="plan-card" id="v2-1" data-card>
-        <button class="pc-row" type="button" aria-expanded="false" aria-controls="v2-1-body" data-disclosure-toggle>
-          <span class="pc-toggle" aria-hidden="true">▶</span>
-          <span class="pc-meta">
-            <span class="pc-head"><span class="ver-pill ver-pill--next">v2.1</span><span class="pc-title">The ow- planning family + enforcement at chokepoints</span><span class="pc-timing">direction set</span></span>
-            <span class="pc-summary">Two themes in one release: a family of planning skills for people who build software for clients, and a check at each place the dev pipeline&rsquo;s work goes through, so its handoffs hold. The skill router comes as an experimental preview.</span>
-          </span>
-        </button>
-        <div class="card-body" id="v2-1-body" data-disclosure-body inert>
-          <div class="card-body-inner">
-            <div class="tag-row"><span class="tag tag--info">direction set</span><span class="tag">client-work planning</span><span class="tag">enforcement</span><span class="tag tag--warn">router: experimental preview</span></div>
-            <h3>The ow- planning family, for client work</h3>
-            <p>Five text-only skills that follow a client job from the first call to the handoff, each at its own version from 1.0.0, plus one optional add-on. They never invent a price, give legal advice or send anything for you.</p>
-            <ul class="horizon-list">
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-start</span><p class="horizon-blurb">The 20-minute fit call: a one-page call guide before it, and a client recap with one recommended path after it, written from the transcript or your notes.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-build-plan</span><p class="horizon-blurb">The Build Plan and the fixed quote: a one-page offer, a process map, scope with acceptance checks, and a quote added up only from your own price book.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-build</span><p class="horizon-blurb">The client side of the build: a written update each week, a demo at each milestone, changes priced before they start, and payments.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-uat</span><p class="horizon-blurb">The acceptance test: the client&rsquo;s people try the build against what was agreed, in-scope problems are fixed, and the client signs off.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-handoff</span><p class="horizon-blurb">The handoff: documents, code and accounts in the client&rsquo;s name, the fix window, and the builder&rsquo;s access taken back out.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-tools (Claude Code add-on)</span><p class="horizon-blurb">Optional code that runs on your machine and says so: local transcription, PDF and Word export, a reminder of open work at session start, and a secrets scan that never prints a match. The skills do their job without it.</p></div></li>
-            </ul>
-            <h3>Enforcement at chokepoints</h3>
-            <p>A skill file can describe a handoff; only a check outside it can make the handoff hold. 2.1 puts that check where the work goes through (the commit, the push, the pull request, the deploy) and says which handoffs have none yet.</p>
-            <ul class="horizon-list">
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">A commit gate that says why</span><p class="horizon-blurb">A failing check prints its name, exit code and the end of its output. A timeout or a command-not-found exit is INCONCLUSIVE and missing dependencies are BLOCKED; neither counts as a FAIL.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Bypasses leave a record</span><p class="horizon-blurb">A commit with no PASS receipt, <code>--no-verify</code> included, is recorded, and a push refuses it until the commit carries an <code>Opchain-Bypass:</code> trailer saying who approved it and why.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Enrollment you can check</span><p class="horizon-blurb"><code>/oc-enroll --doctor</code> reports whether the gate will run in a repository; <code>--ci</code> adds a pull-request workflow that re-runs the checks; <code>--claude-md</code> writes the repository&rsquo;s verbs into <code>CLAUDE.md</code>.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">An enforcement map</span><p class="horizon-blurb">The shared orchestrator names the chokepoint and the mechanism for each handoff that must hold, and marks the ones nothing holds yet.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Deploy and release guards</span><p class="horizon-blurb">A deploy wrapper template that deploys staging only from the exact <code>main</code> and production only when asked, and a session-start reminder when a release merged without its tag.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Top navigation only</span><p class="horizon-blurb">The design skills fail a sidebar used as primary navigation unless the owner approved that one screen in writing.</p></div></li>
-            </ul>
-            <h3>Experimental preview</h3>
-            <ul class="horizon-list">
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Skill router <span class="tag tag--warn">experimental preview</span></span><p class="horizon-blurb">An opt-in hook that asks TypeSafe&rsquo;s Jev model which opchain skill owns a request. It is off unless you set <code>TYPESAFE_API_KEY</code>; with a key it sends the redacted prompt and a short repository summary to <code>api.typesafe.ai</code> and only logs its answer on your machine. Showing the suggestion in your session (live mode) stays unsupported until a recorded go/no-go says otherwise.</p></div></li>
-            </ul>
-            <div class="planned-box">Direction set by the maintainer on 2026-10-16. This card is the plan, not the release notes; the notes will list what the release contains. Installs anywhere and the open-source split moved to 2.2 (see Planned).</div>
+      <!-- 2.1 shipped 2026-10-30 (hero above). The next release's direction card
+           is the first entry of plannedReleaseGroups (v2.2, not votable); the
+           votable "later" groups stay under Planned. -->
+      {plannedReleaseGroups.filter((g) => g.id === "v2-2").map((group) => (
+        <article class="plan-card" id={group.id} data-card>
+          <button class="pc-row" type="button" aria-expanded="false" aria-controls={`${group.id}-body`} data-disclosure-toggle>
+            <span class="pc-toggle" aria-hidden="true">▶</span>
+            <span class="pc-meta">
+              <span class="pc-head"><span class="ver-pill ver-pill--next">{group.version}</span><span class="pc-title">{group.title}</span><span class="pc-timing">{group.timing}</span></span>
+              <span class="pc-summary">{group.summary}</span>
+            </span>
+          </button>
+          <div class="card-body" id={`${group.id}-body`} data-disclosure-body inert>
+            <div class="card-body-inner">
+              <div class="tag-row"><span class="tag tag--info">{group.timing}</span><span class="tag">{group.items.length} items</span></div>
+              <p>{group.summary}</p>
+              <ul class="horizon-list">
+                {group.items.map((h) => (
+                  <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">{h.title}{h.preview && <ReleaseTag theme={h.preview} />}</span><p class="horizon-blurb">{h.blurb}</p></div></li>
+                ))}
+              </ul>
+              {group.note && <div class="planned-box">{group.note}</div>}
+            </div>
           </div>
-        </div>
-      </article>
+        </article>
+      ))}
     </section>
 
     <!-- ══ PANEL 2 — PLANNED ═════════════════════════════════ -->
@@ -1266,7 +1308,7 @@ const plannedReleaseGroups: PlannedGroup[] = [
         <span class="panel-sub">The maintainer sets each release’s direction; votes on the later candidates are advisory.</span>
       </div>
 
-      {plannedReleaseGroups.map((group) => (
+      {plannedReleaseGroups.filter((g) => g.id !== "v2-2").map((group) => (
         <article class:list={["plan-card"]} id={group.id} data-card>
           <button class="pc-row" type="button" aria-expanded="false" aria-controls={`${group.id}-body`} data-disclosure-toggle>
             <span class="pc-toggle" aria-hidden="true">▶</span>
@@ -1284,7 +1326,7 @@ const plannedReleaseGroups: PlannedGroup[] = [
                   {group.items.map((h) => (
                     <li class="horizon-item">
                       <div class="horizon-meta">
-                        <span class="horizon-title">{h.title}</span>
+                        <span class="horizon-title">{h.title}{h.preview && <ReleaseTag theme={h.preview} />}</span>
                         <p class="horizon-blurb">{h.blurb}</p>
                       </div>
                       {group.votable && h.id && (

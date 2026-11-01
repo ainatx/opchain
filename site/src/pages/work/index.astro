@@ -1,0 +1,150 @@
+---
+/**
+ * /work — opchain.work, the planning skills for client work (release 2.1,
+ * WEB-02). Nine ow- skills on a stage rail, the two cross-stage skills, where
+ * they run, the words we use, and a version table read from each SKILL.md.
+ * Facts come from the `work` collection and skill.edges.yaml (lib/work.ts);
+ * copy from data/work.ts. The ow- catalog is never counted with the oc- one.
+ */
+import WorkPage from "../../layouts/WorkPage.astro";
+import Eyebrow from "../../components/ui/Eyebrow.astro";
+import ReleaseTag from "../../components/ReleaseTag.astro";
+import WorkArchitecture from "../../components/WorkArchitecture.astro";
+import MobileWorkArchitecture from "../../components/MobileWorkArchitecture.astro";
+import { getAllWorkSkills, stageOf } from "../../lib/work";
+import { HOSTS, NEVER, NEXT_RELEASE_LINE, STAGES, WORDS, WORK_SKILLS } from "../../data/work";
+import owTools from "../../../../plugins/ow-tools/.claude-plugin/plugin.json";
+
+const skills = await getAllWorkSkills();
+const onRail = STAGES.filter((s) => s.ordinal !== null).map((s) => ({
+  stage: s,
+  skill: skills.find((k) => WORK_SKILLS[k.data.name]?.stage === s.key),
+}));
+const crossStage = skills.filter((k) => WORK_SKILLS[k.data.name]?.stage === "cross-stage");
+const connected = skills.filter((k) => k.data.metadata.network === "declared");
+const sendNothing = skills.length - connected.length;
+const count = skills.length;
+const WORDS_FOR_COUNT: Record<number, string> = { 7: "Seven", 8: "Eight", 9: "Nine", 10: "Ten" };
+const countWord = WORDS_FOR_COUNT[count] ?? String(count);
+const SMALL: Record<number, string> = { 1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight", 9: "nine" };
+const cap = (w: string) => w.replace(/^./, (c) => c.toUpperCase());
+const joinNames = (ids: string[]) => ids.length <= 1 ? ids.join("") : `${ids.slice(0, -1).join(", ")} and ${ids[ids.length - 1]}`;
+
+const description = `opchain.work: ${count} text-only planning skills that follow a client job from the fit call to the care after handoff, plus the optional ow-tools add-on. Claude Code and claude.ai.`;
+const jsonLd = {
+  "@type": "SoftwareApplication",
+  "@id": new URL("/work#software", Astro.site).toString(),
+  name: "opchain.work",
+  applicationCategory: "BusinessApplication",
+  description,
+  url: new URL("/work", Astro.site).toString(),
+  publisher: { "@id": new URL("/#org", Astro.site).toString() },
+  isAccessibleForFree: true,
+  hasPart: skills.map((k) => ({ "@id": new URL(`/work/${k.data.name}#software`, Astro.site).toString() })),
+};
+---
+
+<WorkPage title="opchain.work · planning skills for client work" description={description} route="/work" jsonLd={jsonLd}>
+  <div class="page-head">
+    <Eyebrow>opchain.work · planning skills for client work</Eyebrow>
+    <h1>{countWord} skills that follow a client job from the first call to the care after handoff <ReleaseTag theme="ow" /></h1>
+  </div>
+  <p class="lede">
+    Text only, no code. They run in Claude Code and from a claude.ai upload; other hosts are untested.
+    {cap(SMALL[sendNothing] ?? String(sendNothing))} send nothing anywhere.
+    {cap(SMALL[connected.length] ?? String(connected.length))} ({joinNames(connected.map((k) => k.data.name))}) may use the host’s own web tools or a document connector, with the host’s permission prompts on.
+    None invents a price, gives legal advice or sends anything without your confirmation.
+  </p>
+
+  <nav class="toc" aria-label="On this page">
+    <a href="#stages">stages</a>
+    <a href="#architecture">architecture</a>
+    <a href="#hosts">where they run</a>
+    <a href="#never">what they never do</a>
+    <a href="#words">words we use</a>
+    <a href="#versions">versions</a>
+  </nav>
+
+  <section id="stages" aria-labelledby="stages-h">
+    <h2 id="stages-h">The stages <ReleaseTag theme="ow" /></h2>
+    <div class="stage">
+      {onRail.map(({ stage, skill }) => skill && (
+        <a class="st" href={`/work/${skill.data.name}`}>
+          <span class="st-k">{stage.ordinal} · {stage.label}</span>
+          <span class="st-id">{skill.data.name}</span>
+          <span class="st-w">{WORK_SKILLS[skill.data.name]?.short ?? stage.short}</span>
+        </a>
+      ))}
+    </div>
+    <div class="stage cross">
+      {crossStage.map((skill) => (
+        <a class="st" href={`/work/${skill.data.name}`}>
+          <span class="st-k">cross-stage</span>
+          <span class="st-id">{skill.data.name}</span>
+          <span class="st-w">{WORK_SKILLS[skill.data.name]?.short}{skill.data.metadata.network === "declared" && " · network: declared"}</span>
+        </a>
+      ))}
+    </div>
+    <p class="note">
+      Care has two ways in: after a handoff, or as a takeover of someone else’s build, which starts at the fit call and is priced as a fixed-fee onboarding review by the Build Plan skill.
+      The optional <a href="/work/ow-tools">ow-tools</a> add-on ({owTools.version}, Claude Code only) runs code on your machine and says so; the skills do their job without it.
+    </p>
+  </section>
+
+  <section id="architecture" class="work-wide" aria-labelledby="architecture-h">
+    <h2 id="architecture-h">Architecture <ReleaseTag theme="ow" /></h2>
+    <p>Each card is a skill; each line is a hand-off read from the skills’ own edge files. Hover or focus a band for its detail.</p>
+    <WorkArchitecture />
+    <MobileWorkArchitecture />
+  </section>
+
+  <section id="hosts" aria-labelledby="hosts-h">
+    <h2 id="hosts-h">Where they run <ReleaseTag theme="ow" /></h2>
+    <div class="two">
+      {HOSTS.map((h) => (
+        <div class="box"><strong>{h.host}</strong><br />{h.note}</div>
+      ))}
+    </div>
+  </section>
+
+  <section id="never" aria-labelledby="never-h">
+    <h2 id="never-h">What they never do <ReleaseTag theme="ow" /></h2>
+    <ul>{NEVER.map((n) => <li>{n}</li>)}</ul>
+  </section>
+
+  <section id="words" aria-labelledby="words-h">
+    <h2 id="words-h">Words we use <ReleaseTag theme="ow" /></h2>
+    <dl class="words">
+      {WORDS.map((w) => (<><dt>{w.term}</dt><dd>{w.def}</dd></>))}
+    </dl>
+  </section>
+
+  <section id="versions" aria-labelledby="versions-h">
+    <h2 id="versions-h">Versions <ReleaseTag theme="ow" /></h2>
+    <p>Each skill has its own version, read from its <code>SKILL.md</code> at build time. The three <strong>declared</strong> rows are the skills whose text names the host’s web tools or a connector.</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">skill</th><th scope="col">stage</th><th scope="col">network</th><th scope="col">bundle</th><th scope="col" class="num">version</th></tr></thead>
+        <tbody>
+          {skills.map((k) => (
+            <tr>
+              <td><a href={`/work/${k.data.name}`}><code>{k.data.name}</code></a></td>
+              <td>{stageOf(k.data.name).label}</td>
+              <td>{k.data.metadata.network === "declared" ? <strong>declared</strong> : k.data.metadata.network}</td>
+              <td>{k.data.metadata.bundle}</td>
+              <td class="num"><span class="ver">{k.data.metadata.version}</span></td>
+            </tr>
+          ))}
+          <tr>
+            <td><a href="/work/ow-tools"><code>ow-tools</code></a> <span class="fact-note">Claude Code add-on</span></td>
+            <td>any</td>
+            <td>health and capture only</td>
+            <td>plugin</td>
+            <td class="num"><span class="ver">{owTools.version}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">{NEXT_RELEASE_LINE} <ReleaseTag theme="ow" /></p>
+  </section>
+</WorkPage>
