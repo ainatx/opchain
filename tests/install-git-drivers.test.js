@@ -89,6 +89,9 @@ const common = isAbsolute(commonValue) ? commonValue : join(repo, commonValue);
 const receipts = join(common, "opchain", "test-receipts");
 const records = join(common, "opchain", "bypasses", "v1");
 const hasReceipt = (tree) => existsSync(join(receipts, tree));
+// A marker's text is the receipt verdict (empty = PASS), as a real receipt store
+// holds PASS_SUPERSEDED for a tree gated by an earlier gate build.
+const receiptOf = (tree) => hasReceipt(tree) ? (readFileSync(join(receipts, tree), "utf8").trim() || "PASS") : "none";
 const trailerOf = (sha) => Boolean(g("log", "-1", "--format=%(trailers:key=Opchain-Bypass,valueonly)", sha))
   || /^bypassed\\s*\\(\\s*\\S/i.test(g("log", "-1", "--format=%(trailers:key=bugcheck,valueonly)", sha));
 const readRecord = (sha) => { try { return JSON.parse(readFileSync(join(records, sha + ".json"), "utf8")); } catch { return null; } };
@@ -118,7 +121,7 @@ if (action === "bypass-list") {
     const record = join(records, commit + ".json");
     const original = (readRecord(commit) || {}).rewritten_from;
     const rewrite = Boolean(original) && (hasReceipt(g("rev-parse", original + "^{tree}")) || trailerOf(original));
-    return { commit, tree, receipt: hasReceipt(tree) ? "PASS" : "none", bypassRecord: existsSync(record), trailer: trailerOf(commit), rewrite };
+    return { commit, tree, receipt: receiptOf(tree), bypassRecord: existsSync(record), trailer: trailerOf(commit), rewrite };
   });
   process.stdout.write(JSON.stringify(out));
   process.exit(0);
@@ -516,6 +519,28 @@ describe("the pre-push hook", () => {
     const allowed = push(["main"]);
     expect(allowed.status, allowed.stderr).toBe(0);
     expect(git(remote, "rev-parse", "main")).toBe(git(repo, "rev-parse", "HEAD"));
+  });
+
+  it("allows a commit whose PASS receipt came from an earlier gate build (PASS_SUPERSEDED)", { timeout: 60_000 }, () => {
+    enrollWithRemote();
+    expect(commit(repo, "gated under the old runtime").status).toBe(0);
+    const sha = git(repo, "rev-parse", "HEAD");
+    // The runtime moved on after the commit: the receipt no longer matches
+    // today's gate exactly, but it is bound to this tree and its policy.
+    const markers = join(repo, ".git", "opchain", "test-receipts");
+    writeFileSync(join(markers, git(repo, "rev-parse", `${sha}^{tree}`)), "PASS_SUPERSEDED\n");
+    const pushed = push(["main"]);
+    expect(pushed.status, pushed.stderr).toBe(0);
+    expect(pushed.stderr).not.toContain("REFUSED");
+    expect(git(remote, "rev-parse", "main")).toBe(sha);
+    // PASS_UNMATCHED (another policy's PASS) is still refused.
+    expect(commit(repo, "weakly gated").status).toBe(0);
+    const weak = git(repo, "rev-parse", "HEAD");
+    writeFileSync(join(markers, git(repo, "rev-parse", `${weak}^{tree}`)), "PASS_UNMATCHED\n");
+    const refused = push(["main"]);
+    expect(refused.status).not.toBe(0);
+    expect(refused.stderr).toContain("REFUSED");
+    expect(refused.stderr).toContain(weak.slice(0, 7));
   });
 
   it("lets OPCHAIN_PUSH_BYPASS=1 through with a warning that names the commits", { timeout: 60_000 }, () => {

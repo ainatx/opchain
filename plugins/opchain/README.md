@@ -136,6 +136,9 @@ the reason text in its record proves nothing. If the outgoing range can't be
 computed (for example, a force-push over remote commits this clone never
 fetched), the push is refused. `OPCHAIN_PUSH_BYPASS=1 git push …` is the loud escape hatch: it prints
 what it let through. History that predates enrollment needs it once.
+A PASS receipt an earlier gate build wrote still covers its commit (`PASS_SUPERSEDED`:
+the same tree and the same `.bugcheck.json` digest, required checks including today's),
+so a verifier or policy update does not relabel gated history as bypasses.
 `evidence:pr` lists the same commits in the PR gate, so the count survives the
 squash merge that discards the local checkpoint.
 
