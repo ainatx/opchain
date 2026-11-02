@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-10-30T22:28:07.893Z",
+  "updated_at": "2026-11-02T22:27:49.666Z",
   "phase": "audit",
   "step": "pre-deploy-main-e00f9623",
   "status": "complete",
-  "progress_summary": "Pre-deploy audit 2026-10-30 (third cut) for staging preview head ca157fea (PR #669, now carrying origin/main 98cb8906 / REL-01): PASS, 0 CRITICAL / 0 HIGH / 0 MEDIUM / 1 LOW carried (F-001). Delta since b7ef4350: REL-01 from main (ow- zip/docs/mirror scripts gated by gen-catalog + check-skill-contracts + check-work-install in prebuild, ow-tools 1.3.1 model provenance), the catalogs.json outputs merge, /work/install written from the mirror README, marketplace ref pinned to v2.1.0 with the manifest regenerated; no Worker code or header change; full build and check-work-install green; 181 test files green.",
+  "progress_summary": "Pre-deploy audit 2026-11-02 (fourth cut) for staging preview head cb8b857a (PR #669, now carrying origin/main d7e1bf24 / #672): PASS, 0 CRITICAL / 0 HIGH / 0 MEDIUM / 1 LOW carried (F-001). Delta since d30a6b97 is #672 from main (gate PASS_SUPERSEDED fix in the plugin runtime scripts, no Worker or site change) plus the recomputed oc-bug-check scan digests; gate PASS on the merge; hardening:verify 2/2.",
   "blockers": [],
   "next_actions": [
     "Add CODEOWNERS (or required review) on .github/workflows/ and .opchain/ before relying on the evidence:pr template in consumer repos"
@@ -182,7 +182,7 @@
         "verdict": "no findings"
       }
     ],
-    "verified_for_sha": "ca157feac110c90be1d124429f37974a2c88e02f",
+    "verified_for_sha": "cb8b857a67ef0ab601cd5935e81d6ef5f27dc903",
     "current_finding": "F-001"
   },
   "handoffs": [
@@ -714,6 +714,26 @@
         "policy": "pre-deploy-code-audit-v1",
         "scope": "Pre-deploy audit of the merged 2.1.0 staging cut b7ef4350..ca157fea: REL-01 distribution scripts (gated in prebuild), ow-tools 1.3.1, /work/install rewrite, marketplace pin v2.1.0; no Worker or header change; 0 CRITICAL/HIGH/MEDIUM, 1 LOW carried."
       }
+    },
+    {
+      "id": "oc-code-auditor-pre-deploy-code-audit-v1-75704351fd85",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-11-02T22:27:49.665Z",
+      "verified_at": "2026-11-02T22:27:49.665Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-code-audit-v1-2026-11-02T22:27:49.665Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:75704351fd8599ecc90dc3565eb8302b438333fcccb6b57f64a2ea26654f2357"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Pre-deploy audit of the staging cut d30a6b97..cb8b857a: #672 gate fix merged, bugcheck digests recomputed; no Worker, site or header change; 0 CRITICAL/HIGH/MEDIUM, 1 LOW carried."
+      }
     }
   ],
   "latest_pre_deploy": {
@@ -723,7 +743,7 @@
     "blocking_findings": 0,
     "target": "staging from main"
   },
-  "record_updated_at": "2026-10-30T22:28:07.893Z",
+  "record_updated_at": "2026-11-02T22:27:49.666Z",
   "recently_done": [
     {
       "at": "2026-09-21T13:40:12.755Z",
