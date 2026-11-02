@@ -1,23 +1,23 @@
 {
-  "id": "oc-repo-ops-pr-readiness-v1-eb700c55662a",
+  "id": "oc-repo-ops-pr-readiness-v1-5649a9d4d80f",
   "contract_version": "1.0",
   "type": "verification.verdict",
-  "created_at": "2026-11-01T16:53:41.035Z",
-  "verified_at": "2026-11-01T16:53:41.035Z",
+  "created_at": "2026-11-02T22:25:24.150Z",
+  "verified_at": "2026-11-02T22:25:24.150Z",
   "producer": {
     "skill": "oc-repo-ops",
-    "run_id": "pr-readiness-v1-2026-11-01T16:53:41.035Z"
+    "run_id": "pr-readiness-v1-2026-11-02T22:25:24.150Z"
   },
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:eb700c55662ab26cb4d51892f4b441d7387739c25c3c6147d06eac99156cd04b"
+    "id": "sha256:5649a9d4d80f0a82c30d5d95f32c35e1040a1d731479fbb66336b3e453ec9bf1"
   },
   "payload": {
     "verdict": "PASS",
     "policy": "pr-readiness-v1",
-    "scope": "release v2.1.0 (Client work and enforcement): skills/CHANGELOG.md [2.1.0] with the ow- family entry, lockstep bump 2.0.4->2.1.0 (36 SKILL.md + plugins/opchain/skills mirror, release-seal.json, server.json, .claude-plugin/marketplace.json, plugins/opchain/.claude-plugin/plugin.json, plugins/ow-tools marketplace ref v2.1.0), live-claim site surfaces (Header, index, skills/index, changelog #v2-1 hero, styleguide, architecture + mobile), README/mirror/plugin README leading lines, CLAUDE.md, PR #669 branch (/work section, ReleaseTag preview chrome, security/privacy ow- sections) and PR #620 branch (EnforcementMap, RouterLabel, router-status.ts, install/security/privacy/glossary enforcement copy, router-label e2e, draft blog post) merged, docs/plans/2026-11-01-v2.1.0-release-notes-draft.md, .checkpoints/oc-release-ops",
+    "scope": "release v2.1.0 (Client work and enforcement): skills/CHANGELOG.md [2.1.0] with the ow- family entry, lockstep bump 2.0.4->2.1.0 (36 SKILL.md + plugins/opchain/skills mirror, release-seal.json, server.json, .claude-plugin/marketplace.json, plugins/opchain/.claude-plugin/plugin.json, plugins/ow-tools marketplace ref v2.1.0), live-claim site surfaces (Header, index, skills/index, changelog #v2-1 hero, styleguide, architecture + mobile), README/mirror/plugin README leading lines, CLAUDE.md, PR #669 branch (/work section, ReleaseTag preview chrome, security/privacy ow- sections) and PR #620 branch (EnforcementMap, RouterLabel, router-status.ts, install/security/privacy/glossary enforcement copy, router-label e2e, draft blog post) merged, docs/plans/2026-11-01-v2.1.0-release-notes-draft.md, .checkpoints/oc-release-ops; main d7e1bf24 (#672 PASS_SUPERSEDED gate fix) merged in at f3be208d with .bugcheck.json oc-bug-check digests recomputed for the merged SKILL.md",
     "evidence": [
-      "Generated files current: sync-bundles:check and sync-plugin-skills:check pass; gen-catalog validates 36 oc- + 9 ow- skills; check-skill-contracts, gen-route-spec:check, gen-mcp-catalog, validate-pm-mcp pass in the prebuild chain; npm run build (full prebuild incl. ow- zips, docs tree, check-work-install) exits 0; .claude/skills symlinks clean; checkpoint:validate passes; check-release-surfaces PASS; check-release-tag reports version 2.1.0 reason missing-tag (expected pre-tag). No orphaned artifacts: public/, site/dist, site/src/data/roadmap.json and site/src/lib/flags/registry.ts stay gitignored; release-preview.json is not in the tree. Working tree clean at 3bd88118. .checkpoints/handoffs pruned to this branch's two files."
+      "Generated files current on the merged tree f3be208d: sync-bundles:check, sync-plugin-skills:check and gen-route-spec:check pass (36 skills, 9 jev uses); check-release-surfaces PASS (v2.1 / 2.1.0, /work probes clean); check-release-tag reports version 2.1.0 reason missing-tag (expected pre-tag); .bugcheck.json scan_exceptions digests recomputed to the merged skills/oc-bug-check/SKILL.md and plugin mirror (sha256 84760f2c...), and the enrolled commit gate verified the merge candidate 43edad9573ed PASS (full vitest). No orphaned artifacts: public/, site/dist, roadmap.json and flags/registry.ts stay gitignored; release-preview.json is not in the tree. .checkpoints/handoffs pruned to this branch's two files."
     ]
   }
 }

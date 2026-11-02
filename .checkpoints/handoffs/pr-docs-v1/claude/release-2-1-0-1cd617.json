@@ -1,23 +1,23 @@
 {
-  "id": "oc-docs-forge-pr-docs-v1-eb700c55662a",
+  "id": "oc-docs-forge-pr-docs-v1-5649a9d4d80f",
   "contract_version": "1.0",
   "type": "verification.verdict",
-  "created_at": "2026-11-01T16:53:40.834Z",
-  "verified_at": "2026-11-01T16:53:40.834Z",
+  "created_at": "2026-11-02T22:25:23.951Z",
+  "verified_at": "2026-11-02T22:25:23.951Z",
   "producer": {
     "skill": "oc-docs-forge",
-    "run_id": "pr-docs-v1-2026-11-01T16:53:40.834Z"
+    "run_id": "pr-docs-v1-2026-11-02T22:25:23.951Z"
   },
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:eb700c55662ab26cb4d51892f4b441d7387739c25c3c6147d06eac99156cd04b"
+    "id": "sha256:5649a9d4d80f0a82c30d5d95f32c35e1040a1d731479fbb66336b3e453ec9bf1"
   },
   "payload": {
     "verdict": "PASS",
     "policy": "pr-docs-v1",
-    "scope": "release v2.1.0 (Client work and enforcement): skills/CHANGELOG.md [2.1.0] with the ow- family entry, lockstep bump 2.0.4->2.1.0 (36 SKILL.md + plugins/opchain/skills mirror, release-seal.json, server.json, .claude-plugin/marketplace.json, plugins/opchain/.claude-plugin/plugin.json, plugins/ow-tools marketplace ref v2.1.0), live-claim site surfaces (Header, index, skills/index, changelog #v2-1 hero, styleguide, architecture + mobile), README/mirror/plugin README leading lines, CLAUDE.md, PR #669 branch (/work section, ReleaseTag preview chrome, security/privacy ow- sections) and PR #620 branch (EnforcementMap, RouterLabel, router-status.ts, install/security/privacy/glossary enforcement copy, router-label e2e, draft blog post) merged, docs/plans/2026-11-01-v2.1.0-release-notes-draft.md, .checkpoints/oc-release-ops",
+    "scope": "release v2.1.0 (Client work and enforcement): skills/CHANGELOG.md [2.1.0] with the ow- family entry, lockstep bump 2.0.4->2.1.0 (36 SKILL.md + plugins/opchain/skills mirror, release-seal.json, server.json, .claude-plugin/marketplace.json, plugins/opchain/.claude-plugin/plugin.json, plugins/ow-tools marketplace ref v2.1.0), live-claim site surfaces (Header, index, skills/index, changelog #v2-1 hero, styleguide, architecture + mobile), README/mirror/plugin README leading lines, CLAUDE.md, PR #669 branch (/work section, ReleaseTag preview chrome, security/privacy ow- sections) and PR #620 branch (EnforcementMap, RouterLabel, router-status.ts, install/security/privacy/glossary enforcement copy, router-label e2e, draft blog post) merged, docs/plans/2026-11-01-v2.1.0-release-notes-draft.md, .checkpoints/oc-release-ops; main d7e1bf24 (#672 PASS_SUPERSEDED gate fix) merged in at f3be208d with .bugcheck.json oc-bug-check digests recomputed for the merged SKILL.md",
     "evidence": [
-      "Reader-facing docs changed and are in the tree: skills/CHANGELOG.md [2.1.0] heading, lede, ow- family + ow-tools + REL-01 entries, Experimental verdict with the marked EN-02 and REL-02 owner placeholders (mirrored to plugins/opchain/skills/CHANGELOG.md by sync-plugin-skills); /changelog #v2-1 open hero (theme title, planned date 2026-11-20, verdict sentence); README.md, mirror/README.md, plugins/opchain/README.md leading lines (2.1.0, date, theme); CLAUDE.md skills-work/ paragraph and 36-skill count; /architecture 33->36 and marketplace description 33->36; /privacy cross-references between the J5 feedback-triage and router TypeSafe disclosures; /install router sentence labelled. PR body carries ## Documentation (Docs changed / Reader impact / Follow-up docs: EN-02 numbers, REL-02 line, blog draft publish decision, deferred Linear ticket). check-release-surfaces PASS on this tree."
+      "Reader-facing docs changed and are in the tree: skills/CHANGELOG.md [2.1.0] heading, lede, ow- family + ow-tools + REL-01 entries, Experimental verdict with the marked EN-02 and REL-02 owner placeholders (mirrored to plugins/opchain/skills/CHANGELOG.md by sync-plugin-skills); /changelog #v2-1 open hero (theme title, planned date 2026-11-20, verdict sentence); README.md, mirror/README.md, plugins/opchain/README.md leading lines (2.1.0, date, theme); CLAUDE.md skills-work/ paragraph and 36-skill count; /architecture 33->36 and marketplace description 33->36; /privacy cross-references between the J5 feedback-triage and router TypeSafe disclosures; /install router sentence labelled. The #672 merge brings oc-bug-check/SKILL.md's PASS_SUPERSEDED wording (already documented in #672's own PR body) and no other reader-facing docs. PR body carries ## Documentation (Docs changed / Reader impact / Follow-up docs: EN-02 numbers, REL-02 line, blog draft publish decision, deferred Linear ticket). check-release-surfaces PASS on this tree."
     ]
   }
 }
