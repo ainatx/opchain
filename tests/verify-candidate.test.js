@@ -4,7 +4,9 @@
 // it, and drives it through spawnSync exactly the way the pre-commit hook does.
 
 import { spawnSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import {
+  appendFileSync,
   chmodSync,
   cpSync,
   existsSync,
@@ -16,8 +18,9 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { isAbsolute, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { dependencyDemands, dependencyRootStatus } from "../scripts/verify-candidate.mjs";
@@ -614,5 +617,118 @@ describe("I-04: bypass records", () => {
     expect(rewrite[fromUngated]).toBe(false);
     expect(rewrite[saysSo]).toBe(false);
     expect(rows.find((row) => row.commit === fromGated).rewritten_from).toBe(gated);
+  });
+});
+
+// A receipt outlives the gate build that wrote it. The verifier runtime, the
+// toolchain and the policy derivation move; a PASS bound to this exact tree and
+// to the policy the tree itself declares is still coverage for a past commit
+// (PASS_SUPERSEDED), while a PASS from another gate, a weaker policy, or a FAIL
+// is not — and the enforce path never takes a superseded receipt.
+describe("A-08 (superseded): receipts from an earlier gate build", () => {
+  const require = createRequire(import.meta.url);
+
+  function gatedCommit(root, content, message) {
+    writeFileSync(join(root, "subject.txt"), `${content}\n`);
+    git(root, "add", "subject.txt");
+    const run = verifier(root, ["run", "--json"]);
+    expect(run.status, run.stderr).toBe(0);
+    commit(root, message);
+    return git(root, "rev-parse", "HEAD");
+  }
+
+  it("counts a PASS from an older verifier build as PASS_SUPERSEDED everywhere a past commit is judged", { timeout: 60_000 }, () => {
+    const root = initialize();
+    const base = git(root, "rev-parse", "HEAD");
+    const gated = gatedCommit(root, "gated yesterday", "gated yesterday");
+    const [receipt] = receipts(root);
+    expect(receipt.verdict).toBe("PASS");
+    // The runtime moves on: a later verifier build has a different digest.
+    appendFileSync(join(root, "scripts", "verify-candidate.mjs"), "\n// a later build of the verifier\n");
+
+    const rows = JSON.parse(verifier(root, ["bypass-list", "--range", `${base}..${gated}`, "--json"]).stdout);
+    expect(rows).toEqual([expect.objectContaining({ commit: gated, receipt: "PASS_SUPERSEDED", bypassRecord: false, trailer: false, rewrite: false })]);
+    expect(rows[0].covered_by).toEqual({
+      run_id: receipt.run_id,
+      verified_at: receipt.verified_at,
+      policy_fingerprint: receipt.policy.fingerprint,
+      toolchain_fingerprint: receipt.toolchain.fingerprint,
+      verifier_digest: receipt.verifier.digest,
+    });
+    const human = verifier(root, ["bypass-list", "--range", `${base}..${gated}`]).stdout;
+    expect(human).toContain("receipt=PASS_SUPERSEDED (earlier gate: verifier ");
+    expect(human).toContain(receipt.verifier.digest.slice("sha256:".length, "sha256:".length + 12));
+    expect(human).toContain(receipt.policy.fingerprint.slice("sha256:".length, "sha256:".length + 12));
+
+    // bypass-record: the commit is covered, so nothing is recorded.
+    const recorded = JSON.parse(verifier(root, ["bypass-record", "--commit", gated, "--json"]).stdout);
+    expect(recorded).toMatchObject({ recorded: false, receipt: "PASS_SUPERSEDED", reason: "PASS receipt from an earlier gate covers this tree" });
+    expect(recorded.covered_by.run_id).toBe(receipt.run_id);
+
+    // The rewrite excuse (A-01): a replay of that commit is accountable.
+    writeFileSync(join(root, "subject.txt"), "replayed\n");
+    git(root, "add", "subject.txt");
+    commit(root, "replayed");
+    const replay = git(root, "rev-parse", "HEAD");
+    expect(verifier(root, ["bypass-record", "--commit", replay, "--source", "rebase", "--rewritten-from", gated]).status).toBe(0);
+    const replayRow = JSON.parse(verifier(root, ["bypass-list", "--range", `${replay}^!`, "--json"]).stdout)[0];
+    expect(replayRow).toMatchObject({ receipt: "none", bypassRecord: true, rewrite: true, rewritten_from: gated });
+
+    // The enforce path does not: a staged tree must pass today's gate.
+    git(root, "read-tree", gated);
+    const enforce = verifier(root, ["enforce", "--json"]);
+    expect(enforce.status).not.toBe(0);
+    expect(JSON.parse(enforce.stdout)).toMatchObject({ ok: false, error: "no matching PASS receipt" });
+  });
+
+  it("does not count a receipt from another gate, a weaker policy, or a FAIL (A-08)", { timeout: 90_000 }, () => {
+    const root = initialize();
+    const base = git(root, "rev-parse", "HEAD");
+    const gated = gatedCommit(root, "gated once", "gated once");
+    const [genuine] = receipts(root);
+    const [genuineFile] = receiptFiles(root);
+    const lib = require(join(root, "scripts", "lib", "verification-receipt.cjs"));
+    const common = commonDir(root);
+
+    // Forge a receipt for the same tree from `genuine`, re-deriving every
+    // fingerprint so it validates, then ask bypass-list with only it on disk.
+    const listedWith = ({ policy: policyOverrides = {}, verifier: verifierOverrides = {}, checks = genuine.checks }) => {
+      const policy = lib.createPolicy({ ...genuine.policy, ...policyOverrides });
+      const forged = lib.createReceipt({ ...genuine, policy, checks, verifier: { ...genuine.verifier, ...verifierOverrides }, run_id: randomUUID() });
+      const target = lib.receiptPath({ git_common_dir: common, candidate_tree: genuine.candidate.tree, policy_fingerprint: policy.fingerprint, run_id: forged.run_id });
+      mkdirSync(dirname(target), { recursive: true });
+      writeFileSync(target, `${JSON.stringify(forged)}\n`);
+      const row = JSON.parse(verifier(root, ["bypass-list", "--range", `${base}..${gated}`, "--json"]).stdout)[0];
+      rmSync(target);
+      return row.receipt;
+    };
+    rmSync(genuineFile);
+    expect(JSON.parse(verifier(root, ["bypass-list", "--range", `${base}..${gated}`, "--json"]).stdout)[0].receipt).toBe("none");
+
+    // Same tree, same policy, an older verifier build: coverage.
+    expect(listedWith({ verifier: { digest: lib.sha256Bytes(Buffer.from("an older build of the verifier")) } })).toBe("PASS_SUPERSEDED");
+    // A receipt the gate of today would re-derive exactly is plain PASS.
+    expect(listedWith({})).toBe("PASS");
+    // Another gate's policy id, or another verifier's name on an unknown build: not coverage.
+    expect(listedWith({ policy: { id: "other-gate" } })).toBe("PASS_UNMATCHED");
+    expect(listedWith({ verifier: { name: "someone-elses-gate", digest: lib.sha256Bytes(Buffer.from("someone else's verifier")) } })).toBe("PASS_UNMATCHED");
+    // A policy that did not require what the tree's policy requires today: not coverage.
+    expect(listedWith({ policy: { required_checks: ["secrets"] }, checks: [{ id: "secrets", status: "PASS", exit_code: 0, duration_ms: 1 }] })).toBe("PASS_UNMATCHED");
+    // A policy that let warnings through where today's fails on them: not coverage.
+    expect(listedWith({ policy: { warning_behavior: "allow" } })).toBe("PASS_UNMATCHED");
+    // A policy read from another file, even with the right digest: not coverage.
+    expect(listedWith({ policy: { config: { ...genuine.policy.config, path: "weak.json" } } })).toBe("PASS_UNMATCHED");
+
+    // A FAIL receipt from an earlier build stays a FAIL.
+    writeFileSync(join(root, "check.mjs"), "process.exit(1);\n");
+    writeFileSync(join(root, "subject.txt"), "failed yesterday\n");
+    git(root, "add", "check.mjs", "subject.txt");
+    expect(verifier(root, ["run", "--json"]).status).toBe(1);
+    commit(root, "failed yesterday");
+    const failed = git(root, "rev-parse", "HEAD");
+    appendFileSync(join(root, "scripts", "verify-candidate.mjs"), "\n// a later build of the verifier\n");
+    const rows = JSON.parse(verifier(root, ["bypass-list", "--range", `${gated}..${failed}`, "--json"]).stdout);
+    expect(rows).toEqual([expect.objectContaining({ commit: failed, receipt: "FAIL", covered_by: null })]);
+    expect(JSON.parse(verifier(root, ["bypass-record", "--commit", failed, "--json"]).stdout)).toMatchObject({ recorded: true });
   });
 });
