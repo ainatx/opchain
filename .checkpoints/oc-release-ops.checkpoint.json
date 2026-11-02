@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-11-01T07:04:32Z",
+  "updated_at": "2026-11-02T18:32:36Z",
   "skill": "oc-release-ops",
-  "phase": "plan",
-  "step": "v2.1.0-plan-approved",
+  "phase": "bump",
+  "step": "v2.1.0-bump-applied-draft-pr-671",
   "status": "in_progress",
-  "progress_summary": "v2.1.0 plan approved 2026-11-01 (owner rulings via coordinator local_8959641b): semver 2.1.0 (minor), theme \"Client work and enforcement\", planned date 2026-11-20 (coordinator estimate; owner confirms at the push gate). Release PR prepared as a HELD DRAFT on claude/release-2-1-0-1cd617; stays a draft until REL-02 passes; merge, signed tag, staging and production in one sitting from the owner's laptop. In the PR: #669 (ow- site half, staging-verified at d30a6b97) and #620 (Track E site half, main merged in, never rebased); [Unreleased] -> [2.1.0] with the ow- family entry; lockstep 2.0.4 -> 2.1.0 (36 SKILL.md, seal gen 1, server.json, marketplace x2, plugin.json, ow-tools ref v2.1.0); Minor-column surfaces flipped; router-label e2e narrowed. Owner still owes in skills/CHANGELOG.md: the EN-02 verdict's three numbers (NO-GO so far) and the REL-02 record line. Detail in skill_state.current_release.",
+  "progress_summary": "v2.1.0 plan approved 2026-11-01 (owner rulings via coordinator local_8959641b): semver 2.1.0 (minor), theme \"Client work and enforcement\", planned date 2026-11-20 (coordinator estimate; owner confirms at the push gate). Release PR #671 open as a HELD DRAFT (2026-11-02) from claude/release-2-1-0-1cd617; stays a draft until REL-02 passes; merge, signed tag, staging and production in one sitting from the owner's laptop. In the PR: #669 (ow- site half, staging-verified at d30a6b97) and #620 (Track E site half, main merged in, never rebased); [Unreleased] -> [2.1.0] with the ow- family entry; lockstep 2.0.4 -> 2.1.0 (36 SKILL.md, seal gen 1, server.json, marketplace x2, plugin.json, ow-tools ref v2.1.0); Minor-column surfaces flipped; router-label e2e narrowed. Owner still owes in skills/CHANGELOG.md: the EN-02 verdict's three numbers (NO-GO so far) and the REL-02 record line. Detail in skill_state.current_release.",
   "progress_table": [
     {
       "id": "scope",
@@ -81,8 +81,9 @@
   "blockers": [],
   "next_actions": [
     {
-      "text": "Open the v2.1.0 release PR as a DRAFT (release: v2.1.0 — Client work and enforcement) from claude/release-2-1-0-1cd617 after the owner's go-ahead; hold it until REL-02 passes.",
-      "done_when": "draft PR open with green CI; checkpoint phase bump-applied with its number"
+      "text": "DONE 2026-11-02: draft release PR #671 open from claude/release-2-1-0-1cd617 (head after this commit); held until REL-02 passes.",
+      "done_when": "draft PR open with green CI",
+      "status": "done"
     },
     {
       "text": "REL-02 (owner + Claude): real-model acceptance run per ow- skill, real jobs for ow-start, ow-build-plan, ow-draft; record what ran in the [2.1.0] REL-02 line of skills/CHANGELOG.md.",
@@ -131,7 +132,7 @@
         "the ow- skill family (planning layer)",
         "enforcement at chokepoints + the Jev skill router (experimental preview)"
       ],
-      "phase": "plan-approved",
+      "phase": "bump-applied",
       "started_at": "2026-10-16",
       "shipped_at": null,
       "plan": "sprints/release-2.1/ow-family-sprint-plan.md (approved 2026-10-14; Track E amendment approved 2026-10-16)",
@@ -146,7 +147,9 @@
         "2026-11-01 (owner, via the coordinator): REL-02 (real-model acceptance run per ow- skill + real jobs for ow-start, ow-build-plan, ow-draft) runs in FULL before the tag; the release PR is prepared now and held as a draft.",
         "2026-11-01 (owner, via the coordinator): site scope for the cut = PR #669 (ow- half, verified on staging at d30a6b97, clean vs main) + PR #620 (Track E half) refreshed onto main by merging main in, never rebased; the remaining Track S audit items go to 2.1.x.",
         "2026-11-01 (owner, via the coordinator): theme name \"Client work and enforcement\"; semver 2.1.0 (minor, semver-decisions rule 4: new skills + new verbs).",
-        "2026-11-01 (session): planned ship date in the heading, hero-ver and READMEs is 2026-11-20 (the coordinator's ready-to-tag estimate); a one-line sed moves it if the owner picks another day before the tag."
+        "2026-11-01 (session): planned ship date in the heading, hero-ver and READMEs is 2026-11-20 (the coordinator's ready-to-tag estimate); a one-line sed moves it if the owner picks another day before the tag.",
+        "2026-11-02 (owner): the three #620 commits whose PASS receipts sit under the superseded gate policy db28b135 stay as merged (no trailer rewrite, no squash); the PR body documents them; the local evidence:pr bypass-accountability row is a known false positive; follow-up = bypass-list accepts a PASS receipt under a superseded policy.",
+        "2026-11-02 (owner): planned date 2026-11-20 confirmed for the draft; push and draft PR approved."
       ],
       "coordinator_session": "local_8959641b-079e-4663-a666-29fe18675011",
       "scope": {
@@ -292,10 +295,10 @@
       "ow_tools": "1.3.1"
     },
     "pre_merge": {
-      "verdict": "PASS (10/11)",
-      "ran_at": "2026-09-21T19:53:16.550Z",
+      "verdict": "PASS (rows run one by one; lighthouse as collect+assert, no autorun upload)",
+      "ran_at": "2026-11-02",
       "warnings": [
-        "lighthouse-budgets could not run locally: port 4321 held by the owner's long-running astro dev (~/IdeaProjects/opchain); the PR's LHCI job covers it"
+        "evidence:pr bypass-accountability FAIL locally on three #620 commits with PASS receipts under policy db28b135 (owner-accepted false positive)"
       ],
       "failed": []
     },
@@ -303,10 +306,14 @@
       "schema_version": 1,
       "catalog_version": "2.1.0",
       "generation": 1,
-      "verified_for_sha": "pending (release PR head)"
+      "verified_for_sha": "3bd88118 (content tree; evidence commit f1962d45 is checkpoint-only)"
     },
     "release_pr": {
-      "status": "draft being prepared on claude/release-2-1-0-1cd617 (2026-11-01)"
+      "number": 671,
+      "url": "https://github.com/ainatx/opchain/pull/671",
+      "status": "draft, held until REL-02 passes",
+      "branch": "claude/release-2-1-0-1cd617",
+      "opened_at": "2026-11-02"
     },
     "tag": {
       "name": "v2.1.0",
@@ -410,7 +417,7 @@
       "prod_health": "d4f926b"
     }
   },
-  "record_updated_at": "2026-11-01T07:04:32Z",
+  "record_updated_at": "2026-11-02T18:32:36Z",
   "pm_deferred_actions": [
     {
       "id": "deferred-2026-09-21T19:53:16Z-7f2f",
