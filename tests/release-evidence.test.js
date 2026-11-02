@@ -143,7 +143,13 @@ const out = g("rev-list", opt("--range")).split("\\n").filter(Boolean).map((comm
   let original = null;
   try { original = JSON.parse(readFileSync(record, "utf8")).rewritten_from || null; } catch {}
   const rewrite = Boolean(original) && existsSync(join(receipts, g("rev-parse", original + "^{tree}")));
-  return { commit, tree, receipt: existsSync(join(receipts, tree)) ? "PASS" : "none", bypassRecord: existsSync(record), trailer: Boolean(g("log", "-1", "--format=%(trailers:key=Opchain-Bypass,valueonly)", commit)), rewrite };
+  // The marker's text is the verdict (an empty marker is PASS); a superseded
+  // receipt names the gate build that wrote it, as the real verifier does.
+  const receipt = existsSync(join(receipts, tree)) ? (readFileSync(join(receipts, tree), "utf8").trim() || "PASS") : "none";
+  const covered_by = receipt === "PASS_SUPERSEDED"
+    ? { run_id: "old-run", verified_at: "2026-10-17T17:48:49.402Z", policy_fingerprint: "sha256:" + "db28b135".padEnd(64, "0"), toolchain_fingerprint: "sha256:" + "3f".repeat(32), verifier_digest: "sha256:" + "8b3cd4c6".padEnd(64, "0") }
+    : null;
+  return { commit, tree, receipt, covered_by, bypassRecord: existsSync(record), trailer: Boolean(g("log", "-1", "--format=%(trailers:key=Opchain-Bypass,valueonly)", commit)), rewrite };
 });
 process.stdout.write(JSON.stringify(out));
 `;
@@ -249,6 +255,46 @@ process.stdout.write(JSON.stringify(out));
     expect(excused.commits.map((entry) => entry.commit).sort()).toEqual([shas.trailer, shas.silent, shas.prose].sort());
     expect(excused.commits.find((entry) => entry.commit === shas.silent).rewrite).toBe(true);
     expect(bypassAccountabilityCheck(excused).status).toBe("WARN");
+  });
+
+  it("counts a PASS_SUPERSEDED receipt as coverage and names the commit in the row (A-08 superseded)", () => {
+    const runtime = join(repo, ".git", "opchain", "commit-gate", "v1");
+    mkdirSync(runtime, { recursive: true });
+    writeFileSync(join(runtime, "verify-candidate.mjs"), STUB);
+    const receipts = join(repo, ".git", "opchain", "test-receipts");
+    mkdirSync(receipts, { recursive: true });
+    // Gated under an earlier gate build; the rest gated today or carrying the trailer.
+    writeFileSync(join(receipts, git("rev-parse", `${shas.gated}^{tree}`)), "PASS_SUPERSEDED\n");
+    writeFileSync(join(receipts, git("rev-parse", `${shas.silent}^{tree}`)), "PASS");
+    writeFileSync(join(receipts, git("rev-parse", `${shas.prose}^{tree}`)), "PASS");
+
+    const result = collectBypassedCommits(context());
+    expect(result.mode).toBe("runtime");
+    expect(result.examined).toBe(4);
+    expect(result.commits.map((entry) => entry.commit)).toEqual([shas.trailer]);
+    expect(result.superseded).toEqual([expect.objectContaining({ commit: shas.gated, subject: "gated change" })]);
+    expect(result.superseded[0].covered_by.verifier_digest).toMatch(/^sha256:8b3cd4c6/);
+    const verdict = bypassAccountabilityCheck(result);
+    expect(verdict.status).toBe("WARN"); // the trailer commit is a bypass, accounted for
+    expect(verdict.detail).toContain(`1 commit(s) covered by a receipt from an earlier gate (${shas.gated.slice(0, 7)})`);
+
+    // With the trailer commit gated too, the row passes and still names the superseded one.
+    writeFileSync(join(receipts, git("rev-parse", `${shas.trailer}^{tree}`)), "PASS");
+    const clean = collectBypassedCommits(context());
+    expect(clean.commits).toEqual([]);
+    const pass = bypassAccountabilityCheck(clean);
+    expect(pass.status).toBe("PASS");
+    expect(pass.detail).toContain("covered by a receipt from an earlier gate");
+    const report = evaluateReleaseEvidence({ stage: "pr", candidate, tree, repositoryId: "sha256:" + "0".repeat(64), receipt: null, checkpoints: {}, bypasses: clean });
+    expect(report.superseded_commits).toEqual(clean.superseded);
+    expect(report.bypassed_commits).toEqual([]);
+
+    // A PASS_UNMATCHED stays a bypass: another policy's PASS is not this gate's.
+    writeFileSync(join(receipts, git("rev-parse", `${shas.gated}^{tree}`)), "PASS_UNMATCHED");
+    const unmatched = collectBypassedCommits(context());
+    expect(unmatched.commits.map((entry) => entry.commit)).toEqual([shas.gated]);
+    expect(unmatched.superseded).toEqual([]);
+    expect(bypassAccountabilityCheck(unmatched).status).toBe("FAIL");
   });
 
   it("reports a runtime whose bypass-list verb is missing as unavailable, not as a pass", () => {

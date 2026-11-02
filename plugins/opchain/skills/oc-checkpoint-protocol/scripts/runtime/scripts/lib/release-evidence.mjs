@@ -18,6 +18,8 @@ const RUNTIME_VERSION = "v1";
 // A-08: read as a Git trailer with a non-empty value, the same way
 // verify-candidate.mjs and install-git-drivers.mjs read it.
 const LEGACY_BYPASS_VALUE = /^bypassed\s*\(\s*(\S[^)]*?)\s*\)\s*$/i;
+// bypass-list verdicts that cover a commit; `true` is an older runtime's shape.
+const COVERING_RECEIPTS = new Set(["PASS", "PASS_SUPERSEDED", true]);
 const BASE_REFS = Object.freeze(["origin/main", "origin/HEAD", "main"]);
 
 const REQUIRED = Object.freeze({
@@ -251,9 +253,17 @@ export function collectBypassedCommits(context, { source = "auto" } = {}) {
     return { mode: "unavailable", base, range, reason: `bypass-list failed: ${(result.stderr || result.stdout || `exit ${result.status}`).trim().split("\n")[0]}`, commits: [] };
   }
   // bypass-list reports `receipt` as the best verdict for the tree
-  // (PASS | PASS_UNMATCHED | INCONCLUSIVE | UNSUPPORTED | FAIL | none); only PASS is coverage.
-  const commits = entries
-    .filter((entry) => entry && entry.commit && !merges.has(entry.commit) && entry.receipt !== "PASS" && entry.receipt !== true)
+  // (PASS | PASS_SUPERSEDED | PASS_UNMATCHED | INCONCLUSIVE | UNSUPPORTED | FAIL | none).
+  // PASS and PASS_SUPERSEDED are coverage: the latter is a PASS receipt bound
+  // to the commit's tree and its own policy, written by an earlier gate build
+  // (verifier, toolchain or policy fingerprint since moved). A policy change
+  // must not relabel gated history as bypasses; the row names those commits.
+  const examined = entries.filter((entry) => entry && entry.commit && !merges.has(entry.commit));
+  const superseded = examined
+    .filter((entry) => entry.receipt === "PASS_SUPERSEDED")
+    .map((entry) => ({ commit: entry.commit, tree: entry.tree || null, subject: subjects.get(entry.commit) || "", covered_by: entry.covered_by || null }));
+  const commits = examined
+    .filter((entry) => !COVERING_RECEIPTS.has(entry.receipt))
     .map((entry) => {
       const record = readRecord(context, entry);
       return {
@@ -268,7 +278,17 @@ export function collectBypassedCommits(context, { source = "auto" } = {}) {
         rewrite: entry.rewrite === true,
       };
     });
-  return { mode: "runtime", base, range, examined: entries.length, commits };
+  return { mode: "runtime", base, range, examined: entries.length, commits, superseded };
+}
+
+function supersededNote(bypasses) {
+  const rows = Array.isArray(bypasses.superseded) ? bypasses.superseded : [];
+  if (!rows.length) return "";
+  // Every runtime refresh supersedes every earlier receipt, so the list can be
+  // long; the JSON report and the summary carry all of it.
+  const shown = rows.slice(0, 8).map((entry) => entry.commit.slice(0, 7));
+  const more = rows.length > shown.length ? `, +${rows.length - shown.length} more` : "";
+  return `; ${rows.length} commit(s) covered by a receipt from an earlier gate (${shown.join(", ")}${more})`;
 }
 
 export function bypassAccountabilityCheck(bypasses) {
@@ -295,7 +315,7 @@ export function bypassAccountabilityCheck(bypasses) {
       detail: `not evaluated: trailer scan only — receipts and bypass records are not visible here (CI, or no enrolled runtime); ${bypasses.commits.length} of ${bypasses.examined} commit(s) in ${bypasses.range} declare an Opchain-Bypass: trailer. A bypass with no trailer (--no-verify on both commit and push) is not detectable here; the local pre-push hook is what refuses it`,
     };
   }
-  const scope = `${bypasses.examined} commit(s) checked against PASS receipts`;
+  const scope = `${bypasses.examined} commit(s) checked against PASS receipts${supersededNote(bypasses)}`;
   if (bypasses.commits.length) {
     const rewrites = bypasses.commits.filter((entry) => entry.rewrite).length;
     return {
@@ -361,6 +381,7 @@ export function evaluateReleaseEvidence({
   const report = { ok: failed.length === 0, verdict: failed.length ? "FAIL" : "PASS", stage, candidate, tree, checks, warnings };
   if (stage === "pr" && bypasses) {
     report.bypass_mode = bypasses.mode;
+    if (bypasses.superseded?.length) report.superseded_commits = bypasses.superseded;
     report.bypassed_commits = bypasses.commits.map(({ commit, tree: commitTree, subject, trailer, rewrite, record }) => ({
       commit, tree: commitTree || null, subject, trailer, rewrite, reason: record?.reason ?? null, source: record?.source ?? null,
     }));
@@ -411,6 +432,14 @@ function summary(report) {
     `release evidence: ${report.verdict} (${report.stage}, ${report.candidate})`,
     ...report.checks.map((check) => `  ${check.status.padEnd(4)} ${check.id}: ${check.detail}`),
   ];
+  if (report.superseded_commits?.length) {
+    lines.push(`  covered by a receipt from an earlier gate (${report.superseded_commits.length}):`);
+    for (const entry of report.superseded_commits) {
+      const by = entry.covered_by || {};
+      const short = (value) => String(value || "").replace(/^sha256:/, "").slice(0, 12) || "none";
+      lines.push(`    ${entry.commit.slice(0, 7)}  ${entry.subject}  [verifier ${short(by.verifier_digest)}, policy ${short(by.policy_fingerprint)}, ${String(by.verified_at || "").slice(0, 10) || "undated"}]`);
+    }
+  }
   if (report.bypassed_commits?.length) {
     lines.push(`  bypassed commits (${report.bypassed_commits.length}):`);
     for (const entry of report.bypassed_commits) {

@@ -437,7 +437,11 @@ mechanism, not a naming convention:
   after `install-git-drivers --ci`; `scripts/verify-candidate.mjs` in the opchain repo
   itself) prints why a receipt is non-PASS (per-check status, exit code, the diagnostic tail). Read it before deciding a
   bypass is warranted. `bypass-list` enumerates the recorded bypasses; `bypass-record`
-  writes one by hand for a commit the hook missed.
+  writes one by hand for a commit the hook missed. A past commit stays covered by a PASS
+  receipt from an earlier gate build (`PASS_SUPERSEDED`: same tree, same `.bugcheck.json`
+  digest and policy id, required checks that include today's) even after the verifier,
+  toolchain or policy fingerprint moves; only a PASS under another policy file
+  (`PASS_UNMATCHED`) is not coverage, and a staged tree must still pass today's gate.
 - **INCONCLUSIVE is not FAIL.** A timeout or an environment precondition (exit 124, a
   hollow `node_modules`, `vitest` not found) is recorded as INCONCLUSIVE with no receipt.
   Retry it — after `npm ci`, or when the machine is under less load. Do not bypass it.
