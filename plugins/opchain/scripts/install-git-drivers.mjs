@@ -355,8 +355,10 @@ export function installVerifierRuntime(cwd = process.cwd()) {
 
 // bypass-list reports `receipt` as the best verdict for the commit's tree
 // (PASS | PASS_UNMATCHED | INCONCLUSIVE | UNSUPPORTED | FAIL | none). Only PASS is coverage.
+// PASS_SUPERSEDED: a PASS bound to the commit's tree and its own policy from an
+// earlier gate build (see verify-candidate.mjs receiptCoverage); still coverage.
 function hasPassReceipt(value) {
-  return value === "PASS" || value === true;
+  return value === "PASS" || value === "PASS_SUPERSEDED" || value === true;
 }
 
 function setConfig(key, value, cwd) {
@@ -548,7 +550,8 @@ export function collectBypassList(info, range) {
  * Decide which outgoing commits are unaccounted for. Exported for tests and
  * for the evidence gate; the pre-push hook is a thin caller.
  *
- * A commit is accountable when a PASS receipt covers its tree, when it
+ * A commit is accountable when a PASS receipt covers its tree (an exact one,
+ * or one from an earlier gate build bound to the same tree and policy), when it
  * carries the bypass trailer, or when bypass-list verified it as a rewrite of
  * an accountable commit. Merge commits and anything already on the remote are
  * not examined. Every answer comes from the runtime's bypass-list, so pre-push

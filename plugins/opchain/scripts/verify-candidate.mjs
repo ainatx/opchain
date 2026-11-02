@@ -1252,25 +1252,79 @@ function appendCheckpointBypass(root, entry) {
   return file;
 }
 
-// A-08: only a PASS the enforce path would accept — same policy fingerprint,
-// toolchain and verifier digest — counts as coverage, for bypass-record,
+// A-08: an exact PASS — same policy fingerprint, toolchain and verifier
+// digest, the one the enforce path accepts — is coverage for bypass-record,
 // bypass-list and the rewrite excuse alike. A PASS left by another policy
-// (`run --policy weak.json`) or an older verifier is not coverage for this tree.
+// (`run --policy weak.json`) is not coverage for this tree.
+//
+// Receipts outlive the gate that wrote them. The verifier runtime, the
+// toolchain and the policy derivation all move while the receipt store keeps
+// the old fingerprints, so an exact match alone relabels every gated commit of
+// an earlier day as a bypass once anything changes (the v2.1.0 release PR on
+// 2026-11-02: three PR #620 commits with PASS receipts from an older runtime
+// build failed evidence:pr's bypass-accountability row). A PASS receipt is
+// still coverage for a *past* commit when it is bound to this exact tree and
+// to the policy the tree itself declares:
+//   - the same policy id and verifier name;
+//   - a policy read from the same config path whose digest is the one the
+//     tree carries (a `--policy weak.json` receipt stays out);
+//   - required checks that include every check the tree's policy asks for
+//     today, and a warning behaviour at least as strict.
+// Its policy fingerprint, toolchain fingerprint and verifier digest may differ.
+// That is PASS_SUPERSEDED: counted by bypass-list, bypass-record, the rewrite
+// excuse and pre-push, never by the enforce/run path — a staged tree must pass
+// today's gate.
 const toolchainMemo = new Map();
-function enforceablePass(info, tree, policyPath) {
-  if (!receiptsForTree(info, tree).some((entry) => entry.receipt.verdict === "PASS")) return false;
+
+function supersededReceipt(passes, policy) {
+  const matches = passes.filter(({ receipt }) => {
+    const past = receipt.policy;
+    if (receipt.verifier.name !== VERIFIER_NAME || past.id !== policy.id) return false;
+    if (!past.config.present || !policy.config.present) return false;
+    if (past.config.path !== policy.config.path || past.config.digest !== policy.config.digest) return false;
+    if (!policy.required_checks.every((id) => past.required_checks.includes(id))) return false;
+    if (policy.warning_behavior === "fail" && past.warning_behavior !== "fail") return false;
+    return true;
+  });
+  matches.sort((a, b) => Date.parse(b.receipt.verified_at) - Date.parse(a.receipt.verified_at));
+  return matches[0] || null;
+}
+
+/** How a PASS receipt covers an existing commit's tree: PASS (exact), PASS_SUPERSEDED, or null. */
+function receiptCoverage(info, tree, policyPath) {
+  const passes = receiptsForTree(info, tree).filter((entry) => entry.receipt.verdict === "PASS");
+  if (!passes.length) return null;
   let materialized;
   try {
     materialized = materializeCandidate(info, tree);
     const { policy, commands } = policyForCandidate(materialized.candidate, policyPath);
     const key = JSON.stringify([commands, policy.required_checks]);
     if (!toolchainMemo.has(key)) toolchainMemo.set(key, toolchainFor(commands, policy.required_checks));
-    return Boolean(matchingReceipt(info, tree, policy, toolchainMemo.get(key), verifierIdentity()));
+    const exact = matchingReceipt(info, tree, policy, toolchainMemo.get(key), verifierIdentity());
+    if (exact) return { status: "PASS", receipt: exact.receipt, path: exact.path };
+    const superseded = supersededReceipt(passes, policy);
+    return superseded ? { status: "PASS_SUPERSEDED", receipt: superseded.receipt, path: superseded.path } : null;
   } catch {
-    return false;
+    return null;
   } finally {
     if (materialized) rmSync(materialized.scratch, { recursive: true, force: true });
   }
+}
+
+/** The receipt a bypass-list / bypass-record answer rests on, for the reader. */
+function coveredBy(coverage) {
+  const { receipt } = coverage;
+  return {
+    run_id: receipt.run_id,
+    verified_at: receipt.verified_at,
+    policy_fingerprint: receipt.policy.fingerprint,
+    toolchain_fingerprint: receipt.toolchain.fingerprint,
+    verifier_digest: receipt.verifier.digest || null,
+  };
+}
+
+function shortDigest(value) {
+  return String(value || "").replace(/^sha256:/, "").slice(0, 12) || "none";
 }
 
 // A-01: a rebase or cherry-pick is excused only when the commit it was picked
@@ -1283,7 +1337,7 @@ function excusedRewrite(info, lib, record, policyPath, seen = new Set()) {
   seen.add(original);
   const tree = git(info.root, "rev-parse", "--verify", "--quiet", `${original}^{tree}`);
   if (tree.status !== 0) return false;
-  if (enforceablePass(info, tree.stdout.trim(), policyPath)) return true;
+  if (receiptCoverage(info, tree.stdout.trim(), policyPath)) return true;
   if (trailerReason(info.root, original)) return true;
   return excusedRewrite(info, lib, lib.readBypassRecord(info.commonDir, original), policyPath, seen);
 }
@@ -1294,8 +1348,10 @@ function bypassRecordCommand(args) {
   const info = repositoryInfo(args.repo);
   const commit = gitOutput(info.root, "rev-parse", "--verify", `${args.commit}^{commit}`);
   const tree = gitOutput(info.root, "rev-parse", `${commit}^{tree}`);
-  if (enforceablePass(info, tree, args.policy)) {
-    if (args.json) process.stdout.write(`${JSON.stringify({ ok: true, commit, tree, recorded: false, reason: "PASS receipt covers this tree" })}\n`);
+  const coverage = receiptCoverage(info, tree, args.policy);
+  if (coverage) {
+    const reason = coverage.status === "PASS" ? "PASS receipt covers this tree" : "PASS receipt from an earlier gate covers this tree";
+    if (args.json) process.stdout.write(`${JSON.stringify({ ok: true, commit, tree, recorded: false, reason, receipt: coverage.status, covered_by: coveredBy(coverage) })}\n`);
     return EXIT_OK;
   }
   const options = {
@@ -1327,13 +1383,16 @@ function bypassListCommand(args) {
   const rows = commits.map((commit) => {
     const tree = gitOutput(info.root, "rev-parse", `${commit}^{tree}`);
     const record = lib.readBypassRecord(info.commonDir, commit);
-    // `receipt` is PASS only for an enforceable PASS; a PASS under another
-    // policy or verifier is reported as PASS_UNMATCHED, which is not coverage.
+    // `receipt` is PASS for an enforceable PASS and PASS_SUPERSEDED for a PASS
+    // bound to this tree and its own policy from an earlier gate build (both
+    // are coverage); a PASS under another policy is PASS_UNMATCHED, which is not.
     const best = bestVerdictForTree(info, tree);
+    const coverage = best === "PASS" ? receiptCoverage(info, tree, args.policy) : null;
     return {
       commit,
       tree,
-      receipt: best === "PASS" && !enforceablePass(info, tree, args.policy) ? "PASS_UNMATCHED" : best,
+      receipt: best === "PASS" ? (coverage ? coverage.status : "PASS_UNMATCHED") : best,
+      covered_by: coverage ? coveredBy(coverage) : null,
       bypassRecord: lib.hasBypassRecord(info.commonDir, { commit, tree }),
       trailer: Boolean(trailerReason(info.root, commit)),
       rewrite: excusedRewrite(info, lib, record, args.policy),
@@ -1345,7 +1404,10 @@ function bypassListCommand(args) {
     process.stdout.write(`${JSON.stringify(rows.map(({ subject, ...row }) => row))}\n`);
   } else {
     for (const row of rows) {
-      process.stdout.write(`${row.commit.slice(0, 12)} receipt=${row.receipt} bypass=${row.bypassRecord ? "yes" : "no"} trailer=${row.trailer ? "yes" : "no"}${row.rewrite ? " rewrite=excused" : ""} ${row.subject}\n`);
+      const earlier = row.receipt === "PASS_SUPERSEDED"
+        ? ` (earlier gate: verifier ${shortDigest(row.covered_by.verifier_digest)}, policy ${shortDigest(row.covered_by.policy_fingerprint)}, ${row.covered_by.verified_at.slice(0, 10)})`
+        : "";
+      process.stdout.write(`${row.commit.slice(0, 12)} receipt=${row.receipt}${earlier} bypass=${row.bypassRecord ? "yes" : "no"} trailer=${row.trailer ? "yes" : "no"}${row.rewrite ? " rewrite=excused" : ""} ${row.subject}\n`);
     }
   }
   return EXIT_OK;
