@@ -31,7 +31,7 @@
     "generated_artifacts_verified": true,
     "internal_links_verified": true,
     "related_untracked_files_staged": true,
-    "verified_for_sha": "958e7400db42ae5d813df6131271f80c395589a0",
+    "verified_for_sha": "4cc51f8e6300875d80dbbd53e29c29fec4bf6574",
     "last_verify": {
       "at": "2026-10-27T18:56:09Z",
       "branch": "claude/awesome-murdock-7a33cc",
@@ -2599,7 +2599,7 @@
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "Jev plan §2 PR at d323ebb8: tree clean, docs packet bound to HEAD, route-spec + jev-questions, plugin skills, bundles, catalogs and contracts in sync, links resolve, checkpoints valid"
+        "scope": "Jev plan \u00a72 PR at d323ebb8: tree clean, docs packet bound to HEAD, route-spec + jev-questions, plugin skills, bundles, catalogs and contracts in sync, links resolve, checkpoints valid"
       }
     },
     {
@@ -2619,7 +2619,7 @@
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "Jev plan §2 PR after merging main at 27a7797a: clean merge, generated surfaces and contracts in sync, gate 8/8 PASS"
+        "scope": "Jev plan \u00a72 PR after merging main at 27a7797a: clean merge, generated surfaces and contracts in sync, gate 8/8 PASS"
       }
     },
     {
@@ -2639,7 +2639,7 @@
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "Jev plan §3 PR at 6936a241: generated surfaces and contracts in sync, scan-exception digests refreshed, gate 8/8 PASS"
+        "scope": "Jev plan \u00a73 PR at 6936a241: generated surfaces and contracts in sync, scan-exception digests refreshed, gate 8/8 PASS"
       }
     },
     {
@@ -2659,7 +2659,7 @@
       "payload": {
         "verdict": "PASS",
         "policy": "pr-readiness-v1",
-        "scope": "Jev plan §4 PR at a33db319: generated surfaces and contracts in sync, gate 8/8 PASS"
+        "scope": "Jev plan \u00a74 PR at a33db319: generated surfaces and contracts in sync, gate 8/8 PASS"
       }
     },
     {
