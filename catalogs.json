@@ -50,6 +50,7 @@
       "plannedVerbs": { "ow-currency": ["/ow-currency-watch"] },
       "bodyTokenBudgets": { "ow-build": 4500, "ow-uat": 4500, "ow-start": 4500, "ow-research": 4500, "ow-documentation": 4500, "ow-build-plan": 4500, "ow-draft": 4500, "ow-handoff": 4500, "ow-care": 4500 },
       "addons": { "ow-tools": ["/ow-start-transcribe"] },
+      "askTool": "AskUserQuestion",
       "privateNames": ["llc-ops"],
       "brandNames": ["Deftwright"],
       "outputs": {

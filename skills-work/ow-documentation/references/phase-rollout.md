@@ -1,6 +1,6 @@
 # `/ow-documentation-rollout`: plan, sessions, check-ins, close
 
-Open `references/ow-protocol.md`; `--session` and `--close` use the step names in `references/routing-and-resume.md` §2. Schemas: `references/rollout-schemas.md`. Read first from the CRM: the `rollout`, `training_record` and `adoption` documents, and any signed amendment on `quotes`; publish each record there, `internal`. Questions: at most three, in one message.
+Open `references/ow-protocol.md`; `--session` and `--close` use the step names in `references/routing-and-resume.md` §2. Schemas: `references/rollout-schemas.md`. Read first from the CRM: the `rollout`, `training_record` and `adoption` documents, and any signed amendment on `quotes`; publish each record there, `internal`. Questions: at most three, in one `AskUserQuestion` call.
 
 ## 1. Which mode
 

@@ -9,7 +9,7 @@ Offer it when M<n> is `ready for demo` (every sprint passes or, without a builde
 `demos/M<n>-script.md`:
 
     ---
-    written_by: ow-build 2.0.0
+    written_by: ow-build 2.0.1
     created: <YYYY-MM-DD>
     milestone: M<n>
     demo_date: <YYYY-MM-DD> (user-stated)
@@ -40,7 +40,7 @@ From your notes, or a recording: run `ow-tools transcribe builds/<client>/audio/
 `demos/M<n>-record.md`:
 
     ---
-    written_by: ow-build 2.0.0
+    written_by: ow-build 2.0.1
     created: <YYYY-MM-DD>
     milestone: M<n>
     demo_date: <YYYY-MM-DD>
@@ -71,4 +71,4 @@ From your notes, or a recording: run `ow-tools transcribe builds/<client>/audio/
 
 ## 4. Finish
 
-Publish each check's result and the demo date to `milestones` (internal) and the summary to `engagement_updates` (`client`). In the cache, a plain line per file set. The script: `<date> | ow-build 2.0.0 | builds/<client>/demos/M<n>-script.md | demo with <client> by <demo date>`; next is `/ow-build-demo --record M<n>` after the demo. The record: `… | builds/<client>/demos/M<n>-record.md | summary to <client> by <date>`; next is `/ow-build`, which routes to `-invoice` only when `trigger_confirmed` is a confirmation (`references/routing-and-resume.md` 2.5).
+Publish each check's result and the demo date to `milestones` (internal) and the summary to `engagement_updates` (`client`). In the cache, a plain line per file set. The script: `<date> | ow-build 2.0.1 | builds/<client>/demos/M<n>-script.md | demo with <client> by <demo date>`; next is `/ow-build-demo --record M<n>` after the demo. The record: `… | builds/<client>/demos/M<n>-record.md | summary to <client> by <date>`; next is `/ow-build`, which routes to `-invoice` only when `trigger_confirmed` is a confirmation (`references/routing-and-resume.md` 2.5).

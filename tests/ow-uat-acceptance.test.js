@@ -164,7 +164,7 @@ describe("the skill text keeps the rules the checker cannot see", () => {
   it("frontmatter: Agent Skills keys only, version 2.0.0, protocol 2, six verbs", () => {
     const { data } = matter(readFileSync(join(SKILL, "SKILL.md"), "utf8"));
     expect(Object.keys(data).sort()).toEqual(["compatibility", "description", "license", "metadata", "name"]);
-    expect(data.metadata.version).toBe("2.0.0");
+    expect(data.metadata.version).toBe("2.0.1");
     expect(data.metadata.protocol).toBe("2");
     expect(data.metadata.commands.split(" ")).toEqual(["/ow-uat", "/ow-uat-plan", "/ow-uat-pack", "/ow-uat-run", "/ow-uat-defect", "/ow-uat-signoff"]);
   });
@@ -233,8 +233,8 @@ describe("the skill text keeps the rules the checker cannot see", () => {
     expect(ref("uat-yaml-schema.md")).toMatch(/ignore a byte-order mark at the start of the file/);
     expect(ref("phase-signoff.md")).toMatch(/or says it does not apply or never falls due on that date, does not/);
     const skill = readFileSync(join(SKILL, "SKILL.md"), "utf8");
-    expect(skill).toMatch(/^  version: "2\.0\.0"$/m);
-    expect(skill).toMatch(/^ow-uat 2\.0\.0 · protocol 2 · Core bundle$/m);
+    expect(skill).toMatch(/^  version: "2\.0\.1"$/m);
+    expect(skill).toMatch(/^ow-uat 2\.0\.1 · protocol 2 · Core bundle$/m);
     const log = readFileSync(join(SKILL, "CHANGELOG.md"), "utf8");
     expect(log).toMatch(/^## 2\.0\.0 \(2026-11-03\): the audience reversal/m);
     expect(log).toContain("docs/plans/2026-11-03-ow-audience-reversal.md");

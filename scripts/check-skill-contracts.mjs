@@ -22,7 +22,9 @@
 //          names a skill from another catalog, a private skill or a business,
 //          a real price or contract-clause wording, and every `<prefix>` name
 //          is a family member (a skill, a planned skill, an add-on, or the
-//          protocol file). The NEXT-block, edge-table and STATUS-grammar checks
+//          protocol file). With `askTool` (ow-), the protocol and every skill that
+//          asks the user name that tool, and no skill prints a prompt or menu to
+//          answer by typing (checkAskTool). The NEXT-block, edge-table and STATUS-grammar checks
 //          that held the ow- skills to the 2026-09-21 government-audience design
 //          were removed on 2026-11-03 (docs/plans/2026-11-03-ow-audience-reversal.md).
 //   protocol  For a catalog whose protocol is a shared file (ow-), every
@@ -474,6 +476,46 @@ export function checkFamily(catalogs) {
           if (!known.has(m[0]) && !verbNames.has(m[0])) problems.push(`${where}: \`${m[0]}\` is not an ${c.prefix} skill, planned skill, add-on or the protocol file`);
         }
       });
+    }
+  }
+  return problems;
+}
+
+// ── asking the user (ow-, owner requirement 2026-11-04) ─────────────────────
+
+const ASKS_USER = /\b(?:ask|asks|asking|asked)\b|\bapprovals?\b|\bconfirm(?:s|ation)?\b/i;
+// A question written out for the model to print, a typed-answer prompt, or a menu to type from.
+const TYPED_PROMPTS = [
+  { re: /\b(?:ask|asks|asking)\b(?: the user)?[,:]? ?"[^"]{3,200}\?"/i, what: "a question written out to print in chat" },
+  { re: /\b(?:in|the) (?:one|same) message\b|\bone message\b[^.|]{0,20}\bquestions?\b|\bquestions?\b[^.|]{0,20}\bone message\b/i, what: "a question batch \"in one message\"" },
+  { re: /\bnumbered (?:menu|list of options)\b/i, what: "a numbered menu" },
+  { re: /\b(?:reply|answer|respond) with (?:the )?(?:number|\d)\b/i, what: "a menu answered by typing" },
+];
+
+/**
+ * For a catalog with `askTool` (ow-): the protocol and every skill that asks the
+ * user anything name the tool, and no skill prints a prompt or menu to answer by
+ * typing. A line naming the tool is exempt, and so is "never ...", which forbids it.
+ */
+export function checkAskTool(catalogs) {
+  const problems = [];
+  for (const c of catalogs) {
+    if (!c.askTool) continue;
+    const named = (t) => t.includes(`\`${c.askTool}\``);
+    const src = join(c.dir, c.protocol?.source ?? "");
+    if (c.protocol?.kind === "file" && existsSync(src) && !named(readFileSync(src, "utf8"))) problems.push(`${c.relDir}/${c.protocol.source}: does not name \`${c.askTool}\`, the tool every question goes through`);
+    const copyName = c.protocol?.copy ? basename(c.protocol.copy) : null;
+    for (const s of loadSkills(c.dir)) {
+      const refDir = join(c.dir, s.id, "references");
+      const refs = existsSync(refDir) ? readdirSync(refDir).filter((n) => n.endsWith(".md") && n !== copyName).sort() : [];
+      const texts = [{ rel: "SKILL.md", text: s.body, offset: s.bodyOffset }, ...refs.map((n) => ({ rel: `references/${n}`, text: readFileSync(join(refDir, n), "utf8"), offset: 0 }))];
+      if (texts.some((t) => ASKS_USER.test(t.text)) && !named(s.body)) problems.push(`${c.relDir}/${s.id}/SKILL.md: asks the user for input but its body does not name \`${c.askTool}\``);
+      for (const { rel, text, offset } of texts) {
+        text.split("\n").forEach((line, i) => {
+          if (named(line) || /\bnever\b/i.test(line)) return;
+          for (const { re, what } of TYPED_PROMPTS) if (re.test(line)) problems.push(`${c.relDir}/${s.id}/${rel}:${i + 1 + offset}: ${what}; ask through \`${c.askTool}\``);
+        });
+      }
     }
   }
   return problems;
@@ -948,7 +990,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const verbs = checkVerbs(null, { catalogs });
   const family = checkFamily(catalogs);
   const edges = checkEdges(catalogs);
-  const all = [...s7, ...protocol, ...verbs, ...family, ...edges];
+  const asks = checkAskTool(catalogs);
+  const all = [...s7, ...protocol, ...verbs, ...family, ...edges, ...asks];
   for (const p of all) console.error(`✗ ${p}`);
   if (all.length) {
     console.error(`${all.length} cross-skill contract problem(s).`);

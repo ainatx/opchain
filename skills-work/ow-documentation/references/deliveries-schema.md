@@ -4,7 +4,7 @@
 
 What went where, and when. Its `export_steps` are `-export`'s record (`references/routing-and-resume.md` §2).
 
-    written_by: ow-documentation 2.0.0
+    written_by: ow-documentation 2.0.1
     created: <YYYY-MM-DD>
     export_steps:
       - { step: files, rec: <n>, date: <YYYY-MM-DD> }
@@ -38,7 +38,7 @@ What went where, and when. Its `export_steps` are `-export`'s record (`reference
 ## 2. `delivered.md` (`-delivered`)
 
     ---
-    written_by: ow-documentation 2.0.0
+    written_by: ow-documentation 2.0.1
     created: <YYYY-MM-DD>
     delivered: <YYYY-MM-DD>
     ---

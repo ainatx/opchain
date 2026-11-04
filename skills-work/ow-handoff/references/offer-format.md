@@ -7,7 +7,7 @@ Written by `/ow-handoff-offer`. ow-start's `/ow-start-log` indexes `after-offer.
 ## 1. Header
 
     ---
-    written_by: ow-handoff 2.0.0
+    written_by: ow-handoff 2.0.1
     created: <YYYY-MM-DD>
     choice: care | hourly | none | undecided      # the newest entry in ## Choices; never a person, never an amount
     ---

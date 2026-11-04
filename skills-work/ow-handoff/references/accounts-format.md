@@ -5,7 +5,7 @@ Written by `/ow-handoff-accounts`; `-notes`, `-package`, `-access` and `-close` 
 ## 1. Header and sections
 
     ---
-    written_by: ow-handoff 2.0.0
+    written_by: ow-handoff 2.0.1
     created: <YYYY-MM-DD>
     systems_map: present | none (built without a systems map)
     accounts_steps:

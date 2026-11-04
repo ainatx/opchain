@@ -14,7 +14,7 @@ Nothing else goes out: never a file, a quote from a client file, a keep-out term
 ## 2. One go before the first search
 
 1. Before the first search of a run, show the planned queries once, numbered `Q-nn`, and write them to the ledger as one `marker: plan` line.
-2. Wait for one go. Record it as `marker: plan approved | the user approved Q-nn, Q-nn`. Without it, send nothing.
+2. Ask for one go through `AskUserQuestion`. Record it as `marker: plan approved | the user approved Q-nn, Q-nn`. Without it, send nothing.
 3. A query you want to add mid-run is never sent on its own: show the new queries together as a batch (`marker: batch`), and send none until the user approves them (`marker: batch approved`).
 4. More searches or page requests than the depth's cap (section 6) need the same: show the extra requests as a `marker: batch` first, then record `marker: batch approved | the user approved <ids>; past the cap: +<n>`.
 5. Nothing is sent before the go, a page the user gave included. An approval belongs to its run.

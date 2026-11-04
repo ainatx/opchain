@@ -24,7 +24,7 @@
 For each trigger met and not yet requested, `invoices/INV-request-<trigger>.md` (`booking`, `working-demo`, `acceptance`, `delivery`, `documentation`, or the change order's id):
 
     ---
-    written_by: ow-build 2.0.0
+    written_by: ow-build 2.0.1
     created: <YYYY-MM-DD>
     client: <client>
     trigger: <trigger>
@@ -54,4 +54,4 @@ Then update `ledger.md`: the row's (or `documentation`'s) `state: requested`, it
 
 ## 4. Finish
 
-For each request, print the `invoice` destination's say: line exactly (`{files}` = the request's path), or **create this invoice in your invoicing tool**. This skill sends nothing. Write each request to `invoices`, internal until the user sends it; the CRM numbers it. In the cache, a plain line per request written: `<date> | ow-build 2.0.0 | builds/<client>/invoices/INV-request-<trigger>.md | payment of <trigger> by <invoice date + due days>`, the invoice date as the user gives it, else today's. A refusal writes nothing, not even a STATUS line.
+For each request, print the `invoice` destination's say: line exactly (`{files}` = the request's path), or **create this invoice in your invoicing tool**. This skill sends nothing. Write each request to `invoices`, internal until the user sends it; the CRM numbers it. In the cache, a plain line per request written: `<date> | ow-build 2.0.1 | builds/<client>/invoices/INV-request-<trigger>.md | payment of <trigger> by <invoice date + due days>`, the invoice date as the user gives it, else today's. A refusal writes nothing, not even a STATUS line.

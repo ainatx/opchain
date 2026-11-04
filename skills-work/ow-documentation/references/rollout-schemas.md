@@ -4,7 +4,7 @@ People appear by role and the client's id by default, and the client keeps the m
 
 ## 1. `rollout.yaml` (`-rollout` and its modes `--session`, `--add-group`, `--close`)
 
-    written_by: ow-documentation 2.0.0
+    written_by: ow-documentation 2.0.1
     created: <YYYY-MM-DD>
     trainer: user | client
     first_session: <YYYY-MM-DD>
@@ -30,7 +30,7 @@ People appear by role and the client's id by default, and the client keeps the m
 One section per session; what was reported stays as reported:
 
     ---
-    written_by: ow-documentation 2.0.0
+    written_by: ow-documentation 2.0.1
     created: <YYYY-MM-DD>
     ---
     # Training record: <client>
@@ -53,7 +53,7 @@ One section per session; what was reported stays as reported:
 ## 3. `adoption.md` (`-rollout --checkin`, `--close`)
 
     ---
-    written_by: ow-documentation 2.0.0
+    written_by: ow-documentation 2.0.1
     created: <YYYY-MM-DD>
     ---
     # Adoption: <client>

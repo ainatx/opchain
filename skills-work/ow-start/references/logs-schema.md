@@ -13,7 +13,7 @@ These are the scratch cache's forms (`opchain-work/`); the CRM holds the publish
 ## 2. `logs/<workstream>/meetings/MTG-nn/agenda.md` (`/ow-start-prep-meeting`)
 
     ---
-    written_by: ow-start 2.0.0
+    written_by: ow-start 2.0.1
     created: 2026-10-14
     id: MTG-02
     meeting_date: 2026-10-20
@@ -38,7 +38,7 @@ Every row has a source: a path (with `#A-nn` or `#Q<n>` for an item inside notes
 ## 3. `logs/<workstream>/meetings/MTG-nn/notes.md` (`/ow-start-log-meeting`)
 
     ---
-    written_by: ow-start 2.0.0
+    written_by: ow-start 2.0.1
     created: 2026-10-20
     id: MTG-02
     meeting_date: 2026-10-20
@@ -95,7 +95,7 @@ Only when `external: yes`. Four parts in this order: **Thanks · What we decided
 ## 5. `logs/<workstream>/decisions/DEC-nn.md` (`/ow-start-log-decision`)
 
     ---
-    written_by: ow-start 2.0.0
+    written_by: ow-start 2.0.1
     created: 2026-10-21
     id: DEC-02
     subject: logs/larkspur-ceramics/meetings/MTG-02/notes.md#D1   # where it came from, or: none
@@ -152,6 +152,6 @@ These lines live in the cache and are how the logs track open items until the CR
 
 Example:
 
-    2026-10-20 | ow-start 2.0.0 | logs/larkspur-ceramics/meetings/MTG-02/notes.md#A-03 | awaiting: A-03 (client ops lead) by 2026-10-23
+    2026-10-20 | ow-start 2.0.1 | logs/larkspur-ceramics/meetings/MTG-02/notes.md#A-03 | awaiting: A-03 (client ops lead) by 2026-10-23
 
 Lines an earlier version wrote, with a clock label after the date and a `next:` field (`next: none (closed: done) | awaiting: none (done <date>)`), are read the same way. An owner in a STATUS line is one of the attendees in that meeting's `notes.md`, or `you`. Before adding a line, compare it with its item's newest line; if that line already says the same, skip it. An older form may come back (an action moved to the 23rd, then back to the 16th, adds the 16th again).

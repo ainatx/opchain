@@ -646,7 +646,7 @@ describe("the skill text keeps the rules the checker cannot see", () => {
   it("frontmatter: Agent Skills keys only, version 2.0.0, protocol 2, every verb declared", () => {
     const { data } = matter(readFileSync(join(SKILL, "SKILL.md"), "utf8"));
     expect(Object.keys(data).sort()).toEqual(["compatibility", "description", "license", "metadata", "name"]);
-    expect(data.metadata.version).toBe("2.0.0");
+    expect(data.metadata.version).toBe("2.0.1");
     expect(data.metadata.protocol).toBe("2");
     expect(data.metadata.commands.split(" ")).toEqual(["/ow-build", "/ow-build-start", "/ow-build-run", "/ow-build-update", "/ow-build-demo", "/ow-build-change", "/ow-build-invoice", "/ow-build-ready"]);
   });

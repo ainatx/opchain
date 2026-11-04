@@ -13,7 +13,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { loadCatalogs } from "../scripts/lib/catalogs.mjs";
 import { validateCatalog } from "../scripts/gen-skills-catalog.mjs";
-import { checkFamily, checkProtocolCopies, checkVerbs } from "../scripts/check-skill-contracts.mjs";
+import { checkAskTool, checkFamily, checkProtocolCopies, checkVerbs } from "../scripts/check-skill-contracts.mjs";
 
 const ROOT = join(import.meta.dirname, "..");
 const scratch = [];
@@ -242,6 +242,44 @@ describe("ow- family rules (check-skill-contracts)", () => {
     ]);
     expect(checkProtocolCopies(t.catalogs, { write: true })).toEqual([]);
     expect(readFileSync(join(t.dir, "ow-demo", "references", "ow-protocol.md"), "utf8")).toBe(PROTOCOL);
+  });
+});
+
+describe("ow- asking the user (checkAskTool, owner requirement 2026-11-04)", () => {
+  const NAMED = `${BODY}\nEvery question goes through \`AskUserQuestion\`.\n`;
+  const asks = (opts, tool = "AskUserQuestion") => {
+    const t = owTree(opts);
+    t.ow.askTool = tool;
+    writeFileSync(join(t.dir, "ow-protocol.md"), `${PROTOCOL}Ask through \`AskUserQuestion\`.\n`);
+    return checkAskTool(t.catalogs).join("\n");
+  };
+
+  it("the real tree passes", () => expect(checkAskTool(loadCatalogs({ env: {} }))).toEqual([]));
+
+  it("a skill that asks without naming the tool fails; naming it, or never asking, passes", () => {
+    const asking = "Ask the client's name.\n";
+    expect(asks({ body: `${BODY}\n${asking}` })).toMatch(/ow-demo\/SKILL\.md: asks the user for input but its body does not name `AskUserQuestion`/);
+    expect(asks({ files: { "references/more.md": asking } })).toMatch(/does not name `AskUserQuestion`/);
+    expect(asks({ body: `${NAMED}\n${asking}` })).toBe("");
+    expect(asks({ body: "# ow-demo\n\nOpen `references/ow-protocol.md`.\n" })).toBe("");
+  });
+
+  it("a question printed in chat, a batch in one message and a numbered menu fail, in the body or a reference", () => {
+    expect(asks({ body: `${NAMED}\nAsk, "Did the client buy it?", and record it.\n` })).toMatch(/SKILL\.md:\d+: a question written out to print in chat/);
+    expect(asks({ body: NAMED, files: { "references/more.md": "Ask for the date in one message.\n" } })).toMatch(/references\/more\.md:1: a question batch/);
+    expect(asks({ body: NAMED, files: { "references/more.md": "Print a numbered menu of the paths.\n" } })).toMatch(/a numbered menu/);
+    expect(asks({ body: NAMED, files: { "references/more.md": "Reply with the number of the path.\n" } })).toMatch(/a menu answered by typing/);
+  });
+
+  it("the tool's own line, a rule forbidding it, and a sample question for a client call pass", () => {
+    expect(asks({ body: NAMED, files: { "references/more.md": 'Ask through `AskUserQuestion` whether it was bought, in one message of options.\nNever a numbered menu.\nFind the no ("who else has to say yes?").\n' } })).toBe("");
+  });
+
+  it("a protocol that does not name the tool fails; a catalog with no askTool is not read", () => {
+    const t = owTree({ body: `${BODY}\nAsk the name.\n` });
+    expect(checkAskTool(t.catalogs)).toEqual([]);
+    t.ow.askTool = "AskUserQuestion";
+    expect(checkAskTool(t.catalogs).join("\n")).toMatch(/ow-protocol\.md: does not name `AskUserQuestion`/);
   });
 });
 

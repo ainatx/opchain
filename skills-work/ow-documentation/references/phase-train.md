@@ -1,6 +1,6 @@
 # `/ow-documentation-train [deck | facilitator | modules | cards | videos]`: the training kit
 
-Open `references/ow-protocol.md`. Formats: `references/document-formats.md` §6. Checklist: `references/self-checks.md`. Read first from the CRM: the latest `guide` and `training` documents and the `doc_plan` document; a human-edited version is never overwritten. Publish each as a `training` document. Questions: at most three, in one message.
+Open `references/ow-protocol.md`. Formats: `references/document-formats.md` §6. Checklist: `references/self-checks.md`. Read first from the CRM: the latest `guide` and `training` documents and the `doc_plan` document; a human-edited version is never overwritten. Publish each as a `training` document. Questions: at most three, in one `AskUserQuestion` call.
 
 ## 1. Which format
 

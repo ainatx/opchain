@@ -2,7 +2,7 @@
 
 `builds/<client>/build.yaml` is the cache's working state: where the build comes from, where progress is read, the builder's mode, the milestone map and each sprint's result. Milestone status is published to `milestones` in the CRM, which is the record. **`-start` creates it** after its first questions, with `map_check: pending`, and adds each step to `start_steps` as it is done; `-run` then records each sprint. Every other verb reads it. YAML. It is yours: never sent to the client.
 
-    written_by: ow-build 2.0.0
+    written_by: ow-build 2.0.1
     created: <YYYY-MM-DD>
     client: <client>
     plan: plans/<slug>/                 # the signed Build Plan folder

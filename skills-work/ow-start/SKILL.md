@@ -17,7 +17,7 @@ description: >
 license: Apache-2.0
 compatibility: Runs in Claude Code or any Agent Skills host, best with a folder attached; the ow-tools add-on adds transcription where it is installed.
 metadata:
-  version: "2.0.0"
+  version: "2.0.1"
   catalog: ow
   protocol: "2"
   bundle: core
@@ -27,9 +27,11 @@ metadata:
 
 # ow-start: the fit call, its recap, and the logs
 
-ow-start 2.0.0 · protocol 2 · Core bundle
+ow-start 2.0.1 · protocol 2 · Core bundle
 
 Open `references/ow-protocol.md` first and keep to it. If you cannot open it, say so and stop.
+
+**Asking the user:** every question and approval goes through `AskUserQuestion`, batched into one call per verb with your recommendation first; never a question or numbered menu typed into chat (`references/ow-protocol.md` §1).
 
 ow-start prepares the 20-minute call, then writes the recap the client receives: **Today · What needs to change · Next step · What I need from you**, one recommended path, due within one business day. It also keeps the logs: the meetings no other ow- skill records, and the decisions, per client and for your business.
 
@@ -53,12 +55,12 @@ Try: "prep my call with Acme on Thursday" · "here's the transcript, write the r
 | Verb | When | Does | Writes (under `opchain-work/`) |
 |---|---|---|---|
 | `/ow-start` | Any time | First run: the welcome. Later: resume from the CRM and the cache: open intakes and open logs items | nothing |
-| `/ow-start-prep` | Before the call | One message of questions, then the call guide: each bank question marked already answered (with source), must-ask or if-time, the must-asks fitted into 20 minutes | `intake/<client>/intake.yaml`, `call-guide.md`, `send-ahead.md` |
+| `/ow-start-prep` | Before the call | One `AskUserQuestion` call, then the call guide: each bank question marked already answered (with source), must-ask or if-time, the must-asks fitted into 20 minutes | `intake/<client>/intake.yaml`, `call-guide.md`, `send-ahead.md` |
 | `/ow-start-extract` | After the call | From a transcript or notes: the intake record, coverage, then the client recap with one recommended path. Seeds the profile on first run | **`intake/<client>/recap.md`**, `intake-record.md`, `coverage.md`; `profile.md` (first run only) |
 | `/ow-setup` | Any time | Edits the profile; every question can be skipped. Creates `offers.md` and `handoffs.yaml` from the examples when they are missing | `profile.md`; `offers.md` and `handoffs.yaml` (when missing; then they are yours) |
 | `/ow-status` | Any time | One screen from the CRM and the cache: open intakes, open logs items, what is awaited and by when | nothing |
 | `/ow-start-transcribe` | After the call, with a recording | Provided by the **ow-tools** add-on (`references/phase-setup.md` §3) | `intake/<client>/transcript.md`, by the add-on |
-| `/ow-start-prep-meeting <workstream>` | Before a meeting | An agenda of the open items, each with its source; asks purpose, date, length and attendees in one message | `MTG-nn/agenda.md` |
+| `/ow-start-prep-meeting <workstream>` | Before a meeting | An agenda of the open items, each with its source; asks purpose, date, length and attendees in one `AskUserQuestion` call | `MTG-nn/agenda.md` |
 | `/ow-start-log-meeting <workstream>` | After it (`MTG-nn` optional) | Notes from a transcript or your notes, every item cited; a follow-up draft when an external party attended | `MTG-nn/notes.md`, `follow-up.{html,txt}`; the held line |
 | `/ow-start-action <workstream> <id> <state>` | Any time | `A-nn done`, `A-nn dropped`, `A-nn moved <date>`, `DEC-nn reviewed` | one STATUS line |
 | `/ow-start-log-decision <workstream>` | Any time, or from a meeting's notes | One decision per file; a change is a new decision that supersedes it | `decisions/DEC-nn.md`; a superseded review's closing line |
@@ -68,10 +70,10 @@ In the cache, a verb that writes adds a plain line to `STATUS.md`. Transcription
 
 ## Questions and the one approval
 
-- **`/ow-start-prep`: one message, at most three questions.** The client's name with the call date and start time (attendees if the user wants to add them); prospect or delivery; and, only in a git repository whose `.gitignore` lacks them, whether to add the two audio and transcript lines. Your name and time zone come from `profile.md`, else from the machine (`git config user.name`, `date`), stated as assumptions. A date that does not exist ("11/31 10a") gets "did you mean 10/31 at 10:00?", never a refusal.
-- **`/ow-start-extract`: one message for the speakers**, listing every speaker label with two sample lines, plus anything `intake.yaml` and the transcript do not answer (client, call date, mode). The path is proposed with the recap draft. **The one approval is the user's OK of the recap**, before they send it.
-- **`/ow-setup`:** your name as you sign (and business name, optional), your time zone, the holidays to skip. All skippable, in one message.
-- **The logs verbs** ask in one message what they need (purpose, date and length, attendees; who is who; a missing due date) and nothing a file already records.
+- **`/ow-start-prep`: one `AskUserQuestion` call, at most three questions.** The client's name with the call date and start time (attendees if the user wants to add them); prospect or delivery; and, only in a git repository whose `.gitignore` lacks them, whether to add the two audio and transcript lines. Your name and time zone come from `profile.md`, else from the machine (`git config user.name`, `date`), stated as assumptions. A date that does not exist ("11/31 10a") gets "did you mean 10/31 at 10:00?", never a refusal.
+- **`/ow-start-extract`: one `AskUserQuestion` call for the speakers**, listing every speaker label with two sample lines, plus anything `intake.yaml` and the transcript do not answer (client, call date, mode). The path is proposed with the recap draft. **The one approval is the user's OK of the recap**, before they send it.
+- **`/ow-setup`:** your name as you sign (and business name, optional), your time zone, the holidays to skip. All skippable, in one `AskUserQuestion` call.
+- **The logs verbs** ask in one `AskUserQuestion` call what they need (purpose, date and length, attendees; who is who; a missing due date) and nothing a file already records.
 
 ## Where it lives in the CRM
 

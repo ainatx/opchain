@@ -1,6 +1,6 @@
 # `/ow-documentation-write [guides | sops | runbook | handover]`: the documents
 
-Open `references/ow-protocol.md`. Formats: `references/document-formats.md`. Checklist: `references/self-checks.md`. Read first from the CRM: the latest version of the document you are writing (`guide`, `sop`, `operator_runbook`, `handover`), the `doc_plan` document, `acceptance_criteria`, `support_requests`, `systems`. A human-edited version is never overwritten: write yours beside it and say so. Questions: at most three, in one message.
+Open `references/ow-protocol.md`. Formats: `references/document-formats.md`. Checklist: `references/self-checks.md`. Read first from the CRM: the latest version of the document you are writing (`guide`, `sop`, `operator_runbook`, `handover`), the `doc_plan` document, `acceptance_criteria`, `support_requests`, `systems`. A human-edited version is never overwritten: write yours beside it and say so. Questions: at most three, in one `AskUserQuestion` call.
 
 ## 1. Which type
 

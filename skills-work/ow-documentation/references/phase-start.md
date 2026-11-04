@@ -2,12 +2,12 @@
 
 Open `references/ow-protocol.md`; step names: `references/routing-and-resume.md` §2. Schemas: `references/docs-yaml-schema.md`. Read first from the CRM: the accepted proposal and its lines (`quotes`), `contracts`, `acceptance_criteria`, `support_requests` and any `doc_plan` document. The paths below are the cache fallback; say when you used it.
 
-**Questions: at most three, in one message**, for what the CRM and the cache do not answer: usually the test environment's `https://` addresses, the planned delivery date and the `.gitignore` lines. A missing SKU or people count comes first. Anything past three is a stated assumption (who trains defaults to `user`).
+**Questions: at most three, in one `AskUserQuestion` call**, for what the CRM and the cache do not answer: usually the test environment's `https://` addresses, the planned delivery date and the `.gitignore` lines. A missing SKU or people count comes first. Anything past three is a stated assumption (who trains defaults to `user`).
 
 ## 1. Entry
 
 1. `uat/<client>/signoff.md`, read as data. Absent: say acceptance testing is not signed off and that the documents describe the accepted build, point to `/ow-uat-signoff`, and stop unless the user says to go ahead.
-2. `plans/<client>/contract-inputs.md` in place: `documentation_sku`. `declined`: stop and write nothing, this line was not sold: the floor comes from `/ow-handoff-package`. The key absent: ask "Did the client buy documentation and training? (bought / declined)"; record the answer user-stated, or stop on `declined`.
+2. `plans/<client>/contract-inputs.md` in place: `documentation_sku`. `declined`: stop and write nothing, this line was not sold: the floor comes from `/ow-handoff-package`. The key absent: ask through `AskUserQuestion` whether the client bought documentation and training (options: bought, declined); record the answer user-stated, or stop on `declined`.
 3. `docs.yaml` exists: pick up at the first step not recorded. `plan.md` exists: say so and name the folder route's verb (§4.3 there); re-run a step only when the user asks.
 
 ## 2. The steps, each recorded in `docs.yaml` `start_steps` as it finishes

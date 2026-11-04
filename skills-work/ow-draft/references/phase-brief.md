@@ -6,7 +6,7 @@ Open `references/draft-files-schema.md` §1 for the file. First read the latest 
 
 `<ws>` is a client's slug or `business`. If none fits: `Question: which workstream (a client's slug, or business)?`
 
-1. **`ask`**: in one message, ask **audience, purpose and type** (document, deck, sheet, email, post or newsletter; the modules: `references/type-document.md`, `type-deck.md`, `type-sheet.md`, `type-comms.md`), skipping what the CRM or the user's request already answers. Nothing else is asked.
+1. **`ask`**: in one `AskUserQuestion` call, ask **audience, purpose and type** (document, deck, sheet, email, post or newsletter; the modules: `references/type-document.md`, `type-deck.md`, `type-sheet.md`, `type-comms.md`), skipping what the CRM or the user's request already answers. Nothing else is asked.
 2. **`confirm`**: state what you assumed, and go straight on; the user corrects it with `--revise`:
    - **kind**: client deliverable, marketing, internal or client comms (§3), from the workstream and the purpose;
    - **key message**: one sentence, drawn from the purpose;

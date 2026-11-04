@@ -5,7 +5,7 @@ Written by `/ow-handoff-access`. It reads the transfer states in `accounts.md` a
 ## 1. Header and sections
 
     ---
-    written_by: ow-handoff 2.0.0
+    written_by: ow-handoff 2.0.1
     created: <YYYY-MM-DD>
     access_removal_date: <from dates.yaml> | not set (provisional <planned_removal>)
     access_steps:

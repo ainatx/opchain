@@ -18,7 +18,7 @@ Also read `build-plan-offer.md` if it exists (tier, fee, weeks), `price-book.yam
 
 ## 2. The tier
 
-The tier comes from the offer (or a whole-project quote), else the recap's `path_systems` (`1` → `one_system`, `2` → `two_systems`, `3+` → `three_plus_or_mvp`), else the user. State it; the user may change it with a reason, recorded as `tier_reason`. `weeks` = `build_plan_weeks.<tier>`. `fee` = the offer's (or the whole-project quote's) fee when one exists, else `build_plan_fees.<tier>`. **Delivery mode** (a `next-stage` recap, work already signed) takes no fee from the price book: `fee: none`. A missing `build_plan_weeks` or `build_plan_fees` key stops only that value: ask the user for it in the same message as the start date, and record it `user-stated`.
+The tier comes from the offer (or a whole-project quote), else the recap's `path_systems` (`1` → `one_system`, `2` → `two_systems`, `3+` → `three_plus_or_mvp`), else the user. State it; the user may change it with a reason, recorded as `tier_reason`. `weeks` = `build_plan_weeks.<tier>`. `fee` = the offer's (or the whole-project quote's) fee when one exists, else `build_plan_fees.<tier>`. **Delivery mode** (a `next-stage` recap, work already signed) takes no fee from the price book: `fee: none`. A missing `build_plan_weeks` or `build_plan_fees` key stops only that value: ask the user for it in the same `AskUserQuestion` call as the start date, and record it `user-stated`.
 
 ## 3. The schedule
 
@@ -42,7 +42,7 @@ Every intake fact whose confidence is **LOW** or **UNKNOWN** (except `promised_b
 
 `plans/<client>/plan.yaml` (YAML; header keys at the top level):
 
-    written_by: ow-build-plan 2.0.0
+    written_by: ow-build-plan 2.0.1
     created: <YYYY-MM-DD>
     client: <client>
     client_slug: <slug>
@@ -99,4 +99,4 @@ The last two keep workshop transcripts out of commits; the ow-tools add-on refus
 
 ## 6. STATUS and what comes next
 
-In the cache, a plain `STATUS.md` line is enough: `<date> | ow-build-plan 2.0.0 | plans/<client>/collection.md | material from <client> by <collection_deadline>`. Say that `/ow-build-plan-collect` takes the material as it arrives, and suggest a calendar reminder for the collection deadline (nothing reminds anyone later; protocol §5).
+In the cache, a plain `STATUS.md` line is enough: `<date> | ow-build-plan 2.0.1 | plans/<client>/collection.md | material from <client> by <collection_deadline>`. Say that `/ow-build-plan-collect` takes the material as it arrives, and suggest a calendar reminder for the collection deadline (nothing reminds anyone later; protocol §5).

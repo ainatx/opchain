@@ -4,7 +4,7 @@ Keep to `references/ow-protocol.md`. Read first from the CRM: the recap, map and
 
 ## 1. Assemble `build-plan.md` (Build Plan mode)
 
-Read the map, `scope.md`, `acceptance.md`, `risks.md`, `plan.yaml` and `offers.md` (`ownership`). Write `plans/<client>/build-plan.md`: `written_by: ow-build-plan 2.0.0` and `created`, then one H1 and these sections in order:
+Read the map, `scope.md`, `acceptance.md`, `risks.md`, `plan.yaml` and `offers.md` (`ownership`). Write `plans/<client>/build-plan.md`: `written_by: ow-build-plan 2.0.1` and `created`, then one H1 and these sections in order:
 
 | Section | From |
 |---|---|
@@ -40,8 +40,8 @@ For `build-plan.md` and `quote.md` (quick mode: `quick-scope.md` and `quote.md`)
 
 ## 4. `export/export-report.md`
 
-`written_by: ow-build-plan 2.0.0` and `created`, then: what the builder-neutral check found, whether the user went ahead regardless, and for each document either the ow-tools command and its raw report (hashes as reported, with its own wording) or "not generated here: the ow-tools add-on is not installed". It states: structure checked in the source this tool generated; this is not a conformance test.
+`written_by: ow-build-plan 2.0.1` and `created`, then: what the builder-neutral check found, whether the user went ahead regardless, and for each document either the ow-tools command and its raw report (hashes as reported, with its own wording) or "not generated here: the ow-tools add-on is not installed". It states: structure checked in the source this tool generated; this is not a conformance test.
 
 ## 5. STATUS and what comes next
 
-In the cache, a plain `STATUS.md` line is enough: `<date> | ow-build-plan 2.0.0 | plans/<client>/export/export-report.md | client's answer by <valid_until>; Build Plan credit by <credit_deadline>` (quick mode, a whole-project quote, or a plan with `fee: none`: `client's answer by <valid_until>`). Remind the user to ask the client to remove any read-only access the plan used (the access log in `evidence.md`), and suggest a calendar reminder for the validity date, and one for the credit deadline when the quote has one. When the client accepts: `/ow-build-plan-quote --accepted <date>`. Nothing is sent: the user sends the documents.
+In the cache, a plain `STATUS.md` line is enough: `<date> | ow-build-plan 2.0.1 | plans/<client>/export/export-report.md | client's answer by <valid_until>; Build Plan credit by <credit_deadline>` (quick mode, a whole-project quote, or a plan with `fee: none`: `client's answer by <valid_until>`). Remind the user to ask the client to remove any read-only access the plan used (the access log in `evidence.md`), and suggest a calendar reminder for the validity date, and one for the credit deadline when the quote has one. When the client accepts: `/ow-build-plan-quote --accepted <date>`. Nothing is sent: the user sends the documents.

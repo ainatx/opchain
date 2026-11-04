@@ -8,7 +8,7 @@ Every timestamped entry this skill writes carries `rec: <n>`: one more than the 
 
 ## 2. Keys
 
-    written_by: ow-documentation 2.0.0
+    written_by: ow-documentation 2.0.1
     created: <YYYY-MM-DD>
     trainer: user | client                # header key: who runs the groups; never a name
     client: <the client's business name>
@@ -62,9 +62,9 @@ Every timestamped entry this skill writes carries `rec: <n>`: one more than the 
 
 ## 4. The scope
 
-- **SKU.** `plans/<client>/contract-inputs.md` `documentation_sku: bought`. `declined`: `-start` stops (nothing is written). The key absent (a quote made before the line existed): ask, "Did the client buy documentation and training? (bought / declined)", and record `bought (user-stated <date>)`, or stop on `declined`.
+- **SKU.** `plans/<client>/contract-inputs.md` `documentation_sku: bought`. `declined`: `-start` stops (nothing is written). The key absent (a quote made before the line existed): ask through `AskUserQuestion` whether the client bought documentation and training (options: bought, declined), and record `bought (user-stated <date>)`, or stop on `declined`.
 - **Size**: `contract-inputs.md` `uat.size`, the build's own letter. Absent: ask, and record it user-stated.
-- **People**: `contract-inputs.md` `documentation_people`. Absent (a quote made before the people count was recorded): ask, "How many people did the quote cover?", and record it user-stated.
+- **People**: `contract-inputs.md` `documentation_people`. Absent (a quote made before the people count was recorded): ask through `AskUserQuestion` how many people the quote covered, and record it user-stated.
 - **Groups**: people ÷ 15, rounded up; `room_for` is groups × 15. 40 people quoted gives 3 groups and room for 45.
 - **Roles**: `uat.yaml` testers and `plans/<client>/map/roles.md`; a quick-quote job asks the user.
 - **Prices never enter this file**, nor any document: not `documentation_price`, not the per-group add-on, not a rate.
@@ -78,7 +78,7 @@ A signed group change order adds a group to `rollout.yaml` (`/ow-documentation-r
 ## 6. `plan.md` (the `plan` step)
 
     ---
-    written_by: ow-documentation 2.0.0
+    written_by: ow-documentation 2.0.1
     created: <YYYY-MM-DD>
     documents: [guides, sops, runbook, handover]
     training: [deck, facilitator, modules, cards, videos]

@@ -12,7 +12,7 @@ Every document is Markdown first, the one source for every format. Each carries 
 ## 2. A guide per role: `guides/<role>.md`
 
     ---
-    written_by: ow-documentation 2.0.0
+    written_by: ow-documentation 2.0.1
     created: <YYYY-MM-DD>
     role: <role>
     tasks: [SC-nn, …]
@@ -36,7 +36,7 @@ Every task of the role (each of its scenarios) has a section. *What changed for 
 One per item of `plans/<client>/map/future.md` (a quick-quote job: from `quick-scope.md` and the user, user-stated). SOPs describe the way of working, not the software; each software step links to its guide (`see the <Role> guide, "<task>"`).
 
     ---
-    written_by: ow-documentation 2.0.0
+    written_by: ow-documentation 2.0.1
     created: <YYYY-MM-DD>
     id: SOP-nn
     process: map/future.md item <n>
@@ -60,7 +60,7 @@ One per item of `plans/<client>/map/future.md` (a quick-quote job: from `quick-s
 The full version of ow-handoff's operator notes. Entries use ow-handoff's fixed form and its `OP-nn` ids:
 
     ---
-    written_by: ow-documentation 2.0.0
+    written_by: ow-documentation 2.0.1
     created: <YYYY-MM-DD>
     ops: [OP-01, …]                 # every id ever used, retired ones included
     ---

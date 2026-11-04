@@ -4,7 +4,7 @@ Written by `/ow-handoff-start` (its `--keep-frozen` and `--refreeze` modes add o
 
 ## 1. The file
 
-    written_by: ow-handoff 2.0.0
+    written_by: ow-handoff 2.0.1
     created: <YYYY-MM-DD>
     acceptance: { kind: signed | deemed, date: <YYYY-MM-DD>, request: <n> }
     build_label: <signoff.md's build_label>

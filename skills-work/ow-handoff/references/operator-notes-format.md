@@ -5,7 +5,7 @@ Written by `/ow-handoff-notes` (`--walkthrough` adds the walk-through record). `
 ## 1. Header
 
     ---
-    written_by: ow-handoff 2.0.0
+    written_by: ow-handoff 2.0.1
     created: <YYYY-MM-DD>
     form: floor | index
     ops: [OP-01, OP-02, …]      # every id this file uses, retired ones included

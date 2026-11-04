@@ -26,7 +26,7 @@ The ow-tools capture plan, in ow-tools' own strict format: an unknown key is ref
 ## 2. `shots/index.md`
 
     ---
-    written_by: ow-documentation 2.0.0
+    written_by: ow-documentation 2.0.1
     created: <YYYY-MM-DD>
     capture_steps:                    # appended as each step finishes (routing-and-resume.md §2)
       - { step: decision, rec: <n>, date: <YYYY-MM-DD> }

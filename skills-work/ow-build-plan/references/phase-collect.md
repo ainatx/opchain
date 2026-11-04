@@ -35,7 +35,7 @@ Only in a session where the user has connected the access themselves.
 
 ## 4. Write `evidence.md` (one register for the plan)
 
-`written_by: ow-build-plan 2.0.0` and `created`, then:
+`written_by: ow-build-plan 2.0.1` and `created`, then:
 
     # Evidence: <client>
 
@@ -73,4 +73,4 @@ Example row:
 
 ## 6. STATUS and what comes next
 
-In the cache, a plain `STATUS.md` line is enough: `<date> | ow-build-plan 2.0.0 | plans/<client>/evidence.md | nothing awaited` (or `material from <client> by <collection_deadline>` while requests are open). Next: `/ow-build-plan-map`, once enough is in; say what is still open.
+In the cache, a plain `STATUS.md` line is enough: `<date> | ow-build-plan 2.0.1 | plans/<client>/evidence.md | nothing awaited` (or `material from <client> by <collection_deadline>` while requests are open). Next: `/ow-build-plan-map`, once enough is in; say what is still open.

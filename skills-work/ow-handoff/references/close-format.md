@@ -25,7 +25,7 @@ Written by `/ow-handoff-close`. A close after reopening writes the addenda and l
 ## 2. `close.md` (and `close-addendum-<date>.md`)
 
     ---
-    written_by: ow-handoff 2.0.0
+    written_by: ow-handoff 2.0.1
     created: <YYYY-MM-DD>
     closed: <YYYY-MM-DD>
     branch: care-installed | care-not-installed | hourly | none | undecided
@@ -55,7 +55,7 @@ Written by `/ow-handoff-close`. A close after reopening writes the addenda and l
 ## 4. `care-start.md` (and `care-start-addendum-<date>.md`): what ow-care reads
 
     ---
-    written_by: ow-handoff 2.0.0
+    written_by: ow-handoff 2.0.1
     created: <YYYY-MM-DD>
     care_start: <YYYY-MM-DD>
     tier: <name, as frozen>

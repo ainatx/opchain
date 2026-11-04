@@ -2,22 +2,22 @@
 
 Keep to `references/ow-protocol.md`. Every file named here has its format in `references/intake-record-schema.md`.
 
-## 1. One message, then go
+## 1. One `AskUserQuestion` call, then go
 
-Read first: from the CRM, the client's record, any `briefs` row and `recap` document, and the user's profile values; where the CRM cannot be read, the cache (`profile.md`, any `intake/<slug>/` folder), and say so. Then whatever the user attached or said. Then ask, in **one message**, only what is still missing (at most three questions):
+Read first: from the CRM, the client's record, any `briefs` row and `recap` document, and the user's profile values; where the CRM cannot be read, the cache (`profile.md`, any `intake/<slug>/` folder), and say so. Then whatever the user attached or said. Then ask, in **one `AskUserQuestion` call**, only what is still missing (at most three questions):
 
 1. **Who and when:** the client's name, the call date and start time. Attendees and their roles are welcome but optional.
 2. **Mode:** **prospect** (scoping a possible client) or **delivery** (discovery on work already signed). Open the matching bank: `references/question-bank-prospect.md` or `references/question-bank-delivery.md`.
 3. **The `.gitignore` lines**, only when the working folder is inside a git repository (a `.git` folder in it or a parent, or the user says so) and its `.gitignore` lacks them: "Shall I add `opchain-work/**/audio/` and `opchain-work/**/transcript.*` to `.gitignore`, so recordings and transcripts stay out of git?"
 
-State the rest as assumptions in the same message, one line each, for the user to correct:
+State the rest as assumptions just before that call, one line each, for the user to correct:
 
 - **Your name and time zone:** from the CRM, or `profile.md` in the cache; with neither, the git user name (`git config user.name`) and the machine's time zone (`date +%Z`).
 - **Today's date:** from `date`. Work out the call's weekday from it.
 - **The slug:** lower case, words joined by hyphens (`Larkspur Ceramics` becomes `larkspur-ceramics`).
 - **An existing `intake/<slug>/`:** assume a new call with the same client (folder `intake/<slug>-<YYYY-MM-DD>/`) unless the user says it is a redo of this prep.
 
-**A date that does not exist or does not fit** ("11/31 10a", a weekday that does not match the date): ask "did you mean 10/31 at 10:00?" in the same message, never refuse. A bare "10a" is 10:00 in the user's time zone.
+**A date that does not exist or does not fit** ("11/31 10a", a weekday that does not match the date): offer the nearest real date as the recommended option (10/31 at 10:00) in the same `AskUserQuestion` call, never refuse. A bare "10a" is 10:00 in the user's time zone.
 
 If the user's first message already answers everything, ask nothing and write the files.
 
@@ -62,7 +62,7 @@ Three or four questions in plain email form, chosen from the must-asks the clien
       opchain-work/**/transcript.*
 
   Recordings always go in `intake/<slug>/audio/`; one folder rule is safer than a list of file extensions. The same two lines also cover the logs' recordings and transcripts (`logs/<workstream>/meetings/MTG-nn/audio/` and `transcript.md`). On a no, add nothing and do not ask again.
-- Publish the call guide (internal, kind `call_guide`) and the send-ahead (client, kind `send_ahead`) as documents through `ow-tools dw` where the route exists; say only what the call returned. Otherwise they stay in the cache, with a plain line: `<today> | ow-start 2.0.0 | intake/<slug>/call-guide.md | awaiting: call on <call_date>`.
+- Publish the call guide (internal, kind `call_guide`) and the send-ahead (client, kind `send_ahead`) as documents through `ow-tools dw` where the route exists; say only what the call returned. Otherwise they stay in the cache, with a plain line: `<today> | ow-start 2.0.1 | intake/<slug>/call-guide.md | awaiting: call on <call_date>`.
 
 ## 7. Finish
 

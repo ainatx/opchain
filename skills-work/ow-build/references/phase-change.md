@@ -50,7 +50,7 @@ Ask the user for the **schedule impact** (record it `user-stated`) and, for a ch
 The next free number from `CO-01`. `changes/CO-nn.md`:
 
     ---
-    written_by: ow-build 2.0.0
+    written_by: ow-build 2.0.1
     created: <YYYY-MM-DD>
     client: <client>
     id: CO-nn

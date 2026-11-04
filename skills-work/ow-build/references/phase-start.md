@@ -1,6 +1,6 @@
 # Phase: start (`/ow-build-start`)
 
-First read the latest saved versions from the CRM: the signed proposal in `quotes`, the SOW in `contracts`, the `build_plan` document, `acceptance_criteria`, `milestones`. The files named below are their cache copies, read when the CRM is unreachable (say so in the output). Questions in this phase, at most three in one message: the update day, the client's project folder (opchain mode), and, with more than one milestone on a 40/40/20 schedule, which milestone's demo the working-demo payment follows. Everything else comes from the plan's files; where they are silent, say what you assumed.
+First read the latest saved versions from the CRM: the signed proposal in `quotes`, the SOW in `contracts`, the `build_plan` document, `acceptance_criteria`, `milestones`. The files named below are their cache copies, read when the CRM is unreachable (say so in the output). Questions in this phase, at most three in one `AskUserQuestion` call: the update day, the client's project folder (opchain mode), and, with more than one milestone on a 40/40/20 schedule, which milestone's demo the working-demo payment follows. Everything else comes from the plan's files; where they are silent, say what you assumed.
 
 ## 1. Only a signed plan; a started build is not started again
 
@@ -30,7 +30,7 @@ In a git repository, ask once to add `opchain-work/**/audio/` and `opchain-work/
 
 Then write `build.yaml` with `map_check: pending` and `start_steps: [answers]`, and in the cache a plain line:
 
-    <date> | ow-build 2.0.0 | builds/<client>/build.yaml | booking payment due; -start in progress
+    <date> | ow-build 2.0.1 | builds/<client>/build.yaml | booking payment due; -start in progress
 
 so a session that ends before `-start` finishes resumes from the files (the folder route invoices a due booking first, then resumes `-start`). **Each later step adds its name to `start_steps` as soon as it is done**: `ledger` (section 4), `builder` (section 5: the mode, and in opchain mode the repo), `spec` (section 5, opchain), `plan_line` (section 5, opchain).
 
@@ -57,6 +57,6 @@ When the user says the builder's sprint plan is approved, map it (`builder-integ
 
 Publish the milestones to `milestones`. `build.yaml` (`references/build-yaml-schema.md`), and in the cache a plain line:
 
-    <date> | ow-build 2.0.0 | builds/<client>/build.yaml | booking payment due; update to <client> by <first update>
+    <date> | ow-build 2.0.1 | builds/<client>/build.yaml | booking payment due; update to <client> by <first update>
 
 Then say what comes next: the booking invoice (`/ow-build-invoice`), then `/ow-build-run M1` (opchain mode, once the map is OK).

@@ -14,7 +14,7 @@ Keep to `references/ow-protocol.md`. Format: `references/logs-schema.md` §5. Ch
 
 ## 2. Every field
 
-Ask in one message for what is missing: **Context** (why, with sources) · **Options** (each with its main trade-off) · **Decision** · **Decided by** and the date · **Confirmed** (`confirmed by <who> by email on <date>, as reported`: the user's statement, or `internal`) · **Review on** (a date, or `no review`) · **Supersedes** (an earlier `DEC-nn`, or `none`). If it follows another skill's record, link that file by path (`references/logs-status-and-index.md` §4); never copy from it.
+Ask in one `AskUserQuestion` call for what is missing: **Context** (why, with sources) · **Options** (each with its main trade-off) · **Decision** · **Decided by** and the date · **Confirmed** (`confirmed by <who> by email on <date>, as reported`: the user's statement, or `internal`) · **Review on** (a date, or `no review`) · **Supersedes** (an earlier `DEC-nn`, or `none`). If it follows another skill's record, link that file by path (`references/logs-status-and-index.md` §4); never copy from it.
 
 ## 3. Changing a decision
 

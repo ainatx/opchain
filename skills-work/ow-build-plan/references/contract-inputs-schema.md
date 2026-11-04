@@ -5,7 +5,7 @@ The cache file `/ow-build-plan-quote --accepted <date>` writes, and what it publ
 The header carries the machine-readable keys; the body says the same in plain words. Copy values from `quote.md` and the user's files; never compute a new price here.
 
     ---
-    written_by: ow-build-plan 2.0.0
+    written_by: ow-build-plan 2.0.1
     created: <YYYY-MM-DD>
     client: <client>
     accepted: <YYYY-MM-DD>

@@ -16,7 +16,7 @@ description: >
 license: Apache-2.0
 compatibility: Runs in Claude Code with a folder attached. The ow-tools add-on, where installed, adds PDF and Word export, workshop transcription and machine-checked dates and totals.
 metadata:
-  version: "2.0.0"
+  version: "2.0.1"
   catalog: ow
   protocol: "2"
   bundle: core
@@ -26,9 +26,11 @@ metadata:
 
 # ow-build-plan: the Build Plan and the quote
 
-ow-build-plan 2.0.0 · protocol 2 · Core bundle
+ow-build-plan 2.0.1 · protocol 2 · Core bundle
 
 Open `references/ow-protocol.md` first and keep to it. If you cannot open it, say so and stop.
+
+**Asking the user:** every question and approval goes through `AskUserQuestion`, batched into one call per verb with your recommendation first; never a question or numbered menu typed into chat (`references/ow-protocol.md` §1).
 
 It writes two client documents: the **Build Plan** (today, what should change, scope, out of scope, acceptance checks, risks), which names none of your prices, and the **Quote**, added up from your price book. Three ways to sell it:
 
@@ -38,7 +40,7 @@ It writes two client documents: the **Build Plan** (today, what should change, s
 
 ## How it runs
 
-Run the steps in the order the job needs: any step may be run again, in any order, or skipped. Before a step overwrites a file, say what is there (its date and what it holds) and go ahead unless the user objects. Ask at most three questions per verb, in one message, and only for what no file in `opchain-work/` answers; for anything else, state the assumption and carry on. The one approval is before anything goes to the client, and before an acceptance, a signature or a change order is recorded.
+Run the steps in the order the job needs: any step may be run again, in any order, or skipped. Before a step overwrites a file, say what is there (its date and what it holds) and go ahead unless the user objects. Ask at most three questions per verb, in one `AskUserQuestion` call, and only for what no file in `opchain-work/` answers; for anything else, state the assumption and carry on. The one approval is before anything goes to the client, and before an acceptance, a signature or a change order is recorded.
 
 **Money is the exception.** A quote or offer that has been sent (exported for the client, or the user says it went out) or accepted keeps its price. A changed price after sending is a new file beside the sent one (`quote-v2.md`; say so); after acceptance it is a change order or a new quote, never a silent rewrite.
 
@@ -102,7 +104,7 @@ Each verb opens its phase file first. **Open the file before acting; if you cann
 ## Prices
 
 - Every price comes from the CRM's price book (cache: `price-book.yaml`) or from the user, recorded on its line as `priced by <user name>, <date>, reason: <their words>`. Never invent, estimate or round one, and never suggest a number.
-- A missing price-book key stops only the line that needs it. Price what the book prices, list the missing keys once, and ask the user for those values in one message. A package no unit fits stops its own line the same way.
+- A missing price-book key stops only the line that needs it. Price what the book prices, list the missing keys once, and ask the user for those values in one `AskUserQuestion` call. A package no unit fits stops its own line the same way.
 - A modifier applies only through its written `when`, citing the `evidence.md` row that shows the condition.
 - Validity, the Build Plan credit, the payment split and the fix window come from the price book and terms (cache: `offers.md`).
 - Internal pricing (unit prices, modifiers, manual-price records, internal rates, tool output) sits between `<!-- ow:internal -->` and `<!-- ow:end-internal -->` and is stripped on export.

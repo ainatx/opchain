@@ -11,7 +11,7 @@ Keep to `references/ow-protocol.md`. Read first from the CRM: the recap (documen
   - **With no FIX or UAT file**, ask for the request in the user's words, one short paragraph, and write it to `plans/<client>-<n>/request.md` before the offer: `written_by`, `created`, `stated_by: <user name>` and `stated_on: <date>`, then `# Request: <client>` and the user's words unchanged. The offer's `subject` is then `plans/<client>-<n>/request.md`.
   - `-start` later finds the same folder through the offer's `subject`, and reads the FIX or UAT file or `request.md` as its intake without asking again.
 - **After a feasibility test with a go.** "use ow-build-plan to write the offer for plans/<client>/" on a folder whose `quote.md` has `mode: feasibility`: the Build Plan is a follow-on of the test. Ask the user for the findings note's outcome in their words and treat it as a follow-on with no FIX or UAT file (above): `plans/<client>-<n>/request.md`, the offer's subject. Read `quick-scope.md` and `contract-inputs.md` of the test for context, nothing more.
-- `price-book.yaml`: `currency`, `build_plan_fees`, `build_plan_weeks`, `build_plan_credit_days`, `quote_validity_days`, `payment_terms_days`. A missing key stops only what needs it: list the missing keys once and ask the user for those values in one message, recorded `priced by <user name>, <date>` in the header's `user_stated:` list, then write the offer. No `price-book.yaml` at all: ask the user to copy `examples/price-book.yaml` and fill it in, or to give the fee, weeks, credit days, validity days and payment terms in one message. Never invent a value.
+- `price-book.yaml`: `currency`, `build_plan_fees`, `build_plan_weeks`, `build_plan_credit_days`, `quote_validity_days`, `payment_terms_days`. A missing key stops only what needs it: list the missing keys once and ask the user for those values in one `AskUserQuestion` call, recorded `priced by <user name>, <date>` in the header's `user_stated:` list, then write the offer. No `price-book.yaml` at all: ask the user to copy `examples/price-book.yaml` and fill it in, or to give the fee, weeks, credit days, validity days and payment terms in one `AskUserQuestion` call. Never invent a value.
 - `profile.md` for the user's name, time zone and holidays.
 
 ## 2. The tier
@@ -28,7 +28,7 @@ Keep to `references/ow-protocol.md`. Read first from the CRM: the recap (documen
 
 If the file exists, say what it holds (date, tier, fee) and go ahead unless the user objects. An offer already sent keeps its fee: a different fee is `build-plan-offer-v2.md` beside it, and you say so.
 
-Header: `written_by: ow-build-plan 2.0.0`, `created`, `subject:` the recap (or the FIX or UAT file, or `request.md`), then: `client`, `tier`, `tier_source`, `currency`, `fee`, `weeks`, `issued`, `valid_until`, `credit_days`, `payment_terms_days`, `date_check`. Then the client text, one page, in this order:
+Header: `written_by: ow-build-plan 2.0.1`, `created`, `subject:` the recap (or the FIX or UAT file, or `request.md`), then: `client`, `tier`, `tier_source`, `currency`, `fee`, `weeks`, `issued`, `valid_until`, `credit_days`, `payment_terms_days`, `date_check`. Then the client text, one page, in this order:
 
     # Build Plan offer: <client>
 
@@ -60,4 +60,4 @@ Run `ow-tools export plans/<client>/build-plan-offer.md --out plans/<client>/exp
 
 ## 6. STATUS and what comes next
 
-In the cache, a plain `STATUS.md` line is enough: `<date> | ow-build-plan 2.0.0 | plans/<client>/build-plan-offer.md | offer reply from <client> by <valid_until>`. When the client says yes, the next step is `/ow-build-plan-start`. If the user would rather sign plan and build together, `/ow-build-plan-quote --whole-project` takes over from here.
+In the cache, a plain `STATUS.md` line is enough: `<date> | ow-build-plan 2.0.1 | plans/<client>/build-plan-offer.md | offer reply from <client> by <valid_until>`. When the client says yes, the next step is `/ow-build-plan-start`. If the user would rather sign plan and build together, `/ow-build-plan-quote --whole-project` takes over from here.

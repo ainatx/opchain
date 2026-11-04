@@ -5,7 +5,7 @@
 **The ledger is not an accounting record**: it records what the quote says and what you report (sent, paid). It says so in its first line.
 
     ---
-    written_by: ow-build 2.0.0
+    written_by: ow-build 2.0.1
     created: <YYYY-MM-DD>
     client: <client>
     currency: USD                        # from quote.md

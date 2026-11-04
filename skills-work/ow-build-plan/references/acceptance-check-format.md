@@ -3,7 +3,7 @@
 An acceptance check is something the **client** can verify without reading code. `acceptance.md` (and the checks inside `quick-scope.md`) use this format: the quote, the build and the acceptance testing later read the same ids. Published to the CRM as `acceptance_criteria`.
 
     ---
-    (written_by: ow-build-plan 2.0.0, created: <YYYY-MM-DD>)
+    (written_by: ow-build-plan 2.0.1, created: <YYYY-MM-DD>)
     ---
     # Acceptance checks: <client>
 

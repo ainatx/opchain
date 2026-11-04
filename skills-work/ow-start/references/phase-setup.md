@@ -2,7 +2,7 @@
 
 ## 1. `/ow-setup`
 
-Read the profile values from the CRM (`profile.md` is the cache fallback), then ask in one message what is not recorded; every question can be skipped: your name as you sign it (and your business name, optional); your time zone; holidays to skip when working out due dates. Write `profile.md` with `written_by`, `created` and the values you were given. If `offers.md` does not exist, create it from `examples/offers.md`; if `handoffs.yaml` does not exist, create it from `examples/handoffs.yaml`. Say that both examples are invented and the files are now the user's to edit.
+Read the profile values from the CRM (`profile.md` is the cache fallback), then ask in one `AskUserQuestion` call what is not recorded; every question can be skipped: your name as you sign it (and your business name, optional); your time zone; holidays to skip when working out due dates. Write `profile.md` with `written_by`, `created` and the values you were given. If `offers.md` does not exist, create it from `examples/offers.md`; if `handoffs.yaml` does not exist, create it from `examples/handoffs.yaml`. Say that both examples are invented and the files are now the user's to edit.
 
 ## 2. Works on its own
 

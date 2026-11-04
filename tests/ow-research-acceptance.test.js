@@ -338,7 +338,7 @@ describe("C2, C17, C26: the skill text and its hand-off fields", () => {
     expect(data.description.length).toBeLessThanOrEqual(900);
     expect(data.description.slice(0, 200)).toContain("ow-research");
     expect(data["allowed-tools"]).toBeUndefined();
-    expect(data.metadata).toEqual({ version: "2.0.0", catalog: "ow", protocol: "2", bundle: "connected", network: "declared", commands: "/ow-research /ow-research-question /ow-research-run /ow-research-framework" });
+    expect(data.metadata).toEqual({ version: "2.0.1", catalog: "ow", protocol: "2", bundle: "connected", network: "declared", commands: "/ow-research /ow-research-question /ow-research-run /ow-research-framework" });
     expect(data.compatibility).toMatch(/host's own web search and page opening/);
     expect(data.compatibility).toMatch(/files you supply/);
     expect(data.compatibility).toMatch(/ow-tools add-on/);
@@ -381,8 +381,8 @@ describe("C2, C17, C26: the skill text and its hand-off fields", () => {
   });
 
   it("C26: versions and records: ow-research 2.0.0 with its changelog (the 1.x entries kept); ow-build-plan's changelog keeps P5 and P3", () => {
-    expect(content).toMatch(/^ow-research 2\.0\.0 · protocol 2/m);
-    expect(matter(readFileSync(join(SKILL, "SKILL.md"), "utf8")).data.metadata.version).toBe("2.0.0");
+    expect(content).toMatch(/^ow-research 2\.0\.1 · protocol 2/m);
+    expect(matter(readFileSync(join(SKILL, "SKILL.md"), "utf8")).data.metadata.version).toBe("2.0.1");
     expect(readFileSync(join(SKILL, "CHANGELOG.md"), "utf8")).toMatch(/^## 2\.0\.0 \(2026-11-03\)[\s\S]*^## 1\.0\.2 \(2026-10-22\)[\s\S]*^## 1\.0\.1 \(2026-10-19\)[\s\S]*^## 1\.0\.0 \(2026-10-17\)/m);
     const cl = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "CHANGELOG.md"), "utf8");
     expect(cl).toMatch(/^## 1\.1\.0 /m);

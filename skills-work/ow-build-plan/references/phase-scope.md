@@ -4,7 +4,7 @@ Keep to `references/ow-protocol.md`. Read first from the CRM: the recap (documen
 
 ## 1. Write `scope.md`
 
-`written_by: ow-build-plan 2.0.0` and `created`, then:
+`written_by: ow-build-plan 2.0.1` and `created`, then:
 
     # Scope: <client>
 
@@ -61,4 +61,4 @@ Fix what fails. Nothing here goes in the file.
 
 ## 5. STATUS and what comes next
 
-In the cache, a plain `STATUS.md` line is enough: `<date> | ow-build-plan 2.0.0 | plans/<client>/scope.md | plan to <client> by <plan_delivery>`. Next: `/ow-build-plan-quote`.
+In the cache, a plain `STATUS.md` line is enough: `<date> | ow-build-plan 2.0.1 | plans/<client>/scope.md | plan to <client> by <plan_delivery>`. Next: `/ow-build-plan-quote`.

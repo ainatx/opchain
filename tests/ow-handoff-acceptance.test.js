@@ -135,8 +135,8 @@ describe("C2, C3: the body, the frontmatter, the shipped text", () => {
     const t = readFileSync(join(SKILL, "SKILL.md"), "utf8");
     expect(t).toMatch(/^ {2}network: none$/m);
     expect(t).toMatch(/^ {2}bundle: core$/m);
-    expect(t).toMatch(/^ {2}version: "2\.0\.0"$/m);
-    expect(t).toMatch(/^ow-handoff 2\.0\.0 · protocol 2 · Core bundle$/m);
+    expect(t).toMatch(/^ {2}version: "2\.0\.1"$/m);
+    expect(t).toMatch(/^ow-handoff 2\.0\.1 · protocol 2 · Core bundle$/m);
   });
   it("the shipped text is clean (C3)", () => expect(shippedTextProblems()).toEqual([]));
   it("the protocol copy and the shared examples are byte-identical everywhere", () => {
@@ -203,9 +203,9 @@ describe("protocol 2: a run in the plain forms passes", () => {
   it("written_by and created only, a plain STATUS line, free wording", () => {
     const dir = mutated("accounts");
     const f = join(dir, L, "accounts.md");
-    writeFileSync(f, readFileSync(f, "utf8").replace(/^(?:ow_artefact|schema|workstream|subject|clock|origin): .*\n/gm, "").replace(/^written_by: .*$/m, "written_by: ow-handoff 2.0.0"));
+    writeFileSync(f, readFileSync(f, "utf8").replace(/^(?:ow_artefact|schema|workstream|subject|clock|origin): .*\n/gm, "").replace(/^written_by: .*$/m, "written_by: ow-handoff 2.0.1"));
     const s = join(dir, "opchain-work", "STATUS.md");
-    writeFileSync(s, `${readFileSync(s, "utf8").split("\n").slice(0, -2).join("\n")}\n2027-02-01 ow-handoff 2.0.0 handoffs/larkspur-ceramics/accounts.md: awaiting transfers by 2027-02-20\n`);
+    writeFileSync(s, `${readFileSync(s, "utf8").split("\n").slice(0, -2).join("\n")}\n2027-02-01 ow-handoff 2.0.1 handoffs/larkspur-ceramics/accounts.md: awaiting transfers by 2027-02-20\n`);
     writeFileSync(join(dir, "printed.md"), "Accounts are listed in handoffs/larkspur-ceramics/accounts.md. Next, run /ow-handoff-notes.\n");
     expect(runCase("accounts", dir).filter((r) => r.problems.length)).toEqual([]);
   });

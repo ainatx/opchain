@@ -1,6 +1,6 @@
 # `/ow-documentation-capture`: a screenshot for every task step
 
-Open `references/ow-protocol.md`; step names: `references/routing-and-resume.md` §2. Formats: `references/shots-index-format.md`. What leaves the machine: `references/delivery-rules.md` §1. Read first from the CRM: the `doc_plan` document and `acceptance_criteria`; the paths below are the cache fallback. Questions: at most three, in one message; the image clearance is one reply.
+Open `references/ow-protocol.md`; step names: `references/routing-and-resume.md` §2. Formats: `references/shots-index-format.md`. What leaves the machine: `references/delivery-rules.md` §1. Read first from the CRM: the `doc_plan` document and `acceptance_criteria`; the paths below are the cache fallback. Questions: at most three, in one `AskUserQuestion` call; the image clearance is one reply.
 
 ## 1. Entry
 

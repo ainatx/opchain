@@ -1,6 +1,6 @@
 # Research files: what each one holds
 
-These are the scratch cache. The record of the answer is the CRM's `research_findings` document on the deal or account (SKILL.md "Where it lives in the CRM"), with `findings.md` as its body; the question, the query log, the sources and the manifests stay here as the trail. Every file below starts with `written_by: ow-research 2.0.0` and `created: <YYYY-MM-DD>` (older files with more header keys still read). Ids are numbered once and never reused (section 7). Dates come from `date`.
+These are the scratch cache. The record of the answer is the CRM's `research_findings` document on the deal or account (SKILL.md "Where it lives in the CRM"), with `findings.md` as its body; the question, the query log, the sources and the manifests stay here as the trail. Every file below starts with `written_by: ow-research 2.0.1` and `created: <YYYY-MM-DD>` (older files with more header keys still read). Ids are numbered once and never reused (section 7). Dates come from `date`.
 
     opchain-work/research/
       <workstream>/RS-nn-<slug>/          a client's slug, or business
@@ -107,7 +107,7 @@ A re-run rewrites this file under the id rule (section 7): every earlier `F-nn` 
 
 ## 5. `research/frameworks/<id>/<date>/manifest.yaml`
 
-    written_by: ow-research 2.0.0
+    written_by: ow-research 2.0.1
     created: <YYYY-MM-DD>
     label: unpinned — fetched, not a pack
     framework: <id>
@@ -129,7 +129,7 @@ The downloaded files are the user's, never edited, renamed or copied.
 
 ## 6. The status line
 
-A plain line in the cache's `STATUS.md`: `<YYYY-MM-DD> | ow-research 2.0.0 | <path> | <what is awaited, by when>` ("ready to run", "your go on the planned queries", "answered", "a check to fix"). It is a note, not how a run resumes. No text from a client file, no keep-out term and no query goes in it.
+A plain line in the cache's `STATUS.md`: `<YYYY-MM-DD> | ow-research 2.0.1 | <path> | <what is awaited, by when>` ("ready to run", "your go on the planned queries", "answered", "a check to fix"). It is a note, not how a run resumes. No text from a client file, no keep-out term and no query goes in it.
 
 ## 7. Ids
 

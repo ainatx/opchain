@@ -57,6 +57,7 @@ Added: `ow-build-plan` writes a whole-project, SOW-shaped quote (plan line and b
 
 - At most **three questions** before a verb's first document, only for what no file in `opchain-work/` answers, in one message where possible; everything else is a stated assumption the user can correct.
 - **One approval**, before anything goes to a client, and before an acceptance, a signature or a change order is recorded.
+- **Every question and approval is an `AskUserQuestion` call** *(owner, 2026-11-04)*: options with the recommendation first, batched into one call per verb (up to four questions a call), never a question or numbered menu typed into chat. `scripts/check-skill-contracts.mjs` (`checkAskTool`) fails a skill that asks without naming the tool. This covers the owner's interactive runs; it says nothing about unattended ones. Every skill moved to 2.0.1.
 - Measured against the Kidneywood Hire run: 21–25 questions and 11–15 approval cards before a usable document become at most three questions and one approval. The re-run through the CRM on staging (analysis §6.3, PR 6) is where this is measured.
 
 ## 6. Checkers and tests

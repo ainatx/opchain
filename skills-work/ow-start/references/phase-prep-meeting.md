@@ -23,7 +23,7 @@ Closed items do not appear. A client agenda never takes an item from `logs/busin
 
 ## 3. Ask, then write
 
-In one message, ask only what is missing: the meeting's **purpose**; its **date and length**; and who will attend. Names or roles, as the user gives them.
+In one `AskUserQuestion` call, ask only what is missing: the meeting's **purpose**; its **date and length**; and who will attend. Names or roles, as the user gives them.
 
 Write `logs/<workstream>/meetings/MTG-nn/agenda.md` (logs-schema §2): every item in one table row with its source. Publish it as an internal `agenda` document where the route exists. In the cache, add one STATUS line: path `logs/<workstream>/meetings/MTG-nn/agenda.md`, `awaiting: meeting on <date>`.
 

@@ -38,7 +38,7 @@ When the builder's sprint has finished (the user says so here, or a later `-run`
 
 Update the milestone in `milestones`. In the cache, a plain line, file `builds/<client>/build.yaml`, naming the milestone and what it waits on:
 
-- a sprint left or not passed yet: `<date> | ow-build 2.0.0 | builds/<client>/build.yaml | M<n> sprint <k>` (the next sprint to run);
+- a sprint left or not passed yet: `<date> | ow-build 2.0.1 | builds/<client>/build.yaml | M<n> sprint <k>` (the next sprint to run);
 - escalated: `… | M<n> stopped: escalation on sprint <k>`;
 - every sprint of M<n> passes: `… | M<n> demo`;
 - without a builder: `… | M<n> checks not yet reported` until every check is reported, then `… | M<n> demo`.

@@ -26,7 +26,7 @@ A missing input: say which, and offer to run the step that writes it, or to go a
 ## 2. Price the work
 
 1. **Lines.** For each work package, list the price-book units it consists of, each with a quantity and a one-line reason. A unit id that is not in the price book is not a unit.
-2. **What the book does not price stops only its own line.** Price everything the book prices. Then list, once and in one message, each package no unit fits and each missing price-book key, and ask the user for those values. Record each on its line exactly as `priced by <user name>, <date>, reason: <their words>`. Never suggest a number. No answer yet: the quote stays a draft with those lines open; it is not exported.
+2. **What the book does not price stops only its own line.** Price everything the book prices. Then list, once and in one `AskUserQuestion` call, each package no unit fits and each missing price-book key, and ask the user for those values. Record each on its line exactly as `priced by <user name>, <date>, reason: <their words>`. Never suggest a number. No answer yet: the quote stays a draft with those lines open; it is not exported.
 3. **Modifiers** apply only through their written `when`, citing the `evidence.md` row that shows the condition: `data-messy: evidence.md E-07 "we fix the codes by hand every Monday"`. The quoted words must be in that row. No row, no modifier; tell the user which modifier was considered and why it does not apply. In the pricing lines, a `multiply` modifier is written on the line it changes (`data-messy x1.25`); an `add_unit` modifier adds its own line, with the added unit and `<modifier id> adds` in the modifier column (`data-sensitive adds`).
 4. **The build's size** is the largest `size` among the product units on the quote; with none, ask the user (`build_size_source: user-stated`).
 5. **User acceptance testing · <size>** (required). Tester roles come from the scope's `## UAT approach`, by role name. Price = size price + `per_extra_role` × (roles − included roles, when more).
@@ -107,7 +107,7 @@ A feasibility quote carries **just the test**: its price, what is tested, what t
 
 ## 3a. A whole-project quote (`--whole-project`)
 
-One SOW-shaped quote the client signs for plan and build together, as an alternative to the offer. It runs from the latest scope in the CRM (or `plan.yaml`, `scope.md` and `evidence.md` in the cache) when there is one; **`plan.yaml` is optional**: with none, it runs straight from the intake record and a scope the user states, in one message. The packages then rest on what was said, so list every assumption the price depends on under `## Assumptions`, and name no modifier the evidence does not show (with no evidence register, a modifier the user states is recorded as `user-stated`).
+One SOW-shaped quote the client signs for plan and build together, as an alternative to the offer. It runs from the latest scope in the CRM (or `plan.yaml`, `scope.md` and `evidence.md` in the cache) when there is one; **`plan.yaml` is optional**: with none, it runs straight from the intake record and a scope the user states, in one `AskUserQuestion` call. The packages then rest on what was said, so list every assumption the price depends on under `## Assumptions`, and name no modifier the evidence does not show (with no evidence register, a modifier the user states is recorded as `user-stated`).
 
 1. **The Build Plan phase is the first line.** Tier as `-offer` §2 sets it. Fee = `build_plan_fees.<tier>` and weeks = `build_plan_weeks.<tier>`, or `fee: none` when the work is already signed or the user says the plan is not charged. A missing key stops that line only (§2.2).
 2. **The build:** the work packages priced by §2 steps 1 to 6, 12 and 13: testing line, optional documentation & training line, milestones, vendor subscriptions, fix window.
@@ -130,7 +130,7 @@ The internal appendix adds a first pricing line: `| P1 | Build Plan | build_plan
 
 ## 4. `quote.md`
 
-The cache file, and the fields of the `quotes` record: `written_by: ow-build-plan 2.0.0`, `created`, then these keys:
+The cache file, and the fields of the `quotes` record: `written_by: ow-build-plan 2.0.1`, `created`, then these keys:
 
     client: <client>
     mode: build-plan | whole-project | quick | feasibility | onboarding
@@ -238,7 +238,7 @@ Before you hand it over, check: units or a recorded manual price on every packag
 Running it is the approval: the user is telling you the client accepted, with the date. With no date in what they said, ask once.
 
 1. Read the proposal. An acceptance date after `valid_until`: say the quote expired on that date, and record it only if the user says the client accepted this quote as it stands. If the price has to change, that is `quote-v2.md` (section 1), not this record.
-2. Ask, in one message and only for what no file answers: did the client take Documentation & training? (`bought` / `declined`; never for a feasibility or onboarding quote), and the parties' names as the user wants them in the contract. Either way, copy the people the line was quoted for (`quote.md` `documentation_training.people`) into `contract-inputs.md` as the top-level key `documentation_people`.
+2. Ask, in one `AskUserQuestion` call and only for what no file answers: did the client take Documentation & training? (`bought` / `declined`; never for a feasibility or onboarding quote), and the parties' names as the user wants them in the contract. Either way, copy the people the line was quoted for (`quote.md` `documentation_training.people`) into `contract-inputs.md` as the top-level key `documentation_people`.
 3. Record it as the user's statement, with the date: `client accepted <date>, stated by <user name>`.
 4. Write `contract-inputs.md` as `references/contract-inputs-schema.md` says, ending with its `## What comes next` section. Publish it to `contracts` with `record_type` `sow`, as inputs for the SOW; this skill drafts no clause.
 5. Say what comes next: the user's `handoffs.yaml` `contract` say: line with `{files}` = `plans/<client>/contract-inputs.md`, exactly, or, with none, `send contract-inputs.md to whoever drafts your contracts, or fill your own SOW template from it`. Never explain which one was used, and never check or name what the destination is.
@@ -252,7 +252,7 @@ Running it is the approval: the user is telling you the client accepted, with th
    **A feasibility quote** (`mode: feasibility`): no build to hand over. Next is the findings note; on a go, `/ow-build-plan-offer plans/<client>/`. Steps 3 and 4 do not apply.
 3. Write `build-request.md` **from the scope, not the quote**: no price, fee or rate anywhere in it. A whole-project quote signed before the plan exists takes the packages and assumptions from the quote without their amounts, and says the Build Plan phase settles the detailed scope and acceptance checks first. Header:
 
-        written_by: ow-build-plan 2.0.0
+        written_by: ow-build-plan 2.0.1
         created: <YYYY-MM-DD>
         client: <client>
         signed: <YYYY-MM-DD>
@@ -282,7 +282,7 @@ The last section of `contract-inputs.md` holds §5 step 5's line exactly, then `
 
 When working from the cache a plain `STATUS.md` line is enough:
 
-- `-quote` in any mode: `<date> | ow-build-plan 2.0.0 | plans/<client>/quote.md | client's answer by <valid_until>; Build Plan credit by <credit_deadline>` (quick, whole-project, or a plan with `fee: none`: the first part only).
+- `-quote` in any mode: `<date> | ow-build-plan 2.0.1 | plans/<client>/quote.md | client's answer by <valid_until>; Build Plan credit by <credit_deadline>` (quick, whole-project, or a plan with `fee: none`: the first part only).
 - `--quick` over the limit: `… | intake/<client>/intake-record.md | Build Plan recommended`.
 - `--accepted`: `… | plans/<client>/contract-inputs.md | signing for the Build Plan credit by <credit_deadline>` (with no credit: `signing`).
 - `--signed`: `… | plans/<client>/build-request.md | nothing awaited`; a feasibility or onboarding quote names `contract-inputs.md`.

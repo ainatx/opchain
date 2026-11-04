@@ -10,7 +10,7 @@ Frames one research topic and writes `research/<ws>/RS-nn-<slug>/question.md` in
 4. **A whole framework or regulation text** ("get me NIST 800-53", "the HIPAA rules"): this phase does not take it. Say exactly `Whole framework or regulation texts come through /ow-research-framework; nothing was written.` and then `The open list: <ids>. For this one, say "use ow-research-framework <id>".` (`references/framework-sources.md`). Write nothing. A question *about* a rule (what it requires of a 20-person firm) is a `regulations` topic here.
 5. The topic id: `RS-01` when the workstream has no topic folder yet, else the next number after the highest `RS-nn` in `research/<ws>/`. The slug is two to four plain words from the question, never the client's name.
 
-## 2. At most three questions, in one message
+## 2. At most three questions, in one `AskUserQuestion` call
 
 Ask only what the request and the CRM leave open: **the question**, **the workstream**, and **any keep-out terms beyond the client's own names** (customers and suppliers its files name and it wants kept out). If no record gives the client's names and domains, ask for them in that same third question. For the business workstream, the keep-out terms are your own business name and domains.
 

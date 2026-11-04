@@ -2,7 +2,7 @@
 
 ## 1. `package.yaml` (written by `/ow-handoff-package`)
 
-    written_by: ow-handoff 2.0.0
+    written_by: ow-handoff 2.0.1
     created: <YYYY-MM-DD>
     package_steps:
       - { step: notes, rec: <n>, date: <YYYY-MM-DD> }
@@ -50,7 +50,7 @@ Written by `-package`. Header `written_by` and `created` (protocol §8). The bod
 
 ## 3. `dates.yaml` (written by `/ow-handoff-delivered`)
 
-    written_by: ow-handoff 2.0.0
+    written_by: ow-handoff 2.0.1
     created: <YYYY-MM-DD>
     delivered: Handoff notes delivered <YYYY-MM-DD>, recorded by <user>; delivery not verified by this skill
     handoff_date: <YYYY-MM-DD>
@@ -69,7 +69,7 @@ Written by `-package`. Header `written_by` and `created` (protocol §8). The bod
 
 ## 4. `co-windows.yaml` (written by `/ow-handoff-fix`; a row per CO)
 
-    written_by: ow-handoff 2.0.0
+    written_by: ow-handoff 2.0.1
     created: <YYYY-MM-DD>
     rows:
       - { co: CO-nn, accepted: <YYYY-MM-DD>, window_end: <YYYY-MM-DD>, recorded: <YYYY-MM-DD>, rec: <n> }

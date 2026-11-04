@@ -1,6 +1,6 @@
 # `/ow-uat-plan`: record the basis, set up the test, write the scenarios
 
-Read first, from the CRM: the deal's `quotes`, `contracts`, Build Plan document, `acceptance_criteria`, `milestones` and any test documents. The cache copies are `plans/<client>/` and `builds/<client>/`. Formats: `references/uat-yaml-schema.md`, `references/scenario-format.md`. Before you hand over: `references/self-checks.md`. At most three questions, one message; everything else is a stated assumption.
+Read first, from the CRM: the deal's `quotes`, `contracts`, Build Plan document, `acceptance_criteria`, `milestones` and any test documents. The cache copies are `plans/<client>/` and `builds/<client>/`. Formats: `references/uat-yaml-schema.md`, `references/scenario-format.md`. Before you hand over: `references/self-checks.md`. At most three questions, in one `AskUserQuestion` call; everything else is a stated assumption.
 
 ## 1. Entry
 

@@ -44,7 +44,7 @@ const EDGES = join(SKILL, "skill.edges.yaml");
 const OW = "opchain-work/";
 const CLOCKS = /^(tool|host-supplied|user-stated|assumed)$/;
 const TEXT = /\.(md|ya?ml|txt|json|csv|log|html)$/;
-export const VERSION = "2.0.0";
+export const VERSION = "2.0.1";
 /** Any ow-draft version a run may carry: goldens written under 1.0.0 keep passing (the 2026-11-03 audience reversal). */
 const ANY_VERSION = /^\d+\.\d+\.\d+$/;
 export const PROTOCOL_NOTE = "This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.";

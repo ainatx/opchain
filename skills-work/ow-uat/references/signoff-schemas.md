@@ -1,6 +1,6 @@
 # Sign-off files
 
-Written by `/ow-uat-signoff` in the mode named. Each starts with `written_by: ow-uat 2.0.0` and `created: <YYYY-MM-DD>`, and dates every entry with its `rec` (`references/uat-yaml-schema.md` §1). These are the cache; the record is the CRM's documents.
+Written by `/ow-uat-signoff` in the mode named. Each starts with `written_by: ow-uat 2.0.1` and `created: <YYYY-MM-DD>`, and dates every entry with its `rec` (`references/uat-yaml-schema.md` §1). These are the cache; the record is the CRM's documents.
 
 ## 1. The request: `signoff-request-<n>.md` (plain mode)
 

@@ -225,7 +225,7 @@ PINS.push(
   // The four checks that can never be waived.
   { id: "research: three checks never waived", file: RSC, must: "**Query privacy, No credentials and No private names can never be waived.**" },
   // What leaves the machine (the network fence in words).
-  { id: "research: one go before the first search", file: RW, must: "2. Wait for one go. Record it as `marker: plan approved | the user approved Q-nn, Q-nn`. Without it, send nothing." },
+  { id: "research: one go before the first search", file: RW, must: "2. Ask for one go through `AskUserQuestion`. Record it as `marker: plan approved | the user approved Q-nn, Q-nn`. Without it, send nothing." },
   { id: "research: a mid-run query is a batch", file: RW, must: "A query you want to add mid-run is never sent on its own" },
   { id: "research: by name, one at a time", file: RW, must: "An approval covers that one request, word for word; a second query needs a second approval." },
   { id: "research: a redirect is a new request", file: RW, must: "**Redirects.** A redirect is a new request." },
@@ -239,12 +239,12 @@ PINS.push(
   // The OW-09 follow-ups (ow-research 1.0.1): step 0's lines on a screen, the round figure's one definition, and when
   // the user confirms one (evaluation round 2, M3 with m9, m4; security closure R3-01).
   { id: "research: a round figure, one definition", file: RW, must: "A **round** figure (a whole number that is a multiple of 100, such as 500, 1,200 or 3,000; a percentage that is a multiple of 5; a multiplier in halves, such as 1.5 times)" },
-  { id: "C26: ow-research's body line names its version", file: RBODY, must: "ow-research 2.0.0 · protocol 2" },
+  { id: "C26: ow-research's body line names its version", file: RBODY, must: "ow-research 2.0.1 · protocol 2" },
   { id: "C26: ow-research's CHANGELOG has its 1.0.2 entry", file: "ow-research/CHANGELOG.md", must: "## 1.0.2 (2026-10-22): ow-vendor-eval moves to v2.2" },
   { id: "C26: ow-research's CHANGELOG has its 1.0.1 entry", file: "ow-research/CHANGELOG.md", must: "## 1.0.1 (2026-10-19): the follow-ups from the second evaluation and the security closure" },
   // ow-vendor-eval moves to v2.2 (owner decision 2026-10-22): no NEXT line and no hand-off row until it ships.
   // The evaluator's skills-work plants (round 1, H03, H04, I01), caught by pins as well as by the tests.
-  { id: "C26: ow-build-plan's body line names its version", file: "ow-build-plan/SKILL.md", must: "ow-build-plan 2.0.0 · protocol 2" },
+  { id: "C26: ow-build-plan's body line names its version", file: "ow-build-plan/SKILL.md", must: "ow-build-plan 2.0.1 · protocol 2" },
   { id: "C26: ow-research's CHANGELOG has its 1.0.0 entry", file: "ow-research/CHANGELOG.md", must: "## 1.0.0 (2026-10-17): research from sources it opened" },
   { id: "O11: soc2 stays on the licensed list", file: RFS, must: "| `soc2` | SOC 2 (the AICPA Trust Services Criteria) | Licensed text of the AICPA |" },
   // One resume rule (evaluation round 1, M2).

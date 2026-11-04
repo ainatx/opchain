@@ -2,7 +2,7 @@
 
 Prices, numbering and terms come from the CRM. `opchain-work/price-book.yaml` is the cache fallback when the CRM is unreachable, and the output says that happened. Its keys are below; to make one, copy `examples/price-book.yaml` and replace every number: the example's numbers are invented placeholders, and no real price belongs in a shared or public file. This skill reads the price book and never edits it.
 
-Every price is a number in `currency`, with at most two decimals. A key this skill needs and cannot find stops only the line that needs it: price what the book prices, list the missing keys once, and ask the user for those values in one message, recorded `priced by <user name>`. It never fills one in.
+Every price is a number in `currency`, with at most two decimals. A key this skill needs and cannot find stops only the line that needs it: price what the book prices, list the missing keys once, and ask the user for those values in one `AskUserQuestion` call, recorded `priced by <user name>`. It never fills one in.
 
 | Key | Shape | Used by |
 |---|---|---|

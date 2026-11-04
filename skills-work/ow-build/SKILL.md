@@ -15,7 +15,7 @@ description: >
 license: Apache-2.0
 compatibility: Runs in Claude Code with a folder attached, beside your builder. The ow-tools add-on, where installed, adds demo transcription and machine-checked dates and totals.
 metadata:
-  version: "2.0.0"
+  version: "2.0.1"
   catalog: ow
   protocol: "2"
   bundle: core
@@ -25,9 +25,11 @@ metadata:
 
 # ow-build: the build, from signing to ready for UAT
 
-ow-build 2.0.0 · protocol 2 · Core bundle
+ow-build 2.0.1 · protocol 2 · Core bundle
 
 **Open `references/ow-protocol.md` first and keep to it. If you cannot open it, say so and stop.**
+
+**Asking the user:** every question and approval goes through `AskUserQuestion`, batched into one call per verb with your recommendation first; never a question or numbered menu typed into chat (`references/ow-protocol.md` §1).
 
 It writes no code: it runs the client side of the build. With a builder in the opchain project format it hands over the signed scope as `spec/` files, gives you the builder's lines, and reads the builder's results back as data.
 
@@ -40,7 +42,7 @@ Try: "start the build for plans/acme/" · "write this week's update for Acme" ·
 
 ## Questions, approvals and re-runs
 
-- **At most three questions per verb**, in one message, and only for what the CRM, or in the fallback `plan.yaml`, `quote.md`, `build-request.md`, `ledger.md` and `build.yaml`, does not already answer (the update day, the client's project folder, which milestone's demo the working-demo payment follows, a demo date, your hour value for the margin view). Anything else: say what you assumed and carry on.
+- **At most three questions per verb**, in one `AskUserQuestion` call, and only for what the CRM, or in the fallback `plan.yaml`, `quote.md`, `build-request.md`, `ledger.md` and `build.yaml`, does not already answer (the update day, the client's project folder, which milestone's demo the working-demo payment follows, a demo date, your hour value for the margin view). Anything else: say what you assumed and carry on.
 - **One approval**: before a change order goes to the client, and before an agreement, a signature or a payment is recorded. Nothing here sends anything; you send it.
 - **Re-runs are normal.** A sprint may be run again, an update rewritten, a demo re-scripted. Say what is there and what will change. A version a person edited in the CRM is never overwritten: write yours beside it and say so. Two things never move: a payment the ledger shows requested or paid, and a change order's price once it is sent (a different price is a new change order).
 

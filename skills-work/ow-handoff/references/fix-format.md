@@ -5,7 +5,7 @@ All written by `/ow-handoff-fix`. Ids are numbered once and never reused or renu
 ## 1. `fixes/FIX-nn.md`
 
     ---
-    written_by: ow-handoff 2.0.0
+    written_by: ow-handoff 2.0.1
     created: <YYYY-MM-DD>
     id: FIX-nn
     reported: <YYYY-MM-DD>
@@ -60,7 +60,7 @@ Only when **all** hold: the choice recorded is `care`; care has a start date; `r
 ## 2. `help/HELP-nn.md`
 
     ---
-    written_by: ow-handoff 2.0.0
+    written_by: ow-handoff 2.0.1
     created: <YYYY-MM-DD>
     id: HELP-nn
     requested: <YYYY-MM-DD>
@@ -79,7 +79,7 @@ States: `requested` → `go-ahead` → `hours recorded` → `invoiced`, or `decl
 ## 3. `invoices/INV-request-help-nn.md` and `invoices/INV-request-vendor-nn.md`
 
     ---
-    written_by: ow-handoff 2.0.0
+    written_by: ow-handoff 2.0.1
     created: <YYYY-MM-DD>
     for: HELP-nn | receipts
     hours: <h>                     # help: the HELP-nn's recorded hours, exactly

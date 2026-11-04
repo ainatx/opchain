@@ -19,7 +19,7 @@ Every statement in the map is a fact line:
 
 ## 2. The five files
 
-Each starts with `written_by: ow-build-plan 2.0.0` and `created`.
+Each starts with `written_by: ow-build-plan 2.0.1` and `created`.
 
 | File | Contents |
 |---|---|
@@ -37,4 +37,4 @@ Evidence trace: every HIGH or MEDIUM fact line cites an `E-nn` that exists in `e
 
 ## 4. STATUS and what comes next
 
-In the cache, a plain `STATUS.md` line is enough: `<date> | ow-build-plan 2.0.0 | plans/<client>/map/current.md | nothing awaited`. Next: `/ow-build-plan-scope`.
+In the cache, a plain `STATUS.md` line is enough: `<date> | ow-build-plan 2.0.1 | plans/<client>/map/current.md | nothing awaited`. Next: `/ow-build-plan-scope`.

@@ -87,7 +87,7 @@ const PLAN_WORKSPACE = join(ROOT, "tests", "fixtures", "ow-build-plan", "workspa
 const OW = "opchain-work/";
 const TEXT = /\.(md|ya?ml|txt|json|csv|html?)$/i;
 /** The released versions a run may have been written by: 1.0.0 (its goldens keep it), 1.0.1 (the OW-09 follow-ups) and 1.0.2 (OW-11 de-scoped). */
-const VERSIONS = ["ow-research 1.0.0", "ow-research 1.0.1", "ow-research 1.0.2", "ow-research 2.0.0"];
+const VERSIONS = ["ow-research 1.0.0", "ow-research 1.0.1", "ow-research 1.0.2", "ow-research 2.0.0", "ow-research 2.0.1"];
 export const CAPS = { quick: 5, standard: 15, deep: 40 };
 const WORDS_MAX = 25;
 /**

@@ -16,7 +16,7 @@ A folder or transcript under `logs/` is a meeting, not a fit call: extract write
 
 ## 2. Confirm who is who (transcripts only)
 
-In **one message**, list every speaker label with two sample lines and ask which one is the user and who each other speaker is ("SPEAKER_01 = their operations manager"). Never guess from a name, a voice or what someone says; this is the one question extract always asks of a transcript with speaker labels. With three or more people, every speaker who is not the user counts as client evidence under the role the user gave. Record the attendees in the intake record. Anything else you need (client, call date, mode) goes in this same message.
+In **one `AskUserQuestion` call**, list every speaker label with two sample lines and ask which one is the user and who each other speaker is ("SPEAKER_01 = their operations manager"). Never guess from a name, a voice or what someone says; this is the one question extract always asks of a transcript with speaker labels. With three or more people, every speaker who is not the user counts as client evidence under the role the user gave. Record the attendees in the intake record. Anything else you need (client, call date, mode) goes in this same message.
 
 ## 3. Extract: read once, quote everything
 
@@ -42,7 +42,7 @@ First read the transcript or notes in one pass whose only output is quoted spans
 
 ## 5. Choose the path: propose one, with the recap draft
 
-- **Prospect mode.** Read `offers.md`. Compare the facts with each path's `propose when` and with the `fit` section. Propose exactly **one** path with one sentence of why, citing fact ids, in the same message as the recap draft. A call outside the fit list gets the not-a-fit path, said honestly, with a suggestion if there is one.
+- **Prospect mode.** Read `offers.md`. Compare the facts with each path's `propose when` and with the `fit` section. Propose exactly **one** path with one sentence of why, citing fact ids, in the same `AskUserQuestion` call as the recap draft. A call outside the fit list gets the not-a-fit path, said honestly, with a suggestion if there is one.
 - **Delivery mode.** The path is the next session, or the next stage of the signed work; propose the one the facts point to.
 - No `offers.md`: say no paths are set up, offer `/ow-setup` to create the file, or take the path in the user's own words. The recap still gets exactly one path. Never invent a path name, and never a price.
 - Copy the path into the recap's header: `path_id`, `path_label`, `path_kind`, `path_systems`. If the user changes it, update the header and the *Next step* section.
@@ -74,5 +74,5 @@ Voice: plain words; no confidence labels, quotes or tool words; short enough to 
 
    Fix what fails. Write the recap trace into `coverage.md` under `## Recap trace`: one row per recap sentence (each bullet is one), giving its section, its first words in quotes, and the fact ids it rests on (or `offers:<path id>` for the path itself).
 2. First run only: seed the cache's `opchain-work/profile.md` from what you know (name, time zone, holidays). Every value is the user's; an assumed one is marked `# assumed`.
-3. Publish through `ow-tools dw` or `/api/admin/ingest/*`, each with an `external_ref`, where the route exists: the intake record to `briefs` (internal), the recap as a `recap` document (client), the coverage as a `coverage` document (internal), the client profile as a `client_profile` document (internal). Say only what a call returned; a human-edited version is never overwritten (write beside it and say so). Otherwise the files stay in the cache, with a plain line: `<today> | ow-start 2.0.0 | intake/<slug>/recap.md | awaiting: recap to <client> by <send_by>`, adding `| next: none (closed: not the right fit)` for a not-a-fit path.
+3. Publish through `ow-tools dw` or `/api/admin/ingest/*`, each with an `external_ref`, where the route exists: the intake record to `briefs` (internal), the recap as a `recap` document (client), the coverage as a `coverage` document (internal), the client profile as a `client_profile` document (internal). Say only what a call returned; a human-edited version is never overwritten (write beside it and say so). Otherwise the files stay in the cache, with a plain line: `<today> | ow-start 2.0.1 | intake/<slug>/recap.md | awaiting: recap to <client> by <send_by>`, adding `| next: none (closed: not the right fit)` for a not-a-fit path.
 4. Show the recap draft and the proposed path, and ask for **the one approval: the user's OK of the recap before they send it**. Say the path's next verb from `What comes next` in SKILL.md, and that nothing reminds anyone of `send_by`.

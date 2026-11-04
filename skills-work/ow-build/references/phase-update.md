@@ -34,7 +34,7 @@ Write `updates/<date>.html` and its twin `updates/<date>.txt` (`references/email
 `updates/<date>-checks.md`, never sent:
 
     ---
-    written_by: ow-build 2.0.0
+    written_by: ow-build 2.0.1
     created: <YYYY-MM-DD>
     update: builds/<client>/updates/<date>.html
     period: <first day> to <date>
@@ -62,7 +62,7 @@ Before you hand the update over, check (`references/self-checks.md`): **No inter
 `margin.md`, internal, rewritten each week:
 
     ---
-    written_by: ow-build 2.0.0
+    written_by: ow-build 2.0.1
     created: <YYYY-MM-DD>
     time_export: <path>
     internal_hour_value: { amount: <your figure>, source: user-stated <date> }
@@ -81,4 +81,4 @@ The site's promise holds: under a fixed price, an overrun is a note to you, neve
 
 ## 5. Finish
 
-Publish the client text to `engagement_updates`, marked `client`; the checks file and `margin.md` stay in the cache, internal. You send it. In the cache, a plain line: `<date> | ow-build 2.0.0 | builds/<client>/updates/<date>.html | update to <client> by <date>` (the date to send it). Next update: the next update day.
+Publish the client text to `engagement_updates`, marked `client`; the checks file and `margin.md` stay in the cache, internal. You send it. In the cache, a plain line: `<date> | ow-build 2.0.1 | builds/<client>/updates/<date>.html | update to <client> by <date>` (the date to send it). Next update: the next update day.

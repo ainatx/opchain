@@ -4,7 +4,7 @@ These are the scratch cache's forms (`opchain-work/`); the CRM holds the publish
 
 ## `intake/<slug>/intake.yaml` (written by `/ow-start-prep`)
 
-    written_by: ow-start 2.0.0
+    written_by: ow-start 2.0.1
     created: 2026-10-05
     mode: prospect                  # prospect | delivery
     client: Larkspur Ceramics
@@ -24,7 +24,7 @@ The two header keys, then one `## <start>–<end> <block name>` section per bloc
 ## `intake/<slug>/intake-record.md` (written by `/ow-start-extract`)
 
     ---
-    written_by: ow-start 2.0.0
+    written_by: ow-start 2.0.1
     created: <YYYY-MM-DD>
     mode: prospect
     client: <client>
@@ -68,7 +68,7 @@ Rules:
 ## `intake/<slug>/coverage.md` (written by `/ow-start-extract`; for the user only)
 
     ---
-    written_by: ow-start 2.0.0
+    written_by: ow-start 2.0.1
     created: <YYYY-MM-DD>
     ---
     # Coverage: <client>, <call date>
@@ -101,7 +101,7 @@ Rules: `status` is one of `answered`, `partly`, `not asked`, `answered unprompte
 ## `intake/<slug>/recap.md` (written by `/ow-start-extract`; the main output)
 
     ---
-    written_by: ow-start 2.0.0
+    written_by: ow-start 2.0.1
     created: <YYYY-MM-DD>
     client: <client>
     call_date: <YYYY-MM-DD>
@@ -136,14 +136,14 @@ The `path_*` keys are what the next stage reads to set its scope; copy them from
 
 The date, the skill, the file, and what is awaited by when:
 
-    2026-10-06 | ow-start 2.0.0 | intake/larkspur-ceramics/recap.md | awaiting: recap to Larkspur Ceramics by 2026-10-07
+    2026-10-06 | ow-start 2.0.1 | intake/larkspur-ceramics/recap.md | awaiting: recap to Larkspur Ceramics by 2026-10-07
 
 A workstream that closes adds `| next: none (closed: not the right fit)`. Lines an earlier version wrote, with a clock label after the date or a `next:` field, are read the same way.
 
 ## `profile.md` (the cache's copy of the client-facing profile values; every value comes from the user)
 
     ---
-    written_by: ow-start 2.0.0
+    written_by: ow-start 2.0.1
     created: <YYYY-MM-DD>
     name: Robin                       # how you sign the recap
     business: ""                      # optional

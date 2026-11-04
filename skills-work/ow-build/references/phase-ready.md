@@ -20,12 +20,12 @@ Each row: the result (`pass`, `fail` or `not run`), the test data **by pointer**
 
 ## 3. Ask
 
-In one message: the **test environment** the client will test in (staging or sandbox, by name), **known issues** (anything rough, so testers are not surprised), the **test data** testers should use (by pointer), and the **build label** of the build being handed over (a tag or release name the user gives). Skip what the sprint reports and `build.yaml` already say.
+In one `AskUserQuestion` call: the **test environment** the client will test in (staging or sandbox, by name), **known issues** (anything rough, so testers are not surprised), the **test data** testers should use (by pointer), and the **build label** of the build being handed over (a tag or release name the user gives). Skip what the sprint reports and `build.yaml` already say.
 
 ## 4. Write `ready-for-uat.md`
 
     ---
-    written_by: ow-build 2.0.0
+    written_by: ow-build 2.0.1
     created: <YYYY-MM-DD>
     client: <client>
     ready: yes                         # yes only when every check passes
@@ -54,4 +54,4 @@ In one message: the **test environment** the client will test in (staging or san
 
 ## 5. Finish
 
-Publish each check's result to `acceptance_criteria` and the file as a `ready_for_uat` document. In the cache, a plain line, file `builds/<client>/ready-for-uat.md` (none when it stops): ready, `<date> | ow-build 2.0.0 | builds/<client>/ready-for-uat.md | acceptance testing: /ow-uat-plan`; not ready, `… | <k> checks failing; back to the builder`.
+Publish each check's result to `acceptance_criteria` and the file as a `ready_for_uat` document. In the cache, a plain line, file `builds/<client>/ready-for-uat.md` (none when it stops): ready, `<date> | ow-build 2.0.1 | builds/<client>/ready-for-uat.md | acceptance testing: /ow-uat-plan`; not ready, `… | <k> checks failing; back to the builder`.

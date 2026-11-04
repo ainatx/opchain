@@ -5,7 +5,7 @@
 Written by `-plan` (and its `--add-co` and `--addendum` modes); a re-plan may rewrite one, and says so. The record is `acceptance_criteria`; this is the cache. Ids run on from the highest `SC-nn` in the folder.
 
     ---
-    written_by: ow-uat 2.0.0
+    written_by: ow-uat 2.0.1
     created: <YYYY-MM-DD>
     id: SC-01
     kind: required | role | real-case | exception | addendum
@@ -60,7 +60,7 @@ One row per scenario in the packs, with only `scenario` filled. Testers write th
 
 ## 4. `pack.yaml`
 
-    written_by: ow-uat 2.0.0
+    written_by: ow-uat 2.0.1
     created: <YYYY-MM-DD>
     packs:
       - { role: <role>, source: uat-pack-<role>.md, exports: [export/uat-pack-<role>.html], scenarios: [SC-01, …] }
