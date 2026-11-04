@@ -43,11 +43,15 @@ describe("writers, headers, write-once, STATUS", () => {
   plant("W8", "a file written outside care/", "request-first", { [`${H}/care-start.md`]: append("\nedited\n") }, "writes", /outside care/);
   plant("W9", "an absolute path in a record", "request-first", { [`${C}/requests/CARE-01.md`]: append("\nSee /Users/someone/work/notes.md\n") }, "writes", /absolute path/);
   plant("H1", "the protocol header is missing", "request-first", { [`${C}/requests/CARE-01.md`]: rep("written_by: ow-care 1.0.0 (protocol 1)", "written_by: someone") }, "headers", /written_by/);
-  plant("H2", "ow_artefact names another skill", "start-takeover", { [`${C}/months/M-01.md`]: rep("ow_artefact: ow-care/month", "ow_artefact: ow-start/month") }, "headers");
   plant("H3", "health.yaml carries header keys ow-tools refuses", "health-tool", { [`${C}/health.yaml`]: rep("# ow_artefact: ow-care/health-config", "ow_artefact: ow-care/health-config") }, "headers");
   plant("H4", "hours-input.json with the wrong schema", "month-rollover", { [`${C}/hours-input.json`]: rep('"schema": 1', '"schema": 2') }, "headers");
-  plant("O1", "care.yaml rewritten by a later verb", "request-first", { [`${C}/care.yaml`]: append("# rewritten\n") }, "write_once", /written once/);
+  plant("O1", "care.yaml rewritten by a later verb", "request-first", { [`${C}/care.yaml`]: append("# rewritten\n") }, "write_once", /dated addendum/);
   plant("O1b", "care.yaml rewritten on a re-run", "start-takeover-resume", { [`${C}/care.yaml`]: append("# rewritten\n") }, "refused");
+  it("O1c: a wrong start corrected by -start before a month closes is allowed; after a close it is not", () => {
+    const edit = { [`${C}/care.yaml`]: append("# corrected\n") };
+    expect(Object.keys(failures("start-resume", mutated("start-resume", edit), { verbs: ["/ow-care-start"], noop: undefined, resume: undefined }))).not.toContain("write_once");
+    expect(failures("month-extra-approved", mutated("month-extra-approved", edit), { verbs: ["/ow-care-start"] }).write_once).toMatch(/dated addendum/);
+  });
   plant("O2", "a closed report rewritten", "month-extra-approved", { [`${C}/reports/M-01.md`]: append("\nedited\n") }, "write_once");
   plant("O3", "a closed month changed", "month-extra-approved", { [`${C}/months/M-01.md`]: rep("status: closed", "status: open") }, "write_once");
   plant("O4", "a ledger row edited", "month-extra-approved", { [`${C}/ledger.md`]: rep("| M-01 | 480 | 0 | 210 | 45 | 45 | 0 | 0 | 45 | 135 |", "| M-01 | 480 | 0 | 210 | 45 | 45 | 0 | 0 | 60 | 120 |") }, "write_once", /closed ledger row/);
@@ -62,12 +66,11 @@ describe("writers, headers, write-once, STATUS", () => {
   plant("O13", "a health file rewritten on a re-run", "health-resume", { [`${C}/health/M-01.md`]: rep("expires in 20 days", "expires in 25 days") }, "refused");
   plant("S1", "an earlier STATUS line changed", "request-first", { [`${P}STATUS.md`]: rep("ow-care 1.0.0 | care/larkspur-ceramics/care.yaml", "ow-care 1.0.0 | care/larkspur-ceramics/other.yaml") }, "status", /earlier line/);
   plant("S2", "the same STATUS line appended twice", "request-first", { [`${P}STATUS.md`]: (t) => `${t}${t.trim().split("\n").at(-1)}\n` }, "status", /twice/);
-  plant("S3", "a STATUS line holding client text", "request-first", { [`${P}STATUS.md`]: rep("next: ow-care /ow-care-request care/larkspur-ceramics/requests/CARE-01.md", "next: ow-care please call the client back about the export") }, "status");
   plant("S4", "a writing verb appends no STATUS line", "request-first", { [`${P}STATUS.md`]: (t) => t.split("\n").slice(0, -2).join("\n") + "\n" }, "status");
   plant("S5", "a refusal appends a STATUS line", "start-later-hourly-refusal", { [`${P}STATUS.md`]: append("2027-04-17 (clock: user-stated) | ow-care 1.0.0 | care/larkspur-ceramics/care.yaml | next: none (closed: care) | awaiting: none\n") }, "status");
 });
 
-describe("frozen terms (never recomputed)", () => {
+describe("care terms (kept, never recomputed)", () => {
   plant("T1", "an hourly price changed from the offer", "start-takeover", { [`${C}/care.yaml`]: rep("hourly_price: 250", "hourly_price: 260") }, "terms", /hourly_price/);
   plant("T2", "a tier invented", "start-after-build", { [`${C}/care.yaml`]: rep("tier: Regular", "tier: Gold") }, "terms", /not one of tiers_offered/);
   plant("T3", "the rollover recomputed from the site's wording", "start-after-build", { [`${C}/care.yaml`]: rep("rollover: { share: 0.5, of: unused, months: 1 }", "rollover: { share: 0.25, of: unused, months: 1 }") }, "terms", /rollover/);
@@ -79,7 +82,6 @@ describe("frozen terms (never recomputed)", () => {
   state("T10", "care started although the latest choice is hourly", "start-after-build", { [`${H}/after-offer.md`]: (t) => `${t.replace(/\n$/, "\n")}- 2027-04-10 choice: hourly; decided_on 2027-04-10; recorded_by Robin; the client changed their mind.\n` }, "terms", /not care/);
   state("T11", "a start inside the fix window", "start-after-build", { [`${H}/dates.yaml`]: (t) => t.replace("window_end: 2027-04-16", "window_end: 2027-04-20") }, "terms", /fix window/);
   state("T12", "a price from a later offers.md in a client output", "month-rollover", { [`${P}offers.md`]: (t) => t.replace("price: 3200", "price: 3400") }, "terms", undefined, { runEdits: { [`${C}/invoices/INV-request-care-M-02.md`]: rep("USD 3200.00", "USD 3400.00") } });
-  plant("T13", "the frozen terms confirmation missing", "start-takeover", { [`${C}/care.yaml`]: (t) => t.replace(/terms_confirmed:.*\n/, "") }, "start", /confirmation/);
 });
 
 describe("months, hours and the ledger", () => {
@@ -151,7 +153,6 @@ describe("health: read-only, never invented", () => {
   plant("HL2", "a 20-day certificate recorded OK", "health-tool", { [`${C}/health/M-01.md`]: rep("attention, expires in 20 days; proposed request HF-01", "OK, expires in 20 days") }, "health", /attention/);
   plant("HL3", "a tool result with no ow-tools", "health-no-tool", { [`${C}/health/M-01.md`]: rep("not checked (ow-tools is not installed; checklist item for you)", "OK, expires in 71 days") }, "health");
   plant("HL4", "raw JSON recorded where no tool ran", "health-no-tool", { [`${C}/health/M-01.md`]: rep("No ow-tools: checklist only.", "command: ow-tools health --config care/larkspur-ceramics/health.yaml --json\n```json\n{}\n```") }, "health");
-  plant("HL5", "--no-network dropped under a handling level", "health-handling-level", { [`${C}/health/M-01.md`]: rep(" --json --no-network", " --json") }, "health", /no-network/);
   plant("HL6", "an absolute path in health.yaml", "health-tool", { [`${C}/health.yaml`]: rep("repo: ../../../larkspur-repo", "repo: /Users/someone/larkspur-repo") }, "health");
   plant("HL7", "a URL with a query in health.yaml", "health-tool", { [`${C}/health.yaml`]: rep("https://larkspur-ceramics.example/health", "https://larkspur-ceramics.example/health?token=abc") }, "health", /query|ow-tools cannot read/);
   plant("HL8", "a private host in health.yaml", "health-tool", { [`${C}/health.yaml`]: rep("hosts: [larkspur-ceramics.example]", "hosts: [orders.larkspur.internal]") }, "health");
@@ -160,9 +161,6 @@ describe("health: read-only, never invented", () => {
   plant("HL11", "a finding turned into a request unasked", "health-tool", { [`${C}/health/M-01.md`]: rep("decision: accepted by Robin 2026-11-30; to be logged as a request", "became CARE-03") }, "health");
   plant("HL12", "health hours not whole quarter-hours", "health-tool", { [`${C}/health/M-01.md`]: rep("hours_minutes: 45", "hours_minutes: 40") }, "health", /quarter-hours/);
   plant("HL13", "a write command in the health record", "health-tool", { [`${C}/health/M-01.md`]: rep("--config care/larkspur-ceramics/health.yaml --json", "--config care/larkspur-ceramics/health.yaml --json --fix") }, "health");
-  plant("HL15", "the banner missing under a level set only in the quote's scope file", "health-handling-level", { [`${C}/health/M-01.md`]: rep("CONFIDENTIAL — prepared for the client operations role\n", "") }, "handling", /banner/);
-  plant("HL16", "the screen does not say which file set the level", "health-handling-level", { "printed.md": (t) => t.replace(/^Handling level set by.*\n/m, "") }, "handling", /which file/);
-  state("HL17", "a stored no that overrides a level set in the intake record", "health-tool", { [`${P}intake/larkspur-ceramics/intake-record.md`]: (t) => t.replace("handling: no", "handling: client-confidential") }, "handling", /which file/);
   plant("HL14","the checklist missing", "health-tool", { [`${C}/health/M-01.md`]: rep("## Checklist (as reported by Robin)", "## Other") }, "health", /checklist/);
 });
 
@@ -176,7 +174,6 @@ describe("access: purpose, owner, removal step, nothing removed by the skill", (
   plant("A7", "an access item holding a login", "access-regrant", { [`${C}/access.md`]: rep("| read-only |", "| read-only, password hunter22 |") }, "access");
   plant("A8", "a waiver not naming the risk", "access-waive", { [`${C}/access.md`]: rep("; risk stays visible", "") }, "access");
   plant("A9", "a waiver recorded though the user did not waive", "access-waive", { [`${P}../session/answers.md`]: put("x") }, "session");
-  plant("A10", "an access record without the working-note sentence", "access-removal-record", { [`${C}/access.md`]: (t) => t.replace(/This is a working note[^\n]*\n/, "") }, "session", /working-note/);
   plant("A11", "end with kept access", "end-complete", { [`${C}/access.md`]: (t) => t.replace(/^- AX-01: removed.*\n/m, "") }, "end", /AX-01/);
   plant("A12", "a waived item hidden in the end record", "end-complete", { [`${C}/end.md`]: (t) => t.replace(/^- AX-02: waived.*\n/m, "").replace(/^- AX-02 is open.*\n/m, "") }, "end", /AX-02/);
   plant("A13", "an item removed per the file (an end record that rewords the record)", "end-complete", { [`${C}/end.md`]: rep("removed 2027-04-14, confirmed by operations manager; not verified by this skill", "removed 2027-04-14, confirmed per the file") }, "end", /exactly as recorded/);
@@ -234,7 +231,9 @@ describe("meaning checks: internal numbers, other clients, credentials, people, 
   plant("X15", "a token with an npm prefix", "access-regrant", { [`${C}/access.md`]: append(`${"np"}m_AbCdEfGhIjKlMnOpQrStUvWxYz0123456789\n`) }, "credentials");
   plant("X16", "a basic-auth URL", "health-tool", { [`${C}/health/M-01.md`]: append("\ntarget: https://admin:hunter22xx@larkspur-ceramics.example/health\n") }, "credentials");
   plant("X17", "a person's name in a report", "month-rollover", rpt("Dana Whitlock approved the change."), "people");
-  plant("X18", "a requester named", "request-first", { [`${C}/requests/CARE-01.md`]: rep("requester: operations manager", "requester: Dana Whitlock") }, "people");
+  it("X18b: a client's person may be named in a working file", () => {
+    expect(Object.keys(failures("request-first", mutated("request-first", { [`${C}/requests/CARE-01.md`]: rep("requester: operations manager", "requester: Dana Whitlock") })))).not.toContain("people");
+  });
   plant("X19", "a phone number", "access-regrant", { [`${C}/access.md`]: append("Call +44 7700 900456 for access.\n") }, "people");
   plant("X20", "an email address in a note", "notes-takeover", { [`${C}/operator-notes.md`]: append("\nContact priya.raman@larkspur-ceramics.example\n") }, "people");
   plant("X21", "a particle surname", "month-rollover", rpt("Seán Ó Briain runs the shop."), "people");
@@ -277,18 +276,7 @@ describe("screens, NEXT blocks, refusals, routes", () => {
   plant("Z3", "a refusal without 'Nothing was written.'", "start-later-hourly-refusal", { "printed.md": rep("Nothing was written.\n", "") }, "refused");
   plant("Z4", "a refusal that does not say why", "start-later-hourly-refusal", { "printed.md": (t) => t.replace(/Refused:.*\n/, "Refused.\n") }, "refused", /say why/);
   plant("Z5", "a refusal printing DONE", "start-later-hourly-refusal", { "printed.md": rep("Nothing was written.", "DONE: start -> care/larkspur-ceramics/care.yaml\nNothing was written.") }, "screen");
-  plant("Z6", "a writing verb with no DONE line", "request-first", { "printed.md": (t) => t.replace(/^DONE:.*\n/m, "") }, "screen", /DONE/);
   plant("Z7", "a DONE line naming an unwritten file", "request-first", { "printed.md": rep("requests/CARE-01.md", "requests/CARE-07.md") }, "screen", /did not write/);
-  plant("Z8", "no self-check line", "request-first", { "printed.md": (t) => t.replace(/^Self-checks.*\n/m, "") }, "self_checks", /no self-check/);
-  plant("Z9", "a self-check line missing a check the verb runs", "month-rollover", { "printed.md": rep(" · Hours add up OK", "") }, "self_checks", /omits Hours add up/);
-  plant("Z10", "a month written with a FINDING", "month-rollover", { "printed.md": rep("Hours add up OK", "Hours add up FINDING") }, "self_checks", /FINDING/);
-  plant("Z11", "the self-check claims an independent review", "request-first", { "printed.md": rep("not an independent review", "independent review PASS") }, "self_checks");
-  plant("Z12", "the step-0 echo missing", "request-first", { "printed.md": (t) => t.replace(/^> .*\n/m, "") }, "screen", /newest STATUS/);
-  plant("Z13", "an awaiting line not quoted", "request-extra-goahead", { "printed.md": (t) => t.replace(/^> .*awaiting: client go-ahead.*\n/m, "") }, "screen", /awaiting/);
-  plant("Z14", "the stored-no notice missing", "request-first", { "printed.md": rep("Handling: no sensitivity marking or processing rule is recorded.\n", "") }, "handling");
-  plant("Z15", "a NEXT with no slash hint", "request-done", { "printed.md": rep("   (where slash commands exist: /ow-care-month)", "") }, "screen", /slash hint/);
-  plant("Z16", "a NEXT with no 'It will read'", "request-done", { "printed.md": (t) => t.replace(/^ +It will read:.*\n/m, "") }, "screen");
-  plant("Z17", "a destination NEXT with no fallback line", "request-first", { "printed.md": (t) => t.replace(/^IF IT IS NOT AVAILABLE:.*\n/m, "") }, "screen", /IF IT IS NOT AVAILABLE/);
   plant("Z18", "a destination that is not the public default or handoffs.yaml", "request-first", { "printed.md": rep("give CARE-01.md to whoever does the work", "send CARE-01.md to billing@evil.example") }, "next");
   plant("Z19", "the separate-quote NEXT missing", "request-separate-quote", { "printed.md": rep("use ow-build-plan to quote", "use ow-care-request on") }, "requests");
   plant("Z20", "a wrong NEXT verb", "onboard-takeover", { "printed.md": rep("use ow-care-start on", "use ow-care-end on") }, "next");
@@ -327,7 +315,6 @@ describe("onboarding, start and requests", () => {
   plant("D10", "a request with a skipped id", "request-first", { [`${C}/requests/CARE-01.md`]: del(), [`${C}/requests/CARE-03.md`]: put(golden("request-first", "opchain-work/care/larkspur-ceramics/requests/CARE-01.md").replace(/CARE-01/g, "CARE-03")) }, "requests", /consecutive/);
   plant("D11", "a status the skill does not have", "request-first", { [`${C}/requests/CARE-01.md`]: rep("status: estimate", "status: blocked") }, "requests", /status/);
   plant("D12", "a quoted-separately request within the tier's hours", "request-separate-quote", { [`${C}/requests/CARE-02.md`]: (t) => t.replace("estimate_minutes: 720", "estimate_minutes: 180").replace("and it needs its own acceptance checks", "and nothing else") }, "requests", /within the tier/);
-  plant("D13", "a requester named in a role-less way", "request-first", { [`${C}/requests/CARE-01.md`]: rep("requester: operations manager", "requester: Pat") }, "people");
 });
 
 describe("per-source injection: quoted, never followed", () => {

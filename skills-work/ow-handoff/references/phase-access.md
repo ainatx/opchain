@@ -1,6 +1,8 @@
 # Phase: `/ow-handoff-access` (and `--record`, `--regrant`, `--waive`)
 
-Writes `access.md` (`access-format.md`). It records; it removes, rotates and deletes nothing.
+Writes `access.md` (`access-format.md`): every piece of the user's access, from every source, listed and taken back. It records; it removes, rotates and deletes nothing itself.
+
+**Read first:** the latest saved `systems` and `support_requests` (cache: `accounts.md`, `fixes/`). The paths below are the scratch cache.
 
 ## 1. Entry
 
@@ -18,10 +20,8 @@ Writes `access.md` (`access-format.md`). It records; it removes, rotates and del
 
 ### `/ow-handoff-access --record AX-nn`, `--regrant AX-nn`, `--waive AX-nn`
 
-1. **`record`**, **`regrant`** or **`waive`**: append the one line `access-format.md` §5 gives, as reported: removed, rotated, deleted by the user, re-granted and held, or removed unconfirmed (waived, naming every date confirmation was requested).
+1. **`record`**, **`regrant`** or **`waive`**: add the one line `access-format.md` §5 gives, as the user reports it: removed, rotated, deleted by the user, re-granted and held, or removed unconfirmed (waived, naming every date confirmation was requested).
 
-## 3. Screen
+## 3. Then
 
-    DONE: access list -> handoffs/<client>/access.md (<n> items; removal on <date>)
-
-then the self-check line and the close NEXT.
+Say how many items there are and the removal date, then `/ow-handoff-close` once the window has ended.

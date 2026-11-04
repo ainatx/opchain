@@ -1,9 +1,8 @@
 # ow-build edges (ow- cross-talk contract R15), schema 1.
-# What this skill writes, reads and hands off, as data. The body's "Reads from"
-# and "Hands off to" tables say the same in words; check-skill-contracts reads
-# this file to hold the family to one writer per file and to edges that match
-# on both ends. Paths are relative to opchain-work/, except <repo>/…, the
-# client's project folder that build.yaml names. Format: skills-work/README.md.
+# What this skill writes, reads and hands off in the scratch cache, as data;
+# the record is the CRM (SKILL.md). check-skill-contracts reads this file to hold
+# the family to edges that match on both ends. Paths are relative to opchain-work/,
+# except <repo>/…, the client's project folder that build.yaml names. Format: skills-work/README.md.
 schema: 1
 skill: ow-build
 
@@ -15,7 +14,7 @@ routes:
   paths: [plans/<client>/build-request.md, plans/<client>/, uat/<client>/defects/UAT-nn.md, handoffs/<client>/fixes/FIX-nn.md, uat/<client>/signoff.md, uat/<client>/backstop.md, handoffs/<client>/dates.yaml, docs/<client>/delivered.md, builds/<client>/]
 
 writes:
-  # build.yaml and ledger.md are created once by -start; after that each has one writer.
+  # build.yaml and ledger.md are created by -start; -run and -invoice keep them.
   - { path: builds/<client>/build.yaml, verb: /ow-build-run, seeded_by: /ow-build-start }
   - { path: builds/<client>/ledger.md, verb: /ow-build-invoice, modes: [--paid], seeded_by: /ow-build-start }
   - { path: builds/<client>/updates/<date>.html, verb: /ow-build-update }
@@ -26,7 +25,7 @@ writes:
   - { path: builds/<client>/demos/M<n>-record.md, verb: /ow-build-demo --record }
   - { path: builds/<client>/demos/M<n>-summary.html, verb: /ow-build-demo --record }
   - { path: builds/<client>/demos/M<n>-summary.txt, verb: /ow-build-demo --record }
-  # One writer verb in every mode: each mode moves the change order to its next status.
+  # Each mode moves the change order to its next status.
   - { path: builds/<client>/changes/CO-nn.md, verb: /ow-build-change, modes: [--sent, --agreed, --signed, --declined] }
   - { path: builds/<client>/changes/CO-nn.html, verb: /ow-build-change }
   - { path: builds/<client>/changes/CO-nn.txt, verb: /ow-build-change }
@@ -34,8 +33,8 @@ writes:
   - { path: builds/<client>/changes/change-inputs-CO-nn.md, verb: /ow-build-change --agreed }
   - { path: builds/<client>/invoices/INV-request-<trigger>.md, verb: /ow-build-invoice }
   - { path: builds/<client>/ready-for-uat.md, verb: /ow-build-ready }
-  # The builder's input in the client's project folder: -start writes the five spec/ files once;
-  # a signed change order's checks go to their own file, so every spec/ file has one writer.
+  # The builder's input in the client's project folder: -start writes the five spec/ files;
+  # a signed change order's checks go to their own file.
   - { path: <repo>/spec/00-project-overview.md, verb: /ow-build-start }
   - { path: <repo>/spec/02-architecture.md, verb: /ow-build-start }
   - { path: <repo>/spec/04-integrations.md, verb: /ow-build-start }
@@ -53,13 +52,13 @@ writes:
 reads:
   - from: any
     path: STATUS.md
-    fields: [the protocol's STATUS form]
+    fields: [a plain status line, or the older form]
     if_absent: "First run: the welcome"
     if_mismatch: Quote the lines as found; use only the dates and paths you can read
   - from: ow-start
     path: profile.md
     shared: true
-    fields: [name, time_zone, holidays, handling]
+    fields: [name, time_zone, holidays]
     if_absent: Ask the user's name and time zone; count business days with weekends only and say so
     if_mismatch: Report the fields found; ask only for the missing ones
   # The signed Build Plan (ow-build-plan's signed hand-off).
@@ -70,7 +69,7 @@ reads:
     if_mismatch: Report the sections found; ask the user to confirm the signing date
   - from: ow-build-plan
     path: plans/<client>/quote.md
-    fields: [mode, currency, fixed_price, schedule, payments, payment_terms_days, handling, the client part's milestones]
+    fields: [mode, currency, fixed_price, schedule, payments, payment_terms_days, the client part's milestones]
     if_absent: Refuse -start; ask for the signed quote
     if_mismatch: Report the keys found; record no payment until the user confirms the amounts
   - from: ow-build-plan
@@ -78,11 +77,6 @@ reads:
     fields: [documentation_sku, documentation_price]
     if_absent: "No documentation line: documentation: none, and no such trigger"
     if_mismatch: Record no documentation line until the user confirms bought or declined
-  - from: ow-build-plan
-    path: plans/<client>/plan.yaml
-    fields: [handling]
-    if_absent: "A quick quote has none: take handling from the quote's header, else ask"
-    if_mismatch: Ask the handling question again
   - from: ow-build-plan
     path: plans/<client>/build-plan.md
     fields: [Summary, What should change]
@@ -178,8 +172,8 @@ reads:
   - from: user
     path: handoffs.yaml
     fields: [build, change_order, invoice]
-    if_absent: Print the public default
-    if_mismatch: Print the public default and say the entry did not parse
+    if_absent: "Say: give build-request.md to whoever builds it (or the file in hand)"
+    if_mismatch: Use the default line and say the entry did not parse
   - from: user
     path: brand.yaml
     fields: [name, colors, footer, logo, logo_alt]
@@ -265,7 +259,7 @@ hands_off:
     verb: /ow-build-change --agreed
     say: use ow-build to record the agreement on builds/<client>/changes/CO-nn.md
     files: [builds/<client>/changes/CO-nn.md]
-    if_unavailable: Keep the client's reply with the change order; it is not a signature
+    if_unavailable: Keep the client's reply with the change order; a reply alone is not approval
   - when: Amendment out
     to: ow-build
     verb: /ow-build-change --signed

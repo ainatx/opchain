@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 // ow-build-plan acceptance checks (docs/plans/2026-10-06-ow-build-plan-design.md §9.2).
 //
-// ow-build-plan is a text-only skill: a model runs it, so these checks cannot
-// run the skill. They read what a run wrote (its opchain-work/ folder) and test
-// it against an answer key and the price book, mechanically. One check per
-// design rule:
+// A model runs ow-build-plan, so these checks cannot run the skill. They read what
+// a run wrote to its scratch cache (its opchain-work/ folder) and test it against
+// an answer key and the price book, mechanically. One check per rule kept in 2.0.0
+// (docs/plans/2026-11-03-ow-audience-reversal.md); goldens in the 1.x form still pass.
 //
-//   headers           the protocol's artefact header on each output
+//   headers           written_by and created on each output (extra keys tolerated)
 //   offer             fee, weeks, credit and validity match the tier in the price book
 //   start             tier, weeks and dates from the price book and profile; every LOW/UNKNOWN fact and
 //                     every unasked must-ask becomes a collection request
@@ -23,9 +23,11 @@
 //   accepted          contract-inputs.md as the schema says, with the contract NEXT
 //   signed            build-request.md only after acceptance, with no prices and the build NEXT
 //   signed_refusal    --signed before --accepted writes nothing
+//   whole_project     the Build Plan phase first, its fee and weeks from the book, no credit, assumptions listed
+//   quote_frozen      a sent or accepted quote is never rewritten; a changed price is a new file beside it
 //   quick             a small job: quick scope and quote, no map; tester roles by role only
 //   quick_refusal     a job over quick_quote_max_units: no quote, a Build Plan recommended
-//   status            STATUS.md lines appended, never rewritten
+//   status            earlier STATUS.md lines kept; a plain line, or the older form, for each step
 //   private_names     no private skill or business name in anything the run wrote, except the user's
 //                     own handoffs.yaml say: line printed exactly
 //
@@ -55,7 +57,6 @@ const OW_START_FIXTURES = join(ROOT, "tests", "fixtures", "ow-start");
 const EXAMPLES = join(ROOT, "skills-work", "ow-build-plan", "examples");
 const WORKSPACE = join(FIXTURES, "workspace", "opchain-work");
 const TEXT = /\.(md|ya?ml|txt|json|csv)$/;
-const CLOCKS = /^(tool|host-supplied|user-stated|assumed)$/;
 const TIERS = ["one_system", "two_systems", "three_plus_or_mvp"];
 const SIZES = ["S", "M", "L"];
 const FRAGMENT = 8; // characters of a credential in a row that count as "a part of one"
@@ -320,16 +321,8 @@ function checkHeaders(key, run) {
     try {
       data = rel.endsWith(".yaml") ? parsed(run, rel, "yaml") : parsed(run, rel, "md").data;
     } catch (e) { p.push(reason(e)); continue; }
-    const name = rel.split("/").pop().replace(/\.(md|ya?ml)$/, "");
-    const want = rel.includes("/map/") ? `ow-build-plan/map-${name}` : `ow-build-plan/${name}`;
-    if (data.ow_artefact !== want) p.push(`${rel}: ow_artefact is ${data.ow_artefact}, expected ${want}`);
-    if (String(data.schema) !== "1") p.push(`${rel}: schema is ${data.schema}, expected 1`);
-    if (!/^ow-build-plan \d+\.\d+\.\d+ \(protocol 1\)$/.test(data.written_by ?? "")) p.push(`${rel}: written_by is "${data.written_by}"`);
-    if (data.workstream !== (key.workstream ?? key.slug)) p.push(`${rel}: workstream is ${data.workstream}, expected ${key.workstream ?? key.slug}`);
-    if (!data.subject) p.push(`${rel}: subject is missing`);
+    if (!/^ow-build-plan \d+\.\d+\.\d+(?: \(protocol \d+\))?$/.test(data.written_by ?? "")) p.push(`${rel}: written_by is "${data.written_by}"`);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(iso(data.created) ?? "")) p.push(`${rel}: created "${iso(data.created)}" is not a YYYY-MM-DD date`);
-    if (!CLOCKS.test(data.clock ?? "")) p.push(`${rel}: clock "${data.clock}" is not tool, host-supplied, user-stated or assumed`);
-    if (data.origin !== "skill") p.push(`${rel}: origin is "${data.origin}", expected skill`);
   }
   return p;
 }
@@ -372,7 +365,7 @@ function requestProblems(run, rel, words) {
   const p = [];
   const req = parsed(run, rel, "md");
   const d = req.data;
-  if (d.ow_artefact !== "ow-build-plan/request" || d.origin !== "user" || !d.stated_by || !req.content.trim()) p.push(`${rel}: needs the ow-build-plan/request header (origin: user, stated_by) and the user's words`);
+  if (!d.stated_by || !req.content.trim()) p.push(`${rel}: needs stated_by and the user's words`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso(d.stated_on) ?? "")) p.push(`${rel}: stated_on "${iso(d.stated_on) ?? ""}" is not the YYYY-MM-DD date the user stated the request`);
   if (words) {
     const body = req.content.replace(/^#[^\n]*\n/m, "");
@@ -413,8 +406,6 @@ function checkStart(key, run) {
   if (!["offer", "recap", "user-stated"].includes(plan.tier_source)) p.push(`plan.yaml: tier_source is ${plan.tier_source}, not offer, recap or user-stated`);
   else if (plan.tier_source === "offer" && !run.exists(`${dir}/build-plan-offer.md`)) p.push(`plan.yaml: tier_source is offer, but ${dir}/ holds no build-plan-offer.md (signed work has no offer; the tier comes from the recap or the user)`);
   if (want.tier_source && plan.tier_source !== want.tier_source) p.push(`plan.yaml: tier_source is ${plan.tier_source}, expected ${want.tier_source}`);
-  // Never -start over an existing plan (eval round 4, new 8), however -start was reached.
-  if (run.priorRead(`${dir}/plan.yaml`) != null && run.written().includes(`${dir}/plan.yaml`)) p.push(`${dir}/plan.yaml: -start wrote over an existing plan; a folder with a plan resumes at its next step, and a second plan is a follow-on`);
   const weeks = Number(b.build_plan_weeks?.[plan.tier]);
   if (Number(plan.weeks) !== weeks) p.push(`plan.yaml: weeks ${plan.weeks} is not build_plan_weeks.${plan.tier} (${weeks})`);
   if (want.fee === "none") { if (plan.fee !== "none") p.push(`plan.yaml: fee is ${plan.fee}; work already signed has no Build Plan fee (fee: none)`); }
@@ -490,9 +481,8 @@ function checkFollowOn(key, run) {
 }
 
 /**
- * A quote is written once (eval round 2, new bug 2): once it has been exported or
- * accepted, a run never writes quote.md or quote-items.json again. 1.0.0 has no
- * revised quotes (owner decision 2026-10-15): a second quote file fails too.
+ * The money rule: once a quote has been exported or accepted, quote.md and quote-items.json are never rewritten.
+ * A changed price after sending is a new file beside it (quote-v2.md); after acceptance, a change order or a new quote.
  */
 function checkQuoteFrozen(key, run) {
   const p = [];
@@ -502,22 +492,8 @@ function checkQuoteFrozen(key, run) {
   const exported = (run.priorRead("STATUS.md") ?? "").split("\n").some((l) => l.includes(`${dir}/export/`)) || run.priorRead(`${dir}/export/export-report.md`) != null;
   const accepted = run.priorRead(`${dir}/contract-inputs.md`) != null;
   if (!exported && !accepted) return ["this case's quote was neither exported nor accepted before the run"];
-  for (const f of ["quote.md", "quote-items.json"]) if (run.written().includes(`${dir}/${f}`)) p.push(`${dir}/${f} was rewritten after the quote was ${accepted ? "accepted" : "exported"}; a quote is written once`);
-  p.push(...secondQuotes(run, dir));
+  for (const f of ["quote.md", "quote-items.json"]) if (run.written().includes(`${dir}/${f}`)) p.push(`${dir}/${f} was rewritten after the quote was ${accepted ? "accepted" : "exported"}; a sent or accepted quote keeps its price (a change is quote-v2.md, a change order or a new quote)`);
   return p;
-}
-
-/**
- * No second quote file: a different quote is a new Build Plan or follow-on. Any
- * file in the folder named like a quote (quote-r2.md, quote-v2.md, revised-quote.md)
- * other than the one quote, its items and their exports is a second quote (eval
- * round 4, N14).
- */
-const ONE_QUOTE = /^(?:quote\.md|quote-items\.json|export\/quote\.(?:pdf|docx))$/;
-function secondQuotes(run, dir) {
-  return run.written()
-    .filter((f) => f.startsWith(`${dir}/`) && /quote/i.test(f.split("/").pop()) && !ONE_QUOTE.test(f.slice(dir.length + 1)))
-    .map((f) => `${f}: a second quote file; 1.0.0 has one quote per folder (a different quote is a new Build Plan or follow-on)`);
 }
 
 function evidenceIds(run, dir) {
@@ -541,8 +517,6 @@ function checkPlan(key, run) {
       for (const c of fl.cites) if (!ev.has(c)) p.push(`${rel}: cites ${c}, which is not in evidence.md`);
     }
   }
-  const current = run.read(`${dir}/map/current.md`) ?? "";
-  if (!/^## Self-checks \(same-session self-check\)/m.test(current) || !/\| Evidence trace \|[^\n]*\| OK \|/.test(current)) p.push("map/current.md: no same-session self-check section with an Evidence trace row");
   const { content: scope } = parsed(run, `${dir}/scope.md`, "md");
   const wps = keyedBlocks(sectionText(scope, "Work packages") ? `## x\n${sectionText(scope, "Work packages")}` : "", /^WP-\d+$/);
   if (!wps.size) p.push("scope.md: no ### WP-n work packages");
@@ -570,14 +544,6 @@ function checkPlan(key, run) {
   const rs = keyedBlocks(risks, /^R-\d+$/);
   if (!rs.size) p.push("risks.md: no ### R-n risks");
   for (const r of rs.values()) for (const k of ["likelihood", "impact", "mitigation", "owner"]) if (!r.keys[k] || /^(none|tbd|—|-)$/i.test(r.keys[k])) p.push(`risks.md: ${r.id} has no ${k}`);
-  // The scope's own self-check record.
-  const sc = tableAfter(scope, /^self-checks/i) ?? [];
-  for (const name of ["Acceptance coverage", "Out of scope present", "Risk owners", "Evidence trace"]) {
-    const row = sc.find((r) => r.check === name);
-    if (!row) p.push(`scope.md: the self-check table has no "${name}" row`);
-    else if (row.result !== "OK") p.push(`scope.md: the "${name}" self-check is ${row.result}; a finished scope has every self-check OK (fix and run again)`);
-  }
-  if (!/Same-session self-check: the same assistant/.test(scope)) p.push("scope.md: the self-checks are not labelled as a same-session self-check");
   // A planted instruction in the client's material is quoted, never followed.
   if (key.embedded) {
     const embedded = sectionText(matter(run.read(`${dir}/evidence.md`)).content, "Possible embedded instructions") ?? "";
@@ -696,6 +662,8 @@ function quote(run, key) {
 }
 
 function workPackages(run, key, q) {
+  // A whole-project quote may come before any scope file: its packages are the quote's own table.
+  if (q.data.mode === "whole-project" && !run.exists(`${plansDir(key)}/scope.md`)) return (tableAfter(q.client, /^What I will deliver/i) ?? []).map((r) => `WP-${r["#"]}`);
   const quick = q.data.mode === "quick" || q.data.mode === "feasibility";
   const file = quick ? "quick-scope.md" : "scope.md";
   const { content } = parsed(run, `${plansDir(key)}/${file}`, "md");
@@ -785,7 +753,10 @@ function checkDates(key, run) {
   const fixed = cents(d.fixed_price);
   const feas = d.mode === "feasibility";
   if (feas) { if (fixed !== cents(d.build_total)) p.push(`${q.rel}: fixed_price ${money(fixed)} is not the test's lines (${money(cents(d.build_total))})`); }
-  else if (fixed !== cents(d.build_total) + cents(d.uat?.price)) p.push(`${q.rel}: fixed_price ${money(fixed)} is not build_total + the testing line (${money(cents(d.build_total) + cents(d.uat?.price))})`);
+  else if (d.mode === "whole-project") {
+    const planFee = cents(d.build_plan?.fee === "none" ? 0 : d.build_plan?.fee);
+    if (fixed !== planFee + cents(d.build_total) + cents(d.uat?.price)) p.push(`${q.rel}: fixed_price ${money(fixed)} is not the Build Plan phase + build_total + the testing line (${money(planFee + cents(d.build_total) + cents(d.uat?.price))})`);
+  } else if (fixed !== cents(d.build_total) + cents(d.uat?.price)) p.push(`${q.rel}: fixed_price ${money(fixed)} is not build_total + the testing line (${money(cents(d.build_total) + cents(d.uat?.price))})`);
   const above = fixed >= cents(b.size_threshold);
   const schedule = above ? "40/40/20" : "50/50";
   if (d.schedule !== schedule) p.push(`${q.rel}: schedule ${d.schedule}; fixed price ${money(fixed)} is ${above ? "at or above" : "below"} size_threshold ${b.size_threshold}, so ${schedule}`);
@@ -817,7 +788,7 @@ function checkDates(key, run) {
     if (iso(d.credit_deadline) !== credit) p.push(`${q.rel}: credit_deadline ${iso(d.credit_deadline)}, expected plan delivery + ${b.build_plan_credit_days} = ${credit}`);
     if (cents(d.build_plan_fee) !== cents(plan.fee)) p.push(`${q.rel}: build_plan_fee ${d.build_plan_fee} is not plan.yaml's fee ${plan.fee}`);
     if (!q.client.includes(`credited against this build if signed by ${written(credit)}`)) p.push(`${q.rel}: no Build Plan credit sentence ending "signed by ${written(credit)}"`);
-  } else if (CREDIT_WORDS.test(q.client) || "credit_deadline" in d || "build_plan_fee" in d) p.push(`${q.rel}: a quick quote has no Build Plan, so no credit line (the header leaves build_plan_fee and credit_deadline out)`);
+  } else if (CREDIT_WORDS.test(q.client) || "credit_deadline" in d || "build_plan_fee" in d) p.push(`${q.rel}: a ${d.mode === "whole-project" ? "whole-project" : "quick"} quote ${d.mode === "whole-project" ? "holds the plan inside its price" : "has no Build Plan"}, so no credit line (the header leaves build_plan_fee and credit_deadline out)`);
   return p;
 }
 
@@ -892,12 +863,13 @@ function checkInternal(key, run) {
   if (starts !== 1 || q.end < q.start) p.push(`${q.rel}: expected exactly one ow:internal section`);
   if (q.lines.slice(q.end + 1).some((l) => l.trim())) p.push(`${q.rel}: text follows the internal appendix; it must be the last thing in the file`);
   // A feasibility quote has no modifiers and no UAT extension rate to keep internal.
-  const heads = q.data.mode === "feasibility" ? ["Internal appendix", "Pricing lines", "Arithmetic", "Quote integrity"] : ["Internal appendix", "Pricing lines", "Modifiers", "Rates kept internal", "Arithmetic", "Quote integrity"];
+  const heads = q.data.mode === "feasibility" ? ["Internal appendix", "Pricing lines", "Arithmetic"] : ["Internal appendix", "Pricing lines", "Modifiers", "Rates kept internal", "Arithmetic"];
   for (const h of heads) {
     if (!new RegExp(`^#{2,3} ${esc(h)}`, "m").test(q.internal)) p.push(`${q.rel}: "${h}" is not inside the internal markers`);
     if (new RegExp(`^#{2,3} ${esc(h)}`, "m").test(q.client)) p.push(`${q.rel}: "${h}" sits outside the internal markers`);
   }
-  if (!/Same-session self-check: the same assistant/.test(q.internal)) p.push(`${q.rel}: Quote integrity is not labelled as a same-session self-check`);
+  // A 1.x golden's self-check table, if there is one, stays with the internal text.
+  if (/^#{2,3} Quote integrity/m.test(q.client)) p.push(`${q.rel}: "Quote integrity" sits outside the internal markers`);
   // What ow-tools export would send: the preflight strips the section and refuses leaks.
   const pf = preflight(q.text, run.path(`${plansDir(key)}/quote.md`) ?? join(ROOT, "quote.md"));
   if (!pf.ok) p.push(...pf.problems.map((x) => `ow-tools preflight on quote.md: ${x}`));
@@ -955,14 +927,15 @@ function checkAccepted(key, run) {
     const deliv = (data.deliverables ?? []).map(String).join(" | ");
     if (!/findings note/i.test(deliv) || !/no-go/i.test(deliv)) p.push(`${rel}: deliverables must name the findings note and the go or no-go`);
   }
+  // The accepted file: quote.md, or a later version beside it (quote-v2.md) that exists.
   const theQuote = `${plansDir(key)}/quote.md`;
-  if (data.quote !== theQuote) p.push(`${rel}: quote is ${data.quote}; the folder's one quote is ${theQuote}`);
-  if (data.subject !== theQuote) p.push(`${rel}: subject is ${data.subject}; contract inputs are made from ${theQuote}`);
+  const isQuoteFile = new RegExp(`^${esc(plansDir(key))}/quote(?:-v\\d+)?\\.md$`).test(String(data.quote));
+  if (!isQuoteFile || !run.exists(String(data.quote))) p.push(`${rel}: quote is ${data.quote}, which is not a quote in this folder (${theQuote}, or a quote-v<n>.md beside it)`);
+  if (data.subject !== undefined && data.subject !== data.quote) p.push(`${rel}: subject is ${data.subject}; contract inputs are made from ${data.quote}`);
   const date = iso(key.accepted.date);
   if (iso(data.accepted) !== date) p.push(`${rel}: accepted ${iso(data.accepted)}, expected ${date}`);
-  const note = `client accepted ${date}, recorded by ${key.user}; not verified by this skill`;
-  if (data.acceptance_note !== note) p.push(`${rel}: acceptance_note must read "${note}"`);
-  if (!/working note made by an AI assistant at your instruction\. It is not a signature or an official record\./.test(content)) p.push(`${rel}: no protocol §8 approval sentence`);
+  // Recorded as the user's statement, with the date; never as verified.
+  if (!new RegExp(`^client accepted ${esc(date)}, (?:stated|recorded) by ${esc(key.user)}\\b`).test(String(data.acceptance_note ?? ""))) p.push(`${rel}: acceptance_note must read "client accepted ${date}, stated by ${key.user}"`);
   if (!/contract input, not a contract/i.test(content)) p.push(`${rel}: does not say it is contract input, not a contract`);
   for (const k of feas ? ["fixed_price", "schedule", "payment_terms_days", "valid_until"] : ["fixed_price", "schedule", "payment_terms_days", "valid_until", "fix_window_days"]) if (String(iso(data[k])) !== String(iso(q.data[k]))) p.push(`${rel}: ${k} ${iso(data[k])} differs from quote.md's ${iso(q.data[k])}`);
   if (!feas) {
@@ -1003,11 +976,11 @@ function checkAccepted(key, run) {
     if (data.contract_clauses !== "not set") p.push(`${rel}: offers.md has no contract_clauses block, so contract_clauses is "not set"`);
     if (!/Contract clauses: not set\./.test(content)) p.push(`${rel}: the body does not say "Contract clauses: not set."`);
   }
-  for (const s of feas ? FEAS_CI_SECTIONS : CI_SECTIONS) if (sectionText(content, s) == null) p.push(`${rel}: no "## ${s}" section`);
+  for (const s of feas ? FEAS_CI_SECTIONS : CI_SECTIONS) if (sectionText(content, s) == null && !(s === "Next" && sectionText(content, "What comes next") != null)) p.push(`${rel}: no "## ${s}" section`);
   if (feas) for (const s of ["After delivery", "User acceptance testing", "Documentation & training", "Acceptance and delivery"]) if (sectionText(content, s) != null) p.push(`${rel}: a feasibility test's contract inputs have no "## ${s}" section`);
   // No internal number: unit prices, line amounts, manual prices and the extension rate stay in quote.md.
   const b = book(run);
-  const legit = new Set([cents(q.data.fixed_price), ...(q.data.payments ?? []).map(cents), cents(q.data.uat?.price), cents(q.data.build_plan_fee), typeof q.data.documentation_training?.price === "number" ? cents(q.data.documentation_training.price) : NaN]);
+  const legit = new Set([cents(q.data.fixed_price), ...(q.data.payments ?? []).map(cents), cents(q.data.uat?.price), cents(q.data.build_plan_fee), cents(q.data.build_plan?.fee), typeof q.data.documentation_training?.price === "number" ? cents(q.data.documentation_training.price) : NaN]);
   const internal = new Set([cents(b.uat?.extension?.per_session_or_round), ...q.pricing.flatMap((r) => [cents(r["unit price"]), r.amountC])].filter((c) => Number.isFinite(c) && c > 0 && !legit.has(c)));
   content.split("\n").forEach((l, i) => {
     if (/priced by|extension|unit price/i.test(l)) p.push(`${rel}:${i + 1}: carries internal pricing`);
@@ -1015,14 +988,18 @@ function checkAccepted(key, run) {
   });
   p.push(...peopleIn(key, rel, [JSON.stringify(data.uat ?? {}), sectionText(content, "User acceptance testing") ?? ""].join("\n")));
   // The contract NEXT, as printed: the say: line exactly, or the public default, and nothing else.
-  const next = sectionText(content, "Next") ?? "";
+  const next = sectionText(content, "What comes next") ?? sectionText(content, "Next") ?? "";
   const file = `${plansDir(key)}/contract-inputs.md`;
   const say = handoffSay(run, "contract");
   const want = say ? say.replace(/\{files\}/g, file) : PUBLIC_CONTRACT;
-  const nextLine = (next.split("\n").find((l) => /^\s*NEXT:/.test(l)) ?? "").replace(/^\s*NEXT:\s*/, "").replace(/\.$/, "");
-  if (nextLine !== want) p.push(`${rel}: the printed NEXT line is "${nextLine}"; it must be exactly ${say ? "the handoffs.yaml contract say: line" : "the public default"}: "${want}"`);
+  const bare = (l) => l.trim().replace(/^(?:NEXT:|-)\s*/, "").replace(/\.$/, "");
+  const nextLines = next.split("\n").filter((l) => l.trim());
+  if (!nextLines.some((l) => bare(l) === want)) {
+    const shown = bare(nextLines.find((l) => /^\s*NEXT:/.test(l)) ?? nextLines[0] ?? "");
+    p.push(`${rel}: the printed NEXT line is "${shown}"; it must be exactly ${say ? "the handoffs.yaml contract say: line" : "the public default"}: "${want}"`);
+  }
   if (/handoffs\.yaml|say: line/.test(next)) p.push(`${rel}: ## Next prints configuration wording; it prints only the say: line or the public default`);
-  if (!/use ow-build-plan to record the signing on plans\/[a-z0-9-]+\//.test(next) || !/\/ow-build-plan-quote --signed/.test(next)) p.push(`${rel}: ## Next has no signing line`);
+  if (!/\/ow-build-plan-quote --signed/.test(next)) p.push(`${rel}: ## Next has no signing line`);
   return p;
 }
 
@@ -1034,26 +1011,22 @@ function checkSigned(key, run) {
   const { data, content } = parsed(run, rel, "md");
   const date = iso(key.signed.date);
   if (iso(data.signed) !== date) p.push(`${rel}: signed ${iso(data.signed)}, expected ${date}`);
-  const note = `client signed ${date}, recorded by ${key.user}; not verified by this skill`;
-  if (data.signing_note !== note) p.push(`${rel}: signing_note must read "${note}"`);
-  if (!/^plans\/[^/]+\/(?:quick-)?scope\.md$/.test(data.subject ?? "")) p.push(`${rel}: subject is ${data.subject}; it comes from the plan, not the quote`);
-  for (const s of ["What to build", "How the client will check it", "Systems and data", "Out of scope", "Client dependencies", "Milestones", "User acceptance testing", "Next"]) if (sectionText(content, s) == null) p.push(`${rel}: no "## ${s}" section`);
+  if (!new RegExp(`^client signed ${esc(date)}, (?:stated|recorded) by ${esc(key.user)}\\b`).test(String(data.signing_note ?? ""))) p.push(`${rel}: signing_note must read "client signed ${date}, stated by ${key.user}"`);
+  if (data.subject !== undefined && /quote/.test(String(data.subject))) p.push(`${rel}: subject is ${data.subject}; it comes from the plan, not the quote`);
+  for (const s of ["What to build", "How the client will check it", "Systems and data", "Out of scope", "Client dependencies", "Milestones", "User acceptance testing"]) if (sectionText(content, s) == null) p.push(`${rel}: no "## ${s}" section`);
   const amounts = [...priceAmounts(run, key)];
   content.split("\n").forEach((l, i) => {
     if (/\b(?:USD|EUR|GBP)\b|\$\s?\d|\b(?:prices?|priced|fees?|rates?)\b/i.test(l)) p.push(`${rel}:${i + 1}: names a price; the build request holds none`);
     for (const c of amounts) if (amountRe(c).test(l)) p.push(`${rel}:${i + 1}: carries the amount ${money(c)}`);
   });
-  const next = sectionText(content, "Next") ?? "";
-  const nextLine = next.split("\n").find((l) => /^\s*NEXT:/.test(l)) ?? "";
-  if (!nextLine.includes(`say "use ow-build to start ${dir}/"`) || !nextLine.includes("(where slash commands exist: /ow-build-start)")) p.push(`${rel}: the NEXT line must say "use ow-build to start ${dir}/" with /ow-build-start`);
-  const ifLine = next.split("\n").find((l) => /^\s*IF IT IS NOT AVAILABLE:/.test(l)) ?? "";
+  const next = sectionText(content, "What comes next") ?? sectionText(content, "Next") ?? "";
+  if (!next.includes("/ow-build-start")) p.push(`${rel}: what comes next must name /ow-build-start for ${dir}/`);
   const say = handoffSay(run, "build");
   const file = `${dir}/build-request.md`;
   const wantIf = say ? say.replace(/\{files\}/g, file) : PUBLIC_BUILD;
-  const gotIf = ifLine.replace(/^\s*IF IT IS NOT AVAILABLE:\s*/, "").replace(/\.$/, "");
-  if (!ifLine) p.push(`${rel}: the NEXT has no IF IT IS NOT AVAILABLE line`);
-  else if (gotIf !== wantIf) p.push(`${rel}: IF IT IS NOT AVAILABLE must be exactly the build destination (${say ? "its say: line" : "the public default"}): "${wantIf}"`);
-  if (!/Give this file to whoever builds it\.\s*$/.test(content.trimEnd())) p.push(`${rel}: does not end "Give this file to whoever builds it."`);
+  // Kept for private names: the destination is the user's say: line exactly, or the public default, with nothing added.
+  const bare = (l) => l.trim().replace(/^(?:IF IT IS NOT AVAILABLE:|-)\s*/, "").replace(/\.$/, "");
+  if (!next.split("\n").some((l) => bare(l) === wantIf)) p.push(`${rel}: what comes next must name the build destination exactly (${say ? "its say: line" : "the public default"}): "${wantIf}"`);
   return p;
 }
 
@@ -1086,27 +1059,17 @@ function checkQuick(key, run) {
     if (c.keys.cases && !/^[1-9]\d*$/.test(c.keys.cases)) p.push(`quick-scope.md: ${c.id} cases "${c.keys.cases}" is not a whole number of at least 1`);
   }
   if (checks.size && ![...checks.values()].some((c) => c.keys.kind === "error")) p.push("quick-scope.md: no check is kind: error (error cases get checks too)");
-  // Before a plan exists, the quick quote keeps the step 0 handling answer in its own headers.
-  if (!("handling" in parsed(run, `${dir}/quick-scope.md`, "md").data)) p.push("quick-scope.md: the header has no handling (the step 0 answer; there is no plan.yaml)");
-  if (!("handling" in q.data)) p.push(`${q.rel}: the header has no handling (the step 0 answer; there is no plan.yaml)`);
   const uat = sectionText(content, "UAT approach") ?? "";
   const roles = (uat.match(/^-\s+tester roles:\s*(.+)$/m)?.[1] ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   if (q.data.mode === "feasibility") { /* no testers: the feasibility check rules out a UAT approach */ }
   else if (!roles.length) p.push("quick-scope.md: the UAT approach lists no tester roles");
   else if (roles.length !== Number(q.data.uat?.tester_roles)) p.push(`quick-scope.md lists ${roles.length} tester roles, the quote prices ${q.data.uat?.tester_roles}`);
   for (const person of key.people ?? []) if (new RegExp(`\\b${esc(person)}\\b`).test(uat)) p.push(`quick-scope.md: the UAT approach names a person (${person}); roles only`);
-  // The quick path runs the scope's coverage self-checks itself, inside the markers the export strips.
+  // Client trust: a 1.x self-check section stays inside the markers the export strips.
   const lines = content.split("\n");
   const a = lines.findIndex((l) => /^\s*<!--\s*ow\s*:\s*internal\s*-->\s*$/i.test(l));
   const z = lines.findIndex((l) => /^\s*<!--\s*ow\s*:\s*end\s*-\s*internal\s*-->\s*$/i.test(l));
-  const inside = a >= 0 && z > a ? lines.slice(a + 1, z).join("\n") : "";
-  for (const name of ["Acceptance coverage", "Out of scope present"]) {
-    const row = inside.match(new RegExp(`\\| ${name} \\| ([^|\\n]+)\\|`));
-    if (!row) p.push(`quick-scope.md: no "${name}" self-check inside the ow:internal markers`);
-    else if (row[1].trim() !== "OK") p.push(`quick-scope.md: the "${name}" self-check is ${row[1].trim()}; a finished quick scope has every self-check OK (fix and run again)`);
-  }
-  if (!/Same-session self-check: the same assistant/.test(inside)) p.push("quick-scope.md: the self-checks are not labelled as a same-session self-check inside the ow:internal markers");
-  if (/^## Self-checks/m.test(lines.filter((_, i) => i < a || i > z).join("\n"))) p.push("quick-scope.md: a self-check section sits outside the ow:internal markers and would reach the client");
+  if (/^## Self-checks/m.test(lines.filter((_, i) => a < 0 || i < a || i > z).join("\n"))) p.push("quick-scope.md: a self-check section sits outside the ow:internal markers and would reach the client");
   return p;
 }
 
@@ -1128,16 +1091,45 @@ function checkStatus(key, run) {
   const want = key.status?.lines ?? [];
   if (added.length !== want.length) p.push(`STATUS.md gained ${added.length} line(s), expected ${want.length}`);
   added.forEach((line, i) => {
+    const n = before.length + i + 1;
     const f = line.split(" | ");
     const w = want[i];
-    if (f.length !== 5) { p.push(`STATUS line ${before.length + i + 1} has ${f.length} fields, expected 5`); return; }
-    if (!/^\d{4}-\d{2}-\d{2} \(clock: (tool|host-supplied|user-stated|assumed)\)$/.test(f[0])) p.push(`STATUS line ${before.length + i + 1}: date field "${f[0]}" lacks a clock source`);
-    if (!/^ow-build-plan \d+\.\d+\.\d+$/.test(f[1])) p.push(`STATUS line ${before.length + i + 1}: skill field is "${f[1]}"`);
+    if (f.length < 4) { p.push(`STATUS line ${n} has ${f.length} fields; it needs the date, the skill, the file and what is awaited`); return; }
+    if (!/^\d{4}-\d{2}-\d{2}(?: \(clock: [a-z-]+\))?$/.test(f[0])) p.push(`STATUS line ${n}: date field "${f[0]}" is not a date`);
+    if (!/^ow-build-plan \d+\.\d+\.\d+$/.test(f[1])) p.push(`STATUS line ${n}: skill field is "${f[1]}"`);
     if (!w) return;
-    if (f[2] !== w.path) p.push(`STATUS line ${before.length + i + 1}: path ${f[2]}, expected ${w.path}`);
-    if (f[3] !== `next: ${w.next}`) p.push(`STATUS line ${before.length + i + 1}: "${f[3]}", expected "next: ${w.next}"`);
-    if (f[4] !== `awaiting: ${w.awaiting}`) p.push(`STATUS line ${before.length + i + 1}: "${f[4]}", expected "awaiting: ${w.awaiting}"`);
+    if (f[2] !== w.path) p.push(`STATUS line ${n}: path ${f[2]}, expected ${w.path}`);
+    // Anything awaited carries its absolute date, in the plain form and the older one alike.
+    for (const d of String(w.awaiting ?? "").match(/\d{4}-\d{2}-\d{2}/g) ?? []) if (!f.slice(3).join(" | ").includes(d)) p.push(`STATUS line ${n}: "${f.slice(3).join(" | ")}" does not carry the date awaited, ${d}`);
   });
+  return p;
+}
+
+/**
+ * A whole-project quote: the Build Plan phase first (fee and weeks from the book, or fee: none), then the build;
+ * the plan is inside the price, so no credit; with no plan yet, the assumptions the price rests on are listed.
+ */
+function checkWholeProject(key, run) {
+  const p = [];
+  const q = quote(run, key);
+  const d = q.data;
+  const b = book(run);
+  if (d.mode !== "whole-project") p.push(`${q.rel}: mode is ${d.mode}, expected whole-project`);
+  const tier = d.build_plan?.tier;
+  if (!TIERS.includes(tier)) p.push(`${q.rel}: build_plan.tier is ${tier}, not one of ${TIERS.join(", ")}`);
+  const none = d.build_plan?.fee === "none";
+  if (!none && cents(d.build_plan?.fee) !== cents(b.build_plan_fees?.[tier])) p.push(`${q.rel}: build_plan.fee ${d.build_plan?.fee} is not build_plan_fees.${tier} (${b.build_plan_fees?.[tier]})`);
+  if (Number(d.build_plan?.weeks) !== Number(b.build_plan_weeks?.[tier])) p.push(`${q.rel}: build_plan.weeks ${d.build_plan?.weeks} is not build_plan_weeks.${tier} (${b.build_plan_weeks?.[tier]})`);
+  const heads = [...q.client.matchAll(/^## (.+)$/gm)].map((m) => m[1].trim());
+  if (heads[0] !== "Phase 1: Build Plan") p.push(`${q.rel}: the first section is "${heads[0]}"; the Build Plan phase is the quote's first line`);
+  const phase = sectionText(q.client, "Phase 1: Build Plan") ?? "";
+  if (!none && !amountRe(cents(d.build_plan?.fee)).test(phase)) p.push(`${q.rel}: the Build Plan phase does not state its price`);
+  if (!new RegExp(`\\b${d.build_plan?.weeks} weeks?\\b`).test(phase)) p.push(`${q.rel}: the Build Plan phase does not state its ${d.build_plan?.weeks} week(s)`);
+  if (!none && !q.pricing.some((r) => r.package === "Build Plan" && r.amountC === cents(d.build_plan?.fee))) p.push(`${q.rel}: no "Build Plan" line in the internal pricing lines`);
+  for (const s of ["What I will deliver", "Fixed price", "Milestones", "Payment schedule", "After delivery", "Valid until"]) if (sectionText(q.client, s) == null) p.push(`${q.rel}: no "## ${s}" section`);
+  if (!/^\s*1\.\s.*Build Plan/m.test(sectionText(q.client, "Milestones") ?? "")) p.push(`${q.rel}: the first milestone is not the Build Plan's delivery`);
+  if (!run.exists(`${plansDir(key)}/plan.yaml`) && !(sectionText(q.client, "Assumptions") ?? "").split("\n").some((l) => /^\s*-\s+\S/.test(l))) p.push(`${q.rel}: no plan yet, so "## Assumptions" must list what the price rests on`);
+  if (!/priced before that work starts/.test(q.client)) p.push(`${q.rel}: does not say a difference the plan finds is priced before that work starts`);
   return p;
 }
 
@@ -1195,12 +1187,6 @@ function checkRoute(key, run) {
     const recap = run.read(from.replace(/intake-record\.md$/, "recap.md"));
     const kind = recap ? matter(recap).data.path_kind : null;
     expect = { "build-plan": "offer", "defined-work": "quick quote", "feasibility": "quick quote", "next-stage": "start" }[kind] ?? "ask";
-    // Never twice (eval round 4, new 10): a folder that already holds what the verb writes is routed as a folder.
-    const already = { offer: "build-plan-offer.md", "quick quote": "quote.md", start: "plan.yaml" }[expect];
-    if (already && prior(already)) {
-      if (has(already)) p.push(`${dir}/${already}: ${dir}/ already held one before the run; the route never runs that verb twice, it routes the folder instead`);
-      expect = "existing folder";
-    }
     if (kind === "feasibility" && run.written().includes(`${dir}/quote.md`)) {
       // A feasibility test is priced as the price book's feasibility-test unit, nothing else.
       const units = quote(run, key).pricing.filter((r) => /^WP-/.test(r.package)).map((r) => r.unit);
@@ -1255,17 +1241,14 @@ function checkRoute(key, run) {
     for (const f of ["quote.md", "quote-items.json"]) if (has(f)) p.push(`${from}: the route ran -quote again over the existing quote (${dir}/${f} rewritten); it must run --${expect}`);
     if (expect === "accepted" && has("build-request.md")) p.push(`${from}: a build request was written before the acceptance was recorded`);
   } else if (expect === "nothing") {
-    // Signed: print the signed NEXT and stop. Nothing is written anywhere, and no other skill's verb is run.
-    for (const f of written) p.push(`${f}: ${from} is signed, so the route prints the signed NEXT and stops; it writes nothing`);
+    // Signed. Steps may run again (a re-plan, or the next skill), but what was signed keeps its price.
+    for (const f of ["quote.md", "quote-items.json", "contract-inputs.md", "build-request.md"]) if (has(f)) p.push(`${dir}/${f}: ${from} is signed; what was signed is never rewritten (a change is a change order or a new quote)`);
   } else if (expect === "covered fix") {
     // A covered Fix is free under the fix window: never offered, started or quoted as paid work.
     for (const f of written) p.push(`${f}: ${from} is a covered Fix (classification: fix), free under the fix window; the route says so and writes nothing`);
   } else if (expect === "ask" && /\/fixes\/FIX-\d+\.md$/.test(from)) {
     for (const f of written) p.push(`${f}: ${from} has no paid class (change or after the window); the route asks the user before writing anything`);
   } else if (expect === "ask" && written.some((f) => f.startsWith(`${dir}/`))) p.push(`${from} has no path this skill routes on its own, so it asks before writing; the run wrote ${dir}/`);
-  // Never -start over an existing plan, and never a second quote file.
-  if (prior("plan.yaml") && has("plan.yaml")) p.push(`${dir}/plan.yaml: the route ran -start over an existing plan; a folder with a plan resumes at its next step`);
-  p.push(...secondQuotes(run, dir));
   // A route works in one folder (eval round 4, N15): nothing else but its STATUS line.
   if (!["nothing", "covered fix"].includes(expect)) {
     for (const f of written) if (!f.startsWith(`${dir}/`) && f !== "STATUS.md") p.push(`${f}: the route works in ${dir}/ only; it wrote outside it`);
@@ -1423,6 +1406,7 @@ const CHECKS = {
   feasibility: checkFeasibility,
   route: checkRoute,
   quote_frozen: checkQuoteFrozen,
+  whole_project: checkWholeProject,
   headers: checkHeaders,
   offer: checkOffer,
   start: checkStart,

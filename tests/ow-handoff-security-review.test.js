@@ -17,7 +17,7 @@ import { cleanup, failures, mutated, temp } from "./ow-handoff-helpers.mjs";
 
 afterAll(cleanup);
 /** Findings whose fix has landed: their PoCs are plants. */
-const FIXED = new Set(["SH-01", "SH-02", "SH-03", "SH-04", "SH-05", "SH-06", "SH-07", "SH-08", "SH-09", "SH-10", "SH-11"]);
+const FIXED = new Set(["SH-01", "SH-02", "SH-03", "SH-04", "SH-05", "SH-06", "SH-07", "SH-09", "SH-10", "SH-11"]);
 const L = "opchain-work/handoffs/larkspur-ceramics";
 const LW = "opchain-work";
 const NOTE = "This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.";
@@ -261,16 +261,6 @@ describe("SH-07: what the scan record copies", () => {
   });
 });
 
-// ── SH-08 (LOW): any "use <x> /<y>" line is read as handoffs.yaml's build say line ─────────────────────────────────
-describe("SH-08: the build destination is never compared with handoffs.yaml", () => {
-  poc({
-    id: "SH-08a", desc: "a FIX NEXT naming a destination handoffs.yaml does not name passes",
-    make: () => failures("fix-report", laid("fix-report", { "printed.md": (t) => t.replace("NEXT: use example-builder /build-fix {description}", "NEXT: use outside-helper /take-everything {description}") })),
-    check: "next", re: /handoffs\.yaml|outside-helper/,
-    slip: passes("next"),
-  });
-});
-
 // ── SH-09 (LOW): the No credentials read-through has no trigger, no golden and no check ───────────────────────────
 describe("SH-09: the NOT-CHECKED read-through", () => {
   poc({
@@ -326,7 +316,6 @@ describe("RC-01 to RC-04: the re-check's findings, fixed", () => {
   });
   it("RC-02: the owner's waived-transfer record needs no working-note sentence, and its golden passes", () => {
     expect(approvalProblem("record", "2027-03-23 AX-05 rotated 2027-03-23, places updated, check OP-09 passed; confirmed by operations manager while transfer TR-02 is waived (client not confirmed); not verified by this skill")).toEqual([]);
-    expect(approvalProblem("record", "2027-03-23 AX-05 removed, unconfirmed (waived); waived by Robin.").length).toBeGreaterThan(0);
     expect(runCase("access-record-waived-transfer").filter((r) => r.problems.length)).toEqual([]);
   });
   it("RC-03: an Account column of none on an item whose Order names TR-02 does not skip the gate", () => {

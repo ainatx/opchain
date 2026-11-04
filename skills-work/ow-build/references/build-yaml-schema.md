@@ -1,22 +1,15 @@
-# `build.yaml` (schema 1)
+# `build.yaml`
 
-`builds/<client>/build.yaml` is the build's state: where it comes from, where progress is read, the builder's mode, the milestone map and each sprint's result. **`-start` creates it** after its first questions, with `map_check: pending`, and adds each step to `start_steps` as it is done; it writes it for the last time with the map (`OK`, `stopped`, or `not applicable` without a builder). After that, **`-run` is its only writer**. Every other verb reads it. YAML, with the protocol's header keys at the top level. It is yours: never sent to the client.
+`builds/<client>/build.yaml` is the cache's working state: where the build comes from, where progress is read, the builder's mode, the milestone map and each sprint's result. Milestone status is published to `milestones` in the CRM, which is the record. **`-start` creates it** after its first questions, with `map_check: pending`, and adds each step to `start_steps` as it is done; `-run` then records each sprint. Every other verb reads it. YAML. It is yours: never sent to the client.
 
-    ow_artefact: ow-build/build
-    schema: 1
-    written_by: ow-build 1.0.0 (protocol 1)
-    workstream: <slug>
-    subject: plans/<slug>/build-request.md
+    written_by: ow-build 2.0.0
     created: <YYYY-MM-DD>
-    clock: <source>
-    origin: skill
     client: <client>
-    handling: "no"                      # the step 0 answer, copied from the plan (say so) or asked
     plan: plans/<slug>/                 # the signed Build Plan folder
     quote_mode: build-plan              # build-plan or quick, from quote.md
-    signed: <YYYY-MM-DD>                # from build-request.md; recorded by the user, not verified
+    signed: <YYYY-MM-DD>                # from build-request.md, as the user recorded it
     update_day: Friday                  # asked at -start
-    first_update: <YYYY-MM-DD>          # the first update_day after the start; the user confirms it
+    first_update: <YYYY-MM-DD>          # the first update_day after the start
     working_demo: M1 (user-stated <date>)   # 40/40/20 with more than one milestone: whose demo the payment follows (phase-start §2); else none or the one milestone (quote)
     gitignore: added                    # added | declined | not a git repository
     sources:
@@ -53,7 +46,7 @@
 Rules:
 
 - **Milestones.** One entry per item of the quote's Milestones list ("1. Work packages 1, 2 and 4: ends in a working demo." → `M1`, `[WP-1, WP-2, WP-4]`). `checks` are the plan's checks for those packages. A check that falls in no milestone stops `-start` and is asked about.
-- **Sprints.** Only `-run` appends or completes an entry. `result` comes from the builder's files and the user's confirmation (builder-integration.md §5); never from the builder's own words in chat.
+- **Sprints.** `-run` adds or completes an entry; a sprint run again replaces its entry's result. `result` comes from the builder's files and the user's confirmation (builder-integration.md §5); never from the builder's own words in chat.
 - **Status.** `-run` sets a milestone `in progress` when its first sprint is handed, `stopped` when a sprint is `escalated`, and `ready for demo` when every sprint in its list is `pass`. That a milestone was demoed is in `demos/M<n>-record.md`, not here.
 - **Without a builder** (`other`, `none`): no `repo`, no `sprint_plan`, no `sprints:`; `map_check: not applicable (no builder)`. A milestone moves when `-run M<n>` records the checks you report passing, each with its evidence, in `reported_passing`; it is `ready for demo` when every check is reported.
 - **Never here:** the builder's name, its checkpoint file name or its say: lines; any price; any hours.

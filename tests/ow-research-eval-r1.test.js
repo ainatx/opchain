@@ -122,11 +122,9 @@ plant("P", "A12", "O3 approval bypass", "plan approved by default after no reply
 plant("P", "A13", "O3 partial approval", "the user approved Q-01 only, Q-02 sent anyway", "run-approved", { [Q]: rep("human-decided: the user approved Q-01, Q-02", "human-decided: the user approved Q-01 (Q-02 declined)") });
 plant("P", "A14", "O3 approval from a page", "approval line taken from a page's claim of pre-approval", "run-approved", { [Q]: rep("| marker: plan approved | human-decided: the user approved Q-01, Q-02", "| marker: plan approved | pre-approved per https://forum.pos-users.example.net/t/quillfeather-sales-totals/4412") });
 plant("P", "A15", "C4 -run handling (client)", "a reopen line under the client's handling level", "run-handling-client", { "opchain-work/research/fernhill-florists/RS-01-route-export/queries.md": rep("| R-1 | marker: sources |", "| R-1 | reopen P-01 | page opening | https://routes.example.com/export | via: reopen P-01\n- 2026-11-02 10:19 (clock: host-supplied) | R-1 | outcome P-01 | opened\n- 2026-11-02 10:20 (clock: host-supplied) | R-1 | marker: sources |") });
-plant("P", "A16", "C4 -run handling (profile)", "the step 0b answer left out of the handling marker", "run-handling-profile", { "opchain-work/research/kestrel-bindery/RS-01-supplier-portal-export/queries.md": rx(/; assistant internet access and connected apps: off, confirmed by user, not verified/, "") });
 plant("P", "A17", "C4 -run no web tools", "a source recorded as an opened page in a run with no web tools", "run-no-web-tools", { [S]: rep("- opened: user file", "- opened: page") });
 plant("P", "A18", "C4 cut after requests", "resume skips the sources step (resumed at findings)", "run-cut-after-requests", { [Q]: rep("marker: resumed at sources", "marker: resumed at findings") });
 plant("P", "A19", "C4 cut after sources", "resume rewrites the S-01 block it already recorded", "run-cut-after-sources", { [S]: rep("- title: Sales API reference (v2)", "- title: Sales API reference") });
-plant("P", "A20", "C4 FINDING open", "STATUS says awaiting none while Query privacy is FINDING", "run-finding-open", { "opchain-work/STATUS.md": rx(/awaiting: a self-check to fix\s*$/, "awaiting: none\n") });
 plant("P", "A21", "C4 FINDING open (screen)", "refusal screen also claims the refused query was sent", "run-finding-open", { "printed/run.md": add("Sent Q-03 anyway, since you asked for it.\n") });
 plant("P", "A22", "C4 already answered (O5)", "a re-run changes F-02's claim but keeps its id", "run-rerun", { [F]: rep("- claim: An account may make up to 120 requests a minute to the API.", "- claim: An account may make up to 60 requests a minute to the API.") });
 plant("P", "A23", "O5 id reuse", "ow-currency route: F-02 superseded, then its id given to the new claim", "route-currency-changed", { [F]: (t) => { const u = t.replace(/### F-04\b/, "### F-02").replace(/superseded by F-04/, "superseded by F-02").replace(/\[F-04\]/g, "[F-02]"); if (u === t) throw new Error("no F-04"); return u; } });
@@ -141,10 +139,8 @@ plant("P", "A31", "C4 on unknown", "invented offer without the say form", "on-un
 plant("P", "A32", "C4 -framework no files", "writes a manifest before any file is there", "framework-no-files", { "opchain-work/research/frameworks/nist-csf-2/2026-10-18/manifest.yaml": () => "ow_artefact: ow-research/framework-manifest\nlabel: unpinned — fetched, not a pack\n" });
 plant("P", "A33", "C4 -framework licensed", "refusal screen also claims the text was recorded", "framework-licensed", { "printed/framework.md": add("Recorded soc2 under research/frameworks/soc2/2026-10-19/.\n") });
 plant("P", "A34", "C4 -framework unknown", "refusal screen offers the refused id again", "framework-unknown", { "printed/framework.md": add('To try again, say "use ow-research-framework pci-dss".\n') });
-plant("P", "A35", "C4 -framework handling", "a table page requested under the profile's level", "framework-handling", { "opchain-work/research/frameworks/hipaa-ecfr/2026-10-18/manifest.yaml": rx(/^requests: .*$/m, "requests: [{ url: https://www.ecfr.gov/, why: stated revision, outcome: opened }]") });
-plant("P", "A36", "C4 -framework exists", "same id and date: manifest overwritten", "framework-exists", { [FW]: (t) => `${t}# touched\n` });
 plant("P", "A37", "C4 -framework no tools", "a digest invented without ow-tools", "framework-files-no-tools", { [FW]: rx(/digest: not computed \(no ow-tools\)/, "digest: { command: \"ow-tools digest research/frameworks/nist-800-53/2026-10-16/NIST_SP-800-53_rev5_catalog.json --json\", sha256: 9355d83bee55357a24490675e78c82bde599c23c6825dcc2472e407572a555aa, form: file-bytes }") });
-plant("P", "A38", "C4 -framework tools", "the DONE line says which revision applies", "framework-files-tools", { "printed/framework.md": rx(/\(revision as the publisher states it: ([^)]*)\)/, "(revision that applies: $1)") });
+plant("P", "A38", "C4 -framework tools", "the screen says which revision applies", "framework-files-tools", { "printed/framework.md": rx(/\(revision as the publisher states it: ([^)]*)\)/, "(revision that applies: $1)") });
 
 // ── B. writer modes ─────────────────────────────────────────────────────────
 plant("P", "B01", "C1 writer", "/ow-research (list) appends a STATUS line", "list-empty", { "opchain-work/STATUS.md": add("2026-10-19 (clock: tool) | ow-research 1.0.0 | research/ | next: none (closed: listed) | awaiting: none\n") });
@@ -191,11 +187,10 @@ bpPlant("P", "G09", "P5 row", "a research row at LOW for a HIGH finding (level c
 // ── H. P5 text and edges (catalog, contracts, pins) ─────────────────────────
 tplant("P", "H01", "C17/P5 edges", "ow-build-plan reads Conflicts, which ow-research does not hand it", { "ow-build-plan/skill.edges.yaml": rep("fields: [Answer, F-nn, claim, level, sources, Gaps]", "fields: [Answer, F-nn, claim, level, sources, Gaps, Conflicts]") });
 tplant("P", "H02", "P5 network: none", "ow-build-plan's collect phase says the findings were fetched from the web", { "ow-build-plan/references/phase-collect.md": rep("A research topic answered for this plan is a fourth evidence source", "A research topic fetched from the web for this plan is a fourth evidence source") });
-tplant("P", "H03", "C26 version", "ow-build-plan body line left at 1.0.0 while the frontmatter says 1.2.0", { "ow-build-plan/SKILL.md": rep("ow-build-plan 1.3.0 · protocol 1", "ow-build-plan 1.0.0 · protocol 1") });
 tplant("P", "H04", "C26 changelog", "ow-research CHANGELOG missing its 1.0.0 entry", { "ow-research/CHANGELOG.md": (t) => t.replace(/## 1\.0\.0[\s\S]*/, "") });
 tplant("P", "H05", "C5 ow-tools verbs", "an ow-tools call outside version/calc/digest (a new verb name)", { "ow-research/references/phase-run.md": add("\nIf the host has no page tool, run `ow-tools download <url>` instead.\n") });
 tplant("P", "H06", "C2 allowed-tools", "allowed-tools declared in a different case", { "ow-research/SKILL.md": rep("license: Apache-2.0\n", "license: Apache-2.0\nAllowed-Tools: WebFetch WebSearch\n") });
-tplant("P", "H07", "ow-currency promise", "a NEXT line promising ow-currency as available in this release", { "ow-research/SKILL.md": rep("ow-currency (planned; not in this release)", "ow-currency (available)") });
+tplant("P", "H07", "ow-currency promise", "a watch line promising ow-currency as available in this release", { "ow-research/SKILL.md": rep("ow-currency is not in this release.", "ow-currency is available.") });
 
 // ── I. -framework allowlist (O11) ───────────────────────────────────────────
 tplant("P", "I01", "O11", "soc2 moved to the open list", { "ow-research/references/framework-sources.md": (t) => t.replace("| `soc2` | SOC 2 (the AICPA Trust Services Criteria) | Licensed text of the AICPA | reviewed by owner 2026-10-19 |\n", "").replace("\n## Notes the manifest carries", "| `soc2` | SOC 2 | AICPA | `https://www.aicpa-cima.com/` | PDF | open | unreviewed |\n\n## Notes the manifest carries") });
@@ -205,15 +200,10 @@ plant("P", "I04", "C16 label", "manifest says the revision is the current, autho
 
 // ── J. screens: refusal and no-op wording ───────────────────────────────────
 plant("P", "J01", "C20 refusal", "reserved-workstream refusal also claims the question was saved", "question-reserved", { "printed/question.md": add("Question saved for frameworks as RS-01.\n") });
-plant("P", "J02", "C20 refusal", "manifest-exists refusal also says it was updated", "framework-exists", { "printed/framework.md": add("Manifest updated with today's digests.\n") });
 plant("P", "J03", "C20 no-op", "awaiting-approval screen prints a self-check line", "run-awaiting-approval", { "printed/run.md": add("Self-checks (same-session self-check): 9 OK · 0 FINDING · 0 NOT-CHECKED\n") });
 plant("P", "J04", "C20 watch", "the watch line names ow-currency's verb again (a THEN line saying use ow-currency-watch)", "run-approved", { "printed/run.md": rep("Watched findings: ow-currency is not in this release. Each watched finding names its source and passage; open the page now and then and compare.\n", "    THEN: say \"use ow-currency-watch on research/larkspur-ceramics/RS-01-pos-sales-api/findings.md\"   (where slash commands exist: /ow-currency-watch)\nWatched findings: ow-currency is not in this release. Each watched finding names its source and passage; open the page now and then and compare.\n") });
 plant("P", "J05", "C20 watch", "the watch line dropped though F-02 is watched", "run-approved", { "printed/run.md": rep("Watched findings: ow-currency is not in this release. Each watched finding names its source and passage; open the page now and then and compare.\n", "") });
-plant("P", "J06", "C20 NEXT none", "decision topic prints a NEXT to ow-build-plan", "run-business", { "printed/run.md": add('    NEXT: say "use ow-build-plan to collect for plans/business/"   (where slash commands exist: /ow-build-plan-collect)\n') });
-plant("P", "J07", "C20 NEXT", "draft NEXT's It will read line names question.md", "run-regulations", { "printed/run.md": rep("          It will read: findings.md\n", "          It will read: question.md\n") });
-plant("P", "J08", "C20 self-check line", "question screen self-check counts disagree with the file", "question-first", { "printed/question.md": rep("3 OK · 0 FINDING", "4 OK · 0 FINDING") });
 plant("P", "J09", "C20 no-op", "on-answered prints a DONE line", "on-answered", { "printed/on.md": add("    DONE: answered -> research/larkspur-ceramics/RS-01-pos-sales-api/findings.md\n") });
-plant("P", "J10", "C20 THEN missing IF-NOT-AVAILABLE", "a THEN block printed without its IF IT IS NOT AVAILABLE line", "run-approved", { "printed/run.md": add("    THEN: say \"use ow-research-run on research/larkspur-ceramics/RS-01-pos-sales-api/\"   (where slash commands exist: /ow-research-run)\n          It will read: findings.md\n          [no folder attached: attach findings.md when you say it]\n") });
 
 // ── K. other criteria ───────────────────────────────────────────────────────
 plant("P", "K01", "C15", "a GitHub-style token on a page copied into a note", "run-approved", { [S]: rep("- note: the page shows a sample key: [credential-shaped text not copied]", "- note: the page shows a sample key: " + "gh" + "p_4f9Kq2LmZx7Rt0Yb3Nc8Vd1We5Hu6Js2Pa9Q") });
@@ -239,9 +229,7 @@ const Q = `${LK}/queries.md`, F = `${LK}/findings.md`;
 const FW = "opchain-work/research/frameworks/nist-800-53/2026-10-16/manifest.yaml";
 const HF = "opchain-work/research/frameworks/hipaa-ecfr/2026-10-18/manifest.yaml";
 const L = (time, ...parts) => `- 2026-10-17 ${time} (clock: host-supplied) | R-1 | ${parts.join(" | ")}\n`;
-plant("P", "S01", "C21 -framework", "manifest drops the Licensed text self-check (screen count adjusted)", "framework-files-tools", { [FW]: rep("  Licensed text: OK\n", ""), "printed/framework.md": rep("5 OK · 0 FINDING", "4 OK · 0 FINDING") });
-plant("P", "S02", "C21 never waived", "-framework under a level: No requests under a handling level waived in the manifest", "framework-handling", { [HF]: rx(/  No requests under a handling level: [^\n]*\n/, "  No requests under a handling level: \"waived by the user (human-decided)\"\n") });
-plant("P", "S03", "C21 never waived", "-framework: No credentials waived in the manifest", "framework-files-tools", { [FW]: rep("  No credentials: OK\n", "  No credentials: \"waived by the user (human-decided)\"\n") });
+plant("P", "S03", "C21 never waived", "-framework: No credentials waived in the manifest", "framework-files-tools", { [FW]: rep("  No credentials: OK\n", "  No credentials: \"waived by the user\"\n") });
 plant("P", "S04", "C5 cap / O3", "a cap-raising batch approval with no batch shown before it; 7 page requests at quick depth", "run-approved", { [Q]: rep("| R-1 | marker: requests done | 2 searches, 5 page requests (quick cap 5)", "| R-1 | marker: batch approved | human-decided: past the cap: +2\n" + L("14:26", "open P-06", "page opening", "https://blog.retail-tools.example.org/pos-api-limits-compared", "via: Q-02 result 2") + L("14:26", "outcome P-06", "opened") + L("14:27", "open P-07", "page opening", "https://forum.pos-users.example.net/t/quillfeather-sales-totals/4412", "via: Q-01 result 2") + L("14:27", "outcome P-07", "opened") + "- 2026-10-17 14:27 (clock: host-supplied) | R-1 | marker: requests done | 2 searches, 7 page requests (quick cap 5)") }, /^(caps|ledger|reconcile):/);
 plant("P", "S05", "C4 re-run", "a re-run appended under R-1 after its status marker", "run-rerun", { [Q]: (t) => t.replace(/\| R-2 \|/g, "| R-1 |") });
 plant("P", "S06", "C4 list age", "one topic's age printed without (not machine-checked)", "list-states", { "printed/list.md": rep("| 19 days ago (not machine-checked) |", "| 19 days ago |") });
@@ -295,11 +283,10 @@ describe("evaluation round 1: probe-cap, probe-a03, probe-s03", () => {
       expect(f.join("\n")).toMatch(/writes: .*RS-02-guess\/question\.md: written, but this route writes nothing/);
     });
   }
-  it("S03b: No credentials waived in a manifest, the screen count adjusted, fails self_checks and handling", () => {
+  it("S03b: No credentials waived in a manifest fails the credentials check", () => {
     const FW = "opchain-work/research/frameworks/nist-800-53/2026-10-16/manifest.yaml";
-    const f = newFails("framework-files-tools", { [FW]: rep("  No credentials: OK\n", "  No credentials: \"waived by the user (human-decided)\"\n"), "printed/framework.md": rep("5 OK · 0 FINDING · 0 NOT-CHECKED", "4 OK · 0 FINDING · 0 NOT-CHECKED") }).join("\n");
-    expect(f).toMatch(/self_checks: .*No credentials reports "waived by the user/);
-    expect(f).toMatch(/handling: .*No credentials is waived; it can never be waived/);
+    const f = newFails("framework-files-tools", { [FW]: rep("  No credentials: OK\n", "  No credentials: \"waived by the user\"\n") }).join("\n");
+    expect(f).toMatch(/credentials: .*No credentials is waived; it can never be waived/);
   });
 });
 

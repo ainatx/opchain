@@ -1,18 +1,19 @@
 # Document formats
 
-Every document is Markdown first, the one source for every format. Each carries the protocol header (`subject:` the file it was made from) and follows the ow-tools export preflight: exactly one H1, no skipped heading levels, alt text on every image (`![<what it shows>](<file>)`, nothing else in the brackets), a header row on every table, link text that is not a bare address, and no raw HTML. Each ends with its self-check table between `<!-- ow:internal -->` and `<!-- ow:end-internal -->`, each on a line of its own, as the last thing in the file; nothing internal appears anywhere else, a deck's speaker notes included.
+Every document is Markdown first, the one source for every format. Each carries `written_by` and `created` and follows the ow-tools export preflight: exactly one H1, no skipped heading levels, alt text on every image (`![<what it shows>](<file>)`, nothing else in the brackets), a header row on every table, link text that is not a bare address, and no raw HTML. Anything internal (findings, quoted embedded instructions) goes between `<!-- ow:internal -->` and `<!-- ow:end-internal -->`, each on a line of its own, as the last thing in the file; nothing internal appears anywhere else, a deck's speaker notes included.
 
 ## 1. Sources and images, in every document
 
-- **The internal section** holds the self-check table, findings and quoted embedded instructions only. Our hours, rates, costs or overruns go in no client document, its internal section included.
+- **The internal section** holds findings and quoted embedded instructions only. Our hours, rates, costs or overruns go in no client document, its internal section included.
 - **Every step, command and path cites its source** in square brackets at the end of its line: a scenario step `[SC-10 step 1]`, a scenario `[SC-10]`, an acceptance check `[AC-1.2]`, a map row `[map/future.md item 2]` or `[map/roles.md order coordinator]`, a change order `[CO-01]`, a problem from testing `[UAT-01]`, a training gap the rollout found `[RG-01]`, a repository file `[README.md]`, or the user `[user-stated <YYYY-MM-DD>]`; a setting only a vendor's console shows is `[user-confirmed <YYYY-MM-DD>]`. Every id cited exists in the files read. A step with no source is not written: it goes under `## Open items`.
-- **Images**: one per step, the line after it, indented three spaces: `![<alt>](../shots/<shot id>.png)` for an image `shots/index.md` marks `cleared`, or a UAT evidence item its index marks `cleared`; otherwise the placeholder `[screenshot: <SC-nn> step <k>]`. A placeholder blocks `-export` until it is filled or the step's image line is removed with the user's say-so.
+- **Images**: one per step, the line after it, indented three spaces: `![<alt>](../shots/<shot id>.png)` for an image `shots/index.md` marks `cleared`, or a UAT evidence item its index marks `cleared`; otherwise the placeholder `[screenshot: <SC-nn> step <k>]`. A placeholder must be filled, or the step's image line removed with the user's say-so, before `-export`.
 - **Training gaps**: every Training-gap topic from testing is marked where its role meets it, with the line `Came up in testing: UAT-nn.` (in the role's guide, its card, its modules and the deck). A gap the rollout found is marked `Came up in the rollout: RG-nn.` in its role's guide and card.
 
 ## 2. A guide per role: `guides/<role>.md`
 
     ---
-    <protocol header: ow_artefact: ow-documentation/guide; subject: docs/<client>/plan.md>
+    written_by: ow-documentation 2.0.0
+    created: <YYYY-MM-DD>
     role: <role>
     tasks: [SC-nn, …]
     gaps: [UAT-nn, …]
@@ -35,7 +36,8 @@ Every task of the role (each of its scenarios) has a section. *What changed for 
 One per item of `plans/<client>/map/future.md` (a quick-quote job: from `quick-scope.md` and the user, user-stated). SOPs describe the way of working, not the software; each software step links to its guide (`see the <Role> guide, "<task>"`).
 
     ---
-    <protocol header: ow_artefact: ow-documentation/sop; subject: plans/<client>/map/future.md>
+    written_by: ow-documentation 2.0.0
+    created: <YYYY-MM-DD>
     id: SOP-nn
     process: map/future.md item <n>
     review: <YYYY-MM-DD>
@@ -58,7 +60,8 @@ One per item of `plans/<client>/map/future.md` (a quick-quote job: from `quick-s
 The full version of ow-handoff's operator notes. Entries use ow-handoff's fixed form and its `OP-nn` ids:
 
     ---
-    <protocol header: ow_artefact: ow-documentation/runbook; subject: docs/<client>/docs.yaml>
+    written_by: ow-documentation 2.0.0
+    created: <YYYY-MM-DD>
     ops: [OP-01, …]                 # every id ever used, retired ones included
     ---
     # Runbook: <client>
@@ -79,7 +82,7 @@ The full version of ow-handoff's operator notes. Entries use ow-handoff's fixed 
     ## Rotating secrets
     ## Open items
 
-- **Ids** start at `OP-01` and are **never renumbered or reused**. An update appends the next id after the highest in this file's `ops:` and, where it exists, in `handoffs/<client>/operator-notes.md`'s `ops:` (ow-handoff's rotate entries), so no id is ever used twice; a retired entry stays, its title ending `(retired <YYYY-MM-DD>)` and a `- **Retired:** <date>: <why>` line under its fields. ow-handoff's rotate entries continue after the runbook's highest id.
+- **Ids** start at `OP-01`; ow-handoff's notes point at them. An update appends the next id after the highest in this file's `ops:` and, where it exists, in `handoffs/<client>/operator-notes.md`'s `ops:` (ow-handoff's rotate entries), so no id is ever used twice; a retired entry stays, its title ending `(retired <YYYY-MM-DD>)` and a `- **Retired:** <date>: <why>` line under its fields. ow-handoff's rotate entries continue after the runbook's highest id.
 - **Coverage**: one entry per alert in the repository's alert configuration, its Source naming the file and the alert's id (`alerts.yaml: <id>`); one check-a-run entry per scheduled job, naming its run log; one entry whose title starts `Retry`, or a `not applicable: <reason>` line under `## Operator tasks`; an entry per acceptance check worth repeating ("how to check it's working").
 - **Rotating secrets**: one paragraph linking the Handoff notes' operator notes, where each rotate entry lives. No rotate entry is written here, and no secret value anywhere: secrets by name only (`SHOP_API_TOKEN`).
 - **Backups and restore** where the build has them; otherwise `not applicable: <reason>`.
@@ -101,4 +104,4 @@ For the next engineer. Four files: `handover/README.md` (what was built, the arc
 | Quick-reference cards | `training/cards/<role>.md` | One page per quoted role (header `role`): `## Every day` (exactly five numbered items) and `## When something looks wrong` |
 | Video scripts | `training/videos/V-nn.md` | One task each (header `id`, `task: SC-nn`): `## Script` and `## Shot list` (a table: shot · on screen · source) |
 
-Ids `M-nn`, `V-nn` and `G-nn` are numbered once and never reused or renumbered.
+Ids `M-nn`, `V-nn` and `G-nn` keep their meaning once used.

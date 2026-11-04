@@ -1,10 +1,10 @@
 # Phase: scope (`/ow-build-plan-scope`)
 
-Run step 0 of `references/ow-protocol.md` first. Read `plan.yaml`, `evidence.md` and the five `map/` files. With no map, say so and offer `/ow-build-plan-map`. The scope is **builder-neutral**: it names what changes and how the client will know it works, never a price, a tool of the user's own, or these skills' wording. Name a technology only where the client's systems require it.
+Keep to `references/ow-protocol.md`. Read first from the CRM: the recap (document `recap`), the map (document `process_map`) and the evidence; the files below are the cache, used only when the CRM is unreachable, and the output says so. Publish the scope and risks as document `scope` (internal) and the checks to `acceptance_criteria`. Never overwrite a version a person edited: write yours beside it and say so. Read `plan.yaml`, `evidence.md` and the five `map/` files. With no map, say so; the scope can still be written from the intake if the user wants it, and every assumption says it rests on the intake alone. The scope is **builder-neutral**: it names what changes and how the client will know it works, never a price, a tool of the user's own, or these skills' wording. Name a technology only where the client's systems require it.
 
 ## 1. Write `scope.md`
 
-Header (`ow_artefact: ow-build-plan/scope`, `subject: plans/<client>/map/current.md`), then:
+`written_by: ow-build-plan 2.0.0` and `created`, then:
 
     # Scope: <client>
 
@@ -28,10 +28,10 @@ Header (`ow_artefact: ow-build-plan/scope`, `subject: plans/<client>/map/current
     - <every remaining UNKNOWN from the map>. Who can answer: <role>.
 
     ## UAT approach
-    - tester roles: <role names only, as the user states them; never a person's name>
+    - tester roles: <role names, as the user states them>
     - test mix: <what each role checks, by work package>
 
-Work packages are numbered `WP-1`, `WP-2`, … in the order the client would see them working. Anything the client asked for that is not in a package goes under Out of scope with one plain reason. Ask the user which roles will test; never default the number of roles.
+Work packages are numbered `WP-1`, `WP-2`, … in the order the client would see them working. Anything the client asked for that is not in a package goes under Out of scope with one plain reason. Ask which roles will test unless a file says (the testing line prices it); never default the number of roles.
 
 ## 2. Write `acceptance.md`
 
@@ -50,26 +50,15 @@ Every in-scope work package has at least one acceptance check, in the format of 
 
 Every risk has an owner (a role, on either side) and a mitigation.
 
-## 4. Self-checks
-
-At the end of `scope.md`:
-
-    ## Self-checks (same-session self-check)
-    Same-session self-check: the same assistant that wrote the scope, applying a checklist; a discipline, not an independent review. Agent-checked.
-    | check | result |
-    |---|---|
-    | Acceptance coverage | OK |
-    | Out of scope present | OK |
-    | Risk owners | OK |
-    | Evidence trace | OK |
+## 4. Before you move on, check
 
 - **Acceptance coverage**: every `WP-n` in `scope.md` has at least one `AC-n.m` in `acceptance.md`, each with `test data` and a whole-number `cases`; at least one check is `kind: error`.
 - **Out of scope present**: the list has at least one line.
 - **Risk owners**: every `R-n` has an owner and a mitigation.
 - **Evidence trace**: every HIGH or MEDIUM assumption and every "from the map" line cites an `E-nn` that exists.
 
-A FINDING names the item; fix and run again before the NEXT block. `-export` leaves this section out of the plan.
+Fix what fails. Nothing here goes in the file.
 
-## 5. STATUS and NEXT
+## 5. STATUS and what comes next
 
-Append: `… | plans/<client>/scope.md | next: ow-build-plan /ow-build-plan-quote plans/<client>/ | awaiting: plan to <client> by <plan_delivery>`. Print the scope NEXT block from SKILL.md.
+In the cache, a plain `STATUS.md` line is enough: `<date> | ow-build-plan 2.0.0 | plans/<client>/scope.md | plan to <client> by <plan_delivery>`. Next: `/ow-build-plan-quote`.

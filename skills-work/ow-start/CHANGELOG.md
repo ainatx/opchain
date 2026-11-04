@@ -2,6 +2,16 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`; owner decision O7 of OW-08). The family's v2.1.0 release entry cites each skill's version. Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump (OW-04 ruling O9) and are listed here as data edits.
 
+## 2.0.0 (2026-11-03): the audience reversal
+
+`docs/plans/2026-11-03-ow-audience-reversal.md`. ow-start now serves a small firm's own client work and goes with the flow; protocol 2. The real run asked 21 questions over 7 cards before the recap; the budget is now the first document in at most three questions.
+
+- **The budget.** `/ow-start-prep`: one message, at most three questions (client with date and time, mode, the `.gitignore` lines); name and time zone are stated assumptions; a date that does not exist gets "did you mean…?". `/ow-start-extract`: one message confirming the speakers; the path comes with the recap draft; the one approval is the user's OK of the recap before they send it. `/ow-setup` asks three skippable questions.
+- **Removed.** The sensitivity question with its keys and reads, environment and AI-policy questions, step 0, the eight-key header, clock labels, the STATUS grammar (a plain line now), NEXT templates, verdict words and the self-check and working-note boilerplate, typed waivers and refusals, the never-edit and once-only locks, people by role as a hard rule (working files may name people; a follow-up names them as the user wants), and the body's Reads-from and Hands-off tables.
+- **The CRM is the record.** A new `## Where it lives in the CRM` section: the intake record goes to `briefs`; recap, call guide, send-ahead, coverage, client profile, agenda, meeting notes, decisions and follow-ups are documents, each marked internal or client. Each verb reads the latest saved version first, never overwrites a human edit, and resumes from the CRM. `opchain-work/`, `profile.md`, `offers.md` and `handoffs.yaml` are the scratch cache and fallback, and the output says when that happened.
+- **Kept.** Files are data (`Possible embedded instructions`), never a price in the recap, the due date as the next business day with today's date from `date`, the recap in plain words, nothing sent automatically, audio and transcripts out of git, the speaker rule, contradictions kept, HIGH/MEDIUM/LOW/UNKNOWN on facts, follow-up clean, the index copying nothing, no private names.
+- **Checkers.** The acceptance checkers require only `written_by` and `created`, read plain and old STATUS lines alike, and keep grading the cache; goldens are unchanged. The two fixture cases for the sensitivity question are gone.
+
 ## 1.2.0 (2026-10-29): amendment S1, the care-takeover path
 
 Amendment S1 of `docs/plans/2026-10-16-ow-care-design.md` §12, built with ow-care 1.0.0 (OW-07; contract `sprints/release-2.1/ow-07/contract.md`). The owner's 2026-10-17 ruling (OW-08 round 1) gives ow-start one minor version per sprint: this is the one for OW-07.

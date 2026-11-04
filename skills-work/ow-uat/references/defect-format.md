@@ -1,11 +1,12 @@
 # Problems: `defects/UAT-nn.md`
 
-Written only by `-defect`: it logs a problem, triages it, and records each later event as one more history line. Ids run on from the highest `UAT-nn`.
+`-defect` logs a problem, triages it, and records each later event as one more history line. The record is `support_requests`; this is the cache. Ids run on from the highest `UAT-nn`.
 
 ## 1. The file
 
     ---
-    <protocol header: ow_artefact: ow-uat/defect; subject: the run (or report) it came from>
+    written_by: ow-uat 2.0.0
+    created: <YYYY-MM-DD>
     id: UAT-03
     ---
     # UAT-03: <what went wrong, in a few words>
@@ -36,7 +37,7 @@ Written only by `-defect`: it logs a problem, triages it, and records each later
 | Class | Test (against `agreed/`) | Then | Terminal states |
 |---|---|---|---|
 | **Defect** | A scope item, check, change-order item, included item or ownership term in `agreed/` does not behave as agreed. A check a fix broke is a new Defect, `regression of UAT-mm`. A problem from an `--addendum` scenario is judged against that change order | Free; the rapid fix phase | `retested-pass`, `moved to punch list` (minor or cosmetic only), `withdrawn by client <role> <date>` |
-| **Change** | Asks for behaviour the basis did not include | NEXT to price it (ow-build); signed before any work | `raised as change request`; as a condition, `condition met` or `condition lapsed` (section 5) |
+| **Change** | Asks for behaviour the basis did not include | Priced with `/ow-build-change`; agreed in writing before any work; too big for a change order, `/ow-build-plan` as a follow-on | `raised as change request`; as a condition, `condition met` or `condition lapsed` (section 5) |
 | **Training gap** | Works as agreed; the tester did not know how | No fix | `passed to documentation` |
 | **Environment or data** | The test set-up was wrong | Fixed in the set-up | `closed` when its scenario's re-run passes |
 | **Duplicate** | The same as an existing UAT-nn | Linked | `closed -> UAT-mm` |
@@ -49,7 +50,7 @@ Written only by `-defect`: it logs a problem, triages it, and records each later
 
 ## 4. History lines
 
-One line per event, `- <YYYY-MM-DD> rec <n>: <event>`, in this fixed wording:
+One line per event, `- <YYYY-MM-DD> rec <n>: <event>`, in this wording (other skills read it):
 
 - `logged from RUN-nn SC-nn (<result>, <cases>)` · `logged from a report by <client role>, arrived <date>` · `logged from a passing run, RUN-nn SC-nn`
 - `triaged <class>, <severity>, against <basis item>`
@@ -65,25 +66,25 @@ One line per event, `- <YYYY-MM-DD> rec <n>: <event>`, in this fixed wording:
 
 ## 5. Bounds, extensions and conditions
 
-**Per Defect.** A round is one send, fix and retest of that UAT-nn; days count from its `triaged` date on `profile.md`'s calendar. `fix_rounds` and `fix_business_days` come from `uat.yaml` and never change. A blocker or major Defect still open past them is **escalated** to the user. The escalation never blocks recording it, an extension, or work on any other UAT-nn, and nothing is signed off with an open blocker or major Defect.
+**Per Defect.** A round is one send, fix and retest of that UAT-nn; days count from its `triaged` date on `profile.md`'s calendar. `fix_rounds` and `fix_business_days` are the quoted bounds in `uat.yaml`; a quoted bound changes only through a signed change order. A blocker or major Defect still open past them is **escalated** to the user. The escalation never blocks recording it, an extension, or work on any other UAT-nn, and nothing is signed off with an open blocker or major Defect.
 
 - **Builder cause:** in-scope Defects stay free whatever the bounds. `extended, builder cause (no charge)`. A retest of a fix that failed on the builder's side is always builder cause.
 - **Client cause** (testers absent from a scheduled session, scenarios added after `-plan`, a client-owned environment not ready): first `extension requested, client cause: <event>` on **each** affected UAT-nn, then, once the change order is signed, `extended, client cause, CO-nn`. One client-side event is one change order, cited by every UAT-nn it affects.
 - **What the client may read** (owner decision O7): dates and rounds measured against the quoted bounds ("fixed on 14 January, after the 5 business days quoted, at no charge"). Never our hours, our effort or the extension rate.
 
-**Conditions.** A client may make a Change a condition of sign-off: `condition: CO-nn, <client role>, <date>`. Signed: NEXT `use ow-uat-plan to add CO-nn to uat/<slug>/`; once the change order is in `agreed/` the condition is **met** and its checks gate like any other. Declined (its `CO-nn.md` status): `condition lapsed`. **Too big for a change order** (owner decision O6): read ow-build's `builds/<slug>/changes/requests.md` row for the UAT-nn in place; a result of `too big for a change order` records `condition too big …; blocks until withdrawn`, and the condition keeps blocking sign-off until the client withdraws it (`condition withdrawn by <client role> <date>`). It never lapses on its own.
+**Conditions.** A client may make a Change a condition of sign-off: `condition: CO-nn, <client role>, <date>`. Signed: `/ow-uat-plan --add-co`; once the change order is in `agreed/` the condition is **met** and its checks gate like any other. Declined (its `CO-nn.md` status): `condition lapsed`. **Too big for a change order** (owner decision O6): read ow-build's `builds/<slug>/changes/requests.md` row for the UAT-nn in place; a result of `too big for a change order` records `condition too big …; blocks until withdrawn`, and the condition keeps blocking sign-off until the client withdraws it (`condition withdrawn by <client role> <date>`). It never lapses on its own.
 
-**The client reason follows the status.** The reason is not written once at triage: rewrite it when a condition is set (it blocks sign-off until its change order is in `agreed/`, or until withdrawn when too big), met (its checks gate like any other), lapses or is withdrawn (it no longer blocks). A reason that says a blocking condition "does not block sign-off" is a finding. Before a fix is retested the reason says the fix is at no charge, never that it is fixed.
+**The client reason follows the status.** The reason does not stop at triage: rewrite it when a condition is set (it blocks sign-off until its change order is in `agreed/`, or until withdrawn when too big), met (its checks gate like any other), lapses or is withdrawn (it no longer blocks). A reason that says a blocking condition "does not block sign-off" is wrong; fix it. Before a fix is retested the reason says the fix is at no charge, never that it is fixed.
 
 ## 6. Reports after a request was sent
 
 A client report that names a failing acceptance check **with steps** to reproduce is a **qualifying** report. Record when it **arrived**.
 
-- Reproduced by the builder: a blocker or major Defect; it supersedes the request (`request <n> will be superseded`, also appended to `STATUS.md`).
+- Reproduced by the builder: a blocker or major Defect; it supersedes the request (`request <n> will be superseded`).
 - Not reproduced: `cannot reproduce notice sent <date>`. The notice counts only if sent **within 3 business days of the report arriving**, on the contract calendar (`references/contract-calendar.md`). A timely notice keeps the request `sent` and moves its deemed date out (5 business days after the notice). A late one does not: warn, and the report supersedes the request like a reproduced one.
-- No failing check named, or no steps: `not qualifying`; it does not stop the clock, and NEXT suggests asking the client for the missing details.
+- No failing check named, or no steps: `not qualifying`; it does not stop the clock; suggest asking the client for the missing details.
 - A minor or cosmetic logged after a request was written never supersedes it.
 
 ## 7. After sign-off
 
-Once `signoff.md` exists `-defect` logs no new UAT-nn except from `--addendum` scenarios, and prints `use ow-handoff-fix on handoffs/<slug>/`. A UAT-nn logged after the signature date but before `--signed` was run is marked `after sign-off` and goes the same way. Step 0 after sign-off: mark each UAT-nn on `punch-list.md` `moved to punch list`.
+Once `signoff.md` exists `-defect` logs no new UAT-nn except from `--addendum` scenarios; the rest go to `/ow-handoff-fix`, against the agreed fix period. A UAT-nn logged after the signature date but before `--signed` was run is marked `after sign-off` and goes the same way. After sign-off: mark each UAT-nn on `punch-list.md` `moved to punch list`.

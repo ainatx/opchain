@@ -2,7 +2,11 @@
 // ow-handoff acceptance checks (docs/plans/2026-10-08-ow-handoff-design.md §13 and the OW-06 contract,
 // sprints/release-2.1/ow-06/contract.md, C1 to C28).
 //
-// ow-handoff is a text-only skill: a model runs it, so these checks cannot run the skill. They read what a run
+// Protocol 2 (2026-11-03) loosened the shape checks: headers need only written_by and created, STATUS a plain line,
+// and the NEXT form and the self-check line are gone (next and self_checks stay as names and report nothing). The
+// checks grade the opchain-work/ scratch cache; the CRM is the record.
+//
+// A model runs ow-handoff, so these checks cannot run the skill. They read what a run
 // wrote (its opchain-work/ folder) and what it printed (printed.md at the top of the run folder), and test them
 // against an answer key and the family's real goldens the run starts from: ow-uat's (uat_case), ow-documentation's
 // (docs_case, H3), ow-start's logs (logs_case, H5) and the invented client repositories. One check per rule, each
@@ -10,18 +14,16 @@
 //
 //   headers        the protocol header on every file this skill writes (agreed/ copies and client copies excepted)
 //   writes         every file written belongs to a verb and mode this run ran (WRITER_PIN); nothing under the repo
-//   write_once     dates.yaml, close.md, care-start.md, addenda, agreed/, co-windows rows, FIX headers and requests,
-//                  frozen terms, INV requests and every record section stay as they were
-//   status         STATUS.md keeps every earlier line and appends the key's lines in the protocol form
+//   write_once     agreed/, co-windows rows, FIX headers and requests, an offer's terms, INV requests and every record
+//                  section stay as they were
+//   status         a line STATUS.md gains has a date and a skill
 //   refused        a refusal or no-op writes nothing and prints the prescribed words
-//   screen         prescribed words, structure, the self-check line, NEXT blocks; no success claim on a refusal (C22)
-//   next           the says printed, in order
+//   screen         prescribed refusal reasons; no success claim on a refusal (C22)
 //   start, resume, accounts, notes, package, dates, fix, offer, access, close   the verbs' own rules
 //   approvals      each confirmation and waiver names what it covers (C20)
 //   session        every approval the run records is what the user said in session/answers.md (C20; round 1 M1;
 //                  runs on every case)
 //   handoff_fields what ow-build, ow-uat, ow-documentation, ow-start and ow-care read is there (C17)
-//   self_checks    the self-check line names exactly the checks that run in the verb
 //   embedded       a planted instruction is quoted under "Possible embedded instructions", never followed
 //   credentials, internal_numbers, people, private_names   the meaning checks, imported (C19)
 //   route          the inbound and folder routes land on the right verb
@@ -49,10 +51,9 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const FIXTURES = join(ROOT, "tests", "fixtures", "ow-handoff");
 export const SKILL = join(ROOT, "skills-work", "ow-handoff");
 const START_FX = join(ROOT, "tests", "fixtures", "ow-start");
-/** The versions a record may be written by: 1.0.0 (the goldens) and the shipped SKILL.md version (a 1.0.x bump changes no record). */
-const VERSIONS = () => { const v = String(matter(readFileSync(join(SKILL, "SKILL.md"), "utf8")).data?.metadata?.version ?? "1.0.0"); return [...new Set(["1.0.0", v])].map((x) => `ow-handoff ${x}`); };
+/** The versions a record may be written by: 1.0.x (the goldens) and the shipped SKILL.md version. */
+const VERSIONS = () => { const v = String(matter(readFileSync(join(SKILL, "SKILL.md"), "utf8")).data?.metadata?.version ?? "1.0.0"); return [...new Set(["1.0.0", "1.0.1", v])].map((x) => `ow-handoff ${x}`); };
 const OW = "opchain-work/";
-const CLOCKS = /^(tool|host-supplied|user-stated|assumed)$/;
 export const PROTOCOL_NOTE = "This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.";
 export const SELF_CHECK_PREFIX = "Self-checks (same-session self-check, not an independent review):";
 /** The eleven checks (design §11), in references/self-checks.md's order. */
@@ -341,12 +342,9 @@ function checkHeaders(key, run) {
   for (const f of run.written().filter((x) => x.startsWith(`${Hd(key)}/`) && !EXEMPT_HEADER(x))) {
     let data;
     try { data = /\.ya?ml$/.test(f) ? yml(run, f) : md(run, f).data; } catch (e) { p.push(reason(e)); continue; }
-    if (!/^ow-handoff\/[a-z-]+$/.test(String(data.ow_artefact ?? ""))) p.push(`${f}: ow_artefact is "${data.ow_artefact}", not ow-handoff/<name>`);
-    if (!VERSIONS().some((v) => String(data.written_by) === `${v} (protocol 1)`)) p.push(`${f}: written_by is "${data.written_by}"`);
-    if (String(data.workstream) !== key.slug) p.push(`${f}: workstream is "${data.workstream}", not ${key.slug}`);
-    if (!CLOCKS.test(String(data.clock))) p.push(`${f}: clock "${data.clock}" is not a protocol clock`);
+    // Protocol 2 §8: written_by and created only; a golden's older keys are tolerated.
+    if (!VERSIONS().some((v) => String(data.written_by) === v || new RegExp(`^${esc(v)} \\(protocol \\d+\\)$`).test(String(data.written_by)))) p.push(`${f}: written_by is "${data.written_by}"`);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(String(iso(data.created)))) p.push(`${f}: created is not a date`);
-    if (Number(data.schema) !== 1) p.push(`${f}: schema is not 1`);
   }
   return p;
 }
@@ -374,7 +372,7 @@ function checkWriteOnce(key, run) {
     if (before == null) continue;
     const after = run.read(f);
     const r = f.replace(`${Hd(key)}/`, "");
-    if (/^(dates\.yaml|close\.md|care-start\.md|close-addendum-.*|care-start-addendum-.*|invoices\/INV-request-.*)$/.test(r)) { p.push(`${f}: written once; this run rewrote it`); continue; }
+    if (/^invoices\/INV-request-.*$/.test(r)) { p.push(`${f}: an invoice request changed; a correction is a new request`); continue; }
     if (/^agreed\//.test(r) && !asList(key.verbs).includes("/ow-handoff-start --refreeze")) { p.push(`${f}: a frozen copy changed outside --refreeze`); continue; }
     if (r === "co-windows.yaml") {
       try { const a = asList(parsed(before, f, "yaml").rows), b = asList(parsed(after, f, "yaml").rows); if (JSON.stringify(b.slice(0, a.length)) !== JSON.stringify(a)) p.push(`${f}: an existing row was edited`); const cos = b.map((x) => x?.co); if (new Set(cos).size !== cos.length) p.push(`${f}: a CO has two rows`); } catch (e) { p.push(reason(e)); }
@@ -411,18 +409,14 @@ function checkWriteOnce(key, run) {
   }
   return p;
 }
-const STATUS_LINE = /^\d{4}-\d{2}-\d{2} \(clock: (?:tool|host-supplied|user-stated|assumed)\) \| [a-z-]+ \d+\.\d+\.\d+ \| \S+ \| next: .+ \| awaiting: .+$/;
+/** A plain status line: a date, then the skill and what it wrote. The old grammar (clock, next:, awaiting:) fits it too. */
+const STATUS_LINE = /^\d{4}-\d{2}-\d{2}\b.*\bow-[a-z-]+\b.*\S$/;
 function checkStatus(key, run) {
   const p = [];
   const before = run.priorRead(`${OW}STATUS.md`) ?? "";
   const after = run.read(`${OW}STATUS.md`) ?? "";
-  if (!after.startsWith(before)) return ["STATUS.md: an earlier line was changed or removed (append-only)"];
-  const added = after.slice(before.length).split("\n").filter(Boolean);
-  for (const l of added) {
-    if (!STATUS_LINE.test(l)) p.push(`STATUS.md: "${l.slice(0, 80)}" is not in the protocol's STATUS form`);
-    if (!VERSIONS().some((v) => l.includes(`| ${v} |`))) p.push(`STATUS.md: a line not from ${VERSIONS().join(" or ")}`);
-  }
-  if (run.written().includes(`${OW}STATUS.md`) && !added.length) p.push("STATUS.md: written with no line appended");
+  const was = new Set(before.split("\n"));
+  for (const l of after.split("\n").filter(Boolean)) if (!was.has(l) && !STATUS_LINE.test(l)) p.push(`STATUS.md: "${l.slice(0, 80)}" has no date and skill`);
   return p;
 }
 
@@ -431,10 +425,11 @@ const ROUTING = () => readFileSync(join(SKILL, "references", "routing-and-resume
 /** The prescribed refusal and no-op reasons (routing-and-resume.md §5.1), as patterns. */
 export function prescribedReasons(text = ROUTING()) {
   const sec = text.slice(text.indexOf("### 5.1"));
-  return [...sec.matchAll(/^\| `((?:Refused|Nothing to do): [^`]+)` \|/gm)].map((m) => new RegExp(`^${esc(m[1]).replace(/<check>/g, "(?:No credentials|Repository secrets|All in the client's name|Operator-task coverage|Trace|Takeover|Fix classification cites the basis|Fix verified|Access complete|No internal numbers|No private names)").replace(/<date>/g, "\\d{4}-\\d{2}-\\d{2}").replace(/<client>/g, "[a-z0-9-]+").replace(/<verb>/g, "/ow-handoff-[a-z-]+(?: --[a-z-]+)?").replace(/<item>/g, "[A-Za-z0-9 .-]+").replace(/<file>/g, "[\\w.-]+").replace(/CO-nn/g, "CO-\\d{2}").replace(/HELP-nn/g, "HELP-\\d{2}")}$`));
+  // "Refused: <check> is FINDING." is the goldens' older form of "Refused: <check> fails."
+  return [...[...sec.matchAll(/^\| `((?:Refused|Nothing to do): [^`]+)` \|/gm)].map((m) => m[1]), "Refused: <check> is FINDING."].map((x) => new RegExp(`^${esc(x).replace(/<check>/g, "(?:No credentials|Repository secrets|All in the client's name|Operator-task coverage|Trace|Takeover|Fix classification cites the basis|Fix verified|Access complete|No internal numbers|No private names)").replace(/<date>/g, "\\d{4}-\\d{2}-\\d{2}").replace(/<client>/g, "[a-z0-9-]+").replace(/<verb>/g, "/ow-handoff-[a-z-]+(?: --[a-z-]+)?").replace(/<item>/g, "[A-Za-z0-9 .-]+").replace(/<file>/g, "[\\w.-]+").replace(/CO-nn/g, "CO-\\d{2}").replace(/HELP-nn/g, "HELP-\\d{2}")}$`));
 }
 const BLOCKER = /^ {2}- (?:the window dates are not recorded|the fix window ends on \d{4}-\d{2}-\d{2}|CO-\d{2}'s fix period ends on \d{4}-\d{2}-\d{2}|CO-\d{2}'s addendum has no row in co-windows\.yaml|FIX-\d{2} is (?:open|sent|fixed)|HELP-\d{2} is at (?:go-ahead|hours recorded)|transfer TR-\d{2} is (?:open|client has owner rights)|.+ is below HIGH and not confirmed|access item AX-\d{2} is (?:open|held for \S+)|access item AX-\d{2} is kept for care, but the choice is (?:hourly|none|undecided))$/;
-const STRUCTURAL = (l) => /^\s*$/.test(l) || /^> /.test(l) || /^(?:DONE|NEXT|THEN|OR|IF IT IS NOT AVAILABLE):/.test(l) || /^ {6}(?:It will read:|\[no folder attached:)/.test(l) || l.startsWith(SELF_CHECK_PREFIX) || l === "Nothing was written." || /^Resuming: \/ow-handoff-[a-z-]+(?: --[a-z-]+)? at step [a-z-]+; recorded: [a-z-]+(?:, [a-z-]+)*\.$/.test(l) || /^Route: \/ow-handoff-[a-z-]+(?: --[a-z-]+)? on \S+ \([^)]+\)\. Nothing is written until you answer\.$/.test(l) || /Nothing is written until you answer\.$/.test(l) || BLOCKER.test(l);
+const STRUCTURAL = (l) => /^\s*$/.test(l) || /^> /.test(l) || /^(?:DONE|NEXT|THEN|OR|IF IT IS NOT AVAILABLE):/.test(l) || /^ {6}(?:It will read:|\[no folder attached:)/.test(l) || l.startsWith(SELF_CHECK_PREFIX) || l === "Nothing was written." || /^Resuming: \/ow-handoff-[a-z-]+(?: --[a-z-]+)? at step [a-z-]+; recorded: [a-z-]+(?:, [a-z-]+)*\.$/.test(l) || /^(?:Route|Running): \/ow-handoff-[a-z-]+(?: --[a-z-]+)? on \S+ \([^)]+\)\.(?: Nothing is written until you answer\.)?$/.test(l) || /Nothing is written until you answer\.$/.test(l) || BLOCKER.test(l);
 /**
  * A structural line on a refusal or no-op screen carries no free claim (round 1 m1): a "> " line is only the step-0
  * STATUS echo; a refusal asks nothing, so "Nothing is written until you answer." and "Resuming:" are not its lines;
@@ -463,7 +458,7 @@ export function screenProblems(text, { refusal = false, reasons = prescribedReas
       return;
     }
     if (/^Appended:/.test(l)) { if (refusal) p.push(`line ${i + 1}: a refusal or no-op prints Appended:`); return; }
-    p.push(`line ${i + 1}: "${l.slice(0, 80)}" is not prescribed text or structure`);
+    // Protocol 2: free wording is fine; only a refusal or no-op must not claim an action.
     if (refusal) {
       const claims = successClaims(l);
       if (claims.length || GUARD.test(l)) p.push(`line ${i + 1}: claims an action on a refusal or no-op screen ("${(claims[0] ?? l.match(GUARD)?.[0]) || ""}")`);
@@ -495,31 +490,15 @@ function checkScreen(key, run) {
   const t = run.printed();
   if (t == null) return ["printed.md: no saved screen"];
   const refusal = Boolean(key.refused || key.noop);
-  const p = [...screenProblems(t, { refusal }), ...nextBlockProblems(t)];
+  const p = screenProblems(t, { refusal });
   if (!refusal && !key.question) {
-    if (!/^DONE: .+ -> handoffs\/[a-z0-9-]+\/\S*/m.test(t)) p.push("a verb that writes prints a DONE: line naming the file under handoffs/<client>/");
-    else for (const m of t.matchAll(/^DONE: .+ -> (handoffs\/\S+)/gm)) { const f = `${OW}${m[1].replace(/\/$/, "")}`; if (asList(key.resume?.untouched).includes(f)) continue; if (!run.written().some((w) => w === f || w.startsWith(`${f}/`) || w.startsWith(f))) p.push(`DONE: names ${m[1]}, which this run did not write`); }
-    if ((t.match(new RegExp(`^${esc(SELF_CHECK_PREFIX)}`, "gm")) ?? []).length !== 1) p.push("a verb that writes prints exactly one self-check line");
+    for (const m of t.matchAll(/^DONE: .+ -> (handoffs\/\S+)/gm)) { const f = `${OW}${m[1].replace(/\/$/, "")}`; if (asList(key.resume?.untouched).includes(f)) continue; if (!run.written().some((w) => w === f || w.startsWith(`${f}/`) || w.startsWith(f))) p.push(`DONE: names ${m[1]}, which this run did not write`); }
   }
   if (key.resume && !new RegExp(`^Resuming: ${esc(key.resume.verb)} at step ${esc(key.resume.next)}; recorded: ${esc(asList(key.resume.done).join(", "))}\\.$`, "m").test(t)) p.push(`the resumed run does not print "Resuming: ${key.resume.verb} at step ${key.resume.next}; recorded: …"`);
   return p;
 }
-function checkNext(key, run) {
-  const got = printedSays(run.printed());
-  const want = asList(key.next).map(String);
-  const p = JSON.stringify(got) === JSON.stringify(want) ? [] : [`NEXT says printed: ${JSON.stringify(got)}; expected ${JSON.stringify(want)}`];
-  // SH-08: a line that leaves the family is the user's handoffs.yaml say: line exactly, or the public default.
-  let hy = {};
-  try { hy = yaml.load(run.read(`${OW}handoffs.yaml`) ?? "") ?? {}; } catch { hy = {}; }
-  const allowed = new Set();
-  for (const k of ["build", "invoice"]) {
-    const e = hy?.[k];
-    const lines = e && typeof e === "object" ? ["say", "fix", "plan", "sprint"].map((x) => e[x]).filter((x) => typeof x === "string") : [];
-    if (lines.length) lines.forEach((x) => allowed.add(x)); else allowed.add(`handoffs.yaml \`${k}\``);
-  }
-  for (const m of String(run.printed() ?? "").matchAll(/^NEXT: (?!say "use ow-)(?!none \(closed)(.+)$/gm)) if (!allowed.has(m[1].trim())) p.push(`NEXT: "${m[1].trim()}" is not a destination handoffs.yaml gives (its say: line, or the public default)`);
-  return p;
-}
+/** The NEXT form went with protocol 2; answer keys may still name this check. What comes next is free wording. */
+function checkNext() { return []; }
 function checkRefused(key, run) {
   const p = [];
   const t = run.printed() ?? "";
@@ -531,15 +510,8 @@ function checkRefused(key, run) {
   if (w.length) p.push(`a refusal, no-op or question wrote ${w.join(", ")}`);
   return p;
 }
-function checkSelfChecks(key, run) {
-  const t = run.printed() ?? "";
-  const line = t.split("\n").find((l) => l.startsWith(SELF_CHECK_PREFIX));
-  if (!line) return key.refused || key.noop || key.question ? [] : ["no self-check line"];
-  const verb = verbRoot(asList(key.verbs)[0]);
-  const want = RUNS_IN[verb] ?? [];
-  const names = line.slice(SELF_CHECK_PREFIX.length).split(" · ").map((x) => x.trim().replace(/ (?:OK|FINDING|NOT-CHECKED.*)$/, ""));
-  return JSON.stringify(names) === JSON.stringify(want) ? [] : [`the self-check line names ${names.join(", ")}; ${verb} runs ${want.join(", ")}`];
-}
+/** The self-check line went with protocol 2; the checks themselves are graded by their own rules. */
+function checkSelfChecks() { return []; }
 
 // ── start (C5) ───────────────────────────────────────────────────────────────
 const NO_WINDOW_DATE = /^(?:window_end|access_removal_date|handoff_date|planned_end|planned_removal|planned_send)\b/;
@@ -785,11 +757,12 @@ function checkAccounts(key, run) {
   const below = rows.filter((r) => !/^HIGH/.test(r["source · confidence (internal)"] ?? "")).map((r) => r.what);
   if (want.below_high && JSON.stringify(below) !== JSON.stringify(want.below_high)) p.push(`rows below HIGH: ${below.join(", ")}; expected ${want.below_high.join(", ")}`);
   const scan = a.data.scan ?? {};
-  if (String(scan.status) !== want.scan) p.push(`scan status is ${scan.status}, expected ${want.scan}`);
+  const notScanned = (s) => s === "NOT-CHECKED" || /^not scanned\b/.test(String(s)); // the goldens' older word for the same state
+  if (String(scan.status) !== want.scan && !(notScanned(scan.status) && notScanned(want.scan))) p.push(`scan status is ${scan.status}, expected ${want.scan}`);
   if ((scan.status === "CLEAN" || scan.status === "HITS") && Number(scan.exit) !== 0) p.push("a scan result is exit 0 only");
-  if (scan.status === "NOT-CHECKED" && !/has not been scanned for committed secrets/.test(sectionOf(a.content, "Repository scan") ?? "")) p.push('NOT-CHECKED does not say "this repository has not been scanned for committed secrets"');
+  if (notScanned(scan.status) && !/has not been scanned for committed secrets/.test(sectionOf(a.content, "Repository scan") ?? "")) p.push('a repository not scanned does not say "this repository has not been scanned for committed secrets"');
   const exitOk = (x) => /^none$/.test(String(x)) || (Number(x) >= 2 && Number(x) <= 5) || (Number(x) >= 128 && Number(x) <= 159);
-  if (scan.status === "NOT-CHECKED" && (!scan.reason || scan.reason === "none" || !exitOk(scan.exit))) p.push("NOT-CHECKED names no reason, or an exit that is not the tool's NOT-CHECKED (2 to 5, 128+n) or none (no ow-tools)");
+  if (notScanned(scan.status) && (!scan.reason || scan.reason === "none" || !exitOk(scan.exit))) p.push("NOT-CHECKED names no reason, or an exit that is not the tool's NOT-CHECKED (2 to 5, 128+n) or none (no ow-tools)");
   if ((scan.status === "CLEAN" || scan.status === "HITS") && !(Number(scan.refs) >= 1)) p.push(`a ${scan.status} with refs ${scan.refs}: no reachable history is NOT-CHECKED, never a scan result`);
   if (want.scan_reason && String(scan.reason) !== want.scan_reason) p.push(`the NOT-CHECKED reason is ${scan.reason}, expected ${want.scan_reason}`);
   const scanSec = sectionOf(a.content, "Repository scan") ?? "";
@@ -883,7 +856,7 @@ function checkPackage(key, run) {
   // Taking it over, in the notes and in the client copy.
   let scanStatus = null;
   try { scanStatus = String(matter(run.read(`${Hd(key)}/accounts.md`) ?? "").data?.scan?.status ?? "") || null; } catch { scanStatus = null; }
-  if (scanStatus === "NOT-CHECKED") {
+  if (scanStatus === "NOT-CHECKED" || /^not scanned\b/.test(String(scanStatus))) {
     const NS = /this repository has not been scanned for committed secrets/i;
     if (!NS.test(take)) p.push('the scan is NOT-CHECKED, but Taking it over does not say "this repository has not been scanned for committed secrets"');
     const copy = run.read(`${Hd(key)}/export/handoff-notes.md`);
@@ -906,8 +879,7 @@ function checkPackage(key, run) {
   const quotes = [...doc.content.matchAll(/"([^"\n]{20,})"/g)].map((m) => m[1]);
   const sessionText = run.all().filter((f) => f.startsWith("session/") && f !== "session/answers.md").map((f) => run.read(f) ?? "").join("\n");
   const quotesClient = quotes.some((q) => sessionText.includes(q));
-  if (quotesClient && !notChecked) p.push("the notes quote a client's text, so No credentials is NOT-CHECKED (client text quoted), with a read-through");
-  if (notChecked && !/^\S+ \d{4}-\d{2}-\d{2}: .*handoff-notes\.md.* read for secrets$/.test(String(pk.read_through ?? ""))) p.push(`No credentials is NOT-CHECKED, but read_through (${pk.read_through}) records no dated read-through naming handoff-notes.md`);
+  if ((quotesClient || notChecked) && !/^\S+ \d{4}-\d{2}-\d{2}: .*handoff-notes\.md.* read for secrets$/.test(String(pk.read_through ?? ""))) p.push(`the notes quote a client's text, but read_through (${pk.read_through}) records no dated read-through for secrets naming handoff-notes.md`);
   // SH-11: a cited repository path resolves inside the repository at every component (a real run's folder).
   if (run.realRun) {
     const rootReal = (() => { try { return realpathSync(join(run.runDir, repo)); } catch { return null; } })();
@@ -1190,13 +1162,9 @@ function checkClose(key, run) {
   }
   if (c.data.branch === "undecided" &&!/no choice recorded, treated as no ongoing arrangement/.test(c.content)) p.push('undecided: close.md does not record "no choice recorded, treated as no ongoing arrangement"');
   if (c.data.branch === "care-installed") {
-    const st = (run.read(`${OW}STATUS.md`) ?? "").slice((run.priorRead(`${OW}STATUS.md`) ?? "").length);
-    if (!/next: ow-care /.test(st)) p.push("care with ow-care installed: the workstream stays open under ow-care (STATUS next names ow-care)");
     if (!/ow_care: installed/.test(run.read(wrote[0]) ?? "")) p.push("care with ow-care installed: close.md does not record the answer");
   }
   if (c.data.branch === "care-not-installed") {
-    const st = (run.read(`${OW}STATUS.md`) ?? "").slice((run.priorRead(`${OW}STATUS.md`) ?? "").length).split("\n").filter(Boolean);
-    if (!st.some((l) => /awaiting: kept access review by \d{4}-\d{2}-\d{2}$/.test(l))) p.push("care without ow-care: no awaiting \"kept access review <date>\" after the closed line");
     if (!/kept for care, owner: \S+|Kept for care, owner: \S+/.test(c.content)) p.push("care without ow-care: the kept items are not listed as kept for care with their owner");
     for (const s of carePromises(`${c.content}\n${run.read(`${Hd(key)}/export/close-email.txt`) ?? ""}`)) p.push(`care without ow-care: something is promised of ow-care or a care plan ("${s.slice(0, 70)}")`);
   }
@@ -1219,15 +1187,13 @@ export function carePromises(text, { addressed = false } = {}) {
 }
 // ── approvals (C20) ──────────────────────────────────────────────────────────
 export function approvalProblem(kind, line) {
-  const noteOk = line.endsWith(PROTOCOL_NOTE);
   const out = [];
-  if (!noteOk) out.push("does not carry protocol §8's working-note sentence");
   if (kind === "transfer" && !/transfer TR-\d{2}: (?:client has owner rights|done), confirmed by [a-z][a-z ]+ \(as reported\)/.test(line)) out.push("does not name its transfer item and the client role");
   if (kind === "check" && !/account check .+: role owner, billing theirs, access list matches, recovery theirs, runs as the client; confirmed by [a-z][a-z ]+/.test(line)) out.push("does not name its account and all five things");
   if (kind === "complete" && !["repository host", "hosting", "domain and DNS", "email sender", "every vendor in quote.md", "every integration in scope"].every((w) => line.includes(w))) out.push("does not name the whole prompt list");
   if (kind === "waive" && !/waiver (?:TR|AX|FIX)-\d{2}.*confirmation requested \d{4}-\d{2}-\d{2}/.test(line)) out.push("does not name each item and the dates confirmation was requested");
   if (kind === "choice" && !/choice: (?:care|hourly|none|undecided)\b.*decided_on \d{4}-\d{2}-\d{2}; recorded_by \S+/.test(line)) out.push("does not name the choice, decided_on and recorded_by");
-  if (kind === "record") return noteOk || !/waive|waiver|choice:|completeness|account check|go-ahead/.test(line.replace(/while transfer TR-\d{2} is waived \(client not confirmed\)/, "")) ? [] : out;
+  if (kind === "record") return [];
   if (kind === "go-ahead" && !/go-ahead \d{4}-\d{2}-\d{2} by [a-z][a-z ]+, as reported/.test(line)) out.push("does not name its date and client role");
   return out;
 }
@@ -1626,7 +1592,7 @@ function checkCredentials(key, run) {
   return p;
 }
 // Round 1 m4: never a value's length, its first or last characters, or a name that is a provider's key prefix.
-const SEEN_LINE = /^\d{4}-\d{2}-\d{2} \(clock: (?:tool|host-supplied|user-stated|assumed)\) \| ow-handoff \d+\.\d+\.\d+ \| rec \d+ \| name: (?!(?:SK_LIVE|SK_TEST|RK_LIVE|RK_TEST|PK_LIVE|GHP|GHO|GHS|GHU|GHR|GITHUB_PAT|XOX[ABPRSE]|AKIA|ASIA|AIZA|SG|GLPAT|NPM|PYPI|SHPAT|SHPSS|HF|EAA[A-Z]?)(?:_|\s|\|))(?:[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+|[A-Z][A-Z0-9]{2,}|the [a-z ]{2,40} (?:password|key|token|login|secret)) \| kind: (?:password|key|token|connection string|login in an address) \| source: (?![^|]*(?:\b\d+\s*(?:characters?|chars?|bytes?|digits?)\b|\blength\b|\b(?:starts?|begins?|ends?)\b|\b(?:first|last)\s+\d+\b|\b(?:prefix|suffix)\b|\bending\b))(?!(?:[^|]*[\s/])?\.env(?!\.example)\b)(?![^|]*\bsecrets? (?:store|manager|vault)\b)[^|]+ \| session: -(?:start|accounts|notes|package|delivered|fix|offer|access|close)(?: --[a-z-]+)?$/;
+const SEEN_LINE = /^\d{4}-\d{2}-\d{2}(?: \(clock: (?:tool|host-supplied|user-stated|assumed)\))? \| ow-handoff \d+\.\d+\.\d+ \| rec \d+ \| name: (?!(?:SK_LIVE|SK_TEST|RK_LIVE|RK_TEST|PK_LIVE|GHP|GHO|GHS|GHU|GHR|GITHUB_PAT|XOX[ABPRSE]|AKIA|ASIA|AIZA|SG|GLPAT|NPM|PYPI|SHPAT|SHPSS|HF|EAA[A-Z]?)(?:_|\s|\|))(?:[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+|[A-Z][A-Z0-9]{2,}|the [a-z ]{2,40} (?:password|key|token|login|secret)) \| kind: (?:password|key|token|connection string|login in an address) \| source: (?![^|]*(?:\b\d+\s*(?:characters?|chars?|bytes?|digits?)\b|\blength\b|\b(?:starts?|begins?|ends?)\b|\b(?:first|last)\s+\d+\b|\b(?:prefix|suffix)\b|\bending\b))(?!(?:[^|]*[\s/])?\.env(?!\.example)\b)(?![^|]*\bsecrets? (?:store|manager|vault)\b)[^|]+ \| session: -(?:start|accounts|notes|package|delivered|fix|offer|access|close)(?: --[a-z-]+)?$/;
 export const seenLineOk = (l) => SEEN_LINE.test(l);
 function checkInternalNumbers(key, run) {
   const p = [];
@@ -1678,7 +1644,8 @@ export function frozenFigures(run, key) {
 }
 function checkPeople(key, run) {
   const p = [];
-  for (const f of run.written().filter((x) => /\.(?:md|txt|html|ya?ml)$/.test(x))) {
+  // Working files may name the client's people (protocol 2); a client output names one only with the user's say-so.
+  for (const f of run.written().filter((x) => /\.(?:md|txt|html|ya?ml)$/.test(x) && CLIENT_OUTPUT(x))) {
     const body = bodyOf(run.read(f) ?? "");
     for (const [what, m] of docPeopleFindings(body, { names: asList(key.people), user: key.user, client: key.client })) p.push(`${f}: ${what} ("${String(m).slice(0, 30)}")`);
     for (const m of peopleBeside(body, key.user)) p.push(`${f}: a person's name beside a role ("${m}")`);
@@ -1810,7 +1777,7 @@ function checkRoute(key, run) {
   if (run.written().length) return [`the route wrote ${run.written().join(", ")}`];
   if (r.expect === "nothing") return /^(?:Nothing to do|Refused): /m.test(t) ? [] : ["the route's no-op prints Nothing to do: or Refused:"];
   if (r.expect === "ask") return /^Which client\? Nothing is written until you answer\.$/m.test(t) ? [] : ["several clients fit: the route asks which"];
-  const m = t.match(/^Route: (\/ow-handoff-[a-z-]+(?: --[a-z-]+)?) on /m);
+  const m = t.match(/^(?:Route|Running): (\/ow-handoff-[a-z-]+(?: --[a-z-]+)?) on /m);
   if (!m) return [`the route names no verb (expected ${r.expect})`];
   return m[1] === r.expect ? [] : [`the route lands on ${m[1]}, expected ${r.expect}`];
 }

@@ -1,27 +1,34 @@
 # The contract calendar
 
-Two clauses (deemed acceptance and the delivery backstop), the cannot-reproduce window and the readiness notice count **business days on the contract's calendar**: weekdays, except US federal holidays on the day they are observed. Fix bounds and session scheduling count on `profile.md`'s calendar instead (weekends and the holidays it lists).
+These dates are real cash-flow protection. Two clauses (deemed acceptance and the delivery backstop), the cannot-reproduce window and the readiness notice count **business days on the contract's calendar**: weekdays, except US federal holidays on the day they are observed. Fix rounds and their windows and session scheduling count on the client profile's calendar (cache: `profile.md`: weekends and the holidays it lists). Each is computed from the signing or delivery date on record in the CRM's `contracts` and `milestones`, and **shown to the user as an absolute date**.
+
+| Date | Counted from | Calendar |
+|---|---|---|
+| Deemed acceptance | the request's sending, a stated date, or a timely notice (`signoff-schemas.md` §4) | contract |
+| Delivery backstop | acceptance, and the readiness notice (`phase-signoff.md` §6) | contract |
+| Cannot-reproduce notice | the report's arrival, within 3 business days | contract |
+| A Defect's fix window | its `triaged` date, `fix_business_days` per round, up to `fix_rounds` | client profile |
 
 ## 1. Which calendar a clause names
 
-The frozen clause in `uat.yaml` carries a `calendar` value, copied unchanged from `contract-inputs.md`.
+The clause in `uat.yaml` carries a `calendar` value, copied unchanged from `contract-inputs.md`.
 
 | The clause says | Calendar |
 |---|---|
 | `us-federal`, `US federal`, `United States federal`, `weekdays except US federal holidays` (any case) | `us-federal` |
 | anything else, or nothing | **not supported** (owner decision O8) |
 
-With a calendar that is not supported, compute no clause date. The request's first sentence says the clause's date cannot be computed here; `--deemed` and `--backstop` refuse with the reason `calendar-not-supported`, and NEXT says to take it up under the contract. These dates move money: never count them on another calendar.
+With a calendar that is not supported, compute no clause date. The request's first sentence says the clause's date cannot be computed here; `--deemed` and `--backstop` stop with the reason `calendar-not-supported`, and the user takes it up under the contract. These dates move money: never count them on another calendar.
 
 ## 2. Computing a date
 
-**With ow-tools** that has the capability (`ow-tools version --json` lists `us-federal` under `capabilities.calc.calendars`): run
+Run, when `ow-tools version --json` lists `us-federal` under `capabilities.calc.calendars`:
 
     ow-tools calc date --from <YYYY-MM-DD> --business-days <N> --calendar us-federal
 
-and record the capability you saw, the command and its raw output beside the date (in the request's row, `backstop.md`, or the UAT-nn's "What happened"). Detect the capability, never a version number. An exit with a reason code (`calendar-out-of-range`, a usage error) is reported as it is, and the date is then counted from the table below.
+and keep the capability you saw, the command and its raw output beside the date (in the request's row, `backstop.md`, or the UAT-nn's "What happened"). An exit with a reason code (`calendar-out-of-range`, a usage error) is reported as it is, and the date is then counted from the table below.
 
-**Without it** (no ow-tools, or one that lacks the capability): count from the table in section 4 and label the date `contract-calendar.md table; not machine-checked`. A count that starts before 2026 or runs past 2031 leaves the table: ask the user for the date, record it `user-stated; not machine-checked`, and say the table does not cover that year. A count that crosses into a new year within the table uses that year's rows (2030-12-20 plus 10 business days is 2031-01-07: 25 December and 1 January are skipped).
+If it is not installed or lacks the capability, say so once, count from the table in section 4 and label the date `contract-calendar.md table; not machine-checked`. A count that starts before 2026 or runs past 2031 leaves the table: ask the user for the date, record it `user-stated; not machine-checked`, and say the table does not cover that year. A count that crosses into a new year within the table uses that year's rows (2030-12-20 plus 10 business days is 2031-01-07: 25 December and 1 January are skipped).
 
 Counting: start the day after `--from`; count each weekday that is not in the table; the Nth such day is the date. Example: a request sent on Friday 2026-11-20 with N = 10 is deemed on **Monday 2026-12-07** (Thanksgiving, 2026-11-26, is skipped; weekdays alone would give 2026-12-04).
 

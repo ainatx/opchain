@@ -76,10 +76,14 @@ export function preflight(text, mdPath) {
   // older one-line form (banner above an `ow_artefact: … | …` line) is read too.
   if (lines[0] === "---") {
     const end = lines.indexOf("---", 1);
-    if (end > 0 && lines.slice(1, end).some((l) => /^ow_artefact:/.test(l))) {
+    const block = end > 0 ? lines.slice(1, end) : [];
+    const v1 = block.some((l) => /^ow_artefact:/.test(l));
+    // Protocol v2's short header (written_by, created) never reaches a client
+    // either. It has no banner, so the line after it is the document's own.
+    if (v1 || block.some((l) => /^written_by:/.test(l))) {
       for (let i = 0; i <= end; i++) lines[i] = "";
       const next = lines[end + 1] ?? "";
-      if (next.trim() && !/^\s{0,3}#/.test(next)) {
+      if (v1 && next.trim() && !/^\s{0,3}#/.test(next)) {
         banner = next.trim();
         lines[end + 1] = "";
       }

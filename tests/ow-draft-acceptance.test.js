@@ -49,7 +49,7 @@ describe("golden runs", () => {
     for (const c of ["m-route-no-brief", "m-route-evidence", "m-route-several", "m-route-candidate", "m-route-signed", "m-route-delivered", "l-evidence-other-client-refused", "m-evidence-again", "m-freeze-stale", "m-route-selfcheck-finding",
       "m-voice", "m-voice-two-samples", "m-voice-six-samples", "m-voice-approve", "m-voice-revision", "l-voice-larkspur-unapproved", "m-brief", "m-brief-internal-refused", "l-brief-comms-wrong-voice", "m-brief-again", "b-permission-name", "b-permission-quote",
       "m-freeze-again", "b-freeze-post", "m-freeze-no-tools", "m-waive-credentials-refused", "m-waive-sources", "m-signoff-finding-refused", "m-signoff-older-refused", "l-signoff-comms", "l-signoff-client", "m-signoff-again",
-      "m-deliver-no-signoff", "m-deliver-changed-refused", "l-deliver-comms-refused", "m-deliver-no-tools", "b-deliver-case", "m-deliver-connector", "m-deliver", "l-deliver-handling", "m-deliver-push-cut", "m-deliver-again",
+      "m-deliver-no-signoff", "m-deliver-changed-refused", "l-deliver-comms-refused", "m-deliver-no-tools", "b-deliver-case", "m-deliver-connector", "m-deliver", "m-deliver-push-cut", "m-deliver-again",
       // The folder route (round 1 M2): every §4.3 stage, the workstream, a findings path, anything else, and /ow-draft.
       "f-on-brief", "f-on-evidence", "f-on-writing", "f-on-finding", "f-on-clean", "f-on-signed", "f-on-awaiting-client", "f-on-delivered", "f-on-push-cut", "f-on-no-brief",
       "f-on-ws-one", "f-on-ws-several", "f-on-ws-none", "f-on-findings", "f-on-other", "f-list-welcome", "f-list-every-draft", "f-list-awaiting", "f-list-again", "f-on-again"]) expect(CASES, c).toContain(c);
@@ -124,11 +124,11 @@ describe("C2, C29: the catalog, the body budget, the shared files and the versio
     const b = Buffer.from(copies[0]); b[b.length - 2] ^= 1;
     expect(copies[0].equals(b)).toBe(false);
   });
-  it("C29: 1.0.0 in the frontmatter, the body and the changelog; each sibling whose handoffs.yaml changed lists it, unbumped", () => {
+  it("C29: 2.0.0 in the frontmatter, the body and the changelog; each sibling whose handoffs.yaml changed lists it, unbumped", () => {
     const t = readFileSync(join(SKILL, "SKILL.md"), "utf8");
-    expect(t).toMatch(/version: "1\.0\.0"/);
-    expect(body()).toMatch(/ow-draft 1\.0\.0 · protocol 1/);
-    expect(readFileSync(join(SKILL, "CHANGELOG.md"), "utf8")).toMatch(/^## 1\.0\.0 \(2026-10-21\)/m);
+    expect(t).toMatch(/version: "2\.0\.0"/);
+    expect(body()).toMatch(/ow-draft 2\.0\.0 · protocol 2/);
+    expect(readFileSync(join(SKILL, "CHANGELOG.md"), "utf8")).toMatch(/^## 2\.0\.0 \(2026-11-03\)/m);
     for (const s of ["ow-start", "ow-build-plan", "ow-build", "ow-uat"]) expect(readFileSync(join(ROOT, "skills-work", s, "CHANGELOG.md"), "utf8"), s).toMatch(/^## Unreleased: data edits from OW-10 \(ow-draft 1\.0\.0\)$/m);
     // Round 1 m7: ow-documentation's own shipped-text scan refuses an evaluation id in its changelog, so its heading names the build instead.
     expect(readFileSync(join(ROOT, "skills-work", "ow-documentation", "CHANGELOG.md"), "utf8")).toMatch(/^## Unreleased: data edits from the ow-draft 1\.0\.0 build$/m);

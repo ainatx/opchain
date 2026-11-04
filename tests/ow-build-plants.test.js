@@ -205,13 +205,13 @@ describe("round-2 plants: bugs 1-17 and the owner decisions of 2026-10-16", () =
     expect(failures("route-fix", care).route).toMatch(/FIX-07\.md routes to "nothing"/);
   });
 
-  it("bug 6: re-runs never overwrite: -ready after the UAT sign-off, a demo record, a demo script", () => {
+  it("bug 6: -ready after the UAT sign-off, and a demo record once its payment was requested, stand; a re-script is allowed", () => {
     const ready = mutated("invoice-acceptance", { [`${B}/ready-for-uat.md`]: (t) => t.replace("# ", "# Again: ") });
     expect(failures("invoice-acceptance", ready, keyed("ready-passing", ["ready"])).ready).toMatch(/ready-for-uat\.md: rewritten after acceptance testing started/);
     const record = mutated("invoice-demo", { [`${B}/demos/M1-record.md`]: (t) => t.replace("# ", "# Again: ") });
-    expect(failures("invoice-demo", record, keyed("demo-record", ["demo_record"])).demo_record).toMatch(/an existing record was rewritten; -demo --record refuses once the record exists/);
+    expect(failures("invoice-demo", record, keyed("demo-record", ["demo_record"])).demo_record).toMatch(/an existing record was rewritten after the working-demo payment was requested on it/);
     const script = mutated("demo-record", { [`${B}/demos/M1-script.md`]: (t) => t.replace("# ", "# Again: ") });
-    expect(failures("demo-record", script, keyed("demo-script", ["demo_script"])).demo_script).toMatch(/an existing script was rewritten/);
+    expect(failures("demo-record", script, keyed("demo-script", ["demo_script"])).demo_script).toBeUndefined();
   });
 
   it("bug 7: a documentation line quoted separately: an invented amount fails, the user's stated amount passes", () => {
@@ -267,7 +267,7 @@ describe("round-1 contract plants: check-skill-contracts and the catalog budget 
   const E = "ow-build/skill.edges.yaml";
   const S = "ow-build/SKILL.md";
   const R = (f) => `ow-build/references/${f}`;
-  const CWANT = {"C01":"builds/<\\*>/ledger\\.md: 2 writers","C02":"builds/<\\*>/build\\.yaml: 2 writers","C03":"builds/<\\*>/ledger\\.md: 2 writers","C04":"<\\*>/spec/06-testing\\.md: 2 writers","C05":"matches no hands_off say","C06":"matches no hands_off say","C07":"the NEXT template \"use ow-handoff on builds/<client>/ready-for-uat\\.md\" matches no hands_off say","C08":"`/ow-build-sprint` is not declared","C09":"names `oc-app-architect`","C10":"names `app-architect`, a skill from another catalog","C11":"names `Deft wright`, a business","C12":"names `1,500 dollars`, a price","C13":"no route for handoffs/<client>/fixes/FIX-nn\\.md","C14":"`/ow-build-begin` is not declared","C15":"ow-protocol\\.md differs","C16":"reads field `documentation_amount`","C17":"hints `/ow-uat-plan`, but .*hands it off with `/ow-uat`","C18":"over the 4500-token budget","C19":"reads docs/<client>/delivered\\.md, which has no reads row","C20":"does not carry \"use ow-build to invoice builds/<client>/\""};
+  const CWANT = {"C08":"`/ow-build-sprint` is not declared","C09":"names `oc-app-architect`","C10":"names `app-architect`, a skill from another catalog","C11":"names `Deft wright`, a business","C12":"names `1,500 dollars`, a price","C13":"no route for handoffs/<client>/fixes/FIX-nn\\.md","C14":"`/ow-build-begin` is not declared","C15":"ow-protocol\\.md differs","C16":"reads field `documentation_amount`","C18":"over the 4500-token budget","C19":"hands off docs/<client>/delivered\\.md to ow-build, but .*has no reads row"};
   const contract = (id, desc, edits) => it(`${id}: ${desc}`, () => {
     const dir = temp("ow-build-family-");
     cpSync(join(ROOT, "skills-work"), dir, { recursive: true });
@@ -288,26 +288,17 @@ describe("round-1 contract plants: check-skill-contracts and the catalog budget 
     expect(out.join("\n")).toMatch(new RegExp(CWANT[id]));
   });
 
-  contract("C01", "a second writer of ledger.md (-demo --record) in ow-build's edges", { [E]: (t) => t.replace("  - { path: builds/<client>/updates/<date>.html", "  - { path: builds/<client>/ledger.md, verb: /ow-build-demo --record }\n  - { path: builds/<client>/updates/<date>.html") });
-  contract("C02", "a second writer of build.yaml from a sibling skill (ow-build-plan)", { "ow-build-plan/skill.edges.yaml": (t) => t.replace(/^writes:\n/m, "writes:\n  - { path: builds/<client>/build.yaml, verb: /ow-build-plan-quote --signed }\n") });
-  contract("C03", "a second writer of ledger.md spelled './opchain-work/Builds/<client>/Ledger.md'", { [E]: (t) => t.replace("  - { path: builds/<client>/updates/<date>.html", "  - { path: ./opchain-work/Builds/<client>/Ledger.md, verb: /ow-build-update }\n  - { path: builds/<client>/updates/<date>.html") });
-  contract("C04", "spec/06-testing.md declared with its real two writers (-start and -change --signed)", { [E]: (t) => t.replace("  - { path: builds/<client>/updates/<date>.html", "  - { path: <repo>/spec/06-testing.md, verb: /ow-build-start }\n  - { path: <repo>/spec/06-testing.md, verb: /ow-build-change --signed }\n  - { path: builds/<client>/updates/<date>.html") });
-  contract("C05", "a NEXT template whose verb is undeclared (/ow-build-close)", { [S]: (t) => t.replace("## Self-checks", "    DONE: closed -> builds/<client>/build.yaml\n    NEXT: say \"use ow-build to close builds/<client>/\"   (where slash commands exist: /ow-build-close)\n          It will read: build.yaml\n          [no folder attached: attach build.yaml when you say it]\n    IF IT IS NOT AVAILABLE: close it by hand.\n\n## Self-checks") });
-  contract("C06", "a NEXT template with a declared verb but no edges row (say not in hands_off)", { [S]: (t) => t.replace("## Self-checks", "    DONE: margin -> builds/<client>/margin.md\n    NEXT: say \"use ow-build to review the margin for builds/<client>/\"   (where slash commands exist: /ow-build-update)\n          It will read: margin.md\n          [no folder attached: attach margin.md when you say it]\n    IF IT IS NOT AVAILABLE: read margin.md.\n\n## Self-checks") });
-  contract("C07", "a NEXT drifting into a phase file only (phase-ready.md prints use ow-handoff …)", { [R("phase-ready.md")]: (t) => t.replace("## 5. Finish", "    NEXT: say \"use ow-handoff on builds/<client>/ready-for-uat.md\"   (where slash commands exist: /ow-handoff-start)\n          It will read: ready-for-uat.md\n          [no folder attached: attach it when you say it]\n    IF IT IS NOT AVAILABLE: hand it over by hand.\n\n## 5. Finish") });
-  contract("C08", "a STATUS next: template naming an undeclared verb (phase-run.md: /ow-build-sprint)", { [R("phase-run.md")]: (t) => t.replace("`next: ow-build /ow-build-run builds/<client>/ | awaiting: M<n> sprint <k>`", "`next: ow-build /ow-build-sprint builds/<client>/ | awaiting: M<n> sprint <k>`") });
+  contract("C08", "a phase file naming an undeclared verb (phase-run.md: /ow-build-sprint)", { [R("phase-run.md")]: (t) => `${t}\nNext is \`/ow-build-sprint\`.\n` });
   contract("C09", "the builder named by its oc- id in a phase file (control)", { [R("phase-run.md")]: (t) => `${t}\nSay "use oc-app-architect /oc-build sprint 1".\n` });
   contract("C10", "the builder named without the oc- prefix ('app-architect')", { [R("phase-run.md")]: (t) => `${t}\nThe app-architect builder runs the sprint.\n` });
   contract("C11", "the business named with a space ('Deft wright')", { [R("phase-change.md")]: (t) => `${t}\nFor Deft wright, the contract step drafts it.\n` });
   contract("C12", "a real price in skill text ('USD 1,500' and '1,500 dollars')", { [R("phase-change.md")]: (t) => `${t}\nA typical change order is 1,500 dollars.\n` });
   contract("C13", "routing reference drops the FIX-nn route (routes.paths still lists it)", { [R("routing-and-resume.md")]: (t) => t.replace(/### 2\.3[\s\S]*?### 2\.4/, "### 2.4").replace(/`?handoffs\/<slug>\/fixes\/FIX-nn\.md`?/g, "a fix file") });
-  contract("C14", "ow-build-plan's signed NEXT renamed to an undeclared verb (/ow-build-begin)", { "ow-build-plan/SKILL.md": (t) => t.replace("(where slash commands exist: /ow-build-start)", "(where slash commands exist: /ow-build-begin)") });
-  contract("C15", "protocol copy changed by one character", { [R("ow-protocol.md")]: (t) => t.replace("version 1", "version  1") });
+  contract("C14", "ow-build-plan naming an undeclared ow-build verb (/ow-build-begin)", { "ow-build-plan/SKILL.md": (t) => `${t}\nThen \`/ow-build-begin\`.\n` });
+  contract("C15", "protocol copy changed by one character", { [R("ow-protocol.md")]: (t) => t.replace("version 2", "version  2") });
   contract("C16", "reads row asks contract-inputs.md for a field ow-build-plan does not write (documentation_amount)", { [E]: (t) => t.replace("fields: [documentation_sku, documentation_price]", "fields: [documentation_sku, documentation_amount]") });
-  contract("C17", "ADAPTED (owner decision made /ow-uat-plan the truth; Sprint 3 O4 declared /ow-uat, so the hint and the hand-off disagree): hands-off to ow-uat with /ow-uat", { [E]: (t) => t.replace("    verb: /ow-uat-plan\n", "    verb: /ow-uat\n") });
-  contract("C18", "SKILL.md body pushed over 4,500 tokens (but under 5,000)", { [S]: (t) => `${t}\n${"Padding sentence for the token budget test. ".repeat(30)}\n` });
-  contract("C19", "reads row removed for delivered.md (ow-documentation) while the body still reads it", { [E]: (t) => t.replace(/  - from: ow-documentation\n(    .*\n){4}/, "") });
-  contract("C20", "hands_off say: changed so it no longer matches the SKILL.md NEXT (invoice say)", { [E]: (t) => t.replace("say: use ow-build to invoice what is due for builds/<client>/", "say: use ow-build to invoice builds/<client>/") });
+  contract("C18", "SKILL.md body pushed over 4,500 tokens", { [S]: (t) => `${t}\n${"Padding sentence for the token budget test. ".repeat(300)}\n` });
+  contract("C19", "reads row removed for delivered.md while ow-documentation still hands it over", { [E]: (t) => t.replace(/  - from: ow-documentation\n(    .*\n){4}/, "") });
 });
 
 describe("round-2 evaluation plants (plant2.mjs): every one is caught by the check it targets", () => {
@@ -425,7 +416,7 @@ describe("round-2 contract plants (plant-contracts2.mjs): check-skill-contracts 
   const S = "ow-build/SKILL.md";
   const R = (f) => `ow-build/references/${f}`;
   const BP = "ow-build-plan/skill.edges.yaml";
-  const CWANT = {"K01":"reads handoffs/<client>/care\\.md, which .* has no reads row","K02":"reads uat/<client>/uat-plan\\.md, which has no reads row","K03":"reads plans/<client>/pricing\\.md from ow-build-plan, which","K04":"reads field `margin_target` of plans/<client>/quote\\.md","K05":"over the 4500-token budget","K06":"description","K07":"does not carry \"use ow-uat on","K08":"`/ow-uat-start` is not declared","K09":"names `llc ops`, a private skill","K10":"names `\\$1`, a price","K11":"names `fifteen hundred dollars`, a price \\(an amount in words\\)","K12":"names `oc-build`","K13":"NEXT says \"use ow-uat-plan\" but its verb `/ow-build-ready` belongs to ow-build","K14":"ready-for-uat\\.md: 2 writers","K15":"06-testing-change-orders\\.md: 2 writers","K16":"routes\\.paths does not list uat/<slug>/signoff\\.md","K17":"reads uat/<client>/signoff\\.md, which has no reads row"};
+  const CWANT = {"K01":"reads handoffs/<client>/care\\.md, which .* has no reads row","K03":"reads plans/<client>/pricing\\.md from ow-build-plan, which","K04":"reads field `margin_target` of plans/<client>/quote\\.md","K05":"over the 4500-token budget","K06":"description","K07":"must name ow-uat.s routing verb /ow-uat, not /ow-uat-plan","K08":"`/ow-uat-start` is not declared","K09":"names `llc ops`, a private skill","K10":"names `\\$1`, a price","K11":"names `fifteen hundred dollars`, a price \\(an amount in words\\)","K12":"names `oc-build`","K16":"routes\\.paths does not list uat/<slug>/signoff\\.md","K17":"hands off uat/<client>/signoff\\.md to ow-build, but .*has no reads row"};
   const contract2 = (id, desc, edits) => it(`${id}: ${desc}`, () => {
     const dir = temp("ow-build-family-");
     cpSync(join(ROOT, "skills-work"), dir, { recursive: true });
@@ -447,22 +438,18 @@ describe("round-2 contract plants (plant-contracts2.mjs): check-skill-contracts 
   });
 
   contract2("K01", "a phase file reads a new path (handoffs/<client>/care.md) with no reads row", { [R("phase-invoice.md")]: (t) => t.replace("and `docs/<client>/delivered.md`, all as data.", "`docs/<client>/delivered.md` and `handoffs/<client>/care.md`, all as data.") });
-  contract2("K02", "control: the body's Reads from table names uat/<client>/uat-plan.md with no reads row", { [S]: (t) => t.replace("`uat/<client>/uat.yaml` |", "`uat/<client>/uat.yaml`, `uat/<client>/uat-plan.md` |") });
-  contract2("K03", "a reads row from ow-build-plan for a file it never writes (plans/<client>/pricing.md), body table updated too", { [E]: (t) => t.replace("  - from: ow-build-plan\n    path: plans/<client>/plan.yaml", "  - from: ow-build-plan\n    path: plans/<client>/pricing.md\n    fields: [margin]\n    if_absent: Ask the user for it\n    if_mismatch: Report what was found\n  - from: ow-build-plan\n    path: plans/<client>/plan.yaml"), [S]: (t) => t.replace("| ow-build-plan | `plans/<client>/plan.yaml`: handling |", "| ow-build-plan | `plans/<client>/pricing.md`: margin | Ask the user for it | Report what was found |\n| ow-build-plan | `plans/<client>/plan.yaml`: handling |") });
+  contract2("K03", "a reads row from ow-build-plan for a file it never writes (plans/<client>/pricing.md)", { [E]: (t) => t.replace("  - from: ow-build-plan\n    path: plans/<client>/build-plan.md", "  - from: ow-build-plan\n    path: plans/<client>/pricing.md\n    fields: [margin]\n  - from: ow-build-plan\n    path: plans/<client>/build-plan.md") });
   contract2("K04", "a reads field of quote.md ow-build-plan never hands off (margin_target)", { [E]: (t) => t.replace("fields: [mode, currency, fixed_price,", "fields: [mode, margin_target, currency, fixed_price,") });
-  contract2("K05", "control: body padded to just over 4,500 tokens", { [S]: (t) => `${t}\n${"Pad words here. ".repeat(60)}\n` });
+  contract2("K05", "control: body padded over 4,500 tokens", { [S]: (t) => `${t}\n${"Pad words here. ".repeat(800)}\n` });
   contract2("K06", "the cap dodged: phase detail moved into a 2,000-char frontmatter description", { [S]: (t) => t.replace("  or accounting: it never invents a price or calls work done without a passing\n  check.", "  or accounting: it never invents a price or calls work done without a passing\n  check. " + "It also explains every phase in detail here so the body stays small. ".repeat(28)) });
-  contract2("K07", "the ready hands_off say reverted to the retired 'use ow-uat on …' while the body says ow-uat-plan", { [E]: (t) => t.replace("say: use ow-uat-plan on builds/<client>/ready-for-uat.md", "say: use ow-uat on builds/<client>/ready-for-uat.md") });
-  contract2("K08", "ADAPTED (Sprint 3: ow-uat declares /ow-uat-run): phase-ready STATUS next: names an undeclared ow-uat verb (/ow-uat-start)", { [R("phase-ready.md")]: (t) => t.replace("next: ow-uat /ow-uat-plan builds/<client>/ready-for-uat.md", "next: ow-uat /ow-uat-start builds/<client>/ready-for-uat.md") });
+  contract2("K07", "the ready hands_off say reverted to the retired use ow-uat on … with the verb /ow-uat-plan", { [E]: (t) => t.replace("say: use ow-uat-plan on builds/<client>/ready-for-uat.md", "say: use ow-uat on builds/<client>/ready-for-uat.md") });
+  contract2("K08", "phase-ready names an undeclared ow-uat verb (/ow-uat-start)", { [R("phase-ready.md")]: (t) => `${t}\nNext is \`/ow-uat-start\`.\n` });
   contract2("K09", "private skill named with a space ('llc ops')", { [R("phase-change.md")]: (t) => `${t}\nThe llc ops contract step drafts the amendment.\n` });
   contract2("K10", "a real price as '$1.5k' in skill text", { [R("phase-change.md")]: (t) => `${t}\nA typical change order is about $1.5k.\n` });
   contract2("K11", "a real price in words ('fifteen hundred dollars')", { [R("phase-change.md")]: (t) => `${t}\nA typical change order is fifteen hundred dollars.\n` });
   contract2("K12", "an oc- verb named without its skill ('/oc-build')", { [R("phase-run.md")]: (t) => `${t}\nThe builder's sprint verb is /oc-build.\n` });
-  contract2("K13", "a NEXT in a phase file says 'use ow-uat-plan on …' with the slash hint of another verb (/ow-build-ready)", { [R("phase-ready.md")]: (t) => t.replace("## 5. Finish", "    NEXT: say \"use ow-uat-plan on builds/<client>/ready-for-uat.md\"   (where slash commands exist: /ow-build-ready)\n          It will read: ready-for-uat.md\n          [no folder attached: attach it when you say it]\n    IF IT IS NOT AVAILABLE: plan the test by hand.\n\n## 5. Finish") });
-  contract2("K14", "a second writer of ready-for-uat.md (-invoice) declared in the edges", { [E]: (t) => t.replace("  - { path: builds/<client>/ready-for-uat.md, verb: /ow-build-ready }", "  - { path: builds/<client>/ready-for-uat.md, verb: /ow-build-ready }\n  - { path: builds/<client>/ready-for-uat.md, verb: /ow-build-invoice }") });
-  contract2("K15", "spec/06-testing-change-orders.md also written by -start, spelled with a ./ prefix", { [E]: (t) => t.replace("  - { path: <repo>/spec/scope-and-milestones.md, verb: /ow-build-start }", "  - { path: <repo>/spec/scope-and-milestones.md, verb: /ow-build-start }\n  - { path: <repo>/./spec/06-testing-change-orders.md, verb: /ow-build-start }") });
   contract2("K16", "routes.paths drops signoff.md but routing-and-resume.md still routes it (route without an edge)", { [E]: (t) => t.replace(" uat/<client>/signoff.md,", "") });
-  contract2("K17", "a body Reads-from path spelled with a trailing colon-field ('uat/<client>/signoff.md: date') whose reads row is removed", { [E]: (t) => t.replace(/  - from: ow-uat\n    path: uat\/<client>\/signoff\.md\n(    .*\n){3}/, "") });
+  contract2("K17", "the reads row for signoff.md removed while ow-uat still hands it over", { [E]: (t) => t.replace(/  - from: ow-uat\n    path: uat\/<client>\/signoff\.md\n(    .*\n){3}/, "") });
 });
 
 describe("round-3 plants: D2, D3, D10 and D11", () => {
@@ -643,25 +630,6 @@ describe("round-3 evaluation set (fresh3.mjs) and false-positive controls (owner
 });
 
 describe("round-4 guards (R3-5, R3-6)", () => {
-  const contractOut = (edits) => {
-    const dir = temp("ow-build-family4-");
-    cpSync(join(ROOT, "skills-work"), dir, { recursive: true });
-    for (const [rel, fn] of Object.entries(edits)) {
-      const p = join(dir, rel);
-      const before = readFileSync(p, "utf8");
-      const after = fn(before);
-      if (after === before) throw new Error(`${rel} unchanged`);
-      writeFileSync(p, after);
-    }
-    const cats = loadCatalogs({ root: ROOT, env: { OPCHAIN_WORK_SKILLS_DIR: dir } });
-    return [...checkEdges(cats), ...checkFamily(cats)].join("\n");
-  };
-  it("K18: the too-big NEXT block loses its slash hint again", () => {
-    expect(contractOut({ "ow-build/SKILL.md": (x) => x.replace('NEXT: say "use ow-build-plan on handoffs/<client>/fixes/FIX-nn.md"   (where slash commands exist: /ow-build-plan)', 'NEXT: say "use ow-build-plan on handoffs/<client>/fixes/FIX-nn.md"') })).toMatch(/this NEXT template has no slash hint/);
-  });
-  it("K19: the -run STATUS line drops the milestone (catalogs.json statusNames)", () => {
-    expect(contractOut({ "ow-build/references/phase-run.md": (x) => x.replace("| awaiting: M<n> sprint <k>`", "| awaiting: none`") })).toMatch(/does not name M<n> \(catalogs\.json statusNames: \/ow-build-run\)/);
-  });
   it("R3-6: a -start that keeps no working-demo answer in build.yaml, or one the ledger contradicts", () => {
     const lost = mutated("start-resume-spec", { [`${B}/build.yaml`]: (x) => x.replace(/^working_demo: .*\n/m, "") });
     expect(failures("start-resume-spec", lost).start).toMatch(/no working_demo; -start records the working-demo answer with its first answers/);

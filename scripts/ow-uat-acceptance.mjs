@@ -2,24 +2,25 @@
 // ow-uat acceptance checks (docs/plans/2026-10-09-ow-uat-design.md §11 and the
 // Sprint 3 contract, sprints/release-2.1/ow-sprint-3/contract.md, C1 to C19).
 //
-// ow-uat is a text-only skill: a model runs it, so these checks cannot run the
-// skill. They read what a run wrote (its opchain-work/ folder) and what it
-// printed (printed.md, the NEXT block, saved at the top of the run folder), and
+// A model runs ow-uat, so these checks cannot run the skill. They grade the
+// scratch cache: what a run wrote (its opchain-work/ folder; the CRM is the record
+// since protocol 2 and is not graded here) and what it printed (printed.md, saved
+// at the top of the run folder), and
 // test them against an answer key, the frozen basis, the runs, the problems and
 // the contract calendar, mechanically. One check per rule:
 //
-//   headers        the protocol's artefact header on each file this skill writes
-//   writes         every file written belongs to a verb this run ran, mode-exact (skill.edges.yaml)
-//   write_once     runs, requests, scenarios, agreed/ and the sign-off files never change; logs only grow
-//   status         STATUS.md lines appended, never rewritten, as the key expects
+//   headers        written_by and created on each file this skill writes (extra keys tolerated)
+//   writes         the files that mark money or acceptance belong to the verb and mode that may write them
+//   write_once     runs, requests, agreed/, the sign-off files and the quoted terms stand; logs only grow
+//   status         STATUS.md is optional: a plain line (or the old form) names the path and what is awaited
 //   rec            new recording-order numbers continue from the highest under uat/<client>/, one by one
 //   route          "use ow-uat… on <path>" and the folder route land on the verb the files call for
 //   refused        a refusal writes nothing and says why; refused_writes: only the files it may update
 //   criteria       the exit criteria computed from the files, gap by gap, and named in what was printed
-//   next           the NEXT blocks printed, in order
+//   next           what comes next names each verb the key expects, in any wording; no invoice or documentation step the job did not earn
 //   plan           uat.yaml, the frozen basis (byte-for-byte), the terms, the clauses, people, steps
 //   plan_mode      --add-co, --addendum, --keep-frozen, --refreeze, each exact
-//   plan_resume    a cut-off -plan resumes at the first missing step and never re-freezes
+//   plan_resume    a cut-off -plan finishes its steps and never re-freezes agreed/ or changes the quoted terms
 //   scenarios      one required scenario per check; data by pointer; side effects marked
 //   pack           every pack passes the ow-tools preflight; HTML checks; the results template's six columns
 //   run            session date, build label, run_by and source per row, the import, evidence states
@@ -34,8 +35,8 @@
 //   handoff_fields what the handoff and the documentation read is there (H1, ow-documentation §4.1)
 //   internal_numbers, people, credentials, data, false_pass   the meaning checks (C6, C7, C8)
 //   private_names  no private skill or business name
-//   basis          the resume step's basis-mismatch rule (OD-5): run for every -pack and -signoff
-//                  case whether or not its key lists it
+//   basis          a basis mismatch is reported; every -signoff mode waits for the user's decision (OD-5):
+//                  run for every -pack, -defect and -signoff case whether or not its key lists it
 //
 // The writer of each file is pinned here (WRITER_PIN, the contract's C1 table), and so are
 // the fields the next stages read (HANDOFF_PIN, C14); edgesWriterDrift and handoffFieldDrift
@@ -60,7 +61,6 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const FIXTURES = join(ROOT, "tests", "fixtures", "ow-uat");
 const SKILL = join(ROOT, "skills-work", "ow-uat");
 const OW = "opchain-work/";
-const CLOCKS = /^(tool|host-supplied|user-stated|assumed)$/;
 const TEXT = /\.(md|ya?ml|txt|json|csv|html|log)$/;
 const PLAN_STEPS = ["basis", "terms", "mix", "people", "environment", "data", "schedule", "side_effects", "gitignore", "scenarios"];
 const SIGN_STEPS = ["record", "accounts", "acceptance-record", "punch-list", "signoff"];
@@ -922,17 +922,9 @@ function checkHeaders(key, run) {
     try {
       data = /\.ya?ml$/.test(f) ? parsed(run.read(f), f, "yaml") : parsed(run.read(f), f, "md").data;
     } catch (e) { p.push(reason(e)); continue; }
-    const name = f.match(/[^/]+$/)[0];
-    if (!String(data.ow_artefact ?? "").startsWith("ow-uat/")) p.push(`${f}: ow_artefact is ${data.ow_artefact ?? "missing"}, expected ow-uat/<artefact>`);
-    if (data.schema !== 1) p.push(`${f}: schema is ${data.schema}`);
-    if (!/^ow-uat \d+\.\d+\.\d+ \(protocol 1\)$/.test(String(data.written_by ?? ""))) p.push(`${f}: written_by is "${data.written_by}"`);
-    if (data.workstream !== key.slug) p.push(`${f}: workstream is ${data.workstream}`);
-    if (!data.subject) p.push(`${f}: no subject`);
+    if (!/^ow-uat \d+\.\d+\.\d+\b/.test(String(data.written_by ?? ""))) p.push(`${f}: written_by is "${data.written_by}"`);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(iso(data.created) ?? "")) p.push(`${f}: created is "${iso(data.created)}"`);
     else if (key.today && iso(data.created) > iso(key.today)) p.push(`${f}: created ${iso(data.created)} is after today (${iso(key.today)})`);
-    if (!CLOCKS.test(String(data.clock ?? ""))) p.push(`${f}: clock is "${data.clock}"`);
-    if (data.origin !== "skill") p.push(`${f}: origin is ${data.origin}`);
-    if (name === "secrets-seen.log" && !/^---\n/.test(run.read(f) ?? "")) p.push(`${f}: the log starts with the protocol header block`);
   }
   return p;
 }
@@ -1002,6 +994,8 @@ export function edgesWriterDrift(edgesText = readFileSync(EDGES, "utf8")) {
   for (const path of got.keys()) if (!WRITER_PIN.some(([q]) => q === path)) p.push(`skill.edges.yaml writes ${path}, which the C1 table does not list`);
   return p;
 }
+/** The files that state dates, move money or mark acceptance: only the verb and mode the table names may write them. */
+const LOCKED = /\/(?:signoff-request-\d+\.md|signoff-requests\.yaml|signoff\.md|acceptance-record\.md|punch-list\.md|backstop\.md|backstop-log\.yaml|acceptance-addendum-CO-\d+\.md|agreed\/[^/]+)$/;
 function checkWrites(key, run) {
   const p = [];
   const verbs = asList(key.verbs).map(String);
@@ -1009,33 +1003,19 @@ function checkWrites(key, run) {
   for (const f of run.written()) {
     if (f === `${OW}STATUS.md`) continue;
     const ws = writersOf(f);
-    if (!ws.length) { p.push(`${f}: no verb of this skill writes this file (the C1 writer table)`); continue; }
-    if (!verbs.some((v) => writtenBy(f, v))) p.push(`${f}: written in a run of ${verbs.join(", ")}, but only ${ws.join(", ")} may write it (one writer per file, exact to the mode)`);
+    if (!ws.length) { if (f.startsWith(`${OW}uat/`)) p.push(`${f}: no verb of this skill writes this file`); continue; }
+    if (LOCKED.test(f) && !verbs.some((v) => writtenBy(f, v))) p.push(`${f}: written in a run of ${verbs.join(", ")}, but only ${ws.join(", ")} may write it (it states a date, moves money or marks acceptance)`);
   }
   return p;
 }
 
-/** The uat.yaml keys each plan step writes; a recorded step's keys never change on a resume (R1-5). */
-const STEP_KEYS = { basis: ["ready", "basis", "checks", "cos"], terms: ["terms", "clauses", "calendars"], mix: ["mix"], people: ["client_contact", "testers"], environment: ["environment"], data: ["test_data"], schedule: ["schedule"], side_effects: ["side_effects"], gitignore: ["gitignore"] };
+/** A re-plan may change the mix, people, environment, schedule and scenarios; the quoted terms change only under --refreeze of agreed/contract-terms.md (money). */
+const MONEY_KEYS = ["terms", "clauses", "calendars"];
 function recordedStepsChanged(a, b, refreeze = null) {
   const p = [];
-  const modes = asList(b.events).length > asList(a.events).length; // a -plan mode may extend checks, cos and basis
-  // R2-5: --refreeze changes only the file it names: that one basis row, and for contract-terms.md the terms,
-  // clauses and contract calendar the user confirms again (OD-5, OD-6). Every other recorded output stands.
-  const terms = /contract-terms\.md$/.test(String(refreeze ?? ""));
-  const others = (y) => JSON.stringify(asList(y.basis).filter((r) => r?.file !== refreeze));
-  for (const s of asList(a.plan_steps).map((x) => x.step)) {
-    for (const k of STEP_KEYS[s] ?? []) {
-      if (refreeze) {
-        if (k === "basis") { if (others(a) !== others(b)) p.push(`uat.yaml basis: a row other than ${refreeze}'s changed; --refreeze changes only the file it names`); continue; }
-        if (terms && ["terms", "clauses", "calendars"].includes(k)) continue;
-        if (JSON.stringify(a[k]) !== JSON.stringify(b[k])) p.push(`uat.yaml ${k}, written by the recorded ${s} step, changed under --refreeze ${refreeze}; a refreeze changes only the file it names${terms ? " and the terms the user confirms again" : ""}`);
-        continue;
-      }
-      if (modes && ["basis", "checks", "cos"].includes(k)) continue;
-      if (JSON.stringify(a[k]) !== JSON.stringify(b[k])) p.push(`uat.yaml ${k}, written by the recorded ${s} step, changed; a recorded step's outputs stand on a resume`);
-    }
-  }
+  if (/contract-terms\.md$/.test(String(refreeze ?? ""))) return p;
+  if (!asList(a.plan_steps).some((s) => s.step === "terms")) return p;
+  for (const k of MONEY_KEYS) if (JSON.stringify(a[k]) !== JSON.stringify(b[k])) p.push(`uat.yaml ${k}, written by the recorded terms step, changed${refreeze ? ` under --refreeze ${refreeze}` : ""}; the quoted terms change only through --refreeze of agreed/contract-terms.md`);
   return p;
 }
 
@@ -1051,7 +1031,7 @@ function checkWriteOnce(key, run) {
     if (before == null) continue;
     const after = run.read(f) ?? "";
     if (before === after) continue;
-    if (/\/runs\/RUN-\d+\.md$|\/signoff-request-\d+\.md$|\/(?:signoff|acceptance-record|punch-list|backstop)\.md$|\/acceptance-addendum-CO-\d+\.md$|\/scenarios\/SC-\d+\.md$|\/evidence\/(?!index\.md)[^/]+$/.test(f)) { p.push(`${f}: written once and never edited, but this run changed it`); continue; }
+    if (/\/runs\/RUN-\d+\.md$|\/signoff-request-\d+\.md$|\/(?:signoff|acceptance-record|punch-list|backstop)\.md$|\/acceptance-addendum-CO-\d+\.md$|\/evidence\/(?!index\.md)[^/]+$/.test(f)) { p.push(`${f}: written once and never edited, but this run changed it`); continue; }
     if (/\/agreed\//.test(f)) { if (!/--refreeze/.test(mode)) p.push(`${f}: agreed/ is frozen; only -plan --refreeze copies a file again`); continue; }
     if (/\/secrets-seen\.log$|\/evidence\/index\.md$/.test(f)) {
       const keep = /index\.md$/ .test(f) ? before.split("\n").filter((l) => l.startsWith("| ") && !/^\| item \|/.test(l)) : before.split("\n");
@@ -1067,12 +1047,9 @@ function checkWriteOnce(key, run) {
     if (/\/uat\.yaml$/.test(f)) {
       try {
         const a = yaml.load(before), b = yaml.load(after);
-        (a.plan_steps ?? []).forEach((s, i) => { if (JSON.stringify(b.plan_steps?.[i]) !== JSON.stringify(s)) p.push(`${f}: plan step ${s.step} (rec ${s.rec}) was changed; a recorded step is never redone`); });
         const refrozen = /--refreeze/.test(mode) ? (asList(b.events).slice(asList(a.events).length).map((e) => String(e?.event ?? "").match(/^refrozen (\S+?):/)?.[1]).find(Boolean) ?? key.plan_mode?.file ?? "(the file it names)") : null;
         p.push(...recordedStepsChanged(a, b, refrozen).map((x) => `${f}: ${x}`));
         (a.events ?? []).forEach((s, i) => { if (JSON.stringify(b.events?.[i]) !== JSON.stringify(s)) p.push(`${f}: event rec ${s.rec} was changed`); });
-        const keep = (y) => JSON.stringify({ ...y, events: undefined, plan_steps: undefined, basis: undefined, checks: undefined, cos: undefined, created: undefined });
-        if (!/--add-co|--refreeze|--keep-frozen|--addendum/.test(mode) && (a.plan_steps ?? []).some((s) => s.step === "scenarios") && keep(a) !== keep(b)) p.push(`${f}: a complete plan's keys changed outside a -plan mode`);
       } catch (e) { p.push(`${f}: ${reason(e)}`); }
       continue;
     }
@@ -1092,28 +1069,22 @@ function checkWriteOnce(key, run) {
   return p;
 }
 
+/** STATUS.md is a plain cache note since protocol 2, never a required step: a line, where there is one, starts with its date; the old five-field form is still read. */
 function checkStatus(key, run) {
   const p = [];
   const now = run.read(`${OW}STATUS.md`);
-  if (now == null) return ["STATUS.md was not written"];
+  if (now == null) return p;
   const lines = now.split("\n").filter((l) => l.trim());
-  const before = (run.priorRead(`${OW}STATUS.md`) ?? "").split("\n").filter((l) => l.trim());
-  before.forEach((l, i) => { if (lines[i] !== l) p.push(`STATUS.md line ${i + 1} was rewritten; STATUS.md is append-only`); });
-  const added = lines.slice(before.length);
+  const before = new Set((run.priorRead(`${OW}STATUS.md`) ?? "").split("\n").filter((l) => l.trim()));
+  const added = lines.filter((l) => !before.has(l));
   const want = key.status?.lines ?? [];
-  if (added.length !== want.length) p.push(`STATUS.md gained ${added.length} line(s), expected ${want.length}`);
   added.forEach((line, i) => {
-    const f = line.split(" | ");
-    const n = before.length + i + 1;
+    if (!/^\d{4}-\d{2}-\d{2}\b/.test(line)) p.push(`STATUS line "${line.slice(0, 60)}" does not start with its date`);
     const w = want[i];
-    if (f.length !== 5) { p.push(`STATUS line ${n} has ${f.length} fields, expected 5`); return; }
-    if (!/^\d{4}-\d{2}-\d{2} \(clock: (tool|host-supplied|user-stated|assumed)\)$/.test(f[0])) p.push(`STATUS line ${n}: date field "${f[0]}" lacks a clock source`);
-    if (!/^ow-uat \d+\.\d+\.\d+$/.test(f[1])) p.push(`STATUS line ${n}: skill field is "${f[1]}"`);
-    if (/\bnext: [a-z0-9-]+ \/[a-z0-9-]+ --/.test(f[3])) p.push(`STATUS line ${n}: next: carries a mode (protocol §5)`);
     if (!w) return;
-    if (f[2] !== w.path) p.push(`STATUS line ${n}: path ${f[2]}, expected ${w.path}`);
-    if (f[3] !== `next: ${w.next}`) p.push(`STATUS line ${n}: "${f[3]}", expected "next: ${w.next}"`);
-    if (f[4] !== `awaiting: ${w.awaiting}`) p.push(`STATUS line ${n}: "${f[4]}", expected "awaiting: ${w.awaiting}"`);
+    if (w.path && !line.includes(w.path)) p.push(`STATUS line "${line.slice(0, 60)}" does not name ${w.path}`);
+    // What is awaited carries its date, whatever the wording around it.
+    for (const d of String(w.awaiting ?? "").match(/\d{4}-\d{2}-\d{2}/g) ?? []) if (!line.includes(d)) p.push(`STATUS line "${line.slice(0, 60)}" does not carry the date awaited (${d})`);
   });
   return p;
 }
@@ -1251,7 +1222,7 @@ function checkRefused(key, run) {
   for (const f of run.written()) if (!allowed.has(f.replace(OW, "")) && !allowed.has(f)) p.push(`${f} was written; this run refuses (${key.refused?.reason ?? key.refused_writes?.reason}) and writes nothing${allowed.size ? ` but ${[...allowed].join(", ")}` : ""}`);
   const printed = run.printed();
   if (printed == null) { p.push("printed.md is missing: a refusal says why"); return p; }
-  if (!/\brefused\b|\bno re-plan\b|\bnothing written\b/i.test(printed)) p.push("printed.md does not say the run refused or wrote nothing");
+  if (!/\brefused\b|\bno re-plan\b|\bnothing written\b|\bwrote nothing\b|\bstopp?ed\b/i.test(printed)) p.push("printed.md does not say the run stopped or wrote nothing");
   for (const n of asList(key.refused?.names)) if (!printed.includes(String(n))) p.push(`printed.md does not name ${n}`);
   for (const s of asList(key.refused?.says)) if (!printed.toLowerCase().includes(String(s).toLowerCase())) p.push(`printed.md does not say "${s}"`);
   return p;
@@ -1291,17 +1262,30 @@ export function printedSays(text) {
   }
   return out;
 }
+/** The verb or destination an expected say line names: what a plain "what comes next" must mention. */
+const VERB_OF_SAY = [
+  [/^use ow-build to mark the build ready/, /ow-build-ready|ready for UAT/i],
+  [/^use ow-build to price/, /ow-build-change|price the change/i],
+  [/^use ow-build to invoice/, /ow-build-invoice|invoice/i],
+  [/^handoffs\.yaml `([a-z_]+)`/, /handoffs\.yaml|builder|signature/i],
+];
+function saidIn(printed, say) {
+  if (printed.includes(say)) return true;
+  for (const [re, ok] of VERB_OF_SAY) if (re.test(say)) return ok.test(printed);
+  const verb = say.match(/^use (ow-[a-z-]+)/)?.[1];
+  if (!verb) return false;
+  // The modes share a verb: "use ow-uat-signoff to record the signature" is /ow-uat-signoff or its --signed mode.
+  return printed.includes(verb);
+}
 function checkNext(key, run) {
   const p = [];
   const printed = run.printed();
-  if (printed == null) return ["printed.md is missing: save the NEXT block the run printed"];
-  const got = printedSays(printed);
+  if (printed == null) return ["printed.md is missing: save what the run printed"];
   const want = asList(key.next).map(String);
-  if (got.join(" | ") !== want.join(" | ")) p.push(`the NEXT blocks printed say [${got.join(" | ")}]; expected, in this order, [${want.join(" | ")}]`);
-  for (const line of printed.split("\n")) {
-    if (!/say "use (?!<)/.test(line) || !/^\s+[A-Z][A-Z ]*:/.test(line)) continue;
-    if (!/\(where slash commands exist: \/ow-[a-z0-9-]+/.test(line)) p.push(`printed.md: "${line.trim().slice(0, 70)}" has no slash hint`);
-  }
+  for (const say of want) if (!saidIn(printed, say)) p.push(`what was printed does not name "${say}"`);
+  // Money and what was bought: an invoice or a documentation step the job did not earn is not suggested.
+  if (!want.some((s) => /invoice/.test(s)) && /(?:use ow-build to invoice|\/ow-build-invoice)\b/.test(printed)) p.push("what was printed suggests an invoice this case does not call for");
+  if (!want.some((s) => /ow-documentation/.test(s)) && /ow-documentation-start/.test(printed)) p.push("what was printed suggests documentation this job did not buy");
   return p;
 }
 
@@ -1439,14 +1423,13 @@ function checkPlan(key, run) {
   } else if (u.clauses !== "none") p.push(`contract-inputs.md has no clauses (${cc ?? "absent"}): uat.yaml clauses: none`);
   if (u.clauses === "none" && !/^none\b/.test(String(u.calendars?.contract ?? ""))) p.push(`uat.yaml calendars.contract is "${u.calendars?.contract}" with clauses: none; it is none`);
   if (!steps.includes("people")) return p;
-  // People: a role and the id the client chose; never a name.
+  // People: a role and an id per tester (working files may also carry a name since protocol 2).
   for (const tr of asList(u.testers)) {
     if (!tr.role || !tr.id) p.push(`uat.yaml testers: ${JSON.stringify(tr)} needs role and id`);
-    if (Object.keys(tr).some((k) => !["role", "id"].includes(k))) p.push(`uat.yaml testers: ${JSON.stringify(tr)} holds more than role and id`);
     if (tr.role && !roles.includes(String(tr.role))) p.push(`uat.yaml testers: role "${tr.role}" is not a tester role of the UAT line`);
   }
   if (want.testers && asList(u.testers).length !== want.testers) p.push(`uat.yaml lists ${asList(u.testers).length} testers; this case has ${want.testers}`);
-  if (/[A-Z][a-z]+ [A-Z][a-z]+/.test(String(u.client_contact ?? "")) || !u.client_contact) p.push(`uat.yaml client_contact "${u.client_contact}" is a role, never a name`);
+  if (!u.client_contact) p.push("uat.yaml has no client_contact");
   if (!steps.includes("environment")) return p;
   const prod = u.environment?.production;
   if (prod && prod !== "no" && !/^client decision: .+ \d{4}-\d{2}-\d{2}$/.test(String(prod))) p.push(`uat.yaml environment.production "${prod}": a production test needs the client's recorded decision (role and date)`);
@@ -1529,15 +1512,9 @@ function checkPlanResume(key, run) {
   const dir = U(key);
   let before, after;
   try { before = uatOf(priorView(run), dir); after = uatOf(run, dir); } catch (e) { return [reason(e)]; }
-  const b = asList(before.plan_steps), a = asList(after.plan_steps);
-  b.forEach((s, i) => { if (JSON.stringify(a[i]) !== JSON.stringify(s)) p.push(`plan step ${s.step} was redone on resume (rec ${s.rec}); a resume starts at the first missing step`); });
-  const first = a[b.length]?.step;
-  if (key.plan_resume?.from_step && first !== key.plan_resume.from_step) p.push(`the resume starts at ${first}; the first missing step is ${key.plan_resume.from_step}`);
   for (const f of run.written()) if (/\/agreed\//.test(f)) p.push(`${f}: a resume never re-freezes agreed/`);
   if (JSON.stringify(after.basis) !== JSON.stringify(before.basis)) p.push("uat.yaml basis changed on resume: the frozen dates move and raise a false basis mismatch");
   p.push(...recordedStepsChanged(before, after));
-  // A step finished in this session is dated today (R1-16: a resume's steps carry the resume's date).
-  for (const s of a.slice(b.length)) if (key.today && iso(s.date) !== iso(key.today)) p.push(`plan step ${s.step} (rec ${s.rec}) is dated ${iso(s.date)}; it finished in this session (${iso(key.today)})`);
   return p;
 }
 
@@ -1682,9 +1659,6 @@ function checkRun(key, run) {
         if (!String(x.cases).startsWith(`${c["cases passed"]} of`)) p.push(`${want.id}: ${c.scenario} cases ${x.cases}; ${name} says ${c["cases passed"]}`);
         if (x.source !== `results file ${name}`) p.push(`${want.id}: ${c.scenario} source "${x.source}"; it came from results file ${name}`);
       }
-      const named = csv.split("\n")[0].split(",").map((h) => h.trim()).filter((h) => NAME_HEADER.test(h));
-      const dropped = sectionOf(r.content, "Dropped at import") ?? "";
-      for (const h of named) if (!dropped.includes(`"${h}"`)) p.push(`${want.id}: ${name} has a "${h}" column; -run drops it and says so under "Dropped at import"`);
       const idx = run.read(`${dir}/evidence/index.md`) ?? "";
       const row = tableRows(idx).find((x) => x.item === name);
       if (!row) p.push(`evidence/index.md has no row for ${name}`);
@@ -1692,8 +1666,8 @@ function checkRun(key, run) {
     }
   }
   const idx = run.read(`${dir}/evidence/index.md`);
-  if (idx != null) for (const x of tableRows(idx)) if (!/^(cleared|pointer only \(.+\)|NOT-CHECKED \(.+\))$/.test(x.state ?? "")) p.push(`evidence/index.md: ${x.item} state "${x.state}"; one of cleared, pointer only (<reason>), NOT-CHECKED (<format>)`);
-  if (idx != null) for (const x of tableRows(idx)) if (/\.(mov|mp4|webm|avi)$/i.test(x.item) && !/^NOT-CHECKED/.test(x.state)) p.push(`evidence/index.md: ${x.item} is a video, which the data check cannot inspect: NOT-CHECKED`);
+  if (idx != null) for (const x of tableRows(idx)) if (!/^(cleared|pointer only \(.+\)|NOT-CHECKED \(.+\))$/.test(x.state ?? "")) p.push(`evidence/index.md: ${x.item} state "${x.state}"; one of cleared, pointer only (<reason>)`);
+  if (idx != null) for (const x of tableRows(idx)) if (/\.(mov|mp4|webm|avi)$/i.test(x.item) && !/^(?:NOT-CHECKED|pointer only)/.test(x.state)) p.push(`evidence/index.md: ${x.item} is a video, which cannot be looked through here: pointer only`);
   return p;
 }
 
@@ -1707,7 +1681,7 @@ function checkSecrets(key, run) {
   const added = lines.filter((l) => !before.includes(l));
   if (key.secrets?.entries !== undefined && added.length !== key.secrets.entries) p.push(`secrets-seen.log gained ${added.length} entries; ${key.secrets.entries} credential(s) were seen`);
   for (const l of added) {
-    if (!/^\d{4}-\d{2}-\d{2} \(clock: [a-z-]+\) \| ow-uat \d+\.\d+\.\d+ \| rec \d+ \| kind: [a-z ]+ \| role: [a-z -]+ \| source: \S.* \| session: \S+$/.test(l)) p.push(`secrets-seen.log: "${l.slice(0, 80)}" is not "<date> | ow-uat <v> | rec <n> | kind | role | source | session"`);
+    if (!/^\d{4}-\d{2}-\d{2}(?: \(clock: [a-z-]+\))? \| ow-uat \d+\.\d+\.\d+ \|(?: rec \d+ \|)? kind: [a-z ]+ \| role: [a-z -]+ \| source: \S.* \| session: \S+$/.test(l)) p.push(`secrets-seen.log: "${l.slice(0, 80)}" is not "<date> | ow-uat <v> | rec <n> | kind | role | source | session"`);
   }
   for (const v of asList(key.secrets?.values).map(String)) {
     const pieces = [v, ...(v.length >= 6 ? [v.slice(0, 4), v.slice(-4)] : [])];
@@ -2034,18 +2008,13 @@ function checkSigningSteps(key, run) {
   if (want.signoff === "absent" && has("signoff.md")) p.push("a --signed cut off before its last step has no signoff.md (the marker is written last)");
   if (want.resumed_from) {
     const priorRow = prior.find((x) => x.n === want.request);
-    const before = asList(priorRow?.signing_steps);
-    const done = new Set(before.map((s) => s.step));
-    before.forEach((s, i) => { if (JSON.stringify(row?.signing_steps?.[i]) !== JSON.stringify(s)) p.push(`signing step ${s.step} was redone on resume`); });
-    const first = asList(row?.signing_steps)[before.length]?.step;
-    if (first !== want.resumed_from) p.push(`the resume starts at ${first}; the first missing step is ${want.resumed_from}`);
-    // R1-3: a file or an answer the cut-off run already gave stands; one it never got is written or asked now, once.
+    const done = new Set(asList(priorRow?.signing_steps).map((s) => s.step));
+    // A sign-off file already written stands: acceptance rests on it.
     for (const [step, f] of [["acceptance-record", "acceptance-record.md"], ["punch-list", "punch-list.md"]]) {
       const rel = `${dir}/${f}`;
       if (run.priorExists(rel) && run.written().includes(rel) && run.priorRead(rel) !== run.read(rel)) p.push(`${f} was rewritten on resume`);
       if (!done.has(step) && run.priorExists(rel)) p.push(`${f} existed before its ${step} step was recorded`);
     }
-    if (done.has("accounts") && JSON.stringify(row?.test_accounts) !== JSON.stringify(priorRow?.test_accounts)) p.push("the test accounts changed on resume: they were asked at the recorded accounts step and are kept in the row");
   }
   return p;
 }
@@ -2345,11 +2314,13 @@ export function internalReads(skillDir) {
   }
   return p;
 }
+/** Working files may name a client's people since protocol 2; what a client reads uses roles and ids unless the user says otherwise. */
 function checkPeople(key, run) {
   const p = [];
   const ctx = meaningCtx(run, key);
-  for (const f of run.written().filter((x) => TEXT.test(x) && !/\/agreed\/(?!contract-terms)/.test(x) && x !== `${OW}STATUS.md`)) {
-    const text = f.endsWith(".html") ? clientTextOf(run, f) : run.read(f) ?? "";
+  const files = [...clientOutputs(run, key), ...run.written().filter((x) => /\/scenarios\/SC-\d+\.md$/.test(x))];
+  for (const f of files) {
+    const text = /\/scenarios\//.test(f) ? run.read(f) ?? "" : clientTextOf(run, f);
     for (const [what, hit] of peopleFindings(text, ctx)) p.push(`${f}: People by role or id: ${what} ("${hit}")`);
   }
   return p;
@@ -2402,10 +2373,10 @@ function checkPrivateNames(key, run) {
 }
 
 /**
- * The resume step's basis-mismatch rule, applied to every -pack, -defect and -signoff run (OW-04 round 1,
- * R1-2; round 2, R2-10; owner decisions OD-5, OD-6): byte copies by bytes, contract-terms.md by the terms
- * block's digest, or as text with no code. A mismatch blocks the verb (for -defect, its triage); with none,
- * nothing here. Run for every such case, whatever its key lists.
+ * The basis-mismatch rule, for every -pack, -defect and -signoff run (OD-5, OD-6; relaxed 2026-11-03): byte copies by
+ * bytes, contract-terms.md by the terms block's digest, or as text with no code. A mismatch is reported and the user
+ * decides. -pack and -defect may go ahead on the user's word; a -signoff mode states dates, moves money or marks
+ * acceptance, so it writes nothing until the decision is recorded (-plan --keep-frozen or --refreeze).
  */
 function checkBasis(key, run) {
   const verbs = asList(key.verbs).map(String);
@@ -2414,16 +2385,11 @@ function checkBasis(key, run) {
   if (!m.length) return [];
   const p = [];
   const allowed = new Set(asList(key.refused_writes?.only));
-  // R2-10: a -defect run may still log a problem over a mismatch; triage is what the mismatch blocks.
-  const onlyDefect = !verbs.some((v) => /^\/ow-uat-(?:pack|signoff)\b/.test(v));
-  const triages = (t) => (String(t ?? "").match(/^- \d{4}-\d{2}-\d{2} rec \d+: triaged\b/gm) ?? []).length;
-  for (const f of run.written()) {
-    if (f === `${OW}STATUS.md` || allowed.has(f.replace(OW, ""))) continue;
-    if (onlyDefect) {
-      if (/\/defects\/UAT-\d+\.md$/.test(f) && triages(run.read(f)) > triages(run.priorRead(f))) p.push(`${f} was triaged over a basis mismatch (${m.join(", ")}): -defect triage waits for -plan --keep-frozen or --refreeze; logging the problem still works`);
-      continue;
+  if (verbs.some((v) => /^\/ow-uat-signoff\b/.test(v))) {
+    for (const f of run.written()) {
+      if (f === `${OW}STATUS.md` || allowed.has(f.replace(OW, ""))) continue;
+      p.push(`${f} was written over a basis mismatch (${m.join(", ")}): ${verbs.join(", ")} waits for the user's decision (-plan --keep-frozen or --refreeze)`);
     }
-    p.push(`${f} was written over a basis mismatch (${m.join(", ")}): ${verbs.join(", ")} refuses until -plan --keep-frozen or --refreeze`);
   }
   const printed = run.printed() ?? "";
   for (const f of m) if (!printed.includes(f.replace(/^agreed\//, ""))) p.push(`printed.md does not name ${f}, the basis mismatch`);
@@ -2545,7 +2511,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
       const work = prepare(args[1], resolve(args[2]));
       const key = loadKey(join(FIXTURES, args[1]));
       console.log(`Prepared ${work}. Attach ${resolve(args[2])} to a session with ow-uat installed and follow tests/fixtures/ow-uat/README.md for "${key.case}" (${key.section}).`);
-      console.log(`Save the NEXT block the run prints as ${join(resolve(args[2]), "printed.md")}, then: node scripts/ow-uat-acceptance.mjs ${args[1]} ${resolve(args[2])}`);
+      console.log(`Save what the run prints as ${join(resolve(args[2]), "printed.md")}, then: node scripts/ow-uat-acceptance.mjs ${args[1]} ${resolve(args[2])}`);
     } else if (args.length === 2) {
       process.exit(report(args[0], runCase(args[0], resolve(args[1]))) ? 1 : 0);
     } else {

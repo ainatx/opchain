@@ -1,6 +1,6 @@
 // ow-uat acceptance tests (docs/plans/2026-10-09-ow-uat-design.md §11 and the
-// Sprint 3 contract, sprints/release-2.1/ow-sprint-3/contract.md). ow-uat is a
-// text-only skill, so a model has to run it. These tests prove the mechanical
+// Sprint 3 contract, sprints/release-2.1/ow-sprint-3/contract.md), as relaxed by
+// the 2026-11-03 audience reversal. A model has to run ow-uat. These tests prove the mechanical
 // half: every §11 case except "Real use" (Sprint 6) and every C4 route cell has
 // an invented golden run that passes scripts/ow-uat-acceptance.mjs; each check
 // fails on its own when a file is malformed (C16); the contract calendar's
@@ -161,91 +161,101 @@ describe("the skill text keeps the rules the checker cannot see", () => {
     }
     expect(readFileSync(join(ROOT, "skills-work", "ow-build", "examples", "handoffs.yaml"), "utf8")).toBe(readFileSync(join(ROOT, "skills-work", "ow-uat", "examples", "handoffs.yaml"), "utf8"));
   });
-  it("frontmatter: Agent Skills keys only, version 1.0.2, protocol 1, six verbs", () => {
+  it("frontmatter: Agent Skills keys only, version 2.0.0, protocol 2, six verbs", () => {
     const { data } = matter(readFileSync(join(SKILL, "SKILL.md"), "utf8"));
     expect(Object.keys(data).sort()).toEqual(["compatibility", "description", "license", "metadata", "name"]);
-    expect(data.metadata.version).toBe("1.0.2");
-    expect(data.metadata.protocol).toBe("1");
+    expect(data.metadata.version).toBe("2.0.0");
+    expect(data.metadata.protocol).toBe("2");
     expect(data.metadata.commands.split(" ")).toEqual(["/ow-uat", "/ow-uat-plan", "/ow-uat-pack", "/ow-uat-run", "/ow-uat-defect", "/ow-uat-signoff"]);
   });
-  it("the body has the welcome, every verb and mode, every file it reads named, the hands-off rows and NEXT blocks with slash hints", () => {
+  it("the body has the welcome, every verb and mode, the question and approval budget, the CRM section and what comes next", () => {
     const b = body();
     for (const v of ["`/ow-uat`", "`/ow-uat on <path>`", "`/ow-uat-plan`", "`/ow-uat-plan --add-co`", "`/ow-uat-plan --addendum`", "`/ow-uat-plan --keep-frozen <file>`", "`/ow-uat-plan --refreeze <file>`", "`/ow-uat-pack`", "`/ow-uat-run`", "`/ow-uat-defect`", "`/ow-uat-signoff`", "`/ow-uat-signoff --sent <n> <date>`", "`/ow-uat-signoff --signed <n> <date> <client role>`", "`/ow-uat-signoff --deemed <n>`", "`/ow-uat-signoff --readiness <date> <dependency>`", "`/ow-uat-signoff --builder-delay <days> <reason>`", "`/ow-uat-signoff --backstop`", "`/ow-uat-signoff --addendum`"]) expect(b, v).toContain(v);
-    expect(b).toMatch(/## Welcome \(first run: no `opchain-work\/uat\/`\)/);
-    for (const f of ["ready-for-uat.md", "changes/CO-nn.md", "changes/requests.md", "ledger.md", "scope.md", "acceptance.md", "quick-scope.md", "contract-inputs.md", "quote.md", "map/roles.md", "map/future.md", "dates.yaml", "offers.md", "handoffs.yaml", "brand.yaml", "evidence/<file>"]) expect(b, f).toContain(f);
-    expect(b.match(/where slash commands exist: \/ow-[a-z-]+/g).length).toBeGreaterThanOrEqual(21);
+    expect(b).toMatch(/## Welcome/);
+    expect(b).toMatch(/\*\*At most three questions per verb\*\*/);
+    expect(b).toMatch(/\*\*One approval\*\*: before a sign-off request is sent to the client, and before a signature/);
+    expect(b).toMatch(/## Where it lives in the CRM/);
+    for (const o of ["`acceptance_criteria`", "`support_requests`", "`ow-tools dw`", "`/api/admin/ingest/*`"]) expect(b, o).toContain(o);
+    expect(b).toMatch(/Never overwrite a human-edited version/);
+    expect(b).toMatch(/published only when the call returned success/);
+    expect(b).toMatch(/## What comes next/);
   });
-  it("R1-15: the Reads from table has one row per file: no row names two files, and every file the edges read from another skill has exactly one row", () => {
-    const rows = b2rows(body(), "## Reads from");
-    const pathsOf = (cell) => [...cell.matchAll(/`([^`]+)`/g)].map((m) => m[1].replace(/:$/, "")).filter((s) => /\/|\.(?:md|ya?ml|csv|log)$/.test(s));
-    for (const r of rows) expect(pathsOf(r[1] ?? ""), r.join(" | ")).toHaveLength(r[1] && /its own files/.test(r[1]) ? 0 : 1);
-    const edges = yaml.load(readFileSync(join(SKILL, "skill.edges.yaml"), "utf8"));
-    for (const rd of edges.reads.filter((x) => x.from !== "ow-uat")) {
-      const n = rows.filter((r) => pathsOf(r[1] ?? "").includes(rd.path)).length;
-      expect(n, rd.path).toBe(1);
-    }
+  it("the kept money and acceptance rules are in the body", () => {
+    const b = body();
+    expect(b).toMatch(/Never mark acceptance unless every required scenario passes on the latest build, after the last fix/);
+    expect(b).toMatch(/a signature or acceptance is the user's statement, with its date, never verified/i);
+    expect(b).toMatch(/a request too big for a change order goes to `\/ow-build-plan` as a follow-on/);
+    expect(b).toMatch(/priced in writing and agreed before work starts/);
+    expect(b).toMatch(/shown to the user as absolute dates/);
+    expect(b).toMatch(/no `-signoff` mode runs over an undecided mismatch/);
   });
-  it("R1-14: the build notes reached the phase text: no new request over a live one, the follow-up on profile.md's calendar, the backstop from the day after (OD-4); the body's signed NEXT prints step 0 first", () => {
+  it("R1-14 in the phase text: no new request over a live one, the follow-up on profile.md's calendar, the backstop from the day after (OD-4)", () => {
     const ref = (f) => readFileSync(join(SKILL, "references", f), "utf8");
     expect(ref("phase-signoff.md")).toMatch(/A live request that nothing supersedes means no new one[^\n]*write request n\+1 only when the user asks/);
     expect(ref("phase-signoff.md")).toMatch(/follow_up_business_days` counted on `profile\.md`'s calendar \(not a clause date\)/);
     expect(ref("phase-signoff.md")).toMatch(/the backstop date has not passed \(it applies from the day after it/);
     expect(readFileSync(join(ROOT, "docs", "plans", "2026-10-09-ow-uat-design.md"), "utf8")).toMatch(/the date hasn't passed \(it applies from the day after the backstop date/);
-    const signed = body().split("    DONE: signed <date>")[1].split("\n\n")[0];
-    expect(signed.indexOf('"use ow-uat-defect on uat/<client>/"')).toBeGreaterThan(-1);
-    expect(signed.indexOf('"use ow-uat-defect on uat/<client>/"')).toBeLessThan(signed.indexOf("use ow-build to invoice the acceptance payment"));
   });
-  it("OD-5: the schema, the resume step and -plan say the terms block is compared by digest and refrozen alone", () => {
+  it("a signature on a superseded request marks nothing; sending one is the user's word", () => {
+    const s = readFileSync(join(SKILL, "references", "phase-signoff.md"), "utf8");
+    expect(s).toMatch(/A signature on a superseded request marks nothing/);
+    expect(s).toMatch(/the user may still send it on their word, but a superseded request never becomes acceptance/);
+    expect(s).toMatch(/\*\*Never mark acceptance without every required scenario passing after the last fix\.\*\*/);
+    expect(s).toMatch(/signature not verified by this skill/);
+  });
+  it("OD-5: the schema, the routing file and -plan say the terms block is compared by digest and refrozen alone", () => {
     const ref = (f) => readFileSync(join(SKILL, "references", f), "utf8");
     expect(ref("uat-yaml-schema.md")).toMatch(/\*\*The terms block and its digest\*\* \(owner decisions OD-5, OD-6\)/);
     expect(ref("routing-and-resume.md")).toMatch(/for `agreed\/contract-terms\.md`, compare the `digest` in its basis row with the digest of the same terms block/);
     expect(ref("phase-plan.md")).toMatch(/quote only the terms block again \(never copy `contract-inputs\.md` whole\)/);
   });
-  it("OD-6 and R2-1: the block covers the schedule and payment terms; with no code every part is compared as text, never skipped", () => {
+  it("OD-6 and R2-1: the block covers the schedule and payment terms; with no code every part is compared as text; the mismatch is reported and the user decides", () => {
     const ref = (f) => readFileSync(join(SKILL, "references", f), "utf8");
     expect(ref("uat-yaml-schema.md")).toMatch(/the header lines `uat:`, `schedule:`, `payment_terms_days:`, `acceptance_definition:`/);
     expect(ref("uat-yaml-schema.md")).toMatch(/compare every part of the block as text, saying it is not machine-checked: `contract_clauses` with `uat\.yaml` `clauses`, `schedule` and `payment_terms_days` with `terms`[\s\S]{0,400}?\. Never skip a part\./);
     expect(ref("uat-yaml-schema.md")).toMatch(/skipping blank and comment lines\)[\s\S]*Read line endings as single newlines/);
     expect(ref("routing-and-resume.md")).toMatch(/with `digest: "none \(no code here\)"`, compare every part of the block as text: the clauses, the payment schedule and payment terms/);
-    expect(ref("routing-and-resume.md")).toMatch(/It blocks `-pack`, `-defect` triage and every `-signoff` mode/);
-    expect(ref("phase-plan.md")).toMatch(/refreezing `terms` and `clauses` only after the user confirms them again\. Nothing else in `uat\.yaml` changes/);
+    expect(ref("routing-and-resume.md")).toMatch(/report it with both dates, and the user decides/);
+    expect(ref("routing-and-resume.md")).toMatch(/\*\*Every `-signoff` mode waits for that decision\*\*/);
+    expect(ref("phase-plan.md")).toMatch(/taking `terms` and `clauses` again only after the user confirms them/);
   });
   it("R2-8 (departure 26): the client reason follows a condition's status, in the format and in the phase", () => {
     const ref = (f) => readFileSync(join(SKILL, "references", f), "utf8");
-    expect(ref("defect-format.md")).toMatch(/\*\*The client reason follows the status\.\*\* The reason is not written once at triage: rewrite it when a condition is set[^.]*met[^.]*lapses or is withdrawn/);
+    expect(ref("defect-format.md")).toMatch(/\*\*The client reason follows the status\.\*\* The reason does not stop at triage: rewrite it when a condition is set[^.]*met[^.]*lapses or is withdrawn/);
     expect(ref("defect-format.md")).toMatch(/never at odds with the status \(section 5\)/);
     expect(ref("phase-defect.md")).toMatch(/Rewrite the client reason each time the condition is set, met, lapses or is withdrawn/);
   });
-  it("ow-uat 1.0.1 (the OW-04 follow-ups) in the text: R3-6, R3-4, R3-1, R3-5, R3-2, and the changelog", () => {
+  it("the kept owner decisions in the text: R3-6, R3-4, R3-1, R3-5, R3-2, and the changelog", () => {
     const ref = (f) => readFileSync(join(SKILL, "references", f), "utf8");
-    expect(ref("phase-plan.md")).toMatch(/\*\*Refuse\*\* for `agreed\/acceptance\.md` or `agreed\/quick-scope\.md` when the check list upstream differs from the frozen one[^.]*owner decision R3-6\): write nothing, name each changed check, and say that a new check comes in through a change order, with its scenario, its test and its price\. NEXT: once that change order is signed, `use ow-uat-plan to add CO-nn to uat\/<client>\/` \(`--add-co`\)/);
+    expect(ref("phase-plan.md")).toMatch(/\*\*A changed check list is not refrozen\*\*[^\n]*owner decision R3-6\)[^\n]*write nothing, name each changed check, and say that a new check comes in through a change order, with its scenario, its test and its price/);
     expect(ref("self-checks.md")).toMatch(/Test data is not a record value \(owner decision R3-4\): a payment provider's published test card[\s\S]*A real card shape, or an id with no such mark, still is\./);
     expect(ref("uat-yaml-schema.md")).toMatch(/the UAT line's price and test mix with the line `contract-terms\.md` quotes[\s\S]*A part removed upstream is a difference too\. Never skip a part\./);
     expect(ref("uat-yaml-schema.md")).toMatch(/ignore a byte-order mark at the start of the file/);
     expect(ref("phase-signoff.md")).toMatch(/or says it does not apply or never falls due on that date, does not/);
-    // 1.0.2 (owner decision 2026-10-19, Visa's published test card) follows 1.0.1 in the same changelog.
-    const body = readFileSync(join(SKILL, "SKILL.md"), "utf8");
-    expect(body).toMatch(/^  version: "1\.0\.2"$/m);
-    expect(body).toMatch(/^ow-uat 1\.0\.2 · protocol 1/m);
+    const skill = readFileSync(join(SKILL, "SKILL.md"), "utf8");
+    expect(skill).toMatch(/^  version: "2\.0\.0"$/m);
+    expect(skill).toMatch(/^ow-uat 2\.0\.0 · protocol 2 · Core bundle$/m);
     const log = readFileSync(join(SKILL, "CHANGELOG.md"), "utf8");
-    expect(log).toMatch(/^## 1\.0\.1 \(2026-10-19\)/m);
-    expect(log.indexOf("## 1.0.2 (2026-10-19)")).toBeGreaterThan(-1);
+    expect(log).toMatch(/^## 2\.0\.0 \(2026-11-03\): the audience reversal/m);
+    expect(log).toContain("docs/plans/2026-11-03-ow-audience-reversal.md");
+    expect(log).toMatch(/\*\*The CRM is the record\*\*/);
+    expect(log.indexOf("## 2.0.0 (2026-11-03)")).toBeLessThan(log.indexOf("## 1.0.2 (2026-10-19)"));
     expect(log.indexOf("## 1.0.2 (2026-10-19)")).toBeLessThan(log.indexOf("## 1.0.1 (2026-10-19)"));
     for (const d of ["R3-6", "R3-4"]) expect(log).toContain(`owner decision ${d}`);
   });
   it("R2-6 (OD-4) and OD-7 in the text: an explicit clause moves the backstop; a table is judged by its rows", () => {
     const ref = (f) => readFileSync(join(SKILL, "references", f), "utf8");
-    expect(ref("phase-signoff.md")).toMatch(/unless the frozen clause says in so many words that it applies on that date; wording that merely counts something "from the same day", or says it does not apply or never falls due on that date, does not/);
+    expect(ref("phase-signoff.md")).toMatch(/unless the clause says in so many words that it applies on that date; wording that merely counts something "from the same day", or says it does not apply or never falls due on that date, does not/);
     expect(ref("self-checks.md")).toMatch(/A table is judged by what its rows hold, never by its length[^.]*\(owner decision OD-7\)/);
   });
-  it("owner decisions in the text: O4 resume screen, O5 documentation NEXT, O6 too big, O7 bounds, O8 calendar, the never-waived four", () => {
+  it("owner decisions in the text: O5 documentation next, O6 too big, O7 bounds, O8 calendar, what is never waived, the calendar's table of dates", () => {
     const ref = (f) => readFileSync(join(SKILL, "references", f), "utf8");
-    expect(ref("routing-and-resume.md")).toMatch(/## 2\. `\/ow-uat`: the resume screen \(owner decision O4\)/);
-    expect(ref("phase-signoff.md")).toMatch(/`use ow-documentation-start on uat\/<client>\/`/);
+    expect(ref("phase-signoff.md")).toMatch(/`\/ow-documentation-start`/);
     expect(ref("defect-format.md")).toMatch(/keeps blocking sign-off until the client withdraws it[\s\S]{0,80}It never lapses on its own/);
     expect(ref("self-checks.md")).toMatch(/owner decision O7: "fixed on 14 January, after the 5 business days quoted, at no charge"/);
     expect(ref("contract-calendar.md")).toMatch(/\*\*not supported\*\* \(owner decision O8\)/);
-    expect(ref("self-checks.md")).toMatch(/\*\*No credentials, People by role or id, Data check and No private names are never waived\*\*: a typed waiver for one of them is refused/);
+    expect(ref("contract-calendar.md")).toMatch(/\*\*shown to the user as an absolute date\*\*/);
+    expect(ref("self-checks.md")).toMatch(/except on credentials, client data, private names and acceptance, which are not waived/);
     for (const c of ["our hours or effort on fixes or on the test", "our rates and the price book's internals", "our cost or margin", "our overruns against our own plan or estimate"]) expect(ref("self-checks.md"), c).toContain(c);
   });
 });

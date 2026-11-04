@@ -2,6 +2,18 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). The family's v2.1.0 release entry cites each skill's version. Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
+## 2.0.0 (2026-11-03): the audience reversal
+
+Why: `docs/plans/2026-11-03-ow-audience-reversal.md`. The family now serves the operator's own small-business client work, so the operator goes with the flow. Protocol version 2.
+
+- **Removed.** Step 0 as a ritual; the sensitivity level and its visible marking; the eight-key artefact header (records start with `written_by` and `created`); the STATUS grammar and clock labels; the NEXT block forms and fallback lines (now a short "What comes next" list); "no skill runs another"; the OK / FINDING verdict words and the session self-check label (now a short checklist); the working-note sentence; the typed waiver form; one writer per file as a lock; re-asking on resume; the ow-tools absent-case branches (say once, add up by hand).
+- **Changed.** A wrong start may be corrected by running `-start` again before the first month closes. Working files may name a client's people; client documents name people by role unless the user says otherwise. No contact detail in a go-ahead or an access record.
+- **Kept.** The care terms taken from the price book and `offers.md` when care starts and kept for the contract's life, with a change only through a dated `-change` addendum; every request logged and classified with its reply target; quarter-hours and a month that adds up; no double charge; the client's go-ahead before any hour beyond the prepaid allowance; the read-only health check of a user-confirmed `health.yaml`; least access with a purpose and a removal step; no credentials in any file; the end accounting for access; invoice requests that are never invoices; no automatic client-system writes; no private names.
+- **The CRM is the record.** Requests go to `support_requests`, care hours to `time_entries`, the monthly report and other prose to documents by kind, invoice requests to unissued `invoices`, each marked internal or client. Each verb reads the CRM's latest saved version first, never overwrites a human-edited version, and treats `opchain-work/` as a scratch cache; `price-book.yaml`, `offers.md`, `profile.md` and `handoffs.yaml` are the fallback, and the output says so. Goldens and checkers still grade the cache.
+- **Budget.** At most three questions per verb, only for what the files do not answer. One approval that matters here: the client's go-ahead before extra hours, with the user's look at the monthly report before it goes out.
+
+Data and test edits that land with this entry: the checker keeps the money, access, secrets and approval checks and drops the shapes above; it still accepts goldens written in the old form. The sensitivity-level case and the plants for removed rules are gone.
+
 ## 1.0.0 (2026-10-29): ongoing care after a handoff, and care for a system taken over
 
 Design: `docs/plans/2026-10-16-ow-care-design.md` (APPROVED 2026-10-16, decisions 1–11, amendments T3, T4, H4, S1 and P4). Contract: `sprints/release-2.1/ow-07/contract.md`. Salvaged on 2026-10-29 from an external draft, PR 652 (owner decision 2026-10-29) onto a fresh branch off `main`, taking only what ow-care needs; the draft's other work (ow-vendor-eval, the protocol wording, distribution) was left where it was.

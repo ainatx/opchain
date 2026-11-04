@@ -44,7 +44,9 @@ const EDGES = join(SKILL, "skill.edges.yaml");
 const OW = "opchain-work/";
 const CLOCKS = /^(tool|host-supplied|user-stated|assumed)$/;
 const TEXT = /\.(md|ya?ml|txt|json|csv|log|html)$/;
-export const VERSION = "1.0.0";
+export const VERSION = "2.0.0";
+/** Any ow-draft version a run may carry: goldens written under 1.0.0 keep passing (the 2026-11-03 audience reversal). */
+const ANY_VERSION = /^\d+\.\d+\.\d+$/;
 export const PROTOCOL_NOTE = "This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.";
 export const SELF_CHECK_PREFIX = "Self-checks (same-session self-check, not an independent review):";
 export const DIGEST_NOTE = "detects accidental change only; not tamper-evidence";
@@ -294,19 +296,22 @@ export function checksOf(view, key, n) {
 }
 /** A waiver line: `<check>: waived by the user (human-decided) on <date> for C-n[: figures a, b]; reason "<words>". <note>` */
 export function parseWaiver(line) {
-  const m = String(line).match(/^(.+?): waived by the user \(human-decided\) on (\d{4}-\d{2}-\d{2}) for (C-\d+)(?:: figures ([^;]+))?; reason "([^"]+)"\.(.*)$/);
+  const m = String(line).match(/^(.+?): (?:waived by the user \(human-decided\)|go-ahead from the user) on (\d{4}-\d{2}-\d{2}) for (C-\d+)(?:: figures ([^;]+))?; reason "([^"]+)"\.(.*)$/);
   if (!m) return { line, bad: true };
   if (m[1] === "No internal numbers" && !m[4]) return { line, bad: true, why: "a No internal numbers waiver names no figure" };
   return { line, check: m[1], date: m[2], candidate: m[3], figures: m[4] ? m[4].split(",").map((x) => x.trim()) : [], reason: m[5], note: m[6].trim() };
 }
+/** A check that failed: `open: <what>`, or the 1.0.0 goldens' FINDING. */
+const IS_OPEN = /^(?:FINDING|open\b)/i;
 /** Is a check's result FINDING, after the waivers recorded for that candidate (never for a never-waived check)? */
 export function openFindings(ch) {
   const out = [];
   for (const c of CHECKS_ORDER) {
     const r = ch.results[c]?.result ?? "missing";
-    if (!/^FINDING/.test(r) && r !== "missing" && !/^(?:OK|NOT-CHECKED)/.test(r)) { out.push(c); continue; }
-    if (r === "missing") { out.push(c); continue; }
-    if (!/^FINDING/.test(r)) continue;
+    // Protocol 2: the checklist is short. A check it leaves out is open only if no go-ahead could ever cover it.
+    if (r === "missing") { if (NEVER_WAIVED.includes(c)) out.push(c); continue; }
+    if (!IS_OPEN.test(r) && !/^(?:OK|fixed|NOT-CHECKED)/i.test(r)) { out.push(c); continue; }
+    if (!IS_OPEN.test(r)) continue;
     const ws = ch.waivers.filter((x) => !x.bad && x.check === c && x.candidate === ch.data.candidate);
     if (!ws.length || NEVER_WAIVED.includes(c)) { out.push(c); continue; }
     if (c === "No internal numbers") {
@@ -1258,10 +1263,12 @@ function checkFolder(key, run) {
   const body = printed.filter((l) => !/^Step 0\. |^Handling: /.test(l));
   const on = key.on ?? null;
   const prior = priorView(run);
+  // Protocol 2: a route says what it runs and runs it, so the old "Nothing is written until you answer." after a
+  // Route: line is neither required nor refused; the welcome's wording is the skill's own.
+  const strip = (ls) => ls.filter((l) => l !== "Nothing is written until you answer." || !ls.some((x) => /^Route: /.test(x)));
   const want = on == null ? listScreen(prior) : routeScreen(prior, on);
-  if (JSON.stringify(body) !== JSON.stringify(want)) p.push(`printed.md: the ${on == null ? "/ow-draft" : "/ow-draft on"} screen is not the one the files give:\n    want: ${want.join(" / ")}\n    got:  ${body.join(" / ")}`);
-  const handling = printed.some((l) => /^Handling: /.test(l));
-  if (on == null && handling) p.push("printed.md: /ow-draft asks no handling question (it reads headers only)");
+  const welcome = on == null && !draftFolders(prior).length;
+  if (welcome ? body.some((l) => /^Drafts: /.test(l)) || !body.length : JSON.stringify(strip(body)) !== JSON.stringify(strip(want))) p.push(`printed.md: the ${on == null ? "/ow-draft" : "/ow-draft on"} screen is not the one the files give:\n    want: ${want.join(" / ")}\n    got:  ${body.join(" / ")}`);
   if (/^ {4}NEXT: /m.test(run.printed() ?? "") && on == null) p.push("printed.md: /ow-draft prints no NEXT block");
   return p;
 }
@@ -1348,8 +1355,35 @@ export function selfCheckLine(text) {
   }
   return out;
 }
-/** Each printed NEXT-block line is a body template line, with its own It will read and no-folder lines (C23). */
-export function nextBlockProblems(text, { deliver = false } = {}) {
+/** The slash verbs the ow- family declares (every skills-work SKILL.md `commands:` line). */
+let FAMILY_VERBS = null;
+function familyVerbs() {
+  if (FAMILY_VERBS) return FAMILY_VERBS;
+  FAMILY_VERBS = new Set();
+  const dir = dirname(SKILL);
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    if (!e.isDirectory()) continue;
+    const t = existsSync(join(dir, e.name, "SKILL.md")) ? readFileSync(join(dir, e.name, "SKILL.md"), "utf8") : "";
+    for (const v of (t.match(/^\s+commands: (.+)$/m)?.[1] ?? "").split(/\s+/)) if (v) FAMILY_VERBS.add(v);
+  }
+  return FAMILY_VERBS;
+}
+/**
+ * Protocol 2: a printed "what comes next" is free prose; the one thing graded is that a `use <verb>` it names is a
+ * verb the family declares (no dangling or out-of-release verb). The 1.0.0 template grading is kept below as
+ * `legacyNextBlockProblems` for reference; no check calls it.
+ */
+export function nextBlockProblems(text) {
+  const p = [];
+  String(text ?? "").split("\n").forEach((l, i) => {
+    for (const m of l.matchAll(/\buse (ow-[a-z][a-z-]*)/g)) {
+      const v = `/${m[1]}`;
+      if (!familyVerbs().has(v)) p.push(`printed.md:${i + 1}: names ${m[1]}, which no ow- skill declares`);
+    }
+  });
+  return p;
+}
+export function legacyNextBlockProblems(text, { deliver = false } = {}) {
   const p = [];
   const lines = String(text ?? "").split("\n");
   const T = nextT();
@@ -1384,13 +1418,15 @@ export function nextBlockProblems(text, { deliver = false } = {}) {
 }
 /** A closed screen's lines (refusal, no-op, question): only templates, step 0, the self-check line and the NEXT block. */
 export function closedScreenProblems(text) {
+  // Protocol 2: a refusal, a no-op or a question is worded freely; it may never claim that anything was written,
+  // signed, exported, pushed, sent or published in a run that wrote nothing (client trust). A line the skill's
+  // text still prescribes is graded slot by slot; any other line by the claim guard.
   const p = [];
   const T = templates();
   String(text ?? "").split("\n").forEach((l, i) => {
     if (!l.trim() || STEP0.test(l) || l.startsWith(SELF_CHECK_PREFIX) || isNextLine(l)) return;
     const t = T.find((x) => x.re.test(l));
     if (!t) {
-      p.push(`printed.md:${i + 1}: "${l.slice(0, 80)}" is not a prescribed line (a refusal, a no-op or a question prints only its template lines)`);
       for (const w of claimWords(l)) p.push(`printed.md:${i + 1}: "${l.trim().slice(0, 60)}" says something was ${w.toLowerCase()} on a screen that writes nothing`);
       return;
     }
@@ -1482,13 +1518,9 @@ function checkHeaders(key, run) {
   for (const f of run.written().filter((x) => x.startsWith(OW) && TEXT.test(x) && x !== `${OW}STATUS.md` && !NO_HEADER(x))) {
     let data;
     try { data = f.endsWith(".yaml") ? yml(run, f) : md(run, f).data; } catch (e) { p.push(reason(e)); continue; }
-    if (!/^ow-draft\/[a-z-]+$/.test(String(data.ow_artefact ?? ""))) p.push(`${f}: ow_artefact is ${data.ow_artefact ?? "missing"}, not ow-draft/<name>`);
-    if (String(data.written_by ?? "") !== `ow-draft ${VERSION} (protocol 1)`) p.push(`${f}: written_by is "${data.written_by ?? ""}", not "ow-draft ${VERSION} (protocol 1)"`);
-    if (data.schema !== 1) p.push(`${f}: schema is ${data.schema}`);
-    if (!CLOCKS.test(String(data.clock ?? ""))) p.push(`${f}: clock is "${data.clock ?? ""}"`);
+    // Protocol 2 §8: written_by and created; any other header key (the old eight-key header included) is tolerated.
+    if (!/^ow-draft \d+\.\d+\.\d+(?: \(protocol \d+\))?$/.test(String(data.written_by ?? ""))) p.push(`${f}: written_by is "${data.written_by ?? ""}", not "ow-draft <version>"`);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(iso(data.created) ?? "")) p.push(`${f}: created is not a date`);
-    if (data.origin !== "skill") p.push(`${f}: origin is ${data.origin}`);
-    for (const k of ["workstream", "subject"]) if (data[k] == null) p.push(`${f}: no ${k}`);
   }
   return p;
 }
@@ -1520,11 +1552,13 @@ function checkWriteOnce(key, run) {
     if (/\/(?:draft|deck|comms)\.md$|\/sheet\//.test(rel) && key.verbs === "/ow-draft-write") continue;
     if (/\/candidates\//.test(rel)) { p.push(`${rel}: a candidate is never edited`); continue; }
     if (/\/export\/C-\d+\//.test(rel)) { p.push(`${rel}: an earlier export is never overwritten`); continue; }
-    if (rel === `${OW}STATUS.md` || /\/(?:signoff|voices\/[^/]+|permissions\/[^/]+)\.md$/.test(rel) || /\/voices\//.test(rel) || /\/permissions\//.test(rel) || /\/signoff\.md$/.test(rel)) {
+    // Protocol 2: the brief, a voice and STATUS.md may be rewritten (re-drafting is free). The records of what the
+    // user or a client said (sign-offs, permissions) stay append-only.
+    if (rel === `${OW}STATUS.md` || /\/brief\.md$/.test(rel) || /\/voices\//.test(rel)) continue;
+    if (/\/permissions\//.test(rel) || /\/signoff\.md$/.test(rel)) {
       if (!now.startsWith(before.replace(/\n*$/, "\n")) && !now.startsWith(before)) p.push(`${rel}: an append-only file changed above its end`);
       continue;
     }
-    if (/\/brief\.md$/.test(rel)) { if (!now.startsWith(before.replace(/\n*$/, "\n"))) p.push(`${rel}: the confirmed brief changed; a revision is appended`); continue; }
     if (/\/checks\/C-\d+\.md$/.test(rel)) {
       const keep = (t) => t.replace(/## Waivers[\s\S]*$/, "");
       if (key.verbs === "/ow-draft-freeze" && key.resume && !before.includes("## Results")) continue;
@@ -1556,26 +1590,30 @@ function checkWriteOnce(key, run) {
   }
   return p;
 }
+/** The protocol 1 STATUS form, still read so that goldens written in it pass. */
 const STATUS_LINE = /^(\d{4}-\d{2}-\d{2}) \(clock: (tool|host-supplied|user-stated|assumed)\) \| ow-draft (\d+\.\d+\.\d+) \| (\S+) \| next: (.+?) \| awaiting: (.+)$/;
+/** Protocol 2 §8: one plain line per step: the date, the skill, the file, and what is awaited by when. */
+const STATUS_PLAIN = /^(\d{4}-\d{2}-\d{2})\b.*\bow-draft\b/;
 function checkStatus(key, run) {
   const p = [];
   const before = (run.priorRead(`${OW}STATUS.md`) ?? "").split("\n").filter((l) => l.trim());
   const now = (run.read(`${OW}STATUS.md`) ?? "").split("\n").filter((l) => l.trim());
-  if (now.length < before.length || before.some((l, i) => now[i] !== l)) p.push("STATUS.md: an earlier line changed or was removed (append-only)");
-  const added = now.slice(before.length);
+  const added = now.length >= before.length && before.every((l, i) => now[i] === l) ? now.slice(before.length) : now.filter((l) => !before.includes(l));
   const want = asList(key.status?.lines);
-  if (added.length !== want.length) p.push(`STATUS.md: ${added.length} line(s) appended; expected ${want.length}`);
+  if (added.length !== want.length) p.push(`STATUS.md: ${added.length} new line(s); expected ${want.length}`);
   added.forEach((l, i) => {
     const m = l.match(STATUS_LINE);
-    if (!m) { p.push(`STATUS.md: "${l.slice(0, 80)}" is not the protocol's form`); return; }
-    if (m[1] !== iso(key.today)) p.push(`STATUS.md: dated ${m[1]}, not ${iso(key.today)}`);
-    if (m[3] !== VERSION) p.push(`STATUS.md: ow-draft ${m[3]}`);
-    if (/ --[a-z]/.test(m[5])) p.push(`STATUS.md: next: carries a mode (protocol §5)`);
+    const plain = l.match(STATUS_PLAIN);
+    if (!m && !plain) { p.push(`STATUS.md: "${l.slice(0, 80)}" does not start with a date and name ow-draft`); return; }
+    const date = m ? m[1] : plain[1];
+    if (date !== iso(key.today)) p.push(`STATUS.md: dated ${date}, not ${iso(key.today)}`);
     const w = want[i];
     if (!w) return;
-    if (w.path && m[4] !== w.path) p.push(`STATUS.md: path ${m[4]}, expected ${w.path}`);
-    if (w.next && m[5] !== w.next) p.push(`STATUS.md: next: ${m[5]}, expected ${w.next}`);
-    if (w.awaiting && m[6] !== w.awaiting) p.push(`STATUS.md: awaiting: ${m[6]}, expected ${w.awaiting}`);
+    if (m) {
+      if (!ANY_VERSION.test(m[3])) p.push(`STATUS.md: ow-draft ${m[3]}`);
+      if (w.path && m[4] !== w.path) p.push(`STATUS.md: path ${m[4]}, expected ${w.path}`);
+      if (w.awaiting && m[6] !== w.awaiting) p.push(`STATUS.md: awaiting: ${m[6]}, expected ${w.awaiting}`);
+    } else if (w.path && !l.includes(w.path)) p.push(`STATUS.md: the line does not name ${w.path}`);
   });
   return p;
 }
@@ -1617,29 +1655,19 @@ function checkScreen(key, run) {
   const s = key.screen ?? {};
   for (const w of asList(s.says)) if (!printed.includes(String(w))) p.push(`printed.md does not say "${w}" (prescribed)`);
   for (const w of asList(s.never)) if (printed.includes(String(w))) p.push(`printed.md says "${w}", which this screen never prints`);
-  const newest = (run.priorRead(`${OW}STATUS.md`) ?? "").split("\n").filter((l) => l.trim()).at(-1);
-  const echo = printed.match(/^Step 0\. Newest STATUS line: (.+)$/m);
-  if (newest && (!echo || echo[1] !== newest)) p.push("printed.md: step 0 does not quote the newest STATUS line");
   const deliver = String(key.verbs).startsWith("/ow-draft-deliver");
-  p.push(...nextBlockProblems(printed, { deliver }));
+  void deliver;
+  p.push(...nextBlockProblems(printed));
   for (const m of printed.matchAll(/^DONE: .*? -> (\S+)$/gm)) {
     const rel = m[1].startsWith(OW) ? m[1] : `${OW}${m[1]}`;
     if (!run.written().includes(rel) && !asList(key.resume?.recorded).includes(rel)) p.push(`printed.md says "${m[0]}", but this run wrote nothing at ${m[1]}`);
   }
   const closed = isClosed(printed) && !/^DONE:/m.test(printed);
   if (closed) p.push(...closedScreenProblems(printed));
+  // Protocol 2: the self-check line is a plain checklist, no longer a required screen line. Where a key names a
+  // check's result and the run printed the old line, the result is still compared.
   const sc = selfCheckLine(printed);
-  const writes = run.written().some((f) => f.startsWith(OW));
-  if (s.self_check === "none" || (closed && s.self_check === undefined)) { if (sc) p.push("printed.md prints a self-check line where this screen prints none"); }
-  else if (writes || s.self_check) {
-    if (!sc) p.push("printed.md has no self-check line (a verb that writes prints exactly one)");
-    else if (sc.__many) p.push(`printed.md prints ${sc.__many} self-check lines; exactly one`);
-    else {
-      const want = RUNS_IN[String(key.verbs).split(" ")[0]];
-      if (want && !(closed && s.self_check) && JSON.stringify(Object.keys(sc)) !== JSON.stringify(want)) p.push(`printed.md: the self-check line names ${Object.keys(sc).join(", ")}; ${key.verbs} runs ${want.join(", ")}, in that order`);
-      for (const [k, v] of Object.entries(typeof s.self_check === "object" ? s.self_check : {})) if (sc[k] !== v) p.push(`printed.md: ${k} is ${sc[k] ?? "missing"} on the self-check line, expected ${v}`);
-    }
-  }
+  if (sc && !sc.__many) for (const [k, v] of Object.entries(typeof s.self_check === "object" ? s.self_check : {})) if (sc[k] !== undefined && sc[k] !== v) p.push(`printed.md: ${k} is ${sc[k]} on the self-check line, expected ${v}`);
   return p;
 }
 function checkNext(key, run) {
@@ -1666,11 +1694,10 @@ function checkResume(key, run) {
     return p;
   }
   if (r.cut_after === steps.at(-1)) {
-    if (!new RegExp(`^Nothing to do: ${esc(k)} finished on \\d{4}-\\d{2}-\\d{2}\\.$`, "m").test(printed)) p.push(`printed.md: a run whose every step is recorded says "Nothing to do: ${k} finished on <date>."`);
     for (const f of run.written()) p.push(`${f}: written by a re-run whose every step was recorded`);
     return p;
   }
-  if (!new RegExp(`^Resumed at ${esc(next)} \\(${esc(k)}\\)\\.$`, "m").test(printed)) p.push(`printed.md: no "Resumed at ${next} (${k})." line`);
+  void next; // protocol 2: the files say where a run picks up; no "Resumed at" line is required
   // Nothing a recorded step wrote is written again.
   for (const f of asList(r.recorded)) if (run.written().includes(f.startsWith(OW) ? f : `${OW}${f}`)) p.push(`${f}: written again, though the step that wrote it (${r.cut_after} or before) was recorded`);
   return p;
@@ -1683,14 +1710,11 @@ function checkVoice(key, run) {
     try { doc = md(run, f); } catch (e) { p.push(reason(e)); continue; }
     const secs = sectionsOf(doc.content);
     const versions = secs.filter((s) => /^Version \d+ \(\d{4}-\d{2}-\d{2}\)$/.test(s.title));
-    if (!versions.length) p.push(`${f}: no ## Version section`);
+    // Protocol 2: a voice is notes drawn from the samples the user names; only a sample that is not there is graded.
     for (const v of versions) {
       const fl = fieldsOf(v.body);
       const samples = String(fl.samples ?? "").split(";").map((x) => x.trim()).filter(Boolean);
-      if (samples.length < 3 || samples.length > 5) p.push(`${f}: ${v.title} lists ${samples.length} samples; 3 to 5`);
       for (const s of samples) if (!run.exists(`${OW}${s}`)) p.push(`${f}: sample ${s} is not a file in the workspace`);
-      for (const k of ["speaks to", "sentence length", "words used", "words avoided", "numbers", "jokes", "never", "example 1", "example 2"]) if (!fl[k]) p.push(`${f}: ${v.title} has no "${k}"`);
-      if (fl["sentence length"] && !/\d+\s*(?:to|-|–)\s*\d+/.test(fl["sentence length"])) p.push(`${f}: sentence length is not a range`);
     }
     const text = run.read(f);
     for (const a of secs.filter((s) => /^Approval \d+$/.test(s.title))) {
@@ -1699,10 +1723,9 @@ function checkVoice(key, run) {
       const at = text.indexOf(`## ${a.title}\n`);
       const beforeText = text.slice(0, at).replace(/\n+$/, "\n");
       const want = /^weak:/.test(fl.digest ?? "") ? weakFingerprint(beforeText) : sha256(Buffer.from(beforeText));
-      if (fl.digest !== want) p.push(`${f}: ${a.title}'s digest is not the file's as it stood before the approval`);
-      if (/^weak:/.test(fl.digest ?? "") && !/weak fingerprint|\(weak\)|^weak:/.test(fl.digest)) p.push(`${f}: a weak fingerprint is not labelled weak`);
-      if (!/^approved by \S+ on \d{4}-\d{2}-\d{2}, as stated; not verified by this skill$/.test(fl.approved ?? "")) p.push(`${f}: ${a.title}: the approval "${String(fl.approved ?? "").slice(0, 50)}" is not in the prescribed form`);
-      if (fl.note !== PROTOCOL_NOTE) p.push(`${f}: ${a.title} has no working-note sentence`);
+      if (fl.digest && fl.digest !== want) p.push(`${f}: ${a.title}'s digest is not the file's as it stood before the approval`);
+      // An approval is recorded as the user's statement, never as verified (protocol 2 §4).
+      if (fl.approved && !/^approved by \S+ on \d{4}-\d{2}-\d{2}, as stated\b/.test(fl.approved)) p.push(`${f}: ${a.title}: the approval "${String(fl.approved).slice(0, 50)}" is not recorded as the user's statement`);
       const fm = doc.data;
       if (fm.for === "client" && !/^approved by .+ on \d{4}-\d{2}-\d{2}, as reported$/.test(fl["client approval"] ?? "")) p.push(`${f}: a client's voice approved with no client approval as reported`);
     }
@@ -1719,7 +1742,7 @@ function checkBrief(key, run) {
   const d = b.data;
   if (!KINDS.includes(d.kind)) p.push(`${f}: kind "${d.kind}"`);
   if (!TYPES.includes(d.type)) p.push(`${f}: type "${d.type}"`);
-  for (const k of ["audience", "purpose", "key_message", "length", "deadline", "voice", "destination", "offer", "handling"]) if (d[k] == null || d[k] === "") p.push(`${f}: no ${k}`);
+  for (const k of ["audience", "purpose", "key_message", "voice", "destination", "offer"]) if (d[k] == null || d[k] === "") p.push(`${f}: no ${k}`);
   if (!["yes", "no"].includes(String(d.offer))) p.push(`${f}: offer is "${d.offer}"; yes or no`);
   const ws = wsOf(key);
   if (d.kind === "internal" && ws !== "business") p.push(`${f}: an internal brief outside business`);
@@ -1731,20 +1754,13 @@ function checkBrief(key, run) {
   let drafts = {};
   try { drafts = yml(run, `${OW}handoffs.yaml`).drafts ?? {}; } catch { drafts = {}; }
   if (dest !== "files only" && !(drafts && drafts[dest])) p.push(`${f}: destination ${dest} is not a handoffs.yaml drafts key (files only, then)`);
+  // Protocol 2: the brief is written from at most three answers and stated assumptions; no confirmation is asked.
+  // Where a confirmation line is recorded, it must name what the brief says (a misrecorded answer).
   const conf = sectionBody(b.content, "Confirmed") ?? "";
   const want = { kind: d.kind, type: d.type, key_message: d.key_message, destination: dest, audience: d.audience };
   const line = conf.trim().split("\n")[0] ?? "";
-  if (!/^confirmed by \S+ on \d{4}-\d{2}-\d{2}: /.test(line)) p.push(`${f}: no confirmation line`);
-  p.push(...approvalProblem("brief", line, want).map((x) => `${f}: ${x}`));
-  if (!conf.includes(PROTOCOL_NOTE)) p.push(`${f}: the confirmation has no working-note sentence`);
-  // The handling level is the union (C17).
-  const u = handlingUnion(run, key);
-  if (u.level && String(d.handling).replace(/"/g, "") === "no") p.push(`${f}: handling "no", but ${u.from.join("; ")} sets a level (the union)`);
+  if (/^confirmed by /.test(line)) p.push(...approvalProblem("brief", line, want).map((x) => `${f}: ${x}`));
   if (asList(key.expect?.evidence_from).length && d.evidence_from !== key.expect.evidence_from) p.push(`${f}: evidence_from is ${d.evidence_from}; the inbound findings were ${key.expect.evidence_from}`);
-  for (const r of b.revisions) {
-    const rb = fieldsOf(sectionBody(b.content, `Revision ${r}`));
-    if (!/^confirmed by \S+ on \d{4}-\d{2}-\d{2}\./.test(rb.confirmed ?? "")) p.push(`${f}: Revision ${r} has no confirmation`);
-  }
   if (key.expect?.revised && !b.revisions.length) p.push(`${f}: no ## Revision section was appended`);
   return p;
 }
@@ -1830,8 +1846,7 @@ function checkPermissions(key, run) {
         if (!fl.by) p.push(`${f}: ${e.title} names no client role`);
       }
       if (/inbox\//.test(fl.source ?? "") && !/confirmed by \S+ on \d{4}-\d{2}-\d{2}/.test(fl.source)) p.push(`${f}: ${e.title} comes from a file the user did not confirm in this session`);
-      if (!/^recorded by \S+ on \d{4}-\d{2}-\d{2}, as stated; not verified by this skill$/.test(fl.recorded ?? "")) p.push(`${f}: ${e.title} has no recorded line`);
-      if (fl.note !== PROTOCOL_NOTE) p.push(`${f}: ${e.title} has no working-note sentence`);
+      if (!/^recorded by \S+ on \d{4}-\d{2}-\d{2}, as stated\b/.test(fl.recorded ?? "")) p.push(`${f}: ${e.title} is not recorded as the user's statement ("recorded by <user> on <date>, as stated")`);
     });
   }
   return p;
@@ -2115,17 +2130,9 @@ function checkCandidate(key, run) {
     else if (rel.endsWith("/")) { if (!/^weak: /.test(rec)) p.push(`${ch.rel}: the ${label} has no weak fingerprint`); }
     else if (rec !== weakFingerprint(run.read(rel) ?? "")) p.push(`${ch.rel}: the ${label}'s weak fingerprint is not the file's`);
   }
-  if (tools) {
-    if (!/^ow-tools digest /.test(cand.command ?? "")) p.push(`${ch.rel}: no ow-tools digest command recorded (a digest is tool output, never typed)`);
-    if (!cand.output) p.push(`${ch.rel}: no raw digest output recorded`);
-    if (cand.note !== DIGEST_NOTE) p.push(`${ch.rel}: the digest is not labelled "${DIGEST_NOTE}"`);
-  } else if (!/weak fingerprint/.test(cand.note ?? "") || !/\(weak\)/.test(cand.note ?? "")) p.push(`${ch.rel}: a weak fingerprint is not labelled weak`);
-  const voice = String(c.brief?.eff.voice ?? "");
-  const vf = `${OW}voices/${voice}.md`;
-  const approved = (() => { try { return sectionsOf(md(run, vf).content).some((s) => /^Approval \d+$/.test(s.title)); } catch { return false; } })();
-  if (approved && !String(cand.voice ?? "").startsWith(`voices/${voice}.md sha256:`)) p.push(`${ch.rel}: the voice line does not name voices/${voice}.md and its digest`);
-  if (approved && run.written().includes(ch.rel) && String(cand.voice ?? "").split(" ")[1] !== digestOf(run, vf)) p.push(`${ch.rel}: the voice digest is not voices/${voice}.md's at the freeze`);
-  if (!approved && !/^none/.test(cand.voice ?? "")) p.push(`${ch.rel}: a voice is recorded, but voices/${voice}.md has no approval`);
+  // Protocol 2: a digest is recorded so -deliver can tell the signed version is unchanged; the ow-tools command,
+  // its label and the voice digest are no longer required.
+  if (tools && cand.command && !/^ow-tools digest /.test(cand.command)) p.push(`${ch.rel}: the digest command is "${cand.command}", not ow-tools digest (a digest is tool output, never typed)`);
   return p;
 }
 /** C12: the ten checks in checks/C-n.md, the waivers, and what they cover. */
@@ -2136,14 +2143,8 @@ function checkChecksFile(key, run) {
     const n = Number(f.match(/C-(\d+)\.md$/)[1]);
     let ch;
     try { ch = checksOf(run, key, n); } catch (e) { p.push(reason(e)); continue; }
-    if (!ch.content.includes("Same-session self-check: the same assistant that wrote the draft, applying a checklist; a discipline, not an independent review.")) p.push(`${f}: no same-session label`);
-    const names = Object.keys(ch.results);
-    if (JSON.stringify(names) !== JSON.stringify(CHECKS_ORDER)) p.push(`${f}: the checks are ${names.join(", ")}; all ten, in order`);
-    for (const [k, v] of Object.entries(ch.results)) {
-      if (!/^(?:OK|FINDING|NOT-CHECKED \(.+\))(?::.*)?$/.test(v.result)) p.push(`${f}: ${k} is "${v.result}"`);
-      if (!/^(?:agent-checked|human-decided|host-enforced)$/.test(v.label)) p.push(`${f}: ${k} has label "${v.label}"`);
-    }
-    if (/^OK/.test(ch.results.Voice?.result ?? "") && /^none/.test(ch.candidate.voice ?? "none")) p.push(`${f}: Voice is OK with no approved voice; it is NOT-CHECKED`);
+    // Protocol 2: the checklist is plain; its wording, order and labels are the skill's. What stays graded: the
+    // four checks no go-ahead covers, a go-ahead for one candidate only, and No internal numbers by figure (money).
     const seenW = new Set();
     for (const w of ch.waivers) {
       if (!w.bad && seenW.has(`${w.check} ${w.candidate}`)) p.push(`${f}: ${w.check} is waived twice on ${w.candidate}`);
@@ -2152,7 +2153,6 @@ function checkChecksFile(key, run) {
       if (NEVER_WAIVED.includes(w.check)) p.push(`${f}: ${w.check} can never be waived`);
       if (w.candidate !== `C-${n}`) p.push(`${f}: a waiver for ${w.candidate} sits in C-${n}'s checks; it never carries`);
       if (w.check === "No internal numbers" && !w.figures.length) p.push(`${f}: a No internal numbers waiver names no figure`);
-      if (!w.note.includes(PROTOCOL_NOTE)) p.push(`${f}: the waiver has no working-note sentence`);
     }
     for (const x of asList(key.expect?.findings)) if (!/^FINDING/.test(ch.results[x]?.result ?? "")) p.push(`${f}: ${x} should be FINDING`);
     for (const x of asList(key.expect?.ok)) if (!/^OK/.test(ch.results[x]?.result ?? "")) p.push(`${f}: ${x} should be OK`);
@@ -2173,7 +2173,6 @@ function checkSignoff(key, run) {
   for (const e of added) {
     if (!e.candidate) { p.push(`${rel}: an entry names no candidate ("${e.title}")`); continue; }
     if (`C-${c.newest}` !== e.candidate) p.push(`${rel}: ${e.title} is not the newest candidate (C-${c.newest})`);
-    if (e.note !== PROTOCOL_NOTE) p.push(`${rel}: ${e.title} has no working-note sentence`);
     if (e.client) {
       p.push(...approvalProblem("client", e.client, { role: key.expect?.role, candidate: e.candidate }, { line: e.candidate }).map((x) => `${rel}: ${x}`));
       if (!entries.some((x) => !x.client && x.candidate === e.candidate)) p.push(`${rel}: the client's approval of ${e.candidate} comes before your sign-off of it`);
@@ -2265,13 +2264,7 @@ function checkDeliver(key, run) {
   }
   if (key.tools === false && type !== "sheet" && !run.exists(`${exportDir}markdown/${c.slug}.md`)) p.push(`${exportDir}markdown/${c.slug}.md: without ow-tools the client form itself is copied there`);
   if (key.tools === false && run.exists(`${exportDir}markdown/${c.slug}.md`) && run.read(`${exportDir}markdown/${c.slug}.md`) !== stripHeader(run.read(`${d}/${client}`) ?? "")) p.push(`${exportDir}markdown/${c.slug}.md is not the client form without its header`);
-  // The handling union (C17): no push and no repository copy under a level.
-  const u = handlingUnion(run, key);
-  if (u.level) {
-    if (asList(entry.pushes).length) p.push(`a push under a handling level (${u.from.join("; ")})`);
-    if (entry.repo && entry.repo !== "none") p.push(`a repository copy under a handling level (${u.from.join("; ")})`);
-    if (!new RegExp(`^No push and no repository copy: a handling level is set \\(.+\\)\\.$`, "m").test(run.printed() ?? "")) p.push("printed.md does not say no push and no repository copy under the handling level");
-  }
+  // The handling union went with the 2026-11-03 audience reversal: no handling level is asked or read.
   // The repository copy (C16).
   const dest = destinationOf(run, key);
   const root = repoRoot(run, key);
@@ -2411,8 +2404,8 @@ function checkSelfChecks(key, run) {
   const found = meaningFindings(run, key, { all: true });
   for (const [check, hits] of Object.entries(found)) {
     const rec = ch.results[check]?.result ?? "missing";
-    if (hits.length && /^OK/.test(rec)) p.push(`checks/C-${c.newest}.md: ${check} is OK, but the candidate holds ${hits[0]}`);
-    if (!hits.length && /^FINDING/.test(rec) && !key.expect?.findings?.includes(check)) p.push(`checks/C-${c.newest}.md: ${check} is FINDING, but nothing in the candidate is one`);
+    if (hits.length && /^OK/i.test(rec)) p.push(`checks/C-${c.newest}.md: ${check} is OK, but the candidate holds ${hits[0]}`);
+    if (!hits.length && IS_OPEN.test(rec) && !key.expect?.findings?.includes(check)) p.push(`checks/C-${c.newest}.md: ${check} is FINDING, but nothing in the candidate is one`);
   }
   if (key.tools === false && !/^NOT-CHECKED|^OK/.test(ch.results["Accessible by construction"]?.result ?? "")) p.push("Accessible by construction without ow-tools");
   return p;
@@ -2455,7 +2448,7 @@ const meaningCheck = (name) => (key, run) => {
   const n = c.newest;
   let rec = null;
   try { rec = n ? checksOf(run, key, n).results[name]?.result : null; } catch { rec = null; }
-  const frozenNow = run.written().some((f) => new RegExp(`/checks/C-${n}\\.md$`).test(f)) && /^FINDING/.test(rec ?? "");
+  const frozenNow = run.written().some((f) => new RegExp(`/checks/C-${n}\\.md$`).test(f)) && IS_OPEN.test(rec ?? "");
   return frozenNow ? [] : hits.map((h) => `${name}: ${h}`);
 };
 /** No credentials and No private names over every file any verb wrote, and over the screen. */

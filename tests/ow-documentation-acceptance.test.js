@@ -136,7 +136,7 @@ describe("C2: body, frontmatter, the shared files", () => {
     expect(data.description.length).toBeLessThanOrEqual(900);
     expect(data.description.slice(0, 200)).toContain("ow-documentation");
     expect(data.metadata.network).toBe("declared");
-    expect(data.metadata.version).toBe("1.0.1");
+    expect(data.metadata.version).toBe("2.0.0");
     expect(loadCatalogs({ root: ROOT }).find((c) => c.prefix === "ow-").bodyTokenBudgets["ow-documentation"]).toBe(4500);
   });
   it("a planted 4,600-token body fails the catalog itself", () => {
@@ -186,7 +186,6 @@ describe("C3, C20, C1: the skill's own text and its pins", () => {
     // ow-care is built (OW-07): its verbs are declared in its own frontmatter, no longer planned.
     expect(cats.planned).not.toContain("ow-care");
     expect(cats.plannedVerbs["ow-care"]).toBeUndefined();
-    expect(cats.statusNames["/ow-documentation-rollout"]).toBe("G-");
   });
 });
 
@@ -262,7 +261,7 @@ describe("C18: P3 in ow-build-plan (1.2.0; 1.3.0 since P4)", () => {
     expect(ci()).toMatch(/^documentation_people: 6$/m);
     expect(ci()).toMatch(/invoiced when the documents are delivered/);
     const bp = readFileSync(join(ROOT, "skills-work/ow-build-plan/SKILL.md"), "utf8");
-    expect(bp).toMatch(/version: "1\.3\.0"/);
+    expect(bp).toMatch(/version: "2\.0\.0"/);
     // P3 on top of P5: the body stays under the catalog's enforced 4,500-token cap.
     expect(loadCatalogs({ root: ROOT }).find((c) => c.prefix === "ow-").bodyTokenBudgets["ow-build-plan"]).toBe(4500);
     expect(estimateTokens(bp.slice(bp.indexOf("\n---", 3) + 4))).toBeLessThanOrEqual(4500);

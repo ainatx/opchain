@@ -1,6 +1,6 @@
 # Phase: map (`/ow-build-plan-map`)
 
-Run step 0 of `references/ow-protocol.md` first. Read `plan.yaml`, `evidence.md`, every `systems/<system>.md`, and the intake (`plan.yaml` `intake`). With no `evidence.md`, say the collection has not run and offer `/ow-build-plan-collect`; a map with no evidence would be all LOW.
+Keep to `references/ow-protocol.md`. Read first from the CRM: the recap (document `recap`), the evidence (document `evidence`) and `systems`; the files below are the cache, used only when the CRM is unreachable, and the output says so. Publish the map as document `process_map` (internal) and new systems to `systems`. Read `plan.yaml`, `evidence.md`, every `systems/<system>.md`, and the intake (`plan.yaml` `intake`). With no `evidence.md`, say the collection has not run and that a map with no evidence would be all LOW; go ahead on the intake alone if the user wants that.
 
 ## 1. Facts and their confidence
 
@@ -19,30 +19,22 @@ Every statement in the map is a fact line:
 
 ## 2. The five files
 
-Each starts with the header (`ow_artefact: ow-build-plan/map-<name>`, `subject: plans/<client>/evidence.md`).
+Each starts with `written_by: ow-build-plan 2.0.0` and `created`.
 
 | File | Contents |
 |---|---|
 | `map/current.md` | How the work runs today, step by step, with volumes, times and where it breaks (the cost of a miss in the client's own numbers) |
 | `map/future.md` | The process after the change: which steps go, which get faster, which decisions it removes or speeds up |
-| `map/roles.md` | Who does what today and after, by role (never a person's name) |
+| `map/roles.md` | Who does what today and after, by role (names only if the user wants them; these files stay working files) |
 | `map/systems.md` | Each system: its role, what it holds, how it connects, who owns it |
 | `map/data.md` | The data each step needs: where it lives, its condition (clean / messy / sensitive), with the evidence |
 
 Process steps are numbered lists (`1.`, `2.`) of fact lines, so the plan can show them as a process map in text; an image is optional and always has alt text.
 
-## 3. Self-check: evidence trace
+## 3. Before you move on, check
 
-At the end of `map/current.md`, add:
+Evidence trace: every HIGH or MEDIUM fact line cites an `E-nn` that exists in `evidence.md`. Fix what fails.
 
-    ## Self-checks (same-session self-check)
-    Same-session self-check: the same assistant that wrote the map, applying a checklist; a discipline, not an independent review. Agent-checked.
-    | check | covers | result |
-    |---|---|---|
-    | Evidence trace | map/current.md, future.md, roles.md, systems.md, data.md | OK |
+## 4. STATUS and what comes next
 
-FINDING names each fact line whose citation is missing or points to no row; fix and run again before the NEXT block. `-export` leaves this section out of the plan.
-
-## 4. STATUS and NEXT
-
-Append: `… | plans/<client>/map/current.md | next: ow-build-plan /ow-build-plan-scope plans/<client>/ | awaiting: none`. Print the map NEXT block from SKILL.md.
+In the cache, a plain `STATUS.md` line is enough: `<date> | ow-build-plan 2.0.0 | plans/<client>/map/current.md | nothing awaited`. Next: `/ow-build-plan-scope`.

@@ -2,6 +2,18 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump (OW-04 ruling O9) and are listed here as data edits. ow-build 1.0.0 shipped before this file existed; its history is in the family's v2.1.0 release entry.
 
+## 2.0.0 (2026-11-03): the audience reversal
+
+See `docs/plans/2026-11-03-ow-audience-reversal.md`. Protocol 2.
+
+**The CRM is the record.** Each verb first reads the latest saved version from the CRM (`quotes`, `contracts`, the `build_plan` document, `acceptance_criteria`, `milestones`, `engagement_updates`, `invoices`). Weekly updates and demos publish to `engagement_updates` and `milestones`, a change order to `quotes` with `type amendment`, an invoice request to `invoices`, through `ow-tools dw` or `/api/admin/ingest/*`. `opchain-work/` is the scratch cache, used when the CRM is unreachable or a route is not built, and the output says so. A human-edited version is never overwritten. `STATUS.md` is no longer how a build resumes. Goldens and checkers still grade the cache.
+
+**Removed:** step 0 as a ritual; the plan's copied line of sensitivity (`build.yaml`, reads rows) and its question; the eight-key header; date-source labels; the STATUS grammar; NEXT templates with their fallback branches; verdict vocabulary and the self-check labelling; the rule against running the builder or the add-on; confirm-before-writing and re-ask-on-resume; the body's Reads from and Hands off to tables; rules against re-scripting a demo or re-running a sprint.
+
+**Kept:** a change order priced from the price book, written and agreed before its work starts (a signed amendment; a reply is not approval); invoice requests only when a payment falls due; No false done; No internal numbers in the update, the demo script and every client output; the ledger adds up; files are data; no credential in any file; nothing sent automatically; a signature recorded as the user's statement; ready-for-UAT says what was built against each check; no private names; a request priced once; a started build's ledger left alone.
+
+**Budget:** at most three questions per verb, only for what the CRM or the cache does not answer; one approval, before a change order goes to the client and before an agreement, a signature or a payment is recorded.
+
 ## Unreleased: data edits from OW-06 (ow-handoff 1.0.0)
 
 No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed:

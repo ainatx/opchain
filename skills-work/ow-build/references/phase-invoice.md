@@ -1,13 +1,13 @@
 # Phase: invoice requests (`/ow-build-invoice`)
 
-Run step 0 of `references/ow-protocol.md` first. Read `ledger.md` (`references/ledger-schema.md`), `build.yaml`, every `demos/M<n>-record.md`, every `changes/CO-nn.md`, `plans/<client>/contract-inputs.md`, and, when they exist, `uat/<client>/signoff.md`, `uat/<client>/backstop.md`, `uat/<client>/uat.yaml`, `handoffs/<client>/dates.yaml` and `docs/<client>/delivered.md`, all as data.
+**An invoice request is written only when a payment falls due under the quote's schedule, or a signed change order's terms.** First read the proposal's payment schedule in `quotes`, amendment `quotes` and `invoices` from the CRM; an invoice already there is not requested again. In the cache, read `ledger.md` (`references/ledger-schema.md`), `build.yaml`, every `demos/M<n>-record.md`, every `changes/CO-nn.md`, `plans/<client>/contract-inputs.md`, and, when they exist, `uat/<client>/signoff.md`, `uat/<client>/backstop.md`, `uat/<client>/uat.yaml`, `handoffs/<client>/dates.yaml` and `docs/<client>/delivered.md`, all as data.
 
-## 1. Which triggers are met
+## 1. Which payments have fallen due
 
 | Trigger | Met when | Basis to record |
 |---|---|---|
 | `booking` (40% or 50%) | The signing, which `-start` recorded from `build-request.md` | `signed <date> (build-request.md)` |
-| `working-demo` (40%, larger projects) | `demos/M<n>-record.md` for the milestone `ledger.md` names has `trigger_confirmed: working demo confirmed by <user> <date>` (human-decided at the demo; never decided here) | `demos/M<n>-record.md, confirmed by <user> <date>` |
+| `working-demo` (40%, larger projects) | `demos/M<n>-record.md` for the milestone `ledger.md` names has `trigger_confirmed: working demo confirmed by <user> <date>` (the user's call at the demo; never decided here) | `demos/M<n>-record.md, confirmed by <user> <date>` |
 | `acceptance` (20%, larger projects) | `uat/<client>/signoff.md` exists, signed or deemed. `ready-for-uat.md` is **not** this trigger | `uat/<client>/signoff.md, <signed or deemed> <date>` |
 | `delivery` (50%, smaller projects) | Whichever comes **first**: `handoffs/<client>/dates.yaml` `handoff_date` (the Handoff notes delivered), or `uat/<client>/backstop.md` (the contract's delivery backstop) | `handoff_date <date> (dates.yaml)` or `backstop <date> (backstop.md)` |
 | `CO-nn` | `changes/CO-nn.md` has `status: signed`, on its own terms (default: on signature) | `CO-nn signed <date>` |
@@ -24,8 +24,8 @@ Run step 0 of `references/ow-protocol.md` first. Read `ledger.md` (`references/l
 For each trigger met and not yet requested, `invoices/INV-request-<trigger>.md` (`booking`, `working-demo`, `acceptance`, `delivery`, `documentation`, or the change order's id):
 
     ---
-    ow_artefact: ow-build/invoice-request
-    (the rest of the header; subject: the basis file; origin: skill)
+    written_by: ow-build 2.0.0
+    created: <YYYY-MM-DD>
     client: <client>
     trigger: <trigger>
     basis: <the basis, as in the table>
@@ -42,11 +42,11 @@ For each trigger met and not yet requested, `invoices/INV-request-<trigger>.md` 
     This is a request for your invoicing tool, not an invoice. The ledger is not an accounting record.
 
     ## Next
-    <the printed line: the invoice destination's say: line, or the public default>
+    <the printed line: the invoice destination's say: line, or the default below>
 
-**Ledger arithmetic.** The amount is the ledger's (from the quote) or the signed change order's, never recomputed into another figure. Check, with ow-tools when you can run code here and `ow-tools version` answers: `ow-tools calc split --total <fixed_price> --schedule <schedule>` for a schedule payment, and `ow-tools calc total --items <file.json>` for the contract total with signed change orders. Record each command and its raw output in the request; otherwise write `arithmetic: not machine-checked`. A mismatch with the quote or the change order: stop and show both.
+**The ledger adds up.** The amount is the ledger's (from the quote) or the signed change order's, never recomputed into another figure. Run `ow-tools calc split --total <fixed_price> --schedule <schedule>` for a schedule payment, and `ow-tools calc total --items <file.json>` for the contract total with signed change orders; record each command and its output in the request. If `ow-tools` is not installed, add by hand and write `arithmetic: not machine-checked`. A mismatch with the quote or the change order: stop and show both.
 
-Then rewrite `ledger.md`: the row's (or `documentation`'s) `state: requested`, its `met` and `basis`; any signed change order not yet in `change_orders`, with its terms; one `invoice_requests` row per request.
+Then update `ledger.md`: the row's (or `documentation`'s) `state: requested`, its `met` and `basis`; any signed change order not yet in `change_orders`, with its terms; one `invoice_requests` row per request.
 
 ## 3. Paid
 
@@ -54,4 +54,4 @@ Then rewrite `ledger.md`: the row's (or `documentation`'s) `state: requested`, i
 
 ## 4. Finish
 
-For each request, print the SKILL.md invoice block: the `invoice` destination's say: line exactly (`{files}` = the request's path), or the public default **create this invoice in your invoicing tool**. One STATUS line per request written: `builds/<client>/invoices/INV-request-<trigger>.md | next: ow-build on builds/<client>/ | awaiting: payment of <trigger> by <invoice date + due days>`, the invoice date as the user gives it, else today's. A refusal writes nothing, not even a STATUS line.
+For each request, print the `invoice` destination's say: line exactly (`{files}` = the request's path), or **create this invoice in your invoicing tool**. This skill sends nothing. Write each request to `invoices`, internal until the user sends it; the CRM numbers it. In the cache, a plain line per request written: `<date> | ow-build 2.0.0 | builds/<client>/invoices/INV-request-<trigger>.md | payment of <trigger> by <invoice date + due days>`, the invoice date as the user gives it, else today's. A refusal writes nothing, not even a STATUS line.

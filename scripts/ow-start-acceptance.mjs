@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // ow-start acceptance checks (docs/plans/2026-10-06-ow-start-intake-redesign.md §10).
 //
-// ow-start is a text-only skill: a model runs it, so these checks cannot run
+// A model runs ow-start, so these checks cannot run
 // the skill. They read what a run wrote (its opchain-work/ folder) and test it
 // against an answer key of planted facts, mechanically:
 //
@@ -14,10 +14,10 @@
 //   recap_trace          every recap sentence traced to facts; Today only HIGH/MEDIUM, never the planted LOW fact
 //   path                 the proposed path for the call
 //   due_date             the recap's due date (next business day, weekends and profile holidays skipped)
-//   status               the STATUS line, appended without rewriting earlier lines
+//   status               the plain STATUS line, earlier lines kept (the old form with a clock label still reads)
 //   notes_only           from notes: nothing above MEDIUM, no timestamps, every quote cited to the notes
 //   private_names        no private skill or business name in any file the run wrote
-//   headers              the protocol's artefact header on each output
+//   headers              written_by and created on each output
 //
 // Each check runs on its own: a malformed file (an empty STATUS.md, a header that
 // is not valid YAML) fails the checks that need it, with a one-line reason, and
@@ -252,14 +252,8 @@ function checkHeaders(key, run) {
       p.push(`${at}: header is not valid YAML (${reason(e)})`);
       continue;
     }
-    if (data.ow_artefact !== `ow-start/${name}`) p.push(`${at}: ow_artefact is ${data.ow_artefact}, expected ow-start/${name}`);
-    if (String(data.schema) !== "1") p.push(`${at}: schema is ${data.schema}, expected 1`);
-    if (!/^ow-start \d+\.\d+\.\d+ \(protocol 1\)$/.test(data.written_by ?? "")) p.push(`${at}: written_by is "${data.written_by}"`);
-    if (data.workstream !== key.slug) p.push(`${at}: workstream is ${data.workstream}, expected ${key.slug}`);
-    if (!data.subject) p.push(`${at}: subject is missing`);
+    if (!/^ow-start \d+\.\d+\.\d+(?: \(protocol \d+\))?$/.test(data.written_by ?? "")) p.push(`${at}: written_by is "${data.written_by}"`);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(isoDate(data.created) ?? "")) p.push(`${at}: created "${isoDate(data.created)}" is not a YYYY-MM-DD date`);
-    if (!/^(tool|host-supplied|user-stated|assumed)$/.test(data.clock ?? "")) p.push(`${at}: clock "${data.clock}" is not tool, host-supplied, user-stated or assumed`);
-    if (!/^(skill|user|third-party \(.+\))$/.test(data.origin ?? "")) p.push(`${at}: origin is "${data.origin}"`);
   }
   return p;
 }
@@ -444,8 +438,7 @@ function checkCoverage(key, run) {
 function checkRecapTrace(key, run) {
   const p = [];
   if (!need(run, "recap.md", p) || !need(run, "coverage.md", p) || !need(run, "intake-record.md", p)) return p;
-  if (!run.coverage.hasTraceHeading) p.push('coverage.md has no "## Recap trace (same-session self-check)" section');
-  if (!run.coverage.overall) p.push("coverage.md has no overall verdict line");
+  if (!run.coverage.hasTraceHeading) p.push('coverage.md has no "## Recap trace" section');
   const pathId = run.recap.data.path_id;
   for (const name of RECAP_SECTIONS.slice(0, 4)) if (!run.recap.sections.has(name)) p.push(`recap.md has no "## ${name}" section`);
   const limits = { Today: [2, 4], "What needs to change": [1, 2], "What I need from you": [0, 5] };
@@ -524,14 +517,21 @@ function checkStatus(key, run, caseDir) {
     const earlier = readFileSync(before, "utf8").split("\n").filter((l) => l.trim());
     earlier.forEach((l, i) => { if (run.status[i] !== l) p.push(`STATUS.md line ${i + 1} was rewritten; STATUS.md is append-only`); });
   }
+  // A plain line (date | skill | file | what is awaited), with an optional next: field; a line
+  // an earlier version wrote, with a clock label and a next: field, is read the same way.
   const last = run.status.at(-1).split(" | ");
-  if (last.length !== 5) { p.push(`the last STATUS line has ${last.length} fields, expected 5: ${run.status.at(-1)}`); return p; }
-  if (!/^\d{4}-\d{2}-\d{2} \(clock: (tool|host-supplied|user-stated|assumed)\)$/.test(last[0])) p.push(`STATUS date field "${last[0]}" lacks a clock source`);
-  if (!/^ow-start \d+\.\d+\.\d+$/.test(last[1])) p.push(`STATUS skill field is "${last[1]}"`);
+  if (last.length < 4) { p.push(`the last STATUS line has ${last.length} fields, expected at least 4: ${run.status.at(-1)}`); return p; }
+  if (!/^\d{4}-\d{2}-\d{2}(?: \(clock: [^)]*\))?$/.test(last[0])) p.push(`STATUS date field "${last[0]}" is not a date`);
+  if (!/^ow-start(?: \d+\.\d+\.\d+)?$/.test(last[1])) p.push(`STATUS skill field is "${last[1]}"`);
   if (last[2] !== `intake/${key.slug}/recap.md`) p.push(`STATUS path is ${last[2]}, expected intake/${key.slug}/recap.md`);
-  if (last[3] !== `next: ${key.status.next}`) p.push(`STATUS "${last[3]}", expected "next: ${key.status.next}"`);
+  const rest = last.slice(3);
+  const next = rest.find((f) => f.startsWith("next: "));
+  const state = rest.find((f) => !f.startsWith("next: ")) ?? "";
+  const closes = /^none \(closed:/.test(key.status.next ?? "");
+  if (next && next !== `next: ${key.status.next}` && (closes || /^next: none \(closed:/.test(next))) p.push(`STATUS "${next}", expected "next: ${key.status.next}"`);
+  if (closes && !next) p.push(`STATUS has no "next: ${key.status.next}"; this path closes the workstream`);
   const sendBy = isoDate(key.due?.send_by);
-  if (!rx(`^awaiting: recap to ${key.client} by ${sendBy}$`).test(last[4])) p.push(`STATUS "${last[4]}", expected "awaiting: recap to ${key.client} by ${sendBy}"`);
+  if (!rx(`^(?:awaiting: )?recap to ${key.client} by ${sendBy}$`).test(state)) p.push(`STATUS "${state}", expected "awaiting: recap to ${key.client} by ${sendBy}"`);
   return p;
 }
 

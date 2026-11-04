@@ -1,6 +1,6 @@
 # Close: `close.md`, `close-addendum-<date>.md`, `care-start.md`, `care-start-addendum-<date>.md`, the close email
 
-Written by `/ow-handoff-close` only. `close.md` and `care-start.md` are written **once**, by the first close; a close after reopening writes the addenda and never touches them.
+Written by `/ow-handoff-close`. A close after reopening writes the addenda and leaves the first close's `close.md` and `care-start.md` as they were.
 
 ## 1. The blockers (`-close` refuses while any holds, naming each)
 
@@ -18,15 +18,15 @@ Written by `/ow-handoff-close` only. `close.md` and `care-start.md` are written 
     - access item AX-nn is kept for care, but the choice is <hourly | none | undecided>
 
 - Today must be **after** `window_end` and after the latest `window_end` in `co-windows.yaml`; between `access_removal_date` and `window_end` is still before.
-- A covered FIX-nn not terminal blocks, unless the choice is care **and** the newest ow-care answer is `installed`: then it carries into care, free, its held access converted to kept for care ending "remove when FIX-nn is verified".
+- A covered FIX-nn not terminal blocks, unless the choice is care **and** ow-care is recorded as installed: then it carries into care, free, its held access converted to kept for care ending "remove when FIX-nn is verified".
 - A post-acceptance CO not accepted yet does not block: `close.md` lists it as "not yet accepted; its own fix period starts on its acceptance date".
 - **Waivers at close** are only the ones the owning verbs recorded (`-accounts`, `-access`, `-fix`); a waiver typed at `-close` is refused: `Refused: a waiver at close covers only the items the owning verbs record.`
 
 ## 2. `close.md` (and `close-addendum-<date>.md`)
 
     ---
-    ow_artefact: ow-handoff/close | ow-handoff/close-addendum
-    … the protocol header …
+    written_by: ow-handoff 2.0.0
+    created: <YYYY-MM-DD>
     closed: <YYYY-MM-DD>
     branch: care-installed | care-not-installed | hourly | none | undecided
     ow_care: installed | not installed (<source> <YYYY-MM-DD>) | not asked (no care)
@@ -42,22 +42,21 @@ Written by `/ow-handoff-close` only. `close.md` and `care-start.md` are written 
     ## Arrangement      the choice with its frozen terms; undecided: "no choice recorded, treated as no ongoing arrangement"
     ## Waivers          every waiver the owning verbs recorded, with its dates
     ## Not yet accepted
-    ## Self-checks
 
 ## 3. The four branches
 
 | Branch | Then |
 |---|---|
-| **care, ow-care installed** | Stays open under ow-care. `care-start.md` written; NEXT `use ow-care on handoffs/<client>/care-start.md` |
-| **care, ow-care not installed** | Closed. Kept items listed in `close.md` and the email as `kept for care, owner: <user>` with their removal steps; STATUS keeps `awaiting: kept access review <care start + 1 month>` after the closed line. `care-start.md` written for later; the NEXT's `IF IT IS NOT AVAILABLE` line says the kept items stay with the user. **Nothing promises care will act** |
+| **care, ow-care installed** | Stays open under ow-care. `care-start.md` written; next: run `/ow-care-start` on `handoffs/<client>/care-start.md` |
+| **care, ow-care not installed** | Closed. Kept items listed in `close.md` and the email as `kept for care, owner: <user>` with their removal steps; Record that the kept-access review is awaited on <care start + 1 month>. `care-start.md` written for later; say the kept items stay with the user. **Nothing promises care will act** |
 | **hourly** | Closed; `-fix` keeps taking hourly-help requests |
 | **none or undecided** | Closed; undecided records "no choice recorded, treated as no ongoing arrangement" |
 
 ## 4. `care-start.md` (and `care-start-addendum-<date>.md`): what ow-care reads
 
     ---
-    ow_artefact: ow-handoff/care-start
-    … the protocol header …
+    written_by: ow-handoff 2.0.0
+    created: <YYYY-MM-DD>
     care_start: <YYYY-MM-DD>
     tier: <name, as frozen>
     reply_business_days: <as frozen>
@@ -79,4 +78,4 @@ The client copy of `close.md`: fixes, transfers, access, hourly help, payments b
 
 ## 6. Reopening
 
-A report the client sent on or before the relevant window end that arrives after close is still covered: `-fix` logs it and STATUS gains `awaiting: FIX-nn (covered, reported <date>) after close`; the workstream is reopened. `-close --reopened` runs when it ends and writes `close-addendum-<date>.md`, a new close email (`export/close-email-<date>.{html,txt}`) and, when needed, `care-start-addendum-<date>.md`.
+A report the client sent on or before the relevant window end that arrives after close is still covered: `-fix` logs it, awaiting FIX-nn (covered, reported <date>) after close; the workstream is reopened. `-close --reopened` runs when it ends and writes `close-addendum-<date>.md`, a new close email (`export/close-email-<date>.{html,txt}`) and, when needed, `care-start-addendum-<date>.md`.

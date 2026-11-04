@@ -1,20 +1,16 @@
-# Self-checks, and working on its own
+# Before you hand anything over
 
-Moved from SKILL.md in 1.1.0, word for word, so the body keeps room for the amendments still to come; the Research rows check is new in 1.1.0.
+A short checklist, not a verdict. A check that fails is fixed; nothing is recorded; the user may simply say to go ahead.
 
-## Self-checks
-
-Each is a **same-session self-check: the same assistant that wrote the document, applying a checklist; a discipline, not an independent review.** Each reports OK, FINDING or NOT-CHECKED (reason), agent-checked, where its phase file says. Fix and re-run while any is FINDING; `-export` refuses one unless the user types a waiver naming it.
-
-| Check | Runs in | Passes when |
+| Check | When | What to check |
 |---|---|---|
 | Evidence trace | `-map`, `-scope` | Every HIGH or MEDIUM fact cites an `evidence.md` line that exists |
 | Acceptance coverage | `-scope`, `-quote --quick` | Every package has a check with test data and a case count; error cases too |
 | Out of scope present | `-scope`, `-quote --quick` | The out-of-scope list is not empty |
 | Risk owners | `-scope` | Every risk has an owner and a mitigation |
-| Quote integrity | `-quote` | Units or a recorded manual price on every package; modifiers cite evidence; dates, terms, testing line and fix window match the price book and `offers.md`; the internal appendix sits inside the `ow:internal` markers |
+| The quote's sums and terms | `-quote` | Units or a recorded manual price on every package; modifiers cite evidence; dates, terms, testing line and fix window match the price book and terms; the internal appendix sits inside the `ow:internal` markers |
 | Builder-neutral | `-export` | The plan names none of your prices, fees, rates or tooling, nor these skills' wording (the client's own figures stay) |
-| Research rows | `-collect`, `-map` | Every `research` row names `RS-nn F-nn` of a findings file in this client's own research folder, keeps that finding's level, and comes from a topic with no self-check FINDING open; no fact about the client's current state (`map/current.md`, `systems/<system>.md`) rests only on research rows above MEDIUM |
+| Research rows | `-collect`, `-map` | Every `research` row names `RS-nn F-nn` of a findings file in this client's own research folder, keeps that finding's level, and comes from a topic with no check open; no fact about the client's current state (`map/current.md`, `systems/<system>.md`) rests only on research rows above MEDIUM |
 
 ## Works on its own
 

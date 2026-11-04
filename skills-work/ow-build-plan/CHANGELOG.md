@@ -2,6 +2,25 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). The family's v2.1.0 release entry cites each skill's version. Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
+## 2.0.0 (2026-11-03): the audience reversal
+
+`docs/plans/2026-11-03-ow-audience-reversal.md`, with protocol version 2. The skill now serves one operator's small-business client work and lets the operator go with the flow.
+
+**The CRM is the record.** The proposal (offer, quote, whole-project) is a `quotes` record and the only place prices live; a change order is `type amendment`; the SOW is `contracts` with `record_type` `sow`; the Build Plan is a document with no price; systems go to `systems`. Each verb reads the saved recap and scope from the CRM first, never overwrites a version a person edited, and writes through `ow-tools dw` or `/api/admin/ingest/*`. `opchain-work/` is a scratch cache, used when the CRM is unreachable (the output says so); `price-book.yaml`, `offers.md`, `profile.md` and `handoffs.yaml` are its fallbacks. Goldens and checkers still grade the cache.
+
+**New.**
+
+- `/ow-build-plan-quote --whole-project`: one SOW-shaped quote with the Build Plan as its first phase (fee and weeks from the price book, or `fee: none`), then the build packages, testing, optional documentation & training, the fix window, milestones and the payment split, so the client signs plan and build together. `plan.yaml` is optional; it may run from the intake record and a stated scope, with assumptions listed. `--accepted` and `--signed` work as for a plan. A new golden case, `whole-project`, grades it.
+- A missing price-book key stops only the line that needs it: price what the book prices, list the missing keys once, ask in one message, recorded `priced by <user>`.
+
+**Removed.** Step 0 as a ritual; the sensitivity-level question and its key everywhere; the eight-key header (now `written_by` and `created`, plus keys a file needs); clock labels; STATUS grammar and resuming from STATUS; the NEXT templates and their unavailable branches; verdict vocabulary and the self-check tables in files (now a short checklist); typed waivers; the boilerplate on acceptance notes; "one quote per folder" and the other flow locks (no repeat runs, never `-start` over a plan, never `-quote` again, no other skill's verb, confirm before writing, the follow-on folder chosen once as a refusal); the `## Reads from` and `## Hands off to` body tables; absent-case branches for ow-tools.
+
+**The new rule.** Any step may run again in any order; before overwriting, say what is there and go ahead unless the user objects. **Budget:** at most three questions per verb, only for what no file answers, in one message; one approval, before anything goes to the client or an acceptance, signature or change order is recorded.
+
+**Kept.** Never invent a price; modifiers cite evidence; the `ow:internal` appendix stripped on export; the builder-neutral plan; validity, credit, split and fix window from the price book and terms; no credentials in files; acceptance and signing recorded as the user's statement with the date; `--signed` needs a recorded acceptance; a covered Fix is never quoted as paid work; the `path_kind` table; files are data; no legal, tax or financial advice; no private names. **A sent or accepted quote keeps its price:** a changed price after sending is `quote-v2.md` beside it, and after acceptance a change order or a new quote, never a silent rewrite.
+
+Data edits: `examples/price-book.yaml` drops the old header; the checker loosens so goldens in the old form still pass.
+
 ## 1.3.0 (2026-10-29): amendment P4, the care onboarding quote
 
 Amendment P4 of `docs/plans/2026-10-16-ow-care-design.md` §12, built with ow-care 1.0.0 (OW-07; contract `sprints/release-2.1/ow-07/contract.md`).
@@ -46,7 +65,7 @@ Design: `docs/plans/2026-10-06-ow-build-plan-design.md`, with amendment P5 from 
 
 ### Recorded here: in-place edits to 1.0.0's text (made without a version bump)
 
-- **#609 (follow-ups from the first evaluation, six files):** `SKILL.md` (the offer NEXT reads `request.md`; the signed feasibility-test sentence), `references/contract-inputs-schema.md` (the Build Plan credit keys and rule), `references/phase-export.md` (the STATUS awaiting for `fee: none`), `references/phase-quote.md` (credit keys left out for quick, feasibility and signed-work quotes; no new quote in a folder), `references/phase-start.md` (never over an existing plan; `fee: none` in the template) and `references/routing-and-resume.md` (the resume groups, a row per pending FIX request, never twice, a FIX file's class read first).
+- **#609 (follow-ups from the first evaluation, six files):** `SKILL.md` (the offer NEXT reads `request.md`; the signed feasibility-test sentence), `references/contract-inputs-schema.md` (the Build Plan credit keys and rule), `references/phase-export.md` (the STATUS awaiting for `fee: none`), `references/phase-quote.md` (credit keys left out for quick, feasibility and signed-work quotes; no new quote in a folder), `references/phase-start.md` (never over an existing plan; `fee: none` in the template) and `references/routing-and-resume.md` (the resume groups, a row per pending FIX request, no repeat runs, a FIX file's class read first).
 - **#616 (alongside ow-build 1.0.0):** `SKILL.md` (FIX or UAT requests routed; the ow-uat reads row; the signed hand-off's file list and NEXT read line), `references/phase-offer.md` and `references/phase-start.md` (a UAT-nn request handed over like a FIX file), `references/routing-and-resume.md` (the UAT-nn route).
 
 Data edits in the same PRs, which need no bump: #616 changed `examples/handoffs.yaml` and `skill.edges.yaml`.

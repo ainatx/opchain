@@ -42,6 +42,5 @@ checks:
   - quotes
   - credentials
   - handoff_fields
-  - self_checks
   - private_names
   - people

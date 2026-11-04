@@ -206,9 +206,16 @@ describe("the checker catches each failure §10 names", () => {
     expect(out).toMatch(/STATUS\.md:2: names "llc-ops"/);
   });
 
-  it("a missing artefact header field", () => {
-    const run = mutated("larkspur-prospect", { "recap.md": (t) => t.replace("clock: user-stated\n", "") });
-    expect(failures("larkspur-prospect", run).headers).toMatch(/recap\.md: clock "undefined"/);
+  it("a missing header field: created is required, the old keys are tolerated", () => {
+    const run = mutated("larkspur-prospect", { "recap.md": (t) => t.replace(/^created: .*\n/m, "") });
+    expect(failures("larkspur-prospect", run).headers).toMatch(/recap\.md: created "undefined"/);
+    const old = mutated("larkspur-prospect", { "recap.md": (t) => t.replace(/^clock: .*\n/m, "").replace(/^ow_artefact: .*\n/m, "") });
+    expect(failures("larkspur-prospect", old).headers).toBeUndefined();
+  });
+  it("a plain 2.0.0 STATUS line passes; a wrong send-by date in it fails", () => {
+    const plain = (date) => (t) => t.replace(/^(\S+) \(clock: [^)]*\) \| ow-start \S+ \| (intake\/larkspur-ceramics\/recap\.md) \|.*$/m, `$1 | ow-start 2.0.0 | $2 | awaiting: recap to Larkspur Ceramics by ${date}`);
+    expect(failures("larkspur-prospect", mutated("larkspur-prospect", { "STATUS.md": plain("2026-10-07") })).status).toBeUndefined();
+    expect(failures("larkspur-prospect", mutated("larkspur-prospect", { "STATUS.md": plain("2026-10-09") })).status).toMatch(/expected "awaiting: recap to Larkspur Ceramics by 2026-10-07"/);
   });
 });
 

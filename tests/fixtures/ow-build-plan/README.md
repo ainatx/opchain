@@ -20,7 +20,7 @@ Larkspur Ceramics continues ow-start's `larkspur-prospect` golden run (recap pat
 | `credentials` | Credentials | the `unpriced-package` run | The read-only key in `tier2-plan/input/session/README.md` must appear in no file; the access is logged |
 | `builder-neutral` | Builder-neutral | the `unpriced-package` run | The assembled `build-plan.md` names no price, unit, business or skill wording (the client's own reshipping cost is a fact, not a price) |
 | `uat-documentation` | UAT and documentation lines | the `unpriced-package` run | A TOOL-M build: UAT · M with 3 tester roles on an M that includes 2; Documentation & training · M declinable; the extension rate only inside the markers, checked with the ow-tools preflight |
-| `accepted-signed` | Accepted and signed | `--accepted`, `--signed` | Defaults-only `handoffs.yaml`, so both NEXT blocks print the public defaults |
+| `accepted-signed` | Accepted and signed | `--accepted`, `--signed` | Defaults-only `handoffs.yaml`, so both what-comes-next sections print the public defaults |
 | `signed-before-accepted` | Accepted and signed | `--signed` on a sent quote | No `expected/`: the refusal writes nothing |
 | `fix-window` | Fix window | the `accepted-signed` run | `fix_window_days: 30` in `offers.md` → "30 days of fixes" in the quote and contract inputs |
 | `private-names-default` | No private names | the `accepted-signed` run | Every file the chain wrote, with the shipped `handoffs.yaml` |
@@ -32,7 +32,7 @@ Larkspur Ceramics continues ow-start's `larkspur-prospect` golden run (recap pat
 | `route-next-stage` | (eval round 2, item 2) | "use ow-build-plan on intake/fernhill-florists/intake-record.md" → `-start` | Fernhill Florists: a delivery-mode recap (`next-stage`, work already signed) starts the plan, never an offer; `fee: none` |
 | `delivery-quote` | (eval round 4, follow-up 7) | `-quote` on Fernhill's plan (its evidence and scope files, abridged, in `input/`) | A plan on signed work (`fee: none`): the quote has no Build Plan fee or credit line, its header leaves `build_plan_fee` and `credit_deadline` out, and STATUS awaits only the client's answer |
 | `route-fix-covered` | (eval round 3, bug 8) | "use ow-build-plan on handoffs/larkspur-ceramics/fixes/FIX-04.md" | FIX-04 (in `input/`) is `classification: fix`, a covered Fix: free under the fix window, so the route says so and writes nothing; no paid follow-on is offered |
-| `route-folder-signed` | (eval round 3, item 3) | "use ow-build-plan on plans/larkspur-ceramics/" after signing | `build-request.md` exists: the route prints the signed NEXT and stops; no file is written, `-start` is never run again |
+| `route-folder-signed` | (eval round 3, item 3) | "use ow-build-plan on plans/larkspur-ceramics/" after signing | `build-request.md` exists: the route says the build is next; nothing signed is rewritten; no file is written, `-start` is never run again |
 | `route-feasibility` | (owner decisions 2026-10-15, 2026-10-16) | "use ow-build-plan on intake/kestrel-bindery/intake-record.md" → `-quote --quick` | Kestrel Bindery: a feasibility recap is a quick quote priced as the unit marked `feasibility: true`, carrying just the test: no UAT line, fix window, training line or build hand-off |
 | `feasibility-signed` | (owner decision 2026-10-16) | `--accepted`, then `--signed`, on the feasibility quote | `contract-inputs.md` holds just the test; `--signed` writes no `build-request.md`, and STATUS points at a Build Plan offer for a go |
 | `route-folder` | (eval round 2, item 3) | "use ow-build-plan on plans/larkspur-ceramics/" → `--accepted` | After the export the folder route records the acceptance; the sent quote is never written again |
@@ -56,3 +56,5 @@ node scripts/ow-build-plan-acceptance.mjs unpriced-package /path/to/empty-folder
 ```
 
 With no arguments, the script checks every golden run (the same thing `tests/ow-build-plan-acceptance.test.js` does in `npm test`).
+
+Goldens in the 1.x form (the eight-key header, `next:` and `awaiting:` STATUS lines, NEXT blocks) still pass: the 2.0.0 checker reads them and the plain form alike. Cases `whole-project` and `whole-project-signed` are written in the 2.0.0 form: one quote with the Build Plan phase first, straight from the intake record and a stated scope. The checker grades the scratch cache; CRM writes are not graded here.

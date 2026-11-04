@@ -2,6 +2,18 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
+## 2.0.0 (2026-11-03): the audience reversal
+
+Decision record: `docs/plans/2026-11-03-ow-audience-reversal.md`. Protocol 2. The skill now serves one operator's small-business client work; the operator decides.
+
+**Removed:** the handling level and banner, the eight-key header, clock labels, the STATUS grammar, the NEXT templates (including the `handoffs.yaml` destination forms), the same-session self-check line with its verdicts and typed waivers, `dates.yaml`, `close.md` and `care-start.md` as write-once locks (dates are recomputed for a wrong delivery date, said so), confirm-before-writing and re-asking on resume, the ow-tools absent-case branches, and the text-only line. The scan's `NOT-CHECKED` status is now `not scanned`. Working files may name the client's people.
+
+**Stays:** every account in the client's name, the redacted secrets scan (a hit is rotated, the secret never printed), operator notes, the Handoff notes with the acceptance record (the user's statement, never verified) and the takeover check, the fix window from the delivery date with absolute dates, a covered fix free and a change priced in writing before work, hourly help after a go-ahead, logged and invoiced, an offer's terms that do not move once sent, access removal from every source, no credentials in any file, no private names, nothing sent automatically.
+
+**Budget:** at most three questions per verb, only for what the records do not answer. One approval: before the Handoff notes or the after-handoff offer go to the client.
+
+**The CRM is the record** (protocol §8): SKILL.md's "Where it lives in the CRM" maps each output to its object (Handoff and operator notes are documents, the offer a `quotes` record, moved accounts and system status on `systems`). Each verb reads the latest saved versions first and never overwrites a human-edited one. `opchain-work/` is the scratch cache; `offers.md`, `profile.md` and `handoffs.yaml` are read only when the CRM is unreachable, and the output says so. The acceptance checker still grades the cache and has been loosened, not rewritten; the goldens are unchanged.
+
 ## 1.0.1 (2026-10-29): the care NEXT lines name ow-care's route (with ow-care 1.0.0)
 
 ow-care 1.0.0 ships with a routing verb, `/ow-care on <path>`, that sends `handoffs/<client>/care-start.md` to `/ow-care-start` and a `route: care` `FIX-nn.md` to `/ow-care-request` (its `references/entry-and-requests.md`). The two care NEXT templates keep their says (`use ow-care on handoffs/<client>/care-start.md`, `use ow-care on handoffs/<client>/fixes/FIX-nn.md`); their slash hints now name that route, `/ow-care`, as the contract check requires of a "use <id> on <path>" say, and `skill.edges.yaml` hands both off with it. No file format and no rule changed; records written by 1.0.0 stay valid, and the checker accepts both versions in `written_by`.

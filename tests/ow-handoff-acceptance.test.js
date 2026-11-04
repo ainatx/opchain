@@ -1,5 +1,5 @@
 // ow-handoff acceptance tests (docs/plans/2026-10-08-ow-handoff-design.md §13 and the OW-06 contract,
-// sprints/release-2.1/ow-06/contract.md). ow-handoff is a text-only skill, so a model has to run it. These tests
+// sprints/release-2.1/ow-06/contract.md). A model has to run ow-handoff. These tests
 // prove the mechanical half: every golden run passes scripts/ow-handoff-acceptance.mjs, laid out as a real run
 // folder too; each check fails on its own when a file is malformed (C23); the catalog holds the body to its
 // budget; the shared files stay byte-identical; the controls pass and the held-out sets are measured; and the
@@ -131,12 +131,12 @@ describe("C2, C3: the body, the frontmatter, the shipped text", () => {
     expect(fm).not.toMatch(/[<>]/);
     for (const n of ["fixing code", "sending anything", "deleting anything", "removing a secret from git history", "ow-care"]) expect(fm).toContain(n);
   });
-  it("network none, core bundle, version 1.0.1 (1.0.0 plus the care route hints)", () => {
+  it("network none, core bundle, version 2.0.0, protocol 2", () => {
     const t = readFileSync(join(SKILL, "SKILL.md"), "utf8");
     expect(t).toMatch(/^ {2}network: none$/m);
     expect(t).toMatch(/^ {2}bundle: core$/m);
-    expect(t).toMatch(/^ {2}version: "1\.0\.1"$/m);
-    expect(t).toMatch(/^ow-handoff 1\.0\.1 · protocol 1/m);
+    expect(t).toMatch(/^ {2}version: "2\.0\.0"$/m);
+    expect(t).toMatch(/^ow-handoff 2\.0\.0 · protocol 2 · Core bundle$/m);
   });
   it("the shipped text is clean (C3)", () => expect(shippedTextProblems()).toEqual([]));
   it("the protocol copy and the shared examples are byte-identical everywhere", () => {
@@ -196,6 +196,18 @@ describe("C19, C20: controls first, held-out sets measured", () => {
   it("the held-out sets are unchanged since they were hashed", () => {
     const d = createHash("sha256").update(JSON.stringify([S.INTERNAL_HELDOUT_OURS, S.INTERNAL_HELDOUT_LEGIT, S.CREDENTIAL_CONTROLS, S.PEOPLE_HELDOUT, S.PEOPLE_CONTROLS, S.OTHER_CLIENT_HELDOUT, S.OTHER_CLIENT_CONTROLS, S.APPROVALS])).digest("hex");
     expect(d).toBe(S.HELDOUT_DIGEST);
+  });
+});
+
+describe("protocol 2: a run in the plain forms passes", () => {
+  it("written_by and created only, a plain STATUS line, free wording", () => {
+    const dir = mutated("accounts");
+    const f = join(dir, L, "accounts.md");
+    writeFileSync(f, readFileSync(f, "utf8").replace(/^(?:ow_artefact|schema|workstream|subject|clock|origin): .*\n/gm, "").replace(/^written_by: .*$/m, "written_by: ow-handoff 2.0.0"));
+    const s = join(dir, "opchain-work", "STATUS.md");
+    writeFileSync(s, `${readFileSync(s, "utf8").split("\n").slice(0, -2).join("\n")}\n2027-02-01 ow-handoff 2.0.0 handoffs/larkspur-ceramics/accounts.md: awaiting transfers by 2027-02-20\n`);
+    writeFileSync(join(dir, "printed.md"), "Accounts are listed in handoffs/larkspur-ceramics/accounts.md. Next, run /ow-handoff-notes.\n");
+    expect(runCase("accounts", dir).filter((r) => r.problems.length)).toEqual([]);
   });
 });
 

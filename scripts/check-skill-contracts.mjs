@@ -20,27 +20,22 @@
 //          `npm run sync-bundles` and `npm run sync-plugin-skills`.
 //   family For a catalog with a private-name list (ow-): no file in a skill
 //          names a skill from another catalog, a private skill or a business,
-//          or says one skill invokes or chains to another (contract R1),
-//          and every `<prefix>` name is a family member (a skill, a planned
-//          skill, an add-on, or the protocol file). Every NEXT block leads with
-//          `use <family id>` and carries its IF IT IS NOT AVAILABLE branch; the
-//          body's Reads-from rows have non-empty absent and mismatch cases and
-//          its Hands-off rows a non-empty unavailable branch. A STATUS `next:`
-//          holds no mode (protocol §5). (ow-start design §8.1; ow- cross-talk
-//          contract R5–R7.)
+//          a real price or contract-clause wording, and every `<prefix>` name
+//          is a family member (a skill, a planned skill, an add-on, or the
+//          protocol file). The NEXT-block, edge-table and STATUS-grammar checks
+//          that held the ow- skills to the 2026-09-21 government-audience design
+//          were removed on 2026-11-03 (docs/plans/2026-11-03-ow-audience-reversal.md).
 //   protocol  For a catalog whose protocol is a shared file (ow-), every
 //          skill's copy is byte-identical to the source. `--write` refreshes
 //          the copies.
 //   edges  For a catalog with an edges file (ow-, contract R15): every skill
-//          carries <id>/skill.edges.yaml listing what it writes (with the one
-//          writer verb), reads (with absent and mismatch cases) and hands off
-//          (with an unavailable branch). Edges are reciprocal inside the family:
-//          every hands-off file has a reads-from row in the receiver, and every
-//          reads-from row has a hands-off row in the producer (or the producer
-//          writes it as a shared workspace file). No file has two writer verbs
-//          across the family, except the append-only logs the protocol declares
-//          and a skill's own append log (`append_logs`, owner decision O2),
-//          which only that skill's verbs append to. A reads row marked
+//          carries <id>/skill.edges.yaml listing what it writes (with the verb
+//          that writes it), reads and hands off. Edges are reciprocal inside the
+//          family: every hands-off file has a reads-from row in the receiver, and
+//          every reads-from row has a hands-off row in the producer (or the
+//          producer writes it as a shared workspace file). Several verbs may
+//          write one file (the one-writer rule went with the audience reversal).
+//          A reads row marked
 //          `in_place: true` (owner decisions O1 and OD-1) reads the file where
 //          its producer left it: the producer must write it, and a chain of
 //          hand-offs from the producer to the reader must list it at every hop.
@@ -57,11 +52,10 @@
 //          index, in-place or shared row, the reference it names cites its path,
 //          and the producer writes it; no hand-off is claimed for it (a
 //          producer that hands the file to the reader makes it a plain row).
-//          Every NEXT target resolves: `use <id>` with a slash verb that <id>
-//          owns, or a handoffs.yaml destination a family example declares, and a
-//          template's slash hint is its edges row's verb, mode and all. Every
-//          file an edges row says a verb writes is in that verb's Writes cell in
-//          the body's Verbs table, and routes.paths lists every path the routing
+//          Where the body keeps a "## Verbs" table with a Writes column, every
+//          file an edges row says a verb writes is in that verb's Writes cell;
+//          where it keeps "## Reads from" or "## Hands off to" tables, they
+//          agree with the edges rows. routes.paths lists every path the routing
 //          reference heads a section with (and the reverse).
 //
 // How strictly text is read (see scanText): quoted verbs (backticks, or
@@ -371,103 +365,6 @@ function tableAfter(body, heading) {
 }
 
 const EMPTY_CELL = /^(?:|-|—|–|n\/a|none|tbd)$/i;
-const PASS_THROUGH = /proceed as if|as if (?:it )?passed|assume (?:it )?(?:passed|exists)/i;
-
-function checkEdgeTables(s, file, problems) {
-  const at = (line) => `${file}:${line + 1 + s.bodyOffset}`;
-  const specs = [
-    { heading: "## Reads from", required: [/^if absent/i, /^if mismatch/i] },
-    { heading: "## Hands off to", required: [/^if (?:it is )?not available/i] },
-  ];
-  for (const { heading, required } of specs) {
-    const t = tableAfter(s.body, heading);
-    if (!t) { problems.push(`${file}: no "${heading}" section (ow- contract R5/R6: edge rows live in the body)`); continue; }
-    if (!t.rows.length) { problems.push(`${at(t.line)}: "${heading}" has no table rows`); continue; }
-    for (const re of required) {
-      const col = t.header.findIndex((h) => re.test(h));
-      if (col < 0) { problems.push(`${at(t.line)}: "${heading}" table has no column matching ${re}`); continue; }
-      for (const row of t.rows) {
-        const cell = row.cells[col] ?? "";
-        if (EMPTY_CELL.test(cell)) problems.push(`${at(row.line)}: "${t.header[col]}" is empty`);
-        else if (PASS_THROUGH.test(cell)) problems.push(`${at(row.line)}: "${t.header[col]}" may never proceed as if the input passed`);
-      }
-    }
-  }
-}
-
-const DESTINATION = /handoffs\.yaml `([a-z_]+)`/g;
-
-/**
- * NEXT blocks (contract R7): each leads with `use <family id>`, carries its IF
- * IT IS NOT AVAILABLE branch, and names a target that resolves: a slash verb
- * the named skill owns, or a handoffs.yaml destination a family example
- * declares (work leaving the family, protocol §11).
- */
-function checkNextBlocks(file, text, lineOffset, ctx, problems) {
-  const { known, owners, destinations, bodies, verbNames } = ctx;
-  const lines = text.split("\n");
-  let count = 0;
-  // "use <skill id>", or "use <verb name>" (owner decision 2026-10-16): the skill that owns it.
-  const skillOf = (w) => (known.has(w) ? w : verbNames?.has(w) ? owners.get(`/${w}`) ?? w : w);
-  const destinationsIn = (line, where) => {
-    for (const d of line.matchAll(DESTINATION)) {
-      if (!destinations.has(d[1])) problems.push(`${where}: names handoffs.yaml \`${d[1]}\`, which no family examples/handoffs.yaml declares`);
-    }
-  };
-  lines.forEach((line, i) => {
-    const where = `${file}:${i + 1 + lineOffset}`;
-    if (/^\s*IF IT IS NOT AVAILABLE:/.test(line)) destinationsIn(line, where);
-    const m = line.match(/^\s*NEXT:\s*(.*)$/);
-    if (!m) return;
-    count++;
-    if (/^none\b/i.test(m[1])) return;
-    const use = m[1].match(/say "use ([a-z0-9-]+)/);
-    const dest = /^handoffs\.yaml `[a-z_]+`/.test(m[1]);
-    // The protocol's own template keeps the placeholder `use <skill id>`.
-    if (!use && /say "use <[^>]+>/.test(m[1])) { /* template */ }
-    else if (dest) destinationsIn(m[1], where);
-    else if (!use) problems.push(`${where}: NEXT must lead with the skill id: say "use <skill id> …" (ow- contract R7), or name a handoffs.yaml destination`);
-    else if (!known.has(skillOf(use[1]))) problems.push(`${where}: NEXT names \`${use[1]}\`, which is not an ow- skill, planned skill, add-on or a declared verb`);
-    else {
-      const useSkill = skillOf(use[1]);
-      const verb = m[1].match(/\(where slash commands exist: (\/[a-z0-9-]+)((?: --[a-z][a-z0-9-]*)*)/);
-      if (verb && !owners.has(verb[1])) problems.push(`${where}: NEXT's verb \`${verb[1]}\` is not declared by any skill, add-on or planned skill`);
-      else if (verb && owners.get(verb[1]) !== useSkill) problems.push(`${where}: NEXT says "use ${use[1]}" but its verb \`${verb[1]}\` belongs to ${owners.get(verb[1])}`);
-      else if (verb && use[1] !== useSkill && verb[1] !== `/${use[1]}`) problems.push(`${where}: NEXT names the verb ${use[1]} but its slash hint is \`${verb[1]}\``);
-      else if (verb && verb[2] && bodies?.has(useSkill) && !verb[2].trim().split(/\s+/).every((f) => bodies.get(useSkill).includes(`\`${verb[1]} ${f}`))) problems.push(`${where}: NEXT's \`${verb[1]}${verb[2]}\` is not a mode ${useSkill}'s body documents`);
-    }
-    let ok = false;
-    for (let j = i + 1; j < Math.min(lines.length, i + 8); j++) {
-      if (/^\s*IF IT IS NOT AVAILABLE:/.test(lines[j])) { ok = true; break; }
-      if (/^\s*(?:NEXT|DONE):/.test(lines[j])) break;
-    }
-    if (!ok) problems.push(`${where}: NEXT block has no "IF IT IS NOT AVAILABLE:" line (the missing-skill branch)`);
-  });
-  // Protocol §9: every printed "use <id>" line is followed by what the next step reads, and what to
-  // attach when no folder is attached.
-  lines.forEach((line, i) => {
-    if (!/^\s{4,}[A-Z][A-Z ]*:.*say "use (?!<)[a-z0-9-]+/.test(line)) return;
-    const after = [];
-    for (let j = i + 1; j < lines.length && /^\s{6,}\S/.test(lines[j]); j++) after.push(lines[j]);
-    const where = `${file}:${i + 1 + lineOffset}`;
-    // The slash hint on any template line (NEXT, or a later line such as WHEN IT IS SIGNED) resolves too.
-    const use0 = line.match(/say "use ([a-z0-9-]+)/)[1];
-    const use = known.has(use0) ? use0 : verbNames?.has(use0) ? owners.get(`/${use0}`) ?? use0 : use0;
-    const hint = line.match(/\((?:[^()]*?; )?where slash commands exist: (\/[a-z0-9-]+)((?: --[a-z][a-z0-9-]*)*)/);
-    if (hint && !/^\s*NEXT:/.test(line)) {
-      if (!owners.has(hint[1])) problems.push(`${where}: the slash hint \`${hint[1]}\` is not declared by any skill, add-on or planned skill`);
-      else if (owners.get(hint[1]) !== use) problems.push(`${where}: the line says "use ${use}" but \`${hint[1]}\` belongs to ${owners.get(hint[1])}`);
-    }
-    if (hint && hint[2] && bodies?.has(use) && !hint[2].trim().split(/\s+/).every((f) => bodies.get(use).includes(`\`${hint[1]} ${f}`))) {
-      if (!/^\s*NEXT:/.test(line)) problems.push(`${where}: \`${hint[1]}${hint[2]}\` is not a mode ${use}'s body documents`);
-    }
-    // Protocol §9 form: every printed "use <id>" line carries its slash hint (round 3, K18).
-    if (!hint) problems.push(`${where}: this NEXT template has no slash hint "(where slash commands exist: /<verb>)" (protocol §9)`);
-    if (!after.some((l) => /^\s+It will read:/.test(l))) problems.push(`${where}: this NEXT template has no "It will read:" line (protocol §9)`);
-    if (!after.some((l) => /^\s+\[no folder attached:/.test(l))) problems.push(`${where}: this NEXT template has no "[no folder attached: …]" line (protocol §9)`);
-  });
-  return count;
-}
 
 /** Top-level keys of every family skill's examples/handoffs.yaml: the destinations a NEXT may name. */
 function familyDestinations(c, ids) {
@@ -532,8 +429,6 @@ export function checkFamily(catalogs) {
     const foreign = others.length ? new RegExp(`(?<![\\w-])(?:${others.map(escapeRegExp).join("|")})[a-z0-9]+(?:-[a-z0-9]+)*`, "g") : null;
     const own = new RegExp(`(?<![\\w/-])${escapeRegExp(c.prefix)}[a-z0-9]+(?:-[a-z0-9]+)*`, "g");
     const named = [
-      // R1: edges are files and NEXT blocks; ow- text never claims one skill drives another.
-      { re: /\bchains? to\b|\binvok(?:e|es|ed|ing)\b|\bauto\b|\bactively invoke/i, what: "wording the cross-talk contract (R1) keeps out of ow- text" },
       ...familyNameRules(c),
       ...(stemRe ? [{ re: stemRe, what: "a skill from another catalog, named without its prefix" }] : []),
       // No real price in skill text: a currency amount, in figures or as "<n> dollars".
@@ -578,37 +473,7 @@ export function checkFamily(catalogs) {
         for (const m of line.matchAll(own)) {
           if (!known.has(m[0]) && !verbNames.has(m[0])) problems.push(`${where}: \`${m[0]}\` is not an ${c.prefix} skill, planned skill, add-on or the protocol file`);
         }
-        // Protocol §5: a STATUS `next:` holds only a skill id, a verb and a path; a mode never goes in it.
-        const mode = line.match(/\bnext: [a-z0-9-]+ \/[a-z0-9-]+ (--[a-z][a-z0-9-]*)/);
-        if (mode) problems.push(`${where}: a STATUS \`next:\` carries the mode \`${mode[1]}\`; it holds only a skill id, a verb and a path (protocol §5)`);
       });
-    }
-    const skills = loadSkills(c.dir);
-    const ctx = { known, verbNames, owners: familyVerbOwners(c, skills), destinations: familyDestinations(c, ids), bodies: new Map(skills.map((x) => [x.id, x.body])) };
-    for (const s of skills) {
-      const file = `${c.relDir}/${s.id}/SKILL.md`;
-      if (checkNextBlocks(file, s.body, s.bodyOffset, ctx, problems) === 0) {
-        problems.push(`${file}: the body carries no NEXT template (ow- contract R6/R7)`);
-      }
-      checkEdgeTables(s, file, problems);
-      // A verb whose STATUS lines must name what it acts on (catalogs.json statusNames, e.g. "/ow-build-run": "M<n>"):
-      // every `next: … | awaiting: …` template in its phase file carries that name (round 3, K19).
-      for (const [verb, name] of Object.entries(c.statusNames ?? {})) {
-        if (!verb.startsWith(`/${s.id}-`)) continue;
-        const phase = join(c.dir, s.id, "references", `phase-${verb.slice(s.id.length + 2)}.md`);
-        if (!existsSync(phase)) { problems.push(`${c.relDir}/${s.id}: catalogs.json statusNames names ${verb}, but references/${basename(phase)} does not exist`); continue; }
-        readFileSync(phase, "utf8").split("\n").forEach((line, i) => {
-          for (const m of line.matchAll(/`(next: [^`]*\| awaiting: [^`]*)`/g)) {
-            if (!m[1].includes(name)) problems.push(`${c.relDir}/${s.id}/references/${basename(phase)}:${i + 1}: the STATUS line "${m[1]}" does not name ${name} (catalogs.json statusNames: ${verb})`);
-          }
-        });
-      }
-      const refs = join(c.dir, s.id, "references");
-      if (existsSync(refs)) {
-        for (const r of readdirSync(refs).filter((n) => n.endsWith(".md")).sort()) {
-          checkNextBlocks(`${c.relDir}/${s.id}/references/${r}`, readFileSync(join(refs, r), "utf8"), 0, ctx, problems);
-        }
-      }
     }
   }
   return problems;
@@ -713,8 +578,8 @@ function namesFile(cell, path) {
 
 // ── the index read (owner decision O1, OW-08) ────────────────────────────────
 
-/** The protocol's artefact header keys (§4): every ow- file carries them. */
-const PROTOCOL_HEADER_KEYS = new Set(["ow_artefact", "schema", "written_by", "workstream", "subject", "created", "clock", "origin"]);
+/** The protocol's file header keys (§8): every ow- file carries them. */
+const PROTOCOL_HEADER_KEYS = new Set(["written_by", "created"]);
 
 /**
  * Does a family skill's own text document `key` as a header key: an indented
@@ -850,7 +715,6 @@ export function checkEdges(catalogs) {
     const planned = new Set(c.planned ?? []);
     const addons = new Set(Object.keys(c.addons ?? {}));
     const destinations = familyDestinations(c, ids);
-    const appendOnly = appendOnlyFiles(c);
     const owners = familyVerbOwners(c, skills);
     const bodies = new Map(skills.map((x) => [x.id, x.body]));
     // A verb with a mode (`/ow-x-quote --accepted`) is real only when its owner's body cites it in backticks.
@@ -868,8 +732,11 @@ export function checkEdges(catalogs) {
       edges.set(s.id, e);
       const verbs = new Set(declaredCommands(s.data, c));
       const verbsWrites = writesColumn(s.body);
-      const readsTable = (tableAfter(s.body, "## Reads from")?.rows ?? []).map((r) => r.cells.join(" | ")).join("\n");
-      const handsTable = (tableAfter(s.body, "## Hands off to")?.rows ?? []).map((r) => r.cells.join(" | ")).join("\n");
+      // The body's edge tables are optional since 2026-11-03; where a skill keeps one, it agrees with the edges file.
+      const readsRows = tableAfter(s.body, "## Reads from")?.rows ?? [];
+      const readsTable = readsRows.length ? readsRows.map((r) => r.cells.join(" | ")).join("\n") : null;
+      const handsRows = tableAfter(s.body, "## Hands off to")?.rows ?? [];
+      const handsTable = handsRows.length ? handsRows.map((r) => r.cells.join(" | ")).join("\n") : null;
       const verbRoot = (v) => String(v ?? "").trim().split(/\s+/)[0];
       e.writes.forEach((w, n) => {
         const at = `${e.rel}: writes[${n}] (${w.path})`;
@@ -898,21 +765,17 @@ export function checkEdges(catalogs) {
         if (!(r.from === "user" || r.from === "any" || ids.includes(r.from) || planned.has(r.from) || addons.has(r.from))) {
           problems.push(`${at}: from \`${r.from}\` is not a family skill, planned skill, add-on, "user" or "any"`);
         }
-        for (const k of ["if_absent", "if_mismatch"]) {
-          if (!filled(r[k])) problems.push(`${at}: ${k} is empty (ow- contract R5)`);
-          else if (PASS_THROUGH.test(r[k])) problems.push(`${at}: ${k} may never proceed as if the input passed`);
-        }
         if (r.shared === true && normPath(r.path).includes("/")) problems.push(`${at}: shared: true is for workspace files at the top of opchain-work/ (profile.md, STATUS.md); ${r.path} is a client file, so it needs a hands-off row`);
         // An index row (O1) is cited in the reference it names, not the body table.
         if (r.named !== undefined) namedRowProblems(c, s, r, at, { ids, planned }).forEach((x) => problems.push(x));
         if (r.index !== undefined) { indexRowProblems(c, s, e, r, at, { ids, planned, addons }).forEach((x) => problems.push(x)); if (r.index === true) return; }
         // A skill's reads of its own earlier files are detailed in its phase files, not the body table.
-        if (filled(r.path) && r.from !== s.id && !readsTable.includes(String(r.path))) problems.push(`${at}: the body's "## Reads from" table does not name ${r.path}`);
+        if (readsTable !== null && filled(r.path) && r.from !== s.id && !readsTable.includes(String(r.path))) problems.push(`${at}: the body's "## Reads from" table does not name ${r.path}`);
       });
       // The other way round: every file the body's "## Reads from" table names has a reads row
       // (a row dropped from the edges while the body still reads the file fails).
       const readPaths = new Set(e.reads.filter((r) => filled(r.path)).map((r) => normPath(r.path)));
-      const pathCells = (tableAfter(s.body, "## Reads from")?.rows ?? []).map((r) => r.cells[1] ?? "").join("\n");
+      const pathCells = readsRows.map((r) => r.cells[1] ?? "").join("\n");
       for (const m of pathCells.matchAll(/`([^`\s]+)`/g)) {
         const span = m[1].replace(/:$/, "");
         if (!/\/|\.(?:md|ya?ml|json|csv)$/.test(span) || /^\/|^(?:references|examples)\//.test(span)) continue;
@@ -928,10 +791,9 @@ export function checkEdges(catalogs) {
         } else if (!(ids.includes(h.to) || planned.has(h.to) || addons.has(h.to))) {
           problems.push(`${at}: to \`${h.to}\` is not a family skill, planned skill or add-on (work leaving the family names a handoffs.yaml destination instead)`);
         }
-        if (!filled(h.if_unavailable)) problems.push(`${at}: if_unavailable is empty (ow- contract R6)`);
         if (!Array.isArray(h.files)) problems.push(`${at}: files must be a list`);
         if (h.to !== "none" && h.to !== undefined && !filled(h.say)) problems.push(`${at}: no say: line`);
-        if (filled(h.say) && !handsTable.includes(String(h.say))) problems.push(`${at}: the body's "## Hands off to" table does not carry "${h.say}"`);
+        if (handsTable !== null && filled(h.say) && !handsTable.includes(String(h.say))) problems.push(`${at}: the body's "## Hands off to" table does not carry "${h.say}"`);
         // The row's verb resolves to the receiving skill (or its planned or add-on verbs).
         if (h.verb !== undefined && h.to !== undefined && h.to !== "none") {
           const owner = owners.get(verbRoot(h.verb));
@@ -940,25 +802,6 @@ export function checkEdges(catalogs) {
           else if (!modeDocumented(owner, h.verb)) problems.push(`${at}: \`${h.verb}\` is not a mode ${owner}'s body documents`);
         }
       });
-      // R15: every handoff to a family skill has its NEXT template in the body, saying
-      // exactly the edges say:, and every NEXT template's say: is an edges row.
-      // (An add-on prints its own instructions; a destination row has a handoffs.yaml NEXT.)
-      const templateSays = new Set();
-      const templateHints = [];
-      s.body.split("\n").forEach((line) => {
-        if (!/^ {4,}\S/.test(line)) return;
-        for (const m of line.matchAll(/say "(use [^"]+)"/g)) templateSays.add(m[1]);
-        const say = line.match(/say "(use [^"]+)"/);
-        const hint = line.match(/\(where slash commands exist: (\/[a-z0-9-]+)((?: --[a-z][a-z0-9-]*)*)/);
-        if (say && hint) templateHints.push({ say: say[1], hint: `${hint[1]}${hint[2]}`.trim() });
-      });
-      // A template's slash hint is the verb its edges row hands off with, mode and all (eval round 3, K13).
-      for (const h of e.hands_off) {
-        if (!filled(h.say) || h.verb === undefined) continue;
-        for (const t of templateHints) {
-          if (t.say === String(h.say) && t.hint !== String(h.verb).trim()) problems.push(`${c.relDir}/${s.id}/SKILL.md: the NEXT template "${t.say}" hints \`${t.hint}\`, but ${e.rel} hands it off with \`${String(h.verb).trim()}\``);
-        }
-      }
       // The routing verb ("use <id> on <path>"): its reference must exist, the body must point to it from
       // the verb's row, and the reference must cover every path the edges route.
       if (e.routes) {
@@ -969,7 +812,7 @@ export function checkEdges(catalogs) {
         else {
           const verbRows = (tableAfter(s.body, "## Verbs")?.rows ?? []).map((r) => r.cells.join(" | "));
           const pointer = verbRows.some((l) => l.includes(`\`${rt.verb} on <path>\``) && l.includes(`\`${rt.reference}\``));
-          if (!pointer) problems.push(`${c.relDir}/${s.id}/SKILL.md: the "## Verbs" table has no \`${rt.verb} on <path>\` row pointing to \`${rt.reference}\` (the routing rules live there)`);
+          if (verbRows.length && !pointer) problems.push(`${c.relDir}/${s.id}/SKILL.md: the "## Verbs" table has no \`${rt.verb} on <path>\` row pointing to \`${rt.reference}\` (the routing rules live there)`);
           const refText = readFileSync(refPath, "utf8");
           const cited = new Set([...refText.matchAll(/`([^`\s]+)`/g)].map((m) => normPath(m[1])));
           for (const path of rt.paths) if (!cited.has(normPath(path))) problems.push(`${c.relDir}/${s.id}/${rt.reference}: no route for ${path}, which ${e.rel} routes`);
@@ -994,25 +837,6 @@ export function checkEdges(catalogs) {
           }
         });
       }
-      const edgeSays = new Set(e.hands_off.filter((h) => filled(h.say) && !addons.has(h.to)).map((h) => String(h.say)));
-      for (const say of edgeSays) if (!templateSays.has(say)) problems.push(`${e.rel}: the handoff "${say}" has no NEXT template in ${s.id}'s body (ow- contract R15)`);
-      for (const say of templateSays) if (!edgeSays.has(say)) problems.push(`${c.relDir}/${s.id}/SKILL.md: the NEXT template "${say}" matches no hands_off say: in ${e.rel}`);
-      // A NEXT template that drifted into a reference file (a phase file printing a block the body never
-      // carries) is held to the same rule: its say: is one of the skill's edges rows (Sprint 3, so the
-      // Sprint 2 plant C07 stays caught now that the planned verbs it named are declared).
-      for (const r of existsSync(refDir) ? readdirSync(refDir).filter((n) => n.endsWith(".md") && n !== basename(c.protocol?.copy ?? "")).sort() : []) {
-        readFileSync(join(refDir, r), "utf8").split("\n").forEach((line, i) => {
-          if (!/^ {4,}\S/.test(line)) return;
-          for (const m of line.matchAll(/say "(use [^"<]+(?:<[^>"]+>[^"<]*)*)"/g)) {
-            if (!edgeSays.has(m[1])) problems.push(`${c.relDir}/${s.id}/references/${r}:${i + 1}: the NEXT template "${m[1]}" matches no hands_off say: in ${e.rel} (NEXT templates live in the body, contract R15)`);
-          }
-        });
-      }
-      for (const h of e.hands_off) {
-        if (h.destination !== undefined && !new RegExp(`^\\s+(?:NEXT|IF IT IS NOT AVAILABLE):\\s*handoffs\\.yaml \`${escapeRegExp(String(h.destination))}\``, "m").test(s.body)) {
-          problems.push(`${e.rel}: the handoff to handoffs.yaml \`${h.destination}\` has no NEXT template in ${s.id}'s body (ow- contract R15)`);
-        }
-      }
     }
 
     // A say of the form "use <id> on <path>" lands on <id>'s routing verb, for a path its routes cover.
@@ -1025,46 +849,6 @@ export function checkEdges(catalogs) {
         if (String(h.verb ?? "") !== String(rt.verb)) problems.push(`${p.rel}: "${h.say}" must name ${m[1]}'s routing verb ${rt.verb}, not ${h.verb ?? "no verb"}`);
         if (!(rt.paths ?? []).some((x) => normPath(x) === normPath(m[2]))) problems.push(`${p.rel}: "${h.say}" hands ${m[2]}, which ${m[1]}'s routes do not cover`);
       }
-    }
-
-    // Skill-local append logs (O2): declared under one skill's append_logs, appended to only by that skill's verbs.
-    const localLogs = new Map();
-    for (const e of edges.values()) {
-      for (const log of e.append_logs) {
-        const k = normPath(log);
-        if (localLogs.has(k) && localLogs.get(k).skill !== e.id) problems.push(`${e.rel}: ${log} is already a skill-local append log of ${localLogs.get(k).skill}; a log has one owning skill`);
-        else localLogs.set(k, { skill: e.id, rel: e.rel, path: log });
-        if (!e.writes.some((w) => normPath(w.path) === k && w.append === true)) problems.push(`${e.rel}: append_logs names ${log}, but no writes row of ${e.id} appends to it`);
-      }
-    }
-    // One writer verb per file across the family; append-only logs excepted.
-    const writers = new Map();
-    for (const e of edges.values()) {
-      for (const w of e.writes) {
-        if (!filled(w.path)) continue;
-        const k = normPath(w.path);
-        if (!writers.has(k)) writers.set(k, []);
-        writers.get(k).push({ skill: e.id, verb: String(w.verb ?? "").trim(), append: w.append === true, rel: e.rel, path: w.path });
-      }
-    }
-    for (const [k, list] of writers) {
-      const name = list[0].path;
-      const local = localLogs.get(k);
-      if (local) {
-        for (const w of list) {
-          if (w.skill !== local.skill) problems.push(`${w.rel}: ${name} is a skill-local append log of ${local.skill} (its append_logs); ${w.skill} ${w.verb} cannot write it (owner decision O2: only its own skill writes it)`);
-          else if (!w.append) problems.push(`${w.rel}: ${name} is a skill-local append log; ${w.verb} must declare append: true`);
-        }
-        continue;
-      }
-      const declaredAppend = appendOnly.has(name);
-      if (declaredAppend) {
-        for (const w of list) if (!w.append) problems.push(`${w.rel}: ${name} is append-only (protocol); ${w.verb} must declare append: true`);
-        continue;
-      }
-      for (const w of list) if (w.append) problems.push(`${w.rel}: ${name} is not an append-only file in the protocol, so ${w.verb} cannot append to it`);
-      const distinct = [...new Set(list.map((w) => `${w.skill} ${w.verb}`))];
-      if (distinct.length > 1) problems.push(`${k}: ${distinct.length} writers (${distinct.join(", ")}); one writer verb per file (ow- contract R3)`);
     }
 
     // Reciprocity inside the family. A planned skill or add-on has no edges file yet.
@@ -1172,6 +956,6 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   }
   console.log(
     `✓ cross-skill contracts hold across ${catalogs.map((c) => `${c.relDir}/`).join(" + ")}: every cited verb is declared; ` +
-    `orchestrator.md §7 matches frontmatter; ow- skills name only their family and carry the protocol; ow- edges are reciprocal with one writer per file${write ? " (regenerated)" : ""}`,
+    `orchestrator.md §7 matches frontmatter; ow- skills name only their family and carry the protocol; ow- edges are reciprocal${write ? " (regenerated)" : ""}`,
   );
 }

@@ -51,14 +51,14 @@ writes:
   - { path: STATUS.md, verb: /ow-care-end, append: true }
 reads:
   - { from: any, path: STATUS.md, fields: [newest and awaiting lines], if_absent: "First run: begin at entry", if_mismatch: "Quote readable lines and ask" }
-  - { from: ow-start, path: profile.md, shared: true, fields: [time_zone, holidays, handling], if_absent: "Ask and record user-stated calendar", if_mismatch: "Ask for missing fields" }
+  - { from: ow-start, path: profile.md, shared: true, fields: [time_zone, holidays], if_absent: "Ask and record user-stated calendar", if_mismatch: "Ask for missing fields" }
   - { from: ow-start, path: offers.md, shared: true, fields: [after_handoff], if_absent: "Takeover start waits for terms", if_mismatch: "Ask for missing terms" }
   - { from: ow-start, path: handoffs.yaml, shared: true, fields: [build, invoice], if_absent: "Use public defaults", if_mismatch: "Use public defaults" }
   - { from: ow-start, path: intake/<client>/intake-record.md, fields: [the bank's fields with confidence], in_place: true, if_absent: "Takeover waits for intake", if_mismatch: "List unknowns" }
   - { from: ow-build-plan, path: plans/<client>/quick-scope.md, fields: [eight review parts], if_absent: "Onboard waits for scope", if_mismatch: "List missing parts" }
   - { from: ow-build-plan, path: plans/<client>/quote.md, fields: [mode, fixed_price, payment], if_absent: "Onboard waits for quote", if_mismatch: "Stop on non-onboarding mode" }
   - { from: ow-build-plan, path: plans/<client>/contract-inputs.md, fields: [accepted, payment], if_absent: "Onboard waits for signed review", if_mismatch: "Ask for signing evidence" }
-  - { from: ow-handoff, path: handoffs/<client>/after-offer.md, fields: [choice, every frozen term], if_absent: "Takeover uses offers.md", if_mismatch: "Latest choice wins; ask if unclear" }
+  - { from: ow-handoff, path: handoffs/<client>/after-offer.md, fields: [choice, every offered term], if_absent: "Takeover uses offers.md", if_mismatch: "Latest choice wins; ask if unclear" }
   - { from: ow-handoff, path: handoffs/<client>/care-start.md, fields: [care_start, kept access with removal steps, carried fixes, waiting route care requests], if_absent: "After build: use ow-handoff-close", if_mismatch: "Compare dates, explicit agreement wins" }
   - { from: ow-handoff, path: handoffs/<client>/care-start-addendum-<date>.md, fields: [care_start, kept access with removal steps, carried fixes, waiting route care requests], if_absent: "No later change", if_mismatch: "Ask for missing item" }
   - { from: ow-handoff, path: handoffs/<client>/fixes/FIX-nn.md, fields: [class, reported, route, the request], if_absent: "No carried request", if_mismatch: "Exclude unresolved classification" }
@@ -67,7 +67,7 @@ reads:
   - { from: ow-handoff, path: handoffs/<client>/dates.yaml, fields: [window_end], if_absent: "Ask for end of fix window", if_mismatch: "Ask for date" }
   - { from: ow-documentation, path: docs/<client>/runbook.md, fields: [OP-nn ids], if_absent: "Use operator notes or takeover review", if_mismatch: "Mark unchecked items" }
   - { from: ow-documentation, path: docs/<client>/adoption.md, fields: [summary, open gaps by role], if_absent: "No adoption requests", if_mismatch: "Use readable gaps" }
-  - { from: ow-care, path: care/<client>/care.yaml, fields: [frozen terms], if_absent: "Only start and onboard proceed", if_mismatch: "Refuse until corrected" }
+  - { from: ow-care, path: care/<client>/care.yaml, fields: [care terms], if_absent: "Only start and onboard proceed", if_mismatch: "Refuse until corrected" }
   - { from: ow-care, path: care/<client>/months/M-nn.md, fields: [state, period], if_absent: "Start creates M-01", if_mismatch: "Ask before close" }
   - { from: ow-care, path: care/<client>/requests/CARE-nn.md, fields: [class, status, hours, reply], if_absent: "No request", if_mismatch: "Exclude from totals" }
   - { from: ow-care, path: care/<client>/health/M-nn.md, fields: [results, hours], if_absent: "Record not checked", if_mismatch: "Ask for result" }
