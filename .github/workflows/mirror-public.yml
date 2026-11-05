@@ -35,15 +35,25 @@ jobs:
           fetch-depth: 1
 
       - name: Validate mirror inputs
+        env:
+          # The ow- catalog and ow-tools ship with the 2.2 release, not 2.1:
+          # the mirror carries them only once the repository variable
+          # OPCHAIN_SHIP_WORK is "1" (Settings -> Secrets and variables ->
+          # Actions -> Variables). Unset, they are validated by nothing and
+          # staged by nothing.
+          SHIP_WORK: ${{ vars.OPCHAIN_SHIP_WORK }}
         run: |
           set -euo pipefail
+          WORK_INPUTS=""
+          if [[ "${SHIP_WORK:-}" == "1" ]]; then
+            WORK_INPUTS="skills-work/ow-protocol.md skills-work/README.md plugins/ow-tools/.claude-plugin/plugin.json plugins/ow-tools/.claude-plugin/marketplace.json plugins/ow-tools/hooks/hooks.json plugins/ow-tools/bin/ow-tools plugins/ow-tools/python/uv.lock"
+          fi
           missing=()
-          for f in skills skills-work/ow-protocol.md skills-work/README.md LICENSE NOTICE mirror/README.md mirror/CONTRIBUTING.md mirror/SECURITY.md mirror/.github/ISSUE_TEMPLATE \
+          for f in skills LICENSE NOTICE mirror/README.md mirror/CONTRIBUTING.md mirror/SECURITY.md mirror/.github/ISSUE_TEMPLATE \
                    plugins/opchain/.claude-plugin/plugin.json plugins/opchain/hooks/hooks.json \
                    plugins/opchain/hooks/pre-commit-gate.cjs plugins/opchain/hooks/session-state.cjs \
                    plugins/opchain/hooks/next-suggestion.cjs plugins/opchain/commands .claude-plugin/marketplace.json \
-                   plugins/ow-tools/.claude-plugin/plugin.json plugins/ow-tools/.claude-plugin/marketplace.json \
-                   plugins/ow-tools/hooks/hooks.json plugins/ow-tools/bin/ow-tools plugins/ow-tools/python/uv.lock; do
+                   $WORK_INPUTS; do
             if [[ ! -e "$f" ]]; then
               missing+=("$f")
             fi
@@ -55,6 +65,8 @@ jobs:
           echo "all mirror inputs present"
 
       - name: Assemble staging tree
+        env:
+          SHIP_WORK: ${{ vars.OPCHAIN_SHIP_WORK }}
         run: |
           set -euo pipefail
           STAGE="$(mktemp -d)"
@@ -65,7 +77,9 @@ jobs:
           # versions. Mirrored whole so skills-work/<id>/ is a complete skill a
           # user can copy into .claude/skills/, and the README's version table
           # travels with it.
-          cp -R skills-work "$STAGE/skills-work"
+          if [[ "${SHIP_WORK:-}" == "1" ]]; then
+            cp -R skills-work "$STAGE/skills-work"
+          fi
           cp LICENSE "$STAGE/LICENSE"
           cp NOTICE "$STAGE/NOTICE"
           cp mirror/README.md "$STAGE/README.md"
@@ -81,6 +95,18 @@ jobs:
           # own marketplace manifest (plugins/ow-tools/.claude-plugin/
           # marketplace.json) so admins can approve it apart from the dev one.
           cp -RL plugins "$STAGE/plugins"
+          if [[ "${SHIP_WORK:-}" != "1" ]]; then
+            # Withheld: no ow-tools plugin and no ow- sections in the public
+            # README and SECURITY.md (marked <!-- ow:begin --> ... <!-- ow:end -->).
+            rm -rf "$STAGE/plugins/ow-tools"
+            for doc in README.md SECURITY.md; do
+              sed -i '/<!-- ow:begin -->/,/<!-- ow:end -->/d' "$STAGE/$doc"
+            done
+          else
+            for doc in README.md SECURITY.md; do
+              sed -i '/<!-- ow:\(begin\|end\) -->/d' "$STAGE/$doc"
+            done
+          fi
           cp -R .claude-plugin "$STAGE/.claude-plugin"
           echo "Staged tree:"
           find "$STAGE" -maxdepth 3 -type f | sort | sed "s|$STAGE/|  |"

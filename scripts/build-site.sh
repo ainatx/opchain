@@ -93,7 +93,14 @@ node "${ROOT}/scripts/inject-nonce-placeholder.mjs"
 
 # The clean-folder install check (REL-01): unzip the ow- bundles public/ now
 # serves into an empty folder and compare every file with skills-work/.
-echo "[build-site] clean-folder install check for the ow- zips and docs"
-node "${ROOT}/scripts/check-work-install.mjs"
+# With OPCHAIN_SHIP_WORK unset the same script checks the opposite: no ow- zip,
+# docs tree or manifest hash is anywhere in public/.
+if [[ "${OPCHAIN_SHIP_WORK:-}" == "1" ]]; then
+  echo "[build-site] clean-folder install check for the ow- zips and docs"
+  node "${ROOT}/scripts/check-work-install.mjs"
+else
+  echo "[build-site] ow- outputs withheld (OPCHAIN_SHIP_WORK is not 1): checking none are in public/"
+  node "${ROOT}/scripts/check-work-install.mjs" --expect-withheld
+fi
 
 echo "[build-site] public/ rebuilt"

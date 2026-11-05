@@ -8,6 +8,7 @@
 //   node scripts/check-work-install.mjs                 # public/ artefacts vs skills-work/
 //   node scripts/check-work-install.mjs --public <dir> --source <dir> --docs <dir>
 //   node scripts/check-work-install.mjs --json
+//   node scripts/check-work-install.mjs --expect-withheld   # OPCHAIN_SHIP_WORK unset: none of it may be in public/
 //
 // What it checks:
 //   1. opchain-work-skills.zip, unzipped into <empty>/.claude/skills/, yields
@@ -167,7 +168,30 @@ export function checkWorkInstall({
   return { ok: problems.length === 0, problems, ids, counts, scratch: keep ? scratch : null };
 }
 
+/**
+ * The 2.1 build ships no ow- output (the ow- catalog ships with 2.2), so with
+ * OPCHAIN_SHIP_WORK unset the check runs the other way round: fail if any ow-
+ * zip, docs tree or manifest hash is in public/. A stale public/work/ from an
+ * earlier build is the case this exists for.
+ */
+export function checkWorkWithheld({ publicDir = join(ROOT, "public"), docs = join(publicDir, "docs", "work") } = {}) {
+  const present = [join(publicDir, "opchain-work-skills.zip"), join(publicDir, "work"), docs].filter((p) => existsSync(p));
+  return {
+    ok: present.length === 0,
+    problems: present.map((p) => `${relative(ROOT, p) || p}: an ow- output is in public/ but OPCHAIN_SHIP_WORK is not 1 (withheld until the 2.2 release)`),
+  };
+}
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  if (process.argv.includes("--expect-withheld")) {
+    const r = checkWorkWithheld({ publicDir: arg("--public", join(ROOT, "public")) });
+    if (r.ok) console.log("✓ ow- outputs withheld: no ow- zip, docs tree or manifest hash in public/");
+    else {
+      console.error(`✗ ow- outputs present while withheld (${r.problems.length}):`);
+      for (const p of r.problems) console.error(`  - ${p}`);
+    }
+    process.exit(r.ok ? 0 : 1);
+  }
   const source = arg("--source", join(ROOT, "skills-work"));
   const publicDir = arg("--public", join(ROOT, "public"));
   const docs = arg("--docs", join(publicDir, "docs", "work"));

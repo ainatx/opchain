@@ -75,7 +75,8 @@ describe("catalogs.json", () => {
     const wf = readFileSync(join(ROOT, ".github", "workflows", "mirror-public.yml"), "utf8");
     expect(wf).toMatch(/^\s+- 'skills-work\/\*\*'$/m);
     expect(wf).toContain('cp -R skills-work "$STAGE/skills-work"');
-    expect(wf).toMatch(/for f in skills skills-work\/ow-protocol\.md skills-work\/README\.md /);
+    // Since the 2.1 decision the ow- inputs are validated only when OPCHAIN_SHIP_WORK=1.
+    expect(wf).toContain("WORK_INPUTS=\"skills-work/ow-protocol.md skills-work/README.md ");
   });
 });
 
