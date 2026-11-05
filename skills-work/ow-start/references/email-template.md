@@ -1,6 +1,6 @@
 # The follow-up email: `follow-up.html` and its `.txt` twin
 
-Written by `/ow-start-log-meeting` for a meeting an external party attended (owner decision O6: the same rules as the build emails of the family). The skill writes the HTML directly as text; no code is needed. **It never sends anything**: the user opens the `.html` in a browser and copies it into their email, adds names, and signs it.
+Written by `/ow-start-log-meeting` for a meeting an external party attended (the same rules as the build emails of the family). The skill writes the HTML directly as text; no code is needed. **It never sends anything**: the user opens the `.html` in a browser and copies it into their email and signs it.
 
 ## Rules
 
@@ -9,9 +9,9 @@ Written by `/ow-start-log-meeting` for a meeting an external party attended (own
 - **Contrast:** every piece of text reaches 4.5:1 against the background behind it (3:1 for text 24 px and up, or bold and 18.66 px and up). `colors.primary` is used only where it reaches that; otherwise use `colors.text`. A logo only with `logo_alt`.
 - **Accessible by construction:** `lang` on `<html>`, a `<title>`, one `<h1>`, then `<h2>` sections with no skipped level; real lists for lists; link text says where it goes.
 - **Well formed:** lower-case tags and attribute names, attribute values in double quotes, every element closed except `meta`, `img`, `br` and `hr`, `&` written `&amp;` and `<` written `&lt;` in text.
-- **Owners by role.** Each line of *Who does what by when* starts with its owner's role (`client ops lead:`); your own actions start `me:`. No name, no signature: you add names and sign when you send it.
+- **Owners.** Each line of *Who does what by when* starts with its owner (`client ops lead:`, or a person's name, as the user wants); your own actions start `me:`. No signature: you sign when you send it.
 - **The `.txt` twin** holds the same words in the same order: the brand line, the title, the date, each heading and its text, the footer.
-- **Follow-up clean.** Client words only: no internal notes, no confidence labels, ids or file names, no tool words, none of **our** hours or effort, rates, costs, margin or overruns (`references/self-checks-logs.md`), no name of a person (owners by role), no private name. The client's own figures, schedule and dates are fine. Dates are written out ("23 October 2026").
+- **Follow-up clean.** Client words only: no internal notes, no confidence labels, ids or file names, no tool words, none of **our** hours or effort, rates, costs, margin or overruns (`references/self-checks-logs.md`), no private name. The client's own figures, schedule and dates are fine. Dates are written out ("23 October 2026").
 
 ## Skeleton
 

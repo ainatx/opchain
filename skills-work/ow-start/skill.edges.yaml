@@ -1,8 +1,6 @@
-# ow-start edges (ow- cross-talk contract R15), schema 1.
-# What this skill writes, reads and hands off, as data. The body's "Reads from"
-# and "Hands off to" tables say the same in words; check-skill-contracts reads
-# this file to hold the family to one writer per file and to edges that match
-# on both ends. Paths are relative to opchain-work/. Format: skills-work/README.md.
+# ow-start edges, schema 1. What this skill writes, reads and hands off in the
+# scratch cache, as data; check-skill-contracts reads this file to hold edges that
+# match on both ends. Paths are relative to opchain-work/. Format: skills-work/README.md.
 schema: 1
 skill: ow-start
 
@@ -16,8 +14,8 @@ writes:
   - path: profile.md
     verb: /ow-setup
     seeded_by: /ow-start-extract      # creates it on the first run only, when it does not exist
-  - { path: offers.md, verb: /ow-setup, once: true }        # created once from the example; then the user's
-  - { path: handoffs.yaml, verb: /ow-setup, once: true }    # created once from the example; then the user's
+  - { path: offers.md, verb: /ow-setup }        # created from the example when missing; then the user's
+  - { path: handoffs.yaml, verb: /ow-setup }    # created from the example when missing; then the user's
   - { path: STATUS.md, verb: /ow-start-prep, append: true }
   - { path: STATUS.md, verb: /ow-start-extract, append: true }
   # The logs (1.1.0), exact per verb. -action writes one STATUS line only; -log,
@@ -27,7 +25,7 @@ writes:
   - { path: logs/<workstream>/meetings/MTG-nn/follow-up.html, verb: /ow-start-log-meeting }
   - { path: logs/<workstream>/meetings/MTG-nn/follow-up.txt, verb: /ow-start-log-meeting }
   - { path: logs/<workstream>/decisions/DEC-nn.md, verb: /ow-start-log-decision }
-  - { path: STATUS.md, verb: /ow-start-prep-meeting, append: true }      # awaiting: meeting on <date> (O3)
+  - { path: STATUS.md, verb: /ow-start-prep-meeting, append: true }      # awaiting: meeting on <date>
   - { path: STATUS.md, verb: /ow-start-log-meeting, append: true }       # one line per action, and "held" when prepared
   - { path: STATUS.md, verb: /ow-start-action, append: true }            # one line
   - { path: STATUS.md, verb: /ow-start-log-decision, append: true }      # a review line; a superseded review's closing line
@@ -35,13 +33,13 @@ writes:
 reads:
   - from: any
     path: STATUS.md
-    fields: [the protocol's STATUS form]
+    fields: [plain status lines]
     if_absent: "First run: show the welcome"
-    if_mismatch: Quote the lines as found, say which do not match the form, and use only the dates and paths you can read
+    if_mismatch: Quote the lines as found, and use only the dates and paths you can read
   - from: ow-start
     verb: /ow-setup
     path: profile.md
-    fields: [name, time_zone, holidays, handling]
+    fields: [name, time_zone, holidays]
     if_absent: Ask only what this run needs (at most three questions, each skippable); extract seeds the file on first run
     if_mismatch: Report the fields found against the ones expected; ask only for the missing ones
   - from: user
@@ -60,7 +58,7 @@ reads:
     path: intake/<client>/call-guide.md
     fields: [the must-ask list]
     if_absent: Score coverage against the bank's default must-asks for the mode; coverage.md says "no call guide found"
-    if_mismatch: Score against the must-asks that parse; mark the rest NOT-CHECKED (guide unreadable)
+    if_mismatch: Score against the must-asks that parse; list the rest as unreadable
   - from: ow-start
     verb: /ow-start-extract
     path: intake/<client>/intake-record.md
@@ -76,7 +74,7 @@ reads:
   - from: ow-tools
     path: logs/<workstream>/meetings/MTG-nn/transcript.md
     fields: [speaker labels, times, roles]
-    if_absent: "A recording in audio/: print the ow-tools NEXT. No recording: ask for the meeting tool's transcript saved as MTG-nn/transcript.md, or your notes"
+    if_absent: "A recording in audio/: run ow-tools. No recording: ask for the meeting tool's transcript saved as MTG-nn/transcript.md, or your notes"
     if_mismatch: "Use what is readable and mark the rest not covered; no speaker labels: treat it as notes; a role not confirmed: ask, never guess"
   - from: ow-start
     verb: /ow-start-prep-meeting

@@ -7,11 +7,11 @@ user: Robin
 base: logs-prep-first
 verbs: [/ow-start-log-meeting]
 writes_nothing: true
-checks: [writes, write_once, status, route, people, private_names, handling]
+checks: [writes, status, route, private_names]
 route:
   verb: /ow-start-log-meeting
   says: ["Nothing is written until you answer\\."]
   ask: "who is who by role"
-  tokens: [["SPEAKER_00"], ["SPEAKER_01"], ["SPEAKER_02"]]
+  tokens: [["SPEAKER_00"],["SPEAKER_01"],["SPEAKER_02"]]
 status: { lines: [] }
 names: [Dana, Jess, Marcus]

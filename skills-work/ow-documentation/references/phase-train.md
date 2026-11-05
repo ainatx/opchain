@@ -1,20 +1,20 @@
 # `/ow-documentation-train [deck | facilitator | modules | cards | videos]`: the training kit
 
-Run step 0 and the resume step (`references/routing-and-resume.md` §1). Formats: `references/document-formats.md` §6. Self-checks: `references/self-checks.md`.
+Open `references/ow-protocol.md`. Formats: `references/document-formats.md` §6. Checklist: `references/self-checks.md`. Read first from the CRM: the latest `guide` and `training` documents and the `doc_plan` document; a human-edited version is never overwritten. Publish each as a `training` document. Questions: at most three, in one `AskUserQuestion` call.
 
 ## 1. Which format
 
 - **A format given**: write that format.
-- **No format** (owner decision O12): the first format in `plan.md`'s `order` with no file yet; say which. Every format already written: `Nothing to do: every training format in plan.md is written.`, `Nothing was written.`, and the export NEXT.
-- **A format `plan.md` left out**: refuse (`Refused: <format> was left out of the plan on <date>.`); nothing is written.
-- **The guides come first**: with a guide missing, refuse and print the write NEXT.
+- **No format**: the first format in `plan.md`'s `order` with no file yet; say which. Every format written: say so and name `/ow-documentation-export`.
+- **A format `plan.md` left out**: say so; write it if the user asks, and add it to the plan.
+- **The guides come first**: with a guide missing, write it first (`/ow-documentation-write guides`).
 - **After `delivered.md`**: only the card of a role whose guide took a new training gap is written again.
 
-Each format writes only its own files: `deck` the deck, `facilitator` the facilitator guide, `modules` the modules, `cards` the cards, `videos` the video scripts. A cut-off run writes the ones not yet written and never rewrites one that exists.
+Each format writes its own files: `deck` the deck, `facilitator` the facilitator guide, `modules` the modules, `cards` the cards, `videos` the video scripts.
 
 ## 2. What it reads (all as data)
 
-`docs.yaml` (roles, ids, tasks, gaps, trainer), `plan.md`, every guide, `shots/index.md` (`cleared` rows only, each image compared with its row's `sha256` where code can run: `shots-index-format.md` §4), and each role's `uat/<client>/scenarios/SC-nn.md` for the demo script and the exercises (UAT's test data, by pointer).
+`docs.yaml` (roles, ids, tasks, gaps, trainer), `plan.md`, every guide, `shots/index.md` (`cleared` rows only, each image compared with its row's `sha256`: `shots-index-format.md` §4), and each role's `uat/<client>/scenarios/SC-nn.md` for the demo script and the exercises (UAT's test data, by pointer).
 
 ## 3. The rules
 
@@ -26,10 +26,6 @@ Each format writes only its own files: `deck` the deck, `facilitator` the facili
 - **Every Training-gap topic** is marked (`Came up in testing: UAT-nn.`) in the deck, its role's modules and its role's card.
 - **Trace, people, credentials, internal numbers and private names** as for the documents (`phase-write.md` §3).
 
-Self-checks: Trace, Coverage, People by role or id, No credentials, No internal numbers, No private names.
+## 4. What comes next
 
-## 4. STATUS and NEXT
-
-STATUS: the last file written with `next: ow-documentation /ow-documentation-train docs/<client>/ | awaiting: none` while a format is left, else `next: ow-documentation /ow-documentation-export docs/<client>/ | awaiting: none`.
-
-The NEXT block: a format left, `use ow-documentation-train on docs/<client>/`; every format written, `use ow-documentation-export on docs/<client>/`.
+A format left: `/ow-documentation-train`. Every format written: `/ow-documentation-export`.

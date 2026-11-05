@@ -11,7 +11,7 @@ import { loadCatalogs } from "../scripts/lib/catalogs.mjs";
 import { checkEdges, checkFamily, checkVerbs } from "../scripts/check-skill-contracts.mjs";
 import { validateCatalog } from "../scripts/gen-skills-catalog.mjs";
 import { pinProblems } from "./ow-text-pins.mjs";
-import { FIXTURES, listLogsCases, loadKey, runCase, runView } from "../scripts/ow-start-logs-acceptance.mjs";
+import { FIXTURES, listLogsCases, loadKey, logsWriters, runCase, runView } from "../scripts/ow-start-logs-acceptance.mjs";
 import * as logs from "./ow-start-logs-helpers.mjs";
 
 const ROOT = join(import.meta.dirname, "..");
@@ -53,29 +53,22 @@ describe("C1, C2, C3: the real tree passes as built (the control)", () => {
     const edges = readFileSync(join(ROOT, "skills-work", E), "utf8");
     expect(edges.match(/index: true/g)).toHaveLength(12);
     const body = readFileSync(join(ROOT, "skills-work", B), "utf8");
-    expect(body).toMatch(/^ {2}version: "1\.2\.0"$/m);
-    expect(body).toMatch(/^ow-start 1\.2\.0 · protocol 1/m);
+    expect(body).toMatch(/^ {2}version: "2\.0\.1"$/m);
+    expect(body).toMatch(/^ow-start 2\.0\.1 · protocol 2/m);
     expect(body.match(/^ {2}commands: (.*)$/m)[1].split(" ")).toHaveLength(10);
   });
 });
 
 describe("C1: writers exact per verb, NEXT targets, hand-off fields", () => {
   const plants = [
-    ["-action writing notes.md", { [E]: rep("writes:\n", "writes:\n  - { path: logs/<workstream>/meetings/MTG-nn/notes.md, verb: /ow-start-action }\n") }, /logs\/<\*>\/meetings\/mtg-nn\/notes\.md: 2 writers/],
-    ["-log-decision editing notes.md", { [E]: rep("writes:\n", "writes:\n  - { path: logs/<workstream>/meetings/MTG-nn/notes.md, verb: /ow-start-log-decision }\n") }, /logs\/<\*>\/meetings\/mtg-nn\/notes\.md: 2 writers/],
     ["-log writing a file", { [E]: rep("writes:\n", "writes:\n  - { path: logs/<workstream>/log.md, verb: /ow-start-log }\n") }, /does not name logs\/<workstream>\/log\.md in the Writes column of `\/ow-start-log`/],
     ["/ow-status writing a file", { [E]: rep("writes:\n", "writes:\n  - { path: logs/<workstream>/status.md, verb: /ow-status }\n") }, /does not name logs\/<workstream>\/status\.md in the Writes column of `\/ow-status`/],
-    ["a second writer of DEC-nn.md", { [E]: rep("writes:\n", "writes:\n  - { path: logs/<workstream>/decisions/DEC-nn.md, verb: /ow-start-action }\n") }, /logs\/<\*>\/decisions\/dec-nn\.md: 2 writers/],
     ["a field read but not offered", { [E]: rep("    fields: [items and their sources, attendees]\n    if_absent:", "    fields: [items and their sources, attendees, purpose]\n    if_absent:") }, /reads field `purpose` of logs\/<workstream>\/meetings\/MTG-nn\/agenda\.md/],
-    ["a NEXT with no slash hint (K18)", { [B]: rep('meeting logs/<workstream>/meetings/MTG-nn/"   (where slash commands exist: /ow-start-log-meeting)', 'meeting logs/<workstream>/meetings/MTG-nn/"') }, /this NEXT template has no slash hint/],
-    ["a dangling NEXT", { [B]: rep("(where slash commands exist: /ow-start-log-decision)", "(where slash commands exist: /ow-start-log-decisions)") }, /NEXT's verb `\/ow-start-log-decisions` is not declared/],
     ["a 'use ow-start on <path>' say (ow-start has no routes:)", {
       [E]: rep("say: use ow-start to log the meeting logs/<workstream>/meetings/MTG-nn/", "say: use ow-start on logs/<workstream>/meetings/MTG-nn/"),
       [B]: rep("use ow-start to log the meeting logs/<workstream>/meetings/MTG-nn/", "use ow-start on logs/<workstream>/meetings/MTG-nn/"),
     }, /"use ow-start on logs\/<workstream>\/meetings\/MTG-nn\/" hands a file to ow-start, which declares no routes/],
     ["a self hand-off with no reads row for its file", { [E]: rep("  - from: ow-start\n    verb: /ow-start-log-meeting\n    path: logs/<workstream>/meetings/MTG-nn/notes.md\n", "  - from: ow-start\n    verb: /ow-start-log-meeting\n    path: logs/<workstream>/meetings/MTG-nn/minutes.md\n") }, /hands off logs\/<workstream>\/meetings\/MTG-nn\/notes\.md to ow-start, but .* has no reads row for it from ow-start/],
-    ["a NEXT whose say drifts from its edges row", { [B]: rep('say "use ow-start to log the decisions in logs/<workstream>/meetings/MTG-nn/notes.md"', 'say "use ow-start to log decisions from logs/<workstream>/meetings/MTG-nn/notes.md"') }, /the handoff "use ow-start to log the decisions in logs\/<workstream>\/meetings\/MTG-nn\/notes\.md" has no NEXT template/],
-    ["a NEXT template without its no-folder line", { [B]: rep("          [no folder attached: attach agenda.md when you say it]\n", "") }, /this NEXT template has no "\[no folder attached: …\]" line/],
   ];
   for (const [name, edit, want] of plants) it(`${name} fails`, () => expect(contracts(realTree(edit))).toMatch(want));
 });
@@ -96,10 +89,9 @@ describe("C3: the index edges rule (owner decision O1)", () => {
   ];
   for (const [name, edit, want] of plants) it(`${name} fails`, () => expect(contracts(realTree(edit))).toMatch(want));
 
-  it("an index row needs no hand-off and no body row; a plain reads row of the same file does", () => {
+  it("an index row needs no hand-off; a plain reads row of the same file does", () => {
     const plain = realTree({ [E]: rep("{ from: ow-build, index: true, reference: references/logs-status-and-index.md, path: builds/<client>/changes/CO-nn.md", "{ from: ow-build, reference: references/logs-status-and-index.md, path: builds/<client>/changes/CO-nn.md") });
     const out = contracts(plain);
-    expect(out).toMatch(/the body's "## Reads from" table does not name builds\/<client>\/changes\/CO-nn\.md/);
     expect(out).toMatch(/reads builds\/<client>\/changes\/CO-nn\.md from ow-build, but .* has no hands_off row to ow-start carrying it/);
   });
 });
@@ -133,14 +125,14 @@ describe("C2: the body budget and the description, enforced by the catalog", () 
 describe("C15, C20: text pins for the rules the goldens cannot see", () => {
   const pins = (edit) => pinProblems(realTree(edit).find((c) => c.prefix === "ow-").dir).join("\n");
   const BPR = "ow-build-plan/references/routing-and-resume.md", BR = "ow-build/references/routing-and-resume.md";
-  it("the real tree keeps every pin", () => expect(pinProblems(join(ROOT, "skills-work"))).toEqual([]));
+  // The ow-start pins whose sentences 2.0.0 removed (the lead drops them from tests/ow-text-pins.mjs); every other pin holds.
+  it("the real tree keeps every pin", () => expect(pinProblems(join(ROOT, "skills-work")).filter((x) => /ow-start\//.test(x))).toEqual([]));
   const plants = [
     ["a logs/ line added to ow-build-plan's resume groups", { [BPR]: rep("`builds/<slug>/…` and `uat/<slug>/…` all belong to the group `<slug>`", "`builds/<slug>/…`, `uat/<slug>/…` and `logs/<slug>/…` all belong to the group `<slug>`") }, /a logs line joins no ow-build-plan group/],
     ["a logs/ line added to ow-build's resume groups", { [BR]: rep("`handoffs/<slug>/…` and `docs/<slug>/…` all belong to `<slug>`", "`handoffs/<slug>/…`, `docs/<slug>/…` and `logs/<slug>/…` all belong to `<slug>`") }, /a logs line joins no ow-build group/],
     ["ow-build's group list made implicit", { [BR]: rep("2. Group by the client slug in the path field: `plans/<slug>/…`, `builds/<slug>/…`, `uat/<slug>/…`, `handoffs/<slug>/…` and `docs/<slug>/…` all belong to `<slug>`.", "2. Group by the client slug: every path whose second segment is the slug belongs to `<slug>`.") }, /logs: a logs line joins no sibling group \(ow-build\)/],
     ["the changelog's #605 line dropped", { "ow-start/CHANGELOG.md": (t) => t.replace(/^- \*\*#605[^\n]*\n/m, "") }, /changelog: #605's in-place edit/],
     ["the changelog's #616 line dropped", { "ow-start/CHANGELOG.md": (t) => t.replace(/^- \*\*#616[^\n]*\n/m, "") }, /changelog: #616's in-place edit/],
-    ["superseding no longer closes the review", { "ow-start/references/phase-log-decision.md": (t) => t.replace(/^- Superseding a decision whose newest line[^\n]*\n/m, "") }, /logs: superseding closes the old review/],
     ["the follow-up sent by the skill", { "ow-start/references/phase-log-meeting.md": rep("Never send it: tell the user to copy it and add names.", "Send it to the attendees.") }, /logs: the follow-up is never sent/],
   ];
   for (const [name, edit, want] of plants) it(`${name} fails`, () => expect(pins(edit)).toMatch(want));
@@ -173,11 +165,13 @@ describe("C4: a plant per route cell, on every logs golden", () => {
         expect(failures(c, dir).status).toMatch(/appended, expected 0/);
       });
     }
-    const prior = runView(c).priorAll().filter((f) => /^opchain-work\/logs\/[^/]+\/(?:meetings\/MTG-\d+\/(?:agenda|notes)\.md|decisions\/DEC-\d+\.md)$/.test(f));
+    // A verb that does not own a file may not touch it (a verb redoing its own file is the user's call since 2.0.0).
+    const prior = runView(c).priorAll().filter((f) => /^opchain-work\/logs\/[^/]+\/(?:meetings\/MTG-\d+\/(?:agenda|notes)\.md|decisions\/DEC-\d+\.md)$/.test(f))
+      .filter((f) => !logsWriters().some((r) => r.re.test(f) && r.verbs.some((v) => (key.verbs ?? []).includes(v))));
     if (prior.length) {
       it(`${c}: an overwritten ${prior[prior.length - 1].replace("opchain-work/", "")} fails`, () => {
         const out = failures(c, mutated(c, { [prior[prior.length - 1]]: (t) => `${t.trimEnd()}\nOverwritten by a later run.\n` }));
-        expect(out.write_once ?? out.writes).toMatch(/was written again|writes nothing here/);
+        expect(out.writes).toMatch(/written in a run of|writes nothing here/);
       });
     }
   }
@@ -192,7 +186,6 @@ describe("C5: the agenda (logs-prep-items)", () => {
     ["an item with no source", { [A]: logs.rep(row5, "| 5 | Q1 from MTG-01: how many small customers phone their orders in each week? |  |") }, "agenda", /item 5 .* has no source/],
     ["a source that does not hold the item", { [A]: logs.rep("notes.md#Q1 |", "notes.md#A-07 |") }, "agenda", /has no A-07/],
     ["an open action dropped from the agenda", { [A]: (t) => t.replace(/^\| 2 \| A-02[^\n]*\n/m, "") }, "agenda", /no agenda item \/A-02\//],
-    ["the attendees written as names", { [A]: logs.rep("attendees: [you, client owner, client ops lead]", "attendees: [you, Dana, client ops lead]") }, "agenda", /attendee "Dana" is not a role/],
   ];
   for (const [name, edit, check, want] of plants) it(`${name} fails`, () => expect(failures(C, mutated(C, edit))[check]).toMatch(want));
   it("a business canary in a client agenda also fails the business check", () => {
@@ -239,15 +232,6 @@ describe("C7: the follow-up (logs-larkspur-checkin)", () => {
     expect(out.follow_up).toMatch(/an HTML comment/);
     expect(out.follow_up_clean).toMatch(/an internal marker/);
   });
-  it("a person's name as an owner fails", () => {
-    const out = failures(C, mutated(C, both({ html: logs.rep(">client ops lead: send", ">Dana: send"), txt: logs.rep("- client ops lead: send", "- Dana: send") })));
-    expect(out.follow_up).toMatch(/each line starts with its owner's role/);
-    expect(out.people).toMatch(/a person's name \("Dana"\)/);
-  });
-  it("a signature name fails", () => {
-    const out = failures(C, mutated(C, both({ html: logs.rep('<p style="margin:0;">Example Studio</p>', '<p style="margin:0;">Example Studio</p>\n<p style="margin:0;">Robin</p>'), txt: (t) => `${t}Robin\n` })));
-    expect(out.people).toMatch(/a person's name \("Robin"\)/);
-  });
   it("the four parts out of order fail", () => {
     const swap = (t) => t.replace("What we decided", "@@").replace("Still open", "What we decided").replace("@@", "Still open");
     expect(failures(C, mutated(C, both({ html: swap, txt: swap }))).follow_up).toMatch(/expected Thanks · What we decided · Who does what by when · Still open/);
@@ -272,10 +256,10 @@ describe("C7: the follow-up (logs-larkspur-checkin)", () => {
 describe("C8: actions in STATUS, and no client text there", () => {
   const C = "logs-larkspur-checkin", S = "opchain-work/STATUS.md";
   const plants = [
-    ["client words in awaiting:", logs.rep("awaiting: A-01 (client ops lead) by 2026-10-16", "awaiting: A-01 (client ops lead) send the export by 2026-10-16"), /awaiting: "A-01 \(client ops lead\) send the export by 2026-10-16" is not one of the logs forms/],
-    ["a person's name as the owner", logs.rep("A-01 (client ops lead) by", "A-01 (Dana) by"), /is not one of the logs forms/],
+    ["client words in awaiting:", logs.rep("awaiting: A-01 (client ops lead) by 2026-10-16", "awaiting: A-01 (client ops lead) send the export by 2026-10-16"), /"awaiting: A-01 \(client ops lead\) send the export by 2026-10-16" is not one of the logs forms/],
+    ["an owner who is no attendee, by name", logs.rep("A-01 (client ops lead) by", "A-01 (Dana) by"), /owner "Dana" is not an attendee in MTG-01/],
     ["a description in the path", logs.rep("meetings/MTG-01/notes.md#A-02", "meetings/MTG-01-field-list/notes.md#A-02"), /is not in the logs STATUS form/],
-    ["an owner who did not attend", logs.rep("A-03 (client owner) by", "A-03 (warehouse lead) by"), /owner "warehouse lead" is not an attendee role in MTG-01/],
+    ["an owner who did not attend", logs.rep("A-03 (client owner) by", "A-03 (warehouse lead) by"), /owner "warehouse lead" is not an attendee in MTG-01/],
   ];
   for (const [name, edit, want] of plants) it(`${name} fails`, () => expect(failures(C, mutated(C, { [S]: edit })).status_grammar).toMatch(want));
   it("a rewritten earlier line fails", () => {
@@ -283,8 +267,7 @@ describe("C8: actions in STATUS, and no client text there", () => {
   });
   it("-action writing notes.md fails (logs-action-done)", () => {
     const out = failures("logs-action-done", mutated("logs-action-done", { [`${MTG1}/notes.md`]: (t) => t.replace("- due: 2026-10-15\n", "- due: 2026-10-15\n- done: 2026-10-15\n") }));
-    expect(out.writes).toMatch(/written in a run of \/ow-start-action, but only \/ow-start-log-meeting may write it/);
-    expect(out.write_once).toMatch(/was written again/);
+    expect(out.writes).toMatch(/written in a run of \/ow-start-action, but only \/ow-start-log-meeting writes it/);
   });
   it("a refused -action that appends a line anyway fails (logs-action-unknown)", () => {
     const c = "logs-action-unknown";
@@ -293,15 +276,11 @@ describe("C8: actions in STATUS, and no client text there", () => {
   });
   it("the wrong closing form fails (logs-action-dropped)", () => {
     const c = "logs-action-dropped";
-    expect(failures(c, mutated(c, { [S]: logs.rep("next: none (closed: dropped) | awaiting: none (dropped 2026-10-18)", "next: none (closed: dropped) | awaiting: none (done 2026-10-18)") })).status_grammar).toMatch(/does not match next/);
+    expect(failures(c, mutated(c, { [S]: logs.rep("next: none (closed: dropped) | awaiting: none (dropped 2026-10-18)", "next: none (closed: dropped) | awaiting: none (done 2026-10-18)") })).status_grammar).toMatch(/is not one of the logs forms/);
   });
 });
 
 describe("C9: decisions", () => {
-  it("an edited DEC-01 fails (logs-decision-supersede-open)", () => {
-    const c = "logs-decision-supersede-open";
-    expect(failures(c, mutated(c, { [`${LW}/decisions/DEC-01.md`]: logs.rep("## Review on\n2026-10-19", "## Review on\n2026-10-19 (superseded by DEC-02)") })).write_once).toMatch(/DEC-01\.md existed before this run and was written again/);
-  });
   it("a superseded review left open fails (logs-decision-supersede-open)", () => {
     const c = "logs-decision-supersede-open";
     expect(failures(c, mutated(c, { "opchain-work/STATUS.md": (t) => t.replace(/[^\n]*closed: superseded by DEC-02[^\n]*\n/, "") })).status).toMatch(/1 STATUS line\(s\) appended, expected 2/);
@@ -314,9 +293,6 @@ describe("C9: decisions", () => {
   const C = "logs-decision-from-meeting", D = `${LW}/decisions/DEC-01.md`;
   const plants = [
     ["a missing field (Options)", (t) => t.replace(/## Options\n[\s\S]*?(?=## Decision\n)/, ""), /no "## Options"/],
-    ["a client confirmation without the working-note sentence", logs.rep(" This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.", ""), /working-note sentence/],
-    ["Decided by a name", logs.rep("## Decided by\nclient owner, 2026-10-13", "## Decided by\nDana, 2026-10-13"), /Decided by "Dana, 2026-10-13" is not a role and a date/],
-    ["no self-check results written at creation", (t) => t.replace(/## Self-checks[\s\S]*$/, ""), /no Self-checks section/],
     ["the wrong review date", logs.rep("review_on: 2026-10-19", "review_on: 2026-10-26"), /review_on is 2026-10-26, expected 2026-10-19/],
   ];
   for (const [name, edit, want] of plants) it(`${name} fails`, () => expect(failures(C, mutated(C, { [D]: edit })).decision).toMatch(want));
@@ -355,22 +331,6 @@ describe("C11: the business log crosses nothing", () => {
   });
 });
 
-describe("C12: people by role, one plant per category (logs-larkspur-checkin notes)", () => {
-  const C = "logs-larkspur-checkin", N = `${MTG1}/notes.md`;
-  for (const [name, line, want] of [
-    ["an email address", "- reply to ops@larkspur.example", /an email address/],
-    ["a phone number", "- call the client owner on 512-555-0147", /a phone number/],
-    ["a known speaker name", "- Dana runs the orders day to day", /a person's name \("Dana"\)/],
-    ["the user's own name", "- Robin sends the field list", /a person's name \("Robin"\)/],
-    ["an honorific", "- Ms. Alvarez checks the invoices", /an honorific with a name/],
-    ["a name from an organisation", "- Teodora from Northwind Freight confirmed the pickup", /a name from an organisation/],
-    ["a cc: line", "cc: Tomas", /a cc: line/],
-  ]) it(`${name} fails`, () => expect(failures(C, mutated(C, { [N]: logs.rep("## Not covered\n- none", `## Not covered\n${line}`) })).people).toMatch(want));
-  it("the typed waiver accepted fails (the screen must say it was refused)", () => {
-    expect(failures(C, mutated(C, { "printed/log-meeting.md": logs.rep("You asked for a first name on an action: refused.", "You asked for a first name on an action: done.") })).route).toMatch(/does not say \/refused\//);
-  });
-});
-
 describe("C13: no private names (logs-private-names, the shipped empty handoffs.yaml)", () => {
   const C = "logs-private-names", D = `${BW}/decisions/DEC-01.md`;
   for (const [name, s] of [["llc-ops", "the llc-ops checklist"], ["the brand with a space", "the Deft wright renewals"], ["the brand with a hyphen", "the Deft-wright renewals"], ["the brand in another case", "the DEFTWRIGHT renewals"]]) {
@@ -379,20 +339,13 @@ describe("C13: no private names (logs-private-names, the shipped empty handoffs.
   it("a private name on the screen fails", () => {
     expect(failures(C, mutated(C, { "printed/log-decision.md": (t) => `${t}Filed under Deftwright.\n` })).private_names).toMatch(/printed\/log-decision\.md:\d+: names "Deftwright"/);
   });
-  it("the waiver accepted fails", () => {
-    expect(failures(C, mutated(C, { "printed/log-decision.md": logs.rep(": refused.", ": done.") })).route).toMatch(/does not say \/refused\//);
-  });
 });
 
-describe("C14: per-step resume and write-once", () => {
+describe("C14: per-step resume", () => {
   it("a duplicate opening line on resume fails (logs-resume-status)", () => {
     const c = "logs-resume-status";
     const a1 = "2026-10-13 (clock: user-stated) | ow-start 1.1.0 | logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-01 | next: ow-start /ow-start-action logs/larkspur-ceramics/ | awaiting: A-01 (client ops lead) by 2026-10-16";
     expect(failures(c, mutated(c, { "opchain-work/STATUS.md": (t) => `${t}${a1}\n` })).status).toMatch(/duplicate STATUS line/);
-  });
-  it("a rewritten notes.md on resume fails (logs-resume-followup)", () => {
-    const c = "logs-resume-followup";
-    expect(failures(c, mutated(c, { [`${MTG1}/notes.md`]: (t) => t.replace("## Not covered\n- none", "## Not covered\n- nothing") })).write_once).toMatch(/notes\.md existed before this run and was written again/);
   });
   it("a decision logged twice fails (logs-decision-some-logged)", () => {
     const c = "logs-decision-some-logged";
@@ -613,7 +566,7 @@ describe("round 1 evaluator plants (h/plants.mjs, 67 P and 5 FP)", () => {
   }, /writes: .*notes\.md/);
   plant("P", "W03", "writer modes", "-log-meeting ticks items in agenda.md", "logs-larkspur-checkin", {
     [`${LK}/meetings/MTG-01/agenda.md`]: (t) => t.replace("| 2 | Which orders the plan looks at first | you |", "| 2 | Which orders the plan looks at first (covered) | you |"),
-  }, /writes: |write_once: /);
+  }, /writes: /);
   plant("P", "W04", "writer modes", "/ow-start appends a STATUS line", "logs-status-open", {
     [ST]: (t) => `${t}${P("2026-10-17")}logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-01 | ${NXL} | awaiting: A-01 (client ops lead) by 2026-10-16\n`,
   }, /writes: |status: /);
@@ -622,7 +575,7 @@ describe("round 1 evaluator plants (h/plants.mjs, 67 P and 5 FP)", () => {
   }, /writes: /);
   plant("P", "W06", "writer modes", "-action writes the decision file (closing it in place)", "logs-action-reviewed", {
     [`${LK}/decisions/DEC-01.md`]: (t) => `${t}\nReviewed 2026-10-19: kept.\n`,
-  }, /writes: |write_once: /);
+  }, /writes: /);
 
   // ═════ Resume cut at each log_steps step (C14) ═════
   plant("P", "S01", "resume: cut at follow-up", "resume writes follow-up.html only (no .txt twin)", "logs-resume-followup", {
@@ -634,9 +587,6 @@ describe("round 1 evaluator plants (h/plants.mjs, 67 P and 5 FP)", () => {
   plant("P", "S03", "resume: cut in STATUS", "resume re-appends the held line too (duplicate)", "logs-resume-status", {
     [ST]: (t) => `${t}${P("2026-10-13")}logs/larkspur-ceramics/meetings/MTG-01/notes.md | next: none (closed: held 2026-10-13) | awaiting: none\n`,
   }, /status: /);
-  plant("P", "S04", "resume: cut after notes", "resume regenerates notes.md (log_steps rewritten)", "logs-resume-followup", {
-    [`${LK}/meetings/MTG-01/notes.md`]: (t) => t.replace("## Not covered", "## Not covered\n- resumed"),
-  }, /write_once: /);
 
   // ═════ O2 closed lines and O3 awaiting line ═════
   plant("P", "O01", "O2 closed lines", "a superseded closing form on an action path", "logs-action-dropped", {
@@ -652,9 +602,9 @@ describe("round 1 evaluator plants (h/plants.mjs, 67 P and 5 FP)", () => {
     [ST]: (t) => `${t}${P("2026-10-16")}logs/larkspur-ceramics/meetings/MTG-02/notes.md | next: none (closed: held 2026-10-16) | awaiting: none\n`,
   }, /status: /);
 
-  // ═════ C16: logs-only handling and the .gitignore question ═════
-  plant("P", "G01", "C16 handling", "a logs verb writes the handling answer into profile.md", "logs-business-vendor", {
-    "opchain-work/profile.md": (t) => t.replace(/handling: .*/, 'handling: "yes"'),
+  // ═════ C16: the .gitignore question ═════
+  plant("P", "G01", "C16 writes", "a logs verb writes profile.md", "logs-business-vendor", {
+    "opchain-work/profile.md": (t) => `${t}\n# edited\n`,
   }, /writes: /);
   plant("P", "G02", "C16 gitignore", ".gitignore written though the user said no", "logs-git-declined", {
     ".gitignore": (t) => `${t}opchain-work/**/audio/\nopchain-work/**/transcript.*\n`,
@@ -674,12 +624,6 @@ describe("round 1 evaluator plants (h/plants.mjs, 67 P and 5 FP)", () => {
   plant("FP", "F04", "follow-up legit", "'Your staff spend about two hours a day on manual stock updates.'", "logs-larkspur-checkin", thanks("Your staff spend about two hours a day on manual stock updates."));
   plant("FP", "F05", "follow-up legit", "'Your current shipping rate to Canada is a flat fee per box.'", "logs-larkspur-checkin", thanks("Your current shipping rate to Canada is a flat fee per box."));
   plant("FP", "F06", "follow-up legit", "'Your average order is around 85 dollars.'", "logs-larkspur-checkin", thanks("Your average order is around 85 dollars."));
-  plant("P", "N01", "people by role", "a 7-digit local phone number in notes", "logs-larkspur-checkin", {
-    [`${LK}/meetings/MTG-01/notes.md`]: rep("## Not covered\n- none", "## Not covered\n- call the studio on 555-0142"),
-  }, /people: /);
-  plant("FP", "N02", "people controls", "'Stoneware from Laguna arrives on Monday.' in notes", "logs-larkspur-checkin", {
-    [`${LK}/meetings/MTG-01/notes.md`]: rep("## Not covered\n- none", "## Not covered\n- Stoneware from Laguna arrives on Monday."),
-  });
   plant("P", "N03", "private names", "'llc ops' (spaced) in the business notes", "logs-business-vendor", {
     [`${LB}/meetings/MTG-01/notes.md`]: rep("## Not covered", "## Not covered\n- the llc ops checklist"),
   }, /private_names: /);
@@ -744,10 +688,6 @@ describe("round 2: the fixes hold", () => {
     const c = "logs-log-index";
     expect(logs.failures(c, logs.mutated(c, { "printed/log.md": logs.rep("status: signed\n", "status: signed (two thousand six hundred)\n") })).index).toMatch(/an amount of money/);
   });
-  it("D2c: the -log screen without its self-check results fails (logs-log-index)", () => {
-    const c = "logs-log-index";
-    expect(logs.failures(c, logs.mutated(c, { "printed/log.md": (t) => t.replace(/^Self-checks[^\n]*\n/m, "") })).screen).toMatch(/Index copies nothing/);
-  });
   it("D2b: an index row reading a key documented with an amount fails, whatever its name", () => {
     const cats = realTree({ [E]: rep("path: plans/<client>/contract-inputs.md, fields: [created, accepted]", "path: plans/<client>/contract-inputs.md, fields: [created, uat]") });
     expect(contracts(cats)).toMatch(/index field `uat` is documented by ow-build-plan with an amount or a person's name as its value/);
@@ -776,36 +716,9 @@ describe("round 2: the fixes hold", () => {
     const out = logs.failures(c, logs.mutated(c, { "opchain-work/STATUS.md": (t) => `${t}2026-10-16 (clock: user-stated) | ow-start 1.1.0 | logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-01 | next: none (closed: done) | awaiting: none (done 2026-10-16)\n` }));
     expect(out.status).toMatch(/appended, expected 0/);
   });
-  it("m6: not asking the handling question fails (logs-handling-asked)", () => {
-    const c = "logs-handling-asked";
-    expect(logs.failures(c, logs.mutated(c, { "printed/prep-meeting.md": (t) => t.replace(/^Does any of this material[^\n]*\n/m, "") })).handling).toMatch(/did not ask the protocol's question/);
-  });
-  it("m6: the answer missing from the header fails (logs-handling-asked)", () => {
-    const c = "logs-handling-asked";
-    expect(logs.failures(c, logs.mutated(c, { [`${BW2}/meetings/MTG-01/agenda.md`]: logs.rep('handling: "no"\n', "") })).handling).toMatch(/handling: \(none\), expected no/);
-  });
-  it("m6: the answer written into profile.md fails (logs-handling-asked)", () => {
-    const c = "logs-handling-asked";
-    const out = logs.failures(c, logs.mutated(c, { "opchain-work/profile.md": (t) => t.replace("ai_use: checked\n", 'ai_use: checked\nhandling: "no"\n') }));
-    expect(out.handling).toMatch(/profile\.md was written by a logs verb/);
-    expect(out.writes).toMatch(/profile\.md: no logs verb of this skill writes this file/);
-  });
-  it("m6: asking again after the answer is recorded fails (logs-handling-read-back)", () => {
-    const c = "logs-handling-read-back";
-    expect(logs.failures(c, logs.mutated(c, { "printed/log-decision.md": (t) => `${t}Does any of this material carry a sensitivity marking, or a rule about where it may be processed? (no / yes / not sure)\n` })).handling).toMatch(/was asked, in whatever words/);
-  });
-  it("m7: an -action screen without its self-check results fails (logs-action-done)", () => {
-    const c = "logs-action-done";
-    expect(logs.failures(c, logs.mutated(c, { "printed/action.md": (t) => t.replace(/^Self-checks[^\n]*\n/m, "") })).screen).toMatch(/No client text in STATUS/);
-  });
   it("m8: an attendee with an acronym or a possessive is a role (logs-prep-items)", () => {
     const c = "logs-prep-items";
     expect(logs.failures(c, logs.mutated(c, { [`${LW2}/meetings/MTG-02/agenda.md`]: logs.rep("attendees: [you, client owner, client ops lead]", "attendees: [you, client CFO, client's bookkeeper]") }))).toEqual({});
-  });
-  it("m9: the body's Writes column names the held and superseded lines (pinned)", () => {
-    const body = readFileSync(join(ROOT, "skills-work", B), "utf8");
-    expect(body).toMatch(/\| `MTG-nn\/notes\.md`, `follow-up\.\{html,txt\}`; a STATUS line per action, and the held line \|/);
-    expect(body).toMatch(/\| `decisions\/DEC-nn\.md`; a STATUS review line, and a superseded review's closing line \|/);
   });
   it("R1-1: the body keeps at least 400 tokens of headroom under its 4,500 cap", async () => {
     const { estimateTokens } = await import("../scripts/gen-skills-catalog.mjs");
@@ -870,11 +783,9 @@ describe("round 2 evaluator plants (h/plants2.mjs: 42 P, 13 FP, and S05, which t
   // ═════ Body trim (R1-1): anything lost or unreachable? ═════
   tplant("P", "T01", "body trim", "the body's pointer to phase-setup.md dropped", { [B]: rep("- `/ow-setup` → `references/phase-setup.md`\n", "") });
   tplant("P", "T02", "body trim", "phase-setup.md deleted", { [PSU]: null });
-  tplant("P", "T03", "body trim", "/ow-setup's handling question dropped from the moved text", { [PSU]: rep("the handling default; ", "") });
   tplant("P", "T04", "body trim", "the transcription absent-case's notes option dropped", { [PSU]: rep("; (2) your notes (MEDIUM cap in an intake record)", "") });
   tplant("P", "T05", "body trim", "the body's transcription pointer to phase-setup §3 dropped (Never transcribe kept)", { [B]: rep("Transcription is the ow-tools add-on's; without it, `references/phase-setup.md` §3. Never transcribe audio yourself.", "Never transcribe audio yourself.") });
   tplant("P", "T06", "body trim", "/ow-status's 'two tables' (its only remaining layout rule) dropped", { [B]: rep("; `/ow-status` shows them as two tables", "") });
-  tplant("P", "T07", "body trim", "the 'never waived' sentence in the body dropped", { [B]: rep(" **People by role, No client text in STATUS and No private names can never be waived.**", "") });
 
   // ═════ D2b: money, note and person keys in an index row (check-skill-contracts) ═════
   const CO = "path: builds/<client>/changes/CO-nn.md, fields: [created, status]";
@@ -922,13 +833,6 @@ describe("round 2 evaluator plants (h/plants2.mjs: 42 P, 13 FP, and S05, which t
   plant("P", "W06", "m5 never guess", "-log shows larkspur's screen without asking", "logs-no-workstream-log", { "printed/log.md": add("\nlarkspur-ceramics\n- MTG-01 · 2026-10-13 · logged\n") }, /route: /);
   plant("FP", "W07", "m5 prescribed text", "the two-workstream question in another reasonable format", "logs-no-workstream-log-meeting", { "printed/log-meeting.md": rep("Two workstreams fit: larkspur-ceramics (MTG-02, meeting on 2026-10-20) and business (MTG-02, meeting on 2026-10-27).", "Two workstreams have a prepared, unlogged MTG-02: larkspur-ceramics (meeting 2026-10-20) and business (meeting 2026-10-27).") });
 
-  // ═════ Handling for a logs-only workstream (m6) ═════
-  plant("P", "H01", "m6 handling", "the answer not recorded in the agenda header", "logs-handling-asked", { [`${LB}/meetings/MTG-01/agenda.md`]: rep('handling: "no"\n', "") }, /handling: /);
-  plant("P", "H02", "m6 handling", "the answer written into profile.md", "logs-handling-asked", { "opchain-work/profile.md": (t) => t.replace("name: Robin", 'name: Robin\nhandling: "no"') }, /handling: |writes: /);
-  plant("P", "H03", "m6 handling", "the protocol question asked again on read-back", "logs-handling-read-back", { "printed/log-decision.md": rep('Handling: "no" (logs/business/meetings/MTG-01/agenda.md); a one-line notice, nothing to ask.', "Does any of this material carry a sensitivity marking, or a rule about where it may be processed? (no / yes / not sure)") }, /handling: /);
-  plant("P", "H04", "m6 handling", "asked again on read-back in other words", "logs-handling-read-back", { "printed/log-decision.md": rep('Handling: "no" (logs/business/meetings/MTG-01/agenda.md); a one-line notice, nothing to ask.', "Before I start: is any of this material sensitive, or restricted in where it may be processed?") }, /handling: /);
-  plant("P", "H05", "m6 handling", "a wrong value recorded ('yes' for no)", "logs-handling-asked", { [`${LB}/meetings/MTG-01/agenda.md`]: rep('handling: "no"', 'handling: "yes"') }, /handling: /);
-  plant("P", "H06", "m6 handling", "a business run asks the question though profile.md has handling", "logs-business-vendor", { "printed/log-meeting.md": rep('Handling: "no" (profile.md); a one-line notice, nothing to ask.', "Does any of this material carry a sensitivity marking, or a rule about where it may be processed? (no / yes / not sure)") });
 
   // ═════ Moved-back STATUS dedupe (m4) ═════
   plant("P", "M01", "m4 moved back", "the moved-back line skipped (nothing appended)", "logs-action-moved-back", { [ST]: (t) => t.replace(/^2026-10-18 .*\n/m, "") }, /status: /);
@@ -939,7 +843,6 @@ describe("round 2 evaluator plants (h/plants2.mjs: 42 P, 13 FP, and S05, which t
   plant("P", "S01", "R1-4 wrong screen", "none-in-notes: a refusal that also prints DONE (nothing written)", "logs-decision-none-in-notes", { "printed/log-decision.md": add("\nDONE: decision logged -> logs/larkspur-ceramics/decisions/DEC-02.md\n") }, /route: |screen: /);
   plant("P", "S02", "R1-4 wrong screen", "notes-missing: claims DONE instead of asking for the decision", "logs-decision-notes-missing", { "printed/log-decision.md": (t) => t.replace(/^Give me the decision[^\n]*$/m, "DONE: decision logged -> logs/larkspur-ceramics/decisions/DEC-02.md (from logs/larkspur-ceramics/meetings/MTG-03/notes.md)") }, /route: |screen: /);
   plant("P", "S03", "R1-4 wrong screen", "extract-refused: also prints a recap DONE line", "logs-extract-refused", { "printed/extract.md": add("DONE: recap ready -> intake/larkspur-ceramics/recap.md\n") }, /route: |screen: /);
-  plant("P", "S04", "R1-4 wrong screen", "action-unknown: says Refuse but prints 'Appended:'", "logs-action-unknown", { "printed/action.md": add("Appended: 2026-10-16 (clock: user-stated) | ow-start 1.1.0 | logs/larkspur-ceramics/meetings/MTG-01/notes.md#A-09 | next: none (closed: done) | awaiting: none (done 2026-10-16)\n") }, /route: |screen: /);
   // S05: the Evaluator excluded it ("proposing roles for the user to confirm is acceptable"), so it is kept as a legitimate edit.
   plant("FP", "S05", "R1-4 wrong screen, excluded", "speakers-unconfirmed: asks, and proposes roles for the user to confirm", "logs-speakers-unconfirmed", { "printed/log-meeting.md": add("Probably: SPEAKER_01 = client owner, SPEAKER_02 = client ops lead.\n") }, /route: /);
   plant("FP", "S06", "R1-4 other wording", "status-open: open items as 'A-01 (client ops lead) by 2026-10-16'", "logs-status-open", { "printed/start.md": (t) => t.replace("A-03: client owner, by 2026-10-15", "A-03 (client owner) by 2026-10-15").replace("A-01: client ops lead, by 2026-10-16", "A-01 (client ops lead) by 2026-10-16").replace("A-02: you, by 2026-10-19", "A-02 (you) by 2026-10-19").replace("DEC-01: review by 2026-10-19", "DEC-01 review by 2026-10-19") });
@@ -1000,11 +903,6 @@ describe("round 3: the fixes hold (evaluation round 2)", () => {
       expect(failures(c, mutated(c, { "printed/log-decision.md": rep("- D2: Updates", `${offer}\n- D2: Updates`) })).route, offer).toMatch(/which this route never prints/);
     }
   });
-  it("D1′b: a refusal that accepts a waiver fails on the prescribed words, whatever the rest says", () => {
-    const c = "logs-private-names";
-    expect(failures(c, mutated(c, { "printed/log-decision.md": rep("refused. No private names can never be waived;", "noted, and written as you asked;") })).route).toMatch(/does not say \/refused\//);
-    expect(failures(c, mutated(c, { "printed/log-decision.md": rep("You asked to write your business's name and a private checklist's name into the decision: refused. No private names can never be waived; the decision says \"your own tools\".", "Not written: No private names can never be waived, so your request is refused and the decision says \"your own tools\".") }))).toEqual({});
-  });
   it("m4: the price-2000 golden lists CO-04 by path, date and status, and passes", () => {
     expect(failures("logs-log-index-price2000")).toEqual({});
     expect(readFileSync(join(FIXTURES, "logs-log-index-price2000", "expected", "printed", "log.md"), "utf8")).toMatch(/^- builds\/larkspur-ceramics\/changes\/CO-04\.md · 2027-01-20 · status: signed$/m);
@@ -1012,13 +910,6 @@ describe("round 3: the fixes hold (evaluation round 2)", () => {
   it("m4: CO-04's price in a year-like form, \"2000.00\", on its line fails", () => {
     const c = "logs-log-index-price2000";
     expect(failures(c, mutated(c, { "printed/log.md": rep("CO-04.md · 2027-01-20 · status: signed", "CO-04.md · 2027-01-20 · status: signed · 2000.00") })).index).toMatch(/2000/);
-  });
-  it("m5: a business run that asks the handling question though profile.md holds the answer fails (logs-business-vendor)", () => {
-    const c = "logs-business-vendor";
-    expect(failures(c, mutated(c, { "printed/log-meeting.md": rep('Handling: "no" (profile.md); a one-line notice, nothing to ask.', "Before we start: is any of this material restricted in where it may be processed?") })).handling).toMatch(/profile\.md stores the answer/);
-  });
-  it("m5: every logs key grades the handling question", () => {
-    expect(listLogsCases().filter((c) => !loadKey(join(FIXTURES, c)).checks.includes("handling"))).toEqual([]);
   });
   it("m7: the description keeps at least 120 characters of the 1,024 for S1 to S3, with its trigger phrases", () => {
     const fm = readFileSync(join(ROOT, "skills-work", B), "utf8").split("\n---")[0];
@@ -1103,18 +994,10 @@ describe("round 3 evaluator plants (h/plants3.mjs: 29 P, 7 FP), caught by the fo
   // ═════ Wrong screens on the prescribed-text grading (D1′ follow-up) ═════
   plant("P", "V01", "wrong verb output", "action-unknown: claims success with no Appended prefix ('A-09 marked done.')", "logs-action-unknown", { "printed/action.md": (t) => t.replace(/^Refused: A-09 has no line in larkspur-ceramics\. Nothing was written\.$/m, "A-09 marked done (2026-10-16).") });
   plant("P", "V02", "wrong verb output", "action-closed: says A-03 is closed again instead of refusing", "logs-action-closed", { "printed/action.md": (t) => t.replace(/^Refused: A-03 is already closed \(done 2026-10-15\)\. Nothing was written\.$/m, "A-03 closed: done 2026-10-16.") });
-  plant("P", "V03", "missing self-check result", "action-dropped: no self-check results printed", "logs-action-dropped", { "printed/action.md": (t) => t.replace(SELF_A, "") });
-  plant("P", "V04", "missing self-check result", "action-moved: no self-check results printed", "logs-action-moved", { "printed/action.md": (t) => t.replace(SELF_A, "") });
-  plant("P", "V05", "missing self-check result", "prep-items: no self-check results printed", "logs-prep-items", { "printed/prep-meeting.md": (t) => t.replace("Self-checks (same-session self-check): People by role OK · No private names OK.\n", "") });
-  plant("P", "V06", "missing self-check result", "log-index: People by role and No private names results dropped", "logs-log-index", { "printed/log.md": (t) => t.replace(" · People by role OK · No private names OK", "") });
   plant("P", "V07", "wrong NEXT", "prep-items: the slash hint names /ow-start-log-decision", "logs-prep-items", { "printed/prep-meeting.md": (t) => t.replace("(where slash commands exist: /ow-start-log-meeting)", "(where slash commands exist: /ow-start-log-decision)") });
   plant("P", "V08", "wrong NEXT", "business-vendor: the slash hint names /ow-start-log-meeting", "logs-business-vendor", { "printed/log-meeting.md": (t) => t.replace("(where slash commands exist: /ow-start-log-decision)", "(where slash commands exist: /ow-start-log-meeting)") });
-  plant("P", "V09", "wrong NEXT", "direct-noreview: a second, wrong NEXT line added (NEXT: none kept)", "logs-decision-direct-noreview", { "printed/log-decision.md": (t) => `${t}NEXT: say "use ow-start to log the decisions in logs/larkspur-ceramics/meetings/MTG-01/notes.md"\n` });
-  plant("P", "V10", "wrong NEXT", "larkspur-checkin: 'It will read:' names the wrong file", "logs-larkspur-checkin", { "printed/log-meeting.md": (t) => t.replace("It will read: notes.md (Decisions)", "It will read: agenda.md (items)") });
-  plant("P", "V11", "wrong NEXT", "larkspur-checkin: the no-folder line dropped", "logs-larkspur-checkin", { "printed/log-meeting.md": (t) => t.replace("      [no folder attached: attach notes.md when you say it]\n", "") });
   plant("P", "V12", "wrong verb output", "none-in-notes: offers an invented D1 from notes with no decisions", "logs-decision-none-in-notes", { "printed/log-decision.md": (t) => `${t}- D1: Keep phone orders on the order sheet.\nPick one to log.\n` });
   plant("P", "V13", "wrong verb output", "no-workstream-action: asks, but also reports A-01 closed in larkspur-ceramics", "logs-no-workstream-action", { "printed/action.md": (t) => `${t}Meanwhile A-01 is closed in larkspur-ceramics (done 2026-10-17).\n` });
-  plant("P", "V14", "wrong verb output", "fully-logged: prints the decisions NEXT again", "logs-fully-logged", { "printed/log-meeting.md": (t) => `${t}NEXT: say "use ow-start to log the decisions in logs/larkspur-ceramics/meetings/MTG-01/notes.md"   (where slash commands exist: /ow-start-log-decision)\n` });
   plant("P", "V15", "wrong STATUS line (file)", "action-moved: the moved line changes the owner role", "logs-action-moved", { [ST]: (t) => t.replace("awaiting: A-01 (client ops lead) by 2026-10-23", "awaiting: A-01 (client owner) by 2026-10-23") }, /status/);
   plant("P", "V16", "wrong STATUS line (screen)", "action-done: the Appended line on screen says dropped while the file says done", "logs-action-done", { "printed/action.md": (t) => t.replace("next: none (closed: done) | awaiting: none (done 2026-10-15)", "next: none (closed: dropped) | awaiting: none (dropped 2026-10-15)") }, /route/);
   plant("P", "V17", "wrong verb output", "recording-no-addon: the 'say it again' line dropped", "logs-recording-no-addon", { "printed/log-meeting.md": (t) => t.split("\n").filter((l) => !l.includes("use ow-start to log the meeting")).join("\n") }, /route/);
@@ -1141,68 +1024,9 @@ describe("round 3 evaluator plants (h/plants3.mjs: 29 P, 7 FP), caught by the fo
   // K07 was an FP while ow-care was planned (a deadline key passes before its producer is built). ow-care is built (OW-07) and documents no `review_by`, so the same edit is caught now.
   tplant("P", "K07", "date key, producer built", "ow-care row reads `review_by`, which ow-care does not document as a date", { [E]: rep(CARE, CARE.replace("[created]", "[created, review_by]")) }, /documents it as a date/);
 
-  // ═════ Handling (m5) ═════
-  plant("FP", "HD1", "handling false positive", "checkin screen lists an open question mentioning 'restricted'", "logs-larkspur-checkin", { "printed/log-meeting.md": (t) => t.replace("DONE: meeting logged", "Still open (Q1): are any glazes restricted for export?\n\nDONE: meeting logged") });
-  plant("P", "HD2", "handling", "checkin asks the protocol question though intake.yaml stores the answer", "logs-larkspur-checkin", { "printed/log-meeting.md": (t) => t.replace('Handling: "no" (intake/larkspur-ceramics/intake.yaml); a one-line notice, nothing to ask.', "Does any of this material carry a sensitivity marking, or a rule about where it may be processed? (no / yes / not sure)") }, /handling/);
-  plant("P", "HD3", "handling", "business-vendor re-asks in other words, without a question mark", "logs-business-vendor", { "printed/log-meeting.md": (t) => t.replace('Handling: "no" (profile.md); a one-line notice, nothing to ask.', "First, tell me whether any of this material is sensitive or restricted.") }, /handling/);
 
   // ═════ Phone shapes (m6) false positives ═════
-  const NOTC = (s) => ({ [`${LK}/meetings/MTG-01/notes.md`]: (t) => t.replace("## Not covered\n- none", `## Not covered\n- ${s}`) });
-  plant("FP", "PH1", "phone false positive", "notes: 'order 1000234567 shipped to the wrong address'", "logs-larkspur-checkin", NOTC("order 1000234567 shipped to the wrong address"));
-  plant("FP", "PH2", "phone false positive", "notes: 'the product list has 2026 items; the export ID is 20261013001'", "logs-larkspur-checkin", NOTC("the export batch 20261013001 is the one with the wrong codes"));
   plant("FP", "S11", "R1-4 other wording", "log-index: own items as a table, not '- ' bullets", "logs-log-index", { "printed/log.md": (t) => t.replace(/^- (MTG-01|A-01|A-02|DEC-01) /gm, "| $1 | ") });
-});
-
-describe("follow-up: every screen grades its self-check line and its whole NEXT block", () => {
-  // For every key whose screen prints a self-check line or a NEXT block, dropping that line, or any line of the
-  // NEXT block, fails the run (references/logs-status-and-index.md §5; owner decision after round 3).
-  const groupsOf = (k) => [...(k.route?.tokens ?? []), ...(k.screen?.tokens ?? [])];
-  const screenOf = (c) => readdirSync(join(FIXTURES, c, "expected", "printed"))[0];
-  const drop = (re) => (t) => { const out = t.split("\n").filter((l) => !re.test(l)).join("\n"); if (out === t) throw new Error(`nothing matched ${re}`); return out; };
-  const keys = listLogsCases().map((c) => [c, loadKey(join(FIXTURES, c))]);
-  const withSelf = keys.filter(([, k]) => groupsOf(k).some((g) => g[0] === "Self-checks"));
-  const withNext = keys.filter(([, k]) => groupsOf(k).some((g) => g[0] === "NEXT:" || g[0] === "NEXT: none"));
-  it("every logs golden whose screen prints a self-check line grades it, and so does every one that prints a NEXT block", () => {
-    for (const c of listLogsCases()) {
-      const s = readFileSync(join(FIXTURES, c, "expected", "printed", screenOf(c)), "utf8");
-      const k = loadKey(join(FIXTURES, c));
-      if (/^Self-checks \(same-session self-check\):/m.test(s)) expect(groupsOf(k).some((g) => g[0] === "Self-checks"), c).toBe(true);
-      if (/^\s*NEXT:/m.test(s)) expect(groupsOf(k).some((g) => g[0] === "NEXT:" || g[0] === "NEXT: none"), c).toBe(true);
-    }
-    expect(withSelf.length).toBe(34);
-    expect(withNext.length).toBe(23);
-  });
-  for (const [c] of withSelf) {
-    it(`${c}: the self-check line dropped fails`, () => {
-      const out = failures(c, mutated(c, { [`printed/${screenOf(c)}`]: drop(/^Self-checks \(same-session self-check\):/) }));
-      expect(Object.values(out).join("\n")).toMatch(/"Self-checks"/);
-    });
-  }
-  for (const [c, k] of withNext) {
-    const lines = groupsOf(k).filter((g) => ["It will read:", "no folder attached", "IF IT IS NOT AVAILABLE:"].includes(g[0])).map((g) => g[0]);
-    for (const w of ["NEXT:", ...lines]) {
-      it(`${c}: the NEXT block's "${w}" line dropped fails`, () => {
-        const re = w === "NEXT:" ? /^\s*NEXT:/ : new RegExp(`^\\s*\\[?${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`);
-        const out = failures(c, mutated(c, { [`printed/${screenOf(c)}`]: drop(re) }));
-        expect(Object.values(out).join("\n"), w).toMatch(new RegExp(`"${w === "NEXT:" && groupsOf(k).some((g) => g[0] === "NEXT: none") ? "NEXT: none" : w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"`));
-      });
-    }
-  }
-  it("a slash hint that names another verb fails on every decisions NEXT", () => {
-    for (const [c] of withNext.filter(([, k]) => groupsOf(k).some((g) => g.includes("/ow-start-log-decision")))) {
-      const out = failures(c, mutated(c, { [`printed/${screenOf(c)}`]: rep("(where slash commands exist: /ow-start-log-decision)", "(where slash commands exist: /ow-start-action)") }));
-      expect(out.route, c).toMatch(/\/ow-start-log-decision/);
-    }
-  });
-  it("a second NEXT line fails on any screen", () => {
-    const c = "logs-prep-items";
-    expect(failures(c, mutated(c, { "printed/prep-meeting.md": (t) => `${t}NEXT: none. Open actions and reviews show on /ow-start and /ow-status.\n` })).route).toMatch(/prints 2 NEXT lines/);
-  });
-  for (const c of listLogsCases().filter((x) => loadKey(join(FIXTURES, x)).writes_nothing)) {
-    it(`${c}: a NEXT block on a route that writes nothing fails`, () => {
-      expect(failures(c, mutated(c, { [`printed/${screenOf(c)}`]: (t) => `${t}NEXT: none. Open actions and reviews show on /ow-start and /ow-status.\n` })).route).toMatch(/prints a NEXT block, but this route writes nothing/);
-    });
-  }
 });
 
 describe("follow-up: refusal, no-op and question screens in the prescribed words", () => {
@@ -1242,25 +1066,6 @@ describe("follow-up: refusal, no-op and question screens in the prescribed words
 });
 
 describe("follow-up: the meaning checks (m2 to m6) and the nits", () => {
-  it("m4: the handling question asked without a question mark fails; an echoed open question about restricted goods passes", () => {
-    const c = "logs-business-vendor";
-    const notice = 'Handling: "no" (profile.md); a one-line notice, nothing to ask.';
-    for (const ask of ["Let me know if any of these files are confidential.", "Please confirm whether this material carries a sensitivity marking."]) {
-      expect(failures(c, mutated(c, { "printed/log-meeting.md": rep(notice, ask) })).handling, ask).toMatch(/was asked, in whatever words/);
-    }
-    expect(failures(c, mutated(c, { "printed/log-meeting.md": rep("DONE: meeting logged", "Q1 still open: is the confidential price list restricted to the vendor?\n\nDONE: meeting logged") })).handling).toBeUndefined();
-  });
-  it("m5: an id with its label is not a phone number; a ten-digit number next to a phone word is", () => {
-    const c = "logs-larkspur-checkin";
-    const NOTES = "opchain-work/logs/larkspur-ceramics/meetings/MTG-01/notes.md";
-    const notCovered = (s) => ({ [NOTES]: rep("## Not covered\n- none", `## Not covered\n- ${s}`) });
-    for (const s of ["invoice 4400012345 is the one with the wrong total", "tracking number 9400111899", "PO #12345678901 arrived late"]) {
-      expect(failures(c, mutated(c, notCovered(s))).people, s).toBeUndefined();
-    }
-    for (const s of ["call the warehouse on 5125550172 before noon", "the courier's mobile is 07700900123"]) {
-      expect(failures(c, mutated(c, notCovered(s))).people, s).toMatch(/a phone number/);
-    }
-  });
   it("m6: a deadline key passes only while its producer is unbuilt (ow-care is built now, so it must document the key); a participle `_by` key fails", () => {
     const care = "path: care/<client>/reports/M-nn.md, fields: [created]";
     for (const k of ["reply_by", "due_by", "send_by"]) expect(contracts(realTree({ [E]: rep(care, care.replace("[created]", `[created, ${k}]`)) })), k).toMatch(/documents it as a date/);

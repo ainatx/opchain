@@ -18,7 +18,6 @@ question:
 screen:
   file: question.md
   says:
-    - Confirm this question? Nothing is searched until you do.
   self_checks: true
   never:
     - 'DONE:'

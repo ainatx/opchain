@@ -63,12 +63,12 @@ const readKind = (k: string) => k === "user" ? "files you own" : k === "any" ? "
     <div class:list={["fact", { hot: connected }]}>
       <span class="fact-k">network</span>
       <span class="fact-v">{meta.network}</span>
-      <span class="fact-note">{connected ? "may use the host’s own web tools or a connector, under its prompts" : "names no web tool and no connector; sends nothing"}</span>
+      <span class="fact-note">{connected ? "may use the host’s own web tools or a connector, under its prompts" : "its text names no web tool and no connector"}</span>
     </div>
     <div class:list={["fact", { hot: meta.bundle === "connected" }]}>
       <span class="fact-k">bundle</span>
       <span class="fact-v">{meta.bundle}</span>
-      <span class="fact-note">{meta.bundle === "connected" ? "the connected bundle: text only, with declared network use" : "the core bundle: text only, no network"}</span>
+      <span class="fact-note">{meta.bundle === "connected" ? "the connected bundle: declared network use" : "the core bundle: no network text"}</span>
     </div>
     <div class="fact">
       <span class="fact-k">protocol</span>
@@ -77,8 +77,18 @@ const readKind = (k: string) => k === "user" ? "files you own" : k === "any" ? "
     </div>
     <div class="fact">
       <span class="fact-k">hosts</span>
-      <span class="fact-v">Claude Code · claude.ai upload</span>
-      <span class="fact-note">other hosts untested</span>
+      <span class="fact-v">Claude Code</span>
+      <span class="fact-note">with a folder attached; may run code, call ow-tools and run the next verb</span>
+    </div>
+    <div class="fact">
+      <span class="fact-k">questions</span>
+      <span class="fact-v">≤ 3 · 1 approval</span>
+      <span class="fact-note">before the first output; every one an AskUserQuestion call</span>
+    </div>
+    <div class="fact">
+      <span class="fact-k">record</span>
+      <span class="fact-v">your CRM</span>
+      <span class="fact-note">read first, written under the object’s name; opchain-work/ is a scratch cache</span>
     </div>
   </div>
 
@@ -122,7 +132,7 @@ const readKind = (k: string) => k === "user" ? "files you own" : k === "any" ? "
 
   <section id="reads" aria-labelledby="reads-h">
     <h2 id="reads-h">Reads</h2>
-    <p>From <code>skill.edges.yaml</code>: the files this skill reads from the others, from the add-on and from you. A file read where an earlier stage left it is marked <em>in place</em>; a file listed by path only is an <em>index</em> row; one read only when you name it is <em>named</em>.</p>
+    <p>From <code>skill.edges.yaml</code>: the files this skill reads from the others, from the add-on and from you, as laid out in the <code>opchain-work/</code> scratch cache (the CRM record of the same object is read first where one exists). A file read where an earlier stage left it is marked <em>in place</em>; a file listed by path only is an <em>index</em> row; one read only when you name it is <em>named</em>.</p>
     {edges.routes && (
       <p>Other skills hand files to <code>{edges.routes.verb} on &lt;path&gt;</code>, which routes {edges.routes.paths.length} kinds of path to the verb each needs.</p>
     )}
@@ -145,7 +155,7 @@ const readKind = (k: string) => k === "user" ? "files you own" : k === "any" ? "
 
   <section id="writes" aria-labelledby="writes-h">
     <h2 id="writes-h">Writes</h2>
-    <p>Every file this skill writes, under <code>opchain-work/</code>, with the one verb that writes it. No file in the family has two writers.</p>
+    <p>Every file this skill writes in the <code>opchain-work/</code> scratch cache, with the verb that writes it. Structured output goes to your CRM under the object’s own name; narrative prose is a versioned document there.</p>
     <div class="tw">
       <table>
         <thead><tr><th scope="col">verb</th><th scope="col">writes</th></tr></thead>
@@ -163,7 +173,7 @@ const readKind = (k: string) => k === "user" ? "files you own" : k === "any" ? "
 
   <section id="hands-off" aria-labelledby="hands-off-h">
     <h2 id="hands-off-h">Hands off</h2>
-    <p>Where the work goes next, and when. A <em>destination</em> is a key in your own <code>handoffs.yaml</code>: work that leaves the family (a contract, an invoice, the builder) goes where you said.</p>
+    <p>Where the work goes next, and when. A skill names the next verb and may run it directly. A <em>destination</em> is a key in your own <code>handoffs.yaml</code>: work that leaves the family (a contract, an invoice, the builder) goes where you said.</p>
     {edges.handsOff.length === 0 ? (
       <p>Nothing leaves this skill for another family skill; its results stay in the workstream.</p>
     ) : (

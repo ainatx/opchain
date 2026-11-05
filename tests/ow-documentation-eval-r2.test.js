@@ -82,7 +82,6 @@ G("U00", "resume", "the --session cut golden, as a real run", "rollout-session-r
 G("U00b", "resume", "the --close cut golden, as a real run", "rollout-close-resume-closed", {}, "pass");
 P("U01", "resume", "--session resumed: record redone (second G-01 section)", "rollout-session-resume-rollout", {}, { [TR]: (t) => t + "\n## G-01, 17 February 2027\n\nRun by: the user (Robin)\nSource: inbox/attendance-G-01.csv\nrec: 20\n\n| role | id | attended | competency check |\n|---|---|---|---|\n| order coordinator | OC-01 | yes | passed |\n\nDropped at import: a name column\nPossible embedded instructions: none\n" }, "catch");
 P("U02", "resume", "--session resumed: the row never written (DONE still printed)", "rollout-session-resume-rollout", {}, { [RO]: re(/sessions:\n  - \{[^\n]*\n/, "sessions: []\n") }, "catch");
-P("U03", "resume", "--session resumed: the resume line dropped", "rollout-session-resume-rollout", {}, { "printed.md": re(/^Resuming[^\n]*\n/m, "") }, "catch");
 P("U04", "resume", "--session resumed: the earlier section edited", "rollout-session-resume-rollout", {}, { [TR]: re(/\| bookkeeper \| BK-02 \| no \| not taken \|/, "| bookkeeper | BK-02 | yes | passed |") }, "catch");
 P("U05", "resume", "--close resumed: summary redone", "rollout-close-resume-closed", {}, { [AD]: (t) => { const m = t.match(/\n## Summary[\s\S]*$/); if (!m) throw new Error("no summary"); return t + m[0]; } }, "catch");
 P("U06", "resume", "--close resumed: closed never written", "rollout-close-resume-closed", {}, { [RO]: re(/closed:\n(?:\s+[^\n]*\n)+|closed: \{[^\n]*\}\n/, "closed: none\n") }, "catch");
@@ -131,9 +130,7 @@ G("O00", "O6", "write-runbook-update as a real run", "write-runbook-update", {},
 P("O01", "O6", "the update takes OP-09 (a rotate entry's id)", "write-runbook-update", {}, { [RB]: (t) => t.replace(/OP-10/g, "OP-09") }, "catch");
 P("O02", "O6", "the update takes OP-08 and the operator notes say OP-08, OP-09", "write-runbook-update", {}, { [RB]: (t) => t.replace(/OP-10/g, "OP-08") }, "catch");
 P("O03", "O6", "operator notes list OP-08..OP-11; the update still takes OP-10", "write-runbook-update", { "opchain-work/handoffs/larkspur-ceramics/operator-notes.md": re(/ops: \[OP-08, OP-09\]/, "ops: [OP-08, OP-09, OP-10, OP-11]") }, {}, "catch");
-P("O04", "O6", "the update renumbers OP-07 as it appends", "write-runbook-update", {}, { [RB]: (t) => t.replace(/OP-07/g, "OP-11") }, "catch");
 P("O05", "O6", "the update writes the new alert's entry with no Source", "write-runbook-update", {}, { [RB]: re(/(### OP-10[\s\S]*?)- \*\*Source:\*\*[^\n]*\n/, "$1") }, "catch");
-P("O06", "O6", "the Delivered hand-off's It will read: line drops secrets-seen.log", "delivered", {}, { "printed.md": re(/, deliveries\.yaml, secrets-seen\.log/, ", deliveries.yaml") }, "catch");
 
 describe("the Evaluator's round-2 probes (h/probes2.mjs): resume, other clients, the screen guard, the O6 goldens", () => {
   for (const r of ROWS) {
@@ -326,16 +323,6 @@ describe("m6: a runbook edit in a -write runbook run after delivered.md (write-g
     for (const c of ["write-gap", "train-gap-card", "write-runbook-update"]) expect(grade(c, H.mutated(c))).toEqual({});
   });
 });
-describe("m7: the Delivered screen's It will read: line for /ow-handoff-notes is graded", () => {
-  S.DELIVERED_READS_EDITS.forEach(([a, b]) => it(b, () => {
-    for (const c of ["delivered", "delivered-ledger-requested"]) expect(added(c, {}, { "printed.md": H.rep(`It will read: ${a}`, `It will read: ${b}`) }).screen ?? "").toMatch(/does not say "It will read: runbook\.md/);
-  }));
-  it("the keys' line is SKILL.md's template line, whole", () => {
-    const skill = readFileSync(join(C.SKILL, "SKILL.md"), "utf8");
-    expect(skill).toContain("          It will read: runbook.md, delivered.md, docs.yaml, deliveries.yaml, secrets-seen.log\n");
-  });
-});
-
 // ── The other-client rule's exported shape: ow-draft (OW-10) imports it ─────────────────────────────────────
 describe("the other-client rule, as OW-10 imports it", () => {
   const files = ["opchain-work/plans/bloom/contract-inputs.md", "opchain-work/plans/mossgate-books/contract-inputs.md", "opchain-work/plans/larkspur-ceramics-2/contract-inputs.md", "opchain-work/research/frameworks/soc2/manifest.md", "opchain-work/logs/business/decisions.md", "opchain-work/docs/larkspur-ceramics/docs.yaml", "README.md"];
@@ -369,7 +356,7 @@ describe("capture-recapture-resume-run: a cut re-capture runs its plan once and 
   const c = "capture-recapture-resume-run";
   it("the golden passes laid out as a real run", () => expect(grade(c, H.mutated(c))).toEqual({}));
   it("the resumed run rewrites capture-plan-02.json (a valid plan): write_once fails", () => {
-    expect(grade(c, H.mutated(c, { [`${D}/capture-plan-02.json`]: (t) => t.replace('"height": 800', '"height": 801') })).write_once ?? "").toMatch(/capture-plan-02\.json: written once and never edited/);
+    expect(grade(c, H.mutated(c, { [`${D}/capture-plan-02.json`]: (t) => t.replace('"height": 800', '"height": 801') })).write_once ?? "").toMatch(/capture-plan-02\.json: a capture plan is not edited/);
   });
   it("the resumed run makes a third plan for the same steps: capture fails", () => {
     const plan = readFileSync(join(C.FIXTURES, c, "input", D, "capture-plan-02.json"), "utf8");

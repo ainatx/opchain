@@ -2,7 +2,9 @@
 
 Everything here is **invented**: the fictional clients Larkspur Ceramics and Mossgate Books (continued from the ow-build-plan and ow-build fixtures), the fictional consultant "Robin" of "Example Studio", testers recorded by role and an invented id, invented results files, reports and change orders. The contract clauses in the Mossgate cases are marked **INVENTED TEST CLAUSE, not contract wording**: the owner writes clause wording in the contract step (owner decision D4). No real client material, no real price, no real person's name and no clause wording belongs in this folder. A few files plant a name, a password or pasted record values on purpose, to prove the checks catch them; each says so in its answer key.
 
-These are the acceptance tests from `docs/plans/2026-10-09-ow-uat-design.md` §11 and the Sprint 3 contract (`sprints/release-2.1/ow-sprint-3/contract.md`, C1 to C19), written so they can be checked mechanically. ow-uat is a text-only skill, so a model has to run it; the checker (`scripts/ow-uat-acceptance.mjs`) reads what the run wrote and what it printed, and tests it against an answer key, the frozen basis, the runs and the contract calendar. "Real use" (one real acceptance test through sign-off) is graded in Sprint 6.
+These are the acceptance tests from `docs/plans/2026-10-09-ow-uat-design.md` §11 and the Sprint 3 contract (`sprints/release-2.1/ow-sprint-3/contract.md`, C1 to C19), written so they can be checked mechanically. A model has to run ow-uat; the checker (`scripts/ow-uat-acceptance.mjs`) grades the scratch cache (the CRM is the record since protocol 2 and is not graded here): it reads what the run wrote and what it printed, and tests it against an answer key, the frozen basis, the runs and the contract calendar. "Real use" (one real acceptance test through sign-off) is graded in Sprint 6.
+
+**Since ow-uat 2.0.0 (2026-11-03)** these goldens keep the shapes they were written with: the old header, STATUS and printed NEXT forms still pass, and the checker no longer requires them. A `pack-*-mismatch` or `pack-terms-*` case grades the stage before the user's word: the mismatch is reported and nothing is written yet; on the user's word `-pack` goes ahead. Every `-signoff` mode still waits for the decision. `signed-superseded-refused` stays a stop because it would mark acceptance.
 
 ## Layout of a case
 
@@ -10,7 +12,7 @@ These are the acceptance tests from `docs/plans/2026-10-09-ow-uat-design.md` §1
 |---|---|
 | `input/` | Files the case adds to its starting state: a results file the testers sent (`opchain-work/uat/<client>/evidence/…`), a client's change order, a planted state for a refusal case |
 | `session/` | What the user says or brings in the session: answers, a report, a request |
-| `expected/` | The hand-written golden run: what ow-uat writes under `opchain-work/`, and `printed.md`, the NEXT block the run printed |
+| `expected/` | The hand-written golden run: what ow-uat writes under `opchain-work/`, and `printed.md`, what the run printed |
 | `answer-key.yaml` | The case: `base:` (the ow-uat case it continues), `build_case:` (the ow-build golden run it reads; that run brings ow-build-plan's), `run:` (grade another case's run), `verbs`, `today`, the checks and what each expects |
 
 A case's starting state is layered, newest first: its own `input/` and `session/`, then each earlier ow-uat case down its `base:` chain (their `expected/`, `input/`, `session/`), then the ow-build worlds its chain names (the case's own `build_case` first), then the shared workspace (`profile.md`, `price-book.yaml`, the skills' shipped `offers.md` and `handoffs.yaml`). `STATUS.md` carries ow-build's lines from the same weeks, where they fall.
@@ -35,7 +37,7 @@ ow-build's fixtures read six of these goldens byte for byte (`tests/ow-uat-plant
 node scripts/ow-uat-acceptance.mjs --prepare signoff-signed /path/to/empty-folder
 ```
 
-That lays out the starting state. Attach the folder in a session where ow-uat is installed and run the step the answer key's `verbs` and `section` name, saying what the case's `session/` files say. Save the NEXT block the run printed as `printed.md` at the top of the folder. Then:
+That lays out the starting state. Attach the folder in a session where ow-uat is installed and run the step the answer key's `verbs` and `section` name, saying what the case's `session/` files say. Save what the run printed as `printed.md` at the top of the folder. Then:
 
 ```bash
 node scripts/ow-uat-acceptance.mjs signoff-signed /path/to/empty-folder

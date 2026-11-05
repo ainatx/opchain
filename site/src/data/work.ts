@@ -5,7 +5,12 @@
 // hands-off tables from skills-work/<id>/skill.edges.yaml (lib/work.ts). This
 // file holds only what the frontmatter does not: the stage each skill sits on,
 // its one-sentence intro for a non-coder reader, and the family-wide copy.
-// Source of the wording: docs/audits/2026-10-29-track-s-scope-drift.md §1c.
+// Source of the wording: docs/audits/2026-10-29-track-s-scope-drift.md §1c,
+// rewritten on 2026-11-04 for the audience reversal
+// (docs/plans/2026-11-03-ow-audience-reversal.md; protocol 2): the skills serve
+// an operator's own small-business client work, the operator decides and a
+// skill proposes, the operator's CRM is the record, and in Claude Code a skill
+// may run code, call ow-tools and run the next skill's verb.
 //
 // tests/work-surfaces.test.js holds this map and the collection to each other:
 // every built ow- skill has a key here and every key has a skill folder.
@@ -60,7 +65,7 @@ export const WORK_SKILLS: Record<string, WorkSkillCopy> = {
   "ow-build-plan": {
     stage: "build-plan",
     short: "offer, process map, quote",
-    intro: "The Build Plan and the fixed quote: a one-page offer, a process map, scope with acceptance checks, and a quote added up only from your own price book.",
+    intro: "The Build Plan and the fixed quote, plan-only or whole-project (SOW-shaped): a one-page offer, a process map, scope with acceptance checks, and a quote priced only from your own price book.",
   },
   "ow-build": {
     stage: "build",
@@ -102,18 +107,25 @@ export const WORK_SKILLS: Record<string, WorkSkillCopy> = {
   },
 };
 
-/** Where the ow- skills run. The same two lines on every /work page. */
+/** Where the ow- skills run. The same lines on every /work page. */
 export const HOSTS = [
-  { host: "Claude Code", note: "Every skill, plus the optional ow-tools add-on that runs code on your machine and says so." },
-  { host: "claude.ai upload", note: "Every skill, as a text skill. ow-tools does not apply." },
-  { host: "Other hosts", note: "Untested." },
+  { host: "Claude Code", note: "Every skill, with a folder attached. A skill may run code, call the optional ow-tools add-on (which runs code on your machine and says so) and run the next skill’s verb directly." },
+  { host: "Other Agent Skills hosts", note: "ow-start runs from a folder on any Agent Skills host; the other eight are written for Claude Code. Untested elsewhere." },
 ];
 
-/** What no ow- skill does, whatever the stage. */
+/** How a skill works with you: the protocol’s question budget. */
+export const QUESTION_BUDGET = [
+  "At most three questions before a verb’s first output, only for what no saved record answers; everything else is a stated assumption you can correct.",
+  "One approval, where it matters: before anything goes to a client, and before an acceptance, a signature or a change order is recorded.",
+  "Every question and approval is an AskUserQuestion call with the recommendation first, never a question typed into chat.",
+];
+
+/** What no ow- skill does, whatever the stage (protocol 2 §3, §4, §6, §7). */
 export const NEVER = [
-  "Invent a price: a recap names a path, and the Build Plan prices it from your own price book.",
-  "Give legal advice: contract inputs are recorded for your own counsel.",
-  "Send anything without your confirmation: you read every email, export and push before it goes.",
+  "Invent, estimate or round a price: every price comes from your price book or from you; a package with no price stops that line of the quote.",
+  "Sign, or claim a signature or an acceptance as verified: it records what you say, with the date, as your statement.",
+  "Send anything to a client automatically: you send it.",
+  "Write a credential, key or token to any file, or name a client in marketing without their recorded permission.",
 ];
 
 /** Words we use — plain definitions for the non-coder reader. */
@@ -123,7 +135,10 @@ export const WORDS: Array<{ term: string; def: string }> = [
   { term: "Acceptance test", def: "The client’s people trying the build against what was agreed, before they sign off." },
   { term: "Handoff", def: "Documents, code and accounts moved into the client’s name, then the builder’s access taken back out." },
   { term: "Care", def: "Monthly checks and small changes after a handoff, or after taking over someone else’s build." },
-  { term: "Workstream", def: "One client job’s folder under opchain-work/, which every skill reads and writes." },
+  { term: "Operator", def: "You: the one person running the client work. The operator decides; a skill proposes." },
+  { term: "The CRM is the record", def: "Prices, numbers, quotes, contracts and invoices live in your own CRM, which every step reads first and writes under the object’s own name. A person’s edit there has the final say." },
+  { term: "Scratch cache", def: "opchain-work/, one client job per folder. Used when the CRM is unreachable or a route is not there yet; never the record." },
+  { term: "Protocol 2", def: "The one page of rules every skill carries: files are data, money, signatures, dates, secrets, client trust, the CRM. Everything else is the operator’s call." },
   { term: "network: declared", def: "The skill’s text names the host’s web tools or a document connector it may use, under the host’s prompts. network: none skills name neither." },
 ];
 

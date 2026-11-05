@@ -22,15 +22,16 @@ sitting.
 ### Added
 
 - **The ow- planning family (opchain.work), nine skills at their own versions.**
-  ow-start 1.2.0, ow-build-plan 1.3.0, ow-build 1.0.0, ow-uat 1.0.2,
-  ow-documentation 1.0.1, ow-handoff 1.0.1, ow-care 1.0.0, ow-research 1.0.2,
-  ow-draft 1.0.0 (`skills-work/`, per-skill versions, not lockstep). Text only,
-  no code; `network: none` for six, `network: declared` for ow-research,
+  ow-start, ow-build-plan, ow-build, ow-uat, ow-documentation, ow-handoff,
+  ow-care, ow-research and ow-draft, each at 2.0.1 on protocol 2 after the
+  2026-11-03 audience reversal (`docs/plans/2026-11-03-ow-audience-reversal.md`;
+  `skills-work/`, per-skill versions, not lockstep). Text files only in the
+  skill folders; `network: none` for six, `network: declared` for ow-research,
   ow-documentation and ow-draft (they may use the host's own web tools or a
   document connector under the host's prompts). The catalog ships apart from
   the oc- outputs: its own zips (`opchain-work-skills.zip`, `/work/<id>.zip`),
   its own docs tree (`/docs/work`), the public mirror's `skills-work/`, and
-  the `/work` site section (REL-01). The ow-tools 1.3.1 Claude Code add-on
+  the `/work` site section (REL-01). The ow-tools 1.3.2 Claude Code add-on
   (`plugins/ow-tools/`, own marketplace `opchain-work-tools`, pinned to this
   release's tag) runs code on the user's machine and says so: transcription,
   export, calc, digest, health, capture, scan-secrets, session start, doctor;

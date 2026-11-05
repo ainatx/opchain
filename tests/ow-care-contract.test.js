@@ -19,7 +19,6 @@ describe("OW-07 integration contract", () => {
       expect(skill).toContain(`\`/ow-care-${verb}\``);
     }
     expect(skill).toContain("source: handoff|takeover");
-    expect(skill).toContain("same-session self-check");
   });
 
   it("keeps takeover intake and onboarding pricing distinct from a build", () => {
@@ -76,15 +75,15 @@ describe("OW-07 integration contract", () => {
     });
     const guidance = read("skills-work/ow-care/references/month-and-end.md");
     expect(guidance).toContain("never replay historical months with a newly effective rule");
-    expect(guidance).toContain("not machine-checked; check it");
+    expect(guidance).toContain("not machine-checked");
   });
 
-  it("strips marked internal receipts but retains client handling and the report", () => {
+  it("strips marked internal receipts and keeps the report", () => {
     const path = join(root, "tests/fixtures/ow-care/export-source.md");
     const result = preflight(read("tests/fixtures/ow-care/export-source.md"), path);
     expect(result.ok).toBe(true);
     expect(result.removedSections).toBe(1);
-    expect(result.banner).toBe("CONFIDENTIAL — prepared for the client operations role");
+    expect(result.banner).toBeNull();
     expect(result.body).toContain("A certificate needs attention");
     expect(result.body).not.toMatch(/Internal appendix|private\.json|Same-session self-check|ow:internal/);
     const skill = read("skills-work/ow-care/SKILL.md");

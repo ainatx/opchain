@@ -7,7 +7,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { cpSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import * as yaml from "js-yaml";
-import { FIXTURES, SKILL, runCase, approvalProblem, edgesWriterDrift, handoffFieldDrift, nextBlockProblems, screenProblems, seenLineOk, shippedTextProblems, stepNameProblems } from "../scripts/ow-handoff-acceptance.mjs";
+import { FIXTURES, SKILL, runCase, approvalProblem, edgesWriterDrift, handoffFieldDrift, screenProblems, seenLineOk, shippedTextProblems, stepNameProblems } from "../scripts/ow-handoff-acceptance.mjs";
 import { checkEdges, checkFamily } from "../scripts/check-skill-contracts.mjs";
 import { loadCatalogs } from "../scripts/lib/catalogs.mjs";
 import { append, cleanup, del, failures, fakeKey, golden, mutated, put, rep, temp } from "./ow-handoff-helpers.mjs";
@@ -70,9 +70,6 @@ describe("C1: writer modes and the family's edges", () => {
   it("W10: a hand-off that drops a field ow-build reads (route)", () => expect(handoffFieldDrift(readFileSync(join(SKILL, "skill.edges.yaml"), "utf8").replace("fields: [class, reported, the request, route] }", "fields: [class, reported, the request] }")).join("\n")).toMatch(/route/));
   family("W11", "a read field ow-uat does not offer", { "ow-handoff/skill.edges.yaml": (t) => t.replace("fields: [each item, its UAT-nn, logged date], if_absent: \"Nothing to log\"", "fields: [each item, its UAT-nn, logged date, the tester's name], if_absent: \"Nothing to log\"") }, /tester's name/);
   family("W12", "a hop that drops an in-place file (ow-uat no longer carries evidence.md)", { "ow-uat/skill.edges.yaml": (t) => t.replace("      - { path: plans/<client>/evidence.md, in_place: true }\n      - { path: builds/<client>/build.yaml, in_place: true }\n      - { path: builds/<client>/ledger.md, in_place: true }\n      - { path: builds/<client>/changes/CO-nn.md, in_place: true }\n    if_unavailable: signoff.md", "      - { path: builds/<client>/build.yaml, in_place: true }\n      - { path: builds/<client>/ledger.md, in_place: true }\n      - { path: builds/<client>/changes/CO-nn.md, in_place: true }\n    if_unavailable: signoff.md") }, /evidence\.md in place from ow-build-plan/);
-  family("W13", "a NEXT with no slash hint", { "ow-handoff/SKILL.md": (t) => t.replace('    NEXT: say "use ow-handoff-close on handoffs/<client>/"   (where slash commands exist: /ow-handoff-close)', '    NEXT: say "use ow-handoff-close on handoffs/<client>/"') }, /slash hint|ow-handoff-close/);
-  family("W14", "a dangling NEXT (an undeclared verb)", { "ow-handoff/SKILL.md": (t) => t.replace("(where slash commands exist: /ow-handoff-close)", "(where slash commands exist: /ow-handoff-finish)") }, /ow-handoff-finish/);
-  family("W15", "a NEXT naming ow-controls", { "ow-handoff/SKILL.md": (t) => t.replace("    IF IT IS NOT AVAILABLE: check each blocker by hand.", "    IF IT IS NOT AVAILABLE: check each blocker by hand.\n\n    NEXT: say \"use ow-controls on handoffs/<client>/\"   (where slash commands exist: /ow-controls-run)\n          It will read: close.md\n          [no folder attached: attach it when you say it]\n    IF IT IS NOT AVAILABLE: none.") }, /ow-controls/);
   family("W16", "dates.yaml with no chain to ow-uat (the hand-off's fields dropped)", { "ow-handoff/skill.edges.yaml": (t) => t.replace("    verb: /ow-uat-plan --addendum\n    say: use ow-uat-plan to write the addendum for CO-nn in uat/<client>/\n    files:\n      - { path: handoffs/<client>/dates.yaml, fields: [handoff_date] }", "    verb: /ow-uat-plan --addendum\n    say: use ow-uat-plan to write the addendum for CO-nn in uat/<client>/\n    files: []").replace("    verb: /ow-uat-defect\n    say: use ow-uat-defect on uat/<client>/\n    files:\n      - { path: handoffs/<client>/dates.yaml, fields: [handoff_date] }", "    verb: /ow-uat-defect\n    say: use ow-uat-defect on uat/<client>/\n    files: []") }, /dates\.yaml/);
 });
 
@@ -186,7 +183,6 @@ describe("C16: close", () => {
   plant("K05", "the refusal leaves out a blocker the files show", "close-between", { "printed.md": rep("  - FIX-03 is open\n", "") }, "close", /FIX-03 is open/);
   plant("K06", "\"ow-care will take over\" with it not installed", "close", { [`${L}/close.md`]: rep("the kept item stays with Robin.", "ow-care will take over the kept item.") }, "close", /promised/);
   plant("K07", "a ledger amount in the close", "close", { [`${L}/close.md`]: rep("booking paid;", "booking paid (USD 6,980.00);") }, "close", /amount/);
-  plant("K08", "the kept-access awaiting dropped", "close", { "opchain-work/STATUS.md": (t) => t.split("\n").filter((l) => !/kept access review/.test(l)).join("\n") }, "close", /kept access review/);
 });
 
 describe("C19: the meaning checks in client outputs", () => {
@@ -223,7 +219,6 @@ describe("C20: approvals graded on what was approved", () => {
     expect(approvalProblem("waive", `2027-03-20 waiver: approved. ${NOTE}`).length).toBeGreaterThan(0);
     expect(approvalProblem("complete", `2026-12-11 completeness: confirmed against repository host, hosting, email sender; by Robin. ${NOTE}`).length).toBeGreaterThan(0);
     expect(approvalProblem("check", `2027-02-03 account check Hosting: approved. ${NOTE}`).length).toBeGreaterThan(0);
-    expect(approvalProblem("transfer", "2027-02-03 transfer TR-01: done, confirmed by operations manager (as reported).").length).toBeGreaterThan(0);
     expect(approvalProblem("go-ahead", `2027-03-10 go-ahead 2027-03-09 by operations manager, as reported. ${NOTE}`)).toEqual([]);
     expect(approvalProblem("go-ahead", `2027-03-10 go-ahead. ${NOTE}`).length).toBeGreaterThan(0);
   });
@@ -234,7 +229,6 @@ describe("C21: resume and write-once, by verb and mode", () => {
   plant("R01", "a re-freeze on resume (acceptance changed)", "start-resume-gitignore", { [`${L}/handoff.yaml`]: rep("acceptance: { kind: signed, date: 2027-01-27,", "acceptance: { kind: signed, date: 2027-01-28,") }, "write_once", /re-frozen/);
   plant("R02", "a resumed start renumbering a recorded step", "start-resume-paths", { [`${L}/handoff.yaml`]: rep("  - { step: terms, rec: 1,", "  - { step: terms, rec: 7,") }, "resume", /repeated or renumbered/);
   plant("R03", "the resume line missing", "start-resume-terms", { "printed.md": (t) => t.split("\n").filter((l) => !l.startsWith("Resuming:")).join("\n") }, "screen", /Resuming/);
-  plant("R04", "a close.md rewritten on resume", "fix-reopen", { [`${L}/close.md`]: append("\nedited\n") }, "write_once", /written once/);
   plant("R05", "an agreed copy re-copied on resume", "start-resume-terms", { [`${L}/agreed/scope.md`]: append("\n") }, "resume", /copied again|frozen copy/);
   plant("R06", "a second record line on a one-step mode run again", "accounts-transfer-again", { [`${L}/accounts.md`]: append("\n- 2027-02-04 transfer TR-01: client has owner rights, confirmed by operations manager (as reported).\n") }, "refused", /wrote/);
   it("R07: every step name is in the table, every key a declared verb and mode", () => expect(stepNameProblems()).toEqual([]));
@@ -261,12 +255,7 @@ describe("C22: screens", () => {
   for (const [id, c, line] of claims) plant(`G-${id}`, `a free-worded success claim: "${line}"`, c, { "printed.md": rep("Nothing was written.", `Nothing was written.\n${line}`) }, "screen", /claims an action|not prescribed/);
   plant("G15", "DONE: on a refusal", "notes-wait", { "printed.md": rep("Nothing was written.", "Nothing was written.\nDONE: operator notes -> handoffs/larkspur-ceramics/operator-notes.md") }, "screen", /prints DONE/);
   plant("G16", "a reworded refusal reason", "notes-wait", { "printed.md": rep("Refused: the documents are not delivered yet.", "Refused: please deliver the documents first.") }, "screen", /not a prescribed reason/);
-  plant("G17", "a dropped no-folder line", "notes-index", { "printed.md": (t) => t.replace("      [no folder attached: attach them when you say it]\n", "") }, "screen", /no folder attached/);
-  plant("G18", "a wrong slash hint", "notes-index", { "printed.md": rep("(where slash commands exist: /ow-handoff-package)", "(where slash commands exist: ow-handoff-package)") }, "screen", /slash hint/);
-  plant("G19", "a missing self-check line", "accounts", { "printed.md": (t) => t.split("\n").filter((l) => !l.startsWith("Self-checks")).join("\n") }, "screen", /self-check line/);
-  plant("G20", "a reprinted NEXT on a no-op names the wrong verb", "route-uat-started", { "printed.md": rep("use ow-handoff-notes on handoffs/larkspur-ceramics/", "use ow-handoff-package on handoffs/larkspur-ceramics/") }, "next", /ow-handoff-package/);
   it("G21: the step-0 echo is exempt", () => expect(screenProblems("> 2027-01-28 (clock: user-stated) | ow-uat 1.0.0 | uat/x/signoff.md | next: ow-handoff /ow-handoff-start uat/x/ | awaiting: none\nNothing to do: every punch-list item is logged.\nNothing was written.", { refusal: true })).toEqual([]));
-  it("G22: a NEXT block's IF line is required", () => expect(nextBlockProblems('NEXT: say "use ow-handoff-close on handoffs/x/"   (where slash commands exist: /ow-handoff-close)\n      It will read: dates.yaml\n      [no folder attached: attach it when you say it]\n').join("\n")).toMatch(/IF IT IS NOT AVAILABLE/));
 });
 
 describe("every mode: freeze, help, vendor, revision, access records, close branches, scan reasons, routes", () => {
@@ -283,7 +272,6 @@ describe("every mode: freeze, help, vendor, revision, access records, close bran
   plant("M11", "a removal recorded before the client confirms owner rights", "access-record", { [`${L}/access.md`]: rep("- 2027-03-23 AX-01 removed", "- 2027-03-23 AX-05 removed 2027-03-23, confirmed by operations manager; not verified by this skill\n- 2027-03-23 AX-01 removed") }, "access", /before the client confirmed owner rights on TR-02/);
   plant("M12", "care-start.md written for the hourly branch", "close-hourly", { [`${L}/care-start.md`]: () => golden("close", `${L}/care-start.md`) }, "close", /care-start\.md written for the hourly branch/);
   plant("M13", "undecided without \"treated as no ongoing arrangement\"", "close-undecided", { [`${L}/close.md`]: rep("no choice recorded, treated as no ongoing arrangement.", "nothing chosen.") }, "close", /treated as no ongoing arrangement/);
-  plant("M14", "care with ow-care installed closed as if not (STATUS)", "close-care-installed", { "opchain-work/STATUS.md": (t) => t.replace("next: ow-care /ow-care-start handoffs/larkspur-ceramics/care-start.md", "next: none (closed: care)") }, "close", /stays open under ow-care/);
   plant("M15", "a NOT-CHECKED scan with no reason", "m-accounts-exit3", { [`${M}/accounts.md`]: rep('reason: "missing: gitleaks"', 'reason: "none"') }, "accounts", /no reason|reason/);
   plant("M16", "a route landing on the wrong verb", "route-folder-close-due", { "printed.md": rep("Route: /ow-handoff-close", "Route: /ow-handoff-access") }, "route", /expected \/ow-handoff-close/);
   plant("M17", "a close refusal that leaves out the addendum with no row", "close-addendum-no-row", { "printed.md": rep("  - CO-05's addendum has no row in co-windows.yaml\n", "") }, "close", /CO-05's addendum has no row/);

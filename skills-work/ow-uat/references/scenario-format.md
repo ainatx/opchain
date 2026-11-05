@@ -2,10 +2,11 @@
 
 ## 1. A scenario: `scenarios/SC-nn.md`
 
-Written by `-plan` (and its `--add-co` and `--addendum` modes), never rewritten. Ids run on from the highest `SC-nn` in the folder.
+Written by `-plan` (and its `--add-co` and `--addendum` modes); a re-plan may rewrite one, and says so. The record is `acceptance_criteria`; this is the cache. Ids run on from the highest `SC-nn` in the folder.
 
     ---
-    <protocol header: ow_artefact: ow-uat/scenario; subject: the agreed/ file it proves>
+    written_by: ow-uat 2.0.1
+    created: <YYYY-MM-DD>
     id: SC-01
     kind: required | role | real-case | exception | addendum
     proves: AC-1.1                   # a check id in agreed/, or a scope item (WP-n) for a role scenario
@@ -34,7 +35,7 @@ Written by `-plan` (and its `--add-co` and `--addendum` modes), never rewritten.
 
 ## 2. The tester pack: `uat-pack-<role>.md` and its exports
 
-One pack per tester role, written by `-pack`. The Markdown source is the single source of every format (a Sprint 3 departure from the design, so ow-tools has a file to export):
+One pack per tester role, written by `-pack`. The Markdown source is the single source of every format:
 
 | Section (H2) | Holds |
 |---|---|
@@ -45,9 +46,9 @@ One pack per tester role, written by `-pack`. The Markdown source is the single 
 | Reporting a problem | What you did, what you expected, what happened; a screenshot only if it shows no real customer data |
 | The results template | The six columns, below |
 
-One H1 (`# User acceptance testing: <role> pack, <client>`), no skipped heading levels, a header row on every table, alt text on every image, link text that is not a bare address. Anything internal (the self-check table) sits between `<!-- ow:internal -->` and `<!-- ow:end-internal -->` and never reaches an export.
+One H1 (`# User acceptance testing: <role> pack, <client>`), no skipped heading levels, a header row on every table, alt text on every image, link text that is not a bare address. Anything internal sits between `<!-- ow:internal -->` and `<!-- ow:end-internal -->` and never reaches an export.
 
-**Exports**, written to `export/`: with ow-tools, `ow-tools export uat/<client>/uat-pack-<role>.md` writes `uat-pack-<role>.pdf` and `.docx` (record the command and its output in `pack.yaml`). Without it, `-pack` writes `export/uat-pack-<role>.html` itself and says so. The HTML pack has `<html lang="…">`, a `<title>`, one `h1`, no skipped headings, `th` header cells, and text that meets 4.5:1 contrast on its background (headings 3:1).
+**Exports**, written to `export/`: `ow-tools export uat/<client>/uat-pack-<role>.md` writes `uat-pack-<role>.pdf` and `.docx` (keep the command and its output in `pack.yaml`). If it is not installed, say so once and `-pack` writes `export/uat-pack-<role>.html` itself. The HTML pack has `<html lang="…">`, a `<title>`, one `h1`, no skipped headings, `th` header cells, and text that meets 4.5:1 contrast on its background (headings 3:1).
 
 ## 3. The results template: `export/results-template.csv`
 
@@ -55,15 +56,14 @@ The header row is exactly these six columns, in this order, and nothing else:
 
     tester id,scenario,result,cases passed,note,records created
 
-One row per scenario in the packs, with only `scenario` filled. There is **no name column**: testers write their id. `result` is `pass`, `fail`, `blocked` or `not run`; `cases passed` is a count.
+One row per scenario in the packs, with only `scenario` filled. Testers write their id; the template has no name column. `result` is `pass`, `fail`, `blocked` or `not run`; `cases passed` is a count.
 
 ## 4. `pack.yaml`
 
-    <protocol header keys: ow_artefact: ow-uat/pack; subject: uat/<slug>/uat.yaml>
+    written_by: ow-uat 2.0.1
+    created: <YYYY-MM-DD>
     packs:
       - { role: <role>, source: uat-pack-<role>.md, exports: [export/uat-pack-<role>.html], scenarios: [SC-01, …] }
     results_template: export/results-template.csv
     export_tool: "not available here: HTML packs only" | { command: "<ow-tools export …>", output: "<raw output>" }
     preflight: <the ow-tools preflight result, or "HTML checks by this skill">
-    credentials_check: OK | "NOT-CHECKED (pattern match only); read-through confirmed by <user> <date>"
-    self_checks: { Data check: OK, People by role or id: OK, No credentials: OK, No internal numbers: OK, No private names: OK }

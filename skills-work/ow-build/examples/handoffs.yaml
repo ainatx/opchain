@@ -66,14 +66,8 @@
 #     social: { say: "post the text in {files} on your social page", limit: 280 }
 #     newsletter: { say: "paste {files} into your newsletter tool" }
 #     shared_drive: { say: "upload {files} to the client's shared folder", location: "<the folder in that drive>" }
-ow_artefact: ow-start/handoffs
-schema: 1
 written_by: user (created from the ow- example)
-workstream: none
-subject: none
 created: 2026-10-16
-clock: user-stated
-origin: user
 
 contract:       # after the client accepts a quote (file: contract-inputs.md)
 build:          # once the work is signed (file: build-request.md); see the two modes above

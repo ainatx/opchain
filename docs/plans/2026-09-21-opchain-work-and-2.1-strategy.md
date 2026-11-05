@@ -74,6 +74,8 @@ A read-only sweep of ~55 worktrees and every unmerged branch found no new produc
 
 ### 6.2 Audience and hosts *(owner)*
 
+> **Reversed 2026-11-03** *(owner)*: the ow- skills serve Deftwright's own small-business client work, not a government or regulated audience, and the controls below that guarded none of money, legal exposure, secrets or client trust are removed. The decision, the evidence and the rules that survive: `docs/plans/2026-11-03-ow-audience-reversal.md`. §6.2–§6.4 below stay as the record of the original design.
+
 - Government **and** non-government, one pack. Government scope: US federal civilian, state and local, defense, and non-US. Users: government employees, contractors and vendors, regulated private organisations.
 - Sensitivity ceiling: sensitive but unclassified.
 - **First-class host: commercial Claude Team/Enterprise.** Claude for Government Desktop and third-party-cloud Desktop are best-effort until tested. Non-government users are on standard Claude apps. Nobody has Node, git or a repo — but hosts differ (Cowork and Claude for Government Desktop document slash commands and hooks; Cowork is outside Anthropic's BAA), so a host matrix is required rather than one assumption.

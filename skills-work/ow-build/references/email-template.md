@@ -1,6 +1,6 @@
 # The branded email: one `.html` and its `.txt` twin
 
-Used by `-update` (`updates/<date>.html`), `-demo --record` (`demos/M<n>-summary.html`) and `-change` (`changes/CO-nn.html`). The skill writes the HTML directly as text; no code is needed. **It never sends anything**: the user opens the `.html` in a browser and copies it into their email, or attaches it. There is no hosted copy.
+Used by `-update` (`updates/<date>.html`), `-demo --record` (`demos/M<n>-summary.html`) and `-change` (`changes/CO-nn.html`). The skill writes the HTML directly. **It never sends anything**: the user opens the `.html` in a browser and copies it into their email, or attaches it. There is no hosted copy.
 
 ## Rules
 
@@ -10,7 +10,7 @@ Used by `-update` (`updates/<date>.html`), `-demo --record` (`demos/M<n>-summary
 - **Accessible by construction:** `lang` on `<html>`, a `<title>`, one `<h1>`, then `<h2>` sections with no skipped level; real lists for lists; `alt` text on every image; colour is never the only signal (write "4 of 7 passing", not just a green mark); link text says where it goes (never a bare address, "here" or "click here").
 - **Well formed:** lower-case tags and attribute names, every attribute value in double quotes, every element closed except `meta`, `img`, `br` and `hr`, `&` written `&amp;` and `<` written `&lt;` in text.
 - **The `.txt` twin** holds the same words in the same order: the brand line, the title, the date, each heading and its text, the footer. A link is written `text (address)` in both. Nothing is in one and not the other.
-- **Client words only.** No confidence labels, no fact or evidence ids, no file names, no commit ids, no tool words (checkpoint, evaluator, rubric, gate, sprint, score), no hours, rates, margin, unit prices or modifiers (protocol §12; SKILL.md self-checks). Dates are written out ("20 November 2026").
+- **Client words only.** No confidence labels, no fact or evidence ids, no file names, no commit ids, no tool words (checkpoint, evaluator, rubric, gate, sprint, score), no hours, rates, margin, unit prices or modifiers (protocol §3 and §7). Dates are written out ("20 November 2026").
 
 ## Skeleton
 

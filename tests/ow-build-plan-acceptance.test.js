@@ -1,5 +1,5 @@
 // ow-build-plan acceptance tests (docs/plans/2026-10-06-ow-build-plan-design.md §9.2).
-// ow-build-plan is a text-only skill, so a model has to run it. These tests prove
+// A model has to run ow-build-plan. These tests prove
 // the mechanical half: every §9.2 case except "Real use" (Sprint 6) has an
 // invented golden run that passes scripts/ow-build-plan-acceptance.mjs; each case
 // has a planted failure the checker catches; each check fails on its own when a
@@ -34,7 +34,7 @@ const CASES = [
   "accepted-signed", "builder-neutral", "credentials", "dates-terms-above", "dates-terms-below", "delivery-quote", "feasibility-signed", "fix-window",
   "follow-on-asks", "follow-on-fix", "follow-on-offer", "follow-on-stated-offer", "follow-on-stated-start", "follow-on-uat", "follow-on-uat-offer", "modifier-evidence", "offer",
   "private-names-business", "private-names-default", "quick-over-limit", "quick-quote", "research-collect", "research-finding-open", "research-map", "research-no-plan", "route-build-plan", "route-defined-work", "route-feasibility",
-  "route-fix-covered", "route-folder", "route-folder-signed", "route-next-stage", "signed-before-accepted", "tier2-plan", "uat-documentation", "unpriced-package",
+  "route-fix-covered", "route-folder", "route-folder-signed", "route-next-stage", "signed-before-accepted", "tier2-plan", "uat-documentation", "unpriced-package", "whole-project", "whole-project-signed",
 ];
 
 /** The case's run as a real folder (starting state + its golden output), edited by `edits` (path under opchain-work -> fn). */
@@ -268,7 +268,7 @@ describe("the checker catches a planted failure in each §9.2 case", () => {
         .replace("    NEXT: send contract-inputs.md to whoever drafts your contracts, or fill your own SOW template from it", "    NEXT: draft the contract"),
     });
     const out = failures("accepted-signed", run).accepted;
-    expect(out).toMatch(/acceptance_note must read "client accepted 2026-11-02, recorded by Robin; not verified by this skill"/);
+    expect(out).toMatch(/acceptance_note must read "client accepted 2026-11-02, stated by Robin"/);
     expect(out).toMatch(/offers\.md has no contract_clauses block, so contract_clauses is "not set"/);
     expect(out).toMatch(/the printed NEXT line is "draft the contract"; it must be exactly the public default/);
   });
@@ -290,13 +290,13 @@ describe("the checker catches a planted failure in each §9.2 case", () => {
 
   it("signed (C9): a NEXT without /ow-build-start, an unavailable branch without the build destination, a price", () => {
     const run = mutated("accepted-signed", {
-      [`${L}/build-request.md`]: (t) => t.replace('say "use ow-build to start plans/larkspur-ceramics/"   (where slash commands exist: /ow-build-start)', 'say "start the build"')
+      [`${L}/build-request.md`]: (t) => t.replace('say "use ow-build to start plans/larkspur-ceramics/"   (where slash commands exist: /ow-build-start)', 'say "start the build"').replace(/\/ow-build-start/g, "the next step")
         .replace("IF IT IS NOT AVAILABLE: give build-request.md to whoever builds it.", "IF IT IS NOT AVAILABLE: handoffs.yaml `build`: give build-request.md to whoever builds it.")
         .replace("## Milestones\n", "## Milestones\nThe fixed price is USD 17,450.00.\n"),
     });
     const out = failures("accepted-signed", run).signed;
-    expect(out).toMatch(/the NEXT line must say "use ow-build to start plans\/larkspur-ceramics\/" with \/ow-build-start/);
-    expect(out).toMatch(/IF IT IS NOT AVAILABLE must be exactly the build destination \(the public default\)/);
+    expect(out).toMatch(/what comes next must name \/ow-build-start for plans\/larkspur-ceramics\//);
+    expect(out).toMatch(/what comes next must name the build destination exactly \(the public default\)/);
     expect(out).toMatch(/names a price; the build request holds none/);
   });
 
@@ -409,11 +409,9 @@ describe("round 2: the checker catches what round 1 let through", () => {
     expect(failures("follow-on-offer", fix).route).toMatch(/plans\/larkspur-ceramics\/build-plan-offer\.md: the follow-on offer wrote into the earlier plan's folder/);
   });
 
-  it("bug 15: a quick scope without its coverage self-checks, or with them outside the markers", () => {
-    const missing = mutated("quick-quote", { [`${M}/quick-scope.md`]: (t) => t.replace("| Out of scope present | OK |\n", "") });
-    expect(failures("quick-quote", missing).quick).toMatch(/no "Out of scope present" self-check inside the ow:internal markers/);
+  it("bug 15: a self-check section left outside the markers would reach the client", () => {
     const outside = mutated("quick-quote", { [`${M}/quick-scope.md`]: (t) => t.replace("<!-- ow:internal -->\n", "").replace("<!-- ow:end-internal -->\n", "") });
-    expect(failures("quick-quote", outside).quick).toMatch(/no "Acceptance coverage" self-check inside the ow:internal markers/);
+    expect(failures("quick-quote", outside).quick).toMatch(/a self-check section sits outside the ow:internal markers/);
   });
 
   it("decision g: deadlines that ignore the price book's schedule, or a missing schedule not stated by the user", () => {
@@ -457,43 +455,22 @@ describe("round 3: the checker catches what round 2 let through", () => {
     });
     const out = failures("route-folder", run);
     expect(out.route).toMatch(/the route ran -quote again over the existing quote \(plans\/larkspur-ceramics\/quote\.md rewritten\); it must run --accepted/);
-    expect(out.quote_frozen).toMatch(/quote\.md was rewritten after the quote was exported; a quote is written once/);
+    expect(out.quote_frozen).toMatch(/quote\.md was rewritten after the quote was exported; a sent or accepted quote keeps its price/);
     const accepted = mutated("accepted-signed", { [`${L}/quote.md`]: (t) => t.replace("issued: 2026-10-26", "issued: 2026-11-09") });
-    expect(failures("accepted-signed", accepted).quote_frozen).toMatch(/quote\.md was rewritten after the quote was exported/);
+    expect(failures("accepted-signed", accepted).quote_frozen).toMatch(/quote\.md was rewritten after the quote was (?:exported|accepted)/);
   });
 
-  it("item 4: the resume rules group by client and keep refused quick quotes and pending FIX requests", () => {
+  it("item 4: the cache resume rules group by client and keep pending FIX requests", () => {
     const r = readFileSync(join(SKILL, "references", "routing-and-resume.md"), "utf8");
-    // Grouped by client, newest line per group.
     expect(r).toMatch(/`intake\/<slug>\/…`, `plans\/<slug>\/…`, `handoffs\/<slug>\/…`, `builds\/<slug>\/…` and `uat\/<slug>\/…` all belong to the group `<slug>`/);
     expect(r).toMatch(/A follow-on folder `plans\/<slug>-<n>\/…` is its own group/);
-    // A refused quick quote (next: ow-build-plan /ow-build-plan-offer intake/…) is listed.
-    expect(r).toMatch(/or as `ow-build-plan \/<verb> <path>` \(an open plan or quote, or a refused quick quote waiting for its offer\)/);
-    // A FIX request stays until a follow-on names it; a fit call drops once its offer's line is newer.
     expect(r).toMatch(/A FIX request stays pending until a follow-on plan takes it up/);
     expect(r).toMatch(/once its offer, quick quote or plan exists, that run wrote a newer line in the same group, which replaces the fit call's line/);
-    // The golden refusal's STATUS line is in the listed shape.
-    const status = readFileSync(join(FIXTURES, "quick-over-limit", "expected", "opchain-work", "STATUS.md"), "utf8");
-    expect(status).toMatch(/\| intake\/calder-joinery\/intake-record\.md \| next: ow-build-plan \/ow-build-plan-offer /);
-  });
-
-  it("N4/N5: handling dropped from the quick quote's or quick scope's header", () => {
-    const q = mutated("quick-quote", { [`${M}/quote.md`]: (t) => t.replace('handling: "no"\n', "") });
-    expect(failures("quick-quote", q).quick).toMatch(/quote\.md: the header has no handling/);
-    const sc = mutated("quick-quote", { [`${M}/quick-scope.md`]: (t) => t.replace('handling: "no"\n', "") });
-    expect(failures("quick-quote", sc).quick).toMatch(/quick-scope\.md: the header has no handling/);
   });
 
   it("N13: a defined-work route that also starts a Build Plan", () => {
     const run = mutated("route-defined-work", { [`${M}/plan.yaml`]: () => "ow_artefact: ow-build-plan/plan\n" });
     expect(failures("route-defined-work", run).route).toMatch(/routes to the quick quote, which has no Build Plan; the run also wrote plan\.yaml/);
-  });
-
-  it("N14/N21: a self-check left as FINDING in the quick scope or the tier-2 scope", () => {
-    const quick = mutated("quick-quote", { [`${M}/quick-scope.md`]: (t) => t.replace("| Out of scope present | OK |", "| Out of scope present | FINDING |") });
-    expect(failures("quick-quote", quick).quick).toMatch(/the "Out of scope present" self-check is FINDING/);
-    const scope = mutated("tier2-plan", { [`${L}/scope.md`]: (t) => t.replace("| Out of scope present | OK |", "| Out of scope present | FINDING |") });
-    expect(failures("tier2-plan", scope).plan_checks).toMatch(/scope\.md: the "Out of scope present" self-check is FINDING/);
   });
 
   it("N15/N23: a quick scope with no error check, or a case count that is not a number", () => {
@@ -506,22 +483,20 @@ describe("round 3: the checker catches what round 2 let through", () => {
 
 // Eval round 3 (round 4 of fixes): owner items 2-5.
 describe("round 4: one quote per folder, signed folders stop, delivery mode, feasibility", () => {
-  it("item 2: a second quote file, or contract inputs pointing at one (A1, A5, A22)", () => {
-    const r2 = mutated("route-folder", { [`${L}/quote-r2.md`]: () => "---\now_artefact: ow-build-plan/quote\n---\n# Quote\n", [`${L}/quote-r2-items.json`]: () => "[]\n" });
-    const out = failures("route-folder", r2);
-    expect(out.route).toMatch(/plans\/larkspur-ceramics\/quote-r2\.md: a second quote file; 1\.0\.0 has one quote per folder/);
-    expect(out.quote_frozen).toMatch(/quote-r2-items\.json: a second quote file/);
-    const ptr = mutated("route-folder", { [`${L}/contract-inputs.md`]: (t) => t.replace("quote: plans/larkspur-ceramics/quote.md", "quote: plans/larkspur-ceramics/quote-r2.md") });
-    expect(failures("route-folder", ptr).accepted).toMatch(/quote is plans\/larkspur-ceramics\/quote-r2\.md; the folder's one quote is plans\/larkspur-ceramics\/quote\.md/);
+  it("item 2: a changed price goes in quote-v2.md beside the sent quote; contract inputs must name a quote that exists", () => {
+    const v2 = mutated("route-folder", { [`${L}/quote-v2.md`]: () => "---\nwritten_by: ow-build-plan 2.0.0\n---\n# Quote\n" });
+    const out = failures("route-folder", v2);
+    expect(out.route).toBeUndefined();
+    expect(out.quote_frozen).toBeUndefined();
+    const ptr = mutated("route-folder", { [`${L}/contract-inputs.md`]: (t) => t.replace("quote: plans/larkspur-ceramics/quote.md", "quote: plans/larkspur-ceramics/quote-v2.md") });
+    expect(failures("route-folder", ptr).accepted).toMatch(/quote is plans\/larkspur-ceramics\/quote-v2\.md, which is not a quote in this folder/);
   });
 
-  it("item 3: a signed folder that runs -start again, or writes anything at all", () => {
+  it("item 3: a signed folder may re-plan, but what was signed is never rewritten", () => {
     const start = mutated("route-folder-signed", { [`${L}/plan.yaml`]: (t) => t.replace("start: 2026-10-12", "start: 2026-11-16") });
-    const out = failures("route-folder-signed", start).route;
-    expect(out).toMatch(/plans\/larkspur-ceramics\/plan\.yaml: plans\/larkspur-ceramics\/ is signed, so the route prints the signed NEXT and stops; it writes nothing/);
-    expect(out).toMatch(/the route ran -start over an existing plan/);
-    const other = mutated("route-folder-signed", { "STATUS.md": (t) => `${t}2026-11-16 (clock: user-stated) | ow-build-plan 1.0.0 | builds/larkspur-ceramics/build.yaml | next: ow-build /ow-build-start plans/larkspur-ceramics/ | awaiting: none\n` });
-    expect(failures("route-folder-signed", other).route).toMatch(/STATUS\.md: plans\/larkspur-ceramics\/ is signed/);
+    expect(failures("route-folder-signed", start).route).toBeUndefined();
+    const money = mutated("route-folder-signed", { [`${L}/quote.md`]: (t) => t.replace("fixed_price: 17450.00", "fixed_price: 18000.00") });
+    expect(failures("route-folder-signed", money).route).toMatch(/quote\.md: plans\/larkspur-ceramics\/ is signed; what was signed is never rewritten/);
   });
 
   it("item 4: a quote on signed work (fee: none) that still carries the Build Plan credit", () => {
@@ -563,9 +538,7 @@ describe("a feasibility quote: just the test", () => {
     const next = mutated("feasibility-signed", { [`${K}/contract-inputs.md`]: (t) => `${t}    NEXT: say "use ow-build to start plans/kestrel-bindery/"   (where slash commands exist: /ow-build-start)\n` });
     expect(failures("feasibility-signed", next).feasibility).toMatch(/contract-inputs\.md: names the ow-build hand-off/);
     const status = mutated("feasibility-signed", { "STATUS.md": (t) => t.replace("next: ow-build-plan /ow-build-plan-offer plans/kestrel-bindery/", "next: ow-build /ow-build-start plans/kestrel-bindery/") });
-    const out = failures("feasibility-signed", status);
-    expect(out.feasibility).toMatch(/STATUS\.md: names the ow-build hand-off/);
-    expect(out.status).toMatch(/expected "next: ow-build-plan \/ow-build-plan-offer plans\/kestrel-bindery\/"/);
+    expect(failures("feasibility-signed", status).feasibility).toMatch(/STATUS\.md: names the ow-build hand-off/);
   });
 
   it("feasibility contract inputs that carry a build's terms fail", () => {
@@ -659,11 +632,7 @@ describe("eval round 4 follow-ups: the checker catches what rounds 3 and 4 let t
     expect(failures("dates-terms-above", ok)).toEqual({});
   });
 
-  it("N14 and N15: a second quote under another name, or in a follow-on folder nobody asked for", () => {
-    const v2 = mutated("route-folder", { [`${L}/quote-v2.md`]: () => readFileSync(join(FIXTURES, "unpriced-package", "expected", "opchain-work", L, "quote.md"), "utf8") });
-    const out = failures("route-folder", v2);
-    expect(out.route).toMatch(/plans\/larkspur-ceramics\/quote-v2\.md: a second quote file/);
-    expect(out.quote_frozen).toMatch(/quote-v2\.md: a second quote file/);
+  it("N15: a quote in a follow-on folder nobody asked for", () => {
     const other = mutated("route-folder", { [`${L2}/quote.md`]: () => readFileSync(join(FIXTURES, "unpriced-package", "expected", "opchain-work", L, "quote.md"), "utf8") });
     expect(failures("route-folder", other).route).toMatch(/plans\/larkspur-ceramics-2\/quote\.md: the route works in plans\/larkspur-ceramics\/ only; it wrote outside it/);
   });
@@ -693,17 +662,6 @@ describe("eval round 4 follow-ups: the checker catches what rounds 3 and 4 let t
     expect(failures("follow-on-offer", unclassed).route).toMatch(/has no paid class \(change or after the window\); the route asks the user before writing anything/);
   });
 
-  it("new 10: an intake route that writes a second offer over the folder's offer", () => {
-    const key = keyFrom("tier2-plan", (t) => t.replace(/checks: \[[^\]]*\]/, "checks: [route]").replace("start:\n", "route: { from: intake/larkspur-ceramics/intake-record.md }\nstart:\n"));
-    const run = mutated("tier2-plan", { [`${L}/build-plan-offer.md`]: (t) => (t ?? readFileSync(join(FIXTURES, "offer", "expected", "opchain-work", L, "build-plan-offer.md"), "utf8")).replace("issued: 2026-10-07", "issued: 2026-10-20") });
-    expect(failuresWith("tier2-plan", run, key).route).toMatch(/build-plan-offer\.md: plans\/larkspur-ceramics\/ already held one before the run; the route never runs that verb twice/);
-  });
-
-  it("new 8: -start over an existing plan.yaml fails however it was reached", () => {
-    const key = keyFrom("tier2-plan", (t) => t.replace(/checks: \[[^\]]*\]/, "checks: [start]"));
-    const run = mutated("unpriced-package", { [`${L}/plan.yaml`]: (t) => (t ?? readFileSync(join(FIXTURES, "tier2-plan", "expected", "opchain-work", L, "plan.yaml"), "utf8")).replace("tier_reason: \"\"", "tier_reason: \"again\"") });
-    expect(failuresWith("unpriced-package", run, key).start).toMatch(/plans\/larkspur-ceramics\/plan\.yaml: -start wrote over an existing plan/);
-  });
 });
 
 // Contract C11: the ow-start follow-up's per-check isolation, kept here.
@@ -780,7 +738,7 @@ describe("the shipped examples", () => {
     // Placeholders: every price is a round 100s number, and the file says so.
     expect(ex("price-book.yaml")).toMatch(/INVENTED EXAMPLE\. Every number is a placeholder/);
     for (const u of b.units) expect(u.price % 100, u.id).toBe(0);
-    expect(b.origin).toBe("user");
+    expect(b.written_by).toMatch(/^user/);
   });
 
   it("brand.yaml is in the ow-tools §5.2 shape and passes its reader and contrast rules", () => {
@@ -880,5 +838,32 @@ describe("P5: research findings in -collect and the destination-keyed cap", () =
     keep(dir);
     const work = prepare("research-collect", dir);
     expect(readFileSync(join(work, RS), "utf8")).toBe(readFileSync(join(FIXTURES, "..", "ow-research", "run-approved", "expected", "opchain-work", RS), "utf8"));
+  });
+});
+
+describe("2.0.0: the whole-project quote", () => {
+  const W = "plans/wren-cycles";
+  it("the Build Plan phase not first, its fee or weeks off the book, or a credit line fail", () => {
+    const moved = mutated("whole-project", { [`${W}/quote.md`]: (t) => t.replace(/## Phase 1: Build Plan\n[^\n]+\n\n/, "").replace("## Fixed price\n", "## Phase 1: Build Plan\n1 week: the plan: USD 1,500.00.\n\n## Fixed price\n") });
+    expect(failures("whole-project", moved).whole_project).toMatch(/the Build Plan phase is the quote's first line/);
+    const fee = mutated("whole-project", { [`${W}/quote.md`]: (t) => t.replace("fee: 1500.00, weeks: 1", "fee: 1200.00, weeks: 2") });
+    const out = failures("whole-project", fee);
+    expect(out.whole_project).toMatch(/build_plan\.fee 1200 is not build_plan_fees\.one_system/);
+    expect(out.whole_project).toMatch(/build_plan\.weeks 2 is not build_plan_weeks\.one_system/);
+    expect(out.dates_terms).toMatch(/is not the Build Plan phase \+ build_total \+ the testing line/);
+    const credit = mutated("whole-project", { [`${W}/quote.md`]: (t) => t.replace("## Valid until\n", "## Build Plan credit\nThe Build Plan fee is credited against this build.\n\n## Valid until\n") });
+    expect(failures("whole-project", credit).dates_terms).toMatch(/a whole-project quote holds the plan inside its price, so no credit line/);
+  });
+  it("no plan yet and no assumptions listed fails; an invented package price fails", () => {
+    const bare = mutated("whole-project", { [`${W}/quote.md`]: (t) => t.replace("- The workshop takes bookings at one site.\n- The till export stays in its present format.\n", "") });
+    expect(failures("whole-project", bare).whole_project).toMatch(/"## Assumptions" must list what the price rests on/);
+    const est = mutated("whole-project", { [`${W}/quote.md`]: (t) => t.replace("| L2 | WP-2 | report | 1 | 600.00 | none | 600.00 | the weekly report |", "| L2 | WP-2 | none | 1 | none | none | 600.00 | my estimate |") });
+    expect(failures("whole-project", est).unpriced).toMatch(/L2 \(WP-2\): no price-book unit and no recorded manual price/);
+  });
+  it("a build request with a price, or a signing not recorded as the user's statement, fails", () => {
+    const run = mutated("whole-project-signed", { [`${W}/build-request.md`]: (t) => t.replace("signing_note: client signed 2026-11-12, stated by Robin", "signing_note: signature verified").replace("## Milestones\n", "## Milestones\nThe fixed price is USD 12,100.00.\n") });
+    const out = failures("whole-project-signed", run).signed;
+    expect(out).toMatch(/signing_note must read "client signed 2026-11-12, stated by Robin"/);
+    expect(out).toMatch(/names a price; the build request holds none/);
   });
 });

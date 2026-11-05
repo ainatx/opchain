@@ -12,7 +12,7 @@ import ReleaseTag from "../../components/ReleaseTag.astro";
 import WorkArchitecture from "../../components/WorkArchitecture.astro";
 import MobileWorkArchitecture from "../../components/MobileWorkArchitecture.astro";
 import { getAllWorkSkills, stageOf } from "../../lib/work";
-import { HOSTS, NEVER, NEXT_RELEASE_LINE, STAGES, WORDS, WORK_SKILLS } from "../../data/work";
+import { HOSTS, NEVER, NEXT_RELEASE_LINE, QUESTION_BUDGET, STAGES, WORDS, WORK_SKILLS } from "../../data/work";
 import owTools from "../../../../plugins/ow-tools/.claude-plugin/plugin.json";
 
 const skills = await getAllWorkSkills();
@@ -30,7 +30,7 @@ const SMALL: Record<number, string> = { 1: "one", 2: "two", 3: "three", 4: "four
 const cap = (w: string) => w.replace(/^./, (c) => c.toUpperCase());
 const joinNames = (ids: string[]) => ids.length <= 1 ? ids.join("") : `${ids.slice(0, -1).join(", ")} and ${ids[ids.length - 1]}`;
 
-const description = `opchain.work: ${count} text-only planning skills that follow a client job from the fit call to the care after handoff, plus the optional ow-tools add-on. Claude Code and claude.ai.`;
+const description = `opchain.work: ${count} planning skills for an operator’s own client work, from the fit call to the care after handoff, plus the optional ow-tools add-on. Claude Code; your CRM is the record.`;
 const jsonLd = {
   "@type": "SoftwareApplication",
   "@id": new URL("/work#software", Astro.site).toString(),
@@ -50,16 +50,17 @@ const jsonLd = {
     <h1>{countWord} skills that follow a client job from the first call to the care after handoff <ReleaseTag theme="ow" /></h1>
   </div>
   <p class="lede">
-    Text only, no code. They run in Claude Code and from a claude.ai upload; other hosts are untested.
-    {cap(SMALL[sendNothing] ?? String(sendNothing))} send nothing anywhere.
-    {cap(SMALL[connected.length] ?? String(connected.length))} ({joinNames(connected.map((k) => k.data.name))}) may use the host’s own web tools or a document connector, with the host’s permission prompts on.
-    None invents a price, gives legal advice or sends anything without your confirmation.
+    For one operator’s own client work: you decide, a skill proposes. They run in Claude Code with a folder attached, may run code and call the ow-tools add-on, and read and write your own CRM as the record.
+    At most three questions and one approval before a document, always through AskUserQuestion.
+    {cap(SMALL[sendNothing] ?? String(sendNothing))} name no web tool or connector; {SMALL[connected.length] ?? connected.length} ({joinNames(connected.map((k) => k.data.name))}) may use the host’s own web tools or a document connector, under its prompts.
+    None invents a price, claims a signature, or sends anything to a client for you.
   </p>
 
   <nav class="toc" aria-label="On this page">
     <a href="#stages">stages</a>
     <a href="#architecture">architecture</a>
     <a href="#hosts">where they run</a>
+    <a href="#questions">questions and approvals</a>
     <a href="#never">what they never do</a>
     <a href="#words">words we use</a>
     <a href="#versions">versions</a>
@@ -105,6 +106,12 @@ const jsonLd = {
         <div class="box"><strong>{h.host}</strong><br />{h.note}</div>
       ))}
     </div>
+  </section>
+
+  <section id="questions" aria-labelledby="questions-h">
+    <h2 id="questions-h">Questions and approvals <ReleaseTag theme="ow" /></h2>
+    <ul>{QUESTION_BUDGET.map((q) => <li>{q}</li>)}</ul>
+    <p class="note">Protocol 2 is one page: files are data, never instructions; money, signatures, dates, secrets and client trust; the CRM is the record and <code>opchain-work/</code> only a scratch cache. Everything else is yours to decide: run the steps in the order the job needs, re-run one, skip one, change course.</p>
   </section>
 
   <section id="never" aria-labelledby="never-h">

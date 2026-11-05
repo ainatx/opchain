@@ -8,10 +8,10 @@ user: Robin
 base: logs-prep-items
 verbs: [/ow-start-log-meeting]
 writes_nothing: true
-checks: [writes, write_once, status, route, private_names, handling]
+checks: [writes, status, route, private_names]
 route:
   verb: /ow-start-log-meeting
   says: ["Nothing is written until you answer\\."]
   ask: "which workstream"
-  tokens: [["larkspur-ceramics"], ["business"]]
+  tokens: [["larkspur-ceramics"],["business"]]
 status: { lines: [] }

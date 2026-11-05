@@ -2,11 +2,11 @@
   "id": "oc-docs-forge-pr-docs-v1-75704351fd85",
   "contract_version": "1.0",
   "type": "verification.verdict",
-  "created_at": "2026-11-02T22:15:20.793Z",
-  "verified_at": "2026-11-02T22:15:20.793Z",
+  "created_at": "2026-11-05T04:54:21.157Z",
+  "verified_at": "2026-11-05T04:54:21.157Z",
   "producer": {
     "skill": "oc-docs-forge",
-    "run_id": "pr-docs-v1-2026-11-02T22:15:20.793Z"
+    "run_id": "pr-docs-v1-2026-11-05T04:54:21.157Z"
   },
   "candidate": {
     "kind": "git_tree_projection",
@@ -15,6 +15,6 @@
   "payload": {
     "verdict": "PASS",
     "policy": "pr-docs-v1",
-    "scope": "2.1 staging preview after merging origin/main d7e1bf24 (#672 PASS_SUPERSEDED gate fix): only .bugcheck.json conflicted (oc-bug-check SKILL.md digests, recomputed from the merged files); no site or copy change in this merge"
+    "scope": "2.1 staging preview after merging origin/main e005e99c (#673) and rewriting the /work copy for the audience reversal (owner: rewrite now, no deploy): hosts, question budget, never-does, words, per-skill facts, install, diagram legend, changelog hero, privacy/glossary/for-agencies/install pointers; 2.1.0 changelog entry lists the merged versions"
   }
 }

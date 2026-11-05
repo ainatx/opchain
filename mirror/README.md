@@ -71,8 +71,8 @@ and an external reviewer must be configured separately.
 
 The nine `ow-` skills under [`skills-work/`](./skills-work/) plan and run client
 work: `ow-start`, `ow-build-plan`, `ow-build`, `ow-uat`, `ow-documentation`,
-`ow-handoff`, `ow-draft`, `ow-research` and `ow-care`. They are text only, work on
-any host, carry their own versions (the table in
+`ow-handoff`, `ow-draft`, `ow-research` and `ow-care`. They run in Claude Code,
+carry their own versions (the table in
 [`skills-work/README.md`](./skills-work/README.md)) and share one protocol,
 [`skills-work/ow-protocol.md`](./skills-work/ow-protocol.md), which every skill
 also carries at `references/ow-protocol.md`. They are not in the `opchain`

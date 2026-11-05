@@ -260,4 +260,12 @@ describe("export preflight: image files", () => {
     expect(check("# A\n\n![Diagram](../../brand/diagram.png)\n").problems).toEqual([]);
     expect(check("# A\n\n![Out](../../../outside.png)\n").problems.join("\n")).toMatch(/line 3: an image is outside the opchain-work folder/);
   });
+
+  it("strips protocol 2's short header from a client copy, and keeps the line after it", () => {
+    const out = preflight("---\nwritten_by: ow-care 2.0.0\ncreated: 2026-11-03\n---\nThis month went well.\n\n# Report\n", "report.md");
+    const text = JSON.stringify(out);
+    expect(text).not.toMatch(/written_by/);
+    expect(text).toMatch(/This month went well/);
+    expect(out.banner ?? null).toBeNull();
+  });
 });

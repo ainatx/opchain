@@ -2,11 +2,11 @@
   "id": "oc-repo-ops-pr-readiness-v1-75704351fd85",
   "contract_version": "1.0",
   "type": "verification.verdict",
-  "created_at": "2026-11-02T22:15:21.145Z",
-  "verified_at": "2026-11-02T22:15:21.145Z",
+  "created_at": "2026-11-05T04:54:22.450Z",
+  "verified_at": "2026-11-05T04:54:22.450Z",
   "producer": {
     "skill": "oc-repo-ops",
-    "run_id": "pr-readiness-v1-2026-11-02T22:15:21.145Z"
+    "run_id": "pr-readiness-v1-2026-11-05T04:54:22.450Z"
   },
   "candidate": {
     "kind": "git_tree_projection",
@@ -15,6 +15,6 @@
   "payload": {
     "verdict": "PASS",
     "policy": "pr-readiness-v1",
-    "scope": "Merged tree: plugin mirror in sync, bugcheck digests re-pinned from the merged oc-bug-check SKILL.md, gate PASS on the merge commit (full suite + build), no untracked generated output"
+    "scope": "Merged + rewritten tree: gen-catalog, check-skill-contracts, work-surfaces/catalogs/work-distribution/plugin-shape/release-surfaces/site-release-chip suites green; site build and astro check clean; Playwright 128 green (six load-timeouts re-run clean); check-release-surfaces v2.1; no brand name in built /work; plugin mirror in sync"
   }
 }

@@ -30,7 +30,7 @@ const description = "Install the ow- planning skills in Claude Code (clone or zi
     <h1>Installing the planning skills <ReleaseTag theme="ow" /></h1>
   </div>
   <p class="lede">
-    The {skills.length} ow- skills are text only: each is a folder holding its <code>SKILL.md</code>, its references (including the shared <code>ow-protocol.md</code>) and its <code>skill.edges.yaml</code>. Copy the folders you want into the project you work in (a client workspace), never into a copy of the skills repository. They are not in the opchain plugin or in <code>opchain-skills.zip</code>.
+    Each of the {skills.length} ow- skills is a folder of text files: its <code>SKILL.md</code>, its references (including the shared <code>ow-protocol.md</code>, version 2) and its <code>skill.edges.yaml</code>. In Claude Code the skills may run code, call the ow-tools add-on and run the next skill’s verb. Copy the folders you want into the project you work in (a client workspace), never into a copy of the skills repository. They are not in the opchain plugin or in <code>opchain-skills.zip</code>.
   </p>
 
   <nav class="toc" aria-label="On this page">
@@ -53,7 +53,7 @@ const description = "Install the ow- planning skills in Claude Code (clone or zi
 
   <section id="claude-ai" aria-labelledby="claude-ai-h">
     <h2 id="claude-ai-h">claude.ai / Claude Desktop</h2>
-    <p>Upload a per-skill zip (<code>https://opchain.dev/work/&lt;id&gt;.zip</code>) through your host&rsquo;s skill upload flow. Each zip is the complete skill folder. ow-tools does not apply on these hosts; other hosts are untested.</p>
+    <p>Upload a per-skill zip (<code>https://opchain.dev/work/&lt;id&gt;.zip</code>) through your host&rsquo;s skill upload flow. Each zip is the complete skill folder. The skills are written for Claude Code with a folder attached; on other hosts ow-tools does not apply and the rest is untested.</p>
   </section>
 
   <section id="verify" aria-labelledby="verify-h">

@@ -88,7 +88,7 @@ describe("gen-route-spec: jev-questions contract", () => {
     expect(questions.uses.J2.state).toEqual(["request", "suggested", "activity"]);
     expect(questions.uses.J9.state).toEqual(["text"]);
     // The protocol text is quoted, never edited: the use names its source.
-    expect(questions.uses.J9.summary).toMatch(/ow-protocol\.md §3d/);
+    expect(questions.uses.J9.summary).toMatch(/ow-protocol\.md §2/);
     expect(questions.uses.J9.caller).toMatch(/no ow- skill text changes/);
   });
 

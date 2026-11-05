@@ -46,7 +46,7 @@ export type Variant = "a" | "b";
 const OBSIDIAN = "#12191f", LINEN = "#d4e2ef", SAND = "#a5bcd1";
 const EMBER = "#2be179", MINT = "#02fdff", YELLOW = "#ebfe00", SIG = "#d87fd1";
 
-/** Card stroke by kind: text-only core (mint), text with declared network (yellow), runs code (magenta). */
+/** Card stroke by kind: core, no network text (mint); declared network (yellow); the add-on that runs code (magenta). */
 export function kindColor(s: { network: string }): string { return s.network === "declared" ? YELLOW : MINT; }
 function kindFilter(s: { network: string }): string { return s.network === "declared" ? "glow-yellow" : "glow-mint"; }
 function kindWash(s: { network: string }): string { return s.network === "declared" ? "rgba(235,254,0,.10)" : "rgba(2,253,255,0.06)"; }
@@ -73,7 +73,7 @@ function bandSvg(s: DiagramSkill, index: number, total: number, tool?: string): 
     { t: s.version, w: 34, col: EMBER, fill: "rgba(43,225,121,.10)", stroke: "rgba(43,225,121,0.6)" },
     s.network === "declared"
       ? { t: "NET", w: 24, col: YELLOW, fill: "rgba(235,254,0,.10)", stroke: "rgba(235,254,0,0.6)" }
-      : { t: "TXT", w: 24, col: MINT, fill: "rgba(2,253,255,.10)", stroke: "rgba(2,253,255,0.6)" },
+      : { t: "NONE", w: 28, col: MINT, fill: "rgba(2,253,255,.10)", stroke: "rgba(2,253,255,0.6)" },
   ];
   let x = c.x + c.w - 4;
   const chipSvg = chips.map((ch) => { x -= ch.w + 2; return `<rect x="${x}" y="7" width="${ch.w}" height="13" rx="3" fill="${OBSIDIAN}"/><rect x="${x}" y="7" width="${ch.w}" height="13" rx="3" fill="${ch.fill}" stroke="${ch.stroke}" stroke-width="0.5"/><text x="${x + ch.w / 2}" y="16.5" fill="${ch.col}" font-size="6.5" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">${esc(ch.t)}</text>`; }).join("");
@@ -192,7 +192,7 @@ ${cross.map((c) => anchor({
     id: c.id, href: `/work/${c.id}`, cls: c.network === "declared" ? "wa-anchor--net" : "wa-anchor--txt",
     meta: `${c.version} · ${c.bundle} · network: ${c.network} · ${verbsLine(c.commands)}`,
     does: `${c.short} → ${[...new Set(edgesFrom(c.id).map((e) => e.to))].join(" · ") || "the workstream"}`,
-    badges: [c.network === "declared" ? "NET · host web tools or connector" : "TXT · sends nothing", `${input.release} · preview`],
+    badges: [c.network === "declared" ? "NET · host web tools or connector" : "network: none", `${input.release} · preview`],
     label: `${c.id}: ${c.intro}`,
   })).join("\n")}
 </div>
@@ -211,10 +211,10 @@ ${anchor({ id: input.tools.id, href: "/work/ow-tools", cls: "wa-anchor--tools", 
 
   const legend = `<div class="legend" role="group" aria-label="Legend">
 <div class="legend-section-label">cards</div>
-<span class="legend-item" tabindex="0"><div aria-hidden="true" class="li-swatch" style="background:rgba(2,253,255,0.08);border:1px solid #02fdff"></div><span>text only · network: none</span><div class="legend-card" role="tooltip"><div class="legend-card-title">Core bundle</div>A text skill whose files name no web tool and no connector. It sends nothing anywhere. Six of the nine.</div></span>
-<span class="legend-item" tabindex="0"><div aria-hidden="true" class="li-swatch" style="background:rgba(235,254,0,.10);border:1px solid #ebfe00"></div><span>text only · network: declared</span><div class="legend-card" role="tooltip"><div class="legend-card-title">Connected bundle</div>Still text, still no code: the skill’s text names the host’s own web tools or a document connector it may use, under the host’s permission prompts. Its rules file says what may leave the machine. Three of the nine.</div></span>
+<span class="legend-item" tabindex="0"><div aria-hidden="true" class="li-swatch" style="background:rgba(2,253,255,0.08);border:1px solid #02fdff"></div><span>network: none</span><div class="legend-card" role="tooltip"><div class="legend-card-title">Core bundle</div>A skill whose files name no web tool and no connector. It may still run code and call ow-tools in Claude Code. Six of the nine.</div></span>
+<span class="legend-item" tabindex="0"><div aria-hidden="true" class="li-swatch" style="background:rgba(235,254,0,.10);border:1px solid #ebfe00"></div><span>network: declared</span><div class="legend-card" role="tooltip"><div class="legend-card-title">Connected bundle</div>The skill’s text names the host’s own web tools or a document connector it may use, under the host’s permission prompts. Its rules say what may leave the machine: research queries carry no client names or domains. Three of the nine.</div></span>
 <span class="legend-item" tabindex="0"><div aria-hidden="true" class="li-swatch" style="background:rgba(216,127,209,.10);border:1px solid #d87fd1"></div><span>ow-tools · runs code</span><div class="legend-card" role="tooltip"><div class="legend-card-title">The add-on</div>Optional, Claude Code only, from its own marketplace. Two of its verbs use the network, only for what you list; audio never leaves the machine.</div></span>
-<span class="legend-item" tabindex="0"><div aria-hidden="true" class="li-swatch li-swatch-spine">↑N↓</div><span>stage ordinal</span><div class="legend-card" role="tooltip"><div class="legend-card-title">Stage ordinal</div>The seven stage skills wear numbered chips showing their place on the rail; <code>↑prev·↓next</code> marks the adjacent hand-off, which the user acts on from the NEXT block each skill prints.</div></span>
+<span class="legend-item" tabindex="0"><div aria-hidden="true" class="li-swatch li-swatch-spine">↑N↓</div><span>stage ordinal</span><div class="legend-card" role="tooltip"><div class="legend-card-title">Stage ordinal</div>The seven stage skills wear numbered chips showing their place on the rail; <code>↑prev·↓next</code> marks the adjacent hand-off. A skill names the next verb and may run it; the operator can run the steps in any order the job needs.</div></span>
 <div class="legend-divider"></div>
 <div class="legend-section-label">connections</div>
 <span class="legend-item" tabindex="0"><div aria-hidden="true" class="li-line" style="border-color:#2be179;border-style:dashed"></div><span>hands off (skips a stage)</span><div class="legend-card" role="tooltip"><div class="legend-card-title">Forward hand-off</div>A hands_off row in the producer’s edge file whose receiver is more than one stage down: the acceptance test to the handoff when documentation was not bought, the Build Plan straight to care for a takeover.</div></span>

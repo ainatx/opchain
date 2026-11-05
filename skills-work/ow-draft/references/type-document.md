@@ -12,9 +12,9 @@ Reports, assessments, recommendations, proposals and RFP responses, one-pagers, 
 
 ## The client form (`candidates/C-n/<slug>.md`, written by `-freeze`)
 
-- The ow- header kept (ow-tools strips it), the internal section removed.
+- The header kept (ow-tools strips it), the internal section removed.
 - **Each `[E-nn]` becomes a numbered note** `[1]`, `[2]`, … in order of first use; one number per item.
-- A `## Sources` section at the end lists each note once: `<n>. [<title>](<the source's https link>), <publisher>, <date written out>.` (a finding's publisher is its link's site; a file's is the file's owner, such as "the client's order sheet"; with no link: `<n>. <title>, <publisher>, <date written out>.`). **Never a level, an E-nn or a quote from the record** (protocol §12).
+- A `## Sources` section at the end lists each note once: `<n>. [<title>](<the source's https link>), <publisher>, <date written out>.` (a finding's publisher is its link's site; a file's is the file's owner, such as "the client's order sheet"; with no link: `<n>. <title>, <publisher>, <date written out>.`). **Never a level, an E-nn or a quote from the record** (protocol §7).
 
 ## Export
 

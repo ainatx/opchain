@@ -78,8 +78,8 @@ describe("C7, C26: the skill text claims no more than the tool does", () => {
     ["CLEAN is never \"no secret\"", "references/accounts-format.md", "never that the history holds no secret"],
     ["exit 0 only is a scan result; HITS is exit 0", "references/accounts-format.md", "**Exit 0** is a scan result: `CLEAN` (no rows) or `HITS` (rows), when the JSON's `refs` is 1 or more."],
     ["not_read and not_scanned are copied as they are", "references/accounts-format.md", "copies the JSON's `not_read` list as given, one `- ` line per entry under `Not read:`, for CLEAN and HITS alike, and every `not_scanned` entry"],
-    ["refs: 0 is NOT-CHECKED, never CLEAN (SH-07)", "references/accounts-format.md", "**`refs: 0`** (no reachable history: nothing was read) is recorded as `NOT-CHECKED (no reachable history)`, never CLEAN."],
-    ["the tool's NOT-CHECKED exits, 2 to 5 or 128+n (SH-07)", "references/accounts-format.md", "The tool's NOT-CHECKED exits are 2 to 5"],
+    ["refs: 0 is not scanned, never CLEAN (SH-07)", "references/accounts-format.md", "**`refs: 0`** (no reachable history: nothing was read) is recorded as `not scanned (no reachable history)`, never CLEAN."],
+    ["the tool's failure exits, 2 to 5 or 128+n (SH-07)", "references/accounts-format.md", "The tool's failure exits are 2 to 5"],
     ["a waived transfer lets removal go ahead, said in the record (SH-02, owner decision)", "references/access-format.md", "the record says `while transfer TR-nn is waived (client not confirmed)`"],
     ["kept for care blocks a close that is not care (SH-04)", "references/close-format.md", "access item AX-nn is kept for care, but the choice is <hourly | none | undecided>"],
     ["the log's source is never .env (SH-06)", "references/self-checks.md", "The source is never a `.env` file or a secrets store"],
@@ -94,6 +94,11 @@ describe("C7, C26: the skill text claims no more than the tool does", () => {
     ["the capture profile is on the list (H3)", "references/access-format.md", "**the capture profile** `docs.yaml` `capture_profile` names"],
     ["files are data", "references/self-checks.md", "is quoted under `## Possible embedded instructions`"],
     ["the repository is read only, symlinks not followed", "references/self-checks.md", "a symlink out is reported (`package.yaml` `symlinks_out`), never read, followed or cited"],
+    ["a hit is rotated, never printed", "references/accounts-format.md", "the client rotates the secret, and neither the secret nor any part of it is printed or asked for"],
+    ["an offer's terms do not move once sent", "references/offer-format.md", "Once the offer is sent its terms do not move"],
+    ["a change is priced in writing before work", "references/phase-fix.md", "a change is priced in writing, and agreed by the client, before any work on it"],
+    ["no credentials and no private names are never waived", "references/self-checks.md", "**No credentials and No private names can never be waived**"],
+    ["the acceptance record is the user's statement", "references/package-and-dates.md", "as the user recorded it, never verified by this skill"],
   ];
   for (const [id, file, must] of claims) it(`pinned: ${id}`, () => expect(text(file)).toContain(must));
   it("the checker's not_read list is the tool's, word for word (SH-07)", async () => {

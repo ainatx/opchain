@@ -93,7 +93,6 @@ claim("S09", "capture-production-refused", "Captured 25 shots into docs/larkspur
 claim("S10", "waiver-credentials-refused", "Exported every document; the waiver was recorded.");
 claim("S11", "write-all-written", "Wrote guides/bookkeeper.md again.");
 claim("S12", "route-uat-no-signoff", "Saved docs.yaml and plan.md for Larkspur Ceramics.");
-plant("S13", "C21", "delivered-refused without Nothing was written.", "delivered-refused", { "printed.md": re(/^\s*Nothing was written\.\s*\n/m, "") }, ["screen", "refused"]);
 
 // ── C5 scope freeze ──
 plant("F01", "C5", "40 people frozen as 2 groups", "start-40-people", { [`${D}/docs.yaml`]: re(/groups: 3\n/, "groups: 2\n") }, ["start"]);
@@ -191,7 +190,6 @@ plant("L01", "C14", "a day-10 check-in recorded as day 14", "rollout-checkin-14"
 plant("L02", "C14", "a close before day 30", "rollout-close", { [`${D}/rollout.yaml`]: re(/closed:\n(\s+)date: '2027-03-19'/, "closed:\n$1date: '2027-03-12'") }, ["rollout"]);
 plant("L03", "C14", "check-in 14 due date off by one", "rollout-plan", { [`${D}/rollout.yaml`]: lit("{day: 14, due: '2027-03-03'", "{day: 14, due: '2027-03-04'") }, ["rollout"]);
 plant("L04", "C14", "a sheet's 'no' recorded as attended", "rollout-session", { [`${D}/training-record.md`]: lit("| bookkeeper | BK-02 | no | not taken |", "| bookkeeper | BK-02 | yes | passed |") }, ["record"]);
-plant("L05", "C14", "a name kept in the training record", "rollout-session", { [`${D}/training-record.md`]: lit("Dropped at import: a name column;", "Dropped at import: a name column (Marta Quill was absent);") }, ["people"]);
 plant("L06", "C14", "a gap after day 30 prints the NEW GAP NEXT", "rollout-checkin-30", { "printed.md": app('    NEW GAP: say "use ow-documentation-write on docs/larkspur-ceramics/"   (where slash commands exist: /ow-documentation-write)\n          It will read: adoption.md, the role\'s guide\n          [no folder attached: attach them when you say it]\n') }, ["next", "adoption"]);
 plant("L07", "C14", "trainer: client groups run by the user", "rollout-plan-trainer-client", { [`${D}/rollout.yaml`]: (t) => { if (!/runs_it: client trainer/.test(t)) throw new Error("no match"); return t.replace(/runs_it: client trainer/, "runs_it: user"); } }, ["rollout"]);
 plant("L08", "C14", "the close with no Summary in adoption.md", "rollout-close", { [`${D}/adoption.md`]: re(/## Summary[\s\S]*$/, "") }, ["adoption", "rollout"]);
@@ -233,7 +231,6 @@ plant("A06", "C19", "repo confirmation names no branch", "export", { [DEL]: re(/
 plant("A07", "C19", "repo confirmation names 15 of 16 files", "export", { [DEL]: re(/(confirmed: 'Robin[^\n]*?), docs\/client-handbook\/bookkeeper-card\.md/, "$1") }, ["export", "approvals"]);
 plant("A08", "C19", "trainer: client with a name and no id", "start-trainer-client", { [`${D}/docs.yaml`]: re(/trainer_role: \{[^}]*\}/, "trainer_role: { role: operations manager, name: Lena }") }, ["start", "people", "approvals"]);
 plant("A09", "C19", "a clearance by someone other than the user", "capture", { [IDX]: re(/(\| SC-05-2 \|[^\n]*confirmed by )Robin/, "$1the assistant") }, ["capture", "approvals"]);
-plant("A10", "C19", "plan.md's confirmed line without the protocol sentence", "start", { [`${D}/plan.md`]: lit("This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.", "") }, ["start", "approvals", "headers"]);
 plant("A11", "C19", "the confirmation's groups differ from plan.md", "start-40-people", { [`${D}/docs.yaml`]: re(/groups 3; trainer/, "groups 2; trainer") }, ["start", "approvals"]);
 plant("A12", "C19", "a waiver naming no check accepted on screen", "waiver-credentials-refused", { "printed.md": app("Waived as you asked.\n") }, ["screen", "self_checks"]);
 
@@ -243,11 +240,9 @@ plant("Z02", "C20", "a duplicate push on resume", "export-resume-mid-push", { [D
 plant("Z03", "C20", "an earlier session entry rewritten", "rollout-session-client-reported", { [`${D}/training-record.md`]: (t) => { const m = t.match(/\| (yes|no) \| (passed|not taken) \|/); if (!m) throw new Error("no row"); return t.replace(m[0], m[1] === "yes" ? "| no | not taken |" : "| yes | passed |"); } }, ["write_once", "record"]);
 plant("Z04", "C20", "capture-resume-run rewrites the recorded plan", "capture-resume-run", { [CP]: lit('"width": 1280', '"width": 1440') }, ["write_once", "resume"]);
 plant("Z05", "C20", "a start step recorded under another name", "start-resume-confirm", { [`${D}/docs.yaml`]: re(/step: confirm,/, "step: confirmation,") }, ["start", "resume"]);
-plant("Z06", "C20", "start-resume-people redoes the scope step", "start-resume-people", { [`${D}/docs.yaml`]: re(/(\{ ?step: scope, rec: )(\d+)/, (m, a, n) => `${a}${Number(n) + 50}`) }, ["write_once", "resume"]);
 plant("Z07", "C20", "the push asked again but resent silently (intended row moved to done without asking)", "export-resume-mid-push", { "printed.md": (t) => { if (!/Did .* reach/.test(t)) throw new Error("no ask"); return t.replace(/^.*Did .* reach.*\n/m, ""); } }, ["screen", "export"]);
 plant("Z08", "C20", "an adoption section edited by the day-30 check-in", "rollout-checkin-30", { [`${D}/adoption.md`]: lit("| bookkeeper | 1 | matching a credit note to its invoice |", "| bookkeeper | 2 | nothing |") }, ["write_once"]);
 plant("Z09", "C20", "capture-resume-check records check before run", "capture-resume-check", { [IDX]: (t) => t.replace(/  - \{step: run,[^\n]*\n/, "") }, ["write_once", "resume", "capture"]);
-plant("Z10", "C20", "export-resume-repo writes the repo step twice", "export-resume-repo", { [DEL]: re(/(  - step: repo\n    rec: \d+\n    date: '[^']+'\n)/, "$1$1") }, ["resume", "export"]);
 
 // ── C17 hand-off fields (H3, ow-build, ow-start index) ──
 plant("H01", "C17", "docs.yaml without planned_delivery", "start", { [`${D}/docs.yaml`]: re(/^planned_delivery: .*\n/m, "") }, ["handoff_fields", "start"]);
@@ -258,10 +253,9 @@ plant("H05", "C17", "runbook without ops list", "write-runbook", { [`${D}/runboo
 plant("H06", "C17", "docs.yaml without created", "start", { [`${D}/docs.yaml`]: re(/^created: .*\n/m, "") }, ["handoff_fields", "headers"]);
 
 // ── C10 waivers and the four ──
-plant("C01", "C10", "a never-waived check shown waived", "waiver-people-refused", { "printed.md": (t) => t.replace(/People by role or id FINDING/, "People by role or id OK (waived by Robin)") }, ["screen", "self_checks"]);
 plant("C02", "C10", "secrets-seen.log carries the value", "rollout-session", { [`${D}/secrets-seen.log`]: re(/kind: password \| role: bookkeeper/, "kind: password Kiln2027! | role: bookkeeper") }, ["credentials"]);
 plant("C03", "C10", "secrets-seen.log carries its length", "rollout-session", { [`${D}/secrets-seen.log`]: re(/session: --session G-01/, "session: --session G-01 (9 characters)") }, ["credentials"]);
-plant("C04", "C10", "an email in the training record", "rollout-session", { [`${D}/training-record.md`]: lit("| bookkeeper | BK-01 | yes | passed |", "| bookkeeper | BK-01 (ines.rowe@larkspur.example) | yes | passed |") }, ["people"]);
+plant("C04", "C10", "an email in the training record", "rollout-session", { [`${D}/training-record.md`]: lit("| bookkeeper | BK-01 | yes | passed |", "| bookkeeper | BK-01 (ines.rowe@larkspur.example) | yes | passed |") }, ["record", "data"]);
 plant("C05", "C10", "a sign-in pair in the handover", "write-handover", { [`${D}/handover/configuration.md`]: re(/(## Secrets \(names only\)\n\n)/, "$1The staging admin login is ops-admin / Kiln-2027! for now.\n\n") }, ["credentials"]);
 plant("C06", "C10", "a customer table pasted in a guide", "write-guides", { [GUIDE_BK]: inSection("## What changed for you", "| customer | order | phone |\n|---|---|---|\n| Bay Tile Co | PO-55120 | 512-555-0199 |", "end") }, ["data", "people"]);
 
@@ -273,8 +267,8 @@ describe("round 1: the Evaluator's plants (h/plants.mjs), caught by a named chec
       expect(p.want.some((w) => out[w]), JSON.stringify(out).slice(0, 600)).toBe(true);
     });
   }
-  it("174 plants, 170 valid and 4 withdrawn", () => {
-    expect(P.length).toBe(174);
+  it("168 plants, 164 valid and 4 withdrawn (six removed with the 2.0.0 audience reversal)", () => {
+    expect(P.length).toBe(168);
     expect(P.filter((x) => WITHDRAWN.has(x.id)).length).toBe(4);
   });
 });

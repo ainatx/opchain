@@ -1,0 +1,17 @@
+# Answer key: whole-project (INVENTED: fictional bike shop). A whole-project quote,
+# SOW-shaped, straight from the intake record and a scope Robin stated: no plan.yaml.
+# The Build Plan phase is the first line; fee and weeks come from the book; the plan
+# is inside the price, so no credit; the assumptions are listed.
+case: whole-project
+section: Whole-project quote (Build Plan phase first, no plan.yaml)
+client: Wren Cycles
+slug: wren-cycles
+user: Robin
+checks: [headers, whole_project, unpriced, dates_terms, uat_lines, internal_appendix, fix_window, status, private_names]
+outputs: [plans/wren-cycles/quote.md]
+uat: { size: M, tester_roles: 2 }
+dates: { schedule: 40/40/20 }
+status:
+  lines:
+    - { path: plans/wren-cycles/quote.md, awaiting: "client's answer by 2026-11-17" }
+private_names: [llc-ops, Deftwright]
