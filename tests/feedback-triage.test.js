@@ -139,6 +139,20 @@ describe("POST /api/feedback roadmap path with J5", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("rate-limits dry-run roadmap requests before J5, so a flood costs no Jev calls", async () => {
+    const store = new Map();
+    const NOTIFY = { async get(k) { return store.get(k) ?? null; }, async put(k, v) { store.set(k, v); } };
+    const e = env({ ...ON, FEEDBACK_DRY_RUN: "true", NOTIFY });
+    const send = () => worker.fetch(new Request("https://opchain.dev/api/feedback", { method: "POST", headers: { "Content-Type": "application/json", "CF-Connecting-IP": "9.9.9.9" }, body: JSON.stringify(VOTES_BYPASS) }), e);
+    fetchMock.mockImplementation(async () => jevAnswer(SECURITY));
+    for (let i = 0; i < 5; i++) expect((await send()).status).toBe(201);
+    expect(fetchMock).toHaveBeenCalledTimes(5);
+    const sixth = await send();
+    expect(sixth.status).toBe(429);
+    expect((await sixth.json()).code).toBe("rate_limited");
+    expect(fetchMock).toHaveBeenCalledTimes(5);
+  });
+
   it("never triages the private Linear types", async () => {
     fetchMock.mockResolvedValueOnce(linearOk());
     const res = await worker.fetch(post({ type: "bug", title: "Install link 404s", description: "The zip link 404s." }), env(ON));
