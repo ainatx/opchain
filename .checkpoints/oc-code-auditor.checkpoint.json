@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-11-05T21:40:01.639Z",
+  "updated_at": "2026-11-05T22:36:28.195Z",
   "phase": "audit",
-  "step": "pre-deploy-staging-preview-e0ef5b10",
+  "step": "pre-deploy-staging-preview-63222ed2",
   "status": "complete",
-  "progress_summary": "Pre-deploy audit 2026-11-05 for the oc-only 2.1.0 staging preview e0ef5b10: PASS, 0 CRITICAL / 0 HIGH / 1 MEDIUM (zod 4.6.5 advisory, unreachable) / 1 LOW. ow- withheld without OPCHAIN_SHIP_WORK verified end to end (build, stale-output removal, mirror simulation); 180 test files green.",
+  "progress_summary": "Pre-deploy re-audit 2026-11-05 for staging preview 63222ed2 (delta e0ef5b10..63222ed2 is site-only ReleaseTag additions): PASS, 0 CRITICAL / 0 HIGH / 1 MEDIUM (zod 4.6.5 advisory, unreachable, carried) / 1 LOW (deploy.mjs OPCHAIN_SHIP_WORK guard, carried). Tags render nothing without PUBLIC_OPCHAIN_RELEASE_PREVIEW (0 in dist); 15 oc tags across 8 pages with it set.",
   "blockers": [],
   "next_actions": [
     "Bump zod to 4.6.6 (in-range ^4.6.5, GHSA-mrhx-c7xc-m3w5) in a follow-up lockfile PR",
@@ -184,7 +184,7 @@
         "verdict": "no findings"
       }
     ],
-    "verified_for_sha": "e0ef5b107b1009d28aad149278307649858b56a8",
+    "verified_for_sha": "63222ed22c96ab9cd648f677ce9c5f34fa4f1696",
     "current_finding": "F-001"
   },
   "handoffs": [
@@ -736,16 +736,36 @@
         "policy": "pre-deploy-code-audit-v1",
         "scope": "Pre-deploy audit of the oc-only 2.1.0 staging preview e0ef5b10 (delta d30a6b97..e0ef5b10, 556 files, ~all ow-/work removals + #674 SHIP_WORK gate + enforcement receipt-coverage change). Verified by build and tests, not read-only: OPCHAIN_SHIP_WORK unset full npm run build exits 0 and public/ has no ow- zip, docs/work, work/, manifest hash or /work route; stale public/work + opchain-work-skills.zip + docs/work are removed by sync-docs/make-zip and caught by check-work-install --expect-withheld (negative control fails as designed); mirror-public.yml assemble step simulated unset-var (ow-tools removed, ow:begin/end stripped, no skills-work); 180 test files / 10919 tests green; hardening:verify, check-release-surfaces, checkpoint:validate, test:hooks 30/30 green. Worker src/ and scripts/deploy.mjs unchanged since d30a6b97 and re-read (main-ancestry, off-main hatch staging-only, release-preview guard); verify-candidate PASS_SUPERSEDED coverage reviewed (tree+policy+config-digest bound, never accepted by enforce/run path). 0 CRITICAL / 0 HIGH. MEDIUM F-001 zod 4.6.5 GHSA-mrhx-c7xc-m3w5 (fix 4.6.6, in-range) not reachable: schemas.js has no z.array/record. LOW F-002 deploy.mjs loads .dev.vars before prebuild so OPCHAIN_SHIP_WORK=1 there would ship ow- to production unguarded. INFO: v2.1.0 tag not yet created (production gate only)."
       }
+    },
+    {
+      "id": "oc-code-auditor-pre-deploy-code-audit-v1-24daf1bcc43c",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-11-05T22:36:15.267Z",
+      "verified_at": "2026-11-05T22:36:15.267Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-code-audit-v1-2026-11-05T22:36:15.267Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:24daf1bcc43cbe825788186f26f7963ed96df1569a9dd086a8f90f99514eb503"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Pre-deploy re-audit of the 2.1.0 staging preview 63222ed2, scoped to the delta since the PASSED audit at e0ef5b10 (candidate sha256:71fb6ecd...): git diff e0ef5b10 63222ed2 is site-only (ReleaseTag theme=oc added to index, architecture, security, privacy, glossary, skills/index, EnforcementMap; glossary gains a typed preview field on 4 terms) plus checkpoint evidence; no Worker src, scripts or skills change. Verified: imports resolve (astro check 0 errors, 0 warnings); no set:html and no new untrusted input (theme is a typed literal, title text is static); site build WITHOUT PUBLIC_OPCHAIN_RELEASE_PREVIEW has 0 data-release-tag in site/dist and npm run build with OPCHAIN_SHIP_WORK unset exits 0 with ow- withheld; WITH PUBLIC_OPCHAIN_RELEASE_PREVIEW=2.1 exactly 15 data-release-tag=oc across the 8 expected pages (architecture, changelog, glossary, index, install, privacy, security, skills); deploy.mjs production guard on the preview var present; a11y: tags sit in eyebrow spans, dt, h2, h3 and appear in accessible names only on a preview build (index and skills links carry an explicit aria-label so their names are unchanged); full vitest 10918 passed with 1 load-flake in tests/ow-tools/capture.test.js SIGTERM test (code 1 vs 143 while the machine ran 2 parallel agents at load ~10), file untouched by the delta and 384/384 green on rerun alone; checkpoint:validate, check-release-surfaces, test:hooks 30/30 green. Earlier findings carried forward by reference from the e0ef5b10 audit: MEDIUM F-001 zod 4.6.5 GHSA-mrhx-c7xc-m3w5 (unreachable, fix 4.6.6 in range) and LOW F-002 deploy.mjs has no production guard on OPCHAIN_SHIP_WORK; both unchanged by this delta. 0 CRITICAL / 0 HIGH / 1 MEDIUM / 1 LOW."
+      }
     }
   ],
   "latest_pre_deploy": {
-    "candidate": "e0ef5b107b1009d28aad149278307649858b56a8",
-    "candidate_identity": "sha256:71fb6ecdf644e84dde04c95cb20a95b0a71db0d9b6c36c502a3898c145fc8e9a",
+    "candidate": "63222ed22c96ab9cd648f677ce9c5f34fa4f1696",
+    "candidate_identity": "sha256:24daf1bcc43cbe825788186f26f7963ed96df1569a9dd086a8f90f99514eb503",
     "verdict": "PASS",
     "blocking_findings": 0,
     "target": "staging preview from claude/staging-preview-2-1"
   },
-  "record_updated_at": "2026-11-05T21:40:01.639Z",
+  "record_updated_at": "2026-11-05T22:36:28.195Z",
   "recently_done": [
     {
       "at": "2026-09-21T13:40:12.755Z",

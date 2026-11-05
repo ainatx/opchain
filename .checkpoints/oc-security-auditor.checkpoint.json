@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-09-14T00:38:43.799Z",
-  "updated_at": "2026-11-05T21:37:17.667Z",
+  "updated_at": "2026-11-05T22:27:17.185Z",
   "phase": "build",
-  "step": "posture-e0ef5b10",
+  "step": "posture-63222ed2",
   "status": "complete",
-  "progress_summary": "Pre-deploy security posture 2026-11-05 for the oc-only 2.1.0 staging preview candidate e0ef5b10: PASS, tier standard, delta review from the d30a6b97/ca157fea PASS. No Worker, header or wrangler change; ow- skills, ow-tools and /work are withheld behind OPCHAIN_SHIP_WORK in the build, the mirror and the built public/. 0 CRITICAL/HIGH. LOW: zod 4.6.5 high advisory GHSA-mrhx-c7xc-m3w5 (collection schemas only; the Worker uses none), router decision cache and log under a shared tmp path trusted unvalidated (live mode, multi-user Linux), internal repo name deftwright-site in the shipped changelog and runtime comments. INFO: PASS_SUPERSEDED receipt coverage, preview var via an untracked site/.env, two independent SHIP_WORK switches. Staging still serves the old ow- zip until this build replaces it.",
+  "progress_summary": "Pre-deploy posture 2026-11-05, staging-preview candidate 63222ed2: PASS, tier standard, delta review from the e0ef5b10 PASS. Delta is ReleaseTag theme=oc on 7 site files, inert unless PUBLIC_OPCHAIN_RELEASE_PREVIEW is set; the production build has no tag or ribbon, and its inline scripts, JS bundles and external hosts match the preview build. deploy.mjs refuses production with the variable set. No Worker, header or wrangler change. 0 CRITICAL/HIGH/MEDIUM; e0ef5b10's 3 LOW and 3 INFO carry forward.",
   "next_actions": [
     "After the staging deploy, curl https://staging.opchain.dev/opchain-work-skills.zip, /work/ow-tools-security-manifest.sha256 and /docs/work/ow-protocol.md: all must be 404 (staging serves the old ow- zip today; production already 404s). Deploy with OPCHAIN_SHIP_WORK unset.",
     "Before the production cut: bump zod to 4.6.6 (GHSA-mrhx-c7xc-m3w5, not reachable today); have the router write its log and decision cache under a 0700 per-user directory and validate a cached decision.skill against route-spec before it is injected; drop the deftwright-site reference from skills/CHANGELOG.md and the release-evidence.mjs comment (7 shipped copies).",
@@ -590,18 +590,38 @@
         "policy": "pre-deploy-security-posture-v1",
         "scope": "Pre-deploy posture (tier standard, delta review) of the oc-only 2.1.0 release candidate e0ef5b10 for a staging preview: ow- outputs withheld (build scripts, check-work-install --expect-withheld, mirror-public.yml SHIP_WORK staging and ow: marker sed, built public/ has no ow- zip/docs/manifest), Worker src byte-identical to the previously assessed d30a6b97, router hook and Jev client unchanged (shadow default, redacted, key from env), preview ribbon refused for production by scripts/deploy.mjs, post-commit/pre-push hooks and deploy template use argv arrays with no shell, PASS_SUPERSEDED receipt relaxation reviewed; hardening:verify 2/2; 209 targeted tests pass. 0 CRITICAL/HIGH, 3 LOW and 3 INFO findings, none blocking."
       }
+    },
+    {
+      "id": "oc-security-auditor-pre-deploy-security-posture-v1-24daf1bcc43c",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-11-05T22:27:02.821Z",
+      "verified_at": "2026-11-05T22:27:02.821Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "pre-deploy-security-posture-v1-2026-11-05T22:27:02.821Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:24daf1bcc43cbe825788186f26f7963ed96df1569a9dd086a8f90f99514eb503"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Pre-deploy posture (tier standard, delta review) of the oc-only 2.1.0 staging-preview candidate 63222ed2, delta e0ef5b10..63222ed2 (the prior PASS, candidate sha256:71fb6ecd...): ReleaseTag theme=oc added to 7 site files (index, architecture, security, privacy, glossary, skills index, EnforcementMap); no Worker/script/header/wrangler/dependency change. Verified by building site with the preview env unset and set=2.1: inline-script hash sets, JS bundle set, non-html/css asset set and external-host sets identical; no inline event handlers; no data-release-tag or preview ribbon in the production build (0/92 pages) and 8 tags + 83 ribbons only in the preview build; scripts/deploy.mjs releasePreviewFor refuses production while PUBLIC_OPCHAIN_RELEASE_PREVIEW is set (runs after loadDevVars, before prebuild; 16 deploy-baseline tests pass); hardening:verify 2/2. Earlier findings (3 LOW, 3 INFO from the e0ef5b10 assessment) carried forward unchanged by reference; no new findings. 0 CRITICAL/HIGH/MEDIUM."
+      }
     }
   ],
   "latest_pre_deploy": {
-    "candidate": "e0ef5b107b1009d28aad149278307649858b56a8",
-    "candidate_identity": "sha256:71fb6ecdf644e84dde04c95cb20a95b0a71db0d9b6c36c502a3898c145fc8e9a",
+    "candidate": "63222ed22c96ab9cd648f677ce9c5f34fa4f1696",
+    "candidate_identity": "sha256:24daf1bcc43cbe825788186f26f7963ed96df1569a9dd086a8f90f99514eb503",
     "verdict": "PASS",
     "blocking_findings": 0,
     "target": "staging preview of the oc-only 2.1.0 candidate (branch claude/staging-preview-2-1)"
   },
-  "record_updated_at": "2026-11-05T21:37:17.667Z",
+  "record_updated_at": "2026-11-05T22:27:17.185Z",
   "skill_state": {
-    "verified_for_sha": "e0ef5b107b1009d28aad149278307649858b56a8",
+    "verified_for_sha": "63222ed22c96ab9cd648f677ce9c5f34fa4f1696",
     "scope": "pre-deploy-delta",
     "tier": "standard",
     "findings_by_risk": {
