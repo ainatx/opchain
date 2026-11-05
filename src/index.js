@@ -229,6 +229,12 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
   if (dryRun) {
     // J5 still runs on a dry-run roadmap request, so staging can test it:
     // the response and the log say what it would have done; nothing is filed.
+    // The roadmap rate limit applies first, as on the live path, so a flood
+    // of dry-run requests costs no Jev calls either.
+    if (isCommunity) {
+      const limited = await roadmapRateLimit(request, env, log, origin, requestId);
+      if (limited) return limited;
+    }
     const dryTriage = isCommunity ? await triagePublicFeedback(env, ctx, log, { title, description }) : null;
     const wouldFile = dryTriage?.security ? "linear-security" : isCommunity ? "github" : "linear";
     log.event(EVENTS.FEEDBACK_SUBMITTED, {
@@ -381,23 +387,28 @@ async function handleFeedback(request, env, ctx, origin, requestId) {
 const ROADMAP_REQUEST_RATELIMIT_MAX = 5;
 const ROADMAP_REQUEST_RATELIMIT_TTL_S = 60 * 60; // 1h
 
-async function handleRoadmapRequest(request, env, ctx, log, origin, requestId, { type, title, description, category }) {
-  const ip = request.headers.get("CF-Connecting-IP") || "0.0.0.0";
-  if (env.NOTIFY) {
-    const ipHash = await ipHashHex(ip);
-    const rlKey = `ratelimit:roadmap-request:${ipHash}`;
-    const current = Number(await env.NOTIFY.get(rlKey)) || 0;
-    if (current >= ROADMAP_REQUEST_RATELIMIT_MAX) {
-      log.event(EVENTS.RATE_LIMIT_HIT, { ip_hash: ipHash, source: "roadmap-request" });
-      return new Response(
-        JSON.stringify({ error: "Too many requests, slow down.", code: "rate_limited" }),
-        { status: 429, headers: corsHeaders(origin, requestId) },
-      );
-    }
-    await env.NOTIFY.put(rlKey, String(current + 1), {
-      expirationTtl: ROADMAP_REQUEST_RATELIMIT_TTL_S,
-    });
+/** The per-IP roadmap-request limit: a 429 Response once it is hit, else null (and the count goes up). */
+async function roadmapRateLimit(request, env, log, origin, requestId) {
+  if (!env.NOTIFY) return null;
+  const ipHash = await ipHashHex(request.headers.get("CF-Connecting-IP") || "0.0.0.0");
+  const rlKey = `ratelimit:roadmap-request:${ipHash}`;
+  const current = Number(await env.NOTIFY.get(rlKey)) || 0;
+  if (current >= ROADMAP_REQUEST_RATELIMIT_MAX) {
+    log.event(EVENTS.RATE_LIMIT_HIT, { ip_hash: ipHash, source: "roadmap-request" });
+    return new Response(
+      JSON.stringify({ error: "Too many requests, slow down.", code: "rate_limited" }),
+      { status: 429, headers: corsHeaders(origin, requestId) },
+    );
   }
+  await env.NOTIFY.put(rlKey, String(current + 1), {
+    expirationTtl: ROADMAP_REQUEST_RATELIMIT_TTL_S,
+  });
+  return null;
+}
+
+async function handleRoadmapRequest(request, env, ctx, log, origin, requestId, { type, title, description, category }) {
+  const limited = await roadmapRateLimit(request, env, log, origin, requestId);
+  if (limited) return limited;
 
   // J5 runs after the rate limit, so a flood costs no Jev calls. A likely
   // security report returns { divert } and handleFeedback files it privately.
