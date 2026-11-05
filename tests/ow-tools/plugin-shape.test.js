@@ -47,7 +47,8 @@ describe("ow-tools plugin shape", SPAWN, () => {
 
   // SA-001 (REL-01 policy, docs/governance/RELEASING.md § ow- catalog): the
   // entry follows the mirror's `main` only until the first release that ships
-  // ow-tools (v2.1.0). From then on `ref` names a release tag, which
+  // ow-tools (v2.2.0 since the 2.1 decision of 2026-11-05; 2.1 is oc- only).
+  // From then on `ref` names a release tag, which
   // mirror-public.yml pushes to the mirror on every `v*` tag, and the release
   // cut moves it to the new tag in the same PR as the catalog bump.
   it("pins the marketplace source to a release tag once the catalog has shipped ow-tools", () => {
@@ -58,9 +59,9 @@ describe("ow-tools plugin shape", SPAWN, () => {
       .filter(Boolean));
     expect(versions.size).toBe(1); // lockstep
     const catalog = [...versions][0];
-    const atLeast210 = catalog.split(".").map(Number).reduce((acc, n, i) => acc || (i === 0 && n > 2) || (i === 1 && n >= 1), false);
+    const atLeast22 = catalog.split(".").map(Number).reduce((acc, n, i) => acc || (i === 0 && n > 2) || (i === 1 && n >= 2), false);
     if (ref === "main") {
-      expect(atLeast210, `catalog ${catalog} has shipped ow-tools; marketplace.json must pin ref: v${catalog}`).toBe(false);
+      expect(atLeast22, `catalog ${catalog} has shipped ow-tools; marketplace.json must pin ref: v${catalog}`).toBe(false);
     } else {
       expect(ref).toMatch(/^v\d+\.\d+\.\d+$/);
       const tagged = spawnSync("git", ["tag", "-l", ref], { cwd: ROOT, encoding: "utf8" }).stdout.trim() === ref;
