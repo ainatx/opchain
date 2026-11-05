@@ -615,7 +615,7 @@ Staging has both since 2026-11-05: the secret, and the flag as a var in
 
 Staging runs `/api/feedback` as a dry run (`FEEDBACK_DRY_RUN`), which files
 nothing. J5 still runs there on a roadmap request when the flag and secret are
-set, and the synthetic 201 carries
+set, after the same per-IP rate limit, and the synthetic 201 carries
 `triage: { security, choice, p_security, would_file }` (`linear-security` or
 `github`), so a staging check shows the diversion without writing anything:
 
