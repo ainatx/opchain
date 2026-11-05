@@ -1,23 +1,23 @@
 {
-  "id": "oc-docs-forge-pr-docs-v1-71fb6ecdf644",
+  "id": "oc-docs-forge-pr-docs-v1-24daf1bcc43c",
   "contract_version": "1.0",
   "type": "verification.verdict",
-  "created_at": "2026-11-05T21:18:54.243Z",
-  "verified_at": "2026-11-05T21:18:54.243Z",
+  "created_at": "2026-11-05T22:38:20.167Z",
+  "verified_at": "2026-11-05T22:38:20.167Z",
   "producer": {
     "skill": "oc-docs-forge",
-    "run_id": "pr-docs-v1-2026-11-05T21:18:54.243Z"
+    "run_id": "pr-docs-v1-2026-11-05T22:38:20.167Z"
   },
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:71fb6ecdf644e84dde04c95cb20a95b0a71db0d9b6c36c502a3898c145fc8e9a"
+    "id": "sha256:24daf1bcc43cbe825788186f26f7963ed96df1569a9dd086a8f90f99514eb503"
   },
   "payload": {
     "verdict": "PASS",
     "policy": "pr-docs-v1",
-    "scope": "v2.1.0 release PR (Enforcement and Jev): oc- catalog 2.1.0, ow- family separated to 2.2 (2bdc7200, outputs behind OPCHAIN_SHIP_WORK), main merged through #675 (fc8e62ca #674 at 4083925e, 54688dd6 #675 at aac54cb5)",
+    "scope": "v2.1.0 release PR: staging-preview tags on the changed 2.1 surfaces (site only)",
     "evidence": [
-      "skills/CHANGELOG.md [2.1.0], plugins/opchain/skills/CHANGELOG.md, README.md, CLAUDE.md, docs/plans/2026-11-01-v2.1.0-release-notes-draft.md reviewed on the merged tree; #675 adds docs/audits only"
+      "Release docs packet unchanged since the ow- separation; this push adds only inert staging-preview tags (render nothing in a production build) to home, architecture, security, privacy, glossary, skills callout and the enforcement map; production build verified to contain no data-release-tag."
     ]
   }
 }
