@@ -4,14 +4,15 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-09-14T00:38:43.799Z",
-  "updated_at": "2026-10-30T22:28:08.376Z",
+  "updated_at": "2026-11-05T21:37:17.667Z",
   "phase": "build",
-  "step": "posture-main-e00f9623",
+  "step": "posture-e0ef5b10",
   "status": "complete",
-  "progress_summary": "Pre-deploy security posture 2026-10-30 (third cut) for staging preview head ca157fea (PR #669 with REL-01 merged): PASS, tier standard, delta review. New public surfaces are static files the Worker already serves as assets: /opchain-work-skills.zip, /work/<id>.zip, /docs/work, /work/ow-tools-security-manifest.sha256 (built from the exact tree and checked by check-work-install). ow-tools 1.3.1 pins the speaker-model revision and verifies the Whisper model hash; the marketplace ref pins v2.1.0 (RELEASING.md 2a). No Worker code, header, wrangler, dependency or hardening change; hardening:verify 2/2; attack surface unchanged. Residuals unchanged: production refused while PUBLIC_OPCHAIN_RELEASE_PREVIEW is set and until a signed v2.1.0 tag exists.",
+  "progress_summary": "Pre-deploy security posture 2026-11-05 for the oc-only 2.1.0 staging preview candidate e0ef5b10: PASS, tier standard, delta review from the d30a6b97/ca157fea PASS. No Worker, header or wrangler change; ow- skills, ow-tools and /work are withheld behind OPCHAIN_SHIP_WORK in the build, the mirror and the built public/. 0 CRITICAL/HIGH. LOW: zod 4.6.5 high advisory GHSA-mrhx-c7xc-m3w5 (collection schemas only; the Worker uses none), router decision cache and log under a shared tmp path trusted unvalidated (live mode, multi-user Linux), internal repo name deftwright-site in the shipped changelog and runtime comments. INFO: PASS_SUPERSEDED receipt coverage, preview var via an untracked site/.env, two independent SHIP_WORK switches. Staging still serves the old ow- zip until this build replaces it.",
   "next_actions": [
-    "Before the next release cut, re-run the pre-deploy posture assessment (/oc-security posture) on the release delta from c09a63e (v2.0.4, the last PASS) and bind it with: node scripts/checkpoint.mjs handoff oc-security-auditor --policy pre-deploy-security-posture-v1 --verdict PASS --scope \"<delta reviewed>\" --evidence <audit doc>",
-    "While there, re-check the residuals every posture since 2.0.1 has carried forward: dev-only site dependency advisories, tag-pinned (not SHA-pinned) CI action refs, missing COOP/CORP headers, and the live headers/TLS/control-plane check that each assessment skipped because no deployment was performed (OWASP A02 PARTIAL)."
+    "After the staging deploy, curl https://staging.opchain.dev/opchain-work-skills.zip, /work/ow-tools-security-manifest.sha256 and /docs/work/ow-protocol.md: all must be 404 (staging serves the old ow- zip today; production already 404s). Deploy with OPCHAIN_SHIP_WORK unset.",
+    "Before the production cut: bump zod to 4.6.6 (GHSA-mrhx-c7xc-m3w5, not reachable today); have the router write its log and decision cache under a 0700 per-user directory and validate a cached decision.skill against route-spec before it is injected; drop the deftwright-site reference from skills/CHANGELOG.md and the release-evidence.mjs comment (7 shipped copies).",
+    "Carry forward: missing COOP/CORP and HSTS preload (header score 6/8), tag-pinned CI action refs, style-src unsafe-inline (B-08), dev-only site advisories (undici/wrangler/miniflare), and the live TLS/control-plane check each pre-deploy assessment skips."
   ],
   "handoffs": [
     {
@@ -569,19 +570,48 @@
         "policy": "pre-deploy-security-posture-v1",
         "scope": "Pre-deploy posture of the merged 2.1.0 staging cut b7ef4350..ca157fea: static ow- distribution assets, ow-tools 1.3.1 provenance pins, marketplace ref v2.1.0; no Worker, header, dependency or hardening change; hardening:verify 2/2."
       }
+    },
+    {
+      "id": "oc-security-auditor-pre-deploy-security-posture-v1-71fb6ecdf644",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-11-05T21:37:02.243Z",
+      "verified_at": "2026-11-05T21:37:02.243Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "pre-deploy-posture-2.1.0-oc-only-2026-11-05"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:71fb6ecdf644e84dde04c95cb20a95b0a71db0d9b6c36c502a3898c145fc8e9a"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Pre-deploy posture (tier standard, delta review) of the oc-only 2.1.0 release candidate e0ef5b10 for a staging preview: ow- outputs withheld (build scripts, check-work-install --expect-withheld, mirror-public.yml SHIP_WORK staging and ow: marker sed, built public/ has no ow- zip/docs/manifest), Worker src byte-identical to the previously assessed d30a6b97, router hook and Jev client unchanged (shadow default, redacted, key from env), preview ribbon refused for production by scripts/deploy.mjs, post-commit/pre-push hooks and deploy template use argv arrays with no shell, PASS_SUPERSEDED receipt relaxation reviewed; hardening:verify 2/2; 209 targeted tests pass. 0 CRITICAL/HIGH, 3 LOW and 3 INFO findings, none blocking."
+      }
     }
   ],
   "latest_pre_deploy": {
-    "candidate": "e00f962357353e91b54e6874f6b2ac51508bcc45",
-    "candidate_identity": "sha256:764435509fb799a0ee3d9764ac2b9f88db9bc305c54e6e876bdb9204df6d3285",
+    "candidate": "e0ef5b107b1009d28aad149278307649858b56a8",
+    "candidate_identity": "sha256:71fb6ecdf644e84dde04c95cb20a95b0a71db0d9b6c36c502a3898c145fc8e9a",
     "verdict": "PASS",
     "blocking_findings": 0,
-    "target": "staging from main"
+    "target": "staging preview of the oc-only 2.1.0 candidate (branch claude/staging-preview-2-1)"
   },
-  "record_updated_at": "2026-10-30T22:28:08.376Z",
+  "record_updated_at": "2026-11-05T21:37:17.667Z",
   "skill_state": {
-    "verified_for_sha": "ca157feac110c90be1d124429f37974a2c88e02f",
+    "verified_for_sha": "e0ef5b107b1009d28aad149278307649858b56a8",
     "scope": "pre-deploy-delta",
-    "tier": "standard"
+    "tier": "standard",
+    "findings_by_risk": {
+      "CRITICAL": 0,
+      "HIGH": 0,
+      "MEDIUM": 0,
+      "LOW": 3,
+      "INFO": 3
+    },
+    "header_score": "6/8",
+    "code_auditor_checkpoint_read": true
   }
 }
