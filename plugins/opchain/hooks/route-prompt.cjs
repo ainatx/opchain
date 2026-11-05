@@ -291,6 +291,9 @@ function recordPreviousOutcome() {
       continue;
     }
     if (rec.session_id !== sessionId) continue;
+    // route-redirect.cjs appends redirect records to the same log; they are not
+    // the routed prompt whose outcome this closes.
+    if (rec.type === "redirect") continue;
     prev = rec;
     break;
   }

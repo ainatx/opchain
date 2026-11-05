@@ -27,8 +27,8 @@
 // invoked in the window yet. Anything else, and every failure, allows.
 //
 // ── Log ─────────────────────────────────────────────────────────────────────
-// Appends { type: "redirect", at, session_id, for_prompt_hash, class, skill,
-// args, action: "block" | "override" } to the router log, which is also the
+// Appends { type: "redirect", at, session_id, for_prompt_hash, for_route_at,
+// class, skill, args, action: "block" | "override" } to the router log, which is also the
 // state the block-once rule reads. `route-eval outcomes` reports them.
 //
 // ── Env ─────────────────────────────────────────────────────────────────────
@@ -128,8 +128,12 @@ function decide({ command, sessionId, logRecords, transcriptRecords }) {
   // The router never logs a menu verb as a decision (route-prompt silences it), so
   // the logged verb is a real step; fall back to the class's verb when it has none.
   const args = typeof route.decision.args === "string" && route.decision.args.startsWith("/") ? route.decision.args : CLASS_SKILL[cls].verb;
+  // Only a block for THIS routed turn counts: a prompt repeated later in the
+  // session has the same hash, so blocks are also scoped to the route's time.
   const blockedBefore = logRecords.some(
-    (r) => r && r.type === "redirect" && r.session_id === sessionId && r.for_prompt_hash === route.prompt_hash && r.class === cls && r.action === "block",
+    (r) =>
+      r && r.type === "redirect" && r.session_id === sessionId && r.for_prompt_hash === route.prompt_hash && r.class === cls && r.action === "block" &&
+      (r.for_route_at ? r.for_route_at === route.at : typeof r.at === "string" && r.at >= route.at),
   );
   return { action: blockedBefore ? "override" : "block", cls, skill, args, route };
 }
@@ -169,6 +173,7 @@ function main() {
         at: new Date().toISOString(),
         session_id: sessionId,
         for_prompt_hash: d.route.prompt_hash,
+        for_route_at: d.route.at,
         class: d.cls,
         skill: d.skill,
         args: d.args,

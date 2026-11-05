@@ -36,8 +36,16 @@ describe("route-redirect decide()", () => {
   });
 
   it("lets the same class through on the second attempt and calls it an override", () => {
-    const log = [route(), { type: "redirect", session_id: SID, for_prompt_hash: HASH, class: "gh_pr_merge", action: "block" }];
+    const log = [route(), { type: "redirect", at: "2026-11-05T20:00:06.000Z", session_id: SID, for_prompt_hash: HASH, for_route_at: AT, class: "gh_pr_merge", action: "block" }];
     expect(decide({ log }).action).toBe("override");
+  });
+
+  it("does not let a block from an earlier copy of the same prompt count for this turn", () => {
+    const earlier = { ...route(), at: "2026-11-05T19:00:00.000Z" };
+    const oldBlock = { type: "redirect", at: "2026-11-05T19:00:05.000Z", session_id: SID, for_prompt_hash: HASH, for_route_at: earlier.at, class: "gh_pr_merge", action: "block" };
+    expect(decide({ log: [earlier, oldBlock, route()] }).action).toBe("block");
+    const legacyBlock = { ...oldBlock, for_route_at: undefined };
+    expect(decide({ log: [earlier, legacyBlock, route()] }).action).toBe("block");
   });
 
   it("allows once the suggested skill was invoked this turn", () => {
