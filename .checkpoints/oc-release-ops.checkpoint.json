@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-11-02T18:32:36Z",
+  "updated_at": "2026-11-05T23:43:24Z",
   "skill": "oc-release-ops",
   "phase": "bump",
   "step": "v2.1.0-bump-applied-draft-pr-671",
   "status": "in_progress",
-  "progress_summary": "v2.1.0 plan approved 2026-11-01 (owner rulings via coordinator local_8959641b): semver 2.1.0 (minor), theme \"Client work and enforcement\", planned date 2026-11-20 (coordinator estimate; owner confirms at the push gate). Release PR #671 open as a HELD DRAFT (2026-11-02) from claude/release-2-1-0-1cd617; stays a draft until REL-02 passes; merge, signed tag, staging and production in one sitting from the owner's laptop. In the PR: #669 (ow- site half, staging-verified at d30a6b97) and #620 (Track E site half, main merged in, never rebased); [Unreleased] -> [2.1.0] with the ow- family entry; lockstep 2.0.4 -> 2.1.0 (36 SKILL.md, seal gen 1, server.json, marketplace x2, plugin.json, ow-tools ref v2.1.0); Minor-column surfaces flipped; router-label e2e narrowed. Owner still owes in skills/CHANGELOG.md: the EN-02 verdict's three numbers (NO-GO so far) and the REL-02 record line. Detail in skill_state.current_release.",
+  "progress_summary": "v2.1.0 plan approved 2026-11-01 (owner rulings via coordinator local_8959641b): semver 2.1.0 (minor), theme \"Enforcement and Jev\" (renamed 2026-11-05 when the ow- skills moved to 2.2), release date 2026-11-05 (coordinator estimate; owner confirms at the push gate). Release PR #671 open as a HELD DRAFT (2026-11-02) from claude/release-2-1-0-1cd617; stays a draft until REL-02 passes; merge, signed tag, staging and production in one sitting from the owner's laptop. In the PR: #669 (ow- site half, staging-verified at d30a6b97) and #620 (Track E site half, main merged in, never rebased); [Unreleased] -> [2.1.0] with the ow- family entry; lockstep 2.0.4 -> 2.1.0 (36 SKILL.md, seal gen 1, server.json, marketplace x2, plugin.json, ow-tools ref v2.1.0); Minor-column surfaces flipped; router-label e2e narrowed. Owner still owes in skills/CHANGELOG.md: the EN-02 verdict's three numbers (NO-GO so far) and the REL-02 record line. Detail in skill_state.current_release.",
   "progress_table": [
     {
       "id": "scope",
@@ -95,7 +95,7 @@
       "done_when": "no _[EN-02 …]_ placeholder left in skills/CHANGELOG.md"
     },
     {
-      "text": "Owner confirms or moves the planned date (2026-11-20) in the [2.1.0] heading, the #v2-1 hero-ver and the three README leading lines; mark the PR ready; merge; /oc-git-release 2.1.0 (signed tag); npm run gen-roadmap && npm run deploy:staging; eyeball; npm run deploy; baseline PR. One sitting.",
+      "text": "Date 2026-11-05 and the EN-02 GO verdict are recorded (hold lifted by the owner 2026-11-05); the coordinator marks the PR ready; merge; /oc-git-release 2.1.0 (signed tag); npm run gen-roadmap && npm run deploy:staging; eyeball; npm run deploy; baseline PR. One sitting.",
       "done_when": "check-release-tag exits 0 and /api/health on opchain.dev reports the release SHA"
     },
     {
@@ -151,7 +151,8 @@
         "2026-11-01 (session): planned ship date in the heading, hero-ver and READMEs is 2026-11-20 (the coordinator's ready-to-tag estimate); a one-line sed moves it if the owner picks another day before the tag.",
         "2026-11-02 (owner): the three #620 commits whose PASS receipts sit under the superseded gate policy db28b135 stay as merged (no trailer rewrite, no squash); the PR body documents them; the local evidence:pr bypass-accountability row is a known false positive; follow-up = bypass-list accepts a PASS receipt under a superseded policy.",
         "2026-11-02 (owner): planned date 2026-11-20 confirmed for the draft; push and draft PR approved.",
-        "2026-11-05 (owner): the ow- skills are separated from 2.1; 2.1.0 is the Jev and enforcement release (oc- only) and the ow- family, ow-tools and their distribution ship with the 2.2 lockstep release. Theme renamed \"Enforcement and Jev\". ow- outputs on main are opt-in behind OPCHAIN_SHIP_WORK=1 (build gate PR), so nothing ow- reaches opchain.dev or the mirror in the 2.1 deploy."
+        "2026-11-05 (owner): the ow- skills are separated from 2.1; 2.1.0 is the Jev and enforcement release (oc- only) and the ow- family, ow-tools and their distribution ship with the 2.2 lockstep release. Theme renamed \"Enforcement and Jev\". ow- outputs on main are opt-in behind OPCHAIN_SHIP_WORK=1 (build gate PR), so nothing ow- reaches opchain.dev or the mirror in the 2.1 deploy.",
+        "2026-11-05 (owner, via the coordinator): HOLD lifted (\"Move to production and release 2.1\"); release date 2026-11-05; EN-02 verdict GO with the labelled numbers (65 suggestions, precision 0.836, recall 0.836, silent 0.954; docs/audits/2026-11-05-jev-performance-since-install.md); the blog post stays a draft; release sequence pauses at staging for the owner."
       ],
       "coordinator_session": "local_8959641b-079e-4663-a666-29fe18675011",
       "scope": {
@@ -238,7 +239,7 @@
           "merged": "2026-10-30"
         }
       ],
-      "planned_date": "2026-11-20",
+      "planned_date": "2026-11-05",
       "release_branch": "claude/release-2-1-0-1cd617",
       "headline_items": [
         "Enforcement at chokepoints: enforcement map, tool-named handoffs, bypass records + pre-push refusal, /oc-merge, per-branch evidence store, consumer deploy wrapper (BREAKING: --prod)",
@@ -410,7 +411,7 @@
       "prod_health": "d4f926b"
     }
   },
-  "record_updated_at": "2026-11-02T18:32:36Z",
+  "record_updated_at": "2026-11-05T23:43:24Z",
   "pm_deferred_actions": [
     {
       "id": "deferred-2026-09-21T19:53:16Z-7f2f",

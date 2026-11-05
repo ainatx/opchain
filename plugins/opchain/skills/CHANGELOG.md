@@ -11,7 +11,7 @@ contract another skill depends on → called out as **BREAKING**. The on-disk
 checkpoint `protocol_version` is tracked separately (see
 `oc-checkpoint-protocol/SKILL.md`).
 
-## [2.1.0] — 2026-11-20 — "Enforcement and Jev"
+## [2.1.0] — 2026-11-05 — "Enforcement and Jev"
 
 The oc- dev pipeline gains a check at each place its work goes through: the
 commit, the push, the pull request, the deploy and the release. TypeSafe's Jev
@@ -182,17 +182,17 @@ with 2.2 (owner decision 2026-11-05; `docs/governance/RELEASING.md` §2a).
   chosen step's description. Task notifications, CI events and other sessions'
   messages neither route nor end the measured window of the prompt before them. Unset the key or set `OPCHAIN_ROUTE=0` to turn it off. It has an offline
   eval (574 labelled past prompts: precision 1.000, recall 0.805, silent
-  1.000 on `+route4`). The shadow-period go/no-go is **NO-GO so far**: the
+  1.000 on `+route4`). The shadow-period go/no-go is **GO**: the
   day-8 re-run of 2026-10-26 (`docs/audits/2026-10-26-jev-day8-and-route4.md`)
-  failed on volume and unlabelled suggestions, not on precision, so the shipped
-  default stays shadow and whether the router changes skill use is not yet
-  measured. _[EN-02 verdict, owner: the re-run with the owner's labels records
-  GO or NO-GO with its three numbers (precision —, recall —, silent rate — on
-  — suggestions) before the tag; until then this line is the recorded
-  verdict.]_ `OPCHAIN_ROUTE_MODE=live`, which injects the suggestion, is
-  **unsupported** until that go/no-go (`docs/runbooks/skill-router-eval.md`
-  §6) records a GO; `OPCHAIN_ROUTE_AB=1` then shows it to half the sessions so
-  the effect can be measured.
+  was NO-GO on volume and unlabelled suggestions, not on precision; with every
+  row hand-labelled (`docs/audits/2026-11-05-jev-performance-since-install.md`,
+  311 prompts since install, all builds) the day-8 gate reads GO on 65
+  suggestions: precision 0.836, recall 0.836, silent rate 0.954. The shipped
+  default stays shadow, and whether the router changes skill use is not yet
+  measured. `OPCHAIN_ROUTE_MODE=live`, which injects the suggestion, is
+  supported as an opt-in now that the go/no-go
+  (`docs/runbooks/skill-router-eval.md` §6) records a GO; `OPCHAIN_ROUTE_AB=1`
+  shows it to half the sessions so the effect can be measured.
 
 ### Fixed
 

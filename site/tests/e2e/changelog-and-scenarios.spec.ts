@@ -65,7 +65,7 @@ test.describe("/changelog", () => {
     await expect(page.locator("#panel-coming")).toBeHidden();
     await expect(page.locator("#panel-planned")).toBeHidden();
 
-    // The newest release (v2.1, release cut planned 2026-11-20) is the accent
+    // The newest release (v2.1, released 2026-11-05) is the accent
     // hero, open on load, tagged with its version + a non-empty compatibility
     // note (changelog-recipe rule).
     const hero = page.locator("#v2-1.hero-card--released");
