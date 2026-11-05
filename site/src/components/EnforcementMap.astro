@@ -1,4 +1,5 @@
 ---
+import ReleaseTag from "./ReleaseTag.astro";
 /**
  * EnforcementMap — /architecture "Enforcement map" (v2.1).
  *
@@ -84,7 +85,7 @@ const heldLabel = { yes: "held", partly: "partly", named: "named only" } as cons
 ---
 
 <section class="enf" id="enforcement-map" aria-labelledby="enforcement-map-title">
-  <span class="enf-eyebrow">v2.1 · where each edge is held</span>
+  <span class="enf-eyebrow">v2.1 · where each edge is held <ReleaseTag theme="oc" /></span>
   <h2 id="enforcement-map-title">Enforcement map</h2>
   <p class="enf-lede">
     The diagram above draws the handoffs. A handoff in a skill's text is a

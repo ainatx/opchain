@@ -1,4 +1,5 @@
 ---
+import ReleaseTag from "../components/ReleaseTag.astro";
 import Base from "../layouts/Base.astro";
 import Eyebrow from "../components/ui/Eyebrow.astro";
 import RouterLabel from "../components/RouterLabel.astro";
@@ -128,7 +129,7 @@ import { ROUTER_LIVE_MODE } from "../data/router-status";
         from the Worker, under opchain's key rather than yours):
       </p>
       <div class="router" id="router" data-router-copy>
-        <h3>Skill router <RouterLabel /></h3>
+        <h3>Skill router <RouterLabel /> <ReleaseTag theme="oc" /></h3>
         <ul>
           <li>With <code>TYPESAFE_API_KEY</code> set, the hook sends the redacted prompt and a repo summary to <code>api.typesafe.ai</code>. The summary covers the branch name, ahead/behind, dirty count, open PR, enrollment, and the active checkpoint's skill, phase and first next action (up to 200 characters). Credential-shaped text is redacted; names in the branch or that next action are sent as written.</li>
           <li>The previous prompt and the end of the last assistant message are sent only with <code>OPCHAIN_ROUTE_CONTEXT=1</code>.</li>

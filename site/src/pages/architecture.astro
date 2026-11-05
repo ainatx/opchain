@@ -1,4 +1,5 @@
 ---
+import ReleaseTag from "../components/ReleaseTag.astro";
 import Base from "../layouts/Base.astro";
 import MobileArchitecture from "../components/MobileArchitecture.astro";
 import EnforcementMap from "../components/EnforcementMap.astro";
@@ -1473,7 +1474,7 @@ const packCounts = {
                preview, not a pipeline rail. -->
           <div class="jrail" role="group" data-router-copy aria-label={`2.1 Jev rail, ${ROUTER_LABEL}: a UserPromptSubmit hook asks TypeSafe Jev which one opchain skill owns the prompt and logs the answer. Shadow mode is the default and injects nothing. Live mode, which would inject one line naming the Skill tool, the skill and the verb, is unsupported until the go/no-go records a GO.`}>
             <div class="jrail-head">
-              <span class="jrail-eyebrow">v2.1 · Jev rail</span>
+              <span class="jrail-eyebrow">v2.1 · Jev rail <ReleaseTag theme="oc" /></span>
               <span class="jrail-title">Route each prompt to one skill, and log it. <RouterLabel /></span>
             </div>
             <div class="jrail-svg-wrap">

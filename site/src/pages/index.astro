@@ -1,4 +1,5 @@
 ---
+import ReleaseTag from "../components/ReleaseTag.astro";
 import { REPO_SITE } from "../lib/repo";
 import Base from "../layouts/Base.astro";
 import Logo from "../components/Logo.astro";
@@ -93,7 +94,7 @@ const softwareLd = {
          ember box-shadow. Links to the v1.9 roadmap slot. -->
     <a class="release-bar-glow" href="/changelog#v2-2" aria-label="opchain release roadmap">
       <span class="rb-half rb-current">
-        <span class="rb-tag">v2.1 · shipped</span>
+        <span class="rb-tag">v2.1 · shipped</span><ReleaseTag theme="oc" />
         <span class="rb-text">a check at every chokepoint · Jev uses, evaluated first</span>
       </span>
       <span class="rb-divider" aria-hidden="true"></span>
