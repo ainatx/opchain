@@ -71,7 +71,11 @@
       // returns a synthetic 201 with id "STAGING-DRY-RUN" — no Linear
       // call, so LINEAR_API_KEY isn't required here. Keeps test
       // submissions out of the prod Linear backlog.
-      "vars": { "FEEDBACK_DRY_RUN": "true" },
+      // FLAG_PLATFORM_SECURITY_FEEDBACK_TRIAGE turns on Jev J5 triage
+      // (with the TYPESAFE_API_KEY secret). Under the dry run it files
+      // nothing and reports what it would file in the 201's `triage`.
+      // Staging only; production keeps the registry default (off).
+      "vars": { "FEEDBACK_DRY_RUN": "true", "FLAG_PLATFORM_SECURITY_FEEDBACK_TRIAGE": "true" },
       "kv_namespaces": [
         {
           "binding": "NOTIFY",
