@@ -1,23 +1,23 @@
 {
-  "id": "oc-repo-ops-pr-readiness-v1-68a9bd090bf3",
+  "id": "oc-repo-ops-pr-readiness-v1-71fb6ecdf644",
   "contract_version": "1.0",
   "type": "verification.verdict",
-  "created_at": "2026-11-05T20:38:52.429Z",
-  "verified_at": "2026-11-05T20:38:52.429Z",
+  "created_at": "2026-11-05T21:18:54.482Z",
+  "verified_at": "2026-11-05T21:18:54.482Z",
   "producer": {
     "skill": "oc-repo-ops",
-    "run_id": "pr-readiness-v1-2026-11-05T20:38:52.429Z"
+    "run_id": "pr-readiness-v1-2026-11-05T21:18:54.482Z"
   },
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:68a9bd090bf38a4f482e2eb472c1d051b49372f87337a37c7705e618d7dd05b2"
+    "id": "sha256:71fb6ecdf644e84dde04c95cb20a95b0a71db0d9b6c36c502a3898c145fc8e9a"
   },
   "payload": {
     "verdict": "PASS",
     "policy": "pr-readiness-v1",
-    "scope": "v2.1.0 release PR without the ow- skills: changelog, hero, READMEs, site pages, /work removal, version surfaces",
+    "scope": "v2.1.0 release PR (Enforcement and Jev): oc- catalog 2.1.0, ow- family separated to 2.2 (2bdc7200, outputs behind OPCHAIN_SHIP_WORK), main merged through #675 (fc8e62ca #674 at 4083925e, 54688dd6 #675 at aac54cb5)",
     "evidence": [
-      "Generated files current (plugin skills synced, bundles synced); /work source removed with its tests; OPCHAIN_SHIP_WORK gate merged from main means no ow- output is built; catalogs/surfaces/chip tests pass."
+      "gate PASS on merge candidate c08cff8a (aac54cb5); #675 is docs/audits + two handoff JSONs, no generated-catalog or plugin drift; foreign handoffs pruned"
     ]
   }
 }
