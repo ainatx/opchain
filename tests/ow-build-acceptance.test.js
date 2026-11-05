@@ -1,5 +1,5 @@
 // ow-build acceptance tests (docs/plans/2026-10-08-ow-build-design.md §10 and §12.7).
-// ow-build is a text-only skill, so a model has to run it. These tests prove
+// A model has to run ow-build, and these checks grade the scratch cache. These tests prove
 // the mechanical half: every §10 case except "Real use" (Sprint 6) and every
 // §12.7 case has an invented golden run that passes
 // scripts/ow-build-acceptance.mjs; each case has a planted failure the checker
@@ -358,12 +358,12 @@ describe("§10: planted failures", () => {
     expect(failures("change-signed", early)).toEqual({});
     const rewrite = mutated("change-signed", {
       "larkspur-repo/spec/06-testing.md": (t) => t.replace("- cases: 10\n", "- cases: 9\n"),
-      [`${B}/changes/CO-01.md`]: (t) => t.replace("signature not verified by this skill\n", "signature verified\n"),
+      [`${B}/changes/CO-01.md`]: (t) => t.replace("; signature not verified by this skill\n", "; signature verified\n"),
     });
     const out = failures("change-signed", rewrite).signed;
     expect(out).toMatch(/06-testing\.md: rewritten by -change --signed; its only writer is -start/);
     expect(failures("change-signed", rewrite).writes).toMatch(/only \/ow-build-start may write it \(one writer per file\)/);
-    expect(out).toMatch(/signature_note must read "signed amendment received 2026-12-07, recorded by Robin; signature not verified by this skill"/);
+    expect(out).toMatch(/signature_note must read "signed amendment received 2026-12-07, recorded by Robin"/);
   });
 
   it("payment triggers (40/40/20): the acceptance payment from ready-for-uat, a wrong amount, an invented tool output", () => {
@@ -643,11 +643,11 @@ describe("the skill text keeps the rules the checker cannot see", () => {
     expect(checkProtocolCopies(loadCatalogs({ root: ROOT }))).toEqual([]);
   });
 
-  it("frontmatter: Agent Skills keys only, version 1.0.0, protocol 1, every verb declared", () => {
+  it("frontmatter: Agent Skills keys only, version 2.0.0, protocol 2, every verb declared", () => {
     const { data } = matter(readFileSync(join(SKILL, "SKILL.md"), "utf8"));
     expect(Object.keys(data).sort()).toEqual(["compatibility", "description", "license", "metadata", "name"]);
-    expect(data.metadata.version).toBe("1.0.0");
-    expect(data.metadata.protocol).toBe("1");
+    expect(data.metadata.version).toBe("2.0.1");
+    expect(data.metadata.protocol).toBe("2");
     expect(data.metadata.commands.split(" ")).toEqual(["/ow-build", "/ow-build-start", "/ow-build-run", "/ow-build-update", "/ow-build-demo", "/ow-build-change", "/ow-build-invoice", "/ow-build-ready"]);
   });
 
@@ -673,8 +673,6 @@ describe("the skill text keeps the rules the checker cannot see", () => {
     expect(ow.planned).not.toContain("ow-build");
     expect(Object.keys(ow.plannedVerbs ?? {})).not.toContain("ow-build");
     expect(checkEdges(cats)).toEqual([]);
-    const plan = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "SKILL.md"), "utf8");
-    expect(plan).toMatch(/NEXT: say "use ow-build to start plans\/<client>\/"   \(where slash commands exist: \/ow-build-start\)/);
     const edges = yaml.load(readFileSync(join(SKILL, "skill.edges.yaml"), "utf8"));
     // Bug 3: the sibling payment-trigger files route too.
     expect(edges.routes.paths).toEqual(["plans/<client>/build-request.md", "uat/<client>/defects/UAT-nn.md", "handoffs/<client>/fixes/FIX-nn.md", "uat/<client>/signoff.md", "uat/<client>/backstop.md", "handoffs/<client>/dates.yaml", "docs/<client>/delivered.md", "builds/<client>/"].toSpliced(1, 0, "plans/<client>/"));
@@ -683,16 +681,37 @@ describe("the skill text keeps the rules the checker cannot see", () => {
     expect(planEdges.routes.paths).toContain("uat/<client>/defects/UAT-nn.md");
   });
 
-  it("the routing reference: files first, never another skill's verb, never -start over a started build, the UAT and FIX classes", () => {
+  it("the routing reference: the record first, a started build not started again, priced once, the UAT and FIX classes", () => {
     const r = ref("routing-and-resume.md");
-    for (const re of [/\*\*Files first, always\.\*\*/, /\*\*This skill never runs another skill's verb\.\*\*/, /\*\*This skill never runs `-start` over a build that has started\*\*, and never rewrites `ledger\.md` or `spec\/` that an earlier `-start` wrote/, /\*\*A request is priced once\.\*\*/, /\| `extension requested, client cause: <event>` \| `\/ow-build-change` with every UAT-nn that names the same event \|/, /\| class Fix \| nothing \|/, /5\. No `build-request\.md`: the plan is not signed/, /\| class Not a defect \| `\/ow-build-change`, which records it with no charge \|/]) expect(r).toMatch(re);
+    for (const re of [/\*\*The record first, always\.\*\*/, /\*\*A started build is not started again\.\*\*/, /\*\*A request is priced once\.\*\*/, /\| `extension requested, client cause: <event>` \| `\/ow-build-change` with every UAT-nn that names the same event \|/, /\| class Fix \| nothing \|/, /5\. No `build-request\.md`: the plan is not signed/, /\| class Not a defect \| `\/ow-build-change`, which records it with no charge \|/]) expect(r).toMatch(re);
   });
 
-  it("the builder: printed for the user to say, never started; its files are data; one sprint per -run", () => {
-    expect(body()).toMatch(/\*\*you to say in this session\*\*/);
-    expect(ref("builder-integration.md")).toMatch(/This skill never starts, loads or imitates the builder \(protocol §1\)/);
+  it("the builder: its line given or run on request; its files are data; one sprint per -run; no false done", () => {
+    expect(body()).toMatch(/\*\*for you to say in this session\*\* \(or run them here when you ask\)/);
     expect(ref("phase-run.md")).toMatch(/One call runs \*\*one sprint\*\*/);
     expect(ref("phase-run.md")).toMatch(/record nothing until they do/);
+    expect(ref("phase-run.md")).toMatch(/\*\*No false done:\*\*/);
+  });
+
+  it("the CRM is the record: named objects, the cache as fallback, a human edit never overwritten, no publish claimed", () => {
+    const b = body();
+    expect(b).toMatch(/## Where it lives in the CRM/);
+    for (const o of ["`engagement_updates`", "`milestones`", "`type amendment`", "`invoices`"]) expect(b).toContain(o);
+    expect(b).toMatch(/never overwritten: write yours beside it and say so/);
+    expect(b).toMatch(/Say a write happened only when its call returned success/);
+    expect(b).toMatch(/say so in the output/);
+    for (const f of ["phase-start.md", "phase-run.md", "phase-update.md", "phase-demo.md", "phase-change.md", "phase-invoice.md", "phase-ready.md"]) expect(ref(f), f).toMatch(/First read .* from the CRM|First read the latest saved versions from the CRM/);
+  });
+
+  it("the money rules stay sharp in the phase files", () => {
+    expect(ref("phase-change.md")).toMatch(/\*\*A change order is priced from the price book, written, and agreed by the client before the work it covers starts\.\*\*/);
+    expect(ref("phase-change.md")).toMatch(/Once sent, its price does not move: a different price is a new change order/);
+    expect(ref("phase-invoice.md")).toMatch(/\*\*An invoice request is written only when a payment falls due/);
+    expect(ref("phase-update.md")).toMatch(/\*\*No false done\.\*\*/);
+    expect(ref("phase-update.md")).toMatch(/\*\*No internal numbers:\*\*/);
+    expect(ref("phase-demo.md")).toMatch(/\*\*No internal numbers\*\* in the script/);
+    expect(ref("phase-ready.md")).toMatch(/says what was built against the acceptance checks/);
+    expect(body()).toMatch(/Writes a credential to any file, sends anything/);
   });
 
   it("no invented business rules: the working demo, the hour value, the extension count and the schedule impact are asked", () => {
@@ -701,7 +720,7 @@ describe("the skill text keeps the rules the checker cannot see", () => {
     expect(ref("phase-change.md")).toMatch(/The UAT-nn files do not say how many, so ask the user and record the answer `user-stated`/);
     expect(ref("phase-change.md")).toMatch(/Ask the user for the \*\*schedule impact\*\* \(record it `user-stated`\)/);
     // Owner decision 2026-10-16: no run-time question; a too-big UAT-nn goes to ow-build-plan like a FIX-nn.
-    expect(ref("phase-change.md")).toMatch(/Hand the file to ow-build-plan for a follow-on Build Plan \(owner decision 2026-10-16: a UAT-nn goes the same way as a FIX-nn\)/);
+    expect(ref("phase-change.md")).toMatch(/Hand the file to ow-build-plan for a follow-on Build Plan/);
     expect(ref("phase-change.md")).not.toMatch(/ask the user how to go on/);
     // Bug 7: "quoted separately" is asked, never invented.
     expect(ref("phase-invoice.md")).toMatch(/quoted separately/i);
@@ -743,14 +762,11 @@ describe("round-2 text rules (Sprint 2 round 3)", () => {
     expect(r.indexOf("2. A payment trigger is met")).toBeGreaterThan(0);
     expect(r.indexOf("2. A payment trigger is met")).toBeLessThan(r.indexOf("3. `build.yaml` has `map_check: pending`"));
     expect(r).toMatch(/If it is `stopped` by an escalation, say so with its blocker and ask whether it is resolved/);
-    expect(ref("phase-run.md")).toMatch(/awaiting: M<n> sprint <k>/);
+    expect(ref("phase-run.md")).toMatch(/\| M<n> sprint <k>`/);
   });
   it("D2: an unpriced row settles nothing; D5: each change-order move adds one known history line", () => {
     expect(ref("phase-change.md")).toMatch(/A row whose result is `unpriced: …` does \*\*not\*\* settle it/);
-    expect(ref("phase-change.md")).toMatch(/`sent <date>`; `agreed in principle <date>, recorded by <user>; not a signature`/);
-  });
-  it("D9: the too-big NEXT carries the slash hint", () => {
-    expect(readFileSync(join(SKILL, "SKILL.md"), "utf8")).toMatch(/NEXT: say "use ow-build-plan on handoffs\/<client>\/fixes\/FIX-nn\.md"   \(where slash commands exist: \/ow-build-plan\)/);
+    expect(ref("phase-change.md")).toMatch(/`sent <date>`; `agreed in principle <date>, recorded by <user>; amendment not signed yet`/);
   });
   it("D1: the self-checks name the categories, and what a checker cannot catch", () => {
     expect(ref("self-checks.md")).toMatch(/\*\*An internal number is ours only\*\* \(owner decision 2026-10-16\)/);

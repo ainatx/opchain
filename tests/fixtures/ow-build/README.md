@@ -2,7 +2,7 @@
 
 Everything here is **invented**: fictional clients (Larkspur Ceramics, Mossgate Books and Fernhill Florists, continued from the ow-build-plan fixtures), a fictional consultant ("Robin" of "Example Studio"), a made-up builder in the opchain project format ("example-builder", named only in the business's `handoffs.yaml`), made-up git logs, notes, time exports, sprint reports and checkpoints. No real client material, no real builder and no real price belongs in this folder.
 
-These are the acceptance tests from `docs/plans/2026-10-08-ow-build-design.md` §10 and §12.7, written so they can be checked mechanically. ow-build is a text-only skill, so a model has to run it; the checker (`scripts/ow-build-acceptance.mjs`) reads what the run wrote and tests it against an answer key, the signed Build Plan, the price book and the builder's own files. "Real use" (one real build through at least two updates, a demo and a change order) is not here: it is graded in Sprint 6, with the email rendering checks in Gmail and Outlook web.
+These are the acceptance tests from `docs/plans/2026-10-08-ow-build-design.md` §10 and §12.7, written so they can be checked mechanically. A model has to run ow-build; the checker (`scripts/ow-build-acceptance.mjs`) reads what the run wrote and tests it against an answer key, the signed Build Plan, the price book and the builder's own files. "Real use" (one real build through at least two updates, a demo and a change order) is not here: it is graded in Sprint 6, with the email rendering checks in Gmail and Outlook web.
 
 ## Layout of a case
 

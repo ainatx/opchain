@@ -1,15 +1,15 @@
-# The price book: `opchain-work/price-book.yaml` (schema 1)
+# The price book
 
-The price book is the user's own data, not skill text. Copy `examples/price-book.yaml` to `opchain-work/price-book.yaml` and replace every number: the example's numbers are invented placeholders, and no real price belongs in a shared or public file. This skill reads the price book and never edits it (protocol §4: `origin: user`).
+Prices, numbering and terms come from the CRM. `opchain-work/price-book.yaml` is the cache fallback when the CRM is unreachable, and the output says that happened. Its keys are below; to make one, copy `examples/price-book.yaml` and replace every number: the example's numbers are invented placeholders, and no real price belongs in a shared or public file. This skill reads the price book and never edits it.
 
-Every price is a number in `currency`, with at most two decimals. A key this skill needs and cannot find stops the step that needs it; it never fills one in.
+Every price is a number in `currency`, with at most two decimals. A key this skill needs and cannot find stops only the line that needs it: price what the book prices, list the missing keys once, and ask the user for those values in one `AskUserQuestion` call, recorded `priced by <user name>`. It never fills one in.
 
 | Key | Shape | Used by |
 |---|---|---|
 | `currency` | ISO code, e.g. `USD` | every amount |
-| `care_onboarding` | `{ sizes: { S, M, L }, size_by_systems: { S, M, L }, payment: on_signature \| on_delivery }`: a care takeover's onboarding review (amendment P4); each size a fixed fee, each `size_by_systems` rule the systems and integrations it covers, in the user's words | `-quote --quick --onboarding` only |
-| `build_plan_fees` | `{ one_system, two_systems, three_plus_or_mvp }`: the Build Plan's own fee per tier | `-offer`, `-start`, the quote's credit line |
-| `build_plan_weeks` | `{ one_system, two_systems, three_plus_or_mvp }`: plan length in weeks | `-offer`, `-start` |
+| `care_onboarding` | `{ sizes: { S, M, L }, size_by_systems: { S, M, L }, payment: on_signature \| on_delivery }`: a care takeover's onboarding review; each size a fixed fee, each `size_by_systems` rule the systems and integrations it covers, in the user's words | `-quote --quick --onboarding` only |
+| `build_plan_fees` | `{ one_system, two_systems, three_plus_or_mvp }`: the Build Plan's own fee per tier | `-offer`, `-start`, `-quote --whole-project`, the quote's credit line |
+| `build_plan_weeks` | `{ one_system, two_systems, three_plus_or_mvp }`: plan length in weeks | `-offer`, `-start`, `-quote --whole-project` |
 | `build_plan_schedule` | `{ one_system, two_systems, three_plus_or_mvp }`, each `{ collection_business_days, delivery_business_days }`: business days from the start date to the collection deadline and to plan delivery. Missing: `-start` asks and records `user-stated` | `-start` |
 | `units` | list of `{ id, label, price, includes?, size?, feasibility? }` | `-quote` |
 | `modifiers` | list of `{ id, when, multiply?, add_unit? }` | `-quote` |
@@ -25,8 +25,8 @@ Every price is a number in `currency`, with at most two decimals. A key this ski
 
 - `id`: lower case with hyphens, unique. A work package cites units by id.
 - `label`: what the client would call it.
-- `includes`: what every package built from this unit includes (error handling and alerts, run logs, acceptance tests, operator notes, and so on). The quote prints it under the package.
-- `feasibility: true`: marks the unit a feasibility test is priced from (the example's `feasibility-test`). A feasibility quote uses that unit and nothing else (`references/phase-quote.md` §3.1); a book with no such unit leaves a feasibility test unpriced, and the quote stops and asks. Mark one unit at most.
+- `includes`: what every package built from this unit includes (error alerts, run logs, acceptance tests, operator notes, and so on). The quote prints it under the package.
+- `feasibility: true`: marks the unit a feasibility test is priced from (the example's `feasibility-test`). A feasibility quote uses that unit and nothing else (`references/phase-quote.md` §3.1); a book with no such unit leaves that line unpriced until the user prices it. Mark one unit at most.
 - `size`: `S`, `M` or `L`, only on a **product** unit (an internal tool, a portal, a new product) whose size sets the testing and training lines. The build's size is the largest `size` among the product units on the quote; with none on the quote, ask the user and record `build_size_source: user-stated`.
 
 ## Modifiers

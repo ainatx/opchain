@@ -1,8 +1,8 @@
 # ow-uat edges (ow- cross-talk contract R15), schema 1.
-# What this skill writes, reads and hands off, as data. The body's "Reads from"
-# and "Hands off to" tables say the same in words; check-skill-contracts reads
-# this file to hold the family to one writer per file and to edges that match
-# on both ends. Paths are relative to opchain-work/. Format: skills-work/README.md.
+# What this skill writes, reads and hands off in the scratch cache, as data; the
+# CRM is the record (ow-protocol.md section 8). check-skill-contracts reads this
+# file to hold the family to edges that match on both ends. Paths are relative to
+# opchain-work/. Format: skills-work/README.md.
 schema: 1
 skill: ow-uat
 
@@ -18,8 +18,8 @@ routes:
 append_logs: [uat/<client>/secrets-seen.log]
 
 writes:
-  # -plan, exact per mode. --keep-frozen writes uat.yaml only; --add-co and --refreeze
-  # re-copy into agreed/; --add-co and --addendum write scenarios.
+  # -plan. --keep-frozen writes uat.yaml only; --add-co and --refreeze re-copy into
+  # agreed/; --add-co and --addendum write scenarios.
   - { path: uat/<client>/uat.yaml, verb: /ow-uat-plan, modes: [--add-co, --addendum, --keep-frozen, --refreeze] }
   - { path: uat/<client>/agreed/scope.md, verb: /ow-uat-plan, modes: [--refreeze] }
   - { path: uat/<client>/agreed/acceptance.md, verb: /ow-uat-plan, modes: [--refreeze] }
@@ -27,20 +27,20 @@ writes:
   - { path: uat/<client>/agreed/contract-terms.md, verb: /ow-uat-plan, modes: [--refreeze] }
   - { path: uat/<client>/agreed/CO-nn.md, verb: /ow-uat-plan, modes: [--add-co, --refreeze] }
   - { path: uat/<client>/scenarios/SC-nn.md, verb: /ow-uat-plan, modes: [--add-co, --addendum] }
-  # -pack: the Markdown source of each role's pack (Sprint 3 departure: ow-tools exports it), its exports, the template.
+  # -pack: the Markdown source of each role's pack, its exports, the template.
   - { path: uat/<client>/pack.yaml, verb: /ow-uat-pack }
   - { path: uat/<client>/uat-pack-<role>.md, verb: /ow-uat-pack }
   - { path: uat/<client>/export/uat-pack-<role>.html, verb: /ow-uat-pack }
   - { path: uat/<client>/export/uat-pack-<role>.pdf, verb: /ow-uat-pack }
   - { path: uat/<client>/export/uat-pack-<role>.docx, verb: /ow-uat-pack }
   - { path: uat/<client>/export/results-template.csv, verb: /ow-uat-pack }
-  # -run: one file per session, never edited; the evidence index.
+  # -run: one file per session; the evidence index.
   - { path: uat/<client>/runs/RUN-nn.md, verb: /ow-uat-run }
   - { path: uat/<client>/evidence/index.md, verb: /ow-uat-run }
   # -defect: every UAT-nn, from logging to its terminal state.
   - { path: uat/<client>/defects/UAT-nn.md, verb: /ow-uat-defect }
-  # -signoff, exact per mode. The request (and its export, a Sprint 3 departure) only in plain mode;
-  # the three sign-off files only with --signed or --deemed; every mode updates request statuses first.
+  # -signoff. The request and its export in plain mode; the three sign-off files only
+  # with --signed or --deemed: they mark acceptance. Every mode updates request statuses first.
   - { path: uat/<client>/signoff-request-<n>.md, verb: /ow-uat-signoff }
   - { path: uat/<client>/export/signoff-request-<n>.pdf, verb: /ow-uat-signoff }
   - { path: uat/<client>/export/signoff-request-<n>.docx, verb: /ow-uat-signoff }
@@ -66,20 +66,20 @@ writes:
 reads:
   - from: any
     path: STATUS.md
-    fields: [the protocol's STATUS form]
-    if_absent: "First run: the welcome"
+    fields: [a plain status line]
+    if_absent: Nothing to report
     if_mismatch: Quote the lines as found; use only the dates and paths you can read
   - from: ow-start
     path: profile.md
     shared: true
-    fields: [name, time_zone, holidays, handling]
+    fields: [name, time_zone, holidays]
     if_absent: Count fix bounds and sessions on weekends only, and say so
     if_mismatch: Report the fields found; ask only for the missing ones
   # The build's readiness and change orders (ow-build's ready hand-off).
   - from: ow-build
     path: builds/<client>/ready-for-uat.md
     fields: [ready, build_label, environment, the builder's run of each check, known issues, test data, milestones demoed]
-    if_absent: "-plan stops: NEXT use ow-build to mark the build ready for UAT"
+    if_absent: "-plan stops: run /ow-build-ready first"
     if_mismatch: "A failing check, or ready: no: -plan stops and lists each failure"
   - from: ow-build
     path: builds/<client>/changes/CO-nn.md
@@ -171,7 +171,7 @@ reads:
     if_mismatch: Import the rows that parse; list the rest; never guess a result
 
   # Its own earlier files (detail in each phase file).
-  - { from: ow-uat, path: uat/<client>/uat.yaml, if_absent: "Every verb except -plan stops: NEXT use ow-uat-plan", if_mismatch: "Report the keys found; resume at the first plan step not recorded" }
+  - { from: ow-uat, path: uat/<client>/uat.yaml, if_absent: "Run /ow-uat-plan first", if_mismatch: "Report the keys found; resume at the first plan step not recorded" }
   - { from: ow-uat, path: uat/<client>/export/results-template.csv, if_absent: "Say -pack has not run; offer it", if_mismatch: "Import the rows that parse" }
   - { from: ow-uat, path: uat/<client>/signoff-request-<n>.md, if_absent: "No request yet", if_mismatch: "Report what was found; write nothing" }
   - { from: ow-uat, path: uat/<client>/signoff-requests.yaml, if_absent: "No requests yet", if_mismatch: "Report the rows found; write no request until the user confirms" }

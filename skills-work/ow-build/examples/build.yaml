@@ -3,16 +3,9 @@
 # it from the signed Build Plan and your answers, and -run adds each sprint's
 # result. Every name, date and path here is made up. The builder's name is not
 # here on purpose: it lives only in your handoffs.yaml.
-ow_artefact: ow-build/build
-schema: 1
-written_by: ow-build 1.0.0 (protocol 1)
-workstream: example-client
-subject: plans/example-client/build-request.md
+written_by: ow-build 2.0.0
 created: 2026-11-10
-clock: user-stated
-origin: skill
 client: Example Client
-handling: "no"
 plan: plans/example-client/
 quote_mode: build-plan
 signed: 2026-11-09

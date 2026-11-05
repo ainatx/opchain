@@ -1,0 +1,6 @@
+[
+  { "label": "Build Plan phase", "quantity": 1, "unit_price": "1500.00" },
+  { "label": "WP-1 tool-m", "quantity": 1, "unit_price": "8000.00" },
+  { "label": "WP-2 report", "quantity": 1, "unit_price": "600.00" },
+  { "label": "UAT M", "quantity": 1, "unit_price": "2000.00" }
+]

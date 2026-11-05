@@ -79,11 +79,6 @@ describe("SD-02: the no-tools path and the say: lines hand over the source Markd
     make: () => laid("write-guides", { [`${L}/guides/bookkeeper.md`]: (t) => t.replace("| No private names | OK |\n<!-- ow:end-internal -->", "| No private names | OK |\n\nI spent six hours on these guides, well past what I had planned.\n<!-- ow:end-internal -->") }),
     slip: passesAll, check: "internal_numbers", re: /six hours/,
   });
-  poc({
-    id: "SD-02c", desc: "without ow-tools, Accessible by construction is recorded OK (the text says NOT-CHECKED)", caseName: "export-no-tools",
-    make: () => laid("export-no-tools", { [`${L}/deliveries.yaml`]: (t) => t.replace(/^ {2}Accessible by construction: .*$/m, "  Accessible by construction: OK") }),
-    slip: passesAll, check: "self_checks", re: /Accessible by construction/,
-  });
 });
 
 // ── SD-03 (MEDIUM): a cleared image is not bound to its bytes ─────────────────

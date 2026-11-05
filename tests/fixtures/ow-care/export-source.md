@@ -8,7 +8,6 @@ created: 2026-12-17
 clock: scenario
 origin: user-stated
 ---
-CONFIDENTIAL — prepared for the client operations role
 
 # Care report M-01
 

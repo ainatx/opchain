@@ -1,0 +1,21 @@
+# Answer key: whole-project-signed (INVENTED). --accepted and --signed on a
+# whole-project quote, before any plan exists: contract-inputs.md and
+# build-request.md as for a plan, the acceptance and signing recorded as the
+# user's statement; the build request carries no price.
+case: whole-project-signed
+section: Whole-project quote accepted and signed
+client: Wren Cycles
+slug: wren-cycles
+user: Robin
+base: whole-project
+checks: [headers, accepted, signed, status, private_names]
+outputs:
+  - plans/wren-cycles/contract-inputs.md
+  - plans/wren-cycles/build-request.md
+accepted: { date: 2026-11-10, documentation_sku: declined }
+signed: { date: 2026-11-12 }
+status:
+  lines:
+    - { path: plans/wren-cycles/contract-inputs.md, awaiting: signing }
+    - { path: plans/wren-cycles/build-request.md, awaiting: nothing }
+private_names: [llc-ops, Deftwright]

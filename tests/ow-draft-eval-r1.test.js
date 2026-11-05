@@ -127,9 +127,8 @@ describe("round 1 M2: the folder route", () => {
     ["f-on-ws-several", "one draft picked where several are open", { "printed.md": (t) => t.replace(/Question: .*/, "Route: drafts/mossgate-books/ -> /ow-draft-freeze (writing).") }],
     ["f-list-every-draft", "only the newest draft per workstream", { "printed.md": (t) => t.replace("Drafts: 4", "Drafts: 1").replace(/^ {2}drafts\/business\/DR-0[123]-.*\n/gm, "") }],
     ["f-list-every-draft", "a NEXT block on the list", { "printed.md": (t) => `${t}    NEXT: say "use ow-draft-evidence on drafts/business/DR-04-autumn-newsletter/"   (where slash commands exist: /ow-draft-evidence)\n` }],
-    ["f-list-every-draft", "the handling question asked", { "printed.md": (t) => t.replace(/^(Step 0\..*)$/m, "$1\nHandling: no (stored in profile.md).") }],
     ["f-list-every-draft", "a STATUS line written", { "opchain-work/STATUS.md": (t) => `${t}2026-11-02 (clock: tool) | ow-draft 1.0.0 | drafts/ | next: none | awaiting: none\n` }],
-    ["f-list-awaiting", "the awaiting field dropped", { "printed.md": (t) => t.replace("awaiting: the client's approval of C-1 by 2026-11-06", "awaiting: none") }],
+    ["f-list-awaiting", "the awaiting field dropped", { "printed.md": (t) => t.replaceAll("awaiting: the client's approval of C-1 by 2026-11-06", "awaiting: none") }],
     ["f-list-welcome", "a count where the welcome belongs", { "printed.md": () => "Drafts: 0\n" }],
     ["f-list-again", "a resume line on a re-run", { "printed.md": (t) => t.replace("Drafts: 4", "Resumed at screen (/ow-draft).\nDrafts: 4") }],
   ];

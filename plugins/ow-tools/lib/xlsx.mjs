@@ -106,10 +106,12 @@ export function parseModel(text) {
   let i = 0;
   if (lines[0] === "---") {
     const end = lines.indexOf("---", 1);
-    if (end > 0 && lines.slice(1, end).some((l) => /^ow_artefact:/.test(l))) {
+    const block = end > 0 ? lines.slice(1, end) : [];
+    const v1 = block.some((l) => /^ow_artefact:/.test(l));
+    if (v1 || block.some((l) => /^written_by:/.test(l))) {
       i = end + 1;
       const next = lines[i] ?? "";
-      if (next.trim() && !/^\s{0,3}#/.test(next)) {
+      if (v1 && next.trim() && !/^\s{0,3}#/.test(next)) {
         banner = next.trim();
         i++;
       }

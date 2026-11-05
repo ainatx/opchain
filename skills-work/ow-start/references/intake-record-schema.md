@@ -1,17 +1,11 @@
-# ow-start file formats (schema 1)
+# ow-start file formats
 
-Every file below starts with the artefact header from `references/ow-protocol.md` §4. Paths are relative to `opchain-work/`. Write these formats exactly: the next stage reads them, and so do the acceptance checks. The examples use an invented client.
+These are the scratch cache's forms (`opchain-work/`); the CRM holds the published `briefs` row and the documents (`references/ow-protocol.md` §8). Every file below starts with `written_by: ow-start <version>` and `created: <YYYY-MM-DD>`, then the keys it needs. Paths are relative to `opchain-work/`. The next stage reads these keys and sections, so keep their names. The examples use an invented client.
 
 ## `intake/<slug>/intake.yaml` (written by `/ow-start-prep`)
 
-    ow_artefact: ow-start/intake
-    schema: 1
-    written_by: ow-start 1.1.0 (protocol 1)
-    workstream: larkspur-ceramics
-    subject: none
+    written_by: ow-start 2.0.1
     created: 2026-10-05
-    clock: tool
-    origin: skill
     mode: prospect                  # prospect | delivery
     client: Larkspur Ceramics
     client_slug: larkspur-ceramics
@@ -21,24 +15,17 @@ Every file below starts with the artefact header from `references/ow-protocol.md
     attendees:
       - you
       - client (operations manager)
-    handling: "no"
     user_name: Robin                # only while profile.md does not exist
 
 ## `intake/<slug>/call-guide.md` (written by `/ow-start-prep`)
 
-Header, then one `## <start>–<end> <block name>` section per block. Under each: the purpose in one line, `Must-ask:` lines written `- [<field>] "<question>"` with an indented `If vague:` follow-up, `Confirm:` lines for fields already answered (with their source), then `If time:` lines.
+The two header keys, then one `## <start>–<end> <block name>` section per block. Under each: the purpose in one line, `Must-ask:` lines written `- [<field>] "<question>"` with an indented `If vague:` follow-up, `Confirm:` lines for fields already answered (with their source), then `If time:` lines.
 
 ## `intake/<slug>/intake-record.md` (written by `/ow-start-extract`)
 
     ---
-    ow_artefact: ow-start/intake-record
-    schema: 1
-    written_by: ow-start 1.1.0 (protocol 1)
-    workstream: <slug>
-    subject: intake/<slug>/transcript.md          # or: notes
+    written_by: ow-start 2.0.1
     created: <YYYY-MM-DD>
-    clock: <source>
-    origin: third-party (<client>, via <transcript | the user's notes>)
     mode: prospect
     client: <client>
     call_date: <YYYY-MM-DD>
@@ -81,7 +68,8 @@ Rules:
 ## `intake/<slug>/coverage.md` (written by `/ow-start-extract`; for the user only)
 
     ---
-    (header: ow_artefact: ow-start/coverage, subject: intake/<slug>/intake-record.md, origin: skill)
+    written_by: ow-start 2.0.1
+    created: <YYYY-MM-DD>
     ---
     # Coverage: <client>, <call date>
 
@@ -102,33 +90,19 @@ Rules:
     | signal | reads | behind it |
     |---|---|---|
 
-    ## Recap trace (same-session self-check)
-    Same-session self-check: the same assistant that wrote the recap, applying a checklist; a discipline, not an independent review. Agent-checked.
-    | section | sentence starts | traces to | result |
-    |---|---|---|---|
-    | Today | "Orders arrive by email" | current_process.1, systems.1 | OK |
-    | Next step | "I recommend a Build Plan" | offers:build-plan-2, systems.1 | OK |
-
-    ## Self-checks
-    | check | label | result |
+    ## Recap trace
+    | section | sentence starts | traces to |
     |---|---|---|
-    | Recap trace | same-session self-check, agent-checked | OK |
-
-    overall: PASS (Ready)
+    | Today | "Orders arrive by email" | current_process.1, systems.1 |
+    | Next step | "I recommend a Build Plan" | offers:build-plan-2, systems.1 |
 
 Rules: `status` is one of `answered`, `partly`, `not asked`, `answered unprompted`. A must-ask counts as answered in the score when its status is `answered` or `answered unprompted`. The recap trace has one row per recap sentence (each bullet is one sentence), in recap order; `sentence starts` quotes the sentence's first words exactly; `traces to` lists fact ids, or `offers:<path id>` for the path itself.
 
 ## `intake/<slug>/recap.md` (written by `/ow-start-extract`; the main output)
 
     ---
-    ow_artefact: ow-start/recap
-    schema: 1
-    written_by: ow-start 1.1.0 (protocol 1)
-    workstream: <slug>
-    subject: intake/<slug>/intake-record.md
+    written_by: ow-start 2.0.1
     created: <YYYY-MM-DD>
-    clock: <source>
-    origin: skill
     client: <client>
     call_date: <YYYY-MM-DD>
     send_by: <YYYY-MM-DD>
@@ -158,31 +132,23 @@ Rules: `status` is one of `answered`, `partly`, `not asked`, `answered unprompte
 
 The `path_*` keys are what the next stage reads to set its scope; copy them from the confirmed path's section in `offers.md`. Leave out `## Promised by me` when there is nothing to list.
 
-## `STATUS.md` (append one line per run)
+## `STATUS.md` (the cache's plain line)
 
-    2026-10-06 (clock: user-stated) | ow-start 1.1.0 | intake/larkspur-ceramics/recap.md | next: ow-build-plan on intake/larkspur-ceramics/intake-record.md | awaiting: recap to Larkspur Ceramics by 2026-10-07
+The date, the skill, the file, and what is awaited by when:
 
-Closed workstream: `next: none (closed: not the right fit)`.
+    2026-10-06 | ow-start 2.0.1 | intake/larkspur-ceramics/recap.md | awaiting: recap to Larkspur Ceramics by 2026-10-07
 
-## `profile.md` (written by ow-start only; every value comes from the user)
+A workstream that closes adds `| next: none (closed: not the right fit)`. Lines an earlier version wrote, with a clock label after the date or a `next:` field, are read the same way.
+
+## `profile.md` (the cache's copy of the client-facing profile values; every value comes from the user)
 
     ---
-    ow_artefact: ow-start/profile
-    schema: 1
-    written_by: ow-start 1.1.0 (protocol 1)
-    workstream: none
-    subject: none
+    written_by: ow-start 2.0.1
     created: <YYYY-MM-DD>
-    clock: <source>
-    origin: user
     name: Robin                       # how you sign the recap
     business: ""                      # optional
     time_zone: America/Chicago
     holidays: [2026-11-26, 2026-12-25]
-    handling: "no"                    # "no", or the level in your own words
-    environment_approved: ""          # yes | no | don't know; only when handling is set
-    banner_text: ""                   # copied onto every file when set
-    ai_use: not checked               # checked | not checked
     ---
     # Profile
 

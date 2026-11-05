@@ -1,18 +1,12 @@
-# `ledger.md` (schema 1)
+# `ledger.md`
 
-`builds/<client>/ledger.md` holds the payment schedule from the signed quote, each payment trigger's state, the signed change orders that carry a price, and every invoice request. **`-start` creates it; after that `-invoice` is its only writer**, so the state of a payment changes in one place. Every verb reads it first.
+`builds/<client>/ledger.md` is the cache's working copy of the payment schedule from the signed quote, each payment trigger's state, the signed change orders that carry a price, and every invoice request. The record is the proposal in `quotes` and the `invoices` in the CRM; when they disagree with the ledger, show both and take the CRM. **`-start` creates it and `-invoice` keeps it**, so the state of a payment changes in one place.
 
 **The ledger is not an accounting record**: it records what the quote says and what you report (sent, paid). It says so in its first line.
 
     ---
-    ow_artefact: ow-build/ledger
-    schema: 1
-    written_by: ow-build 1.0.0 (protocol 1)
-    workstream: <slug>
-    subject: plans/<slug>/quote.md
+    written_by: ow-build 2.0.1
     created: <YYYY-MM-DD>
-    clock: <source>
-    origin: skill
     client: <client>
     currency: USD                        # from quote.md
     fixed_price: 17450.00                # from quote.md
@@ -60,9 +54,9 @@ When `contract-inputs.md` says `documentation_sku: bought`, `-start` copies the 
 
 The quote has one working-demo payment. When its Milestones list has one milestone, that milestone's demo is it (`working_demo_source: quote`). When it has more than one, `-start` asks you which milestone's demo the payment follows and records the answer `user-stated` with its date. The quote does not say, so this skill never picks one.
 
-## Arithmetic
+## The ledger adds up
 
-At `-start`, check that the payments add up to `fixed_price` and match the schedule: with ow-tools, `ow-tools calc split --total <fixed_price> --schedule <schedule>` and record the command and raw output; otherwise add by hand and write `arithmetic: not machine-checked`. `-invoice` does the same for the contract total with change orders (`calc total --items <file.json>`) and records it in the request.
+At `-start`, check that the payments add up to `fixed_price` and match the schedule: run `ow-tools calc split --total <fixed_price> --schedule <schedule>` and record the command and output; if `ow-tools` is not installed, add by hand and write `arithmetic: not machine-checked`. `-invoice` does the same for the contract total with change orders (`calc total --items <file.json>`) and records it in the request.
 
 ## Never here
 

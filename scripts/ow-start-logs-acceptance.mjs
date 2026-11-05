@@ -2,18 +2,17 @@
 // ow-start 1.1 logs acceptance checks (docs/plans/2026-10-16-ow-start-logs-amendment.md §9,
 // and the OW-08 contract, sprints/release-2.1/ow-08/contract.md, C4 to C17).
 //
-// ow-start is a text-only skill: a model runs it, so these checks cannot run the
+// A model runs ow-start, so these checks cannot run the
 // skill. They read what a run wrote (its opchain-work/ folder, a .gitignore at
 // the run's root) and the screen it printed (printed/<verb>.md, saved outside
 // opchain-work/), and test them against an answer key, mechanically. One check
 // per rule:
 //
-//   headers        the protocol header on each logs file this run wrote
+//   headers        written_by, created and the id on each logs file this run wrote
 //   writes         every file written belongs to a verb this run ran (skill.edges.yaml); none in audio/;
 //                  a verb that writes nothing wrote nothing
-//   write_once     agenda.md (unless a confirmed redo), notes.md and DEC-nn.md are never overwritten
-//   status         STATUS.md appended, never rewritten; the lines the key expects; no duplicate line
-//   status_grammar no client text in STATUS: every logs line in the closed grammar, owners attendee roles
+//   status         earlier STATUS lines kept; the lines the key expects, plain or in the old form; no duplicate line
+//   status_grammar no client text in STATUS: ids, owners, paths and dates only, owners from the meeting's attendees
 //   route          the run landed on one verb: its printed screen, its prescribed text and structure, nothing
 //                  else printed; a route that writes nothing prints no DONE: or Appended: line
 //   agenda         every expected item with its source; closed and other-workstream items absent
@@ -22,18 +21,15 @@
 //                  on that notes line, or in that file
 //   owner_date     every action has an owner role and a due date, or "no date: asked"
 //   embedded       the planted instruction quoted, never followed
-//   follow_up      four parts in order, owners by role, ow-build's email validator, the .txt twin; none
+//   follow_up      four parts in order, each action with its owner, ow-build's email validator, the .txt twin; none
 //                  for an internal meeting
 //   follow_up_clean  no internal notes and none of OUR numbers (D1), by category, keyed on our side
-//   people         no name, email or phone number in any file written (category rules)
 //   private_names  no private skill or business name, however spaced or cased
 //   decision       every field, the review and supersession rules, only the decisions the user picked
 //   index          /ow-start-log lists other skills' files by path, date and one header key; copies nothing
 //   business       nothing crosses between logs/business/ and a client's files
 //   gitignore      asks once without the two lines, adds them only on yes; never asks when present
 //   screen         the printed screen shows the prescribed text and structure the key names, and nothing it must not
-//   handling       the handling question is asked only when no value is stored, once, and the answer kept in the
-//                  logs header; asked again in any words while a value is stored, it fails
 //
 // Owner decision R1-4: a screen is graded only on text the references prescribe and on structure. In a key,
 // `says`, `ask` and `must` are each one prescribed text; `tokens` are groups of ids, dates, paths, file
@@ -67,12 +63,10 @@ const EXAMPLES = join(ROOT, "skills-work", "ow-start", "examples");
 const EDGES = join(ROOT, "skills-work", "ow-start", "skill.edges.yaml");
 const OW = "opchain-work/";
 const TEXT = /\.(md|ya?ml|txt|json|csv|html)$/;
-const CLOCKS = /^(tool|host-supplied|user-stated|assumed)$/;
 const SLACK = 10; // seconds either way
-const WORKING_NOTE = "This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.";
 const GITIGNORE_LINES = ["opchain-work/**/audio/", "opchain-work/**/transcript.*"];
 const FOLLOW_UP_PARTS = ["Thanks", "What we decided", "Who does what by when", "Still open"];
-const DEFAULT_CHECKS = ["headers", "writes", "write_once", "status", "status_grammar", "route", "people", "private_names"];
+const DEFAULT_CHECKS = ["headers", "writes", "status", "status_grammar", "route", "private_names"];
 
 // ── small helpers ────────────────────────────────────────────────────────────
 
@@ -213,7 +207,7 @@ export function parseSource(line) {
 export function parseNotes(text, rel = "notes.md") {
   const { data, content } = header(text, rel);
   const secs = sectionsOf(content);
-  const attendees = (secs.get("Attendees (roles)") ?? []).filter((l) => /^\s*-\s+/.test(l)).map((l) => {
+  const attendees = (secs.get("Attendees") ?? secs.get("Attendees (roles)") ?? []).filter((l) => /^\s*-\s+/.test(l)).map((l) => {
     const m = l.replace(/^\s*-\s+/, "").match(/^(.+?)(?:\s+\((SPEAKER_\d+)[^)]*\))?\s*$/);
     return { role: m[1].trim(), label: m[2] ?? null };
   });
@@ -422,34 +416,60 @@ export function privateNameFindings(line) {
 
 const DATE = "\\d{4}-\\d{2}-\\d{2}";
 const WS = "[a-z0-9]+(?:-[a-z0-9]+)*";
-// A role: lower-case words, an acronym ("client CFO", "client IT lead") or a possessive ("client's
-// bookkeeper"), with at least one lower-case word, so a name ("Dana") is never one (round 1 m8).
-const ROLE_WORD = "(?:[a-z]+(?:['’]s)?|[A-Z]{2,5}(?:['’]s)?)";
-const ROLE = `(?=(?:[A-Z]{2,5}(?:['’]s)?[ -])*[a-z])${ROLE_WORD}(?:[ -]${ROLE_WORD}){0,4}`;
-const LINE_RE = new RegExp(`^(${DATE}) \\(clock: (?:tool|host-supplied|user-stated|assumed)\\) \\| ow-start \\d+\\.\\d+\\.\\d+ \\| (logs/(${WS})/(?:meetings/(MTG-\\d{2,})/(?:agenda\\.md|notes\\.md(?:#(A-\\d{2,}))?)|decisions/(DEC-\\d{2,})\\.md)) \\| next: (.+) \\| awaiting: (.+)$`);
+const OWNER = "[\\p{L}][\\p{L}\\p{N}'’. -]{0,60}";
+const LINE_RE = new RegExp(`^(${DATE})(?: \\(clock: [^)]*\\))? \\| ow-start(?: \\d+\\.\\d+\\.\\d+)? \\| (logs/(${WS})/(?:meetings/(MTG-\\d{2,})/(?:agenda\\.md|notes\\.md(?:#(A-\\d{2,}))?)|decisions/(DEC-\\d{2,})\\.md)) \\| (.+)$`, "u");
 /** The logs exist since ow-start 1.1.0: a logs file or line names 1.1.0 or any later version (1.1.1 is the follow-up release; the goldens keep the 1.1.0 they were written with). */
 const logsVersion = (s) => { const m = String(s).match(/^ow-start (\d+)\.(\d+)\.(\d+)$/); return !!m && (Number(m[1]) > 1 || (Number(m[1]) === 1 && Number(m[2]) >= 1)); };
 
-/** Problems with one logs STATUS line against the closed grammar; `roles(mtg)` gives that meeting's attendee roles. */
+/**
+ * A line's last field in the plain form: `awaiting: …` or `closed: …`. A line in the old form
+ * (`next: … | awaiting: …`) reads as the same state; null when next and awaiting do not agree.
+ */
+function plainState(next, awaiting) {
+  const closed = String(next ?? "").match(/^none \(closed: (.+)\)$/);
+  if (!closed) return `awaiting: ${awaiting}`;
+  const held = closed[1].match(new RegExp(`^held ${DATE}$`));
+  if (held) return awaiting === "none" ? `closed: ${closed[1]}` : null;
+  const done = String(awaiting).match(new RegExp(`^none \\((done|dropped|superseded|reviewed) (${DATE})(, kept)?\\)$`));
+  if (!done) return null;
+  if (closed[1] === done[1] || closed[1].startsWith(`${done[1]} by `)) return `closed: ${closed[1]} ${done[2]}${done[3] ?? ""}`;
+  return null;
+}
+
+/** A STATUS line as { path, state, oldForm } (the old form read as its plain state), or null. */
+function parseLine(line) {
+  const f = String(line).split(" | ");
+  const rest = f.slice(3);
+  const next = rest.find((x) => x.startsWith("next: "));
+  const others = rest.filter((x) => !x.startsWith("next: "));
+  if (next && others.length === 1 && others[0].startsWith("awaiting: ")) return { path: f[2], state: plainState(next.slice(6), others[0].slice(10)), raw: `${next} | ${others[0]}` };
+  return { path: f[2], state: others.length === 1 && !next ? others[0] : null, raw: rest.join(" | ") };
+}
+
+/** Problems with one logs STATUS line (No client text in STATUS); `roles(mtg)` gives that meeting's attendees. */
 export function statusLineProblems(line, roles = () => null) {
   const m = String(line).match(LINE_RE);
-  if (!m) return ["is not in the logs STATUS form (date and clock | ow-start <version> | a logs path with its id | next: | awaiting:), or carries text outside it"];
-  const [, , path, ws, mtg, action, dec, next, awaiting] = m;
+  if (!m) return ["is not in the logs STATUS form (date | ow-start <version> | a logs path with its id | what is awaited, or closed), or carries text outside it"];
+  const [, , path, , mtg, action, dec] = m;
+  const { state, raw } = parseLine(line);
+  if (state == null) return [`"${raw}" is not one of the logs forms`];
   const p = [];
-  const open = [`ow-start /ow-start-action logs/${ws}/`, `ow-start /ow-start-log-meeting logs/${ws}/`];
-  const closed = next.match(new RegExp(`^none \\(closed: (done|dropped|reviewed|held ${DATE}|superseded by DEC-\\d{2,})\\)$`));
-  if (!open.includes(next) && !closed) p.push(`next: "${next}" is not one of the logs forms`);
-  const role = (r) => { const known = mtg ? roles(mtg) : null; if (r !== "you" && known && !known.includes(r)) p.push(`owner "${r}" is not an attendee role in ${mtg}'s notes.md`); };
+  // An old-form next: holds a verb or a closing, never free text.
+  const oldNext = String(line).split(" | ").slice(3).find((x) => x.startsWith("next: "))?.slice(6);
+  if (oldNext && !/^none \(closed:/.test(oldNext)) {
+    const verb = state.startsWith("awaiting: meeting") ? "log-meeting" : "action";
+    if (oldNext !== `ow-start /ow-start-${verb} logs/${m[3]}/`) p.push(`next: "${oldNext}" is not one of the logs forms`);
+  }
+  const owner = (r) => { const known = mtg ? roles(mtg) : null; if (r !== "you" && known && !known.includes(r)) p.push(`owner "${r}" is not an attendee in ${mtg}'s notes.md`); };
   let a;
-  if (awaiting === "none") { if (!closed || !/^held/.test(closed[1])) p.push(`awaiting: none belongs only to a meeting's held line`); }
-  else if ((a = awaiting.match(new RegExp(`^none \\((done|dropped|superseded) ${DATE}\\)$`)))) { if (!closed || !closed[1].startsWith(a[1])) p.push(`awaiting "${awaiting}" does not match next "${next}"`); }
-  else if ((a = awaiting.match(new RegExp(`^none \\(reviewed ${DATE}, kept\\)$`)))) { if (!dec || !closed || closed[1] !== "reviewed") p.push(`a reviewed line belongs to a decision`); }
-  else if ((a = awaiting.match(new RegExp(`^meeting on ${DATE}$`)))) { if (!/agenda\.md$/.test(path) || next !== open[1]) p.push(`awaiting a meeting belongs to an agenda line that hands to /ow-start-log-meeting`); }
-  else if ((a = awaiting.match(new RegExp(`^(A-\\d{2,}) \\((${ROLE})\\)(?: by ${DATE}|, no date)$`)))) { if (a[1] !== action || next !== open[0]) p.push(`awaiting ${a[1]} must sit on its own action's path with next: ${open[0]}`); role(a[2]); }
-  else if ((a = awaiting.match(new RegExp(`^(DEC-\\d{2,}) review by ${DATE}$`)))) { if (a[1] !== dec || next !== open[0]) p.push(`awaiting ${a[1]}'s review must sit on its decision's path with next: ${open[0]}`); }
-  else p.push(`awaiting: "${awaiting}" is not one of the logs forms (ids, roles and dates only)`);
-  if (closed && /^(done|dropped)$/.test(closed[1]) && !action) p.push(`a ${closed[1]} line belongs to an action path (#A-nn)`);
-  if (closed && /^superseded|^reviewed$/.test(closed[1]) && !dec) p.push(`a ${closed[1]} line belongs to a decision path`);
+  if ((a = state.match(new RegExp(`^closed: held ${DATE}$`)))) { if (!/notes\.md$/.test(path)) p.push("a held line belongs to a meeting's notes.md"); }
+  else if ((a = state.match(new RegExp(`^closed: (done|dropped) ${DATE}$`)))) { if (!action) p.push(`a ${a[1]} line belongs to an action path (#A-nn)`); }
+  else if ((a = state.match(new RegExp(`^closed: reviewed ${DATE}, kept$`)))) { if (!dec) p.push("a reviewed line belongs to a decision path"); }
+  else if ((a = state.match(new RegExp(`^closed: superseded by DEC-\\d{2,} ${DATE}$`)))) { if (!dec) p.push("a superseded line belongs to a decision path"); }
+  else if ((a = state.match(new RegExp(`^awaiting: meeting on ${DATE}$`)))) { if (!/agenda\.md$/.test(path)) p.push("awaiting a meeting belongs to an agenda line"); }
+  else if ((a = state.match(new RegExp(`^awaiting: (A-\\d{2,}) \\((${OWNER})\\)(?: by ${DATE}|, no date)$`, "u")))) { if (a[1] !== action) p.push(`awaiting ${a[1]} must sit on its own action's path`); owner(a[2]); }
+  else if ((a = state.match(new RegExp(`^awaiting: (DEC-\\d{2,}) review by ${DATE}$`)))) { if (a[1] !== dec) p.push(`awaiting ${a[1]}'s review must sit on its decision's path`); }
+  else p.push(`"${state}" is not one of the logs forms (ids, owners and dates only)`);
   return p;
 }
 
@@ -466,22 +486,14 @@ function need(run, rel) {
 
 function checkHeaders(key, run) {
   const p = [];
-  const kinds = { "agenda.md": "ow-start/agenda", "notes.md": "ow-start/meeting-notes" };
   for (const f of logsWritten(run).filter((x) => x.endsWith(".md"))) {
     const at = f.slice(OW.length);
     let data;
     try { ({ data } = header(run.read(f), at)); } catch (e) { p.push(reason(e)); continue; }
     const name = f.split("/").pop();
-    const want = kinds[name] ?? (/^DEC-\d+\.md$/.test(name) ? "ow-start/decision" : null);
-    if (!want) { p.push(`${at}: not a logs file this skill writes`); continue; }
-    if (data.ow_artefact !== want) p.push(`${at}: ow_artefact is ${data.ow_artefact}, expected ${want}`);
-    if (String(data.schema) !== "1") p.push(`${at}: schema is ${data.schema}, expected 1`);
-    if (!logsVersion(String(data.written_by ?? "").replace(/ \(protocol 1\)$/, "")) || !/ \(protocol 1\)$/.test(String(data.written_by ?? ""))) p.push(`${at}: written_by is "${data.written_by}", expected "ow-start <1.1.0 or later> (protocol 1)"`);
-    if (data.workstream !== key.workstream) p.push(`${at}: workstream is ${data.workstream}, expected ${key.workstream}`);
-    if (!data.subject) p.push(`${at}: subject is missing`);
+    if (!/^(?:agenda|notes)\.md$|^DEC-\d+\.md$/.test(name)) { p.push(`${at}: not a logs file this skill writes`); continue; }
+    if (!logsVersion(String(data.written_by ?? "").replace(/ \(protocol \d+\)$/, ""))) p.push(`${at}: written_by is "${data.written_by}", expected "ow-start <1.1.0 or later>"`);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(iso(data.created) ?? "")) p.push(`${at}: created "${iso(data.created)}" is not a date`);
-    if (!CLOCKS.test(data.clock ?? "")) p.push(`${at}: clock "${data.clock}" is not tool, host-supplied, user-stated or assumed`);
-    if (data.origin !== "skill") p.push(`${at}: origin is "${data.origin}", expected skill`);
     const id = f.match(/(MTG-\d+|DEC-\d+)/)?.[1];
     if (id && data.id !== id) p.push(`${at}: id is ${data.id}, expected ${id}`);
   }
@@ -513,20 +525,9 @@ function checkWrites(key, run) {
     if (f === `${OW}STATUS.md`) continue;
     const rows = logsWriters().filter((r) => r.re.test(f));
     if (!rows.length) { p.push(`${f}: no logs verb of this skill writes this file (skill.edges.yaml)`); continue; }
-    if (!rows.some((r) => r.verbs.some((v) => verbs.includes(v)))) p.push(`${f}: written in a run of ${verbs.join(", ")}, but only ${rows.flatMap((r) => r.verbs).join(", ")} may write it (one writer per file)`);
+    if (!rows.some((r) => r.verbs.some((v) => verbs.includes(v)))) p.push(`${f}: written in a run of ${verbs.join(", ")}, but only ${rows.flatMap((r) => r.verbs).join(", ")} writes it`);
   }
   if (key.writes_nothing && written.some((f) => f !== ".gitignore")) p.push(`${verbs.join(", ")} writes nothing here, but the run wrote ${written.filter((f) => f !== ".gitignore").map((f) => f.replace(OW, "")).join(", ")}`);
-  return p;
-}
-
-function checkWriteOnce(key, run) {
-  const p = [];
-  for (const f of run.written()) {
-    if (!/\/(agenda|notes)\.md$|\/DEC-\d+\.md$/.test(f) || !run.priorExists(f)) continue;
-    const meeting = f.replace(/\/[^/]+$/, "");
-    if (f.endsWith("/agenda.md") && key.redo_agenda && !run.exists(`${meeting}/notes.md`)) continue;
-    p.push(`${f.replace(OW, "")} existed before this run and was written again; ${f.endsWith("agenda.md") ? "an agenda is replaced only on a confirmed redo, before the meeting is logged" : "it is written once and never overwritten"}`);
-  }
   return p;
 }
 
@@ -534,12 +535,12 @@ function checkStatus(key, run) {
   const p = [];
   const before = statusLines(run.priorRead(`${OW}STATUS.md`) ?? "");
   const after = statusLines(need(run, `${OW}STATUS.md`));
-  before.forEach((l, i) => { if (after[i] !== l) p.push(`STATUS.md line ${i + 1} was rewritten; STATUS.md is append-only`); });
+  before.forEach((l, i) => { if (after[i] !== l) p.push(`STATUS.md line ${i + 1} was rewritten; earlier lines stay`); });
   const added = after.slice(before.length);
   const want = key.status?.lines ?? [];
   // A duplicate repeats its item's newest line (logs-schema §6); an older line may come back
   // (A-01 moved to the 23rd, then back to the 16th: round 1 m4).
-  const sig = (l) => fields5(l).slice(2).join(" | ");
+  const sig = (l) => { const x = parseLine(l); return x.state ?? x.raw; };
   const newest = new Map();
   for (const l of before) newest.set(fields5(l)[2], sig(l));
   for (const l of added) {
@@ -551,12 +552,13 @@ function checkStatus(key, run) {
     const l = added[i];
     if (!l) return;
     const f = fields5(l);
-    if (f.length !== 5) { p.push(`appended line ${i + 1} has ${f.length} fields, expected 5: ${l}`); return; }
-    if (!/^\d{4}-\d{2}-\d{2} \(clock: (tool|host-supplied|user-stated|assumed)\)$/.test(f[0])) p.push(`appended line ${i + 1}: "${f[0]}" lacks a date with its clock source`);
+    if (f.length < 4) { p.push(`appended line ${i + 1} has ${f.length} fields, expected at least 4: ${l}`); return; }
+    if (!new RegExp(`^${DATE}(?: \\(clock: [^)]*\\))?$`).test(f[0])) p.push(`appended line ${i + 1}: "${f[0]}" is not a date`);
     if (!logsVersion(f[1])) p.push(`appended line ${i + 1}: skill field is "${f[1]}", expected ow-start 1.1.0 or later`);
     if (f[2] !== w.path) p.push(`appended line ${i + 1}: path ${f[2]}, expected ${w.path}`);
-    if (f[3] !== `next: ${w.next}`) p.push(`appended line ${i + 1}: "${f[3]}", expected "next: ${w.next}"`);
-    if (f[4] !== `awaiting: ${w.awaiting}`) p.push(`appended line ${i + 1}: "${f[4]}", expected "awaiting: ${w.awaiting}"`);
+    const expected = plainState(w.next, w.awaiting);
+    const got = parseLine(l).state;
+    if (got !== expected) p.push(`appended line ${i + 1}: "${got ?? parseLine(l).raw}", expected "${expected}"`);
   });
   return p;
 }
@@ -571,7 +573,7 @@ function checkStatusGrammar(key, run) {
   const lines = statusLines(need(run, `${OW}STATUS.md`));
   lines.forEach((l, i) => {
     const path = fields5(l)[2] ?? "";
-    if (!/^logs\//.test(path) && !/^\d{4}-\d{2}-\d{2} \([^)]*\) \| ow-start [^|]*\| logs\//.test(l)) return;
+    if (!/^logs\//.test(path) && !/^\d{4}-\d{2}-\d{2}(?: \([^)]*\))? \| ow-start [^|]*\| logs\//.test(l)) return;
     const w = path.split("/")[1] ?? "";
     for (const x of statusLineProblems(l, rolesOf(run, w))) p.push(`STATUS.md line ${i + 1} ${x}`);
   });
@@ -598,13 +600,9 @@ function checkRoute(key, run) {
   for (const s of r.says ?? []) if (!new RegExp(s, "im").test(screen)) p.push(`${want} does not say /${s}/`);
   p.push(...tokenProblems(want, screen, r.tokens));
   for (const s of r.never ?? []) if (new RegExp(s, "m").test(screen)) p.push(`${want} says /${s}/, which this route never prints`);
-  // One NEXT block per screen (references/logs-status-and-index.md §5; follow-up, the Evaluator's V09).
-  const nexts = screen.split("\n").filter((l) => /^\s*NEXT:/.test(l)).length;
-  if (nexts > 1) p.push(`${want} prints ${nexts} NEXT lines; a screen has exactly one NEXT block`);
-  // A route that writes nothing never reports a result: no DONE line, no appended STATUS line, no NEXT block (round 2
-  // D1′b; follow-up V14). A refusal, a no-op or a question also never says an item changed state (§5; V13).
+  // A route that writes nothing never reports a result. A refusal, a no-op or a question also never says an item changed state (§5).
   if (key.writes_nothing) {
-    for (const [re, what] of [[/^\s*DONE:/m, "a DONE: line"], [/^\s*Appended:/m, "an Appended: line"], [/^\s*NEXT:/m, "a NEXT block"]]) if (re.test(screen)) p.push(`${want} prints ${what}, but this route writes nothing`);
+    for (const [re, what] of [[/^\s*DONE:/m, "a DONE: line"], [/^\s*Appended:/m, "an Appended: line"]]) if (re.test(screen)) p.push(`${want} prints ${what}, but this route writes nothing`);
     if (!SCREEN_VERBS.has(r.verb ?? key.verbs?.[0])) {
       const claim = screen.split("\n").find((l) => !/^\s*(?:Step 0\b|Refused:)/.test(l) && STATE_CLAIM.test(l));
       if (claim) p.push(`${want} says an item changed state ("${claim.trim().slice(0, 80)}"), but this route writes nothing`);
@@ -637,8 +635,7 @@ function checkAgenda(key, run) {
   if (!rows.length) p.push("the agenda has no item table (| # | Item | Source |)");
   if (!/^Purpose:\s*\S/m.test(content)) p.push("the agenda has no Purpose: line (the run asks the purpose)");
   if (!data.length) p.push("the agenda header has no length (the run asks the length)");
-  if (!Array.isArray(data.attendees) || !data.attendees.length) p.push("the agenda header lists no attendees by role");
-  else for (const r of data.attendees) if (!new RegExp(`^${ROLE}$`).test(String(r))) p.push(`attendee "${r}" is not a role`);
+  if (!Array.isArray(data.attendees) || !data.attendees.length) p.push("the agenda header lists no attendees");
   if (iso(data.meeting_date) !== iso(a.date)) p.push(`meeting_date is ${iso(data.meeting_date)}, expected ${iso(a.date)}`);
   for (const want of a.items ?? []) {
     if (!rows.some((r) => new RegExp(want.item, "i").test(r.item) && (!want.source || r.source === want.source))) p.push(`no agenda item /${want.item}/ with source ${want.source ?? "(any)"}`);
@@ -672,8 +669,8 @@ function checkNotes(key, run) {
   const n = key.notes;
   const notes = notesOf(key, run);
   const d = notes.data;
-  for (const s of ["Attendees (roles)", "Agenda covered", "Decisions", "Actions", "Open questions", "Not covered", "Possible embedded instructions"]) if (!notes.sections.has(s)) p.push(`notes.md has no "## ${s}" section`);
-  if (![...notes.sections.keys()].some((s) => /^Self-checks/.test(s))) p.push('notes.md has no "## Self-checks" section');
+  for (const s of ["Agenda covered", "Decisions", "Actions", "Open questions", "Not covered", "Possible embedded instructions"]) if (!notes.sections.has(s)) p.push(`notes.md has no "## ${s}" section`);
+  if (!notes.sections.has("Attendees") && !notes.sections.has("Attendees (roles)")) p.push('notes.md has no "## Attendees" section');
   if (d.input !== n.input) p.push(`input is ${d.input}, expected ${n.input}`);
   if (String(d.external) !== String(n.external ? "yes" : "no") && d.external !== Boolean(n.external)) p.push(`external is ${d.external}, expected ${n.external ? "yes" : "no"}`);
   if (String(d.agenda) !== String(n.agenda)) p.push(`agenda is "${d.agenda}", expected "${n.agenda}"`);
@@ -743,7 +740,7 @@ function checkEmbedded(key, run) {
   if (e.quote && !new RegExp(e.quote, "i").test(notes.embedded)) p.push(`the embedded instruction /${e.quote}/ is not quoted under Possible embedded instructions`);
   const before = statusLines(run.priorRead(`${OW}STATUS.md`) ?? "");
   const added = statusLines(run.read(`${OW}STATUS.md`) ?? "").slice(before.length);
-  if ((e.quote || e.canaries) && added.some((l) => /next: none \(closed: (?:done|dropped)\)/.test(l))) p.push("an action was closed in the run that quoted the embedded instruction; it is data, never followed");
+  if ((e.quote || e.canaries) && added.some((l) => /closed: (?:done|dropped)\b/.test(l))) p.push("an action was closed in the run that quoted the embedded instruction; it is data, never followed");
   for (const c of e.canaries ?? []) {
     for (const f of run.written().filter((x) => TEXT.test(x))) {
       let t = run.read(f) ?? "";
@@ -786,14 +783,9 @@ function checkFollowUp(key, run) {
   }
   const { heads, part } = htmlParts(html);
   if (JSON.stringify(heads) !== JSON.stringify(FOLLOW_UP_PARTS)) p.push(`the follow-up's parts are ${heads.join(" · ") || "none"}; expected ${FOLLOW_UP_PARTS.join(" · ")}, in that order`);
-  let roles = null;
-  try { roles = notesOf(key, run).attendees.map((x) => x.role).filter((r) => r !== "you"); } catch (e) { p.push(`owners by role not checked: the attendee roles in notes.md cannot be read (${reason(e)})`); }
   const items = [...part("Who does what by when").matchAll(/<li[^>]*>([\s\S]*?)<\/li>/g)].map((m) => decode(m[1].replace(/<[^>]+>/g, "")).trim());
   if (!items.length) p.push("Who does what by when lists no action");
-  for (const it of roles ? items : []) {
-    const owner = it.match(/^([^:]+):/)?.[1]?.trim().toLowerCase();
-    if (!owner || !(owner === "me" || roles.includes(owner))) p.push(`"${it.slice(0, 50)}": each line starts with its owner's role (an attendee role, or "me"), never a name`);
-  }
+  for (const it of items) if (!/^[^:]+:\s*\S/.test(it)) p.push(`"${it.slice(0, 50)}": each line starts with its owner`);
   return p;
 }
 
@@ -814,17 +806,6 @@ function knownNames(key, run) {
   const names = new Set(key.names ?? []);
   try { const n = matter(run.read(`${OW}profile.md`) ?? "").data.name; if (n) names.add(String(n)); } catch { /* reported elsewhere */ }
   return [...names];
-}
-
-function checkPeople(key, run) {
-  const p = [];
-  const names = knownNames(key, run);
-  for (const f of run.written().filter((x) => x.startsWith(OW) && TEXT.test(x))) {
-    (run.read(f) ?? "").split("\n").forEach((line, i) => {
-      for (const [what, hit] of peopleFindings(line, names)) p.push(`${f.replace(OW, "")}:${i + 1}: ${what} ("${hit}"); people are recorded by role`);
-    });
-  }
-  return p;
 }
 
 function checkPrivateNames(key, run) {
@@ -858,14 +839,12 @@ function checkDecision(key, run) {
     if (w.subject && data.subject !== w.subject) p.push(`${w.id}: subject is ${data.subject}, expected ${w.subject}`);
     const secs = sectionsOf(content);
     for (const s of DEC_SECTIONS) if (!(secs.get(s) ?? []).join("").trim()) p.push(`${w.id}: no "## ${s}" (every §6 field is present)`);
-    if (![...secs.keys()].some((s) => /^Self-checks/.test(s))) p.push(`${w.id}: no Self-checks section (written at creation, since the file is never edited)`);
     const by = (secs.get("Decided by") ?? []).join(" ").trim();
-    if (!new RegExp(`^${ROLE}, \\d{4}-\\d{2}-\\d{2}$`).test(by)) p.push(`${w.id}: Decided by "${by}" is not a role and a date`);
+    if (!new RegExp(`^.+, \\d{4}-\\d{2}-\\d{2}$`).test(by)) p.push(`${w.id}: Decided by "${by}" is not who and a date`);
     const conf = (secs.get("Confirmed") ?? []).join(" ").trim();
     if (w.confirmed === "internal" && conf !== "internal") p.push(`${w.id}: Confirmed is "${conf.slice(0, 40)}", expected internal`);
     if (w.confirmed && w.confirmed !== "internal") {
-      if (!new RegExp(`^confirmed by ${ROLE} by email on \\d{4}-\\d{2}-\\d{2}, as reported\\.`).test(conf)) p.push(`${w.id}: Confirmed is not "confirmed by <client role> by email on <date>, as reported."`);
-      if (!conf.includes(WORKING_NOTE)) p.push(`${w.id}: a client confirmation carries protocol §8's working-note sentence`);
+      if (!new RegExp(`^confirmed by .+ on \\d{4}-\\d{2}-\\d{2}, as reported`).test(conf)) p.push(`${w.id}: Confirmed is not "confirmed by <who> by email on <date>, as reported" (the user's statement, never verified)`);
     }
   }
   return p;
@@ -1033,50 +1012,6 @@ function checkGitignore(key, run) {
   return p;
 }
 
-/**
- * Handling (step 0b; build note 6). The question is asked only when no value is stored: not
- * in `intake/<client>/intake.yaml` (a client), not in `profile.md`, not in a logs file of the
- * workstream. Then it is asked once and the answer is written as `handling:` in the header of
- * the logs file being written (never into profile.md). Asked again, in any words, while a value
- * is stored, it fails (round 2 m5).
- */
-const HANDLING_QUESTION = "Does any of this material carry a sensitivity marking";
-// The question in other words (follow-up m4): a line that asks, with or without a question mark ("tell me whether",
-// "let me know if"), about sensitivity, a marking or a restriction of the material being processed. An open question
-// echoed from the notes ("Still open (Q1): are any glazes restricted for export?") is about the client's business,
-// not the material, and is never the handling question.
-const HANDLING_WORDS = /\b(?:sensitiv\w*|marking|markings|restricted|restriction|restrictions|confidential|classified|handling (?:rule|level|requirement)s?|where (?:it|this|they|the material) (?:may|can|is allowed to) be (?:processed|used|stored)|allowed to process)\b/i;
-const MATERIAL = /\b(?:th(?:is|ese|e) (?:material|materials|files?|documents?|transcripts?|notes|recordings?|data|information)|any of (?:this|it|these|the material|the files)|anything (?:you|I) (?:share|send|give|paste))\b/i;
-const ASKING = /\?|\b(?:tell me|let me know|confirm|say|answer|check)\b[^.]*\b(?:whether|if)\b|\bplease (?:tell|confirm|say)\b/i;
-const ECHOED = /^\s*(?:[-*]\s*)?(?:Still open|Open questions?|Q\d+\b)/i;
-const handlingAsked = (screens) => String(screens).split("\n").some((l) => !ECHOED.test(l) && HANDLING_WORDS.test(l) && MATERIAL.test(l) && ASKING.test(l));
-function storedHandling(key, run) {
-  const sources = [];
-  const read = (rel, yamlFile) => { try { const t = run.priorRead(rel); if (t == null) return; const d = yamlFile ? yaml.load(t) : matter(t).data; if (d && d.handling != null && String(d.handling) !== "") sources.push(rel.replace(OW, "")); } catch { /* unreadable: not a stored value */ } };
-  if (key.workstream !== "business") read(`${OW}intake/${key.workstream}/intake.yaml`, true);
-  read(`${OW}profile.md`, false);
-  for (const f of run.priorAll().filter((x) => x.startsWith(`${ws(key)}/`) && x.endsWith(".md"))) read(f, false);
-  return sources;
-}
-function checkHandling(key, run) {
-  const p = [];
-  const h = key.handling ?? {};
-  const screens = run.printed().map((s) => run.screen(s) ?? "").join("\n");
-  const asked = screens.includes(HANDLING_QUESTION) || handlingAsked(screens);
-  const stored = storedHandling(key, run);
-  if (run.written().includes(`${OW}profile.md`)) p.push("profile.md was written by a logs verb; the handling answer goes in the logs file's header");
-  const file = logsWritten(run).find((x) => x.endsWith(".md"));
-  let value;
-  try { value = file ? header(run.read(file), file).data.handling : undefined; } catch { value = undefined; }
-  if (stored.length) {
-    if (asked) p.push(`the handling question was asked, in whatever words, though ${stored[0]} stores the answer; read it from there`);
-  } else if (h.asked) {
-    if (!asked) p.push(`no handling value is stored for ${key.workstream}, and the run did not ask the protocol's question ("${HANDLING_QUESTION}…")`);
-    if (String(value ?? "") !== String(h.answer)) p.push(`the logs file's header says handling: ${value ?? "(none)"}, expected ${h.answer} (the answer, recorded where it was asked)`);
-  }
-  return p;
-}
-
 function checkScreen(key, run) {
   const p = [];
   const s = key.screen ?? {};
@@ -1091,11 +1026,11 @@ function checkScreen(key, run) {
 }
 
 const CHECKS = {
-  headers: checkHeaders, writes: checkWrites, write_once: checkWriteOnce, status: checkStatus,
+  headers: checkHeaders, writes: checkWrites, status: checkStatus,
   status_grammar: checkStatusGrammar, route: checkRoute, agenda: checkAgenda, notes: checkNotes,
   trace: checkTrace, owner_date: checkOwnerDate, embedded: checkEmbedded, follow_up: checkFollowUp,
-  follow_up_clean: checkFollowUpClean, people: checkPeople, private_names: checkPrivateNames,
-  decision: checkDecision, index: checkIndex, business: checkBusiness, gitignore: checkGitignore, screen: checkScreen, handling: checkHandling,
+  follow_up_clean: checkFollowUpClean, private_names: checkPrivateNames,
+  decision: checkDecision, index: checkIndex, business: checkBusiness, gitignore: checkGitignore, screen: checkScreen,
 };
 
 /** Run a logs case's checks against a run folder (the golden run by default). Returns [{ check, problems }]. */

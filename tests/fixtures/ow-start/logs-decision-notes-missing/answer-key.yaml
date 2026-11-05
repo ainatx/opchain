@@ -7,7 +7,7 @@ user: Robin
 base: logs-decision-from-meeting
 verbs: [/ow-start-log-decision]
 writes_nothing: true
-checks: [writes, write_once, status, route, private_names, handling]
+checks: [writes, status, route, private_names]
 route:
   verb: /ow-start-log-decision
   says: ["Nothing was written"]

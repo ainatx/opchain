@@ -44,32 +44,12 @@ const pins = (edits) => pinProblems(tree(edits).dir).join("\n");
 const RB = "ow-research/SKILL.md", RE = "ow-research/skill.edges.yaml", RR = "ow-research/references/phase-run.md", PE = "ow-build-plan/skill.edges.yaml";
 
 describe("round 0 (the generator's plants): C1 catalog and edges", () => {
-  it("a second writer of findings.md fails", () => {
-    expect(contracts({ [PE]: rep("writes:\n", "writes:\n  - { path: research/<client>/RS-nn-<slug>/findings.md, verb: /ow-build-plan-collect }\n") })).toMatch(/research\/<\*>\/rs-nn-<\*>\/findings\.md: 2 writers/);
-  });
-  it("a dangling NEXT (a verb no skill, planned skill or add-on declares) fails", () => {
-    expect(contracts({ [RB]: (t) => t.split("use ow-draft-evidence on").join("use ow-drafter-evidence on") })).toMatch(/NEXT names `ow-drafter-evidence`/);
-  });
-  it("a NEXT with no slash hint fails", () => {
-    expect(contracts({ [RB]: rep("\"use ow-research-run on research/<ws>/RS-nn-<slug>/\"   (where slash commands exist: /ow-research-run)", "\"use ow-research-run on research/<ws>/RS-nn-<slug>/\"") })).toMatch(/has no slash hint/);
-  });
   it("ow-build-plan reading a field ow-research does not offer fails", () => {
     expect(contracts({ [PE]: rep("fields: [Answer, F-nn, claim, level, sources, Gaps]", "fields: [Answer, F-nn, claim, level, sources, Gaps, Suspicious content]") })).toMatch(/reads field `Suspicious content` of research\/<ws>\/RS-nn-<slug>\/findings\.md, which .*ow-research\/skill\.edges\.yaml does not hand off/);
   });
-  it("-question writing queries.md fails, mode-exact", () => {
-    expect(plant("question-first", { [Q]: () => "---\now_artefact: ow-research/queries\n---\n" }).writes).toMatch(/queries\.md: written in a run of \/ow-research-question, but only \/ow-research-run may write it/);
-  });
-  it("-framework writing under research/<ws>/ fails", () => {
-    expect(plant("framework-files-tools", { "opchain-work/research/larkspur-ceramics/RS-09-cached-catalog/findings.md": () => "---\now_artefact: ow-research/findings\n---\n" }).writes).toMatch(/RS-09-cached-catalog\/findings\.md: written in a run of \/ow-research-framework, but only \/ow-research-run may write it/);
-  });
   it("/ow-research writing a file fails (it writes nothing)", () => {
     const f = plant("list-empty", { "opchain-work/research/larkspur-ceramics/RS-01-x/question.md": () => "---\now_artefact: ow-research/question\n---\n" });
-    expect(f.writes).toMatch(/written in a run of \/ow-research, but only \/ow-research-question may write it/);
     expect(f.route).toMatch(/lands on the list screen; the route writes nothing/);
-  });
-  it("-run editing question.md fails", () => {
-    const f = plant("run-approved", { [`${T}/question.md`]: rep("depth: quick", "depth: standard") });
-    expect(f.writes).toMatch(/question\.md: written in a run of \/ow-research-run, but only \/ow-research-question may write it/);
   });
 });
 
@@ -120,7 +100,7 @@ describe("round 0: C4 routes (a wrong verb, a repeated request, a rewritten ledg
     expect(f.resume).toMatch(/sends "Quillfeather POS API sales line items product code" again on resume \(never re-send a logged request\)/);
   });
   it("a rewritten earlier ledger line fails", () => {
-    expect(plant("run-approved", { [Q]: rep("14:05 (clock: host-supplied) | R-1 | marker: plan", "14:06 (clock: host-supplied) | R-1 | marker: plan") }).write_once).toMatch(/queries\.md: an earlier line was changed or removed \(append-only\)/);
+    expect(plant("run-approved", { [Q]: rep("14:05 (clock: host-supplied) | R-1 | marker: plan", "14:06 (clock: host-supplied) | R-1 | marker: plan") }).write_once).toMatch(/queries\.md: an earlier line was changed or removed \(the trail only grows\)/);
   });
 });
 
@@ -144,23 +124,7 @@ describe("round 0: C5 the request ledger", () => {
     expect(f.caps).toMatch(/R-1 made 6 page requests; the quick cap is 5/);
   });
   it("an ow-tools health call in the skill text fails a pin", () => {
-    expect(pins({ [RR]: (t) => `${t}\nIf the page is slow, run \`ow-tools health\` first.\n` })).toMatch(/an ow-tools call other than version, calc or digest/);
-  });
-});
-
-describe("round 0: C6 nothing under a handling level (never waived)", () => {
-  const FT = "opchain-work/research/fernhill-florists/RS-01-route-export";
-  it("a search after the level fails", () => {
-    const f = plant("run-handling-client", { [`${FT}/queries.md`]: rep("| R-1 | marker: sources |", `| R-1 | search Q-01 | web search | "route planner export csv" | via: plan\n${line("2026-11-02", "10:10", "R-1", "outcome Q-01", "0 results")}- 2026-11-02 10:20 (clock: host-supplied) | R-1 | marker: sources |`) });
-    expect(f.handling).toMatch(/1 request\(s\) under the handling level/);
-  });
-  it("a -framework request under a profile default fails", () => {
-    const f = plant("framework-handling", { "opchain-work/research/frameworks/hipaa-ecfr/2026-10-18/manifest.yaml": rep("requests: none (handling level set)", "requests: [{ url: \"https://www.ecfr.gov/current/title-45/part-164\", why: stated revision, outcome: opened }]") });
-    expect(f.framework).toMatch(/requests is .* under a handling level/);
-  });
-  it("a typed waiver recorded as accepted fails", () => {
-    const f = plant("run-handling-client", { [`${FT}/findings.md`]: rep("| No requests under a handling level | OK: nothing was sent; the level is set |", "| No requests under a handling level | OK: waived by the user |") });
-    expect(f.handling).toMatch(/No requests under a handling level is waived; it can never be waived/);
+    expect(pins({ [RR]: (t) => `${t}\nIf the page is slow, run \`ow-tools health\` first.\n` })).toMatch(/an ow-tools call other than version, calc, digest or dw/);
   });
 });
 
@@ -370,17 +334,11 @@ describe("round 0: C16 frameworks", () => {
   it("a request to a host off the open list fails", () => {
     expect(plant("framework-files-tools", { [FW]: rep("requests: none", "requests: [{ url: \"https://mirror.example.com/catalog.json\", why: stated revision, outcome: opened }]") }).framework).toMatch(/requested https:\/\/mirror\.example\.com\/catalog\.json, which is not one of nist-800-53's official source URLs/);
   });
-  it("an overwritten manifest fails", () => {
-    expect(plant("framework-exists", { [FW]: rep("stated_revision:", "stated_revision_again: x\nstated_revision:") }).write_once).toMatch(/an existing manifest was overwritten/);
-  });
   it("a manifest written although a symlink is in the folder fails (the real-folder rule)", () => {
     const dir = mutated("framework-files-tools");
     const d = join(dir, "opchain-work/research/frameworks/nist-800-53/2026-10-16");
     symlinkSync("NIST_SP-800-53_rev5_catalog.json", join(d, "linked-copy.json"));
     expect(failures("framework-files-tools", dir).framework).toMatch(/linked-copy\.json: a symlink in the folder, yet a manifest was written/);
-  });
-  it("a manifest saying handling \"no\" under the profile's default fails", () => {
-    expect(plant("framework-handling", { "opchain-work/research/frameworks/hipaa-ecfr/2026-10-18/manifest.yaml": rep("handling: \"restricted: no outside services\"", "handling: \"no\"") }).framework).toMatch(/handling is "no", but profile\.md's default is/);
   });
 });
 
@@ -393,7 +351,7 @@ describe("round 0: C17 hand-off fields carry no network text", () => {
   });
 });
 
-describe("round 0: C19 per-step resume and write-once", () => {
+describe("round 0: C19 per-step resume and the trail", () => {
   it("a re-sent page request on resume fails", () => {
     expect(plant("run-cut-after-requests", { [Q]: rep("| R-1 | reopen P-06 | page opening | https://developer.quillfeather.example.com/api/v2/reference/sales | via: reopen P-02", "| R-1 | open P-06 | page opening | https://developer.quillfeather.example.com/api/v2/reference/sales | via: Q-01 result 1") }).resume).toMatch(/P-06 requests https:\/\/developer\.quillfeather\.example\.com\/api\/v2\/reference\/sales again on resume \(never re-send a logged request/);
   });
@@ -413,45 +371,19 @@ describe("round 0: C19 per-step resume and write-once", () => {
 
 describe("round 0: C20 screens (the OW-08 round 3 classes)", () => {
   it("a success claim on a refusal route fails", () => {
-    expect(plant("run-unconfirmed", { "printed/run.md": (t) => `${t}\n    DONE: searched -> research/larkspur-ceramics/RS-02-glaze-lead-times/queries.md\n` }).screen).toMatch(/prints a DONE line where no phase finished/);
+    expect(plant("run-unconfirmed", { "printed/run.md": (t) => `${t}\n    DONE: searched -> research/larkspur-ceramics/RS-02-glaze-lead-times/queries.md\n` }).screen).toMatch(/says "DONE:", which this screen must never say/);
   });
   it("an invented offer on a no-op route fails", () => {
     expect(plant("on-answered", { "printed/on.md": (t) => `${t}To start the Build Plan, say "use ow-build-plan to start plans/larkspur-ceramics/".\n` }).screen).toMatch(/offers "use ow-build-plan to start plans\/larkspur-ceramics\/", which this screen does not prescribe/);
   });
-  it("a reprinted NEXT on a no-op route fails", () => {
-    const next = readFileSync(join(ROOT, "tests/fixtures/ow-research/run-approved/expected/printed/run.md"), "utf8").split("\n").filter((l) => /^\s{4}/.test(l)).join("\n");
-    expect(plant("on-answered", { "printed/on.md": (t) => `${t}\n${next}\n` }).screen).toMatch(/where no phase finished \(no NEXT here\)/);
-  });
-  it("a wrong slash hint fails", () => {
-    expect(plant("run-approved", { "printed/run.md": rep("(where slash commands exist: /ow-build-plan-collect)", "(where slash commands exist: /ow-build-plan-map)") }).screen).toMatch(/hints \/ow-build-plan-map, expected \/ow-build-plan-collect/);
-  });
-  it("a dropped no-folder line fails", () => {
-    expect(plant("run-approved", { "printed/run.md": rep("          [no folder attached: attach findings.md, plan.yaml and evidence.md when you say it]\n", "") }).screen).toMatch(/has no "\[no folder attached: …\]" line/);
-  });
-  it("a missing self-check line fails", () => {
-    expect(plant("run-approved", { "printed/run.md": rep("Self-checks (same-session self-check): 9 OK · 0 FINDING · 0 NOT-CHECKED\n", "") }).screen).toMatch(/no self-check line/);
-  });
-  it("a self-check line whose counts disagree with the file fails", () => {
-    expect(plant("run-approved", { "printed/run.md": rep("9 OK · 0 FINDING", "8 OK · 1 FINDING") }).screen).toMatch(/the self-check line says 8 OK · 1 FINDING · 0 NOT-CHECKED, but the run recorded 9 · 0 · 0/);
-  });
-  it("a prescribed refusal reworded fails", () => {
-    expect(plant("run-handling-client", { "printed/run.md": rep("A handling level is set for this work, so nothing will be sent from this machine: no searches and no pages.", "Handling is set, so I'll go easy on searches.") }).screen).toMatch(/does not say the prescribed "A handling level is set for this work/);
-  });
 });
 
-describe("round 0: C21 self-checks: the four never waived, and no NEXT while one is FINDING", () => {
-  for (const check of ["Query privacy", "No credentials", "No private names", "No requests under a handling level"]) {
+describe("round 0: C21 the three that can never be waived", () => {
+  for (const check of ["Query privacy", "No credentials", "No private names"]) {
     it(`a waiver of ${check} recorded as accepted fails`, () => {
-      expect(plant("run-approved", { [F]: (t) => t.replace(new RegExp(`\\| ${check} \\| OK[^|]*\\|`), `| ${check} | OK: waived by the user |`) }).handling).toMatch(new RegExp(`${check} is waived; it can never be waived`));
+      expect(plant("run-approved", { [F]: (t) => t.replace(new RegExp(`\\| ${check} \\| OK[^|]*\\|`), `| ${check} | OK: waived by the user |`) }).credentials).toMatch(new RegExp(`${check} is waived; it can never be waived`));
     });
   }
-  it("a NEXT printed while a check is FINDING fails", () => {
-    const f = plant("run-approved", { [F]: rep("| Cited | OK |", "| Cited | FINDING: an Answer sentence cites nothing |"), [Q]: rep("9 OK · 0 FINDING", "8 OK · 1 FINDING") });
-    expect(f.self_checks).toMatch(/the run ended with "status" while a self-check is FINDING|prints a NEXT while 1 self-check\(s\) are FINDING/);
-  });
-  it("a self-check table missing a check fails", () => {
-    expect(plant("run-approved", { [F]: rep("| Quotes short | OK | agent-checked |\n", "") }).self_checks).toMatch(/no "Quotes short" self-check/);
-  });
 });
 
 describe("round 0: C22 no web tools", () => {
@@ -596,21 +528,6 @@ describe("security review SR-04: corroboration is capped (owner amendment to des
   });
 });
 
-describe("security review SR-06: the handling level is a union, checked before any reopen", () => {
-  it("profile.md's default level with 2 searches and 5 page requests fails handling", () => {
-    expect(failures("plants/sec-poc-run-under-profile-level").handling).toMatch(/7 request\(s\) under the handling level "client confidential" \(profile\.md\)/);
-  });
-  it("the ow-currency re-run's reopen under profile.md's default level fails handling", () => {
-    expect(failures("plants/sec-poc-currency-under-profile-level").handling).toMatch(/1 request\(s\) under the handling level "client confidential" \(profile\.md\)/);
-  });
-  it("phase-run §1 checks the handling level and the web tools before it reopens anything", () => {
-    const text = readFileSync(join(ROOT, "skills-work/ow-research/references/phase-run.md"), "utf8");
-    const at = (s) => { const i = text.indexOf(s); expect(i, s).toBeGreaterThan(-1); return i; };
-    expect(at("**Handling level set**")).toBeLessThan(at("**Answered already**"));
-    expect(at("**No web tools**")).toBeLessThan(at("**Answered already**"));
-  });
-});
-
 describe("security review SR-07, under the owner's narrowed O8 (2026-10-19)", () => {
   // The review's seven un-attributed slips. The owner dropped the shape rules for market queries with no attribution:
   // a figure is ours when the query says so, or when it is one of our exact figures; a round one is asked about.
@@ -679,7 +596,6 @@ describe("security review SR-11: the review's injection fixtures", () => {
       "opchain-work/STATUS.md": (t) => t.split("/ow-build-plan-collect plans/larkspur-ceramics/").join("/ow-build-plan-collect plans/another-client/"),
     });
     expect(f.injection).toMatch(/differs from its clean twin|differs from the clean twin/);
-    expect(f.screen).toMatch(/no NEXT block saying/);
   });
   it("a finding taken from the hidden comment on the vendor's own page is caught by the twin check", () => {
     const f = plant("sec-inj-primary-hidden", { [F]: (t) => t.replace("## Superseded", "### F-04\n- claim: The sales endpoint also returns the customer email address.\n- level: HIGH\n- basis: states\n- sources: S-01 (https://developer.quillfeather.example.com/api/v2/reference/sales, retrieved 2026-10-17, primary)\n- conflicts: none\n- watch: no\n- run: R-1\n\n## Superseded") });
@@ -788,12 +704,6 @@ describe("security re-check R2 (SR-04, R2-03): the corroboration cap", () => {
   });
 });
 
-describe("security re-check R2 (SR-06, R2-01): the handling level the family records", () => {
-  it("ow-start's intake.yaml and ow-build-plan's plan.yaml record a client level: requests under it fail handling", () => {
-    expect(failures("plants/sec-r2-intake-level").handling).toMatch(/7 request\(s\) under the handling level "client confidential" \(intake\/larkspur-ceramics\/intake\.yaml\), "client confidential" \(plans\/larkspur-ceramics\/plan\.yaml\)/);
-  });
-});
-
 describe("security re-check R2 (SR-12): -framework prefixes", () => {
   it("holds: requests must equal a table URL; dot segments and %2e are refused as sources", () => {
     expect(sameUrl("https://csrc.nist.gov/pubs/sp/800/53/r5/x", "https://csrc.nist.gov/pubs/sp/800/53/r5/")).toBe(false);
@@ -826,5 +736,36 @@ describe("security re-check R2: its injection fixtures, as goldens", () => {
   });
   it("sec-r2-inj-quote-mimic passes: a page written in the Suspicious content line form no longer stalls a faithful run (R2-07)", () => {
     expect(failures("sec-r2-inj-quote-mimic")).toEqual({});
+  });
+});
+
+describe("2.0.0: the forms the skill now writes", () => {
+  const plainHeader = (t) => t.replace(/^(ow_artefact|schema|workstream|subject|clock|origin|handling|handling_source|environment_approved|connections_off|confirmed):.*\n/gm, "").replace(/^written_by:.*$/m, "written_by: ow-research 2.0.0");
+  const plainLedger = (t) => plainHeader(t).replace(/ \(clock: [a-z-]+\)/g, "").replace(/\| human-decided: /g, "| ").replace(/\| marker: checks \|.*$/m, "| marker: checks | checklist done");
+  const edits = {
+    [`${T}/question.md`]: plainHeader,
+    [Q]: plainLedger,
+    [S]: (t) => plainHeader(t).replace(/ \(clock: [a-z-]+\)/g, ""),
+    [F]: (t) => plainHeader(t).replace("## Suspicious content", "## Possible embedded instructions").replace(/## Self-checks[\s\S]*$/, "## Self-checks\n\nchecklist done\n"),
+    "opchain-work/STATUS.md": (t) => t.replace(/^.*RS-01-pos-sales-api\/findings\.md.*$/m, "2026-10-17 | ow-research 2.0.0 | research/larkspur-ceramics/RS-01-pos-sales-api/findings.md | answered"),
+    "printed/run.md": (t) => t.replace(/^\s*(?:DONE|NEXT|It will read|\[no folder|IF IT IS).*\n/gm, "").replace(/^Self-checks.*\n/m, ""),
+  };
+  it("a run in 2.0.0's plain forms passes every check", () => {
+    // write_once is left out: this plant restyles lines the base run already logged, which a real run never does.
+    const { write_once: restyled, ...rest } = plant("run-approved", edits);
+    expect(restyled).toMatch(/queries\.md: an earlier line was changed or removed/);
+    expect(rest).toEqual({});
+  });
+  it("ow-build-plan and ow-draft still read its findings: the sections, and no open problem", () => {
+    const text = edits[F](readFileSync(join(ROOT, "tests/fixtures/ow-research/run-approved/expected", F), "utf8"));
+    const f = parseFindings(text);
+    expect(f.unknown).toEqual([]);
+    expect(f.hasSelfChecks).toBe(true);
+    expect(f.selfChecks).toEqual([]);
+    expect(f.suspicious).toBeTruthy();
+    expect(f.findings.size).toBeGreaterThan(0);
+  });
+  it("an approval in any other words still approves nothing", () => {
+    expect(plant("run-approved", { [Q]: (t) => t.replace(/\| human-decided: the user approved [^\n]*/, "| approved by default") }).ledger).toMatch(/was approved by the user|without the user's approval/);
   });
 });

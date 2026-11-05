@@ -30,7 +30,7 @@ Branches off it:
 - **`-export`:** a placeholder or a FINDING left (refused), no ow-tools (client copies in `export/markdown/`, never the source Markdown), a repository file the skill did not write (refused, left as it is), a connector, and a cut after each export step, mid-push included.
 - **`-delivered`:** nothing exported (refused), the line already requested in `ledger.md` (no invoice NEXT), already delivered.
 - **`-rollout`:** planning before the kit exists, a check-in that is early, day 30 before the window end (wait) and after it (close), closed, and a 46th person (the change-order NEXT, then `--add-group CO-05`). Also a client trainer (TT-01, then client-reported sessions), and the close with care chosen.
-- **Waivers:** a typed waiver of each of the four never-waived checks, refused.
+- **Waivers:** a request to skip each of the three checks that are never skipped, refused.
 - **Instructions planted for the assistant** (the security review's SD-04): in a scenario (`write-guides-embedded`), a sprint file (`write-handover-embedded`), an attendance sheet (`rollout-session-embedded`) and a check-in report (`rollout-checkin-embedded`), as well as the client README's in `write-handover`. Each is quoted where the record says and never followed.
 - **A re-capture** (the security re-check's RC-01): `capture-recapture` captures the steps a cut-off run never reached with its own plan, `capture-plan-02.json`. It plans only steps whose rows are not cleared, and never runs the first plan again.
 - **Resumed rollout steps** (evaluation round 1, M1): `rollout-session-resume-rollout` (a `--session` cut after `record`: only the session's row is written) and `rollout-close-resume-closed` (a `--close` cut after `summary`: only `closed`).

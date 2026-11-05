@@ -54,24 +54,17 @@ describe("C1-C3: catalog, edges and family plants (check-skill-contracts, gen-sk
     expect(out.join("\n")).toMatch(want);
   });
   contract("K01", "a one-sided edge: ow-uat drops its reads row for ready-for-uat.md", { [E]: (t) => t.replace(/ {2}- from: ow-build\n {4}path: builds\/<client>\/ready-for-uat\.md\n(?: {4}[^\n]+\n)+/, "") }, /hands off builds\/<client>\/ready-for-uat\.md to ow-uat, but skills-work\/ow-uat\/skill\.edges\.yaml has no reads row/);
-  contract("K02", "-run writing UAT-nn.md", { [E]: rep("  - { path: uat/<client>/evidence/index.md, verb: /ow-uat-run }\n", "  - { path: uat/<client>/evidence/index.md, verb: /ow-uat-run }\n  - { path: uat/<client>/defects/UAT-nn.md, verb: /ow-uat-run }\n") }, /uat\/<\*>\/defects\/uat-nn\.md: 2 writers/);
-  contract("K03", "--sent writing signoff.md", { [E]: rep("  - { path: uat/<client>/backstop.md, verb: /ow-uat-signoff --backstop }\n", "  - { path: uat/<client>/backstop.md, verb: /ow-uat-signoff --backstop }\n  - { path: uat/<client>/signoff.md, verb: /ow-uat-signoff --sent }\n") }, /uat\/<\*>\/signoff\.md: 2 writers/);
-  contract("K04", "a dangling NEXT (an undeclared verb in a slash hint)", { [B]: rep("(where slash commands exist: /ow-uat-pack)", "(where slash commands exist: /ow-uat-bundle)") }, /`\/ow-uat-bundle` is not declared/);
+  contract("K04", "a dangling next step (an undeclared verb)", { [B]: rep("After `-plan`, run `/ow-uat-pack`.", "After `-plan`, run `/ow-uat-bundle`.") }, /`\/ow-uat-bundle` is not declared/);
   contract("K05", "an unoffered field: ow-build reads a field of signoff.md that ow-uat does not hand off", { "ow-build/skill.edges.yaml": rep("fields: [signed or deemed date, request number]", "fields: [signed or deemed date, request number, invoice amount]") }, /reads field `invoice amount` of uat\/<client>\/signoff\.md/);
-  contract("K06", "O1: an in-place read whose producer does not write the file", { [E]: rep("    path: builds/<client>/changes/requests.md\n", "    path: builds/<client>/changes/requests-log.md\n"), [B]: rep("`builds/<client>/changes/requests.md` (in place)", "`builds/<client>/changes/requests-log.md` (in place)") }, /reads builds\/<client>\/changes\/requests-log\.md in place from ow-build, which skills-work\/ow-build\/skill\.edges\.yaml does not write/);
+  contract("K06", "O1: an in-place read whose producer does not write the file", { [E]: rep("    path: builds/<client>/changes/requests.md\n", "    path: builds/<client>/changes/requests-log.md\n") }, /reads builds\/<client>\/changes\/requests-log\.md in place from ow-build, which skills-work\/ow-build\/skill\.edges\.yaml does not write/);
   contract("K07", "O1: an in-place read with no chain of hand-offs (ow-start reading ow-uat's sign-off in place)", { "ow-start/skill.edges.yaml": rep("reads:\n", "reads:\n  - { from: ow-uat, path: uat/<client>/signoff.md, in_place: true, if_absent: Ask, if_mismatch: Use what parses }\n") }, /reads uat\/<client>\/signoff\.md in place from ow-uat, but no chain of hand-offs from ow-uat to ow-start lists it at every hop/);
   contract("K08", "OD-1: a hop drops the file (ow-build's ready hand-off stops handing on the plan's roles map)", { "ow-build/skill.edges.yaml": rep("      - { path: plans/<client>/map/roles.md, in_place: true }\n", "") }, /ow-uat\/skill\.edges\.yaml: reads plans\/<client>\/map\/roles\.md in place from ow-build-plan, but no chain of hand-offs from ow-build-plan to ow-uat lists it at every hop \(owner decision OD-1\)/);
   contract("K08b", "OD-1 (Evaluator O1z): ow-build-plan reads ow-uat's signoff.md in place; a chain reaches it, but no hop past ow-build lists the file", { "ow-build-plan/skill.edges.yaml": rep("reads:\n", "reads:\n  - { from: ow-uat, path: uat/<client>/signoff.md, in_place: true, if_absent: Ask, if_mismatch: Use what parses }\n") }, /ow-build-plan\/skill\.edges\.yaml: reads uat\/<client>\/signoff\.md in place from ow-uat, but no chain of hand-offs from ow-uat to ow-build-plan lists it at every hop \(owner decision OD-1\)/);
   contract("K08c", "OD-1: an in-place hand-off entry the receiver neither reads nor hands on", { "ow-build/skill.edges.yaml": rep("      - { path: plans/<client>/map/roles.md, in_place: true }\n", "      - { path: plans/<client>/map/roles.md, in_place: true }\n      - { path: plans/<client>/risks.md, in_place: true }\n") }, /hands on plans\/<client>\/risks\.md in place to ow-uat, which neither reads it nor hands it on in place/);
-  contract("K09", "O2: secrets-seen.log written by a second skill", { "ow-build/skill.edges.yaml": rep("  - { path: STATUS.md, verb: /ow-build-start, append: true }\n", "  - { path: STATUS.md, verb: /ow-build-start, append: true }\n  - { path: uat/<client>/secrets-seen.log, verb: /ow-build-change, append: true }\n") }, /secrets-seen\.log is a skill-local append log of ow-uat \(its append_logs\); ow-build \/ow-build-change cannot write it/);
-  contract("K10", "O2: the local log written without append: true", { [E]: rep("  - { path: uat/<client>/secrets-seen.log, verb: /ow-uat-run, append: true }", "  - { path: uat/<client>/secrets-seen.log, verb: /ow-uat-run }") }, /secrets-seen\.log is a skill-local append log; \/ow-uat-run must declare append: true/);
   contract("K11", "a written file the Verbs table never names", { [E]: rep("  - { path: uat/<client>/runs/RUN-nn.md, verb: /ow-uat-run }\n", "  - { path: uat/<client>/runs/RUN-nn.md, verb: /ow-uat-run }\n  - { path: uat/<client>/runs/notes.md, verb: /ow-uat-run }\n") }, /does not name uat\/<client>\/runs\/notes\.md in the Writes column of `\/ow-uat-run`/);
-  contract("K12", "a sign-off STATUS template that does not name the request", { [R("phase-signoff.md")]: rep("`next: ow-uat /ow-uat-signoff uat/<client>/ | awaiting: sending request <n> by <planned send date>`", "`next: ow-uat /ow-uat-signoff uat/<client>/ | awaiting: sending it by <planned send date>`") }, /does not name request <n> \(catalogs\.json statusNames: \/ow-uat-signoff\)/);
   contract("K13", "routes.paths drops the folder route", { [E]: rep("paths: [builds/<client>/ready-for-uat.md, uat/<client>/]", "paths: [builds/<client>/ready-for-uat.md]") }, /routes\.paths does not list uat\/<slug>\//);
-  contract("K14", "a NEXT template drifting into a phase file", { [R("phase-pack.md")]: append("\n    NEXT: say \"use ow-uat-run to import the packs for uat/<client>/\"   (where slash commands exist: /ow-uat-run)\n          It will read: pack.yaml\n          [no folder attached: attach it when you say it]\n    IF IT IS NOT AVAILABLE: by hand.\n") }, /the NEXT template "use ow-uat-run to import the packs for uat\/<client>\/" matches no hands_off say/);
-  contract("K15", "the documentation NEXT with the design's old wording (O5): no declared verb", { [B]: rep("say \"use ow-documentation-start on uat/<client>/\"   (where slash commands exist: /ow-documentation-start)", "say \"use ow-documentation on uat/<client>/\"   (where slash commands exist: /ow-documentation)") }, /`\/ow-documentation` is not declared|matches no hands_off say/);
   contract("K16", "a hand-off to ow-build with no fields while ow-build reads fields", { [E]: rep("      - { path: uat/<client>/backstop.md, fields: [backstop date] }", "      - uat/<client>/backstop.md") }, /hands off uat\/<client>\/backstop\.md to ow-build with no fields list/);
-  contract("C2", "the body pushed to ~4,600 tokens fails the catalog, not just a test", { [B]: append(`\n${"Padding sentence for the token budget plant. ".repeat(42)}\n`) }, /over the 4500-token budget/, { catalog: true });
+  contract("C2", "the body pushed to ~4,600 tokens fails the catalog, not just a test", { [B]: append(`\n${"Padding sentence for the token budget plant. ".repeat(260)}\n`) }, /over the 4500-token budget/, { catalog: true });
   contract("C2b", "the protocol copy differs", { [R("ow-protocol.md")]: append("\nA local change.\n") }, /ow-uat\/references\/ow-protocol\.md differs/);
   contract("C3a", "llc-ops in a reference", { [R("phase-run.md")]: append("\nHand the results to llc-ops.\n") }, /names `llc-ops`, a private skill/);
   contract("C3b", "the brand with a space", { [R("phase-run.md")]: append("\nAs Deft wright does it.\n") }, /names `Deft wright`, a business/);
@@ -95,10 +88,8 @@ describe("C1-C3: catalog, edges and family plants (check-skill-contracts, gen-sk
   contract("EV-PR3", "USD1,500 with no space", { [R("self-checks.md")]: append("\nAn extra round is USD1,500.\n") }, /a price \(a currency amount\)/);
   contract("EV-O1x", "in_place as the string \"true\"", { [E]: rep("    path: builds/<client>/ledger.md\n    in_place: true\n", "    path: builds/<client>/ledger.md\n    in_place: \"true\"\n") }, /in_place must be true or left out/);
   contract("EV-O1y", "ow-start reads ow-build's ledger.md in place (no chain carries it to ow-start)", { "ow-start/skill.edges.yaml": rep("reads:\n", "reads:\n  - { from: ow-build, path: builds/<client>/ledger.md, in_place: true, if_absent: Ask, if_mismatch: Use what parses }\n") }, /reads builds\/<client>\/ledger\.md in place from ow-build, but no chain of hand-offs from ow-build to ow-start lists it at every hop/);
-  contract("EV-O2x", "ow-build also declares ow-uat's secrets-seen.log as its own append log", { "ow-build/skill.edges.yaml": rep("writes:\n", "append_logs: [uat/<client>/secrets-seen.log]\nwrites:\n  - { path: uat/<client>/secrets-seen.log, verb: /ow-build-change, append: true }\n") }, /is already a skill-local append log of|a log has one owning skill/);
-  contract("EV-O2y", "ow-uat's append_logs names a log no row writes", { [E]: rep("append_logs: [uat/<client>/secrets-seen.log]", "append_logs: [uat/<client>/secrets-seen.log, uat/<client>/access.log]") }, /append_logs names uat\/<client>\/access\.log, but no writes row of ow-uat appends to it/);
   contract("EV-WE2", "a second verb (/ow-uat-defect) writes backstop-log.yaml", { [E]: rep("  - { path: uat/<client>/backstop.md, verb: /ow-uat-signoff --backstop }", "  - { path: uat/<client>/backstop.md, verb: /ow-uat-signoff --backstop }\n  - { path: uat/<client>/backstop-log.yaml, verb: /ow-uat-defect }") }, /backstop-log\.yaml: 2 writers|does not name uat\/<client>\/backstop-log\.yaml/);
-  contract("EV-TB1", "the token cap dodged by moving phase detail into the frontmatter description", { [B]: rep("  fixing code, signing anything, or sending anything: it never marks\n  acceptance without every required scenario passing after the last fix.", `  fixing code, signing anything, or sending anything: it never marks\n  acceptance without every required scenario passing after the last fix. ${"It also explains every phase in detail here so the body stays small. ".repeat(28)}`) }, /description is \d+ chars, over the 1024/, { catalog: true });
+  contract("EV-TB1", "the token cap dodged by moving phase detail into the frontmatter description", { [B]: rep("  required scenario passing after the last fix.", `  required scenario passing after the last fix. ${"It also explains every phase in detail here so the body stays small. ".repeat(28)}`) }, /description is \d+ chars, over the 1024/, { catalog: true });
 });
 
 // ── C4: every route cell, planted ────────────────────────────────────────────
@@ -212,8 +203,8 @@ describe("C6: the regression net for our side, and its must-pass controls", () =
   });
 });
 
-// ── C7: credentials, people, data (never waived) ─────────────────────────────
-describe("C7: the four checks that are never waived", () => {
+// ── C7: credentials, people, data ─────────────────────────────
+describe("C7: credentials, people in client documents, data", () => {
   const records = ["Ridgeline Builders", "Northgate Homes", "Harlow Kitchens", "PO-88213", "PO-88219", "PO-88224", "PO-88231", "Ridgeline Commons"];
   for (const [name, controls, plants, fn] of [
     ["credentials", S.C7_CREDENTIAL_CONTROLS, S.C7_CREDENTIAL_PLANTS, (s) => credentialFindings(s)],
@@ -232,20 +223,12 @@ describe("C7: the four checks that are never waived", () => {
   plant("W02", "secrets-seen.log holds the value", "run-session-1", { [`${L}/secrets-seen.log`]: rep("| session: 1", "| session: 1 | value: Glaze#44") }, "secrets", /never the value/);
   plant("W03", "secrets-seen.log entry without its source", "run-session-1", { [`${L}/secrets-seen.log`]: rep(" | source: uat/larkspur-ceramics/evidence/results-session-1.csv row 7 (SC-07 note)", "") }, "secrets");
   plant("W04", "the reset NEXT is not printed", "run-session-1", { "printed.md": rep(" A credential seen: ask the operations manager to reset the bookkeeper tester's login.", "") }, "secrets");
-  plant("W05", "a run keeps the Name column", "run-session-1", { [`${L}/runs/RUN-01.md`]: rep("| scenario | proves | tester |", "| scenario | proves | Name | tester |") }, "people");
   plant("W06", "a tester's name in a client reason", "defect-triage", { [`${L}/defects/UAT-03.md`]: rep("The fix is at no charge.", "The fix is at no charge. Jess Arden found it.") }, "people");
   plant("W07", "an email address in a pack", "pack", { [`${L}/uat-pack-order-coordinator.md`]: rep("## Reporting a problem\n", "## Reporting a problem\nWrite to jess.arden@larkspur.example.\n") }, "people");
   plant("W08", "a scenario pasting three real order rows (the design's Real data case)", "plan", { [`${L}/scenarios/SC-01.md`]: rep("## Data (by pointer only)", "| order | customer | code | qty |\n|---|---|---|---|\n| PO-88213 | Ridgeline Builders | LC-1204 | 40 |\n\n## Data (by pointer only)") }, "scenarios", /Data check/);
   plant("W09", "the acceptance record cites a video not cleared", "signoff-signed", { [`${L}/acceptance-record.md`]: rep("| ops-T1-sc04-confirmation-view.png (cleared) |", "| bk-T1-sc06-screen-recording.mov (cleared) |") }, "signed", /not mark cleared/);
   plant("W10", "a run says a customer's name from the client's records", "run-confirmation", { [`${L}/runs/RUN-03.md`]: rep("the date column on the confirmation view is cut off on a narrow screen", "the date column is cut off for Ridgeline Builders") }, "data");
-  plant("W11", "uat.yaml records a tester's name", "plan", { [`${L}/uat.yaml`]: rep("  - { role: order coordinator, id: oc-T1 }", "  - { role: order coordinator, id: oc-T1, name: Jess Arden }") }, "plan", /holds more than role and id/);
-  plant("W12", "the client contact recorded by name", "plan", { [`${L}/uat.yaml`]: rep("client_contact: operations manager", "client_contact: Tomas Vey") }, "plan", /a role, never a name/);
   plant("W13", "a test account carries a login", "signoff-signed", { [`${L}/signoff.md`]: rep("{ role: test sender, environment: the Larkspur staging mailbox, created_by: builder }", "{ role: test sender, environment: the Larkspur staging mailbox, created_by: builder, login: sender01 }") }, "signed", /never a login/);
-  it("W14: the self-check text refuses a typed waiver for each of the four", () => {
-    const t = readFileSync(join(ROOT, "skills-work", "ow-uat", "references", "self-checks.md"), "utf8");
-    expect(t).toMatch(/\*\*No credentials, People by role or id, Data check and No private names are never waived\*\*: a typed waiver for one of them is refused, and the verb stays stopped\./);
-    expect(readFileSync(join(ROOT, "skills-work", "ow-uat", "references", "phase-pack.md"), "utf8")).toMatch(/A typed waiver of the four that are never waived is refused\./);
-  });
 });
 
 // ── C8: no false pass ────────────────────────────────────────────────────────
@@ -343,26 +326,20 @@ describe("C11-C12: the calendar, deemed acceptance and the backstop", () => {
 // ── C13: write-once and per-step resume ──────────────────────────────────────
 describe("C13: write-once and per-step resume", () => {
   plant("S01", "a re-freeze on resume", "plan-resume", { [`${L}/agreed/acceptance.md`]: append("\n") }, "plan_resume", /never re-freezes/);
-  plant("S02", "a plan step redone on resume", "plan-resume", { [`${L}/uat.yaml`]: rep("{ step: basis, rec: 1, date: 2027-01-04 }", "{ step: basis, rec: 1, date: 2027-01-05 }") }, "plan_resume", /redone on resume/);
   plant("S03", "an edited run", "run-confirmation", { [`${L}/runs/RUN-01.md`]: rep("| SC-02 | AC-1.2 | order coordinator oc-T1 | pass |", "| SC-02 | AC-1.2 | order coordinator oc-T1 | fail |") }, "write_once", /never edited/);
   plant("S04", "signoff.md written before the punch-list step", "signoff-signed-cut", { [`${L}/signoff.md`]: () => golden("signoff-signed", `${L}/signoff.md`) }, "signing_steps");
   plant("S05", "the resume rewrites the acceptance record", "signoff-signed-resume", { [`${L}/acceptance-record.md`]: append("\n") }, "write_once");
-  plant("S06", "the resume asks the accounts again and changes them", "signoff-signed-resume", { [`${L}/signoff-requests.yaml`]: (t) => t.replace(/(- n: 2[\s\S]*?test_accounts:\n)(?: {6}- [^\n]+\n)+/, "$1      - { role: bookkeeper tester, environment: the QuickBooks Online sandbox, created_by: builder }\n") }, "signing_steps");
   plant("S07", "signing steps out of order", "signoff-signed", { [`${L}/signoff-requests.yaml`]: (t) => t.replace("- { step: acceptance-record,", "- { step: punch-list-x,") }, "signed", /signing_steps/);
-  plant("S08", "a sign-off file rewritten later", "defect-punch-step0", { [`${L}/punch-list.md`]: append("\n| UAT-11 | late | minor | 2027-01-28 | yes |\n") }, "write_once");
   plant("S09", "a request rewritten", "signoff-sent-1", { [`${L}/signoff-request-1.md`]: append("\nA correction.\n") }, "write_once");
   plant("S10", "the scenario step recorded with no scenarios written", "plan-cut", { [`${L}/uat.yaml`]: rep("  - { step: gitignore, rec: 9, date: 2027-01-04 }", "  - { step: gitignore, rec: 9, date: 2027-01-04 }\n  - { step: scenarios, rec: 10, date: 2027-01-04 }") }, "plan");
-  plant("S11", "STATUS.md rewritten", "pack", { "opchain-work/STATUS.md": (t) => t.replace(/^\d{4}/m, "1999") }, "status", /rewritten/);
 });
 
 // ── C14: the hand-offs to the next stages ────────────────────────────────────
 describe("C14: hand-offs to the next stages", () => {
   plant("H01", "signoff.md without the test accounts", "signoff-signed", { [`${L}/signoff.md`]: (t) => t.replace(/test_accounts:\n(?: {2}- [^\n]+\n)+/, "") }, "handoff_fields", /test_accounts/);
-  plant("H02", "the documentation NEXT before the handoff", "signoff-signed", { "printed.md": (t) => { const a = t.indexOf("    THEN: say \"use ow-handoff-start"); const b = t.indexOf("    THEN: documentation bought"); const end = t.indexOf("    IF IT IS NOT AVAILABLE"); return t.slice(0, a) + t.slice(b, end) + t.slice(a, b) + t.slice(end); } }, "next");
   plant("H03", "a documentation NEXT although the line was declined", "signoff-signed-declined", { "printed.md": append("    THEN: documentation bought, say \"use ow-documentation-start on uat/larkspur-ceramics/\"   (where slash commands exist: /ow-documentation-start)\n          It will read: signoff.md\n          [no folder attached: attach it when you say it]\n") }, "next");
   plant("H04", "an acceptance invoice NEXT on a smaller project", "m-deemed", { "printed.md": rep("    NEXT: say \"use ow-handoff-start", "    NEXT: say \"use ow-build to invoice the acceptance payment from uat/mossgate-books/signoff.md\"   (where slash commands exist: /ow-build-invoice)\n          It will read: signoff.md\n          [no folder attached: attach it when you say it]\n    THEN: say \"use ow-handoff-start") }, "next");
   plant("H05", "contract-terms.md without the ownership terms", "plan", { [`${L}/agreed/contract-terms.md`]: (t) => t.replace(/## Ownership\n[^\n]*\n\n/, "") }, "plan", /ownership terms/);
-  plant("H06", "the old documentation wording (O5)", "signoff-signed", { "printed.md": rep("say \"use ow-documentation-start on uat/larkspur-ceramics/\"", "say \"use ow-documentation on uat/larkspur-ceramics/\"") }, "next");
   plant("H07", "signoff.md without the post-acceptance change order", "signoff-signed", { [`${L}/signoff.md`]: rep("post_acceptance_cos: [CO-04]", "post_acceptance_cos: []") }, "signed", /post_acceptance_cos/);
   plant("H08", "the addendum without the confirmation date", "signoff-addendum", { [`${L}/acceptance-addendum-CO-04.md`]: rep("confirmed 2027-02-09 by operations manager; not verified by this skill", "confirmed by the operations manager") }, "addendum");
 });
@@ -386,14 +363,11 @@ describe("C15: the pack and its exports", () => {
 describe("headers, writes, terms, private names", () => {
   plant("G01", "a header without written_by", "plan", { [`${L}/scenarios/SC-01.md`]: rep("written_by: ow-uat 1.0.0 (protocol 1)\n", "") }, "headers");
   plant("G02", "--sent writes signoff.md (run level, mode-exact)", "signoff-sent-1", { [`${L}/signoff.md`]: () => golden("signoff-signed", `${L}/signoff.md`) }, "writes", /--signed, \/ow-uat-signoff --deemed/);
-  plant("G03", "-run writes a UAT-nn (run level)", "run-session-1", { [`${L}/defects/UAT-01.md`]: () => golden("defect-triage", `${L}/defects/UAT-01.md`) }, "writes");
-  plant("G04", "-pack rewrites uat.yaml", "pack", { [`${L}/uat.yaml`]: append("# planted\n") }, "writes");
   plant("G05", "the quoted fix rounds changed at -plan", "plan", { [`${L}/uat.yaml`]: rep("  fix_rounds: 2\n", "  fix_rounds: 3\n") }, "plan", /fix_rounds/);
   plant("G06", "an agreed copy edited", "plan", { [`${L}/agreed/scope.md`]: append("\nA small edit.\n") }, "plan", /byte-for-byte/);
   plant("G07", "a quick quote with no UAT line, bounds not from offers.md", "m-plan-no-uat-line", { [`${M}/uat.yaml`]: rep("  fix_business_days: 3", "  fix_business_days: 5") }, "plan", /offers\.md uat\.defaults/);
   plant("G08", "an older quote's acceptance wording with no governing statement", "m-plan-no-uat-line", { [`${M}/uat.yaml`]: (t) => t.replace(/  governing: \{[^\n]*\}\n/, "  governing: none\n") }, "plan", /governs/);
   plant("G09", "a private business name in a request", "signoff-request-1", { [`${L}/signoff-request-1.md`]: rep("## Environment\n", "## Environment\nAs Deftwright tests it.\n") }, "private_names");
-  plant("G10", "a STATUS next: carrying a mode", "signoff-sent-1", { "opchain-work/STATUS.md": (t) => t.replace(/next: ow-uat \/ow-uat-signoff uat\/larkspur-ceramics\/ \| awaiting: sign-off by operations manager on request 1 by 2027-01-29\n$/, "next: ow-uat /ow-uat-signoff --signed uat/larkspur-ceramics/ | awaiting: sign-off by operations manager on request 1 by 2027-01-29\n") }, "status");
   plant("G11", "a role scenario standing in for a required one (the plan writes none for AC-5.2)", "plan", { [`${L}/scenarios/SC-07.md`]: rep("kind: required", "kind: role") }, "plan", /AC-5\.2 has no required scenario/);
   plant("G12", "a no-show recorded as passes", "run-no-show", { [`${L}/runs/RUN-02.md`]: rep("| SC-01 | AC-1.1 | order coordinator oc-T1 | not run |", "| SC-01 | AC-1.1 | order coordinator oc-T1 | pass |") }, "run");
 });
@@ -431,11 +405,8 @@ describe("OW-04 R1: writer modes, exact to the mode and pinned (R1-13)", () => {
   plant("WM03", "--sent writes acceptance-record.md", "signoff-sent-1", { [`${L}/acceptance-record.md`]: add(`${HDR("acceptance-record", "larkspur-ceramics", "uat/larkspur-ceramics/signoff-request-1.md", "2027-01-22")}# Acceptance record: Larkspur Ceramics\n`) }, "writes");
   plantAny("WM04", "-defect writes signoff-requests.yaml (marks request 1 superseded itself)", "defect-supersedes", { [`${L}/signoff-requests.yaml`]: (t) => (t ?? "").replace("status: sent", "status: superseded") });
   plantAny("WM05", "--addendum CO-04 rewrites punch-list.md", "signoff-addendum", { [`${L}/punch-list.md`]: app("| UAT-12 | added | minor | 2027-02-09 | yes |\n") });
-  plant("WM06", "-run writes a new scenario SC-13.md", "run-confirmation", { [`${L}/scenarios/SC-13.md`]: add(`${HDR("scenario", "larkspur-ceramics", "uat/larkspur-ceramics/agreed/acceptance.md", "2027-01-21")}# SC-13: extra\n`) }, "writes");
-  plantAny("WM07", "--deemed writes export/signoff-request-1.pdf (only plain -signoff exports)", "m-deemed", { [`${M}/export/signoff-request-1.pdf`]: add("%PDF-1.7\n") });
   plant("WM08", "--builder-delay writes backstop.md", "m-builder-delay", { [`${M}/backstop.md`]: add(`${HDR("backstop", "mossgate-books", "uat/mossgate-books/signoff.md", "2027-01-11")}# Delivery backstop: Mossgate Books\n`) }, "writes");
   plant("WM09", "plain -signoff (request 2) writes signoff.md", "signoff-request-2", { [`${L}/signoff.md`]: add(`${HDR("signoff", "larkspur-ceramics", "uat/larkspur-ceramics/signoff-request-2.md", "2027-01-26")}# Sign-off: Larkspur Ceramics\n`) }, "writes");
-  plant("WM10", "-pack writes evidence/index.md", "pack", { [`${L}/evidence/index.md`]: add(`${HDR("evidence-index", "larkspur-ceramics", "uat/larkspur-ceramics/runs/", "2027-01-05")}| item | from | kind | state | note |\n|---|---|---|---|---|\n`) }, "writes");
   it("WE1: widening a writer's modes in skill.edges.yaml (--deemed writing the request) is drift from the pinned C1 table", () => {
     const edges = readFileSync(join(ROOT, "skills-work", "ow-uat", "skill.edges.yaml"), "utf8");
     expect(edgesWriterDrift(edges)).toEqual([]);
@@ -460,13 +431,7 @@ describe("OW-04 R1: writer modes, exact to the mode and pinned (R1-13)", () => {
 describe("OW-04 R1: per-step resume (R1-3, R1-5) at other cut points", () => {
   control("RS00", "CONTROL: a correct -plan resume after the terms step", "plan-resume-terms", {});
   plant("RS01", "plan cut after terms: the resume re-freezes agreed/scope.md", "plan-resume-terms", { [`${L}/agreed/scope.md`]: app("\n") }, "plan_resume", /never re-freezes/);
-  plant("RS02", "plan cut after terms: the resume redoes 'terms' (a new rec)", "plan-resume-terms", { [`${L}/uat.yaml`]: rep("{ step: terms, rec: 2,", "{ step: terms, rec: 3,") }, "plan_resume", /redone on resume/);
-  plant("RS03", "plan-resume: the recorded people step's testers change on resume (oc-T1 to oc-T9)", "plan-resume", { [`${L}/uat.yaml`]: rep("{ role: order coordinator, id: oc-T1 }", "{ role: order coordinator, id: oc-T9 }") }, "plan_resume", /testers, written by the recorded people step, changed/);
-  plant("RS04", "plan-resume: the recorded schedule step's session 2 moves on resume", "plan-resume", { [`${L}/uat.yaml`]: rep("{ session: 2, date: 2027-01-12,", "{ session: 2, date: 2027-01-13,") }, "plan_resume", /schedule, written by the recorded schedule step, changed/);
-  plant("RS04b", "plan-resume: the resumed step dated the day of the cut (R1-16)", "plan-resume", { [`${L}/uat.yaml`]: rep("{ step: scenarios, rec: 10, date: 2027-01-05 }", "{ step: scenarios, rec: 10, date: 2027-01-04 }") }, "plan_resume", /finished in this session/);
   for (const at of ["record", "accounts", "acceptance-record"]) control(`RS05-${at}`, `CONTROL: a correct --signed resume after ${at} (first-time writes and the first-time accounts question are not rewrites)`, `signoff-signed-resume-${at}`, {});
-  plant("RS06", "--signed cut after record: the resume redoes 'record' with a new rec", "signoff-signed-resume-record", { [`${L}/signoff-requests.yaml`]: (t) => t.replace(/\{ step: record, rec: (\d+),/, (_, n) => `{ step: record, rec: ${Number(n) + 4},`) }, "signing_steps", /redone on resume/);
-  plant("RS06b", "--signed cut after accounts: the resume changes the accounts recorded at the cut", "signoff-signed-resume-accounts", { [`${L}/signoff-requests.yaml`]: (t) => t.replace(/(  - n: 2[\s\S]*?test_accounts:\n)(      - [^\n]*\n)/, "$1") }, "signing_steps", /test accounts changed on resume/);
   plant("RS06c", "--signed cut after acceptance-record: the resume rewrites the acceptance record", "signoff-signed-resume-acceptance-record", { [`${L}/acceptance-record.md`]: app("\n") }, "signing_steps", /rewritten on resume/);
   plant("RS07", "signoff-signed-resume: signoff.md written before the punch-list step is recorded", "signoff-signed-resume", { [`${L}/signoff-requests.yaml`]: (t) => t.replace(/(      - \{ step: punch-list[^\n]*\n)(      - \{ step: signoff[^\n]*\n)/, "$2$1") }, "signing_steps");
 });
@@ -498,7 +463,13 @@ describe("OW-04 R1: deemed, the backstop and the frozen clauses (R1-7, OD-4, OD-
   plant("DB14", "OD-5: the terms block's digest left out of the contract-terms.md basis row", "plan", { [`${L}/uat.yaml`]: (t) => t.replace(/, block: terms, digest: "sha256:[0-9a-f]+"/, "") }, "plan", /owner decision OD-5/);
   plant("DB15", "OD-5: a digest that is not the frozen terms block's", "m-plan", { [`${M}/uat.yaml`]: (t) => t.replace(/digest: "sha256:[0-9a-f]{4}/, 'digest: "sha256:0000') }, "plan", /digest is/);
   plant("DB16", "OD-5: --refreeze copies the whole contract-inputs.md over contract-terms.md", "plan-refreeze-terms", { [`${L}/agreed/contract-terms.md`]: () => readFileSync(join(FIXTURES, "plan-refreeze-terms", "input", "opchain-work", "plans", "larkspur-ceramics", "contract-inputs.md"), "utf8") }, "plan_mode", /only the terms block/);
-  plant("DB17", "OD-5: -pack runs over a changed terms block", "pack-terms-mismatch", { [`${L}/pack.yaml`]: () => golden("pack", `${L}/pack.yaml`) }, "basis", /basis mismatch/);
+  plant("DB17", "OD-5: -pack runs over a changed terms block with no word from the user (this case has none)", "pack-terms-mismatch", { [`${L}/pack.yaml`]: () => golden("pack", `${L}/pack.yaml`) }, "refused");
+  it("DB17b: on the user's word -pack goes ahead over a mismatch once it has said so; a -signoff mode never does", () => {
+    const out = runCase("pack-terms-mismatch", mutated("pack-terms-mismatch", { [`${L}/pack.yaml`]: () => golden("pack", `${L}/pack.yaml`) }));
+    expect(out.find((r) => r.check === "basis")?.problems ?? []).toEqual([]);
+    const silent = runCase("pack-terms-mismatch", mutated("pack-terms-mismatch", { "printed.md": () => "Packs written.\n" }));
+    expect(silent.find((r) => r.check === "basis").problems.join("\n")).toMatch(/does not name agreed\/contract-terms\.md/);
+  });
   it("DB18: OD-5 and R1-2: no golden run shows a basis mismatch it did not refuse (contract-terms.md, an extract, compares by its block's digest)", () => {
     const bad = listCases().map((c) => [c, runCase(c).find((r) => r.check === "basis")]).filter(([, r]) => r && r.problems.length);
     expect(bad).toEqual([]);
@@ -714,24 +685,14 @@ describe("OW-04 R2: deletions, recorded steps, route cells and the digest in a r
   plant("X05", "run-confirmation deletes secrets-seen.log", "run-confirmation", { [`${L}/secrets-seen.log`]: del() }, "write_once", /deleted/);
   plantAny("X06", "route-folder-planned (-pack) deletes a scenario", "route-folder-planned", { [`${L}/scenarios/SC-12.md`]: del() });
   plant("X07", "plan-addendum deletes agreed/CO-01.md", "plan-addendum", { [`${L}/agreed/CO-01.md`]: del() }, "write_once", /deleted/);
-  plantAny("S01", "plan-resume: tester id oc-T1 -> oc-T9", "plan-resume", { [`${L}/uat.yaml`]: rep("{ role: order coordinator, id: oc-T1 }", "{ role: order coordinator, id: oc-T9 }") });
-  plantAny("S02", "plan-resume: session 2 moved", "plan-resume", { [`${L}/uat.yaml`]: rep("{ session: 2, date: 2027-01-12,", "{ session: 2, date: 2027-01-13,") });
   plantAny("S03", "plan-resume-terms: the recorded terms step's documentation_sku changed", "plan-resume-terms", { [`${L}/uat.yaml`]: rep("documentation_sku: bought", "documentation_sku: declined") });
-  plantAny("S04", "plan-resume: the gitignore answer changed", "plan-resume", { [`${L}/uat.yaml`]: rep("answer: not a git repo", "answer: no") });
-  plantAny("S05", "signoff-signed-resume-accounts: test accounts changed after the recorded accounts step", "signoff-signed-resume-accounts", { [`${L}/signoff-requests.yaml`]: (t) => t.replace("created_by: builder }", "created_by: client operations manager }") });
-  plantAny("S06", "--keep-frozen also changes the testers", "plan-keep-frozen", { [`${L}/uat.yaml`]: rep("{ role: order coordinator, id: oc-T1 }", "{ role: order coordinator, id: oc-T9 }") });
-  plantAny("S07", "--add-co also moves session 3", "plan-add-co", { [`${L}/uat.yaml`]: rep("{ session: 3, date: 2027-01-21,", "{ session: 3, date: 2027-01-22,") });
-  plant("S08", "R2-5: --refreeze acceptance.md also changes the testers (a refreeze touches one file)", "plan-refreeze", { [`${L}/uat.yaml`]: rep("{ role: order coordinator, id: oc-T1 }", "{ role: order coordinator, id: oc-T9 }") }, "write_once", /changed under --refreeze agreed\/acceptance\.md/);
   plant("S09", "R2-5: --refreeze acceptance.md also changes the frozen clauses' calendar", "plan-refreeze", { [`${L}/uat.yaml`]: (t) => t.replace(/calendars: \{ contract: [^,]+,/, "calendars: { contract: us-federal,") }, "write_once", /calendars, written by the recorded terms step, changed under --refreeze/);
-  plant("S09b", "R2-5: --refreeze acceptance.md also rewrites another basis row", "plan-refreeze", { [`${L}/uat.yaml`]: (t) => t.replace(/(\{ file: agreed\/scope\.md, [^}]*frozen: )2027-01-04/, "$12027-01-05") }, "write_once", /a row other than agreed\/acceptance\.md's changed/);
   control("S09c", "R2-5 CONTROL: --refreeze contract-terms.md re-confirms the terms and clauses (plan-refreeze-terms as written)", "plan-refreeze-terms", {});
-  plantAny("S10", "plan-resume-terms: the resume's steps dated the cut day", "plan-resume-terms", { [`${L}/uat.yaml`]: (t) => t.replace(/(\{ step: (?:mix|people|environment), rec: \d+, date: )2027-01-05/g, "$12027-01-04") });
   plant("RC01", "route-ready-cut: the resume re-freezes agreed/acceptance.md", "route-ready-cut", { [`${L}/agreed/acceptance.md`]: app("\n<!-- re-frozen -->\n") }, "route");
   plantAny("RC02", "route-folder-fixed: the confirmation run edits RUN-01.md", "route-folder-fixed", { [`${L}/runs/RUN-01.md`]: rep("| SC-01 | AC-1.1 | order coordinator oc-T1 | fail | 9 of 10 |", "| SC-01 | AC-1.1 | order coordinator oc-T1 | pass | 10 of 10 |") });
   plantAny("RC03", "route-folder-drafted: a malformed signoff-requests.yaml", "route-folder-drafted", { [`${L}/signoff-requests.yaml`]: () => "- not a map\n" });
   plant("RC04", "route-signoff-deemed: signoff.md without 'applied by' (a route cell grades its run by that run's own rules)", "route-signoff-deemed", { [`${M}/signoff.md`]: rep("; applied by Robin", "") }, "signed", /applied by/);
   plantAny("RC05", "route-folder-sent-signed: the --signed run edits a history entry of request 1", "route-folder-sent-signed", { [`${L}/signoff-requests.yaml`]: rep("{ status: sent, rec: 52, date: 2027-01-22 }", "{ status: sent, rec: 52, date: 2027-01-23 }") });
-  plantAny("RC06", "route-plan-addendum: the addendum run rewrites an existing scenario", "route-plan-addendum", { [`${L}/scenarios/SC-01.md`]: app("\nEdited.\n") });
   it("RC00: every route cell that names a run also passes that run's own checks (CONTROL: the goldens)", () => {
     const routes = listCases().filter((c) => typeof loadKey(join(FIXTURES, c)).run === "string");
     expect(routes.length).toBeGreaterThan(10);
@@ -741,7 +702,7 @@ describe("OW-04 R2: deletions, recorded steps, route cells and the digest in a r
   plant("DD02", "m-plan: the contract-terms basis row without block: terms", "m-plan", { [`${M}/uat.yaml`]: rep("block: terms, ", "") }, "plan", /names no block/);
   plant("DD03", "plan-refreeze-terms: --refreeze copies contract-inputs.md whole", "plan-refreeze-terms", { [`${L}/agreed/contract-terms.md`]: () => runView("plan-refreeze-terms").priorRead("opchain-work/plans/larkspur-ceramics/contract-inputs.md") }, "plan_mode", /only the terms block/);
   plant("DD04", "plan-refreeze-terms: the basis row keeps the old digest", "plan-refreeze-terms", { [`${L}/uat.yaml`]: (t) => { const old = runView("plan-refreeze-terms").priorRead(`${L}/uat.yaml`).match(/digest: "sha256:[0-9a-f]+"/)[0]; return t.replace(/digest: "sha256:[0-9a-f]+"/, old); } }, "plan_mode", /after --refreeze/);
-  plant("DD05", "pack-terms-mismatch: the pack written anyway over the terms mismatch", "pack-terms-mismatch", { [`${L}/pack.yaml`]: () => runView("pack").read(`${L}/pack.yaml`) }, "basis", /basis mismatch/);
+  plant("DD05", "pack-terms-mismatch: the pack written with no word from the user", "pack-terms-mismatch", { [`${L}/pack.yaml`]: () => runView("pack").read(`${L}/pack.yaml`) }, "refused");
 });
 
 describe("OW-04 R2: OD-1 chains and the pinned tables (h/family2.mjs, h/wp6.mjs)", () => {
@@ -754,7 +715,6 @@ describe("OW-04 R2: OD-1 chains and the pinned tables (h/family2.mjs, h/wp6.mjs)
   family("OD1e", "a hand-on in place of a file no family skill writes", { [B]: rep("      - { path: plans/<client>/quote.md, in_place: true }", "      - { path: plans/<client>/quote.md, in_place: true }\n      - { path: plans/<client>/quote-v2.md, in_place: true }") });
   family("OD1f", "a hand-on in place to ow-uat of a file ow-uat neither reads nor hands on (map/data.md)", { [B]: rep("      - { path: plans/<client>/quote.md, in_place: true }", "      - { path: plans/<client>/quote.md, in_place: true }\n      - { path: plans/<client>/map/data.md, in_place: true }") });
   family("OD1g", "CONTROL: the same hop spelled ./plans/<client>/scope.md", { [B]: rep("      - { path: plans/<client>/scope.md, in_place: true }", "      - { path: ./plans/<client>/scope.md, in_place: true }") }, false);
-  family("OD1h", "ow-uat reads plans/<client>/map/systems.md in place, which ow-build never hands on", { [E]: rep("  - from: ow-handoff\n", "  - { from: ow-build-plan, path: plans/<client>/map/systems.md, in_place: true, if_absent: Ask, if_mismatch: Use what parses }\n  - from: ow-handoff\n") });
   family("OD1i", "ow-build's ledger.md dropped from the ready hop (one-hop chain)", { [B]: rep("      - { path: builds/<client>/ledger.md, fields: [the delivery payment's state] }\n", "") });
   family("OD1j", "ow-build-plan reads ow-uat's signoff.md in place (no hop lists it toward ow-build-plan)", { [BP]: rep("  - from: ow-uat\n    path: uat/<client>/defects/UAT-nn.md\n", "  - { from: ow-uat, path: uat/<client>/signoff.md, in_place: true, if_absent: Ask, if_mismatch: Use what parses }\n  - from: ow-uat\n    path: uat/<client>/defects/UAT-nn.md\n") });
   const edges = () => readFileSync(join(ROOT, "skills-work", E), "utf8");
@@ -853,11 +813,10 @@ describe("OW-04 R2: OD-4 and OD-5 cases, now goldens (the Evaluator's zz2 cases)
   control("ZZ02", "CONTROL: zz2-backstop-day-after (m-backstop, on 2027-01-18)", "m-backstop", {});
   control("ZZ03", "CONTROL: zz2-backstop-clause-on-date (the frozen clause says it falls due on the backstop date itself)", "backstop-clause-on-date", {});
   plant("ZZ04", "R2-6: zz2-backstop-incidental: backstop.md written on the date, the clause only counting a notice 'from the same day'", "backstop-incidental", { [`${M}/backstop.md`]: add(golden("backstop-clause-on-date", `${M}/backstop.md`)) }, "refused");
-  plant("ZZ05", "OD-6: zz2-code-pack-changed (the payment terms changed): the pack written anyway", "pack-payment-terms-changed", Object.fromEntries([`${M}/pack.yaml`, `${M}/uat-pack-shop-manager.md`].map((f) => [f, add(golden("m-pack", f))])), "basis", /basis mismatch/);
-  plant("ZZ06", "R2-1: zz2-nocode-pack-changed: with no code, a changed clause, and the pack written anyway", "pack-terms-nocode-changed", Object.fromEntries([`${M}/pack.yaml`, `${M}/uat-pack-shop-manager.md`].map((f) => [f, add(golden("m-pack", f))])), "basis", /basis mismatch \(agreed\/contract-terms\.md\)/);
+  plant("ZZ05", "OD-6: zz2-code-pack-changed (the payment terms changed): the pack written with no word from the user", "pack-payment-terms-changed", Object.fromEntries([`${M}/pack.yaml`, `${M}/uat-pack-shop-manager.md`].map((f) => [f, add(golden("m-pack", f))])), "refused");
+  plant("ZZ06", "R2-1: zz2-nocode-pack-changed: with no code, a changed clause, and the pack written with no word from the user", "pack-terms-nocode-changed", Object.fromEntries([`${M}/pack.yaml`, `${M}/uat-pack-shop-manager.md`].map((f) => [f, add(golden("m-pack", f))])), "refused");
   control("ZZ07", "CONTROL: zz2-nocode-pack-same (no code, nothing changed upstream)", "pack-terms-nocode", {});
-  plant("ZZ08", "OD-6 and R2-1: with no code, the schedule changed, and the pack written anyway", "pack-terms-nocode-schedule", { [`${M}/pack.yaml`]: add(golden("m-pack", `${M}/pack.yaml`)) }, "basis");
-  plant("ZZ09", "R2-10: -defect triages UAT-01 over the mismatch", "defect-terms-mismatch", { [`${M}/defects/UAT-01.md`]: () => golden("m-defect-no-steps", `${M}/defects/UAT-01.md`) }, "basis", /triaged over a basis mismatch/);
+  plant("ZZ08", "OD-6 and R2-1: with no code, the schedule changed, and the pack written with no word from the user", "pack-terms-nocode-schedule", { [`${M}/pack.yaml`]: add(golden("m-pack", `${M}/pack.yaml`)) }, "refused");
   plant("ZZ10", "R2-10: -defect's printed block does not name the mismatch", "defect-terms-mismatch", { "printed.md": (t) => t.replace(/agreed\/contract-terms\.md/g, "the agreed terms").replace(/contract-terms\.md/g, "the terms") }, "basis", /does not name agreed\/contract-terms\.md/);
   plant("ZZ11", "R2-1: -plan with no code freezes a clause that differs from contract_clauses", "m-plan-nocode", { [`${M}/uat.yaml`]: rep('ref: "TEST-1", business_days: 10,', 'ref: "TEST-1", business_days: 15,') }, "plan", /frozen with no code/);
   plant("ZZ12", "R2-1 and OD-6: -plan with no code freezes another payment schedule", "m-plan-nocode", { [`${M}/uat.yaml`]: rep("  schedule: 50/50\n", "  schedule: 40/40/20\n") }, "plan", /schedule as frozen differs/);
@@ -1108,9 +1067,9 @@ describe("OW-04 R3: the Evaluator's round-3 run-level cases, now goldens (zz3)",
   const packM = Object.fromEntries([`${M}/pack.yaml`, `${M}/uat-pack-shop-manager.md`].map((f) => [f, add(golden("m-pack", f))]));
   const packL = Object.fromEntries([`${L}/pack.yaml`, `${L}/uat-pack-order-coordinator.md`].map((f) => [f, add(golden("pack", f))]));
   for (const c of ["pack-terms-nocode-price", "pack-terms-nocode-testmix", "pack-terms-nocode-schedule-removed", "backstop-negated"]) control(`ZZ3-${c}`, `CONTROL: the ${c} golden refuses as it should`, c, {});
-  plant("ZZ3-1", "R3-1: no code, the UAT price changed, the pack written anyway", "pack-terms-nocode-price", packL, "basis", /basis mismatch/);
-  plant("ZZ3-2", "R3-1: no code, the test mix changed, the pack written anyway", "pack-terms-nocode-testmix", packL, "basis", /basis mismatch/);
-  plant("ZZ3-3", "R3-1: no code, the schedule removed upstream, the pack written anyway", "pack-terms-nocode-schedule-removed", packM, "basis", /basis mismatch/);
+  plant("ZZ3-1", "R3-1: no code, the UAT price changed, the pack written with no word from the user", "pack-terms-nocode-price", packL, "refused");
+  plant("ZZ3-2", "R3-1: no code, the test mix changed, the pack written with no word from the user", "pack-terms-nocode-testmix", packL, "refused");
+  plant("ZZ3-3", "R3-1: no code, the schedule removed upstream, the pack written with no word from the user", "pack-terms-nocode-schedule-removed", packM, "refused");
   plant("ZZ3-4", "R3-2: a negated clause sentence, backstop.md written on the date", "backstop-negated", { [`${MS}backstop.md`]: add(golden("backstop-clause-on-date", `${M}/backstop.md`)) }, "refused");
 });
 

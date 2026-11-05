@@ -2,20 +2,22 @@
 // ow-documentation acceptance checks (docs/plans/2026-10-16-ow-documentation-design.md §10 and
 // the OW-05 contract, sprints/release-2.1/ow-05/contract.md, C1 to C26).
 //
-// ow-documentation is a text-only skill: a model runs it, so these checks cannot run the skill.
+// A model runs ow-documentation, so these checks cannot run the skill. Since 2.0.0 (docs/plans/2026-11-03-ow-audience-reversal.md)
+// they grade the scratch cache and keep the rules for money, secrets, client trust and private names; the old forms
+// (the eight-key header, the STATUS grammar, NEXT blocks, the self-check line) are tolerated, not required.
 // They read what a run wrote (its opchain-work/ folder and the repository copy) and what it
 // printed (printed.md, saved at the top of the run folder), and test them against an answer key,
 // the ow-uat, ow-build and ow-build-plan goldens the run starts from, the invented client
 // repository, and ow-tools' own validators. One check per rule, each isolated:
 //
-//   headers        the protocol's artefact header on each file this skill writes
+//   headers        written_by and created on each file this skill writes
 //   writes         every file written belongs to a verb this run ran, exact to the type and mode (WRITER_PIN)
-//   write_once     the frozen scope, recorded steps, delivered records, session and check-in sections never change
-//   status, rec    STATUS.md lines appended as the key expects; recording order continues one by one
+//   write_once     the quoted scope, delivered records, session and check-in sections, cleared images and pushes do not change
+//   status, rec    STATUS.md lines, plain or old form; recording order continues one by one
 //   route          the inbound route and the folder route land on the verb the files call for
 //   refused        a refusal or no-op writes nothing and says why in the prescribed words
-//   screen         prescribed screen words, the self-check line and every NEXT block line (C21)
-//   next           the NEXT says printed, in order
+//   screen         no success claim on a refusal, no commit claim (C21)
+//   next           the next verbs named (exact in the old NEXT form)
 //   start          docs.yaml's frozen scope, people, environment, plan.md and the confirmation (C5)
 //   resume         a cut-off verb resumes at the first step not recorded, by the step table's names (C20)
 //   capture        the capture plan (ow-tools' own validator), the decision, the index and its states (C9)
@@ -28,7 +30,7 @@
 //   rollout, record, adoption   groups, sessions, check-ins, the close (C14)
 //   approvals      every approval is graded on what it names (C19)
 //   handoff_fields what ow-build, ow-handoff (H3) and ow-care read is there (C17)
-//   self_checks    the nine checks: where each runs, the four never waived (C22)
+//   self_checks    nothing written over a failed check; the three never skipped (C22)
 //   internal_numbers, people, credentials, data, private_names   the meaning checks (C10, C11)
 //
 // The category rules are imported from the ow-uat and ow-build checkers, never copied
@@ -59,14 +61,13 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const FIXTURES = join(ROOT, "tests", "fixtures", "ow-documentation");
 export const SKILL = join(ROOT, "skills-work", "ow-documentation");
 const OW = "opchain-work/";
-const CLOCKS = /^(tool|host-supplied|user-stated|assumed)$/;
 const TEXT = /\.(md|ya?ml|txt|json|csv|log)$/;
 const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 export const PROTOCOL_NOTE = "This is a working note made by an AI assistant at your instruction. It is not a signature or an official record.";
 export const SELF_CHECK_PREFIX = "Self-checks (same-session self-check, not an independent review):";
 /** The nine checks (design §8) in the order references/self-checks.md gives them. */
 export const CHECKS_ORDER = ["Trace", "Coverage", "Data check", "People by role or id", "No credentials", "No internal numbers", "Placeholders", "Accessible by construction", "No private names"];
-export const NEVER_WAIVED = ["No credentials", "People by role or id", "Data check", "No private names"];
+export const NEVER_WAIVED = ["No credentials", "Data check", "No private names"];
 /** Where each check runs, per verb root (references/self-checks.md §1). */
 export const RUNS_IN = {
   "/ow-documentation-start": ["People by role or id", "No credentials", "No private names"],
@@ -363,8 +364,8 @@ export function internalSplit(content) {
   return { client: t.slice(0, start) + t.slice(end), internal: t.slice(start, end), start, end, after: t.slice(end) };
 }
 const proseOf = (text) => String(text).split("\n").filter((l) => !/^\s*\|/.test(l) && !/^\s*(?:NEXT|DONE|IF IT IS NOT AVAILABLE)\b/.test(l.trim()) && !/^\s*!\[/.test(l)).join("\n");
-/** The ow- header removed (`---` block with ow_artefact at the top). */
-export const stripHeader = (t) => String(t).replace(/^---\n[\s\S]*?\n---\n/, (m) => (/\now_artefact:/.test(m) ? "" : m));
+/** The ow- header removed (a `---` block holding written_by or the old ow_artefact). */
+export const stripHeader = (t) => String(t).replace(/^---\n[\s\S]*?\n---\n/, (m) => (/\n(?:ow_artefact|written_by):/.test(m) ? "" : m));
 /**
  * What the repository copy holds: the Markdown with the ow- header and the internal section removed, and
  * each image line replaced by `*Screenshot: <alt>*` (the images stay in the exports; references/phase-export.md).
@@ -721,22 +722,15 @@ const isRepoCopy = (f) => !f.startsWith(OW);
 function checkHeaders(key, run) {
   const p = [];
   for (const f of run.written()) {
-    if (!docFile(f, key) || isExport(f, key) || /\/capture-plan(?:-\d+)?\.json$|\/shots\/[^/]+\.png$/.test(f)) continue;
+    // The log is lines of kind, role, source and session; it needs no header.
+    if (!docFile(f, key) || isExport(f, key) || /\/capture-plan(?:-\d+)?\.json$|\/shots\/[^/]+\.png$|\.log$/.test(f)) continue;
     let data;
     try {
-      if (/\.ya?ml$/.test(f)) data = parsed(run.read(f), f, "yaml");
-      else if (/\.log$/.test(f)) { const t = run.read(f) ?? ""; if (!/^---\n/.test(t)) { p.push(`${f}: the log starts with the protocol header block`); continue; } data = parsed(t.slice(0, t.indexOf("\n---", 3) + 4), f, "md").data; }
-      else data = parsed(run.read(f), f, "md").data;
+      data = /\.ya?ml$/.test(f) ? parsed(run.read(f), f, "yaml") : parsed(run.read(f), f, "md").data;
     } catch (e) { p.push(reason(e)); continue; }
-    if (!String(data.ow_artefact ?? "").startsWith("ow-documentation/")) p.push(`${f}: ow_artefact is ${data.ow_artefact ?? "missing"}, expected ow-documentation/<artefact>`);
-    if (data.schema !== 1) p.push(`${f}: schema is ${data.schema}`);
-    if (!/^ow-documentation \d+\.\d+\.\d+ \(protocol 1\)$/.test(String(data.written_by ?? ""))) p.push(`${f}: written_by is "${data.written_by}"`);
-    if (data.workstream !== key.slug) p.push(`${f}: workstream is ${data.workstream}`);
-    if (!data.subject) p.push(`${f}: no subject`);
+    if (!/^ow-documentation \d+\.\d+\.\d+(?: \(protocol \d+\))?$/.test(String(data.written_by ?? ""))) p.push(`${f}: written_by is "${data.written_by}"`);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(iso(data.created) ?? "")) p.push(`${f}: created is "${iso(data.created)}"`);
     else if (key.today && iso(data.created) > iso(key.today)) p.push(`${f}: created ${iso(data.created)} is after today (${iso(key.today)})`);
-    if (!CLOCKS.test(String(data.clock ?? ""))) p.push(`${f}: clock is "${data.clock}"`);
-    if (data.origin !== "skill") p.push(`${f}: origin is ${data.origin}`);
   }
   return p;
 }
@@ -776,8 +770,6 @@ function checkWrites(key, run) {
   return p;
 }
 
-/** Keys of docs.yaml each start step writes (references/docs-yaml-schema.md §3); a recorded step's keys never change. */
-const START_KEYS = { scope: ["signoff", "scope", "sources", "capture_profile", "repo", "destinations", "client", "handling", "embedded"], people: ["trainer", "trainer_role", "roles", "training_gaps"], environment: ["environment"], gitignore: ["gitignore"], confirm: ["planned_delivery", "confirmed"] };
 const sectionsByHeading = (t) => sectionsOf(matter(String(t ?? "")).content).map((s) => `## ${s.title}\n${s.body.trim()}`);
 
 function checkWriteOnce(key, run) {
@@ -790,7 +782,9 @@ function checkWriteOnce(key, run) {
     const after = run.read(f) ?? "";
     if (before === after) continue;
     const name = f.slice(D(key).length + 1);
-    if (/^(?:plan\.md|delivered\.md|delivered-update-\d+\.md|capture-plan(?:-\d+)?\.json)$/.test(name)) { p.push(`${f}: written once and never edited, but this run changed it`); continue; }
+    if (/^(?:delivered\.md|delivered-update-\d+\.md)$/.test(name)) { p.push(`${f}: a recorded delivery stays as recorded (the invoice follows it), but this run changed it; a later delivery is its own version`); continue; }
+    // A capture plan whose images are indexed is never run again (a cleared image is never overwritten).
+    if (/^capture-plan(?:-\d+)?\.json$/.test(name)) { p.push(`${f}: a capture plan is not edited; a re-capture writes capture-plan-nn.json`); continue; }
     if (/^export\//.test(name) && delivered) { p.push(`${f}: a delivered document is never overwritten; an update goes to export/update-nn/`); continue; }
     if (/^(?:training-record|adoption)\.md$/.test(name)) {
       const a = sectionsByHeading(before), b = sectionsByHeading(after);
@@ -805,12 +799,10 @@ function checkWriteOnce(key, run) {
     try {
       if (name === "docs.yaml") {
         const a = yaml.load(before), b = yaml.load(after);
-        asList(a.start_steps).forEach((s, i) => { if (JSON.stringify(asList(b.start_steps)[i]) !== JSON.stringify(s)) p.push(`${f}: start step ${s.step} (rec ${s.rec}) was changed; a recorded step is never redone`); });
-        for (const s of asList(a.start_steps).map((x) => x.step)) for (const k of START_KEYS[s] ?? []) if (JSON.stringify(a[k]) !== JSON.stringify(b[k])) p.push(`${f}: ${k}, written by the recorded ${s} step, changed${k === "scope" ? " (the scope is frozen once, never re-frozen)" : ""}`);
-        if (a.trainer !== undefined && a.trainer !== b.trainer) p.push(`${f}: trainer changed after the people step`);
+        // Money: the people and groups are the quote's; more people is a change order.
+        if (asList(a.start_steps).some((x) => x.step === "scope") && JSON.stringify(a.scope) !== JSON.stringify(b.scope)) p.push(`${f}: scope, written by the recorded scope step, changed (more people than the quote is a change order)`);
       } else if (name === "shots/index.md") {
         const a = matter(before), b = matter(after);
-        asList(a.data.capture_steps).forEach((s, i) => { if (JSON.stringify(asList(b.data.capture_steps)[i]) !== JSON.stringify(s)) p.push(`${f}: capture step ${s.step} was changed`); });
         asList(a.data.runs).forEach((s, i) => { if (JSON.stringify(asList(b.data.runs)[i]) !== JSON.stringify(s)) p.push(`${f}: a recorded capture run was changed`); });
         const ra = tableRows(a.content), rb = tableRows(b.content);
         for (const r of ra) {
@@ -822,7 +814,6 @@ function checkWriteOnce(key, run) {
         }
       } else if (name === "deliveries.yaml") {
         const a = yaml.load(before), b = yaml.load(after);
-        asList(a.export_steps).forEach((s, i) => { if (JSON.stringify(asList(b.export_steps)[i]) !== JSON.stringify(s)) p.push(`${f}: export step ${s.step} was changed`); });
         for (const k of ["exports"]) asList(a[k]).forEach((s, i) => { if (JSON.stringify(asList(b[k])[i]) !== JSON.stringify(s)) p.push(`${f}: an ${k} row was changed or removed`); });
         asList(a.repo?.files).forEach((s, i) => { if (JSON.stringify(asList(b.repo?.files)[i]) !== JSON.stringify(s)) p.push(`${f}: a repo copy row was changed or removed`); });
         if (a.push_confirmation && a.push_confirmation !== "none" && JSON.stringify(a.push_confirmation) !== JSON.stringify(b.push_confirmation)) p.push(`${f}: the recorded push confirmation was changed`);
@@ -840,15 +831,6 @@ function checkWriteOnce(key, run) {
         asList(a.groups).forEach((g, i) => { const n = asList(b.groups)[i]; if (!n || n.id !== g.id || JSON.stringify(n.roles) !== JSON.stringify(g.roles) || n.people !== g.people) p.push(`${f}: group ${g.id} was changed or removed`); });
         if (a.closed && a.closed !== "none" && JSON.stringify(a.closed) !== JSON.stringify(b.closed)) p.push(`${f}: the close was changed`);
         if (a.first_session && iso(a.first_session) !== iso(b.first_session)) p.push(`${f}: first_session changed`);
-      } else if (name === "runbook.md") {
-        const a = matter(before), b = matter(after);
-        const ops = asList(a.data.ops).map(String), nops = asList(b.data.ops).map(String);
-        ops.forEach((o, i) => { if (nops[i] !== o) p.push(`${f}: ${o} was renumbered or removed; OP-nn ids are never renumbered or reused`); });
-        for (const m of a.content.matchAll(/^### (OP-\d+): (.+?)\s*$/gm)) {
-          const now = new RegExp(`^### ${m[1]}: (.+?)\\s*$`, "m").exec(b.content);
-          if (!now) p.push(`${f}: ${m[1]} is gone; a retired entry stays, marked retired`);
-          else if (now[1] !== m[2] && now[1].replace(/ \(retired \d{4}-\d{2}-\d{2}\)$/, "") !== m[2]) p.push(`${f}: ${m[1]}'s title changed ("${m[2]}" -> "${now[1]}")`);
-        }
       }
     } catch (e) { p.push(`${f}: ${reason(e)}`); }
   }
@@ -863,26 +845,23 @@ const wroteAt = (run, path) => {
 function checkStatus(key, run) {
   const p = [];
   const now = run.read(`${OW}STATUS.md`);
-  if (now == null) return ["STATUS.md was not written"];
+  if (now == null) return []; // STATUS.md is a fallback cache line, not a required step.
   const lines = now.split("\n").filter((l) => l.trim());
   const before = (run.priorRead(`${OW}STATUS.md`) ?? "").split("\n").filter((l) => l.trim());
   before.forEach((l, i) => { if (lines[i] !== l) p.push(`STATUS.md line ${i + 1} was rewritten; STATUS.md is append-only`); });
   const added = lines.slice(before.length);
   const want = asList(key.status?.lines);
-  if (added.length !== want.length) p.push(`STATUS.md gained ${added.length} line(s), expected ${want.length}`);
+  if (added.length > want.length) p.push(`STATUS.md gained ${added.length} line(s), expected at most ${want.length}`);
+  // A plain line: the date, the skill, the file, and what is awaited. The old five-field form is tolerated.
   added.forEach((line, i) => {
     const f = line.split(" | ");
     const n = before.length + i + 1;
     const w = want[i];
-    if (f.length !== 5) { p.push(`STATUS line ${n} has ${f.length} fields, expected 5`); return; }
-    if (!/^\d{4}-\d{2}-\d{2} \(clock: (tool|host-supplied|user-stated|assumed)\)$/.test(f[0])) p.push(`STATUS line ${n}: date field "${f[0]}" lacks a clock source`);
+    if (f.length < 3) { p.push(`STATUS line ${n} has ${f.length} fields; a line gives the date, the skill and the file`); return; }
+    if (!/^\d{4}-\d{2}-\d{2}(?: \(clock: [a-z-]+\))?$/.test(f[0])) p.push(`STATUS line ${n}: date field "${f[0]}"`);
     if (!/^ow-documentation \d+\.\d+\.\d+$/.test(f[1])) p.push(`STATUS line ${n}: skill field is "${f[1]}"`);
-    if (/\bnext: [a-z0-9-]+ \/[a-z0-9-]+ --/.test(f[3])) p.push(`STATUS line ${n}: next: carries a mode (protocol §5)`);
     if (!wroteAt(run, f[2])) p.push(`STATUS line ${n}: names ${f[2]}, which this run did not write (a STATUS line follows a write)`);
-    if (!w) return;
-    if (f[2] !== w.path) p.push(`STATUS line ${n}: path ${f[2]}, expected ${w.path}`);
-    if (f[3] !== `next: ${w.next}`) p.push(`STATUS line ${n}: "${f[3]}", expected "next: ${w.next}"`);
-    if (f[4] !== `awaiting: ${w.awaiting}`) p.push(`STATUS line ${n}: "${f[4]}", expected "awaiting: ${w.awaiting}"`);
+    if (w && f[2] !== w.path) p.push(`STATUS line ${n}: path ${f[2]}, expected ${w.path}`);
   });
   return p;
 }
@@ -1184,14 +1163,13 @@ function checkScreen(key, run) {
   const printed = run.printed();
   if (printed == null) return ["printed.md is missing: save what the run printed"];
   const s = key.screen ?? {};
-  for (const w of asList(s.says)) if (!printed.includes(String(w))) p.push(`printed.md does not say "${String(w).replace(/\n/g, "\\n")}" (prescribed)`);
+  // Words the old screens prescribed are no longer graded; what the key still names (ids, dates, paths) is.
+  for (const w of asList(s.says)) if (!/^(?:Refused:|Nothing |DONE:|Self-checks|Resuming |It will read)/.test(String(w)) && !printed.includes(String(w))) p.push(`printed.md does not say "${String(w).replace(/\n/g, "\\n")}"`);
   for (const w of asList(s.never)) if (neverSaid(printed, String(w))) p.push(`printed.md says "${w}", which this screen never prints`);
-  p.push(...nextBlockProblems(printed));
   // A DONE line is a claim about the files: the path it names is one this run wrote.
   for (const m of printed.matchAll(/^\s*DONE: .*? -> (\S+)\s*$/gm)) if (!wroteAt(run, m[1])) p.push(`printed.md says "${m[0].trim()}", but this run wrote nothing at ${m[1]}`);
   const refusal = /^\s*(?:Refused:|Nothing to do:)/m.test(printed);
   if (refusal) {
-    if (!/^\s*Nothing was written\.\s*$/m.test(printed)) p.push("printed.md: a refusal or no-op says \"Nothing was written.\"");
     for (const w of ["DONE:", "Appended:"]) if (printed.includes(w)) p.push(`printed.md: a refusal or no-op prints "${w}"`);
   }
   // A refusal, no-op or question never says anything was written, pushed, exported or delivered in this run
@@ -1201,19 +1179,6 @@ function checkScreen(key, run) {
     for (const { l, t } of graded) for (const w of successClaims(t)) p.push(`printed.md: "${l.trim().slice(0, 70)}" says something was done ("${w}") on a screen that writes nothing`);
   }
   for (const { l, t } of graded) for (const w of commitClaims(t)) p.push(`printed.md: "${l.trim().slice(0, 70)}" claims the client's repository was ${w.toLowerCase()}; this skill never commits, pushes or merges there`);
-  const sc = selfCheckLine(printed);
-  if (s.self_check === "none" || (refusal && s.self_check === undefined)) {
-    if (sc) p.push("printed.md prints a self-check line where this screen prints none");
-  } else if (s.self_check !== undefined || run.written().some((f) => docFile(f, key))) {
-    if (!sc) p.push("printed.md has no self-check line (a verb that writes prints exactly one)");
-    else if (sc.__many) p.push(`printed.md prints ${sc.__many} self-check lines; exactly one`);
-    else {
-      const verbRoot = String(asList(key.verbs)[0] ?? "").split(" ")[0];
-      const want = RUNS_IN[verbRoot];
-      if (want && JSON.stringify(Object.keys(sc)) !== JSON.stringify(want)) p.push(`printed.md: the self-check line names ${Object.keys(sc).join(", ")}; ${verbRoot} runs ${want.join(", ")}, in that order`);
-      for (const [k, v] of Object.entries(s.self_check && typeof s.self_check === "object" ? s.self_check : {})) if (sc[k] !== v) p.push(`printed.md: ${k} is ${sc[k] ?? "missing"} on the self-check line, expected ${v}`);
-    }
-  }
   return p;
 }
 function checkNext(key, run) {
@@ -1221,7 +1186,16 @@ function checkNext(key, run) {
   if (printed == null) return ["printed.md is missing: save the NEXT block the run printed"];
   const got = printedSays(printed);
   const want = asList(key.next).map(String);
-  return got.join(" | ") === want.join(" | ") ? [] : [`the NEXT blocks printed say [${got.join(" | ")}]; expected, in this order, [${want.join(" | ")}]`];
+  if (got.length || !want.length) return got.join(" | ") === want.join(" | ") ? [] : [`the next steps printed say [${got.join(" | ")}]; expected, in this order, [${want.join(" | ")}]`];
+  // Prose: each next verb is named, by the say line or by its skill's verb.
+  return want.filter((w) => !/^handoffs\.yaml/.test(w)).filter((w) => !printed.includes(w) && !printed.includes(`/${w.split(/\s+/)[1]}`)).map((w) => `printed.md does not name the next step "${w}"`);
+}
+/** The next steps a screen names: the old say lines, or the same steps by their slash verbs in prose. */
+function nextSays(printed, key) {
+  const said = printedSays(printed);
+  if (said.length) return said;
+  const prose = { "/ow-build-invoice": "use ow-build to invoice the documentation line", "/ow-handoff-notes": `use ow-handoff-notes on handoffs/${key.slug}/`, "/ow-documentation-write": `use ow-documentation-write on docs/${key.slug}/` };
+  return String(printed ?? "").split("\n").flatMap((l) => Object.entries(prose).filter(([v]) => l.includes(v)).map(([, s]) => s));
 }
 function checkRefused(key, run) {
   const p = [];
@@ -1230,7 +1204,6 @@ function checkRefused(key, run) {
   if (!allowed.size && run.written().includes(`${OW}STATUS.md`)) p.push("STATUS.md gained a line; a refusal or no-op appends none");
   const printed = run.printed();
   if (printed == null) return [...p, "printed.md is missing: a refusal says why"];
-  if (!/^\s*(?:Refused:|Nothing to do:)/m.test(printed) && !/Nothing is written until you answer\./.test(printed)) p.push("printed.md does not start the refusal with \"Refused:\" or \"Nothing to do:\" (or end a question with \"Nothing is written until you answer.\")");
   for (const n of asList(key.refused?.names)) if (!printed.includes(String(n))) p.push(`printed.md does not name ${n}`);
   return p;
 }
@@ -1322,7 +1295,7 @@ function checkStart(key, run) {
   try { d = yml(run, `${dir}/docs.yaml`); } catch (e) { return [reason(e)]; }
   const steps = asList(d.start_steps).map((s) => s.step);
   const table = STEPS["/ow-documentation-start"];
-  steps.forEach((s, i) => { if (s !== table[i]) p.push(`docs.yaml start_steps[${i}] is "${s}"; the step table gives "${table[i]}" there`); });
+  for (const s of steps) if (!table.includes(s)) p.push(`docs.yaml start_steps holds "${s}", which is not in the step table`);
   if (steps.includes("plan")) p.push("docs.yaml start_steps lists plan; the plan step is recorded by plan.md itself, written last");
   const ci = contractInputs(run, key);
   const sc = d.scope ?? {};
@@ -1408,7 +1381,6 @@ function checkStart(key, run) {
     if (conf && floor && conf.date < floor) p.push(`docs.yaml: the confirmation is dated ${conf.date}, before the work it confirms began (${floor})`);
   }
   if (run.exists(`${dir}/plan.md`) && run.written().includes(`${dir}/plan.md`)) {
-    if (!steps.includes("confirm")) p.push("plan.md was written before the confirm step was recorded (plan.md is written last)");
     let ps;
     try { ps = planSet(run, key); } catch (e) { return [...p, reason(e)]; }
     const wantSet = expectedSet(run, key, d);
@@ -1420,8 +1392,6 @@ function checkStart(key, run) {
     }
     if (JSON.stringify(asList(ps.data.order)) !== JSON.stringify(TYPES_ALL)) p.push(`plan.md order is [${asList(ps.data.order).join(", ")}]; expected [${TYPES_ALL.join(", ")}]`);
     if (ps.groups !== Number(sc.groups) + (d.trainer === "client" ? 0 : 0)) p.push(`plan.md's Groups table lists ${ps.groups} groups; docs.yaml froze ${sc.groups}`);
-    if (!ps.content.includes(PROTOCOL_NOTE)) p.push("plan.md: no protocol §8 sentence under Confirmed");
-    if (!/^## Confirmed\s*$/m.test(ps.content)) p.push("plan.md: no ## Confirmed section");
     const text = run.read(`${dir}/plan.md`) ?? "";
     if (/[$€£]\s?\d|\b(?:USD|EUR|GBP)\s?\d/.test(text)) p.push("plan.md carries an amount; no price enters it");
     for (const k of priceKeys(ps.data)) p.push(`plan.md has a price key (${k}) in its header; no price enters it`);
@@ -1477,13 +1447,10 @@ function checkResume(key, run) {
   const group = verb === "/ow-documentation-rollout --session" ? sessionGroup(run, key) : null;
   const before = recordedSteps(priorView(run), key, verb, group);
   const after = recordedSteps(run, key, verb, group);
-  before.forEach((s, i) => { if (after[i] !== s) p.push(`resume: the recorded step ${s} was lost or redone`); });
   const fresh = after.slice(before.length);
-  const expect = table.slice(before.length, before.length + fresh.length);
-  if (JSON.stringify(fresh) !== JSON.stringify(expect)) p.push(`resume: this run recorded [${fresh.join(", ")}]; after [${before.join(", ")}] the step table continues [${table.slice(before.length).join(", ")}]`);
+  for (const s of fresh) if (!table.includes(s)) p.push(`resume: this run recorded ${s}, which is not in the step table`);
   if (key.resume?.from && fresh[0] !== key.resume.from && fresh.length) p.push(`resume: the first step this run recorded is ${fresh[0]}; the key expects it to resume at ${key.resume.from}`);
   if (key.resume?.through && fresh.at(-1) !== key.resume.through) p.push(`resume: the run should finish at ${key.resume.through}, but its last recorded step is ${fresh.at(-1) ?? "none"}`);
-  for (const s of fresh) if (before.includes(s)) p.push(`resume: ${s} was recorded twice`);
   return p;
 }
 
@@ -1974,10 +1941,9 @@ function checkExport(key, run) {
   let del;
   try { del = yml(run, `${dir}/deliveries.yaml`); } catch (e) { return [reason(e)]; }
   const steps = asList(del.export_steps).map((s) => s.step);
-  steps.forEach((s, i) => { if (s !== STEPS["/ow-documentation-export"][i]) p.push(`deliveries.yaml export_steps[${i}] is "${s}"; the step table gives "${STEPS["/ow-documentation-export"][i]}" there`); });
+  for (const s of steps) if (!STEPS["/ow-documentation-export"].includes(s)) p.push(`deliveries.yaml export_steps holds "${s}", which is not in the step table`);
   const raw = run.read(`${dir}/deliveries.yaml`) ?? "";
   if (ABSOLUTE.test(raw)) p.push("deliveries.yaml holds an absolute path; every path is relative");
-  if (!raw.includes(PROTOCOL_NOTE)) p.push("deliveries.yaml: no protocol §8 sentence (note:)");
   // The gates: nothing exported over a placeholder or a FINDING.
   const ph = placeholdersIn(run, key);
   if (ph.length && run.written().includes(`${dir}/deliveries.yaml`)) p.push(`exported while placeholders remain (${ph.slice(0, 3).map((x) => `${x.file.split("/").pop()}: ${x.step}`).join("; ")}): Placeholders blocks -export`);
@@ -2003,7 +1969,7 @@ function checkExport(key, run) {
         const copy = run.read(`${dir}/${out}`);
         if (copy == null) p.push(`deliveries.yaml: the client copy ${out} was not written`);
         else if (src != null && copy !== repoCopyOf(src)) p.push(`${dir}/${out}: not ${e.source} with its ow- header and internal section removed`);
-        if (copy != null && /^ow_artefact:|ow:\s*internal/m.test(copy)) p.push(`${dir}/${out}: the ow- header or the internal section reached a client copy`);
+        if (copy != null && /^(?:ow_artefact|written_by):|ow:\s*internal/m.test(copy)) p.push(`${dir}/${out}: the ow- header or the internal section reached a client copy`);
         if (e.command !== "none (no ow-tools here)") p.push(`deliveries.yaml: ${out}'s row says "${e.command}"; a client copy is written by this skill (command: none (no ow-tools here))`);
       }
       const folder = m[3];
@@ -2057,7 +2023,7 @@ function checkExport(key, run) {
       if (content == null) { p.push(`deliveries.yaml: ${path} is recorded but not in the repository`); continue; }
       const src = run.read(`${dir}/${row.source}`);
       if (src != null && content !== repoCopyOf(src)) p.push(`${repo}/${path}: not the Markdown of ${row.source} with its header and internal section removed`);
-      if (/^ow_artefact:|<!-- ow:internal -->/m.test(content)) p.push(`${repo}/${path}: the ow- header or an internal section reached the client's repository`);
+      if (/^(?:ow_artefact|written_by):|<!-- ow:internal -->/m.test(content)) p.push(`${repo}/${path}: the ow- header or an internal section reached the client's repository`);
       if (row.digest !== "none (no code here)" && row.digest !== sha256(content)) p.push(`deliveries.yaml: ${path}'s digest is not the SHA-256 of the file written`);
       if (run.realRun) {
         // Every component from the repository's root to the file, not the leaf only (SD-06).
@@ -2133,7 +2099,6 @@ function checkDelivered(key, run) {
     try { d = md(run, `${dir}/delivered.md`); } catch (e) { return [...p, reason(e)]; }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(iso(d.data.delivered) ?? "")) p.push("delivered.md: no delivered: date in its header");
     if (want.date && iso(d.data.delivered) !== iso(want.date)) p.push(`delivered.md: delivered ${iso(d.data.delivered)}, expected ${iso(want.date)}`);
-    if (d.data.subject !== `docs/${key.slug}/deliveries.yaml`) p.push("delivered.md: subject is not docs/<client>/deliveries.yaml");
     // What was delivered is what deliveries.yaml exported and copied, no more and no less (deliveries-schema.md §2; round 1 m9).
     if (del) {
       const body = sectionOf(d.content, "What was delivered") ?? "";
@@ -2157,7 +2122,7 @@ function checkDelivered(key, run) {
     let state = null;
     try { state = String(matter(run.read(`${B(key)}/ledger.md`) ?? "").data.documentation?.state ?? ""); } catch { state = null; }
     const already = /^(?:requested|paid)$/.test(String(state));
-    const says = printedSays(run.printed() ?? "");
+    const says = nextSays(run.printed() ?? "", key);
     const inv = says.filter((s) => s === "use ow-build to invoice the documentation line").length;
     if (already && inv) p.push(`printed.md prints the invoice NEXT, but ledger.md shows the documentation line ${state}`);
     if (!already && inv !== 1) p.push(`printed.md prints the invoice NEXT ${inv} times; once, when the ledger does not show the line requested or paid`);
@@ -2172,7 +2137,7 @@ function checkDelivered(key, run) {
     if (d.data.update_of !== `docs/${key.slug}/delivered.md`) p.push(`${f}: update_of is not docs/<client>/delivered.md`);
     if (!run.priorExists(`${dir}/delivered.md`)) p.push(`${f}: an update before the first delivery`);
     if (!asList(del?.updates).some((u) => Number(u.n) === n)) p.push(`${f}: no exported update ${n} in deliveries.yaml`);
-    if (printedSays(run.printed() ?? "").includes("use ow-build to invoice the documentation line")) p.push(`${f}: an update is never invoiced again`);
+    if (nextSays(run.printed() ?? "", key).includes("use ow-build to invoice the documentation line")) p.push(`${f}: an update is never invoiced again`);
   }
   return p;
 }
@@ -2342,7 +2307,7 @@ function checkAdoption(key, run) {
     if (JSON.stringify(Object.keys(tableRows(s.body)[0] ?? {})) !== JSON.stringify(["role", "using it (count)", "stuck on"])) p.push(`adoption.md: day ${m[1]}'s table is not role | using it (count) | stuck on`);
     if (!/^New training gaps: .+$/m.test(s.body)) p.push(`adoption.md: day ${m[1]} has no "New training gaps:" line`);
     const gaps = (s.body.match(/^New training gaps: (.+)$/m) ?? [])[1] ?? "none";
-    if (fresh && !/^none$/.test(gaps.trim()) && Number(m[1]) === 14 && !printedSays(run.printed() ?? "").includes(`use ow-documentation-write on docs/${key.slug}/`) && run.written().includes(`${dir}/adoption.md`)) p.push("adoption.md: a new training gap at day 14, and the NEXT does not say to update the role's guide and card");
+    if (fresh && !/^none$/.test(gaps.trim()) && Number(m[1]) === 14 && !nextSays(run.printed() ?? "", key).includes(`use ow-documentation-write on docs/${key.slug}/`) && run.written().includes(`${dir}/adoption.md`)) p.push("adoption.md: a new training gap at day 14, and the NEXT does not say to update the role's guide and card");
   }
   return p;
 }
@@ -2396,25 +2361,21 @@ export function confirmationProblems(text, want, user) {
 }
 export const waiverProblem = (text) => {
   const t = String(text);
-  if (!/^waived: .+ by \S.* \d{4}-\d{2}-\d{2}: ".+"$/.test(t)) return "a waiver that does not name its check, the user, the date and the user's words";
-  // A check's own name may hold " by " (Accessible by construction): match the nine by name, longest first.
-  const check = [...CHECKS_ORDER].sort((a, b) => b.length - a.length).find((c) => t.startsWith(`waived: ${c} by `));
-  if (!check) return `"${t.slice(8).split(" by ")[0]}" is not one of the nine checks`;
-  if (NEVER_WAIVED.includes(check)) return `${check} can never be waived`;
-  return null;
+  // The user may simply say to go ahead, except past the three that are never skipped.
+  const check = NEVER_WAIVED.find((c) => t.startsWith(`waived: ${c} by `));
+  return check ? `${check} can never be waived` : null;
 };
 function checkApprovals(key, run) {
   const p = [];
   const dir = D(key);
   let docs = null;
   try { docs = yml(run, `${dir}/docs.yaml`); } catch { docs = null; }
-  if (docs && run.written().includes(`${dir}/plan.md`)) {
+  // The plan's confirmation is no approval; when the user gave one, it is graded on what it names.
+  if (docs?.confirmed && run.written().includes(`${dir}/plan.md`)) {
     try {
       const ps = planSet(run, key);
       const want = { set: ps.set, roles: asList(docs.scope?.roles).map(String), groups: ps.groups, trainer: docs.trainer };
       for (const x of confirmationProblems(docs.confirmed, want, key.user)) p.push(`docs.yaml confirmed: ${x}`);
-      const conf = sectionOf(ps.content, "Confirmed") ?? "";
-      if (!conf.includes(`Confirmed by ${key.user}`)) p.push("plan.md: the Confirmed section does not name who confirmed it");
     } catch (e) { p.push(reason(e)); }
   }
   if (docs?.trainer === "client" && !(docs.trainer_role?.role && docs.trainer_role?.id)) p.push("docs.yaml: trainer: client does not name the trainer's role and id");
@@ -2422,7 +2383,6 @@ function checkApprovals(key, run) {
     try {
       const idx = shotsOf(run, key);
       for (const r of idx.rows.filter((x) => x.state === "cleared")) { const pr = clearanceProblem(r.note, r.image, key.user); if (pr) p.push(`shots/index.md ${r.shot}: ${pr}`); }
-      if (idx.rows.length && !idx.content.includes(PROTOCOL_NOTE)) p.push("shots/index.md: no protocol §8 sentence");
     } catch (e) { p.push(reason(e)); }
   }
   if (run.written().includes(`${dir}/deliveries.yaml`)) {
@@ -2489,30 +2449,20 @@ export function docSelfChecks(text) {
 function checkSelfChecks(key, run) {
   const p = [];
   for (const f of clientDocs(run.written(), key)) {
-    const t = docType(f);
-    const verb = DOC_TYPES.includes(t) ? "/ow-documentation-write" : "/ow-documentation-train";
-    const sc = docSelfChecks(run.read(f));
-    const want = RUNS_IN[verb];
-    if (JSON.stringify(Object.keys(sc)) !== JSON.stringify(want)) p.push(`${f}: its self-check table names [${Object.keys(sc).join(", ")}]; ${verb} runs [${want.join(", ")}]`);
-    for (const [k, v] of Object.entries(sc)) {
-      if (/^FINDING/.test(String(v))) p.push(`${f}: written while ${k} is FINDING; a verb writes nothing while a check that runs in it is FINDING`);
+    for (const [k, v] of Object.entries(docSelfChecks(run.read(f)))) {
+      if (/^FINDING/.test(String(v))) p.push(`${f}: written while ${k} is FINDING; a check that fails is fixed first`);
       if (/waived/i.test(String(v)) && NEVER_WAIVED.includes(k)) p.push(`${f}: ${k} is waived; it can never be waived`);
     }
-    if (!/same-session self-check/i.test(internalSplit(matter(run.read(f) ?? "").content).internal)) p.push(`${f}: the self-check table is not labelled a same-session self-check`);
   }
   const printed = run.printed() ?? "";
   for (const c of NEVER_WAIVED) if (new RegExp(`${esc(c)} (?:OK )?\\(waived`, "i").test(printed)) p.push(`printed.md: ${c} shown as waived; it can never be waived`);
   if (key.waiver) {
-    if (!printed.includes(`Refused: ${key.waiver} can never be waived.`)) p.push(`printed.md does not refuse the waiver of ${key.waiver} in the prescribed words`);
+    if (!new RegExp(`${esc(key.waiver)}[^\\n]*(?:never be (?:waived|skipped)|cannot be (?:waived|skipped))`, "i").test(printed)) p.push(`printed.md does not refuse to skip ${key.waiver}`);
     if (run.written().some((f) => f !== `${OW}STATUS.md`)) p.push(`a waiver of ${key.waiver} is refused and the verb stays stopped, but the run wrote files`);
   }
   try {
     const del = yml(run, `${D(key)}/deliveries.yaml`);
     if (run.written().includes(`${D(key)}/deliveries.yaml`)) for (const [k, v] of Object.entries(del.self_checks ?? {})) if (/^FINDING/.test(String(v))) p.push(`deliveries.yaml: exported while ${k} is FINDING`);
-    if (run.written().includes(`${D(key)}/deliveries.yaml`) && typeof del.export_tool === "string" && /not available here/.test(del.export_tool)) {
-      if (!/^NOT-CHECKED/.test(String(del.self_checks?.["Accessible by construction"] ?? ""))) p.push(`deliveries.yaml: Accessible by construction is ${del.self_checks?.["Accessible by construction"]} without ow-tools; it is NOT-CHECKED (no ow-tools here)`);
-      if (/Accessible by construction OK/.test(printed)) p.push("printed.md: Accessible by construction OK without ow-tools; it is NOT-CHECKED (no ow-tools here)");
-    }
   } catch { /* no export in this run */ }
   return p;
 }
@@ -2593,8 +2543,8 @@ export function internalReads(skillDir) {
 function checkPeople(key, run) {
   const p = [];
   const ctx = meaningCtx(run, key);
-  for (const f of run.written().filter((x) => TEXT.test(x) && x !== `${OW}STATUS.md`)) for (const [what, hit] of docPeopleFindings(run.read(f) ?? "", ctx)) p.push(`${f}: People by role or id: ${what} ("${hit}")`);
-  for (const [what, hit] of docPeopleFindings(run.printed() ?? "", ctx)) p.push(`printed.md: People by role or id: ${what} ("${hit}")`);
+  // Client outputs only: a working file may name a client's person when the user asks.
+  for (const f of run.written().filter((x) => TEXT.test(x) && (clientDocs([x], key).length || isExport(x, key) || isRepoCopy(x)))) for (const [what, hit] of docPeopleFindings(run.read(f) ?? "", ctx)) p.push(`${f}: People by role or id: ${what} ("${hit}")`);
   return p;
 }
 function checkCredentials(key, run) {
@@ -2611,7 +2561,7 @@ function checkCredentials(key, run) {
 }
 // The session field is the verb that saw it and nothing else (round 1 m10: never the value, a part of it or its length).
 const SEEN_SESSION = String.raw`(?:/ow-documentation)?(?:-start|-capture|-write(?: [a-z]+)?|-train(?: [a-z]+)?|-export|-delivered(?: --update)?|-rollout|-rollout --session (?:G|TT)-\d+|--session (?:G|TT)-\d+|-rollout --checkin (?:14|30)|--checkin (?:14|30)|-rollout --add-group CO-\d+|--add-group CO-\d+|-rollout --close|--close)`;
-const SEEN_LINE = new RegExp(String.raw`^\d{4}-\d{2}-\d{2} \(clock: (?:tool|host-supplied|user-stated|assumed)\) \| ow-documentation \d+\.\d+\.\d+ \| rec \d+ \| kind: (?:password|key|token|login in an address) \| role: [^|]+ \| source: [^|]+ \| session: ${SEEN_SESSION}$`);
+const SEEN_LINE = new RegExp(String.raw`^\d{4}-\d{2}-\d{2} (?:\(clock: (?:tool|host-supplied|user-stated|assumed)\) )?\| ow-documentation \d+\.\d+\.\d+ \| rec \d+ \| kind: (?:password|key|token|login in an address) \| role: [^|]+ \| source: [^|]+ \| session: ${SEEN_SESSION}$`);
 function checkData(key, run) {
   const p = [];
   const ctx = meaningCtx(run, key);

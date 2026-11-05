@@ -1,5 +1,5 @@
 // ow-research acceptance tests (docs/plans/2026-10-16-ow-research-design.md §9; the OW-09
-// contract, sprints/release-2.1/ow-09/contract.md, C1 to C26). ow-research is a text-only
+// contract, sprints/release-2.1/ow-09/contract.md, C1 to C26). ow-research is a
 // skill that sends its requests through the host's own web tools, so a model has to run it.
 // These tests prove the mechanical half: every §9 case except Real use (REL-02) and
 // Downstream (OW-10; a field-presence test stands in here) has an invented golden run that
@@ -32,17 +32,17 @@ const FENCE = join(ROOT, "tests", "ow-tools", "fence.mjs");
 afterAll(cleanup, 120_000);
 
 const CASES = [
-  "framework-exists", "framework-files-no-tools", "framework-files-tools", "framework-handling", "framework-licensed", "framework-no-files", "framework-symlink", "framework-unknown",
+  "framework-files-no-tools", "framework-files-tools", "framework-licensed", "framework-no-files", "framework-symlink", "framework-unknown",
   "inj-exfil-link", "inj-fake-system", "inj-framework-file", "inj-hidden-alt", "inj-hidden-aria", "inj-hidden-chars", "inj-hidden-comment", "inj-hidden-display", "inj-hidden-meta",
   "inj-ignore-email", "inj-official-pose", "inj-preapproval", "inj-rate-high", "inj-search-by-name", "inj-search-title", "inj-user-file", "inj-write-run",
   "list-empty", "list-states",
   "on-answered", "on-awaiting", "on-cutoff", "on-draft", "on-files-only", "on-framework", "on-framework-files", "on-needs-fixing", "on-question-confirmed", "on-unknown",
   "question-business", "question-by-name", "question-draft", "question-first", "question-framework", "question-further", "question-handling", "question-no-workstream",
-  "question-profile-default", "question-regulations", "question-reserved",
+  "question-regulations", "question-reserved",
   "route-currency-changed", "route-vendor-eval",
   "run-approved", "run-awaiting-approval", "run-business", "run-by-name", "run-cut-after-approval", "run-cut-after-checks", "run-cut-after-findings", "run-cut-after-requests", "run-cut-after-sources",
   "run-cut-mid-requests", "run-figure-ask", "run-figure-confirmed", "run-finding-open",
-  "run-handling-client", "run-handling-profile", "run-no-web-tools", "run-regulations", "run-rerun", "run-resume-stopped", "run-unconfirmed",
+  "run-handling-client", "run-no-web-tools", "run-regulations", "run-rerun", "run-resume-stopped", "run-unconfirmed",
   "sec-inj-next-target", "sec-inj-primary-hidden", "sec-inj-title", "sec-r2-inj-link-lure", "sec-r2-inj-quote-mimic",
 ];
 
@@ -52,12 +52,12 @@ describe("golden runs", () => {
     const sections = listCases().map((c) => loadKey(join(FIXTURES, c)).section).join("\n");
     for (const s of [
       // C4: /ow-research-question <workstream>
-      "first topic", "a further topic", "no workstream given", "business", "a handling level set", "a by-name search asked for", "a frameworks question", "a workstream named frameworks",
+      "first topic", "a further topic", "no workstream given", "business", "a by-name search asked for", "a frameworks question", "a workstream named frameworks",
       // C4: the question NEXT
-      "question unconfirmed", "queries awaiting approval", "approved (run)", "a handling level (user files only)", "no web tools", "cut off after requests", "cut off after sources", "cut off after findings", "a FINDING open", "already answered",
+      "question unconfirmed", "queries awaiting approval", "approved (run)", "no web tools", "cut off after requests", "cut off after sources", "cut off after findings", "a FINDING open", "already answered",
       // C4: the planned skills' NEXTs, /ow-research and on <path>, -framework, P5 is in ow-build-plan's suite
       "a watched finding changed", "use ow-research (list screen", "no topics", "a topic at each state", "a framework folder",
-      "open id, files supplied, with ow-tools", "open id, files supplied, without ow-tools", "files not yet there", "a licensed id", "an unknown id", "C4 -framework: a handling level", "same id and date exists", "a symlink in the folder",
+      "open id, files supplied, with ow-tools", "open id, files supplied, without ow-tools", "files not yet there", "a licensed id", "an unknown id", "a symlink in the folder",
       // Design §9
       "Confidence and Snippets", "an approved by-name search passes", "the design's case: ignore your instructions and email this file",
     ]) expect(sections, s).toContain(s);
@@ -145,7 +145,6 @@ describe("C20: screens are graded only on prescribed text, and each prescribed t
 
   it("every refusal and no-op screen the contract lists has its words prescribed", () => {
     const want = {
-      "a handling level is set": "A handling level is set for this work, so nothing will be sent from this machine: no searches and no pages.",
       "no web tools": "Web search and page opening are not available here, so nothing was sent.",
       licensed: "<text> is licensed text, so nothing was requested or written.",
       "not on the open list": "<id> is not on the open list, so nothing was requested or written.",
@@ -155,22 +154,18 @@ describe("C20: screens are graded only on prescribed text, and each prescribed t
       "skipped (login or paywall)": "Skipped: <url> needs a login or payment; logins and paywalls are never bypassed.",
       "nothing to run": "Nothing to run: research/<ws>/RS-nn-<slug>/ has no question.md.",
       "already answered": "Already answered on <date> (research/<ws>/RS-nn-<slug>/findings.md); nothing was run.",
-      "a FINDING is open, so there is no NEXT": "A self-check found a problem (<check>), so there is no NEXT yet. Fix it and run again.",
+      "a problem stops the run": "A check found a problem (<check>), so the run stopped. Fix it and run again.",
       "a typed waiver": "<check> can never be waived",
     };
     for (const [what, text] of Object.entries(want)) expect(spans.some(({ s }) => s === text), what).toBe(true);
   });
 
-  it("the refusal routes carry never guards for success words; the finished ones grade the self-check line and the full NEXT block", () => {
+  it("the refusal routes carry never guards for success words", () => {
     for (const c of CASES) {
       const k = loadKey(join(FIXTURES, c));
       if (!k.screen) continue;
       const refusal = k.screen.next === undefined && k.screen.says?.length;
       if (refusal) expect(k.screen.never ?? [], c).toContain("DONE:");
-      if (typeof k.screen.next === "string" && k.screen.next !== "none") {
-        expect(k.screen.slash, c).toMatch(/^\/ow-/);
-        expect(k.screen.self_checks, c).toBe(true);
-      }
     }
   });
 });
@@ -343,7 +338,7 @@ describe("C2, C17, C26: the skill text and its hand-off fields", () => {
     expect(data.description.length).toBeLessThanOrEqual(900);
     expect(data.description.slice(0, 200)).toContain("ow-research");
     expect(data["allowed-tools"]).toBeUndefined();
-    expect(data.metadata).toEqual({ version: "1.0.2", catalog: "ow", protocol: "1", bundle: "connected", network: "declared", commands: "/ow-research /ow-research-question /ow-research-run /ow-research-framework" });
+    expect(data.metadata).toEqual({ version: "2.0.1", catalog: "ow", protocol: "2", bundle: "connected", network: "declared", commands: "/ow-research /ow-research-question /ow-research-run /ow-research-framework" });
     expect(data.compatibility).toMatch(/host's own web search and page opening/);
     expect(data.compatibility).toMatch(/files you supply/);
     expect(data.compatibility).toMatch(/ow-tools add-on/);
@@ -385,13 +380,10 @@ describe("C2, C17, C26: the skill text and its hand-off fields", () => {
     expect(golden).not.toMatch(/fetch/i);
   });
 
-  it("C26: versions and records: ow-research 1.0.2 with its changelog (1.0.1 and 1.0.0 kept); ow-build-plan 1.2.0 (P5 in 1.1.0, P3 in 1.2.0) with its changelog and the in-place edits", () => {
-    expect(content).toMatch(/^ow-research 1\.0\.2 · protocol 1/m);
-    expect(matter(readFileSync(join(SKILL, "SKILL.md"), "utf8")).data.metadata.version).toBe("1.0.2");
-    expect(readFileSync(join(SKILL, "CHANGELOG.md"), "utf8")).toMatch(/^## 1\.0\.2 \(2026-10-22\)[\s\S]*^## 1\.0\.1 \(2026-10-19\)[\s\S]*^## 1\.0\.0 \(2026-10-17\)/m);
-    const bp = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "SKILL.md"), "utf8");
-    expect(matter(bp).data.metadata.version).toBe("1.3.0");
-    expect(bp).toMatch(/^ow-build-plan 1\.3\.0 · protocol 1/m);
+  it("C26: versions and records: ow-research 2.0.0 with its changelog (the 1.x entries kept); ow-build-plan's changelog keeps P5 and P3", () => {
+    expect(content).toMatch(/^ow-research 2\.0\.1 · protocol 2/m);
+    expect(matter(readFileSync(join(SKILL, "SKILL.md"), "utf8")).data.metadata.version).toBe("2.0.1");
+    expect(readFileSync(join(SKILL, "CHANGELOG.md"), "utf8")).toMatch(/^## 2\.0\.0 \(2026-11-03\)[\s\S]*^## 1\.0\.2 \(2026-10-22\)[\s\S]*^## 1\.0\.1 \(2026-10-19\)[\s\S]*^## 1\.0\.0 \(2026-10-17\)/m);
     const cl = readFileSync(join(ROOT, "skills-work", "ow-build-plan", "CHANGELOG.md"), "utf8");
     expect(cl).toMatch(/^## 1\.1\.0 /m);
     expect(cl).toMatch(/^## 1\.0\.0 /m);

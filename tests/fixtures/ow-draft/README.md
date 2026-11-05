@@ -2,13 +2,13 @@
 
 Everything here is **invented**: the fictional clients Mossgate Books and Larkspur Ceramics (continued from ow-research's, ow-start's and ow-build-plan's fixtures), the other workstreams Fernhill Florists, Kestrel Bindery and Bloom, the fictional consultant "Robin" of "Example Studio", invented competitors and their prices, an invented price book, and an invented site repository. No real client material, no real price, no real person's name belongs in this folder. A few files plant an instruction to the assistant on purpose (a voice sample, an inbox email, the site's README), to prove the skill quotes it and does not act on it; each says so in its answer key.
 
-These are the acceptance tests from `docs/plans/2026-10-16-ow-draft-design.md` §11 and the OW-10 contract (`sprints/release-2.1/ow-10/contract.md`, C1 to C29). ow-draft is a text-only skill, so a model has to run it; the checker (`scripts/ow-draft-acceptance.mjs`) reads what the run wrote and printed and tests it against the answer key and the family's own goldens. "Real use" (one real case study, anonymised, and one client report) is graded in REL-02.
+These are the acceptance tests from `docs/plans/2026-10-16-ow-draft-design.md` §11 and the OW-10 contract (`sprints/release-2.1/ow-10/contract.md`, C1 to C29). A model has to run ow-draft; the checker (`scripts/ow-draft-acceptance.mjs`) reads what the run wrote and printed and tests it against the answer key and the family's own goldens. "Real use" (one real case study, anonymised, and one client report) is graded in REL-02.
 
 ## Layout of a case
 
 | Folder or file | Holds |
 |---|---|
-| `input/` | Files the case adds to its starting state: a re-run findings file, a second brief, a client's handling level, the cut state of a resumed run |
+| `input/` | Files the case adds to its starting state: a re-run findings file, a second brief, the cut state of a resumed run |
 | `session/` | What the user says in the session (`answers.md`) and, for a repository copy, the branch checked out (`repo-state.yaml`) |
 | `expected/` | The golden run, invented for the test (written with a generator kept outside the repository, then graded by the checker): what ow-draft writes under `opchain-work/` and into `site/`, and `printed.md`, the screen |
 | `answer-key.yaml` | `base:` (the case it continues), `world:` and `upstream:` (on a story's first case), `verbs` (the verb and mode the run ran), `draft`, `today`, the checks and what each expects; `resume:` for a cut-off run |
@@ -22,7 +22,7 @@ A case's starting state is layered, newest first: its own `input/` and `session/
 ## The stories
 
 - **Mossgate Books** (a client deliverable): the `client` voice and its approval; the brief, handed in by ow-research's NEXT (`m-route-*`); the evidence from `run-regulations` (the Downstream test, `m-route-evidence`); the memo, its candidate, sign-off and delivery to the shared drive (say line, and a connector push in `m-deliver-connector`); a stale finding (`m-freeze-stale`), waivers (never-waived refused, Sources waived), a second candidate, refusals at each gate, and the run without ow-tools.
-- **Larkspur Ceramics** (client work and client comms): a quarterly-review deck from named logs and the plan's map; a cost sheet with `calc total`; an announcement in the client's own voice with the client's approval, refused for delivery until then, and the handling union (`l-deliver-handling`).
+- **Larkspur Ceramics** (client work and client comms): a quarterly-review deck from named logs and the plan's map; a cost sheet with `calc total`; an announcement in the client's own voice with the client's approval, refused for delivery until then.
 - **business** (marketing and internal): the `marketing` voice; a case study, anonymised, then named under a permission, then quoted once the client approved the words (the round-figure ask on 600; the repository copy on a branch); a post whose published 480 equals ours by value, waived by figure; an internal policy; a newsletter.
 - **Cuts** (`*-cut-<step>`): every step of every key, resumed at the next step, writing only what was left; a cut after the last step is a no-op.
 

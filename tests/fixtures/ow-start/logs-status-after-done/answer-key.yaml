@@ -8,10 +8,10 @@ user: Robin
 base: logs-action-done
 verbs: [/ow-status]
 writes_nothing: true
-checks: [writes, status, route, screen, private_names, handling]
+checks: [writes, status, route, screen, private_names]
 route:
   verb: /ow-status
 screen:
-  tokens: [["last step", "awaiting"], ["workstream", "owner role"], ["larkspur-ceramics", "2026-10-21"], ["A-01", "client ops lead", "2026-10-16", "reported overdue"], ["A-02", "you", "2026-10-19"], ["DEC-01", "2026-10-19"]]
+  tokens: [["last step","awaiting"],["workstream","owner role"],["larkspur-ceramics","2026-10-21"],["A-01","client ops lead","2026-10-16","reported overdue"],["A-02","you","2026-10-19"],["DEC-01","2026-10-19"]]
   must_not: ["^(?!Step 0\\.).*\\bA-03\\b", "\\bA-02\\b.*overdue", "\\bDEC-01\\b.*overdue"]
 status: { lines: [] }

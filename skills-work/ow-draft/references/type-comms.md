@@ -5,7 +5,7 @@ Announcements and emails a client sends to their own people, newsletters, social
 ## Structure rules
 
 - **Email**: `# <subject>`, then a `Preview: <one line>` line, the body, and a **call to action** in its own last section (`## What to do`), saying what the reader does and by when.
-- **Post**: the text only, within the **`limit`** (characters) the brief or the destination's `handoffs.yaml` `drafts.<key>.limit` gives; the brief's wins. No markers in the post itself: its sources stay in `evidence.md`, and every fact in it still has an item.
+- **Post**: just the words, within the **`limit`** (characters) the brief or the destination's `handoffs.yaml` `drafts.<key>.limit` gives; the brief's wins. No markers in the post itself: its sources stay in `evidence.md`, and every fact in it still has an item.
 - **Newsletter**: `##` sections, each with one message; links with real link text, `https:` only.
 - No raw HTML, script, event handler or form in the Markdown.
 

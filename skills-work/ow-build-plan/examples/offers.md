@@ -1,12 +1,6 @@
 ---
-ow_artefact: ow-start/offers
-schema: 1
 written_by: user (created from the ow- example)
-workstream: none
-subject: none
 created: 2026-10-06
-clock: user-stated
-origin: user
 ---
 # Offers and fit: INVENTED EXAMPLE
 

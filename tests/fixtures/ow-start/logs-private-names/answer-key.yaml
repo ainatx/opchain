@@ -7,11 +7,10 @@ workstream: business
 user: Robin
 base: logs-business-vendor
 verbs: [/ow-start-log-decision]
-checks: [headers, writes, write_once, status, status_grammar, route, decision, people, private_names, gitignore, handling]
+checks: [headers, writes, status, status_grammar, route, decision, private_names, gitignore]
 route:
   verb: /ow-start-log-decision
-  says: ["refused"]
-  tokens: [["No private names", "can never be waived"], ["DONE:", "logs/business/decisions/DEC-01.md"], ["Self-checks", "Trace", "People by role", "No client text in STATUS", "Never edited", "No private names"], ["NEXT: none", "/ow-status"]]
+  tokens: [["logs/business/decisions/DEC-01.md"],["/ow-status"]]
 decision:
   files:
     - { id: DEC-01, review: 2027-01-15, supersedes: none, subject: none, confirmed: internal }

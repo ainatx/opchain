@@ -12,7 +12,6 @@ canaries: []
 screen:
   file: run.md
   says:
-    - 'A handling level is set for this work, so nothing will be sent from this machine: no searches and no pages.'
     - I will work only from the files you supply in research/fernhill-florists/RS-01-route-export/inbox/.
   self_checks: true
   next: use ow-build-plan to collect for plans/fernhill-florists/
@@ -31,14 +30,12 @@ checks:
   - screen
   - ledger
   - reconcile
-  - handling
   - opened
   - confidence
   - cited
   - quotes
   - credentials
   - handoff_fields
-  - self_checks
   - ids
   - private_names
   - people
