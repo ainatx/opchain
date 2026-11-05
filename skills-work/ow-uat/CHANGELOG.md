@@ -2,6 +2,22 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump (OW-04 ruling O9) and are listed here as data edits.
 
+## 2.0.1 (2026-11-04): questions through AskUserQuestion
+
+Owner requirement. Every question and approval this skill needs goes through the `AskUserQuestion` tool, batched into one call per verb with the recommendation first (protocol §1). No question or numbered menu is typed into chat, and the money, legal and client-trust stops are `AskUserQuestion` approvals. The budget is unchanged: at most three questions per verb, one approval. Applies to interactive runs; unattended runs are not addressed. `docs/plans/2026-11-03-ow-audience-reversal.md` §5.
+
+## 2.0.0 (2026-11-03): the audience reversal
+
+Owner decision; plan: `docs/plans/2026-11-03-ow-audience-reversal.md`. ow-uat now serves a solo operator's small-business client work and lets the operator go with the flow. Protocol 2.
+
+- **Removed:** the data-sensitivity question and its fields, the eight-key header (files carry `written_by` and `created`), clock labels, the STATUS grammar, the NEXT templates ("What comes next" is plain prose, and the skill may run the next verb), the self-check boilerplate and verdict vocabulary, the ten-check ritual (a short checklist stays), written-once locks on scenarios and the plan, confirm-before-writing, re-asking on resume, the add-on's absent-case branches, the no-scripts compatibility line.
+- **Relaxed:** the agreed basis stays as a record, but a mismatch is reported and the user decides; `-pack`, `-run` and `-defect` go ahead on their word. Re-planning, re-packing and re-running sessions are allowed. Working files may name a client's people; client documents use roles unless the user says otherwise.
+- **Still a stop, because money or acceptance turns on it:** every `-signoff` mode over an undecided mismatch; a signature on a superseded request marks nothing; a changed check list is a priced change order.
+- **Kept, sharp:** the contract calendar (deemed acceptance, the delivery backstop, fix rounds and their windows, shown as absolute dates); the numbered sign-off request naming what passed and what is open; a signature recorded as the user's statement, never verified; never marking acceptance without every required scenario passing after the last fix; a change order priced before work, a request too big for one going to `/ow-build-plan` as a follow-on; no credentials, no client data in packs beyond what the test needs, no private names.
+- **Budget:** at most three questions per verb, only for what the CRM's records do not answer. One approval: before a sign-off request is sent, and before a signature, a deemed acceptance, an addendum confirmation or a backstop is recorded.
+- **The CRM is the record** (protocol section 8): every verb reads the latest saved version first, scenarios go to `acceptance_criteria`, problems to `support_requests`, documents by kind, through `ow-tools dw` or the ingest routes; a human-edited version is never overwritten; a publish is claimed only when the call returned success. `opchain-work/` is the scratch cache, the fallback when the CRM cannot be reached; STATUS is no longer how a test resumes. Goldens and the checker still grade the cache.
+- Checker and tests: `scripts/ow-uat-acceptance.mjs` loosened (headers, STATUS, NEXT, writer scope, resume locks, people in working files); plants for removed rules deleted. Goldens keep the versions they were written with.
+
 ## Unreleased: data edits from OW-06 (ow-handoff 1.0.0)
 
 No version bump (OW-04 ruling O9); no `SKILL.md` or reference text changed:

@@ -7,7 +7,7 @@ user: Robin
 base: logs-prep-items
 verbs: [/ow-start-prep-meeting]
 writes_nothing: true
-checks: [writes, write_once, status, route, private_names, handling]
+checks: [writes, status, route, private_names]
 route:
   verb: /ow-start-prep-meeting
   says: ["Nothing is written until you answer\\."]

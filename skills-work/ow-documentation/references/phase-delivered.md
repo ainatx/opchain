@@ -1,31 +1,27 @@
 # `/ow-documentation-delivered <date>`: record the delivery
 
-Run step 0 and the resume step (`references/routing-and-resume.md` §1). Schema: `references/deliveries-schema.md` §2 and §3. Self-checks: `references/self-checks.md`.
+Open `references/ow-protocol.md`. Schema: `references/deliveries-schema.md` §2 and §3. Read first from the CRM: the `delivery_record` document, the line on the proposal and its `invoices`; `builds/<client>/ledger.md` is the cache fallback.
+
+The line is invoiced when the documents are delivered, so this record is what the money follows.
 
 ## 1. Entry
 
-1. **Nothing exported** (`deliveries.yaml` missing, or `export_steps` short of `push`): `Refused: nothing has been exported yet.`, `Nothing was written.`, and the export NEXT.
-2. **Already delivered** (`delivered.md` exists): `Nothing to do: the documents were recorded as delivered on <date>.`, `Nothing was written.` An update inside the line, exported since (`deliveries.yaml` `updates`), is recorded with `--update <date>` (section 3).
-3. **A FINDING** in a check that runs here: refuse, as `-export` does.
+1. **Nothing exported** (`deliveries.yaml` missing, or `export_steps` short of `push`): say so, write nothing, and name `/ow-documentation-export`.
+2. **Already delivered** (`delivered.md` exists): say the recorded date and write nothing. An update exported since (`deliveries.yaml` `updates`) goes through `--update <date>` (section 3).
+3. The checklist's three that are never skipped must hold (`references/self-checks.md`).
 
-## 2. Record it (written once)
+## 2. Record it
 
-Ask the delivery date if it was not given (the day the documents reached the client, as the user reports it). Write `delivered.md` once: `delivered: <date>` and `Documents delivered <date written out>, recorded by <user>; delivery not verified by this skill.`, with what `deliveries.yaml` lists. **It is never edited.** Nothing is sent to the client by this skill.
+Ask the delivery date if it was not given (the day the documents reached the client, as the user reports it). Write `delivered.md`: `delivered: <date>` and `Documents delivered <date written out>, recorded by <user>; delivery not verified by this skill.`, with what `deliveries.yaml` lists. It stays as recorded; a later delivery is its own version. Nothing is sent to the client by this skill. Publish it as a `delivery_record` document, `internal`.
 
-Then read `builds/<client>/ledger.md` in place: the documentation line's state.
+Then read the documentation line's state (`builds/<client>/ledger.md` in place).
 
-**NEXT, in this order:**
+**What comes next, in this order:**
 
-1. `use ow-build to invoice the documentation line`, **once**: only when `ledger.md` does not already show the line `requested` or `paid` (amendment B4). Shown requested or paid: no invoice NEXT; say it is already in the ledger.
-2. `use ow-handoff-notes on handoffs/<client>/`: the Handoff notes now point to the runbook's `OP-nn` entries (amendment H3).
-3. `use ow-documentation-rollout on docs/<client>/`: the rollout plan.
+1. `/ow-build-invoice` for the line, **once**: only when `ledger.md` does not already show the line `requested` or `paid`. Shown requested or paid: say it is already in the ledger.
+2. `/ow-handoff-notes`: the Handoff notes now point to the runbook's `OP-nn` entries.
+3. `/ow-documentation-rollout`: the rollout plan.
 
-## 3. `--update <date>` (owner decision O7)
+## 3. `--update <date>`
 
-Only after `delivered.md` and an exported update (`deliveries.yaml` `updates`). Write `delivered-update-nn.md` once: its `delivered:` date, `update_of: docs/<client>/delivered.md`, the files of that update, and the gap it answers. It is never invoiced: ow-build reads only `delivered.md`. A second `--update` for the same update: nothing to do.
-
-Self-checks: People by role or id, No credentials, No private names.
-
-## 4. STATUS
-
-`docs/<client>/delivered.md` with `next: ow-documentation /ow-documentation-rollout docs/<client>/ | awaiting: none` when the ledger already shows the line, else `next: ow-build /ow-build-invoice docs/<client>/delivered.md | awaiting: none`. `--update`: `docs/<client>/delivered-update-nn.md` with `next: ow-documentation /ow-documentation-rollout docs/<client>/ | awaiting: none`.
+After `delivered.md` and an exported update (`deliveries.yaml` `updates`). Write `delivered-update-nn.md`: its `delivered:` date, `update_of: docs/<client>/delivered.md`, the files of that update, and the gap it answers. It is never invoiced: ow-build reads only `delivered.md`. An update already recorded: nothing to do.

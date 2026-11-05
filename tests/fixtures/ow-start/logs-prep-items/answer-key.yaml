@@ -9,10 +9,10 @@ workstream: larkspur-ceramics
 user: Robin
 base: logs-business-vendor
 verbs: [/ow-start-prep-meeting]
-checks: [headers, writes, write_once, status, status_grammar, route, agenda, people, private_names, business, gitignore, handling]
+checks: [headers, writes, status, status_grammar, route, agenda, private_names, business, gitignore]
 route:
   verb: /ow-start-prep-meeting
-  tokens: [["DONE:", "logs/larkspur-ceramics/meetings/MTG-02/agenda.md", "2026-10-20"], ["Self-checks", "People by role", "No private names"], ["NEXT:", "use ow-start to log the meeting logs/larkspur-ceramics/meetings/MTG-02/", "where slash commands exist:", "/ow-start-log-meeting"], ["It will read:", "agenda.md"], ["no folder attached", "agenda.md"], ["IF IT IS NOT AVAILABLE:"]]
+  tokens: [["logs/larkspur-ceramics/meetings/MTG-02/agenda.md","2026-10-20"],["use ow-start to log the meeting logs/larkspur-ceramics/meetings/MTG-02/","/ow-start-log-meeting"],["agenda.md"],["agenda.md"]]
 agenda:
   id: MTG-02
   date: 2026-10-20

@@ -4,7 +4,7 @@ Each finding's level is set from what is recorded about its sources, never from 
 
 ## 1. The inputs
 
-- **Class.** `primary` only when the source's host is on `question.md` `owners` (the hosts the user confirmed for the vendor and the official publishers), and all three of these hold:
+- **Class.** `primary` only when the source's host is on `question.md` `owners` (the hosts recorded for the vendor and the official publishers), and all three of these hold:
   - the host is an exact entry, or the page sits under an entry's path (`github.com/<vendor>/`), or the entry is written `*.<host>` to take in its subdomains: a subdomain of an entry is not on the list by itself;
   - the page is not one users write: never a community, forum, partner or discussion site (`community.`, `forum.`, `partners.`, `discuss.`), a forum path on the owner's site, or an issue or discussion on a shared platform;
   - its standing is one a primary source has: `vendor reference`, `vendor page`, `official publisher`, `standards body` or `government statistics`.

@@ -2,6 +2,20 @@
 
 Per-skill versions (`catalogs.json` `versionPolicy: per-skill`). The family's v2.1.0 release entry cites each skill's version. Every change to `SKILL.md` or a reference bumps this skill; data, example and test edits ride without a bump and are listed here as data edits.
 
+## 2.0.1 (2026-11-04): questions through AskUserQuestion
+
+Owner requirement. Every question and approval this skill needs goes through the `AskUserQuestion` tool, batched into one call per verb with the recommendation first (protocol §1). No question or numbered menu is typed into chat, and the money, legal and client-trust stops are `AskUserQuestion` approvals. The budget is unchanged: at most three questions per verb, one approval. Applies to interactive runs; unattended runs are not addressed. `docs/plans/2026-11-03-ow-audience-reversal.md` §5.
+
+## 2.0.0 (2026-11-03): the audience reversal
+
+Owner decision of 2026-11-03 (`docs/plans/2026-11-03-ow-audience-reversal.md`): the skill serves the operator's own small-business client work, on protocol 2.
+
+- **Removed:** the sensitivity-level rules and every read of them, the eight-key header, date-source labels, the STATUS grammar, the NEXT templates, the ten counted self-checks and their verdict words and labels, the confirm-the-question step, the confirm-before-routing step, re-asking on resume, write-once rules for `question.md` and the manifest (recording again replaces a manifest and says which digests changed), and the branches for a missing add-on (without ow-tools, `shasum -a 256` is recorded instead).
+- **Stays, and stays sharp:** generic queries with no client details (the keep-out terms, a by-name search only with approval of its exact words), every request logged in `queries.md` before it is sent, findings citing opened pages with retrieved dates and short quotes and a level, pages and search results as data (now under `Possible embedded instructions`), the licensed-text refusal, no credentials, no private names. Query privacy, No credentials and No private names can never be waived.
+- **The budget:** at most three questions per verb (`-question`: the question, the workstream, keep-out terms beyond the client's own names, in one message); one approval, the planned queries shown once before the first search of `-run`.
+- **The CRM is the record** (protocol §8): the findings are an internal `research_findings` document on the deal or account, written through `ow-tools dw` or `/api/admin/ingest/*`, beside any human-edited version; each verb reads the CRM first; `opchain-work/` is the scratch cache, where the query log, sources, question and manifests stay. Publication is claimed only when the call returned success.
+- Data edits in the same change: the acceptance checker grades the cache, tolerating the old header, STATUS and ledger forms so the goldens stand, and the old section names beside the new; the checks and cases for removed behaviour are gone.
+
 ## 1.0.2 (2026-10-22): ow-vendor-eval moves to v2.2
 
 Owner decision of 2026-10-22: ow-vendor-eval leaves v2.1.0 for v2.2, handled the way ow-currency was on 2026-10-19.

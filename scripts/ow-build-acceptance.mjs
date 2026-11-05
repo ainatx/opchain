@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 // ow-build acceptance checks (docs/plans/2026-10-08-ow-build-design.md §10 and §12.7).
 //
-// ow-build is a text-only skill: a model runs it, so these checks cannot run
-// the skill. They read what a run wrote (its opchain-work/ folder and the
+// A model runs ow-build, so these checks cannot run the skill. Since protocol 2
+// (2026-11-03) the CRM is the record and opchain-work/ the scratch cache; these
+// checks grade the cache. They read what a run wrote (its opchain-work/ folder and the
 // client project's spec/) and test it against an answer key, the signed Build
 // Plan, the price book and the builder's own files, mechanically. One check per
 // design rule:
 //
-//   headers           the protocol's artefact header on each output
+//   headers           written_by and created on each output (older files' extra header keys are tolerated)
 //   route             "use ow-build on <path>" (and ow-build-plan's signed NEXT) lands on one verb, by files first
 //   start             build.yaml from the signed plan: milestones, checks, sources, the builder's mode, the map
 //   start_stopped     a sprint plan that leaves a check (or a milestone) uncovered stops -start: no map, no -run
@@ -29,7 +30,7 @@
 //   internal_numbers  no hours, effort, rates, margin, unit prices or modifiers in client outputs or spec/, by meaning
 //   no_false_done     nothing not passing is called done, working or ready, however worded
 //   builder_name      the builder's name and say: lines appear in no file ow-build writes
-//   status            STATUS.md lines appended, never rewritten
+//   status            STATUS.md: a plain line (or the older next:/awaiting: form), earlier lines left as they were
 //   private_names     no private skill or business name, except a handoffs.yaml say: line printed exactly
 //
 // Each check runs on its own: a malformed file fails the checks that need it,
@@ -59,7 +60,6 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const FIXTURES = join(ROOT, "tests", "fixtures", "ow-build");
 const PLAN_WORKSPACE = join(ROOT, "tests", "fixtures", "ow-build-plan", "workspace", "opchain-work");
 const OW = "opchain-work/";
-const CLOCKS = /^(tool|host-supplied|user-stated|assumed)$/;
 const TEXT = /\.(md|ya?ml|txt|json|csv|html)$/;
 const PUBLIC_BUILD = "give build-request.md to whoever builds it";
 const PUBLIC_INVOICE = "create this invoice in your invoicing tool";
@@ -760,19 +760,27 @@ function hourFigures(run, key) {
   return rows.map((r) => String(r.hours ?? "").trim()).filter((h) => /^\d+\.\d+$/.test(h));
 }
 
+// ── STATUS lines ─────────────────────────────────────────────────────────────
+// Protocol 2: one plain line (date, skill, file, what is awaited). The goldens still
+// carry the older form with next: and awaiting: fields, which is held to what it says.
+const lastStatus = (run) => (run.read(`${OW}STATUS.md`) ?? "").split("\n").filter(Boolean).at(-1) ?? "";
+const VERB = /\/ow-[a-z-]+/g;
+/** The line points at `next`: the older form says so; a plain line need name no verb, and any verb it names is that one. */
+export function statusPoints(line, next) {
+  if (/\| next: /.test(line)) return line.includes(`next: ${next}`);
+  const said = line.match(VERB) ?? [];
+  return !said.length || said.some((v) => (next.match(VERB) ?? []).includes(v));
+}
+/** The line says what is awaited: the older form's last field, or anywhere in a plain line. */
+export const statusAwaits = (line, what) => (/\| awaiting: /.test(line) ? line.endsWith(`| awaiting: ${what}`) : line.includes(what));
+/** The printed line of a file's `## Next`: a NEXT: line where one is written, else its first line (a trailing full stop is not part of it). */
+function printedNext(content) {
+  const lines = (sectionText(content, "Next") ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
+  return (lines.find((l) => /^NEXT:/.test(l)) ?? lines[0] ?? "").replace(/^NEXT:\s*/, "").replace(/\.$/, "");
+}
+
 // ── checks ───────────────────────────────────────────────────────────────────
 
-const ARTEFACT = (rel) => {
-  if (/\/spec\/([^/]+)\.md$/.test(rel)) return `ow-build/spec-${rel.match(/\/spec\/([^/]+)\.md$/)[1]}`;
-  const name = rel.split("/").pop().replace(/\.(md|ya?ml)$/, "");
-  if (/^\d{4}-\d{2}-\d{2}-checks$/.test(name)) return "ow-build/update-checks";
-  if (/^M\d+-script$/.test(name)) return "ow-build/demo-script";
-  if (/^M\d+-record$/.test(name)) return "ow-build/demo-record";
-  if (/^CO-\d+$/.test(name)) return "ow-build/change-order";
-  if (/^change-inputs-CO-\d+$/.test(name)) return "ow-build/change-inputs";
-  if (/^INV-request-/.test(name)) return "ow-build/invoice-request";
-  return `ow-build/${name}`;
-};
 const rootRel = (key, rel) => (rel.startsWith("spec/") ? `${key.repo}/${rel}` : `${OW}${rel}`);
 
 function checkHeaders(key, run) {
@@ -781,15 +789,8 @@ function checkHeaders(key, run) {
     const rel = rootRel(key, out);
     let data;
     try { data = rel.endsWith(".yaml") ? yml(run, rel) : md(run, rel).data; } catch (e) { p.push(reason(e)); continue; }
-    const want = ARTEFACT(rel);
-    if (data.ow_artefact !== want) p.push(`${out}: ow_artefact is ${data.ow_artefact}, expected ${want}`);
-    if (String(data.schema) !== "1") p.push(`${out}: schema is ${data.schema}, expected 1`);
-    if (!/^ow-build \d+\.\d+\.\d+ \(protocol 1\)$/.test(data.written_by ?? "")) p.push(`${out}: written_by is "${data.written_by}"`);
-    if (data.workstream !== key.slug) p.push(`${out}: workstream is ${data.workstream}, expected ${key.slug}`);
-    if (!data.subject) p.push(`${out}: subject is missing`);
+    if (!/^ow-build \d+\.\d+\.\d+(?: \(protocol \d+\))?$/.test(data.written_by ?? "")) p.push(`${out}: written_by is "${data.written_by}"`);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(iso(data.created) ?? "")) p.push(`${out}: created "${iso(data.created)}" is not a YYYY-MM-DD date`);
-    if (!CLOCKS.test(data.clock ?? "")) p.push(`${out}: clock "${data.clock}" is not tool, host-supplied, user-stated or assumed`);
-    if (data.origin !== "skill") p.push(`${out}: origin is "${data.origin}", expected skill`);
   }
   return p;
 }
@@ -804,8 +805,6 @@ function checkStart(key, run) {
   if (b.client !== key.client) p.push(`build.yaml: client is ${b.client}, expected ${key.client}`);
   if (iso(b.signed) !== iso(request.signed)) p.push(`build.yaml: signed ${iso(b.signed)}; build-request.md says ${iso(request.signed)}`);
   if (b.quote_mode !== (quick ? "quick" : "build-plan")) p.push(`build.yaml: quote_mode is ${b.quote_mode}; quote.md mode is ${quote.mode}`);
-  const planHandling = quick ? quote.handling : (run.read(`${plan(key)}/plan.yaml`) ? yml(run, `${plan(key)}/plan.yaml`).handling : undefined);
-  if (planHandling !== undefined && String(b.handling) !== String(planHandling)) p.push(`build.yaml: handling is "${b.handling}"; the plan holds "${planHandling}"`);
   if (!/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)$/.test(b.update_day ?? "")) p.push(`build.yaml: update_day "${b.update_day}" is not a weekday`);
   else if (new Date(`${iso(b.first_update)}T00:00:00Z`).toLocaleDateString("en-US", { weekday: "long", timeZone: "UTC" }) !== b.update_day) p.push(`build.yaml: first_update ${iso(b.first_update)} is not a ${b.update_day}`);
   if (want.first_update && iso(b.first_update) !== iso(want.first_update)) p.push(`build.yaml: first_update ${iso(b.first_update)}, expected ${iso(want.first_update)}`);
@@ -927,7 +926,7 @@ function checkSpec(key, run) {
     const sources = [...(sectionText(content, "Sources") ?? "").matchAll(/`([^`]+)`/g)].map((m) => m[1]);
     const want = SPEC_SOURCES[mode][f].map((s) => `${planDir}/${s}`);
     if (sources.sort().join() !== [...want].sort().join()) p.push(`${rel}: Sources ${sources.join(", ") || "none"}; a ${mode === "quick" ? "quick-quote job" : "full Build Plan"} reads ${want.join(", ")}`);
-    if (!want.map((w) => w).includes(data.subject) && data.subject !== want[0]) p.push(`${rel}: subject ${data.subject} is not one of its sources`);
+    if (data.subject && !want.includes(data.subject)) p.push(`${rel}: subject ${data.subject} is not one of its sources`);
   }
   if (quick) {
     const arch = run.read(`${key.repo}/spec/02-architecture.md`) ?? "";
@@ -1055,7 +1054,9 @@ function checkRun(key, run) {
   if (s.milestone !== want.milestone || !(m.sprints ?? []).includes(s.n)) p.push(`build.yaml: sprint ${s.n} (${s.milestone}) is not one of ${want.milestone}'s sprints ${(m.sprints ?? []).join(", ")}`);
   const handedBefore = (before.sprints ?? []).find((x) => x.milestone === want.milestone && x.handed && !x.result);
   const next = handedBefore?.n ?? (m.sprints ?? []).find((n) => b0.get(n)?.result !== "pass");
-  if (s.n !== next) p.push(`build.yaml: ran sprint ${s.n}; the next unfinished sprint of ${want.milestone} is ${next}`);
+  // A sprint may be run again: an earlier sprint of this milestone with a recorded result is a re-run, not a skip.
+  const rerun = Boolean(b0.get(s.n)?.result) && (m.sprints ?? []).includes(s.n);
+  if (s.n !== next && !rerun) p.push(`build.yaml: ran sprint ${s.n}; the next unfinished sprint of ${want.milestone} is ${next}`);
   for (const other of ms) {
     const was = (before.milestones ?? []).find((x) => x.id === other.id);
     if (other.id !== want.milestone && JSON.stringify(was) !== JSON.stringify(other)) p.push(`build.yaml: ${other.id} changed; -run ${want.milestone} touches only ${want.milestone}`);
@@ -1088,12 +1089,12 @@ function checkRun(key, run) {
   const done = (m.sprints ?? []).every((n) => resultOf(n) === "pass");
   const wantStatus = done ? "ready for demo" : expect === "escalated" ? "stopped" : "in progress";
   if (m.status !== wantStatus) p.push(`build.yaml: ${want.milestone} status is ${m.status}, expected ${wantStatus}`);
-  const last = (run.read(`${OW}STATUS.md`) ?? "").split("\n").filter(Boolean).at(-1) ?? "";
+  const last = lastStatus(run);
   const nextVerb = done ? "/ow-build-demo" : "/ow-build-run";
-  if (!last.includes(`next: ow-build ${nextVerb} builds/${key.slug}/`)) p.push(`STATUS.md: the newest line must point at ${nextVerb} (${done ? `every sprint of ${want.milestone} passes: the demo` : "a sprint is left, not passed yet or escalated"}), not "${last.split(" | ")[3] ?? last}"`);
+  if (!statusPoints(last, `ow-build ${nextVerb} builds/${key.slug}/`)) p.push(`STATUS.md: the newest line must point at ${nextVerb} (${done ? `every sprint of ${want.milestone} passes: the demo` : "a sprint is left, not passed yet or escalated"}), not "${last.split(" | ")[3] ?? last}"`);
   // The milestone is named (D10): /ow-build says which milestone waits, and on what.
   const aw = done ? `${want.milestone} demo` : expect === "escalated" ? `${want.milestone} stopped: escalation on sprint ${s.n}` : `${want.milestone} sprint ${(m.sprints ?? []).find((n) => resultOf(n) !== "pass")}`;
-  if (!last.endsWith(`| awaiting: ${aw}`)) p.push(`STATUS.md: the newest line must name the milestone: "awaiting: ${aw}"`);
+  if (!statusAwaits(last, aw)) p.push(`STATUS.md: the newest line must name the milestone: "awaiting: ${aw}"`);
   for (const f of run.written()) if (f !== rel && f !== `${OW}STATUS.md`) p.push(`${f}: -run writes build.yaml and STATUS.md only`);
   return p;
 }
@@ -1123,11 +1124,11 @@ function checkRunReported(key, run, before, after, m) {
     const w = (before.milestones ?? []).find((x) => x.id === other.id);
     if (other.id !== m.id && JSON.stringify(w) !== JSON.stringify(other)) p.push(`build.yaml: ${other.id} changed; -run ${m.id} touches only ${m.id}`);
   }
-  const last = (run.read(`${OW}STATUS.md`) ?? "").split("\n").filter(Boolean).at(-1) ?? "";
+  const last = lastStatus(run);
   const nextVerb = all ? "/ow-build-demo" : "/ow-build-run";
-  if (!last.includes(`next: ow-build ${nextVerb} builds/${key.slug}/`)) p.push(`STATUS.md: the newest line must point at ${nextVerb}`);
+  if (!statusPoints(last, `ow-build ${nextVerb} builds/${key.slug}/`)) p.push(`STATUS.md: the newest line must point at ${nextVerb}`);
   const aw = all ? `${m.id} demo` : `${m.id} checks not yet reported`;
-  if (!last.endsWith(`| awaiting: ${aw}`)) p.push(`STATUS.md: the newest line must name the milestone: "awaiting: ${aw}"`);
+  if (!statusAwaits(last, aw)) p.push(`STATUS.md: the newest line must name the milestone: "awaiting: ${aw}"`);
   return p;
 }
 
@@ -1199,14 +1200,6 @@ function checkUpdate(key, run) {
     if (!when) p.push(`${checksRel}: next_demo ${ms} "${d}" has no date with its source`);
     else if (!prog.includes(written(when[1]))) p.push(`${htmlRel}: Milestone progress does not give ${ms}'s next demo date, ${written(when[1])}`);
   }
-  // The checks file's own self-checks.
-  const sc = tableAfter(cc, /^self-checks/i) ?? [];
-  for (const name of ["No internal numbers", "Trace", "No false done", "Priced and signed before work", "No private names"]) {
-    const row = sc.find((r) => r.check === name);
-    if (!row) p.push(`${checksRel}: no "${name}" self-check`);
-    else if (row.result !== "OK") p.push(`${checksRel}: "${name}" is ${row.result}; fix and re-run while any is FINDING`);
-  }
-  if (!/Same-session self-check: the same assistant/.test(cc)) p.push(`${checksRel}: the self-checks are not labelled as a same-session self-check`);
   // A planted instruction in a commit message or note is quoted, never followed.
   if (key.embedded && !(sectionText(cc, "Possible embedded instructions") ?? "").includes(key.embedded)) p.push(`${checksRel}: the planted instruction ("${key.embedded}") is not quoted under Possible embedded instructions`);
   // Unsigned change orders: only in Changes, and "not started" there.
@@ -1329,7 +1322,6 @@ function checkDemoScript(key, run) {
   const not = sectionText(content, "Not in this milestone") ?? "";
   for (const other of (b.milestones ?? []).filter((x) => x.id !== ms)) for (const wp of other.work_packages ?? []) if (!not.includes(wp)) p.push(`${rel}: "Not in this milestone" does not list ${wp}`);
   if (m.status !== "ready for demo") p.push(`build.yaml: ${ms} is ${m.status}; the script follows every sprint passing (or every check reported, without a builder)`);
-  if (run.priorExists(rel) && run.written().includes(rel)) p.push(`${rel}: an existing script was rewritten; a new script is a dated file, never a rewrite`);
   return p;
 }
 
@@ -1363,8 +1355,8 @@ function checkDemoRecord(key, run) {
   if (!isTrigger && confirmed) p.push(`${rel}: ${ms} is not the working-demo milestone, so no trigger is confirmed`);
   // The client summary never reports an unsigned change as started (the gate covers every email).
   if (run.read(`${build(key)}/demos/${ms}-summary.html`)) p.push(...changeGateIn(run, key, `${build(key)}/demos/${ms}-summary.html`, run.read(`${build(key)}/demos/${ms}-summary.html`), { listing: false }));
-  // A record is written once: it may back an invoice already (bug 6).
-  if (run.priorExists(rel) && run.written().includes(rel)) p.push(`${rel}: an existing record was rewritten; -demo --record refuses once the record exists`);
+  // Money: once the working-demo payment was requested on a record, that record stands (bug 6). Before that it may be redone.
+  if (run.priorExists(rel) && run.written().includes(rel) && run.exists(`${build(key)}/invoices/INV-request-working-demo.md`)) p.push(`${rel}: an existing record was rewritten after the working-demo payment was requested on it; it stands, and a correction is a note in the next update`);
   // -demo writes no ledger row and no invoice request.
   for (const f of run.written()) if (/\/ledger\.md$|\/invoices\//.test(f)) p.push(`${f}: -demo writes no ledger row and no invoice request; -invoice reads the record`);
   // The client's summary calls working only what works.
@@ -1450,8 +1442,8 @@ function checkChange(key, run) {
       if (want.units != null && n !== want.units) p.push(`${reqRel}: ${n} units, expected ${want.units}`);
       if (Number.isFinite(n) && n < lim) p.push(`${reqRel}: ${n} units is under the limit ${lim}; that is a change order, not too big`);
       if (newCos.length) p.push(`${newCos.join(", ")}: a request too big for a change order gets none`);
-      const last = (run.read(`${OW}STATUS.md`) ?? "").split("\n").filter(Boolean).at(-1) ?? "";
-      if (want.from && !last.includes(`next: ow-build-plan on ${want.from}`)) p.push(`STATUS.md: the newest line must hand ${want.from} to ow-build-plan ("next: ow-build-plan on ${want.from}")`);
+      const last = lastStatus(run);
+      if (want.from && !(/\| next: /.test(last) ? last.includes(`next: ow-build-plan on ${want.from}`) : /ow-build-plan/.test(last))) p.push(`STATUS.md: the newest line must hand ${want.from} to ow-build-plan ("next: ow-build-plan on ${want.from}")`);
       break;
     }
     case "change":
@@ -1462,7 +1454,7 @@ function checkChange(key, run) {
       const { client, internal, marked } = internalSplit(content);
       if (!marked) p.push(`${rel}: the internal part is not inside the ow:internal markers`);
       if (data.id !== rel.match(/(CO-\d+)\.md$/)[1]) p.push(`${rel}: id is ${data.id}`);
-      if (!run.exists(`${OW}${String(data.subject ?? "").replace(/^\.?\/?(?:opchain-work\/)?/, "")}`)) p.push(`${rel}: subject ${data.subject} is not a file in the run (the request it was made from, spelled as the file is)`);
+      if (data.subject && !run.exists(`${OW}${String(data.subject).replace(/^\.?\/?(?:opchain-work\/)?/, "")}`)) p.push(`${rel}: subject ${data.subject} is not a file in the run (the request it was made from, spelled as the file is)`);
       if (data.kind !== want.kind) p.push(`${rel}: kind is ${data.kind}, expected ${want.kind}`);
       if (data.status !== "draft") p.push(`${rel}: status is ${data.status}; a new change order is a draft`);
       if (data.work !== "not started") p.push(`${rel}: work is "${data.work}"; nothing starts before a signed amendment`);
@@ -1526,8 +1518,8 @@ function checkChange(key, run) {
 /** The change-order moves of phase-change.md §6: the statuses each mode moves from and to, and the one history line it adds. */
 const CO_MOVES = {
   "--sent": { from: ["draft"], to: "sent", line: (d) => new RegExp(`^sent ${d}$`) },
-  "--agreed": { from: ["draft", "sent"], to: "amendment out", line: (d, u) => new RegExp(`^agreed in principle ${d}, recorded by ${esc(u)}; not a signature$`) },
-  "--signed": { from: ["amendment out"], to: "signed", line: (d, u) => new RegExp(`^signed ${d}: signed amendment received, recorded by ${esc(u)}; signature not verified by this skill$`) },
+  "--agreed": { from: ["draft", "sent"], to: "amendment out", line: (d, u) => new RegExp(`^agreed in principle ${d}, recorded by ${esc(u)}; (?:amendment not signed yet|not a signature)$`) },
+  "--signed": { from: ["amendment out"], to: "signed", line: (d, u) => new RegExp(`^signed ${d}: signed amendment received, recorded by ${esc(u)}(?:; signature not verified by this skill)?$`) },
   "--declined": { from: ["draft", "sent", "amendment out"], to: "declined", line: (d, u) => new RegExp(`^declined ${d}, recorded by ${esc(u)}$`) },
 };
 /** The keys a move may change beyond status and history. */
@@ -1565,8 +1557,8 @@ function checkCoMove(key, run) {
   if (mode === "--declined" && data.work !== "none") p.push(`changes/${co}.md: work is "${data.work}"; a declined change order's work is none`);
   if (mode === "--sent" && data.work !== "not started") p.push(`changes/${co}.md: work is "${data.work}"; sending changes nothing but the status`);
   if (key.co_move.next) {
-    const last = (run.read(`${OW}STATUS.md`) ?? "").split("\n").filter(Boolean).at(-1) ?? "";
-    if (!last.includes(`next: ${key.co_move.next}`)) p.push(`STATUS.md: the newest line must be "next: ${key.co_move.next}"`);
+    const last = lastStatus(run);
+    if (!statusPoints(last, key.co_move.next)) p.push(`STATUS.md: the newest line must be "next: ${key.co_move.next}"`);
   }
   return p;
 }
@@ -1580,7 +1572,7 @@ function checkSignatureGate(key, run) {
   if (data.status !== "amendment out") p.push(`${rel}: status is ${data.status}; an agreement in principle (an email reply) moves it to amendment out, never to signed`);
   if (data.work !== "not started") p.push(`${rel}: work is "${data.work}"; until the amendment is signed the work is not started`);
   if (data.signature_note) p.push(`${rel}: has a signature_note with no signed amendment recorded`);
-  if (!(data.history ?? []).some((h) => new RegExp(`^agreed in principle \\d{4}-\\d{2}-\\d{2}, recorded by ${esc(key.user)}; not a signature$`).test(String(h)))) p.push(`${rel}: history has no "agreed in principle <date>, recorded by ${key.user}; not a signature"`);
+  if (!(data.history ?? []).some((h) => new RegExp(`^agreed in principle \\d{4}-\\d{2}-\\d{2}, recorded by ${esc(key.user)}; (?:amendment not signed yet|not a signature)$`).test(String(h)))) p.push(`${rel}: history has no "agreed in principle <date>, recorded by ${key.user}; amendment not signed yet"`);
   const ci = `${build(key)}/changes/change-inputs-${id}.md`;
   if (!run.exists(ci)) p.push(`${ci} was not written; the amendment is drafted from it`);
   else {
@@ -1589,7 +1581,7 @@ function checkSignatureGate(key, run) {
     const say = sayOf(run, "change_order");
     const file = `builds/${key.slug}/changes/change-inputs-${id}.md`;
     const wantNext = say ? say.replace(/\{files\}/g, file) : PUBLIC_CHANGE.replace("CO-nn", id);
-    const nextLine = ((sectionText(content, "Next") ?? "").split("\n").find((l) => /^\s*NEXT:/.test(l)) ?? "").replace(/^\s*NEXT:\s*/, "").replace(/\.$/, "");
+    const nextLine = printedNext(content);
     if (nextLine !== wantNext) p.push(`${ci}: the printed NEXT is "${nextLine}"; it must be exactly ${say ? "the change_order say: line" : "the public default"}: "${wantNext}"`);
   }
   // Nothing has started: no checks in spec/, no builder hand-off, no ledger row or invoice for it.
@@ -1613,8 +1605,9 @@ function checkSigned(key, run) {
   p.push(...coMoveProblems(key, run, id, "--signed", date));
   if (data.status !== "signed") p.push(`${rel}: status is ${data.status}, expected signed`);
   if (iso(data.signed) !== date) p.push(`${rel}: signed is ${iso(data.signed) ?? "missing"}; a signed change order records signed: ${date} (ow-uat and ow-handoff read it)`);
-  const note = `signed amendment received ${date}, recorded by ${key.user}; signature not verified by this skill`;
-  if (data.signature_note !== note) p.push(`${rel}: signature_note must read "${note}"`);
+  // Recorded as the user's statement; never "verified" (protocol §4). The older tail is tolerated for the goldens.
+  const note = `signed amendment received ${date}, recorded by ${key.user}`;
+  if (data.signature_note !== note && data.signature_note !== `${note}; signature not verified by this skill`) p.push(`${rel}: signature_note must read "${note}"`);
   if (data.work !== `handed to the builder ${date}`) p.push(`${rel}: work is "${data.work}", expected "handed to the builder ${date}"`);
   const repo = repoOf(run, key);
   // spec/06-testing.md has one writer (-start); a change order's checks go to their own file.
@@ -1641,8 +1634,8 @@ function checkSigned(key, run) {
     if (heads.at(-1) !== "Sources") p.push(`${aRel}: does not end with its "## Sources" list`);
     else if (!(sectionText(now, "Sources") ?? "").includes(`builds/${key.slug}/changes/${id}.md`)) p.push(`${aRel}: "## Sources" does not name builds/${key.slug}/changes/${id}.md`);
   }
-  const last = (run.read(`${OW}STATUS.md`) ?? "").split("\n").filter(Boolean).at(-1) ?? "";
-  if (!last.includes(`next: ow-build /ow-build-invoice builds/${key.slug}/`)) p.push("STATUS.md: a signed change order is invoiced on signature; the newest line must point at -invoice");
+  const last = lastStatus(run);
+  if (!statusPoints(last, `ow-build /ow-build-invoice builds/${key.slug}/`)) p.push("STATUS.md: a signed change order is invoiced on signature; the newest line must point at -invoice");
   return p;
 }
 
@@ -1720,7 +1713,7 @@ function checkInvoice(key, run) {
     p.push(...arithmeticProblems(f, data.arithmetic, row ? { total: q.fixed_price, schedule: q.schedule } : null));
     const say = sayOf(run, "invoice");
     const want = say ? say.replace(/\{files\}/g, f.slice(OW.length)) : PUBLIC_INVOICE;
-    const nextLine = ((sectionText(content, "Next") ?? "").split("\n").find((l) => /^\s*NEXT:/.test(l)) ?? "").replace(/^\s*NEXT:\s*/, "").replace(/\.$/, "");
+    const nextLine = printedNext(content);
     if (nextLine !== want) p.push(`${f}: the printed NEXT is "${nextLine}"; it must be exactly ${say ? "the invoice say: line" : "the public default"}: "${want}"`);
     if (row && row.state !== "requested") p.push(`ledger.md: ${trig} is ${row.state} after its request; expected requested`);
     if (!row && trig === "documentation") {
@@ -1800,23 +1793,23 @@ function checkReady(key, run) {
   for (const k of ["build_label", "environment"]) if (!/\(user-stated\)$/.test(String(data[k] ?? ""))) p.push(`${rel}: ${k} is not recorded user-stated`);
   for (const s of ["Test environment", "Known issues", "Test data", "Build label", "Next"]) if (sectionText(content, s) == null) p.push(`${rel}: no "## ${s}" section`);
   const next = sectionText(content, "Next") ?? "";
-  // Owner decision 2026-10-16: the ready NEXT names ow-uat's verb, with its slash hint.
-  const toUat = `say "use ow-uat-plan on builds/${key.slug}/ready-for-uat.md"   (where slash commands exist: /ow-uat-plan)`;
-  if (ready && !next.includes(toUat)) p.push(`${rel}: every check passes, so NEXT is ${toUat}`);
+  // Owner decision 2026-10-16: the ready step names ow-uat's verb.
+  const toUat = `use ow-uat-plan on builds/${key.slug}/ready-for-uat.md`;
+  if (ready && !next.includes(toUat) && !/\/ow-uat-plan\b/.test(next)) p.push(`${rel}: every check passes, so NEXT is ${toUat}`);
   if (!ready && /use ow-uat/.test(next)) p.push(`${rel}: a failing check goes back to the builder; NEXT never hands a failing build to acceptance testing`);
   // No payment trigger and no acceptance record.
   for (const f of run.written()) if (/\/ledger\.md$|\/invoices\/|acceptance-record|signoff/.test(f)) p.push(`${f}: -ready marks no payment trigger and writes no acceptance record`);
-  const last = (run.read(`${OW}STATUS.md`) ?? "").split("\n").filter(Boolean).at(-1) ?? "";
-  if (ready && !last.includes(`next: ow-uat /ow-uat-plan builds/${key.slug}/ready-for-uat.md`)) p.push("STATUS.md: ready, so the newest line hands ready-for-uat.md to ow-uat's /ow-uat-plan");
+  const last = lastStatus(run);
+  if (ready && !statusPoints(last, `ow-uat /ow-uat-plan builds/${key.slug}/ready-for-uat.md`)) p.push("STATUS.md: ready, so the newest line hands ready-for-uat.md to ow-uat's /ow-uat-plan");
   // A re-run never rewrites the file acceptance testing already froze (bug 6).
   if (run.written().includes(rel) && (run.priorExists(`${OW}uat/${key.slug}/uat.yaml`) || run.priorExists(`${OW}uat/${key.slug}/signoff.md`))) p.push(`${rel}: rewritten after acceptance testing started (uat.yaml or signoff.md exists); -ready refuses then`);
-  if (!ready && !last.includes(`next: ow-build /ow-build-ready builds/${key.slug}/`)) p.push("STATUS.md: not ready, so the newest line points back at -ready");
+  if (!ready && !statusPoints(last, `ow-build /ow-build-ready builds/${key.slug}/`)) p.push("STATUS.md: not ready, so the newest line points back at -ready");
   return p;
 }
 
 /** Client outputs: emails, and the client parts of change orders, demo summaries and readiness. */
 function clientFiles(run) {
-  return run.written().filter((f) => /\.(html|txt)$/.test(f) || /\/ready-for-uat\.md$/.test(f) || /\/changes\/CO-\d+\.md$/.test(f) || /\/invoices\//.test(f) || /\/change-inputs-CO-\d+\.md$/.test(f));
+  return run.written().filter((f) => /\.(html|txt)$/.test(f) || /\/ready-for-uat\.md$/.test(f) || /\/changes\/CO-\d+\.md$/.test(f) || /\/invoices\//.test(f) || /\/change-inputs-CO-\d+\.md$/.test(f) || /\/demos\/M\d+-script\.md$/.test(f));
 }
 function clientText(run, f) {
   const t = run.read(f) ?? "";
@@ -1949,13 +1942,17 @@ function checkStatus(key, run) {
     const f = line.split(" | ");
     const n = before.length + i + 1;
     const w = want[i];
-    if (f.length !== 5) { p.push(`STATUS line ${n} has ${f.length} fields, expected 5`); return; }
-    if (!/^\d{4}-\d{2}-\d{2} \(clock: (tool|host-supplied|user-stated|assumed)\)$/.test(f[0])) p.push(`STATUS line ${n}: date field "${f[0]}" lacks a clock source`);
-    if (!/^ow-build \d+\.\d+\.\d+$/.test(f[1])) p.push(`STATUS line ${n}: skill field is "${f[1]}"`);
+    const older = f.length === 5 && /^next: /.test(f[3]);
+    if (f.length < 3) { p.push(`STATUS line ${n} has ${f.length} fields; a line says the date, the skill, the file and what is awaited`); return; }
+    // The older form's "(clock: …)" beside the date is tolerated, never required.
+    if (!/^\d{4}-\d{2}-\d{2}(?: \(clock: [a-z-]+\))?$/.test(f[0])) p.push(`STATUS line ${n}: date field "${f[0]}" is not a date`);
+    if (!/^ow-build(?: \d+\.\d+\.\d+)?$/.test(f[1])) p.push(`STATUS line ${n}: skill field is "${f[1]}"`);
     if (!w) return;
     if (f[2] !== w.path) p.push(`STATUS line ${n}: path ${f[2]}, expected ${w.path}`);
-    if (f[3] !== `next: ${w.next}`) p.push(`STATUS line ${n}: "${f[3]}", expected "next: ${w.next}"`);
-    if (f[4] !== `awaiting: ${w.awaiting}`) p.push(`STATUS line ${n}: "${f[4]}", expected "awaiting: ${w.awaiting}"`);
+    if (older) {
+      if (f[3] !== `next: ${w.next}`) p.push(`STATUS line ${n}: "${f[3]}", expected "next: ${w.next}"`);
+      if (f[4] !== `awaiting: ${w.awaiting}`) p.push(`STATUS line ${n}: "${f[4]}", expected "awaiting: ${w.awaiting}"`);
+    } else if (w.awaiting && w.awaiting !== "none" && !line.includes(w.awaiting)) p.push(`STATUS line ${n}: does not say what is awaited ("${w.awaiting}")`);
   });
   return p;
 }

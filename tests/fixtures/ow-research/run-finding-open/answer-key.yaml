@@ -18,16 +18,15 @@ screen:
   says:
     - refused
     - Query privacy can never be waived
-    - A self-check found a problem (Query privacy), so there is no NEXT yet. Fix it and run again.
   never:
     - 'DONE:'
     - waived by the user
   only:
     - 'Approved: Q-\d+(?:(?:,| and) Q-\d+)*\. Sent \d+ searche?s? and \d+ page requests?, each logged in queries\.md before it was sent\.'
     - 'Skipped: \S+ needs a login or payment; logins and paywalls are never bypassed\.'
-    - 'You asked to add Q-\d+ "[^"]+"\. Query privacy \(same-session self-check\): FINDING\. It names a keep-out term; it is sent only if you approve this exact query by name\.'
+    - 'You asked to add Q-\d+ "[^"]+"\. Query privacy(?: \(same-session self-check\): FINDING\. It|: it) names a keep-out term; it is sent only if you approve this exact query by name\.'
     - 'Your waiver is refused: [A-Za-z ]+ can never be waived\. Nothing was sent\.'
-    - A self-check found a problem \([A-Za-z ,]+\), so there is no NEXT yet\. Fix it and run again\.
+    - 'A (?:self-)?check found a problem \([A-Za-z ,]+\), so (?:there is no NEXT yet|the run stopped)\. Fix it and run again\.'
 status:
   lines:
     - path: research/larkspur-ceramics/RS-01-pos-sales-api/queries.md
@@ -45,7 +44,6 @@ checks:
   - url_rule
   - provenance
   - privacy
-  - handling
   - credentials
   - private_names
   - people

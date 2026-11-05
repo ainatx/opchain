@@ -19,7 +19,6 @@ screen:
   slash: /ow-research-run
   reads: question.md, inbox/
   says:
-    - 'Handling level recorded: no request will be sent for this topic; the run will use the files you supply.'
 status:
   lines:
     - path: research/fernhill-florists/RS-01-route-export/question.md

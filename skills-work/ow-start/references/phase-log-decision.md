@@ -1,6 +1,8 @@
 # Phase: log a decision (`/ow-start-log-decision <workstream>`)
 
-Run step 0 of `references/ow-protocol.md` first. Format: `references/logs-schema.md` §5. Self-checks: `references/self-checks-logs.md`. Handling and the repository check as in `references/phase-prep-meeting.md` §1, recorded in the decision's header.
+Keep to `references/ow-protocol.md`. Format: `references/logs-schema.md` §5. Checklist: `references/self-checks-logs.md`. The `.gitignore` lines as in `references/phase-prep-meeting.md` §1, recorded in the decision's header.
+
+**Read first.** The workstream's latest `meeting_notes` and `decision` documents from the CRM; where it cannot be read, the cache, and say so.
 
 ## 1. One decision per file
 
@@ -12,22 +14,22 @@ Run step 0 of `references/ow-protocol.md` first. Format: `references/logs-schema
 
 ## 2. Every field
 
-Ask for what is missing: **Context** (why, with sources) · **Options** (each with its main trade-off) · **Decision** · **Decided by** (a role) and the date · **Confirmed** (`confirmed by <client role> by email on <date>, as reported`, then protocol §8's working-note sentence, or `internal`) · **Review on** (a date, or `no review`) · **Supersedes** (an earlier `DEC-nn`, or `none`). If it follows another skill's record, link that file by path (`references/logs-status-and-index.md` §4); never copy from it.
+Ask in one `AskUserQuestion` call for what is missing: **Context** (why, with sources) · **Options** (each with its main trade-off) · **Decision** · **Decided by** and the date · **Confirmed** (`confirmed by <who> by email on <date>, as reported`: the user's statement, or `internal`) · **Review on** (a date, or `no review`) · **Supersedes** (an earlier `DEC-nn`, or `none`). If it follows another skill's record, link that file by path (`references/logs-status-and-index.md` §4); never copy from it.
 
 ## 3. Changing a decision
 
-A decision is **never edited**. To change one, write a new `DEC-nn` whose `supersedes:` names the old one; the old file stays byte for byte. If the old decision has an open review line, close it (below).
+To change a decision, write a new `DEC-nn` whose `supersedes:` names the old one, so the history stays readable. If the old decision has an open review line, close it (below). A human-edited version in the CRM is never overwritten: write yours beside it and say so.
 
-## 4. Checks, then write once
+## 4. Write
 
-Run the self-checks for this verb (Trace, People by role, No client text in STATUS, Never edited, No private names). Fix while any is FINDING. Then write `DEC-nn.md` with the results in its Self-checks section: the file is never edited afterwards, so they go in now.
+Run the checklist, then write `DEC-nn.md`, and publish it as an internal `decision` document where the route exists.
 
-## 5. STATUS (last)
+## 5. STATUS (in the cache)
 
-- A review date: path `logs/<workstream>/decisions/DEC-nn.md`, `next: ow-start /ow-start-action logs/<workstream>/ | awaiting: DEC-nn review by <YYYY-MM-DD>`.
-- Superseding a decision whose newest line is an open review: one more line for the old decision, `next: none (closed: superseded by DEC-nn) | awaiting: none (superseded <YYYY-MM-DD>)`.
+- A review date: path `logs/<workstream>/decisions/DEC-nn.md`, `awaiting: DEC-nn review by <YYYY-MM-DD>`.
+- Superseding a decision whose newest line is an open review: one more line for the old decision, `closed: superseded by DEC-nn <YYYY-MM-DD>`.
 - No review and nothing superseded: no line.
 
 ## 6. Finish
 
-Print the after-log-decision NEXT block from SKILL.md.
+Say what was written. Nothing follows; a review date shows on `/ow-start` and `/ow-status`, and nothing reminds anyone of it.

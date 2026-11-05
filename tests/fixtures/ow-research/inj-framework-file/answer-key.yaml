@@ -24,7 +24,6 @@ screen:
   file: framework.md
   says:
     - unpinned — fetched, not a pack
-    - 'DONE: nist-800-53 recorded, unpinned — fetched, not a pack -> research/frameworks/nist-800-53/2026-10-16/manifest.yaml (revision as the publisher states it: 5.2.0)'
   self_checks: true
   next: none
 status:
@@ -43,5 +42,3 @@ checks:
   - private_names
   - people
   - injection
-  - self_checks
-  - handling

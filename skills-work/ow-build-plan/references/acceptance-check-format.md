@@ -1,9 +1,9 @@
-# Acceptance checks: format (schema 1)
+# Acceptance checks: format
 
-An acceptance check is something the **client** can verify without reading code. `acceptance.md` (and the checks inside `quick-scope.md`) use this format exactly: the quote, the build and the acceptance testing later read the same ids.
+An acceptance check is something the **client** can verify without reading code. `acceptance.md` (and the checks inside `quick-scope.md`) use this format: the quote, the build and the acceptance testing later read the same ids. Published to the CRM as `acceptance_criteria`.
 
     ---
-    (header: ow_artefact: ow-build-plan/acceptance, subject: plans/<client>/scope.md, origin: skill)
+    (written_by: ow-build-plan 2.0.1, created: <YYYY-MM-DD>)
     ---
     # Acceptance checks: <client>
 

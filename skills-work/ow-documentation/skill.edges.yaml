@@ -1,8 +1,7 @@
 # ow-documentation edges (ow- cross-talk contract R15), schema 1.
-# What this skill writes, reads and hands off, as data. The body's "Reads from"
+# What this skill writes, reads and hands off in the scratch cache, as data (the CRM is the record: SKILL.md). The body's "Reads from"
 # and "Hands off to" tables say the same in words; the family's contract check reads
-# this file to hold the family to one writer per file and to edges that match
-# on both ends. Paths are relative to opchain-work/, except <repo>/…, the
+# this file to hold the family to edges that match on both ends. Paths are relative to opchain-work/, except <repo>/…, the
 # client's project folder that build.yaml names. Format: skills-work/README.md.
 schema: 1
 skill: ow-documentation
@@ -19,7 +18,7 @@ routes:
 append_logs: [docs/<client>/secrets-seen.log]
 
 writes:
-  # -start: the frozen scope and the confirmed plan (plan.md last).
+  # -start: the scope from the quote and the plan.
   - { path: docs/<client>/docs.yaml, verb: /ow-documentation-start }
   - { path: docs/<client>/plan.md, verb: /ow-documentation-start }
   # -capture: the ow-tools plan, the images the tool writes at its call, and the index (git-ignored images, tracked index).
@@ -48,7 +47,7 @@ writes:
   - { path: <repo>/docs/client-handbook/<file>.md, verb: /ow-documentation-export }
   - { path: <repo>/docs/handover/<file>.md, verb: /ow-documentation-export }
   - { path: docs/<client>/deliveries.yaml, verb: /ow-documentation-export }
-  # -delivered: written once; a later delivery of updated documents is its own file (owner decision O7).
+  # -delivered: a later delivery of updated documents is its own file.
   - { path: docs/<client>/delivered.md, verb: /ow-documentation-delivered }
   - { path: docs/<client>/delivered-update-nn.md, verb: /ow-documentation-delivered --update }
   # -rollout, exact per mode.
@@ -74,20 +73,20 @@ writes:
 reads:
   - from: any
     path: STATUS.md
-    fields: [the protocol's STATUS form]
+    fields: [the plain status lines]
     if_absent: "First run: the welcome"
     if_mismatch: Quote the lines as found; use only the dates and paths you can read
   - from: ow-start
     path: profile.md
     shared: true
-    fields: [name, time_zone, holidays, handling]
+    fields: [name, time_zone, holidays]
     if_absent: Count dates with weekends only, and say so
     if_mismatch: Report the fields found; ask only for the missing ones
   # Handed over directly by ow-uat's sign-off NEXT (its fields are a subset of what ow-uat offers).
   - from: ow-uat
     path: uat/<client>/signoff.md
     fields: [signed or deemed date]
-    if_absent: "-start refuses: NEXT use ow-uat-signoff"
+    if_absent: "-start says so and stops unless the user says go ahead"
     if_mismatch: Report what was found; write nothing until the user confirms the sign-off date
   - from: ow-uat
     path: uat/<client>/uat.yaml
@@ -116,7 +115,7 @@ reads:
     in_place: true
     fields: [documentation_sku, documentation_people, uat.size]
     if_absent: Ask whether the line was bought and how many people; record the answers user-stated
-    if_mismatch: "declined: -start stops; a key absent: ask once and record it user-stated"
+    if_mismatch: "declined: -start stops; a key absent: ask and record it user-stated"
   - from: ow-build-plan
     path: plans/<client>/scope.md
     in_place: true
@@ -152,7 +151,7 @@ reads:
     path: builds/<client>/ledger.md
     in_place: true
     fields: [the documentation line's state]
-    if_absent: "Not requested: -delivered prints the invoice NEXT"
+    if_absent: "Not requested: -delivered names the invoice verb"
     if_mismatch: Ask the user whether the documentation line was invoiced
   - from: ow-build
     path: builds/<client>/changes/CO-nn.md
@@ -214,11 +213,11 @@ reads:
     if_mismatch: Import the rows that parse; drop name, email and phone columns and say so; never guess
 
   # Its own earlier files (detail in each phase file).
-  - { from: ow-documentation, path: docs/<client>/docs.yaml, if_absent: "Every verb except -start refuses: NEXT use ow-documentation-start on uat/<client>/", if_mismatch: "Report the keys found; resume at the first start step not recorded" }
+  - { from: ow-documentation, path: docs/<client>/docs.yaml, if_absent: "Every verb except -start runs -start first", if_mismatch: "Report the keys found; resume at the first start step not recorded" }
   - { from: ow-documentation, path: docs/<client>/plan.md, if_absent: "-start resumes at its plan step", if_mismatch: "Report the sections found; write nothing until -start's plan step is done" }
   - { from: ow-documentation, path: docs/<client>/shots/index.md, if_absent: "No capture yet: placeholders", if_mismatch: "Use only rows that parse and are cleared" }
   - { from: ow-documentation, path: docs/<client>/guides/<role>.md, if_absent: "-write guides has not run: -train waits for it", if_mismatch: "Use the task sections that parse" }
-  - { from: ow-documentation, path: docs/<client>/deliveries.yaml, if_absent: "Nothing exported: -delivered refuses", if_mismatch: "Report the rows found; resume at the first export step not recorded" }
+  - { from: ow-documentation, path: docs/<client>/deliveries.yaml, if_absent: "Nothing exported: -delivered stops", if_mismatch: "Report the rows found; resume at the first export step not recorded" }
   - { from: ow-documentation, path: docs/<client>/delivered.md, if_absent: "Not delivered yet", if_mismatch: "Report what was found; write nothing" }
   - { from: ow-documentation, path: docs/<client>/rollout.yaml, if_absent: "No rollout planned yet", if_mismatch: "Report the rows found; ask before recording anything" }
   - { from: ow-documentation, path: docs/<client>/adoption.md, if_absent: "No check-in yet", if_mismatch: "Report the sections found" }

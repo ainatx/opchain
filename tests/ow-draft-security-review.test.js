@@ -133,32 +133,6 @@ describe("SD10-04: planted instructions in findings, inbox email and the README"
   });
 });
 
-// ── SD10-05 (MEDIUM): the handling union misses the brief and every inbox file ──
-describe("SD10-05: a handling level in the brief or a bannered inbox file does not stop the push", () => {
-  poc({
-    id: "SD10-05a", desc: "a push under a level the brief records", caseName: "m-deliver-connector",
-    make: () => laid("m-deliver-connector", { [`${MD}/brief.md`]: (t) => t.replace('handling: "no"', 'handling: "restricted"').replace('banner_text: ""', 'banner_text: "RESTRICTED: client material"') }),
-    slip: passesBut("deliver"), check: "deliver", re: /handling level/,
-  });
-  poc({
-    id: "SD10-05b", desc: "a push of a draft citing a bannered inbox file (the checker looks in opchain-work/inbox/)", caseName: "m-deliver-connector",
-    make: () => laid("m-deliver-connector", {
-      [`${MD}/inbox/owner-note.md`]: () => "---\nbanner_text: \"CONFIDENTIAL: Mossgate Books internal\"\n---\nCONFIDENTIAL: Mossgate Books internal\n\nOrders over 4,000 need the owner's approval.\n",
-      [`${MD}/evidence.md`]: (t) => t.replace("- source: user-stated 2026-10-23", "- source: inbox/owner-note.md"),
-    }),
-    slip: (out) => {
-      passesBut("deliver")(out);
-      // Control: the same bannered file where the checker looks (opchain-work/inbox/) is caught, so the miss is the path.
-      const ctl = failures("m-deliver-connector", laid("m-deliver-connector", {
-        [`${OW}/inbox/owner-note.md`]: () => "---\nbanner_text: \"CONFIDENTIAL: Mossgate Books internal\"\n---\nCONFIDENTIAL\n",
-        [`${MD}/evidence.md`]: (t) => t.replace("- source: user-stated 2026-10-23", "- source: inbox/owner-note.md"),
-      }), { only: ["deliver"] });
-      expect(ctl.deliver).toMatch(/handling level/);
-    },
-    check: "deliver", re: /handling level/,
-  });
-});
-
 // ── SD10-06 (LOW): a user-stated push location overrides handoffs.yaml's ──
 describe("SD10-06: the README's folder recorded as user-stated replaces handoffs.yaml's location", () => {
   const LOC = "Shared with vendors";

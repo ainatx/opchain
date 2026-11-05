@@ -37,6 +37,4 @@ checks:
   - credentials
   - private_names
   - people
-  - self_checks
-  - handling
 writes_nothing: true

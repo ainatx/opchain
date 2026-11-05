@@ -13,7 +13,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { loadCatalogs } from "../scripts/lib/catalogs.mjs";
 import { validateCatalog } from "../scripts/gen-skills-catalog.mjs";
-import { checkFamily, checkProtocolCopies, checkVerbs } from "../scripts/check-skill-contracts.mjs";
+import { checkAskTool, checkFamily, checkProtocolCopies, checkVerbs } from "../scripts/check-skill-contracts.mjs";
 
 const ROOT = join(import.meta.dirname, "..");
 const scratch = [];
@@ -81,11 +81,11 @@ describe("catalogs.json", () => {
 
 // ── a scratch ow- catalog ────────────────────────────────────────────────────
 
-const PROTOCOL = "# ow- protocol (version 1)\n\nShared rules for the scratch family.\n";
+const PROTOCOL = "# ow- protocol (version 2)\n\nShared rules for the scratch family.\n";
 const BODY = [
   "# ow-demo",
   "",
-  "Open `references/ow-protocol.md` and run its step 0. If you cannot open it, say so and stop.",
+  "Open `references/ow-protocol.md` first and keep to it. If you cannot open it, say so and stop.",
   "",
   "## Reads from",
   "",
@@ -113,7 +113,7 @@ const FRONTMATTER = [
   "license: Apache-2.0",
   "metadata:",
   "  version: \"1.0.0\"",
-  "  protocol: \"1\"",
+  "  protocol: \"2\"",
   "  bundle: core",
   "  network: none",
   "  commands: /ow-demo",
@@ -132,7 +132,7 @@ function owTree({ frontmatter = FRONTMATTER, body = BODY, files = {} } = {}) {
   const ocDir = temp("oc-catalog-");
   const ow = {
     id: "ow", dir, relDir: "skills-work", prefix: "ow-", verbPrefix: "/ow-", frontmatter: "agent-skills",
-    protocol: { kind: "file", source: "ow-protocol.md", copy: "references/ow-protocol.md", version: 1 },
+    protocol: { kind: "file", source: "ow-protocol.md", copy: "references/ow-protocol.md", version: 2 },
     bodyTokenBudget: 5000, planned: ["ow-later"], plannedVerbs: { "ow-later": ["/ow-later-start"] }, addons: { "ow-tools": ["/ow-demo-transcribe"] },
     privateNames: ["llc-ops"], brandNames: ["Privateco"], requiredSkills: [], notInvocable: [],
   };
@@ -152,8 +152,8 @@ describe("ow- frontmatter and packaging (gen-skills-catalog)", () => {
   rejects("a top-level key the Agent Skills format does not allow", { frontmatter: `${FRONTMATTER}\nversion: 1.0.0` }, /`version` is not an Agent Skills key/);
   rejects("a description whose first 200 characters do not name the id", { frontmatter: FRONTMATTER.replace("ow-demo writes", "This writes").replace("Use for /ow-demo.", `${"x ".repeat(110)}Use ow-demo.`) }, /must name the typeable id/);
   rejects("angle brackets in the description", { frontmatter: FRONTMATTER.replace("from your notes", "from <notes>") }, /angle brackets/);
-  rejects("a non-string metadata value", { frontmatter: FRONTMATTER.replace('protocol: "1"', "protocol: 1") }, /metadata\.protocol must be a string/);
-  rejects("a protocol version that does not match the catalog", { frontmatter: FRONTMATTER.replace('protocol: "1"', 'protocol: "2"') }, /catalog protocol is version 1/);
+  rejects("a non-string metadata value", { frontmatter: FRONTMATTER.replace('protocol: "2"', "protocol: 2") }, /metadata\.protocol must be a string/);
+  rejects("a protocol version that does not match the catalog", { frontmatter: FRONTMATTER.replace('protocol: "2"', 'protocol: "1"') }, /catalog protocol is version 2/);
   rejects("no protocol pointer in the body", { body: BODY.replace(" If you cannot open it, say so and stop.", "") }, /missing the protocol pointer/);
   rejects("a body over the token budget", { body: BODY + "word ".repeat(5000) }, /over the 5000-token budget/);
   rejects("a script file", { files: { "references/run.sh": "echo hi\n" } }, /only \.md \.txt \.json \.yaml \.yml \.csv/);
@@ -175,7 +175,7 @@ describe("ow- frontmatter and packaging (gen-skills-catalog)", () => {
   });
 });
 
-describe("ow- family, NEXT and edge rules (check-skill-contracts)", () => {
+describe("ow- family rules (check-skill-contracts)", () => {
   it("passes the scratch skill as built", () => {
     const t = owTree();
     expect(checkFamily(t.catalogs)).toEqual([]);
@@ -194,12 +194,6 @@ describe("ow- family, NEXT and edge rules (check-skill-contracts)", () => {
     const out = family({ files: { "references/next.md": "Then use oc-app-architect, or run `/oc-discover`.\n" } });
     expect(out).toMatch(/names `oc-app-architect`, a skill outside the ow- family/);
     expect(out).toMatch(/names `oc-discover`, a skill outside the ow- family/);
-  });
-
-  it("flags wording that says one skill drives another (contract R1)", () => {
-    const out = family({ files: { "references/next.md": "This step invokes the next skill, which chains to the last.\n" } });
-    expect(out).toMatch(/names `invokes`, wording the cross-talk contract \(R1\) keeps out/);
-    expect(family({ files: { "references/next.md": "The recap is never sent automatically.\n" } })).toBe("");
   });
 
   it("flags a private skill name planted in a real ow-build-plan reference (contract C3)", () => {
@@ -222,17 +216,10 @@ describe("ow- family, NEXT and edge rules (check-skill-contracts)", () => {
     expect(out).not.toMatch(/ow-tools|ow-later|ow-protocol/);
   });
 
-  it("flags a NEXT block with no missing-skill branch, or one that does not lead with the skill id", () => {
-    expect(family({ body: BODY.replace("    IF IT IS NOT AVAILABLE: out.md stands alone.\n", "") })).toMatch(/NEXT block has no "IF IT IS NOT AVAILABLE:" line/);
-    expect(family({ body: BODY.replace('NEXT: say "use ow-later on out.md"', "NEXT: run /ow-demo again") })).toMatch(/NEXT must lead with the skill id/);
-    expect(family({ body: BODY.replace('"use ow-later on out.md"   (', '"use ow-nothing on out.md"   (') })).toMatch(/NEXT names `ow-nothing`/);
-  });
-
-  it("flags an empty absent-case, a pass-through absent-case, and missing edge sections", () => {
-    expect(family({ body: BODY.replace("| Ask for notes |", "| — |") })).toMatch(/"If absent" is empty/);
-    expect(family({ body: BODY.replace("| Ask for notes |", "| Proceed as if it passed |") })).toMatch(/may never proceed as if the input passed/);
-    expect(family({ body: BODY.replace("| out.md stands alone |", "|  |") })).toMatch(/"If not available" is empty/);
-    expect(family({ body: BODY.replace("## Hands off to", "## Afterwards") })).toMatch(/no "## Hands off to" section/);
+  it("does not read NEXT-block or edge-table wording as a contract any more (audience reversal, 2026-11-03)", () => {
+    expect(family({ body: BODY.replace("    IF IT IS NOT AVAILABLE: out.md stands alone.\n", "") })).toBe("");
+    expect(family({ body: BODY.replace("## Hands off to", "## Afterwards") })).toBe("");
+    expect(family({ files: { "references/next.md": "This step invokes the next skill, which chains to the last.\n" } })).toBe("");
   });
 
   it("checks ow- verbs in the merged index: undeclared fails, an add-on's verb resolves, and so does a cross-catalog citation", () => {
@@ -255,6 +242,44 @@ describe("ow- family, NEXT and edge rules (check-skill-contracts)", () => {
     ]);
     expect(checkProtocolCopies(t.catalogs, { write: true })).toEqual([]);
     expect(readFileSync(join(t.dir, "ow-demo", "references", "ow-protocol.md"), "utf8")).toBe(PROTOCOL);
+  });
+});
+
+describe("ow- asking the user (checkAskTool, owner requirement 2026-11-04)", () => {
+  const NAMED = `${BODY}\nEvery question goes through \`AskUserQuestion\`.\n`;
+  const asks = (opts, tool = "AskUserQuestion") => {
+    const t = owTree(opts);
+    t.ow.askTool = tool;
+    writeFileSync(join(t.dir, "ow-protocol.md"), `${PROTOCOL}Ask through \`AskUserQuestion\`.\n`);
+    return checkAskTool(t.catalogs).join("\n");
+  };
+
+  it("the real tree passes", () => expect(checkAskTool(loadCatalogs({ env: {} }))).toEqual([]));
+
+  it("a skill that asks without naming the tool fails; naming it, or never asking, passes", () => {
+    const asking = "Ask the client's name.\n";
+    expect(asks({ body: `${BODY}\n${asking}` })).toMatch(/ow-demo\/SKILL\.md: asks the user for input but its body does not name `AskUserQuestion`/);
+    expect(asks({ files: { "references/more.md": asking } })).toMatch(/does not name `AskUserQuestion`/);
+    expect(asks({ body: `${NAMED}\n${asking}` })).toBe("");
+    expect(asks({ body: "# ow-demo\n\nOpen `references/ow-protocol.md`.\n" })).toBe("");
+  });
+
+  it("a question printed in chat, a batch in one message and a numbered menu fail, in the body or a reference", () => {
+    expect(asks({ body: `${NAMED}\nAsk, "Did the client buy it?", and record it.\n` })).toMatch(/SKILL\.md:\d+: a question written out to print in chat/);
+    expect(asks({ body: NAMED, files: { "references/more.md": "Ask for the date in one message.\n" } })).toMatch(/references\/more\.md:1: a question batch/);
+    expect(asks({ body: NAMED, files: { "references/more.md": "Print a numbered menu of the paths.\n" } })).toMatch(/a numbered menu/);
+    expect(asks({ body: NAMED, files: { "references/more.md": "Reply with the number of the path.\n" } })).toMatch(/a menu answered by typing/);
+  });
+
+  it("the tool's own line, a rule forbidding it, and a sample question for a client call pass", () => {
+    expect(asks({ body: NAMED, files: { "references/more.md": 'Ask through `AskUserQuestion` whether it was bought, in one message of options.\nNever a numbered menu.\nFind the no ("who else has to say yes?").\n' } })).toBe("");
+  });
+
+  it("a protocol that does not name the tool fails; a catalog with no askTool is not read", () => {
+    const t = owTree({ body: `${BODY}\nAsk the name.\n` });
+    expect(checkAskTool(t.catalogs)).toEqual([]);
+    t.ow.askTool = "AskUserQuestion";
+    expect(checkAskTool(t.catalogs).join("\n")).toMatch(/ow-protocol\.md: does not name `AskUserQuestion`/);
   });
 });
 

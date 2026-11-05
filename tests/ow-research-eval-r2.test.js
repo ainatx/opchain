@@ -159,21 +159,6 @@ describe("evaluation round 2: resume scenarios (untuned-set-r2 RESUME), each a g
   });
 });
 
-describe("evaluation round 2: handling levels recorded elsewhere (fixture-probes-r2 H1-H4, m6)", () => {
-  for (const [id, c, from] of [
-    ["H1", "plants/r2-h1-plan-only", "plans/larkspur-ceramics/plan.yaml"],
-    ["H2", "plants/r2-h2-follow-on-plan", "plans/larkspur-ceramics-2/plan.yaml"],
-    ["H3", "plants/r2-h3-intake-unparseable", "intake/larkspur-ceramics/intake.yaml"],
-    ["H4", "plants/r2-h4-handling-key-case", "intake/larkspur-ceramics/intake.yaml"],
-  ]) it(`${id}: a run that sends under a level recorded only in ${from} fails handling (${c})`, () => {
-    const h = R.runCase(c).find((r) => r.check === "handling");
-    expect(h.problems.join("\n")).toMatch(new RegExp(`7 request\\(s\\) under the handling level "[^"]+" \\(${from.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")}\\)`));
-  });
-  it("H3: a file that does not parse is read as a level set, named as such", () => {
-    expect(R.runCase("plants/r2-h3-intake-unparseable").find((r) => r.check === "handling").problems[0]).toMatch(/"unreadable \(treated as a level set\)"/);
-  });
-});
-
 // ── untuned-set-r2: written before the round-2 rules; outcomes as measured ──
 const U2 = {
   LEAKS: [
