@@ -1,16 +1,16 @@
 {
-  "id": "oc-repo-ops-pr-readiness-v1-75704351fd85",
+  "id": "oc-repo-ops-pr-readiness-v1-b5500fc3e8e5",
   "contract_version": "1.0",
   "type": "verification.verdict",
-  "created_at": "2026-11-05T04:54:22.450Z",
-  "verified_at": "2026-11-05T04:54:22.450Z",
+  "created_at": "2026-11-05T18:13:00.407Z",
+  "verified_at": "2026-11-05T18:13:00.407Z",
   "producer": {
     "skill": "oc-repo-ops",
-    "run_id": "pr-readiness-v1-2026-11-05T04:54:22.450Z"
+    "run_id": "pr-readiness-v1-2026-11-05T18:13:00.407Z"
   },
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:75704351fd8599ecc90dc3565eb8302b438333fcccb6b57f64a2ea26654f2357"
+    "id": "sha256:b5500fc3e8e52c67c4c052384c28bbcb98fdb0da81e9d77fef0f3da4c225bb64"
   },
   "payload": {
     "verdict": "PASS",
