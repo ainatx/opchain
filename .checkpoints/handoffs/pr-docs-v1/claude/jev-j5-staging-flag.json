@@ -1,24 +1,24 @@
 {
-  "id": "oc-docs-forge-pr-docs-v1-526ac87b9c00",
+  "id": "oc-docs-forge-pr-docs-v1-c4e86927f29e",
   "contract_version": "1.0",
   "type": "verification.verdict",
-  "created_at": "2026-11-05T21:42:30.590Z",
-  "verified_at": "2026-11-05T21:42:30.590Z",
+  "created_at": "2026-11-05T22:16:08.068Z",
+  "verified_at": "2026-11-05T22:16:08.068Z",
   "producer": {
     "skill": "oc-docs-forge",
-    "run_id": "pr-docs-v1-2026-11-05T21:42:30.590Z"
+    "run_id": "pr-docs-v1-2026-11-05T22:16:08.068Z"
   },
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:526ac87b9c00fb73aec8d42cdc3d85d50b4c6bcf7d643dcf4e629fe2f101efbc"
+    "id": "sha256:c4e86927f29e06184d699dad7dfe8a125da103347c330caf414b917fd18ded82"
   },
   "payload": {
     "verdict": "PASS",
     "policy": "pr-docs-v1",
-    "scope": "J5 flag on for staging (wrangler env.staging var) + runbook §7 line",
+    "scope": "J5 flag on for staging + dry-run roadmap rate limit before J5 (Codex #676)",
     "evidence": [
       "verify-candidate PASS on this tree",
-      "runbook §7 and the wrangler.jsonc comment describe the staging-only flag"
+      "runbook §7 notes the staging flag and the dry-run rate limit"
     ]
   }
 }
