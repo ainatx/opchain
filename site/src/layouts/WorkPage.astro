@@ -26,8 +26,8 @@ const isActive = (href: string) =>
   href === "/work" ? route === "/work" || /^\/work\/ow-(?!tools$)/.test(route) : route === href;
 ---
 
-<Base title={title} description={description} active="/work" jsonLd={jsonLd}>
-  <main class="work page">
+<Base title={title} description={description} active="/work" jsonLd={jsonLd} skipTo="work-main">
+  <main class="work page" id="work-main" tabindex="-1">
     <nav class="work-nav" aria-label="opchain.work section">
       <a class="work-nav-brand" href="/work">opchain<span class="work-nav-dot">.</span>work <ReleaseTag theme="ow" /></a>
       <div class="work-nav-links">

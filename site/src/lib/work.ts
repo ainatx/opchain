@@ -255,6 +255,22 @@ export function addonEdges(ids: string[]): Array<{ from: string; to: string; ver
 
 export interface VerbRow { verb: string; does: string }
 
+/** The first Markdown table under a `## <heading>`, as its raw lines; [] when the section has none. */
+function sectionTable(body: string, heading: string): string[] {
+  const lines = body.split("\n");
+  const start = lines.findIndex((l) => l.startsWith(`## ${heading}`));
+  if (start === -1) return [];
+  const table: string[] = [];
+  for (const line of lines.slice(start + 1)) {
+    if (line.startsWith("## ")) break;
+    if (line.trim().startsWith("|")) table.push(line);
+    else if (table.length) break;
+  }
+  return table;
+}
+
+const cells = (l: string) => l.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim());
+
 /**
  * The "## Verbs" table of a SKILL.md body, as (verb, what it does) pairs. The
  * ow- skills share the table shape (Verb | Does | Writes, some with When or
@@ -262,11 +278,8 @@ export interface VerbRow { verb: string; does: string }
  * keep their backticks; the page renders them as <code>.
  */
 export function verbsTable(body: string): VerbRow[] {
-  const m = body.match(/^## Verbs[^\n]*\n([\s\S]*?)(?=^## |\n*$)/m);
-  if (!m) return [];
-  const lines = m[1].split("\n").filter((l) => l.trim().startsWith("|"));
+  const lines = sectionTable(body, "Verbs");
   if (lines.length < 2) return [];
-  const cells = (l: string) => l.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim());
   const header = cells(lines[0]).map((h) => h.toLowerCase());
   let col = header.findIndex((h) => h === "does");
   if (col === -1) col = header.findIndex((h) => h.startsWith("writes"));
@@ -278,6 +291,17 @@ export function verbsTable(body: string): VerbRow[] {
     rows.push({ verb: c[0], does: c[col] ?? "" });
   }
   return rows;
+}
+
+/** The body's "Where it lives in the CRM" table, or null for a skill without one. Bold is dropped: every cell renders plain. */
+export function crmTable(body: string): { headers: string[]; rows: string[][] } | null {
+  const lines = sectionTable(body, "Where it lives in the CRM");
+  if (lines.length < 3) return null;
+  const plain = (c: string) => c.replace(/\*\*/g, "");
+  return {
+    headers: cells(lines[0]).map(plain),
+    rows: lines.slice(2).map((l) => cells(l).map(plain)),
+  };
 }
 
 /** Escape HTML, then turn `code` spans into <code>. For table cells from SKILL.md. */

@@ -192,7 +192,7 @@ ${cross.map((c) => anchor({
     id: c.id, href: `/work/${c.id}`, cls: c.network === "declared" ? "wa-anchor--net" : "wa-anchor--txt",
     meta: `${c.version} · ${c.bundle} · network: ${c.network} · ${verbsLine(c.commands)}`,
     does: `${c.short} → ${[...new Set(edgesFrom(c.id).map((e) => e.to))].join(" · ") || "the workstream"}`,
-    badges: [c.network === "declared" ? "NET · host web tools or connector" : "TXT · sends nothing", `${input.release} · preview`],
+    badges: [c.network === "declared" ? "NET · host web tools or connector" : "TXT · no web tools", `${input.release} · preview`],
     label: `${c.id}: ${c.intro}`,
   })).join("\n")}
 </div>
@@ -211,10 +211,10 @@ ${anchor({ id: input.tools.id, href: "/work/ow-tools", cls: "wa-anchor--tools", 
 
   const legend = `<div class="legend" role="group" aria-label="Legend">
 <div class="legend-section-label">cards</div>
-<span class="legend-item" tabindex="0"><div aria-hidden="true" class="li-swatch" style="background:rgba(2,253,255,0.08);border:1px solid #02fdff"></div><span>text only · network: none</span><div class="legend-card" role="tooltip"><div class="legend-card-title">Core bundle</div>A text skill whose files name no web tool and no connector. It sends nothing anywhere. Six of the nine.</div></span>
-<span class="legend-item" tabindex="0"><div aria-hidden="true" class="li-swatch" style="background:rgba(235,254,0,.10);border:1px solid #ebfe00"></div><span>text only · network: declared</span><div class="legend-card" role="tooltip"><div class="legend-card-title">Connected bundle</div>Still text, still no code: the skill’s text names the host’s own web tools or a document connector it may use, under the host’s permission prompts. Its rules file says what may leave the machine. Three of the nine.</div></span>
+<span class="legend-item" tabindex="0"><div aria-hidden="true" class="li-swatch" style="background:rgba(2,253,255,0.08);border:1px solid #02fdff"></div><span>network: none</span><div class="legend-card" role="tooltip"><div class="legend-card-title">Core bundle</div>A skill whose files name no web tool and no document connector. It reaches only your CRM. Six of the nine.</div></span>
+<span class="legend-item" tabindex="0"><div aria-hidden="true" class="li-swatch" style="background:rgba(235,254,0,.10);border:1px solid #ebfe00"></div><span>network: declared</span><div class="legend-card" role="tooltip"><div class="legend-card-title">Connected bundle</div>The skill’s text also names the host’s own web tools or a document connector it may use, under the host’s permission prompts. Its rules file says what may leave the machine. Three of the nine.</div></span>
 <span class="legend-item" tabindex="0"><div aria-hidden="true" class="li-swatch" style="background:rgba(216,127,209,.10);border:1px solid #d87fd1"></div><span>ow-tools · runs code</span><div class="legend-card" role="tooltip"><div class="legend-card-title">The add-on</div>Optional, Claude Code only, from its own marketplace. Two of its verbs use the network, only for what you list; audio never leaves the machine.</div></span>
-<span class="legend-item" tabindex="0"><div aria-hidden="true" class="li-swatch li-swatch-spine">↑N↓</div><span>stage ordinal</span><div class="legend-card" role="tooltip"><div class="legend-card-title">Stage ordinal</div>The seven stage skills wear numbered chips showing their place on the rail; <code>↑prev·↓next</code> marks the adjacent hand-off, which the user acts on from the NEXT block each skill prints.</div></span>
+<span class="legend-item" tabindex="0"><div aria-hidden="true" class="li-swatch li-swatch-spine">↑N↓</div><span>stage ordinal</span><div class="legend-card" role="tooltip"><div class="legend-card-title">Stage ordinal</div>The seven stage skills wear numbered chips showing their place on the rail; <code>↑prev·↓next</code> marks the adjacent hand-off. Each skill names the next verb and may run it.</div></span>
 <div class="legend-divider"></div>
 <div class="legend-section-label">connections</div>
 <span class="legend-item" tabindex="0"><div aria-hidden="true" class="li-line" style="border-color:#2be179;border-style:dashed"></div><span>hands off (skips a stage)</span><div class="legend-card" role="tooltip"><div class="legend-card-title">Forward hand-off</div>A hands_off row in the producer’s edge file whose receiver is more than one stage down: the acceptance test to the handoff when documentation was not bought, the Build Plan straight to care for a takeover.</div></span>

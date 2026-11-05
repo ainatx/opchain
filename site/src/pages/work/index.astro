@@ -12,7 +12,7 @@ import ReleaseTag from "../../components/ReleaseTag.astro";
 import WorkArchitecture from "../../components/WorkArchitecture.astro";
 import MobileWorkArchitecture from "../../components/MobileWorkArchitecture.astro";
 import { getAllWorkSkills, stageOf } from "../../lib/work";
-import { HOSTS, NEVER, NEXT_RELEASE_LINE, STAGES, WORDS, WORK_SKILLS } from "../../data/work";
+import { CRM_STATE, HOSTS, NEVER, STAGES, WORDS, WORK_SKILLS } from "../../data/work";
 import owTools from "../../../../plugins/ow-tools/.claude-plugin/plugin.json";
 
 const skills = await getAllWorkSkills();
@@ -30,7 +30,7 @@ const SMALL: Record<number, string> = { 1: "one", 2: "two", 3: "three", 4: "four
 const cap = (w: string) => w.replace(/^./, (c) => c.toUpperCase());
 const joinNames = (ids: string[]) => ids.length <= 1 ? ids.join("") : `${ids.slice(0, -1).join(", ")} and ${ids[ids.length - 1]}`;
 
-const description = `opchain.work: ${count} text-only planning skills that follow a client job from the fit call to the care after handoff, plus the optional ow-tools add-on. Claude Code and claude.ai.`;
+const description = `${countWord} planning skills that follow a client job from the fit call to care, with your CRM as the record. For Claude Code, with an optional add-on.`;
 const jsonLd = {
   "@type": "SoftwareApplication",
   "@id": new URL("/work#software", Astro.site).toString(),
@@ -46,13 +46,17 @@ const jsonLd = {
 
 <WorkPage title="opchain.work · planning skills for client work" description={description} route="/work" jsonLd={jsonLd}>
   <div class="page-head">
-    <Eyebrow>opchain.work · planning skills for client work</Eyebrow>
-    <h1>{countWord} skills that follow a client job from the first call to the care after handoff <ReleaseTag theme="ow" /></h1>
+    <Eyebrow>opchain.work · planning skills for client work <ReleaseTag theme="ow" /></Eyebrow>
+    <h1>{countWord} skills that follow a client job from the first call to the care after handoff</h1>
   </div>
   <p class="lede">
-    Text only, no code. They run in Claude Code and from a claude.ai upload; other hosts are untested.
-    {cap(SMALL[sendNothing] ?? String(sendNothing))} send nothing anywhere.
-    {cap(SMALL[connected.length] ?? String(connected.length))} ({joinNames(connected.map((k) => k.data.name))}) may use the host’s own web tools or a document connector, with the host’s permission prompts on.
+    For one operator running their own client work, in Claude Code: a skill proposes and you decide, with at most three questions before its first document and one approval where it matters.
+    Your CRM is the record. Each step reads the latest saved version from it, takes prices and numbers from it, and never overwrites a version a person edited. When the CRM cannot be reached, work stays in a scratch folder, <code>opchain-work/</code>, and the output says so. {CRM_STATE}
+  </p>
+  <p class="lede">
+    Each skill’s folder holds text; a skill may run code, call the optional add-on and run the next skill, and says what it is running.
+    {cap(SMALL[sendNothing] ?? String(sendNothing))} name no web tool or document connector and reach only your CRM.
+    {cap(SMALL[connected.length] ?? String(connected.length))} ({joinNames(connected.map((k) => k.data.name))}) may also use the host’s own web tools or a document connector, with the host’s permission prompts on.
     None invents a price, gives legal advice or sends anything without your confirmation.
   </p>
 
@@ -145,6 +149,5 @@ const jsonLd = {
         </tbody>
       </table>
     </div>
-    <p class="note">{NEXT_RELEASE_LINE} <ReleaseTag theme="ow" /></p>
   </section>
 </WorkPage>

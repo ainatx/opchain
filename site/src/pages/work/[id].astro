@@ -8,8 +8,8 @@ import WorkPage from "../../layouts/WorkPage.astro";
 import Eyebrow from "../../components/ui/Eyebrow.astro";
 import Icon from "../../components/Icon.astro";
 import ReleaseTag from "../../components/ReleaseTag.astro";
-import { commandsOf, getAllWorkSkills, inlineCode, skillEdges, stageOf, verbsTable } from "../../lib/work";
-import { HOSTS, WORK_SKILLS } from "../../data/work";
+import { commandsOf, crmTable, getAllWorkSkills, inlineCode, skillEdges, stageOf, verbsTable } from "../../lib/work";
+import { CRM_STATE, HOSTS, WORK_SKILLS } from "../../data/work";
 
 export async function getStaticPaths() {
   const skills = await getAllWorkSkills();
@@ -24,6 +24,7 @@ const meta = skill.data.metadata;
 const commands = commandsOf(skill);
 const edges = skillEdges(id);
 const verbs = verbsTable(skill.body ?? "");
+const crm = crmTable(skill.body ?? "");
 const all = await getAllWorkSkills();
 const i = all.findIndex((s) => s.data.name === id);
 const prev = i > 0 ? all[i - 1] : null;
@@ -35,7 +36,7 @@ const connected = meta.network === "declared";
 const purpose = skill.data.description.replace(/\s+/g, " ").trim().split(/\s(?=Use for )/)[0];
 
 const title = `${id} · opchain.work`;
-const description = `${copy?.intro ?? purpose} ${connected ? "network: declared" : "network: none"} · ${meta.bundle} bundle · ${meta.version}.`;
+const description = copy?.meta ?? purpose;
 const jsonLd = {
   "@type": "SoftwareApplication",
   "@id": new URL(`/work/${id}#software`, Astro.site).toString(),
@@ -54,8 +55,8 @@ const readKind = (k: string) => k === "user" ? "files you own" : k === "any" ? "
 <WorkPage title={title} description={description} route={`/work/${id}`} jsonLd={jsonLd}>
   <a href="/work" class="back"><Icon name="arrow-left" size={12} /> all planning skills</a>
   <div class="page-head">
-    <Eyebrow>opchain.work · {stage.ordinal ? `stage ${stage.ordinal} · ` : ""}{stage.label}</Eyebrow>
-    <h1>{id} <span class="ver">{meta.version}</span> <ReleaseTag theme="ow" /></h1>
+    <Eyebrow>opchain.work · {stage.ordinal ? `stage ${stage.ordinal} · ` : ""}{stage.label} <ReleaseTag theme="ow" /></Eyebrow>
+    <h1>{id} <span class="ver">{meta.version}</span></h1>
   </div>
   <p class="lede">{copy?.intro ?? purpose}</p>
 
@@ -63,21 +64,21 @@ const readKind = (k: string) => k === "user" ? "files you own" : k === "any" ? "
     <div class:list={["fact", { hot: connected }]}>
       <span class="fact-k">network</span>
       <span class="fact-v">{meta.network}</span>
-      <span class="fact-note">{connected ? "may use the host’s own web tools or a connector, under its prompts" : "names no web tool and no connector; sends nothing"}</span>
+      <span class="fact-note">{connected ? "may use the host’s own web tools or a connector, under its prompts" : "names no web tool or connector; reaches only your CRM"}</span>
     </div>
     <div class:list={["fact", { hot: meta.bundle === "connected" }]}>
       <span class="fact-k">bundle</span>
       <span class="fact-v">{meta.bundle}</span>
-      <span class="fact-note">{meta.bundle === "connected" ? "the connected bundle: text only, with declared network use" : "the core bundle: text only, no network"}</span>
+      <span class="fact-note">{meta.bundle === "connected" ? "the connected bundle: also names web tools or a connector" : "the core bundle: names neither"}</span>
     </div>
     <div class="fact">
       <span class="fact-k">protocol</span>
       <span class="fact-v">ow-protocol v{meta.protocol}</span>
-      <span class="fact-note">the shared rules every ow- skill carries</span>
+      <span class="fact-note">the shared rules on money, signatures, dates, secrets, client trust and the CRM</span>
     </div>
     <div class="fact">
       <span class="fact-k">hosts</span>
-      <span class="fact-v">Claude Code · claude.ai upload</span>
+      <span class="fact-v">Claude Code</span>
       <span class="fact-note">other hosts untested</span>
     </div>
   </div>
@@ -85,6 +86,7 @@ const readKind = (k: string) => k === "user" ? "files you own" : k === "any" ? "
   <nav class="toc" aria-label="On this page">
     <a href="#purpose">what it is for</a>
     <a href="#verbs">verbs</a>
+    {crm && <a href="#crm">CRM</a>}
     <a href="#reads">reads</a>
     <a href="#writes">writes</a>
     <a href="#hands-off">hands off</a>
@@ -120,9 +122,26 @@ const readKind = (k: string) => k === "user" ? "files you own" : k === "any" ? "
     )}
   </section>
 
+  {crm && (
+    <section id="crm" aria-labelledby="crm-h">
+      <h2 id="crm-h">Where it lives in the CRM</h2>
+      <p>The CRM is the record. Each verb reads the latest saved version first, and a version a person edited is never overwritten. {CRM_STATE}</p>
+      <div class="tw">
+        <table>
+          <thead><tr>{crm.headers.map((h) => <th scope="col" set:html={inlineCode(h)} />)}</tr></thead>
+          <tbody>
+            {crm.rows.map((r) => (
+              <tr>{r.map((c) => <td set:html={inlineCode(c)} />)}</tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )}
+
   <section id="reads" aria-labelledby="reads-h">
     <h2 id="reads-h">Reads</h2>
-    <p>From <code>skill.edges.yaml</code>: the files this skill reads from the others, from the add-on and from you. A file read where an earlier stage left it is marked <em>in place</em>; a file listed by path only is an <em>index</em> row; one read only when you name it is <em>named</em>.</p>
+    <p>From <code>skill.edges.yaml</code>, and only for the scratch copy: the files this skill reads from the others, from the add-on and from you. A file read where an earlier stage left it is marked <em>in place</em>; a file listed by path only is an <em>index</em> row; one read only when you name it is <em>named</em>.</p>
     {edges.routes && (
       <p>Other skills hand files to <code>{edges.routes.verb} on &lt;path&gt;</code>, which routes {edges.routes.paths.length} kinds of path to the verb each needs.</p>
     )}
@@ -145,7 +164,7 @@ const readKind = (k: string) => k === "user" ? "files you own" : k === "any" ? "
 
   <section id="writes" aria-labelledby="writes-h">
     <h2 id="writes-h">Writes</h2>
-    <p>Every file this skill writes, under <code>opchain-work/</code>, with the one verb that writes it. No file in the family has two writers.</p>
+    <p>The files this skill keeps in its scratch copy under <code>opchain-work/</code>, with the verb that writes each. The record itself goes to the CRM.</p>
     <div class="tw">
       <table>
         <thead><tr><th scope="col">verb</th><th scope="col">writes</th></tr></thead>

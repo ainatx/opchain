@@ -148,3 +148,40 @@ describe("no business, private skill or price under /work", () => {
     }
   });
 });
+
+// The owner reversed the family's audience on 2026-11-03 (docs/plans/2026-11-03-ow-audience-reversal.md).
+// These sentences described the old design; none may come back on /work.
+describe("/work copy and HTML", () => {
+  const STALE = [/two writers/i, /NEXT block/, /administrator can approve/i, /send nothing anywhere/i, /asks for the client folder/i, /text only, no code/i, /control register/i];
+  const sources = [...walk(PAGES), join(ROOT, "site/src/data/work.ts"), join(ROOT, "site/src/lib/work-diagram.ts")];
+
+  it.each(sources.map((f) => [relative(ROOT, f), f]))("%s carries no sentence of the old design", (_rel, file) => {
+    const text = readFileSync(file, "utf8");
+    for (const re of STALE) expect(text, `matches ${re}`).not.toMatch(re);
+  });
+
+  it("every skill's meta description fits in 160 characters", () => {
+    const text = readFileSync(join(ROOT, "site/src/data/work.ts"), "utf8");
+    const metas = [...text.matchAll(/^\s+meta: "([^"]+)",$/gm)].map((m) => m[1]);
+    expect(metas).toHaveLength(skillIds.length);
+    for (const m of metas) expect(m.length, m).toBeLessThanOrEqual(160);
+  });
+
+  it.skipIf(!existsSync(DIST))("each built page has a working skip link, a short description and a verbs table where the skill has one", () => {
+    for (const file of walk(DIST).filter((f) => f.endsWith(".html"))) {
+      const text = readFileSync(file, "utf8");
+      const rel = relative(ROOT, file);
+      expect(text, rel).toMatch(/class="skip-link"[^>]* href="#work-main"|href="#work-main"[^>]* class="skip-link"/);
+      expect(text, rel).toMatch(/<main[^>]* id="work-main"/);
+      const description = text.match(/<meta name="description" content="([^"]*)"/)?.[1] ?? "";
+      expect(description.length, rel).toBeGreaterThan(0);
+      expect(description.length, `${rel}: ${description}`).toBeLessThanOrEqual(160);
+      expect(text.match(/<h1[^>]*>[\s\S]*?<\/h1>/)?.[0] ?? "", rel).not.toContain("data-release-tag");
+    }
+    for (const id of skillIds) {
+      const body = readFileSync(join(ow.dir, id, "SKILL.md"), "utf8");
+      if (!/^## Verbs/m.test(body)) continue;
+      expect(readFileSync(join(DIST, id, "index.html"), "utf8"), id).toContain("what it does");
+    }
+  });
+});
