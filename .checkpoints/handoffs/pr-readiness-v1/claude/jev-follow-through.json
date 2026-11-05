@@ -1,0 +1,23 @@
+{
+  "id": "oc-repo-ops-pr-readiness-v1-b30f64301285",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-11-05T22:56:10.430Z",
+  "verified_at": "2026-11-05T22:56:10.430Z",
+  "producer": {
+    "skill": "oc-repo-ops",
+    "run_id": "pr-readiness-v1-2026-11-05T22:56:10.430Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:b30f64301285a419d08c76a1470a4aa87aa3986e26e2e293f82a2e36487d27cc"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-readiness-v1",
+    "scope": "41bfdd93: hooks.json + route-redirect.cjs, route-dispatch, route-eval, 3 test files, .bugcheck.json digest, runbook + plugin README",
+    "evidence": [
+      "gen-route-spec --check in sync; gen-catalog + check-skill-contracts pass; sync-plugin-skills:check clean; no related untracked files; new files referenced by docs exist; docs/capabilities.md left alone (already stale on main, not drift-checked)."
+    ]
+  }
+}
