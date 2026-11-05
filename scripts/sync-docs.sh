@@ -33,4 +33,12 @@ echo "Synced skill docs to $DEST"
 # script with its own catalog gate. Chained here rather than as an npm script,
 # because the root package.json is bundled into five oc- skills' runtime and
 # every new script there changes tracked skill files.
-OPCHAIN_WORK_DOCS_DIR="${OPCHAIN_WORK_DOCS_DIR:-$DEST/work}" bash "$ROOT/scripts/sync-work-docs.sh"
+#
+# OPCHAIN_SHIP_WORK=1 turns it on; otherwise the ow- docs are withheld (the ow-
+# catalog ships with the 2.2 release) and a tree a previous build left is removed.
+if [[ "${OPCHAIN_SHIP_WORK:-}" == "1" ]]; then
+  OPCHAIN_WORK_DOCS_DIR="${OPCHAIN_WORK_DOCS_DIR:-$DEST/work}" bash "$ROOT/scripts/sync-work-docs.sh"
+else
+  rm -rf -- "${OPCHAIN_WORK_DOCS_DIR:-$DEST/work}"
+  echo "sync-docs: ow- docs withheld (OPCHAIN_SHIP_WORK is not 1)"
+fi

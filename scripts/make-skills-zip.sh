@@ -98,4 +98,14 @@ done
 # gate (gen-catalog + check-skill-contracts must pass for the tree). Chained
 # here rather than as an npm script: the root package.json is bundled into
 # five oc- skills' runtime, so a new script there changes tracked skill files.
-OPCHAIN_PUBLIC_DIR="$PUBLIC" bash "$ROOT/scripts/make-work-skills-zip.sh"
+#
+# OPCHAIN_SHIP_WORK (2.1 decision, 2026-11-05): the ow- outputs are opt-in. The
+# ow- catalog ships with the 2.2 lockstep release, not 2.1, so a build without
+# OPCHAIN_SHIP_WORK=1 writes none of them and removes any a previous build left,
+# which keeps a stale public/work/ from riding a production deploy.
+if [[ "${OPCHAIN_SHIP_WORK:-}" == "1" ]]; then
+  OPCHAIN_PUBLIC_DIR="$PUBLIC" bash "$ROOT/scripts/make-work-skills-zip.sh"
+else
+  rm -rf -- "$PUBLIC/work" "$PUBLIC/opchain-work-skills.zip"
+  echo "make-skills-zip: ow- zips withheld (OPCHAIN_SHIP_WORK is not 1)"
+fi

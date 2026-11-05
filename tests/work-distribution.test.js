@@ -8,7 +8,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, 
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { checkWorkInstall } from "../scripts/check-work-install.mjs";
+import { checkWorkInstall, checkWorkWithheld } from "../scripts/check-work-install.mjs";
 
 const ROOT = join(import.meta.dirname, "..");
 const SKILLS_WORK = join(ROOT, "skills-work");
@@ -136,20 +136,86 @@ describe("make-work-skills-zip + sync-work-docs + check-work-install", SLOW, () 
     expect(steps.indexOf("npm run make-zip")).toBeLessThan(steps.indexOf("npm run build-site"));
   });
 
-  it("the oc- zip script also writes the ow- zips into the same public dir, so one make-zip serves both catalogs", () => {
+  it("with OPCHAIN_SHIP_WORK=1 the oc- zip script also writes the ow- zips into the same public dir, so one make-zip serves both catalogs", () => {
     const pub = temp("oc-ow-pub-");
-    const r = run("bash", [join(ROOT, "scripts", "make-skills-zip.sh")], { OPCHAIN_PUBLIC_DIR: pub });
+    const r = run("bash", [join(ROOT, "scripts", "make-skills-zip.sh")], { OPCHAIN_PUBLIC_DIR: pub, OPCHAIN_SHIP_WORK: "1" });
     expect(r.status, r.stderr).toBe(0);
     expect(existsSync(join(pub, "opchain-skills.zip"))).toBe(true);
     expect(existsSync(join(pub, "opchain-work-skills.zip"))).toBe(true);
     expect(existsSync(join(pub, "skills", "oc-git-ops.zip"))).toBe(true);
     expect(existsSync(join(pub, "work", "ow-start.zip"))).toBe(true);
     const docs = join(temp("oc-ow-docs-"), "docs");
-    const d = run("bash", [join(ROOT, "scripts", "sync-docs.sh")], { OPCHAIN_DOCS_DIR: docs });
+    const d = run("bash", [join(ROOT, "scripts", "sync-docs.sh")], { OPCHAIN_DOCS_DIR: docs, OPCHAIN_SHIP_WORK: "1" });
     expect(d.status, d.stderr).toBe(0);
     expect(existsSync(join(docs, "oc-git-ops", "SKILL.md"))).toBe(true);
     expect(existsSync(join(docs, "work", "ow-start", "SKILL.md"))).toBe(true);
     expect(checkWorkInstall({ source: SKILLS_WORK, publicDir: pub, docs: join(docs, "work") }).ok).toBe(true);
+  });
+});
+
+// 2.1 decision (2026-11-05): the ow- catalog ships with the 2.2 lockstep
+// release. Until OPCHAIN_SHIP_WORK=1, no build step writes an ow- output, and a
+// leftover one is removed or refused, never deployed.
+describe("the ow- outputs are withheld unless OPCHAIN_SHIP_WORK=1", SLOW, () => {
+  const off = { OPCHAIN_SHIP_WORK: "" };
+
+  it("make-skills-zip and sync-docs write the oc- outputs only", () => {
+    const pub = temp("ow-off-pub-");
+    const r = run("bash", [join(ROOT, "scripts", "make-skills-zip.sh")], { ...off, OPCHAIN_PUBLIC_DIR: pub });
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.stdout).toContain("ow- zips withheld");
+    expect(existsSync(join(pub, "opchain-skills.zip"))).toBe(true);
+    expect(existsSync(join(pub, "opchain-work-skills.zip"))).toBe(false);
+    expect(existsSync(join(pub, "work"))).toBe(false);
+    const docs = join(temp("ow-off-docs-"), "docs");
+    const d = run("bash", [join(ROOT, "scripts", "sync-docs.sh")], { ...off, OPCHAIN_DOCS_DIR: docs });
+    expect(d.status, d.stderr).toBe(0);
+    expect(existsSync(join(docs, "oc-git-ops", "SKILL.md"))).toBe(true);
+    expect(existsSync(join(docs, "work"))).toBe(false);
+    expect(checkWorkWithheld({ publicDir: pub, docs: join(docs, "work") }).ok).toBe(true);
+  });
+
+  it("a build with the switch off removes the ow- outputs an earlier build left", () => {
+    const pub = temp("ow-stale-pub-");
+    expect(run("bash", [join(ROOT, "scripts", "make-skills-zip.sh")], { OPCHAIN_PUBLIC_DIR: pub, OPCHAIN_SHIP_WORK: "1" }).status).toBe(0);
+    expect(existsSync(join(pub, "work", "ow-start.zip"))).toBe(true);
+    const docs = join(temp("ow-stale-docs-"), "docs");
+    expect(run("bash", [join(ROOT, "scripts", "sync-docs.sh")], { OPCHAIN_DOCS_DIR: docs, OPCHAIN_SHIP_WORK: "1" }).status).toBe(0);
+    expect(checkWorkWithheld({ publicDir: pub, docs: join(docs, "work") }).ok).toBe(false);
+    expect(run("bash", [join(ROOT, "scripts", "make-skills-zip.sh")], { ...off, OPCHAIN_PUBLIC_DIR: pub }).status).toBe(0);
+    expect(run("bash", [join(ROOT, "scripts", "sync-docs.sh")], { ...off, OPCHAIN_DOCS_DIR: docs }).status).toBe(0);
+    expect(checkWorkWithheld({ publicDir: pub, docs: join(docs, "work") }).ok).toBe(true);
+  });
+
+  it("check-work-install --expect-withheld names each ow- output found in public/", () => {
+    const pub = temp("ow-found-pub-");
+    mkdirSync(join(pub, "work"), { recursive: true });
+    writeFileSync(join(pub, "opchain-work-skills.zip"), "x");
+    const r = checkWorkWithheld({ publicDir: pub, docs: join(pub, "docs", "work") });
+    expect(r.ok).toBe(false);
+    expect(r.problems).toHaveLength(2);
+    expect(r.problems.join("\n")).toMatch(/OPCHAIN_SHIP_WORK is not 1/);
+  });
+
+  it("build-site runs the withheld check unless the switch is on, and the mirror stages the ow- tree and ow-tools only on the repository variable", () => {
+    const site = readFileSync(join(ROOT, "scripts", "build-site.sh"), "utf8");
+    expect(site).toContain('node "${ROOT}/scripts/check-work-install.mjs" --expect-withheld');
+    const wf = readFileSync(join(ROOT, ".github", "workflows", "mirror-public.yml"), "utf8");
+    expect(wf).toContain("SHIP_WORK: ${{ vars.OPCHAIN_SHIP_WORK }}");
+    expect(wf).toMatch(/if \[\[ "\$\{SHIP_WORK:-\}" == "1" \]\]; then\n\s+cp -R skills-work "\$STAGE\/skills-work"/);
+    expect(wf).toContain('rm -rf "$STAGE/plugins/ow-tools"');
+    for (const f of ["README.md", "SECURITY.md"]) {
+      const t = readFileSync(join(ROOT, "mirror", f), "utf8");
+      expect(t.split("<!-- ow:begin -->").length, f).toBe(2);
+      expect(t.indexOf("<!-- ow:begin -->"), f).toBeLessThan(t.indexOf("<!-- ow:end -->"));
+    }
+  });
+
+  it("stripping the marked sections leaves no ow- or ow-tools mention in the public README and SECURITY.md", () => {
+    for (const f of ["README.md", "SECURITY.md"]) {
+      const kept = readFileSync(join(ROOT, "mirror", f), "utf8").replace(/<!-- ow:begin -->[\s\S]*?<!-- ow:end -->\n/g, "");
+      expect(kept, f).not.toMatch(/\bow-[a-z]|skills-work|opchain-work/);
+    }
   });
 });
 

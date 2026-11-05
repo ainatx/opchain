@@ -63,11 +63,22 @@ The ow- planning skills are a second catalog (`catalogs.json`, `versionPolicy:
 `ow-care 1.0.0`), with a `CHANGELOG.md` per skill. `plugins/ow-tools/` has its
 own version too (`plugin.json`). None of them is a release unit:
 
+- **The ow- catalog ships with 2.2, not 2.1 (owner decision 2026-11-05).** 2.1.0
+  is the Jev and enforcement release: oc- only. The ow- skills stay on `main` as
+  source and keep passing their checks, but every output is **opt-in** behind
+  `OPCHAIN_SHIP_WORK=1`: with it unset, `make-skills-zip.sh` and `sync-docs.sh`
+  write no ow- zip or docs tree (and delete any an earlier build left),
+  `build-site.sh` runs `check-work-install.mjs --expect-withheld` (fails if any
+  ow- output is in `public/`), and `mirror-public.yml` stages neither
+  `skills-work/` nor `plugins/ow-tools/` and strips the `<!-- ow:begin -->` ...
+  `<!-- ow:end -->` sections from the public README and SECURITY.md unless the
+  repository variable `OPCHAIN_SHIP_WORK` is `1`. The 2.2 release PR turns it on
+  (set the variable, deploy with the env var) and carries everything below.
 - **One tag per release, `v<lockstep>`, and it covers both catalogs.** The
   release tag is the oc- lockstep semver (`skills/*/SKILL.md`), as today. No
   ow- skill and no ow-tools version gets a tag of its own. The `skills/CHANGELOG.md`
   entry for the release lists every ow- skill version and the ow-tools version
-  that ship under it (the first such entry is 2.1.0), so a tag resolves to a
+  that ship under it (the first such entry is 2.2.0), so a tag resolves to a
   known set of per-skill versions.
 - **`check-release-tag` reads `skills/` only, on purpose.** An ow- bump is not
   a release signal; the oc- catalog version is. The ow- scripts
@@ -80,7 +91,7 @@ own version too (`plugin.json`). None of them is a release unit:
   tag follows), never an untagged deploy.
 - **ow-tools' marketplace pin (posture SA-001).** `plugins/ow-tools/.claude-plugin/marketplace.json`
   follows the mirror's `main` only until the first release that ships
-  ow-tools (v2.1.0). At each cut from then on, the release PR sets `source.ref`
+  ow-tools (v2.2.0). At each cut from then on, the release PR sets `source.ref`
   to the new tag (`v<lockstep>`); `mirror-public.yml` pushes every `v*` tag
   to the mirror as a tag of the same name, so the ref resolves there and
   survives the next force-push of `main`. `tests/ow-tools/plugin-shape.test.js`
