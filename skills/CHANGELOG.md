@@ -11,69 +11,18 @@ contract another skill depends on → called out as **BREAKING**. The on-disk
 checkpoint `protocol_version` is tracked separately (see
 `oc-checkpoint-protocol/SKILL.md`).
 
-## [2.1.0] — 2026-11-20 — "Client work and enforcement"
+## [2.1.0] — 2026-11-20 — "Enforcement and Jev"
 
-Two themes, one release, one tag. The ow- planning family for client work
-ships as a second catalog with its own versions, zips and docs, and the oc-
-dev pipeline gains a check at each place its work goes through: the commit,
-the push, the pull request, the deploy and the release. The skill router
-stays an experimental preview in shadow mode. The oc- catalog moves to 2.1.0
-in lockstep; the ow- versions below are what the `v2.1.0` tag resolves to
-(`docs/governance/RELEASING.md` §2a).
-
-_[REL-02 record, owner: the real-model acceptance run per ow- skill and the
-three real jobs (ow-start, ow-build-plan, ow-draft) run before the tag; this
-line states what was run and its result.]_
+The oc- dev pipeline gains a check at each place its work goes through: the
+commit, the push, the pull request, the deploy and the release. TypeSafe's Jev
+model, which the skill router already used in shadow mode, becomes a shared
+client with a registry of uses, each scored against a labelled set before it is
+used for anything. The skill router stays an experimental preview in shadow
+mode. The oc- catalog moves to 2.1.0 in lockstep. The ow- planning family for
+client work is not part of this release: it stays unshipped on `main` and ships
+with 2.2 (owner decision 2026-11-05; `docs/governance/RELEASING.md` §2a).
 
 ### Added
-
-- **The ow- planning family (opchain.work): nine skills at their own
-  versions, for one operator's own client work (decision record
-  `docs/plans/2026-11-03-ow-audience-reversal.md`, #673).** Each at 2.0.1:
-  ow-start, ow-build-plan, ow-build, ow-uat, ow-documentation, ow-handoff,
-  ow-research, ow-draft and ow-care (`skills-work/`, Agent Skills frontmatter,
-  per-skill versions, not lockstep, one `CHANGELOG.md` each, protocol
-  `ow-protocol.md` v2, reciprocal `skill.edges.yaml`). At most three questions
-  before a verb's first document and one approval, each through
-  `AskUserQuestion`. The CRM is the record and `opchain-work/` the scratch
-  cache; the CRM write path is not built yet, so runs use the cache and say so.
-  `ow-build-plan` can write a whole-project, SOW-shaped quote. The skill
-  folders hold text: `network: none` for six, `network: declared` for
-  ow-research, ow-documentation and ow-draft, which may use the host's own web
-  tools or a document connector under the host's prompts. None invents a
-  price, gives legal advice or sends anything without the user's confirmation.
-  Validated by `gen-catalog` and
-  `check-skill-contracts` (`catalogs.json`, family edge checks); kept out of
-  the dev plugin, the flag registry, `opchain-skills.zip` and the hosted MCP
-  catalog on purpose. Not in this release (owner, 2026-10-19 and 2026-10-22,
-  moved to v2.2): ow-vendor-eval, ow-controls with its four framework packs
-  and the `ow-packs` plugin, and ow-currency.
-- **ow-tools 1.3.2, the ow- family's Claude Code add-on.** `plugins/ow-tools/`,
-  with its own marketplace manifest (`opchain-work-tools`), never listed in the
-  opchain marketplace. It runs code on the user's machine and says so: local
-  transcription with speaker separation, PDF, Word, PowerPoint and Excel
-  export, test-environment screenshots (`capture`), read-only health checks
-  (`health`), a redacted secrets scan of committed history (`scan-secrets`),
-  digests, date arithmetic with the US federal contract calendar, hours
-  arithmetic, a session-start list of open ow- workstreams, and `doctor`. Only
-  `health` and `capture` use the network, for the hosts the user lists; audio
-  never leaves the machine. Posture SA-004: the speaker model loads at one
-  pinned Hugging Face revision (`diarize.py --revision` is required) and the
-  Whisper model's SHA-256 is checked before every run, with a `.verified`
-  sidecar.
-- **ow- distribution and integrity (REL-01, #670).** The ow- catalog ships
-  through its own outputs: `public/opchain-work-skills.zip` and
-  `public/work/<id>.zip` (`make-work-skills-zip.sh`), the docs tree
-  `public/docs/work` (`sync-work-docs.sh`), and the `/work` site section. Both
-  scripts refuse to write until `gen-catalog` and `check-skill-contracts` pass
-  for the exact tree, and `check-work-install.mjs` installs the built zips
-  into an empty folder at the end of `build-site.sh` and compares every file
-  with `skills-work/`. `skills-work/` is mirrored whole to the public mirror,
-  and `mirror-public.yml` now pushes every `v*` tag there. Posture SA-001:
-  from this release, `plugins/ow-tools/.claude-plugin/marketplace.json`
-  `source.ref` pins the release tag (`v2.1.0`; `tests/ow-tools/plugin-shape.test.js`
-  enforces it), and the manifest's own hash is published out of band at
-  `/work/ow-tools-security-manifest.sha256`. One tag covers both catalogs.
 
 - **J5 in the Worker, J8 in `/oc-docs pr` (plan §6, 2026-10-29).** With
   `platform.security.feedback-triage` on (default off) and the
@@ -118,7 +67,7 @@ line states what was run and its result.]_
   `gen-route-spec.mjs` into `plugins/opchain/hooks/jev-questions.json`, which
   ships beside `route-spec.json` and is drift-checked with it. `route-eval jev
   <use>` scores a use against its gold set, offline on canned answers or live
-  with `TYPESAFE_API_KEY`. J9 quotes `ow-protocol.md` §3d and changes no ow-
+  with `TYPESAFE_API_KEY`. J9 quotes a sentence from the unshipped ow- protocol and changes no ow-
   text. Plan: `docs/plans/2026-10-24-jev-integration-plan.md`.
 - **Enforcement at chokepoints (audit 2026-10-08).** The effectiveness audit of
   two repositories found that every skill-to-skill edge held only where something

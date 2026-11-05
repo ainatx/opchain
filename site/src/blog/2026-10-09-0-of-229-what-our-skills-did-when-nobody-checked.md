@@ -34,9 +34,7 @@ skill whose job is to put every pull request through the docs and readiness
 gate. The skill files said to. The skills were loaded. Nothing checked, so
 nothing happened.
 
-That is the thesis of one half of 2.1. The release has two themes: the
-other is the ow- planning family for people who build software for clients,
-and it gets its own post. This one is about enforcement. A handoff written in
+That is the thesis of 2.1. A handoff written in
 a skill file is a convention; the only handoffs that held had a check sitting
 where the work passes through. 2.1 puts a check at each of those places and
 stops pretending about the rest.

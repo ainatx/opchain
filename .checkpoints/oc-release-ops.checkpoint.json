@@ -81,13 +81,14 @@
   "blockers": [],
   "next_actions": [
     {
-      "text": "DONE 2026-11-02: draft release PR #671 open from claude/release-2-1-0-1cd617 (head after this commit); held until REL-02 passes.",
+      "text": "MOVED TO 2.2 (owner, 2026-11-05): REL-02 real-model acceptance run per ow- skill and the three real jobs now gate the ow- release, not 2.1.0.",
       "done_when": "draft PR open with green CI",
-      "status": "done"
+      "status": "moved"
     },
     {
-      "text": "REL-02 (owner + Claude): real-model acceptance run per ow- skill, real jobs for ow-start, ow-build-plan, ow-draft; record what ran in the [2.1.0] REL-02 line of skills/CHANGELOG.md.",
-      "done_when": "REL-02 line in skills/CHANGELOG.md states what was run and its result"
+      "text": "MOVED TO 2.2 (owner, 2026-11-05): REL-02 real-model acceptance run per ow- skill and the three real jobs now gate the ow- release, not 2.1.0.",
+      "done_when": "REL-02 line in skills/CHANGELOG.md states what was run and its result",
+      "status": "moved"
     },
     {
       "text": "EN-02 (owner): label the suggestions, re-run day 8, replace the EN-02 placeholder in skills/CHANGELOG.md [2.1.0] Experimental with the verdict and its three numbers; ROUTER_LABEL in site/src/data/router-status.ts changes only on a GO.",
@@ -127,10 +128,10 @@
   "skill_state": {
     "current_release": {
       "semver": "2.1.0",
-      "theme": "Client work and enforcement",
+      "theme": "Enforcement and Jev",
       "themes": [
-        "the ow- skill family (planning layer)",
-        "enforcement at chokepoints + the Jev skill router (experimental preview)"
+        "enforcement at chokepoints",
+        "the Jev skill router (experimental preview) and its evaluated uses"
       ],
       "phase": "bump-applied",
       "started_at": "2026-10-16",
@@ -149,11 +150,13 @@
         "2026-11-01 (owner, via the coordinator): theme name \"Client work and enforcement\"; semver 2.1.0 (minor, semver-decisions rule 4: new skills + new verbs).",
         "2026-11-01 (session): planned ship date in the heading, hero-ver and READMEs is 2026-11-20 (the coordinator's ready-to-tag estimate); a one-line sed moves it if the owner picks another day before the tag.",
         "2026-11-02 (owner): the three #620 commits whose PASS receipts sit under the superseded gate policy db28b135 stay as merged (no trailer rewrite, no squash); the PR body documents them; the local evidence:pr bypass-accountability row is a known false positive; follow-up = bypass-list accepts a PASS receipt under a superseded policy.",
-        "2026-11-02 (owner): planned date 2026-11-20 confirmed for the draft; push and draft PR approved."
+        "2026-11-02 (owner): planned date 2026-11-20 confirmed for the draft; push and draft PR approved.",
+        "2026-11-05 (owner): the ow- skills are separated from 2.1; 2.1.0 is the Jev and enforcement release (oc- only) and the ow- family, ow-tools and their distribution ship with the 2.2 lockstep release. Theme renamed \"Enforcement and Jev\". ow- outputs on main are opt-in behind OPCHAIN_SHIP_WORK=1 (build gate PR), so nothing ow- reaches opchain.dev or the mirror in the 2.1 deploy."
       ],
       "coordinator_session": "local_8959641b-079e-4663-a666-29fe18675011",
       "scope": {
-        "ow_skills": [
+        "ow_skills": [],
+        "moved_to_v2_2": [
           "ow-start",
           "ow-build-plan",
           "ow-build",
@@ -162,15 +165,13 @@
           "ow-handoff",
           "ow-research",
           "ow-draft",
-          "ow-care"
-        ],
-        "moved_to_v2_2": [
+          "ow-care",
+          "ow-tools",
           "ow-vendor-eval",
           "ow-controls",
           "ow-packs",
           "ow-currency"
-        ],
-        "ow_tools": "1.3.1"
+        ]
       },
       "remaining_work": [
         {
@@ -179,18 +180,6 @@
           "claude_h": "4-5",
           "owner_h": "2",
           "status": "done (#670, 2026-10-30)"
-        },
-        {
-          "id": "REL-02",
-          "item": "acceptance runs + 3 real jobs, transcription spike, the cut",
-          "claude_h": "3",
-          "owner_h": "6-8"
-        },
-        {
-          "id": "WEB-01..05",
-          "item": "rebase #620, /work section for nine skills, fill-in, blog drafts, release-cut PR (38 items, docs/audits/2026-10-29-track-s-scope-drift.md)",
-          "claude_h": "43.5",
-          "owner_h": "1"
         },
         {
           "id": "EN-01",
@@ -209,7 +198,12 @@
           "item": "/oc-release plan, draft, bump, announce, verify; release PR; signed tag; staging; prod; baseline PR",
           "claude_h": "3-4",
           "owner_h": "2-3",
-          "status": "in_progress: release PR prepared as a held draft 2026-11-01; tag/staging/prod after REL-02"
+          "status": "in_progress: release PR prepared as a held draft 2026-11-01; ow- stripped 2026-11-05; tag/staging/prod after the owner lifts the HOLD"
+        },
+        {
+          "id": "REL-02/WEB-ow",
+          "item": "moved to the 2.2 ow- release: real-model acceptance run per ow- skill, three real jobs, the /work site section, flipping OPCHAIN_SHIP_WORK on",
+          "status": "moved to 2.2 (owner, 2026-11-05)"
         }
       ],
       "time_so_far": {
@@ -247,10 +241,9 @@
       "planned_date": "2026-11-20",
       "release_branch": "claude/release-2-1-0-1cd617",
       "headline_items": [
-        "The ow- planning family (opchain.work): nine text-only skills at their own versions + ow-tools 1.3.1, shipped through their own zips, docs tree, mirror and /work section (REL-01 #670)",
         "Enforcement at chokepoints: enforcement map, tool-named handoffs, bypass records + pre-push refusal, /oc-merge, per-branch evidence store, consumer deploy wrapper (BREAKING: --prod)",
         "Experimental: skill router in shadow mode, NO-GO so far; Jev uses J2/J5/J8 eval-only, J5 Worker triage flag-gated off",
-        "Site: /work section (#669) + Track E site half (#620) on opchain.dev"
+        "Site: Track E half (#620) on opchain.dev; the /work section and every other ow- surface move to 2.2"
       ]
     },
     "prior_release": {

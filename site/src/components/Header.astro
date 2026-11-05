@@ -46,9 +46,6 @@ const groups: NavGroup[] = [
       { href: "/coverage",     label: "Coverage",     blurb: "Every supported language, framework, and deploy target." },
       { href: "/compare",      label: "Compare",      blurb: "opchain vs Codex, Devin, Cursor, Copilot, Zed, and Claude." },
       { href: "/for-agencies", label: "For agencies", blurb: "Run opchain as a per-client delivery pipeline." },
-      // 2.1: opchain.work, the ow- planning skills for client work (forward copy
-      // until the domain is registered; the section lives at /work).
-      { href: "/work",         label: "opchain.work", blurb: "Planning skills for client work.", preview: "ow" },
       { href: "/changelog",    label: "Changelog",    blurb: "Release history.", badge: "new" },
     ],
   },
@@ -389,7 +386,7 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
       }
     });
 
-    const mq = window.matchMedia("(min-width: 1120px)");
+    const mq = window.matchMedia("(min-width: 980px)");
     mq.addEventListener("change", (e) => {
       if (e.matches && !drawer.hidden) close(false);
     });
@@ -748,7 +745,7 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
     outline-offset: 2px;
   }
 
-  /* ── Hamburger (hidden ≥1120px, shown below) ──────────────── */
+  /* ── Hamburger (hidden ≥980px, shown below) ──────────────── */
   .nav-burger {
     display: none;
     background: transparent;
@@ -899,9 +896,9 @@ const GROUP_ICONS: Record<NavGroup["id"], "puzzle" | "zap" | "book-open"> = {
   }
 
   /* ── Breakpoints ────────────────────────────────────────── */
-  /* Below 1120px: hide nav + right cluster, show hamburger.
-     Nav and cluster together need 1098px; narrower, the page scrolls sideways. */
-  @media (max-width: 1119px) {
+  /* Below 980px: hide nav + right cluster, show hamburger.
+     The cluster is wide enough that 720 isn't enough room. */
+  @media (max-width: 979px) {
     .nav { display: none; }
     .right-cluster { display: none; }
     .nav-burger { display: inline-flex; }

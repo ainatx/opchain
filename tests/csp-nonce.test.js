@@ -77,21 +77,3 @@ describe("CSP nonce — body substitution", () => {
     expect(res.headers.get("Content-Length")).toBeNull();
   });
 });
-
-describe("trailing-slash redirects from the asset binding", () => {
-  it.each([307, 308])("a %i is followed inside the Worker, so the canonical URL answers 200", async (status) => {
-    const seen = [];
-    const env = makeEnv("");
-    env.ASSETS.fetch = async (req) => {
-      const { pathname } = new URL(req.url);
-      seen.push(pathname);
-      return pathname === "/work"
-        ? new Response(null, { status, headers: { Location: "/work/" } })
-        : new Response("<!doctype html><html></html>", { status: 200, headers: { "Content-Type": "text/html" } });
-    };
-    const res = await worker.fetch(new Request("https://opchain.dev/work"), env);
-    expect(res.status).toBe(200);
-    expect(res.headers.get("Location")).toBeNull();
-    expect(seen).toEqual(["/work", "/work/"]);
-  });
-});

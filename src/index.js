@@ -79,9 +79,7 @@ async function applySecurityHeaders(response, { env, ctx } = {}) {
 
 async function fetchAsset(env, request, origin) {
   let res = await env.ASSETS.fetch(request);
-  // Workers Assets answers an extensionless path with a 307 to its trailing-slash
-  // form (a 308 in older runtimes). Follow it here, so /work serves at its canonical URL.
-  if (res.status === 307 || res.status === 308) {
+  if (res.status === 308) {
     const loc = res.headers.get("Location");
     if (loc) {
       const redir = new URL(loc, origin);
