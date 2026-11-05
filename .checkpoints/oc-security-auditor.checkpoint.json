@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-09-14T00:38:43.799Z",
-  "updated_at": "2026-11-05T22:27:17.185Z",
+  "updated_at": "2026-11-05T23:56:13.256Z",
   "phase": "build",
   "step": "posture-63222ed2",
   "status": "complete",
@@ -610,6 +610,26 @@
         "policy": "pre-deploy-security-posture-v1",
         "scope": "Pre-deploy posture (tier standard, delta review) of the oc-only 2.1.0 staging-preview candidate 63222ed2, delta e0ef5b10..63222ed2 (the prior PASS, candidate sha256:71fb6ecd...): ReleaseTag theme=oc added to 7 site files (index, architecture, security, privacy, glossary, skills index, EnforcementMap); no Worker/script/header/wrangler/dependency change. Verified by building site with the preview env unset and set=2.1: inline-script hash sets, JS bundle set, non-html/css asset set and external-host sets identical; no inline event handlers; no data-release-tag or preview ribbon in the production build (0/92 pages) and 8 tags + 83 ribbons only in the preview build; scripts/deploy.mjs releasePreviewFor refuses production while PUBLIC_OPCHAIN_RELEASE_PREVIEW is set (runs after loadDevVars, before prebuild; 16 deploy-baseline tests pass); hardening:verify 2/2. Earlier findings (3 LOW, 3 INFO from the e0ef5b10 assessment) carried forward unchanged by reference; no new findings. 0 CRITICAL/HIGH/MEDIUM."
       }
+    },
+    {
+      "id": "oc-security-auditor-pre-deploy-security-posture-v1-c71a7d38fbbd",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-11-05T23:56:13.255Z",
+      "verified_at": "2026-11-05T23:56:13.255Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "pre-deploy-security-posture-v1-2026-11-05T23:56:13.255Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c71a7d38fbbdf04efaddac821def5a5be5624499090ba7e38b0bf0de8cbe54f5"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Pre-deploy security posture of the 2.1.0 release candidate 8e87db82, delta since the PASSED posture at 63222ed2 (candidate sha256:24daf1bc...): #676 (1ce07a06) tightens the attack surface of POST /api/feedback (the per-IP KV rate limit now also precedes Jev J5 on the dry-run path, so a flood cannot drive paid Jev calls; CF-Connecting-IP hashed as before; no new endpoint, header, secret or origin) and enables the J5 triage flag on staging only via wrangler.jsonc env.staging (TYPESAFE_API_KEY stays a secret; production unchanged, flag default off). 8e87db82 is text-only (changelog, date, comment, checkpoint). CSP, headers, robots, discovery surface and secrets handling unchanged; csp-nonce and feedback-triage tests pass in the gate. 0 CRITICAL / 0 HIGH; carried MEDIUM (zod advisory) and LOW (deploy guard) as at 63222ed2."
+      }
     }
   ],
   "latest_pre_deploy": {
@@ -619,9 +639,9 @@
     "blocking_findings": 0,
     "target": "staging preview of the oc-only 2.1.0 candidate (branch claude/staging-preview-2-1)"
   },
-  "record_updated_at": "2026-11-05T22:27:17.185Z",
+  "record_updated_at": "2026-11-05T23:56:13.256Z",
   "skill_state": {
-    "verified_for_sha": "63222ed22c96ab9cd648f677ce9c5f34fa4f1696",
+    "verified_for_sha": "8e87db822a881ce9fe38afa1ef29977bd91d781d",
     "scope": "pre-deploy-delta",
     "tier": "standard",
     "findings_by_risk": {

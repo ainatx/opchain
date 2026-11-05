@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-11-05T22:36:28.195Z",
+  "updated_at": "2026-11-05T23:56:13.070Z",
   "phase": "audit",
   "step": "pre-deploy-staging-preview-63222ed2",
   "status": "complete",
@@ -184,7 +184,7 @@
         "verdict": "no findings"
       }
     ],
-    "verified_for_sha": "63222ed22c96ab9cd648f677ce9c5f34fa4f1696",
+    "verified_for_sha": "8e87db822a881ce9fe38afa1ef29977bd91d781d",
     "current_finding": "F-001"
   },
   "handoffs": [
@@ -756,6 +756,26 @@
         "policy": "pre-deploy-code-audit-v1",
         "scope": "Pre-deploy re-audit of the 2.1.0 staging preview 63222ed2, scoped to the delta since the PASSED audit at e0ef5b10 (candidate sha256:71fb6ecd...): git diff e0ef5b10 63222ed2 is site-only (ReleaseTag theme=oc added to index, architecture, security, privacy, glossary, skills/index, EnforcementMap; glossary gains a typed preview field on 4 terms) plus checkpoint evidence; no Worker src, scripts or skills change. Verified: imports resolve (astro check 0 errors, 0 warnings); no set:html and no new untrusted input (theme is a typed literal, title text is static); site build WITHOUT PUBLIC_OPCHAIN_RELEASE_PREVIEW has 0 data-release-tag in site/dist and npm run build with OPCHAIN_SHIP_WORK unset exits 0 with ow- withheld; WITH PUBLIC_OPCHAIN_RELEASE_PREVIEW=2.1 exactly 15 data-release-tag=oc across the 8 expected pages (architecture, changelog, glossary, index, install, privacy, security, skills); deploy.mjs production guard on the preview var present; a11y: tags sit in eyebrow spans, dt, h2, h3 and appear in accessible names only on a preview build (index and skills links carry an explicit aria-label so their names are unchanged); full vitest 10918 passed with 1 load-flake in tests/ow-tools/capture.test.js SIGTERM test (code 1 vs 143 while the machine ran 2 parallel agents at load ~10), file untouched by the delta and 384/384 green on rerun alone; checkpoint:validate, check-release-surfaces, test:hooks 30/30 green. Earlier findings carried forward by reference from the e0ef5b10 audit: MEDIUM F-001 zod 4.6.5 GHSA-mrhx-c7xc-m3w5 (unreachable, fix 4.6.6 in range) and LOW F-002 deploy.mjs has no production guard on OPCHAIN_SHIP_WORK; both unchanged by this delta. 0 CRITICAL / 0 HIGH / 1 MEDIUM / 1 LOW."
       }
+    },
+    {
+      "id": "oc-code-auditor-pre-deploy-code-audit-v1-c71a7d38fbbd",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-11-05T23:56:13.068Z",
+      "verified_at": "2026-11-05T23:56:13.068Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-code-audit-v1-2026-11-05T23:56:13.068Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c71a7d38fbbdf04efaddac821def5a5be5624499090ba7e38b0bf0de8cbe54f5"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Pre-deploy re-audit of the 2.1.0 release candidate 8e87db82, scoped to the delta since the PASSED audit at 63222ed2 (candidate sha256:24daf1bc...): git diff 63222ed2 8e87db82 excluding .checkpoints is (a) main #676 at 1ce07a06: src/index.js extracts roadmapRateLimit() and applies it on the dry-run roadmap path before the J5 call (live path unchanged, fail-open without NOTIFY as before, 429 keeps CORS headers), wrangler.jsonc adds the staging-only var FLAG_PLATFORM_SECURITY_FEEDBACK_TRIAGE=true (production keeps the registry default off), tests/feedback-triage.test.js adds the dry-run rate-limit test, docs/runbooks/skill-router-eval.md documents it; (b) 8e87db82: changelog prose, the release date, an e2e comment, the oc-release-ops checkpoint; no other executable source. 0 CRITICAL / 0 HIGH; carried: 1 MEDIUM (zod 4.6.5 advisory, unreachable), 1 LOW (deploy.mjs OPCHAIN_SHIP_WORK guard). Full npm test PASS in the gate (receipt for 52decd3c)."
+      }
     }
   ],
   "latest_pre_deploy": {
@@ -765,7 +785,7 @@
     "blocking_findings": 0,
     "target": "staging preview from claude/staging-preview-2-1"
   },
-  "record_updated_at": "2026-11-05T22:36:28.195Z",
+  "record_updated_at": "2026-11-05T23:56:13.070Z",
   "recently_done": [
     {
       "at": "2026-09-21T13:40:12.755Z",
