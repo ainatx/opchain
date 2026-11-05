@@ -1,23 +1,23 @@
 {
-  "id": "oc-repo-ops-pr-readiness-v1-24daf1bcc43c",
+  "id": "oc-repo-ops-pr-readiness-v1-5adfd1d62277",
   "contract_version": "1.0",
   "type": "verification.verdict",
-  "created_at": "2026-11-05T22:38:20.411Z",
-  "verified_at": "2026-11-05T22:38:20.411Z",
+  "created_at": "2026-11-05T23:04:15.892Z",
+  "verified_at": "2026-11-05T23:04:15.892Z",
   "producer": {
     "skill": "oc-repo-ops",
-    "run_id": "pr-readiness-v1-2026-11-05T22:38:20.411Z"
+    "run_id": "pr-readiness-v1-2026-11-05T23:04:15.892Z"
   },
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:24daf1bcc43cbe825788186f26f7963ed96df1569a9dd086a8f90f99514eb503"
+    "id": "sha256:5adfd1d6227724f78558d9480cd3ddfc47ade815623d5b9fb3b15477b1dcc909"
   },
   "payload": {
     "verdict": "PASS",
     "policy": "pr-readiness-v1",
-    "scope": "v2.1.0 release PR: staging-preview tags on the changed 2.1 surfaces (site only)",
+    "scope": "v2.1.0 release PR (Enforcement and Jev): oc- catalog 2.1.0, ow- family separated to 2.2 (2bdc7200), staging-preview labels (63222ed2), main merged through #676 (54688dd6 #675 at aac54cb5, 8bedebf8 #676 at 1ce07a06)",
     "evidence": [
-      "No generated-file drift (site-only change); no orphaned artifacts; pre-deploy code-audit and security-posture PASS handoffs bound to the same tree; astro check 0 errors."
+      "gate PASS on merge candidate (1ce07a06); #676 touches src/index.js, wrangler.jsonc env.staging, tests/feedback-triage.test.js, no generated-catalog or plugin drift; foreign handoffs pruned"
     ]
   }
 }
