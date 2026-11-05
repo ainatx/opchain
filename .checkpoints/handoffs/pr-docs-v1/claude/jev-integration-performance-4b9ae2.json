@@ -1,0 +1,23 @@
+{
+  "id": "oc-docs-forge-pr-docs-v1-ef069d1bede6",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-11-05T20:30:15.058Z",
+  "verified_at": "2026-11-05T20:30:15.058Z",
+  "producer": {
+    "skill": "oc-docs-forge",
+    "run_id": "pr-docs-v1-2026-11-05T20:30:15.058Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:ef069d1bede66c23d7d1cf74d395980544a4231f30e72ea325bb38e670d2fa32"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-docs-v1",
+    "scope": "docs/audits/2026-11-05-jev-performance-since-install.md",
+    "evidence": [
+      "Adds one internal audit under docs/audits (not public/docs, README, CHANGELOG, runbook or SKILL.md); no reader-facing docs change. Same shape as the earlier Jev audits (#655, #659)."
+    ]
+  }
+}
