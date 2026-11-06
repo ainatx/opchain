@@ -1,6 +1,6 @@
 # opchain
 
-> Opchain 2.1.0 · 36 skills · released October 30, 2026.
+> Opchain 2.1.0 · 36 skills · released November 5, 2026.
 
 A coordinated set of Claude skills covering the full software development
 pipeline — discover, spec, design, build, audit, ship, scale. One skill
@@ -67,6 +67,7 @@ Open a new agent session afterward and run `/oc-update check` to verify the
 installed package. Learning remains off until explicitly enabled; provider access
 and an external reviewer must be configured separately.
 
+<!-- ow:begin -->
 ### ow- planning skills (client work: the fit call to the care month)
 
 The nine `ow-` skills under [`skills-work/`](./skills-work/) plan and run client
@@ -133,6 +134,7 @@ new release, never a mirror sync. [`SECURITY-MANIFEST.md`](./plugins/ow-tools/SE
 lists every file with its SHA-256; its own hash is published apart from this
 repository at `https://opchain.dev/work/ow-tools-security-manifest.sha256`
 (see [SECURITY.md](./SECURITY.md)).
+<!-- ow:end -->
 
 ---
 

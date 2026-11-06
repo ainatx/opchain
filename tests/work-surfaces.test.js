@@ -1,4 +1,4 @@
-// /work — opchain.work, the ow- planning family's site section (release 2.1,
+// /work — opchain.work, the ow- planning family's site section (release 2.2,
 // WEB-02, audit item 18). Three guards:
 //   1. every built ow- skill has intro copy and (once built) a page, and every
 //      intro-copy key has a skill folder, so the section and the catalog move

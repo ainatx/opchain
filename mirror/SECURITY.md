@@ -26,6 +26,7 @@ Good-faith research is welcome. Avoid privacy violations, data destruction, and 
 - Prompt-injection vectors in skill content that could cause an agent to take unintended actions.
 - The MCP server (`mcp/`, hosted at `opchain.dev/mcp`).
 
+<!-- ow:begin -->
 ## Checking an ow-tools copy
 
 `plugins/ow-tools/` runs code on your machine. Its `SECURITY-MANIFEST.md` lists
@@ -41,3 +42,4 @@ shasum -a 256 plugins/ow-tools/SECURITY-MANIFEST.md
 The two hashes match when this mirror holds the manifest opchain.dev was built
 from. Then `shasum -a 256 -c` each row of the manifest against the files in the
 plugin folder you installed. A mismatch is a report, through either channel above.
+<!-- ow:end -->

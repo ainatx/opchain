@@ -32,6 +32,8 @@ interface Props {
    * search engines understand each page as structured data.
    */
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  /** Id of the page's main region: renders a "Skip to content" link as the first focusable element. */
+  skipTo?: string;
 }
 
 const {
@@ -42,6 +44,7 @@ const {
   ogType = "website",
   ogImage: ogImageProp,
   jsonLd,
+  skipTo,
 } = Astro.props;
 
 // Route → OG image map. Per-page images lift social-share CTR over the
@@ -207,6 +210,7 @@ const jsonLdString = JSON.stringify({
     )}
   </head>
   <body>
+    {skipTo && <a class="skip-link" href={`#${skipTo}`}>Skip to content</a>}
     {!bare && <Header active={active} />}
     {!bare && <PreviewRibbon />}
     <slot />

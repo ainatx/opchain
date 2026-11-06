@@ -45,7 +45,6 @@ import Base from "../layouts/Base.astro";
 import RoadmapForm from "../components/RoadmapForm.astro";
 import ReleaseTag from "../components/ReleaseTag.astro";
 import type { PreviewTheme } from "../data/release-preview";
-import owTools from "../../../plugins/ow-tools/.claude-plugin/plugin.json";
 import { loadRoadmap, itemsForMilestoneNumber } from "../data/roadmap-types";
 
 const roadmap = loadRoadmap();
@@ -161,10 +160,10 @@ const plannedReleaseGroups: PlannedGroup[] = [
           "The unshipped session-clock work, scoped against current main: wall-clock actuals and visible checkpoint progress.",
       },
       {
-        // Owner decision Q1 (2026-10-29): the deferred ow- skills are named as 2.2.
-        title: "The rest of the ow- planning family",
+        // Owner decision (2026-11-05): the ow- planning family ships with 2.2, not 2.1.
+        title: "The ow- planning family, for client work",
         blurb:
-          "Vendor evaluation, a standing control register with framework packs, and a currency watch, each at its own version, following the nine skills that ship in 2.1.",
+          "Nine planning skills that follow a client job from the first call to the care after the handoff, and the optional ow-tools add-on, each at its own version; vendor evaluation, a standing control register and a currency watch follow.",
         preview: "ow",
       },
     ],
@@ -276,28 +275,14 @@ const plannedReleaseGroups: PlannedGroup[] = [
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">latest release</span>
-          <span class="hero-ver">v2.1.0 · shipped Oct 30, 2026</span>
-          <span class="hero-title">The ow- planning family + enforcement at chokepoints</span>
-          <span class="hero-desc">Two themes in one release: a family of planning skills for people who build software for clients, and a check at each place the dev pipeline&rsquo;s work goes through, so its handoffs hold. The skill router stays an experimental preview.</span>
+          <span class="hero-ver">v2.1.0 · shipped Nov 05, 2026</span>
+          <span class="hero-title">Enforcement and Jev</span>
+          <span class="hero-desc">A check at each place the dev pipeline&rsquo;s work goes through, so its handoffs hold, and the TypeSafe Jev model behind the skill router and three evaluated uses. The skill router stays an experimental preview.</span>
         </button>
         <div class="card-body" id="v2-1-body" data-disclosure-body>
           <div class="card-body-inner hero-body-inner">
-            <div class="tag-row"><span class="tag tag--info">released</span><span class="tag">36 oc- skills</span><span class="tag">9 ow- skills</span><span class="tag">ow-tools {owTools.version}</span><span class="tag tag--warn">router: experimental preview</span><ReleaseTag theme="ow" /><ReleaseTag theme="oc" /></div>
-            <p>The oc- catalog moves to 2.1.0 in lockstep. The ow- planning skills carry their own versions (every skill at 2.0.1 on protocol 2 after the 2026-11-03 audience reversal) and live at <a href="/work">opchain.work</a>; they are not counted with the 36 oc- skills.</p>
-<h3>The ow- planning family, for client work</h3>
-            <p>Nine skills for one operator&rsquo;s own client work, from the first call to the handoff and the care after it, each at its own version, plus one optional add-on. They run in Claude Code, may run code and call ow-tools, and read and write your own CRM as the record; at most three questions and one approval before a document, always through AskUserQuestion. Three of them use the host&rsquo;s own web tools or a document connector, with its prompts on. They never invent a price, claim a signature, or send anything to a client for you. <ReleaseTag theme="ow" /></p>
-            <ul class="horizon-list">
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-start</span><p class="horizon-blurb">The 20-minute fit call: a one-page call guide before it, and a client recap with one recommended path after it, written from the transcript or your notes.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-build-plan</span><p class="horizon-blurb">The Build Plan and the fixed quote: a one-page offer, a process map, scope with acceptance checks, and a quote added up only from your own price book.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-build</span><p class="horizon-blurb">The client side of the build: a written update each week, a demo at each milestone, changes priced before they start, and payments.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-uat</span><p class="horizon-blurb">The acceptance test: the client&rsquo;s people try the build against what was agreed, in-scope problems are fixed, and the client signs off.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-documentation <ReleaseTag theme="ow" /></span><p class="horizon-blurb">The bought documentation and training line after sign-off: manuals, runbooks and sessions, exported through a connector after you confirm each file.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-handoff</span><p class="horizon-blurb">The handoff: documents, code and accounts in the client&rsquo;s name, the fix window, and the builder&rsquo;s access taken back out.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-care <ReleaseTag theme="ow" /></span><p class="horizon-blurb">Monthly care after a handoff, or after a takeover of someone else&rsquo;s build: what was checked, what changed, what it cost.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-research <span class="tag">cross-stage</span> <ReleaseTag theme="ow" /></span><p class="horizon-blurb">Research from sources it opened itself, through the host&rsquo;s own web tools, with every claim traced to a page it read.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-draft <span class="tag">cross-stage</span> <ReleaseTag theme="ow" /></span><p class="horizon-blurb">Drafts from evidence, exported and delivered after you confirm each file.</p></div></li>
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">ow-tools (Claude Code add-on) <ReleaseTag theme="ow" /></span><p class="horizon-blurb">Optional code that runs on your machine and says so: local transcription, PDF, Word, PowerPoint and Excel export, screenshots of a test environment, read-only health checks, digests, date and hours arithmetic, a redacted secrets scan, and the open-work list at session start. Health checks and screenshots use the network, only for what you list; audio never leaves the machine. The skills do their job without it.</p></div></li>
-            </ul>
+            <div class="tag-row"><span class="tag tag--info">released</span><span class="tag">36 skills</span><span class="tag tag--warn">router: experimental preview</span><ReleaseTag theme="oc" /></div>
+            <p>The skill catalog moves to 2.1.0 in lockstep. Nothing here changes how an existing skill is invoked, apart from the one breaking change under Upgrading from 2.0.</p>
             <h3>Enforcement at chokepoints</h3>
             <p>A skill file can describe a handoff; only a check outside it can make the handoff hold. 2.1 puts that check where the work goes through (the commit, the push, the pull request, the deploy) and says which handoffs have none yet.</p>
             <ul class="horizon-list">
@@ -312,9 +297,10 @@ const plannedReleaseGroups: PlannedGroup[] = [
             </ul>
             <h3>Experimental preview</h3>
             <ul class="horizon-list">
-              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Skill router <span class="tag tag--warn">experimental preview</span></span><p class="horizon-blurb">An opt-in hook that asks TypeSafe&rsquo;s Jev model which opchain skill owns a request. It is off unless you set <code>TYPESAFE_API_KEY</code>; with a key it sends the redacted prompt and a short repository summary to <code>api.typesafe.ai</code> and only logs its answer on your machine. Showing the suggestion in your session (live mode) stays unsupported until a recorded go/no-go says otherwise.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">Skill router <span class="tag tag--warn">experimental preview</span></span><p class="horizon-blurb">An opt-in hook that asks TypeSafe&rsquo;s Jev model which opchain skill owns a request. It is off unless you set <code>TYPESAFE_API_KEY</code>; with a key it sends the redacted prompt and a short repository summary to <code>api.typesafe.ai</code> and only logs its answer on your machine. The shadow-period go/no-go recorded a GO on 2026-11-05 (65 suggestions, every row hand-labelled: precision 0.836, recall 0.836, silent rate 0.954); the default stays shadow. Showing the suggestion in your session (live mode, <code>OPCHAIN_ROUTE_MODE=live</code>) is an opt-in since that GO, and whether it changes skill use is not yet measured.</p></div></li>
+              <li class="horizon-item"><div class="horizon-meta"><span class="horizon-title">More Jev uses, evaluated and not wired in <span class="tag tag--warn">eval only</span></span><p class="horizon-blurb">A shared Jev client and a registry of uses, each scored against a labelled set before it is used for anything: outcome judgement, PR-docs completeness (36 of 38 live) and feedback triage (22 of 24 live, every security report caught). One use is live behind a flag that is off: with <code>platform.security.feedback-triage</code> and the <code>TYPESAFE_API_KEY</code> Worker secret set, a roadmap request that reads as a security report is filed privately instead of as a public issue; <a href="/privacy">/privacy</a> says what is sent.</p></div></li>
             </ul>
-                        <div class="compat-box"><strong>Upgrading from 2.0:</strong> re-run <code>/oc-enroll</code> for the post-commit and pre-push hooks (<code>/oc-enroll --ci --force</code> refreshes the runtime and brings the per-branch evidence store). <strong>Breaking:</strong> the deploy wrapper needs <code>--prod</code> for production; no environment variable selects it. The router is off without a key. <a href="/install#update">Upgrade notes</a> · <a href="/work">opchain.work</a> · <a href="/security#ow-tools">ow-tools security</a></div>
+                        <div class="compat-box"><strong>Upgrading from 2.0:</strong> re-run <code>/oc-enroll</code> for the post-commit and pre-push hooks (<code>/oc-enroll --ci --force</code> refreshes the runtime and brings the per-branch evidence store). <strong>Breaking:</strong> the deploy wrapper needs <code>--prod</code> for production; no environment variable selects it. The router is off without a key. <a href="/install#update">Upgrade notes</a></div>
           </div>
         </div>
       </article>
@@ -1266,7 +1252,7 @@ const plannedReleaseGroups: PlannedGroup[] = [
         <span class="panel-sub">The next release's direction is set.</span>
       </div>
 
-      <!-- 2.1 shipped 2026-10-30 (hero above). The next release's direction card
+      <!-- 2.1 shipped 2026-11-05 (hero above). The next release's direction card
            is the first entry of plannedReleaseGroups (v2.2, not votable); the
            votable "later" groups stay under Planned. -->
       {plannedReleaseGroups.filter((g) => g.id === "v2-2").map((group) => (

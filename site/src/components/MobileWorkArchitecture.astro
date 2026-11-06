@@ -12,7 +12,7 @@ import { TOOLS_BY_SKILL, WORK_SKILLS } from "../data/work";
 import owTools from "../../../plugins/ow-tools/.claude-plugin/plugin.json";
 
 interface Props { release?: string }
-const { release = "v2.1" } = Astro.props;
+const { release = "v2.2" } = Astro.props;
 const skills = await getAllWorkSkills();
 const ids = skills.map((s) => s.data.name);
 const input: DiagramInput = {

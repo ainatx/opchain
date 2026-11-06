@@ -99,7 +99,7 @@ opchain/
 │   ├── (astro dist copied in)
 │   ├── opchain-skills.zip  # Generated from skills/ by scripts/make-skills-zip.sh
 │   └── docs/               # Synced from skills/ by scripts/sync-docs.sh
-├── skills/                 # Skill source definitions (the product) — 33 skills,
+├── skills/                 # Skill source definitions (the product) — 36 skills,
 │   │                       # one subdir per id (each with SKILL.md). Full list +
 │   │                       # phases: skills/README.md. A few examples:
 │   ├── oc-app-architect/
@@ -119,6 +119,8 @@ opchain/
 │   │                       # ow-build, ow-uat, ow-documentation, ow-handoff, ow-draft, ow-research, ow-care).
 │   │                       # Text-only, own protocol (ow-protocol.md), per-skill versions; one release tag
 │   │                       # (v<lockstep>) covers both catalogs (docs/governance/RELEASING.md §2a).
+│   │                       # Withheld until the 2.2 release: no ow- output (zips, docs, mirror, ow-tools) is
+│   │                       # built or mirrored unless OPCHAIN_SHIP_WORK=1 (RELEASING §2a).
 │   │                       # Ships through its OWN outputs (REL-01): public/opchain-work-skills.zip +
 │   │                       # public/work/<id>.zip (make-work-skills-zip.sh), public/docs/work (sync-work-docs.sh),
 │   │                       # and the public mirror; both scripts (chained from sync-docs/make-zip, no new npm script) refuse until

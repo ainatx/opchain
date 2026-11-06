@@ -225,7 +225,7 @@ export function checkReleaseSurfaces({ root = ROOT } = {}) {
     }
   }
 
-  // 2.1 /work (opchain.work, the ow- planning family). The ow- catalog is
+  // 2.2 /work (opchain.work, the ow- planning family). The ow- catalog is
   // versioned per skill and is in no oc- output, so the live-claim line above
   // says nothing about it. What the section must never do is name a skill the
   // family has not built: catalogs.json `ow.planned` legitimately holds the

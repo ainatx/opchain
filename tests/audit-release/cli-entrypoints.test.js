@@ -32,7 +32,7 @@ describe.each(["checkout", "release candidate #1%"])("release CLI in %s", (name)
   let repo;
   let version;
   const command = (executable, args) => spawnSync(executable, args, {
-    cwd: repo || ROOT, env: ENV, encoding: "utf8", timeout: 15000,
+    cwd: repo || ROOT, env: ENV, encoding: "utf8", timeout: 45000,
   });
   const cli = (script, ...args) => command(process.execPath, [script, ...args]);
   const git = (...args) => {
@@ -115,7 +115,8 @@ describe.each(["checkout", "release candidate #1%"])("release CLI in %s", (name)
     const gate = cli("scripts/lib/release-evidence.mjs", "--stage", "deploy", "--json");
     expect(gate.status, gate.stdout).toBe(1);
     expect(JSON.parse(gate.stderr)).toMatchObject({ ok: false, verdict: "FAIL" });
-  // Two CLI spawns that hash the candidate tree take 5-9s on a loaded machine;
-  // at vitest's 5s default this flaked the commit gate's tests check.
-  }, 30000);
+  // Two CLI spawns that hash the candidate tree take 11s or more each during the
+  // commit gate's parallel run; tighter limits killed them (status null) and
+  // flaked the gate's tests check.
+  }, 100000);
 });

@@ -1,0 +1,24 @@
+{
+  "id": "oc-repo-ops-pr-readiness-v1-e7c80419b951",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-11-06T01:42:55.296Z",
+  "verified_at": "2026-11-06T01:42:55.296Z",
+  "producer": {
+    "skill": "oc-repo-ops",
+    "run_id": "pr-readiness-v1-2026-11-06T01:42:55.296Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:e7c80419b951bcd4c43286496714e568a5df3213234c827c370b86f84ce23a41"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-readiness-v1",
+    "scope": "PR readiness of the 2.1.0 release branch at ddfcf133: merged origin/main 4aa26faf (#677) with no conflicts; all 25 .bugcheck.json scan-exception digests verified against the merged tree; plugins/opchain/skills matches skills/ (sync-plugin-skills:check); check-release-surfaces agrees on v2.1 on every surface; checkpoint:validate 17/17; the 13 pinned + #677 vitest files (154 tests) pass; astro check clean; router-label, routes and changelog e2e pass on the rebuilt site (the one changelog vote-count test needs gen-roadmap data at build time, which CI supplies); foreign handoffs (jev-follow-through) pruned; no generated-file or catalog drift.",
+    "evidence": [
+      ".bugcheck.json",
+      "plugins/opchain/hooks/hooks.json"
+    ]
+  }
+}

@@ -330,6 +330,23 @@ describe("route-prompt hook: speaking", () => {
     expect(d.logLines.filter((l) => l.type === "outcome")).toHaveLength(2);
   });
 
+  it("closes the previous prompt's outcome past a redirect record in the log", () => {
+    const sessionId = "sess-redirect";
+    const log = join(scratch, "redirect-log.jsonl");
+    const file = join(scratch, "redirect-transcript.jsonl");
+    const first = "commit this and open a PR against main";
+    writeFileSync(file, JSON.stringify({ type: "user", message: { role: "user", content: "earlier context prompt" } }) + "\n");
+    const a = run({ prompt: first, transcript_path: file, logFile: log, sessionId });
+    expect(a.logLines).toHaveLength(1);
+    appendFileSync(file, JSON.stringify({ type: "user", timestamp: "2026-01-01T00:00:00.000Z", message: { role: "user", content: first } }) + "\n");
+    // route-redirect.cjs blocked a raw command in that turn.
+    appendFileSync(log, JSON.stringify({ type: "redirect", at: new Date().toISOString(), session_id: sessionId, for_prompt_hash: a.logLines[0].prompt_hash, class: "gh_pr_create", action: "block" }) + "\n");
+    const b = run({ prompt: "thanks, now deploy to staging", transcript_path: file, logFile: log, sessionId });
+    const outcomes = b.logLines.filter((l) => l.type === "outcome");
+    expect(outcomes).toHaveLength(1);
+    expect(outcomes[0].for_prompt_hash).toBe(a.logLines[0].prompt_hash);
+  });
+
   it("sends a core checkpoint written in the last day, and only that", () => {
     const dir = mkRepo();
     writeFileSync(

@@ -27,7 +27,7 @@ describe("site release chip", () => {
     expect(skillsPage).toContain('<span class="release-callout-tag">v2.1 · SHIPPED</span>');
     expect(skillsPage).toContain("Enforcement at chokepoints");
     expect(skillsPage).toContain("<code>/oc-merge</code>");
-    expect(skillsPage).toContain('<a href="/work">opchain.work</a>');
+    expect(skillsPage).not.toContain("/work");
   });
 
   // The release-version location map lives in a shipped skill doc

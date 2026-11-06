@@ -11,33 +11,18 @@ contract another skill depends on → called out as **BREAKING**. The on-disk
 checkpoint `protocol_version` is tracked separately (see
 `oc-checkpoint-protocol/SKILL.md`).
 
-## [2.1.0] — 2026-10-30 — "The ow- planning family + enforcement at chokepoints"
+## [2.1.0] — 2026-11-05 — "Enforcement and Jev"
 
-Two themes in one release: the ow- planning family for client work, and a
-check at each place the dev pipeline's work goes through. The skill router
-stays an experimental preview. Staging preview cut on 2026-10-30 from the
-`claude/2-1-staging-preview-bf05c2` branch; the tag follows the release-cut
-sitting.
+The oc- dev pipeline gains a check at each place its work goes through: the
+commit, the push, the pull request, the deploy and the release. TypeSafe's Jev
+model, which the skill router already used in shadow mode, becomes a shared
+client with a registry of uses, each scored against a labelled set before it is
+used for anything. The skill router stays an experimental preview in shadow
+mode. The oc- catalog moves to 2.1.0 in lockstep. The ow- planning family for
+client work is not part of this release: it stays unshipped on `main` and ships
+with 2.2 (owner decision 2026-11-05; `docs/governance/RELEASING.md` §2a).
 
 ### Added
-
-- **The ow- planning family (opchain.work), nine skills at their own versions.**
-  ow-start, ow-build-plan, ow-build, ow-uat, ow-documentation, ow-handoff,
-  ow-care, ow-research and ow-draft, each at 2.0.1 on protocol 2 after the
-  2026-11-03 audience reversal (`docs/plans/2026-11-03-ow-audience-reversal.md`;
-  `skills-work/`, per-skill versions, not lockstep). Text files only in the
-  skill folders; `network: none` for six, `network: declared` for ow-research,
-  ow-documentation and ow-draft (they may use the host's own web tools or a
-  document connector under the host's prompts). The catalog ships apart from
-  the oc- outputs: its own zips (`opchain-work-skills.zip`, `/work/<id>.zip`),
-  its own docs tree (`/docs/work`), the public mirror's `skills-work/`, and
-  the `/work` site section (REL-01). The ow-tools 1.3.2 Claude Code add-on
-  (`plugins/ow-tools/`, own marketplace `opchain-work-tools`, pinned to this
-  release's tag) runs code on the user's machine and says so: transcription,
-  export, calc, digest, health, capture, scan-secrets, session start, doctor;
-  only health and capture use the network, for what the user lists; the
-  speaker model loads at one pinned revision and the Whisper model's SHA-256
-  is checked before every transcription.
 
 - **J5 in the Worker, J8 in `/oc-docs pr` (plan §6, 2026-10-29).** With
   `platform.security.feedback-triage` on (default off) and the
@@ -82,7 +67,7 @@ sitting.
   `gen-route-spec.mjs` into `plugins/opchain/hooks/jev-questions.json`, which
   ships beside `route-spec.json` and is drift-checked with it. `route-eval jev
   <use>` scores a use against its gold set, offline on canned answers or live
-  with `TYPESAFE_API_KEY`. J9 quotes `ow-protocol.md` §3d and changes no ow-
+  with `TYPESAFE_API_KEY`. J9 quotes a sentence from the unshipped ow- protocol and changes no ow-
   text. Plan: `docs/plans/2026-10-24-jev-integration-plan.md`.
 - **Enforcement at chokepoints (audit 2026-10-08).** The effectiveness audit of
   two repositories found that every skill-to-skill edge held only where something
@@ -196,12 +181,36 @@ sitting.
   suggestions sat at 0.43 and 0.52), and the line it injects carries the
   chosen step's description. Task notifications, CI events and other sessions'
   messages neither route nor end the measured window of the prompt before them. Unset the key or set `OPCHAIN_ROUTE=0` to turn it off. It has an offline
-  eval (574 labelled past prompts) and a first shadow-period read (2026-10-23:
-  hand-labelled precision 0.71 against a 0.8 bar); whether it changes skill use
-  is not yet measured. `OPCHAIN_ROUTE_MODE=live`, which injects the
-  suggestion, is **unsupported** until the shadow-period go/no-go
+  eval (574 labelled past prompts: precision 1.000, recall 0.805, silent
+  1.000 on `+route4`). The shadow-period go/no-go is **GO**: the
+  day-8 re-run of 2026-10-26 (`docs/audits/2026-10-26-jev-day8-and-route4.md`)
+  was NO-GO on volume and unlabelled suggestions, not on precision; with every
+  row hand-labelled (`docs/audits/2026-11-05-jev-performance-since-install.md`,
+  311 prompts since install, all builds) the day-8 gate reads GO on 65
+  suggestions: precision 0.836, recall 0.836, silent rate 0.954. The shipped
+  default stays shadow, and whether the router changes skill use is not yet
+  measured. `OPCHAIN_ROUTE_MODE=live`, which injects the suggestion, is
+  supported as an opt-in now that the go/no-go
   (`docs/runbooks/skill-router-eval.md` §6) records a GO; `OPCHAIN_ROUTE_AB=1`
-  then shows it to half the sessions so the effect can be measured.
+  shows it to half the sessions so the effect can be measured.
+  Two additions landed with the GO (#677). A `PreToolUse` (Bash) hook,
+  `route-redirect.cjs`, registered in `hooks.json`, holds the agent to a shown
+  suggestion: it acts only when the prompt being answered was routed in live
+  mode to oc-git-ops or oc-deploy-ops and the agent then runs `gh pr merge`,
+  `gh pr create`, `npm run deploy*`, `wrangler deploy`, `scripts/deploy.mjs` or
+  `wrangler d1 migrations apply … --remote` without having invoked that skill.
+  The first attempt is denied with the exact Skill call to make; a retry of the
+  same command class in the same turn goes through and is logged as an
+  override; every failure lets the command through; it never acts on `git
+  commit`. In shadow mode, the default, it does nothing.
+  `OPCHAIN_ROUTE_REDIRECT=0` turns it off. And `route-eval outcomes` counts
+  work done elsewhere: a PR the request names, or the session branch's PR,
+  merged, set to auto-merge or opened on GitHub, and another routed session in
+  the same repository merging, opening or deploying, within
+  `--elsewhere-hours` of the prompt (default 2; `--no-elsewhere` turns it off).
+  Its report gains a Follow-through section (done through the suggested skill,
+  with raw commands in the session, elsewhere, or not at all), and a compaction
+  summary no longer closes a prompt's outcome window.
 
 ### Fixed
 

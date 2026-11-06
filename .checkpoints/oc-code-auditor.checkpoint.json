@@ -4,13 +4,15 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-11-02T22:27:49.666Z",
+  "updated_at": "2026-11-06T01:42:55.506Z",
   "phase": "audit",
-  "step": "pre-deploy-main-e00f9623",
+  "step": "pre-deploy-staging-preview-63222ed2",
   "status": "complete",
-  "progress_summary": "Pre-deploy audit 2026-11-02 (fourth cut) for staging preview head cb8b857a (PR #669, now carrying origin/main d7e1bf24 / #672): PASS, 0 CRITICAL / 0 HIGH / 0 MEDIUM / 1 LOW carried (F-001). Delta since d30a6b97 is #672 from main (gate PASS_SUPERSEDED fix in the plugin runtime scripts, no Worker or site change) plus the recomputed oc-bug-check scan digests; gate PASS on the merge; hardening:verify 2/2.",
+  "progress_summary": "Pre-deploy re-audit 2026-11-05 for staging preview 63222ed2 (delta e0ef5b10..63222ed2 is site-only ReleaseTag additions): PASS, 0 CRITICAL / 0 HIGH / 1 MEDIUM (zod 4.6.5 advisory, unreachable, carried) / 1 LOW (deploy.mjs OPCHAIN_SHIP_WORK guard, carried). Tags render nothing without PUBLIC_OPCHAIN_RELEASE_PREVIEW (0 in dist); 15 oc tags across 8 pages with it set.",
   "blockers": [],
   "next_actions": [
+    "Bump zod to 4.6.6 (in-range ^4.6.5, GHSA-mrhx-c7xc-m3w5) in a follow-up lockfile PR",
+    "Consider refusing OPCHAIN_SHIP_WORK=1 in scripts/deploy.mjs production path until the 2.2 release",
     "Add CODEOWNERS (or required review) on .github/workflows/ and .opchain/ before relying on the evidence:pr template in consumer repos"
   ],
   "eval_scores": [
@@ -182,7 +184,7 @@
         "verdict": "no findings"
       }
     ],
-    "verified_for_sha": "cb8b857a67ef0ab601cd5935e81d6ef5f27dc903",
+    "verified_for_sha": "ddfcf1330ed64a2c0ff10ceef63dae58a628e4dd",
     "current_finding": "F-001"
   },
   "handoffs": [
@@ -716,34 +718,100 @@
       }
     },
     {
-      "id": "oc-code-auditor-pre-deploy-code-audit-v1-75704351fd85",
+      "id": "oc-code-auditor-pre-deploy-code-audit-v1-71fb6ecdf644",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-11-02T22:27:49.665Z",
-      "verified_at": "2026-11-02T22:27:49.665Z",
+      "created_at": "2026-11-05T21:39:50.824Z",
+      "verified_at": "2026-11-05T21:39:50.824Z",
       "producer": {
         "skill": "oc-code-auditor",
-        "run_id": "pre-deploy-code-audit-v1-2026-11-02T22:27:49.665Z"
+        "run_id": "pre-deploy-code-audit-v1-2026-11-05T21:39:50.824Z"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:75704351fd8599ecc90dc3565eb8302b438333fcccb6b57f64a2ea26654f2357"
+        "id": "sha256:71fb6ecdf644e84dde04c95cb20a95b0a71db0d9b6c36c502a3898c145fc8e9a"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pre-deploy-code-audit-v1",
-        "scope": "Pre-deploy audit of the staging cut d30a6b97..cb8b857a: #672 gate fix merged, bugcheck digests recomputed; no Worker, site or header change; 0 CRITICAL/HIGH/MEDIUM, 1 LOW carried."
+        "scope": "Pre-deploy audit of the oc-only 2.1.0 staging preview e0ef5b10 (delta d30a6b97..e0ef5b10, 556 files, ~all ow-/work removals + #674 SHIP_WORK gate + enforcement receipt-coverage change). Verified by build and tests, not read-only: OPCHAIN_SHIP_WORK unset full npm run build exits 0 and public/ has no ow- zip, docs/work, work/, manifest hash or /work route; stale public/work + opchain-work-skills.zip + docs/work are removed by sync-docs/make-zip and caught by check-work-install --expect-withheld (negative control fails as designed); mirror-public.yml assemble step simulated unset-var (ow-tools removed, ow:begin/end stripped, no skills-work); 180 test files / 10919 tests green; hardening:verify, check-release-surfaces, checkpoint:validate, test:hooks 30/30 green. Worker src/ and scripts/deploy.mjs unchanged since d30a6b97 and re-read (main-ancestry, off-main hatch staging-only, release-preview guard); verify-candidate PASS_SUPERSEDED coverage reviewed (tree+policy+config-digest bound, never accepted by enforce/run path). 0 CRITICAL / 0 HIGH. MEDIUM F-001 zod 4.6.5 GHSA-mrhx-c7xc-m3w5 (fix 4.6.6, in-range) not reachable: schemas.js has no z.array/record. LOW F-002 deploy.mjs loads .dev.vars before prebuild so OPCHAIN_SHIP_WORK=1 there would ship ow- to production unguarded. INFO: v2.1.0 tag not yet created (production gate only)."
+      }
+    },
+    {
+      "id": "oc-code-auditor-pre-deploy-code-audit-v1-24daf1bcc43c",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-11-05T22:36:15.267Z",
+      "verified_at": "2026-11-05T22:36:15.267Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-code-audit-v1-2026-11-05T22:36:15.267Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:24daf1bcc43cbe825788186f26f7963ed96df1569a9dd086a8f90f99514eb503"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Pre-deploy re-audit of the 2.1.0 staging preview 63222ed2, scoped to the delta since the PASSED audit at e0ef5b10 (candidate sha256:71fb6ecd...): git diff e0ef5b10 63222ed2 is site-only (ReleaseTag theme=oc added to index, architecture, security, privacy, glossary, skills/index, EnforcementMap; glossary gains a typed preview field on 4 terms) plus checkpoint evidence; no Worker src, scripts or skills change. Verified: imports resolve (astro check 0 errors, 0 warnings); no set:html and no new untrusted input (theme is a typed literal, title text is static); site build WITHOUT PUBLIC_OPCHAIN_RELEASE_PREVIEW has 0 data-release-tag in site/dist and npm run build with OPCHAIN_SHIP_WORK unset exits 0 with ow- withheld; WITH PUBLIC_OPCHAIN_RELEASE_PREVIEW=2.1 exactly 15 data-release-tag=oc across the 8 expected pages (architecture, changelog, glossary, index, install, privacy, security, skills); deploy.mjs production guard on the preview var present; a11y: tags sit in eyebrow spans, dt, h2, h3 and appear in accessible names only on a preview build (index and skills links carry an explicit aria-label so their names are unchanged); full vitest 10918 passed with 1 load-flake in tests/ow-tools/capture.test.js SIGTERM test (code 1 vs 143 while the machine ran 2 parallel agents at load ~10), file untouched by the delta and 384/384 green on rerun alone; checkpoint:validate, check-release-surfaces, test:hooks 30/30 green. Earlier findings carried forward by reference from the e0ef5b10 audit: MEDIUM F-001 zod 4.6.5 GHSA-mrhx-c7xc-m3w5 (unreachable, fix 4.6.6 in range) and LOW F-002 deploy.mjs has no production guard on OPCHAIN_SHIP_WORK; both unchanged by this delta. 0 CRITICAL / 0 HIGH / 1 MEDIUM / 1 LOW."
+      }
+    },
+    {
+      "id": "oc-code-auditor-pre-deploy-code-audit-v1-c71a7d38fbbd",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-11-05T23:56:13.068Z",
+      "verified_at": "2026-11-05T23:56:13.068Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-code-audit-v1-2026-11-05T23:56:13.068Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c71a7d38fbbdf04efaddac821def5a5be5624499090ba7e38b0bf0de8cbe54f5"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Pre-deploy re-audit of the 2.1.0 release candidate 8e87db82, scoped to the delta since the PASSED audit at 63222ed2 (candidate sha256:24daf1bc...): git diff 63222ed2 8e87db82 excluding .checkpoints is (a) main #676 at 1ce07a06: src/index.js extracts roadmapRateLimit() and applies it on the dry-run roadmap path before the J5 call (live path unchanged, fail-open without NOTIFY as before, 429 keeps CORS headers), wrangler.jsonc adds the staging-only var FLAG_PLATFORM_SECURITY_FEEDBACK_TRIAGE=true (production keeps the registry default off), tests/feedback-triage.test.js adds the dry-run rate-limit test, docs/runbooks/skill-router-eval.md documents it; (b) 8e87db82: changelog prose, the release date, an e2e comment, the oc-release-ops checkpoint; no other executable source. 0 CRITICAL / 0 HIGH; carried: 1 MEDIUM (zod 4.6.5 advisory, unreachable), 1 LOW (deploy.mjs OPCHAIN_SHIP_WORK guard). Full npm test PASS in the gate (receipt for 52decd3c)."
+      }
+    },
+    {
+      "id": "oc-code-auditor-pre-deploy-code-audit-v1-e7c80419b951",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-11-06T01:42:55.504Z",
+      "verified_at": "2026-11-06T01:42:55.504Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-code-audit-v1-2026-11-06T01:42:55.504Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:e7c80419b951bcd4c43286496714e568a5df3213234c827c370b86f84ce23a41"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Pre-deploy re-audit of the 2.1.0 release candidate ddfcf133, delta since the PASSED audit at 8e87db82 (candidate sha256:c71a7d38...): (a) 4c23facb is text-only (site router copy, router-status.ts constants, the router-label e2e rule); (b) main #677 at 4aa26faf, read in full: plugins/opchain/hooks/route-redirect.cjs (new PreToolUse Bash hook: regex-classifies the command via route-dispatch rawCommandClasses, acts only on an injected live route to oc-git-ops/oc-deploy-ops whose outcome window is still open and whose skill was not invoked; block-once-then-override scoped to the route's time; appends redirect records to the route log; fails open on every error incl. a failed log append, never acts on git commit, OPCHAIN_ROUTE_REDIRECT=0 disables; the deny reason is JSON-stringified, args must start with '/'), hooks.json registration (PreToolUse Bash, 5 s timeout), route-dispatch.cjs (isCompactSummary excluded from human turns; deploy class adds wrangler d1 migrations apply ... --remote), route-prompt.cjs (skips redirect records when closing the previous outcome), scripts/route-eval.mjs (githubEvidence/otherSessionEvidence/addElsewhereEvidence, fetchRepoPrs via spawnSync gh api graphql with an args array and an owner/name parsed by a restricted regex, Follow-through report; redirect lookup keys match the row fields), tests route-redirect/route-hook/route-eval-elsewhere/audit-commit compatibility; the changelog passage. 0 CRITICAL / 0 HIGH; new LOW: the hook requires route-dispatch.cjs on every Bash call before its cheap regex exit (load cost per call, bounded by the 5 s timeout); carried: 1 MEDIUM (zod 4.6.5 advisory, unreachable), 1 LOW (deploy.mjs OPCHAIN_SHIP_WORK guard). Full npm test PASS in the gate for ddfcf133.",
+        "evidence": [
+          "plugins/opchain/hooks/route-redirect.cjs",
+          "plugins/opchain/hooks/lib/route-dispatch.cjs",
+          "plugins/opchain/hooks/route-prompt.cjs",
+          "plugins/opchain/hooks/hooks.json"
+        ]
       }
     }
   ],
   "latest_pre_deploy": {
-    "candidate": "e00f962357353e91b54e6874f6b2ac51508bcc45",
-    "candidate_identity": "sha256:764435509fb799a0ee3d9764ac2b9f88db9bc305c54e6e876bdb9204df6d3285",
+    "candidate": "63222ed22c96ab9cd648f677ce9c5f34fa4f1696",
+    "candidate_identity": "sha256:24daf1bcc43cbe825788186f26f7963ed96df1569a9dd086a8f90f99514eb503",
     "verdict": "PASS",
     "blocking_findings": 0,
-    "target": "staging from main"
+    "target": "staging preview from claude/staging-preview-2-1"
   },
-  "record_updated_at": "2026-11-02T22:27:49.666Z",
+  "record_updated_at": "2026-11-06T01:42:55.506Z",
   "recently_done": [
     {
       "at": "2026-09-21T13:40:12.755Z",

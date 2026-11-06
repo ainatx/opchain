@@ -11,6 +11,13 @@
 //   /demo                      Perf 0.97  A11y 1.00  Best 1.00  SEO 1.00
 //   /changelog                 Perf 0.99  A11y 1.00  Best 1.00  SEO 1.00
 //
+// /install joined on the WEB-01 held branch (2.1 enrollment + skill-router
+// sections), median of 3 local runs 2026-10-17, same preview server, gated at
+// `error` from the start; /architecture re-measured with the Jev rail and the
+// enforcement map:
+//   /install                   Perf 1.00  A11y 1.00  Best 1.00  SEO 1.00
+//   /architecture              Perf 0.99  A11y 1.00  Best 1.00  SEO 1.00
+//
 // Best Practices read 0.96 on every route from 2026-08 to 2026-09-11. That was
 // not a site regression: the Header's live-version chip fetches /api/health on
 // load, `astro preview` has no Worker routes, and the resulting console 404
@@ -52,7 +59,8 @@ module.exports = {
         "http://127.0.0.1:4321/architecture",
         "http://127.0.0.1:4321/demo",
         "http://127.0.0.1:4321/changelog",
-        // 2.1 opchain.work (WEB-02). Calibrated locally on 2026-10-30 with
+        "http://127.0.0.1:4321/install",
+        // 2.2 opchain.work (WEB-02), previewed on this branch. Calibrated locally on 2026-10-30 with
         // lhci collect + assert, three runs each: /work Perf 0.96–1.00, A11y
         // 1.00, Best 1.00, SEO 1.00; /work/ow-start 1.00 on all four. The
         // pages share one layout (WorkPage.astro), so the overview and one
@@ -72,6 +80,7 @@ module.exports = {
         { matchingUrlPattern: "/architecture$",             assertions: ROUTE_GATE },
         { matchingUrlPattern: "/demo$",                     assertions: ROUTE_GATE },
         { matchingUrlPattern: "/changelog$",                assertions: ROUTE_GATE },
+        { matchingUrlPattern: "/install$",                  assertions: ROUTE_GATE },
         { matchingUrlPattern: "/work$",                     assertions: ROUTE_GATE },
         { matchingUrlPattern: "/work/ow-start$",            assertions: ROUTE_GATE },
       ],

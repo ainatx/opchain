@@ -287,6 +287,7 @@ what `outcomes` scores.
 ```bash
 npm run route:eval -- outcomes [--log $TMPDIR/opchain-route-log.jsonl] [--since 2026-10-09] [--report scratch/route-outcomes.md]
   [--labels <log dir>/route-labels.jsonl] [--window-minutes 30] [--projects-root ~/.claude/projects] [--rows <file>] [--no-rescore]
+  [--no-elsewhere] [--elsewhere-hours 2] [--elsewhere-fixture <file>]
 ```
 
 `--log` defaults to `$OPCHAIN_ROUTE_LOG`, else the hook's default path. Note
@@ -329,10 +330,26 @@ precision 0.31 by the proxy against 0.71 by hand. So:
      - oc-release-ops: oc-docs-forge, oc-git-ops, oc-deploy-ops
    - S's raw class ran, or its tool equivalent was used:
      - oc-git-ops: `git commit`/`push`/`merge`/`rebase`, `gh pr create`/`merge`, `mcp__ccd_pr__set_auto_merge`, `sync_with_base_branch`, or a `gh pr merge …` command handed to the user in backticks (the opchain repos squash-merge by hand)
-     - oc-deploy-ops: `npm run deploy*`, `wrangler deploy`, `node scripts/deploy.mjs`
+     - oc-deploy-ops: `npm run deploy*`, `wrangler deploy`, `node scripts/deploy.mjs`, `wrangler d1 migrations apply … --remote`
 
    Raw classes match only in command position, so `grep "git commit"` does not
-   count. User `!` commands (`<bash-input>`) count.
+   count. User `!` commands (`<bash-input>`) count. A compaction's summary record
+   (`isCompactSummary`) is not a human turn, so a compaction right after the
+   prompt no longer closes its window.
+   - **Work done elsewhere** (since 2026-11-05) counts too, within
+     `--elsewhere-hours` (default 2) of the prompt:
+     - GitHub state: a PR the request names (`#275`, `merge 252`), or whose head is
+       the session's branch, merged, set to auto-merge, or opened. `gh api graphql`
+       reads the newest 100 PRs of each repository's `origin`.
+     - Another routed session in the same repository running `gh pr merge` or
+       `gh pr create` on that PR or branch, an oc-git-ops Skill call naming it, or
+       any deploy.
+
+     This covers merges that auto-merge finished, commands handed to the owner and
+     work another session ran, which the reply turn alone scored as false
+     suggestions (2026-11-05 audit §3). It never overrides a hand label.
+     `--no-elsewhere` turns it off; `--elsewhere-fixture` takes
+     `{ "prs": { "<repo root>": [ … ] } }` instead of calling GitHub.
 
 | Proxy | Rule |
 |---|---|
@@ -437,6 +454,26 @@ Read it after two weeks. The router has an effect when the live arm's follow
 rate on core skills is at least 0.6 and at least twice the control arm's, with
 verb fidelity at or above 0.9. About four suggestions a day split two ways is
 enough to see a 2× difference in two weeks, not a 20% one.
+
+### Follow-through and the redirect hook
+
+Accuracy says whether the router named the right skill. Follow-through says
+whether naming it changed what the agent did. The report's **Follow-through**
+section takes the suggestions shown in live mode that were right, and splits
+them by how the work got done: through the suggested skill, with raw commands in
+the session, elsewhere (GitHub or another session), or not at all. On
+2026-11-05 the split was 4 / 4 / 2 / 1 of 11.
+
+`plugins/opchain/hooks/route-redirect.cjs` (PreToolUse, Bash) acts on the raw
+command case. When this turn's prompt was routed live to oc-git-ops or
+oc-deploy-ops, and the agent runs `gh pr merge`, `gh pr create` or a deploy
+without having invoked that skill, the first attempt is denied with the Skill
+call to make. A retry of the same command class goes through, logged as an
+override, so the owner's explicit ask for the raw command never gets stuck. It
+never acts on `git commit`; commit authorization stays at the Git boundary. It
+appends `{ type: "redirect", action: "block" | "override" }` records to the
+route log, and the report counts them, along with how many blocks were followed
+by the skill. `OPCHAIN_ROUTE_REDIRECT=0` turns it off.
 
 ## 7. Other Jev uses: `route-eval jev <use>`
 
@@ -610,9 +647,12 @@ npx wrangler secret put TYPESAFE_API_KEY --name opchain-staging   # staging firs
 A secret put mints a deployment, so refresh the Canary baseline afterwards
 (`docs/runbooks/cloudflare-challenge.md` → "Secret changes").
 
+Staging has both since 2026-11-05: the secret, and the flag as a var in
+`wrangler.jsonc` `env.staging`. Production has neither.
+
 Staging runs `/api/feedback` as a dry run (`FEEDBACK_DRY_RUN`), which files
 nothing. J5 still runs there on a roadmap request when the flag and secret are
-set, and the synthetic 201 carries
+set, after the same per-IP rate limit, and the synthetic 201 carries
 `triage: { security, choice, p_security, would_file }` (`linear-security` or
 `github`), so a staging check shows the diversion without writing anything:
 

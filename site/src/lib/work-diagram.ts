@@ -37,7 +37,7 @@ export interface DiagramInput {
   edges: DiagramEdge[];
   /** Which stages hand files to the add-on, and what for (data/work.ts TOOLS_BY_SKILL). */
   tools: { id: string; version: string; byStage: Record<string, string> };
-  release: string; // "v2.1"
+  release: string; // "v2.2"
 }
 
 export type Variant = "a" | "b";

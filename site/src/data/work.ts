@@ -159,4 +159,4 @@ export const TOOLS_BY_SKILL: Record<string, string> = {
 
 /** The rest of the family, named as 2.2 (owner decision Q1, 2026-10-29). */
 export const NEXT_RELEASE_LINE =
-  "Not in 2.1: vendor evaluation, a standing control register with framework packs, and a currency watch follow in 2.2.";
+  "Not in 2.2: vendor evaluation, a standing control register with framework packs, and a currency watch follow in a later release.";

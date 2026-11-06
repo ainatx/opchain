@@ -4,14 +4,15 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-09-14T00:38:43.799Z",
-  "updated_at": "2026-11-02T22:27:50.118Z",
+  "updated_at": "2026-11-06T01:42:55.690Z",
   "phase": "build",
-  "step": "posture-main-e00f9623",
+  "step": "posture-63222ed2",
   "status": "complete",
-  "progress_summary": "Pre-deploy security posture 2026-11-02 (fourth cut) for staging preview head cb8b857a (PR #669 with #672 merged): PASS, tier standard, delta review. The delta is the commit-gate runtime fix (plugin scripts) and recomputed scan digests: no Worker code, response header, wrangler, dependency, workflow or hardening change; hardening:verify 2/2; attack surface unchanged. Residuals unchanged: production refused while PUBLIC_OPCHAIN_RELEASE_PREVIEW is set and until a signed v2.1.0 tag exists.",
+  "progress_summary": "Pre-deploy posture 2026-11-05, staging-preview candidate 63222ed2: PASS, tier standard, delta review from the e0ef5b10 PASS. Delta is ReleaseTag theme=oc on 7 site files, inert unless PUBLIC_OPCHAIN_RELEASE_PREVIEW is set; the production build has no tag or ribbon, and its inline scripts, JS bundles and external hosts match the preview build. deploy.mjs refuses production with the variable set. No Worker, header or wrangler change. 0 CRITICAL/HIGH/MEDIUM; e0ef5b10's 3 LOW and 3 INFO carry forward.",
   "next_actions": [
-    "Before the next release cut, re-run the pre-deploy posture assessment (/oc-security posture) on the release delta from c09a63e (v2.0.4, the last PASS) and bind it with: node scripts/checkpoint.mjs handoff oc-security-auditor --policy pre-deploy-security-posture-v1 --verdict PASS --scope \"<delta reviewed>\" --evidence <audit doc>",
-    "While there, re-check the residuals every posture since 2.0.1 has carried forward: dev-only site dependency advisories, tag-pinned (not SHA-pinned) CI action refs, missing COOP/CORP headers, and the live headers/TLS/control-plane check that each assessment skipped because no deployment was performed (OWASP A02 PARTIAL)."
+    "After the staging deploy, curl https://staging.opchain.dev/opchain-work-skills.zip, /work/ow-tools-security-manifest.sha256 and /docs/work/ow-protocol.md: all must be 404 (staging serves the old ow- zip today; production already 404s). Deploy with OPCHAIN_SHIP_WORK unset.",
+    "Before the production cut: bump zod to 4.6.6 (GHSA-mrhx-c7xc-m3w5, not reachable today); have the router write its log and decision cache under a 0700 per-user directory and validate a cached decision.skill against route-spec before it is injected; drop the deftwright-site reference from skills/CHANGELOG.md and the release-evidence.mjs comment (7 shipped copies).",
+    "Carry forward: missing COOP/CORP and HSTS preload (header score 6/8), tag-pinned CI action refs, style-src unsafe-inline (B-08), dev-only site advisories (undici/wrangler/miniflare), and the live TLS/control-plane check each pre-deploy assessment skips."
   ],
   "handoffs": [
     {
@@ -571,37 +572,111 @@
       }
     },
     {
-      "id": "oc-security-auditor-pre-deploy-security-posture-v1-75704351fd85",
+      "id": "oc-security-auditor-pre-deploy-security-posture-v1-71fb6ecdf644",
       "contract_version": "1.0",
       "type": "verification.verdict",
-      "created_at": "2026-11-02T22:27:50.118Z",
-      "verified_at": "2026-11-02T22:27:50.118Z",
+      "created_at": "2026-11-05T21:37:02.243Z",
+      "verified_at": "2026-11-05T21:37:02.243Z",
       "producer": {
         "skill": "oc-security-auditor",
-        "run_id": "pre-deploy-security-posture-v1-2026-11-02T22:27:50.118Z"
+        "run_id": "pre-deploy-posture-2.1.0-oc-only-2026-11-05"
       },
       "candidate": {
         "kind": "git_tree_projection",
-        "id": "sha256:75704351fd8599ecc90dc3565eb8302b438333fcccb6b57f64a2ea26654f2357"
+        "id": "sha256:71fb6ecdf644e84dde04c95cb20a95b0a71db0d9b6c36c502a3898c145fc8e9a"
       },
       "payload": {
         "verdict": "PASS",
         "policy": "pre-deploy-security-posture-v1",
-        "scope": "Pre-deploy posture of the staging cut d30a6b97..cb8b857a: gate runtime fix only; no Worker, header, dependency or hardening change; hardening:verify 2/2."
+        "scope": "Pre-deploy posture (tier standard, delta review) of the oc-only 2.1.0 release candidate e0ef5b10 for a staging preview: ow- outputs withheld (build scripts, check-work-install --expect-withheld, mirror-public.yml SHIP_WORK staging and ow: marker sed, built public/ has no ow- zip/docs/manifest), Worker src byte-identical to the previously assessed d30a6b97, router hook and Jev client unchanged (shadow default, redacted, key from env), preview ribbon refused for production by scripts/deploy.mjs, post-commit/pre-push hooks and deploy template use argv arrays with no shell, PASS_SUPERSEDED receipt relaxation reviewed; hardening:verify 2/2; 209 targeted tests pass. 0 CRITICAL/HIGH, 3 LOW and 3 INFO findings, none blocking."
+      }
+    },
+    {
+      "id": "oc-security-auditor-pre-deploy-security-posture-v1-24daf1bcc43c",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-11-05T22:27:02.821Z",
+      "verified_at": "2026-11-05T22:27:02.821Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "pre-deploy-security-posture-v1-2026-11-05T22:27:02.821Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:24daf1bcc43cbe825788186f26f7963ed96df1569a9dd086a8f90f99514eb503"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Pre-deploy posture (tier standard, delta review) of the oc-only 2.1.0 staging-preview candidate 63222ed2, delta e0ef5b10..63222ed2 (the prior PASS, candidate sha256:71fb6ecd...): ReleaseTag theme=oc added to 7 site files (index, architecture, security, privacy, glossary, skills index, EnforcementMap); no Worker/script/header/wrangler/dependency change. Verified by building site with the preview env unset and set=2.1: inline-script hash sets, JS bundle set, non-html/css asset set and external-host sets identical; no inline event handlers; no data-release-tag or preview ribbon in the production build (0/92 pages) and 8 tags + 83 ribbons only in the preview build; scripts/deploy.mjs releasePreviewFor refuses production while PUBLIC_OPCHAIN_RELEASE_PREVIEW is set (runs after loadDevVars, before prebuild; 16 deploy-baseline tests pass); hardening:verify 2/2. Earlier findings (3 LOW, 3 INFO from the e0ef5b10 assessment) carried forward unchanged by reference; no new findings. 0 CRITICAL/HIGH/MEDIUM."
+      }
+    },
+    {
+      "id": "oc-security-auditor-pre-deploy-security-posture-v1-c71a7d38fbbd",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-11-05T23:56:13.255Z",
+      "verified_at": "2026-11-05T23:56:13.255Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "pre-deploy-security-posture-v1-2026-11-05T23:56:13.255Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:c71a7d38fbbdf04efaddac821def5a5be5624499090ba7e38b0bf0de8cbe54f5"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Pre-deploy security posture of the 2.1.0 release candidate 8e87db82, delta since the PASSED posture at 63222ed2 (candidate sha256:24daf1bc...): #676 (1ce07a06) tightens the attack surface of POST /api/feedback (the per-IP KV rate limit now also precedes Jev J5 on the dry-run path, so a flood cannot drive paid Jev calls; CF-Connecting-IP hashed as before; no new endpoint, header, secret or origin) and enables the J5 triage flag on staging only via wrangler.jsonc env.staging (TYPESAFE_API_KEY stays a secret; production unchanged, flag default off). 8e87db82 is text-only (changelog, date, comment, checkpoint). CSP, headers, robots, discovery surface and secrets handling unchanged; csp-nonce and feedback-triage tests pass in the gate. 0 CRITICAL / 0 HIGH; carried MEDIUM (zod advisory) and LOW (deploy guard) as at 63222ed2."
+      }
+    },
+    {
+      "id": "oc-security-auditor-pre-deploy-security-posture-v1-e7c80419b951",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-11-06T01:42:55.689Z",
+      "verified_at": "2026-11-06T01:42:55.689Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "pre-deploy-security-posture-v1-2026-11-06T01:42:55.689Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:e7c80419b951bcd4c43286496714e568a5df3213234c827c370b86f84ce23a41"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Pre-deploy security posture of the 2.1.0 release candidate ddfcf133, delta since the PASSED posture at 8e87db82 (candidate sha256:c71a7d38...): 4c23facb is text-only. #677 (4aa26faf) adds no Worker route, header, secret, origin or network call to the deployed site: the Worker (src/, wrangler.jsonc) is untouched, so CSP, headers, robots, discovery surface and secrets handling are unchanged. Client-side plugin surface: route-redirect.cjs is a PreToolUse hook that only reads the hook's stdin JSON, the session transcript tail (2 MB) and the route log tail (512 KB) and writes redirect records (type, timestamps, session id, prompt hash, class, skill, args, action; no prompt text) to the same /var/folders/41/156_knvs7b9dljnmmm3ptc3m0000gn/T/ log the router already uses; it executes nothing and matches commands by regex only; it is a nudge, not an authorization boundary (commit authorization stays at the Git gate; it never acts on git commit) and is off in shadow mode, the default. route-eval.mjs fetchRepoPrs calls gh api graphql through spawnSync with an argument array (no shell) and an owner/name parsed by a restricted regex from the origin URL; it reads other local sessions' transcripts only to credit work done elsewhere, and its report prints an 8-character session-id prefix and command class, not prompt text. 0 CRITICAL / 0 HIGH; carried MEDIUM (zod advisory) and LOW (deploy guard) as at 63222ed2; csp-nonce, feedback-triage and audit-commit compatibility tests pass.",
+        "evidence": [
+          "plugins/opchain/hooks/route-redirect.cjs",
+          "plugins/opchain/hooks/hooks.json",
+          "scripts/route-eval.mjs"
+        ]
       }
     }
   ],
   "latest_pre_deploy": {
-    "candidate": "e00f962357353e91b54e6874f6b2ac51508bcc45",
-    "candidate_identity": "sha256:764435509fb799a0ee3d9764ac2b9f88db9bc305c54e6e876bdb9204df6d3285",
+    "candidate": "63222ed22c96ab9cd648f677ce9c5f34fa4f1696",
+    "candidate_identity": "sha256:24daf1bcc43cbe825788186f26f7963ed96df1569a9dd086a8f90f99514eb503",
     "verdict": "PASS",
     "blocking_findings": 0,
-    "target": "staging from main"
+    "target": "staging preview of the oc-only 2.1.0 candidate (branch claude/staging-preview-2-1)"
   },
-  "record_updated_at": "2026-11-02T22:27:50.118Z",
+  "record_updated_at": "2026-11-06T01:42:55.690Z",
   "skill_state": {
-    "verified_for_sha": "cb8b857a67ef0ab601cd5935e81d6ef5f27dc903",
+    "verified_for_sha": "ddfcf1330ed64a2c0ff10ceef63dae58a628e4dd",
     "scope": "pre-deploy-delta",
-    "tier": "standard"
+    "tier": "standard",
+    "findings_by_risk": {
+      "CRITICAL": 0,
+      "HIGH": 0,
+      "MEDIUM": 0,
+      "LOW": 3,
+      "INFO": 3
+    },
+    "header_score": "6/8",
+    "code_auditor_checkpoint_read": true
   }
 }
