@@ -1,20 +1,20 @@
 {
-  "id": "oc-docs-forge-pr-docs-v1-b5500fc3e8e5",
+  "id": "oc-docs-forge-pr-docs-v1-a923fb0c6a8e",
   "contract_version": "1.0",
   "type": "verification.verdict",
-  "created_at": "2026-11-05T18:13:00.087Z",
-  "verified_at": "2026-11-05T18:13:00.087Z",
+  "created_at": "2026-11-06T03:00:02.098Z",
+  "verified_at": "2026-11-06T03:00:02.098Z",
   "producer": {
     "skill": "oc-docs-forge",
-    "run_id": "pr-docs-v1-2026-11-05T18:13:00.087Z"
+    "run_id": "pr-docs-v1-2026-11-06T03:00:02.098Z"
   },
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:b5500fc3e8e52c67c4c052384c28bbcb98fdb0da81e9d77fef0f3da4c225bb64"
+    "id": "sha256:a923fb0c6a8e4a061fb8ecb4ca302e96340794def50923178c36036157f36755"
   },
   "payload": {
     "verdict": "PASS",
     "policy": "pr-docs-v1",
-    "scope": "2.1 staging preview after merging origin/main e005e99c (#673) and rewriting the /work copy for the audience reversal (owner: rewrite now, no deploy): hosts, question budget, never-does, words, per-skill facts, install, diagram legend, changelog hero, privacy/glossary/for-agencies/install pointers; 2.1.0 changelog entry lists the merged versions"
+    "scope": "PR #669 docs after merging origin/main 79316438 (v2.1.0 Enforcement and Jev, tagged): release surfaces take main's oc- only 2.1.0; the ow- preview (/work, pointers, tags) is relabelled 2.2; build-site drops public/work without OPCHAIN_SHIP_WORK=1; merge commit message, PR body addendum and shared note describe the resolution."
   }
 }

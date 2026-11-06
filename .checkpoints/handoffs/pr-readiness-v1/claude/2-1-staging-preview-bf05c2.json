@@ -1,20 +1,20 @@
 {
-  "id": "oc-repo-ops-pr-readiness-v1-b5500fc3e8e5",
+  "id": "oc-repo-ops-pr-readiness-v1-a923fb0c6a8e",
   "contract_version": "1.0",
   "type": "verification.verdict",
-  "created_at": "2026-11-05T18:13:00.407Z",
-  "verified_at": "2026-11-05T18:13:00.407Z",
+  "created_at": "2026-11-06T03:00:02.396Z",
+  "verified_at": "2026-11-06T03:00:02.396Z",
   "producer": {
     "skill": "oc-repo-ops",
-    "run_id": "pr-readiness-v1-2026-11-05T18:13:00.407Z"
+    "run_id": "pr-readiness-v1-2026-11-06T03:00:02.396Z"
   },
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:b5500fc3e8e52c67c4c052384c28bbcb98fdb0da81e9d77fef0f3da4c225bb64"
+    "id": "sha256:a923fb0c6a8e4a061fb8ecb4ca302e96340794def50923178c36036157f36755"
   },
   "payload": {
     "verdict": "PASS",
     "policy": "pr-readiness-v1",
-    "scope": "Merged + rewritten tree: gen-catalog, check-skill-contracts, work-surfaces/catalogs/work-distribution/plugin-shape/release-surfaces/site-release-chip suites green; site build and astro check clean; Playwright 128 green (six load-timeouts re-run clean); check-release-surfaces v2.1; no brand name in built /work; plugin mirror in sync"
+    "scope": "PR #669 readiness at merge 6d2f5cbb: gate PASS; npm test 183 files / 10960; astro check 0 errors; site build + 146 e2e; full npm run build without the switch passes the withheld check; gen-route-spec, sync-bundles, sync-plugin-skills, gen-catalog, check-skill-contracts, checkpoint:validate, check-release-surfaces v2.1 all pass; check-release-tag passes (v2.1.0 is an ancestor); 25/25 bugcheck digests verified."
   }
 }
