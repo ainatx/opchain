@@ -2,6 +2,7 @@
 import { REPO_SITE } from "../lib/repo";
 import { defaultFor } from "../lib/flags/build-defaults";
 import VersionBadge from "./VersionBadge.astro";
+import ReleaseTag from "./ReleaseTag.astro";
 
 const year = new Date().getFullYear();
 const demoEnabled = defaultFor("site.feature.demo-page") as boolean;
@@ -24,6 +25,7 @@ const newsletterEnabled = defaultFor("site.ui.footer.newsletter") as boolean;
       <a href="/changelog">Changelog</a>
       <a href="/compare">Compare</a>
       <a href="/for-agencies">For agencies</a>
+      <a href="/work">opchain.work <ReleaseTag theme="ow" /></a>
     </div>
     <div class="col">
       <div class="col-head">explore</div>
