@@ -1,0 +1,23 @@
+{
+  "id": "oc-docs-forge-pr-docs-v1-e376bdce25ad",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-11-06T00:05:00.414Z",
+  "verified_at": "2026-11-06T00:05:00.414Z",
+  "producer": {
+    "skill": "oc-docs-forge",
+    "run_id": "pr-docs-v1-2026-11-06T00:05:00.414Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:e376bdce25ad08b46eb35a509d81a26ddd804c55f5e74e0a514507235abe8e69"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-docs-v1",
+    "scope": "c3b682a7: review fixes (redirect records skipped in outcome lookup; block-once per routed turn) on top of 41bfdd93; docs unchanged by the fix, runbook + plugin README still describe the behaviour",
+    "evidence": [
+      "Fix is internal to the two hooks; redirect record gains for_route_at, documented in route-redirect.cjs header. No reader-facing doc change needed beyond the PR's existing runbook/README edits."
+    ]
+  }
+}

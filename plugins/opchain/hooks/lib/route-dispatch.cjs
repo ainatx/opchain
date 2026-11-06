@@ -536,7 +536,11 @@ function routablePrompt(text) {
  * them counts. Same rules as scripts/route-eval.mjs humanPromptText.
  */
 function humanText(record) {
-  if (!record || record.type !== "user" || record.isMeta || record.isSidechain || !record.message) return null;
+  // A compaction writes its summary as a user record (isCompactSummary); it is
+  // not a person's turn. Counting it as one closed the outcome window seconds
+  // after the prompt, so 4 routed prompts scored as "no activity" though the
+  // agent worked (2026-11-05 audit §7).
+  if (!record || record.type !== "user" || record.isMeta || record.isSidechain || record.isCompactSummary || !record.message) return null;
   const c = record.message.content;
   let text;
   if (typeof c === "string") text = c;
@@ -615,7 +619,9 @@ const RAW_COMMANDS = Object.freeze({
   git_sync: atCommand(String.raw`git\s+(?:-[cC]\s+\S+\s+)*(?:merge|rebase)(?![\w-])`),
   gh_pr_create: atCommand(String.raw`gh\s+pr\s+create\b`),
   gh_pr_merge: atCommand(String.raw`gh\s+pr\s+merge\b`),
-  deploy: atCommand(String.raw`(?:npm\s+run\s+deploy\b|(?:npx\s+)?wrangler\s+(?:versions\s+)?deploy\b|node\s+(?:\S+\/)?scripts\/deploy\.mjs\b)`),
+  // A remote D1 migration changes a deployed environment too (2026-11-05: "Apply to
+  // staging" ran `wrangler d1 migrations apply DB --env staging --remote`).
+  deploy: atCommand(String.raw`(?:npm\s+run\s+deploy\b|(?:npx\s+)?wrangler\s+(?:versions\s+)?deploy\b|(?:npx\s+)?wrangler\s+d1\s+migrations\s+apply\b[^\n;&|]*--remote\b|node\s+(?:\S+\/)?scripts\/deploy\.mjs\b)`),
 });
 // Tool calls that do a raw class's work without a Bash command.
 const RAW_TOOLS = Object.freeze({
@@ -676,7 +682,7 @@ function isHumanTurn(record) {
   // humanText already accepts a prompt behind leading reminder blocks.
   const text = humanText(record);
   if (text !== null) return !AGENT_MESSAGE_RE.test(text);
-  if (!record || record.type !== "user" || record.isMeta || record.isSidechain || !record.message) return false;
+  if (!record || record.type !== "user" || record.isMeta || record.isSidechain || record.isCompactSummary || !record.message) return false;
   const c = record.message.content;
   if (Array.isArray(c) && c.some((b) => b && b.type === "tool_result")) return false;
   const parts = typeof c === "string" ? [c] : Array.isArray(c) ? c.filter((b) => b && b.type === "text" && typeof b.text === "string").map((b) => b.text) : [];
