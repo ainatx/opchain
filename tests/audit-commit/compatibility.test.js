@@ -2,7 +2,10 @@ import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } f
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+import { createRequire } from "node:module";
 import { afterEach, describe, expect, it } from "vitest";
+
+const require = createRequire(import.meta.url);
 
 const ROOT = resolve(import.meta.dirname, "../..");
 const scratches = [];
@@ -16,7 +19,14 @@ describe("hook ownership and portable commands", () => {
     const plugin = JSON.parse(readFileSync(join(ROOT, "plugins/opchain/hooks/hooks.json"), "utf8"));
     const installer = readFileSync(join(ROOT, "scripts/install-git-drivers.mjs"), "utf8");
     expect(local.hooks.PreToolUse).toBeUndefined();
-    expect(plugin.hooks.PreToolUse).toBeUndefined();
+    // The plugin's only PreToolUse hook is the router's redirect (2026-11-05), which
+    // acts on gh pr merge / gh pr create / deploys and never on a commit.
+    const pre = (plugin.hooks.PreToolUse ?? []).flatMap((entry) => entry.hooks.map((hook) => hook.command));
+    expect(pre).toEqual(['node "${CLAUDE_PLUGIN_ROOT}/hooks/route-redirect.cjs"']);
+    const redirect = require(join(ROOT, "plugins/opchain/hooks/route-redirect.cjs"));
+    for (const command of ["git commit -m x", "git -C repo commit -am x", "OPCHAIN_BYPASS=1 git commit", "git push"]) {
+      expect(redirect.redirectClasses(command)).toEqual([]);
+    }
     expect(installer).toContain('node "$runtime_root/verify-candidate.mjs" run');
   });
 
@@ -28,8 +38,9 @@ describe("hook ownership and portable commands", () => {
     const commands = Object.values(registration.hooks).flatMap((entries) =>
       entries.flatMap((entry) => entry.hooks.map((hook) => hook.command)),
     );
-    // session-state, task-end, next-suggestion, and (audit 2026-10-08) the UserPromptSubmit skill router.
-    expect(commands).toHaveLength(4);
+    // session-state, task-end, next-suggestion, (audit 2026-10-08) the UserPromptSubmit skill router,
+    // and (2026-11-05) its PreToolUse redirect.
+    expect(commands).toHaveLength(5);
     for (const command of commands) {
       expect(command).toMatch(/^node "\$\{CLAUDE_PLUGIN_ROOT\}\/hooks\/[a-z-]+\.cjs"$/);
       const result = spawnSync("sh", ["-c", command], {

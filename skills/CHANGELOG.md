@@ -193,6 +193,24 @@ with 2.2 (owner decision 2026-11-05; `docs/governance/RELEASING.md` §2a).
   supported as an opt-in now that the go/no-go
   (`docs/runbooks/skill-router-eval.md` §6) records a GO; `OPCHAIN_ROUTE_AB=1`
   shows it to half the sessions so the effect can be measured.
+  Two additions landed with the GO (#677). A `PreToolUse` (Bash) hook,
+  `route-redirect.cjs`, registered in `hooks.json`, holds the agent to a shown
+  suggestion: it acts only when the prompt being answered was routed in live
+  mode to oc-git-ops or oc-deploy-ops and the agent then runs `gh pr merge`,
+  `gh pr create`, `npm run deploy*`, `wrangler deploy`, `scripts/deploy.mjs` or
+  `wrangler d1 migrations apply … --remote` without having invoked that skill.
+  The first attempt is denied with the exact Skill call to make; a retry of the
+  same command class in the same turn goes through and is logged as an
+  override; every failure lets the command through; it never acts on `git
+  commit`. In shadow mode, the default, it does nothing.
+  `OPCHAIN_ROUTE_REDIRECT=0` turns it off. And `route-eval outcomes` counts
+  work done elsewhere: a PR the request names, or the session branch's PR,
+  merged, set to auto-merge or opened on GitHub, and another routed session in
+  the same repository merging, opening or deploying, within
+  `--elsewhere-hours` of the prompt (default 2; `--no-elsewhere` turns it off).
+  Its report gains a Follow-through section (done through the suggested skill,
+  with raw commands in the session, elsewhere, or not at all), and a compaction
+  summary no longer closes a prompt's outcome window.
 
 ### Fixed
 
