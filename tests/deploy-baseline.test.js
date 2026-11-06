@@ -20,12 +20,16 @@ const VERSION_DETAIL = {
   },
 };
 
-/** A baseline shaped like the checked-in one (tag 91a2124, runtime 0f3410c). */
+/** A baseline shaped like the one these cases were written against (release source 91a2124 with a
+ *  post-tag runtime 0f3410c), whatever the checked-in file records today: after a release cut the
+ *  live file has no runtime block, so the fixture supplies one. */
 function fixture() {
   const live = JSON.parse(readFileSync(join(repo, BASELINE_PATH), 'utf8'));
   live.release = { ...live.release, sourceSha: RELEASE_SHA, sourceShortSha: RELEASE_SHA.slice(0, 7) };
+  live.runtime = live.runtime ?? { sha: '0f3410c349564137a6d173932d17cfb32f1862ae', shortSha: '0f3410c', approval: 'fixture: reviewed post-tag runtime' };
   return live;
 }
+const RELEASE_TAG = () => fixture().release.tag;
 
 describe('latestDeployment', () => {
   it('returns the newest deployment by created_on and its 100% version', () => {
@@ -71,7 +75,7 @@ describe('refreshBaseline', () => {
   it('production at the tagged release SHA removes the runtime block', () => {
     const { baseline, changes } = refreshBaseline(fixture(), { target: 'production', liveVersion: RELEASE_SHA.slice(0, 7), fullSha: RELEASE_SHA, deployment: DEPLOYMENT, versionDetail: VERSION_DETAIL });
     expect(baseline.runtime).toBeUndefined();
-    expect(changes).toContain('runtime: removed (production serves the tagged release v2.0.4)');
+    expect(changes).toContain(`runtime: removed (production serves the tagged release ${RELEASE_TAG()})`);
   });
 
   it('staging: refreshes only the staging half and flags that production is still pending', () => {
@@ -89,7 +93,7 @@ describe('refreshBaseline', () => {
     const { baseline, carriedOver } = refreshBaseline(fixture(), { target: 'production', liveVersion: NEW_SHORT, fullSha: NEW_SHA, deployment: DEPLOYMENT });
     expect(carriedOver).toEqual(['scriptEtag', 'handlers', 'bindings']);
     expect(baseline.environments.production.scriptEtag).toBe(fixture().environments.production.scriptEtag);
-    expect(baseline.runtime.approval).toMatch(/^TODO: list the reviewed PRs between v2\.0\.4 and a1b2c3d/);
+    expect(baseline.runtime.approval).toMatch(new RegExp(`^TODO: list the reviewed PRs between ${RELEASE_TAG().replace(/\./g, '\\.')} and a1b2c3d`));
   });
 
   it('refuses inconsistent evidence instead of blessing it', () => {

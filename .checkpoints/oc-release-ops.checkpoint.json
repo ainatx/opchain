@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-11-05T23:43:24Z",
+  "updated_at": "2026-11-06T05:21:46.887Z",
   "skill": "oc-release-ops",
-  "phase": "bump",
+  "phase": "shipped",
   "step": "v2.1.0-bump-applied-draft-pr-671",
-  "status": "in_progress",
-  "progress_summary": "v2.1.0 plan approved 2026-11-01 (owner rulings via coordinator local_8959641b): semver 2.1.0 (minor), theme \"Enforcement and Jev\" (renamed 2026-11-05 when the ow- skills moved to 2.2), release date 2026-11-05 (coordinator estimate; owner confirms at the push gate). Release PR #671 open as a HELD DRAFT (2026-11-02) from claude/release-2-1-0-1cd617; stays a draft until REL-02 passes; merge, signed tag, staging and production in one sitting from the owner's laptop. In the PR: #669 (ow- site half, staging-verified at d30a6b97) and #620 (Track E site half, main merged in, never rebased); [Unreleased] -> [2.1.0] with the ow- family entry; lockstep 2.0.4 -> 2.1.0 (36 SKILL.md, seal gen 1, server.json, marketplace x2, plugin.json, ow-tools ref v2.1.0); Minor-column surfaces flipped; router-label e2e narrowed. Owner still owes in skills/CHANGELOG.md: the EN-02 verdict's three numbers (NO-GO so far) and the REL-02 record line. Detail in skill_state.current_release.",
+  "status": "complete",
+  "progress_summary": "v2.1.0 \"Enforcement and Jev\" shipped 2026-11-05 (oc- catalog only, 36 skills 2.0.4 → 2.1.0; ow- family moved to 2.2 by the owner, #674). Release PR #671 squash-merged as 79316438 (tree identical to PR head 6d666635), signed tag v2.1.0 pushed, publish-mcp-registry + mirror-public green, staging and production both serve 79316438 (prod version 451eb82d, rollback da2f416a), smoke:prod all OK. EN-02 recorded as GO (65 suggestions, P 0.836 / R 0.836 / silent 0.954), shipped default shadow. #620 closed as superseded (content inside #671). Baseline refreshed to v2.1.0 in chore/baseline-79316438.",
   "progress_table": [
     {
       "id": "scope",
@@ -81,26 +81,24 @@
   "blockers": [],
   "next_actions": [
     {
-      "text": "MOVED TO 2.2 (owner, 2026-11-05): REL-02 real-model acceptance run per ow- skill and the three real jobs now gate the ow- release, not 2.1.0.",
-      "done_when": "draft PR open with green CI",
-      "status": "moved"
+      "id": "1",
+      "status": "-",
+      "text": "Merge the baseline PR (chore/baseline-79316438) and run gh workflow run canary.yml --ref chore/baseline-79316438 -f environment=all before merging; Deploy lag + Canary go green once it lands."
     },
     {
-      "text": "MOVED TO 2.2 (owner, 2026-11-05): REL-02 real-model acceptance run per ow- skill and the three real jobs now gate the ow- release, not 2.1.0.",
-      "done_when": "REL-02 line in skills/CHANGELOG.md states what was run and its result",
-      "status": "moved"
+      "id": "2",
+      "status": "-",
+      "text": "Flush the deferred Linear release ticket with /oc-release announce --retry-pm once the Linear connector is authorized; close it with the shipped marker."
     },
     {
-      "text": "EN-02 (owner): label the suggestions, re-run day 8, replace the EN-02 placeholder in skills/CHANGELOG.md [2.1.0] Experimental with the verdict and its three numbers; ROUTER_LABEL in site/src/data/router-status.ts changes only on a GO.",
-      "done_when": "no _[EN-02 …]_ placeholder left in skills/CHANGELOG.md"
+      "id": "3",
+      "status": "-",
+      "text": "2.1.x: remaining Track S audit items (architecture 33→36 count check, Coming Next card fixes, /privacy narrowing); gated /work nav pointer noted on #669."
     },
     {
-      "text": "Date 2026-11-05 and the EN-02 GO verdict are recorded (hold lifted by the owner 2026-11-05); the coordinator marks the PR ready; merge; /oc-git-release 2.1.0 (signed tag); npm run gen-roadmap && npm run deploy:staging; eyeball; npm run deploy; baseline PR. One sitting.",
-      "done_when": "check-release-tag exits 0 and /api/health on opchain.dev reports the release SHA"
-    },
-    {
-      "text": "Flush the deferred Linear release tickets with /oc-release announce --retry-pm once the Linear connector is authorized.",
-      "done_when": "pm_deferred_actions[] empty"
+      "id": "4",
+      "status": "-",
+      "text": "2.2 cut: OPCHAIN_SHIP_WORK=1 on deploy + repo variable for the mirror; land #669 (ow- site half, head 063c6ab1); restore ow- changelog entries and the ow-tools ref flip; REL-02 acceptance runs + three real jobs + one care month before the tag."
     }
   ],
   "pm_refs": [
@@ -411,7 +409,7 @@
       "prod_health": "d4f926b"
     }
   },
-  "record_updated_at": "2026-11-05T23:43:24Z",
+  "record_updated_at": "2026-11-06T05:21:46.887Z",
   "pm_deferred_actions": [
     {
       "id": "deferred-2026-09-21T19:53:16Z-7f2f",

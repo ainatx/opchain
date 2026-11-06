@@ -2,32 +2,34 @@
   "schemaVersion": 1,
   "status": "approved-release-baseline",
   "release": {
-    "tag": "v2.0.4",
-    "tagObject": "8d29a12ed7fecd2cc9e3ba1870000f96d4e20a75",
-    "sourceSha": "91a2124e01a8ff53ea6d4be2931911cbecabf620",
-    "sourceShortSha": "91a2124"
+    "tag": "v2.1.0",
+    "tagObject": "3d0d61573b55b37024a80deccaf76d951b55a479",
+    "sourceSha": "79316438593e30b4ad7f4d64661b47d23436d153",
+    "sourceShortSha": "79316438"
   },
   "environments": {
     "staging": {
       "worker": "opchain-staging",
       "hostname": "staging.opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "31ec0438-2332-4b3d-9638-012890019221",
-      "versionId": "8fe43bf6-e480-4167-b450-4708c227fd75",
+      "deploymentId": "97cef8a7-4aad-41a0-b67f-6ce7045b9825",
+      "versionId": "2e48fa0e-be04-41d6-a005-ff87cd0c8f55",
       "trafficPercentage": 100,
-      "scriptEtag": "909e2daf7380885b1a4dccec039e451ab5ca8146f15ce4dd22125c3f074e67be",
+      "scriptEtag": "c82134dcddb96764c08444863577002df4d5e64471647ad38fcc8ca9eeb0fda1",
       "handlers": [
         "fetch"
       ],
       "bindings": [
         "ASSETS",
         "FEEDBACK_DRY_RUN",
+        "FLAG_PLATFORM_SECURITY_FEEDBACK_TRIAGE",
         "LINEAR_API_KEY",
         "MCP_SESSION_SIGNING_KEY",
         "MCP_WRITE_RATE_LIMITER",
         "NOTIFY",
         "RESEND_API_KEY",
-        "ROADMAP_GITHUB_TOKEN"
+        "ROADMAP_GITHUB_TOKEN",
+        "TYPESAFE_API_KEY"
       ],
       "observabilityEnabled": true
     },
@@ -35,10 +37,10 @@
       "worker": "opchain-dev",
       "hostname": "opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "d52944b3-620d-4ca1-969a-89dbe6609400",
-      "versionId": "da2f416a-4908-42fb-b726-a521ca7b5f4d",
+      "deploymentId": "e78b7cc2-c4fc-4f4e-a032-1fa01ebd483b",
+      "versionId": "451eb82d-6b5e-4484-95ea-82f03535072e",
       "trafficPercentage": 100,
-      "scriptEtag": "82898295b559e4cac94ac41723dd2a48013f9eae145737f05674824f70494c6a",
+      "scriptEtag": "c82134dcddb96764c08444863577002df4d5e64471647ad38fcc8ca9eeb0fda1",
       "handlers": [
         "fetch"
       ],
@@ -89,13 +91,8 @@
     ]
   },
   "pointInTimeEvidence": {
-    "healthVersion": "0f3410c",
+    "healthVersion": "79316438",
     "continuousCustomDomainProbe": false,
-    "note": "Production and staging both serve origin/main 0f3410c after the signed v2.0.4 tag (91a2124). On 2026-09-29 six secret-only changes hit opchain-dev by mistake (wrangler secret put/delete run from the opchain checkout while setting up a different Worker): stray NOTIFY_TO and FASTMAIL_API_TOKEN were added and deleted, leaving the same four secrets as before. Each change minted a new deployment and version with the same script (etag 82898295…) and the same bindings; the current one is deployment d52944b3, version da2f416a (annotation workers/triggered_by=secret), verified with wrangler versions view and GET /api/health = 0f3410c. Staging is unchanged. Custom-domain HTTP is not the continuous probe; control-plane plus local smoke are the evidence."
-  },
-  "runtime": {
-    "sha": "0f3410c349564137a6d173932d17cfb32f1862ae",
-    "shortSha": "0f3410c",
-    "approval": "Post-tag commits from main, each merged through a reviewed PR with green CI: #568 (dependency patch/minor bumps + rebuilt bundled runtimes), #570 (/changelog v2.1 direction-set copy), #494 (geometry auditor + PipelineDiagram colour), #569 and #571 (oc-time-ops local timesheet CLI, not referenced by any shipped surface), #572 (pre-deploy code-audit and security-posture verdicts, .checkpoints/-only). The pre-deploy verdicts in #572 cover this exact tree (candidate sha256:38ba68b0742f66a5d46f2732c73b908456c59a2bedb22c6a08f291f6ed9a0ddc). Deployed to staging then production on 2026-09-27 as the v2.0.4 release cut; verified via npm run smoke:staging / smoke:prod, hardening checks against both hosts, GET /api/health = 0f3410c and /skills.json catalogVersion = 2.0.4 on both hosts."
+    "note": "Production and staging both serve origin/main 79316438, the signed v2.1.0 release (#671), as of 2026-11-06T05:19Z: production deployment e78b7cc2-c4fc-4f4e-a032-1fa01ebd483b / version 451eb82d-6b5e-4484-95ea-82f03535072e, staging deployment 97cef8a7-4aad-41a0-b67f-6ce7045b9825 / version 2e48fa0e-be04-41d6-a005-ff87cd0c8f55; recorded by scripts/deploy.mjs --refresh-baseline after both live smoke suites passed. Staging additionally carries FLAG_PLATFORM_SECURITY_FEEDBACK_TRIAGE and TYPESAFE_API_KEY (#676). Verify with node .github/scripts/cloudflare-monitor.mjs control-plane --environment all."
   }
 }
