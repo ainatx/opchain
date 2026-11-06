@@ -1,7 +1,7 @@
 ---
 name: oc-cost-ops
 displayName: OC · Cost Ops
-version: 2.0.4
+version: 2.1.0
 license: Apache-2.0
 shortDesc: LLM cost attribution per skill phase, budget gates in checkpoints, and model-tier routing recommendations.
 phases: [build]

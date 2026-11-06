@@ -127,10 +127,13 @@ const deliverables: Deliverable[] = [
         ))}
       </ol>
       <p class="blurb note">
-        The <code>/oc-build</code> phase runs a Generator/Evaluator QA loop, and
-        <code>/oc-audit</code> + <code>/oc-security</code> are hard gates —
-        <a href="/skills/oc-deploy-ops"><code>oc-deploy-ops</code></a> won't ship
-        to the client until both pass (or the override is recorded).
+        The <code>/oc-build</code> phase runs a Generator/Evaluator QA loop. <code>/oc-audit</code>
+        and <code>/oc-security</code> are the audits <a href="/skills/oc-deploy-ops"><code>oc-deploy-ops</code></a>
+        runs before it ships to the client: that holds when the skill runs.
+        The deploy command itself is held by the deploy wrapper, and every
+        commit by the pre-commit gate once the repository is enrolled with <code>/oc-enroll</code>.
+        The <a href="/architecture#enforcement-map">enforcement map</a> says
+        where each gate is held.
       </p>
     </section>
 

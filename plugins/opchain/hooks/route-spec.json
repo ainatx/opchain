@@ -4,7 +4,7 @@
     "procedure": "Doing this request well means following a documented multi-step procedure with checks (a workflow someone has written down), not improvising a one-off answer.",
     "prose": "The request can be answered completely in prose alone, with no tools, files, commands or actions."
   },
-  "generatedFrom": "2.0.4",
+  "generatedFrom": "2.1.0",
   "skills": {
     "oc-agent-forge": {
       "baseVerb": "/oc-agent",
@@ -867,5 +867,5 @@
     "oc-update",
     "oc-ux-engineer"
   ],
-  "version": "2.0.4+route4"
+  "version": "2.1.0+route4"
 }

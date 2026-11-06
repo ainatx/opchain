@@ -1,7 +1,7 @@
 ---
 name: oc-api-dev
 displayName: OC · API Developer
-version: 2.0.4
+version: 2.1.0
 license: Apache-2.0
 shortDesc: First-party API design, OpenAPI, versioning, SDKs. v1.2 files breaking-change + deprecation tickets; drift on PR.
 phases: [plan, build]

@@ -3,6 +3,7 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import FeedbackWidget from "../components/FeedbackWidget.astro";
 import ConsentBanner from "../components/ConsentBanner.astro";
+import PreviewRibbon from "../components/PreviewRibbon.astro";
 import { publicDefaults } from "../lib/flags/build-defaults";
 import { defaultFor } from "../lib/flags/build-defaults";
 import "../styles/global.css";
@@ -31,6 +32,8 @@ interface Props {
    * search engines understand each page as structured data.
    */
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  /** Id of the page's main region: renders a "Skip to content" link as the first focusable element. */
+  skipTo?: string;
 }
 
 const {
@@ -41,6 +44,7 @@ const {
   ogType = "website",
   ogImage: ogImageProp,
   jsonLd,
+  skipTo,
 } = Astro.props;
 
 // Route → OG image map. Per-page images lift social-share CTR over the
@@ -206,7 +210,9 @@ const jsonLdString = JSON.stringify({
     )}
   </head>
   <body>
+    {skipTo && <a class="skip-link" href={`#${skipTo}`}>Skip to content</a>}
     {!bare && <Header active={active} />}
+    {!bare && <PreviewRibbon />}
     <slot />
     {!bare && <Footer />}
     {!bare && showFeedbackWidget && <FeedbackWidget />}
