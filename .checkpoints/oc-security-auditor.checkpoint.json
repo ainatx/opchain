@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-09-14T00:38:43.799Z",
-  "updated_at": "2026-11-05T23:56:13.256Z",
+  "updated_at": "2026-11-06T01:42:55.690Z",
   "phase": "build",
   "step": "posture-63222ed2",
   "status": "complete",
@@ -630,6 +630,31 @@
         "policy": "pre-deploy-security-posture-v1",
         "scope": "Pre-deploy security posture of the 2.1.0 release candidate 8e87db82, delta since the PASSED posture at 63222ed2 (candidate sha256:24daf1bc...): #676 (1ce07a06) tightens the attack surface of POST /api/feedback (the per-IP KV rate limit now also precedes Jev J5 on the dry-run path, so a flood cannot drive paid Jev calls; CF-Connecting-IP hashed as before; no new endpoint, header, secret or origin) and enables the J5 triage flag on staging only via wrangler.jsonc env.staging (TYPESAFE_API_KEY stays a secret; production unchanged, flag default off). 8e87db82 is text-only (changelog, date, comment, checkpoint). CSP, headers, robots, discovery surface and secrets handling unchanged; csp-nonce and feedback-triage tests pass in the gate. 0 CRITICAL / 0 HIGH; carried MEDIUM (zod advisory) and LOW (deploy guard) as at 63222ed2."
       }
+    },
+    {
+      "id": "oc-security-auditor-pre-deploy-security-posture-v1-e7c80419b951",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-11-06T01:42:55.689Z",
+      "verified_at": "2026-11-06T01:42:55.689Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "pre-deploy-security-posture-v1-2026-11-06T01:42:55.689Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:e7c80419b951bcd4c43286496714e568a5df3213234c827c370b86f84ce23a41"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Pre-deploy security posture of the 2.1.0 release candidate ddfcf133, delta since the PASSED posture at 8e87db82 (candidate sha256:c71a7d38...): 4c23facb is text-only. #677 (4aa26faf) adds no Worker route, header, secret, origin or network call to the deployed site: the Worker (src/, wrangler.jsonc) is untouched, so CSP, headers, robots, discovery surface and secrets handling are unchanged. Client-side plugin surface: route-redirect.cjs is a PreToolUse hook that only reads the hook's stdin JSON, the session transcript tail (2 MB) and the route log tail (512 KB) and writes redirect records (type, timestamps, session id, prompt hash, class, skill, args, action; no prompt text) to the same /var/folders/41/156_knvs7b9dljnmmm3ptc3m0000gn/T/ log the router already uses; it executes nothing and matches commands by regex only; it is a nudge, not an authorization boundary (commit authorization stays at the Git gate; it never acts on git commit) and is off in shadow mode, the default. route-eval.mjs fetchRepoPrs calls gh api graphql through spawnSync with an argument array (no shell) and an owner/name parsed by a restricted regex from the origin URL; it reads other local sessions' transcripts only to credit work done elsewhere, and its report prints an 8-character session-id prefix and command class, not prompt text. 0 CRITICAL / 0 HIGH; carried MEDIUM (zod advisory) and LOW (deploy guard) as at 63222ed2; csp-nonce, feedback-triage and audit-commit compatibility tests pass.",
+        "evidence": [
+          "plugins/opchain/hooks/route-redirect.cjs",
+          "plugins/opchain/hooks/hooks.json",
+          "scripts/route-eval.mjs"
+        ]
+      }
     }
   ],
   "latest_pre_deploy": {
@@ -639,9 +664,9 @@
     "blocking_findings": 0,
     "target": "staging preview of the oc-only 2.1.0 candidate (branch claude/staging-preview-2-1)"
   },
-  "record_updated_at": "2026-11-05T23:56:13.256Z",
+  "record_updated_at": "2026-11-06T01:42:55.690Z",
   "skill_state": {
-    "verified_for_sha": "8e87db822a881ce9fe38afa1ef29977bd91d781d",
+    "verified_for_sha": "ddfcf1330ed64a2c0ff10ceef63dae58a628e4dd",
     "scope": "pre-deploy-delta",
     "tier": "standard",
     "findings_by_risk": {

@@ -4,7 +4,7 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-11-05T23:56:13.070Z",
+  "updated_at": "2026-11-06T01:42:55.506Z",
   "phase": "audit",
   "step": "pre-deploy-staging-preview-63222ed2",
   "status": "complete",
@@ -184,7 +184,7 @@
         "verdict": "no findings"
       }
     ],
-    "verified_for_sha": "8e87db822a881ce9fe38afa1ef29977bd91d781d",
+    "verified_for_sha": "ddfcf1330ed64a2c0ff10ceef63dae58a628e4dd",
     "current_finding": "F-001"
   },
   "handoffs": [
@@ -776,6 +776,32 @@
         "policy": "pre-deploy-code-audit-v1",
         "scope": "Pre-deploy re-audit of the 2.1.0 release candidate 8e87db82, scoped to the delta since the PASSED audit at 63222ed2 (candidate sha256:24daf1bc...): git diff 63222ed2 8e87db82 excluding .checkpoints is (a) main #676 at 1ce07a06: src/index.js extracts roadmapRateLimit() and applies it on the dry-run roadmap path before the J5 call (live path unchanged, fail-open without NOTIFY as before, 429 keeps CORS headers), wrangler.jsonc adds the staging-only var FLAG_PLATFORM_SECURITY_FEEDBACK_TRIAGE=true (production keeps the registry default off), tests/feedback-triage.test.js adds the dry-run rate-limit test, docs/runbooks/skill-router-eval.md documents it; (b) 8e87db82: changelog prose, the release date, an e2e comment, the oc-release-ops checkpoint; no other executable source. 0 CRITICAL / 0 HIGH; carried: 1 MEDIUM (zod 4.6.5 advisory, unreachable), 1 LOW (deploy.mjs OPCHAIN_SHIP_WORK guard). Full npm test PASS in the gate (receipt for 52decd3c)."
       }
+    },
+    {
+      "id": "oc-code-auditor-pre-deploy-code-audit-v1-e7c80419b951",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-11-06T01:42:55.504Z",
+      "verified_at": "2026-11-06T01:42:55.504Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-code-audit-v1-2026-11-06T01:42:55.504Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:e7c80419b951bcd4c43286496714e568a5df3213234c827c370b86f84ce23a41"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Pre-deploy re-audit of the 2.1.0 release candidate ddfcf133, delta since the PASSED audit at 8e87db82 (candidate sha256:c71a7d38...): (a) 4c23facb is text-only (site router copy, router-status.ts constants, the router-label e2e rule); (b) main #677 at 4aa26faf, read in full: plugins/opchain/hooks/route-redirect.cjs (new PreToolUse Bash hook: regex-classifies the command via route-dispatch rawCommandClasses, acts only on an injected live route to oc-git-ops/oc-deploy-ops whose outcome window is still open and whose skill was not invoked; block-once-then-override scoped to the route's time; appends redirect records to the route log; fails open on every error incl. a failed log append, never acts on git commit, OPCHAIN_ROUTE_REDIRECT=0 disables; the deny reason is JSON-stringified, args must start with '/'), hooks.json registration (PreToolUse Bash, 5 s timeout), route-dispatch.cjs (isCompactSummary excluded from human turns; deploy class adds wrangler d1 migrations apply ... --remote), route-prompt.cjs (skips redirect records when closing the previous outcome), scripts/route-eval.mjs (githubEvidence/otherSessionEvidence/addElsewhereEvidence, fetchRepoPrs via spawnSync gh api graphql with an args array and an owner/name parsed by a restricted regex, Follow-through report; redirect lookup keys match the row fields), tests route-redirect/route-hook/route-eval-elsewhere/audit-commit compatibility; the changelog passage. 0 CRITICAL / 0 HIGH; new LOW: the hook requires route-dispatch.cjs on every Bash call before its cheap regex exit (load cost per call, bounded by the 5 s timeout); carried: 1 MEDIUM (zod 4.6.5 advisory, unreachable), 1 LOW (deploy.mjs OPCHAIN_SHIP_WORK guard). Full npm test PASS in the gate for ddfcf133.",
+        "evidence": [
+          "plugins/opchain/hooks/route-redirect.cjs",
+          "plugins/opchain/hooks/lib/route-dispatch.cjs",
+          "plugins/opchain/hooks/route-prompt.cjs",
+          "plugins/opchain/hooks/hooks.json"
+        ]
+      }
     }
   ],
   "latest_pre_deploy": {
@@ -785,7 +811,7 @@
     "blocking_findings": 0,
     "target": "staging preview from claude/staging-preview-2-1"
   },
-  "record_updated_at": "2026-11-05T23:56:13.070Z",
+  "record_updated_at": "2026-11-06T01:42:55.506Z",
   "recently_done": [
     {
       "at": "2026-09-21T13:40:12.755Z",
