@@ -237,7 +237,7 @@ function userTexts(record) {
  *  does (route-dispatch stripLeadingReminders): the 2026-10-09 corpus left out
  *  every prompt delivered behind them. */
 export function humanPromptText(record) {
-  if (!record || record.type !== "user" || record.isMeta || record.isSidechain) return null;
+  if (!record || record.type !== "user" || record.isMeta || record.isSidechain || record.isCompactSummary) return null;
   const { texts, toolResult } = userTexts(record);
   if (toolResult || texts.length === 0) return null;
   const text = ROUTER.stripLeadingReminders(texts.join("\n"));
@@ -1303,6 +1303,8 @@ export function scoreRoutes(routes, { index = new Map(), outcomes = [], labels =
       mode: r.mode ?? null,
       arm: r.arm ?? null,
       injected: Boolean(r.injected),
+      branch: r.repoState?.branch ?? null,
+      cwd: r.cwd ?? null,
     };
     const key = `${r.session_id}|${r.prompt_hash}`;
     let scored = null;
@@ -1331,10 +1333,154 @@ export function scoreRoutes(routes, { index = new Map(), outcomes = [], labels =
   return { rows, unscored };
 }
 
+// ---------------------------------------------------------------------------
+// Work done elsewhere: GitHub state and other sessions (2026-11-05)
+// ---------------------------------------------------------------------------
+// The transcript proxy credits a suggestion only with activity in the session's
+// own reply turn. Merges that auto-merge finished, that the owner ran from a
+// handed-over command, or that another session ran all looked like false
+// suggestions (2026-11-05 audit §3: proxy precision 0.508 against 0.836 hand
+// labelled). `row.elsewhere = { raw, notes }` records that work; it counts
+// toward the proxy (relatedTo, activitySkills) and the follow-through report,
+// never against a hand label.
+export const ELSEWHERE_HOURS = 2;
+
+/** The main checkout for a worktree path (`<repo>/.claude/worktrees/<name>` → `<repo>`). */
+export function repoRootOf(cwd) {
+  if (!cwd) return null;
+  const m = /^(.*?)\/\.claude\/worktrees\/[^/]+/.exec(String(cwd));
+  return m ? m[1] : String(cwd);
+}
+
+/** PR numbers a request names: "#284", "PR 262", "merge 252", "Merge 259, then 261, then 260". */
+export function prRefsIn(text) {
+  const out = new Set();
+  const t = String(text ?? "");
+  for (const m of t.matchAll(/#(\d{1,6})\b/g)) out.add(Number(m[1]));
+  for (const m of t.matchAll(/\b(?:pr|pull request|merge|merged|rebase|rebate|land)\s+#?(\d{1,6})\b/gi)) out.add(Number(m[1]));
+  if (/\b(?:merge|pr)\b/i.test(t)) for (const m of t.matchAll(/(?:,|\bthen|\band)\s+#?(\d{2,6})\b/gi)) out.add(Number(m[1]));
+  return out;
+}
+
+function inWindow(iso, fromMs, toMs) {
+  const t = Date.parse(iso);
+  return Number.isFinite(t) && t >= fromMs && t <= toMs;
+}
+
+/**
+ * GitHub state after a routed prompt. `prs` is one repository's pull requests:
+ * [{ number, headRefName, createdAt, mergedAt, autoMergeAt: [iso] }]. A PR counts
+ * when the request names it or its head is the session's branch, and it was
+ * merged, set to auto-merge, or opened within `hours` of the prompt.
+ * → { raw: { gh_pr_merge?, gh_pr_create? }, notes }
+ */
+export function githubEvidence(row, prs, { hours = ELSEWHERE_HOURS } = {}) {
+  const raw = {};
+  const notes = [];
+  if (!Array.isArray(prs) || !row?.at) return { raw, notes };
+  const from = Date.parse(row.at);
+  const to = from + hours * 3600e3;
+  const refs = prRefsIn(row.request ?? row.prompt_head);
+  for (const pr of prs) {
+    if (!(refs.has(Number(pr.number)) || (row.branch && pr.headRefName === row.branch))) continue;
+    if (pr.mergedAt && inWindow(pr.mergedAt, from, to)) {
+      raw.gh_pr_merge = true;
+      notes.push(`GitHub: #${pr.number} merged`);
+    } else if ((pr.autoMergeAt ?? []).some((t) => inWindow(t, from, to))) {
+      raw.gh_pr_merge = true;
+      notes.push(`GitHub: #${pr.number} set to auto-merge`);
+    }
+    if (pr.createdAt && inWindow(pr.createdAt, from, to)) {
+      raw.gh_pr_create = true;
+      notes.push(`GitHub: #${pr.number} opened`);
+    }
+  }
+  return { raw, notes };
+}
+
+/**
+ * Another session in the same repository doing the row's work within `hours`:
+ * a `gh pr merge` / `gh pr create` whose command names a PR the request names or
+ * the row's branch, a Skill call of oc-git-ops whose args name one, or any deploy
+ * (a deploy is repository-wide). `sessions`: [{ session_id, root, records }].
+ */
+export function otherSessionEvidence(row, sessions, { hours = ELSEWHERE_HOURS } = {}) {
+  const raw = {};
+  const notes = [];
+  const root = repoRootOf(row?.cwd);
+  if (!root || !row?.at) return { raw, notes };
+  const from = Date.parse(row.at);
+  const to = from + hours * 3600e3;
+  const refs = [...prRefsIn(row.request ?? row.prompt_head)].map(String);
+  const names = (text) => refs.some((n) => new RegExp(`(?:^|[^\\d])${n}(?:[^\\d]|$)`).test(text)) || Boolean(row.branch && row.branch !== "main" && text.includes(row.branch));
+  for (const s of sessions) {
+    if (!s || s.session_id === row.session_id || s.root !== root) continue;
+    const who = `session ${String(s.session_id).slice(0, 8)}`;
+    for (const rec of s.records ?? []) {
+      if (!rec || rec.type !== "assistant" || !Array.isArray(rec.message?.content) || !inWindow(rec.timestamp, from, to)) continue;
+      for (const part of rec.message.content) {
+        if (part?.type !== "tool_use") continue;
+        if (part.name === "Bash" && typeof part.input?.command === "string") {
+          const cmd = part.input.command;
+          const on = ROUTER.rawCommandClasses(cmd);
+          if (on.gh_pr_merge && names(cmd) && !raw.gh_pr_merge) {
+            raw.gh_pr_merge = true;
+            notes.push(`${who}: gh pr merge`);
+          }
+          if (on.gh_pr_create && names(cmd) && !raw.gh_pr_create) {
+            raw.gh_pr_create = true;
+            notes.push(`${who}: gh pr create`);
+          }
+          if (on.deploy && !raw.deploy) {
+            raw.deploy = true;
+            notes.push(`${who}: deploy`);
+          }
+        } else if (part.name === "Skill" && /oc-git-ops$/.test(String(part.input?.skill ?? "")) && names(String(part.input?.args ?? "")) && !raw.gh_pr_merge) {
+          raw.gh_pr_merge = true;
+          notes.push(`${who}: Skill oc-git-ops ${String(part.input.args).slice(0, 40)}`);
+        }
+      }
+    }
+  }
+  return { raw, notes };
+}
+
+/** Attach `elsewhere` to every row from GitHub (`prsByRoot`: root → prs) and other sessions. */
+export function addElsewhereEvidence(rows, { prsByRoot = new Map(), sessions = [], hours = ELSEWHERE_HOURS } = {}) {
+  for (const row of rows) {
+    const gh = githubEvidence(row, prsByRoot.get(repoRootOf(row.cwd)) ?? null, { hours });
+    const os2 = otherSessionEvidence(row, sessions, { hours });
+    const raw = { ...gh.raw, ...os2.raw };
+    if (Object.keys(raw).length) row.elsewhere = { raw, notes: [...gh.notes, ...os2.notes] };
+  }
+  return rows;
+}
+
+/** One repository's PRs from GitHub (GraphQL, newest 100 by update), or null when gh fails. */
+export function fetchRepoPrs(root, { limit = 100 } = {}) {
+  const remote = spawnSync("git", ["-C", root, "remote", "get-url", "origin"], { encoding: "utf8" });
+  const m = /github\.com[:/]([^/]+)\/([^/.\s]+?)(?:\.git)?\s*$/.exec(remote.stdout ?? "");
+  if (!m) return null;
+  const query = `query($o:String!,$n:String!,$l:Int!){repository(owner:$o,name:$n){pullRequests(first:$l,orderBy:{field:UPDATED_AT,direction:DESC}){nodes{number headRefName createdAt mergedAt timelineItems(itemTypes:[AUTO_MERGE_ENABLED_EVENT],first:5){nodes{... on AutoMergeEnabledEvent{createdAt}}}}}}}`;
+  const r = spawnSync("gh", ["api", "graphql", "-f", `query=${query}`, "-F", `o=${m[1]}`, "-F", `n=${m[2]}`, "-F", `l=${limit}`], { encoding: "utf8", timeout: 30000 });
+  if (r.status !== 0) return null;
+  try {
+    return JSON.parse(r.stdout).data.repository.pullRequests.nodes.map((n) => ({
+      number: n.number,
+      headRefName: n.headRefName,
+      createdAt: n.createdAt,
+      mergedAt: n.mergedAt,
+      autoMergeAt: (n.timelineItems?.nodes ?? []).map((x) => x.createdAt).filter(Boolean),
+    }));
+  } catch {
+    return null;
+  }
+}
+
 /** Skills the session's activity points at: oc-* Skill calls ∪ raw command classes. */
 function activitySkills(o) {
   const set = new Set((o.skill_calls ?? []).filter((s) => String(s).startsWith("oc-")));
-  for (const [k, on] of Object.entries(o.raw ?? {})) if (on && RAW_CLASS_SKILL[k]) set.add(RAW_CLASS_SKILL[k]);
+  for (const raw of [o.raw, o.elsewhere?.raw]) for (const [k, on] of Object.entries(raw ?? {})) if (on && RAW_CLASS_SKILL[k]) set.add(RAW_CLASS_SKILL[k]);
   return set;
 }
 
@@ -1342,7 +1488,7 @@ function activitySkills(o) {
 function relatedTo(S, o, steps = SKILL_STEPS) {
   const calls = o.skill_calls ?? [];
   if (calls.includes(S) || (steps[S] ?? []).some((s) => calls.includes(s))) return true;
-  return Object.entries(o.raw ?? {}).some(([k, on]) => on && RAW_CLASS_SKILL[k] === S);
+  return [o.raw, o.elsewhere?.raw].some((raw) => Object.entries(raw ?? {}).some(([k, on]) => on && RAW_CLASS_SKILL[k] === S));
 }
 
 /** "Skill oc-x + raw git" — what happened after the prompt. */
@@ -1407,6 +1553,12 @@ export function summarizeOutcomes(allRecords, { coreSkills = DEFAULTS.coreSkills
   const sources = {};
   const windowEnds = {};
   const review = [];
+  // Follow-through: of the suggestions shown (live, injected) that were right
+  // (label = S, or unlabelled and S's work happened somewhere), how the work got
+  // done. Accuracy says whether the router named the right skill; this says
+  // whether naming it changed what the agent did (2026-11-05 audit §4).
+  const follow = { shown: 0, right: 0, viaSkill: 0, rawInSession: 0, elsewhere: 0, notDone: 0, wrong: 0, ambiguous: 0, rows: [] };
+  const redirects = { block: 0, override: 0, blockThenSkill: 0 };
   let suggestions = 0;
   let labelled = 0;
   let ambiguous = 0;
@@ -1447,6 +1599,21 @@ export function summarizeOutcomes(allRecords, { coreSkills = DEFAULTS.coreSkills
       if (Object.entries(o.raw ?? {}).some(([k, on]) => on && RAW_CLASS_SKILL[k] === S)) row.relatedRaw++;
       const key = `${mode}\u0000${S}\u0000${describeActivity(o)}`;
       transitions[key] = (transitions[key] ?? 0) + 1;
+    }
+    const acts = o.redirects ?? [];
+    for (const a of acts) if (a === "block" || a === "override") redirects[a]++;
+    if (S && acts.includes("block") && usedSkill(S, o)) redirects.blockThenSkill++;
+    if (S && o.injected) {
+      follow.shown++;
+      const rawOf = (raw) => Object.entries(raw ?? {}).some(([k, on]) => on && RAW_CLASS_SKILL[k] === S);
+      if (label === LABEL_AMBIGUOUS) follow.ambiguous++;
+      else if (label ? label !== S : !relatedTo(S, o, steps)) follow.wrong++;
+      else {
+        follow.right++;
+        const how = usedSkill(S, o) ? "viaSkill" : rawOf(o.raw) ? "rawInSession" : rawOf(o.elsewhere?.raw) ? "elsewhere" : "notDone";
+        follow[how]++;
+        follow.rows.push({ ...o, how, then: [describeActivity(o), ...(o.elsewhere?.notes ?? [])].join("; ") });
+      }
     }
     if (label === LABEL_AMBIGUOUS) {
       ambiguous++;
@@ -1535,6 +1702,8 @@ export function summarizeOutcomes(allRecords, { coreSkills = DEFAULTS.coreSkills
       lift,
     },
     liveUse: { ...liveUse, rate: liveUse.pipeline ? liveUse.used / liveUse.pipeline : NaN },
+    follow: { ...follow, rate: follow.right ? follow.viaSkill / follow.right : NaN },
+    redirects,
     proxy: {
       ...proxy,
       precision: proxy.tp + proxy.fp ? proxy.tp / (proxy.tp + proxy.fp) : NaN,
@@ -1664,6 +1833,27 @@ export function renderOutcomesReport(summary, { logPath, since, labelsPath, wind
     L.push(`| Projected skill use with live suggestions followed | ${B.projected} | ${pct(B.projected, B.pipeline)} |`);
     if (S.liveUse && S.liveUse.pipeline) L.push(`| Live mode, measured: agent used the needed skill | ${S.liveUse.used} of ${S.liveUse.pipeline} | ${pct(S.liveUse.used, S.liveUse.pipeline)} |`);
     L.push("", `Lift: **${B.lift === Infinity ? "∞ (baseline 0)" : f3(B.lift)}×** the baseline. The projection assumes a shown suggestion is followed. Pipeline work after a prompt that names none of it ("do it", "good luck") is out of a prompt router's reach.`, "");
+  }
+  const F = S.follow;
+  if (F && F.shown) {
+    L.push("## Follow-through (live: the suggestion was shown)", "");
+    L.push("Of the suggestions shown that were right (hand label, or unlabelled and the suggested skill's work happened somewhere), how the work got done. \"Elsewhere\" is GitHub state (the PR the request names, or the session branch's PR, merged, set to auto-merge or opened) or another session in the same repository.", "");
+    L.push("| | Count | Share of right suggestions |", "|---|---:|---:|");
+    L.push(`| Suggestions shown | ${F.shown} | |`);
+    L.push(`| … right | ${F.right} | |`);
+    L.push(`| Done through the suggested skill | ${F.viaSkill} | ${pct(F.viaSkill, F.right)} |`);
+    L.push(`| Done with raw commands in the session | ${F.rawInSession} | ${pct(F.rawInSession, F.right)} |`);
+    L.push(`| Done elsewhere (GitHub, another session) | ${F.elsewhere} | ${pct(F.elsewhere, F.right)} |`);
+    L.push(`| Not done | ${F.notDone} | ${pct(F.notDone, F.right)} |`);
+    L.push(`| … wrong / ambiguous (not counted) | ${F.wrong} / ${F.ambiguous} | |`);
+    const R = S.redirects ?? {};
+    if (R.block || R.override) L.push("", `Redirects (route-redirect.cjs): ${R.block} raw command(s) blocked, ${R.override} retried as an override, ${R.blockThenSkill} followed by the suggested skill.`);
+    const notVia = F.rows.filter((r) => r.how !== "viaSkill");
+    if (notVia.length) {
+      L.push("", "| When (UTC) | Prompt | Suggested | How | What happened |", "|---|---|---|---|---|");
+      for (const r of notVia) L.push(`| ${String(r.at ?? "").slice(5, 16)} | ${mdEscape(head(r.request ?? r.prompt_head ?? "", 60))} | ${r.suggested}${r.suggested_args ? ` ${r.suggested_args}` : ""} | ${r.how} | ${mdEscape(r.then)} |`);
+    }
+    L.push("");
   }
   L.push("## Overall", "");
   L.push("| Metric | Value |", "|---|---|");
@@ -2101,6 +2291,7 @@ function usage() {
     "  node scripts/route-eval.mjs build-dataset [--since 2026-09-14] [--out scratch/route-dataset.jsonl] [--projects <glob[,glob]>] [--projects-root ~/.claude/projects]",
     "  node scripts/route-eval.mjs outcomes [--log $TMPDIR/opchain-route-log.jsonl] [--since <date>] [--report <file>] [--judge jev [--judge-fixture <answers.json>] [--threshold 0.5]]",
     "        [--labels <log dir>/route-labels.jsonl] [--window-minutes 30] [--projects-root ~/.claude/projects] [--rows <file>] [--no-rescore]",
+    "        [--no-elsewhere] [--elsewhere-hours 2] [--elsewhere-fixture <{ prs: { <repo root>: [...] } }>]",
     "  node scripts/route-eval.mjs label <session_id> <prompt_hash> <skill|none|ambiguous> [--note <text>] [--log <file>] [--labels <file>]",
     "  node scripts/route-eval.mjs label --list [--all] [--log <file>] [--labels <file>]",
     "  node scripts/route-eval.mjs jev --list [--questions plugins/opchain/hooks/jev-questions.json]",
@@ -2158,12 +2349,39 @@ export async function main(argv = process.argv.slice(2), { env = process.env, st
       });
     } else {
       const projectsRoot = args["projects-root"] && args["projects-root"] !== true ? resolve(String(args["projects-root"])) : DEFAULTS.projectsRoot;
+      const index = transcriptIndex(projectsRoot);
       ({ rows, unscored } = scoreRoutes(readRouteRecords(logPath, { since }), {
-        index: transcriptIndex(projectsRoot),
+        index,
         outcomes: readOutcomeRecords(logPath),
         labels,
         windowMs: windowMinutes * 60000,
       }));
+      if (!args["no-elsewhere"]) {
+        // Work done outside the reply turn: GitHub state and other routed sessions.
+        const hours = args["elsewhere-hours"] !== undefined && args["elsewhere-hours"] !== true ? Number(args["elsewhere-hours"]) : ELSEWHERE_HOURS;
+        const fixture = args["elsewhere-fixture"] && args["elsewhere-fixture"] !== true ? JSON.parse(fs.readFileSync(resolve(String(args["elsewhere-fixture"])), "utf8")) : null;
+        const roots = [...new Set(rows.map((r) => repoRootOf(r.cwd)).filter(Boolean))];
+        const prsByRoot = new Map();
+        for (const root of roots) {
+          const prs = fixture ? (fixture.prs?.[root] ?? null) : fetchRepoPrs(root);
+          if (prs) prsByRoot.set(root, prs);
+          else if (!fixture) stderr.write(`outcomes: no GitHub PR state for ${root} (gh unavailable or no github.com origin)\n`);
+        }
+        const rootBySession = new Map();
+        for (const r of rows) if (r.cwd && !rootBySession.has(r.session_id)) rootBySession.set(r.session_id, repoRootOf(r.cwd));
+        const sessions = [...rootBySession].map(([sid, root]) => ({ session_id: sid, root, records: index.has(sid) ? readJsonlRecords(index.get(sid)) : [] }));
+        addElsewhereEvidence(rows, { prsByRoot, sessions, hours });
+      }
+    }
+    // Redirect records (route-redirect.cjs) attach to the prompt they redirected.
+    const redirectsByKey = new Map();
+    for (const r of readLogRecords(logPath, { since }).filter((x) => x.type === "redirect")) {
+      const key = `${r.session_id}|${r.for_prompt_hash}`;
+      (redirectsByKey.get(key) ?? redirectsByKey.set(key, []).get(key)).push(r.action);
+    }
+    for (const row of rows) {
+      const acts = redirectsByKey.get(`${row.session_id}|${row.for_prompt_hash}`);
+      if (acts) row.redirects = acts;
     }
     let judged = null;
     if (args.judge && args.judge !== true) {
