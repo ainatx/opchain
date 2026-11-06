@@ -1469,16 +1469,16 @@ const packCounts = {
                plugins/opchain/hooks/route-prompt.cjs + lib/route-dispatch.cjs.
                Router release terms (sprints/release-2.1/ow-family-sprint-plan.md,
                Track E): the label on the rail (term 1), no effectiveness claim
-               (term 2), live mode unsupported until a GO (term 4). Drawn in the
+               (term 2), live mode an opt-in since the GO of 2026-11-05 (term 4). Drawn in the
                2.0 --tertiary #d79fe9 with a dashed border: an experimental
                preview, not a pipeline rail. -->
-          <div class="jrail" role="group" data-router-copy aria-label={`2.1 Jev rail, ${ROUTER_LABEL}: a UserPromptSubmit hook asks TypeSafe Jev which one opchain skill owns the prompt and logs the answer. Shadow mode is the default and injects nothing. Live mode, which would inject one line naming the Skill tool, the skill and the verb, is unsupported until the go/no-go records a GO.`}>
+          <div class="jrail" role="group" data-router-copy aria-label={`2.1 Jev rail, ${ROUTER_LABEL}: a UserPromptSubmit hook asks TypeSafe Jev which one opchain skill owns the prompt and logs the answer. Shadow mode is the default and injects nothing. Live mode, which injects one line naming the Skill tool, the skill and the verb, is an opt-in since the go/no-go recorded a GO on 2026-11-05.`}>
             <div class="jrail-head">
               <span class="jrail-eyebrow">v2.1 · Jev rail <ReleaseTag theme="oc" /></span>
               <span class="jrail-title">Route each prompt to one skill, and log it. <RouterLabel /></span>
             </div>
             <div class="jrail-svg-wrap">
-              <svg viewBox="0 0 760 330" role="img" aria-label="Jev rail: route-prompt.cjs, then Jev request 1, Jev request 2 and a tiered decision. An explicit /oc-* mention skips both Jev calls. The decision goes to shadow mode (the default, log only); live mode (one injected line) is unsupported until the go/no-go records a GO. Every routed prompt feeds the eval loop.">
+              <svg viewBox="0 0 760 330" role="img" aria-label="Jev rail: route-prompt.cjs, then Jev request 1, Jev request 2 and a tiered decision. An explicit /oc-* mention skips both Jev calls. The decision goes to shadow mode (the default, log only); live mode (one injected line) is an opt-in since the go/no-go recorded a GO on 2026-11-05. Every routed prompt feeds the eval loop.">
                 <!-- ══ EXPLICIT WIRE: a prompt that names one /oc-* skill skips both Jev calls ══ -->
                 <text x="380" y="22" fill="#d79fe9" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">explicit /oc-* mention → decision at p = 1 · no Jev call</text>
                 <line x1="94" y1="52" x2="94" y2="30" stroke="#d79fe9" stroke-width="1.4" opacity="0.9"/>
@@ -1527,21 +1527,21 @@ const packCounts = {
                 <text x="313" y="219" fill="#d4e2ef" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">1 verifier FAIL triage</text>
                 <text x="313" y="232" fill="#a5bcd1" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">2 Stop handoff detection</text>
                 <text x="313" y="245" fill="#a5bcd1" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">3 semantic gate rows</text>
-                <rect x="412" y="184" width="130" height="74" rx="5" fill="#12191f" stroke="#a5bcd1" stroke-width="1" opacity="0.97"><title>Shadow is the default and the only supported mode in 2.1.0. It routes and logs but injects nothing.</title></rect>
-                <text x="477" y="203" fill="#a5bcd1" font-size="9" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">SHADOW · supported</text>
+                <rect x="412" y="184" width="130" height="74" rx="5" fill="#12191f" stroke="#a5bcd1" stroke-width="1" opacity="0.97"><title>Shadow is the default in 2.1.0. It routes and logs but injects nothing.</title></rect>
+                <text x="477" y="203" fill="#a5bcd1" font-size="9" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">SHADOW · default</text>
                 <text x="477" y="219" fill="#d4e2ef" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">route + log</text>
                 <text x="477" y="232" fill="#a5bcd1" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">inject nothing</text>
-                <rect x="556" y="184" width="190" height="74" rx="5" fill="#12191f" stroke="#d79fe9" stroke-width="1" stroke-dasharray="2,3" opacity="0.97"><title>Live mode would inject exactly one line as additionalContext. OPCHAIN_ROUTE_MODE=live is unsupported until the shadow-period go/no-go records a GO.</title></rect>
-                <text x="651" y="203" fill="#d79fe9" font-size="9" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">LIVE · unsupported until GO</text>
+                <rect x="556" y="184" width="190" height="74" rx="5" fill="#12191f" stroke="#d79fe9" stroke-width="1" stroke-dasharray="2,3" opacity="0.97"><title>Live mode injects exactly one line as additionalContext. OPCHAIN_ROUTE_MODE=live is an opt-in since the shadow-period go/no-go recorded a GO on 2026-11-05; shadow stays the default.</title></rect>
+                <text x="651" y="203" fill="#d79fe9" font-size="9" font-weight="700" font-family="JetBrains Mono,monospace" text-anchor="middle">LIVE · opt-in since GO</text>
                 <text x="651" y="219" fill="#d4e2ef" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">"invoke the Skill tool</text>
                 <text x="651" y="232" fill="#a5bcd1" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">with skill X and args /verb"</text>
-                <text x="651" y="245" fill="#a5bcd1" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">one line, when supported</text>
+                <text x="651" y="245" fill="#a5bcd1" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">one line, opt-in</text>
                 <line x1="600" y1="152" x2="600" y2="168" stroke="#d79fe9" stroke-width="1.4" opacity="0.9"/>
                 <line x1="600" y1="168" x2="477" y2="168" stroke="#d79fe9" stroke-width="1.4" opacity="0.9"/>
                 <line x1="477" y1="168" x2="477" y2="184" stroke="#d79fe9" stroke-width="1.4" opacity="0.9" marker-end="url(#ah-jev)"/>
                 <line x1="690" y1="152" x2="690" y2="184" stroke="#d79fe9" stroke-width="1.4" opacity="0.9" marker-end="url(#ah-jev)"/>
                 <text x="538" y="164" fill="#a5bcd1" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">default</text>
-                <text x="722" y="172" fill="#d79fe9" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">unsupported</text>
+                <text x="722" y="172" fill="#d79fe9" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">opt-in</text>
                 <line x1="477" y1="258" x2="477" y2="270" stroke="#a5bcd1" stroke-width="1.4" stroke-dasharray="4,3" opacity="0.9"/>
                 <line x1="651" y1="258" x2="651" y2="270" stroke="#a5bcd1" stroke-width="1.4" stroke-dasharray="4,3" opacity="0.9"/>
                 <line x1="651" y1="270" x2="114" y2="270" stroke="#a5bcd1" stroke-width="1.4" stroke-dasharray="4,3" opacity="0.9"/>
@@ -1555,7 +1555,7 @@ const packCounts = {
               <div class="jrail-anchor">
                 <span class="ia-name">route-prompt.cjs</span>
                 <span class="ia-meta">UserPromptSubmit hook · plugin</span>
-                <span class="ia-do">shadow only · OPCHAIN_ROUTE_MODE=live unsupported until GO</span>
+                <span class="ia-do">shadow by default · OPCHAIN_ROUTE_MODE=live opt-in since GO (2026-11-05)</span>
                 <span class="ia-badges"><span class="ia-new">EXPERIMENTAL PREVIEW</span></span>
               </div>
               <div class="jrail-anchor">

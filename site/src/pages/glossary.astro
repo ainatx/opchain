@@ -172,8 +172,8 @@ const terms: Term[] = [
     since: "2.1",
     preview: "oc",
     router: true,
-    short: "The skill router's default, and its only supported mode: it classifies and logs every prompt but adds nothing to the conversation.",
-    long: `Shadow runs still call the classifier API. They exist to measure the router on real prompts before it is allowed to suggest: each log entry records the decision and, on the next prompt, what the session actually did. OPCHAIN_ROUTE_MODE=live, which adds the suggestion, is unsupported until the go/no-go records a GO.`,
+    short: "The skill router's default: it classifies and logs every prompt but adds nothing to the conversation.",
+    long: `Shadow runs still call the classifier API. They exist to measure the router on real prompts before it is allowed to suggest: each log entry records the decision and, on the next prompt, what the session actually did. OPCHAIN_ROUTE_MODE=live, which adds the suggestion, is an opt-in since the go/no-go recorded a GO on 2026-11-05; shadow stays the default.`,
     related: [{ label: "Skill router", href: "/glossary#skill-router" }],
   },
 ];

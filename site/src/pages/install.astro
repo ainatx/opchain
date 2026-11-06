@@ -82,8 +82,8 @@ const bypassCmd = `git commit --amend --no-verify \\
   --trailer "Opchain-Bypass: <who approved, what failed>"`;
 
 // Skill router opt-in (router release term 5; plugins/opchain/hooks/route-prompt.cjs).
-// Live mode is not in the copy block: OPCHAIN_ROUTE_MODE=live is unsupported
-// until the shadow-period go/no-go records a GO (term 4).
+// Live mode is not in the copy block: shadow stays the default. OPCHAIN_ROUTE_MODE=live
+// is an opt-in since the shadow-period go/no-go recorded a GO on 2026-11-05 (term 4).
 const routerCmd = `# 1. get a key from TypeSafe; calls are made with your key,
 #    under your TypeSafe account and its terms
 # 2. set it where Claude Code starts: the router runs in shadow mode
@@ -379,9 +379,9 @@ codex`;
         </button>
       </div>
       <p class="verify">
-        <strong>Live mode</strong> (<code class="ic">OPCHAIN_ROUTE_MODE=live</code>) is {ROUTER_LIVE_MODE}; it would add the suggestion
-        to the conversation as one line. 2.1.0 ships shadow mode as the
-        default either way.
+        <strong>Live mode</strong> (<code class="ic">OPCHAIN_ROUTE_MODE=live</code>) is {ROUTER_LIVE_MODE}; it adds the suggestion
+        to the conversation as one line, and <code class="ic">OPCHAIN_ROUTE_AB=1</code> shows it to half
+        the sessions so the effect can be measured. 2.1.0 ships shadow mode as the default.
       </p>
       <div class="upg">
         <h3 class="upg-h">What leaves your machine <span class="upg-tag">third-party API</span></h3>

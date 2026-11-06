@@ -9,12 +9,16 @@ import { ROUTER_LABEL } from "../../src/data/router-status";
  * track-s-site-surfaces.md row 49:
  *
  *   - term 1: /install, /privacy, /security and /architecture show the
- *     "experimental preview" label beside their router copy. Until the
- *     shadow-period go/no-go records a verdict the label reads exactly
- *     ROUTER_LABEL ("experimental preview, shadow only, verdict pending").
+ *     "experimental preview" label beside their router copy. The label reads
+ *     exactly ROUTER_LABEL: "experimental preview, shadow only, verdict
+ *     pending" until the shadow-period go/no-go recorded a verdict, and since
+ *     the GO of 2026-11-05 "experimental preview, shadow by default, live
+ *     opt-in since GO (2026-11-05)".
  *   - term 3: /privacy names api.typesafe.ai.
- *   - term 4: no page says OPCHAIN_ROUTE_MODE=live without "unsupported" in
- *     the same block, until a GO is recorded.
+ *   - term 4: until a GO was recorded, no page said OPCHAIN_ROUTE_MODE=live
+ *     without "unsupported" in the same block. With the GO recorded, no page
+ *     may still call live mode unsupported, and every block that names it
+ *     must say it is an opt-in (shadow stays the default).
  *
  * Router copy is marked with `data-router-copy`; each such block must carry
  * the label itself, so a router paragraph added later without the label fails
@@ -100,10 +104,11 @@ test.describe("skill router: experimental-preview label", () => {
   });
 
   for (const path of LIVE_MODE_PAGES) {
-    test(`${path} never offers OPCHAIN_ROUTE_MODE=live as supported`, async ({ page }) => {
+    test(`${path} names OPCHAIN_ROUTE_MODE=live as an opt-in, never as unsupported`, async ({ page }) => {
       await page.goto(path, { waitUntil: "domcontentloaded" });
       // For every element whose own text names live mode, the nearest block
-      // around it must say "unsupported".
+      // around it must say "opt-in" and must not still say "unsupported"
+      // (the pre-GO wording).
       const offenders = await page.evaluate(() => {
         const BLOCK = "p, li, dd, td, pre, .kv, .jrail-anchor, figure, blockquote, text, title";
         const out: string[] = [];
@@ -113,18 +118,18 @@ test.describe("skill router: experimental-preview label", () => {
           const el = n.parentElement;
           const block = el?.closest(BLOCK) ?? el;
           const text = block?.textContent ?? "";
-          if (!/unsupported/i.test(text)) out.push(text.trim().slice(0, 160));
+          if (!/opt-in/i.test(text) || /unsupported/i.test(text)) out.push(text.trim().slice(0, 160));
         }
         // aria-labels are read aloud: hold them to the same rule.
         for (const el of Array.from(document.querySelectorAll("[aria-label]"))) {
           const label = el.getAttribute("aria-label") ?? "";
-          if (/OPCHAIN_ROUTE_MODE=live|live mode/i.test(label) && !/unsupported/i.test(label)) {
+          if (/OPCHAIN_ROUTE_MODE=live|live mode/i.test(label) && (!/opt-in/i.test(label) || /unsupported/i.test(label))) {
             out.push(`aria-label: ${label.slice(0, 160)}`);
           }
         }
         return out;
       });
-      expect(offenders, `${path}: live mode named without "unsupported"`).toEqual([]);
+      expect(offenders, `${path}: live mode named without "opt-in", or still "unsupported"`).toEqual([]);
     });
   }
 });
