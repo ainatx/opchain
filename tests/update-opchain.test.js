@@ -3,7 +3,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { digest, downloadRelease, installBundle, validateBundle } from '../scripts/update-opchain.mjs';
+import { AGENTS_SECTION_END, AGENTS_SECTION_OFF, AGENTS_SECTION_START, AGENTS_TEMPLATE, agentsMdLine, digest, downloadRelease, installBundle, validateBundle } from '../scripts/update-opchain.mjs';
 
 const roots = [];
 const CLAUDE = '.claude/skills';
@@ -187,6 +187,118 @@ describe('repository updater installation', () => {
     const result = await installBundle(bundle(), { root });
     expect(new Set(result.targets)).toEqual(new Set([CLAUDE, CODEX, LEGACY]));
     for (const target of [CLAUDE, CODEX, LEGACY]) expect(readFileSync(join(root, target, SKILL), 'utf8')).toContain('version: 2.0.0');
+  });
+});
+
+// The release carries the AGENTS.md template inside a runtime owner's
+// scripts/runtime/ tree (runtime-manifest.json), so every install type gets it.
+const TEMPLATE_PATH = `oc-telemetry-ops/scripts/runtime/${AGENTS_TEMPLATE}`;
+const SECTION = `${AGENTS_SECTION_START}\n## OpChain\n\nRelease guidance.\n${AGENTS_SECTION_END}\n`;
+const withTemplate = (version = '2.0.0', text = SECTION) => bundle(version, [file(TEMPLATE_PATH, text)]);
+const agents = root => readFileSync(join(root, 'AGENTS.md'), 'utf8');
+
+describe('AGENTS.md managed section', () => {
+  it('creates AGENTS.md from the release template and reports it', async () => {
+    const root = temporary();
+    const result = await installBundle(withTemplate(), { root });
+    expect(result.agentsMd).toEqual({ action: 'created' });
+    expect(agents(root)).toBe(SECTION);
+  });
+
+  it('appends after existing text, leaving that text intact', async () => {
+    const root = temporary();
+    put(root, 'AGENTS.md', '# Team rules\r\n\r\nUse tabs.\n');
+    const result = await installBundle(withTemplate(), { root });
+    expect(result.agentsMd.action).toBe('appended');
+    expect(agents(root)).toBe(`# Team rules\r\n\r\nUse tabs.\n\n${SECTION}`);
+  });
+
+  it('replaces only the text between the markers and keeps everything outside them', async () => {
+    const root = temporary();
+    const before = 'intro\n\n';
+    const after = '\n\n## Mine\noutro\n';
+    put(root, 'AGENTS.md', `${before}${AGENTS_SECTION_START}\nstale text\n${AGENTS_SECTION_END}${after}`);
+    const result = await installBundle(withTemplate(), { root });
+    expect(result.agentsMd.action).toBe('updated');
+    expect(agents(root)).toBe(`${before}${SECTION.trimEnd()}${after}`);
+  });
+
+  it('is idempotent: a rerun reports unchanged and writes nothing', async () => {
+    const root = temporary();
+    put(root, 'AGENTS.md', '# Mine\n');
+    await installBundle(withTemplate(), { root });
+    const before = snapshot(root);
+    const result = await installBundle(withTemplate(), { root });
+    expect(result.agentsMd.action).toBe('unchanged');
+    expect(result.changed).toBe(0);
+    expect(snapshot(root)).toEqual(before);
+  });
+
+  it('never writes under --check, but reports what it would do', async () => {
+    const root = temporary();
+    put(root, 'AGENTS.md', '# Mine\n');
+    const result = await installBundle(withTemplate(), { root, check: true });
+    expect(result.agentsMd.action).toBe('appended');
+    expect(readdirSync(root)).toEqual(['AGENTS.md']);
+    expect(agents(root)).toBe('# Mine\n');
+  });
+
+  it('respects the opt-out marker in AGENTS.md', async () => {
+    const root = temporary();
+    const own = `# Mine\n\n${AGENTS_SECTION_OFF}\n`;
+    put(root, 'AGENTS.md', own);
+    const result = await installBundle(withTemplate(), { root });
+    expect(result.agentsMd.action).toBe('opted-out');
+    expect(agents(root)).toBe(own);
+  });
+
+  it('respects agentsMd: false (--no-agents-md)', async () => {
+    const root = temporary();
+    const result = await installBundle(withTemplate(), { root, agentsMd: false });
+    expect(result.agentsMd).toEqual({ action: 'disabled' });
+    expect(existsSync(join(root, 'AGENTS.md'))).toBe(false);
+  });
+
+  it('skips an AGENTS.md symlink instead of failing the update', async () => {
+    const root = temporary();
+    put(root, 'CLAUDE.md', '# Shared\n');
+    symlinkSync('CLAUDE.md', join(root, 'AGENTS.md'));
+    const result = await installBundle(withTemplate(), { root });
+    expect(result.agentsMd.action).toBe('skipped-symlink');
+    expect(readFileSync(join(root, 'CLAUDE.md'), 'utf8')).toBe('# Shared\n');
+    expect(existsSync(join(root, CLAUDE, SKILL))).toBe(true);
+  });
+
+  it('skips quietly when the release predates the template', async () => {
+    const root = temporary();
+    const result = await installBundle(bundle(), { root });
+    expect(result.agentsMd).toEqual({ action: 'no-template' });
+    expect(existsSync(join(root, 'AGENTS.md'))).toBe(false);
+  });
+
+  it('still writes AGENTS.md for a plugin-only repository with no local skill targets', async () => {
+    const root = temporary();
+    const result = await installBundle(withTemplate(), { root, exclude: [CLAUDE] });
+    expect(result.targets).toEqual([]);
+    expect(result.agentsMd.action).toBe('created');
+    expect(agents(root)).toBe(SECTION);
+    expect(existsSync(join(root, RECEIPT))).toBe(false);
+  });
+
+  it('reports the action in one AGENTS.md line, conditional under --check', () => {
+    expect(agentsMdLine('created')).toBe('AGENTS.md: OpChain section created.');
+    expect(agentsMdLine('appended', true)).toBe('AGENTS.md: OpChain section would be appended.');
+    expect(agentsMdLine('disabled')).toContain('skipped (--no-agents-md)');
+    expect(agentsMdLine('skipped-symlink')).toContain('symlink');
+    // No-op runs stay one line for skills: nothing to report when nothing happened.
+    for (const quiet of ['unchanged', 'opted-out', 'no-template']) expect(agentsMdLine(quiet)).toBe(null);
+  });
+
+  it('keeps AGENTS.md in the backup so a failed update can restore it', async () => {
+    const root = temporary();
+    put(root, 'AGENTS.md', `${AGENTS_SECTION_START}\nold\n${AGENTS_SECTION_END}\n`);
+    const result = await installBundle(withTemplate(), { root });
+    expect(readFileSync(join(root, result.backup, 'files', 'AGENTS.md'), 'utf8')).toContain('old');
   });
 });
 

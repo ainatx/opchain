@@ -46,3 +46,13 @@ Other modes, with the user's arguments in `$ARGUMENTS`:
   `/oc-deploy`, `/oc-bugcheck`, `/oc-enroll`) and the rule that commits go
   through the gate, PRs carry the docs packet, and `--no-verify` never happens
   without `/oc-bugcheck bypass`.
+- `--agents-md`: creates or updates the managed OpChain section of `AGENTS.md`
+  for agents that do not read `CLAUDE.md` (Codex, Cursor, Copilot). It is
+  agent-neutral: the gate is plain git hooks, a refused commit means stop,
+  `--no-verify` needs an `Opchain-Bypass:` trailer, read `.checkpoints/` first,
+  and vendored `oc-*` skills change only through the updater. It names no
+  version (`.opchain-install.json` does). `/oc-update` refreshes the same section
+  on every update, so this is the manual path. Only the text between its markers
+  changes. It is skipped when `AGENTS.md` contains
+  `<!-- opchain:agents-section off -->`; `/oc-update --no-agents-md` skips it for
+  one update. Both flags can be combined: `--claude-md --agents-md`.

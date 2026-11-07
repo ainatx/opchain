@@ -56,6 +56,7 @@ install commands below.
 | Install specifically for Claude or Codex | Add `--target=claude` or `--target=codex` |
 | Install for both | Add `--target=both` |
 | User specifies another repo | Add `--root=<absolute-repo-path>` |
+| Update without touching `AGENTS.md` | Add `--no-agents-md` |
 
 Pass arguments as separate values, quoting paths with spaces. A request to
 update authorizes running the updater; a version-check request authorizes only
@@ -96,6 +97,33 @@ or touch the plugin cache yourself.
 - `--check` makes no CLI call: `opchain@opchain` is compared with the release
   (it ships in lockstep with the skills); `ow-tools` shows its installed version
   only.
+
+## The managed AGENTS.md section
+
+Codex, Cursor, Copilot and other agents read the repo-root `AGENTS.md`, not
+`CLAUDE.md`. Every consumer update (repo-local skills for Claude Code or Codex,
+and plugin-only repositories) creates or refreshes an OpChain section there from
+the release's template: read `.checkpoints/` first, pick the matching skill, the
+git-hook gate applies to every agent, never bypass a refused commit without an
+`Opchain-Bypass:` trailer, and never hand-edit vendored `oc-*` skills. It names
+no version; `.opchain-install.json` stays the source of truth.
+
+- Only the text between `<!-- opchain:agents-section v1 -->` and
+  `<!-- /opchain:agents-section -->` is replaced. With no markers the section is
+  appended; text outside the markers is never changed.
+- When it changes `AGENTS.md`, or cannot, the updater prints one `AGENTS.md:`
+  line (`created`, `appended`, `updated`, or `skipped (...)` with the reason).
+  Relay it, and offer to commit `AGENTS.md` with the skills. A current section,
+  a standing opt-out, or a release without the template prints nothing.
+- `--check` reports what would happen and writes nothing.
+- Opt out for one run with `--no-agents-md`, or permanently by putting
+  `<!-- opchain:agents-section off -->` in `AGENTS.md`. Respect either; do not
+  write the section by hand instead.
+- A symlinked `AGENTS.md` is skipped (it belongs to its target). Source
+  checkouts are skipped: they are not installations.
+- The same section can be written without updating:
+  `node <plugin-root>/scripts/install-git-drivers.mjs --agents-md` (`/oc-enroll
+  --agents-md` in Claude Code).
 
 ## Adding plugins and the duplicate guard
 

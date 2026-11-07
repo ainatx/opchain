@@ -44,7 +44,8 @@
     "scripts/runtime/prompt-engine.mjs",
     "scripts/runtime/catalog.json",
     "scripts/runtime/licenses/zod.txt",
-    "scripts/runtime/licenses/js-yaml.txt"
+    "scripts/runtime/licenses/js-yaml.txt",
+    "plugins/opchain/templates/AGENTS.opchain.md"
   ],
   "hosts": {
     "cli": {

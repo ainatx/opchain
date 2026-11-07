@@ -50,6 +50,9 @@
  *                 `.github/workflows/opchain-evidence.yml` from the packaged
  *                 template; never overwrites a workflow without --force
  *   --claude-md   create or update the opchain section of CLAUDE.md
+ *   --agents-md   create or update the opchain section of AGENTS.md (the
+ *                 updater does this on every consumer update; this is the
+ *                 manual path). Skipped when AGENTS.md opts out.
  *   --hook <post-commit|pre-push>
  *                 internal: the managed hooks call the runtime copy of this
  *                 file with this flag
@@ -74,7 +77,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { delimiter, dirname, isAbsolute, join, relative, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const SCRIPT_DIR = dirname(SCRIPT_PATH);
@@ -901,35 +904,36 @@ export function installCiWorkflow(root, { force = false } = {}) {
   return { written: [...vendored.written, CI_WORKFLOW_PATH], missing: vendored.missing, workflow: CI_WORKFLOW_PATH, changed: true };
 }
 
-export function installClaudeMd(root) {
-  const template = readTemplate("CLAUDE.opchain.md").trimEnd();
-  if (!template.includes(CLAUDE_MD_START) || !template.includes(CLAUDE_MD_END)) {
-    throw new Error("CLAUDE.opchain.md template must carry the managed-section markers");
-  }
+// The marker logic lives in the updater, which must stay a standalone file
+// (it is served as /update.mjs). Imported lazily: the hook runtime copied under
+// .git/ carries only this file, and the hooks never need these modes.
+async function updaterModule() {
+  const file = join(SCRIPT_DIR, "update-opchain.mjs");
+  if (!existsSync(file)) throw new Error(`packaged updater is missing: ${file}`);
+  return import(pathToFileURL(file).href);
+}
+
+export async function installClaudeMd(root) {
+  const { upsertManagedSection } = await updaterModule();
   const file = join(root, "CLAUDE.md");
   const existing = existsSync(file) ? readFileSync(file, "utf8") : "";
-  let next;
-  let action;
-  const start = existing.indexOf(CLAUDE_MD_START);
-  const end = existing.indexOf(CLAUDE_MD_END);
-  if (start !== -1 && end !== -1 && end > start) {
-    next = `${existing.slice(0, start)}${template}${existing.slice(end + CLAUDE_MD_END.length)}`;
-    action = next === existing ? "unchanged" : "updated";
-  } else if (existing.trim()) {
-    next = `${existing.trimEnd()}\n\n${template}\n`;
-    action = "appended";
-  } else {
-    next = `${template}\n`;
-    action = "created";
-  }
+  const { next, action } = upsertManagedSection(existing, readTemplate("CLAUDE.opchain.md"), { start: CLAUDE_MD_START, end: CLAUDE_MD_END });
   if (action !== "unchanged") writeFileSync(file, next);
   return { path: file, action };
+}
+
+export async function installAgentsMd(root) {
+  const updater = await updaterModule();
+  const file = join(root, updater.AGENTS_MD);
+  const plan = updater.planAgentsMd(root, readTemplate("AGENTS.opchain.md"));
+  if (plan.value) writeFileSync(file, plan.value.bytes);
+  return { path: file, action: plan.action };
 }
 
 // ---------------------------------------------------------------------------
 
 function parseArgs(argv) {
-  const args = { repo: process.cwd(), enroll: false, doctor: false, ci: false, force: false, claudeMd: false, hook: null, remote: null, policy: ".bugcheck.json" };
+  const args = { repo: process.cwd(), enroll: false, doctor: false, ci: false, force: false, claudeMd: false, agentsMd: false, hook: null, remote: null, policy: ".bugcheck.json" };
   const rest = [...argv];
   while (rest.length) {
     const flag = rest.shift();
@@ -939,6 +943,7 @@ function parseArgs(argv) {
     else if (flag === "--ci") { args.ci = true; args.enroll = true; }
     else if (flag === "--force") args.force = true;
     else if (flag === "--claude-md") args.claudeMd = true;
+    else if (flag === "--agents-md") args.agentsMd = true;
     else if (flag === "--hook") args.hook = rest.shift();
     else if (flag === "--remote") args.remote = rest.shift();
     else if (flag === "--policy") args.policy = rest.shift();
@@ -946,12 +951,12 @@ function parseArgs(argv) {
   }
   if (!args.repo) throw new Error("--repo requires a value");
   if (args.hook && !["post-commit", "pre-push"].includes(args.hook)) throw new Error(`--hook must be post-commit or pre-push, not ${args.hook}`);
-  if (args.hook && (args.enroll || args.doctor || args.ci || args.claudeMd)) throw new Error("--hook cannot be combined with install modes");
+  if (args.hook && (args.enroll || args.doctor || args.ci || args.claudeMd || args.agentsMd)) throw new Error("--hook cannot be combined with install modes");
   if (args.doctor && (args.enroll || args.ci)) throw new Error("--doctor installs nothing; run it on its own");
   return args;
 }
 
-function main(argv = process.argv.slice(2)) {
+async function main(argv = process.argv.slice(2)) {
   let args;
   try {
     args = parseArgs(argv);
@@ -959,18 +964,24 @@ function main(argv = process.argv.slice(2)) {
     if (args.hook === "pre-push") return hookPrePush(args);
     if (process.env.OPCHAIN_SKIP_GIT_DRIVERS === "1") {
       if (args.enroll) throw new Error("OPCHAIN_SKIP_GIT_DRIVERS=1 prevents explicit enrollment");
-      if (args.doctor || args.claudeMd) throw new Error("OPCHAIN_SKIP_GIT_DRIVERS=1 is set; unset it to run this mode");
+      if (args.doctor || args.claudeMd || args.agentsMd) throw new Error("OPCHAIN_SKIP_GIT_DRIVERS=1 is set; unset it to run this mode");
       return 0;
     }
     const info = repositoryInfo(args.repo);
     if (!info) {
-      if (args.enroll || args.doctor || args.claudeMd) throw new Error("this mode requires a Git working tree");
+      if (args.enroll || args.doctor || args.claudeMd || args.agentsMd) throw new Error("this mode requires a Git working tree");
       return 0;
     }
     if (args.doctor) return printDoctor(info, doctor(info, { policyPath: args.policy }));
-    if (args.claudeMd) {
-      const outcome = installClaudeMd(info.root);
-      process.stdout.write(`opchain: CLAUDE.md opchain section ${outcome.action} (${outcome.path})\n`);
+    if (args.claudeMd || args.agentsMd) {
+      if (args.claudeMd) {
+        const outcome = await installClaudeMd(info.root);
+        process.stdout.write(`opchain: CLAUDE.md opchain section ${outcome.action} (${outcome.path})\n`);
+      }
+      if (args.agentsMd) {
+        const outcome = await installAgentsMd(info.root);
+        process.stdout.write(`opchain: AGENTS.md opchain section ${outcome.action} (${outcome.path})\n`);
+      }
       if (!args.enroll) return 0;
     }
     const required = args.enroll || isEnrolled(info.root);
@@ -1015,5 +1026,5 @@ function main(argv = process.argv.slice(2)) {
 }
 
 if (process.argv[1] && realpathSync(SCRIPT_PATH) === realpathSync(resolve(process.argv[1]))) {
-  process.exitCode = main();
+  main().then((code) => { process.exitCode = code; });
 }

@@ -22,6 +22,7 @@ import {
   VERIFICATION_MARKER,
   outgoingBypasses,
 } from "../scripts/install-git-drivers.mjs";
+import { AGENTS_SECTION_END, AGENTS_SECTION_OFF, AGENTS_SECTION_START } from "../scripts/update-opchain.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SCRIPT = join(ROOT, "scripts", "install-git-drivers.mjs");
@@ -833,5 +834,86 @@ describe("--claude-md", () => {
     expect(updated.endsWith("\n\noutro\n")).toBe(true);
     expect(updated).not.toContain("old text");
     expect(updated).toContain("/oc-commit");
+  });
+});
+
+describe("--agents-md", () => {
+  it("creates, appends to, replaces between markers, and idempotently reruns", () => {
+    const file = join(repo, "AGENTS.md");
+    let r = install(repo, ["--agents-md"]);
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.stdout).toContain("AGENTS.md opchain section created");
+    const created = readFileSync(file, "utf8");
+    expect(created.startsWith(AGENTS_SECTION_START)).toBe(true);
+    expect(created.trimEnd().endsWith(AGENTS_SECTION_END)).toBe(true);
+    expect(existsSync(hookPath("pre-commit")), "--agents-md installs nothing").toBe(false);
+
+    r = install(repo, ["--agents-md"]);
+    expect(r.stdout).toContain("unchanged");
+    expect(readFileSync(file, "utf8")).toBe(created);
+
+    writeFileSync(file, "# Team\n\nHand-written guidance.\n");
+    r = install(repo, ["--agents-md"]);
+    expect(r.stdout).toContain("appended");
+    expect(readFileSync(file, "utf8")).toBe(`# Team\n\nHand-written guidance.\n\n${created}`);
+
+    writeFileSync(file, `intro\n\n${AGENTS_SECTION_START}\nold text\n${AGENTS_SECTION_END}\n\noutro\n`);
+    r = install(repo, ["--agents-md"]);
+    expect(r.stdout).toContain("updated");
+    expect(readFileSync(file, "utf8")).toBe(`intro\n\n${created.trimEnd()}\n\noutro\n`);
+  });
+
+  it("leaves AGENTS.md alone when it carries the opt-out marker", () => {
+    const file = join(repo, "AGENTS.md");
+    const own = `# Team\n${AGENTS_SECTION_OFF}\n`;
+    writeFileSync(file, own);
+    const r = install(repo, ["--agents-md"]);
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.stdout).toContain("opted-out");
+    expect(readFileSync(file, "utf8")).toBe(own);
+  });
+
+  it("works from the plugin-packaged installer, which carries the updater and template", () => {
+    const packaged = join(ROOT, "plugins", "opchain", "scripts", "install-git-drivers.mjs");
+    const r = spawnSync(process.execPath, [packaged, "--agents-md"], { cwd: repo, encoding: "utf8", env: GIT_ENV });
+    expect(r.status, r.stderr).toBe(0);
+    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toContain(AGENTS_SECTION_START);
+  });
+
+  it("ships the template in the runtime manifest so every bundle and vendored runtime carries it", () => {
+    const manifest = JSON.parse(readFileSync(join(ROOT, "scripts", "runtime-manifest.json"), "utf8"));
+    expect(manifest.files).toContain("plugins/opchain/templates/AGENTS.opchain.md");
+    expect(existsSync(join(ROOT, "skills", "oc-update", "scripts", "runtime", "plugins", "opchain", "templates", "AGENTS.opchain.md"))).toBe(true);
+  });
+
+  it("still updates CLAUDE.md through the same shared helper", () => {
+    const r = install(repo, ["--claude-md", "--agents-md"]);
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.stdout).toContain("CLAUDE.md opchain section created");
+    expect(r.stdout).toContain("AGENTS.md opchain section created");
+  });
+});
+
+describe("AGENTS.opchain.md template", () => {
+  const template = readFileSync(join(ROOT, "plugins", "opchain", "templates", "AGENTS.opchain.md"), "utf8");
+
+  it("carries its own markers, and never the opt-out marker", () => {
+    expect(template.startsWith(`${AGENTS_SECTION_START}\n`)).toBe(true);
+    expect(template.trimEnd().endsWith(AGENTS_SECTION_END)).toBe(true);
+    expect(template).not.toContain(AGENTS_SECTION_OFF);
+    expect(template).not.toContain(CLAUDE_MD_START);
+  });
+
+  it("states no version number, pointing at the install receipt instead", () => {
+    expect(template).not.toMatch(/\bv?\d+\.\d+(\.\d+)?\b/);
+    expect(template).toContain(".opchain-install.json");
+  });
+
+  it("names the agent-neutral rules", () => {
+    for (const text of ["pre-commit", "post-commit", "pre-push", "--no-verify", "Opchain-Bypass:", ".checkpoints/",
+      "node .opchain/runtime/scripts/verify-candidate.mjs", ".agents/skills", "oc-update"]) {
+      expect(template).toContain(text);
+    }
+    expect(template, "house style: no em dashes").not.toContain("\u2014");
   });
 });

@@ -11,6 +11,24 @@ contract another skill depends on → called out as **BREAKING**. The on-disk
 checkpoint `protocol_version` is tracked separately (see
 `oc-checkpoint-protocol/SKILL.md`).
 
+## [Unreleased]
+
+### Added
+
+- **Managed `AGENTS.md` section for every install.** `/oc-update` now creates or
+  refreshes an agent-neutral OpChain section in the repo-root `AGENTS.md` on
+  every consumer update (Claude Code repo-local, Codex `.agents/skills`, and
+  plugin-only repositories), so Codex, Cursor, Copilot and other agents that do
+  not read `CLAUDE.md` follow the same commit gate, checkpoints and update rules.
+  Only the text between `<!-- opchain:agents-section v1 -->` and
+  `<!-- /opchain:agents-section -->` changes. The section names no version
+  (`.opchain-install.json` stays the source of truth), comes from the release's
+  `plugins/opchain/templates/AGENTS.opchain.md`, and is never written under
+  `--check`. Opt out with `--no-agents-md` or
+  `<!-- opchain:agents-section off -->` in `AGENTS.md`; a symlinked `AGENTS.md`
+  is skipped. `/oc-enroll --agents-md` writes it by hand, sharing the updater's
+  managed-section helper with `--claude-md`.
+
 ## [2.1.0] — 2026-11-05 — "Enforcement and Jev"
 
 The oc- dev pipeline gains a check at each place its work goes through: the

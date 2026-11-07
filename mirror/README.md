@@ -63,6 +63,12 @@ release, then installs the complete package. The updater preserves checkpoints,
 local tracking consent, usage history and unrelated skills, and backs up replaced
 Opchain files. Global plugin installations use the host's supported plugin update.
 
+Every update also writes a managed OpChain section into the repo-root `AGENTS.md`,
+so Codex, Cursor, Copilot and other agents follow the same gate and checkpoints.
+Only the text between its markers changes, and it names no version
+(`.opchain-install.json` records that). Skip it once with `--no-agents-md`, or
+for good with `<!-- opchain:agents-section off -->` in `AGENTS.md`.
+
 Open a new agent session afterward and run `/oc-update check` to verify the
 installed package. Learning remains off until explicitly enabled; provider access
 and an external reviewer must be configured separately.
