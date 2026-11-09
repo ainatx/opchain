@@ -50,6 +50,10 @@
  *                 `.github/workflows/opchain-evidence.yml` from the packaged
  *                 template; never overwrites a workflow without --force
  *   --claude-md   create or update the opchain section of CLAUDE.md
+ *   --agents-md   create or update the opchain section of AGENTS.md. --enroll
+ *                 also writes it (with the gate rules) unless --no-agents-md;
+ *                 the updater refreshes it afterwards. Skipped when AGENTS.md
+ *                 opts out or is a symlink.
  *   --hook <post-commit|pre-push>
  *                 internal: the managed hooks call the runtime copy of this
  *                 file with this flag
@@ -68,6 +72,7 @@ import {
   existsSync,
   mkdirSync,
   readdirSync,
+  lstatSync,
   readFileSync,
   realpathSync,
   statSync,
@@ -926,10 +931,59 @@ export function installClaudeMd(root) {
   return { path: file, action };
 }
 
+// The AGENTS.md section's templates ship once, in the oc-update skill, which sits
+// beside this installer in the plugin and in the source checkout. The updater
+// carries the same marker rules; it must stay a standalone file, so they are
+// repeated here rather than shared.
+const AGENTS_START_PATTERN = /<!-- opchain:agents-section(?: v\d+)? -->/;
+const AGENTS_END = "<!-- /opchain:agents-section -->";
+const AGENTS_OFF_LINE = /^[ \t]*<!-- opchain:agents-section off -->[ \t]*$/m;
+
+function agentsTemplates(withGate) {
+  const dir = join(SCRIPT_DIR, "..", "skills", "oc-update", "templates");
+  const base = join(dir, "AGENTS.opchain.md");
+  if (!existsSync(base)) throw new Error(`packaged AGENTS.md template is missing: ${base}`);
+  const section = readFileSync(base, "utf8").trimEnd();
+  const end = section.lastIndexOf(AGENTS_END);
+  if (!AGENTS_START_PATTERN.test(section) || end === -1) throw new Error("AGENTS.opchain.md template must carry the managed-section markers");
+  const gateFile = join(dir, "AGENTS.gate.md");
+  if (!withGate || !existsSync(gateFile)) return section;
+  return `${section.slice(0, end).trimEnd()}\n\n${readFileSync(gateFile, "utf8").trim()}\n${section.slice(end)}`;
+}
+
+// The gate rules go in only where the commit-gate runtime is installed.
+export function installAgentsMd(info) {
+  const file = join(info.root, "AGENTS.md");
+  let stat = null;
+  try { stat = lstatSync(file); } catch (error) { if (error.code !== "ENOENT") throw error; }
+  if (stat?.isSymbolicLink()) return { path: file, action: "skipped-symlink" };
+  if (stat && !stat.isFile()) return { path: file, action: "skipped-not-a-file" };
+  const existing = stat ? readFileSync(file, "utf8") : "";
+  if (AGENTS_OFF_LINE.test(existing)) return { path: file, action: "opted-out" };
+  const section = agentsTemplates(existsSync(runtimeRoot(info.commonDir)));
+  const start = AGENTS_START_PATTERN.exec(existing);
+  const to = start ? existing.indexOf(AGENTS_END, start.index) : -1;
+  let next;
+  let action;
+  if (to !== -1) {
+    next = `${existing.slice(0, start.index)}${section}${existing.slice(to + AGENTS_END.length)}`;
+    action = next === existing ? "unchanged" : "updated";
+  } else {
+    next = existing.trim() ? `${existing.trimEnd()}\n\n${section}\n` : `${section}\n`;
+    action = existing.trim() ? "appended" : "created";
+  }
+  if (action !== "unchanged") writeFileSync(file, next);
+  return { path: file, action };
+}
+
+function reportAgentsMd(outcome) {
+  process.stdout.write(`opchain: AGENTS.md opchain section ${outcome.action} (${outcome.path})\n`);
+}
+
 // ---------------------------------------------------------------------------
 
 function parseArgs(argv) {
-  const args = { repo: process.cwd(), enroll: false, doctor: false, ci: false, force: false, claudeMd: false, hook: null, remote: null, policy: ".bugcheck.json" };
+  const args = { repo: process.cwd(), enroll: false, doctor: false, ci: false, force: false, claudeMd: false, agentsMd: false, noAgentsMd: false, hook: null, remote: null, policy: ".bugcheck.json" };
   const rest = [...argv];
   while (rest.length) {
     const flag = rest.shift();
@@ -939,6 +993,8 @@ function parseArgs(argv) {
     else if (flag === "--ci") { args.ci = true; args.enroll = true; }
     else if (flag === "--force") args.force = true;
     else if (flag === "--claude-md") args.claudeMd = true;
+    else if (flag === "--agents-md") args.agentsMd = true;
+    else if (flag === "--no-agents-md") args.noAgentsMd = true;
     else if (flag === "--hook") args.hook = rest.shift();
     else if (flag === "--remote") args.remote = rest.shift();
     else if (flag === "--policy") args.policy = rest.shift();
@@ -946,7 +1002,8 @@ function parseArgs(argv) {
   }
   if (!args.repo) throw new Error("--repo requires a value");
   if (args.hook && !["post-commit", "pre-push"].includes(args.hook)) throw new Error(`--hook must be post-commit or pre-push, not ${args.hook}`);
-  if (args.hook && (args.enroll || args.doctor || args.ci || args.claudeMd)) throw new Error("--hook cannot be combined with install modes");
+  if (args.hook && (args.enroll || args.doctor || args.ci || args.claudeMd || args.agentsMd)) throw new Error("--hook cannot be combined with install modes");
+  if (args.agentsMd && args.noAgentsMd) throw new Error("choose one of --agents-md and --no-agents-md");
   if (args.doctor && (args.enroll || args.ci)) throw new Error("--doctor installs nothing; run it on its own");
   return args;
 }
@@ -959,20 +1016,22 @@ function main(argv = process.argv.slice(2)) {
     if (args.hook === "pre-push") return hookPrePush(args);
     if (process.env.OPCHAIN_SKIP_GIT_DRIVERS === "1") {
       if (args.enroll) throw new Error("OPCHAIN_SKIP_GIT_DRIVERS=1 prevents explicit enrollment");
-      if (args.doctor || args.claudeMd) throw new Error("OPCHAIN_SKIP_GIT_DRIVERS=1 is set; unset it to run this mode");
+      if (args.doctor || args.claudeMd || args.agentsMd) throw new Error("OPCHAIN_SKIP_GIT_DRIVERS=1 is set; unset it to run this mode");
       return 0;
     }
     const info = repositoryInfo(args.repo);
     if (!info) {
-      if (args.enroll || args.doctor || args.claudeMd) throw new Error("this mode requires a Git working tree");
+      if (args.enroll || args.doctor || args.claudeMd || args.agentsMd) throw new Error("this mode requires a Git working tree");
       return 0;
     }
     if (args.doctor) return printDoctor(info, doctor(info, { policyPath: args.policy }));
     if (args.claudeMd) {
       const outcome = installClaudeMd(info.root);
       process.stdout.write(`opchain: CLAUDE.md opchain section ${outcome.action} (${outcome.path})\n`);
-      if (!args.enroll) return 0;
     }
+    // Enrollment writes AGENTS.md after the runtime exists, so the gate rules are true.
+    if (args.agentsMd && !args.enroll) reportAgentsMd(installAgentsMd(info));
+    if ((args.claudeMd || args.agentsMd) && !args.enroll) return 0;
     const required = args.enroll || isEnrolled(info.root);
     if (isAuthoringRepository(info.root)) {
       installMergeDrivers(info.root);
@@ -990,6 +1049,11 @@ function main(argv = process.argv.slice(2)) {
           `opchain: push guard ${hooks[2].path}\n` +
           `opchain: verifier runtime ${runtime.root}\n`,
       );
+      // opchain's own source checkout keeps its hand-written agent guidance.
+      // A missing template must not undo an enrollment that already succeeded.
+      if (!args.noAgentsMd && !isAuthoringRepository(info.root)) {
+        try { reportAgentsMd(installAgentsMd(info)); } catch (error) { process.stderr.write(`opchain: NOTICE AGENTS.md section skipped: ${error.message}\n`); }
+      }
     }
     if (args.ci) {
       const outcome = installCiWorkflow(info.root, { force: args.force });

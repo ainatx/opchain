@@ -22,6 +22,7 @@ import {
   VERIFICATION_MARKER,
   outgoingBypasses,
 } from "../scripts/install-git-drivers.mjs";
+import { AGENTS_SECTION_END, AGENTS_SECTION_OFF, AGENTS_SECTION_START } from "../scripts/update-opchain.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SCRIPT = join(ROOT, "scripts", "install-git-drivers.mjs");
@@ -833,5 +834,132 @@ describe("--claude-md", () => {
     expect(updated.endsWith("\n\noutro\n")).toBe(true);
     expect(updated).not.toContain("old text");
     expect(updated).toContain("/oc-commit");
+  });
+});
+
+describe("--agents-md", () => {
+  const TEMPLATES = join(ROOT, "skills", "oc-update", "templates");
+  const BASE = readFileSync(join(TEMPLATES, "AGENTS.opchain.md"), "utf8");
+  const GATE_HEADING = "### Commits Go Through the Gate";
+
+  it("creates, appends to, replaces between markers, and idempotently reruns", () => {
+    const file = join(repo, "AGENTS.md");
+    let r = install(repo, ["--agents-md"]);
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.stdout).toContain("AGENTS.md opchain section created");
+    const created = readFileSync(file, "utf8");
+    expect(created).toBe(BASE);
+    expect(created, "no gate rules before enrollment").not.toContain(GATE_HEADING);
+    expect(existsSync(hookPath("pre-commit")), "--agents-md installs nothing").toBe(false);
+
+    const mtime = statSync(file).mtimeMs;
+    r = install(repo, ["--agents-md"]);
+    expect(r.stdout).toContain("unchanged");
+    expect(readFileSync(file, "utf8")).toBe(created);
+    expect(statSync(file).mtimeMs, "an unchanged section is not rewritten").toBe(mtime);
+
+    writeFileSync(file, "# Team\n\nHand-written guidance.\n");
+    r = install(repo, ["--agents-md"]);
+    expect(r.stdout).toContain("appended");
+    expect(readFileSync(file, "utf8")).toBe(`# Team\n\nHand-written guidance.\n\n${created}`);
+
+    writeFileSync(file, `intro\n\n<!-- opchain:agents-section v1 -->\nold text\n${AGENTS_SECTION_END}\n\noutro\n`);
+    r = install(repo, ["--agents-md"]);
+    expect(r.stdout).toContain("updated");
+    expect(readFileSync(file, "utf8")).toBe(`intro\n\n${created.trimEnd()}\n\noutro\n`);
+  });
+
+  it("is written at enroll, with the gate rules, and --no-agents-md skips it", () => {
+    const r = enroll();
+    expect(r.stdout).toContain("AGENTS.md opchain section created");
+    const text = readFileSync(join(repo, "AGENTS.md"), "utf8");
+    expect(text).toContain(GATE_HEADING);
+    expect(text.startsWith(AGENTS_SECTION_START)).toBe(true);
+    expect(text.trimEnd().endsWith(AGENTS_SECTION_END)).toBe(true);
+
+    const other = mkdtempSync(join(tmpdir(), "oc-agents-"));
+    try {
+      git(other, "init", "-q");
+      expect(install(other, ["--enroll", "--no-agents-md"]).status).toBe(0);
+      expect(existsSync(join(other, "AGENTS.md"))).toBe(false);
+    } finally { rmSync(other, { recursive: true, force: true }); }
+  });
+
+  it("adds the gate rules on a manual run once the repository is enrolled", () => {
+    enroll();
+    writeFileSync(join(repo, "AGENTS.md"), BASE);
+    const r = install(repo, ["--agents-md"]);
+    expect(r.stdout).toContain("updated");
+    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toContain(GATE_HEADING);
+  });
+
+  it("leaves AGENTS.md alone when the opt-out marker is on a line of its own, not when it is quoted", () => {
+    const file = join(repo, "AGENTS.md");
+    const own = `# Team\n${AGENTS_SECTION_OFF}\n`;
+    writeFileSync(file, own);
+    let r = install(repo, ["--agents-md"]);
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.stdout).toContain("opted-out");
+    expect(readFileSync(file, "utf8")).toBe(own);
+
+    writeFileSync(file, `# Team\nAdd \`${AGENTS_SECTION_OFF}\` to opt out.\n`);
+    r = install(repo, ["--agents-md"]);
+    expect(r.stdout).toContain("appended");
+  });
+
+  it("works from the plugin-packaged installer without a second copy of the updater", () => {
+    const packaged = join(ROOT, "plugins", "opchain", "scripts", "install-git-drivers.mjs");
+    expect(existsSync(join(ROOT, "plugins", "opchain", "scripts", "update-opchain.mjs"))).toBe(false);
+    const r = spawnSync(process.execPath, [packaged, "--agents-md"], { cwd: repo, encoding: "utf8", env: GIT_ENV });
+    expect(r.status, r.stderr).toBe(0);
+    expect(readFileSync(join(repo, "AGENTS.md"), "utf8")).toContain(AGENTS_SECTION_START);
+  });
+
+  it("ships one copy of the templates, under oc-update", () => {
+    const manifest = JSON.parse(readFileSync(join(ROOT, "scripts", "runtime-manifest.json"), "utf8"));
+    expect(manifest.files.some((path) => path.includes("AGENTS"))).toBe(false);
+    expect(existsSync(join(ROOT, "plugins", "opchain", "templates", "AGENTS.opchain.md"))).toBe(false);
+    expect(existsSync(join(TEMPLATES, "AGENTS.gate.md"))).toBe(true);
+  });
+
+  it("writes CLAUDE.md and AGENTS.md together", () => {
+    const r = install(repo, ["--claude-md", "--agents-md"]);
+    expect(r.status, r.stderr).toBe(0);
+    expect(r.stdout).toContain("CLAUDE.md opchain section created");
+    expect(r.stdout).toContain("AGENTS.md opchain section created");
+  });
+});
+
+describe("AGENTS.md templates", () => {
+  const dir = join(ROOT, "skills", "oc-update", "templates");
+  const base = readFileSync(join(dir, "AGENTS.opchain.md"), "utf8");
+  const gate = readFileSync(join(dir, "AGENTS.gate.md"), "utf8");
+
+  it("carry their own markers in the base part only, and never the opt-out marker", () => {
+    expect(base.startsWith(`${AGENTS_SECTION_START}\n`)).toBe(true);
+    expect(base.trimEnd().endsWith(AGENTS_SECTION_END)).toBe(true);
+    expect(gate).not.toContain("opchain:agents-section");
+    expect(base).not.toContain(AGENTS_SECTION_OFF);
+    expect(base).not.toContain(CLAUDE_MD_START);
+  });
+
+  it("state no version number, pointing at the install receipt instead", () => {
+    for (const text of [base, gate]) expect(text).not.toMatch(/\bv?\d+\.\d+(\.\d+)?\b/);
+    expect(base).toContain(".opchain-install.json");
+  });
+
+  it("keep the gate rules out of the part that is always true", () => {
+    for (const text of [".checkpoints/", ".agents/skills", "oc-update"]) expect(base).toContain(text);
+    for (const text of ["pre-commit", "post-commit", "pre-push", "--no-" + "verify", "Opchain-Bypass:", "node .opchain/runtime/scripts/verify-candidate.mjs"]) {
+      expect(gate).toContain(text);
+      expect(base).not.toContain(text);
+    }
+  });
+
+  it("follow the house style", () => {
+    for (const text of [base, gate]) {
+      expect(text, "no em dashes").not.toContain("\u2014");
+      expect(text, "the project is spelled opchain").not.toContain("OpChain");
+    }
   });
 });

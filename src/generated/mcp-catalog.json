@@ -671,8 +671,8 @@
         },
         {
           "path": "references/runtime-contract.md",
-          "bytes": 9412,
-          "sha256": "6fa3e48884e3ed4fd4899fdaa7af5613dcd91bfade049e4907366dc5f01061e5"
+          "bytes": 9556,
+          "sha256": "f46f03b2ee213ae0c1e45ac414f375000e581f68be5cbb621e07c5b9257bb87f"
         }
       ]
     },
@@ -774,8 +774,8 @@
         },
         {
           "path": "references/runtime-contract.md",
-          "bytes": 9412,
-          "sha256": "6fa3e48884e3ed4fd4899fdaa7af5613dcd91bfade049e4907366dc5f01061e5"
+          "bytes": 9556,
+          "sha256": "f46f03b2ee213ae0c1e45ac414f375000e581f68be5cbb621e07c5b9257bb87f"
         }
       ]
     },

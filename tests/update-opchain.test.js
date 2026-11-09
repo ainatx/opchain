@@ -3,7 +3,8 @@ import { DatabaseSync } from 'node:sqlite';
 import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { digest, downloadRelease, installBundle, validateBundle } from '../scripts/update-opchain.mjs';
+import { execFileSync } from 'node:child_process';
+import { AGENTS_GATE_TEMPLATE, AGENTS_SECTION_END, AGENTS_SECTION_OFF, AGENTS_SECTION_START, AGENTS_TEMPLATE, agentsMdLine, digest, downloadRelease, gateEnrolled, installBundle, uncommittedWarning, validateBundle } from '../scripts/update-opchain.mjs';
 
 const roots = [];
 const CLAUDE = '.claude/skills';
@@ -14,6 +15,8 @@ const CONSENT = '.checkpoints/oc-telemetry-ops.checkpoint.json';
 const STORE = '.checkpoints/usage.sqlite';
 const SKILL = 'oc-telemetry-ops/SKILL.md';
 const SKILLS = ['oc-telemetry-ops', 'oc-checkpoint-protocol'];
+// Throwaway repos never read the developer's global git config.
+const GIT_ENV = { ...process.env, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_SYSTEM: '/dev/null' };
 afterEach(() => roots.splice(0).forEach(root => rmSync(root, { recursive: true, force: true })));
 
 function temporary() {
@@ -187,6 +190,206 @@ describe('repository updater installation', () => {
     const result = await installBundle(bundle(), { root });
     expect(new Set(result.targets)).toEqual(new Set([CLAUDE, CODEX, LEGACY]));
     for (const target of [CLAUDE, CODEX, LEGACY]) expect(readFileSync(join(root, target, SKILL), 'utf8')).toContain('version: 2.0.0');
+  });
+});
+
+// The release carries the AGENTS.md templates once, under oc-update/templates/.
+// The gate part is added only where the commit-gate runtime is installed.
+const SECTION = `${AGENTS_SECTION_START}\n## opchain\n\nRelease guidance.\n${AGENTS_SECTION_END}\n`;
+const GATE = '### Gate\n\nGate rules.\n';
+const GATED = `${AGENTS_SECTION_START}\n## opchain\n\nRelease guidance.\n\n### Gate\n\nGate rules.\n${AGENTS_SECTION_END}\n`;
+const withTemplate = (version = '2.0.0', text = SECTION, gate = GATE) => ({
+  ...bundle(version, [
+    file('oc-update/SKILL.md', `---\nname: oc-update\nversion: ${version}\n---\nRelease ${version}\n`),
+    file('oc-update/references/orchestrator.md', '# Shared protocol\n'),
+    file(AGENTS_TEMPLATE, text),
+    ...(gate === null ? [] : [file(AGENTS_GATE_TEMPLATE, gate)]),
+  ]),
+  skills: [...SKILLS, 'oc-update'],
+});
+const agents = root => readFileSync(join(root, 'AGENTS.md'), 'utf8');
+const ENROLLED = { enrolled: true };
+
+describe('AGENTS.md managed section', () => {
+  it('reads the template from the one oc-update copy in the release', () => {
+    expect(AGENTS_TEMPLATE).toBe('oc-update/templates/AGENTS.opchain.md');
+    expect(AGENTS_GATE_TEMPLATE).toBe('oc-update/templates/AGENTS.gate.md');
+  });
+
+  it('creates AGENTS.md with the gate part in an enrolled repository', async () => {
+    const root = temporary();
+    const result = await installBundle(withTemplate(), { root, ...ENROLLED });
+    expect(result.agentsMd).toEqual({ action: 'created' });
+    expect(agents(root)).toBe(GATED);
+  });
+
+  it('does not create a new AGENTS.md in a repository that is not enrolled', async () => {
+    const root = temporary();
+    const result = await installBundle(withTemplate(), { root, enrolled: false });
+    expect(result.agentsMd).toEqual({ action: 'not-enrolled' });
+    expect(existsSync(join(root, 'AGENTS.md'))).toBe(false);
+    expect(existsSync(join(root, CLAUDE, SKILL))).toBe(true);
+  });
+
+  it('creates it without the gate part when asked (--agents-md) in a repository that is not enrolled', async () => {
+    const root = temporary();
+    const result = await installBundle(withTemplate(), { root, enrolled: false, createAgentsMd: true });
+    expect(result.agentsMd.action).toBe('created');
+    expect(agents(root)).toBe(SECTION);
+  });
+
+  it('appends to an existing AGENTS.md without the gate part when not enrolled, keeping outside text intact', async () => {
+    const root = temporary();
+    put(root, 'AGENTS.md', '# Team rules\r\n\r\nUse tabs.\n');
+    const result = await installBundle(withTemplate(), { root, enrolled: false });
+    expect(result.agentsMd.action).toBe('appended');
+    expect(agents(root)).toBe(`# Team rules\r\n\r\nUse tabs.\n\n${SECTION}`);
+  });
+
+  it('replaces only the text between the markers and keeps everything outside them', async () => {
+    const root = temporary();
+    const before = 'intro\n\n';
+    const after = '\n\n## Mine\noutro\n';
+    put(root, 'AGENTS.md', `${before}${AGENTS_SECTION_START}\nstale text\n${AGENTS_SECTION_END}${after}`);
+    const result = await installBundle(withTemplate(), { root, ...ENROLLED });
+    expect(result.agentsMd.action).toBe('updated');
+    expect(agents(root)).toBe(`${before}${GATED.trimEnd()}${after}`);
+  });
+
+  it('drops the gate part on refresh once the repository is no longer enrolled', async () => {
+    const root = temporary();
+    put(root, 'AGENTS.md', GATED);
+    const result = await installBundle(withTemplate(), { root, enrolled: false });
+    expect(result.agentsMd.action).toBe('updated');
+    expect(agents(root)).toBe(SECTION);
+  });
+
+  it('replaces a section whose start marker carries a version, never duplicating it', async () => {
+    const root = temporary();
+    const future = SECTION.replace(AGENTS_SECTION_START, '<!-- opchain:agents-section v2 -->');
+    put(root, 'AGENTS.md', '<!-- opchain:agents-section v1 -->\nold\n<!-- /opchain:agents-section -->\n');
+    const result = await installBundle(withTemplate('2.0.0', future, null), { root, enrolled: false });
+    expect(result.agentsMd.action).toBe('updated');
+    expect(agents(root)).toBe(future);
+  });
+
+  it('reports a broken template as a skip and still installs the skills', async () => {
+    const root = temporary();
+    put(root, 'AGENTS.md', '# Mine\n');
+    const result = await installBundle(withTemplate('2.0.0', '## no markers here\n'), { root, ...ENROLLED });
+    expect(result.agentsMd).toEqual({ action: 'skipped-template' });
+    expect(agents(root)).toBe('# Mine\n');
+    expect(readFileSync(join(root, CLAUDE, SKILL), 'utf8')).toContain('version: 2.0.0');
+    expect(agentsMdLine('skipped-template')).toContain('skipped');
+  });
+
+  it('is idempotent: a rerun reports unchanged and writes nothing', async () => {
+    const root = temporary();
+    put(root, 'AGENTS.md', '# Mine\n');
+    await installBundle(withTemplate(), { root, ...ENROLLED });
+    const before = snapshot(root);
+    const result = await installBundle(withTemplate(), { root, ...ENROLLED });
+    expect(result.agentsMd.action).toBe('unchanged');
+    expect(result.changed).toBe(0);
+    expect(snapshot(root)).toEqual(before);
+  });
+
+  it('never writes under --check, but reports what it would do', async () => {
+    const root = temporary();
+    put(root, 'AGENTS.md', '# Mine\n');
+    const result = await installBundle(withTemplate(), { root, check: true, ...ENROLLED });
+    expect(result.agentsMd.action).toBe('appended');
+    expect(readdirSync(root)).toEqual(['AGENTS.md']);
+    expect(agents(root)).toBe('# Mine\n');
+  });
+
+  it('respects the opt-out marker on a line of its own', async () => {
+    const root = temporary();
+    const own = `# Mine\n\n  ${AGENTS_SECTION_OFF}\n`;
+    put(root, 'AGENTS.md', own);
+    const result = await installBundle(withTemplate(), { root, ...ENROLLED });
+    expect(result.agentsMd.action).toBe('opted-out');
+    expect(agents(root)).toBe(own);
+  });
+
+  it('does not treat the opt-out marker quoted in prose as an opt-out', async () => {
+    const root = temporary();
+    put(root, 'AGENTS.md', `# Mine\n\nTo opt out, add \`${AGENTS_SECTION_OFF}\` to this file.\n`);
+    const result = await installBundle(withTemplate(), { root, ...ENROLLED });
+    expect(result.agentsMd.action).toBe('appended');
+  });
+
+  it('respects agentsMd: false (--no-agents-md)', async () => {
+    const root = temporary();
+    const result = await installBundle(withTemplate(), { root, agentsMd: false, ...ENROLLED });
+    expect(result.agentsMd).toEqual({ action: 'disabled' });
+    expect(existsSync(join(root, 'AGENTS.md'))).toBe(false);
+  });
+
+  it('skips an AGENTS.md symlink instead of failing the update', async () => {
+    const root = temporary();
+    put(root, 'CLAUDE.md', '# Shared\n');
+    symlinkSync('CLAUDE.md', join(root, 'AGENTS.md'));
+    const result = await installBundle(withTemplate(), { root, ...ENROLLED });
+    expect(result.agentsMd.action).toBe('skipped-symlink');
+    expect(readFileSync(join(root, 'CLAUDE.md'), 'utf8')).toBe('# Shared\n');
+    expect(existsSync(join(root, CLAUDE, SKILL))).toBe(true);
+  });
+
+  it('skips quietly when the release predates the template', async () => {
+    const root = temporary();
+    const result = await installBundle(bundle(), { root, ...ENROLLED });
+    expect(result.agentsMd).toEqual({ action: 'no-template' });
+    expect(existsSync(join(root, 'AGENTS.md'))).toBe(false);
+  });
+
+  it('writes AGENTS.md for a plugin-only repository and ignores the backup it leaves', async () => {
+    const root = temporary();
+    put(root, 'AGENTS.md', `${AGENTS_SECTION_START}\nold\n${AGENTS_SECTION_END}\n`);
+    const result = await installBundle(withTemplate(), { root, exclude: [CLAUDE], ...ENROLLED });
+    expect(result.targets).toEqual([]);
+    expect(result.agentsMd.action).toBe('updated');
+    expect(agents(root)).toBe(GATED);
+    expect(existsSync(join(root, RECEIPT))).toBe(false);
+    expect(existsSync(join(root, result.backup))).toBe(true);
+    expect(readFileSync(join(root, '.gitignore'), 'utf8').split('\n')).toContain('/.opchain-backups/');
+  });
+
+  it('reports the action in one AGENTS.md line, conditional under --check', () => {
+    expect(agentsMdLine('created')).toBe('AGENTS.md: opchain section created.');
+    expect(agentsMdLine('appended', true)).toBe('AGENTS.md: opchain section would be appended.');
+    expect(agentsMdLine('disabled')).toContain('skipped (--no-agents-md)');
+    expect(agentsMdLine('skipped-symlink')).toContain('symlink');
+    // No-op runs stay one line for skills: nothing to report when nothing happened.
+    for (const quiet of ['unchanged', 'opted-out', 'no-template', 'not-enrolled']) expect(agentsMdLine(quiet)).toBe(null);
+  });
+
+  it('keeps AGENTS.md in the backup so a failed update can restore it', async () => {
+    const root = temporary();
+    put(root, 'AGENTS.md', `${AGENTS_SECTION_START}\nold\n${AGENTS_SECTION_END}\n`);
+    const result = await installBundle(withTemplate(), { root, ...ENROLLED });
+    expect(readFileSync(join(root, result.backup, 'files', 'AGENTS.md'), 'utf8')).toContain('old');
+  });
+
+  it('detects enrollment from the commit-gate runtime under the Git common directory', () => {
+    const root = temporary();
+    expect(gateEnrolled(root)).toBe(false);
+    execFileSync('git', ['init', '-q', root], { env: GIT_ENV });
+    expect(gateEnrolled(root)).toBe(false);
+    mkdirSync(join(root, '.git', 'opchain', 'commit-gate', 'v1'), { recursive: true });
+    expect(gateEnrolled(root)).toBe(true);
+  });
+
+  it('names an uncommitted AGENTS.md in the uncommitted-install warning', () => {
+    const root = temporary();
+    execFileSync('git', ['init', '-q', root], { env: GIT_ENV });
+    put(root, 'AGENTS.md', SECTION);
+    put(root, `${CLAUDE}/${SKILL}`, 'x\n');
+    expect(uncommittedWarning(root, [], ['AGENTS.md'])).toContain('commit AGENTS.md');
+    const both = uncommittedWarning(root, [CLAUDE], ['AGENTS.md']);
+    expect(both).toContain(CLAUDE);
+    expect(both).toContain('AGENTS.md');
+    expect(uncommittedWarning(root, [], [])).toBe(null);
   });
 });
 

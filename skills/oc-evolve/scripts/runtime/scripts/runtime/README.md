@@ -44,7 +44,9 @@ alongside `off`. Environment variables cannot override a disabled config.
 
 Switches are checked on every read. Disabled retrieval does not load stored
 learned state. No learned material is persisted into `CLAUDE.md`, `AGENTS.md`, or
-other automatically loaded instruction files. Already loaded model context cannot
+other automatically loaded instruction files. The updater's managed `AGENTS.md`
+section is separate: it is static text built from the installed release's
+template, never from learned state. Already loaded model context cannot
 be recalled; start a new session after disabling previously delivered material.
 `status.active` counts lifecycle labels, not verified or currently eligible items;
 only `query.items` has passed current evidence, trust, expiry and switch checks.

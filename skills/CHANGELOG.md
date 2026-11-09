@@ -11,6 +11,27 @@ contract another skill depends on → called out as **BREAKING**. The on-disk
 checkpoint `protocol_version` is tracked separately (see
 `oc-checkpoint-protocol/SKILL.md`).
 
+## [Unreleased]
+
+### Added
+
+- **Managed `AGENTS.md` section.** Codex, Cursor, Copilot and other agents that
+  do not read `CLAUDE.md` now get an agent-neutral opchain section in the
+  repo-root `AGENTS.md`: read `.checkpoints/` first, pick the matching skill,
+  and never hand-edit vendored `oc-*` skills. `/oc-enroll` writes it, with the
+  commit-gate rules, and `/oc-update` refreshes it. The gate rules appear only
+  where the commit-gate runtime is installed under the Git common directory. In
+  a repository that is not enrolled, an update adds the section only to an
+  `AGENTS.md` that already exists; `--agents-md` creates one. Only the text
+  between `<!-- opchain:agents-section -->` and `<!-- /opchain:agents-section -->`
+  changes, the section names no version, and nothing is written under
+  `--check`. Opt out with `--no-agents-md` or a line reading
+  `<!-- opchain:agents-section off -->` in `AGENTS.md`; a symlinked `AGENTS.md`
+  and source checkouts are skipped, and a release template this updater cannot
+  read is a reported skip, never a failed update. Existing installs see the
+  section on the second update after this release: the first update runs the
+  installed updater, which has no `AGENTS.md` code.
+
 ## [2.1.0] — 2026-11-05 — "Enforcement and Jev"
 
 The oc- dev pipeline gains a check at each place its work goes through: the

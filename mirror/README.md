@@ -63,6 +63,14 @@ release, then installs the complete package. The updater preserves checkpoints,
 local tracking consent, usage history and unrelated skills, and backs up replaced
 Opchain files. Global plugin installations use the host's supported plugin update.
 
+`/oc-enroll` also writes a managed opchain section into the repo-root `AGENTS.md`,
+so Codex, Cursor, Copilot and other agents follow the same gate and checkpoints,
+and every update refreshes it. In a repository that is not enrolled, an update
+adds the section (without the gate rules) only to an `AGENTS.md` that already
+exists. Only the text between its markers changes, and it names no version
+(`.opchain-install.json` records that). Skip it once with `--no-agents-md`, or
+for good with a line reading `<!-- opchain:agents-section off -->` in `AGENTS.md`.
+
 Open a new agent session afterward and run `/oc-update check` to verify the
 installed package. Learning remains off until explicitly enabled; provider access
 and an external reviewer must be configured separately.
