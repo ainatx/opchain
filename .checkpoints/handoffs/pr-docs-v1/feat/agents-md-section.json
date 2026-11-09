@@ -1,0 +1,23 @@
+{
+  "id": "oc-docs-forge-pr-docs-v1-4a69437175e5",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-11-09T03:56:54.334Z",
+  "verified_at": "2026-11-09T03:56:54.334Z",
+  "producer": {
+    "skill": "oc-docs-forge",
+    "run_id": "pr-docs-v1-2026-11-09T03:56:54.334Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:4a69437175e59a2ac83fa9cdc7ecbebd4e9627e61ea9c16ac30583822fe66b43"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-docs-v1",
+    "scope": "PR 680 head 2e5f6a5e: README.md, mirror/README.md, skills/oc-update/SKILL.md, plugins/opchain/commands/oc-enroll.md, skills/CHANGELOG.md [Unreleased], scripts/runtime/README.md, oc-evolve and oc-hindsight runtime-contract.md",
+    "evidence": [
+      "Each documented behaviour checked against scripts/update-opchain.mjs and scripts/install-git-drivers.mjs at this head and exercised by a 12-case probe: enroll writes the section with gate rules, update refreshes it, unenrolled repos get it only in an existing AGENTS.md, --agents-md creates, --no-agents-md and the own-line off marker skip, symlink and source checkouts skipped, unreadable template is a reported skip, changelog states the second-update delay. Maintainer-run packet for a fork PR; PR description not rewritten."
+    ]
+  }
+}

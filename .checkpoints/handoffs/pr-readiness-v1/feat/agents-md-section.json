@@ -1,0 +1,23 @@
+{
+  "id": "oc-repo-ops-pr-readiness-v1-4a69437175e5",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-11-09T04:08:05.285Z",
+  "verified_at": "2026-11-09T04:08:05.285Z",
+  "producer": {
+    "skill": "oc-repo-ops",
+    "run_id": "pr-readiness-v1-2026-11-09T04:08:05.285Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:4a69437175e59a2ac83fa9cdc7ecbebd4e9627e61ea9c16ac30583822fe66b43"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-readiness-v1",
+    "scope": "PR 680 head 2e5f6a5e vs origin/main 742de4a8: 44 files (updater, installer, two templates under skills/oc-update/templates, tests, docs, generated mirrors)",
+    "evidence": [
+      "gen-catalog, check-skill-contracts, sync-bundles:check, sync-plugin-skills:check and gen-mcp-catalog pass with no drift; 13 updater, 2 installer and 2+2 template copies byte-identical to source; no untracked or oversized files; no lockfile, workflow or .bugcheck.json change; pr-docs-v1 PASS bound for this tree; Documentation section posted as PR comment 6731992518 with the oc-docs-forge marker; commit-gate PASS receipt for tree 7d050618. Maintainer-run gate for a fork PR."
+    ]
+  }
+}
