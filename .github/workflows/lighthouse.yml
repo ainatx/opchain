@@ -44,8 +44,12 @@ jobs:
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
 
+      # A pull request from a fork gets a read-only token whatever `permissions:`
+      # says, so createComment answered 403 and failed this required job after
+      # the budgets had passed (PR 680). Same-repository pull requests keep the
+      # comment; a fork gets the same summary on the run page.
       - name: Post LHCI score summary as PR comment
-        if: always() && github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@v9
         env:
           LHCI_DIR: site/.lighthouseci
@@ -61,3 +65,11 @@ jobs:
               issue_number: context.payload.pull_request.number,
               body,
             });
+
+      - name: Write LHCI score summary to the run page (fork pull request)
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+        # The summary is a convenience; the budgets above are the gate.
+        continue-on-error: true
+        env:
+          LHCI_DIR: site/.lighthouseci
+        run: node -e "process.stdout.write(require('./scripts/lhci-comment.cjs').buildComment(process.env.LHCI_DIR) + '\n')" >> "$GITHUB_STEP_SUMMARY"
