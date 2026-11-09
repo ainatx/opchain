@@ -1,23 +1,23 @@
 {
-  "id": "oc-docs-forge-pr-docs-v1-4a69437175e5",
+  "id": "oc-docs-forge-pr-docs-v1-59d0ab6393e8",
   "contract_version": "1.0",
   "type": "verification.verdict",
-  "created_at": "2026-11-09T03:56:54.334Z",
-  "verified_at": "2026-11-09T03:56:54.334Z",
+  "created_at": "2026-11-09T05:15:25.104Z",
+  "verified_at": "2026-11-09T05:15:25.104Z",
   "producer": {
     "skill": "oc-docs-forge",
-    "run_id": "pr-docs-v1-2026-11-09T03:56:54.334Z"
+    "run_id": "pr-docs-v1-2026-11-09T05:15:25.104Z"
   },
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:4a69437175e59a2ac83fa9cdc7ecbebd4e9627e61ea9c16ac30583822fe66b43"
+    "id": "sha256:59d0ab6393e8c63868f28aafa82bf38b944818d43223c32d968d943a3287aaa5"
   },
   "payload": {
     "verdict": "PASS",
     "policy": "pr-docs-v1",
-    "scope": "PR 680 head 2e5f6a5e: README.md, mirror/README.md, skills/oc-update/SKILL.md, plugins/opchain/commands/oc-enroll.md, skills/CHANGELOG.md [Unreleased], scripts/runtime/README.md, oc-evolve and oc-hindsight runtime-contract.md",
+    "scope": "PR 680 after merging main dcb19d8a: README.md, mirror/README.md, skills/oc-update/SKILL.md, plugins/opchain/commands/oc-enroll.md, skills/CHANGELOG.md [Unreleased], scripts/runtime/README.md, oc-evolve and oc-hindsight runtime-contract.md",
     "evidence": [
-      "Each documented behaviour checked against scripts/update-opchain.mjs and scripts/install-git-drivers.mjs at this head and exercised by a 12-case probe: enroll writes the section with gate rules, update refreshes it, unenrolled repos get it only in an existing AGENTS.md, --agents-md creates, --no-agents-md and the own-line off marker skip, symlink and source checkouts skipped, unreadable template is a reported skip, changelog states the second-update delay. Maintainer-run packet for a fork PR; PR description not rewritten."
+      "Docs packet from the maintainer run on 2e5f6a5e still holds: the merge from main adds only .github/workflows/lighthouse.yml (#681), which no reader-facing doc describes. Documentation section is PR comment 6731992518."
     ]
   }
 }
