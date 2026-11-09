@@ -1,0 +1,23 @@
+{
+  "id": "oc-repo-ops-pr-readiness-v1-6737df900709",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-11-09T04:52:02.015Z",
+  "verified_at": "2026-11-09T04:52:02.015Z",
+  "producer": {
+    "skill": "oc-repo-ops",
+    "run_id": "pr-readiness-v1-2026-11-09T04:52:02.015Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:6737df9007097b70f52b64dacaab8e60672f6a0fb4a35fc1ed508a53109ecc95"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-readiness-v1",
+    "scope": ".github/workflows/lighthouse.yml",
+    "evidence": [
+      "one workflow file changed; YAML parses with both steps and their conditions; no generated files, catalogs or mirrors involved; working tree clean apart from the handoffs; gitignore policy unchanged"
+    ]
+  }
+}
