@@ -1,7 +1,7 @@
 ---
 name: oc-migration-ops
 displayName: OC · Migration Ops
-version: 2.1.0
+version: 2.1.1
 license: Apache-2.0
 shortDesc: Change the engine mid-flight — DB, framework, auth, platform. v1.2 mirrors the plan as parent + step children.
 phases: [plan, build]

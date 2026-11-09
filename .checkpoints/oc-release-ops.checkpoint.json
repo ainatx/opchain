@@ -3,12 +3,12 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-11-06T05:21:46.887Z",
+  "updated_at": "2026-11-09T17:09:49.816Z",
   "skill": "oc-release-ops",
-  "phase": "shipped",
-  "step": "v2.1.0-bump-applied-draft-pr-671",
-  "status": "complete",
-  "progress_summary": "v2.1.0 \"Enforcement and Jev\" shipped 2026-11-05 (oc- catalog only, 36 skills 2.0.4 → 2.1.0; ow- family moved to 2.2 by the owner, #674). Release PR #671 squash-merged as 79316438 (tree identical to PR head 6d666635), signed tag v2.1.0 pushed, publish-mcp-registry + mirror-public green, staging and production both serve 79316438 (prod version 451eb82d, rollback da2f416a), smoke:prod all OK. EN-02 recorded as GO (65 suggestions, P 0.836 / R 0.836 / silent 0.954), shipped default shadow. #620 closed as superseded (content inside #671). Baseline refreshed to v2.1.0 in chore/baseline-79316438.",
+  "phase": "bump-applied",
+  "step": "v2.1.1-bump-applied",
+  "status": "in_progress",
+  "progress_summary": "v2.1.1 patch cut on branch release/v2.1.1 from main b392ac37 (owner decision 2026-11-09: ship the managed AGENTS.md section, PR 680 by dag618, as a patch, a deliberate exception to additive-means-minor so 2.2 stays the planned release). Bump applied in one change: 36 skill stamps, plugin and marketplace manifests, server.json, release-seal.json (generation 1, serverJsonSha256 ef599265), skills/CHANGELOG.md [2.1.1], changelog open hero range and v2-1-1 rel-card, tab count 26 (recounted), styleguide badge, three README lead lines, e2e pins, .bugcheck.json oc-bug-check digests, route-spec and MCP catalog regenerated. check-release-surfaces passes. v2.1.0 shipped 2026-11-05 (main 79316438, signed tag, production live, baseline PR 678); its record is in skill_state.prior_release.",
   "progress_table": [
     {
       "id": "scope",
@@ -80,26 +80,12 @@
   },
   "blockers": [],
   "next_actions": [
-    {
-      "id": "1",
-      "status": "-",
-      "text": "Merge the baseline PR (chore/baseline-79316438) and run gh workflow run canary.yml --ref chore/baseline-79316438 -f environment=all before merging; Deploy lag + Canary go green once it lands."
-    },
-    {
-      "id": "2",
-      "status": "-",
-      "text": "Flush the deferred Linear release ticket with /oc-release announce --retry-pm once the Linear connector is authorized; close it with the shipped marker."
-    },
-    {
-      "id": "3",
-      "status": "-",
-      "text": "2.1.x: remaining Track S audit items (architecture 33→36 count check, Coming Next card fixes, /privacy narrowing); gated /work nav pointer noted on #669."
-    },
-    {
-      "id": "4",
-      "status": "-",
-      "text": "2.2 cut: OPCHAIN_SHIP_WORK=1 on deploy + repo variable for the mirror; land #669 (ow- site half, head 063c6ab1); restore ow- changelog entries and the ow-tools ref flip; REL-02 acceptance runs + three real jobs + one care month before the tag."
-    }
+    "Open the v2.1.1 release PR from release/v2.1.1 after the commit gate and pre-PR evidence pass",
+    "After merge: npm run release-sequence -- --stage pre-tag --version 2.1.1, then the owner signs and pushes tag v2.1.1 (/oc-git-release 2.1.1)",
+    "Owner deploys staging then production from origin/main, then refreshes .github/monitoring/release-baseline.json",
+    "Flush the deferred Linear release ticket with /oc-release announce --retry-pm once the Linear connector is authorized; close it with the shipped marker.",
+    "2.1.x: remaining Track S audit items (architecture 33→36 count check, Coming Next card fixes, /privacy narrowing); gated /work nav pointer noted on #669.",
+    "2.2 cut: OPCHAIN_SHIP_WORK=1 on deploy + repo variable for the mirror; land #669 (ow- site half, head 063c6ab1); restore ow- changelog entries and the ow-tools ref flip; REL-02 acceptance runs + three real jobs + one care month before the tag."
   ],
   "pm_refs": [
     {
@@ -125,15 +111,31 @@
   ],
   "skill_state": {
     "current_release": {
+      "semver": "2.1.1",
+      "theme": "An opchain section in AGENTS.md",
+      "phase": "bump-applied",
+      "started_at": "2026-11-09",
+      "shipped_at": null,
+      "decisions": [
+        "2026-11-09 (owner): the managed AGENTS.md section (PR 680, dag618) ships as patch v2.1.1, a deliberate exception to additive-means-minor, so 2.2 stays the planned Installs anywhere + open-source split release.",
+        "2026-11-09 (owner): on by default in enrolled repositories; in a repository that is not enrolled, append to an existing AGENTS.md only; source checkouts skipped.",
+        "2026-11-09 (owner): release title An opchain section in AGENTS.md."
+      ],
+      "source_prs": [
+        680,
+        681
+      ]
+    },
+    "prior_release": {
       "semver": "2.1.0",
       "theme": "Enforcement and Jev",
       "themes": [
         "enforcement at chokepoints",
         "the Jev skill router (experimental preview) and its evaluated uses"
       ],
-      "phase": "bump-applied",
+      "phase": "shipped",
       "started_at": "2026-10-16",
-      "shipped_at": null,
+      "shipped_at": "2026-11-05",
       "plan": "sprints/release-2.1/ow-family-sprint-plan.md (approved 2026-10-14; Track E amendment approved 2026-10-16)",
       "decisions": [
         "One 2.1.0 release with two themes: one changelog, one tag, one deploy, one release freeze (owner, 2026-10-16). The owner names the combined theme at the cut.",
@@ -243,48 +245,14 @@
         "Enforcement at chokepoints: enforcement map, tool-named handoffs, bypass records + pre-push refusal, /oc-merge, per-branch evidence store, consumer deploy wrapper (BREAKING: --prod)",
         "Experimental: skill router in shadow mode, NO-GO so far; Jev uses J2/J5/J8 eval-only, J5 Worker triage flag-gated off",
         "Site: Track E half (#620) on opchain.dev; the /work section and every other ow- surface move to 2.2"
-      ]
-    },
-    "prior_release": {
-      "semver": "2.0.4",
-      "tag": "v2.0.4",
-      "source_sha": "91a2124e01a8ff53ea6d4be2931911cbecabf620",
-      "shipped_at": "2026-09-27",
-      "evidence": {
-        "release_pr": {
-          "number": 566,
-          "url": "https://github.com/ainatx/opchain/pull/566",
-          "merge_sha": "91a2124e01a8ff53ea6d4be2931911cbecabf620",
-          "merged_at": "2026-09-21T21:04:55Z"
-        },
-        "tag": {
-          "name": "v2.0.4",
-          "tag_object": "8d29a12ed7fecd2cc9e3ba1870000f96d4e20a75",
-          "peeled_commit": "91a2124e01a8ff53ea6d4be2931911cbecabf620",
-          "tagged_at": "2026-09-27T02:15:14-05:00"
-        },
-        "production": {
-          "status": "verified",
-          "url": "https://opchain.dev",
-          "health_version": "0f3410c",
-          "checked_at": "2026-10-16T17:02:22.056Z"
-        },
-        "monitoring": {
-          "baseline_prs": [
-            573,
-            574
-          ],
-          "runtime_sha": "0f3410c349564137a6d173932d17cfb32f1862ae"
-        },
-        "note": "Reconciled 2026-10-16 from git, gh and /api/health; this checkpoint had stayed at bump-applied since 2026-09-21. Shipped record also in sprints/release-2.1/sprint-plan.md (Sprint 0 progress, 2026-09-27)."
-      }
+      ],
+      "tag": "v2.1.0",
+      "source_sha": "79316438593e30b4ad7f4d64661b47d23436d153"
     },
     "catalog": {
-      "version": "2.1.0",
+      "version": "2.1.1",
       "skills": 36,
-      "previous_skills": 36,
-      "ow_skills": 9,
-      "ow_tools": "1.3.1"
+      "previous_skills": 36
     },
     "pre_merge": {
       "verdict": "PASS (rows run one by one; lighthouse as collect+assert, no autorun upload)",
@@ -409,7 +377,7 @@
       "prod_health": "d4f926b"
     }
   },
-  "record_updated_at": "2026-11-06T05:21:46.887Z",
+  "record_updated_at": "2026-11-09T17:09:49.816Z",
   "pm_deferred_actions": [
     {
       "id": "deferred-2026-09-21T19:53:16Z-7f2f",

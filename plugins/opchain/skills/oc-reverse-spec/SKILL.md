@@ -1,7 +1,7 @@
 ---
 name: oc-reverse-spec
 displayName: OC · Reverse Spec
-version: 2.1.0
+version: 2.1.1
 license: Apache-2.0
 shortDesc: Turn existing code into pipeline-ready specs. v1.2 mirrors discovered scope to the PM tool as parent + children.
 phases: [plan]

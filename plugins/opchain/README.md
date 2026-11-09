@@ -1,6 +1,6 @@
 # opchain (Claude Code plugin)
 
-> **Opchain 2.1.0.** Released November 5, 2026: "Enforcement and Jev". Enforcement at chokepoints (a commit gate that says why, bypass records, evidence stored per branch, `/oc-merge`, deploy and release guards) and a shared Jev client with evaluated uses behind the experimental skill router. See the [changelog](https://opchain.dev/changelog#v2-1) and the [2.0.0 release record](../../docs/releases/2.0-production-release.md).
+> **Opchain 2.1.1.** Released November 5–9, 2026: "Enforcement and Jev". Enforcement at chokepoints (a commit gate that says why, bypass records, evidence stored per branch, `/oc-merge`, deploy and release guards) and a shared Jev client with evaluated uses behind the experimental skill router, plus the 2.1.1 managed `AGENTS.md` section for agents that do not read `CLAUDE.md`. See the [changelog](https://opchain.dev/changelog#v2-1) and the [2.0.0 release record](../../docs/releases/2.0-production-release.md).
 
 The opchain skill pipeline **plus the gates that enforce it**.
 

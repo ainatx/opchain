@@ -11,7 +11,15 @@ contract another skill depends on → called out as **BREAKING**. The on-disk
 checkpoint `protocol_version` is tracked separately (see
 `oc-checkpoint-protocol/SKILL.md`).
 
-## [Unreleased]
+## [2.1.1] — 2026-11-09 — "An opchain section in AGENTS.md"
+
+One addition, contributed by dag618 (#680): agents that read `AGENTS.md` instead
+of `CLAUDE.md` are now told the same rules. Back-compatible with 2.1.0; no
+migration required.
+
+This adds a capability, which the versioning rule above calls a MINOR. It ships
+as a patch by owner decision (2026-11-09), so that 2.2 stays the planned
+"Installs anywhere + the open-source split" release.
 
 ### Added
 

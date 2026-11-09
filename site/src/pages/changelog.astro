@@ -225,7 +225,7 @@ const plannedReleaseGroups: PlannedGroup[] = [
           aria-selected="true"
           tabindex="0"
         >
-          Just Released <span class="tab-count">25 shipped</span>
+          Just Released <span class="tab-count">26 shipped</span>
         </button>
         <button
           class="tab-btn tab-btn--next"
@@ -274,7 +274,7 @@ const plannedReleaseGroups: PlannedGroup[] = [
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
           <span class="hero-badge">latest release</span>
-          <span class="hero-ver">v2.1.0 · shipped Nov 05, 2026</span>
+          <span class="hero-ver">v2.1.0 → v2.1.1 · Nov 05 – Nov 09, 2026</span>
           <span class="hero-title">Enforcement and Jev</span>
           <span class="hero-desc">A check at each place the dev pipeline&rsquo;s work goes through, so its handoffs hold, and the TypeSafe Jev model behind the skill router and three evaluated uses. The skill router stays an experimental preview.</span>
         </button>
@@ -304,6 +304,25 @@ const plannedReleaseGroups: PlannedGroup[] = [
         </div>
       </article>
 
+      <!-- v2.1.1 — the managed AGENTS.md section (#680, contributed by dag618). Deep-linkable from #v2-1-1. -->
+      <article class="rel-card" id="v2-1-1" data-card>
+        <button class="rc-row" type="button" aria-expanded="false" aria-controls="v2-1-1-body" data-disclosure-toggle>
+          <span class="rc-toggle" aria-hidden="true">▶</span>
+          <span class="rc-meta">
+            <span class="rc-head"><span class="ver-pill ver-pill--past">v2.1.1 patch</span><span class="rc-title">An opchain section in AGENTS.md</span><span class="rc-date">Nov 09, 2026</span></span>
+            <span class="rc-summary">Codex, Cursor, Copilot and other agents that read <code>AGENTS.md</code> are now told the same rules Claude Code gets from <code>CLAUDE.md</code>.</span>
+          </span>
+        </button>
+        <div class="card-body" id="v2-1-1-body" data-disclosure-body inert>
+          <div class="card-body-inner">
+            <div class="tag-row"><span class="tag">enrollment</span><span class="tag">updater</span><span class="tag">other agents</span><span class="tag">back-compatible</span></div>
+            <p><code>/oc-enroll</code> now writes a managed opchain section into the repo-root <code>AGENTS.md</code>, and <code>/oc-update</code> refreshes it: read <code>.checkpoints/</code> first, pick the matching skill, and never hand-edit vendored skills. The commit-gate rules are included only where the gate is installed. A repository that is not enrolled gets the section only in an <code>AGENTS.md</code> that already exists.</p>
+            <p>Only the text between the section&rsquo;s markers changes. Opt out with <code>--no-agents-md</code> or a line reading <code>&lt;!-- opchain:agents-section off --&gt;</code>. Existing installs see the section on the second update after this release, because the first update still runs the 2.1.0 updater. Contributed by dag618.</p>
+            <div class="compat-box"><strong>Back-compatible with v2.1.</strong> No migration required.</div>
+          </div>
+        </div>
+      </article>
+
       <article class="hero-card hero-card--released" id="v2-0" data-card>
         <button
           class="hero-head"
@@ -313,7 +332,7 @@ const plannedReleaseGroups: PlannedGroup[] = [
           data-disclosure-toggle
         >
           <span class="hero-chevron" aria-hidden="true">▶</span>
-          <span class="hero-badge">latest release</span>
+          <span class="hero-badge">previous release</span>
           <span class="hero-ver">v2.0.0 → v2.0.4 · Sep 14 – Sep 21, 2026</span>
           <span class="hero-title">The self-improving pipeline</span>
           <span class="hero-desc">A shared runtime for updates, saved progress, local tracking and reviewed learning.</span>

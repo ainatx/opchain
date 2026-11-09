@@ -70,10 +70,11 @@ test.describe("/changelog", () => {
     // note (changelog-recipe rule).
     const hero = page.locator("#v2-1.hero-card--released");
     await expect(hero).toBeVisible();
-    await expect(hero.locator(".hero-ver")).toContainText("v2.1.0");
+    await expect(hero.locator(".hero-ver")).toContainText("v2.1.0 → v2.1.1");
 
-    // A patch never creates a new hero: v2.0.1/v2.0.2 share a compact rel-card,
-    // and v2.0.3 and v2.0.4 get their own.
+    // A patch never creates a new hero: v2.1.1 gets a compact rel-card,
+    // v2.0.1/v2.0.2 share one, and v2.0.3 and v2.0.4 get their own.
+    await expect(page.locator("#v2-1-1.rel-card")).toBeVisible();
     await expect(page.locator("#v2-0-1.rel-card")).toBeVisible();
     await expect(page.locator("#v2-0-3.rel-card")).toBeVisible();
     await expect(page.locator("#v2-0-4.rel-card")).toBeVisible();
