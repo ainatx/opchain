@@ -1,0 +1,23 @@
+{
+  "id": "oc-docs-forge-pr-docs-v1-6737df900709",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-11-09T04:52:01.819Z",
+  "verified_at": "2026-11-09T04:52:01.819Z",
+  "producer": {
+    "skill": "oc-docs-forge",
+    "run_id": "pr-docs-v1-2026-11-09T04:52:01.819Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:6737df9007097b70f52b64dacaab8e60672f6a0fb4a35fc1ed508a53109ecc95"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-docs-v1",
+    "scope": ".github/workflows/lighthouse.yml",
+    "evidence": [
+      "CI-only change to the LHCI score-comment step; no README, CHANGELOG, docs, runbook or SKILL.md describes that step, and CLAUDE.md's Lighthouse paragraph (budgets, preview server) is unaffected"
+    ]
+  }
+}
