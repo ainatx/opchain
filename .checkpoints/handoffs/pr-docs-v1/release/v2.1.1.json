@@ -1,0 +1,23 @@
+{
+  "id": "oc-docs-forge-pr-docs-v1-41ff2ed5b04c",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-11-09T17:19:34.276Z",
+  "verified_at": "2026-11-09T17:19:34.276Z",
+  "producer": {
+    "skill": "oc-docs-forge",
+    "run_id": "pr-docs-v1-2026-11-09T17:19:34.276Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:41ff2ed5b04c6b615e293e83d31dc5926cc8f94041db5ecc71aeabff69b40c39"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-docs-v1",
+    "scope": "v2.1.1 release PR: skills/CHANGELOG.md [2.1.1], README.md, mirror/README.md, plugins/opchain/README.md, site changelog.astro and styleguide.astro, releases/v2.1.1/announcement-internal.md",
+    "evidence": [
+      "Changelog entry promoted from Unreleased with the owner's patch-numbering note; README lead lines, hero range, patch card, tab count (26 rendered cards recounted) and badge all name 2.1.1; check-release-surfaces passes; the card was rendered and read in a browser at /changelog#v2-1-1 with no console errors; Compatibility stated."
+    ]
+  }
+}
