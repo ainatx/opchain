@@ -26,6 +26,15 @@ the repository's Git common directory, installs three managed hooks, and creates
   rewrote are excused. `OPCHAIN_PUSH_BYPASS=1 git push` is the loud escape hatch;
   use it once for history that predates enrollment.
 
+Enrollment then writes the managed opchain section of the repo-root `AGENTS.md`
+for agents that do not read `CLAUDE.md` (Codex, Cursor, Copilot): read
+`.checkpoints/` first, pick the matching skill, the commit-gate rules above, and
+vendored `oc-*` skills change only through the updater. It names no version
+(`.opchain-install.json` does), only the text between its markers changes, and
+`/oc-update` refreshes it. It is skipped when `AGENTS.md` is a symlink or has a
+line reading `<!-- opchain:agents-section off -->`, and with `--no-agents-md`.
+Offer to commit `AGENTS.md`.
+
 If setup exits nonzero or prints `BLOCKED`, stop. Never overwrite an existing
 foreign hook. Show the user the exact manual integration snippet emitted by the
 installer and do not claim commit enforcement until their hook manager runs it.
@@ -46,13 +55,8 @@ Other modes, with the user's arguments in `$ARGUMENTS`:
   `/oc-deploy`, `/oc-bugcheck`, `/oc-enroll`) and the rule that commits go
   through the gate, PRs carry the docs packet, and `--no-verify` never happens
   without `/oc-bugcheck bypass`.
-- `--agents-md`: creates or updates the managed OpChain section of `AGENTS.md`
-  for agents that do not read `CLAUDE.md` (Codex, Cursor, Copilot). It is
-  agent-neutral: the gate is plain git hooks, a refused commit means stop,
-  `--no-verify` needs an `Opchain-Bypass:` trailer, read `.checkpoints/` first,
-  and vendored `oc-*` skills change only through the updater. It names no
-  version (`.opchain-install.json` does). `/oc-update` refreshes the same section
-  on every update, so this is the manual path. Only the text between its markers
-  changes. It is skipped when `AGENTS.md` contains
-  `<!-- opchain:agents-section off -->`; `/oc-update --no-agents-md` skips it for
-  one update. Both flags can be combined: `--claude-md --agents-md`.
+- `--agents-md`: creates or updates the managed opchain section of `AGENTS.md`
+  without enrolling. Enrollment already writes it (see above); this refreshes it
+  by hand, and adds the gate rules only once the repository is enrolled. Both
+  flags can be combined: `--claude-md --agents-md`.
+- `--no-agents-md`: enroll without writing the `AGENTS.md` section.

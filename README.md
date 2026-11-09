@@ -135,9 +135,10 @@ Use **`/oc-update`** to update existing repo-local skills and
 local tracking consent and unrelated skills, and backs up replaced Opchain files.
 Users on 1.9 or earlier can use the [copyable upgrade prompt](https://opchain.dev/install/)
 to bootstrap the updater. Global plugin installations use the host's plugin manager.
-Each update also refreshes a managed, version-free OpChain section in the repo-root
-`AGENTS.md` so Codex, Cursor and Copilot follow the same gate; opt out with
-`--no-agents-md` or `<!-- opchain:agents-section off -->` in `AGENTS.md`.
+`/oc-enroll` also writes a managed, version-free opchain section into the repo-root
+`AGENTS.md` so Codex, Cursor and Copilot follow the same gate, and each update
+refreshes it. Opt out with `--no-agents-md` or a line reading
+`<!-- opchain:agents-section off -->` in `AGENTS.md`.
 
 ### Claude.ai / Cowork
 

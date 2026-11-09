@@ -50,9 +50,10 @@
  *                 `.github/workflows/opchain-evidence.yml` from the packaged
  *                 template; never overwrites a workflow without --force
  *   --claude-md   create or update the opchain section of CLAUDE.md
- *   --agents-md   create or update the opchain section of AGENTS.md (the
- *                 updater does this on every consumer update; this is the
- *                 manual path). Skipped when AGENTS.md opts out.
+ *   --agents-md   create or update the opchain section of AGENTS.md. --enroll
+ *                 also writes it (with the gate rules) unless --no-agents-md;
+ *                 the updater refreshes it afterwards. Skipped when AGENTS.md
+ *                 opts out or is a symlink.
  *   --hook <post-commit|pre-push>
  *                 internal: the managed hooks call the runtime copy of this
  *                 file with this flag
@@ -71,13 +72,14 @@ import {
   existsSync,
   mkdirSync,
   readdirSync,
+  lstatSync,
   readFileSync,
   realpathSync,
   statSync,
   writeFileSync,
 } from "node:fs";
 import { delimiter, dirname, isAbsolute, join, relative, resolve } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const SCRIPT_DIR = dirname(SCRIPT_PATH);
@@ -904,36 +906,84 @@ export function installCiWorkflow(root, { force = false } = {}) {
   return { written: [...vendored.written, CI_WORKFLOW_PATH], missing: vendored.missing, workflow: CI_WORKFLOW_PATH, changed: true };
 }
 
-// The marker logic lives in the updater, which must stay a standalone file
-// (it is served as /update.mjs). Imported lazily: the hook runtime copied under
-// .git/ carries only this file, and the hooks never need these modes.
-async function updaterModule() {
-  const file = join(SCRIPT_DIR, "update-opchain.mjs");
-  if (!existsSync(file)) throw new Error(`packaged updater is missing: ${file}`);
-  return import(pathToFileURL(file).href);
-}
-
-export async function installClaudeMd(root) {
-  const { upsertManagedSection } = await updaterModule();
+export function installClaudeMd(root) {
+  const template = readTemplate("CLAUDE.opchain.md").trimEnd();
+  if (!template.includes(CLAUDE_MD_START) || !template.includes(CLAUDE_MD_END)) {
+    throw new Error("CLAUDE.opchain.md template must carry the managed-section markers");
+  }
   const file = join(root, "CLAUDE.md");
   const existing = existsSync(file) ? readFileSync(file, "utf8") : "";
-  const { next, action } = upsertManagedSection(existing, readTemplate("CLAUDE.opchain.md"), { start: CLAUDE_MD_START, end: CLAUDE_MD_END });
+  let next;
+  let action;
+  const start = existing.indexOf(CLAUDE_MD_START);
+  const end = existing.indexOf(CLAUDE_MD_END);
+  if (start !== -1 && end !== -1 && end > start) {
+    next = `${existing.slice(0, start)}${template}${existing.slice(end + CLAUDE_MD_END.length)}`;
+    action = next === existing ? "unchanged" : "updated";
+  } else if (existing.trim()) {
+    next = `${existing.trimEnd()}\n\n${template}\n`;
+    action = "appended";
+  } else {
+    next = `${template}\n`;
+    action = "created";
+  }
   if (action !== "unchanged") writeFileSync(file, next);
   return { path: file, action };
 }
 
-export async function installAgentsMd(root) {
-  const updater = await updaterModule();
-  const file = join(root, updater.AGENTS_MD);
-  const plan = updater.planAgentsMd(root, readTemplate("AGENTS.opchain.md"));
-  if (plan.value) writeFileSync(file, plan.value.bytes);
-  return { path: file, action: plan.action };
+// The AGENTS.md section's templates ship once, in the oc-update skill, which sits
+// beside this installer in the plugin and in the source checkout. The updater
+// carries the same marker rules; it must stay a standalone file, so they are
+// repeated here rather than shared.
+const AGENTS_START_PATTERN = /<!-- opchain:agents-section(?: v\d+)? -->/;
+const AGENTS_END = "<!-- /opchain:agents-section -->";
+const AGENTS_OFF_LINE = /^[ \t]*<!-- opchain:agents-section off -->[ \t]*$/m;
+
+function agentsTemplates(withGate) {
+  const dir = join(SCRIPT_DIR, "..", "skills", "oc-update", "templates");
+  const base = join(dir, "AGENTS.opchain.md");
+  if (!existsSync(base)) throw new Error(`packaged AGENTS.md template is missing: ${base}`);
+  const section = readFileSync(base, "utf8").trimEnd();
+  const end = section.lastIndexOf(AGENTS_END);
+  if (!AGENTS_START_PATTERN.test(section) || end === -1) throw new Error("AGENTS.opchain.md template must carry the managed-section markers");
+  const gateFile = join(dir, "AGENTS.gate.md");
+  if (!withGate || !existsSync(gateFile)) return section;
+  return `${section.slice(0, end).trimEnd()}\n\n${readFileSync(gateFile, "utf8").trim()}\n${section.slice(end)}`;
+}
+
+// The gate rules go in only where the commit-gate runtime is installed.
+export function installAgentsMd(info) {
+  const file = join(info.root, "AGENTS.md");
+  let stat = null;
+  try { stat = lstatSync(file); } catch (error) { if (error.code !== "ENOENT") throw error; }
+  if (stat?.isSymbolicLink()) return { path: file, action: "skipped-symlink" };
+  if (stat && !stat.isFile()) return { path: file, action: "skipped-not-a-file" };
+  const existing = stat ? readFileSync(file, "utf8") : "";
+  if (AGENTS_OFF_LINE.test(existing)) return { path: file, action: "opted-out" };
+  const section = agentsTemplates(existsSync(runtimeRoot(info.commonDir)));
+  const start = AGENTS_START_PATTERN.exec(existing);
+  const to = start ? existing.indexOf(AGENTS_END, start.index) : -1;
+  let next;
+  let action;
+  if (to !== -1) {
+    next = `${existing.slice(0, start.index)}${section}${existing.slice(to + AGENTS_END.length)}`;
+    action = next === existing ? "unchanged" : "updated";
+  } else {
+    next = existing.trim() ? `${existing.trimEnd()}\n\n${section}\n` : `${section}\n`;
+    action = existing.trim() ? "appended" : "created";
+  }
+  if (action !== "unchanged") writeFileSync(file, next);
+  return { path: file, action };
+}
+
+function reportAgentsMd(outcome) {
+  process.stdout.write(`opchain: AGENTS.md opchain section ${outcome.action} (${outcome.path})\n`);
 }
 
 // ---------------------------------------------------------------------------
 
 function parseArgs(argv) {
-  const args = { repo: process.cwd(), enroll: false, doctor: false, ci: false, force: false, claudeMd: false, agentsMd: false, hook: null, remote: null, policy: ".bugcheck.json" };
+  const args = { repo: process.cwd(), enroll: false, doctor: false, ci: false, force: false, claudeMd: false, agentsMd: false, noAgentsMd: false, hook: null, remote: null, policy: ".bugcheck.json" };
   const rest = [...argv];
   while (rest.length) {
     const flag = rest.shift();
@@ -944,6 +994,7 @@ function parseArgs(argv) {
     else if (flag === "--force") args.force = true;
     else if (flag === "--claude-md") args.claudeMd = true;
     else if (flag === "--agents-md") args.agentsMd = true;
+    else if (flag === "--no-agents-md") args.noAgentsMd = true;
     else if (flag === "--hook") args.hook = rest.shift();
     else if (flag === "--remote") args.remote = rest.shift();
     else if (flag === "--policy") args.policy = rest.shift();
@@ -952,11 +1003,12 @@ function parseArgs(argv) {
   if (!args.repo) throw new Error("--repo requires a value");
   if (args.hook && !["post-commit", "pre-push"].includes(args.hook)) throw new Error(`--hook must be post-commit or pre-push, not ${args.hook}`);
   if (args.hook && (args.enroll || args.doctor || args.ci || args.claudeMd || args.agentsMd)) throw new Error("--hook cannot be combined with install modes");
+  if (args.agentsMd && args.noAgentsMd) throw new Error("choose one of --agents-md and --no-agents-md");
   if (args.doctor && (args.enroll || args.ci)) throw new Error("--doctor installs nothing; run it on its own");
   return args;
 }
 
-async function main(argv = process.argv.slice(2)) {
+function main(argv = process.argv.slice(2)) {
   let args;
   try {
     args = parseArgs(argv);
@@ -973,17 +1025,13 @@ async function main(argv = process.argv.slice(2)) {
       return 0;
     }
     if (args.doctor) return printDoctor(info, doctor(info, { policyPath: args.policy }));
-    if (args.claudeMd || args.agentsMd) {
-      if (args.claudeMd) {
-        const outcome = await installClaudeMd(info.root);
-        process.stdout.write(`opchain: CLAUDE.md opchain section ${outcome.action} (${outcome.path})\n`);
-      }
-      if (args.agentsMd) {
-        const outcome = await installAgentsMd(info.root);
-        process.stdout.write(`opchain: AGENTS.md opchain section ${outcome.action} (${outcome.path})\n`);
-      }
-      if (!args.enroll) return 0;
+    if (args.claudeMd) {
+      const outcome = installClaudeMd(info.root);
+      process.stdout.write(`opchain: CLAUDE.md opchain section ${outcome.action} (${outcome.path})\n`);
     }
+    // Enrollment writes AGENTS.md after the runtime exists, so the gate rules are true.
+    if (args.agentsMd && !args.enroll) reportAgentsMd(installAgentsMd(info));
+    if ((args.claudeMd || args.agentsMd) && !args.enroll) return 0;
     const required = args.enroll || isEnrolled(info.root);
     if (isAuthoringRepository(info.root)) {
       installMergeDrivers(info.root);
@@ -1001,6 +1049,11 @@ async function main(argv = process.argv.slice(2)) {
           `opchain: push guard ${hooks[2].path}\n` +
           `opchain: verifier runtime ${runtime.root}\n`,
       );
+      // opchain's own source checkout keeps its hand-written agent guidance.
+      // A missing template must not undo an enrollment that already succeeded.
+      if (!args.noAgentsMd && !isAuthoringRepository(info.root)) {
+        try { reportAgentsMd(installAgentsMd(info)); } catch (error) { process.stderr.write(`opchain: NOTICE AGENTS.md section skipped: ${error.message}\n`); }
+      }
     }
     if (args.ci) {
       const outcome = installCiWorkflow(info.root, { force: args.force });
@@ -1026,5 +1079,5 @@ async function main(argv = process.argv.slice(2)) {
 }
 
 if (process.argv[1] && realpathSync(SCRIPT_PATH) === realpathSync(resolve(process.argv[1]))) {
-  main().then((code) => { process.exitCode = code; });
+  process.exitCode = main();
 }

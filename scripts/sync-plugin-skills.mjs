@@ -27,9 +27,7 @@ const RUNTIME = ["scripts/install-git-drivers.mjs", "scripts/verify-candidate.mj
   // audit 2026-10-08 I-04/I-01: bypass records + the evidence gate the `--ci` installer vendors into consumer repos
   "scripts/lib/bypass-record.cjs", "scripts/lib/release-evidence.mjs", "src/lib/mcp/checkpoint-contract.js",
   // /oc-spec runs it from the plugin in consumer repos
-  "scripts/scaffold-spec.mjs",
-  // install-git-drivers --agents-md/--claude-md share the updater's managed-section helper
-  "scripts/update-opchain.mjs"];
+  "scripts/scaffold-spec.mjs"];
 function runtimeDrift() {
   return RUNTIME.flatMap(file => {
     const target = join(ROOT, "plugins", "opchain", file);

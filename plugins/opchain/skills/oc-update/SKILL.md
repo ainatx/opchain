@@ -57,6 +57,7 @@ install commands below.
 | Install for both | Add `--target=both` |
 | User specifies another repo | Add `--root=<absolute-repo-path>` |
 | Update without touching `AGENTS.md` | Add `--no-agents-md` |
+| Create `AGENTS.md` in a repository that is not enrolled | Add `--agents-md` |
 
 Pass arguments as separate values, quoting paths with spaces. A request to
 update authorizes running the updater; a version-check request authorizes only
@@ -101,29 +102,35 @@ or touch the plugin cache yourself.
 ## The managed AGENTS.md section
 
 Codex, Cursor, Copilot and other agents read the repo-root `AGENTS.md`, not
-`CLAUDE.md`. Every consumer update (repo-local skills for Claude Code or Codex,
-and plugin-only repositories) creates or refreshes an OpChain section there from
-the release's template: read `.checkpoints/` first, pick the matching skill, the
-git-hook gate applies to every agent, never bypass a refused commit without an
-`Opchain-Bypass:` trailer, and never hand-edit vendored `oc-*` skills. It names
-no version; `.opchain-install.json` stays the source of truth.
+`CLAUDE.md`. `/oc-enroll` writes an opchain section there and every consumer
+update (repo-local skills for Claude Code or Codex, and plugin-only
+repositories) refreshes it from the release's templates in
+`oc-update/templates/`: read `.checkpoints/` first, pick the matching skill, and
+never hand-edit vendored `oc-*` skills. It names no version;
+`.opchain-install.json` stays the source of truth.
 
-- Only the text between `<!-- opchain:agents-section v1 -->` and
-  `<!-- /opchain:agents-section -->` is replaced. With no markers the section is
-  appended; text outside the markers is never changed.
+- The commit-gate rules are added only where the gate runtime is installed under
+  the Git common directory (the repository is enrolled). A refresh in a
+  repository that is no longer enrolled drops them.
+- In a repository that is not enrolled, an update adds the section only to an
+  `AGENTS.md` that already exists. `--agents-md` creates one.
+- Only the text between `<!-- opchain:agents-section -->` (a later release may
+  version it, as in `v2`) and `<!-- /opchain:agents-section -->` is replaced.
+  With no markers the section is appended; text outside the markers is never
+  changed.
 - When it changes `AGENTS.md`, or cannot, the updater prints one `AGENTS.md:`
-  line (`created`, `appended`, `updated`, or `skipped (...)` with the reason).
-  Relay it, and offer to commit `AGENTS.md` with the skills. A current section,
-  a standing opt-out, or a release without the template prints nothing.
+  line (`created`, `appended`, `updated`, or `skipped (...)` with the reason)
+  and names an uncommitted `AGENTS.md` in its uncommitted-install warning. Relay
+  both. A current section, a standing opt-out, a release without the template,
+  or a repository that is not enrolled and has no `AGENTS.md` prints nothing.
+- A release template this updater cannot read is reported as a skip; the update
+  itself still succeeds.
 - `--check` reports what would happen and writes nothing.
-- Opt out for one run with `--no-agents-md`, or permanently by putting
-  `<!-- opchain:agents-section off -->` in `AGENTS.md`. Respect either; do not
-  write the section by hand instead.
+- Opt out for one run with `--no-agents-md`, or permanently with a line of its
+  own reading `<!-- opchain:agents-section off -->` in `AGENTS.md`. Respect
+  either; do not write the section by hand instead.
 - A symlinked `AGENTS.md` is skipped (it belongs to its target). Source
   checkouts are skipped: they are not installations.
-- The same section can be written without updating:
-  `node <plugin-root>/scripts/install-git-drivers.mjs --agents-md` (`/oc-enroll
-  --agents-md` in Claude Code).
 
 ## Adding plugins and the duplicate guard
 

@@ -17,52 +17,72 @@ const SEMVER = /^\d+\.\d+\.\d+$/;
 export const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const json = value => Buffer.from(JSON.stringify(value, null, 2) + '\n');
 
-// The managed AGENTS.md section. Every release carries the template inside each
-// runtime owner's scripts/runtime/ tree (runtime-manifest.json lists it), so the
-// downloaded bundle, not a version string, decides what the section says.
+// The managed AGENTS.md section. The release carries its templates once, under
+// oc-update/templates/, so the downloaded bundle, not a version string, decides
+// what the section says. The gate part is added only where the commit gate is
+// installed, because only there is it true.
 export const AGENTS_MD = 'AGENTS.md';
-export const AGENTS_TEMPLATE = 'plugins/opchain/templates/AGENTS.opchain.md';
-export const AGENTS_SECTION_START = '<!-- opchain:agents-section v1 -->';
+export const AGENTS_TEMPLATE = 'oc-update/templates/AGENTS.opchain.md';
+export const AGENTS_GATE_TEMPLATE = 'oc-update/templates/AGENTS.gate.md';
+export const AGENTS_SECTION_START = '<!-- opchain:agents-section -->';
 export const AGENTS_SECTION_END = '<!-- /opchain:agents-section -->';
 export const AGENTS_SECTION_OFF = '<!-- opchain:agents-section off -->';
+// A later template may version its start marker; any of them marks the same section.
+const AGENTS_START_PATTERN = /<!-- opchain:agents-section(?: v\d+)? -->/;
+const AGENTS_OFF_LINE = /^[ \t]*<!-- opchain:agents-section off -->[ \t]*$/m;
 
-// Shared with install-git-drivers.mjs (--agents-md, --claude-md). Only the text
-// between the markers is replaced; everything outside them is kept as it was.
-export function upsertManagedSection(existing, template, { start, end }) {
+// Only the text between the markers is replaced; everything outside them is
+// kept. Throws when the template lacks its markers; callers turn that into a skip.
+function upsertAgentsSection(existing, template) {
   const section = template.trimEnd();
-  if (!section.includes(start) || !section.includes(end)) throw new Error(`Managed-section template must carry ${start} and ${end}`);
-  const from = existing.indexOf(start);
-  const to = from === -1 ? -1 : existing.indexOf(end, from);
+  if (!AGENTS_START_PATTERN.test(section) || !section.trimEnd().endsWith(AGENTS_SECTION_END)) throw new Error('AGENTS.md template lacks its markers');
+  const start = AGENTS_START_PATTERN.exec(existing);
+  const to = start ? existing.indexOf(AGENTS_SECTION_END, start.index) : -1;
   if (to !== -1) {
-    const next = existing.slice(0, from) + section + existing.slice(to + end.length);
+    const next = existing.slice(0, start.index) + section + existing.slice(to + AGENTS_SECTION_END.length);
     return { next, action: next === existing ? 'unchanged' : 'updated' };
   }
   if (existing.trim()) return { next: `${existing.trimEnd()}\n\n${section}\n`, action: 'appended' };
   return { next: `${section}\n`, action: 'created' };
 }
 
+function composeAgentsSection(section, gate) {
+  if (!gate?.trim()) return section;
+  const end = section.lastIndexOf(AGENTS_SECTION_END);
+  if (end === -1) return section;
+  return `${section.slice(0, end).trimEnd()}\n\n${gate.trim()}\n${section.slice(end)}`;
+}
+
+// The commit-gate runtime lives under the Git common directory once /oc-enroll ran.
+export function gateEnrolled(root) {
+  const common = git(root, ['rev-parse', '--git-common-dir']);
+  return Boolean(common) && existsSync(join(resolve(root, common), 'opchain', 'commit-gate'));
+}
+
 // Plans the AGENTS.md write without touching disk: { action, value? }, where
-// value is the desired entry for applyChanges. Opted out, disabled, symlinked
-// or template-less runs plan no write and say why.
-export function planAgentsMd(root, template, { enabled = true } = {}) {
+// value is the desired entry for applyChanges. Nothing here may fail an update:
+// the template comes from a newer release than this updater, so a template this
+// code cannot read is a reported skip.
+export function planAgentsMd(root, templates, { enabled = true, enrolled = false, create = false } = {}) {
   if (!enabled) return { action: 'disabled' };
-  if (template === null) return { action: 'no-template' };
+  if (!templates.section) return { action: 'no-template' };
   let stat = null;
   try { stat = lstatSync(join(root, AGENTS_MD)); } catch (error) { if (error.code !== 'ENOENT') throw error; }
   // A symlinked AGENTS.md (often to CLAUDE.md) belongs to its target; never write through it.
   if (stat?.isSymbolicLink()) return { action: 'skipped-symlink' };
   if (stat && !stat.isFile()) return { action: 'skipped-not-a-file' };
+  if (!stat && !enrolled && !create) return { action: 'not-enrolled' };
   const existing = stat ? readFileSync(join(root, AGENTS_MD), 'utf8') : '';
-  if (existing.includes(AGENTS_SECTION_OFF)) return { action: 'opted-out' };
-  const { next, action } = upsertManagedSection(existing, template, { start: AGENTS_SECTION_START, end: AGENTS_SECTION_END });
-  return { action, value: { bytes: Buffer.from(next), mode: stat ? stat.mode & 0o777 : 0o644 } };
+  if (AGENTS_OFF_LINE.test(existing)) return { action: 'opted-out' };
+  let planned;
+  try { planned = upsertAgentsSection(existing, composeAgentsSection(templates.section, enrolled ? templates.gate : null)); }
+  catch { return { action: 'skipped-template' }; }
+  return { action: planned.action, value: { bytes: Buffer.from(planned.next), mode: stat ? stat.mode & 0o777 : 0o644 } };
 }
 
-function bundleAgentsTemplate(files) {
-  for (const [path, file] of files) {
-    if (/^oc-[a-z0-9-]+\/scripts\/runtime\//.test(path) && path.endsWith(`/scripts/runtime/${AGENTS_TEMPLATE}`)) return file.bytes.toString('utf8');
-  }
-  return null;
+function bundleAgentsTemplates(files) {
+  const text = path => files.get(path)?.bytes.toString('utf8') ?? null;
+  return { section: text(AGENTS_TEMPLATE), gate: text(AGENTS_GATE_TEMPLATE) };
 }
 
 export function compareVersions(a, b) {
@@ -265,18 +285,22 @@ function replace(root, path, value) {
 // .claude/skills instead); receipt entries under an excluded target are kept
 // untouched. With every target excluded nothing is written, not even the receipt.
 // `agentsMd: false` (--no-agents-md) skips the managed AGENTS.md section.
-export async function installBundle(bundle, { root = projectRoot(), target, check = false, beforeWrite = () => {}, exclude = [], agentsMd = true } = {}) {
+// `createAgentsMd` (--agents-md) creates a missing AGENTS.md in a repository the
+// commit gate has not enrolled; `enrolled` defaults to what is on disk.
+export async function installBundle(bundle, { root = projectRoot(), target, check = false, beforeWrite = () => {}, exclude = [], agentsMd = true, createAgentsMd = false, enrolled } = {}) {
   root = realpathSync(resolve(root));
   if (inspect(root, LOCK)) throw new Error(`Another or interrupted update owns ${LOCK}. Inspect its recovery.txt before proceeding.`);
   const files = validateBundle(bundle);
   const targets = targetsFor(root, target).filter(path => !exclude.includes(path));
   const telemetry = await telemetryHealth(root); // Inspect local consent before any mutation; never rewrite it.
-  const agents = planAgentsMd(root, bundleAgentsTemplate(files), { enabled: agentsMd });
+  const agents = planAgentsMd(root, bundleAgentsTemplates(files), { enabled: agentsMd, enrolled: enrolled ?? gateEnrolled(root), create: createAgentsMd });
   const agentsReport = { action: agents.action };
   const release = { version: bundle.version, sha256: digest(Buffer.from(JSON.stringify(bundle) + "\n")) };
   if (!targets.length) {
-    // Plugin-only repository: no skill copies or receipt, but other agents still need AGENTS.md.
+    // Plugin-only repository: no skill copies or receipt, but other agents still need
+    // AGENTS.md, and the backup that write leaves must be ignored like any other.
     const desired = new Map(agents.value ? [[AGENTS_MD, agents.value]] : []);
+    if (agents.value) ignoreLocalState(root, desired);
     const result = await applyChanges(root, desired, { check, beforeWrite, release });
     return { ...result, version: bundle.version, targets, telemetry, retained: [], agentsMd: agentsReport };
   }
@@ -313,14 +337,18 @@ export async function installBundle(bundle, { root = projectRoot(), target, chec
     else if (current) retained.push(path);
     delete inventory[path];
   }
-  const ignored = read(root, '.gitignore')?.bytes.toString() ?? '';
-  const rules = ['/.checkpoints/usage.sqlite', '/.checkpoints/usage.sqlite-*', `/${BACKUPS}/`, `/${LOCK}/`];
-  const missing = rules.filter(rule => !ignored.split(/\r?\n/).includes(rule));
-  if (missing.length) desired.set('.gitignore', { bytes: Buffer.from(ignored + (ignored && !ignored.endsWith('\n') ? '\n' : '') + '\n# Opchain local state\n' + missing.join('\n') + '\n'), mode: 0o644 });
+  ignoreLocalState(root, desired);
   desired.set(RECEIPT, { bytes: json({ schema: 1, version: bundle.version, files: inventory }), mode: 0o644 });
   if (agents.value) desired.set(AGENTS_MD, agents.value);
   const result = await applyChanges(root, desired, { check, beforeWrite, release });
   return { ...result, version: bundle.version, targets, telemetry, retained, agentsMd: agentsReport };
+}
+
+function ignoreLocalState(root, desired) {
+  const ignored = read(root, '.gitignore')?.bytes.toString() ?? '';
+  const rules = ['/.checkpoints/usage.sqlite', '/.checkpoints/usage.sqlite-*', `/${BACKUPS}/`, `/${LOCK}/`];
+  const missing = rules.filter(rule => !ignored.split(/\r?\n/).includes(rule));
+  if (missing.length) desired.set('.gitignore', { bytes: Buffer.from(ignored + (ignored && !ignored.endsWith('\n') ? '\n' : '') + '\n# Opchain local state\n' + missing.join('\n') + '\n'), mode: 0o644 });
 }
 
 function readReceipt(root) {
@@ -583,8 +611,7 @@ export async function syncSourceRepo({ root = projectRoot(), check = false, befo
   const runtimeManifest = JSON.parse(read(root, 'scripts/runtime-manifest.json').bytes);
   const support = new Map();
   for (const path of runtimeManifest.files.filter(path => !path.startsWith('scripts/'))) {
-    // Packaged templates (the AGENTS.md section) ride in the runtime so every bundle carries them.
-    if (path !== 'package.json' && !/^(src\/[a-zA-Z0-9_./-]+|plugins\/opchain\/templates\/[a-zA-Z0-9_.-]+)$/.test(path)) throw new Error(`Invalid runtime source: ${path}`);
+    if (path !== 'package.json' && !/^src\/[a-zA-Z0-9_./-]+$/.test(path)) throw new Error(`Invalid runtime source: ${path}`);
     const value = read(root, path);
     if (!value) throw new Error(`Missing runtime source: ${path}`);
     support.set(path, value);
@@ -1133,7 +1160,7 @@ export const EXIT_PLUGINS = 4;
 
 export async function main(args = process.argv.slice(2)) {
   if (args.includes('--help')) {
-    console.log('opchain update [--check] [--source] [--target=claude|codex|both] [--no-agents-md] [--root=/path/to/repo]\nopchain update --with-plugins[=opchain,ow-tools] [--drop-local-skills | --keep-both] [--root=/path/to/repo]\nopchain update --drop-local-skills [--root=/path/to/repo]\nopchain update plugins [--check] [--root=/path/to/repo]\nopchain update doctor [--json] [--root=/path/to/repo]\nSource checkouts sync from their current skills/ tree; consumer installs download releases. Preserves telemetry and checkpoints.\nAfter skills, the Claude Code CLI (when on PATH) updates the opchain/ow-tools plugins enabled for this repo at project or local scope; plugins runs only that step. Exit 4 means a plugin failed and skills are unaffected.\n--with-plugins adds plugins at project scope (bare: opchain only; ow-tools only when named). With receipt-managed .claude/skills copies it needs --drop-local-skills (plugin only: backs up and removes those copies) or --keep-both.\nConsumer updates also create or refresh the managed OpChain section of the repo-root AGENTS.md (only the text between its markers); skip it with --no-agents-md, or permanently with <!-- opchain:agents-section off --> in AGENTS.md.\ndoctor lists every install surface (global, repo-local, plugin cache, worktrees) and the opchain/ow-tools plugins that load in this repo, with versions and flags duplicates, mismatches, uncommitted installs and parked checkouts.\n' + componentsBanner({ cli: Boolean(findClaudeCli()) }));
+    console.log('opchain update [--check] [--source] [--target=claude|codex|both] [--agents-md | --no-agents-md] [--root=/path/to/repo]\nopchain update --with-plugins[=opchain,ow-tools] [--drop-local-skills | --keep-both] [--root=/path/to/repo]\nopchain update --drop-local-skills [--root=/path/to/repo]\nopchain update plugins [--check] [--root=/path/to/repo]\nopchain update doctor [--json] [--root=/path/to/repo]\nSource checkouts sync from their current skills/ tree; consumer installs download releases. Preserves telemetry and checkpoints.\nAfter skills, the Claude Code CLI (when on PATH) updates the opchain/ow-tools plugins enabled for this repo at project or local scope; plugins runs only that step. Exit 4 means a plugin failed and skills are unaffected.\n--with-plugins adds plugins at project scope (bare: opchain only; ow-tools only when named). With receipt-managed .claude/skills copies it needs --drop-local-skills (plugin only: backs up and removes those copies) or --keep-both.\nConsumer updates also refresh the managed opchain section of the repo-root AGENTS.md (only the text between its markers). A repository the commit gate enrolled gets the file created, with the gate rules; elsewhere an existing AGENTS.md gets the section and --agents-md creates one. Skip it with --no-agents-md, or permanently with <!-- opchain:agents-section off --> on a line of its own in AGENTS.md.\ndoctor lists every install surface (global, repo-local, plugin cache, worktrees) and the opchain/ow-tools plugins that load in this repo, with versions and flags duplicates, mismatches, uncommitted installs and parked checkouts.\n' + componentsBanner({ cli: Boolean(findClaudeCli()) }));
     return 0;
   }
   const options = {};
@@ -1148,6 +1175,7 @@ export async function main(args = process.argv.slice(2)) {
     else if (arg === '--drop-local-skills') options.dropLocal = true;
     else if (arg === '--keep-both') options.keepBoth = true;
     else if (arg === '--no-agents-md') options.agentsMd = false;
+    else if (arg === '--agents-md') options.createAgentsMd = true;
     else if (arg.startsWith('--target=')) options.target = arg.slice(9);
     else if (arg.startsWith('--root=')) options.root = arg.slice(7);
     else throw new Error(`Unknown option: ${arg}`);
@@ -1176,15 +1204,17 @@ export async function main(args = process.argv.slice(2)) {
   if (!sourceMode) console.log(componentsBanner({ cli: Boolean(cli) }));
   console.log(sourceMode ? 'Checking Opchain against this source checkout…' : 'Checking the latest Opchain release…');
   const result = sourceMode ? await syncSourceRepo({ ...options, root }) : await installBundle(await downloadRelease(), { ...options, exclude });
+  const agentsWritten = !options.check && AGENTS_MD_WRITES.has(result.agentsMd?.action) ? [AGENTS_MD] : [];
   if (!result.targets.length) {
     console.log(`opchain ${result.version}: no repo-local skills to update here; the opchain plugin provides them in Claude Code. Telemetry: ${result.telemetry.message}.`);
     if (!result.telemetry.healthy) console.error('Skills are not installed locally; telemetry needs attention. Restore the local database or run /oc-telemetry status to investigate. Consent was preserved.');
+    if (!sourceMode && !options.check) warnUncommitted(root, [], agentsWritten);
   } else if (!result.changed) {
     // No-op runs used to pay the full welcome text; six of six /oc-update runs
     // in the audit corpus changed nothing. One line for skills, then plugins.
     console.log(`opchain ${result.version} is already current on ${result.targets.join(', ')}. Telemetry: ${result.telemetry.message}.`);
     if (!result.telemetry.healthy) console.error(`${options.check ? 'Check completed without installing' : 'Skills are current'}; telemetry needs attention. Restore the local database or run /oc-telemetry status to investigate. Consent was preserved.`);
-    if (!sourceMode && !options.check) warnUncommitted(root, result.targets);
+    if (!sourceMode && !options.check) warnUncommitted(root, result.targets, agentsWritten);
   } else {
     console.log(`Opchain ${result.version}: ${options.check ? `${result.changed} files would change` : `${result.changed} files updated and verified`}.`);
     console.log(`Skills: ${result.targets.join(', ')}\nTelemetry: ${result.telemetry.message}.`);
@@ -1193,7 +1223,7 @@ export async function main(args = process.argv.slice(2)) {
     if (result.retained.length) console.log(`Kept ${result.retained.length} customized obsolete files.`);
     if (!result.telemetry.healthy) console.error(`${options.check ? 'Check completed without installing' : 'Skills are ready'}; telemetry needs attention. Restore the local database or run /oc-telemetry status to investigate. Consent was preserved.`);
     if (!options.check) console.log('Start a new agent session if the updated skills do not appear.');
-    if (!sourceMode && !options.check) warnUncommitted(root, result.targets);
+    if (!sourceMode && !options.check) warnUncommitted(root, result.targets, agentsWritten);
   }
   const agentsLine = result.agentsMd && agentsMdLine(result.agentsMd.action, options.check);
   if (agentsLine) console.log(agentsLine);
@@ -1242,17 +1272,20 @@ function choosePluginSurface(root, options, sourceMode) {
 
 // No-op runs print one line for skills, so actions that change nothing
 // (current, a standing opt-out, a release without the template) print nothing.
-const AGENTS_MD_QUIET = new Set(['unchanged', 'opted-out', 'no-template']);
+// A repository the gate has not enrolled, with no AGENTS.md, is left alone quietly too.
+const AGENTS_MD_QUIET = new Set(['unchanged', 'opted-out', 'no-template', 'not-enrolled']);
+const AGENTS_MD_WRITES = new Set(['created', 'appended', 'updated']);
 const AGENTS_MD_REASONS = Object.freeze({
   disabled: 'skipped (--no-agents-md)',
   'skipped-symlink': 'skipped (AGENTS.md is a symlink; edit its target by hand)',
   'skipped-not-a-file': 'skipped (AGENTS.md is not a regular file)',
+  'skipped-template': 'skipped (this updater cannot read the release template; the next update will retry)',
 });
 
 export function agentsMdLine(action, check = false) {
   if (AGENTS_MD_QUIET.has(action)) return null;
-  if (AGENTS_MD_REASONS[action]) return `AGENTS.md: OpChain section ${AGENTS_MD_REASONS[action]}.`;
-  return `AGENTS.md: OpChain section ${check ? `would be ${action}` : action}.`;
+  if (AGENTS_MD_REASONS[action]) return `AGENTS.md: opchain section ${AGENTS_MD_REASONS[action]}.`;
+  return `AGENTS.md: opchain section ${check ? `would be ${action}` : action}.`;
 }
 
 function reportPlugins(plugins) {
@@ -1260,13 +1293,21 @@ function reportPlugins(plugins) {
   return plugins.failed ? EXIT_PLUGINS : 0;
 }
 
-function warnUncommitted(root, targets) {
-  const dirty = uncommittedInstall(root, targets);
-  if (!dirty.length) return;
-  let dirs = [...new Set(dirty.map(line => line.slice(3).split('/').slice(0, 2).join('/')))].filter(d => TARGETS.includes(d));
-  if (!dirs.length) dirs = targets;
+// `extra` names root files this run wrote (AGENTS.md) beside the skill targets.
+export function uncommittedWarning(root, targets, extra = []) {
+  const paths = [...targets, ...extra];
+  const dirty = uncommittedInstall(root, paths);
+  if (!dirty.length) return null;
+  const owner = line => paths.find(path => line.slice(3) === path || line.slice(3).startsWith(`${path}/`));
+  let dirs = [...new Set(dirty.map(owner).filter(Boolean))];
+  if (!dirs.length) dirs = paths;
   const where = dirs.length > 1 ? `${dirs[0]} (and ${dirs.slice(1).join(', ')})` : dirs[0];
-  console.warn(`installed but NOT committed — commit ${where} or the next session will run the old version (${dirty.length} path(s) modified or untracked).`);
+  return `installed but NOT committed — commit ${where} or the next session will run the old version (${dirty.length} path(s) modified or untracked).`;
+}
+
+function warnUncommitted(root, targets, extra = []) {
+  const warning = uncommittedWarning(root, targets, extra);
+  if (warning) console.warn(warning);
 }
 
 if (process.argv[1] && existsSync(process.argv[1]) && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {

@@ -34,7 +34,6 @@ function fixture({ git = true } = {}) {
   put(root, 'skills/orchestrator.md', readFileSync(join(SOURCE, 'skills/orchestrator.md'), 'utf8') + '\nLocal checkout authoritative marker.\n');
   for (const file of ['local-checkpoint-store.js', 'checkpoint-store.js', 'checkpoint-contract.js']) put(root, `src/lib/mcp/${file}`, readFileSync(join(SOURCE, 'src/lib/mcp', file)));
   cpSync(join(SOURCE, 'scripts'), join(root, 'scripts'), { recursive: true });
-  put(root, 'plugins/opchain/templates/AGENTS.opchain.md', readFileSync(join(SOURCE, 'plugins/opchain/templates/AGENTS.opchain.md')));
   put(root, 'package.json', '{"name":"opchain-source-fixture","type":"module"}\n');
   if (git) {
     const init = spawnSync('git', ['init', '-q', root], { encoding: 'utf8' });
