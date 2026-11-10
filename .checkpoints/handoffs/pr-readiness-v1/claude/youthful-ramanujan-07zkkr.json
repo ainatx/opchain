@@ -1,0 +1,27 @@
+{
+  "id": "oc-repo-ops-pr-readiness-v1-df103e35c091",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-11-10T21:36:11.190Z",
+  "verified_at": "2026-11-10T21:36:11.190Z",
+  "producer": {
+    "skill": "oc-repo-ops",
+    "run_id": "pr-readiness-v1-2026-11-10T21:36:11.190Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:df103e35c0916d58cc3001985979308afe41eb8fc136954f78201eef152af841"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-readiness-v1",
+    "scope": "Same change set at the append fix: working tree clean; sync-bundles:check and sync-plugin-skills:check pass (skill references, 5 runtime bundles, plugin mirror, src/generated/mcp-catalog.json current); gen-catalog, check-skill-flags, check-skill-contracts and lint-internal-refs pass; git ls-files '.checkpoints/*.lock' prints nothing and the lock path is ignored by the tracked .checkpoints/.gitignore; .checkpoints/ stays tracked; PR body carries ## Documentation.",
+    "evidence": [
+      "scripts/checkpoint.mjs",
+      "scripts/install-git-drivers.mjs",
+      ".checkpoints/.gitignore",
+      "tests/install-git-drivers.test.js",
+      "tests/checkpoint-cli.test.js"
+    ]
+  }
+}

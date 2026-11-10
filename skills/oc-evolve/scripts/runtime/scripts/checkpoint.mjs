@@ -68,7 +68,7 @@
  *   frontmatter and moves independently as the docs/tooling evolve).
  */
 
-import { accessSync, constants, readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, rmdirSync, statSync, realpathSync, unlinkSync } from "node:fs";
+import { accessSync, appendFileSync, constants, lstatSync, readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, rmdirSync, statSync, realpathSync, unlinkSync } from "node:fs";
 import { dirname, join, basename, resolve, delimiter, relative, isAbsolute, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash, randomUUID } from "node:crypto";
@@ -1700,6 +1700,49 @@ function mutationSkill() {
   return rest[0] && SKILL_NAME.test(rest[0]) ? rest[0] : null;
 }
 
+/** What a mutating verb leaves in the checkpoint directory besides checkpoints:
+ *  the advisory lock file below, which has to outlive the command (see
+ *  runWithMutationLock), and the temp file of an atomic write that was killed
+ *  before its rename. */
+export const RUNTIME_IGNORE_PATTERNS = Object.freeze(["*.lock", ".*.tmp"]);
+
+/** Ignore those in `<dir>/.gitignore`, the file the local MCP store keeps for
+ *  the same artifacts (src/lib/mcp/local-checkpoint-store.js). The writer of the
+ *  lock adds the rule because no other step runs in every repository that takes
+ *  one: enrollment does not run in a skills-only install, and a repository
+ *  enrolled before this existed is not enrolled again. A consumer repository
+ *  committed two lock files that way.
+ *
+ *  The missing lines are appended; the file is never rewritten. The store
+ *  rewrites this file (read, temp file, rename) under its own lock when it
+ *  creates a session, and this CLI holds no lock in common with it. A rewrite
+ *  here that landed after the store's rename would drop the store's lines and
+ *  leave its private session registry unignored. An append cannot remove a line
+ *  whoever else writes, and the store's patterns include both of these, so no
+ *  interleaving loses a rule. Two writers that race on first use can leave a
+ *  duplicate line, which Git ignores.
+ *
+ *  A symlink is somebody's own arrangement and is not written through.
+ *  `beforeWrite` is the test seam for the interleaving. Returns true when it
+ *  wrote. */
+export function ensureRuntimeIgnore(dir, { beforeWrite } = {}) {
+  const file = join(dir, ".gitignore");
+  let stat = null;
+  try {
+    stat = lstatSync(file);
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  if (stat && !stat.isFile()) return false;
+  const current = stat ? readFileSync(file, "utf8") : "";
+  const lines = new Set(current.split(/\r?\n/));
+  const missing = RUNTIME_IGNORE_PATTERNS.filter((pattern) => !lines.has(pattern));
+  if (missing.length === 0) return false;
+  if (typeof beforeWrite === "function") beforeWrite(file);
+  appendFileSync(file, `${current.length === 0 || current.endsWith("\n") ? "" : "\n"}${missing.join("\n")}\n`);
+  return true;
+}
+
 function runWithMutationLock() {
   const skill = mutationSkill();
   if (!skill) return run();
@@ -1714,6 +1757,19 @@ function runWithMutationLock() {
     return 1;
   }
   if (!existsSync(DIR)) mkdirSync(DIR, { recursive: true });
+  // The lock file stays on disk on purpose. Removing it after release lets a
+  // writer that was waiting on the old inode and a writer that creates a new file
+  // at the same path both hold "the" lock (macOS lockf needs -k for the same
+  // reason). Moving it under the Git directory would need the local MCP store,
+  // which locks this exact path, to move in the same release: an older store or
+  // an older bundled copy of this CLI would lock a different file and stop
+  // excluding this one. So it is ignored instead, before it first exists. A
+  // checkpoint write must not fail because that could not be done.
+  try {
+    ensureRuntimeIgnore(DIR);
+  } catch (error) {
+    console.error(`⚠ could not write ${join(DIR, ".gitignore")} (${error.message}); checkpoint lock files will show in git status`);
+  }
   const lockArgs = runtime.platform === "linux"
     ? ["-x", "-w", "10", lockPath]
     : ["-k", "-t", "10", lockPath];

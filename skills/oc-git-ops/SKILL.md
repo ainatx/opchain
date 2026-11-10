@@ -714,6 +714,8 @@ dist/
 build/
 .wrangler/
 .git-ops-config.json   # Local oc-git-ops config
+.checkpoints/*.lock    # Lock file every checkpoint write leaves on disk
+.checkpoints/.*.tmp    # Temp file of an interrupted checkpoint write
 ```
 
 Do **not** gitignore `.checkpoints/` by default — the checkpoint protocol tracks it
@@ -721,6 +723,15 @@ in git unless the project's protocol says otherwise, and oc-repo-ops enforces th
 policy at the pre-PR gate. Only ignore it when the project has explicitly opted out.
 That includes archived checkpoints: they rotate into the tracked
 `.checkpoints/history/` directory, so there is no `.bak` pattern to ignore.
+
+The two `.checkpoints/` patterns are the exception inside that tracked directory.
+They live in `.checkpoints/.gitignore` as `*.lock` and `.*.tmp`. The checkpoint CLI
+writes that file before it takes a lock and `/oc-enroll` writes it at enrollment,
+so commit it when it appears and add nothing by hand. Check the result rather than
+the file: `git ls-files '.checkpoints/*.lock'` must print nothing. An ignore rule
+leaves a tracked file tracked, so when it prints one, run
+`git rm --cached -- '.checkpoints/*.lock'` and commit that. `/oc-enroll --doctor`
+reports both a missing rule and a tracked lock file.
 
 If `.gitignore` is missing entries, add them in a separate `chore: update .gitignore`
 commit before the feature commits.

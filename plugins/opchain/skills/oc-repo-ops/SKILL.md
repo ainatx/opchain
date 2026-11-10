@@ -84,6 +84,8 @@ Checks:
 
 - Git status, branch, base branch, untracked files, and ignored generated junk.
 - `.gitignore` policy against the project convention.
+- Checkpoint lock files: `git ls-files '.checkpoints/*.lock'` prints nothing, and
+  `git check-ignore -q --no-index .checkpoints/x.checkpoint.json.lock` succeeds.
 - Generated artifacts that are missing, stale, or checked in incorrectly.
 - Catalog parity: source directories, README tables, registry flags, site catalog,
   MCP catalog, packaged plugin/cache where configured.
@@ -111,6 +113,10 @@ PR readiness gate. Fail closed on:
 - Dirty untracked files that look related to the PR but are not staged or
   intentionally ignored.
 - `.gitignore` rules that contradict project policy.
+- A tracked checkpoint lock file (`git ls-files '.checkpoints/*.lock'` prints one),
+  or `.checkpoints/*.lock` not ignored. The checkpoint CLI and `/oc-enroll` write
+  the rule into `.checkpoints/.gitignore`; a file tracked before that needs
+  `git rm --cached -- '.checkpoints/*.lock'`.
 - Broken internal links in docs touched by the PR.
 - Checkpoint pointers to files that no longer exist.
 

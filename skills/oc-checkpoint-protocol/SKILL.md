@@ -594,9 +594,15 @@ The `.checkpoints/` directory is:
 - Surfaced via `npm run checkpoint:status` — the canonical "where did I
   leave off?" command for new sessions
 
-Local MCP also maintains `.checkpoints/.gitignore` entries for its private
-runtime artifacts: `.mcp-sessions.json`, `*.lock`, `.*.tmp`, and the reserved
-`.local/` subtree. Skill `*.checkpoint.json` files remain trackable.
+`.checkpoints/.gitignore` keeps the runtime artifacts out of git while the
+checkpoints stay tracked. Every mutating CLI verb (`update`, `done`, `reset`,
+`handoff`, `acceptance`) takes a lock on `<skill>.checkpoint.json.lock` and leaves
+the zero-byte file on disk, so the checkpoint CLI adds `*.lock` and `.*.tmp` to
+that file before it takes the lock, and `/oc-enroll` writes the same two lines at
+enrollment. Local MCP adds its own private entries there: `.mcp-sessions.json`
+and the reserved `.local/` subtree. Each writer appends only the lines that are
+missing. Commit the file when it appears. Skill `*.checkpoint.json` files remain
+trackable.
 
 ---
 

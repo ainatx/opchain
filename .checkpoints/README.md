@@ -38,6 +38,16 @@ conflicts per PR. The pre-commit hook reads the file locally and
 handles the missing-file case by prompting `/oc-bugcheck run` before the
 first commit on a fresh clone.
 
+### Exception: lock and temp files
+
+`.gitignore` in this directory ignores `*.lock` and `.*.tmp`. Every
+mutating verb (`update`, `done`, `reset`, `handoff`, `acceptance`) locks
+`<skill>.checkpoint.json.lock` and leaves the zero-byte file on disk; it
+is never removed, because removing it would let two writers hold the lock
+at once. The CLI writes the two lines itself before it takes a lock, and
+`/oc-enroll` writes them in a consumer repository, so the file is tracked
+here and is not edited by hand.
+
 ## Schema (loose, validated in CI)
 
 | Field | Required | Type | Notes |

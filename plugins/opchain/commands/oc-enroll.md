@@ -35,6 +35,13 @@ vendored `oc-*` skills change only through the updater. It names no version
 line reading `<!-- opchain:agents-section off -->`, and with `--no-agents-md`.
 Offer to commit `AGENTS.md`.
 
+Enrollment also writes `*.lock` and `.*.tmp` into `.checkpoints/.gitignore`.
+Every checkpoint write leaves a zero-byte `<skill>.checkpoint.json.lock` beside
+the tracked checkpoints, and without the rule `git add -A` commits it. Only
+missing lines are appended, the repo-root `.gitignore` is not touched, and the
+checkpoint CLI writes the same two lines itself in a repository that never
+enrolled. Offer to commit `.checkpoints/.gitignore`.
+
 If setup exits nonzero or prints `BLOCKED`, stop. Never overwrite an existing
 foreign hook. Show the user the exact manual integration snippet emitted by the
 installer and do not claim commit enforcement until their hook manager runs it.
@@ -45,6 +52,10 @@ Other modes, with the user's arguments in `$ARGUMENTS`:
   each hook, the `.bugcheck.json` `verification` block, whether every declared
   command resolves (`node_modules/.bin` or PATH, `npm run` scripts exist), and
   whether `node_modules/` is a real install rather than a `.vite`-only cache.
+  It also prints a WARN, which does not fail the run, when `.checkpoints/*.lock`
+  is not ignored, is ignored only by this clone's `.git/info/exclude` or a global
+  excludes file, or when a lock file is already tracked (the fix is
+  `git rm --cached -- '.checkpoints/*.lock'`).
   Run it when a gate FAILs with exit 127 or on a fresh worktree.
 - `--ci [--force]` — enrolls, vendors the verifier into `.opchain/runtime/`, and
   writes `.github/workflows/opchain-evidence.yml` so every pull request runs
