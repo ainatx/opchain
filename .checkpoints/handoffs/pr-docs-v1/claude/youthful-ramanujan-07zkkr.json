@@ -1,21 +1,21 @@
 {
-  "id": "oc-docs-forge-pr-docs-v1-d3a3209b1f26",
+  "id": "oc-docs-forge-pr-docs-v1-df103e35c091",
   "contract_version": "1.0",
   "type": "verification.verdict",
-  "created_at": "2026-11-10T21:23:08.839Z",
-  "verified_at": "2026-11-10T21:23:08.839Z",
+  "created_at": "2026-11-10T21:36:10.992Z",
+  "verified_at": "2026-11-10T21:36:10.992Z",
   "producer": {
     "skill": "oc-docs-forge",
-    "run_id": "pr-docs-v1-2026-11-10T21:23:08.839Z"
+    "run_id": "pr-docs-v1-2026-11-10T21:36:10.992Z"
   },
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:d3a3209b1f2655c497e1aadb7eff328637e9ebcb3afd9b4d75bdd0e767828ae6"
+    "id": "sha256:df103e35c0916d58cc3001985979308afe41eb8fc136954f78201eef152af841"
   },
   "payload": {
     "verdict": "PASS",
     "policy": "pr-docs-v1",
-    "scope": "Checkpoint lock-file ignore rule: skills/CHANGELOG.md Unreleased entry; oc-git-ops .gitignore Enforcement; oc-repo-ops audit and verify checks plus references/pr-readiness-gate.md; oc-checkpoint-protocol Directory Convention; plugins/opchain/commands/oc-enroll.md (enroll write and --doctor WARN); .checkpoints/README.md. README.md, mirror/README.md, plugins/opchain/README.md and mcp/README.md unchanged: none lists the files enrollment writes under .checkpoints/, and mcp/README.md already says .checkpoints/.gitignore excludes lock and temp files.",
+    "scope": "Checkpoint lock-file ignore rule: skills/CHANGELOG.md Unreleased entry; oc-git-ops .gitignore Enforcement; oc-repo-ops audit and verify checks plus references/pr-readiness-gate.md; oc-checkpoint-protocol Directory Convention; plugins/opchain/commands/oc-enroll.md (enroll write and --doctor WARN); .checkpoints/README.md. The follow-up commit changes how the two lines are written (append, not rewrite) and no reader-facing doc: every doc already says missing lines are appended. README.md, mirror/README.md, plugins/opchain/README.md and mcp/README.md unchanged: none lists the files enrollment writes under .checkpoints/, and mcp/README.md already says .checkpoints/.gitignore excludes lock and temp files.",
     "evidence": [
       "skills/CHANGELOG.md",
       "skills/oc-git-ops/SKILL.md",
