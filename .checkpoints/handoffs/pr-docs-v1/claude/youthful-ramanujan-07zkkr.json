@@ -1,0 +1,29 @@
+{
+  "id": "oc-docs-forge-pr-docs-v1-d3a3209b1f26",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-11-10T21:23:08.839Z",
+  "verified_at": "2026-11-10T21:23:08.839Z",
+  "producer": {
+    "skill": "oc-docs-forge",
+    "run_id": "pr-docs-v1-2026-11-10T21:23:08.839Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:d3a3209b1f2655c497e1aadb7eff328637e9ebcb3afd9b4d75bdd0e767828ae6"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-docs-v1",
+    "scope": "Checkpoint lock-file ignore rule: skills/CHANGELOG.md Unreleased entry; oc-git-ops .gitignore Enforcement; oc-repo-ops audit and verify checks plus references/pr-readiness-gate.md; oc-checkpoint-protocol Directory Convention; plugins/opchain/commands/oc-enroll.md (enroll write and --doctor WARN); .checkpoints/README.md. README.md, mirror/README.md, plugins/opchain/README.md and mcp/README.md unchanged: none lists the files enrollment writes under .checkpoints/, and mcp/README.md already says .checkpoints/.gitignore excludes lock and temp files.",
+    "evidence": [
+      "skills/CHANGELOG.md",
+      "skills/oc-git-ops/SKILL.md",
+      "skills/oc-repo-ops/SKILL.md",
+      "skills/oc-repo-ops/references/pr-readiness-gate.md",
+      "skills/oc-checkpoint-protocol/SKILL.md",
+      "plugins/opchain/commands/oc-enroll.md",
+      ".checkpoints/README.md"
+    ]
+  }
+}
